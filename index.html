@@ -1,205 +1,136 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>高考双倒计时 · 2027主战场 / 2026复盘线</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-
-        :root {
-            --primary: #7c3aed;
-            --accent: #f59e0b;
-            --ink: #f8fafc;
-        }
-
-        body {
-            font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
-            background: radial-gradient(circle at 20% 20%, #1f2937 0%, #0b1020 35%, #020617 100%);
-        }
-
-        .glass {
-            background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-
-        .metric {
-            transition: transform .25s ease, border-color .25s ease;
-        }
-
-        .metric:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .switch-btn.active {
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            color: #111827;
-            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
-        }
-
-        .pulse-dot {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: .4; transform: scale(.9); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>高考倒计时 · 2027 / 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 18% 15%, #1e293b 0%, #0b1120 45%, #020617 100%);
+      color: #e2e8f0;
+    }
+    .glass {
+      background: linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.05));
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
 </head>
-<body class="text-slate-100 min-h-[100dvh] overflow-x-hidden">
-<div class="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,rgba(148,163,184,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.2)_1px,transparent_1px)] bg-[size:34px_34px]"></div>
+<body class="min-h-screen overflow-x-hidden">
+  <div class="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,rgba(148,163,184,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.2)_1px,transparent_1px)] bg-[size:34px_34px]"></div>
 
-<main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-[100dvh] flex flex-col gap-8">
-    <header class="text-center">
-        <p class="inline-flex items-center gap-2 text-xs tracking-[0.35em] uppercase text-amber-200/90 mb-3">
-            <span class="pulse-dot w-2 h-2 rounded-full bg-amber-300"></span>
-            Countdown Design System 2027
-        </p>
-        <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-tight">高考倒计时 · 主线与复盘线</h1>
-        <p class="mt-4 text-base sm:text-lg text-slate-300">不是“看时间”，而是“看策略”——2027 冲刺 + 2026 复盘双视角。</p>
+  <main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <header class="text-center mb-8 sm:mb-10">
+      <div class="inline-flex items-center gap-2 text-amber-300 text-xs tracking-[0.3em] uppercase mb-3">
+        <span class="w-2 h-2 rounded-full bg-amber-300"></span> Gaokao Countdown
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-black">2027 主战场 + 2026 实战线</h1>
+      <p class="mt-4 text-slate-300">你不是在等时间过去，而是在把每一天变成分数。</p>
     </header>
 
-    <section class="glass rounded-3xl p-4 sm:p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <div class="text-sm text-slate-300">
-                <i class="fa-solid fa-location-dot mr-1 text-amber-300"></i>中国高考参考时间
-            </div>
-            <div class="flex gap-2" id="switcher">
-                <button class="switch-btn active rounded-full px-4 py-2 text-sm font-bold bg-white/10 text-slate-200" data-target="2027">2027 主战场</button>
-                <button class="switch-btn rounded-full px-4 py-2 text-sm font-bold bg-white/10 text-slate-200" data-target="2026">2026 复盘线</button>
-            </div>
+    <section class="grid md:grid-cols-2 gap-4 sm:gap-6">
+      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2027">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-black text-amber-300">2027 高考</h2>
+          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2027/06/07 09:00</span>
         </div>
-
-        <div id="exam-meta" class="mb-6 text-center text-slate-300 text-sm sm:text-base"></div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-            <article class="metric glass rounded-2xl p-5 text-center">
-                <div id="days" class="text-5xl sm:text-6xl lg:text-7xl font-black tabular-nums">000</div>
-                <div class="mt-2 text-sm sm:text-base tracking-[0.2em] text-slate-300">天</div>
-            </article>
-            <article class="metric glass rounded-2xl p-5 text-center">
-                <div id="hours" class="text-5xl sm:text-6xl lg:text-7xl font-black tabular-nums">00</div>
-                <div class="mt-2 text-sm sm:text-base tracking-[0.2em] text-slate-300">小时</div>
-            </article>
-            <article class="metric glass rounded-2xl p-5 text-center">
-                <div id="minutes" class="text-5xl sm:text-6xl lg:text-7xl font-black tabular-nums">00</div>
-                <div class="mt-2 text-sm sm:text-base tracking-[0.2em] text-slate-300">分钟</div>
-            </article>
-            <article class="metric glass rounded-2xl p-5 text-center">
-                <div id="seconds" class="text-5xl sm:text-6xl lg:text-7xl font-black tabular-nums">00</div>
-                <div class="mt-2 text-sm sm:text-base tracking-[0.2em] text-slate-300">秒</div>
-            </article>
+        <p class="text-sm text-slate-300 mb-4">主线：长期稳定推进，重心放在体系化提分。</p>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="glass rounded-xl py-3"><p id="d2027" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-slate-300">天</p></div>
+          <div class="glass rounded-xl py-3"><p id="h2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">时</p></div>
+          <div class="glass rounded-xl py-3"><p id="m2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">分</p></div>
+          <div class="glass rounded-xl py-3"><p id="s2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">秒</p></div>
         </div>
-
-        <div class="grid md:grid-cols-[1.2fr_1fr] gap-4 items-stretch">
-            <div class="glass rounded-2xl p-5">
-                <div class="flex justify-between text-xs sm:text-sm text-slate-300 mb-2">
-                    <span>阶段完成度</span>
-                    <span id="percent">0%</span>
-                </div>
-                <div class="h-2.5 bg-slate-500/30 rounded-full overflow-hidden">
-                    <div id="progress" class="h-full bg-gradient-to-r from-amber-300 via-orange-400 to-pink-500 transition-all duration-700" style="width:0%"></div>
-                </div>
-                <p id="stage-tip" class="mt-3 text-xs sm:text-sm text-slate-300"></p>
-            </div>
-
-            <aside class="glass rounded-2xl p-5 flex flex-col justify-between">
-                <p id="status-label" class="text-lg font-bold text-amber-300 mb-2"></p>
-                <p id="status-desc" class="text-sm text-slate-300 leading-relaxed"></p>
-                <a href="./liaoning.html" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition">
-                    <i class="fa-solid fa-table-list"></i>
-                    辽宁高校学科评估速查
-                </a>
-            </aside>
+        <div class="mt-4">
+          <div class="flex justify-between text-xs text-slate-300 mb-1"><span>阶段完成度</span><span id="p2027">0%</span></div>
+          <div class="h-2 rounded-full bg-slate-500/30 overflow-hidden"><div id="bar2027" class="h-full bg-gradient-to-r from-amber-300 to-orange-500" style="width:0%"></div></div>
+          <p id="t2027" class="text-xs text-slate-400 mt-2"></p>
         </div>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2026">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-black text-cyan-300">2026 高考</h2>
+          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2026/06/07 09:00</span>
+        </div>
+        <p class="text-sm text-slate-300 mb-4">实战线：近程冲刺，盯住时间分配和稳定拿分题。</p>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="glass rounded-xl py-3"><p id="d2026" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-slate-300">天</p></div>
+          <div class="glass rounded-xl py-3"><p id="h2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">时</p></div>
+          <div class="glass rounded-xl py-3"><p id="m2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">分</p></div>
+          <div class="glass rounded-xl py-3"><p id="s2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-slate-300">秒</p></div>
+        </div>
+        <div class="mt-4">
+          <div class="flex justify-between text-xs text-slate-300 mb-1"><span>阶段完成度</span><span id="p2026">0%</span></div>
+          <div class="h-2 rounded-full bg-slate-500/30 overflow-hidden"><div id="bar2026" class="h-full bg-gradient-to-r from-cyan-300 to-blue-500" style="width:0%"></div></div>
+          <p id="t2026" class="text-xs text-slate-400 mt-2"></p>
+        </div>
+      </article>
     </section>
 
-    <footer class="text-center text-slate-400 text-xs sm:text-sm pb-2">
-        愿每一次刷题都有回响，愿每一次复盘都指向更高分。🚀
-    </footer>
-</main>
+    <section class="glass rounded-2xl p-4 sm:p-5 mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p class="text-sm text-slate-300">建议：早上做“限时整套”，晚上做“错因复盘”。任何无效努力，都要被你亲手砍掉。</p>
+      <a href="./liaoning.html" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition w-fit">
+        <i class="fa-solid fa-table-list"></i> 辽宁高校学科评估速查
+      </a>
+    </section>
+  </main>
 
-<script>
-    const EXAMS = {
-        '2027': {
-            name: '2027 主战场',
-            start: new Date('2027-06-07T09:00:00+08:00'),
-            warmup: new Date('2026-09-01T00:00:00+08:00'),
-            dateLabel: '2027年6月7日 - 6月9日',
-            active: '主战倒计时进行中',
-            done: '2027 高考已开考，进入终局执行模式。',
-            desc: '按周设目标、按天做复盘、按题型做减法，优先保证稳定拿分题。'
-        },
-        '2026': {
-            name: '2026 复盘线',
-            start: new Date('2026-06-07T09:00:00+08:00'),
-            warmup: new Date('2025-09-01T00:00:00+08:00'),
-            dateLabel: '2026年6月7日 - 6月9日',
-            active: '2026 考期已成历史，复盘价值最高',
-            done: '2026 高考节点已结束，可作为真题节奏标尺。',
-            desc: '把 2026 当作节奏镜子：时间分配、心理波动、题型优先级都能借鉴。'
-        }
+  <script>
+    const CONFIG = {
+      '2027': { start: new Date('2027-06-07T09:00:00+08:00'), warmup: new Date('2026-09-01T00:00:00+08:00') },
+      '2026': { start: new Date('2026-06-07T09:00:00+08:00'), warmup: new Date('2025-09-01T00:00:00+08:00') }
     };
 
-    let currentKey = '2027';
+    function renderYear(key) {
+      const now = new Date();
+      const { start, warmup } = CONFIG[key];
+      const diff = start - now;
+      const total = start - warmup;
+      const elapsed = Math.min(Math.max(now - warmup, 0), total);
+      const percent = total > 0 ? Math.floor((elapsed / total) * 100) : 100;
 
-    function renderCountdown() {
-        const now = new Date();
-        const exam = EXAMS[currentKey];
-        const diff = exam.start - now;
-        const total = exam.start - exam.warmup;
-        const elapsed = now - exam.warmup;
+      const d = document.getElementById(`d${key}`);
+      const h = document.getElementById(`h${key}`);
+      const m = document.getElementById(`m${key}`);
+      const s = document.getElementById(`s${key}`);
+      const p = document.getElementById(`p${key}`);
+      const bar = document.getElementById(`bar${key}`);
+      const tip = document.getElementById(`t${key}`);
 
-        const clampedElapsed = Math.min(Math.max(elapsed, 0), total);
-        const percent = total > 0 ? Math.floor((clampedElapsed / total) * 100) : 100;
+      p.textContent = `${percent}%`;
+      bar.style.width = `${percent}%`;
+      tip.textContent = `起算日：${warmup.toLocaleDateString('zh-CN')} · 节点日：${start.toLocaleDateString('zh-CN')}`;
 
-        document.getElementById('exam-meta').textContent = `${exam.name} ｜ ${exam.dateLabel}`;
-        document.getElementById('percent').textContent = `${percent}%`;
-        document.getElementById('progress').style.width = `${percent}%`;
-        document.getElementById('stage-tip').textContent = `以 ${exam.warmup.toLocaleDateString('zh-CN')} 为起点计算阶段进度。`;
+      if (diff <= 0) {
+        d.textContent = '000'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        return;
+      }
 
-        if (diff <= 0) {
-            document.getElementById('days').textContent = '000';
-            document.getElementById('hours').textContent = '00';
-            document.getElementById('minutes').textContent = '00';
-            document.getElementById('seconds').textContent = '00';
-            document.getElementById('status-label').textContent = exam.active;
-            document.getElementById('status-desc').textContent = exam.done;
-            return;
-        }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        document.getElementById('days').textContent = String(days).padStart(3, '0');
-        document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-        document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-        document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
-        document.getElementById('status-label').textContent = exam.active;
-        document.getElementById('status-desc').textContent = exam.desc;
+      d.textContent = String(days).padStart(3, '0');
+      h.textContent = String(hours).padStart(2, '0');
+      m.textContent = String(minutes).padStart(2, '0');
+      s.textContent = String(seconds).padStart(2, '0');
     }
 
-    document.getElementById('switcher').addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-target]');
-        if (!btn) return;
-        currentKey = btn.dataset.target;
-        document.querySelectorAll('.switch-btn').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        renderCountdown();
-    });
+    function tick() {
+      renderYear('2027');
+      renderYear('2026');
+    }
 
-    renderCountdown();
-    setInterval(renderCountdown, 1000);
-</script>
+    tick();
+    setInterval(tick, 1000);
+  </script>
 </body>
 </html>
