@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高考倒计时 · 2027 / 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold">高考倒计时</h1>
+      <p class="mt-2 text-slate-600">2027 与 2026 高考时间提醒</p>
+    </header>
+
+    <section class="grid md:grid-cols-2 gap-4 sm:gap-6">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-slate-800">2027 高考</h2>
+          <span class="text-xs text-slate-500">2027/06/07 09:00</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="rounded-lg bg-slate-50 py-3"><p id="d2027" class="num text-2xl font-bold">000</p><p class="text-xs text-slate-500">天</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="h2027" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">时</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="m2027" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">分</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="s2027" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">秒</p></div>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-slate-800">2026 高考</h2>
+          <span class="text-xs text-slate-500">2026/06/07 09:00</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="rounded-lg bg-slate-50 py-3"><p id="d2026" class="num text-2xl font-bold">000</p><p class="text-xs text-slate-500">天</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="h2026" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">时</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="m2026" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">分</p></div>
+          <div class="rounded-lg bg-slate-50 py-3"><p id="s2026" class="num text-2xl font-bold">00</p><p class="text-xs text-slate-500">秒</p></div>
+        </div>
+      </article>
+    </section>
+
+    <p class="text-center text-sm text-slate-500 mt-6">仅供时间参考，请以官方考试安排为准。</p>
+
+    <div class="text-center mt-4">
+      <a href="./liaoning.html" class="inline-block text-sm text-blue-600 hover:text-blue-800 underline">辽宁省高考学科评估</a>
+      <span class="mx-2 text-slate-300">|</span>
+      <a href="./gaokao.html" class="inline-block text-sm text-blue-600 hover:text-blue-800 underline">高考报考方法论</a>
+    </div>
+
+  </main>
+
+  <script>
+    const CONFIG = {
+      "2027": new Date("2027-06-07T09:00:00+08:00"),
+      "2026": new Date("2026-06-07T09:00:00+08:00")
+    };
+
+    function renderYear(key) {
+      const now = new Date();
+      const start = CONFIG[key];
+      const diff = start - now;
+
+      const d = document.getElementById(`d${key}`);
+      const h = document.getElementById(`h${key}`);
+      const m = document.getElementById(`m${key}`);
+      const s = document.getElementById(`s${key}`);
+
+      if (diff <= 0) {
+        d.textContent = "000";
+        h.textContent = "00";
+        m.textContent = "00";
+        s.textContent = "00";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      d.textContent = String(days).padStart(3, "0");
+      h.textContent = String(hours).padStart(2, "0");
+      m.textContent = String(minutes).padStart(2, "0");
+      s.textContent = String(seconds).padStart(2, "0");
+    }
+
+    function tick() {
+      renderYear("2027");
+      renderYear("2026");
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
