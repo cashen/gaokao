@@ -3,81 +3,160 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>高考倒计时 · 2027 / 2026</title>
+  <title>高考倒计时 · 战略指挥台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+    :root {
+      color-scheme: dark;
+      --bg: #07090f;
+      --panel: #0d1320;
+      --panel-soft: #141d2e;
+      --line: rgba(148, 163, 184, .16);
+      --line-strong: rgba(148, 163, 184, .28);
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --accent: #60a5fa;
+      --accent-2: #34d399;
+      --danger: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at 18% 15%, #7f1d1d 0%, #450a0a 42%, #1c0b0b 100%);
-      color: #fff7ed;
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at 10% -20%, rgba(96, 165, 250, .20), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(52, 211, 153, .15), transparent 36%),
+        linear-gradient(160deg, #04050a 0%, #090d17 48%, #0a0f1c 100%);
+      color: var(--text);
     }
-    .glass {
-      background: linear-gradient(160deg, rgba(255,247,237,.16), rgba(255,247,237,.06));
-      border: 1px solid rgba(255,237,213,.24);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+
+    .noise::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .06;
+      background-image: radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px);
+      background-size: 3px 3px;
+      z-index: 0;
     }
+
     .num { font-variant-numeric: tabular-nums; }
+
+    .panel {
+      background: linear-gradient(160deg, rgba(13, 19, 32, .92), rgba(9, 14, 23, .92));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 24px 60px rgba(2, 6, 23, .55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .card-highlight {
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(160deg, rgba(20, 29, 46, .88), rgba(10, 17, 30, .88));
+    }
+
+    .kpi {
+      border: 1px solid rgba(148,163,184,.2);
+      background: linear-gradient(160deg, rgba(17, 24, 39, .84), rgba(9, 14, 24, .84));
+    }
+
+    .progress-track {
+      background: rgba(100, 116, 139, .22);
+      border: 1px solid rgba(148, 163, 184, .15);
+    }
+
+    .pulse {
+      animation: pulse 2.6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,.32); }
+      50% { box-shadow: 0 0 0 8px rgba(96,165,250,0); }
+    }
   </style>
 </head>
-<body class="min-h-screen overflow-x-hidden">
-  <div class="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,rgba(254,215,170,0.24)_1px,transparent_1px),linear-gradient(to_bottom,rgba(254,215,170,0.24)_1px,transparent_1px)] bg-[size:34px_34px]"></div>
-
-  <main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-    <header class="text-center mb-8 sm:mb-10">
-      <div class="inline-flex items-center gap-2 text-amber-200 text-xs tracking-[0.3em] uppercase mb-3">
-        <span class="w-2 h-2 rounded-full bg-amber-200"></span>高考倒计时
+<body class="noise overflow-x-hidden">
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <header class="panel rounded-3xl p-6 sm:p-8 mb-5 sm:mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p class="text-xs tracking-[0.28em] uppercase text-slate-400 mb-3">Gaokao Countdown Control Center</p>
+          <h1 class="text-3xl sm:text-5xl font-black leading-tight">倒计时页，不是闹钟。<br class="hidden sm:block"/>是你的战术驾驶舱。</h1>
+          <p class="mt-4 text-sm sm:text-base text-slate-300/90">拒绝“差不多”。每一秒都必须对应行动，每一项行动都必须能转化为分数。</p>
+        </div>
+        <div class="panel rounded-2xl px-4 py-3 border-slate-700/70">
+          <p class="text-xs text-slate-400 mb-1">今日关键动作</p>
+          <p class="text-sm font-semibold"><i class="fa-solid fa-crosshairs text-sky-400 mr-2"></i>限时整套 + 错因复盘 + 睡前复述</p>
+        </div>
       </div>
-      <h1 class="text-4xl sm:text-6xl font-black">2027  + 2026</h1>
-      <p class="mt-4 text-orange-100/85">你不是在等时间过去，而是在把每一天变成分数。</p>
     </header>
 
-    <section class="grid md:grid-cols-2 gap-4 sm:gap-6">
-      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2027">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-black text-amber-200">2027 高考</h2>
-          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2027/06/07 09:00</span>
+    <section class="grid lg:grid-cols-2 gap-4 sm:gap-5">
+      <article class="panel card-highlight rounded-3xl p-5 sm:p-6" id="card-2026">
+        <div class="flex items-start justify-between mb-4 gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.24em] text-rose-300/80 mb-2">近程冲刺</p>
+            <h2 class="text-2xl font-black text-rose-200">2026 高考</h2>
+          </div>
+          <span class="text-xs px-3 py-1.5 rounded-full border border-rose-200/30 bg-rose-300/10">2026/06/07 09:00</span>
         </div>
-        <p class="text-sm text-orange-100/85 mb-4">主线：长期稳定推进，重心放在体系化提分。</p>
-        <div class="grid grid-cols-4 gap-2 text-center">
-          <div class="glass rounded-xl py-3"><p id="d2027" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-orange-100/85">天</p></div>
-          <div class="glass rounded-xl py-3"><p id="h2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">时</p></div>
-          <div class="glass rounded-xl py-3"><p id="m2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">分</p></div>
-          <div class="glass rounded-xl py-3"><p id="s2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">秒</p></div>
+
+        <div class="grid grid-cols-4 gap-2.5 text-center mb-4">
+          <div class="kpi rounded-xl py-3"><p id="d2026" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-[11px] text-slate-400">天</p></div>
+          <div class="kpi rounded-xl py-3"><p id="h2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-[11px] text-slate-400">时</p></div>
+          <div class="kpi rounded-xl py-3"><p id="m2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-[11px] text-slate-400">分</p></div>
+          <div class="kpi rounded-xl py-3 pulse"><p id="s2026" class="num text-2xl sm:text-3xl font-black text-rose-200">00</p><p class="text-[11px] text-slate-400">秒</p></div>
         </div>
-        <div class="mt-4">
-          <div class="flex justify-between text-xs text-orange-100/85 mb-1"><span>阶段完成度</span><span id="p2027">0%</span></div>
-          <div class="h-2 rounded-full bg-orange-200/20 overflow-hidden"><div id="bar2027" class="h-full bg-gradient-to-r from-amber-300 to-orange-500" style="width:0%"></div></div>
-          <p id="t2027" class="text-xs text-orange-100/70 mt-2"></p>
+
+        <div class="mb-3">
+          <div class="flex justify-between text-xs text-slate-400 mb-1.5"><span>冲刺进度</span><span id="p2026">0%</span></div>
+          <div class="h-2.5 rounded-full overflow-hidden progress-track"><div id="bar2026" class="h-full bg-gradient-to-r from-rose-300 via-fuchsia-300 to-indigo-300" style="width:0%"></div></div>
+          <p id="t2026" class="text-xs text-slate-500 mt-2"></p>
         </div>
+
+        <p class="text-sm text-slate-300 border-t border-slate-700/70 pt-3">策略：先做会丢分的题型，不做“看起来很努力”但不涨分的动作。</p>
       </article>
 
-      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2026">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-black text-rose-200">2026 高考</h2>
-          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2026/06/07 09:00</span>
+      <article class="panel rounded-3xl p-5 sm:p-6" id="card-2027">
+        <div class="flex items-start justify-between mb-4 gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.24em] text-sky-300/80 mb-2">长期构建</p>
+            <h2 class="text-2xl font-black text-sky-200">2027 高考</h2>
+          </div>
+          <span class="text-xs px-3 py-1.5 rounded-full border border-sky-200/30 bg-sky-300/10">2027/06/07 09:00</span>
         </div>
-        <p class="text-sm text-orange-100/85 mb-4">实战线：近程冲刺，盯住时间分配和稳定拿分题。</p>
-        <div class="grid grid-cols-4 gap-2 text-center">
-          <div class="glass rounded-xl py-3"><p id="d2026" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-orange-100/85">天</p></div>
-          <div class="glass rounded-xl py-3"><p id="h2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">时</p></div>
-          <div class="glass rounded-xl py-3"><p id="m2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">分</p></div>
-          <div class="glass rounded-xl py-3"><p id="s2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">秒</p></div>
+
+        <div class="grid grid-cols-4 gap-2.5 text-center mb-4">
+          <div class="kpi rounded-xl py-3"><p id="d2027" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-[11px] text-slate-400">天</p></div>
+          <div class="kpi rounded-xl py-3"><p id="h2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-[11px] text-slate-400">时</p></div>
+          <div class="kpi rounded-xl py-3"><p id="m2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-[11px] text-slate-400">分</p></div>
+          <div class="kpi rounded-xl py-3"><p id="s2027" class="num text-2xl sm:text-3xl font-black text-sky-100">00</p><p class="text-[11px] text-slate-400">秒</p></div>
         </div>
-        <div class="mt-4">
-          <div class="flex justify-between text-xs text-orange-100/85 mb-1"><span>阶段完成度</span><span id="p2026">0%</span></div>
-          <div class="h-2 rounded-full bg-orange-200/20 overflow-hidden"><div id="bar2026" class="h-full bg-gradient-to-r from-rose-300 to-fuchsia-400" style="width:0%"></div></div>
-          <p id="t2026" class="text-xs text-orange-100/70 mt-2"></p>
+
+        <div class="mb-3">
+          <div class="flex justify-between text-xs text-slate-400 mb-1.5"><span>体系进度</span><span id="p2027">0%</span></div>
+          <div class="h-2.5 rounded-full overflow-hidden progress-track"><div id="bar2027" class="h-full bg-gradient-to-r from-sky-300 via-cyan-300 to-emerald-300" style="width:0%"></div></div>
+          <p id="t2027" class="text-xs text-slate-500 mt-2"></p>
         </div>
+
+        <p class="text-sm text-slate-300 border-t border-slate-700/70 pt-3">策略：建立“章节-题型-错因”索引，推进可复制、可量化、可复盘。</p>
       </article>
     </section>
 
-    <section class="glass rounded-2xl p-4 sm:p-5 mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <p class="text-sm text-orange-100/85">建议：早上做“限时整套”，晚上做“错因复盘”。任何无效努力，都要被你亲手砍掉。</p>
-      <a href="./liaoning.html" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition w-fit">
-        <i class="fa-solid fa-table-list"></i> 辽宁高校学科评估速查
+    <section class="panel rounded-2xl p-4 sm:p-5 mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mb-1">Principle</p>
+        <p class="text-sm text-slate-300">你不需要更多计划。你需要砍掉噪音，把注意力押注在确定有效的动作上。</p>
+      </div>
+      <a href="./liaoning.html" class="inline-flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 text-sm font-semibold transition w-fit">
+        <i class="fa-solid fa-table-list text-sky-300"></i> 辽宁高校学科评估速查
       </a>
     </section>
   </main>
@@ -106,10 +185,13 @@
 
       p.textContent = `${percent}%`;
       bar.style.width = `${percent}%`;
-      tip.textContent = `起算日：${warmup.toLocaleDateString('zh-CN')} · 节点日：${start.toLocaleDateString('zh-CN')}`;
+      tip.textContent = `起算日：${warmup.toLocaleDateString('zh-CN')} · 目标日：${start.toLocaleDateString('zh-CN')}`;
 
       if (diff <= 0) {
-        d.textContent = '000'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        d.textContent = '000';
+        h.textContent = '00';
+        m.textContent = '00';
+        s.textContent = '00';
         return;
       }
 
