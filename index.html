@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>高考倒计时 · 2027 / 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 18% 15%, #7f1d1d 0%, #450a0a 42%, #1c0b0b 100%);
+      color: #fff7ed;
+    }
+    .glass {
+      background: linear-gradient(160deg, rgba(255,247,237,.16), rgba(255,247,237,.06));
+      border: 1px solid rgba(255,237,213,.24);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <div class="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,rgba(254,215,170,0.24)_1px,transparent_1px),linear-gradient(to_bottom,rgba(254,215,170,0.24)_1px,transparent_1px)] bg-[size:34px_34px]"></div>
+
+  <main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <header class="text-center mb-8 sm:mb-10">
+      <div class="inline-flex items-center gap-2 text-amber-200 text-xs tracking-[0.3em] uppercase mb-3">
+        <span class="w-2 h-2 rounded-full bg-amber-200"></span> Gaokao Countdown
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-black">2027 主战场 + 2026 实战线</h1>
+      <p class="mt-4 text-orange-100/85">你不是在等时间过去，而是在把每一天变成分数。</p>
+    </header>
+
+    <section class="grid md:grid-cols-2 gap-4 sm:gap-6">
+      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2027">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-black text-amber-200">2027 高考</h2>
+          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2027/06/07 09:00</span>
+        </div>
+        <p class="text-sm text-orange-100/85 mb-4">主线：长期稳定推进，重心放在体系化提分。</p>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="glass rounded-xl py-3"><p id="d2027" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-orange-100/85">天</p></div>
+          <div class="glass rounded-xl py-3"><p id="h2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">时</p></div>
+          <div class="glass rounded-xl py-3"><p id="m2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">分</p></div>
+          <div class="glass rounded-xl py-3"><p id="s2027" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">秒</p></div>
+        </div>
+        <div class="mt-4">
+          <div class="flex justify-between text-xs text-orange-100/85 mb-1"><span>阶段完成度</span><span id="p2027">0%</span></div>
+          <div class="h-2 rounded-full bg-orange-200/20 overflow-hidden"><div id="bar2027" class="h-full bg-gradient-to-r from-amber-300 to-orange-500" style="width:0%"></div></div>
+          <p id="t2027" class="text-xs text-orange-100/70 mt-2"></p>
+        </div>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6" id="card-2026">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-black text-rose-200">2026 高考</h2>
+          <span class="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/15">2026/06/07 09:00</span>
+        </div>
+        <p class="text-sm text-orange-100/85 mb-4">实战线：近程冲刺，盯住时间分配和稳定拿分题。</p>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="glass rounded-xl py-3"><p id="d2026" class="num text-2xl sm:text-3xl font-black">000</p><p class="text-xs text-orange-100/85">天</p></div>
+          <div class="glass rounded-xl py-3"><p id="h2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">时</p></div>
+          <div class="glass rounded-xl py-3"><p id="m2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">分</p></div>
+          <div class="glass rounded-xl py-3"><p id="s2026" class="num text-2xl sm:text-3xl font-black">00</p><p class="text-xs text-orange-100/85">秒</p></div>
+        </div>
+        <div class="mt-4">
+          <div class="flex justify-between text-xs text-orange-100/85 mb-1"><span>阶段完成度</span><span id="p2026">0%</span></div>
+          <div class="h-2 rounded-full bg-orange-200/20 overflow-hidden"><div id="bar2026" class="h-full bg-gradient-to-r from-rose-300 to-fuchsia-400" style="width:0%"></div></div>
+          <p id="t2026" class="text-xs text-orange-100/70 mt-2"></p>
+        </div>
+      </article>
+    </section>
+
+    <section class="glass rounded-2xl p-4 sm:p-5 mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p class="text-sm text-orange-100/85">建议：早上做“限时整套”，晚上做“错因复盘”。任何无效努力，都要被你亲手砍掉。</p>
+      <a href="./liaoning.html" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition w-fit">
+        <i class="fa-solid fa-table-list"></i> 辽宁高校学科评估速查
+      </a>
+    </section>
+  </main>
+
+  <script>
+    const CONFIG = {
+      '2027': { start: new Date('2027-06-07T09:00:00+08:00'), warmup: new Date('2026-09-01T00:00:00+08:00') },
+      '2026': { start: new Date('2026-06-07T09:00:00+08:00'), warmup: new Date('2025-09-01T00:00:00+08:00') }
+    };
+
+    function renderYear(key) {
+      const now = new Date();
+      const { start, warmup } = CONFIG[key];
+      const diff = start - now;
+      const total = start - warmup;
+      const elapsed = Math.min(Math.max(now - warmup, 0), total);
+      const percent = total > 0 ? Math.floor((elapsed / total) * 100) : 100;
+
+      const d = document.getElementById(`d${key}`);
+      const h = document.getElementById(`h${key}`);
+      const m = document.getElementById(`m${key}`);
+      const s = document.getElementById(`s${key}`);
+      const p = document.getElementById(`p${key}`);
+      const bar = document.getElementById(`bar${key}`);
+      const tip = document.getElementById(`t${key}`);
+
+      p.textContent = `${percent}%`;
+      bar.style.width = `${percent}%`;
+      tip.textContent = `起算日：${warmup.toLocaleDateString('zh-CN')} · 节点日：${start.toLocaleDateString('zh-CN')}`;
+
+      if (diff <= 0) {
+        d.textContent = '000'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      d.textContent = String(days).padStart(3, '0');
+      h.textContent = String(hours).padStart(2, '0');
+      m.textContent = String(minutes).padStart(2, '0');
+      s.textContent = String(seconds).padStart(2, '0');
+    }
+
+    function tick() {
+      renderYear('2027');
+      renderYear('2026');
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"f674a7d53a0945e0a60c0dfa831230d8","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f4154518b3faf4b',t:'MTc3NzQ5NzQwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
