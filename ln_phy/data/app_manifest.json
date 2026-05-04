@@ -1,0 +1,14 @@
+{
+  "appName": "辽宁物理类高考志愿初选工具 V1",
+  "createdAt": "2026-05-04",
+  "dataScope": "辽宁省普通类本科批（物理学科类）2024-2025 投档最低分 + 一分一段累计位次",
+  "compareData": "data/records_compare_full_ranked.json",
+  "rank2025": "data/rank_2025_physics.json",
+  "rank2024": "data/rank_2024_physics.json",
+  "accessCode": "ln2025",
+  "notes": [
+    "本工具用于初选、核验和候选清单整理，不替代辽宁正式志愿填报系统。",
+    "位次分层为经验模型，不是录取概率承诺。",
+    "学费字段当前保留待核验，后续应从招生计划/招生章程/学校招生网合并 tuition_map.json。"
+  ]
+}
