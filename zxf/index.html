@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<title>辽宁物理类高考志愿初选工具 V2.6｜五步向导版</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:#fff;--ink:#172033;--muted:#687386;--line:#e7eaf1;
+  --primary:#2563eb;--primary2:#1d4ed8;--soft:#f4f7ff;--green:#157347;--greenBg:#eaf8ef;
+  --orange:#a85f24;--orangeBg:#fff3e8;--red:#c93636;--redBg:#fff1f1;--purple:#6756d8;--purpleBg:#f1efff;
+  --shadow:0 10px 28px rgba(22,35,60,.08);--radius:18px;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,#f9fbff 0,#f6f7fb 44%,#f3f5f9 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:18px 14px 90px}
+.hero{background:linear-gradient(135deg,#13233f,#2367ee);color:#fff;border-radius:26px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-80px;top:-90px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:6px 0;color:rgba(255,255,255,.88);line-height:1.65;max-width:900px}
+.badge{display:inline-flex;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;font-size:13px;margin:5px 6px 0 0}
+.stepnav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px;position:relative;z-index:2}
+.stepnav a{text-decoration:none;color:#314057;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.32);border-radius:14px;padding:10px 12px;font-weight:800;font-size:13px;line-height:1.25;display:flex;align-items:center;gap:8px;backdrop-filter:blur(10px)}
+.stepnav i{width:22px;height:22px;border-radius:50%;background:#fff;color:#1d4ed8;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:900}
+.section{margin-top:16px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.section h2{font-size:20px;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.section h2 small{font-size:12px;color:var(--muted);font-weight:500}
+.emphasis{border-color:#c8d7ff;background:linear-gradient(180deg,#fff,#f8fbff)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}
+.input,select,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;font-size:15px;outline:none;color:var(--ink)}
+textarea{min-height:76px;resize:vertical;line-height:1.6}.input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.10)}
+button{border:0;background:var(--primary);color:#fff;border-radius:12px;padding:12px 16px;font-weight:750;cursor:pointer}button:hover{background:var(--primary2)}
+button.secondary{background:#edf2ff;color:#174ed0}button.ghost{background:#f3f5f9;color:#2b3547}button.slim{padding:9px 12px}
+.locked{filter:blur(3px);pointer-events:none;user-select:none}.hide{display:none!important}.small{font-size:12px;color:var(--muted);line-height:1.65}.notice{border:1px solid #dce6ff;background:#f4f7ff;color:#23406f;padding:12px;border-radius:14px;line-height:1.7;font-size:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;color:#445166;border-radius:13px;padding:9px 13px;cursor:pointer;font-weight:700;font-size:14px;min-height:38px;display:inline-flex;align-items:center;gap:6px}
+.chip.active{border-color:#93a5ff;background:#eef2ff;color:#3850d8;box-shadow:0 0 0 3px rgba(56,80,216,.08)}.chip.warn.active{border-color:#f4b183;background:#fff2e7;color:#a85f24}.chip.good.active{border-color:#8fd6aa;background:#edfff3;color:#157347}
+.strategy-hero{display:grid;grid-template-columns:minmax(0,1fr) 365px;gap:14px;align-items:start}
+.strategy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.strategy-card{border:1px solid #dbe4f5;background:linear-gradient(180deg,#fff,#f7faff);color:var(--ink);border-radius:18px;padding:14px;text-align:left;min-height:118px;box-shadow:0 6px 16px rgba(22,35,60,.05);position:relative;overflow:hidden}
+.strategy-card:before{content:"";position:absolute;right:-28px;top:-28px;width:74px;height:74px;border-radius:50%;background:rgba(37,99,235,.07)}
+.strategy-card strong{display:block;font-size:16px;margin-bottom:7px;line-height:1.25;position:relative}.strategy-card span{display:block;color:var(--muted);font-size:12px;line-height:1.5;position:relative}
+.strategy-card.active{border-color:#789cff;background:linear-gradient(180deg,#edf4ff,#fff);box-shadow:0 0 0 4px rgba(37,99,235,.10)}
+.strategy-card.public-first{border-color:#b7d6c2;background:linear-gradient(180deg,#f4fff7,#fff)}.strategy-card.public-first.active{border-color:#39a36b;box-shadow:0 0 0 4px rgba(21,115,71,.11)}
+.realtime-panel{border:1px solid #cfe0ff;background:linear-gradient(180deg,#f8fbff,#fff);border-radius:20px;padding:15px;box-shadow:0 8px 20px rgba(22,35,60,.05)}
+.sticky{position:sticky;top:12px}.realtime-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}.realtime-top b{font-size:17px}
+.realtime-status{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:850;background:#eaf8ef;color:#157347}.realtime-status.warn{background:#fff3e8;color:#a85f24}.realtime-status.danger{background:#fff1f1;color:#c93636}
+.realtime-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.realtime-item{border:1px solid #e4eaf5;background:#fff;border-radius:14px;padding:10px}.realtime-item .num{font-size:20px;font-weight:900;color:#172033}.realtime-item span{font-size:11px;color:var(--muted);line-height:1.35}
+.live-note{margin-top:10px;border-left:4px solid #2563eb;padding-left:10px;font-size:13px;line-height:1.6;color:#344056}
+.low-public-note{border:1px solid #b9ddc9;background:#f2fff6;color:#145c38;border-radius:16px;padding:12px;margin-top:12px;line-height:1.65;font-size:13px}
+.question-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.q-card{border:1px solid var(--line);border-radius:16px;background:#fbfcff;padding:12px}.q-title{font-weight:800;margin-bottom:8px;font-size:14px}.q-options{display:flex;gap:8px;flex-wrap:wrap}.q-options .chip{padding:8px 12px;font-size:13px;min-height:34px}
+.formula-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.formula-card{border:1px solid #dbe4f5;background:linear-gradient(180deg,#fff,#f8fbff);border-radius:16px;padding:13px}.formula-card b{display:block;font-size:14px;margin-bottom:5px}.formula-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.rule-formula{background:#142441;color:#fff;border-radius:18px;padding:16px;line-height:1.7;box-shadow:0 8px 22px rgba(20,36,65,.16)}.rule-formula code{background:rgba(255,255,255,.12);padding:2px 6px;border-radius:8px}
+.bands{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.band{border:1px solid var(--line);border-radius:16px;padding:14px}.band b{display:block;font-size:16px;margin-bottom:6px}.band span{font-weight:800}.band.chong{background:#fff7f5}.band.match{background:#f5f9ff}.band.steady{background:#f6fff8}.band.safe{background:#fffdf2}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fbfcff}.stat .n{font-size:22px;font-weight:850}.stat .t{font-size:12px;color:var(--muted);margin-top:4px}
+.plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.plan-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:13px}.plan-card h3{font-size:15px;margin:0 0 7px}.plan-card b{display:block;margin-bottom:4px}.plan-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.plan-card.a{background:#fff7f2}.plan-card.b{background:#f4f8ff}.plan-card.c{background:#f4fff7}
+.advanced-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f7f9fd;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px;cursor:pointer}.advanced-toggle b{font-size:15px}.advanced-content{display:none;margin-top:12px}.advanced-content.open{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.toolbar .field{min-width:145px;flex:1}
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}.rightPanel{position:sticky;top:12px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px}.card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:16px;box-shadow:0 6px 16px rgba(22,35,60,.05)}
+.cardTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.school{font-weight:850;font-size:17px}.major{margin-top:6px;color:#344056;line-height:1.48}.level{white-space:nowrap}
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.kv div{background:#f7f8fb;border-radius:12px;padding:9px}.kv span{display:block;color:var(--muted);font-size:12px}.kv b{display:block;margin-top:3px;font-size:14px}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:12px;background:#eef2f8;color:#46546a;margin:2px 4px 2px 0;line-height:1.35}.pill.red{background:var(--redBg);color:var(--red)}.pill.yellow{background:#fff7e6;color:#9a6800}.pill.green{background:var(--greenBg);color:var(--green)}.pill.blue{background:#eaf2ff;color:#0b63ce}.pill.purple{background:var(--purpleBg);color:var(--purple)}.pill.orange{background:var(--orangeBg);color:var(--orange)}
+.nature-pill{background:#eef7f1;color:#157347}.nature-pill.private{background:#fff1f1;color:#c93636}.nature-pill.unknown{background:#fff7e6;color:#9a6800}
+.judge{background:#fbfcff;border:1px dashed #dce3ef;border-radius:14px;padding:12px;line-height:1.65;color:#344056;font-size:13px}.score-meter{height:8px;background:#eef2f8;border-radius:999px;overflow:hidden;margin-top:8px}.score-meter i{display:block;height:100%;background:linear-gradient(90deg,#7aa2ff,#246bfe);border-radius:999px;width:0%}
+.rule-breakdown{margin-top:10px;border:1px solid #e3e8f2;background:#fbfcff;border-radius:14px;padding:10px}.rule-breakdown summary{cursor:pointer;font-weight:850;color:#26344b;font-size:13px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}.rule-breakdown summary::-webkit-details-marker{display:none}.rule-breakdown summary:after{content:"展开";font-size:12px;color:#2563eb;background:#edf2ff;border-radius:999px;padding:4px 8px}.rule-breakdown[open] summary:after{content:"收起"}
+.rule-lines{display:grid;gap:6px;margin-top:10px}.rule-line{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;border-radius:10px;background:#fff;padding:7px 8px;border:1px solid #edf0f6}.rule-line .sign{min-width:34px;text-align:center;border-radius:999px;padding:2px 7px;font-weight:900;font-size:12px}.rule-line.plus .sign{background:#eaf8ef;color:#157347}.rule-line.minus .sign{background:#fff1f1;color:#c93636}.rule-line .why{font-size:12px;color:#4b596d;line-height:1.45}.rule-line .tagtxt{font-size:12px;font-weight:800;color:#253348;line-height:1.45}
+.list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow:auto}.candidate{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.candidate b{display:block}.candidate .small{margin-top:4px}.pager{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:16px}.footer{margin:22px 0;text-align:center;color:var(--muted);font-size:12px}
+.float-actions{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:none;gap:8px;z-index:50}.float-actions button{flex:1;border-radius:14px}
+@media(max-width:1100px){.strategy-hero,.main-grid{grid-template-columns:1fr}.sticky,.rightPanel{position:static}.strategy-grid{grid-template-columns:repeat(2,1fr)}.formula-grid{grid-template-columns:1fr 1fr}.plan-cards{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.bands{grid-template-columns:repeat(2,1fr)}.question-grid{grid-template-columns:1fr}.col-3,.col-4,.col-6,.col-8{grid-column:span 12}.float-actions{display:flex}}
+@media(max-width:720px){.wrap{padding:12px 10px 88px}.hero{padding:20px}.hero h1{font-size:24px}.section{padding:14px}.stepnav{grid-template-columns:repeat(5,minmax(66px,1fr));overflow:auto}.stepnav a{font-size:11px;padding:8px;white-space:nowrap}.strategy-grid{display:flex;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}.strategy-card{min-width:230px;scroll-snap-align:start}.realtime-grid{grid-template-columns:repeat(2,1fr)}.kv{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.formula-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.chips{gap:7px}.chip{font-size:13px;padding:8px 10px}.section h2{font-size:18px}.toolbar .field{min-width:100%}.hero p{font-size:14px}.badge{font-size:12px}}
+
+/* V2.5 辽宁区域策略增强 */
+.region-breakdown{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.region-mini{border:1px solid #e4eaf5;background:#fff;border-radius:12px;padding:8px}
+.region-mini b{font-size:15px}.region-mini span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.exclude-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.exclude{border:1px dashed #dbe3ef;background:#fff;border-radius:13px;padding:9px}
+.exclude b{font-size:15px}.exclude span{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.bands{grid-template-columns:repeat(4,1fr)}
+.band.chong{background:#fff4ea}.band.match{background:#eef5ff}.band.steady{background:#effaf2}.band.safe{background:#fffbea}
+.card.level-超冲{background:linear-gradient(180deg,#fff1f1,#fff)}
+.card.level-可冲{background:linear-gradient(180deg,#fff4ea,#fff)}
+.card.level-匹配{background:linear-gradient(180deg,#eef5ff,#fff)}
+.card.level-稳妥{background:linear-gradient(180deg,#effaf2,#fff)}
+.card.level-保底{background:linear-gradient(180deg,#fffbea,#fff)}
+.card.level-过低{background:linear-gradient(180deg,#f4f5f7,#fff)}
+.level-pill{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:900}
+.level-pill.超冲{background:#ffdede;color:#b42323}.level-pill.可冲{background:#ffe4cc;color:#a85f24}
+.level-pill.匹配{background:#dbeafe;color:#1d4ed8}.level-pill.稳妥{background:#dcfce7;color:#157347}
+.level-pill.保底{background:#fef3c7;color:#915f00}.level-pill.过低{background:#e5e7eb;color:#4b5563}
+.confidence.high{background:#eaf8ef;color:#157347}.confidence.mid{background:#fff7e6;color:#9a6800}.confidence.low{background:#fff1f1;color:#c93636}
+.parent-line{border-left:4px solid #2563eb;padding-left:10px;margin:10px 0;font-size:13px;line-height:1.62;color:#26344b}
+.structure-box{border:1px solid #dce6ff;background:#f5f8ff;border-radius:14px;padding:12px;margin-top:12px}
+.structure-box b{font-size:14px}.structure-list{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}
+.structure-item{font-size:12px;color:#344056;background:#fff;border-radius:10px;padding:7px;border:1px solid #e4eaf5}
+@media(max-width:720px){.region-breakdown,.exclude-stats{grid-template-columns:repeat(2,1fr)}.structure-list{grid-template-columns:1fr}}
+
+
+/* V2.5.1 PC execute/access fix */
+.access-mini{
+  position:relative;z-index:3;margin-top:14px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+  border-radius:16px;padding:10px;max-width:720px;backdrop-filter:blur(10px)
+}
+.access-mini input{border:none;border-radius:12px;padding:10px 12px;min-width:190px;background:rgba(255,255,255,.94);color:#172033;outline:none}
+.access-mini button{padding:10px 14px;border-radius:12px;background:#fff;color:#174ed0}
+.access-mini .state{font-size:12px;color:rgba(255,255,255,.9);font-weight:800}
+.execute-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin-top:14px;padding:12px;border:1px solid #dce6ff;background:#f5f8ff;border-radius:16px
+}
+.execute-bar .left b{display:block;font-size:15px;margin-bottom:4px}
+.execute-bar .left span{font-size:12px;color:#687386;line-height:1.45}
+.execute-bar .actions{display:flex;gap:8px;flex-wrap:wrap}
+.execute-primary{background:#174ed0!important;color:#fff!important;box-shadow:0 8px 18px rgba(23,78,208,.18)}
+.execute-secondary{background:#eef2ff!important;color:#174ed0!important}
+.status-dot{display:inline-flex;align-items:center;gap:6px}
+.status-dot:before{content:"";width:8px;height:8px;border-radius:50%;background:#157347;display:inline-block}
+.result-error{border:1px solid #ffd0d0;background:#fff5f5;color:#b42323;border-radius:14px;padding:12px;margin-top:12px;font-size:13px;line-height:1.6}
+@media(max-width:720px){
+  .access-mini{display:grid;grid-template-columns:1fr auto}
+  .access-mini .state{grid-column:1/-1}
+  .execute-bar .actions{width:100%}
+  .execute-bar .actions button{flex:1}
+}
+
+
+/* V2.6 five-step guide */
+.guide-nav a{position:relative;justify-content:center}
+.guide-nav a.done{background:rgba(235,255,242,.92)!important;color:#157347!important}
+.guide-nav a.active{background:#fff!important;color:#174ed0!important;box-shadow:0 0 0 3px rgba(255,255,255,.22)}
+.step-card{position:relative;border-width:1.5px!important;scroll-margin-top:14px}
+.step-card:before{
+  content:attr(data-step-label);
+  position:absolute;left:16px;top:-11px;background:#fff;
+  border:1px solid #dce6ff;color:#174ed0;border-radius:999px;
+  padding:4px 10px;font-size:12px;font-weight:900;
+  box-shadow:0 5px 14px rgba(22,35,60,.06);
+}
+.step-card.step1{border-color:#bfd2ff!important}
+.step-card.step2{border-color:#c6e8ee!important}
+.step-card.step3{border-color:#bddfc9!important}
+.step-card.step4{border-color:#ffd9b7!important}
+.step-card.step5{border-color:#d7ccff!important}
+.step-help{font-size:12px;color:#687386;line-height:1.55;margin:-4px 0 12px}
+.next-row{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:12px;border-top:1px dashed #dbe3ef}
+.next-row button{border-radius:12px}
+.collapsed > .collapsible-body{display:none!important}
+.fold-btn{background:#f1f5ff!important;color:#174ed0!important;padding:8px 11px!important;border-radius:999px!important;font-size:12px!important;margin:2px 0 10px}
+.optional-note{border:1px solid #ffe1bf;background:#fff8ef;color:#8a520d;border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.6;margin-bottom:12px}
+.mobile-bottom-guide{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  display:none;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.9);backdrop-filter:blur(14px);
+  border-top:1px solid #e7eaf1;
+}
+.mobile-bottom-guide a{
+  flex:1;text-align:center;text-decoration:none;color:#3d4b60;
+  background:#f4f6fa;border:1px solid #e4eaf5;border-radius:12px;
+  padding:8px 4px;font-size:12px;font-weight:800;
+}
+.mobile-bottom-guide a.primary{background:#174ed0;color:#fff}
+@media(min-width:1101px){
+  #strategyEntry .strategy-hero{grid-template-columns:1fr!important}
+  #strategyEntry .realtime-panel{display:none!important}
+}
+@media(max-width:720px){
+  .guide-nav a span{display:block}
+  .step-card:before{left:12px;top:-10px;font-size:11px}
+  .mobile-bottom-guide{display:flex}
+  .float-actions{display:none!important}
+  .wrap{padding-bottom:86px!important}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+<h1>辽宁物理类高考志愿初选工具 V2.6｜五步向导版</h1>
+<p>先选策略，再填位次和区域；系统自动缩水、自动分层、自动解释。适合辽宁家长做第一轮初筛与排雷。</p>
+<div>
+<span class="badge" id="metaRecords">加载数据中...</span>
+<span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span>
+<span class="badge">访问码：ln2025</span>
+</div>
+<div><span class="badge" id="metaRecords">加载数据中...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
+<div class="access-mini" id="accessMini">
+<input id="accessCodeTop" placeholder="输入访问码 ln2025"/>
+<button onclick="unlockFromTop()">开启工具</button>
+<button onclick="resetAccess()" title="清除本机已开启状态">重新输入</button>
+<span class="state" id="accessState">未开启时下方内容会被锁定；已开启也可以重新输入。</span>
+</div>
+<nav aria-label="五步向导" class="stepnav guide-nav" id="guideNav">
+<a data-guide="1" href="#baseInfo"><i>1</i><span>填位次</span></a>
+<a data-guide="2" href="#strategyEntry"><i>2</i><span>选目标</span></a>
+<a data-guide="3" href="#resultBox"><i>3</i><span>看方案</span></a>
+<a data-guide="4" href="#profileAsk"><i>4</i><span>细化</span></a>
+<a data-guide="5" href="#candidateArea"><i>5</i><span>存候选</span></a>
+</nav>
+</div>
+<div class="section" id="gateBox">
+<h2>开启工具 <small>访问码也可在顶部重新输入</small></h2>
+<div class="grid">
+<div class="col-8"><label>访问码</label><input class="input" id="accessCode" placeholder="输入 ln2025 开启"/></div>
+<div class="col-4" style="display:flex;align-items:end"><button onclick="unlock()" style="width:100%">开启</button></div>
+</div>
+<p class="small">说明：这是前端访问码，只用于隐藏页面内容；正式私密部署建议继续使用 Cloudflare Access。</p>
+</div>
+<div class="locked" id="app"><div class="section step-card step1" data-step-label="① 先填孩子位次" id="baseInfo">
+<h2>① 填孩子分数 / 位次 <small>必填，位次优先</small></h2><p class="step-help">先把孩子放到正确位次段。只填分数也可以，系统会尝试按一分一段换算位次。</p>
+<div class="grid">
+<div class="col-3"><label>考试地区</label><select id="examProvince"><option>辽宁</option></select></div>
+<div class="col-3"><label>家庭预算</label><select id="budget"><option value="normal">普通家庭，优先普通学费</option><option value="flex">可接受少量高收费</option><option value="high">预算较宽，可看中外合作</option></select></div>
+<div class="col-3"><label>2025 分数（可选）</label><input class="input" id="myScore" placeholder="例如 550" type="number"/></div>
+<div class="col-3"><label>2025 位次（优先）</label><input class="input" id="myRank" placeholder="例如 32746" type="number"/></div>
+<div class="col-3"><label>冲稳保模型</label><select id="model"><option value="normal">普通模型</option><option value="safe">保守模型</option><option value="bold">激进模型</option></select></div>
+<div class="col-3"><label>填报目标</label><select id="priority"><option value="employment">就业优先</option><option value="publicLow">低分公办本科优先</option><option value="grid">电网/能源系统优先</option><option value="exam">考公/体制机会</option><option value="school">学校层级优先</option><option value="city">城市优先</option><option value="postgrad">保研/深造优先</option></select></div>
+<div class="col-6" style="display:flex;align-items:end"><button class="ghost" onclick="resetAll()">重置条件</button></div>
+</div>
+<p class="small" style="margin:10px 0 0">位次比分数更重要。若只输入分数，系统会按 2025 一分一段累计位次自动换算。</p>
+<div class="execute-bar">
+<div class="left">
+<b><span class="status-dot">已支持自动筛选</span></b>
+<span>你改分数、位次、区域、八连问后，系统会自动刷新。也可以点击右侧按钮手动执行，PC用户更直观。</span>
+</div>
+<div class="actions">
+<button class="execute-primary" onclick="manualExecute()">开始筛选 / 重新筛选</button>
+<button class="execute-secondary" onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">查看A/B/C方案</button>
+<button class="ghost" onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">查看详细候选</button>
+</div>
+</div>
+<div class="next-row"><button class="secondary" onclick="document.getElementById('strategyEntry').scrollIntoView({behavior:'smooth'})">下一步：选择填报目标</button><button class="execute-primary" onclick="manualExecute()">开始筛选 / 重新筛选</button></div></div>
+
+<div class="section emphasis step-card step2" data-step-label="② 再选填报目标" id="strategyEntry">
+<h2>② 选择填报目标 <small>不是唯一答案，只是先按哪种思路缩小范围</small></h2>
+<div class="strategy-hero">
+<div>
+<div class="notice">家长真实想问的不是“所有学校有哪些”，而是“我家孩子这个分数大概怎么走”。先选策略，系统会自动带出区域、偏好、风险底线，再进入位次缩水。</div>
+<div class="strategy-grid" id="strategyCards">
+<button class="strategy-card active" data-strategy="employment"><strong>普通家庭｜稳就业</strong><span>普通学费、就业导向、风险适中，适合大多数家庭。</span></button>
+<button class="strategy-card" data-strategy="grid"><strong>电网能源｜目标就业</strong><span>电气、能源、自动化、电网相关方向优先观察。</span></button>
+<button class="strategy-card" data-strategy="medical"><strong>医学方向｜长周期投入</strong><span>接受学制、规培和较长回报周期，再重点看医学。</span></button>
+<button class="strategy-card" data-strategy="exam"><strong>考公体制｜保留入口</strong><span>保留编制、国企、考公相关路径，不盲目追热门。</span></button>
+<button class="strategy-card" data-strategy="city"><strong>城市优先｜大城市</strong><span>江浙沪、京津冀、珠三角等城市机会优先。</span></button>
+<button class="strategy-card" data-strategy="shenyang"><strong>沈阳优先｜省会资源</strong><span>留沈就业、家在沈阳周边、看重省会资源。</span></button>
+<button class="strategy-card" data-strategy="dalian"><strong>大连优先｜城市资源</strong><span>看重大连城市、海事、理工、医科等资源。</span></button>
+<button class="strategy-card public-first" data-strategy="publicLow"><strong>低分公办本科｜先保身份</strong><span>适合低分段先尽量保公办本科，专业允许适度让步。</span></button>
+<button class="strategy-card" data-strategy="school"><strong>学校层级｜平台优先</strong><span>学校平台、城市资源、升学机会优先。</span></button>
+<button class="strategy-card" data-strategy="broad"><strong>先不限制｜全量观察</strong><span>先看位次区间，再逐步收窄条件。</span></button>
+</div>
+</div>
+<div class="realtime-panel sticky">
+<div class="realtime-top"><b>当前可选范围</b><span class="realtime-status warn" id="liveStatus">等待输入</span></div>
+<div class="realtime-grid">
+<div class="realtime-item"><div class="num" id="liveRank">-</div><span>参考位次</span></div>
+<div class="realtime-item"><div class="num" id="liveTotal">0</div><span>可选范围</span></div>
+<div class="realtime-item"><div class="num" id="liveMain">0</div><span>匹配/稳妥</span></div>
+<div class="realtime-item"><div class="num" id="liveSafe">0</div><span>保底</span></div>
+</div>
+<div class="region-breakdown">
+<div class="region-mini"><b id="cntSY">0</b><span>沈阳</span></div>
+<div class="region-mini"><b id="cntDL">0</b><span>大连</span></div>
+<div class="region-mini"><b id="cntLNOther">0</b><span>辽宁其他</span></div>
+<div class="region-mini"><b id="cntOut">0</b><span>省外</span></div>
+</div>
+<div class="live-note" id="liveAdvice">先选择策略，再输入分数或位次。</div>
+<div class="low-public-note hide" id="lowPublicNote"><b>低分公办本科策略：</b>这是“先保公办本科身份”的策略，不是专业最优策略。专业可以适度让步，但仍要避开高收费、明显不适配和家庭无法承受的路径。学校性质为规则识别，请以阳光高考和学校官网为准。</div>
+<div class="row" style="margin-top:12px"><button class="secondary" onclick="document.getElementById('baseInfo').scrollIntoView({behavior:'smooth'})">填写位次</button><button class="ghost" onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">看结果</button></div>
+</div>
+</div>
+<div class="next-row"><button class="secondary" onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">查看当前可选范围和A/B/C方案</button><button class="ghost" onclick="document.getElementById('profileAsk').scrollIntoView({behavior:'smooth'})">想更准：细化条件</button></div></div>
+
+<div class="section step-card step2" data-step-label="② 想去哪里" id="targetArea">
+<h2>② 想去哪里 <small>先定能接受的区域，系统会自动缩小范围</small></h2>
+<div class="grid">
+<div class="col-4"><label>区域筛选方式</label><select id="regionMode"><option value="hard">硬筛：只看所选区域</option><option value="soft">软筛：所选区域优先</option><option value="none">不限制区域</option></select></div>
+<div class="col-8"><label>快捷区域</label><div class="chips" id="regionGroupChips">
+<span class="chip good" data-region-group="辽宁省内">辽宁省内</span><span class="chip good active" data-region-group="东北">东北</span><span class="chip" data-region-group="京津冀">京津冀</span><span class="chip" data-region-group="长三角">长三角</span><span class="chip" data-region-group="珠三角">珠三角</span><span class="chip" data-region-group="成渝">成渝</span><span class="chip" data-region-group="全国">全国可去</span>
+</div></div>
+<div class="col-12"><label>可接受院校所在省份（多选；为空默认不限）</label><div class="chips" id="provinceChips"></div></div>
+</div>
+<div class="next-row"><button class="secondary" onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">下一步：看方案</button></div></div>
+
+<div class="section step-card step3" data-step-label="③ 先看方案" id="resultBox">
+<h2>③ 当前可选范围与 A/B/C 三方案 <small>先看大方案，再看详细候选</small></h2>
+<div class="notice" id="rankSummary">请输入位次或分数，系统会自动计算。</div>
+<div class="bands" style="margin-top:12px">
+<div class="band chong"><b>可冲</b><span id="bandChong">-</span><p class="small">有机会，但不能押宝。</p></div>
+<div class="band match"><b>匹配</b><span id="bandMatch">-</span><p class="small">方案主体。</p></div>
+<div class="band steady"><b>稳妥</b><span id="bandSteady">-</span><p class="small">中后段兜住。</p></div>
+<div class="band safe"><b>保底</b><span id="bandSafe">-</span><p class="small">防滑档。</p></div>
+</div>
+<div class="stats" style="margin-top:12px">
+<div class="stat"><div class="n" id="cntAll">0</div><div class="t">画像可选范围</div></div><div class="stat"><div class="n" id="cntChong">0</div><div class="t">可冲</div></div><div class="stat"><div class="n" id="cntMatch">0</div><div class="t">匹配</div></div><div class="stat"><div class="n" id="cntSteady">0</div><div class="t">稳妥</div></div><div class="stat"><div class="n" id="cntSafe">0</div><div class="t">保底</div></div>
+</div>
+<div class="exclude-stats">
+<div class="exclude"><b id="exRegion">0</b><span>区域排除</span></div>
+<div class="exclude"><b id="exBudget">0</b><span>预算排除</span></div>
+<div class="exclude"><b id="exProfile">0</b><span>画像排除</span></div>
+<div class="exclude"><b id="exLowScore">0</b><span>低匹配排除</span></div>
+</div>
+<div class="plan-cards" id="planABC"></div>
+<div class="next-row"><button class="secondary" onclick="document.getElementById('candidateArea').scrollIntoView({behavior:'smooth'})">查看详细候选</button><button class="ghost" onclick="document.getElementById('profileAsk').scrollIntoView({behavior:'smooth'})">细化条件</button></div></div>
+
+<div class="section step-card step4 collapsed" data-step-label="④ 可选细化" id="profileAsk"><h2>④ 可选细化：孩子偏好与家庭底线 <small>可选，不填也能出结果；想更准再展开</small></h2><button class="fold-btn" onclick="toggleSection('profileAsk')">展开 / 收起细化条件</button><div class="optional-note">这一步不是必填。若结果太多、太杂，再展开这里，把“不接受高收费、是否学医、是否出省”等底线补上。</div><div class="collapsible-body">
+
+<div class="question-grid">
+<div class="q-card"><div class="q-title">1. 是否接受出省？</div><div class="q-options single" data-group="outProvince"><span class="chip active" data-value="yes">接受</span><span class="chip" data-value="no">尽量省内</span></div></div>
+<div class="q-card"><div class="q-title">2. 是否学医？</div><div class="q-options single" data-group="medicine"><span class="chip" data-value="prefer">想学</span><span class="chip active" data-value="neutral">可看</span><span class="chip" data-value="avoid">不学</span></div></div>
+<div class="q-card"><div class="q-title">3. 是否考虑师范？</div><div class="q-options single" data-group="teacher"><span class="chip" data-value="prefer">考虑</span><span class="chip active" data-value="neutral">可看</span><span class="chip" data-value="avoid">不考虑</span></div></div>
+<div class="q-card"><div class="q-title">4. 是否接受经管法外语？</div><div class="q-options single" data-group="liberal"><span class="chip" data-value="prefer">接受</span><span class="chip active" data-value="neutral">少量可看</span><span class="chip" data-value="avoid">尽量不看</span></div></div>
+<div class="q-card"><div class="q-title">5. 是否喜欢化学/材料/生物？</div><div class="q-options single" data-group="chem"><span class="chip" data-value="prefer">喜欢</span><span class="chip active" data-value="neutral">可看</span><span class="chip" data-value="avoid">不喜欢</span></div></div>
+<div class="q-card"><div class="q-title">6. 是否偏好物理、力学、机械？</div><div class="q-options single" data-group="physics"><span class="chip" data-value="prefer">偏好</span><span class="chip active" data-value="neutral">可看</span><span class="chip" data-value="avoid">不偏好</span></div></div>
+<div class="q-card"><div class="q-title">7. 是否看重电气/电网/能源？</div><div class="q-options single" data-group="gridPower"><span class="chip good" data-value="prefer">重点看</span><span class="chip active" data-value="neutral">可看</span><span class="chip" data-value="avoid">不优先</span></div></div>
+<div class="q-card"><div class="q-title">8. 明确不接受项</div><div class="q-options" id="rejectChips"><span class="chip warn active" data-reject="高收费">高收费</span><span class="chip warn" data-reject="长学制">长学制</span><span class="chip warn" data-reject="工地现场">工地/现场</span><span class="chip warn" data-reject="夜班">夜班</span><span class="chip warn" data-reject="销售">销售</span></div></div>
+</div>
+</div></div>
+
+<div class="section step-card step4 collapsed" data-step-label="高级规则设置" id="mentorRules"><h2>高级规则设置 <small>默认折叠，普通家长可以不动</small></h2><button class="fold-btn" onclick="toggleSection('mentorRules')">展开 / 收起高级规则</button><div class="optional-note">普通家长可以不动这里；高报师或熟练用户可调整规则强度、家庭容错率、深造意愿和时间压力。</div><div class="collapsible-body">
+
+<div class="rule-formula"><b>普通家庭优先公式：</b><div><code>推荐分 = 可行集 + 目标倒推 + 区域 + 专业出口 + AI校正 − 风险惩罚 − 家庭成本</code></div></div>
+<div class="grid" style="margin-top:12px">
+<div class="col-3"><label>规则强度</label><select id="mentorMode"><option value="standard">标准：普通家庭现实口径</option><option value="mild">温和：轻度提示</option><option value="strict">严格：强排雷强降权</option><option value="off">关闭：只用原画像规则</option></select></div>
+<div class="col-3"><label>家庭容错率</label><select id="familyTolerance"><option value="low">低：普通家庭，尽快稳定</option><option value="mid">中：可接受适度试错</option><option value="high">高：可承担长周期/高投入</option></select></div>
+<div class="col-3"><label>深造意愿</label><select id="gradPlan"><option value="maybe">可读研，但不押宝</option><option value="no">不想读研，优先本科就业</option><option value="yes">愿意读研/规培/长期投入</option></select></div>
+<div class="col-3"><label>时间压力</label><select id="timePressure"><option value="normal">正常，不急于挣钱</option><option value="fast">希望尽快就业挣钱</option><option value="long">可接受5年以上培养周期</option></select></div>
+</div>
+</div></div>
+
+<div class="main-grid step-card step5" data-step-label="⑤ 存候选" id="candidateArea">
+<div>
+<div class="section">
+<h2>详细候选</h2>
+<div class="advanced-toggle" onclick="toggleAdvanced()"><b>高级筛选</b><span class="small">学校/专业关键词、排序、重点学科等</span></div>
+<div class="advanced-content" id="advancedFilters">
+<div class="toolbar">
+<div class="field"><label>学校</label><input class="input" id="qSchool" placeholder="如 沈阳工程学院"/></div>
+<div class="field"><label>专业</label><input class="input" id="qMajor" placeholder="如 电气 / 临床 / 计算机"/></div>
+<div class="field"><label>层级</label><select id="filterLevel"><option value="">全部层级</option><option>可冲</option><option>匹配</option><option>稳妥</option><option>保底</option><option>超冲</option><option>过低</option></select></div>
+<div class="field"><label>排序</label><select id="sortBy"><option value="profile">画像匹配优先</option><option value="fit">按位次匹配度</option><option value="rank2025">按2025位次</option><option value="rankDiffHot">竞争增强优先</option><option value="rankDiffLoose">位次放宽优先</option></select></div>
+</div>
+<div class="row" style="margin-top:12px"><label class="row"><input id="onlyKey" type="checkbox"/> 只看重点学科提醒</label><label class="row"><input checked="" id="strictProfile" type="checkbox"/> 严格画像缩水</label><button class="secondary slim" onclick="exportFiltered()">导出当前筛选 CSV</button></div>
+</div>
+<p class="small" id="filterSummary">等待加载...</p>
+<div class="cards" id="cards"></div>
+<div class="pager"><button class="ghost" onclick="prevPage()">上一页</button><span class="small" id="pageInfo">1 / 1</span><button class="ghost" onclick="nextPage()">下一页</button></div>
+</div>
+</div>
+<aside class="section rightPanel">
+<h2>我的候选方案</h2>
+<div class="structure-box" id="structureBox"><b>方案结构检查</b><div class="structure-list" id="structureList"><div class="structure-item">候选为空</div></div></div>
+<div class="list" id="candidateList" style="margin-top:12px"></div>
+<div class="row" style="margin-top:12px"><button class="secondary slim" onclick="exportCandidates()">导出候选</button><button class="ghost slim" onclick="clearCandidates()">清空</button></div>
+<p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
+</aside>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="footer">辽宁物理类高考志愿初选工具 V2.6｜五步向导版｜结果仅用于初筛与核验。</div>
+</div>
+</div>
+<div class="float-actions"><button class="secondary" onclick="document.getElementById('strategyEntry').scrollIntoView({behavior:'smooth'})">策略</button><button onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">结果</button></div>
+<script>
+const DATA_PATHS=['data/records_compare_full_ranked.json']; const RANK_PATHS=['data/rank_2025_physics.json'];
+let DATA=[],META={},RANK2025={},currentRank=null,filtered=[],candidates=[],currentPage=1,pageSize=12,currentStrategy='employment';
+const PROVINCES=['北京','天津','河北','山西','内蒙古','辽宁','吉林','黑龙江','上海','江苏','浙江','安徽','福建','江西','山东','河南','湖北','湖南','广东','广西','海南','重庆','四川','贵州','云南','西藏','陕西','甘肃','青海','宁夏','新疆'];
+const REGION_GROUPS={'辽宁省内':['辽宁'],'东北':['辽宁','吉林','黑龙江'],'京津冀':['北京','天津','河北'],'长三角':['上海','江苏','浙江','安徽'],'珠三角':['广东'],'成渝':['重庆','四川'],'全国':PROVINCES};
+const LIAONING_PUBLIC=['辽宁大学','大连理工大学','东北大学','大连海事大学','中国医科大学','大连医科大学','沈阳药科大学','辽宁师范大学','沈阳师范大学','沈阳工业大学','沈阳航空航天大学','沈阳理工大学','辽宁科技大学','辽宁工程技术大学','辽宁石油化工大学','沈阳化工大学','大连交通大学','大连工业大学','沈阳建筑大学','沈阳农业大学','大连海洋大学','沈阳工程学院','沈阳大学','大连大学','辽宁工业大学','营口理工学院','辽东学院','鞍山师范学院','沈阳医学院','锦州医科大学','辽宁中医药大学','辽宁警察学院'];
+const provinceHints=[['辽宁',/辽宁|沈阳|大连|鞍山|抚顺|锦州|营口|阜新|辽阳|盘锦|葫芦岛|本溪|丹东|东北大学|大连理工|大连海事|中国医科/],['吉林',/吉林|长春|延边|东北师范|东北电力|长春理工/],['黑龙江',/黑龙江|哈尔滨|东北林业|东北农业|哈尔滨工业|哈尔滨工程|齐齐哈尔|佳木斯/],['北京',/北京|清华|中国人民大学|中央财经|对外经济贸易|北京航空|北京理工|中国农业|北京师范|北京交通|北京邮电|北京科技|首都/],['天津',/天津|南开|河北工业/],['河北',/河北|石家庄|燕山|华北理工|保定|唐山/],['上海',/上海|复旦|同济|华东师范|上海交通|华东理工|东华|上海财经|上海大学/],['江苏',/江苏|南京|苏州|无锡|常州|扬州|南通|徐州|河海|东南|江南|中国矿业|南京航空|南京理工/],['浙江',/浙江|杭州|宁波|温州|嘉兴|湖州|绍兴|金华/],['安徽',/安徽|合肥|中国科学技术|安徽大学|合肥工业/],['广东',/广东|广州|深圳|华南理工|暨南|中山|南方科技|香港中文大学/],['重庆',/重庆|西南大学/],['四川',/四川|成都|电子科技|西南交通|西南财经|四川大学/],['山东',/山东|济南|青岛|烟台|威海|曲阜|中国海洋|中国石油大学/],['陕西',/陕西|西安|长安大学|西北大学|西安交通|西北工业|西安电子|陕西师范/],['湖北',/湖北|武汉|华中科技|华中师范|武汉理工|中国地质|中南财经政法/],['湖南',/湖南|长沙|中南大学|湖南大学|湘潭/],['河南',/河南|郑州|洛阳|新乡|开封/],['福建',/福建|厦门|福州|华侨/],['江西',/江西|南昌|赣南|九江/],['广西',/广西|桂林|南宁/],['海南',/海南|海口|三亚/],['山西',/山西|太原|中北/],['内蒙古',/内蒙古|呼和浩特|包头/],['贵州',/贵州|贵阳/],['云南',/云南|昆明/],['甘肃',/甘肃|兰州/],['新疆',/新疆|乌鲁木齐|石河子/]];
+function fmt(n){return n===undefined||n===null||Number.isNaN(n)?'-':Number(n).toLocaleString('zh-CN')}
+function debounce(fn,wait=280){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),wait)}}
+const debouncedAutoRefresh=debounce(autoRefresh,300);
+async function fetchJson(p){const r=await fetch(p);if(!r.ok)throw new Error('加载失败 '+p);return r.json()}
+function inferProvince(s){for(const [p,re] of provinceHints){if(re.test(s||''))return p}return ''}
+function guessSchoolNature(s){if(!s)return{label:'需核验',cls:'unknown',score:0};if(LIAONING_PUBLIC.some(x=>s.includes(x)))return{label:'公办倾向',cls:'',score:25};const re=/城市学院|科技学院|信息工程学院|财经学院|传媒学院|艺术学院|外事学院|应用技术学院|现代学院|海华学院|杏林学院|三亚学院|吉林外国语|辽宁对外经贸|大连东软|沈阳工学院|大连科技学院|沈阳城市|辽宁何氏|辽宁理工学院|大连财经|辽宁传媒|大连艺术|辽宁财贸/;if(re.test(s))return{label:'民办/独立倾向',cls:'private',score:-30};return{label:'需核验',cls:'unknown',score:0}}
+function hasHighFee(r){const s=(r.major||'')+' '+(r.riskFlags||[]).join(' ');return /中外合作|高收费|合作办学|国际|学术互认|联合培养|中美|中英|中澳|中俄|中法|中德/.test(s)}
+function enrich(r){r.schoolProvince=inferProvince(r.school);r.schoolNature=guessSchoolNature(r.school);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);return r}
+function unlock(){if(document.getElementById('accessCode').value.trim()==='ln2025'){document.getElementById('app').classList.remove('locked');document.getElementById('gateBox').classList.add('hide');localStorage.setItem('ln_access_ok','1')}else alert('访问码不正确')}
+function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}autoRefresh()})})}
+function selectedProvinces(){return[...document.querySelectorAll('#provinceChips .chip.active')].map(x=>x.dataset.province)}
+function selectRegionGroup(g,active=true){const arr=REGION_GROUPS[g]||[];if(g==='全国'){document.querySelectorAll('#provinceChips .chip').forEach(c=>c.classList.toggle('active',active));return}document.querySelectorAll('#provinceChips .chip').forEach(c=>{if(arr.includes(c.dataset.province))c.classList.toggle('active',active)})}
+function clearProvinces(){document.querySelectorAll('#provinceChips .chip,#regionGroupChips .chip').forEach(c=>c.classList.remove('active'))}
+function setSingle(group,value){const box=document.querySelector(`[data-group="${group}"]`);if(!box)return;box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.value===value))}
+function getGroup(group){return document.querySelector(`[data-group="${group}"] .chip.active`)?.dataset.value||''}
+function selectedRejects(){return[...document.querySelectorAll('#rejectChips .chip.active')].map(x=>x.dataset.reject)}
+function applyStrategy(type){currentStrategy=type;document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));clearProvinces();document.querySelectorAll('#rejectChips .chip').forEach(c=>c.classList.remove('active'));document.getElementById('regionMode').value='hard';document.getElementById('budget').value='normal';document.getElementById('mentorMode').value='standard';document.getElementById('familyTolerance').value='low';document.getElementById('gradPlan').value='maybe';document.getElementById('timePressure').value='normal';setSingle('outProvince','yes');setSingle('medicine','neutral');setSingle('teacher','neutral');setSingle('liberal','neutral');setSingle('chem','neutral');setSingle('physics','neutral');setSingle('gridPower','neutral');
+ if(type==='employment'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='employment'}
+ if(type==='grid'){selectRegionGroup('辽宁省内');setSingle('outProvince','no');setSingle('gridPower','prefer');setSingle('physics','prefer');document.getElementById('priority').value='grid';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
+ if(type==='medical'){selectRegionGroup('全国');setSingle('medicine','prefer');setSingle('chem','prefer');document.getElementById('priority').value='employment';document.getElementById('gradPlan').value='yes';document.getElementById('timePressure').value='long'}
+ if(type==='exam'){selectRegionGroup('全国');setSingle('liberal','prefer');document.getElementById('priority').value='exam'}
+ if(type==='city'){selectRegionGroup('长三角');document.getElementById('priority').value='city'}
+ if(type==='publicLow'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='publicLow';document.getElementById('mentorMode').value='strict';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
+ if(type==='school'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='school'}
+ if(type==='broad'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='employment'}
+ autoRefresh()}
+function resetAll(){location.reload()}
+function isMed(m){return/临床|口腔|医学|麻醉|儿科|药学|中医|护理|影像|眼视光|预防|基础医学|精神医学|针灸/.test(m)}
+function isTeacher(m){return/师范|教育|小学教育|学前教育|特殊教育/.test(m)}
+function isLiberal(m){return/法学|金融|经济|会计|财务|工商|管理|外语|英语|日语|俄语|法语|德语|西班牙|新闻|传播|汉语言|汉语国际|历史|哲学|社会|图书馆|档案|旅游/.test(m)}
+function isChem(m){return/化学|化工|材料|环境|制药|药学|生物|食品|轻化|高分子|能源化学/.test(m)}
+function isPhys(m){return/物理|力学|机械|车辆|航空|航天|飞行器|船舶|兵器|土木|测绘|建筑环境|能源与动力|过程装备/.test(m)}
+function isGrid(m){return/电气|智能电网|能源与动力|新能源|储能|自动化|测控|电子信息|通信|核工程|电力|能源/.test(m)}
+function isComp(m){return/计算机|软件|网络空间|人工智能|数据科学|物联网|信息安全|电子信息/.test(m)}
+function isFinance(m){return/金融|经济|投资|保险|资产评估|国际经济与贸易/.test(m)}
+function topFinance(s,rank){return/北京大学|清华大学|中国人民大学|复旦|上海交通|中央财经|上海财经|对外经济贸易|南开|厦门|西南财经|中南财经政法/.test(s||'')||(rank&&rank<8000)}
+function isDeepTrap(m){return/环境科学|生态学|基础医学|心理学|生物科学|生物技术/.test(m)||/^(化学|应用化学|材料科学与工程|材料类)$/.test(m)}
+function mentorRule(r,m){const mode=document.getElementById('mentorMode').value;if(mode==='off')return{delta:0,tags:[],notes:[],breakdown:[],exclude:false};const factor=mode==='mild'?.55:mode==='strict'?1.25:1;const fam=document.getElementById('familyTolerance').value,grad=document.getElementById('gradPlan').value,time=document.getElementById('timePressure').value,priority=document.getElementById('priority').value,rejects=selectedRejects();let delta=0,tags=[],notes=[],breakdown=[],exclude=false;function add(d,tag,note){delta+=d;tags.push(tag);notes.push(note);breakdown.push({delta:d,tag,note})}
+ if(isGrid(m)){add(priority==='grid'?16:10,'电气/能源/自动化','路径清晰，普通家庭友好')}; if(isMed(m)){add(getGroup('medicine')==='prefer'?8:3,'医学执照路径','医学有执照保护，但周期长')}; if(isComp(m)){add(8,'技术路径','计算机仍有性价比，但要叠加AI能力')}; if(isTeacher(m)){add(7,'稳定路径','师范/教育可走稳定路径')}; if(isGrid(m)||/新能源|储能|核工程|能源与动力/.test(m))add(8,'AI低替代/受益','电力能源和AI基础设施相关') 
+ if(/新闻|传播|俄语|日语|法语|德语|西班牙语|翻译/.test(m))add(-16,'AI冲击高','新闻/小语种基础岗位受AI影响'); if(isFinance(m)&&!topFinance(r.school,r.rank2025))add(fam==='low'?-18:-8,'强资源依赖','普通院校财经金融资源依赖高'); if(/工商管理|市场营销|行政管理|旅游管理|酒店管理|电子商务/.test(m))add(-12,'管理本科风险','本科管理类缺少硬技能'); if(isDeepTrap(m))add(-15,'深造依赖','本科就业弹性较弱，往往依赖读研读博'); if(/建筑学|工程造价|风景园林|园林|城乡规划/.test(m))add(-12,'行业周期风险','需复核行业周期')
+ if(priority==='publicLow'){if(r.schoolNature.label==='公办倾向')add(25,'公办本科优先','低分段先保公办本科身份'); if(r.schoolNature.label==='民办/独立倾向')add(-30,'民办/独立倾向降权','当前策略优先保公办本科'); if(['辽宁','吉林','黑龙江'].includes(r.schoolProvince))add(10,'省内/东北优先','兼顾距离和家庭承受'); if(r.isHighFee)add(-40,'高收费强降权','不建议把高收费作为主体'); if(/食品|过程装备|测控|机械|材料成型|无机非金属|化工|工业工程|物流工程|工程管理/.test(m))add(8,'专业可让步方向','可作为保公办本科的复核方向')}
+ if(fam==='low'&&r.isHighFee)add(-20,'成本风险','普通家庭不宜默认承担高收费项目'); if(grad==='no'&&isDeepTrap(m))add(-15,'不读研冲突','不想读研时不宜选择深造依赖专业'); if(time==='fast'&&isMed(m))add(-14,'时间压力冲突','医学培养周期较长'); if(rejects.includes('高收费')&&r.isHighFee){exclude=true;tags.push('拒绝项：高收费')}; if(rejects.includes('长学制')&&isMed(m))add(-22,'拒绝项：长学制','已选择不接受长学制/规培'); if(rejects.includes('工地现场')&&/土木|建筑环境|采矿|石油|油气|地质|测绘|过程装备/.test(m))add(-14,'拒绝项：现场环境','可能涉及现场或艰苦环境'); if(rejects.includes('夜班')&&/护理|临床|医学|急诊|麻醉/.test(m))add(-10,'拒绝项：夜班','可能存在夜班值班'); if(rejects.includes('销售')&&/金融|市场营销|保险|国际经济与贸易|电子商务/.test(m))add(-10,'拒绝项：销售','中位数岗位可能含营销属性')
+ delta=Math.round(delta*factor); return{delta,tags:[...new Set(tags)].slice(0,6),notes:[...new Set(notes)].slice(0,3),breakdown:breakdown.slice(0,9),exclude}}
+function profileScore(r){const m=r.majorText;let score=50,reasons=[],excludes=[];const provinces=selectedProvinces(),regionMode=document.getElementById('regionMode').value;if(regionMode!=='none'&&provinces.length){if(provinces.includes(r.schoolProvince)){score+=14;reasons.push('目标区域匹配')}else if(regionMode==='hard')excludes.push('不在目标区域');else score-=10}; if(getGroup('outProvince')==='no'&&r.schoolProvince&&r.schoolProvince!=='辽宁'){score-=18;reasons.push('省外降权')}; if(r.isHighFee&&document.getElementById('budget').value==='normal')excludes.push('高收费/中外合作不符合预算')
+ if(isMed(m)){if(getGroup('medicine')==='prefer'){score+=18;reasons.push('医学意向匹配')}else if(getGroup('medicine')==='avoid')excludes.push('不学医')}; if(isTeacher(m)){if(getGroup('teacher')==='prefer'){score+=14;reasons.push('师范意向匹配')}else if(getGroup('teacher')==='avoid')excludes.push('不考虑师范')}; if(isLiberal(m)&&getGroup('liberal')==='avoid'){score-=18;reasons.push('经管法外语降权')}; if(isChem(m)&&getGroup('chem')==='avoid'){score-=22;reasons.push('化学/材料/生物降权')}; if(isPhys(m)&&getGroup('physics')==='prefer'){score+=14;reasons.push('物理/机械倾向匹配')}; if(isGrid(m)&&getGroup('gridPower')==='prefer'){score+=20;reasons.push('电气/电网/能源强相关')}; if((r.keySubjectHints||[]).length){score+=4;reasons.push('有重点学科提醒')}
+ const z=mentorRule(r,m);score+=z.delta;reasons.push(...z.tags);if(z.exclude)excludes.push('网报名师规则排除项');score=Math.max(0,Math.min(100,score));return{score,reasons:[...new Set(reasons)].slice(0,7),excludes:[...new Set(excludes)],mentor:z}}
+function resolveRank(){const r=Number(document.getElementById('myRank').value);if(r>0)return r;const s=String(Number(document.getElementById('myScore').value));return RANK2025[s]?Number(RANK2025[s]):null}
+function getBandModel(){const m=document.getElementById('model').value;if(m==='safe')return{chong:[.93,.98],match:[.98,1.05],steady:[1.05,1.20],safe:[1.20,1.45]};if(m==='bold')return{chong:[.82,.97],match:[.97,1.06],steady:[1.06,1.18],safe:[1.18,1.35]};return{chong:[.88,.97],match:[.97,1.05],steady:[1.05,1.18],safe:[1.18,1.35]}}
+function bandText(p){return currentRank?`${fmt(Math.round(currentRank*p[0]))} — ${fmt(Math.round(currentRank*p[1]))} 位`:'-'}
+function classify(rank){if(!currentRank||!rank)return'';const b=getBandModel(),r=currentRank;if(rank<r*b.chong[0])return'超冲';if(rank>=r*b.chong[0]&&rank<=r*b.chong[1])return'可冲';if(rank>r*b.match[0]&&rank<=r*b.match[1])return'匹配';if(rank>r*b.steady[0]&&rank<=r*b.steady[1])return'稳妥';if(rank>r*b.safe[0]&&rank<=r*b.safe[1])return'保底';if(rank>r*b.safe[1])return'过低';return''}
+function autoRefresh(){currentRank=resolveRank();if(currentRank){const b=getBandModel();document.getElementById('rankSummary').textContent=`当前参考位次：${fmt(currentRank)}。系统已自动刷新。位次数值越小，要求越高。`;document.getElementById('bandChong').textContent=bandText(b.chong);document.getElementById('bandMatch').textContent=bandText(b.match);document.getElementById('bandSteady').textContent=bandText(b.steady);document.getElementById('bandSafe').textContent=bandText(b.safe)}applyFilters()}
+function applyFilters(){const qS=document.getElementById('qSchool')?.value.trim()||'',qM=document.getElementById('qMajor')?.value.trim()||'',fLevel=document.getElementById('filterLevel')?.value||'',onlyKey=document.getElementById('onlyKey')?.checked,strict=document.getElementById('strictProfile')?.checked,sortBy=document.getElementById('sortBy')?.value||'profile';let arr=DATA.map(r=>{const level=classify(r.rank2025),p=profileScore(r);return{...r,_level:level,_fit:currentRank&&r.rank2025?Math.abs(r.rank2025-currentRank):999999999,_profile:p.score,_reasons:p.reasons,_excludes:p.excludes,_mentor:p.mentor}});arr=arr.filter(r=>{if(qS&&!(r.school||'').includes(qS))return false;if(qM&&!(r.major||'').includes(qM))return false;if(fLevel&&r._level!==fLevel)return false;if(onlyKey&&!(r.keySubjectHints||[]).length)return false;if(strict&&r._excludes.length)return false;if(strict&&r._profile<32)return false;return true});arr.sort((a,b)=>sortBy==='rank2025'?(a.rank2025||999999999)-(b.rank2025||999999999):sortBy==='rankDiffHot'?(a.rankDiff??999999999)-(b.rankDiff??999999999):sortBy==='rankDiffLoose'?(b.rankDiff??-999999999)-(a.rankDiff??-999999999):sortBy==='fit'?a._fit-b._fit:(b._profile-a._profile)||(a._fit-b._fit));filtered=arr;currentPage=1;updateCounts();renderPlanABC();renderCards();updateLive()}
+function updateCounts(){let c={可冲:0,匹配:0,稳妥:0,保底:0};filtered.forEach(r=>{if(c[r._level]!==undefined)c[r._level]++});document.getElementById('cntAll').textContent=fmt(filtered.length);document.getElementById('cntChong').textContent=fmt(c['可冲']);document.getElementById('cntMatch').textContent=fmt(c['匹配']);document.getElementById('cntSteady').textContent=fmt(c['稳妥']);document.getElementById('cntSafe').textContent=fmt(c['保底']);
+  if(document.getElementById('exRegion')){document.getElementById('exRegion').textContent=fmt(exclusionStats['区域排除']||0);document.getElementById('exBudget').textContent=fmt(exclusionStats['预算排除']||0);document.getElementById('exProfile').textContent=fmt(exclusionStats['画像排除']||0);document.getElementById('exLowScore').textContent=fmt(exclusionStats['低匹配排除']||0);}document.getElementById('filterSummary').textContent=`当前结果：${fmt(filtered.length)} 条。系统会随条件自动刷新。结果太多就收窄区域/偏好，太少就放宽条件。`}
+function updateLive(){document.getElementById('liveRank').textContent=currentRank?fmt(currentRank):'-';document.getElementById('liveTotal').textContent=fmt(filtered.length);const main=filtered.filter(r=>['匹配','稳妥'].includes(r._level)).length,safe=filtered.filter(r=>r._level==='保底').length;document.getElementById('liveMain').textContent=fmt(main);document.getElementById('liveSafe').textContent=fmt(safe);document.getElementById('lowPublicNote').classList.toggle('hide',currentStrategy!=='publicLow');const st=document.getElementById('liveStatus'),ad=document.getElementById('liveAdvice');if(!currentRank){st.textContent='等待位次';st.className='realtime-status warn';ad.textContent='请输入2025位次，或输入可换算的一分一段分数。'}else if(filtered.length<20){st.textContent='结果偏少';st.className='realtime-status danger';ad.textContent='当前结果偏少，建议放宽区域、关闭严格画像缩水，或减少拒绝项。'}else if(filtered.length>300){st.textContent='结果偏多';st.className='realtime-status warn';ad.textContent='当前结果偏多，建议继续限定区域、策略或明确不接受项。'}else{st.textContent='范围适中';st.className='realtime-status';ad.textContent='结果数量适中。建议先看A/B/C三方案，再看匹配和稳妥候选。'}}
+function levelPill(l){let cls=l==='可冲'?'yellow':l==='匹配'?'blue':l==='稳妥'||l==='保底'?'green':l==='超冲'?'red':'';return`<span class="pill ${cls}">${l||'检索'}</span>`}
+function renderRule(r){const lines=(r._mentor?.breakdown||[]).filter(x=>x.delta!==0);if(!lines.length)return'';return`<details class="rule-breakdown"><summary><span>网报名师规则明细</span></summary><div class="rule-lines">${lines.map(x=>`<div class="rule-line ${x.delta>=0?'plus':'minus'}"><div class="sign">${x.delta>=0?'+':''}${x.delta}</div><div><div class="tagtxt">${x.tag}</div><div class="why">${x.note}</div></div></div>`).join('')}</div></details>`}
+function judge(r){let s=[];if(r._level==='可冲')s.push('可作为前段冲击对象，但不要押宝。');else if(r._level==='匹配')s.push('和当前位次接近，适合作为主体候选。');else if(r._level==='稳妥')s.push('适合中后段兜住。');else if(r._level==='保底')s.push('可防滑档，但也要看专业质量。');if(r._reasons?.length)s.push('匹配点：'+r._reasons.slice(0,3).join('；')+'。');if(r.rankChangeLabel)s.push(r.rankChangeLabel+'，需结合计划变化复核。');return s.join('')}
+
+function confidence(r){
+  if(r.status==='both' && r.rank2025 && r.rank2024 && !r.isHighFee)return {label:'高可信', cls:'high'};
+  if(r.status==='both')return {label:'需复核', cls:'mid'};
+  return {label:'谨慎看', cls:'low'};
+}
+function parentLine(r){
+  if(r._level==='匹配')return '这条与当前位次接近，适合作为主体候选，需要精读招生计划和专业组。';
+  if(r._level==='稳妥')return '这条录取把握更高，适合放在中后段兜住，但仍要看专业质量。';
+  if(r._level==='保底')return '这条偏保底，用来防滑档，不建议只因稳就盲选。';
+  if(r._level==='可冲')return '这条是可冲候选，适合少量放在前段，不建议押宝。';
+  if(r._level==='超冲')return '这条明显偏冲，除非特别喜欢，否则不要占用太多志愿位。';
+  if(r._level==='过低')return '这条位次放宽较多，可以做兜底核验，但要防止专业和学校质量让步过大。';
+  return '未输入位次时仅作检索参考。';
+}
+function exclusionBucket(ex){
+  if(ex.some(x=>String(x).includes('区域')||String(x).includes('不在目标区域')))return '区域排除';
+  if(ex.some(x=>String(x).includes('预算')||String(x).includes('高收费')))return '预算排除';
+  if(ex.some(x=>String(x).includes('不学医')||String(x).includes('师范')||String(x).includes('画像')))return '画像排除';
+  return '低匹配排除';
+}
+
+function renderCards(){const start=(currentPage-1)*pageSize,rows=filtered.slice(start,start+pageSize),el=document.getElementById('cards');el.innerHTML=rows.map(r=>{const reasons=(r._reasons||[]).slice(0,5).map(x=>`<span class="pill purple">${x}</span>`).join('');const risks=(r.riskFlags||[]).map(x=>`<span class="pill red">${x}</span>`).join('');const keys=(r.keySubjectHints||[]).slice(0,2).map(x=>`<span class="pill green">重点：${x}</span>`).join('');return`<div class="card level-${r._level}"><div class="cardTop"><div><div class="school">${r.school} <span class="pill">${r.schoolProvince||'省份待识别'}</span> <span class="pill nature-pill ${r.schoolNature.cls||'unknown'}">${r.schoolNature.label}</span></div><div class="major">${r.major}</div></div><div class="level">${levelPill(r._level)}</div></div><div style="margin-top:8px"><span class="pill blue">画像 ${Math.round(r._profile)}分</span>${r.rankChangeLabel?`<span class="pill blue">${r.rankChangeLabel}</span>`:''}</div><div class="score-meter"><i style="width:${Math.round(r._profile)}%"></i></div><div class="kv"><div><span>2025分/位</span><b>${fmt(r.score2025)} / ${fmt(r.rank2025)}</b></div><div><span>2024分/位</span><b>${fmt(r.score2024)} / ${fmt(r.rank2024)}</b></div><div><span>分差</span><b>${fmt(r.scoreDiff)}</b></div><div><span>位次差</span><b>${fmt(r.rankDiff)}</b></div></div><div>${reasons}${risks||'<span class="pill green">暂无风险标签</span>'}${keys}</div><div class="judge"><b>高报师判断：</b>${judge(r)}</div>${renderRule(r)}<div class="row" style="margin-top:10px"><button class="secondary slim" onclick="addCandidate('${r.id}')">加入候选</button></div></div>`}).join('')||'<div class="notice">没有命中结果。可以放宽目标区域、关闭严格画像缩水，或清空关键词。</div>';const pages=Math.max(1,Math.ceil(filtered.length/pageSize));document.getElementById('pageInfo').textContent=`${currentPage} / ${pages}`}
+function renderPlanABC(){const box=document.getElementById('planABC');if(!currentRank){box.innerHTML='';return}const usable=filtered.filter(r=>!r._excludes?.length);function pick(ls){return usable.filter(r=>ls.includes(r._level)).sort((a,b)=>(b._profile-a._profile)||(a._fit-b._fit))[0]}const A=pick(['可冲','超冲']),B=pick(['匹配','稳妥']),C=pick(['保底','稳妥']);function item(x,cls,title,txt){return x?`<div class="plan-card ${cls}"><h3>${title}</h3><b>${x.school}</b><p>${x.major}</p><p>${txt}｜${x._level}｜画像${Math.round(x._profile)}分｜2025位次${fmt(x.rank2025)}</p><p><b>为什么：</b>${(x._reasons||[]).slice(0,3).join('；')||'画像匹配度较高'}</p></div>`:`<div class="plan-card ${cls}"><h3>${title}</h3><p>暂无合适候选。可放宽区域或调整八连问。</p></div>`}box.innerHTML=item(A,'a','方案A：冲','只适合放前段，不押宝')+item(B,'b','方案B：稳','优先精读和核验')+item(C,'c','方案C：保','防滑档，但仍看专业质量')}
+function nextPage(){const pages=Math.max(1,Math.ceil(filtered.length/pageSize));if(currentPage<pages){currentPage++;renderCards();document.getElementById('cards').scrollIntoView({behavior:'smooth'})}}function prevPage(){if(currentPage>1){currentPage--;renderCards();document.getElementById('cards').scrollIntoView({behavior:'smooth'})}}function toggleAdvanced(){document.getElementById('advancedFilters').classList.toggle('open')}
+function addCandidate(id){const r=DATA.find(x=>x.id===id);if(r&&!candidates.find(x=>x.id===id))candidates.push(r);localStorage.setItem('ln_candidates_v24',JSON.stringify(candidates));renderCandidates();renderStructure()}
+function renderStructure(){
+  const el=document.getElementById('structureList'); if(!el)return;
+  if(!candidates.length){el.innerHTML='<div class="structure-item">候选为空</div>';return;}
+  const rows=candidates.map(r=>DATA.find(x=>x.id===r.id)||r).map(enrichRecord);
+  const count=fn=>rows.filter(fn).length;
+  const warnings=[];
+  if(count(r=>classify(r.rank2025)==='保底')===0)warnings.push('提醒：缺少保底');
+  if(count(r=>['可冲','超冲'].includes(classify(r.rank2025)))>rows.length*0.45)warnings.push('提醒：冲得偏多');
+  if(count(r=>r.isHighFee)>0)warnings.push('提醒：含高收费');
+  if(count(r=>r.schoolProvince!=='辽宁')>rows.length*0.6)warnings.push('提醒：省外比例较高');
+  const items=[`总数 ${rows.length}`,`冲 ${count(r=>['可冲','超冲'].includes(classify(r.rank2025)))}`,`稳/匹配 ${count(r=>['匹配','稳妥'].includes(classify(r.rank2025)))}`,`保底 ${count(r=>classify(r.rank2025)==='保底')}`,`公办倾向 ${count(r=>r.schoolNature?.label==='公办倾向')}`,`沈阳 ${count(r=>r.lnArea==='沈阳')} / 大连 ${count(r=>r.lnArea==='大连')}`,...warnings];
+  el.innerHTML=items.map(x=>`<div class="structure-item">${x}</div>`).join('');
+}
+
+function renderCandidates(){document.getElementById('candidateList').innerHTML=candidates.map(r=>`<div class="candidate"><b>${r.school}</b><div>${r.major}</div><div class="small">2025：${fmt(r.score2025)} 分 / ${fmt(r.rank2025)} 位</div><button class="ghost slim" style="margin-top:8px" onclick="removeCandidate('${r.id}')">移除</button></div>`).join('')||'<p class="small">还没有加入候选。</p>'}function removeCandidate(id){candidates=candidates.filter(x=>x.id!==id);localStorage.setItem('ln_candidates_v24',JSON.stringify(candidates));renderCandidates()}function clearCandidates(){candidates=[];localStorage.removeItem('ln_candidates_v24');renderCandidates()}
+function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}function rowsToCsv(rows){const h=['school','schoolProvince','schoolCity','schoolNature','major','score2025','rank2025','score2024','rank2024','rankDiff','rankChangeLabel','profile'];return'\ufeff'+[h.join(',')].concat(rows.map(r=>h.map(k=>csvEscape(k==='schoolNature'?r.schoolNature?.label:k==='profile'?r._profile:r[k])).join(','))).join('\n')}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V24筛选结果.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V24候选清单.csv',rowsToCsv(candidates.map(enrich)))}
+async function boot(){bootChips();try{const data=await fetchJson(DATA_PATHS[0]);DATA=(data.records||[]).map(enrich);META=data.meta||{};RANK2025=await fetchJson(RANK_PATHS[0]);document.getElementById('metaRecords').textContent=`全量对比 ${fmt(META.recordCount)} 条｜两年匹配 ${fmt(META.bothCount)} 条`;candidates=JSON.parse(localStorage.getItem('ln_candidates_v24')||'[]');renderCandidates();document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',debouncedAutoRefresh));document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));autoRefresh()}catch(e){document.getElementById('metaRecords').textContent='数据加载失败';document.getElementById('filterSummary').textContent=e.message}}
+if(localStorage.getItem('ln_access_ok')==='1'){setTimeout(()=>{document.getElementById('app').classList.remove('locked');document.getElementById('gateBox').classList.add('hide')},0)}
+
+function unlockFromTop(){
+  const v=document.getElementById('accessCodeTop')?.value.trim();
+  if(v==='ln2025'){
+    document.getElementById('app')?.classList.remove('locked');
+    document.getElementById('gateBox')?.classList.add('hide');
+    localStorage.setItem('ln_access_ok','1');
+    const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已开启：可以填写位次并筛选。';
+    autoRefresh();
+  }else{
+    alert('访问码不正确，请输入 ln2025');
+  }
+}
+function resetAccess(){
+  localStorage.removeItem('ln_access_ok');
+  document.getElementById('app')?.classList.add('locked');
+  document.getElementById('gateBox')?.classList.remove('hide');
+  const top=document.getElementById('accessCodeTop'); if(top)top.value='';
+  const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已清除本机开启状态，请重新输入 ln2025。';
+}
+function manualExecute(){
+  currentRank=resolveRank();
+  autoRefresh();
+  const box=document.getElementById('resultBox');
+  if(box)box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+window.addEventListener('error', function(e){
+  const el=document.getElementById('cards');
+  if(el){
+    el.innerHTML='<div class="result-error"><b>页面执行出现错误：</b><br>'+String(e.message||e.error||'未知错误')+'<br>请检查是否上传了 data 文件夹，或点击“开始筛选 / 重新筛选”。</div>';
+  }
+});
+function syncAccessState(){
+  const stateEl=document.getElementById('accessState');
+  if(!stateEl)return;
+  if(localStorage.getItem('ln_access_ok')==='1'){
+    stateEl.textContent='已开启：如果想重新输入访问码，可以点“重新输入”。';
+  }else{
+    stateEl.textContent='未开启时下方内容会被锁定；请输入 ln2025。';
+  }
+}
+
+
+function toggleSection(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('collapsed');
+}
+function updateGuideState(){
+  const rank = (typeof resolveRank==='function') ? resolveRank() : null;
+  const links=[...document.querySelectorAll('#guideNav a')];
+  links.forEach(a=>a.classList.remove('active','done'));
+  const one=document.querySelector('#guideNav a[data-guide="1"]');
+  const two=document.querySelector('#guideNav a[data-guide="2"]');
+  const three=document.querySelector('#guideNav a[data-guide="3"]');
+  const five=document.querySelector('#guideNav a[data-guide="5"]');
+  if(rank){
+    one&&one.classList.add('done');
+    two&&two.classList.add('done');
+    three&&three.classList.add('active');
+  }else{
+    one&&one.classList.add('active');
+  }
+  if((window.candidates||candidates||[]).length){
+    five&&five.classList.add('done');
+  }
+}
+
+boot();
+setInterval(updateGuideState, 1000);
+setTimeout(syncAccessState, 0);
+</script>
+<nav aria-label="手机底部向导" class="mobile-bottom-guide">
+<a href="#baseInfo">位次</a>
+<a href="#strategyEntry">目标</a>
+<a class="primary" href="#resultBox">方案</a>
+<a href="#candidateArea">候选</a>
+<a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">顶部</a>
+</nav></body>
+</html>
