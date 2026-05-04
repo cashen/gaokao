@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>辽宁物理类 2025 报考观察｜在线简报</title>
+<style>
+:root{
+  --bg:#F7F6F2;
+  --panel:#FFFFFF;
+  --ink:#223248;
+  --muted:#5A6676;
+  --line:#D7DEE6;
+  --teal:#3E6B6F;
+  --orange:#B97A56;
+  --soft-teal:#E8F0EF;
+  --soft-orange:#F6ECE4;
+  --soft-blue:#EEF3F8;
+  --shadow:0 10px 28px rgba(34,50,72,.08);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;}
+body{overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+.topbar{
+  height:64px;flex:0 0 64px;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 22px;border-bottom:1px solid rgba(34,50,72,.08);background:rgba(247,246,242,.9);backdrop-filter:blur(10px);position:relative;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--teal),#6e8d8f);display:grid;place-items:center;color:#fff;font-weight:700}
+.brand h1{font-size:18px;line-height:1.1;margin:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.controls{display:flex;align-items:center;gap:10px}
+.btn{border:none;background:var(--panel);box-shadow:var(--shadow);border-radius:14px;padding:10px 14px;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--ink);color:#fff}
+#deck{flex:1;position:relative;overflow:hidden}
+.slides{height:100%;display:flex;transition:transform .45s ease}
+.slide{min-width:100%;height:100%;overflow:auto;padding:24px 28px 34px;scrollbar-width:thin}
+.slide-inner{max-width:1280px;margin:0 auto;min-height:calc(100% - 10px);display:flex;flex-direction:column;gap:20px}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.huge{font-size:56px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:0}
+.title{font-size:40px;line-height:1.18;font-weight:800;letter-spacing:-.01em;margin:0}
+.subtitle{font-size:20px;line-height:1.55;color:var(--muted);max-width:940px}
+.grid{display:grid;gap:18px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--panel);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:1px solid rgba(34,50,72,.06)}
+.card.soft-teal{background:var(--soft-teal)}
+.card.soft-orange{background:var(--soft-orange)}
+.card.soft-blue{background:var(--soft-blue)}
+.metric{font-size:44px;font-weight:800;line-height:1;margin-bottom:8px}
+.metric-label{font-size:15px;color:var(--muted)}
+.note{font-size:14px;line-height:1.7;color:var(--muted)}
+.bullet{display:flex;gap:14px;align-items:flex-start;margin:12px 0}
+.bullet .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;flex:0 0 28px;background:var(--soft-blue);color:var(--ink)}
+.bullet p{margin:0;font-size:18px;line-height:1.65}
+.list-clean{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.list-clean li{padding:14px 16px;border-radius:16px;background:rgba(34,50,72,.04);font-size:18px;line-height:1.5}
+.two-col-hero{display:grid;grid-template-columns:1.25fr .95fr;gap:22px;align-items:stretch;flex:1}
+.hero-panel{display:flex;flex-direction:column;justify-content:space-between}
+.hero-quote{font-size:26px;line-height:1.5;font-weight:700;padding:22px;border-radius:20px;background:var(--soft-blue)}
+.footer-note{margin-top:auto;padding-top:8px;color:var(--muted);font-size:13px;line-height:1.7}
+.table-wrap{overflow:auto;border-radius:20px;background:var(--panel);box-shadow:var(--shadow);border:1px solid rgba(34,50,72,.06)}
+.table{width:100%;border-collapse:collapse;font-size:17px;line-height:1.5}
+.table th,.table td{padding:12px 14px;border-bottom:1px solid rgba(34,50,72,.08);vertical-align:top}
+.table th{background:rgba(34,50,72,.04);font-size:14px;color:var(--muted);text-align:left;position:sticky;top:0}
+.table tr:last-child td{border-bottom:none}
+.rank{font-weight:800;color:var(--ink);width:52px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.tag.teal{background:var(--soft-teal);color:var(--teal)}
+.tag.orange{background:var(--soft-orange);color:var(--orange)}
+.tag.blue{background:var(--soft-blue);color:#415e86}
+.callout{border-left:4px solid var(--teal);padding:12px 0 12px 16px;margin:0;color:var(--muted);font-size:17px;line-height:1.8}
+.split-list{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.panel-title h3{margin:0;font-size:24px}
+.mini{font-size:13px;color:var(--muted)}
+.progress{display:flex;align-items:center;gap:10px;min-width:240px;justify-content:flex-end}
+.progress-bar{height:6px;width:160px;border-radius:999px;background:rgba(34,50,72,.08);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),#7b9698);width:0%;transition:width .45s ease}
+.page-label{font-size:13px;color:var(--muted);font-weight:700}
+.dots{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;display:flex;gap:8px;z-index:21}
+.dot-btn{width:8px;height:8px;border-radius:999px;border:none;background:rgba(34,50,72,.22);cursor:pointer;padding:0}
+.dot-btn.active{width:24px;background:var(--teal)}
+.navhint{font-size:13px;color:var(--muted)}
+.barlist{display:grid;gap:12px;margin-top:8px}
+.baritem{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;align-items:center}
+.barlabel{font-size:17px;line-height:1.4}
+.barbox{height:12px;background:rgba(34,50,72,.08);border-radius:999px;overflow:hidden}
+.bar{height:100%;border-radius:999px}
+.bar.teal{background:linear-gradient(90deg,var(--teal),#7B9698)}
+.bar.orange{background:linear-gradient(90deg,var(--orange),#D6A17B)}
+.caption{font-size:12px;color:var(--muted)}
+.checklist{display:grid;gap:10px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:18px;line-height:1.6}
+.check .tick{width:24px;height:24px;border-radius:50%;background:var(--soft-teal);color:var(--teal);display:grid;place-items:center;font-weight:800;flex:0 0 24px;margin-top:2px}
+hr.sep{border:none;height:1px;background:rgba(34,50,72,.08);margin:6px 0 0}
+@media (max-width: 1100px){
+  .huge{font-size:44px}.title{font-size:32px}.subtitle{font-size:18px}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .two-col-hero,.grid-3,.grid-2,.split-list{grid-template-columns:1fr}
+}
+@media (max-width: 768px){
+  body{overflow:auto}
+  #app{height:auto;min-height:100%}
+  .topbar{position:sticky;top:0}
+  .brand h1{font-size:16px}
+  .controls .navhint{display:none}
+  .slide{padding:16px 14px 44px;height:auto;min-height:calc(100vh - 64px)}
+  .slide-inner{gap:14px}
+  .huge{font-size:34px}.title{font-size:28px}.subtitle{font-size:16px;line-height:1.6}
+  .metric{font-size:34px}
+  .card{padding:16px;border-radius:18px}
+  .table{font-size:14px}.table th,.table td{padding:10px}
+  .bullet p,.list-clean li,.check{font-size:16px}
+  .hero-quote{font-size:20px}
+  .progress{min-width:auto}.progress-bar{width:96px}
+}
+
+.hotkeys-strip{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:10px
+}
+.kbd{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:30px;height:28px;padding:0 9px;border-radius:9px;
+  background:rgba(34,50,72,.08);border:1px solid rgba(34,50,72,.12);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;font-weight:800;color:var(--ink);
+  box-shadow:inset 0 -1px 0 rgba(34,50,72,.12);
+}
+.hotkey-toast{
+  position:fixed;left:50%;top:82px;transform:translateX(-50%) translateY(-8px);
+  background:rgba(34,50,72,.94);color:#fff;border-radius:999px;
+  padding:10px 18px;font-size:14px;font-weight:700;
+  opacity:0;pointer-events:none;z-index:80;transition:.22s ease;
+  box-shadow:0 10px 24px rgba(34,50,72,.18);
+}
+.hotkey-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.help-mask{
+  position:fixed;inset:0;background:rgba(34,50,72,.28);
+  display:none;align-items:center;justify-content:center;z-index:90;
+  padding:18px;backdrop-filter:blur(8px);
+}
+.help-mask.show{display:flex}
+.help-modal{
+  max-width:860px;width:100%;background:var(--panel);border-radius:28px;
+  padding:24px;box-shadow:0 24px 80px rgba(34,50,72,.22);
+  border:1px solid rgba(255,255,255,.5);
+}
+.help-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}
+.help-header h3{font-size:28px;line-height:1.2;margin:0}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.help-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border-radius:16px;background:rgba(34,50,72,.045);font-size:16px;line-height:1.45;
+}
+.close-x{
+  border:none;background:rgba(34,50,72,.08);border-radius:12px;
+  width:38px;height:38px;font-size:20px;cursor:pointer;color:var(--ink);
+}
+.mobile-toolbar{
+  display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:70;
+  grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;
+  padding:8px;border-radius:20px;background:rgba(247,246,242,.86);
+  backdrop-filter:blur(14px);border:1px solid rgba(34,50,72,.10);
+  box-shadow:0 10px 30px rgba(34,50,72,.12);
+}
+.mobile-toolbar button{
+  border:none;border-radius:14px;background:#fff;color:var(--ink);
+  padding:11px 8px;font-weight:800;font-size:13px;box-shadow:0 4px 14px rgba(34,50,72,.08);
+}
+.mobile-toolbar button.primary-mobile{background:var(--ink);color:#fff}
+.jump-panel{
+  display:none;position:fixed;right:18px;top:82px;z-index:75;
+  width:min(380px,calc(100vw - 36px));background:rgba(255,255,255,.96);
+  border:1px solid rgba(34,50,72,.08);border-radius:22px;padding:14px;
+  box-shadow:0 16px 40px rgba(34,50,72,.14);backdrop-filter:blur(12px);
+}
+.jump-panel.show{display:block}
+.jump-panel h4{margin:2px 0 10px;font-size:17px}
+.jump-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.jump-grid button{
+  border:none;border-radius:14px;background:rgba(34,50,72,.055);
+  padding:10px 8px;text-align:left;cursor:pointer;color:var(--ink);
+}
+.jump-grid button strong{display:block;font-size:14px}
+.jump-grid button span{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+@media (max-width: 768px){
+  .mobile-toolbar{display:grid}
+  .dots{display:none}
+  .slide{padding-bottom:86px}
+  .hotkeys-strip{display:none}
+  .help-grid{grid-template-columns:1fr}
+  .help-modal{padding:18px;border-radius:22px}
+  .help-header h3{font-size:22px}
+  .hotkey-toast{top:74px;font-size:13px;max-width:calc(100vw - 28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">辽</div>
+      <div>
+        <h1>辽宁物理类 2025 报考观察</h1>
+        <small>基于 2024 / 2025 投档数据的竞争变化分析｜在线简报</small>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="navhint">← → 切换　|　触屏可左右滑动</div>
+      <button class="btn" id="prevBtn">上一页</button>
+      <button class="btn primary" id="nextBtn">下一页</button>
+      <div class="progress">
+        <div class="page-label" id="pageLabel">01 / 12</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="deck">
+    <div class="slides" id="slides">
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Liaoning Gaokao Insight</div>
+        <div class="two-col-hero">
+          <div class="hero-panel card soft-blue">
+            <div>
+              <h2 class="huge">辽宁物理类 2025 报考观察</h2>
+              <p class="subtitle">基于 2024 / 2025 投档数据与一分一段位次的竞争变化分析。<br>这是一份面向辽宁家长的温和版在线简报：不夸张，不制造焦虑，强调“解释力”和“可复核”。</p>
+            </div>
+            <div class="grid grid-3">
+              <div class="card"><div class="metric">2024</div><div class="metric-label">全量普通类本科批物理类投档数据</div></div>
+              <div class="card"><div class="metric">2025</div><div class="metric-label">全量普通类本科批物理类投档数据</div></div>
+              <div class="card"><div class="metric">1分1段</div><div class="metric-label">将分数统一映射为位次后再比较</div></div>
+            </div>
+          </div>
+          <div class="hero-panel">
+            <div class="hero-quote">这份简报关注的是：<br>辽宁家长在 2025 报考中，<br><span style="color:var(--teal)">哪些方向更难进了</span>，<br><span style="color:var(--orange)">哪些方向有所放宽</span>，<br>以及这些变化背后的可能逻辑。</div>
+            <div class="card">
+              <div class="panel-title"><h3>阅读提示</h3><span class="tag blue">研究简报风格</span></div>
+              <div class="checklist">
+                <div class="check"><span class="tick">1</span><span>先讲数据与方法，再给结论，避免“只给榜单不讲逻辑”。</span></div>
+                <div class="check"><span class="tick">2</span><span>主榜尽量剔除中外合作、高收费、特殊培养项目，更接近普通家庭参考口径。</span></div>
+                <div class="check"><span class="tick">3</span><span>“竞争增强 / 位次放宽”指投档竞争变化，不等于专业价值结论。</span></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="panel-title"><h3>快捷操作</h3><span class="tag teal">多终端适配</span></div>
+              <div class="hotkeys-strip">
+                <span class="kbd">←</span><span class="kbd">→</span>
+                <span class="kbd">Space</span><span class="kbd">1-9</span>
+                <span class="kbd">0</span><span class="kbd">F</span>
+                <span class="kbd">M</span><span class="kbd">?</span>
+              </div>
+              <p class="note">PC / Pad 外接键盘可用热键；手机端保留左右滑动，并增加底部快捷按钮。所有操作会给出轻提示，方便演示时确认。</p>
+            </div>
+          </div>
+        </div>
+        <div class="footer-note">注：本简报面向屏幕阅读优化，兼顾 PC / Pad / Android / iOS。建议全屏浏览。</div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Overview</div>
+        <h2 class="title">先说结论：本轮变化，更像“风险偏好变稳”，而不是“单一热门狂热”</h2>
+        <div class="grid grid-2">
+          <div class="card soft-teal">
+            <div class="bullet"><div class="dot">A</div><p><strong>硬工科底座方向有边际回暖。</strong><br>资源能源、材料、测控、装备制造类专业，在辽宁物理类投档里更有支撑感。</p></div>
+            <div class="bullet"><div class="dot">B</div><p><strong>医学仍然是高分方向，但边际竞争有所放宽。</strong><br>这不等于医学“变差”，更接近“竞争强度较去年有所缓和”。</p></div>
+          </div>
+          <div class="card soft-orange">
+            <div class="bullet"><div class="dot">C</div><p><strong>财经、师范、外语、建筑类更趋谨慎。</strong><br>这些方向在辽宁物理类中的投档竞争优势较 2024 有所减弱。</p></div>
+            <div class="bullet"><div class="dot">D</div><p><strong>辽宁省内工科底座院校更有支撑。</strong><br>学校层面，石化、理工、工程技术、化工、科技、航空航天类院校整体更稳。</p></div>
+          </div>
+        </div>
+        <div class="grid grid-4">
+          <div class="card"><div class="metric">8344</div><div class="metric-label">原始两年可比样本</div></div>
+          <div class="card"><div class="metric">7509</div><div class="metric-label">剔除高溢价 / 特殊口径后的普通项目样本</div></div>
+          <div class="card"><div class="metric">1394</div><div class="metric-label">辽宁省内高校普通项目有效样本</div></div>
+          <div class="card"><div class="metric">12页</div><div class="metric-label">本次在线简报页数</div></div>
+        </div>
+        <p class="callout">这份分析更适合作为“趋势参考”与“初步排雷工具”，不替代正式志愿方案，也不直接等同于就业结论。</p>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Method · Data</div>
+        <h2 class="title">数据原理：为什么不直接比“分数”，而要先转成“位次”？</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="panel-title"><h3>数据底座</h3><span class="tag teal">全量口径</span></div>
+            <ul class="list-clean">
+              <li><strong>2024 辽宁普通类本科批物理类投档数据（全量）</strong></li>
+              <li><strong>2025 辽宁普通类本科批物理类投档数据（全量）</strong></li>
+              <li><strong>2024 辽宁物理类一分一段表</strong></li>
+              <li><strong>2025 辽宁物理类一分一段表</strong></li>
+            </ul>
+            <p class="note">2025 数据底表为辽宁物理类本科批全量投档数据，共 10969 条、931 所院校；再通过一分一段表映射为累计位次后统一比较。</p>
+          </div>
+          <div class="card soft-blue">
+            <div class="panel-title"><h3>处理流程</h3><span class="tag blue">先位次，后比较</span></div>
+            <div class="bullet"><div class="dot">1</div><p>读取 2024 / 2025 同校同专业最低投档分。</p></div>
+            <div class="bullet"><div class="dot">2</div><p>用对应年份的一分一段表，将最低投档分映射为累计位次。</p></div>
+            <div class="bullet"><div class="dot">3</div><p>再比较两年位次变化，而不是直接比较分数变化。</p></div>
+            <div class="bullet"><div class="dot">4</div><p>最后再做“专业聚合”“学校聚合”和“学校+专业明细”三层观察。</p></div>
+          </div>
+        </div>
+        <div class="card soft-teal">
+          <h3 style="margin:0 0 8px 0;font-size:24px">为什么位次比分数更重要？</h3>
+          <p class="note" style="font-size:18px;color:var(--ink)">同样是 580 分，在不同年份对应的全省位置可能并不相同。高考分析里，<strong>位次</strong>比绝对分数更稳定、更适合跨年比较。因此本简报所有主判断，尽量建立在“位次变化”上，而不是建立在“分数变化”上。</p>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Method · Logic</div>
+        <h2 class="title">分析原理：我们如何定义“竞争增强”和“位次放宽”？</h2>
+        <div class="grid grid-2">
+          <div class="card soft-blue">
+            <div class="panel-title"><h3>核心公式</h3><span class="tag blue">简洁可解释</span></div>
+            <div class="hero-quote" style="font-size:34px;background:#fff">rankDiff = rank2025 − rank2024</div>
+            <div class="bullet"><div class="dot">−</div><p><strong>rankDiff &lt; 0：</strong> 2025 位次更靠前，说明投档竞争增强。</p></div>
+            <div class="bullet"><div class="dot">+</div><p><strong>rankDiff &gt; 0：</strong> 2025 位次更靠后，说明投档位次放宽。</p></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>为什么不用平均数？</h3><span class="tag teal">更稳</span></div>
+            <div class="bullet"><div class="dot">1</div><p>专业聚合时，用<strong>位次中位变化</strong>，减少极端学校样本的干扰。</p></div>
+            <div class="bullet"><div class="dot">2</div><p>同时看<strong>相对位次变化</strong>，避免高位段和低位段无法横比的问题。</p></div>
+            <div class="bullet"><div class="dot">3</div><p>再看<strong>方向一致性</strong>（增强占比 / 放宽占比），避免只被个别学校带偏。</p></div>
+          </div>
+        </div>
+        <div class="grid grid-3">
+          <div class="card"><div class="metric">中位数</div><div class="metric-label">反映“整体中间变化”</div></div>
+          <div class="card"><div class="metric">相对变化</div><div class="metric-label">反映“变化比例”，更适合跨分段比较</div></div>
+          <div class="card"><div class="metric">一致性</div><div class="metric-label">增强占比 / 放宽占比，用来判断趋势是否普遍</div></div>
+        </div>
+        <p class="callout">因此，这份简报中的 Top10 / Last10 不是凭印象得出，而是：同校同专业 → 转位次 → 跨年比较 → 聚合观察 → 再做人工复核后的结果。</p>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Boundary</div>
+        <h2 class="title">为什么要剔除高溢价与特殊培养样本？以及这份分析的边界</h2>
+        <div class="grid grid-2">
+          <div class="card soft-orange">
+            <div class="panel-title"><h3>主榜剔除项</h3><span class="tag orange">更接近普通家庭口径</span></div>
+            <div class="checklist">
+              <div class="check"><span class="tick">✓</span><span>中外合作 / 合作办学 / 学术互认 / 国际合作 / 联合培养</span></div>
+              <div class="check"><span class="tick">✓</span><span>高收费项目</span></div>
+              <div class="check"><span class="tick">✓</span><span>预科 / 民族班 / 专项计划</span></div>
+              <div class="check"><span class="tick">✓</span><span>实验班 / 试验班 / 拔尖班 / 英才班 / 本博连读 / 八年制</span></div>
+              <div class="check"><span class="tick">✓</span><span>明显校区差异样本</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>这份分析能说明什么 / 不能说明什么</h3><span class="tag blue">边界很重要</span></div>
+            <div class="bullet"><div class="dot">能</div><p>说明 2025 相比 2024，投档竞争在哪些方向增强、在哪些方向放宽。</p></div>
+            <div class="bullet"><div class="dot">能</div><p>帮助家长识别“值得重点复核”的学校与专业方向。</p></div>
+            <div class="bullet"><div class="dot">否</div><p>不能直接替代志愿排序，也不能直接等同于就业结论。</p></div>
+            <div class="bullet"><div class="dot">否</div><p>没有完整纳入招生计划变化，因此要避免把结论说得过满。</p></div>
+          </div>
+        </div>
+        <div class="card soft-blue">
+          <h3 style="margin:0 0 10px 0;font-size:24px">剔除后样本更干净，也更克制</h3>
+          <p class="note" style="font-size:18px;color:var(--ink)">原始两年可比样本为 <strong>8344</strong> 条，剔除高收费 / 中外合作 / 特殊培养 / 校区差异后，保留普通项目样本 <strong>7509</strong> 条。这样做的目的，不是追求“更多样本”，而是追求“更接近普通辽宁家庭能直接参考的口径”。</p>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">National · Major</div>
+        <h2 class="title">辽宁视角：全国招生专业 Top10 / Last10（剔除高溢价样本后）</h2>
+        <div class="split-list">
+          <div class="card">
+            <div class="panel-title"><h3>竞争增强 Top10</h3><span class="tag teal">更难进了</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>石油工程</td><td style="color:var(--teal)">+5.71%</td></tr>
+              <tr><td class="rank">2</td><td>金属材料工程</td><td style="color:var(--teal)">+4.37%</td></tr>
+              <tr><td class="rank">3</td><td>油气储运工程</td><td style="color:var(--teal)">+4.34%</td></tr>
+              <tr><td class="rank">4</td><td>农业机械化及其自动化</td><td style="color:var(--teal)">+4.04%</td></tr>
+              <tr><td class="rank">5</td><td>测控技术与仪器</td><td style="color:var(--teal)">+3.87%</td></tr>
+              <tr><td class="rank">6</td><td>采矿工程</td><td style="color:var(--teal)">+3.84%</td></tr>
+              <tr><td class="rank">7</td><td>核工程与核技术</td><td style="color:var(--teal)">+3.48%</td></tr>
+              <tr><td class="rank">8</td><td>焊接技术与工程</td><td style="color:var(--teal)">+2.99%</td></tr>
+              <tr><td class="rank">9</td><td>过程装备与控制工程</td><td style="color:var(--teal)">+2.61%</td></tr>
+              <tr><td class="rank">10</td><td>机械电子工程</td><td style="color:var(--teal)">+2.60%</td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>位次放宽 Last10</h3><span class="tag orange">更趋宽松</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>儿科学</td><td style="color:var(--orange)">−21.14%</td></tr>
+              <tr><td class="rank">2</td><td>临床药学</td><td style="color:var(--orange)">−16.38%</td></tr>
+              <tr><td class="rank">3</td><td>金融数学</td><td style="color:var(--orange)">−15.87%</td></tr>
+              <tr><td class="rank">4</td><td>眼视光医学</td><td style="color:var(--orange)">−13.92%</td></tr>
+              <tr><td class="rank">5</td><td>金融学类</td><td style="color:var(--orange)">−13.67%</td></tr>
+              <tr><td class="rank">6</td><td>口腔医学</td><td style="color:var(--orange)">−13.67%</td></tr>
+              <tr><td class="rank">7</td><td>临床医学</td><td style="color:var(--orange)">−13.10%</td></tr>
+              <tr><td class="rank">8</td><td>汉语国际教育</td><td style="color:var(--orange)">−11.86%</td></tr>
+              <tr><td class="rank">9</td><td>经济学类</td><td style="color:var(--orange)">−10.94%</td></tr>
+              <tr><td class="rank">10</td><td>资产评估</td><td style="color:var(--orange)">−10.87%</td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card soft-teal"><strong>观察：</strong>增强端集中在资源能源、材料、测控、装备制造等“产业底座型专业”。</div>
+          <div class="card soft-orange"><strong>观察：</strong>放宽端集中在医学细分、财经类和部分文科属性专业，说明辽宁家长的风险偏好更趋谨慎。</div>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Liaoning · School</div>
+        <h2 class="title">辽宁省内高校：学校整体 Top10 / Last10</h2>
+        <div class="split-list">
+          <div class="card">
+            <div class="panel-title"><h3>省内高校竞争增强 Top10</h3><span class="tag teal">学校整体普通项目</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>学校</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>辽宁石油化工大学</td><td style="color:var(--teal)">+9.50%</td></tr>
+              <tr><td class="rank">2</td><td>东北大学</td><td style="color:var(--teal)">+3.31%</td></tr>
+              <tr><td class="rank">3</td><td>大连工业大学</td><td style="color:var(--teal)">+2.78%</td></tr>
+              <tr><td class="rank">4</td><td>辽宁工业大学</td><td style="color:var(--teal)">+2.73%</td></tr>
+              <tr><td class="rank">5</td><td>沈阳理工大学</td><td style="color:var(--teal)">+2.44%</td></tr>
+              <tr><td class="rank">6</td><td>辽宁工程技术大学</td><td style="color:var(--teal)">+2.38%</td></tr>
+              <tr><td class="rank">7</td><td>沈阳化工大学</td><td style="color:var(--teal)">+2.20%</td></tr>
+              <tr><td class="rank">8</td><td>辽宁科技大学</td><td style="color:var(--teal)">+2.19%</td></tr>
+              <tr><td class="rank">9</td><td>沈阳航空航天大学</td><td style="color:var(--teal)">+1.81%</td></tr>
+              <tr><td class="rank">10</td><td>营口理工学院</td><td style="color:var(--teal)">+1.59%</td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>省内高校位次放宽 Last10</h3><span class="tag orange">学校整体普通项目</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>学校</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>东北财经大学</td><td style="color:var(--orange)">−10.27%</td></tr>
+              <tr><td class="rank">2</td><td>辽宁师范大学</td><td style="color:var(--orange)">−9.14%</td></tr>
+              <tr><td class="rank">3</td><td>辽宁传媒学院</td><td style="color:var(--orange)">−8.51%</td></tr>
+              <tr><td class="rank">4</td><td>大连医科大学</td><td style="color:var(--orange)">−6.95%</td></tr>
+              <tr><td class="rank">5</td><td>中国医科大学</td><td style="color:var(--orange)">−6.80%</td></tr>
+              <tr><td class="rank">6</td><td>沈阳师范大学</td><td style="color:var(--orange)">−6.50%</td></tr>
+              <tr><td class="rank">7</td><td>沈阳城市学院</td><td style="color:var(--orange)">−6.15%</td></tr>
+              <tr><td class="rank">8</td><td>沈阳大学</td><td style="color:var(--orange)">−5.75%</td></tr>
+              <tr><td class="rank">9</td><td>锦州医科大学</td><td style="color:var(--orange)">−5.59%</td></tr>
+              <tr><td class="rank">10</td><td>大连大学</td><td style="color:var(--orange)">−5.56%</td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+        <p class="callout">学校榜反映的是“学校整体普通项目”的变化，不等于校内所有专业都同步增强或同步放宽；但它可以帮助家长快速感知“院校层面的边际变化方向”。</p>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Liaoning · Major by Schools</div>
+        <h2 class="title">辽宁省内高校：专业聚合 Top10 / Last10</h2>
+        <div class="split-list">
+          <div class="card">
+            <div class="panel-title"><h3>省内专业聚合竞争增强 Top10</h3><span class="tag teal">只看省内高校</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>过程装备与控制工程</td><td style="color:var(--teal)">+6.84%</td></tr>
+              <tr><td class="rank">2</td><td>能源与动力工程</td><td style="color:var(--teal)">+6.45%</td></tr>
+              <tr><td class="rank">3</td><td>油气储运工程</td><td style="color:var(--teal)">+6.12%</td></tr>
+              <tr><td class="rank">4</td><td>化学工程与工艺</td><td style="color:var(--teal)">+6.05%</td></tr>
+              <tr><td class="rank">5</td><td>金属材料工程</td><td style="color:var(--teal)">+5.52%</td></tr>
+              <tr><td class="rank">6</td><td>测控技术与仪器</td><td style="color:var(--teal)">+5.28%</td></tr>
+              <tr><td class="rank">7</td><td>储能科学与工程</td><td style="color:var(--teal)">+3.87%</td></tr>
+              <tr><td class="rank">8</td><td>无机非金属材料工程</td><td style="color:var(--teal)">+3.75%</td></tr>
+              <tr><td class="rank">9</td><td>机械设计制造及其自动化</td><td style="color:var(--teal)">+3.53%</td></tr>
+              <tr><td class="rank">10</td><td>土木工程</td><td style="color:var(--teal)">+3.41%</td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>省内专业聚合位次放宽 Last10</h3><span class="tag orange">只看省内高校</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>基础医学</td><td style="color:var(--orange)">−16.28%</td></tr>
+              <tr><td class="rank">2</td><td>化学</td><td style="color:var(--orange)">−15.49%</td></tr>
+              <tr><td class="rank">3</td><td>物理学</td><td style="color:var(--orange)">−14.45%</td></tr>
+              <tr><td class="rank">4</td><td>麻醉学</td><td style="color:var(--orange)">−13.37%</td></tr>
+              <tr><td class="rank">5</td><td>眼视光医学</td><td style="color:var(--orange)">−13.24%</td></tr>
+              <tr><td class="rank">6</td><td>汉语国际教育</td><td style="color:var(--orange)">−12.88%</td></tr>
+              <tr><td class="rank">7</td><td>临床医学</td><td style="color:var(--orange)">−12.26%</td></tr>
+              <tr><td class="rank">8</td><td>学前教育</td><td style="color:var(--orange)">−11.58%</td></tr>
+              <tr><td class="rank">9</td><td>口腔医学</td><td style="color:var(--orange)">−11.25%</td></tr>
+              <tr><td class="rank">10</td><td>小学教育</td><td style="color:var(--orange)">−10.03%</td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card soft-teal"><strong>结论更清楚：</strong>辽宁省内增强端主要是能源、油气、化工、材料、测控、机械等“有产业支撑”的专业。</div>
+          <div class="card soft-orange"><strong>同时要注意：</strong>医学、基础理学、师范教育、文科属性专业在省内学校里更明显地呈现出边际放宽。</div>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Liaoning · School + Major</div>
+        <h2 class="title">辽宁省内高校：学校 + 专业 明细 Top10 / Last10</h2>
+        <div class="split-list">
+          <div class="card">
+            <div class="panel-title"><h3>竞争增强 Top10</h3><span class="tag teal">最贴近家长决策</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>学校 + 专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>辽宁石油化工大学｜石油工程</td><td style="color:var(--teal)">+27.36%</td></tr>
+              <tr><td class="rank">2</td><td>大连民族大学｜建筑环境与能源应用工程</td><td style="color:var(--teal)">+17.83%</td></tr>
+              <tr><td class="rank">3</td><td>沈阳航空航天大学｜金属材料工程</td><td style="color:var(--teal)">+14.75%</td></tr>
+              <tr><td class="rank">4</td><td>辽宁石油化工大学｜软件工程</td><td style="color:var(--teal)">+14.66%</td></tr>
+              <tr><td class="rank">5</td><td>沈阳工程学院｜能源与动力工程</td><td style="color:var(--teal)">+14.36%</td></tr>
+              <tr><td class="rank">6</td><td>沈阳航空航天大学｜复合材料与工程</td><td style="color:var(--teal)">+13.99%</td></tr>
+              <tr><td class="rank">7</td><td>大连工业大学｜食品科学与工程</td><td style="color:var(--teal)">+12.53%</td></tr>
+              <tr><td class="rank">8</td><td>辽宁工程技术大学｜采矿工程</td><td style="color:var(--teal)">+12.11%</td></tr>
+              <tr><td class="rank">9</td><td>大连民族大学｜土木工程</td><td style="color:var(--teal)">+11.95%</td></tr>
+              <tr><td class="rank">10</td><td>大连民族大学｜生物工程</td><td style="color:var(--teal)">+10.95%</td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="panel-title"><h3>位次放宽 Last10</h3><span class="tag orange">最贴近家长决策</span></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>排名</th><th>学校 + 专业</th><th>相对变化</th></tr></thead><tbody>
+              <tr><td class="rank">1</td><td>大连外国语大学｜西班牙语</td><td style="color:var(--orange)">−63.81%</td></tr>
+              <tr><td class="rank">2</td><td>沈阳建筑大学｜建筑学</td><td style="color:var(--orange)">−34.63%</td></tr>
+              <tr><td class="rank">3</td><td>辽宁大学｜考古学</td><td style="color:var(--orange)">−28.23%</td></tr>
+              <tr><td class="rank">4</td><td>中国医科大学｜口腔医学</td><td style="color:var(--orange)">−28.06%</td></tr>
+              <tr><td class="rank">5</td><td>大连医科大学｜临床医学</td><td style="color:var(--orange)">−23.44%</td></tr>
+              <tr><td class="rank">6</td><td>沈阳大学｜地理科学（师范类）</td><td style="color:var(--orange)">−23.34%</td></tr>
+              <tr><td class="rank">7</td><td>辽宁师范大学｜法语</td><td style="color:var(--orange)">−22.91%</td></tr>
+              <tr><td class="rank">8</td><td>沈阳建筑大学｜工程造价</td><td style="color:var(--orange)">−22.24%</td></tr>
+              <tr><td class="rank">9</td><td>中国医科大学｜临床医学</td><td style="color:var(--orange)">−21.90%</td></tr>
+              <tr><td class="rank">10</td><td>辽宁师范大学｜图书馆学</td><td style="color:var(--orange)">−21.87%</td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+        <p class="callout">这一页最接近家长真实使用场景：它不是泛泛讲“某学校”或“某专业”，而是把“学校 + 专业”的组合直接摆出来，更便于后续进入志愿初选与核验。</p>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Case Study</div>
+        <h2 class="title">典型样本：看懂“变化榜”与“真实价值”之间的关系</h2>
+        <div class="grid grid-2">
+          <div class="card soft-teal">
+            <div class="panel-title"><h3>案例 1｜辽宁石油化工大学｜石油工程</h3><span class="tag teal">增强代表</span></div>
+            <p class="note" style="font-size:18px;color:var(--ink)">2024 位次 38576 → 2025 位次 28020，前移 <strong>10556</strong> 位，相对变化 <strong>+27.36%</strong>。</p>
+            <p class="note">这类变化说明：在辽宁视角下，石油工程不再只是“传统冷门印象”，而更像“被重新看见的产业底座型专业”。</p>
+          </div>
+          <div class="card soft-teal">
+            <div class="panel-title"><h3>案例 2｜沈阳工程学院｜能源与动力工程</h3><span class="tag teal">增强代表</span></div>
+            <p class="note" style="font-size:18px;color:var(--ink)">2024 位次 62571 → 2025 位次 53584，前移 <strong>8987</strong> 位，相对变化 <strong>+14.36%</strong>。</p>
+            <p class="note">这说明“电网 / 能源相关价值”在辽宁家长视角里依然很有吸引力。它未必一定上“最强变化榜”，但在目标就业导向里有特殊意义。</p>
+          </div>
+          <div class="card soft-orange">
+            <div class="panel-title"><h3>案例 3｜中国医科大学｜口腔医学</h3><span class="tag orange">放宽代表</span></div>
+            <p class="note" style="font-size:18px;color:var(--ink)">2024 位次 6006 → 2025 位次 7691，后移 <strong>1685</strong> 位，相对变化 <strong>−28.06%</strong>。</p>
+            <p class="note">这里不是说口腔医学“差了”，而是高分医学方向的边际竞争强度较去年有所放缓。</p>
+          </div>
+          <div class="card soft-orange">
+            <div class="panel-title"><h3>案例 4｜东北财经大学｜学校整体</h3><span class="tag orange">放宽代表</span></div>
+            <p class="note" style="font-size:18px;color:var(--ink)">学校整体相对变化 <strong>−10.27%</strong>，在省内高校位次放宽榜居前。</p>
+            <p class="note">这更接近“普通财经项目的竞争优势减弱”，而不是简单地说“财经不值得读”。判断仍需回到学校层级、城市与个人目标。</p>
+          </div>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Insight</div>
+        <h2 class="title">从投档变化看：辽宁家长在 2025 更看重什么？</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="bullet"><div class="dot">1</div><p><strong>更重视“结果导向”，而不是只看名字。</strong><br>能源、装备、材料、测控等方向，背后都有较明确的产业去向与就业链条。</p></div>
+            <div class="bullet"><div class="dot">2</div><p><strong>更重视“产业支撑”，而不是空泛想象。</strong><br>辽宁家长对“本地产业、区域就业、体制相关岗位”的敏感度明显更高。</p></div>
+            <div class="bullet"><div class="dot">3</div><p><strong>对长周期、高投入方向更谨慎。</strong><br>医学仍然很强，但边际放宽，体现的是对投入周期和回报周期的重新权衡。</p></div>
+          </div>
+          <div class="card soft-blue">
+            <div class="bullet"><div class="dot">4</div><p><strong>对普通项目的性价比更敏感。</strong><br>剔除高收费与中外合作后，主榜更加凸显“普通项目”的真实变化。</p></div>
+            <div class="bullet"><div class="dot">5</div><p><strong>对财经、师范、外语、建筑类更趋保守。</strong><br>这类方向没有失去价值，但在辽宁物理类中的投档竞争优势明显弱于去年。</p></div>
+            <div class="bullet"><div class="dot">6</div><p><strong>“变化榜”不能替代“价值榜”。</strong><br>像沈阳工程学院这类目标就业型学校，不能只看变化幅度，还要看行业关联度。</p></div>
+          </div>
+        </div>
+        <div class="card soft-teal">
+          <h3 style="margin:0 0 8px 0;font-size:24px">一句话概括这轮变化</h3>
+          <p class="note" style="font-size:20px;color:var(--ink)">辽宁家长在 2025 的报考选择，更像是从“想象中的热门”向“更可解释、风险更可控、结果更可见”的方向移动。</p>
+        </div>
+      </div></section>
+
+      <section class="slide"><div class="slide-inner">
+        <div class="kicker">Use Guide</div>
+        <h2 class="title">这份分析该怎么用：给辽宁家长的温和建议</h2>
+        <div class="grid grid-2">
+          <div class="card soft-blue">
+            <div class="panel-title"><h3>建议这样使用</h3><span class="tag blue">更稳</span></div>
+            <div class="checklist">
+              <div class="check"><span class="tick">1</span><span>先看趋势，不要直接把 Top10 / Last10 当成志愿顺序。</span></div>
+              <div class="check"><span class="tick">2</span><span>再看学校层级、城市、专业方向与孩子匹配度。</span></div>
+              <div class="check"><span class="tick">3</span><span>对医学、财经、建筑、师范等方向，多做一次“投入—回报—路径”复核。</span></div>
+              <div class="check"><span class="tick">4</span><span>对电网、能源、装备、制造等方向，注意“变化榜”之外的就业价值。</span></div>
+            </div>
+          </div>
+          <div class="card soft-orange">
+            <div class="panel-title"><h3>尤其需要单独判断的项目</h3><span class="tag orange">不要混算</span></div>
+            <div class="checklist">
+              <div class="check"><span class="tick">!</span><span>中外合作 / 高收费 / 学术互认 / 国际合作项目</span></div>
+              <div class="check"><span class="tick">!</span><span>本博连读 / 八年制 / 拔尖班 / 试验班</span></div>
+              <div class="check"><span class="tick">!</span><span>学费明显偏高、培养方式差异大的项目</span></div>
+              <div class="check"><span class="tick">!</span><span>招生计划明显变化的学校 + 专业组合</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="panel-title"><h3>结语</h3><span class="tag teal">克制而准确</span></div>
+          <p class="note" style="font-size:19px;color:var(--ink)">投档竞争变化，是报志愿时非常重要的参考，但它不是唯一答案。<strong>真正稳妥的高报判断</strong>，应该同时结合：位次、学校层级、专业方向、家庭承受能力、行业路径与个人适配度。</p>
+          <hr class="sep">
+          <p class="footer-note">本页之后可继续扩展：学费核验页、专业风险页、目标就业页（如电网、医学、考公、师范）等，以形成完整的辽宁物理类高报工具体系。</p>
+        </div>
+      </div></section>
+
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+</div>
+
+<div class="hotkey-toast" id="hotkeyToast">快捷操作</div>
+
+<div class="jump-panel" id="jumpPanel">
+  <h4>快速跳转</h4>
+  <div class="jump-grid" id="jumpGrid"></div>
+</div>
+
+<div class="help-mask" id="helpMask">
+  <div class="help-modal">
+    <div class="help-header">
+      <div>
+        <h3>快捷键与触控说明</h3>
+        <p class="note" style="margin:8px 0 0">用于 PC、Pad 外接键盘、Android / iOS 浏览器演示。移动端也支持左右滑动和底部快捷按钮。</p>
+      </div>
+      <button class="close-x" id="closeHelp" aria-label="关闭">×</button>
+    </div>
+    <div class="help-grid">
+      <div class="help-item"><span class="kbd">→</span><span>下一页</span></div>
+      <div class="help-item"><span class="kbd">←</span><span>上一页</span></div>
+      <div class="help-item"><span class="kbd">Space</span><span>下一页，适合现场讲解</span></div>
+      <div class="help-item"><span class="kbd">Home / End</span><span>跳到首页 / 最后一页</span></div>
+      <div class="help-item"><span class="kbd">1-9</span><span>直达第 1—9 页</span></div>
+      <div class="help-item"><span class="kbd">0 / - / =</span><span>直达第 10 / 11 / 12 页</span></div>
+      <div class="help-item"><span class="kbd">M</span><span>打开 / 关闭快速跳转目录</span></div>
+      <div class="help-item"><span class="kbd">F</span><span>进入 / 退出全屏</span></div>
+      <div class="help-item"><span class="kbd">?</span><span>打开本说明</span></div>
+      <div class="help-item"><span class="kbd">Esc</span><span>关闭说明或目录</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-toolbar" id="mobileToolbar">
+  <button id="mobilePrev">上一页</button>
+  <button id="mobileNext" class="primary-mobile">下一页</button>
+  <button id="mobileMenu">目录</button>
+  <button id="mobileHelp">热键</button>
+</div>
+
+<script>
+const slides = document.getElementById('slides');
+const slideEls = Array.from(document.querySelectorAll('.slide'));
+const total = slideEls.length;
+let index = 0;
+const pageLabel = document.getElementById('pageLabel');
+const progressFill = document.getElementById('progressFill');
+const dotsWrap = document.getElementById('dots');
+const toast = document.getElementById('hotkeyToast');
+const helpMask = document.getElementById('helpMask');
+const jumpPanel = document.getElementById('jumpPanel');
+const jumpGrid = document.getElementById('jumpGrid');
+
+const pageTitles = [
+  '封面',
+  '先说结论',
+  '数据原理',
+  '分析原理',
+  '边界说明',
+  '全国专业榜',
+  '辽宁学校榜',
+  '省内专业榜',
+  '学校+专业榜',
+  '典型样本',
+  '家长行为变化',
+  '使用建议'
+];
+
+let toastTimer = null;
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toast.classList.remove('show'), 1200);
+}
+
+slideEls.forEach((_,i)=>{
+  const b=document.createElement('button');
+  b.className='dot-btn'+(i===0?' active':'');
+  b.addEventListener('click',()=>go(i, `第 ${i+1} 页：${pageTitles[i] || ''}`));
+  dotsWrap.appendChild(b);
+});
+
+pageTitles.forEach((title,i)=>{
+  const b=document.createElement('button');
+  b.innerHTML = `<strong>${String(i+1).padStart(2,'0')}｜${title}</strong><span>${i===0?'封面与阅读提示': i===total-1?'使用建议与结语':'点击跳转到本页'}</span>`;
+  b.addEventListener('click',()=>{ jumpPanel.classList.remove('show'); go(i, `跳转：${String(i+1).padStart(2,'0')} ${title}`); });
+  jumpGrid.appendChild(b);
+});
+
+function update(){
+  const mobile = window.innerWidth <= 768;
+  slides.style.transform = mobile ? 'translateX(0)' : `translateX(-${index*100}%)`;
+  pageLabel.textContent = String(index+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+  progressFill.style.width = ((index+1)/total*100)+'%';
+  [...dotsWrap.children].forEach((d,i)=>d.classList.toggle('active',i===index));
+  if(mobile){ slideEls[index].scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+
+function go(i, msg){
+  const next = Math.max(0, Math.min(total-1, i));
+  if(next === index && !msg) return;
+  index = next;
+  update();
+  if(msg) showToast(msg);
+}
+
+function openHelp(){ helpMask.classList.add('show'); showToast('快捷键说明'); }
+function closeHelp(){ helpMask.classList.remove('show'); }
+function toggleJump(){ jumpPanel.classList.toggle('show'); showToast(jumpPanel.classList.contains('show') ? '打开目录' : '关闭目录'); }
+
+async function toggleFullscreen(){
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+      showToast('进入全屏');
+    }else{
+      await document.exitFullscreen();
+      showToast('退出全屏');
+    }
+  }catch(e){
+    showToast('当前浏览器不支持全屏快捷键');
+  }
+}
+
+document.getElementById('prevBtn').addEventListener('click',()=>go(index-1,'上一页'));
+document.getElementById('nextBtn').addEventListener('click',()=>go(index+1,'下一页'));
+document.getElementById('mobilePrev').addEventListener('click',()=>go(index-1,'上一页'));
+document.getElementById('mobileNext').addEventListener('click',()=>go(index+1,'下一页'));
+document.getElementById('mobileMenu').addEventListener('click',toggleJump);
+document.getElementById('mobileHelp').addEventListener('click',openHelp);
+document.getElementById('closeHelp').addEventListener('click',closeHelp);
+helpMask.addEventListener('click',e=>{ if(e.target === helpMask) closeHelp(); });
+
+window.addEventListener('keydown',e=>{
+  const tag = (e.target && e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') { e.preventDefault(); go(index+1,'下一页'); return; }
+  if(e.key==='ArrowLeft'||e.key==='PageUp') { e.preventDefault(); go(index-1,'上一页'); return; }
+  if(e.key==='Home') { e.preventDefault(); go(0,'回到首页'); return; }
+  if(e.key==='End') { e.preventDefault(); go(total-1,'跳到最后一页'); return; }
+  if(e.key==='Escape') { e.preventDefault(); closeHelp(); jumpPanel.classList.remove('show'); showToast('已关闭浮层'); return; }
+  if(e.key==='?' || (e.shiftKey && e.key==='/')) { e.preventDefault(); openHelp(); return; }
+  if(e.key.toLowerCase()==='m') { e.preventDefault(); toggleJump(); return; }
+  if(e.key.toLowerCase()==='f') { e.preventDefault(); toggleFullscreen(); return; }
+
+  const directMap = {'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8,'0':9,'-':10,'=':11};
+  if(Object.prototype.hasOwnProperty.call(directMap, e.key)){
+    e.preventDefault();
+    const target = Math.min(total-1, directMap[e.key]);
+    go(target, `第 ${target+1} 页：${pageTitles[target] || ''}`);
+  }
+});
+
+let startX = null;
+let startY = null;
+slides.addEventListener('touchstart',e=>{ if(e.touches[0]){ startX=e.touches[0].clientX; startY=e.touches[0].clientY; }} ,{passive:true});
+slides.addEventListener('touchend',e=>{
+  if(startX==null || !e.changedTouches[0]) return;
+  const dx = e.changedTouches[0].clientX - startX;
+  const dy = e.changedTouches[0].clientY - startY;
+  if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){
+    if(dx < 0) go(index+1,'下一页'); else go(index-1,'上一页');
+  }
+  startX = null; startY = null;
+},{passive:true});
+
+window.addEventListener('resize', update);
+update();
+showToast('按 ? 查看快捷键');
+</script>
+</body>
+</html>
