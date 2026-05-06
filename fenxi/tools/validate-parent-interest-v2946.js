@@ -47,7 +47,7 @@ if(!rules.rules || rules.rules.length < 6) throw new Error('too few parent inter
 const baseManifest = readJson('data/manifest.json');
 if(!baseManifest.totalRecords || baseManifest.totalRecords < 10000) throw new Error('base manifest records too small');
 
-console.log('V2.9.4.5 parent-interest validation passed');
+console.log('V2.9.4.6 parent-interest compatibility validation passed');
 console.log(JSON.stringify({
   baseRecords: baseManifest.totalRecords,
   parentStats: manifest.stats,
