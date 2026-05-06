@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>企业股权架构图生成器 V1.0</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#1e3a8a;
+      --blue:#0b3b82;
+      --blue2:#155eaa;
+      --light:#eef6ff;
+      --light2:#f8fbff;
+      --warn:#b45309;
+      --bad:#b91c1c;
+      --ok:#047857;
+      --shadow:0 14px 35px rgba(15,23,42,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);
+      color:var(--ink);
+    }
+    .app{
+      max-width:1480px;
+      margin:0 auto;
+      padding:22px;
+    }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:18px;
+      margin:8px 0 18px;
+    }
+    .title h1{
+      margin:0;
+      font-size:clamp(24px,3vw,38px);
+      letter-spacing:.02em;
+      color:#082f6f;
+    }
+    .title p{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:15px;
+    }
+    .badge{
+      border:1px solid #dbeafe;
+      background:#eff6ff;
+      color:#1e3a8a;
+      padding:9px 12px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:420px minmax(0,1fr);
+      gap:18px;
+      align-items:start;
+    }
+    .card{
+      background:rgba(255,255,255,.94);
+      border:1px solid #e2e8f0;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .card-hd{
+      padding:16px 18px 10px;
+      border-bottom:1px solid #edf2f7;
+    }
+    .card-hd h2{
+      margin:0;
+      font-size:18px;
+      color:#0f2d5c;
+    }
+    .card-hd p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .card-bd{padding:16px 18px 18px}
+    label{
+      display:block;
+      font-size:13px;
+      color:#334155;
+      font-weight:700;
+      margin:0 0 8px;
+    }
+    input,textarea,select{
+      width:100%;
+      border:1px solid #cbd5e1;
+      background:#fff;
+      color:#0f172a;
+      border-radius:12px;
+      padding:11px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    input:focus,textarea:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 3px rgba(37,99,235,.12);
+    }
+    textarea{
+      min-height:330px;
+      resize:vertical;
+      line-height:1.55;
+      font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    .btns{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    button{
+      border:0;
+      border-radius:12px;
+      padding:11px 12px;
+      font-weight:800;
+      cursor:pointer;
+      color:#fff;
+      background:#0b3b82;
+      transition:.15s ease;
+      box-shadow:0 8px 18px rgba(11,59,130,.16);
+    }
+    button:hover{transform:translateY(-1px);filter:brightness(1.04)}
+    button.secondary{
+      background:#e2e8f0;
+      color:#0f172a;
+      box-shadow:none;
+    }
+    button.ghost{
+      background:#fff;
+      color:#0b3b82;
+      border:1px solid #bfdbfe;
+      box-shadow:none;
+    }
+    button.danger{
+      background:#fff1f2;
+      color:#be123c;
+      border:1px solid #fecdd3;
+      box-shadow:none;
+    }
+    .hint{
+      margin-top:12px;
+      padding:12px;
+      background:#f8fafc;
+      border:1px dashed #cbd5e1;
+      border-radius:12px;
+      color:#475569;
+      font-size:13px;
+      line-height:1.65;
+    }
+    .preview-tools{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .preview-tools .left{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .preview-tools button{
+      width:auto;
+      padding:10px 13px;
+      font-size:13px;
+    }
+    .chart-wrap{
+      margin-top:14px;
+      overflow:auto;
+      border-radius:16px;
+      background:#fff;
+      border:1px solid #dbeafe;
+      min-height:560px;
+    }
+    #chartSvg{
+      width:100%;
+      height:auto;
+      display:block;
+      background:#fff;
+    }
+    .status{
+      margin-top:14px;
+      display:grid;
+      gap:8px;
+    }
+    .status-item{
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      line-height:1.55;
+      border:1px solid #e2e8f0;
+      background:#fff;
+    }
+    .status-item.ok{border-color:#bbf7d0;background:#f0fdf4;color:#065f46}
+    .status-item.warn{border-color:#fde68a;background:#fffbeb;color:#92400e}
+    .status-item.bad{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+    .parsed{
+      max-height:210px;
+      overflow:auto;
+      margin-top:12px;
+      border:1px solid #e2e8f0;
+      border-radius:12px;
+      background:#fff;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+    }
+    th,td{
+      padding:8px 9px;
+      border-bottom:1px solid #edf2f7;
+      text-align:left;
+      white-space:nowrap;
+    }
+    th{
+      position:sticky;
+      top:0;
+      background:#f8fafc;
+      color:#334155;
+      z-index:1;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      background:#0f172a;
+      color:#fff;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:13px;
+      opacity:0;
+      pointer-events:none;
+      transition:.2s ease;
+      z-index:999;
+    }
+    .toast.show{opacity:1;bottom:32px}
+    .mini{
+      color:#64748b;
+      font-size:12px;
+      margin-top:8px;
+      line-height:1.5;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      header{align-items:flex-start;flex-direction:column}
+      textarea{min-height:260px}
+      .chart-wrap{min-height:420px}
+      .preview-tools{align-items:flex-start;flex-direction:column}
+    }
+    @media (max-width: 560px){
+      .app{padding:12px}
+      .row,.btns{grid-template-columns:1fr}
+      .card-hd,.card-bd{padding-left:14px;padding-right:14px}
+      .badge{white-space:normal}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <h1>企业股权架构图生成器</h1>
+      <p>输入股东、主体与持股比例，自动生成可导出的商业股权架构图。</p>
+    </div>
+    <div class="badge">单文件 HTML · SVG 绘图 · 支持 PNG / SVG 导出</div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <div class="card-hd">
+        <h2>① 输入股权关系</h2>
+        <p>建议一行一个关系。支持 “A -> 甲公司 47%” 或 “A 持有 甲公司 47%”。</p>
+      </div>
+      <div class="card-bd">
+        <div class="row">
+          <div>
+            <label for="targetInput">最终主体，可留空自动识别</label>
+            <input id="targetInput" value="丁公司" placeholder="例如：丁公司">
+          </div>
+          <div>
+            <label for="themeSelect">图形风格</label>
+            <select id="themeSelect">
+              <option value="business">商务蓝</option>
+              <option value="ink">深色线框</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="rawInput">股权关系文本</label>
+        <textarea id="rawInput" spellcheck="false"></textarea>
+
+        <div class="btns">
+          <button id="generateBtn">生成架构图</button>
+          <button class="ghost" id="sampleBtn">载入示例</button>
+          <button class="secondary" id="copyBtn">复制示例格式</button>
+          <button class="danger" id="clearBtn">清空</button>
+        </div>
+
+        <div class="hint">
+          <b>推荐格式：</b><br>
+          A -> 甲公司 47%<br>
+          甲公司 -> 乙公司 100%<br>
+          丙合伙企业 -> 丁公司 60%<br><br>
+          <b>可识别关键词：</b> ->、→、持有、占股、出资、投资。
+        </div>
+
+        <div class="parsed" id="parsedBox"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-hd">
+        <div class="preview-tools">
+          <div>
+            <h2>② 架构图预览</h2>
+            <p>自动分层、标注比例，并对最终主体做重点显示。</p>
+          </div>
+          <div class="left">
+            <button id="pngBtn">导出 PNG</button>
+            <button class="ghost" id="svgBtn">导出 SVG</button>
+            <button class="secondary" id="fitBtn">重新适配</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-bd">
+        <div class="chart-wrap" id="chartWrap">
+          <svg id="chartSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="股权架构图"></svg>
+        </div>
+
+        <div class="status" id="statusBox"></div>
+        <div class="mini">
+          提醒：V1 版本适合常规股权结构展示。复杂循环持股、协议控制、表决权委托、AB 股、有限合伙 GP/LP 责任类型，建议在备注区另行说明。
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast">已完成</div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const rawInput = $("rawInput");
+  const targetInput = $("targetInput");
+  const chartSvg = $("chartSvg");
+  const statusBox = $("statusBox");
+  const parsedBox = $("parsedBox");
+  const toast = $("toast");
+
+  const sample = `A -> 甲公司 47%
+B -> 甲公司 30%
+C -> 甲公司 23%
+
+甲公司 -> 乙公司 100%
+甲公司 -> 丁公司 24%
+
+乙公司 -> 丙合伙企业 90%
+C -> 丙合伙企业 6.66%
+D -> 丙合伙企业 3.34%
+
+丙合伙企业 -> 丁公司 60%
+E -> 丁公司 8%
+F -> 丁公司 8%`;
+
+  rawInput.value = sample;
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 1800);
+  }
+
+  function cleanName(s){
+    return (s || "")
+      .replace(/[，,。；;：:（）()【】\[\]]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function inferType(name){
+    if(/合伙|有限合伙|基金|中心|平台/.test(name)) return "partnership";
+    if(/公司|集团|有限|股份|企业/.test(name)) return "company";
+    return "person";
+  }
+
+  function parseLine(line){
+    let s = line.trim();
+    if(!s || s.startsWith("#") || s.startsWith("//")) return null;
+    s = s.replace(/％/g, "%").replace(/→/g, "->").replace(/—>/g, "->");
+    const pctMatch = s.match(/([0-9]+(?:\.[0-9]+)?)\s*%/);
+    if(!pctMatch) return { error: "未识别比例", line };
+    const percent = parseFloat(pctMatch[1]);
+    let left = s.slice(0, pctMatch.index).trim();
+
+    let from = "", to = "";
+    if(left.includes("->")){
+      const parts = left.split("->");
+      from = cleanName(parts[0]);
+      to = cleanName(parts.slice(1).join("->"));
+    }else{
+      const m = left.match(/^(.+?)\s*(持有|占股|出资|投资|控股|认缴|拥有)\s*(.+)$/);
+      if(m){
+        from = cleanName(m[1]);
+        to = cleanName(m[3]);
+      }else{
+        return { error: "未识别关系，请使用 A -> B 47% 或 A 持有 B 47%", line };
+      }
+    }
+    if(!from || !to) return { error: "主体名称为空", line };
+    if(from === to) return { error: "股东与被投资主体相同", line };
+    return { from, to, percent, raw: line };
+  }
+
+  function parseInput(text){
+    const edges = [];
+    const errors = [];
+    text.split(/\n+/).forEach((line, idx)=>{
+      const r = parseLine(line);
+      if(!r) return;
+      if(r.error) errors.push({line:idx+1, text:line, error:r.error});
+      else edges.push(r);
+    });
+    return {edges, errors};
+  }
+
+  function dedupeEdges(edges){
+    const map = new Map();
+    for(const e of edges){
+      const key = e.from + "||" + e.to;
+      if(map.has(key)){
+        map.get(key).percent += e.percent;
+      }else{
+        map.set(key, {...e});
+      }
+    }
+    return [...map.values()];
+  }
+
+  function buildGraph(edges, explicitTarget){
+    const nodes = new Map();
+    const incoming = new Map();
+    const outgoing = new Map();
+
+    function ensure(name){
+      if(!nodes.has(name)) nodes.set(name,{id:name,name,type:inferType(name)});
+      if(!incoming.has(name)) incoming.set(name,[]);
+      if(!outgoing.has(name)) outgoing.set(name,[]);
+    }
+
+    edges.forEach(e=>{
+      ensure(e.from); ensure(e.to);
+      outgoing.get(e.from).push(e);
+      incoming.get(e.to).push(e);
+    });
+
+    const all = [...nodes.keys()];
+    const roots = all.filter(n => (incoming.get(n)||[]).length === 0);
+    const sinks = all.filter(n => (outgoing.get(n)||[]).length === 0);
+    let target = cleanName(explicitTarget);
+    if(!target || !nodes.has(target)){
+      target = sinks.length ? sinks.sort((a,b)=>(incoming.get(b).length)-(incoming.get(a).length))[0] : all[all.length-1];
+    }
+    if(nodes.has(target)) nodes.get(target).type = "target";
+
+    const level = new Map();
+    roots.forEach(r=>level.set(r,0));
+
+    // Kahn-like pass. If cycles exist, fallback later.
+    const queue = roots.slice();
+    let guard = 0;
+    while(queue.length && guard++ < 10000){
+      const n = queue.shift();
+      const base = level.get(n) || 0;
+      for(const e of outgoing.get(n)||[]){
+        const next = Math.max(level.get(e.to) ?? 0, base + 1);
+        if(next !== level.get(e.to)){
+          level.set(e.to, next);
+          queue.push(e.to);
+        }
+      }
+    }
+    all.forEach(n=>{ if(!level.has(n)) level.set(n, 0); });
+
+    // Put target visually lower.
+    if(target){
+      const maxLevel = Math.max(...[...level.values()],0);
+      level.set(target, Math.max(level.get(target)||0, maxLevel));
+    }
+
+    return {nodes:[...nodes.values()], edges, incoming, outgoing, roots, sinks, target, level};
+  }
+
+  function validate(graph, parseErrors){
+    const msgs = [];
+    if(parseErrors.length){
+      parseErrors.forEach(e=>{
+        msgs.push({type:"bad", text:`第 ${e.line} 行解析失败：${e.error}。原文：${e.text}`});
+      });
+    }
+    if(!graph.edges.length){
+      msgs.push({type:"bad", text:"没有识别到有效股权关系，请检查输入格式。"});
+      return msgs;
+    }
+
+    for(const node of graph.nodes){
+      const ins = graph.incoming.get(node.name) || [];
+      if(!ins.length) continue;
+      const sum = ins.reduce((a,e)=>a + e.percent,0);
+      const delta = Math.abs(sum - 100);
+      if(delta <= 0.02){
+        msgs.push({type:"ok", text:`${node.name}：已录入股东持股合计 ${fmt(sum)}%，结构完整。`});
+      }else if(sum < 100){
+        msgs.push({type:"warn", text:`${node.name}：已录入股东持股合计 ${fmt(sum)}%，剩余 ${fmt(100-sum)}% 未明确。`});
+      }else{
+        msgs.push({type:"bad", text:`${node.name}：股东持股合计 ${fmt(sum)}%，超过 100%，请检查是否重复或比例录错。`});
+      }
+    }
+
+    const cycles = detectCycle(graph.nodes.map(n=>n.name), graph.edges);
+    if(cycles){
+      msgs.unshift({type:"warn", text:"检测到可能存在循环持股，当前图仍可展示，但自动层级可能不完全准确。"});
+    }
+
+    const duplicateNames = similarNameWarnings(graph.nodes.map(n=>n.name));
+    duplicateNames.slice(0,3).forEach(pair=>{
+      msgs.push({type:"warn", text:`发现相似主体名称：“${pair[0]}” 与 “${pair[1]}”，请确认是否为同一主体。`});
+    });
+
+    if(graph.target){
+      msgs.unshift({type:"ok", text:`最终主体：${graph.target}。图中已做重点显示。`});
+    }
+    return msgs;
+  }
+
+  function detectCycle(nodes, edges){
+    const adj = new Map(nodes.map(n=>[n,[]]));
+    edges.forEach(e=>adj.get(e.from).push(e.to));
+    const visiting = new Set(), visited = new Set();
+    function dfs(n){
+      if(visiting.has(n)) return true;
+      if(visited.has(n)) return false;
+      visiting.add(n);
+      for(const m of adj.get(n)||[]) if(dfs(m)) return true;
+      visiting.delete(n);
+      visited.add(n);
+      return false;
+    }
+    return nodes.some(dfs);
+  }
+
+  function similarNameWarnings(names){
+    const arr = [];
+    const norm = s => s.replace(/有限责任公司|股份有限公司|有限公司|公司|集团|企业|先生|女士|\s/g,"");
+    for(let i=0;i<names.length;i++){
+      for(let j=i+1;j<names.length;j++){
+        const a=norm(names[i]), b=norm(names[j]);
+        if(a && b && a!==b && (a.includes(b) || b.includes(a))) arr.push([names[i],names[j]]);
+      }
+    }
+    return arr;
+  }
+
+  function fmt(n){
+    return Number(n.toFixed(4)).toString();
+  }
+
+  function layoutGraph(graph){
+    const width = Math.max(1120, Math.min(1900, 260 + graph.nodes.length * 105));
+    const boxW = 178, boxH = 72;
+    const xGap = 78, yGap = 138;
+    const titleH = 116, bottomH = 96;
+
+    const groups = new Map();
+    graph.nodes.forEach(n=>{
+      let l = graph.level.get(n.name)||0;
+      if(n.name === graph.target) l = Math.max(...[...graph.level.values()]);
+      if(!groups.has(l)) groups.set(l,[]);
+      groups.get(l).push(n);
+    });
+
+    const levels = [...groups.keys()].sort((a,b)=>a-b);
+    const pos = new Map();
+
+    levels.forEach((lv, idx)=>{
+      let group = groups.get(lv);
+      group.sort((a,b)=>{
+        if(a.name === graph.target) return 1;
+        if(b.name === graph.target) return -1;
+        return a.name.localeCompare(b.name,"zh-CN");
+      });
+
+      const totalW = group.length * boxW + (group.length - 1) * xGap;
+      let startX = (width - totalW) / 2;
+      const y = titleH + idx * yGap;
+      group.forEach((n,i)=>{
+        pos.set(n.name, {
+          x:startX + i*(boxW+xGap),
+          y,
+          w: n.type==="target" ? 230 : boxW,
+          h: n.type==="target" ? 86 : boxH
+        });
+      });
+    });
+
+    // Nudge target to center bottom.
+    if(graph.target && pos.has(graph.target)){
+      const maxIdx = levels.length - 1;
+      pos.set(graph.target,{x:(width-230)/2,y:titleH+maxIdx*yGap,w:230,h:86});
+    }
+
+    const height = titleH + levels.length * yGap + bottomH;
+    return {width,height,pos,boxW,boxH};
+  }
+
+  function escapeXml(s){
+    return String(s).replace(/[&<>"']/g, ch => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"
+    }[ch]));
+  }
+
+  function splitLabel(name, max=10){
+    if(name.length <= max) return [name];
+    const cut = Math.ceil(name.length/2);
+    return [name.slice(0,cut), name.slice(cut)];
+  }
+
+  function renderSvg(graph, messages){
+    const L = layoutGraph(graph);
+    const {width,height,pos} = L;
+    const theme = $("themeSelect").value;
+    const colors = theme === "ink"
+      ? {blue:"#0f172a", line:"#111827", fill:"#fff", fill2:"#f8fafc", target:"#eef2ff", muted:"#64748b"}
+      : {blue:"#0b3b82", line:"#1e3a8a", fill:"#ffffff", fill2:"#eff6ff", target:"#dbeafe", muted:"#64748b"};
+
+    let svg = "";
+    svg += `<defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="${colors.line}"></path>
+      </marker>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+        <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+      </filter>
+      <linearGradient id="targetGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#eff6ff"/>
+        <stop offset="100%" stop-color="${colors.target}"/>
+      </linearGradient>
+    </defs>`;
+
+    svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff"/>`;
+    svg += `<text x="${width/2}" y="48" text-anchor="middle" font-size="36" font-weight="900" fill="${colors.blue}">股权架构图</text>`;
+    svg += `<text x="${width/2}" y="82" text-anchor="middle" font-size="18" font-weight="700" fill="${colors.muted}">${escapeXml(graph.target || "最终主体")}</text>`;
+
+    // level labels
+    const minRootY = Math.min(...[...pos.values()].map(p=>p.y));
+    svg += `<rect x="34" y="${minRootY+18}" rx="8" ry="8" width="112" height="42" fill="${colors.blue}"/>
+            <text x="90" y="${minRootY+45}" text-anchor="middle" font-size="17" font-weight="800" fill="#fff">顶层股东</text>`;
+
+    // Draw edges first.
+    graph.edges.forEach(e=>{
+      const a = pos.get(e.from), b = pos.get(e.to);
+      if(!a || !b) return;
+      const ax = a.x + a.w/2, ay = a.y + a.h;
+      const bx = b.x + b.w/2, by = b.y;
+      const midY = (ay + by)/2;
+
+      let d = "";
+      if(Math.abs(ax-bx) < 20){
+        d = `M ${ax} ${ay} L ${bx} ${by-8}`;
+      }else{
+        d = `M ${ax} ${ay} C ${ax} ${midY}, ${bx} ${midY}, ${bx} ${by-8}`;
+      }
+      svg += `<path d="${d}" fill="none" stroke="${colors.line}" stroke-width="2.2" marker-end="url(#arrow)"/>`;
+
+      const tx = (ax+bx)/2;
+      const ty = midY - 7;
+      svg += `<rect x="${tx-31}" y="${ty-16}" rx="10" width="62" height="24" fill="#fff" stroke="#dbeafe"/>
+              <text x="${tx}" y="${ty+1}" text-anchor="middle" font-size="14" font-weight="900" fill="${colors.blue}">${fmt(e.percent)}%</text>`;
+    });
+
+    // Draw nodes.
+    graph.nodes.forEach(n=>{
+      const p = pos.get(n.name);
+      if(!p) return;
+      const isTarget = n.name === graph.target || n.type === "target";
+      const isPartnership = n.type === "partnership";
+      const isPerson = n.type === "person";
+      const fill = isTarget ? "url(#targetGrad)" : (isPerson ? colors.fill : colors.fill2);
+      const stroke = isTarget ? colors.blue : (isPartnership ? "#475569" : colors.blue);
+      const sw = isTarget ? 4 : 2;
+      const dash = isPartnership && !isTarget ? `stroke-dasharray="7 4"` : "";
+      svg += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="14" ry="14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dash} filter="${isTarget ? "url(#shadow)" : ""}"/>`;
+
+      const lines = splitLabel(n.name, isTarget ? 8 : 10);
+      const fontSize = isTarget ? 26 : 20;
+      const startY = p.y + (lines.length === 1 ? 43 : 34);
+      lines.forEach((line,i)=>{
+        svg += `<text x="${p.x+p.w/2}" y="${startY+i*25}" text-anchor="middle" font-size="${fontSize}" font-weight="900" fill="${colors.blue}">${escapeXml(line)}</text>`;
+      });
+
+      let sub = "";
+      if(isTarget) sub = "最终主体";
+      else if(isPartnership) sub = "合伙企业";
+      else if(n.type==="company") sub = "公司主体";
+      else sub = "股东/自然人";
+      svg += `<text x="${p.x+p.w/2}" y="${p.y+p.h-13}" text-anchor="middle" font-size="12" font-weight="700" fill="${colors.muted}">${sub}</text>`;
+    });
+
+    // Same entity note: entities appearing as both root and internal investor are naturally same node in graph.
+    const multiRoles = graph.nodes.filter(n=>{
+      const ins = (graph.incoming.get(n.name)||[]).length;
+      const outs = (graph.outgoing.get(n.name)||[]).length;
+      return ins>0 && outs>0 && n.name !== graph.target;
+    }).map(n=>n.name);
+    const note = multiRoles.length
+      ? `注：${multiRoles.slice(0,4).join("、")} 同时出现在不同层级，图中按同一主体处理。`
+      : `注：同名主体按同一主体处理；复杂协议安排请另行补充说明。`;
+
+    svg += `<rect x="34" y="${height-72}" width="${width-68}" height="48" rx="14" fill="#f8fafc" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="7 5"/>
+            <circle cx="62" cy="${height-48}" r="15" fill="${colors.blue}"/>
+            <text x="62" y="${height-43}" text-anchor="middle" font-size="15" font-weight="900" fill="#fff">注</text>
+            <text x="88" y="${height-43}" font-size="14" font-weight="650" fill="#334155">${escapeXml(note)}</text>`;
+
+    chartSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    chartSvg.setAttribute("width", width);
+    chartSvg.setAttribute("height", height);
+    chartSvg.innerHTML = svg;
+  }
+
+  function renderParsed(edges, errors){
+    let html = `<table><thead><tr><th>股东/出资人</th><th>被投资主体</th><th>比例</th></tr></thead><tbody>`;
+    edges.forEach(e=>{
+      html += `<tr><td>${escapeXml(e.from)}</td><td>${escapeXml(e.to)}</td><td>${fmt(e.percent)}%</td></tr>`;
+    });
+    if(!edges.length) html += `<tr><td colspan="3">暂无有效关系</td></tr>`;
+    html += `</tbody></table>`;
+    parsedBox.innerHTML = html;
+  }
+
+  function renderStatus(messages){
+    statusBox.innerHTML = messages.map(m=>`<div class="status-item ${m.type}">${escapeXml(m.text)}</div>`).join("");
+  }
+
+  function generate(){
+    const parsed = parseInput(rawInput.value);
+    const edges = dedupeEdges(parsed.edges);
+    const graph = buildGraph(edges, targetInput.value);
+    const messages = validate(graph, parsed.errors);
+    renderParsed(edges, parsed.errors);
+    renderStatus(messages);
+    renderSvg(graph, messages);
+    window.__lastGraph = graph;
+  }
+
+  function svgString(){
+    const clone = chartSvg.cloneNode(true);
+    clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    const w = chartSvg.viewBox.baseVal.width || chartSvg.getAttribute("width");
+    const h = chartSvg.viewBox.baseVal.height || chartSvg.getAttribute("height");
+    clone.setAttribute("width", w);
+    clone.setAttribute("height", h);
+    return `<?xml version="1.0" encoding="UTF-8"?>\n` + new XMLSerializer().serializeToString(clone);
+  }
+
+  function download(filename, blob){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 800);
+  }
+
+  function exportSvg(){
+    const blob = new Blob([svgString()], {type:"image/svg+xml;charset=utf-8"});
+    download("股权架构图.svg", blob);
+    showToast("SVG 已导出");
+  }
+
+  function exportPng(){
+    const svg = svgString();
+    const blob = new Blob([svg], {type:"image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    const vb = chartSvg.viewBox.baseVal;
+    const scale = 2.2;
+    img.onload = function(){
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(vb.width * scale);
+      canvas.height = Math.ceil(vb.height * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(function(pngBlob){
+        if(!pngBlob){
+          showToast("PNG 导出失败，可先导出 SVG");
+          return;
+        }
+        download("股权架构图.png", pngBlob);
+        showToast("PNG 已导出");
+      }, "image/png", 1);
+    };
+    img.onerror = function(){
+      URL.revokeObjectURL(url);
+      showToast("PNG 导出失败，可先导出 SVG");
+    };
+    img.src = url;
+  }
+
+  $("generateBtn").addEventListener("click", ()=>{generate(); showToast("架构图已生成");});
+  $("sampleBtn").addEventListener("click", ()=>{rawInput.value = sample; targetInput.value = "丁公司"; generate(); showToast("已载入示例");});
+  $("copyBtn").addEventListener("click", async ()=>{
+    try{ await navigator.clipboard.writeText(sample); showToast("示例格式已复制"); }
+    catch(e){ showToast("复制失败，请手动复制"); }
+  });
+  $("clearBtn").addEventListener("click", ()=>{rawInput.value=""; generate(); showToast("已清空");});
+  $("fitBtn").addEventListener("click", ()=>{generate(); showToast("已重新适配");});
+  $("pngBtn").addEventListener("click", exportPng);
+  $("svgBtn").addEventListener("click", exportSvg);
+  $("themeSelect").addEventListener("change", generate);
+  targetInput.addEventListener("input", ()=>generate());
+
+  // First render
+  generate();
+})();
+</script>
+</body>
+</html>
