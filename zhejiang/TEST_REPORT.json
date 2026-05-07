@@ -1,0 +1,187 @@
+{
+  "generated_at": "2026-05-07T02:56:14",
+  "project": "zhejiang_gaokao_tool_v1",
+  "checks": [
+    {
+      "name": "manifest counts 2024",
+      "ok": true,
+      "detail": {
+        "2024_total": 24973,
+        "2025_total": 23508,
+        "2024_normal_batch": 22226,
+        "2025_normal_batch": 23508
+      }
+    },
+    {
+      "name": "manifest counts 2025",
+      "ok": true,
+      "detail": {
+        "2024_total": 24973,
+        "2025_total": 23508,
+        "2024_normal_batch": 22226,
+        "2025_normal_batch": 23508
+      }
+    },
+    {
+      "name": "2024 raw count",
+      "ok": true,
+      "detail": {
+        "total": 24973,
+        "expected": 24973,
+        "files": 9
+      }
+    },
+    {
+      "name": "2024 record_id unique",
+      "ok": true,
+      "detail": {
+        "ids": 24973,
+        "unique": 24973
+      }
+    },
+    {
+      "name": "2024 source_row continuous",
+      "ok": true,
+      "detail": {
+        "min": 2,
+        "max": 24974,
+        "unique": 24973
+      }
+    },
+    {
+      "name": "2025 raw count",
+      "ok": true,
+      "detail": {
+        "total": 23508,
+        "expected": 23508,
+        "files": 8
+      }
+    },
+    {
+      "name": "2025 record_id unique",
+      "ok": true,
+      "detail": {
+        "ids": 23508,
+        "unique": 23508
+      }
+    },
+    {
+      "name": "2025 source_row continuous",
+      "ok": true,
+      "detail": {
+        "min": 2,
+        "max": 23509,
+        "unique": 23508
+      }
+    },
+    {
+      "name": "record_locator count",
+      "ok": true,
+      "detail": {
+        "locator": 48481
+      }
+    },
+    {
+      "name": "sample 辽宁科技大学 通信工程 hit count",
+      "ok": true,
+      "detail": {
+        "hits": 2
+      }
+    },
+    {
+      "name": "sample 2024 values",
+      "ok": true,
+      "detail": {
+        "record_id": "zj2024_05756",
+        "source_row": 5757,
+        "year": 2024,
+        "batch_code": "2",
+        "batch_name": "普通类平行投档",
+        "school_province": "辽宁",
+        "school_code": "2133",
+        "school_name": "辽宁科技大学",
+        "school_name_norm": "辽宁科技大学",
+        "is_985": false,
+        "is_211": false,
+        "is_double_first_class": false,
+        "major_name": "通信工程",
+        "major_name_norm": "通信工程",
+        "score": {
+          "avg_score": 533.3,
+          "min_score": 487,
+          "first_stage_min_score": null,
+          "analysis_score": 487,
+          "analysis_score_source": "min_score"
+        },
+        "rank_raw": "103366",
+        "rank": 103366,
+        "has_rank": true,
+        "compare_key_exact": "2133|通信工程"
+      }
+    },
+    {
+      "name": "sample 2025 values",
+      "ok": true,
+      "detail": {
+        "record_id": "zj2025_05743",
+        "source_row": 5744,
+        "year": 2025,
+        "batch_code": "2",
+        "batch_name": "普通类平行投档",
+        "school_province": "辽宁",
+        "school_code": "2133",
+        "school_name": "辽宁科技大学",
+        "school_name_norm": "辽宁科技大学",
+        "is_985": false,
+        "is_211": false,
+        "is_double_first_class": false,
+        "major_name": "通信工程",
+        "major_name_norm": "通信工程",
+        "score": {
+          "avg_score": null,
+          "min_score": 487,
+          "first_stage_min_score": 555,
+          "analysis_score": 555,
+          "analysis_score_source": "first_stage_min_score",
+          "final_score": 487
+        },
+        "rank_raw": "106046",
+        "rank": 106046,
+        "has_rank": true,
+        "compare_key_exact": "2133|通信工程"
+      }
+    },
+    {
+      "name": "2024 analysis shard sum",
+      "ok": true,
+      "detail": {
+        "sum": 24973,
+        "expected": 24973
+      }
+    },
+    {
+      "name": "2025 analysis shard sum",
+      "ok": true,
+      "detail": {
+        "sum": 23508,
+        "expected": 23508
+      }
+    },
+    {
+      "name": "2025 first_stage shard sum",
+      "ok": true,
+      "detail": {
+        "sum": 23508,
+        "expected": 23508
+      }
+    },
+    {
+      "name": "2025 final shard sum",
+      "ok": true,
+      "detail": {
+        "sum": 23508,
+        "expected": 23508
+      }
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>浙江高考专业投档与位次分析 V1</title>
+  <link rel="stylesheet" href="assets/app.zj.v1.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__inner">
+      <div>
+        <p class="eyebrow">浙江版 · 普通类投档数据</p>
+        <h1>浙江高考专业投档与位次分析</h1>
+        <p class="lead">基于 2024 / 2025 浙江投档数据，支持学校、专业、分数、位次查询与两年变化对比。</p>
+      </div>
+      <div class="audit-card" id="auditCard">
+        <div class="audit-card__title">数据核验</div>
+        <div id="auditText">正在读取 manifest...</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel search-panel">
+      <div class="panel__head">
+        <h2>查询条件</h2>
+        <p>默认只看普通类平行投档；2025 默认采用“一段最低分”口径。</p>
+      </div>
+
+      <div class="grid form-grid">
+        <label>
+          <span>学校名称</span>
+          <input id="schoolInput" type="text" placeholder="例：辽宁科技大学" autocomplete="off" />
+        </label>
+        <label>
+          <span>专业名称</span>
+          <input id="majorInput" type="text" placeholder="例：通信工程" autocomplete="off" />
+        </label>
+        <label>
+          <span>分数查询</span>
+          <input id="scoreInput" type="number" placeholder="例：555" inputmode="numeric" />
+        </label>
+        <label>
+          <span>位次过滤</span>
+          <input id="rankInput" type="number" placeholder="例：106046" inputmode="numeric" />
+        </label>
+        <label>
+          <span>年份</span>
+          <select id="yearSelect">
+            <option value="both">2024 + 2025</option>
+            <option value="2025">仅 2025</option>
+            <option value="2024">仅 2024</option>
+          </select>
+        </label>
+        <label>
+          <span>2025 分数口径</span>
+          <select id="scoreModeSelect">
+            <option value="analysis">默认：一段优先</option>
+            <option value="first_stage">一段最低分</option>
+            <option value="final">最终最低分</option>
+          </select>
+        </label>
+        <label>
+          <span>学校省份</span>
+          <input id="provinceInput" type="text" placeholder="例：浙江 / 辽宁 / 北京" autocomplete="off" />
+        </label>
+        <label class="check-line">
+          <input id="normalOnly" type="checkbox" checked />
+          <span>只看普通类平行投档</span>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="searchBtn" class="btn primary">查询</button>
+        <button id="demoBtn" class="btn">示例：辽宁科技大学 · 通信工程</button>
+        <button id="resetBtn" class="btn ghost">重置</button>
+      </div>
+      <div class="hint">本页面不会联网，全部读取本地 <code>data/</code> 目录下的 JSON。</div>
+    </section>
+
+    <section class="panel status-panel" id="statusPanel">
+      <div id="statusText">准备就绪。</div>
+    </section>
+
+    <section class="panel" id="comparePanel" hidden>
+      <div class="panel__head row-between">
+        <div>
+          <h2>2024 / 2025 对比</h2>
+          <p>只对“学校代码 + 专业名称”一对一匹配记录做判断。</p>
+        </div>
+        <span class="pill" id="compareCount">0 条</span>
+      </div>
+      <div id="compareCards" class="compare-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head row-between">
+        <div>
+          <h2>查询结果</h2>
+          <p>专业代码：当前原始投档文件未提供，字段已预留。</p>
+        </div>
+        <span class="pill" id="resultCount">0 条</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>年份</th>
+              <th>学校</th>
+              <th>院校代码</th>
+              <th>专业</th>
+              <th>专业代码</th>
+              <th>分数</th>
+              <th>位次</th>
+              <th>学校省份</th>
+              <th>批次</th>
+              <th>985/211/双一流</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr><td colspan="10" class="empty">请输入学校、专业或分数后查询。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel explain">
+      <details open>
+        <summary>小白说明：浙江版和辽宁版最大的不同</summary>
+        <div class="details-body">
+          <p><b>浙江是 3+3 普通类投档，不再使用辽宁“物理类/历史类”口径。</b></p>
+          <p>2025 文件同时保留“最低分”和“一段最低分”。页面默认用 <b>analysis_score</b>，也就是“一段最低分优先”；需要观察最终低分进入情况时，可切换到“最终最低分”。</p>
+          <p>一条记录等于一条“学校 + 专业 + 批次”的投档记录。同一个学校同一个专业可能出现多条记录，所以系统用 <b>record_id</b> 做唯一主键，不用学校+专业直接去重。</p>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    浙江高考专业投档与位次分析 V1 · 数据包：zhejiang_data_package_v2 · 本地静态版
+  </footer>
+
+  <script src="assets/app.zj.v1.js"></script>
+</body>
+</html>
