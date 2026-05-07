@@ -3,159 +3,252 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>高考倒计时 · 2027 / 2026</title>
+  <title>高考倒计时 | 2027 / 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: rgba(23, 32, 51, 0.12);
+      --paper: rgba(255, 255, 255, 0.84);
+      --blue: #2563eb;
+      --green: #059669;
+      --amber: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: #f8fafc;
-      color: #0f172a;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.18), transparent 30%),
+        radial-gradient(circle at 86% 14%, rgba(5, 150, 105, 0.16), transparent 28%),
+        linear-gradient(135deg, #f7fbff 0%, #eef7f2 47%, #fff8ed 100%);
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      background-image:
+        linear-gradient(rgba(23, 32, 51, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 32, 51, 0.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 78%);
     }
 
     .num {
       font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
     }
 
-    .link-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: nowrap;
-      white-space: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 8px 4px 4px;
-      -webkit-overflow-scrolling: touch;
+    .glass-panel {
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: 0 24px 70px rgba(20, 35, 70, 0.14);
+      backdrop-filter: blur(18px);
     }
 
-    .link-bar::-webkit-scrollbar {
-      display: none;
+    .count-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: 0 18px 50px rgba(20, 35, 70, 0.10);
+    }
+
+    .count-card::before {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      content: "";
+      background: linear-gradient(180deg, var(--blue), var(--green));
+    }
+
+    .count-card.secondary::before {
+      background: linear-gradient(180deg, var(--amber), var(--blue));
+    }
+
+    .time-box {
+      min-width: 0;
+      border: 1px solid rgba(23, 32, 51, 0.08);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      box-shadow: inset 0 -1px 0 rgba(23, 32, 51, 0.04);
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
     }
 
     .nav-link {
+      display: flex;
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.74);
+      color: #1d4ed8;
       font-size: 14px;
-      color: #2563eb;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      flex: 0 0 auto;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      text-decoration: none;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
     }
 
-    .nav-link:hover {
-      color: #1e40af;
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      border-color: rgba(37, 99, 235, 0.42);
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgba(37, 99, 235, 0.12);
+      outline: none;
+      transform: translateY(-2px);
     }
 
-    @media (max-width: 640px) {
-      .link-bar {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        justify-content: center;
-        align-items: stretch;
-        gap: 8px;
-        white-space: normal;
-        overflow: visible;
-        padding: 10px 0 0;
+    @media (max-width: 860px) {
+      .nav-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        background:
+          radial-gradient(circle at 12% 6%, rgba(37, 99, 235, 0.14), transparent 35%),
+          linear-gradient(135deg, #f7fbff 0%, #eef7f2 100%);
+      }
+
+      .count-card {
+        border-radius: 16px;
+      }
+
+      .nav-grid {
+        grid-template-columns: 1fr;
       }
 
       .nav-link {
-        display: flex;
-        min-height: 38px;
-        align-items: center;
-        justify-content: center;
-        padding: 7px 6px;
-        border: 1px solid #bfdbfe;
-        border-radius: 999px;
-        background: #eff6ff;
-        color: #1d4ed8;
-        font-size: 0;
-        line-height: 1.15;
-        text-align: center;
-        text-decoration: none;
-        flex: initial;
-      }
-
-      .nav-link::after {
-        content: attr(data-mobile);
-        font-size: 12px;
-        font-weight: 600;
+        min-height: 46px;
+        justify-content: flex-start;
+        padding: 0 14px;
+        text-align: left;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
-    <header class="text-center mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold">高考倒计时</h1>
-      <p class="mt-2 text-slate-600">2027 与 2026 高考时间提醒</p>
-    </header>
-
-    <section class="grid md:grid-cols-2 gap-4 sm:gap-6">
-      <article class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-slate-800">2027 高考</h2>
-          <span class="text-xs text-slate-500">2027/06/07 09:00</span>
+  <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <section class="glass-panel rounded-[28px] px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+      <header class="grid gap-6 md:grid-cols-[1.15fr_0.85fr] md:items-end">
+        <div>
+          <p class="mb-3 inline-flex rounded-full border border-blue-200 bg-white/70 px-3 py-1 text-sm font-semibold text-blue-700">
+            高考时间提醒
+          </p>
+          <h1 class="text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+            高考倒计时
+          </h1>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            以北京时间 6 月 7 日 09:00 为目标，实时更新 2027 与 2026 年高考剩余时间。
+          </p>
         </div>
 
-        <div class="grid grid-cols-4 gap-2 text-center">
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="d2027" class="num text-2xl font-bold">000</p>
-            <p class="text-xs text-slate-500">天</p>
+        <div class="rounded-2xl border border-white/70 bg-white/62 p-4 text-sm leading-6 text-slate-600">
+          <div class="flex items-center justify-between gap-3">
+            <span class="font-semibold text-slate-800">当前时间</span>
+            <span id="nowText" class="num text-right text-slate-700">--</span>
           </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="h2027" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">时</p>
-          </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="m2027" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">分</p>
-          </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="s2027" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">秒</p>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+            <div id="dayProgress" class="h-full rounded-full bg-gradient-to-r from-blue-600 via-emerald-500 to-amber-500" style="width: 0%"></div>
           </div>
         </div>
-      </article>
+      </header>
 
-      <article class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-slate-800">2026 高考</h2>
-          <span class="text-xs text-slate-500">2026/06/07 09:00</span>
-        </div>
+      <section class="mt-8 grid gap-4 lg:grid-cols-2 lg:gap-5" aria-label="高考倒计时">
+        <article class="count-card p-5 pl-6 sm:p-6 sm:pl-7">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 class="text-2xl font-black text-slate-900">2027 高考</h2>
+              <p class="mt-1 text-sm text-slate-500">目标时间：2027-06-07 09:00</p>
+            </div>
+            <span id="status2027" class="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-700">倒计时中</span>
+          </div>
 
-        <div class="grid grid-cols-4 gap-2 text-center">
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="d2026" class="num text-2xl font-bold">000</p>
-            <p class="text-xs text-slate-500">天</p>
+          <div class="grid grid-cols-4 gap-2 text-center sm:gap-3">
+            <div class="time-box px-2 py-4">
+              <p id="d2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">000</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">天</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="h2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">时</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="m2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">分</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="s2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">秒</p>
+            </div>
           </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="h2026" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">时</p>
+        </article>
+
+        <article class="count-card secondary p-5 pl-6 sm:p-6 sm:pl-7">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 class="text-2xl font-black text-slate-900">2026 高考</h2>
+              <p class="mt-1 text-sm text-slate-500">目标时间：2026-06-07 09:00</p>
+            </div>
+            <span id="status2026" class="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">倒计时中</span>
           </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="m2026" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">分</p>
+
+          <div class="grid grid-cols-4 gap-2 text-center sm:gap-3">
+            <div class="time-box px-2 py-4">
+              <p id="d2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">000</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">天</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="h2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">时</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="m2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">分</p>
+            </div>
+            <div class="time-box px-2 py-4">
+              <p id="s2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
+              <p class="mt-1 text-xs font-semibold text-slate-500">秒</p>
+            </div>
           </div>
-          <div class="rounded-lg bg-slate-50 py-3">
-            <p id="s2026" class="num text-2xl font-bold">00</p>
-            <p class="text-xs text-slate-500">秒</p>
-          </div>
-        </div>
-      </article>
+        </article>
+      </section>
+
+      <p class="mt-6 rounded-2xl border border-white/70 bg-white/56 px-4 py-3 text-center text-sm leading-6 text-slate-600">
+        仅供时间参考，具体考试安排请以官方公布为准。
+      </p>
+
+      <nav class="nav-grid mt-5" aria-label="高考数据导航">
+        <a href="./liaoning.html" class="nav-link">辽宁学科评估</a>
+        <a href="./zy.html" class="nav-link">辽宁投档数据</a>
+        <a href="./ln2025.html" class="nav-link">2025 报考观察</a>
+        <a href="./lngk.html" class="nav-link">专业难度观察</a>
+        <a href="./gaokao-confusable-major-guide.html" class="nav-link">易混专业指南</a>
+      </nav>
     </section>
-
-    <p class="text-center text-sm text-slate-500 mt-6">
-      仅供时间参考，请以官方考试安排为准。
-    </p>
-
-    <nav class="link-bar mt-4" aria-label="高考数据导航">
-      <a href="./liaoning.html" class="nav-link" data-mobile="学科评估">辽宁省高考学科评估</a>
-      <a href="./zy" class="nav-link" data-mobile="高校口径">辽宁物理类 2024/2025 投档数据观察（高校口径）</a>
-      <a href="./ln2025.html" class="nav-link" data-mobile="考生口径">辽宁物理类 2025 报考观察（考生口径）</a>
-      <a href="./lngk.html" class="nav-link" data-mobile="专业难度">辽宁物理类 2025年专业难度观察（367-625）</a>
-	  <a href="./gaokao-confusable-major-guide.html" class="nav-link" data-mobile="易混专业">高考易混专业辨析指北</a>
-    </nav>
   </main>
 
   <script>
@@ -168,23 +261,27 @@
       return String(value).padStart(length, "0");
     }
 
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value;
+      }
+    }
+
     function renderYear(year) {
       const now = new Date();
       const target = CONFIG[year];
       const diff = target - now;
-
-      const elements = {
-        days: document.getElementById(`d${year}`),
-        hours: document.getElementById(`h${year}`),
-        minutes: document.getElementById(`m${year}`),
-        seconds: document.getElementById(`s${year}`)
-      };
+      const status = document.getElementById(`status${year}`);
 
       if (diff <= 0) {
-        elements.days.textContent = "000";
-        elements.hours.textContent = "00";
-        elements.minutes.textContent = "00";
-        elements.seconds.textContent = "00";
+        setText(`d${year}`, "000");
+        setText(`h${year}`, "00");
+        setText(`m${year}`, "00");
+        setText(`s${year}`, "00");
+        if (status) {
+          status.textContent = "已开始";
+        }
         return;
       }
 
@@ -198,15 +295,41 @@
       const minutes = Math.floor((diff % oneHour) / oneMinute);
       const seconds = Math.floor((diff % oneMinute) / oneSecond);
 
-      elements.days.textContent = pad(days, 3);
-      elements.hours.textContent = pad(hours);
-      elements.minutes.textContent = pad(minutes);
-      elements.seconds.textContent = pad(seconds);
+      setText(`d${year}`, pad(days, 3));
+      setText(`h${year}`, pad(hours));
+      setText(`m${year}`, pad(minutes));
+      setText(`s${year}`, pad(seconds));
+      if (status) {
+        status.textContent = days <= 30 ? "冲刺阶段" : "倒计时中";
+      }
+    }
+
+    function renderNow() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat("zh-CN", {
+        timeZone: "Asia/Shanghai",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      const seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const progress = (seconds / 86400) * 100;
+
+      setText("nowText", formatter.format(now));
+      const dayProgress = document.getElementById("dayProgress");
+      if (dayProgress) {
+        dayProgress.style.width = `${progress.toFixed(2)}%`;
+      }
     }
 
     function tick() {
       renderYear(2027);
       renderYear(2026);
+      renderNow();
     }
 
     tick();
