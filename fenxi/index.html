@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.4.7.1.fix｜官方高校名单地域校准版</title>
-<link rel="stylesheet" href="./assets/app.v29471.css"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.4.7.2｜城市精细化与地域偏好提醒版</title>
+<link rel="stylesheet" href="./assets/app.v29472.css"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.1.fix｜官方高校名单地域校准版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.2｜城市精细化与地域偏好提醒版</h1>
 <p>先选策略，再填位次和区域；系统自动缩水、自动分层、自动解释。适合辽宁家长做第一轮初筛与排雷。</p>
     <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
     <div class="access-mini" id="accessMini">
@@ -102,13 +102,16 @@
 <div class="next-row"><button class="secondary" onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">查看当前可选范围和A/B/C方案</button><button class="ghost" onclick="document.getElementById('profileAsk').scrollIntoView({behavior:'smooth'})">想更准：细化条件</button></div></div>
 
 <div class="section step-card step2" data-step-label="② 想去哪里" id="targetArea">
-<h2>② 想去哪里 <small>先定能接受的区域，系统会自动缩小范围</small></h2>
+<h2>② 想去哪里 <small>省份先缩面，城市只做偏好或明确硬筛</small></h2>
 <div class="grid">
 <div class="col-4"><label>区域筛选方式</label><select id="regionMode"><option value="hard">硬筛：只看所选区域</option><option value="soft">软筛：所选区域优先</option><option value="none">不限制区域</option></select></div>
 <div class="col-8"><label>快捷区域</label><div class="chips" id="regionGroupChips">
 <span class="chip good" data-region-group="辽宁省内">辽宁省内</span><span class="chip good active" data-region-group="东北">东北</span><span class="chip" data-region-group="京津冀">京津冀</span><span class="chip" data-region-group="长三角">长三角</span><span class="chip" data-region-group="珠三角">珠三角</span><span class="chip" data-region-group="成渝">成渝</span><span class="chip" data-region-group="全国">全国可去</span>
 </div></div>
 <div class="col-12"><label>可接受院校所在省份（多选；为空默认不限）</label><div class="chips" id="provinceChips"></div></div>
+<div class="col-4"><label>城市偏好方式</label><select id="cityMode"><option value="none">不限制城市</option><option value="soft">只提醒/降权，不排除</option><option value="hard">硬筛：只看目标城市</option></select></div>
+<div class="col-8"><label>目标城市（可多填，空格或逗号分隔）</label><input class="input" id="targetCities" list="cityDatalist" placeholder="如 沈阳 大连 杭州 青岛"/><datalist id="cityDatalist"></datalist></div>
+<div class="col-12"><p class="small city-note-v29472">城市来自 school_geo_model 的官方高校名单所在地；它不是专业实际就读校区。具体校区仍要以招生章程和培养方案为准。</p></div>
 </div>
 <div class="next-row"><button class="secondary" onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">下一步：看方案</button></div></div>
 
@@ -202,7 +205,7 @@
 
 
 
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.1.fix｜官方高校名单地域校准版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.2｜城市精细化与地域偏好提醒版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" onclick="document.getElementById('strategyEntry').scrollIntoView({behavior:'smooth'})">策略</button><button onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">结果</button></div>
@@ -211,7 +214,7 @@
 <div class="export-sheet hide" id="exportSheet" role="dialog" aria-label="导出菜单">
   <div class="sheet-handle"></div>
   <h3>导出当前结果</h3>
-  <p class="small">PNG 适合转发沟通，CSV 适合继续整理。正式填报前仍需核验招生计划、校区、体检、学费与分流规则。</p>
+  <p class="small">PNG 适合转发沟通，CSV 适合继续整理。正式填报前仍需核验招生计划、专业实际校区、体检、学费与分流规则。</p>
   <button onclick="exportFilteredPng();closeExportSheet()">导出当前筛选 PNG</button>
   <button onclick="exportCandidatesPng();closeExportSheet()">导出候选清单 PNG</button>
   <button class="secondary" onclick="exportFiltered();closeExportSheet()">导出当前筛选 CSV</button>
@@ -222,7 +225,7 @@
 
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/app.v29471.js"></script>
+<script src="./assets/app.v29472.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide">
 <a href="#baseInfo">筛选</a>
 <a class="primary" href="#resultBox">结果</a>

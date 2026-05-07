@@ -27,10 +27,11 @@ const required = [
 required.forEach(exists);
 
 const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
-if(!index.includes('app.v2945.js') && !index.includes('app.v2946.js') && !index.includes('app.v29461.js')) throw new Error('index.html does not load app.v2945.js, app.v2946.js or app.v29461.js');
-if(!index.includes('app.v2945.css') && !index.includes('app.v2946.css') && !index.includes('app.v29461.css')) throw new Error('index.html does not load app.v2945.css, app.v2946.css or app.v29461.css');
+const appMatch=index.match(/assets\/(app\.v\d+\.js)/);
+const cssMatch=index.match(/assets\/(app\.v\d+\.css)/);
+if(!appMatch || !cssMatch) throw new Error('index.html does not load current app js/css');
 
-const appPath = fs.existsSync(path.join(root,'assets/app.v2946.js')) ? 'assets/app.v2946.js' : 'assets/app.v2945.js';
+const appPath = 'assets/' + appMatch[1];
 const app = fs.readFileSync(path.join(root,appPath),'utf8');
 ['renderParentInterestPanelV2945','admissionIdentityV2945','rankTrendV2945','candidateAdviceV2945'].forEach(fn=>{
   if(!app.includes('function '+fn)) throw new Error('missing function: '+fn);

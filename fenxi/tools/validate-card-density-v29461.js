@@ -7,11 +7,14 @@ function must(file){
   return fs.readFileSync(p, 'utf8');
 }
 const index = must('index.html');
-const js = must('assets/app.v29461.js');
-const css = must('assets/app.v29461.css');
+const appRef = (index.match(/assets\/(app\.v\d+\.js)/)||[])[1] || 'app.v29461.js';
+const cssRef = (index.match(/assets\/(app\.v\d+\.css)/)||[])[1] || 'app.v29461.css';
+const js = must('assets/' + appRef);
+const css = must('assets/' + cssRef);
 const conf = must('data/confusable_major_model/v2946_manifest.json');
-const requiredIndex = ['app.v29461.css','app.v29461.js','confusable-major-model.v2946.js'];
+const requiredIndex = ['confusable-major-model.v29462.js','major-name-model.v2946.js'];
 for(const x of requiredIndex){ if(!index.includes(x)) throw new Error(`index.html missing ${x}`); }
+if(!/app\.v\d+\.css/.test(index) || !/app\.v\d+\.js/.test(index)) throw new Error('index.html missing current app js/css');
 const requiredJs = [
   'CARD_VIEW_MODE_KEY_V29461',
   'ensureCardViewModeToolbarV29461',
@@ -21,8 +24,8 @@ const requiredJs = [
   'confusable-v29461',
   'parent-insight-v29461'
 ];
-for(const x of requiredJs){ if(!js.includes(x)) throw new Error(`app.v29461.js missing ${x}`); }
+for(const x of requiredJs){ if(!js.includes(x)) throw new Error(`${appRef} missing ${x}`); }
 const requiredCss = ['view-mode-toolbar-v29461','card-mode-compact','confusable-v29461','parent-insight-v29461','summary-v29461'];
-for(const x of requiredCss){ if(!css.includes(x)) throw new Error(`app.v29461.css missing ${x}`); }
+for(const x of requiredCss){ if(!css.includes(x)) throw new Error(`${cssRef} missing ${x}`); }
 JSON.parse(conf);
-console.log('V2.9.4.6.1 card-density validation passed.');
+console.log('card-density compatibility validation passed for '+appRef+' / '+cssRef);
