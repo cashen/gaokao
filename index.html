@@ -22,9 +22,15 @@
       box-sizing: border-box;
     }
 
+    html {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       min-height: 100vh;
       margin: 0;
+      overflow-x: hidden;
       font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
       color: var(--ink);
       background:
@@ -52,14 +58,19 @@
     }
 
     .glass-panel {
+      width: 100%;
+      min-width: 0;
       border: 1px solid rgba(255, 255, 255, 0.7);
       background: rgba(255, 255, 255, 0.74);
       box-shadow: 0 24px 70px rgba(20, 35, 70, 0.14);
       backdrop-filter: blur(18px);
+      overflow: hidden;
     }
 
     .count-card {
       position: relative;
+      min-width: 0;
+      max-width: 100%;
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -81,6 +92,7 @@
 
     .time-box {
       min-width: 0;
+      max-width: 100%;
       border: 1px solid rgba(23, 32, 51, 0.08);
       border-radius: 14px;
       background: linear-gradient(180deg, #ffffff, #f8fafc);
@@ -126,14 +138,62 @@
     }
 
     @media (max-width: 520px) {
+      main {
+        display: block !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        overflow: hidden;
+      }
+
       body {
         background:
           radial-gradient(circle at 12% 6%, rgba(37, 99, 235, 0.14), transparent 35%),
           linear-gradient(135deg, #f7fbff 0%, #eef7f2 100%);
       }
 
+      .glass-panel {
+        width: min(358px, calc(100vw - 32px)) !important;
+        max-width: min(358px, calc(100vw - 32px));
+      }
+
+      .glass-panel > header,
+      .glass-panel > section,
+      .glass-panel > p,
+      .glass-panel > nav {
+        width: min(318px, calc(100vw - 72px)) !important;
+        max-width: min(318px, calc(100vw - 72px)) !important;
+      }
+
       .count-card {
+        width: 100%;
         border-radius: 16px;
+      }
+
+      .count-card > .mb-5 {
+        flex-direction: column;
+      }
+
+      .count-card .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .glass-panel header .flex {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .time-box {
+        border-radius: 12px;
+      }
+
+      .time-box .num {
+        font-size: 2rem;
+        line-height: 1.1;
+      }
+
+      #nowText {
+        font-size: 12px;
+        line-height: 1.3;
       }
 
       .nav-grid {
