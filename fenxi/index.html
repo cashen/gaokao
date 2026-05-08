@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</title>
-<link rel="stylesheet" href="./assets/app.v29474.css"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.4.7.5｜预算宽路径与紧凑方案盘版</title>
+<link rel="stylesheet" href="./assets/app.v29475.css"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.5｜预算宽路径与紧凑方案盘版</h1>
 <p>先选策略，再填位次和区域；系统自动缩水、自动分层、自动解释。适合辽宁家长做第一轮初筛与排雷。</p>
     <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
     <div class="access-mini" id="accessMini">
@@ -40,7 +40,7 @@
 <h2>① 填孩子分数 / 位次 <small>必填，位次优先</small></h2><p class="step-help">先把孩子放到正确位次段。只填分数也可以，系统会尝试按一分一段换算位次。</p>
 <div class="grid">
 <div class="col-3"><label>考试地区</label><select id="examProvince"><option>辽宁</option></select></div>
-<div class="col-3"><label>家庭预算</label><select id="budget"><option value="normal">普通家庭，优先普通学费</option><option value="flex">可接受少量高收费</option><option value="high">预算较宽，可看中外合作</option></select></div>
+<div class="col-3"><label>家庭预算</label><select id="budget"><option value="normal">普通家庭，优先普通学费</option><option value="flex">可接受少量高收费</option><option value="high">预算较宽，可比较中外合作/民办</option><option value="coop">明确想看中外合作提档</option></select></div>
 <div class="col-3"><label>学生性别（可选）</label><select id="studentGender"><option value="unspecified">不指定</option><option value="male">男孩</option><option value="female">女孩</option></select></div>
 <div class="col-3 special-plan-field-v29474"><label>高校专项资格</label><select id="specialPlanStatus"><option value="unreviewed" selected>未通过 / 未审核</option><option value="approved">已通过高校专项计划审核</option><option value="unknown">不确定，暂按未审核处理</option></select><div class="special-plan-help-v29474">默认隐藏“辽宁省高校专项计划”等资格入口。</div></div>
 <div class="col-3"><label>2025 分数（可选）</label><input class="input" id="myScore" placeholder="例如 550" type="number"/></div>
@@ -174,14 +174,15 @@
 <div class="advanced-content" id="advancedFilters">
 <div class="toolbar">
 <div class="field"><label>学校</label><input class="input" id="qSchool" placeholder="如 沈阳工程学院"/></div>
-<div class="field"><label>专业</label><input class="input" id="qMajor" placeholder="如 电气 / 临床 / 计算机"/></div>
+<div class="field"><label>专业</label><input class="input" id="qMajor" placeholder="如 会计学 / 电气 / 临床 / 计算机"/></div>
 <div class="field"><label>学科群</label><select id="filterSubjectGroup"><option value="">全部学科群</option></select></div>
 <div class="field"><label>专业类/研一级</label><input class="input" id="filterPrimary" placeholder="如 0807 / 电子信息类 / 电气工程"/></div>
 <div class="field"><label>目录可信度</label><select id="filterTaxConfidence"><option value="">全部</option><option value="high">只看高可信</option><option value="medium">中可信及以上</option><option value="review">只看需复核</option></select></div>
 <div class="field"><label>院校层级</label><select id="filterSchoolTier"><option value="">全部层级</option><option value="985">985/211</option><option value="211">211</option><option value="public">双非公办</option><option value="private">民办/独立</option><option value="unknown">层级待核验</option></select></div>
+<div class="field fee-type-v29475"><label>办学/收费类型</label><select id="filterFeeType"><option value="all">全部候选</option><option value="normal">只看普通学费/普通专业</option><option value="coopCompare">中外合作可比较</option><option value="coopOnly">只看中外合作提档</option><option value="privateCompare">民办本科可比较</option><option value="excludeHighPrivate">排除高收费/民办</option></select></div>
 <div class="field"><label>易混主题</label><select id="filterConfusableGroup"><option value="">全部易混主题</option></select></div>
 <div class="field"><label>层级</label><select id="filterLevel"><option value="">全部层级</option><option>可冲</option><option>匹配</option><option>稳妥</option><option>保底</option><option>超冲</option><option>过低</option></select></div>
-<div class="field"><label>排序</label><select id="sortBy"><option value="profile">画像匹配优先</option><option value="fit">按位次匹配度</option><option value="rank2025">按2025位次</option><option value="rankDiffHot">竞争增强优先</option><option value="rankDiffLoose">位次放宽优先</option></select></div>
+<div class="field"><label>排序</label><select id="sortBy"><option value="profile">画像匹配优先</option><option value="fit">按位次匹配度</option><option value="rank2025">按2025位次</option><option value="rankDiffHot">竞争增强优先</option><option value="rankDiffLoose">位次放宽优先</option><option value="lift">提档价值优先</option></select></div>
 </div>
 <div class="row desktop-export-row" style="margin-top:12px"><label class="row"><input id="onlyConfusable" type="checkbox"/> 只看易混专业提醒</label><label class="row"><input id="onlyKey" type="checkbox"/> 只看重点学科提醒</label><label class="row"><input checked="" id="strictProfile" type="checkbox"/> 严格画像缩水</label><button class="secondary slim" onclick="exportFiltered()">导出当前筛选 CSV</button><button class="secondary slim" onclick="exportFilteredPng()">导出筛选摘要 PNG</button><button class="secondary slim mobile-only-inline" onclick="openExportSheet()">打开导出菜单</button></div>
 </div>
@@ -209,7 +210,7 @@
 
 
 
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.5｜预算宽路径与紧凑方案盘版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" onclick="document.getElementById('strategyEntry').scrollIntoView({behavior:'smooth'})">策略</button><button onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">结果</button></div>
@@ -229,7 +230,7 @@
 
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/app.v29474.js"></script>
+<script src="./assets/app.v29475.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide">
 <a href="#baseInfo">筛选</a>
 <a class="primary" href="#resultBox">结果</a>
