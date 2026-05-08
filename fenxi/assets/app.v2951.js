@@ -12,7 +12,7 @@ const DATA_FILES={
   schoolGeoAlias:'data/school_geo_model/school_name_alias_v29471.json',
   studentProfileRules:'data/student_profile_model/student_profile_rules_v29471.json'
 };
-const APP_VERSION_V29472 = 'V2.9.5.0｜家长流程重排与方案引擎瘦身版';
+const APP_VERSION_V29472 = 'V2.9.5.1｜独立规则集与场景策略集中化版';
 const CITY_GEO_NOTE_V29472 = '城市为学校官方所在地，具体专业就读校区以招生章程为准';
 const CHUNK_CACHE = new Map();
 let MANIFEST = null;
@@ -26,6 +26,16 @@ let TAXONOMY_READY = false;
 let OFFICIAL_CATALOG_2026 = null;
 let GRADUATE_CATALOG_2022_2025 = null;
 let DATA=[],META={},RANK2025={},currentRank=null,filtered=[],candidates=[],currentPage=1,pageSize=12,currentStrategy='employment',exclusionStats={'区域排除':0,'预算排除':0,'画像排除':0,'低匹配排除':0};
+
+const RULES_V2951 = window.LN_GAOKAO_RULES_V2951 || {scenarioPresets:{},strategyRules:{},baselineRules:{},planRules:{},pathRules:{},reviewRules:{},defaults:{}};
+let BASELINE_TOUCHED_V2951 = new Set();
+function rulesV2951(){ return window.LN_GAOKAO_RULES_V2951 || RULES_V2951 || {}; }
+function scenarioRuleV2951(id){ const r=rulesV2951(); return (r.scenarioPresets||r.strategyRules||{})[id] || null; }
+function allScenarioRulesV2951(){ const r=rulesV2951(); return Object.values(r.scenarioPresets||r.strategyRules||{}).sort((a,b)=>(a.order||999)-(b.order||999)); }
+function scenarioPlanBiasV2951(type){ const rule=scenarioRuleV2951(currentStrategy); const b=rule?.planBias?.[type]; return Number.isFinite(Number(b))?Number(b):1; }
+function markBaselineTouchedV2951(key){ if(key) BASELINE_TOUCHED_V2951.add(key); }
+function hasTouchedV2951(key){ return BASELINE_TOUCHED_V2951.has(key) || BASELINE_TOUCHED_V2951.has('all'); }
+
 let CONFUSABLE_MODEL_2946=null;
 let SCHOOL_GEO_MODEL_29471=null;
 let STUDENT_PROFILE_MODEL_29471=null;
@@ -737,18 +747,9 @@ function clearProvinces(){document.querySelectorAll('#provinceChips .chip,#regio
 function setSingle(group,value){const box=document.querySelector(`[data-group="${group}"]`);if(!box)return;box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.value===value))}
 function getGroup(group){return document.querySelector(`[data-group="${group}"] .chip.active`)?.dataset.value||''}
 function selectedRejects(){return[...document.querySelectorAll('#rejectChips .chip.active')].map(x=>x.dataset.reject)}
-function applyStrategy(type){currentStrategy=type;document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));clearProvinces();document.querySelectorAll('#rejectChips .chip').forEach(c=>c.classList.remove('active'));document.getElementById('regionMode').value='hard';document.getElementById('budget').value='normal';document.getElementById('mentorMode').value='standard';document.getElementById('familyTolerance').value='low';document.getElementById('gradPlan').value='maybe';document.getElementById('timePressure').value='normal';setTargetCitiesV29472('', 'none');setSingle('outProvince','yes');setSingle('medicine','neutral');setSingle('teacher','neutral');setSingle('liberal','neutral');setSingle('chem','neutral');setSingle('physics','neutral');setSingle('gridPower','neutral');
- if(type==='employment'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='employment'}
- if(type==='grid'){selectRegionGroup('辽宁省内');setSingle('outProvince','no');setSingle('gridPower','prefer');setSingle('physics','prefer');document.getElementById('priority').value='grid';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
- if(type==='medical'){selectRegionGroup('全国');setSingle('medicine','prefer');setSingle('chem','prefer');document.getElementById('priority').value='employment';document.getElementById('gradPlan').value='yes';document.getElementById('timePressure').value='long'}
- if(type==='exam'){selectRegionGroup('全国');setSingle('liberal','prefer');document.getElementById('priority').value='exam'}
- if(type==='city'){selectRegionGroup('长三角');document.getElementById('priority').value='city';document.getElementById('cityMode').value='soft'}
- if(type==='shenyang'){clearProvinces();selectRegionGroup('辽宁省内');setSingle('outProvince','no');setTargetCitiesV29472('沈阳','soft');document.getElementById('priority').value='city'}
- if(type==='dalian'){clearProvinces();selectRegionGroup('辽宁省内');setSingle('outProvince','no');setTargetCitiesV29472('大连','soft');document.getElementById('priority').value='city'}
- if(type==='publicLow'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='publicLow';document.getElementById('mentorMode').value='strict';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
- if(type==='school'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='school'}
- if(type==='broad'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='employment'}
- autoRefresh()}
+function deprecatedApplyStrategyV2951_Legacy(type){
+  console.warn('[V2.9.5.1] legacy applyStrategy disabled; use rules-driven applyStrategy()', type);
+}
 function resetAll(){location.reload()}
 function isMed(m){return/临床|口腔|医学|麻醉|儿科|药学|中医|护理|影像|眼视光|预防|基础医学|精神医学|针灸/.test(m)}
 function isTeacher(m){return/师范|教育|小学教育|学前教育|特殊教育/.test(m)}
@@ -1765,6 +1766,100 @@ function renderDebugPanel(){
   当前结果城市Top：<code>${topCity}</code><br/>
   易混模型：<code>${CONFUSABLE_MODEL_2946?((CONFUSABLE_MODEL_2946.detectedPairs?.count||0)+' 对 / '+(CONFUSABLE_MODEL_2946.recordIndex?.count||0)+' 条索引'):'未加载'}</code><br/>学校地域：<code>${SCHOOL_GEO_MODEL_29471?(SCHOOL_GEO_MODEL_29471.items.length+' 所，city全量'):'未加载'}</code>｜学生画像：<code>${STUDENT_PROFILE_MODEL_29471?((STUDENT_PROFILE_MODEL_29471.rules||[]).length+' 条规则'):'未加载'}</code><br/>app.js：<code>app.v29475.js</code>｜app.css：<code>app.v29475.css</code>`;
 }
+
+function renderStrategyCardsV2951(){
+  const box=document.getElementById('strategyCards'); if(!box)return;
+  const rules=allScenarioRulesV2951();
+  if(!rules.length)return;
+  box.innerHTML=rules.map(rule=>{
+    const cls=['strategy-card','scenario-card-v2951'];
+    if(rule.defaultSelected || rule.id===(rulesV2951().defaults?.selectedScenario||'employment'))cls.push('active');
+    if(rule.id==='publicLow'||rule.id==='edgeBachelor')cls.push('public-first');
+    const risk=rule.riskLevel==='aggressive'?'冲刺':rule.riskLevel==='conservative'?'稳妥':'均衡';
+    return `<button class="${cls.join(' ')}" data-strategy="${v2950Text(rule.id)}">
+      <strong>${v2950Text(rule.title)}</strong>
+      <span>${v2950Text(rule.desc||'')}</span>
+      <em>${risk}</em>
+    </button>`;
+  }).join('');
+  const intro=document.getElementById('scenarioRuleHintV2951');
+  if(intro) intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'场景卡来自独立规则集。')}</span>`;
+}
+function initBaselineTouchTrackingV2951(){
+  const base=document.getElementById('familyBaseline'); if(!base)return;
+  base.querySelectorAll('select,input,textarea').forEach(el=>{
+    el.addEventListener('change',()=>markBaselineTouchedV2951(el.id||'all'));
+    el.addEventListener('input',()=>markBaselineTouchedV2951(el.id||'all'));
+  });
+  base.addEventListener('click',e=>{ if(e.target?.classList?.contains('chip')) markBaselineTouchedV2951('chips'); }, true);
+}
+function setValueIfAllowedV2951(id,value,source){
+  const el=document.getElementById(id); if(!el || value===undefined || value===null)return false;
+  const hard=['specialPlanStatus'];
+  if(hard.includes(id) && hasTouchedV2951(id))return false;
+  if(hasTouchedV2951(id) && ['budget','regionMode','cityMode','targetCities'].includes(id))return false;
+  el.value=value; return true;
+}
+function mapBudgetV2951(v){
+  if(v==='normal')return 'normal'; if(v==='medium'||v==='flex')return 'flex'; if(v==='wide'||v==='high')return 'high'; if(v==='coop')return 'coop'; return null;
+}
+function applyScenarioRegionV2951(rule){
+  if(!rule?.regionSuggestion || hasTouchedV2951('chips'))return [];
+  const skipped=[];
+  const rs=rule.regionSuggestion;
+  if(rs.mode && document.getElementById('regionMode')) document.getElementById('regionMode').value=rs.mode;
+  if(Array.isArray(rs.preferGroups) && rs.preferGroups.length){
+    clearProvinces();
+    rs.preferGroups.forEach(g=>selectRegionGroup(g,true));
+  }
+  return skipped;
+}
+function applyScenarioPresetV2951(type){
+  const rule=scenarioRuleV2951(type); if(!rule)return;
+  currentStrategy=type;
+  document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));
+  const skipped=[];
+  const pref=rule.preference||{};
+  if(pref.priority) setValueIfAllowedV2951('priority',pref.priority,'preference');
+  if(pref.mentorMode) setValueIfAllowedV2951('mentorMode',pref.mentorMode,'preference');
+  if(pref.gradPlan) setValueIfAllowedV2951('gradPlan',pref.gradPlan,'preference');
+  if(pref.timePressure) setValueIfAllowedV2951('timePressure',pref.timePressure,'preference');
+  ['gridPower','physics','medicine','chem','liberal','teacher'].forEach(k=>{ if(pref[k]) setSingle(k,pref[k]); });
+  const b=rule.baselineSuggestion||{};
+  const budget=mapBudgetV2951(b.budget);
+  if(budget && !setValueIfAllowedV2951('budget',budget,'baseline')) skipped.push('预算');
+  if(b.acceptCoop==='yes'||b.acceptCoop==='compare'){
+    if(!hasTouchedV2951('filterFeeType')) setValueIfAllowedV2951('filterFeeType','coopCompare','baseline'); else skipped.push('办学/收费类型');
+  }
+  if(b.acceptPrivate==='yes'||b.acceptPrivate==='compare'){
+    if(!hasTouchedV2951('filterFeeType') && (document.getElementById('filterFeeType')?.value||'all')==='all') setValueIfAllowedV2951('filterFeeType','privateCompare','baseline');
+  }
+  applyScenarioRegionV2951(rule);
+  renderScenarioNoticeV2951(rule,skipped);
+}
+function renderScenarioNoticeV2951(rule,skipped=[]){
+  let box=document.getElementById('scenarioExplainV2951');
+  const grid=document.getElementById('strategyCards');
+  if(!box && grid){ box=document.createElement('div'); box.id='scenarioExplainV2951'; box.className='scenario-explain-v2951'; grid.insertAdjacentElement('afterend',box); }
+  if(!box)return;
+  const protect=(rule.protect||[]).map(x=>`<span>${v2950Text(x)}</span>`).join('');
+  const avoid=(rule.doNotAutoRelax||[]).map(x=>`<span>${v2950Text(x)}</span>`).join('');
+  const abc=rule.abcGuide?`<div class="scenario-abc-v2951"><b>A</b>${v2950Text(rule.abcGuide.A||'')}<b>B</b>${v2950Text(rule.abcGuide.B||'')}<b>C</b>${v2950Text(rule.abcGuide.C||'')}</div>`:'';
+  box.innerHTML=`<div><strong>当前场景：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
+    <div class="scenario-tags-v2951"><em>优先保护</em>${protect||'<span>按当前底线</span>'}</div>
+    <div class="scenario-tags-v2951"><em>不会自动放宽</em>${avoid||'<span>用户已设底线</span>'}</div>
+    ${abc}<p class="small">${v2950Text(rule.warning||'场景只作为建议策略。')}${skipped.length?'｜已保留你手动设置的：'+v2950Text(skipped.join('、')):''}</p>`;
+}
+function switchFullModeV2951(){
+  const el=document.getElementById('simpleModeToggleV2950'); if(el){el.checked=false; applySimpleModeV2950();}
+  toggleAdvanced(true);
+  document.getElementById('advancedFilters')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function toggleAdvanced(force){
+  const box=document.getElementById('advancedFilters'); if(!box)return;
+  if(force===true) box.classList.add('open'); else if(force===false) box.classList.remove('open'); else box.classList.toggle('open');
+}
+
 function initV292UX(){
   applyCardViewModeClassV29461();
   ensureCardViewModeToolbarV29461();
@@ -1776,6 +1871,8 @@ function initV292UX(){
 async function boot(){
   bootChips();
   initV292UX();
+  renderStrategyCardsV2951();
+  initBaselineTouchTrackingV2951();
   try{
     MANIFEST = await loadJsonFile(DATA_FILES.manifest,'数据清单');
     RANK2025 = await loadJsonFile(DATA_FILES.rank,'一分一段数据');
@@ -1821,6 +1918,7 @@ async function boot(){
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
+    renderScenarioNoticeV2951(scenarioRuleV2951(currentStrategy)||scenarioRuleV2951(rulesV2951().defaults?.selectedScenario||'employment')||{});
     document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',debouncedAutoRefresh));
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
@@ -2255,7 +2353,7 @@ function planScoreV29475(r,type,chosen){
     if((r.isCoopV29475||r.isHighFee) && !(s.budgetWide||s.coopIntent))sc-=30;
     sc+=liftValueScoreV29475(r)*.55;
   }
-  return sc;
+  return sc * scenarioPlanBiasV2951(type);
 }
 function pickBucketV29475(type,limit=4){
   const usable=(filtered||[]).filter(r=>!(r._excludes||[]).length);
@@ -2336,7 +2434,7 @@ function pickPlanRows(){
 
 
 
-/* V2.9.5.0: A/B/C 首选样式 + 备选小卡紧凑修正
+/* V2.9.5.1: A/B/C 首选样式 + 备选小卡紧凑修正
    修正点：首选徽标不再黑底白字；备选卡只保留短理由、关键风险和复核芯片，明显小于首选大卡。 */
 let latestPlanBucketsV29475Fix2 = {A:[],B:[],C:[]};
 function planKeyV29475Fix2(r){
@@ -2576,7 +2674,7 @@ function pickSchemeBucketsV29475(){
    - 保留 V2.9.4.7.4 高校专项默认保护与 V2.9.4.7.5 预算宽/中外提档逻辑。 */
 
 
-/* V2.9.5.0：A/B/C 方案引擎与路径解释版
+/* V2.9.5.1：A/B/C 方案引擎与路径解释版
    局部架构整理：只接管 A/B/C 方案盘、路径解释、提档价值、自选来源，不重写数据加载和主筛选。 */
 const PLAN_MODES_V29476 = {
   A:{
@@ -2936,8 +3034,8 @@ rowsToCsv = function(rows){
   });
   return [head.join(','),...body].join('\n');
 };
-exportFiltered = function(){download('辽宁物理类_V2.9.5.0_筛选结果_方案引擎.csv',rowsToCsv(filtered));};
-exportCandidates = function(){download('辽宁物理类_V2.9.5.0_候选清单_方案来源.csv',rowsToCsv(candidates));};
+exportFiltered = function(){download('辽宁物理类_V2.9.5.1_筛选结果_方案引擎.csv',rowsToCsv(filtered));};
+exportCandidates = function(){download('辽宁物理类_V2.9.5.1_候选清单_方案来源.csv',rowsToCsv(candidates));};
 
 boot();
 setInterval(updateGuideState, 1000);
@@ -2945,10 +3043,10 @@ setTimeout(syncAccessState, 0);
 
 
 /* =========================
- * V2.9.5.0｜家长流程重排与方案引擎瘦身版
+ * V2.9.5.1｜独立规则集与场景策略集中化版
  * 只接管流程解释、家庭底线摘要、A/B/C方案盘渲染与简洁模式；保留原数据引擎、筛选规则和导出能力。
  * ========================= */
-const APP_VERSION_V2950 = 'V2.9.5.0｜家长流程重排与方案引擎瘦身版';
+const APP_VERSION_V2950 = 'V2.9.5.1｜独立规则集与场景策略集中化版';
 const PLAN_MODES_V2950 = {
   A:{key:'A',cls:'a',title:'A：守底线方案',short:'守底线',line:'先看能不能稳妥落地：公办、普通学费、位次安全、专业可读。'},
   B:{key:'B',cls:'b',title:'B：专业路径方案',short:'看专业',line:'再看专业往哪走：正主/相近/需核验，避免只看名字。'},
@@ -3091,23 +3189,12 @@ function autoRefresh(){
     console.error(e);
   });
 }
-setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.0] 简洁模式初始化失败',e)}},0);
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.1] 简洁模式初始化失败',e)}},0);
 
-/* V2.9.5.0：策略选择改为“路径偏好”，不再重置家庭底线。 */
+/* V2.9.5.1：策略选择改为“路径偏好”，不再重置家庭底线。 */
 function applyStrategy(type){
-  currentStrategy=type;
-  document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));
-  const priority=document.getElementById('priority');
-  if(type==='employment' && priority)priority.value='employment';
-  if(type==='grid' && priority){priority.value='grid';setSingle('gridPower','prefer');setSingle('physics','prefer');}
-  if(type==='medical' && priority){priority.value='employment';setSingle('medicine','prefer');setSingle('chem','prefer');document.getElementById('gradPlan')&&(document.getElementById('gradPlan').value='yes');document.getElementById('timePressure')&&(document.getElementById('timePressure').value='long');}
-  if(type==='exam' && priority){priority.value='exam';setSingle('liberal','prefer');}
-  if(type==='city' && priority){priority.value='city';document.getElementById('cityMode')&&(document.getElementById('cityMode').value='soft');}
-  if(type==='shenyang' && priority){priority.value='city';setTargetCitiesV29472('沈阳','soft');}
-  if(type==='dalian' && priority){priority.value='city';setTargetCitiesV29472('大连','soft');}
-  if(type==='publicLow' && priority){priority.value='publicLow';document.getElementById('mentorMode')&&(document.getElementById('mentorMode').value='strict');}
-  if(type==='school' && priority)priority.value='school';
-  if(type==='broad' && priority)priority.value='employment';
+  applyScenarioPresetV2951(type);
   renderBaselineSummaryV2950();
   autoRefresh();
 }
+

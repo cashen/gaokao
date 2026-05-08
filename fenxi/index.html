@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.5.0｜家长流程重排与方案引擎瘦身版</title>
-<link href="./assets/app.v2950.css" rel="stylesheet"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</title>
+<link href="./assets/app.v2951.css" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.5.0｜家长流程重排与方案引擎瘦身版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</h1>
 <p>先定位次，再定家庭底线；系统用 A/B/C 三条路径解释：A守底线，B看专业，C争上限。适合辽宁家长做第一轮初筛与复核。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
 <div class="access-mini" id="accessMini">
@@ -63,19 +63,8 @@
 <div class="strategy-hero">
 <div>
 <div class="notice">家长真实想问的不是“所有学校有哪些”，而是“我家孩子这个分数大概怎么走”。先选策略，系统会自动带出区域、偏好、风险底线，再进入位次缩水。</div>
-<div class="strategy-grid" id="strategyCards">
-<button class="strategy-card active" data-strategy="employment"><strong>普通家庭｜稳就业</strong><span>普通学费、就业导向、风险适中，适合大多数家庭。</span></button>
-<button class="strategy-card" data-strategy="grid"><strong>电网能源｜目标就业</strong><span>电气、能源、自动化、电网相关方向优先观察。</span></button>
-<button class="strategy-card" data-strategy="medical"><strong>医学方向｜长周期投入</strong><span>接受学制、规培和较长回报周期，再重点看医学。</span></button>
-<button class="strategy-card" data-strategy="exam"><strong>考公体制｜保留入口</strong><span>保留编制、国企、考公相关路径，不盲目追热门。</span></button>
-<button class="strategy-card" data-strategy="city"><strong>城市优先｜大城市</strong><span>江浙沪、京津冀、珠三角等城市机会优先。</span></button>
-<button class="strategy-card" data-strategy="shenyang"><strong>沈阳优先｜省会资源</strong><span>留沈就业、家在沈阳周边、看重省会资源。</span></button>
-<button class="strategy-card" data-strategy="dalian"><strong>大连优先｜城市资源</strong><span>看重大连城市、海事、理工、医科等资源。</span></button>
-<button class="strategy-card public-first" data-strategy="publicLow"><strong>低分公办本科｜先保身份</strong><span>适合低分段先尽量保公办本科，专业允许适度让步。</span></button>
-<button class="strategy-card" data-strategy="school"><strong>学校层级｜平台优先</strong><span>学校平台、城市资源、升学机会优先。</span></button>
-<button class="strategy-card" data-strategy="broad"><strong>先不限制｜全量观察</strong><span>先看位次区间，再逐步收窄条件。</span></button>
-</div>
-</div>
+<div class="strategy-rule-hint" id="scenarioRuleHintV2951">场景卡正在由独立规则集加载...</div>
+<div class="strategy-grid" id="strategyCards"></div>
 <div class="realtime-panel sticky">
 <div class="realtime-top"><b>当前可选范围</b><span class="realtime-status warn" id="liveStatus">等待输入</span></div>
 <div class="realtime-grid">
@@ -146,7 +135,7 @@
 <div>
 <div class="section">
 <h2>⑤ 详细候选与自选 <small>给高报师和熟练用户复核</small></h2>
-<div class="advanced-toggle" onclick="toggleAdvanced()"><b>高级筛选</b><span class="small">学校/专业关键词、排序、重点学科等</span></div>
+<div class="advanced-toggle advanced-toggle-v2951" onclick="toggleAdvanced()"><b>高级筛选</b><span class="small">学校/专业关键词、排序、重点学科等</span><span class="advanced-actions-v2951"><button type="button" onclick="event.stopPropagation();toggleAdvanced(true)">展开</button><button type="button" onclick="event.stopPropagation();switchFullModeV2951()">高报师完整模式</button></span></div>
 <div class="advanced-content" id="advancedFilters">
 <div class="toolbar">
 <div class="field"><label>学校</label><input class="input" id="qSchool" placeholder="如 沈阳工程学院"/></div>
@@ -177,7 +166,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.0｜家长流程重排与方案引擎瘦身版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" onclick="document.getElementById('familyBaseline').scrollIntoView({behavior:'smooth'})">底线</button><button onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">方案</button></div>
@@ -195,6 +184,7 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/app.v2950.js"></script>
+<script src="./assets/rules.v2951.js"></script>
+<script src="./assets/app.v2951.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide"><a href="#baseInfo">位次</a><a href="#familyBaseline">底线</a><a class="primary" href="#resultBox">方案</a><a href="#candidateArea">自选</a><a href="#" onclick="openExportSheet();return false;">导出</a></nav></body>
 </html>
