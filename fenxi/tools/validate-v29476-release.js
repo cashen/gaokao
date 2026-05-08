@@ -1,0 +1,31 @@
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+function read(p){ return fs.readFileSync(path.join(root, p), 'utf8'); }
+function assert(cond, msg){ if(!cond){ console.error('FAIL:', msg); process.exit(1); } }
+const html = read('index.html');
+const js = read('assets/app.v29476.js');
+const css = read('assets/app.v29476.css');
+const readme = read('README.md');
+assert(html.includes('app.v29476.js'), 'index.html must reference app.v29476.js');
+assert(html.includes('app.v29476.css'), 'index.html must reference app.v29476.css');
+assert(html.includes('V2.9.4.7.6'), 'index title/version missing v29476');
+assert(js.includes('PLAN_MODES_V29476'), 'PLAN_MODES_V29476 missing');
+assert(js.includes('PATH_RULES_V29476'), 'PATH_RULES_V29476 missing');
+assert(js.includes('liftExchangeInfoV29476'), 'C lift exchange explanation missing');
+assert(js.includes('baselineHitsV29476'), 'A baseline hit explanation missing');
+assert(js.includes('majorPathInfoV29476'), 'B major path engine missing');
+assert(js.includes('_selectedSourcePlanV29476'), 'candidate source plan field missing');
+assert(js.includes('_selectedPlanRoleV29476'), 'candidate plan role field missing');
+assert(js.includes('来源方案'), 'CSV source header missing');
+assert(js.includes('换来：') && js.includes('付出：'), 'C exchange wording missing');
+assert(js.includes('为什么稳') && js.includes('为什么是路径'), 'A/B primary reason wording missing');
+assert(js.includes('高校专项') && js.includes('specialPlanApprovedV29474'), 'special plan protection references missing');
+assert(js.includes('isCoopProgramV29475') && js.includes('mainMajorV29475'), 'budget wide / main major logic not preserved');
+assert(css.includes('path-explain-v29476'), 'path explanation CSS missing');
+assert(css.includes('candidate-source-v29476'), 'candidate source CSS missing');
+assert(readme.includes('A/B/C 方案引擎与路径解释版'), 'README v29476 title missing');
+assert(readme.includes('PLAN_MODES_V29476'), 'README engine note missing');
+assert(fs.existsSync(path.join(root, 'docs/V2.9.4.7.6_升级说明.md')), 'upgrade doc missing');
+assert(fs.existsSync(path.join(root, 'docs/V2.9.4.7.6_测试报告.md')), 'test report missing');
+console.log('V2.9.4.7.6 release validation passed.');
