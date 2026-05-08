@@ -1,0 +1,24 @@
+const fs = require('fs');
+const path = require('path');
+function assert(cond,msg){ if(!cond){ console.error('FAIL:',msg); process.exit(1);} }
+const root = path.resolve(__dirname,'..');
+const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
+const js = fs.readFileSync(path.join(root,'assets/app.v2950.js'),'utf8');
+const css = fs.readFileSync(path.join(root,'assets/app.v2950.css'),'utf8');
+assert(index.includes('V2.9.5.0｜家长流程重排与方案引擎瘦身版'), 'index title/version missing');
+assert(index.includes('./assets/app.v2950.js'), 'index does not reference app.v2950.js');
+assert(index.includes('./assets/app.v2950.css'), 'index does not reference app.v2950.css');
+assert(index.includes('id="familyBaseline"'), 'familyBaseline section missing');
+assert(index.includes('id="baselineSummaryV2950"'), 'baseline summary missing');
+assert(index.includes('id="simpleModeToggleV2950"'), 'simple mode toggle missing');
+['#baseInfo','#familyBaseline','#strategyEntry','#resultBox','#candidateArea'].forEach(x=>assert(index.includes(x), 'guide step missing '+x));
+assert(js.includes('const PLAN_MODES_V2950'), 'PLAN_MODES_V2950 missing');
+assert(js.includes('function renderPlanABC()'), 'new renderPlanABC missing');
+const renderCount = (js.match(/function renderPlanABC\s*\(/g)||[]).length;
+assert(renderCount===1, 'expected one active renderPlanABC, got '+renderCount);
+assert((js.match(/deprecatedRenderPlanABC_V2950/g)||[]).length>=4, 'deprecated renderPlanABC markers missing');
+assert(js.includes('renderBaselineSummaryV2950'), 'baseline summary renderer missing');
+assert(js.includes('applySimpleModeV2950'), 'simple mode logic missing');
+assert(css.includes('family-baseline-v2950'), 'baseline CSS missing');
+assert(css.includes('abc-board-v2950'), 'ABC board CSS missing');
+console.log('V2.9.5.0 release validation passed');
