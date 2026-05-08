@@ -8,8 +8,8 @@ function fail(msg){ console.error('[FAIL]', msg); process.exitCode = 1; }
 function ok(msg){ console.log('[OK]', msg); }
 
 const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
-const activeJs = index.includes('assets/app.v29475.js') ? 'assets/app.v29475.js' : (index.includes('assets/app.v29474.js') ? 'assets/app.v29474.js' : (index.includes('assets/app.v29473.js') ? 'assets/app.v29473.js' : 'assets/app.v29472.js'));
-const activeCss = index.includes('assets/app.v29475.css') ? 'assets/app.v29475.css' : (index.includes('assets/app.v29474.css') ? 'assets/app.v29474.css' : (index.includes('assets/app.v29473.css') ? 'assets/app.v29473.css' : 'assets/app.v29472.css'));
+const activeJs = index.includes('assets/app.v29475fix.js') ? 'assets/app.v29475fix.js' : (index.includes('assets/app.v29475.js') ? 'assets/app.v29475.js' : (index.includes('assets/app.v29474.js') ? 'assets/app.v29474.js' : (index.includes('assets/app.v29473.js') ? 'assets/app.v29473.js' : 'assets/app.v29472.js')));
+const activeCss = index.includes('assets/app.v29475fix.css') ? 'assets/app.v29475fix.css' : (index.includes('assets/app.v29475.css') ? 'assets/app.v29475.css' : (index.includes('assets/app.v29474.css') ? 'assets/app.v29474.css' : (index.includes('assets/app.v29473.css') ? 'assets/app.v29473.css' : 'assets/app.v29472.css')));
 if(!index.includes(activeJs)) fail('index.html 未引用当前版本 app JS');
 if(!index.includes(activeCss)) fail('index.html 未引用当前版本 app CSS');
 if(!index.includes('targetCities') || !index.includes('cityMode')) fail('index.html 缺少城市偏好控件');
