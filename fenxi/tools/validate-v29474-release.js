@@ -4,8 +4,8 @@ const root=path.resolve(__dirname,'..');
 function read(p){return fs.readFileSync(path.join(root,p),'utf8')}
 function assert(cond,msg){if(!cond){console.error('FAIL:',msg);process.exit(1)}}
 const html=read('index.html');
-const currentJs=html.includes('assets/app.v29475fix2.js')?'assets/app.v29475fix2.js':(html.includes('assets/app.v29475fix.js')?'assets/app.v29475fix.js':(html.includes('assets/app.v29475.js')?'assets/app.v29475.js':'assets/app.v29474.js'));
-const currentCss=html.includes('assets/app.v29475fix2.css')?'assets/app.v29475fix2.css':(html.includes('assets/app.v29475fix.css')?'assets/app.v29475fix.css':(html.includes('assets/app.v29475.css')?'assets/app.v29475.css':'assets/app.v29474.css'));
+const currentJs=html.includes('assets/app.v29475fix3.js')?'assets/app.v29475fix3.js':(html.includes('assets/app.v29475fix2.js')?'assets/app.v29475fix2.js':(html.includes('assets/app.v29475fix.js')?'assets/app.v29475fix.js':(html.includes('assets/app.v29475.js')?'assets/app.v29475.js':'assets/app.v29474.js')));
+const currentCss=html.includes('assets/app.v29475fix3.css')?'assets/app.v29475fix3.css':(html.includes('assets/app.v29475fix2.css')?'assets/app.v29475fix2.css':(html.includes('assets/app.v29475fix.css')?'assets/app.v29475fix.css':(html.includes('assets/app.v29475.css')?'assets/app.v29475.css':'assets/app.v29474.css')));
 const js=read(currentJs);
 const css=read(currentCss);
 assert(html.includes('id="specialPlanStatus"'),'specialPlanStatus field missing');

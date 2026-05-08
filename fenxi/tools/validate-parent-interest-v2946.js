@@ -27,8 +27,8 @@ const required = [
 required.forEach(exists);
 
 const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
-const appMatch=index.match(/assets\/(app\.v\d+(?:fix2|fix)?\.js)/);
-const cssMatch=index.match(/assets\/(app\.v\d+(?:fix2|fix)?\.css)/);
+const appMatch=index.match(/assets\/(app\.v\d+(?:fix3|fix2|fix)?\.js)/);
+const cssMatch=index.match(/assets\/(app\.v\d+(?:fix3|fix2|fix)?\.css)/);
 if(!appMatch || !cssMatch) throw new Error('index.html does not load current app js/css');
 
 const appPath = 'assets/' + appMatch[1];

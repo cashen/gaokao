@@ -3,8 +3,8 @@ const path=require('path');
 function read(p){return fs.readFileSync(path.join(__dirname,'..',p),'utf8')}
 function assert(c,m){if(!c){throw new Error(m)}}
 const html=read('index.html');
-const currentJs=html.includes('assets/app.v29475fix2.js')?'assets/app.v29475fix2.js':(html.includes('assets/app.v29475fix.js')?'assets/app.v29475fix.js':'assets/app.v29475.js');
-const currentCss=html.includes('assets/app.v29475fix2.css')?'assets/app.v29475fix2.css':(html.includes('assets/app.v29475fix.css')?'assets/app.v29475fix.css':'assets/app.v29475.css');
+const currentJs=html.includes('assets/app.v29475fix3.js')?'assets/app.v29475fix3.js':(html.includes('assets/app.v29475fix2.js')?'assets/app.v29475fix2.js':(html.includes('assets/app.v29475fix.js')?'assets/app.v29475fix.js':'assets/app.v29475.js'));
+const currentCss=html.includes('assets/app.v29475fix3.css')?'assets/app.v29475fix3.css':(html.includes('assets/app.v29475fix2.css')?'assets/app.v29475fix2.css':(html.includes('assets/app.v29475fix.css')?'assets/app.v29475fix.css':'assets/app.v29475.css'));
 const js=read(currentJs);
 const css=read(currentCss);
 assert(html.includes('V2.9.4.7.5'),'HTML title/version missing');
