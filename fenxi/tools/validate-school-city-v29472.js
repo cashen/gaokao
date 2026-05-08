@@ -8,8 +8,10 @@ function fail(msg){ console.error('[FAIL]', msg); process.exitCode = 1; }
 function ok(msg){ console.log('[OK]', msg); }
 
 const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
-if(!index.includes('assets/app.v29472.js')) fail('index.html 未引用 assets/app.v29472.js');
-if(!index.includes('assets/app.v29472.css')) fail('index.html 未引用 assets/app.v29472.css');
+const activeJs = index.includes('assets/app.v29473.js') ? 'assets/app.v29473.js' : 'assets/app.v29472.js';
+const activeCss = index.includes('assets/app.v29473.css') ? 'assets/app.v29473.css' : 'assets/app.v29472.css';
+if(!index.includes(activeJs)) fail('index.html 未引用当前版本 app JS');
+if(!index.includes(activeCss)) fail('index.html 未引用当前版本 app CSS');
 if(!index.includes('targetCities') || !index.includes('cityMode')) fail('index.html 缺少城市偏好控件');
 if(!index.includes('confusable-major-model.v29462.js')) fail('易混提醒侧过滤模型引用丢失');
 if(!index.includes('major-name-model.v2946.js')) fail('专业名模型引用丢失');
@@ -45,7 +47,7 @@ if(total !== manifest.totalRecords) fail(`manifest totalRecords=${manifest.total
 const unmatched = [...schools].filter(s=>!schoolMap.has(s));
 if(unmatched.length) fail(`投档学校未匹配 school_geo_model：${unmatched.slice(0,10).join('、')} 等 ${unmatched.length} 所`);
 
-const js = fs.readFileSync(path.join(root,'assets/app.v29472.js'),'utf8');
+const js = fs.readFileSync(path.join(root,activeJs),'utf8');
 ['geoDisplayV29472','selectedCitiesV29472','cityMatchesV29472','renderGeoHintV29472','populateCityDatalistV29472'].forEach(fn=>{
   if(!js.includes(`function ${fn}`)) fail(`app.v29472.js 缺少 ${fn}`);
 });
@@ -53,6 +55,6 @@ if(/女孩不适合|男孩适合|男孩更适合|女孩更适合/.test(js)) fail
 
 if(!process.exitCode){
   ok(`school_geo_model 城市覆盖通过：${items.length} 所，投档学校 ${schools.size} 所，投档记录 ${total} 条`);
-  ok('入口引用 V2.9.4.7.2 JS/CSS，通过');
+  ok(`入口引用 ${activeJs} / ${activeCss}，通过`);
   ok('易混专业 V2.9.4.6.2 提醒侧过滤引用仍保留');
 }
