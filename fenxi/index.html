@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.4.7.3｜高报师工作流与A/B/C方案版</title>
-<link rel="stylesheet" href="./assets/app.v29473.css"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</title>
+<link rel="stylesheet" href="./assets/app.v29474.css"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.3｜高报师工作流与A/B/C方案版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</h1>
 <p>先选策略，再填位次和区域；系统自动缩水、自动分层、自动解释。适合辽宁家长做第一轮初筛与排雷。</p>
     <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
     <div class="access-mini" id="accessMini">
@@ -42,13 +42,14 @@
 <div class="col-3"><label>考试地区</label><select id="examProvince"><option>辽宁</option></select></div>
 <div class="col-3"><label>家庭预算</label><select id="budget"><option value="normal">普通家庭，优先普通学费</option><option value="flex">可接受少量高收费</option><option value="high">预算较宽，可看中外合作</option></select></div>
 <div class="col-3"><label>学生性别（可选）</label><select id="studentGender"><option value="unspecified">不指定</option><option value="male">男孩</option><option value="female">女孩</option></select></div>
+<div class="col-3 special-plan-field-v29474"><label>高校专项资格</label><select id="specialPlanStatus"><option value="unreviewed" selected>未通过 / 未审核</option><option value="approved">已通过高校专项计划审核</option><option value="unknown">不确定，暂按未审核处理</option></select><div class="special-plan-help-v29474">默认隐藏“辽宁省高校专项计划”等资格入口。</div></div>
 <div class="col-3"><label>2025 分数（可选）</label><input class="input" id="myScore" placeholder="例如 550" type="number"/></div>
 <div class="col-3"><label>2025 位次（优先）</label><input class="input" id="myRank" placeholder="例如 32746" type="number"/></div>
 <div class="col-3"><label>冲稳保模型</label><select id="model"><option value="normal">普通模型</option><option value="safe">保守模型</option><option value="bold">激进模型</option></select></div>
 <div class="col-3"><label>填报目标</label><select id="priority"><option value="employment">就业优先</option><option value="publicLow">低分公办本科优先</option><option value="grid">电网/能源系统优先</option><option value="exam">考公/体制机会</option><option value="school">学校层级优先</option><option value="city">城市优先</option><option value="postgrad">保研/深造优先</option></select></div>
 <div class="col-6" style="display:flex;align-items:end"><button class="ghost" onclick="resetAll()">重置条件</button></div>
 </div>
-<p class="small" style="margin:10px 0 0">位次比分数更重要。若只输入分数，系统会按 2025 一分一段累计位次自动换算。</p>
+<p class="small" style="margin:10px 0 0">位次比分数更重要。若只输入分数，系统会按 2025 一分一段累计位次自动换算。高校专项计划不是普通考生通用入口；默认按未审核隐藏。</p>
 <div class="execute-bar">
 <div class="left">
 <b><span class="status-dot">已支持自动筛选</span></b>
@@ -118,6 +119,7 @@
 <div class="section step-card step3" data-step-label="③ 先看方案" id="resultBox">
 <h2>③ 高报师诊断与 A/B/C 三方案 <small>先拆冲突，再看三条路径</small></h2>
 <div class="notice" id="rankSummary">请输入位次或分数，系统会自动计算。</div>
+<div id="specialPlanNoticeV29474" class="special-plan-notice-v29474 hide"></div>
 <div class="bands" style="margin-top:12px">
 <div class="band chong"><b>可冲</b><span id="bandChong">-</span><p class="small">有机会，但不能押宝。</p></div>
 <div class="band match"><b>匹配</b><span id="bandMatch">-</span><p class="small">方案主体。</p></div>
@@ -132,6 +134,7 @@
 <div class="exclude"><b id="exBudget">0</b><span>预算排除</span></div>
 <div class="exclude"><b id="exProfile">0</b><span>画像排除</span></div>
 <div class="exclude"><b id="exLowScore">0</b><span>低匹配排除</span></div>
+<div class="exclude"><b id="exSpecial">0</b><span>专项隐藏</span></div>
 </div>
 <div id="conflictDiagnosisV29473"></div>
 <div class="plan-cards-v29473" id="planABC"></div>
@@ -206,7 +209,7 @@
 
 
 
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.3｜高报师工作流与A/B/C方案版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.4.7.4｜专项计划资格默认保护版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" onclick="document.getElementById('strategyEntry').scrollIntoView({behavior:'smooth'})">策略</button><button onclick="document.getElementById('cards').scrollIntoView({behavior:'smooth'})">结果</button></div>
@@ -226,7 +229,7 @@
 
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/app.v29473.js"></script>
+<script src="./assets/app.v29474.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide">
 <a href="#baseInfo">筛选</a>
 <a class="primary" href="#resultBox">结果</a>
