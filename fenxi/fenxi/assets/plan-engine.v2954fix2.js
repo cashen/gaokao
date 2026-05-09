@@ -302,7 +302,7 @@ function whyPlanV29475(r,type){
   if(cityModeV29472()!=='none' && selectedCitiesV29472().length && cityMatchesV29472(r,selectedCitiesV29472()))return '城市资源匹配，适合做城市路径比较。';
   return '适合比较城市、学校层级或上限空间。';
 }
-function planScoreV29475(r,type,chosen){
+function planScoreV29475LegacyUnused(r,type,chosen){
   let sc=0; const m=r.majorText||r.major||''; const s=conditionSnapshotV29473();
   if(chosen&&chosen.has(r.id))sc-=9999;
   if(type==='A'){
@@ -536,8 +536,8 @@ const PATH_RULES_V29476 = {
   electric:{
     label:'电气 / 能源路径', weight:94,
     core:['电气工程及其自动化','智能电网信息工程'],
-    related:['自动化','能源与动力工程','新能源科学与工程','储能科学与工程','测控技术与仪器'],
-    regex:/电气|智能电网|电力|能源与动力|新能源|储能|自动化|测控|核工程|能源/,
+    related:['自动化','能源与动力工程','新能源科学与工程','储能科学与工程'],
+    regex:/电气|智能电网|电力|能源与动力|新能源|储能|自动化|核工程|能源/,
     confusable:['自动化、测控、电子信息不宜直接等同电气正主','电网方向建议重点复核招聘口径'],
     career:['电力系统','能源企业','装备制造','国企央企相关岗位'],
     review:['专业代码','学校行业背景','电网招聘口径','就业质量报告']
@@ -763,6 +763,64 @@ backupPlanItemV29475Fix2 = function(r,type,idx){
     <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','备选')">加入</button>
   </div>`;
 };
+
+function scenarioPlanAdjustmentV2954Fix2(r,type,path,lift,s){
+  const rule=scenarioRuleV2951(currentStrategy)||{};
+  const pref=document.getElementById('priority')?.value || rule?.preference?.priority || 'employment';
+  let adj=0;
+  const bias=Number(rule?.planBias?.[type]);
+  if(Number.isFinite(bias)) adj += Math.round((bias-1)*16);
+  const fit=typeof scoreBandFitV2954Fix2==='function'?scoreBandFitV2954Fix2(rule):null;
+  if(fit && fit.state==='mismatch') adj -= 3;
+  const isPublic=['public','publicSoft'].includes(r.schoolTier?.level)||r.schoolNature?.label==='公办倾向';
+  const normalFee=!(r.isHighFee||r.isCoopV29475);
+  const feeRisk=(r.isHighFee||r.isCoopV29475||r.isPrivateV29475);
+  const maxTuition=Number(rule?.baselineSuggestion?.maxTuition || 0);
+  const tuition=Number(String(r.tuition2025 || r.tuition || '').replace(/[^0-9.]/g,''));
+  if(maxTuition>0 && tuition>maxTuition){
+    if(type==='A')adj-=18;
+    else if(type==='B')adj-=8;
+    else if(type==='C')adj-=3;
+  }
+  const key=path?.key||'unknown';
+  const core=!!path?.isCore, related=!!path?.isRelated;
+  if(['employment','publicLow','edgeBachelor'].includes(currentStrategy)){
+    if(type==='A'){ if(isPublic)adj+=12; if(normalFee)adj+=10; if(['辽宁','吉林','黑龙江'].includes(r.schoolProvince))adj+=6; if(feeRisk)adj-=18; }
+    if(type==='C' && feeRisk)adj-=8;
+  }
+  if(currentStrategy==='budgetFlexible'){
+    if(type==='C'){ if(r.isCoopV29475||r.isHighFee)adj+=30; if(r.isPrivateV29475)adj+=16; if(lift?.kind==='coopLift'||lift?.kind==='privateCity')adj+=12; }
+    if(type==='A' && isPublic && normalFee)adj+=8;
+  }
+  if(currentStrategy==='privateMajor'){
+    if(type==='B' && r.isPrivateV29475)adj+=12;
+    if(type==='C' && r.isPrivateV29475)adj+=18;
+  }
+  if(currentStrategy==='grid' || pref==='grid'){
+    if(type==='B'){
+      if(key==='electric' && core)adj+=42;
+      else if(key==='electric' && related)adj+=24;
+      else if(['electronic','engineering'].includes(key))adj+=8;
+    }
+    if(type==='C' && key==='electric')adj+=8;
+  }
+  if(currentStrategy==='medical' || pref==='medical'){
+    if(type==='B'){
+      if(key==='medical' && core)adj+=42;
+      else if(key==='medical' && related)adj+=24;
+      else if(/医学|药学|护理|康复/.test(path?.text||''))adj+=8;
+    }
+    if(type==='A' && key==='medical' && normalFee)adj+=6;
+  }
+  if(currentStrategy==='exam' || pref==='exam'){
+    if(type==='B' && ['public_service','teacher','accounting','computer'].includes(key))adj+=26;
+    if(type==='A' && isPublic)adj+=8;
+  }
+  if(pref==='school' && type==='C' && ['985','211'].includes(r.schoolTier?.level))adj+=22;
+  if(pref==='city' && type==='C' && lift?.kind==='city')adj+=18;
+  return adj;
+}
+
 planScoreV29475 = function(r,type,chosen){
   let sc=0; const s=conditionSnapshotV29473?conditionSnapshotV29473():{}; const path=majorPathInfoV29476(r); const lift=liftExchangeInfoV29476(r);
   if(chosen&&chosen.has(r.id))sc-=9999;
@@ -790,6 +848,7 @@ planScoreV29475 = function(r,type,chosen){
     if(lift.label==='疑似伪提档')sc-=10;
     sc+=(r._profile||0)*.18;
   }
+  sc += scenarioPlanAdjustmentV2954Fix2(r,type,path,lift,s);
   return sc;
 };
 function v2950Text(v){return htmlSafeV2945(String(v??''));}

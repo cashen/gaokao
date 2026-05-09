@@ -3,12 +3,12 @@ const vm=require('vm');
 function read(p){return fs.readFileSync(p,'utf8');}
 function assert(x,msg){if(!x){throw new Error(msg)}}
 const required=[
- 'index.html','diagnostics.html','assets/config.v2954fix1.js','assets/rules.v2954fix1.js','assets/data-engine.v2954fix1.js','assets/filter-engine.v2954fix1.js','assets/plan-engine.v2954fix1.js','assets/render.v2954fix1.js','assets/selection.v2954fix1.js','assets/export.v2954fix1.js','assets/app.v2954fix1.js','assets/app.v2954fix1.css','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js','fenxi/index.html','fenxi/diagnostics.html','fenxi/assets/config.v2954fix1.js','fenxi/data/manifest.json'
+ 'index.html','diagnostics.html','assets/config.v2954fix2.js','assets/rules.v2954fix2.js','assets/data-engine.v2954fix2.js','assets/filter-engine.v2954fix2.js','assets/plan-engine.v2954fix2.js','assets/render.v2954fix2.js','assets/selection.v2954fix2.js','assets/export.v2954fix2.js','assets/app.v2954fix2.js','assets/app.v2954fix2.css','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js','fenxi/index.html','fenxi/diagnostics.html','fenxi/assets/config.v2954fix2.js','fenxi/data/manifest.json'
 ];
 for(const f of required){assert(fs.existsSync(f),'missing '+f)}
 const index=read('index.html');
-assert(index.includes('assets/app.v2954fix1.js'),'index loader does not mention v2954fix1 app');
-assert(index.includes('2954fix1-20260509a'),'index missing cache-bust version');
+assert(index.includes('assets/app.v2954fix2.js'),'index loader does not mention v2954fix2 app');
+assert(index.includes('2954fix2-20260509b'),'index missing cache-bust version');
 assert(!index.includes('v2953fix5.js'),'index still references fix5 js');
 assert(!index.includes('访问码：'),'index exposes access code label');
 assert(!index.includes('输入访问码'),'index hints access code in placeholder');
@@ -27,7 +27,7 @@ const context={
 context.window=Object.assign(context.window, context);
 context.window.__LN_ASSET_BASE='./';
 vm.createContext(context);
-for(const f of ['assets/config.v2954fix1.js','assets/rules.v2954fix1.js','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js','assets/data-engine.v2954fix1.js','assets/filter-engine.v2954fix1.js','assets/plan-engine.v2954fix1.js','assets/render.v2954fix1.js','assets/selection.v2954fix1.js','assets/export.v2954fix1.js']){
+for(const f of ['assets/config.v2954fix2.js','assets/rules.v2954fix2.js','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js','assets/data-engine.v2954fix2.js','assets/filter-engine.v2954fix2.js','assets/plan-engine.v2954fix2.js','assets/render.v2954fix2.js','assets/selection.v2954fix2.js','assets/export.v2954fix2.js']){
   vm.runInContext(read(f),context,{filename:f});
 }
 for(const name of ['LN_CONFIG','LN_GAOKAO_RULES_V2953','LN_DATA_ENGINE','LN_FILTER_ENGINE','LN_PLAN_ENGINE','LN_RENDER','LN_SELECTION','LN_EXPORT']){
@@ -35,8 +35,8 @@ for(const name of ['LN_CONFIG','LN_GAOKAO_RULES_V2953','LN_DATA_ENGINE','LN_FILT
 }
 assert(context.window.LN_EXPORT.ready===true,'LN_EXPORT ready flag not true');
 const banned=['死保','敢冒','无脑','访问码不正确','页面执行出现错误','计算失败：','高风险易混','中高风险易混','中风险易混','风险惩罚','家长必读','访问码：','输入访问码','请输入访问码 ln2025','请重新输入 ln2025','模块缓存隔离与运行时校验版'];
-for(const f of ['index.html','diagnostics.html','assets/rules.v2954fix1.js','assets/render.v2954fix1.js','assets/app.v2954fix1.js','assets/export.v2954fix1.js','assets/selection.v2954fix1.js']){
+for(const f of ['index.html','diagnostics.html','assets/rules.v2954fix2.js','assets/render.v2954fix2.js','assets/app.v2954fix2.js','assets/export.v2954fix2.js','assets/selection.v2954fix2.js']){
   const text=read(f);
   for(const b of banned){assert(!text.includes(b), `${f} contains banned wording: ${b}`)}
 }
-console.log('V2.9.5.4 fix1 validation passed');
+console.log('V2.9.5.4 fix2 compatibility validation passed');

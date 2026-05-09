@@ -112,7 +112,7 @@
       userPain:'想学医，但需要分清医生路径、医学技术、护理康复和药学检验。',
       baselineSuggestion:{budget:'high', acceptPrivate:'compare', maxTuition:35000},
       regionSuggestion:{mode:'soft', preferGroups:['全国'], preferText:'全国可比较。'},
-      preference:{priority:'employment', mentorMode:'standard', medicine:'prefer', chem:'prefer', gradPlan:'yes', timePressure:'long'}, planBias:{A:0.9,B:1.35,C:1.1},
+      preference:{priority:'medical', mentorMode:'standard', medicine:'prefer', chem:'prefer', gradPlan:'yes', timePressure:'long'}, planBias:{A:0.9,B:1.45,C:1.1},
       protect:['医学路径分层','长周期承受','执业资格复核'], doNotAutoRelax:['不把医学技术当临床医生路径'],
       abcGuide:{A:'稳妥医学相关可读',B:'医生/医学技术/护理康复分层',C:'学校层级或城市资源比较'},
       warning:'带“医学”并不等同于医生路径，建议重点复核执业资格和培养方案。', applyMode:'suggestOnly'

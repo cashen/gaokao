@@ -465,21 +465,28 @@ function renderDebugPanel(){
 
 function renderStrategyCardsV2951(){
   const box=document.getElementById('strategyCards'); if(!box)return;
-  const rules=allScenarioRulesV2951();
+  let rules=allScenarioRulesV2951();
   if(!rules.length)return;
+  const hasScore=!!(typeof currentScoreV2954Fix2==='function' && currentScoreV2954Fix2());
+  if(hasScore){
+    const order={match:0,near:1,neutral:2,unknown:3,mismatch:4};
+    rules=[...rules].sort((a,b)=>((order[scoreBandFitV2954Fix2(a).state]??3)-(order[scoreBandFitV2954Fix2(b).state]??3))||((a.order||999)-(b.order||999)));
+  }
   box.innerHTML=rules.map(rule=>{
     const cls=['strategy-card','scenario-card-v2951'];
-    if(rule.defaultSelected || rule.id===(rulesV2951().defaults?.selectedScenario||'employment'))cls.push('active');
+    if(rule.id===currentStrategy || (!currentStrategy && (rule.defaultSelected || rule.id===(rulesV2951().defaults?.selectedScenario||'employment'))))cls.push('active');
     if(rule.id==='publicLow'||rule.id==='edgeBachelor')cls.push('public-first');
     const risk=rule.riskLevel==='aggressive'?'冲刺':rule.riskLevel==='conservative'?'稳妥':'均衡';
-    return `<button class="${cls.join(' ')}" data-strategy="${v2950Text(rule.id)}">
+    const fit=typeof scoreBandFitV2954Fix2==='function'?scoreBandFitV2954Fix2(rule):{state:'neutral',label:'不限分段'};
+    return `<button class="${cls.join(' ')}" data-strategy="${v2950Text(rule.id)}" data-score-fit="${v2950Text(fit.state)}">
       <strong>${v2950Text(rule.title)}</strong>
       <span>${v2950Text(rule.desc||'')}</span>
+      <small class="scenario-fit-v2954fix2">${v2950Text(fit.label)}</small>
       <em>${risk}</em>
     </button>`;
   }).join('');
   const intro=document.getElementById('scenarioRuleHintV2951');
-  if(intro) intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'场景卡来自独立规则集。')}</span>`;
+  if(intro) intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'场景卡来自独立规则集。')} 分数段只做提示和排序，不会禁止你对照查看。</span>`;
 }
 function renderPreferenceSelectV2952(){
   const sel=document.getElementById('priority'); if(!sel)return;
@@ -519,11 +526,13 @@ function renderScenarioNoticeV2951(rule,skipped=[]){
   const abc=rule.abcGuide?`<div class="scenario-abc-v2951"><b>A</b>${v2950Text(rule.abcGuide.A||'')}<b>B</b>${v2950Text(rule.abcGuide.B||'')}<b>C</b>${v2950Text(rule.abcGuide.C||'')}</div>`:'';
   const prefVal=document.getElementById('priority')?.value||rule?.preference?.priority||'';
   const prefRule=preferenceRuleV2952(prefVal)||{};
+  const fit=typeof scoreBandFitV2954Fix2==='function'?scoreBandFitV2954Fix2(rule):null;
+  const fitLine=fit?`<p class="small"><b>分段提示：</b>${v2950Text(fit.label)}。分数段只做前置提醒，不禁止你对照查看。</p>`:'';
   const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前目标路径</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动微调）':'（场景建议）'}</span></div>`:'';
   box.innerHTML=`<div><strong>当前场景：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
     <div class="scenario-tags-v2951"><em>优先保护</em>${protect||'<span>按当前底线</span>'}</div>
     <div class="scenario-tags-v2951"><em>不会自动放宽</em>${avoid||'<span>用户已设底线</span>'}</div>
-    ${abc}${prefLine}<p class="small">${v2950Text(rule.warning||'场景只作为建议策略。')}${skipped.length?'｜已保留你手动设置的：'+v2950Text(skipped.join('、')):''}</p>`;
+    ${abc}${prefLine}${fitLine}<p class="small">${v2950Text(rule.warning||'场景只作为建议策略。')}${skipped.length?'｜已保留你手动设置的：'+v2950Text([...new Set(skipped)].join('、')):''}</p>`;
 }
 function switchFullModeV2951(){
   const el=document.getElementById('simpleModeToggleV2950'); if(el){el.checked=false; applySimpleModeV2950();}

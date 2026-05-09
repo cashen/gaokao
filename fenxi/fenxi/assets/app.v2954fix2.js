@@ -9,31 +9,39 @@ function debounce(fn, delay){
 }
 
 function initBaselineTouchTrackingV2951(){
-  const base=document.getElementById('familyBaseline'); if(!base)return;
-  base.querySelectorAll('select,input,textarea').forEach(el=>{
-    el.addEventListener('change',()=>markBaselineTouchedV2951(el.id||'all'));
-    el.addEventListener('input',()=>markBaselineTouchedV2951(el.id||'all'));
+  const watchIds=['budget','specialPlanStatus','regionMode','cityMode','targetCities','filterFeeType','mentorMode','familyTolerance','gradPlan','timePressure','priority'];
+  watchIds.forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.addEventListener('change',()=>markBaselineTouchedV2951(id));
+    el.addEventListener('input',()=>markBaselineTouchedV2951(id));
   });
-  base.addEventListener('click',e=>{ if(e.target?.classList?.contains('chip')) markBaselineTouchedV2951('chips'); }, true);
+  document.addEventListener('click',e=>{
+    if(e.target?.classList?.contains('chip')) markTouchedByElementV2954Fix2(e.target);
+  }, true);
 }
 function setValueIfAllowedV2951(id,value,source){
   const el=document.getElementById(id); if(!el || value===undefined || value===null)return false;
-  const hard=['specialPlanStatus'];
-  if(hard.includes(id) && hasTouchedV2951(id))return false;
-  if(hasTouchedV2951(id) && ['budget','regionMode','cityMode','targetCities'].includes(id))return false;
+  if(source==='scenario' || source==='baseline' || source==='preference'){
+    if(hasTouchedV2951(id)) return false;
+  }
   el.value=value; return true;
 }
 function mapBudgetV2951(v){
   if(v==='normal')return 'normal'; if(v==='medium'||v==='flex')return 'flex'; if(v==='wide'||v==='high')return 'high'; if(v==='coop')return 'coop'; return null;
 }
 function applyScenarioRegionV2951(rule){
-  if(!rule?.regionSuggestion || hasTouchedV2951('chips'))return [];
+  if(!rule?.regionSuggestion)return [];
   const skipped=[];
   const rs=rule.regionSuggestion;
-  if(rs.mode && document.getElementById('regionMode')) document.getElementById('regionMode').value=rs.mode;
+  if(rs.mode && document.getElementById('regionMode')){
+    if(!hasTouchedV2951('regionMode')) document.getElementById('regionMode').value=rs.mode;
+    else skipped.push('区域筛选方式');
+  }
   if(Array.isArray(rs.preferGroups) && rs.preferGroups.length){
-    clearProvinces();
-    rs.preferGroups.forEach(g=>selectRegionGroup(g,true));
+    if(!hasTouchedV2951('provinceChips') && !hasTouchedV2951('regionGroupChips')){
+      clearProvinces();
+      rs.preferGroups.forEach(g=>selectRegionGroup(g,true));
+    }else skipped.push('省份/区域选择');
   }
   return skipped;
 }
@@ -44,20 +52,31 @@ function applyScenarioPresetV2951(type){
   const skipped=[];
   const pref=rule.preference||{};
   if(pref.priority && !setPreferenceValueV2952(pref.priority,'scenario')) skipped.push('目标路径');
-  if(pref.mentorMode) setValueIfAllowedV2951('mentorMode',pref.mentorMode,'preference');
-  if(pref.gradPlan) setValueIfAllowedV2951('gradPlan',pref.gradPlan,'preference');
-  if(pref.timePressure) setValueIfAllowedV2951('timePressure',pref.timePressure,'preference');
-  ['gridPower','physics','medicine','chem','liberal','teacher'].forEach(k=>{ if(pref[k]) setSingle(k,pref[k]); });
+  if(pref.mentorMode && !setValueIfAllowedV2951('mentorMode',pref.mentorMode,'preference')) skipped.push('规则强度');
+  if(pref.gradPlan && !setValueIfAllowedV2951('gradPlan',pref.gradPlan,'preference')) skipped.push('升学规划');
+  if(pref.timePressure && !setValueIfAllowedV2951('timePressure',pref.timePressure,'preference')) skipped.push('回报周期');
+  ['gridPower','physics','medicine','chem','liberal','teacher'].forEach(k=>{
+    if(pref[k]){
+      if(!hasTouchedV2951('group:'+k)) setSingle(k,pref[k]);
+      else skipped.push('专业偏好');
+    }
+  });
   const b=rule.baselineSuggestion||{};
   const budget=mapBudgetV2951(b.budget);
   if(budget && !setValueIfAllowedV2951('budget',budget,'baseline')) skipped.push('预算');
-  if(b.acceptCoop==='yes'||b.acceptCoop==='compare'){
-    if(!hasTouchedV2951('filterFeeType')) setValueIfAllowedV2951('filterFeeType','coopCompare','baseline'); else skipped.push('办学/收费类型');
+  const feeEl=document.getElementById('filterFeeType');
+  if((b.acceptCoop==='yes'||b.acceptCoop==='compare'||b.acceptPrivate==='yes'||b.acceptPrivate==='compare') && feeEl){
+    if(!hasTouchedV2951('filterFeeType')){
+      const next=(b.acceptPrivate==='yes'||b.acceptPrivate==='compare') && !(b.acceptCoop==='yes'||b.acceptCoop==='compare') ? 'privateCompare' : 'coopCompare';
+      setValueIfAllowedV2951('filterFeeType', next, 'baseline');
+    }else skipped.push('办学/收费类型');
+    const highFeeChip=document.querySelector('#rejectChips .chip[data-reject="高收费"]');
+    if(highFeeChip?.classList?.contains('active')){
+      if(!highFeeRejectTouchedV2954Fix2()) highFeeChip.classList.remove('active');
+      else skipped.push('高收费拒绝项');
+    }
   }
-  if(b.acceptPrivate==='yes'||b.acceptPrivate==='compare'){
-    if(!hasTouchedV2951('filterFeeType') && (document.getElementById('filterFeeType')?.value||'all')==='all') setValueIfAllowedV2951('filterFeeType','privateCompare','baseline');
-  }
-  applyScenarioRegionV2951(rule);
+  skipped.push(...applyScenarioRegionV2951(rule));
   renderScenarioNoticeV2951(rule,skipped);
 }
 
@@ -218,7 +237,7 @@ function autoRefresh(){
 }
 setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
 
-/* V2.9.5.2：场景与目标路径统一；策略只给建议，底线优先。 */
+/* V2.9.5.4.fix2：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
 function applyStrategy(type){
   applyScenarioPresetV2951(type);
   renderBaselineSummaryV2950();
@@ -259,6 +278,8 @@ function handleActionV2953(action, el){
 }
 function bindGlobalEventsV2953(){
   document.addEventListener('click', (event)=>{
+    const strategyEl=event.target.closest('#strategyCards [data-strategy]');
+    if(strategyEl){ event.preventDefault(); applyStrategy(strategyEl.dataset.strategy); return; }
     const scrollEl=event.target.closest('[data-scroll-target]');
     if(scrollEl){ event.preventDefault(); scrollToTargetV2953(scrollEl.dataset.scrollTarget); return; }
     const actionEl=event.target.closest('[data-action]');
