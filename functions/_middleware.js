@@ -1,4 +1,4 @@
-// Cloudflare Pages Functions middleware for V2.9.5.4.fix3
+// Cloudflare Pages Functions middleware for V2.9.5.5
 // Protects data files with a server-side cookie session while keeping the existing /fenxi UI visible.
 
 const COOKIE_NAME = 'ln_gateway_session';
@@ -38,7 +38,7 @@ async function verifySession(request, env){
   return safeEqual(expected, parts[2]);
 }
 function isProtectedDataPath(pathname){
-  return pathname === '/data' || pathname.startsWith('/data/') || pathname === '/fenxi/data' || pathname.startsWith('/fenxi/data/');
+  return pathname === '/fenxi/data' || pathname.startsWith('/fenxi/data/');
 }
 function isAuthApiPath(pathname){
   return pathname === '/fenxi/api/login' || pathname === '/fenxi/api/logout' || pathname === '/fenxi/api/session';
