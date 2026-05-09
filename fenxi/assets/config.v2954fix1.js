@@ -1,17 +1,29 @@
-// V2.9.5.4 config: paths, shared state and compatibility constants
+// V2.9.5.4 fix1 config: paths, shared state and compatibility constants
+// 说明：公网使用 /fenxi/diagnostics 等 clean URL 时，普通相对路径容易落到错误目录。
+// 这里由入口加载器写入 window.__LN_ASSET_BASE，并统一推导 data/ 路径。
+const LN_ASSET_BASE_V2954FIX1 = (function(){
+  let b = (window.__LN_ASSET_BASE || './');
+  if(!b.endsWith('/')) b += '/';
+  return b;
+})();
+function lnDataPathV2954Fix1(p){
+  if(/^https?:\/\//.test(p) || p.startsWith('/')) return p;
+  if(LN_ASSET_BASE_V2954FIX1 === './' || LN_ASSET_BASE_V2954FIX1 === '') return p;
+  return LN_ASSET_BASE_V2954FIX1 + p;
+}
 const DATA_FILES={
-  manifest:'data/manifest.json',
-  rank:'data/rank_2025_physics.json',
-  taxonomy:'data/taxonomy_runtime/major_taxonomy.json',
-  rawMajorAlias:'data/taxonomy_runtime/raw_major_alias.json',
-  subjectGroups:'data/taxonomy_runtime/subject_groups.json',
-  admissionReview:'data/taxonomy_runtime/admission_major_review_v2942.json',
-  officialCatalog:'data/taxonomy_runtime/official_undergraduate_catalog_2026.json',
-  graduateCatalog:'data/taxonomy_runtime/graduate_catalog_2022_2025.json',
-  schoolGeoManifest:'data/school_geo_model/v29471_manifest.json',
-  schoolGeoReference:'data/school_geo_model/school_geo_reference_v29471.json',
-  schoolGeoAlias:'data/school_geo_model/school_name_alias_v29471.json',
-  studentProfileRules:'data/student_profile_model/student_profile_rules_v29471.json'
+  manifest:lnDataPathV2954Fix1('data/manifest.json'),
+  rank:lnDataPathV2954Fix1('data/rank_2025_physics.json'),
+  taxonomy:lnDataPathV2954Fix1('data/taxonomy_runtime/major_taxonomy.json'),
+  rawMajorAlias:lnDataPathV2954Fix1('data/taxonomy_runtime/raw_major_alias.json'),
+  subjectGroups:lnDataPathV2954Fix1('data/taxonomy_runtime/subject_groups.json'),
+  admissionReview:lnDataPathV2954Fix1('data/taxonomy_runtime/admission_major_review_v2942.json'),
+  officialCatalog:lnDataPathV2954Fix1('data/taxonomy_runtime/official_undergraduate_catalog_2026.json'),
+  graduateCatalog:lnDataPathV2954Fix1('data/taxonomy_runtime/graduate_catalog_2022_2025.json'),
+  schoolGeoManifest:lnDataPathV2954Fix1('data/school_geo_model/v29471_manifest.json'),
+  schoolGeoReference:lnDataPathV2954Fix1('data/school_geo_model/school_geo_reference_v29471.json'),
+  schoolGeoAlias:lnDataPathV2954Fix1('data/school_geo_model/school_name_alias_v29471.json'),
+  studentProfileRules:lnDataPathV2954Fix1('data/student_profile_model/student_profile_rules_v29471.json')
 };
 const APP_VERSION_V29472 = 'V2.9.5.4｜入口收敛与交互优化版';
 const CITY_GEO_NOTE_V29472 = '城市为学校官方所在地，具体专业就读校区以招生章程为准';
@@ -59,9 +71,12 @@ const provinceHints=[['辽宁',/辽宁|沈阳|大连|鞍山|抚顺|锦州|营口
 
 window.LN_CONFIG = {
   version: 'V2.9.5.4｜入口收敛与交互优化版',
+  assetBase: LN_ASSET_BASE_V2954FIX1,
   dataFiles: DATA_FILES,
   debounceMs: 300,
   firstRenderLimit: 30,
   pageSize: 12,
   accessCode: ['ln','2025'].join('')
 };
+window.DATA_FILES = DATA_FILES;
+window.APP_VERSION_V29472 = APP_VERSION_V29472;

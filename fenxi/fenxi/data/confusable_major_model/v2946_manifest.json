@@ -1,0 +1,17 @@
+{
+  "version": "V2.9.4.6",
+  "base": "V2.9.4.5 parent-interest deploy root",
+  "generated_at": "2026-05-06T22:21:23",
+  "purpose": "易混专业筛选与辨析：识别同校/同主题/近分、但本科代码/门类/专业大类不同的专业。",
+  "files": {
+    "groups": "confusable_major_groups_v2946.json",
+    "members": "confusable_major_members_v2946.json",
+    "detectedPairs": "confusable_major_detected_pairs_v2946.json",
+    "schoolIndex": "confusable_major_school_index_v2946.json",
+    "recordIndex": "confusable_major_record_index_v2946.json",
+    "parentExpectationPaths": "parent_expectation_paths_v2946.json",
+    "manualConfirmed": "manual_confirmed_pairs_v2946.json",
+    "manualExcluded": "manual_excluded_pairs_v2946.json",
+    "qualityReport": "confusable_major_quality_report_v2946.json"
+  }
+}

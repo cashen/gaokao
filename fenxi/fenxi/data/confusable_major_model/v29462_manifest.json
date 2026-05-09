@@ -1,0 +1,12 @@
+{
+  "version": "V2.9.4.6.2",
+  "base": "V2.9.4.6.1",
+  "generated_at": "2026-05-07 05:33:01",
+  "purpose": "易混专业提醒侧过滤：正主保护，只在易误认侧提示。",
+  "files": {
+    "anchorRules": "data/confusable_major_model/confusable_anchor_rules_v29462.json",
+    "detectedPairs": "data/confusable_major_model/confusable_major_detected_pairs_v29462.json",
+    "recordIndex": "data/confusable_major_model/confusable_major_record_index_v29462.json",
+    "qualityReport": "data/confusable_major_model/confusable_warning_side_quality_report_v29462.json"
+  }
+}
