@@ -292,14 +292,31 @@ function updateGuideState(){
   links.forEach(a=>{const g=Number(a.dataset.guide||0); if(g<step)a.classList.add('done'); if(g===step)a.classList.add('active');});
   if((window.candidates||candidates||[]).length){document.querySelector('#guideNav a[data-guide="5"]')?.classList.add('done');}
 }
-function autoRefresh(){
-  autoRefreshAsync().then(()=>{renderBaselineSummaryV2950();applySimpleModeV2950();}).catch(e=>{
-    document.getElementById('metaRecords').textContent='本次计算未完成';
-    const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='本次计算未完成：'+String(e.message).replace(/\n/g,'<br>');
+function autoRefreshDirectV296(reason){
+  return autoRefreshAsync().then(()=>{
+    renderBaselineSummaryV2950();
+    applySimpleModeV2950();
+    return {ok:true, reason:reason||'direct'};
+  }).catch(e=>{
+    const meta=document.getElementById('metaRecords');
+    if(meta)meta.textContent='本次计算未完成';
+    const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='本次计算未完成：'+String(e.message||e).replace(/\n/g,'<br>');
     console.error(e);
+    throw e;
   });
 }
-setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
+function requestRefreshV296(reason, level, delay){
+  const req={reason:reason||'auto-refresh', level:level||'soft', delay:delay??180, run:()=>autoRefreshDirectV296(reason)};
+  if(window.LN_REFRESH_SCHEDULER_V296 && typeof window.LN_REFRESH_SCHEDULER_V296.request==='function'){
+    return window.LN_REFRESH_SCHEDULER_V296.request(req);
+  }
+  return autoRefreshDirectV296(reason);
+}
+function autoRefresh(reason){
+  return requestRefreshV296(reason||'autoRefresh','full',0);
+}
+window.__LN_AUTO_REFRESH_DIRECT__ = autoRefreshDirectV296;
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix1] 简洁模式初始化失败',e)}},0);
 
 /* V2.9.5.4.fix3：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
 function applyStrategy(type){
@@ -374,9 +391,9 @@ function startV2953Fix5(){
   initAuthAndBootV2954Fix3();
   setInterval(updateGuideState, 3000);
   setTimeout(syncAccessState, 0);
-  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
+  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix1] 简洁模式初始化失败',e)}},0);
 }
 
 window.autoRefresh = autoRefresh;
-window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3 };
-startV2953Fix5();
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true };
+if(!document.body || document.body.dataset.diagnostics !== '1') startV2953Fix5();
