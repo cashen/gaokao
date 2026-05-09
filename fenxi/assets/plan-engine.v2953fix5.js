@@ -1,4 +1,4 @@
-// V2.9.5.3.fix4 plan-engine: diagnosis, A/B/C scoring and plan board rendering
+// V2.9.5.3.fix5 plan-engine: diagnosis, A/B/C scoring and plan board rendering
 function scoreBandV29473(){
   const s=Number(document.getElementById('myScore')?.value||0);
   if(s>=650)return '700—650 / 650+ 高分段';
@@ -512,6 +512,17 @@ const PLAN_MODES_V29476 = {
     review:['学费','证书','培养地点','是否必须出国','转专业政策']
   }
 };
+
+// Compatibility alias for legacy V2950 plan-card renderer names.
+// The active plan metadata lives in PLAN_MODES_V29476, but some V2950 UI helpers still read PLAN_MODES_V2950.
+// Keep this alias until those helpers are fully renamed.
+const PLAN_MODES_V2950 = Object.fromEntries(
+  Object.entries(PLAN_MODES_V29476).map(([key, meta]) => [key, {
+    ...meta,
+    short: meta.shortName || meta.role || key
+  }])
+);
+
 const PATH_RULES_V29476 = {
   accounting:{
     label:'财会 / 经管路径', weight:91,
@@ -743,12 +754,12 @@ backupPlanItemV29475Fix2 = function(r,type,idx){
   const tags=shortReviewTagsV29475Fix3(r,type);
   return `<div class="plan-backup-v29475fix2 plan-backup-v29476 ${type.toLowerCase()}">
     <div class="backup-top-v29475fix2"><span>${type}${idx+1}</span><b>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</b></div>
-    <div class="backup-main-v29475fix4"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
+    <div class="backup-main-v29475fix5"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
     <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
     <div class="backup-path-v29476">${type==='B'?htmlSafeV2945(majorPathInfoV29476(r).label):type==='C'?htmlSafeV2945(liftExchangeInfoV29476(r).label):htmlSafeV2945(baselineHitsV29476(r).slice(0,2).join('｜'))}</div>
-    <div class="backup-line-v29475fix4"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
-    <div class="backup-line-v29475fix4 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
-    <div class="backup-tags-v29475fix4"><b>复核</b>${tags}</div>
+    <div class="backup-line-v29475fix5"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
+    <div class="backup-line-v29475fix5 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
+    <div class="backup-tags-v29475fix5"><b>复核</b>${tags}</div>
     <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','备选')">加入</button>
   </div>`;
 };

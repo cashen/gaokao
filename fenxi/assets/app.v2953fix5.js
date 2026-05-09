@@ -1,4 +1,4 @@
-// V2.9.5.3.fix4 app: cache-isolated init-safe access gate, state orchestration, event binding and app boot
+// V2.9.5.3.fix5 app: cache-isolated init-safe access gate, state orchestration, event binding and app boot
 
 function debounce(fn, delay){
   let timer=null;
@@ -121,7 +121,7 @@ async function boot(){
     renderCandidates();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
     renderScenarioNoticeV2951(scenarioRuleV2951(currentStrategy)||scenarioRuleV2951(rulesV2951().defaults?.selectedScenario||'employment')||{});
-    document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',window.debouncedAutoRefreshV2953Fix4));
+    document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',window.debouncedAutoRefreshV2953Fix5));
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
   }catch(e){
@@ -216,7 +216,7 @@ function autoRefresh(){
     console.error(e);
   });
 }
-setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix4] 简洁模式初始化失败',e)}},0);
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix5] 简洁模式初始化失败',e)}},0);
 
 /* V2.9.5.2：场景与目标路径统一；策略只给建议，底线优先。 */
 function applyStrategy(type){
@@ -227,7 +227,7 @@ function applyStrategy(type){
 
 
 
-window.debouncedAutoRefreshV2953Fix4 = debounce(autoRefresh, (window.LN_CONFIG && window.LN_CONFIG.debounceMs) || 300);
+window.debouncedAutoRefreshV2953Fix5 = debounce(autoRefresh, (window.LN_CONFIG && window.LN_CONFIG.debounceMs) || 300);
 
 function scrollToTargetV2953(id){
   const el=document.getElementById(id);
@@ -266,14 +266,14 @@ function bindGlobalEventsV2953(){
   });
 }
 
-function startV2953Fix4(){
+function startV2953Fix5(){
   bindGlobalEventsV2953();
   bindAccessEnterV2953Fix1();
   boot();
   setInterval(updateGuideState, 1000);
   setTimeout(syncAccessState, 0);
-  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix4] 简洁模式初始化失败',e)}},0);
+  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix5] 简洁模式初始化失败',e)}},0);
 }
 
-window.LN_APP = { start: startV2953Fix4, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess };
-startV2953Fix4();
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess };
+startV2953Fix5();

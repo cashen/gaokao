@@ -1,4 +1,4 @@
-// V2.9.5.3.fix4 filter-engine: enrichment, filtering and result update
+// V2.9.5.3.fix5 filter-engine: enrichment, filtering and result update
 function guessSchoolNature(school){
   if(!school)return {label:'需核验',cls:'unknown',score:0};
   const normalized = school.replace(/[（(].*?[）)]/g,'').trim();
@@ -112,7 +112,7 @@ function specialPlanApprovedV29474(){return specialPlanStatusV29474()==='approve
 function hasCollegeSpecialPlanV29474(r){const s=[r.major,r.cleanMajor,r.admissionMajor,r.planType,r.batch,r.remark,(r.riskFlags||[]).join(' ')].map(x=>String(x||'')).join(' ');return /辽宁省高校专项计划|高校专项计划/.test(s)}
 function specialPlanTextV29474(){const v=specialPlanStatusV29474();if(v==='approved')return '已通过高校专项计划审核';if(v==='unknown')return '不确定，暂按未审核处理';return '未通过 / 未审核'}
 function enrich(r){r.schoolProvince=r.schoolProvince||inferProvince(r.school);applySchoolGeoV29471(r);r.schoolNature=r.schoolNatureLabel?{label:r.schoolNatureLabel,cls:r.schoolNatureCls||'unknown',score:r.schoolNatureScore||0}:guessSchoolNature(r.school);r.schoolTier=guessSchoolTier(r.school,r.schoolNature);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);r.isCoopV29475=isCoopProgramV29475(r);r.isPrivateV29475=isPrivateProgramV29475(r);r.mainMajorV29475=normalizeMajorMainV29475(r.cleanMajor||r.major);r.feeTypeLabelV29475=feeTypeLabelV29475(r);r.isCollegeSpecialPlanV29474=hasCollegeSpecialPlanV29474(r);attachTaxonomy(r);r.studentProfileHints=studentProfileHintsV29471(r);return r}
-/* V2.9.5.3.fix1: 访问码逻辑已统一迁移到 app.v2953fix4.js。filter-engine 不再处理 gate。 */
+/* V2.9.5.3.fix1: 访问码逻辑已统一迁移到 app.v2953fix5.js。filter-engine 不再处理 gate。 */
 function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}autoRefresh()})})}
 function selectedProvinces(){return[...document.querySelectorAll('#provinceChips .chip.active')].map(x=>x.dataset.province)}
 function setTargetCitiesV29472(value, mode='soft'){const el=document.getElementById('targetCities');if(el)el.value=value||'';const m=document.getElementById('cityMode');if(m)m.value=mode||'soft';}
