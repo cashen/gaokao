@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 export-engine: CSV/PNG export helpers
+// V2.9.5.4 export-engine: CSV/PNG export helpers
 function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}function rowsToCsv(rows){
   const head=['学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','地域说明'];
   const body=(rows||[]).map(r=>{
@@ -7,7 +7,7 @@ function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.r
       .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',');
   });
   return [head.join(','),...body].join('\n');
-}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.5.3_筛选结果_高报师方案.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.5.3_候选清单_高报师方案.csv',rowsToCsv(candidates.map(enrich)))}
+}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.5.4_筛选结果_高报师方案.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.5.4_候选清单_高报师方案.csv',rowsToCsv(candidates.map(enrich)))}
 
 function textVal(id){return document.getElementById(id)?.value||''}
 function activeStrategyText(){
@@ -251,7 +251,7 @@ function exportSummaryPng(kind='filtered'){
 
   wrapCanvasText(ctx,'注：本摘要图用于初选沟通，不替代正式志愿表。中外合作、高收费、专业类分流、一级学科映射置信度低等情况，正式使用前请再做人工核验。',M,y+26,contentW,28,'#627b97','20px sans-serif',2);
 
-  const name=kind==='candidates'?'辽宁物理类_V2.9.5.3_候选清单摘要.png':'辽宁物理类_V2.9.5.3_筛选摘要.png';
+  const name=kind==='candidates'?'辽宁物理类_V2.9.5.4_候选清单摘要.png':'辽宁物理类_V2.9.5.4_筛选摘要.png';
   const a=document.createElement('a');
   a.href=canvas.toDataURL('image/png');
   a.download=name;
@@ -272,8 +272,8 @@ rowsToCsv = function(rows){
   });
   return [head.join(','),...body].join('\n');
 };
-exportFiltered = function(){download('辽宁物理类_V2.9.5.3_筛选结果_规则统一版.csv',rowsToCsv(filtered));};
-exportCandidates = function(){download('辽宁物理类_V2.9.5.3_候选清单_方案来源.csv',rowsToCsv(candidates));};
+exportFiltered = function(){download('辽宁物理类_V2.9.5.4_筛选结果_规则统一版.csv',rowsToCsv(filtered));};
+exportCandidates = function(){download('辽宁物理类_V2.9.5.4_候选清单_方案来源.csv',rowsToCsv(candidates));};
 
 window.LN_EXPORT = {
   exportSummaryPng, exportFilteredPng, exportCandidatesPng,

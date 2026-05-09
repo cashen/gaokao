@@ -1,0 +1,39 @@
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+function read(p){return fs.readFileSync(p,'utf8');}
+function assert(x,msg){if(!x){throw new Error(msg)}}
+const required=[
+ 'index.html','diagnostics.html','assets/config.v2954.js','assets/rules.v2954.js','assets/data-engine.v2954.js','assets/filter-engine.v2954.js','assets/plan-engine.v2954.js','assets/render.v2954.js','assets/selection.v2954.js','assets/export.v2954.js','assets/app.v2954.js','assets/app.v2954.css','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js'
+];
+for(const f of required){assert(fs.existsSync(f),'missing '+f)}
+const index=read('index.html');
+assert(index.includes('assets/app.v2954.js'),'index not loading v2954 app');
+assert(!index.includes('v2953fix5.js'),'index still references fix5 js');
+assert(!index.includes('访问码：'),'index exposes access code label');
+assert(!index.includes('输入访问码'),'index hints access code in placeholder');
+assert(!index.includes('ln2025'),'index exposes raw access code');
+assert(!index.includes('模块缓存隔离与运行时校验版'),'index still contains cache-isolation title');
+assert((index.match(/onclick=/g)||[]).length===0,'index contains onclick');
+for(const f of required.filter(x=>x.endsWith('.js'))){new vm.Script(read(f),{filename:f});}
+// Runtime load with minimal browser shims
+const context={
+  window:{}, console, setTimeout:(fn)=>{}, clearTimeout:()=>{},
+  document:{addEventListener(){},querySelector(){return null},querySelectorAll(){return []},getElementById(){return null},body:{classList:{add(){},remove(){}}}},
+  localStorage:{getItem(){return null},setItem(){},removeItem(){}},
+  HTMLCanvasElement:function(){}, Image:function(){}, Blob:function(){}, URL:{createObjectURL(){return ''},revokeObjectURL(){}},
+};
+context.window=Object.assign(context.window, context);
+vm.createContext(context);
+for(const f of ['assets/config.v2954.js','assets/rules.v2954.js','assets/major-name-model.v2946.js','assets/confusable-major-model.v29462.js','assets/data-engine.v2954.js','assets/filter-engine.v2954.js','assets/plan-engine.v2954.js','assets/render.v2954.js','assets/selection.v2954.js','assets/export.v2954.js']){
+  vm.runInContext(read(f),context,{filename:f});
+}
+for(const name of ['LN_CONFIG','LN_GAOKAO_RULES_V2953','LN_DATA_ENGINE','LN_FILTER_ENGINE','LN_PLAN_ENGINE','LN_RENDER','LN_SELECTION','LN_EXPORT']){
+  assert(context.window[name], name+' not defined');
+}
+const banned=['死保','敢冒','无脑','访问码不正确','页面执行出现错误','计算失败：','高风险易混','中高风险易混','中风险易混','风险惩罚','家长必读','访问码：','输入访问码','请输入访问码 ln2025','请重新输入 ln2025','模块缓存隔离与运行时校验版'];
+for(const f of ['index.html','assets/rules.v2954.js','assets/render.v2954.js','assets/app.v2954.js','assets/export.v2954.js','assets/selection.v2954.js']){
+  const text=read(f);
+  for(const b of banned){assert(!text.includes(b), `${f} contains banned wording: ${b}`)}
+}
+console.log('V2.9.5.4 validation passed');

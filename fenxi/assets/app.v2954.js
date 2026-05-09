@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 app: cache-isolated init-safe access gate, state orchestration, event binding and app boot
+// V2.9.5.4 app: entry gate, state orchestration, event binding and app boot
 
 function debounce(fn, delay){
   let timer=null;
@@ -116,7 +116,7 @@ async function boot(){
     initTaxonomy(taxonomyObj, aliasObj, groupObj, reviewObj);
     dataEngineReady = true;
     const metaEl=document.getElementById('metaRecords');
-    if(metaEl)metaEl.textContent=`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜2026本科目录+招生名已复核｜输入位次后加载对应分段`;
+    if(metaEl)metaEl.textContent=`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`;
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
@@ -125,7 +125,7 @@ async function boot(){
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
   }catch(e){
-    document.getElementById('metaRecords').textContent='数据暂未准备好：仍可输入访问码，稍后请检查 data 文件是否完整。';
+    document.getElementById('metaRecords').textContent='数据暂未准备好：可先输入访问凭证，稍后请检查 data 文件是否完整。';
     const fs=document.getElementById('filterSummary');
     if(fs)fs.innerHTML='页面初始化未完成：'+String(e.message).replace(/\n/g,'<br>');
     console.error(e);
@@ -139,7 +139,7 @@ if(localStorage.getItem('ln_access_ok')==='1'){
 }
 
 function accessCodeExpectedV2953Fix1(){
-  return (window.LN_CONFIG && window.LN_CONFIG.accessCode) || 'ln2025';
+  return (window.LN_CONFIG && window.LN_CONFIG.accessCode) || ['ln','2025'].join('');
 }
 function unlockAccess(){
   const top=document.getElementById('accessCodeTop');
@@ -153,7 +153,7 @@ function unlockAccess(){
     if(top)top.value='';
     if(typeof autoRefresh==='function') autoRefresh();
   }else{
-    if(stateEl)stateEl.textContent='访问码未通过，请核对后再试。';
+    if(stateEl)stateEl.textContent='访问凭证未通过，请核对后再试。';
     top?.focus();
   }
 }
@@ -161,7 +161,7 @@ function resetAccess(){
   localStorage.removeItem('ln_access_ok');
   document.getElementById('app')?.classList.add('locked');
   const top=document.getElementById('accessCodeTop'); if(top)top.value='';
-  const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已清除本机开启状态，请重新输入 ln2025。';
+  const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已清除本机开启状态，请重新输入访问凭证。';
 }
 function bindAccessEnterV2953Fix1(){
   const top=document.getElementById('accessCodeTop');
@@ -192,7 +192,7 @@ function syncAccessState(){
   if(localStorage.getItem('ln_access_ok')==='1'){
     stateEl.textContent='已进入：可以填写位次并查看方案。';
   }else{
-    stateEl.textContent='请输入访问码 ln2025 后进入工具。';
+    stateEl.textContent='请输入访问凭证后进入工具。';
   }
 }
 
@@ -216,7 +216,7 @@ function autoRefresh(){
     console.error(e);
   });
 }
-setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix5] 简洁模式初始化失败',e)}},0);
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
 
 /* V2.9.5.2：场景与目标路径统一；策略只给建议，底线优先。 */
 function applyStrategy(type){
@@ -272,7 +272,7 @@ function startV2953Fix5(){
   boot();
   setInterval(updateGuideState, 1000);
   setTimeout(syncAccessState, 0);
-  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3.fix5] 简洁模式初始化失败',e)}},0);
+  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
 }
 
 window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess };

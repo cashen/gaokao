@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 plan-engine: diagnosis, A/B/C scoring and plan board rendering
+// V2.9.5.4 plan-engine: diagnosis, A/B/C scoring and plan board rendering
 function scoreBandV29473(){
   const s=Number(document.getElementById('myScore')?.value||0);
   if(s>=650)return '700—650 / 650+ 高分段';

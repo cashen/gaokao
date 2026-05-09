@@ -1,5 +1,5 @@
 /*
- * V2.9.5.3｜场景与目标路径统一规则版
+ * V2.9.5.4｜场景与目标路径统一规则版
  * 只定义规则，不操作 DOM，不加载数据，不渲染页面。
  * app.v2952.js 读取 window.LN_GAOKAO_RULES_V2953。
  */
@@ -184,7 +184,7 @@
   };
 
   window.LN_GAOKAO_RULES_V2953 = {
-    version:'V2.9.5.3',
+    version:'V2.9.5.4',
     scenarioPresets,
     strategyRules: scenarioPresets,
     preferenceRules,

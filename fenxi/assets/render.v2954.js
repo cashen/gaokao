@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 render-engine: card rendering, scenario/preference UI and light UI helpers
+// V2.9.5.4 render-engine: card rendering, scenario/preference UI and light UI helpers
 function parentLine(r){
   if(r._level==='匹配')return '这条与当前位次接近，适合作为主体候选，需要精读招生计划和专业组。';
   if(r._level==='稳妥')return '这条录取把握更高，适合放在中后段兜住，但仍要看专业质量。';

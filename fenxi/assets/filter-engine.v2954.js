@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 filter-engine: enrichment, filtering and result update
+// V2.9.5.4 filter-engine: enrichment, filtering and result update
 function guessSchoolNature(school){
   if(!school)return {label:'需核验',cls:'unknown',score:0};
   const normalized = school.replace(/[（(].*?[）)]/g,'').trim();
@@ -140,7 +140,7 @@ function mentorRule(r,m){const mode=document.getElementById('mentorMode').value;
  delta=Math.round(delta*factor); return{delta,tags:[...new Set(tags)].slice(0,6),notes:[...new Set(notes)].slice(0,3),breakdown:breakdown.slice(0,9),exclude}}
 function profileScore(r){const m=r.majorText;let score=50,reasons=[],excludes=[];const provinces=selectedProvinces(),regionMode=document.getElementById('regionMode').value;if(regionMode!=='none'&&provinces.length){if(provinces.includes(r.schoolProvince)){score+=14;reasons.push('目标区域匹配')}else if(regionMode==='hard')excludes.push('不在目标区域');else score-=10}; const cityTargets=selectedCitiesV29472(), cityMode=cityModeV29472(); if(cityMode!=='none'&&cityTargets.length){if(cityMatchesV29472(r,cityTargets)){score+=10;reasons.push('目标城市匹配')}else if(cityMode==='hard')excludes.push('不在目标城市');else {score-=6;reasons.push('非目标城市，已降权提醒')}}; if(getGroup('outProvince')==='no'&&r.schoolProvince&&r.schoolProvince!=='辽宁'){score-=18;reasons.push('省外降权')}; if(r.isHighFee&&document.getElementById('budget').value==='normal')excludes.push('高收费/中外合作不符合预算'); if(r.isCollegeSpecialPlanV29474&&specialPlanApprovedV29474()){score+=3;reasons.push('高校专项资格候选')}
  if(isMed(m)){if(getGroup('medicine')==='prefer'){score+=18;reasons.push('医学意向匹配')}else if(getGroup('medicine')==='avoid')excludes.push('不学医')}; if(isTeacher(m)){if(getGroup('teacher')==='prefer'){score+=14;reasons.push('师范意向匹配')}else if(getGroup('teacher')==='avoid')excludes.push('不考虑师范')}; if(isLiberal(m)&&getGroup('liberal')==='avoid'){score-=18;reasons.push('经管法外语降权')}; if(isChem(m)&&getGroup('chem')==='avoid'){score-=22;reasons.push('化学/材料/生物降权')}; if(isPhys(m)&&getGroup('physics')==='prefer'){score+=14;reasons.push('物理/机械倾向匹配')}; if(isGrid(m)&&getGroup('gridPower')==='prefer'){score+=20;reasons.push('电气/电网/能源强相关')}; if((r.keySubjectHints||[]).length){score+=4;reasons.push('有重点学科提醒')}
- const z=mentorRule(r,m);score+=z.delta;reasons.push(...z.tags);if(z.exclude)excludes.push('网报名师规则排除项');score=Math.max(0,Math.min(100,score));return{score,reasons:[...new Set(reasons)].slice(0,7),excludes:[...new Set(excludes)],mentor:z}}
+ const z=mentorRule(r,m);score+=z.delta;reasons.push(...z.tags);if(z.exclude)excludes.push('家长初筛规则排除项');score=Math.max(0,Math.min(100,score));return{score,reasons:[...new Set(reasons)].slice(0,7),excludes:[...new Set(excludes)],mentor:z}}
 function resolveRank(){const r=Number(document.getElementById('myRank').value);if(r>0)return r;const s=String(Number(document.getElementById('myScore').value));return RANK2025[s]?Number(RANK2025[s]):null}
 function getBandModel(){const m=document.getElementById('model').value;if(m==='safe')return{chong:[.93,.98],match:[.98,1.05],steady:[1.05,1.20],safe:[1.20,1.45]};if(m==='bold')return{chong:[.82,.97],match:[.97,1.06],steady:[1.06,1.18],safe:[1.18,1.35]};return{chong:[.88,.97],match:[.97,1.05],steady:[1.05,1.18],safe:[1.18,1.35]}}
 function bandText(p){return currentRank?`${fmt(Math.round(currentRank*p[0]))} — ${fmt(Math.round(currentRank*p[1]))} 位`:'-'}
@@ -211,7 +211,7 @@ function renderRule(r){
   const lines=(r._mentor?.breakdown||r._zxf?.breakdown||[]).filter(x=>x.delta!==0);
   if(!lines.length)return '';
   return `<details class="rule-breakdown">
-    <summary><span>网报名师规则明细</span></summary>
+    <summary><span>家长初筛规则明细</span></summary>
     <div class="rule-lines">${lines.map(x=>`<div class="rule-line ${x.delta>=0?'plus':'minus'}">
       <div class="sign">${x.delta>=0?'+':''}${x.delta}</div>
       <div><div class="tagtxt">${x.tag||'规则调整'}</div><div class="why">${x.note||''}</div></div>

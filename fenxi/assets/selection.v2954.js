@@ -1,4 +1,4 @@
-// V2.9.5.3.fix5 selection-engine: candidate basket, dedupe and plan add actions
+// V2.9.5.4 selection-engine: candidate basket, dedupe and plan add actions
 function addCandidate(id){const r=DATA.find(x=>x.id===id);if(r&&!candidates.find(x=>x.id===id))candidates.push(r);localStorage.setItem('ln_candidates_v292',JSON.stringify(candidates));renderCandidates();renderStructure()}
 function renderStructure(){
   const el=document.getElementById('structureList'); if(!el)return;

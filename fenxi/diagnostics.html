@@ -3,32 +3,32 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>V2.9.5.3｜文案温和修正版 模块诊断</title>
+<title>V2.9.5.4｜入口收敛与交互优化版 模块诊断</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}.wrap{max-width:980px;margin:auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.06)}.ok{color:#047857}.bad{color:#b91c1c}code{background:#f1f5f9;padding:2px 6px;border-radius:6px}.row{display:flex;justify-content:space-between;border-bottom:1px dashed #e2e8f0;padding:8px 0}.row:last-child{border-bottom:0}.small{color:#64748b;font-size:13px}</style>
 </head>
 <body>
 <div class="wrap">
-<h1>V2.9.5.3｜文案温和修正版 模块诊断</h1>
+<h1>V2.9.5.4｜入口收敛与交互优化版 模块诊断</h1>
 <p class="small">这个页面只检查脚本加载和全局模块是否存在，不执行完整筛选。</p>
 <div class="card" id="errors"><b>运行时错误</b><div id="errorList" class="small">等待检测...</div></div>
 <div class="card"><b>模块状态</b><div id="moduleList"></div></div>
-<div class="card"><b>建议</b><p class="small">如果这里出现红色错误，说明部署或缓存仍有问题。请清缓存、确认上传的是当前文案温和修正版，并检查服务器是否仍引用旧文件。</p></div>
+<div class="card"><b>建议</b><p class="small">如果这里出现红色错误，说明部署或缓存仍有问题。请清缓存、确认上传的是当前入口收敛与交互优化版，并检查服务器是否仍引用旧文件。</p></div>
 </div>
 <script>
 window.__DIAG_ERRORS__=[];
 window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:String(msg),src:src||'',line:line||0,col:col||0});};
 </script>
-<script src="./assets/config.v2953text1.js"></script>
-<script src="./assets/rules.v2953text1.js"></script>
+<script src="./assets/config.v2954.js"></script>
+<script src="./assets/rules.v2954.js"></script>
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/data-engine.v2953text1.js"></script>
-<script src="./assets/filter-engine.v2953text1.js"></script>
-<script src="./assets/plan-engine.v2953text1.js"></script>
-<script src="./assets/render.v2953text1.js"></script>
-<script src="./assets/selection.v2953text1.js"></script>
-<script src="./assets/export.v2953text1.js"></script>
+<script src="./assets/data-engine.v2954.js"></script>
+<script src="./assets/filter-engine.v2954.js"></script>
+<script src="./assets/plan-engine.v2954.js"></script>
+<script src="./assets/render.v2954.js"></script>
+<script src="./assets/selection.v2954.js"></script>
+<script src="./assets/export.v2954.js"></script>
 <script>
 (function(){
   const modules=[
