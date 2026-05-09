@@ -108,6 +108,13 @@ async function boot(){
     OFFICIAL_CATALOG_2026 = await loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录');
     GRADUATE_CATALOG_2022_2025 = await loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表');
     try{
+      if(window.loadMajorNameModelV2944){
+        await window.loadMajorNameModelV2944({withEntryIndex:false});
+      }
+    }catch(majorErr){
+      console.warn('[V2.9.6.fix2] 招生名/本科目录模型加载失败，不影响主筛选：', majorErr);
+    }
+    try{
       if(window.loadConfusableMajorModelV2946){
         CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946();
         populateConfusableGroupFilterV2946();
@@ -316,7 +323,7 @@ function autoRefresh(reason){
   return requestRefreshV296(reason||'autoRefresh','full',0);
 }
 window.__LN_AUTO_REFRESH_DIRECT__ = autoRefreshDirectV296;
-setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix1] 简洁模式初始化失败',e)}},0);
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix2] 简洁模式初始化失败',e)}},0);
 
 /* V2.9.5.4.fix3：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
 function applyStrategy(type){
@@ -391,7 +398,7 @@ function startV2953Fix5(){
   initAuthAndBootV2954Fix3();
   setInterval(updateGuideState, 3000);
   setTimeout(syncAccessState, 0);
-  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix1] 简洁模式初始化失败',e)}},0);
+  setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.6.fix2] 简洁模式初始化失败',e)}},0);
 }
 
 window.autoRefresh = autoRefresh;

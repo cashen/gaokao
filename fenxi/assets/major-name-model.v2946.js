@@ -18,6 +18,7 @@
   function dataUrl(file){ const u = new URL(file, baseUrl()); u.searchParams.set('v','2944'); return u.href; }
   async function getJson(file){ const r = await fetch(dataUrl(file), {cache:'no-store'}); if(!r.ok) throw new Error(file+' '+r.status); return r.json(); }
   async function loadMajorNameModelV2944(options){
+    if(window.LN_MAJOR_NAME_MODEL_2944_READY && window.LN_MAJOR_NAME_MODEL_2944) return window.LN_MAJOR_NAME_MODEL_2944;
     const opt = Object.assign({withEntryIndex:false}, options||{});
     const [manifest, admissionMajorRaw, undergraduateCatalogMajor, admissionToCatalogMap, graduateSubjectReference, qualityReport] = await Promise.all([
       getJson(FILES.manifest), getJson(FILES.admissionMajorRaw), getJson(FILES.undergraduateCatalogMajor), getJson(FILES.admissionToCatalogMap), getJson(FILES.graduateSubjectReference), getJson(FILES.qualityReport)
@@ -44,9 +45,7 @@
   window.loadMajorNameModelV2944 = loadMajorNameModelV2944;
   window.LN_MAJOR_NAME_MODEL_2944_FILES = FILES;
   window.LN_MAJOR_NAME_MODEL_2944_READY = false;
-  // Optional lightweight preload: no entry index, so it will not affect the chunk engine.
-  loadMajorNameModelV2944({withEntryIndex:false}).catch(err=>{
-    window.LN_MAJOR_NAME_MODEL_2944_ERROR = String(err && err.message || err);
-    console.warn('[V2.9.4.4] major-name model preload failed:', err);
-  });
+  // V2.9.6.fix2: data/ is protected by Pages Function, so do not preload before auth.
+  // The app calls loadMajorNameModelV2944() after the server-side session is verified.
+  window.LN_MAJOR_NAME_MODEL_2944_DEFERRED = true;
 })();

@@ -50,8 +50,7 @@
   window.loadConfusableMajorModelV2946 = loadConfusableMajorModelV2946;
   window.LN_CONFUSABLE_MAJOR_MODEL_2946_FILES = FILES;
   window.LN_CONFUSABLE_MAJOR_MODEL_2946_READY = false;
-  loadConfusableMajorModelV2946().catch(err=>{
-    window.LN_CONFUSABLE_MAJOR_MODEL_2946_ERROR = String(err && err.message || err);
-    console.warn('[V2.9.4.6.2] confusable-major model preload failed:', err);
-  });
+  // V2.9.6.fix2: data/ is protected by Pages Function, so do not preload before auth.
+  // The app calls loadConfusableMajorModelV2946() after the server-side session is verified.
+  window.LN_CONFUSABLE_MAJOR_MODEL_2946_DEFERRED = true;
 })();
