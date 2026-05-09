@@ -5,30 +5,22 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.5.3｜模块化解耦与加载瘦身版</title>
-<link href="./assets/app.v2953.css" rel="stylesheet"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.5.3.fix1｜访问码入口统一修正版</title>
+<link href="./assets/app.v2953fix1.css" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.5.3｜模块化解耦与加载瘦身版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.5.3.fix1｜访问码入口统一修正版</h1>
 <p>先定位次，再定家庭底线；系统用 A/B/C 三条路径解释：A守底线，B看专业，C争上限。适合辽宁家长做第一轮初筛与复核。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
 <div class="access-mini" id="accessMini">
 <input id="accessCodeTop" placeholder="输入访问码 ln2025"/>
 <button data-action="unlock-top">开启工具</button>
 <button data-action="reset-access" title="清除本机已开启状态">重新输入</button>
-<span class="state" id="accessState">未开启时下方内容会被锁定；已开启也可以重新输入。</span>
+<span class="state" id="accessState">请输入 ln2025 开启工具。</span>
 </div>
 <nav aria-label="五步向导" class="stepnav guide-nav" id="guideNav"><a data-guide="1" href="#baseInfo"><i>1</i><span>位次</span></a><a data-guide="2" href="#familyBaseline"><i>2</i><span>底线</span></a><a data-guide="3" href="#strategyEntry"><i>3</i><span>目标</span></a><a data-guide="4" href="#resultBox"><i>4</i><span>方案</span></a><a data-guide="5" href="#candidateArea"><i>5</i><span>自选</span></a></nav><div class="mode-switch-v2950"><label><input checked="" id="simpleModeToggleV2950" type="checkbox"/> 家长简洁模式</label><span>默认收起高级规则，先看底线和A/B/C方案；高报师可关闭。</span></div>
-</div>
-<div class="section" id="gateBox">
-<h2>开启工具 <small>访问码也可在顶部重新输入</small></h2>
-<div class="grid">
-<div class="col-8"><label>访问码</label><input class="input" id="accessCode" placeholder="输入 ln2025 开启"/></div>
-<div class="col-4" style="display:flex;align-items:end"><button data-action="unlock" style="width:100%">开启</button></div>
-</div>
-<p class="small">说明：这是前端访问码，只用于隐藏页面内容；正式私密部署建议继续使用 Cloudflare Access。</p>
 </div>
 <div class="locked" id="app"><div class="section step-card step1" data-step-label="① 先定位次" id="baseInfo">
 <h2>① 定位孩子分数 / 位次 <small>位次优先，先把孩子放到正确坐标</small></h2><p class="step-help">这一步只解决“孩子在辽宁物理类大概处在哪个位置”。家庭底线放到下一步集中设置。</p>
@@ -173,7 +165,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.3｜模块化解耦与加载瘦身版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.3.fix1｜访问码入口统一修正版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" data-scroll-target="familyBaseline">底线</button><button data-scroll-target="resultBox">方案</button></div>
@@ -199,6 +191,6 @@
 <script src="./assets/render.v2953.js"></script>
 <script src="./assets/selection.v2953.js"></script>
 <script src="./assets/export.v2953.js"></script>
-<script src="./assets/app.v2953.js"></script>
+<script src="./assets/app.v2953fix1.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide"><a href="#baseInfo">位次</a><a href="#familyBaseline">底线</a><a class="primary" href="#resultBox">方案</a><a href="#candidateArea">自选</a><a href="#" data-action="open-export-sheet">导出</a></nav></body>
 </html>

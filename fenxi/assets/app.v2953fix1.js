@@ -1,4 +1,4 @@
-// V2.9.5.3 app: gate, state orchestration, event binding and app boot
+// V2.9.5.3.fix1 app: unified access gate, state orchestration, event binding and app boot
 
 function initBaselineTouchTrackingV2951(){
   const base=document.getElementById('familyBaseline'); if(!base)return;
@@ -123,26 +123,48 @@ async function boot(){
     console.error(e);
   }
 }
-if(localStorage.getItem('ln_access_ok')==='1'){setTimeout(()=>{document.getElementById('app').classList.remove('locked');document.getElementById('gateBox').classList.add('hide')},0)}
-
-function unlockFromTop(){
-  const v=document.getElementById('accessCodeTop')?.value.trim();
-  if(v==='ln2025'){
+if(localStorage.getItem('ln_access_ok')==='1'){
+  setTimeout(()=>{
     document.getElementById('app')?.classList.remove('locked');
-    document.getElementById('gateBox')?.classList.add('hide');
+    syncAccessState();
+  },0);
+}
+
+function accessCodeExpectedV2953Fix1(){
+  return (window.LN_CONFIG && window.LN_CONFIG.accessCode) || 'ln2025';
+}
+function unlockAccess(){
+  const top=document.getElementById('accessCodeTop');
+  const v=(top?.value||'').trim();
+  const expected=accessCodeExpectedV2953Fix1();
+  const stateEl=document.getElementById('accessState');
+  if(v===expected){
+    document.getElementById('app')?.classList.remove('locked');
     localStorage.setItem('ln_access_ok','1');
-    const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已开启：可以填写位次并筛选。';
+    if(stateEl)stateEl.textContent='已开启：可以填写位次并筛选。';
+    if(top)top.value='';
     autoRefresh();
   }else{
-    alert('访问码不正确，请输入 ln2025');
+    if(stateEl)stateEl.textContent='访问码不正确，请输入 ln2025。';
+    top?.focus();
   }
 }
 function resetAccess(){
   localStorage.removeItem('ln_access_ok');
   document.getElementById('app')?.classList.add('locked');
-  document.getElementById('gateBox')?.classList.remove('hide');
   const top=document.getElementById('accessCodeTop'); if(top)top.value='';
   const stateEl=document.getElementById('accessState'); if(stateEl)stateEl.textContent='已清除本机开启状态，请重新输入 ln2025。';
+}
+function bindAccessEnterV2953Fix1(){
+  const top=document.getElementById('accessCodeTop');
+  if(!top || top.dataset.enterBound==='1')return;
+  top.dataset.enterBound='1';
+  top.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      unlockAccess();
+    }
+  });
 }
 function manualExecute(){
   currentRank=resolveRank();
@@ -160,9 +182,9 @@ function syncAccessState(){
   const stateEl=document.getElementById('accessState');
   if(!stateEl)return;
   if(localStorage.getItem('ln_access_ok')==='1'){
-    stateEl.textContent='已开启：如果想重新输入访问码，可以点“重新输入”。';
+    stateEl.textContent='已开启：可以填写位次并筛选。';
   }else{
-    stateEl.textContent='未开启时下方内容会被锁定；请输入 ln2025。';
+    stateEl.textContent='请输入 ln2025 开启工具。';
   }
 }
 
@@ -205,8 +227,8 @@ function scrollToTargetV2953(id){
 }
 function handleActionV2953(action, el){
   switch(action){
-    case 'unlock-top': return unlockFromTop();
-    case 'unlock': return unlock();
+    case 'unlock-top':
+    case 'unlock': return unlockAccess();
     case 'reset-access': return resetAccess();
     case 'reset-all': return resetAll();
     case 'manual-execute': return manualExecute();
@@ -238,11 +260,12 @@ function bindGlobalEventsV2953(){
 
 function startV2953(){
   bindGlobalEventsV2953();
+  bindAccessEnterV2953Fix1();
   boot();
   setInterval(updateGuideState, 1000);
   setTimeout(syncAccessState, 0);
   setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.3] 简洁模式初始化失败',e)}},0);
 }
 
-window.LN_APP = { start: startV2953, refresh: autoRefresh, applyScenarioPreset: applyStrategy };
+window.LN_APP = { start: startV2953, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess };
 startV2953();
