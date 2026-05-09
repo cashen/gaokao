@@ -978,8 +978,8 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 .scenario-pref-v2952 b{color:#0f172a}.scenario-pref-v2952 span{font-size:13px}
 @media(max-width:780px){.target-path-head-v2952{display:block}.target-path-panel-v2952{padding:12px}.target-path-grid-v2952 .col-4,.target-path-grid-v2952 .col-8{grid-column:span 12!important}}
 
-/* V2.9.5.4.fix2 场景分段提示与底线保护 */
-.scenario-fit-v2954fix2{display:inline-block;margin-top:7px;font-size:12px;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:999px;padding:3px 8px;font-weight:700}
-.scenario-card-v2951[data-score-fit="match"] .scenario-fit-v2954fix2{color:#047857;background:#ecfdf5;border-color:#86efac}
-.scenario-card-v2951[data-score-fit="near"] .scenario-fit-v2954fix2{color:#92400e;background:#fffbeb;border-color:#fde68a}
-.scenario-card-v2951[data-score-fit="mismatch"] .scenario-fit-v2954fix2{color:#64748b;background:#f8fafc;border-color:#cbd5e1}
+/* V2.9.5.4.fix3 场景分段提示与底线保护 */
+.scenario-fit-v2954fix3{display:inline-block;margin-top:7px;font-size:12px;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:999px;padding:3px 8px;font-weight:700}
+.scenario-card-v2951[data-score-fit="match"] .scenario-fit-v2954fix3{color:#047857;background:#ecfdf5;border-color:#86efac}
+.scenario-card-v2951[data-score-fit="near"] .scenario-fit-v2954fix3{color:#92400e;background:#fffbeb;border-color:#fde68a}
+.scenario-card-v2951[data-score-fit="mismatch"] .scenario-fit-v2954fix3{color:#64748b;background:#f8fafc;border-color:#cbd5e1}

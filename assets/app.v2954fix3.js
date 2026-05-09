@@ -1,4 +1,7 @@
 // V2.9.5.4 app: entry gate, state orchestration, event binding and app boot
+// V2.9.5.4.fix3: password is verified by Cloudflare Pages Functions; UI remains unchanged.
+let appBootedV2954Fix3 = false;
+let sessionCheckedV2954Fix3 = false;
 
 function debounce(fn, delay){
   let timer=null;
@@ -150,33 +153,92 @@ async function boot(){
     console.error(e);
   }
 }
-if(localStorage.getItem('ln_access_ok')==='1'){
-  setTimeout(()=>{
-    document.getElementById('app')?.classList.remove('locked');
-    syncAccessState();
-  },0);
+function authBaseV2954Fix3(){
+  return (window.LN_CONFIG && window.LN_CONFIG.authBasePath) || (location.pathname.startsWith('/fenxi') ? '/fenxi' : '/fenxi');
 }
-
-function accessCodeExpectedV2953Fix1(){
-  return (window.LN_CONFIG && window.LN_CONFIG.accessCode) || ['ln','2025'].join('');
+function authUrlV2954Fix3(path){
+  return authBaseV2954Fix3().replace(/\/$/,'') + path;
 }
-function unlockAccess(){
-  const top=document.getElementById('accessCodeTop');
-  const v=(top?.value||'').trim();
-  const expected=accessCodeExpectedV2953Fix1();
-  const stateEl=document.getElementById('accessState');
-  if(v===expected){
-    document.getElementById('app')?.classList.remove('locked');
-    localStorage.setItem('ln_access_ok','1');
-    if(stateEl)stateEl.textContent='已进入：可以填写位次并查看方案。';
-    if(top)top.value='';
-    if(typeof autoRefresh==='function') autoRefresh();
-  }else{
-    if(stateEl)stateEl.textContent='访问凭证未通过，请核对后再试。';
-    top?.focus();
+async function checkServerSessionV2954Fix3(){
+  if(!(window.LN_CONFIG && window.LN_CONFIG.serverAuth)){
+    return localStorage.getItem('ln_access_ok')==='1';
+  }
+  try{
+    const res=await fetch(authUrlV2954Fix3('/api/session'),{credentials:'same-origin',cache:'no-store'});
+    if(!res.ok)return false;
+    const json=await res.json().catch(()=>({ok:false}));
+    return !!json.ok;
+  }catch(e){
+    console.warn('[V2.9.5.4.fix3] 会话检查失败：',e);
+    return false;
   }
 }
-function resetAccess(){
+function bootOnceV2954Fix3(){
+  if(appBootedV2954Fix3)return;
+  appBootedV2954Fix3=true;
+  boot();
+}
+async function initAuthAndBootV2954Fix3(){
+  const stateEl=document.getElementById('accessState');
+  if(stateEl)stateEl.textContent='正在核验访问状态...';
+  const ok=await checkServerSessionV2954Fix3();
+  sessionCheckedV2954Fix3=true;
+  if(ok){
+    localStorage.setItem('ln_access_ok','1');
+    document.getElementById('app')?.classList.remove('locked');
+    if(stateEl)stateEl.textContent='已进入：可以填写位次并查看方案。';
+    bootOnceV2954Fix3();
+  }else{
+    localStorage.removeItem('ln_access_ok');
+    document.getElementById('app')?.classList.add('locked');
+    const metaEl=document.getElementById('metaRecords');
+    if(metaEl)metaEl.textContent='请输入访问凭证后进入工具。';
+    if(stateEl)stateEl.textContent='请输入访问凭证后进入工具。';
+  }
+}
+async function unlockAccess(){
+  const top=document.getElementById('accessCodeTop');
+  const v=(top?.value||'').trim();
+  const stateEl=document.getElementById('accessState');
+  if(!v){
+    if(stateEl)stateEl.textContent='请输入访问凭证后进入工具。';
+    top?.focus(); return;
+  }
+  if(window.LN_CONFIG && window.LN_CONFIG.serverAuth){
+    try{
+      if(stateEl)stateEl.textContent='正在核验访问凭证...';
+      const res=await fetch(authUrlV2954Fix3('/api/login'),{
+        method:'POST',credentials:'same-origin',cache:'no-store',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:v})
+      });
+      const json=await res.json().catch(()=>({ok:false}));
+      if(res.ok && json.ok){
+        document.getElementById('app')?.classList.remove('locked');
+        localStorage.setItem('ln_access_ok','1');
+        if(stateEl)stateEl.textContent='已进入：可以填写位次并查看方案。';
+        if(top)top.value='';
+        bootOnceV2954Fix3();
+        if(typeof autoRefresh==='function' && dataEngineReady) autoRefresh();
+        return;
+      }
+      if(json.reason==='server_not_configured'){
+        if(stateEl)stateEl.textContent='服务端访问保护尚未配置，请先在 Cloudflare Pages 变量中设置访问凭证。';
+        return;
+      }
+    }catch(e){
+      console.warn('[V2.9.5.4.fix3] 访问凭证核验失败：',e);
+    }
+    if(stateEl)stateEl.textContent='访问凭证未通过，请核对后再试。';
+    top?.focus(); return;
+  }
+  if(stateEl)stateEl.textContent='当前版本需要通过 Cloudflare Pages Functions 校验访问凭证。';
+  top?.focus();
+}
+async function resetAccess(){
+  if(window.LN_CONFIG && window.LN_CONFIG.serverAuth){
+    try{await fetch(authUrlV2954Fix3('/api/logout'),{method:'POST',credentials:'same-origin',cache:'no-store'});}catch(e){}
+  }
   localStorage.removeItem('ln_access_ok');
   document.getElementById('app')?.classList.add('locked');
   const top=document.getElementById('accessCodeTop'); if(top)top.value='';
@@ -237,7 +299,7 @@ function autoRefresh(){
 }
 setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
 
-/* V2.9.5.4.fix2：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
+/* V2.9.5.4.fix3：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
 function applyStrategy(type){
   applyScenarioPresetV2951(type);
   renderBaselineSummaryV2950();
@@ -290,11 +352,11 @@ function bindGlobalEventsV2953(){
 function startV2953Fix5(){
   bindGlobalEventsV2953();
   bindAccessEnterV2953Fix1();
-  boot();
+  initAuthAndBootV2954Fix3();
   setInterval(updateGuideState, 1000);
   setTimeout(syncAccessState, 0);
   setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.4] 简洁模式初始化失败',e)}},0);
 }
 
-window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess };
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3 };
 startV2953Fix5();

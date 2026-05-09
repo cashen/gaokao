@@ -481,7 +481,7 @@ function renderStrategyCardsV2951(){
     return `<button class="${cls.join(' ')}" data-strategy="${v2950Text(rule.id)}" data-score-fit="${v2950Text(fit.state)}">
       <strong>${v2950Text(rule.title)}</strong>
       <span>${v2950Text(rule.desc||'')}</span>
-      <small class="scenario-fit-v2954fix2">${v2950Text(fit.label)}</small>
+      <small class="scenario-fit-v2954fix3">${v2950Text(fit.label)}</small>
       <em>${risk}</em>
     </button>`;
   }).join('');

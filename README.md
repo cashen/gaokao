@@ -1,64 +1,46 @@
-# 辽宁物理类志愿初选助手：最后版前端
+# 辽宁物理类高考志愿初选工具
 
-这版按“家长最终使用”重构：
+当前版本：**V2.9.5.4.fix3｜Pages Function 服务端访问保护版**
 
-1. 第一屏只做输入位次，减少说明文字。
-2. 输入后先显示可冲、匹配、稳妥、保底区间。
-3. 列表改成移动端友好的卡片。
-4. 每张卡片增加“高报师判断”。
-5. 学费核验、风险标签、候选清单、导出清单全部保留。
-6. 前端访问码保留为 `ln2025`，用于开启位次初筛。
+本版基于 `V2.9.5.4.fix2｜规则中心落地与场景保护修正版` 继续小步修订，核心目标是：
 
-## 部署到 Cloudflare Pages
+1. 保持现有 UI 和遮罩入口基本不变。
+2. 将访问凭证从前端校验改为 Cloudflare Pages Functions 服务端校验。
+3. 密码不写入前端 JS / HTML，而是放在 Cloudflare Pages 的变量/Secret 中。
+4. 未通过访问凭证时，不加载 `data/` 内的 JSON 数据。
 
-把 `index.html` 放到你的 GitHub 项目对应页面目录里即可。
+## 本版新增
 
-如果你原来的数据是 JSON，推荐在同目录放一个：
+- 新增 `functions/_middleware.js`
+- 新增 `functions/fenxi/api/login.js`
+- 新增 `functions/fenxi/api/logout.js`
+- 新增 `functions/fenxi/api/session.js`
+- 前端访问入口 UI 保留原样：输入访问凭证 → 进入工具。
+- 前端不再本地比较 `ln2025`，而是提交到 `/fenxi/api/login`。
+- 校验通过后由服务端写入 HttpOnly Cookie。
+- `/fenxi/data/*` 和 `/data/*` 需要有效 Cookie 才能访问。
 
-- `records.json`
+## Cloudflare Pages 需要配置的变量
 
-页面会自动尝试读取以下文件：
+在 Cloudflare Pages 项目中添加：
 
-- `records.json`
-- `data.json`
-- `liaoning_records.json`
-- `ln2025.json`
-
-如果你原来的数据是 JS 变量，也可以在 `index.html` 前面注入：
-
-```html
-<script>
-window.LN_RECORDS = [
-  {"school":"沈阳工业大学","discipline":"电气工程","score2025":598,"rank2025":11780}
-]
-</script>
+```text
+LN_ACCESS_PASSWORD=你的访问凭证
+LN_SESSION_SECRET=一段随机长字符串
+LN_SESSION_DAYS=30
 ```
 
-页面也兼容这些全局变量名：
+其中 `LN_SESSION_DAYS` 可不填，默认 30 天。
 
-- `window.LN_RECORDS`
-- `window.LIAONING_DATA`
-- `window.__LN_RECORDS__`
-- `window.records`
-- `window.DATA`
-- `window.liaoningRecords`
+## 部署提醒
 
-## 字段兼容
+必须把本包根目录内容完整上传到 GitHub 仓库根目录，尤其不能漏掉：
 
-页面会自动识别常见中英文字段，例如：
+```text
+functions/
+fenxi/
+data/
+assets/
+```
 
-- 学校：`school`、`学校`、`院校名称`
-- 学科：`discipline`、`一级学科`、`学科名称`
-- 专业：`majors`、`专业`、`匹配专业`
-- 2025分数：`score2025`、`2025最低分`
-- 2025位次：`rank2025`、`2025位次`
-- 学费状态：`feeStatus`、`学费核验`
-- 标签：`tags`、`提示标签`
-
-## 注意
-
-当前文件内置了 6 条样例数据。部署后，如果同目录存在真实 `records.json`，会优先读取真实数据。
-
-## 访问码
-
-前端访问码：`ln2025`。这只适合做轻量隐藏，不等同于安全认证；正式限制访问仍建议使用 Cloudflare Access。
+如果 Cloudflare Pages 没识别到 `functions/`，通常是因为 `functions` 文件夹没有放在项目根目录。
