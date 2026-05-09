@@ -1,4 +1,4 @@
-// V2.9.5.3.fix3 plan-engine: diagnosis, A/B/C scoring and plan board rendering
+// V2.9.5.3.fix4 plan-engine: diagnosis, A/B/C scoring and plan board rendering
 function scoreBandV29473(){
   const s=Number(document.getElementById('myScore')?.value||0);
   if(s>=650)return '700—650 / 650+ 高分段';
@@ -743,12 +743,12 @@ backupPlanItemV29475Fix2 = function(r,type,idx){
   const tags=shortReviewTagsV29475Fix3(r,type);
   return `<div class="plan-backup-v29475fix2 plan-backup-v29476 ${type.toLowerCase()}">
     <div class="backup-top-v29475fix2"><span>${type}${idx+1}</span><b>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</b></div>
-    <div class="backup-main-v29475fix3"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
+    <div class="backup-main-v29475fix4"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
     <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
     <div class="backup-path-v29476">${type==='B'?htmlSafeV2945(majorPathInfoV29476(r).label):type==='C'?htmlSafeV2945(liftExchangeInfoV29476(r).label):htmlSafeV2945(baselineHitsV29476(r).slice(0,2).join('｜'))}</div>
-    <div class="backup-line-v29475fix3"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
-    <div class="backup-line-v29475fix3 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
-    <div class="backup-tags-v29475fix3"><b>复核</b>${tags}</div>
+    <div class="backup-line-v29475fix4"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
+    <div class="backup-line-v29475fix4 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
+    <div class="backup-tags-v29475fix4"><b>复核</b>${tags}</div>
     <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','备选')">加入</button>
   </div>`;
 };
@@ -904,3 +904,14 @@ function renderPlanABC(){
   const toolbar=`<div class="abc-toolbar-v2950"><div><b>A/B/C 方案盘</b><span>A 守底线，B 看专业，C 争上限；冲稳保是每条路径里的安全等级。</span></div><button class="execute-secondary" onclick="addAllPlansV29475Fix2()">加入全部 A/B/C 候选</button></div>`;
   box.innerHTML=toolbar+renderPlanColumnV2950('A',buckets.A)+renderPlanColumnV2950('B',buckets.B)+renderPlanColumnV2950('C',buckets.C);
 }
+
+
+window.LN_PLAN_ENGINE = {
+  renderPlanABC,
+  pickSchemeRowsV29473,
+  pickSchemeBucketsV29475,
+  planScoreV29475,
+  majorPathInfoV29476,
+  liftExchangeInfoV29476,
+  baselineHitsV29476
+};

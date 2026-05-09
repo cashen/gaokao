@@ -1,4 +1,4 @@
-// V2.9.5.3.fix3 data-engine: data fetch, taxonomy, geo/profile helpers
+// V2.9.5.3.fix4 data-engine: data fetch, taxonomy, geo/profile helpers
 function fmt(n){return n===undefined||n===null||Number.isNaN(n)?'-':Number(n).toLocaleString('zh-CN')}
 
 
@@ -581,8 +581,7 @@ const SCHOOL_NATURE_EXACT_MAP = {
 
 
 window.LN_DATA_ENGINE = {
-  dataUrl, loadJsonFile, resolveRank, chunkIdsForRank,
-  ensureDataForCurrentRank, loadChunkById,
+  dataUrl, loadJsonFile,
   attachTaxonomy, initTaxonomy, taxonomyForMajor,
   schoolGeoForV29471, applySchoolGeoV29471,
   studentProfileHintsV29471

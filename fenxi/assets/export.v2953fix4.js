@@ -1,4 +1,4 @@
-// V2.9.5.3.fix3 export-engine: CSV/PNG export helpers
+// V2.9.5.3.fix4 export-engine: CSV/PNG export helpers
 function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}function rowsToCsv(rows){
   const head=['学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','地域说明'];
   const body=(rows||[]).map(r=>{
