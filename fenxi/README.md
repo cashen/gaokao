@@ -27,3 +27,12 @@
 - 改自选池：优先改 `assets/selection.v2953.js`。
 - 改导出：优先改 `assets/export.v2953.js`。
 - 改应用入口、访问码、全局事件绑定：优先改 `assets/app.v2953fix1.js`。
+
+## V2.9.5.3.fix2｜初始化与访问码启动修正版
+
+修复 fix1 中三个初始化错误，确保顶部访问码 `ln2025` 可以正常解锁：
+
+- data-engine 不再提前引用 autoRefresh。
+- render 不再错误导出 selection 模块中的 renderStructure。
+- app 不再重复声明 debouncedAutoRefresh。
+

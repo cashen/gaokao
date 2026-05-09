@@ -1,4 +1,4 @@
-// V2.9.5.3.fix1 app: unified access gate, state orchestration, event binding and app boot
+// V2.9.5.3.fix2 app: init-safe access gate, state orchestration, event binding and app boot
 
 function initBaselineTouchTrackingV2951(){
   const base=document.getElementById('familyBaseline'); if(!base)return;
@@ -117,7 +117,7 @@ async function boot(){
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
   }catch(e){
-    document.getElementById('metaRecords').textContent='页面初始化失败';
+    document.getElementById('metaRecords').textContent='数据加载失败：访问码仍可点击，请检查 data 文件是否完整';
     const fs=document.getElementById('filterSummary');
     if(fs)fs.innerHTML='页面初始化失败：'+String(e.message).replace(/\n/g,'<br>');
     console.error(e);
@@ -143,7 +143,7 @@ function unlockAccess(){
     localStorage.setItem('ln_access_ok','1');
     if(stateEl)stateEl.textContent='已开启：可以填写位次并筛选。';
     if(top)top.value='';
-    autoRefresh();
+    if(typeof autoRefresh==='function') autoRefresh();
   }else{
     if(stateEl)stateEl.textContent='访问码不正确，请输入 ln2025。';
     top?.focus();

@@ -1,7 +1,5 @@
 // V2.9.5.3 data-engine: data fetch, taxonomy, geo/profile helpers
 function fmt(n){return n===undefined||n===null||Number.isNaN(n)?'-':Number(n).toLocaleString('zh-CN')}
-function debounce(fn,wait=280){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),wait)}}
-const debouncedAutoRefresh=debounce(autoRefresh,300);
 
 
 

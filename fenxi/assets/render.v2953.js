@@ -540,7 +540,7 @@ function toggleSection(id){
 }
 
 window.LN_RENDER = {
-  renderCards, renderStructure, renderStudentProfileHintsV29471,
+  renderCards, renderStudentProfileHintsV29471,
   renderStrategyCardsV2951, renderPreferenceSelectV2952, updatePreferenceExplainV2952,
   renderScenarioNoticeV2951, renderDebugPanel,
   toggleAdvanced, toggleSection
