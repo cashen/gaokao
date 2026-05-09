@@ -249,7 +249,7 @@ function exportSummaryPng(kind='filtered'){
   });
   y += listH + 24;
 
-  wrapCanvasText(ctx,'注：本摘要图用于初选沟通，不替代正式志愿表。中外合作、高收费、专业类分流、一级学科映射置信度低等情况，请务必再做人工核验。',M,y+26,contentW,28,'#627b97','20px sans-serif',2);
+  wrapCanvasText(ctx,'注：本摘要图用于初选沟通，不替代正式志愿表。中外合作、高收费、专业类分流、一级学科映射置信度低等情况，正式使用前请再做人工核验。',M,y+26,contentW,28,'#627b97','20px sans-serif',2);
 
   const name=kind==='candidates'?'辽宁物理类_V2.9.5.3_候选清单摘要.png':'辽宁物理类_V2.9.5.3_筛选摘要.png';
   const a=document.createElement('a');

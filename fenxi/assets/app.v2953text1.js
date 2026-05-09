@@ -125,9 +125,9 @@ async function boot(){
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
   }catch(e){
-    document.getElementById('metaRecords').textContent='数据加载失败：访问码仍可点击，请检查 data 文件是否完整';
+    document.getElementById('metaRecords').textContent='数据暂未准备好：仍可输入访问码，稍后请检查 data 文件是否完整。';
     const fs=document.getElementById('filterSummary');
-    if(fs)fs.innerHTML='页面初始化失败：'+String(e.message).replace(/\n/g,'<br>');
+    if(fs)fs.innerHTML='页面初始化未完成：'+String(e.message).replace(/\n/g,'<br>');
     console.error(e);
   }
 }
@@ -149,11 +149,11 @@ function unlockAccess(){
   if(v===expected){
     document.getElementById('app')?.classList.remove('locked');
     localStorage.setItem('ln_access_ok','1');
-    if(stateEl)stateEl.textContent='已开启：可以填写位次并筛选。';
+    if(stateEl)stateEl.textContent='已进入：可以填写位次并查看方案。';
     if(top)top.value='';
     if(typeof autoRefresh==='function') autoRefresh();
   }else{
-    if(stateEl)stateEl.textContent='访问码不正确，请输入 ln2025。';
+    if(stateEl)stateEl.textContent='访问码未通过，请核对后再试。';
     top?.focus();
   }
 }
@@ -183,16 +183,16 @@ function manualExecute(){
 window.addEventListener('error', function(e){
   const el=document.getElementById('cards');
   if(el){
-    el.innerHTML='<div class="result-error"><b>页面执行出现错误：</b><br>'+String(e.message||e.error||'未知错误')+'<br>请检查是否上传了 data 文件夹，或点击“开始筛选 / 重新筛选”。</div>';
+    el.innerHTML='<div class="result-error"><b>页面运行遇到问题：</b><br>'+String(e.message||e.error||'未知错误')+'<br>请检查是否上传了 data 文件夹，或点击“查看方案 / 重新计算”。</div>';
   }
 });
 function syncAccessState(){
   const stateEl=document.getElementById('accessState');
   if(!stateEl)return;
   if(localStorage.getItem('ln_access_ok')==='1'){
-    stateEl.textContent='已开启：可以填写位次并筛选。';
+    stateEl.textContent='已进入：可以填写位次并查看方案。';
   }else{
-    stateEl.textContent='请输入 ln2025 开启工具。';
+    stateEl.textContent='请输入访问码 ln2025 后进入工具。';
   }
 }
 
@@ -211,8 +211,8 @@ function updateGuideState(){
 }
 function autoRefresh(){
   autoRefreshAsync().then(()=>{renderBaselineSummaryV2950();applySimpleModeV2950();}).catch(e=>{
-    document.getElementById('metaRecords').textContent='计算失败';
-    const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='计算失败：'+String(e.message).replace(/\n/g,'<br>');
+    document.getElementById('metaRecords').textContent='本次计算未完成';
+    const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='本次计算未完成：'+String(e.message).replace(/\n/g,'<br>');
     console.error(e);
   });
 }

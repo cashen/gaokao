@@ -2,8 +2,8 @@
 function parentLine(r){
   if(r._level==='匹配')return '这条与当前位次接近，适合作为主体候选，需要精读招生计划和专业组。';
   if(r._level==='稳妥')return '这条录取把握更高，适合放在中后段兜住，但仍要看专业质量。';
-  if(r._level==='保底')return '这条偏保底，用来防滑档，不建议只因稳就盲选。';
-  if(r._level==='可冲')return '这条是可冲候选，适合少量放在前段，不建议押宝。';
+  if(r._level==='保底')return '这条偏保底，用来兜住底线，不建议只因稳就盲选。';
+  if(r._level==='可冲')return '这条是可冲候选，适合少量放在前段，不建议只依赖这一类选择。';
   if(r._level==='超冲')return '这条明显偏冲，除非特别喜欢，否则不要占用太多志愿位。';
   if(r._level==='过低')return '这条位次放宽较多，可以做兜底核验，但要防止专业和学校质量让步过大。';
   return '未输入位次时仅作检索参考。';
@@ -69,7 +69,7 @@ function ensureCardViewModeToolbarV29461(){
       <button type="button" data-card-view-mode="standard" onclick="setCardViewModeV29461('standard')">标准</button>
       <button type="button" data-card-view-mode="detailed" onclick="setCardViewModeV29461('detailed')">详细</button>
     </div>
-    <div class="view-mode-tip-v29461">风险标签默认外露，解释内容按需展开；PNG 导出跟随当前展开状态。</div>`;
+    <div class="view-mode-tip-v29461">复核标签默认外露，解释内容按需展开；PNG 导出跟随当前展开状态。</div>`;
   anchor.parentElement.insertBefore(bar, anchor);
   syncCardViewModeButtonsV29461();
 }
@@ -146,8 +146,8 @@ function admissionIdentityV2945(r){
   let label = attrs[0], cls='ok', text='招生名与本科目录专业较接近，但仍要保留原始招生名，避免丢失校区、学费、备注、体检等限制。';
   if(label==='大类招生'){cls='warn';text='这不是最终毕业专业，通常还要看入校后的专业分流规则。不要默认等于其中某一个热门专业。';}
   if(label==='试验班/特色班'){cls='warn';text='这是招生入口或培养模式名称，不宜直接等同单一本科目录专业。重点核验分流、退出和转专业规则。';}
-  if(label==='中外合作/高收费'){cls='danger';text='专业本体可校准，但收费、培养方案、证书说明和转专业政策需要单独核验，不能按普通同名专业理解。';}
-  if(label==='专项/特殊入口'){cls='warn';text='这类入口通常有资格、培养或政策条件，不能直接和普通专业混排理解。';}
+  if(label==='中外合作/高收费'){cls='danger';text='专业本体可校准，但收费、培养方案、证书说明和转专业政策需要单独核验，不宜按普通同名专业理解。';}
+  if(label==='专项/特殊入口'){cls='warn';text='这类入口通常有资格、培养或政策条件，不宜直接和普通专业混排理解。';}
   if(label==='方向/培养模式'){cls='mid';text='目录校准只识别专业本体，括号内方向或培养模式要作为招生属性单独保留。';}
   return {label, cls, attrs, text, raw, clean};
 }
@@ -165,24 +165,24 @@ function costInsightV2945(r){
   const fee = moneyTextV2945(r.tuition2025);
   const isPrivate = /民办|独立/.test(String(r.schoolNature?.label || r.schoolNatureLabel || ''));
   if(r.isHighFee || /中外合作|高收费/.test(String(r.major||'') + String(r.tuitionStatus||''))){
-    return {label:'成本风险高', cls:'danger', text:`学费/收费属性：${fee}。普通家庭不要只看学校名，必须单独核验总成本、证书说明和转专业政策。`};
+    return {label:'成本压力较高', cls:'danger', text:`学费/收费属性：${fee}。普通家庭不要只看学校名，建议单独核验总成本、证书说明和转专业政策。`};
   }
   if(isPrivate){
-    return {label:'民办成本需核验', cls:'warn', text:`学校性质倾向：${r.schoolNature?.label||'民办/独立'}；学费：${fee}。建议把四年总成本和就业预期一起算。`};
+    return {label:'民办/独立学院成本需核算', cls:'warn', text:`学校性质倾向：${r.schoolNature?.label||'民办/独立'}；学费：${fee}。建议把四年总成本和就业预期一起算。`};
   }
   if(fee === '待核验') return {label:'学费待核验', cls:'mid', text:'当前学费字段待核验。正式填报前建议回到招生计划或学校招生章程确认。'};
-  return {label:'成本风险较低', cls:'ok', text:`学费参考：${fee}。仍需复核住宿、校区和专业特殊收费。`};
+  return {label:'成本压力较低', cls:'ok', text:`学费参考：${fee}。仍需复核住宿、校区和专业特殊收费。`};
 }
 function nameTrapV2945(r){
   const m = String(r.major || '');
   const traps = [];
-  if(/智能医学工程|医学影像技术|医学检验技术|康复治疗|护理|生物医学工程/.test(m)) traps.push('医学相关不等于临床医生路径，能否当医生要看具体专业和执业资格。');
-  if(/计算机类/.test(m)) traps.push('计算机类不等于一定分到计算机科学与技术，关键看分流规则。');
-  if(/电子信息类/.test(m)) traps.push('电子信息类可能含通信、电子、光电、集成电路等方向，不等于纯计算机。');
-  if(/电气类/.test(m)) traps.push('电气类不等于必然进入电网，学校平台、专业方向和招聘口径都要看。');
+  if(/智能医学工程|医学影像技术|医学检验技术|康复治疗|护理|生物医学工程/.test(m)) traps.push('医学相关并不等同于临床医生路径，能否当医生要看具体专业和执业资格。');
+  if(/计算机类/.test(m)) traps.push('计算机类并不等同于一定分到计算机科学与技术，关键看分流规则。');
+  if(/电子信息类/.test(m)) traps.push('电子信息类可能含通信、电子、光电、集成电路等方向，并不等同于纯计算机。');
+  if(/电气类/.test(m)) traps.push('电气类并不等同于必然进入电网，学校平台、专业方向和招聘口径都要看。');
   if(/管理科学与工程|工程管理|工业工程|物流工程/.test(m)) traps.push('名称偏“工程”，但就业口径可能偏管理/流程/现场，需看培养方案。');
   if(/材料|化学|化工|环境|食品|生物/.test(m)) traps.push('化学材料生物食品环境类差异很大，建议结合是否读研和行业接受度判断。');
-  if(/建筑学|城乡规划|风景园林/.test(m)) traps.push('建筑规划园林通常有作品、周期或行业景气因素，不能只看学校层级。');
+  if(/建筑学|城乡规划|风景园林/.test(m)) traps.push('建筑规划园林通常有作品、周期或行业景气因素，建议不要只看学校层级。');
   if(/法学|公安|侦查|治安|警务/.test(m)) traps.push('法学/公安相关路径差异大，需核验是否公安院校、是否有入警政策或体检要求。');
   return traps.slice(0,2);
 }
@@ -213,12 +213,12 @@ function candidateAdviceV2945(r){
   if(level==='过低') {score-=10; reasons.push('位次放宽较多，要防止只图稳');}
   if((r._profile||0)>=70) {score+=16; reasons.push('画像匹配较高');}
   else if((r._profile||0)<45) {score-=12; reasons.push('画像匹配偏低');}
-  if(cost.cls==='danger') {score-=28; reasons.push('成本/高收费风险');}
+  if(cost.cls==='danger') {score-=28; reasons.push('成本/收费需复核');}
   else if(cost.cls==='warn') {score-=12; reasons.push('成本需核验');}
-  if(['大类招生','试验班/特色班','专项/特殊入口'].includes(identity.label)) {score-=13; reasons.push('招生入口不等于最终专业');}
+  if(['大类招生','试验班/特色班','专项/特殊入口'].includes(identity.label)) {score-=13; reasons.push('招生入口并不等同于最终专业');}
   if(identity.label==='中外合作/高收费') {score-=18; reasons.push('合作办学需单独核验');}
   if(trend.cls==='danger') {score-=10; reasons.push('竞争明显增强');}
-  if((r.riskFlags||[]).length) {score-=8; reasons.push('已有风险标签');}
+  if((r.riskFlags||[]).length) {score-=8; reasons.push('已有复核标签');}
   if((r.keySubjectHints||[]).length) {score+=6; reasons.push('有重点学科提醒');}
   let label='建议保留', cls='ok';
   if(score>=35){label='建议保留';cls='ok';}
@@ -242,7 +242,7 @@ function renderParentInterestPanelV2945(r){
   const tagHtml = tags.length ? tags.map(x=>`<span class="pi-tag">${htmlSafeV2945(x)}</span>`).join('') : '<span class="pi-tag">方向待复核</span>';
   return `<details class="parent-insight-v2945 parent-insight-v29461"${open}>
     <summary>
-      <div class="pi-summary-title"><b>家长必读</b><span>默认只看摘要，展开后看完整解释</span></div>
+      <div class="pi-summary-title"><b>家长重点看</b><span>默认显示摘要，展开后查看完整解释</span></div>
       <em class="advice ${advice.cls}">${htmlSafeV2945(advice.label)}</em>
       <ul class="pi-summary-bullets">${bulletHtml}</ul>
     </summary>
@@ -268,7 +268,7 @@ function renderParentInterestPanelV2945(r){
       </div>
       <div class="pi-subgrid">
         <div>
-          <label>名称风险提示</label>
+          <label>名称复核提示</label>
           ${trapHtml}
         </div>
         <div>
@@ -296,9 +296,9 @@ function confusablePairsForRecordV2946(r){
 function hasConfusableMajorV2946(r){ return confusablePairsForRecordV2946(r).length>0; }
 function hasConfusableGroupV2946(r,gid){ return confusablePairsForRecordV2946(r).some(p=>p.group_id===gid); }
 function riskLabelV2946(level){
-  if(level==='high') return '高风险易混';
-  if(level==='medium_high') return '中高风险易混';
-  if(level==='medium') return '中风险易混';
+  if(level==='high') return '需重点复核易混';
+  if(level==='medium_high') return '中需重点复核易混';
+  if(level==='medium') return '需复核易混';
   return '易混提醒';
 }
 function fmtMiniV2946(v){ return v===undefined||v===null||v===''?'-':String(v).replace(/\.0$/,''); }
@@ -433,10 +433,10 @@ function updateNarrowGuide(){
     el.innerHTML=`<b>没有命中结果。</b><br/>建议放宽区域、清空关键词，或关闭严格画像缩水。<div class="guide-actions"><button onclick="quickNarrow('clearKeywords')">清空学科/关键词</button><button onclick="document.getElementById('strictProfile').checked=false;autoRefresh()">关闭严格画像</button><button onclick="clearProvinces();document.getElementById('regionMode').value='none';autoRefresh()">放宽区域</button></div>`;
   }else if(total>500){
     el.className='narrow-guide';
-    el.innerHTML=`<b>结果偏多：${fmt(total)} 条。</b><br/>建议先按“区域 / 学科群 / 预算风险”做第一轮收窄，手机端会更好读。<div class="guide-actions"><button onclick="quickNarrow('ln')">只看辽宁</button><button onclick="quickNarrow('northeast')">东北优先</button><button onclick="quickNarrow('computer')">计算机</button><button onclick="quickNarrow('tech')">电子信息</button><button onclick="quickNarrow('grid')">电气能源</button><button class="warn" onclick="quickNarrow('noHighFee')">排除高收费</button></div>`;
+    el.innerHTML=`<b>结果偏多：${fmt(total)} 条。</b><br/>建议先按“区域 / 学科群 / 预算压力”做第一轮收窄，手机端会更好读。<div class="guide-actions"><button onclick="quickNarrow('ln')">只看辽宁</button><button onclick="quickNarrow('northeast')">东北优先</button><button onclick="quickNarrow('computer')">计算机</button><button onclick="quickNarrow('tech')">电子信息</button><button onclick="quickNarrow('grid')">电气能源</button><button class="warn" onclick="quickNarrow('noHighFee')">排除高收费</button></div>`;
   }else if(total<=80){
     el.className='narrow-guide good';
-    el.innerHTML=`<b>结果范围适合精读：${fmt(total)} 条。</b><br/>可以逐条看专业归属、学科置信度和风险标签，再加入候选。`;
+    el.innerHTML=`<b>结果范围适合精读：${fmt(total)} 条。</b><br/>可以逐条看专业归属、学科置信度和复核标签，再加入候选。`;
   }else{
     el.className='narrow-guide good';
     el.innerHTML=`<b>结果范围可用：${fmt(total)} 条。</b><br/>建议优先查看 A/B/C 方案，再按学科群或学校性质二次筛选。`;

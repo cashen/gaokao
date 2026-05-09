@@ -6,10 +6,10 @@ function renderStructure(){
   const rows=candidates.map(r=>DATA.find(x=>x.id===r.id)||r).map(r=>typeof enrichRecord==='function'?enrichRecord(r):enrich(r));
   const count=fn=>rows.filter(fn).length;
   const warnings=[];
-  if(count(r=>classify(r.rank2025)==='保底')===0)warnings.push('提醒：缺少保底');
+  if(count(r=>classify(r.rank2025)==='保底')===0)warnings.push('提醒：兜底项偏少');
   if(count(r=>['可冲','超冲'].includes(classify(r.rank2025)))>rows.length*0.45)warnings.push('提醒：冲得偏多');
-  if(count(r=>r.isHighFee)>0)warnings.push('提醒：含高收费');
-  if(count(r=>r.isCollegeSpecialPlanV29474)>0)warnings.push('提醒：含高校专项资格候选');
+  if(count(r=>r.isHighFee)>0)warnings.push('提醒：含高收费，需核算成本');
+  if(count(r=>r.isCollegeSpecialPlanV29474)>0)warnings.push('提醒：含高校专项资格候选，需确认资格');
   if(count(r=>r.schoolProvince!=='辽宁')>rows.length*0.6)warnings.push('提醒：省外比例较高');
   const items=[`总数 ${rows.length}`,`冲 ${count(r=>['可冲','超冲'].includes(classify(r.rank2025)))}`,`稳/匹配 ${count(r=>['匹配','稳妥'].includes(classify(r.rank2025)))}`,`保底 ${count(r=>classify(r.rank2025)==='保底')}`,`公办倾向 ${count(r=>r.schoolNature?.label==='公办倾向')}`,`沈阳 ${count(r=>r.lnArea==='沈阳')} / 大连 ${count(r=>r.lnArea==='大连')}`,...warnings];
   el.innerHTML=items.map(x=>`<div class="structure-item">${x}</div>`).join('');

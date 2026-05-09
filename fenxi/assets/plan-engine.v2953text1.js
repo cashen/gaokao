@@ -150,7 +150,7 @@ function diagnoseV29473(){
   }
   const mathLow=document.getElementById('mathTolerance')?.value==='low', fieldReject=document.getElementById('fieldWorkAcceptance')?.value==='reject', gradNo=(document.getElementById('gradPlan')?.value==='no'||document.getElementById('gradWillingnessV29471')?.value==='no');
   if(publicFirst && (mathLow||fieldReject||gradNo)){
-    add('public_fit','公办执念 + 专业适配风险','公办身份有价值，但当前孩子画像显示部分专业可读性需要二次确认。',['公办冷门专业扩展到相近可读专业','省内公办扩展到近省公办','必要时比较民办匹配专业'],['不建议无脑接受强工科','不建议把孩子完全不适配项当作让步项'],['课程难度','工程现场','读研依赖','孩子接受度'],['A 公办保底线','B 可读专业','C 民办匹配专业比较']);
+    add('public_fit','公办执念 + 专业适配风险','公办身份有价值，但当前孩子画像显示部分专业可读性需要二次确认。',['公办冷门专业扩展到相近可读专业','省内公办扩展到近省公办','必要时比较民办匹配专业'],['不建议只按标签接受强工科','不建议把孩子完全不适配项当作让步项'],['课程难度','工程现场','读研依赖','孩子接受度'],['A 公办保底线','B 可读专业','C 民办匹配专业比较']);
   }
   if(s.edgeScore && (s.budgetWide || document.getElementById('filterSchoolTier')?.value==='private')){
     add('private_path','民办现实路径','民办可以进入比较，但不能只为本科标签选择。',['民办作为路径比较','专业路径优先','同步比较优质高职/专升本路径'],['不建议只看本科身份','不建议忽略四年成本','不建议忽略孩子自律'],['学费','学校管理','就业资源','考研/考公路径'],['A 公办机会','B 民办本科路径','C 高职/专升本对照']);
@@ -159,10 +159,10 @@ function diagnoseV29473(){
     add('postgrad_trap','考研兜底幻觉','考研可以拓展路径，但不能弥补所有本科选择问题。',['深造依赖专业增加本科就业兜底','弱平台深造依赖改为平台更稳','把考研目标拆成专业和学校'],['不建议把考研当默认兜底','不建议用考研解释所有冷门专业'],['学习耐力','本科平台','考研失败兜底'],['A 本科就业可兜底','B 深造友好','C 平台上限']);
   }
   if(s.priority==='grid'||currentStrategy==='grid'){
-    add('grid_imagination','电网想象复核','电气类更接近电网方向，但自动化、测控、能源动力、电子信息不能直接等同电气正主。',['电气正主、泛电类、能源相关、自动化相关分层比较'],['不建议把所有“电/能源/自动化”都当电网正主'],['专业代码','学校电力背景','国网招聘口径'],['A 电气正主','B 泛电类相关','C 能源/自动化扩展']);
+    add('grid_imagination','电网想象复核','电气类更接近电网方向，但自动化、测控、能源动力、电子信息不宜直接等同电气正主。',['电气正主、泛电类、能源相关、自动化相关分层比较'],['不建议把所有“电/能源/自动化”都当电网正主'],['专业代码','学校电力背景','国网招聘口径'],['A 电气正主','B 泛电类相关','C 能源/自动化扩展']);
   }
   if(currentStrategy==='medical'||getGroup('medicine')==='prefer'){
-    add('medical_path','医学路径误认复核','带“医学”不等于医生路径，需要分清临床医生、医学技术、护理康复、药学检验。',['医生路径、医学技术路径、护理康复路径分层比较'],['不建议把医学技术当临床医生路径','不建议忽略长周期和执业资格'],['执业资格','规培周期','培养方案','是否医生路径'],['A 医生路径','B 医学技术','C 护理康复/药学检验']);
+    add('medical_path','医学路径误认复核','带“医学”并不等同于医生路径，需要分清临床医生、医学技术、护理康复、药学检验。',['医生路径、医学技术路径、护理康复路径分层比较'],['不建议把医学技术当临床医生路径','不建议忽略长周期和执业资格'],['执业资格','规培周期','培养方案','是否医生路径'],['A 医生路径','B 医学技术','C 护理康复/药学检验']);
   }
   if(many && currentStrategy==='broad'){
     add('too_broad','全量观察过宽','当前不是条件过紧，而是条件过宽，需要先确定底线。',['先问学费、省内、民办/中外合作、专业排斥','再看位次和路径'],['不建议直接看大列表','不建议只按最低分排序'],['家庭底线','专业路径','复核清单'],['A 成本优先缩小','B 地域优先缩小','C 专业路径缩小']);
@@ -230,18 +230,18 @@ function planReviewTagsV29473(r,type){
 }
 function planCardV29473(type,row){
   const meta={
-    A:{cls:'a',title:'A：稳妥公办方案',fit:'普通家庭、低容错、强省内、公办优先家庭',sacrifice:'可能牺牲城市、专业热度和学校层级',risk:'公办不等于一定适配，低分段要看孩子能不能读下去',line:'优先保公办、普通学费和基本路径，适合先守住底线。'},
+    A:{cls:'a',title:'A：稳妥公办方案',fit:'普通家庭、低容错、强省内、公办优先家庭',sacrifice:'可能牺牲城市、专业热度和学校层级',risk:'公办并不等同于一定适配，低分段要看孩子能不能读下去',line:'优先保公办、普通学费和基本路径，适合先守住底线。'},
     B:{cls:'b',title:'B：专业路径方案',fit:'强就业、强考研、强体制或孩子有明确兴趣的家庭',sacrifice:'可能牺牲学校层级、城市和省内偏好',risk:'专业名可能误认，部分方向依赖读研、行业背景或资格路径',line:'优先看专业是否看得准、孩子是否学得动、毕业后路径是否清楚。'},
-    C:{cls:'c',title:'C：城市 / 学校层级方案',fit:'预算较宽、强城市、高分段或想争取平台上限的家庭',sacrifice:'可能牺牲专业确定性、普通学费和省内照应',risk:'高收费、证书、校区、大类分流和专业适配必须复核',line:'争取城市资源和学校平台，但不等于天然更优。'}
+    C:{cls:'c',title:'C：城市 / 学校层级方案',fit:'预算较宽、强城市、高分段或想争取平台上限的家庭',sacrifice:'可能牺牲专业确定性、普通学费和省内照应',risk:'高收费、证书、校区、大类分流和专业适配建议重点复核',line:'争取城市资源和学校平台，但并不等同于天然更优。'}
   }[type];
-  if(!row){return `<div class="plan-card-v29473 ${meta.cls}"><h3>${meta.title}</h3><p class="plan-line">暂无合适候选。建议先查看冲突诊断，放宽压缩最大的偏好项。</p><div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>风险</b><span>${meta.risk}</span></div></div>`;}
+  if(!row){return `<div class="plan-card-v29473 ${meta.cls}"><h3>${meta.title}</h3><p class="plan-line">暂无合适候选。建议先查看冲突诊断，放宽压缩最大的偏好项。</p><div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>复核</b><span>${meta.risk}</span></div></div>`;}
   const tags=planReviewTagsV29473(row,type).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
   const why=(row._reasons||[]).slice(0,3).join('；')||'位次和画像匹配度较高';
   return `<div class="plan-card-v29473 ${meta.cls}">
     <div class="plan-head"><h3>${meta.title}</h3><span>${row._level||'观察'}</span></div>
     <p class="plan-line">${meta.line}</p>
     <div class="plan-pick"><b>${htmlSafeV2945(row.school)}</b><em>${htmlSafeV2945(row.major)}</em><small>${htmlSafeV2945(geoDisplayV29472(row))}｜${row.schoolNature?.label||'性质待核验'}｜画像${Math.round(row._profile||0)}分｜2025位次${fmt(row.rank2025)}</small></div>
-    <div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>主要风险</b><span>${meta.risk}</span><b>为什么入选</b><span>${htmlSafeV2945(why)}</span></div>
+    <div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>主要复核</b><span>${meta.risk}</span><b>为什么入选</b><span>${htmlSafeV2945(why)}</span></div>
     <div class="review-tags-v29473"><strong>需复核</strong>${tags}</div>
   </div>`;
 }
@@ -270,19 +270,19 @@ function pathMetaV29475(type){
   const s=typeof conditionSnapshotV29473==='function'?conditionSnapshotV29473():{};
   const cTitle=(s.coopIntent||s.budget==='coop')?'C：城市 / 学校层级 / 中外合作提档':'C：城市 / 学校层级 / 提档路径';
   return {
-    A:{cls:'a',title:'A：稳妥公办路径',line:'优先保公办、普通学费和基本路径，适合先守住底线。',fit:'普通家庭、低容错、强省内、公办优先家庭',sacrifice:'可能牺牲城市、专业热度和学校层级',risk:'公办不等于一定适配，低分段要看孩子能不能读下去'},
+    A:{cls:'a',title:'A：稳妥公办路径',line:'优先保公办、普通学费和基本路径，适合先守住底线。',fit:'普通家庭、低容错、强省内、公办优先家庭',sacrifice:'可能牺牲城市、专业热度和学校层级',risk:'公办并不等同于一定适配，低分段要看孩子能不能读下去'},
     B:{cls:'b',title:'B：专业路径',line:'优先看专业是否看得准、孩子是否学得动、毕业后路径是否清楚。',fit:'强就业、强考研、强体制或孩子有明确兴趣的家庭',sacrifice:'可能牺牲学校层级、城市和省内偏好',risk:'专业名可能误认，部分方向依赖读研、行业背景或资格路径'},
-    C:{cls:'c',title:cTitle,line:(s.coopIntent?'把普通批更高层级、中外合作提档、民办城市专业并列比较。':'争取城市资源和学校平台，但不等于天然更优。'),fit:'预算较宽、强城市、高分段或想争取平台上限的家庭',sacrifice:'可能牺牲专业确定性、普通学费和省内照应',risk:'高收费、证书、校区、大类分流和专业适配必须复核'}
+    C:{cls:'c',title:cTitle,line:(s.coopIntent?'把普通批更高层级、中外合作提档、民办城市专业并列比较。':'争取城市资源和学校平台，但并不等同于天然更优。'),fit:'预算较宽、强城市、高分段或想争取平台上限的家庭',sacrifice:'可能牺牲专业确定性、普通学费和省内照应',risk:'高收费、证书、校区、大类分流和专业适配建议重点复核'}
   }[type];
 }
 function planRiskTextV29475(r,type){
   if(!r)return '';
-  if(r.isCoopV29475)return '中外合作不是天然提档，证书、校区、培养模式必须复核';
+  if(r.isCoopV29475)return '中外合作不是天然提档，证书、校区、培养模式建议重点复核';
   if(r.isPrivateV29475)return '民办本科要核算四年成本、学校资源和孩子自律';
   if(type==='A' && r.isHighFee)return '高收费不适合直接当稳妥方案，需复核家庭承受力';
-  if(type==='B' && hasConfusableMajorV2946 && hasConfusableMajorV2946(r))return '专业名称存在易混点，必须看本科代码和培养方案';
+  if(type==='B' && hasConfusableMajorV2946 && hasConfusableMajorV2946(r))return '专业名称存在易混点，建议重点看本科代码和培养方案';
   if(type==='C')return '上限更高但不确定性更强，需复核校区、学费和专业归属';
-  if(type==='A')return '稳妥不等于无风险，仍要看孩子能不能读下去';
+  if(type==='A')return '稳妥也需要复核细节，仍要看孩子能不能读下去';
   return '专业路径需结合培养方案、就业去向和孩子适配复核';
 }
 function whyPlanV29475(r,type){
@@ -484,7 +484,7 @@ const PLAN_MODES_V29476 = {
     line:'先保底线：公办、普通学费、位次更稳，适合普通家庭先看。',
     fit:'普通家庭、低容错、强省内、公办优先、预算谨慎家庭',
     sacrifice:'可能牺牲城市、专业热度、学校名气和上限空间',
-    risk:'公办不等于一定适配，仍要看孩子能不能读下去',
+    risk:'公办并不等同于一定适配，仍要看孩子能不能读下去',
     prefer:['public_school','normal_fee','safe_rank','low_risk','region_match'],
     avoid:['high_fee','private_college','special_plan_without_qualification','unclear_major'],
     review:['学校性质','学费','校区','招生章程','专业课程']
@@ -506,7 +506,7 @@ const PLAN_MODES_V29476 = {
     line:'争取上限：城市、学校层级或中外合作提档，但复核要求更高。',
     fit:'预算较宽、强城市、高分段、学校层级优先或想提档家庭',
     sacrifice:'可能牺牲专业确定性、普通学费、省内照应或孩子适配',
-    risk:'高收费、证书、校区、大类分流和专业适配必须复核',
+    risk:'高收费、证书、校区、大类分流和专业适配建议重点复核',
     prefer:['school_tier_lift','city_lift','coop_lift','platform_value'],
     avoid:['fake_lift','unverified_certificate','uncontrolled_cost'],
     review:['学费','证书','培养地点','是否必须出国','转专业政策']
@@ -538,7 +538,7 @@ const PATH_RULES_V29476 = {
     core:['电气工程及其自动化','智能电网信息工程'],
     related:['自动化','能源与动力工程','新能源科学与工程','储能科学与工程','测控技术与仪器'],
     regex:/电气|智能电网|电力|能源与动力|新能源|储能|自动化|测控|核工程|能源/,
-    confusable:['自动化、测控、电子信息不能直接等同电气正主','电网方向必须复核招聘口径'],
+    confusable:['自动化、测控、电子信息不宜直接等同电气正主','电网方向建议重点复核招聘口径'],
     career:['电力系统','能源企业','装备制造','国企央企相关岗位'],
     review:['专业代码','学校行业背景','电网招聘口径','就业质量报告']
   },
@@ -565,7 +565,7 @@ const PATH_RULES_V29476 = {
     core:['临床医学','口腔医学','麻醉学','医学影像学'],
     related:['医学影像技术','医学检验技术','护理学','康复治疗学','药学'],
     regex:/临床|口腔|麻醉|儿科|医学影像|医学检验|护理|康复|药学|预防医学|中医学|针灸/,
-    confusable:['医学技术不等于临床医生路径','护理康复和药学需要单独看执业路径'],
+    confusable:['医学技术并不等同于临床医生路径','护理康复和药学需要单独看执业路径'],
     career:['医院','医学技术','护理康复','药学检验','继续深造'],
     review:['是否医生路径','执业资格','规培周期','培养年限']
   },
@@ -592,7 +592,7 @@ const PATH_RULES_V29476 = {
     core:['法学','汉语言文学','计算机科学与技术','会计学','财务管理'],
     related:['行政管理','思想政治教育','统计学','公安学类','社会工作'],
     regex:/法学|汉语言|计算机|会计|财务|审计|统计|思想政治|公安|行政管理|社会工作/,
-    confusable:['体制路径不是专业一选就稳，必须看岗位表','经管法文不能泛化成全部考公友好'],
+    confusable:['体制路径不是专业一选就稳，建议重点看岗位表','经管法文不能泛化成全部考公友好'],
     career:['公务员','事业编','教师编','国企央企','基层岗位'],
     review:['近年岗位表','学历要求','地区限制','备考能力']
   },
@@ -675,8 +675,8 @@ planRiskTextV29475 = function(r,type){
   if(!r)return '';
   if(type==='A'){
     if(r.isHighFee||r.isCoopV29475)return '高收费/中外合作不宜直接当稳妥方案，必须确认家庭承受力。';
-    if(r.isPrivateV29475)return '民办身份不适合默认放入稳妥底线，需单独比较成本和资源。';
-    return '稳妥不等于无风险，仍需复核孩子能否读下去、校区和培养方案。';
+    if(r.isPrivateV29475)return '民办院校不宜默认放入稳妥底线，建议单独比较成本和资源。';
+    return '稳妥也需要复核细节，仍需复核孩子能否读下去、校区和培养方案。';
   }
   if(type==='B'){
     const info=majorPathInfoV29476(r);
@@ -684,7 +684,7 @@ planRiskTextV29475 = function(r,type){
     return '专业路径需结合培养方案、就业去向和孩子适配复核。';
   }
   const lift=liftExchangeInfoV29476(r);
-  if(lift.label==='疑似伪提档')return '可能只是名称或学校层级看起来更好，证书、专业和培养地点必须复核。';
+  if(lift.label==='疑似伪提档')return '可能只是名称或学校层级看起来更好，证书、专业和培养地点建议重点复核。';
   if(r.isCoopV29475||r.isHighFee)return '中外合作不是天然提档，需核验证书、学费、校区和培养模式。';
   if(r.isPrivateV29475)return '民办城市专业要核算四年成本、学校资源和孩子自律。';
   return '上限更高但不确定性更强，需复核校区、专业归属和实际资源。';
@@ -743,7 +743,7 @@ primaryPlanItemV29475Fix2 = function(r,type){
     <div class="path-badges-v29475fix2">${planBadgesV29475Fix2(r,type)}</div>
     ${explanationPanelV29476(r,type)}
     <p><strong>${type==='A'?'为什么稳':type==='B'?'为什么是路径':'换来了什么'}：</strong>${htmlSafeV2945(stripReasonPrefixV29475Fix3(strongWhyV29475Fix2(r,type,0)))}</p>
-    <p><strong>主要风险：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
+    <p><strong>主要复核点：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
     <div class="review-tags-v29473"><strong>复核</strong>${tags}</div>
     <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','首选')">加入自选</button>
   </div>`;
@@ -758,7 +758,7 @@ backupPlanItemV29475Fix2 = function(r,type,idx){
     <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
     <div class="backup-path-v29476">${type==='B'?htmlSafeV2945(majorPathInfoV29476(r).label):type==='C'?htmlSafeV2945(liftExchangeInfoV29476(r).label):htmlSafeV2945(baselineHitsV29476(r).slice(0,2).join('｜'))}</div>
     <div class="backup-line-v29475fix5"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
-    <div class="backup-line-v29475fix5 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
+    <div class="backup-line-v29475fix5 muted"><b>复核</b><span>${htmlSafeV2945(risk)}</span></div>
     <div class="backup-tags-v29475fix5"><b>复核</b>${tags}</div>
     <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','备选')">加入</button>
   </div>`;
@@ -872,7 +872,7 @@ function planSmallCardV2950(r,type,idx){
     <em>${v2950Text(r.major)}</em>
     <small>${v2950Text(meta)}</small>
     <p><b>${type==='A'?'底线':type==='B'?'路径':'交换'}</b>${v2950Text(role)}</p>
-    <p class="muted"><b>风险</b>${v2950Text(compactTextV29475Fix3?compactTextV29475Fix3(risk,54):risk)}</p>
+    <p class="muted"><b>复核</b>${v2950Text(compactTextV29475Fix3?compactTextV29475Fix3(risk,54):risk)}</p>
     <button class="ghost slim" onclick="addPlanOneV29475Fix2('${v2950Text(r.id)}','${type}','备选')">加入</button>
   </div>`;
 }
@@ -890,7 +890,7 @@ function planPrimaryCardV2950(r,type){
     <div class="meta-v2950">${v2950Text(meta)}</div>
     ${explain}
     <p><strong>${type==='A'?'为什么稳':type==='B'?'为什么是路径':'换来了什么'}：</strong>${v2950Text(primaryWhyV2950(r,type))}</p>
-    <p><strong>主要风险：</strong>${v2950Text(planRiskTextV29475(r,type))}</p>
+    <p><strong>主要复核点：</strong>${v2950Text(planRiskTextV29475(r,type))}</p>
     <div class="review-v2950"><b>复核</b>${tags}</div>
     <button class="ghost slim" onclick="addPlanOneV29475Fix2('${v2950Text(r.id)}','${type}','首选')">加入自选</button>
   </div>`;
