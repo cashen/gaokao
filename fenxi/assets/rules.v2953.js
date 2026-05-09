@@ -1,7 +1,7 @@
 /*
- * V2.9.5.2｜场景与目标路径统一规则版
+ * V2.9.5.3｜场景与目标路径统一规则版
  * 只定义规则，不操作 DOM，不加载数据，不渲染页面。
- * app.v2952.js 读取 window.LN_GAOKAO_RULES_V2952。
+ * app.v2952.js 读取 window.LN_GAOKAO_RULES_V2953。
  */
 (function(){
   const scenarioPresets = {
@@ -183,8 +183,8 @@
     majorClass:{label:'大类招生',review:['大类分流','可选专业范围','退出机制','转专业政策'],warning:'大类招生必须复核分流规则和可选专业范围。'}
   };
 
-  window.LN_GAOKAO_RULES_V2952 = {
-    version:'V2.9.5.2',
+  window.LN_GAOKAO_RULES_V2953 = {
+    version:'V2.9.5.3',
     scenarioPresets,
     strategyRules: scenarioPresets,
     preferenceRules,
@@ -195,5 +195,7 @@
     defaults:{selectedScenario:'employment'},
     uiText:{scenarioIntro:'场景卡只加载建议策略；目标路径可手动微调，家庭底线优先级最高。'}
   };
-  window.LN_GAOKAO_RULES_V2951 = window.LN_GAOKAO_RULES_V2952;
+  window.LN_GAOKAO_RULES_V2951 = window.LN_GAOKAO_RULES_V2953;
 })();
+
+window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility alias

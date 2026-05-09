@@ -909,7 +909,7 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 }
 
 /* =========================
- * V2.9.5.2｜家长流程重排与方案引擎瘦身版
+ * V2.9.5.3｜家长流程重排与方案引擎瘦身版
  * ========================= */
 .mode-switch-v2950{display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:12px;padding:10px 12px;border:1px solid #dbe5f5;background:#f8fbff;border-radius:16px;color:#475569;font-size:13px}
 .mode-switch-v2950 label{font-weight:800;color:#0f172a;display:flex;gap:8px;align-items:center}
@@ -945,11 +945,11 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 @media (max-width:760px){.mode-switch-v2950{justify-content:flex-start;align-items:flex-start;flex-direction:column}.abc-board-v2950{display:block}.plan-col-v2950{margin-bottom:12px}.abc-toolbar-v2950{display:block}.abc-toolbar-v2950 button{margin-top:10px;width:100%}.baseline-snapshot-v2950{grid-template-columns:1fr}.baseline-grid-v2950 .q-card{grid-column:span 12}.plan-col-head-v2950{display:block}.plan-col-head-v2950 button{margin-top:8px;width:100%}.guide-nav{overflow-x:auto}.mobile-bottom-guide{grid-template-columns:repeat(5,1fr)}}
 
 
-/* V2.9.5.2｜场景规则中心 */
+/* V2.9.5.3｜场景规则中心 */
 .strategy-rule-hint{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 12px;padding:11px 14px;border:1px solid #dbeafe;background:#eff6ff;border-radius:14px;color:#1e3a8a;font-size:13px}.strategy-rule-hint b{font-size:14px}.strategy-rule-hint span{color:#475569}.scenario-card-v2951{position:relative;text-align:left}.scenario-card-v2951 em{position:absolute;right:12px;bottom:10px;font-style:normal;font-size:12px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:999px;padding:2px 8px}.scenario-explain-v2951{margin:12px 0 0;padding:14px;border:1px solid #bfdbfe;background:#f8fbff;border-radius:16px}.scenario-explain-v2951 strong{font-size:15px}.scenario-explain-v2951 p{margin:5px 0;color:#475569}.scenario-tags-v2951{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.scenario-tags-v2951 em{font-style:normal;font-weight:800;color:#0f172a;margin-right:4px}.scenario-tags-v2951 span{font-size:12px;color:#1d4ed8;background:#eff6ff;border:1px solid #dbeafe;border-radius:999px;padding:4px 8px}.scenario-abc-v2951{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr;gap:6px 8px;margin-top:10px;padding-top:10px;border-top:1px dashed #cbd5e1;color:#475569;font-size:13px}.scenario-abc-v2951 b{color:#0f172a}.advanced-toggle-v2951{align-items:center}.advanced-actions-v2951{display:flex;gap:8px;align-items:center}.advanced-actions-v2951 button{border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:5px 10px;font-weight:800;cursor:pointer}.parent-simple-v2950 #advancedFilters.open{display:block}@media(max-width:760px){.scenario-abc-v2951{grid-template-columns:auto 1fr}.advanced-toggle-v2951{display:block}.advanced-actions-v2951{margin-top:8px}.advanced-actions-v2951 button{width:100%;margin-bottom:6px}.strategy-rule-hint{display:block}.scenario-card-v2951 em{position:static;display:inline-block;margin-top:8px}}
 
 
-/* V2.9.5.2 场景与目标路径统一 */
+/* V2.9.5.3 场景与目标路径统一 */
 .target-path-panel-v2952{
   margin:14px 0 14px;
   border:1px solid #d7e4ff;
