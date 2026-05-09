@@ -1,4 +1,4 @@
-// V2.9.5.3 config: paths, shared state and compatibility constants
+// V2.9.5.3.fix3 config: paths, shared state and compatibility constants
 const DATA_FILES={
   manifest:'data/manifest.json',
   rank:'data/rank_2025_physics.json',
