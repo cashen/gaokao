@@ -3,19 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>高考倒计时 | 2027 / 2026</title>
+  <title>高考倒计时 | 2026 / 2027</title>
+  <meta name="description" content="以北京时间 6 月 7 日 09:00 为目标的高考倒计时与高考数据导航。" />
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#172033",
+            muted: "#667085",
+            line: "#d8dee8",
+            paper: "#ffffff",
+            field: "#f6f8fb",
+            brand: "#1d4ed8",
+            steady: "#047857",
+            focus: "#b45309"
+          },
+          boxShadow: {
+            panel: "0 18px 42px rgba(23, 32, 51, 0.10)",
+            lift: "0 12px 24px rgba(23, 32, 51, 0.10)"
+          }
+        }
+      }
+    };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     :root {
       color-scheme: light;
       --ink: #172033;
       --muted: #667085;
-      --line: rgba(23, 32, 51, 0.12);
-      --paper: rgba(255, 255, 255, 0.84);
-      --blue: #2563eb;
-      --green: #059669;
-      --amber: #d97706;
+      --line: #d8dee8;
+      --paper: #ffffff;
+      --field: #f6f8fb;
+      --blue: #1d4ed8;
+      --green: #047857;
+      --amber: #b45309;
     }
 
     * {
@@ -23,33 +47,27 @@
     }
 
     html {
-      max-width: 100%;
+      min-width: 320px;
       overflow-x: hidden;
+      scroll-behavior: smooth;
     }
 
     body {
       min-height: 100vh;
       margin: 0;
       overflow-x: hidden;
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.18), transparent 30%),
-        radial-gradient(circle at 86% 14%, rgba(5, 150, 105, 0.16), transparent 28%),
-        linear-gradient(135deg, #f7fbff 0%, #eef7f2 47%, #fff8ed 100%);
+        linear-gradient(rgba(216, 222, 232, 0.58) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(216, 222, 232, 0.58) 1px, transparent 1px),
+        linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+      background-size: 32px 32px, 32px 32px, auto;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      text-rendering: geometricPrecision;
     }
 
-    body::before {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      content: "";
-      background-image:
-        linear-gradient(rgba(23, 32, 51, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23, 32, 51, 0.035) 1px, transparent 1px);
-      background-size: 34px 34px;
-      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 78%);
+    a {
+      color: inherit;
     }
 
     .num {
@@ -57,265 +75,357 @@
       letter-spacing: 0;
     }
 
-    .glass-panel {
-      width: 100%;
-      min-width: 0;
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      background: rgba(255, 255, 255, 0.74);
-      box-shadow: 0 24px 70px rgba(20, 35, 70, 0.14);
-      backdrop-filter: blur(18px);
-      overflow: hidden;
+    .surface {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 18px 42px rgba(23, 32, 51, 0.10);
     }
 
-    .count-card {
+    .time-card {
       position: relative;
       min-width: 0;
-      max-width: 100%;
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 8px;
       background: var(--paper);
-      box-shadow: 0 18px 50px rgba(20, 35, 70, 0.10);
     }
 
-    .count-card::before {
+    .time-card::before {
       position: absolute;
       inset: 0 auto 0 0;
-      width: 5px;
+      width: 4px;
       content: "";
-      background: linear-gradient(180deg, var(--blue), var(--green));
+      background: var(--accent, var(--blue));
     }
 
-    .count-card.secondary::before {
-      background: linear-gradient(180deg, var(--amber), var(--blue));
-    }
-
-    .time-box {
+    .metric {
       min-width: 0;
-      max-width: 100%;
-      border: 1px solid rgba(23, 32, 51, 0.08);
-      border-radius: 14px;
-      background: linear-gradient(180deg, #ffffff, #f8fafc);
-      box-shadow: inset 0 -1px 0 rgba(23, 32, 51, 0.04);
+      border: 1px solid #e5eaf1;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
     }
 
-    .nav-grid {
+    .nav-tile {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .nav-link {
-      display: flex;
-      min-height: 52px;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(37, 99, 235, 0.18);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.74);
-      color: #1d4ed8;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.25;
-      text-align: center;
-      text-decoration: none;
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
-    }
-
-    .nav-link:hover,
-    .nav-link:focus-visible {
-      border-color: rgba(37, 99, 235, 0.42);
+      min-height: 104px;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
       background: #ffffff;
-      box-shadow: 0 10px 28px rgba(37, 99, 235, 0.12);
+      padding: 16px;
+      text-decoration: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+
+    .nav-tile:hover,
+    .nav-tile:focus-visible {
+      border-color: rgba(29, 78, 216, 0.44);
+      box-shadow: 0 12px 24px rgba(23, 32, 51, 0.10);
       outline: none;
       transform: translateY(-2px);
     }
 
-    @media (max-width: 860px) {
-      .nav-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    .nav-icon {
+      display: inline-flex;
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #dbe4f0;
+      border-radius: 8px;
+      background: #f6f8fb;
+      color: var(--icon, var(--blue));
     }
 
-    @media (max-width: 520px) {
-      main {
-        display: block !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        overflow: hidden;
-      }
+    .timeline-step {
+      position: relative;
+      padding-left: 28px;
+    }
 
+    .timeline-step::before {
+      position: absolute;
+      top: 6px;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #ffffff;
+      border-radius: 999px;
+      background: var(--dot, var(--blue));
+      box-shadow: 0 0 0 1px var(--line);
+      content: "";
+    }
+
+    .timeline-step::after {
+      position: absolute;
+      top: 20px;
+      bottom: -18px;
+      left: 4px;
+      width: 1px;
+      background: var(--line);
+      content: "";
+    }
+
+    .timeline-step:last-child::after {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
       body {
-        background:
-          radial-gradient(circle at 12% 6%, rgba(37, 99, 235, 0.14), transparent 35%),
-          linear-gradient(135deg, #f7fbff 0%, #eef7f2 100%);
+        background-size: 24px 24px, 24px 24px, auto;
       }
 
-      .glass-panel {
-        width: min(358px, calc(100vw - 32px)) !important;
-        max-width: min(358px, calc(100vw - 32px));
-      }
-
-      .glass-panel > header,
-      .glass-panel > section,
-      .glass-panel > p,
-      .glass-panel > nav {
-        width: min(318px, calc(100vw - 72px)) !important;
-        max-width: min(318px, calc(100vw - 72px)) !important;
-      }
-
-      .count-card {
-        width: 100%;
-        border-radius: 16px;
-      }
-
-      .count-card > .mb-5 {
-        flex-direction: column;
-      }
-
-      .count-card .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      }
-
-      .glass-panel header .flex {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .time-box {
-        border-radius: 12px;
-      }
-
-      .time-box .num {
-        font-size: 2rem;
-        line-height: 1.1;
-      }
-
-      #nowText {
-        font-size: 12px;
-        line-height: 1.3;
-      }
-
-      .nav-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .nav-link {
-        min-height: 46px;
-        justify-content: flex-start;
-        padding: 0 14px;
-        text-align: left;
+      .metric {
+        padding-block: 14px;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
-    <section class="glass-panel rounded-[28px] px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
-      <header class="grid gap-6 md:grid-cols-[1.15fr_0.85fr] md:items-end">
-        <div>
-          <p class="mb-3 inline-flex rounded-full border border-blue-200 bg-white/70 px-3 py-1 text-sm font-semibold text-blue-700">
-            高考时间提醒
-          </p>
-          <h1 class="text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
-            高考倒计时
-          </h1>
-          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            以北京时间 6 月 7 日 09:00 为目标，实时更新 2027 与 2026 年高考剩余时间。
-          </p>
-        </div>
+  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+    <section class="surface overflow-hidden">
+      <header class="border-b border-line bg-paper px-5 py-5 sm:px-7 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+          <div class="min-w-0">
+            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
+              <span class="rounded border border-blue-200 bg-blue-50 px-2.5 py-1 text-brand">北京时间</span>
+              <span class="rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-steady">6 月 7 日 09:00</span>
+              <span class="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600">倒计时工具</span>
+            </div>
+            <h1 class="text-3xl font-black leading-tight text-slate-950 sm:text-5xl">
+              高考倒计时
+            </h1>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+              实时显示 2026 与 2027 年高考剩余时间，并整理常用数据工具入口。时间按中国标准时间计算，具体考试安排以官方公布为准。
+            </p>
+          </div>
 
-        <div class="rounded-2xl border border-white/70 bg-white/62 p-4 text-sm leading-6 text-slate-600">
-          <div class="flex items-center justify-between gap-3">
-            <span class="font-semibold text-slate-800">当前时间</span>
-            <span id="nowText" class="num text-right text-slate-700">--</span>
-          </div>
-          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
-            <div id="dayProgress" class="h-full rounded-full bg-gradient-to-r from-blue-600 via-emerald-500 to-amber-500" style="width: 0%"></div>
-          </div>
+          <aside class="border border-line bg-field p-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-sm font-semibold text-slate-500">当前时间</p>
+                <p id="nowText" class="num mt-1 text-xl font-black text-slate-950">--</p>
+              </div>
+              <svg class="mt-1 h-6 w-6 shrink-0 text-brand" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="mt-4">
+              <div class="mb-2 flex justify-between text-xs font-semibold text-slate-500">
+                <span>今日进度</span>
+                <span id="dayProgressText" class="num">0%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded bg-slate-200">
+                <div id="dayProgress" class="h-full rounded bg-brand" style="width: 0%"></div>
+              </div>
+            </div>
+          </aside>
         </div>
       </header>
 
-      <section class="mt-8 grid gap-4 lg:grid-cols-2 lg:gap-5" aria-label="高考倒计时">
-        <article class="count-card p-5 pl-6 sm:p-6 sm:pl-7">
+      <section class="grid gap-5 px-5 py-5 sm:px-7 lg:grid-cols-2 lg:px-8" aria-label="高考倒计时">
+        <article class="time-card p-5 pl-6 sm:p-6 sm:pl-7" style="--accent: var(--blue)">
           <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 class="text-2xl font-black text-slate-900">2027 高考</h2>
-              <p class="mt-1 text-sm text-slate-500">目标时间：2027-06-07 09:00</p>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-brand">目标时间：2027-06-07 09:00</p>
+              <h2 class="mt-1 text-2xl font-black text-slate-950">2027 高考</h2>
             </div>
-            <span id="status2027" class="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-700">倒计时中</span>
+            <span id="status2027" class="rounded border border-blue-200 bg-blue-50 px-2.5 py-1 text-sm font-bold text-brand">倒计时中</span>
           </div>
 
-          <div class="grid grid-cols-4 gap-2 text-center sm:gap-3">
-            <div class="time-box px-2 py-4">
-              <p id="d2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">000</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">天</p>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="metric px-3 py-4 text-center">
+              <p id="d2027" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">000</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">天</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="h2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">时</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="h2027" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">小时</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="m2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">分</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="m2027" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">分钟</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="s2027" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">秒</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="s2027" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">秒</p>
             </div>
           </div>
+          <p id="distance2027" class="mt-4 text-sm leading-6 text-slate-600">正在计算剩余周期。</p>
         </article>
 
-        <article class="count-card secondary p-5 pl-6 sm:p-6 sm:pl-7">
+        <article class="time-card p-5 pl-6 sm:p-6 sm:pl-7" style="--accent: var(--amber)">
           <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 class="text-2xl font-black text-slate-900">2026 高考</h2>
-              <p class="mt-1 text-sm text-slate-500">目标时间：2026-06-07 09:00</p>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-focus">目标时间：2026-06-07 09:00</p>
+              <h2 class="mt-1 text-2xl font-black text-slate-950">2026 高考</h2>
             </div>
-            <span id="status2026" class="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">倒计时中</span>
+            <span id="status2026" class="rounded border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-bold text-focus">倒计时中</span>
           </div>
 
-          <div class="grid grid-cols-4 gap-2 text-center sm:gap-3">
-            <div class="time-box px-2 py-4">
-              <p id="d2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">000</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">天</p>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="metric px-3 py-4 text-center">
+              <p id="d2026" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">000</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">天</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="h2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">时</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="h2026" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">小时</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="m2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">分</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="m2026" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">分钟</p>
             </div>
-            <div class="time-box px-2 py-4">
-              <p id="s2026" class="num text-3xl font-black text-slate-950 sm:text-4xl">00</p>
-              <p class="mt-1 text-xs font-semibold text-slate-500">秒</p>
+            <div class="metric px-3 py-4 text-center">
+              <p id="s2026" class="num text-4xl font-black leading-none text-slate-950 sm:text-5xl">00</p>
+              <p class="mt-2 text-xs font-bold text-slate-500">秒</p>
             </div>
           </div>
+          <p id="distance2026" class="mt-4 text-sm leading-6 text-slate-600">正在计算剩余周期。</p>
         </article>
       </section>
 
-      <p class="mt-6 rounded-2xl border border-white/70 bg-white/56 px-4 py-3 text-center text-sm leading-6 text-slate-600">
-        仅供时间参考，具体考试安排请以官方公布为准。
-      </p>
+      <section class="grid gap-5 border-t border-line bg-slate-50 px-5 py-5 sm:px-7 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+        <div class="border border-line bg-paper p-5">
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-bold text-slate-500">备考节点</p>
+              <h2 class="mt-1 text-xl font-black text-slate-950">临近周期提醒</h2>
+            </div>
+            <svg class="h-6 w-6 shrink-0 text-steady" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="space-y-4 text-sm leading-6 text-slate-600">
+            <div class="timeline-step" style="--dot: var(--blue)">
+              <p class="font-bold text-slate-900">90 天前</p>
+              <p>稳定作息与题型节奏，减少大幅改变复习方法。</p>
+            </div>
+            <div class="timeline-step" style="--dot: var(--green)">
+              <p class="font-bold text-slate-900">30 天前</p>
+              <p>回到错题、基础题和考试流程，控制新增资料量。</p>
+            </div>
+            <div class="timeline-step" style="--dot: var(--amber)">
+              <p class="font-bold text-slate-900">7 天前</p>
+              <p>确认证件、文具、路线和休息安排，以执行稳定为主。</p>
+            </div>
+          </div>
+        </div>
 
-      <nav class="nav-grid mt-5" aria-label="高考数据导航">
-        <a href="./liaoning.html" class="nav-link">辽宁学科评估</a>
-        <a href="./zy.html" class="nav-link">辽宁投档数据</a>
-        <a href="./ln2025.html" class="nav-link">2025 报考观察</a>
-        <a href="./lngk.html" class="nav-link">专业难度观察</a>
-        <a href="./gaokao-confusable-major-guide.html" class="nav-link">易混专业指北</a>
-      </nav>
+        <div>
+          <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="text-sm font-bold text-slate-500">数据工具</p>
+              <h2 class="mt-1 text-xl font-black text-slate-950">常用入口</h2>
+            </div>
+            <p class="text-sm text-slate-500">用于志愿分析、投档观察与专业判断</p>
+          </div>
+
+          <nav class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="高考数据导航">
+            <a href="./liaoning.html" class="nav-tile" style="--icon: var(--blue)">
+              <span class="nav-icon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block font-black text-slate-950">辽宁学科评估</span>
+                <span class="mt-1 block text-sm leading-5 text-slate-500">按学科与院校基础信息做初筛。</span>
+              </span>
+            </a>
+
+            <a href="./zy.html" class="nav-tile" style="--icon: var(--green)">
+              <span class="nav-icon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M7 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block font-black text-slate-950">辽宁投档数据</span>
+                <span class="mt-1 block text-sm leading-5 text-slate-500">查看投档分、位次与专业记录。</span>
+              </span>
+            </a>
+
+            <a href="./ln2025.html" class="nav-tile" style="--icon: var(--amber)">
+              <span class="nav-icon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 3v18M5 8h10.5a3.5 3.5 0 0 1 0 7H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block font-black text-slate-950">2025 报考观察</span>
+                <span class="mt-1 block text-sm leading-5 text-slate-500">复盘 2025 年报考与录取变化。</span>
+              </span>
+            </a>
+
+            <a href="./lngk.html" class="nav-tile" style="--icon: #7c3aed">
+              <span class="nav-icon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m4 18 6-6 4 4 6-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M15 8h5v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block font-black text-slate-950">专业难度观察</span>
+                <span class="mt-1 block text-sm leading-5 text-slate-500">比较专业热度、难度和风险信号。</span>
+              </span>
+            </a>
+
+            <a href="./gaokao-confusable-major-guide.html" class="nav-tile sm:col-span-2 xl:col-span-2" style="--icon: #be123c">
+              <span class="nav-icon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M10.3 4.3 2.7 17.5A2 2 0 0 0 4.4 20h15.2a2 2 0 0 0 1.7-2.5L13.7 4.3a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block font-black text-slate-950">易混专业指北</span>
+                <span class="mt-1 block text-sm leading-5 text-slate-500">识别名称相近但培养方向不同的专业。</span>
+              </span>
+            </a>
+          </nav>
+        </div>
+      </section>
+
+      <footer class="border-t border-line bg-paper px-5 py-4 text-sm leading-6 text-slate-500 sm:px-7 lg:px-8">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p>本页仅作时间与数据入口参考，正式考试时间、招生政策与录取规则以官方发布为准。</p>
+          <p class="num shrink-0">Asia/Shanghai UTC+08:00</p>
+        </div>
+      </footer>
     </section>
   </main>
 
   <script>
-    const CONFIG = {
+    const TARGETS = {
       2027: new Date("2027-06-07T09:00:00+08:00"),
       2026: new Date("2026-06-07T09:00:00+08:00")
     };
+
+    const units = [
+      ["d", 24 * 60 * 60 * 1000, 3],
+      ["h", 60 * 60 * 1000, 2],
+      ["m", 60 * 1000, 2],
+      ["s", 1000, 2]
+    ];
+
+    const nowFormatter = new Intl.DateTimeFormat("zh-CN", {
+      timeZone: "Asia/Shanghai",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+      hour12: false
+    });
 
     function pad(value, length = 2) {
       return String(value).padStart(length, "0");
@@ -328,45 +438,8 @@
       }
     }
 
-    function renderYear(year) {
-      const now = new Date();
-      const target = CONFIG[year];
-      const diff = target - now;
-      const status = document.getElementById(`status${year}`);
-
-      if (diff <= 0) {
-        setText(`d${year}`, "000");
-        setText(`h${year}`, "00");
-        setText(`m${year}`, "00");
-        setText(`s${year}`, "00");
-        if (status) {
-          status.textContent = "已开始";
-        }
-        return;
-      }
-
-      const oneSecond = 1000;
-      const oneMinute = oneSecond * 60;
-      const oneHour = oneMinute * 60;
-      const oneDay = oneHour * 24;
-
-      const days = Math.floor(diff / oneDay);
-      const hours = Math.floor((diff % oneDay) / oneHour);
-      const minutes = Math.floor((diff % oneHour) / oneMinute);
-      const seconds = Math.floor((diff % oneMinute) / oneSecond);
-
-      setText(`d${year}`, pad(days, 3));
-      setText(`h${year}`, pad(hours));
-      setText(`m${year}`, pad(minutes));
-      setText(`s${year}`, pad(seconds));
-      if (status) {
-        status.textContent = days <= 30 ? "冲刺阶段" : "倒计时中";
-      }
-    }
-
-    function renderNow() {
-      const now = new Date();
-      const formatter = new Intl.DateTimeFormat("zh-CN", {
+    function getShanghaiParts(date) {
+      const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Shanghai",
         year: "numeric",
         month: "2-digit",
@@ -374,12 +447,49 @@
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
+        hourCycle: "h23",
         hour12: false
+      }).formatToParts(date);
+
+      return Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, Number(part.value)]));
+    }
+
+    function renderYear(year) {
+      const now = new Date();
+      const diff = TARGETS[year] - now;
+      const remaining = Math.max(diff, 0);
+      let cursor = remaining;
+
+      units.forEach(([key, size, padLength]) => {
+        const value = Math.floor(cursor / size);
+        cursor %= size;
+        setText(`${key}${year}`, pad(value, padLength));
       });
-      const seconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+      const days = Math.floor(remaining / units[0][1]);
+      const status = document.getElementById(`status${year}`);
+      const distance = document.getElementById(`distance${year}`);
+
+      if (status) {
+        status.textContent = diff <= 0 ? "已开始" : days <= 30 ? "冲刺阶段" : "倒计时中";
+      }
+
+      if (distance) {
+        distance.textContent = diff <= 0
+          ? `${year} 年高考目标时间已到达。`
+          : `距离 ${year} 年高考还有 ${days} 天，建议按阶段推进复习与志愿资料整理。`;
+      }
+    }
+
+    function renderNow() {
+      const now = new Date();
+      const shanghai = getShanghaiParts(now);
+      const seconds = shanghai.hour * 3600 + shanghai.minute * 60 + shanghai.second;
       const progress = (seconds / 86400) * 100;
 
-      setText("nowText", formatter.format(now));
+      setText("nowText", nowFormatter.format(now));
+      setText("dayProgressText", `${progress.toFixed(1)}%`);
+
       const dayProgress = document.getElementById("dayProgress");
       if (dayProgress) {
         dayProgress.style.width = `${progress.toFixed(2)}%`;
@@ -387,13 +497,13 @@
     }
 
     function tick() {
-      renderYear(2027);
       renderYear(2026);
+      renderYear(2027);
       renderNow();
     }
 
     tick();
-    setInterval(tick, 1000);
+    window.setInterval(tick, 1000);
   </script>
 </body>
 </html>
