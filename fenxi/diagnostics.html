@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>V2.9.5.5｜孩子专业兴趣与规则中心增强版 模块诊断</title>
+<title>V2.9.6｜控制区收纳与交互性能优化版 模块诊断</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}.wrap{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.06)}.ok{color:#047857}.bad{color:#b91c1c}code{background:#f1f5f9;padding:2px 6px;border-radius:6px}.row{display:flex;gap:16px;justify-content:space-between;border-bottom:1px dashed #e2e8f0;padding:8px 0}.row:last-child{border-bottom:0}.small{color:#64748b;font-size:13px;word-break:break-all}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>V2.9.5.5｜孩子专业兴趣与规则中心增强版 模块诊断</h1>
+<h1>V2.9.6｜控制区收纳与交互性能优化版 模块诊断</h1>
 <p class="small">这个页面检查脚本是否真正加载、全局模块是否存在；不执行完整筛选。</p>
 <div class="card" id="errors"><b>运行时错误</b><div id="errorList" class="small">等待检测...</div></div>
 <div class="card"><b>脚本加载来源</b><div id="loadList" class="small">等待检测...</div></div>
@@ -23,13 +23,22 @@ window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:S
 </script>
 <script>
 (function(){
-  const VERSION='2954fix3-20260509c';
-  const files=["assets/config.v2955.js", "assets/rules.v2955.js", "assets/child-interest-rules.v2955.js", "assets/rule-runtime.v2955.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v2955.js", "assets/filter-engine.v2955.js", "assets/plan-engine.v2955.js", "assets/render.v2955.js", "assets/selection.v2955.js", "assets/export.v2955.js"];
+  const VERSION='296-20260510';
+  const files=["assets/config.v296.js", "assets/rules.v296.js", "assets/interaction-policy.v296.js", "assets/perf-monitor.v296.js", "assets/candidate-cache.v296.js", "assets/state-snapshot.v296.js", "assets/refresh-scheduler.v296.js", "assets/drawer.v296.js", "assets/child-interest-rules.v296.js", "assets/child-interest-runtime.v296.js", "assets/child-interest-ui.v296.js", "assets/scenario-ui.v296.js", "assets/abc-view.v296.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v296.js", "assets/filter-engine.v296.js", "assets/plan-engine.v296.js", "assets/render.v296.js", "assets/selection.v296.js", "assets/export.v296.js"];
   const required=[
     ['LN_CONFIG',()=>!!window.LN_CONFIG],
     ['LN_GAOKAO_RULES_V2953',()=>!!window.LN_GAOKAO_RULES_V2953],
-    ['LN_CHILD_INTEREST_RULES_V2955',()=>!!window.LN_CHILD_INTEREST_RULES_V2955],
-    ['LN_CHILD_INTEREST_RUNTIME_V2955',()=>!!window.LN_CHILD_INTEREST_RUNTIME_V2955 && window.LN_CHILD_INTEREST_RUNTIME_V2955.ready===true],
+    ['LN_INTERACTION_POLICY_V296',()=>!!window.LN_INTERACTION_POLICY_V296 && window.LN_INTERACTION_POLICY_V296.ready===true],
+    ['LN_REFRESH_SCHEDULER_V296',()=>!!window.LN_REFRESH_SCHEDULER_V296 && window.LN_REFRESH_SCHEDULER_V296.ready===true],
+    ['LN_STATE_SNAPSHOT_V296',()=>!!window.LN_STATE_SNAPSHOT_V296 && window.LN_STATE_SNAPSHOT_V296.ready===true],
+    ['LN_CANDIDATE_CACHE_V296',()=>!!window.LN_CANDIDATE_CACHE_V296 && window.LN_CANDIDATE_CACHE_V296.ready===true],
+    ['LN_DRAWER_V296',()=>!!window.LN_DRAWER_V296 && window.LN_DRAWER_V296.ready===true],
+    ['LN_CHILD_INTEREST_RULES_V296',()=>!!window.LN_CHILD_INTEREST_RULES_V296],
+    ['LN_CHILD_INTEREST_RUNTIME_V296',()=>!!window.LN_CHILD_INTEREST_RUNTIME_V296 && window.LN_CHILD_INTEREST_RUNTIME_V296.ready===true],
+    ['LN_CHILD_INTEREST_UI_V296',()=>!!window.LN_CHILD_INTEREST_UI_V296 && window.LN_CHILD_INTEREST_UI_V296.ready===true],
+    ['LN_SCENARIO_UI_V296',()=>!!window.LN_SCENARIO_UI_V296 && window.LN_SCENARIO_UI_V296.ready===true],
+    ['LN_ABC_VIEW_V296',()=>!!window.LN_ABC_VIEW_V296 && window.LN_ABC_VIEW_V296.ready===true],
+    ['LN_CHILD_INTEREST_RUNTIME_V2955兼容',()=>!!window.LN_CHILD_INTEREST_RUNTIME_V2955 && window.LN_CHILD_INTEREST_RUNTIME_V2955.ready===true],
     ['LN_DATA_ENGINE',()=>!!window.LN_DATA_ENGINE],
     ['LN_FILTER_ENGINE',()=>!!window.LN_FILTER_ENGINE],
     ['LN_PLAN_ENGINE',()=>!!window.LN_PLAN_ENGINE],
