@@ -1,31 +1,32 @@
-# 辽宁物理类高考志愿初选工具
+# 辽宁物理类高考志愿初选工具 V2.9.5.2｜场景与目标路径统一规则版
 
-## V2.9.5.1｜独立规则集与场景策略集中化版
+本版基于 V2.9.5.1 继续迭代，核心目标是把“场景卡”和“填报目标”统一到独立规则体系中，同时清理生产部署包中的历史入口文件。
 
-本版基于 V2.9.5.0 继续迭代，重点不是新增筛选项，而是把场景卡、策略、A/B/C 偏置、专业路径和复核提醒抽到独立规则集。
+## 主要变化
 
-### 核心改动
+1. 第一部分只保留“定位孩子分数 / 位次”，不再在第一步放“填报目标”。
+2. 第三部分统一为“场景 + 当前目标路径”：先选家庭场景，再用目标路径微调。
+3. 新增 `assets/rules.v2952.js`，包含 `scenarioPresets` 与 `preferenceRules`。
+4. `填报目标` 下拉框不再写死在 HTML 中，而是由 `preferenceRules` 自动生成。
+5. A/B/C PlanBias 同时读取：场景倾向 × 目标路径倾向。
+6. 用户手动修改目标路径后，页面会显示“已手动微调”。
+7. 场景卡不会偷偷覆盖用户已经设置的家庭底线。
+8. 生产包瘦身：不再携带历史 `app.v294xx / app.v2950 / app.v2951` 入口文件。
 
-1. 新增 `assets/rules.v2951.js`，作为独立规则集。
-2. 场景卡由 `SCENARIO_PRESETS / strategyRules` 自动渲染，不再在 HTML 中写死。
-3. `applyStrategy()` 改为读取规则集，不再靠散落 if/else 控制策略。
-4. 场景卡只作为建议策略，不会偷偷覆盖用户已手动设置的家庭底线。
-5. 新增 12 个核心场景：高分平台冲刺、高分平台稳妥、高分性价比、普通家庭稳就业、省内公办稳妥、民办可比较、本科机会边缘、预算较宽、电网能源、医学方向、考公体制、先不设限。
-6. `PlanBias` 接入 A/B/C 方案评分，用于影响 A 守底线、B 看专业、C 争上限的倾向。
-7. 高级筛选增加明确“展开”和“高报师完整模式”入口。
-8. 保留 V2.9.5.0 的家庭底线前置、A/B/C 主结果化、家长简洁模式、高校专项默认隐藏、中外合作提档、主专业归一搜索等能力。
-
-### 文件入口
+## 当前运行入口
 
 ```html
-<link href="./assets/app.v2951.css" rel="stylesheet"/>
-<script src="./assets/rules.v2951.js"></script>
-<script src="./assets/app.v2951.js"></script>
+<link href="./assets/app.v2952.css" rel="stylesheet"/>
+<script src="./assets/major-name-model.v2946.js"></script>
+<script src="./assets/confusable-major-model.v29462.js"></script>
+<script src="./assets/rules.v2952.js"></script>
+<script src="./assets/app.v2952.js"></script>
 ```
 
-### 后续维护原则
+## 后续维护原则
 
-- 修改场景卡：优先改 `rules.v2951.js` 的 `scenarioPresets`。
-- 修改 A/B/C 文案和复核项：优先改 `planRules / reviewRules`。
-- 修改专业路径：优先改 `pathRules`。
-- 修改执行和渲染：再改 `app.v2951.js`。
+- 修改场景卡：优先改 `rules.v2952.js -> scenarioPresets`
+- 修改填报目标：优先改 `rules.v2952.js -> preferenceRules`
+- 修改 A/B/C 方案权重：优先改 `planBias`
+- 修改专业路径：优先改 `pathRules`
+- 修改复核提醒：优先改 `reviewRules`

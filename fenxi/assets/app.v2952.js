@@ -12,7 +12,7 @@ const DATA_FILES={
   schoolGeoAlias:'data/school_geo_model/school_name_alias_v29471.json',
   studentProfileRules:'data/student_profile_model/student_profile_rules_v29471.json'
 };
-const APP_VERSION_V29472 = 'V2.9.4.7.4｜专项计划资格默认保护版';
+const APP_VERSION_V29472 = 'V2.9.5.2｜场景与目标路径统一规则版';
 const CITY_GEO_NOTE_V29472 = '城市为学校官方所在地，具体专业就读校区以招生章程为准';
 const CHUNK_CACHE = new Map();
 let MANIFEST = null;
@@ -26,6 +26,28 @@ let TAXONOMY_READY = false;
 let OFFICIAL_CATALOG_2026 = null;
 let GRADUATE_CATALOG_2022_2025 = null;
 let DATA=[],META={},RANK2025={},currentRank=null,filtered=[],candidates=[],currentPage=1,pageSize=12,currentStrategy='employment',exclusionStats={'区域排除':0,'预算排除':0,'画像排除':0,'低匹配排除':0};
+
+const RULES_V2951 = window.LN_GAOKAO_RULES_V2952 || window.LN_GAOKAO_RULES_V2951 || {scenarioPresets:{},strategyRules:{},preferenceRules:{},baselineRules:{},planRules:{},pathRules:{},reviewRules:{},defaults:{}};
+let BASELINE_TOUCHED_V2951 = new Set();
+let PREFERENCE_TOUCHED_V2952 = false;
+function rulesV2951(){ return window.LN_GAOKAO_RULES_V2952 || window.LN_GAOKAO_RULES_V2951 || RULES_V2951 || {}; }
+function scenarioRuleV2951(id){ const r=rulesV2951(); return (r.scenarioPresets||r.strategyRules||{})[id] || null; }
+function allScenarioRulesV2951(){ const r=rulesV2951(); return Object.values(r.scenarioPresets||r.strategyRules||{}).sort((a,b)=>(a.order||999)-(b.order||999)); }
+function preferenceRuleV2952(id){ const r=rulesV2951(); return (r.preferenceRules||{})[id] || null; }
+function allPreferenceRulesV2952(){ const r=rulesV2951(); return Object.values(r.preferenceRules||{}); }
+function scenarioPlanBiasV2951(type){
+  const rule=scenarioRuleV2951(currentStrategy);
+  const sb=Number(rule?.planBias?.[type]);
+  const priority=document.getElementById('priority')?.value || rule?.preference?.priority || rulesV2951().defaults?.priority || 'employment';
+  const pr=preferenceRuleV2952(priority);
+  const pb=Number(pr?.planBias?.[type]);
+  const s=Number.isFinite(sb)?sb:1;
+  const p=Number.isFinite(pb)?pb:1;
+  return s*p;
+}
+function markBaselineTouchedV2951(key){ if(key) BASELINE_TOUCHED_V2951.add(key); }
+function hasTouchedV2951(key){ return BASELINE_TOUCHED_V2951.has(key) || BASELINE_TOUCHED_V2951.has('all'); }
+
 let CONFUSABLE_MODEL_2946=null;
 let SCHOOL_GEO_MODEL_29471=null;
 let STUDENT_PROFILE_MODEL_29471=null;
@@ -56,7 +78,7 @@ function pageBaseUrl(){
 }
 function dataUrl(file){
   const url = new URL(file, pageBaseUrl());
-  url.searchParams.set('v','29474');
+  url.searchParams.set('v','2952');
   return url.href;
 }
 async function loadJsonFile(file, label){
@@ -673,11 +695,61 @@ function guessSchoolTier(school,nature){
 function schoolTierLabel(r){return r?.schoolTier?.label||'层级待核验'}
 
 function hasHighFee(r){const s=(r.major||'')+' '+(r.riskFlags||[]).join(' ');return /中外合作|高收费|合作办学|国际|学术互认|联合培养|中美|中英|中澳|中俄|中法|中德/.test(s)}
+
+function normalizeMajorMainV29475(raw){
+  let s=String(raw||'').replace(/\s+/g,'').trim();
+  s=s.replace(/[（(][^）)]*(中外合作办学|中外合作|合作办学|国际|ACCA|CIMA|CPA|ISEC|学术互认|联合培养|中美|中英|中澳|中俄|中法|中德|高收费)[^）)]*[）)]/ig,'');
+  s=s.replace(/[（(][^）)]*(方向|实验班|试验班|卓越|拔尖|创新班|基地班|师范|非师范)[^）)]*[）)]/ig,'');
+  s=s.replace(/（.*?）|\(.*?\)/g,'');
+  return s || String(raw||'').replace(/\s+/g,'').trim();
+}
+function isCoopProgramV29475(r){
+  const s=[r.major,r.cleanMajor,r.admissionMajor,r.remark,(r.riskFlags||[]).join(' ')].map(x=>String(x||'')).join(' ');
+  return /中外合作|合作办学|学术互认|联合培养|中美|中英|中澳|中俄|中法|中德|国际课程|国际会计|ACCA|CIMA|ISEC/.test(s);
+}
+function isPrivateProgramV29475(r){
+  const txt=[r.schoolNature?.label,r.schoolTier?.level,r.schoolTier?.label,r.schoolNatureLabel].map(x=>String(x||'')).join(' ');
+  return /民办|独立|private/.test(txt);
+}
+function feeTypeLabelV29475(r){
+  if(r.isCoopV29475)return '中外合作/高收费';
+  if(r.isHighFee)return '高收费';
+  if(r.isPrivateV29475)return '民办本科';
+  return '普通学费/普通专业';
+}
+function majorSearchBlobV29475(r){
+  return [r.major,r.cleanMajor,r.mainMajorV29475,r.officialMajorName,r.undergradMajorName,r.undergradCategoryName,r.officialCategoryName,r.primaryDisciplineNames,r.subjectGroup,feeTypeLabelV29475(r)].map(x=>String(x||'')).join(' ').replace(/\s+/g,'');
+}
+function majorMatchesV29475(r,q){
+  const kw=String(q||'').replace(/\s+/g,'');
+  if(!kw)return true;
+  const blob=majorSearchBlobV29475(r);
+  if(blob.includes(kw))return true;
+  const alt=kw.replace(/学$/,'');
+  if(alt && alt.length>=2 && blob.includes(alt))return true;
+  return false;
+}
+function isCoopIntentV29475(){
+  const budget=document.getElementById('budget')?.value||'normal';
+  const fee=document.getElementById('filterFeeType')?.value||'all';
+  return budget==='coop'||fee==='coopCompare'||fee==='coopOnly';
+}
+function liftValueScoreV29475(r){
+  let sc=0;
+  if(['985','211'].includes(r.schoolTier?.level))sc+=36;
+  if(r.schoolTier?.level==='public'||r.schoolTier?.level==='publicSoft')sc+=16;
+  if(r.isCoopV29475||r.isHighFee)sc+=18;
+  if(['沈阳','大连','北京','天津','上海','南京','杭州','苏州','广州','深圳','青岛','济南'].includes(r.schoolCity))sc+=12;
+  if(r.isPrivateV29475)sc-=8;
+  sc+=(r._profile||0)*0.2;
+  sc-=Math.min((r._fit||0)/3000,30);
+  return sc;
+}
 function specialPlanStatusV29474(){return document.getElementById('specialPlanStatus')?.value || 'unreviewed'}
 function specialPlanApprovedV29474(){return specialPlanStatusV29474()==='approved'}
 function hasCollegeSpecialPlanV29474(r){const s=[r.major,r.cleanMajor,r.admissionMajor,r.planType,r.batch,r.remark,(r.riskFlags||[]).join(' ')].map(x=>String(x||'')).join(' ');return /辽宁省高校专项计划|高校专项计划/.test(s)}
 function specialPlanTextV29474(){const v=specialPlanStatusV29474();if(v==='approved')return '已通过高校专项计划审核';if(v==='unknown')return '不确定，暂按未审核处理';return '未通过 / 未审核'}
-function enrich(r){r.schoolProvince=r.schoolProvince||inferProvince(r.school);applySchoolGeoV29471(r);r.schoolNature=r.schoolNatureLabel?{label:r.schoolNatureLabel,cls:r.schoolNatureCls||'unknown',score:r.schoolNatureScore||0}:guessSchoolNature(r.school);r.schoolTier=guessSchoolTier(r.school,r.schoolNature);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);r.isCollegeSpecialPlanV29474=hasCollegeSpecialPlanV29474(r);attachTaxonomy(r);r.studentProfileHints=studentProfileHintsV29471(r);return r}
+function enrich(r){r.schoolProvince=r.schoolProvince||inferProvince(r.school);applySchoolGeoV29471(r);r.schoolNature=r.schoolNatureLabel?{label:r.schoolNatureLabel,cls:r.schoolNatureCls||'unknown',score:r.schoolNatureScore||0}:guessSchoolNature(r.school);r.schoolTier=guessSchoolTier(r.school,r.schoolNature);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);r.isCoopV29475=isCoopProgramV29475(r);r.isPrivateV29475=isPrivateProgramV29475(r);r.mainMajorV29475=normalizeMajorMainV29475(r.cleanMajor||r.major);r.feeTypeLabelV29475=feeTypeLabelV29475(r);r.isCollegeSpecialPlanV29474=hasCollegeSpecialPlanV29474(r);attachTaxonomy(r);r.studentProfileHints=studentProfileHintsV29471(r);return r}
 function unlock(){if(document.getElementById('accessCode').value.trim()==='ln2025'){document.getElementById('app').classList.remove('locked');document.getElementById('gateBox').classList.add('hide');localStorage.setItem('ln_access_ok','1')}else alert('访问码不正确')}
 function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}autoRefresh()})})}
 function selectedProvinces(){return[...document.querySelectorAll('#provinceChips .chip.active')].map(x=>x.dataset.province)}
@@ -687,18 +759,9 @@ function clearProvinces(){document.querySelectorAll('#provinceChips .chip,#regio
 function setSingle(group,value){const box=document.querySelector(`[data-group="${group}"]`);if(!box)return;box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.value===value))}
 function getGroup(group){return document.querySelector(`[data-group="${group}"] .chip.active`)?.dataset.value||''}
 function selectedRejects(){return[...document.querySelectorAll('#rejectChips .chip.active')].map(x=>x.dataset.reject)}
-function applyStrategy(type){currentStrategy=type;document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));clearProvinces();document.querySelectorAll('#rejectChips .chip').forEach(c=>c.classList.remove('active'));document.getElementById('regionMode').value='hard';document.getElementById('budget').value='normal';document.getElementById('mentorMode').value='standard';document.getElementById('familyTolerance').value='low';document.getElementById('gradPlan').value='maybe';document.getElementById('timePressure').value='normal';setTargetCitiesV29472('', 'none');setSingle('outProvince','yes');setSingle('medicine','neutral');setSingle('teacher','neutral');setSingle('liberal','neutral');setSingle('chem','neutral');setSingle('physics','neutral');setSingle('gridPower','neutral');
- if(type==='employment'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='employment'}
- if(type==='grid'){selectRegionGroup('辽宁省内');setSingle('outProvince','no');setSingle('gridPower','prefer');setSingle('physics','prefer');document.getElementById('priority').value='grid';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
- if(type==='medical'){selectRegionGroup('全国');setSingle('medicine','prefer');setSingle('chem','prefer');document.getElementById('priority').value='employment';document.getElementById('gradPlan').value='yes';document.getElementById('timePressure').value='long'}
- if(type==='exam'){selectRegionGroup('全国');setSingle('liberal','prefer');document.getElementById('priority').value='exam'}
- if(type==='city'){selectRegionGroup('长三角');document.getElementById('priority').value='city';document.getElementById('cityMode').value='soft'}
- if(type==='shenyang'){clearProvinces();selectRegionGroup('辽宁省内');setSingle('outProvince','no');setTargetCitiesV29472('沈阳','soft');document.getElementById('priority').value='city'}
- if(type==='dalian'){clearProvinces();selectRegionGroup('辽宁省内');setSingle('outProvince','no');setTargetCitiesV29472('大连','soft');document.getElementById('priority').value='city'}
- if(type==='publicLow'){selectRegionGroup('东北');setSingle('outProvince','no');document.getElementById('priority').value='publicLow';document.getElementById('mentorMode').value='strict';document.querySelector('[data-reject="高收费"]')?.classList.add('active')}
- if(type==='school'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='school'}
- if(type==='broad'){selectRegionGroup('全国');document.getElementById('regionMode').value='none';document.getElementById('priority').value='employment'}
- autoRefresh()}
+function deprecatedApplyStrategyV2951_Legacy(type){
+  console.warn('[V2.9.5.2] legacy applyStrategy disabled; use rules-driven applyStrategy()', type);
+}
 function resetAll(){location.reload()}
 function isMed(m){return/临床|口腔|医学|麻醉|儿科|药学|中医|护理|影像|眼视光|预防|基础医学|精神医学|针灸/.test(m)}
 function isTeacher(m){return/师范|教育|小学教育|学前教育|特殊教育/.test(m)}
@@ -898,6 +961,7 @@ function applyFilters(){
         fPrimary=document.getElementById('filterPrimary')?.value.trim()||'',
         fTaxConfidence=document.getElementById('filterTaxConfidence')?.value||'',
         fSchoolTier=document.getElementById('filterSchoolTier')?.value||'',
+        fFeeType=document.getElementById('filterFeeType')?.value||'all',
         fConfusableGroup=document.getElementById('filterConfusableGroup')?.value||'',
         onlyConfusable=document.getElementById('onlyConfusable')?.checked,
         fCityQuick=selectedCitiesV29472(),
@@ -916,7 +980,7 @@ function applyFilters(){
   arr=arr.filter(r=>{
     if(r.isCollegeSpecialPlanV29474 && specialStatusV29474!=='approved'){exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1;return false;}
     if(qS&&!(r.school||'').includes(qS))return false;
-    if(qM&&!((r.major||'').includes(qM)||(r.cleanMajor||'').includes(qM)||(r.primaryDisciplineNames||'').includes(qM)||(r.subjectGroup||'').includes(qM)))return false;
+    if(qM&&!majorMatchesV29475(r,qM))return false;
     if(fSubject&&r.subjectGroup!==fSubject)return false;
     if(fPrimary&&!((r.primaryDisciplineNames||'').includes(fPrimary)||(r.primaryDisciplineCodes||'').includes(fPrimary)||(r.cleanMajor||'').includes(fPrimary)||(r.undergradCategoryName||'').includes(fPrimary)||(r.officialCategoryCode||'').includes(fPrimary)||(r.officialMajorCode||'').includes(fPrimary)||(r.officialDisciplineCode||'').includes(fPrimary)||(r.officialMajorName||'').includes(fPrimary)))return false;
     const taxRank={high:3,medium:2,low:1,unknown:0};
@@ -928,6 +992,9 @@ function applyFilters(){
     if(fSchoolTier==='public'&&!['public','publicSoft'].includes(r.schoolTier?.level))return false;
     if(fSchoolTier==='private'&&r.schoolTier?.level!=='private')return false;
     if(fSchoolTier==='unknown'&&r.schoolTier?.level!=='unknown')return false;
+    if(fFeeType==='normal'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
+    if(fFeeType==='coopOnly'&&!(r.isCoopV29475||r.isHighFee)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
+    if(fFeeType==='excludeHighPrivate'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
     if(onlyConfusable && !hasConfusableMajorV2946(r))return false;
     if(fConfusableGroup && !hasConfusableGroupV2946(r,fConfusableGroup))return false;
     if(fLevel&&r._level!==fLevel)return false;
@@ -955,7 +1022,9 @@ function applyFilters(){
         ? (b.rankDiff??-999999999)-(a.rankDiff??-999999999)
         : sortBy==='fit'
           ? a._fit-b._fit
-          : (b._profile-a._profile)||(a._fit-b._fit));
+          : sortBy==='lift'
+            ? liftValueScoreV29475(b)-liftValueScoreV29475(a)
+            : (b._profile-a._profile)||(a._fit-b._fit));
 
   filtered=arr;
   currentPage=1;
@@ -1044,6 +1113,9 @@ function riskBadgesV29461(r){
   const out=[];
   const pairs = (typeof confusablePairsForRecordV2946 === 'function') ? confusablePairsForRecordV2946(r) : [];
   if(r.isCollegeSpecialPlanV29474) out.push({text:'高校专项资格', cls:'warn'});
+  if(r.isCoopV29475) out.push({text:'中外合作', cls:'danger'});
+  else if(r.isHighFee) out.push({text:'高收费', cls:'danger'});
+  if(r.isPrivateV29475) out.push({text:'民办本科', cls:'warn'});
   if(pairs.length) out.push({text:'易混专业', cls:'warn'});
   const idn = (typeof admissionIdentityV2945 === 'function') ? admissionIdentityV2945(r) : null;
   if(idn && ['大类招生','试验班/特色班','中外合作/高收费','专项/特殊入口'].includes(idn.label)) out.push({text:idn.label, cls:idn.cls==='danger'?'danger':'warn'});
@@ -1351,7 +1423,6 @@ function renderCards(){
   syncCardViewModeButtonsV29461();
 }
 
-function renderPlanABC(){const box=document.getElementById('planABC');if(!currentRank){box.innerHTML='';return}const usable=filtered.filter(r=>!r._excludes?.length);function pick(ls){return usable.filter(r=>ls.includes(r._level)).sort((a,b)=>(b._profile-a._profile)||(a._fit-b._fit))[0]}const A=pick(['可冲','超冲']),B=pick(['匹配','稳妥']),C=pick(['保底','稳妥']);function item(x,cls,title,txt){return x?`<div class="plan-card ${cls}"><h3>${title}</h3><b>${x.school}</b><p>${x.major}</p><p>${geoDisplayV29472(x)}｜${txt}｜${x._level}｜画像${Math.round(x._profile)}分｜2025位次${fmt(x.rank2025)}</p><p><b>为什么：</b>${(x._reasons||[]).slice(0,3).join('；')||'画像匹配度较高'}</p></div>`:`<div class="plan-card ${cls}"><h3>${title}</h3><p>暂无合适候选。可放宽区域或调整八连问。</p></div>`}box.innerHTML=item(A,'a','方案A：冲','只适合放前段，不押宝')+item(B,'b','方案B：稳','优先精读和核验')+item(C,'c','方案C：保','防滑档，但仍看专业质量')}
 function nextPage(){const pages=Math.max(1,Math.ceil(filtered.length/pageSize));if(currentPage<pages){currentPage++;renderCards();document.getElementById('cards').scrollIntoView({behavior:'smooth'})}}function prevPage(){if(currentPage>1){currentPage--;renderCards();document.getElementById('cards').scrollIntoView({behavior:'smooth'})}}function toggleAdvanced(){document.getElementById('advancedFilters').classList.toggle('open')}
 function addCandidate(id){const r=DATA.find(x=>x.id===id);if(r&&!candidates.find(x=>x.id===id))candidates.push(r);localStorage.setItem('ln_candidates_v292',JSON.stringify(candidates));renderCandidates();renderStructure()}
 function renderStructure(){
@@ -1378,7 +1449,7 @@ function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.r
       .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',');
   });
   return [head.join(','),...body].join('\n');
-}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.4.7.4_筛选结果_高报师方案.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.4.7.4_候选清单_高报师方案.csv',rowsToCsv(candidates.map(enrich)))}
+}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.5.2_筛选结果_高报师方案.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.5.2_候选清单_高报师方案.csv',rowsToCsv(candidates.map(enrich)))}
 
 function textVal(id){return document.getElementById(id)?.value||''}
 function activeStrategyText(){
@@ -1411,6 +1482,7 @@ function pickedSummary(){
     primary: textVal('filterPrimary')||'无',
     taxConfidence: textVal('filterTaxConfidence')||'全部',
     schoolTier: textVal('filterSchoolTier')||'全部',
+    feeType: textVal('filterFeeType')||'全部',
     level: textVal('filterLevel')||'全部'
   };
 }
@@ -1525,7 +1597,7 @@ function exportSummaryPng(kind='filtered'){
   ctx.fillText(kind==='candidates'?'辽宁物理类志愿工具｜候选清单 PNG 摘要':'辽宁物理类志愿工具｜当前筛选 PNG 摘要',M+38,y+58);
   ctx.font='24px sans-serif';
   ctx.fillStyle='rgba(255,255,255,.92)';
-  ctx.fillText(`版本：V2.9.4.7.4｜生成时间：${new Date().toLocaleString('zh-CN')}`,M+38,y+100);
+  ctx.fillText(`版本：V2.9.4.7.5｜生成时间：${new Date().toLocaleString('zh-CN')}`,M+38,y+100);
   wrapCanvasText(ctx,'说明：PNG 为当前页面摘要图，便于转发沟通；正式填报仍需复核招生计划、专业实际校区、体检、学费与专业组。',M+38,y+136,contentW-76,30,'rgba(255,255,255,.88)','23px sans-serif',1);
   y += headerH + 24;
 
@@ -1559,7 +1631,8 @@ function exportSummaryPng(kind='filtered'){
     `层级：${safeText(info.level)||'全部'}`,
     `城市方式：${safeText(info.cityMode)||'不限'}`,
     `学校关键词：${safeText(info.schoolKeyword)||'无'}`,
-    `专业关键词：${safeText(info.majorKeyword)||'无'}`
+    `专业关键词：${safeText(info.majorKeyword)||'无'}`,
+    `办学/收费：${safeText(info.feeType)||'全部'}`
   ].join(' ｜ ');
   wrapCanvasText(ctx,condText,M+46,longY+62,contentW-92,28,'#314762','22px sans-serif',2);
   y += summaryH + 24;
@@ -1620,7 +1693,7 @@ function exportSummaryPng(kind='filtered'){
 
   wrapCanvasText(ctx,'注：本摘要图用于初选沟通，不替代正式志愿表。中外合作、高收费、专业类分流、一级学科映射置信度低等情况，请务必再做人工核验。',M,y+26,contentW,28,'#627b97','20px sans-serif',2);
 
-  const name=kind==='candidates'?'辽宁物理类_V2.9.4.7.4_候选清单摘要.png':'辽宁物理类_V2.9.4.7.4_筛选摘要.png';
+  const name=kind==='candidates'?'辽宁物理类_V2.9.5.2_候选清单摘要.png':'辽宁物理类_V2.9.5.2_筛选摘要.png';
   const a=document.createElement('a');
   a.href=canvas.toDataURL('image/png');
   a.download=name;
@@ -1693,7 +1766,7 @@ function renderDebugPanel(){
   const loaded=[...loadedChunkIds].join('、')||'无';
   const cityStats=(filtered||[]).reduce((m,r)=>{const k=geoDisplayV29472(r);m[k]=(m[k]||0)+1;return m;},{});
   const topCity=Object.entries(cityStats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`${k}:${v}`).join('｜')||'无';
-  panel.innerHTML=`<b>V2.9.4.7.4 Debug</b><br/>
+  panel.innerHTML=`<b>V2.9.4.7.5 Debug</b><br/>
   viewport：<code>${window.innerWidth}×${window.innerHeight}</code><br/>
   scrollWidth：<code>${document.documentElement.scrollWidth}</code>｜横向溢出：<span class="${overflow?'bad':'ok'}">${overflow?'是':'否'}</span><br/>
   manifest：<code>${MANIFEST?MANIFEST.version:'未加载'}</code>｜rank：<code>${RANK2025?'已加载':'未加载'}</code><br/>
@@ -1702,8 +1775,133 @@ function renderDebugPanel(){
   chunks：<code>${loaded}</code><br/>
   条件数：<code>${activeConditionCount()}</code>｜城市模式：<code>${cityModeV29472()}</code>｜目标城市：<code>${selectedCitiesV29472().join('、')||'不限'}</code><br/>
   当前结果城市Top：<code>${topCity}</code><br/>
-  易混模型：<code>${CONFUSABLE_MODEL_2946?((CONFUSABLE_MODEL_2946.detectedPairs?.count||0)+' 对 / '+(CONFUSABLE_MODEL_2946.recordIndex?.count||0)+' 条索引'):'未加载'}</code><br/>学校地域：<code>${SCHOOL_GEO_MODEL_29471?(SCHOOL_GEO_MODEL_29471.items.length+' 所，city全量'):'未加载'}</code>｜学生画像：<code>${STUDENT_PROFILE_MODEL_29471?((STUDENT_PROFILE_MODEL_29471.rules||[]).length+' 条规则'):'未加载'}</code><br/>app.js：<code>app.v29474.js</code>｜app.css：<code>app.v29474.css</code>`;
+  易混模型：<code>${CONFUSABLE_MODEL_2946?((CONFUSABLE_MODEL_2946.detectedPairs?.count||0)+' 对 / '+(CONFUSABLE_MODEL_2946.recordIndex?.count||0)+' 条索引'):'未加载'}</code><br/>学校地域：<code>${SCHOOL_GEO_MODEL_29471?(SCHOOL_GEO_MODEL_29471.items.length+' 所，city全量'):'未加载'}</code>｜学生画像：<code>${STUDENT_PROFILE_MODEL_29471?((STUDENT_PROFILE_MODEL_29471.rules||[]).length+' 条规则'):'未加载'}</code><br/>app.js：<code>app.v2952.js</code>｜app.css：<code>app.v2952.css</code>`;
 }
+
+function renderStrategyCardsV2951(){
+  const box=document.getElementById('strategyCards'); if(!box)return;
+  const rules=allScenarioRulesV2951();
+  if(!rules.length)return;
+  box.innerHTML=rules.map(rule=>{
+    const cls=['strategy-card','scenario-card-v2951'];
+    if(rule.defaultSelected || rule.id===(rulesV2951().defaults?.selectedScenario||'employment'))cls.push('active');
+    if(rule.id==='publicLow'||rule.id==='edgeBachelor')cls.push('public-first');
+    const risk=rule.riskLevel==='aggressive'?'冲刺':rule.riskLevel==='conservative'?'稳妥':'均衡';
+    return `<button class="${cls.join(' ')}" data-strategy="${v2950Text(rule.id)}">
+      <strong>${v2950Text(rule.title)}</strong>
+      <span>${v2950Text(rule.desc||'')}</span>
+      <em>${risk}</em>
+    </button>`;
+  }).join('');
+  const intro=document.getElementById('scenarioRuleHintV2951');
+  if(intro) intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'场景卡来自独立规则集。')}</span>`;
+}
+function renderPreferenceSelectV2952(){
+  const sel=document.getElementById('priority'); if(!sel)return;
+  const rules=allPreferenceRulesV2952();
+  if(!rules.length)return;
+  const current=sel.value || rulesV2951().defaults?.priority || 'employment';
+  sel.innerHTML=rules.map(r=>`<option value="${v2950Text(r.id)}">${v2950Text(r.label||r.title||r.id)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value=current;
+  else sel.value=(rules[0]&&rules[0].id)||'employment';
+  sel.addEventListener('change',()=>{
+    PREFERENCE_TOUCHED_V2952=true;
+    updatePreferenceExplainV2952('manual');
+  });
+  updatePreferenceExplainV2952('init');
+}
+function setPreferenceValueV2952(value,source){
+  const sel=document.getElementById('priority'); if(!sel||!value)return false;
+  if(source==='scenario' && PREFERENCE_TOUCHED_V2952 && sel.value!==value) return false;
+  if([...sel.options].some(o=>o.value===value)){ sel.value=value; updatePreferenceExplainV2952(source||'scenario'); return true; }
+  return false;
+}
+function updatePreferenceExplainV2952(source){
+  const box=document.getElementById('targetPathExplainV2952'); if(!box)return;
+  const val=document.getElementById('priority')?.value || 'employment';
+  const rule=preferenceRuleV2952(val)||{};
+  const status=PREFERENCE_TOUCHED_V2952?'已手动微调':'来自当前场景建议';
+  const bias=rule.planBias?`A ${rule.planBias.A||1} / B ${rule.planBias.B||1} / C ${rule.planBias.C||1}`:'A/B/C 默认均衡';
+  box.innerHTML=`<b>${v2950Text(rule.label||val)}</b><span>${v2950Text(rule.desc||'目标路径用于微调当前场景下的 A/B/C 倾向。')}</span><em>${status}｜${bias}</em>${rule.warning?`<p>${v2950Text(rule.warning)}</p>`:''}`;
+}
+function initBaselineTouchTrackingV2951(){
+  const base=document.getElementById('familyBaseline'); if(!base)return;
+  base.querySelectorAll('select,input,textarea').forEach(el=>{
+    el.addEventListener('change',()=>markBaselineTouchedV2951(el.id||'all'));
+    el.addEventListener('input',()=>markBaselineTouchedV2951(el.id||'all'));
+  });
+  base.addEventListener('click',e=>{ if(e.target?.classList?.contains('chip')) markBaselineTouchedV2951('chips'); }, true);
+}
+function setValueIfAllowedV2951(id,value,source){
+  const el=document.getElementById(id); if(!el || value===undefined || value===null)return false;
+  const hard=['specialPlanStatus'];
+  if(hard.includes(id) && hasTouchedV2951(id))return false;
+  if(hasTouchedV2951(id) && ['budget','regionMode','cityMode','targetCities'].includes(id))return false;
+  el.value=value; return true;
+}
+function mapBudgetV2951(v){
+  if(v==='normal')return 'normal'; if(v==='medium'||v==='flex')return 'flex'; if(v==='wide'||v==='high')return 'high'; if(v==='coop')return 'coop'; return null;
+}
+function applyScenarioRegionV2951(rule){
+  if(!rule?.regionSuggestion || hasTouchedV2951('chips'))return [];
+  const skipped=[];
+  const rs=rule.regionSuggestion;
+  if(rs.mode && document.getElementById('regionMode')) document.getElementById('regionMode').value=rs.mode;
+  if(Array.isArray(rs.preferGroups) && rs.preferGroups.length){
+    clearProvinces();
+    rs.preferGroups.forEach(g=>selectRegionGroup(g,true));
+  }
+  return skipped;
+}
+function applyScenarioPresetV2951(type){
+  const rule=scenarioRuleV2951(type); if(!rule)return;
+  currentStrategy=type;
+  document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));
+  const skipped=[];
+  const pref=rule.preference||{};
+  if(pref.priority && !setPreferenceValueV2952(pref.priority,'scenario')) skipped.push('目标路径');
+  if(pref.mentorMode) setValueIfAllowedV2951('mentorMode',pref.mentorMode,'preference');
+  if(pref.gradPlan) setValueIfAllowedV2951('gradPlan',pref.gradPlan,'preference');
+  if(pref.timePressure) setValueIfAllowedV2951('timePressure',pref.timePressure,'preference');
+  ['gridPower','physics','medicine','chem','liberal','teacher'].forEach(k=>{ if(pref[k]) setSingle(k,pref[k]); });
+  const b=rule.baselineSuggestion||{};
+  const budget=mapBudgetV2951(b.budget);
+  if(budget && !setValueIfAllowedV2951('budget',budget,'baseline')) skipped.push('预算');
+  if(b.acceptCoop==='yes'||b.acceptCoop==='compare'){
+    if(!hasTouchedV2951('filterFeeType')) setValueIfAllowedV2951('filterFeeType','coopCompare','baseline'); else skipped.push('办学/收费类型');
+  }
+  if(b.acceptPrivate==='yes'||b.acceptPrivate==='compare'){
+    if(!hasTouchedV2951('filterFeeType') && (document.getElementById('filterFeeType')?.value||'all')==='all') setValueIfAllowedV2951('filterFeeType','privateCompare','baseline');
+  }
+  applyScenarioRegionV2951(rule);
+  renderScenarioNoticeV2951(rule,skipped);
+}
+function renderScenarioNoticeV2951(rule,skipped=[]){
+  let box=document.getElementById('scenarioExplainV2951');
+  const grid=document.getElementById('strategyCards');
+  if(!box && grid){ box=document.createElement('div'); box.id='scenarioExplainV2951'; box.className='scenario-explain-v2951'; grid.insertAdjacentElement('afterend',box); }
+  if(!box)return;
+  const protect=(rule.protect||[]).map(x=>`<span>${v2950Text(x)}</span>`).join('');
+  const avoid=(rule.doNotAutoRelax||[]).map(x=>`<span>${v2950Text(x)}</span>`).join('');
+  const abc=rule.abcGuide?`<div class="scenario-abc-v2951"><b>A</b>${v2950Text(rule.abcGuide.A||'')}<b>B</b>${v2950Text(rule.abcGuide.B||'')}<b>C</b>${v2950Text(rule.abcGuide.C||'')}</div>`:'';
+  const prefVal=document.getElementById('priority')?.value||rule?.preference?.priority||'';
+  const prefRule=preferenceRuleV2952(prefVal)||{};
+  const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前目标路径</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动微调）':'（场景建议）'}</span></div>`:'';
+  box.innerHTML=`<div><strong>当前场景：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
+    <div class="scenario-tags-v2951"><em>优先保护</em>${protect||'<span>按当前底线</span>'}</div>
+    <div class="scenario-tags-v2951"><em>不会自动放宽</em>${avoid||'<span>用户已设底线</span>'}</div>
+    ${abc}${prefLine}<p class="small">${v2950Text(rule.warning||'场景只作为建议策略。')}${skipped.length?'｜已保留你手动设置的：'+v2950Text(skipped.join('、')):''}</p>`;
+}
+function switchFullModeV2951(){
+  const el=document.getElementById('simpleModeToggleV2950'); if(el){el.checked=false; applySimpleModeV2950();}
+  toggleAdvanced(true);
+  document.getElementById('advancedFilters')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function toggleAdvanced(force){
+  const box=document.getElementById('advancedFilters'); if(!box)return;
+  if(force===true) box.classList.add('open'); else if(force===false) box.classList.remove('open'); else box.classList.toggle('open');
+}
+
 function initV292UX(){
   applyCardViewModeClassV29461();
   ensureCardViewModeToolbarV29461();
@@ -1715,6 +1913,9 @@ function initV292UX(){
 async function boot(){
   bootChips();
   initV292UX();
+  renderStrategyCardsV2951();
+  renderPreferenceSelectV2952();
+  initBaselineTouchTrackingV2951();
   try{
     MANIFEST = await loadJsonFile(DATA_FILES.manifest,'数据清单');
     RANK2025 = await loadJsonFile(DATA_FILES.rank,'一分一段数据');
@@ -1760,6 +1961,7 @@ async function boot(){
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
+    renderScenarioNoticeV2951(scenarioRuleV2951(currentStrategy)||scenarioRuleV2951(rulesV2951().defaults?.selectedScenario||'employment')||{});
     document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',debouncedAutoRefresh));
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',autoRefresh));
     autoRefresh();
@@ -1841,7 +2043,7 @@ function updateGuideState(){
 
 
 /* =========================
- * V2.9.4.7.4 高报师工作流：冲突诊断 + A/B/C 方案框架
+ * V2.9.4.7.5 高报师工作流：冲突诊断 + A/B/C 方案框架
  * 说明：不推翻 V2.9.4.7.2 的筛选逻辑，只在结果解释层增加“问底线 → 看位次 → 冲突诊断 → 三方案 → 复核清单”。
  * ========================= */
 function scoreBandV29473(){
@@ -1879,15 +2081,16 @@ function conditionSnapshotV29473(){
   const qMajor = (document.getElementById('qMajor')?.value||'') + ' ' + (document.getElementById('filterSubjectGroup')?.value||'');
   const hotMajor = /计算机|软件|人工智能|数据|信息安全|网络|电气|电子|临床|口腔|医学|师范|法学/.test(qMajor) || ['grid','medical','exam'].includes(currentStrategy) || ['grid','exam'].includes(priority);
   const normalFamily = budget==='normal' || document.getElementById('familyTolerance')?.value==='low';
-  const budgetWide = budget==='high' || document.getElementById('familyTolerance')?.value==='high';
-  const noHighFee = budget==='normal' || rejectSet.has('高收费');
+  const budgetWide = budget==='high' || budget==='coop' || document.getElementById('familyTolerance')?.value==='high';
+  const coopIntent = budget==='coop' || (document.getElementById('filterFeeType')?.value||'all').includes('coop');
+  const noHighFee = budget==='normal' || rejectSet.has('高收费') || (document.getElementById('filterFeeType')?.value==='excludeHighPrivate');
   const strict = !!document.getElementById('strictProfile')?.checked;
   const scoreBand = scoreBandV29473();
   const lowScore = /540—500|500—450|450—400|400—350|本科边缘/.test(scoreBand);
   const edgeScore = /500—450|450—400|400—350|本科边缘/.test(scoreBand);
   const highScore = /650\+|650—620|700/.test(scoreBand);
   const specialStatus=specialPlanStatusV29474();
-  return {provinces,cities,rejectSet,budget,priority,regionMode,cityMode,strongProvince,strongCity,hotMajor,normalFamily,budgetWide,noHighFee,strict,scoreBand,lowScore,edgeScore,highScore,specialStatus};
+  return {provinces,cities,rejectSet,budget,priority,regionMode,cityMode,strongProvince,strongCity,hotMajor,normalFamily,budgetWide,coopIntent,noHighFee,strict,scoreBand,lowScore,edgeScore,highScore,specialStatus};
 }
 function strengthRowsV29473(s){
   const rows=[];
@@ -1896,7 +2099,7 @@ function strengthRowsV29473(s){
   rows.push(['城市要求',s.strongCity?(s.cityMode==='hard'?'指定城市硬筛':'城市优先/软筛'):'不限制城市']);
   rows.push(['专业热度',s.hotMajor?'热门/目标方向较强':'未强限定']);
   rows.push(['民办路径',s.budgetWide||s.edgeScore?'可进入比较，需复核':'默认不优先']);
-  rows.push(['中外合作',s.budgetWide?'可作为提档方案，需复核':'普通家庭谨慎']);
+  rows.push(['中外合作',s.coopIntent?'明确提档路径，强复核':s.budgetWide?'可作为提档方案，需复核':'普通家庭谨慎']);
   rows.push(['高校专项资格',s.specialStatus==='approved'?'已通过审核，专项候选可比较':s.specialStatus==='unknown'?'不确定，暂按未审核隐藏':'未审核/未通过，默认隐藏']);
   return rows;
 }
@@ -1923,7 +2126,7 @@ function buildFunnelV29473(){
   if(qS||qM||fSubject||fPrimary){
     rows=applyStageV29473(rows,'关键词/学科筛选',r=>{
       if(qS&&!(r.school||'').includes(qS))return false;
-      if(qM&&!((r.major||'').includes(qM)||(r.cleanMajor||'').includes(qM)||(r.primaryDisciplineNames||'').includes(qM)||(r.subjectGroup||'').includes(qM)))return false;
+      if(qM&&!majorMatchesV29475(r,qM))return false;
       if(fSubject&&r.subjectGroup!==fSubject)return false;
       if(fPrimary&&!((r.primaryDisciplineNames||'').includes(fPrimary)||(r.primaryDisciplineCodes||'').includes(fPrimary)||(r.cleanMajor||'').includes(fPrimary)||(r.undergradCategoryName||'').includes(fPrimary)||(r.officialCategoryCode||'').includes(fPrimary)||(r.officialMajorCode||'').includes(fPrimary)||(r.officialDisciplineCode||'').includes(fPrimary)||(r.officialMajorName||'').includes(fPrimary)))return false;
       return true;
@@ -1989,8 +2192,8 @@ function diagnoseV29473(){
   if(few && s.normalFamily && s.strongCity){
     add('ordinary_city','普通家庭 + 强城市冲突','城市偏好正在挤压公办、成本和专业适配空间。',['城市硬筛改为软提醒','目标城市扩展到同省/近省其他城市','热门专业改为相近专业'],['不建议为了城市直接接受高收费','不建议为城市牺牲孩子明显不适配项'],['学费','学校性质','实际校区','城市生活成本'],['A 成本可控','B 专业路径','C 城市软筛']);
   }
-  if(s.budgetWide && (s.priority==='school'||s.priority==='city'||s.strongCity)){
-    add('budget_coop','预算宽 + 提档复核','预算较宽可以比较中外合作或民办城市方案，但重点是钱是否换来有效提升。',['普通批公办方案与中外合作并列比较','核验证书/培养地点后再定','把民办城市专业作为备选路径'],['不建议只看学校名字','不建议忽略专业适配','不建议未核验证书就当真提档'],['证书','学费','培养地点','是否必须出国','外语要求'],['A 普通批公办','B 专业匹配','C 中外合作/民办提档']);
+  if((s.budgetWide||s.coopIntent) && (s.priority==='school'||s.priority==='city'||s.strongCity||s.coopIntent)){
+    add('budget_coop',s.coopIntent?'中外合作提档复核':'预算宽 + 提档复核',s.coopIntent?'当前已进入中外合作提档路径：重点不是能不能花钱，而是钱是否换来了学校层级、城市资源或专业机会。':'预算较宽可以比较中外合作或民办城市方案，但重点是钱是否换来有效提升。',['普通批公办方案与中外合作并列比较','核验证书/培养地点后再定','把民办城市专业作为备选路径'],['不建议只看学校名字','不建议忽略专业适配','不建议未核验证书就当真提档'],['证书','学费','培养地点','是否必须出国','外语要求'],['A 普通批公办','B 专业匹配','C 中外合作/民办提档']);
   }
   const mathLow=document.getElementById('mathTolerance')?.value==='low', fieldReject=document.getElementById('fieldWorkAcceptance')?.value==='reject', gradNo=(document.getElementById('gradPlan')?.value==='no'||document.getElementById('gradWillingnessV29471')?.value==='no');
   if(publicFirst && (mathLow||fieldReject||gradNo)){
@@ -2042,8 +2245,8 @@ function rowPlanScoreV29473(r,type,chosen){
     if(['985','211'].includes(r.schoolTier?.level))sc+=25;
     if(s.cities.length && cityMatchesV29472(r,s.cities))sc+=28;
     if(s.strongCity && ['沈阳','大连'].includes(r.schoolCity))sc+=10;
-    if(s.budgetWide && r.isHighFee)sc+=10;
-    if(r.isHighFee && !s.budgetWide)sc-=25;
+    if((s.budgetWide||s.coopIntent) && (r.isHighFee||r.isCoopV29475))sc+=18;
+    if(r.isHighFee && !(s.budgetWide||s.coopIntent))sc-=25;
     sc+=(100-(r._fit||999999)/1000)*0.08;
     sc+=(r._profile||0)*0.25;
   }
@@ -2105,19 +2308,904 @@ function renderDiagnosisV29473(diag){
     <div class="diag-advice-grid"><div><h4>建议优先放宽</h4><ol>${relax}</ol></div><div><h4>不建议先放宽</h4><ol>${avoid}</ol></div></div>
   </div>`;
 }
-function renderPlanABC(){
-  const box=document.getElementById('planABC'); if(!box)return;
-  if(!currentRank){box.innerHTML=''; const d=document.getElementById('conflictDiagnosisV29473'); if(d)d.innerHTML=''; return;}
-  const diag=diagnoseV29473();
-  renderDiagnosisV29473(diag);
-  const plan=pickSchemeRowsV29473();
-  box.innerHTML=planCardV29473('A',plan.A)+planCardV29473('B',plan.B)+planCardV29473('C',plan.C);
-}
 function pickPlanRows(){
   const p=pickSchemeRowsV29473();
   return {A:p.A,B:p.B,C:p.C};
 }
 
+
+/* V2.9.4.7.5: 预算宽路径 + A/B/C 紧凑方案盘增强层 */
+function levelKindV29475(r,type){
+  if(!r)return '观察';
+  if(type==='C' && (r.isHighFee||r.isCoopV29475||r.isPrivateV29475))return '比较';
+  return r._level||'观察';
+}
+function pathMetaV29475(type){
+  const s=typeof conditionSnapshotV29473==='function'?conditionSnapshotV29473():{};
+  const cTitle=(s.coopIntent||s.budget==='coop')?'C：城市 / 学校层级 / 中外合作提档':'C：城市 / 学校层级 / 提档路径';
+  return {
+    A:{cls:'a',title:'A：稳妥公办路径',line:'优先保公办、普通学费和基本路径，适合先守住底线。',fit:'普通家庭、低容错、强省内、公办优先家庭',sacrifice:'可能牺牲城市、专业热度和学校层级',risk:'公办不等于一定适配，低分段要看孩子能不能读下去'},
+    B:{cls:'b',title:'B：专业路径',line:'优先看专业是否看得准、孩子是否学得动、毕业后路径是否清楚。',fit:'强就业、强考研、强体制或孩子有明确兴趣的家庭',sacrifice:'可能牺牲学校层级、城市和省内偏好',risk:'专业名可能误认，部分方向依赖读研、行业背景或资格路径'},
+    C:{cls:'c',title:cTitle,line:(s.coopIntent?'把普通批更高层级、中外合作提档、民办城市专业并列比较。':'争取城市资源和学校平台，但不等于天然更优。'),fit:'预算较宽、强城市、高分段或想争取平台上限的家庭',sacrifice:'可能牺牲专业确定性、普通学费和省内照应',risk:'高收费、证书、校区、大类分流和专业适配必须复核'}
+  }[type];
+}
+function planRiskTextV29475(r,type){
+  if(!r)return '';
+  if(r.isCoopV29475)return '中外合作不是天然提档，证书、校区、培养模式必须复核';
+  if(r.isPrivateV29475)return '民办本科要核算四年成本、学校资源和孩子自律';
+  if(type==='A' && r.isHighFee)return '高收费不适合直接当稳妥方案，需复核家庭承受力';
+  if(type==='B' && hasConfusableMajorV2946 && hasConfusableMajorV2946(r))return '专业名称存在易混点，必须看本科代码和培养方案';
+  if(type==='C')return '上限更高但不确定性更强，需复核校区、学费和专业归属';
+  if(type==='A')return '稳妥不等于无风险，仍要看孩子能不能读下去';
+  return '专业路径需结合培养方案、就业去向和孩子适配复核';
+}
+function whyPlanV29475(r,type){
+  if(!r)return '';
+  if(type==='A'){
+    if(!r.isHighFee && ['public','publicSoft'].includes(r.schoolTier?.level))return '公办和普通学费属性更适合先保底线。';
+    return '位次和画像较稳，适合作为低风险比较项。';
+  }
+  if(type==='B'){
+    const q=(document.getElementById('qMajor')?.value||'').trim();
+    if(q && majorMatchesV29475(r,q))return `与“${htmlSafeV2945(q)}”主专业口径相关，适合做专业路径比较。`;
+    return (r._reasons||[]).slice(0,2).join('；')||'专业方向相对清楚，适合精读培养方案。';
+  }
+  if(r.isCoopV29475||r.isHighFee)return '适合预算较宽家庭比较“成本换层级/城市/机会”的提档价值。';
+  if(r.isPrivateV29475)return '适合作为城市或专业路径的补充比较，不宜只看本科标签。';
+  if(['985','211'].includes(r.schoolTier?.level))return '学校层级更高，适合争取平台上限。';
+  if(cityModeV29472()!=='none' && selectedCitiesV29472().length && cityMatchesV29472(r,selectedCitiesV29472()))return '城市资源匹配，适合做城市路径比较。';
+  return '适合比较城市、学校层级或上限空间。';
+}
+function planScoreV29475(r,type,chosen){
+  let sc=0; const m=r.majorText||r.major||''; const s=conditionSnapshotV29473();
+  if(chosen&&chosen.has(r.id))sc-=9999;
+  if(type==='A'){
+    if(['匹配','稳妥','保底'].includes(r._level))sc+=32;
+    if(['public','publicSoft'].includes(r.schoolTier?.level))sc+=30;
+    if(!r.isHighFee&&!r.isCoopV29475)sc+=22;
+    if(['辽宁','吉林','黑龙江'].includes(r.schoolProvince))sc+=10;
+    if(r.isPrivateV29475)sc-=28;
+    if(r.isHighFee||r.isCoopV29475)sc-=35;
+    sc+=(r._profile||0)*.35;
+  }else if(type==='B'){
+    if(['匹配','稳妥','可冲'].includes(r._level))sc+=18;
+    const q=(document.getElementById('qMajor')?.value||'').trim();
+    if(q&&majorMatchesV29475(r,q))sc+=36;
+    if(s.priority==='grid'&&isGrid(m))sc+=32;
+    else if(currentStrategy==='medical'&&isMed(m))sc+=32;
+    else if(s.priority==='exam'&&(isLiberal(m)||isComp(m)||isTeacher(m)))sc+=26;
+    else if(isGrid(m)||isComp(m)||isTeacher(m)||isMed(m)||isLiberal(m))sc+=15;
+    if(hasConfusableMajorV2946 && hasConfusableMajorV2946(r))sc-=6;
+    sc+=(r._profile||0)*.45;
+  }else{
+    if(['可冲','匹配','稳妥'].includes(r._level))sc+=20;
+    if(['985','211'].includes(r.schoolTier?.level))sc+=36;
+    if(s.cities.length && cityMatchesV29472(r,s.cities))sc+=30;
+    if(s.strongCity && ['沈阳','大连'].includes(r.schoolCity))sc+=10;
+    if(s.coopIntent && (r.isCoopV29475||r.isHighFee))sc+=40;
+    else if(s.budgetWide && (r.isCoopV29475||r.isHighFee))sc+=20;
+    if(r.isPrivateV29475 && (s.budgetWide||s.edgeScore||document.getElementById('filterFeeType')?.value==='privateCompare'))sc+=16;
+    if((r.isCoopV29475||r.isHighFee) && !(s.budgetWide||s.coopIntent))sc-=30;
+    sc+=liftValueScoreV29475(r)*.55;
+  }
+  return sc * scenarioPlanBiasV2951(type);
+}
+function pickBucketV29475(type,limit=4){
+  const usable=(filtered||[]).filter(r=>!(r._excludes||[]).length);
+  const seen=new Set();
+  const scored=usable.slice().sort((a,b)=>planScoreV29475(b,type,null)-planScoreV29475(a,type,null));
+  const out=[];
+  for(const r of scored){
+    const key=(r.id||'')+'|'+(r.school||'')+'|'+(r.major||'')+'|'+(r.rank2025||'');
+    if(seen.has(key))continue;
+    // A 是稳妥路径，默认不把高收费/民办/中外合作放在前两张；但如果用户预算宽且候选不足，允许补足对照。
+    if(type==='A' && (r.isHighFee||r.isCoopV29475||r.isPrivateV29475) && out.length<2){
+      const plain=out.filter(x=>!(x.isHighFee||x.isCoopV29475||x.isPrivateV29475)).length;
+      if(plain<2)continue;
+    }
+    out.push(r); seen.add(key);
+    if(out.length>=limit)break;
+  }
+  // 如果 A 因稳妥保护不足 2 条，再放宽限制补齐，避免方案盘空。
+  if(out.length<Math.min(2,usable.length)){
+    for(const r of scored){
+      const key=(r.id||'')+'|'+(r.school||'')+'|'+(r.major||'')+'|'+(r.rank2025||'');
+      if(seen.has(key))continue;
+      out.push(r); seen.add(key);
+      if(out.length>=limit)break;
+    }
+  }
+  return out;
+}
+function pickSchemeBucketsV29475(){
+  // V2.9.4.7.5.fix：A/B/C 是三条路径，不是三个互斥坑位。
+  // 每条路径独立选 2-4 个代表候选，避免旧版全局 chosen 导致每列只剩 1 张卡。
+  return {A:pickBucketV29475('A',4),B:pickBucketV29475('B',4),C:pickBucketV29475('C',4)};
+}
+function planStatsV29475(rows,type){
+  const count=k=>rows.filter(r=>levelKindV29475(r,type)===k).length;
+  const cmp=rows.filter(r=>levelKindV29475(r,type)==='比较').length;
+  return `共 ${fmt(rows.length)} 条｜冲 ${fmt(rows.filter(r=>['可冲','超冲'].includes(r._level)).length)}｜稳 ${fmt(rows.filter(r=>['匹配','稳妥'].includes(r._level)).length)}｜保 ${fmt(rows.filter(r=>r._level==='保底').length)}${cmp?`｜比较 ${fmt(cmp)}`:''}`;
+}
+function compactPlanItemV29475(r,type){
+  const kind=levelKindV29475(r,type);
+  const tags=planReviewTagsV29473(r,type).slice(0,5).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+  const meta=[geoDisplayV29472(r),r.schoolNature?.label||'性质待核验',r.feeTypeLabelV29475||feeTypeLabelV29475(r),`2025位次${fmt(r.rank2025)}`].filter(Boolean).join('｜');
+  return `<div class="plan-mini-v29475 ${type.toLowerCase()}">
+    <div class="mini-top"><span class="mini-level">${htmlSafeV2945(kind)}</span><b>${htmlSafeV2945(r.school)}</b></div>
+    <div class="mini-major">${htmlSafeV2945(r.major)}</div>
+    <div class="mini-meta">${htmlSafeV2945(meta)}</div>
+    <p><strong>为什么：</strong>${whyPlanV29475(r,type)}</p>
+    <p><strong>风险：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
+    <div class="review-tags-v29473"><strong>复核</strong>${tags}</div>
+  </div>`;
+}
+function planColumnV29475(type,rows){
+  const meta=pathMetaV29475(type);
+  const shown=(rows||[]).slice(0,4);
+  const body=shown.length?shown.map(r=>compactPlanItemV29475(r,type)).join(''):`<div class="plan-empty-v29475">暂无代表候选。建议查看冲突诊断，优先放宽压缩最大的偏好项。</div>`;
+  return `<div class="plan-col-v29475 ${meta.cls}">
+    <div class="plan-col-head"><div><h3>${meta.title}</h3><p>${meta.line}</p></div><span>${planStatsV29475(rows||[],type)}</span></div>
+    <details class="plan-meta-v29475"><summary>适合 / 牺牲 / 风险</summary><div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>风险</b><span>${meta.risk}</span></div></details>
+    <div class="plan-mini-list-v29475">${body}</div>
+    ${(rows||[]).length>4?`<div class="plan-more-v29475">还有 ${fmt(rows.length-4)} 条，可在下方详细候选继续查看。</div>`:''}
+  </div>`;
+}
+function pickPlanRows(){
+  const b=pickSchemeBucketsV29475();
+  return {A:(b.A||[])[0]||null,B:(b.B||[])[0]||null,C:(b.C||[])[0]||null};
+}
+
+
+
+/* V2.9.5.2: A/B/C 首选样式 + 备选小卡紧凑修正
+   修正点：首选徽标不再黑底白字；备选卡只保留短理由、关键风险和复核芯片，明显小于首选大卡。 */
+let latestPlanBucketsV29475Fix2 = {A:[],B:[],C:[]};
+function planKeyV29475Fix2(r){
+  if(!r)return '';
+  return [r.school||'', r.major||r.admissionMajor||'', r.planType||r.batch||'', r.year||'2025', r.rank2025||'', r.score2025||''].join('§');
+}
+function planPathCategoryV29475Fix2(r){
+  const m=String((r&& (r.majorText||r.cleanMajor||r.major||''))||'');
+  if(/会计|财务|审计|财政|金融|工商管理/.test(m))return '财会 / 经管路径';
+  if(/电气|电力|智能电网|能源|新能源|储能/.test(m))return '电气 / 能源路径';
+  if(/电子信息|通信|微电子|集成电路|光电|测控/.test(m))return '电子信息 / 通信路径';
+  if(/计算机|软件|网络|信息安全|数据科学|人工智能|智能科学/.test(m))return '计算机 / 数字技术路径';
+  if(/临床|口腔|麻醉|影像|医学|护理|康复|药学|检验/.test(m))return '医学 / 医学技术路径';
+  if(/师范|教育|小学教育|学前教育|汉语言/.test(m))return '师范 / 考编路径';
+  if(/机械|自动化|机器人工程|车辆|交通|轨道/.test(m))return '机械 / 自动化 / 交通路径';
+  if(/法学|公安|思想政治|社会工作|行政/.test(m))return '考公 / 体制路径';
+  if(/材料|化学|环境|生物|食品|农学/.test(m))return '深造依赖 / 传统工科路径';
+  return '专业路径待复核';
+}
+function strongWhyV29475Fix2(r,type,idx){
+  const base=whyPlanV29475(r,type)||'';
+  if(type==='A'){
+    if(idx===0)return '首选原因：先守住公办、普通学费和基本路径；适合普通家庭先看这一条。';
+    return base || '备选原因：同属稳妥路径，可作为 A 方案补充比较。';
+  }
+  if(type==='B'){
+    const cat=planPathCategoryV29475Fix2(r);
+    if(idx===0)return `首选原因：${cat}更清楚，适合作为专业路径主线先精读。`;
+    return `备选原因：可作为${cat}的补充或替代，重点看培养方案和就业去向。`;
+  }
+  if(idx===0){
+    if(r.isCoopV29475||r.isHighFee)return '首选原因：适合预算较宽家庭比较“成本换层级/城市/机会”的提档价值。';
+    return '首选原因：上限或城市资源更突出，适合做 C 方案首个比较项。';
+  }
+  return base || '备选原因：属于城市、学校层级或提档路径的补充比较。';
+}
+function compactMetaV29475Fix2(r){
+  return [geoDisplayV29472(r), r.schoolNature?.label||'性质待核验', r.feeTypeLabelV29475||feeTypeLabelV29475(r), `2025位次${fmt(r.rank2025)}`].filter(Boolean).join('｜');
+}
+function planBadgesV29475Fix2(r,type){
+  const arr=[];
+  arr.push(levelKindV29475(r,type)||'观察');
+  if(type==='A')arr.push('守底线');
+  if(type==='B')arr.push(planPathCategoryV29475Fix2(r));
+  if(type==='C')arr.push(r.isCoopV29475?'中外提档':r.isPrivateV29475?'民办比较':r.isHighFee?'高收费复核':'争上限');
+  if(r.isCollegeSpecialPlanV29474)arr.push('专项资格');
+  return arr.filter(Boolean).slice(0,3).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+}
+
+function stripReasonPrefixV29475Fix3(s){
+  return String(s||'').replace(/^首选原因：/,'').replace(/^备选原因：/,'').replace(/^为什么：/,'').trim();
+}
+function compactTextV29475Fix3(s,max=54){
+  const t=stripReasonPrefixV29475Fix3(s).replace(/\s+/g,'');
+  return t.length>max?t.slice(0,max-1)+'…':t;
+}
+function compactRiskV29475Fix3(r,type){
+  const t=String(planRiskTextV29475(r,type)||'').replace(/\s+/g,'');
+  return t.length>42?t.slice(0,41)+'…':t;
+}
+function shortReviewTagsV29475Fix3(r,type){
+  const tags=planReviewTagsV29473(r,type).slice(0,3).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+  return tags || '<span>招生章程</span>';
+}
+function primaryPlanItemV29475Fix2(r,type){
+  if(!r)return `<div class="plan-primary-empty-v29475fix2">暂无首选推荐。建议查看冲突诊断，先放宽压缩最大的偏好项。</div>`;
+  const tags=planReviewTagsV29473(r,type).slice(0,6).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+  return `<div class="plan-primary-v29475fix2 ${type.toLowerCase()}">
+    <div class="primary-kicker-v29475fix2"><span>优先看</span><em>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</em></div>
+    <h4>${htmlSafeV2945(r.school)}</h4>
+    <div class="primary-major-v29475fix2">${htmlSafeV2945(r.major)}</div>
+    <div class="primary-meta-v29475fix2">${htmlSafeV2945(compactMetaV29475Fix2(r))}</div>
+    <div class="path-badges-v29475fix2">${planBadgesV29475Fix2(r,type)}</div>
+    <p><strong>为什么：</strong>${strongWhyV29475Fix2(r,type,0)}</p>
+    <p><strong>风险：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
+    <div class="review-tags-v29473"><strong>复核</strong>${tags}</div>
+    <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}')">加入自选</button>
+  </div>`;
+}
+function backupPlanItemV29475Fix2(r,type,idx){
+  const reason=compactTextV29475Fix3(strongWhyV29475Fix2(r,type,idx),50);
+  const risk=compactRiskV29475Fix3(r,type);
+  const tags=shortReviewTagsV29475Fix3(r,type);
+  return `<div class="plan-backup-v29475fix2 ${type.toLowerCase()}">
+    <div class="backup-top-v29475fix2"><span>${type}${idx+1}</span><b>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</b></div>
+    <div class="backup-main-v29475fix3"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
+    <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
+    <div class="backup-line-v29475fix3"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
+    <div class="backup-line-v29475fix3 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
+    <div class="backup-tags-v29475fix3"><b>复核</b>${tags}</div>
+    <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}')">加入</button>
+  </div>`;
+}
+function planStatsV29475Fix2(rows,type){
+  const r=rows||[];
+  const c=r.filter(x=>['可冲','超冲'].includes(x._level)).length;
+  const w=r.filter(x=>['匹配','稳妥'].includes(x._level)).length;
+  const b=r.filter(x=>x._level==='保底').length;
+  const cmp=r.filter(x=>levelKindV29475(x,type)==='比较').length;
+  return `首选 1｜备选 ${fmt(Math.max(0,r.length-1))}｜冲 ${fmt(c)}｜稳 ${fmt(w)}｜保 ${fmt(b)}${cmp?`｜比较 ${fmt(cmp)}`:''}`;
+}
+function planColumnV29475(type,rows){
+  const meta=pathMetaV29475(type);
+  const shown=(rows||[]).slice(0,4);
+  const primary=shown[0]||null;
+  const backups=shown.slice(1,4);
+  const planName={A:'A方案',B:'B方案',C:'C方案'}[type]||'本方案';
+  const total=(rows||[]).length;
+  const backupBody=backups.length?backups.map((r,i)=>backupPlanItemV29475Fix2(r,type,i+2)).join(''):`<div class="plan-empty-v29475">暂无备选小卡。可在详细候选中继续查看。</div>`;
+  return `<div class="plan-col-v29475 plan-col-fix2 ${meta.cls} ${type.toLowerCase()}" data-plan-type="${type}">
+    <div class="plan-col-head plan-col-head-fix2"><div><h3>${meta.title}</h3><p>${meta.line}</p></div><span>${planStatsV29475Fix2(shown,type)}</span></div>
+    <div class="plan-actions-v29475fix2">
+      <button class="secondary slim" onclick="addPlanGroupV29475Fix2('${type}')">加入${planName}${fmt(shown.length)}条</button>
+      <button class="ghost slim" onclick="togglePlanMetaV29475Fix2(this)">查看适合/牺牲/风险</button>
+    </div>
+    <div class="plan-meta-panel-v29475fix2 hide"><div class="plan-grid-small"><b>适合</b><span>${meta.fit}</span><b>牺牲</b><span>${meta.sacrifice}</span><b>风险</b><span>${meta.risk}</span></div></div>
+    ${primaryPlanItemV29475Fix2(primary,type)}
+    <div class="backup-title-v29475fix2">备选比较</div>
+    <div class="backup-grid-v29475fix2">${backupBody}</div>
+    ${total>4?`<div class="plan-more-v29475">还有 ${fmt(total-4)} 条，可在下方详细候选继续查看。</div>`:''}
+  </div>`;
+}
+function pickPlanRows(){
+  const b=latestPlanBucketsV29475Fix2&&latestPlanBucketsV29475Fix2.A?latestPlanBucketsV29475Fix2:pickSchemeBucketsV29475();
+  return {A:(b.A||[])[0]||null,B:(b.B||[])[0]||null,C:(b.C||[])[0]||null};
+}
+function togglePlanMetaV29475Fix2(btn){
+  const col=btn.closest('.plan-col-v29475'); const panel=col&&col.querySelector('.plan-meta-panel-v29475fix2');
+  if(panel)panel.classList.toggle('hide');
+}
+function candidateKeyV29475Fix2(r){return planKeyV29475Fix2(r)}
+function addRowsToCandidatesV29475Fix2(rows){
+  const existing=new Set((candidates||[]).map(candidateKeyV29475Fix2));
+  let added=0;
+  (rows||[]).forEach(r=>{
+    const source=DATA.find(x=>x.id===r.id)||r;
+    const key=candidateKeyV29475Fix2(source);
+    if(!existing.has(key)){
+      candidates.push(source); existing.add(key); added++;
+    }
+  });
+  localStorage.setItem('ln_candidates_v292',JSON.stringify(candidates));
+  renderCandidates(); renderStructure();
+  return added;
+}
+function addPlanOneV29475Fix2(id){
+  const r=DATA.find(x=>String(x.id)===String(id)) || (filtered||[]).find(x=>String(x.id)===String(id));
+  const added=addRowsToCandidatesV29475Fix2(r?[r]:[]);
+  if(added) flashCandidateNoteV29475Fix2(`已加入 1 条自选`);
+  else flashCandidateNoteV29475Fix2(`这条已在自选中`);
+}
+function addPlanGroupV29475Fix2(type){
+  const rows=(latestPlanBucketsV29475Fix2&&latestPlanBucketsV29475Fix2[type]||[]).slice(0,4);
+  const added=addRowsToCandidatesV29475Fix2(rows);
+  flashCandidateNoteV29475Fix2(`已加入${type}方案 ${added} 条，重复项已自动跳过`);
+}
+function addAllPlansV29475Fix2(){
+  const rows=[...(latestPlanBucketsV29475Fix2.A||[]).slice(0,4),...(latestPlanBucketsV29475Fix2.B||[]).slice(0,4),...(latestPlanBucketsV29475Fix2.C||[]).slice(0,4)];
+  const added=addRowsToCandidatesV29475Fix2(rows);
+  flashCandidateNoteV29475Fix2(`已加入 A/B/C 方案 ${added} 条，重复项已自动跳过`);
+}
+function flashCandidateNoteV29475Fix2(msg){
+  let el=document.getElementById('candidateFlashV29475Fix2');
+  if(!el){
+    el=document.createElement('div'); el.id='candidateFlashV29475Fix2'; el.className='candidate-flash-v29475fix2';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+
+/* fix2 选取补强：保证 A/B/C 有路径差异，B 尽量按专业路径分散，C 尽量按提档/城市/层级分散。 */
+function planClusterV29475Fix2(r,type){
+  if(type==='A')return [r.schoolProvince||'', r.schoolNature?.label||'', r._level||''].join('/');
+  if(type==='B')return planPathCategoryV29475Fix2(r);
+  if(type==='C'){
+    if(r.isCoopV29475||r.isHighFee)return '中外合作/高收费提档';
+    if(r.isPrivateV29475)return '民办城市专业';
+    if(['985','211'].includes(r.schoolTier?.level))return '学校层级更高';
+    if(cityModeV29472()!=='none' && selectedCitiesV29472().length && cityMatchesV29472(r,selectedCitiesV29472()))return '城市资源匹配';
+    return '普通批层级/城市比较';
+  }
+  return 'default';
+}
+function pickBucketDiverseV29475Fix2(type,limit=4,avoidKeys=new Set()){
+  const usable=(filtered||[]).filter(r=>!(r._excludes||[]).length);
+  const scored=usable.slice().sort((a,b)=>planScoreV29475(b,type,null)-planScoreV29475(a,type,null));
+  const out=[], seen=new Set(), clusters=new Set();
+  function canUse(r,strict){
+    const key=planKeyV29475Fix2(r);
+    if(seen.has(key))return false;
+    if(strict && avoidKeys.has(key))return false;
+    if(type==='A' && (r.isHighFee||r.isCoopV29475||r.isPrivateV29475) && out.length<2){
+      const plain=out.filter(x=>!(x.isHighFee||x.isCoopV29475||x.isPrivateV29475)).length;
+      if(plain<2)return false;
+    }
+    if((type==='B'||type==='C') && clusters.has(planClusterV29475Fix2(r,type)) && out.length<3)return false;
+    return true;
+  }
+  for(const strict of [true,false]){
+    for(const r of scored){
+      if(!canUse(r,strict))continue;
+      const key=planKeyV29475Fix2(r);
+      out.push(r); seen.add(key); clusters.add(planClusterV29475Fix2(r,type));
+      if(out.length>=limit)return out;
+    }
+  }
+  return out;
+}
+function pickSchemeBucketsV29475(){
+  const A=pickBucketDiverseV29475Fix2('A',4,new Set());
+  const avoidA=new Set(A.map(planKeyV29475Fix2));
+  const B=pickBucketDiverseV29475Fix2('B',4,avoidA);
+  const avoidAB=new Set([...A,...B].map(planKeyV29475Fix2));
+  const C=pickBucketDiverseV29475Fix2('C',4,avoidAB);
+  return {A,B,C};
+}
+
+/* V2.9.4.7.5.fix: A/B/C 多候选方案盘修正版
+   - 每条路径独立选择 2-4 个代表候选；
+   - 不再用全局 chosen 把 A/B/C 压缩成单卡；
+   - PC 三列、Pad/Android 自适应堆叠；
+   - 保留 V2.9.4.7.4 高校专项默认保护与 V2.9.4.7.5 预算宽/中外提档逻辑。 */
+
+
+/* V2.9.5.2：A/B/C 方案引擎与路径解释版
+   局部架构整理：只接管 A/B/C 方案盘、路径解释、提档价值、自选来源，不重写数据加载和主筛选。 */
+const PLAN_MODES_V29476 = {
+  A:{
+    cls:'a', key:'A', title:'A：稳妥公办路径', shortName:'看底线', role:'稳妥',
+    goal:'少犯大错，优先保公办、普通学费、位次安全和专业可读性。',
+    line:'先保底线：公办、普通学费、位次更稳，适合普通家庭先看。',
+    fit:'普通家庭、低容错、强省内、公办优先、预算谨慎家庭',
+    sacrifice:'可能牺牲城市、专业热度、学校名气和上限空间',
+    risk:'公办不等于一定适配，仍要看孩子能不能读下去',
+    prefer:['public_school','normal_fee','safe_rank','low_risk','region_match'],
+    avoid:['high_fee','private_college','special_plan_without_qualification','unclear_major'],
+    review:['学校性质','学费','校区','招生章程','专业课程']
+  },
+  B:{
+    cls:'b', key:'B', title:'B：专业路径方案', shortName:'看专业', role:'专业',
+    goal:'看专业方向是否清楚、孩子是否学得动、毕业路径是否能解释。',
+    line:'先看方向：专业是否看得准，孩子是否学得动，毕业往哪走。',
+    fit:'强就业、强考研、强体制、孩子有明确兴趣或专业优先家庭',
+    sacrifice:'可能牺牲学校层级、城市和省内偏好',
+    risk:'专业名可能误认，部分方向依赖读研、行业背景或资格路径',
+    prefer:['major_path_clear','major_core','child_fit','career_clarity'],
+    avoid:['major_misread','unclear_path','over_depend_on_name'],
+    review:['本科专业代码','培养方案','就业质量报告','岗位相关性']
+  },
+  C:{
+    cls:'c', key:'C', title:'C：城市 / 学校层级 / 提档路径', shortName:'看上限', role:'提档',
+    goal:'比较城市、学校层级、中外合作、民办城市专业带来的上限机会。',
+    line:'争取上限：城市、学校层级或中外合作提档，但复核要求更高。',
+    fit:'预算较宽、强城市、高分段、学校层级优先或想提档家庭',
+    sacrifice:'可能牺牲专业确定性、普通学费、省内照应或孩子适配',
+    risk:'高收费、证书、校区、大类分流和专业适配必须复核',
+    prefer:['school_tier_lift','city_lift','coop_lift','platform_value'],
+    avoid:['fake_lift','unverified_certificate','uncontrolled_cost'],
+    review:['学费','证书','培养地点','是否必须出国','转专业政策']
+  }
+};
+const PATH_RULES_V29476 = {
+  accounting:{
+    label:'财会 / 经管路径', weight:91,
+    core:['会计学','审计学','财务管理'],
+    related:['工商管理类','财政学','金融学','税收学','资产评估','经济学'],
+    regex:/会计|审计|财务|财政|税收|资产评估|金融|经济|工商管理/,
+    confusable:['工商管理类需核验是否含会计、财务或审计方向','金融类普通院校资源依赖较强'],
+    career:['财会','审计','税务','企业财务','考公岗位'],
+    review:['培养方案','专业方向','就业去向','考公岗位相关性']
+  },
+  electric:{
+    label:'电气 / 能源路径', weight:94,
+    core:['电气工程及其自动化','智能电网信息工程'],
+    related:['自动化','能源与动力工程','新能源科学与工程','储能科学与工程','测控技术与仪器'],
+    regex:/电气|智能电网|电力|能源与动力|新能源|储能|自动化|测控|核工程|能源/,
+    confusable:['自动化、测控、电子信息不能直接等同电气正主','电网方向必须复核招聘口径'],
+    career:['电力系统','能源企业','装备制造','国企央企相关岗位'],
+    review:['专业代码','学校行业背景','电网招聘口径','就业质量报告']
+  },
+  electronic:{
+    label:'电子信息 / 通信路径', weight:88,
+    core:['电子信息工程','通信工程','微电子科学与工程','集成电路设计与集成系统'],
+    related:['光电信息科学与工程','电子科学与技术','测控技术与仪器','信息工程'],
+    regex:/电子信息|通信|微电子|集成电路|光电|电子科学|信息工程|测控/,
+    confusable:['电子信息类方向较宽，需核验课程和学院归属','测控可能更偏仪器与自动化'],
+    career:['通信设备','电子制造','嵌入式','半导体','信息系统'],
+    review:['培养方案','专业类代码','实验条件','就业去向']
+  },
+  computer:{
+    label:'计算机 / 数字技术路径', weight:90,
+    core:['计算机科学与技术','软件工程','网络工程','信息安全'],
+    related:['数据科学与大数据技术','人工智能','物联网工程','智能科学与技术'],
+    regex:/计算机|软件|网络工程|信息安全|网络空间|数据科学|人工智能|智能科学|物联网|大数据/,
+    confusable:['数据科学与大数据技术 ≠ 大数据管理与应用','人工智能名称热，需看课程底座'],
+    career:['软件开发','数据分析','网络安全','信息系统','AI应用'],
+    review:['代码强度','培养方案','专业归属学院','就业岗位']
+  },
+  medical:{
+    label:'医学 / 医学技术路径', weight:84,
+    core:['临床医学','口腔医学','麻醉学','医学影像学'],
+    related:['医学影像技术','医学检验技术','护理学','康复治疗学','药学'],
+    regex:/临床|口腔|麻醉|儿科|医学影像|医学检验|护理|康复|药学|预防医学|中医学|针灸/,
+    confusable:['医学技术不等于临床医生路径','护理康复和药学需要单独看执业路径'],
+    career:['医院','医学技术','护理康复','药学检验','继续深造'],
+    review:['是否医生路径','执业资格','规培周期','培养年限']
+  },
+  teacher:{
+    label:'师范 / 考编路径', weight:82,
+    core:['汉语言文学','数学与应用数学','英语','小学教育','学前教育'],
+    related:['物理学','化学','生物科学','思想政治教育','历史学','地理科学'],
+    regex:/师范|小学教育|学前教育|特殊教育|教育技术|汉语言|思想政治教育|数学与应用数学|物理学|化学|生物科学|历史学|地理科学/,
+    confusable:['师范标签和教师编岗位要结合地区政策','非师范也可能考教师资格，但就业口径不同'],
+    career:['教师编','教育培训','考公考编','继续深造'],
+    review:['是否师范类','教师资格路径','本地教师招聘岗位','培养方案']
+  },
+  engineering:{
+    label:'机械 / 自动化 / 交通路径', weight:80,
+    core:['机械设计制造及其自动化','机械电子工程','自动化','车辆工程','交通运输'],
+    related:['轨道交通信号与控制','机器人工程','工业工程','物流工程'],
+    regex:/机械|自动化|机器人工程|车辆|交通运输|轨道|工业工程|物流工程|智能制造|测控/,
+    confusable:['传统工科要看现场环境和数学物理承受力','工业工程、物流工程可能更偏管理流程'],
+    career:['制造业','装备企业','交通运输','自动化控制','现场工程'],
+    review:['工程现场接受度','培养方案','就业地区','行业周期']
+  },
+  public_service:{
+    label:'考公 / 体制路径', weight:78,
+    core:['法学','汉语言文学','计算机科学与技术','会计学','财务管理'],
+    related:['行政管理','思想政治教育','统计学','公安学类','社会工作'],
+    regex:/法学|汉语言|计算机|会计|财务|审计|统计|思想政治|公安|行政管理|社会工作/,
+    confusable:['体制路径不是专业一选就稳，必须看岗位表','经管法文不能泛化成全部考公友好'],
+    career:['公务员','事业编','教师编','国企央企','基层岗位'],
+    review:['近年岗位表','学历要求','地区限制','备考能力']
+  },
+  deep_research:{
+    label:'深造依赖 / 传统工科路径', weight:62,
+    core:['材料科学与工程','化学','应用化学','环境科学','生物科学'],
+    related:['食品科学与工程','农学','园林','资源勘查工程','采矿工程'],
+    regex:/材料|化学|环境|生物|食品|农学|园林|资源勘查|采矿|地质|矿业|生态/,
+    confusable:['这类方向不是不能选，但更依赖平台、深造和长期投入'],
+    career:['读研深造','科研检测','传统制造','行业单位'],
+    review:['是否愿意读研','学校平台','就业质量报告','行业环境']
+  }
+};
+function majorTextV29476(r){ return String((r&&(r.mainMajorV29475||r.cleanMajor||r.majorText||r.major||r.admissionMajor||''))||'').replace(/\s+/g,''); }
+function pathMatchesRuleV29476(rule, text){
+  if(!rule || !text)return false;
+  if(rule.regex && rule.regex.test(text))return true;
+  return [...(rule.core||[]),...(rule.related||[])].some(x=>text.includes(String(x).replace(/\s+/g,'')));
+}
+function majorPathInfoV29476(r){
+  const text=majorTextV29476(r);
+  const hits=Object.entries(PATH_RULES_V29476).filter(([k,rule])=>pathMatchesRuleV29476(rule,text)).sort((a,b)=>(b[1].weight||0)-(a[1].weight||0));
+  const [key,rule]=hits[0]||['unknown',{label:'专业路径待复核',core:[],related:[],confusable:['需结合培养方案确认方向'],career:['待复核'],review:['培养方案','就业去向']}];
+  const isCore=(rule.core||[]).some(x=>text.includes(String(x).replace(/\s+/g,'')));
+  const isRelated=!isCore && (rule.related||[]).some(x=>text.includes(String(x).replace(/\s+/g,'')));
+  return {key, ...rule, isCore, isRelated, text};
+}
+function liftExchangeInfoV29476(r){
+  const s=typeof conditionSnapshotV29473==='function'?conditionSnapshotV29473():{};
+  const got=[], paid=[], review=[];
+  let score=0, label='仅供比较', kind='ordinary';
+  if(['985','211'].includes(r.schoolTier?.level)){got.push(r.schoolTier.level==='985'?'985平台':'211平台');score+=30;kind='schoolTier';}
+  else if(r.schoolTier?.label && r.schoolTier.label!=='普通本科'){got.push(r.schoolTier.label);score+=12;}
+  if(s.cities?.length && cityMatchesV29472(r,s.cities)){got.push('目标城市匹配');score+=22;kind=kind==='ordinary'?'city':kind;}
+  else if(['沈阳','大连','北京','天津','上海','南京','杭州','广州','深圳','青岛','济南'].includes(r.schoolCity)){got.push('城市资源较好');score+=10;}
+  if(r.isCoopV29475||r.isHighFee){got.push('中外/高收费提档机会'); paid.push('学费更高'); review.push('证书','培养地点','是否必须出国'); score+=s.coopIntent?26:14; kind='coopLift';}
+  if(r.isPrivateV29475){got.push('民办城市/专业机会'); paid.push('民办身份与四年成本'); review.push('学校资源','考研/就业氛围'); score+=s.budgetWide?12:4; kind=kind==='ordinary'?'privateCity':kind;}
+  if(r.schoolProvince!=='辽宁'){paid.push('省外适应与往返成本');}
+  if(/大类|试验班|实验班/.test(r.major||'')){paid.push('专业分流不确定');review.push('大类分流规则','退出机制');score-=3;}
+  if(!got.length)got.push('普通批比较机会');
+  if(!paid.length)paid.push('可能牺牲专业确定性或省内照应');
+  if(!review.length)review.push('学费','校区','招生章程','专业归属');
+  if(score>=46)label='提档价值较高'; else if(score>=25)label='提档价值一般'; else if(r.isCoopV29475||r.isHighFee)label='提档价值待复核';
+  if((r.isCoopV29475||r.isHighFee) && score<25)label='疑似伪提档';
+  return {score,label,kind,got:[...new Set(got)],paid:[...new Set(paid)],review:[...new Set(review)]};
+}
+function baselineHitsV29476(r){
+  const hits=[];
+  if(['public','publicSoft'].includes(r.schoolTier?.level) || r.schoolNature?.label==='公办倾向')hits.push('公办倾向');
+  if(!(r.isHighFee||r.isCoopV29475))hits.push('普通学费');
+  if(['匹配','稳妥','保底'].includes(r._level))hits.push('位次较稳');
+  if(['辽宁','吉林','黑龙江'].includes(r.schoolProvince))hits.push('地域可控');
+  if(!r.isCollegeSpecialPlanV29474)hits.push('非专项限制');
+  if(!hasConfusableMajorV2946 || !hasConfusableMajorV2946(r))hits.push('易混风险低');
+  return hits.length?hits:['需人工复核底线'];
+}
+pathMetaV29475 = function(type){
+  const s=typeof conditionSnapshotV29473==='function'?conditionSnapshotV29473():{};
+  const m=PLAN_MODES_V29476[type] || PLAN_MODES_V29476.A;
+  const title=(type==='C' && (s.coopIntent||s.budget==='coop'))?'C：城市 / 学校层级 / 中外合作提档':m.title;
+  const line=(type==='C' && (s.coopIntent||s.budget==='coop'))?'上限交换：普通批层级、中外合作提档、民办城市专业并列比较。':m.line;
+  return {...m,title,line};
+};
+planPathCategoryV29475Fix2 = function(r){ return majorPathInfoV29476(r).label; };
+planClusterV29475Fix2 = function(r,type){
+  if(type==='A')return [r.schoolProvince||'', r.schoolNature?.label||'', r._level||'', (r.isHighFee||r.isPrivateV29475?'risk':'plain')].join('/');
+  if(type==='B')return majorPathInfoV29476(r).label;
+  if(type==='C')return liftExchangeInfoV29476(r).kind;
+  return 'default';
+};
+const planReviewTagsBaseV29476 = planReviewTagsV29473;
+planReviewTagsV29473 = function(r,type){
+  const base=(planReviewTagsBaseV29476?planReviewTagsBaseV29476(r,type):[]).slice();
+  if(type==='A')base.push(...PLAN_MODES_V29476.A.review, ...baselineHitsV29476(r).includes('易混风险低')?[]:['本科代码']);
+  if(type==='B')base.push(...(majorPathInfoV29476(r).review||[]));
+  if(type==='C')base.push(...liftExchangeInfoV29476(r).review);
+  return [...new Set(base)].slice(0,9);
+};
+planRiskTextV29475 = function(r,type){
+  if(!r)return '';
+  if(type==='A'){
+    if(r.isHighFee||r.isCoopV29475)return '高收费/中外合作不宜直接当稳妥方案，必须确认家庭承受力。';
+    if(r.isPrivateV29475)return '民办身份不适合默认放入稳妥底线，需单独比较成本和资源。';
+    return '稳妥不等于无风险，仍需复核孩子能否读下去、校区和培养方案。';
+  }
+  if(type==='B'){
+    const info=majorPathInfoV29476(r);
+    if(info.confusable?.length)return info.confusable[0];
+    return '专业路径需结合培养方案、就业去向和孩子适配复核。';
+  }
+  const lift=liftExchangeInfoV29476(r);
+  if(lift.label==='疑似伪提档')return '可能只是名称或学校层级看起来更好，证书、专业和培养地点必须复核。';
+  if(r.isCoopV29475||r.isHighFee)return '中外合作不是天然提档，需核验证书、学费、校区和培养模式。';
+  if(r.isPrivateV29475)return '民办城市专业要核算四年成本、学校资源和孩子自律。';
+  return '上限更高但不确定性更强，需复核校区、专业归属和实际资源。';
+};
+strongWhyV29475Fix2 = function(r,type,idx){
+  if(!r)return '';
+  if(type==='A'){
+    const hits=baselineHitsV29476(r).slice(0,4).join(' + ');
+    return (idx===0?'首选原因：':'备选原因：') + `${hits}。这条路优先回答“能不能稳妥落地”。`;
+  }
+  if(type==='B'){
+    const info=majorPathInfoV29476(r);
+    const role=info.isCore?'正主专业':info.isRelated?'相近替代':'路径相关';
+    const career=(info.career||[]).slice(0,3).join(' / ');
+    return (idx===0?'首选原因：':'备选原因：') + `${info.label}｜${role}。重点看${career||'培养方案和就业去向'}，不是只看学校名。`;
+  }
+  const lift=liftExchangeInfoV29476(r);
+  return (idx===0?'首选原因：':'备选原因：') + `换来：${lift.got.slice(0,3).join(' / ')}；付出：${lift.paid.slice(0,3).join(' / ')}。${lift.label}。`;
+};
+planBadgesV29475Fix2 = function(r,type){
+  const arr=[];
+  arr.push(levelKindV29475(r,type)||'观察');
+  if(type==='A')arr.push(...baselineHitsV29476(r).slice(0,2));
+  if(type==='B'){
+    const p=majorPathInfoV29476(r); arr.push(p.label); if(p.isCore)arr.push('正主专业'); else if(p.isRelated)arr.push('相近替代');
+  }
+  if(type==='C'){
+    const l=liftExchangeInfoV29476(r); arr.push(l.label); arr.push(l.kind==='coopLift'?'中外提档':l.kind==='privateCity'?'民办城市':l.kind==='city'?'城市资源':l.kind==='schoolTier'?'学校层级':'上限比较');
+  }
+  if(r.isCoopV29475)arr.push('中外合作');
+  if(r.isHighFee)arr.push('高收费');
+  if(r.isPrivateV29475)arr.push('民办本科');
+  return [...new Set(arr.filter(Boolean))].slice(0,4).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+};
+function explanationPanelV29476(r,type){
+  if(type==='A'){
+    return `<div class="path-explain-v29476 a"><b>底线命中</b><span>${baselineHitsV29476(r).slice(0,5).map(htmlSafeV2945).join('｜')}</span></div>`;
+  }
+  if(type==='B'){
+    const p=majorPathInfoV29476(r);
+    const core=(p.core||[]).slice(0,3).join(' / ')||'待复核';
+    const related=(p.related||[]).slice(0,3).join(' / ')||'待复核';
+    return `<div class="path-explain-v29476 b"><b>${htmlSafeV2945(p.label)}</b><span>正主：${htmlSafeV2945(core)}｜替代：${htmlSafeV2945(related)}</span></div>`;
+  }
+  const l=liftExchangeInfoV29476(r);
+  return `<div class="path-explain-v29476 c"><b>${htmlSafeV2945(l.label)}</b><span>换来：${htmlSafeV2945(l.got.slice(0,3).join(' / '))}<br/>付出：${htmlSafeV2945(l.paid.slice(0,3).join(' / '))}</span></div>`;
+}
+primaryPlanItemV29475Fix2 = function(r,type){
+  if(!r)return `<div class="plan-primary-empty-v29475fix2">暂无首选推荐。建议查看冲突诊断，先放宽压缩最大的偏好项。</div>`;
+  const tags=planReviewTagsV29473(r,type).slice(0,6).map(x=>`<span>${htmlSafeV2945(x)}</span>`).join('');
+  return `<div class="plan-primary-v29475fix2 plan-primary-v29476 ${type.toLowerCase()}">
+    <div class="primary-kicker-v29475fix2"><span>优先看</span><em>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</em></div>
+    <h4>${htmlSafeV2945(r.school)}</h4>
+    <div class="primary-major-v29475fix2">${htmlSafeV2945(r.major)}</div>
+    <div class="primary-meta-v29475fix2">${htmlSafeV2945(compactMetaV29475Fix2(r))}</div>
+    <div class="path-badges-v29475fix2">${planBadgesV29475Fix2(r,type)}</div>
+    ${explanationPanelV29476(r,type)}
+    <p><strong>${type==='A'?'为什么稳':type==='B'?'为什么是路径':'换来了什么'}：</strong>${htmlSafeV2945(stripReasonPrefixV29475Fix3(strongWhyV29475Fix2(r,type,0)))}</p>
+    <p><strong>主要风险：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
+    <div class="review-tags-v29473"><strong>复核</strong>${tags}</div>
+    <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','首选')">加入自选</button>
+  </div>`;
+};
+backupPlanItemV29475Fix2 = function(r,type,idx){
+  const reason=compactTextV29475Fix3(strongWhyV29475Fix2(r,type,idx),58);
+  const risk=compactRiskV29475Fix3(r,type);
+  const tags=shortReviewTagsV29475Fix3(r,type);
+  return `<div class="plan-backup-v29475fix2 plan-backup-v29476 ${type.toLowerCase()}">
+    <div class="backup-top-v29475fix2"><span>${type}${idx+1}</span><b>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</b></div>
+    <div class="backup-main-v29475fix3"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
+    <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
+    <div class="backup-path-v29476">${type==='B'?htmlSafeV2945(majorPathInfoV29476(r).label):type==='C'?htmlSafeV2945(liftExchangeInfoV29476(r).label):htmlSafeV2945(baselineHitsV29476(r).slice(0,2).join('｜'))}</div>
+    <div class="backup-line-v29475fix3"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
+    <div class="backup-line-v29475fix3 muted"><b>风险</b><span>${htmlSafeV2945(risk)}</span></div>
+    <div class="backup-tags-v29475fix3"><b>复核</b>${tags}</div>
+    <button class="ghost slim add-one-v29475fix2" onclick="addPlanOneV29475Fix2('${htmlSafeV2945(r.id)}','${type}','备选')">加入</button>
+  </div>`;
+};
+planScoreV29475 = function(r,type,chosen){
+  let sc=0; const s=conditionSnapshotV29473?conditionSnapshotV29473():{}; const path=majorPathInfoV29476(r); const lift=liftExchangeInfoV29476(r);
+  if(chosen&&chosen.has(r.id))sc-=9999;
+  if(type==='A'){
+    if(['匹配','稳妥','保底'].includes(r._level))sc+=34;
+    if(['public','publicSoft'].includes(r.schoolTier?.level)||r.schoolNature?.label==='公办倾向')sc+=30;
+    if(!(r.isHighFee||r.isCoopV29475))sc+=24;
+    if(['辽宁','吉林','黑龙江'].includes(r.schoolProvince))sc+=12;
+    if(!r.isCollegeSpecialPlanV29474)sc+=8;
+    if(r.isPrivateV29475)sc-=34;
+    if(r.isHighFee||r.isCoopV29475)sc-=38;
+    sc+=(r._profile||0)*.32;
+  }else if(type==='B'){
+    if(['匹配','稳妥','可冲'].includes(r._level))sc+=18;
+    if(path.isCore)sc+=36; else if(path.isRelated)sc+=22; else if(path.key!=='unknown')sc+=14;
+    const q=(document.getElementById('qMajor')?.value||'').trim(); if(q&&majorMatchesV29475(r,q))sc+=28;
+    if(hasConfusableMajorV2946 && hasConfusableMajorV2946(r))sc-=6;
+    sc+=(r._profile||0)*.42 + (path.weight||0)*.18;
+  }else{
+    if(['可冲','匹配','稳妥'].includes(r._level))sc+=18;
+    sc+=lift.score;
+    if(s.coopIntent && (r.isCoopV29475||r.isHighFee))sc+=30;
+    if(s.budgetWide && (r.isCoopV29475||r.isHighFee||r.isPrivateV29475))sc+=14;
+    if((r.isCoopV29475||r.isHighFee) && !(s.budgetWide||s.coopIntent))sc-=28;
+    if(lift.label==='疑似伪提档')sc-=10;
+    sc+=(r._profile||0)*.18;
+  }
+  return sc;
+};
+addRowsToCandidatesV29476 = function(rows, planType='', role=''){
+  const existing=new Set((candidates||[]).map(candidateKeyV29475Fix2));
+  let added=0;
+  (rows||[]).forEach(r=>{
+    const source=DATA.find(x=>x.id===r.id)||r;
+    const key=candidateKeyV29475Fix2(source);
+    if(!existing.has(key)){
+      const cloned={...source,
+        _selectedSourcePlanV29476:planType||'手动',
+        _selectedPlanRoleV29476:role||'手动',
+        _selectedPathLabelV29476:planType==='B'?majorPathInfoV29476(r).label:planType==='C'?liftExchangeInfoV29476(r).label:planType==='A'?'稳妥底线':'手动加入',
+        _selectedAtV29476:new Date().toISOString()
+      };
+      candidates.push(cloned); existing.add(key); added++;
+    }
+  });
+  localStorage.setItem('ln_candidates_v292',JSON.stringify(candidates));
+  renderCandidates(); renderStructure();
+  return added;
+};
+addRowsToCandidatesV29475Fix2 = function(rows){return addRowsToCandidatesV29476(rows,'手动','手动');};
+addPlanOneV29475Fix2 = function(id,type='',role=''){
+  const r=DATA.find(x=>String(x.id)===String(id)) || (filtered||[]).find(x=>String(x.id)===String(id));
+  const added=addRowsToCandidatesV29476(r?[r]:[],type||'手动',role||'手动');
+  flashCandidateNoteV29475Fix2(added?'已加入 1 条自选':'这条已在自选中');
+};
+addPlanGroupV29475Fix2 = function(type){
+  const rows=(latestPlanBucketsV29475Fix2&&latestPlanBucketsV29475Fix2[type]||[]).slice(0,4);
+  const added=addRowsToCandidatesV29476(rows,type,'方案候选');
+  flashCandidateNoteV29475Fix2(`已加入${type}方案 ${added} 条，重复项已自动跳过`);
+};
+addAllPlansV29475Fix2 = function(){
+  const rows=[...(latestPlanBucketsV29475Fix2.A||[]).slice(0,4).map(r=>[r,'A']),...(latestPlanBucketsV29475Fix2.B||[]).slice(0,4).map(r=>[r,'B']),...(latestPlanBucketsV29475Fix2.C||[]).slice(0,4).map(r=>[r,'C'])];
+  let added=0; rows.forEach(([r,t])=>{added+=addRowsToCandidatesV29476([r],t,'方案候选')});
+  flashCandidateNoteV29475Fix2(`已加入 A/B/C 方案 ${added} 条，重复项已自动跳过`);
+};
+renderCandidates = function(){
+  const el=document.getElementById('candidateList'); if(!el)return;
+  el.innerHTML=(candidates||[]).map(r=>{
+    const er=DATA.find(x=>x.id===r.id)||r; enrich(er);
+    const src=r._selectedSourcePlanV29476||'手动'; const role=r._selectedPlanRoleV29476||''; const path=r._selectedPathLabelV29476||'';
+    return `<div class="candidate candidate-v29476"><b>${htmlSafeV2945(er.school)}</b><div>${htmlSafeV2945(er.major)}</div><div class="small">${htmlSafeV2945(geoDisplayV29472(er))}｜2025：${fmt(er.score2025)} 分 / ${fmt(er.rank2025)} 位</div><div class="candidate-source-v29476"><span>来源：${htmlSafeV2945(src)}</span>${role?`<span>${htmlSafeV2945(role)}</span>`:''}${path?`<span>${htmlSafeV2945(path)}</span>`:''}</div><button class="ghost slim" style="margin-top:8px" onclick="removeCandidate('${htmlSafeV2945(er.id)}')">移除</button></div>`;
+  }).join('')||'<p class="small">还没有加入候选。</p>';
+};
+rowsToCsv = function(rows){
+  const head=['来源方案','方案角色','路径标签','学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','主专业名','办学类型','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','复核项','地域说明'];
+  const body=(rows||[]).map(row=>{
+    const meta=row||{}; const r=enrich(DATA.find(x=>x.id===meta.id)||meta);
+    const reviews=[...new Set([...(planReviewTagsV29473?planReviewTagsV29473(r,meta._selectedSourcePlanV29476||'')||[]:[]),...(meta._selectedSourcePlanV29476?[meta._selectedSourcePlanV29476]:[])])].join('|');
+    return [meta._selectedSourcePlanV29476||'',meta._selectedPlanRoleV29476||'',meta._selectedPathLabelV29476||'',r.school,r.schoolProvince||'',r.schoolCity||'',r.schoolRegion||'',r.schoolGeoSourceMethod||'',confidenceLabel(r.schoolGeoConfidence||'low'),r.schoolNature?.label||'',r.schoolTier?.label||'',r.major,r.mainMajorV29475||'',r.feeTypeLabelV29475||feeTypeLabelV29475(r),r.cleanMajor,r.undergradDisciplineName,r.officialCategoryCode,r.undergradCategoryName,r.officialMajorCode,r.gradAcademicText,r.gradProfessionalText,r.gradSecondaryText,confidenceLabel(r.gradReferenceConfidence||r.taxonomyConfidence),r.admissionReviewTags||'', confusablePairsForRecordV2946(r).map(p=>p.group_name).join('|'), r.score2025,r.rank2025,r.score2024,r.rank2024,r._level||'',Math.round(r._profile||0),(r.riskFlags||[]).join('|'),reviews,CITY_GEO_NOTE_V29472]
+      .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',');
+  });
+  return [head.join(','),...body].join('\n');
+};
+exportFiltered = function(){download('辽宁物理类_V2.9.5.2_筛选结果_规则统一版.csv',rowsToCsv(filtered));};
+exportCandidates = function(){download('辽宁物理类_V2.9.5.2_候选清单_方案来源.csv',rowsToCsv(candidates));};
+
 boot();
 setInterval(updateGuideState, 1000);
 setTimeout(syncAccessState, 0);
+
+
+/* =========================
+ * V2.9.5.2｜场景与目标路径统一规则版
+ * 只接管流程解释、家庭底线摘要、A/B/C方案盘渲染与简洁模式；保留原数据引擎、筛选规则和导出能力。
+ * ========================= */
+const APP_VERSION_V2950 = 'V2.9.5.2｜场景与目标路径统一规则版';
+const PLAN_MODES_V2950 = {
+  A:{key:'A',cls:'a',title:'A：守底线方案',short:'守底线',line:'先看能不能稳妥落地：公办、普通学费、位次安全、专业可读。'},
+  B:{key:'B',cls:'b',title:'B：专业路径方案',short:'看专业',line:'再看专业往哪走：正主/相近/需核验，避免只看名字。'},
+  C:{key:'C',cls:'c',title:'C：上限交换方案',short:'争上限',line:'最后看用什么代价换上限：城市、学校层级、中外合作或民办城市专业。'}
+};
+function v2950Text(v){return htmlSafeV2945(String(v??''));}
+function getActiveChipTextV2950(group){const box=document.querySelector(`[data-group="${group}"]`);return box?.querySelector('.chip.active')?.textContent?.trim()||'未设置';}
+function getBudgetLabelV2950(){const el=document.getElementById('budget');return el?.selectedOptions?.[0]?.textContent||'未设置';}
+function getSpecialLabelV2950(){const el=document.getElementById('specialPlanStatus');return el?.selectedOptions?.[0]?.textContent||'未设置';}
+function getRegionLabelV2950(){
+  const mode=document.getElementById('regionMode')?.selectedOptions?.[0]?.textContent||'不限制';
+  const ps=selectedProvinces?selectedProvinces():[];
+  return `${mode}${ps.length?'｜'+ps.slice(0,6).join('、')+(ps.length>6?'等':''):'｜未选省份'}`;
+}
+function getCityLabelV2950(){
+  const mode=document.getElementById('cityMode')?.selectedOptions?.[0]?.textContent||'不限制';
+  const cities=(document.getElementById('targetCities')?.value||'').trim();
+  return `${mode}${cities?'｜'+cities:'｜未填城市'}`;
+}
+function renderBaselineSummaryV2950(){
+  const box=document.getElementById('baselineSummaryV2950'); if(!box)return;
+  const rejects=selectedRejects?selectedRejects():[];
+  const budget=document.getElementById('budget')?.value||'normal';
+  const special=specialPlanStatusV29474?specialPlanStatusV29474():'unreviewed';
+  const out=getActiveChipTextV2950('outProvince');
+  const fee=document.getElementById('filterFeeType')?.selectedOptions?.[0]?.textContent||'全部候选';
+  const flags=[];
+  if(budget==='normal')flags.push('普通学费优先');
+  if(budget==='coop')flags.push('主动比较中外合作提档');
+  if(special!=='approved')flags.push('高校专项默认隐藏');
+  if(rejects.length)flags.push('明确不接受：'+rejects.join('、'));
+  box.innerHTML=`
+    <div class="baseline-snapshot-v2950">
+      <div><b>预算</b><span>${v2950Text(getBudgetLabelV2950())}</span></div>
+      <div><b>专项资格</b><span>${v2950Text(getSpecialLabelV2950())}</span></div>
+      <div><b>地域</b><span>${v2950Text(getRegionLabelV2950())}</span></div>
+      <div><b>城市</b><span>${v2950Text(getCityLabelV2950())}</span></div>
+      <div><b>出省</b><span>${v2950Text(out)}</span></div>
+      <div><b>办学/收费</b><span>${v2950Text(fee)}</span></div>
+    </div>
+    <div class="baseline-tags-v2950">${flags.map(x=>`<span>${v2950Text(x)}</span>`).join('')||'<span>底线未收窄，先看全量方案</span>'}</div>`;
+}
+function applySimpleModeV2950(){
+  const on=document.getElementById('simpleModeToggleV2950')?.checked ?? true;
+  document.body.classList.toggle('parent-simple-v2950', !!on);
+  localStorage.setItem('ln_simple_mode_v2950', on?'1':'0');
+}
+function initSimpleModeV2950(){
+  const v=localStorage.getItem('ln_simple_mode_v2950');
+  const el=document.getElementById('simpleModeToggleV2950');
+  if(el){el.checked = v!=='0'; el.addEventListener('change',()=>{applySimpleModeV2950(); updateGuideState();});}
+  applySimpleModeV2950();
+}
+function planRoleLabelV2950(r,type){
+  if(type==='A')return (baselineHitsV29476?baselineHitsV29476(r).slice(0,3).join(' + '):'底线命中');
+  if(type==='B'){
+    const p=majorPathInfoV29476?majorPathInfoV29476(r):{};
+    const role=p.isCore?'正主':p.isRelated?'相近':'需核验';
+    return `${p.label||'专业路径'}｜${role}`;
+  }
+  const l=liftExchangeInfoV29476?liftExchangeInfoV29476(r):{};
+  return `${l.label||'上限交换'}｜${(l.got||[]).slice(0,2).join('/')||'城市/层级比较'}`;
+}
+function primaryWhyV2950(r,type){
+  if(type==='A')return `为什么放在A：${baselineHitsV29476(r).slice(0,5).join('、')}。这组优先回答“普通家庭能不能稳妥落地”。`;
+  if(type==='B'){
+    const p=majorPathInfoV29476(r); const role=p.isCore?'正主专业':p.isRelated?'相近替代':'需核验路径';
+    return `为什么放在B：${p.label}，${role}。重点看专业主线、相近替代和孩子是否学得动。`;
+  }
+  const l=liftExchangeInfoV29476(r);
+  return `为什么放在C：换来 ${l.got.slice(0,3).join('、')}；付出 ${l.paid.slice(0,3).join('、')}。${l.label}。`;
+}
+function planReviewV2950(r,type){
+  return (planReviewTagsV29473?planReviewTagsV29473(r,type):['招生章程','学费','校区']).slice(0,6);
+}
+function planSmallCardV2950(r,type,idx){
+  const meta=compactMetaV29475Fix2?compactMetaV29475Fix2(r):`${geoDisplayV29472(r)}｜${r._level||''}`;
+  const role=planRoleLabelV2950(r,type);
+  const risk=planRiskTextV29475?planRiskTextV29475(r,type):'需人工复核';
+  return `<div class="plan-mini-v2950 ${type.toLowerCase()}">
+    <div class="mini-head-v2950"><span>${type}${idx+1}</span><b>${v2950Text(levelKindV29475(r,type)||r._level||'观察')}</b></div>
+    <strong>${v2950Text(r.school)}</strong>
+    <em>${v2950Text(r.major)}</em>
+    <small>${v2950Text(meta)}</small>
+    <p><b>${type==='A'?'底线':type==='B'?'路径':'交换'}</b>${v2950Text(role)}</p>
+    <p class="muted"><b>风险</b>${v2950Text(compactTextV29475Fix3?compactTextV29475Fix3(risk,54):risk)}</p>
+    <button class="ghost slim" onclick="addPlanOneV29475Fix2('${v2950Text(r.id)}','${type}','备选')">加入</button>
+  </div>`;
+}
+function planPrimaryCardV2950(r,type){
+  if(!r)return `<div class="plan-primary-empty-v2950">暂无首选。请先放宽压缩最大的条件，或查看详细候选。</div>`;
+  const meta=compactMetaV29475Fix2?compactMetaV29475Fix2(r):`${geoDisplayV29472(r)}｜${r._level||''}`;
+  const tags=planReviewV2950(r,type).map(x=>`<span>${v2950Text(x)}</span>`).join('');
+  const explain= type==='A' ? `<div class="explain-a-v2950"><b>底线命中</b><span>${v2950Text(baselineHitsV29476(r).slice(0,5).join('｜'))}</span></div>`
+    : type==='B' ? (()=>{const p=majorPathInfoV29476(r);return `<div class="explain-b-v2950"><b>${v2950Text(p.label)}</b><span>正主：${v2950Text((p.core||[]).slice(0,3).join(' / ')||'待核验')}｜相近：${v2950Text((p.related||[]).slice(0,3).join(' / ')||'待核验')}</span></div>`;})()
+    : (()=>{const l=liftExchangeInfoV29476(r);return `<div class="explain-c-v2950"><b>${v2950Text(l.label)}</b><span>换来：${v2950Text(l.got.slice(0,3).join(' / '))}<br/>付出：${v2950Text(l.paid.slice(0,3).join(' / '))}</span></div>`;})();
+  return `<div class="plan-primary-v2950 ${type.toLowerCase()}">
+    <div class="primary-badge-v2950"><span>优先看</span><em>${v2950Text(PLAN_MODES_V2950[type].short)}</em></div>
+    <h4>${v2950Text(r.school)}</h4>
+    <div class="major-v2950">${v2950Text(r.major)}</div>
+    <div class="meta-v2950">${v2950Text(meta)}</div>
+    ${explain}
+    <p><strong>${type==='A'?'为什么稳':type==='B'?'为什么是路径':'换来了什么'}：</strong>${v2950Text(primaryWhyV2950(r,type))}</p>
+    <p><strong>主要风险：</strong>${v2950Text(planRiskTextV29475(r,type))}</p>
+    <div class="review-v2950"><b>复核</b>${tags}</div>
+    <button class="ghost slim" onclick="addPlanOneV29475Fix2('${v2950Text(r.id)}','${type}','首选')">加入自选</button>
+  </div>`;
+}
+function renderPlanColumnV2950(type,rows){
+  const meta=PLAN_MODES_V2950[type]; rows=rows||[];
+  const count={chong:rows.filter(r=>['可冲','超冲'].includes(r._level)).length, main:rows.filter(r=>['匹配','稳妥'].includes(r._level)).length, safe:rows.filter(r=>['保底'].includes(r._level)).length};
+  const first=rows[0]||null; const backups=rows.slice(1,4);
+  return `<section class="plan-col-v2950 ${meta.cls}">
+    <div class="plan-col-head-v2950"><div><h3>${v2950Text(meta.title)}</h3><p>${v2950Text(meta.line)}</p></div><button class="secondary slim" onclick="addPlanGroupV29475Fix2('${type}')">加入本方案 ${Math.min(rows.length,4)} 条</button></div>
+    <div class="plan-stats-v2950"><span>共 ${rows.length} 条</span><span>冲 ${count.chong}</span><span>稳 ${count.main}</span><span>保 ${count.safe}</span></div>
+    ${planPrimaryCardV2950(first,type)}
+    <div class="backup-list-v2950">${backups.map((r,i)=>planSmallCardV2950(r,type,i+1)).join('')||'<p class="small">暂无备选。可放宽条件后重新筛选。</p>'}</div>
+  </section>`;
+}
+function renderPlanABC(){
+  const box=document.getElementById('planABC'); if(!box)return;
+  box.className='abc-board-v2950';
+  if(!currentRank){box.innerHTML='<div class="abc-empty-v2950">先填写分数或位次，再看 A/B/C 三条路径。</div>'; const d=document.getElementById('conflictDiagnosisV29473'); if(d)d.innerHTML=''; return;}
+  const diag=diagnoseV29473?diagnoseV29473():null; if(renderDiagnosisV29473&&diag)renderDiagnosisV29473(diag);
+  const buckets=pickSchemeBucketsV29475?pickSchemeBucketsV29475():{A:[],B:[],C:[]}; latestPlanBucketsV29475Fix2=buckets;
+  const toolbar=`<div class="abc-toolbar-v2950"><div><b>A/B/C 方案盘</b><span>A 守底线，B 看专业，C 争上限；冲稳保是每条路径里的安全等级。</span></div><button class="execute-secondary" onclick="addAllPlansV29475Fix2()">加入全部 A/B/C 候选</button></div>`;
+  box.innerHTML=toolbar+renderPlanColumnV2950('A',buckets.A)+renderPlanColumnV2950('B',buckets.B)+renderPlanColumnV2950('C',buckets.C);
+}
+function updateGuideState(){
+  const rank=(typeof resolveRank==='function')?resolveRank():null;
+  const links=[...document.querySelectorAll('#guideNav a')]; links.forEach(a=>a.classList.remove('active','done'));
+  const step=rank?4:1;
+  links.forEach(a=>{const g=Number(a.dataset.guide||0); if(g<step)a.classList.add('done'); if(g===step)a.classList.add('active');});
+  if((window.candidates||candidates||[]).length){document.querySelector('#guideNav a[data-guide="5"]')?.classList.add('done');}
+}
+function autoRefresh(){
+  autoRefreshAsync().then(()=>{renderBaselineSummaryV2950();applySimpleModeV2950();}).catch(e=>{
+    document.getElementById('metaRecords').textContent='计算失败';
+    const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='计算失败：'+String(e.message).replace(/\n/g,'<br>');
+    console.error(e);
+  });
+}
+setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();}catch(e){console.warn('[V2.9.5.2] 简洁模式初始化失败',e)}},0);
+
+/* V2.9.5.2：场景与目标路径统一；策略只给建议，底线优先。 */
+function applyStrategy(type){
+  applyScenarioPresetV2951(type);
+  renderBaselineSummaryV2950();
+  autoRefresh();
+}
+

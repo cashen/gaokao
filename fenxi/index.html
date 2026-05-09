@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</title>
-<link href="./assets/app.v2951.css" rel="stylesheet"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.5.2｜场景与目标路径统一规则版</title>
+<link href="./assets/app.v2952.css" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.5.2｜场景与目标路径统一规则版</h1>
 <p>先定位次，再定家庭底线；系统用 A/B/C 三条路径解释：A守底线，B看专业，C争上限。适合辽宁家长做第一轮初筛与复核。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">准备加载数据...</span><span class="badge">辽宁区域细分</span><span class="badge">网报名师规则</span><span class="badge">访问码：ln2025</span></div>
 <div class="access-mini" id="accessMini">
@@ -40,8 +40,8 @@
 <div class="col-3"><label>2025 分数（可选）</label><input class="input" id="myScore" placeholder="例如 550" type="number"/></div>
 <div class="col-3"><label>2025 位次（优先）</label><input class="input" id="myRank" placeholder="例如 32746" type="number"/></div>
 <div class="col-3"><label>冲稳保模型</label><select id="model"><option value="normal">普通模型</option><option value="safe">保守模型</option><option value="bold">激进模型</option></select></div>
-<div class="col-3"><label>填报目标</label><select id="priority"><option value="employment">就业优先</option><option value="publicLow">低分公办本科优先</option><option value="grid">电网/能源系统优先</option><option value="exam">考公/体制机会</option><option value="school">学校层级优先</option><option value="city">城市优先</option><option value="postgrad">保研/深造优先</option></select></div>
-<div class="col-6" style="display:flex;align-items:end"><button class="ghost" onclick="resetAll()">重置条件</button></div>
+
+<div class="col-3" style="display:flex;align-items:end"><button class="ghost" onclick="resetAll()">重置条件</button></div>
 </div>
 <p class="small" style="margin:10px 0 0">位次比分数更重要。若只输入分数，系统会按 2025 一分一段累计位次自动换算。高校专项计划不是普通考生通用入口；默认按未审核隐藏。</p>
 <div class="execute-bar">
@@ -62,9 +62,16 @@
 <h2>③ 选择目标路径 <small>先按哪种思路看：就业、城市、学校、医学、体制等</small></h2>
 <div class="strategy-hero">
 <div>
-<div class="notice">家长真实想问的不是“所有学校有哪些”，而是“我家孩子这个分数大概怎么走”。先选策略，系统会自动带出区域、偏好、风险底线，再进入位次缩水。</div>
+<div class="notice">先选“我家更像哪类场景”，再用“当前目标路径”微调方向。场景只给建议，不会偷偷覆盖你已经确认的家庭底线。</div>
 <div class="strategy-rule-hint" id="scenarioRuleHintV2951">场景卡正在由独立规则集加载...</div>
 <div class="strategy-grid" id="strategyCards"></div>
+<div class="target-path-panel-v2952" id="targetPathPanelV2952">
+  <div class="target-path-head-v2952"><b>当前目标路径</b><span>场景会给出建议，你也可以手动微调；家庭底线优先级最高。</span></div>
+  <div class="grid target-path-grid-v2952">
+    <div class="col-4"><label>目标路径</label><select id="priority"></select></div>
+    <div class="col-8"><div class="target-path-explain-v2952" id="targetPathExplainV2952">目标路径规则正在加载...</div></div>
+  </div>
+</div>
 <div class="realtime-panel sticky">
 <div class="realtime-top"><b>当前可选范围</b><span class="realtime-status warn" id="liveStatus">等待输入</span></div>
 <div class="realtime-grid">
@@ -166,7 +173,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.1｜独立规则集与场景策略集中化版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.5.2｜场景与目标路径统一规则版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" onclick="document.getElementById('familyBaseline').scrollIntoView({behavior:'smooth'})">底线</button><button onclick="document.getElementById('resultBox').scrollIntoView({behavior:'smooth'})">方案</button></div>
@@ -184,7 +191,7 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script src="./assets/major-name-model.v2946.js"></script>
 <script src="./assets/confusable-major-model.v29462.js"></script>
-<script src="./assets/rules.v2951.js"></script>
-<script src="./assets/app.v2951.js"></script>
+<script src="./assets/rules.v2952.js"></script>
+<script src="./assets/app.v2952.js"></script>
 <nav aria-label="手机底部操作" class="mobile-bottom-guide"><a href="#baseInfo">位次</a><a href="#familyBaseline">底线</a><a class="primary" href="#resultBox">方案</a><a href="#candidateArea">自选</a><a href="#" onclick="openExportSheet();return false;">导出</a></nav></body>
 </html>

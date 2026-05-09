@@ -1,7 +1,7 @@
 /*
- * V2.9.5.1｜独立规则集与场景策略集中化版
+ * V2.9.5.2｜场景与目标路径统一规则版
  * 只定义规则，不操作 DOM，不加载数据，不渲染页面。
- * app.v2951.js 读取 window.LN_GAOKAO_RULES_V2951。
+ * app.v2952.js 读取 window.LN_GAOKAO_RULES_V2952。
  */
 (function(){
   const scenarioPresets = {
@@ -141,6 +141,19 @@
     }
   };
 
+
+  const preferenceRules = {
+    employment:{id:'employment', label:'就业优先', desc:'优先看本科就业路径相对清楚、成本可控、风险适中的候选。', planBias:{A:1.15,B:1.25,C:0.85}, prefer:['career_clear','normal_fee','readable_major'], warning:'就业优先不等于只看热门专业，仍需复核孩子能否学得动。'},
+    publicLow:{id:'publicLow', label:'低分公办本科优先', desc:'优先守住公办本科身份和普通学费，专业允许适度让步。', planBias:{A:1.55,B:0.95,C:0.65}, prefer:['public_school','normal_fee','safe_rank'], warning:'低分保公办不等于无脑选公办，专业可读性必须复核。'},
+    grid:{id:'grid', label:'电网/能源系统优先', desc:'优先观察电气正主、能源、电力相关路径。', planBias:{A:1.1,B:1.45,C:0.85}, prefer:['electric_core','energy_related','industry_background'], warning:'自动化、测控、电子信息不能直接等同电气正主。'},
+    medical:{id:'medical', label:'医学方向优先', desc:'优先区分医生路径、医学技术、护理康复、药学检验和医工交叉。', planBias:{A:0.95,B:1.35,C:1.05}, prefer:['medical_track','long_cycle','qualification_path'], warning:'医学技术不等于临床医生路径，学制、规培和执业资格必须复核。'},
+    exam:{id:'exam', label:'考公/体制机会', desc:'优先观察法学、汉语言、计算机、财会审计、师范等岗位相关方向。', planBias:{A:1.3,B:1.25,C:0.8}, prefer:['position_relevance','public_sector','stable_path'], warning:'考公友好要结合岗位表，不是所有经管法文都友好。'},
+    school:{id:'school', label:'学校层级优先', desc:'优先比较学校平台、双一流/985/211层级和城市资源。', planBias:{A:0.85,B:1.05,C:1.35}, prefer:['school_tier','platform','city_resource'], warning:'学校层级优先不能忽略专业落点、大类分流和转专业规则。'},
+    city:{id:'city', label:'城市优先', desc:'优先看大城市、省会、强产业城市带来的资源和实习机会。', planBias:{A:0.8,B:1.05,C:1.4}, prefer:['city_resource','internship','family_support'], warning:'城市是加分项，不是万能项，仍要看学校和专业是否匹配。'},
+    postgrad:{id:'postgrad', label:'保研/深造优先', desc:'优先观察平台、学科基础、读研/规培/长期投入更友好的候选。', planBias:{A:0.9,B:1.35,C:1.15}, prefer:['academic_path','discipline_base','long_cycle'], warning:'考研不是万能兜底，本科就业和家庭承受周期也要复核。'},
+    broad:{id:'broad', label:'先不限制 / 全量观察', desc:'先看位次区间，再逐步收窄家庭底线、地域和专业方向。', planBias:{A:1.0,B:1.0,C:1.0}, prefer:['full_observation'], warning:'全量观察不是推荐高收费或民办，下一步仍要确认家庭底线。'}
+  };
+
   const baselineRules = {
     budget:{ defaultValue:'normal', options:{ normal:{label:'普通家庭，优先普通学费'}, flex:{label:'可接受少量高收费'}, high:{label:'预算较宽，可比较中外合作/民办'}, coop:{label:'明确想看中外合作提档'} } },
     specialPlan:{ defaultValue:'unreviewed', options:{ unreviewed:{label:'未通过 / 未审核', effect:'exclude'}, approved:{label:'已通过高校专项计划审核', effect:'allow_with_badge'}, unknown:{label:'不确定，暂按未审核处理', effect:'exclude'} } },
@@ -170,15 +183,17 @@
     majorClass:{label:'大类招生',review:['大类分流','可选专业范围','退出机制','转专业政策'],warning:'大类招生必须复核分流规则和可选专业范围。'}
   };
 
-  window.LN_GAOKAO_RULES_V2951 = {
-    version:'V2.9.5.1',
+  window.LN_GAOKAO_RULES_V2952 = {
+    version:'V2.9.5.2',
     scenarioPresets,
     strategyRules: scenarioPresets,
+    preferenceRules,
     baselineRules,
     planRules,
     pathRules,
     reviewRules,
     defaults:{selectedScenario:'employment'},
-    uiText:{scenarioIntro:'场景卡只加载建议策略，不会偷偷覆盖你已经手动设置的家庭底线。'}
+    uiText:{scenarioIntro:'场景卡只加载建议策略；目标路径可手动微调，家庭底线优先级最高。'}
   };
+  window.LN_GAOKAO_RULES_V2951 = window.LN_GAOKAO_RULES_V2952;
 })();
