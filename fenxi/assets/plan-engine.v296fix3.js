@@ -745,6 +745,7 @@ primaryPlanItemV29475Fix2 = function(r,type){
     <div class="primary-major-v29475fix2">${htmlSafeV2945(r.major)}</div>
     <div class="primary-meta-v29475fix2">${htmlSafeV2945(compactMetaV29475Fix2(r))}</div>
     <div class="path-badges-v29475fix2">${planBadgesV29475Fix2(r,type)}</div>
+    ${window.LN_CANDIDATE_CARD_VIEW_V296?.evidenceHtml?.(r,type,{idx:0})||''}
     ${explanationPanelV29476(r,type)}
     <p><strong>${type==='A'?'为什么稳':type==='B'?'为什么是路径':'换来了什么'}：</strong>${htmlSafeV2945(stripReasonPrefixV29475Fix3(strongWhyV29475Fix2(r,type,0)))}</p>
     <p><strong>主要复核点：</strong>${htmlSafeV2945(planRiskTextV29475(r,type))}</p>
@@ -760,6 +761,7 @@ backupPlanItemV29475Fix2 = function(r,type,idx){
     <div class="backup-top-v29475fix2"><span>${type}${idx+1}</span><b>${htmlSafeV2945(levelKindV29475(r,type)||'观察')}</b></div>
     <div class="backup-main-v29475fix5"><strong>${htmlSafeV2945(r.school)}</strong><em>${htmlSafeV2945(r.major)}</em></div>
     <small>${htmlSafeV2945(compactMetaV29475Fix2(r))}</small>
+    ${window.LN_CANDIDATE_CARD_VIEW_V296?.evidenceHtml?.(r,type,{idx,compact:true})||''}
     <div class="backup-path-v29476">${type==='B'?htmlSafeV2945(majorPathInfoV29476(r).label):type==='C'?htmlSafeV2945(liftExchangeInfoV29476(r).label):htmlSafeV2945(baselineHitsV29476(r).slice(0,2).join('｜'))}</div>
     <div class="backup-line-v29475fix5"><b>理由</b><span>${htmlSafeV2945(reason)}</span></div>
     <div class="backup-line-v29475fix5 muted"><b>复核</b><span>${htmlSafeV2945(risk)}</span></div>
@@ -857,6 +859,13 @@ planScoreV29475 = function(r,type,chosen){
     sc += window.LN_CHILD_INTEREST_RUNTIME_V296.planAdjustment(r,type);
   }
   return sc;
+};
+const planScoreV296Fix3Compute = planScoreV29475;
+planScoreV29475 = function(r,type,chosen){
+  if(chosen && chosen.has && chosen.has(r&&r.id)) return planScoreV296Fix3Compute(r,type,chosen);
+  const cache=window.LN_CANDIDATE_CACHE_V296;
+  if(cache?.get){ return cache.get(r,'planScore:'+type,()=>planScoreV296Fix3Compute(r,type,null)); }
+  return planScoreV296Fix3Compute(r,type,chosen);
 };
 function v2950Text(v){return htmlSafeV2945(String(v??''));}
 function getActiveChipTextV2950(group){const box=document.querySelector(`[data-group="${group}"]`);return box?.querySelector('.chip.active')?.textContent?.trim()||'未设置';}
@@ -980,6 +989,25 @@ function renderPlanColumnV2950(type,rows){
     <div class="backup-list-v2950">${backups.map((r,i)=>planSmallCardV2950(r,type,i+1)).join('')||'<p class="small">暂无备选。可放宽条件后重新筛选。</p>'}</div>
   </section>`;
 }
+
+function renderABCPanelV296Fix3(active,buckets){
+  const view=window.LN_ABC_VIEW_V296;
+  const meta=view?.currentMeta?.() || {title:active,desc:''};
+  const currentRows=(buckets&&buckets[active])||[];
+  return `<div class="abc-active-panel-v296"><div class="abc-active-head-v296"><b>${v2950Text(meta.title)}</b><span>${v2950Text(meta.desc)}</span></div>${renderPlanColumnV2950(active,currentRows)}</div>`;
+}
+function renderPlanABCViewOnly(){
+  const box=document.getElementById('planABC'); if(!box)return;
+  const view=window.LN_ABC_VIEW_V296;
+  const active=(view?.get?.()||'A');
+  const buckets=latestPlanBucketsV29475Fix2||{A:[],B:[],C:[]};
+  const tabs=box.querySelector('.abc-segment-v296');
+  if(tabs && view?.renderTabs){ tabs.outerHTML=view.renderTabs(buckets); }
+  const panel=document.getElementById('abcPanelV296');
+  if(panel){ panel.innerHTML=renderABCPanelV296Fix3(active,buckets); }
+  else if(box){ renderPlanABC(); }
+  view?.updateTabState?.();
+}
 function renderPlanABC(){
   const box=document.getElementById('planABC'); if(!box)return;
   box.className='abc-board-v296';
@@ -988,19 +1016,18 @@ function renderPlanABC(){
   const buckets=pickSchemeBucketsV29475?pickSchemeBucketsV29475():{A:[],B:[],C:[]}; latestPlanBucketsV29475Fix2=buckets;
   const view=window.LN_ABC_VIEW_V296;
   const active=(view?.get?.()||'A');
-  const meta=view?.currentMeta?.() || {title:active,desc:''};
   const interestSummary=window.LN_CHILD_INTEREST_RUNTIME_V296?.summary?.() || window.LN_CHILD_INTEREST_RUNTIME_V2955?.summary?.();
   const interestLine=interestSummary?`<p class="abc-interest-note-v296">${v2950Text(interestSummary.title)}｜${v2950Text(interestSummary.text)}</p>`:'';
   const tabs=view?.renderTabs?.(buckets)||'';
   const toolbar=`<div class="abc-toolbar-v296"><div><b>A/B/C 方案视角</b><span>A 守底线，B 看专业，C 争上限；冲稳保是每条路径里的安全等级。</span>${interestLine}</div><button class="execute-secondary" onclick="addAllPlansV29475Fix2()">加入全部 A/B/C 候选</button></div>`;
-  const currentRows=buckets[active]||[];
-  const panel=`<div class="abc-active-panel-v296"><div class="abc-active-head-v296"><b>${v2950Text(meta.title)}</b><span>${v2950Text(meta.desc)}</span></div>${renderPlanColumnV2950(active,currentRows)}</div>`;
-  box.innerHTML=toolbar+tabs+panel;
+  box.innerHTML=toolbar+tabs+`<div id="abcPanelV296">${renderABCPanelV296Fix3(active,buckets)}</div>`;
 }
+window.renderPlanABCViewOnly=renderPlanABCViewOnly;
 
 
 window.LN_PLAN_ENGINE = {
   renderPlanABC,
+  renderPlanABCViewOnly,
   pickSchemeRowsV29473,
   pickSchemeBucketsV29475,
   planScoreV29475,
