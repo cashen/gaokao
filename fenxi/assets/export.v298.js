@@ -1,14 +1,14 @@
-// V2.9.6 fix3 export-engine: CSV/PNG export helpers
+// V2.9.8 export-engine: CSV/PNG export helpers
 window.__LN_EXPORT_SCRIPT_STARTED__ = true;
 function csvEscape(v){if(v==null)v='';v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}function rowsToCsv(rows){
-  const head=['学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','地域说明'];
+  const head=['学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','孩子关注点','激活方向','兴趣匹配等级','匹配依据','匹配专业代码','匹配专业名','匹配专业类代码','匹配专业类','兴趣复核说明','2025分','2025位次','2024分','2024位次','层级','画像分','风险','地域说明'];
   const body=(rows||[]).map(r=>{
     r=enrich(r);
-    return [r.school,r.schoolProvince||'',r.schoolCity||'',r.schoolRegion||'',r.schoolGeoSourceMethod||'',confidenceLabel(r.schoolGeoConfidence||'low'),r.schoolNature?.label||'',r.schoolTier?.label||'',r.major,r.cleanMajor,r.undergradDisciplineName,r.officialCategoryCode,r.undergradCategoryName,r.officialMajorCode,r.gradAcademicText,r.gradProfessionalText,r.gradSecondaryText,confidenceLabel(r.gradReferenceConfidence||r.taxonomyConfidence),r.admissionReviewTags||'', confusablePairsForRecordV2946(r).map(p=>p.group_name).join('|'), r.score2025,r.rank2025,r.score2024,r.rank2024,r._level||'',Math.round(r._profile||0),(r.riskFlags||[]).join('|'),CITY_GEO_NOTE_V29472]
+    (()=>{const ev=(window.LN_PATH_EXPLAIN_ENGINE_V298||window.LN_PATH_EXPLAIN_ENGINE_V2976||window.LN_PATH_EXPLAIN_ENGINE_V2975)?.exportEvidence?.(r)||{}; return [r.school,r.schoolProvince||'',r.schoolCity||'',r.schoolRegion||'',r.schoolGeoSourceMethod||'',confidenceLabel(r.schoolGeoConfidence||'low'),r.schoolNature?.label||'',r.schoolTier?.label||'',r.major,r.cleanMajor,r.undergradDisciplineName,r.officialCategoryCode,r.undergradCategoryName,r.officialMajorCode,r.gradAcademicText,r.gradProfessionalText,r.gradSecondaryText,confidenceLabel(r.gradReferenceConfidence||r.taxonomyConfidence),r.admissionReviewTags||'', confusablePairsForRecordV2946(r).map(p=>p.group_name).join('|'), ev.childInterest||'', ev.activeInterest||'', ev.matchLevel||'', ev.evidence||'', ev.catalogMajorCode||'', ev.catalogMajorName||'', ev.catalogCategoryCode||'', ev.catalogCategoryName||'', ev.reviewMessage||'', r.score2025,r.rank2025,r.score2024,r.rank2024,r._level||'',Math.round(r._profile||0),(r.riskFlags||[]).join('|'),CITY_GEO_NOTE_V29472];})()
       .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',');
   });
   return [head.join(','),...body].join('\n');
-}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.6_筛选结果_高报师方案.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.6_候选清单_高报师方案.csv',rowsToCsv(candidates.map(enrich)))}
+}function download(name,text){const b=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}function exportFiltered(){download('辽宁物理类_V2.9.8_筛选结果_兴趣闭环校准版.csv',rowsToCsv(filtered))}function exportCandidates(){download('辽宁物理类_V2.9.8_候选清单_兴趣闭环校准版.csv',rowsToCsv(candidates.map(enrich)))}
 
 function textVal(id){return document.getElementById(id)?.value||''}
 function activeStrategyText(){
@@ -156,7 +156,7 @@ function exportSummaryPng(kind='filtered'){
   ctx.fillText(kind==='candidates'?'辽宁物理类志愿工具｜候选清单 PNG 摘要':'辽宁物理类志愿工具｜当前筛选 PNG 摘要',M+38,y+58);
   ctx.font='24px sans-serif';
   ctx.fillStyle='rgba(255,255,255,.92)';
-  ctx.fillText(`版本：V2.9.4.7.5｜生成时间：${new Date().toLocaleString('zh-CN')}`,M+38,y+100);
+  ctx.fillText(`版本：V2.9.8｜生成时间：${new Date().toLocaleString('zh-CN')}`,M+38,y+100);
   wrapCanvasText(ctx,'说明：PNG 为当前页面摘要图，便于转发沟通；正式填报仍需复核招生计划、专业实际校区、体检、学费与专业组。',M+38,y+136,contentW-76,30,'rgba(255,255,255,.88)','23px sans-serif',1);
   y += headerH + 24;
 
@@ -252,7 +252,7 @@ function exportSummaryPng(kind='filtered'){
 
   wrapCanvasText(ctx,'注：本摘要图用于初选沟通，不替代正式志愿表。中外合作、高收费、专业类分流、一级学科映射置信度低等情况，正式使用前请再做人工核验。',M,y+26,contentW,28,'#627b97','20px sans-serif',2);
 
-  const name=kind==='candidates'?'辽宁物理类_V2.9.6_候选清单摘要.png':'辽宁物理类_V2.9.6_筛选摘要.png';
+  const name=kind==='candidates'?'辽宁物理类_V2.9.8_候选清单摘要.png':'辽宁物理类_V2.9.8_筛选摘要.png';
   const a=document.createElement('a');
   a.href=canvas.toDataURL('image/png');
   a.download=name;
@@ -264,18 +264,19 @@ function exportCandidatesPng(){ exportSummaryPng('candidates'); }
 function openExportSheet(){document.getElementById('exportSheet')?.classList.remove('hide');document.getElementById('exportSheetMask')?.classList.remove('hide')}
 function closeExportSheet(){document.getElementById('exportSheet')?.classList.add('hide');document.getElementById('exportSheetMask')?.classList.add('hide')}
 rowsToCsv = function(rows){
-  const head=['来源方案','方案角色','路径标签','路径提醒','孩子想法提醒','分段解释','学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','主专业名','办学类型','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','复核项','地域说明'];
+  const head=['来源方案','方案角色','路径标签','路径提醒','孩子想法提醒','分段解释','孩子关注点','激活方向','兴趣匹配等级','匹配依据','匹配专业代码','匹配专业名','匹配专业类代码','匹配专业类','学校','省份','城市','区域','学校地域来源','地域置信度','学校性质','院校层级','专业','主专业名','办学类型','标准专业','学科门类','专业类代码','本科专业类','专业代码','学硕一级/跨门类参考','专硕类别/领域参考','二级学科示例','目录可信度','招生名复核','易混主题','2025分','2025位次','2024分','2024位次','层级','画像分','风险','复核项','地域说明'];
   const body=(rows||[]).map(row=>{
     const meta=row||{}; const r=enrich(DATA.find(x=>x.id===meta.id)||meta);
     const reviews=[...new Set([...(planReviewTagsV29473?planReviewTagsV29473(r,meta._selectedSourcePlanV29476||'')||[]:[]),...(meta._selectedSourcePlanV29476?[meta._selectedSourcePlanV29476]:[])])].join('|');
-    const px=window.LN_PATH_EXPLAIN_ENGINE_V2975?.explain?.(r)||{};
-    return [meta._selectedSourcePlanV29476||'',meta._selectedPlanRoleV29476||'',meta._selectedPathLabelV29476||window.LN_PATH_EXPLAIN_ENGINE_V2975?.exportTags?.(r)||'',window.LN_PATH_EXPLAIN_ENGINE_V2975?.exportMessage?.(r)||'',px.intentMessage||'',px.bandMessage||'',r.school,r.schoolProvince||'',r.schoolCity||'',r.schoolRegion||'',r.schoolGeoSourceMethod||'',confidenceLabel(r.schoolGeoConfidence||'low'),r.schoolNature?.label||'',r.schoolTier?.label||'',r.major,r.mainMajorV29475||'',r.feeTypeLabelV29475||feeTypeLabelV29475(r),r.cleanMajor,r.undergradDisciplineName,r.officialCategoryCode,r.undergradCategoryName,r.officialMajorCode,r.gradAcademicText,r.gradProfessionalText,r.gradSecondaryText,confidenceLabel(r.gradReferenceConfidence||r.taxonomyConfidence),r.admissionReviewTags||'', confusablePairsForRecordV2946(r).map(p=>p.group_name).join('|'), r.score2025,r.rank2025,r.score2024,r.rank2024,r._level||'',Math.round(r._profile||0),(r.riskFlags||[]).join('|'),reviews,CITY_GEO_NOTE_V29472]
+    const engine=window.LN_PATH_EXPLAIN_ENGINE_V298||window.LN_PATH_EXPLAIN_ENGINE_V2976||window.LN_PATH_EXPLAIN_ENGINE_V2975;
+    const px=engine?.explain?.(r)||{}; const ev=engine?.exportEvidence?.(r)||{};
+    return [meta._selectedSourcePlanV29476||'',meta._selectedPlanRoleV29476||'',meta._selectedPathLabelV29476||engine?.exportTags?.(r)||'',engine?.exportMessage?.(r)||'',px.intentMessage||'',px.bandMessage||'',ev.childInterest||'',ev.activeInterest||'',ev.matchLevel||'',ev.evidence||'',ev.catalogMajorCode||'',ev.catalogMajorName||'',ev.catalogCategoryCode||'',ev.catalogCategoryName||'',r.school,r.schoolProvince||'',r.schoolCity||'',r.schoolRegion||'',r.schoolGeoSourceMethod||'',confidenceLabel(r.schoolGeoConfidence||'low'),r.schoolNature?.label||'',r.schoolTier?.label||'',r.major,r.mainMajorV29475||'',r.feeTypeLabelV29475||feeTypeLabelV29475(r),r.cleanMajor,r.undergradDisciplineName,r.officialCategoryCode,r.undergradCategoryName,r.officialMajorCode,r.gradAcademicText,r.gradProfessionalText,r.gradSecondaryText,confidenceLabel(r.gradReferenceConfidence||r.taxonomyConfidence),r.admissionReviewTags||'', confusablePairsForRecordV2946(r).map(p=>p.group_name).join('|'), r.score2025,r.rank2025,r.score2024,r.rank2024,r._level||'',Math.round(r._profile||0),(r.riskFlags||[]).join('|'),reviews,CITY_GEO_NOTE_V29472]
       .map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',');
   });
   return [head.join(','),...body].join('\n');
 };
-exportFiltered = function(){download('辽宁物理类_V2.9.7.6_筛选结果_兴趣联动版.csv',rowsToCsv(filtered));};
-exportCandidates = function(){download('辽宁物理类_V2.9.7.6_候选清单_兴趣联动版.csv',rowsToCsv(candidates));};
+exportFiltered = function(){download('辽宁物理类_V2.9.8_筛选结果_兴趣闭环校准版.csv',rowsToCsv(filtered));};
+exportCandidates = function(){download('辽宁物理类_V2.9.8_候选清单_兴趣闭环校准版.csv',rowsToCsv(candidates));};
 
 window.LN_EXPORT = {
   ready: true,
