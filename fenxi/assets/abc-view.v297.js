@@ -1,4 +1,4 @@
-// V2.9.6.fix6 ABC view: segmented control with cached panel switching.
+// V2.9.7 ABC view: segmented control with cached panel switching.
 (function(){
   let active='A';
   const meta={
