@@ -1,4 +1,14 @@
 // V2.9.5.4 filter-engine: enrichment, filtering and result update
+
+function setMetaStatusInFilterV297Fix2(text,status){
+  if(window.LN_SET_META_STATUS_V297){ window.LN_SET_META_STATUS_V297(text,status); return; }
+  const el=document.getElementById('metaRecords');
+  if(!el)return;
+  el.textContent=text;
+  el.classList.remove('meta-status-ready','meta-status-loading','meta-status-idle','meta-status-error');
+  if(status)el.classList.add('meta-status-'+status);
+}
+
 function guessSchoolNature(school){
   if(!school)return {label:'需核验',cls:'unknown',score:0};
   const normalized = school.replace(/[（(].*?[）)]/g,'').trim();
@@ -168,19 +178,18 @@ async function loadChunkById(id){
 async function ensureDataForCurrentRank(){
   if(!MANIFEST)return;
   const rank = resolveRank();
-  const metaEl = document.getElementById('metaRecords');
   if(!rank){
     DATA=[]; filtered=[];
-    if(metaEl)metaEl.textContent=`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`;
+    setMetaStatusInFilterV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`,'ready');
     return;
   }
   const ids = chunkIdsForRank(rank);
-  if(metaEl)metaEl.textContent=`正在加载位次相关分段：${ids.join('、') || '无'}`;
+  setMetaStatusInFilterV297Fix2(`正在加载位次相关分段：${ids.join('、') || '无'}`,'loading');
   const parts = await Promise.all(ids.map(loadChunkById));
   const byId = new Map();
   parts.flat().forEach(r=>byId.set(r.id,r));
   DATA=[...byId.values()];
-  if(metaEl)metaEl.textContent=`已加载 ${fmt(DATA.length)} 条相关数据｜全量 ${fmt(MANIFEST.totalRecords)} 条｜分块 ${ids.length} 个`;
+  setMetaStatusInFilterV297Fix2(`已加载 ${fmt(DATA.length)} 条相关数据｜全量 ${fmt(MANIFEST.totalRecords)} 条｜分块 ${ids.length} 个`,'ready');
 }
 async function autoRefreshAsync(){
   window.LN_PERF_MONITOR_V296?.mark?.('autoRefreshAsync:start');

@@ -1,6 +1,6 @@
 const fs=require('fs');const path=require('path');
 const root=path.resolve(__dirname,'..');const fenxi=path.join(root,'fenxi');
-const required=['assets/qualification-gate-rules.v297fix1.js','assets/qualification-gate.v297fix1.js','assets/qualification-gate-ui.v297fix1.js','assets/app.v297fix1.js','assets/filter-engine.v297fix1.js','assets/plan-engine.v297fix1.js','assets/candidate-card-view.v297fix1.js','assets/render.v297fix1.js'];
+const required=['assets/qualification-gate-rules.v297fix2.js','assets/qualification-gate.v297fix2.js','assets/qualification-gate-ui.v297fix2.js','assets/app.v297fix2.js','assets/filter-engine.v297fix2.js','assets/plan-engine.v297fix2.js','assets/candidate-card-view.v297fix2.js','assets/render.v297fix2.js'];
 for(const f of required){if(!fs.existsSync(path.join(fenxi,f))){throw new Error('missing '+f);}}
 const idx=fs.readFileSync(path.join(fenxi,'index.html'),'utf8');
 for(const f of required.slice(0,3)){if(!idx.includes(f)){throw new Error('index not referencing '+f);}}

@@ -3,6 +3,16 @@
 let appBootedV2954Fix3 = false;
 let sessionCheckedV2954Fix3 = false;
 
+
+function setMetaStatusV297Fix2(text,status){
+  const el=document.getElementById('metaRecords');
+  if(!el)return;
+  el.textContent=text;
+  el.classList.remove('meta-status-ready','meta-status-loading','meta-status-idle','meta-status-error');
+  if(status)el.classList.add('meta-status-'+status);
+}
+window.LN_SET_META_STATUS_V297=setMetaStatusV297Fix2;
+
 function debounce(fn, delay){
   let timer=null;
   return function(...args){
@@ -145,8 +155,7 @@ async function boot(){
     }
     initTaxonomy(taxonomyObj, aliasObj, groupObj, reviewObj);
     dataEngineReady = true;
-    const metaEl=document.getElementById('metaRecords');
-    if(metaEl)metaEl.textContent=`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`;
+    setMetaStatusV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`,'ready');
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
@@ -155,7 +164,7 @@ async function boot(){
     document.querySelectorAll('select,input[type=checkbox]').forEach(x=>x.addEventListener('change',()=>requestRefreshV296('baseline-change','soft',120)));
     autoRefresh('boot');
   }catch(e){
-    document.getElementById('metaRecords').textContent='数据暂未准备好：可先输入访问凭证，稍后请检查 data 文件是否完整。';
+    setMetaStatusV297Fix2('数据暂未准备好：可先输入访问凭证，稍后请检查 data 文件是否完整。','error');
     const fs=document.getElementById('filterSummary');
     if(fs)fs.innerHTML='页面初始化未完成：'+String(e.message).replace(/\n/g,'<br>');
     console.error(e);
@@ -199,8 +208,7 @@ async function initAuthAndBootV2954Fix3(){
   }else{
     localStorage.removeItem('ln_access_ok');
     document.getElementById('app')?.classList.add('locked');
-    const metaEl=document.getElementById('metaRecords');
-    if(metaEl)metaEl.textContent='请输入访问凭证后进入工具。';
+    setMetaStatusV297Fix2('请输入访问凭证后进入工具。','idle');
     if(stateEl)stateEl.textContent='请输入访问凭证后进入工具。';
   }
 }
@@ -306,8 +314,7 @@ function autoRefreshDirectV296(reason){
     applySimpleModeV2950();
     return {ok:true, reason:reason||'direct'};
   }).catch(e=>{
-    const meta=document.getElementById('metaRecords');
-    if(meta)meta.textContent='本次计算未完成';
+    setMetaStatusV297Fix2('本次计算未完成','error');
     const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='本次计算未完成：'+String(e.message||e).replace(/\n/g,'<br>');
     console.error(e);
     throw e;

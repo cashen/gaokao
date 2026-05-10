@@ -1027,7 +1027,7 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 @media(max-width:560px){.evidence-grid-v297{grid-template-columns:1fr}.evidence-card-v297{padding:9px;border-radius:12px}.evidence-grid-v297 b{font-size:12px}}
 
 
-/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版：资格入口状态卡 */
+/* V2.9.7.fix2｜状态就绪与路径色回调修正版：资格入口状态卡 */
 .qualification-gate-field-v297{grid-column:span 4}
 .qualification-gate-card-v297{min-height:44px;border:1px solid #d8e3f0;background:#fff;border-radius:14px;padding:9px 10px;box-shadow:none;display:flex;flex-direction:column;gap:7px}
 .qualification-gate-card-head-v297{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0}.qualification-gate-title-v297 b,.qualification-gate-card-head-v297 b{display:block;color:#0f172a;font-size:13px;line-height:1.2}.qualification-gate-title-v297 span,.qualification-gate-card-head-v297 span{display:block;color:#64748b;font-size:11px;line-height:1.35;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qualification-gate-card-head-v297 .ghost{margin:0;min-width:54px;height:32px;padding:0 10px;border-radius:10px;border-color:#c7d2fe;background:#f8fafc;color:#1d4ed8;font-weight:900;white-space:nowrap}
@@ -1035,7 +1035,7 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 @media(max-width:980px){.qualification-gate-field-v297{grid-column:span 12}.qualification-gate-card-v297{min-height:0}}@media(max-width:760px){.qgate-row-v297{grid-template-columns:1fr}.qualification-gate-card-head-v297{grid-template-columns:1fr auto}.qualification-gate-card-head-v297 .ghost{min-width:54px;width:auto}.qualification-gate-title-v297 span{white-space:normal}}
 
 
-/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版
+/* V2.9.7.fix2｜状态就绪与路径色回调修正版
    灵感来自校门口七色路径：不是彩虹装饰，而是“分道、缓冲、秩序”。 */
 :root{
   --ln-ink:#172033;
@@ -1104,7 +1104,7 @@ body{
 .evidence-change-v297.tone-looser{background:var(--ln-green-soft)!important;color:#047857!important;border-color:#bbf7d0!important}.evidence-change-v297.tone-hotter{background:var(--ln-orange-soft)!important;color:#c2410c!important;border-color:#fed7aa!important}.evidence-change-v297.tone-stable{background:#f1f5f9!important;color:#475569!important;border-color:#e2e8f0!important}.evidence-distance-v297.tone-safe{border-left-color:var(--ln-green)!important}.evidence-distance-v297.tone-stretch{border-left-color:var(--ln-amber)!important}.evidence-distance-v297.tone-near{border-left-color:var(--ln-blue)!important}
 
 
-/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版
+/* V2.9.7.fix2｜状态就绪与路径色回调修正版
    原则：颜色做路径线索，不做页面主角；PC 控件规格统一，家庭底线三列对齐。 */
 :root{
   --ln-page:#f7f9fc;
@@ -1210,4 +1210,122 @@ body{
   .mode-switch-v2950{justify-content:flex-start!important;}
   .qualification-gate-card-v297{height:auto!important;min-height:46px!important;padding:9px 10px!important;}
   .qualification-gate-title-v297 span{white-space:normal!important;}
+}
+
+/* V2.9.7.fix2 final tone: 适度回调饱和度 + 数据就绪绿点 */
+.hero{
+  background:linear-gradient(135deg,#ffffff 0%,#f4f8ff 56%,#f0fbf7 100%)!important;
+  border-color:#bfdbfe!important;
+  box-shadow:0 14px 34px rgba(37,99,235,.095)!important;
+}
+.hero:before{
+  height:4px!important;
+  opacity:.82!important;
+  background:linear-gradient(90deg,#2f6df6 0 16.66%,#10a66e 16.66% 33.33%,#8b5cf6 33.33% 50%,#06a6c7 50% 66.66%,#e88a18 66.66% 83.33%,#64748b 83.33% 100%)!important;
+}
+.hero h1{color:#07152e!important;font-weight:900!important;}
+.hero p{color:#334155!important;}
+.hero-badges .badge,.hero .badge{
+  background:#ffffff!important;
+  border-color:#cbdcf2!important;
+  color:#1e3a5f!important;
+}
+#metaRecords{
+  position:relative;
+  padding-left:24px!important;
+  border-color:#bfd7ff!important;
+  color:#16345f!important;
+  background:#ffffff!important;
+}
+#metaRecords:before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:50%;
+  width:8px;
+  height:8px;
+  transform:translateY(-50%);
+  border-radius:50%;
+  background:#94a3b8;
+  box-shadow:0 0 0 3px rgba(148,163,184,.16);
+}
+#metaRecords.meta-status-ready{
+  border-color:#8de4b4!important;
+  color:#075f3d!important;
+  background:linear-gradient(180deg,#ffffff,#f1fff7)!important;
+}
+#metaRecords.meta-status-ready:before{
+  background:#10b981;
+  box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 10px rgba(16,185,129,.32);
+}
+#metaRecords.meta-status-loading{
+  border-color:#bfdbfe!important;
+  color:#1d4ed8!important;
+  background:linear-gradient(180deg,#ffffff,#eff6ff)!important;
+}
+#metaRecords.meta-status-loading:before{
+  background:#3b82f6;
+  box-shadow:0 0 0 4px rgba(59,130,246,.18);
+}
+#metaRecords.meta-status-error{
+  border-color:#fed7aa!important;
+  color:#9a3412!important;
+  background:linear-gradient(180deg,#ffffff,#fff7ed)!important;
+}
+#metaRecords.meta-status-error:before{
+  background:#f97316;
+  box-shadow:0 0 0 4px rgba(249,115,22,.18);
+}
+.access-mini{
+  background:linear-gradient(180deg,#ffffff,#f5f9ff)!important;
+  border-color:#d2e3fa!important;
+}
+.access-mini button[data-action="unlock-top"]{
+  background:#2563eb!important;
+  color:#fff!important;
+  border-color:#2563eb!important;
+}
+.access-mini button[data-action="reset-access"]{
+  background:#eef6ff!important;
+  color:#1d4ed8!important;
+  border-color:#bfdbfe!important;
+}
+.stepnav a{
+  border-color:#cbdcf2!important;
+  background:linear-gradient(180deg,#fff,#fbfdff)!important;
+}
+.stepnav a:before{height:3px!important;opacity:.85!important;}
+.stepnav a.active{border-color:#60a5fa!important;box-shadow:0 0 0 3px rgba(37,99,235,.13)!important;}
+.stepnav a.done{border-color:#86efac!important;box-shadow:0 0 0 2px rgba(16,185,129,.08)!important;}
+.family-baseline-v2950{
+  border-color:#bfe7cc!important;
+  background:linear-gradient(180deg,#ffffff,#f8fffb)!important;
+}
+.qualification-gate-card-v297,
+.baseline-grid-v2950 select,
+.baseline-grid-v2950 input.input{
+  border-color:#cfdceb!important;
+}
+.qualification-gate-card-v297:hover,
+.baseline-grid-v2950 select:hover,
+.baseline-grid-v2950 input.input:hover{
+  border-color:#93c5fd!important;
+}
+.qualification-gate-card-head-v297 .ghost{
+  background:#eaf3ff!important;
+  border-color:#b7d3ff!important;
+  color:#1d4ed8!important;
+}
+.step-card{box-shadow:0 10px 26px rgba(15,23,42,.06)!important;}
+.step-card.step1{border-color:rgba(37,99,235,.26)!important}.step-card.step2{border-color:rgba(5,150,105,.25)!important}.step-card.step3{border-color:rgba(124,58,237,.23)!important}.step-card.step4{border-color:rgba(8,145,178,.25)!important}.step-card.step5{border-color:rgba(217,119,6,.24)!important}.step-card.step6{border-color:rgba(100,116,139,.20)!important}
+.abc-segment-v296 button[data-abc="A"].active{box-shadow:0 0 0 3px rgba(16,185,129,.18)!important;}
+.abc-segment-v296 button[data-abc="B"].active{box-shadow:0 0 0 3px rgba(124,58,237,.16)!important;}
+.abc-segment-v296 button[data-abc="C"].active{box-shadow:0 0 0 3px rgba(217,119,6,.18)!important;}
+.evidence-card-v297{
+  border-color:#cfe1ff!important;
+  background:linear-gradient(180deg,#ffffff,#f7fbff)!important;
+}
+@media(max-width:760px){
+  #metaRecords{padding-left:22px!important;}
+  #metaRecords:before{left:9px;width:7px;height:7px;}
 }
