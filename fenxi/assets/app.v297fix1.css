@@ -1027,7 +1027,7 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 @media(max-width:560px){.evidence-grid-v297{grid-template-columns:1fr}.evidence-card-v297{padding:9px;border-radius:12px}.evidence-grid-v297 b{font-size:12px}}
 
 
-/* V2.9.7｜路径色彩系统与家长阅读体验优化版：资格入口状态卡 */
+/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版：资格入口状态卡 */
 .qualification-gate-field-v297{grid-column:span 4}
 .qualification-gate-card-v297{min-height:44px;border:1px solid #d8e3f0;background:#fff;border-radius:14px;padding:9px 10px;box-shadow:none;display:flex;flex-direction:column;gap:7px}
 .qualification-gate-card-head-v297{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0}.qualification-gate-title-v297 b,.qualification-gate-card-head-v297 b{display:block;color:#0f172a;font-size:13px;line-height:1.2}.qualification-gate-title-v297 span,.qualification-gate-card-head-v297 span{display:block;color:#64748b;font-size:11px;line-height:1.35;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qualification-gate-card-head-v297 .ghost{margin:0;min-width:54px;height:32px;padding:0 10px;border-radius:10px;border-color:#c7d2fe;background:#f8fafc;color:#1d4ed8;font-weight:900;white-space:nowrap}
@@ -1035,7 +1035,7 @@ body.v292 input,body.v292 select,body.v292 textarea{min-width:0;}
 @media(max-width:980px){.qualification-gate-field-v297{grid-column:span 12}.qualification-gate-card-v297{min-height:0}}@media(max-width:760px){.qgate-row-v297{grid-template-columns:1fr}.qualification-gate-card-head-v297{grid-template-columns:1fr auto}.qualification-gate-card-head-v297 .ghost{min-width:54px;width:auto}.qualification-gate-title-v297 span{white-space:normal}}
 
 
-/* V2.9.7｜路径色彩系统与家长阅读体验优化版
+/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版
    灵感来自校门口七色路径：不是彩虹装饰，而是“分道、缓冲、秩序”。 */
 :root{
   --ln-ink:#172033;
@@ -1102,3 +1102,112 @@ body{
 
 /* V2.9.7 evidence tone refinements */
 .evidence-change-v297.tone-looser{background:var(--ln-green-soft)!important;color:#047857!important;border-color:#bbf7d0!important}.evidence-change-v297.tone-hotter{background:var(--ln-orange-soft)!important;color:#c2410c!important;border-color:#fed7aa!important}.evidence-change-v297.tone-stable{background:#f1f5f9!important;color:#475569!important;border-color:#e2e8f0!important}.evidence-distance-v297.tone-safe{border-left-color:var(--ln-green)!important}.evidence-distance-v297.tone-stretch{border-left-color:var(--ln-amber)!important}.evidence-distance-v297.tone-near{border-left-color:var(--ln-blue)!important}
+
+
+/* V2.9.7.fix1｜低饱和路径色与布局收敛修正版
+   原则：颜色做路径线索，不做页面主角；PC 控件规格统一，家庭底线三列对齐。 */
+:root{
+  --ln-page:#f7f9fc;
+  --ln-card-border:#dbe5f0;
+  --ln-soft-blue:#f5f8ff;
+  --ln-soft-green:#f5fbf7;
+  --ln-soft-purple:#faf7ff;
+  --ln-soft-cyan:#f5fdff;
+  --ln-soft-amber:#fffaf0;
+}
+body{
+  background:
+    radial-gradient(circle at 6% 4%, rgba(37,99,235,.055), transparent 28%),
+    radial-gradient(circle at 90% 7%, rgba(5,150,105,.045), transparent 30%),
+    linear-gradient(180deg,#fbfdff 0%,var(--ln-page) 100%)!important;
+}
+.hero{
+  color:#102033!important;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)!important;
+  border:1px solid #dbeafe!important;
+  border-radius:22px!important;
+  padding:20px 22px 18px!important;
+  box-shadow:0 12px 30px rgba(15,23,42,.07)!important;
+}
+.hero:after{display:none!important;}
+.hero:before{
+  left:18px!important;right:18px!important;bottom:0!important;height:3px!important;
+  background:linear-gradient(90deg,#2563eb 0 16.66%,#059669 16.66% 33.33%,#7c3aed 33.33% 50%,#0891b2 50% 66.66%,#d97706 66.66% 83.33%,#64748b 83.33% 100%)!important;
+  opacity:.46!important;
+}
+.hero h1{font-size:27px!important;color:#0f172a!important;line-height:1.32!important;margin-bottom:6px!important;}
+.hero p{color:#475569!important;max-width:980px!important;line-height:1.55!important;font-size:15px!important;}
+.hero-badges .badge,.hero .badge{
+  background:#f8fafc!important;color:#334155!important;border:1px solid #dbe5f0!important;
+  box-shadow:none!important;font-weight:800!important;
+}
+.access-mini{
+  background:#f8fafc!important;border:1px solid #e2e8f0!important;box-shadow:none!important;
+  padding:10px!important;border-radius:16px!important;
+}
+.access-mini input{background:#fff!important;border:1px solid #dbe5f0!important;color:#0f172a!important;}
+.access-mini button{box-shadow:none!important;}
+.access-mini .state{color:#475569!important;}
+.mode-switch-v2950{
+  background:#fff!important;border:1px solid #e2e8f0!important;color:#475569!important;
+  border-radius:14px!important;padding:9px 12px!important;justify-content:flex-end!important;
+}
+.stepnav{gap:7px!important;margin-top:12px!important;}
+.stepnav a{
+  background:#ffffff!important;color:#334155!important;border:1px solid #dbe5f0!important;
+  box-shadow:none!important;border-radius:14px!important;min-height:44px!important;
+}
+.stepnav a:hover{border-color:#bfdbfe!important;background:#f8fbff!important;}
+.stepnav a.active{background:#ffffff!important;color:#1d4ed8!important;border-color:#93c5fd!important;box-shadow:0 0 0 2px rgba(37,99,235,.10)!important;}
+.stepnav a.done{background:#ffffff!important;color:#047857!important;border-color:#bbf7d0!important;}
+.stepnav a:before{height:2px!important;opacity:.62!important;border-radius:999px 999px 0 0!important;}
+.stepnav a i{background:#f8fafc!important;border:1px solid #e2e8f0!important;}
+/* 取消视觉过重的彩色底线，只保留细路径线 */
+.hero + .locked,.hero .mode-switch-v2950{position:relative;}
+
+/* 家庭底线：PC 三列对齐，资格入口做成 select-like 状态控件 */
+.family-baseline-v2950{border-color:#dbeadf!important;background:linear-gradient(180deg,#fff,#fbfdfc)!important;}
+.baseline-grid-v2950{align-items:end!important;}
+@media(min-width:981px){
+  .baseline-grid-v2950>.col-4{grid-column:span 4!important;}
+  .qualification-gate-field-v297{grid-column:span 4!important;}
+  .baseline-grid-v2950>.col-4>label,
+  .qualification-gate-field-v297>label{height:20px;display:flex;align-items:center;margin-bottom:6px!important;}
+  .baseline-grid-v2950 select,
+  .baseline-grid-v2950 input.input,
+  .qualification-gate-card-v297{height:46px!important;min-height:46px!important;}
+}
+.qualification-gate-card-v297{
+  border:1px solid #dbe5f0!important;background:#fff!important;border-radius:14px!important;
+  box-shadow:none!important;padding:0 10px!important;display:flex!important;flex-direction:row!important;
+  align-items:center!important;justify-content:space-between!important;gap:10px!important;overflow:hidden!important;
+}
+.qualification-gate-card-v297:before{display:none!important;}
+.qualification-gate-card-head-v297{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;width:100%!important;margin:0!important;}
+.qualification-gate-title-v297 b,.qualification-gate-card-head-v297 b{font-size:13px!important;color:#0f172a!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.qualification-gate-title-v297 span,.qualification-gate-card-head-v297 span{font-size:11px!important;color:#64748b!important;margin-top:2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.qualification-gate-summary-v297{display:none!important;}
+.qualification-gate-card-head-v297 .ghost{
+  min-width:52px!important;height:30px!important;padding:0 10px!important;border-radius:9px!important;
+  background:#f8fafc!important;color:#1d4ed8!important;border:1px solid #dbeafe!important;font-size:13px!important;
+}
+.baseline-note-v2950{background:#f8fafc!important;border:1px solid #e2e8f0!important;border-left:3px solid #86efac!important;color:#475569!important;}
+/* 流程卡颜色降饱和：边框提示，不做大面积染色 */
+.step-card{background:#fff!important;box-shadow:0 8px 22px rgba(15,23,42,.045)!important;}
+.step-card:before{box-shadow:none!important;opacity:.95!important;}
+.step-card.step1{border-color:rgba(37,99,235,.18)!important}.step-card.step2{border-color:rgba(5,150,105,.18)!important}.step-card.step3{border-color:rgba(124,58,237,.16)!important}.step-card.step4{border-color:rgba(8,145,178,.18)!important}.step-card.step5{border-color:rgba(217,119,6,.18)!important}.step-card.step6{border-color:rgba(100,116,139,.16)!important}
+/* 轻化 A/B/C 和证据卡，保留功能色，降低面积 */
+.abc-segment-v296 button{background:#fff!important;border-color:#e2e8f0!important;box-shadow:none!important;}
+.abc-segment-v296 button[data-abc="A"]{background:#fff!important}.abc-segment-v296 button[data-abc="B"]{background:#fff!important}.abc-segment-v296 button[data-abc="C"]{background:#fff!important}
+.plan-card-v29473.a,.plan-card-v29473.b,.plan-card-v29473.c{background:#fff!important;}
+.evidence-card-v297{background:#fff!important;box-shadow:none!important;}
+.evidence-card-v297:before{background:#f8fafc!important;color:#1d4ed8!important;border-color:#dbeafe!important;}
+/* 移动端：同样收敛，不做彩虹块 */
+@media(max-width:760px){
+  .hero{padding:14px 14px 12px!important;border-radius:18px!important;}
+  .hero h1{font-size:20px!important;max-width:100%!important;}
+  .hero-badges{max-height:42px!important;}
+  .mode-switch-v2950{justify-content:flex-start!important;}
+  .qualification-gate-card-v297{height:auto!important;min-height:46px!important;padding:9px 10px!important;}
+  .qualification-gate-title-v297 span{white-space:normal!important;}
+}

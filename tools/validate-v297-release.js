@@ -2,11 +2,11 @@ const fs=require('fs');
 const path=require('path');
 const root=path.resolve(__dirname,'..');
 function must(p){if(!fs.existsSync(path.join(root,p))){throw new Error('missing '+p)}}
-['fenxi/index.html','fenxi/diagnostics.html','fenxi/VERSION.txt','fenxi/assets/theme-tokens.v297.js','fenxi/assets/app.v297.css','fenxi/assets/app.v297.js','fenxi/assets/candidate-card-view.v297.js'].forEach(must);
+['fenxi/index.html','fenxi/diagnostics.html','fenxi/VERSION.txt','fenxi/assets/theme-tokens.v297fix1.js','fenxi/assets/app.v297fix1.css','fenxi/assets/app.v297fix1.js','fenxi/assets/candidate-card-view.v297fix1.js'].forEach(must);
 const index=fs.readFileSync(path.join(root,'fenxi/index.html'),'utf8');
 const diag=fs.readFileSync(path.join(root,'fenxi/diagnostics.html'),'utf8');
-if(!index.includes('V2.9.7｜路径色彩系统与家长阅读体验优化版')) throw new Error('index version missing');
-if(!index.includes('assets/theme-tokens.v297.js')) throw new Error('theme tokens not referenced');
+if(!index.includes('V2.9.7.fix1｜低饱和路径色与布局收敛修正版')) throw new Error('index version missing');
+if(!index.includes('assets/theme-tokens.v297fix1.js')) throw new Error('theme tokens not referenced');
 if(!diag.includes('LN_THEME_TOKENS_V297')) throw new Error('diagnostics theme check missing');
 const files=[...index.matchAll(/"(assets\/[^"?]+\.js)"/g)].map(m=>m[1]);
 for(const f of files){must('fenxi/'+f)}
