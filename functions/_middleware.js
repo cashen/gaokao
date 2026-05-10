@@ -1,4 +1,4 @@
-// Cloudflare Pages Functions middleware for V2.9.5.5
+// Cloudflare Pages Functions middleware for V2.9.8.1.fix2
 // Protects data files with a server-side cookie session while keeping the existing /fenxi UI visible.
 
 const COOKIE_NAME = 'ln_gateway_session';

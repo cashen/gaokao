@@ -8,6 +8,7 @@ function check(name, ok){ checks.push([name, !!ok]); }
 const index=read('fenxi/index.html');
 const version=read('fenxi/VERSION.txt');
 check('VERSION txt is V2.9.8.1.fix1', version.includes('V2.9.8.1.fix1'));
+check('index visible title is fix1', index.includes('辽宁物理类高考志愿初选工具 V2.9.8.1.fix1｜信息层级收敛与决策卡轻量化修正版'));
 check('index uses fix1 css', index.includes('assets/app.v2981fix1.css'));
 check('index cache version fix1', index.includes("const VERSION='2981fix1-20260510'"));
 const required=[
@@ -28,6 +29,7 @@ check('current context summary exists', read('fenxi/assets/selection-context-sum
 check('qualification notice compacted', read('fenxi/assets/notice-compact-rules.v2981fix1.js').includes('资格入口：普通考生口径'));
 check('rank band notice compacted', read('fenxi/assets/notice-compact-rules.v2981fix1.js').includes('位次带宽：'));
 check('advisor diagnosis compacted', read('fenxi/assets/app.v2981fix1.js').includes('diagnosis-compact-v2981fix1'));
+check('compact notice detail preserves expanded state', read('fenxi/assets/notice-compact-ui.v2981fix1.js').includes('restoreDetail') && read('fenxi/assets/notice-compact-ui.v2981fix1.js').includes('activeKey') && read('fenxi/assets/notice-compact-ui.v2981fix1.js').includes('aria-expanded'));
 check('profile and interest summary merged', read('fenxi/assets/profile-interest-summary.v2981fix1.js').includes('孩子画像与兴趣'));
 check('detail card lite model exists', read('fenxi/assets/detail-card-lite-model.v2981fix1.js').includes('mainJudgement'));
 check('detail card lite UI limits tags to four', read('fenxi/assets/detail-card-lite-ui.v2981fix1.js').includes('max:4'));
