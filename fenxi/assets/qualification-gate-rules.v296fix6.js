@@ -1,4 +1,4 @@
-// V2.9.6.fix5 qualification gate rules: special admissions entries are hidden until user confirms eligibility.
+// V2.9.6.fix6 qualification gate rules: special admissions entries are hidden until user confirms eligibility.
 (function(){
   const gates=[
     {
@@ -69,5 +69,5 @@
     }
   ];
   const later=['强基计划','少年班','保送生','港澳高校','艺术类','体育类'];
-  window.LN_QUALIFICATION_GATE_RULES_V296={version:'V2.9.6.fix5',gates,later,ready:true};
+  window.LN_QUALIFICATION_GATE_RULES_V296={version:'V2.9.6.fix6',gates,later,ready:true};
 })();

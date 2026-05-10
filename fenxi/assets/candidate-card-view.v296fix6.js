@@ -1,4 +1,4 @@
-// V2.9.6.fix5 candidate evidence card view model.
+// V2.9.6.fix6 candidate evidence card view model.
 // Converts one candidate record into parent-readable admission evidence.
 (function(){
   function esc(v){
@@ -80,13 +80,13 @@
     const compact=!!opts?.compact;
     const tagHtml=m.tags.map(x=>`<span>${esc(x)}</span>`).join('');
     if(compact){
-      return `<div class="evidence-mini-v296fix5"><b>${esc(m.line2025)}</b><span>${esc(m.line2024)}</span><em>${esc(m.change)}</em></div>`;
+      return `<div class="evidence-mini-v296fix6"><b>${esc(m.line2025)}</b><span>${esc(m.line2024)}</span><em>${esc(m.change)}</em></div>`;
     }
-    return `<div class="evidence-card-v296fix5">
-      <div class="evidence-tags-v296fix5">${tagHtml}</div>
-      <div class="evidence-grid-v296fix5"><div><b>${esc(m.line2025)}</b><span>历史投档证据</span></div><div><b>${esc(m.line2024)}</b><span>上一年对照</span></div></div>
-      <p class="evidence-change-v296fix5">${esc(m.change)}</p>
-      <p class="evidence-distance-v296fix5">${esc(m.distance)}</p>
+    return `<div class="evidence-card-v296fix6">
+      <div class="evidence-tags-v296fix6">${tagHtml}</div>
+      <div class="evidence-grid-v296fix6"><div><b>${esc(m.line2025)}</b><span>历史投档证据</span></div><div><b>${esc(m.line2024)}</b><span>上一年对照</span></div></div>
+      <p class="evidence-change-v296fix6">${esc(m.change)}</p>
+      <p class="evidence-distance-v296fix6">${esc(m.distance)}</p>
     </div>`;
   }
   window.LN_CANDIDATE_CARD_VIEW_V296={vm,evidenceHtml,changeText,distanceText,ready:true};

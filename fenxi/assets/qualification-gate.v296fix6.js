@@ -1,12 +1,12 @@
-// V2.9.6.fix5 qualification gate engine: detects special admissions entries and decides hide/warn.
+// V2.9.6.fix6 qualification gate engine: detects special admissions entries and decides hide/warn.
 (function(){
-  const KEY='ln_qualification_gate_state_v296fix5';
+  const KEY='ln_qualification_gate_state_v296fix6';
   function rules(){return window.LN_QUALIFICATION_GATE_RULES_V296?.gates || [];}
   function defaults(){const s={}; rules().forEach(g=>{s[g.id]=g.defaultStatus||'unreviewed';}); return s;}
   function readState(){
     let s=defaults();
     try{const raw=localStorage.getItem(KEY); if(raw){s={...s,...JSON.parse(raw)};}}catch(e){}
-    // V2.9.6.fix5: special-plan status is managed inside the unified qualification gate.
+    // V2.9.6.fix6: special-plan status is managed inside the unified qualification gate.
     // The old specialPlanStatus field is kept only as a hidden compatibility element,
     // and must not overwrite the drawer state.
     return s;
