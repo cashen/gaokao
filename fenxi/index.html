@@ -5,13 +5,13 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.8.fix1｜兴趣闭环前端联动修正版</title>
-<link href="./assets/app.v298.css?v=298fix1-20260510" rel="stylesheet"/>
+<title>辽宁物理类高考志愿初选工具 V2.9.8.1｜学生画像、兴趣闭环与候选证据卡增强版</title>
+<link href="./assets/app.v2981.css?v=2981-20260510" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.8.fix1｜兴趣闭环前端联动修正版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.8.1｜学生画像、兴趣闭环与候选证据卡增强版</h1>
 <p>先定位次，再看家庭底线；用低饱和路径色区分底线、兴趣、方案与复核，让家长更快看清 A守底线、B看专业、C争上限。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">正在准备数据，请稍候。</span><span class="badge">辽宁区域细分</span><span class="badge">低饱和路径色</span><span class="badge">证据卡增强</span></div>
 <div class="access-mini" id="accessMini">
@@ -166,7 +166,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.8.fix1｜兴趣闭环前端联动修正版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.8.1｜学生画像、兴趣闭环与候选证据卡增强版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" data-scroll-target="familyBaseline">底线</button><button data-scroll-target="resultBox">方案</button></div>
@@ -184,8 +184,8 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script>
 (function(){
-  const VERSION='298-20260510';
-  const files=["assets/theme-tokens.v297fix2.js", "assets/config.v297fix2.js", "assets/rules.v297fix2.js", "assets/interaction-policy.v297fix2.js", "assets/perf-monitor.v297fix2.js", "assets/candidate-cache.v297fix2.js", "assets/state-snapshot.v297fix2.js", "assets/refresh-scheduler.v297fix2.js", "assets/drawer.v297fix2.js", "assets/qualification-gate-rules.v297fix2.js", "assets/qualification-gate.v297fix2.js", "assets/qualification-gate-ui.v297fix2.js", "assets/student-profile-rules.v298.js", "assets/student-profile-ui.v298.js", "assets/path-review-rules.v298.js", "assets/major-misread-rules.v298.js", "assets/interest-taxonomy.v298.js", "assets/child-intent-translator.v298fix1.js", "assets/child-intent-interest-map.v298.js", "assets/catalog-interest-binding.v298.js", "assets/candidate-catalog-normalizer.v298.js", "assets/catalog-match-engine.v298.js", "assets/interest-hit-summary.v298.js", "assets/interest-weight-rules.v298.js", "assets/intent-conflict-rules.v298.js", "assets/score-rank-band-rules.v298.js", "assets/path-scenario-rules.v298.js", "assets/path-explain-engine.v298.js", "assets/child-interest-runtime.v298fix1.js", "assets/child-interest-ui.v298fix1.js", "assets/child-intent-ui.v298fix1.js", "assets/scenario-ui.v298.js", "assets/abc-view.v298.js", "assets/candidate-card-view.v298.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v297fix2.js", "assets/filter-engine.v298fix1.js", "assets/plan-engine.v297fix2.js", "assets/render.v298.js", "assets/selection.v297fix2.js", "assets/export.v298fix1.js", "assets/app.v298fix1.js"];
+  const VERSION='2981-20260510';
+  const files=["assets/theme-tokens.v297fix2.js", "assets/config.v297fix2.js", "assets/rules.v297fix2.js", "assets/interaction-policy.v297fix2.js", "assets/perf-monitor.v297fix2.js", "assets/candidate-cache.v297fix2.js", "assets/state-snapshot.v297fix2.js", "assets/refresh-scheduler.v297fix2.js", "assets/drawer.v297fix2.js", "assets/qualification-gate-rules.v297fix2.js", "assets/qualification-gate.v297fix2.js", "assets/qualification-gate-ui.v297fix2.js", "assets/student-profile-rules.v2981.js", "assets/student-profile-ui.v2981.js", "assets/profile-interest-bridge-rules.v2981.js", "assets/path-review-rules.v298.js", "assets/major-misread-rules.v298.js", "assets/interest-taxonomy.v298.js", "assets/child-intent-translator.v298fix1.js", "assets/child-intent-interest-map.v298.js", "assets/catalog-interest-binding.v298.js", "assets/candidate-catalog-normalizer.v298.js", "assets/catalog-match-engine.v298.js", "assets/interest-hit-summary.v298.js", "assets/interest-weight-rules.v298.js", "assets/intent-conflict-rules.v298.js", "assets/score-rank-band-rules.v298.js", "assets/path-scenario-rules.v298.js", "assets/path-explain-engine.v298.js", "assets/child-interest-runtime.v298fix1.js", "assets/child-interest-ui.v298fix1.js", "assets/child-intent-ui.v2981.js", "assets/scenario-ui.v298.js", "assets/abc-view.v298.js", "assets/candidate-card-view.v298.js", "assets/admission-safety-rules.v2981.js", "assets/admission-evidence-rules.v2981.js", "assets/candidate-decision-tags.v2981.js", "assets/candidate-tradeoff-rules.v2981.js", "assets/abc-decision-card-model.v2981.js", "assets/detail-candidate-card-model.v2981.js", "assets/candidate-tag-ui.v2981.js", "assets/detail-card-ui.v2981.js", "assets/export-decision-fields.v2981.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v297fix2.js", "assets/filter-engine.v298fix1.js", "assets/plan-engine.v297fix2.js", "assets/abc-decision-ui.v2981.js", "assets/render.v2981.js", "assets/selection.v297fix2.js", "assets/export.v2981.js", "assets/app.v2981.js"];
   window.__LN_BOOT_LOADS__=[];
   function uniq(arr){return [...new Set(arr.filter(Boolean))];}
   function candidateBases(){
@@ -221,7 +221,7 @@
     const el=document.getElementById('filterSummary') || document.getElementById('cards') || document.body;
     const html='<div class="result-error"><b>页面资源未能完整加载。</b><br>'+msg+'<br>请确认本次上传包含 assets、data 两个文件夹；如果使用 /fenxi/ 路径，请优先打开 /fenxi/diagnostics 检查脚本来源。</div>';
     if(el===document.body){const box=document.createElement('div');box.innerHTML=html;document.body.prepend(box);} else {el.innerHTML=html;}
-    console.error('[V2.9.8.fix1 boot]', err, window.__LN_BOOT_LOADS__);
+    console.error('[V2.9.8.1 boot]', err, window.__LN_BOOT_LOADS__);
   }
   async function boot(){
     const bases=candidateBases();

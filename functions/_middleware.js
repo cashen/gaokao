@@ -38,7 +38,7 @@ async function verifySession(request, env){
   return safeEqual(expected, parts[2]);
 }
 function isProtectedDataPath(pathname){
-  return pathname === '/fenxi/data' || pathname.startsWith('/fenxi/data/');
+  return pathname === '/fenxi/data' || pathname.startsWith('/fenxi/data/') || pathname === '/data' || pathname.startsWith('/data/');
 }
 function isAuthApiPath(pathname){
   return pathname === '/fenxi/api/login' || pathname === '/fenxi/api/logout' || pathname === '/fenxi/api/session';
