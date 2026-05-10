@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>V2.9.8｜兴趣闭环与本科目录校准版 模块诊断</title>
+<title>V2.9.8.fix1｜兴趣闭环前端联动修正版 模块诊断</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}.wrap{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.06)}.ok{color:#047857}.bad{color:#b91c1c}code{background:#f1f5f9;padding:2px 6px;border-radius:6px}.row{display:flex;gap:16px;justify-content:space-between;border-bottom:1px dashed #e2e8f0;padding:8px 0}.row:last-child{border-bottom:0}.small{color:#64748b;font-size:13px;word-break:break-all}
 </style>
 </head>
 <body data-diagnostics="1">
 <div class="wrap">
-<h1>V2.9.8｜兴趣闭环与本科目录校准版 模块诊断</h1>
+<h1>V2.9.8.fix1｜兴趣闭环前端联动修正版 模块诊断</h1>
 <p class="small">这个页面检查脚本是否真正加载、全局模块是否存在；会加载 app 入口但不会启动完整筛选。</p>
 <div class="card" id="errors"><b>运行时错误</b><div id="errorList" class="small">等待检测...</div></div>
 <div class="card"><b>脚本加载来源</b><div id="loadList" class="small">等待检测...</div></div>
@@ -23,8 +23,8 @@ window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:S
 </script>
 <script>
 (function(){
-  const VERSION='298-20260510';
-  const files=["assets/theme-tokens.v297fix2.js", "assets/config.v297fix2.js", "assets/rules.v297fix2.js", "assets/interaction-policy.v297fix2.js", "assets/perf-monitor.v297fix2.js", "assets/candidate-cache.v297fix2.js", "assets/state-snapshot.v297fix2.js", "assets/refresh-scheduler.v297fix2.js", "assets/drawer.v297fix2.js", "assets/qualification-gate-rules.v297fix2.js", "assets/qualification-gate.v297fix2.js", "assets/qualification-gate-ui.v297fix2.js", "assets/student-profile-rules.v298.js", "assets/student-profile-ui.v298.js", "assets/path-review-rules.v298.js", "assets/major-misread-rules.v298.js", "assets/interest-taxonomy.v298.js", "assets/child-intent-translator.v298.js", "assets/child-intent-interest-map.v298.js", "assets/catalog-interest-binding.v298.js", "assets/candidate-catalog-normalizer.v298.js", "assets/catalog-match-engine.v298.js", "assets/interest-hit-summary.v298.js", "assets/interest-weight-rules.v298.js", "assets/intent-conflict-rules.v298.js", "assets/score-rank-band-rules.v298.js", "assets/path-scenario-rules.v298.js", "assets/path-explain-engine.v298.js", "assets/child-interest-runtime.v298.js", "assets/child-interest-ui.v298.js", "assets/child-intent-ui.v298.js", "assets/scenario-ui.v298.js", "assets/abc-view.v298.js", "assets/candidate-card-view.v298.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v297fix2.js", "assets/filter-engine.v297fix2.js", "assets/plan-engine.v297fix2.js", "assets/render.v298.js", "assets/selection.v297fix2.js", "assets/export.v298.js", "assets/app.v298.js"];
+  const VERSION='298fix1-20260510';
+  const files=["assets/theme-tokens.v297fix2.js", "assets/config.v297fix2.js", "assets/rules.v297fix2.js", "assets/interaction-policy.v297fix2.js", "assets/perf-monitor.v297fix2.js", "assets/candidate-cache.v297fix2.js", "assets/state-snapshot.v297fix2.js", "assets/refresh-scheduler.v297fix2.js", "assets/drawer.v297fix2.js", "assets/qualification-gate-rules.v297fix2.js", "assets/qualification-gate.v297fix2.js", "assets/qualification-gate-ui.v297fix2.js", "assets/student-profile-rules.v298.js", "assets/student-profile-ui.v298.js", "assets/path-review-rules.v298.js", "assets/major-misread-rules.v298.js", "assets/interest-taxonomy.v298.js", "assets/child-intent-translator.v298fix1.js", "assets/child-intent-interest-map.v298.js", "assets/catalog-interest-binding.v298.js", "assets/candidate-catalog-normalizer.v298.js", "assets/catalog-match-engine.v298.js", "assets/interest-hit-summary.v298.js", "assets/interest-weight-rules.v298.js", "assets/intent-conflict-rules.v298.js", "assets/score-rank-band-rules.v298.js", "assets/path-scenario-rules.v298.js", "assets/path-explain-engine.v298.js", "assets/child-interest-runtime.v298fix1.js", "assets/child-interest-ui.v298fix1.js", "assets/child-intent-ui.v298fix1.js", "assets/scenario-ui.v298.js", "assets/abc-view.v298.js", "assets/candidate-card-view.v298.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v297fix2.js", "assets/filter-engine.v298fix1.js", "assets/plan-engine.v297fix2.js", "assets/render.v298.js", "assets/selection.v297fix2.js", "assets/export.v298fix1.js", "assets/app.v298fix1.js"];
   const required=[
     ['LN_THEME_TOKENS_V297',()=>!!window.LN_THEME_TOKENS_V297 && window.LN_THEME_TOKENS_V297.ready===true],
     ['LN_CONFIG',()=>!!window.LN_CONFIG],
@@ -55,6 +55,8 @@ window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:S
     ['LN_SCORE_RANK_BAND_RULES_V298',()=>!!window.LN_SCORE_RANK_BAND_RULES_V298 || !!window.LN_SCORE_RANK_BAND_RULES_V2976],
     ['LN_PATH_SCENARIO_RULES_V298',()=>!!window.LN_PATH_SCENARIO_RULES_V298 || !!window.LN_PATH_SCENARIO_RULES_V2976],
     ['LN_PATH_EXPLAIN_ENGINE_V298',()=>!!window.LN_PATH_EXPLAIN_ENGINE_V298 && window.LN_PATH_EXPLAIN_ENGINE_V298.ready===true && window.LN_PATH_EXPLAIN_ENGINE_V298.sample().every(x=>x.explain.hardExclude===false)],
+    ['兴趣单项删除处理',()=>!!window.LN_CHILD_INTEREST_RUNTIME_V296?.handle && !!window.LN_CHILD_INTEREST_RUNTIME_V296?.toggleAuto],
+    ['详细候选兴趣排序函数',()=>typeof interestSortScoreV298Fix1==='function' && typeof hasActiveChildInterestV298Fix1==='function'],
     ['本科目录闭环样例',()=>{const me=window.LN_CATALOG_MATCH_ENGINE_V298; return me.matchInterest({major:'动物医学',officialMajorCode:'090401',officialCategoryCode:'0904',officialMajorName:'动物医学'},'animal_life_science').level==='core' && me.matchInterest({major:'生物工程',officialMajorCode:'083001',officialCategoryCode:'0830',officialMajorName:'生物工程'},'animal_life_science').level==='related' && me.matchInterest({major:'动物科学',officialMajorCode:'090301',officialCategoryCode:'0903',officialMajorName:'动物科学'},'animal_life_science').level==='review' && me.matchInterest({major:'电气工程及其自动化',officialMajorCode:'080601',officialCategoryCode:'0806',officialMajorName:'电气工程及其自动化'},'animal_life_science').level==='none';}],
     ['LN_CHILD_INTEREST_RULES_V296',()=>!!window.LN_CHILD_INTEREST_RULES_V296],
     ['LN_CHILD_INTEREST_RUNTIME_V296',()=>!!window.LN_CHILD_INTEREST_RUNTIME_V296 && window.LN_CHILD_INTEREST_RUNTIME_V296.ready===true],
