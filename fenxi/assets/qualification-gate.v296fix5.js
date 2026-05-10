@@ -1,17 +1,14 @@
-// V2.9.6.fix4 qualification gate engine: detects special admissions entries and decides hide/warn.
+// V2.9.6.fix5 qualification gate engine: detects special admissions entries and decides hide/warn.
 (function(){
-  const KEY='ln_qualification_gate_state_v296fix4';
+  const KEY='ln_qualification_gate_state_v296fix5';
   function rules(){return window.LN_QUALIFICATION_GATE_RULES_V296?.gates || [];}
   function defaults(){const s={}; rules().forEach(g=>{s[g.id]=g.defaultStatus||'unreviewed';}); return s;}
   function readState(){
     let s=defaults();
     try{const raw=localStorage.getItem(KEY); if(raw){s={...s,...JSON.parse(raw)};}}catch(e){}
-    // Legacy field compatibility: the old specialPlanStatus select still controls both special-plan gates.
-    const sp=document.getElementById('specialPlanStatus')?.value;
-    if(sp){
-      const v=sp==='approved'?'eligible':'unreviewed';
-      s.eduSpecialPlan=v; s.lnRuralSpecial=v;
-    }
+    // V2.9.6.fix5: special-plan status is managed inside the unified qualification gate.
+    // The old specialPlanStatus field is kept only as a hidden compatibility element,
+    // and must not overwrite the drawer state.
     return s;
   }
   function writeState(state){try{localStorage.setItem(KEY,JSON.stringify({...readState(),...(state||{})}));}catch(e){}}
@@ -38,10 +35,19 @@
     return {matched:true,blocked:false,gates:matches,labels:[...new Set(labels)],warnings:[...new Set(warnings)],reviewTips:[...new Set(reviewTips)]};
   }
   function summary(){
-    const st=readState(); const enabled=rules().filter(g=>g.category==='hide' && st[g.id]===g.allowValue).map(g=>g.name);
-    const hidden=rules().filter(g=>g.category==='hide' && st[g.id]!==g.allowValue).length;
-    return {enabled,hidden,total:rules().length,text:enabled.length?`已放开：${enabled.slice(0,3).join('、')}${enabled.length>3?'等':''}`:`默认隐藏 ${hidden} 类资格型入口`};
+    const st=readState();
+    const hideRules=rules().filter(g=>g.category==='hide');
+    const enabled=hideRules.filter(g=>st[g.id]===g.allowValue).map(g=>g.name);
+    const hidden=hideRules.filter(g=>st[g.id]!==g.allowValue).length;
+    const text=enabled.length?`已纳入：${enabled.slice(0,3).join('、')}${enabled.length>3?'等':''}`:`默认隐藏 ${hidden} 类资格型入口`;
+    return {enabled,hidden,total:rules().length,text};
+  }
+  function specialPlanStatus(){
+    const st=readState();
+    if(st.eduSpecialPlan==='eligible' || st.lnRuralSpecial==='eligible') return 'approved';
+    if(st.eduSpecialPlan==='unknown' || st.lnRuralSpecial==='unknown') return 'unknown';
+    return 'unreviewed';
   }
   function compactLabels(r){const c=check(r);return c.matched?c.labels:[];}
-  window.LN_QUALIFICATION_GATE_V296={readState,writeState,check,matchedGates,compactLabels,summary,ready:true};
+  window.LN_QUALIFICATION_GATE_V296={readState,writeState,check,matchedGates,compactLabels,summary,specialPlanStatus,ready:true};
 })();

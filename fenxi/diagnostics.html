@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>V2.9.6.fix4｜资格型入口保护增强版 模块诊断</title>
+<title>V2.9.6.fix5｜资格入口整合与版式优化修正版 模块诊断</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}.wrap{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.06)}.ok{color:#047857}.bad{color:#b91c1c}code{background:#f1f5f9;padding:2px 6px;border-radius:6px}.row{display:flex;gap:16px;justify-content:space-between;border-bottom:1px dashed #e2e8f0;padding:8px 0}.row:last-child{border-bottom:0}.small{color:#64748b;font-size:13px;word-break:break-all}
 </style>
 </head>
 <body data-diagnostics="1">
 <div class="wrap">
-<h1>V2.9.6.fix4｜资格型入口保护增强版 模块诊断</h1>
+<h1>V2.9.6.fix5｜资格入口整合与版式优化修正版 模块诊断</h1>
 <p class="small">这个页面检查脚本是否真正加载、全局模块是否存在；会加载 app 入口但不会启动完整筛选。</p>
 <div class="card" id="errors"><b>运行时错误</b><div id="errorList" class="small">等待检测...</div></div>
 <div class="card"><b>脚本加载来源</b><div id="loadList" class="small">等待检测...</div></div>
@@ -23,8 +23,8 @@ window.onerror=function(msg,src,line,col,err){window.__DIAG_ERRORS__.push({msg:S
 </script>
 <script>
 (function(){
-  const VERSION='296fix4-20260510';
-  const files=["assets/config.v296fix4.js", "assets/rules.v296fix4.js", "assets/interaction-policy.v296fix4.js", "assets/perf-monitor.v296fix4.js", "assets/candidate-cache.v296fix4.js", "assets/state-snapshot.v296fix4.js", "assets/refresh-scheduler.v296fix4.js", "assets/drawer.v296fix4.js", "assets/qualification-gate-rules.v296fix4.js", "assets/qualification-gate.v296fix4.js", "assets/qualification-gate-ui.v296fix4.js", "assets/child-interest-rules.v296fix4.js", "assets/child-interest-runtime.v296fix4.js", "assets/child-interest-ui.v296fix4.js", "assets/scenario-ui.v296fix4.js", "assets/abc-view.v296fix4.js", "assets/candidate-card-view.v296fix4.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v296fix4.js", "assets/filter-engine.v296fix4.js", "assets/plan-engine.v296fix4.js", "assets/render.v296fix4.js", "assets/selection.v296fix4.js", "assets/export.v296fix4.js", "assets/app.v296fix4.js"];
+  const VERSION='296fix5-20260510';
+  const files=["assets/config.v296fix5.js", "assets/rules.v296fix5.js", "assets/interaction-policy.v296fix5.js", "assets/perf-monitor.v296fix5.js", "assets/candidate-cache.v296fix5.js", "assets/state-snapshot.v296fix5.js", "assets/refresh-scheduler.v296fix5.js", "assets/drawer.v296fix5.js", "assets/qualification-gate-rules.v296fix5.js", "assets/qualification-gate.v296fix5.js", "assets/qualification-gate-ui.v296fix5.js", "assets/child-interest-rules.v296fix5.js", "assets/child-interest-runtime.v296fix5.js", "assets/child-interest-ui.v296fix5.js", "assets/scenario-ui.v296fix5.js", "assets/abc-view.v296fix5.js", "assets/candidate-card-view.v296fix5.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v296fix5.js", "assets/filter-engine.v296fix5.js", "assets/plan-engine.v296fix5.js", "assets/render.v296fix5.js", "assets/selection.v296fix5.js", "assets/export.v296fix5.js", "assets/app.v296fix5.js"];
   const required=[
     ['LN_CONFIG',()=>!!window.LN_CONFIG],
     ['LN_GAOKAO_RULES_V2953',()=>!!window.LN_GAOKAO_RULES_V2953],

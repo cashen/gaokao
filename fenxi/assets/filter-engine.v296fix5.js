@@ -107,10 +107,10 @@ function liftValueScoreV29475(r){
   sc-=Math.min((r._fit||0)/3000,30);
   return sc;
 }
-function specialPlanStatusV29474(){return document.getElementById('specialPlanStatus')?.value || 'unreviewed'}
+function specialPlanStatusV29474(){return window.LN_QUALIFICATION_GATE_V296?.specialPlanStatus?.() || document.getElementById('specialPlanStatus')?.value || 'unreviewed'}
 function specialPlanApprovedV29474(){return specialPlanStatusV29474()==='approved'}
 function hasCollegeSpecialPlanV29474(r){const s=[r.major,r.cleanMajor,r.admissionMajor,r.planType,r.batch,r.remark,(r.riskFlags||[]).join(' ')].map(x=>String(x||'')).join(' ');return /辽宁省高校专项计划|高校专项计划/.test(s)}
-function specialPlanTextV29474(){const v=specialPlanStatusV29474();if(v==='approved')return '已通过高校专项计划审核';if(v==='unknown')return '不确定，暂按未审核处理';return '未通过 / 未审核'}
+function specialPlanTextV29474(){const v=specialPlanStatusV29474();if(v==='approved')return '已在资格入口中确认高校专项，可纳入比较';if(v==='unknown')return '不确定，暂按默认隐藏处理';return '未确认，默认隐藏'}
 function enrich(r){r.schoolProvince=r.schoolProvince||inferProvince(r.school);applySchoolGeoV29471(r);r.schoolNature=r.schoolNatureLabel?{label:r.schoolNatureLabel,cls:r.schoolNatureCls||'unknown',score:r.schoolNatureScore||0}:guessSchoolNature(r.school);r.schoolTier=guessSchoolTier(r.school,r.schoolNature);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);r.isCoopV29475=isCoopProgramV29475(r);r.isPrivateV29475=isPrivateProgramV29475(r);r.mainMajorV29475=normalizeMajorMainV29475(r.cleanMajor||r.major);r.feeTypeLabelV29475=feeTypeLabelV29475(r);r.isCollegeSpecialPlanV29474=hasCollegeSpecialPlanV29474(r);r.qualificationGatesV296=window.LN_QUALIFICATION_GATE_V296?.matchedGates?.(r)||[];attachTaxonomy(r);r.studentProfileHints=studentProfileHintsV29471(r);return r}
 /* 访问码逻辑已统一迁移到 app 入口模块，filter-engine 不处理 gate。 */
 function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{if(typeof markTouchedByElementV2954Fix2==='function')markTouchedByElementV2954Fix2(ch);const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}(window.LN_REFRESH_SCHEDULER_V296?window.LN_REFRESH_SCHEDULER_V296.request({reason:'chip-change',level:'soft',delay:200}):autoRefresh())})})}
@@ -250,11 +250,11 @@ function updateSpecialPlanNoticeV29474(){
   if(status==='approved'){
     const shown=(filtered||[]).filter(r=>r.isCollegeSpecialPlanV29474).length;
     el.className='special-plan-notice-v29474 approved';
-    el.innerHTML=`<b>高校专项资格：已通过审核。</b> 已显示高校专项计划候选 ${fmt(shown)} 条。正式填报前仍需复核资格审核结果、公示名单和当年招生计划。`;
+    el.innerHTML=`<b>高校专项资格：已在资格入口中确认。</b> 已显示高校专项计划候选 ${fmt(shown)} 条。正式填报前仍需复核资格审核结果、公示名单和当年招生计划。`;
   }else{
     el.className='special-plan-notice-v29474 protected';
     const statusText=status==='unknown'?'当前选择“不确定”，系统暂按未审核处理。':'当前默认“未通过 / 未审核”。';
-    el.innerHTML=`<b>高校专项计划默认保护：</b>${statusText} 已隐藏高校专项计划候选 ${fmt(hidden)} 条；这些不是普通考生“分够就能报”的入口。`;
+    el.innerHTML=`<b>资格入口中的高校专项默认保护：</b>${statusText} 已隐藏高校专项计划候选 ${fmt(hidden)} 条；这些不是普通考生“分够就能报”的入口。`;
   }
 }
 function updateQualificationGateNoticeV296(){

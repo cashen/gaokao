@@ -55,7 +55,7 @@ function strengthRowsV29473(s){
   rows.push(['专业热度',s.hotMajor?'热门/目标方向较强':'未强限定']);
   rows.push(['民办路径',s.budgetWide||s.edgeScore?'可进入比较，需复核':'默认不优先']);
   rows.push(['中外合作',s.coopIntent?'明确提档路径，强复核':s.budgetWide?'可作为提档方案，需复核':'普通家庭谨慎']);
-  rows.push(['高校专项资格',s.specialStatus==='approved'?'已通过审核，专项候选可比较':s.specialStatus==='unknown'?'不确定，暂按未审核隐藏':'未审核/未通过，默认隐藏']);
+  rows.push(['资格型入口保护',s.specialStatus==='approved'?'高校专项已在资格入口中确认，可纳入比较':s.specialStatus==='unknown'?'不确定，暂按默认隐藏':'未确认资格型入口，默认隐藏']);
   return rows;
 }
 function applyStageV29473(rows, name, fn, funnel){
@@ -170,7 +170,7 @@ function diagnoseV29473(){
     add('too_broad','全量观察过宽','当前不是条件过紧，而是条件过宽，需要先确定底线。',['先问学费、省内、民办/中外合作、专业排斥','再看位次和路径'],['不建议直接看大列表','不建议只按最低分排序'],['家庭底线','专业路径','复核清单'],['A 成本优先缩小','B 地域优先缩小','C 专业路径缩小']);
   }
   if(s.specialStatus!=='approved' && (exclusionStats&&exclusionStats['高校专项隐藏']>0)){
-    add('special_plan_protect','高校专项默认保护','当前未选择“已通过高校专项计划审核”，系统已隐藏相关候选，避免把普通考生不能报的入口混入 A/B/C 方案。',['如果已通过资格审核，可在第一步改为“已通过高校专项计划审核”','如不确定，继续按未审核处理更稳'],['不建议把高校专项计划当作普通候选','不建议用专项计划缓解普通批结果偏少'],['资格审核结果','公示名单','招生计划','招生章程'],['普通候选 A/B/C','专项资格候选单独复核']);
+    add('special_plan_protect','高校专项默认保护','当前未在资格入口中确认高校专项，系统已隐藏相关候选，避免把普通考生不能报的入口混入 A/B/C 方案。',['如果已通过资格审核，可在“资格型入口保护”中放开比较','如不确定，继续按未审核处理更稳'],['不建议把高校专项计划当作普通候选','不建议用专项计划缓解普通批结果偏少'],['资格审核结果','公示名单','招生计划','招生章程'],['普通候选 A/B/C','专项资格候选单独复核']);
   }
   if(!conflicts.length){
     const p=top.map(x=>x.step).join('、')||'暂无明显压缩点';
@@ -871,7 +871,7 @@ planScoreV29475 = function(r,type,chosen){
 function v2950Text(v){return htmlSafeV2945(String(v??''));}
 function getActiveChipTextV2950(group){const box=document.querySelector(`[data-group="${group}"]`);return box?.querySelector('.chip.active')?.textContent?.trim()||'未设置';}
 function getBudgetLabelV2950(){const el=document.getElementById('budget');return el?.selectedOptions?.[0]?.textContent||'未设置';}
-function getSpecialLabelV2950(){const el=document.getElementById('specialPlanStatus');return el?.selectedOptions?.[0]?.textContent||'未设置';}
+function getSpecialLabelV2950(){const v=window.LN_QUALIFICATION_GATE_V296?.specialPlanStatus?.()||'unreviewed';return v==='approved'?'高校专项已纳入资格入口比较':v==='unknown'?'高校专项不确定，默认隐藏':'高校专项未确认，默认隐藏';}
 function getRegionLabelV2950(){
   const mode=document.getElementById('regionMode')?.selectedOptions?.[0]?.textContent||'不限制';
   const ps=selectedProvinces?selectedProvinces():[];
