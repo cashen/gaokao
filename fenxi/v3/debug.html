@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>辽宁物理类高考志愿初选工具 V3 Debug</title>
+  <meta name="description" content="辽宁物理类高考志愿初选工具 V3 诊断页" />
+  <link rel="stylesheet" href="assets/css/tokens.v3.css" />
+  <link rel="stylesheet" href="assets/css/access-gate.v3.css" />
+  <link rel="stylesheet" href="assets/css/shell.v3.css" />
+  <link rel="stylesheet" href="assets/css/steps.v3.css" />
+  <link rel="stylesheet" href="assets/css/child-preference.v3.css" />
+  <link rel="stylesheet" href="assets/css/debug.v3.css" />
+  <link rel="stylesheet" href="assets/css/responsive.v3.css" />
+</head>
+<body class="ln-v3 ln-v3-alpha1 ln-v3-debug-page is-locked" data-ln-version="V3.0.0.alpha1" data-ln-stamp="v300alpha1-20260512">
+  <div id="lnV3AccessGate" class="access-page" aria-live="polite"></div>
+  <div id="lnV3Debug" class="v3-debug" hidden>
+    <header class="debug-header">
+      <div>
+        <div class="v3-kicker">V3 Debug · 分步向导诊断</div>
+        <h1>辽宁物理类工具 V3 诊断页</h1>
+        <p>用于检查访问码、Tab、Step、状态中心、孩子专业偏好和基础性能记录。</p>
+      </div>
+      <a class="debug-link" href="index.html">返回 V3 工具</a>
+    </header>
+    <main class="debug-grid">
+      <section class="debug-card">
+        <h2>版本与入口状态</h2>
+        <div id="debugVersionBox" class="debug-kv"></div>
+      </section>
+      <section class="debug-card">
+        <h2>Tab / Step 状态</h2>
+        <div id="debugTabBox" class="debug-kv"></div>
+      </section>
+      <section class="debug-card debug-wide">
+        <h2>Store 快照</h2>
+        <pre id="debugStoreBox" class="debug-pre"></pre>
+      </section>
+      <section class="debug-card debug-wide">
+        <h2>自测</h2>
+        <div class="debug-actions">
+          <button type="button" data-debug-run="quick">快速体检</button>
+          <button type="button" data-debug-run="child">Step3 专业偏好自测</button>
+          <button type="button" data-debug-run="full">完整骨架自测</button>
+          <button type="button" data-debug-copy>复制报告</button>
+        </div>
+        <pre id="debugSelftestBox" class="debug-pre debug-report-box">尚未运行自测。</pre>
+      </section>
+    </main>
+  </div>
+
+  <script defer src="assets/js/version.v3.js"></script>
+  <script defer src="assets/js/event-bus.v3.js"></script>
+  <script defer src="assets/js/storage.v3.js"></script>
+  <script defer src="assets/js/state-store.v3.js"></script>
+  <script defer src="assets/js/access-gate.v3.js"></script>
+  <script defer src="assets/js/tab-router.v3.js"></script>
+  <script defer src="assets/js/modules/selected-tags.v3.js"></script>
+  <script defer src="assets/js/modules/child-major-groups.v3.js"></script>
+  <script defer src="assets/js/modules/child-major-search.v3.js"></script>
+  <script defer src="assets/js/modules/bigpool-hint.v3.js"></script>
+  <script defer src="assets/js/adapters/legacy-data-adapter.v3.js"></script>
+  <script defer src="assets/js/adapters/legacy-compute-adapter.v3.js"></script>
+  <script defer src="assets/js/adapters/legacy-export-adapter.v3.js"></script>
+  <script defer src="assets/js/steps/step-rank.v3.js"></script>
+  <script defer src="assets/js/steps/step-family.v3.js"></script>
+  <script defer src="assets/js/steps/step-child.v3.js"></script>
+  <script defer src="assets/js/steps/step-scenario.v3.js"></script>
+  <script defer src="assets/js/steps/step-plans.v3.js"></script>
+  <script defer src="assets/js/steps/step-candidates.v3.js"></script>
+  <script defer src="assets/js/steps/step-export.v3.js"></script>
+  <script defer src="assets/js/wizard-shell.v3.js"></script>
+  <script defer src="assets/js/debug/debug-runtime.v3.js"></script>
+  <script defer src="assets/js/debug/debug-panel.v3.js"></script>
+  <script defer src="assets/js/debug/debug-step-child.v3.js"></script>
+  <script defer src="assets/js/debug/debug-selftest.v3.js"></script>
+  <script defer src="assets/js/debug/debug-report.v3.js"></script>
+  <script defer src="assets/js/bootstrap.v3.js"></script>
+</body>
+</html>
