@@ -7,7 +7,7 @@
     return Object.assign({reason:'unknown', level:policy.level||'soft', delay:policy.delay??180, run:null}, req||{});
   }
   function stronger(a,b){return (rank[a]||0)>=(rank[b]||0)?a:b;}
-  function merge(a,b){if(!a)return b; if(!b)return a; return Object.assign({}, a, b, {level:stronger(a.level,b.level), reason:[a.reason,b.reason].filter(Boolean).join('+'), delay:Math.min(a.delay??180,b.delay??180)});}
+  function merge(a,b){if(!a)return b; if(!b)return a; return Object.assign({}, a, b, {level:stronger(a.level,b.level), reason:[a.reason,b.reason].filter(Boolean).join('+'), delay:Math.max(a.delay??180,b.delay??180)});}
   function request(raw){
     const req=normalize(raw); queued=merge(queued, req);
     if(timer) clearTimeout(timer);

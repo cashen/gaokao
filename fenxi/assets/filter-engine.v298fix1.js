@@ -123,7 +123,7 @@ function hasCollegeSpecialPlanV29474(r){const s=[r.major,r.cleanMajor,r.admissio
 function specialPlanTextV29474(){const v=specialPlanStatusV29474();if(v==='approved')return '已在资格入口中确认高校专项，可纳入比较';if(v==='unknown')return '不确定，暂按默认隐藏处理';return '未确认，默认隐藏'}
 function enrich(r){r.schoolProvince=r.schoolProvince||inferProvince(r.school);applySchoolGeoV29471(r);r.schoolNature=r.schoolNatureLabel?{label:r.schoolNatureLabel,cls:r.schoolNatureCls||'unknown',score:r.schoolNatureScore||0}:guessSchoolNature(r.school);r.schoolTier=guessSchoolTier(r.school,r.schoolNature);r.majorText=(r.major||'').replace(/\s/g,'');r.isHighFee=hasHighFee(r);r.isCoopV29475=isCoopProgramV29475(r);r.isPrivateV29475=isPrivateProgramV29475(r);r.mainMajorV29475=normalizeMajorMainV29475(r.cleanMajor||r.major);r.feeTypeLabelV29475=feeTypeLabelV29475(r);r.isCollegeSpecialPlanV29474=hasCollegeSpecialPlanV29474(r);r.qualificationGatesV296=window.LN_QUALIFICATION_GATE_V296?.matchedGates?.(r)||[];attachTaxonomy(r);r.studentProfileHints=studentProfileHintsV29471(r);return r}
 /* 访问码逻辑已统一迁移到 app 入口模块，filter-engine 不处理 gate。 */
-function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{if(typeof markTouchedByElementV2954Fix2==='function')markTouchedByElementV2954Fix2(ch);const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}(window.LN_REFRESH_SCHEDULER_V296?window.LN_REFRESH_SCHEDULER_V296.request({reason:'chip-change',level:'soft',delay:200}):autoRefresh())})})}
+function bootChips(){const pc=document.getElementById('provinceChips');pc.innerHTML=PROVINCES.map(p=>`<span class="chip" data-province="${p}">${p}</span>`).join('');selectRegionGroup('东北',true);document.querySelectorAll('.chip').forEach(ch=>{ch.addEventListener('click',()=>{if(typeof markTouchedByElementV2954Fix2==='function')markTouchedByElementV2954Fix2(ch);const p=ch.parentElement;if(p.classList.contains('single')){p.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));ch.classList.add('active')}else ch.classList.toggle('active');if(ch.dataset.regionGroup){selectRegionGroup(ch.dataset.regionGroup,ch.classList.contains('active'))}(window.LN_REFRESH_SCHEDULER_V296?window.LN_REFRESH_SCHEDULER_V296.request({reason:'chip-change',level:'soft',delay:800}):autoRefresh())})})}
 function selectedProvinces(){return[...document.querySelectorAll('#provinceChips .chip.active')].map(x=>x.dataset.province)}
 function setTargetCitiesV29472(value, mode='soft'){const el=document.getElementById('targetCities');if(el)el.value=value||'';const m=document.getElementById('cityMode');if(m)m.value=mode||'soft';}
 function selectRegionGroup(g,active=true){const arr=REGION_GROUPS[g]||[];if(g==='全国'){document.querySelectorAll('#provinceChips .chip').forEach(c=>c.classList.toggle('active',active));return}document.querySelectorAll('#provinceChips .chip').forEach(c=>{if(arr.includes(c.dataset.province))c.classList.toggle('active',active)})}
@@ -373,87 +373,83 @@ function applyFilters(){
         fCityMode=cityModeV29472();
 
   const exStats={'区域排除':0,'预算排除':0,'画像排除':0,'低匹配排除':0,'高校专项隐藏':0,'资格入口隐藏':0};
-
-  let arr=DATA.map(r=>{
-    const level=classify(r.rank2025), p=profileScore(r);
-    const obj={...r,_level:level,_fit:currentRank&&r.rank2025?Math.abs(r.rank2025-currentRank):999999999,_profile:p.score,_reasons:p.reasons,_excludes:p.excludes,_mentor:p.mentor};
-    obj._confidence=confidence(obj);
-    obj._interestSortScore=interestSortScoreV298Fix1(obj);
-    return obj;
-  });
-
   const snapshotV296=(window.LN_STATE_SNAPSHOT_V296?.snapshot?.(true))||{};
   const specialStatusV29474=specialPlanStatusV29474();
-  arr=arr.filter(r=>{
+  const taxRank={high:3,medium:2,low:1,unknown:0};
+  const rt=window.LN_CHILD_INTEREST_RUNTIME_V296;
+  const st=rt?.readState?.()||{};
+  const manualOnly=!!(rt && st.manualOnlyInterest && (rt.effectiveGroupIds?.(st)||[]).length);
+  const interestActiveV298Fix1=hasActiveChildInterestV298Fix1();
+
+  // V2.9.8.2.fix4: cheap filters first, then run profile/interest scoring only on the remaining pool.
+  const base=[];
+  for(const raw of (DATA||[])){
+    const level=classify(raw.rank2025);
+    const r={...raw,_level:level,_fit:currentRank&&raw.rank2025?Math.abs(raw.rank2025-currentRank):999999999};
     const gateCheck=window.LN_QUALIFICATION_GATE_V296?.check?.(r,snapshotV296);
     if(gateCheck && gateCheck.blocked){
       exStats['资格入口隐藏']=(exStats['资格入口隐藏']||0)+1;
       if(gateCheck.gateId==='eduSpecialPlan'||gateCheck.gateId==='lnRuralSpecial') exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1;
       if(gateCheck.statKey) exStats[gateCheck.statKey]=(exStats[gateCheck.statKey]||0)+1;
-      r._qualificationGate=gateCheck;
-      return false;
+      continue;
     }
     if(gateCheck && gateCheck.matched) r._qualificationGate=gateCheck;
-    else if(r.isCollegeSpecialPlanV29474 && specialStatusV29474!=='approved'){exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1;exStats['资格入口隐藏']=(exStats['资格入口隐藏']||0)+1;return false;}
-    if(qS&&!(r.school||'').includes(qS))return false;
-    if(qM&&!majorMatchesV29475(r,qM))return false;
-    if(fSubject&&r.subjectGroup!==fSubject)return false;
-    if(fPrimary&&!((r.primaryDisciplineNames||'').includes(fPrimary)||(r.primaryDisciplineCodes||'').includes(fPrimary)||(r.cleanMajor||'').includes(fPrimary)||(r.undergradCategoryName||'').includes(fPrimary)||(r.officialCategoryCode||'').includes(fPrimary)||(r.officialMajorCode||'').includes(fPrimary)||(r.officialDisciplineCode||'').includes(fPrimary)||(r.officialMajorName||'').includes(fPrimary)))return false;
-    const taxRank={high:3,medium:2,low:1,unknown:0};
-    if(fTaxConfidence==='high'&&r.taxonomyConfidence!=='high')return false;
-    if(fTaxConfidence==='medium'&&(taxRank[r.taxonomyConfidence]||0)<2)return false;
-    if(fTaxConfidence==='review'&&!['low','unknown'].includes(r.taxonomyConfidence))return false;
-    if(fSchoolTier==='985'&&r.schoolTier?.level!=='985')return false;
-    if(fSchoolTier==='211'&&r.schoolTier?.level!=='211')return false;
-    if(fSchoolTier==='public'&&!['public','publicSoft'].includes(r.schoolTier?.level))return false;
-    if(fSchoolTier==='private'&&r.schoolTier?.level!=='private')return false;
-    if(fSchoolTier==='unknown'&&r.schoolTier?.level!=='unknown')return false;
-    if(fFeeType==='normal'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
-    if(fFeeType==='coopOnly'&&!(r.isCoopV29475||r.isHighFee)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
-    if(fFeeType==='excludeHighPrivate'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;return false;}
-    if(onlyConfusable && !hasConfusableMajorV2946(r))return false;
-    if(fConfusableGroup && !hasConfusableGroupV2946(r,fConfusableGroup))return false;
-    if(window.LN_CHILD_INTEREST_RUNTIME_V296 && !window.LN_CHILD_INTEREST_RUNTIME_V296.filterPass(r))return false;
-    if(fLevel&&r._level!==fLevel)return false;
-    if(fCityMode==='hard' && fCityQuick.length && !cityMatchesV29472(r,fCityQuick)){exStats['区域排除']=(exStats['区域排除']||0)+1;return false;}
-    if(onlyKey&&!(r.keySubjectHints||[]).length)return false;
+    else if(r.isCollegeSpecialPlanV29474 && specialStatusV29474!=='approved'){
+      exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1; exStats['资格入口隐藏']=(exStats['资格入口隐藏']||0)+1; continue;
+    }
+    if(qS&&!(r.school||'').includes(qS))continue;
+    if(qM&&!majorMatchesV29475(r,qM))continue;
+    if(fSubject&&r.subjectGroup!==fSubject)continue;
+    if(fPrimary&&!((r.primaryDisciplineNames||'').includes(fPrimary)||(r.primaryDisciplineCodes||'').includes(fPrimary)||(r.cleanMajor||'').includes(fPrimary)||(r.undergradCategoryName||'').includes(fPrimary)||(r.officialCategoryCode||'').includes(fPrimary)||(r.officialMajorCode||'').includes(fPrimary)||(r.officialDisciplineCode||'').includes(fPrimary)||(r.officialMajorName||'').includes(fPrimary)))continue;
+    if(fTaxConfidence==='high'&&r.taxonomyConfidence!=='high')continue;
+    if(fTaxConfidence==='medium'&&(taxRank[r.taxonomyConfidence]||0)<2)continue;
+    if(fTaxConfidence==='review'&&!['low','unknown'].includes(r.taxonomyConfidence))continue;
+    if(fSchoolTier==='985'&&r.schoolTier?.level!=='985')continue;
+    if(fSchoolTier==='211'&&r.schoolTier?.level!=='211')continue;
+    if(fSchoolTier==='public'&&!['public','publicSoft'].includes(r.schoolTier?.level))continue;
+    if(fSchoolTier==='private'&&r.schoolTier?.level!=='private')continue;
+    if(fSchoolTier==='unknown'&&r.schoolTier?.level!=='unknown')continue;
+    if(fFeeType==='normal'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;continue;}
+    if(fFeeType==='coopOnly'&&!(r.isCoopV29475||r.isHighFee)){exStats['预算排除']=(exStats['预算排除']||0)+1;continue;}
+    if(fFeeType==='excludeHighPrivate'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']=(exStats['预算排除']||0)+1;continue;}
+    if(onlyConfusable && !hasConfusableMajorV2946(r))continue;
+    if(fConfusableGroup && !hasConfusableGroupV2946(r,fConfusableGroup))continue;
+    if(fLevel&&r._level!==fLevel)continue;
+    if(fCityMode==='hard' && fCityQuick.length && !cityMatchesV29472(r,fCityQuick)){exStats['区域排除']=(exStats['区域排除']||0)+1;continue;}
+    if(onlyKey&&!(r.keySubjectHints||[]).length)continue;
+    if(manualOnly && !rt.filterPass(r))continue;
+    base.push(r);
+  }
+
+  let arr=[];
+  for(const r of base){
+    const p=profileScore(r);
+    r._profile=p.score; r._reasons=p.reasons; r._excludes=p.excludes; r._mentor=p.mentor;
+    r._confidence=confidence(r);
+    r._interestSortScore=interestActiveV298Fix1?interestSortScoreV298Fix1(r):0;
     if(strict&&r._excludes.length){
       const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';
-      exStats[b]=(exStats[b]||0)+1;
-      return false;
+      exStats[b]=(exStats[b]||0)+1; continue;
     }
-    if(strict&&r._profile<32){
-      exStats['低匹配排除']=(exStats['低匹配排除']||0)+1;
-      return false;
-    }
-    return true;
-  });
+    if(strict&&r._profile<32){exStats['低匹配排除']=(exStats['低匹配排除']||0)+1; continue;}
+    arr.push(r);
+  }
 
   exclusionStats=exStats;
-
-  const interestActiveV298Fix1=hasActiveChildInterestV298Fix1();
   arr.sort((a,b)=>{
-    // Explicit rank/hot/loose/fit/lift sorts keep the user's chosen order.
     if(sortBy==='rank2025') return (a.rank2025||999999999)-(b.rank2025||999999999);
     if(sortBy==='rankDiffHot') return (a.rankDiff??999999999)-(b.rankDiff??999999999);
     if(sortBy==='rankDiffLoose') return (b.rankDiff??-999999999)-(a.rankDiff??-999999999);
     if(sortBy==='fit') return a._fit-b._fit;
     if(sortBy==='lift') return liftValueScoreV29475(b)-liftValueScoreV29475(a);
-    // Default profile sort: when child interest is active, real catalog hits come first.
-    if(interestActiveV298Fix1){
-      const d=(b._interestSortScore||0)-(a._interestSortScore||0);
-      if(d) return d;
-    }
+    if(interestActiveV298Fix1){const d=(b._interestSortScore||0)-(a._interestSortScore||0); if(d) return d;}
     return (b._profile-a._profile)||(a._fit-b._fit);
   });
 
-  filtered=arr;
-  currentPage=1;
+  filtered=arr; currentPage=1;
+  try{ window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(filtered,800); }catch(e){}
   try{ window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.(); }catch(e){}
-  updateCounts();
-  renderPlanABC();
-  renderCards();
-  updateLive();
+  updateCounts(); renderPlanABC(); renderCards(); updateLive();
   if(typeof updateGuideState==='function')updateGuideState();
 }
 

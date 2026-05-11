@@ -38,7 +38,7 @@
       const autoTags=auto.map(x=>`<span class="pi-chip-v2981fix1">${esc(x.label)}<button title="取消该自动带入方向" data-action="child-interest-auto-toggle" data-intent-id="${esc(x.intentId)}" data-interest-id="${esc(x.interestId)}">×</button></span>`).join('');
       box.innerHTML=`<div class="profile-interest-summary-v2981fix1"><div class="pi-head-v2981fix1"><div><b>孩子画像与兴趣</b><div class="pi-tags-v2981fix1">${tags}</div></div><div class="pi-actions-v2981fix1"><button type="button" data-action="open-student-profile">编辑画像</button><button type="button" data-action="child-interest-start">编辑兴趣</button></div></div><div class="pi-sub-v2981fix1">${esc(b.methodLine)}${hit?`<br>${hit}`:''}</div><div class="pi-tags-v2981fix1" style="margin-top:6px">${manualTags}${autoTags||(!manual.length?'<span class="pi-chip-v2981fix1">综合推荐</span>':'')}<label><input type="checkbox" id="onlyChildInterestV296" ${s.manualOnlyInterest?'checked':''}/> 只看真实命中兴趣方向</label></div></div>`;
       const chk=document.getElementById('onlyChildInterestV296');
-      if(chk&&!chk.dataset.bound){chk.dataset.bound='1';chk.addEventListener('change',()=>{const st=rt.readState?.()||{};st.manualOnlyInterest=chk.checked;rt.saveState?.(st);renderSummary();window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:180});});}
+      if(chk&&!chk.dataset.bound){chk.dataset.bound='1';chk.addEventListener('change',()=>{const st=rt.readState?.()||{};st.manualOnlyInterest=chk.checked;rt.saveState?.(st);renderSummary();window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,900); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:900});});}
     }
     api.renderSummary=renderSummary;
     api.__fix1Patched=true;

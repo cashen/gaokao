@@ -15,7 +15,7 @@
   }
   function bindSummaryControls(root){
     const chk=(root||document).querySelector('#onlyChildInterestV296');
-    if(chk&&!chk.dataset.bound){chk.dataset.bound='1'; chk.addEventListener('change',()=>{const st=rt().readState(); st.manualOnlyInterest=chk.checked; rt().saveState(st); renderSummary(); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:180});});}
+    if(chk&&!chk.dataset.bound){chk.dataset.bound='1'; chk.addEventListener('change',()=>{const st=rt().readState(); st.manualOnlyInterest=chk.checked; rt().saveState(st); renderSummary(); window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,900); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:900});});}
   }
   function lightSum(s){
     const manual=(s.selectedGroups||[]).map(id=>rt().groupById(id)).filter(Boolean).map(g=>g.name);
@@ -50,5 +50,5 @@
     const input=document.getElementById('childInterestSearchV296'); if(input){let timer=null; input.addEventListener('input',()=>{search=input.value; clearTimeout(timer); timer=setTimeout(renderDrawerBody,160);}); if(!drawerRenderedOnce){input.focus(); input.setSelectionRange(input.value.length,input.value.length); drawerRenderedOnce=true;}}
   }
   function openDrawer(){drawerRenderedOnce=false; window.__LN_ACTIVE_DRAWER_TYPE='childInterest'; window.LN_DRAWER_V296?.open?.('孩子兴趣与真实候选匹配','<div class="notice">正在加载...</div>'); renderDrawerBody();}
-  const api={renderSummary,openDrawer,renderDrawerBody,renderDrawerSelectionOnly,ready:true,version:'V2.9.8.2.fix3'}; window.LN_CHILD_INTEREST_UI_V298=api; window.LN_CHILD_INTEREST_UI_V2976=api; window.LN_CHILD_INTEREST_UI_V296=api;
+  const api={renderSummary,openDrawer,renderDrawerBody,renderDrawerSelectionOnly,ready:true,version:'V2.9.8.2.fix4'}; window.LN_CHILD_INTEREST_UI_V298=api; window.LN_CHILD_INTEREST_UI_V2976=api; window.LN_CHILD_INTEREST_UI_V296=api;
 })();

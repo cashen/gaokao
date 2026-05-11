@@ -3,8 +3,8 @@
   const POLICY={
     'base-rank-change':{level:'full',delay:80},
     'baseline-change':{level:'full',delay:120},
-    'chip-change':{level:'soft',delay:200},
-    'child-interest-change':{level:'soft',delay:180},
+    'chip-change':{level:'soft',delay:800},
+    'child-interest-change':{level:'soft',delay:900},
     'scenario-change':{level:'soft',delay:180},
     'abc-view-change':{level:'render-only',delay:0},
     'pagination':{level:'render-only',delay:0},

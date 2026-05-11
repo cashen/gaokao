@@ -5,15 +5,15 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9.8.2.fix3｜兴趣抽屉轻量点选与刷新节流修正版</title>
+<title>辽宁物理类高考志愿初选工具 V2.9.8.2.fix4｜主计算链路减负与兴趣匹配分片修正版</title>
 <link href="./assets/app.v2981fix1.css?v=2981fix1-20260510" rel="stylesheet"/>
 <link href="./assets/app.v2981fix2.css?v=2981fix2-20260510" rel="stylesheet"/>
-<link href="./assets/app.v2982.css?v=2982fix3-20260511" rel="stylesheet"/>
+<link href="./assets/app.v2982.css?v=2982fix4-20260511" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9.8.2.fix3｜兴趣抽屉轻量点选与刷新节流修正版</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.9.8.2.fix4｜主计算链路减负与兴趣匹配分片修正版</h1>
 <p>先定位次，再看家庭底线；用低饱和路径色区分底线、兴趣、方案与复核，让家长更快看清 A守底线、B看专业、C争上限。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">正在准备数据，请稍候。</span><span class="badge">辽宁区域细分</span><span class="badge">低饱和路径色</span><span class="badge">证据卡增强</span></div>
 <div class="access-mini" id="accessMini">
@@ -168,7 +168,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9.8.2.fix3｜兴趣抽屉轻量点选与刷新节流修正版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.9.8.2.fix4｜主计算链路减负与兴趣匹配分片修正版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" data-scroll-target="familyBaseline">底线</button><button data-scroll-target="resultBox">方案</button></div>
@@ -186,7 +186,7 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script>
 (function(){
-  const VERSION='2982fix3-20260511';
+  const VERSION='2982fix4-20260511';
   const files=["assets/theme-tokens.v297fix2.js", "assets/config.v297fix2.js", "assets/rules.v297fix2.js", "assets/interaction-policy.v297fix2.js", "assets/perf-monitor.v297fix2.js", "assets/candidate-cache.v297fix2.js", "assets/state-snapshot.v297fix2.js", "assets/refresh-scheduler.v297fix2.js", "assets/drawer.v297fix2.js", "assets/qualification-gate-rules.v297fix2.js", "assets/qualification-gate.v297fix2.js", "assets/qualification-gate-ui.v297fix2.js", "assets/student-profile-rules.v2981.js", "assets/student-profile-ui.v2981.js", "assets/profile-interest-bridge-rules.v2981.js", "assets/path-review-rules.v298.js", "assets/major-misread-rules.v298.js", "assets/interest-taxonomy.v298.js", "assets/child-intent-translator.v298fix1.js", "assets/child-intent-interest-map.v298.js", "assets/catalog-interest-binding.v298.js", "assets/candidate-catalog-normalizer.v298.js", "assets/catalog-match-engine.v298.js", "assets/interest-hit-summary.v298.js", "assets/interest-weight-rules.v298.js", "assets/intent-conflict-rules.v298.js", "assets/score-rank-band-rules.v298.js", "assets/path-scenario-rules.v298.js", "assets/path-explain-engine.v298.js", "assets/child-interest-runtime.v298fix1.js", "assets/child-interest-ui.v298fix1.js", "assets/child-intent-ui.v2981.js", "assets/scenario-ui.v298.js", "assets/abc-view.v298.js", "assets/candidate-card-view.v298.js", "assets/admission-safety-rules.v2981.js", "assets/admission-evidence-rules.v2981.js", "assets/candidate-decision-tags.v2981.js", "assets/candidate-tradeoff-rules.v2981.js", "assets/abc-decision-card-model.v2981.js", "assets/detail-candidate-card-model.v2981.js", "assets/candidate-tag-ui.v2981.js", "assets/detail-card-ui.v2981.js", "assets/export-decision-fields.v2981.js", "assets/major-name-model.v2946.js", "assets/confusable-major-model.v29462.js", "assets/data-engine.v297fix2.js", "assets/filter-engine.v298fix1.js", "assets/plan-engine.v297fix2.js", "assets/abc-decision-ui.v2981.js", "assets/render.v2981.js", "assets/selection.v297fix2.js", "assets/export.v2981.js", "assets/selection-context-summary.v2981fix1.js", "assets/context-summary-ui.v2981fix1.js", "assets/notice-compact-rules.v2981fix1.js", "assets/notice-compact-ui.v2981fix1.js", "assets/profile-interest-summary.v2981fix1.js", "assets/decision-reminder-dedupe.v2981fix1.js", "assets/detail-card-lite-model.v2981fix1.js", "assets/detail-card-lite-ui.v2981fix1.js", "assets/app.v2981.js", "assets/app.v2981fix1.js", "assets/student-profile-normalizer.v2981fix2.js", "assets/campus-location-rules.v2981fix2.js", "assets/parent-must-read-rules.v2981fix2.js", "assets/export-decision-fields.v2981fix2.js", "assets/decision-reminder-dedupe.v2981fix2.js", "assets/profile-interest-summary.v2981fix2.js", "assets/detail-card-lite-model.v2981fix2.js", "assets/detail-card-lite-ui.v2981fix2.js", "assets/notice-compact-ui.v2981fix2.js", "assets/app.v2981fix2.js", "assets/decision-context-model.v2982.js", "assets/legacy-preference-adapter.v2982.js", "assets/advisor-diagnosis-engine.v2982.js", "assets/interaction-stability.v2982.js", "assets/scroll-lock-guard.v2982fix2.js", "assets/app.v2982.js"];
   window.__LN_BOOT_LOADS__=[];
   function uniq(arr){return [...new Set(arr.filter(Boolean))];}

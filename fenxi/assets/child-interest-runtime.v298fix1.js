@@ -37,7 +37,7 @@
   function filterPass(r){const s=readState(); if(!s.manualOnlyInterest)return true; const m=matchRecord(r); return m.active && ['core','related','review'].includes(m.level);}
   function scenarioFit(rule){const ids=effectiveGroupIds(); if(!ids.length||!rule)return {state:'none',label:''}; const matched=ids.map(groupById).filter(Boolean).filter(g=>(g.scenarioBoost||[]).includes(rule.id)); if(matched.length)return {state:'high',label:'与孩子关注点较匹配',groups:matched.map(g=>g.name)}; const pref=rule.preference?.priority||''; const near=ids.map(groupById).filter(Boolean).filter(g=>(g.preferenceBoost||[]).includes(pref)); if(near.length)return {state:'near',label:'与关注点有一定关联',groups:near.map(g=>g.name)}; return {state:'none',label:'按场景规则展示'};}
   function activeIntentShorts(){return (window.LN_CHILD_INTENT_TRANSLATOR_V2976?.selected?.()||[]).map(x=>x.short).filter(Boolean);}
-  function hitSummary(){return window.LN_INTEREST_HIT_SUMMARY_V298?.aggregate?.()||{core:0,related:0,review:0,none:0,byInterest:[]};}
+  function hitSummary(){return window.LN_INTEREST_HIT_SUMMARY_V298?.cachedAggregate?.()||{core:0,related:0,review:0,none:0,byInterest:[],cached:false};}
   function summary(){const s=readState(); const manual=(s.selectedGroups||[]).map(id=>groupById(id)).filter(Boolean); const auto=autoMappings(s); const intentNames=activeIntentShorts(); const active=[...new Set([...manual.map(g=>g.name),...auto.map(x=>x.label)])]; if(!intentNames.length&&!active.length)return {title:'孩子暂未明确方向',text:'系统会先按家庭底线、位次区间和场景策略综合推荐；后面可以随时补选兴趣。',names:[],auto:[],hit:null}; const hs=hitSummary(); const hitText=window.LN_INTEREST_HIT_SUMMARY_V298?.message?.(hs)||''; return {title:'已整理：'+(intentNames.length?intentNames.join('、'):active.join('、')),activeTitle:active.length?'已激活方向：'+active.join('、'):'',text:(hitText||'系统会在当前真实候选中做匹配，不会生成不存在的专业。'),names:active,auto,hit:hs};}
   function drawerIsChildInterest(){return !!(window.LN_DRAWER_V296?.isOpen?.() && (!window.__LN_ACTIVE_DRAWER_TYPE || window.__LN_ACTIVE_DRAWER_TYPE==='childInterest'));}
   function patchDrawerClose(){
@@ -55,7 +55,8 @@
     if(!pendingRefreshReason)return false;
     const reason=pendingRefreshReason; pendingRefreshReason=''; if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
     window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();
-    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason+'-'+(source||'flush'),level:'soft',delay:120});
+    window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,700);
+    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason+'-'+(source||'flush'),level:'soft',delay:850});
     return true;
   }
   function refreshLight(reason){
@@ -65,7 +66,8 @@
       return true;
     }
     window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();
-    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason||'child-interest-change',level:'soft',delay:180});
+    window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,900);
+    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason||'child-interest-change',level:'soft',delay:900});
     return true;
   }
   function toggleGroup(id){const g=groupById(id); if(!g)return {ok:false,reason:'not_found'}; const s=readState(); let arr=s.selectedGroups||[]; if(arr.includes(id))arr=arr.filter(x=>x!==id); else{if(arr.length>=(tax().maxGroups||3))return {ok:false,reason:'max'}; arr=[...arr,id];} saveState(Object.assign(s,{selectedGroups:arr})); refreshLight('child-interest-change'); return {ok:true};}
@@ -75,6 +77,6 @@
   function start(){patchDrawerClose(); window.__LN_ACTIVE_DRAWER_TYPE='childInterest'; window.LN_CHILD_INTEREST_UI_V296?.openDrawer?.(); return true;}
   function render(){window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}
   function handle(action,el){if(action==='child-interest-start')return start(); if(action==='child-interest-undecided')return undecided(); if(action==='child-interest-remove')return removeGroup(el?.dataset?.interestId||''); if(action==='child-interest-auto-toggle')return toggleAuto(el?.dataset?.intentId||'',el?.dataset?.interestId||''); if(action==='child-intent-remove'){window.LN_CHILD_INTENT_TRANSLATOR_V298?.remove?.(el?.dataset?.intentId||''); refreshLight('child-intent-remove'); return true;} return false;}
-  const api={readState,saveState,render,toggleGroup,removeGroup,toggleAuto,undecided,start,handle,matchRecord,planAdjustment,badgesForRecord,filterPass,scenarioFit,summary,hitSummary,groups,groupById,effectiveGroupIds,autoMappings,catalogMatch,refreshLight,markPendingRefresh:markPending,flushPendingRefresh,drawerIsChildInterest,ready:true,version:'V2.9.8.2.fix3'};
+  const api={readState,saveState,render,toggleGroup,removeGroup,toggleAuto,undecided,start,handle,matchRecord,planAdjustment,badgesForRecord,filterPass,scenarioFit,summary,hitSummary,groups,groupById,effectiveGroupIds,autoMappings,catalogMatch,refreshLight,markPendingRefresh:markPending,flushPendingRefresh,drawerIsChildInterest,ready:true,version:'V2.9.8.2.fix4'};
   window.LN_CHILD_INTEREST_RUNTIME_V298=api; window.LN_CHILD_INTEREST_RUNTIME_V2976=api; window.LN_CHILD_INTEREST_RUNTIME_V296=api; window.LN_CHILD_INTEREST_RUNTIME_V2955=api;
 })();

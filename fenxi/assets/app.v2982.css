@@ -47,3 +47,8 @@ body.v2982fix3 .child-interest-card-v296{touch-action:manipulation;}
 body.v2982fix3 .interest-card-hit-v298.muted{opacity:.72;font-size:12px;}
 body.v2982fix3 .child-interest-selected-line-v296 button,
 body.v2982fix3 [data-child-interest-group]{pointer-events:auto;}
+
+/* V2.9.8.2.fix4: performance-safe body marker and scroll stability */
+body.v2982fix4:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
+body.v2982fix4 #profileAsk, body.v2982fix4 #mentorRules, body.v2982fix4 #resultBox .bands{display:none!important;}
+body.v2982fix4 .interest-card-hit-v298.muted{opacity:.72;font-size:12px;}

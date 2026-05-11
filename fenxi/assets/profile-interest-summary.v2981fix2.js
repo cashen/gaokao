@@ -38,7 +38,7 @@
       const openInterestBtn=box.querySelector('[data-action="child-interest-start"]');
       if(openInterestBtn&&!openInterestBtn.dataset.boundDirectFix1){openInterestBtn.dataset.boundDirectFix1='1';openInterestBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();window.__LN_ACTIVE_DRAWER_TYPE='childInterest';window.LN_CHILD_INTEREST_RUNTIME_V296?.start?.();},true);}
       const chk=document.getElementById('onlyChildInterestV296');
-      if(chk&&!chk.dataset.boundFix2){chk.dataset.boundFix2='1';chk.addEventListener('change',()=>{const st=rt.readState?.()||{};st.manualOnlyInterest=chk.checked;rt.saveState?.(st);renderSummary();window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:180});});}
+      if(chk&&!chk.dataset.boundFix2){chk.dataset.boundFix2='1';chk.addEventListener('change',()=>{const st=rt.readState?.()||{};st.manualOnlyInterest=chk.checked;rt.saveState?.(st);renderSummary();window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,900); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:900});});}
     }
     api.renderSummary=renderSummary; api.__fix2Patched=true;
     window.LN_CHILD_INTEREST_UI_V296=api; window.LN_CHILD_INTEREST_UI_V298=api;
