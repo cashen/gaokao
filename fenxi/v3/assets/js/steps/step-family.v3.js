@@ -78,7 +78,7 @@
       '<h3>底线预览</h3>', previewHtml(state),
       '<div class="rank-sample-list family-sample-list">', sampleHtml(state), '</div>',
       '<div class="v3-actions"><button type="button" class="v3-btn" data-family-save>保存底线并继续</button><button type="button" class="v3-btn secondary" data-family-preview>只预览，不继续</button></div>',
-      '<p class="step-help">alpha3 只做 Step2 状态和预览，不触发旧 compute 主链路；正式 A/B/C 仍在后续版本接入。</p>',
+      '<p class="step-help">alpha4.fix1 只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
       '</div>',
       '</div></section>'
     ].join('');
@@ -111,12 +111,13 @@
       },
       ui: {
         bigPool: !!(preview && preview.bigPool),
-        lastMessage: preview && preview.summary ? preview.summary : '家庭底线已保存。'
+        lastMessage: shouldNext ? '家庭底线已保存，进入第 3 步：孩子专业偏好。' : (preview && preview.summary ? preview.summary : '家庭底线已保存。')
       }
     }, shouldNext ? 'family:save-next' : 'family:preview');
     if (shouldNext) {
       window.LN_V3_STORE.markComplete('family', 'family:complete');
-      window.LN_V3_ROUTER.go('child', 'family:next');
+      var moved = window.LN_V3_ROUTER.go('child', 'family:save-next');
+      if (!moved && window.LN_V3_WIZARD) window.LN_V3_WIZARD.flashMessage('已保存底线，但进入下一步失败。请点底部“专业”继续。');
     } else if (window.LN_V3_WIZARD) {
       window.LN_V3_WIZARD.render();
     }

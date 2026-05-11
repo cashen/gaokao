@@ -72,7 +72,12 @@
         return false;
       }
       window.LN_V3_STORE.setActiveStep(stepId, reason || 'route');
-      if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
+      if (window.LN_V3_WIZARD) {
+        window.LN_V3_WIZARD.render();
+        if (window.LN_V3_WIZARD.scrollToStepTop) {
+          window.LN_V3_WIZARD.scrollToStepTop(reason || 'route');
+        }
+      }
       return true;
     }
   };

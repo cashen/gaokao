@@ -47,6 +47,19 @@
     window.LN_V3_STORE.setState({ family: before }, 'debug-step-family:restore');
     var restored = window.LN_V3_STORE.getState().family;
     results.push(check('Step2 自测状态回滚干净', JSON.stringify(restored) === JSON.stringify(before), JSON.stringify(restored)));
+
+    var uiBefore = clone((window.LN_V3_STORE.getState() || {}).ui || {});
+    if (window.LN_V3_ROUTER && window.LN_V3_STORE) {
+      window.LN_V3_STORE.setActiveStep('family', 'debug-step-family:route-start');
+      window.LN_V3_STORE.markComplete('rank', 'debug-step-family:rank-ready');
+      window.LN_V3_STORE.markComplete('family', 'debug-step-family:family-complete');
+      window.LN_V3_ROUTER.go('child', 'debug-step-family:save-next');
+      var routed = window.LN_V3_STORE.getState();
+      results.push(check('Step2 保存继续可进入 Step3', routed.ui.activeStep === 'child' && routed.ui.activeTab === 'child', JSON.stringify(routed.ui)));
+      window.LN_V3_STORE.setState({ ui: uiBefore }, 'debug-step-family:route-restore');
+    } else {
+      results.push(check('Step2 保存继续可进入 Step3', false, 'router/store missing'));
+    }
     return results;
   }
   window.LN_V3_DEBUG_STEP_FAMILY = { run: run };

@@ -13,6 +13,16 @@
     var el = document.getElementById('v3StatusText');
     if (el) el.textContent = text;
   }
+  function scrollToStepTop(reason) {
+    var root = document.getElementById('v3StepRoot');
+    if (!root) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var top = Math.max(0, root.getBoundingClientRect().top + window.pageYOffset - 72);
+    try { window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' }); }
+    catch (err) { window.scrollTo(0, top); }
+    root.focus({ preventScroll: true });
+    if (window.LN_V3_BUS) window.LN_V3_BUS.emit('route:scrolled', { reason: reason || 'route', top: top });
+  }
   window.LN_V3_WIZARD = {
     init: function () {
       if (!window.LN_V3_STORE || !window.LN_V3_ROUTER) return;
@@ -32,6 +42,9 @@
       renderer(root, state);
       root.focus({ preventScroll: true });
       setStatus(state.ui.lastMessage || '已进入测试版');
+    },
+    scrollToStepTop: function (reason) {
+      scrollToStepTop(reason);
     },
     flashMessage: function (message) {
       setStatus(message);
