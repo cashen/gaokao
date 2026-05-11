@@ -63,12 +63,42 @@
     var regionMode = family.regionMode || 'none';
     var rejectHigh = family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict';
     var rejectNonPublic = (family.rejects || []).indexOf('民办独立') !== -1;
-    var filtered = filterRecords(records, family);
-    var removed = filtered.removed;
-    var unmatchedKept = filtered.unmatchedKept;
-    var sampleUnexpectedKept = filtered.sampleUnexpectedKept;
-    var kept = filtered.records;
-    return { records: kept, removed: removed, unmatchedKept: unmatchedKept, sampleUnexpectedKept: sampleUnexpectedKept };
+    var removed = { region: 0, highFee: 0, nature: 0 };
+    var kept = [];
+    var unmatchedKept = 0;
+    var sampleUnexpectedKept = [];
+
+    records.forEach(function (record) {
+      var keep = true;
+      var inTargetProvince = !provinces.length || isRecordInAnyProvince(record, provinces);
+
+      if (regionMode === 'hard' && provinces.length && !inTargetProvince) {
+        removed.region += 1;
+        keep = false;
+      }
+      if (keep && rejectHigh && isHighFeeRecord(record)) {
+        removed.highFee += 1;
+        keep = false;
+      }
+      if (keep && rejectNonPublic && !isPublicLike(record)) {
+        removed.nature += 1;
+        keep = false;
+      }
+      if (keep) {
+        if (regionMode === 'hard' && provinces.length && !inTargetProvince) {
+          unmatchedKept += 1;
+          if (sampleUnexpectedKept.length < 5) sampleUnexpectedKept.push(compact(record));
+        }
+        kept.push(record);
+      }
+    });
+
+    return {
+      records: kept,
+      removed: removed,
+      unmatchedKept: unmatchedKept,
+      sampleUnexpectedKept: sampleUnexpectedKept
+    };
   }
 
   function applyFamily(records, family) {

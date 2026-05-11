@@ -1,13 +1,19 @@
 (function () {
   'use strict';
+  var delegatedBound = false;
+
   function esc(value) {
-    return String(value === null || value === undefined ? '' : value).replace(/[&<>\"]/g, function (ch) {
+    return String(value === null || value === undefined ? '' : value).replace(/[&<>"]/g, function (ch) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch];
     });
   }
   function selected(value, expected) { return value === expected ? ' selected' : ''; }
   function checked(list, value) { return Array.isArray(list) && list.indexOf(value) !== -1 ? ' checked' : ''; }
   function splitProvinces(raw) { return String(raw || '').split(/[、,，\s]+/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  function activeFamilyRoot(target) {
+    if (target && target.closest) return target.closest('[data-step-view="family"]');
+    return document.querySelector('[data-step-view="family"]');
+  }
   function previewHtml(state) {
     var preview = (state.family || {}).preview;
     var rankLoaded = Number((state.rank || {}).loadedRows || 0) > 0;
@@ -77,8 +83,8 @@
       '<div class="step-section">',
       '<h3>底线预览</h3>', previewHtml(state),
       '<div class="rank-sample-list family-sample-list">', sampleHtml(state), '</div>',
-      '<div class="v3-actions"><button type="button" class="v3-btn" data-family-save>保存底线并继续</button><button type="button" class="v3-btn secondary" data-family-preview>只预览，不继续</button></div>',
-      '<p class="step-help">alpha4.fix2 只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
+      '<div class="v3-actions"><button type="button" class="v3-btn" data-family-save data-next-step="child">保存底线并继续</button><button type="button" class="v3-btn secondary" data-family-preview>只预览，不继续</button></div>',
+      '<p class="step-help">alpha4.fix3 只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
       '</div>',
       '</div></section>'
     ].join('');
@@ -97,7 +103,36 @@
       rejects: rejects
     };
   }
+  function goChildWithFallback(reason) {
+    var routed = false;
+    try {
+      if (window.LN_V3_ROUTER && typeof window.LN_V3_ROUTER.go === 'function') {
+        routed = window.LN_V3_ROUTER.go('child', reason || 'family:save-next');
+      }
+    } catch (err) {
+      console.warn('[LN_V3_STEP_FAMILY] router.go child failed', err);
+    }
+    if (!routed && window.LN_V3_STORE) {
+      window.LN_V3_STORE.setActiveStep('child', (reason || 'family:save-next') + ':force');
+      if (window.LN_V3_WIZARD) {
+        window.LN_V3_WIZARD.render();
+        if (window.LN_V3_WIZARD.scrollToStepTop) window.LN_V3_WIZARD.scrollToStepTop((reason || 'family:save-next') + ':force');
+      }
+      routed = true;
+    }
+    window.setTimeout(function () {
+      var st = window.LN_V3_STORE ? window.LN_V3_STORE.getState() : null;
+      var ok = !!(st && st.ui && st.ui.activeStep === 'child');
+      if (!ok && window.LN_V3_STORE) {
+        window.LN_V3_STORE.setState({ ui: { lastMessage: '底线已保存。未能自动跳转时，请点底部“专业”。' } }, 'family:save-next-verify-failed');
+      } else if (window.LN_V3_BUS) {
+        window.LN_V3_BUS.emit('family:save-next-ok', { reason: reason || 'family:save-next' });
+      }
+    }, 120);
+    return routed;
+  }
   function save(root, shouldNext) {
+    if (!root) return false;
     var family = readFamily(root);
     var preview = window.LN_V3_FAMILY_FILTER ? window.LN_V3_FAMILY_FILTER.preview(family) : null;
     family.preview = preview;
@@ -116,13 +151,13 @@
     }, shouldNext ? 'family:save-next' : 'family:preview');
     if (shouldNext) {
       window.LN_V3_STORE.markComplete('family', 'family:complete');
-      var moved = window.LN_V3_ROUTER.go('child', 'family:save-next');
-      if (!moved && window.LN_V3_WIZARD) window.LN_V3_WIZARD.flashMessage('已保存底线，但进入下一步失败。请点底部“专业”继续。');
-    } else if (window.LN_V3_WIZARD) {
-      window.LN_V3_WIZARD.render();
+      return goChildWithFallback('family:save-next');
     }
+    if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
+    return true;
   }
   function setQuick(root, type) {
+    if (!root) return false;
     if (type === 'liaoning-hard') {
       root.querySelector('#v3RegionMode').value = 'hard';
       root.querySelector('#v3Provinces').value = '辽宁';
@@ -141,14 +176,35 @@
       root.querySelector('#v3FeeType').value = 'all';
       root.querySelector('#v3RejectHigh').checked = false;
     }
-    save(root, false);
+    return save(root, false);
+  }
+  function bindDelegatedOnce() {
+    if (delegatedBound) return;
+    delegatedBound = true;
+    document.addEventListener('click', function (event) {
+      var target = event.target && event.target.closest ? event.target.closest('[data-family-save],[data-family-preview],[data-family-quick]') : null;
+      if (!target) return;
+      var root = activeFamilyRoot(target);
+      if (!root) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      if (target.hasAttribute('data-family-save')) {
+        save(root, true);
+      } else if (target.hasAttribute('data-family-preview')) {
+        save(root, false);
+      } else if (target.hasAttribute('data-family-quick')) {
+        setQuick(root, target.getAttribute('data-family-quick'));
+      }
+    }, true);
   }
   function bind(root) {
-    root.querySelector('[data-family-save]').addEventListener('click', function () { save(root, true); });
-    root.querySelector('[data-family-preview]').addEventListener('click', function () { save(root, false); });
-    Array.prototype.forEach.call(root.querySelectorAll('[data-family-quick]'), function (btn) {
-      btn.addEventListener('click', function () { setQuick(root, btn.getAttribute('data-family-quick')); });
-    });
+    bindDelegatedOnce();
+    if (root) root.setAttribute('data-family-bound', 'delegated');
   }
-  window.LN_V3_STEP_FAMILY = { render: function (root, state) { root.innerHTML = html(state); bind(root); } };
+  window.LN_V3_STEP_FAMILY = {
+    render: function (root, state) { root.innerHTML = html(state); bind(root); },
+    saveAndGoNext: function () { return save(document.querySelector('[data-step-view="family"]'), true); },
+    previewOnly: function () { return save(document.querySelector('[data-step-view="family"]'), false); }
+  };
 })();

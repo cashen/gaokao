@@ -69,3 +69,8 @@
   padding: 9px 12px;
   font-weight: 900;
 }
+
+.debug-actions .debug-mainflow-btn {
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(194, 113, 32, 0.18);
+}

@@ -32,7 +32,16 @@
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     box.textContent = JSON.stringify(snap.state, null, 2);
   }
-  function refresh() { renderVersion(); renderTab(); renderStore(); }
+  function renderTrace() {
+    var box = document.getElementById('debugTraceBox');
+    if (!box) return;
+    var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
+    var trace = snap.trace || [];
+    box.textContent = trace.length ? trace.map(function (item, index) {
+      return String(index + 1).padStart(2, '0') + '｜' + item.time + '｜' + item.action + (item.detail ? '｜' + item.detail : '');
+    }).join('\n') : '暂无操作轨迹。';
+  }
+  function refresh() { renderVersion(); renderTab(); renderStore(); renderTrace(); }
 
   window.LN_V3_DEBUG_PANEL = {
     init: function () {
@@ -44,6 +53,7 @@
           var box = document.getElementById('debugSelftestBox');
           box.textContent = '正在运行 ' + type + ' 自测…';
           Promise.resolve(window.LN_V3_DEBUG_SELFTEST.run(type)).then(function (report) {
+            window.LN_V3_LAST_DEBUG_REPORT = report.text;
             box.textContent = report.text;
             refresh();
           }).catch(function (err) {
@@ -54,7 +64,7 @@
       });
       var copy = document.querySelector('[data-debug-copy]');
       if (copy) copy.addEventListener('click', function () {
-        var report = window.LN_V3_DEBUG_REPORT.build();
+        var report = window.LN_V3_LAST_DEBUG_REPORT || window.LN_V3_DEBUG_REPORT.build();
         navigator.clipboard.writeText(report).then(function () {
           document.getElementById('debugSelftestBox').textContent = report + '\n\n复制状态：OK';
         }).catch(function () {
