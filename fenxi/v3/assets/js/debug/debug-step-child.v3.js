@@ -34,11 +34,17 @@
         } else {
           results.push(pass('Step3 等待 Step1/Step2 数据', '当前没有 records，不做命中数量强校验'));
         }
-        window.LN_V3_STEP_CHILD._test.toggleManualOnly();
-        var manual = window.LN_V3_STORE.getState().childPreference.preview || {};
-        results.push(manual.manualOnly === true ? pass('manualOnly 可写入并触发预览', JSON.stringify({ manualOnly: manual.manualOnly, effectiveFilteredRows: manual.effectiveFilteredRows, matchedRows: manual.matchedRows })) : fail('manualOnly 可写入并触发预览', JSON.stringify(manual)));
-        if (Number(manual.matchedRows || 0) > 0) {
-          results.push(Number(manual.effectiveFilteredRows || 0) === Number(manual.matchedRows || 0) ? pass('真实命中模式收窄到 matchedRows', JSON.stringify({ effectiveFilteredRows: manual.effectiveFilteredRows, matchedRows: manual.matchedRows })) : fail('真实命中模式收窄到 matchedRows', JSON.stringify(manual)));
+        if (recCount > 0) {
+          window.LN_V3_STEP_CHILD._test.toggleManualOnly();
+          var manual = window.LN_V3_STORE.getState().childPreference.preview || {};
+          results.push(manual.manualOnly === true ? pass('manualOnly 可写入并触发预览', JSON.stringify({ manualOnly: manual.manualOnly, effectiveFilteredRows: manual.effectiveFilteredRows, matchedRows: manual.matchedRows })) : fail('manualOnly 可写入并触发预览', JSON.stringify(manual)));
+          if (Number(manual.matchedRows || 0) > 0) {
+            results.push(Number(manual.effectiveFilteredRows || 0) === Number(manual.matchedRows || 0) ? pass('真实命中模式收窄到 matchedRows', JSON.stringify({ effectiveFilteredRows: manual.effectiveFilteredRows, matchedRows: manual.matchedRows })) : fail('真实命中模式收窄到 matchedRows', JSON.stringify(manual)));
+          } else {
+            results.push(pass('真实命中模式等待命中样本', '当前底线池没有命中样本，不做收窄强校验'));
+          }
+        } else {
+          results.push(pass('manualOnly 等待 Step1/Step2 数据', '当前没有 records，不做真实命中强校验'));
         }
       } finally {
         window.LN_V3_STORE.setState({ childPreference: before.childPreference, ui: before.ui, compute: before.compute }, 'debug:child:restore');

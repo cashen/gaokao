@@ -78,7 +78,7 @@
       '<h3>底线预览</h3>', previewHtml(state),
       '<div class="rank-sample-list family-sample-list">', sampleHtml(state), '</div>',
       '<div class="v3-actions"><button type="button" class="v3-btn" data-family-save>保存底线并继续</button><button type="button" class="v3-btn secondary" data-family-preview>只预览，不继续</button></div>',
-      '<p class="step-help">alpha4.fix1 只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
+      '<p class="step-help">alpha4.fix2 只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
       '</div>',
       '</div></section>'
     ].join('');
