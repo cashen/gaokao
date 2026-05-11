@@ -157,7 +157,7 @@
         chunkIds: cache.chunks || [],
         hasLegacyData: Array.isArray(cache.records),
         lastLoad: lastLoad,
-        note: 'alpha2.fix1 已同步服务器会话并携带 same-origin credentials 读取 fix12 数据；暂不触发旧 compute 主链路。'
+        note: 'alpha3 已同步服务器会话并携带 same-origin credentials 读取 fix12 数据；Step2 只做家庭底线预览，暂不触发旧 compute 主链路。'
       };
     },
     resolveRankByScore: resolveRankByScore,

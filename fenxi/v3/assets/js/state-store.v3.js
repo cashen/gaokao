@@ -15,10 +15,10 @@
       lastMessage: 'V3骨架已启动'
     },
     rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
-    family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [] },
+    family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false },
     scenario: { current: '', recommended: '', reason: '' },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha2-step1-data-loading' },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha3-family-bottomline-preview' },
     plans: { A: [], B: [], C: [] },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }
@@ -50,6 +50,9 @@
     out.rank.chunkCount = Number(out.rank.chunkCount || 0);
     out.rank.loadMs = Number(out.rank.loadMs || 0);
     out.compute = merge(initialState.compute, out.compute || {});
+    out.family = merge(initialState.family, out.family || {});
+    out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
+    out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];
     out.childPreference = merge(initialState.childPreference, out.childPreference || {});
     out.childPreference.selectedGroups = Array.isArray(out.childPreference.selectedGroups) ? out.childPreference.selectedGroups : [];
     out.childPreference.selectedMajors = Array.isArray(out.childPreference.selectedMajors) ? out.childPreference.selectedMajors : [];

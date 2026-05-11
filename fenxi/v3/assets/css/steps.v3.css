@@ -123,3 +123,75 @@
   .rank-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rank-sample-item { grid-template-columns: 1fr; gap: 4px; }
 }
+.family-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 10px 0 14px;
+}
+.family-chip {
+  border: 1px solid rgba(184,107,34,.22);
+  background: #fffaf1;
+  color: #6b4518;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-weight: 900;
+}
+.family-chip:active { transform: translateY(1px); }
+.family-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  color: #4d4035;
+  font-weight: 700;
+}
+.family-check input { margin-top: 3px; }
+.family-preview {
+  border: 1px solid rgba(184,107,34,.18);
+  background: linear-gradient(135deg, #fffaf1, #fffdf8);
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.family-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.family-preview-grid div {
+  border: 1px solid rgba(184,107,34,.14);
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+.family-preview-grid span {
+  color: var(--v3-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.family-preview-grid strong {
+  font-size: 22px;
+  color: #261b10;
+  line-height: 1;
+}
+.family-preview p { margin: 0 0 10px; color: #5b432b; }
+.family-hard-status { display: flex; flex-wrap: wrap; gap: 8px; }
+.family-pass, .family-warn, .family-bigpool-hint {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+.family-pass { color: #22613a; background: #ecfdf3; border: 1px solid rgba(34,97,58,.16); }
+.family-warn { color: #7c2d12; background: #fff4ed; border: 1px solid rgba(194,65,12,.18); }
+.family-bigpool-hint { margin-top: 10px; color: #7a4d12; background: #fff7e6; border: 1px solid rgba(184,107,34,.22); }
+.family-sample-list { margin-top: 12px; }
+@media (max-width: 760px) {
+  .family-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
