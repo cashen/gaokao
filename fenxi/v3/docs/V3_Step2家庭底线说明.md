@@ -1,7 +1,7 @@
 # V3 Step2 家庭底线说明
 
-版本：V3.0.0.alpha3｜Step2家庭底线与辽宁Hard预览版  
-版本戳：v300alpha3-20260512
+版本：V3.0.0.alpha3.fix1｜Debug数据水合与Step2自测校准版  
+版本戳：v300alpha3fix1-20260512
 
 ## 定位
 

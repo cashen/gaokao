@@ -18,7 +18,7 @@
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false },
     scenario: { current: '', recommended: '', reason: '' },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha3-family-bottomline-preview' },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha3fix1-family-bottomline-preview' },
     plans: { A: [], B: [], C: [] },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }

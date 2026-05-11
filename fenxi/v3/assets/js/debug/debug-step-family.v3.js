@@ -14,9 +14,11 @@
     ];
     if (!adapter) return results;
     var records = adapter.getRecords ? adapter.getRecords() : [];
-    results.push(check('Step2 可读取 Step1 已加载记录', Array.isArray(records), 'records=' + (records ? records.length : 0)));
+    var storedLoadedRows = Number(((state.rank || {}).loadedRows) || 0);
+    results.push(check('Step2 可读取 Step1 已加载记录', Array.isArray(records), 'records=' + (records ? records.length : 0) + ' storeLoadedRows=' + storedLoadedRows));
+    results.push(check('Step2 原始数据缓存已水合', storedLoadedRows === 0 || (records && records.length > 0), JSON.stringify({ records: records ? records.length : 0, storeLoadedRows: storedLoadedRows })));
     if (!records.length) {
-      results.push(check('Step2 预览等待 Step1 数据', true, '当前没有 loadedRows，不做 hard 辽宁强校验'));
+      results.push(check('Step2 预览等待 Step1 数据', storedLoadedRows === 0, storedLoadedRows ? 'Store已有loadedRows但原始缓存为空，应触发debug数据水合' : '当前没有 loadedRows，不做 hard 辽宁强校验'));
       return results;
     }
     var liaoningPreview = adapter.preview({ regionMode: 'hard', provinces: ['辽宁'], budget: 'normal', feeType: 'all', rejects: [] });

@@ -6,8 +6,22 @@
     document.body.classList.add('v3-ready');
   }
   function initDebug() {
-    if (window.LN_V3_DEBUG_PANEL) window.LN_V3_DEBUG_PANEL.init();
-    document.body.classList.add('v3-debug-ready');
+    function ready() {
+      if (window.LN_V3_DEBUG_PANEL) window.LN_V3_DEBUG_PANEL.init();
+      document.body.classList.add('v3-debug-ready');
+    }
+    if (window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.ensureFromStore) {
+      document.body.classList.add('v3-debug-hydrating');
+      window.LN_V3_LEGACY_DATA.ensureFromStore({ silent: true }).then(function () {
+        document.body.classList.remove('v3-debug-hydrating');
+        ready();
+      }).catch(function () {
+        document.body.classList.remove('v3-debug-hydrating');
+        ready();
+      });
+      return;
+    }
+    ready();
   }
   window.addEventListener('DOMContentLoaded', function () {
     var mode = isDebugPage() ? 'debug' : 'app';

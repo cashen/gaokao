@@ -1,3 +1,3 @@
-V3.0.0.alpha3｜Step2家庭底线与辽宁Hard预览版
-版本戳：v300alpha3-20260512
-说明：基于 alpha2.fix1，新增 Step2 家庭底线状态、辽宁 hard 地域预览、预算/高收费排除预览和对应 debug 自测；不触发旧 compute 主链路。
+V3.0.0.alpha3.fix1｜Debug数据水合与Step2自测校准版
+版本戳：v300alpha3fix1-20260512
+说明：基于 alpha3 Step2 家庭底线预览，修正 debug 页面跨入口打开时原始数据缓存未水合的问题；debug 会在启动时根据 Store 中的位次重新水合 /fenxi/data 分块数据，并校准 Step2 自测，避免出现 Store 有 loadedRows 但 debug 原始 records=0 的误导报告。不触发旧 compute 主链路。

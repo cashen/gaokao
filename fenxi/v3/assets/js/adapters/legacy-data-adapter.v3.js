@@ -149,20 +149,62 @@
     return Promise.reject(new Error('请先输入位次或分数'));
   }
 
+  function ensureFromStore(options) {
+    options = options || {};
+    var state = window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {};
+    var rankState = state.rank || {};
+    var cache = window.LN_V3_DATA_CACHE || {};
+    if (Array.isArray(cache.records) && cache.records.length) {
+      return Promise.resolve({ ok: true, hydrated: true, fromCache: true, loadedRows: cache.records.length, chunkIds: cache.chunks || [] });
+    }
+    var hasStoredRank = toNumber(rankState.rank) || toNumber(rankState.score);
+    if (!hasStoredRank) {
+      return Promise.resolve({ ok: false, hydrated: false, reason: 'no-rank-in-store' });
+    }
+    return loadForRankOrScore({ rank: rankState.rank, score: rankState.score }).then(function (res) {
+      if (!options.silent && window.LN_V3_STORE) {
+        window.LN_V3_STORE.setState({
+          rank: {
+            loadedRows: res.loadedRows,
+            chunkIds: res.chunkIds,
+            chunkCount: res.chunkCount,
+            loadMs: res.ms,
+            loadedAt: new Date().toISOString(),
+            rankSource: res.resolvedRankSource || rankState.rankSource || '',
+            sample: res.sample || []
+          },
+          compute: { waitDataMs: res.ms, lastReason: 'v3-debug-data-hydrate' }
+        }, 'legacy-data:ensureFromStore');
+      }
+      return { ok: true, hydrated: true, fromCache: false, loadedRows: res.loadedRows, chunkIds: res.chunkIds, ms: res.ms };
+    }).catch(function (err) {
+      return { ok: false, hydrated: false, reason: err && err.message ? err.message : String(err) };
+    });
+  }
+
   window.LN_V3_LEGACY_DATA = {
     status: function () {
       var cache = window.LN_V3_DATA_CACHE || {};
+      var state = window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {};
+      var rankState = state.rank || {};
+      var rawRows = Array.isArray(cache.records) ? cache.records.length : 0;
+      var storeRows = Number(rankState.loadedRows || 0);
       return {
-        loadedRows: Array.isArray(cache.records) ? cache.records.length : 0,
+        loadedRows: rawRows,
+        storeLoadedRows: storeRows,
         chunkIds: cache.chunks || [],
+        storeChunkIds: rankState.chunkIds || [],
         hasLegacyData: Array.isArray(cache.records),
+        cacheHydrated: rawRows > 0 || !storeRows,
+        needsHydration: storeRows > 0 && rawRows === 0,
         lastLoad: lastLoad,
-        note: 'alpha3 已同步服务器会话并携带 same-origin credentials 读取 fix12 数据；Step2 只做家庭底线预览，暂不触发旧 compute 主链路。'
+        note: 'alpha3.fix1 已同步服务器会话并支持 debug 数据水合；Step2 只做家庭底线预览，暂不触发旧 compute 主链路。'
       };
     },
     resolveRankByScore: resolveRankByScore,
     loadForRank: loadForRank,
     loadForRankOrScore: loadForRankOrScore,
+    ensureFromStore: ensureFromStore,
     _selectWindowChunks: selectWindowChunks
   };
 })();
