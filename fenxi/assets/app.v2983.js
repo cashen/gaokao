@@ -1,8 +1,8 @@
-// V2.9.8.3.fix1 single overlay: funnel compute, staged UI refresh and deep debug integration.
+// V2.9.8.3.fix2 single overlay: funnel compute, staged UI refresh and deep debug integration.
 (function(){
   let rendering=false,pending=false;
-  function body(){document.body?.classList?.add('v2983fix1','v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
-  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3.fix1｜scorePool前置瘦身与Debug增强修正版';}
+  function body(){document.body?.classList?.add('v2983fix2','v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
+  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3.fix2｜渲染后处理拆分与Debug深度增强修正版';}
   function unlock(){try{window.LN_SCROLL_LOCK_GUARD_V2982FIX2?.ensure?.();}catch(e){}}
   function sync(){try{window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.patchGlobals?.();window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.syncLegacyDom?.();}catch(e){}try{window.LN_INTERACTION_STABILITY_V2982?.patch?.();}catch(e){}}
   function renderLight(reason){
@@ -27,12 +27,14 @@
     const wrapped=function(type){const t=performance.now();
       // Preserve scenario preset behavior, but avoid re-running the whole filter chain here. ABC can be reorganized from current filtered pool.
       try{applyScenarioPresetV2951(type);}catch(e){try{old(type);}catch(err){}}
-      try{renderBaselineSummaryV2950();}catch(e){}
-      try{window.LN_QUALIFICATION_GATE_UI_V296?.renderSummary?.();}catch(e){}
-      try{window.LN_PROFILE_INTEREST_SUMMARY_V2981FIX2?.patchChildInterestSummary?.();}catch(e){}
-      try{renderPlanABC();}catch(e){}
-      try{updateLive();}catch(e){}
-      renderLight('scenario-change');
+      const br={type}; const mark=(k,fn)=>{const tt=performance.now();try{return fn&&fn();}catch(e){br.errors=br.errors||[];br.errors.push({step:k,message:String(e&&e.message||e)});}finally{br[k]=Math.round(performance.now()-tt);}};
+      mark('renderBaselineSummary',()=>renderBaselineSummaryV2950());
+      mark('qualificationSummary',()=>window.LN_QUALIFICATION_GATE_UI_V296?.renderSummary?.());
+      mark('profileInterestSummary',()=>window.LN_PROFILE_INTEREST_SUMMARY_V2981FIX2?.patchChildInterestSummary?.());
+      mark('renderPlanABC',()=>renderPlanABC());
+      mark('updateLive',()=>updateLive());
+      mark('renderLight',()=>renderLight('scenario-change'));
+      br.total=Math.round(performance.now()-t); try{window.LN_DEBUG_V2983?.detail?.('scenarioBreakdown',br);}catch(e){}
       window.LN_DEBUG_V2983?.timing?.('scenarioChangeLight',performance.now()-t,{type});
       return true;};
     wrapped.__v2983Patched=true;window.applyStrategy=wrapped;
@@ -47,5 +49,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
   setTimeout(patch,0);setTimeout(()=>renderLight('late-once'),1200);
-  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3.fix1',cacheBust:'2983fix1-20260511',ready:true};
+  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3.fix2',cacheBust:'2983fix2-20260511',ready:true};
 })();

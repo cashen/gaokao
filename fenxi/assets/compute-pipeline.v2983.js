@@ -1,6 +1,6 @@
-// V2.9.8.3.fix1 compute pipeline: funnel-style filtering, pre-score narrowing, cached scoring, deep debug timings.
+// V2.9.8.3.fix2 compute pipeline: funnel filtering + render/post-processing breakdown for debug.
 (function(){
-  const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastTimings:{},lastScoreStats:null,lastBaseStats:null,lastViewPool:[]};
+  const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
   const dbg=()=>window.LN_DEBUG_V2983;
   const debugDetail=(name,obj)=>{try{window.LN_DEBUG_V2983?.detail?.(name,obj);}catch(e){}};
@@ -8,15 +8,17 @@
   const checked=id=>!!document.getElementById(id)?.checked;
   function selectedChips(sel,attr){return [...document.querySelectorAll(sel+'.active')].map(x=>x.dataset[attr]||x.dataset.value||x.textContent.trim()).filter(Boolean);}
   function safeCall(fn,fallback){try{return fn();}catch(e){return fallback;}}
+  function timeStep(stats,name,fn){const t=perf();let ok=true;try{return fn&&fn();}catch(e){ok=false;stats.errors=stats.errors||[];stats.errors.push({step:name,message:String(e&&e.message||e)});return undefined;}finally{stats[name]=Math.round(perf()-t);stats[name+'Ok']=ok;}}
   function buildContext(){
     const rt=window.LN_CHILD_INTEREST_RUNTIME_V296;
     const st=rt?.readState?.()||{};
+    const effective=rt?.effectiveGroupIds?.(st)||[];
     const ctx={
       score:val('myScore'),rank:typeof resolveRank==='function'?resolveRank():null,
-      model:val('model'),sortBy:val('sortBy')||'profile',
+      model:val('model'),sortBy:val('sortBy')||'default',
       family:{budget:val('budget'),regionMode:val('regionMode'),provinces:selectedChips('#provinceChips .chip','province'),cityMode:val('cityMode'),cities:val('targetCities'),feeType:val('filterFeeType'),rejects:selectedRejects?.()||[]},
       filters:{qSchool:val('qSchool').trim(),qMajor:val('qMajor').trim(),level:val('filterLevel'),subject:val('filterSubjectGroup'),primary:val('filterPrimary').trim(),tax:val('filterTaxConfidence'),tier:val('filterSchoolTier'),confusable:val('filterConfusableGroup'),onlyKey:checked('onlyKey'),onlyConfusable:checked('onlyConfusable')},
-      child:{state:st,effective:rt?.effectiveGroupIds?.(st)||[],manualOnly:!!(st.manualOnlyInterest&&(rt?.effectiveGroupIds?.(st)||[]).length)},
+      child:{state:st,effective,manualOnly:!!(st.manualOnlyInterest&&effective.length)},
       scenario:{current:window.currentStrategy||''}
     };
     dbg()?.setContext?.({rank:ctx.rank,score:ctx.score,family:ctx.family,child:{effective:ctx.child.effective,manualOnly:ctx.child.manualOnly},scenario:ctx.scenario,sortBy:ctx.sortBy});
@@ -76,25 +78,16 @@
     if(S.profileKey!==key){S.profileKey=key;S.profileCache.clear();}
     const ex=window.exclusionStats||{}; const out=[]; const strict=checked('strictProfile');
     const stats={input:base.length,preInput:base.length,preOutput:base.length,manualOnly,interestActive,sortBy,profileHit:0,profileMiss:0,strictExcluded:0,lowProfileExcluded:0,out:0,time:{preInterestFilter:0,profileScore:0,confidence:0,interestSort:0,strictCheck:0}};
-
-    // V2.9.8.3.fix1: when “只看真实命中” is on, narrow by real interest match BEFORE profile/mentor scoring.
-    // This keeps the expensive profileScore / interestSort work inside the already narrowed funnel.
     let pool=base;
     if(manualOnly&&rt){
       const tPre=perf(); const narrowed=[];
-      for(const r of base){
-        let pass=true;
-        try{pass=!!rt.filterPass?.(r);}catch(e){pass=true;}
-        if(pass)narrowed.push(r);
-      }
+      for(const r of base){let pass=true;try{pass=!!rt.filterPass?.(r);}catch(e){pass=true;}if(pass)narrowed.push(r);}
       pool=narrowed; stats.preOutput=pool.length; stats.time.preInterestFilter=Math.round(perf()-tPre);
       debugDetail('interestPreFilter',{in:base.length,out:pool.length,ms:stats.time.preInterestFilter,manualOnly:true});
     }
-
     for(const r of pool){
       let p=S.profileCache.get(r.id);
-      if(p){stats.profileHit++;}
-      else{const tp=perf();p=typeof profileScore==='function'?profileScore(r):{score:50,reasons:[],excludes:[],mentor:{}};stats.time.profileScore+=perf()-tp;S.profileCache.set(r.id,p);stats.profileMiss++;}
+      if(p){stats.profileHit++;}else{const tp=perf();p=typeof profileScore==='function'?profileScore(r):{score:50,reasons:[],excludes:[],mentor:{}};stats.time.profileScore+=perf()-tp;S.profileCache.set(r.id,p);stats.profileMiss++;}
       r._profile=p.score;r._reasons=p.reasons;r._excludes=p.excludes;r._mentor=p.mentor;
       const tc=perf(); r._confidence=typeof confidence==='function'?confidence(r):{label:'',cls:''}; stats.time.confidence+=perf()-tc;
       const ti=perf(); r._interestSortScore=interestActive?(typeof interestSortScoreV298Fix1==='function'?interestSortScoreV298Fix1(r):0):0; stats.time.interestSort+=perf()-ti;
@@ -106,8 +99,7 @@
     }
     stats.out=out.length;
     Object.keys(stats.time).forEach(k=>stats.time[k]=Math.round(stats.time[k]));
-    stats.cacheSize=S.profileCache.size;
-    S.lastScoreStats=stats;
+    stats.cacheSize=S.profileCache.size; S.lastScoreStats=stats;
     debugDetail('scorePoolBreakdown',stats);
     debugDetail('cacheStats',{profile:{hit:stats.profileHit,miss:stats.profileMiss,size:S.profileCache.size},interestPreFilter:{in:stats.preInput,out:stats.preOutput,ms:stats.time.preInterestFilter}});
     dbg()?.timing?.('scorePool',perf()-t,{in:base.length,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter});
@@ -122,34 +114,35 @@
       if(sortBy==='fit')return a._fit-b._fit;
       if(sortBy==='lift')return (typeof liftValueScoreV29475==='function'?liftValueScoreV29475(b):0)-(typeof liftValueScoreV29475==='function'?liftValueScoreV29475(a):0);
       if(interestActive){const d=(b._interestSortScore||0)-(a._interestSortScore||0);if(d)return d;}
-      return(b._profile-a._profile)||(a._fit-b._fit);
+      return((b._profile||0)-(a._profile||0))||(a._fit-b._fit);
     });
     dbg()?.timing?.('sortPool',perf()-t,{rows:arr.length,sortBy});
     return arr;
   }
   function applyFiltersV2983(reason){
-    const start=perf();
-    const ctx=buildContext(); S.lastContext=ctx;
-    const base=buildBasePool(ctx);
-    let arr=scorePool(base,ctx);
-    arr=sortPool(arr,ctx);
+    const start=perf(); const renderStats={reason:reason||'applyFilters'};
+    const ctx=timeStep(renderStats,'buildContext',()=>buildContext()); S.lastContext=ctx;
+    const base=timeStep(renderStats,'buildBasePoolInline',()=>buildBasePool(ctx));
+    let arr=timeStep(renderStats,'scorePoolInline',()=>scorePool(base,ctx))||[];
+    arr=timeStep(renderStats,'sortPoolInline',()=>sortPool(arr,ctx))||arr;
     window.filtered=arr; try{filtered=arr;}catch(e){} window.currentPage=1; try{currentPage=1;}catch(e){}
     window.LN_DEBUG_V2983?.setPools?.({loadedRows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,basePool:base.length,filtered:arr.length,interestActive:ctx.child.effective.length,manualOnly:ctx.child.manualOnly});
-    try{window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(arr,1400);}catch(e){}
-    try{window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}catch(e){}
-    try{updateCounts();}catch(e){}
-    try{renderPlanABC();}catch(e){}
-    try{renderCards();}catch(e){}
-    try{updateLive();}catch(e){}
-    try{if(typeof updateGuideState==='function')updateGuideState();}catch(e){}
+    timeStep(renderStats,'scheduleInterestAggregate',()=>window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(arr,1400));
+    timeStep(renderStats,'interestSummary',()=>window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.());
+    timeStep(renderStats,'updateCounts',()=>{if(typeof updateCounts==='function')return updateCounts();});
+    timeStep(renderStats,'renderPlanABC',()=>{if(typeof renderPlanABC==='function')return renderPlanABC();});
+    timeStep(renderStats,'renderCards',()=>{if(typeof renderCards==='function')return renderCards();});
+    timeStep(renderStats,'updateLive',()=>{if(typeof updateLive==='function')return updateLive();});
+    timeStep(renderStats,'updateGuideState',()=>{if(typeof updateGuideState==='function')return updateGuideState();});
+    renderStats.total=Math.round(perf()-start);renderStats.filtered=arr.length;S.lastRenderStats=renderStats;debugDetail('renderBreakdown',renderStats);
     const ms=perf()-start; dbg()?.timing?.('applyFiltersTotal',ms,{reason:reason||'applyFilters',filtered:arr.length});
     return arr;
   }
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix1'};
-    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix1',applyFiltersPatched:true});
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix2'};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix2',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
 })();

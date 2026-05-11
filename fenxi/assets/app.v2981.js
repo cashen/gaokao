@@ -109,14 +109,22 @@ async function boot(){
   if(window.LN_CHILD_INTEREST_RUNTIME_V296?.render) window.LN_CHILD_INTEREST_RUNTIME_V296.render();
   initBaselineTouchTrackingV2951();
   try{
-    MANIFEST = await loadJsonFile(DATA_FILES.manifest,'数据清单');
-    RANK2025 = await loadJsonFile(DATA_FILES.rank,'一分一段数据');
-    const taxonomyObj = await loadJsonFile(DATA_FILES.taxonomy,'专业学科映射');
-    const aliasObj = await loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名');
-    const groupObj = await loadJsonFile(DATA_FILES.subjectGroups,'学科群字典');
-    const reviewObj = await loadJsonFile(DATA_FILES.admissionReview,'招生专业名复核');
-    OFFICIAL_CATALOG_2026 = await loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录');
-    GRADUATE_CATALOG_2022_2025 = await loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表');
+    // V2.9.8.3.fix2: independent startup JSON files load in parallel.
+    // This preserves the same data dependencies, but avoids several seconds of sequential waiting after login.
+    [MANIFEST,RANK2025] = await Promise.all([
+      loadJsonFile(DATA_FILES.manifest,'数据清单'),
+      loadJsonFile(DATA_FILES.rank,'一分一段数据')
+    ]);
+    const [taxonomyObj,aliasObj,groupObj,reviewObj,officialObj,graduateObj] = await Promise.all([
+      loadJsonFile(DATA_FILES.taxonomy,'专业学科映射'),
+      loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名'),
+      loadJsonFile(DATA_FILES.subjectGroups,'学科群字典'),
+      loadJsonFile(DATA_FILES.admissionReview,'招生专业名复核'),
+      loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录'),
+      loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表')
+    ]);
+    OFFICIAL_CATALOG_2026 = officialObj;
+    GRADUATE_CATALOG_2022_2025 = graduateObj;
     try{
       if(window.loadMajorNameModelV2944){
         await window.loadMajorNameModelV2944({withEntryIndex:false});
@@ -135,9 +143,11 @@ async function boot(){
     }
 
     try{
-      const geoManifest = await loadJsonFile(DATA_FILES.schoolGeoManifest,'学校地域模型清单');
-      const geoRef = await loadJsonFile(DATA_FILES.schoolGeoReference,'学校地域标准表');
-      const geoAlias = await loadJsonFile(DATA_FILES.schoolGeoAlias,'学校别名表');
+      const [geoManifest,geoRef,geoAlias] = await Promise.all([
+        loadJsonFile(DATA_FILES.schoolGeoManifest,'学校地域模型清单'),
+        loadJsonFile(DATA_FILES.schoolGeoReference,'学校地域标准表'),
+        loadJsonFile(DATA_FILES.schoolGeoAlias,'学校别名表')
+      ]);
       const map = new Map();
       (geoRef.items||[]).forEach(x=>{ map.set(x.school_name,x); if(x.standard_school_name) map.set(x.standard_school_name,x); });
       (geoAlias.items||[]).forEach(a=>{ const target=map.get(a.standard_school_name); if(target) map.set(a.raw_school_name,target); });

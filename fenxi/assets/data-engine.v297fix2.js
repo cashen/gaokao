@@ -26,7 +26,7 @@ function dataUrl(file){
 async function loadJsonFile(file, label){
   const url = dataUrl(file);
   const t = (window.performance&&performance.now)?performance.now():Date.now();
-  const r = await fetch(url, {cache:'no-store'});
+  const r = await fetch(url, {cache:'default'});
   const fetchMs = ((window.performance&&performance.now)?performance.now():Date.now())-t;
   if(!r.ok){
     throw new Error(`${label}加载失败：${r.status} ${r.statusText} @ ${url}`);
