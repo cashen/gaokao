@@ -1,0 +1,15 @@
+/* V2.9.8.2: main page convergence. Logic remains available through unified context; old UI is no longer the family-facing input. */
+body.v2982 #profileAsk,
+body.v2982 #mentorRules{display:none!important;}
+body.v2982 #resultBox .bands{display:none!important;}
+body.v2982 #exProfile,
+body.v2982 .hide-profile-exclude-v2981fix2{display:none!important;}
+body.v2982 .diagnosis-v2982{font-size:13px;}
+body.v2982 .diagnosis-v2982 .diag-main h3{font-size:16px;margin:3px 0 4px;}
+body.v2982 .diagnosis-v2982 .diag-main p{font-size:13px;line-height:1.55;margin:0;}
+body.v2982 .diag-details-v29473 summary{cursor:pointer;min-height:32px;display:flex;align-items:center;}
+body.v2982 .profile-interest-summary-v2981fix2 button{min-height:32px;}
+body.v2982 .detail-lite-panel-v2981fix2[hidden]{display:none!important;}
+body.v2982 .detail-lite-panel-v2981fix2{white-space:pre-line;}
+body.v2982 .mobile-bottom-guide a[href="#profileAsk"]{display:none!important;}
+@media(max-width:720px){body.v2982 .profile-interest-summary-v2981fix2 .pi-head-v2981fix1{gap:8px;align-items:flex-start}body.v2982 .profile-interest-summary-v2981fix2 .pi-actions-v2981fix1{display:flex;gap:6px;flex-wrap:wrap}body.v2982 .diagnosis-v2982 .diag-main{gap:8px}}
