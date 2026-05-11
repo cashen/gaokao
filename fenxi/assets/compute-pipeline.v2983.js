@@ -1,4 +1,4 @@
-// V2.9.8.3.fix5 compute pipeline: funnel filtering + unified region hard-filter + render/post-processing breakdown for debug.
+// V2.9.8.3.fix8 compute pipeline: funnel filtering + unified region hard-filter + render/post-processing breakdown for debug.
 (function(){
   const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
@@ -164,8 +164,8 @@
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix3'};
-    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix3',applyFiltersPatched:true});
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix8'};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix8',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
 })();
