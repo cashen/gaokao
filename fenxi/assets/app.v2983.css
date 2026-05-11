@@ -25,3 +25,17 @@ body.v2983fix3 #profileAsk,body.v2983fix3 #mentorRules,body.v2983fix3 #resultBox
 body.v2983fix3 .candidate-lite-tags-v2983{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
 body.v2983fix3 .candidate-lite-tags-v2983 span{font-size:12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:3px 8px;color:#374151;}
 body.v2983fix3 .abc-board-light-v2983 .decision-tradeoff-v2981{font-size:13px;line-height:1.45;}
+
+/* V2.9.8.3.fix4 interest drawer slim UI */
+body.v2983fix4 .interest-drawer-slim-v2983fix4 .child-interest-grid-v296{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+body.v2983fix4 .interest-lite-card-v2983fix4{display:block;text-align:left;width:100%;border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:10px;cursor:pointer;min-height:74px}
+body.v2983fix4 .interest-lite-card-v2983fix4.active,body.v2983fix4 .interest-lite-card-v2983fix4.auto-mapped-v2976{border-color:#f59e0b;background:#fff7ed}
+body.v2983fix4 .interest-lite-card-v2983fix4 strong{display:block;font-size:14px;color:#0f172a}
+body.v2983fix4 .interest-lite-card-v2983fix4 span{display:block;margin-top:3px;font-size:12px;color:#475569;line-height:1.35}
+body.v2983fix4 .interest-lite-card-v2983fix4 em{display:block;margin-top:5px;font-style:normal;font-size:12px;color:#92400e}
+body.v2983fix4 .interest-lite-intents-v2983fix4 .intent-translate-v2975{display:none!important}
+
+body.v2983fix5:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
+body.v2983fix5 #profileAsk,body.v2983fix5 #mentorRules,body.v2983fix5 #resultBox .bands{display:none!important;}
+body.v2983fix5 .baseline-grid-v2950 .chip{touch-action:manipulation;}
+body.v2983fix5 .region-debug-note-v2983fix5{font-size:12px;color:#64748b;}

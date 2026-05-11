@@ -1,4 +1,4 @@
-// V2.9.8.3.fix3 compute pipeline: funnel filtering + render/post-processing breakdown for debug.
+// V2.9.8.3.fix5 compute pipeline: funnel filtering + unified region hard-filter + render/post-processing breakdown for debug.
 (function(){
   const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
@@ -36,6 +36,7 @@
     const taxRank={high:3,medium:2,low:1,unknown:0};
     const cityTargets=typeof selectedCitiesV29472==='function'?selectedCitiesV29472():[];
     const cityMode=typeof cityModeV29472==='function'?cityModeV29472():ctx.family.cityMode;
+    const regionCollector=window.LN_REGION_FILTER_RULES_V2983FIX5?.collector?.(ctx.family)||null;
     const out=[];
     for(const raw of (typeof DATA!=='undefined'?(DATA||[]):[])){
       const level=typeof classify==='function'?classify(raw.rank2025):'';
@@ -43,6 +44,8 @@
       const gateCheck=window.LN_QUALIFICATION_GATE_V296?.check?.(r,snapshot);
       if(gateCheck&&gateCheck.blocked){exStats['资格入口隐藏']=(exStats['资格入口隐藏']||0)+1;if(gateCheck.gateId==='eduSpecialPlan'||gateCheck.gateId==='lnRuralSpecial')exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1;if(gateCheck.statKey)exStats[gateCheck.statKey]=(exStats[gateCheck.statKey]||0)+1;continue;}
       if(gateCheck&&gateCheck.matched)r._qualificationGate=gateCheck;else if(r.isCollegeSpecialPlanV29474&&special!=='approved'){exStats['高校专项隐藏']++;exStats['资格入口隐藏']++;continue;}
+      const regionCheck=regionCollector?.check?.(r);
+      if(regionCheck && !regionCheck.pass){exStats['区域排除']=(exStats['区域排除']||0)+1; if(regionCheck.reason) exStats['区域排除:'+regionCheck.reason]=(exStats['区域排除:'+regionCheck.reason]||0)+1; continue;}
       const f=ctx.filters;
       if(f.qSchool&&!(r.school||'').includes(f.qSchool))continue;
       if(f.qMajor&&!(typeof majorMatchesV29475==='function'?majorMatchesV29475(r,f.qMajor):String(r.major||'').includes(f.qMajor)))continue;
@@ -67,8 +70,9 @@
       out.push(r);
     }
     window.exclusionStats=exStats; try{exclusionStats=exStats;}catch(e){}
+    const regionDebug=regionCollector?.summary?.()||null;
     S.baseKey=key;S.basePool=out;
-    S.lastBaseStats={rows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,out:out.length,exclusionStats:Object.assign({},exStats),filters:ctx.filters,family:ctx.family};
+    S.lastBaseStats={rows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,out:out.length,exclusionStats:Object.assign({},exStats),filters:ctx.filters,family:ctx.family,regionFilterDebug:regionDebug};
     debugDetail('baseFilterStats',S.lastBaseStats);
     dbg()?.timing?.('buildBasePool',perf()-t,{rows:S.lastBaseStats.rows,out:out.length});
     return out;
