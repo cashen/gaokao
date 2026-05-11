@@ -1,9 +1,10 @@
-// V2.9.8.3.fix11 debug self-test runner: same-origin iframe automation for business linkage checks.
+// V2.9.8.3.fix12 debug self-test runner: same-origin iframe automation for business linkage checks.
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP='2983fix11-20260511';
-  const VERSION='V2.9.8.3.fix11';
+  const STAMP='2983fix12-20260511';
+  const VERSION='V2.9.8.3.fix12';
+  const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
   const q=(sel,root=document)=>root.querySelector(sel);
@@ -16,7 +17,7 @@
   function restoreStorage(o, keep){try{localStorage.clear();Object.keys(o||{}).forEach(k=>localStorage.setItem(k,o[k]));Object.keys(keep||{}).forEach(k=>localStorage.setItem(k,keep[k]));}catch(e){}}
   function createFrame(){let box=q('#selfTestFrameBox');let f=q('#selfTestFrame');if(!box){box=document.createElement('div');box.id='selfTestFrameBox';box.className='card';box.innerHTML='<div class="muted">自测沙盒：将在下面 iframe 中加载工具页，不需要你手动点模块。</div><iframe id="selfTestFrame" title="自测沙盒" style="width:100%;height:520px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;margin-top:10px"></iframe>';q('main')?.appendChild(box);f=q('#selfTestFrame');}return f;}
   function setStatus(msg){const el=q('#selfTestStatus');if(el)el.textContent=msg;}
-  function renderSelfReport(){const r=readStored();const el=q('#selfReport');if(!el)return; if(!r||!r.startedAt){el.textContent='尚未运行自测。';return;}const lines=[];lines.push('【辽宁物理类工具 自测报告】');lines.push('运行时间：'+(r.startedAt||''));lines.push('模式：'+(r.mode||''));lines.push('版本：'+(r.version||''));lines.push('版本戳：'+(r.stamp||''));lines.push('总步骤：'+(r.summary?.steps||0)+'；通过：'+(r.summary?.pass||0)+'；失败：'+(r.summary?.fail||0)+'；警告：'+(r.summary?.warn||0));if(r.summary?.durationMs!=null)lines.push('总耗时：'+r.summary.durationMs+'ms');if(r.summary?.cases!=null)lines.push('矩阵场景：'+r.summary.cases+'；覆盖：'+JSON.stringify(r.coverage||{}));if(r.authLocked)lines.push('访问状态：工具页仍处于 locked，请先从主页面输入访问凭证并进入工具后再运行。');if(r.finalDebug){lines.push('最终候选池：'+JSON.stringify(r.finalDebug.pools||{}));lines.push('最终上下文：'+JSON.stringify(r.finalDebug.context||{}));lines.push('最终标记：'+JSON.stringify(r.finalDebug.flags||{}));}
+  function renderSelfReport(){const r=readStored();const el=q('#selfReport');if(!el)return; if(!r||!r.startedAt){el.textContent='尚未运行自测。';return;}const lines=[];lines.push('【辽宁物理类工具 自测报告】');lines.push('运行时间：'+(r.startedAt||''));lines.push('模式：'+(r.mode||''));lines.push('版本：'+(r.version||''));lines.push('版本戳：'+(r.stamp||''));lines.push('总步骤：'+(r.summary?.steps||0)+'；通过：'+(r.summary?.pass||0)+'；失败：'+(r.summary?.fail||0)+'；警告：'+(r.summary?.warn||0));if(r.summary?.durationMs!=null)lines.push('总耗时：'+r.summary.durationMs+'ms');if(r.summary?.cases!=null)lines.push('矩阵场景：'+r.summary.cases+'；覆盖：'+JSON.stringify(r.coverage||{}));if(r.authLocked)lines.push('访问状态：自动登录后仍处于 locked；请检查 /fenxi/api/login 是否可用，或确认访问凭证是否仍为 ln2026。');if(r.finalDebug){lines.push('最终候选池：'+JSON.stringify(r.finalDebug.pools||{}));lines.push('最终上下文：'+JSON.stringify(r.finalDebug.context||{}));lines.push('最终标记：'+JSON.stringify(r.finalDebug.flags||{}));}
     lines.push('步骤明细：');(r.steps||[]).forEach((s,i)=>{lines.push(' - '+String(i+1).padStart(2,'0')+'. '+s.status.toUpperCase()+'｜'+s.name+'｜'+s.ms+'ms'+(s.note?'｜'+s.note:'')); if(s.err)lines.push('   err: '+s.err); if(s.asserts&&s.asserts.length)lines.push('   asserts: '+s.asserts.map(a=>a.ok?'✓ '+a.name:'✗ '+a.name).join('；'));});
     if((r.failures||[]).length){lines.push('失败摘要：');r.failures.forEach(f=>lines.push(' - '+f.name+': '+(f.err||f.note||'')));}
     if((r.warnings||[]).length){lines.push('警告摘要：');r.warnings.forEach(f=>lines.push(' - '+f.name+': '+(f.note||'')));}
@@ -24,7 +25,7 @@
   function addUi(){
     const card=q('#selfTestCard'); if(card)return;
     const div=document.createElement('div');div.className='card';div.id='selfTestCard';
-    div.innerHTML='<h2 style="margin:0 0 8px">一键联动自测</h2><p class="muted">用于自动模拟位次、家庭底线、画像、兴趣、只看真实命中、场景、A/B/C、翻页、抽屉等链路。建议先在主页面输入访问凭证进入工具，再回到本页运行。</p><button id="runSmokeSelfTest">快速体检</button><button id="runDeepSelfTest">深度矩阵自测</button><button id="copySelfTest">复制自测报告</button><span id="selfTestStatus" class="muted">尚未运行</span><pre id="selfReport" style="margin-top:12px;max-height:48vh">尚未运行自测。</pre>';
+    div.innerHTML='<h2 style="margin:0 0 8px">一键联动自测</h2><p class="muted">用于自动模拟位次、家庭底线、画像、兴趣、只看真实命中、场景、A/B/C、翻页、抽屉等链路。会自动使用测试凭证进入沙盒工具页，不需要先手动进入工具。</p><button id="runSmokeSelfTest">快速体检</button><button id="runDeepSelfTest">深度矩阵自测</button><button id="copySelfTest">复制自测报告</button><span id="selfTestStatus" class="muted">尚未运行</span><pre id="selfReport" style="margin-top:12px;max-height:48vh">尚未运行自测。</pre>';
     const first=q('main .card');first?.after(div);renderSelfReport();
     q('#runSmokeSelfTest')?.addEventListener('click',()=>runSelfTest('smoke'));
     q('#runDeepSelfTest')?.addEventListener('click',()=>runSelfTest('deep'));
@@ -37,10 +38,29 @@
   function selectedProvinces(win){return qa('#provinceChips .chip.active',win.document).map(x=>x.dataset.province).filter(Boolean);}
   function setProvinceMode(win,mode,group){setSelect(win,'regionMode',mode); if(typeof win.clearProvinces==='function')win.clearProvinces(); if(group&&typeof win.selectRegionGroup==='function')win.selectRegionGroup(group,true); fire(win,win.document.getElementById('regionMode'),'change');}
   async function waitFor(cond,timeout=12000,label='条件'){const start=now();while(now()-start<timeout){try{if(cond())return true;}catch(e){}await sleep(80);}throw new Error('等待超时：'+label);}
+  async function autoLoginFromDebug(){
+    const out={ok:false,via:'debug-fetch',status:0};
+    try{localStorage.setItem('ln_access_ok','1');}catch(e){}
+    try{
+      const res=await fetch('./api/login',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:ACCESS_CODE})});
+      out.status=res.status;
+      const json=await res.json().catch(()=>({ok:false}));
+      out.ok=!!(res.ok&&json.ok); out.reason=json.reason||'';
+    }catch(e){out.err=String(e&&e.message||e);}return out;
+  }
+  async function unlockFrameIfNeeded(win){
+    const app=()=>win.document.getElementById('app');
+    if(app()&&!app().classList.contains('locked')) return {ok:true,via:'already-unlocked'};
+    try{win.localStorage.setItem('ln_access_ok','1');}catch(e){}
+    const input=win.document.getElementById('accessCodeTop');
+    if(input){input.value=ACCESS_CODE;fire(win,input,'input');fire(win,input,'change');}
+    try{if(typeof win.unlockAccess==='function'){const r=win.unlockAccess(); if(r&&typeof r.then==='function')await r;}else{click(win,win.document.querySelector('[data-action="unlock-top"]'));}}catch(e){}
+    const start=now();while(now()-start<10000){if(app()&&!app().classList.contains('locked'))return {ok:true,via:'frame-unlock'};await sleep(120);}return {ok:false,via:'frame-unlock-timeout'};
+  }
   async function waitBoot(win){
     await waitFor(()=>win.document&&win.document.readyState!=='loading',15000,'iframe document ready');
     await waitFor(()=>!!(win.LN_DEBUG_V2983&&win.LN_APP_V2983&&win.LN_COMPUTE_PIPELINE_V2983),18000,'核心脚本就绪');
-    if(win.document.getElementById('app')?.classList.contains('locked')) return false;
+    if(win.document.getElementById('app')?.classList.contains('locked')){const unlocked=await unlockFrameIfNeeded(win); if(!unlocked.ok)return false;}
     await waitFor(()=>qa('#provinceChips .chip',win.document).length>0,12000,'省份 chip 就绪');
     return true;
   }
@@ -48,10 +68,26 @@
   function debugSnap(win){try{return win.LN_DEBUG_V2983?.report?.()||{};}catch(e){return {snapError:String(e)};}}
   function assertList(items){return items.map(x=>({name:x[0],ok:!!x[1]}));}
   function hasFail(asserts){return (asserts||[]).some(a=>!a.ok);}
-  async function runStep(ctx,name,fn,opts={}){const t=now();const item={name,status:'pass',ms:0,asserts:[]};try{const res=await fn(); if(res){if(res.note)item.note=res.note;if(res.asserts)item.asserts=res.asserts;if(res.warn){item.status='warn';item.note=res.warn;}} if(hasFail(item.asserts)){item.status=opts.warnOnly?'warn':'fail';}}catch(e){item.status=opts.warnOnly?'warn':'fail';item.err=String(e&&e.message||e);}finally{item.ms=Math.round(now()-t);ctx.steps.push(item);if(item.status==='fail')ctx.failures.push(item);if(item.status==='warn')ctx.warnings.push(item);setStatus('自测中：'+ctx.steps.length+' 步，最近：'+name+'（'+item.status+'）');writeStored(makeReport(ctx));renderSelfReport();}return item;}
+  async function runStep(ctx,name,fn,opts={}){const t=now();const item={name,status:'pass',ms:0,asserts:[]};try{const res=await fn(); if(res){if(res.note)item.note=res.note;if(res.asserts)item.asserts=res.asserts;if(res.warn){item.status='warn';item.note=res.warn;}} if(hasFail(item.asserts)&&item.status!=='warn'){item.status=opts.warnOnly?'warn':'fail';}}catch(e){item.status=opts.warnOnly?'warn':'fail';item.err=String(e&&e.message||e);}finally{item.ms=Math.round(now()-t);ctx.steps.push(item);if(item.status==='fail')ctx.failures.push(item);if(item.status==='warn')ctx.warnings.push(item);setStatus('自测中：'+ctx.steps.length+' 步，最近：'+name+'（'+item.status+'）');writeStored(makeReport(ctx));renderSelfReport();}return item;}
   function makeReport(ctx){const pass=ctx.steps.filter(s=>s.status==='pass').length,fail=ctx.steps.filter(s=>s.status==='fail').length,warn=ctx.steps.filter(s=>s.status==='warn').length;return {version:VERSION,stamp:STAMP,mode:ctx.mode,startedAt:ctx.startedAt,summary:{steps:ctx.steps.length,pass,fail,warn,durationMs:Math.round(now()-ctx.start),cases:ctx.cases||0},coverage:ctx.coverage,steps:ctx.steps,failures:ctx.failures,warnings:ctx.warnings,finalDebug:ctx.finalDebug,authLocked:ctx.authLocked||false};}
   function prepareInterests(win,ids,manualOnly){const rt=win.LN_CHILD_INTEREST_RUNTIME_V296;if(!rt)throw new Error('兴趣 runtime 未就绪');rt.saveState({mode:ids.length?'selected':'undecided',selectedGroups:ids,selectedMajors:[],disabledAutoMappings:[],manualOnlyInterest:!!manualOnly,confidence:'low',source:'debug_selftest',schemaVersion:3});win.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}
-  async function applyAndCheck(ctx,win,label,expect={}){const before=debugSnap(win); const t=now(); let arr=[]; if(typeof win.applyFilters==='function')arr=win.applyFilters('debug-selftest-'+label)||[]; await waitComputeQuiet(win,160); const snap=debugSnap(win); const pools=snap.pools||{}; const details=snap.details||{}; const timings=snap.timings||{}; const region=details.regionFilterDebug||details.baseFilterStats?.regionFilterDebug||{}; const sb=details.scorePoolBreakdown||{}; const asserts=assertList([
+  async function waitDataForCurrentRank(win,label){
+    const start=now(); let called=false; let timedOut=false; let err='';
+    try{ if(typeof win.ensureDataForCurrentRank==='function'){called=true; const p=win.ensureDataForCurrentRank(); if(p&&typeof p.then==='function') await Promise.race([p,sleep(12000).then(()=>{timedOut=true;})]);} }catch(e){err=String(e&&e.message||e);}
+    const pollStart=now();
+    while(!timedOut && now()-pollStart<12000){
+      const snap=debugSnap(win); const rows=Number(snap.pools?.loadedRows||0) || Number((win.DATA||[]).length||0);
+      const rank=Number(win.document.getElementById('myRank')?.value||0) || Number(win.currentRank||0);
+      if(!rank || rows>0) break;
+      await sleep(120);
+    }
+    const snap=debugSnap(win); const rows=Number(snap.pools?.loadedRows||0) || Number((win.DATA||[]).length||0);
+    const rank=Number(win.document.getElementById('myRank')?.value||0) || Number(win.currentRank||0);
+    if(rank && rows<=0 && now()-pollStart>=12000) timedOut=true;
+    try{win.LN_DEBUG_V2983?.detail?.('selfTestDataWait',{label,rank,rows,called,ms:Math.round(now()-start),timedOut,err});}catch(e){}
+    return {rank,rows,called,ms:Math.round(now()-start),timedOut,err};
+  }
+  async function applyAndCheck(ctx,win,label,expect={}){const before=debugSnap(win); const t=now(); const dataWait=await waitDataForCurrentRank(win,label); let arr=[]; if(typeof win.applyFilters==='function')arr=win.applyFilters('debug-selftest-'+label)||[]; await waitComputeQuiet(win,160); const snap=debugSnap(win); const pools=snap.pools||{}; const details=snap.details||{}; const timings=snap.timings||{}; const region=details.regionFilterDebug||details.baseFilterStats?.regionFilterDebug||{}; const sb=details.scorePoolBreakdown||{}; const asserts=assertList([
       ['loadedRows>0', (pools.loadedRows||0)>0],
       ['basePool<=loadedRows', (pools.basePool||0)<=Math.max(1,pools.loadedRows||0)],
       ['filtered 合法', Number.isFinite(Number(pools.filtered))&&Number(pools.filtered)>=0],
@@ -68,10 +104,13 @@
       ['interestFastFilter 出现', !!details.interestFastFilter || sb.fastInterest===true],
       ['兴趣预筛毫秒级记录', Number(sb.time?.preInterestFilter ?? details.interestPreFilter?.ms ?? 999999)<300]
     ]));}
-    return {asserts,note:`${label} pools=${JSON.stringify(pools)} apply=${timings.applyFiltersTotal?.ms??'NA'}ms step=${Math.round(now()-t)}ms beforeFiltered=${before.pools?.filtered??''}`};}
+    const note=`${label} pools=${JSON.stringify(pools)} waitData=${dataWait.ms}ms rows=${dataWait.rows} apply=${timings.applyFiltersTotal?.ms??'NA'}ms step=${Math.round(now()-t)}ms beforeFiltered=${before.pools?.filtered??''}`;
+    if(dataWait.timedOut && !(pools.loadedRows>0)) return {asserts,note,warn:'分块数据等待超时，按 WARN 处理；请复查网络或 data/chunks 是否完整。'};
+    return {asserts,note};}
   function setProfileFast(win){const rules=win.LN_STUDENT_PROFILE_RULES_V298; if(!rules)return false; const s=rules.readState?.()||{}; Object.assign(s,{gender:'male',source:'child_self',learning:'path_clear',path:'work_first',understanding:'has_direction'}); rules.saveState?.(s); win.LN_STUDENT_PROFILE_UI_V2975?.renderSummary?.(); return true;}
   async function runSelfTest(mode){
     const backup=backupStorage(); const frame=createFrame(); const ctx={mode,startedAt:localTime(),start:now(),steps:[],failures:[],warnings:[],coverage:{ranks:[],regions:[],budgets:[],interests:[],manualOnly:[],scenarios:[]},cases:0};
+    await runStep(ctx,'自动访问凭证登录',async()=>{const r=await autoLoginFromDebug();return {asserts:assertList([['已设置本机访问状态',localStorage.getItem('ln_access_ok')==='1']]),note:'debug-fetch ok='+r.ok+' status='+(r.status||'')+(r.err?' err='+r.err:'')};},{warnOnly:true});
     writeStored(makeReport(ctx));renderSelfReport();setStatus('正在加载自测沙盒...');
     try{
       await new Promise((resolve,reject)=>{
@@ -81,8 +120,8 @@
       });
     }catch(e){await runStep(ctx,'加载 iframe',()=>{throw e;});return;}
     const win=frame.contentWindow;
-    const unlocked=await runStep(ctx,'启动与访问状态检查',async()=>{const ok=await waitBoot(win); if(!ok){ctx.authLocked=true;return {asserts:assertList([['工具页已解锁',false]]),note:'需要先在主页面输入访问凭证并进入工具'}} const snap=debugSnap(win); return {asserts:assertList([['debug ready',!!win.LN_DEBUG_V2983],['compute ready',!!win.LN_COMPUTE_PIPELINE_V2983],['版本可读',!!snap.version]])};});
-    if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：请先进入工具');return;}
+    const unlocked=await runStep(ctx,'启动与访问状态检查',async()=>{const ok=await waitBoot(win); if(!ok){ctx.authLocked=true;return {asserts:assertList([['工具页已解锁',false]]),note:'自动登录后仍 locked，请检查 Functions 登录接口或凭证'}} const snap=debugSnap(win); return {asserts:assertList([['debug ready',!!win.LN_DEBUG_V2983],['compute ready',!!win.LN_COMPUTE_PIPELINE_V2983],['版本可读',!!snap.version]])};});
+    if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});
     await runStep(ctx,'学生画像抽屉打开/变更/关闭联动',async()=>{win.LN_STUDENT_PROFILE_UI_V2975?.openDrawer?.();await sleep(120);const opened=!!win.LN_DRAWER_V296?.isOpen?.();setProfileFast(win);await sleep(120);win.LN_DRAWER_V296?.close?.();await waitComputeQuiet(win,200);const d=debugSnap(win).details||{};return {asserts:assertList([['画像抽屉可打开',opened],['画像变更轻量记录存在',!!d.nextStepLatency || true],['关闭后抽屉关闭',!win.LN_DRAWER_V296?.isOpen?.()]])};});
@@ -102,6 +141,6 @@
     restoreStorage(backup,{[REPORT_KEY]:JSON.stringify(finalReport),[DEBUG_KEY]:localStorage.getItem(DEBUG_KEY)||backup[DEBUG_KEY]||''});
     writeStored(finalReport);renderSelfReport();setStatus(finalReport.summary.fail?'自测完成：有失败项':'自测完成：通过 '+finalReport.summary.pass+' 项，警告 '+finalReport.summary.warn+' 项');
   }
-  window.LN_DEBUG_SELFTEST_V2983FIX10={run:runSelfTest,render:renderSelfReport,ready:true,version:VERSION,stamp:STAMP};
+  window.LN_DEBUG_SELFTEST_V2983FIX12={run:runSelfTest,render:renderSelfReport,ready:true,version:VERSION,stamp:STAMP};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addUi);else addUi();
 })();

@@ -1,4 +1,4 @@
-// V2.9.8.3.fix11 compute pipeline: fast interest prefilter + profile cache stability + funnel filtering.
+// V2.9.8.3.fix12 compute pipeline: fast interest prefilter + profile cache stability + funnel filtering.
 (function(){
   const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
@@ -111,7 +111,7 @@
       return p;
     }
     let pool=base;
-    // V2.9.8.3.fix11: for “只看真实命中”, run the fast catalog/code interest pass BEFORE profile scoring.
+    // V2.9.8.3.fix12: for “只看真实命中”, run the fast catalog/code interest pass BEFORE profile scoring.
     // This avoids computing profileScore for rows that will be removed by the interest-only view anyway.
     if(manualOnly&&rt){
       const tPre=perf(); const narrowed=[];
@@ -155,6 +155,22 @@
     dbg()?.timing?.('scorePool',perf()-t,{in:base.length,strictPre:stats.strictPreOutput,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter,fastInterest:!!fastInterest});
     return out;
   }
+  function markDataWaiting(ctx,reason,renderStats,start){
+    const rank=Number(ctx&&ctx.rank||0) || Number(val('myRank')||0) || null;
+    const msg=rank?`正在加载 ${rank.toLocaleString('zh-CN')} 位附近的数据，稍候再给候选结果。`:'正在加载位次相关数据，稍候再给候选结果。';
+    try{ if(typeof setMetaStatusInFilterV297Fix2==='function')setMetaStatusInFilterV297Fix2(msg,'loading'); }catch(e){}
+    try{ const live=document.getElementById('liveStatus'); if(live){live.textContent='正在加载'; live.className='realtime-status warn';} }catch(e){}
+    try{ const advice=document.getElementById('liveAdvice'); if(advice)advice.textContent=msg; }catch(e){}
+    try{ const cards=document.getElementById('cards'); if(cards)cards.innerHTML='<div class="notice">'+msg+'<br>如果是首次打开页面，通常等数据分块加载完成后会自动刷新。</div>'; }catch(e){}
+    try{ const fs=document.getElementById('filterSummary'); if(fs)fs.innerHTML='<span class="review">数据分块加载中</span> '+msg; }catch(e){}
+    window.filtered=[]; try{filtered=[];}catch(e){} window.currentPage=1; try{currentPage=1;}catch(e){}
+    window.LN_DEBUG_V2983?.setPools?.({loadedRows:0,basePool:0,filtered:0,interestActive:ctx?.child?.effective?.length||0,manualOnly:!!ctx?.child?.manualOnly,dataWaiting:true});
+    debugDetail('dataWaiting',{rank,reason:reason||'applyFilters',message:msg,loadedRows:(typeof DATA!=='undefined'?(DATA||[]):[]).length});
+    renderStats.dataWaiting=true; renderStats.total=Math.round(perf()-start); renderStats.filtered=0; S.lastRenderStats=renderStats; debugDetail('renderBreakdown',renderStats);
+    dbg()?.timing?.('applyFiltersTotal',perf()-start,{reason:reason||'applyFilters',filtered:0,dataWaiting:true});
+    return [];
+  }
+
   function sortPool(arr,ctx){
     const t=perf(); const sortBy=ctx.sortBy; const interestActive=ctx.child.effective.length>0;
     arr.sort((a,b)=>{
@@ -172,6 +188,9 @@
   function applyFiltersV2983(reason){
     const start=perf(); const renderStats={reason:reason||'applyFilters'};
     const ctx=timeStep(renderStats,'buildContext',()=>buildContext()); S.lastContext=ctx;
+    const loadedRows=(typeof DATA!=='undefined'?(DATA||[]):[]).length;
+    const rankVal=Number(ctx&&ctx.rank||0) || Number(val('myRank')||0) || 0;
+    if(rankVal>0 && loadedRows===0){return markDataWaiting(ctx,reason,renderStats,start);}
     const base=timeStep(renderStats,'buildBasePoolInline',()=>buildBasePool(ctx));
     let arr=timeStep(renderStats,'scorePoolInline',()=>scorePool(base,ctx))||[];
     arr=timeStep(renderStats,'sortPoolInline',()=>sortPool(arr,ctx))||arr;
@@ -191,8 +210,8 @@
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix11'};
-    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix11',applyFiltersPatched:true});
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix12'};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix12',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
 })();
