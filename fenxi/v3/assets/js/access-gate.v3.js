@@ -39,11 +39,24 @@
     var gate = document.getElementById('lnV3AccessGate');
     var app = document.getElementById('lnV3App');
     var debug = document.getElementById('lnV3Debug');
-    if (gate) gate.hidden = true;
+    var target = mode === 'debug' ? debug : app;
+    if (gate) {
+      gate.hidden = true;
+      gate.classList.add('is-passed');
+      gate.setAttribute('aria-hidden', 'true');
+      gate.innerHTML = '';
+    }
     if (mode === 'debug' && debug) debug.hidden = false;
     if (mode === 'app' && app) app.hidden = false;
     document.body.classList.remove('is-locked');
     document.body.classList.add('is-unlocked');
+    requestAnimationFrame(function () {
+      window.scrollTo({ top: 0, left: 0, behavior: reason === 'manual' ? 'smooth' : 'auto' });
+      if (target) {
+        target.setAttribute('tabindex', '-1');
+        try { target.focus({ preventScroll: true }); } catch (err) { target.focus(); }
+      }
+    });
     if (window.LN_V3_BUS) window.LN_V3_BUS.emit('access:passed', { mode: mode, reason: reason });
   }
 

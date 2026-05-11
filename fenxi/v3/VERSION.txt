@@ -1,4 +1,4 @@
 辽宁物理类高考志愿初选工具
-V3.0.0.alpha1｜访问码与分步向导骨架版
-版本戳：v300alpha1-20260512
-说明：v3 独立入口，仅新增 /fenxi/v3/，旧 /fenxi/index.html 与旧资源保持不变。
+V3.0.0.alpha1.fix1｜访问码跳转与Debug路由修正版
+版本戳：v300alpha1fix1-20260512
+说明：v3 独立入口，仅新增 /fenxi/v3/；修复访问码通过后验证卡片仍占位、/fenxi/v3/debug 路由空白等问题；旧 /fenxi/index.html 与旧资源保持不变。

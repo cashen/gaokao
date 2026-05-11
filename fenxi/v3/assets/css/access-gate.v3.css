@@ -56,3 +56,6 @@
   font-weight: 800;
   font-size: 14px;
 }
+
+.access-page.is-passed { display: none !important; min-height: 0 !important; padding: 0 !important; }
+body.is-unlocked .access-page { display: none !important; }

@@ -9,7 +9,7 @@
       ['版本戳', snap.stamp],
       ['访问码状态', snap.accessPassed ? 'PASS' : 'FAIL'],
       ['body class', snap.bodyClass],
-      ['入口', snap.isDebugPage ? '/fenxi/v3/debug.html' : '/fenxi/v3/index.html']
+      ['入口', snap.isDebugPage ? location.pathname : location.pathname]
     ]);
   }
   function renderTab() {
