@@ -1,6 +1,6 @@
 // V2.9.8.1.fix2 final overlay: profile upfront + parent must-read + stable detail cards.
 (function(){
-  function applyBody(){document.body?.classList?.remove('v2981fix1');document.body?.classList?.add('v2981fix2');}
+  function applyBody(){document.body?.classList?.add('v2981fix2');}
   function hideLegacyProfileBox(){const box=document.getElementById('studentProfileBoxV2975'); if(box){box.innerHTML=''; box.setAttribute('aria-hidden','true'); box.classList.add('hide-profile-v2981fix2');}}
   function cleanDiagnostics(){document.querySelectorAll('.exclude span').forEach(sp=>{ if((sp.textContent||'').includes('画像排除')) sp.closest('.exclude')?.classList.add('hide-profile-exclude-v2981fix2'); });}
   function patchGeoDisplay(){
@@ -24,7 +24,7 @@
     applyBody(); hideLegacyProfileBox(); renderAllLight();
     wrap('renderCards',renderAllLight); wrap('renderPlanABC',renderAllLight); wrap('updateCounts',renderAllLight); wrap('renderStrategyCardsV2951',renderAllLight);
   }
-  function observe(){if(observe.done)return; observe.done=true; const target=document.getElementById('app')||document.body; if(!target||!window.MutationObserver)return; let timer=null; new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(renderAllLight,90);}).observe(target,{subtree:true,childList:true,characterData:false});}
+  function observe(){observe.done=true; return false;}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{patch();observe();}); else {patch();observe();}
   setTimeout(patch,0); setTimeout(renderAllLight,600); setTimeout(renderAllLight,1500);
   window.LN_APP_V2981FIX2={patch,renderAllLight,ready:true};
