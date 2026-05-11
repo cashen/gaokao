@@ -1,0 +1,8 @@
+{
+  "version": "V2.9.4.7.1",
+  "files": [
+    "student_profile_rules_v29471.json",
+    "student_profile_quality_report_v29471.json"
+  ],
+  "policy": "学生画像只做适配提醒，不做性别刻板推荐，不自动排除专业。"
+}
