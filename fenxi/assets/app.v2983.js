@@ -1,8 +1,8 @@
-// V2.9.8.3.fix8 single overlay: funnel compute, staged UI refresh and deep debug integration.
+// V2.9.8.3.fix9 single overlay: funnel compute, staged UI refresh and deep debug integration.
 (function(){
   let rendering=false,pending=false;
-  function body(){document.body?.classList?.add('v2983fix8','v2983fix7','v2983fix5','v2983fix4','v2983fix3','v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
-  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3.fix8｜诊断版本取值校准与资源戳修正版';}
+  function body(){document.body?.classList?.add('v2983fix9','v2983fix7','v2983fix5','v2983fix4','v2983fix3','v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
+  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3.fix9｜兴趣匹配快速预筛与画像缓存修正版';}
   function unlock(){try{window.LN_SCROLL_LOCK_GUARD_V2982FIX2?.ensure?.();}catch(e){}}
   function sync(){try{window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.patchGlobals?.();window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.syncLegacyDom?.();}catch(e){}try{window.LN_INTERACTION_STABILITY_V2982?.patch?.();}catch(e){}}
   function renderLight(reason){
@@ -49,5 +49,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
   setTimeout(patch,0);setTimeout(()=>renderLight('late-once'),1200);
-  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3.fix8',cacheBust:'2983fix8-20260511',ready:true};
+  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3.fix9',cacheBust:'2983fix9-20260511',ready:true};
 })();

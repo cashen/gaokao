@@ -1,4 +1,4 @@
-// V2.9.8.3.fix8 compute pipeline: funnel filtering + unified region hard-filter + render/post-processing breakdown for debug.
+// V2.9.8.3.fix9 compute pipeline: fast interest prefilter + profile cache stability + funnel filtering.
 (function(){
   const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
@@ -25,7 +25,7 @@
     return ctx;
   }
   function cheapKey(ctx){return JSON.stringify({rank:ctx.rank,model:ctx.model,data:(typeof DATA!=='undefined'?(DATA||[]).length:0),f:ctx.filters,family:ctx.family,qualification:safeCall(()=>window.LN_STATE_SNAPSHOT_V296?.snapshot?.(true)?.qualification||{},{}),special:typeof specialPlanStatusV29474==='function'?specialPlanStatusV29474():''});}
-  function profileKey(ctx){return JSON.stringify({rank:ctx.rank,family:ctx.family,child:ctx.child.effective,manualOnly:ctx.child.manualOnly,scenario:ctx.scenario,legacy:safeCall(()=>window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.contextHash?.(),''),groups:['medicine','teacher','liberal','chem','physics','gridPower','outProvince'].map(k=>[k,typeof getGroup==='function'?getGroup(k):'']),mentor:['mentorMode','familyTolerance','gradPlan','timePressure','priority'].map(id=>[id,val(id)])});}
+  function profileKey(ctx){return JSON.stringify({rank:ctx.rank,family:ctx.family,child:ctx.child.effective,scenario:ctx.scenario,legacy:safeCall(()=>window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.contextHash?.(),''),groups:['medicine','teacher','liberal','chem','physics','gridPower','outProvince'].map(k=>[k,typeof getGroup==='function'?getGroup(k):'']),mentor:['mentorMode','familyTolerance','gradPlan','timePressure','priority'].map(id=>[id,val(id)])});}
   function buildBasePool(ctx){
     const key=cheapKey(ctx);
     if(S.baseKey===key && S.basePool.length){return S.basePool;}
@@ -77,11 +77,32 @@
     dbg()?.timing?.('buildBasePool',perf()-t,{rows:S.lastBaseStats.rows,out:out.length});
     return out;
   }
+  function normCodeFast(v){return String(v||'').toUpperCase().replace(/[^0-9A-Z]/g,'');}
+  function normTextFast(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[（）()【】\[\]·•,，;；:：/\\|-]/g,'');}
+  function pickFast(r, keys){for(const k of keys){const v=r&&r[k]; if(v!==undefined&&v!==null&&String(v).trim()!=='')return String(v).trim();}return '';}
+  function makeInterestFastHelper(ctx){
+    const ids=(ctx.child&&ctx.child.effective)||[]; const binding=window.LN_CATALOG_INTEREST_BINDING_V298;
+    if(!ids.length||!binding?.get)return null;
+    const levels=['core','related','review']; const scoreMap={core:42,related:26,review:12,none:0}; const order={core:3,related:2,review:1,none:0};
+    const levelRules={core:{major:new Set(),cat:new Set(),disc:new Set(),names:[]},related:{major:new Set(),cat:new Set(),disc:new Set(),names:[]},review:{major:new Set(),cat:new Set(),disc:new Set(),names:[]}};
+    ids.forEach(id=>{const rule=binding.get(id); if(!rule)return; levels.forEach(level=>{const part=rule[level]||{}; const dst=levelRules[level]; (part.majorCodes||[]).forEach(x=>dst.major.add(normCodeFast(x))); (part.categoryCodes||[]).forEach(x=>dst.cat.add(normCodeFast(x))); (part.disciplineCodes||[]).forEach(x=>dst.disc.add(normCodeFast(x))); [...(part.majorNames||[]),...(part.categoryNames||[])].forEach(x=>{const n=normTextFast(x); if(n)dst.names.push(n);});});});
+    const cache=new Map(); let stat={hit:0,miss:0};
+    function catalogOf(r){const official=r?.officialUndergrad2026||{}; return {
+      major: normCodeFast(pickFast(r,['officialMajorCode']) || official.majorCode || ''),
+      cat: normCodeFast(pickFast(r,['officialCategoryCode']) || official.categoryCode || ''),
+      disc: normCodeFast(pickFast(r,['officialDisciplineCode']) || official.disciplineCode || ''),
+      text: normTextFast([pickFast(r,['officialMajorName','undergradMajorName','cleanMajor','mainMajorV29475']) || official.majorName || '', pickFast(r,['undergradCategoryName','officialCategoryName']) || official.categoryName || '', pickFast(r,['undergradDisciplineName']) || official.disciplineName || '', pickFast(r,['major','majorText','rawMajor','cleanMajor']) || '', pickFast(r,['subjectGroup','primaryDisciplineNames','primaryDisciplineCodes']) || ''].filter(Boolean).join(' '))
+    };}
+    function levelOf(r){const id=r?.id||[r?.school,r?.major,r?.rank2025].join('|'); if(cache.has(id)){stat.hit++; return cache.get(id);} stat.miss++; const c=catalogOf(r); let best='none'; for(const level of levels){const rr=levelRules[level]; let ok=false; if(c.major&&rr.major.has(c.major))ok=true; else if(c.cat&&rr.cat.has(c.cat))ok=true; else if(c.disc&&rr.disc.has(c.disc))ok=true; else if(c.text&&rr.names.some(n=>c.text.includes(n)))ok=true; if(ok){best=level; break;}} const res={level:best,score:scoreMap[best]||0,pass:order[best]>=1}; cache.set(id,res); return res;}
+    return {levelOf,pass:r=>levelOf(r).pass,score:r=>levelOf(r).score,stats:()=>({hit:stat.hit,miss:stat.miss,size:cache.size,ids})};
+  }
+
   function scorePool(base,ctx){
     const t=perf(); const key=profileKey(ctx); const sortBy=ctx.sortBy; const rt=window.LN_CHILD_INTEREST_RUNTIME_V296; const interestActive=ctx.child.effective.length>0; const manualOnly=ctx.child.manualOnly;
     if(S.profileKey!==key){S.profileKey=key;S.profileCache.clear();}
     const ex=window.exclusionStats||{}; const out=[]; const strict=checked('strictProfile');
-    const stats={input:base.length,preInput:base.length,strictPreInput:base.length,strictPreOutput:base.length,preOutput:base.length,manualOnly,interestActive,sortBy,profileHit:0,profileMiss:0,strictExcluded:0,lowProfileExcluded:0,out:0,time:{strictPre:0,preInterestFilter:0,profileScore:0,confidence:0,interestSort:0,strictCheck:0}};
+    const fastInterest=interestActive?makeInterestFastHelper(ctx):null;
+    const stats={input:base.length,preInput:base.length,strictPreInput:base.length,strictPreOutput:base.length,preOutput:base.length,manualOnly,interestActive,sortBy,profileHit:0,profileMiss:0,strictExcluded:0,lowProfileExcluded:0,out:0,time:{strictPre:0,preInterestFilter:0,profileScore:0,confidence:0,interestSort:0,strictCheck:0},fastInterest:!!fastInterest,manualFirst:manualOnly};
     function ensureProfile(r){
       let p=S.profileCache.get(r.id);
       if(p){stats.profileHit++;}
@@ -90,23 +111,24 @@
       return p;
     }
     let pool=base;
-    // V2.9.8.3.fix3: if strict profile is enabled, shrink by cached/profile rules BEFORE expensive interest real-hit filtering.
-    // This keeps "只看真实命中" from matching thousands of rows that would be removed by strict profile anyway.
+    // V2.9.8.3.fix9: for “只看真实命中”, run the fast catalog/code interest pass BEFORE profile scoring.
+    // This avoids computing profileScore for rows that will be removed by the interest-only view anyway.
+    if(manualOnly&&rt){
+      const tPre=perf(); const narrowed=[];
+      for(const r of pool){let pass=true;try{pass=fastInterest?fastInterest.pass(r):!!rt.filterPass?.(r);}catch(e){pass=true;}if(pass)narrowed.push(r);}
+      pool=narrowed; stats.preInput=base.length; stats.preOutput=pool.length; stats.time.preInterestFilter=Math.round(perf()-tPre);
+      debugDetail('interestPreFilter',{in:base.length,afterStrict:base.length,out:pool.length,ms:stats.time.preInterestFilter,manualOnly:true,fast:!!fastInterest,fastStats:fastInterest?.stats?.()});
+      debugDetail('interestFastFilter',{mode:'manualOnly-first',in:base.length,out:pool.length,ms:stats.time.preInterestFilter,fast:!!fastInterest,stats:fastInterest?.stats?.()});
+    }
     if(strict){
-      const tStrict=perf(); const strictPool=[];
-      for(const r of base){
+      const tStrict=perf(); const strictPool=[]; stats.strictPreInput=pool.length;
+      for(const r of pool){
         ensureProfile(r);
         if((r._excludes||[]).length){const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';ex[b]=(ex[b]||0)+1;stats.strictExcluded++;continue;}
         if((r._profile||0)<32){ex['低匹配排除']=(ex['低匹配排除']||0)+1;stats.lowProfileExcluded++;continue;}
         strictPool.push(r);
       }
       pool=strictPool; stats.strictPreOutput=pool.length; stats.time.strictPre=Math.round(perf()-tStrict);
-    }
-    if(manualOnly&&rt){
-      const tPre=perf(); const narrowed=[];
-      for(const r of pool){let pass=true;try{pass=!!rt.filterPass?.(r);}catch(e){pass=true;}if(pass)narrowed.push(r);}
-      pool=narrowed; stats.preInput=base.length; stats.preOutput=pool.length; stats.time.preInterestFilter=Math.round(perf()-tPre);
-      debugDetail('interestPreFilter',{in:base.length,afterStrict:stats.strictPreOutput,out:pool.length,ms:stats.time.preInterestFilter,manualOnly:true});
     }
     for(const r of pool){
       if(!strict){
@@ -117,15 +139,20 @@
         stats.time.strictCheck+=perf()-ts;
       }
       const tc=perf(); r._confidence=typeof confidence==='function'?confidence(r):{label:'',cls:''}; stats.time.confidence+=perf()-tc;
-      const ti=perf(); r._interestSortScore=interestActive?(typeof interestSortScoreV298Fix1==='function'?interestSortScoreV298Fix1(r):0):0; stats.time.interestSort+=perf()-ti;
+      const ti=perf();
+      if(interestActive){
+        // For sorting/list scan, use the fast catalog score. Full evidence is still generated lazily by detail/expanded cards.
+        r._interestSortScore=fastInterest?fastInterest.score(r):(typeof interestSortScoreV298Fix1==='function'?interestSortScoreV298Fix1(r):0);
+      }else r._interestSortScore=0;
+      stats.time.interestSort+=perf()-ti;
       out.push(r);
     }
     stats.out=out.length;
     Object.keys(stats.time).forEach(k=>stats.time[k]=Math.round(stats.time[k]));
-    stats.cacheSize=S.profileCache.size; S.lastScoreStats=stats;
+    stats.cacheSize=S.profileCache.size; stats.fastInterestStats=fastInterest?.stats?.()||null; S.lastScoreStats=stats;
     debugDetail('scorePoolBreakdown',stats);
-    debugDetail('cacheStats',{profile:{hit:stats.profileHit,miss:stats.profileMiss,size:S.profileCache.size},interestPreFilter:{in:stats.preInput,afterStrict:stats.strictPreOutput,out:stats.preOutput,ms:stats.time.preInterestFilter}});
-    dbg()?.timing?.('scorePool',perf()-t,{in:base.length,strictPre:stats.strictPreOutput,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter});
+    debugDetail('cacheStats',{profile:{hit:stats.profileHit,miss:stats.profileMiss,size:S.profileCache.size},interestPreFilter:{in:stats.preInput,afterStrict:stats.strictPreOutput,out:stats.preOutput,ms:stats.time.preInterestFilter,fast:!!fastInterest},interestFast:fastInterest?.stats?.()||null});
+    dbg()?.timing?.('scorePool',perf()-t,{in:base.length,strictPre:stats.strictPreOutput,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter,fastInterest:!!fastInterest});
     return out;
   }
   function sortPool(arr,ctx){
@@ -164,8 +191,8 @@
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix8'};
-    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix8',applyFiltersPatched:true});
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix9'};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix9',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
 })();

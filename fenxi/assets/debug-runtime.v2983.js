@@ -1,7 +1,7 @@
-// V2.9.8.3.fix8 runtime debug collector: stores diagnostics and deep performance details in localStorage for /fenxi/debug.html.
+// V2.9.8.3.fix9 runtime debug collector: stores diagnostics and deep performance details in localStorage for /fenxi/debug.html.
 (function(){
   const KEY='ln_v2983_debug_report';
-  const state={version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix8'),stamp:(window.__LN_TOOL_STAMP||'2983fix8-20260511'),actions:[],timings:{},details:{},queue:{},errors:[],longTasks:[],pools:{},context:{},flags:{},lastAction:''};
+  const state={version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix9'),stamp:(window.__LN_TOOL_STAMP||'2983fix9-20260511'),actions:[],timings:{},details:{},queue:{},errors:[],longTasks:[],pools:{},context:{},flags:{},lastAction:''};
   function trim(arr,n){while(arr.length>n)arr.shift();return arr;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(Object.assign({},state,{savedAt:new Date().toISOString()})));}catch(e){}}
   function log(action,data){state.lastAction=action;state.actions.push({t:new Date().toLocaleTimeString(),action,data:data||null});trim(state.actions,40);save();}
@@ -63,6 +63,6 @@
   window.addEventListener('unhandledrejection',e=>{state.errors.push({t:new Date().toLocaleTimeString(),message:String(e.reason&&e.reason.message||e.reason||'unhandledrejection')});trim(state.errors,20);save();});
   try{if('PerformanceObserver' in window){new PerformanceObserver(list=>{for(const entry of list.getEntries()){if(entry.duration>200){state.longTasks.push({t:new Date().toLocaleTimeString(),duration:Math.round(entry.duration)});trim(state.longTasks,20);save();}}}).observe({entryTypes:['longtask']});}}catch(e){}
   document.addEventListener('click',e=>{const a=e.target.closest?.('[data-action]');const g=e.target.closest?.('[data-child-interest-group]');const s=e.target.closest?.('[data-strategy]');if(a)log('click:'+a.dataset.action);else if(g)log('click:child-interest-group',{id:g.dataset.childInterestGroup});else if(s)log('click:scenario',{id:s.dataset.strategy});},true);
-  window.LN_DEBUG_V2983={state,log,timing,setPools,setContext,setFlags,detail,setQueue,report,textReport,save,ready:true,version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix8')};
+  window.LN_DEBUG_V2983={state,log,timing,setPools,setContext,setFlags,detail,setQueue,report,textReport,save,ready:true,version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix9')};
   save();
 })();
