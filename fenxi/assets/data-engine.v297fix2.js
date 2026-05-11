@@ -25,12 +25,17 @@ function dataUrl(file){
 }
 async function loadJsonFile(file, label){
   const url = dataUrl(file);
+  const t = (window.performance&&performance.now)?performance.now():Date.now();
   const r = await fetch(url, {cache:'no-store'});
+  const fetchMs = ((window.performance&&performance.now)?performance.now():Date.now())-t;
   if(!r.ok){
     throw new Error(`${label}加载失败：${r.status} ${r.statusText} @ ${url}`);
   }
   try{
-    return await r.json();
+    const j = await r.json();
+    const totalMs = ((window.performance&&performance.now)?performance.now():Date.now())-t;
+    try{window.LN_DEBUG_V2983?.detail?.('dataLoad:'+String(label||file),{file,label,fetchMs:Math.round(fetchMs),totalMs:Math.round(totalMs),rows:(j.records||j.items||[]).length||undefined});}catch(e){}
+    return j;
   }catch(e){
     throw new Error(`${label}不是有效JSON：${url}；${e.message}`);
   }

@@ -1,4 +1,4 @@
-/* V2.9.8.3: mainline slimming, funnel compute and debug-friendly UI. */
+/* V2.9.8.3.fix1: scorePool pre-narrowing and enhanced debug UI. */
 html{overflow-y:auto;}
 body.v2983:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
 body.v2983 #profileAsk,
@@ -15,3 +15,7 @@ body.v2983 .detail-lite-panel-v2981fix2[hidden]{display:none!important;}
 body.v2983 .interest-card-hit-v298.muted{opacity:.72;font-size:12px;}
 body.v2983 .debug-link-v2983{position:fixed;right:12px;bottom:74px;z-index:60;border:1px solid rgba(148,116,80,.25);background:#fffaf4;color:#7c4a1e;border-radius:999px;padding:7px 10px;font-size:12px;text-decoration:none;box-shadow:0 6px 18px rgba(140,92,40,.12)}
 @media(max-width:760px){body.v2983 .debug-link-v2983{bottom:62px;right:8px;font-size:11px;padding:6px 8px}}
+
+body.v2983fix1:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
+body.v2983fix1 #profileAsk,body.v2983fix1 #mentorRules,body.v2983fix1 #resultBox .bands{display:none!important;}
+body.v2983fix1 .debug-link-v2983{outline:1px solid rgba(120,80,30,.08);}

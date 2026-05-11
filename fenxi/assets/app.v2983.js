@@ -1,8 +1,8 @@
-// V2.9.8.3 single overlay: funnel compute, staged UI refresh and debug integration.
+// V2.9.8.3.fix1 single overlay: funnel compute, staged UI refresh and deep debug integration.
 (function(){
   let rendering=false,pending=false;
-  function body(){document.body?.classList?.add('v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
-  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3｜主线瘦身与漏斗式计算提速版';}
+  function body(){document.body?.classList?.add('v2983fix1','v2983','v2982fix4','v2982fix3','v2982fix2','v2982','v2981fix2','v2981fix1');}
+  function title(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.3.fix1｜scorePool前置瘦身与Debug增强修正版';}
   function unlock(){try{window.LN_SCROLL_LOCK_GUARD_V2982FIX2?.ensure?.();}catch(e){}}
   function sync(){try{window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.patchGlobals?.();window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.syncLegacyDom?.();}catch(e){}try{window.LN_INTERACTION_STABILITY_V2982?.patch?.();}catch(e){}}
   function renderLight(reason){
@@ -15,7 +15,7 @@
       unlock();return true;
     }finally{window.LN_DEBUG_V2983?.timing?.('renderLight',performance.now()-t,{reason});setTimeout(()=>{rendering=false;if(pending){pending=false;setTimeout(()=>renderLight('coalesced'),120);}},0);}
   }
-  function debounceWrap(name,after,delay){const old=window[name];if(typeof old!=='function'||old.__v2983Wrapped)return;let timer=null;const wrapped=function(){const r=old.apply(this,arguments);clearTimeout(timer);timer=setTimeout(()=>after(name),delay||180);return r;};wrapped.__v2983Wrapped=true;wrapped.__original=old;window[name]=wrapped;}
+  function debounceWrap(name,after,delay){const old=window[name];if(typeof old!=='function'||old.__v2983Wrapped)return;let timer=null;const wrapped=function(){window.LN_DEBUG_V2983?.setQueue?.({lastWrapped:name,running:true,lastAt:new Date().toLocaleTimeString()});const r=old.apply(this,arguments);clearTimeout(timer);timer=setTimeout(()=>{window.LN_DEBUG_V2983?.setQueue?.({lastAfter:name,running:false,afterAt:new Date().toLocaleTimeString()});after(name);},delay||180);return r;};wrapped.__v2983Wrapped=true;wrapped.__original=old;window[name]=wrapped;}
   function patchStudentProfile(){
     const ui=window.LN_STUDENT_PROFILE_UI_V2975; if(!ui||ui.__v2983Patched)return;
     const oldOpen=ui.openDrawer;
@@ -47,5 +47,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
   setTimeout(patch,0);setTimeout(()=>renderLight('late-once'),1200);
-  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3',cacheBust:'2983-20260511',ready:true};
+  window.LN_APP_V2983={patch,renderLight,version:'V2.9.8.3.fix1',cacheBust:'2983fix1-20260511',ready:true};
 })();

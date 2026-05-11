@@ -10,6 +10,7 @@
   function merge(a,b){if(!a)return b; if(!b)return a; return Object.assign({}, a, b, {level:stronger(a.level,b.level), reason:[a.reason,b.reason].filter(Boolean).join('+'), delay:Math.max(a.delay??180,b.delay??180)});}
   function request(raw){
     const req=normalize(raw); queued=merge(queued, req);
+    try{window.LN_DEBUG_V2983?.setQueue?.({pending:!!queued,running,reason:queued?.reason,level:queued?.level,delay:queued?.delay,requestedAt:new Date().toLocaleTimeString()});}catch(e){}
     if(timer) clearTimeout(timer);
     return new Promise(resolve=>{
       queued.resolve=resolve;
@@ -19,7 +20,7 @@
   async function run(){
     if(running){ timer=setTimeout(run,120); return; }
     const req=queued; queued=null; timer=null; if(!req)return;
-    running=true; serial++;
+    running=true; serial++; try{window.LN_DEBUG_V2983?.setQueue?.({pending:false,running:true,serial,reason:req.reason,level:req.level,startedAt:new Date().toLocaleTimeString()});}catch(e){}
     try{
       window.LN_PERF_MONITOR_V296?.start?.({serial,reason:req.reason,level:req.level});
       if(req.level==='ui-only' || req.level==='render-only'){
@@ -38,7 +39,7 @@
       console.error('[V2.9.6 refresh scheduler]',e);
       req.resolve?.({ok:false,error:e});
     }finally{
-      running=false;
+      running=false; try{window.LN_DEBUG_V2983?.setQueue?.({running:false,pending:!!queued,finishedAt:new Date().toLocaleTimeString(),nextReason:queued?.reason||''});}catch(e){}
       if(queued){ timer=setTimeout(run, Math.max(0, queued.delay||0)); }
     }
   }
