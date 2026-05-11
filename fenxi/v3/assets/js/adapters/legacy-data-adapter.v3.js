@@ -18,8 +18,11 @@
     if (/^https?:\/\//.test(file) || file.charAt(0) === '/') return file;
     return '/fenxi/' + file.replace(/^\.\//, '');
   }
-  function fetchJson(url) {
-    return fetch(url, { cache: 'no-store' }).then(function (res) {
+  function fetchJson(url, retried) {
+    return fetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (res) {
+      if (res.status === 401 && !retried && window.LN_V3_ACCESS && window.LN_V3_ACCESS.ensureServerSession) {
+        return window.LN_V3_ACCESS.ensureServerSession().then(function () { return fetchJson(url, true); });
+      }
       if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + url);
       return res.json();
     });
@@ -154,7 +157,7 @@
         chunkIds: cache.chunks || [],
         hasLegacyData: Array.isArray(cache.records),
         lastLoad: lastLoad,
-        note: 'alpha2 已接入 v3 数据加载状态：读取 fix12 现有 manifest 与分块 JSON，但暂不触发旧 compute 主链路。'
+        note: 'alpha2.fix1 已同步服务器会话并携带 same-origin credentials 读取 fix12 数据；暂不触发旧 compute 主链路。'
       };
     },
     resolveRankByScore: resolveRankByScore,

@@ -9,6 +9,7 @@
       check('Step1 渲染模块存在', !!window.LN_V3_STEP_RANK),
       check('legacy-data-adapter 存在', !!window.LN_V3_LEGACY_DATA),
       check('loadForRankOrScore 方法存在', !!(window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.loadForRankOrScore)),
+      check('服务器会话可读取数据', !!(window.LN_V3_ACCESS && window.LN_V3_ACCESS.isServerPassed && window.LN_V3_ACCESS.isServerPassed()), JSON.stringify(window.LN_V3_ACCESS && window.LN_V3_ACCESS.getServerSession ? window.LN_V3_ACCESS.getServerSession() : {})),
       check('rank 状态字段完整', Object.prototype.hasOwnProperty.call(rank, 'loadedRows') && Array.isArray(rank.chunkIds) && Array.isArray(rank.sample), JSON.stringify(rank)),
       check('compute.waitDataMs 字段存在', !!(state.compute && Object.prototype.hasOwnProperty.call(state.compute, 'waitDataMs')), JSON.stringify(state.compute || {}))
     ];

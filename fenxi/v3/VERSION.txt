@@ -1,2 +1,3 @@
-V3.0.0.alpha2｜Step1位次输入与数据加载状态版
-版本戳：v300alpha2-20260512
+V3.0.0.alpha2.fix1｜服务器会话同步与数据401修正版
+版本戳：v300alpha2fix1-20260512
+说明：修复 v3 前端访问码未同步 Cloudflare Pages Functions 服务器会话，导致 /fenxi/data/manifest.json 返回 HTTP 401；数据 fetch 携带 same-origin credentials，debug 展示服务器会话状态。

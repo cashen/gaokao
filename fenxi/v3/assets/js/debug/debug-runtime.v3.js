@@ -15,6 +15,7 @@
         version: version.name,
         stamp: version.stamp,
         accessPassed: window.LN_V3_ACCESS ? window.LN_V3_ACCESS.isPassed() : false,
+        serverSession: window.LN_V3_ACCESS && window.LN_V3_ACCESS.getServerSession ? window.LN_V3_ACCESS.getServerSession() : (window.LN_V3_SERVER_SESSION || {}),
         bodyClass: document.body.className,
         isDebugPage: document.body.classList.contains('ln-v3-debug-page'),
         tabs: window.LN_V3_ROUTER ? window.LN_V3_ROUTER.steps.length : 0,

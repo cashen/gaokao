@@ -11,6 +11,7 @@
         '版本戳：' + snap.stamp,
         '入口：' + (snap.isDebugPage ? '/fenxi/v3/debug.html' : '/fenxi/v3/index.html'),
         '访问码状态：' + (snap.accessPassed ? 'PASS' : 'FAIL'),
+        '服务器会话：' + JSON.stringify(snap.serverSession || {}),
         'body class：' + snap.bodyClass,
         '当前 Step：' + ((snap.state.ui || {}).activeStep || ''),
         '当前 Tab：' + ((snap.state.ui || {}).activeTab || ''),

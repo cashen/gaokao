@@ -8,6 +8,7 @@
       ['版本', snap.version],
       ['版本戳', snap.stamp],
       ['访问码状态', snap.accessPassed ? 'PASS' : 'FAIL'],
+      ['服务器会话', JSON.stringify(snap.serverSession || {})],
       ['body class', snap.bodyClass],
       ['入口', snap.isDebugPage ? location.pathname : location.pathname]
     ]);
