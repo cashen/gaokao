@@ -17,8 +17,8 @@
     rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null },
-    scenario: { current: '', recommended: '', reason: '' },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha4-child-interest-preview' },
+    scenario: { current: '', recommended: '', reason: '', source: '', preview: null, locked: false },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha5-scenario-preview' },
     plans: { A: [], B: [], C: [] },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }
@@ -50,6 +50,8 @@
     out.rank.chunkCount = Number(out.rank.chunkCount || 0);
     out.rank.loadMs = Number(out.rank.loadMs || 0);
     out.compute = merge(initialState.compute, out.compute || {});
+    out.scenario = merge(initialState.scenario, out.scenario || {});
+    out.scenario.preview = out.scenario.preview || null;
     out.family = merge(initialState.family, out.family || {});
     out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
     out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];
