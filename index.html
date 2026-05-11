@@ -413,6 +413,51 @@
       }
     }
 
+    function setFlipText(id, value) {
+      const element = document.getElementById(id);
+      if (!element) {
+        return;
+      }
+
+      const nextValue = String(value);
+      const current = element.querySelector(".flip-card.current");
+      const next = element.querySelector(".flip-card.next");
+
+      if (!current || !next) {
+        element.textContent = nextValue;
+        return;
+      }
+
+      const previousValue = element.dataset.value || current.textContent || "";
+      if (previousValue === nextValue) {
+        return;
+      }
+
+      if (element.dataset.ready !== "true") {
+        current.textContent = nextValue;
+        next.textContent = nextValue;
+        element.dataset.value = nextValue;
+        element.dataset.ready = "true";
+        return;
+      }
+
+      element.classList.remove("is-flipping");
+      void element.offsetWidth;
+
+      next.textContent = nextValue;
+      element.dataset.value = nextValue;
+      element.classList.add("is-flipping");
+
+      const finishFlip = () => {
+        current.textContent = nextValue;
+        next.textContent = nextValue;
+        element.classList.remove("is-flipping");
+      };
+
+      element.addEventListener("animationend", finishFlip, { once: true });
+      window.setTimeout(finishFlip, 700);
+    }
+
     function renderYear(year) {
       const now = new Date();
       const target = CONFIG[year];
@@ -423,7 +468,7 @@
         setText(`d${year}`, "000");
         setText(`h${year}`, "00");
         setText(`m${year}`, "00");
-        setText(`s${year}`, "00");
+        setFlipText(`s${year}`, "00");
         if (status) {
           status.textContent = "已开始";
         }
@@ -443,7 +488,7 @@
       setText(`d${year}`, pad(days, 3));
       setText(`h${year}`, pad(hours));
       setText(`m${year}`, pad(minutes));
-      setText(`s${year}`, pad(seconds));
+      setFlipText(`s${year}`, pad(seconds));
       if (status) {
         status.textContent = days <= 30 ? "冲刺阶段" : "倒计时中";
       }

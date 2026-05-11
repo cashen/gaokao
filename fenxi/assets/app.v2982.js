@@ -1,9 +1,9 @@
-// V2.9.8.2.fix2 overlay: cache-bust, stop legacy redraw observers, and keep scroll stable.
+// V2.9.8.2.fix3 overlay: lightweight child-interest drawer selection and stable refresh flush.
 (function(){
   let rendering=false;
   let lastProfileHtml='';
-  function applyBody(){document.body?.classList?.add('v2981fix1','v2981fix2','v2982','v2982fix1','v2982fix2');}
-  function patchTitle(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.2.fix2｜缓存版本戳、重绘观察器移除与滚动稳定修正版';}
+  function applyBody(){document.body?.classList?.add('v2981fix1','v2981fix2','v2982','v2982fix1','v2982fix2','v2982fix3');}
+  function patchTitle(){document.title='辽宁物理类高考志愿初选工具 V2.9.8.2.fix3｜兴趣抽屉轻量点选与刷新节流修正版';}
   function unlock(){try{window.LN_SCROLL_LOCK_GUARD_V2982FIX2?.ensure?.();}catch(e){}}
   function renderContextLine(){try{window.LN_CONTEXT_SUMMARY_UI_V2981FIX1?.render?.(); const box=document.getElementById('contextSummaryFix1'); if(box){box.setAttribute('data-unified-context','v2982fix2');}}catch(e){}}
   function sync(){try{window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.patchGlobals?.();window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.syncLegacyDom?.();}catch(e){} try{window.LN_INTERACTION_STABILITY_V2982?.patch?.();}catch(e){} }
@@ -46,5 +46,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
   setTimeout(patch,0);
   setTimeout(()=>renderAll('late-once'),900);
-  window.LN_APP_V2982={patch,renderAll,ready:true,version:'V2.9.8.2.fix2',noGlobalMutationObserver:true,cacheBust:'2982fix2-20260511'};
+  window.LN_APP_V2982={patch,renderAll,ready:true,version:'V2.9.8.2.fix3',noGlobalMutationObserver:true,cacheBust:'2982fix3-20260511'};
 })();

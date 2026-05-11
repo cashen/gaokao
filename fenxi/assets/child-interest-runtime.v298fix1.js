@@ -1,14 +1,17 @@
-// V2.9.8 child interest runtime: catalog-code closed loop; soft boosts only.
+// V2.9.8.2.fix3 child interest runtime: lightweight drawer selection, flush main refresh after drawer close.
 (function(){
   const STORAGE_KEY='ln_child_interest_state_v2955';
+  let pendingRefreshReason='';
+  let pendingTimer=null;
+  let closePatched=false;
   function tax(){ return window.LN_INTEREST_TAXONOMY_V2976 || window.LN_CHILD_INTEREST_RULES_V296 || {groups:[],maxGroups:3,defaultMode:'undecided'}; }
   function groups(){ return tax().groups || []; }
   function groupById(id){ return tax().groupById?.(id) || groups().find(g=>g.id===id) || null; }
   function defaultState(){ return {mode:'undecided',selectedGroups:[],disabledAutoMappings:[],selectedMajors:[],selectedKeywords:[],manualOnlyInterest:false,confidence:'low',source:'child_self',updatedAt:'',schemaVersion:3}; }
   function readState(){try{const raw=localStorage.getItem(STORAGE_KEY); if(!raw)return defaultState(); const s=JSON.parse(raw); return Object.assign(defaultState(),s||{},{selectedGroups:Array.isArray(s.selectedGroups)?s.selectedGroups:[],disabledAutoMappings:Array.isArray(s.disabledAutoMappings)?s.disabledAutoMappings:[]});}catch(e){return defaultState();}}
+  function autoMappings(state){const disabled=state?.disabledAutoMappings||[]; return (window.LN_CHILD_INTENT_INTEREST_MAP_V2976?.mappedFromSelected?.()||[]).filter(x=>!disabled.includes(x.intentId+'|'+x.interestId));}
   function effectiveGroupIds(state){const s=state||readState(); return [...new Set([...(s.selectedGroups||[]),...autoMappings(s).map(x=>x.interestId)])];}
   function saveState(s){const next=Object.assign(defaultState(),s||{}); next.selectedGroups=[...new Set((next.selectedGroups||[]).filter(id=>groupById(id)))].slice(0,tax().maxGroups||3); next.disabledAutoMappings=[...new Set(next.disabledAutoMappings||[])]; const eff=effectiveGroupIds(next); next.mode=(next.selectedGroups.length||eff.length)?'selected':'undecided'; if(next.mode==='undecided')next.selectedGroups=[]; next.updatedAt=new Date().toISOString(); try{localStorage.setItem(STORAGE_KEY,JSON.stringify(next));}catch(e){} window.LN_STATE_SNAPSHOT_V296?.reset?.(); window.LN_CANDIDATE_CACHE_V296?.reset?.(); return next;}
-  function autoMappings(state){const disabled=state?.disabledAutoMappings||[]; return (window.LN_CHILD_INTENT_INTEREST_MAP_V2976?.mappedFromSelected?.()||[]).filter(x=>!disabled.includes(x.intentId+'|'+x.interestId));}
   function autoByInterestId(state){const map={}; autoMappings(state||readState()).forEach(x=>{if(!map[x.interestId])map[x.interestId]=[]; map[x.interestId].push(x);}); return map;}
   function catalogMatch(record, interestId){return window.LN_CATALOG_MATCH_ENGINE_V298?.matchInterest?.(record,interestId) || null;}
   function matchRecordRaw(r){
@@ -36,14 +39,42 @@
   function activeIntentShorts(){return (window.LN_CHILD_INTENT_TRANSLATOR_V2976?.selected?.()||[]).map(x=>x.short).filter(Boolean);}
   function hitSummary(){return window.LN_INTEREST_HIT_SUMMARY_V298?.aggregate?.()||{core:0,related:0,review:0,none:0,byInterest:[]};}
   function summary(){const s=readState(); const manual=(s.selectedGroups||[]).map(id=>groupById(id)).filter(Boolean); const auto=autoMappings(s); const intentNames=activeIntentShorts(); const active=[...new Set([...manual.map(g=>g.name),...auto.map(x=>x.label)])]; if(!intentNames.length&&!active.length)return {title:'孩子暂未明确方向',text:'系统会先按家庭底线、位次区间和场景策略综合推荐；后面可以随时补选兴趣。',names:[],auto:[],hit:null}; const hs=hitSummary(); const hitText=window.LN_INTEREST_HIT_SUMMARY_V298?.message?.(hs)||''; return {title:'已整理：'+(intentNames.length?intentNames.join('、'):active.join('、')),activeTitle:active.length?'已激活方向：'+active.join('、'):'',text:(hitText||'系统会在当前真实候选中做匹配，不会生成不存在的专业。'),names:active,auto,hit:hs};}
-  function refreshLight(reason){window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.(); if(window.LN_DRAWER_V296?.isOpen?.())window.LN_CHILD_INTEREST_UI_V296?.renderDrawerBody?.(); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason||'child-interest-change',level:'soft',delay:180});}
+  function drawerIsChildInterest(){return !!(window.LN_DRAWER_V296?.isOpen?.() && (!window.__LN_ACTIVE_DRAWER_TYPE || window.__LN_ACTIVE_DRAWER_TYPE==='childInterest'));}
+  function patchDrawerClose(){
+    const d=window.LN_DRAWER_V296; if(!d||closePatched)return;
+    const old=d.close; if(typeof old!=='function')return;
+    d.close=function(){const type=window.__LN_ACTIVE_DRAWER_TYPE; const r=old.apply(d,arguments); if(type==='childInterest'||pendingRefreshReason){setTimeout(()=>flushPendingRefresh('drawer-close'),0);} return r;};
+    closePatched=true;
+  }
+  function markPending(reason){
+    pendingRefreshReason=reason||pendingRefreshReason||'child-interest-change';
+    if(pendingTimer)clearTimeout(pendingTimer);
+    pendingTimer=setTimeout(()=>{if(!drawerIsChildInterest())flushPendingRefresh('idle');},1200);
+  }
+  function flushPendingRefresh(source){
+    if(!pendingRefreshReason)return false;
+    const reason=pendingRefreshReason; pendingRefreshReason=''; if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+    window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();
+    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason+'-'+(source||'flush'),level:'soft',delay:120});
+    return true;
+  }
+  function refreshLight(reason){
+    if(drawerIsChildInterest()){
+      window.LN_CHILD_INTEREST_UI_V296?.renderDrawerSelectionOnly?.();
+      markPending(reason||'child-interest-change');
+      return true;
+    }
+    window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();
+    window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:reason||'child-interest-change',level:'soft',delay:180});
+    return true;
+  }
   function toggleGroup(id){const g=groupById(id); if(!g)return {ok:false,reason:'not_found'}; const s=readState(); let arr=s.selectedGroups||[]; if(arr.includes(id))arr=arr.filter(x=>x!==id); else{if(arr.length>=(tax().maxGroups||3))return {ok:false,reason:'max'}; arr=[...arr,id];} saveState(Object.assign(s,{selectedGroups:arr})); refreshLight('child-interest-change'); return {ok:true};}
-  function removeGroup(id){const s=readState(); const arr=(s.selectedGroups||[]).filter(x=>x!==id); saveState(Object.assign(s,{selectedGroups:arr})); refreshLight('child-interest-change');}
-  function toggleAuto(intentId,interestId){const s=readState(); const key=intentId+'|'+interestId; const set=new Set(s.disabledAutoMappings||[]); if(set.has(key))set.delete(key); else set.add(key); s.disabledAutoMappings=[...set]; saveState(s); refreshLight('child-interest-auto-toggle');}
-  function undecided(){saveState(Object.assign(readState(),{mode:'undecided',selectedGroups:[],selectedMajors:[],manualOnlyInterest:false,disabledAutoMappings:[]})); window.LN_CHILD_INTENT_TRANSLATOR_V2976?.clear?.(); refreshLight('child-interest-change');}
-  function start(){window.LN_CHILD_INTEREST_UI_V296?.openDrawer?.();}
+  function removeGroup(id){const s=readState(); const arr=(s.selectedGroups||[]).filter(x=>x!==id); saveState(Object.assign(s,{selectedGroups:arr})); refreshLight('child-interest-change'); return true;}
+  function toggleAuto(intentId,interestId){const s=readState(); const key=intentId+'|'+interestId; const set=new Set(s.disabledAutoMappings||[]); if(set.has(key))set.delete(key); else set.add(key); s.disabledAutoMappings=[...set]; saveState(s); refreshLight('child-interest-auto-toggle'); return true;}
+  function undecided(){saveState(Object.assign(readState(),{mode:'undecided',selectedGroups:[],selectedMajors:[],manualOnlyInterest:false,disabledAutoMappings:[]})); window.LN_CHILD_INTENT_TRANSLATOR_V2976?.clear?.(); refreshLight('child-interest-change'); return true;}
+  function start(){patchDrawerClose(); window.__LN_ACTIVE_DRAWER_TYPE='childInterest'; window.LN_CHILD_INTEREST_UI_V296?.openDrawer?.(); return true;}
   function render(){window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}
   function handle(action,el){if(action==='child-interest-start')return start(); if(action==='child-interest-undecided')return undecided(); if(action==='child-interest-remove')return removeGroup(el?.dataset?.interestId||''); if(action==='child-interest-auto-toggle')return toggleAuto(el?.dataset?.intentId||'',el?.dataset?.interestId||''); if(action==='child-intent-remove'){window.LN_CHILD_INTENT_TRANSLATOR_V298?.remove?.(el?.dataset?.intentId||''); refreshLight('child-intent-remove'); return true;} return false;}
-  const api={readState,saveState,render,toggleGroup,removeGroup,toggleAuto,undecided,start,handle,matchRecord,planAdjustment,badgesForRecord,filterPass,scenarioFit,summary,hitSummary,groups,groupById,effectiveGroupIds,autoMappings,catalogMatch,ready:true};
+  const api={readState,saveState,render,toggleGroup,removeGroup,toggleAuto,undecided,start,handle,matchRecord,planAdjustment,badgesForRecord,filterPass,scenarioFit,summary,hitSummary,groups,groupById,effectiveGroupIds,autoMappings,catalogMatch,refreshLight,markPendingRefresh:markPending,flushPendingRefresh,drawerIsChildInterest,ready:true,version:'V2.9.8.2.fix3'};
   window.LN_CHILD_INTEREST_RUNTIME_V298=api; window.LN_CHILD_INTEREST_RUNTIME_V2976=api; window.LN_CHILD_INTEREST_RUNTIME_V296=api; window.LN_CHILD_INTEREST_RUNTIME_V2955=api;
 })();

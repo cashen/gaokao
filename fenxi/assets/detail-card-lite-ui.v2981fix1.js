@@ -18,7 +18,7 @@
     document.addEventListener('click',e=>{
       const btn=e.target.closest('[data-lite-section]'); if(!btn) return;
       const card=btn.closest('[data-lite-card]'); if(!card) return;
-      const id=btn.dataset.liteId; const box=card.querySelector(`[data-lite-panel="${CSS.escape(id)}"]`); if(!box)return;
+      const box=card.querySelector('[data-lite-panel]'); if(!box)return;
       let sections={}; try{sections=JSON.parse(decodeURIComponent(card.getAttribute('data-lite-sections')||'%7B%7D'));}catch(err){}
       const key=btn.dataset.liteSection; const same=box.dataset.active===key&&!box.hidden;
       if(same){box.hidden=true;box.dataset.active='';return;}
