@@ -198,7 +198,7 @@
         cacheHydrated: rawRows > 0 || !storeRows,
         needsHydration: storeRows > 0 && rawRows === 0,
         lastLoad: lastLoad,
-        note: 'alpha3.fix1 已同步服务器会话并支持 debug 数据水合；Step2 只做家庭底线预览，暂不触发旧 compute 主链路。'
+        note: 'alpha4 已同步服务器会话、支持 debug 数据水合，并打通 Step3 兴趣命中预览；暂不触发旧 compute 主链路。'
       };
     },
     resolveRankByScore: resolveRankByScore,

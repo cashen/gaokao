@@ -1,3 +1,4 @@
-V3.0.0.alpha3.fix1｜Debug数据水合与Step2自测校准版
-版本戳：v300alpha3fix1-20260512
-说明：基于 alpha3 Step2 家庭底线预览，修正 debug 页面跨入口打开时原始数据缓存未水合的问题；debug 会在启动时根据 Store 中的位次重新水合 /fenxi/data 分块数据，并校准 Step2 自测，避免出现 Store 有 loadedRows 但 debug 原始 records=0 的误导报告。不触发旧 compute 主链路。
+V3.0.0.alpha4｜Step3孩子专业偏好与底线结果联动版
+版本戳：v300alpha4-20260512
+
+本版基于 alpha3.fix1：保留访问码、服务器会话同步、Step1 数据加载、Step2 家庭底线预览与 debug 数据水合；新增 Step3 孩子专业偏好与当前底线池联动预览，可显示兴趣命中数量、样例、manualOnly 收窄效果。仍不触发旧 compute 主链路。

@@ -23,12 +23,26 @@
     majors.forEach(function (major) { weights['major:' + major.name] = manualOnly ? 1 : 0.96; });
     return weights;
   }
+  function syncPreview(draft) {
+    if (!window.LN_V3_CHILD_INTEREST || !window.LN_V3_CHILD_INTEREST.previewForState) return null;
+    var preview = window.LN_V3_CHILD_INTEREST.previewForState(draft);
+    draft.childPreference.preview = preview;
+    if (preview) {
+      draft.compute.basePool = Number(preview.familyFilteredRows || draft.compute.basePool || 0);
+      draft.compute.filtered = Number(preview.effectiveFilteredRows || preview.familyFilteredRows || 0);
+      draft.compute.lastReason = 'v3-step3-child-interest-preview';
+      draft.ui.bigPool = !!preview.bigPool;
+      if (preview.reason !== 'no-family-records') draft.ui.lastMessage = preview.summary || draft.childPreference.summary;
+    }
+    return preview;
+  }
   function writeChildPreference(patch, reason) {
     window.LN_V3_STORE.update(function (draft) {
       draft.childPreference = Object.assign({}, draft.childPreference, patch);
       draft.childPreference.summary = summaryFor(draft.childPreference);
       draft.childPreference.weights = buildWeights(draft.childPreference.selectedGroups || [], draft.childPreference.selectedMajors || [], draft.childPreference.manualOnly);
       draft.ui.lastMessage = draft.childPreference.summary;
+      syncPreview(draft);
     }, reason);
   }
   function toggleGroup(groupId) {
@@ -74,11 +88,48 @@
     writeChildPreference({ mode: 'selected', selectedGroups: groups, selectedMajors: majors }, 'child:toggleMajor');
   }
   function setUnknown() {
-    writeChildPreference({ mode: 'unknown', selectedGroups: [], selectedMajors: [], manualOnly: false }, 'child:unknown');
+    writeChildPreference({ mode: 'unknown', selectedGroups: [], selectedMajors: [], manualOnly: false, preview: null }, 'child:unknown');
   }
   function toggleManualOnly() {
     var state = window.LN_V3_STORE.getState();
     writeChildPreference({ manualOnly: !state.childPreference.manualOnly }, 'child:manualOnly');
+  }
+  function metric(label, value, hint) {
+    return '<div class="child-metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong>' + (hint ? '<em>' + escapeHtml(hint) + '</em>' : '') + '</div>';
+  }
+  function sampleHtml(preview) {
+    var sample = preview && Array.isArray(preview.sampleMatched) ? preview.sampleMatched : [];
+    if (!sample.length) return '<div class="placeholder-item">选兴趣后，这里会显示当前底线池里直接命中的样例。</div>';
+    return sample.map(function (item) {
+      return '<div class="rank-sample-item"><strong>' + escapeHtml(item.school) + '</strong><span>' + escapeHtml(item.major) + '</span><em>' + escapeHtml(item.score2025) + '分 / ' + escapeHtml(item.rank2025) + '位 · ' + escapeHtml(item.matchReason) + '</em></div>';
+    }).join('');
+  }
+  function previewHtml(state) {
+    var preview = (state.childPreference || {}).preview;
+    var familyRows = Number(((state.family || {}).preview || {}).filteredPreview || 0);
+    var loadedRows = Number((state.rank || {}).loadedRows || 0);
+    if (!loadedRows) {
+      return '<div class="child-link-panel"><strong>兴趣联动预览</strong><p>先完成第 1 步位次输入，系统才知道从哪个分段里看孩子兴趣。</p></div>';
+    }
+    if (!familyRows) familyRows = Number((state.rank || {}).loadedRows || 0);
+    if (!preview || !preview.ok) {
+      return '<div class="child-link-panel"><strong>兴趣联动预览</strong><div class="child-metric-grid">' + metric('位次数据', loadedRows + ' 条') + metric('当前底线池', familyRows + ' 条') + metric('兴趣命中', '待选择') + '</div><p>选择 1—3 个方向后，系统会先在当前底线池里做命中预览，不会立刻触发旧 compute 主链路。</p></div>';
+    }
+    var noHit = preview.noMatchGroups && preview.noMatchGroups.length ? '<div class="child-warning">当前底线内暂未命中：' + escapeHtml(preview.noMatchGroups.join('、')) + '。可以后面放宽底线再看。</div>' : '';
+    var manual = preview.manualOnly ? '<div class="child-realhit-on">已开启真实命中：后续候选将从 ' + Number(preview.familyFilteredRows || 0) + ' 条收窄到 ' + Number(preview.effectiveFilteredRows || 0) + ' 条。</div>' : '<div class="child-realhit-off">默认不硬排除：兴趣先影响提醒和 B 方案权重，候选池仍保留其它合适机会。</div>';
+    return [
+      '<div class="child-link-panel">',
+      '<strong>兴趣联动预览</strong>',
+      '<div class="child-metric-grid">',
+      metric('位次数据', loadedRows + ' 条'),
+      metric('当前底线池', Number(preview.familyFilteredRows || familyRows) + ' 条'),
+      metric('兴趣命中', Number(preview.matchedRows || 0) + ' 条'),
+      metric('后续有效池', Number(preview.effectiveFilteredRows || 0) + ' 条', preview.manualOnly ? '真实命中' : '默认保留'),
+      '</div>',
+      '<p>', escapeHtml(preview.summary || ''), '</p>', manual, noHit,
+      '<div class="rank-sample-list child-match-sample">', sampleHtml(preview), '</div>',
+      '</div>'
+    ].join('');
   }
   function html(state) {
     var child = state.childPreference;
@@ -95,6 +146,7 @@
       '<div>', escapeHtml(child.summary || summaryFor(child)), '</div>',
       '<div class="child-warning" id="childWarning">', escapeHtml(state.ui.lastMessage && state.ui.lastMessage.indexOf('3 个方向') !== -1 ? state.ui.lastMessage : ''), '</div>',
       '</div>',
+      previewHtml(state),
       '<div class="child-search-wrap"><label class="v3-sr-only" for="childMajorSearch">搜索专业</label><input id="childMajorSearch" class="v3-input" placeholder="搜索专业名称，比如：电气、动物医学、计算机、法学"><div id="childSearchResults"></div></div>',
       '<div class="major-grid" id="majorGrid">',
       window.LN_V3_CHILD_GROUPS.all.map(function (group) {
@@ -157,6 +209,7 @@
             draft.childPreference.summary = summaryFor(draft.childPreference);
             draft.childPreference.weights = buildWeights(draft.childPreference.selectedGroups || [], draft.childPreference.selectedMajors || [], draft.childPreference.manualOnly);
             draft.ui.lastMessage = draft.childPreference.summary;
+            syncPreview(draft);
           }, 'child:removeMajorTag');
         } else {
           toggleGroup(id);
@@ -175,7 +228,7 @@
     root.querySelector('[data-child-unknown]').addEventListener('click', function () { setUnknown(); window.LN_V3_WIZARD.render(); });
     root.querySelector('[data-manual-only]').addEventListener('click', function () { toggleManualOnly(); window.LN_V3_WIZARD.render(); });
     root.querySelector('[data-child-reset]').addEventListener('click', function () {
-      writeChildPreference({ mode: 'unset', selectedGroups: [], selectedMajors: [], manualOnly: false }, 'child:reset');
+      writeChildPreference({ mode: 'unset', selectedGroups: [], selectedMajors: [], manualOnly: false, preview: null }, 'child:reset');
       window.LN_V3_WIZARD.render();
     });
     root.querySelector('[data-child-save]').addEventListener('click', function () {
@@ -185,5 +238,5 @@
       window.LN_V3_ROUTER.go('scenario', 'child:next');
     });
   }
-  window.LN_V3_STEP_CHILD = { render: function (root, state) { root.innerHTML = html(state); bind(root); }, _test: { toggleGroup: toggleGroup, toggleMajor: toggleMajor, setUnknown: setUnknown } };
+  window.LN_V3_STEP_CHILD = { render: function (root, state) { root.innerHTML = html(state); bind(root); }, _test: { toggleGroup: toggleGroup, toggleMajor: toggleMajor, setUnknown: setUnknown, toggleManualOnly: toggleManualOnly } };
 })();

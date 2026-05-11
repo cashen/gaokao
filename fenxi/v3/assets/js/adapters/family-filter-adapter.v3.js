@@ -55,6 +55,22 @@
       summary: '先完成第 1 步位次数据加载，再设置家庭底线。'
     };
   }
+
+  function filterRecords(records, family) {
+    records = Array.isArray(records) ? records : [];
+    family = family || {};
+    var provinces = normalizeList(family.provinces);
+    var regionMode = family.regionMode || 'none';
+    var rejectHigh = family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict';
+    var rejectNonPublic = (family.rejects || []).indexOf('民办独立') !== -1;
+    var filtered = filterRecords(records, family);
+    var removed = filtered.removed;
+    var unmatchedKept = filtered.unmatchedKept;
+    var sampleUnexpectedKept = filtered.sampleUnexpectedKept;
+    var kept = filtered.records;
+    return { records: kept, removed: removed, unmatchedKept: unmatchedKept, sampleUnexpectedKept: sampleUnexpectedKept };
+  }
+
   function applyFamily(records, family) {
     records = Array.isArray(records) ? records : [];
     family = family || {};
@@ -64,33 +80,11 @@
     var rejectHigh = family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict';
     var rejectNonPublic = (family.rejects || []).indexOf('民办独立') !== -1;
     var targetExists = provinces.length ? records.some(function (item) { return isRecordInAnyProvince(item, provinces); }) : false;
-    var removed = { region: 0, highFee: 0, nature: 0 };
-    var unmatchedKept = 0;
-    var sampleUnexpectedKept = [];
-    var kept = [];
-    records.forEach(function (item) {
-      var keep = true;
-      var inTarget = provinces.length ? isRecordInAnyProvince(item, provinces) : true;
-      if (regionMode === 'hard' && provinces.length && !inTarget) {
-        keep = false;
-        removed.region += 1;
-      }
-      if (keep && rejectHigh && isHighFeeRecord(item)) {
-        keep = false;
-        removed.highFee += 1;
-      }
-      if (keep && rejectNonPublic && !isPublicLike(item)) {
-        keep = false;
-        removed.nature += 1;
-      }
-      if (keep) {
-        if (regionMode === 'hard' && provinces.length && !inTarget) {
-          unmatchedKept += 1;
-          if (sampleUnexpectedKept.length < 5) sampleUnexpectedKept.push(compact(item));
-        }
-        kept.push(item);
-      }
-    });
+    var filtered = filterRecords(records, family);
+    var removed = filtered.removed;
+    var unmatchedKept = filtered.unmatchedKept;
+    var sampleUnexpectedKept = filtered.sampleUnexpectedKept;
+    var kept = filtered.records;
     var summary = buildSummary(family, records.length, kept.length, removed, targetExists);
     return {
       ok: true,
@@ -138,10 +132,31 @@
   function preview(family) {
     return applyFamily(getRecords(), family || ((window.LN_V3_STORE && window.LN_V3_STORE.getState().family) || {}));
   }
+
+  function getPreviewRecords(family) {
+    var records = getRecords();
+    family = family || ((window.LN_V3_STORE && window.LN_V3_STORE.getState().family) || {});
+    if (!records.length) return { ok: false, reason: 'no-loaded-records', records: [], basePool: 0, filteredPreview: 0, preview: makeEmpty('no-loaded-records') };
+    var filtered = filterRecords(records, family || {});
+    var preview = applyFamily(records, family || {});
+    return {
+      ok: true,
+      reason: 'v3-family-filter-records',
+      records: filtered.records,
+      basePool: records.length,
+      filteredPreview: filtered.records.length,
+      preview: preview,
+      removed: filtered.removed,
+      unmatchedKept: filtered.unmatchedKept
+    };
+  }
+
   window.LN_V3_FAMILY_FILTER = {
     preview: preview,
     applyFamily: applyFamily,
     getRecords: getRecords,
+    getPreviewRecords: getPreviewRecords,
+    filterRecords: filterRecords,
     _isRecordInProvince: isRecordInProvince,
     _isHighFeeRecord: isHighFeeRecord,
     _normalizeList: normalizeList

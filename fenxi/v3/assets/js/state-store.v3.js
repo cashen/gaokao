@@ -16,9 +16,9 @@
     },
     rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
-    childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false },
+    childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null },
     scenario: { current: '', recommended: '', reason: '' },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha3fix1-family-bottomline-preview' },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha4-child-interest-preview' },
     plans: { A: [], B: [], C: [] },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }
@@ -56,12 +56,14 @@
     out.childPreference = merge(initialState.childPreference, out.childPreference || {});
     out.childPreference.selectedGroups = Array.isArray(out.childPreference.selectedGroups) ? out.childPreference.selectedGroups : [];
     out.childPreference.selectedMajors = Array.isArray(out.childPreference.selectedMajors) ? out.childPreference.selectedMajors : [];
+    out.childPreference.preview = out.childPreference.preview || null;
     var hasChildChoice = out.childPreference.selectedGroups.length > 0 || out.childPreference.selectedMajors.length > 0 || out.childPreference.mode === 'unknown';
     if (!hasChildChoice) {
       out.childPreference.mode = 'unset';
       out.childPreference.selectedGroups = [];
       out.childPreference.selectedMajors = [];
       out.childPreference.weights = {};
+      out.childPreference.preview = null;
       out.childPreference.summary = initialState.childPreference.summary;
       if (!out.ui.lastMessage || out.ui.lastMessage.indexOf('孩子偏') !== -1 || out.ui.lastMessage.indexOf('真实命中') !== -1) {
         out.ui.lastMessage = initialState.ui.lastMessage;
