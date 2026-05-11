@@ -1,4 +1,6 @@
 辽宁物理类高考志愿初选工具
-V3.0.0.alpha1.fix2｜Debug自测版本戳与状态回滚修正版
-版本戳：v300alpha1fix2-20260512
-说明：v3 独立入口，仅新增 /fenxi/v3/；修复 debug 自测版本戳误报，并让 Step3 专业偏好自测结束后回滚状态；旧 /fenxi/index.html 与旧资源保持不变。
+V3.0.0.alpha1.fix3｜Debug残留状态清理修正版
+版本戳：v300alpha1fix3-20260512
+说明：v3 独立入口，仅新增 /fenxi/v3/；继续保留访问码、Tab 骨架和 debug 自测；本版清理 alpha1.fix2 暴露出的 Store 残留状态；旧 /fenxi/index.html 与旧资源保持不变。
+
+fix3：清理 debug 自测后残留的 childPreference.weights 与 ui.lastMessage，让 Store 快照回到干净状态。

@@ -25,6 +25,8 @@
   };
   var state = merge(initialState, saved || {});
   state.version = { name: version.name, stamp: version.stamp };
+  state = normalizeState(state);
+  if (window.LN_V3_STORAGE) window.LN_V3_STORAGE.set('state', state);
   var subscribers = [];
 
   function isObject(value) { return value && typeof value === 'object' && !Array.isArray(value); }
@@ -37,6 +39,26 @@
     return out;
   }
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
+  function normalizeState(input) {
+    var out = merge(initialState, input || {});
+    out.version = { name: version.name, stamp: version.stamp };
+    out.ui = merge(initialState.ui, out.ui || {});
+    out.childPreference = merge(initialState.childPreference, out.childPreference || {});
+    out.childPreference.selectedGroups = Array.isArray(out.childPreference.selectedGroups) ? out.childPreference.selectedGroups : [];
+    out.childPreference.selectedMajors = Array.isArray(out.childPreference.selectedMajors) ? out.childPreference.selectedMajors : [];
+    var hasChildChoice = out.childPreference.selectedGroups.length > 0 || out.childPreference.selectedMajors.length > 0 || out.childPreference.mode === 'unknown';
+    if (!hasChildChoice) {
+      out.childPreference.mode = 'unset';
+      out.childPreference.selectedGroups = [];
+      out.childPreference.selectedMajors = [];
+      out.childPreference.weights = {};
+      out.childPreference.summary = initialState.childPreference.summary;
+      if (!out.ui.lastMessage || out.ui.lastMessage.indexOf('孩子偏') !== -1 || out.ui.lastMessage.indexOf('真实命中') !== -1) {
+        out.ui.lastMessage = initialState.ui.lastMessage;
+      }
+    }
+    return out;
+  }
   function notify(reason) {
     if (window.LN_V3_STORAGE) window.LN_V3_STORAGE.set('state', state);
     subscribers.slice().forEach(function (handler) {
@@ -52,14 +74,14 @@
   window.LN_V3_STORE = {
     getState: function () { return clone(state); },
     setState: function (patch, reason) {
-      state = merge(state, patch || {});
+      state = normalizeState(merge(state, patch || {}));
       state.ui.dirty = true;
       notify(reason || 'setState');
     },
     update: function (updater, reason) {
       var draft = clone(state);
       updater(draft);
-      state = draft;
+      state = normalizeState(draft);
       state.ui.dirty = true;
       notify(reason || 'update');
     },
@@ -77,7 +99,7 @@
       return function () { subscribers = subscribers.filter(function (fn) { return fn !== handler; }); };
     },
     resetDraft: function () {
-      state = merge(initialState, {});
+      state = normalizeState(merge(initialState, {}));
       if (window.LN_V3_STORAGE) window.LN_V3_STORAGE.remove('state');
       notify('resetDraft');
     }

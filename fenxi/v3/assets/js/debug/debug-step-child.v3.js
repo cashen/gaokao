@@ -22,6 +22,11 @@
         results.push(child.summary && child.summary.indexOf('电气能源') !== -1 ? pass('summary 已生成', child.summary) : fail('summary 已生成', child.summary));
       } finally {
         window.LN_V3_STORE.setState({ childPreference: before.childPreference, ui: before.ui }, 'debug:child:restore');
+        var restored = window.LN_V3_STORE.getState();
+        var restoredChild = restored.childPreference || {};
+        var beforeHadChoice = (before.childPreference.selectedGroups || []).length > 0 || (before.childPreference.selectedMajors || []).length > 0 || before.childPreference.mode === 'unknown';
+        var cleanWhenEmpty = beforeHadChoice || ((restoredChild.selectedGroups || []).length === 0 && (restoredChild.selectedMajors || []).length === 0 && Object.keys(restoredChild.weights || {}).length === 0 && restoredChild.summary === '还没有选择专业方向。');
+        results.push(cleanWhenEmpty ? pass('自测状态回滚干净', JSON.stringify(restoredChild)) : fail('自测状态回滚干净', JSON.stringify(restoredChild)));
       }
       return results;
     }
