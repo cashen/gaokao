@@ -1,0 +1,17 @@
+/* V2.9.8.3: mainline slimming, funnel compute and debug-friendly UI. */
+html{overflow-y:auto;}
+body.v2983:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
+body.v2983 #profileAsk,
+body.v2983 #mentorRules,
+body.v2983 #resultBox .bands{display:none!important;}
+body.v2983 #exProfile,
+body.v2983 .hide-profile-exclude-v2981fix2{display:none!important;}
+body.v2983 .ln-drawer-mask-v296.hide,
+body.v2983 .ln-drawer-v296.hide{display:none!important;pointer-events:none!important;}
+body.v2983 .profile-interest-summary-v2981fix2 button,
+body.v2983 .detail-lite-actions-v2981fix2 button,
+body.v2983 [data-child-interest-group]{pointer-events:auto;touch-action:manipulation;}
+body.v2983 .detail-lite-panel-v2981fix2[hidden]{display:none!important;}
+body.v2983 .interest-card-hit-v298.muted{opacity:.72;font-size:12px;}
+body.v2983 .debug-link-v2983{position:fixed;right:12px;bottom:74px;z-index:60;border:1px solid rgba(148,116,80,.25);background:#fffaf4;color:#7c4a1e;border-radius:999px;padding:7px 10px;font-size:12px;text-decoration:none;box-shadow:0 6px 18px rgba(140,92,40,.12)}
+@media(max-width:760px){body.v2983 .debug-link-v2983{bottom:62px;right:8px;font-size:11px;padding:6px 8px}}

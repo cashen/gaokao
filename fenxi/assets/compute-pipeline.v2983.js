@@ -1,0 +1,127 @@
+// V2.9.8.3 compute pipeline: funnel-style filtering, cached scoring, runtime timings.
+(function(){
+  const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastTimings:{}};
+  const perf=()=>window.performance&&performance.now?performance.now():Date.now();
+  const dbg=()=>window.LN_DEBUG_V2983;
+  const val=id=>document.getElementById(id)?.value||'';
+  const checked=id=>!!document.getElementById(id)?.checked;
+  function selectedChips(sel,attr){return [...document.querySelectorAll(sel+'.active')].map(x=>x.dataset[attr]||x.dataset.value||x.textContent.trim()).filter(Boolean);}
+  function safeCall(fn,fallback){try{return fn();}catch(e){return fallback;}}
+  function buildContext(){
+    const rt=window.LN_CHILD_INTEREST_RUNTIME_V296;
+    const st=rt?.readState?.()||{};
+    const ctx={
+      score:val('myScore'),rank:typeof resolveRank==='function'?resolveRank():null,
+      model:val('model'),sortBy:val('sortBy')||'profile',
+      family:{budget:val('budget'),regionMode:val('regionMode'),provinces:selectedChips('#provinceChips .chip','province'),cityMode:val('cityMode'),cities:val('targetCities'),feeType:val('filterFeeType'),rejects:selectedRejects?.()||[]},
+      filters:{qSchool:val('qSchool').trim(),qMajor:val('qMajor').trim(),level:val('filterLevel'),subject:val('filterSubjectGroup'),primary:val('filterPrimary').trim(),tax:val('filterTaxConfidence'),tier:val('filterSchoolTier'),confusable:val('filterConfusableGroup'),onlyKey:checked('onlyKey'),onlyConfusable:checked('onlyConfusable')},
+      child:{state:st,effective:rt?.effectiveGroupIds?.(st)||[],manualOnly:!!(st.manualOnlyInterest&&(rt?.effectiveGroupIds?.(st)||[]).length)},
+      scenario:{current:window.currentStrategy||''}
+    };
+    dbg()?.setContext?.({rank:ctx.rank,score:ctx.score,family:ctx.family,child:{effective:ctx.child.effective,manualOnly:ctx.child.manualOnly},scenario:ctx.scenario,sortBy:ctx.sortBy});
+    return ctx;
+  }
+  function cheapKey(ctx){return JSON.stringify({rank:ctx.rank,model:ctx.model,data:(typeof DATA!=='undefined'?(DATA||[]).length:0),f:ctx.filters,family:ctx.family,qualification:safeCall(()=>window.LN_STATE_SNAPSHOT_V296?.snapshot?.(true)?.qualification||{},{}),special:typeof specialPlanStatusV29474==='function'?specialPlanStatusV29474():''});}
+  function profileKey(ctx){return JSON.stringify({rank:ctx.rank,family:ctx.family,child:ctx.child.effective,manualOnly:ctx.child.manualOnly,scenario:ctx.scenario,legacy:safeCall(()=>window.LN_LEGACY_PREFERENCE_ADAPTER_V2982?.contextHash?.(),''),groups:['medicine','teacher','liberal','chem','physics','gridPower','outProvince'].map(k=>[k,typeof getGroup==='function'?getGroup(k):'']),mentor:['mentorMode','familyTolerance','gradPlan','timePressure','priority'].map(id=>[id,val(id)])});}
+  function buildBasePool(ctx){
+    const key=cheapKey(ctx);
+    if(S.baseKey===key && S.basePool.length){return S.basePool;}
+    const t=perf();
+    const exStats={'区域排除':0,'预算排除':0,'画像排除':0,'低匹配排除':0,'高校专项隐藏':0,'资格入口隐藏':0};
+    const snapshot=(window.LN_STATE_SNAPSHOT_V296?.snapshot?.(true))||{};
+    const special=typeof specialPlanStatusV29474==='function'?specialPlanStatusV29474():'unreviewed';
+    const taxRank={high:3,medium:2,low:1,unknown:0};
+    const cityTargets=typeof selectedCitiesV29472==='function'?selectedCitiesV29472():[];
+    const cityMode=typeof cityModeV29472==='function'?cityModeV29472():ctx.family.cityMode;
+    const out=[];
+    for(const raw of (typeof DATA!=='undefined'?(DATA||[]):[])){
+      const level=typeof classify==='function'?classify(raw.rank2025):'';
+      const r=Object.assign({},raw,{_level:level,_fit:((typeof currentRank!=='undefined'&&currentRank)&&raw.rank2025)?Math.abs(raw.rank2025-currentRank):999999999});
+      const gateCheck=window.LN_QUALIFICATION_GATE_V296?.check?.(r,snapshot);
+      if(gateCheck&&gateCheck.blocked){exStats['资格入口隐藏']=(exStats['资格入口隐藏']||0)+1;if(gateCheck.gateId==='eduSpecialPlan'||gateCheck.gateId==='lnRuralSpecial')exStats['高校专项隐藏']=(exStats['高校专项隐藏']||0)+1;if(gateCheck.statKey)exStats[gateCheck.statKey]=(exStats[gateCheck.statKey]||0)+1;continue;}
+      if(gateCheck&&gateCheck.matched)r._qualificationGate=gateCheck;else if(r.isCollegeSpecialPlanV29474&&special!=='approved'){exStats['高校专项隐藏']++;exStats['资格入口隐藏']++;continue;}
+      const f=ctx.filters;
+      if(f.qSchool&&!(r.school||'').includes(f.qSchool))continue;
+      if(f.qMajor&&!(typeof majorMatchesV29475==='function'?majorMatchesV29475(r,f.qMajor):String(r.major||'').includes(f.qMajor)))continue;
+      if(f.subject&&r.subjectGroup!==f.subject)continue;
+      if(f.primary&&!((r.primaryDisciplineNames||'').includes(f.primary)||(r.primaryDisciplineCodes||'').includes(f.primary)||(r.cleanMajor||'').includes(f.primary)||(r.undergradCategoryName||'').includes(f.primary)||(r.officialCategoryCode||'').includes(f.primary)||(r.officialMajorCode||'').includes(f.primary)||(r.officialDisciplineCode||'').includes(f.primary)||(r.officialMajorName||'').includes(f.primary)))continue;
+      if(f.tax==='high'&&r.taxonomyConfidence!=='high')continue;
+      if(f.tax==='medium'&&(taxRank[r.taxonomyConfidence]||0)<2)continue;
+      if(f.tax==='review'&&!['low','unknown'].includes(r.taxonomyConfidence))continue;
+      if(f.tier==='985'&&r.schoolTier?.level!=='985')continue;
+      if(f.tier==='211'&&r.schoolTier?.level!=='211')continue;
+      if(f.tier==='public'&&!['public','publicSoft'].includes(r.schoolTier?.level))continue;
+      if(f.tier==='private'&&r.schoolTier?.level!=='private')continue;
+      if(f.tier==='unknown'&&r.schoolTier?.level!=='unknown')continue;
+      if(ctx.family.feeType==='normal'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']++;continue;}
+      if(ctx.family.feeType==='coopOnly'&&!(r.isCoopV29475||r.isHighFee)){exStats['预算排除']++;continue;}
+      if(ctx.family.feeType==='excludeHighPrivate'&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475)){exStats['预算排除']++;continue;}
+      if(f.onlyConfusable&&!(typeof hasConfusableMajorV2946==='function'&&hasConfusableMajorV2946(r)))continue;
+      if(f.confusable&&!(typeof hasConfusableGroupV2946==='function'&&hasConfusableGroupV2946(r,f.confusable)))continue;
+      if(f.level&&r._level!==f.level)continue;
+      if(cityMode==='hard'&&cityTargets.length&&!(typeof cityMatchesV29472==='function'&&cityMatchesV29472(r,cityTargets))){exStats['区域排除']++;continue;}
+      if(f.onlyKey&&!(r.keySubjectHints||[]).length)continue;
+      out.push(r);
+    }
+    window.exclusionStats=exStats; try{exclusionStats=exStats;}catch(e){}
+    S.baseKey=key;S.basePool=out;
+    dbg()?.timing?.('buildBasePool',perf()-t,{rows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,out:out.length});
+    return out;
+  }
+  function scorePool(base,ctx){
+    const t=perf(); const key=profileKey(ctx); const sortBy=ctx.sortBy; const rt=window.LN_CHILD_INTEREST_RUNTIME_V296; const interestActive=ctx.child.effective.length>0; const manualOnly=ctx.child.manualOnly;
+    if(S.profileKey!==key){S.profileKey=key;S.profileCache.clear();}
+    const ex=window.exclusionStats||{}; const out=[]; const strict=checked('strictProfile');
+    for(const r of base){
+      let p=S.profileCache.get(r.id);
+      if(!p){p=typeof profileScore==='function'?profileScore(r):{score:50,reasons:[],excludes:[],mentor:{}};S.profileCache.set(r.id,p);}
+      r._profile=p.score;r._reasons=p.reasons;r._excludes=p.excludes;r._mentor=p.mentor;r._confidence=typeof confidence==='function'?confidence(r):{label:'',cls:''};
+      if(manualOnly&&rt&&!rt.filterPass?.(r))continue;
+      r._interestSortScore=interestActive?(typeof interestSortScoreV298Fix1==='function'?interestSortScoreV298Fix1(r):0):0;
+      if(strict&&r._excludes.length){const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';ex[b]=(ex[b]||0)+1;continue;}
+      if(strict&&r._profile<32){ex['低匹配排除']=(ex['低匹配排除']||0)+1;continue;}
+      out.push(r);
+    }
+    dbg()?.timing?.('scorePool',perf()-t,{in:base.length,out:out.length,cache:S.profileCache.size});
+    return out;
+  }
+  function sortPool(arr,ctx){
+    const t=perf(); const sortBy=ctx.sortBy; const interestActive=ctx.child.effective.length>0;
+    arr.sort((a,b)=>{
+      if(sortBy==='rank2025')return(a.rank2025||999999999)-(b.rank2025||999999999);
+      if(sortBy==='rankDiffHot')return(a.rankDiff??999999999)-(b.rankDiff??999999999);
+      if(sortBy==='rankDiffLoose')return(b.rankDiff??-999999999)-(a.rankDiff??-999999999);
+      if(sortBy==='fit')return a._fit-b._fit;
+      if(sortBy==='lift')return (typeof liftValueScoreV29475==='function'?liftValueScoreV29475(b):0)-(typeof liftValueScoreV29475==='function'?liftValueScoreV29475(a):0);
+      if(interestActive){const d=(b._interestSortScore||0)-(a._interestSortScore||0);if(d)return d;}
+      return(b._profile-a._profile)||(a._fit-b._fit);
+    });
+    dbg()?.timing?.('sortPool',perf()-t,{rows:arr.length,sortBy});
+    return arr;
+  }
+  function applyFiltersV2983(reason){
+    const start=perf();
+    const ctx=buildContext(); S.lastContext=ctx;
+    const base=buildBasePool(ctx);
+    let arr=scorePool(base,ctx);
+    arr=sortPool(arr,ctx);
+    window.filtered=arr; try{filtered=arr;}catch(e){} window.currentPage=1; try{currentPage=1;}catch(e){}
+    window.LN_DEBUG_V2983?.setPools?.({loadedRows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,basePool:base.length,filtered:arr.length,interestActive:ctx.child.effective.length,manualOnly:ctx.child.manualOnly});
+    try{window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(arr,1400);}catch(e){}
+    try{window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}catch(e){}
+    try{updateCounts();}catch(e){}
+    try{renderPlanABC();}catch(e){}
+    try{renderCards();}catch(e){}
+    try{updateLive();}catch(e){}
+    try{if(typeof updateGuideState==='function')updateGuideState();}catch(e){}
+    const ms=perf()-start; dbg()?.timing?.('applyFiltersTotal',ms,{reason:reason||'applyFilters',filtered:arr.length});
+    return arr;
+  }
+  function patch(){
+    window.applyFilters=applyFiltersV2983;
+    if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983',applyFiltersPatched:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
+})();

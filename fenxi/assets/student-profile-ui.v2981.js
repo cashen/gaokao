@@ -39,7 +39,13 @@
         const cur=rules().readState();
         const key=el.id.replace('studentProfile_',''); cur[key]=el.value;
         rules().saveState(cur); renderSummary();
-        window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.(); if(window.LN_DRAWER_V296?.isOpen?.()) window.LN_CHILD_INTEREST_UI_V296?.renderDrawerBody?.(); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'student-profile-change',level:'soft',delay:180});
+        window.LN_DEBUG_V2983?.log?.('student-profile-change',{key,value:el.value});
+        window.LN_PROFILE_INTEREST_SUMMARY_V2981FIX2?.patchChildInterestSummary?.();
+        window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();
+        // V2.9.8.3: 画像只调整提醒/排序，不在抽屉内每次选择时触发全量候选计算。
+        window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'student-profile-change',level:'render-only',delay:420,render:function(){
+          try{window.LN_PROFILE_INTEREST_SUMMARY_V2981FIX2?.patchChildInterestSummary?.();}catch(e){}
+        }});
       });
     });
   }
