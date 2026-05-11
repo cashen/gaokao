@@ -11,7 +11,7 @@
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
       check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha1') !== -1, snap.version),
-      check('版本戳正确', snap.stamp === 'v300alpha1-20260512', snap.stamp),
+      check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('state-store 存在', !!window.LN_V3_STORE),
       check('router 存在', !!window.LN_V3_ROUTER),
