@@ -40,9 +40,15 @@
       document.querySelectorAll('[data-debug-run]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var type = btn.getAttribute('data-debug-run');
-          var report = window.LN_V3_DEBUG_SELFTEST.run(type);
-          document.getElementById('debugSelftestBox').textContent = report.text;
-          refresh();
+          var box = document.getElementById('debugSelftestBox');
+          box.textContent = '正在运行 ' + type + ' 自测…';
+          Promise.resolve(window.LN_V3_DEBUG_SELFTEST.run(type)).then(function (report) {
+            box.textContent = report.text;
+            refresh();
+          }).catch(function (err) {
+            box.textContent = '自测运行失败：' + (err && err.message ? err.message : err);
+            refresh();
+          });
         });
       });
       var copy = document.querySelector('[data-debug-copy]');

@@ -16,6 +16,7 @@
         '当前 Tab：' + ((snap.state.ui || {}).activeTab || ''),
         'Tab 数量：' + snap.tabs,
         '向导步骤数量：' + snap.progressSteps,
+        '数据状态：' + JSON.stringify(snap.dataStatus || {}),
         'Store：' + JSON.stringify(snap.state),
         '',
         self.text

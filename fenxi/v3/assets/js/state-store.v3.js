@@ -14,11 +14,11 @@
       bigPool: false,
       lastMessage: 'V3骨架已启动'
     },
-    rank: { score: '', rank: '', mode: 'rank', loadedRows: 0 },
+    rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [] },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false },
     scenario: { current: '', recommended: '', reason: '' },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha1-skeleton' },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha2-step1-data-loading' },
     plans: { A: [], B: [], C: [] },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }
@@ -43,6 +43,13 @@
     var out = merge(initialState, input || {});
     out.version = { name: version.name, stamp: version.stamp };
     out.ui = merge(initialState.ui, out.ui || {});
+    out.rank = merge(initialState.rank, out.rank || {});
+    out.rank.chunkIds = Array.isArray(out.rank.chunkIds) ? out.rank.chunkIds : [];
+    out.rank.sample = Array.isArray(out.rank.sample) ? out.rank.sample : [];
+    out.rank.loadedRows = Number(out.rank.loadedRows || 0);
+    out.rank.chunkCount = Number(out.rank.chunkCount || 0);
+    out.rank.loadMs = Number(out.rank.loadMs || 0);
+    out.compute = merge(initialState.compute, out.compute || {});
     out.childPreference = merge(initialState.childPreference, out.childPreference || {});
     out.childPreference.selectedGroups = Array.isArray(out.childPreference.selectedGroups) ? out.childPreference.selectedGroups : [];
     out.childPreference.selectedMajors = Array.isArray(out.childPreference.selectedMajors) ? out.childPreference.selectedMajors : [];

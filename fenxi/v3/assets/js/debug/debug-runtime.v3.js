@@ -19,6 +19,7 @@
         isDebugPage: document.body.classList.contains('ln-v3-debug-page'),
         tabs: window.LN_V3_ROUTER ? window.LN_V3_ROUTER.steps.length : 0,
         progressSteps: window.LN_V3_ROUTER ? window.LN_V3_ROUTER.progressSteps.length : 0,
+        dataStatus: window.LN_V3_LEGACY_DATA ? window.LN_V3_LEGACY_DATA.status() : {},
         state: state
       };
     }

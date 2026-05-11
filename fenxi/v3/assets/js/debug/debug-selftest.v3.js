@@ -10,7 +10,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha1') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha2') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('state-store 存在', !!window.LN_V3_STORE),
@@ -25,26 +25,33 @@
     ['LN_V3_STEP_RANK','LN_V3_STEP_FAMILY','LN_V3_STEP_CHILD','LN_V3_STEP_SCENARIO','LN_V3_STEP_PLANS','LN_V3_STEP_CANDIDATES','LN_V3_STEP_EXPORT'].forEach(function (name) {
       results.push(check(name + ' 存在', !!window[name]));
     });
+    if (window.LN_V3_DEBUG_STEP_RANK) results = results.concat(window.LN_V3_DEBUG_STEP_RANK.run());
     results = results.concat(window.LN_V3_DEBUG_STEP_CHILD.run());
     return results;
+  }
+  function format(type, started, results) {
+    var sum = summarize(results);
+    var elapsed = Math.round(performance.now() - started);
+    var header = [
+      '【辽宁物理类工具 V3 Debug Report】',
+      '读取时间：' + new Date().toLocaleString(),
+      '模式：' + type,
+      '版本：' + window.LN_V3_VERSION.name,
+      '版本戳：' + window.LN_V3_VERSION.stamp,
+      '总步骤：' + sum.total + '；通过：' + sum.pass + '；失败：' + sum.fail,
+      '耗时：' + elapsed + 'ms',
+      ''
+    ].join('\n');
+    return { results: results, summary: sum, text: header + results.map(line).join('\n') };
   }
   window.LN_V3_DEBUG_SELFTEST = {
     run: function (type) {
       var started = performance.now();
+      if (type === 'rank') {
+        return window.LN_V3_DEBUG_STEP_RANK.runAsync().then(function (results) { return format(type, started, results); });
+      }
       var results = type === 'child' ? window.LN_V3_DEBUG_STEP_CHILD.run() : (type === 'full' ? full() : quick());
-      var sum = summarize(results);
-      var elapsed = Math.round(performance.now() - started);
-      var header = [
-        '【辽宁物理类工具 V3 Debug Report】',
-        '读取时间：' + new Date().toLocaleString(),
-        '模式：' + type,
-        '版本：' + window.LN_V3_VERSION.name,
-        '版本戳：' + window.LN_V3_VERSION.stamp,
-        '总步骤：' + sum.total + '；通过：' + sum.pass + '；失败：' + sum.fail,
-        '耗时：' + elapsed + 'ms',
-        ''
-      ].join('\n');
-      return { results: results, summary: sum, text: header + results.map(line).join('\n') };
+      return format(type, started, results);
     }
   };
 })();

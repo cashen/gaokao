@@ -1,32 +1,106 @@
 (function () {
   'use strict';
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value).replace(/[&<>\"]/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch];
+    });
+  }
+  function sampleHtml(sample) {
+    if (!Array.isArray(sample) || !sample.length) return '<div class="placeholder-item">加载后会显示位次附近样例，方便确认数据是否读到。</div>';
+    return sample.map(function (item) {
+      return '<div class="rank-sample-item"><strong>' + esc(item.school) + '</strong><span>' + esc(item.major) + '</span><em>' + esc(item.score2025) + '分 / ' + esc(item.rank2025) + '位</em></div>';
+    }).join('');
+  }
   function html(state) {
+    var loading = !!state.ui.loading || !!state.ui.dataWaiting;
+    var loadedRows = Number(state.rank.loadedRows || 0);
+    var hasLoaded = loadedRows > 0;
     return [
       '<section class="step-card" data-step-view="rank">',
       '<div class="step-hero"><div class="v3-kicker">第 1 步</div><h2>先输入孩子的大概分数或位次</h2><p>先不用想学校和专业。系统先根据位次，把可能范围缩出来。</p></div>',
       '<div class="step-body">',
       '<div class="step-section">',
-      '<h3>位次 / 分数</h3><p>alpha1 先保存输入状态，后续接入 fix12 分块数据加载。</p>',
+      '<h3>位次 / 分数</h3><p>优先填位次；如果只有分数，系统会按 2025 辽宁物理类一分一段换算一个参考位次。</p>',
       '<div class="v3-form-grid">',
-      '<div class="v3-field"><label for="v3RankInput">位次</label><input id="v3RankInput" class="v3-input" inputmode="numeric" placeholder="例如 56548" value="', state.rank.rank || '', '"></div>',
-      '<div class="v3-field"><label for="v3ScoreInput">分数</label><input id="v3ScoreInput" class="v3-input" inputmode="numeric" placeholder="例如 500" value="', state.rank.score || '', '"></div>',
+      '<div class="v3-field"><label for="v3RankInput">位次</label><input id="v3RankInput" class="v3-input" inputmode="numeric" placeholder="例如 56548" value="', esc(state.rank.rank), '"></div>',
+      '<div class="v3-field"><label for="v3ScoreInput">分数</label><input id="v3ScoreInput" class="v3-input" inputmode="numeric" placeholder="例如 500" value="', esc(state.rank.score), '"></div>',
       '</div>',
-      '<div class="v3-actions"><button type="button" class="v3-btn" data-rank-save>保存并继续</button><button type="button" class="v3-btn secondary" data-rank-demo>填入测试样例</button></div>',
+      '<div class="v3-actions"><button type="button" class="v3-btn" data-rank-load>', loading ? '正在加载数据…' : '加载位次范围并继续', '</button><button type="button" class="v3-btn secondary" data-rank-demo>填入测试样例并加载</button><button type="button" class="v3-btn ghost" data-rank-save-only>只保存，不继续</button></div>',
+      '<p class="step-help">这一步只读取相关分段数据，不触发旧版完整筛选链路。</p>',
       '</div>',
-      '<div class="notice-box">当前 loadedRows：', Number(state.rank.loadedRows || 0), '。v3 alpha1 不主动改旧主业务，只搭新壳。</div>',
+      '<div class="rank-status-grid">',
+      '<div class="rank-status-card"><span>加载状态</span><strong>', loading ? '正在加载' : (hasLoaded ? '已加载' : '未加载'), '</strong></div>',
+      '<div class="rank-status-card"><span>loadedRows</span><strong>', loadedRows, '</strong></div>',
+      '<div class="rank-status-card"><span>分块数量</span><strong>', Number(state.rank.chunkCount || 0), '</strong></div>',
+      '<div class="rank-status-card"><span>耗时</span><strong>', Number(state.rank.loadMs || 0), 'ms</strong></div>',
+      '</div>',
+      '<div class="notice-box">',
+      hasLoaded ? ('已读取 ' + loadedRows + ' 条位次附近记录；分块：' + esc((state.rank.chunkIds || []).join(', ')) + '。' + (state.rank.rankSource ? '<br>位次来源：' + esc(state.rank.rankSource) + '。' : '')) : '还没读取数据。输入位次或分数后，点击“加载位次范围并继续”。',
+      '</div>',
+      '<div class="step-section rank-sample-section"><h3>位次附近样例</h3><p>这里只做数据是否读到的轻量确认，正式筛选从下一步开始逐步接入。</p><div class="rank-sample-list">', sampleHtml(state.rank.sample), '</div></div>',
       '</div></section>'
     ].join('');
+  }
+  function cleanNum(value) { return String(value || '').replace(/[^0-9]/g, ''); }
+  function saveInputs(rankInput, scoreInput, message) {
+    var rank = cleanNum(rankInput.value);
+    var score = cleanNum(scoreInput.value);
+    window.LN_V3_STORE.setState({
+      rank: { rank: rank, score: score, mode: rank ? 'rank' : 'score' },
+      ui: { lastMessage: message || '位次信息已保存。' }
+    }, 'rank:save-inputs');
+  }
+  function applyLoadResult(result, rankInput, scoreInput, shouldNext) {
+    var rank = cleanNum(rankInput.value) || String(result.rank || '');
+    var score = cleanNum(scoreInput.value) || (result.score ? String(result.score) : '');
+    window.LN_V3_STORE.setState({
+      ui: { loading: false, dataWaiting: false, lastMessage: '位次附近数据已加载：' + result.loadedRows + ' 条。' },
+      rank: {
+        rank: String(result.rank || rank),
+        score: score,
+        mode: rank ? 'rank' : 'score',
+        loadedRows: result.loadedRows || 0,
+        chunkIds: result.chunkIds || [],
+        chunkCount: result.chunkCount || 0,
+        loadMs: result.ms || 0,
+        loadedAt: new Date().toISOString(),
+        rankSource: result.resolvedRankSource || result.source || '',
+        sample: result.sample || []
+      },
+      compute: { waitDataMs: result.ms || 0, lastReason: 'v3-step1-load-data' }
+    }, 'rank:data-loaded');
+    window.LN_V3_STORE.markComplete('rank', 'rank:complete');
+    if (shouldNext) window.LN_V3_ROUTER.go('family', 'rank:next-after-load');
+    else if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
+  }
+  function loadData(root, rankInput, scoreInput, shouldNext) {
+    var rank = cleanNum(rankInput.value);
+    var score = cleanNum(scoreInput.value);
+    if (!rank && !score) {
+      window.LN_V3_WIZARD.flashMessage('先填一个位次或分数。');
+      return;
+    }
+    if (!window.LN_V3_LEGACY_DATA || !window.LN_V3_LEGACY_DATA.loadForRankOrScore) {
+      window.LN_V3_WIZARD.flashMessage('数据加载模块还没有就绪。');
+      return;
+    }
+    window.LN_V3_STORE.setState({
+      ui: { loading: true, dataWaiting: true, lastMessage: '正在加载位次附近数据…' },
+      rank: { rank: rank, score: score, mode: rank ? 'rank' : 'score' }
+    }, 'rank:data-loading');
+    window.LN_V3_LEGACY_DATA.loadForRankOrScore({ rank: rank, score: score }).then(function (result) {
+      applyLoadResult(result, rankInput, scoreInput, shouldNext);
+    }).catch(function (err) {
+      window.LN_V3_STORE.setState({ ui: { loading: false, dataWaiting: false, lastMessage: '数据加载失败：' + (err && err.message ? err.message : err) } }, 'rank:data-load-failed');
+      if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
+    });
   }
   function bind(root) {
     var rankInput = root.querySelector('#v3RankInput');
     var scoreInput = root.querySelector('#v3ScoreInput');
-    function save(next) {
-      window.LN_V3_STORE.setState({ rank: { rank: rankInput.value.trim(), score: scoreInput.value.trim(), mode: rankInput.value.trim() ? 'rank' : 'score' }, ui: { lastMessage: '位次信息已保存。' } }, 'rank:save');
-      window.LN_V3_STORE.markComplete('rank', 'rank:complete');
-      if (next) window.LN_V3_ROUTER.go('family', 'rank:next');
-    }
-    root.querySelector('[data-rank-save]').addEventListener('click', function () { save(true); });
-    root.querySelector('[data-rank-demo]').addEventListener('click', function () { rankInput.value = '56548'; scoreInput.value = '500'; save(false); });
+    root.querySelector('[data-rank-load]').addEventListener('click', function () { loadData(root, rankInput, scoreInput, true); });
+    root.querySelector('[data-rank-save-only]').addEventListener('click', function () { saveInputs(rankInput, scoreInput, '位次信息已保存，尚未加载分块数据。'); });
+    root.querySelector('[data-rank-demo]').addEventListener('click', function () { rankInput.value = '56548'; scoreInput.value = '500'; loadData(root, rankInput, scoreInput, false); });
   }
   window.LN_V3_STEP_RANK = { render: function (root, state) { root.innerHTML = html(state); bind(root); } };
 })();
