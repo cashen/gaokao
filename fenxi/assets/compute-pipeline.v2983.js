@@ -1,4 +1,4 @@
-// V2.9.8.3.fix2 compute pipeline: funnel filtering + render/post-processing breakdown for debug.
+// V2.9.8.3.fix3 compute pipeline: funnel filtering + render/post-processing breakdown for debug.
 (function(){
   const S={baseKey:'',basePool:[],profileKey:'',profileCache:new Map(),lastFiltered:[],lastContext:null,lastScoreStats:null,lastBaseStats:null,lastRenderStats:null,lastViewPool:[]};
   const perf=()=>window.performance&&performance.now?performance.now():Date.now();
@@ -77,32 +77,51 @@
     const t=perf(); const key=profileKey(ctx); const sortBy=ctx.sortBy; const rt=window.LN_CHILD_INTEREST_RUNTIME_V296; const interestActive=ctx.child.effective.length>0; const manualOnly=ctx.child.manualOnly;
     if(S.profileKey!==key){S.profileKey=key;S.profileCache.clear();}
     const ex=window.exclusionStats||{}; const out=[]; const strict=checked('strictProfile');
-    const stats={input:base.length,preInput:base.length,preOutput:base.length,manualOnly,interestActive,sortBy,profileHit:0,profileMiss:0,strictExcluded:0,lowProfileExcluded:0,out:0,time:{preInterestFilter:0,profileScore:0,confidence:0,interestSort:0,strictCheck:0}};
+    const stats={input:base.length,preInput:base.length,strictPreInput:base.length,strictPreOutput:base.length,preOutput:base.length,manualOnly,interestActive,sortBy,profileHit:0,profileMiss:0,strictExcluded:0,lowProfileExcluded:0,out:0,time:{strictPre:0,preInterestFilter:0,profileScore:0,confidence:0,interestSort:0,strictCheck:0}};
+    function ensureProfile(r){
+      let p=S.profileCache.get(r.id);
+      if(p){stats.profileHit++;}
+      else{const tp=perf();p=typeof profileScore==='function'?profileScore(r):{score:50,reasons:[],excludes:[],mentor:{}};stats.time.profileScore+=perf()-tp;S.profileCache.set(r.id,p);stats.profileMiss++;}
+      r._profile=p.score;r._reasons=p.reasons||[];r._excludes=p.excludes||[];r._mentor=p.mentor||{};
+      return p;
+    }
     let pool=base;
+    // V2.9.8.3.fix3: if strict profile is enabled, shrink by cached/profile rules BEFORE expensive interest real-hit filtering.
+    // This keeps "只看真实命中" from matching thousands of rows that would be removed by strict profile anyway.
+    if(strict){
+      const tStrict=perf(); const strictPool=[];
+      for(const r of base){
+        ensureProfile(r);
+        if((r._excludes||[]).length){const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';ex[b]=(ex[b]||0)+1;stats.strictExcluded++;continue;}
+        if((r._profile||0)<32){ex['低匹配排除']=(ex['低匹配排除']||0)+1;stats.lowProfileExcluded++;continue;}
+        strictPool.push(r);
+      }
+      pool=strictPool; stats.strictPreOutput=pool.length; stats.time.strictPre=Math.round(perf()-tStrict);
+    }
     if(manualOnly&&rt){
       const tPre=perf(); const narrowed=[];
-      for(const r of base){let pass=true;try{pass=!!rt.filterPass?.(r);}catch(e){pass=true;}if(pass)narrowed.push(r);}
-      pool=narrowed; stats.preOutput=pool.length; stats.time.preInterestFilter=Math.round(perf()-tPre);
-      debugDetail('interestPreFilter',{in:base.length,out:pool.length,ms:stats.time.preInterestFilter,manualOnly:true});
+      for(const r of pool){let pass=true;try{pass=!!rt.filterPass?.(r);}catch(e){pass=true;}if(pass)narrowed.push(r);}
+      pool=narrowed; stats.preInput=base.length; stats.preOutput=pool.length; stats.time.preInterestFilter=Math.round(perf()-tPre);
+      debugDetail('interestPreFilter',{in:base.length,afterStrict:stats.strictPreOutput,out:pool.length,ms:stats.time.preInterestFilter,manualOnly:true});
     }
     for(const r of pool){
-      let p=S.profileCache.get(r.id);
-      if(p){stats.profileHit++;}else{const tp=perf();p=typeof profileScore==='function'?profileScore(r):{score:50,reasons:[],excludes:[],mentor:{}};stats.time.profileScore+=perf()-tp;S.profileCache.set(r.id,p);stats.profileMiss++;}
-      r._profile=p.score;r._reasons=p.reasons;r._excludes=p.excludes;r._mentor=p.mentor;
+      if(!strict){
+        ensureProfile(r);
+        const ts=perf();
+        if((r._excludes||[]).length){const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';ex[b]=(ex[b]||0)+1;stats.strictExcluded++;stats.time.strictCheck+=perf()-ts;continue;}
+        if((r._profile||0)<32){ex['低匹配排除']=(ex['低匹配排除']||0)+1;stats.lowProfileExcluded++;stats.time.strictCheck+=perf()-ts;continue;}
+        stats.time.strictCheck+=perf()-ts;
+      }
       const tc=perf(); r._confidence=typeof confidence==='function'?confidence(r):{label:'',cls:''}; stats.time.confidence+=perf()-tc;
       const ti=perf(); r._interestSortScore=interestActive?(typeof interestSortScoreV298Fix1==='function'?interestSortScoreV298Fix1(r):0):0; stats.time.interestSort+=perf()-ti;
-      const ts=perf();
-      if(strict&&r._excludes.length){const b=typeof exclusionBucket==='function'?exclusionBucket(r._excludes):'画像排除';ex[b]=(ex[b]||0)+1;stats.strictExcluded++;stats.time.strictCheck+=perf()-ts;continue;}
-      if(strict&&r._profile<32){ex['低匹配排除']=(ex['低匹配排除']||0)+1;stats.lowProfileExcluded++;stats.time.strictCheck+=perf()-ts;continue;}
-      stats.time.strictCheck+=perf()-ts;
       out.push(r);
     }
     stats.out=out.length;
     Object.keys(stats.time).forEach(k=>stats.time[k]=Math.round(stats.time[k]));
     stats.cacheSize=S.profileCache.size; S.lastScoreStats=stats;
     debugDetail('scorePoolBreakdown',stats);
-    debugDetail('cacheStats',{profile:{hit:stats.profileHit,miss:stats.profileMiss,size:S.profileCache.size},interestPreFilter:{in:stats.preInput,out:stats.preOutput,ms:stats.time.preInterestFilter}});
-    dbg()?.timing?.('scorePool',perf()-t,{in:base.length,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter});
+    debugDetail('cacheStats',{profile:{hit:stats.profileHit,miss:stats.profileMiss,size:S.profileCache.size},interestPreFilter:{in:stats.preInput,afterStrict:stats.strictPreOutput,out:stats.preOutput,ms:stats.time.preInterestFilter}});
+    dbg()?.timing?.('scorePool',perf()-t,{in:base.length,strictPre:stats.strictPreOutput,pre:pool.length,out:out.length,cache:S.profileCache.size,profileMiss:stats.profileMiss,interestPreMs:stats.time.preInterestFilter});
     return out;
   }
   function sortPool(arr,ctx){
@@ -141,8 +160,8 @@
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix2'};
-    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix2',applyFiltersPatched:true});
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix3'};
+    window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix3',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();
 })();

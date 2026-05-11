@@ -1,0 +1,35 @@
+const fs=require('fs');
+const path=require('path');
+const root=process.cwd();
+function read(p){return fs.readFileSync(path.join(root,p),'utf8')}
+function ok(cond,msg){if(!cond){console.error('FAIL:',msg);process.exit(1)}console.log('OK:',msg)}
+const tops=fs.readdirSync(root).filter(x=>!x.startsWith('.')).sort();
+ok(['docs','fenxi','functions','tools'].every(x=>tops.includes(x)),'fenxi-only top folders present');
+ok(!tops.includes('index.html'),'root index.html is not included');
+ok(read('fenxi/VERSION.txt').includes('V2.9.8.3.fix3'),'VERSION.txt is fix3');
+const idx=read('fenxi/index.html');
+ok(idx.includes('V2.9.8.3.fix3'),'index visible version is fix3');
+ok(idx.includes("const VERSION='2983fix3-20260511'"),'index cache stamp is 2983fix3');
+ok(idx.includes('assets/abc-light-ui.v2983fix3.js'),'abc light ui loaded');
+ok(idx.includes('assets/interest-interaction-lite.v2983fix3.js'),'interest lite interaction loaded');
+ok(idx.includes('assets/module-step-priority.v2983fix3.js'),'module step priority loaded');
+const compute=read('fenxi/assets/compute-pipeline.v2983.js');
+ok(compute.includes('strictPreOutput'),'compute has strict pre-shrink');
+ok(compute.includes('afterStrict'),'interest prefilter reports afterStrict');
+ok(compute.includes("version:'V2.9.8.3.fix3'"),'compute exposes fix3 version');
+ok(compute.includes("computePipeline:'v2983fix3'"),'debug flag uses fix3');
+const abc=read('fenxi/assets/abc-light-ui.v2983fix3.js');
+ok(abc.includes('LN_ABC_LIGHT_UI_V2983FIX3'),'abc light ui global exists');
+ok(abc.includes('abcRenderBreakdown'),'abc render debug captured');
+const interest=read('fenxi/assets/interest-interaction-lite.v2983fix3.js');
+ok(interest.includes('stopImmediatePropagation'),'interest click prevents old duplicate handlers');
+ok(interest.includes('interestToggleBreakdown'),'interest toggle debug captured');
+ok(interest.includes('interestManualOnlyToggle'),'manual real-hit toggle debug captured');
+const step=read('fenxi/assets/module-step-priority.v2983fix3.js');
+ok(step.includes('nextStepLatency'),'next-step latency debug captured');
+const app=read('fenxi/assets/app.v2983.js');
+ok(app.includes('v2983fix3'),'body class uses v2983fix3');
+ok(app.includes("version:'V2.9.8.3.fix3'"),'app exposes fix3 version');
+const debug=read('fenxi/assets/debug-runtime.v2983.js');
+ok(debug.includes('V2.9.8.3.fix3'),'debug runtime version is fix3');
+console.log('All V2.9.8.3.fix3 checks passed.');

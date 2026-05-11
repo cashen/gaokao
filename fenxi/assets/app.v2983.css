@@ -19,3 +19,9 @@ body.v2983 .debug-link-v2983{position:fixed;right:12px;bottom:74px;z-index:60;bo
 body.v2983fix1:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
 body.v2983fix1 #profileAsk,body.v2983fix1 #mentorRules,body.v2983fix1 #resultBox .bands{display:none!important;}
 body.v2983fix1 .debug-link-v2983{outline:1px solid rgba(120,80,30,.08);}
+/* V2.9.8.3.fix3: keep ordinary page scrollable and old heavy modules hidden under the new body class. */
+body.v2983fix3:not(.drawer-open-v296){overflow-y:auto!important;position:static!important;}
+body.v2983fix3 #profileAsk,body.v2983fix3 #mentorRules,body.v2983fix3 #resultBox .bands{display:none!important;}
+body.v2983fix3 .candidate-lite-tags-v2983{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+body.v2983fix3 .candidate-lite-tags-v2983 span{font-size:12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:3px 8px;color:#374151;}
+body.v2983fix3 .abc-board-light-v2983 .decision-tradeoff-v2981{font-size:13px;line-height:1.45;}
