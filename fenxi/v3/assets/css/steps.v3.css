@@ -233,46 +233,38 @@
 @media (max-width: 960px) { .scenario-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .scenario-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .scenario-grid { grid-template-columns: 1fr; } .scenario-plan-tone div { display: grid; gap: 2px; } }
 
-/* alpha5.fix1 decision context */
-.scenario-context-panel {
+/* alpha6: Step5 A/B/C 方案预览 */
+.plans-overview {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0 0 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
 }
-.scenario-context-panel > div {
-  border: 1px solid rgba(148, 120, 82, 0.22);
-  background: rgba(255, 251, 245, 0.82);
+.plans-overview div {
+  border: 1px solid rgba(184,107,34,.14);
+  background: #fffdf8;
   border-radius: 18px;
-  padding: 14px;
+  padding: 13px 14px;
+  display: grid;
+  gap: 4px;
 }
-.scenario-context-panel span {
-  display: block;
-  font-size: 12px;
-  color: #8a6b48;
-  margin-bottom: 4px;
-}
-.scenario-context-panel strong {
-  display: block;
-  font-size: 16px;
-  color: #4f331a;
-  margin-bottom: 6px;
-}
-.scenario-context-panel p {
-  margin: 0;
-  color: #6b5a47;
-  line-height: 1.65;
-}
-.family-region-insight {
-  border: 1px dashed rgba(148, 120, 82, 0.34);
-  background: rgba(255, 252, 246, 0.88);
-  border-radius: 16px;
-  padding: 12px 14px;
-  margin-top: 10px;
-  color: #68523c;
-  line-height: 1.7;
-}
-.family-region-insight strong { color: #4f331a; }
-@media (max-width: 720px) {
-  .scenario-context-panel { grid-template-columns: 1fr; }
-}
+.plans-overview span { color: var(--v3-muted); font-size: 12px; font-weight: 900; }
+.plans-overview strong { font-size: 20px; color: #261b10; line-height: 1.1; }
+.plans-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.plan-card { border: 1px solid var(--v3-line); border-radius: 22px; background: #fff; padding: 16px; display: grid; gap: 12px; }
+.plan-card.plan-b { background: linear-gradient(180deg, #fffaf1, #fff); border-color: rgba(184,107,34,.28); box-shadow: 0 12px 30px rgba(184,107,34,.10); }
+.plan-card-head { display: flex; gap: 10px; align-items: flex-start; }
+.plan-card-head > span { width: 34px; height: 34px; border-radius: 13px; display: grid; place-items: center; background: var(--v3-primary-soft); color: var(--v3-primary-dark); font-weight: 1000; flex: 0 0 auto; }
+.plan-card-head h3 { margin: 0 0 3px; font-size: 18px; }
+.plan-card-head p { margin: 0; color: var(--v3-muted); font-size: 13px; line-height: 1.45; }
+.plan-summary { border-radius: 16px; background: #fff7e6; color: #684213; padding: 11px 12px; font-size: 13px; line-height: 1.5; }
+.plan-sample-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.plan-sample-item { border: 1px solid rgba(184,107,34,.12); background: #fffdf8; border-radius: 15px; padding: 10px; display: grid; gap: 6px; }
+.plan-sample-item div { display: grid; gap: 3px; }
+.plan-sample-item strong { color: #261b10; }
+.plan-sample-item span { color: #4d4035; font-size: 13px; line-height: 1.35; }
+.plan-sample-item em { font-style: normal; font-weight: 900; color: var(--v3-primary-dark); font-size: 13px; }
+.plan-sample-item p { margin: 0; color: var(--v3-muted); font-size: 12px; line-height: 1.35; }
+.plan-sample-item.empty { color: var(--v3-muted); }
+@media (max-width: 980px) { .plans-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .plans-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

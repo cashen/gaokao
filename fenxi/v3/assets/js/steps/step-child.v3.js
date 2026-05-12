@@ -131,58 +131,6 @@
       '</div>'
     ].join('');
   }
-
-  function selectHtml(field, label, value) {
-    var adapter = window.LN_V3_STUDENT_PROFILE;
-    var opts = adapter && adapter.optionsFor ? adapter.optionsFor(field) : [];
-    return '<label class="profile-select"><span>' + escapeHtml(label) + '</span><select data-profile-field="' + escapeHtml(field) + '">' + opts.map(function (item) {
-      return '<option value="' + escapeHtml(item[0]) + '"' + (item[0] === value ? ' selected' : '') + '>' + escapeHtml(item[1]) + '</option>';
-    }).join('') + '</select></label>';
-  }
-  function profilePanelHtml(state) {
-    var profile = (state && state.studentProfile) || {};
-    var summary = profile.summary || (window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.summarize(profile) : '学生画像未补充。');
-    var tags = Array.isArray(profile.tags) ? profile.tags : [];
-    return [
-      '<div class="student-profile-panel">',
-      '<div class="profile-panel-head"><strong>孩子学习适配画像（可选）</strong><span>只调整提醒顺序，不按性别或画像排除专业</span></div>',
-      '<div class="profile-select-grid">',
-      selectHtml('source', '信息来源', profile.source || 'unconfirmed'),
-      selectHtml('learning', '学习倾向', profile.learning || 'unclear'),
-      selectHtml('load', '强度承受', profile.load || 'unknown'),
-      selectHtml('path', '路径偏好', profile.path || 'unknown'),
-      selectHtml('understanding', '专业理解', profile.understanding || 'unclear'),
-      '</div>',
-      '<p class="profile-summary">', escapeHtml(summary), '</p>',
-      tags.length ? '<div class="profile-tag-row">' + tags.map(function (t) { return '<span>' + escapeHtml(t) + '</span>'; }).join('') + '</div>' : '',
-      '</div>'
-    ].join('');
-  }
-  function majorProfileHtml(state) {
-    var preview = ((state || {}).childPreference || {}).preview || {};
-    var profile = preview.majorProfile || (window.LN_V3_MAJOR_PROFILE && window.LN_V3_MAJOR_PROFILE.profileSelection ? window.LN_V3_MAJOR_PROFILE.profileSelection(state) : null);
-    if (!profile || (!profile.selectedGroupCount && !profile.selectedMajorCount && !(profile.profileNotices || []).length)) {
-      return '<div class="major-profile-panel"><strong>专业画像与复核提醒</strong><p>选择兴趣方向后，系统会提示“正主/相近/需复核”的差异；这不是硬筛选，是给后面详细卡片准备证据链。</p></div>';
-    }
-    var groups = (profile.groupProfiles || []).map(function (g) {
-      return '<div class="major-profile-card"><strong>' + escapeHtml(g.label || g.id) + '</strong><p>' + escapeHtml(g.path || '') + '</p><em>' + escapeHtml((g.risks || []).slice(0, 3).join('｜')) + '</em></div>';
-    }).join('');
-    var misread = (profile.misreadRules || []).map(function (m) {
-      return '<li><strong>' + escapeHtml(m.major || '') + '</strong>：' + escapeHtml(m.message || '') + '<span>' + escapeHtml(m.evidence || '模型判断') + '</span></li>';
-    }).join('');
-    var notices = (profile.profileNotices || []).map(function (n) { return '<li>' + escapeHtml(n) + '<span>画像提醒</span></li>'; }).join('');
-    return [
-      '<div class="major-profile-panel">',
-      '<strong>专业画像与复核提醒</strong>',
-      '<p>', escapeHtml(profile.summary || '专业画像只用于解释和复核，不作为硬筛选。'), '</p>',
-      profile.tags && profile.tags.length ? '<div class="profile-tag-row">' + profile.tags.map(function (t) { return '<span>' + escapeHtml(t) + '</span>'; }).join('') + '</div>' : '',
-      groups ? '<div class="major-profile-grid">' + groups + '</div>' : '',
-      (misread || notices) ? '<ul class="major-review-list">' + misread + notices + '</ul>' : '',
-      '<div class="child-realhit-off">专业画像和学生画像的权重低于家庭路径；它们只改变提醒、排序解释和详细卡片复核，不做硬排除。</div>',
-      '</div>'
-    ].join('');
-  }
-
   function html(state) {
     var child = state.childPreference;
     var ids = selectedGroupIds(state);
@@ -199,8 +147,6 @@
       '<div class="child-warning" id="childWarning">', escapeHtml(state.ui.lastMessage && state.ui.lastMessage.indexOf('3 个方向') !== -1 ? state.ui.lastMessage : ''), '</div>',
       '</div>',
       previewHtml(state),
-      profilePanelHtml(state),
-      majorProfileHtml(state),
       '<div class="child-search-wrap"><label class="v3-sr-only" for="childMajorSearch">搜索专业</label><input id="childMajorSearch" class="v3-input" placeholder="搜索专业名称，比如：电气、动物医学、计算机、法学"><div id="childSearchResults"></div></div>',
       '<div class="major-grid" id="majorGrid">',
       window.LN_V3_CHILD_GROUPS.all.map(function (group) {
@@ -268,19 +214,6 @@
         } else {
           toggleGroup(id);
         }
-        window.LN_V3_WIZARD.render();
-      });
-    });
-    root.querySelectorAll('[data-profile-field]').forEach(function (el) {
-      el.addEventListener('change', function () {
-        var field = el.getAttribute('data-profile-field');
-        var patch = {}; patch[field] = el.value;
-        var next = window.LN_V3_STUDENT_PROFILE && window.LN_V3_STUDENT_PROFILE.normalized ? window.LN_V3_STUDENT_PROFILE.normalized(Object.assign({}, window.LN_V3_STORE.getState().studentProfile || {}, patch)) : patch;
-        window.LN_V3_STORE.update(function (draft) {
-          draft.studentProfile = next;
-          draft.ui.lastMessage = next.summary || '学生画像已更新。';
-          syncPreview(draft);
-        }, 'studentProfile:update:' + field);
         window.LN_V3_WIZARD.render();
       });
     });

@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha5') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha6') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -33,6 +33,7 @@
     if (window.LN_V3_DEBUG_STEP_FAMILY) results = results.concat(window.LN_V3_DEBUG_STEP_FAMILY.run());
     if (window.LN_V3_DEBUG_STEP_CHILD) results = results.concat(window.LN_V3_DEBUG_STEP_CHILD.run());
     if (window.LN_V3_DEBUG_STEP_SCENARIO) results = results.concat(window.LN_V3_DEBUG_STEP_SCENARIO.run());
+    if (window.LN_V3_DEBUG_STEP_PLANS) results = results.concat(window.LN_V3_DEBUG_STEP_PLANS.run());
     return results;
   }
   function ensureServerSession() {
@@ -41,60 +42,31 @@
   }
   function resetForMainflow() {
     if (window.LN_V3_DEBUG_RUNTIME && window.LN_V3_DEBUG_RUNTIME.clearTrace) window.LN_V3_DEBUG_RUNTIME.clearTrace();
-    trace('开始一键主流程自测', '56548 / 500 / 只看辽宁 / 电气能源 / 家庭路径推荐');
+    trace('开始一键主流程自测', '56548 / 500 / 只看辽宁 / 电气能源 / 推荐场景 / A/B/C方案');
     if (window.LN_V3_STORE && window.LN_V3_STORE.resetDraft) window.LN_V3_STORE.resetDraft();
     window.LN_V3_DATA_CACHE = null;
   }
   function runScenarioMatrix(results) {
     if (!window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_SCENARIO_ADAPTER.matrix) {
-      results.push(check('Step4 家庭路径矩阵依赖存在', false, 'scenario adapter missing'));
+      results.push(check('Step4 场景矩阵依赖存在', false, 'scenario adapter missing'));
       return results;
     }
     var matrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
-    results.push(check('Step4 家庭路径矩阵覆盖路径数', matrix.length >= 5, 'count=' + matrix.length));
+    results.push(check('Step4 场景矩阵覆盖路径数', matrix.length >= 5, 'count=' + matrix.length));
     matrix.forEach(function (item) {
-      results.push(check('Step4 家庭路径矩阵：' + item.name, item.preview && item.preview.recommended === item.expected, JSON.stringify({ expected: item.expected, recommended: item.preview && item.preview.recommended, scores: item.preview && item.preview.scores })));
+      results.push(check('Step4 场景矩阵：' + item.name, item.preview && item.preview.recommended === item.expected, JSON.stringify({ expected: item.expected, recommended: item.preview && item.preview.recommended, scores: item.preview && item.preview.scores })));
     });
     return results;
   }
-
-  function pathmatrix() {
-    var results = quick();
-    results.push(check('分数段策略适配器存在', !!window.LN_V3_SCORE_BAND_STRATEGY));
-    results.push(check('地域偏好适配器存在', !!window.LN_V3_REGION_PREFERENCE));
-    results.push(check('决策上下文适配器存在', !!window.LN_V3_DECISION_CONTEXT));
-    results.push(check('学生画像适配器存在', !!window.LN_V3_STUDENT_PROFILE));
-    results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
-    runScenarioMatrix(results);
-    if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
-      var matrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
-      var highElectric = matrix.find(function (m) { return m.name.indexOf('650+') !== -1; });
-      var lowElectric = matrix.find(function (m) { return m.name.indexOf('470') !== -1; });
-      var softRegion = matrix.find(function (m) { return m.name.indexOf('东北 soft') !== -1; });
-      results.push(check('高分电气不误推单一电网路径', !!(highElectric && highElectric.preview && highElectric.preview.recommended !== 'grid'), JSON.stringify(highElectric && { recommended: highElectric.preview.recommended, scoreBand: highElectric.preview.scoreBand && highElectric.preview.scoreBand.id, reasons: highElectric.preview.reasons })));
-      results.push(check('低分电气优先保底/成本，不被兴趣带偏', !!(lowElectric && lowElectric.preview && (lowElectric.preview.recommended === 'guarantee' || lowElectric.preview.recommended === 'cost_risk')), JSON.stringify(lowElectric && { recommended: lowElectric.preview.recommended, scoreBand: lowElectric.preview.scoreBand && lowElectric.preview.scoreBand.id, reasons: lowElectric.preview.reasons })));
-      results.push(check('地域 soft 表达为偏好而非放弃', !!(softRegion && softRegion.preview && softRegion.preview.regionPreference && softRegion.preview.regionPreference.level === 'preference'), JSON.stringify(softRegion && softRegion.preview && softRegion.preview.regionPreference || {})));
-    }
-    if (window.LN_V3_STUDENT_PROFILE) {
-      var profile = window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' });
-      results.push(check('学生画像只调整提醒不硬筛', profile.hardExclude === false && (profile.reviewTags || []).indexOf('learning_load') !== -1, JSON.stringify(profile)));
-    }
-    if (window.LN_V3_MAJOR_PROFILE) {
-      var rules = window.LN_V3_MAJOR_PROFILE.matchRules('大数据管理与应用');
-      results.push(check('专业画像覆盖大数据易混提醒', rules && rules.length > 0 && rules[0].message.indexOf('不等同于计算机') !== -1, JSON.stringify(rules)));
-    }
-    return results;
-  }
-
   function mainflow() {
     var results = [];
     var started = performance.now();
     resetForMainflow();
     results = results.concat(quick());
-    results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto profile=hot_words'));
+    results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 scenario=auto plans=ABC'));
 
-    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO) {
-      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario missing'));
+    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_STEP_PLANS) {
+      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans missing'));
       return Promise.resolve(results);
     }
     runScenarioMatrix(results);
@@ -154,10 +126,7 @@
       results.push(check('Step2 保存后进入 Step3', afterRoute.ui.activeStep === 'child' && afterRoute.ui.activeTab === 'child', JSON.stringify(afterRoute.ui)));
 
       trace('Step3 选择兴趣方向', '电气能源与自动化 + 电气工程及其自动化');
-      var testProfile = window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {};
-      window.LN_V3_STORE.setState({ studentProfile: testProfile, childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null } }, 'debug-mainflow:child-reset');
-      results.push(check('Step3 学生画像写入且不硬筛', !testProfile.hardExclude && (testProfile.reviewTags || []).indexOf('learning_load') !== -1, JSON.stringify(testProfile)));
-      trace('Step3 学生画像写入', JSON.stringify({ tags: testProfile.tags, reviewTags: testProfile.reviewTags }));
+      window.LN_V3_STORE.setState({ childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null } }, 'debug-mainflow:child-reset');
       window.LN_V3_STEP_CHILD._test.toggleGroup('electric_energy');
       window.LN_V3_STEP_CHILD._test.toggleMajor('electric_energy', '电气工程及其自动化');
       var childState = window.LN_V3_STORE.getState().childPreference || {};
@@ -166,8 +135,6 @@
       results.push(check('Step3 selectedGroups 写入', (childState.selectedGroups || []).some(function (item) { return item.id === 'electric_energy'; }), JSON.stringify(childState.selectedGroups || [])));
       results.push(check('Step3 selectedMajors 写入', (childState.selectedMajors || []).some(function (item) { return item.name === '电气工程及其自动化'; }), JSON.stringify(childState.selectedMajors || [])));
       results.push(check('Step3 兴趣命中预览已生成', !!childPreview.reason, JSON.stringify({ reason: childPreview.reason, familyFilteredRows: childPreview.familyFilteredRows, matchedRows: childPreview.matchedRows, effectiveFilteredRows: childPreview.effectiveFilteredRows })));
-      results.push(check('Step3 专业画像已进入预览', !!(childPreview.majorProfile && childPreview.majorProfile.hardExclude === false), JSON.stringify(childPreview.majorProfile || {})));
-      results.push(check('Step3 画像提醒不改变候选池', Number(childPreview.effectiveFilteredRows || 0) === Number(childPreview.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: childPreview.effectiveFilteredRows, familyFilteredRows: childPreview.familyFilteredRows }))); 
       results.push(check('Step3 可读取当前底线池', Number(childPreview.familyFilteredRows || 0) === Number((preview && preview.filteredPreview) || 0), JSON.stringify({ familyFilteredRows: childPreview.familyFilteredRows, expected: preview && preview.filteredPreview })));
       results.push(check('Step3 电气能源方向有命中', Number(childPreview.matchedRows || 0) > 0, JSON.stringify({ matchedRows: childPreview.matchedRows, sampleMatched: childPreview.sampleMatched || [] })));
       results.push(check('Step3 默认不硬排除', Number(childPreview.effectiveFilteredRows || 0) === Number(childPreview.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: childPreview.effectiveFilteredRows, familyFilteredRows: childPreview.familyFilteredRows })));
@@ -181,24 +148,36 @@
       results.push(check('真实命中模式收窄到 matchedRows', Number(manual.effectiveFilteredRows || 0) === Number(manual.matchedRows || 0), JSON.stringify({ effectiveFilteredRows: manual.effectiveFilteredRows, matchedRows: manual.matchedRows })));
       results.push(check('真实命中后候选少于底线池', Number(manual.effectiveFilteredRows || 0) < Number(manual.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: manual.effectiveFilteredRows, familyFilteredRows: manual.familyFilteredRows })));
 
-      trace('Step4 生成家庭路径推荐', '基于分数段/地域偏好/家庭底线/孩子兴趣');
+      trace('Step4 生成场景推荐', '基于 Step1/2/3 当前状态');
       if (window.LN_V3_ROUTER) window.LN_V3_ROUTER.go('scenario', 'debug-mainflow:to-scenario');
       var scenarioPreview = window.LN_V3_SCENARIO_ADAPTER.recommend(window.LN_V3_STORE.getState());
-      trace('Step4 家庭路径推荐完成', 'recommended=' + scenarioPreview.recommended + ' scoreBand=' + ((scenarioPreview.scoreBand || {}).id || '') + ' region=' + ((scenarioPreview.regionPreference || {}).mode || '') + ' effectiveRows=' + scenarioPreview.effectiveRows);
-      results.push(check('Step4 家庭路径推荐预览已生成', !!scenarioPreview.recommended, JSON.stringify({ recommended: scenarioPreview.recommended, scores: scenarioPreview.scores, explanation: scenarioPreview.explanation })));
-      results.push(check('Step4 读取学生画像与专业画像', !!(scenarioPreview.studentProfile && scenarioPreview.majorProfile), JSON.stringify({ studentProfile: scenarioPreview.studentProfile, majorTags: scenarioPreview.majorProfile && scenarioPreview.majorProfile.tags }))); 
-      results.push(check('Step4 500分辽宁电气路径优先省内公办，B方案承接电气', scenarioPreview.recommended === 'province_public', JSON.stringify({ recommended: scenarioPreview.recommended, reasons: scenarioPreview.reasons })));
+      trace('Step4 推荐完成', 'recommended=' + scenarioPreview.recommended + ' effectiveRows=' + scenarioPreview.effectiveRows);
+      results.push(check('Step4 推荐预览已生成', !!scenarioPreview.recommended, JSON.stringify({ recommended: scenarioPreview.recommended, scores: scenarioPreview.scores, explanation: scenarioPreview.explanation })));
+      results.push(check('Step4 电气路径推荐 grid', scenarioPreview.recommended === 'grid', JSON.stringify({ recommended: scenarioPreview.recommended, reasons: scenarioPreview.reasons })));
       results.push(check('Step4 读取真实命中有效池', Number(scenarioPreview.effectiveRows || 0) === Number(manual.effectiveFilteredRows || 0), JSON.stringify({ effectiveRows: scenarioPreview.effectiveRows, manualRows: manual.effectiveFilteredRows })));
       var appliedScenario = window.LN_V3_STEP_SCENARIO._test.applyRecommended();
       var scenarioState = window.LN_V3_STORE.getState().scenario || {};
       trace('Step4 采用系统建议', 'current=' + scenarioState.current + ' recommended=' + scenarioState.recommended);
       results.push(check('Step4 系统建议写入 store', scenarioState.current === scenarioPreview.recommended, JSON.stringify(scenarioState)));
-      results.push(check('Step4 B方案解释承接兴趣与家庭路径', !!(scenarioState.preview && scenarioState.preview.planTone && scenarioState.preview.planTone.B), JSON.stringify(scenarioState.preview && scenarioState.preview.planTone || {})));
+      results.push(check('Step4 B方案解释权重已生成', !!(scenarioState.preview && scenarioState.preview.planTone && scenarioState.preview.planTone.B), JSON.stringify(scenarioState.preview && scenarioState.preview.planTone || {})));
       var step4Routed = window.LN_V3_STEP_SCENARIO._test.saveAndGoNext('debug-mainflow:scenario-next');
       var finalState = window.LN_V3_STORE.getState();
-      trace('Step4 保存家庭路径并继续', 'routed=' + step4Routed + ' activeStep=' + ((finalState.ui || {}).activeStep || ''));
+      trace('Step4 保存并继续', 'routed=' + step4Routed + ' activeStep=' + ((finalState.ui || {}).activeStep || ''));
       results.push(check('Step4 保存后进入 Step5', finalState.ui.activeStep === 'plans' && finalState.ui.activeTab === 'plans', JSON.stringify(finalState.ui)));
-      results.push(check('主流程最终停在 Step5', finalState.ui.activeStep === 'plans', JSON.stringify(finalState.ui)));
+
+      trace('Step5 生成 A/B/C 方案预览', '基于 Step1/2/3/4 当前状态');
+      var plansPreview = window.LN_V3_STEP_PLANS._test.generate('debug-mainflow:plans-generate');
+      var plansState = window.LN_V3_STORE.getState();
+      var pCounts = plansPreview && plansPreview.counts || {};
+      trace('Step5 方案预览完成', 'A=' + (pCounts.A || 0) + ' B=' + (pCounts.B || 0) + ' C=' + (pCounts.C || 0) + ' effective=' + (plansPreview && plansPreview.effectiveRows || 0));
+      results.push(check('Step5 方案预览已生成', !!(plansPreview && plansPreview.ok), JSON.stringify({ reason: plansPreview && plansPreview.reason, counts: pCounts, effectiveRows: plansPreview && plansPreview.effectiveRows })));
+      results.push(check('Step5 读取真实命中有效池', Number(plansPreview && plansPreview.effectiveRows || 0) === Number(manual.effectiveFilteredRows || 0), JSON.stringify({ planEffectiveRows: plansPreview && plansPreview.effectiveRows, manualRows: manual.effectiveFilteredRows })));
+      results.push(check('Step5 A方案有样例', !!(plansPreview && plansPreview.plans && plansPreview.plans.A && plansPreview.plans.A.sample && plansPreview.plans.A.sample.length > 0), JSON.stringify(plansPreview && plansPreview.plans && plansPreview.plans.A && plansPreview.plans.A.sample && plansPreview.plans.A.sample.slice(0, 2) || [])));
+      results.push(check('Step5 B方案有样例', !!(plansPreview && plansPreview.plans && plansPreview.plans.B && plansPreview.plans.B.sample && plansPreview.plans.B.sample.length > 0), JSON.stringify(plansPreview && plansPreview.plans && plansPreview.plans.B && plansPreview.plans.B.sample && plansPreview.plans.B.sample.slice(0, 2) || [])));
+      results.push(check('Step5 C方案有样例', !!(plansPreview && plansPreview.plans && plansPreview.plans.C && plansPreview.plans.C.sample && plansPreview.plans.C.sample.length > 0), JSON.stringify(plansPreview && plansPreview.plans && plansPreview.plans.C && plansPreview.plans.C.sample && plansPreview.plans.C.sample.slice(0, 2) || [])));
+      results.push(check('Step5 B方案解释承接场景', !!(plansPreview && plansPreview.plans && plansPreview.plans.B && plansPreview.plans.B.tone), JSON.stringify({ tone: plansPreview && plansPreview.plans && plansPreview.plans.B && plansPreview.plans.B.tone, scenario: plansPreview && plansPreview.scenarioName })));
+      results.push(check('Step5 方案写入 store', !!(plansState.plans && plansState.plans.preview && plansState.plans.preview.ok), JSON.stringify(plansState.plans && plansState.plans.preview && plansState.plans.preview.counts || {})));
+      results.push(check('主流程最终停在 Step5', (plansState.ui || {}).activeStep === 'plans', JSON.stringify(plansState.ui)));
       results.push(check('主流程总耗时已记录', Math.round(performance.now() - started) >= 0, Math.round(performance.now() - started) + 'ms'));
       trace('一键主流程自测结束', 'fail=' + (results.filter(function (item) { return !item.ok; }).length));
       return results;
@@ -238,13 +217,11 @@
       if (type === 'mainflow') {
         return mainflow().then(function (results) { return format(type, started, results); });
       }
-      if (type === 'pathmatrix') {
-        return format(type, started, pathmatrix());
-      }
       var results = type === 'family' && window.LN_V3_DEBUG_STEP_FAMILY ? window.LN_V3_DEBUG_STEP_FAMILY.run()
         : (type === 'child' && window.LN_V3_DEBUG_STEP_CHILD ? window.LN_V3_DEBUG_STEP_CHILD.run()
         : (type === 'scenario' && window.LN_V3_DEBUG_STEP_SCENARIO ? window.LN_V3_DEBUG_STEP_SCENARIO.run()
-        : (type === 'full' ? full() : quick())));
+        : (type === 'plans' && window.LN_V3_DEBUG_STEP_PLANS ? window.LN_V3_DEBUG_STEP_PLANS.run()
+        : (type === 'full' ? full() : quick()))));
       return format(type, started, results);
     }
   };

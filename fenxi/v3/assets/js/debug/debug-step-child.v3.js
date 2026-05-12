@@ -14,8 +14,6 @@
       results.push(window.LN_V3_STEP_CHILD ? pass('Step3 渲染模块存在') : fail('Step3 渲染模块存在'));
       results.push(window.LN_V3_CHILD_SEARCH ? pass('专业搜索模块存在') : fail('专业搜索模块存在'));
       results.push(window.LN_V3_CHILD_INTEREST ? pass('child-interest-adapter 存在') : fail('child-interest-adapter 存在'));
-      results.push(window.LN_V3_STUDENT_PROFILE ? pass('student-profile-adapter 存在') : fail('student-profile-adapter 存在'));
-      results.push(window.LN_V3_MAJOR_PROFILE ? pass('major-profile-adapter 存在') : fail('major-profile-adapter 存在'));
       var before = window.LN_V3_STORE.getState();
       try {
         window.LN_V3_STORE.setState({ childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '测试前重置', manualOnly: false, preview: null } }, 'debug:child:reset');
@@ -27,17 +25,6 @@
         results.push(child.selectedMajors.length === 1 && child.selectedMajors[0].name === '电气工程及其自动化' ? pass('selectedMajors 写入 store', JSON.stringify(child.selectedMajors)) : fail('selectedMajors 写入 store', JSON.stringify(child.selectedMajors)));
         results.push(child.weights && child.weights.electric_energy ? pass('weights 已生成', JSON.stringify(child.weights)) : fail('weights 已生成', JSON.stringify(child.weights)));
         results.push(child.summary && child.summary.indexOf('电气能源') !== -1 ? pass('summary 已生成', child.summary) : fail('summary 已生成', child.summary));
-        if (window.LN_V3_STUDENT_PROFILE) {
-          var prof = window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' });
-          results.push(prof.hardExclude === false ? pass('学生画像不做硬筛', JSON.stringify({ tags: prof.tags, reviewTags: prof.reviewTags, hardExclude: prof.hardExclude })) : fail('学生画像不做硬筛', JSON.stringify(prof)));
-          results.push((prof.reviewTags || []).indexOf('learning_load') !== -1 && (prof.reviewTags || []).indexOf('misread_review') !== -1 ? pass('学生画像提醒已生成', prof.summary) : fail('学生画像提醒已生成', JSON.stringify(prof)));
-        }
-        if (window.LN_V3_MAJOR_PROFILE) {
-          var mp = window.LN_V3_MAJOR_PROFILE.profileSelection(window.LN_V3_STORE.getState());
-          results.push(mp && mp.hardExclude === false ? pass('专业画像不做硬筛', JSON.stringify({ tags: mp.tags, evidenceLevel: mp.evidenceLevel })) : fail('专业画像不做硬筛', JSON.stringify(mp)));
-          var animalRules = window.LN_V3_MAJOR_PROFILE.matchRules('动物医学');
-          results.push(animalRules && animalRules.length && animalRules[0].message.indexOf('不是医学门类') !== -1 ? pass('专业易混提醒：动物医学不是医学门类', animalRules[0].message) : fail('专业易混提醒：动物医学不是医学门类', JSON.stringify(animalRules)));
-        }
         var preview = child.preview || {};
         var recCount = recordsCount();
         results.push(preview.reason ? pass('兴趣命中预览已生成', JSON.stringify({ reason: preview.reason, familyFilteredRows: preview.familyFilteredRows, matchedRows: preview.matchedRows, effectiveFilteredRows: preview.effectiveFilteredRows })) : fail('兴趣命中预览已生成', JSON.stringify(preview)));
@@ -60,7 +47,7 @@
           results.push(pass('manualOnly 等待 Step1/Step2 数据', '当前没有 records，不做真实命中强校验'));
         }
       } finally {
-        window.LN_V3_STORE.setState({ childPreference: before.childPreference, studentProfile: before.studentProfile, ui: before.ui, compute: before.compute }, 'debug:child:restore');
+        window.LN_V3_STORE.setState({ childPreference: before.childPreference, ui: before.ui, compute: before.compute }, 'debug:child:restore');
         var restored = window.LN_V3_STORE.getState();
         var restoredChild = restored.childPreference || {};
         var beforeHadChoice = (before.childPreference.selectedGroups || []).length > 0 || (before.childPreference.selectedMajors || []).length > 0 || before.childPreference.mode === 'unknown';
