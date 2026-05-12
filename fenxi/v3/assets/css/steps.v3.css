@@ -324,3 +324,36 @@
 .plan-empty { border: 1px dashed rgba(148,120,82,.25); border-radius: 16px; padding: 12px; color: var(--v3-muted); background: #fffdf8; }
 @media (max-width: 1100px) { .plans-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } .plan-package-grid { grid-template-columns: 1fr; } }
 @media (max-width: 680px) { .plans-overview { grid-template-columns: 1fr; } }
+
+/* alpha7 detailed candidates */
+.candidates-overview strong { font-variant-numeric: tabular-nums; }
+.candidate-group { margin-top: 18px; }
+.candidate-group h3 { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+.candidate-group h3 small { color: var(--v3-muted); font-weight:500; }
+.candidate-card-list { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
+.candidate-detail-card { background:#fff; border:1px solid rgba(148, 163, 184, .28); border-radius:18px; padding:14px; box-shadow:0 10px 22px rgba(15, 23, 42, .05); }
+.candidate-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.candidate-card-top h3 { margin:6px 0 2px; font-size:17px; }
+.candidate-card-top p { margin:0; color:var(--v3-ink); font-weight:650; line-height:1.45; }
+.v3-btn.small { padding:7px 10px; border-radius:999px; font-size:13px; white-space:nowrap; }
+.plan-pill { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; background:#f1f5f9; color:#475569; }
+.plan-pill.plan-A { background:#fff7ed; color:#9a3412; }
+.plan-pill.plan-B { background:#ecfdf5; color:#047857; }
+.plan-pill.plan-C { background:#eef2ff; color:#4338ca; }
+.candidate-facts { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.candidate-facts span, .candidate-tags span, .candidate-evidence span, .candidate-evidence b { display:inline-flex; border-radius:999px; padding:4px 8px; background:#f8fafc; border:1px solid rgba(148, 163, 184, .25); font-size:12px; color:#475569; }
+.candidate-one-line { margin:8px 0; color:#334155; line-height:1.6; }
+.candidate-evidence { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.candidate-evidence b { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+.candidate-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.candidate-tags span { background:#fff1f2; color:#9f1239; border-color:#ffe4e6; }
+.candidate-detail-more { margin-top:10px; background:#f8fafc; border-radius:14px; padding:10px 12px; }
+.candidate-detail-more summary { cursor:pointer; font-weight:700; color:#475569; }
+.candidate-detail-more ul { margin:8px 0 0 18px; color:#475569; line-height:1.7; }
+.candidate-detail-more p { margin:8px 0 0; color:#64748b; }
+.shortlist-panel { border:1px solid rgba(14, 165, 233, .18); background:#f8fbff; border-radius:18px; padding:14px; }
+.shortlist-mini-list { display:grid; gap:8px; }
+.shortlist-mini-list div { display:flex; align-items:center; gap:10px; justify-content:space-between; background:#fff; border:1px solid rgba(148, 163, 184, .22); border-radius:14px; padding:10px 12px; }
+.shortlist-mini-list span { flex:1; color:#475569; }
+.link-btn { border:0; background:transparent; color:#2563eb; cursor:pointer; font-weight:700; }
+@media (max-width: 760px) { .candidate-card-list { grid-template-columns: 1fr; } .candidate-card-top { flex-direction:column; } .v3-btn.small { align-self:flex-start; } }
