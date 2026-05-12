@@ -59,6 +59,10 @@
     }
     if (region.mode === 'hard') {
       scores.province_public += 14;
+      if (band.id === '500_549' || band.id === '550_589') {
+        scores.province_public += 10;
+        reasons.push('当前分数段遇到地域硬底线时，省内公办稳妥应压住普通就业叙事，孩子兴趣和就业画像进入 B 方案解释。');
+      }
       scores.guarantee += (band.id === '450_499' || band.id === '367_449') ? 8 : 0;
       reasons.push('地域是硬底线，后续优先在目标地区内解释方案。');
     } else if (region.mode === 'soft') {
@@ -81,8 +85,9 @@
       reasons.push('学生画像提示学习强度需复核：后续详细卡片会把强数学、强代码、长周期方向前置提醒。');
     }
     if (prefTags.indexOf('work_first') !== -1) {
-      scores.employment += 8;
-      reasons.push('学生画像偏本科就业：场景解释会优先复核本科出口，不把读研依赖当作默认前提。');
+      var workBoost = (region.mode === 'hard' && (band.id === '500_549' || band.id === '550_589')) ? 3 : 8;
+      scores.employment += workBoost;
+      reasons.push('学生画像偏本科就业：场景解释会优先复核本科出口，但不盖过当前分数段和家庭地域底线。');
     }
     if (reviewTags.indexOf('misread_review') !== -1) {
       scores.cost_risk += 5;
