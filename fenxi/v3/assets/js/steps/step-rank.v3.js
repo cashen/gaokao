@@ -69,7 +69,7 @@
       },
       compute: { waitDataMs: result.ms || 0, lastReason: 'v3-step1-load-data' }
     }, 'rank:data-loaded');
-    window.LN_V3_STORE.markComplete('rank', 'rank:complete');
+    if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('rank', 'rank:complete-through'); else window.LN_V3_STORE.markComplete('rank', 'rank:complete');
     if (shouldNext) window.LN_V3_ROUTER.go('family', 'rank:next-after-load');
     else if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
   }

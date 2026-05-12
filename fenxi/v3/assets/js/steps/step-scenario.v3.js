@@ -64,7 +64,7 @@
     var preview = current && state.scenario.preview ? state.scenario.preview : null;
     if (!current) preview = window.LN_V3_SCENARIO_ADAPTER.applyRecommended(source || 'next-default');
     else preview = window.LN_V3_SCENARIO_ADAPTER.applyScenario(current, source || 'next-current');
-    window.LN_V3_STORE.markComplete('scenario', 'scenario:complete');
+    if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('scenario', 'scenario:complete-through'); else window.LN_V3_STORE.markComplete('scenario', 'scenario:complete');
     window.LN_V3_STORE.setState({ ui: { lastMessage: '家庭路径已保存：' + (preview && preview.selectedName ? preview.selectedName : '已选择') + '，进入 A/B/C 方案。' } }, 'scenario:next-message');
     if (window.LN_V3_ROUTER) return window.LN_V3_ROUTER.go('plans', 'scenario:next');
     return false;

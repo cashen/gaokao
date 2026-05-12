@@ -133,6 +133,8 @@
       exportReport: { preview: preview, markdown: preview.markdown, generatedAt: preview.generatedAt, summary: preview.summary },
       ui: { lastMessage: preview.summary }
     }, reason || 'export-report:apply');
+    if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', (reason || 'export-report') + ':complete-through');
+    else if (window.LN_V3_STORE.markComplete) window.LN_V3_STORE.markComplete('export', (reason || 'export-report') + ':complete');
     return preview;
   }
   function copy(textValue) {

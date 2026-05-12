@@ -31,6 +31,7 @@
   state = normalizeState(state);
   if (window.LN_V3_STORAGE) window.LN_V3_STORAGE.set('state', state);
   var subscribers = [];
+  var stepOrder = ['rank', 'family', 'child', 'scenario', 'plans', 'candidates', 'export'];
 
   function isObject(value) { return value && typeof value === 'object' && !Array.isArray(value); }
   function merge(base, patch) {
@@ -93,6 +94,22 @@
     var list = state.ui.completedSteps || [];
     if (list.indexOf(stepId) === -1) state.ui.completedSteps = list.concat(stepId);
   }
+  function markCompleteThrough(stepId) {
+    var index = stepOrder.indexOf(stepId);
+    if (index < 0) { markComplete(stepId); return; }
+    var current = state.ui.completedSteps || [];
+    var next = current.slice();
+    stepOrder.slice(0, index + 1).forEach(function (id) {
+      if (next.indexOf(id) === -1) next.push(id);
+    });
+    state.ui.completedSteps = next;
+  }
+  function isCompleteThrough(stepId) {
+    var index = stepOrder.indexOf(stepId);
+    if (index < 0) return false;
+    var list = state.ui.completedSteps || [];
+    return stepOrder.slice(0, index + 1).every(function (id) { return list.indexOf(id) !== -1; });
+  }
 
   window.LN_V3_STORE = {
     getState: function () { return clone(state); },
@@ -117,6 +134,14 @@
       markComplete(stepId);
       notify(reason || 'markComplete');
     },
+    markCompleteThrough: function (stepId, reason) {
+      markCompleteThrough(stepId);
+      notify(reason || 'markCompleteThrough');
+    },
+    isCompleteThrough: function (stepId) {
+      return isCompleteThrough(stepId);
+    },
+    stepOrder: stepOrder.slice(),
     subscribe: function (handler) {
       subscribers.push(handler);
       return function () { subscribers = subscribers.filter(function (fn) { return fn !== handler; }); };

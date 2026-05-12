@@ -301,7 +301,7 @@
     root.querySelector('[data-child-save]').addEventListener('click', function () {
       var state = window.LN_V3_STORE.getState();
       if (state.childPreference.mode === 'unset') setUnknown();
-      window.LN_V3_STORE.markComplete('child', 'child:complete');
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('child', 'child:complete-through'); else window.LN_V3_STORE.markComplete('child', 'child:complete');
       window.LN_V3_ROUTER.go('scenario', 'child:next');
     });
   }

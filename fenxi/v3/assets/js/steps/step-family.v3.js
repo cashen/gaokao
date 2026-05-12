@@ -157,7 +157,7 @@
       }
     }, shouldNext ? 'family:save-next' : 'family:preview');
     if (shouldNext) {
-      window.LN_V3_STORE.markComplete('family', 'family:complete');
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('family', 'family:complete-through'); else window.LN_V3_STORE.markComplete('family', 'family:complete');
       return goChildWithFallback('family:save-next');
     }
     if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();

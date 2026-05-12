@@ -62,7 +62,7 @@
   function bind(root) {
     root.querySelector('[data-plans-next]').addEventListener('click', function () {
       if (window.LN_V3_PLANS_ADAPTER) window.LN_V3_PLANS_ADAPTER.apply('plans:next-apply');
-      window.LN_V3_STORE.markComplete('plans', 'plans:complete');
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('plans', 'plans:complete-through'); else window.LN_V3_STORE.markComplete('plans', 'plans:complete');
       window.LN_V3_ROUTER.go('candidates', 'plans:next');
     });
     root.querySelector('[data-plans-refresh]').addEventListener('click', function () {

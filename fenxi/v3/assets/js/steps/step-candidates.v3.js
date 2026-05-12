@@ -107,7 +107,7 @@
       window.LN_V3_WIZARD.render();
     });
     root.querySelector('[data-candidates-next]').addEventListener('click', function () {
-      window.LN_V3_STORE.markComplete('candidates', 'candidates:complete');
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('candidates', 'candidates:complete-through'); else window.LN_V3_STORE.markComplete('candidates', 'candidates:complete');
       window.LN_V3_ROUTER.go('export', 'candidates:next');
     });
   }

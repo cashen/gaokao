@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha9') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha9.fix1') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -69,6 +69,7 @@
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
+    results.push(check('进度闭环方法存在', !!(window.LN_V3_STORE && window.LN_V3_STORE.markCompleteThrough && window.LN_V3_STORE.isCompleteThrough)));
     runScenarioMatrix(results);
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var antiRegressionMatrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
@@ -186,6 +187,7 @@
       results.push(check('Step3 可读取当前底线池', Number(childPreview.familyFilteredRows || 0) === Number((preview && preview.filteredPreview) || 0), JSON.stringify({ familyFilteredRows: childPreview.familyFilteredRows, expected: preview && preview.filteredPreview })));
       results.push(check('Step3 电气能源方向有命中', Number(childPreview.matchedRows || 0) > 0, JSON.stringify({ matchedRows: childPreview.matchedRows, sampleMatched: childPreview.sampleMatched || [] })));
       results.push(check('Step3 默认不硬排除', Number(childPreview.effectiveFilteredRows || 0) === Number(childPreview.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: childPreview.effectiveFilteredRows, familyFilteredRows: childPreview.familyFilteredRows })));
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('child', 'debug-mainflow:child-complete-through');
 
       trace('Step3 开启真实命中', 'manualOnly=true');
       window.LN_V3_STEP_CHILD._test.toggleManualOnly();
@@ -211,6 +213,7 @@
       results.push(check('Step4 系统建议写入 store', scenarioState.current === scenarioPreview.recommended, JSON.stringify(scenarioState)));
       results.push(check('Step4 B方案解释承接兴趣与家庭路径', !!(scenarioState.preview && scenarioState.preview.planTone && scenarioState.preview.planTone.B), JSON.stringify(scenarioState.preview && scenarioState.preview.planTone || {})));
       var step4Routed = window.LN_V3_STEP_SCENARIO._test.saveAndGoNext('debug-mainflow:scenario-next');
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('scenario', 'debug-mainflow:scenario-complete-through');
       var finalState = window.LN_V3_STORE.getState();
       trace('Step4 保存家庭路径并继续', 'routed=' + step4Routed + ' activeStep=' + ((finalState.ui || {}).activeStep || ''));
       results.push(check('Step4 保存后进入 Step5', finalState.ui.activeStep === 'plans' && finalState.ui.activeTab === 'plans', JSON.stringify(finalState.ui)));
@@ -228,6 +231,7 @@
       results.push(check('Step5 B方案承接兴趣/画像/家庭路径', !!(plans.B && /兴趣|画像|路径/.test((plans.B.tone || '') + ' ' + (plans.B.role || '') + ' ' + (plans.B.focus || []).join(','))), JSON.stringify(plans.B || {})));
       results.push(check('Step5 样例卡片带证据等级和复核项', !!(plans.B && plans.B.samples && plans.B.samples[0] && plans.B.samples[0].evidenceLevel), JSON.stringify(plans.B && plans.B.samples && plans.B.samples[0] || {})));
       results.push(check('Step5 方案写入 store', !!(planState.plans && planState.plans.preview && planState.plans.preview.reason === 'v3-plans-preview-only'), JSON.stringify(planState.plans && planState.plans.meta || {})));
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('plans', 'debug-mainflow:plans-complete-through');
 
       trace('Step6 生成详细候选卡片', '从 A/B/C 方案包生成可复核卡片');
       if (window.LN_V3_ROUTER) window.LN_V3_ROUTER.go('candidates', 'debug-mainflow:to-candidates');
@@ -255,6 +259,7 @@
       var removeOk = window.LN_V3_CANDIDATES_ADAPTER.remove(bCard.key);
       var afterRemove = window.LN_V3_STORE.getState();
       results.push(check('Step6 自选池可移出候选', removeOk && !(((afterRemove.shortlist || {}).items || []).some(function (item) { return item.key === bCard.key; })), JSON.stringify((afterRemove.shortlist || {}).items || [])));
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('candidates', 'debug-mainflow:candidates-complete-through');
 
       trace('Step7 生成家庭讨论报告', '把 Step1-Step6 的选择过程整理为 Markdown');
       if (window.LN_V3_ROUTER) window.LN_V3_ROUTER.go('export', 'debug-mainflow:to-export');
@@ -265,7 +270,11 @@
       results.push(check('Step7 报告包含家庭处境与决策日志', /当前家庭决策处境/.test(reportText) && /决策日志/.test(reportText), reportText.slice(0, 220)));
       results.push(check('Step7 报告包含 A\/B\/C 与详细卡片摘要', /A\/B\/C 方案包/.test(reportText) && /沈阳航空航天大学|辽宁工程技术大学|详细卡片/.test(reportText), 'length=' + reportText.length));
       results.push(check('Step7 报告包含自选池与条件变化对照', /自选池/.test(reportText) && /条件变化对照/.test(reportText), 'counterfactual=' + (reportPreview && reportPreview.counterfactualCount)));
+      if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', 'debug-mainflow:export-complete-through');
       var finalAfterExport = window.LN_V3_STORE.getState();
+      var done = (finalAfterExport.ui && finalAfterExport.ui.completedSteps) || [];
+      var expectedDone = ['rank','family','child','scenario','plans','candidates','export'];
+      results.push(check('Step7 进度闭环完整', expectedDone.every(function (id) { return done.indexOf(id) !== -1; }), JSON.stringify(done)));
       results.push(check('主流程最终停在导出页', finalAfterExport.ui.activeStep === 'export' && finalAfterExport.ui.activeTab === 'export', JSON.stringify(finalAfterExport.ui)));
       results.push(check('主流程总耗时已记录', Math.round(performance.now() - started) >= 0, Math.round(performance.now() - started) + 'ms'));
       trace('一键主流程自测结束', 'fail=' + (results.filter(function (item) { return !item.ok; }).length));
