@@ -1,135 +1,137 @@
 (function () {
   'use strict';
   var SCENARIOS = [
-    { id: 'employment', name: '就业优先', shortName: '就业', desc: '优先看就业解释清楚、路径相对明确、家长容易判断的方向。' },
-    { id: 'grid', name: '电网 / 体制内倾向', shortName: '电网', desc: '适合电气、能源、自动化等方向，重点看稳定行业和区域机会。' },
-    { id: 'exam', name: '考研深造', shortName: '考研', desc: '更重视学科基础、读研空间和长期转向余地。' },
-    { id: 'broad', name: '宽口径稳妥', shortName: '宽口径', desc: '兴趣暂不明确或候选仍偏多时，先保留更多后续调整空间。' }
+    { id: 'platform', name: '平台优先', shortName: '平台', desc: '高分段优先比较学校平台、城市资源、长期成长和读研空间。' },
+    { id: 'major', name: '强专业优先', shortName: '专业', desc: '优先看专业质量、学科基础和未来路径，不只看学校名气。' },
+    { id: 'province_public', name: '省内公办稳妥', shortName: '省内公办', desc: '适合普通家庭先守住地域、公办、费用和可接受度。' },
+    { id: 'employment', name: '普通家庭就业路径', shortName: '就业', desc: '优先把专业方向、毕业去向和家庭能理解的路径讲清楚。' },
+    { id: 'grid', name: '电网 / 能源稳定路径', shortName: '电网', desc: '适合中段家庭观察电气、能源、自动化等稳定行业机会。' },
+    { id: 'exam', name: '考研深造路径', shortName: '考研', desc: '更重视学科基础、读研空间、长期转向余地。' },
+    { id: 'broad', name: '宽口径比较路径', shortName: '宽口径', desc: '地域或兴趣暂不锁死，先保留更多比较空间。' },
+    { id: 'guarantee', name: '真实保底路径', shortName: '保底', desc: '低分段优先确认本科机会、成本、学校性质和安全垫。' },
+    { id: 'cost_risk', name: '成本风险控制', shortName: '成本', desc: '重点防高收费、性质误判、专业名误认和家庭承受风险。' }
   ];
   var NAMES = SCENARIOS.reduce(function (acc, item) { acc[item.id] = item.name; return acc; }, {});
-  function num(v) { return Number(v || 0); }
-  function ids(list) { return (list || []).map(function (item) { return typeof item === 'string' ? item : item.id; }).filter(Boolean); }
-  function has(list, id) { return list.indexOf(id) !== -1; }
+  function has(list, id) { return (list || []).indexOf(id) !== -1; }
   function top(scores) {
-    var winner = 'broad';
-    Object.keys(scores).forEach(function (id) {
-      if (scores[id] > scores[winner]) winner = id;
-    });
+    var winner = Object.keys(scores)[0] || 'broad';
+    Object.keys(scores).forEach(function (id) { if (scores[id] > scores[winner]) winner = id; });
     return winner;
   }
   function contextFromState(state) {
-    state = state || (window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {});
-    var rank = state.rank || {};
-    var family = state.family || {};
-    var child = state.childPreference || {};
-    var preview = child.preview || {};
-    var groupIds = ids(child.selectedGroups || []);
-    var selectedMajorNames = (child.selectedMajors || []).map(function (item) { return item.name || ''; }).filter(Boolean);
-    var basePool = num(rank.loadedRows);
-    var familyRows = num(preview.familyFilteredRows || (family.preview && family.preview.filteredPreview) || (state.compute && state.compute.filtered) || rank.loadedRows);
-    var matchedRows = num(preview.matchedRows);
-    var effectiveRows = child.manualOnly ? num(preview.effectiveFilteredRows || matchedRows) : familyRows;
-    var bigPool = !!((family.preview && family.preview.bigPool) || (preview && preview.bigPool) || familyRows > 5000);
-    var hasInterest = groupIds.length > 0 || selectedMajorNames.length > 0;
-    return {
-      basePool: basePool,
-      familyRows: familyRows,
-      matchedRows: matchedRows,
-      effectiveRows: effectiveRows,
-      bigPool: bigPool,
-      manualOnly: !!child.manualOnly,
-      mode: child.mode || 'unset',
-      hasInterest: hasInterest,
-      groupIds: groupIds,
-      selectedMajorNames: selectedMajorNames,
-      family: family,
-      child: child
-    };
+    if (window.LN_V3_DECISION_CONTEXT) return window.LN_V3_DECISION_CONTEXT.build(state);
+    return { band: { id: '500_549', label: '500–549 家庭底线主导段' }, region: { mode: 'none', label: '全国都可比较' }, groupIds: [], selectedMajors: [], basePool: 0, familyRows: 0, matchedRows: 0, effectiveRows: 0, manualOnly: false, hasInterest: false, bigPool: false, childMode: 'unset' };
+  }
+  function initScores() {
+    return { platform: 30, major: 30, province_public: 30, employment: 30, grid: 22, exam: 28, broad: 34, guarantee: 22, cost_risk: 20 };
   }
   function score(ctx) {
-    var scores = { employment: 42, grid: 35, exam: 36, broad: 44 };
+    var scores = initScores();
     var reasons = [];
-    if (!ctx.hasInterest || ctx.mode === 'unknown') {
-      scores.broad += 28;
-      reasons.push('孩子兴趣暂不明确，先用宽口径稳妥路径。');
+    var band = ctx.band || { id: '500_549' };
+    var region = ctx.region || { mode: 'none' };
+    if (band.id === '625_plus') {
+      scores.platform += 48; scores.major += 28; scores.exam += 16; scores.grid -= 8; scores.guarantee -= 10;
+      reasons.push('当前属于高分平台段，优先比较平台、专业上限、城市和深造空间。');
+    } else if (band.id === '590_624') {
+      scores.platform += 22; scores.major += 30; scores.employment += 10; scores.exam += 8;
+      reasons.push('当前属于学校专业平衡段，重点处理层级和专业质量的取舍。');
+    } else if (band.id === '550_589') {
+      scores.province_public += 20; scores.employment += 22; scores.major += 12;
+      reasons.push('当前进入公办路径段，先看地域、公办、专业方向和就业路径是否讲得通。');
+    } else if (band.id === '500_549') {
+      scores.province_public += 24; scores.employment += 18; scores.broad += 8;
+      reasons.push('当前是家庭底线主导段，先把地域、费用和公办范围讲清楚，再看兴趣命中。');
+    } else if (band.id === '450_499') {
+      scores.guarantee += 38; scores.cost_risk += 28; scores.province_public += 18; scores.grid -= 6;
+      reasons.push('当前是低分保底与风险段，优先确认保底真实性、费用和学校性质。');
+    } else if (band.id === '367_449') {
+      scores.guarantee += 64; scores.cost_risk += 34; scores.broad += 8; scores.grid -= 10; scores.platform -= 12;
+      reasons.push('当前接近本科机会边缘，先看本科机会、成本和兜底路径。');
+    }
+    if (!ctx.hasInterest || ctx.childMode === 'unknown') {
+      scores.broad += 22;
+      reasons.push('孩子兴趣暂不明确，先保留宽口径，避免过早锁死。');
     }
     if (ctx.bigPool) {
       scores.broad += 14;
-      reasons.push('当前候选仍偏多，宽口径路径更利于继续收窄。');
+      reasons.push('当前候选仍偏多，需要用宽口径比较或继续收窄底线。');
+    }
+    if (region.mode === 'hard') {
+      scores.province_public += 14;
+      scores.guarantee += (band.id === '450_499' || band.id === '367_449') ? 8 : 0;
+      reasons.push('地域是硬底线，后续优先在目标地区内解释方案。');
+    } else if (region.mode === 'soft') {
+      scores.broad += 12; scores.employment += 5; scores.platform += (band.id === '625_plus' || band.id === '590_624') ? 6 : 0;
+      reasons.push('地域是偏好不是硬筛，保留外部参照空间不等于放弃目标地区。');
+    } else {
+      scores.platform += (band.id === '625_plus' || band.id === '590_624') ? 8 : 0;
+      scores.broad += 8;
+      reasons.push('地域目前开放，适合先比较平台、专业和成本，再决定是否收窄。');
     }
     if (ctx.manualOnly && ctx.matchedRows > 0) {
-      scores.employment += 7;
-      reasons.push('已开启真实命中，后续场景可以围绕兴趣命中池解释。');
+      scores.employment += 6; scores.major += 6;
+      reasons.push('已开启真实命中，后续可以围绕兴趣命中池解释，但不代表兴趣权重高于家庭路径。');
     }
     if (has(ctx.groupIds, 'electric_energy')) {
-      scores.grid += 46;
-      scores.employment += 12;
-      reasons.push('孩子偏电气能源与自动化，适合优先观察电网/稳定行业路径。');
-    }
-    if (has(ctx.groupIds, 'electronic_comm')) {
-      scores.employment += 20;
-      scores.grid += 8;
-      reasons.push('电子信息与通信更适合先按就业路径解释。');
+      if (band.id === '625_plus') { scores.major += 14; scores.platform += 10; scores.grid += 6; reasons.push('高分段的电气兴趣应进入强专业/平台比较，不宜直接降成单一电网路径。'); }
+      else if (band.id === '590_624') { scores.major += 16; scores.grid += 18; scores.employment += 8; reasons.push('电气兴趣可作为专业路径重点，同时保留学校层级比较。'); }
+      else if (band.id === '550_589' || band.id === '500_549') { scores.grid += 34; scores.employment += 10; reasons.push('中段家庭偏电气能源时，可以把稳定行业路径作为重点解释。'); }
+      else { scores.grid += 6; scores.guarantee += 8; scores.cost_risk += 4; reasons.push('低分段偏电气时，先确认是否有真实可接受机会，再谈稳定行业想象。'); }
     }
     if (has(ctx.groupIds, 'computer_ai')) {
-      scores.employment += 24;
-      scores.broad += 5;
-      reasons.push('计算机与人工智能更适合先看就业和能力成长路径。');
+      if (band.id === '625_plus' || band.id === '590_624') { scores.major += 18; scores.platform += 12; }
+      else if (band.id === '450_499' || band.id === '367_449') { scores.cost_risk += 10; scores.guarantee += 8; }
+      else scores.employment += 24;
+      reasons.push('计算机兴趣要结合分数段判断：高分看平台专业，低分先防成本和误认。');
     }
-    if (has(ctx.groupIds, 'mechanical_instrument')) {
-      scores.employment += 12;
-      scores.grid += 6;
-      reasons.push('机械、车辆与智能制造可按传统工科就业路径观察。');
-    }
-    if (has(ctx.groupIds, 'medicine_health') || has(ctx.groupIds, 'science_material')) {
-      scores.exam += 25;
-      reasons.push('医学、理学基础或新材料方向培养周期较长，建议关注读研深造路径。');
-    }
-    if (has(ctx.groupIds, 'law_human_edu')) {
-      scores.exam += 12;
-      scores.broad += 10;
-      reasons.push('法学、人文与教育往往更依赖长期积累和考试路径。');
+    if (has(ctx.groupIds, 'science_material') || has(ctx.groupIds, 'medicine_health')) {
+      scores.exam += 25; scores.major += 8;
+      reasons.push('理学、医学、新材料等培养周期更长，需要关注深造和学科基础。');
     }
     if (has(ctx.groupIds, 'agri_animal_food')) {
-      scores.exam += 11;
-      scores.employment += 8;
-      reasons.push('农学、动物医学与食品需要结合行业场景和深造路径一起看。');
-    }
-    if (has(ctx.groupIds, 'finance_manage')) {
-      scores.employment += 12;
-      scores.broad += 8;
-      reasons.push('经济管理金融方向竞争差异较大，先兼顾就业与宽口径。');
-    }
-    if (ctx.familyRows > 0 && ctx.familyRows <= 1800 && ctx.hasInterest) {
-      scores.employment += 4;
-      scores.grid += has(ctx.groupIds, 'electric_energy') ? 5 : 0;
-      reasons.push('家庭底线池已经收窄，可以进入更具体的场景解释。');
+      scores.employment += 10; scores.exam += 10; scores.cost_risk += (band.id === '450_499' || band.id === '367_449') ? 6 : 0;
+      reasons.push('农学、动物医学与食品要同时看行业路径、深造空间和地域机会。');
     }
     var recommended = top(scores);
-    if (!reasons.length) reasons.push('信息还不充分，先按宽口径稳妥路径进入下一步。');
-    return { scores: scores, recommended: recommended, reasons: reasons };
+    return { scores: scores, recommended: recommended, reasons: reasons.slice(0, 6) };
   }
   function explain(id, ctx, scored) {
     var name = NAMES[id] || id;
-    if (id === 'grid') return '推荐“' + name + '”：孩子偏电气/能源/自动化时，这条路径最容易把兴趣、稳定就业和家庭可接受度讲清楚。';
-    if (id === 'employment') return '推荐“' + name + '”：优先把专业方向和毕业后的实际路径讲清楚，适合多数家庭先看 B 方案。';
+    var bandText = ctx.band && ctx.band.label ? ctx.band.label : '当前分数段';
+    if (id === 'platform') return '推荐“' + name + '”：' + bandText + '更应该先比较学校平台、城市资源和长期成长，不要过早被单一就业叙事锁死。';
+    if (id === 'major') return '推荐“' + name + '”：当前更需要把专业质量、学科基础和孩子是否能长期投入讲清楚。';
+    if (id === 'province_public') return '推荐“' + name + '”：家庭底线和地域接受度已经是主线，先在可接受范围内看稳妥组合。';
+    if (id === 'employment') return '推荐“' + name + '”：优先把专业方向和毕业后的实际路径讲清楚，适合多数普通家庭先看 B 方案。';
+    if (id === 'grid') return '推荐“' + name + '”：只在当前分数段和兴趣命中都适合时，把电气/能源/自动化的稳定路径作为重点解释。';
     if (id === 'exam') return '推荐“' + name + '”：这些方向更看重学科基础和继续深造，适合把读研空间放在前面。';
-    return '推荐“' + name + '”：当前兴趣或限制还不够明确，先保留宽口径，避免过早把机会锁死。';
+    if (id === 'guarantee') return '推荐“' + name + '”：当前更应该先确认本科机会、成本和安全垫是否真实。';
+    if (id === 'cost_risk') return '推荐“' + name + '”：当前要把高收费、学校性质、专业名误认和家庭成本放在前面复核。';
+    return '推荐“' + name + '”：当前兴趣或地域限制还不够明确，先保留比较空间，避免过早锁死。';
   }
   function planTone(id, ctx) {
-    if (id === 'grid') return { A: '适度看层级和专业弹性', B: '重点看电气/自动化命中、区域和稳定路径', C: '保底不牺牲安全垫' };
-    if (id === 'employment') return { A: '看可解释的就业路径', B: '重点看兴趣命中与岗位方向', C: '保留就业相对清楚的安全选择' };
-    if (id === 'exam') return { A: '看学科基础和学校平台', B: '重点看读研路径与专业基础', C: '安全垫优先，避免过窄专业' };
-    return { A: '少量保留冲击机会', B: '稳妥主线先不锁死', C: '先保证录取安全和家庭可接受' };
+    var abc = (ctx.band && ctx.band.abc) || { A: '守底线', B: '孩子路径', C: '上限比较' };
+    if (id === 'province_public') return { A: abc.A, B: '在省内公办底线内兼顾孩子兴趣和可就业路径', C: abc.C };
+    if (id === 'grid') return { A: abc.A, B: '重点看电气/自动化真实命中、区域和稳定路径', C: abc.C };
+    if (id === 'guarantee') return { A: '真实保底和成本底线', B: '可读专业路径', C: '兜底和替代路径复核' };
+    if (id === 'platform') return { A: '稳妥强校或强平台', B: '强专业与长期成长路径', C: '平台上限与城市资源' };
+    return { A: abc.A, B: abc.B, C: abc.C };
+  }
+  function visibleScenarios(ctx) {
+    var ids;
+    if (ctx.band && ctx.band.id === '625_plus') ids = ['platform', 'major', 'exam', 'broad'];
+    else if (ctx.band && ctx.band.id === '590_624') ids = ['major', 'platform', 'employment', 'exam', 'broad'];
+    else if (ctx.band && (ctx.band.id === '450_499' || ctx.band.id === '367_449')) ids = ['guarantee', 'cost_risk', 'province_public', 'broad'];
+    else ids = ['province_public', 'employment', 'grid', 'major', 'broad'];
+    return SCENARIOS.filter(function (s) { return ids.indexOf(s.id) !== -1; });
   }
   function preview(state, forcedId) {
     var ctx = contextFromState(state);
     var scored = score(ctx);
     var selected = forcedId || ((state && state.scenario && state.scenario.current) || scored.recommended);
-    var rowsForNext = ctx.manualOnly && ctx.matchedRows > 0 ? ctx.matchedRows : ctx.familyRows;
     var out = {
       ok: true,
-      reason: 'v3-scenario-preview-only',
+      reason: 'v3-family-path-preview-only',
       recommended: scored.recommended,
       recommendedName: NAMES[scored.recommended] || scored.recommended,
       selected: selected,
@@ -138,18 +140,22 @@
       basePool: ctx.basePool,
       familyFilteredRows: ctx.familyRows,
       matchedRows: ctx.matchedRows,
-      effectiveRows: rowsForNext,
+      effectiveRows: ctx.manualOnly && ctx.matchedRows > 0 ? ctx.matchedRows : ctx.familyRows,
       manualOnly: ctx.manualOnly,
       hasInterest: ctx.hasInterest,
       bigPool: ctx.bigPool,
       groupIds: ctx.groupIds,
-      selectedMajors: ctx.selectedMajorNames,
+      selectedMajors: ctx.selectedMajors,
+      scoreBand: ctx.band,
+      regionPreference: ctx.region,
+      visibleScenarioIds: visibleScenarios(ctx).map(function (s) { return s.id; }),
       explanation: explain(scored.recommended, ctx, scored),
       selectedExplanation: explain(selected, ctx, scored),
-      reasons: scored.reasons.slice(0, 4),
+      reasons: scored.reasons,
       planTone: planTone(selected, ctx),
-      bPlanBoost: ctx.hasInterest ? (selected === 'grid' ? 1.2 : 1.1) : 1,
-      summary: '建议优先看“' + (NAMES[scored.recommended] || scored.recommended) + '”，下一步 B 方案会按这个场景调整解释重点。'
+      bPlanBoost: ctx.hasInterest ? 1.1 : 1,
+      cardFocus: (ctx.band && ctx.band.cardFocus) || [],
+      summary: '建议优先看“' + (NAMES[scored.recommended] || scored.recommended) + '”。' + (ctx.region && ctx.region.display ? ' 地域：' + ctx.region.display : '')
     };
     return out;
   }
@@ -159,42 +165,38 @@
     var p = preview(state, id);
     window.LN_V3_STORE.setState({
       scenario: { current: id, recommended: p.recommended, reason: p.selectedExplanation, source: source || 'user', preview: p, locked: source === 'user' },
-      ui: { lastMessage: '场景已选择：' + p.selectedName + '。' },
-      compute: { basePool: p.familyFilteredRows || 0, filtered: p.effectiveRows || 0, lastReason: 'v3-step4-scenario-preview' }
+      ui: { lastMessage: '家庭路径已选择：' + p.selectedName + '。' },
+      compute: { basePool: p.familyFilteredRows || 0, filtered: p.effectiveRows || 0, lastReason: 'v3-step4-family-path-preview' }
     }, 'scenario:apply');
     return p;
   }
-  function applyRecommended(source) {
-    var p = preview(window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {}, null);
-    return applyScenario(p.recommended, source || 'auto-recommended');
-  }
+  function applyRecommended(source) { var p = preview(window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {}, null); return applyScenario(p.recommended, source || 'auto-recommended'); }
   function matrix() {
-    function fake(groups, opts) {
-      opts = opts || {};
-      return {
-        rank: { loadedRows: opts.basePool || 7934 },
-        family: { preview: { filteredPreview: opts.familyRows || 1597, bigPool: !!opts.bigPool } },
-        childPreference: {
-          mode: opts.mode || (groups.length ? 'selected' : 'unknown'),
-          selectedGroups: groups.map(function (id) { var g = window.LN_V3_CHILD_GROUPS && window.LN_V3_CHILD_GROUPS.find ? window.LN_V3_CHILD_GROUPS.find(id) : null; return { id: id, name: g ? g.name : id }; }),
-          selectedMajors: opts.majors || [],
-          manualOnly: !!opts.manualOnly,
-          preview: { familyFilteredRows: opts.familyRows || 1597, matchedRows: opts.matchedRows || 116, effectiveFilteredRows: opts.manualOnly ? (opts.matchedRows || 116) : (opts.familyRows || 1597) }
-        },
-        scenario: {},
-        compute: { filtered: opts.familyRows || 1597 }
+    function fake(opts) {
+      var ctxState = window.LN_V3_DECISION_CONTEXT ? window.LN_V3_DECISION_CONTEXT.fake(opts) : null;
+      var state = {
+        rank: { score: String(opts.score || ''), rank: String(opts.rank || ''), loadedRows: opts.basePool || 7934 },
+        family: { regionMode: opts.regionMode || 'none', provinces: opts.provinces || [], preview: { filteredPreview: opts.familyRows || 1597, bigPool: !!opts.bigPool } },
+        childPreference: { mode: opts.mode || ((opts.groups || []).length ? 'selected' : 'unknown'), selectedGroups: (opts.groups || []).map(function (id) { return { id: id, name: id }; }), selectedMajors: [], manualOnly: !!opts.manualOnly, preview: { familyFilteredRows: opts.familyRows || 1597, matchedRows: opts.matchedRows || 0, effectiveFilteredRows: opts.manualOnly ? (opts.matchedRows || 0) : (opts.familyRows || 1597), bigPool: !!opts.bigPool } },
+        scenario: {}, compute: { filtered: opts.familyRows || 1597 }
       };
+      state._ctx = ctxState;
+      return state;
     }
     return [
-      { name: '兴趣不确定 → 宽口径', expected: 'broad', preview: preview(fake([], { mode: 'unknown', matchedRows: 0 })) },
-      { name: '电气能源 → 电网/体制内', expected: 'grid', preview: preview(fake(['electric_energy'], { manualOnly: true, matchedRows: 116 })) },
-      { name: '计算机AI → 就业优先', expected: 'employment', preview: preview(fake(['computer_ai'], { matchedRows: 180 })) },
-      { name: '理学材料 → 考研深造', expected: 'exam', preview: preview(fake(['science_material'], { matchedRows: 130 })) },
-      { name: '大池且兴趣不明 → 宽口径', expected: 'broad', preview: preview(fake([], { mode: 'unknown', familyRows: 7494, bigPool: true, matchedRows: 0 })) }
+      { name: '650+ 高分 + 电气 + 全国可比 → 平台优先', expected: 'platform', preview: preview(fake({ score: 650, rank: 9000, regionMode: 'none', groups: ['electric_energy'], familyRows: 900, matchedRows: 80 })) },
+      { name: '610 分 + 计算机 + 地域偏好 → 强专业/平台平衡', expected: 'major', preview: preview(fake({ score: 610, rank: 26000, regionMode: 'soft', provinces: ['辽宁', '吉林', '黑龙江'], groups: ['computer_ai'], familyRows: 2100, matchedRows: 180 })) },
+      { name: '560 分 + 省内优先 + 兴趣不明 → 省内公办稳妥', expected: 'province_public', preview: preview(fake({ score: 560, rank: 42000, regionMode: 'hard', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1800, matchedRows: 0 })) },
+      { name: '500 分 + 辽宁 hard + 电气真实命中 → 省内公办稳妥，B方案承接电气', expected: 'province_public', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'hard', provinces: ['辽宁'], groups: ['electric_energy'], manualOnly: true, familyRows: 1597, matchedRows: 116 })) },
+      { name: '470 分 + 辽宁 hard + 电气兴趣 → 真实保底优先', expected: 'guarantee', preview: preview(fake({ score: 470, rank: 85000, regionMode: 'hard', provinces: ['辽宁'], groups: ['electric_energy'], familyRows: 900, matchedRows: 40 })) },
+      { name: '405 分 + 地域偏好 + 兴趣不明 → 真实保底优先', expected: 'guarantee', preview: preview(fake({ score: 405, rank: 118000, regionMode: 'soft', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1600, matchedRows: 0 })) },
+      { name: '500 分 + 东北 soft + 兴趣不明 → 宽口径比较', expected: 'broad', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'soft', provinces: ['辽宁','吉林','黑龙江'], groups: [], mode: 'unknown', familyRows: 6200, bigPool: true, matchedRows: 0 })) },
+      { name: '500 分 + 动物医学兴趣 + 辽宁 hard → 省内公办稳妥，详细卡片承接动物医学', expected: 'province_public', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'hard', provinces: ['辽宁'], groups: ['agri_animal_food'], familyRows: 1597, matchedRows: 60 })) }
     ];
   }
   window.LN_V3_SCENARIO_ADAPTER = {
     scenarios: SCENARIOS,
+    visibleScenarios: function (state) { return visibleScenarios(contextFromState(state)); },
     preview: preview,
     recommend: function (state) { return preview(state || (window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {}), null); },
     applyScenario: applyScenario,
