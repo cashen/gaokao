@@ -24,6 +24,7 @@
     candidates: { list: [], page: 1, pageSize: 20 },
     counterfactual: { preview: null, cards: [], summary: '条件变化对照尚未生成。' },
     exportReport: { preview: null, markdown: '', generatedAt: '', summary: '家庭讨论报告尚未生成。' },
+    reviewChecklist: { ok: false, count: 0, tasks: [], urgentCount: 0, summary: '复核清单尚未生成。' },
     shortlist: { items: [] }
   };
   var state = merge(initialState, saved || {});
@@ -60,6 +61,8 @@
     out.counterfactual.cards = Array.isArray(out.counterfactual.cards) ? out.counterfactual.cards : [];
     out.exportReport = merge(initialState.exportReport, out.exportReport || {});
     out.exportReport.markdown = typeof out.exportReport.markdown === 'string' ? out.exportReport.markdown : '';
+    out.reviewChecklist = merge(initialState.reviewChecklist, out.reviewChecklist || {});
+    out.reviewChecklist.tasks = Array.isArray(out.reviewChecklist.tasks) ? out.reviewChecklist.tasks : [];
     out.family = merge(initialState.family, out.family || {});
     out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
     out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];

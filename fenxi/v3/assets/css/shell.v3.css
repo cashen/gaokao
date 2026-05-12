@@ -170,3 +170,58 @@
 @media (max-width: 420px) {
   .decision-ribbon-grid { grid-template-columns: 1fr; }
 }
+
+/* beta3: 家长端复核任务清单 */
+.v3-review-checklist {
+  margin: -4px 0 18px;
+  border: 1px solid rgba(47,125,86,.16);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(244,251,246,.92), rgba(255,253,248,.96));
+  box-shadow: 0 12px 30px rgba(47,125,86,.07);
+  padding: 13px 14px;
+}
+.review-checklist-head {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.review-checklist-head span {
+  color: #256346;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgba(47,125,86,.10);
+  border: 1px solid rgba(47,125,86,.16);
+  border-radius: 999px;
+  padding: 6px 9px;
+}
+.review-checklist-head strong { color: #1f3b2f; font-size: 14px; }
+.review-checklist-head em { color: var(--v3-muted); font-style: normal; font-weight: 800; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-checklist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.review-checklist-list li {
+  min-width: 0;
+  border: 1px solid rgba(47,125,86,.13);
+  background: #fff;
+  border-radius: 16px;
+  padding: 10px 11px;
+  position: relative;
+}
+.review-checklist-list strong { display: block; color: #1f3b2f; font-size: 13px; line-height: 1.25; margin-bottom: 5px; }
+.review-checklist-list span { display: block; color: var(--v3-muted); font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.review-checklist-list em { display: inline-block; margin-top: 7px; color: #8a4d13; background: #fff2dc; border-radius: 999px; padding: 3px 7px; font-style: normal; font-size: 11px; font-weight: 900; }
+@media (max-width: 900px) {
+  .review-checklist-head { grid-template-columns: 1fr; gap: 6px; }
+  .review-checklist-head em { white-space: normal; }
+  .review-checklist-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .review-checklist-list { grid-template-columns: 1fr; }
+}

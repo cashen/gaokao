@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta2') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta3') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -67,10 +67,16 @@
     results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
-    results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER));
+    results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
+    results.push(check('复核清单适配器存在', !!window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('进度闭环方法存在', !!(window.LN_V3_STORE && window.LN_V3_STORE.markCompleteThrough && window.LN_V3_STORE.isCompleteThrough)));
     results.push(check('家长端决策摘要渲染方法存在', !!(window.LN_V3_WIZARD && window.LN_V3_WIZARD.renderDecisionRibbon)));
+    results.push(check('家长端复核清单渲染方法存在', !!(window.LN_V3_WIZARD && window.LN_V3_WIZARD.renderReviewChecklist)));
+    if (window.LN_V3_REVIEW_CHECKLIST) {
+      var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.generate({ rank: { loadedRows: 7934 }, family: { regionMode: 'hard', provinces: ['辽宁'], rejects: [], feeType: 'all' }, childPreference: { manualOnly: true, preview: { majorProfile: { misreadRules: [{ tag: '名称复核', message: '自动化不等同于纯电气。' }] } } }, studentProfile: window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {}, candidates: { list: [] }, counterfactual: { cards: [{ id: 'manual-only-off' }] }, shortlist: { items: [] } });
+      results.push(check('复核清单可生成家庭可执行任务', reviewPreview.count >= 4 && reviewPreview.tasks.some(function (t) { return /学费|高收费|中外合作/.test(t.title + t.detail); }), JSON.stringify({ count: reviewPreview.count, urgent: reviewPreview.urgentCount, sample: reviewPreview.tasks.slice(0, 3) })));
+    }
     runScenarioMatrix(results);
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var antiRegressionMatrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
@@ -110,8 +116,8 @@
     results = results.concat(quick());
     results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto profile=hot_words'));
 
-    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_CANDIDATES_ADAPTER || !window.LN_V3_COUNTERFACTUAL_ADAPTER) {
-      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates/counterfactual/report missing'));
+    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_CANDIDATES_ADAPTER || !window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST) {
+      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates/counterfactual/review/report missing'));
       return Promise.resolve(results);
     }
     runScenarioMatrix(results);
@@ -254,6 +260,9 @@
       results.push(check('Step6 地域 hard→soft 对照存在', !!(regionCf && regionCf.changed >= regionCf.current), JSON.stringify(regionCf || {})));
       results.push(check('Step6 关闭真实命中可恢复底线池对照存在', !!(interestCf && interestCf.changed > interestCf.current), JSON.stringify(interestCf || {})));
       results.push(check('Step6 费用风险收窄对照存在', !!costCf, JSON.stringify(costCf || {})));
+      var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.apply('debug-mainflow:review-checklist');
+      results.push(check('Step6 复核任务清单已生成', !!(reviewPreview && reviewPreview.ok && reviewPreview.count >= 4), JSON.stringify({ count: reviewPreview && reviewPreview.count, urgent: reviewPreview && reviewPreview.urgentCount, summary: reviewPreview && reviewPreview.summary })));
+      results.push(check('Step6 复核清单覆盖费用/专业/学习强度', !!(reviewPreview && reviewPreview.tasks && /学费|高收费|中外合作/.test(JSON.stringify(reviewPreview.tasks)) && /专业|正主|名称/.test(JSON.stringify(reviewPreview.tasks)) && /学习强度|热门词/.test(JSON.stringify(reviewPreview.tasks))), JSON.stringify((reviewPreview && reviewPreview.tasks || []).slice(0, 5))));
       var addOk = window.LN_V3_CANDIDATES_ADAPTER.add(bCard.key);
       var afterAdd = window.LN_V3_STORE.getState();
       results.push(check('Step6 自选池可加入候选', addOk && ((afterAdd.shortlist || {}).items || []).some(function (item) { return item.key === bCard.key; }), JSON.stringify((afterAdd.shortlist || {}).items || [])));

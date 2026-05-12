@@ -64,6 +64,30 @@
       '</div>'
     ].join('');
   }
+
+  function renderReviewChecklist(state) {
+    var root = document.getElementById('v3ReviewChecklist');
+    if (!root) return;
+    var preview = null;
+    if (window.LN_V3_REVIEW_CHECKLIST && window.LN_V3_REVIEW_CHECKLIST.generate) {
+      preview = window.LN_V3_REVIEW_CHECKLIST.generate(state);
+    } else {
+      preview = (state || {}).reviewChecklist || { tasks: [], summary: '复核清单尚未生成。' };
+    }
+    var tasks = (preview.tasks || []).slice(0, 4);
+    if (!tasks.length && (!state.rank || !state.rank.loadedRows)) {
+      root.innerHTML = '';
+      return;
+    }
+    var body = tasks.length ? tasks.map(function (item) {
+      return '<li><strong>' + esc(item.title || '复核项') + '</strong><span>' + esc(item.detail || item.source || '') + '</span><em>' + esc(item.level || '待复核') + '</em></li>';
+    }).join('') : '<li><strong>暂无明显复核任务</strong><span>完成详细卡片后，系统会把学费、校区、培养方案等人工复核项集中到这里。</span><em>提示</em></li>';
+    root.innerHTML = [
+      '<div class="review-checklist-head"><span>复核清单</span><strong>', esc((preview.count || tasks.length || 0) + ' 项待确认'), '</strong><em>', esc(preview.summary || '把需要人工确认的事集中看。'), '</em></div>',
+      '<ul class="review-checklist-list">', body, '</ul>'
+    ].join('');
+  }
+
   function scrollToStepTop(reason) {
     var root = document.getElementById('v3StepRoot');
     if (!root) return;
@@ -92,6 +116,7 @@
       var renderer = stepRenderers[state.ui.activeStep] || stepRenderers.rank;
       renderer(root, state);
       renderDecisionRibbon(state);
+      renderReviewChecklist(state);
       root.focus({ preventScroll: true });
       setStatus(state.ui.lastMessage || '已进入测试版');
     },
@@ -100,6 +125,9 @@
     },
     renderDecisionRibbon: function () {
       if (window.LN_V3_STORE) renderDecisionRibbon(window.LN_V3_STORE.getState());
+    },
+    renderReviewChecklist: function () {
+      if (window.LN_V3_STORE) renderReviewChecklist(window.LN_V3_STORE.getState());
     },
     flashMessage: function (message) {
       setStatus(message);
