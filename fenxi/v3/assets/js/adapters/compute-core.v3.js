@@ -22,7 +22,7 @@
     if(!scenario&&rb&&rb.scenarioForScore)scenario=rb.scenarioForScore(score);
     var sc=rb&&rb.getScenario?rb.getScenario(scenario):null;
     var target=(state.scenario||{}).targetPath||((sc&&sc.targetPath)||'employment');
-    return {state:state,rank:rank,rankNo:rank,score:score,scenarioId:scenario,targetPath:target,family:state.family||{},advancedFilter:window.LN_V3_ADVANCED_FILTER?window.LN_V3_ADVANCED_FILTER.fromState(state):{},scenario:sc};
+    return {state:state,rank:rank,rankNo:rank,score:score,scenarioId:scenario,targetPath:target,family:state.family||{},reviewFilter:window.LN_V3_ADVANCED_FILTER?window.LN_V3_ADVANCED_FILTER.fromState(state):{},scenario:sc};
   }
   function interestMatch(record,state){
     var child=(state||{}).childPreference||{};
@@ -93,11 +93,8 @@
       if(im||['core','related'].indexOf(prof&&prof.level)>=0)return 'B';
       return 'A';
     }
-    // 稳妥区：A 兜底优先；但正主专业也可进入 B，不能把 A 掏空，plans 再二次去重。
-    if(role.id==='steady'){
-      if((prof&&prof.level==='core')&&im)return 'B';
-      return 'A';
-    }
+    // 稳妥区：A 兜底优先。兴趣命中不能把稳妥底线候选全部吸入 B。
+    if(role.id==='steady')return 'A';
     if(role.id==='safeLow')return 'A';
     return baseScore&&baseScore.planBand?baseScore.planBand:'A';
   }
@@ -151,20 +148,26 @@
     });
     return {rows:rows,stats:stats};
   }
-  function sortRows(rows,ctx){var f=ctx.advancedFilter||{}; if(window.LN_V3_ADVANCED_FILTER)return window.LN_V3_ADVANCED_FILTER.apply(rows,f).records; return rows;}
+  function sortRows(rows,ctx){
+    // RC2.fix2：基础候选池只做基础排序，不叠加候选复核页高级筛选。
+    var out=(rows||[]).slice();
+    function po(x){return x==='A'?1:x==='B'?2:x==='C'?3:9;}
+    out.sort(function(a,b){return po(a._rc2PlanBand)-po(b._rc2PlanBand)||(b._rc2Score||0)-(a._rc2Score||0)||Math.abs((a.rank2025||0)-(a._rc2RankNo||0))-Math.abs((b.rank2025||0)-(b._rc2RankNo||0));});
+    return out;
+  }
   function compute(state,reason){
     state=state||getState(); var started=(performance&&performance.now)?performance.now():Date.now();
-    var ctx=contextFromState(state); var data=getRecords(state); var scored=scoreRows(data.records,ctx); var filtered=sortRows(scored.rows,ctx);
-    var hash=window.LN_V3_STATE_INVALIDATION?window.LN_V3_STATE_INVALIDATION.hashState(state).all:JSON.stringify({rank:state.rank,family:state.family,child:state.childPreference,scenario:state.scenario,advancedFilter:state.advancedFilter});
-    var result={ok:true,reason:reason||'rc2fix1-compute',version:'v300rc2fix1',context:ctx,contextHash:hash,loadedRows:n((state.rank||{}).loadedRows)||data.basePool,basePool:data.basePool,familyFilteredRows:data.familyFilteredRows,advancedFilteredRows:filtered.length,interestMatchedRows:scored.stats.interestMatchedRows,effectiveRows:filtered.length,rows:filtered,stats:Object.assign({},scored.stats,{computeMs:Math.round(((performance&&performance.now)?performance.now():Date.now())-started),filter:ctx.advancedFilter,scenarioId:ctx.scenarioId,targetPath:ctx.targetPath}),generatedAt:new Date().toISOString()};
+    var ctx=contextFromState(state); var data=getRecords(state); var scored=scoreRows(data.records,ctx); var baseRows=sortRows(scored.rows,ctx);
+    var hash=window.LN_V3_STATE_INVALIDATION?window.LN_V3_STATE_INVALIDATION.hashState(state).base:JSON.stringify({rank:state.rank,family:state.family,child:state.childPreference,scenario:state.scenario});
+    var result={ok:true,reason:reason||'rc2fix2-compute',version:'v300rc2fix2',context:ctx,contextHash:hash,loadedRows:n((state.rank||{}).loadedRows)||data.basePool,basePool:data.basePool,familyFilteredRows:data.familyFilteredRows,advancedFilteredRows:baseRows.length,interestMatchedRows:scored.stats.interestMatchedRows,effectiveRows:baseRows.length,rows:baseRows,baseRows:baseRows,stats:Object.assign({},scored.stats,{computeMs:Math.round(((performance&&performance.now)?performance.now():Date.now())-started),scenarioId:ctx.scenarioId,targetPath:ctx.targetPath,reviewFilterIsolated:true}),generatedAt:new Date().toISOString()};
     window.LN_V3_LAST_COMPUTE_RESULT=result; return result;
   }
   function apply(reason){
     if(!window.LN_V3_STORE)return compute(null,reason); var state=getState(); var result=compute(state,reason);
-    window.LN_V3_STORE.setState({computeResult:{version:result.version,valid:true,staleReason:'',contextHash:result.contextHash,loadedRows:result.loadedRows,basePool:result.basePool,familyFilteredRows:result.familyFilteredRows,advancedFilteredRows:result.advancedFilteredRows,interestMatchedRows:result.interestMatchedRows,effectiveRows:result.effectiveRows,stats:result.stats,generatedAt:result.generatedAt},compute:{basePool:result.familyFilteredRows,filtered:result.effectiveRows,lastReason:'rc2fix1-compute-core'},ui:{lastMessage:'RC2.fix1 已按“位次先行→家庭底线→专业路径”完成候选复核计算：'+result.effectiveRows+' 条。'}},'rc2fix1:compute-apply');
+    window.LN_V3_STORE.setState({computeResult:{version:result.version,valid:true,staleReason:'',contextHash:result.contextHash,loadedRows:result.loadedRows,basePool:result.basePool,familyFilteredRows:result.familyFilteredRows,advancedFilteredRows:result.advancedFilteredRows,interestMatchedRows:result.interestMatchedRows,effectiveRows:result.effectiveRows,stats:result.stats,generatedAt:result.generatedAt},compute:{basePool:result.familyFilteredRows,filtered:result.effectiveRows,lastReason:'rc2fix2-compute-core'},ui:{lastMessage:'RC2.fix2 已重新计算基础候选池：'+result.effectiveRows+' 条；候选复核筛选不会污染基础池。'}},'rc2fix2:compute-apply');
     return result;
   }
-  function ensure(state){var result=window.LN_V3_LAST_COMPUTE_RESULT; state=state||getState(); var hash=window.LN_V3_STATE_INVALIDATION?window.LN_V3_STATE_INVALIDATION.hashState(state).all:''; if(!result||result.contextHash!==hash)return compute(state,'rc2fix1-ensure'); return result;}
+  function ensure(state){var result=window.LN_V3_LAST_COMPUTE_RESULT; state=state||getState(); var hash=window.LN_V3_STATE_INVALIDATION?window.LN_V3_STATE_INVALIDATION.hashState(state).base:''; if(!result||result.contextHash!==hash)return compute(state,'rc2fix2-ensure'); return result;}
   function matrix(){
     var oldCache=window.LN_V3_DATA_CACHE;
     var cases=[
@@ -178,5 +181,5 @@
     });
     window.LN_V3_DATA_CACHE=oldCache; return out;
   }
-  window.LN_V3_COMPUTE_CORE={contextFromState:contextFromState,getRecords:getRecords,rankRole:rankRole,compute:compute,apply:apply,ensure:ensure,matrix:matrix,ready:true,version:'v300rc2fix1'};
+  window.LN_V3_COMPUTE_CORE={contextFromState:contextFromState,getRecords:getRecords,rankRole:rankRole,compute:compute,apply:apply,ensure:ensure,matrix:matrix,ready:true,version:'v300rc2fix2'};
 })();
