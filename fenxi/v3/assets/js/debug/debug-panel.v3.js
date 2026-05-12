@@ -51,10 +51,14 @@
         btn.addEventListener('click', function () {
           var type = btn.getAttribute('data-debug-run');
           var box = document.getElementById('debugSelftestBox');
-          box.textContent = '正在运行 ' + type + ' 自测…';
+          box.textContent = type === 'oneclick' ? '正在运行一键总检：路径矩阵 + 主流程…' : '正在运行 ' + type + ' 自测…';
           Promise.resolve(window.LN_V3_DEBUG_SELFTEST.run(type)).then(function (report) {
             window.LN_V3_LAST_DEBUG_REPORT = report.text;
             box.textContent = report.text;
+            if (type === 'oneclick') {
+              var card = document.getElementById('debugSelftestBox');
+              if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             refresh();
           }).catch(function (err) {
             box.textContent = '自测运行失败：' + (err && err.message ? err.message : err);

@@ -1,2 +1,2 @@
-V3.0.0.alpha6｜A/B/C方案包重构版
-v300alpha6-20260512
+V3.0.0.alpha6.fix3｜Debug一键总检与复制流程简化版
+v300alpha6fix3-20260512

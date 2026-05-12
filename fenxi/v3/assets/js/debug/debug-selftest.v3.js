@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha6.fix2') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha6.fix3') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -235,6 +235,51 @@
       return results;
     });
   }
+
+  function oneclick() {
+    var started = performance.now();
+    var matrixResults = pathmatrix();
+    return mainflow().then(function (mainResults) {
+      return formatCombined(started, matrixResults, mainResults);
+    }).catch(function (err) {
+      var mainResults = [check('一键主流程执行无异常', false, err && err.message ? err.message : String(err))];
+      return formatCombined(started, matrixResults, mainResults);
+    });
+  }
+
+  function formatCombined(started, matrixResults, mainResults) {
+    var all = [].concat(matrixResults || [], mainResults || []);
+    var sum = summarize(all);
+    var matrixSum = summarize(matrixResults || []);
+    var mainSum = summarize(mainResults || []);
+    var elapsed = Math.round(performance.now() - started);
+    var traceLines = (window.LN_V3_DEBUG_RUNTIME && window.LN_V3_DEBUG_RUNTIME.getTrace ? window.LN_V3_DEBUG_RUNTIME.getTrace() : []).map(function (item, index) {
+      return String(index + 1).padStart(2, '0') + '｜' + item.time + '｜' + item.action + (item.detail ? '｜' + item.detail : '');
+    });
+    var header = [
+      '【辽宁物理类工具 V3 Debug Report】',
+      '读取时间：' + new Date().toLocaleString(),
+      '模式：oneclick',
+      '版本：' + window.LN_V3_VERSION.name,
+      '版本戳：' + window.LN_V3_VERSION.stamp,
+      '总步骤：' + sum.total + '；通过：' + sum.pass + '；失败：' + sum.fail,
+      '路径矩阵：' + matrixSum.total + ' 步；通过：' + matrixSum.pass + '；失败：' + matrixSum.fail,
+      '主流程：' + mainSum.total + ' 步；通过：' + mainSum.pass + '；失败：' + mainSum.fail,
+      '耗时：' + elapsed + 'ms',
+      '',
+      '【结论】',
+      sum.fail === 0 ? 'PASS｜一键总检通过，可以继续作为当前反馈基线。' : 'FAIL｜一键总检发现问题，请直接复制本报告反馈。',
+      '',
+      '【路径矩阵自测】'
+    ].join('\n');
+    var matrixBlock = (matrixResults || []).map(line).join('\n');
+    var mainBlock = '\n\n【主流程自测】\n' + (mainResults || []).map(line).join('\n');
+    var traceBlock = traceLines.length ? '\n\n【操作轨迹】\n' + traceLines.join('\n') : '';
+    var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
+    var stateBlock = '\n\n【主流程最终状态】\n数据状态：' + JSON.stringify(snap.dataStatus || {}) + '\nStore：' + JSON.stringify(snap.state || {});
+    return { results: all, summary: sum, text: header + matrixBlock + mainBlock + traceBlock + stateBlock };
+  }
+
   function format(type, started, results) {
     var sum = summarize(results);
     var elapsed = Math.round(performance.now() - started);
@@ -259,6 +304,9 @@
   window.LN_V3_DEBUG_SELFTEST = {
     run: function (type) {
       var started = performance.now();
+      if (type === 'oneclick') {
+        return oneclick();
+      }
       if (type === 'rank') {
         return window.LN_V3_DEBUG_STEP_RANK.runAsync().then(function (results) { return format(type, started, results); });
       }

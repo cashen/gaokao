@@ -74,3 +74,41 @@
   font-weight: 800;
   box-shadow: 0 10px 24px rgba(194, 113, 32, 0.18);
 }
+
+/* alpha6.fix3: one-click debug flow */
+.debug-actions-oneclick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.debug-oneclick-btn {
+  min-height: 48px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.debug-copy-btn {
+  min-height: 48px;
+  font-weight: 700;
+}
+.debug-advanced-tests {
+  margin: 8px 0 12px;
+  border: 1px dashed rgba(148, 163, 184, .55);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.55);
+}
+.debug-advanced-tests summary {
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 700;
+  user-select: none;
+}
+.debug-advanced-tests .debug-actions {
+  margin-top: 10px;
+}
+@media (max-width: 640px) {
+  .debug-actions-oneclick { grid-template-columns: 1fr; }
+  .debug-oneclick-btn, .debug-copy-btn { width: 100%; }
+}
