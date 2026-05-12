@@ -12,6 +12,8 @@
     var region = window.LN_V3_REGION_PREFERENCE ? window.LN_V3_REGION_PREFERENCE.analyze(family) : { mode: family.regionMode || 'none', level: 'open', label: '地域未分析' };
     var groupIds = ids(child.selectedGroups || []);
     var majorNames = (child.selectedMajors || []).map(function (m) { return m.name || ''; }).filter(Boolean);
+    var studentProfile = window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized(state.studentProfile || {}) : (state.studentProfile || {});
+    var majorProfile = window.LN_V3_MAJOR_PROFILE ? window.LN_V3_MAJOR_PROFILE.profileSelection(state) : (childPreview.majorProfile || null);
     var basePool = num(rank.loadedRows);
     var familyRows = num(childPreview.familyFilteredRows || (family.preview && family.preview.filteredPreview) || (state.compute && state.compute.filtered) || rank.loadedRows);
     var matchedRows = num(childPreview.matchedRows);
@@ -27,6 +29,8 @@
       region: region,
       family: family,
       child: child,
+      studentProfile: studentProfile,
+      majorProfile: majorProfile,
       groupIds: groupIds,
       selectedMajors: majorNames,
       basePool: basePool,
@@ -48,6 +52,7 @@
     return build({
       rank: { score: String(opts.score || ''), rank: String(opts.rank || ''), loadedRows: opts.basePool || 7934 },
       family: { regionMode: opts.regionMode || 'none', provinces: opts.provinces || [], budget: opts.budget || 'normal', feeType: opts.feeType || 'all', rejects: opts.rejects || [], preview: { filteredPreview: opts.familyRows || 1597, bigPool: !!opts.bigPool } },
+      studentProfile: opts.studentProfile || {},
       childPreference: { mode: opts.mode || (groups.length ? 'selected' : 'unknown'), selectedGroups: groups.map(function (id) { return { id: id, name: id }; }), selectedMajors: majors.map(function (name) { return { name: name }; }), manualOnly: !!opts.manualOnly, preview: { familyFilteredRows: opts.familyRows || 1597, matchedRows: opts.matchedRows || 0, effectiveFilteredRows: opts.manualOnly ? (opts.matchedRows || 0) : (opts.familyRows || 1597), bigPool: !!opts.bigPool } },
       compute: { filtered: opts.familyRows || 1597 },
       scenario: {}

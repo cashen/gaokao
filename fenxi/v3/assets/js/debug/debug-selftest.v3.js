@@ -63,6 +63,8 @@
     results.push(check('分数段策略适配器存在', !!window.LN_V3_SCORE_BAND_STRATEGY));
     results.push(check('地域偏好适配器存在', !!window.LN_V3_REGION_PREFERENCE));
     results.push(check('决策上下文适配器存在', !!window.LN_V3_DECISION_CONTEXT));
+    results.push(check('学生画像适配器存在', !!window.LN_V3_STUDENT_PROFILE));
+    results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
     runScenarioMatrix(results);
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var matrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
@@ -73,6 +75,14 @@
       results.push(check('低分电气优先保底/成本，不被兴趣带偏', !!(lowElectric && lowElectric.preview && (lowElectric.preview.recommended === 'guarantee' || lowElectric.preview.recommended === 'cost_risk')), JSON.stringify(lowElectric && { recommended: lowElectric.preview.recommended, scoreBand: lowElectric.preview.scoreBand && lowElectric.preview.scoreBand.id, reasons: lowElectric.preview.reasons })));
       results.push(check('地域 soft 表达为偏好而非放弃', !!(softRegion && softRegion.preview && softRegion.preview.regionPreference && softRegion.preview.regionPreference.level === 'preference'), JSON.stringify(softRegion && softRegion.preview && softRegion.preview.regionPreference || {})));
     }
+    if (window.LN_V3_STUDENT_PROFILE) {
+      var profile = window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' });
+      results.push(check('学生画像只调整提醒不硬筛', profile.hardExclude === false && (profile.reviewTags || []).indexOf('learning_load') !== -1, JSON.stringify(profile)));
+    }
+    if (window.LN_V3_MAJOR_PROFILE) {
+      var rules = window.LN_V3_MAJOR_PROFILE.matchRules('大数据管理与应用');
+      results.push(check('专业画像覆盖大数据易混提醒', rules && rules.length > 0 && rules[0].message.indexOf('不等同于计算机') !== -1, JSON.stringify(rules)));
+    }
     return results;
   }
 
@@ -81,7 +91,7 @@
     var started = performance.now();
     resetForMainflow();
     results = results.concat(quick());
-    results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto'));
+    results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto profile=hot_words'));
 
     if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO) {
       results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario missing'));
@@ -144,7 +154,10 @@
       results.push(check('Step2 保存后进入 Step3', afterRoute.ui.activeStep === 'child' && afterRoute.ui.activeTab === 'child', JSON.stringify(afterRoute.ui)));
 
       trace('Step3 选择兴趣方向', '电气能源与自动化 + 电气工程及其自动化');
-      window.LN_V3_STORE.setState({ childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null } }, 'debug-mainflow:child-reset');
+      var testProfile = window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {};
+      window.LN_V3_STORE.setState({ studentProfile: testProfile, childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null } }, 'debug-mainflow:child-reset');
+      results.push(check('Step3 学生画像写入且不硬筛', !testProfile.hardExclude && (testProfile.reviewTags || []).indexOf('learning_load') !== -1, JSON.stringify(testProfile)));
+      trace('Step3 学生画像写入', JSON.stringify({ tags: testProfile.tags, reviewTags: testProfile.reviewTags }));
       window.LN_V3_STEP_CHILD._test.toggleGroup('electric_energy');
       window.LN_V3_STEP_CHILD._test.toggleMajor('electric_energy', '电气工程及其自动化');
       var childState = window.LN_V3_STORE.getState().childPreference || {};
@@ -153,6 +166,8 @@
       results.push(check('Step3 selectedGroups 写入', (childState.selectedGroups || []).some(function (item) { return item.id === 'electric_energy'; }), JSON.stringify(childState.selectedGroups || [])));
       results.push(check('Step3 selectedMajors 写入', (childState.selectedMajors || []).some(function (item) { return item.name === '电气工程及其自动化'; }), JSON.stringify(childState.selectedMajors || [])));
       results.push(check('Step3 兴趣命中预览已生成', !!childPreview.reason, JSON.stringify({ reason: childPreview.reason, familyFilteredRows: childPreview.familyFilteredRows, matchedRows: childPreview.matchedRows, effectiveFilteredRows: childPreview.effectiveFilteredRows })));
+      results.push(check('Step3 专业画像已进入预览', !!(childPreview.majorProfile && childPreview.majorProfile.hardExclude === false), JSON.stringify(childPreview.majorProfile || {})));
+      results.push(check('Step3 画像提醒不改变候选池', Number(childPreview.effectiveFilteredRows || 0) === Number(childPreview.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: childPreview.effectiveFilteredRows, familyFilteredRows: childPreview.familyFilteredRows }))); 
       results.push(check('Step3 可读取当前底线池', Number(childPreview.familyFilteredRows || 0) === Number((preview && preview.filteredPreview) || 0), JSON.stringify({ familyFilteredRows: childPreview.familyFilteredRows, expected: preview && preview.filteredPreview })));
       results.push(check('Step3 电气能源方向有命中', Number(childPreview.matchedRows || 0) > 0, JSON.stringify({ matchedRows: childPreview.matchedRows, sampleMatched: childPreview.sampleMatched || [] })));
       results.push(check('Step3 默认不硬排除', Number(childPreview.effectiveFilteredRows || 0) === Number(childPreview.familyFilteredRows || 0), JSON.stringify({ effectiveFilteredRows: childPreview.effectiveFilteredRows, familyFilteredRows: childPreview.familyFilteredRows })));
@@ -171,6 +186,7 @@
       var scenarioPreview = window.LN_V3_SCENARIO_ADAPTER.recommend(window.LN_V3_STORE.getState());
       trace('Step4 家庭路径推荐完成', 'recommended=' + scenarioPreview.recommended + ' scoreBand=' + ((scenarioPreview.scoreBand || {}).id || '') + ' region=' + ((scenarioPreview.regionPreference || {}).mode || '') + ' effectiveRows=' + scenarioPreview.effectiveRows);
       results.push(check('Step4 家庭路径推荐预览已生成', !!scenarioPreview.recommended, JSON.stringify({ recommended: scenarioPreview.recommended, scores: scenarioPreview.scores, explanation: scenarioPreview.explanation })));
+      results.push(check('Step4 读取学生画像与专业画像', !!(scenarioPreview.studentProfile && scenarioPreview.majorProfile), JSON.stringify({ studentProfile: scenarioPreview.studentProfile, majorTags: scenarioPreview.majorProfile && scenarioPreview.majorProfile.tags }))); 
       results.push(check('Step4 500分辽宁电气路径优先省内公办，B方案承接电气', scenarioPreview.recommended === 'province_public', JSON.stringify({ recommended: scenarioPreview.recommended, reasons: scenarioPreview.reasons })));
       results.push(check('Step4 读取真实命中有效池', Number(scenarioPreview.effectiveRows || 0) === Number(manual.effectiveFilteredRows || 0), JSON.stringify({ effectiveRows: scenarioPreview.effectiveRows, manualRows: manual.effectiveFilteredRows })));
       var appliedScenario = window.LN_V3_STEP_SCENARIO._test.applyRecommended();

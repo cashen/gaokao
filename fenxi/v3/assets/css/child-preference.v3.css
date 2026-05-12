@@ -182,3 +182,34 @@
 @media (max-width: 720px) {
   .child-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* alpha5.fix2: 学生画像与专业画像回迁 */
+.student-profile-panel,
+.major-profile-panel {
+  margin: 14px 0 18px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 120, 82, 0.22);
+  background: rgba(255, 252, 246, 0.92);
+}
+.profile-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.profile-panel-head strong,
+.major-profile-panel > strong { display: block; color: #4f331a; font-size: 1rem; margin-bottom: 8px; }
+.profile-panel-head span { color: #8a6b48; font-size: 0.86rem; font-weight: 800; }
+.profile-select-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 10px 0 8px; }
+.profile-select { display: grid; gap: 5px; }
+.profile-select span { color: #8a6b48; font-size: 12px; font-weight: 900; }
+.profile-select select { width: 100%; border: 1px solid rgba(148,120,82,.25); border-radius: 13px; padding: 9px 10px; background: #fff; color: #3f3022; font-weight: 800; }
+.profile-summary { margin: 8px 0 0; color: #6b5a47; line-height: 1.65; }
+.profile-tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.profile-tag-row span { display: inline-flex; border-radius: 999px; padding: 6px 9px; background: #fff7ed; border: 1px solid rgba(194, 65, 12, .14); color: #7c2d12; font-size: 12px; font-weight: 900; }
+.major-profile-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.major-profile-card { background: #fff; border: 1px solid rgba(148,120,82,.18); border-radius: 16px; padding: 12px; }
+.major-profile-card strong { display: block; color: #2b2118; margin-bottom: 5px; }
+.major-profile-card p { margin: 0 0 6px; color: #5d4630; line-height: 1.55; }
+.major-profile-card em { color: #8a6b48; font-style: normal; font-size: 12px; font-weight: 800; }
+.major-review-list { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.major-review-list li { background: #fff; border: 1px dashed rgba(148,120,82,.25); border-radius: 14px; padding: 10px 12px; color: #5d4630; line-height: 1.55; }
+.major-review-list li span { float: right; color: #7c2d12; background: #fff7ed; border-radius: 999px; padding: 2px 7px; font-size: 12px; font-weight: 900; margin-left: 8px; }
+@media (max-width: 980px) { .profile-select-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .major-profile-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .profile-select-grid { grid-template-columns: 1fr; } }

@@ -73,6 +73,21 @@
       scores.employment += 6; scores.major += 6;
       reasons.push('已开启真实命中，后续可以围绕兴趣命中池解释，但不代表兴趣权重高于家庭路径。');
     }
+    var sp = ctx.studentProfile || {};
+    var reviewTags = sp.reviewTags || [];
+    var prefTags = sp.preferenceTags || [];
+    if (reviewTags.indexOf('learning_load') !== -1) {
+      scores.cost_risk += 8;
+      reasons.push('学生画像提示学习强度需复核：后续详细卡片会把强数学、强代码、长周期方向前置提醒。');
+    }
+    if (prefTags.indexOf('work_first') !== -1) {
+      scores.employment += 8;
+      reasons.push('学生画像偏本科就业：场景解释会优先复核本科出口，不把读研依赖当作默认前提。');
+    }
+    if (reviewTags.indexOf('misread_review') !== -1) {
+      scores.cost_risk += 5;
+      reasons.push('学生对专业理解仍需确认：后续会强化易混专业和培养方案复核。');
+    }
     if (has(ctx.groupIds, 'electric_energy')) {
       if (band.id === '625_plus') { scores.major += 14; scores.platform += 10; scores.grid += 6; reasons.push('高分段的电气兴趣应进入强专业/平台比较，不宜直接降成单一电网路径。'); }
       else if (band.id === '590_624') { scores.major += 16; scores.grid += 18; scores.employment += 8; reasons.push('电气兴趣可作为专业路径重点，同时保留学校层级比较。'); }
@@ -148,6 +163,8 @@
       selectedMajors: ctx.selectedMajors,
       scoreBand: ctx.band,
       regionPreference: ctx.region,
+      studentProfile: ctx.studentProfile,
+      majorProfile: ctx.majorProfile,
       visibleScenarioIds: visibleScenarios(ctx).map(function (s) { return s.id; }),
       explanation: explain(scored.recommended, ctx, scored),
       selectedExplanation: explain(selected, ctx, scored),
