@@ -373,3 +373,23 @@
 .counterfactual-expand .counterfactual-numbers strong { background:#dcfce7; color:#166534; }
 .counterfactual-narrow .counterfactual-numbers strong { background:#fee2e2; color:#991b1b; }
 .counterfactual-tradeoff { color:#78350f !important; }
+
+/* alpha9 export report */
+.export-summary-panel { background: linear-gradient(180deg, #fffdf8, #fff); }
+.export-overview strong { font-variant-numeric: tabular-nums; }
+.export-report-textarea {
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  border: 1px solid rgba(148, 120, 82, .28);
+  border-radius: 18px;
+  background: #fffdf8;
+  padding: 16px;
+  color: #334155;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+}
+.export-report-textarea:focus { outline: 3px solid rgba(184,107,34,.18); border-color: rgba(184,107,34,.46); }
+@media (max-width: 760px) { .export-report-textarea { min-height: 360px; font-size: 12px; } }

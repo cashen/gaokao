@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha8') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha9') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -68,6 +68,7 @@
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER));
+    results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
     runScenarioMatrix(results);
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var antiRegressionMatrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
@@ -108,7 +109,7 @@
     results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto profile=hot_words'));
 
     if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_CANDIDATES_ADAPTER || !window.LN_V3_COUNTERFACTUAL_ADAPTER) {
-      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates/counterfactual missing'));
+      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates/counterfactual/report missing'));
       return Promise.resolve(results);
     }
     runScenarioMatrix(results);
@@ -254,8 +255,18 @@
       var removeOk = window.LN_V3_CANDIDATES_ADAPTER.remove(bCard.key);
       var afterRemove = window.LN_V3_STORE.getState();
       results.push(check('Step6 自选池可移出候选', removeOk && !(((afterRemove.shortlist || {}).items || []).some(function (item) { return item.key === bCard.key; })), JSON.stringify((afterRemove.shortlist || {}).items || [])));
-      var finalAfterCandidates = window.LN_V3_STORE.getState();
-      results.push(check('主流程最终停在 Step6', finalAfterCandidates.ui.activeStep === 'candidates' && finalAfterCandidates.ui.activeTab === 'shortlist', JSON.stringify(finalAfterCandidates.ui)));
+
+      trace('Step7 生成家庭讨论报告', '把 Step1-Step6 的选择过程整理为 Markdown');
+      if (window.LN_V3_ROUTER) window.LN_V3_ROUTER.go('export', 'debug-mainflow:to-export');
+      var reportPreview = window.LN_V3_REPORT_EXPORT.apply('debug-mainflow:export-report');
+      var reportText = reportPreview && reportPreview.markdown || '';
+      trace('Step7 家庭讨论报告完成', 'length=' + (reportPreview && reportPreview.length) + ' cards=' + (reportPreview && reportPreview.cardCount) + ' counterfactual=' + (reportPreview && reportPreview.counterfactualCount));
+      results.push(check('Step7 家庭讨论报告已生成', !!(reportPreview && reportPreview.ok && reportText.length > 500), JSON.stringify({ length: reportPreview && reportPreview.length, sections: reportPreview && reportPreview.sectionCount, cards: reportPreview && reportPreview.cardCount })));
+      results.push(check('Step7 报告包含家庭处境与决策日志', /当前家庭决策处境/.test(reportText) && /决策日志/.test(reportText), reportText.slice(0, 220)));
+      results.push(check('Step7 报告包含 A\/B\/C 与详细卡片摘要', /A\/B\/C 方案包/.test(reportText) && /沈阳航空航天大学|辽宁工程技术大学|详细卡片/.test(reportText), 'length=' + reportText.length));
+      results.push(check('Step7 报告包含自选池与条件变化对照', /自选池/.test(reportText) && /条件变化对照/.test(reportText), 'counterfactual=' + (reportPreview && reportPreview.counterfactualCount)));
+      var finalAfterExport = window.LN_V3_STORE.getState();
+      results.push(check('主流程最终停在导出页', finalAfterExport.ui.activeStep === 'export' && finalAfterExport.ui.activeTab === 'export', JSON.stringify(finalAfterExport.ui)));
       results.push(check('主流程总耗时已记录', Math.round(performance.now() - started) >= 0, Math.round(performance.now() - started) + 'ms'));
       trace('一键主流程自测结束', 'fail=' + (results.filter(function (item) { return !item.ok; }).length));
       return results;
