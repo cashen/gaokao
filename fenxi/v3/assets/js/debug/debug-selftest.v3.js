@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta8.fix1') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta9') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -69,12 +69,17 @@
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
     results.push(check('候选比较适配器存在', !!window.LN_V3_CANDIDATE_COMPARE));
+    results.push(check('多路径真实样本回归适配器存在', !!window.LN_V3_REGRESSION_SAMPLES));
     results.push(check('旧版正式计算预备适配器存在', !!window.LN_V3_LEGACY_COMPUTE));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
     if (window.LN_V3_REPORT_EXPORT && window.LN_V3_REPORT_EXPORT.staticPlan) {
       var reportPlan = window.LN_V3_REPORT_EXPORT.staticPlan();
       results.push(check('导出报告精简/完整版策略存在', !!(reportPlan.stage === 'beta8-report-export-enhance' && reportPlan.modes && reportPlan.modes.indexOf('compact') !== -1 && reportPlan.modes.indexOf('full') !== -1), JSON.stringify(reportPlan)));
+    }
+    if (window.LN_V3_REGRESSION_SAMPLES && window.LN_V3_REGRESSION_SAMPLES.staticPlan) {
+      var regressionPlan = window.LN_V3_REGRESSION_SAMPLES.staticPlan();
+      results.push(check('多路径真实样本回归策略存在', !!(regressionPlan.stage === 'beta9-real-path-regression' && regressionPlan.sampleCount >= 10), JSON.stringify(regressionPlan)));
     }
     results.push(check('复核清单适配器存在', !!window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('进度闭环方法存在', !!(window.LN_V3_STORE && window.LN_V3_STORE.markCompleteThrough && window.LN_V3_STORE.isCompleteThrough)));
@@ -106,6 +111,11 @@
       results.push(check('复核清单可生成家庭可执行任务', reviewPreview.count >= 4 && reviewPreview.tasks.some(function (t) { return /学费|高收费|中外合作/.test(t.title + t.detail); }), JSON.stringify({ count: reviewPreview.count, urgent: reviewPreview.urgentCount, sample: reviewPreview.tasks.slice(0, 3) })));
     }
     runScenarioMatrix(results);
+    if (window.LN_V3_REGRESSION_SAMPLES && window.LN_V3_REGRESSION_SAMPLES.run) {
+      var regression = window.LN_V3_REGRESSION_SAMPLES.run();
+      results.push(check('多路径真实样本回归已通过', !!(regression && regression.ok && regression.total >= 10), JSON.stringify({ total: regression && regression.total, pass: regression && regression.pass, fail: regression && regression.fail, criticalPass: regression && regression.criticalPass, samples: regression && regression.samples })));
+      results.push(check('多路径回归覆盖高分/低分/边缘/地域soft/热门词误读', !!(regression && regression.samples && ['high_platform_electric','low_guarantee_electric','edge_undergraduate_unknown','soft_region_broad','hotword_misread_cs_470'].every(function (id) { return regression.samples.some(function (s) { return s.id === id && s.pass; }); })), JSON.stringify(regression && regression.samples || [])));
+    }
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var antiRegressionMatrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
       results.push(check('Step4 不是旧简化场景矩阵', antiRegressionMatrix.length >= 8 && antiRegressionMatrix.some(function (m) { return String(m.expected || '').indexOf('province_public') !== -1 || String(m.name || '').indexOf('650+') !== -1; }), 'matrixCount=' + antiRegressionMatrix.length));
@@ -324,6 +334,10 @@
       results.push(check('Step7 完整版包含证据等级提示', /证据|数据确认|需要复核|缺失数据/.test(fullText), fullText.slice(0, 420)));
       results.push(check('Step7 完整版包含自选池与条件变化对照', /自选池/.test(fullText) && /条件变化对照/.test(fullText), 'counterfactual=' + (reportPreview && reportPreview.counterfactualCount)));
       results.push(check('Step7 完整版包含复核任务清单', /复核任务|下一步复核清单|必须复核/.test(fullText), 'reviewTask=' + (reportPreview && reportPreview.reviewTaskCount)));
+      if (window.LN_V3_REGRESSION_SAMPLES && window.LN_V3_REGRESSION_SAMPLES.run) {
+        var finalRegression = window.LN_V3_REGRESSION_SAMPLES.run();
+        results.push(check('主流程后多路径真实样本回归仍通过', !!(finalRegression && finalRegression.ok), JSON.stringify({ total: finalRegression && finalRegression.total, pass: finalRegression && finalRegression.pass, fail: finalRegression && finalRegression.fail })));
+      }
       if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', 'debug-mainflow:export-complete-through');
       var finalAfterExport = window.LN_V3_STORE.getState();
       var done = (finalAfterExport.ui && finalAfterExport.ui.completedSteps) || [];
