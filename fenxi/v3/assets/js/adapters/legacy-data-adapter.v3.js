@@ -62,13 +62,21 @@
     return chunks.length ? chunks.length - 1 : -1;
   }
   function selectWindowChunks(chunks, rank) {
-    var idx = findCenterIndex(chunks, rank);
-    if (idx < 0) return [];
-    var picked = [];
-    [idx - 1, idx, idx + 1].forEach(function (i) {
-      if (i >= 0 && i < chunks.length && picked.indexOf(i) === -1) picked.push(i);
+    // RC4: align V3 data loading with old fenxi window logic.
+    // Use rank * [0.84, 1.45] in normal mode, instead of only previous/current/next chunk.
+    var n = toNumber(rank);
+    if (!chunks || !chunks.length || !n) return [];
+    var model = 'normal';
+    try {
+      var st = window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {};
+      model = (st.rank && st.rank.model) || (st.scenario && st.scenario.model) || 'normal';
+    } catch (err) {}
+    var pair = model === 'bold' ? [0.78, 1.42] : model === 'safe' ? [0.90, 1.55] : [0.84, 1.45];
+    var minR = Math.max(0, Math.floor(n * pair[0]));
+    var maxR = Math.ceil(n * pair[1]);
+    return chunks.filter(function (c) {
+      return !(toNumber(c.maxRank) < minR || toNumber(c.minRank) > maxR);
     });
-    return picked.map(function (i) { return chunks[i]; });
   }
   function loadChunk(chunk) {
     var id = chunk.id || chunk.file;
@@ -265,7 +273,7 @@
         cacheHydrated: rawRows > 0 || !storeRows,
         needsHydration: storeRows > 0 && rawRows === 0,
         lastLoad: lastLoad,
-        note: 'alpha5 已同步服务器会话、支持 debug 数据水合，并打通 Step3 兴趣命中预览与 Step4 场景推荐；暂不触发旧 compute 主链路。'
+        note: 'RC4 使用旧版 fenxi 位次窗口加载数据；家庭端不展示分块和调试样例。'
       };
     },
     resolveRankByScore: resolveRankByScore,

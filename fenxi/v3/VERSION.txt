@@ -1,2 +1,3 @@
-V3.0.0.rc3｜旧版fenxi逻辑完整复刻到V3 UI版
-版本戳：v300rc3-20260512
+V3.0.0.rc4｜旧版公式回归与家庭端展示重排版
+stamp: v300rc4-20260513
+scope: fenxi/v3-only update
