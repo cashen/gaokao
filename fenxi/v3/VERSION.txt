@@ -1,2 +1,4 @@
-V3.0.0.rc1.fix5｜复核清单去技术味与条件变化文案修正版
-版本戳：v300rc1fix5-20260512
+V3.0.0.rc1.fix6｜家庭路径解释透明化与并列推荐提示版
+版本戳：v300rc1fix6-20260512
+scope=fenxi/v3 only
+legacy_fenxi_index=not touched
