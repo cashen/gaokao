@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta4') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta5') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -67,6 +67,7 @@
     results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
+    results.push(check('候选比较适配器存在', !!window.LN_V3_CANDIDATE_COMPARE));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
     results.push(check('复核清单适配器存在', !!window.LN_V3_REVIEW_CHECKLIST));
@@ -79,6 +80,10 @@
       results.push(check('真实页面体验策略已收口', !!(xp.autoScrollAfterRoute && xp.stepFocusNote && xp.mobileStickyAction), JSON.stringify(xp)));
       results.push(check('移动端折叠与底部安全区策略存在', !!(xp.mobileReviewCollapsed && xp.bottomTabSafeArea), JSON.stringify(xp)));
       results.push(check('复制按钮反馈策略存在', !!xp.copyButtonFeedback, JSON.stringify(xp)));
+    }
+    if (window.LN_V3_CANDIDATE_COMPARE) {
+      var cmpPlan = window.LN_V3_CANDIDATE_COMPARE.staticPlan ? window.LN_V3_CANDIDATE_COMPARE.staticPlan() : {};
+      results.push(check('候选比较筛选/排序策略存在', !!(cmpPlan.filterPlans && cmpPlan.filterPlans.indexOf('shortlist') !== -1 && cmpPlan.sortBy && cmpPlan.sortBy.indexOf('rank_near') !== -1), JSON.stringify(cmpPlan)));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
       var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.generate({ rank: { loadedRows: 7934 }, family: { regionMode: 'hard', provinces: ['辽宁'], rejects: [], feeType: 'all' }, childPreference: { manualOnly: true, preview: { majorProfile: { misreadRules: [{ tag: '名称复核', message: '自动化不等同于纯电气。' }] } } }, studentProfile: window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {}, candidates: { list: [] }, counterfactual: { cards: [{ id: 'manual-only-off' }] }, shortlist: { items: [] } });
@@ -257,6 +262,10 @@
       results.push(check('Step6 A/B/C 卡片承接方案包', !!(candidatePreview && candidatePreview.byPlan && candidatePreview.byPlan.A > 0 && candidatePreview.byPlan.B > 0 && candidatePreview.byPlan.C > 0), JSON.stringify(candidatePreview && candidatePreview.byPlan || {})));
       results.push(check('Step6 卡片带证据等级与复核清单', !!(bCard.evidenceLevel && bCard.reviewTags && bCard.reviewTags.length && bCard.nextReview && bCard.nextReview.length), JSON.stringify(bCard)));
       results.push(check('Step6 B卡片承接兴趣命中与画像提醒', !!(bCard.planBand === 'B' && bCard.matchReason && /复核|自动化|学习强度|热门词/.test((bCard.reviewTags || []).join(' '))), JSON.stringify({ planBand: bCard.planBand, matchReason: bCard.matchReason, reviewTags: bCard.reviewTags })));
+      var comparePreview = window.LN_V3_CANDIDATE_COMPARE ? window.LN_V3_CANDIDATE_COMPARE.generate(cards, window.LN_V3_STORE.getState(), { filterPlan: 'B', sortBy: 'rank_near' }) : null;
+      var compareRows = comparePreview && comparePreview.rows || [];
+      results.push(check('Step6 卡片筛选排序能力已接入', !!(comparePreview && comparePreview.filteredCount > 0 && comparePreview.options.filterPlan === 'B' && comparePreview.options.sortBy === 'rank_near'), JSON.stringify({ filtered: comparePreview && comparePreview.filteredCount, options: comparePreview && comparePreview.options })));
+      results.push(check('Step6 横向比较表可生成', !!(compareRows.length > 0 && compareRows[0].school && compareRows[0].risk), JSON.stringify(compareRows.slice(0, 2))));
       var counterPreview = window.LN_V3_COUNTERFACTUAL_ADAPTER.apply('debug-mainflow:counterfactual');
       var cfCards = (counterPreview && counterPreview.cards) || [];
       var regionCf = cfCards.find(function (item) { return item.id === 'region-hard-to-soft'; });
