@@ -39,6 +39,12 @@
       '</div>'
     ].join('');
   }
+  function regionInsightHtml(state) {
+    var family = (state && state.family) || {};
+    var info = window.LN_V3_REGION_PREFERENCE ? window.LN_V3_REGION_PREFERENCE.analyze(family) : null;
+    if (!info) return '';
+    return '<div class="family-region-insight"><strong>' + esc(info.label) + '</strong><br>' + esc(info.display) + '<br><span>' + esc(info.choiceMeaning) + '</span></div>';
+  }
   function sampleHtml(state) {
     var preview = (state.family || {}).preview;
     var sample = preview && Array.isArray(preview.sampleKept) ? preview.sampleKept : [];
@@ -55,9 +61,10 @@
       '<div class="step-hero"><div class="v3-kicker">第 2 步</div><h2>先定家庭底线</h2><p>这一步不是选最好的，而是先排除家里明显不能接受的。先把范围缩下来，后面孩子兴趣和场景才更好用。</p></div>',
       '<div class="step-body">',
       '<div class="step-section">',
-      '<h3>地域底线</h3><p>普通家长最容易在这里迷失。建议先明确：是全国都可，还是只看辽宁。</p>',
+      '<h3>地域底线</h3><p>普通家长最容易在这里迷失。这里把地域拆成“地域底线”和“地域偏好”：只看是硬底线，优先是可放宽的选择，不是放弃。</p>',
       '<div class="family-quick-row">',
       '<button type="button" class="family-chip" data-family-quick="liaoning-hard">只看辽宁</button>',
+      '<button type="button" class="family-chip" data-family-quick="liaoning-soft">辽宁优先，可放宽</button>',
       '<button type="button" class="family-chip" data-family-quick="northeast-soft">优先东北</button>',
       '<button type="button" class="family-chip" data-family-quick="nationwide">全国都可</button>',
       '</div>',
@@ -65,7 +72,7 @@
       '<div class="v3-field"><label for="v3RegionMode">地域模式</label><select id="v3RegionMode" class="v3-select"><option value="none"', selected(family.regionMode, 'none'), '>全国都可</option><option value="soft"', selected(family.regionMode, 'soft'), '>优先考虑</option><option value="hard"', selected(family.regionMode, 'hard'), '>只看指定地区</option></select></div>',
       '<div class="v3-field"><label for="v3Provinces">省份 / 区域</label><input id="v3Provinces" class="v3-input" placeholder="例如：辽宁，或 辽宁、吉林、黑龙江" value="', esc((family.provinces || []).join('、')), '"></div>',
       '</div>',
-      '<p class="step-help">选择“只看指定地区”时，v3 会按 hard 规则预览，不保留无法匹配到目标地区的外省样本。</p>',
+      '<p class="step-help">“只看指定地区”是硬底线；“优先考虑”是偏好，不是放弃。更宽松的地域选择会保留参照样本，后面用卡片讲清楚取舍。</p>',
       '</div>',
       '<div class="step-section">',
       '<h3>预算与不能接受项</h3><p>这里不是判断学校好坏，只是先排除家庭明显不能承担的成本。</p>',
@@ -81,7 +88,7 @@
       '<label class="family-check"><input type="checkbox" id="v3RejectPrivate" value="民办独立"', checked(rejects, '民办独立'), '> 暂不看民办、独立学院或性质待核验学校</label>',
       '</div>',
       '<div class="step-section">',
-      '<h3>底线预览</h3>', previewHtml(state),
+      '<h3>底线预览</h3>', previewHtml(state), regionInsightHtml(state),
       '<div class="rank-sample-list family-sample-list">', sampleHtml(state), '</div>',
       '<div class="v3-actions"><button type="button" class="v3-btn" data-family-save data-next-step="child">保存底线并继续</button><button type="button" class="v3-btn secondary" data-family-preview>只预览，不继续</button></div>',
       '<p class="step-help">alpha5 仍只做 Step2 状态和预览，不触发旧 compute 主链路；点击“保存底线并继续”后会进入第 3 步孩子专业偏好。</p>',
@@ -160,6 +167,9 @@
     if (!root) return false;
     if (type === 'liaoning-hard') {
       root.querySelector('#v3RegionMode').value = 'hard';
+      root.querySelector('#v3Provinces').value = '辽宁';
+    } else if (type === 'liaoning-soft') {
+      root.querySelector('#v3RegionMode').value = 'soft';
       root.querySelector('#v3Provinces').value = '辽宁';
     } else if (type === 'northeast-soft') {
       root.querySelector('#v3RegionMode').value = 'soft';

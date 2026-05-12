@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>辽宁物理类高考志愿初选工具 V3 Debug</title>
   <meta name="description" content="辽宁物理类高考志愿初选工具 V3 诊断页" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/tokens.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/access-gate.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/shell.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/steps.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/child-preference.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/debug.v3.css" />
-  <link rel="stylesheet" href="/fenxi/v3/assets/css/responsive.v3.css" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/tokens.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/access-gate.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/shell.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/steps.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/child-preference.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/debug.v3.css?v=v300alpha6fix1-20260512" />
+  <link rel="stylesheet" href="/fenxi/v3/assets/css/responsive.v3.css?v=v300alpha6fix1-20260512" />
 </head>
-<body class="ln-v3 ln-v3-alpha6 ln-v3-debug-page is-locked" data-ln-version="V3.0.0.alpha6" data-ln-stamp="v300alpha6-20260512">
+<body class="ln-v3 ln-v3-alpha6-fix1 ln-v3-debug-page is-locked" data-ln-version="V3.0.0.alpha6.fix1" data-ln-stamp="v300alpha6fix1-20260512">
   <div id="lnV3AccessGate" class="access-page" aria-live="polite"></div>
   <div id="lnV3Debug" class="v3-debug" hidden>
     <header class="debug-header">
       <div>
         <div class="v3-kicker">V3 Debug · 分步向导诊断</div>
         <h1>辽宁物理类工具 V3 诊断页</h1>
-        <p>用于检查访问码、Tab、Step、状态中心、孩子专业偏好、场景推荐、A/B/C方案预览、基础性能记录，并支持一键主流程与多路径矩阵自测。</p>
+        <p>用于检查访问码、Tab、Step、状态中心、孩子专业偏好、家庭路径、A/B/C方案包、基础性能记录，并支持一键主流程与多路径矩阵自测，显示分数段策略、地域偏好强度、学生画像和专业画像复核。</p>
       </div>
       <a class="debug-link" href="/fenxi/v3/">返回 V3 工具</a>
     </header>
@@ -46,11 +46,10 @@
         <div class="debug-actions">
           <button type="button" data-debug-run="quick">快速体检</button>
           <button type="button" data-debug-run="rank">Step1 位次加载自测</button>
-          <button type="button" data-debug-run="family">Step2 底线自测</button>
           <button type="button" data-debug-run="child">Step3 专业偏好自测</button>
           <button type="button" data-debug-run="scenario">Step4 场景自测</button>
-          <button type="button" data-debug-run="plans">Step5 方案自测</button>
           <button type="button" class="debug-mainflow-btn" data-debug-run="mainflow">一键主流程自测</button>
+          <button type="button" class="debug-mainflow-btn" data-debug-run="pathmatrix">一键主流路径矩阵自测</button>
           <button type="button" data-debug-run="full">完整骨架自测</button>
           <button type="button" data-debug-copy>复制报告</button>
         </div>
@@ -59,40 +58,44 @@
     </main>
   </div>
 
-  <script defer src="/fenxi/v3/assets/js/version.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/event-bus.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/storage.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/state-store.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/access-gate.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/tab-router.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/modules/selected-tags.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/modules/child-major-groups.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/modules/child-major-search.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/modules/bigpool-hint.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/legacy-data-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/family-filter-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/child-interest-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/scenario-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/plans-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/legacy-compute-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/adapters/legacy-export-adapter.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-rank.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-family.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-child.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-scenario.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-plans.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-candidates.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/steps/step-export.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/wizard-shell.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-runtime.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-panel.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-step-rank.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-step-family.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-step-child.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-step-scenario.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-step-plans.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-selftest.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/debug/debug-report.v3.js"></script>
-  <script defer src="/fenxi/v3/assets/js/bootstrap.v3.js"></script>
+  <script defer src="/fenxi/v3/assets/js/version.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/event-bus.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/storage.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/student-profile-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/major-profile-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/state-store.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/access-gate.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/tab-router.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/modules/selected-tags.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/modules/child-major-groups.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/modules/child-major-search.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/modules/bigpool-hint.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/legacy-data-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/family-filter-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/child-interest-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/score-band-strategy-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/region-preference-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/decision-context-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/scenario-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/plans-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/legacy-compute-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/adapters/legacy-export-adapter.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-rank.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-family.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-child.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-scenario.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-plans.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-candidates.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/steps/step-export.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/wizard-shell.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-runtime.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-panel.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-step-rank.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-step-family.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-step-child.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-step-scenario.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-selftest.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/debug/debug-report.v3.js?v=v300alpha6fix1-20260512"></script>
+  <script defer src="/fenxi/v3/assets/js/bootstrap.v3.js?v=v300alpha6fix1-20260512"></script>
 </body>
 </html>

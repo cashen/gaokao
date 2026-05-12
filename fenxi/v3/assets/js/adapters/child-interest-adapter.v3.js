@@ -153,6 +153,14 @@
       summary: '',
       advice: ''
     };
+    if (window.LN_V3_MAJOR_PROFILE && window.LN_V3_MAJOR_PROFILE.profileSelection) {
+      preview.majorProfile = window.LN_V3_MAJOR_PROFILE.profileSelection(state);
+      preview.sampleMatched = matched.slice(0, 6).map(function (item) {
+        var row = compact(item.record, item.match);
+        row.majorProfile = window.LN_V3_MAJOR_PROFILE.profileRecord(item.record, child, state.studentProfile || {});
+        return row;
+      });
+    }
     preview.summary = buildSummary(child, preview);
     preview.advice = preview.summary;
     return preview;

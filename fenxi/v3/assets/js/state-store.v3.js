@@ -17,9 +17,10 @@
     rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null },
+    studentProfile: { gender: 'unspecified', source: 'unconfirmed', learning: 'unclear', load: 'unknown', path: 'unknown', understanding: 'unclear', tags: [], preferenceTags: [], reviewTags: [], summary: '学生画像未补充：只用于调整提醒顺序，不作为专业排除条件。', hardExclude: false },
     scenario: { current: '', recommended: '', reason: '', source: '', preview: null, locked: false },
-    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha6-plans-preview' },
-    plans: { A: [], B: [], C: [] },
+    compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha5-scenario-preview' },
+    plans: { A: [], B: [], C: [], preview: null, meta: null },
     candidates: { list: [], page: 1, pageSize: 20 },
     shortlist: { items: [] }
   };
@@ -55,6 +56,8 @@
     out.family = merge(initialState.family, out.family || {});
     out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
     out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];
+    out.studentProfile = merge(initialState.studentProfile, out.studentProfile || {});
+    if (window.LN_V3_STUDENT_PROFILE && window.LN_V3_STUDENT_PROFILE.normalized) out.studentProfile = window.LN_V3_STUDENT_PROFILE.normalized(out.studentProfile);
     out.childPreference = merge(initialState.childPreference, out.childPreference || {});
     out.childPreference.selectedGroups = Array.isArray(out.childPreference.selectedGroups) ? out.childPreference.selectedGroups : [];
     out.childPreference.selectedMajors = Array.isArray(out.childPreference.selectedMajors) ? out.childPreference.selectedMajors : [];
