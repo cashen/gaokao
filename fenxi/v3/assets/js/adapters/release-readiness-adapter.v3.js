@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var STAGE = 'beta11-release-readiness-guard';
+  var STAGE = 'rc1-controlled-trial-candidate';
   var REQUIRED = [
     'versionStamp',
     'accessGate',
@@ -25,7 +25,7 @@
       required: REQUIRED.slice(),
       mustStayOff: ['replaceLegacyCompute', 'overwriteFenxiIndex', 'silentOldLogic'],
       safety: [
-        'beta11 只增加发布候选检查和护栏表达，不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
+        'rc1 冻结当前受控试用候选能力，只更新版本标识和发布护栏表达，不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
         '旧版正式 compute 仍保持只读/预备对比，不允许替换 V3 当前候选结果。',
         'V3 可继续放在 /fenxi/v3/ 做受控体验，不覆盖旧 /fenxi/index.html。'
       ]
@@ -47,7 +47,7 @@
     var completed = (s.ui && s.ui.completedSteps) || [];
 
     var checks = [
-      { id: 'versionStamp', name: '版本戳已升级到 beta11', ok: version.stamp === 'v300beta11-20260512', detail: version.stamp || '' },
+      { id: 'versionStamp', name: '版本戳已升级到 rc1', ok: version.stamp === 'v300rc1-20260512', detail: version.stamp || '' },
       { id: 'accessGate', name: '访问码仍启用 ln2026', ok: version.accessCode === 'ln2026' && !!version.accessKey, detail: version.accessKey || '' },
       { id: 'stepModules', name: '七个页面模块存在', ok: ['LN_V3_STEP_RANK','LN_V3_STEP_FAMILY','LN_V3_STEP_CHILD','LN_V3_STEP_SCENARIO','LN_V3_STEP_PLANS','LN_V3_STEP_CANDIDATES','LN_V3_STEP_EXPORT'].every(function (name) { return !!window[name]; }), detail: 'rank/family/child/scenario/plans/candidates/export' },
       { id: 'dataLoading', name: '数据加载适配器存在', ok: !!(window.LN_V3_LEGACY_DATA && has(window.LN_V3_LEGACY_DATA.loadForRankOrScore)), detail: 'legacy-data-adapter' },

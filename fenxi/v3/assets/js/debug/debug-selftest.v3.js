@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta11') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -111,7 +111,7 @@
     if (window.LN_V3_RELEASE_READINESS) {
       var releasePlan = window.LN_V3_RELEASE_READINESS.staticPlan ? window.LN_V3_RELEASE_READINESS.staticPlan() : {};
       var readiness = window.LN_V3_RELEASE_READINESS.evaluate ? window.LN_V3_RELEASE_READINESS.evaluate() : {};
-      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'beta11-release-readiness-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
+      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1-controlled-trial-candidate' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
       results.push(check('发布候选检查允许受控试用但不替换旧入口', !!(readiness.guard && readiness.guard.canOpenControlledTrial === true && readiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: readiness.decision, guard: readiness.guard, pass: readiness.pass, fail: readiness.fail })));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
