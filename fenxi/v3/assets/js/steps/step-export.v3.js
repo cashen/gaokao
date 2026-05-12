@@ -6,8 +6,9 @@
     });
   }
   function getPreview(state) {
-    if (window.LN_V3_REPORT_EXPORT && window.LN_V3_REPORT_EXPORT.generate) return window.LN_V3_REPORT_EXPORT.generate(state);
-    return { ok: false, markdown: '', summary: '家庭讨论报告导出适配器未加载。', length: 0, sectionCount: 0, cardCount: 0, counterfactualCount: 0, shortlistCount: 0 };
+    var mode = (state && state.exportReport && state.exportReport.mode) || 'compact';
+    if (window.LN_V3_REPORT_EXPORT && window.LN_V3_REPORT_EXPORT.generate) return window.LN_V3_REPORT_EXPORT.generate(state, { mode: mode });
+    return { ok: false, mode: mode, markdown: '', summary: '家庭讨论报告导出适配器未加载。', length: 0, sectionCount: 0, cardCount: 0, counterfactualCount: 0, shortlistCount: 0 };
   }
   function html(state) {
     var preview = getPreview(state);
@@ -16,12 +17,14 @@
       '<section class="step-card" data-step-view="export">',
       '<div class="step-hero"><div class="v3-kicker">导出</div><h2>导出家庭讨论报告</h2><p>把前面几步形成的选择过程整理成一份可复制 Markdown：位次、底线、孩子兴趣、家庭路径、A/B/C、详细卡片、自选池和条件变化对照。</p></div>',
       '<div class="step-body">',
-      '<div class="step-section export-summary-panel"><h3>报告摘要</h3>',
+      '<div class="step-section export-summary-panel"><h3>报告摘要</h3><div class="export-mode-switch"><button type="button" class="v3-chip ' + (preview.mode === 'compact' ? 'active' : '') + '" data-export-mode="compact">精简版</button><button type="button" class="v3-chip ' + (preview.mode === 'full' ? 'active' : '') + '" data-export-mode="full">完整版</button></div>',
       '<div class="plans-overview export-overview">',
+      '<div><span>当前版本</span><strong>', esc(preview.mode === 'full' ? '完整版' : '精简版'), '</strong><p>精简版适合微信，完整版适合复核归档。</p></div>',
       '<div><span>报告长度</span><strong>', esc(String(preview.length || 0)), '</strong><p>可复制到微信、飞书、Word 或 Markdown 工具。</p></div>',
       '<div><span>章节</span><strong>', esc(String(preview.sectionCount || 0)), '</strong><p>包含家庭处境、方案包、卡片、自选和复核。</p></div>',
       '<div><span>详细卡片</span><strong>', esc(String(preview.cardCount || 0)), '</strong><p>来自 Step6 的 A/B/C 候选卡片。</p></div>',
       '<div><span>条件对照</span><strong>', esc(String(preview.counterfactualCount || 0)), '</strong><p>用于讨论是否放宽或收紧条件。</p></div>',
+      '<div><span>复核任务</span><strong>', esc(String(preview.reviewTaskCount || 0)), '</strong><p>把人工复核事项放进报告。</p></div>',
       '</div>',
       '<div class="notice-box">', esc(preview.summary || '报告已生成。'), '</div>',
       '</div>',
@@ -35,8 +38,11 @@
     var copyBtn = root.querySelector('[data-export-copy]');
     var refreshBtn = root.querySelector('[data-export-refresh]');
     var backBtn = root.querySelector('[data-export-back]');
+    var modeBtns = root.querySelectorAll('[data-export-mode]');
+    if (modeBtns && modeBtns.length) Array.prototype.forEach.call(modeBtns, function (btn) { btn.addEventListener('click', function () { var mode = btn.getAttribute('data-export-mode') || 'compact'; if (window.LN_V3_REPORT_EXPORT) window.LN_V3_REPORT_EXPORT.apply('export:mode:' + mode, { mode: mode }); window.LN_V3_WIZARD.render(); }); });
     if (copyBtn) copyBtn.addEventListener('click', function () {
-      var preview = window.LN_V3_REPORT_EXPORT ? window.LN_V3_REPORT_EXPORT.apply('export:copy-generate') : null;
+      var mode = (window.LN_V3_STORE && window.LN_V3_STORE.getState().exportReport && window.LN_V3_STORE.getState().exportReport.mode) || 'compact';
+      var preview = window.LN_V3_REPORT_EXPORT ? window.LN_V3_REPORT_EXPORT.apply('export:copy-generate', { mode: mode }) : null;
       var text = preview ? preview.markdown : (root.querySelector('[data-export-markdown]') || {}).value || '';
       if (window.LN_V3_REPORT_EXPORT) {
         window.LN_V3_REPORT_EXPORT.copy(text).then(function (ok) {

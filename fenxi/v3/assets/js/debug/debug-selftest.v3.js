@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta7') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta8') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -72,6 +72,10 @@
     results.push(check('旧版正式计算预备适配器存在', !!window.LN_V3_LEGACY_COMPUTE));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
+    if (window.LN_V3_REPORT_EXPORT && window.LN_V3_REPORT_EXPORT.staticPlan) {
+      var reportPlan = window.LN_V3_REPORT_EXPORT.staticPlan();
+      results.push(check('导出报告精简/完整版策略存在', !!(reportPlan.stage === 'beta8-report-export-enhance' && reportPlan.modes && reportPlan.modes.indexOf('compact') !== -1 && reportPlan.modes.indexOf('full') !== -1), JSON.stringify(reportPlan)));
+    }
     results.push(check('复核清单适配器存在', !!window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('进度闭环方法存在', !!(window.LN_V3_STORE && window.LN_V3_STORE.markCompleteThrough && window.LN_V3_STORE.isCompleteThrough)));
     results.push(check('家长端决策摘要渲染方法存在', !!(window.LN_V3_WIZARD && window.LN_V3_WIZARD.renderDecisionRibbon)));
@@ -311,10 +315,12 @@
       var reportText = reportPreview && reportPreview.markdown || '';
       trace('Step7 家庭讨论报告完成', 'length=' + (reportPreview && reportPreview.length) + ' cards=' + (reportPreview && reportPreview.cardCount) + ' counterfactual=' + (reportPreview && reportPreview.counterfactualCount));
       results.push(check('Step7 家庭讨论报告已生成', !!(reportPreview && reportPreview.ok && reportText.length > 500), JSON.stringify({ length: reportPreview && reportPreview.length, sections: reportPreview && reportPreview.sectionCount, cards: reportPreview && reportPreview.cardCount })));
+      results.push(check('Step7 报告支持精简版和完整版', !!(reportPreview && reportPreview.compactMarkdown && reportPreview.fullMarkdown && reportPreview.fullMarkdown.length > reportPreview.compactMarkdown.length), JSON.stringify({ mode: reportPreview && reportPreview.mode, compact: reportPreview && reportPreview.compactLength, full: reportPreview && reportPreview.fullLength })));
       results.push(check('Step7 报告包含家庭处境与决策日志', /当前家庭决策处境/.test(reportText) && /决策日志/.test(reportText), reportText.slice(0, 220)));
       results.push(check('Step7 报告包含 A\/B\/C 与详细卡片摘要', /A\/B\/C 方案包/.test(reportText) && /沈阳航空航天大学|辽宁工程技术大学|详细卡片/.test(reportText), 'length=' + reportText.length));
       results.push(check('Step7 报告包含证据等级提示', /证据|数据确认|需要复核|缺失数据/.test(reportText), reportText.slice(0, 420)));
       results.push(check('Step7 报告包含自选池与条件变化对照', /自选池/.test(reportText) && /条件变化对照/.test(reportText), 'counterfactual=' + (reportPreview && reportPreview.counterfactualCount)));
+      results.push(check('Step7 报告包含复核任务清单', /复核任务|下一步复核清单|必须复核/.test(reportText), 'reviewTask=' + (reportPreview && reportPreview.reviewTaskCount)));
       if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', 'debug-mainflow:export-complete-through');
       var finalAfterExport = window.LN_V3_STORE.getState();
       var done = (finalAfterExport.ui && finalAfterExport.ui.completedSteps) || [];

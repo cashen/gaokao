@@ -425,3 +425,8 @@
 .candidate-evidence-summary{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.65}
 .evidence-summary-box{border-color:rgba(245,158,11,.22);background:rgba(255,251,235,.72)}
 @media (max-width:720px){.candidate-evidence-grid{grid-template-columns:1fr}}
+
+/* beta8 report export modes */
+.export-mode-switch { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.export-mode-switch .v3-chip { border:1px solid var(--v3-border); background:#fff; border-radius:999px; padding:7px 12px; font-weight:700; color:var(--v3-muted); cursor:pointer; }
+.export-mode-switch .v3-chip.active { color:var(--v3-primary); background:var(--v3-primary-soft); border-color:rgba(185, 100, 39, .35); }
