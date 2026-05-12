@@ -15,7 +15,7 @@
       lastMessage: 'V3骨架已启动'
     },
     rank: { score: '', rank: '', rawScore: '', rawRank: '', effectiveScore: '', effectiveRank: '', mode: 'rank', inputConsistency: null, loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
-    family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
+    family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', qualificationMode: 'exclude', rejects: ['资格计划'], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null },
     studentProfile: { gender: 'unspecified', source: 'unconfirmed', learning: 'unclear', load: 'unknown', path: 'unknown', understanding: 'unclear', tags: [], preferenceTags: [], reviewTags: [], summary: '学生画像未补充：只用于调整提醒顺序，不作为专业排除条件。', hardExclude: false },
     scenario: { current: '', recommended: '', reason: '', source: '', preview: null, locked: false },
@@ -77,6 +77,12 @@
     out.family = merge(initialState.family, out.family || {});
     out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
     out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];
+    if (window.LN_V3_QUALIFICATION_FILTER && window.LN_V3_QUALIFICATION_FILTER.normalizeFamily) {
+      out.family = window.LN_V3_QUALIFICATION_FILTER.normalizeFamily(out.family);
+    } else {
+      out.family.qualificationMode = out.family.qualificationMode === 'include' ? 'include' : 'exclude';
+      if (out.family.qualificationMode !== 'include' && out.family.rejects.indexOf('资格计划') === -1) out.family.rejects.push('资格计划');
+    }
     out.studentProfile = merge(initialState.studentProfile, out.studentProfile || {});
     if (window.LN_V3_STUDENT_PROFILE && window.LN_V3_STUDENT_PROFILE.normalized) out.studentProfile = window.LN_V3_STUDENT_PROFILE.normalized(out.studentProfile);
     out.childPreference = merge(initialState.childPreference, out.childPreference || {});

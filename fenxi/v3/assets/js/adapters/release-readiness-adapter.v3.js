@@ -1,10 +1,11 @@
 (function () {
   'use strict';
 
-  var STAGE = 'rc1fix1-input-consistency-guard';
+  var STAGE = 'rc1fix3-qualification-filter-guard';
   var REQUIRED = [
     'versionStamp',
     'inputConsistency',
+    'qualificationFilter',
     'accessGate',
     'stepModules',
     'dataLoading',
@@ -21,12 +22,12 @@
   function staticPlan() {
     return {
       stage: STAGE,
-      goal: '在 RC1 受控试用候选基础上增加分数/位次一致性护栏：冲突输入不得继续推荐，分数段、候选池、报告必须统一 effectiveInput。',
+      goal: '在 RC1 受控试用候选基础上继续增加资格型计划默认过滤：少数民族预科、民族班、专项计划、定向等默认不进入普通候选，并提供手动查看入口。',
       decision: '可作为 /fenxi/v3/ 受控试用入口；不可替换旧 /fenxi/ 主入口。',
       required: REQUIRED.slice(),
       mustStayOff: ['replaceLegacyCompute', 'overwriteFenxiIndex', 'silentOldLogic'],
       safety: [
-        'rc1.fix2 修复 /debug、debug.htm、index.htm 等入口别名仍引用旧版本的问题，并保留输入一致性护栏，不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
+        'rc1.fix3 在入口别名同步与输入一致性护栏基础上，增加资格型计划默认过滤；不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
         '旧版正式 compute 仍保持只读/预备对比，不允许替换 V3 当前候选结果。',
         'V3 可继续放在 /fenxi/v3/ 做受控体验，不覆盖旧 /fenxi/index.html。'
       ]
@@ -48,7 +49,7 @@
     var completed = (s.ui && s.ui.completedSteps) || [];
 
     var checks = [
-      { id: 'versionStamp', name: '版本戳已升级到 rc1.fix1', ok: version.stamp === 'v300rc1fix2-20260512', detail: version.stamp || '' },
+      { id: 'versionStamp', name: '版本戳已升级到 rc1.fix1', ok: version.stamp === 'v300rc1fix3-20260512', detail: version.stamp || '' },
       { id: 'inputConsistency', name: '分数/位次一致性护栏存在', ok: !!(window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.checkRankScoreConsistency && window.LN_V3_SCORE_BAND_STRATEGY), detail: 'checkRankScoreConsistency + effectiveInput' },
       { id: 'accessGate', name: '访问码仍启用 ln2026', ok: version.accessCode === 'ln2026' && !!version.accessKey, detail: version.accessKey || '' },
       { id: 'stepModules', name: '七个页面模块存在', ok: ['LN_V3_STEP_RANK','LN_V3_STEP_FAMILY','LN_V3_STEP_CHILD','LN_V3_STEP_SCENARIO','LN_V3_STEP_PLANS','LN_V3_STEP_CANDIDATES','LN_V3_STEP_EXPORT'].every(function (name) { return !!window[name]; }), detail: 'rank/family/child/scenario/plans/candidates/export' },

@@ -36,6 +36,18 @@
     var label = normalizeText(record.schoolNatureLabel);
     return cls === 'public' || /公办/.test(label);
   }
+  function qualification() { return window.LN_V3_QUALIFICATION_FILTER || null; }
+  function shouldExcludeQualification(family) {
+    var q = qualification();
+    if (q && q.shouldExclude) return q.shouldExclude(family || {});
+    family = family || {};
+    return family.qualificationMode !== 'include';
+  }
+  function isQualificationRecord(record) {
+    var q = qualification();
+    if (q && q.isProtected) return q.isProtected(record);
+    return /少数民族|民族班|预科|高校专项|专项计划|定向|公费师范|优师专项|政审|体检/.test(normalizeText(record && record.major));
+  }
   function getRecords() {
     var cache = window.LN_V3_DATA_CACHE || {};
     return Array.isArray(cache.records) ? cache.records : [];
@@ -46,27 +58,41 @@
       reason: reason || 'no-data',
       basePool: 0,
       filteredPreview: 0,
-      removed: { region: 0, highFee: 0, nature: 0 },
+      removed: { region: 0, highFee: 0, nature: 0, qualification: 0 },
       targetExists: false,
       unmatchedKept: 0,
       sampleUnexpectedKept: [],
       sampleKept: [],
+      qualificationMode: 'exclude',
       bigPool: false,
       summary: '先完成第 1 步位次数据加载，再设置家庭底线。'
     };
   }
 
+  function normalizeFamily(family) {
+    var q = qualification();
+    if (q && q.normalizeFamily) return q.normalizeFamily(family || {});
+    family = family || {};
+    var copy = Object.assign({}, family);
+    copy.rejects = Array.isArray(copy.rejects) ? copy.rejects.slice() : [];
+    copy.qualificationMode = copy.qualificationMode === 'include' ? 'include' : 'exclude';
+    if (copy.qualificationMode !== 'include' && copy.rejects.indexOf('资格计划') === -1) copy.rejects.push('资格计划');
+    return copy;
+  }
+
   function filterRecords(records, family) {
     records = Array.isArray(records) ? records : [];
-    family = family || {};
+    family = normalizeFamily(family || {});
     var provinces = normalizeList(family.provinces);
     var regionMode = family.regionMode || 'none';
     var rejectHigh = family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict';
     var rejectNonPublic = (family.rejects || []).indexOf('民办独立') !== -1;
-    var removed = { region: 0, highFee: 0, nature: 0 };
+    var rejectQualification = shouldExcludeQualification(family);
+    var removed = { region: 0, highFee: 0, nature: 0, qualification: 0 };
     var kept = [];
     var unmatchedKept = 0;
     var sampleUnexpectedKept = [];
+    var sampleQualificationRemoved = [];
 
     records.forEach(function (record) {
       var keep = true;
@@ -84,6 +110,11 @@
         removed.nature += 1;
         keep = false;
       }
+      if (keep && rejectQualification && isQualificationRecord(record)) {
+        removed.qualification += 1;
+        if (sampleQualificationRemoved.length < 5) sampleQualificationRemoved.push(compact(record));
+        keep = false;
+      }
       if (keep) {
         if (regionMode === 'hard' && provinces.length && !inTargetProvince) {
           unmatchedKept += 1;
@@ -97,23 +128,19 @@
       records: kept,
       removed: removed,
       unmatchedKept: unmatchedKept,
-      sampleUnexpectedKept: sampleUnexpectedKept
+      sampleUnexpectedKept: sampleUnexpectedKept,
+      sampleQualificationRemoved: sampleQualificationRemoved
     };
   }
 
   function applyFamily(records, family) {
     records = Array.isArray(records) ? records : [];
-    family = family || {};
+    family = normalizeFamily(family || {});
     if (!records.length) return makeEmpty('no-loaded-records');
     var provinces = normalizeList(family.provinces);
-    var regionMode = family.regionMode || 'none';
-    var rejectHigh = family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict';
-    var rejectNonPublic = (family.rejects || []).indexOf('民办独立') !== -1;
     var targetExists = provinces.length ? records.some(function (item) { return isRecordInAnyProvince(item, provinces); }) : false;
     var filtered = filterRecords(records, family);
     var removed = filtered.removed;
-    var unmatchedKept = filtered.unmatchedKept;
-    var sampleUnexpectedKept = filtered.sampleUnexpectedKept;
     var kept = filtered.records;
     var summary = buildSummary(family, records.length, kept.length, removed, targetExists);
     return {
@@ -123,14 +150,19 @@
       filteredPreview: kept.length,
       removed: removed,
       targetExists: targetExists,
-      unmatchedKept: unmatchedKept,
-      sampleUnexpectedKept: sampleUnexpectedKept,
+      unmatchedKept: filtered.unmatchedKept,
+      sampleUnexpectedKept: filtered.sampleUnexpectedKept,
+      sampleQualificationRemoved: filtered.sampleQualificationRemoved,
       sampleKept: kept.slice(0, 5).map(compact),
+      qualificationMode: family.qualificationMode || 'exclude',
+      qualificationDefaultExcluded: shouldExcludeQualification(family),
       bigPool: kept.length > 5000,
       summary: summary
     };
   }
   function compact(item) {
+    var q = qualification();
+    var qa = q && q.analyze ? q.analyze(item) : { protected: false, labels: [] };
     return {
       school: item.school || '',
       major: item.major || '',
@@ -139,7 +171,9 @@
       schoolProvince: item.schoolProvince || '',
       lnArea: item.lnArea || '',
       isHighFee: item.isHighFee === true,
-      schoolNatureLabel: item.schoolNatureLabel || ''
+      schoolNatureLabel: item.schoolNatureLabel || '',
+      qualificationProtected: !!qa.protected,
+      qualificationLabels: qa.labels || []
     };
   }
   function buildSummary(family, total, kept, removed, targetExists) {
@@ -154,9 +188,16 @@
       parts.push('地域暂不硬限制');
     }
     if (family.feeType === 'rejectHigh' || (family.rejects || []).indexOf('高收费') !== -1 || family.budget === 'strict') parts.push('排除高收费');
+    if (shouldExcludeQualification(family)) parts.push('默认不看资格型计划');
+    else parts.push('临时查看资格型计划');
     var text = parts.join('，') + '。当前预览从 ' + total + ' 条缩到 ' + kept + ' 条。';
     if (kept > 5000) text += '候选仍然偏多，后面建议继续收窄地域、预算或开启真实命中兴趣。';
-    if (removed.region || removed.highFee || removed.nature) text += '已预览排除：地域 ' + removed.region + ' 条，高收费 ' + removed.highFee + ' 条。';
+    var removedBits = [];
+    if (removed.region) removedBits.push('地域 ' + removed.region + ' 条');
+    if (removed.highFee) removedBits.push('高收费 ' + removed.highFee + ' 条');
+    if (removed.nature) removedBits.push('学校性质 ' + removed.nature + ' 条');
+    if (removed.qualification) removedBits.push('资格型计划 ' + removed.qualification + ' 条');
+    if (removedBits.length) text += '已预览排除：' + removedBits.join('，') + '。';
     return text;
   }
   function preview(family) {
@@ -187,8 +228,10 @@
     getRecords: getRecords,
     getPreviewRecords: getPreviewRecords,
     filterRecords: filterRecords,
+    normalizeFamily: normalizeFamily,
     _isRecordInProvince: isRecordInProvince,
     _isHighFeeRecord: isHighFeeRecord,
+    _isQualificationRecord: isQualificationRecord,
     _normalizeList: normalizeList
   };
 })();

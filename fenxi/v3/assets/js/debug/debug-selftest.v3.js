@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1.fix2') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1.fix3') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -68,6 +68,11 @@
       results.push(check('分数段优先使用有效位次', rankBand && rankBand.id === '500_549', JSON.stringify(rankBand)));
     }
     results.push(check('地域偏好适配器存在', !!window.LN_V3_REGION_PREFERENCE));
+    results.push(check('资格型计划过滤适配器存在', !!window.LN_V3_QUALIFICATION_FILTER));
+    if (window.LN_V3_QUALIFICATION_FILTER && window.LN_V3_QUALIFICATION_FILTER.staticPlan) {
+      var qualificationPlan = window.LN_V3_QUALIFICATION_FILTER.staticPlan();
+      results.push(check('资格型计划默认过滤策略存在', qualificationPlan.defaultMode === 'exclude' && qualificationPlan.protectedTypes && qualificationPlan.protectedTypes.length >= 3, JSON.stringify(qualificationPlan)));
+    }
     results.push(check('决策上下文适配器存在', !!window.LN_V3_DECISION_CONTEXT));
     results.push(check('学生画像适配器存在', !!window.LN_V3_STUDENT_PROFILE));
     results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
@@ -117,7 +122,7 @@
     if (window.LN_V3_RELEASE_READINESS) {
       var releasePlan = window.LN_V3_RELEASE_READINESS.staticPlan ? window.LN_V3_RELEASE_READINESS.staticPlan() : {};
       var readiness = window.LN_V3_RELEASE_READINESS.evaluate ? window.LN_V3_RELEASE_READINESS.evaluate() : {};
-      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1fix1-input-consistency-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
+      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1fix3-qualification-filter-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
       results.push(check('发布候选检查允许受控试用但不替换旧入口', !!(readiness.guard && readiness.guard.canOpenControlledTrial === true && readiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: readiness.decision, guard: readiness.guard, pass: readiness.pass, fail: readiness.fail })));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
@@ -218,7 +223,7 @@
       results.push(check('Step1 loadedRows 接近当前样本', Number(res.loadedRows || 0) >= 7000 && Number(res.loadedRows || 0) <= 9000, 'loadedRows=' + res.loadedRows + '；预期约 7934'));
       results.push(check('Step1 分块窗口正确', Array.isArray(res.chunkIds) && res.chunkIds.indexOf('rank_50000_80000') !== -1, JSON.stringify(res.chunkIds || [])));
 
-      var family = { budget: 'normal', feeType: 'all', regionMode: 'hard', provinces: ['辽宁'], cityMode: 'none', cities: '', rejects: [] };
+      var family = { budget: 'normal', feeType: 'all', regionMode: 'hard', provinces: ['辽宁'], cityMode: 'none', cities: '', qualificationMode: 'exclude', rejects: ['资格计划'] };
       trace('Step2 应用家庭底线', '只看辽宁');
       var preview = window.LN_V3_FAMILY_FILTER.preview(family);
       family.preview = preview;
@@ -234,6 +239,7 @@
       results.push(check('Step2 辽宁 hard filtered 接近当前样本', !!(preview && Number(preview.filteredPreview || 0) >= 1200 && Number(preview.filteredPreview || 0) <= 2200), 'filtered=' + (preview && preview.filteredPreview) + '；预期约 1597'));
       results.push(check('Step2 辽宁 hard 目标存在', !!(preview && preview.targetExists), JSON.stringify({ targetExists: preview && preview.targetExists })));
       results.push(check('Step2 辽宁 hard unmatchedKept=0', Number((preview && preview.unmatchedKept) || 0) === 0, JSON.stringify({ unmatchedKept: preview && preview.unmatchedKept, sampleUnexpectedKept: preview && preview.sampleUnexpectedKept })));
+      results.push(check('Step2 默认排除资格型计划', !!(preview && preview.removed && Object.prototype.hasOwnProperty.call(preview.removed, 'qualification')), JSON.stringify({ qualification: preview && preview.removed && preview.removed.qualification, qualificationMode: preview && preview.qualificationMode })));
 
       window.LN_V3_STORE.markComplete('family', 'debug-mainflow:family-complete');
       var routed = false;

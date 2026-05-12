@@ -150,6 +150,28 @@
       }));
     }
 
+
+    if (window.LN_V3_QUALIFICATION_FILTER && window.LN_V3_QUALIFICATION_FILTER.shouldExclude && window.LN_V3_QUALIFICATION_FILTER.shouldExclude(family)) {
+      var qualFamily = clone(family);
+      qualFamily.qualificationMode = 'include';
+      qualFamily.rejects = Array.isArray(qualFamily.rejects) ? qualFamily.rejects.filter(function (x) { return x !== '资格计划'; }) : [];
+      if (qualFamily.rejects.indexOf('查看资格计划') === -1) qualFamily.rejects.push('查看资格计划');
+      var qualPreview = previewFamily(qualFamily) || {};
+      var qualRows = num(qualPreview.filteredPreview || familyRows);
+      cards.push(makeCard({
+        id: 'include-qualification-plan',
+        type: 'qualification',
+        title: '临时查看资格型计划',
+        before: familyRows,
+        after: qualRows,
+        level: qualRows > familyRows ? 'expand' : 'neutral',
+        oneLine: '把少数民族预科、专项计划、定向等需资格项目临时放回来，只作为核验参照。',
+        tradeoff: '这些项目通常需要额外资格，不适合直接混进普通候选；打开后必须逐条核对报考条件。',
+        actionHint: '适合家庭确实具备专项、少数民族、定向等资格时使用。',
+        evidence: '基于 Step2 资格型计划默认过滤预览'
+      }));
+    }
+
     cards = cards.filter(function (card) { return card.shouldShow && Number(card.delta || 0) !== 0; }).slice(0, 5);
     return {
       ok: true,

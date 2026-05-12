@@ -43,6 +43,9 @@
     if (family.feeType !== 'no_high_fee' && !(family.rejects || []).some(function (x) { return /高收费|中外/.test(x); })) {
       addTask(tasks, 'cost', '确认是否接受高收费 / 中外合作', '当前费用条件未强排高收费，详细卡片里需要逐条看学费和合作办学。', '家庭底线', '优先');
     }
+    if (family.qualificationMode === 'include' || (family.rejects || []).indexOf('查看资格计划') !== -1) {
+      tasks.push({ type: 'qualification', title: '复核资格型计划报考条件', detail: '已临时打开少数民族预科、专项计划、定向等需资格项目，必须逐条确认孩子是否具备资格。', source: '家庭底线', level: '优先' });
+    }
     if (child.manualOnly) {
       addTask(tasks, 'interest', '确认兴趣池是否过窄', '已开启只看真实命中，当前可能会排掉部分稳妥但非正命中的机会。', '孩子兴趣', '待确认');
     }

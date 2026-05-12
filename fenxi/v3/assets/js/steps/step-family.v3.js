@@ -32,6 +32,7 @@
       '<div><span>底线预览后</span><strong>', Number(preview.filteredPreview || 0), '</strong></div>',
       '<div><span>地域排除</span><strong>', Number((preview.removed || {}).region || 0), '</strong></div>',
       '<div><span>高收费排除</span><strong>', Number((preview.removed || {}).highFee || 0), '</strong></div>',
+      '<div><span>资格型排除</span><strong>', Number((preview.removed || {}).qualification || 0), '</strong></div>',
       '</div>',
       '<p>', esc(preview.summary || ''), '</p>',
       '<div class="family-hard-status">', hard, '</div>',
@@ -79,6 +80,8 @@
       '<div class="family-quick-row">',
       '<button type="button" class="family-chip" data-family-quick="normal-reject-high">普通家庭，排除高收费</button>',
       '<button type="button" class="family-chip" data-family-quick="budget-flex">预算可弹性</button>',
+      '<button type="button" class="family-chip" data-family-quick="qualification-default">默认不看资格计划</button>',
+      '<button type="button" class="family-chip" data-family-quick="qualification-include">临时查看资格计划</button>',
       '</div>',
       '<div class="v3-form-grid">',
       '<div class="v3-field"><label for="v3Budget">预算</label><select id="v3Budget" class="v3-select"><option value="normal"', selected(family.budget, 'normal'), '>普通家庭</option><option value="flex"', selected(family.budget, 'flex'), '>预算可弹性</option><option value="strict"', selected(family.budget, 'strict'), '>预算严格</option></select></div>',
@@ -86,6 +89,8 @@
       '</div>',
       '<label class="family-check"><input type="checkbox" id="v3RejectHigh" value="高收费"', checked(rejects, '高收费'), '> 不看高收费 / 中外合作 / 明显高成本方向</label>',
       '<label class="family-check"><input type="checkbox" id="v3RejectPrivate" value="民办独立"', checked(rejects, '民办独立'), '> 暂不看民办、独立学院或性质待核验学校</label>',
+      '<div class="step-subsection"><h4>特殊资格计划</h4><p class="step-help">少数民族预科、民族班、专项计划、定向、公费师范、需政审体检等项目，普通家庭通常不能直接使用。默认不看，避免混进普通候选。</p>',
+      '<label class="family-check"><input type="checkbox" id="v3IncludeQualification" value="查看资格计划"', (family.qualificationMode === 'include' ? ' checked' : ''), '> 临时查看需资格项目（少数民族预科 / 高校专项 / 定向等）</label></div>',
       '</div>',
       '<div class="step-section">',
       '<h3>底线预览</h3>', previewHtml(state), regionInsightHtml(state),
@@ -100,6 +105,9 @@
     var rejects = [];
     if (root.querySelector('#v3RejectHigh') && root.querySelector('#v3RejectHigh').checked) rejects.push('高收费');
     if (root.querySelector('#v3RejectPrivate') && root.querySelector('#v3RejectPrivate').checked) rejects.push('民办独立');
+    var includeQualification = !!(root.querySelector('#v3IncludeQualification') && root.querySelector('#v3IncludeQualification').checked);
+    if (!includeQualification) rejects.push('资格计划');
+    else rejects.push('查看资格计划');
     var feeType = root.querySelector('#v3FeeType').value;
     if (feeType === 'rejectHigh' && rejects.indexOf('高收费') === -1) rejects.push('高收费');
     return {
@@ -107,6 +115,7 @@
       provinces: splitProvinces(root.querySelector('#v3Provinces').value),
       budget: root.querySelector('#v3Budget').value,
       feeType: feeType,
+      qualificationMode: includeQualification ? 'include' : 'exclude',
       rejects: rejects
     };
   }
@@ -185,6 +194,10 @@
       root.querySelector('#v3Budget').value = 'flex';
       root.querySelector('#v3FeeType').value = 'all';
       root.querySelector('#v3RejectHigh').checked = false;
+    } else if (type === 'qualification-default') {
+      if (root.querySelector('#v3IncludeQualification')) root.querySelector('#v3IncludeQualification').checked = false;
+    } else if (type === 'qualification-include') {
+      if (root.querySelector('#v3IncludeQualification')) root.querySelector('#v3IncludeQualification').checked = true;
     }
     return save(root, false);
   }
