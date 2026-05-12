@@ -62,7 +62,7 @@
   }
   function staticPlan() {
     return {
-      stage: 'rc1fix4-scoreband-major-guard',
+      stage: 'rc1fix5-scoreband-major-guard',
       defaultMode: 'exclude',
       label: '资格型计划默认过滤',
       protectedTypes: PROTECTED_PATTERNS.map(function (item) { return item.label; }),

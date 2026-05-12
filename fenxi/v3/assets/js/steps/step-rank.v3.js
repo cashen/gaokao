@@ -63,15 +63,29 @@
     ].join('');
   }
   function cleanNum(value) { return String(value || '').replace(/[^0-9]/g, ''); }
+  function downstreamResetPatch() {
+    return {
+      family: { preview: null, summary: '家庭底线尚未设置。' },
+      childPreference: { preview: null },
+      scenario: { current: '', recommended: '', reason: '', source: '', preview: null, locked: false },
+      plans: { A: [], B: [], C: [], preview: null, meta: null },
+      candidates: { list: [], page: 1, pageSize: 20 },
+      counterfactual: { preview: null, cards: [], summary: '条件变化对照尚未生成。' },
+      exportReport: { preview: null, markdown: '', compactMarkdown: '', fullMarkdown: '', generatedAt: '', summary: '家庭讨论报告尚未生成。' },
+      reviewChecklist: { ok: false, count: 0, tasks: [], urgentCount: 0, summary: '复核清单尚未生成。' },
+      shortlist: { items: [] }
+    };
+  }
   function saveInputs(rankInput, scoreInput, message) {
     var rank = cleanNum(rankInput.value);
     var score = cleanNum(scoreInput.value);
     var done = function (guard) {
       guard = guard || { ok: true, status: rank ? 'rank-only' : 'score-only', effectiveRank: rank, effectiveScore: score, rawRank: rank, rawScore: score, message: message || '位次信息已保存。' };
-      window.LN_V3_STORE.setState({
-        rank: { rank: rank, score: score, rawRank: rank, rawScore: score, effectiveRank: guard.effectiveRank || rank, effectiveScore: guard.effectiveScore || score, mode: guard.ok === false ? 'conflict' : (rank ? 'rank' : 'score'), inputConsistency: guard },
-        ui: { lastMessage: guard.ok === false ? guard.message : (message || guard.message || '位次信息已保存。') }
-      }, 'rank:save-inputs');
+      var patch = downstreamResetPatch();
+      patch.rank = { rank: rank, score: score, rawRank: rank, rawScore: score, effectiveRank: guard.effectiveRank || rank, effectiveScore: guard.effectiveScore || score, mode: guard.ok === false ? 'conflict' : (rank ? 'rank' : 'score'), inputConsistency: guard, loadedRows: 0, chunkIds: [], chunkCount: 0, sample: [] };
+      patch.ui = { completedSteps: [], lastMessage: guard.ok === false ? guard.message : (message || guard.message || '位次信息已保存。') };
+      patch.compute = { basePool: 0, filtered: 0, waitDataMs: 0, lastReason: 'v3-step1-input-saved' };
+      window.LN_V3_STORE.setState(patch, 'rank:save-inputs');
     };
     if (window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.checkRankScoreConsistency) {
       window.LN_V3_LEGACY_DATA.checkRankScoreConsistency({ rank: rank, score: score }).then(done).catch(function () { done(null); });
@@ -83,9 +97,9 @@
     var score = cleanNum(scoreInput.value) || (result.score ? String(result.score) : '');
     var effectiveRank = String(guard.effectiveRank || result.rank || rank || '');
     var effectiveScore = String(guard.effectiveScore || score || '');
-    window.LN_V3_STORE.setState({
-      ui: { loading: false, dataWaiting: false, lastMessage: '位次附近数据已加载：' + result.loadedRows + ' 条。' },
-      rank: {
+    var patch = downstreamResetPatch();
+    patch.ui = { completedSteps: [], loading: false, dataWaiting: false, lastMessage: '位次附近数据已加载：' + result.loadedRows + ' 条。' };
+    patch.rank = {
         rank: String(result.rank || rank),
         score: score,
         rawRank: rank,
@@ -101,9 +115,9 @@
         loadedAt: new Date().toISOString(),
         rankSource: result.resolvedRankSource || result.source || '',
         sample: result.sample || []
-      },
-      compute: { waitDataMs: result.ms || 0, lastReason: 'v3-step1-load-data' }
-    }, 'rank:data-loaded');
+      };
+    patch.compute = { basePool: result.loadedRows || 0, filtered: 0, waitDataMs: result.ms || 0, lastReason: 'v3-step1-load-data' };
+    window.LN_V3_STORE.setState(patch, 'rank:data-loaded');
     if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('rank', 'rank:complete-through'); else window.LN_V3_STORE.markComplete('rank', 'rank:complete');
     if (shouldNext) window.LN_V3_ROUTER.go('family', 'rank:next-after-load');
     else if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
@@ -121,16 +135,16 @@
     }
     var startLoad = function (guard) {
       if (guard && guard.ok === false) {
-        window.LN_V3_STORE.setState({
-          ui: { loading: false, dataWaiting: false, lastMessage: guard.message || '分数和位次需要重新确认。' },
-          rank: { rank: rank, score: score, rawRank: rank, rawScore: score, effectiveRank: '', effectiveScore: '', mode: 'conflict', loadedRows: 0, chunkIds: [], chunkCount: 0, sample: [], inputConsistency: guard },
-          compute: { basePool: 0, filtered: 0, waitDataMs: 0, lastReason: 'v3-step1-input-conflict' }
-        }, 'rank:input-conflict');
+        var conflictPatch = downstreamResetPatch();
+        conflictPatch.ui = { completedSteps: [], loading: false, dataWaiting: false, lastMessage: guard.message || '分数和位次需要重新确认。' };
+        conflictPatch.rank = { rank: rank, score: score, rawRank: rank, rawScore: score, effectiveRank: '', effectiveScore: '', mode: 'conflict', loadedRows: 0, chunkIds: [], chunkCount: 0, sample: [], inputConsistency: guard };
+        conflictPatch.compute = { basePool: 0, filtered: 0, waitDataMs: 0, lastReason: 'v3-step1-input-conflict' };
+        window.LN_V3_STORE.setState(conflictPatch, 'rank:input-conflict');
         if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.render();
         return;
       }
       window.LN_V3_STORE.setState({
-        ui: { loading: true, dataWaiting: true, lastMessage: '正在加载位次附近数据…' },
+        ui: { completedSteps: [], loading: true, dataWaiting: true, lastMessage: '正在加载位次附近数据…' },
         rank: { rank: rank, score: score, rawRank: rank, rawScore: score, effectiveRank: guard && guard.effectiveRank || rank, effectiveScore: guard && guard.effectiveScore || score, mode: rank ? 'rank' : 'score', inputConsistency: guard }
       }, 'rank:data-loading');
       window.LN_V3_LEGACY_DATA.loadForRankOrScore({ rank: rank, score: score }).then(function (result) {

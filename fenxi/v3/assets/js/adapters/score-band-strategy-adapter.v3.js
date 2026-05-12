@@ -79,7 +79,7 @@
     }
     var effectiveRank = rank.effectiveRank || rank.rank;
     var effectiveScore = rank.effectiveScore || rank.score || rank.rawScore;
-    /* rc1.fix4: 分数段展示必须与采用/展示分数一致。
+    /* rc1.fix5: 分数段展示必须与采用/展示分数一致。
        有有效分数时先按分数判段；只有纯位次输入时才按位次估段，避免 580 分因位次阈值被显示成 590–624。 */
     var band = fromScore(effectiveScore) || fromRank(effectiveRank) || BANDS[3];
     return JSON.parse(JSON.stringify(band));

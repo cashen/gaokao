@@ -56,6 +56,12 @@
   function compactReviewText(card) {
     return '需复核招生章程、学费、校区和培养方向。';
   }
+  function compactTaskLine(task) {
+    if (!task) return '';
+    var title = text(task.title);
+    if (/证据等级|缺失数据|模型判断|missing|evidence/i.test(title + ' ' + text(task.detail))) return '';
+    return '- ' + escLine(title) + '：' + escLine(task.detail || task.source || '');
+  }
   function counterLine(card, full) {
     if (!card || Number(card.delta || 0) === 0) return '';
     if (card.id === 'include-qualification-plan' || card.type === 'qualification') {
@@ -145,8 +151,13 @@
     });
     lines.push('');
     lines.push('## 3. 必须复核');
-    data.reviewTasks.slice(0, 6).forEach(function (task) { lines.push('- ' + escLine(task.title) + '：' + escLine(task.detail || task.source || '')); });
-    lines.push('- 复核提醒：需复核招生章程、学费、校区和培养方向。');
+    var compactTasks = [];
+    data.reviewTasks.forEach(function (task) {
+      var line = compactTaskLine(task);
+      if (line && compactTasks.indexOf(line) === -1) compactTasks.push(line);
+    });
+    compactTasks.slice(0, 4).forEach(function (line) { lines.push(line); });
+    if (!compactTasks.length) lines.push('- 需复核招生章程、学费、校区和培养方向。');
     lines.push('');
     lines.push('## 4. 条件变化');
     data.cfCards.filter(function (card) { return Number(card.delta || 0) !== 0; }).slice(0, 3).forEach(function (card) {

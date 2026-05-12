@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var STAGE = 'rc1fix4-scoreband-major-guard';
+  var STAGE = 'rc1fix5-scoreband-major-guard';
   var REQUIRED = [
     'versionStamp',
     'inputConsistency',
@@ -27,7 +27,7 @@
       required: REQUIRED.slice(),
       mustStayOff: ['replaceLegacyCompute', 'overwriteFenxiIndex', 'silentOldLogic'],
       safety: [
-        'rc1.fix4 在资格型计划默认过滤基础上，修复分数段展示口径、强专业推荐排序、金融类风险降级、精简报告去技术味和草稿缓存护栏；不改变旧 /fenxi/ 主入口。',
+        'rc1.fix5 在资格型计划默认过滤基础上，修复分数段展示口径、强专业推荐排序、金融类风险降级、精简报告去技术味和草稿缓存护栏；不改变旧 /fenxi/ 主入口。',
         '旧版正式 compute 仍保持只读/预备对比，不允许替换 V3 当前候选结果。',
         'V3 可继续放在 /fenxi/v3/ 做受控体验，不覆盖旧 /fenxi/index.html。'
       ]
@@ -49,7 +49,7 @@
     var completed = (s.ui && s.ui.completedSteps) || [];
 
     var checks = [
-      { id: 'versionStamp', name: '版本戳已升级到 rc1.fix4', ok: version.stamp === 'v300rc1fix4-20260512', detail: version.stamp || '' },
+      { id: 'versionStamp', name: '版本戳已升级到 rc1.fix5', ok: version.stamp === 'v300rc1fix5-20260512', detail: version.stamp || '' },
       { id: 'inputConsistency', name: '分数/位次一致性护栏存在', ok: !!(window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.checkRankScoreConsistency && window.LN_V3_SCORE_BAND_STRATEGY), detail: 'checkRankScoreConsistency + effectiveInput' },
       { id: 'accessGate', name: '访问码仍启用 ln2026', ok: version.accessCode === 'ln2026' && !!version.accessKey, detail: version.accessKey || '' },
       { id: 'stepModules', name: '七个页面模块存在', ok: ['LN_V3_STEP_RANK','LN_V3_STEP_FAMILY','LN_V3_STEP_CHILD','LN_V3_STEP_SCENARIO','LN_V3_STEP_PLANS','LN_V3_STEP_CANDIDATES','LN_V3_STEP_EXPORT'].every(function (name) { return !!window[name]; }), detail: 'rank/family/child/scenario/plans/candidates/export' },
