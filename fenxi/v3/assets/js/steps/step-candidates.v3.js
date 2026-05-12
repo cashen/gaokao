@@ -28,6 +28,27 @@
       '</article>'
     ].join('');
   }
+
+  function counterfactualHtml(state) {
+    var preview = window.LN_V3_COUNTERFACTUAL_ADAPTER && window.LN_V3_COUNTERFACTUAL_ADAPTER.generate ? window.LN_V3_COUNTERFACTUAL_ADAPTER.generate(state) : { cards: [], summary: '条件变化对照未接入。' };
+    var cards = preview.cards || [];
+    if (!cards.length) return '<div class="step-section counterfactual-panel"><h3>条件变化对照</h3><div class="notice-box">' + esc(preview.summary || '暂无条件变化建议。') + '</div></div>';
+    return [
+      '<div class="step-section counterfactual-panel"><div class="section-title-row"><h3>条件变化对照</h3><span>只做比较，不替你改选择</span></div>',
+      '<div class="notice-box">', esc(preview.summary || '已生成条件变化对照。'), '</div>',
+      '<div class="counterfactual-list">', cards.map(function (card) {
+        return [
+          '<article class="counterfactual-card counterfactual-', esc(card.level), '">',
+          '<div><b>', esc(card.title), '</b><p>', esc(card.oneLine), '</p></div>',
+          '<div class="counterfactual-numbers"><span>', esc(String(card.current)), '</span><em>→</em><span>', esc(String(card.changed)), '</span><strong>', esc(card.deltaText), '</strong></div>',
+          '<p class="counterfactual-tradeoff">', esc(card.tradeoff), '</p>',
+          '<small>', esc(card.actionHint), '</small>',
+          '</article>'
+        ].join('');
+      }).join(''), '</div></div>'
+    ].join('');
+  }
+
   function groupHtml(planId, cards) {
     var title = planId === 'A' ? 'A 守底线' : planId === 'B' ? 'B 孩子路径' : 'C 上限探索';
     var body = cards.length ? cards.map(cardHtml).join('') : '<div class="notice-box">这一组暂时没有候选卡片。</div>';
@@ -57,6 +78,7 @@
       '<div><span>复核原则</span><strong>先看证据</strong><p>待核验、合作办学、专业正主程度都不要跳过。</p></div>',
       '</div>',
       '<div class="notice-box">', esc(preview.summary || '已生成详细候选卡片。'), '</div>',
+      counterfactualHtml(state),
       '<div class="step-section shortlist-panel"><h3>自选池</h3>', shortlistHtml(shortlist), '</div>',
       groupHtml('A', byA), groupHtml('B', byB), groupHtml('C', byC),
       '<div class="v3-actions"><button type="button" class="v3-btn" data-candidates-refresh>刷新详细卡片</button><button type="button" class="v3-btn" data-candidates-next>去导出</button></div>',

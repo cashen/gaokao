@@ -22,6 +22,7 @@
     compute: { basePool: 0, filtered: 0, applyTotalMs: 0, preQuietMs: 0, waitDataMs: 0, lastReason: 'v3-alpha5-scenario-preview' },
     plans: { A: [], B: [], C: [], preview: null, meta: null },
     candidates: { list: [], page: 1, pageSize: 20 },
+    counterfactual: { preview: null, cards: [], summary: '条件变化对照尚未生成。' },
     shortlist: { items: [] }
   };
   var state = merge(initialState, saved || {});
@@ -53,6 +54,8 @@
     out.compute = merge(initialState.compute, out.compute || {});
     out.scenario = merge(initialState.scenario, out.scenario || {});
     out.scenario.preview = out.scenario.preview || null;
+    out.counterfactual = merge(initialState.counterfactual, out.counterfactual || {});
+    out.counterfactual.cards = Array.isArray(out.counterfactual.cards) ? out.counterfactual.cards : [];
     out.family = merge(initialState.family, out.family || {});
     out.family.provinces = Array.isArray(out.family.provinces) ? out.family.provinces : [];
     out.family.rejects = Array.isArray(out.family.rejects) ? out.family.rejects : [];

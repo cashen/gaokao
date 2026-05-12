@@ -357,3 +357,19 @@
 .shortlist-mini-list span { flex:1; color:#475569; }
 .link-btn { border:0; background:transparent; color:#2563eb; cursor:pointer; font-weight:700; }
 @media (max-width: 760px) { .candidate-card-list { grid-template-columns: 1fr; } .candidate-card-top { flex-direction:column; } .v3-btn.small { align-self:flex-start; } }
+
+.counterfactual-panel { border: 1px solid rgba(180, 83, 9, .18); background: linear-gradient(180deg, rgba(255, 251, 235, .9), rgba(255, 255, 255, .95)); }
+.section-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.section-title-row span { color:#92400e; font-size:13px; }
+.counterfactual-list { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:12px; }
+.counterfactual-card { border:1px solid rgba(148, 163, 184, .35); border-radius:18px; padding:14px; background:#fff; box-shadow:0 8px 24px rgba(15, 23, 42, .06); }
+.counterfactual-card b { display:block; font-size:15px; color:#0f172a; margin-bottom:6px; }
+.counterfactual-card p { margin:0; color:#475569; line-height:1.55; font-size:13px; }
+.counterfactual-card small { display:block; margin-top:8px; color:#6b7280; }
+.counterfactual-numbers { display:flex; align-items:center; gap:8px; margin:10px 0; font-variant-numeric: tabular-nums; }
+.counterfactual-numbers span { font-weight:700; font-size:18px; color:#111827; }
+.counterfactual-numbers em { color:#94a3b8; font-style:normal; }
+.counterfactual-numbers strong { border-radius:999px; padding:3px 8px; font-size:12px; background:#f1f5f9; color:#334155; }
+.counterfactual-expand .counterfactual-numbers strong { background:#dcfce7; color:#166534; }
+.counterfactual-narrow .counterfactual-numbers strong { background:#fee2e2; color:#991b1b; }
+.counterfactual-tradeoff { color:#78350f !important; }

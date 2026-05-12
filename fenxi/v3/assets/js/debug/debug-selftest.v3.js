@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha7') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.alpha8') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -67,6 +67,7 @@
     results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
+    results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER));
     runScenarioMatrix(results);
     if (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.matrix) {
       var antiRegressionMatrix = window.LN_V3_SCENARIO_ADAPTER.matrix();
@@ -106,8 +107,8 @@
     results = results.concat(quick());
     results.push(check('一键主流程参数固定', true, 'rank=56548 score=500 region=辽宁 group=electric_energy major=电气工程及其自动化 path=auto profile=hot_words'));
 
-    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_CANDIDATES_ADAPTER) {
-      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates missing'));
+    if (!window.LN_V3_STORE || !window.LN_V3_LEGACY_DATA || !window.LN_V3_FAMILY_FILTER || !window.LN_V3_CHILD_INTEREST || !window.LN_V3_STEP_CHILD || !window.LN_V3_SCENARIO_ADAPTER || !window.LN_V3_STEP_SCENARIO || !window.LN_V3_PLANS_ADAPTER || !window.LN_V3_CANDIDATES_ADAPTER || !window.LN_V3_COUNTERFACTUAL_ADAPTER) {
+      results.push(check('一键主流程依赖完整', false, 'store/data/family/child/scenario/plans/candidates/counterfactual missing'));
       return Promise.resolve(results);
     }
     runScenarioMatrix(results);
@@ -237,6 +238,16 @@
       results.push(check('Step6 A/B/C 卡片承接方案包', !!(candidatePreview && candidatePreview.byPlan && candidatePreview.byPlan.A > 0 && candidatePreview.byPlan.B > 0 && candidatePreview.byPlan.C > 0), JSON.stringify(candidatePreview && candidatePreview.byPlan || {})));
       results.push(check('Step6 卡片带证据等级与复核清单', !!(bCard.evidenceLevel && bCard.reviewTags && bCard.reviewTags.length && bCard.nextReview && bCard.nextReview.length), JSON.stringify(bCard)));
       results.push(check('Step6 B卡片承接兴趣命中与画像提醒', !!(bCard.planBand === 'B' && bCard.matchReason && /复核|自动化|学习强度|热门词/.test((bCard.reviewTags || []).join(' '))), JSON.stringify({ planBand: bCard.planBand, matchReason: bCard.matchReason, reviewTags: bCard.reviewTags })));
+      var counterPreview = window.LN_V3_COUNTERFACTUAL_ADAPTER.apply('debug-mainflow:counterfactual');
+      var cfCards = (counterPreview && counterPreview.cards) || [];
+      var regionCf = cfCards.find(function (item) { return item.id === 'region-hard-to-soft'; });
+      var interestCf = cfCards.find(function (item) { return item.id === 'manual-only-off'; });
+      var costCf = cfCards.find(function (item) { return item.id === 'reject-high-fee'; });
+      trace('Step6 生成条件变化对照', 'cards=' + cfCards.length + ' region=' + !!regionCf + ' interest=' + !!interestCf);
+      results.push(check('Step6 反事实比较已生成', !!(counterPreview && counterPreview.ok && cfCards.length >= 3), JSON.stringify({ count: counterPreview && counterPreview.count, summary: counterPreview && counterPreview.summary })));
+      results.push(check('Step6 地域 hard→soft 对照存在', !!(regionCf && regionCf.changed >= regionCf.current), JSON.stringify(regionCf || {})));
+      results.push(check('Step6 关闭真实命中可恢复底线池对照存在', !!(interestCf && interestCf.changed > interestCf.current), JSON.stringify(interestCf || {})));
+      results.push(check('Step6 费用风险收窄对照存在', !!costCf, JSON.stringify(costCf || {})));
       var addOk = window.LN_V3_CANDIDATES_ADAPTER.add(bCard.key);
       var afterAdd = window.LN_V3_STORE.getState();
       results.push(check('Step6 自选池可加入候选', addOk && ((afterAdd.shortlist || {}).items || []).some(function (item) { return item.key === bCard.key; }), JSON.stringify((afterAdd.shortlist || {}).items || [])));
