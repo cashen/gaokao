@@ -16,6 +16,17 @@
   function tagList(list) {
     return (list || []).slice(0, 4).map(function (tag) { return '<span>' + esc(tag) + '</span>'; }).join('');
   }
+  function evidenceHtml(card) {
+    var ev = card.dataEvidence || {};
+    var buckets = ev.buckets || {};
+    var labels = ev.labels || { data_confirmed: '数据确认', model_judgement: '模型判断', needs_review: '需要复核', missing_data: '缺失数据' };
+    var keys = ['data_confirmed','model_judgement','needs_review','missing_data'];
+    return '<div class="candidate-evidence-grid">' + keys.map(function (key) {
+      var items = buckets[key] || [];
+      if (!items.length) return '';
+      return '<div><b>' + esc(labels[key] || key) + '</b><span>' + esc(items.slice(0, 4).join('、')) + '</span></div>';
+    }).join('') + '</div>';
+  }
   function cardHtml(card) {
     var inText = card.inShortlist ? '已加入自选' : '加入自选';
     return [
@@ -24,6 +35,8 @@
       '<div class="candidate-facts"><span>', esc(card.score2025), ' 分</span><span>位次 ', esc(card.rank2025), '</span><span>', esc(card.safety), '</span><span>', esc(card.lnArea || card.schoolProvince || '地域待核验'), '</span><span>', esc(card.schoolNatureLabel || '性质待核验'), '</span></div>',
       '<p class="candidate-one-line">', esc(card.conclusion || card.oneLine), '</p>',
       '<div class="candidate-evidence"><b>', esc(card.evidenceLevel), '</b><span>', esc(card.familyFit), '</span><span>', esc(card.interestFit), '</span></div>',
+      card.evidenceSummary ? '<p class="candidate-evidence-summary">' + esc(card.evidenceSummary) + '</p>' : '',
+      evidenceHtml(card),
       '<div class="candidate-tags">', tagList(card.reviewTags), '</div>',
       '<details class="candidate-detail-more"><summary>展开复核清单</summary>',
       '<ul>', (card.nextReview || []).map(function (item) { return '<li>' + esc(item) + '</li>'; }).join(''), '</ul>',
@@ -137,6 +150,7 @@
       '<div><span>自选池</span><strong>', esc(String(shortlist.length)), '</strong><p>建议先放入 2～5 条，再做横向比较。</p></div>',
       '</div>',
       '<div class="notice-box">', esc(compare.summary || preview.summary || '已生成详细候选卡片。'), '</div>',
+      preview.evidenceSummary ? '<div class="notice-box evidence-summary-box">' + esc(preview.evidenceSummary.summary || '') + '</div>' : '',
       compareToolbarHtml(compare),
       compareTableHtml(compare),
       counterfactualHtml(state),

@@ -416,3 +416,12 @@
   .candidate-sort-label { min-width:0; }
   .candidate-compare-panel { padding:12px; }
 }
+
+
+/* beta7 evidence buckets */
+.candidate-evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;padding:10px;border-radius:14px;background:rgba(255,251,235,.72);border:1px solid rgba(245,158,11,.18)}
+.candidate-evidence-grid div{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.candidate-evidence-grid b{color:var(--text);font-size:12px}
+.candidate-evidence-summary{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.65}
+.evidence-summary-box{border-color:rgba(245,158,11,.22);background:rgba(255,251,235,.72)}
+@media (max-width:720px){.candidate-evidence-grid{grid-template-columns:1fr}}

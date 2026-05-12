@@ -28,6 +28,7 @@
       '   - 位置：' + escLine(card.score2025 || '待核验') + '分 / 位次 ' + escLine(card.rank2025 || '待核验') + '｜' + escLine(card.safety || '待复核'),
       '   - 角色：' + escLine(card.planTitle || planTitle(card.planBand)) + '｜' + escLine(card.planRole || ''),
       '   - 理由：' + escLine(card.conclusion || card.oneLine || card.matchReason || '需要结合家庭底线和复核项继续判断。'),
+      '   - 证据：' + escLine(card.evidenceLevel || '需要复核') + (card.evidenceSummary ? '｜' + escLine(card.evidenceSummary) : ''),
       '   - 复核：' + ((card.nextReview && card.nextReview.length) ? card.nextReview.slice(0, 4).map(escLine).join('；') : (card.reviewTags || []).slice(0, 4).map(escLine).join('；') || '招生章程、学费、校区、专业培养方向')
     ].join('\n');
   }
@@ -56,6 +57,7 @@
     var ctx = window.LN_V3_DECISION_CONTEXT ? window.LN_V3_DECISION_CONTEXT.build(state) : {};
     var plans = (state.plans && state.plans.preview && state.plans.preview.plans) || {};
     var cards = (state.candidates && state.candidates.list) || [];
+    var evidenceStats = window.LN_V3_EVIDENCE_ADAPTER && window.LN_V3_EVIDENCE_ADAPTER.summarizeCards ? window.LN_V3_EVIDENCE_ADAPTER.summarizeCards(cards || []) : null;
     var byPlan = {
       A: cards.filter(function (x) { return x.planBand === 'A'; }),
       B: cards.filter(function (x) { return x.planBand === 'B'; }),
@@ -93,10 +95,14 @@
       if (!(byPlan[id] || []).length) lines.push('- 暂无样例卡片。');
       lines.push('');
     });
-    lines.push('## 4. 自选池');
+    lines.push('## 4. 详细卡片证据等级');
+    if (evidenceStats) lines.push('- ' + escLine(evidenceStats.summary));
+    else lines.push('- 暂未生成证据等级汇总。');
+    lines.push('');
+    lines.push('## 5. 自选池');
     lines.push.apply(lines, shortlistLines(shortlist));
     lines.push('');
-    lines.push('## 5. 条件变化对照');
+    lines.push('## 6. 条件变化对照');
     if (cfCards.length) {
       cfCards.forEach(function (card) {
         lines.push('- ' + escLine(card.title) + '：' + escLine(String(card.current)) + ' → ' + escLine(String(card.changed)) + '（' + escLine(card.deltaText) + '）。' + escLine(card.oneLine) + ' 代价：' + escLine(card.tradeoff));
@@ -105,7 +111,7 @@
       lines.push('- 暂未生成条件变化对照。');
     }
     lines.push('');
-    lines.push('## 6. 下一步复核清单');
+    lines.push('## 7. 下一步复核清单');
     lines.push('- 复核招生章程、培养方案、专业方向是否正主。');
     lines.push('- 复核学费、合作办学、校区、转专业限制。');
     lines.push('- 结合近两年位次变化，再决定保留、上探或删除。');
@@ -118,7 +124,7 @@
       generatedAt: generatedAt,
       markdown: markdown,
       length: markdown.length,
-      sectionCount: 6,
+      sectionCount: 7,
       cardCount: cards.length,
       shortlistCount: shortlist.length,
       counterfactualCount: cfCards.length,

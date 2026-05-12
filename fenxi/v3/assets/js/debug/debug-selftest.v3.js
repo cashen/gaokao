@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta6') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta7') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -65,6 +65,7 @@
     results.push(check('决策上下文适配器存在', !!window.LN_V3_DECISION_CONTEXT));
     results.push(check('学生画像适配器存在', !!window.LN_V3_STUDENT_PROFILE));
     results.push(check('专业画像适配器存在', !!window.LN_V3_MAJOR_PROFILE));
+    results.push(check('证据等级适配器存在', !!window.LN_V3_EVIDENCE_ADAPTER));
     results.push(check('方案包适配器存在', !!window.LN_V3_PLANS_ADAPTER));
     results.push(check('详细候选适配器存在', !!window.LN_V3_CANDIDATES_ADAPTER));
     results.push(check('候选比较适配器存在', !!window.LN_V3_CANDIDATE_COMPARE));
@@ -85,6 +86,10 @@
     if (window.LN_V3_CANDIDATE_COMPARE) {
       var cmpPlan = window.LN_V3_CANDIDATE_COMPARE.staticPlan ? window.LN_V3_CANDIDATE_COMPARE.staticPlan() : {};
       results.push(check('候选比较筛选/排序策略存在', !!(cmpPlan.filterPlans && cmpPlan.filterPlans.indexOf('shortlist') !== -1 && cmpPlan.sortBy && cmpPlan.sortBy.indexOf('rank_near') !== -1), JSON.stringify(cmpPlan)));
+    }
+    if (window.LN_V3_EVIDENCE_ADAPTER) {
+      var evidencePlan = window.LN_V3_EVIDENCE_ADAPTER.staticPlan ? window.LN_V3_EVIDENCE_ADAPTER.staticPlan() : {};
+      results.push(check('证据等级四桶策略存在', !!(evidencePlan.stage === 'beta7-evidence-system' && evidencePlan.buckets && evidencePlan.buckets.indexOf('missing_data') !== -1), JSON.stringify(evidencePlan)));
     }
     if (window.LN_V3_LEGACY_COMPUTE) {
       var legacyPlan = window.LN_V3_LEGACY_COMPUTE.staticPlan ? window.LN_V3_LEGACY_COMPUTE.staticPlan() : {};
@@ -266,8 +271,11 @@
       var bCard = cards.find(function (item) { return item.planBand === 'B'; }) || cards[0] || {};
       trace('Step6 详细卡片完成', 'cards=' + cards.length + ' A=' + ((candidatePreview.byPlan || {}).A || 0) + ' B=' + ((candidatePreview.byPlan || {}).B || 0) + ' C=' + ((candidatePreview.byPlan || {}).C || 0));
       results.push(check('Step6 详细候选卡片已生成', !!(candidatePreview && candidatePreview.ok && cards.length >= 10), JSON.stringify({ total: candidatePreview && candidatePreview.total, byPlan: candidatePreview && candidatePreview.byPlan })));
+      results.push(check('Step6 证据等级汇总已生成', !!(candidatePreview && candidatePreview.evidenceSummary && candidatePreview.evidenceSummary.total === cards.length), JSON.stringify(candidatePreview && candidatePreview.evidenceSummary || {})));
       results.push(check('Step6 A/B/C 卡片承接方案包', !!(candidatePreview && candidatePreview.byPlan && candidatePreview.byPlan.A > 0 && candidatePreview.byPlan.B > 0 && candidatePreview.byPlan.C > 0), JSON.stringify(candidatePreview && candidatePreview.byPlan || {})));
       results.push(check('Step6 卡片带证据等级与复核清单', !!(bCard.evidenceLevel && bCard.reviewTags && bCard.reviewTags.length && bCard.nextReview && bCard.nextReview.length), JSON.stringify(bCard)));
+      results.push(check('Step6 卡片带四类证据桶', !!(bCard.dataEvidence && bCard.dataEvidence.buckets && bCard.dataEvidence.buckets.data_confirmed && bCard.dataEvidence.buckets.needs_review), JSON.stringify(bCard.dataEvidence || {})));
+      results.push(check('Step6 缺失数据不伪装确定', !!(bCard.dataEvidence && (bCard.dataEvidence.hasMissingData || /待核验|待复核/.test(JSON.stringify(bCard)))), JSON.stringify({ evidenceLevel: bCard.evidenceLevel, evidenceSummary: bCard.evidenceSummary, buckets: bCard.dataEvidence && bCard.dataEvidence.buckets })));
       results.push(check('Step6 B卡片承接兴趣命中与画像提醒', !!(bCard.planBand === 'B' && bCard.matchReason && /复核|自动化|学习强度|热门词/.test((bCard.reviewTags || []).join(' '))), JSON.stringify({ planBand: bCard.planBand, matchReason: bCard.matchReason, reviewTags: bCard.reviewTags })));
       var comparePreview = window.LN_V3_CANDIDATE_COMPARE ? window.LN_V3_CANDIDATE_COMPARE.generate(cards, window.LN_V3_STORE.getState(), { filterPlan: 'B', sortBy: 'rank_near' }) : null;
       var compareRows = comparePreview && comparePreview.rows || [];
@@ -305,6 +313,7 @@
       results.push(check('Step7 家庭讨论报告已生成', !!(reportPreview && reportPreview.ok && reportText.length > 500), JSON.stringify({ length: reportPreview && reportPreview.length, sections: reportPreview && reportPreview.sectionCount, cards: reportPreview && reportPreview.cardCount })));
       results.push(check('Step7 报告包含家庭处境与决策日志', /当前家庭决策处境/.test(reportText) && /决策日志/.test(reportText), reportText.slice(0, 220)));
       results.push(check('Step7 报告包含 A\/B\/C 与详细卡片摘要', /A\/B\/C 方案包/.test(reportText) && /沈阳航空航天大学|辽宁工程技术大学|详细卡片/.test(reportText), 'length=' + reportText.length));
+      results.push(check('Step7 报告包含证据等级提示', /证据|数据确认|需要复核|缺失数据/.test(reportText), reportText.slice(0, 420)));
       results.push(check('Step7 报告包含自选池与条件变化对照', /自选池/.test(reportText) && /条件变化对照/.test(reportText), 'counterfactual=' + (reportPreview && reportPreview.counterfactualCount)));
       if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', 'debug-mainflow:export-complete-through');
       var finalAfterExport = window.LN_V3_STORE.getState();

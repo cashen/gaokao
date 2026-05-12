@@ -51,7 +51,10 @@
   }
   function normalizeCard(item, planId, ctx) {
     item = item || {};
-    var reviewTags = uniq((item.reviewTags || []).concat(item.evidenceLevel === '需要复核' ? ['证据等级复核'] : []));
+    var initialEvidence = window.LN_V3_EVIDENCE_ADAPTER && window.LN_V3_EVIDENCE_ADAPTER.assess ? window.LN_V3_EVIDENCE_ADAPTER.assess(item, ctx || {}) : null;
+    var evidenceTasks = initialEvidence && initialEvidence.tasks ? initialEvidence.tasks : [];
+    var evidenceLevelText = initialEvidence && initialEvidence.level ? initialEvidence.level : (text(item.evidenceLevel) || '模型判断');
+    var reviewTags = uniq((item.reviewTags || []).concat(item.evidenceLevel === '需要复核' ? ['证据等级复核'] : []).concat(evidenceTasks.slice(0, 3)));
     var score = firstNonEmpty(item.score2025, '待复核');
     var rank = firstNonEmpty(item.rank2025, '待复核');
     var card = {
@@ -70,7 +73,10 @@
       planRole: text(item.planRole),
       safety: text(item.safety) || '待复核',
       matchReason: text(item.matchReason),
-      evidenceLevel: text(item.evidenceLevel) || '模型判断',
+      evidenceLevel: evidenceLevelText,
+      dataEvidence: initialEvidence,
+      evidenceSummary: initialEvidence && initialEvidence.summary ? initialEvidence.summary : '',
+      evidencePriority: initialEvidence && initialEvidence.priority ? initialEvidence.priority : 'normal',
       reviewTags: reviewTags,
       oneLine: text(item.oneLine),
       familyFit: familyFit(item, ctx),
@@ -83,8 +89,15 @@
         /合作|中外|高收费/.test(text(item.major) + text(item.tuition2025) + reviewTags.join(' ')) ? '复核合作办学与费用' : '',
         item.matchReason ? '复核是否为正主专业或相近方向' : '复核为什么进入当前方案',
         '结合近两年位次变化再决定是否保留'
-      ]).slice(0, 5)
+      ].concat(evidenceTasks)).slice(0, 7)
     };
+    if (window.LN_V3_EVIDENCE_ADAPTER && window.LN_V3_EVIDENCE_ADAPTER.assess) {
+      card.dataEvidence = window.LN_V3_EVIDENCE_ADAPTER.assess(card, ctx || {});
+      card.evidenceLevel = card.dataEvidence.level || card.evidenceLevel;
+      card.evidenceSummary = card.dataEvidence.summary || card.evidenceSummary;
+      card.evidencePriority = card.dataEvidence.priority || card.evidencePriority;
+      card.nextReview = uniq((card.nextReview || []).concat(card.dataEvidence.tasks || [])).slice(0, 8);
+    }
     return card;
   }
   function flattenPlans(preview, ctx) {
@@ -109,10 +122,12 @@
       card.inShortlist = shortlistKeys.indexOf(card.key) !== -1;
       return card;
     });
+    var evidenceSummary = window.LN_V3_EVIDENCE_ADAPTER && window.LN_V3_EVIDENCE_ADAPTER.summarizeCards ? window.LN_V3_EVIDENCE_ADAPTER.summarizeCards(cards) : null;
     return {
       ok: true,
       reason: 'v3-candidates-detail-preview-only',
       list: cards,
+      evidenceSummary: evidenceSummary,
       total: cards.length,
       byPlan: {
         A: cards.filter(function (x) { return x.planBand === 'A'; }).length,
@@ -120,7 +135,7 @@
         C: cards.filter(function (x) { return x.planBand === 'C'; }).length
       },
       shortlistCount: shortlistKeys.length,
-      summary: '已从 A/B/C 方案包生成详细候选卡片，每张卡片都带证据等级、复核项和加入自选池入口。'
+      summary: '已从 A/B/C 方案包生成详细候选卡片，每张卡片都带证据等级、复核项和加入自选池入口。' + (evidenceSummary ? ' ' + evidenceSummary.summary : '')
     };
   }
   function apply(reason) {
