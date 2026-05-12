@@ -40,8 +40,12 @@
       var text = preview ? preview.markdown : (root.querySelector('[data-export-markdown]') || {}).value || '';
       if (window.LN_V3_REPORT_EXPORT) {
         window.LN_V3_REPORT_EXPORT.copy(text).then(function (ok) {
-          window.LN_V3_STORE.setState({ ui: { lastMessage: ok ? '家庭讨论报告已复制。' : '复制失败，请手动选中文本复制。' } }, 'export:copy');
-          if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.flashMessage(ok ? '家庭讨论报告已复制。' : '复制失败，请手动选中文本复制。');
+          var msg = ok ? '家庭讨论报告已复制。' : '复制失败，请手动选中文本复制。';
+          if (ok && window.LN_V3_PAGE_EXPERIENCE && window.LN_V3_PAGE_EXPERIENCE.copyFeedback) {
+            window.LN_V3_PAGE_EXPERIENCE.copyFeedback(copyBtn, '已复制');
+          }
+          window.LN_V3_STORE.setState({ ui: { lastMessage: msg } }, 'export:copy');
+          if (window.LN_V3_WIZARD) window.LN_V3_WIZARD.flashMessage(msg);
         });
       }
     });

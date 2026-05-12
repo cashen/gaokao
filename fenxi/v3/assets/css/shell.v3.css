@@ -225,3 +225,95 @@
 @media (max-width: 520px) {
   .review-checklist-list { grid-template-columns: 1fr; }
 }
+
+/* beta4: 家长端体验收口与移动端可用性增强 */
+.step-focus-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid rgba(184,107,34,.16);
+  background: linear-gradient(135deg, #fff8ec, #fffdf8);
+  border-radius: 18px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  color: #5d3d17;
+}
+.step-focus-note strong {
+  flex: 0 0 auto;
+  color: var(--v3-primary-dark);
+  background: var(--v3-primary-soft);
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+.step-focus-note span { line-height: 1.55; font-weight: 800; }
+.v3-actions-enhanced .is-primary-action {
+  box-shadow: 0 12px 26px rgba(184,107,34,.18);
+}
+.v3-btn.is-copied {
+  background: linear-gradient(135deg, #2f7d56, #3b9568) !important;
+  color: #fff !important;
+}
+.review-checklist-details { display: block; }
+.review-checklist-summary {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 10px;
+}
+.review-checklist-summary::-webkit-details-marker { display: none; }
+.review-checklist-summary::after {
+  content: '展开/收起';
+  justify-self: end;
+  color: #256346;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(47,125,86,.16);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(47,125,86,.08);
+}
+.review-checklist-summary span {
+  color: #256346;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgba(47,125,86,.10);
+  border: 1px solid rgba(47,125,86,.16);
+  border-radius: 999px;
+  padding: 6px 9px;
+}
+.review-checklist-summary strong { color: #1f3b2f; font-size: 14px; }
+.review-checklist-summary em { color: var(--v3-muted); font-style: normal; font-weight: 800; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 760px) {
+  .v3-decision-ribbon { padding: 11px; border-radius: 20px; margin-bottom: 10px; }
+  .decision-ribbon-head { padding-bottom: 8px; }
+  .decision-ribbon-grid { gap: 6px; padding-top: 9px; }
+  .decision-ribbon-grid div { padding: 8px 9px; border-radius: 14px; }
+  .decision-ribbon-grid span { font-size: 11px; margin-bottom: 2px; }
+  .decision-ribbon-grid strong { font-size: 13px; }
+  .v3-review-checklist { padding: 10px; border-radius: 18px; margin-bottom: 12px; }
+  .review-checklist-summary { grid-template-columns: 1fr; gap: 6px; margin-bottom: 0; }
+  .review-checklist-details[open] .review-checklist-summary { margin-bottom: 9px; }
+  .review-checklist-summary em { white-space: normal; }
+  .review-checklist-summary::after { justify-self: start; }
+  .step-focus-note { display: grid; gap: 8px; padding: 11px 12px; }
+  .step-focus-note span { font-size: 13px; }
+  .v3-actions-enhanced {
+    position: sticky;
+    bottom: calc(76px + var(--v3-safe-bottom));
+    z-index: 16;
+    background: rgba(255,253,248,.94);
+    border: 1px solid rgba(120,84,36,.14);
+    border-radius: 18px;
+    padding: 8px;
+    box-shadow: 0 16px 36px rgba(81,52,20,.16);
+    backdrop-filter: blur(12px);
+  }
+  .v3-actions-enhanced .v3-btn { flex: 1 1 100%; }
+  .v3-actions-enhanced .v3-btn.secondary,
+  .v3-actions-enhanced .v3-btn.ghost { flex-basis: calc(50% - 5px); }
+}

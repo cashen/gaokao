@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta3') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta4') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -73,6 +73,13 @@
     results.push(check('进度闭环方法存在', !!(window.LN_V3_STORE && window.LN_V3_STORE.markCompleteThrough && window.LN_V3_STORE.isCompleteThrough)));
     results.push(check('家长端决策摘要渲染方法存在', !!(window.LN_V3_WIZARD && window.LN_V3_WIZARD.renderDecisionRibbon)));
     results.push(check('家长端复核清单渲染方法存在', !!(window.LN_V3_WIZARD && window.LN_V3_WIZARD.renderReviewChecklist)));
+    results.push(check('页面体验适配器存在', !!window.LN_V3_PAGE_EXPERIENCE));
+    if (window.LN_V3_PAGE_EXPERIENCE && window.LN_V3_PAGE_EXPERIENCE.staticPlan) {
+      var xp = window.LN_V3_PAGE_EXPERIENCE.staticPlan();
+      results.push(check('真实页面体验策略已收口', !!(xp.autoScrollAfterRoute && xp.stepFocusNote && xp.mobileStickyAction), JSON.stringify(xp)));
+      results.push(check('移动端折叠与底部安全区策略存在', !!(xp.mobileReviewCollapsed && xp.bottomTabSafeArea), JSON.stringify(xp)));
+      results.push(check('复制按钮反馈策略存在', !!xp.copyButtonFeedback, JSON.stringify(xp)));
+    }
     if (window.LN_V3_REVIEW_CHECKLIST) {
       var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.generate({ rank: { loadedRows: 7934 }, family: { regionMode: 'hard', provinces: ['辽宁'], rejects: [], feeType: 'all' }, childPreference: { manualOnly: true, preview: { majorProfile: { misreadRules: [{ tag: '名称复核', message: '自动化不等同于纯电气。' }] } } }, studentProfile: window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {}, candidates: { list: [] }, counterfactual: { cards: [{ id: 'manual-only-off' }] }, shortlist: { items: [] } });
       results.push(check('复核清单可生成家庭可执行任务', reviewPreview.count >= 4 && reviewPreview.tasks.some(function (t) { return /学费|高收费|中外合作/.test(t.title + t.detail); }), JSON.stringify({ count: reviewPreview.count, urgent: reviewPreview.urgentCount, sample: reviewPreview.tasks.slice(0, 3) })));
@@ -285,6 +292,10 @@
       var done = (finalAfterExport.ui && finalAfterExport.ui.completedSteps) || [];
       var expectedDone = ['rank','family','child','scenario','plans','candidates','export'];
       results.push(check('Step7 进度闭环完整', expectedDone.every(function (id) { return done.indexOf(id) !== -1; }), JSON.stringify(done)));
+      if (window.LN_V3_PAGE_EXPERIENCE && window.LN_V3_PAGE_EXPERIENCE.staticPlan) {
+        var pagePlan = window.LN_V3_PAGE_EXPERIENCE.staticPlan();
+        results.push(check('真实页面结构检查已纳入总检', !!(pagePlan.autoScrollAfterRoute && pagePlan.stepFocusNote && pagePlan.mobileStickyAction && pagePlan.copyButtonFeedback), JSON.stringify(pagePlan)));
+      }
       results.push(check('主流程最终停在导出页', finalAfterExport.ui.activeStep === 'export' && finalAfterExport.ui.activeTab === 'export', JSON.stringify(finalAfterExport.ui)));
       results.push(check('主流程总耗时已记录', Math.round(performance.now() - started) >= 0, Math.round(performance.now() - started) + 'ms'));
       trace('一键主流程自测结束', 'fail=' + (results.filter(function (item) { return !item.ok; }).length));
