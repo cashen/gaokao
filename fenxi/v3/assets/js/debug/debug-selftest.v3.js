@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta9') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta10') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -103,8 +103,9 @@
     if (window.LN_V3_LEGACY_COMPUTE) {
       var legacyPlan = window.LN_V3_LEGACY_COMPUTE.staticPlan ? window.LN_V3_LEGACY_COMPUTE.staticPlan() : {};
       var bridge = window.LN_V3_LEGACY_COMPUTE.getBridgeStatus ? window.LN_V3_LEGACY_COMPUTE.getBridgeStatus() : {};
-      results.push(check('旧版计算接入预备策略存在', !!(legacyPlan.stage === 'beta6-preflight' && legacyPlan.safety && legacyPlan.safety.length), JSON.stringify(legacyPlan)));
+      results.push(check('旧版正式计算双轨对比策略存在', !!(legacyPlan.stage === 'beta10-dual-track-compare' && legacyPlan.diffCategories && legacyPlan.diffCategories.length >= 4), JSON.stringify(legacyPlan)));
       results.push(check('旧版计算桥接默认不替换 V3 主链路', !!(bridge && bridge.active === false && bridge.previewOnly === true && bridge.replacementAllowed === false), JSON.stringify(bridge)));
+      results.push(check('旧版计算桥接具备差异样本能力', !!(bridge && bridge.canBuildDiffSamples === true), JSON.stringify(bridge)));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
       var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.generate({ rank: { loadedRows: 7934 }, family: { regionMode: 'hard', provinces: ['辽宁'], rejects: [], feeType: 'all' }, childPreference: { manualOnly: true, preview: { majorProfile: { misreadRules: [{ tag: '名称复核', message: '自动化不等同于纯电气。' }] } } }, studentProfile: window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {}, candidates: { list: [] }, counterfactual: { cards: [{ id: 'manual-only-off' }] }, shortlist: { items: [] } });
@@ -295,9 +296,12 @@
       var compareRows = comparePreview && comparePreview.rows || [];
       results.push(check('Step6 卡片筛选排序能力已接入', !!(comparePreview && comparePreview.filteredCount > 0 && comparePreview.options.filterPlan === 'B' && comparePreview.options.sortBy === 'rank_near'), JSON.stringify({ filtered: comparePreview && comparePreview.filteredCount, options: comparePreview && comparePreview.options })));
       results.push(check('Step6 横向比较表可生成', !!(compareRows.length > 0 && compareRows[0].school && compareRows[0].risk), JSON.stringify(compareRows.slice(0, 2))));
-      var legacyCompare = window.LN_V3_LEGACY_COMPUTE && window.LN_V3_LEGACY_COMPUTE.compare ? window.LN_V3_LEGACY_COMPUTE.compare('debug-mainflow:legacy-compute-preflight') : null;
-      results.push(check('旧版正式计算链路预备对比已生成', !!(legacyCompare && legacyCompare.ok && legacyCompare.current && legacyCompare.legacy && legacyCompare.diff), JSON.stringify({ current: legacyCompare && legacyCompare.current, legacy: legacyCompare && legacyCompare.legacy, diff: legacyCompare && legacyCompare.diff })));
+      var legacyCompare = window.LN_V3_LEGACY_COMPUTE && window.LN_V3_LEGACY_COMPUTE.compare ? window.LN_V3_LEGACY_COMPUTE.compare('debug-mainflow:legacy-compute-dual-track') : null;
+      results.push(check('旧版正式计算双轨对比已生成', !!(legacyCompare && legacyCompare.ok && legacyCompare.current && legacyCompare.legacy && legacyCompare.diff), JSON.stringify({ current: legacyCompare && legacyCompare.current, legacy: legacyCompare && legacyCompare.legacy, diff: legacyCompare && legacyCompare.diff })));
       results.push(check('旧版计算预备不替换当前 V3 候选结果', !!(legacyCompare && legacyCompare.status && legacyCompare.status.active === false && legacyCompare.status.replacementAllowed === false && legacyCompare.current.cards === ((window.LN_V3_STORE.getState().candidates || {}).list || []).length), JSON.stringify(legacyCompare && legacyCompare.status || {})));
+      results.push(check('旧版正式计算差异样本已生成', !!(legacyCompare && legacyCompare.diffSamples && legacyCompare.diffSamples.length >= 2), JSON.stringify(legacyCompare && legacyCompare.diffSamples || [])));
+      results.push(check('旧版正式计算原因分类已生成', !!(legacyCompare && legacyCompare.reasonCategories && legacyCompare.reasonCategories.length >= 2), JSON.stringify(legacyCompare && legacyCompare.reasonCategories || [])));
+      results.push(check('正式 compute 接入护栏仍关闭替换', !!(legacyCompare && legacyCompare.formalGuard && legacyCompare.formalGuard.replacementAllowed === false && legacyCompare.formalGuard.mustCompareBeforeReplace === true), JSON.stringify(legacyCompare && legacyCompare.formalGuard || {})));
       var counterPreview = window.LN_V3_COUNTERFACTUAL_ADAPTER.apply('debug-mainflow:counterfactual');
       var cfCards = (counterPreview && counterPreview.cards) || [];
       var regionCf = cfCards.find(function (item) { return item.id === 'region-hard-to-soft'; });

@@ -1,13 +1,13 @@
 (function () {
   'use strict';
   window.LN_V3_VERSION = Object.freeze({
-    name: 'V3.0.0.beta9｜多路径真实样本回归版',
-    shortName: 'V3.0.0.beta9',
-    stamp: 'v300beta9-20260512',
+    name: 'V3.0.0.beta10｜旧版正式计算双轨对比增强版',
+    shortName: 'V3.0.0.beta10',
+    stamp: 'v300beta10-20260512',
     accessCode: 'ln2026',
     accessKey: 'LN_V3_ACCESS_2026_OK',
-    bodyClass: 'ln-v3-beta9',
+    bodyClass: 'ln-v3-beta10',
     basePath: '/fenxi/v3/',
-    releaseNote: '新增多路径真实样本回归：覆盖高分平台、学校专业平衡、省内优先、辽宁电气、低分保底、本科边缘、地域soft、动物医学、医学健康、预算受限和热门词误读；不改家庭路径、A/B/C、候选生成、证据等级和导出报告。'
+    releaseNote: '增强旧版正式计算链路接入预备：新增双轨差异样本、原因分类、正式接入护栏和 Debug 自测口径；仍不替换 V3 当前候选结果，不改家庭路径、A/B/C、候选生成和导出报告。'
   });
 })();
