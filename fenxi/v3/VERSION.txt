@@ -1,4 +1,3 @@
-V3.0.0.rc2｜旧版路径规则与候选池计算迁移版
-stamp: v300rc2-20260512
-scope: fenxi/v3 only
-notes: 不覆盖旧版 /fenxi/index.html；RC2 使用独立规则层、计算层、专业路径层、状态失效层和全路径 Debug。
+V3.0.0.rc2.fix1｜位次先行与候选复核语义修正版
+stamp: v300rc2fix1-20260512
+scope: fenxi/v3 only, do not overwrite legacy /fenxi/index.html

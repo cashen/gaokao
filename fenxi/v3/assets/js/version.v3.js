@@ -1,13 +1,13 @@
 (function () {
   'use strict';
   window.LN_V3_VERSION = Object.freeze({
-    name: 'V3.0.0.rc2｜旧版路径规则与候选池计算迁移版',
-    shortName: 'V3.0.0.rc2',
-    stamp: 'v300rc2-20260512',
+    name: 'V3.0.0.rc2.fix1｜位次先行与候选复核语义修正版',
+    shortName: 'V3.0.0.rc2.fix1',
+    stamp: 'v300rc2fix1-20260512',
     accessCode: 'ln2026',
     accessKey: 'LN_V3_ACCESS_2026_OK',
-    bodyClass: 'ln-v3-rc2',
+    bodyClass: 'ln-v3-rc2-fix1',
     basePath: '/fenxi/v3/',
-    releaseNote: 'RC2 将旧版 /fenxi 的场景路径、目标路径、专业正主/相近/泛相关判断、普通家庭推荐分、高级筛选、状态失效和全路径 Debug 迁入 V3；保留旧版入口，不覆盖 /fenxi/index.html。'
+    releaseNote: 'RC2.fix1 回到旧版 /fenxi 的核心顺序：先位次可行性，再家庭底线，再专业路径，最后生成 A/B/C；候选复核池与家庭自选池彻底分离，系统候选不再自动冒充自选。'
   });
 })();
