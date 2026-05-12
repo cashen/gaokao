@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta10') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.beta11') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -71,6 +71,7 @@
     results.push(check('候选比较适配器存在', !!window.LN_V3_CANDIDATE_COMPARE));
     results.push(check('多路径真实样本回归适配器存在', !!window.LN_V3_REGRESSION_SAMPLES));
     results.push(check('旧版正式计算预备适配器存在', !!window.LN_V3_LEGACY_COMPUTE));
+    results.push(check('发布候选护栏适配器存在', !!window.LN_V3_RELEASE_READINESS));
     results.push(check('反事实比较适配器存在', !!window.LN_V3_COUNTERFACTUAL_ADAPTER || !window.LN_V3_REVIEW_CHECKLIST));
     results.push(check('家庭讨论报告适配器存在', !!window.LN_V3_REPORT_EXPORT));
     if (window.LN_V3_REPORT_EXPORT && window.LN_V3_REPORT_EXPORT.staticPlan) {
@@ -106,6 +107,12 @@
       results.push(check('旧版正式计算双轨对比策略存在', !!(legacyPlan.stage === 'beta10-dual-track-compare' && legacyPlan.diffCategories && legacyPlan.diffCategories.length >= 4), JSON.stringify(legacyPlan)));
       results.push(check('旧版计算桥接默认不替换 V3 主链路', !!(bridge && bridge.active === false && bridge.previewOnly === true && bridge.replacementAllowed === false), JSON.stringify(bridge)));
       results.push(check('旧版计算桥接具备差异样本能力', !!(bridge && bridge.canBuildDiffSamples === true), JSON.stringify(bridge)));
+    }
+    if (window.LN_V3_RELEASE_READINESS) {
+      var releasePlan = window.LN_V3_RELEASE_READINESS.staticPlan ? window.LN_V3_RELEASE_READINESS.staticPlan() : {};
+      var readiness = window.LN_V3_RELEASE_READINESS.evaluate ? window.LN_V3_RELEASE_READINESS.evaluate() : {};
+      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'beta11-release-readiness-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
+      results.push(check('发布候选检查允许受控试用但不替换旧入口', !!(readiness.guard && readiness.guard.canOpenControlledTrial === true && readiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: readiness.decision, guard: readiness.guard, pass: readiness.pass, fail: readiness.fail })));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
       var reviewPreview = window.LN_V3_REVIEW_CHECKLIST.generate({ rank: { loadedRows: 7934 }, family: { regionMode: 'hard', provinces: ['辽宁'], rejects: [], feeType: 'all' }, childPreference: { manualOnly: true, preview: { majorProfile: { misreadRules: [{ tag: '名称复核', message: '自动化不等同于纯电气。' }] } } }, studentProfile: window.LN_V3_STUDENT_PROFILE ? window.LN_V3_STUDENT_PROFILE.normalized({ source: 'parent_observe', learning: 'science', load: 'sensitive', path: 'work_first', understanding: 'hot_words' }) : {}, candidates: { list: [] }, counterfactual: { cards: [{ id: 'manual-only-off' }] }, shortlist: { items: [] } });
@@ -342,11 +349,19 @@
         var finalRegression = window.LN_V3_REGRESSION_SAMPLES.run();
         results.push(check('主流程后多路径真实样本回归仍通过', !!(finalRegression && finalRegression.ok), JSON.stringify({ total: finalRegression && finalRegression.total, pass: finalRegression && finalRegression.pass, fail: finalRegression && finalRegression.fail })));
       }
+      if (window.LN_V3_RELEASE_READINESS && window.LN_V3_RELEASE_READINESS.evaluate) {
+        var readinessBeforeComplete = window.LN_V3_RELEASE_READINESS.evaluate(window.LN_V3_STORE.getState());
+        results.push(check('发布候选护栏主流程可评估', !!(readinessBeforeComplete && readinessBeforeComplete.total >= 10), JSON.stringify({ pass: readinessBeforeComplete.pass, fail: readinessBeforeComplete.fail, decision: readinessBeforeComplete.decision })));
+      }
       if (window.LN_V3_STORE.markCompleteThrough) window.LN_V3_STORE.markCompleteThrough('export', 'debug-mainflow:export-complete-through');
       var finalAfterExport = window.LN_V3_STORE.getState();
       var done = (finalAfterExport.ui && finalAfterExport.ui.completedSteps) || [];
       var expectedDone = ['rank','family','child','scenario','plans','candidates','export'];
       results.push(check('Step7 进度闭环完整', expectedDone.every(function (id) { return done.indexOf(id) !== -1; }), JSON.stringify(done)));
+      if (window.LN_V3_RELEASE_READINESS && window.LN_V3_RELEASE_READINESS.evaluate) {
+        var finalReadiness = window.LN_V3_RELEASE_READINESS.evaluate(finalAfterExport);
+        results.push(check('发布候选护栏最终通过', !!(finalReadiness && finalReadiness.ok && finalReadiness.guard && finalReadiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: finalReadiness.decision, pass: finalReadiness.pass, fail: finalReadiness.fail, guard: finalReadiness.guard })));
+      }
       if (window.LN_V3_PAGE_EXPERIENCE && window.LN_V3_PAGE_EXPERIENCE.staticPlan) {
         var pagePlan = window.LN_V3_PAGE_EXPERIENCE.staticPlan();
         results.push(check('真实页面结构检查已纳入总检', !!(pagePlan.autoScrollAfterRoute && pagePlan.stepFocusNote && pagePlan.mobileStickyAction && pagePlan.copyButtonFeedback), JSON.stringify(pagePlan)));
