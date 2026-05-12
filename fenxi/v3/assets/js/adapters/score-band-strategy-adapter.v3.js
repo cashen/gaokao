@@ -73,7 +73,13 @@
   function resolve(state) {
     state = state || (window.LN_V3_STORE ? window.LN_V3_STORE.getState() : {});
     var rank = state.rank || {};
-    var band = fromScore(rank.score) || fromRank(rank.rank) || BANDS[3];
+    var guard = rank.inputConsistency || {};
+    if (guard && guard.ok === false) {
+      return JSON.parse(JSON.stringify({ id: 'input_conflict', label: '分数/位次冲突，需先确认', level: 'blocked', priority: '先修正输入口径', firstQuestion: '分数和位次明显不一致，不能继续生成推荐。', abc: {}, cardFocus: ['重新确认分数或位次'], windowPolicy: 'blocked' }));
+    }
+    var effectiveRank = rank.effectiveRank || rank.rank;
+    var effectiveScore = rank.effectiveScore || rank.score;
+    var band = fromRank(effectiveRank) || fromScore(effectiveScore) || BANDS[3];
     return JSON.parse(JSON.stringify(band));
   }
   window.LN_V3_SCORE_BAND_STRATEGY = { bands: BANDS, resolve: resolve, fromScore: fromScore, fromRank: fromRank };

@@ -66,7 +66,7 @@
     var scenario = state.scenario || {};
     var counter = state.counterfactual || {};
     return [
-      '- 位次/分数：' + escLine((state.rank || {}).rank || '未填') + ' / ' + escLine((state.rank || {}).score || '未填') + '；加载候选约 ' + num((state.rank || {}).loadedRows) + ' 条。',
+      '- 输入口径：' + escLine(inputSummary({ state: state })) + '；加载候选约 ' + num((state.rank || {}).loadedRows) + ' 条。',
       '- 家庭底线：' + escLine(family.summary || '尚未设置') + '',
       '- 孩子兴趣：' + escLine(child.summary || '尚未选择') + '；真实命中模式：' + (child.manualOnly ? '开启' : '未开启') + '。',
       '- 家庭路径：' + escLine(scenario.reason || '尚未选择') + '',
@@ -76,6 +76,25 @@
   function evidenceLine(cards) {
     var evidenceStats = window.LN_V3_EVIDENCE_ADAPTER && window.LN_V3_EVIDENCE_ADAPTER.summarizeCards ? window.LN_V3_EVIDENCE_ADAPTER.summarizeCards(cards || []) : null;
     return evidenceStats ? escLine(evidenceStats.summary) : '暂未生成证据等级汇总。';
+  }
+  function inputSummary(data) {
+    data = data || {};
+    var rank = (data.state && data.state.rank) || {};
+    var guard = rank.inputConsistency || {};
+    var rawRank = rank.rawRank || rank.rank || '未填';
+    var rawScore = rank.rawScore || rank.score || '未填';
+    var effectiveRank = rank.effectiveRank || rank.rank || '';
+    var effectiveScore = rank.effectiveScore || rank.score || '';
+    if (guard && guard.ok === false) {
+      return '原始输入：' + rawScore + ' 分 / ' + rawRank + ' 位；系统判定：分数与位次不一致，未生成正式推荐。' + (guard.message ? ' ' + guard.message : '');
+    }
+    if (guard && guard.status === 'score-only') {
+      return '原始输入：' + rawScore + ' 分；系统采用：按一分一段换算位次 ' + (effectiveRank || '待换算') + '。';
+    }
+    if (guard && guard.status === 'rank-only') {
+      return '原始输入：' + rawRank + ' 位；系统采用：以位次为准。';
+    }
+    return '原始输入：' + rawScore + ' 分 / ' + rawRank + ' 位；系统采用：' + (effectiveScore || rawScore || '未填') + ' 分 / ' + (effectiveRank || rawRank || '未填') + ' 位。';
   }
   function buildCompact(data) {
     var lines = [];
@@ -87,6 +106,7 @@
     lines.push('> 精简版适合发微信/家庭群；完整复核请看完整版。');
     lines.push('');
     lines.push('## 1. 当前结论');
+    lines.push('- 输入口径：' + escLine(inputSummary(data)));
     lines.push('- 分数段：' + escLine((data.ctx.band && data.ctx.band.label) || '待判断'));
     lines.push('- 地域选择：' + escLine((data.ctx.region && data.ctx.region.label) || '未设置'));
     lines.push('- 家庭路径：' + escLine(data.pathName || '未选择'));
@@ -121,6 +141,7 @@
     lines.push('> 这是一份家庭讨论用的初选摘要，不替代招生章程、官方计划、学费和校区复核。');
     lines.push('');
     lines.push('## 1. 当前家庭决策处境');
+    lines.push('- 输入口径：' + escLine(inputSummary(data)));
     lines.push('- 分数段：' + escLine((data.ctx.band && data.ctx.band.label) || '待判断'));
     lines.push('- 地域选择：' + escLine((data.ctx.region && data.ctx.region.label) || '未设置'));
     lines.push('- 家庭路径：' + escLine(data.pathName || '未选择'));

@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1.fix2') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -61,6 +61,12 @@
   function pathmatrix() {
     var results = quick();
     results.push(check('分数段策略适配器存在', !!window.LN_V3_SCORE_BAND_STRATEGY));
+    if (window.LN_V3_SCORE_BAND_STRATEGY && window.LN_V3_SCORE_BAND_STRATEGY.resolve) {
+      var conflictBand = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '56548', score: '650', inputConsistency: { ok: false, status: 'conflict' } } });
+      var rankBand = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '56548', score: '650', effectiveRank: '56548', effectiveScore: '', inputConsistency: { ok: true, status: 'rank-only' } } });
+      results.push(check('分数/位次冲突时分数段被拦截', conflictBand && conflictBand.id === 'input_conflict', JSON.stringify(conflictBand)));
+      results.push(check('分数段优先使用有效位次', rankBand && rankBand.id === '500_549', JSON.stringify(rankBand)));
+    }
     results.push(check('地域偏好适配器存在', !!window.LN_V3_REGION_PREFERENCE));
     results.push(check('决策上下文适配器存在', !!window.LN_V3_DECISION_CONTEXT));
     results.push(check('学生画像适配器存在', !!window.LN_V3_STUDENT_PROFILE));
@@ -111,7 +117,7 @@
     if (window.LN_V3_RELEASE_READINESS) {
       var releasePlan = window.LN_V3_RELEASE_READINESS.staticPlan ? window.LN_V3_RELEASE_READINESS.staticPlan() : {};
       var readiness = window.LN_V3_RELEASE_READINESS.evaluate ? window.LN_V3_RELEASE_READINESS.evaluate() : {};
-      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1-controlled-trial-candidate' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
+      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1fix1-input-consistency-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
       results.push(check('发布候选检查允许受控试用但不替换旧入口', !!(readiness.guard && readiness.guard.canOpenControlledTrial === true && readiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: readiness.decision, guard: readiness.guard, pass: readiness.pass, fail: readiness.fail })));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {
@@ -172,6 +178,16 @@
       var session = window.LN_V3_ACCESS && window.LN_V3_ACCESS.getServerSession ? window.LN_V3_ACCESS.getServerSession() : {};
       trace('服务器会话检查', JSON.stringify(session || {}));
       results.push(check('服务器会话可用于读取数据', !!(session && session.ok), JSON.stringify(session || {})));
+      if (window.LN_V3_LEGACY_DATA.checkRankScoreConsistency) {
+        return window.LN_V3_LEGACY_DATA.checkRankScoreConsistency({ rank: '56548', score: '650' }).then(function (guard) {
+          results.push(check('Step1 冲突输入 56548/650 必须拦截', guard && guard.ok === false && guard.status === 'conflict', JSON.stringify(guard || {})));
+          return window.LN_V3_LEGACY_DATA.checkRankScoreConsistency({ rank: '56548', score: '500' });
+        }).then(function (guard2) {
+          results.push(check('Step1 合理输入 56548/500 可以通过', guard2 && guard2.ok === true, JSON.stringify(guard2 || {})));
+          trace('Step1 加载位次数据', 'rank=56548 score=500');
+          return window.LN_V3_LEGACY_DATA.loadForRankOrScore({ rank: '56548', score: '500' });
+        });
+      }
       trace('Step1 加载位次数据', 'rank=56548 score=500');
       return window.LN_V3_LEGACY_DATA.loadForRankOrScore({ rank: '56548', score: '500' });
     }).then(function (res) {
@@ -179,6 +195,11 @@
         rank: {
           rank: String(res.rank || 56548),
           score: '500',
+          rawRank: '56548',
+          rawScore: '500',
+          effectiveRank: String((res.inputConsistency && res.inputConsistency.effectiveRank) || res.rank || 56548),
+          effectiveScore: String((res.inputConsistency && res.inputConsistency.effectiveScore) || '500'),
+          inputConsistency: res.inputConsistency || null,
           mode: 'rank',
           loadedRows: res.loadedRows || 0,
           chunkIds: res.chunkIds || [],

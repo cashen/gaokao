@@ -1,9 +1,10 @@
 (function () {
   'use strict';
 
-  var STAGE = 'rc1-controlled-trial-candidate';
+  var STAGE = 'rc1fix1-input-consistency-guard';
   var REQUIRED = [
     'versionStamp',
+    'inputConsistency',
     'accessGate',
     'stepModules',
     'dataLoading',
@@ -20,12 +21,12 @@
   function staticPlan() {
     return {
       stage: STAGE,
-      goal: '把 V3 当前稳定链路整理成受控试用前的发布护栏：确认缓存戳、访问码、七步链路、证据等级、报告双模式、多路径回归和旧 compute 替换开关都在安全状态。',
+      goal: '在 RC1 受控试用候选基础上增加分数/位次一致性护栏：冲突输入不得继续推荐，分数段、候选池、报告必须统一 effectiveInput。',
       decision: '可作为 /fenxi/v3/ 受控试用入口；不可替换旧 /fenxi/ 主入口。',
       required: REQUIRED.slice(),
       mustStayOff: ['replaceLegacyCompute', 'overwriteFenxiIndex', 'silentOldLogic'],
       safety: [
-        'rc1 冻结当前受控试用候选能力，只更新版本标识和发布护栏表达，不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
+        'rc1.fix2 修复 /debug、debug.htm、index.htm 等入口别名仍引用旧版本的问题，并保留输入一致性护栏，不改变家庭路径、A/B/C、候选生成、证据等级和导出报告。',
         '旧版正式 compute 仍保持只读/预备对比，不允许替换 V3 当前候选结果。',
         'V3 可继续放在 /fenxi/v3/ 做受控体验，不覆盖旧 /fenxi/index.html。'
       ]
@@ -47,7 +48,8 @@
     var completed = (s.ui && s.ui.completedSteps) || [];
 
     var checks = [
-      { id: 'versionStamp', name: '版本戳已升级到 rc1', ok: version.stamp === 'v300rc1-20260512', detail: version.stamp || '' },
+      { id: 'versionStamp', name: '版本戳已升级到 rc1.fix1', ok: version.stamp === 'v300rc1fix2-20260512', detail: version.stamp || '' },
+      { id: 'inputConsistency', name: '分数/位次一致性护栏存在', ok: !!(window.LN_V3_LEGACY_DATA && window.LN_V3_LEGACY_DATA.checkRankScoreConsistency && window.LN_V3_SCORE_BAND_STRATEGY), detail: 'checkRankScoreConsistency + effectiveInput' },
       { id: 'accessGate', name: '访问码仍启用 ln2026', ok: version.accessCode === 'ln2026' && !!version.accessKey, detail: version.accessKey || '' },
       { id: 'stepModules', name: '七个页面模块存在', ok: ['LN_V3_STEP_RANK','LN_V3_STEP_FAMILY','LN_V3_STEP_CHILD','LN_V3_STEP_SCENARIO','LN_V3_STEP_PLANS','LN_V3_STEP_CANDIDATES','LN_V3_STEP_EXPORT'].every(function (name) { return !!window[name]; }), detail: 'rank/family/child/scenario/plans/candidates/export' },
       { id: 'dataLoading', name: '数据加载适配器存在', ok: !!(window.LN_V3_LEGACY_DATA && has(window.LN_V3_LEGACY_DATA.loadForRankOrScore)), detail: 'legacy-data-adapter' },

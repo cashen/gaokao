@@ -150,7 +150,7 @@
       }));
     }
 
-    cards = cards.filter(function (card) { return card.shouldShow; }).slice(0, 5);
+    cards = cards.filter(function (card) { return card.shouldShow && Number(card.delta || 0) !== 0; }).slice(0, 5);
     return {
       ok: true,
       reason: 'v3-counterfactual-preview-only',

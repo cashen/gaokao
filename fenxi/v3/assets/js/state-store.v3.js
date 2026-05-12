@@ -14,7 +14,7 @@
       bigPool: false,
       lastMessage: 'V3骨架已启动'
     },
-    rank: { score: '', rank: '', mode: 'rank', loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
+    rank: { score: '', rank: '', rawScore: '', rawRank: '', effectiveScore: '', effectiveRank: '', mode: 'rank', inputConsistency: null, loadedRows: 0, chunkIds: [], chunkCount: 0, loadMs: 0, loadedAt: '', rankSource: '', sample: [] },
     family: { budget: 'normal', feeType: 'all', regionMode: 'none', provinces: [], cityMode: 'none', cities: '', rejects: [], preview: null, summary: '家庭底线尚未设置。' },
     childPreference: { mode: 'unset', selectedGroups: [], selectedMajors: [], weights: {}, summary: '还没有选择专业方向。', manualOnly: false, preview: null },
     studentProfile: { gender: 'unspecified', source: 'unconfirmed', learning: 'unclear', load: 'unknown', path: 'unknown', understanding: 'unclear', tags: [], preferenceTags: [], reviewTags: [], summary: '学生画像未补充：只用于调整提醒顺序，不作为专业排除条件。', hardExclude: false },
@@ -54,6 +54,17 @@
     out.rank.loadedRows = Number(out.rank.loadedRows || 0);
     out.rank.chunkCount = Number(out.rank.chunkCount || 0);
     out.rank.loadMs = Number(out.rank.loadMs || 0);
+    out.rank.rawRank = out.rank.rawRank || out.rank.rank || '';
+    out.rank.rawScore = out.rank.rawScore || out.rank.score || '';
+    out.rank.inputConsistency = out.rank.inputConsistency || null;
+    if (out.rank.inputConsistency && out.rank.inputConsistency.ok === false) {
+      out.rank.effectiveRank = '';
+      out.rank.effectiveScore = '';
+      out.rank.mode = 'conflict';
+    } else {
+      out.rank.effectiveRank = out.rank.effectiveRank || out.rank.rank || '';
+      out.rank.effectiveScore = out.rank.effectiveScore || out.rank.score || '';
+    }
     out.compute = merge(initialState.compute, out.compute || {});
     out.scenario = merge(initialState.scenario, out.scenario || {});
     out.scenario.preview = out.scenario.preview || null;

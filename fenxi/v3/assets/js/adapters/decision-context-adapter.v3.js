@@ -23,8 +23,11 @@
     var hasInterest = groupIds.length > 0 || majorNames.length > 0 || child.mode === 'selected';
     return {
       rank: rank,
-      score: num(rank.score),
-      rankNo: num(rank.rank),
+      score: num(rank.effectiveScore || rank.score),
+      rankNo: num(rank.effectiveRank || rank.rank),
+      rawScore: num(rank.rawScore || rank.score),
+      rawRank: num(rank.rawRank || rank.rank),
+      inputConsistency: rank.inputConsistency || null,
       band: band,
       region: region,
       family: family,
@@ -50,7 +53,7 @@
     var groups = opts.groups || [];
     var majors = opts.majors || [];
     return build({
-      rank: { score: String(opts.score || ''), rank: String(opts.rank || ''), loadedRows: opts.basePool || 7934 },
+      rank: { score: String(opts.score || ''), rank: String(opts.rank || ''), rawScore: String(opts.score || ''), rawRank: String(opts.rank || ''), effectiveScore: String(opts.score || ''), effectiveRank: String(opts.rank || ''), loadedRows: opts.basePool || 7934 },
       family: { regionMode: opts.regionMode || 'none', provinces: opts.provinces || [], budget: opts.budget || 'normal', feeType: opts.feeType || 'all', rejects: opts.rejects || [], preview: { filteredPreview: opts.familyRows || 1597, bigPool: !!opts.bigPool } },
       studentProfile: opts.studentProfile || {},
       childPreference: { mode: opts.mode || (groups.length ? 'selected' : 'unknown'), selectedGroups: groups.map(function (id) { return { id: id, name: id }; }), selectedMajors: majors.map(function (name) { return { name: name }; }), manualOnly: !!opts.manualOnly, preview: { familyFilteredRows: opts.familyRows || 1597, matchedRows: opts.matchedRows || 0, effectiveFilteredRows: opts.manualOnly ? (opts.matchedRows || 0) : (opts.familyRows || 1597), bigPool: !!opts.bigPool } },

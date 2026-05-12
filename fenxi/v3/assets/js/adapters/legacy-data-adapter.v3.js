@@ -131,22 +131,89 @@
       });
     });
   }
+  function checkRankScoreConsistency(input) {
+    input = input || {};
+    var rank = toNumber(input.rank);
+    var score = toNumber(input.score);
+    var base = {
+      ok: true,
+      status: 'ok',
+      rawRank: rank || '',
+      rawScore: score || '',
+      effectiveRank: rank || '',
+      effectiveScore: score || '',
+      expectedRankByScore: '',
+      deltaRank: 0,
+      tolerance: 0,
+      message: ''
+    };
+    if (!rank && !score) {
+      base.ok = false;
+      base.status = 'empty';
+      base.message = '请先输入位次或分数。';
+      return Promise.resolve(base);
+    }
+    if (rank && !score) {
+      base.status = 'rank-only';
+      base.message = '已按位次 ' + rank + ' 作为有效输入。';
+      return Promise.resolve(base);
+    }
+    if (!rank && score) {
+      return resolveRankByScore(score).then(function (resolved) {
+        base.status = 'score-only';
+        base.effectiveRank = resolved.rank || '';
+        base.effectiveScore = score;
+        base.expectedRankByScore = resolved.rank || '';
+        base.message = resolved.rank ? ('已按 ' + score + ' 分换算参考位次 ' + resolved.rank + '。') : '未能根据分数换算位次。';
+        base.ok = !!resolved.rank;
+        if (!base.ok) base.status = 'score-unresolved';
+        return base;
+      });
+    }
+    return resolveRankByScore(score).then(function (resolved) {
+      var expected = toNumber(resolved.rank);
+      var delta = expected ? Math.abs(rank - expected) : 0;
+      var tolerance = expected ? Math.max(1500, Math.round(expected * 0.08)) : 0;
+      base.expectedRankByScore = expected || '';
+      base.deltaRank = delta;
+      base.tolerance = tolerance;
+      base.effectiveRank = rank;
+      base.effectiveScore = score;
+      if (!expected) {
+        base.ok = false;
+        base.status = 'score-unresolved';
+        base.message = '未能根据 ' + score + ' 分换算位次，请只填位次或重新输入。';
+      } else if (delta > tolerance) {
+        base.ok = false;
+        base.status = 'conflict';
+        base.effectiveRank = '';
+        base.effectiveScore = '';
+        base.message = '你输入的分数 ' + score + ' 和位次 ' + rank + ' 明显不匹配。按 2025 辽宁物理类一分一段，' + score + ' 分约对应位次 ' + expected + '，两者相差 ' + delta + ' 位。请确认后再继续。';
+      } else {
+        base.status = 'consistent';
+        base.message = '分数和位次基本一致，系统以位次 ' + rank + ' 为准。';
+      }
+      return base;
+    });
+  }
+
   function loadForRankOrScore(input) {
     input = input || {};
     var rank = toNumber(input.rank);
     var score = toNumber(input.score);
-    if (rank) return loadForRank(rank, { source: 'rank' }).then(function (res) { res.resolvedRankSource = '用户输入位次'; return res; });
-    if (score) {
-      return resolveRankByScore(score).then(function (resolved) {
-        if (!resolved.rank) throw new Error('未能根据分数换算位次');
-        return loadForRank(resolved.rank, { source: 'score' }).then(function (res) {
-          res.resolvedRankSource = resolved.source;
-          res.score = score;
+    return checkRankScoreConsistency(input).then(function (guard) {
+      if (!guard.ok) throw new Error(guard.message || '分数和位次需要重新确认');
+      var effectiveRank = toNumber(guard.effectiveRank || rank);
+      if (effectiveRank) {
+        return loadForRank(effectiveRank, { source: rank ? 'rank' : 'score' }).then(function (res) {
+          res.resolvedRankSource = rank ? '用户输入位次' : ('2025辽宁物理类一分一段：' + score + '分');
+          res.score = score || '';
+          res.inputConsistency = guard;
           return res;
         });
-      });
-    }
-    return Promise.reject(new Error('请先输入位次或分数'));
+      }
+      return Promise.reject(new Error('请先输入位次或分数'));
+    });
   }
 
   function ensureFromStore(options) {
@@ -202,6 +269,7 @@
       };
     },
     resolveRankByScore: resolveRankByScore,
+    checkRankScoreConsistency: checkRankScoreConsistency,
     loadForRank: loadForRank,
     loadForRankOrScore: loadForRankOrScore,
     ensureFromStore: ensureFromStore,

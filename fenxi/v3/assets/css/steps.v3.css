@@ -430,3 +430,8 @@
 .export-mode-switch { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
 .export-mode-switch .v3-chip { border:1px solid var(--v3-border); background:#fff; border-radius:999px; padding:7px 12px; font-weight:700; color:var(--v3-muted); cursor:pointer; }
 .export-mode-switch .v3-chip.active { color:var(--v3-primary); background:var(--v3-primary-soft); border-color:rgba(185, 100, 39, .35); }
+.notice-box.warning {
+  background: #fff1e8;
+  border-color: rgba(194, 80, 35, .34);
+  color: #7a2e12;
+}
