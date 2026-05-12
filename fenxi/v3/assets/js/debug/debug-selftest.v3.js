@@ -13,7 +13,7 @@
   function quick() {
     var snap = window.LN_V3_DEBUG_RUNTIME.snapshot();
     return [
-      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1.fix3') !== -1, snap.version),
+      check('版本号正确', snap.version && snap.version.indexOf('V3.0.0.rc1.fix4') !== -1, snap.version),
       check('版本戳正确', !!window.LN_V3_VERSION && snap.stamp === window.LN_V3_VERSION.stamp, snap.stamp),
       check('访问码状态 PASS', snap.accessPassed, String(snap.accessPassed)),
       check('服务器会话已同步', !!(snap.serverSession && snap.serverSession.ok), JSON.stringify(snap.serverSession || {})),
@@ -63,9 +63,13 @@
     results.push(check('分数段策略适配器存在', !!window.LN_V3_SCORE_BAND_STRATEGY));
     if (window.LN_V3_SCORE_BAND_STRATEGY && window.LN_V3_SCORE_BAND_STRATEGY.resolve) {
       var conflictBand = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '56548', score: '650', inputConsistency: { ok: false, status: 'conflict' } } });
-      var rankBand = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '56548', score: '650', effectiveRank: '56548', effectiveScore: '', inputConsistency: { ok: true, status: 'rank-only' } } });
+      var rankOnlyBand = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '56548', score: '', effectiveRank: '56548', effectiveScore: '', inputConsistency: { ok: true, status: 'rank-only' } } });
+      var scoreBand580 = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '20541', score: '580', effectiveRank: '20541', effectiveScore: '580', inputConsistency: { ok: true, status: 'consistent' } } });
+      var scoreBand625 = window.LN_V3_SCORE_BAND_STRATEGY.resolve({ rank: { rank: '15000', score: '625', effectiveRank: '15000', effectiveScore: '625', inputConsistency: { ok: true, status: 'consistent' } } });
       results.push(check('分数/位次冲突时分数段被拦截', conflictBand && conflictBand.id === 'input_conflict', JSON.stringify(conflictBand)));
-      results.push(check('分数段优先使用有效位次', rankBand && rankBand.id === '500_549', JSON.stringify(rankBand)));
+      results.push(check('纯位次输入仍可估算分数段', rankOnlyBand && rankOnlyBand.id === '500_549', JSON.stringify(rankOnlyBand)));
+      results.push(check('580分显示550–589专业优先段', scoreBand580 && scoreBand580.id === '550_589' && /专业优先/.test(scoreBand580.label), JSON.stringify(scoreBand580)));
+      results.push(check('625分显示625+高分平台段', scoreBand625 && scoreBand625.id === '625_plus', JSON.stringify(scoreBand625)));
     }
     results.push(check('地域偏好适配器存在', !!window.LN_V3_REGION_PREFERENCE));
     results.push(check('资格型计划过滤适配器存在', !!window.LN_V3_QUALIFICATION_FILTER));
@@ -122,7 +126,7 @@
     if (window.LN_V3_RELEASE_READINESS) {
       var releasePlan = window.LN_V3_RELEASE_READINESS.staticPlan ? window.LN_V3_RELEASE_READINESS.staticPlan() : {};
       var readiness = window.LN_V3_RELEASE_READINESS.evaluate ? window.LN_V3_RELEASE_READINESS.evaluate() : {};
-      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1fix3-qualification-filter-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
+      results.push(check('发布候选护栏策略存在', !!(releasePlan.stage === 'rc1fix4-scoreband-major-guard' && releasePlan.mustStayOff && releasePlan.mustStayOff.indexOf('replaceLegacyCompute') !== -1), JSON.stringify(releasePlan)));
       results.push(check('发布候选检查允许受控试用但不替换旧入口', !!(readiness.guard && readiness.guard.canOpenControlledTrial === true && readiness.guard.canReplaceOldFenxi === false), JSON.stringify({ decision: readiness.decision, guard: readiness.guard, pass: readiness.pass, fail: readiness.fail })));
     }
     if (window.LN_V3_REVIEW_CHECKLIST) {

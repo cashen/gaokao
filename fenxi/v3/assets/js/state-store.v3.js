@@ -2,6 +2,7 @@
   'use strict';
   var version = window.LN_V3_VERSION || {};
   var saved = window.LN_V3_STORAGE ? window.LN_V3_STORAGE.get('state', null) : null;
+  var savedStamp = saved && saved.version && saved.version.stamp ? saved.version.stamp : '';
   var initialState = {
     version: { name: version.name, stamp: version.stamp },
     ui: {
@@ -27,10 +28,12 @@
     reviewChecklist: { ok: false, count: 0, tasks: [], urgentCount: 0, summary: '复核清单尚未生成。' },
     shortlist: { items: [] }
   };
-  var state = merge(initialState, saved || {});
+  var versionChanged = !!(savedStamp && savedStamp !== version.stamp);
+  var state = merge(initialState, versionChanged ? {} : (saved || {}));
   state.version = { name: version.name, stamp: version.stamp };
   state = normalizeState(state);
   if (window.LN_V3_STORAGE) window.LN_V3_STORAGE.set('state', state);
+  if (versionChanged && console && console.info) console.info('[LN_V3_STORE] version changed, reset stale draft state', savedStamp, '=>', version.stamp);
   var subscribers = [];
   var stepOrder = ['rank', 'family', 'child', 'scenario', 'plans', 'candidates', 'export'];
 

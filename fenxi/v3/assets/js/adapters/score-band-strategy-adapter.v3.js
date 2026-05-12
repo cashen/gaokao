@@ -19,11 +19,11 @@
       windowPolicy: 'balanced_compare'
     },
     {
-      id: '550_589', label: '550–589 公办路径段', min: 550, max: 589,
-      level: 'public_path', priority: '公办、区域、专业方向、就业路径',
-      firstQuestion: '先看家庭能接受的公办和地域，再看专业路径是否讲得通。',
-      abc: { A: '稳妥公办与区域可接受', B: '专业方向和就业/深造路径', C: '适度看更好城市或层级' },
-      cardFocus: ['公办与地域底线', '专业路径是否清楚', '学费与校区', '兴趣命中是否为正主方向'],
+      id: '550_589', label: '550–589 专业优先段', min: 550, max: 589,
+      level: 'major_priority', priority: '专业正主程度、就业确定性、学科/行业匹配、公办与地域底线',
+      firstQuestion: '先看专业是否正主、路径是否清楚，再比较学校层级和城市。',
+      abc: { A: '稳妥公办与可接受专业', B: '强专业正主与就业/深造路径', C: '适度看更好城市或层级' },
+      cardFocus: ['专业正主程度', '就业确定性', '学科/行业匹配', '学校层级与城市比较', '学费与校区'],
       windowPolicy: 'normal_window'
     },
     {
@@ -78,8 +78,10 @@
       return JSON.parse(JSON.stringify({ id: 'input_conflict', label: '分数/位次冲突，需先确认', level: 'blocked', priority: '先修正输入口径', firstQuestion: '分数和位次明显不一致，不能继续生成推荐。', abc: {}, cardFocus: ['重新确认分数或位次'], windowPolicy: 'blocked' }));
     }
     var effectiveRank = rank.effectiveRank || rank.rank;
-    var effectiveScore = rank.effectiveScore || rank.score;
-    var band = fromRank(effectiveRank) || fromScore(effectiveScore) || BANDS[3];
+    var effectiveScore = rank.effectiveScore || rank.score || rank.rawScore;
+    /* rc1.fix4: 分数段展示必须与采用/展示分数一致。
+       有有效分数时先按分数判段；只有纯位次输入时才按位次估段，避免 580 分因位次阈值被显示成 590–624。 */
+    var band = fromScore(effectiveScore) || fromRank(effectiveRank) || BANDS[3];
     return JSON.parse(JSON.stringify(band));
   }
   window.LN_V3_SCORE_BAND_STRATEGY = { bands: BANDS, resolve: resolve, fromScore: fromScore, fromRank: fromRank };

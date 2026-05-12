@@ -22,6 +22,66 @@
     }
     return '';
   }
+
+  function recordText(record) { return text(record && record.school) + ' ' + text(record && record.major); }
+  function majorText(record) { return text(record && record.major); }
+  function isFinanceMajor(record) { return /金融学类|金融学|投资学|保险学|金融工程|金融科技/.test(majorText(record)); }
+  function isStrongFinanceSchool(record) {
+    var school = text(record && record.school);
+    return /北京大学|清华大学|中国人民大学|复旦大学|上海交通大学|南京大学|浙江大学|南开大学|厦门大学|武汉大学|中央财经大学|上海财经大学|对外经济贸易大学|西南财经大学|中南财经政法大学|东北财经大学/.test(school);
+  }
+  function isManagementBigData(record) { return /大数据管理与应用/.test(majorText(record)); }
+  function selectedGroupIds(child) {
+    return ((child && child.selectedGroups) || []).map(function (g) { return typeof g === 'string' ? g : g.id; }).filter(Boolean);
+  }
+  function selectedMajorNames(child) {
+    return ((child && child.selectedMajors) || []).map(function (m) { return typeof m === 'string' ? m : m.name; }).filter(Boolean);
+  }
+  function majorQualityScore(record, child, student) {
+    var m = majorText(record);
+    var score = 0;
+    var groups = selectedGroupIds(child || {});
+    var majors = selectedMajorNames(child || {});
+    majors.forEach(function (name) { if (name && m.indexOf(name) !== -1) score += 90; });
+    if (groups.indexOf('computer_ai') !== -1) {
+      if (/计算机科学与技术|软件工程|人工智能|数据科学与大数据技术|网络空间安全|信息安全|智能科学与技术/.test(m)) score += 70;
+      if (/电子信息|通信工程|自动化|数学|信息与计算科学/.test(m)) score += 28;
+      if (isManagementBigData(record) || /信息管理与信息系统|电子商务/.test(m)) score -= 65;
+    }
+    if (groups.indexOf('electric_energy') !== -1) {
+      if (/电气工程及其自动化|智能电网|电气工程与智能控制/.test(m)) score += 80;
+      if (/自动化|能源与动力工程|新能源科学与工程|储能科学与工程|测控技术与仪器/.test(m)) score += 45;
+      if (/新能源材料与器件|材料/.test(m)) score += 18;
+    }
+    if (groups.indexOf('medicine_health') !== -1) {
+      if (/临床医学|口腔医学|医学影像|麻醉学|儿科学/.test(m)) score += 80;
+      if (/药学|中药学|医学检验|护理|康复治疗|运动康复/.test(m)) score += 35;
+    }
+    if (groups.indexOf('agri_animal_food') !== -1) {
+      if (/动物医学|动物科学|农学|食品科学与工程|食品质量与安全|园艺|植物保护/.test(m)) score += 60;
+    }
+    if (isFinanceMajor(record)) score += isStrongFinanceSchool(record) ? 12 : -80;
+    if (/市场营销|旅游管理|工商管理|公共事业管理|酒店管理/.test(m)) score -= 45;
+    if (/建筑学|环境工程|化学工程与工艺|食品科学与工程/.test(m) && groups.length) score -= 12;
+    if (student && (student.reviewTags || []).indexOf('learning_load') !== -1 && /强基|实验班|卓越/.test(m)) score -= 8;
+    return score;
+  }
+  function strongMajorSort(rankNo, child, student) {
+    return function (a, b) {
+      var aq = majorQualityScore(a, child, student);
+      var bq = majorQualityScore(b, child, student);
+      if (aq !== bq) return bq - aq;
+      return stableSort(rankNo)(a, b);
+    };
+  }
+  function financeRiskWarning(record) {
+    if (!isFinanceMajor(record) || isStrongFinanceSchool(record)) return '';
+    return '金融类对学校层级、实习资源和家庭资源依赖较高，普通家庭不宜仅因名称热门而作为主线选择。';
+  }
+  function managementBigDataWarning(record) {
+    if (!isManagementBigData(record)) return '';
+    return '大数据管理与应用属于管理科学与工程类，不等同于计算机类的大数据技术，不能直接按计算机正主专业理解。';
+  }
   function compact(record, extra) {
     record = record || {};
     extra = extra || {};
@@ -41,6 +101,10 @@
     if (record.isHighFee === true || /高收费|中外合作|合作办学/.test(text(record.major) + ' ' + text(record.tuitionStatus) + ' ' + text(record.riskFlags))) warnings.push('费用/合作办学复核');
     if (/需核验/.test(text(record.schoolNatureLabel))) warnings.push('学校性质复核');
     if (majorProfile && Array.isArray(majorProfile.warnings)) warnings = warnings.concat(majorProfile.warnings);
+    var financeWarning = financeRiskWarning(record);
+    if (financeWarning) warnings.push(financeWarning);
+    var bigDataWarning = managementBigDataWarning(record);
+    if (bigDataWarning) warnings.push(bigDataWarning);
     return {
       school: text(record.school),
       major: text(record.major),
@@ -197,7 +261,16 @@
     var scenarioPreview = (state.scenario && state.scenario.preview) || (window.LN_V3_SCENARIO_ADAPTER && window.LN_V3_SCENARIO_ADAPTER.recommend ? window.LN_V3_SCENARIO_ADAPTER.recommend(state) : null);
     var names = planNames(ctx, scenarioPreview);
     var tone = planTone(ctx, scenarioPreview);
-    var bSource = pickUnique(interestSplit.stable.concat(interestSplit.upper), effectiveSplit.stable.concat(effectiveSplit.upper).concat(effectiveSplit.unknown), 12);
+    var child = state.childPreference || {};
+    var student = state.studentProfile || {};
+    var strongMajorMode = (scenarioPreview && (scenarioPreview.selected === 'major' || scenarioPreview.recommended === 'major')) || (ctx.band && ctx.band.id === '550_589');
+    var bPrimary = interestSplit.stable.concat(interestSplit.upper);
+    var bFallback = effectiveSplit.stable.concat(effectiveSplit.upper).concat(effectiveSplit.unknown);
+    if (strongMajorMode) {
+      bPrimary = bPrimary.slice().sort(strongMajorSort(rankNo, child, student));
+      bFallback = bFallback.slice().sort(strongMajorSort(rankNo, child, student));
+    }
+    var bSource = pickUnique(bPrimary, bFallback, 12);
     var cSource = pickUnique(effectiveSplit.upper, familySplit.upper, 12);
     var aSource = pickUnique(familySplit.stable, effectiveSplit.stable.concat(familySplit.unknown), 12);
     var plans = {
@@ -218,7 +291,7 @@
         tone: tone.B,
         count: bSource.length,
         sourcePool: interestRecords.length || effectiveRecords.length,
-        focus: uniq(['孩子兴趣', '专业画像', '学生画像提醒', scenarioPreview && scenarioPreview.recommendedName]).slice(0, 5),
+        focus: uniq(strongMajorMode ? ['专业正主程度', '就业确定性', '学科/行业匹配', '孩子兴趣', scenarioPreview && scenarioPreview.recommendedName] : ['孩子兴趣', '专业画像', '学生画像提醒', scenarioPreview && scenarioPreview.recommendedName]).slice(0, 5),
         samples: samplePlan(bSource, { state: state, rankNo: rankNo, role: '孩子路径', matchReasonMap: matchMap, oneLine: '把兴趣命中、专业正主程度和可持续路径放在一起看。' })
       },
       C: {

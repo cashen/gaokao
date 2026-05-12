@@ -37,8 +37,8 @@
       scores.platform += 22; scores.major += 30; scores.employment += 10; scores.exam += 8;
       reasons.push('当前属于学校专业平衡段，重点处理层级和专业质量的取舍。');
     } else if (band.id === '550_589') {
-      scores.province_public += 20; scores.employment += 22; scores.major += 12;
-      reasons.push('当前进入公办路径段，先看地域、公办、专业方向和就业路径是否讲得通。');
+      scores.major += 28; scores.employment += 18; scores.province_public += 12;
+      reasons.push('当前属于专业优先段，先比较专业正主程度、就业确定性和学科/行业匹配，再看学校层级与城市。');
     } else if (band.id === '500_549') {
       scores.province_public += 24; scores.employment += 18; scores.broad += 8;
       reasons.push('当前是家庭底线主导段，先把地域、费用和公办范围讲清楚，再看兴趣命中。');
@@ -141,6 +141,7 @@
     var ids;
     if (ctx.band && ctx.band.id === '625_plus') ids = ['platform', 'major', 'exam', 'broad'];
     else if (ctx.band && ctx.band.id === '590_624') ids = ['major', 'platform', 'employment', 'exam', 'broad'];
+    else if (ctx.band && ctx.band.id === '550_589') ids = ['major', 'employment', 'province_public', 'grid', 'broad'];
     else if (ctx.band && (ctx.band.id === '450_499' || ctx.band.id === '367_449')) ids = ['guarantee', 'cost_risk', 'province_public', 'broad'];
     else ids = ['province_public', 'employment', 'grid', 'major', 'broad'];
     return SCENARIOS.filter(function (s) { return ids.indexOf(s.id) !== -1; });
@@ -208,7 +209,7 @@
     return [
       { name: '650+ 高分 + 电气 + 全国可比 → 平台优先', expected: 'platform', preview: preview(fake({ score: 650, rank: 9000, regionMode: 'none', groups: ['electric_energy'], familyRows: 900, matchedRows: 80 })) },
       { name: '610 分 + 计算机 + 地域偏好 → 强专业/平台平衡', expected: 'major', preview: preview(fake({ score: 610, rank: 26000, regionMode: 'soft', provinces: ['辽宁', '吉林', '黑龙江'], groups: ['computer_ai'], familyRows: 2100, matchedRows: 180 })) },
-      { name: '560 分 + 省内优先 + 兴趣不明 → 省内公办稳妥', expected: 'province_public', preview: preview(fake({ score: 560, rank: 42000, regionMode: 'hard', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1800, matchedRows: 0 })) },
+      { name: '560 分 + 省内优先 + 兴趣不明 → 强专业/省内公办平衡', expected: 'province_public', preview: preview(fake({ score: 560, rank: 42000, regionMode: 'hard', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1800, matchedRows: 0 })) },
       { name: '500 分 + 辽宁 hard + 电气真实命中 → 省内公办稳妥，B方案承接电气', expected: 'province_public', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'hard', provinces: ['辽宁'], groups: ['electric_energy'], manualOnly: true, familyRows: 1597, matchedRows: 116 })) },
       { name: '470 分 + 辽宁 hard + 电气兴趣 → 真实保底优先', expected: 'guarantee', preview: preview(fake({ score: 470, rank: 85000, regionMode: 'hard', provinces: ['辽宁'], groups: ['electric_energy'], familyRows: 900, matchedRows: 40 })) },
       { name: '405 分 + 地域偏好 + 兴趣不明 → 真实保底优先', expected: 'guarantee', preview: preview(fake({ score: 405, rank: 118000, regionMode: 'soft', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1600, matchedRows: 0 })) },

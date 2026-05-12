@@ -40,9 +40,32 @@
   function planTitle(id) {
     return id === 'A' ? 'A 守底线' : id === 'B' ? 'B 孩子路径' : id === 'C' ? 'C 上限探索' : text(id);
   }
+
+  function reviewCategoryLines(card) {
+    var raw = [];
+    if (card && Array.isArray(card.nextReview)) raw = raw.concat(card.nextReview);
+    if (card && Array.isArray(card.reviewTags)) raw = raw.concat(card.reviewTags);
+    var joined = raw.map(text).join('；');
+    var out = [];
+    if (/专业|正主|相近|名称|培养方向|培养方案|课程|热门词|大数据|自动化|学习强度|数学|代码|长周期/.test(joined + ' ' + text(card && card.major))) out.push('专业真实内容复核');
+    if (/招生章程|录取|计划|转专业|培养方案/.test(joined)) out.push('招生章程复核');
+    if (/资格|学费|费用|合作办学|中外合作|高收费|校区|学校性质|办学性质/.test(joined + ' ' + text(card && card.evidenceSummary))) out.push('资格/费用/校区复核');
+    if (!out.length) out = ['专业真实内容复核', '招生章程复核', '资格/费用/校区复核'];
+    return out.filter(function (x, i) { return out.indexOf(x) === i; });
+  }
+  function compactReviewText(card) {
+    return '需复核招生章程、学费、校区和培养方向。';
+  }
+  function counterLine(card, full) {
+    if (!card || Number(card.delta || 0) === 0) return '';
+    if (card.id === 'include-qualification-plan' || card.type === 'qualification') {
+      return '- 默认已排除少数民族预科、专项计划、定向等需资格项目；如家庭确有对应资格，可临时打开查看。临时打开后候选由 ' + escLine(String(card.current)) + ' 条变为 ' + escLine(String(card.changed)) + ' 条。' + (full && card.tradeoff ? ' 代价：' + escLine(card.tradeoff) : '');
+    }
+    return '- ' + escLine(card.title) + '：' + escLine(String(card.current)) + ' → ' + escLine(String(card.changed)) + '（' + escLine(card.deltaText) + '）。' + escLine(card.oneLine) + (full && card.tradeoff ? ' 代价：' + escLine(card.tradeoff) : '');
+  }
   function oneCard(card) {
     if (!card) return '- 暂无样例卡片。';
-    return '- ' + escLine(card.school) + '｜' + escLine(card.major) + '｜' + escLine(card.score2025 || '待核验') + '分 / 位次' + escLine(card.rank2025 || '待核验') + '｜' + escLine(card.evidenceLevel || '需要复核') + '。' + escLine(card.conclusion || card.oneLine || card.matchReason || '需要继续复核。');
+    return '- ' + escLine(card.school) + '｜' + escLine(card.major) + '｜' + escLine(card.score2025 || '待核验') + '分 / 位次' + escLine(card.rank2025 || '待核验') + '｜' + compactReviewText(card) + ' ' + escLine(card.conclusion || card.oneLine || card.matchReason || '需要继续复核。');
   }
   function cardLine(card, index) {
     return [
@@ -51,7 +74,7 @@
       '   - 角色：' + escLine(card.planTitle || planTitle(card.planBand)) + '｜' + escLine(card.planRole || ''),
       '   - 理由：' + escLine(card.conclusion || card.oneLine || card.matchReason || '需要结合家庭底线和复核项继续判断。'),
       '   - 证据：' + escLine(card.evidenceLevel || '需要复核') + (card.evidenceSummary ? '｜' + escLine(card.evidenceSummary) : ''),
-      '   - 复核：' + ((card.nextReview && card.nextReview.length) ? card.nextReview.slice(0, 5).map(escLine).join('；') : (card.reviewTags || []).slice(0, 5).map(escLine).join('；') || '招生章程、学费、校区、专业培养方向')
+      '   - 复核：' + reviewCategoryLines(card).map(escLine).join('；')
     ].join('\n');
   }
   function shortlistLines(items) {
@@ -123,11 +146,12 @@
     lines.push('');
     lines.push('## 3. 必须复核');
     data.reviewTasks.slice(0, 6).forEach(function (task) { lines.push('- ' + escLine(task.title) + '：' + escLine(task.detail || task.source || '')); });
-    lines.push('- 证据等级：' + evidenceLine(data.cards));
+    lines.push('- 复核提醒：需复核招生章程、学费、校区和培养方向。');
     lines.push('');
     lines.push('## 4. 条件变化');
-    data.cfCards.slice(0, 3).forEach(function (card) {
-      lines.push('- ' + escLine(card.title) + '：' + escLine(String(card.current)) + ' → ' + escLine(String(card.changed)) + '（' + escLine(card.deltaText) + '）。' + escLine(card.oneLine));
+    data.cfCards.filter(function (card) { return Number(card.delta || 0) !== 0; }).slice(0, 3).forEach(function (card) {
+      var line = counterLine(card, false);
+      if (line) lines.push(line);
     });
     return lines.join('\n');
   }
@@ -166,8 +190,9 @@
     lines.push('');
     lines.push('## 5. 条件变化对照');
     if (data.cfCards.length) {
-      data.cfCards.forEach(function (card) {
-        lines.push('- ' + escLine(card.title) + '：' + escLine(String(card.current)) + ' → ' + escLine(String(card.changed)) + '（' + escLine(card.deltaText) + '）。' + escLine(card.oneLine) + ' 代价：' + escLine(card.tradeoff));
+      data.cfCards.filter(function (card) { return Number(card.delta || 0) !== 0; }).forEach(function (card) {
+        var line = counterLine(card, true);
+        if (line) lines.push(line);
       });
     } else {
       lines.push('- 暂未生成条件变化对照。');

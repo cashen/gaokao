@@ -68,6 +68,10 @@
       review.push('专业正主程度');
       tasks.push('复核是否为正主专业、相近方向或名称误认');
     }
+    if (boolTest(/金融学类|金融学|投资学|保险学|金融工程|金融科技/, item)) {
+      review.push('金融类资源依赖');
+      tasks.push('复核学校层级、实习资源和家庭资源是否支撑金融路径');
+    }
     if (ctx && ctx.studentProfile && (ctx.studentProfile.reviewTags || []).length) {
       model.push('学生画像提醒');
       if ((ctx.studentProfile.reviewTags || []).indexOf('learning_load') !== -1) tasks.push('复核数学物理/代码/长周期学习强度');
