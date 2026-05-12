@@ -1,4 +1,4 @@
-V3.0.0.rc1.fix6｜家庭路径解释透明化与并列推荐提示版
-版本戳：v300rc1fix6-20260512
-scope=fenxi/v3 only
-legacy_fenxi_index=not touched
+V3.0.0.rc2｜旧版路径规则与候选池计算迁移版
+stamp: v300rc2-20260512
+scope: fenxi/v3 only
+notes: 不覆盖旧版 /fenxi/index.html；RC2 使用独立规则层、计算层、专业路径层、状态失效层和全路径 Debug。

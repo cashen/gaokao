@@ -18,6 +18,7 @@
     Object.keys(scores).forEach(function (id) { if (scores[id] > scores[winner]) winner = id; });
     return winner;
   }
+  function pathExplain() { return window.LN_V3_PATH_EXPLANATION_ADAPTER || null; }
   function contextFromState(state) {
     if (window.LN_V3_DECISION_CONTEXT) return window.LN_V3_DECISION_CONTEXT.build(state);
     return { band: { id: '500_549', label: '500–549 家庭底线主导段' }, region: { mode: 'none', label: '全国都可比较' }, groupIds: [], selectedMajors: [], basePool: 0, familyRows: 0, matchedRows: 0, effectiveRows: 0, manualOnly: false, hasInterest: false, bigPool: false, childMode: 'unset' };
@@ -150,6 +151,11 @@
     var ctx = contextFromState(state);
     var scored = score(ctx);
     var selected = forcedId || ((state && state.scenario && state.scenario.current) || scored.recommended);
+    var pathAdapter = pathExplain();
+    var closeCall = pathAdapter && pathAdapter.detectCloseCall ? pathAdapter.detectCloseCall(scored.scores) : { exists: false };
+    var cardExplanations = pathAdapter && pathAdapter.explainAll ? pathAdapter.explainAll(SCENARIOS, ctx, scored, selected) : {};
+    var explanation = explain(scored.recommended, ctx, scored);
+    if (closeCall && closeCall.exists && closeCall.message) explanation = closeCall.message;
     var out = {
       ok: true,
       reason: 'v3-family-path-preview-only',
@@ -172,12 +178,16 @@
       studentProfile: ctx.studentProfile,
       majorProfile: ctx.majorProfile,
       visibleScenarioIds: visibleScenarios(ctx).map(function (s) { return s.id; }),
-      explanation: explain(scored.recommended, ctx, scored),
+      explanation: explanation,
       selectedExplanation: explain(selected, ctx, scored),
       reasons: scored.reasons,
       planTone: planTone(selected, ctx),
       bPlanBoost: ctx.hasInterest ? 1.1 : 1,
       cardFocus: (ctx.band && ctx.band.cardFocus) || [],
+      closeCall: closeCall,
+      tieNotice: closeCall && closeCall.exists ? closeCall.message : '',
+      cardExplanations: cardExplanations,
+      pathExplainPlan: pathAdapter && pathAdapter.staticPlan ? pathAdapter.staticPlan() : null,
       summary: '建议优先看“' + (NAMES[scored.recommended] || scored.recommended) + '”。' + (ctx.region && ctx.region.display ? ' 地域：' + ctx.region.display : '')
     };
     return out;
@@ -206,7 +216,7 @@
       state._ctx = ctxState;
       return state;
     }
-    return [
+    var cases = [
       { name: '650+ 高分 + 电气 + 全国可比 → 平台优先', expected: 'platform', preview: preview(fake({ score: 650, rank: 9000, regionMode: 'none', groups: ['electric_energy'], familyRows: 900, matchedRows: 80 })) },
       { name: '610 分 + 计算机 + 地域偏好 → 强专业/平台平衡', expected: 'major', preview: preview(fake({ score: 610, rank: 26000, regionMode: 'soft', provinces: ['辽宁', '吉林', '黑龙江'], groups: ['computer_ai'], familyRows: 2100, matchedRows: 180 })) },
       { name: '560 分 + 省内优先 + 兴趣不明 → 强专业/省内公办平衡', expected: 'province_public', preview: preview(fake({ score: 560, rank: 42000, regionMode: 'hard', provinces: ['辽宁'], groups: [], mode: 'unknown', familyRows: 1800, matchedRows: 0 })) },
@@ -216,7 +226,15 @@
       { name: '500 分 + 东北 soft + 兴趣不明 → 宽口径比较', expected: 'broad', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'soft', provinces: ['辽宁','吉林','黑龙江'], groups: [], mode: 'unknown', familyRows: 6200, bigPool: true, matchedRows: 0 })) },
       { name: '500 分 + 动物医学兴趣 + 辽宁 hard → 省内公办稳妥，详细卡片承接动物医学', expected: 'province_public', preview: preview(fake({ score: 500, rank: 56548, regionMode: 'hard', provinces: ['辽宁'], groups: ['agri_animal_food'], familyRows: 1597, matchedRows: 60 })) }
     ];
+    var pathAdapter = pathExplain();
+    if (pathAdapter && pathAdapter.assertions) {
+      pathAdapter.assertions(window.LN_V3_SCENARIO_ADAPTER || { preview: preview }).forEach(function (item) {
+        cases.push({ name: 'fix6：' + item.name, expected: 'pass', preview: { recommended: item.ok ? 'pass' : 'fail', scores: {}, detail: item.detail || '' } });
+      });
+    }
+    return cases;
   }
+  // fix6 debug matrix assertions: fix6：路径解释适配器存在；路径卡加减分因素存在；并列路径提示存在；不改变原推荐权重。
   window.LN_V3_SCENARIO_ADAPTER = {
     scenarios: SCENARIOS,
     visibleScenarios: function (state) { return visibleScenarios(contextFromState(state)); },
@@ -225,6 +243,7 @@
     applyScenario: applyScenario,
     applyRecommended: applyRecommended,
     matrix: matrix,
-    names: NAMES
+    names: NAMES,
+    _test: { score: score, contextFromState: contextFromState }
   };
 })();
