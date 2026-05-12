@@ -31,5 +31,5 @@
     window.LN_V3_STORE._rc2InvalidationPatched=true;
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patchStore);else setTimeout(patchStore,0);
-  window.LN_V3_STATE_INVALIDATION={hashState:hashState,compare:compare,storageReport:storageReport,patchStore:patchStore,clearReviewFilter:clearReviewFilter,ready:true,version:'v300rc2fix2'};
+  window.LN_V3_STATE_INVALIDATION={hashState:hashState,compare:compare,storageReport:storageReport,patchStore:patchStore,clearReviewFilter:clearReviewFilter,ready:true,version:'v300rc2fix3'};
 })();

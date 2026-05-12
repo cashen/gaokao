@@ -10,7 +10,7 @@
     });
   }
   function boot(){
-    document.body.classList.add('ln-v3-rc2-fix2');
+    document.body.classList.add('ln-v3-rc2-fix3');
     patchText(document);
     try{new MutationObserver(function(){patchText(document);}).observe(document.body,{childList:true,subtree:true});}catch(e){}
   }

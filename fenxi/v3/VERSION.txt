@@ -1,3 +1,2 @@
-V3.0.0.rc2.fix2｜候选复核筛选隔离与旧版高级筛选语义对齐版
-stamp: v300rc2fix2-20260512
-scope: fenxi/v3 only
+V3.0.0.rc3｜旧版fenxi逻辑完整复刻到V3 UI版
+版本戳：v300rc3-20260512

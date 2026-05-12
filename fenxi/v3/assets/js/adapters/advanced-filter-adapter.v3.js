@@ -107,22 +107,22 @@
     return {records:rows,funnel:funnel};
   }
   function planOrder(x){return x==='A'?1:x==='B'?2:x==='C'?3:9;}
-  function roleOrder(id){return ({farReach:1,upper:2,reach:3,match:4,steady:5,safeLow:6,unknown:9})[id]||9;}
+  function roleOrder(id){return ({farReach:1,upper:2,reach:3,match:4,steady:5,safeLow:6,tooLow:8,unknown:9})[id]||9;}
   function liftScore(r){if(typeof window.liftValueScoreV29475==='function'){try{return window.liftValueScoreV29475(r);}catch(e){}} return n(r._rc2PlanScores&&r._rc2PlanScores.C)||0;}
   function sortRows(list,f){f=normalize(f); var out=list.slice(); out.sort(function(a,b){
     if(f.sortBy==='plan')return planOrder(a._rc2PlanBand)-planOrder(b._rc2PlanBand)||roleOrder(a._rc2RankRole&&a._rc2RankRole.id)-roleOrder(b._rc2RankRole&&b._rc2RankRole.id)||n(b._rc2Score)-n(a._rc2Score);
-    if(f.sortBy==='rank2025')return n(a.rank2025)-n(b.rank2025);
-    if(f.sortBy==='rank_near'||f.sortBy==='fit')return Math.abs(n(a.rank2025)-n(a._rc2RankNo))-Math.abs(n(b.rank2025)-n(b._rc2RankNo));
-    if(f.sortBy==='rank_safe')return (n(b.rank2025)-n(b._rc2RankNo))-(n(a.rank2025)-n(a._rc2RankNo));
-    if(f.sortBy==='score_high')return n(b.score2025)-n(a.score2025);
+    if(f.sortBy==='rank2025')return n(a._rc2Rank2025||a.rank2025||a.rank_2025)-n(b._rc2Rank2025||b.rank2025||b.rank_2025);
+    if(f.sortBy==='rank_near'||f.sortBy==='fit')return Math.abs(n(a._rc2Rank2025||a.rank2025||a.rank_2025)-n(a._rc2RankNo))-Math.abs(n(b._rc2Rank2025||b.rank2025||b.rank_2025)-n(b._rc2RankNo));
+    if(f.sortBy==='rank_safe')return (n(b._rc2Rank2025||b.rank2025||b.rank_2025)-n(b._rc2RankNo))-(n(a._rc2Rank2025||a.rank2025||a.rank_2025)-n(a._rc2RankNo));
+    if(f.sortBy==='score_high')return n(b._rc2Score2025||b.score2025||b.score_2025)-n(a._rc2Score2025||a.score2025||a.score_2025);
     if(f.sortBy==='rankDiffHot')return n(a.rankDiff)-n(b.rankDiff);
     if(f.sortBy==='rankDiffLoose')return n(b.rankDiff)-n(a.rankDiff);
     if(f.sortBy==='lift')return liftScore(b)-liftScore(a);
-    return planOrder(a._rc2PlanBand)-planOrder(b._rc2PlanBand)||n(b._rc2Score)-n(a._rc2Score)||Math.abs(n(a.rank2025)-n(a._rc2RankNo))-Math.abs(n(b.rank2025)-n(b._rc2RankNo));
+    return planOrder(a._rc2PlanBand)-planOrder(b._rc2PlanBand)||n(b._rc2Score)-n(a._rc2Score)||Math.abs(n(a._rc2Rank2025||a.rank2025||a.rank_2025)-n(a._rc2RankNo))-Math.abs(n(b._rc2Rank2025||b.rank2025||b.rank_2025)-n(b._rc2RankNo));
   }); return out;}
   function apply(records,filter){var f=normalize(filter); var base=(records||[]).length; var built=buildFunnel(records,f); var sorted=sortRows(built.records,f); var last=built.funnel[built.funnel.length-1]||{count:sorted.length}; var bottleneck=built.funnel.slice(1).filter(function(x){return x.drop>0;}).sort(function(a,b){return b.drop-a.drop;})[0]||null; return {ok:true,filter:f,before:base,after:sorted.length,records:sorted,funnel:built.funnel,bottleneck:bottleneck,activeCount:activeSteps(f).length,summary:'基础候选 '+base+' 条，当前筛选 '+sorted.length+' 条。'+(bottleneck?' 主要压缩项：'+bottleneck.step+'，减少 '+bottleneck.drop+' 条。':'')};}
   function hasActiveFilter(f){return activeSteps(f).length>0;}
   function clearFilter(keepFullMode){var f=normalize({}); if(keepFullMode)f.fullMode=true; return f;}
   function fromState(state){return normalize((state&&state.advancedFilter)||((state&&state.candidates&&state.candidates.advancedFilter)||{}));}
-  window.LN_V3_ADVANCED_FILTER={DEFAULTS:DEFAULTS,normalize:normalize,apply:apply,fromState:fromState,hasActiveFilter:hasActiveFilter,clearFilter:clearFilter,matchMajorLegacy:matchMajorLegacy,matchPrimaryLegacy:matchPrimaryLegacy,buildFunnel:buildFunnel,ready:true,version:'v300rc2fix2'};
+  window.LN_V3_ADVANCED_FILTER={DEFAULTS:DEFAULTS,normalize:normalize,apply:apply,fromState:fromState,hasActiveFilter:hasActiveFilter,clearFilter:clearFilter,matchMajorLegacy:matchMajorLegacy,matchPrimaryLegacy:matchPrimaryLegacy,buildFunnel:buildFunnel,ready:true,version:'v300rc2fix3'};
 })();

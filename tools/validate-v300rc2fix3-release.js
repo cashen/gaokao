@@ -1,0 +1,41 @@
+const fs = require('fs');
+const path = require('path');
+const root = process.cwd();
+function read(p){return fs.readFileSync(path.join(root,p),'utf8')}
+function exists(p){return fs.existsSync(path.join(root,p))}
+const checks=[];
+function check(name, ok, detail=''){checks.push({name,ok:!!ok,detail});}
+check('不包含旧版 fenxi/index.html', !exists('fenxi/index.html'));
+check('V3 index 存在', exists('fenxi/v3/index.html'));
+const version=read('fenxi/v3/assets/js/version.v3.js');
+check('版本为 rc2.fix3', /V3\.0\.0\.rc2\.fix3/.test(version));
+check('版本戳为 v300rc2fix3', /v300rc2fix3-20260512/.test(version));
+const compute=read('fenxi/v3/assets/js/adapters/compute-core.v3.js');
+check('compute-core 增加字段 fallback', /function scoreOf/.test(compute)&&/score_2025/.test(compute)&&/function rankOf/.test(compute)&&/rank_2025/.test(compute));
+check('compute-core 有学校性质层级识别', /function schoolMeta/.test(compute)&&/职业本科/.test(compute)&&/民办\/独立/.test(compute)&&/985/.test(compute));
+check('compute-core 有过低兜底且 A 后置基础', /tooLow/.test(compute)&&/过低兜底/.test(compute)&&/roleOrderA/.test(compute));
+check('compute-core 资格型计划默认排除', /qualificationLike/.test(compute)&&/excludedQualification/.test(compute));
+check('compute-core B 只看 activePath 主线', /activePathIds/.test(compute)&&/professionalMain/.test(compute));
+const plans=read('fenxi/v3/assets/js/adapters/plans-adapter-rc2.v3.js');
+check('plans A 说明不是越低越安全', /不是越低越安全/.test(plans)&&/过低/.test(plans));
+check('plans B 说明可达范围内专业主线', /可达范围内/.test(plans)&&/专业正主\/相近/.test(plans));
+check('plans 样例显示性质层级', /schoolMeta/.test(plans));
+const cand=read('fenxi/v3/assets/js/adapters/candidates-adapter-rc2.v3.js');
+check('候选卡字段 fallback 完整', /scoreOf/.test(cand)&&/rankOf/.test(cand)&&/score_2025/.test(cand)&&/rank_2025/.test(cand));
+check('候选卡有学校性质层级', /schoolMeta/.test(cand)&&/schoolMetaLabels/.test(cand));
+check('候选卡恢复旧版四块解释', /identity/.test(cand)&&/rankTrend/.test(cand)&&/costInsight/.test(cand)&&/parentLine/.test(cand));
+const step=read('fenxi/v3/assets/js/steps/step-candidates-rc2.v3.js');
+check('第6步展示学校性质层级', /学校性质\/层级/.test(step)&&/metaBadges/.test(step));
+check('第6步展示旧版卡片四要素', /招生身份/.test(step)&&/年度位次/.test(step)&&/家庭成本/.test(step)&&/位次角色/.test(step));
+check('第6步保留筛选隔离操作', /清空本页筛选/.test(step)&&/返回基础候选/.test(step));
+const stepPlans=read('fenxi/v3/assets/js/steps/step-plans-rc2.v3.js');
+check('Step5 样例显示位次角色和性质', /rankRole/.test(stepPlans)&&/schoolMeta/.test(stepPlans));
+const adv=read('fenxi/v3/assets/js/adapters/advanced-filter-adapter.v3.js');
+check('高级筛选识别 tooLow', /tooLow/.test(adv));
+const css=read('fenxi/v3/assets/css/rc2-core.v3.css');
+check('CSS 有 rc2-school-meta', /rc2-school-meta/.test(css));
+const docs=exists('fenxi/v3/docs/V3_rc2fix3_旧版候选卡信息密度与ABC角色校准说明.md');
+check('fix3 文档存在', docs);
+const failed=checks.filter(x=>!x.ok);
+for(const [i,c] of checks.entries()) console.log(`${c.ok?'PASS':'FAIL'} ${String(i+1).padStart(2,'0')} ${c.name}${c.detail?' '+c.detail:''}`);
+if(failed.length){console.error(`\nFAILED ${failed.length}/${checks.length}`);process.exit(1);}else console.log(`\nOK ${checks.length}/${checks.length}`);
