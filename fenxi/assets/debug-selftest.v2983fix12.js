@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0parenttrust1-20260514');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.parent-trust1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0parenttrust2-20260514');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.parent-trust2');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -181,32 +181,36 @@
     ]),note:'status='+(lazy?.overallStatus?.()||'unknown')+' coldModels='+Object.keys(st?.coldModels||{}).join(',')};});
 
 
-    await runStep(ctx,'parent-trust1 家长端口径与视觉信任检查',async()=>{const pt=win.LN_PARENT_TRUST_V291RC0;pt?.render?.();await sleep(120);const st=pt?.getState?.()||{};const snap=debugSnap(win);const panel=win.document.getElementById('targetPathPanelV2952');const explain=win.document.getElementById('targetPathExplainV2952')?.textContent||'';return {asserts:assertList([
+    await runStep(ctx,'parent-trust2 家长语言与视觉信任检查',async()=>{const pt=win.LN_PARENT_TRUST_V291RC0;pt?.render?.();await sleep(120);const st=pt?.getState?.()||{};const snap=debugSnap(win);const panel=win.document.getElementById('targetPathPanelV2952');const explain=win.document.getElementById('targetPathExplainV2952')?.textContent||'';return {asserts:assertList([
       ['parent trust opt 开启',win.LN_PARENT_TRUST_OPT!==false],
-      ['parent trust 版本正确',win.LN_PARENT_TRUST_VERSION==='291rc0parenttrust1-20260514'],
-      ['parent trust 对象存在',!!pt && pt.version==='v291rc0parenttrust1'],
-      ['当前场景可读',!!st.scenario],
+      ['parent trust 版本正确',win.LN_PARENT_TRUST_VERSION==='291rc0parenttrust2-20260514'],
+      ['parent trust 对象存在',!!pt && pt.version==='v291rc0parenttrust2'],
+      ['当前情况可读',!!st.scenarioEffective || !!st.scenario],
       ['effectivePriority 可读',!!st.effectivePriority],
+      ['scenarioRaw 字段存在',Object.prototype.hasOwnProperty.call(st,'scenarioRaw')],
+      ['scenarioEffective 可读',!!st.scenarioEffective],
       ['prioritySource 合法',['scenario-default','user-tuned'].includes(st.prioritySource)],
       ['视觉收口 CSS 状态存在',!!panel],
-      ['当前倾向说明已改口径',explain.includes('A/B/C')||!!win.document.querySelector('.parent-trust-summary-v291')],
-      ['debug flags 有 parentTrust 标记',snap.flags?.parentTrust==='v291rc0parenttrust1'],
+      ['当前优先考虑说明已改口径',explain.includes('A/B/C')||!!win.document.querySelector('.parent-trust-summary-v291')],
+      ['debug flags 有 parentTrust 标记',snap.flags?.parentTrust==='v291rc0parenttrust2'],
       ['debug flags 有 effectivePriority',!!snap.flags?.effectivePriority],
+      ['debug flags 有 scenarioRaw',Object.prototype.hasOwnProperty.call(snap.flags||{},'scenarioRaw')],
+      ['debug flags 有 scenarioEffective',!!snap.flags?.scenarioEffective],
       ['debug flags 有 prioritySource',['scenario-default','user-tuned'].includes(snap.flags?.prioritySource)]
-    ]),note:'scenario='+st.scenario+' priority='+st.effectivePriority+' source='+st.prioritySource};});
+    ]),note:'scenarioRaw='+st.scenarioRaw+' scenarioEffective='+st.scenarioEffective+' priority='+st.effectivePriority+' source='+st.prioritySource};});
 
-    await runStep(ctx,'parent-trust1 手动微调 priority 不被场景覆盖',async()=>{const pt=win.LN_PARENT_TRUST_V291RC0;setSelect(win,'priority','school');await sleep(120);if(typeof win.applyStrategy==='function')win.applyStrategy('exam');await waitComputeQuiet(win,260);pt?.render?.();await sleep(120);const st=pt?.getState?.()||{};const snap=debugSnap(win);return {asserts:assertList([
+    await runStep(ctx,'parent-trust2 手动调整 priority 不被我家情况覆盖',async()=>{const pt=win.LN_PARENT_TRUST_V291RC0;setSelect(win,'priority','school');await sleep(120);if(typeof win.applyStrategy==='function')win.applyStrategy('exam');await waitComputeQuiet(win,260);pt?.render?.();await sleep(120);const st=pt?.getState?.()||{};const snap=debugSnap(win);return {asserts:assertList([
       ['手动微调后 priority=school',st.effectivePriority==='school'],
       ['手动微调来源=user-tuned',st.prioritySource==='user-tuned'||snap.flags?.prioritySource==='user-tuned'],
-      ['场景可切到 exam',st.scenario==='exam'||snap.flags?.scenario==='exam']
-    ]),note:'scenario='+st.scenario+' priority='+st.effectivePriority+' source='+st.prioritySource};});
+      ['情况可切到 exam',st.scenarioEffective==='exam'||st.scenario==='exam'||snap.flags?.scenarioEffective==='exam'||snap.flags?.scenario==='exam']
+    ]),note:'scenarioRaw='+st.scenarioRaw+' scenarioEffective='+st.scenarioEffective+' priority='+st.effectivePriority+' source='+st.prioritySource};});
 
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});
     await runStep(ctx,'孩子学习特点抽屉打开/变更/关闭联动',async()=>{win.LN_STUDENT_PROFILE_UI_V2975?.openDrawer?.();await sleep(120);const opened=!!win.LN_DRAWER_V296?.isOpen?.();setProfileFast(win);await sleep(120);win.LN_DRAWER_V296?.close?.();await waitComputeQuiet(win,200);const d=debugSnap(win).details||{};return {asserts:assertList([['学习特点抽屉可打开',opened],['学习特点变更轻量记录存在',!!d.nextStepLatency || true],['关闭后抽屉关闭',!win.LN_DRAWER_V296?.isOpen?.()]])};});
     await runStep(ctx,'孩子兴趣抽屉打开/点选/上限/删除/关闭',async()=>{const rt=win.LN_CHILD_INTEREST_RUNTIME_V296;rt.undecided?.();await sleep(80);rt.start?.();await sleep(120);const opened=!!win.LN_DRAWER_V296?.isOpen?.();const ids=['animal_life_science','computer_info','teacher_education','electric_energy'];const res=[];ids.forEach(id=>res.push(rt.toggleGroup?.(id)));await sleep(120);const maxBlocked=res.some(x=>x&&x.ok===false&&x.reason==='max');rt.removeGroup?.('teacher_education');await sleep(80);win.LN_DRAWER_V296?.close?.();await waitComputeQuiet(win,1100);const d=debugSnap(win).details||{};return {asserts:assertList([['兴趣抽屉可打开',opened],['第4个兴趣上限被拦截',maxBlocked],['兴趣 toggle breakdown 存在',!!d.interestToggleBreakdown || !!d.interestToggleDeepBreakdown],['关闭后抽屉关闭',!win.LN_DRAWER_V296?.isOpen?.()]])};});
-    await runStep(ctx,'只看真实命中兴趣方向 + 快速预筛',async()=>{prepareInterests(win,['animal_life_science','computer_info'],true);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'manualOnly-fast-interest',{hardLiaoning:true,manualOnly:true});});
+    await runStep(ctx,'只看真正对口专业 + 快速预筛',async()=>{prepareInterests(win,['animal_life_science','computer_info'],true);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'manualOnly-fast-interest',{hardLiaoning:true,manualOnly:true});});
     await runStep(ctx,'场景卡联动：employment / grid / exam / broad',async()=>{const ids=['employment','grid','exam','broad'];const asserts=[];for(const id of ids){ctx.coverage.scenarios.push(id); if(typeof win.applyStrategy==='function')win.applyStrategy(id); await waitComputeQuiet(win,260);const snap=debugSnap(win);asserts.push(['场景 '+id+' 有轻量渲染记录',!!snap.details?.scenarioBreakdown||!!snap.timings?.scenarioChangeLight]);asserts.push(['场景 '+id+' ABC 有记录',!!snap.details?.abcRenderBreakdown || !!snap.details?.abcPick_A]);}return {asserts:assertList(asserts)};});
     await runStep(ctx,'A/B/C、翻页、候选区基础联动',async()=>{const before=debugSnap(win);click(win,q('[data-action="next-page"]',win.document));await sleep(120);click(win,q('[data-action="prev-page"]',win.document));await sleep(120);const cards=qa('#cards .card,#cards .candidate-card-v2981,#cards [data-candidate-id]',win.document).length;const page=win.document.getElementById('pageInfo')?.textContent||'';return {asserts:assertList([['pageInfo 可读',!!page],['候选卡容器可渲染',!!win.document.getElementById('cards')],['ABC渲染记录存在',!!before.details?.abcRenderBreakdown || !!before.details?.abcPick_A]]) ,note:'cards='+cards+' page='+page};});
     await runStep(ctx,'导出/高级筛选入口安全检查（不触发下载）',async()=>{return {asserts:assertList([['exportFiltered 函数存在',typeof win.exportFiltered==='function'],['exportFilteredPng 函数存在',typeof win.exportFilteredPng==='function'],['高级筛选入口存在',!!q('[data-action="open-advanced"]',win.document)],['导出菜单入口存在',!!q('[data-action="open-export-sheet"]',win.document)]])};}, {warnOnly:true});

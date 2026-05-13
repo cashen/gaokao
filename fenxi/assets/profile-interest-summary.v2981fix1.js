@@ -3,16 +3,16 @@
   function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
   function profileLine(){
     const rules=window.LN_STUDENT_PROFILE_RULES_V298||window.LN_STUDENT_PROFILE_RULES_V2981||window.LN_STUDENT_PROFILE_RULES_V2976;
-    if(!rules?.readState) return '画像未加载';
+    if(!rules?.readState) return '孩子情况未加载';
     const s=rules.readState();
     const opts=rules.OPTIONS||{};
     const label=(k,v)=>((opts[k]||[]).find(x=>x[0]===v)||[])[1]||'';
     const parts=[label('gender',s.gender),label('learning',s.learning),label('path',s.path),label('understanding',s.understanding)].filter(x=>x&&!/不填写|暂不确认|还不确定/.test(x));
-    return parts.length?parts.join('｜'):'暂未补充画像';
+    return parts.length?parts.join('｜'):'暂未补充孩子情况';
   }
   function sourceLine(){
     const p=(window.LN_STUDENT_PROFILE_RULES_V298||window.LN_STUDENT_PROFILE_RULES_V2981||window.LN_STUDENT_PROFILE_RULES_V2976)?.deriveProfile?.()||{};
-    return p.summary || '孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。';
+    return p.summary || '孩子情况只用来提醒和排序，不会直接排除专业。';
   }
   function interestLine(){
     const rt=window.LN_CHILD_INTEREST_RUNTIME_V296||window.LN_CHILD_INTEREST_RUNTIME_V298;
@@ -20,7 +20,7 @@
     if(sum?.names?.length) return sum.names.slice(0,5).join('｜');
     return '暂未选择兴趣，先按位次、底线和场景综合推荐';
   }
-  function methodLine(){return '系统处理：孩子学习特点主要用于提醒和排序微调，不作为硬排除条件；兴趣普通模式影响排序和 A/B/C 倾向，开启真实命中后才缩小候选范围。';}
+  function methodLine(){return '系统处理：孩子情况只用来提醒和排序；兴趣普通模式只影响先后顺序，打开“只看真正对口”后才缩小候选范围。';}
   function build(){return {profileLine:profileLine(),sourceLine:sourceLine(),interestLine:interestLine(),methodLine:methodLine()};}
   function patchChildInterestSummary(){
     const api=window.LN_CHILD_INTEREST_UI_V296||window.LN_CHILD_INTEREST_UI_V298;
@@ -33,10 +33,10 @@
       const s=rt.readState?.()||{}; const sum=rt.summary?.()||{}; const manual=(s.selectedGroups||[]).map(id=>rt.groupById?.(id)).filter(Boolean); const auto=rt.autoMappings?.(s)||[];
       const b=build();
       const hit=sum.hit?`<span>真实候选：正主 ${Number(sum.hit.core||0)}｜相近 ${Number(sum.hit.related||0)}｜需复核 ${Number(sum.hit.review||0)}</span>`:'';
-      const tags=[`画像：${b.profileLine}`,`兴趣：${b.interestLine}`].map(x=>`<span class="pi-chip-v2981fix1">${esc(x)}</span>`).join('');
+      const tags=[`学习特点：${b.profileLine}`,`兴趣：${b.interestLine}`].map(x=>`<span class="pi-chip-v2981fix1">${esc(x)}</span>`).join('');
       const manualTags=manual.map(g=>`<span class="pi-chip-v2981fix1">${esc(g.name)}<button aria-label="移除${esc(g.name)}" data-action="child-interest-remove" data-interest-id="${esc(g.id)}">×</button></span>`).join('');
       const autoTags=auto.map(x=>`<span class="pi-chip-v2981fix1">${esc(x.label)}<button title="取消该自动带入方向" data-action="child-interest-auto-toggle" data-intent-id="${esc(x.intentId)}" data-interest-id="${esc(x.interestId)}">×</button></span>`).join('');
-      box.innerHTML=`<div class="profile-interest-summary-v2981fix1"><div class="pi-head-v2981fix1"><div><b>孩子画像与兴趣</b><div class="pi-tags-v2981fix1">${tags}</div></div><div class="pi-actions-v2981fix1"><button type="button" data-action="open-student-profile">编辑画像</button><button type="button" data-action="child-interest-start">编辑兴趣</button></div></div><div class="pi-sub-v2981fix1">${esc(b.methodLine)}${hit?`<br>${hit}`:''}</div><div class="pi-tags-v2981fix1" style="margin-top:6px">${manualTags}${autoTags||(!manual.length?'<span class="pi-chip-v2981fix1">综合推荐</span>':'')}<label><input type="checkbox" id="onlyChildInterestV296" ${s.manualOnlyInterest?'checked':''}/> 只看真实命中兴趣方向</label></div></div>`;
+      box.innerHTML=`<div class="profile-interest-summary-v2981fix1"><div class="pi-head-v2981fix1"><div><b>孩子情况与兴趣</b><div class="pi-tags-v2981fix1">${tags}</div></div><div class="pi-actions-v2981fix1"><button type="button" data-action="open-student-profile">编辑孩子情况</button><button type="button" data-action="child-interest-start">编辑兴趣</button></div></div><div class="pi-sub-v2981fix1">${esc(b.methodLine)}${hit?`<br>${hit}`:''}</div><div class="pi-tags-v2981fix1" style="margin-top:6px">${manualTags}${autoTags||(!manual.length?'<span class="pi-chip-v2981fix1">综合推荐</span>':'')}<label><input type="checkbox" id="onlyChildInterestV296" ${s.manualOnlyInterest?'checked':''}/> 只看真正对口的专业</label></div></div>`;
       const chk=document.getElementById('onlyChildInterestV296');
       if(chk&&!chk.dataset.bound){chk.dataset.bound='1';chk.addEventListener('change',()=>{const st=rt.readState?.()||{};st.manualOnlyInterest=chk.checked;rt.saveState?.(st);renderSummary();window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(null,900); window.LN_REFRESH_SCHEDULER_V296?.request?.({reason:'child-interest-change',level:'soft',delay:900});});}
     }

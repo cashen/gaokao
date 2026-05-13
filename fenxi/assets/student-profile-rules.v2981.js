@@ -29,8 +29,8 @@
   }
   function tagsFromState(s){
     const tags=[];
-    if(s.gender==='female') tags.push('画像：女孩');
-    if(s.gender==='male') tags.push('画像：男孩');
+    if(s.gender==='female') tags.push('学习特点：女孩');
+    if(s.gender==='male') tags.push('学习特点：男孩');
     if(s.learning==='science') tags.push('偏理工');
     if(s.learning==='expression') tags.push('偏表达');
     if(s.learning==='practice') tags.push('偏实践');
@@ -57,7 +57,7 @@
   }
   function summary(){
     const s=readState(); const tags=tagsFromState(s);
-    if(!tags.length) return {title:'孩子学习特点未补充', text:'可选填，主要用于提醒和排序微调，不作为硬排除条件。', tags:[]};
+    if(!tags.length) return {title:'孩子学习特点未补充', text:'可选填，主要用于提醒和排序调整，不作为硬排除条件。', tags:[]};
     return {title:'孩子学习特点已补充', text:tags.slice(0,4).join('｜'), tags};
   }
   const api={OPTIONS, optionLabel, safe, readState, saveState, deriveProfile, summary, ready:true}; window.LN_STUDENT_PROFILE_RULES_V2981=api; window.LN_STUDENT_PROFILE_RULES_V298=api; window.LN_STUDENT_PROFILE_RULES_V2976=api; window.LN_STUDENT_PROFILE_RULES_V2975=api;

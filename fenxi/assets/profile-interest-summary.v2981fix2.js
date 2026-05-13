@@ -4,7 +4,7 @@
   function profileLine(){
     const rules=window.LN_STUDENT_PROFILE_RULES_V298||window.LN_STUDENT_PROFILE_RULES_V2981||window.LN_STUDENT_PROFILE_RULES_V2976;
     const sum=rules?.summary?.();
-    return sum?.tags?.length ? sum.text : '暂未补充画像';
+    return sum?.tags?.length ? sum.text : '暂未补充孩子情况';
   }
   function interestRuntime(){return window.LN_CHILD_INTEREST_RUNTIME_V296||window.LN_CHILD_INTEREST_RUNTIME_V298;}
   function interestLine(){const rt=interestRuntime(); const sum=rt?.summary?.(); return sum?.names?.length?sum.names.slice(0,5).join('｜'):'暂未选择兴趣，先按位次、底线和场景综合推荐';}
@@ -18,7 +18,7 @@
     if(!h) return '真实候选：未选择兴趣时先综合推荐';
     return `真实候选：正主 ${Number(h.core||0)}｜相近 ${Number(h.related||0)}｜需复核 ${Number(h.review||0)}`;
   }
-  function methodLine(){return '系统处理：孩子学习特点主要用于提醒和排序微调，不作为硬排除条件；兴趣先转成本科目录规则，再匹配当前真实候选。';}
+  function methodLine(){return '系统处理：孩子学习特点主要用于提醒和排序调整，不作为硬排除条件；兴趣先转成本科目录规则，再匹配当前能选的专业。';}
   function build(){return {profileLine:profileLine(),interestLine:interestLine(),translatedLine:translatedLine(),hitLine:hitLine(),methodLine:methodLine()};}
   function patchChildInterestSummary(){
     const api=window.LN_CHILD_INTEREST_UI_V296||window.LN_CHILD_INTEREST_UI_V298;
@@ -28,10 +28,10 @@
       const rt=interestRuntime(); if(!rt){box.innerHTML='<div class="notice">孩子兴趣规则正在加载...</div>';return;}
       const s=rt.readState?.()||{}; const manual=(s.selectedGroups||[]).map(id=>rt.groupById?.(id)).filter(Boolean); const auto=rt.autoMappings?.(s)||[];
       const b=build();
-      const tags=[`画像：${b.profileLine}`,`兴趣：${b.interestLine}`,`兴趣转译：${b.translatedLine}`,b.hitLine].map(x=>`<span class="pi-chip-v2981fix1">${esc(x)}</span>`).join('');
+      const tags=[`学习特点：${b.profileLine}`,`兴趣：${b.interestLine}`,`兴趣转译：${b.translatedLine}`,b.hitLine].map(x=>`<span class="pi-chip-v2981fix1">${esc(x)}</span>`).join('');
       const manualTags=manual.map(g=>`<span class="pi-chip-v2981fix1">${esc(g.name)}<button aria-label="移除${esc(g.name)}" data-action="child-interest-remove" data-interest-id="${esc(g.id)}">×</button></span>`).join('');
       const autoTags=auto.map(x=>`<span class="pi-chip-v2981fix1">${esc(x.label)}<button title="取消该自动带入方向" data-action="child-interest-auto-toggle" data-intent-id="${esc(x.intentId)}" data-interest-id="${esc(x.interestId)}">×</button></span>`).join('');
-      const html=`<div class="profile-interest-summary-v2981fix1 profile-interest-summary-v2981fix2"><div class="pi-head-v2981fix1"><div><b>孩子画像与兴趣</b><div class="pi-tags-v2981fix1">${tags}</div></div><div class="pi-actions-v2981fix1"><button type="button" data-action="open-student-profile">编辑画像</button><button type="button" data-action="child-interest-start">编辑兴趣</button></div></div><div class="pi-sub-v2981fix1">${esc(b.methodLine)}</div><div class="pi-tags-v2981fix1 pi-active-interest-v2981fix2" style="margin-top:6px">${manualTags}${autoTags||(!manual.length?'<span class="pi-chip-v2981fix1">综合推荐</span>':'')}<label><input type="checkbox" id="onlyChildInterestV296" ${s.manualOnlyInterest?'checked':''}/> 只看真实命中兴趣方向</label></div></div>`;
+      const html=`<div class="profile-interest-summary-v2981fix1 profile-interest-summary-v2981fix2"><div class="pi-head-v2981fix1"><div><b>孩子情况与兴趣</b><div class="pi-tags-v2981fix1">${tags}</div></div><div class="pi-actions-v2981fix1"><button type="button" data-action="open-student-profile">编辑孩子情况</button><button type="button" data-action="child-interest-start">编辑兴趣</button></div></div><div class="pi-sub-v2981fix1">${esc(b.methodLine)}</div><div class="pi-tags-v2981fix1 pi-active-interest-v2981fix2" style="margin-top:6px">${manualTags}${autoTags||(!manual.length?'<span class="pi-chip-v2981fix1">综合推荐</span>':'')}<label><input type="checkbox" id="onlyChildInterestV296" ${s.manualOnlyInterest?'checked':''}/> 只看真正对口的专业</label></div></div>`;
       if(box.dataset.lastProfileInterestHtml!==html){box.innerHTML=html;box.dataset.lastProfileInterestHtml=html;}
       const openProfileBtn=box.querySelector('[data-action="open-student-profile"]');
       if(openProfileBtn&&!openProfileBtn.dataset.boundDirectFix1){openProfileBtn.dataset.boundDirectFix1='1';openProfileBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();window.__LN_ACTIVE_DRAWER_TYPE='studentProfile';window.LN_STUDENT_PROFILE_UI_V2975?.openDrawer?.();},true);}
