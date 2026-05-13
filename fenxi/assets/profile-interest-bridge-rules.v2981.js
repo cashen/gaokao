@@ -38,7 +38,7 @@
   }
   function summaryText(){
     const lines=notice();
-    if(!lines.length) return '学生画像只调整提醒顺序，不按性别排除专业。';
+    if(!lines.length) return '孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。';
     return lines.join(' ');
   }
   window.LN_PROFILE_INTEREST_BRIDGE_V2981={state,sortIntents,notice,summaryText,ready:true};

@@ -57,8 +57,8 @@
   }
   function summary(){
     const s=readState(); const tags=tagsFromState(s);
-    if(!tags.length) return {title:'学生画像未补充', text:'可选填，用于调整提醒顺序，不作为专业排除条件。', tags:[]};
-    return {title:'学生画像已补充', text:tags.slice(0,4).join('｜'), tags};
+    if(!tags.length) return {title:'孩子学习特点未补充', text:'可选填，主要用于提醒和排序微调，不作为硬排除条件。', tags:[]};
+    return {title:'孩子学习特点已补充', text:tags.slice(0,4).join('｜'), tags};
   }
   const api={OPTIONS, optionLabel, safe, readState, saveState, deriveProfile, summary, ready:true}; window.LN_STUDENT_PROFILE_RULES_V2981=api; window.LN_STUDENT_PROFILE_RULES_V298=api; window.LN_STUDENT_PROFILE_RULES_V2976=api; window.LN_STUDENT_PROFILE_RULES_V2975=api;
 })();

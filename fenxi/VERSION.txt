@@ -1,3 +1,4 @@
-V2.91RC0.model-audit1｜JSON模型依赖审计版
-版本戳：291rc0-model-audit1-20260513
-基线：V2.91RC0.package-slim1
+V2.91RC0.parent-trust1｜家长端口径与视觉信任收口版
+版本戳：291rc0parenttrust1-20260514
+基线：V2.91RC0.model-lazy1｜非首屏模型延后加载版
+边界：只改文案、显示层、CSS、debug 状态说明和验证脚本；不改 compute-pipeline / filter-engine / plan-engine / 兴趣真实命中 / 地域 hard / A/B/C 计算。

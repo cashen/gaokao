@@ -1,5 +1,5 @@
 /*
- * V2.9.5.4｜场景与目标路径统一规则版
+ * V2.9.5.4｜家庭场景与当前倾向统一规则版
  * 只定义规则，不操作 DOM，不加载数据，不渲染页面。
  * app.v2952.js 读取 window.LN_GAOKAO_RULES_V2953。
  */
@@ -193,7 +193,7 @@
     pathRules,
     reviewRules,
     defaults:{selectedScenario:'employment'},
-    uiText:{scenarioIntro:'场景卡只加载建议策略；目标路径可手动微调，家庭底线优先级最高。'}
+    uiText:{scenarioIntro:'家庭场景只加载建议策略；当前倾向可手动微调，家庭底线优先级最高。'}
   };
   window.LN_GAOKAO_RULES_V2951 = window.LN_GAOKAO_RULES_V2953;
 })();

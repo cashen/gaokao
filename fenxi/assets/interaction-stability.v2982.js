@@ -18,7 +18,7 @@
   }
   function openInterest(e){e?.preventDefault?.();e?.stopPropagation?.();patchRuntime();setDrawerType('childInterest');window.LN_CHILD_INTEREST_RUNTIME_V296?.start?.();return true;}
   function openProfile(e){e?.preventDefault?.();e?.stopPropagation?.();patchRuntime();setDrawerType('studentProfile');window.LN_STUDENT_PROFILE_UI_V2975?.openDrawer?.();return true;}
-  function bindStepTargets(){document.querySelectorAll('[data-scroll-target="strategyEntry"]').forEach(btn=>{if((btn.textContent||'').includes('选择目标路径')){btn.dataset.scrollTarget='childInterest';btn.textContent='下一步：补充孩子画像与兴趣';}});document.querySelectorAll('[data-scroll-target="profileAsk"]').forEach(btn=>{btn.dataset.scrollTarget='childInterest';if((btn.textContent||'').trim())btn.textContent='编辑画像与兴趣';});}
+  function bindStepTargets(){document.querySelectorAll('[data-scroll-target="strategyEntry"]').forEach(btn=>{if((btn.textContent||'').includes('选择家庭场景')){btn.dataset.scrollTarget='childInterest';btn.textContent='下一步：补充孩子学习特点与兴趣';}});document.querySelectorAll('[data-scroll-target="profileAsk"]').forEach(btn=>{btn.dataset.scrollTarget='childInterest';if((btn.textContent||'').trim())btn.textContent='编辑特点与兴趣';});}
   function expandLite(btn){
     const card=btn.closest('[data-lite-card]'); if(!card)return false; const box=card.querySelector('[data-lite-panel]'); if(!box)return false;
     let sections={}; try{sections=JSON.parse(decodeURIComponent(card.dataset.liteSections||'%7B%7D'));}catch(e){}

@@ -28,7 +28,7 @@
     else tags.push({label:'需复核：代码',type:'review',priority:88,detail:'招生名称和本科目录专业不一定完全一致，建议查看招生章程中的专业代码、培养方案和专业方向。',tone:'warn'});
     const p=profile();
     if((p.reviewTags||[]).includes('misread_review')) tags.push({label:'需分清热门词',type:'profile',priority:78,detail:'孩子当前对专业理解还不充分，建议重点分清专业名、专业类、培养方向和就业路径。',tone:'warn'});
-    if((p.reviewTags||[]).includes('learning_load')) tags.push({label:'强度需复核',type:'profile',priority:76,detail:'学生画像显示对学习强度较敏感，建议查看课程结构、实验实践、数学/代码/医学长周期要求。',tone:'warn'});
+    if((p.reviewTags||[]).includes('learning_load')) tags.push({label:'强度需复核',type:'profile',priority:76,detail:'孩子学习特点显示对学习强度较敏感，建议查看课程结构、实验实践、数学/代码/医学长周期要求。',tone:'warn'});
     if(type==='A') tags.push({label:'守底线',type:'abc',priority:65,detail:'A组优先守公办、费用、位次安全和路径清楚度。',tone:'soft'});
     if(type==='B') tags.push({label:'看专业',type:'abc',priority:65,detail:'B组优先看专业是否看得准、孩子是否认可、路径是否清楚。',tone:'soft'});
     if(type==='C') tags.push({label:'争上限',type:'abc',priority:65,detail:'C组优先比较学校平台、城市资源或层级上限，同时要接受更高不确定性。',tone:'soft'});

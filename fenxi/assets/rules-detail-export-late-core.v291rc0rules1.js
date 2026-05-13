@@ -52,8 +52,8 @@
       if(s.load && !['unknown','unclear'].includes(s.load)) parts.push(optLabel('load',s.load));
       if(s.path && !['unknown','unclear'].includes(s.path)) parts.push(optLabel('path',s.path));
       if(s.understanding && s.understanding!=='unclear') parts.push(optLabel('understanding',s.understanding));
-      if(!parts.length) return {title:'学生画像未补充',text:'可选填，用于调整提醒顺序，不作为专业排除条件。',tags:[]};
-      return {title:'学生画像已补充',text:parts.slice(0,5).join('｜'),tags:parts};
+      if(!parts.length) return {title:'孩子学习特点未补充',text:'可选填，主要用于提醒和排序微调，不作为硬排除条件。',tags:[]};
+      return {title:'孩子学习特点已补充',text:parts.slice(0,5).join('｜'),tags:parts};
     };
     api.__fix2Normalized=true;
     return api;
@@ -144,7 +144,7 @@
     }
     if(cp?.hasCampus){return {text:cp.warning,type:'campus',priority:70};}
     const prof=(window.LN_STUDENT_PROFILE_RULES_V298||window.LN_STUDENT_PROFILE_RULES_V2981)?.deriveProfile?.()||{};
-    if((prof.reviewTags||[]).includes('learning_load')) return {text:'学生画像提示学习强度需复核，建议查看课程结构、实验实践和长期培养要求。',type:'profile_load',priority:62};
+    if((prof.reviewTags||[]).includes('learning_load')) return {text:'孩子学习特点提示学习强度需复核，建议查看课程结构、实验实践和长期培养要求。',type:'profile_load',priority:62};
     if((prof.reviewTags||[]).includes('misread_review')) return {text:'孩子当前对专业理解还不够细，建议先分清专业名、专业类、培养方向和就业路径。',type:'profile_misread',priority:60};
     if(im?.active) return {text:'该候选未直接命中孩子关注方向，主要作为位次和家庭底线上的综合备选，是否保留建议再和孩子确认。',type:'backup',priority:55};
     return {text:'建议结合招生章程、专业代码、学费、校区和体检限制做最终复核。',type:'general',priority:40};

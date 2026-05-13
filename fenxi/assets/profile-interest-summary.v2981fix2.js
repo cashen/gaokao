@@ -18,7 +18,7 @@
     if(!h) return '真实候选：未选择兴趣时先综合推荐';
     return `真实候选：正主 ${Number(h.core||0)}｜相近 ${Number(h.related||0)}｜需复核 ${Number(h.review||0)}`;
   }
-  function methodLine(){return '系统处理：画像只调整提醒顺序，不按性别排除专业；兴趣先转成本科目录规则，再匹配当前真实候选，只做软排序。';}
+  function methodLine(){return '系统处理：孩子学习特点主要用于提醒和排序微调，不作为硬排除条件；兴趣先转成本科目录规则，再匹配当前真实候选。';}
   function build(){return {profileLine:profileLine(),interestLine:interestLine(),translatedLine:translatedLine(),hitLine:hitLine(),methodLine:methodLine()};}
   function patchChildInterestSummary(){
     const api=window.LN_CHILD_INTEREST_UI_V296||window.LN_CHILD_INTEREST_UI_V298;

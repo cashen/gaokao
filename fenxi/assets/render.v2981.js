@@ -530,9 +530,9 @@ function updatePreferenceExplainV2952(source){
   const box=document.getElementById('targetPathExplainV2952'); if(!box)return;
   const val=document.getElementById('priority')?.value || 'employment';
   const rule=preferenceRuleV2952(val)||{};
-  const status=PREFERENCE_TOUCHED_V2952?'已手动微调':'来自当前场景建议';
+  const status=PREFERENCE_TOUCHED_V2952?'已手动微调':'来自当前家庭场景建议';
   const bias=rule.planBias?`A ${rule.planBias.A||1} / B ${rule.planBias.B||1} / C ${rule.planBias.C||1}`:'A/B/C 默认均衡';
-  box.innerHTML=`<b>${v2950Text(rule.label||val)}</b><span>${v2950Text(rule.desc||'目标路径用于微调当前场景下的 A/B/C 倾向。')}</span><em>${status}｜${bias}</em>${rule.warning?`<p>${v2950Text(rule.warning)}</p>`:''}`;
+  box.innerHTML=`<b>${v2950Text(rule.label||val)}</b><span>${v2950Text(rule.desc||'当前倾向用于微调当前家庭场景下的 A/B/C 侧重点。')}</span><em>${status}｜${bias}</em>${rule.warning?`<p>${v2950Text(rule.warning)}</p>`:''}`;
 }
 function renderScenarioNoticeV2951(rule,skipped=[]){
   let box=document.getElementById('scenarioExplainV2951');
@@ -546,7 +546,7 @@ function renderScenarioNoticeV2951(rule,skipped=[]){
   const prefRule=preferenceRuleV2952(prefVal)||{};
   const fit=typeof scoreBandFitV2954Fix2==='function'?scoreBandFitV2954Fix2(rule):null;
   const fitLine=fit?`<p class="small"><b>分段提示：</b>${v2950Text(fit.label)}。分数段只做前置提醒，不禁止你对照查看。</p>`:'';
-  const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前目标路径</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动微调）':'（场景建议）'}</span></div>`:'';
+  const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前倾向</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动微调）':'（来自家庭场景建议）'}</span></div>`:'';
   box.innerHTML=`<div><strong>当前场景：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
     <div class="scenario-tags-v2951"><em>优先保护</em>${protect||'<span>按当前底线</span>'}</div>
     <div class="scenario-tags-v2951"><em>不会自动放宽</em>${avoid||'<span>用户已设底线</span>'}</div>

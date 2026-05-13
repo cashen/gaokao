@@ -79,7 +79,7 @@
   }
   function sourceLine(){
     const p=(window.LN_STUDENT_PROFILE_RULES_V298||window.LN_STUDENT_PROFILE_RULES_V2981||window.LN_STUDENT_PROFILE_RULES_V2976)?.deriveProfile?.()||{};
-    return p.summary || '画像只用于调整提醒顺序，不作为专业排除条件。';
+    return p.summary || '孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。';
   }
   function interestLine(){
     const rt=window.LN_CHILD_INTEREST_RUNTIME_V296||window.LN_CHILD_INTEREST_RUNTIME_V298;
@@ -87,7 +87,7 @@
     if(sum?.names?.length) return sum.names.slice(0,5).join('｜');
     return '暂未选择兴趣，先按位次、底线和场景综合推荐';
   }
-  function methodLine(){return '系统处理：只调整提醒顺序，不按性别排除专业；兴趣只做软排序，不硬排除其他符合底线的候选。';}
+  function methodLine(){return '系统处理：孩子学习特点主要用于提醒和排序微调，不作为硬排除条件；兴趣普通模式影响排序和 A/B/C 倾向，开启真实命中后才缩小候选范围。';}
   function build(){return {profileLine:profileLine(),sourceLine:sourceLine(),interestLine:interestLine(),methodLine:methodLine()};}
   function patchChildInterestSummary(){
     const api=window.LN_CHILD_INTEREST_UI_V296||window.LN_CHILD_INTEREST_UI_V298;

@@ -18,7 +18,7 @@
     if(!rules()) return;
     const s=rules().readState();
     const body=`<div class="student-profile-drawer-v2975">
-      <p class="drawer-help-v296">学生画像只用于调整提醒顺序，不作为专业排除条件。性别不会直接决定推荐专业。</p>
+      <p class="drawer-help-v296">学生孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。性别不会直接决定推荐专业。</p>
       <div class="student-profile-grid-v2975">
         <label><span>性别</span>${selectField('gender',s)}</label>
         <label><span>想法来源</span>${selectField('source',s)}</label>
@@ -29,7 +29,7 @@
       </div>
       <div class="profile-note-v2975">提示：如果这里是家长观察，建议后续再让孩子确认一次。</div>
     </div>`;
-    window.LN_DRAWER_V296?.open?.('学生画像', body);
+    window.LN_DRAWER_V296?.open?.('孩子学习特点', body);
     bindDrawer();
   }
   function bindDrawer(){

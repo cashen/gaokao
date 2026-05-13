@@ -64,7 +64,7 @@ function applyScenarioPresetV2951(type){
   document.querySelectorAll('.strategy-card').forEach(c=>c.classList.toggle('active',c.dataset.strategy===type));
   const skipped=[];
   const pref=rule.preference||{};
-  if(pref.priority && !setPreferenceValueV2952(pref.priority,'scenario')) skipped.push('目标路径');
+  if(pref.priority && !setPreferenceValueV2952(pref.priority,'scenario')) skipped.push('当前倾向');
   if(pref.mentorMode && !setValueIfAllowedV2951('mentorMode',pref.mentorMode,'preference')) skipped.push('规则强度');
   if(pref.gradPlan && !setValueIfAllowedV2951('gradPlan',pref.gradPlan,'preference')) skipped.push('升学规划');
   if(pref.timePressure && !setValueIfAllowedV2951('timePressure',pref.timePressure,'preference')) skipped.push('回报周期');
@@ -161,9 +161,9 @@ async function boot(){
       SCHOOL_GEO_MODEL_29471=null;
     }
     try{
-      STUDENT_PROFILE_MODEL_29471 = await loadJsonFile(DATA_FILES.studentProfileRules,'学生画像规则');
+      STUDENT_PROFILE_MODEL_29471 = await loadJsonFile(DATA_FILES.studentProfileRules,'孩子学习特点规则');
     }catch(profileErr){
-      console.warn('[V2.9.4.7.1] 学生画像规则加载失败，不影响主筛选：', profileErr);
+      console.warn('[V2.9.4.7.1] 孩子学习特点规则加载失败，不影响主筛选：', profileErr);
       STUDENT_PROFILE_MODEL_29471=null;
     }
     initTaxonomy(taxonomyObj, aliasObj, groupObj, reviewObj);
@@ -346,7 +346,7 @@ function autoRefresh(reason){
 window.__LN_AUTO_REFRESH_DIRECT__ = autoRefreshDirectV296;
 setTimeout(()=>{try{initSimpleModeV2950();renderBaselineSummaryV2950();window.LN_QUALIFICATION_GATE_UI_V296?.renderSummary?.();window.LN_STUDENT_PROFILE_UI_V2975?.renderSummary?.();}catch(e){console.warn('[V2.9.8.1] 简洁模式初始化失败',e)}},0);
 
-/* V2.9.5.4.fix3：场景与目标路径统一；策略只给建议，已手动设置的底线优先。 */
+/* V2.9.5.4.fix3：家庭场景与当前倾向统一；策略只给建议，已手动设置的底线优先。 */
 function applyStrategy(type){
   applyScenarioPresetV2951(type);
   renderBaselineSummaryV2950();

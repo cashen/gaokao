@@ -6,7 +6,7 @@
       rank:{name:'位次 / 数据证据',color:'#2563eb',soft:'#eff6ff'},
       baseline:{name:'家庭底线 / 安全',color:'#059669',soft:'#ecfdf5'},
       interest:{name:'孩子兴趣 / 专业方向',color:'#7c3aed',soft:'#f5f3ff'},
-      scenario:{name:'场景 / 目标路径',color:'#0891b2',soft:'#ecfeff'},
+      scenario:{name:'家庭场景 / 当前倾向',color:'#b76535',soft:'#f2dfcf'},
       planA:{name:'A 守底线',color:'#059669',soft:'#ecfdf5'},
       planB:{name:'B 看专业',color:'#5b5bd6',soft:'#eef2ff'},
       planC:{name:'C 争上限',color:'#d97706',soft:'#fffbeb'},
