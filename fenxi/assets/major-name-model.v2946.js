@@ -16,7 +16,7 @@
     u.pathname += '/'; return u.href;
   }
   function dataUrl(file){ const u = new URL(file, baseUrl()); u.searchParams.set('v','2944'); return u.href; }
-  async function getJson(file){ const r = await fetch(dataUrl(file), {cache:'no-store'}); if(!r.ok) throw new Error(file+' '+r.status); return r.json(); }
+  async function getJson(file){ const r = await fetch(dataUrl(file), {cache:'default'}); if(!r.ok) throw new Error(file+' '+r.status); return r.json(); }
   async function loadMajorNameModelV2944(options){
     if(window.LN_MAJOR_NAME_MODEL_2944_READY && window.LN_MAJOR_NAME_MODEL_2944) return window.LN_MAJOR_NAME_MODEL_2944;
     const opt = Object.assign({withEntryIndex:false}, options||{});
@@ -45,7 +45,7 @@
   window.loadMajorNameModelV2944 = loadMajorNameModelV2944;
   window.LN_MAJOR_NAME_MODEL_2944_FILES = FILES;
   window.LN_MAJOR_NAME_MODEL_2944_READY = false;
-  // V2.9.6.fix2: data/ is protected by Pages Function, so do not preload before auth.
+  // V2.9RC.safeperf1: data model uses versioned URL and default browser/CDN cache; do not preload before auth.
   // The app calls loadMajorNameModelV2944() after the server-side session is verified.
   window.LN_MAJOR_NAME_MODEL_2944_DEFERRED = true;
 })();

@@ -20,7 +20,7 @@
     u.pathname += '/'; return u.href;
   }
   function dataUrl(file){ const u = new URL(file, baseUrl()); u.searchParams.set('v','29462'); return u.href; }
-  async function getJson(file){ const r = await fetch(dataUrl(file), {cache:'no-store'}); if(!r.ok) throw new Error(file+' '+r.status); return r.json(); }
+  async function getJson(file){ const r = await fetch(dataUrl(file), {cache:'default'}); if(!r.ok) throw new Error(file+' '+r.status); return r.json(); }
   function buildModel(parts){
     const [manifest, groups, members, detectedPairs, schoolIndex, recordIndex, parentExpectationPaths, qualityReport, anchorRules, manualConfirmed, manualExcluded] = parts;
     const model = {manifest, groups, members, detectedPairs, schoolIndex, recordIndex, parentExpectationPaths, qualityReport, anchorRules, manualConfirmed, manualExcluded, version:'V2.9.4.6.2'};
@@ -50,7 +50,7 @@
   window.loadConfusableMajorModelV2946 = loadConfusableMajorModelV2946;
   window.LN_CONFUSABLE_MAJOR_MODEL_2946_FILES = FILES;
   window.LN_CONFUSABLE_MAJOR_MODEL_2946_READY = false;
-  // V2.9.6.fix2: data/ is protected by Pages Function, so do not preload before auth.
+  // V2.9RC.safeperf1: data model uses versioned URL and default browser/CDN cache; do not preload before auth.
   // The app calls loadConfusableMajorModelV2946() after the server-side session is verified.
   window.LN_CONFUSABLE_MAJOR_MODEL_2946_DEFERRED = true;
 })();

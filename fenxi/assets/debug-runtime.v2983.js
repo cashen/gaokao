@@ -1,7 +1,7 @@
-// V2.9.8.3.fix12 runtime debug collector: stores diagnostics and deep performance details in localStorage for /fenxi/debug.html.
+// V2.9RC.fix-safeperf1 runtime debug collector: stores diagnostics and deep performance details in localStorage for /fenxi/debug.html.
 (function(){
   const KEY='ln_v2983_debug_report';
-  const state={version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix12'),stamp:(window.__LN_TOOL_STAMP||'2983fix12-20260511'),actions:[],timings:{},details:{},queue:{},errors:[],longTasks:[],pools:{},context:{},flags:{},lastAction:''};
+  const state={version:(window.__LN_TOOL_VERSION||'V2.9RC.fix-safeperf1'),stamp:(window.__LN_TOOL_STAMP||'29rc-safeperf1-20260513'),actions:[],timings:{},details:{},queue:{},errors:[],longTasks:[],pools:{},context:{},flags:{},lastAction:''};
   function trim(arr,n){while(arr.length>n)arr.shift();return arr;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(Object.assign({},state,{savedAt:new Date().toISOString()})));}catch(e){}}
   function log(action,data){state.lastAction=action;state.actions.push({t:new Date().toLocaleTimeString(),action,data:data||null});trim(state.actions,40);save();}
@@ -27,7 +27,16 @@
       assetBase:window.__LN_ASSET_BASE||'',
       loadedAt:new Date().toLocaleString(),
       device:{ua:navigator.userAgent,deviceMemory:navigator.deviceMemory||null,hardwareConcurrency:navigator.hardwareConcurrency||null,viewport:(window.innerWidth||0)+'x'+(window.innerHeight||0)},
-      resources:(()=>{try{const js=performance.getEntriesByType('resource').filter(e=>/\.js(\?|$)/.test(e.name));return {jsCount:js.length,jsTotalMs:Math.round(js.reduce((s,e)=>s+(e.duration||0),0)),slowJs:js.sort((a,b)=>(b.duration||0)-(a.duration||0)).slice(0,8).map(e=>({name:e.name.split('/').pop(),ms:Math.round(e.duration||0),size:e.transferSize||0}))};}catch(e){return {};}})(),
+      resources:(()=>{try{
+        const res=performance.getEntriesByType('resource')||[];
+        const byExt={};
+        for(const e of res){const m=String(e.name||'').split('?')[0].match(/\.([a-z0-9]+)$/i);const ext=m?m[1].toLowerCase():'no_ext';byExt[ext]=byExt[ext]||{count:0,transferSize:0,encodedBodySize:0,decodedBodySize:0,totalDuration:0};byExt[ext].count++;byExt[ext].transferSize+=e.transferSize||0;byExt[ext].encodedBodySize+=e.encodedBodySize||0;byExt[ext].decodedBodySize+=e.decodedBodySize||0;byExt[ext].totalDuration+=e.duration||0;}
+        const topSlow=res.slice().sort((a,b)=>(b.duration||0)-(a.duration||0)).slice(0,10).map(e=>({name:String(e.name||'').split('/').slice(-3).join('/'),type:e.initiatorType,ms:Math.round(e.duration||0),decodedBodySize:e.decodedBodySize||0,transferSize:e.transferSize||0}));
+        const topBig=res.slice().sort((a,b)=>(b.decodedBodySize||0)-(a.decodedBodySize||0)).slice(0,10).map(e=>({name:String(e.name||'').split('/').slice(-3).join('/'),type:e.initiatorType,ms:Math.round(e.duration||0),decodedBodySize:e.decodedBodySize||0,transferSize:e.transferSize||0}));
+        const nav=performance.getEntriesByType('navigation')[0];
+        const paints=performance.getEntriesByType('paint').map(x=>({name:x.name,ms:Math.round(x.startTime||0)}));
+        return {byExt,topSlow,topBig,paints,navigation:nav?{domInteractive:Math.round(nav.domInteractive||0),domContentLoaded:Math.round(nav.domContentLoadedEventEnd||0),loadEventEnd:Math.round(nav.loadEventEnd||0),responseStart:Math.round(nav.responseStart||0),responseEnd:Math.round(nav.responseEnd||0)}:null,safePerf:window.LN_SAFE_PERF_STATE||null};
+      }catch(e){return {error:String(e&&e.message||e)};}})(),
       dom:{nodes:document.getElementsByTagName('*').length,cards:document.querySelectorAll('.card').length}
     }});
     try{out.versionText=document.querySelector('h1')?.textContent?.trim()||'';}catch(e){}
@@ -63,6 +72,6 @@
   window.addEventListener('unhandledrejection',e=>{state.errors.push({t:new Date().toLocaleTimeString(),message:String(e.reason&&e.reason.message||e.reason||'unhandledrejection')});trim(state.errors,20);save();});
   try{if('PerformanceObserver' in window){new PerformanceObserver(list=>{for(const entry of list.getEntries()){if(entry.duration>200){state.longTasks.push({t:new Date().toLocaleTimeString(),duration:Math.round(entry.duration)});trim(state.longTasks,20);save();}}}).observe({entryTypes:['longtask']});}}catch(e){}
   document.addEventListener('click',e=>{const a=e.target.closest?.('[data-action]');const g=e.target.closest?.('[data-child-interest-group]');const s=e.target.closest?.('[data-strategy]');if(a)log('click:'+a.dataset.action);else if(g)log('click:child-interest-group',{id:g.dataset.childInterestGroup});else if(s)log('click:scenario',{id:s.dataset.strategy});},true);
-  window.LN_DEBUG_V2983={state,log,timing,setPools,setContext,setFlags,detail,setQueue,report,textReport,save,ready:true,version:(window.__LN_TOOL_VERSION||'V2.9.8.3.fix12')};
+  window.LN_DEBUG_V2983={state,log,timing,setPools,setContext,setFlags,detail,setQueue,report,textReport,save,ready:true,version:(window.__LN_TOOL_VERSION||'V2.9RC.fix-safeperf1')};
   save();
 })();
