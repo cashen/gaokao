@@ -347,3 +347,31 @@
 - 不合并 `app.v2981.js` / `app.v2983.js`。
 - 不修改 UI 文件内部逻辑，只做边界注释拼接。
 - 可通过 `LN_UI_BUNDLE_OPT=false` 回退到旧 UI 单文件加载队列。
+
+
+## V2.91RC0.coordinator1 协调层
+
+新增文件：
+
+- `assets/app-coordinator.v291rc0coord1.js`
+
+导出：
+
+- `LN_APP_COORDINATOR`
+- `LN_APP_COORDINATOR_OPT`
+- `LN_APP_COORDINATOR_VERSION`
+
+职责：
+
+- 统一事件/刷新/渲染请求的门面入口
+- 提供 `snapshot()` 与 `fingerprint()`
+- 提供 `requestApply()` / `requestRender()` 的 dry-run/显式执行接口
+- 提供 `drawer.open/close/markDirty` 状态记录
+- 写入 `LN_DEBUG_V2983` 的 `appCoordinator` 标记
+
+边界：
+
+- 不替换 `applyFilters`
+- 不替换 `renderCards`
+- 不迁移 `app.v2981` / `app.v2983`
+- 不改 engine

@@ -1,4 +1,3 @@
-V2.91RC0.ui-core1｜UI脚本分段合并安全版
-版本戳：291rc0-ui-core1-20260513
-基线：V2.91RC0.rules-core1
-说明：仅对部分 UI/交互展示脚本做按原加载顺序的安全分段合并；不改公式、不改 engine、不改 DOM 结构。
+V2.91RC0.coordinator1｜协调层统一入口与调度记录版
+版本戳：291rc0-coordinator1-20260513
+基线：V2.91RC0.ui-core1

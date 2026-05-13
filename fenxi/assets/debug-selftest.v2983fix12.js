@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-ui-core1-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.ui-core1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-coordinator1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.coordinator1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -145,6 +145,18 @@
       ['late UI 导出存在',!!win.LN_ABC_LIGHT_UI_V2983FIX3 && !!win.LN_INTEREST_DRAWER_SLIM_V2983FIX4 && !!win.LN_MODULE_STEP_PRIORITY_V2983FIX3],
       ['debug flags 有 uiBundle 标记',snap.flags?.uiBundle==='v291rc0ui1']
     ]),note:'bundles='+loaded.join(',')};});
+
+    await runStep(ctx,'coordinator1 协调层门面加载与导出检查',async()=>{const c=win.LN_APP_COORDINATOR;let dry=null;try{dry=c?.requestApply?.('debug-selftest-coordinator-dry-run',{execute:false});}catch(e){dry={error:String(e&&e.message||e)}}const snap=debugSnap(win);return {asserts:assertList([
+      ['coordinator opt 开启',win.LN_APP_COORDINATOR_OPT!==false],
+      ['coordinator 版本正确',win.LN_APP_COORDINATOR_VERSION==='291rc0-coordinator1-20260513'],
+      ['coordinator 对象存在',!!c && c.stamp==='291rc0-coordinator1-20260513'],
+      ['coordinator requestApply 存在',typeof c?.requestApply==='function'],
+      ['coordinator snapshot 存在',typeof c?.snapshot==='function' && !!c.snapshot('selftest')],
+      ['coordinator fingerprint 存在',typeof c?.fingerprint==='function' && !!c.fingerprint('selftest')],
+      ['coordinator drawer API 存在',!!c?.drawer && typeof c.drawer.markDirty==='function' && typeof c.drawer.open==='function' && typeof c.drawer.close==='function'],
+      ['coordinator dryRun 不触发计算',!!dry && dry.ok===true && dry.dryRun===true],
+      ['debug flags 有 appCoordinator 标记',snap.flags?.appCoordinator==='v291rc0coord1']
+    ]),note:'applyRequests='+((c?.state?.applyRequests||[]).length)+' counters='+JSON.stringify(c?.state?.counters||{})};});
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});

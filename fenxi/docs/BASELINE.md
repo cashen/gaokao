@@ -69,3 +69,10 @@ V2.91RC0 是上述路线的安全起点。
 - 新增回退开关：`LN_UI_BUNDLE_OPT`。
 - 不改 DOM 结构、不改点击含义、不改 `compute-pipeline`、`filter-engine`、`plan-engine`、`render`、`app`、`safeperf`、`interact1/interact2`。
 - debug deep 自测新增“ui-core1 分段 UI 包加载与导出检查”。
+
+
+## V2.91RC0.coordinator1 补充说明
+
+V2.91RC0.coordinator1 基于 V2.91RC0.ui-core1，新增协调层门面 `LN_APP_COORDINATOR` 与 debug 记录。
+
+该版本不迁移旧调用，不改公式、不改计算链路，只作为后续统一调度、engine-facade 和补丁收口的安全入口。
