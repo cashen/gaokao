@@ -115,16 +115,19 @@ async function boot(){
       loadJsonFile(DATA_FILES.manifest,'数据清单'),
       loadJsonFile(DATA_FILES.rank,'一分一段数据')
     ]);
-    const [taxonomyObj,aliasObj,groupObj,reviewObj,officialObj,graduateObj] = await Promise.all([
+    // V2.91RC0.model-lazy1: graduate catalog is explanation-only in current UI; keep core taxonomy blocking, move graduate catalog to cold preload when lazy is enabled.
+    const lazyGraduateCatalogV291 = (window.LN_MODEL_LAZY_OPT !== false);
+    const bootTaxonomyJobsV291 = [
       loadJsonFile(DATA_FILES.taxonomy,'专业学科映射'),
       loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名'),
       loadJsonFile(DATA_FILES.subjectGroups,'学科群字典'),
       loadJsonFile(DATA_FILES.admissionReview,'招生专业名复核'),
-      loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录'),
-      loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表')
-    ]);
+      loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录')
+    ];
+    if(!lazyGraduateCatalogV291) bootTaxonomyJobsV291.push(loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表'));
+    const [taxonomyObj,aliasObj,groupObj,reviewObj,officialObj,graduateObj] = await Promise.all(bootTaxonomyJobsV291);
     OFFICIAL_CATALOG_2026 = officialObj;
-    GRADUATE_CATALOG_2022_2025 = graduateObj;
+    GRADUATE_CATALOG_2022_2025 = graduateObj || null;
     try{
       if(window.loadMajorNameModelV2944){
         await window.loadMajorNameModelV2944({withEntryIndex:false});

@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-model-audit1-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.model-audit1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-model-lazy1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.model-lazy1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -168,6 +168,17 @@
       ['不修改公式/数据/加载策略',rep?.policy?.doesModifyFormula===false && rep?.policy?.doesModifyData===false && rep?.policy?.doesLazyLoad===false && rep?.policy?.doesShard===false],
       ['debug flags 有 modelAudit 标记',snap.flags?.modelAudit==='v291rc0modelaudit1']
     ]),note:'jsonTotal='+(rep?.summary?.jsonTotal||0)+' runtimeRequired='+(rep?.summary?.runtimeRequiredCount||0)+' loaded='+(rep?.runtime?.loadedCount||0)};});
+
+    await runStep(ctx,'model-lazy1 非首屏模型延后加载检查',async()=>{const lazy=win.LN_MODEL_LAZY;const st=win.LN_MODEL_LAZY_STATUS;const snap=debugSnap(win);return {asserts:assertList([
+      ['model lazy opt 开启',win.LN_MODEL_LAZY_OPT!==false],
+      ['model lazy 版本正确',win.LN_MODEL_LAZY_VERSION==='291rc0-model-lazy1-20260513'],
+      ['model lazy 对象存在',!!lazy && lazy.version==='291rc0-model-lazy1-20260513'],
+      ['model lazy 状态存在',!!st && st.version==='291rc0-model-lazy1-20260513'],
+      ['冷模型列表存在',!!st?.coldModels && Object.keys(st.coldModels).length>=3],
+      ['不改公式/数据/候选池',st?.policy?.doesModifyFormula===false && st?.policy?.doesModifyData===false && st?.policy?.doesChangeCandidatePool===false && st?.policy?.doesChangeSorting===false],
+      ['有后台预热 API',typeof lazy?.schedule==='function' && typeof lazy?.ensureAll==='function'],
+      ['debug flags 有 modelLazy 标记',snap.flags?.modelLazy==='v291rc0lazy1']
+    ]),note:'status='+(lazy?.overallStatus?.()||'unknown')+' coldModels='+Object.keys(st?.coldModels||{}).join(',')};});
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});
