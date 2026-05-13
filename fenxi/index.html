@@ -5,7 +5,7 @@
 <!-- V2.9 taxonomy integrated: chunk engine + major taxonomy JSON -->
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>辽宁物理类高考志愿初选工具 V2.9RC.fix-interact2</title>
+<title>辽宁物理类高考志愿初选工具 V2.91RC0</title>
 <link href="./assets/app.v2981fix1.css?v=2981fix1-20260510" rel="stylesheet"/>
 <link href="./assets/app.v2981fix2.css?v=2981fix2-20260510" rel="stylesheet"/>
 <link href="./assets/app.v2982.css?v=2983fix12-20260511" rel="stylesheet"/>
@@ -14,7 +14,7 @@
 <body class="v292">
 <div class="wrap">
 <div class="hero">
-<h1>辽宁物理类高考志愿初选工具 V2.9RC.fix-interact2</h1>
+<h1>辽宁物理类高考志愿初选工具 V2.91RC0</h1>
 <p>先定位次，再看家庭底线；用低饱和路径色区分底线、兴趣、方案与复核，让家长更快看清 A守底线、B看专业、C争上限。</p>
 <div class="hero-badges"><span class="badge" id="metaRecords">正在准备数据，请稍候。</span><span class="badge">辽宁区域细分</span><span class="badge">低饱和路径色</span><span class="badge">证据卡增强</span></div>
 <div class="access-mini" id="accessMini">
@@ -169,7 +169,7 @@
 <p class="small">候选清单用于临时整理，不代表正式志愿顺序。最终还要核验招生计划、学费、专业组、校区和体检限制。</p>
 </aside>
 </div>
-<div class="footer">辽宁物理类高考志愿初选工具 V2.9RC.fix-interact2｜筛选控件重复刷新合并版</div>
+<div class="footer">辽宁物理类高考志愿初选工具 V2.91RC0｜工程化基线与安全收口预备版</div>
 </div>
 </div>
 <div class="float-actions"><button class="secondary" data-scroll-target="familyBaseline">底线</button><button data-scroll-target="resultBox">方案</button></div>
@@ -187,15 +187,16 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script>
 (function(){
-  const VERSION='29rc-interact2-20260513';
-  window.__LN_TOOL_VERSION='V2.9RC.fix-interact2';
-  window.__LN_TOOL_STAMP='29rc-interact2-20260513';
+  const VERSION='291rc0-20260513';
+  window.__LN_TOOL_VERSION='V2.91RC0';
+  window.__LN_TOOL_STAMP='291rc0-20260513';
   window.LN_SAFE_PERF_OPT = true;
   window.LN_SAFE_PERF_VERSION = '29rc-safeperf1-20260513';
   window.LN_INTERACT_FIX_OPT = true;
   window.LN_INTERACT_FIX_VERSION = '29rc-interact1-20260513';
   window.LN_INTERACT_DEDUPE_OPT = true;
   window.LN_INTERACT_DEDUPE_VERSION = '29rc-interact2-20260513';
+  window.__LN_TOOL_LINEAGE={baseline:'V2.9.8.3.fix12',safePerf:'29rc-safeperf1-20260513',interact1:'29rc-interact1-20260513',interact2:'29rc-interact2-20260513',release:'V2.91RC0',stamp:'291rc0-20260513'};
   window.LN_THEME_TOKENS_V297=window.LN_THEME_TOKENS_V297||{ready:true,tokens:{version:'V2.9.8.3.fix12-inline',paths:{rank:{name:'位次 / 数据证据',color:'#2563eb',soft:'#eff6ff'},baseline:{name:'家庭底线 / 安全',color:'#059669',soft:'#ecfdf5'},interest:{name:'孩子兴趣 / 专业方向',color:'#7c3aed',soft:'#f5f3ff'},scenario:{name:'场景 / 目标路径',color:'#0891b2',soft:'#ecfeff'},planA:{name:'A 守底线',color:'#059669',soft:'#ecfdf5'},planB:{name:'B 看专业',color:'#5b5bd6',soft:'#eef2ff'},planC:{name:'C 争上限',color:'#d97706',soft:'#fffbeb'},review:{name:'复核 / 谨慎',color:'#ea580c',soft:'#fff7ed'}},neutral:{ink:'#172033',muted:'#667085',line:'#e6ebf3',bg:'#f7f9fc',card:'#ffffff'}}};
 
   // V2.9.8.3.fix12: rules.v297fix2.js may be served as HTML by site fallback on some deploys; inline it so boot cannot be blocked.
@@ -469,7 +470,7 @@ window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility al
     const el=document.getElementById('filterSummary') || document.getElementById('cards') || document.body;
     const html='<div class="result-error"><b>页面资源未能完整加载。</b><br>'+msg+'<br>请确认本次上传包含 assets、data 两个文件夹；如果使用 /fenxi/ 路径，请优先打开 /fenxi/diagnostics 检查脚本来源。</div>';
     if(el===document.body){const box=document.createElement('div');box.innerHTML=html;document.body.prepend(box);} else {el.innerHTML=html;}
-    console.error('[V2.9.8.3.fix12 boot]', err, window.__LN_BOOT_LOADS__);
+    console.error('[V2.91RC0 boot]', err, window.__LN_BOOT_LOADS__);
   }
   async function boot(){
     const bases=candidateBases();
