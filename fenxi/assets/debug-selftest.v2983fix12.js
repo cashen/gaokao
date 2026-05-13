@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-coordinator1-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.coordinator1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-package-slim1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.package-slim1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
