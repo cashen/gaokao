@@ -1,4 +1,4 @@
-V2.9RC.fix-safeperf1｜保守加载优化与可回退安全版
-版本戳：29rc-safeperf1-20260513
+V2.9RC.fix-interact1｜抽屉关闭重算去重与延后版
+版本戳：29rc-interact1-20260513
 边界：不改公式、不改筛选、不改 A/B/C、不改鼠标点击、不保留 V3。
-说明：major_name_model 非阻塞后台预热；confusable_major_model 保持阻塞以保护 A/B/C 易混风险评分，仅调整静态缓存与计时。
+说明：基于 safeperf1 继续保守修复；对兴趣/画像抽屉关闭后的刷新做状态指纹去重，状态无变化时不触发 applyFilters；状态有变化时延后刷新，避免关闭动作和重算挤在一起。
