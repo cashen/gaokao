@@ -59,3 +59,13 @@ V2.91RC0 是上述路线的安全起点。
 - 新增回退开关：`LN_RULES_BUNDLE_OPT`。
 - 不改 `compute-pipeline`、`filter-engine`、`plan-engine`、`render`、`app`、`safeperf`、`interact1/interact2`。
 - debug deep 自测新增“rules-core1 分段规则包加载与导出检查”。
+
+---
+
+## V2.91RC0.ui-core1 补充说明
+
+- 基线：V2.91RC0.rules-core1。
+- 本版只做部分 UI / 交互展示类脚本按真实加载顺序的安全分段合并。
+- 新增回退开关：`LN_UI_BUNDLE_OPT`。
+- 不改 DOM 结构、不改点击含义、不改 `compute-pipeline`、`filter-engine`、`plan-engine`、`render`、`app`、`safeperf`、`interact1/interact2`。
+- debug deep 自测新增“ui-core1 分段 UI 包加载与导出检查”。

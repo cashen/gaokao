@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-rules-core1-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.rules-core1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-ui-core1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.ui-core1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -132,6 +132,18 @@
       ['decision rules 导出存在',!!win.LN_ADMISSION_SAFETY_RULES_V2981 && !!win.LN_ABC_DECISION_CARD_MODEL_V2981],
       ['detail/export rules 导出存在',!!win.LN_PARENT_MUST_READ_RULES_V2981FIX2 && !!win.LN_DETAIL_CARD_LITE_MODEL_V2981FIX2],
       ['debug flags 有 rulesBundle 标记',snap.flags?.rulesBundle==='v291rc0rules1']
+    ]),note:'bundles='+loaded.join(',')};});
+
+    await runStep(ctx,'ui-core1 分段 UI 包加载与导出检查',async()=>{const st=win.LN_UI_CORE_BUNDLE_STATUS||{};const loaded=(st.loaded||[]).map(x=>x.name);const snap=debugSnap(win);return {asserts:assertList([
+      ['ui bundle opt 开启',win.LN_UI_BUNDLE_OPT!==false],
+      ['ui bundle 版本正确',win.LN_UI_BUNDLE_VERSION==='291rc0-ui-core1-20260513'],
+      ['ui bundle 状态存在',!!st && st.version==='291rc0-ui-core1-20260513'],
+      ['ui bundle 分段包数量>=6',loaded.length>=6],
+      ['form UI 导出存在',!!win.LN_CHILD_INTEREST_UI_V296 && !!win.LN_CHILD_INTENT_UI_V2981 && !!win.LN_SCENARIO_UI_V296],
+      ['result UI 导出存在',!!win.LN_ABC_VIEW_V296 && !!win.LN_CANDIDATE_CARD_VIEW_V296],
+      ['detail UI 导出存在',!!win.LN_CANDIDATE_TAG_UI_V2981 && !!win.LN_DETAIL_CARD_UI_V2981],
+      ['late UI 导出存在',!!win.LN_ABC_LIGHT_UI_V2983FIX3 && !!win.LN_INTEREST_DRAWER_SLIM_V2983FIX4 && !!win.LN_MODULE_STEP_PRIORITY_V2983FIX3],
+      ['debug flags 有 uiBundle 标记',snap.flags?.uiBundle==='v291rc0ui1']
     ]),note:'bundles='+loaded.join(',')};});
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});

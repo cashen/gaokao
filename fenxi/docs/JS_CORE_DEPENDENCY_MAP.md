@@ -301,3 +301,49 @@
 - 新增回退开关：`LN_RULES_BUNDLE_OPT`。
 - 不改 `compute-pipeline`、`filter-engine`、`plan-engine`、`render`、`app`、`safeperf`、`interact1/interact2`。
 - debug deep 自测新增“rules-core1 分段规则包加载与导出检查”。
+
+---
+
+## V2.91RC0.ui-core1 分段 UI 包
+
+本版在 rules-core1 基线之上新增 6 个 UI 分段包。原则：按当前 `index.html` 的真实连续加载片段原样拼接，不重排、不删旧文件、不改 DOM 与点击语义。
+
+### ui-form-step-core
+
+- `child-interest-ui.v298fix1.js`
+- `child-intent-ui.v2981.js`
+- `scenario-ui.v298.js`
+
+### ui-result-basic-core
+
+- `abc-view.v298.js`
+- `candidate-card-view.v298.js`
+
+### ui-candidate-detail-early-core
+
+- `candidate-tag-ui.v2981.js`
+- `detail-card-ui.v2981.js`
+
+### ui-notice-profile-early-core
+
+- `notice-compact-ui.v2981fix1.js`
+- `profile-interest-summary.v2981fix1.js`
+
+### ui-detail-notice-late-core
+
+- `detail-card-lite-ui.v2981fix2.js`
+- `notice-compact-ui.v2981fix2.js`
+
+### ui-late-interaction-core
+
+- `abc-light-ui.v2983fix3.js`
+- `interest-interaction-lite.v2983fix3.js`
+- `interest-drawer-slim.v2983fix4.js`
+- `module-step-priority.v2983fix3.js`
+
+### 安全边界
+
+- 不合并 `compute-pipeline`、`filter-engine`、`plan-engine`、`data-engine`。
+- 不合并 `app.v2981.js` / `app.v2983.js`。
+- 不修改 UI 文件内部逻辑，只做边界注释拼接。
+- 可通过 `LN_UI_BUNDLE_OPT=false` 回退到旧 UI 单文件加载队列。
