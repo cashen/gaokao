@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-package-slim1-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.package-slim1');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-model-audit1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.model-audit1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -157,6 +157,17 @@
       ['coordinator dryRun 不触发计算',!!dry && dry.ok===true && dry.dryRun===true],
       ['debug flags 有 appCoordinator 标记',snap.flags?.appCoordinator==='v291rc0coord1']
     ]),note:'applyRequests='+((c?.state?.applyRequests||[]).length)+' counters='+JSON.stringify(c?.state?.counters||{})};});
+
+    await runStep(ctx,'model-audit1 JSON模型审计注册表检查',async()=>{const st=win.LN_MODEL_AUDIT_STATUS;const rep=st?.report?.();const snap=debugSnap(win);return {asserts:assertList([
+      ['model audit opt 开启',win.LN_MODEL_AUDIT_OPT!==false],
+      ['model audit 版本正确',win.LN_MODEL_AUDIT_VERSION==='291rc0-model-audit1-20260513'],
+      ['model audit 对象存在',!!st && st.version==='291rc0-model-audit1-20260513'],
+      ['model audit report 存在',!!rep && !!rep.summary],
+      ['JSON 登记数量>=50',Number(rep?.summary?.jsonTotal||0)>=50],
+      ['重模型 topHeavy 存在',Array.isArray(rep?.topHeavy)&&rep.topHeavy.length>=6],
+      ['不修改公式/数据/加载策略',rep?.policy?.doesModifyFormula===false && rep?.policy?.doesModifyData===false && rep?.policy?.doesLazyLoad===false && rep?.policy?.doesShard===false],
+      ['debug flags 有 modelAudit 标记',snap.flags?.modelAudit==='v291rc0modelaudit1']
+    ]),note:'jsonTotal='+(rep?.summary?.jsonTotal||0)+' runtimeRequired='+(rep?.summary?.runtimeRequiredCount||0)+' loaded='+(rep?.runtime?.loadedCount||0)};});
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});

@@ -1,4 +1,3 @@
-V2.91RC0.package-slim1｜历史残留文件 pendingdel 退役版
-版本戳：291rc0-package-slim1-20260513
-基线：V2.91RC0.coordinator1
-策略：历史残留文件移入 pendingdel，不永久删除
+V2.91RC0.model-audit1｜JSON模型依赖审计版
+版本戳：291rc0-model-audit1-20260513
+基线：V2.91RC0.package-slim1
