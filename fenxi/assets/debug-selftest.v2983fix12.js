@@ -2,8 +2,8 @@
 (function(){
   const REPORT_KEY='ln_v2983_selftest_report';
   const DEBUG_KEY='ln_v2983_debug_report';
-  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-20260513');
-  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0');
+  const STAMP=(window.__LN_TOOL_STAMP||'291rc0-rules-core1-20260513');
+  const VERSION=(window.__LN_TOOL_VERSION||'V2.91RC0.rules-core1');
   const ACCESS_CODE='ln2026';
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const now=()=>performance&&performance.now?performance.now():Date.now();
@@ -121,6 +121,18 @@
     }catch(e){await runStep(ctx,'加载 iframe',()=>{throw e;});return;}
     const win=frame.contentWindow;
     const unlocked=await runStep(ctx,'启动与访问状态检查',async()=>{const ok=await waitBoot(win); if(!ok){ctx.authLocked=true;return {asserts:assertList([['工具页已解锁',false]]),note:'自动登录后仍 locked，请检查 Functions 登录接口或凭证'}} const snap=debugSnap(win); return {asserts:assertList([['debug ready',!!win.LN_DEBUG_V2983],['compute ready',!!win.LN_COMPUTE_PIPELINE_V2983],['版本可读',!!snap.version]])};});
+
+    await runStep(ctx,'rules-core1 分段规则包加载与导出检查',async()=>{const st=win.LN_RULES_CORE_BUNDLE_STATUS||{};const loaded=(st.loaded||[]).map(x=>x.name);const snap=debugSnap(win);return {asserts:assertList([
+      ['rules bundle opt 开启',win.LN_RULES_BUNDLE_OPT!==false],
+      ['rules bundle 版本正确',win.LN_RULES_BUNDLE_VERSION==='291rc0-rules-core1-20260513'],
+      ['rules bundle 状态存在',!!st && st.version==='291rc0-rules-core1-20260513'],
+      ['rules bundle 分段包数量>=6',loaded.length>=6],
+      ['interest rules 导出存在',!!win.LN_INTEREST_TAXONOMY_V298 && !!win.LN_CATALOG_MATCH_ENGINE_V298 && !!win.LN_INTEREST_HIT_SUMMARY_V298],
+      ['path rules 导出存在',!!win.LN_PATH_REVIEW_RULES_V298 && !!win.LN_PATH_EXPLAIN_ENGINE_V298],
+      ['decision rules 导出存在',!!win.LN_ADMISSION_SAFETY_RULES_V2981 && !!win.LN_ABC_DECISION_CARD_MODEL_V2981],
+      ['detail/export rules 导出存在',!!win.LN_PARENT_MUST_READ_RULES_V2981FIX2 && !!win.LN_DETAIL_CARD_LITE_MODEL_V2981FIX2],
+      ['debug flags 有 rulesBundle 标记',snap.flags?.rulesBundle==='v291rc0rules1']
+    ]),note:'bundles='+loaded.join(',')};});
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});

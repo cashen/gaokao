@@ -44,3 +44,14 @@ window.LN_INTERACT_DEDUPE_OPT = false;
 - 兴趣抽屉可打开、选择、关闭
 - 高级筛选入口可打开
 - 导出入口存在
+
+
+---
+
+## V2.91RC0.rules-core1 补充说明
+
+- 基线：V2.91RC0。
+- 本版只做规则类脚本按真实加载顺序的安全分段合并。
+- 新增回退开关：`LN_RULES_BUNDLE_OPT`。
+- 不改 `compute-pipeline`、`filter-engine`、`plan-engine`、`render`、`app`、`safeperf`、`interact1/interact2`。
+- debug deep 自测新增“rules-core1 分段规则包加载与导出检查”。
