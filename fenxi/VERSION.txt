@@ -1,3 +1,4 @@
-V2.91RC0.rules-closure3｜闭环解释与路径分类定版
-版本戳：291rc0closure3-20260514
-基线：V2.91RC0.rules-closure2
+V2.91RC0.rules-closure4.front1｜暖白克制前端收口版
+版本戳：291rc0front1-20260514
+基线：V2.91RC0.rules-closure4｜家庭讨论输出闭环完整版
+边界：仅前端视觉层收口，不改候选池、公式、排序和原始数据。
