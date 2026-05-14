@@ -1,4 +1,4 @@
-V2.91RC0.rules-closure4.front1｜暖白克制前端收口版
-版本戳：291rc0front1-20260514
-基线：V2.91RC0.rules-closure4｜家庭讨论输出闭环完整版
-边界：仅前端视觉层收口，不改候选池、公式、排序和原始数据。
+V2.91RC0.rules-closure4.front2｜家长端低调视觉修正版
+版本戳：291rc0front2-20260514
+基线：V2.91RC0.rules-closure4.front1
+边界：纯前端视觉层，不改候选池、排序、A/B/C 业务结果。
