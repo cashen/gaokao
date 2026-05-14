@@ -97,6 +97,35 @@
       var v=el.getAttribute('data-step-label')||'';
       if(v.indexOf('家庭场景')>=0) el.setAttribute('data-step-label','④ 我家情况');
     });
+    humanizeTextNodes(document.body);
+  }
+  function humanizeTextNodes(root){
+    if(!root) return;
+    var map=[
+      ['学生画像','孩子情况'],
+      ['孩子画像','孩子情况'],
+      ['编辑画像','编辑孩子情况'],
+      ['家庭场景','我家情况'],
+      ['切换场景','换一种情况'],
+      ['选择家庭场景','选择我家情况'],
+      ['当前倾向','当前优先考虑'],
+      ['目标路径','当前优先考虑'],
+      ['A/B/C 倾向微调','这次先按什么思路看'],
+      ['已手动微调','你手动改过'],
+      ['来自当前家庭场景建议','按我家情况默认'],
+      ['只看真实命中兴趣方向','只看真正对口的专业'],
+      ['只看真实命中','只看真正对口'],
+      ['当前真实候选命中','当前能选的专业命中'],
+      ['系统只对真实候选做目录匹配，不会生成不存在的专业。','这里只拿当前能选的专业做目录对照，不编不存在的专业。'],
+      ['孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。','孩子情况只用来提醒和排序，不会直接排除专业。']
+    ];
+    var skip={SCRIPT:1,STYLE:1,NOSCRIPT:1,TEXTAREA:1,INPUT:1,SELECT:1,OPTION:1,CODE:1,PRE:1};
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(node){
+      var p=node.parentNode; if(!p||skip[p.nodeName]) return NodeFilter.FILTER_REJECT;
+      var v=node.nodeValue||''; return map.some(function(x){return v.indexOf(x[0])>=0;})?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP;
+    }});
+    var nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(n){var v=n.nodeValue||''; map.forEach(function(x){v=v.split(x[0]).join(x[1]);}); n.nodeValue=v;});
   }
   function refreshDebug(){
     var st=getState();
@@ -115,7 +144,7 @@
     },true);
     ['change','input'].forEach(function(evt){document.addEventListener(evt,function(e){if(e.target&&e.target.id==='priority')setTimeout(render,0);},true);});
   }
-  function boot(){bind();render();setTimeout(render,300);setTimeout(render,1000);}
+  function boot(){bind();render();setTimeout(render,300);setTimeout(render,1000);try{var mo=new MutationObserver(function(){clearTimeout(window.__LN_PARENT_TRUST_TEXT_TIMER);window.__LN_PARENT_TRUST_TEXT_TIMER=setTimeout(function(){humanizeTextNodes(document.body);},60);});mo.observe(document.body,{childList:true,subtree:true});}catch(e){}}
   window.LN_PARENT_TRUST_V291RC0={ready:true,version:VERSION,stamp:STAMP,getState:getState,render:render,refreshDebug:refreshDebug};
   window.LN_PARENT_TRUST2_V291RC0=window.LN_PARENT_TRUST_V291RC0;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();

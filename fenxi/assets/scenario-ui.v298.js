@@ -9,12 +9,12 @@
     const pref=rule.preference?.priority||''; const prefLabel=(typeof preferenceRuleV2952==='function'?(preferenceRuleV2952(pref)?.label||pref):pref); const risk=rule.riskLevel==='aggressive'?'机会较大':rule.riskLevel==='conservative'?'稳妥':'均衡'; const pathHints=window.LN_PATH_SCENARIO_RULES_V2975?.summary?.()||{hints:[],message:''};
     box.classList.add('scenario-compact-host-v296');
     box.innerHTML=`<div class="scenario-compact-v296">
-      <div><b>当前情况：${esc(rule.title||'普通家庭｜稳就业')}</b><span>${esc(rule.desc||'这里只给默认看法，不覆盖已确认的家庭底线。')}</span></div>
+      <div><b>当前场景：${esc(rule.title||'普通家庭｜稳就业')}</b><span>${esc(rule.desc||'场景只给建议，不覆盖已确认的家庭底线。')}</span></div>
       <div class="scenario-tags-v296"><span>${esc(risk)}</span>${pref?`<span>默认倾向：${esc(prefLabel)}</span>`:''}${interest.label?`<span class="interest">${esc(interest.label)}</span>`:''}${pathHints.hints?.[0]?`<span class="path">${esc(pathHints.hints[0].title)}</span>`:''}</div>
-      <button class="execute-secondary" data-action="open-scenario-drawer">换一种情况</button>
+      <button class="execute-secondary" data-action="open-scenario-drawer">切换场景</button>
     </div>`;
     const intro=document.getElementById('scenarioRuleHintV2951');
-    if(intro){ const child=window.LN_CHILD_INTEREST_RUNTIME_V296?.summary?.()||window.LN_CHILD_INTEREST_RUNTIME_V2955?.summary?.(); intro.innerHTML=`<b>我家情况</b><span>主页面只显示当前情况摘要；完整场景进入抽屉选择。${child?'｜'+esc(child.title):''}${pathHints.hints?.length?'｜路径提示：'+esc(pathHints.hints.map(x=>x.title).join('、')):''}</span>`; }
+    if(intro){ const child=window.LN_CHILD_INTEREST_RUNTIME_V296?.summary?.()||window.LN_CHILD_INTEREST_RUNTIME_V2955?.summary?.(); intro.innerHTML=`<b>家庭场景</b><span>主页面只显示当前场景摘要；完整场景进入抽屉选择。${child?'｜'+esc(child.title):''}${pathHints.hints?.length?'｜路径提示：'+esc(pathHints.hints.map(x=>x.title).join('、')):''}</span>`; }
   }
   function card(rule){
     const cls=['strategy-card','scenario-card-v296']; const id=window.currentStrategy || (typeof currentStrategy!=='undefined'?currentStrategy:'employment'); if(rule.id===id)cls.push('active');
@@ -26,7 +26,7 @@
   function openDrawer(){
     let list=rules();
     try{ const hasScore=!!(typeof currentScoreV2954Fix2==='function'&&currentScoreV2954Fix2()); if(hasScore){const order={match:0,near:1,neutral:2,unknown:3,mismatch:4}; list=[...list].sort((a,b)=>((order[fitLabel(a).state]??3)-(order[fitLabel(b).state]??3))||((a.order||999)-(b.order||999)));} }catch(e){}
-    const path=window.LN_PATH_SCENARIO_RULES_V2975?.summary?.()||{hints:[],message:''}; const pathHtml=path.hints?.length?`<div class="path-scenario-hints-v2975"><b>根据孩子关注点，可优先看一眼</b><p>${esc(path.message)}</p><div>${path.hints.map(h=>`<span>${esc(h.title)}：${esc(h.desc)}</span>`).join('')}</div></div>`:''; window.LN_DRAWER_V296?.open?.('选择我家情况', `<div class="scenario-drawer-v296"><p class="drawer-help-v296">这里只给默认看法和方案排序；你已经设置的家庭底线优先。</p>${pathHtml}<div class="scenario-grid-v296">${list.map(card).join('')}</div></div>`);
+    const path=window.LN_PATH_SCENARIO_RULES_V2975?.summary?.()||{hints:[],message:''}; const pathHtml=path.hints?.length?`<div class="path-scenario-hints-v2975"><b>根据孩子关注点，可优先看一眼</b><p>${esc(path.message)}</p><div>${path.hints.map(h=>`<span>${esc(h.title)}：${esc(h.desc)}</span>`).join('')}</div></div>`:''; window.LN_DRAWER_V296?.open?.('选择家庭场景', `<div class="scenario-drawer-v296"><p class="drawer-help-v296">家庭场景只提供建议和 A/B/C 倾向；用户已经手动设置的家庭底线优先。</p>${pathHtml}<div class="scenario-grid-v296">${list.map(card).join('')}</div></div>`);
   }
   window.LN_SCENARIO_UI_V296={render,openDrawer,ready:true};
 })();

@@ -38,7 +38,7 @@
   }
   function summaryText(){
     const lines=notice();
-    if(!lines.length) return '孩子情况只用来提醒和排序，不会直接排除专业。';
+    if(!lines.length) return '孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。';
     return lines.join(' ');
   }
   window.LN_PROFILE_INTEREST_BRIDGE_V2981={state,sortIntents,notice,summaryText,ready:true};

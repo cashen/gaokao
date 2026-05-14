@@ -18,7 +18,7 @@
     if(!rules()) return;
     const s=rules().readState();
     const body=`<div class="student-profile-drawer-v2975">
-      <p class="drawer-help-v296">学生孩子情况只用来提醒和排序，不会直接排除专业。性别不会直接决定推荐专业。</p>
+      <p class="drawer-help-v296">学生孩子学习特点主要用于提醒和排序微调，不作为硬排除条件。性别不会直接决定推荐专业。</p>
       <div class="student-profile-grid-v2975">
         <label><span>性别</span>${selectField('gender',s)}</label>
         <label><span>想法来源</span>${selectField('source',s)}</label>

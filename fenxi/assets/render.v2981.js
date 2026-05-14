@@ -11,7 +11,7 @@ function parentLine(r){
 function exclusionBucket(ex){
   if(ex.some(x=>String(x).includes('区域')||String(x).includes('不在目标区域')))return '区域排除';
   if(ex.some(x=>String(x).includes('预算')||String(x).includes('高收费')))return '预算排除';
-  if(ex.some(x=>String(x).includes('不学医')||String(x).includes('师范')||String(x).includes('画像')))return '学习特点排除';
+  if(ex.some(x=>String(x).includes('不学医')||String(x).includes('师范')||String(x).includes('画像')))return '画像排除';
   return '低匹配排除';
 }
 
@@ -214,8 +214,8 @@ function candidateAdviceV2945(r){
   if(level==='可冲') {score+=8; reasons.push('可少量前置冲击');}
   if(level==='超冲') {score-=18; reasons.push('明显偏冲');}
   if(level==='过低') {score-=10; reasons.push('位次放宽较多，要防止只图稳');}
-  if((r._profile||0)>=70) {score+=16; reasons.push('学习特点较匹配');}
-  else if((r._profile||0)<45) {score-=12; reasons.push('学习特点不太匹配');}
+  if((r._profile||0)>=70) {score+=16; reasons.push('画像匹配较高');}
+  else if((r._profile||0)<45) {score-=12; reasons.push('画像匹配偏低');}
   if(cost.cls==='danger') {score-=28; reasons.push('成本/收费需复核');}
   else if(cost.cls==='warn') {score-=12; reasons.push('成本需核验');}
   if(['大类招生','试验班/特色班','专项/特殊入口'].includes(identity.label)) {score-=13; reasons.push('招生入口并不等同于最终专业');}
@@ -377,7 +377,7 @@ function renderCards(){
         <div class="level">${levelPill(r._level)}</div>
       </div>
       ${decisionIntro}
-      <div class="card-meta-v29461"><span class="pill blue">特点 ${Math.round(r._profile)}分</span>${r.rankChangeLabel?`<span class="pill blue">${r.rankChangeLabel}</span>`:''}${badges}</div>
+      <div class="card-meta-v29461"><span class="pill blue">画像 ${Math.round(r._profile)}分</span>${r.rankChangeLabel?`<span class="pill blue">${r.rankChangeLabel}</span>`:''}${badges}</div>
       <div class="score-meter"><i style="width:${Math.round(r._profile)}%"></i></div>
       <div class="kv kv-v29461"><div><span>2025分/位</span><b>${fmt(r.score2025)} / ${fmt(r.rank2025)}</b></div><div><span>2024分/位</span><b>${fmt(r.score2024)} / ${fmt(r.rank2024)}</b></div><div><span>分差</span><b>${fmt(r.scoreDiff)}</b></div><div><span>位次差</span><b>${fmt(r.rankDiff)}</b></div></div>
       <div class="summary-v29461">${htmlSafeV2945(summary)}</div>
@@ -391,7 +391,7 @@ function renderCards(){
       ${renderRule(r)}
       <div class="row action-row-v29461"><button class="secondary slim" onclick="addCandidate('${r.id}')">加入候选</button></div>
     </div>`
-  }).join('')||'<div class="notice">没有命中结果。可以放宽目标区域、关闭严格学习特点筛选，或清空关键词。</div>';
+  }).join('')||'<div class="notice">没有命中结果。可以放宽目标区域、关闭严格画像缩水，或清空关键词。</div>';
   const pages=Math.max(1,Math.ceil(filtered.length/pageSize));
   document.getElementById('pageInfo').textContent=`${currentPage} / ${pages}`;
   syncCardViewModeButtonsV29461();
@@ -439,7 +439,7 @@ function updateNarrowGuide(){
   const total=(filtered||[]).length;
   if(total===0){
     el.className='narrow-guide danger';
-    el.innerHTML=`<b>没有命中结果。</b><br/>建议放宽区域、清空关键词，或关闭严格学习特点筛选。<div class="guide-actions"><button onclick="quickNarrow('clearKeywords')">清空学科/关键词</button><button onclick="document.getElementById('strictProfile').checked=false;autoRefresh()">关闭严格画像</button><button onclick="clearProvinces();document.getElementById('regionMode').value='none';autoRefresh()">放宽区域</button></div>`;
+    el.innerHTML=`<b>没有命中结果。</b><br/>建议放宽区域、清空关键词，或关闭严格画像缩水。<div class="guide-actions"><button onclick="quickNarrow('clearKeywords')">清空学科/关键词</button><button onclick="document.getElementById('strictProfile').checked=false;autoRefresh()">关闭严格画像</button><button onclick="clearProvinces();document.getElementById('regionMode').value='none';autoRefresh()">放宽区域</button></div>`;
   }else if(total>500){
     el.className='narrow-guide';
     el.innerHTML=`<b>结果偏多：${fmt(total)} 条。</b><br/>建议先按“区域 / 学科群 / 预算压力”做第一轮收窄，手机端会更好读。<div class="guide-actions"><button onclick="quickNarrow('ln')">只看辽宁</button><button onclick="quickNarrow('northeast')">东北优先</button><button onclick="quickNarrow('computer')">计算机</button><button onclick="quickNarrow('tech')">电子信息</button><button onclick="quickNarrow('grid')">电气能源</button><button class="warn" onclick="quickNarrow('noHighFee')">排除高收费</button></div>`;
@@ -469,7 +469,7 @@ function renderDebugPanel(){
   chunks：<code>${loaded}</code><br/>
   条件数：<code>${activeConditionCount()}</code>｜城市模式：<code>${cityModeV29472()}</code>｜目标城市：<code>${selectedCitiesV29472().join('、')||'不限'}</code><br/>
   当前结果城市Top：<code>${topCity}</code><br/>
-  易混模型：<code>${CONFUSABLE_MODEL_2946?((CONFUSABLE_MODEL_2946.detectedPairs?.count||0)+' 对 / '+(CONFUSABLE_MODEL_2946.recordIndex?.count||0)+' 条索引'):'未加载'}</code><br/>学校地域：<code>${SCHOOL_GEO_MODEL_29471?(SCHOOL_GEO_MODEL_29471.items.length+' 所，city全量'):'未加载'}</code>｜孩子学习特点：<code>${STUDENT_PROFILE_MODEL_29471?((STUDENT_PROFILE_MODEL_29471.rules||[]).length+' 条规则'):'未加载'}</code><br/>app.js：<code>app.v2952.js</code>｜app.css：<code>app.v2952.css</code>`;
+  易混模型：<code>${CONFUSABLE_MODEL_2946?((CONFUSABLE_MODEL_2946.detectedPairs?.count||0)+' 对 / '+(CONFUSABLE_MODEL_2946.recordIndex?.count||0)+' 条索引'):'未加载'}</code><br/>学校地域：<code>${SCHOOL_GEO_MODEL_29471?(SCHOOL_GEO_MODEL_29471.items.length+' 所，city全量'):'未加载'}</code>｜学生画像：<code>${STUDENT_PROFILE_MODEL_29471?((STUDENT_PROFILE_MODEL_29471.rules||[]).length+' 条规则'):'未加载'}</code><br/>app.js：<code>app.v2952.js</code>｜app.css：<code>app.v2952.css</code>`;
 }
 
 function renderStrategyCardsV2951(){
@@ -503,7 +503,7 @@ function renderStrategyCardsV2951(){
   if(intro){
     const child=window.LN_CHILD_INTEREST_RUNTIME_V296?.summary?.();
     const childLine=child?`｜${v2950Text(child.title)}`:'';
-    intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'情况卡来自独立规则集。')} 分数段和孩子兴趣只做提示与排序，不会禁止你对照查看。${childLine}</span>`;
+    intro.innerHTML=`<b>场景规则中心</b><span>${v2950Text(rulesV2951().uiText?.scenarioIntro||'场景卡来自独立规则集。')} 分数段和孩子兴趣只做提示与排序，不会禁止你对照查看。${childLine}</span>`;
   }
 }
 function renderPreferenceSelectV2952(){
@@ -530,9 +530,9 @@ function updatePreferenceExplainV2952(source){
   const box=document.getElementById('targetPathExplainV2952'); if(!box)return;
   const val=document.getElementById('priority')?.value || 'employment';
   const rule=preferenceRuleV2952(val)||{};
-  const status=PREFERENCE_TOUCHED_V2952?'已手动调整':'来自当前我家情况建议';
+  const status=PREFERENCE_TOUCHED_V2952?'已手动微调':'来自当前家庭场景建议';
   const bias=rule.planBias?`A ${rule.planBias.A||1} / B ${rule.planBias.B||1} / C ${rule.planBias.C||1}`:'A/B/C 默认均衡';
-  box.innerHTML=`<b>${v2950Text(rule.label||val)}</b><span>${v2950Text(rule.desc||'当前优先考虑用于调整当前我家情况下的 A/B/C 侧重点。')}</span><em>${status}｜${bias}</em>${rule.warning?`<p>${v2950Text(rule.warning)}</p>`:''}`;
+  box.innerHTML=`<b>${v2950Text(rule.label||val)}</b><span>${v2950Text(rule.desc||'当前倾向用于微调当前家庭场景下的 A/B/C 侧重点。')}</span><em>${status}｜${bias}</em>${rule.warning?`<p>${v2950Text(rule.warning)}</p>`:''}`;
 }
 function renderScenarioNoticeV2951(rule,skipped=[]){
   let box=document.getElementById('scenarioExplainV2951');
@@ -546,8 +546,8 @@ function renderScenarioNoticeV2951(rule,skipped=[]){
   const prefRule=preferenceRuleV2952(prefVal)||{};
   const fit=typeof scoreBandFitV2954Fix2==='function'?scoreBandFitV2954Fix2(rule):null;
   const fitLine=fit?`<p class="small"><b>分段提示：</b>${v2950Text(fit.label)}。分数段只做前置提醒，不禁止你对照查看。</p>`:'';
-  const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前优先考虑</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动调整）':'（来自我家情况建议）'}</span></div>`:'';
-  box.innerHTML=`<div><strong>当前情况：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
+  const prefLine=prefVal?`<div class="scenario-pref-v2952"><b>当前倾向</b><span>${v2950Text(prefRule.label||prefVal)}${PREFERENCE_TOUCHED_V2952?'（已手动微调）':'（来自家庭场景建议）'}</span></div>`:'';
+  box.innerHTML=`<div><strong>当前场景：${v2950Text(rule.title)}</strong><p>${v2950Text(rule.userPain||rule.desc||'')}</p></div>
     <div class="scenario-tags-v2951"><em>优先保护</em>${protect||'<span>按当前底线</span>'}</div>
     <div class="scenario-tags-v2951"><em>不会自动放宽</em>${avoid||'<span>用户已设底线</span>'}</div>
     ${abc}${prefLine}${fitLine}<p class="small">${v2950Text(rule.warning||'场景只作为建议策略。')}${skipped.length?'｜已保留你手动设置的：'+v2950Text([...new Set(skipped)].join('、')):''}</p>`;

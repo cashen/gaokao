@@ -205,6 +205,31 @@
       ['情况可切到 exam',st.scenarioEffective==='exam'||st.scenario==='exam'||snap.flags?.scenarioEffective==='exam'||snap.flags?.scenario==='exam']
     ]),note:'scenarioRaw='+st.scenarioRaw+' scenarioEffective='+st.scenarioEffective+' priority='+st.effectivePriority+' source='+st.prioritySource};});
 
+    await runStep(ctx,'rules-closure3 闭环解释与路径分类加载检查',async()=>{const rc=win.LN_RULES_CLOSURE_V291;rc?.refreshDebug?.();await sleep(80);const snap=debugSnap(win);return {asserts:assertList([
+      ['rules closure opt 开启',win.LN_RULES_CLOSURE_OPT!==false],
+      ['rules closure3 对象存在',!!rc && rc.version==='v291rc0closure3'],
+      ['context 可读',!!rc?.debugContext?.()],
+      ['scoreAdjustment 存在',typeof rc?.scoreAdjustment==='function'],
+      ['pathInfo 存在',typeof rc?.pathInfo==='function'],
+      ['debug flags 有 rulesClosure 标记',snap.flags?.rulesClosure==='v291rc0closure3']
+    ]),note:'context='+JSON.stringify(rc?.debugContext?.()||{})};});
+
+    await runStep(ctx,'rules-closure3 女生考公拒绝现场压住电气样例',async()=>{const rc=win.LN_RULES_CLOSURE_V291;win.LN_STUDENT_PROFILE_RULES_V298?.saveState?.({gender:'female',learning:'expression',load:'sensitive',path:'exam_ok',understanding:'has_direction'});setSelect(win,'studentGender','female');setSelect(win,'fieldWorkAcceptance','reject');setSelect(win,'priority','exam');const chip=win.document.querySelector('#rejectChips [data-reject=\"工地现场\"]');if(chip)chip.classList.add('active');if(typeof win.applyStrategy==='function')win.applyStrategy('exam');await sleep(120);const sample={school:'样例大学',major:'电气工程及其自动化',majorText:'电气工程及其自动化',schoolNature:{label:'公办倾向'},schoolTier:{level:'public'},_profile:60,_level:'匹配'};const ev=rc?.evaluate?.(sample,'B')||{};const snap=debugSnap(win);return {asserts:assertList([
+      ['样例 delta 为明显降权',Number(ev.delta||0)<=-30],
+      ['识别电气/能源路径',ev.path?.key==='electric'],
+      ['识别现场风险',Number(ev.siteRisk?.level||0)>=3],
+      ['包含现场或非典型考公提示',(ev.tags||[]).some(x=>/现场|考公|孩子/.test(x)) || (ev.notes||[]).some(x=>/现场|考公|电气/.test(x))],
+      ['debug 有 closure context',!!snap.details?.rulesClosureContext]
+    ]),note:'delta='+ev.delta+' path='+(ev.path?.key||'')+' tags='+(ev.tags||[]).join('/')};});
+
+
+    await runStep(ctx,'rules-closure3 家庭场景回归清单加载检查',async()=>{const reg=win.LN_FAMILY_SCENARIO_REGRESSION_V291;const rc=win.LN_RULES_CLOSURE_V291;const chipLong=win.document.querySelector('#rejectChips [data-reject="长学制"]');if(chipLong)chipLong.classList.add('active');setSelect(win,'priority','medical');if(typeof win.applyStrategy==='function')win.applyStrategy('medical');await sleep(100);const sampleMed={school:'样例医大',major:'临床医学',majorText:'临床医学',schoolNature:{label:'公办'},schoolTier:{level:'public'},_profile:60,_level:'匹配'};const ev=rc?.evaluate?.(sampleMed,'B')||{};return {asserts:assertList([
+      ['回归清单存在',!!reg&&reg.ready===true],
+      ['回归用例不少于15组',(reg?.cases||[]).length>=15],
+      ['医学长周期样例降权',Number(ev.delta||0)<0],
+      ['医学风险可读',!!ev.medicalRisk&&ev.medicalRisk.longCycle===true]
+    ]),note:'cases='+(reg?.cases||[]).length+' medicalDelta='+ev.delta};});
+
     if(ctx.authLocked){ctx.finalDebug=debugSnap(win);writeStored(makeReport(ctx));renderSelfReport();setStatus('自测停止：自动登录失败');return;}
     await runStep(ctx,'基础模块 DOM 覆盖检查',async()=>{const ids=['myRank','myScore','budget','regionMode','provinceChips','studentProfileBoxV2975','childInterestBoxV2955','strategyCards','resultBox','cards'];return {asserts:assertList(ids.map(id=>[id+' 存在',!!win.document.getElementById(id)]))};});
     await runStep(ctx,'位次输入 + 辽宁 hard 底线 + 首次计算',async()=>{setInput(win,'myRank','20541');setInput(win,'myScore','580');setSelect(win,'budget','normal');setProvinceMode(win,'hard','辽宁省内');prepareInterests(win,[],false);await waitComputeQuiet(win);return applyAndCheck(ctx,win,'rank-hard-ln',{hardLiaoning:true});});

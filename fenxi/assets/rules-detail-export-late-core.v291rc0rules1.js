@@ -52,7 +52,7 @@
       if(s.load && !['unknown','unclear'].includes(s.load)) parts.push(optLabel('load',s.load));
       if(s.path && !['unknown','unclear'].includes(s.path)) parts.push(optLabel('path',s.path));
       if(s.understanding && s.understanding!=='unclear') parts.push(optLabel('understanding',s.understanding));
-      if(!parts.length) return {title:'孩子学习特点未补充',text:'可选填，主要用于提醒和排序调整，不作为硬排除条件。',tags:[]};
+      if(!parts.length) return {title:'孩子学习特点未补充',text:'可选填，主要用于提醒和排序微调，不作为硬排除条件。',tags:[]};
       return {title:'孩子学习特点已补充',text:parts.slice(0,5).join('｜'),tags:parts};
     };
     api.__fix2Normalized=true;
