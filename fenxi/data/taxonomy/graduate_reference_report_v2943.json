@@ -1,0 +1,599 @@
+{
+  "version": "V2.9.4.3",
+  "base": "V2.9.4.2",
+  "sourceFile": "研究生学科专业代码表_2022目录_2025研招代码册口径.md",
+  "catalogParsed": {
+    "一级学科": 120,
+    "二级学科": 400,
+    "专业学位类别": 64,
+    "跨门类编制一级学科": 39,
+    "专业领域": 148,
+    "二级学科/专业方向": 6
+  },
+  "majorTaxonomyCount": 850,
+  "changedMajorReferenceCount": 627,
+  "withAcademicReferenceCount": 364,
+  "withProfessionalReferenceCount": 565,
+  "stillLowReferenceCount": 223,
+  "sample": {
+    "人工智能": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "1405",
+          "name": "智能科学与技术",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        },
+        {
+          "code": "0812",
+          "name": "计算机科学与技术",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "cross",
+          "source": "graduate_catalog_2022_2025"
+        },
+        {
+          "code": "0811",
+          "name": "控制科学与工程",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "cross",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081201",
+          "name": "计算机系统结构",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081202",
+          "name": "计算机软件与理论",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081203",
+          "name": "计算机应用技术",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0811",
+          "parentName": "控制科学与工程",
+          "code": "081101",
+          "name": "控制理论与控制工程",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0811",
+          "parentName": "控制科学与工程",
+          "code": "081102",
+          "name": "检测技术与自动化装置",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0811",
+          "parentName": "控制科学与工程",
+          "code": "081103",
+          "name": "系统工程",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0811",
+          "parentName": "控制科学与工程",
+          "code": "081104",
+          "name": "模式识别与智能系统",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "0854",
+          "categoryName": "电子信息",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085410",
+          "fieldName": "人工智能",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "medium",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "电气工程及其自动化": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0808",
+          "name": "电气工程",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "0808",
+          "parentName": "电气工程",
+          "code": "080801",
+          "name": "电机与电器",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0808",
+          "parentName": "电气工程",
+          "code": "080802",
+          "name": "电力系统及其自动化",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0808",
+          "parentName": "电气工程",
+          "code": "080803",
+          "name": "高电压与绝缘技术",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0808",
+          "parentName": "电气工程",
+          "code": "080804",
+          "name": "电力电子与电力传动",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "0858",
+          "categoryName": "能源动力",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085801",
+          "fieldName": "电气工程",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "电子信息工程": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0810",
+          "name": "信息与通信工程",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        },
+        {
+          "code": "0809",
+          "name": "电子科学与技术",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "0810",
+          "parentName": "信息与通信工程",
+          "code": "081001",
+          "name": "通信与信息系统",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0810",
+          "parentName": "信息与通信工程",
+          "code": "081002",
+          "name": "信号与信息处理",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0809",
+          "parentName": "电子科学与技术",
+          "code": "080901",
+          "name": "物理电子学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0809",
+          "parentName": "电子科学与技术",
+          "code": "080902",
+          "name": "电路与系统",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0809",
+          "parentName": "电子科学与技术",
+          "code": "080903",
+          "name": "微电子学与固体电子学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0809",
+          "parentName": "电子科学与技术",
+          "code": "080904",
+          "name": "电磁场与微波技术",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "0854",
+          "categoryName": "电子信息",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085401",
+          "fieldName": "新一代电子信息技术（含量子技术等）",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "medium",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "计算机科学与技术": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0812",
+          "name": "计算机科学与技术",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081201",
+          "name": "计算机系统结构",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081202",
+          "name": "计算机软件与理论",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0812",
+          "parentName": "计算机科学与技术",
+          "code": "081203",
+          "name": "计算机应用技术",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "0854",
+          "categoryName": "电子信息",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085404",
+          "fieldName": "计算机技术",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "软件工程": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0835",
+          "name": "软件工程",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [],
+      "professionalDegree": [
+        {
+          "categoryCode": "0854",
+          "categoryName": "电子信息",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085405",
+          "fieldName": "软件工程",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "网络空间安全": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0839",
+          "name": "网络空间安全",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [],
+      "professionalDegree": [
+        {
+          "categoryCode": "0854",
+          "categoryName": "电子信息",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "085412",
+          "fieldName": "网络与信息安全",
+          "fieldLevel": "专业领域",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "会计学": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "1202",
+          "name": "工商管理学",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "1202",
+          "parentName": "工商管理学",
+          "code": "120201",
+          "name": "会计学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1202",
+          "parentName": "工商管理学",
+          "code": "120202",
+          "name": "企业管理",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1202",
+          "parentName": "工商管理学",
+          "code": "120203",
+          "name": "旅游管理",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1202",
+          "parentName": "工商管理学",
+          "code": "120204",
+          "name": "技术经济及管理",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "1253",
+          "categoryName": "会计",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "",
+          "fieldName": "",
+          "fieldLevel": "",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "medium",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "工程管理": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "1201",
+          "name": "管理科学与工程",
+          "level": "一级学科",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        },
+        {
+          "code": "0814",
+          "name": "土木工程",
+          "level": "一级学科",
+          "confidence": "low",
+          "relation": "cross",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "0814",
+          "parentName": "土木工程",
+          "code": "081401",
+          "name": "岩土工程",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0814",
+          "parentName": "土木工程",
+          "code": "081402",
+          "name": "结构工程",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0814",
+          "parentName": "土木工程",
+          "code": "081403",
+          "name": "市政工程",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "0814",
+          "parentName": "土木工程",
+          "code": "081404",
+          "name": "供热、供燃气、通风及空调工程",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "1256",
+          "categoryName": "工程管理",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "",
+          "fieldName": "",
+          "fieldLevel": "",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "medium",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "临床医学": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "1002",
+          "name": "临床医学",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [
+        {
+          "parentCode": "1002",
+          "parentName": "临床医学",
+          "code": "100201",
+          "name": "内科学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1002",
+          "parentName": "临床医学",
+          "code": "100202",
+          "name": "儿科学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1002",
+          "parentName": "临床医学",
+          "code": "100203",
+          "name": "老年医学",
+          "level": "二级学科"
+        },
+        {
+          "parentCode": "1002",
+          "parentName": "临床医学",
+          "code": "100204",
+          "name": "神经病学",
+          "level": "二级学科"
+        }
+      ],
+      "professionalDegree": [
+        {
+          "categoryCode": "1051",
+          "categoryName": "临床医学",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "",
+          "fieldName": "",
+          "fieldLevel": "",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    },
+    "风景园林": {
+      "version": "graduate_reference_v2943",
+      "basis": "研究生教育学科专业目录（2022） + 2025研招代码册口径",
+      "academicPrimary": [
+        {
+          "code": "0862",
+          "name": "风景园林",
+          "level": "一级学科",
+          "confidence": "high",
+          "relation": "direct",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "secondaryExamples": [],
+      "professionalDegree": [
+        {
+          "categoryCode": "0862",
+          "categoryName": "风景园林",
+          "categoryLevel": "一级学科",
+          "fieldCode": "",
+          "fieldName": "",
+          "fieldLevel": "",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        },
+        {
+          "categoryCode": "0954",
+          "categoryName": "林业",
+          "categoryLevel": "专业学位类别",
+          "fieldCode": "",
+          "fieldName": "",
+          "fieldLevel": "",
+          "confidence": "medium",
+          "relation": "related",
+          "source": "graduate_catalog_2022_2025"
+        }
+      ],
+      "confidence": "high",
+      "note": "研究生参考用于学科实力、考研路径与就业方向联想；不是本科专业目录的官方层级。专硕是否招生以目标学校当年研招目录为准。"
+    }
+  },
+  "principles": [
+    "把“研一级参考”校准为“研究生学科参考”：学硕一级/跨门类编制一级学科 + 专硕类别/领域。",
+    "不把本科专业简单等同研究生学科，交叉专业保留多个参考路径。",
+    "专硕领域只做方向参考，具体招生以学校当年研招目录为准。"
+  ]
+}
