@@ -1,4 +1,4 @@
-V2.91RC0.rules-closure4.family-read1.frontfix1｜家长尊重感视觉修正版
-版本戳：291rc0familyread1frontfix1-20260514
-基线：V2.91RC0.rules-closure4.family-read1
-边界：只修前端视觉和文案尊重感，不改候选池、排序、A/B/C 业务结果、兴趣真实命中和 closure4 规则。
+V2.92RC｜稳定收口候选版
+stamp: 292rc-20260515
+baseline: V2.91RC0.model-lazy1 → closure5fix1/errorfix3
+scope: fenxi-only update
