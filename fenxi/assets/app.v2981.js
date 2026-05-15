@@ -102,7 +102,7 @@ function initV292UX(){
 }
 
 
-// V2.93RC1：延续解释/详情模型延后加载，并配合启动顺序收口，先让分数筛选和 A/B/C 可用。
+// V2.93RC1.mainline：延续解释/详情模型延后加载；运行时补丁回填到主线文件，不新增启动入口。
 function lnIdleV292RC1(fn, timeout){
   try{
     if('requestIdleCallback' in window){ window.requestIdleCallback(function(){fn();},{timeout: timeout||1800}); return; }
@@ -110,14 +110,14 @@ function lnIdleV292RC1(fn, timeout){
   setTimeout(fn, timeout||1200);
 }
 function lnDeferredStateV292RC1(){
-  if(!window.__LN_V293RC1_DEFERRED__) window.__LN_V293RC1_DEFERRED__={version:'V2.93RC1',stamp:'293rc1-20260515',jobs:{},ready:false};
-  return window.__LN_V293RC1_DEFERRED__;
+  if(!window.__LN_V293RC1_MAINLINE_DEFERRED__) window.__LN_V293RC1_MAINLINE_DEFERRED__={version:'V2.93RC1.mainline',stamp:'293rc1-mainline-20260515',jobs:{},ready:false};
+  return window.__LN_V293RC1_MAINLINE_DEFERRED__;
 }
 function lnMarkDeferredV292RC1(name,status,extra){
   try{
     const st=lnDeferredStateV292RC1();
     st.jobs[name]=Object.assign(st.jobs[name]||{}, {status:status, t:Math.round(performance.now())}, extra||{});
-    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v293rc1:true, deferredModels:st.jobs});
+    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v292rc1:true, v293rc1:true, mainlineBackfill:true, deferredModels:st.jobs});
   }catch(e){}
 }
 function lnStartDeferredModelsV292RC1(){
@@ -175,7 +175,7 @@ async function boot(){
       loadJsonFile(DATA_FILES.manifest,'数据清单'),
       loadJsonFile(DATA_FILES.rank,'一分一段数据')
     ]);
-    // V2.92RC2：启动只等待“计算必需的专业学科核心”。
+    // V2.92RC1：启动只等待“计算必需的专业学科核心”。
     // admissionReview / officialCatalog / majorName 大模型 / 易混全量 pairs 都改为后台或展开时加载，避免输入分数前卡住。
     const [taxonomyObj,aliasObj,groupObj] = await Promise.all([
       loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
@@ -186,11 +186,11 @@ async function boot(){
     GRADUATE_CATALOG_2022_2025 = null;
     try{
       if(window.loadConfusableMajorModelV2946){
-        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v292rc2'});
+        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v293rc1-mainline'});
         populateConfusableGroupFilterV2946();
       }
     }catch(confErr){
-      console.warn('[V2.92RC2] 易混轻量索引加载失败，不影响主筛选：', confErr);
+      console.warn('[V2.93RC1.mainline] 易混轻量索引加载失败，不影响主筛选：', confErr);
       CONFUSABLE_MODEL_2946 = null;
     }
 
@@ -470,6 +470,8 @@ function bindGlobalEventsV2953(){
 }
 
 function startV2953Fix5(){
+  if(window.__LN_APP_STARTED_V293RC1_MAINLINE) return;
+  window.__LN_APP_STARTED_V293RC1_MAINLINE=true;
   bindGlobalEventsV2953();
   bindAccessEnterV2953Fix1();
   initAuthAndBootV2954Fix3();
@@ -479,12 +481,60 @@ function startV2953Fix5(){
 }
 
 window.autoRefresh = autoRefresh;
-window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true, startDelayed:!!window.LN_DELAY_APP_START_V293RC1 };
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true, mainlineBackfill:true, startDelayed:!!window.LN_DELAY_APP_START_V293RC1_MAINLINE };
 if(!document.body || document.body.dataset.diagnostics !== '1'){
-  if(window.LN_DELAY_APP_START_V293RC1===true){
-    window.__LN_APP_START_PENDING_V293RC1=true;
-    try{window.LN_DEBUG_V2983?.setFlags?.({appStartDelayed:'v293rc1'});}catch(e){}
+  if(window.LN_DELAY_APP_START_V293RC1_MAINLINE===true){
+    window.__LN_APP_START_PENDING_V293RC1_MAINLINE=true;
+    try{window.LN_DEBUG_V2983?.setFlags?.({appStartDelayed:'v293rc1-mainline'});}catch(e){}
   }else{
     startV2953Fix5();
   }
 }
+
+
+// V2.93RC1.mainline：渲染事件桥回填到 app.v2981.js，不再新增 render-events 启动文件
+// V2.93RC1.mainline｜渲染事件桥：只补事件与调试口径，不改候选池、公式、排序
+(function(){
+  if(window.LN_RENDER_EVENTS_V293RC1_MAINLINE_DISABLE===true) return;
+  var VERSION='v293rc1-mainline-render-events';
+  var STAMP='293rc1-mainline-20260515';
+  var state={version:VERSION,stamp:STAMP,renderCardsWrapped:false,renderPlanABCWrapped:false,cardsEvents:0,abcEvents:0,lastCardsMs:0,lastAbcMs:0};
+  function perf(){return window.performance&&performance.now?performance.now():Date.now();}
+  function emit(name,detail){
+    try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){try{document.dispatchEvent(new Event(name));}catch(err){}}
+  }
+  function flags(){
+    try{window.LN_DEBUG_V2983?.setFlags?.({renderEvents:'v293rc1-mainline',renderEventsVersion:VERSION,renderCardsWrapped:state.renderCardsWrapped,renderPlanABCWrapped:state.renderPlanABCWrapped});}catch(e){}
+    try{window.LN_DEBUG_V2983?.detail?.('renderEvents',Object.assign({},state));}catch(e){}
+  }
+  function wrapFunction(name,eventName,counterKey,msKey){
+    var fn=window[name];
+    if(typeof fn!=='function') return false;
+    if(fn.__v293rc1MainlineRenderEventWrapped) return true;
+    var wrapped=function(){
+      var t=perf(), ok=true, err=null, ret;
+      try{return ret=fn.apply(this,arguments);}catch(e){ok=false;err=e;throw e;}finally{
+        state[counterKey]=(state[counterKey]||0)+1;
+        state[msKey]=Math.round(perf()-t);
+        var detail={name:name,ok:ok,ms:state[msKey],count:state[counterKey],error:err?String(err&&err.message||err):'',filtered:Array.isArray(window.filtered)?window.filtered.length:undefined,stamp:STAMP};
+        if(window.queueMicrotask) queueMicrotask(function(){emit(eventName,detail);flags();});
+        else setTimeout(function(){emit(eventName,detail);flags();},0);
+      }
+    };
+    try{Object.defineProperty(wrapped,'name',{value:name+'V293RC1Mainline'});}catch(e){}
+    wrapped.__v293rc1MainlineRenderEventWrapped=true;
+    wrapped.__original=fn;
+    window[name]=wrapped;
+    return true;
+  }
+  function patch(){
+    state.renderCardsWrapped=wrapFunction('renderCards','ln:cards-rendered','cardsEvents','lastCardsMs')||state.renderCardsWrapped;
+    state.renderPlanABCWrapped=wrapFunction('renderPlanABC','ln:abc-rendered','abcEvents','lastAbcMs')||state.renderPlanABCWrapped;
+    flags();
+  }
+  patch();
+  setTimeout(patch,0);
+  setTimeout(patch,800);
+  setTimeout(patch,1800);
+  window.LN_RENDER_EVENTS_V293RC1_MAINLINE={ready:true,version:VERSION,stamp:STAMP,state:state,patch:patch};
+})();

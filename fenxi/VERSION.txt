@@ -1,5 +1,4 @@
-V2.93RC1.fix1｜启动路径规范化修正版
-stamp: 293rc1fix1-20260515
-base: V2.93RC1
-mode: fenxi-only update
-scope: only boot path normalization; core formula/data unchanged
+V2.93RC1｜主线文件回填与启动稳定版
+stamp: 293rc1-mainline-20260515
+base: V2.92RC1
+mode: backfill-current-mainline-files; no infra-core / no new boot-loader

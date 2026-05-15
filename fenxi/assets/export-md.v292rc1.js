@@ -2,9 +2,9 @@
 // 只改 Markdown 导出；不改候选池、不改基础筛选、不改兴趣真实命中。
 (function(){
   if(window.LN_EXPORT_MD4_OPT===false || window.LN_EXPORT_MD_DISABLE===true) return;
-  var VERSION='v292rc-export-md';
-  var STAMP='292rc-20260515';
-  var FULL_VERSION='V2.92RC｜稳定收口候选版';
+  var VERSION='v293rc1-mainline-export-md';
+  var STAMP='293rc1-mainline-20260515';
+  var FULL_VERSION='V2.93RC1｜主线文件回填与启动稳定版';
   var timer=null;
   function val(id){try{return document.getElementById(id)?.value||'';}catch(e){return '';}}
   function optText(id){try{var el=document.getElementById(id);return el?.selectedOptions?.[0]?.textContent?.trim()||el?.value||'';}catch(e){return '';}}
@@ -81,50 +81,52 @@
       if(before&&before.parentNode===parent){parent.insertBefore(node,before);}else{parent.appendChild(node);}
       return true;
     }catch(e){
-      try{parent&&node&&parent.appendChild(node);return true;}catch(err){console.warn('[export-md5fix1] safeInsert failed',err);return false;}
+      try{parent&&node&&parent.appendChild(node);return true;}catch(err){console.warn('[export-md-v293rc1-mainline] safeInsert failed',err);return false;}
     }
   }
+
   function inject(){
     try{
       var area=document.querySelector('.family-read-actions-v291');
       if(area){
-        area.querySelectorAll('[data-export-md],[data-family-read-action]').forEach(function(x){x.remove();});
-        if(!area.querySelector('[data-export-md4="full"]')){
-          var btn=document.createElement('button');
-          btn.type='button';
-          btn.className='export-md-action-v292';
-          btn.dataset.exportMd4='full';
-          btn.textContent='复制 Markdown 明细版';
-          var sp=document.getElementById('exportMdToastV291')||document.createElement('span');
-          sp.id='exportMdToastV291';
-          sp.className='export-md-toast-v291';
-          safeInsert(area,btn,area.firstChild&&area.firstChild.parentNode===area?area.firstChild:null);
-          if(sp.parentNode!==area) safeInsert(area,sp,null);
-        }
+        area.querySelectorAll('[data-export-md4="full"], #exportMdToastV291').forEach(function(x){x.remove();});
+        var btn=document.createElement('button');
+        btn.type='button';
+        btn.className='export-md-action-v292';
+        btn.dataset.exportMd4='full';
+        btn.textContent='复制 Markdown 明细版';
+        var sp=document.createElement('span');
+        sp.id='exportMdToastV291';
+        sp.className='export-md-toast-v291';
+        safeInsert(area,btn,area.firstChild&&area.firstChild.parentNode===area?area.firstChild:null);
+        safeInsert(area,sp,btn.nextSibling&&btn.nextSibling.parentNode===area?btn.nextSibling:null);
       }
       var cand=document.getElementById('candidateArea');
-      if(cand&&!cand.querySelector('[data-export-md4="selected"]')){
-        var side=cand.querySelector('.rightPanel')||cand.querySelector('aside')||cand;
+      var candidateList=document.getElementById('candidateList');
+      var side=(cand&&cand.querySelector(':scope > .rightPanel')) || (candidateList&&candidateList.closest('aside')) || null;
+      if(side && !side.querySelector('[data-export-md4="selected"]')){
         var bar=document.createElement('div');
-        bar.className='export-md-self-v292rc1';
+        bar.className='export-md-self-v293rc1-mainline';
         bar.innerHTML='<button type="button" class="export-md-action-v291" data-export-md4="selected">复制自选池 Markdown</button><span class="export-md-toast-v291" id="exportMdSelfToastV291"></span>';
-        var list=side.querySelector('#candidateList');
-        safeInsert(side,bar,list&&list.parentNode===side?list:null);
+        if(candidateList && candidateList.parentNode===side) safeInsert(side,bar,candidateList);
+        else safeInsert(side,bar,null);
       }
-    }catch(e){console.warn('[export-md5fix1] inject skipped',e);}
+      try{window.__LN_EXPORT_MD_LAYOUT__={version:VERSION,stamp:STAMP,selectedButtonHost:side?(side.className||side.tagName):'none',insideCandidateArea:!!(side&&cand&&side.parentNode===cand),usesDomObserver:false};}catch(e){}
+    }catch(e){console.warn('[export-md-v293rc1-mainline] inject skipped',e);}
   }
-  function bind(){document.addEventListener('click',function(e){var b=e.target.closest('[data-export-md4]'); if(!b)return; var mode=b.dataset.exportMd4; if(mode==='full')copyText(fullMarkdown()).then(function(){toast('已复制 Markdown 明细版');}); if(mode==='selected')copyText(selectedMarkdown()).then(function(){var s=document.getElementById('exportMdSelfToastV291'); if(s)s.textContent='已复制自选池 Markdown'; setTimeout(function(){if(s)s.textContent='';},2600);});});}
-  function refreshDebug(){try{window.LN_DEBUG_V2983?.setFlags?.({exportMd:'v292rc1',exportMdStamp:STAMP, exportMdRc1:true,markdownCopy:true,markdownDownload:false,markdownRankDetail:true,markdownVolunteerOrder:true,mdSortPolicy:'gap-based-md5-0-500-1500-5000-12000',doesModifyFormula:false,doesChangeCandidatePool:false,doesChangeSorting:false}); window.__LN_EXPORT_MD_STATE__={version:VERSION,stamp:STAMP,ready:true,md5fix1:true};}catch(e){}}
+  function bind(){
+    if(window.__LN_EXPORT_MD_V293RC1Mainline_BOUND__) return;
+    window.__LN_EXPORT_MD_V293RC1Mainline_BOUND__=true;
+    document.addEventListener('click',function(e){var b=e.target.closest('[data-export-md4]'); if(!b)return; var mode=b.dataset.exportMd4; if(mode==='full')copyText(fullMarkdown()).then(function(){toast('已复制 Markdown 明细版');}); if(mode==='selected')copyText(selectedMarkdown()).then(function(){var s=document.getElementById('exportMdSelfToastV291'); if(s)s.textContent='已复制自选池 Markdown'; setTimeout(function(){if(s)s.textContent='';},2600);});});
+  }
+  function refreshDebug(){try{window.LN_DEBUG_V2983?.setFlags?.({exportMd:'v293rc1-mainline',exportMdStamp:STAMP, exportMdRc2:true,markdownCopy:true,markdownDownload:false,markdownRankDetail:true,markdownVolunteerOrder:true,mdSortPolicy:'gap-based-md5-0-500-1500-5000-12000',exportMdObserver:'events-only',doesModifyFormula:false,doesChangeCandidatePool:false,doesChangeSorting:false}); window.__LN_EXPORT_MD_STATE__={version:VERSION,stamp:STAMP,ready:true,md5fix1:true,rc2:true,observer:'events-only'};}catch(e){}}
   function apply(){inject(); refreshDebug();}
   function boot(){
     bind(); apply();
-    function scopedObserve(target){
-      if(!target) return;
-      try{new MutationObserver(function(){clearTimeout(timer);timer=setTimeout(apply,160);}).observe(target,{childList:true,subtree:true});}catch(e){}
-    }
-    scopedObserve(document.querySelector('.family-read-actions-v291'));
-    scopedObserve(document.getElementById('candidateArea'));
     document.addEventListener('ln:cards-rendered',apply);
     document.addEventListener('ln:abc-rendered',apply);
-  } window.LN_EXPORT_MD_V291={ready:true,version:VERSION,stamp:STAMP,fullMarkdown:fullMarkdown,selectedMarkdown:selectedMarkdown,md5:true,v292rc:true,v292rc1:true}; window.LN_EXPORT_MD_V292=window.LN_EXPORT_MD_V291; if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+    document.addEventListener('ln:candidates-rendered',apply);
+    setTimeout(apply,500);
+    setTimeout(apply,1500);
+  } window.LN_EXPORT_MD_V291={ready:true,version:VERSION,stamp:STAMP,fullMarkdown:fullMarkdown,selectedMarkdown:selectedMarkdown,md5:true,v292rc:true,v292rc1:false,v293rc1Mainline:true}; window.LN_EXPORT_MD_V292=window.LN_EXPORT_MD_V291; if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
