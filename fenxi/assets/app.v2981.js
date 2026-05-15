@@ -177,11 +177,22 @@ async function boot(){
     ]);
     // V2.92RC1：启动只等待“计算必需的专业学科核心”。
     // admissionReview / officialCatalog / majorName 大模型 / 易混全量 pairs 都改为后台或展开时加载，避免输入分数前卡住。
-    const [taxonomyObj,aliasObj,groupObj] = await Promise.all([
-      loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
-      loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）'),
-      loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）')
-    ]);
+    // V2.93RC1.mainline.fix1：核心学科 JSON 不再三路并发读取。
+    // major_taxonomy/raw_major_alias 文件较大，Cloudflare/HTTP2 偶发会在 body 读取阶段断开。
+    // 这里保持数据不变，只把启动读取改成“有限顺序 + loadJsonFile 内部重试”，换稳定性。
+    let taxonomyObj, aliasObj, groupObj;
+    if(window.LN_CORE_JSON_SEQUENTIAL_V293RC1_MAINLINE_FIX1 !== false){
+      taxonomyObj = await loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）');
+      aliasObj = await loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）');
+      groupObj = await loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）');
+      try{window.LN_DEBUG_V2983?.setFlags?.({coreJsonSequential:'v293rc1-mainline-fix1'});}catch(e){}
+    }else{
+      [taxonomyObj,aliasObj,groupObj] = await Promise.all([
+        loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
+        loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）'),
+        loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）')
+      ]);
+    }
     OFFICIAL_CATALOG_2026 = null;
     GRADUATE_CATALOG_2022_2025 = null;
     try{

@@ -1,4 +1,3 @@
-V2.93RC1｜主线文件回填与启动稳定版
-stamp: 293rc1-mainline-20260515
-base: V2.92RC1
-mode: backfill-current-mainline-files; no infra-core / no new boot-loader
+V2.93RC1.mainline.fix1｜核心JSON加载韧性修正版
+stamp: 293rc1-mainline-fix1-20260515
+base: V2.92RC1 mainline backfill

@@ -23,23 +23,103 @@ function dataUrl(file){
   url.searchParams.set('v','2952');
   return url.href;
 }
+
+// V2.93RC1.mainline.fix1：核心 JSON 加载韧性修正。
+// 线上偶发出现 net::ERR_HTTP2_PING_FAILED 200(OK)，fetch 已拿到响应头但读取 body 时失败，
+// 旧版会把它误报为“不是有效 JSON”并直接中断启动。这里做有限重试、退避和 HTML fallback 识别。
+const LN_JSON_RETRY_VERSION_V293RC1_MAINLINE_FIX1 = '293rc1-mainline-fix1-20260515';
+function sleepJsonRetryV293RC1MainlineFix1(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function nowJsonRetryV293RC1MainlineFix1(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
+function isCoreJsonLabelV293RC1MainlineFix1(label){
+  return /核心|专业学科映射|专业名清洗别名|学科群字典|分块数据/.test(String(label||''));
+}
+function jsonRetryAttemptsV293RC1MainlineFix1(label){
+  const custom = Number(window.LN_JSON_RETRY_ATTEMPTS_V293RC1_MAINLINE_FIX1 || 0);
+  if(custom>0) return Math.max(1, Math.min(6, custom));
+  return isCoreJsonLabelV293RC1MainlineFix1(label) ? 4 : 3;
+}
+function jsonRetryDelayV293RC1MainlineFix1(attempt){ return [0,180,520,1100,1800][attempt] || 2200; }
+function jsonRetryCacheModeV293RC1MainlineFix1(attempt){
+  if(attempt<=0) return 'default';
+  if(attempt===1) return 'reload';
+  return 'no-store';
+}
+function jsonRetryUrlV293RC1MainlineFix1(baseUrl, attempt){
+  if(attempt<=0) return baseUrl;
+  const u = new URL(baseUrl);
+  u.searchParams.set('_try', String(attempt));
+  u.searchParams.set('_rt', LN_JSON_RETRY_VERSION_V293RC1_MAINLINE_FIX1);
+  return u.href;
+}
+function recordJsonRetryV293RC1MainlineFix1(kind, payload){
+  try{
+    window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1 = window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1 || [];
+    window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1.push(Object.assign({kind,ts:Date.now()},payload||{}));
+    if(window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1.length>40) window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1.shift();
+    window.LN_DEBUG_V2983?.setFlags?.({
+      dataEngine:'v297fix2+293rc1-mainline-fix1',
+      jsonRetry:'v293rc1-mainline-fix1',
+      jsonRetryEvents:window.__LN_JSON_RETRY_V293RC1_MAINLINE_FIX1.length
+    });
+    window.LN_DEBUG_V2983?.detail?.('jsonRetry:'+kind,payload||{});
+  }catch(e){}
+}
+async function fetchJsonTextWithRetryV293RC1MainlineFix1(url, label){
+  const attempts = jsonRetryAttemptsV293RC1MainlineFix1(label);
+  let lastErr = null;
+  for(let attempt=0; attempt<attempts; attempt++){
+    const requestUrl = jsonRetryUrlV293RC1MainlineFix1(url, attempt);
+    const started = nowJsonRetryV293RC1MainlineFix1();
+    if(attempt>0){
+      await sleepJsonRetryV293RC1MainlineFix1(jsonRetryDelayV293RC1MainlineFix1(attempt));
+      recordJsonRetryV293RC1MainlineFix1('retry',{file:url,label,attempt,reason:String(lastErr&&lastErr.message||lastErr||'unknown')});
+    }
+    try{
+      const controller = (typeof AbortController!=='undefined') ? new AbortController() : null;
+      const timeoutMs = Number(window.LN_JSON_FETCH_TIMEOUT_MS_V293RC1_MAINLINE_FIX1 || (isCoreJsonLabelV293RC1MainlineFix1(label)?26000:18000));
+      const timer = controller ? setTimeout(()=>{try{controller.abort();}catch(e){}}, timeoutMs) : null;
+      const r = await fetch(requestUrl, {cache:jsonRetryCacheModeV293RC1MainlineFix1(attempt), signal:controller?controller.signal:undefined});
+      if(timer) clearTimeout(timer);
+      const fetchMs = nowJsonRetryV293RC1MainlineFix1()-started;
+      if(!r.ok){
+        throw new Error(`${r.status} ${r.statusText}`);
+      }
+      const text = await r.text();
+      const textMs = nowJsonRetryV293RC1MainlineFix1()-started;
+      const head = String(text||'').slice(0,80).trim().toLowerCase();
+      if(head.startsWith('<!doctype') || head.startsWith('<html')){
+        throw new Error('返回HTML，疑似部署缺文件或站点fallback');
+      }
+      return {text, fetchMs, totalMs:textMs, attempt, url:requestUrl};
+    }catch(e){
+      lastErr = e;
+      if(attempt===attempts-1) break;
+    }
+  }
+  throw lastErr || new Error('Failed to fetch');
+}
 async function loadJsonFile(file, label){
   const url = dataUrl(file);
-  const t = (window.performance&&performance.now)?performance.now():Date.now();
-  const r = await fetch(url, {cache:'default'});
-  const fetchMs = ((window.performance&&performance.now)?performance.now():Date.now())-t;
-  if(!r.ok){
-    throw new Error(`${label}加载失败：${r.status} ${r.statusText} @ ${url}`);
-  }
+  const t = nowJsonRetryV293RC1MainlineFix1();
   try{
-    const j = await r.json();
-    const totalMs = ((window.performance&&performance.now)?performance.now():Date.now())-t;
-    try{window.LN_DEBUG_V2983?.detail?.('dataLoad:'+String(label||file),{file,label,fetchMs:Math.round(fetchMs),totalMs:Math.round(totalMs),rows:(j.records||j.items||[]).length||undefined});}catch(e){}
-    return j;
+    const result = await fetchJsonTextWithRetryV293RC1MainlineFix1(url, label);
+    try{
+      const j = JSON.parse(result.text);
+      const totalMs = nowJsonRetryV293RC1MainlineFix1()-t;
+      try{window.LN_DEBUG_V2983?.detail?.('dataLoad:'+String(label||file),{file,label,fetchMs:Math.round(result.fetchMs),totalMs:Math.round(totalMs),attempt:result.attempt,rows:(j.records||j.items||[]).length||undefined});}catch(e){}
+      return j;
+    }catch(parseErr){
+      throw new Error(`${label}不是有效JSON：${result.url||url}；${parseErr.message}`);
+    }
   }catch(e){
-    throw new Error(`${label}不是有效JSON：${url}；${e.message}`);
+    const msg = String(e&&e.message||e||'Failed to fetch');
+    const hint = /HTML|fallback/i.test(msg) ? '；服务器返回了HTML，通常是上传包缺文件或路径被fallback' : '；已按重试策略处理仍失败，建议刷新或检查网络/Cloudflare连接';
+    throw new Error(`${label}加载失败：${url}；${msg}${hint}`);
   }
 }
+try{
+  window.LN_DATA_ENGINE_JSON_RETRY_V293RC1_MAINLINE_FIX1 = {version:LN_JSON_RETRY_VERSION_V293RC1_MAINLINE_FIX1, enabled:true};
+}catch(e){}
 
 
 

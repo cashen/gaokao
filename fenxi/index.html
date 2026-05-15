@@ -14,8 +14,8 @@
 <link href="./assets/rules-closure.v291rc0closure4.css?v=291rc0familyread1-20260514" rel="stylesheet"/>
 <link href="./assets/frontend-trust.v291rc0front2.css?v=291rc0front2-20260514" rel="stylesheet"/>
 <link href="./assets/family-read.v291rc0familyread1.css?v=291rc0familyread1-20260514" rel="stylesheet"/>
-<link href="./assets/export-md.v292rc1.css?v=293rc1-mainline-20260515" rel="stylesheet"/>
-<link href="./assets/stability-clean.v292rc1.css?v=293rc1-mainline-20260515" rel="stylesheet"/>
+<link href="./assets/export-md.v292rc1.css?v=293rc1-mainline-fix1-20260515" rel="stylesheet"/>
+<link href="./assets/stability-clean.v292rc1.css?v=293rc1-mainline-fix1-20260515" rel="stylesheet"/>
 </head>
 <body class="v292">
 <div class="wrap">
@@ -193,11 +193,11 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script>
 (function(){
-  const VERSION='293rc1-mainline-20260515';
-  window.__LN_TOOL_VERSION='V2.93RC1｜主线文件回填与启动稳定版';
-  window.LN_TOOL_VERSION='V2.93RC1｜主线文件回填与启动稳定版';
-  window.__LN_TOOL_STAMP='293rc1-mainline-20260515';
-  window.LN_TOOL_VERSION_STAMP='293rc1-mainline-20260515';
+  const VERSION='293rc1-mainline-fix1-20260515';
+  window.__LN_TOOL_VERSION='V2.93RC1.mainline.fix1｜核心JSON加载韧性修正版';
+  window.LN_TOOL_VERSION='V2.93RC1.mainline.fix1｜核心JSON加载韧性修正版';
+  window.__LN_TOOL_STAMP='293rc1-mainline-fix1-20260515';
+  window.LN_TOOL_VERSION_STAMP='293rc1-mainline-fix1-20260515';
   window.LN_SAFE_PERF_OPT = true;
   window.LN_SAFE_PERF_VERSION = '29rc-safeperf1-20260513';
   window.LN_INTERACT_FIX_OPT = true;
@@ -219,9 +219,11 @@
   window.LN_RULES_CLOSURE_VERSION = '291rc0closure4-20260514';
   window.LN_FAMILY_READ_VERSION = '291rc0familyread1-20260514';
   window.LN_STABILITY_CLEAN_VERSION = '292rc1-20260515';
-  window.LN_EXPORT_MD_VERSION = '293rc1-mainline-20260515';
+  window.LN_EXPORT_MD_VERSION = '293rc1-mainline-fix1-20260515';
+  window.LN_BOOT_PRELOAD_V293RC1_MAINLINE = false; // V2.93RC1.mainline.fix1：默认关闭大批量 script preload，避免压垮 HTTP/2 连接影响核心 JSON。
+  window.LN_JSON_RETRY_ATTEMPTS_V293RC1_MAINLINE_FIX1 = 4;
   window.LN_INTERACTION_POLICY_INLINE = '291rc0errorfix3-20260515';
-  window.__LN_TOOL_LINEAGE={baseline:'V2.91RC0.model-lazy1',release:'V2.93RC1.mainline',rulesCore:'291rc0-rules-core1-20260513',uiCore:'291rc0-ui-core1-20260513',coordinator:'291rc0-coordinator1-20260513',modelLazy:'291rc0-model-lazy1-20260513',rulesClosure:'291rc0closure5fix1-20260515',finalDecision:'292rc1-20260515',detailLazy:'293rc1-mainline-20260515',stabilityClean:'293rc1-mainline-20260515',exportMd:'293rc1-mainline-20260515',stamp:'293rc1-mainline-20260515'};
+  window.__LN_TOOL_LINEAGE={baseline:'V2.91RC0.model-lazy1',release:'V2.93RC1.mainline.fix1',rulesCore:'291rc0-rules-core1-20260513',uiCore:'291rc0-ui-core1-20260513',coordinator:'291rc0-coordinator1-20260513',modelLazy:'291rc0-model-lazy1-20260513',rulesClosure:'291rc0closure5fix1-20260515',finalDecision:'292rc1-20260515',detailLazy:'293rc1-mainline-fix1-20260515',stabilityClean:'293rc1-mainline-fix1-20260515',exportMd:'293rc1-mainline-fix1-20260515',stamp:'293rc1-mainline-fix1-20260515'};
   window.LN_THEME_TOKENS_V297=window.LN_THEME_TOKENS_V297||{ready:true,tokens:{version:'V2.9.8.3.fix12-inline',paths:{rank:{name:'位次 / 数据证据',color:'#2563eb',soft:'#eff6ff'},baseline:{name:'家庭底线 / 安全',color:'#059669',soft:'#ecfdf5'},interest:{name:'孩子兴趣 / 专业方向',color:'#7c3aed',soft:'#f5f3ff'},scenario:{name:'我家情况 / 当前优先考虑',color:'#b76535',soft:'#f2dfcf'},planA:{name:'A 守底线',color:'#059669',soft:'#ecfdf5'},planB:{name:'B 主讨论',color:'#b76535',soft:'#f2dfcf'},planC:{name:'C 看机会',color:'#52677a',soft:'#e8eef2'},review:{name:'复核 / 谨慎',color:'#ea580c',soft:'#fff7ed'}},neutral:{ink:'#172033',muted:'#667085',line:'#e6ebf3',bg:'#f7f9fc',card:'#ffffff'}}};
 
   // V2.9.8.3.fix12: rules.v297fix2.js may be served as HTML by site fallback on some deploys; inline it so boot cannot be blocked.
@@ -478,7 +480,7 @@ window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility al
   }
   const files=applyUiBundlesV291RC0(window.LN_RULES_BUNDLE_OPT!==false?filesRulesBundled:filesRulesLegacy);
   window.LN_DELAY_APP_START_V293RC1_MAINLINE = true;
-  window.__LN_MAINLINE_BACKFILL_V293RC1 = {version:'V2.93RC1',stamp:VERSION,mode:'backfill-current-mainline-files',noNewBootEntrypoints:true};
+  window.__LN_MAINLINE_BACKFILL_V293RC1 = {version:'V2.93RC1.mainline.fix1',stamp:VERSION,mode:'backfill-current-mainline-files',noNewBootEntrypoints:true,jsonRetry:true,preloadDefault:false};
   window.__LN_BOOT_LOADS__=[];
   function uniq(arr){return [...new Set(arr.filter(Boolean))];}
   function candidateBases(){
@@ -504,7 +506,7 @@ window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility al
     if(window.LN_BOOT_PRELOAD_V293RC1_MAINLINE===false) return;
     try{
       (list||[]).slice(0,90).forEach(file=>preloadScriptV293RC1Mainline(base,file));
-      window.__LN_BOOT_PRELOAD_STATE__={version:'293rc1-mainline-20260515',count:(list||[]).length,base};
+      window.__LN_BOOT_PRELOAD_STATE__={version:'293rc1-mainline-fix1-20260515',count:(list||[]).length,base};
     }catch(e){}
   }
   function loadScript(base,file){
