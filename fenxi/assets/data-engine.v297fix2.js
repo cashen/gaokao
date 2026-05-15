@@ -62,7 +62,7 @@ function initTaxonomy(taxObj, aliasObj, groupObj, reviewObj){
   populateSubjectGroupFilter();
   const el=document.getElementById('taxonomySummary');
   if(el){
-    el.textContent=`本科目录校准：${fmt(TAXONOMY_MAP.size)} 个；招生名复核 ${fmt(ADMISSION_REVIEW_MAP.size)} 个；研究生学科参考已增强。`;
+    el.textContent=`本科目录核心：${fmt(TAXONOMY_MAP.size)} 个；招生名复核后台加载；研究生参考按需查看。`;
   }
 }
 function populateSubjectGroupFilter(){
@@ -126,6 +126,7 @@ function attachTaxonomy(r){
   r.cleanMajor=t.cleanMajor;
   r.rawMajorAlias=t.alias;
   r.majorTaxonomy=t.item;
+  try{ r.admissionReview = ADMISSION_REVIEW_MAP && (ADMISSION_REVIEW_MAP.get(r.major)||ADMISSION_REVIEW_MAP.get(t.cleanMajor)) || r.admissionReview || null; }catch(e){}
   attachGraduateReference(r,t);
   r.officialUndergrad2026=t.item.officialUndergrad2026||null;
   r.subjectGroup=t.item.subjectGroup||'其他/需复核';
@@ -149,14 +150,14 @@ function confidenceLabel(c){
 }
 
 function admissionReviewLabel(r){
-  const rv=r.admissionReview;
+  const rv=r.admissionReview || (ADMISSION_REVIEW_MAP && (ADMISSION_REVIEW_MAP.get(r.major)||ADMISSION_REVIEW_MAP.get(r.cleanMajor)));
   if(!rv)return '<span class="review">招生名：待复核</span>';
   const cls=rv.confidence==='high'?'primary':(rv.confidence==='medium'?'review':'review');
   const txt=rv.tags?.length?rv.tags.join(' / '):(rv.status==='official_exact_or_cleaned'?'已按目录校准':'需看说明');
   return `<span class="${cls}">招生名复核：${txt}</span>`;
 }
 function renderAdmissionReviewDetail(r){
-  const rv=r.admissionReview;
+  const rv=r.admissionReview || (ADMISSION_REVIEW_MAP && (ADMISSION_REVIEW_MAP.get(r.major)||ADMISSION_REVIEW_MAP.get(r.cleanMajor)));
   if(!rv)return '<div class="tax-warn">招生专业名尚未进入复核表，建议人工核验。</div>';
   const comps=(rv.componentMajors||[]).slice(0,8).map(x=>`<div><span>${x.matched?'已识别':'未识别'}</span><b>${x.name}${x.matched?` → ${x.categoryCode||''}${x.categoryName||''} ${x.majorCode||''}${x.majorName||''}`:''}</b></div>`).join('');
   const warns=(rv.warnings||[]).map(x=>`<div class="tax-warn">${x}</div>`).join('');

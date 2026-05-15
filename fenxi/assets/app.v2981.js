@@ -101,6 +101,66 @@ function initV292UX(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExportSheet();});
 }
 
+
+// V2.92RC1：把解释/详情模型从启动阻塞中拆出来，先让分数筛选和 A/B/C 可用。
+function lnIdleV292RC1(fn, timeout){
+  try{
+    if('requestIdleCallback' in window){ window.requestIdleCallback(function(){fn();},{timeout: timeout||1800}); return; }
+  }catch(e){}
+  setTimeout(fn, timeout||1200);
+}
+function lnDeferredStateV292RC1(){
+  if(!window.__LN_V292RC1_DEFERRED__) window.__LN_V292RC1_DEFERRED__={version:'V2.92RC1',stamp:'292rc1-20260515',jobs:{},ready:false};
+  return window.__LN_V292RC1_DEFERRED__;
+}
+function lnMarkDeferredV292RC1(name,status,extra){
+  try{
+    const st=lnDeferredStateV292RC1();
+    st.jobs[name]=Object.assign(st.jobs[name]||{}, {status:status, t:Math.round(performance.now())}, extra||{});
+    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v292rc1:true, deferredModels:st.jobs});
+  }catch(e){}
+}
+function lnStartDeferredModelsV292RC1(){
+  const state=lnDeferredStateV292RC1();
+  if(state.started) return;
+  state.started=true;
+  lnIdleV292RC1(function(){
+    if(window.loadMajorNameModelV2944){
+      lnMarkDeferredV292RC1('majorNameCore','loading');
+      window.loadMajorNameModelV2944({withEntryIndex:false}).then(function(){
+        lnMarkDeferredV292RC1('majorNameCore','ready');
+      }).catch(function(e){lnMarkDeferredV292RC1('majorNameCore','failed',{error:String(e&&e.message||e)});});
+    }
+  }, 5000);
+  lnIdleV292RC1(function(){
+    if(window.loadConfusableMajorFullV2946){
+      lnMarkDeferredV292RC1('confusableFull','idle-light-ready');
+      // 不主动拉 9MB+ 全量易混明细；用户展开易混详情时再加载。这里仅登记状态，避免后台抢首轮输入分数。
+    }
+  }, 5200);
+  lnIdleV292RC1(function(){
+    if(window.DATA_FILES && window.DATA_FILES.admissionReview && typeof window.loadJsonFile==='function'){
+      lnMarkDeferredV292RC1('admissionReview','loading');
+      window.loadJsonFile(window.DATA_FILES.admissionReview,'招生专业名复核（后台）').then(function(obj){
+        try{ ADMISSION_REVIEW_MAP = new Map(); ((obj&&obj.items)||[]).forEach(function(x){ADMISSION_REVIEW_MAP.set(x.rawMajor,x);}); }catch(e){}
+        lnMarkDeferredV292RC1('admissionReview','ready',{size:((obj&&obj.items)||[]).length});
+        const el=document.getElementById('taxonomySummary');
+        if(el && TAXONOMY_READY) el.textContent='本科目录核心已就绪；招生名复核后台已就绪 '+fmt(ADMISSION_REVIEW_MAP.size)+' 个。';
+      }).catch(function(e){lnMarkDeferredV292RC1('admissionReview','failed',{error:String(e&&e.message||e)});});
+    }
+  }, 7000);
+  lnIdleV292RC1(function(){
+    if(window.DATA_FILES && window.DATA_FILES.officialCatalog && typeof window.loadJsonFile==='function'){
+      lnMarkDeferredV292RC1('officialCatalog','loading');
+      window.loadJsonFile(window.DATA_FILES.officialCatalog,'2026本科专业目录（后台）').then(function(obj){
+        try{ OFFICIAL_CATALOG_2026=obj; }catch(e){}
+        lnMarkDeferredV292RC1('officialCatalog','ready',{size:((obj&&obj.items)||[]).length});
+      }).catch(function(e){lnMarkDeferredV292RC1('officialCatalog','failed',{error:String(e&&e.message||e)});});
+    }
+  }, 9000);
+  state.ready=true;
+}
+
 async function boot(){
   bootChips();
   initV292UX();
@@ -115,33 +175,22 @@ async function boot(){
       loadJsonFile(DATA_FILES.manifest,'数据清单'),
       loadJsonFile(DATA_FILES.rank,'一分一段数据')
     ]);
-    // V2.91RC0.model-lazy1: graduate catalog is explanation-only in current UI; keep core taxonomy blocking, move graduate catalog to cold preload when lazy is enabled.
-    const lazyGraduateCatalogV291 = (window.LN_MODEL_LAZY_OPT !== false);
-    const bootTaxonomyJobsV291 = [
-      loadJsonFile(DATA_FILES.taxonomy,'专业学科映射'),
-      loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名'),
-      loadJsonFile(DATA_FILES.subjectGroups,'学科群字典'),
-      loadJsonFile(DATA_FILES.admissionReview,'招生专业名复核'),
-      loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录')
-    ];
-    if(!lazyGraduateCatalogV291) bootTaxonomyJobsV291.push(loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表'));
-    const [taxonomyObj,aliasObj,groupObj,reviewObj,officialObj,graduateObj] = await Promise.all(bootTaxonomyJobsV291);
-    OFFICIAL_CATALOG_2026 = officialObj;
-    GRADUATE_CATALOG_2022_2025 = graduateObj || null;
-    try{
-      if(window.loadMajorNameModelV2944){
-        await window.loadMajorNameModelV2944({withEntryIndex:false});
-      }
-    }catch(majorErr){
-      console.warn('[V2.9.7] 招生名/本科目录模型加载失败，不影响主筛选：', majorErr);
-    }
+    // V2.92RC1：启动只等待“计算必需的专业学科核心”。
+    // admissionReview / officialCatalog / majorName 大模型 / 易混全量 pairs 都改为后台或展开时加载，避免输入分数前卡住。
+    const [taxonomyObj,aliasObj,groupObj] = await Promise.all([
+      loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
+      loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）'),
+      loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）')
+    ]);
+    OFFICIAL_CATALOG_2026 = null;
+    GRADUATE_CATALOG_2022_2025 = null;
     try{
       if(window.loadConfusableMajorModelV2946){
-        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946();
+        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v292rc1'});
         populateConfusableGroupFilterV2946();
       }
     }catch(confErr){
-      console.warn('[V2.9.4.6] 易混专业模型加载失败，不影响主筛选：', confErr);
+      console.warn('[V2.92RC1] 易混轻量索引加载失败，不影响主筛选：', confErr);
       CONFUSABLE_MODEL_2946 = null;
     }
 
@@ -166,11 +215,12 @@ async function boot(){
       console.warn('[V2.9.4.7.1] 孩子学习特点规则加载失败，不影响主筛选：', profileErr);
       STUDENT_PROFILE_MODEL_29471=null;
     }
-    initTaxonomy(taxonomyObj, aliasObj, groupObj, reviewObj);
+    initTaxonomy(taxonomyObj, aliasObj, groupObj, null);
     dataEngineReady = true;
-    setMetaStatusV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`,'ready');
+    setMetaStatusV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜专业学科核心已就绪｜输入位次后加载对应分段`,'ready');
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
+    lnStartDeferredModelsV292RC1();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
     renderScenarioNoticeV2951(scenarioRuleV2951(currentStrategy)||scenarioRuleV2951(rulesV2951().defaults?.selectedScenario||'employment')||{});
     document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',window.debouncedAutoRefreshV2953Fix5));
