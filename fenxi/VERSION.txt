@@ -1,3 +1,4 @@
-V2.93RC1.mainline.fix1｜核心JSON加载韧性修正版
-stamp: 293rc1-mainline-fix1-20260515
-base: V2.92RC1 mainline backfill
+V2.91RC0.rules-closure4.family-read1.frontfix1｜家长尊重感视觉修正版
+版本戳：291rc0familyread1frontfix1-20260514
+基线：V2.91RC0.rules-closure4.family-read1
+边界：只修前端视觉和文案尊重感，不改候选池、排序、A/B/C 业务结果、兴趣真实命中和 closure4 规则。

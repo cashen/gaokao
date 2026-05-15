@@ -1,9 +1,9 @@
 // V2.9RC.fix-interact2: de-duplicate repeated applyFilters calls from the same filter-control change.
 // Boundary: do not change formulas, filter rules, A/B/C, ranking, click semantics, compute-pipeline, plan-engine, or filter-engine.
 (function(){
-  const VERSION = 'V2.93RC1.mainline.interact-dedupe';
-  const STAMP = '293rc1-mainline-interact-dedupe-20260515';
-  if (window.LN_INTERACT_DEDUPE_V293RC1_MAINLINE && window.LN_INTERACT_DEDUPE_V293RC1_MAINLINE.stamp === STAMP) return;
+  const VERSION = 'V2.9RC.fix-interact2';
+  const STAMP = '29rc-interact2-20260513';
+  if (window.LN_INTERACT_DEDUPE_V29RC2 && window.LN_INTERACT_DEDUPE_V29RC2.stamp === STAMP) return;
 
   window.LN_INTERACT_DEDUPE_OPT = (window.LN_INTERACT_DEDUPE_OPT !== false);
   window.LN_INTERACT_DEDUPE_VERSION = STAMP;
@@ -65,7 +65,7 @@
       extra: extra || null
     };
     detail('interactDedupe', payload);
-    flags({interactDedupe:'v293rc1-mainline', interactDedupeOpt:!!window.LN_INTERACT_DEDUPE_OPT, interactDedupeVersion:STAMP, interactDedupeRoutesViaScheduler:true});
+    flags({interactDedupe:'v29rcfix2', interactDedupeOpt:!!window.LN_INTERACT_DEDUPE_OPT, interactDedupeVersion:STAMP});
   }
 
   function valOf(id){
@@ -110,9 +110,8 @@
 
   function getFilterFingerprint(){
     const ids = [
-      'myScore','myRank','filterLevel','filterSubjectGroup','filterPrimary','filterTaxConfidence','filterSchoolTier','filterConfusableGroup','onlyKey','onlyConfusable','strictProfile',
-      'regionMode','cityMode','targetCities','filterFeeType','budget','priority','sortBy','onlyChildInterestV296',
-      'filterSubject','filterTax','filterTier','filterConfusable','provinceSelect','cityInput','feeType'
+      'myScore','myRank','filterLevel','filterSubject','filterPrimary','filterTax','filterTier','filterConfusable','onlyKey','onlyConfusable',
+      'regionMode','provinceSelect','cityMode','cityInput','feeType','budget','priority','sortBy','onlyChildInterestV296'
     ];
     const parts = ids.map(id => id + '=' + valOf(id));
     parts.push('provinceChips=' + JSON.stringify(activeChipKeys('#provinceChips .chip','province')));
@@ -127,9 +126,8 @@
     if (!el) return false;
     const id = el.id || '';
     const knownIds = new Set([
-      'filterLevel','filterSubjectGroup','filterPrimary','filterTaxConfidence','filterSchoolTier','filterConfusableGroup','onlyKey','onlyConfusable',
-      'regionMode','provinceChips','cityMode','targetCities','filterFeeType','budget','priority','sortBy','onlyChildInterestV296','strictProfile','myScore','myRank',
-      'filterSubject','filterTax','filterTier','filterConfusable','provinceSelect','cityInput','feeType'
+      'filterLevel','filterSubject','filterPrimary','filterTax','filterTier','filterConfusable','onlyKey','onlyConfusable',
+      'regionMode','provinceSelect','cityMode','cityInput','feeType','budget','priority','sortBy','onlyChildInterestV296','myScore','myRank'
     ]);
     if (knownIds.has(id)) return true;
     if (el.closest && (el.closest('#provinceChips') || el.closest('#rejectChips') || el.closest('#regionGroupChips'))) return true;
@@ -190,23 +188,9 @@
     state.pendingTimer = null;
     state.pendingReason = reason || state.pendingReason || 'scheduled';
     state.pendingFingerprint = fp || getFilterFingerprint();
-    const finalReason = 'dedupe:' + state.pendingReason;
-    // V2.93RC1.mainline: 不再绕过数据分块加载直接调用 applyFilters。
-    // 分数/位次变化必须走 refresh scheduler -> autoRefreshAsync -> ensureDataForCurrentRank -> applyFilters，
-    // 否则会出现 DATA 仍为空、页面先卡一次/错一次，再被旧监听补算一次。
-    if (window.LN_REFRESH_SCHEDULER_V296 && typeof window.LN_REFRESH_SCHEDULER_V296.request === 'function') {
-      window.LN_REFRESH_SCHEDULER_V296.request({reason: finalReason, level:'soft', delay:0});
-      markDebug({routedToScheduler:true, reason:finalReason});
-      return;
-    }
-    if (typeof window.__LN_AUTO_REFRESH_DIRECT__ === 'function') {
-      Promise.resolve(window.__LN_AUTO_REFRESH_DIRECT__(finalReason)).catch(function(e){console.warn('[V2.93RC1.mainline interact-dedupe] auto refresh failed', e);});
-      markDebug({routedToAutoRefresh:true, reason:finalReason});
-      return;
-    }
     if (typeof window.applyFilters === 'function') {
-      window.applyFilters(finalReason);
-      markDebug({fallbackDirectApply:true, reason:finalReason});
+      // The wrapper will skip if an old listener already ran with the same final fingerprint.
+      window.applyFilters(state.pendingReason);
     }
   }
 
@@ -242,7 +226,7 @@
     document.addEventListener('input', function(ev){
       const el = ev.target;
       const id = el && el.id || '';
-      if (!/myScore|myRank|targetCities|cityInput|qSchool|qMajor|filterPrimary/.test(id)) return;
+      if (!/myScore|myRank|cityInput/.test(id)) return;
       state.lastControl = {id, tag:(el.tagName || '').toLowerCase(), type:el.type || '', value:valOf(id), at:new Date().toLocaleTimeString()};
       requestApply('input:' + id, 220);
     }, true);
@@ -262,7 +246,7 @@
     wrapApplyFilters();
     bindChangeListener();
     state.patched = state.applyWrapped && state.changeListenerBound;
-    flags({interactDedupe:'v293rc1-mainline', interactDedupeOpt:!!window.LN_INTERACT_DEDUPE_OPT, interactDedupeVersion:STAMP, interactDedupeRoutesViaScheduler:true});
+    flags({interactDedupe:'v29rcfix2', interactDedupeOpt:!!window.LN_INTERACT_DEDUPE_OPT, interactDedupeVersion:STAMP});
     markDebug({patched:state.patched, applyWrapped:state.applyWrapped, changeListenerBound:state.changeListenerBound});
   }
 
@@ -276,7 +260,7 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-  window.LN_INTERACT_DEDUPE_V29RC2 = window.LN_INTERACT_DEDUPE_V293RC1_MAINLINE = {
+  window.LN_INTERACT_DEDUPE_V29RC2 = {
     ready: true,
     version: VERSION,
     stamp: STAMP,

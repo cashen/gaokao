@@ -101,66 +101,6 @@ function initV292UX(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExportSheet();});
 }
 
-
-// V2.93RC1.mainline：延续解释/详情模型延后加载；运行时补丁回填到主线文件，不新增启动入口。
-function lnIdleV292RC1(fn, timeout){
-  try{
-    if('requestIdleCallback' in window){ window.requestIdleCallback(function(){fn();},{timeout: timeout||1800}); return; }
-  }catch(e){}
-  setTimeout(fn, timeout||1200);
-}
-function lnDeferredStateV292RC1(){
-  if(!window.__LN_V293RC1_MAINLINE_DEFERRED__) window.__LN_V293RC1_MAINLINE_DEFERRED__={version:'V2.93RC1.mainline',stamp:'293rc1-mainline-20260515',jobs:{},ready:false};
-  return window.__LN_V293RC1_MAINLINE_DEFERRED__;
-}
-function lnMarkDeferredV292RC1(name,status,extra){
-  try{
-    const st=lnDeferredStateV292RC1();
-    st.jobs[name]=Object.assign(st.jobs[name]||{}, {status:status, t:Math.round(performance.now())}, extra||{});
-    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v292rc1:true, v293rc1:true, mainlineBackfill:true, deferredModels:st.jobs});
-  }catch(e){}
-}
-function lnStartDeferredModelsV292RC1(){
-  const state=lnDeferredStateV292RC1();
-  if(state.started) return;
-  state.started=true;
-  lnIdleV292RC1(function(){
-    if(window.loadMajorNameModelV2944){
-      lnMarkDeferredV292RC1('majorNameCore','loading');
-      window.loadMajorNameModelV2944({withEntryIndex:false}).then(function(){
-        lnMarkDeferredV292RC1('majorNameCore','ready');
-      }).catch(function(e){lnMarkDeferredV292RC1('majorNameCore','failed',{error:String(e&&e.message||e)});});
-    }
-  }, 5000);
-  lnIdleV292RC1(function(){
-    if(window.loadConfusableMajorFullV2946){
-      lnMarkDeferredV292RC1('confusableFull','idle-light-ready');
-      // 不主动拉 9MB+ 全量易混明细；用户展开易混详情时再加载。这里仅登记状态，避免后台抢首轮输入分数。
-    }
-  }, 5200);
-  lnIdleV292RC1(function(){
-    if(window.DATA_FILES && window.DATA_FILES.admissionReview && typeof window.loadJsonFile==='function'){
-      lnMarkDeferredV292RC1('admissionReview','loading');
-      window.loadJsonFile(window.DATA_FILES.admissionReview,'招生专业名复核（后台）').then(function(obj){
-        try{ ADMISSION_REVIEW_MAP = new Map(); ((obj&&obj.items)||[]).forEach(function(x){ADMISSION_REVIEW_MAP.set(x.rawMajor,x);}); }catch(e){}
-        lnMarkDeferredV292RC1('admissionReview','ready',{size:((obj&&obj.items)||[]).length});
-        const el=document.getElementById('taxonomySummary');
-        if(el && TAXONOMY_READY) el.textContent='本科目录核心已就绪；招生名复核后台已就绪 '+fmt(ADMISSION_REVIEW_MAP.size)+' 个。';
-      }).catch(function(e){lnMarkDeferredV292RC1('admissionReview','failed',{error:String(e&&e.message||e)});});
-    }
-  }, 7000);
-  lnIdleV292RC1(function(){
-    if(window.DATA_FILES && window.DATA_FILES.officialCatalog && typeof window.loadJsonFile==='function'){
-      lnMarkDeferredV292RC1('officialCatalog','loading');
-      window.loadJsonFile(window.DATA_FILES.officialCatalog,'2026本科专业目录（后台）').then(function(obj){
-        try{ OFFICIAL_CATALOG_2026=obj; }catch(e){}
-        lnMarkDeferredV292RC1('officialCatalog','ready',{size:((obj&&obj.items)||[]).length});
-      }).catch(function(e){lnMarkDeferredV292RC1('officialCatalog','failed',{error:String(e&&e.message||e)});});
-    }
-  }, 9000);
-  state.ready=true;
-}
-
 async function boot(){
   bootChips();
   initV292UX();
@@ -175,33 +115,33 @@ async function boot(){
       loadJsonFile(DATA_FILES.manifest,'数据清单'),
       loadJsonFile(DATA_FILES.rank,'一分一段数据')
     ]);
-    // V2.92RC1：启动只等待“计算必需的专业学科核心”。
-    // admissionReview / officialCatalog / majorName 大模型 / 易混全量 pairs 都改为后台或展开时加载，避免输入分数前卡住。
-    // V2.93RC1.mainline.fix1：核心学科 JSON 不再三路并发读取。
-    // major_taxonomy/raw_major_alias 文件较大，Cloudflare/HTTP2 偶发会在 body 读取阶段断开。
-    // 这里保持数据不变，只把启动读取改成“有限顺序 + loadJsonFile 内部重试”，换稳定性。
-    let taxonomyObj, aliasObj, groupObj;
-    if(window.LN_CORE_JSON_SEQUENTIAL_V293RC1_MAINLINE_FIX1 !== false){
-      taxonomyObj = await loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）');
-      aliasObj = await loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）');
-      groupObj = await loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）');
-      try{window.LN_DEBUG_V2983?.setFlags?.({coreJsonSequential:'v293rc1-mainline-fix1'});}catch(e){}
-    }else{
-      [taxonomyObj,aliasObj,groupObj] = await Promise.all([
-        loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
-        loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名（核心）'),
-        loadJsonFile(DATA_FILES.subjectGroups,'学科群字典（核心）')
-      ]);
+    // V2.91RC0.model-lazy1: graduate catalog is explanation-only in current UI; keep core taxonomy blocking, move graduate catalog to cold preload when lazy is enabled.
+    const lazyGraduateCatalogV291 = (window.LN_MODEL_LAZY_OPT !== false);
+    const bootTaxonomyJobsV291 = [
+      loadJsonFile(DATA_FILES.taxonomy,'专业学科映射'),
+      loadJsonFile(DATA_FILES.rawMajorAlias,'专业名清洗别名'),
+      loadJsonFile(DATA_FILES.subjectGroups,'学科群字典'),
+      loadJsonFile(DATA_FILES.admissionReview,'招生专业名复核'),
+      loadJsonFile(DATA_FILES.officialCatalog,'2026本科专业目录')
+    ];
+    if(!lazyGraduateCatalogV291) bootTaxonomyJobsV291.push(loadJsonFile(DATA_FILES.graduateCatalog,'研究生学科代码表'));
+    const [taxonomyObj,aliasObj,groupObj,reviewObj,officialObj,graduateObj] = await Promise.all(bootTaxonomyJobsV291);
+    OFFICIAL_CATALOG_2026 = officialObj;
+    GRADUATE_CATALOG_2022_2025 = graduateObj || null;
+    try{
+      if(window.loadMajorNameModelV2944){
+        await window.loadMajorNameModelV2944({withEntryIndex:false});
+      }
+    }catch(majorErr){
+      console.warn('[V2.9.7] 招生名/本科目录模型加载失败，不影响主筛选：', majorErr);
     }
-    OFFICIAL_CATALOG_2026 = null;
-    GRADUATE_CATALOG_2022_2025 = null;
     try{
       if(window.loadConfusableMajorModelV2946){
-        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v293rc1-mainline'});
+        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946();
         populateConfusableGroupFilterV2946();
       }
     }catch(confErr){
-      console.warn('[V2.93RC1.mainline] 易混轻量索引加载失败，不影响主筛选：', confErr);
+      console.warn('[V2.9.4.6] 易混专业模型加载失败，不影响主筛选：', confErr);
       CONFUSABLE_MODEL_2946 = null;
     }
 
@@ -226,12 +166,11 @@ async function boot(){
       console.warn('[V2.9.4.7.1] 孩子学习特点规则加载失败，不影响主筛选：', profileErr);
       STUDENT_PROFILE_MODEL_29471=null;
     }
-    initTaxonomy(taxonomyObj, aliasObj, groupObj, null);
+    initTaxonomy(taxonomyObj, aliasObj, groupObj, reviewObj);
     dataEngineReady = true;
-    setMetaStatusV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜专业学科核心已就绪｜输入位次后加载对应分段`,'ready');
+    setMetaStatusV297Fix2(`已就绪｜总数据 ${fmt(MANIFEST.totalRecords)} 条｜本科目录与招生名已复核｜输入位次后加载对应分段`,'ready');
     candidates=JSON.parse(localStorage.getItem('ln_candidates_v292')||'[]');
     renderCandidates();
-    lnStartDeferredModelsV292RC1();
     document.querySelectorAll('#strategyCards .strategy-card').forEach(b=>b.onclick=()=>applyStrategy(b.dataset.strategy));
     renderScenarioNoticeV2951(scenarioRuleV2951(currentStrategy)||scenarioRuleV2951(rulesV2951().defaults?.selectedScenario||'employment')||{});
     document.querySelectorAll('input,select,textarea').forEach(x=>x.addEventListener('input',window.debouncedAutoRefreshV2953Fix5));
@@ -481,8 +420,6 @@ function bindGlobalEventsV2953(){
 }
 
 function startV2953Fix5(){
-  if(window.__LN_APP_STARTED_V293RC1_MAINLINE) return;
-  window.__LN_APP_STARTED_V293RC1_MAINLINE=true;
   bindGlobalEventsV2953();
   bindAccessEnterV2953Fix1();
   initAuthAndBootV2954Fix3();
@@ -492,60 +429,5 @@ function startV2953Fix5(){
 }
 
 window.autoRefresh = autoRefresh;
-window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true, mainlineBackfill:true, startDelayed:!!window.LN_DELAY_APP_START_V293RC1_MAINLINE };
-if(!document.body || document.body.dataset.diagnostics !== '1'){
-  if(window.LN_DELAY_APP_START_V293RC1_MAINLINE===true){
-    window.__LN_APP_START_PENDING_V293RC1_MAINLINE=true;
-    try{window.LN_DEBUG_V2983?.setFlags?.({appStartDelayed:'v293rc1-mainline'});}catch(e){}
-  }else{
-    startV2953Fix5();
-  }
-}
-
-
-// V2.93RC1.mainline：渲染事件桥回填到 app.v2981.js，不再新增 render-events 启动文件
-// V2.93RC1.mainline｜渲染事件桥：只补事件与调试口径，不改候选池、公式、排序
-(function(){
-  if(window.LN_RENDER_EVENTS_V293RC1_MAINLINE_DISABLE===true) return;
-  var VERSION='v293rc1-mainline-render-events';
-  var STAMP='293rc1-mainline-20260515';
-  var state={version:VERSION,stamp:STAMP,renderCardsWrapped:false,renderPlanABCWrapped:false,cardsEvents:0,abcEvents:0,lastCardsMs:0,lastAbcMs:0};
-  function perf(){return window.performance&&performance.now?performance.now():Date.now();}
-  function emit(name,detail){
-    try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){try{document.dispatchEvent(new Event(name));}catch(err){}}
-  }
-  function flags(){
-    try{window.LN_DEBUG_V2983?.setFlags?.({renderEvents:'v293rc1-mainline',renderEventsVersion:VERSION,renderCardsWrapped:state.renderCardsWrapped,renderPlanABCWrapped:state.renderPlanABCWrapped});}catch(e){}
-    try{window.LN_DEBUG_V2983?.detail?.('renderEvents',Object.assign({},state));}catch(e){}
-  }
-  function wrapFunction(name,eventName,counterKey,msKey){
-    var fn=window[name];
-    if(typeof fn!=='function') return false;
-    if(fn.__v293rc1MainlineRenderEventWrapped) return true;
-    var wrapped=function(){
-      var t=perf(), ok=true, err=null, ret;
-      try{return ret=fn.apply(this,arguments);}catch(e){ok=false;err=e;throw e;}finally{
-        state[counterKey]=(state[counterKey]||0)+1;
-        state[msKey]=Math.round(perf()-t);
-        var detail={name:name,ok:ok,ms:state[msKey],count:state[counterKey],error:err?String(err&&err.message||err):'',filtered:Array.isArray(window.filtered)?window.filtered.length:undefined,stamp:STAMP};
-        if(window.queueMicrotask) queueMicrotask(function(){emit(eventName,detail);flags();});
-        else setTimeout(function(){emit(eventName,detail);flags();},0);
-      }
-    };
-    try{Object.defineProperty(wrapped,'name',{value:name+'V293RC1Mainline'});}catch(e){}
-    wrapped.__v293rc1MainlineRenderEventWrapped=true;
-    wrapped.__original=fn;
-    window[name]=wrapped;
-    return true;
-  }
-  function patch(){
-    state.renderCardsWrapped=wrapFunction('renderCards','ln:cards-rendered','cardsEvents','lastCardsMs')||state.renderCardsWrapped;
-    state.renderPlanABCWrapped=wrapFunction('renderPlanABC','ln:abc-rendered','abcEvents','lastAbcMs')||state.renderPlanABCWrapped;
-    flags();
-  }
-  patch();
-  setTimeout(patch,0);
-  setTimeout(patch,800);
-  setTimeout(patch,1800);
-  window.LN_RENDER_EVENTS_V293RC1_MAINLINE={ready:true,version:VERSION,stamp:STAMP,state:state,patch:patch};
-})();
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true };
+if(!document.body || document.body.dataset.diagnostics !== '1') startV2953Fix5();
