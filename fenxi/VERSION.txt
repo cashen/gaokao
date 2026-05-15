@@ -1,4 +1,5 @@
-V2.93RC1｜真实调用链合并与运行时瘦身版
-stamp: 293rc1-20260515
-base: V2.92RC1
+V2.93RC1.fix1｜启动路径规范化修正版
+stamp: 293rc1fix1-20260515
+base: V2.93RC1
 mode: fenxi-only update
+scope: only boot path normalization; core formula/data unchanged

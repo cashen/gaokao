@@ -1,7 +1,0 @@
-
-/* V2.92RC1 Markdown 导出按钮样式：暖白蓝灰，去橙棕 */
-.export-md-action-v292,.export-md-action-v291{background:#fff!important;color:#2f5f7f!important;border:1px solid #cfdbe6!important;border-radius:10px!important;box-shadow:none!important;font-weight:700!important;padding:8px 12px!important;}
-.export-md-action-v292:hover,.export-md-action-v291:hover{background:#f6f9fb!important;border-color:#adc3d2!important;color:#244e6a!important;}
-.export-md-self-v292,.export-md-self-v291{background:#fff!important;border:1px solid #dde5ec!important;border-radius:14px!important;padding:10px!important;box-shadow:none!important;}
-
-.export-md-self-v292rc1{margin:10px 0 12px;padding:0;background:transparent;border:none}.export-md-self-v292rc1 .export-md-action-v291{width:100%;}
