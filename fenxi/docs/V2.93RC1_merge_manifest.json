@@ -1,0 +1,74 @@
+{
+  "version": "V2.93RC1",
+  "stamp": "293rc1-20260515",
+  "base": "V2.92RC1 plus RC2 validated runtime ideas",
+  "merged": {
+    "infra-core.v293rc1.js": [
+      "assets/perf-monitor.v297fix2.js",
+      "assets/debug-runtime.v2983.js",
+      "assets/candidate-cache.v297fix2.js",
+      "assets/state-snapshot.v297fix2.js",
+      "assets/refresh-scheduler.v297fix2.js",
+      "assets/drawer.v297fix2.js",
+      "assets/qualification-gate-rules.v297fix2.js",
+      "assets/qualification-gate.v297fix2.js",
+      "assets/qualification-gate-ui.v297fix2.js",
+      "assets/student-profile-rules.v2981.js",
+      "assets/student-profile-ui.v2981.js",
+      "assets/profile-interest-bridge-rules.v2981.js"
+    ],
+    "app-postmain.v293rc1.js": [
+      "assets/profile-interest-summary.v2981fix2.js",
+      "assets/detail-card-lite-model.v2981fix2.js",
+      "assets/ui-detail-notice-late-core.v291rc0ui1.js",
+      "assets/decision-context-model.v2982.js",
+      "assets/legacy-preference-adapter.v2982.js",
+      "assets/advisor-diagnosis-engine.v2982.js",
+      "assets/interaction-stability.v2982.js",
+      "assets/scroll-lock-guard.v2982fix2.js",
+      "assets/ui-late-interaction-core.v291rc0ui1.js",
+      "assets/app.v2983.js",
+      "assets/app-coordinator.v291rc0coord1.js",
+      "assets/model-audit.v291rc0modelaudit1.js",
+      "assets/model-lazy.v291rc0lazy1.js",
+      "assets/parent-trust.v291rc0parenttrust2.js"
+    ],
+    "family-read-final.v293rc1.js": [
+      "assets/frontend-trust.v291rc0front2.js",
+      "assets/family-read.v291rc0familyread1.js"
+    ],
+    "app-runtime.v293rc1.js": [
+      "assets/detail-lazy.v292rc2.js",
+      "assets/rules-final-decision.v292rc1.js",
+      "assets/render-events.v292rc2.js",
+      "assets/export-md.v292rc2.js",
+      "assets/stability-clean.v292rc2.js",
+      "assets/interact-stability.v29rc1.js",
+      "assets/interact-dedupe.v292rc2.js"
+    ],
+    "app-final.v293rc1.css": [
+      "assets/app.v2981fix2.css",
+      "assets/app.v2982.css",
+      "assets/app.v2983.css",
+      "assets/parent-trust.v291rc0parenttrust2.css",
+      "assets/rules-closure.v291rc0closure4.css",
+      "assets/frontend-trust.v291rc0front2.css",
+      "assets/family-read.v291rc0familyread1.css",
+      "assets/export-md.v292rc2.css",
+      "assets/stability-clean.v292rc2.css"
+    ],
+    "model-light.v293rc1.js": [
+      "assets/confusable-light.v292rc1.js",
+      "assets/safeperf.v29rc1.js"
+    ]
+  },
+  "immutable": [
+    "assets/compute-pipeline.v2983.js",
+    "assets/filter-engine.v298fix1.js",
+    "assets/plan-engine.v297fix2.js",
+    "assets/region-filter-rules.v2983fix5.js",
+    "assets/rules-closure.v291rc0closure5fix1.js",
+    "data/rank_2025_physics.json",
+    "data/chunks/*.json"
+  ]
+}

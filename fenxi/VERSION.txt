@@ -1,4 +1,4 @@
-V2.92RC｜稳定收口候选版
-stamp: 292rc-20260515
-baseline: V2.91RC0.model-lazy1 → closure5fix1/errorfix3
-scope: fenxi-only update
+V2.93RC1｜真实调用链合并与运行时瘦身版
+stamp: 293rc1-20260515
+base: V2.92RC1
+mode: fenxi-only update

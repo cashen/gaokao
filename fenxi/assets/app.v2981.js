@@ -102,7 +102,7 @@ function initV292UX(){
 }
 
 
-// V2.92RC1：把解释/详情模型从启动阻塞中拆出来，先让分数筛选和 A/B/C 可用。
+// V2.93RC1：延续解释/详情模型延后加载，并配合启动顺序收口，先让分数筛选和 A/B/C 可用。
 function lnIdleV292RC1(fn, timeout){
   try{
     if('requestIdleCallback' in window){ window.requestIdleCallback(function(){fn();},{timeout: timeout||1800}); return; }
@@ -110,14 +110,14 @@ function lnIdleV292RC1(fn, timeout){
   setTimeout(fn, timeout||1200);
 }
 function lnDeferredStateV292RC1(){
-  if(!window.__LN_V292RC1_DEFERRED__) window.__LN_V292RC1_DEFERRED__={version:'V2.92RC1',stamp:'292rc1-20260515',jobs:{},ready:false};
-  return window.__LN_V292RC1_DEFERRED__;
+  if(!window.__LN_V293RC1_DEFERRED__) window.__LN_V293RC1_DEFERRED__={version:'V2.93RC1',stamp:'293rc1-20260515',jobs:{},ready:false};
+  return window.__LN_V293RC1_DEFERRED__;
 }
 function lnMarkDeferredV292RC1(name,status,extra){
   try{
     const st=lnDeferredStateV292RC1();
     st.jobs[name]=Object.assign(st.jobs[name]||{}, {status:status, t:Math.round(performance.now())}, extra||{});
-    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v292rc1:true, deferredModels:st.jobs});
+    if(window.LN_DEBUG_V2983?.setFlags) window.LN_DEBUG_V2983.setFlags({v293rc1:true, deferredModels:st.jobs});
   }catch(e){}
 }
 function lnStartDeferredModelsV292RC1(){
@@ -175,7 +175,7 @@ async function boot(){
       loadJsonFile(DATA_FILES.manifest,'数据清单'),
       loadJsonFile(DATA_FILES.rank,'一分一段数据')
     ]);
-    // V2.92RC1：启动只等待“计算必需的专业学科核心”。
+    // V2.92RC2：启动只等待“计算必需的专业学科核心”。
     // admissionReview / officialCatalog / majorName 大模型 / 易混全量 pairs 都改为后台或展开时加载，避免输入分数前卡住。
     const [taxonomyObj,aliasObj,groupObj] = await Promise.all([
       loadJsonFile(DATA_FILES.taxonomy,'专业学科映射（核心）'),
@@ -186,11 +186,11 @@ async function boot(){
     GRADUATE_CATALOG_2022_2025 = null;
     try{
       if(window.loadConfusableMajorModelV2946){
-        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v292rc1'});
+        CONFUSABLE_MODEL_2946 = await window.loadConfusableMajorModelV2946({light:true, reason:'boot-v292rc2'});
         populateConfusableGroupFilterV2946();
       }
     }catch(confErr){
-      console.warn('[V2.92RC1] 易混轻量索引加载失败，不影响主筛选：', confErr);
+      console.warn('[V2.92RC2] 易混轻量索引加载失败，不影响主筛选：', confErr);
       CONFUSABLE_MODEL_2946 = null;
     }
 
@@ -479,5 +479,12 @@ function startV2953Fix5(){
 }
 
 window.autoRefresh = autoRefresh;
-window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true };
-if(!document.body || document.body.dataset.diagnostics !== '1') startV2953Fix5();
+window.LN_APP = { start: startV2953Fix5, refresh: autoRefresh, requestRefresh: requestRefreshV296, applyScenarioPreset: applyStrategy, unlockAccess, resetAccess, checkServerSession: checkServerSessionV2954Fix3, ready:true, startDelayed:!!window.LN_DELAY_APP_START_V293RC1 };
+if(!document.body || document.body.dataset.diagnostics !== '1'){
+  if(window.LN_DELAY_APP_START_V293RC1===true){
+    window.__LN_APP_START_PENDING_V293RC1=true;
+    try{window.LN_DEBUG_V2983?.setFlags?.({appStartDelayed:'v293rc1'});}catch(e){}
+  }else{
+    startV2953Fix5();
+  }
+}
