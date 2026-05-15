@@ -1,0 +1,35 @@
+/* V2.91RC0.family-read1.frontfix3｜登录后首屏与步骤条净化版 */
+:root{--ln-paper:#fbfaf7;--ln-card:#ffffff;--ln-line:#dbe3ea;--ln-text:#1f2933;--ln-muted:#647181;--ln-bluegray:#2f5f7f;--ln-soft:#f4f7f9;--ln-green:#3f7d5a;--ln-risk:#b94a48;}
+body.family-read-frontfix3-v291rc0 .hero{background:linear-gradient(180deg,#fff,#f8f9f8)!important;border:1px solid #e1e7ed!important;color:var(--ln-text)!important;box-shadow:none!important;}
+body.family-read-frontfix3-v291rc0 .hero h1{color:var(--ln-text)!important;letter-spacing:0!important;}
+body.family-read-frontfix3-v291rc0 .hero p{color:var(--ln-muted)!important;}
+body.family-read-frontfix3-v291rc0 .access-mini{background:#f7f9fb!important;border:1px solid #dce5ed!important;border-radius:10px!important;box-shadow:none!important;color:var(--ln-text)!important;display:flex!important;gap:8px!important;align-items:center!important;padding:8px 10px!important;margin-top:10px!important;}
+body.family-read-frontfix3-v291rc0.ln-access-ready .access-mini input,
+body.family-read-frontfix3-v291rc0.ln-access-ready .access-mini button[data-action="unlock-top"]{display:none!important;}
+body.family-read-frontfix3-v291rc0 .access-mini input{background:#fff!important;border:1px solid #d6e0e9!important;color:var(--ln-text)!important;box-shadow:none!important;border-radius:8px!important;}
+body.family-read-frontfix3-v291rc0 .access-mini button{background:#fff!important;color:var(--ln-bluegray)!important;border:1px solid #cfdbe6!important;border-radius:8px!important;box-shadow:none!important;font-weight:650!important;}
+body.family-read-frontfix3-v291rc0 .access-mini button[data-action="reset-access"]{background:transparent!important;border:none!important;color:#607182!important;padding:4px 6px!important;text-decoration:underline;text-underline-offset:3px;font-size:13px!important;}
+body.family-read-frontfix3-v291rc0 .access-mini .state{color:#536476!important;font-weight:500!important;font-size:13px!important;}
+body.family-read-frontfix3-v291rc0.ln-access-ready .access-mini .state:before{content:"已进入工具｜家庭讨论模式｜";font-weight:650;color:#2f5f7f;}
+body.family-read-frontfix3-v291rc0 .guide-nav{display:flex!important;gap:0!important;align-items:center!important;overflow-x:auto!important;margin:12px 0 8px!important;padding:4px 0!important;background:transparent!important;border:none!important;box-shadow:none!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a{display:inline-flex!important;align-items:center!important;gap:6px!important;min-width:auto!important;padding:6px 10px!important;background:transparent!important;border:none!important;border-radius:0!important;box-shadow:none!important;color:#7a8794!important;font-weight:600!important;position:relative!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a:not(:last-child):after{content:"→";position:absolute;right:-7px;color:#b0bcc8;font-weight:400;}
+body.family-read-frontfix3-v291rc0 .guide-nav a i{width:20px!important;height:20px!important;border-radius:50%!important;background:#eef3f6!important;color:#607182!important;display:inline-grid!important;place-items:center!important;font-size:12px!important;font-weight:700!important;box-shadow:none!important;border:1px solid #d8e2ea!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a.active,
+body.family-read-frontfix3-v291rc0 .guide-nav a.current{color:#1f2933!important;background:transparent!important;box-shadow:inset 0 -2px 0 #2f5f7f!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a.active i,
+body.family-read-frontfix3-v291rc0 .guide-nav a.current i{background:#e9f1f5!important;color:#2f5f7f!important;border-color:#adc3d2!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a.done{background:transparent!important;color:#4b6f5a!important;}
+body.family-read-frontfix3-v291rc0 .guide-nav a.done i{background:#edf6ef!important;color:#3f7d5a!important;border-color:#cfe1d3!important;}
+body.family-read-frontfix3-v291rc0 .mode-switch-v2950{background:#f7f9fb!important;border:1px solid #dce5ed!important;border-radius:10px!important;color:#526171!important;box-shadow:none!important;padding:8px 10px!important;margin-top:8px!important;}
+body.family-read-frontfix3-v291rc0 .mode-switch-v2950 label{font-weight:650!important;color:#2b3948!important;}
+body.family-read-frontfix3-v291rc0 .mode-switch-v2950 label{font-size:0!important;}
+body.family-read-frontfix3-v291rc0 .mode-switch-v2950 label:after{content:"家庭讨论模式";font-size:14px!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:10px 0!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 button{background:#fff!important;color:#1f2933!important;border:1px solid #dce4eb!important;border-radius:10px!important;box-shadow:none!important;padding:10px 12px!important;text-align:left!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 button:before{display:none!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 button.active{background:#f7f9fb!important;border-color:#adc3d2!important;box-shadow:inset 3px 0 0 #2f5f7f!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 b{color:#1f2933!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 span{color:#516579!important;font-weight:650!important;}
+body.family-read-frontfix3-v291rc0 .abc-segment-v296 em{color:#677789!important;}
+@media(max-width:760px){body.family-read-frontfix3-v291rc0 .access-mini{align-items:flex-start!important;flex-wrap:wrap!important}body.family-read-frontfix3-v291rc0 .guide-nav{font-size:13px!important}.abc-segment-v296{grid-template-columns:1fr!important}}

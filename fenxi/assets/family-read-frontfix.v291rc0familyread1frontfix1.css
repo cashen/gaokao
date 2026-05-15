@@ -1,0 +1,253 @@
+/* V2.91RC0.rules-closure4.family-read1.frontfix1｜家长尊重感视觉修正版 */
+/* 只做前端尊重感与阅读感修正：不改候选池、不改排序、不改 closure4 规则。 */
+:root{
+  --ff-bg:#f8f4ec;
+  --ff-surface:#fffdf8;
+  --ff-soft:#fbf4e8;
+  --ff-line:#e3d6c5;
+  --ff-line-soft:#eee5d8;
+  --ff-text:#252a32;
+  --ff-muted:#667078;
+  --ff-brown:#7a552b;
+  --ff-brown-soft:#f6ead9;
+  --ff-bluegray:#4d6273;
+  --ff-bluegray-soft:#eef3f6;
+  --ff-green:#557153;
+  --ff-green-soft:#edf4ea;
+  --ff-risk:#9a4034;
+  --ff-risk-soft:#f7e7e3;
+}
+body.family-read-frontfix-v291rc0{
+  background:#f8f4ec;
+}
+/* 顶部：从工具后台感继续向家庭资料稿收 */
+.family-read-frontfix-v291rc0 .hero{
+  background:linear-gradient(180deg,#fffdf8 0%,#f8f3ea 100%)!important;
+  border-color:#e3d6c5!important;
+  box-shadow:none!important;
+}
+.family-read-frontfix-v291rc0 .hero h1{
+  color:#222832!important;
+  letter-spacing:-.02em;
+}
+.family-read-frontfix-v291rc0 .hero p{color:#5f6670!important;}
+.family-read-frontfix-v291rc0 .hero-badges .badge{
+  background:#fffaf2!important;
+  border-color:#e3d6c5!important;
+  color:#60472d!important;
+  box-shadow:none!important;
+}
+/* 步骤条：从闯关按钮改为轻流程 */
+.family-read-frontfix-v291rc0 .stepnav,
+.family-read-frontfix-v291rc0 .guide-nav{
+  background:#fffdf8!important;
+  border:1px solid #e3d6c5!important;
+  box-shadow:none!important;
+  gap:0!important;
+  padding:8px 10px!important;
+}
+.family-read-frontfix-v291rc0 .stepnav a{
+  border:none!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#5d6570!important;
+  box-shadow:none!important;
+  min-height:38px!important;
+  position:relative;
+}
+.family-read-frontfix-v291rc0 .stepnav a+a:before{
+  content:'›';
+  color:#c1b4a5;
+  position:absolute;
+  left:-3px;
+  top:50%;
+  transform:translateY(-50%);
+  font-weight:700;
+}
+.family-read-frontfix-v291rc0 .stepnav a.active,
+.family-read-frontfix-v291rc0 .stepnav a:hover{
+  color:#6f4b24!important;
+  background:#fbf4e8!important;
+  border-radius:12px!important;
+  box-shadow:inset 0 -2px 0 #b9874a!important;
+}
+.family-read-frontfix-v291rc0 .stepnav a i{
+  background:#fffaf2!important;
+  border-color:#ddd0bf!important;
+  color:#7a552b!important;
+}
+/* 家庭模式条：尊重家长，不叫“简洁模式” */
+.family-read-frontfix-v291rc0 .mode-switch-v2950{
+  background:#fffdf8!important;
+  border-color:#e3d6c5!important;
+  box-shadow:none!important;
+}
+.family-read-frontfix-v291rc0 .mode-switch-v2950 label{
+  font-weight:700;
+  color:#36404a;
+}
+/* 大按钮降级：不是 CTA，只是展开依据 */
+.family-read-frontfix-v291rc0 .family-detail-toggle-v291{
+  width:auto!important;
+  min-height:36px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  margin:12px 0 0!important;
+  padding:7px 13px!important;
+  border-radius:12px!important;
+  background:#fffaf2!important;
+  color:#72502c!important;
+  border:1px solid #dcc8ad!important;
+  box-shadow:none!important;
+  font-size:15px!important;
+  font-weight:650!important;
+  letter-spacing:0!important;
+}
+.family-read-frontfix-v291rc0 .family-detail-toggle-v291:hover{
+  background:#f7efe3!important;
+  border-color:#c9ad88!important;
+}
+.family-read-frontfix-v291rc0 .family-detail-toggle-v291:after{
+  content:' →';
+  font-weight:700;
+  opacity:.75;
+}
+.family-read-frontfix-v291rc0 .family-expanded .family-detail-toggle-v291:after{content:'';}
+/* 卡片操作区：加入不是购物车，不做大按钮 */
+.family-read-frontfix-v291rc0 .decision-actions-v2981{
+  display:flex!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  margin-top:10px!important;
+}
+.family-read-frontfix-v291rc0 .decision-actions-v2981 button,
+.family-read-frontfix-v291rc0 button.add-one-v29475fix2,
+.family-read-frontfix-v291rc0 .add-one-v29475fix2,
+.family-read-frontfix-v291rc0 .action-row-v29461 button{
+  width:auto!important;
+  min-width:0!important;
+  min-height:34px!important;
+  padding:6px 12px!important;
+  border-radius:12px!important;
+  background:#fffdf8!important;
+  color:#5a4632!important;
+  border:1px solid #dfd2c2!important;
+  box-shadow:none!important;
+  font-size:14.5px!important;
+  font-weight:600!important;
+}
+.family-read-frontfix-v291rc0 .abc-toolbar-v296 button.execute-secondary,
+.family-read-frontfix-v291rc0 button[data-family-read-action="copy-group"]{
+  background:#fffaf2!important;
+  border:1px solid #dcc8ad!important;
+  color:#6f4b24!important;
+  box-shadow:none!important;
+}
+/* “提醒”不训话：更像老师旁注 */
+.family-read-frontfix-v291rc0 .parent-must-read-v2981fix2,
+.family-read-frontfix-v291rc0 .parent-must-read,
+.family-read-frontfix-v291rc0 .must-read,
+.family-read-frontfix-v291rc0 [class*="must-read"]{
+  background:#fff9ef!important;
+  border-left:3px solid #c79045!important;
+  border-top:0!important;
+  border-right:0!important;
+  border-bottom:0!important;
+  box-shadow:none!important;
+  border-radius:12px!important;
+  padding:12px 14px!important;
+  color:#4f453b!important;
+}
+.family-read-frontfix-v291rc0 .parent-must-read-v2981fix2 b,
+.family-read-frontfix-v291rc0 [class*="must-read"] b{
+  color:#8a5728!important;
+  font-weight:750!important;
+}
+/* 取舍区：标题更短，版面更稳 */
+.family-read-frontfix-v291rc0 .decision-tradeoff-v2981{
+  background:#fffdf8!important;
+  border-color:#eee1d4!important;
+  box-shadow:none!important;
+}
+.family-read-frontfix-v291rc0 .decision-tradeoff-v2981 p{
+  margin:6px 0!important;
+  line-height:1.65!important;
+}
+.family-read-frontfix-v291rc0 .decision-tradeoff-v2981 b{
+  min-width:56px!important;
+  display:inline-block!important;
+  color:#111827!important;
+  font-weight:800!important;
+}
+/* 复核动作不再像老年教学勾选框 */
+.family-read-frontfix-v291rc0 .family-review-list-v291{
+  display:block!important;
+  margin:5px 0 0!important;
+  padding:0!important;
+  list-style:none!important;
+}
+.family-read-frontfix-v291rc0 .family-review-list-v291 li{
+  display:inline!important;
+  padding-left:0!important;
+  margin:0!important;
+  color:#59626b!important;
+  font-size:14.5px!important;
+  line-height:1.75!important;
+}
+.family-read-frontfix-v291rc0 .family-review-list-v291 li:before{content:''!important;display:none!important;}
+.family-read-frontfix-v291rc0 .family-review-list-v291 li+li:before{
+  content:' / '!important;
+  display:inline!important;
+  color:#a59b90!important;
+  padding:0 2px;
+}
+/* 标签保留数量，但从促销胶囊改成资料标签 */
+.family-read-frontfix-v291rc0 .candidate-lite-tags-v2983{
+  gap:6px!important;
+  margin-top:10px!important;
+}
+.family-read-frontfix-v291rc0 .candidate-lite-tags-v2983 span,
+.family-read-frontfix-v291rc0 .decision-tag-v2981,
+.family-read-frontfix-v291rc0 .pill,
+.family-read-frontfix-v291rc0 .tag{
+  border-radius:10px!important;
+  padding:4px 8px!important;
+  min-height:0!important;
+  line-height:1.35!important;
+  font-size:13.5px!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+  background:#fffaf2!important;
+  border:1px solid #e2d7c8!important;
+  color:#5d5144!important;
+}
+.family-read-frontfix-v291rc0 .frontend-risk-label,
+.family-read-frontfix-v291rc0 .candidate-lite-tags-v2983 span:where([class*="risk"],[class*="warn"]){
+  background:#f7e7e3!important;
+  border-color:#e2bbb3!important;
+  color:#8a3a2e!important;
+}
+.family-read-frontfix-v291rc0 .frontend-evidence-label{
+  background:#eef3f6!important;
+  border-color:#d7e0e7!important;
+  color:#44596b!important;
+}
+/* 棕色只做线和文字，不做大块压迫 */
+.family-read-frontfix-v291rc0 .family-read-conclusion-v291,
+.family-read-frontfix-v291rc0 .family-conflict-list-v291 li,
+.family-read-frontfix-v291rc0 .family-read-score-v291{
+  box-shadow:none!important;
+}
+.family-read-frontfix-v291rc0 .family-conflict-list-v291 li.strong{
+  background:#fff7f3!important;
+  border-left:3px solid #c06d45!important;
+  border-top-color:#ead6ca!important;
+  border-right-color:#ead6ca!important;
+  border-bottom-color:#ead6ca!important;
+}
+@media(max-width:760px){
+  .family-read-frontfix-v291rc0 .stepnav{display:flex!important;overflow-x:auto!important;white-space:nowrap!important;}
+  .family-read-frontfix-v291rc0 .family-detail-toggle-v291{font-size:14.5px!important;min-height:38px!important;}
+  .family-read-frontfix-v291rc0 .decision-actions-v2981 button{min-height:36px!important;}
+}
