@@ -1,0 +1,12 @@
+/* export-md5fix1：Markdown 明细导出入口继续保持低调 */
+.export-md-action-v291{background:#fff!important;color:#2f5f7f!important;border:1px solid #cfdbe6!important;border-radius:10px!important;box-shadow:none!important;padding:8px 12px!important;font-weight:650!important;}
+.export-md-action-v291:hover{background:#f6f9fb!important;border-color:#9fb6c8!important;}
+.export-md-toast-v291{color:#5f6b7a!important;font-size:13px;margin-left:8px;}
+
+/* md5fix1：导出入口去橙色兜底 */
+body.family-read-frontfix6-v291rc0 .family-read-actions-v291 .export-md-action-v291,
+body.family-read-frontfix6-v291rc0 .export-md-self-v291 .export-md-action-v291,
+body.family-read-frontfix6-v291rc0 button[data-export-md4]{background:#fff!important;color:#2f5f7f!important;border:1px solid #cfdbe6!important;box-shadow:none!important;border-radius:10px!important;}
+body.family-read-frontfix6-v291rc0 .family-read-actions-v291 .export-md-action-v291:hover,
+body.family-read-frontfix6-v291rc0 .export-md-self-v291 .export-md-action-v291:hover,
+body.family-read-frontfix6-v291rc0 button[data-export-md4]:hover{background:#f6f9fb!important;border-color:#adc3d2!important;color:#244e6a!important;}
