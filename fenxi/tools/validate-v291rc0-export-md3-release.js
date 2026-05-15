@@ -1,0 +1,31 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const root = path.resolve(__dirname, '..');
+const read = p => fs.readFileSync(path.join(root, p), 'utf8');
+let pass=0, fail=0;
+function ok(cond,msg){ if(cond){console.log('PASS',msg); pass++;} else {console.error('FAIL',msg); fail++;} }
+const index = read('index.html');
+ok(index.includes('V2.91RC0.rules-closure4.family-read1.frontfix2.export-md3'),'index version md3');
+ok(index.includes('export-md.v291rc0md3.js'),'index loads md3 js');
+ok(index.includes('export-md.v291rc0md3.css'),'index loads md3 css');
+ok(!index.includes('export-md.v291rc0md2.js'),'index does not load md2 js');
+const js = read('assets/export-md.v291rc0md3.js');
+ok(js.includes("var VERSION='v291rc0md3'"),'md3 version marker');
+ok(js.includes('复制 Markdown 明细版'),'only detail copy button label present');
+ok(!js.includes('复制家庭群 MD'),'no family group MD button');
+ok(!js.includes('下载 .md 文件'),'no download md button');
+ok(js.includes('复制自选池 Markdown'),'selected pool markdown button');
+ok(js.includes('基本压线'),'basic pressure wording');
+ok(js.includes('小冲/边缘冲'),'behind rank is rush wording');
+ok(js.includes('高成本兜底观察'),'high cost observation section');
+ok(js.includes('民办/独立学院需复核') && js.includes('中外合作需复核') && js.includes('高收费需重点复核'),'cost review split');
+ok(js.includes('dedupeKey') && js.includes('重复命中已合并'),'dedupe merge logic');
+ok(js.includes('markdownDownload:false'),'download disabled debug flag');
+const css = read('assets/export-md.v291rc0md3.css');
+ok(css.includes('--warm-bg') && css.includes('--warm-blue'),'warm white palette');
+ok(css.includes('[data-family-read-action="copy-group"]') && css.includes('display:none'),'hide old family group copy');
+['compute-pipeline.v2983.js','filter-engine.v298fix1.js','plan-engine.v297fix2.js','region-filter-rules.v2983fix5.js','rules-interest-core.v291rc0rules1.js','rules-decision-core.v291rc0rules1.js','child-interest-runtime.v298fix1.js','catalog-interest-binding.v298.js','catalog-match-engine.v298.js','rules-closure.v291rc0closure4.js'].forEach(f=>ok(fs.existsSync(path.join(root,'assets',f)),`core exists ${f}`));
+try{ new Function(js); ok(true,'md3 js syntax'); }catch(e){ ok(false,'md3 js syntax '+e.message); }
+console.log(`RESULT PASS ${pass} / FAIL ${fail}`);
+process.exit(fail?1:0);
