@@ -673,7 +673,7 @@
 
           <div class="time-grid">
             <div class="time-box day">
-              <p id="d2027" class="time-num num">000</p>
+              <p id="d2027" class="time-num num">0</p>
               <p class="time-label">天</p>
             </div>
             <div class="time-box">
@@ -705,7 +705,7 @@
 
           <div class="time-grid">
             <div class="time-box day">
-              <p id="d2026" class="time-num num">000</p>
+              <p id="d2026" class="time-num num">0</p>
               <p class="time-label">天</p>
             </div>
             <div class="time-box">
@@ -789,6 +789,11 @@
       2027: new Date("2027-06-07T09:00:00+08:00"),
       2026: new Date("2026-06-07T09:00:00+08:00")
     };
+    const TIME_SYNC_URL = "https://worldtimeapi.org/api/timezone/Asia/Shanghai";
+    const TIME_SYNC_INTERVAL = 10 * 60 * 1000;
+    const TIME_SYNC_TIMEOUT = 4000;
+    let syncedTimeOffset = 0;
+    let lastSyncAttempt = 0;
 
     const beijingFormatter = new Intl.DateTimeFormat("zh-CN", {
       timeZone: "Asia/Shanghai",
@@ -816,6 +821,49 @@
     function setText(id, value) {
       const element = document.getElementById(id);
       if (element) element.textContent = value;
+    }
+
+    function getSyncedNow() {
+      return new Date(Date.now() + syncedTimeOffset);
+    }
+
+    function readNetworkTime(data) {
+      const value = data.utc_datetime || data.datetime;
+      const timestamp = Date.parse(value);
+      return Number.isFinite(timestamp) ? timestamp : NaN;
+    }
+
+    async function syncNetworkTime() {
+      lastSyncAttempt = Date.now();
+      const startedAt = Date.now();
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), TIME_SYNC_TIMEOUT);
+
+      try {
+        const response = await fetch(TIME_SYNC_URL, {
+          cache: "no-store",
+          signal: controller.signal
+        });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const serverTime = readNetworkTime(data);
+        if (!Number.isFinite(serverTime)) return;
+
+        const endedAt = Date.now();
+        const roundTrip = endedAt - startedAt;
+        syncedTimeOffset = serverTime + roundTrip / 2 - endedAt;
+      } catch (error) {
+        syncedTimeOffset = syncedTimeOffset || 0;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    function maybeSyncNetworkTime() {
+      if (Date.now() - lastSyncAttempt >= TIME_SYNC_INTERVAL) {
+        syncNetworkTime();
+      }
     }
 
     function getBeijingTimeParts(date) {
@@ -849,13 +897,13 @@
     }
 
     function renderYear(year) {
-      const now = new Date();
+      const now = getSyncedNow();
       const target = CONFIG[year];
       const diff = target - now;
       const status = document.getElementById(`status${year}`);
 
       if (diff <= 0) {
-        setText(`d${year}`, "000");
+        setText(`d${year}`, "0");
         setText(`h${year}`, "00");
         setText(`m${year}`, "00");
         setSecondText(year, "00");
@@ -873,7 +921,7 @@
       const minutes = Math.floor((diff % oneHour) / oneMinute);
       const seconds = Math.floor((diff % oneMinute) / oneSecond);
 
-      setText(`d${year}`, pad(days, 3));
+      setText(`d${year}`, String(days));
       setText(`h${year}`, pad(hours));
       setText(`m${year}`, pad(minutes));
       setSecondText(year, pad(seconds));
@@ -887,7 +935,7 @@
     }
 
     function renderNow() {
-      const now = new Date();
+      const now = getSyncedNow();
       const parts = getBeijingTimeParts(now);
       const seconds = parts.hour * 3600 + parts.minute * 60 + parts.second;
       const progress = (seconds / 86400) * 100;
@@ -900,18 +948,24 @@
     }
 
     function tick() {
+      maybeSyncNetworkTime();
       renderYear(2027);
       renderYear(2026);
       renderNow();
     }
 
-    function startClock() {
-      tick();
-      const delay = 1000 - (Date.now() % 1000);
+    function scheduleNextTick() {
+      const delay = 1000 - (getSyncedNow().getTime() % 1000);
       window.setTimeout(() => {
         tick();
-        window.setInterval(tick, 1000);
+        scheduleNextTick();
       }, delay);
+    }
+
+    function startClock() {
+      syncNetworkTime().then(tick);
+      tick();
+      scheduleNextTick();
     }
 
     startClock();
