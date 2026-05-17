@@ -63,11 +63,27 @@ a:hover{color:#1c4968}
  .cards{grid-template-columns:repeat(2,1fr)}
  .hero{padding:22px}.method{grid-template-columns:1fr}
  .toolbar{position:static}
+ table{min-width:960px}
+}
+@media(max-width:720px){
+ .toolbar{padding:12px;border-radius:16px}
+ .toolbar-row{gap:8px}
+ .search,.toolbar select,.toolbar button{width:100%;min-width:0}
+ .tablebox{border-radius:16px}
+ th,td{padding:11px 10px;font-size:13px}
+ table{min-width:860px}
+ .kicker{font-size:12px;padding:6px 10px}
+ .notice{font-size:14px;line-height:1.6}
 }
 @media(max-width:520px){
  .cards{grid-template-columns:1fr}
  .wrap{padding:18px 12px 32px}
  h1{font-size:27px}
+ .hero{padding:18px;border-radius:20px}
+ .sub{font-size:14px;line-height:1.7}
+ .method .card{padding:14px}
+ .section-title{font-size:18px}
+ table{min-width:760px}
 }
 @media print{
  body{background:white}.toolbar{display:none}.wrap{max-width:none}.hero,.card,.tablebox{box-shadow:none}
