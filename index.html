@@ -179,6 +179,7 @@
       border-radius: 999px;
       background: linear-gradient(90deg, #b98245, #315fbb, #27775f);
       transition: width 360ms ease;
+      will-change: width;
     }
 
     .progress-text {
@@ -250,6 +251,7 @@
       font-size: 13px;
       font-weight: 900;
       white-space: nowrap;
+      will-change: contents;
     }
 
     .is-2026 .status {
@@ -290,6 +292,7 @@
       font-size: clamp(30px, 4.2vw, 44px);
       line-height: 1.05;
       font-weight: 950;
+      will-change: contents;
     }
 
     .time-label {
@@ -316,7 +319,7 @@
       flex: 0 0 auto;
       border-radius: 50%;
       background: conic-gradient(var(--ring-color) var(--second-progress), rgba(22, 32, 51, 0.075) 0);
-      transition: background 180ms linear;
+      will-change: background;
     }
 
     .second-ring::after {
@@ -330,12 +333,13 @@
 
     .second-num {
       min-width: 2ch;
-      transition: opacity 120ms ease, transform 120ms ease;
+      will-change: contents;
     }
 
     .second-num.is-ticking {
       opacity: .66;
       transform: translateY(1px);
+      transition: opacity 120ms ease, transform 120ms ease;
     }
 
     .note {
@@ -646,13 +650,12 @@
         <div>
           <span class="eyebrow"><i aria-hidden="true"></i> 辽宁报考资料工作台</span>
           <h1>高考倒计时</h1>
-         
         </div>
 
         <aside class="now-card" aria-label="当前北京时间">
           <div class="now-row">
             <span class="now-title">当前北京时间</span>
-            <span id="nowText" class="now-time num">--</span>
+            <span id="nowText" class="now-time num">--:--:--</span>
           </div>
           <div class="progress" aria-hidden="true">
             <div id="dayProgress" class="progress-bar"></div>
@@ -735,7 +738,6 @@
         <div class="nav-head">
           <div>
             <h2 class="nav-title">常用入口</h2>
-            
           </div>
           <span class="nav-mark">Liaoning · Gaokao Desk</span>
         </div>
@@ -754,7 +756,7 @@
 
           <a href="./ln2025.html" class="entry">
             <span class="entry-title">2025 报考观察</span>
-            <span class="entry-desc">看年度变化、冷热迁移和位次松紧。</span>
+            <span class="entry-desc">���年度变化、冷热迁移和位次松紧。</span>
           </a>
 
           <a href="./liaoning.html" class="entry">
@@ -772,9 +774,9 @@
             <span class="entry-desc">把名字相近、培养方向不同的专业先分清。</span>
           </a>
 		  <a href="./Liaoning_Universit_Dorm_AC_Field_Guide.html" class="entry">
-  <span class="entry-title">辽宁省高校宿舍空调指北</span>
-  <span class="entry-desc">按学校整理宿舍空调安装情况、进度和复核线索。</span>
-</a>
+            <span class="entry-title">辽宁省高校宿舍空调指北</span>
+            <span class="entry-desc">按学校整理宿舍空调安装情况、进度和复核线索。</span>
+          </a>
         </nav>
       </section>
 
@@ -785,11 +787,13 @@
   </main>
 
   <script>
+    // ===== 倒计时配置与状态 =====
     const CONFIG = {
       2027: new Date("2027-06-07T09:00:00+08:00"),
       2026: new Date("2026-06-07T09:00:00+08:00")
     };
 
+    // ===== 时间格式化工具 =====
     const beijingFormatter = new Intl.DateTimeFormat("zh-CN", {
       timeZone: "Asia/Shanghai",
       year: "numeric",
@@ -809,15 +813,30 @@
       hour12: false
     });
 
+    // ===== DOM 缓存与优化 =====
+    const domCache = {};
+    
+    function getDomElement(id) {
+      if (!domCache[id]) {
+        domCache[id] = document.getElementById(id);
+      }
+      return domCache[id];
+    }
+
+    // ===== 数值格式化工具 =====
     function pad(value, length = 2) {
       return String(value).padStart(length, "0");
     }
 
+    // ===== 安全文本更新 =====
     function setText(id, value) {
-      const element = document.getElementById(id);
-      if (element) element.textContent = value;
+      const element = getDomElement(id);
+      if (element && element.textContent !== value) {
+        element.textContent = value;
+      }
     }
 
+    // ===== 北京时间分解 =====
     function getBeijingTimeParts(date) {
       const parts = beijingPartsFormatter.formatToParts(date);
       const map = {};
@@ -827,14 +846,16 @@
       return map;
     }
 
+    // ===== 秒数更新（带动画） =====
     function setSecondText(year, value) {
-      const element = document.getElementById(`s${year}`);
-      const ring = document.getElementById(`ring${year}`);
+      const element = getDomElement(`s${year}`);
+      const ring = getDomElement(`ring${year}`);
       if (!element) return;
 
       const nextValue = String(value);
       if (element.textContent !== nextValue) {
         element.classList.remove("is-ticking");
+        // 触发重排以重新应用动画
         void element.offsetWidth;
         element.textContent = nextValue;
         element.classList.add("is-ticking");
@@ -848,11 +869,12 @@
       }
     }
 
+    // ===== 年份倒计时渲染 =====
     function renderYear(year) {
       const now = new Date();
       const target = CONFIG[year];
       const diff = target - now;
-      const status = document.getElementById(`status${year}`);
+      const status = getDomElement(`status${year}`);
 
       if (diff <= 0) {
         setText(`d${year}`, "000");
@@ -878,6 +900,7 @@
       setText(`m${year}`, pad(minutes));
       setSecondText(year, pad(seconds));
 
+      // ===== 状态标签更新 =====
       if (status) {
         if (days <= 7) status.textContent = "最后一周";
         else if (days <= 30) status.textContent = "冲刺阶段";
@@ -886,6 +909,7 @@
       }
     }
 
+    // ===== 当前时间与进度条 =====
     function renderNow() {
       const now = new Date();
       const parts = getBeijingTimeParts(now);
@@ -895,26 +919,43 @@
       setText("nowText", beijingFormatter.format(now));
       setText("dayProgressText", `今日进度 ${progress.toFixed(1)}%`);
 
-      const dayProgress = document.getElementById("dayProgress");
-      if (dayProgress) dayProgress.style.width = `${progress.toFixed(2)}%`;
+      const dayProgress = getDomElement("dayProgress");
+      if (dayProgress) {
+        const newWidth = `${progress.toFixed(2)}%`;
+        if (dayProgress.style.width !== newWidth) {
+          dayProgress.style.width = newWidth;
+        }
+      }
     }
 
+    // ===== 统一更新函数 =====
     function tick() {
       renderYear(2027);
       renderYear(2026);
       renderNow();
     }
 
+    // ===== 精准启动时钟 =====
     function startClock() {
       tick();
-      const delay = 1000 - (Date.now() % 1000);
+      
+      // 计算距离下一秒的延迟时间，以确保更新精度
+      const now = Date.now();
+      const delay = 1000 - (now % 1000);
+      
       window.setTimeout(() => {
         tick();
+        // 每秒更新一次
         window.setInterval(tick, 1000);
       }, delay);
     }
 
-    startClock();
+    // ===== 页面加载完成后启动 =====
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", startClock);
+    } else {
+      startClock();
+    }
   </script>
 </body>
 </html>
