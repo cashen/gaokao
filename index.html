@@ -195,6 +195,22 @@
       padding: 12px 38px 0;
     }
 
+    .count-wrap.is-single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .count-wrap.is-single .count-card {
+      min-height: 260px;
+    }
+
+    .count-wrap.is-single .time-grid {
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+    }
+
+    .count-card.is-hidden {
+      display: none;
+    }
+
     .count-card {
       position: relative;
       overflow: hidden;
@@ -297,6 +313,120 @@
       color: var(--muted-2);
       font-size: 12px;
       font-weight: 900;
+    }
+
+    .exam-panel {
+      display: none;
+      gap: 14px;
+    }
+
+    .is-exam-mode .exam-panel {
+      display: grid;
+    }
+
+    .is-exam-mode .exam-countdown {
+      display: none;
+    }
+
+    .exam-focus {
+      border: 1px solid rgba(185, 130, 69, 0.16);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,250,243,0.98), rgba(255,255,255,0.94));
+      padding: 18px 18px 17px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 10px 24px rgba(30, 41, 59, 0.045);
+    }
+
+    .exam-label {
+      margin: 0;
+      color: var(--warm-deep);
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .exam-subject {
+      margin: 9px 0 0;
+      color: #111827;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.08;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .exam-time {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    .exam-next {
+      display: grid;
+      gap: 8px;
+      padding: 13px 14px;
+      border: 1px solid rgba(49, 95, 187, 0.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.62);
+    }
+
+    .exam-next-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 850;
+    }
+
+    .exam-next-row span:first-child {
+      color: var(--muted-2);
+      flex: 0 0 auto;
+    }
+
+    .exam-schedule {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+    }
+
+    .exam-slot {
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid rgba(22, 32, 51, 0.075);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.62);
+    }
+
+    .exam-slot.is-active {
+      border-color: rgba(185, 130, 69, 0.28);
+      background: rgba(255,248,239,0.82);
+    }
+
+    .exam-slot.is-done {
+      opacity: 0.58;
+    }
+
+    .exam-slot-time {
+      display: block;
+      color: var(--muted-2);
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
+    .exam-slot-subject {
+      display: block;
+      margin-top: 4px;
+      color: #172033;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .second-cell {
@@ -495,6 +625,10 @@
         padding: 12px 24px 0;
       }
 
+      .count-wrap.is-single .time-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
       .note {
         margin-right: 24px;
         margin-left: 24px;
@@ -572,6 +706,14 @@
 
       .time-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .count-wrap.is-single .time-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .exam-schedule {
+        grid-template-columns: 1fr;
       }
 
       .time-box {
@@ -662,7 +804,7 @@
       </header>
 
       <section class="count-wrap" aria-label="高考倒计时">
-        <article class="count-card">
+        <article id="countCard2027" class="count-card">
           <div class="count-head">
             <div>
               <h2 class="count-title">2027 高考</h2>
@@ -694,16 +836,16 @@
           </div>
         </article>
 
-        <article class="count-card is-2026">
+        <article id="examCard2026" class="count-card is-2026">
           <div class="count-head">
             <div>
-              <h2 class="count-title">2026 高考</h2>
-              <p class="count-sub">目标时间：2026-06-07 09:00</p>
+              <h2 id="title2026" class="count-title">2026 高考</h2>
+              <p id="sub2026" class="count-sub">目标时间：2026-06-07 09:00</p>
             </div>
             <span id="status2026" class="status">倒计时中</span>
           </div>
 
-          <div class="time-grid">
+          <div id="countdown2026" class="time-grid exam-countdown">
             <div class="time-box day">
               <p id="d2026" class="time-num num">0</p>
               <p class="time-label">天</p>
@@ -723,6 +865,27 @@
               </div>
               <p class="time-label">秒</p>
             </div>
+          </div>
+
+          <div id="examPanel2026" class="exam-panel" aria-live="polite">
+            <div class="exam-focus">
+              <p id="examPhase2026" class="exam-label">考试日提醒</p>
+              <h3 id="examSubject2026" class="exam-subject">--</h3>
+              <p id="examTime2026" class="exam-time">--</p>
+            </div>
+
+            <div class="exam-next">
+              <div class="exam-next-row">
+                <span>下一节点</span>
+                <strong id="examNext2026">--</strong>
+              </div>
+              <div class="exam-next-row">
+                <span>提示</span>
+                <strong id="examTip2026">以准考证和官方通知为准</strong>
+              </div>
+            </div>
+
+            <div id="examSchedule2026" class="exam-schedule" aria-label="2026 辽宁高考科目安排"></div>
           </div>
         </article>
       </section>
@@ -789,6 +952,67 @@
       2027: new Date("2027-06-07T09:00:00+08:00"),
       2026: new Date("2026-06-07T09:00:00+08:00")
     };
+    const EXAM_WINDOW_2026_START = new Date("2026-06-07T00:00:00+08:00");
+    const EXAM_WINDOW_2026_END = new Date("2026-06-09T18:15:00+08:00");
+    const EXAM_SCHEDULE_2026 = [
+      {
+        subject: "语文",
+        date: "6月7日",
+        time: "09:00-11:30",
+        start: new Date("2026-06-07T09:00:00+08:00"),
+        end: new Date("2026-06-07T11:30:00+08:00")
+      },
+      {
+        subject: "数学",
+        date: "6月7日",
+        time: "15:00-17:00",
+        start: new Date("2026-06-07T15:00:00+08:00"),
+        end: new Date("2026-06-07T17:00:00+08:00")
+      },
+      {
+        subject: "物理 / 历史",
+        date: "6月8日",
+        time: "09:00-10:15",
+        start: new Date("2026-06-08T09:00:00+08:00"),
+        end: new Date("2026-06-08T10:15:00+08:00")
+      },
+      {
+        subject: "外语",
+        date: "6月8日",
+        time: "15:00-17:00",
+        start: new Date("2026-06-08T15:00:00+08:00"),
+        end: new Date("2026-06-08T17:00:00+08:00"),
+        note: "听力测试在外语笔试开始前进行"
+      },
+      {
+        subject: "化学",
+        date: "6月9日",
+        time: "08:30-09:45",
+        start: new Date("2026-06-09T08:30:00+08:00"),
+        end: new Date("2026-06-09T09:45:00+08:00")
+      },
+      {
+        subject: "地理",
+        date: "6月9日",
+        time: "11:00-12:15",
+        start: new Date("2026-06-09T11:00:00+08:00"),
+        end: new Date("2026-06-09T12:15:00+08:00")
+      },
+      {
+        subject: "思想政治",
+        date: "6月9日",
+        time: "14:30-15:45",
+        start: new Date("2026-06-09T14:30:00+08:00"),
+        end: new Date("2026-06-09T15:45:00+08:00")
+      },
+      {
+        subject: "生物学",
+        date: "6月9日",
+        time: "17:00-18:15",
+        start: new Date("2026-06-09T17:00:00+08:00"),
+        end: new Date("2026-06-09T18:15:00+08:00")
+      }
+    ];
     const TIME_SYNC_URL = "https://worldtimeapi.org/api/timezone/Asia/Shanghai";
     const TIME_SYNC_INTERVAL = 10 * 60 * 1000;
     const TIME_SYNC_TIMEOUT = 4000;
@@ -934,6 +1158,125 @@
       }
     }
 
+    function formatDuration(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      if (days > 0) return `${days}天 ${pad(hours)}时 ${pad(minutes)}分`;
+      if (hours > 0) return `${hours}时 ${pad(minutes)}分`;
+      if (minutes > 0) return `${minutes}分 ${pad(seconds)}秒`;
+      return `${seconds}秒`;
+    }
+
+    function getExamState(now) {
+      const current = EXAM_SCHEDULE_2026.find((item) => now >= item.start && now < item.end);
+      const next = EXAM_SCHEDULE_2026.find((item) => now < item.start);
+      const previous = [...EXAM_SCHEDULE_2026].reverse().find((item) => now >= item.end);
+
+      if (current) {
+        return {
+          mode: "active",
+          current,
+          next,
+          previous,
+          phase: "正在考试",
+          subject: current.subject,
+          time: `${current.date} ${current.time}`,
+          nextText: `距离本场结束还有 ${formatDuration(current.end - now)}`,
+          status: "进行中",
+          tip: current.note || "按准考证和考点要求执行"
+        };
+      }
+
+      if (next) {
+        return {
+          mode: previous ? "break" : "ready",
+          current: null,
+          next,
+          previous,
+          phase: previous ? "间隔休息" : "考前准备",
+          subject: next.subject,
+          time: `${next.date} ${next.time}`,
+          nextText: `距离 ${next.subject} 开始还有 ${formatDuration(next.start - now)}`,
+          status: previous ? "下一科" : "今日启动",
+          tip: next.note || "以准考证和官方通知为准"
+        };
+      }
+
+      return null;
+    }
+
+    function renderExamSchedule(now, activeItem) {
+      const schedule = document.getElementById("examSchedule2026");
+      if (!schedule) return;
+
+      schedule.innerHTML = "";
+      for (const item of EXAM_SCHEDULE_2026) {
+        const slot = document.createElement("div");
+        slot.className = "exam-slot";
+        if (activeItem === item) slot.classList.add("is-active");
+        if (now >= item.end) slot.classList.add("is-done");
+
+        const time = document.createElement("span");
+        time.className = "exam-slot-time";
+        time.textContent = `${item.date} ${item.time}`;
+
+        const subject = document.createElement("span");
+        subject.className = "exam-slot-subject";
+        subject.textContent = item.subject;
+
+        slot.append(time, subject);
+        schedule.append(slot);
+      }
+    }
+
+    function render2026Card() {
+      const now = getSyncedNow();
+      const wrap = document.querySelector(".count-wrap");
+      const card = document.getElementById("examCard2026");
+      const title = document.getElementById("title2026");
+      const sub = document.getElementById("sub2026");
+      const status = document.getElementById("status2026");
+
+      if (!card) return;
+
+      if (now >= EXAM_WINDOW_2026_END) {
+        card.classList.add("is-hidden");
+        card.classList.remove("is-exam-mode");
+        if (wrap) wrap.classList.add("is-single");
+        return;
+      }
+
+      card.classList.remove("is-hidden");
+      if (wrap) wrap.classList.remove("is-single");
+
+      if (now < EXAM_WINDOW_2026_START) {
+        card.classList.remove("is-exam-mode");
+        if (title) title.textContent = "2026 高考";
+        if (sub) sub.textContent = "目标时间：2026-06-07 09:00";
+        renderYear(2026);
+        return;
+      }
+
+      const state = getExamState(now);
+      if (!state) return;
+
+      card.classList.add("is-exam-mode");
+      if (title) title.textContent = "2026 辽宁高考";
+      if (sub) sub.textContent = "考试日科目提醒：6月7日-9日";
+      if (status) status.textContent = state.status;
+
+      setText("examPhase2026", state.phase);
+      setText("examSubject2026", state.subject);
+      setText("examTime2026", state.time);
+      setText("examNext2026", state.nextText);
+      setText("examTip2026", state.tip);
+      renderExamSchedule(now, state.current);
+    }
+
     function renderNow() {
       const now = getSyncedNow();
       const parts = getBeijingTimeParts(now);
@@ -950,7 +1293,7 @@
     function tick() {
       maybeSyncNetworkTime();
       renderYear(2027);
-      renderYear(2026);
+      render2026Card();
       renderNow();
     }
 
