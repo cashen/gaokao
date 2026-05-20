@@ -3,63 +3,28 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>辽宁物理类工具 Debug Report｜V2.91RC0.parent-trust1</title>
+  <title>辽宁物理类工具 V3.0RC 一键测试 Debug</title>
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:18px}
-    main{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 8px 22px rgba(15,23,42,.05)}
-    button{border:0;border-radius:10px;background:#0f172a;color:#fff;padding:9px 12px;margin:4px 8px 4px 0;cursor:pointer}button.secondary{background:#334155}a{color:#0f766e;text-decoration:none;margin-left:8px}
-    pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;line-height:1.55;max-height:70vh;overflow:auto}.muted{color:#64748b;font-size:13px}code{background:#f1f5f9;padding:2px 5px;border-radius:6px}h1{font-size:24px}h2{font-size:18px}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f7f8fb;color:#111827;margin:0;padding:18px}main{max-width:1160px;margin:auto}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 8px 22px rgba(15,23,42,.05)}
+    h1{font-size:24px;margin:4px 0 8px}h2{font-size:17px;margin:0 0 8px}.muted{color:#64748b;font-size:13px;line-height:1.65}button{border:0;border-radius:10px;background:#0f172a;color:#fff;padding:10px 14px;margin:4px 8px 4px 0;cursor:pointer}button.secondary{background:#334155}a{color:#0f766e;text-decoration:none;margin-left:8px}pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;line-height:1.55;max-height:72vh;overflow:auto}.pill{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;margin-right:6px;font-size:12px}#summary{font-size:14px;line-height:1.7}
   </style>
 </head>
 <body>
 <main>
-  <h1>辽宁物理类工具 Debug Report｜V2.91RC0.parent-trust1</h1>
-  <p class="muted">先在主页面复现问题，再刷新本页复制报告；也可以直接运行“一键联动自测”。这里不显示密码、Cookie 或 Secret。</p>
+  <h1>辽宁物理类工具 V3.0RC 一键测试 Debug</h1>
+  <p class="muted">这个页面用于把我这次做的 V3.0RC 改动一次性测出来：资源加载、数据完整性、12 个家庭场景、A/B/C 模拟、低分段 C 命名、明显 FAIL/WARN。不会读取密码、Cookie 或 Secret。</p>
   <div class="card">
-    <button id="copyBtn">复制诊断报告</button>
-    <button id="copyDeepBtn">复制深度报告</button>
-    <button id="refreshBtn" class="secondary">刷新报告</button>
-    <a href="./index.html">返回工具</a>
+    <span class="pill">V3.0RC.family-decision-engine</span><span class="pill">12 场景回归</span><span class="pill">一键复制日志</span>
+    <div style="margin-top:10px">
+      <button id="runBtn">运行一键测试</button>
+      <button id="copyBtn" class="secondary">复制一键测试日志</button>
+      <a href="./index.html">返回工具</a>
+    </div>
   </div>
-  <div class="card"><pre id="report">正在读取 localStorage...</pre></div>
+  <div class="card"><h2>运行摘要</h2><div id="summary" class="muted">点击“运行一键测试”。完成后直接复制日志发给我。</div></div>
+  <div class="card"><h2>完整日志</h2><pre id="report">暂无日志。</pre></div>
 </main>
-<script>
-function build(){
-  let raw=localStorage.getItem('ln_v2983_debug_report');let obj={};
-  try{obj=raw?JSON.parse(raw):{};}catch(e){obj={parseError:String(e),raw};}
-  const lines=[];
-  lines.push('【辽宁物理类工具 Debug Report】');
-  lines.push('读取时间：'+new Date().toLocaleString());
-  lines.push('版本：'+(obj.version||''));
-  lines.push('版本戳：'+(obj.stamp||''));
-  if(obj.runtime){
-    lines.push('URL：'+(obj.runtime.url||''));
-    lines.push('body.className：'+(obj.runtime.bodyClass||''));
-    lines.push('JS文件数：'+(obj.runtime.jsFiles||0)+'；失败：'+((obj.runtime.failedFiles||[]).join(',')||'无'));
-    lines.push('抽屉：open='+obj.runtime.drawerOpen+' mask='+obj.runtime.maskVisible+' bodyLock='+obj.runtime.bodyLock+' scrollY='+obj.runtime.scrollY);
-  }
-  lines.push('候选池：'+JSON.stringify(obj.pools||{}));
-  lines.push('当前上下文：'+JSON.stringify(obj.context||{}));
-  lines.push('标记：'+JSON.stringify(obj.flags||{}));
-  lines.push('旧逻辑：'+JSON.stringify(obj.legacy||{}));
-  lines.push('队列：'+JSON.stringify(obj.queue||{}));
-  if(obj.runtime&&obj.runtime.device)lines.push('设备：'+JSON.stringify(obj.runtime.device));
-  if(obj.runtime&&obj.runtime.resources)lines.push('资源：'+JSON.stringify(obj.runtime.resources));
-  if(obj.details){lines.push('深度细分：');Object.keys(obj.details).forEach(k=>lines.push(' - '+k+'：'+JSON.stringify(obj.details[k])));}
-  lines.push('最近耗时：');Object.keys(obj.timings||{}).forEach(k=>lines.push(' - '+k+'：'+obj.timings[k].ms+'ms '+(obj.timings[k].extra?JSON.stringify(obj.timings[k].extra):'')));
-  lines.push('最近操作：');(obj.actions||[]).slice(-25).forEach(a=>lines.push(' - ['+a.t+'] '+a.action+(a.data?' '+JSON.stringify(a.data):'')));
-  if((obj.errors||[]).length){lines.push('错误：');obj.errors.slice(-10).forEach(e=>lines.push(' - '+e.message+' @ '+(e.source||'')+':'+(e.lineno||'')));}
-  if((obj.longTasks||[]).length){lines.push('长任务：');obj.longTasks.slice(-10).forEach(e=>lines.push(' - '+e.duration+'ms @ '+e.t));}
-  const stRaw=localStorage.getItem('ln_v2983_selftest_report');
-  if(stRaw){try{const st=JSON.parse(stRaw);lines.push('自测摘要：'+JSON.stringify(st.summary||{}));if(st.coverage)lines.push('自测覆盖：'+JSON.stringify(st.coverage));}catch(e){}}
-  return lines.join('\n');
-}
-function render(){document.getElementById('report').textContent=build();try{window.LN_DEBUG_SELFTEST_V2983FIX12?.render?.();}catch(e){}}
-document.getElementById('copyBtn').onclick=async()=>{const txt=build();await navigator.clipboard.writeText(txt).catch(()=>{});document.getElementById('copyBtn').textContent='已复制';setTimeout(()=>document.getElementById('copyBtn').textContent='复制诊断报告',1200)};
-document.getElementById('copyDeepBtn').onclick=async()=>{const txt=build();await navigator.clipboard.writeText(txt).catch(()=>{});document.getElementById('copyDeepBtn').textContent='深度报告已复制';setTimeout(()=>document.getElementById('copyDeepBtn').textContent='复制深度报告',1200)};
-document.getElementById('refreshBtn').onclick=render;
-render();
-</script>
-<script src="./assets/debug-selftest.v2983fix12.js?v=291rc0parenttrust1-20260514"></script>
+<script src="./assets/family-scenario-regression.v300rc.js?v=300rc-20260520"></script>
+<script src="./assets/family-debug-suite.v300rc.js?v=300rc-20260520"></script>
 </body>
 </html>

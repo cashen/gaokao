@@ -1,4 +1,7 @@
-V2.91RC0.rules-closure4.front2｜家长端低调视觉修正版
-版本戳：291rc0front2-20260514
-基线：V2.91RC0.rules-closure4.front1
-边界：纯前端视觉层，不改候选池、排序、A/B/C 业务结果。
+V3.0RC.family-decision-engine
+300rc-20260520
+- rules-closure4 升格为 family-decision-engine 最终决策层
+- A/B/C 分段定义：A守底线，B看专业，C按位次动态为争平台/看城市层级/机会对照/成本换本科机会
+- 低分段与本科边缘强提示
+- 详情卡增加必须复核/重点复核/建议复核
+- debug.html 一键测试 + 12 个家庭场景回归日志
