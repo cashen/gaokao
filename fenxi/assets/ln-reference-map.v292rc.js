@@ -1,11 +1,11 @@
 /*
- * V2.92RC1.engine-cleanup｜JS 引用与职责地图
+ * V2.92RC2.abc-policy-audit｜JS 引用与职责地图
  * 只登记工程结构，不改变业务计算。后续新增 JS 必须先归层再引用。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC1.engine-cleanup';
-  const STAMP='292rc1-engine-cleanup-20260521';
+  const VERSION='V2.92RC2.abc-policy-audit';
+  const STAMP='292rc2-abc-policy-audit-20260521';
   const map={
     version:VERSION,
     stamp:STAMP,
@@ -20,7 +20,8 @@
       {id:'detail',name:'详情卡解释层',kind:'soft',files:['assets/detail-card-lite-model.v2981fix2.js','assets/detail-card-lite-ui.v2981fix2.js','assets/ui-detail-notice-late-core.v291rc0ui1.js'],finalOwner:'detail-card-lite-ui.v2981fix2.js',rule:'负责详情解释、复核动作、家长必读，不改变候选池。'},
       {id:'presentation',name:'家长信任表达层',kind:'soft',files:['assets/parent-trust.v291rc0parenttrust2.js','assets/frontend-trust.v291rc0front2.js','assets/notice-compact-ui.v2981fix2.js','assets/context-summary-ui.v2981fix1.js','assets/profile-interest-summary.v2981fix2.js'],rule:'只做人话化、视觉增强、解释增强，不改变公式/候选/排序。'},
       {id:'interaction',name:'交互稳定层',kind:'technical',files:['assets/app.v2983.js','assets/interaction-stability.v2982.js','assets/interact-stability.v29rc1.js','assets/interact-dedupe.v29rc2.js','assets/refresh-scheduler.v297fix2.js'],rule:'历史交互补丁短期保留事件监听；applyFilters 入口由 refresh-controller 后置收口。'},
-      {id:'registry-debug',name:'工程闭环审计层',kind:'diagnostic',files:['assets/ln-runtime-registry.v292rc.js','assets/ln-state-adapter.v292rc.js','assets/ln-refresh-controller.v292rc.js','assets/ln-debug-baseline.v292rc.js'],rule:'记录、审计、输出日志；refresh-controller 后置接管 applyFilters 入口，但业务计算仍调用 compute-pipeline。'}
+      {id:'registry-debug',name:'工程闭环审计层',kind:'diagnostic',files:['assets/ln-runtime-registry.v292rc.js','assets/ln-state-adapter.v292rc.js','assets/ln-refresh-controller.v292rc.js','assets/ln-debug-baseline.v292rc.js'],rule:'记录、审计、输出日志；refresh-controller 后置接管 applyFilters 入口，但业务计算仍调用 compute-pipeline。'},
+      {id:'abc-policy-audit',name:'A/B/C 人类思维策略审计层',kind:'diagnostic-policy',files:['assets/ln-abc-policy-audit.v292rc2.js'],rule:'统一测试接口；自动模拟分数、兴趣、性别、预算、拒绝项和家庭场景；只审计，不改 A/B/C 策略。'}
     ],
     protectedGlobals:['applyFilters','planScoreV29475','renderPlanABC','renderPlanABCViewOnly','LN_DETAIL_CARD_UI_V2981','LN_COMPUTE_PIPELINE_V2983'],
     finalExpectedOwners:{
