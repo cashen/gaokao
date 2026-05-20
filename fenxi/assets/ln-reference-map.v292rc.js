@@ -1,11 +1,11 @@
 /*
- * V2.92RC2.abc-policy-audit｜JS 引用与职责地图
+ * V2.92RC2.1.abc-audit-runner-stable｜JS 引用与职责地图
  * 只登记工程结构，不改变业务计算。后续新增 JS 必须先归层再引用。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.abc-policy-audit';
-  const STAMP='292rc2-abc-policy-audit-20260521';
+  const VERSION='V2.92RC2.1.abc-audit-runner-stable';
+  const STAMP='292rc21-abc-audit-runner-stable-20260521';
   const map={
     version:VERSION,
     stamp:STAMP,

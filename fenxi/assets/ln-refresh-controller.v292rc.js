@@ -1,12 +1,12 @@
 /*
- * V2.92RC2.abc-policy-audit｜统一刷新控制器
+ * V2.92RC2.1.abc-audit-runner-stable｜统一刷新控制器
  * 目标：不改变 compute-pipeline / plan-engine / rules-closure4 的业务结果，
  * 在所有历史 SP wrapper 加载完成后，把 window.applyFilters 收口为一个统一入口。
  * 保留旧 interact-stability / interact-dedupe 的事件监听与指纹思想，但不再让 applyFilters 多层嵌套。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.abc-policy-audit.refresh-controller';
+  const VERSION='V2.92RC2.1.abc-audit-runner-stable.refresh-controller';
   const STAMP='292rc1-refresh-controller-20260521';
   const state={
     version:VERSION,

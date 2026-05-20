@@ -1,7 +1,7 @@
-/* V2.92RC2.abc-policy-audit｜debug 共享工具。 */
+/* V2.92RC2.1.abc-audit-runner-stable｜debug 共享工具。 */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.abc-policy-audit.debug-baseline';
+  const VERSION='V2.92RC2.1.abc-audit-runner-stable.debug-baseline';
   function hashText(s){s=String(s||'');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}return h.toString(16);}
   function summarizeWindow(w){
     w=w||window;

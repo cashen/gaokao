@@ -3,21 +3,22 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>辽宁物理类工具｜V2.92RC2.abc-policy-audit 一键 Debug</title>
+<title>辽宁物理类工具｜V2.92RC2.1.abc-audit-runner-stable 一键 Debug</title>
 <style>
 :root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--card:#fff;--bg:#f8fafc;--ok:#059669;--warn:#d97706;--fail:#dc2626;--blue:#2563eb}
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:18px;line-height:1.55}main{max-width:1180px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 12px 30px rgba(15,23,42,.06)}h1{font-size:25px;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:12px;background:var(--ink);color:#fff;padding:10px 14px;cursor:pointer;font-weight:700}button.secondary{background:#334155}button.ghost{background:#e2e8f0;color:#0f172a}a{color:var(--blue);text-decoration:none;font-weight:700}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:800px){.grid{grid-template-columns:1fr}}.metric{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fafc}.metric b{display:block;font-size:22px}.ok{color:var(--ok)}.warn{color:var(--warn)}.fail{color:var(--fail)}pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;line-height:1.5;max-height:68vh;overflow:auto}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;margin:2px;border:1px solid var(--line);font-size:12px}.pill.ok{background:#ecfdf5;border-color:#a7f3d0}.pill.warn{background:#fff7ed;border-color:#fed7aa}.pill.fail{background:#fef2f2;border-color:#fecaca}.small{font-size:12px}.hide{display:none}.progress{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--blue);transition:width .25s}</style>
 </head>
 <body>
 <main>
-  <h1>辽宁物理类高考志愿工具｜V2.92RC2.abc-policy-audit 一键 Debug</h1>
-  <p class="muted">这个页面用于工程闭环与 ABC 策略审计：检查资源、加载链、最终函数来源、pendingdel、wrapper 收口，并自动模拟 36 个真实家庭场景审计 A/B/C。不会读取密码、Cookie 或 Secret。</p>
+  <h1>辽宁物理类高考志愿工具｜V2.92RC2.1.abc-audit-runner-stable 一键 Debug</h1>
+  <p class="muted">这个页面用于工程闭环与 ABC 策略审计：检查资源、加载链、最终函数来源、pendingdel、wrapper 收口，并分批模拟真实家庭场景审计 A/B/C：核心 12 例用于快速反馈，完整 36 例用于全量审计。不会读取密码、Cookie 或 Secret。</p>
   <div class="card">
     <h2>一键测试</h2>
     <div class="progress"><div class="bar" id="bar"></div></div>
-    <p id="status" class="muted">点击“一键测试”，完成后点“复制日志”发给我即可。</p>
+    <p id="status" class="muted">建议先点“运行核心审计”，完成后复制日志；完整审计会更慢，但会覆盖全部场景。</p>
     <div class="btns">
-      <button id="runBtn">运行全部测试</button>
+      <button id="runCoreBtn">运行核心审计（12例）</button>
+      <button id="runFullBtn" class="secondary">运行完整审计（36例）</button>
       <button id="copyBtn" class="secondary">复制日志</button>
       <button id="downloadBtn" class="ghost">下载 JSON</button>
       <a href="./index.html">返回工具</a>
@@ -35,7 +36,7 @@
 <script>
 (function(){
 'use strict';
-const VERSION='V2.92RC2.abc-policy-audit.debug-oneclick';
+const VERSION='V2.92RC2.1.abc-audit-runner-stable.debug-oneclick';
 let LAST_REPORT=null;
 const $=id=>document.getElementById(id);
 function setStatus(t,p){$('status').textContent=t; if(typeof p==='number')$('bar').style.width=Math.max(0,Math.min(100,p))+'%';}
@@ -48,7 +49,7 @@ function parseArrayConst(src,name){const re=new RegExp('const\\s+'+name+'\\s*=\\
 function applyUiBundles(list,groups){const out=[];let i=0;while(i<list.length){let matched=false;for(const g of groups||[]){const seq=g.files||[];if(seq.length&&list.slice(i,i+seq.length).join('\n')===seq.join('\n')){out.push(g.bundle);i+=seq.length;matched=true;break;}}if(!matched){out.push(list[i]);i++;}}return out;}
 function classifyStatus(items){const fail=items.filter(x=>x.status==='FAIL').length;const warn=items.filter(x=>x.status==='WARN').length;return fail?'FAIL':warn?'WARN':'PASS';}
 async function assetCheck(files){const out=[];for(const f of files){try{const r=await fetch(f+'?debug='+Date.now(),{cache:'no-store'});out.push({file:f,status:r.ok?'PASS':'FAIL',http:r.status,size:Number(r.headers.get('content-length')||0)||null});}catch(e){out.push({file:f,status:'FAIL',error:String(e)});} }return out;}
-async function runIframeAudit(activeFiles){
+async function runIframeAudit(activeFiles,auditMode){
   return new Promise(resolve=>{
     const frame=document.createElement('iframe');
     frame.style.cssText='position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;opacity:0;pointer-events:none';
@@ -79,9 +80,15 @@ async function runIframeAudit(activeFiles){
           debugReportPresent:!!localStorage.getItem('ln_v2983_debug_report')
         };
         if(w.LN_ABC_POLICY_AUDIT_V292RC2&&typeof w.LN_ABC_POLICY_AUDIT_V292RC2.runAll==='function'){
-          audit.abcHumanAudit=await Promise.race([w.LN_ABC_POLICY_AUDIT_V292RC2.runAll({progress:function(i,total,c){try{window.parent&&window.parent.postMessage({kind:'abc-audit-progress',i:i,total:total,id:c&&c.id},'*');}catch(e){}}}),new Promise(function(resolve){setTimeout(function(){resolve({status:'WARN',error:'ABC human audit timeout',counts:{TIMEOUT:1},caseTotal:0,results:[]});},120000);})]);
+          const mode=auditMode||'core';
+          const totalTimeout=mode==='full'?420000:180000;
+          audit.abcHumanAudit=await Promise.race([
+            w.LN_ABC_POLICY_AUDIT_V292RC2.runAll({mode:mode,perCaseTimeoutMs:mode==='full'?16000:14000,betweenCaseMs:90,progress:function(i,total,c,res){try{window.parent&&window.parent.postMessage({kind:'abc-audit-progress',i:i,total:total,id:c&&c.id,status:res&&res.humanAudit&&res.humanAudit.status},'*');}catch(e){}}}),
+            new Promise(function(resolve){setTimeout(function(){resolve({status:'FAIL',error:'ABC human audit total timeout',mode:mode,counts:{TIMEOUT:1},caseTotal:0,results:[]});},totalTimeout);})
+          ]);
+          if(!audit.abcHumanAudit||!audit.abcHumanAudit.caseTotal){audit.abcHumanAudit=Object.assign({status:'FAIL',error:'ABC human audit empty result',counts:{FAIL:1},caseTotal:0,results:[]},audit.abcHumanAudit||{});}
         }else{
-          audit.abcHumanAudit={status:'WARN',error:'LN_ABC_POLICY_AUDIT_V292RC2 not loaded'};
+          audit.abcHumanAudit={status:'FAIL',error:'LN_ABC_POLICY_AUDIT_V292RC2 not loaded',counts:{FAIL:1},caseTotal:0,results:[]};
         }
       }catch(e){audit.status='FAIL';audit.error=String(e);} 
       try{frame.remove();}catch(e){}
@@ -93,8 +100,9 @@ async function runIframeAudit(activeFiles){
     document.body.appendChild(frame);
   });
 }
-async function run(){
-  const report={kind:'LN Fenxi V2.92RC2 ABC Policy Audit One Click Debug Report',version:VERSION,generatedAt:now(),url:location.href,userAgent:navigator.userAgent,checks:[]};
+async function run(auditMode){
+  auditMode=auditMode||'core';
+  const report={kind:'LN Fenxi V2.92RC2.1 ABC Audit Runner Stable One Click Debug Report',version:VERSION,generatedAt:now(),url:location.href,userAgent:navigator.userAgent,checks:[]};
   try{
     setStatus('读取 index.html 与引用链...',8);
     const idx=await fetchText('./index.html');report.index={http:idx.status,size:idx.text.length,hash:hashText(idx.text),status:idx.ok?'PASS':'FAIL'};
@@ -115,8 +123,9 @@ async function run(){
     setStatus('读取 pendingdel 隔离清单...',55);
     const pd=await fetchJSON('./pendingdel/2026-v292-engine-cleanup/manifest.pendingdel.v292rc.json');
     report.pendingdel={status:pd.ok?'PASS':'WARN',version:pd.data?.version,movedCount:pd.data?.movedCount,categories:pd.data?.items?pd.data.items.reduce((a,x)=>{a[x.category]=(a[x.category]||0)+1;return a;},{}):null,manifestError:pd.error||null};
-    setStatus('运行 iframe 实际加载链审计与 ABC 人类场景审计...',72);
-    report.runtimeAudit=await runIframeAudit(active);
+    setStatus('运行 iframe 实际加载链审计与 ABC 人类场景审计（'+auditMode+'）...',72);
+    report.auditMode=auditMode;
+    report.runtimeAudit=await runIframeAudit(active,auditMode);
     report.abcHumanAudit=report.runtimeAudit.abcHumanAudit||null;
     setStatus('生成结论...',92);
     const failures=[];const warnings=[];
@@ -130,9 +139,11 @@ async function run(){
     if(!report.pendingdel.movedCount)warnings.push('pendingdel 本轮未记录移动文件或清单不可读');
     if(report.abcHumanAudit){
       const c=report.abcHumanAudit.counts||{};
-      if(c.FAIL)warnings.push('ABC 人类场景审计存在 FAIL：'+c.FAIL+' 个，请把日志发给我分析。');
+      if(!report.abcHumanAudit.caseTotal)failures.push('ABC 人类场景审计没有跑出任何 case，不能作为策略依据。');
+      if(report.abcHumanAudit.status==='FAIL'||c.FAIL)warnings.push('ABC 人类场景审计存在 FAIL：'+(c.FAIL||0)+' 个，请把日志发给我分析。');
+      if(c.TIMEOUT)warnings.push('ABC 人类场景审计存在 TIMEOUT：'+c.TIMEOUT+' 个，已跳过并继续其他场景。');
       if(c.WARN)warnings.push('ABC 人类场景审计存在 WARN：'+c.WARN+' 个，用于判断策略是否过稳/过冲/兴趣失效。');
-    }
+    }else{failures.push('ABC 人类场景审计结果缺失。');}
     report.conclusion={status:failures.length?'FAIL':warnings.length?'WARN':'PASS',failures,warnings};
     report.checks=[
       {name:'index',status:report.index.status},
@@ -142,7 +153,7 @@ async function run(){
       {name:'pendingdel-manifest',status:report.pendingdel.status},
       {name:'runtime-iframe',status:report.runtimeAudit.status},
       {name:'wrapper-depth',status:(report.runtimeAudit.wrappers?.managed||report.runtimeAudit.wrappers?.applyFiltersDepth<4)?'PASS':'WARN'},
-      {name:'abc-human-audit',status:(report.abcHumanAudit?.counts?.FAIL?'WARN':'PASS')}
+      {name:'abc-human-audit',status:(!report.abcHumanAudit||!report.abcHumanAudit.caseTotal)?'FAIL':(report.abcHumanAudit.counts?.FAIL||report.abcHumanAudit.counts?.TIMEOUT)?'WARN':'PASS'}
     ];
   }catch(e){report.conclusion={status:'FAIL',failures:[String(e)],warnings:[]};report.error=String(e);}
   LAST_REPORT=report;
@@ -154,13 +165,13 @@ function renderReport(r){
   const checks=r.checks||[]; const summary=r.conclusion||{};
   const grid=$('summaryGrid');grid.innerHTML='';
   const metrics=[
-    ['总体',summary.status||'-'],['资源失败',String(r.assetSummary?.FAIL??'-')],['数据记录',String(r.dataSummary?.totalRecords??'-')],['chunks',String(r.dataSummary?.chunks??'-')],['pendingdel',String(r.pendingdel?.movedCount??'-')],['applyFilters层',String(r.runtimeAudit?.wrappers?.applyFiltersDepth??'-')+(r.runtimeAudit?.wrappers?.managed?' / managed':'' )],['历史捕获层',String(r.runtimeAudit?.wrappers?.capturedDepth??'-')],['运行时',r.runtimeAudit?.status||'-'],['ABC审计',r.abcHumanAudit?('P'+(r.abcHumanAudit.counts?.PASS||0)+' W'+(r.abcHumanAudit.counts?.WARN||0)+' F'+(r.abcHumanAudit.counts?.FAIL||0)):'-'],['检查项',checks.map(c=>c.status).join('/')||'-']
+    ['总体',summary.status||'-'],['资源失败',String(r.assetSummary?.FAIL??'-')],['数据记录',String(r.dataSummary?.totalRecords??'-')],['chunks',String(r.dataSummary?.chunks??'-')],['pendingdel',String(r.pendingdel?.movedCount??'-')],['applyFilters层',String(r.runtimeAudit?.wrappers?.applyFiltersDepth??'-')+(r.runtimeAudit?.wrappers?.managed?' / managed':'' )],['历史捕获层',String(r.runtimeAudit?.wrappers?.capturedDepth??'-')],['运行时',r.runtimeAudit?.status||'-'],['ABC模式',r.auditMode||'-'],['ABC审计',r.abcHumanAudit?('P'+(r.abcHumanAudit.counts?.PASS||0)+' W'+(r.abcHumanAudit.counts?.WARN||0)+' F'+(r.abcHumanAudit.counts?.FAIL||0)+' T'+(r.abcHumanAudit.counts?.TIMEOUT||0)+' / '+(r.abcHumanAudit.caseTotal||0)):'-'],['检查项',checks.map(c=>c.status).join('/')||'-']
   ];
   metrics.forEach(([k,v])=>{const cls=/FAIL/.test(v)?'fail':/WARN/.test(v)?'warn':/PASS/.test(v)?'ok':'';const div=document.createElement('div');div.className='metric';div.innerHTML='<span class="muted">'+k+'</span><b class="'+cls+'">'+v+'</b>';grid.appendChild(div);});
 }
 async function copy(){const txt=LAST_REPORT?JSON.stringify(LAST_REPORT,null,2):$('report').textContent;await navigator.clipboard.writeText(txt).catch(()=>{});$('copyBtn').textContent='已复制';setTimeout(()=>$('copyBtn').textContent='复制日志',1400)}
-function download(){const txt=LAST_REPORT?JSON.stringify(LAST_REPORT,null,2):$('report').textContent;const blob=new Blob([txt],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fenxi-v292rc2-abc-policy-audit-debug-'+Date.now()+'.json';a.click();URL.revokeObjectURL(a.href)}
-$('runBtn').onclick=run;$('copyBtn').onclick=copy;$('downloadBtn').onclick=download;
+function download(){const txt=LAST_REPORT?JSON.stringify(LAST_REPORT,null,2):$('report').textContent;const blob=new Blob([txt],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fenxi-v292rc21-abc-audit-runner-stable-debug-'+Date.now()+'.json';a.click();URL.revokeObjectURL(a.href)}
+$('runCoreBtn').onclick=function(){run('core')};$('runFullBtn').onclick=function(){run('full')};$('copyBtn').onclick=copy;$('downloadBtn').onclick=download;
 })();
 </script>
 </body>

@@ -1,14 +1,18 @@
 /*
- * V2.92RC2.abc-policy-audit｜A/B/C 人类思维策略审计
+ * V2.92RC2.1.abc-audit-runner-stable｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.abc-policy-audit';
+  const VERSION='V2.92RC2.1.abc-audit-runner-stable';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
   const $=id=>document.getElementById(id);
+  function withTimeout(promise,ms,label){return new Promise(resolve=>{let done=false;const timer=setTimeout(()=>{if(done)return;done=true;resolve({__timeout:true,label:label||'timeout',ms});},ms);Promise.resolve(promise).then(v=>{if(done)return;done=true;clearTimeout(timer);resolve(v);},e=>{if(done)return;done=true;clearTimeout(timer);resolve({__error:true,error:String(e&&e.message||e),stack:e&&e.stack?String(e.stack).slice(0,800):''});});});}
+  function statusRank(s){return s==='FAIL'?3:s==='TIMEOUT'?2:s==='WARN'?1:0;}
+  function worse(a,b){return statusRank(a)>=statusRank(b)?a:b;}
+  const CORE_CASE_IDS=new Set(['680-male-computer-platform','650-female-medical-reject-cycle','600-male-grid-accept-site','580-female-exam-expression-no-site','560-male-computer-strong-code','550-male-grid-employment','530-employment-no-interest','510-male-mechanical-employment','490-female-teacher-exam-normal','470-female-law-exam-no-fee','450-edge-normal-no-fee','550-rich-computer-upgrade']);
   function safe(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
   function setVal(id,v){const el=$(id); if(!el||v===undefined||v===null)return false; el.value=String(v); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;}
   function setChipSet(rootSel, attr, values){
@@ -33,13 +37,14 @@
   }
   function saveStorage(){const o={}; STORAGE_KEYS.forEach(k=>{try{o[k]=localStorage.getItem(k);}catch(e){}}); return o;}
   function restoreStorage(o){STORAGE_KEYS.forEach(k=>{try{o&&o[k]!==null&&o[k]!==undefined?localStorage.setItem(k,o[k]):localStorage.removeItem(k);}catch(e){}});}
-  async function applyContext(input){
-    input=input||{};
+  async function applyContext(input,opts){
+    opts=opts||{}; input=input||{};
+    const t0=performance.now();
     setVal('myScore',input.score||''); setVal('myRank',input.rank||''); setVal('model',input.model||'normal');
     setProfile(input); setInterests(input.interests||[],input.manualOnlyInterest);
     if(typeof window.applyStrategy==='function' && input.scenario){try{window.applyStrategy(input.scenario);}catch(e){window.currentStrategy=input.scenario;}}
     else if(input.scenario){try{window.currentStrategy=input.scenario;}catch(e){}}
-    await sleep(60);
+    await sleep(Number(opts.afterStrategyMs||40));
     setVal('priority',input.priority||scenarioDefaultPriority(input.scenario)||'employment');
     setVal('budget',input.budget||'normal'); setVal('regionMode',input.regionMode||'hard'); setVal('cityMode',input.cityMode||'none'); setVal('targetCities',(input.cities||[]).join(' '));
     if(input.feeType!==undefined)setVal('filterFeeType',input.feeType);
@@ -51,13 +56,31 @@
     if(input.provinces)selectProvinces(input.provinces);
     setRejects(input.rejects||[]);
     try{window.LN_STATE_SNAPSHOT_V296?.reset?.(); window.LN_CANDIDATE_CACHE_V296?.reset?.();}catch(e){}
-    if(typeof window.autoRefreshAsync==='function')await window.autoRefreshAsync();
-    else if(window.LN_REFRESH_CONTROLLER_V292RC?.request)await window.LN_REFRESH_CONTROLLER_V292RC.request('abc-human-audit');
-    else if(typeof window.applyFilters==='function')window.applyFilters('abc-human-audit');
-    await waitForBuckets(5000);
+    const dataTimeout=Number(opts.dataTimeoutMs||6500);
+    const computeTimeout=Number(opts.computeTimeoutMs||2500);
+    let dataStatus='unknown', computeStatus='unknown';
+    if(typeof window.autoRefreshAsync==='function'){
+      const r=await withTimeout(window.autoRefreshAsync(),dataTimeout,'autoRefreshAsync');
+      dataStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
+      if(r&&r.__error)throw new Error('autoRefreshAsync error: '+r.error);
+    }else if(window.LN_REFRESH_CONTROLLER_V292RC?.request){
+      const r=await withTimeout(window.LN_REFRESH_CONTROLLER_V292RC.request('abc-human-audit',{delay:0}),computeTimeout,'refresh-controller');
+      computeStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
+    }else if(typeof window.applyFilters==='function'){
+      window.applyFilters('abc-human-audit'); computeStatus='sync';
+    }
+    if(!Array.isArray(window.filtered)||!window.filtered.length||!window.latestPlanBucketsV29475Fix2){
+      const ok=await waitForBuckets(Number(opts.bucketTimeoutMs||1800));
+      if(!ok && window.LN_COMPUTE_PIPELINE_V2983?.applyFilters){
+        const r=await withTimeout(window.LN_COMPUTE_PIPELINE_V2983.applyFilters('abc-human-audit-direct'),computeTimeout,'compute-pipeline-direct');
+        computeStatus=r&&r.__timeout?'timeout-direct':r&&r.__error?'error-direct':'ok-direct';
+        await waitForBuckets(Number(opts.bucketTimeoutMs||1000));
+      }
+    }
+    return {ms:Math.round(performance.now()-t0),dataStatus,computeStatus,filtered:Array.isArray(window.filtered)?window.filtered.length:null,rank:window.currentRank||null};
   }
   function scenarioDefaultPriority(sc){return ({employment:'employment',exam:'exam',grid:'grid',medical:'medical',teacher:'exam',platformSprint:'school',platformStable:'school',highValue:'employment',publicLow:'lowPublic',edgeBachelor:'lowPublic',budgetFlexible:'city',privateMajor:'employment',broad:'employment'})[sc]||'employment';}
-  async function waitForBuckets(maxMs){const t=Date.now(); while(Date.now()-t<maxMs){if(window.latestPlanBucketsV29475Fix2 && Array.isArray(window.filtered) && window.filtered.length){return true;} await sleep(120);} return false;}
+  async function waitForBuckets(maxMs){const t=Date.now(); while(Date.now()-t<maxMs){const b=window.latestPlanBucketsV29475Fix2; if(b && ((Array.isArray(b.A)&&b.A.length)||(Array.isArray(b.B)&&b.B.length)||(Array.isArray(b.C)&&b.C.length))){return true;} await sleep(80);} return false;}
   function rankBand(rank){rank=Number(rank||window.currentRank||0); if(!rank)return 'unknown'; if(rank<=12000)return 'top'; if(rank<=25000)return 'high'; if(rank<=60000)return 'middle'; if(rank<=90000)return 'low'; return 'edge';}
   function expectedCLabel(band){return band==='top'||band==='high'?'争平台':band==='middle'?'看城市/层级':band==='low'?'机会对照':'成本换本科机会';}
   function pathOf(r){try{return window.LN_RULES_CLOSURE_V291?.pathInfo?.(r)||{};}catch(e){return {};}}
@@ -91,12 +114,14 @@
     const status=fail.length?'FAIL':reasons.length?'WARN':'PASS';
     return {status,reasons:[...fail,...reasons],metrics:{BInterestPathHitRate:bHit,CPathHitRate:cHit,BsafeCount:Bsafe,CLabelExpected:expectedCLabel(band)}};
   }
-  async function runCase(caseDef){
+  async function runCase(caseDef,opts){
     const input=caseDef.input||{};
-    await applyContext(input);
+    const applyDiag=await applyContext(input,opts||{});
     const b=window.latestPlanBucketsV29475Fix2||{};
-    const actual={caseId:caseDef.id,title:caseDef.title,input,rank:Number(window.currentRank||0)||null,rankBand:rankBand(window.currentRank),filtered:Array.isArray(window.filtered)?window.filtered.length:0,A:summarizeBucket(b.A||[],'A',input),B:summarizeBucket(b.B||[],'B',input),C:summarizeBucket(b.C||[],'C',input)};
-    actual.humanAudit=auditCase(caseDef,actual);
+    const actual={caseId:caseDef.id,title:caseDef.title,input,rank:Number(window.currentRank||0)||null,rankBand:rankBand(window.currentRank),filtered:Array.isArray(window.filtered)?window.filtered.length:0,applyDiag,A:summarizeBucket(b.A||[],'A',input),B:summarizeBucket(b.B||[],'B',input),C:summarizeBucket(b.C||[],'C',input)};
+    if(!actual.rank)actual.humanAudit={status:'FAIL',reasons:['未能解析位次/分数，无法审计 A/B/C'],metrics:{}};
+    else if(!actual.filtered)actual.humanAudit={status:'FAIL',reasons:['候选池为空或未完成计算'],metrics:{}};
+    else actual.humanAudit=auditCase(caseDef,actual);
     return actual;
   }
   const CASES=[
@@ -137,15 +162,37 @@
     {id:'650-rich-platform-city',title:'650不差钱｜平台+城市',input:{score:650,gender:'unspecified',learning:'science',load:'normal',interests:['computer_info'],scenario:'budgetFlexible',priority:'city',budget:'high',regionMode:'soft',regions:['京津冀','长三角','珠三角'],rejects:[]},expect:{paths:['computer','electronic','business']}},
     {id:'600-female-finance-city',title:'600女孩｜财会金融｜城市优先',input:{score:600,gender:'female',learning:'expression',load:'normal',interests:['finance_manage'],scenario:'employment',priority:'city',budget:'normal',regionMode:'soft',regions:['京津冀','长三角'],rejects:['高收费']},expect:{paths:['accounting','business','public_service']}}
   ];
+  function selectCases(opts){
+    opts=opts||{};
+    let list=CASES.slice();
+    const mode=opts.mode||opts.suite||'core';
+    if(mode==='core')list=list.filter(c=>CORE_CASE_IDS.has(c.id));
+    if(Array.isArray(opts.ids)&&opts.ids.length){const ids=new Set(opts.ids);list=CASES.filter(c=>ids.has(c.id));}
+    const limit=Number(opts.limit||0); if(limit>0)list=list.slice(0,limit);
+    return {mode,list};
+  }
   async function runAll(opts){
-    opts=opts||{}; const original=saveStorage(); const t=performance.now(); const limit=Number(opts.limit||0); const list=limit?CASES.slice(0,limit):CASES; const results=[];
+    opts=opts||{}; const original=saveStorage(); const t=performance.now(); const picked=selectCases(opts); const list=picked.list; const mode=picked.mode;
+    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||14000); const caseOpts={dataTimeoutMs:Number(opts.dataTimeoutMs||6500),computeTimeoutMs:Number(opts.computeTimeoutMs||2500),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1600),afterStrategyMs:Number(opts.afterStrategyMs||35)};
+    let overall='PASS';
     try{
-      for(let i=0;i<list.length;i++){try{results.push(await runCase(list[i]));}catch(e){results.push({caseId:list[i].id,title:list[i].title,input:list[i].input,humanAudit:{status:'FAIL',reasons:[String(e)]},error:String(e)});} if(opts.progress)try{opts.progress(i+1,list.length,list[i]);}catch(e){} }
+      for(let i=0;i<list.length;i++){
+        const c=list[i]; const oneStart=performance.now();
+        let res=await withTimeout(runCase(c,caseOpts),perCaseTimeout,'case:'+c.id);
+        if(res&&res.__timeout){res={caseId:c.id,title:c.title,input:c.input,durationMs:Math.round(performance.now()-oneStart),humanAudit:{status:'TIMEOUT',reasons:['单 case 超时：'+perCaseTimeout+'ms，已跳过并继续后续场景'],metrics:{}},timeout:true};}
+        else if(res&&res.__error){res={caseId:c.id,title:c.title,input:c.input,durationMs:Math.round(performance.now()-oneStart),humanAudit:{status:'FAIL',reasons:['单 case 异常：'+res.error],metrics:{}},error:res.error,stack:res.stack};}
+        else {res.durationMs=Math.round(performance.now()-oneStart);}
+        overall=worse(overall,res.humanAudit?.status||'FAIL');
+        results.push(res);
+        if(opts.progress)try{opts.progress(i+1,list.length,c,res);}catch(e){}
+        await sleep(Number(opts.betweenCaseMs||80));
+      }
     }finally{restoreStorage(original); try{window.LN_STUDENT_PROFILE_RULES_V2981?.readState?.(); window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}catch(e){} }
     const counts=results.reduce((a,x)=>{const s=x.humanAudit?.status||'UNKNOWN';a[s]=(a[s]||0)+1;return a;},{});
-    const flags=results.filter(x=>x.humanAudit?.status!=='PASS').map(x=>({id:x.caseId,title:x.title,status:x.humanAudit?.status,reasons:x.humanAudit?.reasons||[]}));
-    return {kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),caseTotal:results.length,counts,flags,results,durationMs:Math.round(performance.now()-t),policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'}};
+    const flags=results.filter(x=>x.humanAudit?.status!=='PASS').map(x=>({id:x.caseId,title:x.title,status:x.humanAudit?.status,reasons:x.humanAudit?.reasons||[],durationMs:x.durationMs||null}));
+    let status='PASS'; if(!results.length)status='FAIL'; else if(counts.FAIL)status='FAIL'; else if(counts.TIMEOUT||counts.WARN)status='WARN';
+    return {kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length}};
   }
-  window.LN_TEST_INTERFACE_V292RC2={ready:true,version:VERSION,applyContext,runCase,runAll,cases:CASES};
-  window.LN_ABC_POLICY_AUDIT_V292RC2={ready:true,version:VERSION,cases:CASES,runCase,runAll,auditCase};
+  window.LN_TEST_INTERFACE_V292RC2={ready:true,version:VERSION,applyContext,runCase,runAll,selectCases,cases:CASES,coreCaseIds:[...CORE_CASE_IDS]};
+  window.LN_ABC_POLICY_AUDIT_V292RC2={ready:true,version:VERSION,cases:CASES,coreCaseIds:[...CORE_CASE_IDS],runCase,runAll,selectCases,auditCase};
 })();
