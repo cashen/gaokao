@@ -1,5 +1,5 @@
 {
-  "version": "V2.92RC2.2.runtime-registry-stable",
+  "version": "V2.92RC2.3.audit-state-isolation",
   "policy": "pendingdel is a rollback/quarantine area, not a trash folder. Files here are not active in the V2.92RC2 loader.",
   "activeAssetCount": 75,
   "movedCount": 60,

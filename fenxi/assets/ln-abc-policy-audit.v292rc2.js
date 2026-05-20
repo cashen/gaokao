@@ -1,13 +1,14 @@
 /*
- * V2.92RC2.2.runtime-registry-stable｜A/B/C 人类思维策略审计
+ * V2.92RC2.3.audit-state-isolation｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.2.runtime-registry-stable';
-  const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_student_profile_state_v298'];
+  const VERSION='V2.92RC2.3.audit-state-isolation';
+  const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
+  function hashText(str){str=String(str||'');let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h*16777619)>>>0;}return h.toString(16);}
   const $=id=>document.getElementById(id);
   function withTimeout(promise,ms,label){return new Promise(resolve=>{let done=false;const timer=setTimeout(()=>{if(done)return;done=true;resolve({__timeout:true,label:label||'timeout',ms});},ms);Promise.resolve(promise).then(v=>{if(done)return;done=true;clearTimeout(timer);resolve(v);},e=>{if(done)return;done=true;clearTimeout(timer);resolve({__error:true,error:String(e&&e.message||e),stack:e&&e.stack?String(e.stack).slice(0,800):''});});});}
   function statusRank(s){return s==='FAIL'?3:s==='TIMEOUT'?2:s==='WARN'?1:0;}
@@ -32,14 +33,53 @@
     setVal('studentGender',next.gender);
   }
   function setInterests(ids,manualOnly){
-    try{window.LN_CHILD_INTEREST_RUNTIME_V296?.saveState?.({mode:ids&&ids.length?'selected':'undecided',selectedGroups:ids||[],disabledAutoMappings:[],selectedMajors:[],selectedKeywords:[],manualOnlyInterest:!!manualOnly,confidence:ids&&ids.length?'medium':'low',source:'audit'});}catch(e){}
+    ids=Array.isArray(ids)?ids.filter(Boolean):[];
+    // 审计 case 必须只使用显式传入的兴趣。先清空孩子 intent，避免上一个 case 的电气/医学/计算机等自动映射污染后续场景。
+    try{window.LN_CHILD_INTENT_TRANSLATOR_V2976?.clear?.();}catch(e){}
+    try{window.LN_CHILD_INTENT_TRANSLATOR_V298?.clear?.();}catch(e){}
+    try{document.querySelectorAll('[data-child-intent-id],.intent-chip-v2975,.intent-chip-v2976').forEach(el=>el.classList.remove('active'));}catch(e){}
+    try{window.LN_CHILD_INTEREST_RUNTIME_V296?.saveState?.({mode:ids.length?'selected':'undecided',selectedGroups:ids,disabledAutoMappings:[],selectedMajors:[],selectedKeywords:[],manualOnlyInterest:!!manualOnly,confidence:ids.length?'medium':'low',source:'audit-state-isolation'});}catch(e){}
     try{window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}catch(e){}
   }
   function saveStorage(){const o={}; STORAGE_KEYS.forEach(k=>{try{o[k]=localStorage.getItem(k);}catch(e){}}); return o;}
   function restoreStorage(o){STORAGE_KEYS.forEach(k=>{try{o&&o[k]!==null&&o[k]!==undefined?localStorage.setItem(k,o[k]):localStorage.removeItem(k);}catch(e){}});}
+  function valRaw(id){const el=$(id); return el?(el.type==='checkbox'?!!el.checked:String(el.value||'')):'';}
+  function readAuditState(){
+    const child=(()=>{try{return window.LN_CHILD_INTEREST_RUNTIME_V296?.readState?.()||JSON.parse(localStorage.getItem('ln_child_interest_state_v2955')||'{}');}catch(e){return {};}})();
+    const intent=(()=>{try{return window.LN_CHILD_INTENT_TRANSLATOR_V2976?.readState?.()||JSON.parse(localStorage.getItem('ln_child_intent_state_v2975')||'{}');}catch(e){return {};}})();
+    const profile=(()=>{try{return window.LN_STUDENT_PROFILE_RULES_V2981?.readState?.()||JSON.parse(localStorage.getItem('ln_student_profile_state_v298')||'{}');}catch(e){return {};}})();
+    const chips=sel=>[].slice.call(document.querySelectorAll(sel+' .chip.active')).map(ch=>String(ch.dataset.regionGroup||ch.dataset.province||ch.dataset.reject||ch.dataset.value||ch.textContent||'').trim()).filter(Boolean);
+    return {score:valRaw('myScore'),rank:valRaw('myRank'),model:valRaw('model'),priority:valRaw('priority'),budget:valRaw('budget'),regionMode:valRaw('regionMode'),cityMode:valRaw('cityMode'),feeType:valRaw('filterFeeType'),sortBy:valRaw('sortBy'),regions:chips('#regionGroupChips'),provinces:chips('#provinceChips'),rejects:chips('#rejectChips'),childInterest:child,childIntent:intent,profile:profile,contextHash:hashText(JSON.stringify({s:valRaw('myScore'),r:valRaw('myRank'),p:valRaw('priority'),b:valRaw('budget'),ri:chips('#regionGroupChips'),pr:chips('#provinceChips'),rej:chips('#rejectChips'),child, intent}))};
+  }
+  function clearAllChips(){try{document.querySelectorAll('#regionGroupChips .chip,#provinceChips .chip,#rejectChips .chip,[data-child-intent-id],.intent-chip-v2975,.intent-chip-v2976').forEach(ch=>ch.classList.remove('active'));}catch(e){}}
+  function resetCaseState(){
+    try{window.LN_CHILD_INTENT_TRANSLATOR_V2976?.clear?.();}catch(e){}
+    try{window.LN_CHILD_INTENT_TRANSLATOR_V298?.clear?.();}catch(e){}
+    try{window.LN_CHILD_INTEREST_RUNTIME_V296?.undecided?.();}catch(e){}
+    try{window.LN_CHILD_INTEREST_RUNTIME_V296?.saveState?.({mode:'undecided',selectedGroups:[],disabledAutoMappings:[],selectedMajors:[],selectedKeywords:[],manualOnlyInterest:false,confidence:'low',source:'audit-reset'});}catch(e){}
+    try{window.LN_STUDENT_PROFILE_RULES_V2981?.saveState?.({gender:'unspecified',learning:'unclear',load:'unknown',path:'unknown',understanding:'unclear',source:'audit-reset'});}catch(e){}
+    clearAllChips();
+    ['myScore','myRank','targetCities','qMajor','qSchool'].forEach(id=>setVal(id,''));
+    setVal('model','normal'); setVal('priority','employment'); setVal('budget','normal'); setVal('regionMode','none'); setVal('cityMode','none'); setVal('filterFeeType','all'); setVal('filterSchoolTier',''); setVal('sortBy','profile');
+    const strict=$('strictProfile'); if(strict){strict.checked=true; strict.dispatchEvent(new Event('change',{bubbles:true}));}
+    try{window.currentStrategy='employment';}catch(e){}
+    try{currentStrategy='employment';}catch(e){}
+    try{window.latestPlanBucketsV29475Fix2=null; window.filtered=[];}catch(e){}
+    try{filtered=[];}catch(e){}
+    try{currentRank=null;}catch(e){}
+    try{window.LN_STATE_SNAPSHOT_V296?.reset?.(); window.LN_CANDIDATE_CACHE_V296?.reset?.();}catch(e){}
+  }
+  function auditRank(input){
+    try{const r=(typeof resolveRank==='function')?resolveRank():null; if(Number(r)>0)return Number(r);}catch(e){}
+    try{if(typeof currentRank!=='undefined'&&Number(currentRank)>0)return Number(currentRank);}catch(e){}
+    if(input&&Number(input.rank)>0)return Number(input.rank);
+    return null;
+  }
   async function applyContext(input,opts){
     opts=opts||{}; input=input||{};
     const t0=performance.now();
+    resetCaseState();
+    const beforeState=readAuditState();
     setVal('myScore',input.score||''); setVal('myRank',input.rank||''); setVal('model',input.model||'normal');
     setProfile(input); setInterests(input.interests||[],input.manualOnlyInterest);
     if(typeof window.applyStrategy==='function' && input.scenario){try{window.applyStrategy(input.scenario);}catch(e){window.currentStrategy=input.scenario;}}
@@ -77,16 +117,16 @@
         await waitForBuckets(Number(opts.bucketTimeoutMs||1000));
       }
     }
-    return {ms:Math.round(performance.now()-t0),dataStatus,computeStatus,filtered:Array.isArray(window.filtered)?window.filtered.length:null,rank:window.currentRank||null};
+    return {ms:Math.round(performance.now()-t0),dataStatus,computeStatus,filtered:(typeof filtered!=='undefined'&&Array.isArray(filtered))?filtered.length:(Array.isArray(window.filtered)?window.filtered.length:null),rank:auditRank(input),beforeState,afterState:readAuditState()};
   }
   function scenarioDefaultPriority(sc){return ({employment:'employment',exam:'exam',grid:'grid',medical:'medical',teacher:'exam',platformSprint:'school',platformStable:'school',highValue:'employment',publicLow:'lowPublic',edgeBachelor:'lowPublic',budgetFlexible:'city',privateMajor:'employment',broad:'employment'})[sc]||'employment';}
   async function waitForBuckets(maxMs){const t=Date.now(); while(Date.now()-t<maxMs){const b=window.latestPlanBucketsV29475Fix2; if(b && ((Array.isArray(b.A)&&b.A.length)||(Array.isArray(b.B)&&b.B.length)||(Array.isArray(b.C)&&b.C.length))){return true;} await sleep(80);} return false;}
-  function rankBand(rank){rank=Number(rank||window.currentRank||0); if(!rank)return 'unknown'; if(rank<=12000)return 'top'; if(rank<=25000)return 'high'; if(rank<=60000)return 'middle'; if(rank<=90000)return 'low'; return 'edge';}
+  function rankBand(rank,input){rank=Number(rank||auditRank(input)||0); if(!rank)return 'unknown'; if(rank<=12000)return 'top'; if(rank<=25000)return 'high'; if(rank<=60000)return 'middle'; if(rank<=90000)return 'low'; return 'edge';}
   function expectedCLabel(band){return band==='top'||band==='high'?'争平台':band==='middle'?'看城市/层级':band==='low'?'机会对照':'成本换本科机会';}
   function pathOf(r){try{return window.LN_RULES_CLOSURE_V291?.pathInfo?.(r)||{};}catch(e){return {};}}
   function evalOf(r,type){try{return window.LN_RULES_CLOSURE_V291?.evaluate?.(r,type)||{};}catch(e){return {};}}
   function rowSummary(r,type,input,idx){
-    const p=pathOf(r), e=evalOf(r,type), score=Number(input.score||0), rank=Number(window.currentRank||0);
+    const p=pathOf(r), e=evalOf(r,type), score=Number(input.score||0), rank=Number(auditRank(input)||0);
     return {idx:idx+1,school:r.school||'',major:r.major||'',score2025:r.score2025||null,rank2025:r.rank2025||null,scoreGap:score&&r.score2025?Number(r.score2025)-score:null,rankGap:rank&&r.rank2025?Number(r.rank2025)-rank:null,band:r._level||'',path:p.key||'unknown',layer:p.layer||'',core:!!p.isCore,related:!!p.isRelated,highCost:!!(r.isHighFee||r.isCoopV29475||r.isPrivateV29475),costLabel:e.costRisk?.label||'',siteRisk:e.siteRisk?.level||0,medicalLong:!!e.medicalRisk?.longCycle,medicalNight:!!e.medicalRisk?.night,tags:e.tags||[],notes:(e.notes||[]).slice(0,3),conflicts:e.conflicts||[]};
   }
   function summarizeBucket(rows,type,input){
@@ -97,30 +137,35 @@
   }
   function hitRate(summary,expectedPaths){if(!expectedPaths||!expectedPaths.length)return null; const set=new Set(expectedPaths); const n=summary.items.length||1; return Math.round(summary.items.filter(x=>set.has(x.path)).length*100/n)/100;}
   function auditCase(caseDef,actual){
-    const input=caseDef.input||{}, expect=caseDef.expect||{}, band=actual.rankBand, reasons=[], fail=[];
+    const input=caseDef.input||{}, expect=caseDef.expect||{}, band=actual.rankBand||'unknown', reasons=[], fail=[];
+    const hasScore=Number(input.score||actual.score||0)>0;
     const A=actual.A, B=actual.B, C=actual.C;
     const bHit=hitRate(B,expect.BPaths||expect.paths||[]); const cHit=hitRate(C,expect.CPaths||[]);
     if((input.rejects||[]).includes('高收费') && input.budget!=='high' && input.budget!=='coop' && A.highCostCount>0)fail.push('A 出现高成本候选，与普通预算/拒绝高收费冲突');
     if((input.rejects||[]).includes('工地现场') && A.siteRiskCount>=2)fail.push('A 现场/设备风险过多，与拒绝现场冲突');
     if(expect.BPaths||expect.paths){if(bHit!==null&&bHit<0.5)reasons.push('B 与兴趣/场景主路径命中率偏低：'+bHit);}
     const Bsafe=(B.bandDistribution['保底']||0)+(B.bandDistribution['过低']||0);
-    if(['top','high','middle'].includes(band)&&Bsafe>=4)reasons.push('B 保底比例过高，可能把“看专业”做成了“专业版保底”');
+    if((['top','high','middle'].includes(band)||hasScore)&&Bsafe>=4)reasons.push('B 保底比例过高，可能把“看专业”做成了“专业版保底”');
     if(['low','edge'].includes(band)&&(C.bandDistribution['保底']||0)>=4 && !['privateMajor','budgetFlexible'].includes(input.scenario))reasons.push('低分/边缘 C 过于保底，机会对照不足');
     if(input.budget==='high'||input.budget==='coop'||input.budget==='flex'){
       if(C.highCostCount===0 && ['privateMajor','budgetFlexible','edgeBachelor'].includes(input.scenario))reasons.push('预算较宽/民办可比较，但 C 未体现成本换机会');
     }
     if(input.interests&&input.interests.length && bHit!==null&&bHit<0.34)fail.push('明确兴趣存在，但 B 几乎没有围绕兴趣路径');
     if((input.rejects||[]).some(x=>x==='夜班'||x==='长学制') && input.interests?.includes('medical_health') && B.medicalConflictCount>=3)reasons.push('医学兴趣与拒绝夜班/长周期冲突，B 中医学长周期风险偏多');
+    const after=actual.state&&actual.state.after||{}; const selected=(after.childInterest&&after.childInterest.selectedGroups)||[]; const intents=(after.childIntent&&after.childIntent.selectedIntentIds)||[]; const expectedInterests=input.interests||[];
+    if(JSON.stringify(selected.slice().sort())!==JSON.stringify(expectedInterests.slice().sort()))reasons.push('case 兴趣状态与输入不一致，可能存在状态污染：'+JSON.stringify({expected:expectedInterests,actual:selected}));
+    if(intents.length)reasons.push('case 仍残留 child intent 自动映射：'+intents.join(','));
     const status=fail.length?'FAIL':reasons.length?'WARN':'PASS';
-    return {status,reasons:[...fail,...reasons],metrics:{BInterestPathHitRate:bHit,CPathHitRate:cHit,BsafeCount:Bsafe,CLabelExpected:expectedCLabel(band)}};
+    return {status,reasons:[...fail,...reasons],metrics:{score:actual.score,rank:actual.rank,rankBand:band,BInterestPathHitRate:bHit,CPathHitRate:cHit,BsafeCount:Bsafe,CLabelExpected:expectedCLabel(band),afterContextHash:actual.state?.after?.contextHash||''}};
   }
   async function runCase(caseDef,opts){
     const input=caseDef.input||{};
     const applyDiag=await applyContext(input,opts||{});
     const b=window.latestPlanBucketsV29475Fix2||{};
-    const actual={caseId:caseDef.id,title:caseDef.title,input,rank:Number(window.currentRank||0)||null,rankBand:rankBand(window.currentRank),filtered:Array.isArray(window.filtered)?window.filtered.length:0,applyDiag,A:summarizeBucket(b.A||[],'A',input),B:summarizeBucket(b.B||[],'B',input),C:summarizeBucket(b.C||[],'C',input)};
-    if(!actual.rank)actual.humanAudit={status:'FAIL',reasons:['未能解析位次/分数，无法审计 A/B/C'],metrics:{}};
-    else if(!actual.filtered)actual.humanAudit={status:'FAIL',reasons:['候选池为空或未完成计算'],metrics:{}};
+    const resolvedRank=auditRank(input);
+    const filteredCount=(typeof filtered!=='undefined'&&Array.isArray(filtered))?filtered.length:(Array.isArray(window.filtered)?window.filtered.length:0);
+    const actual={caseId:caseDef.id,title:caseDef.title,input,score:Number(input.score||0)||null,rank:resolvedRank,rankBand:rankBand(resolvedRank,input),filtered:filteredCount,applyDiag,state:{before:applyDiag.beforeState,after:applyDiag.afterState},A:summarizeBucket(b.A||[],'A',input),B:summarizeBucket(b.B||[],'B',input),C:summarizeBucket(b.C||[],'C',input)};
+    if(!actual.filtered && !(actual.A.items.length||actual.B.items.length||actual.C.items.length))actual.humanAudit={status:'FAIL',reasons:['候选池为空或未完成计算'],metrics:{}};
     else actual.humanAudit=auditCase(caseDef,actual);
     return actual;
   }

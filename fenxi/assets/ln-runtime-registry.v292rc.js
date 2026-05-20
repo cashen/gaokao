@@ -1,11 +1,11 @@
 /*
- * V2.92RC2.2.runtime-registry-stable｜运行时最终函数来源观察器
+ * V2.92RC2.3.audit-state-isolation｜运行时最终函数来源观察器
  * 被动采样，不替换业务函数。用于 debug.html 输出 applyFilters/renderPlanABC/detailCard 的实际生效链。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.2.runtime-registry-stable.runtime-registry';
-  const STAMP='292rc22-runtime-registry-20260521';
+  const VERSION='V2.92RC2.3.audit-state-isolation.runtime-registry';
+  const STAMP='292rc23-runtime-registry-20260521';
   const watched=['applyFilters','planScoreV29475','renderPlanABC','renderPlanABCViewOnly','LN_DETAIL_CARD_UI_V2981','LN_COMPUTE_PIPELINE_V2983','LN_DETAIL_CARD_LITE_UI_V2981'];
   const state={version:VERSION,stamp:STAMP,startedAt:new Date().toISOString(),events:[],latest:{},warnings:[]};
   function hashText(s){
