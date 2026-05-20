@@ -1,13 +1,13 @@
 /*
- * V2.92RC2.1.abc-audit-runner-stable｜统一刷新控制器
+ * V2.92RC2.2.runtime-registry-stable｜统一刷新控制器
  * 目标：不改变 compute-pipeline / plan-engine / rules-closure4 的业务结果，
  * 在所有历史 SP wrapper 加载完成后，把 window.applyFilters 收口为一个统一入口。
  * 保留旧 interact-stability / interact-dedupe 的事件监听与指纹思想，但不再让 applyFilters 多层嵌套。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.1.abc-audit-runner-stable.refresh-controller';
-  const STAMP='292rc1-refresh-controller-20260521';
+  const VERSION='V2.92RC2.2.runtime-registry-stable.refresh-controller';
+  const STAMP='292rc22-refresh-controller-20260521';
   const state={
     version:VERSION,
     stamp:STAMP,
@@ -150,6 +150,25 @@
     try{window.LN_RUNTIME_REGISTRY_V292RC?.sample?.('refresh-controller-finalized');}catch(e){}
     return true;
   }
+  function enforceFinalOwner(reason){
+    // 后续旧脚本可能再次 monkey patch window.applyFilters。
+    // 这里做最终所有权守卫：只要最终入口不是 refresh-controller，就再次后置接管。
+    try{
+      if(typeof window.applyFilters!=='function')return false;
+      if(window.applyFilters.__lnRefreshManaged){state.managed=true;return true;}
+      return finalize(reason||'owner-guard');
+    }catch(e){note('owner-guard-error',{reason:String(reason||''),error:String(e&&e.message||e)});return false;}
+  }
+  function startOwnerGuard(){
+    const marks=[5200,6800,8400,11000,15000,22000,30000];
+    marks.forEach(ms=>setTimeout(()=>enforceFinalOwner('guard-'+ms),ms));
+    let ticks=0;
+    const timer=setInterval(()=>{
+      ticks++;
+      enforceFinalOwner('interval-guard-'+ticks);
+      if(ticks>=45)clearInterval(timer);
+    },500);
+  }
   function request(reason,opts){
     opts=opts||{};
     note('request',{reason,opts});
@@ -166,9 +185,10 @@
   function getStats(){return JSON.parse(JSON.stringify(state));}
   function boot(){
     note('controller-ready');
-    // 历史补丁最晚在 3200ms 左右重包 applyFilters；这里后置接管。
+    // 历史补丁/动态加载可能在 onload 后继续重包 applyFilters；这里用多阶段最终所有权守卫。
     setTimeout(()=>finalize('late-finalize-3800'),3800);
-    setTimeout(()=>finalize('late-finalize-4600'),4600);
+    setTimeout(()=>enforceFinalOwner('late-finalize-4600'),4600);
+    startOwnerGuard();
   }
   window.LN_REFRESH_CONTROLLER_V292RC={ready:true,version:VERSION,stamp:STAMP,state,note,request,finalize,getStats,captureChain,findCore};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();

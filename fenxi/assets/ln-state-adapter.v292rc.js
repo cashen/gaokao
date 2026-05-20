@@ -1,7 +1,7 @@
-/* V2.92RC2.1.abc-audit-runner-stable｜统一状态读取适配器。只读 DOM，不改业务。 */
+/* V2.92RC2.2.runtime-registry-stable｜统一状态读取适配器。只读 DOM，不改业务。 */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.1.abc-audit-runner-stable.state-adapter';
+  const VERSION='V2.92RC2.2.runtime-registry-stable.state-adapter';
   function byId(id){return document.getElementById(id);}
   function value(id,def){const el=byId(id); return el?String(el.value||''):def||'';}
   function number(id){const n=Number(value(id,'')); return Number.isFinite(n)&&n>0?n:null;}

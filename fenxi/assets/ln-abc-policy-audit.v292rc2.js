@@ -1,10 +1,10 @@
 /*
- * V2.92RC2.1.abc-audit-runner-stable｜A/B/C 人类思维策略审计
+ * V2.92RC2.2.runtime-registry-stable｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.1.abc-audit-runner-stable';
+  const VERSION='V2.92RC2.2.runtime-registry-stable';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
