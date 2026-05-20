@@ -1,65 +1,151 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>辽宁物理类工具 Debug Report｜V2.91RC0.parent-trust1</title>
-  <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:18px}
-    main{max-width:1080px;margin:auto}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 8px 22px rgba(15,23,42,.05)}
-    button{border:0;border-radius:10px;background:#0f172a;color:#fff;padding:9px 12px;margin:4px 8px 4px 0;cursor:pointer}button.secondary{background:#334155}a{color:#0f766e;text-decoration:none;margin-left:8px}
-    pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;line-height:1.55;max-height:70vh;overflow:auto}.muted{color:#64748b;font-size:13px}code{background:#f1f5f9;padding:2px 5px;border-radius:6px}h1{font-size:24px}h2{font-size:18px}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>辽宁物理类工具｜V2.92RC.engine-cleanup 一键 Debug</title>
+<style>
+:root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--card:#fff;--bg:#f8fafc;--ok:#059669;--warn:#d97706;--fail:#dc2626;--blue:#2563eb}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:18px;line-height:1.55}main{max-width:1180px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 12px 30px rgba(15,23,42,.06)}h1{font-size:25px;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:12px;background:var(--ink);color:#fff;padding:10px 14px;cursor:pointer;font-weight:700}button.secondary{background:#334155}button.ghost{background:#e2e8f0;color:#0f172a}a{color:var(--blue);text-decoration:none;font-weight:700}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:800px){.grid{grid-template-columns:1fr}}.metric{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fafc}.metric b{display:block;font-size:22px}.ok{color:var(--ok)}.warn{color:var(--warn)}.fail{color:var(--fail)}pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;line-height:1.5;max-height:68vh;overflow:auto}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;margin:2px;border:1px solid var(--line);font-size:12px}.pill.ok{background:#ecfdf5;border-color:#a7f3d0}.pill.warn{background:#fff7ed;border-color:#fed7aa}.pill.fail{background:#fef2f2;border-color:#fecaca}.small{font-size:12px}.hide{display:none}.progress{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--blue);transition:width .25s}</style>
 </head>
 <body>
 <main>
-  <h1>辽宁物理类工具 Debug Report｜V2.91RC0.parent-trust1</h1>
-  <p class="muted">先在主页面复现问题，再刷新本页复制报告；也可以直接运行“一键联动自测”。这里不显示密码、Cookie 或 Secret。</p>
+  <h1>辽宁物理类高考志愿工具｜V2.92RC.engine-cleanup 一键 Debug</h1>
+  <p class="muted">这个页面用于工程闭环：检查资源、加载链、最终函数来源、pendingdel 清单、数据完整性、运行时 wrapper 风险。不会读取密码、Cookie 或 Secret。</p>
   <div class="card">
-    <button id="copyBtn">复制诊断报告</button>
-    <button id="copyDeepBtn">复制深度报告</button>
-    <button id="refreshBtn" class="secondary">刷新报告</button>
-    <a href="./index.html">返回工具</a>
+    <h2>一键测试</h2>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <p id="status" class="muted">点击“一键测试”，完成后点“复制日志”发给我即可。</p>
+    <div class="btns">
+      <button id="runBtn">运行一键 Debug</button>
+      <button id="copyBtn" class="secondary">复制日志</button>
+      <button id="downloadBtn" class="ghost">下载 JSON</button>
+      <a href="./index.html">返回工具</a>
+    </div>
   </div>
-  <div class="card"><pre id="report">正在读取 localStorage...</pre></div>
+  <div class="card">
+    <h2>摘要</h2>
+    <div class="grid" id="summaryGrid"></div>
+  </div>
+  <div class="card">
+    <h2>完整日志</h2>
+    <pre id="report">尚未运行。</pre>
+  </div>
 </main>
 <script>
-function build(){
-  let raw=localStorage.getItem('ln_v2983_debug_report');let obj={};
-  try{obj=raw?JSON.parse(raw):{};}catch(e){obj={parseError:String(e),raw};}
-  const lines=[];
-  lines.push('【辽宁物理类工具 Debug Report】');
-  lines.push('读取时间：'+new Date().toLocaleString());
-  lines.push('版本：'+(obj.version||''));
-  lines.push('版本戳：'+(obj.stamp||''));
-  if(obj.runtime){
-    lines.push('URL：'+(obj.runtime.url||''));
-    lines.push('body.className：'+(obj.runtime.bodyClass||''));
-    lines.push('JS文件数：'+(obj.runtime.jsFiles||0)+'；失败：'+((obj.runtime.failedFiles||[]).join(',')||'无'));
-    lines.push('抽屉：open='+obj.runtime.drawerOpen+' mask='+obj.runtime.maskVisible+' bodyLock='+obj.runtime.bodyLock+' scrollY='+obj.runtime.scrollY);
-  }
-  lines.push('候选池：'+JSON.stringify(obj.pools||{}));
-  lines.push('当前上下文：'+JSON.stringify(obj.context||{}));
-  lines.push('标记：'+JSON.stringify(obj.flags||{}));
-  lines.push('旧逻辑：'+JSON.stringify(obj.legacy||{}));
-  lines.push('队列：'+JSON.stringify(obj.queue||{}));
-  if(obj.runtime&&obj.runtime.device)lines.push('设备：'+JSON.stringify(obj.runtime.device));
-  if(obj.runtime&&obj.runtime.resources)lines.push('资源：'+JSON.stringify(obj.runtime.resources));
-  if(obj.details){lines.push('深度细分：');Object.keys(obj.details).forEach(k=>lines.push(' - '+k+'：'+JSON.stringify(obj.details[k])));}
-  lines.push('最近耗时：');Object.keys(obj.timings||{}).forEach(k=>lines.push(' - '+k+'：'+obj.timings[k].ms+'ms '+(obj.timings[k].extra?JSON.stringify(obj.timings[k].extra):'')));
-  lines.push('最近操作：');(obj.actions||[]).slice(-25).forEach(a=>lines.push(' - ['+a.t+'] '+a.action+(a.data?' '+JSON.stringify(a.data):'')));
-  if((obj.errors||[]).length){lines.push('错误：');obj.errors.slice(-10).forEach(e=>lines.push(' - '+e.message+' @ '+(e.source||'')+':'+(e.lineno||'')));}
-  if((obj.longTasks||[]).length){lines.push('长任务：');obj.longTasks.slice(-10).forEach(e=>lines.push(' - '+e.duration+'ms @ '+e.t));}
-  const stRaw=localStorage.getItem('ln_v2983_selftest_report');
-  if(stRaw){try{const st=JSON.parse(stRaw);lines.push('自测摘要：'+JSON.stringify(st.summary||{}));if(st.coverage)lines.push('自测覆盖：'+JSON.stringify(st.coverage));}catch(e){}}
-  return lines.join('\n');
+(function(){
+'use strict';
+const VERSION='V2.92RC.engine-cleanup.debug-oneclick';
+let LAST_REPORT=null;
+const $=id=>document.getElementById(id);
+function setStatus(t,p){$('status').textContent=t; if(typeof p==='number')$('bar').style.width=Math.max(0,Math.min(100,p))+'%';}
+function now(){return new Date().toISOString();}
+async function fetchText(url){const r=await fetch(url,{cache:'no-store'});return {ok:r.ok,status:r.status,url,size:Number(r.headers.get('content-length')||0)||null,text:r.ok?await r.text():''};}
+async function fetchJSON(url){const r=await fetch(url,{cache:'no-store'});let data=null,err=null;try{data=await r.json();}catch(e){err=String(e);}return {ok:r.ok,status:r.status,url,data,error:err};}
+function uniq(a){return [...new Set((a||[]).filter(Boolean))];}
+function hashText(s){s=String(s||'');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*16777619)>>>0;}return h.toString(16);}
+function parseArrayConst(src,name){const re=new RegExp('const\\s+'+name+'\\s*=\\s*(\\[[\\s\\S]*?\\]);');const m=src.match(re);if(!m)return null;try{return JSON.parse(m[1]);}catch(e){return {error:String(e),raw:m[1].slice(0,500)}}}
+function applyUiBundles(list,groups){const out=[];let i=0;while(i<list.length){let matched=false;for(const g of groups||[]){const seq=g.files||[];if(seq.length&&list.slice(i,i+seq.length).join('\n')===seq.join('\n')){out.push(g.bundle);i+=seq.length;matched=true;break;}}if(!matched){out.push(list[i]);i++;}}return out;}
+function classifyStatus(items){const fail=items.filter(x=>x.status==='FAIL').length;const warn=items.filter(x=>x.status==='WARN').length;return fail?'FAIL':warn?'WARN':'PASS';}
+async function assetCheck(files){const out=[];for(const f of files){try{const r=await fetch(f+'?debug='+Date.now(),{cache:'no-store'});out.push({file:f,status:r.ok?'PASS':'FAIL',http:r.status,size:Number(r.headers.get('content-length')||0)||null});}catch(e){out.push({file:f,status:'FAIL',error:String(e)});} }return out;}
+async function runIframeAudit(activeFiles){
+  return new Promise(resolve=>{
+    const frame=document.createElement('iframe');
+    frame.style.cssText='position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;opacity:0;pointer-events:none';
+    const started=performance.now();let done=false;
+    function finish(reason){
+      if(done)return;done=true;
+      let audit={reason,durationMs:Math.round(performance.now()-started),status:'WARN'};
+      try{
+        const w=frame.contentWindow;
+        const boot=Array.isArray(w.__LN_BOOT_LOADS__)?w.__LN_BOOT_LOADS__:[];
+        const reg=w.LN_RUNTIME_REGISTRY_V292RC?.getReport?.()||null;
+        const runtime=w.LN_STATE_ADAPTER_V292RC?.readRuntime?.()||null;
+        const wrappers=[];
+        let fn=w.applyFilters,depth=0;
+        while(typeof fn==='function'&&depth<12){wrappers.push({depth,name:fn.name||'(anonymous)',flags:{v2983:!!fn.__v2983Wrapped,interact:!!fn.__v29rcInteractMarked,dedupe:!!fn.__v29rcInteractDedupeWrapped,original:!!fn.__original},hash:hashText(Function.prototype.toString.call(fn).slice(0,1800))});if(!fn.__original)break;fn=fn.__original;depth++;}
+        audit={
+          reason,durationMs:Math.round(performance.now()-started),status:boot.some(x=>!x.ok)?'FAIL':'PASS',
+          url:w.location.href,
+          toolVersion:w.__LN_TOOL_VERSION||w.LN_TOOL_VERSION||'',cleanupVersion:w.LN_ENGINE_CLEANUP_VERSION||'',
+          boot:{total:boot.length,failed:boot.filter(x=>!x.ok),files:boot.map(x=>x.file),activeExpected:activeFiles.length},
+          functions:{applyFilters:typeof w.applyFilters,renderPlanABC:typeof w.renderPlanABC,planScoreV29475:typeof w.planScoreV29475,detailCard:typeof w.LN_DETAIL_CARD_UI_V2981},
+          wrappers:{applyFiltersDepth:wrappers.length,chain:wrappers},
+          registry:reg,
+          runtime,
+          data:{DATA:Array.isArray(w.DATA)?w.DATA.length:null,filtered:Array.isArray(w.filtered)?w.filtered.length:null,currentRank:w.currentRank||null},
+          debugReportPresent:!!localStorage.getItem('ln_v2983_debug_report')
+        };
+      }catch(e){audit.status='FAIL';audit.error=String(e);} 
+      try{frame.remove();}catch(e){}
+      resolve(audit);
+    }
+    frame.onload=()=>setTimeout(()=>finish('iframe-load'),4500);
+    setTimeout(()=>finish('timeout'),9000);
+    frame.src='./index.html?debug_iframe=1&ts='+Date.now();
+    document.body.appendChild(frame);
+  });
 }
-function render(){document.getElementById('report').textContent=build();try{window.LN_DEBUG_SELFTEST_V2983FIX12?.render?.();}catch(e){}}
-document.getElementById('copyBtn').onclick=async()=>{const txt=build();await navigator.clipboard.writeText(txt).catch(()=>{});document.getElementById('copyBtn').textContent='已复制';setTimeout(()=>document.getElementById('copyBtn').textContent='复制诊断报告',1200)};
-document.getElementById('copyDeepBtn').onclick=async()=>{const txt=build();await navigator.clipboard.writeText(txt).catch(()=>{});document.getElementById('copyDeepBtn').textContent='深度报告已复制';setTimeout(()=>document.getElementById('copyDeepBtn').textContent='复制深度报告',1200)};
-document.getElementById('refreshBtn').onclick=render;
-render();
+async function run(){
+  const report={kind:'LN Fenxi V2.92RC Engine Cleanup One Click Debug Report',version:VERSION,generatedAt:now(),url:location.href,userAgent:navigator.userAgent,checks:[]};
+  try{
+    setStatus('读取 index.html 与引用链...',8);
+    const idx=await fetchText('./index.html');report.index={http:idx.status,size:idx.text.length,hash:hashText(idx.text),status:idx.ok?'PASS':'FAIL'};
+    const bundled=parseArrayConst(idx.text,'filesRulesBundled');const groups=parseArrayConst(idx.text,'uiBundleGroups');
+    const active=Array.isArray(bundled)&&Array.isArray(groups)?applyUiBundles(bundled,groups):[];
+    report.loader={bundledCount:Array.isArray(bundled)?bundled.length:null,uiBundleGroups:Array.isArray(groups)?groups.length:null,activeCount:active.length,activeFiles:active,status:active.length?'PASS':'FAIL'};
+    setStatus('检查核心资源文件...',22);
+    const css=[...idx.text.matchAll(/href="\.\/([^"?]+\.css)/g)].map(m=>m[1]);
+    const extra=['assets/config.v297fix2.js','assets/ln-reference-map.v292rc.js','assets/ln-runtime-registry.v292rc.js','assets/ln-state-adapter.v292rc.js','assets/ln-refresh-controller.v292rc.js','assets/ln-debug-baseline.v292rc.js'];
+    const assetFiles=uniq([...active,...css,...extra]);
+    report.assetChecks=await assetCheck(assetFiles);
+    report.assetSummary={total:report.assetChecks.length,PASS:report.assetChecks.filter(x=>x.status==='PASS').length,FAIL:report.assetChecks.filter(x=>x.status==='FAIL').length};
+    setStatus('检查数据 manifest 与 chunks...',40);
+    const manifest=await fetchJSON('./data/manifest.json');
+    report.dataSummary={status:manifest.ok?'PASS':'FAIL',manifestVersion:manifest.data?.version,totalRecords:manifest.data?.totalRecords,chunks:manifest.data?.chunks?.length||0,chunkRecords:(manifest.data?.chunks||[]).reduce((s,c)=>s+(Number(c.recordCount)||0),0)};
+    const chunkFiles=(manifest.data?.chunks||[]).map(c=>c.file).slice(0,20);
+    report.chunkChecks=await assetCheck(chunkFiles);
+    setStatus('读取 pendingdel 隔离清单...',55);
+    const pd=await fetchJSON('./pendingdel/2026-v292-engine-cleanup/manifest.pendingdel.v292rc.json');
+    report.pendingdel={status:pd.ok?'PASS':'WARN',version:pd.data?.version,movedCount:pd.data?.movedCount,categories:pd.data?.items?pd.data.items.reduce((a,x)=>{a[x.category]=(a[x.category]||0)+1;return a;},{}):null,manifestError:pd.error||null};
+    setStatus('运行 iframe 实际加载链审计...',72);
+    report.runtimeAudit=await runIframeAudit(active);
+    setStatus('生成结论...',92);
+    const failures=[];const warnings=[];
+    if(report.assetSummary.FAIL)failures.push('存在资源 404 或加载失败');
+    if(report.dataSummary.status!=='PASS')failures.push('manifest 加载失败');
+    if((report.chunkChecks||[]).some(x=>x.status==='FAIL'))failures.push('chunk 文件检查失败');
+    if(report.runtimeAudit.status==='FAIL')failures.push('iframe 运行时加载失败');
+    if(report.runtimeAudit.wrappers?.applyFiltersDepth>=4)warnings.push('applyFilters wrapper 层数较多：这是原始版本 SP 补丁链的主要工程风险，建议后续统一到 refresh-controller。');
+    if(!report.pendingdel.movedCount)warnings.push('pendingdel 本轮未记录移动文件或清单不可读');
+    report.conclusion={status:failures.length?'FAIL':warnings.length?'WARN':'PASS',failures,warnings};
+    report.checks=[
+      {name:'index',status:report.index.status},
+      {name:'assets',status:report.assetSummary.FAIL?'FAIL':'PASS'},
+      {name:'data',status:report.dataSummary.status},
+      {name:'chunks',status:(report.chunkChecks||[]).some(x=>x.status==='FAIL')?'FAIL':'PASS'},
+      {name:'pendingdel-manifest',status:report.pendingdel.status},
+      {name:'runtime-iframe',status:report.runtimeAudit.status},
+      {name:'wrapper-depth',status:report.runtimeAudit.wrappers?.applyFiltersDepth>=4?'WARN':'PASS'}
+    ];
+  }catch(e){report.conclusion={status:'FAIL',failures:[String(e)],warnings:[]};report.error=String(e);}
+  LAST_REPORT=report;
+  renderReport(report);
+  setStatus('完成：'+(report.conclusion?.status||'UNKNOWN')+'。请复制日志发给我。',100);
+}
+function renderReport(r){
+  $('report').textContent=JSON.stringify(r,null,2);
+  const checks=r.checks||[]; const summary=r.conclusion||{};
+  const grid=$('summaryGrid');grid.innerHTML='';
+  const metrics=[
+    ['总体',summary.status||'-'],['资源失败',String(r.assetSummary?.FAIL??'-')],['数据记录',String(r.dataSummary?.totalRecords??'-')],['chunks',String(r.dataSummary?.chunks??'-')],['pendingdel',String(r.pendingdel?.movedCount??'-')],['applyFilters层',String(r.runtimeAudit?.wrappers?.applyFiltersDepth??'-')],['运行时',r.runtimeAudit?.status||'-'],['检查项',checks.map(c=>c.status).join('/')||'-']
+  ];
+  metrics.forEach(([k,v])=>{const cls=/FAIL/.test(v)?'fail':/WARN/.test(v)?'warn':/PASS/.test(v)?'ok':'';const div=document.createElement('div');div.className='metric';div.innerHTML='<span class="muted">'+k+'</span><b class="'+cls+'">'+v+'</b>';grid.appendChild(div);});
+}
+async function copy(){const txt=LAST_REPORT?JSON.stringify(LAST_REPORT,null,2):$('report').textContent;await navigator.clipboard.writeText(txt).catch(()=>{});$('copyBtn').textContent='已复制';setTimeout(()=>$('copyBtn').textContent='复制日志',1400)}
+function download(){const txt=LAST_REPORT?JSON.stringify(LAST_REPORT,null,2):$('report').textContent;const blob=new Blob([txt],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fenxi-v292-engine-cleanup-debug-'+Date.now()+'.json';a.click();URL.revokeObjectURL(a.href)}
+$('runBtn').onclick=run;$('copyBtn').onclick=copy;$('downloadBtn').onclick=download;
+})();
 </script>
-<script src="./assets/debug-selftest.v2983fix12.js?v=291rc0parenttrust1-20260514"></script>
 </body>
 </html>
