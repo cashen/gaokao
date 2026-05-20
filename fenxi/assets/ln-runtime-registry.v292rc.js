@@ -1,11 +1,11 @@
 /*
- * V2.92RC.engine-cleanup｜运行时最终函数来源观察器
+ * V2.92RC1.engine-cleanup｜运行时最终函数来源观察器
  * 被动采样，不替换业务函数。用于 debug.html 输出 applyFilters/renderPlanABC/detailCard 的实际生效链。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC.engine-cleanup.runtime-registry';
-  const STAMP='292rc-runtime-registry-20260521';
+  const VERSION='V2.92RC1.engine-cleanup.runtime-registry';
+  const STAMP='292rc1-runtime-registry-20260521';
   const watched=['applyFilters','planScoreV29475','renderPlanABC','renderPlanABCViewOnly','LN_DETAIL_CARD_UI_V2981','LN_COMPUTE_PIPELINE_V2983','LN_DETAIL_CARD_LITE_UI_V2981'];
   const state={version:VERSION,stamp:STAMP,startedAt:new Date().toISOString(),events:[],latest:{},warnings:[]};
   function hashText(s){
@@ -21,6 +21,9 @@
       original:!!fn.__original,
       v29InteractMarked:!!fn.__v29rcInteractMarked,
       v29DedupeWrapped:!!fn.__v29rcInteractDedupeWrapped,
+      lnRefreshManaged:!!fn.__lnRefreshManaged,
+      lnRefreshCoreHash:fn.__lnRefreshCoreHash||'',
+      capturedWrapperDepth:fn.__lnCapturedWrapperDepth||0,
       name:fn.name||'(anonymous)',
       len:fn.length,
       hash:hashText(text.slice(0,2200))
@@ -48,8 +51,13 @@
     const af=window.applyFilters;
     if(typeof af==='function'){
       let d=0, cur=af;
-      while(cur && typeof cur==='function' && cur.__original && d<12){d++;cur=cur.__original;}
-      if(d>=4 && !state.warnings.some(w=>w.code==='applyFilters-wrapper-depth')) state.warnings.push({code:'applyFilters-wrapper-depth',level:'WARN',message:'applyFilters wrapper 层数较多，建议后续收口到 refresh-controller。',depth:d});
+      if(af.__lnRefreshManaged){
+        const cap=Number(af.__lnCapturedWrapperDepth||0);
+        if(cap>=4 && !state.warnings.some(w=>w.code==='applyFilters-wrapper-depth-managed')) state.warnings.push({code:'applyFilters-wrapper-depth-managed',level:'INFO',message:'历史 applyFilters wrapper 链已由 refresh-controller 后置接管。',capturedDepth:cap});
+      }else{
+        while(cur && typeof cur==='function' && cur.__original && d<12){d++;cur=cur.__original;}
+        if(d>=4 && !state.warnings.some(w=>w.code==='applyFilters-wrapper-depth')) state.warnings.push({code:'applyFilters-wrapper-depth',level:'WARN',message:'applyFilters wrapper 层数较多，建议后续收口到 refresh-controller。',depth:d});
+      }
     }
   }
   function getReport(){sample('getReport'); return JSON.parse(JSON.stringify(state));}

@@ -1,4 +1,4 @@
-# V2.92RC.engine-cleanup 开发包说明
+# V2.92RC1.engine-cleanup 开发包说明
 
 本包基于原始 `V2.91RC0.rules-closure4.front2` 做工程闭环收口，不沿用 V3.0RC 实验逻辑。
 
@@ -15,7 +15,7 @@
 - `assets/ln-reference-map.v292rc.js`：JS 层级、职责、最终 owner 说明。
 - `assets/ln-runtime-registry.v292rc.js`：被动观察 `applyFilters`、`renderPlanABC`、`planScoreV29475`、详情卡对象的最终来源和 wrapper 链。
 - `assets/ln-state-adapter.v292rc.js`：统一读取 DOM 状态，输出 context/contextHash，仅用于 debug 和后续规范化。
-- `assets/ln-refresh-controller.v292rc.js`：刷新机制观察器，当前不接管业务，只记录。
+- `assets/ln-refresh-controller.v292rc.js`：刷新机制后置接管器，保留旧补丁链的事件逻辑，但将 `applyFilters` 收口为 managed 单入口，业务仍调用 compute-pipeline。
 - `assets/ln-debug-baseline.v292rc.js`：debug 共享工具。
 
 ## pendingdel 说明
@@ -62,3 +62,18 @@
 - 不改业务公式。
 - 不改 rules-closure4 的业务原则。
 - 不引入 V3.0RC family-decision-engine 实验逻辑。
+
+## V2.92RC1.engine-cleanup 继续收口说明
+
+本轮不是业务升级，不改变：位次/分数公式、候选池规则、场景原则、A/B/C 业务含义、rules-closure4 结果、详情卡解释原则。
+
+本轮核心改动：
+
+1. `ln-refresh-controller.v292rc.js` 从观察器升级为后置接管器。
+2. 页面仍按原始顺序加载 `app.v2983`、`interact-stability`、`interact-dedupe`，保留旧补丁的事件监听和指纹逻辑。
+3. 等历史补丁完成 wrapper 后，refresh-controller 捕获旧链路，并把 `window.applyFilters` 收口成一个 managed 单入口。
+4. managed 单入口内部仍调用 `LN_COMPUTE_PIPELINE_V2983.applyFilters`，所以业务计算没有改写。
+5. debug.html 会显示：当前 applyFilters 层数、是否 managed、历史 capturedDepth、refreshController 统计。
+6. 如果 debug 显示 `applyFilters层 = 1 / managed` 且 `历史捕获层 = 4`，说明旧 SP wrapper 已被后置收口，业务计算仍保真。
+
+下一步如果继续精简，可以在确认两轮 debug 均 PASS 后，把 `interact-dedupe` 和 `interact-stability` 的 applyFilters wrapper 职责进一步并入 refresh-controller，只保留它们的 drawer/event 监听职责。
