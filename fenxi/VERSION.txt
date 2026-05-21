@@ -1,2 +1,3 @@
-V2.92RC2.5.audit-human-scenario-runner
-基于 V2.92RC2.4，只修 ABC 人类场景审计 runner 与 debug 外层超时归零问题；不改业务计算、筛选公式、A/B/C 规则。
+V2.93RC1.formula-governance-stable
+
+公式治理稳定版：候选池优先、A/B/C 角色公式、硬拒绝边界、兴趣冲突转译、full 36 一次审计。

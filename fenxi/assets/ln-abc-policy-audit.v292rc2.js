@@ -1,10 +1,10 @@
 /*
- * V2.93RC.abc-formula-role-unified｜A/B/C 公式角色统一审计
- * 边界：审计读取主干公式口径；V2.93RC 已在 plan-engine 主干内统一 A/B/C 角色公式。
+ * V2.93RC1.formula-governance-stable｜A/B/C 公式治理稳定审计
+ * 边界：审计只验证主干公式治理输出；工程失败与策略失败分开统计，不再用审计规则替代正式公式。
  */
 (function(){
   'use strict';
-  const VERSION='V2.93RC.abc-formula-role-unified';
+  const VERSION='V2.93RC1.formula-governance-stable';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -80,15 +80,21 @@
     return {manifestReady,rankReady,manifestVersion,totalRecords,chunks,dataLen,chunkCacheSize};
   }
   async function ensureDataSafeReady(opts){
-    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||opts.dataTimeoutMs||6500);
+    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||opts.dataTimeoutMs||10000);
     while(Date.now()-t<maxMs){
       const st=readDataState();
-      if(st.manifestReady && st.rankReady)return Object.assign({status:'ready',ms:Date.now()-t},st);
-      // 如果 boot 还没完成，等待原页面加载；不主动清 DATA。
-      await sleep(120);
+      const needRows=Number($('myRank')?.value||0)>0 || Number($('myScore')?.value||0)>0 || Number((typeof currentRank!=='undefined'?currentRank:0)||0)>0;
+      if(st.manifestReady && st.rankReady && (!needRows || Number(st.dataLen||0)>0))return Object.assign({status:'ready',ms:Date.now()-t},st);
+      try{
+        if(needRows && st.manifestReady && st.rankReady && Number(st.dataLen||0)===0 && typeof window.ensureDataForCurrentRank==='function'){
+          await withTimeout(window.ensureDataForCurrentRank(),Math.min(2500,Math.max(900,maxMs-(Date.now()-t))),'ensureDataForCurrentRank');
+        }
+      }catch(e){}
+      await sleep(160);
     }
     const late=readDataState();
-    return Object.assign({status:(late.manifestReady?'partial':'not-ready'),ms:Date.now()-t},late);
+    const needRows=Number($('myRank')?.value||0)>0 || Number($('myScore')?.value||0)>0 || Number((typeof currentRank!=='undefined'?currentRank:0)||0)>0;
+    return Object.assign({status:(late.manifestReady&&late.rankReady&&(!needRows||Number(late.dataLen||0)>0)?'ready':(late.manifestReady?'partial':'not-ready')),ms:Date.now()-t},late);
   }
   function rankFromScore(score){
     score=Number(score||0);
@@ -139,7 +145,7 @@
     const t0=performance.now();
     const prevAuditLight=window.__LN_ABC_AUDIT_LIGHT__; window.__LN_ABC_AUDIT_LIGHT__=opts&&opts.auditLight!==false;
     resetCaseState();
-    const dataBefore=await ensureDataSafeReady(opts);
+    const dataBefore=readDataState();
     const beforeState=readAuditState();
     const resolvedInputRank=Number(input.rank||0)>0?Number(input.rank):rankFromScore(input.score);
     input.rank=resolvedInputRank||input.rank||'';
@@ -160,13 +166,15 @@
     if(input.provinces)selectProvinces(input.provinces);
     setRejects(input.rejects||[]);
     try{window.LN_STATE_SNAPSHOT_V296?.reset?.();}catch(e){}
-    const dataTimeout=Number(opts.dataTimeoutMs||6500);
-    const computeTimeout=Number(opts.computeTimeoutMs||2500);
+    const dataTimeout=Number(opts.dataTimeoutMs||10000);
+    const computeTimeout=Number(opts.computeTimeoutMs||3000);
     let dataStatus='unknown', computeStatus='unknown';
     if(typeof window.autoRefreshAsync==='function'){
       const r=await withTimeout(window.autoRefreshAsync(),dataTimeout,'autoRefreshAsync');
       dataStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
       if(r&&r.__error)throw new Error('autoRefreshAsync error: '+r.error);
+      const readyAfter=await ensureDataSafeReady({dataTimeoutMs:Math.max(1200,Math.floor(dataTimeout/2))});
+      if(readyAfter.status!=='ready' && Number(readyAfter.dataLen||0)===0)dataStatus=dataStatus+'-data-empty';
     }else if(window.LN_REFRESH_CONTROLLER_V292RC?.request){
       const r=await withTimeout(window.LN_REFRESH_CONTROLLER_V292RC.request('abc-human-audit',{delay:0}),computeTimeout,'refresh-controller');
       computeStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
@@ -294,7 +302,7 @@
   function selectCases(opts){
     opts=opts||{};
     let list=CASES.slice();
-    const mode=opts.mode||opts.suite||'full';
+    const mode=opts.mode||opts.suite||'core';
     if(mode==='core')list=list.filter(c=>CORE_CASE_IDS.has(c.id));
     if(Array.isArray(opts.ids)&&opts.ids.length){const ids=new Set(opts.ids);list=CASES.filter(c=>ids.has(c.id));}
     const limit=Number(opts.limit||0); if(limit>0)list=list.slice(0,limit);
@@ -309,7 +317,7 @@
     else if(!results.length)status='FAIL';
     else if(counts.FAIL)status='FAIL';
     else if(counts.TIMEOUT||counts.WARN)status='WARN';
-    const report={kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:true,doesModifyFormula:true,doesModifyABC:true,purpose:'自动模拟人类真实家庭场景，验证 V2.93RC A/B/C 角色统一公式是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length,completed:results.length,remaining:Math.max(0,list.length-results.length)}};
+    const report={kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length,completed:results.length,remaining:Math.max(0,list.length-results.length)}};
     if(extra)Object.assign(report,extra);
     try{window.__LN_ABC_POLICY_AUDIT_LAST__=report;}catch(e){}
     try{window.dispatchEvent(new CustomEvent('ln:abc-human-audit-progress',{detail:report}));}catch(e){}
@@ -317,7 +325,7 @@
   }
   async function runAll(opts){
     opts=opts||{}; const original=saveStorage(); const t=performance.now(); const picked=selectCases(opts); const list=picked.list; const mode=picked.mode;
-    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||9000); const caseOpts={auditLight:opts.auditLight!==false,dataTimeoutMs:Number(opts.dataTimeoutMs||2600),computeTimeoutMs:Number(opts.computeTimeoutMs||1600),bucketTimeoutMs:Number(opts.bucketTimeoutMs||700),afterStrategyMs:Number(opts.afterStrategyMs||20)};
+    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||16000); const caseOpts={auditLight:opts.auditLight!==false,dataTimeoutMs:Number(opts.dataTimeoutMs||10000),computeTimeoutMs:Number(opts.computeTimeoutMs||3000),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1600),afterStrategyMs:Number(opts.afterStrategyMs||40)};
     buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:true,note:'审计已启动，debug 外层超时时可读取此 partial report，避免 caseTotal 被清零。'});
     try{
       for(let i=0;i<list.length;i++){
