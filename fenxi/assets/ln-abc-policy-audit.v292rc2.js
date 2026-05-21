@@ -1,10 +1,10 @@
 /*
- * V2.92RC2.4.audit-data-safe-runner｜A/B/C 人类思维策略审计
+ * V2.92RC2.5.audit-human-scenario-runner｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.4.audit-data-safe-runner';
+  const VERSION='V2.92RC2.5.audit-human-scenario-runner';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -80,7 +80,7 @@
     return {manifestReady,rankReady,manifestVersion,totalRecords,chunks,dataLen,chunkCacheSize};
   }
   async function ensureDataSafeReady(opts){
-    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||9000);
+    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||opts.dataTimeoutMs||6500);
     while(Date.now()-t<maxMs){
       const st=readDataState();
       if(st.manifestReady && st.rankReady)return Object.assign({status:'ready',ms:Date.now()-t},st);
@@ -90,11 +90,49 @@
     const late=readDataState();
     return Object.assign({status:(late.manifestReady?'partial':'not-ready'),ms:Date.now()-t},late);
   }
+  function rankFromScore(score){
+    score=Number(score||0);
+    if(!score)return null;
+    try{
+      const table=(typeof RANK2025!=='undefined'&&RANK2025)||window.RANK2025||{};
+      const direct=Number(table[String(score)]||table[score]||0);
+      if(direct>0)return direct;
+      let bestRank=null,bestGap=Infinity;
+      Object.keys(table||{}).forEach(k=>{
+        const s=Number(k), r=Number(table[k]);
+        if(Number.isFinite(s)&&Number.isFinite(r)&&r>0){
+          const gap=Math.abs(s-score);
+          if(gap<bestGap){bestGap=gap;bestRank=r;}
+        }
+      });
+      if(bestRank>0)return bestRank;
+    }catch(e){}
+    // 低分段或 rank 表未就绪时的审计兜底。只用于 debug case 注入，不参与业务公式。
+    if(score>=680)return 350;
+    if(score>=650)return 1600;
+    if(score>=620)return 6500;
+    if(score>=600)return 11500;
+    if(score>=580)return 18500;
+    if(score>=560)return 28500;
+    if(score>=550)return 34000;
+    if(score>=530)return 47500;
+    if(score>=520)return 55500;
+    if(score>=510)return 63000;
+    if(score>=500)return 71000;
+    if(score>=490)return 80000;
+    if(score>=480)return 90000;
+    if(score>=470)return 102000;
+    if(score>=460)return 116000;
+    if(score>=450)return 132000;
+    return 150000;
+  }
   function auditRank(input){
+    input=input||{};
+    if(Number(input.rank)>0)return Number(input.rank);
     try{const r=(typeof resolveRank==='function')?resolveRank():null; if(Number(r)>0)return Number(r);}catch(e){}
     try{if(typeof currentRank!=='undefined'&&Number(currentRank)>0)return Number(currentRank);}catch(e){}
-    if(input&&Number(input.rank)>0)return Number(input.rank);
-    return null;
+    const fallback=rankFromScore(input.score);
+    return fallback&&Number(fallback)>0?Number(fallback):null;
   }
   async function applyContext(input,opts){
     opts=opts||{}; input=input||{};
@@ -102,6 +140,9 @@
     resetCaseState();
     const dataBefore=await ensureDataSafeReady(opts);
     const beforeState=readAuditState();
+    const resolvedInputRank=Number(input.rank||0)>0?Number(input.rank):rankFromScore(input.score);
+    input.rank=resolvedInputRank||input.rank||'';
+    try{window.__LN_AUDIT_CURRENT_CASE__={id:input.id||'',score:input.score||'',rank:input.rank||'',source:VERSION,at:now()};}catch(e){}
     setVal('myScore',input.score||''); setVal('myRank',input.rank||''); setVal('model',input.model||'normal');
     setProfile(input); setInterests(input.interests||[],input.manualOnlyInterest);
     if(typeof window.applyStrategy==='function' && input.scenario){try{window.applyStrategy(input.scenario);}catch(e){window.currentStrategy=input.scenario;}}
@@ -239,10 +280,25 @@
     const limit=Number(opts.limit||0); if(limit>0)list=list.slice(0,limit);
     return {mode,list};
   }
+  function buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,extra){
+    const counts=results.reduce((a,x)=>{const s=x.humanAudit?.status||'UNKNOWN';a[s]=(a[s]||0)+1;return a;},{});
+    const flags=results.filter(x=>x.humanAudit?.status!=='PASS').map(x=>({id:x.caseId,title:x.title,status:x.humanAudit?.status,reasons:x.humanAudit?.reasons||[],durationMs:x.durationMs||null,applyDiag:x.applyDiag||null}));
+    let status='PASS';
+    if(extra&&extra.running)status='RUNNING';
+    else if(!list.length)status='FAIL';
+    else if(!results.length)status='FAIL';
+    else if(counts.FAIL)status='FAIL';
+    else if(counts.TIMEOUT||counts.WARN)status='WARN';
+    const report={kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length,completed:results.length,remaining:Math.max(0,list.length-results.length)}};
+    if(extra)Object.assign(report,extra);
+    try{window.__LN_ABC_POLICY_AUDIT_LAST__=report;}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('ln:abc-human-audit-progress',{detail:report}));}catch(e){}
+    return report;
+  }
   async function runAll(opts){
     opts=opts||{}; const original=saveStorage(); const t=performance.now(); const picked=selectCases(opts); const list=picked.list; const mode=picked.mode;
-    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||14000); const caseOpts={dataTimeoutMs:Number(opts.dataTimeoutMs||6500),computeTimeoutMs:Number(opts.computeTimeoutMs||2500),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1600),afterStrategyMs:Number(opts.afterStrategyMs||35)};
-    let overall='PASS';
+    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||12000); const caseOpts={dataTimeoutMs:Number(opts.dataTimeoutMs||4200),computeTimeoutMs:Number(opts.computeTimeoutMs||2200),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1200),afterStrategyMs:Number(opts.afterStrategyMs||30)};
+    buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:true,note:'审计已启动，debug 外层超时时可读取此 partial report，避免 caseTotal 被清零。'});
     try{
       for(let i=0;i<list.length;i++){
         const c=list[i]; const oneStart=performance.now();
@@ -250,17 +306,14 @@
         if(res&&res.__timeout){res={caseId:c.id,title:c.title,input:c.input,durationMs:Math.round(performance.now()-oneStart),humanAudit:{status:'TIMEOUT',reasons:['单 case 超时：'+perCaseTimeout+'ms，已跳过并继续后续场景'],metrics:{}},timeout:true};}
         else if(res&&res.__error){res={caseId:c.id,title:c.title,input:c.input,durationMs:Math.round(performance.now()-oneStart),humanAudit:{status:'FAIL',reasons:['单 case 异常：'+res.error],metrics:{}},error:res.error,stack:res.stack};}
         else {res.durationMs=Math.round(performance.now()-oneStart);}
-        overall=worse(overall,res.humanAudit?.status||'FAIL');
         results.push(res);
+        buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:true,lastCaseId:c.id,lastCaseStatus:res.humanAudit?.status||'UNKNOWN'});
         if(opts.progress)try{opts.progress(i+1,list.length,c,res);}catch(e){}
-        await sleep(Number(opts.betweenCaseMs||80));
+        await sleep(Number(opts.betweenCaseMs||60));
       }
     }finally{restoreStorage(original); try{window.LN_STUDENT_PROFILE_RULES_V2981?.readState?.(); window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.();}catch(e){} }
-    const counts=results.reduce((a,x)=>{const s=x.humanAudit?.status||'UNKNOWN';a[s]=(a[s]||0)+1;return a;},{});
-    const flags=results.filter(x=>x.humanAudit?.status!=='PASS').map(x=>({id:x.caseId,title:x.title,status:x.humanAudit?.status,reasons:x.humanAudit?.reasons||[],durationMs:x.durationMs||null}));
-    let status='PASS'; if(!results.length)status='FAIL'; else if(counts.FAIL)status='FAIL'; else if(counts.TIMEOUT||counts.WARN)status='WARN';
-    return {kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length}};
+    return buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:false});
   }
-  window.LN_TEST_INTERFACE_V292RC2={ready:true,version:VERSION,applyContext,runCase,runAll,selectCases,cases:CASES,coreCaseIds:[...CORE_CASE_IDS],readDataState,ensureDataSafeReady};
-  window.LN_ABC_POLICY_AUDIT_V292RC2={ready:true,version:VERSION,cases:CASES,coreCaseIds:[...CORE_CASE_IDS],runCase,runAll,selectCases,auditCase,readDataState,ensureDataSafeReady};
+  window.LN_TEST_INTERFACE_V292RC2={ready:true,version:VERSION,applyContext,runCase,runAll,selectCases,cases:CASES,coreCaseIds:[...CORE_CASE_IDS],readDataState,ensureDataSafeReady,rankFromScore};
+  window.LN_ABC_POLICY_AUDIT_V292RC2={ready:true,version:VERSION,cases:CASES,coreCaseIds:[...CORE_CASE_IDS],runCase,runAll,selectCases,auditCase,readDataState,ensureDataSafeReady,rankFromScore,lastReport:()=>window.__LN_ABC_POLICY_AUDIT_LAST__};
 })();
