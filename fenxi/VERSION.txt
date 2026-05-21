@@ -1,1 +1,2 @@
-V2.93RC2.boot-loader-stable
+V2.93RC3.runtime-baseline-restore
+基于 V2.92RC2.7 稳定运行底座恢复 runtime / data / loader / abcAudit 基线；统一 index title、debug title、版本戳与资源 query stamp；不继续修改 A/B/C 公式权重，不引入 RC1/RC2 的 loader 兜底实验。

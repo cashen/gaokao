@@ -1,10 +1,10 @@
 /*
- * V2.93RC2.boot-loader-stable｜A/B/C 公式治理稳定审计
- * 边界：审计只验证主干公式治理输出；工程失败与策略失败分开统计，不再用审计规则替代正式公式。
+ * V2.93RC3.runtime-baseline-restore｜A/B/C 人类思维策略审计
+ * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.93RC2.boot-loader-stable';
+  const VERSION='V2.93RC3.runtime-baseline-restore';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -80,21 +80,15 @@
     return {manifestReady,rankReady,manifestVersion,totalRecords,chunks,dataLen,chunkCacheSize};
   }
   async function ensureDataSafeReady(opts){
-    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||opts.dataTimeoutMs||10000);
+    opts=opts||{}; const t=Date.now(); const maxMs=Number(opts.dataReadyTimeoutMs||opts.dataTimeoutMs||6500);
     while(Date.now()-t<maxMs){
       const st=readDataState();
-      const needRows=Number($('myRank')?.value||0)>0 || Number($('myScore')?.value||0)>0 || Number((typeof currentRank!=='undefined'?currentRank:0)||0)>0;
-      if(st.manifestReady && st.rankReady && (!needRows || Number(st.dataLen||0)>0))return Object.assign({status:'ready',ms:Date.now()-t},st);
-      try{
-        if(needRows && st.manifestReady && st.rankReady && Number(st.dataLen||0)===0 && typeof window.ensureDataForCurrentRank==='function'){
-          await withTimeout(window.ensureDataForCurrentRank(),Math.min(2500,Math.max(900,maxMs-(Date.now()-t))),'ensureDataForCurrentRank');
-        }
-      }catch(e){}
-      await sleep(160);
+      if(st.manifestReady && st.rankReady)return Object.assign({status:'ready',ms:Date.now()-t},st);
+      // 如果 boot 还没完成，等待原页面加载；不主动清 DATA。
+      await sleep(120);
     }
     const late=readDataState();
-    const needRows=Number($('myRank')?.value||0)>0 || Number($('myScore')?.value||0)>0 || Number((typeof currentRank!=='undefined'?currentRank:0)||0)>0;
-    return Object.assign({status:(late.manifestReady&&late.rankReady&&(!needRows||Number(late.dataLen||0)>0)?'ready':(late.manifestReady?'partial':'not-ready')),ms:Date.now()-t},late);
+    return Object.assign({status:(late.manifestReady?'partial':'not-ready'),ms:Date.now()-t},late);
   }
   function rankFromScore(score){
     score=Number(score||0);
@@ -145,7 +139,7 @@
     const t0=performance.now();
     const prevAuditLight=window.__LN_ABC_AUDIT_LIGHT__; window.__LN_ABC_AUDIT_LIGHT__=opts&&opts.auditLight!==false;
     resetCaseState();
-    const dataBefore=readDataState();
+    const dataBefore=await ensureDataSafeReady(opts);
     const beforeState=readAuditState();
     const resolvedInputRank=Number(input.rank||0)>0?Number(input.rank):rankFromScore(input.score);
     input.rank=resolvedInputRank||input.rank||'';
@@ -166,15 +160,13 @@
     if(input.provinces)selectProvinces(input.provinces);
     setRejects(input.rejects||[]);
     try{window.LN_STATE_SNAPSHOT_V296?.reset?.();}catch(e){}
-    const dataTimeout=Number(opts.dataTimeoutMs||10000);
-    const computeTimeout=Number(opts.computeTimeoutMs||3000);
+    const dataTimeout=Number(opts.dataTimeoutMs||6500);
+    const computeTimeout=Number(opts.computeTimeoutMs||2500);
     let dataStatus='unknown', computeStatus='unknown';
     if(typeof window.autoRefreshAsync==='function'){
       const r=await withTimeout(window.autoRefreshAsync(),dataTimeout,'autoRefreshAsync');
       dataStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
       if(r&&r.__error)throw new Error('autoRefreshAsync error: '+r.error);
-      const readyAfter=await ensureDataSafeReady({dataTimeoutMs:Math.max(1200,Math.floor(dataTimeout/2))});
-      if(readyAfter.status!=='ready' && Number(readyAfter.dataLen||0)===0)dataStatus=dataStatus+'-data-empty';
     }else if(window.LN_REFRESH_CONTROLLER_V292RC?.request){
       const r=await withTimeout(window.LN_REFRESH_CONTROLLER_V292RC.request('abc-human-audit',{delay:0}),computeTimeout,'refresh-controller');
       computeStatus=r&&r.__timeout?'timeout':r&&r.__error?'error':'ok';
@@ -325,7 +317,7 @@
   }
   async function runAll(opts){
     opts=opts||{}; const original=saveStorage(); const t=performance.now(); const picked=selectCases(opts); const list=picked.list; const mode=picked.mode;
-    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||16000); const caseOpts={auditLight:opts.auditLight!==false,dataTimeoutMs:Number(opts.dataTimeoutMs||10000),computeTimeoutMs:Number(opts.computeTimeoutMs||3000),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1600),afterStrategyMs:Number(opts.afterStrategyMs||40)};
+    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||9000); const caseOpts={auditLight:opts.auditLight!==false,dataTimeoutMs:Number(opts.dataTimeoutMs||2600),computeTimeoutMs:Number(opts.computeTimeoutMs||1600),bucketTimeoutMs:Number(opts.bucketTimeoutMs||700),afterStrategyMs:Number(opts.afterStrategyMs||20)};
     buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:true,note:'审计已启动，debug 外层超时时可读取此 partial report，避免 caseTotal 被清零。'});
     try{
       for(let i=0;i<list.length;i++){
