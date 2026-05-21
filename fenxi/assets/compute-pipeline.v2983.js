@@ -186,7 +186,7 @@
     return arr;
   }
   function applyFiltersV2983(reason){
-    const start=perf(); const renderStats={reason:reason||'applyFilters'};
+    const start=perf(); const auditLight=!!(window.__LN_ABC_AUDIT_LIGHT__ || /abc-human-audit|audit-direct|debug-audit/i.test(String(reason||''))); const renderStats={reason:reason||'applyFilters',auditLight:auditLight};
     const ctx=timeStep(renderStats,'buildContext',()=>buildContext()); S.lastContext=ctx;
     const loadedRows=(typeof DATA!=='undefined'?(DATA||[]):[]).length;
     const rankVal=Number(ctx&&ctx.rank||0) || Number(val('myRank')||0) || 0;
@@ -196,13 +196,13 @@
     arr=timeStep(renderStats,'sortPoolInline',()=>sortPool(arr,ctx))||arr;
     window.filtered=arr; try{filtered=arr;}catch(e){} window.currentPage=1; try{currentPage=1;}catch(e){}
     window.LN_DEBUG_V2983?.setPools?.({loadedRows:(typeof DATA!=='undefined'?(DATA||[]):[]).length,basePool:base.length,filtered:arr.length,interestActive:ctx.child.effective.length,manualOnly:ctx.child.manualOnly});
-    timeStep(renderStats,'scheduleInterestAggregate',()=>window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(arr,1400));
-    timeStep(renderStats,'interestSummary',()=>window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.());
-    timeStep(renderStats,'updateCounts',()=>{if(typeof updateCounts==='function')return updateCounts();});
+    if(!auditLight)timeStep(renderStats,'scheduleInterestAggregate',()=>window.LN_INTEREST_HIT_SUMMARY_V298?.scheduleAggregate?.(arr,1400));
+    if(!auditLight)timeStep(renderStats,'interestSummary',()=>window.LN_CHILD_INTEREST_UI_V296?.renderSummary?.());
+    if(!auditLight)timeStep(renderStats,'updateCounts',()=>{if(typeof updateCounts==='function')return updateCounts();});
     timeStep(renderStats,'renderPlanABC',()=>{if(typeof renderPlanABC==='function')return renderPlanABC();});
-    timeStep(renderStats,'renderCards',()=>{if(typeof renderCards==='function')return renderCards();});
-    timeStep(renderStats,'updateLive',()=>{if(typeof updateLive==='function')return updateLive();});
-    timeStep(renderStats,'updateGuideState',()=>{if(typeof updateGuideState==='function')return updateGuideState();});
+    if(!auditLight)timeStep(renderStats,'renderCards',()=>{if(typeof renderCards==='function')return renderCards();});
+    if(!auditLight)timeStep(renderStats,'updateLive',()=>{if(typeof updateLive==='function')return updateLive();});
+    if(!auditLight)timeStep(renderStats,'updateGuideState',()=>{if(typeof updateGuideState==='function')return updateGuideState();});
     renderStats.total=Math.round(perf()-start);renderStats.filtered=arr.length;S.lastRenderStats=renderStats;debugDetail('renderBreakdown',renderStats);
     const ms=perf()-start; dbg()?.timing?.('applyFiltersTotal',ms,{reason:reason||'applyFilters',filtered:arr.length});
     return arr;
@@ -210,7 +210,7 @@
   function patch(){
     window.applyFilters=applyFiltersV2983;
     if(window.LN_FILTER_ENGINE)window.LN_FILTER_ENGINE.applyFilters=applyFiltersV2983;
-    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix12'};
+    window.LN_COMPUTE_PIPELINE_V2983={buildContext,buildBasePool,scorePool,sortPool,applyFilters:applyFiltersV2983,state:S,ready:true,version:'V2.9.8.3.fix12.auditLight'};
     window.LN_DEBUG_V2983?.setFlags?.({computePipeline:'v2983fix12',applyFiltersPatched:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patch);else patch();

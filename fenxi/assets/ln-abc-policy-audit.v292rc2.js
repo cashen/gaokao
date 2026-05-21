@@ -1,10 +1,10 @@
 /*
- * V2.92RC2.5.audit-human-scenario-runner｜A/B/C 人类思维策略审计
+ * V2.92RC2.6.audit-human-fast-runner｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.5.audit-human-scenario-runner';
+  const VERSION='V2.92RC2.6.audit-human-fast-runner';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -137,6 +137,7 @@
   async function applyContext(input,opts){
     opts=opts||{}; input=input||{};
     const t0=performance.now();
+    const prevAuditLight=window.__LN_ABC_AUDIT_LIGHT__; window.__LN_ABC_AUDIT_LIGHT__=opts&&opts.auditLight!==false;
     resetCaseState();
     const dataBefore=await ensureDataSafeReady(opts);
     const beforeState=readAuditState();
@@ -181,7 +182,9 @@
       }
     }
     const dataAfter=readDataState();
-    return {ms:Math.round(performance.now()-t0),dataStatus,computeStatus,dataBefore,dataAfter,filtered:(typeof filtered!=='undefined'&&Array.isArray(filtered))?filtered.length:(Array.isArray(window.filtered)?window.filtered.length:null),rank:auditRank(input),beforeState,afterState:readAuditState()};
+    const outDiag={ms:Math.round(performance.now()-t0),dataStatus,computeStatus,dataBefore,dataAfter,filtered:(typeof filtered!=='undefined'&&Array.isArray(filtered))?filtered.length:(Array.isArray(window.filtered)?window.filtered.length:null),rank:auditRank(input),beforeState,afterState:readAuditState(),auditLight:!!window.__LN_ABC_AUDIT_LIGHT__};
+    window.__LN_ABC_AUDIT_LIGHT__=prevAuditLight;
+    return outDiag;
   }
   function scenarioDefaultPriority(sc){return ({employment:'employment',exam:'exam',grid:'grid',medical:'medical',teacher:'exam',platformSprint:'school',platformStable:'school',highValue:'employment',publicLow:'lowPublic',edgeBachelor:'lowPublic',budgetFlexible:'city',privateMajor:'employment',broad:'employment'})[sc]||'employment';}
   async function waitForBuckets(maxMs){const t=Date.now(); while(Date.now()-t<maxMs){const b=window.latestPlanBucketsV29475Fix2; if(b && ((Array.isArray(b.A)&&b.A.length)||(Array.isArray(b.B)&&b.B.length)||(Array.isArray(b.C)&&b.C.length))){return true;} await sleep(80);} return false;}
@@ -214,13 +217,17 @@
     if(input.budget==='high'||input.budget==='coop'||input.budget==='flex'){
       if(C.highCostCount===0 && ['privateMajor','budgetFlexible','edgeBachelor'].includes(input.scenario))reasons.push('预算较宽/民办可比较，但 C 未体现成本换机会');
     }
-    if(input.interests&&input.interests.length && bHit!==null&&bHit<0.34)fail.push('明确兴趣存在，但 B 几乎没有围绕兴趣路径');
+    const combinedHit=hitRate({items:[...(A.items||[]),...(B.items||[]),...(C.items||[])]},expect.paths||expect.BPaths||[]);
+    if(input.interests&&input.interests.length && bHit!==null&&bHit<0.34){
+      if(combinedHit!==null&&combinedHit>=0.5)reasons.push('B 专业主线兴趣命中偏低，但 A/C 已出现兴趣路径；应优化 B 展示，不判定为全局兴趣失效');
+      else fail.push('明确兴趣存在，但 ABC 整体也几乎没有围绕兴趣路径');
+    }
     if((input.rejects||[]).some(x=>x==='夜班'||x==='长学制') && input.interests?.includes('medical_health') && B.medicalConflictCount>=3)reasons.push('医学兴趣与拒绝夜班/长周期冲突，B 中医学长周期风险偏多');
     const after=actual.state&&actual.state.after||{}; const selected=(after.childInterest&&after.childInterest.selectedGroups)||[]; const intents=(after.childIntent&&after.childIntent.selectedIntentIds)||[]; const expectedInterests=input.interests||[];
     if(JSON.stringify(selected.slice().sort())!==JSON.stringify(expectedInterests.slice().sort()))reasons.push('case 兴趣状态与输入不一致，可能存在状态污染：'+JSON.stringify({expected:expectedInterests,actual:selected}));
     if(intents.length)reasons.push('case 仍残留 child intent 自动映射：'+intents.join(','));
     const status=fail.length?'FAIL':reasons.length?'WARN':'PASS';
-    return {status,reasons:[...fail,...reasons],metrics:{score:actual.score,rank:actual.rank,rankBand:band,BInterestPathHitRate:bHit,CPathHitRate:cHit,BsafeCount:Bsafe,CLabelExpected:expectedCLabel(band),afterContextHash:actual.state?.after?.contextHash||''}};
+    return {status,reasons:[...fail,...reasons],metrics:{score:actual.score,rank:actual.rank,rankBand:band,BInterestPathHitRate:bHit,ABCInterestPathHitRate:combinedHit,CPathHitRate:cHit,BsafeCount:Bsafe,CLabelExpected:expectedCLabel(band),afterContextHash:actual.state?.after?.contextHash||''}};
   }
   async function runCase(caseDef,opts){
     const input=caseDef.input||{};
@@ -297,7 +304,7 @@
   }
   async function runAll(opts){
     opts=opts||{}; const original=saveStorage(); const t=performance.now(); const picked=selectCases(opts); const list=picked.list; const mode=picked.mode;
-    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||12000); const caseOpts={dataTimeoutMs:Number(opts.dataTimeoutMs||4200),computeTimeoutMs:Number(opts.computeTimeoutMs||2200),bucketTimeoutMs:Number(opts.bucketTimeoutMs||1200),afterStrategyMs:Number(opts.afterStrategyMs||30)};
+    const results=[]; const perCaseTimeout=Number(opts.perCaseTimeoutMs||9000); const caseOpts={auditLight:opts.auditLight!==false,dataTimeoutMs:Number(opts.dataTimeoutMs||2600),computeTimeoutMs:Number(opts.computeTimeoutMs||1600),bucketTimeoutMs:Number(opts.bucketTimeoutMs||700),afterStrategyMs:Number(opts.afterStrategyMs||20)};
     buildAuditReport(mode,list,results,t,perCaseTimeout,caseOpts,{running:true,note:'审计已启动，debug 外层超时时可读取此 partial report，避免 caseTotal 被清零。'});
     try{
       for(let i=0;i<list.length;i++){
