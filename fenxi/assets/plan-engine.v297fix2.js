@@ -1029,6 +1029,88 @@ function renderPlanABC(){
 window.renderPlanABCViewOnly=renderPlanABCViewOnly;
 
 
+/*
+ * V2.93RC.abc-formula-role-unified
+ * 统一口径：A 保底但不能侮辱；B 主线但不能保守；C 机会但不能忽悠。
+ * 边界：在主干 plan-engine 内做公式型微调，不新建 fix 文件；审计和 UI 只读取同一套角色口径。
+ */
+(function(){
+  'use strict';
+  const VERSION='V2.93RC.abc-formula-role-unified';
+  const HARD_REJECT_PENALTY=-100000;
+  const POLICY={
+    version:VERSION,
+    principle:'高分不浪费，中分讲取舍，低分先避坑；兴趣要听但不能盲从；预算和拒绝项是底线，不是装饰。',
+    bands:{
+      top:{label:'高分段',aTooLow:-25,bTooLow:-32,cTooLow:-20,bSafeMax:2,bInterestMin:.50,cNeedOpportunity:true},
+      high:{label:'中高分段',aTooLow:-30,bTooLow:-35,cTooLow:-24,bSafeMax:2,bInterestMin:.50,cNeedOpportunity:true},
+      middle:{label:'中分段',aTooLow:-36,bTooLow:-40,cTooLow:-30,bSafeMax:3,bInterestMin:.45,cNeedOpportunity:true},
+      low:{label:'低分段',aTooLow:-48,bTooLow:-52,cTooLow:-42,bSafeMax:4,bInterestMin:.34,cNeedOpportunity:false},
+      edge:{label:'本科边缘',aTooLow:-62,bTooLow:-68,cTooLow:-58,bSafeMax:4,bInterestMin:.25,cNeedOpportunity:false},
+      unknown:{label:'未定位',aTooLow:-40,bTooLow:-45,cTooLow:-35,bSafeMax:3,bInterestMin:.40,cNeedOpportunity:true}
+    },
+    roles:{
+      A:{title:'A：底线方案',shortName:'守底线',role:'底线',line:'先守住不亏、不坑、不失控：安全但不做无意义下沉。'},
+      B:{title:'B：主线方案',shortName:'看主线',role:'主线',line:'最值得家长和孩子认真讨论：专业/就业/平台与家庭条件的最优平衡。'},
+      C:{title:'C：机会方案',shortName:'看机会',role:'机会',line:'只保留有真实上探价值的机会；高风险项必须能解释代价。'}
+    }
+  };
+  window.LN_ABC_ROLE_POLICY_V293RC=POLICY;
+  window.__LN_ABC_FORMULA_VERSION__=VERSION;
+  try{
+    if(typeof PLAN_MODES_V29476!=='undefined'){
+      Object.keys(POLICY.roles).forEach(k=>Object.assign(PLAN_MODES_V29476[k]||{},POLICY.roles[k]));
+    }
+    if(typeof PLAN_MODES_V2950!=='undefined'){
+      Object.keys(POLICY.roles).forEach(k=>Object.assign(PLAN_MODES_V2950[k]||{},POLICY.roles[k],{short:POLICY.roles[k].shortName}));
+    }
+  }catch(e){}
+
+  function textOfV293(r){return String([r&&r.school,r&&r.major,r&&r.cleanMajor,r&&r.majorText,r&&r.admissionMajor,r&&r.remark,r&&r.feeTypeLabelV29475,r&&r.schoolNature&&r.schoolNature.label].filter(Boolean).join(' '));}
+  function userScoreV293(){const s=Number(document.getElementById('myScore')?.value||0);return Number.isFinite(s)&&s>0?s:0;}
+  function userRankV293(){let r=Number(document.getElementById('myRank')?.value||0);if(r>0)return r;try{r=Number(typeof currentRank!=='undefined'?currentRank:0);if(r>0)return r;}catch(e){}try{r=Number(typeof resolveRank==='function'?resolveRank():0);if(r>0)return r;}catch(e){}return 0;}
+  function userBandV293(){const rank=userRankV293(),score=userScoreV293();if(rank>0){if(rank<=12000)return'top';if(rank<=25000)return'high';if(rank<=60000)return'middle';if(rank<=90000)return'low';return'edge';}if(score>=650)return'top';if(score>=610)return'high';if(score>=530)return'middle';if(score>=480)return'low';if(score>0)return'edge';return'unknown';}
+  function bandPolicyV293(){return POLICY.bands[userBandV293()]||POLICY.bands.unknown;}
+  function deltaScoreV293(r){const s=userScoreV293();const cs=Number(r&&r.score2025);return s&&Number.isFinite(cs)?cs-s:null;}
+  function deltaRankV293(r){const rank=userRankV293();const cr=Number(r&&r.rank2025);return rank&&Number.isFinite(cr)?cr-rank:null;}
+  function isTooLowV293(r,type){const d=deltaScoreV293(r);if(d===null)return false;const bp=bandPolicyV293();const t=type==='A'?bp.aTooLow:type==='B'?bp.bTooLow:bp.cTooLow;return d<t;}
+  function isSafeBandV293(r){return ['保底','过低'].includes(r&&r._level);}
+  function isPublicV293(r){return ['public','publicSoft'].includes(r&&r.schoolTier&&r.schoolTier.level)||(r&&r.schoolNature&&r.schoolNature.label==='公办倾向');}
+  function highCostV293(r){return !!(r&&(r.isHighFee||r.isCoopV29475||r.isPrivateV29475));}
+  function selectedRejectsV293(){try{return (typeof selectedRejects==='function')?selectedRejects():[];}catch(e){return []}}
+  function hardRejectInfoV293(r){
+    const rejects=selectedRejectsV293();const s=conditionSnapshotV29473?conditionSnapshotV29473():{};const t=textOfV293(r);
+    const noFee=(s.noHighFee||s.budget==='normal'||rejects.includes('高收费')||document.getElementById('filterFeeType')?.value==='excludeHighPrivate');
+    const out=[];
+    if(noFee&&highCostV293(r))out.push('高收费/民办/中外与预算底线冲突');
+    if(rejects.some(x=>/工地|现场|设备|艰苦/.test(x))&&/工地|现场|矿|油田|海上|轮机|航海|土木|建筑|测绘|采矿|地质|能源动力|智能电网|电气工程/.test(t))out.push('现场/设备环境与拒绝项冲突');
+    if(rejects.some(x=>/夜班|长学制|长周期/.test(x))&&/临床|口腔|麻醉|儿科|医学影像|护理|医学/.test(t))out.push('医学夜班/长周期与拒绝项冲突');
+    return {hard:out.length>0,reasons:out};
+  }
+  function pathInfoV293(r){try{return majorPathInfoV29476?majorPathInfoV29476(r):{};}catch(e){return {}}}
+  function liftInfoV293(r){try{return liftExchangeInfoV29476?liftExchangeInfoV29476(r):{};}catch(e){return {score:0,got:[],paid:[],label:''}}}
+  function interestStateV293(){try{return window.LN_CHILD_INTEREST_RUNTIME_V296?.readState?.()||{};}catch(e){return {}}}
+  function activeInterestIdsV293(){const st=interestStateV293();return Array.isArray(st.selectedGroups)?st.selectedGroups.filter(Boolean):[];}
+  function conflictV293(){const ids=activeInterestIdsV293();const rej=selectedRejectsV293().join(' ');return {electric:ids.includes('electric_energy')&&/工地|现场|设备|艰苦/.test(rej),medical:ids.includes('medical_health')&&/夜班|长学制|长周期/.test(rej),has: false};}
+  function conflictAdjustmentV293(r,type,path){const c=conflictV293();c.has=c.electric||c.medical;const t=textOfV293(r);let adj=0; if(c.electric){if(/智能电网|电气工程|能源动力|电力/.test(t))adj += type==='A'?-10:type==='B'?-20:-12; if(/电子信息|通信|自动化|计算机|软件|人工智能|仪器|测控|数据/.test(t))adj += type==='B'?22:10;} if(c.medical){if(/临床|口腔|麻醉|儿科|长学制/.test(t))adj += type==='B'?-24:-12; if(/医学检验|医学影像技术|康复|药学|公共卫生|护理|生物医学工程/.test(t))adj += type==='B'?18:8;} return adj;}
+  function pathFitV293(r,type,path){path=path||pathInfoV293(r);let sc=0;if(path.isCore)sc+=type==='B'?56:32;else if(path.isRelated)sc+=type==='B'?36:22;else if(path.key&&path.key!=='unknown')sc+=type==='B'?20:10;const q=(document.getElementById('qMajor')?.value||'').trim();try{if(q&&majorMatchesV29475(r,q))sc+=type==='B'?34:14;}catch(e){}return sc;}
+  function rankValueV293(r,type){const level=r&&r._level;const d=deltaScoreV293(r);let sc=0;if(type==='A'){if(['匹配','稳妥'].includes(level))sc+=34;if(level==='保底')sc+=22;if(level==='过低')sc-=20;if(level==='可冲')sc-=8;}else if(type==='B'){if(['匹配','稳妥','可冲'].includes(level))sc+=28;if(level==='保底')sc-=10;if(level==='过低')sc-=34;}else{if(['可冲','匹配'].includes(level))sc+=30;if(level==='稳妥')sc+=10;if(['保底','过低'].includes(level))sc-=30;}if(d!==null){if(type==='A'&&isTooLowV293(r,'A'))sc-=Math.min(48,Math.abs(d+(bandPolicyV293().aTooLow||0))*1.2+18);if(type==='B'&&isTooLowV293(r,'B'))sc-=Math.min(60,Math.abs(d+(bandPolicyV293().bTooLow||0))*1.1+24);if(type==='C'&&isTooLowV293(r,'C'))sc-=Math.min(70,Math.abs(d+(bandPolicyV293().cTooLow||0))*1.2+30);}return sc;}
+  function familyFitV293(r,type){let sc=0;const s=conditionSnapshotV29473?conditionSnapshotV29473():{};if(isPublicV293(r))sc+=type==='A'?32:type==='B'?12:4;if(!highCostV293(r))sc+=type==='A'?28:type==='B'?16:4;if(['辽宁','吉林','黑龙江'].includes(r&&r.schoolProvince))sc+=s.strongProvince||s.regionMode==='hard'?14:6;if(highCostV293(r)){if(s.budgetWide||s.coopIntent)sc+=type==='C'?30:type==='B'?8:-4;else sc+=type==='A'?-80:type==='B'?-60:-32;}return sc;}
+  function realOpportunityV293(r,path,lift){const s=conditionSnapshotV29473?conditionSnapshotV29473():{};const got=(lift&&lift.got)||[];return ['可冲','超冲'].includes(r&&r._level)||['985','211'].includes(r&&r.schoolTier&&r.schoolTier.level)||got.length>=1||(s.cities&&s.cities.length&&typeof cityMatchesV29472==='function'&&cityMatchesV29472(r,s.cities))||((s.budgetWide||s.coopIntent)&&(r.isCoopV29475||r.isHighFee||r.isPrivateV29475));}
+  function roleScoreV293(r,type,chosen){if(chosen&&chosen.has&&chosen.has(r&&r.id))return HARD_REJECT_PENALTY;const old=typeof planScoreV29475_V292RC27==='function'?planScoreV29475_V292RC27(r,type,null):0;const path=pathInfoV293(r),lift=liftInfoV293(r),hard=hardRejectInfoV293(r);let sc=old*.35; if((type==='A'||type==='B')&&hard.hard)return HARD_REJECT_PENALTY+(type==='A'?-2000:-1500); if(type==='A'){sc+=rankValueV293(r,'A')*1.05+familyFitV293(r,'A')*1.15+pathFitV293(r,'A',path)*.35+(r._profile||0)*.18;if(highCostV293(r))sc-=80;if(isTooLowV293(r,'A'))sc-=45;}else if(type==='B'){sc+=pathFitV293(r,'B',path)*1.25+rankValueV293(r,'B')*.95+familyFitV293(r,'B')*.75+(r._profile||0)*.34+(path.weight||0)*.16;if(isSafeBandV293(r))sc-=18;if(isTooLowV293(r,'B'))sc-=42;}else{const opp=realOpportunityV293(r,path,lift);sc+=rankValueV293(r,'C')*.9+(lift.score||0)*1.1+pathFitV293(r,'C',path)*.65+familyFitV293(r,'C')*.35;if(opp)sc+=36;else sc-=POLICY.bands[userBandV293()]?.cNeedOpportunity?48:18;if(hard.hard)sc-=80;if(isSafeBandV293(r)&&!opp)sc-=42;if(lift.label==='疑似伪提档')sc-=28;}sc+=conflictAdjustmentV293(r,type,path);if(window.LN_CHILD_INTEREST_RUNTIME_V296?.planAdjustment){try{sc+=window.LN_CHILD_INTEREST_RUNTIME_V296.planAdjustment(r,type)*.55;}catch(e){}}return Math.round(sc*10)/10;}
+  const previousPlanScoreV293=planScoreV29475;
+  window.planScoreV29475_V292RC27=previousPlanScoreV293;
+  planScoreV29475=function(r,type,chosen){return roleScoreV293(r,type,chosen);};
+  function rowKeyV293(r){try{return planKeyV29475Fix2?planKeyV29475Fix2(r):[r.school,r.major,r.rank2025,r.score2025].join('§');}catch(e){return [r&&r.school,r&&r.major,r&&r.rank2025,r&&r.score2025].join('§');}}
+  function clusterV293(r,type){try{return planClusterV29475Fix2?planClusterV29475Fix2(r,type):(pathInfoV293(r).key||'unknown');}catch(e){return pathInfoV293(r).key||'unknown';}}
+  function canUseV293(r,type,strict,avoid,chosen,clusters,out){if(!r)return false;const key=rowKeyV293(r);if(chosen.has(key))return false;if(strict&&avoid&&avoid.has(key))return false;const hard=hardRejectInfoV293(r);if((type==='A'||type==='B')&&hard.hard)return false;if(type==='A'){if(highCostV293(r))return false;if(isTooLowV293(r,'A')&&out.length<3)return false;}if(type==='B'){const bp=bandPolicyV293();const safe=out.filter(isSafeBandV293).length;if(isTooLowV293(r,'B')&&out.length<3)return false;if(isSafeBandV293(r)&&safe>=bp.bSafeMax)return false;}if(type==='C'){const path=pathInfoV293(r),lift=liftInfoV293(r);if(POLICY.bands[userBandV293()]?.cNeedOpportunity&& !realOpportunityV293(r,path,lift) && out.length<3)return false;if(hard.hard&&out.length<2)return false;}if((type==='B'||type==='C')&&clusters.has(clusterV293(r,type))&&out.length<3)return false;return true;}
+  function fillBucketV293(type,limit,avoid){const usable=(typeof filtered!=='undefined'&&Array.isArray(filtered)?filtered:window.filtered||[]).filter(r=>r&&!(r._excludes||[]).length);const scored=usable.slice().sort((a,b)=>roleScoreV293(b,type,null)-roleScoreV293(a,type,null));const out=[],chosen=new Set(),clusters=new Set();for(const strict of [true,false]){for(const r of scored){if(!canUseV293(r,type,strict,avoid,chosen,clusters,out))continue;const key=rowKeyV293(r);out.push(r);chosen.add(key);clusters.add(clusterV293(r,type));if(out.length>=limit)return out;}}for(const r of scored){const key=rowKeyV293(r);if(chosen.has(key)||(avoid&&avoid.has(key)))continue;if((type==='A'||type==='B')&&hardRejectInfoV293(r).hard)continue;out.push(r);chosen.add(key);if(out.length>=limit)return out;}return out;}
+  pickSchemeBucketsV29475=function(){const A=fillBucketV293('A',4,new Set());const avoidA=new Set(A.map(rowKeyV293));const B=fillBucketV293('B',4,avoidA);const avoidAB=new Set([...A,...B].map(rowKeyV293));const C=fillBucketV293('C',4,avoidAB);return {A,B,C,meta:{version:VERSION,band:userBandV293(),policy:POLICY.bands[userBandV293()]}};};
+  const oldPrimaryWhyV293=primaryWhyV2950;
+  primaryWhyV2950=function(r,type){try{const base=oldPrimaryWhyV293(r,type);const d=deltaScoreV293(r);const hard=hardRejectInfoV293(r);if(type==='A')return `为什么放在A：这是底线方案，优先不坑、不失控${d!==null?'，分差'+d+'分':''}；${base.replace(/^为什么放在A：/,'')}`;if(type==='B')return `为什么放在B：这是主线方案，优先专业/就业/家庭目标的平衡；${base.replace(/^为什么放在B：/,'')}`;if(type==='C')return `为什么放在C：这是机会方案，必须说明换来什么、付出什么${hard.hard?'；注意：含硬拒绝风险，仅作风险对照':''}；${base.replace(/^为什么放在C：/,'')}`;}catch(e){}return oldPrimaryWhyV293(r,type);};
+  if(window.LN_PLAN_ENGINE){window.LN_PLAN_ENGINE.planScoreV29475=planScoreV29475;window.LN_PLAN_ENGINE.pickSchemeBucketsV29475=pickSchemeBucketsV29475;window.LN_PLAN_ENGINE.rolePolicyV293=POLICY;}
+})();
+
 window.LN_PLAN_ENGINE = {
   renderPlanABC,
   renderPlanABCViewOnly,
@@ -1037,5 +1119,6 @@ window.LN_PLAN_ENGINE = {
   planScoreV29475,
   majorPathInfoV29476,
   liftExchangeInfoV29476,
-  baselineHitsV29476
+  baselineHitsV29476,
+  rolePolicyV293: window.LN_ABC_ROLE_POLICY_V293RC
 };

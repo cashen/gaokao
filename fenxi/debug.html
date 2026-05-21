@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>辽宁物理类工具｜V2.92RC2.7.audit-conflict-aware-runner 一键 Debug</title>
+<title>辽宁物理类工具｜V2.93RC.abc-formula-role-unified 一键 Debug</title>
 <style>
 :root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--card:#fff;--bg:#f8fafc;--ok:#059669;--warn:#d97706;--fail:#dc2626;--blue:#2563eb}
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:18px;line-height:1.55}main{max-width:1180px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 12px 30px rgba(15,23,42,.06)}h1{font-size:25px;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:12px;background:var(--ink);color:#fff;padding:10px 14px;cursor:pointer;font-weight:700}button.secondary{background:#334155}button.ghost{background:#e2e8f0;color:#0f172a}a{color:var(--blue);text-decoration:none;font-weight:700}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:800px){.grid{grid-template-columns:1fr}}.metric{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fafc}.metric b{display:block;font-size:22px}.ok{color:var(--ok)}.warn{color:var(--warn)}.fail{color:var(--fail)}pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;line-height:1.5;max-height:68vh;overflow:auto}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;margin:2px;border:1px solid var(--line);font-size:12px}.pill.ok{background:#ecfdf5;border-color:#a7f3d0}.pill.warn{background:#fff7ed;border-color:#fed7aa}.pill.fail{background:#fef2f2;border-color:#fecaca}.small{font-size:12px}.hide{display:none}.progress{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--blue);transition:width .25s}</style>
 </head>
 <body>
 <main>
-  <h1>辽宁物理类高考志愿工具｜V2.92RC2.7.audit-conflict-aware-runner 一键 Debug</h1>
-  <p class="muted">这个页面用于工程闭环与 ABC 策略审计：检查资源、加载链、最终函数来源、pendingdel、wrapper 收口，并分批模拟真实家庭场景审计 A/B/C：核心 12 例用于快速反馈，完整 36 例用于全量审计。不会读取密码、Cookie 或 Secret。</p>
+  <h1>辽宁物理类高考志愿工具｜V2.93RC.abc-formula-role-unified 一键 Debug</h1>
+  <p class="muted">这个页面用于工程闭环与 ABC 策略审计：检查资源、加载链、最终函数来源、pendingdel、wrapper 收口，并默认一次运行完整 36 例，验证 A/B/C 角色统一公式、分段、兴趣冲突、预算和拒绝项联动。核心 12 例仅保留为开发快速入口。不会读取密码、Cookie 或 Secret。</p>
   <div class="card">
     <h2>一键测试</h2>
     <div class="progress"><div class="bar" id="bar"></div></div>
-    <p id="status" class="muted">建议先点“运行核心审计”，完成后复制日志；完整审计会更慢，但会覆盖全部场景。</p>
+    <p id="status" class="muted">建议直接运行完整 36 例；完成后复制一次日志即可。核心 12 例仅用于开发快速自检。</p>
     <div class="btns">
-      <button id="runCoreBtn">运行核心审计（12例）</button>
-      <button id="runFullBtn" class="secondary">运行完整审计（36例）</button>
+      <button id="runFullBtn">运行完整审计（36例，推荐）</button>
+      <button id="runCoreBtn" class="secondary">开发快速审计（12例）</button>
       <button id="copyBtn" class="secondary">复制日志</button>
       <button id="downloadBtn" class="ghost">下载 JSON</button>
       <a href="./index.html">返回工具</a>
@@ -36,7 +36,7 @@
 <script>
 (function(){
 'use strict';
-const VERSION='V2.92RC2.7.audit-conflict-aware-runner.debug-oneclick';
+const VERSION='V2.93RC.abc-formula-role-unified.debug-oneclick';
 let LAST_REPORT=null;
 const $=id=>document.getElementById(id);
 function setStatus(t,p){$('status').textContent=t; if(typeof p==='number')$('bar').style.width=Math.max(0,Math.min(100,p))+'%';}
@@ -149,8 +149,8 @@ async function runIframeAudit(activeFiles,auditMode){
 }
 
 async function run(auditMode){
-  auditMode=auditMode||'core';
-  const report={kind:'LN Fenxi V2.92RC2.5 Audit Human Scenario Runner One Click Debug Report',version:VERSION,generatedAt:now(),url:location.href,userAgent:navigator.userAgent,checks:[]};
+  auditMode=auditMode||'full';
+  const report={kind:'LN Fenxi V2.93RC ABC Formula Role Unified One Click Debug Report',version:VERSION,generatedAt:now(),url:location.href,userAgent:navigator.userAgent,checks:[]};
   try{
     setStatus('读取 index.html 与引用链...',8);
     const idx=await fetchText('./index.html');report.index={http:idx.status,size:idx.text.length,hash:hashText(idx.text),status:idx.ok?'PASS':'FAIL'};

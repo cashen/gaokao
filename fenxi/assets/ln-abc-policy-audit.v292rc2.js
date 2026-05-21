@@ -1,10 +1,10 @@
 /*
- * V2.92RC2.7.audit-conflict-aware-runner｜A/B/C 人类思维策略审计
- * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
+ * V2.93RC.abc-formula-role-unified｜A/B/C 公式角色统一审计
+ * 边界：审计读取主干公式口径；V2.93RC 已在 plan-engine 主干内统一 A/B/C 角色公式。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.7.audit-conflict-aware-runner';
+  const VERSION='V2.93RC.abc-formula-role-unified';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -294,7 +294,7 @@
   function selectCases(opts){
     opts=opts||{};
     let list=CASES.slice();
-    const mode=opts.mode||opts.suite||'core';
+    const mode=opts.mode||opts.suite||'full';
     if(mode==='core')list=list.filter(c=>CORE_CASE_IDS.has(c.id));
     if(Array.isArray(opts.ids)&&opts.ids.length){const ids=new Set(opts.ids);list=CASES.filter(c=>ids.has(c.id));}
     const limit=Number(opts.limit||0); if(limit>0)list=list.slice(0,limit);
@@ -309,7 +309,7 @@
     else if(!results.length)status='FAIL';
     else if(counts.FAIL)status='FAIL';
     else if(counts.TIMEOUT||counts.WARN)status='WARN';
-    const report={kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:false,doesModifyFormula:false,doesModifyABC:false,purpose:'自动模拟人类真实家庭场景，审计 A/B/C 是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length,completed:results.length,remaining:Math.max(0,list.length-results.length)}};
+    const report={kind:'LN Fenxi ABC Human Policy Audit',version:VERSION,generatedAt:now(),mode,caseTotal:results.length,expectedTotal:list.length,counts,status,flags,results,durationMs:Math.round(performance.now()-t),timeouts:counts.TIMEOUT||0,policy:{doesModifyBusiness:true,doesModifyFormula:true,doesModifyABC:true,purpose:'自动模拟人类真实家庭场景，验证 V2.93RC A/B/C 角色统一公式是否符合语义。'},runner:{perCaseTimeoutMs:perCaseTimeout,caseOptions:caseOpts,coreCaseCount:[...CORE_CASE_IDS].length,totalCaseCount:CASES.length,completed:results.length,remaining:Math.max(0,list.length-results.length)}};
     if(extra)Object.assign(report,extra);
     try{window.__LN_ABC_POLICY_AUDIT_LAST__=report;}catch(e){}
     try{window.dispatchEvent(new CustomEvent('ln:abc-human-audit-progress',{detail:report}));}catch(e){}
