@@ -1,3 +1,3 @@
-V2.92RC2.3.audit-state-isolation
+V2.92RC2.4.audit-data-safe-runner
 基于 V2.92RC2.2.runtime-registry-stable。
 边界：不改业务公式、不改 compute-pipeline、不改 rules-closure4；只修 ABC 审计 case 状态隔离、score/rank 回填与 humanAudit 降级判断。
