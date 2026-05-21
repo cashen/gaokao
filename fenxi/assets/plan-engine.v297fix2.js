@@ -1042,12 +1042,12 @@ window.LN_PLAN_ENGINE = {
 
 
 /*
- * V2.93RC1.formula-governance-stable
+ * V2.93RC2.boot-loader-stable
  * 主干公式治理层：基于原 plan-engine，不重写数据链路；只在 A/B/C 选桶上做统一口径微调。
  */
 (function(){
   'use strict';
-  const VERSION='V2.93RC1.formula-governance-stable';
+  const VERSION='V2.93RC2.boot-loader-stable';
   const GOV=window.LN_ABC_FORMULA_GOVERNANCE_V293RC1||{bands:{unknown:{aTooLow:-40,bTooLow:-30,cFantasy:25,bSafeMax:3,cNeedOpportunity:false}},principles:[]};
   const OLD_SCORE=typeof window.planScoreV29475==='function'?window.planScoreV29475:(typeof planScoreV29475==='function'?planScoreV29475:function(){return 0;});
   const OLD_PICK=typeof window.pickSchemeBucketsV29475==='function'?window.pickSchemeBucketsV29475:(typeof pickSchemeBucketsV29475==='function'?pickSchemeBucketsV29475:null);

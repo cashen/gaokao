@@ -1,10 +1,10 @@
 /*
- * V2.93RC1.formula-governance-stable｜A/B/C 公式治理稳定审计
+ * V2.93RC2.boot-loader-stable｜A/B/C 公式治理稳定审计
  * 边界：审计只验证主干公式治理输出；工程失败与策略失败分开统计，不再用审计规则替代正式公式。
  */
 (function(){
   'use strict';
-  const VERSION='V2.93RC1.formula-governance-stable';
+  const VERSION='V2.93RC2.boot-loader-stable';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();

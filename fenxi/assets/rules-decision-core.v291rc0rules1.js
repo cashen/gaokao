@@ -226,13 +226,13 @@
 
 
 /*
- * V2.93RC1.formula-governance-stable
+ * V2.93RC2.boot-loader-stable
  * 公式治理总口径：只定义策略阈值与角色语义，不直接读取 DOM、不直接筛候选。
  */
 (function(){
   'use strict';
   const POLICY={
-    version:'V2.93RC1.formula-governance-stable',
+    version:'V2.93RC2.boot-loader-stable',
     principles:[
       'A 保底但不能侮辱',
       'B 主线但不能保守',

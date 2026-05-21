@@ -190,11 +190,11 @@
 <div class="debug-panel hide" id="debugPanel"></div>
 <script>
 (function(){
-  const VERSION='293rc1-formula-governance-stable-20260521';
-  window.__LN_TOOL_VERSION='V2.93RC1.formula-governance-stable';
-  window.LN_TOOL_VERSION='V2.93RC1.formula-governance-stable';
-  window.__LN_TOOL_STAMP='293rc1-formula-governance-stable-20260521';
-  window.LN_TOOL_VERSION_STAMP='293rc1-formula-governance-stable-20260521';
+  const VERSION='293rc2-boot-loader-stable-20260521';
+  window.__LN_TOOL_VERSION='V2.93RC2.boot-loader-stable';
+  window.LN_TOOL_VERSION='V2.93RC2.boot-loader-stable';
+  window.__LN_TOOL_STAMP='293rc2-boot-loader-stable-20260521';
+  window.LN_TOOL_VERSION_STAMP='293rc2-boot-loader-stable-20260521';
   window.LN_SAFE_PERF_OPT = true;
   window.LN_SAFE_PERF_VERSION = '29rc-safeperf1-20260513';
   window.LN_INTERACT_FIX_OPT = true;
@@ -213,11 +213,11 @@
   window.LN_MODEL_LAZY_VERSION = '291rc0-model-lazy1-20260513';
   window.LN_ENGINE_CLEANUP_OPT = true;
   window.LN_ENGINE_CLEANUP_VERSION = 'V2.92RC2.4.audit-data-safe-runner';
-  window.LN_ENGINE_CLEANUP_STAMP = '293rc1-formula-governance-stable-20260521';
+  window.LN_ENGINE_CLEANUP_STAMP = '293rc2-boot-loader-stable-20260521';
   window.LN_PARENT_TRUST_OPT = (window.LN_PARENT_TRUST_OPT !== false);
   window.LN_PARENT_TRUST_VERSION = '291rc0parenttrust2-20260514';
   window.LN_RULES_CLOSURE_VERSION = '291rc0closure4-20260514';
-  window.__LN_TOOL_LINEAGE={baseline:'V2.9.8.3.fix12',safePerf:'29rc-safeperf1-20260513',interact1:'29rc-interact1-20260513',interact2:'29rc-interact2-20260513',release:'V2.93RC1.formula-governance-stable',rulesCore:'291rc0-rules-core1-20260513',uiCore:'291rc0-ui-core1-20260513',coordinator:'291rc0-coordinator1-20260513',modelAudit:'291rc0-model-audit1-20260513',modelLazy:'291rc0-model-lazy1-20260513',parentTrust:'291rc0parenttrust2-20260514',rulesClosure:'291rc0closure4-20260514',frontendTrust:'291rc0front2-20260514',stamp:'293rc1-formula-governance-stable-20260521'};
+  window.__LN_TOOL_LINEAGE={baseline:'V2.9.8.3.fix12',safePerf:'29rc-safeperf1-20260513',interact1:'29rc-interact1-20260513',interact2:'29rc-interact2-20260513',release:'V2.93RC2.boot-loader-stable',rulesCore:'291rc0-rules-core1-20260513',uiCore:'291rc0-ui-core1-20260513',coordinator:'291rc0-coordinator1-20260513',modelAudit:'291rc0-model-audit1-20260513',modelLazy:'291rc0-model-lazy1-20260513',parentTrust:'291rc0parenttrust2-20260514',rulesClosure:'291rc0closure4-20260514',frontendTrust:'291rc0front2-20260514',stamp:'293rc2-boot-loader-stable-20260521'};
   window.LN_THEME_TOKENS_V297=window.LN_THEME_TOKENS_V297||{ready:true,tokens:{version:'V2.9.8.3.fix12-inline',paths:{rank:{name:'位次 / 数据证据',color:'#2563eb',soft:'#eff6ff'},baseline:{name:'家庭底线 / 安全',color:'#059669',soft:'#ecfdf5'},interest:{name:'孩子兴趣 / 专业方向',color:'#7c3aed',soft:'#f5f3ff'},scenario:{name:'我家情况 / 当前优先考虑',color:'#b76535',soft:'#f2dfcf'},planA:{name:'A 守底线',color:'#059669',soft:'#ecfdf5'},planB:{name:'B 主讨论',color:'#b76535',soft:'#f2dfcf'},planC:{name:'C 看机会',color:'#52677a',soft:'#e8eef2'},review:{name:'复核 / 谨慎',color:'#ea580c',soft:'#fff7ed'}},neutral:{ink:'#172033',muted:'#667085',line:'#e6ebf3',bg:'#f7f9fc',card:'#ffffff'}}};
 
   // V2.9.8.3.fix12: rules.v297fix2.js may be served as HTML by site fallback on some deploys; inline it so boot cannot be blocked.
@@ -484,22 +484,54 @@ window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility al
     if(!base.endsWith('/')) base += '/';
     return base + file.replace(/^\.\//,'') + '?v=' + VERSION;
   }
+  const BOOT_SCRIPT_TIMEOUT_MS=12000;
+  const BOOT_FETCH_TIMEOUT_MS=12000;
   function loadScript(base,file){
     return new Promise((resolve,reject)=>{
       window.__LN_ASSET_BASE=base;
       const s=document.createElement('script');
-      s.src=join(base,file);
+      let done=false;
+      const src=join(base,file);
+      const finish=(ok,err)=>{
+        if(done)return;
+        done=true;
+        clearTimeout(timer);
+        if(ok){window.__LN_BOOT_LOADS__.push({file,base,ok:true,src,mode:'script'});resolve({base,src,mode:'script'});}
+        else{window.__LN_BOOT_LOADS__.push({file,base,ok:false,src,mode:'script',error:String(err&&err.message||err||'load-failed')});s.remove();reject(err instanceof Error?err:new Error(String(err||'脚本加载失败：'+src)));}
+      };
+      const timer=setTimeout(()=>finish(false,new Error('脚本加载超时：'+src)),BOOT_SCRIPT_TIMEOUT_MS);
+      s.src=src;
       s.async=false;
-      s.onload=()=>{window.__LN_BOOT_LOADS__.push({file,base,ok:true,src:s.src});resolve({base,src:s.src});};
-      s.onerror=()=>{window.__LN_BOOT_LOADS__.push({file,base,ok:false,src:s.src});s.remove();reject(new Error('脚本加载失败：'+s.src));};
+      s.onload=()=>finish(true);
+      s.onerror=()=>finish(false,new Error('脚本加载失败：'+src));
       document.body.appendChild(s);
     });
+  }
+  async function loadScriptByFetch(base,file){
+    window.__LN_ASSET_BASE=base;
+    const src=join(base,file)+'&inline=1';
+    const ac=new AbortController();
+    const t=setTimeout(()=>ac.abort(),BOOT_FETCH_TIMEOUT_MS);
+    try{
+      const res=await fetch(src,{cache:'no-store',signal:ac.signal});
+      if(!res.ok)throw new Error('fetch '+res.status+'：'+src);
+      const code=await res.text();
+      const s=document.createElement('script');
+      s.text=code+'\n//# sourceURL='+src.replace(/\s/g,'%20');
+      document.body.appendChild(s);
+      window.__LN_BOOT_LOADS__.push({file,base,ok:true,src,mode:'fetch-inline'});
+      return {base,src,mode:'fetch-inline'};
+    }catch(e){
+      window.__LN_BOOT_LOADS__.push({file,base,ok:false,src,mode:'fetch-inline',error:String(e&&e.message||e)});
+      throw e;
+    }finally{clearTimeout(t);}
   }
   async function loadWithFallback(file,bases,preferred){
     const ordered=uniq([preferred, ...bases]);
     let last=null;
     for(const base of ordered){
       try{return await loadScript(base,file);}catch(e){last=e;}
+      try{return await loadScriptByFetch(base,file);}catch(e){last=e;}
     }
     throw last || new Error('脚本加载失败：'+file);
   }
@@ -514,9 +546,22 @@ window.LN_GAOKAO_RULES_V2952 = window.LN_GAOKAO_RULES_V2953; // compatibility al
     const bases=candidateBases();
     const inlineBase=preferredAssetBaseV2983Fix11();
     injectInlineBootScriptV2983Fix11('assets/config.v297fix2.js', inlineBase);
+    window.__LN_BOOT_START_AT=Date.now();
+    window.__LN_BOOT_FAILED_FILES__=[];
     const first=await loadWithFallback(files[0],bases,inlineBase);
     const activeBase=first.base;
-    for(const file of files.slice(1)){ await loadWithFallback(file,bases,activeBase); }
+    const critical=/data-engine|filter-engine|region-filter|compute-pipeline|plan-engine|abc-decision-ui|render\.v|app\.v2983|ln-debug-baseline|ln-abc-policy-audit|interact-stability|interact-dedupe/;
+    for(const file of files.slice(1)){
+      try{ await loadWithFallback(file,bases,activeBase); }
+      catch(e){
+        window.__LN_BOOT_FAILED_FILES__.push({file,error:String(e&&e.message||e)});
+        if(critical.test(file))throw e;
+        console.warn('[V2.93RC2 boot optional asset skipped]', file, e);
+      }
+    }
+    window.__LN_BOOT_COMPLETE__=true;
+    window.__LN_BOOT_COMPLETED_AT=new Date().toISOString();
+    window.dispatchEvent(new CustomEvent('ln:boot-complete',{detail:{total:files.length,failed:window.__LN_BOOT_FAILED_FILES__}}));
   }
   boot().catch(showBootError);
 })();

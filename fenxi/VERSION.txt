@@ -1,3 +1,1 @@
-V2.93RC1.formula-governance-stable
-
-公式治理稳定版：候选池优先、A/B/C 角色公式、硬拒绝边界、兴趣冲突转译、full 36 一次审计。
+V2.93RC2.boot-loader-stable
