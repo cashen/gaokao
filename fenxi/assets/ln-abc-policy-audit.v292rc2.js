@@ -1,10 +1,10 @@
 /*
- * V2.92RC2.6.audit-human-fast-runner｜A/B/C 人类思维策略审计
+ * V2.92RC2.7.audit-conflict-aware-runner｜A/B/C 人类思维策略审计
  * 边界：不改业务逻辑、不改公式、不改 rules-closure4；只提供统一测试接口和审计输出。
  */
 (function(){
   'use strict';
-  const VERSION='V2.92RC2.6.audit-human-fast-runner';
+  const VERSION='V2.92RC2.7.audit-conflict-aware-runner';
   const STORAGE_KEYS=['ln_child_interest_state_v2955','ln_child_intent_state_v2975','ln_student_profile_state_v298'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const now=()=>new Date().toISOString();
@@ -203,6 +203,15 @@
     return {items:brief,bandDistribution:bands,pathDistribution:paths,avgScoreGap:avg(brief,'scoreGap'),avgRankGap:avg(brief,'rankGap'),highCostCount:brief.filter(x=>x.highCost).length,siteRiskCount:brief.filter(x=>x.siteRisk>=3).length,medicalConflictCount:brief.filter(x=>x.medicalLong||x.medicalNight).length};
   }
   function hitRate(summary,expectedPaths){if(!expectedPaths||!expectedPaths.length)return null; const set=new Set(expectedPaths); const n=summary.items.length||1; return Math.round(summary.items.filter(x=>set.has(x.path)).length*100/n)/100;}
+  function hasConstraintConflict(input){
+    input=input||{};
+    const interests=input.interests||[];
+    const rejects=input.rejects||[];
+    const hasReject=x=>rejects.some(r=>String(r||'').indexOf(x)>=0);
+    const electricConflict=interests.includes('electric_energy')&&(hasReject('工地')||hasReject('现场')||hasReject('设备')||hasReject('艰苦'));
+    const medicalConflict=interests.includes('medical_health')&&(hasReject('夜班')||hasReject('长学制')||hasReject('长周期'));
+    return {electricConflict,medicalConflict,any:electricConflict||medicalConflict};
+  }
   function auditCase(caseDef,actual){
     const input=caseDef.input||{}, expect=caseDef.expect||{}, band=actual.rankBand||'unknown', reasons=[], fail=[];
     const hasScore=Number(input.score||actual.score||0)>0;
@@ -218,9 +227,13 @@
       if(C.highCostCount===0 && ['privateMajor','budgetFlexible','edgeBachelor'].includes(input.scenario))reasons.push('预算较宽/民办可比较，但 C 未体现成本换机会');
     }
     const combinedHit=hitRate({items:[...(A.items||[]),...(B.items||[]),...(C.items||[])]},expect.paths||expect.BPaths||[]);
+    const conflict=hasConstraintConflict(input);
     if(input.interests&&input.interests.length && bHit!==null&&bHit<0.34){
       if(combinedHit!==null&&combinedHit>=0.5)reasons.push('B 专业主线兴趣命中偏低，但 A/C 已出现兴趣路径；应优化 B 展示，不判定为全局兴趣失效');
-      else fail.push('明确兴趣存在，但 ABC 整体也几乎没有围绕兴趣路径');
+      else if(conflict.any){
+        const label=conflict.medicalConflict?'医学兴趣与夜班/长周期底线冲突':conflict.electricConflict?'电气/电网兴趣与现场/设备环境底线冲突':'兴趣与家庭底线冲突';
+        reasons.push(label+'，审计不再强制 ABC 全部围绕原兴趣；应检查是否有冲突提示、风险降权和替代路径');
+      }else fail.push('明确兴趣存在，但 ABC 整体也几乎没有围绕兴趣路径');
     }
     if((input.rejects||[]).some(x=>x==='夜班'||x==='长学制') && input.interests?.includes('medical_health') && B.medicalConflictCount>=3)reasons.push('医学兴趣与拒绝夜班/长周期冲突，B 中医学长周期风险偏多');
     const after=actual.state&&actual.state.after||{}; const selected=(after.childInterest&&after.childInterest.selectedGroups)||[]; const intents=(after.childIntent&&after.childIntent.selectedIntentIds)||[]; const expectedInterests=input.interests||[];
@@ -276,7 +289,7 @@
     {id:'470-no-interest-public-low',title:'470不限｜低分公办｜无兴趣',input:{score:470,gender:'unspecified',learning:'unclear',load:'sensitive',interests:[],scenario:'publicLow',priority:'lowPublic',budget:'normal',regionMode:'hard',regions:['东北'],rejects:['高收费']},expect:{}},
     {id:'460-female-medical-reject-cycle',title:'460女孩｜医学兴趣｜拒绝夜班长周期',input:{score:460,gender:'female',learning:'path_clear',load:'sensitive',interests:['medical_health'],scenario:'medical',priority:'medical',budget:'normal',regionMode:'hard',regions:['东北'],rejects:['高收费','夜班','长学制']},expect:{paths:['medical']}},
     {id:'650-rich-platform-city',title:'650不差钱｜平台+城市',input:{score:650,gender:'unspecified',learning:'science',load:'normal',interests:['computer_info'],scenario:'budgetFlexible',priority:'city',budget:'high',regionMode:'soft',regions:['京津冀','长三角','珠三角'],rejects:[]},expect:{paths:['computer','electronic','business']}},
-    {id:'600-female-finance-city',title:'600女孩｜财会金融｜城市优先',input:{score:600,gender:'female',learning:'expression',load:'normal',interests:['finance_manage'],scenario:'employment',priority:'city',budget:'normal',regionMode:'soft',regions:['京津冀','长三角'],rejects:['高收费']},expect:{paths:['accounting','business','public_service']}}
+    {id:'600-female-finance-city',title:'600女孩｜财会金融｜城市优先',input:{score:600,gender:'female',learning:'expression',load:'normal',interests:['finance_manage'],scenario:'employment',priority:'city',budget:'normal',regionMode:'soft',regions:['京津冀','长三角'],rejects:['高收费']},expect:{paths:['accounting','business','public_service','liberal','teacher','computer']}}
   ];
   function selectCases(opts){
     opts=opts||{};

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>辽宁物理类工具｜V2.92RC2.6.audit-human-fast-runner 一键 Debug</title>
+<title>辽宁物理类工具｜V2.92RC2.7.audit-conflict-aware-runner 一键 Debug</title>
 <style>
 :root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--card:#fff;--bg:#f8fafc;--ok:#059669;--warn:#d97706;--fail:#dc2626;--blue:#2563eb}
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:18px;line-height:1.55}main{max-width:1180px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 12px 30px rgba(15,23,42,.06)}h1{font-size:25px;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:12px;background:var(--ink);color:#fff;padding:10px 14px;cursor:pointer;font-weight:700}button.secondary{background:#334155}button.ghost{background:#e2e8f0;color:#0f172a}a{color:var(--blue);text-decoration:none;font-weight:700}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:800px){.grid{grid-template-columns:1fr}}.metric{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fafc}.metric b{display:block;font-size:22px}.ok{color:var(--ok)}.warn{color:var(--warn)}.fail{color:var(--fail)}pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;line-height:1.5;max-height:68vh;overflow:auto}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;margin:2px;border:1px solid var(--line);font-size:12px}.pill.ok{background:#ecfdf5;border-color:#a7f3d0}.pill.warn{background:#fff7ed;border-color:#fed7aa}.pill.fail{background:#fef2f2;border-color:#fecaca}.small{font-size:12px}.hide{display:none}.progress{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--blue);transition:width .25s}</style>
 </head>
 <body>
 <main>
-  <h1>辽宁物理类高考志愿工具｜V2.92RC2.6.audit-human-fast-runner 一键 Debug</h1>
+  <h1>辽宁物理类高考志愿工具｜V2.92RC2.7.audit-conflict-aware-runner 一键 Debug</h1>
   <p class="muted">这个页面用于工程闭环与 ABC 策略审计：检查资源、加载链、最终函数来源、pendingdel、wrapper 收口，并分批模拟真实家庭场景审计 A/B/C：核心 12 例用于快速反馈，完整 36 例用于全量审计。不会读取密码、Cookie 或 Secret。</p>
   <div class="card">
     <h2>一键测试</h2>
@@ -36,7 +36,7 @@
 <script>
 (function(){
 'use strict';
-const VERSION='V2.92RC2.6.audit-human-fast-runner.debug-oneclick';
+const VERSION='V2.92RC2.7.audit-conflict-aware-runner.debug-oneclick';
 let LAST_REPORT=null;
 const $=id=>document.getElementById(id);
 function setStatus(t,p){$('status').textContent=t; if(typeof p==='number')$('bar').style.width=Math.max(0,Math.min(100,p))+'%';}
