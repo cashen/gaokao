@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f7f3ea" />
+  <title>辽宁 2025 位次跨度参考工具</title>
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/responsive.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="container hero__inner">
+      <div>
+        <p class="eyebrow">辽宁 2025 · 一分一段</p>
+        <h1>位次跨度参考工具</h1>
+        <p class="hero__lead">输入当前分数和上探分数，查看目标分附近对应的位次变化，辅助规划志愿梯度。</p>
+      </div>
+      <div class="hero__note" aria-label="使用说明">
+        <strong>温和提示</strong>
+        <span>本工具不评价孩子分数，只帮助看清分数背后的位次变化。</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container app-shell" id="app">
+    <section class="panel control-panel" aria-label="参数设置">
+      <div class="section-head">
+        <h2>参数设置</h2>
+        <p>支持手动输入、滑轨拖动和快捷上探按钮。</p>
+      </div>
+
+      <fieldset class="control-group">
+        <legend>选择科类</legend>
+        <div class="segmented" role="radiogroup" aria-label="选择科类">
+          <button type="button" class="segmented__item is-active" data-subject="physics" aria-pressed="true">物理类 <span>理</span></button>
+          <button type="button" class="segmented__item" data-subject="history" aria-pressed="false">历史类 <span>文</span></button>
+        </div>
+        <p class="hint">辽宁官方统计按物理类、历史类发布；这里同时保留家长熟悉的文理说法。</p>
+      </fieldset>
+
+      <div class="control-group">
+        <label class="field-label" for="scoreInput">当前分数</label>
+        <div class="number-row">
+          <input id="scoreInput" class="number-input" type="number" inputmode="numeric" min="150" max="707" step="1" value="520" aria-describedby="scoreHelp" />
+          <span class="unit">分</span>
+        </div>
+        <input id="scoreRange" class="range" type="range" min="150" max="707" step="1" value="520" />
+        <p class="hint" id="scoreHelp">例如：450、451、520、600。手输和滑轨会自动同步。</p>
+      </div>
+
+      <div class="control-group">
+        <label class="field-label" for="deltaInput">上探分数</label>
+        <div class="number-row">
+          <input id="deltaInput" class="number-input" type="number" inputmode="numeric" min="0" max="80" step="1" value="30" aria-describedby="deltaHelp" />
+          <span class="unit">分</span>
+        </div>
+        <input id="deltaRange" class="range" type="range" min="0" max="80" step="1" value="30" />
+        <p class="hint" id="deltaHelp">从 520 分参考 550 分，就是上探 30 分。</p>
+        <div class="quick-deltas" id="quickDeltas" aria-label="常用上探幅度"></div>
+      </div>
+
+      <fieldset class="control-group">
+        <legend>专业热度参考</legend>
+        <div class="heat-grid" id="heatOptions"></div>
+        <p class="hint" id="heatNote">专业热度会影响志愿匹配稳定性。相对冷门不等于一定容易，只是历史波动空间可能更大。</p>
+      </fieldset>
+    </section>
+
+    <section class="result-stack">
+      <article class="panel result-card" aria-live="polite">
+        <div class="result-card__top">
+          <div>
+            <p class="eyebrow">核心结果</p>
+            <h2>位次跨度</h2>
+          </div>
+          <span class="badge" id="levelBadge">高位上探</span>
+        </div>
+        <div class="big-number"><span id="crossPeople">0</span><small>名</small></div>
+        <p class="soft-text">当前分到参考分之间，对应的累计位次变化。</p>
+
+        <div class="metric-grid">
+          <div class="metric"><span>当前分</span><strong id="currentScoreText">520</strong></div>
+          <div class="metric"><span>参考分</span><strong id="targetScoreText">550</strong></div>
+          <div class="metric"><span>当前累计位次</span><strong id="currentRankText">46,756</strong></div>
+          <div class="metric"><span>参考累计位次</span><strong id="targetRankText">32,746</strong></div>
+          <div class="metric"><span>平均每分变化</span><strong id="densityText">467</strong></div>
+          <div class="metric"><span>数据状态</span><strong id="dataStatusText">精确</strong></div>
+        </div>
+        <p class="hint" id="clampHint" hidden></p>
+      </article>
+
+      <article class="panel advice-card">
+        <div class="section-head compact">
+          <h2>使用建议</h2>
+          <p id="levelShort">目标位次明显高于当前位次。</p>
+        </div>
+        <p id="levelAdvice" class="advice-text">更适合作为前部探索项，主体志愿应回到更稳妥的区间。</p>
+      </article>
+    </section>
+
+    <section class="panel full-width">
+      <div class="section-head inline">
+        <div>
+          <h2>不同上探幅度参考</h2>
+          <p>用于横向理解 +5、+10、+30、+40、+50 对应的位次变化。</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>上探分数</th>
+              <th>参考分</th>
+              <th>位次跨度</th>
+              <th>参考层级</th>
+            </tr>
+          </thead>
+          <tbody id="compareBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel full-width copy-panel">
+      <div class="section-head inline">
+        <div>
+          <h2>给家长看的说明</h2>
+          <p>文案尽量保持平和，只讲事实和梯度安排。</p>
+        </div>
+        <button type="button" class="copy-btn" id="copyBtn">复制说明</button>
+      </div>
+      <div class="narrative" id="narrativeText"></div>
+    </section>
+
+    <section class="panel full-width disclaimer">
+      <h2>说明</h2>
+      <p>本工具基于辽宁 2025 一分一段数据，帮助理解分数与累计位次之间的关系。结果用于志愿梯度参考，不等同于录取预测。</p>
+      <p>实际填报还需要结合院校专业、专业冷热、选科要求、体检限制、往年录取位次、招生计划变化等信息。</p>
+    </section>
+  </main>
+
+  <script src="./data/ln2025-score-rank.js"></script>
+  <script src="./js/calc.js"></script>
+  <script src="./js/render.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

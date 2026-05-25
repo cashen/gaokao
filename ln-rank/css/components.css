@@ -1,0 +1,69 @@
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 250, 241, 0.86);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  backdrop-filter: blur(10px);
+}
+.eyebrow { margin: 0; color: var(--brand); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 12px; }
+.control-group { border: 0; padding: 0; margin: 0 0 22px; }
+.control-group legend, .field-label { display: block; margin-bottom: 10px; font-weight: 800; color: var(--text); }
+.hint { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.segmented__item, .heat-btn, .copy-btn, .delta-btn {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.segmented__item:hover, .heat-btn:hover, .copy-btn:hover, .delta-btn:hover { transform: translateY(-1px); }
+.segmented__item.is-active, .heat-btn.is-active, .delta-btn.is-active { border-color: rgba(75, 119, 102, .45); background: #e6f0eb; color: #2f5c4c; font-weight: 800; }
+.segmented__item span { color: var(--muted); font-size: 13px; }
+.number-row { display: flex; align-items: center; gap: 10px; }
+.number-input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 800;
+}
+.unit { color: var(--muted); font-weight: 700; }
+.range { width: 100%; margin: 15px 0 0; accent-color: var(--brand); }
+.quick-deltas { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 12px; }
+.delta-btn { padding: 0 10px; font-weight: 700; }
+.heat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.heat-btn { padding: 8px 12px; border-radius: 16px; text-align: left; }
+.heat-btn strong { display: block; }
+.heat-btn span { color: var(--muted); font-size: 12px; }
+.result-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.result-card h2 { margin: 0; font-size: 24px; }
+.badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 7px 12px; font-size: 14px; font-weight: 800; background: #efe1c8; color: #815f2d; white-space: nowrap; }
+.badge[data-level="close"] { background: #dff0e7; color: #2e6d51; }
+.badge[data-level="mild"] { background: #e4f1ef; color: #316a65; }
+.badge[data-level="active"] { background: #e6edf5; color: #385d85; }
+.badge[data-level="high"] { background: #f3e4cf; color: #826035; }
+.badge[data-level="explore"] { background: #f6e7c8; color: #806236; }
+.big-number { margin: 22px 0 2px; font-size: clamp(42px, 8vw, 74px); line-height: 1; font-weight: 900; letter-spacing: -0.05em; color: var(--brand); }
+.big-number small { margin-left: 8px; font-size: 18px; color: var(--muted); letter-spacing: 0; }
+.soft-text { margin: 0 0 22px; color: var(--muted); }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.metric { padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 253, 248, .78); }
+.metric span { display: block; color: var(--muted); font-size: 13px; }
+.metric strong { display: block; margin-top: 4px; font-size: 20px; letter-spacing: -0.02em; }
+.advice-text { margin: 0; font-size: 18px; }
+.table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.compare-table { width: 100%; min-width: 620px; border-collapse: collapse; }
+.compare-table th, .compare-table td { padding: 13px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.compare-table th { color: var(--muted); font-size: 13px; font-weight: 800; }
+.compare-table td { font-weight: 700; }
+.copy-btn { padding: 0 18px; background: #2f5c4c; color: #fff; border-color: #2f5c4c; white-space: nowrap; }
+.narrative { border: 1px solid var(--line); border-radius: 18px; padding: 18px; background: var(--surface-2); white-space: pre-line; color: #354039; }
+.disclaimer h2 { margin-top: 0; }
+.disclaimer p { margin: 8px 0 0; color: var(--muted); }
