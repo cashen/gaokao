@@ -1,0 +1,57 @@
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(31, 41, 51, 0.24);
+  backdrop-filter: blur(3px);
+}
+.drawer {
+  position: fixed;
+  z-index: 31;
+  top: 18px;
+  right: 18px;
+  width: min(460px, calc(100vw - 36px));
+  max-height: calc(100vh - 36px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255,255,255,.74);
+  border-radius: 26px;
+  background: rgba(255, 253, 248, .96);
+  box-shadow: 0 30px 90px rgba(31, 41, 51, 0.20);
+  overflow: hidden;
+}
+.drawer[hidden], .drawer-backdrop[hidden] { display: none; }
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 20px 15px;
+  border-bottom: 1px solid var(--line);
+}
+.drawer-head h2 { margin: 5px 0 0; font-size: 24px; line-height: 1.2; letter-spacing: -0.03em; }
+.drawer-close {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card-strong);
+  color: var(--muted);
+  font-size: 28px;
+  line-height: 1;
+}
+.drawer-body {
+  padding: 18px 20px 22px;
+  overflow: auto;
+}
+.drawer-body p { color: var(--muted); line-height: 1.8; }
+.drawer-body .soft-box {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,.66);
+  color: var(--ink-soft);
+  line-height: 1.75;
+}
+.drawer-actions-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }

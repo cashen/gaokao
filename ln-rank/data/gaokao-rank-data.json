@@ -5,7 +5,7 @@
     "baseYearDefault": "2025",
     "currentYearDefault": "2025",
     "dataNote": "成绩为文化课总分与政策加分之和；人数为普通类、艺术类和体育类人数之和。",
-    "buildNote": "V3.3 保留多年份内部架构：用户只看到考生分数、目标分数和位次关系；2026 发布后在 years.2026.rows 导入即可启用。"
+    "buildNote": "V3.4 短屏抽屉版：用户界面只保留科类、考生分数、想看的目标分；多年份与同位分逻辑保留在程序内部。"
   },
   "subjects": {
     "physics": {

@@ -3,153 +3,132 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f7f3ea" />
-  <title>辽宁志愿梯度位次参考工具 v3.3</title>
-  <link rel="stylesheet" href="./css/base.css" />
-  <link rel="stylesheet" href="./css/layout.css" />
-  <link rel="stylesheet" href="./css/components.css" />
-  <link rel="stylesheet" href="./css/responsive.css" />
+  <meta name="theme-color" content="#f7f2ea" />
+  <title>辽宁志愿梯度位次参考工具 v3.4</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3.4" />
+  <link rel="stylesheet" href="./css/base.css?v=3.4" />
+  <link rel="stylesheet" href="./css/layout.css?v=3.4" />
+  <link rel="stylesheet" href="./css/components.css?v=3.4" />
+  <link rel="stylesheet" href="./css/drawer.css?v=3.4" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3.4" />
 </head>
 <body>
-  <header class="hero">
-    <div class="container hero__inner">
+  <main class="page" id="app">
+    <noscript>
+      <section class="runtime-alert">本工具需要浏览器启用 JavaScript。请确认 js/ 和 data/ 目录已完整上传。</section>
+    </noscript>
+
+    <section class="runtime-alert" id="runtimeError" hidden></section>
+
+    <header class="hero-card" aria-label="工具介绍">
       <div>
-        <p class="eyebrow">辽宁 · 一分一段 · 志愿梯度</p>
-        <h1>志愿梯度位次参考工具</h1>
-        <p class="hero__lead">输入考生分数和想比较的目标分数，查看位次跨度或位次余量，辅助判断冲、稳、保梯度。</p>
+        <p class="eyebrow">辽宁 · 志愿梯度 · 位次参考</p>
+        <h1>辽宁志愿梯度位次参考工具</h1>
+        <p class="hero-lead">输入考生分数和想看的目标分，看看它更适合放在冲、稳、保里的哪个位置。</p>
       </div>
-      <div class="hero__note" aria-label="使用说明">
-        <strong>怎么理解</strong>
-        <span>分数只是入口，真正要看的，是这个分数背后的位次关系和志愿梯度。</span>
+      <div class="mini-note" aria-label="使用提示">
+        <strong>先看位置，再谈选择</strong>
+        <span>这个工具帮助家庭讨论梯度，不等同于录取预测。</span>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main class="container app-shell" id="app">
-    <noscript><section class="panel full-width runtime-alert">本工具需要浏览器启用 JavaScript。请确认 js/ 和 data/ 目录已完整上传，并启用脚本。</section></noscript>
-    <section class="panel full-width runtime-alert" id="runtimeError" hidden></section>
-    <section class="panel control-panel" aria-label="参数设置">
-      <div class="section-head">
-        <h2>填写信息</h2>
-        <p>支持手动输入、滑轨拖动和快捷分差。</p>
-      </div>
-
-      <fieldset class="control-group">
-        <legend>选择科类</legend>
-        <div class="segmented" role="radiogroup" aria-label="选择科类">
-          <button type="button" class="segmented__item is-active" data-subject="physics" aria-pressed="true">物理类 <span>理</span></button>
-          <button type="button" class="segmented__item" data-subject="history" aria-pressed="false">历史类 <span>文</span></button>
+    <section class="workspace" aria-label="位次梯度参考">
+      <section class="card input-card" aria-label="填写信息">
+        <div class="section-title">
+          <h2>填写信息</h2>
+          <p>家长只需要填三项：科类、考生分数、想看的目标分。</p>
         </div>
-        <p class="hint">辽宁官方统计按物理类、历史类发布；这里同时保留家长熟悉的文理说法。</p>
-      </fieldset>
 
-
-      <div class="control-group">
-        <label class="field-label" for="currentScoreInput" id="currentScoreLabel">考生分数</label>
-        <div class="number-row">
-          <input id="currentScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="520" aria-describedby="currentScoreHelp" />
-          <span class="unit">分</span>
-        </div>
-        <input id="currentScoreRange" class="range" type="range" min="150" max="707" step="1" value="520" />
-        <p class="hint" id="currentScoreHelp">例如：450、451、520、600。可以直接点进框里输入，也可以拖动滑轨。</p>
-      </div>
-
-      <div class="control-group">
-        <label class="field-label" for="referenceScoreInput" id="referenceScoreLabel">目标分数</label>
-        <div class="number-row">
-          <input id="referenceScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="550" aria-describedby="referenceScoreHelp" />
-          <span class="unit">分</span>
-        </div>
-        <input id="referenceScoreRange" class="range" type="range" min="150" max="707" step="1" value="550" />
-        <p class="hint" id="referenceScoreHelp">这里填写想比较的分数点，例如目标院校或专业往年录取分附近；它不是系统推荐分。</p>
-        <div class="quick-title">快捷分差</div>
-        <div class="quick-diffs" id="quickDiffs" aria-label="快捷分差"></div>
-      </div>
-
-      <fieldset class="control-group">
-        <legend>专业热度参考</legend>
-        <div class="heat-grid" id="heatOptions"></div>
-        <p class="hint" id="heatNote">专业热度会影响志愿匹配稳定性。相对冷门不等于一定容易，只是历史波动空间可能更大。</p>
-      </fieldset>
-    </section>
-
-    <section class="result-stack">
-      <article class="panel result-card" aria-live="polite">
-        <div class="result-card__top">
-          <div>
-            <p class="eyebrow" id="directionLabel">核心结果</p>
-            <h2 id="changeTitle">位次跨度</h2>
+        <fieldset class="control-group">
+          <legend>科类</legend>
+          <div class="segmented" role="radiogroup" aria-label="选择科类">
+            <button type="button" class="segmented-item is-active" data-subject="physics" aria-pressed="true">物理类 <span>理</span></button>
+            <button type="button" class="segmented-item" data-subject="history" aria-pressed="false">历史类 <span>文</span></button>
           </div>
-          <span class="badge" id="levelBadge">大冲</span>
-        </div>
-        <div class="big-number"><span id="changePeople">正在计算</span><small>名</small></div>
-        <p class="soft-text" id="changeExplain">考生分数和目标分数之间，对应的累计位次变化。</p>
+        </fieldset>
 
-        <div class="metric-grid">
-          <div class="metric"><span>考生分数</span><strong id="currentScoreText">520 分</strong></div>
-          <div class="metric"><span>位次参考</span><strong id="currentRankText">约 46,756 名</strong></div>
-          <div class="metric"><span>目标分数</span><strong id="referenceScoreText">550 分</strong></div>
-          <div class="metric"><span>目标位次</span><strong id="referenceRankText">约 32,746 名</strong></div>
-          <div class="metric"><span>分差参考</span><strong id="sameYearDiffText">+30 分</strong></div>
-          <div class="metric"><span>专业热度</span><strong id="equivalentScoreText">普通方向</strong></div>
-          <div class="metric"><span>平均每分变化</span><strong id="densityText">约 467 名/分</strong></div>
-          <div class="metric"><span>数据状态</span><strong id="dataStatusText">精确分数点</strong></div>
-        </div>
-        <p class="hint" id="clampHint" hidden></p>
-      </article>
+        <div class="form-grid">
+          <div class="control-group">
+            <label class="field-label" for="currentScoreInput">考生分数</label>
+            <div class="number-row">
+              <input id="currentScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="520" aria-describedby="currentScoreHelp" />
+              <span class="unit">分</span>
+            </div>
+            <input id="currentScoreRange" class="range" type="range" min="150" max="707" step="1" value="520" />
+            <p class="hint" id="currentScoreHelp">例如：450、451、520、600。</p>
+          </div>
 
-      <article class="panel advice-card">
-        <div class="section-head compact">
-          <h2>使用建议</h2>
-          <p id="levelShort">目标位置相对考生位置有一定上探。</p>
+          <div class="control-group">
+            <label class="field-label" for="targetScoreInput">想看的目标分</label>
+            <div class="number-row">
+              <input id="targetScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="550" aria-describedby="targetScoreHelp" />
+              <span class="unit">分</span>
+            </div>
+            <input id="targetScoreRange" class="range" type="range" min="150" max="707" step="1" value="550" />
+            <p class="hint" id="targetScoreHelp">可填学校或专业往年录取分附近，也可以只是想比较的一个分数点。</p>
+          </div>
         </div>
-        <p id="levelAdvice" class="advice-text">适合少量放在前部，不建议把同类目标集中安排。</p>
-      </article>
+
+        <div class="quick-area" aria-label="常用分差">
+          <div class="quick-title">常用看看</div>
+          <div class="quick-diffs" id="quickDiffs"></div>
+        </div>
+
+        <button type="button" class="subtle-action" data-drawer="major">专业方向：<strong id="majorSummary">普通方向</strong><span>可调整</span></button>
+      </section>
+
+      <section class="card result-card" aria-live="polite" aria-label="梯度结果">
+        <div class="result-head">
+          <div>
+            <p class="eyebrow">核心结果</p>
+            <h2>这个目标属于：<span id="levelName">正在计算</span></h2>
+          </div>
+          <span class="position-pill" id="positionText">—</span>
+        </div>
+
+        <div class="main-change" id="changeBlock">
+          <span class="change-label" id="changeTitle">位次变化</span>
+          <strong><span id="changePeople">—</span><small>名</small></strong>
+          <p id="changeExplain">正在计算考生分数与目标分之间的位次关系。</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-item"><span>考生分数</span><strong id="currentScoreText">520 分</strong></div>
+          <div class="summary-item"><span>目标分</span><strong id="targetScoreText">550 分</strong></div>
+          <div class="summary-item"><span>分差参考</span><strong id="diffText">+30 分</strong></div>
+        </div>
+
+        <p class="advice" id="adviceText">正在生成建议。</p>
+        <p class="data-hint" id="dataHint" hidden></p>
+      </section>
     </section>
 
-    <section class="panel full-width">
-      <div class="section-head inline">
-        <div>
-          <h2>不同分差对比</h2>
-          <p>同时看向上和向下的不同分数点：上面是冲，下面是稳、保或偏低参考。</p>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="compare-table">
-          <thead>
-            <tr>
-              <th>分差参考</th>
-              <th>目标分</th>
-              <th>位次变化</th>
-              <th>判断</th>
-            </tr>
-          </thead>
-          <tbody id="compareBody"><tr><td colspan="4">正在计算，请稍候。</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel full-width copy-panel">
-      <div class="section-head inline">
-        <div>
-          <h2>给家长看的说明</h2>
-          <p>文案保持平和，重点解释位次关系和梯度安排。</p>
-        </div>
-        <button type="button" class="copy-btn" id="copyBtn">复制说明</button>
-      </div>
-      <div class="narrative" id="narrativeText">正在生成说明。</div>
-    </section>
-
-    <section class="panel full-width disclaimer">
-      <h2>说明</h2>
-      <p>本工具基于一分一段数据，帮助理解分数、累计位次和志愿梯度之间的关系。结果用于报考参考，不等同于录取预测。</p>
-      <p>正式填报时，应结合当年一分一段、院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化综合判断。</p>
+    <section class="drawer-actions" aria-label="更多参考">
+      <button type="button" class="drawer-trigger" data-drawer="gradient">梯度参考表</button>
+      <button type="button" class="drawer-trigger" data-drawer="major">专业方向影响</button>
+      <button type="button" class="drawer-trigger" data-drawer="explain">怎么看结果</button>
+      <button type="button" class="drawer-trigger" data-drawer="data">数据说明</button>
     </section>
   </main>
 
-  <script src="./data/gaokao-rank-data.js?v=3.3"></script>
-  <script src="./js/calc.js?v=3.3"></script>
-  <script src="./js/render.js?v=3.3"></script>
-  <script src="./js/app.js?v=3.3"></script>
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="drawer" id="drawer" aria-modal="true" role="dialog" aria-labelledby="drawerTitle" hidden>
+    <div class="drawer-head">
+      <div>
+        <p class="eyebrow" id="drawerKicker">更多参考</p>
+        <h2 id="drawerTitle">—</h2>
+      </div>
+      <button type="button" class="drawer-close" id="drawerClose" aria-label="关闭">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <script src="./data/gaokao-rank-data.js?v=3.4"></script>
+  <script src="./js/config/ui-text.js?v=3.4"></script>
+  <script src="./js/config/drawer-config.js?v=3.4"></script>
+  <script src="./js/calc/rank-calc.js?v=3.4"></script>
+  <script src="./js/render/render-main.js?v=3.4"></script>
+  <script src="./js/render/render-drawer.js?v=3.4"></script>
+  <script src="./js/app.js?v=3.4"></script>
 </body>
 </html>

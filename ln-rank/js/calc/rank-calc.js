@@ -26,7 +26,12 @@
   function buildDenseRows(yearData) {
     const explicit = new Map();
     yearData.rows.forEach(([score, people, cumulative]) => {
-      explicit.set(Number(score), { score: Number(score), people: Number(people), cumulative: Number(cumulative), filled: false });
+      explicit.set(Number(score), {
+        score: Number(score),
+        people: Number(people),
+        cumulative: Number(cumulative),
+        filled: false
+      });
     });
 
     let lastCumulative = 0;
@@ -100,7 +105,7 @@
   function chooseLevel(data, subjectKey, direction, sameYearDiff, peopleChange, heatKey) {
     const absDiff = Math.abs(sameYearDiff);
     if (absDiff === 0 || direction === 'same') {
-      return { key: 'match', index: 1, text: data.levelText.match, heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
+      return { key: 'match', index: 1, heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
     }
 
     const diffRule = findRuleByAbsDiff(data, direction, absDiff);
@@ -111,7 +116,7 @@
 
     const levels = direction === 'up' ? UP_LEVELS : DOWN_LEVELS;
     const key = levels[clamp(index, 1, levels.length) - 1];
-    return { key, index, text: data.levelText[key], heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
+    return { key, index, heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
   }
 
   function calcGradient(data, state) {
@@ -119,22 +124,24 @@
     const currentYearData = subject.years[state.currentYear];
     const baseYearData = subject.years[state.baseYear];
 
-    const currentScore = clamp(normalizeNumber(state.currentScore, currentYearData.defaultScore), currentYearData.scoreMin, currentYearData.scoreMax);
-    const referenceScore = clamp(normalizeNumber(state.referenceScore, baseYearData.defaultScore), baseYearData.scoreMin, baseYearData.scoreMax);
+    const currentInput = normalizeNumber(state.currentScore, currentYearData.defaultScore);
+    const targetInput = normalizeNumber(state.targetScore, baseYearData.defaultScore);
+    const currentScore = clamp(currentInput, currentYearData.scoreMin, currentYearData.scoreMax);
+    const targetScore = clamp(targetInput, baseYearData.scoreMin, baseYearData.scoreMax);
 
     const currentRow = getScoreRow(currentYearData, currentScore);
     const equivalentRow = state.currentYear === state.baseYear
       ? getScoreRow(baseYearData, currentScore)
       : getEquivalentScoreByRank(baseYearData, currentRow.cumulative);
-    const referenceRow = getScoreRow(baseYearData, referenceScore);
+    const targetRow = getScoreRow(baseYearData, targetScore);
 
     const equivalentScore = equivalentRow.score;
-    const sameYearDiff = referenceScore - equivalentScore;
+    const sameYearDiff = targetScore - equivalentScore;
     const direction = sameYearDiff > 0 ? 'up' : sameYearDiff < 0 ? 'down' : 'same';
     const peopleChange = direction === 'up'
-      ? Math.max(0, equivalentRow.cumulative - referenceRow.cumulative)
+      ? Math.max(0, equivalentRow.cumulative - targetRow.cumulative)
       : direction === 'down'
-        ? Math.max(0, referenceRow.cumulative - equivalentRow.cumulative)
+        ? Math.max(0, targetRow.cumulative - equivalentRow.cumulative)
         : 0;
 
     const absDiff = Math.abs(sameYearDiff);
@@ -147,21 +154,21 @@
       currentYear: state.currentYear,
       baseYear: state.baseYear,
       currentScore,
-      referenceScore,
+      targetScore,
       currentRow,
       equivalentRow,
-      referenceRow,
+      targetRow,
       currentRank: currentRow.cumulative,
       equivalentScore,
       equivalentRank: equivalentRow.cumulative,
-      referenceRank: referenceRow.cumulative,
+      targetRank: targetRow.cumulative,
       sameYearDiff,
       direction,
       peopleChange,
       densityPerPoint: absDiff > 0 ? Math.round(peopleChange / absDiff) : 0,
-      currentClamped: normalizeNumber(state.currentScore, currentYearData.defaultScore) !== currentScore,
-      referenceClamped: normalizeNumber(state.referenceScore, baseYearData.defaultScore) !== referenceScore,
-      hasFilled: currentRow.filled || equivalentRow.filled || referenceRow.filled,
+      currentClamped: currentInput !== currentScore,
+      targetClamped: targetInput !== targetScore,
+      hasFilled: currentRow.filled || equivalentRow.filled || targetRow.filled,
       isEquivalentMode: state.currentYear !== state.baseYear,
       level
     };
@@ -171,35 +178,27 @@
     const baseYearData = data.subjects[state.subjectKey].years[state.baseYear];
     const base = calcGradient(data, state).equivalentScore;
     return data.quickDiffs.map((diff) => {
-      const referenceScore = clamp(base + diff, baseYearData.scoreMin, baseYearData.scoreMax);
-      return calcGradient(data, { ...state, referenceScore });
+      const targetScore = clamp(base + diff, baseYearData.scoreMin, baseYearData.scoreMax);
+      return calcGradient(data, { ...state, targetScore });
     });
   }
 
-  function makeNarrative(result) {
-    const fmt = formatNumber;
-    const heat = result.level.heat;
-
-    const scoreLine = `按当前数据口径，考生分数 ${result.currentScore} 分，对应位次参考约 ${fmt(result.equivalentRank)} 名；目标分数 ${result.referenceScore} 分，对应目标位次约 ${fmt(result.referenceRank)} 名。`;
-
-    let relation;
-    if (result.direction === 'up') {
-      relation = `两者之间的分差参考为 ${signed(result.sameYearDiff)} 分，位次跨度约 ${fmt(result.peopleChange)} 名。`;
-    } else if (result.direction === 'down') {
-      relation = `两者之间的分差参考为 ${signed(result.sameYearDiff)} 分，位次余量约 ${fmt(result.peopleChange)} 名。`;
-    } else {
-      relation = '两者位置比较接近，分差参考为 0 分。';
-    }
+  function makeNarrative(result, uiText) {
+    const level = uiText.levels[result.level.key];
+    const relation = result.direction === 'up'
+      ? `位次跨度约 ${formatNumber(result.peopleChange)} 名。`
+      : result.direction === 'down'
+        ? `位次余量约 ${formatNumber(result.peopleChange)} 名。`
+        : '位次比较接近。';
 
     return [
-      scoreLine,
+      `考生分数 ${result.currentScore} 分，想看的目标分 ${result.targetScore} 分，分差参考为 ${signed(result.sameYearDiff)} 分。`,
       relation,
       '',
-      `当前判断为“${result.level.text.name}”。${result.level.text.short}${result.level.text.advice}`,
+      `这个目标属于“${level.name}”，适合位置：${level.position}。`,
+      level.advice,
       '',
-      `专业热度参考为“${heat.label}”。${heat.note}`,
-      '',
-      '这个结果不代表能否录取，只用于理解位次变化和志愿梯度。实际填报还需要结合院校专业、往年录取位次、选科要求和招生计划变化。'
+      '这个结果用于理解位次关系和志愿梯度，不等同于录取预测。'
     ].join('\n');
   }
 
