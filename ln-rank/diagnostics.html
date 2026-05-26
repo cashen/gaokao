@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>部署自检 · 辽宁位次工具</title>
+  <style>
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f3ea;color:#27302b;margin:0;padding:24px;line-height:1.7}
+    .box{max-width:880px;margin:0 auto;background:#fffdf8;border:1px solid #e2d8c7;border-radius:18px;padding:22px;box-shadow:0 12px 32px rgba(48,39,26,.08)}
+    code{background:#f1eadc;padding:2px 6px;border-radius:6px}.ok{color:#26734d}.bad{color:#a0412f}.item{padding:10px 0;border-bottom:1px solid #eee4d2}.item:last-child{border-bottom:0}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>部署自检</h1>
+    <p>这个页面用于检查 <code>data/js</code> 是否完整加载，并用默认案例验证计算结果。</p>
+    <div id="out">正在检查...</div>
+  </main>
+  <script src="./data/gaokao-rank-data.js?v=3.1"></script>
+  <script src="./js/calc.js?v=3.1"></script>
+  <script>
+    const out = document.getElementById('out');
+    const rows = [];
+    function item(name, pass, text){ rows.push(`<div class="item"><strong class="${pass?'ok':'bad'}">${pass?'通过':'未通过'}</strong> ${name}<br><span>${text||''}</span></div>`); }
+    try {
+      item('数据文件', !!window.GAOKAO_RANK_DATA, window.GAOKAO_RANK_DATA ? 'window.GAOKAO_RANK_DATA 已存在' : '未找到数据对象');
+      item('计算脚本', !!window.ScoreCalc, window.ScoreCalc ? 'window.ScoreCalc 已存在' : '未找到计算对象');
+      if (window.GAOKAO_RANK_DATA && window.ScoreCalc) {
+        const data = window.ScoreCalc.prepareData(window.GAOKAO_RANK_DATA);
+        const r = window.ScoreCalc.calcGradient(data, {subjectKey:'physics', heatKey:'normal', currentYear:'2025', baseYear:'2025', currentScore:520, referenceScore:550});
+        item('默认计算：物理 520 → 550', r.peopleChange === 14010 && r.sameYearDiff === 30, `同位分差 ${r.sameYearDiff}，位次跨度 ${r.peopleChange}；期望：+30，14,010`);
+      }
+      out.innerHTML = rows.join('') + '<p>若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.1 文件。</p>';
+    } catch(e) {
+      out.innerHTML = rows.join('') + `<pre class="bad">${String(e.stack || e.message || e)}</pre>`;
+    }
+  </script>
+</body>
+</html>

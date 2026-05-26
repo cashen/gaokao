@@ -98,3 +98,10 @@
 .narrative { border: 1px solid var(--line); border-radius: 18px; padding: 18px; background: var(--surface-2); white-space: pre-line; color: #354039; }
 .disclaimer h2 { margin-top: 0; }
 .disclaimer p { margin: 8px 0 0; color: var(--muted); }
+
+.runtime-alert {
+  border: 1px solid rgba(151, 101, 42, 0.28);
+  background: rgba(255, 248, 232, 0.92);
+  color: #5f4628;
+  line-height: 1.75;
+}

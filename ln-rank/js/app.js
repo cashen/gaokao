@@ -1,6 +1,23 @@
 (function () {
   'use strict';
 
+  function showRuntimeError(message, detail) {
+    var el = document.getElementById('runtimeError');
+    if (!el) return;
+    el.hidden = false;
+    el.innerHTML = '<strong>页面脚本没有正常完成初始化。</strong><br>' +
+      message +
+      (detail ? '<br><small>' + String(detail).replace(/[<>&]/g, function (s) { return {'<':'&lt;','>':'&gt;','&':'&amp;'}[s]; }) + '</small>' : '') +
+      '<br><small>请确认 data/gaokao-rank-data.js、js/calc.js、js/render.js、js/app.js 都已上传，并清理浏览器/CDN缓存。</small>';
+  }
+
+  try {
+    if (!window.GAOKAO_RANK_DATA) throw new Error('数据文件未加载：data/gaokao-rank-data.js');
+    if (!window.ScoreCalc) throw new Error('计算脚本未加载：js/calc.js');
+    if (!window.ScoreRender) throw new Error('渲染脚本未加载：js/render.js');
+
+  'use strict';
+
   const data = window.ScoreCalc.prepareData(window.GAOKAO_RANK_DATA);
   const R = window.ScoreRender;
   const C = window.ScoreCalc;
@@ -140,4 +157,9 @@
   R.updateBounds(data, state);
   setCurrentScore(state.currentScore);
   setReferenceScore(state.referenceScore);
+
+  } catch (error) {
+    console.error('[ln-rank v3.1]', error);
+    showRuntimeError('请检查部署目录是否完整，尤其是 data、js、css 三个目录。', error && (error.stack || error.message));
+  }
 })();

@@ -1,118 +1,59 @@
-# 辽宁 2025-2026 志愿梯度位次参考工具 V3
+# 辽宁 2025-2026 志愿梯度位次参考工具 v3.1
 
 ## 入口
 
-直接打开：
+- 首页：`index.html`
+- 部署自检：`diagnostics.html`
+
+## 目录结构
 
 ```text
-index.html
-```
-
-本项目不需要 Node、不需要后端、不需要打包。PC、Pad、Android 浏览器都可直接运行。
-
-## V3 相比 V2 的核心变化
-
-V2 是：
-
-```text
-当前分数 vs 参考分数
-```
-
-V3 是：
-
-```text
-今年分数 → 今年位次 → 对照年份同位分 → 冲稳保判断
-```
-
-也就是说，2026 一分一段发布后，不应该直接拿 2026 分数和 2025 分数相减，而应该先通过今年位次折算到 2025 同位分，再和 2025 参考分比较。
-
-## 当前数据状态
-
-当前内置：
-
-- 辽宁 2025 物理类
-- 辽宁 2025 历史类
-
-数据文件中已经保留 2026 的结构占位，但默认禁用。2026 一分一段发布后，把数据导入：
-
-```text
-data/gaokao-rank-data.js
-```
-
-对应位置：
-
-```js
-subjects.physics.years["2026"].rows
-subjects.history.years["2026"].rows
-```
-
-每行格式：
-
-```js
-[分数, 本分人数, 累计人数]
-```
-
-导入后删除：
-
-```js
-unavailable: true
-```
-
-并把：
-
-```js
-dataStatus: "pending"
-```
-
-改为：
-
-```js
-dataStatus: "available"
-```
-
-## 文件结构
-
-```text
-ln-rank-span-tool-v3/
+ln-rank-span-tool-v3.1/
   index.html
+  diagnostics.html
   css/
-    base.css
-    layout.css
-    components.css
-    responsive.css
   js/
-    calc.js
-    render.js
-    app.js
   data/
-    gaokao-rank-data.js
-    gaokao-rank-data.json
-  README.md
 ```
 
-## 主要功能
+## 部署注意
 
-- 物理类 / 历史类切换
-- 当前年份 / 对照年份结构
-- 当前分数手动输入 + 滑轨
-- 参考分数手动输入 + 滑轨
-- 快捷参考分差：+50、+30、0、-30、-70 等
-- 输出同位分差
-- 输出位次跨度或位次余量
-- 输出匹配 / 小冲 / 中冲 / 大冲 / 超冲 / 稳 / 超稳 / 保 / 偏低参考
-- 自动生成给家长看的说明
-- PC / Pad / Android 自适应
+如果部署到 `https://example.com/ln-rank/`，请上传本目录里面的所有内容到 `/ln-rank/`，而不是只上传 `index.html`。
 
-## 重要口径
+必须能直接访问：
 
-本工具不输出录取概率。
+```text
+/ln-rank/data/gaokao-rank-data.js
+/ln-rank/js/calc.js
+/ln-rank/js/render.js
+/ln-rank/js/app.js
+/ln-rank/css/base.css
+```
 
-它只用于解释：
+部署后先访问：
 
-- 当前分对应的位次
-- 今年位次对应的对照年同位分
-- 同位分和参考分之间的分差
-- 对应的位次跨度或位次余量
-- 志愿梯度参考
+```text
+/ln-rank/diagnostics.html
+```
 
-正式填报还需要结合院校专业、往年录取位次、招生计划、选科要求、体检限制和专业热度变化。
+默认自检案例应显示：
+
+```text
+物理 520 → 550
+同位分差 +30
+位次跨度 14,010
+```
+
+## v3.1 修正点
+
+- 首屏不再静态显示 `0 名`，避免脚本未加载时误导。
+- 增加运行时错误提示区，若 data/js 缺失会直接在页面显示原因。
+- 脚本引用增加 `?v=3.1`，降低浏览器或 CDN 缓存造成的旧文件混用。
+- 增加 `diagnostics.html` 部署自检页。
+
+## 核心口径
+
+正式填报时，不建议直接用今年分数对比去年分数。
+应先用当年一分一段得到今年位次，再映射到对照年份同位分，最后判断冲、稳、保梯度。
+
+当前包内 2026 数据为占位，2026 一分一段发布后，在 `data/gaokao-rank-data.js` 中补入 2026 `rows` 即可。
