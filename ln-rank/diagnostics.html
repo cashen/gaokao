@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>部署自检 · 辽宁位次工具 v3.4</title>
+  <title>部署自检 · 辽宁位次工具 v3.5</title>
   <style>
     body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px;line-height:1.7}
     .box{max-width:920px;margin:0 auto;background:#fffdf8;border:1px solid rgba(31,41,51,.12);border-radius:20px;padding:22px;box-shadow:0 12px 32px rgba(48,39,26,.08)}
@@ -13,13 +13,13 @@
 </head>
 <body>
   <main class="box">
-    <h1>部署自检 v3.4</h1>
+    <h1>部署自检 v3.5</h1>
     <p>检查 <code>data/js</code> 是否完整加载，并验证关键计算案例。部署后建议先访问本页。</p>
     <div id="out">正在检查...</div>
   </main>
-  <script src="./data/gaokao-rank-data.js?v=3.4"></script>
-  <script src="./js/config/ui-text.js?v=3.4"></script>
-  <script src="./js/calc/rank-calc.js?v=3.4"></script>
+  <script src="./data/gaokao-rank-data.js?v=3.5"></script>
+  <script src="./js/config/ui-text.js?v=3.5"></script>
+  <script src="./js/calc/rank-calc.js?v=3.5"></script>
   <script>
     const out = document.getElementById('out');
     const rows = [];
@@ -40,7 +40,7 @@
         runCase(data, '物理 365 → 395', 365, 395, 30, 11602);
         runCase(data, '物理 365 → 375', 365, 375, 10, 3574);
       }
-      out.innerHTML = rows.join('') + '<p class="small">若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.4 文件。</p>';
+      out.innerHTML = rows.join('') + '<p class="small">若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.5 文件。</p>';
     } catch(e) {
       out.innerHTML = rows.join('') + `<pre class="bad">${String(e.stack || e.message || e)}</pre>`;
     }

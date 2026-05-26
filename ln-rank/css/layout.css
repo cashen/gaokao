@@ -1,16 +1,16 @@
 .page {
-  width: min(100% - 32px, 1120px);
+  width: min(100% - 32px, 1240px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 28px 0 34px;
+  padding: 18px 0 18px;
 }
 .hero-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 20px;
-  align-items: end;
-  margin-bottom: 18px;
-  padding: 26px 28px;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 18px 22px;
   border: 1px solid rgba(255,255,255,.72);
   border-radius: var(--radius-lg);
   background: rgba(255,255,255,.64);
@@ -18,22 +18,48 @@
   backdrop-filter: blur(16px);
 }
 .hero-card h1 {
-  margin: 7px 0 10px;
-  font-size: clamp(32px, 4.8vw, 52px);
-  line-height: 1.08;
-  letter-spacing: -0.05em;
+  margin: 5px 0 6px;
+  font-size: clamp(26px, 2.5vw, 32px);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
 }
-.hero-lead { max-width: 690px; margin: 0; color: var(--muted); font-size: 17px; line-height: 1.8; }
+.hero-lead {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
 .workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(300px, 340px) minmax(420px, 1fr) minmax(230px, 270px);
+  gap: 12px;
   align-items: stretch;
 }
-.form-grid { display: grid; gap: 16px; }
+.form-grid { display: grid; gap: 10px; }
+.info-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.info-card-head {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(31,41,51,.08);
+}
+.info-card-head strong {
+  font-size: 15px;
+  line-height: 1.25;
+}
+.info-card-head span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
 .drawer-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 14px;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 0;
 }

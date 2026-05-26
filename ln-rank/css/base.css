@@ -8,7 +8,7 @@ body {
     radial-gradient(circle at 8% 4%, rgba(63, 111, 104, 0.18), transparent 30%),
     radial-gradient(circle at 90% 8%, rgba(185, 130, 69, 0.14), transparent 30%),
     linear-gradient(135deg, #fbf6ee 0%, #f7f9f5 52%, #f4f0e8 100%);
-  line-height: 1.6;
+  line-height: 1.55;
 }
 body::before {
   position: fixed;
@@ -21,7 +21,7 @@ body::before {
   background-size: 36px 36px;
   mask-image: linear-gradient(to bottom, rgba(0,0,0,.88), transparent 82%);
 }
-button, input, select { font: inherit; font-size: 16px; }
+button, input, select { font: inherit; font-size: 15px; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: none; box-shadow: var(--focus); }
 button:disabled { cursor: not-allowed; opacity: .56; }

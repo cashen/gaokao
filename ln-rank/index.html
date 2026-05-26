@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7f2ea" />
-  <title>辽宁志愿梯度位次参考工具 v3.4</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=3.4" />
-  <link rel="stylesheet" href="./css/base.css?v=3.4" />
-  <link rel="stylesheet" href="./css/layout.css?v=3.4" />
-  <link rel="stylesheet" href="./css/components.css?v=3.4" />
-  <link rel="stylesheet" href="./css/drawer.css?v=3.4" />
-  <link rel="stylesheet" href="./css/responsive.css?v=3.4" />
+  <title>辽宁志愿梯度位次参考工具 v3.5</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3.5" />
+  <link rel="stylesheet" href="./css/base.css?v=3.5" />
+  <link rel="stylesheet" href="./css/layout.css?v=3.5" />
+  <link rel="stylesheet" href="./css/components.css?v=3.5" />
+  <link rel="stylesheet" href="./css/drawer.css?v=3.5" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3.5" />
 </head>
 <body>
   <main class="page" id="app">
@@ -28,7 +28,7 @@
       </div>
       <div class="mini-note" aria-label="使用提示">
         <strong>先看位置，再谈选择</strong>
-        <span>这个工具帮助家庭讨论梯度，不等同于录取预测。</span>
+        <span>用于家庭讨论梯度，不等同于录取预测。</span>
       </div>
     </header>
 
@@ -101,13 +101,18 @@
         <p class="advice" id="adviceText">正在生成建议。</p>
         <p class="data-hint" id="dataHint" hidden></p>
       </section>
-    </section>
-
-    <section class="drawer-actions" aria-label="更多参考">
-      <button type="button" class="drawer-trigger" data-drawer="gradient">梯度参考表</button>
-      <button type="button" class="drawer-trigger" data-drawer="major">专业方向影响</button>
-      <button type="button" class="drawer-trigger" data-drawer="explain">怎么看结果</button>
-      <button type="button" class="drawer-trigger" data-drawer="data">数据说明</button>
+      <aside class="card info-card" aria-label="更多参考">
+        <div class="info-card-head">
+          <strong>更多参考</strong>
+          <span>按需打开，不影响主屏判断。</span>
+        </div>
+        <section class="drawer-actions" aria-label="更多参考">
+          <button type="button" class="drawer-trigger" data-drawer="gradient"><strong>梯度参考表</strong><span>看上下分差的位置</span></button>
+          <button type="button" class="drawer-trigger" data-drawer="major"><strong>专业方向影响</strong><span>热门、冷门会修正</span></button>
+          <button type="button" class="drawer-trigger" data-drawer="explain"><strong>怎么看结果</strong><span>冲稳保怎么理解</span></button>
+          <button type="button" class="drawer-trigger" data-drawer="data"><strong>数据说明</strong><span>口径与使用边界</span></button>
+        </section>
+      </aside>
     </section>
   </main>
 
@@ -123,12 +128,12 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <script src="./data/gaokao-rank-data.js?v=3.4"></script>
-  <script src="./js/config/ui-text.js?v=3.4"></script>
-  <script src="./js/config/drawer-config.js?v=3.4"></script>
-  <script src="./js/calc/rank-calc.js?v=3.4"></script>
-  <script src="./js/render/render-main.js?v=3.4"></script>
-  <script src="./js/render/render-drawer.js?v=3.4"></script>
-  <script src="./js/app.js?v=3.4"></script>
+  <script src="./data/gaokao-rank-data.js?v=3.5"></script>
+  <script src="./js/config/ui-text.js?v=3.5"></script>
+  <script src="./js/config/drawer-config.js?v=3.5"></script>
+  <script src="./js/calc/rank-calc.js?v=3.5"></script>
+  <script src="./js/render/render-main.js?v=3.5"></script>
+  <script src="./js/render/render-drawer.js?v=3.5"></script>
+  <script src="./js/app.js?v=3.5"></script>
 </body>
 </html>
