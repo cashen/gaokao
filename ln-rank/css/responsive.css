@@ -6,6 +6,7 @@
 
 @media (min-width: 768px) and (max-width: 1199px) {
   .result-stack { grid-template-columns: 1.35fr .9fr; }
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 767px) {
@@ -14,7 +15,8 @@
   .hero__lead { font-size: 16px; }
   .panel { padding: 18px; border-radius: 20px; }
   .section-head.inline { align-items: flex-start; flex-direction: column; }
-  .quick-deltas { grid-template-columns: repeat(3, 1fr); }
+  .year-grid { grid-template-columns: 1fr; }
+  .quick-diffs { grid-template-columns: repeat(3, 1fr); }
   .heat-grid { grid-template-columns: 1fr; }
   .metric-grid { grid-template-columns: 1fr 1fr; }
   .metric strong { font-size: 18px; }

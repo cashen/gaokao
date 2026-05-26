@@ -1,46 +1,93 @@
 (function () {
   'use strict';
 
-  const data = window.ScoreCalc.prepareData(window.LN2025_SCORE_RANK);
+  const data = window.ScoreCalc.prepareData(window.GAOKAO_RANK_DATA);
   const R = window.ScoreRender;
   const C = window.ScoreCalc;
 
   const state = {
     subjectKey: 'physics',
     heatKey: 'normal',
-    score: data.subjects.physics.defaultScore,
-    delta: data.delta.default
+    currentYear: data.meta.currentYearDefault || '2025',
+    baseYear: data.meta.baseYearDefault || '2025',
+    currentScore: 520,
+    referenceScore: 550
   };
 
-  const scoreInput = R.qs('#scoreInput');
-  const scoreRange = R.qs('#scoreRange');
-  const deltaInput = R.qs('#deltaInput');
-  const deltaRange = R.qs('#deltaRange');
+  const currentScoreInput = R.qs('#currentScoreInput');
+  const currentScoreRange = R.qs('#currentScoreRange');
+  const referenceScoreInput = R.qs('#referenceScoreInput');
+  const referenceScoreRange = R.qs('#referenceScoreRange');
   const copyBtn = R.qs('#copyBtn');
 
-  function setScore(value) {
+  function onlyDigits(value) {
+    return String(value || '').replace(/[^0-9]/g, '');
+  }
+
+  function getYearData(kind) {
     const subject = data.subjects[state.subjectKey];
-    state.score = C.clamp(C.normalizeNumber(value, subject.defaultScore), subject.scoreMin, subject.scoreMax);
-    scoreInput.value = state.score;
-    scoreRange.value = state.score;
+    return subject.years[kind === 'current' ? state.currentYear : state.baseYear];
+  }
+
+  function ensureAvailableYears() {
+    const available = C.getAvailableYears(data, state.subjectKey);
+    if (!available.includes(state.currentYear)) state.currentYear = available[0];
+    if (!available.includes(state.baseYear)) state.baseYear = available[0];
+  }
+
+  function setCurrentScore(value, options = {}) {
+    const yearData = getYearData('current');
+    const raw = onlyDigits(value);
+    if (options.fromTextInput) {
+      currentScoreInput.value = raw;
+      if (raw === '') return;
+    }
+    state.currentScore = C.clamp(C.normalizeNumber(raw, yearData.defaultScore), yearData.scoreMin, yearData.scoreMax);
+    currentScoreRange.value = state.currentScore;
+    if (!options.fromTextInput) currentScoreInput.value = state.currentScore;
     update();
   }
 
-  function setDelta(value) {
-    state.delta = C.clamp(C.normalizeNumber(value, data.delta.default), data.delta.min, data.delta.max);
-    deltaInput.value = state.delta;
-    deltaRange.value = state.delta;
+  function setReferenceScore(value, options = {}) {
+    const yearData = getYearData('base');
+    const raw = onlyDigits(value);
+    if (options.fromTextInput) {
+      referenceScoreInput.value = raw;
+      if (raw === '') return;
+    }
+    state.referenceScore = C.clamp(C.normalizeNumber(raw, yearData.defaultScore), yearData.scoreMin, yearData.scoreMax);
+    referenceScoreRange.value = state.referenceScore;
+    if (!options.fromTextInput) referenceScoreInput.value = state.referenceScore;
     update();
+  }
+
+  function commitCurrentScore() {
+    if (currentScoreInput.value.trim() === '') currentScoreInput.value = state.currentScore;
+    setCurrentScore(currentScoreInput.value);
+  }
+
+  function commitReferenceScore() {
+    if (referenceScoreInput.value.trim() === '') referenceScoreInput.value = state.referenceScore;
+    setReferenceScore(referenceScoreInput.value);
   }
 
   function setSubject(subjectKey) {
     state.subjectKey = subjectKey;
-    const subject = data.subjects[subjectKey];
-    R.updateSubjectBounds(data, state);
-    state.score = C.clamp(state.score, subject.scoreMin, subject.scoreMax);
-    scoreInput.value = state.score;
-    scoreRange.value = state.score;
-    update();
+    ensureAvailableYears();
+    R.renderYearSelectors(data, state, setYear);
+    R.updateBounds(data, state);
+    setCurrentScore(state.currentScore);
+    setReferenceScore(state.referenceScore);
+  }
+
+  function setYear(kind, year) {
+    if (kind === 'currentYear') state.currentYear = year;
+    if (kind === 'baseYear') state.baseYear = year;
+    ensureAvailableYears();
+    R.renderYearSelectors(data, state, setYear);
+    R.updateBounds(data, state);
+    setCurrentScore(state.currentScore);
+    setReferenceScore(state.referenceScore);
   }
 
   function setHeat(heatKey) {
@@ -48,21 +95,34 @@
     update();
   }
 
+  function setReferenceByDiff(diff) {
+    const current = C.calcGradient(data, state);
+    const baseYearData = getYearData('base');
+    const next = C.clamp(current.equivalentScore + diff, baseYearData.scoreMin, baseYearData.scoreMax);
+    setReferenceScore(next);
+  }
+
   function update() {
-    const result = C.calcSpan(data, state.subjectKey, state.score, state.delta, state.heatKey);
-    const compareRows = C.makeCompareRows(data, state.subjectKey, state.score, state.heatKey);
+    const result = C.calcGradient(data, state);
+    const compareRows = C.makeCompareRows(data, state);
     const narrative = C.makeNarrative(result);
     R.renderResult(data, state, result, compareRows, narrative);
   }
 
-  R.renderQuickDeltas(data, setDelta);
+  R.renderYearSelectors(data, state, setYear);
+  R.renderQuickDiffs(data, setReferenceByDiff);
   R.renderHeatOptions(data, state.heatKey, setHeat);
   R.qsa('[data-subject]').forEach((btn) => btn.addEventListener('click', () => setSubject(btn.dataset.subject)));
 
-  scoreInput.addEventListener('input', (event) => setScore(event.target.value));
-  scoreRange.addEventListener('input', (event) => setScore(event.target.value));
-  deltaInput.addEventListener('input', (event) => setDelta(event.target.value));
-  deltaRange.addEventListener('input', (event) => setDelta(event.target.value));
+  currentScoreInput.addEventListener('input', (event) => setCurrentScore(event.target.value, { fromTextInput: true }));
+  currentScoreInput.addEventListener('change', commitCurrentScore);
+  currentScoreInput.addEventListener('blur', commitCurrentScore);
+  currentScoreRange.addEventListener('input', (event) => setCurrentScore(event.target.value));
+
+  referenceScoreInput.addEventListener('input', (event) => setReferenceScore(event.target.value, { fromTextInput: true }));
+  referenceScoreInput.addEventListener('change', commitReferenceScore);
+  referenceScoreInput.addEventListener('blur', commitReferenceScore);
+  referenceScoreRange.addEventListener('input', (event) => setReferenceScore(event.target.value));
 
   copyBtn.addEventListener('click', async () => {
     const text = R.qs('#narrativeText').textContent.trim();
@@ -76,7 +136,8 @@
     }
   });
 
-  R.updateSubjectBounds(data, state);
-  setScore(state.score);
-  setDelta(state.delta);
+  ensureAvailableYears();
+  R.updateBounds(data, state);
+  setCurrentScore(state.currentScore);
+  setReferenceScore(state.referenceScore);
 })();

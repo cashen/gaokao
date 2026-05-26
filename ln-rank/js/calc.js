@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  const LEVEL_ORDER = ['close', 'mild', 'active', 'high', 'explore'];
+  const UP_LEVELS = ['match', 'smallRush', 'midRush', 'bigRush', 'superRush'];
+  const DOWN_LEVELS = ['match', 'stable', 'superStable', 'safe', 'lowReference'];
 
   function normalizeNumber(value, fallback) {
     const num = Number(value);
@@ -17,15 +18,20 @@
     return Number(value || 0).toLocaleString('zh-CN');
   }
 
-  function buildDenseRows(subject) {
+  function signed(value) {
+    if (value > 0) return `+${value}`;
+    return String(value);
+  }
+
+  function buildDenseRows(yearData) {
     const explicit = new Map();
-    subject.rows.forEach(([score, people, cumulative]) => {
+    yearData.rows.forEach(([score, people, cumulative]) => {
       explicit.set(Number(score), { score: Number(score), people: Number(people), cumulative: Number(cumulative), filled: false });
     });
 
     let lastCumulative = 0;
     const map = {};
-    for (let score = subject.scoreMax; score >= subject.scoreMin; score -= 1) {
+    for (let score = yearData.scoreMax; score >= yearData.scoreMin; score -= 1) {
       if (explicit.has(score)) {
         const row = explicit.get(score);
         lastCumulative = row.cumulative;
@@ -44,92 +50,168 @@
   }
 
   function prepareData(data) {
-    Object.keys(data.subjects).forEach((key) => {
-      const subject = data.subjects[key];
-      subject.scoreMap = buildDenseRows(subject);
+    Object.values(data.subjects).forEach((subject) => {
+      Object.values(subject.years).forEach((yearData) => {
+        if (yearData.unavailable || !Array.isArray(yearData.rows) || yearData.rows.length === 0) return;
+        yearData.scoreMap = buildDenseRows(yearData);
+      });
     });
     return data;
   }
 
-  function getScoreRow(data, subjectKey, scoreInput) {
+  function getAvailableYears(data, subjectKey) {
     const subject = data.subjects[subjectKey];
-    const safeScore = clamp(normalizeNumber(scoreInput, subject.defaultScore), subject.scoreMin, subject.scoreMax);
-    return subject.scoreMap[String(safeScore)];
+    return Object.keys(subject.years).filter((year) => !subject.years[year].unavailable && subject.years[year].scoreMap);
   }
 
-  function findBaseLevel(data, subjectKey, crossPeople) {
-    const rules = data.riskRules[subjectKey];
-    return rules.find((rule) => crossPeople <= rule.maxCross) || rules[rules.length - 1];
+  function getScoreRow(yearData, scoreInput) {
+    const safeScore = clamp(normalizeNumber(scoreInput, yearData.defaultScore), yearData.scoreMin, yearData.scoreMax);
+    return yearData.scoreMap[String(safeScore)];
   }
 
-  function adjustLevel(data, baseRule, heatKey, delta) {
+  function getEquivalentScoreByRank(baseYearData, rank) {
+    const rows = Object.values(baseYearData.scoreMap);
+    let best = rows[0];
+    for (const row of rows) {
+      if (Math.abs(row.cumulative - rank) < Math.abs(best.cumulative - rank)) best = row;
+    }
+    return best;
+  }
+
+  function findRuleByAbsDiff(data, direction, absDiff) {
+    const rules = data.diffRules[direction];
+    return rules.find((rule) => absDiff <= rule.maxAbsDiff) || rules[rules.length - 1];
+  }
+
+  function findRuleByPeople(data, subjectKey, direction, people) {
+    const key = direction === 'up' ? 'upRank' : 'downRank';
+    const rules = data.levelRules[subjectKey][key];
+    return rules.find((rule) => people <= rule.maxPeople) || rules[rules.length - 1];
+  }
+
+  function applyHeatToUpIndex(data, index, heatKey, absDiff) {
     const heat = data.heatAdjust[heatKey] || data.heatAdjust.normal;
-    let index = baseRule.index + heat.adjust;
-
-    // 业务底线：大幅上探即使遇到相对冷门，也不应被文案降成过于轻松。
-    if (delta >= 50) index = Math.max(index, 4);
-    else if (delta >= 30) index = Math.max(index, 3);
-
-    index = clamp(index, 1, LEVEL_ORDER.length);
-    const key = LEVEL_ORDER[index - 1];
-    return { key, index, text: data.levelText[key], heat };
+    let next = index + Number(heat.adjust || 0);
+    if (absDiff >= 50) next = Math.max(next, 4);
+    else if (absDiff >= 30) next = Math.max(next, 3);
+    return clamp(next, 1, UP_LEVELS.length);
   }
 
-  function calcSpan(data, subjectKey, scoreInput, deltaInput, heatKey) {
-    const subject = data.subjects[subjectKey];
-    const currentScore = clamp(normalizeNumber(scoreInput, subject.defaultScore), subject.scoreMin, subject.scoreMax);
-    const delta = clamp(normalizeNumber(deltaInput, data.delta.default), data.delta.min, data.delta.max);
-    const rawTargetScore = currentScore + delta;
-    const targetScore = clamp(rawTargetScore, subject.scoreMin, subject.scoreMax);
-    const currentRow = getScoreRow(data, subjectKey, currentScore);
-    const targetRow = getScoreRow(data, subjectKey, targetScore);
-    const crossPeople = Math.max(0, currentRow.cumulative - targetRow.cumulative);
-    const baseRule = findBaseLevel(data, subjectKey, crossPeople);
-    const level = adjustLevel(data, baseRule, heatKey, delta);
+  function chooseLevel(data, subjectKey, direction, sameYearDiff, peopleChange, heatKey) {
+    const absDiff = Math.abs(sameYearDiff);
+    if (absDiff === 0 || direction === 'same') {
+      return { key: 'match', index: 1, text: data.levelText.match, heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
+    }
+
+    const diffRule = findRuleByAbsDiff(data, direction, absDiff);
+    const peopleRule = findRuleByPeople(data, subjectKey, direction, peopleChange);
+    let index = Math.max(diffRule.index, peopleRule.index);
+
+    if (direction === 'up') index = applyHeatToUpIndex(data, index, heatKey, absDiff);
+
+    const levels = direction === 'up' ? UP_LEVELS : DOWN_LEVELS;
+    const key = levels[clamp(index, 1, levels.length) - 1];
+    return { key, index, text: data.levelText[key], heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
+  }
+
+  function calcGradient(data, state) {
+    const subject = data.subjects[state.subjectKey];
+    const currentYearData = subject.years[state.currentYear];
+    const baseYearData = subject.years[state.baseYear];
+
+    const currentScore = clamp(normalizeNumber(state.currentScore, currentYearData.defaultScore), currentYearData.scoreMin, currentYearData.scoreMax);
+    const referenceScore = clamp(normalizeNumber(state.referenceScore, baseYearData.defaultScore), baseYearData.scoreMin, baseYearData.scoreMax);
+
+    const currentRow = getScoreRow(currentYearData, currentScore);
+    const equivalentRow = state.currentYear === state.baseYear
+      ? getScoreRow(baseYearData, currentScore)
+      : getEquivalentScoreByRank(baseYearData, currentRow.cumulative);
+    const referenceRow = getScoreRow(baseYearData, referenceScore);
+
+    const equivalentScore = equivalentRow.score;
+    const sameYearDiff = referenceScore - equivalentScore;
+    const direction = sameYearDiff > 0 ? 'up' : sameYearDiff < 0 ? 'down' : 'same';
+    const peopleChange = direction === 'up'
+      ? Math.max(0, equivalentRow.cumulative - referenceRow.cumulative)
+      : direction === 'down'
+        ? Math.max(0, referenceRow.cumulative - equivalentRow.cumulative)
+        : 0;
+
+    const absDiff = Math.abs(sameYearDiff);
+    const level = chooseLevel(data, state.subjectKey, direction, sameYearDiff, peopleChange, state.heatKey);
 
     return {
-      subjectKey,
+      subjectKey: state.subjectKey,
       subjectLabel: subject.label,
       parentLabel: subject.parentLabel,
+      currentYear: state.currentYear,
+      baseYear: state.baseYear,
       currentScore,
-      targetScore,
-      rawTargetScore,
-      delta,
+      referenceScore,
       currentRow,
-      targetRow,
+      equivalentRow,
+      referenceRow,
       currentRank: currentRow.cumulative,
-      targetRank: targetRow.cumulative,
-      crossPeople,
-      densityPerPoint: delta > 0 ? Math.round(crossPeople / delta) : 0,
-      targetClamped: rawTargetScore !== targetScore,
-      inputClamped: normalizeNumber(scoreInput, subject.defaultScore) !== currentScore,
+      equivalentScore,
+      equivalentRank: equivalentRow.cumulative,
+      referenceRank: referenceRow.cumulative,
+      sameYearDiff,
+      direction,
+      peopleChange,
+      densityPerPoint: absDiff > 0 ? Math.round(peopleChange / absDiff) : 0,
+      currentClamped: normalizeNumber(state.currentScore, currentYearData.defaultScore) !== currentScore,
+      referenceClamped: normalizeNumber(state.referenceScore, baseYearData.defaultScore) !== referenceScore,
+      hasFilled: currentRow.filled || equivalentRow.filled || referenceRow.filled,
+      isEquivalentMode: state.currentYear !== state.baseYear,
       level
     };
   }
 
-  function makeCompareRows(data, subjectKey, scoreInput, heatKey) {
-    return data.quickDeltas.map((delta) => calcSpan(data, subjectKey, scoreInput, delta, heatKey));
+  function makeCompareRows(data, state) {
+    const baseYearData = data.subjects[state.subjectKey].years[state.baseYear];
+    const base = calcGradient(data, state).equivalentScore;
+    return data.quickDiffs.map((diff) => {
+      const referenceScore = clamp(base + diff, baseYearData.scoreMin, baseYearData.scoreMax);
+      return calcGradient(data, { ...state, referenceScore });
+    });
   }
 
   function makeNarrative(result) {
+    const fmt = formatNumber;
     const heat = result.level.heat;
+    const yearLine = result.isEquivalentMode
+      ? `当前 ${result.currentYear} 年 ${result.currentScore} 分，对应今年累计位次约 ${fmt(result.currentRank)} 名。按位次映射到 ${result.baseYear} 年，约相当于 ${result.baseYear} 年 ${result.equivalentScore} 分附近。`
+      : `当前为 ${result.baseYear} 数据演示模式，${result.currentScore} 分对应累计位次约 ${fmt(result.currentRank)} 名。2026 一分一段发布后，应先用 2026 位次折算到 2025 同位分，再判断梯度。`;
+
+    let relation;
+    if (result.direction === 'up') {
+      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差约为 ${signed(result.sameYearDiff)} 分，位次跨度约 ${fmt(result.peopleChange)} 名。`;
+    } else if (result.direction === 'down') {
+      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差约为 ${signed(result.sameYearDiff)} 分，位次余量约 ${fmt(result.peopleChange)} 名。`;
+    } else {
+      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差为 0 分，整体位置比较接近。`;
+    }
+
     return [
-      `按辽宁 ${result.subjectLabel} ${result.currentScore} 分计算，如果参考 ${result.targetScore} 分附近的目标，两者之间的累计位次差约为 ${formatNumber(result.crossPeople)} 名。`,
+      yearLine,
+      relation,
       '',
-      `${result.level.text.short}${result.level.text.advice}`,
+      `当前判断为“${result.level.text.name}”。${result.level.text.short}${result.level.text.advice}`,
       '',
-      `当前选择的专业热度为“${heat.label}”。${heat.note}`,
+      `专业热度参考为“${heat.label}”。${heat.note}`,
       '',
-      '这个结果不代表能否录取，只用于理解上探幅度和志愿梯度。实际填报还需要结合院校专业、往年录取位次、选科要求和招生计划变化。'
+      '这个结果不代表能否录取，只用于理解同位分差、位次跨度和志愿梯度。实际填报还需要结合院校专业、往年录取位次、选科要求和招生计划变化。'
     ].join('\n');
   }
 
   window.ScoreCalc = {
     prepareData,
-    calcSpan,
+    getAvailableYears,
+    calcGradient,
     makeCompareRows,
     makeNarrative,
     formatNumber,
+    signed,
     clamp,
     normalizeNumber
   };

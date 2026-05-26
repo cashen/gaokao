@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7f3ea" />
-  <title>辽宁 2025 位次跨度参考工具</title>
+  <title>辽宁 2025-2026 志愿梯度位次参考工具</title>
   <link rel="stylesheet" href="./css/base.css" />
   <link rel="stylesheet" href="./css/layout.css" />
   <link rel="stylesheet" href="./css/components.css" />
@@ -14,13 +14,13 @@
   <header class="hero">
     <div class="container hero__inner">
       <div>
-        <p class="eyebrow">辽宁 2025 · 一分一段</p>
-        <h1>位次跨度参考工具</h1>
-        <p class="hero__lead">输入当前分数和上探分数，查看目标分附近对应的位次变化，辅助规划志愿梯度。</p>
+        <p class="eyebrow">辽宁 · 一分一段 · 同位分口径</p>
+        <h1>志愿梯度位次参考工具</h1>
+        <p class="hero__lead">输入当前分和参考分，查看同位分差、位次跨度或位次余量，辅助判断冲、稳、保梯度。</p>
       </div>
       <div class="hero__note" aria-label="使用说明">
-        <strong>温和提示</strong>
-        <span>本工具不评价孩子分数，只帮助看清分数背后的位次变化。</span>
+        <strong>同位分说明</strong>
+        <span>正式填报时，不建议直接拿今年分数对比去年分数；应先看今年位次，再映射到对照年份的同位分。</span>
       </div>
     </div>
   </header>
@@ -29,7 +29,7 @@
     <section class="panel control-panel" aria-label="参数设置">
       <div class="section-head">
         <h2>参数设置</h2>
-        <p>支持手动输入、滑轨拖动和快捷上探按钮。</p>
+        <p>支持手动输入、滑轨拖动和快捷参考分差。</p>
       </div>
 
       <fieldset class="control-group">
@@ -41,25 +41,41 @@
         <p class="hint">辽宁官方统计按物理类、历史类发布；这里同时保留家长熟悉的文理说法。</p>
       </fieldset>
 
+      <div class="year-grid control-group" aria-label="年份设置">
+        <div>
+          <label class="field-label" for="currentYearSelect">当前年份</label>
+          <select id="currentYearSelect" class="select-input"></select>
+          <p class="hint">孩子成绩所属年份。</p>
+        </div>
+        <div>
+          <label class="field-label" for="baseYearSelect">对照年份</label>
+          <select id="baseYearSelect" class="select-input"></select>
+          <p class="hint">往年录取分通常对应这个年份。</p>
+        </div>
+      </div>
+
+      <div class="control-group mode-note" id="modeNote"></div>
+
       <div class="control-group">
-        <label class="field-label" for="scoreInput">当前分数</label>
+        <label class="field-label" for="currentScoreInput">当前分数</label>
         <div class="number-row">
-          <input id="scoreInput" class="number-input" type="number" inputmode="numeric" min="150" max="707" step="1" value="520" aria-describedby="scoreHelp" />
+          <input id="currentScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="520" aria-describedby="currentScoreHelp" />
           <span class="unit">分</span>
         </div>
-        <input id="scoreRange" class="range" type="range" min="150" max="707" step="1" value="520" />
-        <p class="hint" id="scoreHelp">例如：450、451、520、600。手输和滑轨会自动同步。</p>
+        <input id="currentScoreRange" class="range" type="range" min="150" max="707" step="1" value="520" />
+        <p class="hint" id="currentScoreHelp">例如：450、451、520、600。可以直接点进框里输入，也可以拖动滑轨。</p>
       </div>
 
       <div class="control-group">
-        <label class="field-label" for="deltaInput">上探分数</label>
+        <label class="field-label" for="referenceScoreInput">参考分数</label>
         <div class="number-row">
-          <input id="deltaInput" class="number-input" type="number" inputmode="numeric" min="0" max="80" step="1" value="30" aria-describedby="deltaHelp" />
+          <input id="referenceScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="550" aria-describedby="referenceScoreHelp" />
           <span class="unit">分</span>
         </div>
-        <input id="deltaRange" class="range" type="range" min="0" max="80" step="1" value="30" />
-        <p class="hint" id="deltaHelp">从 520 分参考 550 分，就是上探 30 分。</p>
-        <div class="quick-deltas" id="quickDeltas" aria-label="常用上探幅度"></div>
+        <input id="referenceScoreRange" class="range" type="range" min="150" max="707" step="1" value="550" />
+        <p class="hint" id="referenceScoreHelp">参考分数按“对照年份”口径理解。2026 数据导入后，系统会先折算同位分再比较。</p>
+        <div class="quick-title">快捷参考分差</div>
+        <div class="quick-diffs" id="quickDiffs" aria-label="快捷参考分差"></div>
       </div>
 
       <fieldset class="control-group">
@@ -73,19 +89,21 @@
       <article class="panel result-card" aria-live="polite">
         <div class="result-card__top">
           <div>
-            <p class="eyebrow">核心结果</p>
-            <h2>位次跨度</h2>
+            <p class="eyebrow" id="directionLabel">核心结果</p>
+            <h2 id="changeTitle">位次跨度</h2>
           </div>
-          <span class="badge" id="levelBadge">高位上探</span>
+          <span class="badge" id="levelBadge">大冲</span>
         </div>
-        <div class="big-number"><span id="crossPeople">0</span><small>名</small></div>
-        <p class="soft-text">当前分到参考分之间，对应的累计位次变化。</p>
+        <div class="big-number"><span id="changePeople">0</span><small>名</small></div>
+        <p class="soft-text" id="changeExplain">当前同位分到参考分之间，对应的累计位次变化。</p>
 
         <div class="metric-grid">
           <div class="metric"><span>当前分</span><strong id="currentScoreText">520</strong></div>
-          <div class="metric"><span>参考分</span><strong id="targetScoreText">550</strong></div>
-          <div class="metric"><span>当前累计位次</span><strong id="currentRankText">46,756</strong></div>
-          <div class="metric"><span>参考累计位次</span><strong id="targetRankText">32,746</strong></div>
+          <div class="metric"><span>今年累计位次</span><strong id="currentRankText">46,756</strong></div>
+          <div class="metric"><span>对照年同位分</span><strong id="equivalentScoreText">520</strong></div>
+          <div class="metric"><span>同位分差</span><strong id="sameYearDiffText">+30</strong></div>
+          <div class="metric"><span>参考分</span><strong id="referenceScoreText">550</strong></div>
+          <div class="metric"><span>参考累计位次</span><strong id="referenceRankText">32,746</strong></div>
           <div class="metric"><span>平均每分变化</span><strong id="densityText">467</strong></div>
           <div class="metric"><span>数据状态</span><strong id="dataStatusText">精确</strong></div>
         </div>
@@ -95,27 +113,27 @@
       <article class="panel advice-card">
         <div class="section-head compact">
           <h2>使用建议</h2>
-          <p id="levelShort">目标位次明显高于当前位次。</p>
+          <p id="levelShort">参考位置相对当前同位分有一定上探。</p>
         </div>
-        <p id="levelAdvice" class="advice-text">更适合作为前部探索项，主体志愿应回到更稳妥的区间。</p>
+        <p id="levelAdvice" class="advice-text">适合少量放在前部，不建议把同类目标集中安排。</p>
       </article>
     </section>
 
     <section class="panel full-width">
       <div class="section-head inline">
         <div>
-          <h2>不同上探幅度参考</h2>
-          <p>用于横向理解 +5、+10、+30、+40、+50 对应的位次变化。</p>
+          <h2>不同参考分差对比</h2>
+          <p>同时看上探和下探：上面是冲，下面是稳、保或偏低参考。</p>
         </div>
       </div>
       <div class="table-wrap">
         <table class="compare-table">
           <thead>
             <tr>
-              <th>上探分数</th>
+              <th>同位分差</th>
               <th>参考分</th>
-              <th>位次跨度</th>
-              <th>参考层级</th>
+              <th>位次变化</th>
+              <th>判断</th>
             </tr>
           </thead>
           <tbody id="compareBody"></tbody>
@@ -127,7 +145,7 @@
       <div class="section-head inline">
         <div>
           <h2>给家长看的说明</h2>
-          <p>文案尽量保持平和，只讲事实和梯度安排。</p>
+          <p>文案保持平和，重点解释位次口径和梯度安排。</p>
         </div>
         <button type="button" class="copy-btn" id="copyBtn">复制说明</button>
       </div>
@@ -136,12 +154,12 @@
 
     <section class="panel full-width disclaimer">
       <h2>说明</h2>
-      <p>本工具基于辽宁 2025 一分一段数据，帮助理解分数与累计位次之间的关系。结果用于志愿梯度参考，不等同于录取预测。</p>
-      <p>实际填报还需要结合院校专业、专业冷热、选科要求、体检限制、往年录取位次、招生计划变化等信息。</p>
+      <p>本工具基于一分一段数据，帮助理解分数、同位分、累计位次之间的关系。结果用于志愿梯度参考，不等同于录取预测。</p>
+      <p>正式填报时，应以当年一分一段、院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化综合判断。</p>
     </section>
   </main>
 
-  <script src="./data/ln2025-score-rank.js"></script>
+  <script src="./data/gaokao-rank-data.js"></script>
   <script src="./js/calc.js"></script>
   <script src="./js/render.js"></script>
   <script src="./js/app.js"></script>

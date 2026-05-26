@@ -4,13 +4,34 @@
   function qs(selector) { return document.querySelector(selector); }
   function qsa(selector) { return Array.from(document.querySelectorAll(selector)); }
 
-  function renderQuickDeltas(data, onSelect) {
-    const wrap = qs('#quickDeltas');
-    wrap.innerHTML = data.quickDeltas.map((delta) => `<button type="button" class="delta-btn" data-delta="${delta}">+${delta}</button>`).join('');
+  function renderYearSelectors(data, state, onChange) {
+    const subject = data.subjects[state.subjectKey];
+    const current = qs('#currentYearSelect');
+    const base = qs('#baseYearSelect');
+    const makeOption = (year, yearData) => {
+      const disabled = yearData.unavailable ? ' disabled' : '';
+      return `<option value="${year}"${disabled}>${yearData.label}</option>`;
+    };
+    const html = Object.entries(subject.years).map(([year, yearData]) => makeOption(year, yearData)).join('');
+    current.innerHTML = html;
+    base.innerHTML = html;
+    current.value = state.currentYear;
+    base.value = state.baseYear;
+    current.onchange = () => onChange('currentYear', current.value);
+    base.onchange = () => onChange('baseYear', base.value);
+  }
+
+  function renderQuickDiffs(data, onSelect) {
+    const wrap = qs('#quickDiffs');
+    wrap.innerHTML = data.quickDiffs.map((diff) => {
+      const label = diff > 0 ? `+${diff}` : String(diff);
+      const sign = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+      return `<button type="button" class="diff-btn" data-diff="${diff}" data-sign="${sign}">${label}</button>`;
+    }).join('');
     wrap.addEventListener('click', (event) => {
-      const btn = event.target.closest('[data-delta]');
+      const btn = event.target.closest('[data-diff]');
       if (!btn) return;
-      onSelect(Number(btn.dataset.delta));
+      onSelect(Number(btn.dataset.diff));
     });
   }
 
@@ -43,31 +64,54 @@
     });
   }
 
-  function syncDeltaButtons(delta) {
-    qsa('[data-delta]').forEach((btn) => {
-      btn.classList.toggle('is-active', Number(btn.dataset.delta) === Number(delta));
+  function syncDiffButtons(diff) {
+    qsa('[data-diff]').forEach((btn) => {
+      btn.classList.toggle('is-active', Number(btn.dataset.diff) === Number(diff));
     });
   }
 
-  function updateSubjectBounds(data, state) {
+  function updateBounds(data, state) {
     const subject = data.subjects[state.subjectKey];
-    const scoreInput = qs('#scoreInput');
-    const scoreRange = qs('#scoreRange');
-    scoreInput.min = subject.scoreMin;
-    scoreInput.max = subject.scoreMax;
-    scoreRange.min = subject.scoreMin;
-    scoreRange.max = subject.scoreMax;
+    const currentYearData = subject.years[state.currentYear];
+    const baseYearData = subject.years[state.baseYear];
+    qs('#currentScoreRange').min = currentYearData.scoreMin;
+    qs('#currentScoreRange').max = currentYearData.scoreMax;
+    qs('#referenceScoreRange').min = baseYearData.scoreMin;
+    qs('#referenceScoreRange').max = baseYearData.scoreMax;
+  }
+
+  function renderModeNote(result) {
+    const el = qs('#modeNote');
+    if (result.isEquivalentMode) {
+      el.innerHTML = `<strong>正式位次模式：</strong>先查 ${result.currentYear} 当前位次，再映射为 ${result.baseYear} 同位分，最后和 ${result.baseYear} 参考分比较。`;
+    } else {
+      el.innerHTML = `<strong>演示模式：</strong>当前年份和对照年份相同。2026 一分一段导入后，会自动按“今年位次 → 2025 同位分”口径计算。`;
+    }
   }
 
   function renderResult(data, state, result, compareRows, narrative) {
     const fmt = window.ScoreCalc.formatNumber;
-    qs('#crossPeople').textContent = fmt(result.crossPeople);
-    qs('#currentScoreText').textContent = result.currentScore;
-    qs('#targetScoreText').textContent = result.targetScore;
-    qs('#currentRankText').textContent = fmt(result.currentRank);
-    qs('#targetRankText').textContent = fmt(result.targetRank);
-    qs('#densityText').textContent = result.delta > 0 ? `约 ${fmt(result.densityPerPoint)} 名/分` : '—';
-    qs('#dataStatusText').textContent = result.currentRow.filled || result.targetRow.filled ? '含 0 人补齐分' : '精确分数点';
+    const signed = window.ScoreCalc.signed;
+    const directionText = result.direction === 'up' ? '上探参考' : result.direction === 'down' ? '下探参考' : '位置接近';
+    const title = result.direction === 'down' ? '位次余量' : result.direction === 'up' ? '位次跨度' : '位次接近';
+    const explain = result.direction === 'down'
+      ? '当前同位分相对参考分，对应的累计位次余量。'
+      : result.direction === 'up'
+        ? '当前同位分到参考分之间，对应的累计位次跨度。'
+        : '当前同位分和参考分比较接近。';
+
+    qs('#directionLabel').textContent = directionText;
+    qs('#changeTitle').textContent = title;
+    qs('#changeExplain').textContent = explain;
+    qs('#changePeople').textContent = fmt(result.peopleChange);
+    qs('#currentScoreText').textContent = `${result.currentScore} 分`;
+    qs('#currentRankText').textContent = `约 ${fmt(result.currentRank)} 名`;
+    qs('#equivalentScoreText').textContent = `${result.equivalentScore} 分`;
+    qs('#sameYearDiffText').textContent = `${signed(result.sameYearDiff)} 分`;
+    qs('#referenceScoreText').textContent = `${result.referenceScore} 分`;
+    qs('#referenceRankText').textContent = `约 ${fmt(result.referenceRank)} 名`;
+    qs('#densityText').textContent = Math.abs(result.sameYearDiff) > 0 ? `约 ${fmt(result.densityPerPoint)} 名/分` : '—';
+    qs('#dataStatusText').textContent = result.hasFilled ? '含 0 人补齐分' : '精确分数点';
 
     const badge = qs('#levelBadge');
     badge.textContent = result.level.text.name;
@@ -76,13 +120,10 @@
     qs('#levelAdvice').textContent = result.level.text.advice;
 
     const clampHint = qs('#clampHint');
-    if (result.targetClamped) {
+    if (result.currentClamped || result.referenceClamped) {
       clampHint.hidden = false;
-      clampHint.textContent = `参考分超过 ${result.subjectLabel} 统计表范围，已按 ${result.targetScore} 分计算。`;
-    } else if (result.inputClamped) {
-      clampHint.hidden = false;
-      clampHint.textContent = `当前分超出 ${result.subjectLabel} 统计表范围，已按 ${result.currentScore} 分计算。`;
-    } else if (result.currentRow.filled || result.targetRow.filled) {
+      clampHint.textContent = '有输入分数超出统计表范围，系统已按可用范围边界计算。';
+    } else if (result.hasFilled) {
       clampHint.hidden = false;
       clampHint.textContent = '有些分数在统计表中人数为 0，系统已按累计位次连续规则补齐。';
     } else {
@@ -91,24 +132,27 @@
     }
 
     qs('#compareBody').innerHTML = compareRows.map((row) => {
-      return `<tr><td>+${row.delta}</td><td>${row.targetScore}</td><td>约 ${fmt(row.crossPeople)} 名</td><td>${row.level.text.name}</td></tr>`;
+      const changeLabel = row.direction === 'up' ? '跨度' : row.direction === 'down' ? '余量' : '接近';
+      return `<tr><td>${signed(row.sameYearDiff)}</td><td>${row.referenceScore}</td><td>${changeLabel}约 ${fmt(row.peopleChange)} 名</td><td>${row.level.text.name}</td></tr>`;
     }).join('');
 
     qs('#narrativeText').textContent = narrative;
+    renderModeNote(result);
     syncSubjectButtons(state.subjectKey);
     syncHeatButtons(state.heatKey);
-    syncDeltaButtons(state.delta);
+    syncDiffButtons(result.sameYearDiff);
   }
 
   window.ScoreRender = {
     qs,
     qsa,
-    renderQuickDeltas,
+    renderYearSelectors,
+    renderQuickDiffs,
     renderHeatOptions,
     syncSubjectButtons,
     syncHeatButtons,
-    syncDeltaButtons,
-    updateSubjectBounds,
+    syncDiffButtons,
+    updateBounds,
     renderResult
   };
 })();

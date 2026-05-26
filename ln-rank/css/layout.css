@@ -1,11 +1,11 @@
 .hero { padding: 42px 0 24px; }
-.hero__inner { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: end; }
+.hero__inner { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: end; }
 .hero h1 { margin: 4px 0 12px; font-size: clamp(32px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.04em; }
-.hero__lead { max-width: 720px; margin: 0; font-size: 18px; color: var(--muted); }
+.hero__lead { max-width: 760px; margin: 0; font-size: 18px; color: var(--muted); }
 .hero__note { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(255, 250, 241, 0.72); box-shadow: var(--shadow); }
 .hero__note strong { display: block; margin-bottom: 4px; }
 .hero__note span { color: var(--muted); font-size: 14px; }
-.app-shell { display: grid; grid-template-columns: 380px 1fr; gap: 20px; padding-bottom: 48px; }
+.app-shell { display: grid; grid-template-columns: 390px 1fr; gap: 20px; padding-bottom: 48px; }
 .control-panel { grid-row: span 2; }
 .result-stack { display: grid; gap: 20px; }
 .full-width { grid-column: 1 / -1; }
@@ -14,3 +14,4 @@
 .section-head p { margin: 0; color: var(--muted); font-size: 14px; }
 .section-head.compact { margin-bottom: 10px; }
 .section-head.inline { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.year-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
