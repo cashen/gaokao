@@ -152,3 +152,128 @@
 .explain-list strong { display: block; margin-bottom: 3px; }
 .copy-btn { padding: 0 14px; font-weight: 800; }
 .narrative { white-space: pre-line; color: var(--ink-soft); line-height: 1.75; }
+
+/* v3.6 温和层级提醒：用颜色帮助扫读，不制造警告感 */
+#levelName {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px 4px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: .88em;
+  letter-spacing: -0.015em;
+}
+
+.level-match #levelName,
+.level-match .level-chip,
+.level-match .main-change {
+  border-color: rgba(63,111,104,.18);
+}
+
+.level-match #levelName,
+.level-match .level-chip {
+  background: var(--match-soft);
+  color: #2f5c4f;
+}
+
+.level-smallRush #levelName,
+.level-midRush #levelName,
+.level-bigRush #levelName,
+.level-superRush #levelName,
+.level-smallRush .level-chip,
+.level-midRush .level-chip,
+.level-bigRush .level-chip,
+.level-superRush .level-chip {
+  background: var(--rush-soft);
+  color: #875b2e;
+  border-color: rgba(185,130,69,.18);
+}
+
+.level-stable #levelName,
+.level-superStable #levelName,
+.level-safe #levelName,
+.level-stable .level-chip,
+.level-superStable .level-chip,
+.level-safe .level-chip {
+  background: var(--steady-soft);
+  color: #25634f;
+  border-color: rgba(47,125,104,.18);
+}
+
+.level-lowReference #levelName,
+.level-lowReference .level-chip {
+  background: var(--low-soft);
+  color: #475569;
+  border-color: rgba(100,116,139,.18);
+}
+
+.level-smallRush .main-change,
+.level-midRush .main-change,
+.level-bigRush .main-change,
+.level-superRush .main-change {
+  border-left: 4px solid rgba(185,130,69,.45);
+}
+
+.level-stable .main-change,
+.level-superStable .main-change,
+.level-safe .main-change {
+  border-left: 4px solid rgba(47,125,104,.42);
+}
+
+.level-lowReference .main-change {
+  border-left: 4px solid rgba(100,116,139,.38);
+}
+
+.level-match .main-change {
+  border-left: 4px solid rgba(63,111,104,.36);
+}
+
+.level-chip {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.level-chip.level-smallRush,
+.level-chip.level-midRush,
+.level-chip.level-bigRush,
+.level-chip.level-superRush {
+  background: var(--rush-soft);
+  color: #875b2e;
+  border-color: rgba(185,130,69,.18);
+}
+
+.level-chip.level-stable,
+.level-chip.level-superStable,
+.level-chip.level-safe {
+  background: var(--steady-soft);
+  color: #25634f;
+  border-color: rgba(47,125,104,.18);
+}
+
+.level-chip.level-lowReference {
+  background: var(--low-soft);
+  color: #475569;
+  border-color: rgba(100,116,139,.18);
+}
+
+.level-chip.level-match {
+  background: var(--match-soft);
+  color: #2f5c4f;
+  border-color: rgba(63,111,104,.18);
+}
+
+.change-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}

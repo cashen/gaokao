@@ -171,7 +171,7 @@
     setCurrentScore(state.currentScore);
     setTargetScore(state.targetScore);
   } catch (error) {
-    console.error('[ln-rank v3.5]', error);
+    console.error('[ln-rank v3.6]', error);
     if (window.ScoreRender) {
       window.ScoreRender.renderRuntimeError('请检查部署目录是否完整，尤其是 data、js、css 三个目录。', error && (error.stack || error.message));
     }

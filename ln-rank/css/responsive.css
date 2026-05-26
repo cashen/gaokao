@@ -116,3 +116,183 @@
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* v3.6 desktop fit: 1366×768 主操作不需要页面滚动 */
+@media (min-width: 1181px) and (min-height: 600px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .page {
+    height: 100dvh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .hero-card {
+    min-height: 0;
+    margin-bottom: 10px;
+    padding: 12px 18px;
+    grid-template-columns: minmax(0, 1fr) 230px;
+  }
+
+  .hero-card h1 {
+    margin: 2px 0 4px;
+    font-size: clamp(23px, 2.1vw, 28px);
+    line-height: 1.08;
+  }
+
+  .hero-lead {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .mini-note {
+    padding: 9px 12px;
+  }
+
+  .workspace {
+    min-height: 0;
+    height: 100%;
+    grid-template-columns: minmax(280px, 318px) minmax(405px, 1fr) minmax(210px, 250px);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .card {
+    min-height: 0;
+    padding: 13px;
+  }
+
+  .section-title {
+    margin-bottom: 8px;
+  }
+
+  .section-title h2 {
+    font-size: 18px;
+  }
+
+  .section-title p {
+    display: none;
+  }
+
+  .control-group {
+    margin-bottom: 8px;
+  }
+
+  .control-group legend,
+  .field-label {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .segmented {
+    gap: 7px;
+  }
+
+  .segmented-item,
+  .diff-btn,
+  .subtle-action {
+    min-height: 36px;
+  }
+
+  .number-input {
+    min-height: 39px;
+    font-size: 16px;
+  }
+
+  .range {
+    margin: 6px 0 3px;
+  }
+
+  .hint {
+    font-size: 11px;
+    line-height: 1.32;
+  }
+
+  .quick-title {
+    margin-bottom: 5px;
+    font-size: 11px;
+  }
+
+  .quick-diffs {
+    gap: 6px;
+  }
+
+  .subtle-action {
+    margin-top: 7px;
+    font-size: 13px;
+  }
+
+  .result-card {
+    gap: 9px;
+  }
+
+  .result-head h2 {
+    font-size: clamp(23px, 2.3vw, 29px);
+  }
+
+  .position-pill {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .main-change {
+    padding: 12px 14px;
+  }
+
+  .main-change strong {
+    font-size: clamp(30px, 3.5vw, 39px);
+  }
+
+  .main-change p {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.42;
+  }
+
+  .summary-grid {
+    gap: 7px;
+  }
+
+  .summary-item {
+    padding: 7px 9px;
+  }
+
+  .summary-item strong {
+    font-size: 15px;
+  }
+
+  .advice {
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .info-card-head {
+    gap: 1px;
+    padding-bottom: 6px;
+  }
+
+  .drawer-actions {
+    gap: 7px;
+  }
+
+  .drawer-trigger {
+    min-height: 47px;
+    padding: 8px 11px;
+  }
+
+  .drawer-trigger strong {
+    font-size: 13px;
+  }
+
+  .drawer-trigger span {
+    font-size: 11px;
+  }
+}

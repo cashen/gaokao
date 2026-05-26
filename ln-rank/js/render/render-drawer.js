@@ -13,8 +13,8 @@
       return `<tr>
         <td>${row.targetScore}</td>
         <td>${signed(row.sameYearDiff)} 分</td>
-        <td>${changeText}</td>
-        <td>${level.name}</td>
+        <td><span class="change-pill">${changeText}</span></td>
+        <td><span class="level-chip level-${row.level.key}">${level.name}</span></td>
         <td>${level.position}</td>
       </tr>`;
     }).join('');
