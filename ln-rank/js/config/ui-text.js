@@ -7,7 +7,8 @@
       targetScore: '想看的目标分',
       rankSpan: '位次跨度',
       rankMargin: '位次余量',
-      rankClose: '位次接近'
+      rankClose: '位次接近',
+      targetNearby: '目标附近人数'
     },
     levels: {
       match: {
@@ -66,10 +67,11 @@
       }
     },
     drawer: {
+      nearby: '目标附近人数',
       gradient: '梯度参考表',
       major: '专业方向影响',
       explain: '怎么看结果',
-      data: '数据说明'
+      data: '数据口径'
     }
   };
 })();

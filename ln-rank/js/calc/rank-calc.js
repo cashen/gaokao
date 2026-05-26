@@ -7,7 +7,7 @@
   function normalizeNumber(value, fallback) {
     const num = Number(value);
     if (!Number.isFinite(num)) return fallback;
-    return Math.trunc(num);
+    return Math.round(num);
   }
 
   function clamp(num, min, max) {
@@ -119,6 +119,68 @@
     return { key, index, heat: data.heatAdjust[heatKey] || data.heatAdjust.normal };
   }
 
+  function getScoreBand(score, bandSize = 5) {
+    const roundedScore = normalizeNumber(score, 0);
+    const start = Math.floor(roundedScore / bandSize) * bandSize;
+    return { start, end: start + bandSize - 1 };
+  }
+
+  function getBandPeople(yearData, start, end) {
+    if (!yearData || !yearData.scoreMap) return 0;
+    const safeStart = clamp(start, yearData.scoreMin, yearData.scoreMax);
+    const safeEnd = clamp(end, yearData.scoreMin, yearData.scoreMax);
+    if (safeStart > safeEnd) return 0;
+
+    let total = 0;
+    for (let score = safeStart; score <= safeEnd; score += 1) {
+      const row = yearData.scoreMap[String(score)];
+      if (row && Number.isFinite(Number(row.people))) total += Number(row.people);
+    }
+    return total;
+  }
+
+  function formatBand(band) {
+    if (!band) return '—';
+    if (band.start === band.end) return `${band.start}`;
+    return `${band.start}-${band.end}`;
+  }
+
+  function normalizeBand(yearData, band) {
+    return {
+      start: clamp(band.start, yearData.scoreMin, yearData.scoreMax),
+      end: clamp(band.end, yearData.scoreMin, yearData.scoreMax),
+      rawStart: band.start,
+      rawEnd: band.end,
+      clamped: band.start < yearData.scoreMin || band.end > yearData.scoreMax
+    };
+  }
+
+  function getTargetNearbyBands(yearData, targetScore) {
+    const currentRaw = getScoreBand(targetScore, 5);
+    const lowRaw = { start: currentRaw.start - 5, end: currentRaw.start - 1 };
+    const highRaw = { start: currentRaw.start + 5, end: currentRaw.start + 9 };
+
+    const current = normalizeBand(yearData, currentRaw);
+    const low = normalizeBand(yearData, lowRaw);
+    const high = normalizeBand(yearData, highRaw);
+
+    low.people = getBandPeople(yearData, low.start, low.end);
+    current.people = getBandPeople(yearData, current.start, current.end);
+    high.people = getBandPeople(yearData, high.start, high.end);
+
+    low.label = formatBand(low);
+    current.label = formatBand(current);
+    high.label = formatBand(high);
+
+    return { low, current, high };
+  }
+
+  function getIntervalDensityPer5(peopleChange, sameYearDiff) {
+    const absDiff = Math.abs(Number(sameYearDiff || 0));
+    if (!absDiff) return 0;
+    return Math.round(Math.abs(Number(peopleChange || 0)) / absDiff * 5);
+  }
+
   function calcGradient(data, state) {
     const subject = data.subjects[state.subjectKey];
     const currentYearData = subject.years[state.currentYear];
@@ -146,6 +208,8 @@
 
     const absDiff = Math.abs(sameYearDiff);
     const level = chooseLevel(data, state.subjectKey, direction, sameYearDiff, peopleChange, state.heatKey);
+    const targetNearby = getTargetNearbyBands(baseYearData, targetScore);
+    const intervalDensityPer5 = getIntervalDensityPer5(peopleChange, sameYearDiff);
 
     return {
       subjectKey: state.subjectKey,
@@ -166,8 +230,11 @@
       direction,
       peopleChange,
       densityPerPoint: absDiff > 0 ? Math.round(peopleChange / absDiff) : 0,
+      intervalDensityPer5,
+      targetNearby,
       currentClamped: currentInput !== currentScore,
       targetClamped: targetInput !== targetScore,
+      inputRounded: Number(state.currentScore) !== currentScore || Number(state.targetScore) !== targetScore,
       hasFilled: currentRow.filled || equivalentRow.filled || targetRow.filled,
       isEquivalentMode: state.currentYear !== state.baseYear,
       level
@@ -191,15 +258,20 @@
         ? `位次余量约 ${formatNumber(result.peopleChange)} 名。`
         : '位次比较接近。';
 
+    const nearby = result.targetNearby && result.targetNearby.current
+      ? `目标附近人数：${result.targetNearby.current.label} 分段约 ${formatNumber(result.targetNearby.current.people)} 人。`
+      : '';
+
     return [
       `考生分数 ${result.currentScore} 分，想看的目标分 ${result.targetScore} 分，分差参考为 ${signed(result.sameYearDiff)} 分。`,
       relation,
+      nearby,
       '',
       `这个目标属于“${level.name}”，适合位置：${level.position}。`,
       level.advice,
       '',
-      '这个结果用于理解位次关系和志愿梯度，不等同于录取预测。'
-    ].join('\n');
+      '当前统计基于辽宁 2025 一分一段数据。页面用分数方便家庭理解，正式报告以当年位次和等位分/同位分换算为最终参考。'
+    ].filter(Boolean).join('\n');
   }
 
   window.ScoreCalc = {
@@ -208,7 +280,12 @@
     calcGradient,
     makeCompareRows,
     makeNarrative,
+    getScoreBand,
+    getBandPeople,
+    getTargetNearbyBands,
+    getIntervalDensityPer5,
     formatNumber,
+    formatBand,
     signed,
     clamp,
     normalizeNumber

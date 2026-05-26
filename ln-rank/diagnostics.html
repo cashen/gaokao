@@ -3,31 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>部署自检 · 辽宁位次工具 v3.6</title>
+  <title>部署自检 · 辽宁位次工具 v3.7</title>
   <style>
     body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px;line-height:1.7}
-    .box{max-width:920px;margin:0 auto;background:#fffdf8;border:1px solid rgba(31,41,51,.12);border-radius:20px;padding:22px;box-shadow:0 12px 32px rgba(48,39,26,.08)}
+    .box{max-width:980px;margin:0 auto;background:#fffdf8;border:1px solid rgba(31,41,51,.12);border-radius:20px;padding:22px;box-shadow:0 12px 32px rgba(48,39,26,.08)}
     code{background:#f0eadf;padding:2px 6px;border-radius:6px}.ok{color:#26734d}.bad{color:#a0412f}.item{padding:12px 0;border-bottom:1px solid #eee4d2}.item:last-child{border-bottom:0}
-    .small{color:#667085;font-size:14px}.grid{display:grid;gap:6px}
+    .small{color:#667085;font-size:14px}.grid{display:grid;gap:6px} h1{margin-top:0}
   </style>
 </head>
 <body>
   <main class="box">
-    <h1>部署自检 v3.6</h1>
-    <p>检查 <code>data/js</code> 是否完整加载，并验证关键计算案例。部署后建议先访问本页。</p>
+    <h1>部署自检 v3.7</h1>
+    <p>检查 <code>data/js</code> 是否完整加载，并验证位次跨度、位次余量和目标附近人数。部署后建议先访问本页。</p>
     <div id="out">正在检查...</div>
   </main>
-  <script src="./data/gaokao-rank-data.js?v=3.6"></script>
-  <script src="./js/config/ui-text.js?v=3.6"></script>
-  <script src="./js/calc/rank-calc.js?v=3.6"></script>
+  <script src="./data/gaokao-rank-data.js?v=3.7"></script>
+  <script src="./js/config/ui-text.js?v=3.7"></script>
+  <script src="./js/calc/rank-calc.js?v=3.7"></script>
   <script>
     const out = document.getElementById('out');
     const rows = [];
     function item(name, pass, text){ rows.push(`<div class="item"><strong class="${pass?'ok':'bad'}">${pass?'通过':'未通过'}</strong> ${name}<br><span class="small">${text||''}</span></div>`); }
-    function runCase(data, name, currentScore, targetScore, expectedDiff, expectedPeople){
-      const r = window.ScoreCalc.calcGradient(data, {subjectKey:'physics', heatKey:'normal', currentYear:'2025', baseYear:'2025', currentScore, targetScore});
+    function runCase(data, name, subjectKey, currentScore, targetScore, expectedDiff, expectedPeople){
+      const r = window.ScoreCalc.calcGradient(data, {subjectKey, heatKey:'normal', currentYear:'2025', baseYear:'2025', currentScore, targetScore});
       const pass = r.sameYearDiff === expectedDiff && r.peopleChange === expectedPeople;
-      item(name, pass, `分差参考 ${r.sameYearDiff}，位次变化 ${r.peopleChange}；期望：${expectedDiff > 0 ? '+' + expectedDiff : expectedDiff}，${expectedPeople.toLocaleString('zh-CN')}`);
+      item(name, pass, `分差参考 ${r.sameYearDiff}，位次变化 ${r.peopleChange.toLocaleString('zh-CN')}；期望：${expectedDiff > 0 ? '+' + expectedDiff : expectedDiff}，${expectedPeople.toLocaleString('zh-CN')}`);
+    }
+    function runBandCase(data, name, subjectKey, targetScore, expectedLow, expectedCurrent, expectedHigh){
+      const r = window.ScoreCalc.calcGradient(data, {subjectKey, heatKey:'normal', currentYear:'2025', baseYear:'2025', currentScore:520, targetScore});
+      const n = r.targetNearby;
+      const pass = n.low.people === expectedLow && n.current.people === expectedCurrent && n.high.people === expectedHigh;
+      item(name, pass, `低一档 ${n.low.label}: ${n.low.people.toLocaleString('zh-CN')}；目标 ${n.current.label}: ${n.current.people.toLocaleString('zh-CN')}；高一档 ${n.high.label}: ${n.high.people.toLocaleString('zh-CN')}。期望：${expectedLow.toLocaleString('zh-CN')} / ${expectedCurrent.toLocaleString('zh-CN')} / ${expectedHigh.toLocaleString('zh-CN')}`);
     }
     try {
       item('数据文件', !!window.GAOKAO_RANK_DATA, window.GAOKAO_RANK_DATA ? 'window.GAOKAO_RANK_DATA 已存在' : '未找到数据对象');
@@ -35,12 +41,14 @@
       item('计算脚本', !!window.ScoreCalc, window.ScoreCalc ? 'window.ScoreCalc 已存在' : '未找到计算对象');
       if (window.GAOKAO_RANK_DATA && window.ScoreCalc) {
         const data = window.ScoreCalc.prepareData(window.GAOKAO_RANK_DATA);
-        runCase(data, '物理 520 → 550', 520, 550, 30, 14010);
-        runCase(data, '物理 500 → 430', 500, 430, -70, 34990);
-        runCase(data, '物理 365 → 395', 365, 395, 30, 11602);
-        runCase(data, '物理 365 → 375', 365, 375, 10, 3574);
+        runCase(data, '物理 520 → 550', 'physics', 520, 550, 30, 14010);
+        runCase(data, '物理 500 → 430', 'physics', 500, 430, -70, 34990);
+        runCase(data, '物理 365 → 395', 'physics', 365, 395, 30, 11602);
+        runCase(data, '物理 365 → 375', 'physics', 365, 375, 10, 3574);
+        runBandCase(data, '物理目标 533 附近人数', 'physics', 533, 2296, 2343, 2334);
+        runBandCase(data, '历史目标 533 附近人数', 'history', 533, 819, 740, 741);
       }
-      out.innerHTML = rows.join('') + '<p class="small">若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.6 文件。</p>';
+      out.innerHTML = rows.join('') + '<p class="small">若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.7 文件。</p>';
     } catch(e) {
       out.innerHTML = rows.join('') + `<pre class="bad">${String(e.stack || e.message || e)}</pre>`;
     }

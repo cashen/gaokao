@@ -2,6 +2,11 @@
   'use strict';
 
   window.LNRankDrawerConfig = {
+    nearby: {
+      title: '目标附近人数',
+      kicker: '目标分附近是否集中',
+      type: 'nearby'
+    },
     gradient: {
       title: '梯度参考表',
       kicker: '不同分数点怎么看',
@@ -18,8 +23,8 @@
       type: 'explain'
     },
     data: {
-      title: '数据说明',
-      kicker: '口径与边界',
+      title: '数据口径',
+      kicker: '年份、同分与边界',
       type: 'data'
     }
   };

@@ -153,7 +153,7 @@
 .copy-btn { padding: 0 14px; font-weight: 800; }
 .narrative { white-space: pre-line; color: var(--ink-soft); line-height: 1.75; }
 
-/* v3.6 温和层级提醒：用颜色帮助扫读，不制造警告感 */
+/* v3.7 温和层级提醒：用颜色帮助扫读，不制造警告感 */
 #levelName {
   display: inline-flex;
   align-items: center;
@@ -276,4 +276,44 @@
   background: rgba(255,255,255,.72);
   border: 1px solid var(--line);
   white-space: nowrap;
+}
+
+/* v3.7 目标附近人数与数据口径 */
+.target-nearby-card {
+  border: 1px solid rgba(31, 41, 51, .08);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .72);
+  padding: 10px 12px;
+}
+.target-nearby-card > span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+.target-nearby-card strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.25;
+}
+.target-nearby-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.source-note {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.nearby-table {
+  min-width: 460px;
+}
+.change-pill {
+  color: var(--ink-soft);
+  font-weight: 800;
 }

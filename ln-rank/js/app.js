@@ -33,8 +33,10 @@
     let lastCompareRows = [];
     let lastNarrative = '';
 
-    function onlyDigits(value) {
-      return String(value || '').replace(/[^0-9]/g, '');
+    function cleanScoreInput(value) {
+      const raw = String(value || '').replace(/[^0-9.]/g, '');
+      const parts = raw.split('.');
+      return parts.length <= 1 ? raw : `${parts.shift()}.${parts.join('')}`;
     }
 
     function getYearData(kind) {
@@ -57,7 +59,7 @@
 
     function setCurrentScore(value, options = {}) {
       const yearData = getYearData('current');
-      const raw = onlyDigits(value);
+      const raw = cleanScoreInput(value);
       if (options.fromTextInput) {
         currentScoreInput.value = raw;
         if (raw === '') return;
@@ -70,7 +72,7 @@
 
     function setTargetScore(value, options = {}) {
       const yearData = getYearData('base');
-      const raw = onlyDigits(value);
+      const raw = cleanScoreInput(value);
       if (options.fromTextInput) {
         targetScoreInput.value = raw;
         if (raw === '') return;
@@ -171,7 +173,7 @@
     setCurrentScore(state.currentScore);
     setTargetScore(state.targetScore);
   } catch (error) {
-    console.error('[ln-rank v3.6]', error);
+    console.error('[ln-rank v3.7]', error);
     if (window.ScoreRender) {
       window.ScoreRender.renderRuntimeError('请检查部署目录是否完整，尤其是 data、js、css 三个目录。', error && (error.stack || error.message));
     }

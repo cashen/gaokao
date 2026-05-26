@@ -60,6 +60,14 @@
     return '这个目标和当前位置比较接近，适合放在主体讨论区间。';
   }
 
+  function getNearbyExplain(result) {
+    if (!result.targetNearby || !result.targetNearby.current) return '用于理解目标分所在分段附近是否集中。';
+    const people = result.targetNearby.current.people;
+    if (people >= 2000) return '目标分附近人数较集中，几分之间的位次变化会比较明显。';
+    if (people >= 800) return '目标分附近有一定人数集中，建议结合位次跨度一起看。';
+    return '目标分附近人数相对较少，但仍要结合专业方向和往年位次判断。';
+  }
+
   function renderResult(data, state, result) {
     const fmt = window.ScoreCalc.formatNumber;
     const signed = window.ScoreCalc.signed;
@@ -77,6 +85,12 @@
     qs('#changeTitle').textContent = getChangeTitle(result);
     qs('#changePeople').textContent = fmt(result.peopleChange);
     qs('#changeExplain').textContent = getChangeExplain(result);
+
+    if (qs('#targetNearbyText') && result.targetNearby && result.targetNearby.current) {
+      qs('#targetNearbyText').textContent = `${result.targetNearby.current.label} 分段约 ${fmt(result.targetNearby.current.people)} 人`;
+      qs('#targetNearbyExplain').textContent = getNearbyExplain(result);
+    }
+
     qs('#currentScoreText').textContent = `${result.currentScore} 分`;
     qs('#targetScoreText').textContent = `${result.targetScore} 分`;
     qs('#diffText').textContent = `${signed(result.sameYearDiff)} 分`;
@@ -87,6 +101,9 @@
     if (result.currentClamped || result.targetClamped) {
       dataHint.hidden = false;
       dataHint.textContent = '有输入分数超出统计范围，系统已按可用边界计算。';
+    } else if (result.inputRounded) {
+      dataHint.hidden = false;
+      dataHint.textContent = '高考分数按整数处理，系统已按最接近的整数分计算。';
     } else if (result.hasFilled) {
       dataHint.hidden = false;
       dataHint.textContent = '个别分数在统计表中人数为 0，系统按累计位次连续规则补齐。';

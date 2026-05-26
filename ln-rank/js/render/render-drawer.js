@@ -1,6 +1,33 @@
 (function () {
   'use strict';
 
+  function createNearbyContent(result) {
+    const fmt = window.ScoreCalc.formatNumber;
+    const nearby = result.targetNearby;
+    const rows = [
+      ['低一档分段', nearby.low],
+      ['目标所在分段', nearby.current],
+      ['高一档分段', nearby.high]
+    ].map(([name, band]) => `<tr>
+      <td>${name}</td>
+      <td>${band.label}</td>
+      <td>约 ${fmt(band.people)} 人</td>
+    </tr>`).join('');
+
+    const interval = result.direction === 'same'
+      ? '当前目标与考生位置接近，本次区间人数变化较小。'
+      : `从考生分数到目标分数，本次${result.direction === 'up' ? '位次跨度' : '位次余量'}约 ${fmt(result.peopleChange)} 名，平均约 ${fmt(result.intervalDensityPer5)} 人 / 5 分。`;
+
+    return `<p class="soft-box">目标附近人数看的是目标分所在固定 5 分段，以及相邻的低一档、高一档。它用于理解目标分附近是否集中，不替代冲稳保判断。</p>
+      <div class="table-wrap">
+        <table class="gradient-table nearby-table">
+          <thead><tr><th>位置</th><th>分段</th><th>人数</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p class="soft-box">${interval}</p>`;
+  }
+
   function createGradientTable(compareRows) {
     const fmt = window.ScoreCalc.formatNumber;
     const signed = window.ScoreCalc.signed;
@@ -44,7 +71,7 @@
     return `<ul class="explain-list">
       <li><strong>1. 这个目标算什么？</strong><span>当前判断为“${level.name}”。</span></li>
       <li><strong>2. 应该放在哪里？</strong><span>${level.position}。</span></li>
-      <li><strong>3. 为什么这么看？</strong><span>因为考生分数和目标分之间，对应了位次跨度或位次余量。</span></li>
+      <li><strong>3. 为什么这么看？</strong><span>主要看考生分数到目标分数之间的位次跨度或位次余量；目标附近人数只是帮助理解目标附近是否集中。</span></li>
       <li><strong>4. 后面怎么办？</strong><span>冲、稳、保要搭配安排。冲不是不能放，保也不是越低越好。</span></li>
     </ul>
     <div class="drawer-actions-row"><button type="button" class="copy-btn" id="copyNarrativeBtn">复制说明</button></div>
@@ -52,10 +79,12 @@
   }
 
   function createDataContent(data) {
+    const year = data.meta.baseYearDefault || '2025';
     return `<div class="soft-box">
-      <p><strong>当前数据口径：</strong>${data.meta.province}一分一段数据。</p>
-      <p>正式填报时，仍需要结合当年一分一段、院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化综合判断。</p>
-      <p>程序内部保留多年份架构。未来导入 2026 数据后，可按当年位次自动做同位分口径处理，但普通用户界面不需要手动选择年份。</p>
+      <p><strong>当前数据口径：</strong>本页统计基于${data.meta.province} ${year} 一分一段数据，包括位次跨度、位次余量、目标附近人数和分段人数。</p>
+      <p><strong>为什么页面仍用分数：</strong>分数方便家庭讨论和理解；正式报告不直接用今年分数对比往年分数，而是先按当年一分一段换算位次，再映射到对照年份的等位分/同位分后判断冲稳保。</p>
+      <p><strong>同分说明：</strong>同一分数可能有多名考生。本工具按一分一段累计人数计算，采用同分末位累计口径，未展开语数外等同分内部排序。</p>
+      <p><strong>使用边界：</strong>本工具用于理解位次关系和志愿梯度，不等同于录取预测。正式填报还要结合院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化。</p>
     </div>`;
   }
 
@@ -71,6 +100,7 @@
     title.textContent = config.title;
     kicker.textContent = config.kicker;
 
+    if (config.type === 'nearby') body.innerHTML = createNearbyContent(context.result);
     if (config.type === 'gradient') body.innerHTML = createGradientTable(context.compareRows);
     if (config.type === 'major') body.innerHTML = createMajorContent(context.data, context.state);
     if (config.type === 'explain') body.innerHTML = createExplainContent(context.result, context.narrative);

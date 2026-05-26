@@ -117,7 +117,7 @@
   * { scroll-behavior: auto !important; transition: none !important; }
 }
 
-/* v3.6 desktop fit: 1366×768 主操作不需要页面滚动 */
+/* v3.7 desktop fit: 1366×768 主操作不需要页面滚动 */
 @media (min-width: 1181px) and (min-height: 600px) {
   html,
   body {
@@ -295,4 +295,17 @@
   .drawer-trigger span {
     font-size: 11px;
   }
+}
+
+/* v3.7: 多了目标附近人数后，PC 继续压缩一点，避免 1366×768 溢出 */
+@media (min-width: 1181px) and (max-height: 760px) {
+  .result-card { gap: 8px; }
+  .main-change { padding: 11px 13px; }
+  .target-nearby-card { padding: 8px 10px; }
+  .target-nearby-card strong { font-size: 15px; }
+  .target-nearby-card p { display: none; }
+  .summary-item { padding: 7px 8px; }
+  .source-note { display: none; }
+  .advice { padding: 9px 11px; }
+  .drawer-trigger { min-height: 46px; padding-top: 7px; padding-bottom: 7px; }
 }
