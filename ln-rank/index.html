@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7f3ea" />
-  <title>辽宁 2025-2026 志愿梯度位次参考工具 v3.1</title>
+  <title>辽宁志愿梯度位次参考工具 v3.3</title>
   <link rel="stylesheet" href="./css/base.css" />
   <link rel="stylesheet" href="./css/layout.css" />
   <link rel="stylesheet" href="./css/components.css" />
@@ -14,13 +14,13 @@
   <header class="hero">
     <div class="container hero__inner">
       <div>
-        <p class="eyebrow">辽宁 · 一分一段 · 同位分口径</p>
+        <p class="eyebrow">辽宁 · 一分一段 · 志愿梯度</p>
         <h1>志愿梯度位次参考工具</h1>
-        <p class="hero__lead">输入当前分和参考分，查看同位分差、位次跨度或位次余量，辅助判断冲、稳、保梯度。</p>
+        <p class="hero__lead">输入考生分数和想比较的目标分数，查看位次跨度或位次余量，辅助判断冲、稳、保梯度。</p>
       </div>
       <div class="hero__note" aria-label="使用说明">
-        <strong>同位分说明</strong>
-        <span>正式填报时，不建议直接拿今年分数对比去年分数；应先看今年位次，再映射到对照年份的同位分。</span>
+        <strong>怎么理解</strong>
+        <span>分数只是入口，真正要看的，是这个分数背后的位次关系和志愿梯度。</span>
       </div>
     </div>
   </header>
@@ -30,8 +30,8 @@
     <section class="panel full-width runtime-alert" id="runtimeError" hidden></section>
     <section class="panel control-panel" aria-label="参数设置">
       <div class="section-head">
-        <h2>参数设置</h2>
-        <p>支持手动输入、滑轨拖动和快捷参考分差。</p>
+        <h2>填写信息</h2>
+        <p>支持手动输入、滑轨拖动和快捷分差。</p>
       </div>
 
       <fieldset class="control-group">
@@ -43,23 +43,9 @@
         <p class="hint">辽宁官方统计按物理类、历史类发布；这里同时保留家长熟悉的文理说法。</p>
       </fieldset>
 
-      <div class="year-grid control-group" aria-label="年份设置">
-        <div>
-          <label class="field-label" for="currentYearSelect">当前年份</label>
-          <select id="currentYearSelect" class="select-input"></select>
-          <p class="hint">孩子成绩所属年份。</p>
-        </div>
-        <div>
-          <label class="field-label" for="baseYearSelect">对照年份</label>
-          <select id="baseYearSelect" class="select-input"></select>
-          <p class="hint">往年录取分通常对应这个年份。</p>
-        </div>
-      </div>
-
-      <div class="control-group mode-note" id="modeNote"></div>
 
       <div class="control-group">
-        <label class="field-label" for="currentScoreInput">当前分数</label>
+        <label class="field-label" for="currentScoreInput" id="currentScoreLabel">考生分数</label>
         <div class="number-row">
           <input id="currentScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="520" aria-describedby="currentScoreHelp" />
           <span class="unit">分</span>
@@ -69,15 +55,15 @@
       </div>
 
       <div class="control-group">
-        <label class="field-label" for="referenceScoreInput">参考分数</label>
+        <label class="field-label" for="referenceScoreInput" id="referenceScoreLabel">目标分数</label>
         <div class="number-row">
           <input id="referenceScoreInput" class="number-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="550" aria-describedby="referenceScoreHelp" />
           <span class="unit">分</span>
         </div>
         <input id="referenceScoreRange" class="range" type="range" min="150" max="707" step="1" value="550" />
-        <p class="hint" id="referenceScoreHelp">参考分数按“对照年份”口径理解。2026 数据导入后，系统会先折算同位分再比较。</p>
-        <div class="quick-title">快捷参考分差</div>
-        <div class="quick-diffs" id="quickDiffs" aria-label="快捷参考分差"></div>
+        <p class="hint" id="referenceScoreHelp">这里填写想比较的分数点，例如目标院校或专业往年录取分附近；它不是系统推荐分。</p>
+        <div class="quick-title">快捷分差</div>
+        <div class="quick-diffs" id="quickDiffs" aria-label="快捷分差"></div>
       </div>
 
       <fieldset class="control-group">
@@ -97,17 +83,17 @@
           <span class="badge" id="levelBadge">大冲</span>
         </div>
         <div class="big-number"><span id="changePeople">正在计算</span><small>名</small></div>
-        <p class="soft-text" id="changeExplain">当前同位分到参考分之间，对应的累计位次变化。</p>
+        <p class="soft-text" id="changeExplain">考生分数和目标分数之间，对应的累计位次变化。</p>
 
         <div class="metric-grid">
-          <div class="metric"><span>当前分</span><strong id="currentScoreText">520</strong></div>
-          <div class="metric"><span>今年累计位次</span><strong id="currentRankText">46,756</strong></div>
-          <div class="metric"><span>对照年同位分</span><strong id="equivalentScoreText">520</strong></div>
-          <div class="metric"><span>同位分差</span><strong id="sameYearDiffText">+30</strong></div>
-          <div class="metric"><span>参考分</span><strong id="referenceScoreText">550</strong></div>
-          <div class="metric"><span>参考累计位次</span><strong id="referenceRankText">32,746</strong></div>
-          <div class="metric"><span>平均每分变化</span><strong id="densityText">467</strong></div>
-          <div class="metric"><span>数据状态</span><strong id="dataStatusText">精确</strong></div>
+          <div class="metric"><span>考生分数</span><strong id="currentScoreText">520 分</strong></div>
+          <div class="metric"><span>位次参考</span><strong id="currentRankText">约 46,756 名</strong></div>
+          <div class="metric"><span>目标分数</span><strong id="referenceScoreText">550 分</strong></div>
+          <div class="metric"><span>目标位次</span><strong id="referenceRankText">约 32,746 名</strong></div>
+          <div class="metric"><span>分差参考</span><strong id="sameYearDiffText">+30 分</strong></div>
+          <div class="metric"><span>专业热度</span><strong id="equivalentScoreText">普通方向</strong></div>
+          <div class="metric"><span>平均每分变化</span><strong id="densityText">约 467 名/分</strong></div>
+          <div class="metric"><span>数据状态</span><strong id="dataStatusText">精确分数点</strong></div>
         </div>
         <p class="hint" id="clampHint" hidden></p>
       </article>
@@ -115,7 +101,7 @@
       <article class="panel advice-card">
         <div class="section-head compact">
           <h2>使用建议</h2>
-          <p id="levelShort">参考位置相对当前同位分有一定上探。</p>
+          <p id="levelShort">目标位置相对考生位置有一定上探。</p>
         </div>
         <p id="levelAdvice" class="advice-text">适合少量放在前部，不建议把同类目标集中安排。</p>
       </article>
@@ -124,16 +110,16 @@
     <section class="panel full-width">
       <div class="section-head inline">
         <div>
-          <h2>不同参考分差对比</h2>
-          <p>同时看上探和下探：上面是冲，下面是稳、保或偏低参考。</p>
+          <h2>不同分差对比</h2>
+          <p>同时看向上和向下的不同分数点：上面是冲，下面是稳、保或偏低参考。</p>
         </div>
       </div>
       <div class="table-wrap">
         <table class="compare-table">
           <thead>
             <tr>
-              <th>同位分差</th>
-              <th>参考分</th>
+              <th>分差参考</th>
+              <th>目标分</th>
               <th>位次变化</th>
               <th>判断</th>
             </tr>
@@ -147,7 +133,7 @@
       <div class="section-head inline">
         <div>
           <h2>给家长看的说明</h2>
-          <p>文案保持平和，重点解释位次口径和梯度安排。</p>
+          <p>文案保持平和，重点解释位次关系和梯度安排。</p>
         </div>
         <button type="button" class="copy-btn" id="copyBtn">复制说明</button>
       </div>
@@ -156,14 +142,14 @@
 
     <section class="panel full-width disclaimer">
       <h2>说明</h2>
-      <p>本工具基于一分一段数据，帮助理解分数、同位分、累计位次之间的关系。结果用于志愿梯度参考，不等同于录取预测。</p>
-      <p>正式填报时，应以当年一分一段、院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化综合判断。</p>
+      <p>本工具基于一分一段数据，帮助理解分数、累计位次和志愿梯度之间的关系。结果用于报考参考，不等同于录取预测。</p>
+      <p>正式填报时，应结合当年一分一段、院校专业录取位次、招生计划、选科要求、体检限制和专业热度变化综合判断。</p>
     </section>
   </main>
 
-  <script src="./data/gaokao-rank-data.js?v=3.1"></script>
-  <script src="./js/calc.js?v=3.1"></script>
-  <script src="./js/render.js?v=3.1"></script>
-  <script src="./js/app.js?v=3.1"></script>
+  <script src="./data/gaokao-rank-data.js?v=3.3"></script>
+  <script src="./js/calc.js?v=3.3"></script>
+  <script src="./js/render.js?v=3.3"></script>
+  <script src="./js/app.js?v=3.3"></script>
 </body>
 </html>

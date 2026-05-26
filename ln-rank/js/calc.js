@@ -179,28 +179,27 @@
   function makeNarrative(result) {
     const fmt = formatNumber;
     const heat = result.level.heat;
-    const yearLine = result.isEquivalentMode
-      ? `当前 ${result.currentYear} 年 ${result.currentScore} 分，对应今年累计位次约 ${fmt(result.currentRank)} 名。按位次映射到 ${result.baseYear} 年，约相当于 ${result.baseYear} 年 ${result.equivalentScore} 分附近。`
-      : `当前为 ${result.baseYear} 数据演示模式，${result.currentScore} 分对应累计位次约 ${fmt(result.currentRank)} 名。2026 一分一段发布后，应先用 2026 位次折算到 2025 同位分，再判断梯度。`;
+
+    const scoreLine = `按当前数据口径，考生分数 ${result.currentScore} 分，对应位次参考约 ${fmt(result.equivalentRank)} 名；目标分数 ${result.referenceScore} 分，对应目标位次约 ${fmt(result.referenceRank)} 名。`;
 
     let relation;
     if (result.direction === 'up') {
-      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差约为 ${signed(result.sameYearDiff)} 分，位次跨度约 ${fmt(result.peopleChange)} 名。`;
+      relation = `两者之间的分差参考为 ${signed(result.sameYearDiff)} 分，位次跨度约 ${fmt(result.peopleChange)} 名。`;
     } else if (result.direction === 'down') {
-      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差约为 ${signed(result.sameYearDiff)} 分，位次余量约 ${fmt(result.peopleChange)} 名。`;
+      relation = `两者之间的分差参考为 ${signed(result.sameYearDiff)} 分，位次余量约 ${fmt(result.peopleChange)} 名。`;
     } else {
-      relation = `如果参考 ${result.baseYear} 年 ${result.referenceScore} 分附近目标，同位分差为 0 分，整体位置比较接近。`;
+      relation = '两者位置比较接近，分差参考为 0 分。';
     }
 
     return [
-      yearLine,
+      scoreLine,
       relation,
       '',
       `当前判断为“${result.level.text.name}”。${result.level.text.short}${result.level.text.advice}`,
       '',
       `专业热度参考为“${heat.label}”。${heat.note}`,
       '',
-      '这个结果不代表能否录取，只用于理解同位分差、位次跨度和志愿梯度。实际填报还需要结合院校专业、往年录取位次、选科要求和招生计划变化。'
+      '这个结果不代表能否录取，只用于理解位次变化和志愿梯度。实际填报还需要结合院校专业、往年录取位次、选科要求和招生计划变化。'
     ].join('\n');
   }
 

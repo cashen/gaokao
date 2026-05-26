@@ -16,8 +16,8 @@
     <p>这个页面用于检查 <code>data/js</code> 是否完整加载，并用默认案例验证计算结果。</p>
     <div id="out">正在检查...</div>
   </main>
-  <script src="./data/gaokao-rank-data.js?v=3.1"></script>
-  <script src="./js/calc.js?v=3.1"></script>
+  <script src="./data/gaokao-rank-data.js?v=3.3"></script>
+  <script src="./js/calc.js?v=3.3"></script>
   <script>
     const out = document.getElementById('out');
     const rows = [];
@@ -28,9 +28,9 @@
       if (window.GAOKAO_RANK_DATA && window.ScoreCalc) {
         const data = window.ScoreCalc.prepareData(window.GAOKAO_RANK_DATA);
         const r = window.ScoreCalc.calcGradient(data, {subjectKey:'physics', heatKey:'normal', currentYear:'2025', baseYear:'2025', currentScore:520, referenceScore:550});
-        item('默认计算：物理 520 → 550', r.peopleChange === 14010 && r.sameYearDiff === 30, `同位分差 ${r.sameYearDiff}，位次跨度 ${r.peopleChange}；期望：+30，14,010`);
+        item('默认计算：物理 520 → 550', r.peopleChange === 14010 && r.sameYearDiff === 30, `分差参考 ${r.sameYearDiff}，位次跨度 ${r.peopleChange}；期望：+30，14,010`);
       }
-      out.innerHTML = rows.join('') + '<p>若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.1 文件。</p>';
+      out.innerHTML = rows.join('') + '<p>若这里通过，但首页仍异常，请清理 CDN/浏览器缓存，确认 index.html 引用的是 v3.3 文件。</p>';
     } catch(e) {
       out.innerHTML = rows.join('') + `<pre class="bad">${String(e.stack || e.message || e)}</pre>`;
     }

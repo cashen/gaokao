@@ -91,21 +91,11 @@
   function setSubject(subjectKey) {
     state.subjectKey = subjectKey;
     ensureAvailableYears();
-    R.renderYearSelectors(data, state, setYear);
     R.updateBounds(data, state);
     setCurrentScore(state.currentScore);
     setReferenceScore(state.referenceScore);
   }
 
-  function setYear(kind, year) {
-    if (kind === 'currentYear') state.currentYear = year;
-    if (kind === 'baseYear') state.baseYear = year;
-    ensureAvailableYears();
-    R.renderYearSelectors(data, state, setYear);
-    R.updateBounds(data, state);
-    setCurrentScore(state.currentScore);
-    setReferenceScore(state.referenceScore);
-  }
 
   function setHeat(heatKey) {
     state.heatKey = heatKey;
@@ -126,7 +116,6 @@
     R.renderResult(data, state, result, compareRows, narrative);
   }
 
-  R.renderYearSelectors(data, state, setYear);
   R.renderQuickDiffs(data, setReferenceByDiff);
   R.renderHeatOptions(data, state.heatKey, setHeat);
   R.qsa('[data-subject]').forEach((btn) => btn.addEventListener('click', () => setSubject(btn.dataset.subject)));
@@ -159,7 +148,7 @@
   setReferenceScore(state.referenceScore);
 
   } catch (error) {
-    console.error('[ln-rank v3.1]', error);
+    console.error('[ln-rank v3.3]', error);
     showRuntimeError('请检查部署目录是否完整，尤其是 data、js、css 三个目录。', error && (error.stack || error.message));
   }
 })();

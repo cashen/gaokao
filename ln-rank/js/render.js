@@ -8,6 +8,7 @@
     const subject = data.subjects[state.subjectKey];
     const current = qs('#currentYearSelect');
     const base = qs('#baseYearSelect');
+    if (!current || !base) return;
     const makeOption = (year, yearData) => {
       const disabled = yearData.unavailable ? ' disabled' : '';
       return `<option value="${year}"${disabled}>${yearData.label}</option>`;
@@ -81,32 +82,31 @@
   }
 
   function renderModeNote(result) {
-    const el = qs('#modeNote');
-    if (result.isEquivalentMode) {
-      el.innerHTML = `<strong>正式位次模式：</strong>先查 ${result.currentYear} 当前位次，再映射为 ${result.baseYear} 同位分，最后和 ${result.baseYear} 参考分比较。`;
-    } else {
-      el.innerHTML = `<strong>演示模式：</strong>当前年份和对照年份相同。2026 一分一段导入后，会自动按“今年位次 → 2025 同位分”口径计算。`;
-    }
+    // v3.3 起，年份和折算逻辑属于内部计算口径，不在家长界面展示。
   }
 
   function renderResult(data, state, result, compareRows, narrative) {
     const fmt = window.ScoreCalc.formatNumber;
     const signed = window.ScoreCalc.signed;
+    const currentScoreLabel = qs('#currentScoreLabel');
+    const referenceScoreLabel = qs('#referenceScoreLabel');
+    if (currentScoreLabel) currentScoreLabel.textContent = '考生分数';
+    if (referenceScoreLabel) referenceScoreLabel.textContent = '目标分数';
     const directionText = result.direction === 'up' ? '上探参考' : result.direction === 'down' ? '下探参考' : '位置接近';
     const title = result.direction === 'down' ? '位次余量' : result.direction === 'up' ? '位次跨度' : '位次接近';
     const explain = result.direction === 'down'
-      ? '当前同位分相对参考分，对应的累计位次余量。'
+      ? '考生分数相对目标分数，对应的累计位次余量。'
       : result.direction === 'up'
-        ? '当前同位分到参考分之间，对应的累计位次跨度。'
-        : '当前同位分和参考分比较接近。';
+        ? '考生分数到目标分数之间，对应的累计位次跨度。'
+        : '考生分数和目标分数比较接近。';
 
     qs('#directionLabel').textContent = directionText;
     qs('#changeTitle').textContent = title;
     qs('#changeExplain').textContent = explain;
     qs('#changePeople').textContent = fmt(result.peopleChange);
     qs('#currentScoreText').textContent = `${result.currentScore} 分`;
-    qs('#currentRankText').textContent = `约 ${fmt(result.currentRank)} 名`;
-    qs('#equivalentScoreText').textContent = `${result.equivalentScore} 分`;
+    qs('#currentRankText').textContent = `约 ${fmt(result.equivalentRank)} 名`;
+    qs('#equivalentScoreText').textContent = data.heatAdjust[state.heatKey].label;
     qs('#sameYearDiffText').textContent = `${signed(result.sameYearDiff)} 分`;
     qs('#referenceScoreText').textContent = `${result.referenceScore} 分`;
     qs('#referenceRankText').textContent = `约 ${fmt(result.referenceRank)} 名`;
@@ -137,7 +137,6 @@
     }).join('');
 
     qs('#narrativeText').textContent = narrative;
-    renderModeNote(result);
     syncSubjectButtons(state.subjectKey);
     syncHeatButtons(state.heatKey);
     syncDiffButtons(result.sameYearDiff);
