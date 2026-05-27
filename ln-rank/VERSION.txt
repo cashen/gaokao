@@ -1,3 +1,2 @@
-v3.9.8 physics score bands readyfix
-No slider. Uses app.v398.js and versioned render modules.
-Initial state does not fetch data until user enters score.
+v3.9.9 physics score bands humanflow
+Manual query button below filters. Versioned modules v399. Initial state ready, no auto query.

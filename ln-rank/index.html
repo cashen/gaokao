@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁物理类志愿梯度位次参考工具</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=398" />
-  <link rel="stylesheet" href="./css/base.css?v=398" />
-  <link rel="stylesheet" href="./css/layout.css?v=398" />
-  <link rel="stylesheet" href="./css/topbar.css?v=398" />
-  <link rel="stylesheet" href="./css/tabs.css?v=398" />
-  <link rel="stylesheet" href="./css/filters.css?v=398" />
-  <link rel="stylesheet" href="./css/major-list.css?v=398" />
-  <link rel="stylesheet" href="./css/tags.css?v=398" />
-  <link rel="stylesheet" href="./css/responsive.css?v=398" />
+  <link rel="stylesheet" href="./css/tokens.css?v=399" />
+  <link rel="stylesheet" href="./css/base.css?v=399" />
+  <link rel="stylesheet" href="./css/layout.css?v=399" />
+  <link rel="stylesheet" href="./css/topbar.css?v=399" />
+  <link rel="stylesheet" href="./css/tabs.css?v=399" />
+  <link rel="stylesheet" href="./css/filters.css?v=399" />
+  <link rel="stylesheet" href="./css/major-list.css?v=399" />
+  <link rel="stylesheet" href="./css/tags.css?v=399" />
+  <link rel="stylesheet" href="./css/responsive.css?v=399" />
 </head>
 <body>
   <main class="page">
@@ -50,7 +50,7 @@
           <h2 class="panel-title">分数区间</h2>
           <p class="panel-desc">默认先看主体参考，也可以切换到上探或稳妥。</p>
         </div>
-        <button id="reloadButton" class="ghost-button">重新读取</button>
+        
       </div>
       <div id="bandTabs" class="band-tabs"></div>
 
@@ -68,23 +68,28 @@
           <input id="majorKeyword" class="input" type="search" placeholder="如：计算机、电气、通信" />
         </div>
       </div>
+
+<div class="filter-action">
+  <button id="queryButton" class="query-button is-disabled" type="button">请输入分数后查看</button>
+  <p class="filter-action-note">先输入考生分数，再按地域、学校或专业缩小范围。筛选只缩小专业池，不改变分数区间。</p>
+</div>
     </section>
 
     <section id="resultsPanel" class="panel results-shell band-near-shell">
       <div class="results-head">
         <div>
           <h2 id="resultsTitle" class="results-title">主体参考</h2>
-          <p id="resultsMeta" class="results-meta">正在读取数据…</p>
+          <p id="resultsMeta" class="results-meta">等待查看</p>
         </div>
         <div id="activeBandBadge" class="active-band-badge">510-520 分</div>
       </div>
-      <div id="results" class="results-grid loading">正在读取 /fenxi 专业数据…</div>
+      <div id="results" class="results-grid loading">程序已就绪。请输入考生分数，选择筛选条件后点击“查看符合条件的专业”。</div>
     </section>
 
     <section class="data-note">
       当前专业池基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据，用于形成可讨论专业池，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划和专业要求综合判断。
     </section>
   </main>
-  <script type="module" src="./js/app.v398.js?v=398"></script>
+  <script type="module" src="./js/app.v399.js?v=399"></script>
 </body>
 </html>

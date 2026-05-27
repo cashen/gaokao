@@ -98,3 +98,20 @@ score-bands-render.v398.js
 - 红色：读取异常
 
 初始不读取数据，用户输入考生分数后才请求 `/api/major-bands`。
+---
+
+# v3.9.9 人类流程修复版
+
+修复重点：
+
+- 补齐并版本化 `fmt / toInt / REGION_OPTIONS / renderBandTabs / renderMajorResults / fetchMajorBands`
+- 新增 `/ln-rank/module-health.html` 前端模块自检
+- 初始状态不查询数据，显示“程序就绪”
+- “重新读取”改为筛选区下方主按钮
+- 按钮文案根据状态变化：
+  - 请输入分数后查看
+  - 查看符合条件的专业
+  - 正在查询…
+  - 更新结果
+  - 重新尝试
+- 地域选项本地加载，不依赖 API
