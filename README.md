@@ -63,3 +63,31 @@ ACCESS_COOKIE_SECRET
 - 提供兼容版 `/api/major-window`
 
 新版主页面仍然使用 `/api/major-bands`。
+
+
+---
+
+# v3.9.5 缓存修复说明
+
+修复浏览器或 Cloudflare 缓存旧版 `major-pool-api.js` 导致的错误：
+
+```text
+does not provide an export named 'fetchMajorBands'
+```
+
+本版新增版本化文件：
+
+```text
+ln-rank/js/app.v395.js
+ln-rank/js/feature/major-pool/major-bands-api.v395.js
+```
+
+并让 `index.html` 使用：
+
+```text
+./js/app.v395.js?v=395
+```
+
+这样可以绕过旧 JS 缓存。
+
+如果线上仍报同样错误，说明 `/ln-rank/index.html` 没覆盖成功，仍在加载旧版 app.js。

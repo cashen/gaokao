@@ -1,0 +1,2 @@
+v3.9.5 physics score bands cachefix
+No slider. Uses /api/major-bands and app.v395.js.
