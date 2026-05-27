@@ -1,1 +1,19 @@
-@media(max-width:1180px){.dashboard{grid-template-columns:320px 1fr}.results-panel{grid-column:1/-1;max-height:none}}@media(max-width:760px){.page{width:min(100vw - 20px,720px);padding:12px 0}.app-header{display:block}.scope-pill{display:inline-flex;margin-top:10px}.dashboard{grid-template-columns:1fr;min-height:auto}.panel{padding:16px;border-radius:22px}.range-buttons{grid-template-columns:1fr 1fr 1fr}.band-range{font-size:24px}.results-head{display:block}.major-card-top{display:block}.status-badge{display:inline-flex;margin-top:8px}}
+@media (max-width: 960px) {
+  .topbar { grid-template-columns: 1fr 1fr; }
+  .top-note { grid-column: 1 / -1; }
+  .filterbar { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .page { width: min(100vw - 20px, 720px); padding: 12px 0 18px; }
+  .hero { display: block; }
+  .scope-pill { display: inline-flex; margin-top: 10px; }
+  .topbar { grid-template-columns: 1fr; }
+  .band-tabs { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; }
+  .band-tab { min-width: 78%; scroll-snap-align: start; }
+  .panel { padding: 14px; border-radius: 20px; }
+  .results-head { display: block; }
+  .active-band-badge { display: inline-flex; margin-top: 10px; }
+  .major-card-top { display: block; }
+  .status-badge { display: inline-flex; margin-top: 8px; }
+}

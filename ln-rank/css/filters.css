@@ -1,1 +1,2 @@
-.filters-grid{display:grid;gap:10px}.filter-hint{color:var(--muted-2);font-size:12px;line-height:1.5;margin:6px 0 0}
+.filterbar { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 10px; margin-top: 12px; align-items: end; }
+.filter-field label { display: block; margin-bottom: 7px; color: var(--ink-2); font-size: 13px; font-weight: 900; }

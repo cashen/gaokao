@@ -1,1 +1,10 @@
-function norm(v){return String(v||'').replace(/\s+/g,'').toLowerCase()}export function matchRegion(r,region){if(!region||region==='all')return true;if(region==='ln')return r.region&&r.region!=='省外';if(region==='outside')return r.region==='省外';if(region==='shenyang')return r.region==='沈阳';if(region==='dalian')return r.region==='大连';if(region==='ln-other')return r.region==='辽宁其他';return true}export function matchKeyword(r,sk,mk){const s=norm(sk),m=norm(mk);if(s&&!norm(r.school).includes(s))return false;if(m&&!norm(r.major).includes(m))return false;return true}
+import { matchRegionRule } from './region-rules.js';
+function norm(value) { return String(value || '').replace(/\s+/g, '').toLowerCase(); }
+export function matchRegion(record, region) { return matchRegionRule(record, region); }
+export function matchKeyword(record, schoolKeyword, majorKeyword) {
+  const s = norm(schoolKeyword);
+  const m = norm(majorKeyword);
+  if (s && !norm(record.school).includes(s)) return false;
+  if (m && !norm(record.major).includes(m)) return false;
+  return true;
+}

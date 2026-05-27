@@ -1,1 +1,67 @@
-import{fmt}from"../../core/number-utils.js";const BAND_KEYS=['upper','near','steady'];function safe(v,f='—'){return v==null||v===''?f:v}function card(r){const d=Number(r.scoreDelta||0),dt=d>0?`+${d}`:String(d),sk=r.statusKey||'match';return`<article class="major-card"><div class="major-card-top"><div><div class="school">${safe(r.school)}</div><div class="major">${safe(r.major)}</div></div><span class="status-badge status-${sk}">${safe(r.statusLabel)}</span></div><div class="meta-pills"><span class="meta-pill">2025最低分：${fmt(r.score)} 分</span><span class="meta-pill">最低位次：${fmt(r.rank)}</span><span class="meta-pill">相对考生：${dt} 分</span><span class="meta-pill">${safe(r.region)}</span><span class="meta-pill">${safe(r.nature)}</span><span class="meta-pill">学费：${safe(r.tuition,'待核验')}</span></div>${Array.isArray(r.flags)&&r.flags.length?`<div class="meta-pills">${r.flags.slice(0,2).map(f=>`<span class="meta-pill">需核验：${f}</span>`).join('')}</div>`:''}</article>`}export function renderMajorResults(state,{onMore}){const meta=document.getElementById('resultsMeta'),root=document.getElementById('results');if(state.bands.loading){meta.textContent='正在读取 /fenxi 专业数据…';root.className='results-scroll loading';root.textContent='正在读取 /fenxi 专业数据…';return}if(state.bands.error){meta.textContent='读取失败';root.className='results-scroll error';root.textContent=state.bands.error;return}const data=state.bands.data;if(!data){meta.textContent='等待输入';root.className='results-scroll empty';root.textContent='请输入考生分数。';return}meta.textContent=`共 ${fmt(data.counts.total)} 条，当前范围：${data.meta.dataScope}`;root.className='results-scroll';root.innerHTML=BAND_KEYS.map(key=>{const group=data.bands[key],records=group.records||[],visible=state.visible[key]||12,shown=records.slice(0,visible),more=records.length>visible;return`<section class="band-section" id="band-${key}"><div class="band-section-head"><h3 class="band-section-title">${group.title}（${group.rangeText}）</h3><span class="band-section-count">${fmt(records.length)} 条</span></div>${shown.length?shown.map(card).join(''):`<div class="empty">当前筛选条件下暂无记录，可以放宽地域、学校或专业关键词。</div>`}${more?`<button class="more-button" data-more="${key}">查看更多 ${group.title}</button>`:''}</section>`}).join('');root.querySelectorAll('[data-more]').forEach(btn=>btn.addEventListener('click',()=>onMore(btn.dataset.more)))}
+import { fmt } from '../../core/number-utils.js';
+function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
+function tagClass(tag) {
+  if (['985','211','双一流'].includes(tag)) return 'strong';
+  if (tag.includes('公办') || tag.includes('双非')) return 'public';
+  if (tag.includes('民办') || tag.includes('独立')) return 'private';
+  if (tag.includes('·') || ['北京','天津','上海','广东','江苏','浙江','山东','河北','吉林','黑龙江'].includes(tag)) return 'location';
+  return '';
+}
+function tags(record) {
+  const arr = [];
+  if (Array.isArray(record.schoolTags)) arr.push(...record.schoolTags);
+  if (record.natureLabel) arr.push(record.natureLabel);
+  if (record.displayLocation) arr.push(record.displayLocation);
+  return [...new Set(arr.filter(Boolean))].slice(0, 6);
+}
+function card(record) {
+  const delta = Number(record.scoreDelta || 0);
+  const deltaText = delta > 0 ? `+${delta}` : String(delta);
+  const statusKey = record.statusKey || 'match';
+  const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${t}</span>`).join('');
+  return `<article class="major-card status-${statusKey}">
+    <div class="major-card-top">
+      <div><div class="school">${safe(record.school)}</div><div class="major">${safe(record.major)}</div></div>
+      <span class="status-badge">${safe(record.statusLabel)}</span>
+    </div>
+    <div class="meta-pills">
+      <span class="meta-pill">2025最低分：${fmt(record.score)} 分</span>
+      <span class="meta-pill">最低位次：${fmt(record.rank)}</span>
+      <span class="meta-pill">相对考生：${deltaText} 分</span>
+      <span class="meta-pill">适合位置：${safe(record.position)}</span>
+    </div>
+    ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
+    ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${f}</span>`).join('')}</div>` : ''}
+  </article>`;
+}
+export function renderMajorResults(state, { onMore }) {
+  const meta = document.getElementById('resultsMeta');
+  const root = document.getElementById('results');
+  const title = document.getElementById('resultsTitle');
+  const badge = document.getElementById('activeBandBadge');
+  const panel = document.getElementById('resultsPanel');
+  panel.classList.remove('band-upper-shell','band-near-shell','band-steady-shell');
+  panel.classList.add(`band-${state.activeBand}-shell`);
+  if (state.bands.loading) {
+    title.textContent = '专业列表'; badge.textContent = '读取中'; meta.textContent = '正在读取 /fenxi 专业数据…';
+    root.className = 'results-grid loading'; root.textContent = '正在读取 /fenxi 专业数据…'; return;
+  }
+  if (state.bands.error) {
+    title.textContent = '读取失败'; badge.textContent = '请检查'; meta.textContent = '专业数据暂时无法读取';
+    root.className = 'results-grid error'; root.textContent = state.bands.error; return;
+  }
+  const data = state.bands.data;
+  if (!data) { root.className = 'results-grid empty'; root.textContent = '请输入考生分数。'; return; }
+  const group = data.bands[state.activeBand];
+  title.textContent = group.title;
+  badge.textContent = `${group.rangeText} 分`;
+  meta.textContent = `共 ${fmt(group.records.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
+  const visible = state.visible[state.activeBand] || 16;
+  const shown = group.records.slice(0, visible);
+  root.className = 'results-grid';
+  root.innerHTML = shown.length ? shown.map(card).join('') : `<div class="empty">当前筛选条件下暂无记录，可以放宽地域、学校或专业关键词。</div>`;
+  if (group.records.length > visible) {
+    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}">查看更多 ${group.title}</button>`);
+    root.querySelector('[data-more]').addEventListener('click', () => onMore(state.activeBand));
+  }
+}

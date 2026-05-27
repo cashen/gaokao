@@ -1,14 +1,19 @@
-# ln-rank v3.9.3 · 辽宁物理类分数区间专业池版
+# ln-rank v3.9.6 · 上中下 TAB 区间版
 
 ## 主线
 
-输入物理类考生分数，系统自动生成：
+输入物理类考生分数，系统生成：上探参考、主体参考、稳妥参考。页面改为上中下结构：
 
-- 上探参考
-- 主体参考
-- 稳妥参考
+1. 顶部：考生分数与查看范围
+2. 中部：区间 TAB 与地域/学校/专业筛选
+3. 下部：当前 TAB 对应的专业列表
 
-并从 `/fenxi/data` 读取辽宁 2025 物理类专业数据，每条专业标注相对考生的状态。
+## 新增能力
+
+- 地域筛选扩展：辽宁省内、沈阳、大连、辽宁其他、省外、北京、天津、河北、山东、吉林、黑龙江、江浙沪、广东、华中、西南、西北
+- 专业卡片展示：公办/民办/双非公办、985/211/双一流、地域精确到省市
+- 区间 TAB 有轻微颜色提醒，结果卡片外框与当前区间颜色对应
+- 每条专业卡左侧用状态颜色提醒：匹配、稳妥、小冲、中冲等
 
 ## 部署结构
 
@@ -17,17 +22,13 @@
   fenxi/
   ln-rank/
   functions/
-    api/
-      major-bands.js
-    _lib/
-      ...
 ```
 
-`functions` 必须在 Cloudflare Pages 项目根目录，不能放进 `ln-rank`。
+`functions` 必须在 Cloudflare Pages 项目根目录。
 
 ## 必须配置
 
-Cloudflare Pages 环境变量中配置：
+Cloudflare Pages Secret：
 
 ```text
 LN_SESSION_SECRET
@@ -39,55 +40,12 @@ LN_SESSION_SECRET
 ACCESS_COOKIE_SECRET
 ```
 
-它必须和 `/fenxi/_middleware.js` 使用的 secret 一致。
+必须与 `/fenxi/_middleware.js` 使用的 secret 一致。
 
 ## 测试
 
 ```text
+/ln-rank/VERSION.txt
 /api/major-bands?candidateScore=520
 /ln-rank/major-bands-diagnostics.html
 ```
-
-
----
-
-# v3.9.4 兼容修复
-
-修复 Cloudflare 编译时旧版 `major-window` 残留导致的导出错误：
-
-- 补回 `rawScore`
-- 补回 `rawLnArea`
-- 补回 `rawSchool`
-- 补回 `rawMajor`
-- 补回 `hasFenxiSecret`
-- 提供兼容版 `/api/major-window`
-
-新版主页面仍然使用 `/api/major-bands`。
-
-
----
-
-# v3.9.5 缓存修复说明
-
-修复浏览器或 Cloudflare 缓存旧版 `major-pool-api.js` 导致的错误：
-
-```text
-does not provide an export named 'fetchMajorBands'
-```
-
-本版新增版本化文件：
-
-```text
-ln-rank/js/app.v395.js
-ln-rank/js/feature/major-pool/major-bands-api.v395.js
-```
-
-并让 `index.html` 使用：
-
-```text
-./js/app.v395.js?v=395
-```
-
-这样可以绕过旧 JS 缓存。
-
-如果线上仍报同样错误，说明 `/ln-rank/index.html` 没覆盖成功，仍在加载旧版 app.js。

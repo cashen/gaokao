@@ -1,1 +1,12 @@
-.page{width:min(1440px,calc(100vw - 32px));margin:0 auto;padding:20px 0}.app-header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:14px}.app-title{margin:0;font-size:clamp(26px,3vw,38px);line-height:1.08;letter-spacing:-.04em;font-weight:950}.app-subtitle{margin:8px 0 0;color:var(--muted);font-size:15px;line-height:1.65}.scope-pill{flex:0 0 auto;padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:800;box-shadow:var(--shadow-soft)}.dashboard{display:grid;grid-template-columns:360px minmax(360px,430px) minmax(460px,1fr);gap:14px;min-height:calc(100vh - 110px)}.stack{display:grid;gap:14px;align-content:start}.panel{border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--card);box-shadow:var(--shadow);padding:20px}.panel-title{margin:0 0 6px;font-size:20px;font-weight:950;letter-spacing:-.02em}.panel-desc{margin:0 0 14px;color:var(--muted);font-size:14px;line-height:1.7}.results-panel{overflow:hidden;display:flex;flex-direction:column;min-height:0}.results-scroll{overflow:auto;padding-right:4px}.note{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(63,111,104,.08);color:var(--muted);font-size:13px;line-height:1.65}
+.page { width: min(1280px, calc(100vw - 32px)); margin: 0 auto; padding: 18px 0 22px; }
+.hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+.eyebrow { margin: 0 0 6px; color: var(--primary); font-size: 13px; font-weight: 900; }
+.app-title { margin: 0; font-size: clamp(25px, 3vw, 36px); line-height: 1.08; letter-spacing: -0.04em; font-weight: 950; }
+.app-subtitle { margin: 8px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.scope-pill { flex: 0 0 auto; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink-2); font-size: 13px; font-weight: 850; box-shadow: var(--shadow-soft); }
+.panel { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; }
+.panel-title { margin: 0 0 4px; font-size: 20px; font-weight: 950; letter-spacing: -0.02em; }
+.panel-desc { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.middle { padding-bottom: 14px; }
+.tabs-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+.data-note { color: var(--muted); font-size: 12.5px; line-height: 1.7; padding: 2px 4px 0; }
