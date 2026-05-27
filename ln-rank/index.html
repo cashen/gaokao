@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7f2ea" />
-  <title>辽宁志愿梯度位次参考工具 v3.7</title>
+  <title>辽宁志愿梯度位次参考工具 v3.8</title>
   <link rel="stylesheet" href="./css/tokens.css?v=3.7" />
   <link rel="stylesheet" href="./css/base.css?v=3.7" />
   <link rel="stylesheet" href="./css/layout.css?v=3.7" />
@@ -122,7 +122,19 @@
         </section>
       </aside>
     </section>
-  </main>
+  
+<section id="target-major-pool-entry" class="card">
+  <div class="card-header">
+    <h2>目标分附近专业</h2>
+    <p>
+      从 /fenxi 已接入的历史录取数据中，查看目标分附近的院校专业。
+    </p>
+  </div>
+
+  <div id="target-major-pool-placeholder"></div>
+</section>
+
+</main>
 
   <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
   <aside class="drawer" id="drawer" aria-modal="true" role="dialog" aria-labelledby="drawerTitle" hidden>
@@ -143,5 +155,9 @@
   <script src="./js/render/render-main.js?v=3.7"></script>
   <script src="./js/render/render-drawer.js?v=3.7"></script>
   <script src="./js/app.js?v=3.7"></script>
+  <script src="./js/feature/target-major-pool/target-major-config.js?v=3.8"></script>
+  <script src="./js/feature/target-major-pool/target-major-engine.js?v=3.8"></script>
+  <script src="./js/feature/target-major-pool/target-major-render.js?v=3.8"></script>
+  <script src="./js/feature/target-major-pool/target-major-app.js?v=3.8"></script>
 </body>
 </html>

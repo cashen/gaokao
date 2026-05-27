@@ -317,3 +317,210 @@
   color: var(--ink-soft);
   font-weight: 800;
 }
+
+/* v3.8：ln-rank 入口读取 /fenxi 目标分附近专业 */
+.target-major-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.target-major-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.target-major-head h2 {
+  margin: 4px 0 6px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.target-major-head p,
+.target-major-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.target-major-refresh,
+.target-major-more {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--rush-soft);
+  color: var(--rush);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 9px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.target-major-filters {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr;
+  gap: 10px;
+}
+
+.target-major-filters label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.target-major-filters select,
+.target-major-filters input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.86);
+  color: var(--ink);
+  font-size: 14px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.target-major-status {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.62);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
+.target-major-status.is-loading { color: var(--primary); background: var(--primary-soft); }
+.target-major-status.is-ok { color: var(--steady); background: var(--steady-soft); }
+.target-major-status.is-error { color: #8a4b24; background: var(--rush-soft); }
+.target-major-status.is-soft { color: var(--low); background: var(--low-soft); }
+
+.target-major-results {
+  display: grid;
+  gap: 12px;
+}
+
+.target-major-group {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.62);
+  padding: 12px;
+}
+
+.target-major-group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.target-major-group-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.target-major-group-head h3 small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.target-major-group-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.target-major-group-head > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.8);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.target-major-item {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid var(--line);
+  padding: 11px 0;
+}
+
+.target-major-item:first-of-type {
+  border-top: 0;
+}
+
+.target-major-item-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.target-major-item-main strong {
+  font-size: 15px;
+}
+
+.target-major-item-main span {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.target-major-meta,
+.target-major-submeta,
+.target-major-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.target-major-meta span,
+.target-major-submeta span,
+.target-major-flags span {
+  border-radius: 999px;
+  background: rgba(255,255,255,0.78);
+  padding: 4px 8px;
+}
+
+.target-major-empty {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.48);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 14px;
+}
+
+@media (max-width: 900px) {
+  .target-major-head {
+    display: grid;
+  }
+  .target-major-refresh {
+    width: 100%;
+  }
+  .target-major-filters {
+    grid-template-columns: 1fr;
+  }
+  .target-major-item-main {
+    display: grid;
+  }
+  .target-major-item-main span {
+    text-align: left;
+  }
+}

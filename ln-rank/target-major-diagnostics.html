@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>目标分附近专业 · 部署自检</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3.8" />
+  <link rel="stylesheet" href="./css/base.css?v=3.8" />
+  <style>
+    body{padding:24px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;}
+    main{max-width:880px;margin:0 auto;display:grid;gap:16px;}
+    .box{border:1px solid var(--line);border-radius:18px;background:var(--card);padding:18px;}
+    .ok{color:var(--steady);font-weight:800}.bad{color:#8a4b24;font-weight:800}.muted{color:var(--muted)}
+    pre{white-space:pre-wrap;border-radius:14px;background:rgba(255,255,255,.7);padding:12px;overflow:auto;}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="box">
+      <h1>目标分附近专业 · 部署自检</h1>
+      <p class="muted">检查 ln-rank 是否能公开读取 /fenxi/data/manifest.json 与 chunks 数据。</p>
+      <button id="runBtn">开始自检</button>
+    </section>
+    <section class="box" id="result">等待开始。</section>
+  </main>
+  <script src="./data/gaokao-rank-data.js?v=3.7"></script>
+  <script src="./js/calc/rank-calc.js?v=3.7"></script>
+  <script src="./js/feature/target-major-pool/target-major-config.js?v=3.8"></script>
+  <script src="./js/feature/target-major-pool/target-major-engine.js?v=3.8"></script>
+  <script>
+    const result = document.getElementById('result');
+    function line(ok, text){ return `<p class="${ok?'ok':'bad'}">${ok?'✓':'×'} ${text}</p>`; }
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      result.innerHTML = '<p class="muted">正在检查……</p>';
+      try {
+        const r = await window.TargetMajorPoolEngine.query({subjectKey:'physics', targetScore:500, region:'all'});
+        const upper = r.groups.upper.length;
+        const near = r.groups.near.length;
+        const lower = r.groups.lower.length;
+        result.innerHTML = [
+          line(!r.unsupported, '物理类数据查询可用'),
+          line(r.total > 0, `目标分 500，475-510 分附近共 ${r.total} 条`),
+          line(upper > 0, `上探参考：${upper} 条`),
+          line(near > 0, `主体参考：${near} 条`),
+          line(lower > 0, `稳妥参考：${lower} 条`),
+          `<pre>${JSON.stringify({targetScore:r.targetScore, rankWindow:r.rankWindow, total:r.total, upper, near, lower}, null, 2)}</pre>`
+        ].join('');
+      } catch (e) {
+        result.innerHTML = line(false, '读取失败：' + (e && e.message ? e.message : e));
+      }
+    });
+  </script>
+</body>
+</html>
