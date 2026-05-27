@@ -1,4 +1,4 @@
-import { fmt } from '../../core/number-utils.v3911.js';
+import { fmt } from '../../core/number-utils.v3910.js';
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function tagClass(tag) {
   if (['985','211','双一流'].includes(tag)) return 'strong';

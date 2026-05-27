@@ -1,2 +1,2 @@
-v3.9.9 physics score bands humanflow
-Manual query button below filters. Versioned modules v399. Initial state ready, no auto query.
+v3.9.11 physics score bands button-enable-fix
+Button is no longer disabled when score detection misses input; click parses score again.
