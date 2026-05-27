@@ -7,12 +7,53 @@ function isFresh(item) {
   return item && Date.now() - item.time < CACHE_TTL_MS;
 }
 
-function dataBase(request, env = {}) {
-  const base = String(env.FENXI_DATA_BASE || '').replace(/\/$/, '');
-  return base || `${new URL(request.url).origin}/fenxi/data`;
+function trimSlash(value) {
+  return String(value || '').replace(/\/+$/, '');
 }
 
-function firstChars(text, len = 180) {
+function dataBase(request, env = {}) {
+  const configured = trimSlash(env.FENXI_DATA_BASE || '');
+  const origin = new URL(request.url).origin;
+
+  if (configured) {
+    if (configured.startsWith('http://') || configured.startsWith('https://')) {
+      return configured;
+    }
+    if (configured.startsWith('/')) {
+      return `${origin}${configured}`;
+    }
+    return `${origin}/${configured.replace(/^\/+/, '')}`;
+  }
+
+  return `${origin}/fenxi/data`;
+}
+
+function normalizeFenxiDataPath(path) {
+  let p = String(path || '').trim();
+
+  p = p.replace(/^https?:\/\/[^/]+\//i, '');
+  p = p.replace(/^\/+/, '');
+
+  if (p.startsWith('fenxi/data/')) {
+    p = p.slice('fenxi/data/'.length);
+  }
+
+  if (p.startsWith('data/')) {
+    p = p.slice('data/'.length);
+  }
+
+  p = p.replace(/^\/+/, '');
+
+  return p || 'manifest.json';
+}
+
+function buildFenxiUrl(request, env, path) {
+  const base = dataBase(request, env);
+  const cleanPath = normalizeFenxiDataPath(path);
+  return `${base}/${cleanPath}`;
+}
+
+function firstChars(text, len = 220) {
   return String(text || '').replace(/\s+/g, ' ').slice(0, len);
 }
 
@@ -22,11 +63,12 @@ function looksLikeHtml(text) {
 }
 
 export async function fetchFenxiJson(request, env, path) {
-  const key = path;
+  const cleanPath = normalizeFenxiDataPath(path);
+  const key = cleanPath;
   const cached = cache.get(key);
   if (isFresh(cached)) return cached.data;
 
-  const url = `${dataBase(request, env)}/${String(path).replace(/^\//, '')}`;
+  const url = buildFenxiUrl(request, env, cleanPath);
   const cookie = await createFenxiCookie(env);
   const headers = { accept: 'application/json' };
   if (cookie) headers.cookie = cookie;
@@ -41,13 +83,13 @@ export async function fetchFenxiJson(request, env, path) {
 
   if (!res.ok) {
     throw new Error(
-      `读取 /fenxi 数据失败：${path}，HTTP ${res.status}。返回内容：${firstChars(raw)}`
+      `读取 /fenxi 数据失败：${cleanPath}，HTTP ${res.status}。请求路径：${url}。返回内容：${firstChars(raw)}`
     );
   }
 
   if (looksLikeHtml(raw)) {
     throw new Error(
-      `读取 /fenxi 数据时返回了 HTML，不是 JSON。请检查路径是否真实存在、FENXI_DATA_BASE 是否指向 /fenxi/data、Cloudflare Pages Functions 是否部署在项目根目录。请求路径：${url}。返回开头：${firstChars(raw)}`
+      `读取 /fenxi 数据时返回了 HTML，不是 JSON。请求路径：${url}。这通常说明数据路径不存在，Cloudflare 将缺失路径回退到了首页。请重点检查 manifest 里的 chunk.file 是否为 data/chunks/*，以及代码是否已使用 v3.9.2 路径修正版。返回开头：${firstChars(raw)}`
     );
   }
 
@@ -56,7 +98,7 @@ export async function fetchFenxiJson(request, env, path) {
     data = JSON.parse(raw);
   } catch (error) {
     throw new Error(
-      `读取 /fenxi 数据后 JSON 解析失败：${path}。Content-Type=${contentType}。返回开头：${firstChars(raw)}`
+      `读取 /fenxi 数据后 JSON 解析失败：${cleanPath}。Content-Type=${contentType}。请求路径：${url}。返回开头：${firstChars(raw)}`
     );
   }
 

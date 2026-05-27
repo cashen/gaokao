@@ -50,3 +50,21 @@ ACCESS_COOKIE_SECRET
 ## v3.9.1 修复
 
 增强 JSON/HTML 错误识别。如果接口或 /fenxi 数据路径返回 HTML，会显示更明确的原因，不再只出现 `Unexpected token '<'`。
+---
+
+# v3.9.2 路径修复说明
+
+修复 `/fenxi/data/data/chunks/...` 的双 data 拼接问题。
+
+原因：`/fenxi/data/manifest.json` 中的 chunk.file 可能已经是 `data/chunks/...`，旧版又拼接到 `/fenxi/data/` 后，导致实际请求路径错误。
+
+v3.9.2 在 Cloudflare Function 里增加 `normalizeFenxiDataPath()`，统一把：
+
+- `data/chunks/...`
+- `/data/chunks/...`
+- `fenxi/data/chunks/...`
+- `/fenxi/data/chunks/...`
+
+归一为：
+
+- `chunks/...`

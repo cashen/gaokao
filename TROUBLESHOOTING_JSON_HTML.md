@@ -61,3 +61,36 @@ ACCESS_COOKIE_SECRET
 3. 再打开 `/ln-rank/`
 
 不要先看主页面，先让 API 和自检通过。
+
+
+---
+
+# v3.9.2 修复：/fenxi/data/data/chunks 双 data 问题
+
+如果你看到：
+
+```text
+/fenxi/data/data/chunks/rank_50000_80000.json
+```
+
+这说明 `manifest.json` 里的 chunk 路径本身已经带了 `data/chunks/...`，而旧版 fetcher 又把它拼到了 `/fenxi/data/` 后面，导致路径变成双 data。
+
+v3.9.2 已修复路径归一化：
+
+```text
+data/chunks/rank_x.json      → chunks/rank_x.json
+/fenxi/data/chunks/rank_x    → chunks/rank_x
+chunks/rank_x.json           → chunks/rank_x.json
+```
+
+部署 v3.9.2 后，实际请求应该变成：
+
+```text
+https://gaokao.powers.org.cn/fenxi/data/chunks/rank_50000_80000.json
+```
+
+而不是：
+
+```text
+https://gaokao.powers.org.cn/fenxi/data/data/chunks/rank_50000_80000.json
+```
