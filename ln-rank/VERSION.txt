@@ -1,2 +1,3 @@
-v3.9.7 physics score bands tabs initfix
-No default 520; no initial data fetch until score input. Uses app.v397.js and score-bands-render.v397.js.
+v3.9.8 physics score bands readyfix
+No slider. Uses app.v398.js and versioned render modules.
+Initial state does not fetch data until user enters score.

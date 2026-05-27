@@ -71,3 +71,30 @@ ln-rank/js/feature/major-pool/major-bands-api.v397.js
 ```
 
 并且取消默认 520 分。页面初始不自动读取 `/fenxi` 数据，只有输入考生分数后才会读取专业列表。
+---
+
+# v3.9.8 修复说明
+
+修复：
+
+```text
+major-pool-render.js does not provide an export named renderMajorResults
+```
+
+原因通常是浏览器或 Cloudflare 缓存了旧版 `major-pool-render.js`。  
+本版改为版本化导入：
+
+```text
+app.v398.js
+major-pool-render.v398.js
+major-bands-api.v398.js
+score-bands-render.v398.js
+```
+
+同时新增顶部状态提示点：
+
+- 绿色：程序就绪 / 读取完成
+- 黄色：正在读取
+- 红色：读取异常
+
+初始不读取数据，用户输入考生分数后才请求 `/api/major-bands`。

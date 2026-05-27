@@ -8,3 +8,38 @@
 .top-note { color: var(--muted); font-size: 13px; line-height: 1.6; padding-bottom: 3px; }
 .input, .select { width: 100%; height: 44px; border: 1px solid var(--line-strong); border-radius: 14px; background: rgba(255,255,255,.86); padding: 0 12px; outline: none; }
 .input:focus, .select:focus, .score-input:focus { border-color: rgba(63,111,104,.45); box-shadow: 0 0 0 4px rgba(63,111,104,.10); }
+
+
+.hero-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.82);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: var(--shadow-soft);
+}
+.ready-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #2f7d68;
+  box-shadow: 0 0 0 4px rgba(47,125,104,.12);
+}
+.ready-badge.is-ready .ready-dot { background: #2f7d68; box-shadow: 0 0 0 4px rgba(47,125,104,.12); }
+.ready-badge.is-loading .ready-dot { background: #b98245; box-shadow: 0 0 0 4px rgba(185,130,69,.14); }
+.ready-badge.is-error .ready-dot { background: #a85f4d; box-shadow: 0 0 0 4px rgba(168,95,77,.14); }
+@media (max-width: 760px) {
+  .hero-badges { align-items: flex-start; margin-top: 10px; }
+}
