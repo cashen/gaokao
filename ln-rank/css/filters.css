@@ -121,3 +121,36 @@
 .query-button[disabled] {
   cursor: wait;
 }
+
+
+/* v3.9.12 score boundary hints */
+.query-button.is-warn {
+  border-color: rgba(185,130,69,.30);
+  background: var(--upper-soft);
+  color: var(--upper);
+}
+.query-button.is-top {
+  border-color: rgba(63,111,143,.28);
+  background: var(--near-soft);
+  color: var(--near);
+}
+.results-grid.notice-belowCoverage,
+.results-grid.notice-invalidHigh,
+.results-grid.notice-topRange {
+  display: block;
+  padding: 18px;
+  border-radius: 18px;
+  line-height: 1.75;
+}
+.results-grid.notice-belowCoverage {
+  background: #fff8ed;
+  color: #8a5a22;
+}
+.results-grid.notice-invalidHigh {
+  background: #fff4ef;
+  color: #9b4e3e;
+}
+.results-grid.notice-topRange {
+  background: #eef6f8;
+  color: #335f70;
+}
