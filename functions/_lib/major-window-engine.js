@@ -1,49 +1,66 @@
-import { normalizeRecord, rawScore, rawLnArea, rawSchool, rawMajor } from './fenxi-normalizer.js';
-function clean(s) { return String(s || '').replace(/\s+/g, '').toLowerCase(); }
-function matchRegion(raw, region) {
-  const area = rawLnArea(raw);
-  if (!region || region === 'all') return true;
-  if (region === 'ln') return area && area !== '省外';
-  if (region === 'outside') return area === '省外';
-  if (region === 'shenyang') return area === '沈阳';
-  if (region === 'dalian') return area === '大连';
-  if (region === 'ln-other') return area === '辽宁其他';
-  return true;
+import { normalizeRecord } from './fenxi-normalizer.js';
+import { getStatus } from './status-engine.js';
+import { matchRegion, matchKeyword } from './major-filter.js';
+
+const DEFAULT_UP = 10;
+const DEFAULT_DOWN = 25;
+
+function classifyByView(score, viewScore) {
+  const delta = score - viewScore;
+  if (delta >= 1 && delta <= DEFAULT_UP) return 'upper';
+  if (delta <= 0 && delta >= -10) return 'near';
+  if (delta <= -11 && delta >= -DEFAULT_DOWN) return 'lower';
+  return null;
 }
-function matchKeyword(raw, schoolKeyword, majorKeyword) {
-  const sk = clean(schoolKeyword), mk = clean(majorKeyword);
-  if (sk && !clean(rawSchool(raw)).includes(sk)) return false;
-  if (mk && !clean(rawMajor(raw)).includes(mk)) return false;
-  return true;
+
+function groupTitle(key) {
+  if (key === 'upper') return '上探参考';
+  if (key === 'near') return '主体参考';
+  return '稳妥参考';
 }
-function sortGroup(records, group) {
-  return records.sort((a, b) => {
-    if (group === 'upper') return (a.scoreDeltaFromView - b.scoreDeltaFromView) || (a.rank || 0) - (b.rank || 0);
-    return Math.abs(a.scoreDeltaFromView) - Math.abs(b.scoreDeltaFromView) || (a.rank || 0) - (b.rank || 0);
-  });
+
+function groupRange(key, viewScore) {
+  if (key === 'upper') return `${viewScore + 1}-${viewScore + 10}`;
+  if (key === 'near') return `${viewScore - 10}-${viewScore}`;
+  return `${viewScore - 25}-${viewScore - 11}`;
 }
-export function buildMajorWindow(records, query) {
-  const { candidateScore, viewScore, region, schoolKeyword, majorKeyword } = query;
-  const lower = viewScore - 25;
-  const upper = viewScore + 10;
-  const groups = { upper: [], near: [], lower: [] };
-  for (const raw of records) {
-    const score = rawScore(raw);
-    if (!Number.isFinite(score)) continue;
-    if (score < lower || score > upper) continue;
-    if (!matchRegion(raw, region)) continue;
-    if (!matchKeyword(raw, schoolKeyword, majorKeyword)) continue;
-    const record = normalizeRecord(raw, { candidateScore, viewScore });
-    if (record.group !== 'outside') groups[record.group].push(record);
-  }
-  for (const key of Object.keys(groups)) sortGroup(groups[key], key);
-  return {
-    meta: { candidateScore, viewScore, window: { lower, upper } },
-    groups: {
-      upper: { title: '上探参考', range: `${viewScore + 1}-${viewScore + 10}`, records: groups.upper },
-      near: { title: '主体参考', range: `${viewScore - 10}-${viewScore}`, records: groups.near },
-      lower: { title: '稳妥参考', range: `${viewScore - 25}-${viewScore - 11}`, records: groups.lower }
-    },
-    counts: { upper: groups.upper.length, near: groups.near.length, lower: groups.lower.length, total: groups.upper.length + groups.near.length + groups.lower.length }
+
+// 兼容旧版 /api/major-window。新主线使用 /api/major-bands。
+export function buildMajorWindow(rawRecords, { candidateScore, viewScore, filters }) {
+  const groups = {
+    upper: { title: groupTitle('upper'), rangeText: groupRange('upper', viewScore), records: [] },
+    near: { title: groupTitle('near'), rangeText: groupRange('near', viewScore), records: [] },
+    lower: { title: groupTitle('lower'), rangeText: groupRange('lower', viewScore), records: [] }
   };
+
+  for (const raw of rawRecords) {
+    const record = normalizeRecord(raw);
+    if (!Number.isFinite(record.score)) continue;
+    if (!matchRegion(record, filters.region)) continue;
+    if (!matchKeyword(record, filters.schoolKeyword, filters.majorKeyword)) continue;
+
+    const group = classifyByView(record.score, viewScore);
+    if (!group) continue;
+
+    const delta = record.score - candidateScore;
+    const status = getStatus(delta);
+
+    groups[group].records.push({
+      ...record,
+      group,
+      scoreDelta: delta,
+      scoreDeltaFromCandidate: delta,
+      scoreDeltaFromView: record.score - viewScore,
+      statusKey: status.key,
+      statusLabel: status.label,
+      position: status.position
+    });
+  }
+
+  for (const key of Object.keys(groups)) {
+    groups[key].records.sort((a, b) => Math.abs(a.score - viewScore) - Math.abs(b.score - viewScore) || (a.rank || 0) - (b.rank || 0));
+    groups[key].count = groups[key].records.length;
+  }
+
+  return groups;
 }

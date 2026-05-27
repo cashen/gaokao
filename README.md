@@ -47,3 +47,19 @@ ACCESS_COOKIE_SECRET
 /api/major-bands?candidateScore=520
 /ln-rank/major-bands-diagnostics.html
 ```
+
+
+---
+
+# v3.9.4 兼容修复
+
+修复 Cloudflare 编译时旧版 `major-window` 残留导致的导出错误：
+
+- 补回 `rawScore`
+- 补回 `rawLnArea`
+- 补回 `rawSchool`
+- 补回 `rawMajor`
+- 补回 `hasFenxiSecret`
+- 提供兼容版 `/api/major-window`
+
+新版主页面仍然使用 `/api/major-bands`。
