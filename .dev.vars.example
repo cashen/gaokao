@@ -1,6 +1,5 @@
-# 本地开发示例。正式部署时在 Cloudflare Pages 后台配置为 Secret。
-# 必须与 /fenxi 的 _middleware.js 使用同一个值。
+# 必须和 /fenxi/_middleware.js 使用同一个 secret
 LN_SESSION_SECRET=replace_with_same_secret_as_fenxi
 
-# 可留空，默认读取同站 /fenxi/data
+# 可选。默认读取同站 /fenxi/data
 # FENXI_DATA_BASE=https://gaokao.powers.org.cn/fenxi/data

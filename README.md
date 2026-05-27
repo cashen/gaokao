@@ -1,45 +1,47 @@
-# ln-rank v3.8.2 · Cloudflare cookie session 版
+# ln-rank v3.9 · 物理类分数滑轨探索版
 
-## 这版解决什么
+## 这版做什么
 
-你的 `/fenxi/data` 是由 Cloudflare Pages `_middleware.js` 保护的。  
-保护方式不是 `?key=ln2026`，而是 `ln_gateway_session` cookie + HMAC secret。
+- 放弃历史类专业池逻辑，专注辽宁物理类。
+- 以考生分数为 0 点。
+- 滑轨左右查看附近分数带。
+- 从 `/fenxi/data` 读取物理类历史院校专业数据。
+- 每条专业按相对考生分数标注：超低、保底、稳妥、匹配、小冲、中冲、大冲、超冲。
 
-因此本版改为：
-
-```text
-ln-rank 前端
-→ /api/target-majors
-→ Cloudflare Pages Function 后端生成临时 ln_gateway_session
-→ 后端读取 /fenxi/data
-→ 返回筛选后的目标分附近专业
-```
-
-## 必须配置
-
-在 Cloudflare Pages 项目里配置 Secret：
+## 部署结构
 
 ```text
-LN_SESSION_SECRET = 与 /fenxi 相同的 secret
+网站根目录/
+  fenxi/
+  ln-rank/
+  functions/
+    api/major-window.js
+    _lib/*.js
 ```
 
-或者使用：
+`functions` 必须和 `ln-rank`、`fenxi` 同级。
+
+## Cloudflare 必须配置
+
+在 Pages 项目里配置 Secret：
+
+```text
+LN_SESSION_SECRET = 与 /fenxi/_middleware.js 使用的同一个 secret
+```
+
+或继续使用：
 
 ```text
 ACCESS_COOKIE_SECRET
 ```
 
-## 不需要配置
+## 测试
 
 ```text
-FENXI_ACCESS_KEY
-FENXI_ACCESS_MODE
-FENXI_ACCESS_QUERY
+/ln-rank/major-window-diagnostics.html
+/api/major-window?candidateScore=520&viewScore=533
 ```
 
-## 测试地址
+## 口径
 
-```text
-/api/target-majors?subject=physics&targetScore=500
-/ln-rank/target-major-diagnostics.html
-```
+本功能基于 `/fenxi` 已接入的辽宁 2025 物理类历史录取数据，用于形成可讨论专业池，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、专业要求等信息。
