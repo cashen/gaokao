@@ -1,12 +1,1 @@
-import { fetchFenxiJson } from './fenxi-fetcher.js';
-export async function loadManifest(request, env) {
-  return fetchFenxiJson(request, env, 'manifest.json');
-}
-export async function loadAllRecords(request, env, manifest) {
-  const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-  const lists = await Promise.all(chunks.map(async (chunk) => {
-    const data = await fetchFenxiJson(request, env, chunk.file);
-    return Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
-  }));
-  return lists.flat();
-}
+import{fetchFenxiJson}from'./fenxi-fetcher.js';let mc=null;const cc=new Map(),TTL=5*60*1000;function fresh(i){return i&&Date.now()-i.time<TTL}export async function loadManifest(request,env){if(fresh(mc))return mc.data;const data=await fetchFenxiJson(request,env,'manifest.json');mc={time:Date.now(),data};return data}export async function loadAllRecords(request,env){const manifest=await loadManifest(request,env),chunks=Array.isArray(manifest.chunks)?manifest.chunks:[],lists=await Promise.all(chunks.map(async chunk=>{const file=chunk.file||chunk.path;if(!file)return[];if(fresh(cc.get(file)))return cc.get(file).data;const data=await fetchFenxiJson(request,env,file),records=Array.isArray(data)?data:(Array.isArray(data.records)?data.records:[]);cc.set(file,{time:Date.now(),data:records});return records}));return{manifest,records:lists.flat()}}
