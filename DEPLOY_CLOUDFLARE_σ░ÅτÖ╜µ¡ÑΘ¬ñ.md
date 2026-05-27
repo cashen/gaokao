@@ -1,190 +1,73 @@
-# ln-rank v3.8.1 Cloudflare 安全部署步骤（小白版）
+# v3.9 小白部署步骤
 
-## 这版解决什么问题
+## 1. 放文件
 
-原来 v3.8 让前端浏览器直接读取：
+解压后放到网站根目录，最终像这样：
 
 ```text
-/fenxi/data/manifest.json
-/fenxi/data/chunks/*.json
+网站根目录/
+  fenxi/
+  ln-rank/
+  functions/
+    api/
+      major-window.js
+    _lib/
+      fenxi-session.js
+      fenxi-fetcher.js
+      fenxi-manifest.js
+      fenxi-normalizer.js
+      major-window-engine.js
+      status-engine.js
 ```
 
-但你的 `/fenxi` 数据由 Cloudflare 环境变量控制，所以浏览器直接读不到。
+注意：`functions` 不要放进 `ln-rank`。
 
-v3.8.1 改成：
+## 2. Cloudflare 配置 Secret
+
+进入：
 
 ```text
-ln-rank 前端
-  ↓
-/api/target-majors
-  ↓ Cloudflare Pages Function 读取环境变量
-/fenxi/data
-  ↓
-返回筛选后的“目标分附近专业”
+Cloudflare → Workers & Pages → 你的项目 → Settings → Variables and Secrets
 ```
 
-这样前端不会包含密码或环境变量。
-
----
-
-## 目录怎么放
-
-这个 ZIP 解压后有两个关键目录：
+添加 Secret：
 
 ```text
-ln-rank/       放到网站的 /ln-rank 路径
-functions/     放到 Cloudflare Pages 项目根目录
+LN_SESSION_SECRET = 和 /fenxi 现在使用的一样
 ```
 
-注意：`functions` 不能放进 `ln-rank` 里面。它必须在 Cloudflare Pages 项目根目录。
+如果你原来叫 `ACCESS_COOKIE_SECRET`，也可以继续用这个名字。
 
----
+## 3. 先测试接口
 
-## 你需要设置的环境变量
-
-在 Cloudflare Pages 项目里设置：
+打开：
 
 ```text
-FENXI_DATA_BASE
-FENXI_ACCESS_KEY
-FENXI_ACCESS_MODE
+https://gaokao.powers.org.cn/api/major-window?candidateScore=520&viewScore=533
 ```
 
-推荐值：
+成功会看到 JSON，里面有：
 
 ```text
-FENXI_DATA_BASE = https://gaokao.powers.org.cn/fenxi/data
-FENXI_ACCESS_KEY = 你自己的值，例如 ln2026
-FENXI_ACCESS_MODE = query
+ok: true
+counts
+upper / near / lower
 ```
 
-如果你的 `/fenxi` 是用 query 参数验证，一般用：
+## 4. 再测试自检页
+
+打开：
 
 ```text
-FENXI_ACCESS_MODE = query
-FENXI_ACCESS_QUERY = key
-```
-
-最终访问会类似：
-
-```text
-https://gaokao.powers.org.cn/fenxi/data/manifest.json?key=你的密钥
-```
-
-如果你的 `/fenxi` 是用请求头验证，改成：
-
-```text
-FENXI_ACCESS_MODE = header
-FENXI_ACCESS_HEADER = x-fenxi-access-key
-```
-
-如果你的 `/fenxi` 是 Bearer Token，改成：
-
-```text
-FENXI_ACCESS_MODE = bearer
-```
-
----
-
-## Cloudflare 后台操作步骤
-
-1. 打开 Cloudflare 控制台。
-2. 进入 `Workers & Pages`。
-3. 找到你的网站 Pages 项目。
-4. 点 `Settings`。
-5. 找到 `Environment variables` 或 `Variables and Secrets`。
-6. 添加变量：
-
-```text
-FENXI_DATA_BASE = https://gaokao.powers.org.cn/fenxi/data
-FENXI_ACCESS_MODE = query
-FENXI_ACCESS_QUERY = key
-```
-
-7. 添加 Secret：
-
-```text
-FENXI_ACCESS_KEY = 你的访问值
-```
-
-8. 保存后重新部署 Pages。
-
----
-
-## 部署后怎么测试
-
-部署完成后，先打开：
-
-```text
-https://gaokao.powers.org.cn/ln-rank/target-major-diagnostics.html
+https://gaokao.powers.org.cn/ln-rank/major-window-diagnostics.html
 ```
 
 点击“开始自检”。
 
-如果看到：
+## 5. 最后打开主页面
 
 ```text
-✓ 物理类数据查询可用
-✓ 目标分 500，475-510 分附近共 XX 条
+https://gaokao.powers.org.cn/ln-rank/
 ```
 
-说明成功。
-
-如果失败，直接打开：
-
-```text
-https://gaokao.powers.org.cn/api/target-majors?subject=physics&targetScore=500
-```
-
-看返回的错误提示。
-
----
-
-## 常见错误
-
-### 1. 404 Not Found
-
-说明 `functions` 没有放到 Cloudflare Pages 项目根目录，或者 Pages Functions 没启用。
-
-### 2. 读取 /fenxi 数据失败 403
-
-说明环境变量密钥不对，或 `/fenxi` 那边不是用当前这种验证方式。
-
-先确认：
-
-```text
-FENXI_ACCESS_MODE=query
-FENXI_ACCESS_QUERY=key
-FENXI_ACCESS_KEY=你的值
-```
-
-### 3. 前端页面能打开，但专业列表读不到
-
-先跑：
-
-```text
-/ln-rank/target-major-diagnostics.html
-```
-
-再跑：
-
-```text
-/api/target-majors?subject=physics&targetScore=500
-```
-
-看具体错误。
-
----
-
-## 重要原则
-
-不要把 `FENXI_ACCESS_KEY` 写进前端 JS。
-
-前端用户只能看到：
-
-```text
-/api/target-majors
-```
-
-看不到真正的环境变量。
-
+输入考生分数，拖动滑轨。
