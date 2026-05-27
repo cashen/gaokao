@@ -1,2 +1,2 @@
-v3.9.6 physics score bands tabs
-Top-middle-bottom layout. Uses /api/major-bands and app.v396.js.
+v3.9.7 physics score bands tabs initfix
+No default 520; no initial data fetch until score input. Uses app.v397.js and score-bands-render.v397.js.

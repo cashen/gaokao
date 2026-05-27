@@ -49,3 +49,25 @@ ACCESS_COOKIE_SECRET
 /api/major-bands?candidateScore=520
 /ln-rank/major-bands-diagnostics.html
 ```
+
+---
+
+# v3.9.7 修复说明
+
+修复：
+
+```text
+renderBandTabs 未导出
+```
+
+原因通常是浏览器或 Cloudflare 缓存了旧版 `score-bands-render.js`。
+
+本版新增版本化文件：
+
+```text
+ln-rank/js/app.v397.js
+ln-rank/js/feature/score-bands/score-bands-render.v397.js
+ln-rank/js/feature/major-pool/major-bands-api.v397.js
+```
+
+并且取消默认 520 分。页面初始不自动读取 `/fenxi` 数据，只有输入考生分数后才会读取专业列表。
