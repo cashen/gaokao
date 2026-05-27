@@ -2,8 +2,8 @@
   'use strict';
 
   window.TargetMajorPoolConfig = {
-    version: 'v3.8-data-connected',
-    fenxiManifestUrl: '/fenxi/data/manifest.json',
+    version: 'v3.8.1-cloudflare-api-connected',
+    apiEndpoint: '/api/target-majors',
     upperDelta: 10,
     lowerDelta: 25,
     defaultVisibleCount: 15,

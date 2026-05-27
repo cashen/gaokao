@@ -3,37 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>目标分附近专业 · 部署自检</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=3.8" />
-  <link rel="stylesheet" href="./css/base.css?v=3.8" />
+  <title>目标分附近专业 · 安全接口自检</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3.8.1" />
+  <link rel="stylesheet" href="./css/base.css?v=3.8.1" />
   <style>
     body{padding:24px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;}
     main{max-width:880px;margin:0 auto;display:grid;gap:16px;}
     .box{border:1px solid var(--line);border-radius:18px;background:var(--card);padding:18px;}
     .ok{color:var(--steady);font-weight:800}.bad{color:#8a4b24;font-weight:800}.muted{color:var(--muted)}
     pre{white-space:pre-wrap;border-radius:14px;background:rgba(255,255,255,.7);padding:12px;overflow:auto;}
+    button{min-height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;}
   </style>
 </head>
 <body>
   <main>
     <section class="box">
-      <h1>目标分附近专业 · 部署自检</h1>
-      <p class="muted">检查 ln-rank 是否能公开读取 /fenxi/data/manifest.json 与 chunks 数据。</p>
+      <h1>目标分附近专业 · 安全接口自检</h1>
+      <p class="muted">检查 ln-rank 是否能通过 <code>/api/target-majors</code> 读取受 cookie session 保护的 /fenxi 数据。前端不会读取或显示 secret。</p>
       <button id="runBtn">开始自检</button>
     </section>
     <section class="box" id="result">等待开始。</section>
   </main>
-  <script src="./data/gaokao-rank-data.js?v=3.7"></script>
-  <script src="./js/calc/rank-calc.js?v=3.7"></script>
-  <script src="./js/feature/target-major-pool/target-major-config.js?v=3.8"></script>
-  <script src="./js/feature/target-major-pool/target-major-engine.js?v=3.8"></script>
   <script>
     const result = document.getElementById('result');
     function line(ok, text){ return `<p class="${ok?'ok':'bad'}">${ok?'✓':'×'} ${text}</p>`; }
     document.getElementById('runBtn').addEventListener('click', async () => {
-      result.innerHTML = '<p class="muted">正在检查……</p>';
+      result.innerHTML = '<p class="muted">正在检查 /api/target-majors……</p>';
       try {
-        const r = await window.TargetMajorPoolEngine.query({subjectKey:'physics', targetScore:500, region:'all'});
+        const url = new URL('/api/target-majors', window.location.origin);
+        url.searchParams.set('subject', 'physics');
+        url.searchParams.set('targetScore', '500');
+        url.searchParams.set('region', 'all');
+        const res = await fetch(url.toString(), { cache: 'no-store' });
+        const r = await res.json();
+        if (!res.ok || !r.ok) throw new Error(r.message || `接口失败：${res.status}`);
         const upper = r.groups.upper.length;
         const near = r.groups.near.length;
         const lower = r.groups.lower.length;
@@ -43,10 +46,10 @@
           line(upper > 0, `上探参考：${upper} 条`),
           line(near > 0, `主体参考：${near} 条`),
           line(lower > 0, `稳妥参考：${lower} 条`),
-          `<pre>${JSON.stringify({targetScore:r.targetScore, rankWindow:r.rankWindow, total:r.total, upper, near, lower}, null, 2)}</pre>`
+          `<pre>${JSON.stringify({targetScore:r.targetScore, total:r.total, upper, near, lower, source:r.source}, null, 2)}</pre>`
         ].join('');
       } catch (e) {
-        result.innerHTML = line(false, '读取失败：' + (e && e.message ? e.message : e));
+        result.innerHTML = line(false, '读取失败：' + (e && e.message ? e.message : e)) + '<p class="muted">请检查 Cloudflare 环境变量：LN_SESSION_SECRET 或 ACCESS_COOKIE_SECRET，并确认它与 /fenxi 的 _middleware.js 使用同一个值。</p>';
       }
     });
   </script>

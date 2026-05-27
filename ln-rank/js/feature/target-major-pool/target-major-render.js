@@ -28,7 +28,7 @@
       <section class="target-major-panel" aria-label="目标分附近专业">
         <div class="target-major-head">
           <div>
-            <p class="eyebrow">/fenxi 数据联动</p>
+            <p class="eyebrow">安全读取 /fenxi 数据</p>
             <h2>目标分附近专业</h2>
             <p>按当前目标分，查看上 10 分、下 25 分附近的院校专业记录。</p>
           </div>
@@ -51,13 +51,13 @@
         </div>
 
         <div class="target-major-status" id="targetMajorStatus">
-          当前未读取。点击“读取专业数据”，会从 /fenxi 静态数据中筛选目标分附近记录。
+          当前未读取。点击“读取专业数据”，会通过安全接口筛选目标分附近记录。
         </div>
 
         <div class="target-major-results" id="targetMajorResults"></div>
 
         <p class="target-major-note">
-          本功能基于 /fenxi 已接入的历史录取数据筛选，用于形成目标分附近的可讨论专业池，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、专业要求等信息。
+          本功能通过后端安全接口读取 /fenxi 历史录取数据，用于形成目标分附近的可讨论专业池，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、专业要求等信息。
         </p>
       </section>
     `;

@@ -25,12 +25,12 @@
     async function runQuery() {
       try {
         expanded.upper = expanded.near = expanded.lower = false;
-        R.renderStatus('正在读取 /fenxi 数据，请稍候……', 'loading');
+        R.renderStatus('正在通过安全接口读取 /fenxi 数据，请稍候……', 'loading');
         lastResult = await E.query(readOptions());
         R.renderResults(lastResult, expanded);
       } catch (error) {
         console.error('[target-major-pool]', error);
-        R.renderStatus('没有读取到 /fenxi 数据。请确认 /fenxi/data/manifest.json 和 chunks 目录已部署为公开静态文件。', 'error');
+        R.renderStatus('没有读取到 /fenxi 数据。请检查 Cloudflare 环境变量、/api/target-majors 接口和 /fenxi 数据权限。', 'error');
       }
     }
 

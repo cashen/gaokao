@@ -235,3 +235,35 @@ https://example.com/ln-rank/
 ```
 
 应能看到目标分 500 对应的上探参考、主体参考、稳妥参考均有记录。
+
+---
+
+# v3.8.1 cloudflare-api-connected
+
+目标分附近专业改为通过 `/api/target-majors` 获取。
+
+前端不再直接读取 `/fenxi/data/manifest.json` 和 chunks。
+
+需要 Cloudflare Pages 根目录部署 `functions/api/target-majors.js`，并在 Cloudflare 后台设置：
+
+```text
+FENXI_DATA_BASE
+FENXI_ACCESS_KEY
+FENXI_ACCESS_MODE
+```
+
+部署后先访问：
+
+```text
+/ln-rank/target-major-diagnostics.html
+```
+
+
+---
+
+# v3.8.2 数据读取口径
+
+目标分附近专业模块通过 `/api/target-majors` 读取数据。  
+前端不直接访问 `/fenxi/data`，也不包含密码或 secret。
+
+Cloudflare Pages Function 会使用与 `/fenxi/_middleware.js` 相同的 `LN_SESSION_SECRET` 或 `ACCESS_COOKIE_SECRET` 生成临时 cookie，并在服务端读取 `/fenxi/data`。
