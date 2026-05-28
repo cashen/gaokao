@@ -369,3 +369,40 @@ AI_CARD_MODEL = 你选择的模型名
 - 弹窗标题：`现实诊断` → `AI诊断`
 
 后端 skill、AI 诊断逻辑、Cloudflare 配置均不变。
+
+
+---
+
+# v3.9.24 AI额度用完提示版
+
+新增：
+
+- 检测 Cloudflare Workers AI 每日免费额度用完错误；
+- 自动切换为规则版诊断；
+- 弹窗显示“额度已用完 · 规则版”；
+- 不再把 429 / 3036 / Account limited 直接暴露给用户。
+
+后端 AI 逻辑、模型变量、Cloudflare 绑定方式不变。
+---
+
+# v3.9.25 维护基线版
+
+本版不新增业务功能，重点固定长期维护结构：
+
+- 新增 `ARCHITECTURE.md`
+- 新增 `RECORD_CONTRACT.md`
+- 新增 `CLOUDFLARE_ENV.md`
+- 新增 `RELEASE_CHECKLIST.md`
+- 新增 `MODULE_MAP.md`
+- 新增 `NEXT_ROADMAP.md`
+- 新增 `kb_templates/school_kb_template.csv`
+- 新增 `kb_templates/major_kb_template.csv`
+
+业务功能沿用 v3.9.24：
+
+- 专业池
+- 2024/2025 历史成绩
+- 学校地域实体层
+- 飞书报告
+- AI诊断
+- AI额度用完规则版兜底
