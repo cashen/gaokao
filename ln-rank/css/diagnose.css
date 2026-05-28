@@ -307,3 +307,15 @@ body.diagnose-modal-open {
     font-size: 13px;
   }
 }
+
+
+.diagnose-quota-note {
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff8ed;
+  color: #9a6631;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.55;
+}

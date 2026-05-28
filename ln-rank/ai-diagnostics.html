@@ -53,7 +53,7 @@ document.getElementById('run').onclick=async()=>{
     let j; try{j=JSON.parse(raw)}catch(e){throw new Error('接口返回内容不是 JSON：'+oneLine(raw))}
     if(!r.ok||!j.ok) throw new Error(j.message||j.hint||r.status);
     out.className='ok';
-    out.textContent='✓ 诊断接口可用\n来源：'+j.source+'\n模型：'+(j.model||'规则版')+'\n\n'+JSON.stringify(j.diagnosis,null,2);
+    out.textContent='✓ 诊断接口可用\n来源：'+j.source+'\n模型：'+(j.model||'规则版')+'\n提示：'+(j.message||'无')+'\n\n'+JSON.stringify(j.diagnosis,null,2);
   }catch(e){
     out.className='bad';
     out.textContent='✗ 自检失败：'+(e.message||e);

@@ -1,2 +1,2 @@
-v3.9.23 ai-label
-Changed UI label from 现实诊断 to AI诊断. No backend AI logic changes.
+v3.9.24 ai-quota-fallback
+When Cloudflare Workers AI daily neurons are exhausted, card diagnosis falls back to rules-only with a user-friendly quota message.

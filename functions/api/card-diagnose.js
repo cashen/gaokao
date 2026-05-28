@@ -51,6 +51,34 @@ function getAiText(result) {
   return JSON.stringify(result);
 }
 
+function errorText(error) {
+  const parts = [
+    error && error.message,
+    error && error.name,
+    error && error.code,
+    error && error.status,
+    error && error.cause && error.cause.message,
+    error && error.stack
+  ].filter(Boolean);
+  return parts.join(' | ');
+}
+
+function isAiQuotaLimit(error) {
+  const s = errorText(error).toLowerCase();
+  return s.includes('3036')
+    || s.includes('account limited')
+    || s.includes('daily free allocation')
+    || s.includes('10,000 neurons')
+    || s.includes('10000 neurons')
+    || s.includes('free allocation')
+    || (s.includes('429') && s.includes('neuron'));
+}
+
+function shortError(error) {
+  return errorText(error).replace(/\s+/g, ' ').slice(0, 240);
+}
+
+
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
     return json({ ok: false, message: '只支持 POST 请求。' }, 405);
@@ -82,11 +110,34 @@ export async function onRequest(context) {
     }
 
     const messages = buildCardDiagnoseMessages({ record, candidateScore });
-    const aiResult = await context.env.AI.run(model, {
-      messages,
-      temperature: 0.2,
-      max_tokens: 700
-    });
+
+    let aiResult;
+    try {
+      aiResult = await context.env.AI.run(model, {
+        messages,
+        temperature: 0.2,
+        max_tokens: 700
+      });
+    } catch (aiError) {
+      if (isAiQuotaLimit(aiError)) {
+        return json({
+          ok: true,
+          source: 'rules-only-quota',
+          model,
+          message: '今日 Cloudflare AI 免费额度已用完，已自动切换为规则版诊断。',
+          diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
+        });
+      }
+
+      return json({
+        ok: true,
+        source: 'rules-only-error',
+        model,
+        message: 'AI 调用暂时失败，已自动切换为规则版诊断。',
+        aiError: shortError(aiError),
+        diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
+      });
+    }
 
     const modelText = getAiText(aiResult);
     const diagnosis = modelText
@@ -103,7 +154,7 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error && error.message ? error.message : String(error),
-      hint: '请检查 Cloudflare Pages 是否绑定 Workers AI，绑定变量名是否为 AI，并配置 AI_CARD_MODEL。'
+      hint: '请检查 Cloudflare Pages 是否绑定 Workers AI，绑定变量名是否为 AI，并配置 AI_CARD_MODEL。AI 额度用完时，本版会自动切换为规则版诊断。'
     }, 500);
   }
 }
