@@ -194,3 +194,26 @@ functions/_lib/feishu-permission.js
 FEISHU_PUBLIC_SHARE=false      # 关闭自动匿名分享
 FEISHU_PERMISSION_TYPE=docx    # 强制指定权限对象类型，默认先尝试 docx
 ```
+---
+
+# v3.9.15 飞书指定文件夹版
+
+新增独立配置模块：
+
+```text
+functions/_lib/feishu-folder-config.js
+```
+
+默认 Folder Token：
+
+```text
+Bpl6f4yh5lt3TcdHBCScuxRmnyc
+```
+
+创建飞书文档时会把 `folder_token` 传给飞书文档创建接口，新报告默认进入：
+
+```text
+https://my.feishu.cn/drive/folder/Bpl6f4yh5lt3TcdHBCScuxRmnyc
+```
+
+环境变量 `FEISHU_DOC_FOLDER_TOKEN` 仍然可用，并且优先级高于内置默认值。

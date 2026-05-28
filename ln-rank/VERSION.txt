@@ -1,2 +1,2 @@
-v3.9.14 feishu-public-share
-Generated Feishu reports are automatically set to anyone-with-link readable when API permissions allow it.
+v3.9.15 feishu-folder-target
+Generated Feishu reports are saved to folder Bpl6f4yh5lt3TcdHBCScuxRmnyc by default. Env FEISHU_DOC_FOLDER_TOKEN overrides it.
