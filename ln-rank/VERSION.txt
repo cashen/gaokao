@@ -1,2 +1,2 @@
-v3.9.19 fenxi-full-school-geo
-Uses fenxi school_geo_model V2.9.4.7.1 reference with 944 school geo records and campus overrides.
+v3.9.20 ai-skill-card-diagnose
+Adds realistic-career AI skill diagnosis for individual major cards via Cloudflare Workers AI, with rules-only fallback.

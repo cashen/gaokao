@@ -1,0 +1,107 @@
+.diagnose-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.diagnose-button {
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(63, 111, 104, .25);
+  background: rgba(255,255,255,.82);
+  color: var(--primary);
+  font-weight: 950;
+  font-size: 12px;
+}
+
+.diagnose-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.diagnose-slot {
+  margin-top: 10px;
+}
+
+.diagnose-box {
+  border: 1px solid rgba(63,111,104,.14);
+  background: rgba(63,111,104,.055);
+  border-radius: 16px;
+  padding: 12px;
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+
+.diagnose-box.is-loading {
+  color: var(--muted);
+  background: rgba(255,255,255,.65);
+}
+
+.diagnose-box.is-error {
+  color: #a85f4d;
+  background: #fff7f4;
+  border-color: rgba(168,95,77,.22);
+}
+
+.diagnose-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.diagnose-title {
+  color: var(--primary);
+  font-weight: 950;
+}
+
+.diagnose-source {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diagnose-summary {
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.diagnose-section {
+  margin-top: 8px;
+}
+
+.diagnose-section strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.diagnose-section ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.diagnose-section li {
+  margin: 2px 0;
+}
+
+.diagnose-section p {
+  margin: 4px 0 0;
+}
+
+.diagnose-parent-note {
+  margin-top: 9px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.72);
+  color: var(--primary);
+  font-weight: 850;
+}
+
+.diagnose-disclaimer {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
