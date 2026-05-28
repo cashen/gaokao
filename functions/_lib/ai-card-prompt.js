@@ -9,16 +9,25 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
   const snapshot = buildCardRuleSnapshot(record, candidateScore);
 
   const userPayload = {
-    task: '请基于这一张专业卡片做现实就业导向诊断。不要重新排序，不要预测录取概率。',
+    task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不预测录取概率，不输出Markdown。',
     outputJsonSchema: {
-      summary: '一句话判断，80字以内',
-      basis: ['主要依据，3-5条'],
-      realityReminder: '现实提醒，120字以内',
-      checks: ['需要核验的点，3-5条'],
-      parentNote: '给家长看的温和提醒，80字以内',
-      riskTags: ['专业现实风险/机会标签，0-5条'],
+      summary: '一句话判断，不超过45个中文字符，只写结论，不写依据',
+      basis: ['主要依据，严格3条，只写事实依据，不写建议'],
+      realityReminder: '现实提醒，不超过80个中文字符，只写专业/学校现实提醒，不写核验事项',
+      checks: ['需要核验的点，3-4条，只能写核验事项'],
+      parentNote: '给家长的一句话，不超过60个中文字符，不得与realityReminder重复',
+      riskTags: ['短标签，2-4个，每个不超过6个中文字符'],
       disclaimer: '固定免责声明'
     },
+    outputRules: [
+      '必须只输出JSON对象，不要使用```json代码块。',
+      'summary不能超过45个中文字符，不能把basis内容塞进summary。',
+      'basis严格3条，只允许分差、位次、学校平台、地域、历史数据等事实。',
+      'realityReminder不能包含“核验2026招生计划/专业组/校区”等核验事项。',
+      'checks只能写核验事项，不能写“持续自学/项目能力/就业风险”等专业评价。',
+      'parentNote不得复制realityReminder。',
+      '不要重复同一句话。'
+    ],
     card: {
       candidateScore,
       school: safe(record.school),

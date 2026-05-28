@@ -79,6 +79,9 @@ function shortError(error) {
   return errorText(error).replace(/\s+/g, ' ').slice(0, 240);
 }
 
+function ruleDiagnosis(record, candidateScore) {
+  return normalizeDiagnosis(buildRuleOnlyDiagnosis(record, candidateScore), record, candidateScore);
+}
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') {
@@ -97,9 +100,9 @@ export async function onRequest(context) {
       return json({ ok: false, message: '缺少有效考生分数。' }, 400);
     }
 
+    const knowledgeContext = getKnowledgeContext(record);
     const model = String(context.env?.AI_CARD_MODEL || '@cf/meta/llama-3.1-8b-instruct').trim();
 
-    // 没绑定 Workers AI 时，也返回规则版诊断，方便小白部署阶段先跑通页面。
     if (!context.env?.AI || typeof context.env.AI.run !== 'function') {
       return json({
         ok: true,
@@ -107,21 +110,18 @@ export async function onRequest(context) {
         model: '',
         message: '未检测到 Cloudflare Workers AI 绑定，已返回规则版诊断。',
         knowledgeContext,
-        knowledgeContext,
-          knowledgeContext,
-        diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
+        diagnosis: ruleDiagnosis(record, candidateScore)
       });
     }
 
-    const knowledgeContext = getKnowledgeContext(record);
     const messages = buildCardDiagnoseMessages({ record, candidateScore, knowledgeContext });
 
     let aiResult;
     try {
       aiResult = await context.env.AI.run(model, {
         messages,
-        temperature: 0.2,
-        max_tokens: 700
+        temperature: 0.1,
+        max_tokens: 420
       });
     } catch (aiError) {
       if (isAiQuotaLimit(aiError)) {
@@ -130,7 +130,8 @@ export async function onRequest(context) {
           source: 'rules-only-quota',
           model,
           message: '今日 Cloudflare AI 免费额度已用完，已自动切换为规则版诊断。',
-          diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
+          knowledgeContext,
+          diagnosis: ruleDiagnosis(record, candidateScore)
         });
       }
 
@@ -140,14 +141,15 @@ export async function onRequest(context) {
         model,
         message: 'AI 调用暂时失败，已自动切换为规则版诊断。',
         aiError: shortError(aiError),
-        diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
+        knowledgeContext,
+        diagnosis: ruleDiagnosis(record, candidateScore)
       });
     }
 
     const modelText = getAiText(aiResult);
     const diagnosis = modelText
       ? parseDiagnosisFromModel(modelText, record, candidateScore)
-      : normalizeDiagnosis(null, record, candidateScore);
+      : ruleDiagnosis(record, candidateScore);
 
     return json({
       ok: true,

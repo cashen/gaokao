@@ -21,33 +21,38 @@ function historyLine(record = {}) {
   return `2024参考：${score}/${rank}${trend}`;
 }
 
+function shortRiskTag(value) {
+  const s = String(value || '');
+  if (s.includes('AI')) return 'AI冲击';
+  if (s.includes('持续学习') || s.includes('持续自学')) return '持续学习';
+  if (s.includes('项目')) return '项目能力';
+  if (s.includes('读研')) return '读研路径';
+  if (s.includes('证书')) return '证书路径';
+  if (s.includes('课程')) return '课程强度';
+  if (s.includes('就业')) return '就业核验';
+  if (s.includes('资源')) return '资源依赖';
+  return s.slice(0, 8);
+}
+
 export function buildCardRuleSnapshot(record = {}, candidateScore) {
   const realityTags = classifyMajorReality(record);
   const platformTags = schoolLayerTags(record);
   const delta = Number(record.scoreDelta ?? ((record.score2025 ?? record.score) - candidateScore));
 
   const basis = [
-    `考生分数：${fmt(candidateScore)}`,
     `卡片状态：${record.statusLabel || '待核验'}`,
     `相对考生：${deltaText(delta)}`,
     `2025最低：${fmt(record.score2025 ?? record.score)}分 / ${fmt(record.rank2025 ?? record.rank)}位`,
     historyLine(record),
-    ...platformTags
+    ...platformTags.slice(0, 2)
   ].filter(Boolean);
 
   const checks = [
-    '核验2026招生计划是否增减。',
-    '核验专业组、选科要求、体检/单科限制是否变化。',
-    '核验办学地点/校区是否与卡片一致。',
-    '用当年一分一段、等位分/同位分做最终判断。'
+    '核验2026招生计划是否变化',
+    '核验专业组、选科、体检或单科要求',
+    '核验办学地点、校区和收费口径',
+    '用当年一分一段做最终换算'
   ];
-
-  if (realityTags.some(t => t.level === 'risk')) {
-    checks.push('该专业方向存在现实风险，建议额外查看就业质量报告和中位数去向。');
-  }
-  if (realityTags.some(t => t.level === 'conditional')) {
-    checks.push('该专业属于有条件推荐，需确认学生能力、读研意愿或证书路径。');
-  }
 
   return {
     basis,
@@ -64,17 +69,20 @@ export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   const positive = snap.realityTags.find(t => t.level === 'positive');
   const conditional = snap.realityTags.find(t => t.level === 'conditional');
 
-  let summary = `这条专业可作为${record.position || record.statusLabel || '当前区间'}参考，但不能直接等同于录取结论。`;
-  if (risk) summary = `这条专业需要谨慎看，卡片位置之外还要重点看就业现实和行业风险。`;
-  else if (conditional) summary = `这条专业可以关注，但属于有条件选择，关键看学生能力和后续路径。`;
-  else if (positive) summary = `这条专业现实确定性相对更强，可以作为重点讨论对象之一。`;
+  let summary = `这条更适合作为${record.statusLabel || record.position || '当前区间'}参考。`;
+  if (risk) summary = '这条可以看，但需要重点核验专业现实风险。';
+  else if (conditional) summary = '这条可以关注，但属于有条件选择。';
+  else if (positive) summary = '这条现实确定性相对更强，可以重点讨论。';
+
+  const tag = risk || conditional || positive;
 
   return {
     summary,
-    basis: snap.basis.slice(0, 5),
-    realityReminder: (risk || conditional || positive)?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。',
+    basis: snap.basis.slice(0, 3),
+    realityReminder: tag?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。',
     checks: snap.checks.slice(0, 4),
-    riskTags: snap.realityTags.map(t => t.text).slice(0, 4),
+    parentNote: risk ? '可以关注，但不要当作稳妥项。' : '可以保留讨论，但要结合孩子能力和当年计划。',
+    riskTags: [...new Set(snap.realityTags.map(t => shortRiskTag(t.text)).filter(Boolean))].slice(0, 4),
     disclaimer: snap.disclaimer
   };
 }

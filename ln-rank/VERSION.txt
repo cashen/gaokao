@@ -1,2 +1,2 @@
-v3.9.27 kb-foundation
-Adds static school/major knowledge base foundation, kb retriever, /api/kb-inspect, /ln-rank/kb-diagnostics.html, and passes knowledgeBaseContext into AI card diagnosis.
+v3.9.28 ai-output-tighten
+Tightens AI diagnosis output: short summary, 3 factual basis lines, checks-only verification items, deduped parent note, short tags, no rawModelText, lower max_tokens.
