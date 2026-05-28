@@ -248,3 +248,69 @@ https://my.feishu.cn/drive/folder/Bpl6f4yh5lt3TcdHBCScuxRmnyc
 - 校区不确定时输出 `locationWarning`，避免假精确。
 
 注意：2025 仍是主口径，2024 只作为历史参考，不等同于 2026 预测。
+---
+
+# v3.9.18 学校地理实体层
+
+新增：
+
+- `school-geo-db.js`：学校/分校/校区地理库；
+- `school-alias-map.js`：学校别名归一；
+- `school-geo-normalizer.js`：校区优先匹配逻辑；
+- `/api/school-geo-audit`：从 /fenxi 数据抽取学校并检查匹配情况；
+- `/ln-rank/school-geo-audit.html`：小白可看的地域匹配自检页。
+
+重点修复：
+
+- 东北大学秦皇岛分校 → 河北 · 秦皇岛；
+- 哈尔滨工业大学(深圳) → 广东 · 深圳；
+- 山东大学威海校区 → 山东 · 威海；
+- 北京交通大学威海校区 → 山东 · 威海。
+
+原则：
+
+- 校区/分校实体优先于学校主体；
+- 不能确认时显示“需核验”，不假装精准；
+- 网页卡片、地域筛选、飞书报告统一使用同一套地理字段。
+---
+
+# v3.9.19 fenxi 全量学校地域库接入版
+
+这版不再只用手写种子库，而是接入在线版 `/fenxi` 包中的学校地域模型：
+
+```text
+fenxi/data/school_geo_model/school_geo_reference_v29471.json
+```
+
+生成：
+
+```text
+functions/_lib/school-geo-reference.generated.js
+```
+
+数据规模：
+
+```text
+944 条学校地域记录
+```
+
+同时保留独立可维护的校区修正：
+
+```text
+functions/_lib/school-geo-campus-overrides.js
+```
+
+重点修正：
+
+```text
+东北大学秦皇岛分校 → 河北 · 秦皇岛
+北京交通大学(威海校区) → 山东 · 威海
+北京师范大学(珠海校区) → 广东 · 珠海
+大连理工大学(盘锦校区) → 辽宁 · 盘锦
+```
+
+自检页：
+
+```text
+/ln-rank/school-geo-audit.html
+```
