@@ -217,3 +217,19 @@ https://my.feishu.cn/drive/folder/Bpl6f4yh5lt3TcdHBCScuxRmnyc
 ```
 
 环境变量 `FEISHU_DOC_FOLDER_TOKEN` 仍然可用，并且优先级高于内置默认值。
+---
+
+# v3.9.16 飞书无指定文件夹版
+
+移除指定文件夹保存功能：
+
+- 删除 `functions/_lib/feishu-folder-config.js`
+- 创建飞书文档时不再传 `folder_token`
+- 不再读取 `FEISHU_DOC_FOLDER_TOKEN`
+- 避免因为文件夹未给应用权限而出现 `no folder permission`
+
+仍然保留：
+
+- 生成飞书 docx 报告
+- 打开飞书报告 / 复制链接
+- 自动设置匿名可读
