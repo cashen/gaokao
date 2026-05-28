@@ -51,7 +51,10 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
     knowledgeBaseRules: [
       '涉及学校层次、双一流学科、优势方向、地域和专业现实风险时，优先依据 knowledgeBaseContext。',
       'knowledgeBaseContext 没有给出的事实，不要假装知道，只能说需要核验。',
-      'A2医学强校、A3行业特色强校若来自规则初判，必须使用“线索/需核验”口径，不要说成官方结论。'
+      'A2医学强校、A3行业特色强校若来自规则初判，必须使用“线索/需核验”口径，不要说成官方结论。',
+      '第四轮学科评估可作为公开学科基础线索，但学科评估不等同本科专业强弱。',
+      '第五轮学科评估没有官方公开全量结果，除非knowledgeBaseContext提供学校官方来源，否则不得引用第五轮。',
+      'officialProfileSummary、admissionCampusSummary、employmentSummary为空时，不得自行编造学校官网简介、校区说明或就业质量结论。'
     ]
   };
 

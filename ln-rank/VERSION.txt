@@ -1,2 +1,2 @@
-v3.9.28 ai-output-tighten
-Tightens AI diagnosis output: short summary, 3 factual basis lines, checks-only verification items, deduped parent note, short tags, no rawModelText, lower max_tokens.
+v3.9.29 kb-enrichment-batch1
+Adds A1/A2/A3 knowledge layers, Liaoning 4th-round discipline assessment enrichment for 32 schools, source slots for profile/admission/employment evidence, and kb-layer diagnostics.
