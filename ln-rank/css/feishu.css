@@ -80,3 +80,10 @@
     max-width: none;
   }
 }
+
+
+.feishu-public {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+}

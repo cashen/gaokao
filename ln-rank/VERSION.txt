@@ -1,2 +1,2 @@
-v3.9.13 feishu-report
-Generate current TAB Feishu docx report via Cloudflare backend. No secrets in frontend.
+v3.9.14 feishu-public-share
+Generated Feishu reports are automatically set to anyone-with-link readable when API permissions allow it.

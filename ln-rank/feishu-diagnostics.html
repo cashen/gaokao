@@ -37,7 +37,7 @@ document.getElementById('run').onclick=async()=>{
     let j; try{j=JSON.parse(raw)}catch(e){throw new Error('API 返回内容不是 JSON：'+oneLine(raw))}
     if(!r.ok||!j.ok) throw new Error(j.message||j.hint||r.status);
     out.className='ok';
-    out.textContent='✓ 飞书报告已生成\n标题：'+j.title+'\n链接：'+j.url+'\n写入方式：'+(j.writeMethod||'partial')+'\n\n'+JSON.stringify(j,null,2);
+    out.textContent='✓ 飞书报告已生成\n标题：'+j.title+'\n链接：'+j.url+'\n匿名可读：'+(j.sharePublic ? '是' : '否')+'\n权限提示：'+(j.permissionWarning||'无')+'\n写入方式：'+(j.writeMethod||'partial')+'\n\n'+JSON.stringify(j,null,2);
   }catch(e){
     out.className='bad';
     out.textContent='✗ 自检失败：'+(e.message||e);

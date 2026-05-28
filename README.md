@@ -171,3 +171,26 @@ score-bands-render.v398.js
 ```text
 /ln-rank/feishu-diagnostics.html
 ```
+---
+
+# v3.9.14 飞书匿名分享版
+
+新增：
+
+- 生成飞书 docx 报告后，自动调用 Drive 权限接口；
+- 默认设置为“互联网上获得链接的人可阅读”；
+- 成功后页面显示“已设置为获得链接的人可阅读”；
+- 如果权限设置失败，仍返回文档链接，并展示 `permissionWarning`。
+
+新增后端模块：
+
+```text
+functions/_lib/feishu-permission.js
+```
+
+可选环境变量：
+
+```text
+FEISHU_PUBLIC_SHARE=false      # 关闭自动匿名分享
+FEISHU_PERMISSION_TYPE=docx    # 强制指定权限对象类型，默认先尝试 docx
+```
