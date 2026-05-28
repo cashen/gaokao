@@ -20,17 +20,88 @@
   cursor: wait;
 }
 
-.diagnose-slot {
-  margin-top: 10px;
+body.diagnose-modal-open {
+  overflow: hidden;
+}
+
+.diagnose-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.diagnose-modal.is-hidden {
+  display: none;
+}
+
+.diagnose-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 24, 32, .42);
+  backdrop-filter: blur(5px);
+}
+
+.diagnose-modal-card {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 26px 80px rgba(15, 23, 42, .25);
+  border: 1px solid rgba(255,255,255,.72);
+  padding: 18px;
+}
+
+.diagnose-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(100,116,139,.20);
+  background: rgba(255,255,255,.82);
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.diagnose-modal-top {
+  padding: 5px 42px 12px 4px;
+  border-bottom: 1px solid rgba(100,116,139,.12);
+  margin-bottom: 12px;
+}
+
+.diagnose-modal-kicker {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .06em;
+}
+
+.diagnose-modal-title {
+  margin: 4px 0 0;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.diagnose-modal-body {
+  padding: 2px;
 }
 
 .diagnose-box {
   border: 1px solid rgba(63,111,104,.14);
   background: rgba(63,111,104,.055);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 14px;
   color: var(--ink-2);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .diagnose-box.is-loading {
@@ -42,6 +113,12 @@
   color: #a85f4d;
   background: #fff7f4;
   border-color: rgba(168,95,77,.22);
+}
+
+.diagnose-mini-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .diagnose-head {
@@ -64,13 +141,13 @@
 }
 
 .diagnose-summary {
-  font-weight: 900;
+  font-weight: 950;
   color: var(--ink);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .diagnose-section {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .diagnose-section strong {
@@ -79,7 +156,7 @@
 }
 
 .diagnose-section ul {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   padding-left: 18px;
 }
 
@@ -88,20 +165,38 @@
 }
 
 .diagnose-section p {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
 }
 
 .diagnose-parent-note {
-  margin-top: 9px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.72);
+  margin-top: 11px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  background: rgba(255,255,255,.76);
   color: var(--primary);
   font-weight: 850;
 }
 
 .diagnose-disclaimer {
-  margin-top: 8px;
+  margin-top: 9px;
   color: var(--muted);
   font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .diagnose-modal {
+    align-items: end;
+    padding: 10px;
+  }
+
+  .diagnose-modal-card {
+    width: 100%;
+    max-height: 86vh;
+    border-radius: 22px;
+    padding: 15px;
+  }
+
+  .diagnose-modal-title {
+    font-size: 16px;
+  }
 }
