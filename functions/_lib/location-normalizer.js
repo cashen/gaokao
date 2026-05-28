@@ -1,4 +1,4 @@
-import { getSchoolLocation } from './school-location-map.js';
+import { normalizeSchoolGeo } from './school-geo-normalizer.js';
 
 function text(value) {
   return String(value == null ? '' : value).trim();
@@ -19,51 +19,111 @@ function lnAreaFromProvinceCity(province, city, fallback) {
   return '辽宁其他';
 }
 
-export function normalizeLocation(raw, school) {
-  const rawProvince = normalizeProvince(raw.schoolProvince || raw.province || raw['省份'] || raw['学校省份']);
-  const rawCity = normalizeCity(raw.schoolCity || raw.city || raw['城市'] || raw['学校城市'] || raw['所在地']);
-  const rawLnArea = text(raw.lnArea || raw['辽宁区域'] || raw['地域']);
-  const mapped = getSchoolLocation(school);
+function rawLocation(raw) {
+  const province = normalizeProvince(raw.schoolProvince || raw.province || raw['省份'] || raw['学校省份']);
+  const city = normalizeCity(raw.schoolCity || raw.city || raw['城市'] || raw['学校城市'] || raw['所在地']);
+  const lnArea = text(raw.lnArea || raw['辽宁区域'] || raw['地域']);
+  return { province, city, lnArea };
+}
 
-  let province = rawProvince;
-  let city = rawCity;
-  let source = '';
-  let confidence = 'low';
-  let warning = '';
+export function normalizeLocation(raw, school, major = '') {
+  const rawLoc = rawLocation(raw);
+  const geo = normalizeSchoolGeo(school, major);
 
-  if (province && city) {
-    source = 'record-city';
-    confidence = 'high';
-  } else if (mapped) {
-    province = province || mapped.province;
-    city = city || mapped.city;
-    source = province && city && (rawProvince || rawCity) ? 'record-map-mixed' : 'school-location-map';
-    confidence = mapped.confidence || 'medium';
-    warning = mapped.warning || '';
-  } else if (province) {
-    source = 'record-province';
-    confidence = 'medium';
-    warning = '城市字段缺失';
-  } else if (rawLnArea) {
-    source = 'ln-area';
-    confidence = 'low';
-    warning = rawLnArea === '省外' ? '省外城市字段待核验' : '';
-  } else {
-    source = 'missing';
-    confidence = 'low';
-    warning = '地域待核验';
+  // 校区/分校实体优先级最高，避免“东北大学秦皇岛”被误判为沈阳。
+  if (geo && geo.locationSource === 'campus-rule') {
+    return {
+      lnArea: lnAreaFromProvinceCity(geo.province, geo.city, rawLoc.lnArea),
+      province: geo.province,
+      city: geo.city,
+      displayLocation: geo.displayLocation,
+      locationSource: geo.locationSource,
+      locationConfidence: geo.locationConfidence,
+      locationWarning: geo.locationWarning,
+      geoEntity: geo.geoEntity,
+      schoolCanonical: geo.schoolCanonical,
+      regionGroups: geo.regionGroups,
+      geoSourceMethod: geo.geoSourceMethod || '',
+      geoSourceName: geo.geoSourceName || '',
+      geoSourceUrl: geo.geoSourceUrl || '',
+      geoSourceYear: geo.geoSourceYear || '',
+      geoMatchNote: geo.geoMatchNote || '',
+      schoolIdentifier: geo.schoolIdentifier || '',
+      natureHint: geo.natureHint || ''
+    };
   }
 
-  const lnArea = rawLnArea || lnAreaFromProvinceCity(province, city, '');
-  const displayLocation = province && city ? `${province} · ${city}` : (province || lnArea || '地域待核验');
+  // 原始记录已有精确省市时保留，但附带 geoEntity 方便报告说明。
+  if (rawLoc.province && rawLoc.city) {
+    const displayLocation = `${rawLoc.province} · ${rawLoc.city}`;
+    return {
+      lnArea: rawLoc.lnArea || lnAreaFromProvinceCity(rawLoc.province, rawLoc.city, ''),
+      province: rawLoc.province,
+      city: rawLoc.city,
+      displayLocation,
+      locationSource: geo ? 'record-city+geo' : 'record-city',
+      locationConfidence: 'high',
+      locationWarning: geo?.locationWarning || '',
+      geoEntity: geo?.geoEntity || '',
+      schoolCanonical: geo?.schoolCanonical || '',
+      regionGroups: geo?.regionGroups || [],
+      geoSourceMethod: geo?.geoSourceMethod || '',
+      geoSourceName: geo?.geoSourceName || '',
+      geoSourceUrl: geo?.geoSourceUrl || '',
+      geoSourceYear: geo?.geoSourceYear || '',
+      geoMatchNote: geo?.geoMatchNote || '',
+      schoolIdentifier: geo?.schoolIdentifier || '',
+      natureHint: geo?.natureHint || ''
+    };
+  }
+
+  if (geo) {
+    return {
+      lnArea: lnAreaFromProvinceCity(geo.province, geo.city, rawLoc.lnArea),
+      province: geo.province,
+      city: geo.city,
+      displayLocation: geo.displayLocation,
+      locationSource: geo.locationSource,
+      locationConfidence: geo.locationConfidence,
+      locationWarning: geo.locationWarning,
+      geoEntity: geo.geoEntity,
+      schoolCanonical: geo.schoolCanonical,
+      regionGroups: geo.regionGroups,
+      geoSourceMethod: geo.geoSourceMethod || '',
+      geoSourceName: geo.geoSourceName || '',
+      geoSourceUrl: geo.geoSourceUrl || '',
+      geoSourceYear: geo.geoSourceYear || '',
+      geoMatchNote: geo.geoMatchNote || '',
+      schoolIdentifier: geo.schoolIdentifier || '',
+      natureHint: geo.natureHint || ''
+    };
+  }
+
+  if (rawLoc.province) {
+    return {
+      lnArea: rawLoc.lnArea || lnAreaFromProvinceCity(rawLoc.province, rawLoc.city, ''),
+      province: rawLoc.province,
+      city: rawLoc.city,
+      displayLocation: rawLoc.city ? `${rawLoc.province} · ${rawLoc.city}` : rawLoc.province,
+      locationSource: 'record-province',
+      locationConfidence: 'medium',
+      locationWarning: rawLoc.city ? '' : '城市字段缺失',
+      geoEntity: '',
+      schoolCanonical: '',
+      regionGroups: []
+    };
+  }
 
   return {
-    lnArea,
-    province,
-    city,
-    displayLocation,
-    locationSource: source,
-    locationConfidence: confidence,
-    locationWarning: warning
+    lnArea: rawLoc.lnArea,
+    province: '',
+    city: '',
+    displayLocation: rawLoc.lnArea || '地域待核验',
+    locationSource: rawLoc.lnArea ? 'ln-area' : 'missing',
+    locationConfidence: 'low',
+    locationWarning: rawLoc.lnArea === '省外' ? '省外城市字段待核验' : '地域待核验',
+    geoEntity: '',
+    schoolCanonical: '',
+    regionGroups: []
   };
 }

@@ -1,2 +1,2 @@
-v3.9.17 history-location
-Adds 2024 historical score/rank fields, two-year comparison, and unified location normalization.
+v3.9.19 fenxi-full-school-geo
+Uses fenxi school_geo_model V2.9.4.7.1 reference with 944 school geo records and campus overrides.

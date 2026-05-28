@@ -31,6 +31,15 @@ export function buildDisplayTags(record) {
     city: record.city || '',
     locationSource: record.locationSource || '',
     locationConfidence: record.locationConfidence || '',
-    locationWarning: record.locationWarning || ''
+    locationWarning: record.locationWarning || '',
+    geoEntity: record.geoEntity || '',
+    schoolCanonical: record.schoolCanonical || '',
+    regionGroups: record.regionGroups || [],
+    geoSourceMethod: record.geoSourceMethod || '',
+    geoSourceName: record.geoSourceName || '',
+    geoSourceUrl: record.geoSourceUrl || '',
+    geoSourceYear: record.geoSourceYear || '',
+    geoMatchNote: record.geoMatchNote || '',
+    schoolIdentifier: record.schoolIdentifier || ''
   };
 }

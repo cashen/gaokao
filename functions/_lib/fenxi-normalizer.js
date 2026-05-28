@@ -27,7 +27,7 @@ export function normalizeRecord(raw) {
   const r2025 = rank2025(raw);
   const s2024 = extractYearScore(raw, 2024);
   const r2024 = extractYearRank(raw, 2024);
-  const location = normalizeLocation(raw, school);
+  const location = normalizeLocation(raw, school, major);
   const historyCompare = buildHistoryScore({
     score2025: s2025,
     rank2025: r2025,
@@ -56,9 +56,18 @@ export function normalizeRecord(raw) {
     locationSource: location.locationSource,
     locationConfidence: location.locationConfidence,
     locationWarning: location.locationWarning,
+    geoEntity: location.geoEntity || '',
+    schoolCanonical: location.schoolCanonical || '',
+    regionGroups: location.regionGroups || [],
+    geoSourceMethod: location.geoSourceMethod || '',
+    geoSourceName: location.geoSourceName || '',
+    geoSourceUrl: location.geoSourceUrl || '',
+    geoSourceYear: location.geoSourceYear || '',
+    geoMatchNote: location.geoMatchNote || '',
+    schoolIdentifier: location.schoolIdentifier || '',
 
-    nature: text(raw.schoolNatureLabel || raw.nature || ''),
-    natureRaw: text(raw.schoolNatureLabel || raw.nature || ''),
+    nature: text(raw.schoolNatureLabel || raw.nature || location.natureHint || ''),
+    natureRaw: text(raw.schoolNatureLabel || raw.nature || location.natureHint || ''),
     tuition: text(raw.tuition2025 || raw.tuition || ''),
     flags: Array.isArray(raw.riskFlags) ? raw.riskFlags.slice(0, 4) : []
   };

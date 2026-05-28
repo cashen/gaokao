@@ -55,7 +55,9 @@ function historyText(record) {
 
 function locationText(record) {
   const base = record.displayLocation || record.region || "地域待核验";
-  return record.locationWarning ? `${base}（${record.locationWarning}）` : base;
+  const entity = record.geoEntity && record.geoEntity !== record.school ? `；办学实体：${record.geoEntity}` : "";
+  const warning = record.locationWarning ? `；${record.locationWarning}` : "";
+  return `${base}${entity}${warning}`;
 }
 
 export function buildFeishuReport(data) {

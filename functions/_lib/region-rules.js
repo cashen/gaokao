@@ -11,6 +11,8 @@ export function matchRegionRule(record, region) {
   const lnArea = record.lnArea || record.region || '';
   const province = clean(record.province || '');
   const city = clean(record.city || '');
+  const groups = Array.isArray(record.regionGroups) ? record.regionGroups : [];
+  if (groups.includes(key) || groups.includes(region)) return true;
   if (key === 'ln') return lnArea !== '省外' || province === '辽宁';
   if (key === 'outside') return lnArea === '省外' || (province && province !== '辽宁');
   if (key === 'shenyang') return lnArea === '沈阳' || city === '沈阳';

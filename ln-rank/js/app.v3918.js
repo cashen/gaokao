@@ -4,7 +4,7 @@ import { getScoreGuard } from './core/score-guard.v3912.js';
 import { REGION_OPTIONS } from './config/region-options.v3912.js';
 import { fetchMajorBands } from './feature/major-pool/major-bands-api.v3912.js';
 import { renderBandTabs } from './feature/score-bands/score-bands-render.v3912.js';
-import { renderMajorResults } from './feature/major-pool/major-pool-render.v3919.js';
+import { renderMajorResults } from './feature/major-pool/major-pool-render.v3918.js';
 import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/feishu-report-controller.v3916.js';
 
 let hasQueried = false;
