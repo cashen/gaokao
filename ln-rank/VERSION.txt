@@ -1,2 +1,2 @@
-v3.9.22 ai-diagnose-responsive-modal
-AI diagnosis modal is responsive: desktop centered modal, tablet wide card, mobile bottom sheet with safe-area handling.
+v3.9.23 ai-label
+Changed UI label from 现实诊断 to AI诊断. No backend AI logic changes.
