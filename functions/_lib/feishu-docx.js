@@ -1,5 +1,4 @@
 import { reportToFallbackBlocks } from "./feishu-block-builder.js";
-import { getFeishuFolderToken } from "./feishu-folder-config.js";
 
 const OPEN_BASE = "https://open.feishu.cn/open-apis";
 
@@ -37,8 +36,7 @@ function pickDocumentId(data) {
 
 export async function createFeishuDocument(token, env = {}, title) {
   const body = { title };
-  const folderToken = getFeishuFolderToken(env);
-  if (folderToken) body.folder_token = folderToken;
+
 
   const data = await feishuRequest(token, "/docx/v1/documents", {
     method: "POST",

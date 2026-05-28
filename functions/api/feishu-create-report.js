@@ -4,7 +4,6 @@ import { buildFeishuReport } from "../_lib/feishu-report-builder.js";
 import { buildFeishuDocUrl } from "../_lib/feishu-link.js";
 import { createFeishuDocument, writeReportToFeishuDocument } from "../_lib/feishu-docx.js";
 import { setFeishuDocumentPublicReadable } from "../_lib/feishu-permission.js";
-import { describeFeishuFolderTarget } from "../_lib/feishu-folder-config.js";
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -42,7 +41,6 @@ export async function onRequest(context) {
     const doc = await createFeishuDocument(token, env, report.title);
     const writeResult = await writeReportToFeishuDocument(token, doc.documentId, report);
     const permissionResult = await setFeishuDocumentPublicReadable(token, doc.documentId, env);
-    const folderTarget = describeFeishuFolderTarget(env);
     const url = buildFeishuDocUrl(env, doc.documentId);
 
     if (!writeResult.ok) {
@@ -56,8 +54,7 @@ export async function onRequest(context) {
         message: "飞书文档已创建，但内容写入失败。请检查文档块写入权限。",
         writeError: writeResult.error,
         convertError: writeResult.convertError,
-        permissionWarning: permissionResult.ok ? "" : permissionResult.message,
-        folderTarget
+        permissionWarning: permissionResult.ok ? "" : permissionResult.message
       });
     }
 
@@ -71,8 +68,7 @@ export async function onRequest(context) {
       writeMethod: writeResult.method,
       warning: writeResult.warning || "",
       permissionType: permissionResult.type || "",
-      permissionWarning: permissionResult.ok ? "" : permissionResult.message,
-        folderTarget
+      permissionWarning: permissionResult.ok ? "" : permissionResult.message
     });
   } catch (error) {
     return json({
