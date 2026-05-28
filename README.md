@@ -314,3 +314,24 @@ functions/_lib/school-geo-campus-overrides.js
 ```text
 /ln-rank/school-geo-audit.html
 ```
+---
+
+# v3.9.20 AI现实诊断 Skill 版
+
+新增：
+
+- 单张专业卡片“现实诊断”按钮；
+- Cloudflare Workers AI 后端接口 `/api/card-diagnose`；
+- 用户上传的高报 skill 规则工程化写入后端 prompt；
+- 未绑定 Workers AI 时自动降级为规则版诊断；
+- 新增 `/ln-rank/ai-diagnostics.html` 自检页；
+- 输出固定为：一句话判断、主要依据、现实提醒、需要核验。
+
+Cloudflare 需要：
+
+```text
+Workers AI Binding 名称：AI
+AI_CARD_MODEL = 你选择的模型名
+```
+
+该功能不做录取概率，不承诺“稳了/必上”，不改变原始专业池排序。
