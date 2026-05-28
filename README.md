@@ -406,3 +406,25 @@ AI_CARD_MODEL = 你选择的模型名
 - 飞书报告
 - AI诊断
 - AI额度用完规则版兜底
+---
+
+# v3.9.26 /fenxi 学校名录与专业池导出版
+
+新增：
+
+- `/api/fenxi-catalog`
+- `/ln-rank/fenxi-catalog.html`
+
+可导出：
+
+- 学校名录 CSV
+- 学校-专业汇总 CSV
+- 完整专业池 CSV
+
+用途：
+
+- 后续补学校知识库
+- 后续补专业知识库
+- 后续让 AI 诊断引用可信知识库
+
+说明：当前 ZIP 不包含 `/fenxi/data`，导出将在 Cloudflare 部署后读取线上 `/fenxi/data`。

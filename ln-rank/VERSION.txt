@@ -1,2 +1,2 @@
-v3.9.25 maintenance-baseline
-Adds architecture docs, record contract, Cloudflare env guide, release checklist, module map, roadmap, and KB templates. No business logic changes from v3.9.24.
+v3.9.26 fenxi-catalog-export
+Adds /api/fenxi-catalog and /ln-rank/fenxi-catalog.html to export school list, school-major summary, and major pool from live /fenxi data.
