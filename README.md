@@ -152,3 +152,22 @@ score-bands-render.v398.js
 - `>750`：提示超过常规满分范围，请检查是否输入错了。
 
 页面初始仍不自动查询，用户输入有效分数后点击查看。
+---
+
+# v3.9.13 飞书报告版
+
+新增：
+
+- 结果区“一键生成飞书报告”
+- 成功后显示“打开飞书报告 / 复制链接”
+- 前端不包含 App Secret
+- Cloudflare 后端读取 `FEISHU_APP_ID / FEISHU_APP_SECRET`
+- 后端重新基于 `/fenxi` 数据生成当前 TAB 报告
+- 报告第一版只生成当前 TAB 前 20 条，避免过长
+- 使用飞书 Markdown/HTML 转文档块接口，失败时降级为基础 docx blocks
+
+新增自检：
+
+```text
+/ln-rank/feishu-diagnostics.html
+```

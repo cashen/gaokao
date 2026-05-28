@@ -1,2 +1,2 @@
-v3.9.12 physics score bands scoreguard
-Score boundaries: <400 coverage hint; 400-699 normal; 700-750 top-range hint; >750 check score.
+v3.9.13 feishu-report
+Generate current TAB Feishu docx report via Cloudflare backend. No secrets in frontend.

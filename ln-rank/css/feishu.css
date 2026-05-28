@@ -1,0 +1,82 @@
+.results-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.feishu-report-mount {
+  min-width: 220px;
+}
+.feishu-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.feishu-main-button,
+.feishu-link-button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 13px;
+  border: 1px solid rgba(63,111,104,.26);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 950;
+  box-shadow: var(--shadow-soft);
+}
+.feishu-main-button[disabled] {
+  opacity: .58;
+  cursor: not-allowed;
+}
+.feishu-box.is-loading .feishu-main-button {
+  border-color: rgba(185,130,69,.30);
+  background: var(--upper-soft);
+  color: var(--upper);
+}
+.feishu-box.is-success {
+  justify-content: flex-end;
+}
+.feishu-success-text {
+  color: var(--primary);
+  font-weight: 950;
+  font-size: 13px;
+}
+.feishu-warn {
+  color: var(--upper);
+  font-size: 12px;
+}
+.feishu-main-button.is-error {
+  border-color: rgba(168,95,77,.30);
+  background: #fff4ef;
+  color: var(--status-super-rush);
+}
+.feishu-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  max-width: 260px;
+}
+.feishu-link-button {
+  background: rgba(255,255,255,.82);
+}
+@media (max-width: 760px) {
+  .results-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .feishu-report-mount {
+    width: 100%;
+  }
+  .feishu-box {
+    justify-content: flex-start;
+  }
+  .feishu-main-button,
+  .feishu-link-button {
+    width: 100%;
+  }
+  .feishu-note {
+    max-width: none;
+  }
+}
