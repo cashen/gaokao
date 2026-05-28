@@ -1,2 +1,2 @@
-v3.9.21 ai-diagnose-modal
-AI realistic diagnosis now opens in a closable modal instead of expanding inside each major card.
+v3.9.22 ai-diagnose-responsive-modal
+AI diagnosis modal is responsive: desktop centered modal, tablet wide card, mobile bottom sheet with safe-area handling.

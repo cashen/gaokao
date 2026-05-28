@@ -22,6 +22,7 @@
 
 body.diagnose-modal-open {
   overflow: hidden;
+  touch-action: none;
 }
 
 .diagnose-modal {
@@ -30,7 +31,7 @@ body.diagnose-modal-open {
   z-index: 9999;
   display: grid;
   place-items: center;
-  padding: 18px;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
 }
 
 .diagnose-modal.is-hidden {
@@ -47,28 +48,42 @@ body.diagnose-modal-open {
 .diagnose-modal-card {
   position: relative;
   width: min(720px, 100%);
-  max-height: min(82vh, 760px);
+  max-height: min(82dvh, 760px);
   overflow: auto;
+  overscroll-behavior: contain;
   border-radius: 24px;
-  background: rgba(255, 255, 255, .96);
+  background: rgba(255, 255, 255, .97);
   box-shadow: 0 26px 80px rgba(15, 23, 42, .25);
   border: 1px solid rgba(255,255,255,.72);
   padding: 18px;
 }
 
 .diagnose-modal-close {
-  position: absolute;
-  top: 12px;
-  right: 13px;
+  position: sticky;
+  float: right;
+  top: 0;
+  right: 0;
+  z-index: 3;
   width: 34px;
   height: 34px;
   border-radius: 999px;
   border: 1px solid rgba(100,116,139,.20);
-  background: rgba(255,255,255,.82);
+  background: rgba(255,255,255,.92);
   color: var(--muted);
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
+}
+
+.diagnose-modal-close:focus-visible,
+.diagnose-footer-close:focus-visible,
+.diagnose-button:focus-visible {
+  outline: 3px solid rgba(63,111,104,.26);
+  outline-offset: 2px;
+}
+
+.diagnose-modal-grip {
+  display: none;
 }
 
 .diagnose-modal-top {
@@ -95,6 +110,24 @@ body.diagnose-modal-open {
   padding: 2px;
 }
 
+.diagnose-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(100,116,139,.10);
+}
+
+.diagnose-footer-close {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(63,111,104,.24);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 950;
+}
+
 .diagnose-box {
   border: 1px solid rgba(63,111,104,.14);
   background: rgba(63,111,104,.055);
@@ -113,6 +146,10 @@ body.diagnose-modal-open {
   color: #a85f4d;
   background: #fff7f4;
   border-color: rgba(168,95,77,.22);
+}
+
+.diagnose-box.is-error p {
+  margin: 6px 0 0;
 }
 
 .diagnose-mini-note {
@@ -183,20 +220,90 @@ body.diagnose-modal-open {
   font-size: 12px;
 }
 
+@media (min-width: 641px) and (max-width: 1024px) {
+  .diagnose-modal {
+    place-items: center;
+    padding: 20px;
+  }
+
+  .diagnose-modal-card {
+    width: min(760px, calc(100vw - 40px));
+    max-height: 78dvh;
+    border-radius: 24px;
+  }
+}
+
 @media (max-width: 640px) {
   .diagnose-modal {
     align-items: end;
-    padding: 10px;
+    justify-items: stretch;
+    padding: 0;
   }
 
   .diagnose-modal-card {
     width: 100%;
-    max-height: 86vh;
-    border-radius: 22px;
-    padding: 15px;
+    max-height: 88dvh;
+    border-radius: 24px 24px 0 0;
+    padding: 12px 14px max(14px, env(safe-area-inset-bottom));
+    box-shadow: 0 -18px 60px rgba(15, 23, 42, .24);
+  }
+
+  .diagnose-modal-grip {
+    display: block;
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(100,116,139,.28);
+    margin: 2px auto 10px;
+  }
+
+  .diagnose-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    float: none;
+  }
+
+  .diagnose-modal-top {
+    padding: 12px 42px 10px 4px;
+    margin-bottom: 10px;
+    position: sticky;
+    top: -12px;
+    background: rgba(255,255,255,.96);
+    z-index: 2;
   }
 
   .diagnose-modal-title {
     font-size: 16px;
+  }
+
+  .diagnose-box {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .diagnose-modal-footer {
+    position: sticky;
+    bottom: calc(-1 * max(14px, env(safe-area-inset-bottom)));
+    background: linear-gradient(to top, rgba(255,255,255,.98), rgba(255,255,255,.86));
+    padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  }
+
+  .diagnose-footer-close {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .diagnose-modal-title {
+    font-size: 15px;
+  }
+
+  .diagnose-section ul {
+    padding-left: 16px;
+  }
+
+  .diagnose-box {
+    font-size: 13px;
   }
 }
