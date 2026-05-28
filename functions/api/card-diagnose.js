@@ -1,6 +1,7 @@
 import { buildCardDiagnoseMessages } from '../_lib/ai-card-prompt.js';
 import { buildRuleOnlyDiagnosis } from '../_lib/ai-card-rules.js';
 import { parseDiagnosisFromModel, normalizeDiagnosis } from '../_lib/ai-card-output-schema.js';
+import { getKnowledgeContext } from '../_lib/kb/kb-retriever.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -105,11 +106,15 @@ export async function onRequest(context) {
         source: 'rules-only',
         model: '',
         message: '未检测到 Cloudflare Workers AI 绑定，已返回规则版诊断。',
+        knowledgeContext,
+        knowledgeContext,
+          knowledgeContext,
         diagnosis: buildRuleOnlyDiagnosis(record, candidateScore)
       });
     }
 
-    const messages = buildCardDiagnoseMessages({ record, candidateScore });
+    const knowledgeContext = getKnowledgeContext(record);
+    const messages = buildCardDiagnoseMessages({ record, candidateScore, knowledgeContext });
 
     let aiResult;
     try {
@@ -148,6 +153,7 @@ export async function onRequest(context) {
       ok: true,
       source: 'workers-ai',
       model,
+      knowledgeContext,
       diagnosis
     });
   } catch (error) {

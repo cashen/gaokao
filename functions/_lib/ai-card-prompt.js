@@ -5,7 +5,7 @@ function safe(value) {
   return value == null || value === '' ? '—' : String(value);
 }
 
-export function buildCardDiagnoseMessages({ record, candidateScore }) {
+export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeContext = null }) {
   const snapshot = buildCardRuleSnapshot(record, candidateScore);
 
   const userPayload = {
@@ -37,7 +37,13 @@ export function buildCardDiagnoseMessages({ record, candidateScore }) {
       natureLabel: safe(record.natureLabel),
       schoolTags: Array.isArray(record.schoolTags) ? record.schoolTags : []
     },
-    ruleSnapshot: snapshot
+    ruleSnapshot: snapshot,
+    knowledgeBaseContext: knowledgeContext,
+    knowledgeBaseRules: [
+      '涉及学校层次、双一流学科、优势方向、地域和专业现实风险时，优先依据 knowledgeBaseContext。',
+      'knowledgeBaseContext 没有给出的事实，不要假装知道，只能说需要核验。',
+      'A2医学强校、A3行业特色强校若来自规则初判，必须使用“线索/需核验”口径，不要说成官方结论。'
+    ]
   };
 
   return [

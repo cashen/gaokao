@@ -428,3 +428,21 @@ AI_CARD_MODEL = 你选择的模型名
 - 后续让 AI 诊断引用可信知识库
 
 说明：当前 ZIP 不包含 `/fenxi/data`，导出将在 Cloudflare 部署后读取线上 `/fenxi/data`。
+---
+
+# v3.9.27 高校知识库基座版
+
+新增：
+
+- `school-kb.generated.js`：944 所辽宁最低分底稿院校知识库基座；
+- `major-kb.generated.js`：专业现实诊断规则种子；
+- `kb-retriever.js`：学校/专业知识库检索；
+- `/api/kb-inspect`：知识库查询接口；
+- `/ln-rank/kb-diagnostics.html`：知识库自检页面；
+- AI诊断 prompt 已接入 `knowledgeBaseContext`。
+
+说明：
+
+- 985 / 211 / 双一流 / 双一流建设学科使用官方/准官方名单；
+- 医学强校和行业特色为“线索初判”，会提示需核验；
+- 后续可以继续补学校官网、招生章程、就业质量报告等逐校证据。
