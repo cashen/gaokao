@@ -233,3 +233,18 @@ https://my.feishu.cn/drive/folder/Bpl6f4yh5lt3TcdHBCScuxRmnyc
 - 生成飞书 docx 报告
 - 打开飞书报告 / 复制链接
 - 自动设置匿名可读
+---
+
+# v3.9.17 2024 历史成绩与地域统一版
+
+新增：
+
+- 2024 最低分 / 最低位次字段探测；
+- `historyCompare` 两年对比；
+- 卡片显示“历史参考”；
+- 飞书报告同步输出 2024 参考；
+- 新增 `location-normalizer.js`，统一地域显示；
+- 新增 `school-location-map.js`，对常见辽宁院校做城市兜底；
+- 校区不确定时输出 `locationWarning`，避免假精确。
+
+注意：2025 仍是主口径，2024 只作为历史参考，不等同于 2026 预测。

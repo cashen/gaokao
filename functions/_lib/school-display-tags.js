@@ -8,6 +8,7 @@ export function mapNature(label) {
   return { natureLabel: '性质待核验', natureType: 'unknown' };
 }
 export function makeDisplayLocation(record) {
+  if (record.displayLocation) return record.displayLocation;
   const p = text(record.province);
   const c = text(record.city);
   const area = text(record.lnArea || record.region);
@@ -27,6 +28,9 @@ export function buildDisplayTags(record) {
     natureType: nature.natureType,
     displayLocation,
     province: record.province || '',
-    city: record.city || ''
+    city: record.city || '',
+    locationSource: record.locationSource || '',
+    locationConfidence: record.locationConfidence || '',
+    locationWarning: record.locationWarning || ''
   };
 }

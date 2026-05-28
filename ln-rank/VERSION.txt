@@ -1,2 +1,2 @@
-v3.9.16 feishu-no-folder
-Folder-target saving removed. Feishu reports are created in the default location. FEISHU_DOC_FOLDER_TOKEN is no longer used.
+v3.9.17 history-location
+Adds 2024 historical score/rank fields, two-year comparison, and unified location normalization.

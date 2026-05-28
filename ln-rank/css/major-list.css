@@ -31,3 +31,25 @@
 .more-button { grid-column: 1 / -1; width: 100%; min-height: 40px; border: 1px dashed var(--line-strong); border-radius: 14px; background: rgba(255,255,255,.56); color: var(--primary); font-weight: 900; }
 .empty, .error, .loading { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 18px; padding: 18px; background: rgba(255,255,255,.72); color: var(--muted); line-height: 1.7; }
 .error { color: #a85f4d; background: #fff7f4; }
+
+
+.history-score {
+  margin-top: 11px;
+  padding: 10px 11px;
+  border-radius: 14px;
+  background: rgba(63, 111, 104, .065);
+  border: 1px solid rgba(63, 111, 104, .10);
+  display: grid;
+  gap: 4px;
+}
+.history-label {
+  font-size: 12px;
+  font-weight: 950;
+  color: var(--primary);
+}
+.history-line {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  font-weight: 780;
+}
