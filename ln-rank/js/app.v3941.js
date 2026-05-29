@@ -4,11 +4,13 @@ import { getScoreGuard } from './core/score-guard.v3912.js';
 import { REGION_OPTIONS } from './config/region-options.v3912.js';
 import { fetchMajorBands } from './feature/major-pool/major-bands-api.v3912.js';
 import { renderBandTabs } from './feature/score-bands/score-bands-render.v3912.js';
-import { renderMajorResults } from './feature/major-pool/major-pool-render.v3912.js';
-import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/feishu-report-controller.v3915.js';
+import { renderMajorResults } from './feature/major-pool/major-pool-render.v3941.js';
+import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/feishu-report-controller.v3916.js';
+import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/selection-pool-controller.v3941.js';
 
 let hasQueried = false;
 let dirty = false;
+const selectionPool = createSelectionPoolAdapter();
 
 function resetVisible() {
   state.visible = { upper: 16, near: 16, steady: 16 };
@@ -22,6 +24,7 @@ function parseScoreFromInput() {
   const input = scoreInput();
   const raw = input ? input.value.trim() : '';
   state.candidateScore = raw ? toInt(raw, null) : null;
+  try { if (state.candidateScore) localStorage.setItem('lnRank.selectionPool.candidateScore.v3941', String(state.candidateScore)); } catch {}
   return state.candidateScore;
 }
 
@@ -114,9 +117,12 @@ function renderAll() {
     onMore: (band) => {
       state.visible[band] = (state.visible[band] || 16) + 16;
       renderAll();
-    }
+    },
+    selectionPool,
+    onSelectionChange: () => refreshSelectionPool(state)
   });
   renderFeishuReport(state);
+  refreshSelectionPool(state);
   setActionButton();
 }
 
@@ -236,6 +242,7 @@ function bind() {
 
 renderRegionOptions();
 initFeishuReport(state);
+initSelectionPool(state, { onChanged: () => renderAll() });
 setReadyStatus('ready', '程序就绪');
 bind();
 setMessageFromGuard(guard());

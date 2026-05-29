@@ -151,7 +151,7 @@ function analyze({ items, candidateScore }) {
   const summary = level === 'high' ? '当前自选池整体风险偏高，需要先补齐中段承接和后段保底，再做最终排序。' : level === 'medium' ? '当前自选池已有基本框架，但仍需调整冲稳保比例和集中度风险。' : '当前自选池结构相对均衡，可以进入人工复核、排序微调和报告整理。';
   if (!risks.length) risks.push('暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) actions.push('保持当前冲稳保结构，逐条核验专业接受度、计划变化和特殊项目标签。');
-  return { ok: true, version: 'v3.9.40', level, summary, stats, risks, actions, sections, orderedItems: ordered, reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
+  return { ok: true, version: 'v3.9.41', level, summary, stats, risks, actions, sections, orderedItems: ordered, reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
 }
 
 export async function onRequest(context) {
