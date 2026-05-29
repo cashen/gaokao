@@ -1,2 +1,4 @@
-v3.9.36 major-bands-stability
-Stabilizes /api/major-bands with chunked prefiltering and capped per-band records to avoid conditional Cloudflare 503.
+v3.9.40 selection-pool-path-analysis
+Full deployable package based on v3.9.36 major-bands-stability.
+Adds PC left floating selection-pool drawer, mobile bottom-sheet adaptation, full selection-pool workspace, localStorage persistence, path-analysis API, and copyable Feishu-ready report text.
+Data source remains /fenxi辽宁2025物理类专业数据; deployment path remains /ln-rank/.

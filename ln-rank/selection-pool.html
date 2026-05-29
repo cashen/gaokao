@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辽宁物理类自选池排序与路径分析</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3940" />
+  <link rel="stylesheet" href="./css/base.css?v=3940" />
+  <link rel="stylesheet" href="./css/layout.css?v=3940" />
+  <link rel="stylesheet" href="./css/topbar.css?v=3940" />
+  <link rel="stylesheet" href="./css/major-list.css?v=3940" />
+  <link rel="stylesheet" href="./css/tags.css?v=3940" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3940" />
+  <link rel="stylesheet" href="./css/selection-pool.v3940.css?v=3940" />
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.940</p>
+        <h1 class="app-title">自选池排序与路径分析</h1>
+        <p class="app-subtitle">用于整理“专业+学校”自选志愿，检查冲稳保结构、路径断层和集中度风险。</p>
+      </div>
+      <div class="hero-badges">
+        <a class="scope-pill" href="./index.html">返回查询页</a>
+        <div class="scope-pill">本地保存 · 可复制到飞书</div>
+      </div>
+    </header>
+
+    <section class="panel topbar">
+      <div class="score-box">
+        <label for="pathCandidateScore">考生分数</label>
+        <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
+      </div>
+      <div class="top-note">路径分析以自选池内的专业卡片为准；分数用于报告展示和相对分差解释。最终填报仍需结合 2026 年当年位次、招生计划和人工复核。</div>
+    </section>
+
+    <section class="selection-workspace">
+      <div class="workspace-panel">
+        <div class="workspace-head">
+          <div>
+            <h2 class="workspace-title">完整排序工作台</h2>
+            <p class="workspace-desc">上移/下移用于调整志愿路径。PC 端首页仍保留左侧悬浮抽屉，手机端使用底部抽屉。</p>
+          </div>
+          <div class="workspace-actions">
+            <button id="clearPool" class="workspace-button">清空</button>
+            <button id="downloadJson" class="workspace-button">下载 JSON</button>
+          </div>
+        </div>
+        <div id="workspaceStats"></div>
+        <div id="workspaceList" class="workspace-list"></div>
+      </div>
+
+      <aside class="workspace-panel">
+        <div class="workspace-head">
+          <div>
+            <h2 class="workspace-title">AI路径分析入口</h2>
+            <p class="workspace-desc">本版先由规则引擎生成结构化结论；接口不可用时自动使用前端本地规则兜底。</p>
+          </div>
+          <div class="workspace-actions">
+            <button id="runAnalysis" class="workspace-button primary">生成路径分析</button>
+            <button id="copyReport" class="workspace-button">复制报告</button>
+          </div>
+        </div>
+        <div id="analysisResult"></div>
+      </aside>
+    </section>
+
+    <section class="data-note">
+      当前自选池报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。正式填报需结合 2026 年一分一段、等位分/同位分、招生计划、选科、体检、学费和校区逐条核验。
+    </section>
+  </main>
+  <script type="module" src="./js/selection-pool.v3940.js?v=3940"></script>
+</body>
+</html>
