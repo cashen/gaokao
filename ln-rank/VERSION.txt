@@ -1,2 +1,2 @@
-v3.9.31 ai-kb-relevance-filter
-Filters KB evidence by current major relevance, separates school-level strengths from major relevance, and improves parentNote specificity.
+v3.9.32 national-discipline-kb
+Adds national fourth-round discipline assessment KB: 463 institutions/units, 5112 school-discipline records, matched to current fenxi school KB.

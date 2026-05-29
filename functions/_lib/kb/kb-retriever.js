@@ -136,7 +136,7 @@ export function getKnowledgeContext(record = {}) {
     meta: {
       schoolKbVersion: SCHOOL_KB_META.version,
       majorKbVersion: MAJOR_KB_META.version,
-      sourcePolicy: '硬标签优先官方来源；第四轮学科评估可作为公开学科基础线索；第五轮非官方汇总不作为证据；A2/A3为线索需核验。'
+      sourcePolicy: '硬标签优先官方来源；全国第四轮学科评估可作为公开学科基础线索；第五轮非官方汇总不作为证据；A2/A3为线索需核验。'
     },
     school: compactSchoolContext(school, record.major),
     major: compactMajorContext(majors),
@@ -147,9 +147,11 @@ export function getKnowledgeContext(record = {}) {
 
 export function getKbStats() {
   const withAssessment = SCHOOL_KB.filter(s => s.disciplineAssessment?.matched).length;
+  const nationalAssessmentCount = SCHOOL_KB_META?.enrichment?.nationalDisciplineAssessmentSchools || 0;
   return {
     schoolCount: SCHOOL_KB.length,
-    liaoningDisciplineAssessmentCount: withAssessment,
+    disciplineAssessmentMatchedSchoolCount: withAssessment,
+    nationalDisciplineAssessmentSchoolCount: nationalAssessmentCount,
     majorRuleCount: MAJOR_KB.length,
     schoolKbVersion: SCHOOL_KB_META.version,
     majorKbVersion: MAJOR_KB_META.version
