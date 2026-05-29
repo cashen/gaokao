@@ -319,3 +319,37 @@ body.diagnose-modal-open {
   font-weight: 850;
   line-height: 1.55;
 }
+.diagnose-kb-section {
+  background: rgba(47, 125, 104, .055);
+  border: 1px solid rgba(47, 125, 104, .12);
+  border-radius: 14px;
+  padding: 10px 11px;
+}
+
+.diagnose-kb-section ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.diagnose-kb-section li {
+  margin: 3px 0;
+}
+
+.diagnose-kb-note {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.diagnose-parent-section {
+  background: rgba(255,255,255,.72);
+  border-radius: 14px;
+  padding: 10px 11px;
+}
+
+.diagnose-parent-section p {
+  margin: 5px 0 0;
+  color: var(--primary);
+  font-weight: 850;
+}

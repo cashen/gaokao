@@ -1,2 +1,2 @@
-v3.9.29 kb-enrichment-batch1
-Adds A1/A2/A3 knowledge layers, Liaoning 4th-round discipline assessment enrichment for 32 schools, source slots for profile/admission/employment evidence, and kb-layer diagnostics.
+v3.9.30 ai-kb-evidence-panel
+Adds a knowledge-base evidence panel and titled parent note in AI diagnosis modal. No backend data logic changes.
