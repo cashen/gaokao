@@ -32,7 +32,9 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       '不要重复同一句话。',
       '学校整体优势和当前专业相关性要分开；若当前专业未命中已收录优势学科，要明确说需核验，不要暗示该专业就是强项。',
       '如果specialProgram.hasSpecial为true，现实提醒必须先说明特殊项目风险，不得只写“核验招生章程”。',
-      '中外合作办学必须提示收费、培养模式、外方合作院校、是否出国、英语授课比例、毕业证/学位证口径。'
+      '中外合作办学必须提示收费、培养模式、外方合作院校、是否出国、英语授课比例、毕业证/学位证口径。',
+      'specialProgram.reminder 放在特殊项目提醒里，realityReminder 不要重复同一句特殊项目提醒；现实提醒应写专业/培养现实。',
+      'checks 中保留核验清单，不要和特殊项目提醒逐字重复。'
     ],
     specialProgram,
     card: {

@@ -70,12 +70,12 @@ function isAdviceOrRiskLine(value) {
 
 function checkCategory(value) {
   const s = text(value);
-  if (hasAny(s, ['计划', '招生'])) return 'plan';
-  if (hasAny(s, ['专业组', '选科', '体检', '单科'])) return 'requirement';
-  if (hasAny(s, ['中外合作', '外方', '出国', '英语授课'])) return 'coop';
+  if (hasAny(s, ['外方', '出国', '英语授课'])) return 'coop';
   if (hasAny(s, ['毕业证', '学位证', '培养模式'])) return 'credential';
   if (hasAny(s, ['收费', '学费', '总成本', '家庭预算', '奖助'])) return 'fee';
   if (hasAny(s, ['转专业', '保研', '升学'])) return 'path';
+  if (hasAny(s, ['计划', '招生'])) return 'plan';
+  if (hasAny(s, ['专业组', '选科', '体检', '单科'])) return 'requirement';
   if (hasAny(s, ['校区', '办学地点'])) return 'campus';
   if (hasAny(s, ['一分一段', '等位分', '同位分'])) return 'rank';
   return signature(s).slice(0, 12);
@@ -190,6 +190,58 @@ function cleanReminder(value, fallback, checks) {
   return clip(sentences[0] || source || '建议结合学校层次、城市资源、专业出口和家庭容错率判断。', 88);
 }
 
+
+function specialRealityReminder(record, specialProgram) {
+  const m = String(record?.major || '');
+  if (m.includes('电子') || m.includes('通信') || m.includes('信息工程') || m.includes('计算机') || m.includes('软件') || m.includes('人工智能')) {
+    return '电子信息/计算机方向看重课程质量、项目训练和就业去向；特殊项目还要单独看培养资源。';
+  }
+  if (m.includes('医学') || m.includes('临床') || m.includes('口腔') || m.includes('药学')) {
+    return '医学相关方向周期长、路径硬；特殊项目还要单独看培养资源、执业路径和家庭预算。';
+  }
+  if (m.includes('金融') || m.includes('会计') || m.includes('经济') || m.includes('法学')) {
+    return '财经法学方向更看学校平台、城市资源和实习机会；特殊项目还要单独看培养资源。';
+  }
+  if (specialProgram?.primaryType) {
+    return '专业本身仍要看培养质量、课程安排和就业去向，特殊项目不能只按普通专业理解。';
+  }
+  return '建议同时看学校层次、城市资源、专业出口和家庭容错率。';
+}
+
+function specialCheckLines(specialProgram) {
+  if (!specialProgram?.hasSpecial) return [];
+  const types = specialProgram.types || [];
+  if (types.includes('中外合作办学')) {
+    return [
+      '核验中外合作办学收费、培养模式和毕业证/学位证口径',
+      '核验外方合作院校、是否出国、英语授课比例及转专业/升学政策',
+      '核验2026招生计划、专业组、选科、体检或单科要求',
+      '用当年一分一段做最终换算'
+    ];
+  }
+  if (types.includes('高收费专业')) {
+    return [
+      '核验学费、住宿费、奖助政策和四年总成本',
+      '核验2026招生计划、专业组、选科、体检或单科要求',
+      '核验办学地点、校区和收费口径',
+      '用当年一分一段做最终换算'
+    ];
+  }
+  if (types.includes('联合培养') || types.includes('校企合作/定向')) {
+    return [
+      '核验培养地点、培养单位和毕业证/学位证口径',
+      '核验企业参与、实习安排、服务期或协议约束',
+      '核验2026招生计划、专业组、选科、体检或单科要求',
+      '用当年一分一段做最终换算'
+    ];
+  }
+  return [
+    ...(specialProgram.checks || []),
+    '核验2026招生计划、专业组、选科、体检或单科要求',
+    '用当年一分一段做最终换算'
+  ];
+}
+
 function majorShort(record) {
   const m = String(record?.major || '');
   if (m.includes('计算机') || m.includes('软件') || m.includes('人工智能')) return '计算机';
@@ -246,10 +298,9 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
   const obj = data && typeof data === 'object' ? data : {};
   const specialProgram = detectSpecialProgram(record);
 
-  const checks = cleanChecks([
-    ...(specialProgram.hasSpecial ? specialProgram.checks : []),
-    ...(Array.isArray(obj.checks) ? obj.checks : [])
-  ], fallback.checks);
+  const checks = specialProgram.hasSpecial
+    ? cleanChecks(specialCheckLines(specialProgram), [])
+    : cleanChecks(obj.checks, fallback.checks);
 
   const summary = specialProgram.hasSpecial
     ? clip(`这条可看，但${specialProgram.primaryType}规则必须先核验。`, 45)
@@ -258,7 +309,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
   const basis = cleanBasis(obj.basis, fallback.basis);
 
   const realityReminder = specialProgram.hasSpecial
-    ? clip(specialProgram.reminder, 96)
+    ? clip(specialRealityReminder(record, specialProgram), 88)
     : cleanReminder(obj.realityReminder, fallback.realityReminder, checks);
 
   const parentNote = specialProgram.hasSpecial

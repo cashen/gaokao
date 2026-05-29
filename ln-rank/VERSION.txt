@@ -1,2 +1,2 @@
-v3.9.34 special-program-risk
-Adds special program risk detection for Sino-foreign cooperation, high-fee majors, joint training, school-enterprise programs, and campus/branch cases.
+v3.9.35 special-program-dedupe
+Dedupes special program warning, reality reminder, and checks. Special section shows warning/tags; checks section owns verification list.

@@ -375,3 +375,25 @@ body.diagnose-modal-open {
 .diagnose-special-section li {
   margin: 3px 0;
 }
+.diagnose-special-section p {
+  margin: 6px 0 0;
+}
+
+.diagnose-special-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.diagnose-special-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(168, 95, 77, .10);
+  color: #8a4b3a;
+  font-size: 12px;
+  font-weight: 900;
+}
