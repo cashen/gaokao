@@ -1,2 +1,2 @@
-v3.9.35 special-program-dedupe
-Dedupes special program warning, reality reminder, and checks. Special section shows warning/tags; checks section owns verification list.
+v3.9.36 major-bands-stability
+Stabilizes /api/major-bands with chunked prefiltering and capped per-band records to avoid conditional Cloudflare 503.
