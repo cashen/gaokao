@@ -86,7 +86,7 @@ function pct(part, total) { return total ? Math.round(part / total * 100) : 0; }
 
 function reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }) {
   const lines = [];
-  lines.push('辽宁物理类志愿自选池路径分析报告');
+  lines.push('辽宁物理类志愿自选池排序诊断报告');
   lines.push('');
   lines.push(`考生分数：${candidateScore || '未填写'}`);
   lines.push('数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池；本报告用于志愿讨论，不等同于录取预测。');
@@ -125,13 +125,13 @@ function analyze({ items, candidateScore }) {
   const total = stats.total;
 
   if (!total) {
-    return { ok: true, level: 'empty', summary: '自选池暂无专业志愿。', stats, risks: ['自选池为空，无法判断冲稳保路径。'], actions: ['先加入上探、主体、稳妥三个区间的专业。'], sections: [], orderedItems: [], reportText: '自选池暂无专业志愿。' };
+    return { ok: true, level: 'empty', summary: '自选池暂无专业志愿。', stats, risks: ['自选池为空，无法判断冲稳保结构。'], actions: ['先加入上探、主体、稳妥三个区间的专业。'], sections: [], orderedItems: [], reportText: '自选池暂无专业志愿。' };
   }
 
   if (total < 12) { risks.push('自选池数量偏少，暂时更像候选清单，不适合作为完整填报方案。'); actions.push('继续补充主体承接区和后段保底区，先扩展到至少 20 个以上再做正式排序。'); }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) { risks.push('保底区数量偏少，后段承接能力不足。'); actions.push('增加若干“小保 / 强保 / 兜底”专业，尤其补充低风险、可接受专业方向。'); }
   if (stats.stableCount < Math.ceil(total * 0.34)) { risks.push('主体稳妥区偏薄，中段承接不够厚。'); actions.push('优先补充“边稳 / 稳妥”专业，作为真实录取承接区。'); }
-  if (stats.rushCount > Math.ceil(total * 0.38)) { risks.push('冲刺区占比偏高，容易形成“前段好看、后段发虚”的路径。'); actions.push('保留少量高价值冲刺，其余用更接近位次的专业替换。'); }
+  if (stats.rushCount > Math.ceil(total * 0.38)) { risks.push('冲刺区占比偏高，容易形成“前段好看、后段发虚”的排序。'); actions.push('保留少量高价值冲刺，其余用更接近位次的专业替换。'); }
   if (stats.highRushCount > 2) { risks.push('高冲专业数量偏多，高冲只能承担梦想位，不应作为主要录取依赖。'); actions.push('高冲建议控制在 1-2 个左右，并放在排序最前部。'); }
 
   const [topCity, topCityCount] = topEntry(stats.byCity);
@@ -144,14 +144,14 @@ function analyze({ items, candidateScore }) {
   const safeItems = ordered.filter(x => x.poolBand.group === 'safe');
   const sections = [
     { title: '前段冲刺区', content: rushItems.length ? `当前有 ${rushItems.length} 个冲刺志愿，其中高冲 ${stats.highRushCount} 个。冲刺位适合放在前段，但不能替代中后段承接。` : '当前几乎没有冲刺志愿，方案偏保守；如愿意尝试，可少量加入可接受的上探专业。' },
-    { title: '中段稳妥区', content: stableItems.length ? `当前有 ${stableItems.length} 个边稳/稳妥志愿，这是方案的主要录取承接区。建议继续检查这些专业是否都是孩子能接受的方向。` : '当前缺少边稳/稳妥志愿，路径中段断层明显，需要优先补充。' },
+    { title: '中段稳妥区', content: stableItems.length ? `当前有 ${stableItems.length} 个边稳/稳妥志愿，这是方案的主要录取承接区。建议继续检查这些专业是否都是孩子能接受的方向。` : '当前缺少边稳/稳妥志愿，中段承接断层明显，需要优先补充。' },
     { title: '后段保底区', content: safeItems.length ? `当前有 ${safeItems.length} 个保底/兜底志愿。后段不是随便填低分专业，而是要保证学校、城市、专业方向都能接受。` : '当前没有明显保底志愿，滑档或被迫接受低接受度专业的风险较高。' }
   ];
   const level = risks.length >= 4 ? 'high' : risks.length >= 2 ? 'medium' : 'low';
   const summary = level === 'high' ? '当前自选池整体风险偏高，需要先补齐中段承接和后段保底，再做最终排序。' : level === 'medium' ? '当前自选池已有基本框架，但仍需调整冲稳保比例和集中度风险。' : '当前自选池结构相对均衡，可以进入人工复核、排序微调和报告整理。';
   if (!risks.length) risks.push('暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) actions.push('保持当前冲稳保结构，逐条核验专业接受度、计划变化和特殊项目标签。');
-  return { ok: true, version: 'v3.9.41', level, summary, stats, risks, actions, sections, orderedItems: ordered, reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
+  return { ok: true, version: 'v3.9.42', level, summary, stats, risks, actions, sections, orderedItems: ordered, reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
 }
 
 export async function onRequest(context) {

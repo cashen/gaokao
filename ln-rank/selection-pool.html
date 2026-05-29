@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>辽宁物理类自选池排序与路径分析</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=3941" />
-  <link rel="stylesheet" href="./css/base.css?v=3941" />
-  <link rel="stylesheet" href="./css/layout.css?v=3941" />
-  <link rel="stylesheet" href="./css/topbar.css?v=3941" />
-  <link rel="stylesheet" href="./css/major-list.css?v=3941" />
-  <link rel="stylesheet" href="./css/tags.css?v=3941" />
-  <link rel="stylesheet" href="./css/responsive.css?v=3941" />
-  <link rel="stylesheet" href="./css/selection-pool.v3941.css?v=3941" />
+  <title>辽宁物理类自选池排序与诊断</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3942" />
+  <link rel="stylesheet" href="./css/base.css?v=3942" />
+  <link rel="stylesheet" href="./css/layout.css?v=3942" />
+  <link rel="stylesheet" href="./css/topbar.css?v=3942" />
+  <link rel="stylesheet" href="./css/major-list.css?v=3942" />
+  <link rel="stylesheet" href="./css/tags.css?v=3942" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3942" />
+  <link rel="stylesheet" href="./css/selection-pool.v3942.css?v=3942" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.941</p>
-        <h1 class="app-title">自选池排序与路径分析</h1>
-        <p class="app-subtitle">整理已选“专业+学校”志愿，检查冲稳保结构、路径断层和集中度风险，并一键生成飞书报告。</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.942</p>
+        <h1 class="app-title">自选池排序与诊断</h1>
+        <p class="app-subtitle">整理已选“专业+学校”志愿，检查冲稳保比例、保底承接和集中风险，并一键生成飞书报告。</p>
       </div>
       <div class="hero-badges">
         <a class="scope-pill" href="./index.html">返回查询页</a>
@@ -32,34 +32,34 @@
         <label for="pathCandidateScore">考生分数</label>
         <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
       </div>
-      <div class="top-note">路径分析以自选池内的专业卡片为准；分数用于报告展示和相对分差解释。正式填报仍需结合 2026 年当年位次、招生计划和人工复核。</div>
+      <div class="top-note">排序诊断以自选池内的专业卡片和当前顺序为准；分数用于报告展示和相对分差解释。正式填报仍需结合 2026 年当年位次、招生计划和人工复核。</div>
     </section>
 
     <section class="selection-workspace">
-      <div class="workspace-panel">
+      <div class="workspace-panel workspace-panel-list">
         <div class="workspace-head">
           <div>
-            <h2 class="workspace-title">完整排序工作台</h2>
-            <p class="workspace-desc">通过上移/下移调整志愿路径。首页入口保持右侧轻胶囊，默认不展开，不打断查询专业。</p>
+            <h2 class="workspace-title">自选池排序清单</h2>
+            <p class="workspace-desc">通过上移、下移调整志愿顺序。这里适合整理清单，不再使用大卡片展示。</p>
           </div>
-          <div class="workspace-actions">
-            <button id="clearPool" class="workspace-button">清空</button>
+          <div class="workspace-actions workspace-actions-list">
+            <button id="sendSelectionPool" class="workspace-button primary">发送当前排序到飞书</button>
+            <button id="clearPool" class="workspace-button muted">清空</button>
           </div>
         </div>
         <div id="workspaceStats"></div>
-        <div id="workspaceList" class="workspace-list"></div>
+        <div id="workspaceList" class="workspace-list compact-list"></div>
       </div>
 
-      <aside class="workspace-panel">
-        <div class="workspace-head">
+      <aside class="workspace-panel workspace-panel-diagnose">
+        <div class="workspace-head diagnose-head">
           <div>
-            <h2 class="workspace-title">路径分析与飞书报告</h2>
-            <p class="workspace-desc">可以先发送当前自选池排序，也可以生成路径分析后发送完整报告。飞书文档默认尝试设置为获得链接的人可阅读。</p>
+            <h2 class="workspace-title">志愿排序诊断</h2>
+            <p class="workspace-desc">点击“检查当前排序”，系统会看这套志愿是否冲得太多、稳得是否接得住、保底是否够用。需要留档时，再发送完整诊断报告到飞书。</p>
           </div>
-          <div class="workspace-actions">
-            <button id="runAnalysis" class="workspace-button primary">生成路径分析</button>
-            <button id="sendSelectionPool" class="workspace-button">发送自选池到飞书</button>
-            <button id="sendAnalyzedPool" class="workspace-button primary">分析后发送飞书</button>
+          <div class="workspace-actions workspace-actions-diagnose">
+            <button id="runAnalysis" class="workspace-button primary">检查当前排序</button>
+            <button id="sendAnalyzedPool" class="workspace-button">发送诊断报告到飞书</button>
           </div>
         </div>
         <div id="feishuSelectionStatus"></div>
@@ -68,9 +68,9 @@
     </section>
 
     <section class="data-note">
-      当前自选池报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。正式填报需结合 2026 年一分一段、等位分/同位分、招生计划、选科、体检、学费和校区逐条核验。
+      当前自选池清单与诊断报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。正式填报需结合 2026 年一分一段、等位分/同位分、招生计划、选科、体检、学费和校区逐条核验。
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3941.js?v=3941"></script>
+  <script type="module" src="./js/selection-pool.v3942.js?v=3942"></script>
 </body>
 </html>

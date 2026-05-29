@@ -89,7 +89,7 @@ function itemLine(item) {
 function analysisLines(analysis = {}) {
   const lines = [];
   if (analysis.summary) {
-    lines.push('## AI路径分析结论');
+    lines.push('## 志愿排序诊断结论');
     lines.push('');
     lines.push(`- 整体判断：${analysis.summary}`);
     lines.push('');
@@ -124,13 +124,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const stats = input.analysis?.stats?.total ? input.analysis.stats : getStats(items);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜自选池路径分析报告｜辽宁物理类`
+    ? `${candidateScore}分｜自选池诊断报告｜辽宁物理类`
     : `${candidateScore}分｜自选池排序清单｜辽宁物理类`;
   const lines = [];
 
   lines.push(`# ${title}`);
   lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁物理类志愿自选池路径分析报告' : '## 辽宁物理类志愿自选池排序清单');
+  lines.push(hasAnalysis ? '## 辽宁物理类志愿自选池诊断报告' : '## 辽宁物理类志愿自选池排序清单');
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push('- 数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。');
@@ -178,13 +178,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
   lines.push('## 口径说明');
   lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池路径，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。');
+  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。');
 
   return {
     title,
     markdown: lines.join('\n'),
     recordsCount: items.length,
     reportType,
-    version: 'v3.9.41'
+    version: 'v3.9.42'
   };
 }
