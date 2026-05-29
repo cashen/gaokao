@@ -1,4 +1,5 @@
 import { buildRuleOnlyDiagnosis } from './ai-card-rules.js';
+import { detectSpecialProgram } from './special-program-rules.js';
 
 function pickJson(text) {
   const s = String(text || '').trim();
@@ -60,7 +61,7 @@ function hasAny(value, words) {
 }
 
 function isCheckLine(value) {
-  return hasAny(value, ['核验', '确认', '查看', '对照', '以招生章程为准', '一分一段', '专业组', '选科', '体检', '单科', '计划', '校区', '学费', '收费', '办学地点']);
+  return hasAny(value, ['核验', '确认', '查看', '对照', '以招生章程为准', '一分一段', '专业组', '选科', '体检', '单科', '计划', '校区', '学费', '收费', '办学地点', '培养模式', '毕业证', '学位证', '外方', '出国', '英语授课', '转专业', '奖助', '总成本', '家庭预算']);
 }
 
 function isAdviceOrRiskLine(value) {
@@ -71,7 +72,11 @@ function checkCategory(value) {
   const s = text(value);
   if (hasAny(s, ['计划', '招生'])) return 'plan';
   if (hasAny(s, ['专业组', '选科', '体检', '单科'])) return 'requirement';
-  if (hasAny(s, ['校区', '办学地点', '学费', '收费'])) return 'campus';
+  if (hasAny(s, ['中外合作', '外方', '出国', '英语授课'])) return 'coop';
+  if (hasAny(s, ['毕业证', '学位证', '培养模式'])) return 'credential';
+  if (hasAny(s, ['收费', '学费', '总成本', '家庭预算', '奖助'])) return 'fee';
+  if (hasAny(s, ['转专业', '保研', '升学'])) return 'path';
+  if (hasAny(s, ['校区', '办学地点'])) return 'campus';
   if (hasAny(s, ['一分一段', '等位分', '同位分'])) return 'rank';
   return signature(s).slice(0, 12);
 }
@@ -122,8 +127,14 @@ function cleanChecks(items, fallback) {
 }
 
 function tagify(value) {
+
   const s = text(value);
   if (!s) return '';
+  if (s.includes('中外合作')) return '中外合作';
+  if (s.includes('高收费') || s.includes('收费')) return '高收费';
+  if (s.includes('培养模式')) return '培养模式';
+  if (s.includes('毕业证') || s.includes('学位证')) return '证书口径';
+  if (s.includes('外方') || s.includes('出国')) return '外方资源';
   if (s.includes('AI')) return 'AI冲击';
   if (s.includes('持续') || s.includes('自学')) return '持续学习';
   if (s.includes('项目')) return '项目能力';
@@ -233,13 +244,31 @@ function cleanParentNote(value, reminder, fallbackSummary, record) {
 export function normalizeDiagnosis(data, record, candidateScore, modelText = '') {
   const fallback = buildRuleOnlyDiagnosis(record, candidateScore);
   const obj = data && typeof data === 'object' ? data : {};
+  const specialProgram = detectSpecialProgram(record);
 
-  const checks = cleanChecks(obj.checks, fallback.checks);
-  const summary = normalizeSummary(obj, fallback, record);
+  const checks = cleanChecks([
+    ...(specialProgram.hasSpecial ? specialProgram.checks : []),
+    ...(Array.isArray(obj.checks) ? obj.checks : [])
+  ], fallback.checks);
+
+  const summary = specialProgram.hasSpecial
+    ? clip(`这条可看，但${specialProgram.primaryType}规则必须先核验。`, 45)
+    : normalizeSummary(obj, fallback, record);
+
   const basis = cleanBasis(obj.basis, fallback.basis);
-  const realityReminder = cleanReminder(obj.realityReminder, fallback.realityReminder, checks);
-  const parentNote = cleanParentNote(obj.parentNote || obj.parent_note, realityReminder, summary, record);
-  const riskTags = cleanTags(obj.riskTags || obj.risk_tags, fallback.riskTags);
+
+  const realityReminder = specialProgram.hasSpecial
+    ? clip(specialProgram.reminder, 96)
+    : cleanReminder(obj.realityReminder, fallback.realityReminder, checks);
+
+  const parentNote = specialProgram.hasSpecial
+    ? clip(specialProgram.parentNote, 66)
+    : cleanParentNote(obj.parentNote || obj.parent_note, realityReminder, summary, record);
+
+  const riskTags = cleanTags([
+    ...(specialProgram.hasSpecial ? specialProgram.riskTags : []),
+    ...(Array.isArray(obj.riskTags || obj.risk_tags) ? (obj.riskTags || obj.risk_tags) : [])
+  ], fallback.riskTags);
 
   return {
     summary,
@@ -248,6 +277,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
     checks,
     parentNote,
     riskTags,
+    specialProgram: specialProgram.hasSpecial ? specialProgram : null,
     disclaimer: '仅做专业卡片解释，不等同于录取预测。'
   };
 }

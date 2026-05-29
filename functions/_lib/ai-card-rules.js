@@ -1,4 +1,5 @@
 import { classifyMajorReality, schoolLayerTags } from './ai-skills/major-risk-rules.js';
+import { detectSpecialProgram } from './special-program-rules.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -36,6 +37,7 @@ function shortRiskTag(value) {
 
 export function buildCardRuleSnapshot(record = {}, candidateScore) {
   const realityTags = classifyMajorReality(record);
+  const specialProgram = detectSpecialProgram(record);
   const platformTags = schoolLayerTags(record);
   const delta = Number(record.scoreDelta ?? ((record.score2025 ?? record.score) - candidateScore));
 
@@ -48,6 +50,7 @@ export function buildCardRuleSnapshot(record = {}, candidateScore) {
   ].filter(Boolean);
 
   const checks = [
+    ...(specialProgram.hasSpecial ? specialProgram.checks : []),
     '核验2026招生计划是否变化',
     '核验专业组、选科、体检或单科要求',
     '核验办学地点、校区和收费口径',
@@ -57,7 +60,8 @@ export function buildCardRuleSnapshot(record = {}, candidateScore) {
   return {
     basis,
     realityTags,
-    checks,
+    specialProgram,
+    checks: [...new Set(checks)].slice(0, 6),
     suggestedTone: '温和、现实、短句、面向家长',
     disclaimer: '仅做专业卡片解释，不等同于录取预测。'
   };
@@ -65,12 +69,14 @@ export function buildCardRuleSnapshot(record = {}, candidateScore) {
 
 export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   const snap = buildCardRuleSnapshot(record, candidateScore);
+  const specialProgram = snap.specialProgram || detectSpecialProgram(record);
   const risk = snap.realityTags.find(t => t.level === 'risk');
   const positive = snap.realityTags.find(t => t.level === 'positive');
   const conditional = snap.realityTags.find(t => t.level === 'conditional');
 
   let summary = `这条更适合作为${record.statusLabel || record.position || '当前区间'}参考。`;
-  if (risk) summary = '这条可以看，但需要重点核验专业现实风险。';
+  if (specialProgram.hasSpecial) summary = '这条可看，但特殊项目规则必须先核验。';
+  else if (risk) summary = '这条可以看，但需要重点核验专业现实风险。';
   else if (conditional) summary = '这条可以关注，但属于有条件选择。';
   else if (positive) summary = '这条现实确定性相对更强，可以重点讨论。';
 
@@ -79,10 +85,11 @@ export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   return {
     summary,
     basis: snap.basis.slice(0, 3),
-    realityReminder: tag?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。',
+    realityReminder: specialProgram.hasSpecial ? specialProgram.reminder : (tag?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。'),
     checks: snap.checks.slice(0, 4),
-    parentNote: risk ? '可以关注，但不要当作稳妥项。' : '可以保留讨论，但要结合孩子能力和当年计划。',
-    riskTags: [...new Set(snap.realityTags.map(t => shortRiskTag(t.text)).filter(Boolean))].slice(0, 4),
+    parentNote: specialProgram.hasSpecial ? specialProgram.parentNote : (risk ? '可以关注，但不要当作稳妥项。' : '可以保留讨论，但要结合孩子能力和当年计划。'),
+    riskTags: [...new Set([...(specialProgram.riskTags || []), ...snap.realityTags.map(t => shortRiskTag(t.text)).filter(Boolean)])].slice(0, 5),
+    specialProgram: specialProgram.hasSpecial ? specialProgram : null,
     disclaimer: snap.disclaimer
   };
 }

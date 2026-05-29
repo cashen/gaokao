@@ -1,5 +1,6 @@
 import { skillSystemPrompt } from './ai-skills/realistic-career-skill.js';
 import { buildCardRuleSnapshot } from './ai-card-rules.js';
+import { detectSpecialProgram } from './special-program-rules.js';
 
 function safe(value) {
   return value == null || value === '' ? '—' : String(value);
@@ -7,6 +8,7 @@ function safe(value) {
 
 export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeContext = null }) {
   const snapshot = buildCardRuleSnapshot(record, candidateScore);
+  const specialProgram = detectSpecialProgram(record);
 
   const userPayload = {
     task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不预测录取概率，不输出Markdown。',
@@ -17,6 +19,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       checks: ['需要核验的点，3-4条，只能写核验事项'],
       parentNote: '给家长的一句话，不超过60个中文字符，不得与realityReminder重复',
       riskTags: ['短标签，2-4个，每个不超过6个中文字符'],
+      specialProgram: '如存在中外合作/高收费/联合培养/校企合作/分校校区等特殊项目，必须单独说明',
       disclaimer: '固定免责声明'
     },
     outputRules: [
@@ -27,8 +30,11 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       'checks只能写核验事项，不能写“持续自学/项目能力/就业风险”等专业评价。',
       'parentNote不得复制realityReminder。',
       '不要重复同一句话。',
-      '学校整体优势和当前专业相关性要分开；若当前专业未命中已收录优势学科，要明确说需核验，不要暗示该专业就是强项。'
+      '学校整体优势和当前专业相关性要分开；若当前专业未命中已收录优势学科，要明确说需核验，不要暗示该专业就是强项。',
+      '如果specialProgram.hasSpecial为true，现实提醒必须先说明特殊项目风险，不得只写“核验招生章程”。',
+      '中外合作办学必须提示收费、培养模式、外方合作院校、是否出国、英语授课比例、毕业证/学位证口径。'
     ],
+    specialProgram,
     card: {
       candidateScore,
       school: safe(record.school),

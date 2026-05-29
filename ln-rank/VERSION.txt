@@ -1,2 +1,2 @@
-v3.9.33 kb-size-safe
-Moves large school/national discipline KB out of functions bundle into static JSON to avoid Cloudflare Pages Functions 503 while keeping national discipline KB capability.
+v3.9.34 special-program-risk
+Adds special program risk detection for Sino-foreign cooperation, high-fee majors, joint training, school-enterprise programs, and campus/branch cases.
