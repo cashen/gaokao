@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>辽宁物理类自选池排序与诊断</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=3944" />
-  <link rel="stylesheet" href="./css/base.css?v=3944" />
-  <link rel="stylesheet" href="./css/layout.css?v=3944" />
-  <link rel="stylesheet" href="./css/topbar.css?v=3944" />
-  <link rel="stylesheet" href="./css/major-list.css?v=3944" />
-  <link rel="stylesheet" href="./css/tags.css?v=3944" />
-  <link rel="stylesheet" href="./css/responsive.css?v=3944" />
-  <link rel="stylesheet" href="./css/selection-pool.v3944.css?v=3944" />
+  <title>辽宁物理类自选池拖拽排序与诊断</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=3945" />
+  <link rel="stylesheet" href="./css/base.css?v=3945" />
+  <link rel="stylesheet" href="./css/layout.css?v=3945" />
+  <link rel="stylesheet" href="./css/topbar.css?v=3945" />
+  <link rel="stylesheet" href="./css/major-list.css?v=3945" />
+  <link rel="stylesheet" href="./css/tags.css?v=3945" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3945" />
+  <link rel="stylesheet" href="./css/selection-pool.v3945.css?v=3945" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.944</p>
-        <h1 class="app-title">自选池排序与诊断</h1>
-        <p class="app-subtitle">这里是自选池的完整整理页：调整已选“专业+学校”顺序，检查冲稳保和保底承接，并一键生成飞书报告。</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.945</p>
+        <h1 class="app-title">自选池拖拽排序与诊断</h1>
+        <p class="app-subtitle">这里是自选池的完整整理页：拖拽或快速移动已选“专业+学校”顺序，检查冲稳保和保底承接，并一键生成飞书报告。</p>
       </div>
       <div class="hero-badges">
         <a class="scope-pill" href="./index.html">返回查询页</a>
@@ -40,9 +40,10 @@
         <div class="workspace-head">
           <div>
             <h2 class="workspace-title">自选池排序清单</h2>
-            <p class="workspace-desc">通过上移、下移调整志愿顺序。首页右侧入口会直接进入本页，不再使用半屏抽屉。</p>
+            <p class="workspace-desc">PC 可按住左侧手柄拖拽排序；手机长按手柄拖动，也可用“移动”快速到指定位置。</p>
           </div>
           <div class="workspace-actions workspace-actions-list">
+            <button id="sortByBand" class="workspace-button">按冲稳保整理</button>
             <button id="sendSelectionPool" class="workspace-button primary">发送当前排序到飞书</button>
             <button id="clearPool" class="workspace-button muted">清空</button>
           </div>
@@ -71,6 +72,6 @@
       当前自选池清单与诊断报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。正式填报需结合 2026 年一分一段、等位分/同位分、招生计划、选科、体检、学费和校区逐条核验。
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3944.js?v=3944"></script>
+  <script type="module" src="./js/selection-pool.v3945.js?v=3945"></script>
 </body>
 </html>

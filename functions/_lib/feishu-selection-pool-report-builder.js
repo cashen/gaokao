@@ -185,6 +185,6 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     markdown: lines.join('\n'),
     recordsCount: items.length,
     reportType,
-    version: 'v3.9.44'
+    version: 'v3.9.45'
   };
 }

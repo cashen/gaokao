@@ -1,2 +1,3 @@
-ln-rank-span-tool v3.9.44-direct-pool-workspace
-取消首页右侧重抽屉；右侧自选池胶囊直接进入完整整理页；保留紧凑工作台、排序修复和飞书报告闭环。
+V3.945
+ln-rank-span-tool-v3.9.45-drag-sort-workspace
+自选池拖拽排序工作台版：PC 拖拽、手机长按拖拽、快速移动、按冲稳保整理。
