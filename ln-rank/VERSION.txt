@@ -1,9 +1,2 @@
-ln-rank-span-tool v3.9.43-selection-pool-order-hotfix
-
-修复范围：
-1. 修复 /ln-rank/selection-pool 清空自选池后又从旧 localStorage key 自动回填，导致看起来“清空没反应”的问题。
-2. 修复上移/下移后 savePoolItems 再按旧 userOrder 排序，导致顺序被还原、看起来“移动不好使”的问题。
-3. 保留 V3.942 的紧凑工作台、右侧轻入口、飞书清单/诊断报告闭环。
-
-数据口径：
-/ln-rank 工具读取 /fenxi 已接入的辽宁 2025 物理类院校专业数据，仅作志愿讨论参考。正式填报需结合 2026 年当年位次、招生计划、选科、体检、学费和校区逐条复核。
+ln-rank-span-tool v3.9.44-direct-pool-workspace
+取消首页右侧重抽屉；右侧自选池胶囊直接进入完整整理页；保留紧凑工作台、排序修复和飞书报告闭环。
