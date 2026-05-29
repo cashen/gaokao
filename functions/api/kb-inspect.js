@@ -21,8 +21,8 @@ export async function onRequest(context) {
 
   return json({
     ok: true,
-    stats: getKbStats(),
+    stats: await getKbStats(context.request, context.env || {}),
     query: { school, major },
-    knowledgeContext: getKnowledgeContext({ school, major })
+    knowledgeContext: await getKnowledgeContext({ school, major }, context.request, context.env || {})
   });
 }

@@ -100,7 +100,7 @@ export async function onRequest(context) {
       return json({ ok: false, message: '缺少有效考生分数。' }, 400);
     }
 
-    const knowledgeContext = getKnowledgeContext(record);
+    const knowledgeContext = await getKnowledgeContext(record, context.request, context.env || {});
     const model = String(context.env?.AI_CARD_MODEL || '@cf/meta/llama-3.1-8b-instruct').trim();
 
     if (!context.env?.AI || typeof context.env.AI.run !== 'function') {

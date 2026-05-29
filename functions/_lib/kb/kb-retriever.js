@@ -1,5 +1,10 @@
-import { SCHOOL_KB, SCHOOL_KB_META } from './school-kb.generated.js';
 import { MAJOR_KB, MAJOR_KB_META } from './major-kb.generated.js';
+
+const SCHOOL_KB_ASSET_PATH = '/ln-rank/kb/school-kb.compact.json';
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+let cachedKb = null;
+let cachedAt = 0;
 
 function compact(value) {
   return String(value || '')
@@ -9,22 +14,62 @@ function compact(value) {
     .trim();
 }
 
-const schoolIndex = new Map();
-for (const item of SCHOOL_KB) {
-  const names = [item.name, item.normName, ...(item.aliases || [])].filter(Boolean);
-  for (const name of names) {
-    const key = compact(name);
-    if (key && !schoolIndex.has(key)) schoolIndex.set(key, item);
+async function fetchStaticAssetJson(request, env) {
+  const base = request?.url ? new URL(request.url).origin : '';
+  const url = new URL(SCHOOL_KB_ASSET_PATH, base || 'https://example.invalid');
+
+  let response = null;
+
+  if (env?.ASSETS?.fetch) {
+    response = await env.ASSETS.fetch(new Request(url.toString(), { method: 'GET' }));
   }
+
+  if (!response || !response.ok) {
+    response = await fetch(url.toString(), {
+      method: 'GET',
+      cf: { cacheTtl: 1800, cacheEverything: true }
+    });
+  }
+
+  if (!response.ok) {
+    throw new Error(`知识库静态文件读取失败：${response.status}`);
+  }
+
+  return response.json();
 }
 
-function findSchool(school) {
+async function loadSchoolKb(request, env) {
+  const now = Date.now();
+  if (cachedKb && now - cachedAt < CACHE_TTL_MS) return cachedKb;
+
+  const data = await fetchStaticAssetJson(request, env);
+  const schools = Array.isArray(data?.schools) ? data.schools : [];
+  const index = new Map();
+
+  for (const item of schools) {
+    const names = [item.name, item.normName, ...(item.aliases || [])].filter(Boolean);
+    for (const name of names) {
+      const key = compact(name);
+      if (key && !index.has(key)) index.set(key, item);
+    }
+  }
+
+  cachedKb = {
+    meta: data?.meta || {},
+    schools,
+    index,
+    sorted: [...schools].sort((a, b) => compact(b.name).length - compact(a.name).length)
+  };
+  cachedAt = now;
+  return cachedKb;
+}
+
+function findSchoolFromKb(kb, school) {
   const key = compact(school);
   if (!key) return null;
-  if (schoolIndex.has(key)) return schoolIndex.get(key);
+  if (kb.index.has(key)) return kb.index.get(key);
 
-  const sorted = [...SCHOOL_KB].sort((a, b) => compact(b.name).length - compact(a.name).length);
-  for (const item of sorted) {
+  for (const item of kb.sorted) {
     const name = compact(item.name);
     if (!name) continue;
     if (key.includes(name) || name.includes(key)) return item;
@@ -47,7 +92,8 @@ function allDisciplines(assessment) {
 }
 
 const MAJOR_DISCIPLINE_RULES = [
-  { keyword: ['计算机', '软件', '人工智能', '数据科学', '网络空间'], disciplines: ['计算机科学与技术', '软件工程', '控制科学与工程', '信息与通信工程'] },
+  { keyword: ['计算机', '软件', '人工智能', '数据科学', '网络空间', '物联网', '信息安全'], disciplines: ['计算机科学与技术', '软件工程', '控制科学与工程', '信息与通信工程', '电子科学与技术', '网络空间安全'] },
+  { keyword: ['通信', '电子信息', '电子科学', '集成电路', '微电子'], disciplines: ['信息与通信工程', '电子科学与技术', '计算机科学与技术'] },
   { keyword: ['电气', '智能电网', '电力'], disciplines: ['电气工程', '控制科学与工程'] },
   { keyword: ['自动化', '机器人工程', '智能制造'], disciplines: ['控制科学与工程', '机械工程'] },
   { keyword: ['临床', '口腔', '麻醉', '影像', '护理', '药学', '中医'], disciplines: ['临床医学', '口腔医学', '护理学', '药学', '中医学', '中西医结合', '中药学', '基础医学', '公共卫生与预防医学'] },
@@ -57,7 +103,7 @@ const MAJOR_DISCIPLINE_RULES = [
   { keyword: ['交通', '海事', '航海', '船舶', '航空'], disciplines: ['交通运输工程', '船舶与海洋工程', '航空宇航科学与技术'] },
   { keyword: ['师范', '教育', '心理'], disciplines: ['教育学', '心理学', '中国语言文学', '数学', '物理学', '化学'] },
   { keyword: ['机械', '车辆'], disciplines: ['机械工程', '材料科学与工程', '控制科学与工程'] },
-  { keyword: ['石油', '化工', '能源'], disciplines: ['化学工程与技术', '石油与天然气工程', '动力工程及工程热物理'] },
+  { keyword: ['石油', '化工', '能源'], disciplines: ['化学工程与技术', '石油与天然气工程', '动力工程及工程热物理'] }
 ];
 
 function matchDisciplines(major, assessment) {
@@ -129,31 +175,62 @@ function compactMajorContext(items) {
   }));
 }
 
-export function getKnowledgeContext(record = {}) {
-  const school = findSchool(record.school);
-  const majors = findMajor(record.major);
-  return {
-    meta: {
-      schoolKbVersion: SCHOOL_KB_META.version,
-      majorKbVersion: MAJOR_KB_META.version,
-      sourcePolicy: '硬标签优先官方来源；全国第四轮学科评估可作为公开学科基础线索；第五轮非官方汇总不作为证据；A2/A3为线索需核验。'
-    },
-    school: compactSchoolContext(school, record.major),
-    major: compactMajorContext(majors),
-    hasSchoolKb: !!school,
-    hasMajorKb: majors.length > 0
-  };
+export async function getKnowledgeContext(record = {}, request = null, env = {}) {
+  try {
+    const kb = await loadSchoolKb(request, env);
+    const school = findSchoolFromKb(kb, record.school);
+    const majors = findMajor(record.major);
+
+    return {
+      meta: {
+        schoolKbVersion: kb.meta?.version || 'static-json',
+        majorKbVersion: MAJOR_KB_META.version,
+        sourcePolicy: '硬标签优先官方来源；全国第四轮学科评估可作为公开学科基础线索；第五轮非官方汇总不作为证据；A2/A3为线索需核验。',
+        storage: 'static-json'
+      },
+      school: compactSchoolContext(school, record.major),
+      major: compactMajorContext(majors),
+      hasSchoolKb: !!school,
+      hasMajorKb: majors.length > 0
+    };
+  } catch (error) {
+    return {
+      meta: {
+        schoolKbVersion: 'unavailable',
+        majorKbVersion: MAJOR_KB_META.version,
+        sourcePolicy: '知识库静态文件暂不可读，AI不得编造学校证据。',
+        error: error?.message || String(error)
+      },
+      school: null,
+      major: compactMajorContext(findMajor(record.major)),
+      hasSchoolKb: false,
+      hasMajorKb: findMajor(record.major).length > 0
+    };
+  }
 }
 
-export function getKbStats() {
-  const withAssessment = SCHOOL_KB.filter(s => s.disciplineAssessment?.matched).length;
-  const nationalAssessmentCount = SCHOOL_KB_META?.enrichment?.nationalDisciplineAssessmentSchools || 0;
-  return {
-    schoolCount: SCHOOL_KB.length,
-    disciplineAssessmentMatchedSchoolCount: withAssessment,
-    nationalDisciplineAssessmentSchoolCount: nationalAssessmentCount,
-    majorRuleCount: MAJOR_KB.length,
-    schoolKbVersion: SCHOOL_KB_META.version,
-    majorKbVersion: MAJOR_KB_META.version
-  };
+export async function getKbStats(request = null, env = {}) {
+  try {
+    const kb = await loadSchoolKb(request, env);
+    const withAssessment = kb.schools.filter(s => s.disciplineAssessment?.matched).length;
+    const nationalAssessmentCount = kb.meta?.enrichment?.nationalDisciplineAssessmentSchools || 0;
+    return {
+      schoolCount: kb.schools.length,
+      disciplineAssessmentMatchedSchoolCount: withAssessment,
+      nationalDisciplineAssessmentSchoolCount: nationalAssessmentCount,
+      majorRuleCount: MAJOR_KB.length,
+      schoolKbVersion: kb.meta?.version || 'static-json',
+      majorKbVersion: MAJOR_KB_META.version,
+      storage: 'static-json'
+    };
+  } catch (error) {
+    return {
+      schoolCount: 0,
+      error: error?.message || String(error),
+      majorRuleCount: MAJOR_KB.length,
+      schoolKbVersion: 'unavailable',
+      majorKbVersion: MAJOR_KB_META.version,
+      storage: 'static-json'
+    };
+  }
 }

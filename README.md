@@ -522,3 +522,16 @@ AI_CARD_MODEL = 你选择的模型名
 - 不使用非官方第五轮全量汇总；
 - 学科评估只作为学科层面线索；
 - 分校/校区继承母体学科评估线索，但保留真实地域和办学实体。
+---
+
+# v3.9.33 KB size safe hotfix
+
+修复 v3.9.32 在 Cloudflare Pages Functions 上可能出现的 503：
+
+- 大型知识库不再放在 `functions/_lib/kb/*.generated.js`；
+- 改为静态文件 `ln-rank/kb/school-kb.compact.json`；
+- `/api/card-diagnose` 和 `/api/kb-inspect` 按需读取静态 JSON；
+- 新增 `/api/kb-health`；
+- `/api/major-bands` 不再被大型知识库打包拖累。
+
+业务功能保持 v3.9.32 的全国第四轮学科评估知识库能力。

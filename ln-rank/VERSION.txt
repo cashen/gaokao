@@ -1,2 +1,2 @@
-v3.9.32 national-discipline-kb
-Adds national fourth-round discipline assessment KB: 463 institutions/units, 5112 school-discipline records, matched to current fenxi school KB.
+v3.9.33 kb-size-safe
+Moves large school/national discipline KB out of functions bundle into static JSON to avoid Cloudflare Pages Functions 503 while keeping national discipline KB capability.
