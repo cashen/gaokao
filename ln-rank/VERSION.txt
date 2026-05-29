@@ -1,2 +1,2 @@
-v3.9.30 ai-kb-evidence-panel
-Adds a knowledge-base evidence panel and titled parent note in AI diagnosis modal. No backend data logic changes.
+v3.9.31 ai-kb-relevance-filter
+Filters KB evidence by current major relevance, separates school-level strengths from major relevance, and improves parentNote specificity.

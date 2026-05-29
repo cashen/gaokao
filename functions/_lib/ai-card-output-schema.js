@@ -179,17 +179,55 @@ function cleanReminder(value, fallback, checks) {
   return clip(sentences[0] || source || '建议结合学校层次、城市资源、专业出口和家庭容错率判断。', 88);
 }
 
-function cleanParentNote(value, reminder, fallbackSummary) {
+function majorShort(record) {
+  const m = String(record?.major || '');
+  if (m.includes('计算机') || m.includes('软件') || m.includes('人工智能')) return '计算机';
+  if (m.includes('电气')) return '电气';
+  if (m.includes('临床') || m.includes('口腔') || m.includes('医学')) return '医学';
+  if (m.includes('金融') || m.includes('会计') || m.includes('经济')) return '财经';
+  if (m.includes('法学')) return '法学';
+  if (m.includes('师范')) return '师范';
+  if (m.includes('土木') || m.includes('建筑')) return '土木建筑';
+  return '该专业';
+}
+
+function specificParentNote(record, fallbackSummary) {
+  const delta = Number(record?.scoreDelta);
+  const major = majorShort(record);
+  const status = String(record?.statusLabel || record?.position || '');
+
+  if (Number.isFinite(delta) && delta > 0) {
+    return `可以关注，但不要当作稳妥项；先核验${major}方向实力和招生变化。`;
+  }
+  if (status.includes('稳妥') || status.includes('匹配') || (Number.isFinite(delta) && delta <= 0)) {
+    return `分数位置较舒服，可以保留；但不要只因${major}热门就忽略实际培养。`;
+  }
+  if (fallbackSummary.includes('冲') || fallbackSummary.includes('上探')) {
+    return `可以关注，但不要当作稳妥项；重点核验${major}方向实力。`;
+  }
+  return `可以保留讨论，但要结合${major}方向实力和孩子能力。`;
+}
+
+function isGenericParentNote(value) {
+  return hasAny(value, [
+    '选择合适的学校和专业',
+    '关注专业的性价比和竞争情况',
+    '综合考虑',
+    '结合自身情况',
+    '选择适合自己的',
+    '家长应关注'
+  ]);
+}
+
+function cleanParentNote(value, reminder, fallbackSummary, record) {
   let s = splitSentences(value)[0] || '';
-  if (!s || signature(s) === signature(reminder) || reminder.includes(s) || s.includes(reminder)) {
-    s = fallbackSummary.includes('冲') || fallbackSummary.includes('上探')
-      ? '可以关注，但不要当作稳妥项。'
-      : '可以保留讨论，但不要只看学校或专业热度。';
+  if (!s || signature(s) === signature(reminder) || reminder.includes(s) || s.includes(reminder) || isGenericParentNote(s)) {
+    s = specificParentNote(record, fallbackSummary);
   }
-  if (isCheckLine(s) || (isAdviceOrRiskLine(s) && s.length > 35)) {
-    s = '可以保留讨论，但要结合孩子能力和当年计划。';
+  if (isCheckLine(s) || (isAdviceOrRiskLine(s) && s.length > 38)) {
+    s = specificParentNote(record, fallbackSummary);
   }
-  return clip(s, 60);
+  return clip(s, 66);
 }
 
 export function normalizeDiagnosis(data, record, candidateScore, modelText = '') {
@@ -200,7 +238,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
   const summary = normalizeSummary(obj, fallback, record);
   const basis = cleanBasis(obj.basis, fallback.basis);
   const realityReminder = cleanReminder(obj.realityReminder, fallback.realityReminder, checks);
-  const parentNote = cleanParentNote(obj.parentNote || obj.parent_note, realityReminder, summary);
+  const parentNote = cleanParentNote(obj.parentNote || obj.parent_note, realityReminder, summary, record);
   const riskTags = cleanTags(obj.riskTags || obj.risk_tags, fallback.riskTags);
 
   return {

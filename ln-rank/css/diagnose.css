@@ -353,3 +353,6 @@ body.diagnose-modal-open {
   color: var(--primary);
   font-weight: 850;
 }
+.diagnose-kb-section li:first-child {
+  font-weight: 850;
+}

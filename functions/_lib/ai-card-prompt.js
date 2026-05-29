@@ -26,7 +26,8 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       'realityReminder不能包含“核验2026招生计划/专业组/校区”等核验事项。',
       'checks只能写核验事项，不能写“持续自学/项目能力/就业风险”等专业评价。',
       'parentNote不得复制realityReminder。',
-      '不要重复同一句话。'
+      '不要重复同一句话。',
+      '学校整体优势和当前专业相关性要分开；若当前专业未命中已收录优势学科，要明确说需核验，不要暗示该专业就是强项。'
     ],
     card: {
       candidateScore,
