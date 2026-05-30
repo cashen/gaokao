@@ -29,6 +29,7 @@ function normalizeItems(items = []) {
     const poolBand = item.poolBand?.detail ? item.poolBand : classify(item);
     return {
       order: index + 1,
+      userOrder: num(item.userOrder, index + 1),
       school: clean(item.school, 120),
       major: clean(item.major, 180),
       score2025: num(item.score2025 ?? item.score, null),
@@ -122,6 +123,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const candidateScore = input.candidateScore || '未填写';
   const items = normalizeItems(input.items || input.orderedItems || []);
   const stats = input.analysis?.stats?.total ? input.analysis.stats : getStats(items);
+  const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
     ? `${candidateScore}分｜自选池诊断报告｜辽宁物理类`
@@ -135,6 +137,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push('- 数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。');
   lines.push('- 使用边界：本报告用于志愿讨论和人工复核，不等同于录取预测。');
+  lines.push('- 排序口径：按整理页当前显示的最终顺序写入飞书；每次排序后会重新编号并保存。');
   lines.push('');
   lines.push('## 自选池总览');
   lines.push('');
@@ -185,6 +188,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     markdown: lines.join('\n'),
     recordsCount: items.length,
     reportType,
-    version: 'v3.9.45'
+    orderSignature,
+    version: 'v3.9.46'
   };
 }

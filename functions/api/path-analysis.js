@@ -117,7 +117,7 @@ function reportText({ candidateScore, stats, summary, risks, actions, sections, 
   return lines.join('\n');
 }
 
-function analyze({ items, candidateScore }) {
+function analyze({ items, candidateScore, orderSignature = '' }) {
   const ordered = normalizedItems(items);
   const stats = getStats(ordered);
   const risks = [];
@@ -125,7 +125,7 @@ function analyze({ items, candidateScore }) {
   const total = stats.total;
 
   if (!total) {
-    return { ok: true, level: 'empty', summary: '自选池暂无专业志愿。', stats, risks: ['自选池为空，无法判断冲稳保结构。'], actions: ['先加入上探、主体、稳妥三个区间的专业。'], sections: [], orderedItems: [], reportText: '自选池暂无专业志愿。' };
+    return { ok: true, version: 'v3.9.46', level: 'empty', summary: '自选池暂无专业志愿。', stats, risks: ['自选池为空，无法判断冲稳保结构。'], actions: ['先加入上探、主体、稳妥三个区间的专业。'], sections: [], orderedItems: [], orderSignature: clean(orderSignature, 600), reportText: '自选池暂无专业志愿。' };
   }
 
   if (total < 12) { risks.push('自选池数量偏少，暂时更像候选清单，不适合作为完整填报方案。'); actions.push('继续补充主体承接区和后段保底区，先扩展到至少 20 个以上再做正式排序。'); }
@@ -151,14 +151,14 @@ function analyze({ items, candidateScore }) {
   const summary = level === 'high' ? '当前自选池整体风险偏高，需要先补齐中段承接和后段保底，再做最终排序。' : level === 'medium' ? '当前自选池已有基本框架，但仍需调整冲稳保比例和集中度风险。' : '当前自选池结构相对均衡，可以进入人工复核、排序微调和报告整理。';
   if (!risks.length) risks.push('暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) actions.push('保持当前冲稳保结构，逐条核验专业接受度、计划变化和特殊项目标签。');
-  return { ok: true, version: 'v3.9.42', level, summary, stats, risks, actions, sections, orderedItems: ordered, reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
+  return { ok: true, version: 'v3.9.46', level, summary, stats, risks, actions, sections, orderedItems: ordered, orderSignature: clean(orderSignature, 600), reportText: reportText({ candidateScore, stats, summary, risks, actions, sections, ordered }), generatedAt: new Date().toISOString() };
 }
 
 export async function onRequest(context) {
   if (context.request.method !== 'POST') return json({ ok: false, message: '只支持 POST 请求。' }, 405);
   try {
     const body = await context.request.json();
-    return json(analyze({ items: body.items || body.orderedItems || [], candidateScore: body.candidateScore || null }));
+    return json(analyze({ items: body.items || body.orderedItems || [], candidateScore: body.candidateScore || null, orderSignature: body.orderSignature || '' }));
   } catch (error) {
     return json({ ok: false, message: error && error.message ? error.message : String(error) }, 500);
   }
