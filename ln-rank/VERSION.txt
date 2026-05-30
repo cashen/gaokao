@@ -1,3 +1,2 @@
-V3.946
-ln-rank-span-tool-v3.9.46-order-consistency-feishu-full
-自选池最终排序一致性收口：排序 normalize 保存、诊断过期保护、飞书读取当前最终顺序、手机整理页触控细化。
+V3.947
+ln-rank-span-tool-v3.9.47-feishu-colored-selection-report-full
