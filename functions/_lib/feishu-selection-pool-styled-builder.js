@@ -147,7 +147,7 @@ function analysisBlocks(analysis = {}) {
 function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
   const blocks = [];
   const scoreText = summary.candidateScore ? `${formatNumber(summary.candidateScore)} 分` : '分数未填写';
-  const rankText = summary.candidateRankLabel || '位次待填写';
+  const rankText = summary.candidateRankLabel || '位次待核验';
   blocks.push(heading2('一、概要判断', STYLE.title));
   blocks.push(textRunsBlock([
     { content: '考生：', style: STYLE.strong },
@@ -157,6 +157,12 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
     { content: '｜报告类型：' },
     { content: reportType === 'selectionPoolWithAnalysis' ? '完整诊断报告' : '当前排序清单', style: STYLE.action }
   ]));
+  if (summary.candidateSameCount != null) {
+    blocks.push(bulletRunsBlock([
+      { content: '同分口径：', style: STYLE.strong },
+      { content: `同分人数 ${formatNumber(summary.candidateSameCount)} 人｜内部计算采用同分末位累计 ${formatNumber(summary.candidateRankForGap)} 位。`, style: STYLE.muted }
+    ]));
+  }
   blocks.push(bulletRunsBlock(groupSummaryRuns('冲刺区', summary.rush || {}, STYLE.rush)));
   blocks.push(bulletRunsBlock(groupSummaryRuns('匹配/稳妥区', summary.stable || {}, STYLE.stable)));
   blocks.push(bulletRunsBlock(matchDetailRuns(summary)));
@@ -179,7 +185,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
       { content: `${formatNumber(summary.missingRankCount)} 个专业暂缺可识别参考位次，位次跨度只基于其余 ${formatNumber(summary.withRankCount || 0)} 个专业统计。` }
     ]));
   }
-  blocks.push(styledTextBlock(summary.candidateRankNote || '位次口径待核验。', summary.candidateRankSource === 'manual' ? STYLE.muted : STYLE.warning));
+  blocks.push(styledTextBlock(summary.candidateRankNote || '位次口径待核验。', summary.candidateRankSource === 'scoreRankTable' ? STYLE.muted : STYLE.warning));
   blocks.push(styledTextBlock(summary.maintenanceNote || '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。', STYLE.muted));
   return blocks;
 }
@@ -204,7 +210,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(textRunsBlock([
     { content: '考生分数：', style: STYLE.strong },
     { content: String(candidateScore || '未填写'), style: STYLE.strong },
-    { content: summary?.candidateRankLabel ? `｜考生位次：${summary.candidateRankLabel}` : '｜考生位次：位次待填写', style: summary?.candidateRankSource === 'manual' ? STYLE.strong : STYLE.rankMissing }
+    { content: summary?.candidateRankLabel ? `｜考生位次：${summary.candidateRankLabel}` : '｜考生位次：位次待核验', style: summary?.candidateRankSource === 'scoreRankTable' ? STYLE.strong : STYLE.rankMissing }
   ]));
   blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条复核。', STYLE.warning));
 
@@ -258,13 +264,13 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(dividerBlock());
   blocks.push(heading2(hasAnalysis ? '六、人工复核清单' : '五、人工复核清单', STYLE.title));
   [
-    '2026 年一分一段与考生实际位次。',
+    '2026 年一分一段发布后，按当年位次换算 2025 等位分/同位分。',
     '2026 年招生计划、专业备注、选科要求、体检限制。',
     '学费、校区、联合培养、中外合作、专项计划、高收费项目。',
     '家庭预算、城市接受度、专业接受度和未来转专业规则。'
   ].forEach(line => blocks.push(bulletBlock(line)));
   blocks.push(heading2(hasAnalysis ? '七、口径说明' : '六、口径说明', STYLE.title));
-  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。位次跨度根据当前自选池中可识别的参考位次计算，主要用于判断志愿梯度。同分段内部排序未展开，正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。', STYLE.muted));
+  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
 
   return blocks.slice(0, 190);
 }

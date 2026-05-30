@@ -2,6 +2,11 @@ import { normalizeRecord } from './fenxi-normalizer.js';
 import { getStatus } from './status-engine.js';
 import { matchRegion, matchKeyword } from './major-filter.js';
 
+function rankSortValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
+}
+
 const DEFAULT_UP = 10;
 const DEFAULT_DOWN = 25;
 
@@ -58,7 +63,7 @@ export function buildMajorWindow(rawRecords, { candidateScore, viewScore, filter
   }
 
   for (const key of Object.keys(groups)) {
-    groups[key].records.sort((a, b) => Math.abs(a.score - viewScore) - Math.abs(b.score - viewScore) || (a.rank || 0) - (b.rank || 0));
+    groups[key].records.sort((a, b) => Math.abs(a.score - viewScore) - Math.abs(b.score - viewScore) || rankSortValue(a.rank) - rankSortValue(b.rank));
     groups[key].count = groups[key].records.length;
   }
 

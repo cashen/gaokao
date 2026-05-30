@@ -95,7 +95,7 @@ function buildSchools(records) {
     }
 
     const rank = Number(record.rank2025 ?? record.rank);
-    if (Number.isFinite(rank)) {
+    if (Number.isFinite(rank) && rank > 0) {
       current.bestRank2025 = current.bestRank2025 == null ? rank : Math.min(current.bestRank2025, rank);
     }
 

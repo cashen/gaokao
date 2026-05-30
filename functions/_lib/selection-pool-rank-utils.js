@@ -1,3 +1,5 @@
+import { lookupScoreRank } from './rank-table-provider.js';
+
 function cleanNumber(value) {
   if (value == null || value === '') return null;
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
@@ -62,45 +64,76 @@ export function getItemReferenceScore(item = {}) {
   ]);
 }
 
+export function rankRangeText(rankInfo) {
+  if (!rankInfo || rankInfo.rankStart == null || rankInfo.rankEnd == null) return '';
+  if (rankInfo.rankStart === rankInfo.rankEnd) return `位次 ${formatNumber(rankInfo.rankEnd)}`;
+  return `位次 ${formatNumber(rankInfo.rankStart)}–${formatNumber(rankInfo.rankEnd)}`;
+}
+
 export function getCandidateRankInfo(input = {}, items = []) {
-  const manualRank = pickNumber(input, ['candidateRank', 'rank', 'candidate_rank', 'candidateRank2025']);
-  if (manualRank != null) {
+  const candidateScore = toNumber(input.candidateScore, null);
+  const year = toNumber(input.year ?? input.dataYear ?? input.rankYear, 2025) || 2025;
+  const region = input.region || 'ln';
+  const subject = input.subject || 'physics';
+  const rankRow = lookupScoreRank({ year, region, subject, score: candidateScore });
+
+  if (rankRow) {
+    const label = rankRangeText(rankRow);
     return {
-      rank: Math.round(manualRank),
-      source: 'manual',
-      label: `约 ${formatNumber(manualRank)} 位`,
-      note: '考生位次来自整理页手动填写。'
+      rank: Math.round(rankRow.rankForGap),
+      rankForGap: Math.round(rankRow.rankForGap),
+      rankStart: Math.round(rankRow.rankStart),
+      rankEnd: Math.round(rankRow.rankEnd),
+      sameCount: Math.round(rankRow.sameCount),
+      previousCumulative: Math.round(rankRow.previousCumulative),
+      cumulative: Math.round(rankRow.cumulative),
+      score: rankRow.score,
+      scoreLabel: rankRow.scoreLabel,
+      year: rankRow.year,
+      region: rankRow.region,
+      subject: rankRow.subject,
+      source: 'scoreRankTable',
+      label,
+      note: `考生位次由辽宁${rankRow.year}物理类一分一段表按分数自动取数：${rankRow.scoreLabel}分同分人数 ${formatNumber(rankRow.sameCount)} 人，展示区间 ${label}；位次差计算采用同分末位累计口径 ${formatNumber(rankRow.rankEnd)}。`,
+      sourceName: rankRow.sourceName,
+      sourceNote: rankRow.sourceNote,
+      rankingPolicy: rankRow.rankingPolicy
     };
   }
 
-  const candidateScore = toNumber(input.candidateScore, null);
-  const candidates = (Array.isArray(items) ? items : [])
-    .map(item => {
-      const rank = getItemReferenceRank(item);
-      const delta = toNumber(item.scoreDelta, null);
-      const score = getItemReferenceScore(item);
-      const distance = delta != null
-        ? Math.abs(delta)
-        : (candidateScore != null && score != null ? Math.abs(score - candidateScore) : 9999);
-      return { item, rank, distance };
-    })
-    .filter(x => x.rank != null)
-    .sort((a, b) => a.distance - b.distance || a.rank - b.rank);
-
-  if (candidates.length && candidates[0].distance <= 3) {
+  if (candidateScore != null) {
     return {
-      rank: Math.round(candidates[0].rank),
-      source: 'estimatedFromPool',
-      label: `参考约 ${formatNumber(candidates[0].rank)} 位`,
-      note: `未填写考生真实位次，已用自选池中与考生分数最接近的专业参考位次估算，距离约 ${formatNumber(candidates[0].distance)} 分；正式填报应以 2026 一分一段为准。`
+      rank: null,
+      rankForGap: null,
+      rankStart: null,
+      rankEnd: null,
+      sameCount: null,
+      previousCumulative: null,
+      cumulative: null,
+      score: candidateScore,
+      year,
+      region,
+      subject,
+      source: 'missingScoreRankTableRow',
+      label: '位次待核验',
+      note: `当前分数 ${formatNumber(candidateScore)} 未在辽宁${year}物理类一分一段表中匹配到有效同分行；报告不会用自选池专业位次反推考生位次。请核验分数是否在表内。`
     };
   }
 
   return {
     rank: null,
-    source: 'missing',
-    label: '位次待填写',
-    note: '未填写考生真实位次，且自选池中没有足够接近的可估算位次；概要中不输出虚假的位次跨度。'
+    rankForGap: null,
+    rankStart: null,
+    rankEnd: null,
+    sameCount: null,
+    previousCumulative: null,
+    cumulative: null,
+    year,
+    region,
+    subject,
+    source: 'missingCandidateScore',
+    label: '位次待核验',
+    note: '未填写考生分数，无法按辽宁2025物理类一分一段自动取位次；报告不会用自选池专业位次反推考生位次。'
   };
 }
 

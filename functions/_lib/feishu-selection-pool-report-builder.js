@@ -131,7 +131,8 @@ function summaryLines(summary) {
   const lines = [];
   lines.push('## 概要判断');
   lines.push('');
-  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待填写'}｜自选池 ${fmt(summary.totalCount)} 个`);
+  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜自选池 ${fmt(summary.totalCount)} 个`);
+  if (summary.candidateSameCount != null) lines.push(`- 同分人数：${fmt(summary.candidateSameCount)} 人｜内部计算采用同分末位累计：${fmt(summary.candidateRankForGap)} 位`);
   lines.push(`- 冲刺区：${fmt(summary.rush.count)} 个｜超冲/高冲 ${fmt(summary.rush.superRushCount || 0)} 个｜小冲 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
   lines.push(`- 匹配/稳妥区：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
   lines.push(`- 保底区：${fmt(summary.safe.count)} 个｜较深保底 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
@@ -139,7 +140,7 @@ function summaryLines(summary) {
   if (summary.topBackwardItem) lines.push(`- 全池最大向后回落：${itemName(summary.topBackwardItem)}｜${rankGapText(summary.topBackwardItem.rankGap)}`);
   if (summary.missingRankCount) lines.push(`- 位次缺失提醒：${fmt(summary.missingRankCount)} 个专业暂缺可识别参考位次，概要位次统计基于其余 ${fmt(summary.withRankCount)} 个专业。`);
   lines.push(`- 位次口径：${summary.candidateRankNote}`);
-  lines.push('- 维护口径：冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。');
+  lines.push(`- 维护口径：${summary.maintenanceNote || '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。'}`);
   lines.push('');
   return lines;
 }
@@ -150,7 +151,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const items = normalizeItems(input.items || input.orderedItems || []);
   const stats = input.analysis?.stats?.total ? input.analysis.stats : getStats(items);
   const summary = buildSelectionPoolSummary(input, items);
-  const displayRankForTitle = summary.candidateRankLabel || '位次待填写';
+  const displayRankForTitle = summary.candidateRankLabel || '位次待核验';
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
@@ -206,14 +207,14 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
   lines.push('## 人工复核清单');
   lines.push('');
-  lines.push('- 2026 年一分一段与考生实际位次。');
+  lines.push('- 2026 年一分一段发布后，按当年位次换算 2025 等位分/同位分。');
   lines.push('- 2026 年招生计划、专业备注、选科要求、体检限制。');
   lines.push('- 学费、校区、联合培养、中外合作、专项计划、高收费项目。');
   lines.push('- 家庭预算、城市接受度、专业接受度和未来转专业规则。');
   lines.push('');
   lines.push('## 口径说明');
   lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。位次跨度根据当前自选池中可识别的参考位次计算，主要用于判断志愿梯度；同分段内部排序未展开。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。');
+  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
 
   return {
     title,
@@ -221,14 +222,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.48',
+    version: 'v3.9.49',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
       reportType,
       candidateScore,
-      candidateRank: input.candidateRank || null,
-      items,
+            items,
       stats,
       summary,
       hasAnalysis,

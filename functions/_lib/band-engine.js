@@ -2,6 +2,11 @@ import { RANGE_PRESETS } from './band-config.js';
 import { getStatus } from './status-engine.js';
 import { matchRegion, matchKeyword } from './major-filter.js';
 import { buildDisplayTags } from './school-display-tags.js';
+function rankSortValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
+}
+
 export function getPreset(key) { return RANGE_PRESETS[key] || RANGE_PRESETS.standard; }
 export function makeBands(candidateScore, presetKey) {
   const preset = getPreset(presetKey);
@@ -44,7 +49,7 @@ export function buildBandResult(records, { candidateScore, presetKey, filters })
     });
   }
   for (const key of ['upper','near','steady']) {
-    grouped[key].records.sort((a,b) => Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || (a.rank || 0) - (b.rank || 0));
+    grouped[key].records.sort((a,b) => Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank));
     grouped[key].count = grouped[key].records.length;
   }
   return grouped;

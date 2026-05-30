@@ -16,8 +16,15 @@ function score2025(raw) {
   return extractYearScore(raw, 2025) ?? num(raw.score2025 ?? raw.minScore ?? raw.score ?? raw['最低分']);
 }
 
+function positiveRank(value) {
+  const n = num(value);
+  return n != null && n > 0 ? n : null;
+}
+
 function rank2025(raw) {
-  return extractYearRank(raw, 2025) ?? num(raw.rank2025 ?? raw.minRank ?? raw.rank ?? raw['最低位次']);
+  const y = extractYearRank(raw, 2025);
+  if (y != null && y > 0) return y;
+  return positiveRank(raw.rank2025 ?? raw.minRank ?? raw.rank ?? raw['最低位次']);
 }
 
 export function normalizeRecord(raw) {
@@ -26,7 +33,8 @@ export function normalizeRecord(raw) {
   const s2025 = score2025(raw);
   const r2025 = rank2025(raw);
   const s2024 = extractYearScore(raw, 2024);
-  const r2024 = extractYearRank(raw, 2024);
+  const rawR2024 = extractYearRank(raw, 2024);
+  const r2024 = rawR2024 != null && rawR2024 > 0 ? rawR2024 : null;
   const location = normalizeLocation(raw, school, major);
   const historyCompare = buildHistoryScore({
     score2025: s2025,
@@ -45,7 +53,7 @@ export function normalizeRecord(raw) {
     score2025: s2025,
     rank2025: r2025,
     score2024: s2024,
-    rank2024: r2024,
+    rank2024: r2024 != null && r2024 > 0 ? r2024 : null,
     historyCompare,
 
     lnArea: location.lnArea,

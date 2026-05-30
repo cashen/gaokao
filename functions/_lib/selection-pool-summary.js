@@ -86,12 +86,23 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
   const orderedItems = Array.isArray(items) ? items : [];
   const rankInfo = getCandidateRankInfo(input, orderedItems);
   const summary = {
-    version: 'v3.9.48',
+    version: 'v3.9.49',
     candidateScore: toNumber(input.candidateScore, null),
     candidateRank: rankInfo.rank,
     candidateRankSource: rankInfo.source,
     candidateRankLabel: rankInfo.label,
     candidateRankNote: rankInfo.note,
+    candidateRankForGap: rankInfo.rankForGap ?? rankInfo.rank,
+    candidateRankStart: rankInfo.rankStart ?? null,
+    candidateRankEnd: rankInfo.rankEnd ?? null,
+    candidateSameCount: rankInfo.sameCount ?? null,
+    candidatePreviousCumulative: rankInfo.previousCumulative ?? null,
+    candidateCumulative: rankInfo.cumulative ?? null,
+    candidateRankScoreLabel: rankInfo.scoreLabel || '',
+    candidateRankYear: rankInfo.year || 2025,
+    candidateRankSourceName: rankInfo.sourceName || '',
+    candidateRankSourceNote: rankInfo.sourceNote || '',
+    candidateRankPolicy: rankInfo.rankingPolicy || '',
     totalCount: orderedItems.length,
     rush: initGroup(),
     stable: initGroup(),
@@ -100,10 +111,10 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     withRankCount: 0,
     enrichedItems: [],
     overallLine: '',
-    maintenanceNote: '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。'
+    maintenanceNote: '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定；考生位次只按一分一段表自动取数，不再由自选池专业位次反推。'
   };
 
-  summary.enrichedItems = orderedItems.map(item => enrichItem(item, rankInfo.rank));
+  summary.enrichedItems = orderedItems.map(item => enrichItem(item, rankInfo.rankForGap ?? rankInfo.rank));
 
   for (const item of summary.enrichedItems) {
     const group = summary[groupKey(item)];

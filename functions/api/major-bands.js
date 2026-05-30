@@ -28,6 +28,12 @@ function initGrouped(bands) {
   };
 }
 
+
+function rankSortValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
+}
+
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return {
@@ -145,7 +151,7 @@ export async function onRequest(context) {
 
     for (const key of ['upper', 'near', 'steady']) {
       grouped[key].records.sort(
-        (a, b) => Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || (a.rank || 0) - (b.rank || 0)
+        (a, b) => Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank)
       );
       grouped[key].displayedCount = grouped[key].records.length;
     }
