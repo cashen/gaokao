@@ -1,4 +1,7 @@
 import { buildSelectionPoolStyledBlocks } from './feishu-selection-pool-styled-builder.js';
+import { buildSelectionPoolSummary } from './selection-pool-summary.js';
+import { formatNumber, rankGapText } from './selection-pool-rank-utils.js';
+
 function fmt(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString('zh-CN') : '—';
@@ -34,7 +37,7 @@ function normalizeItems(items = []) {
       school: clean(item.school, 120),
       major: clean(item.major, 180),
       score2025: num(item.score2025 ?? item.score, null),
-      rank2025: num(item.rank2025 ?? item.rank, null),
+      rank2025: num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null),
       score2024: num(item.score2024, null),
       rank2024: num(item.rank2024, null),
       scoreDelta: num(item.scoreDelta, null),
@@ -88,6 +91,11 @@ function itemLine(item) {
   return `${item.order}. ${item.school}｜${item.major}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
+function itemName(item) {
+  if (!item) return '暂无';
+  return `${item.school || '学校待核验'}｜${item.major || '专业待核验'}`;
+}
+
 function analysisLines(analysis = {}) {
   const lines = [];
   if (analysis.summary) {
@@ -119,16 +127,35 @@ function analysisLines(analysis = {}) {
   return lines;
 }
 
+function summaryLines(summary) {
+  const lines = [];
+  lines.push('## 概要判断');
+  lines.push('');
+  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待填写'}｜自选池 ${fmt(summary.totalCount)} 个`);
+  lines.push(`- 冲刺区：${fmt(summary.rush.count)} 个｜超冲/高冲 ${fmt(summary.rush.superRushCount || 0)} 个｜小冲 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
+  lines.push(`- 匹配/稳妥区：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
+  lines.push(`- 保底区：${fmt(summary.safe.count)} 个｜较深保底 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
+  if (summary.topForwardItem) lines.push(`- 全池最高向前跨越：${itemName(summary.topForwardItem)}｜${rankGapText(summary.topForwardItem.rankGap)}`);
+  if (summary.topBackwardItem) lines.push(`- 全池最大向后回落：${itemName(summary.topBackwardItem)}｜${rankGapText(summary.topBackwardItem.rankGap)}`);
+  if (summary.missingRankCount) lines.push(`- 位次缺失提醒：${fmt(summary.missingRankCount)} 个专业暂缺可识别参考位次，概要位次统计基于其余 ${fmt(summary.withRankCount)} 个专业。`);
+  lines.push(`- 位次口径：${summary.candidateRankNote}`);
+  lines.push('- 维护口径：冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。');
+  lines.push('');
+  return lines;
+}
+
 export function buildSelectionPoolFeishuReport(input = {}) {
   const reportType = input.reportType === 'selectionPoolWithAnalysis' ? 'selectionPoolWithAnalysis' : 'selectionPoolOnly';
   const candidateScore = input.candidateScore || '未填写';
   const items = normalizeItems(input.items || input.orderedItems || []);
   const stats = input.analysis?.stats?.total ? input.analysis.stats : getStats(items);
+  const summary = buildSelectionPoolSummary(input, items);
+  const displayRankForTitle = summary.candidateRankLabel || '位次待填写';
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜自选池诊断报告｜辽宁物理类`
-    : `${candidateScore}分｜自选池排序清单｜辽宁物理类`;
+    ? `${candidateScore}分｜${displayRankForTitle}｜自选池诊断报告｜辽宁物理类`
+    : `${candidateScore}分｜${displayRankForTitle}｜自选池排序清单｜辽宁物理类`;
   const lines = [];
 
   lines.push(`# ${title}`);
@@ -136,10 +163,12 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push(hasAnalysis ? '## 辽宁物理类志愿自选池诊断报告' : '## 辽宁物理类志愿自选池排序清单');
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
+  lines.push(`- 考生位次：${displayRankForTitle}`);
   lines.push('- 数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。');
   lines.push('- 使用边界：本报告用于志愿讨论和人工复核，不等同于录取预测。');
   lines.push('- 排序口径：按整理页当前显示的最终顺序写入飞书；每次排序后会重新编号并保存。');
   lines.push('');
+  lines.push(...summaryLines(summary));
   lines.push('## 自选池总览');
   lines.push('');
   lines.push(`- 自选池总数：${fmt(stats.total)} 个`);
@@ -154,14 +183,16 @@ export function buildSelectionPoolFeishuReport(input = {}) {
 
   lines.push('## 当前自选池排序');
   lines.push('');
-  if (!items.length) {
+  const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
+  if (!displayItems.length) {
     lines.push('- 当前自选池为空。');
   } else {
-    items.forEach((item) => {
+    displayItems.forEach((item) => {
       lines.push(`### ${itemLine(item)}`);
       lines.push('');
       lines.push(`- 适合位置：${item.position || item.poolBand?.position || '待核验'}`);
       lines.push(`- 相对考生：${deltaText(item.scoreDelta)} 分`);
+      lines.push(`- 位次跨度：${rankGapText(item.rankGap)}`);
       lines.push(`- 地域/标签：${tagsText(item)}`);
       if (Number.isFinite(Number(item.score2024)) || Number.isFinite(Number(item.rank2024))) {
         lines.push(`- 2024参考：${Number.isFinite(Number(item.score2024)) ? fmt(item.score2024) + ' 分' : '分数待核验'} / ${Number.isFinite(Number(item.rank2024)) ? fmt(item.rank2024) + ' 位' : '位次待核验'}`);
@@ -182,7 +213,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
   lines.push('## 口径说明');
   lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。');
+  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。位次跨度根据当前自选池中可识别的参考位次计算，主要用于判断志愿梯度；同分段内部排序未展开。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科、体检、学费、校区和专业特殊要求综合判断。');
 
   return {
     title,
@@ -190,13 +221,16 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.47',
+    version: 'v3.9.48',
+    summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
       reportType,
       candidateScore,
+      candidateRank: input.candidateRank || null,
       items,
       stats,
+      summary,
       hasAnalysis,
       analysis: input.analysis || null,
       orderSignature

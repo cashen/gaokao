@@ -4,20 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁物理类自选池拖拽排序与诊断</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=3947" />
-  <link rel="stylesheet" href="./css/base.css?v=3947" />
-  <link rel="stylesheet" href="./css/layout.css?v=3947" />
-  <link rel="stylesheet" href="./css/topbar.css?v=3947" />
-  <link rel="stylesheet" href="./css/major-list.css?v=3947" />
-  <link rel="stylesheet" href="./css/tags.css?v=3947" />
-  <link rel="stylesheet" href="./css/responsive.css?v=3947" />
-  <link rel="stylesheet" href="./css/selection-pool.v3947.css?v=3947" />
+  <link rel="stylesheet" href="./css/tokens.css?v=3948" />
+  <link rel="stylesheet" href="./css/base.css?v=3948" />
+  <link rel="stylesheet" href="./css/layout.css?v=3948" />
+  <link rel="stylesheet" href="./css/topbar.css?v=3948" />
+  <link rel="stylesheet" href="./css/major-list.css?v=3948" />
+  <link rel="stylesheet" href="./css/tags.css?v=3948" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3948" />
+  <link rel="stylesheet" href="./css/selection-pool.v3948.css?v=3948" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.947</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.948</p>
         <h1 class="app-title">自选池拖拽排序与诊断</h1>
         <p class="app-subtitle">这里是自选池的完整整理页：拖拽或快速移动已选“专业+学校”顺序，检查冲稳保和保底承接，并一键发送到飞书。</p>
       </div>
@@ -28,11 +28,17 @@
     </header>
 
     <section class="panel topbar">
-      <div class="score-box">
-        <label for="pathCandidateScore">考生分数</label>
-        <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
+      <div class="score-rank-inline">
+        <div class="score-box">
+          <label for="pathCandidateScore">考生分数</label>
+          <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
+        </div>
+        <div class="score-box rank-box">
+          <label for="pathCandidateRank">考生位次<span>可选</span></label>
+          <input id="pathCandidateRank" class="score-input" type="text" inputmode="numeric" placeholder="如 15234" />
+        </div>
       </div>
-      <div class="top-note">排序诊断以自选池内的专业卡片和当前顺序为准；分数用于报告展示和相对分差解释。正式填报仍需结合 2026 年当年位次、招生计划和人工复核。</div>
+      <div class="top-note">排序诊断以自选池内的专业卡片和当前顺序为准；分数和位次用于飞书概要展示。位次不填时，报告只会基于自选池中最接近考生分数的专业位次做参考估算，并明确标注。</div>
     </section>
 
     <section class="selection-workspace">
@@ -72,6 +78,6 @@
       当前自选池清单与诊断报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。正式填报需结合 2026 年一分一段、等位分/同位分、招生计划、选科、体检、学费和校区逐条核验。
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3947.js?v=3947"></script>
+  <script type="module" src="./js/selection-pool.v3948.js?v=3948"></script>
 </body>
 </html>

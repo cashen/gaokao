@@ -21,7 +21,11 @@ export const STYLE = {
   safe: { bold: true, text_color: FEISHU_TEXT_COLOR.blue, background_color: FEISHU_TEXT_COLOR.blue },
   floor: { bold: true, text_color: FEISHU_TEXT_COLOR.grey, background_color: FEISHU_TEXT_COLOR.grey },
   risk: { bold: true, text_color: FEISHU_TEXT_COLOR.red },
-  action: { bold: true, text_color: FEISHU_TEXT_COLOR.blue }
+  action: { bold: true, text_color: FEISHU_TEXT_COLOR.blue },
+  rankForward: { bold: true, text_color: FEISHU_TEXT_COLOR.orange, background_color: FEISHU_TEXT_COLOR.yellow },
+  rankBackward: { bold: true, text_color: FEISHU_TEXT_COLOR.blue },
+  rankNear: { bold: true, text_color: FEISHU_TEXT_COLOR.green },
+  rankMissing: { text_color: FEISHU_TEXT_COLOR.grey }
 };
 
 export function styleForBand(band = {}) {
@@ -64,4 +68,13 @@ export function groupMeta(group) {
     style: STYLE.safe,
     note: '保底区要看是否真愿意读，不建议只为了低分安全而堆过多不接受的专业。'
   };
+}
+
+
+export function styleForRankGap(gap) {
+  const n = Number(gap);
+  if (!Number.isFinite(n)) return STYLE.rankMissing;
+  if (n > 800) return STYLE.rankForward;
+  if (n < -800) return STYLE.rankBackward;
+  return STYLE.rankNear;
 }

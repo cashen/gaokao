@@ -1,2 +1,1 @@
-V3.947
-ln-rank-span-tool-v3.9.47-feishu-colored-selection-report-full
+v3.9.48-feishu-rank-summary
