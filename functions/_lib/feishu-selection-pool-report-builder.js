@@ -1,3 +1,4 @@
+import { buildSelectionPoolStyledBlocks } from './feishu-selection-pool-styled-builder.js';
 function fmt(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString('zh-CN') : '—';
@@ -189,6 +190,16 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.46'
+    version: 'v3.9.47',
+    styledBlocks: buildSelectionPoolStyledBlocks({
+      title,
+      reportType,
+      candidateScore,
+      items,
+      stats,
+      hasAnalysis,
+      analysis: input.analysis || null,
+      orderSignature
+    })
   };
 }

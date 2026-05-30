@@ -112,20 +112,38 @@ async function createBlocks(token, documentId, blocks) {
 }
 
 export async function writeReportToFeishuDocument(token, documentId, report) {
+  let styledError = null;
+  if (Array.isArray(report?.styledBlocks) && report.styledBlocks.length) {
+    try {
+      await createBlocks(token, documentId, report.styledBlocks);
+      return { ok: true, method: "styled-blocks" };
+    } catch (error) {
+      styledError = error;
+    }
+  }
+
   try {
     const converted = await convertMarkdownToBlocks(token, report.markdown);
     await insertConvertedBlocks(token, documentId, converted);
-    return { ok: true, method: "markdown-convert" };
+    return {
+      ok: true,
+      method: "markdown-convert",
+      warning: styledError ? `彩色样式写入失败，已自动使用普通版内容：${styledError.message}` : ""
+    };
   } catch (convertError) {
     const blocks = reportToFallbackBlocks(report);
     try {
       await createBlocks(token, documentId, blocks);
-      return { ok: true, method: "fallback-blocks", warning: convertError.message };
+      const parts = [];
+      if (styledError) parts.push(`彩色样式写入失败：${styledError.message}`);
+      parts.push(`Markdown 转换失败：${convertError.message}`);
+      return { ok: true, method: "fallback-blocks", warning: parts.join('；') };
     } catch (fallbackError) {
       return {
         ok: false,
         method: "failed",
         error: fallbackError.message,
+        styledError: styledError ? styledError.message : "",
         convertError: convertError.message
       };
     }
