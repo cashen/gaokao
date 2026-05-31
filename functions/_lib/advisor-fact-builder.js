@@ -1,6 +1,7 @@
 import { getExamYearConfig } from './exam-year-config.js';
 import { lookupScoreRank, getRankTableRows } from './rank-table-provider.js';
 import { getRankGap, rankGapText } from './selection-pool-rank-utils.js';
+import { getPushRateReference, buildPushRateSummary } from './push-rate-matcher.js';
 
 function num(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -94,7 +95,8 @@ function normalizeItems(items = [], candidateRank = null) {
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 50)).filter(Boolean).slice(0, 8) : [],
       poolBand,
-      majorFamily: majorFamily(item.major)
+      majorFamily: majorFamily(item.major),
+      pushRateRef: getPushRateReference(item.school || item.schoolName || '')
     };
   }).filter(x => x.school || x.major);
 }
@@ -182,9 +184,10 @@ export function buildAdvisorFacts(input = {}) {
   const density = densityOf({ score: candidateScore, year: config.rankYear, region: config.region, subject: config.subject });
   const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank);
   const stats = buildStats(orderedItems);
+  const pushRateSummary = buildPushRateSummary(orderedItems);
   const note = noteFromFacts({ config, candidateScore, specialControlScore: config.specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
   return {
-    version: 'v3.9.5.6',
+    version: 'v3.9.5.7',
     config,
     candidate: {
       score: candidateScore,
@@ -210,6 +213,7 @@ export function buildAdvisorFacts(input = {}) {
     },
     density,
     poolStructure: stats,
+    pushRateSummary,
     orderedItems,
     note
   };
@@ -227,6 +231,12 @@ export function compactItemsForAi(items = [], max = 40) {
     band: item.poolBand?.detail || item.statusLabel || '',
     majorFamily: item.majorFamily,
     location: item.displayLocation,
-    nature: item.natureLabel
+    nature: item.natureLabel,
+    pushRate: item.pushRateRef ? {
+      level: item.pushRateRef.pushOpportunityLevel,
+      text: item.pushRateRef.schoolPushRateText,
+      sourceLevel: item.pushRateRef.sourceLevel,
+      majorStatus: item.pushRateRef.majorLevelStatus
+    } : null
   }));
 }

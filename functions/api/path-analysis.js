@@ -116,6 +116,23 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   if (stats.tuitionOrCoopCount >= 1) {
     addUnique(actions, '涉及中外合作、高收费或特殊培养项目时，逐条核验学费、毕业证、校区和培养方式。');
   }
+
+  const push = facts.pushRateSummary || {};
+  if (push.total) {
+    if (!push.matchedCount) {
+      addUnique(actions, '当前自选池暂未匹配到学校级推免参考数据，不要把保研机会作为排序依据。');
+    } else {
+      if (['industry-platform-zone', 'platform-major-balance-zone', 'high-platform-zone', 'top-platform-fine-sort-zone'].includes(key) && push.mediumHighOpportunityCount >= 1) {
+        addUnique(actions, '本分段可把“升学与推免参考”作为辅助排序维度，但必须区分校级推免机会和专业实际名额。');
+      }
+      if (push.mediumHighOpportunityCount >= Math.ceil(total * 0.25)) {
+        addUnique(actions, '当前自选池已有一定升学跳板型院校，可在报告中单独说明其保研/考研平台价值。');
+      }
+      if (push.needMajorCheckCount >= 1) {
+        addUnique(risks, '校级推免率不等于所报专业保研率，相关学院/专业名额仍需人工核验。');
+      }
+    }
+  }
   if (!risks.length) addUnique(risks, '暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) addUnique(actions, '保持当前冲稳保结构，逐条核验专业接受度、计划变化和特殊项目标签。');
   const level = risks.length >= 5 ? 'high' : risks.length >= 3 ? 'medium' : 'low';
@@ -167,7 +184,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.5.6',
+    version: 'v3.9.5.7',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -238,7 +255,7 @@ export async function onRequest(context) {
     const summary = buildSummary(facts, policy, rule.level);
     const result = {
       ok: true,
-      version: 'v3.9.5.6',
+      version: 'v3.9.5.7',
       level: rule.level,
       source: narrativeResult.source,
       model: narrativeResult.model || '',
@@ -254,6 +271,7 @@ export async function onRequest(context) {
       candidateContext: rankZone,
       policySnapshot: policy,
       stats: facts.poolStructure,
+      pushRateSummary: facts.pushRateSummary,
       risks: rule.risks,
       actions: rule.actions,
       sections: [],

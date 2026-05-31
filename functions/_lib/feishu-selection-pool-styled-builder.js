@@ -127,10 +127,11 @@ function analysisBlocks(analysis = {}) {
   if (ai) {
     blocks.push(heading3('AI高报师解读', STYLE.action));
     if (ai.overall) blocks.push(styledTextBlock(clean(ai.overall, 900), STYLE.strong));
-    if (ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.rankZoneExplain, 700) }]));
+    if (ai.zoneJudgement || ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.zoneJudgement || ai.rankZoneExplain, 700) }]));
     if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '结构诊断：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
     if (ai.majorPathDiagnosis) blocks.push(bulletRunsBlock([{ content: '专业路径：', style: STYLE.strong }, { content: clean(ai.majorPathDiagnosis, 700) }]));
-    if (ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '保底底线：', style: STYLE.strong }, { content: clean(ai.bottomLineRisk, 700) }]));
+    if (ai.pushRateDiagnosis) blocks.push(bulletRunsBlock([{ content: '升学与推免参考：', style: STYLE.strong }, { content: clean(ai.pushRateDiagnosis, 700) }]));
+    if (ai.bottomLineDiagnosis || ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '保底底线：', style: STYLE.strong }, { content: clean(ai.bottomLineDiagnosis || ai.bottomLineRisk, 700) }]));
     if (Array.isArray(ai.actions) && ai.actions.length) {
       ai.actions.slice(0, 6).forEach(action => blocks.push(bulletRunsBlock([{ content: clean(action, 500), style: STYLE.action }])));
     }

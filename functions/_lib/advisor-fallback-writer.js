@@ -33,6 +33,19 @@ function majorText(facts) {
   return parts.join(' ') || '专业和地域集中度暂未形成明显单点风险，仍需逐条核验专业接受度、校区、学费和计划变化。';
 }
 
+
+function pushRateText(facts) {
+  const p = facts.pushRateSummary || {};
+  if (!facts.poolStructure?.total) return '自选池暂无专业志愿，暂无法判断升学与推免参考。';
+  if (!p.matchedCount) return '当前自选池暂未匹配到可用的学校级推免参考数据，不能据此判断升学跳板价值。';
+  const parts = [];
+  parts.push(p.advisorText || `当前有 ${p.matchedCount} 个志愿匹配到学校级推免参考数据。`);
+  if (p.pathHint === 'study-platform-visible') parts.push('如果孩子有明确读研/保研规划，这些院校可作为升学跳板参考；如果本科就业优先，则仍应把行业就业、专业能力和地域放在前面。');
+  else parts.push('该指标在本方案中只作辅助参考，不能替代专业实力、就业路径和录取位次判断。');
+  parts.push('校级推免率不等于学院/专业保研率，具体专业名额必须核验学院推免办法和近年公示。');
+  return parts.join('');
+}
+
 function bottomText(facts) {
   const s = facts.poolStructure || {};
   if (!s.total) return '保底待补充。';
@@ -57,6 +70,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
   const zoneJudgement = buildZoneSentence(facts, zone, policy);
   const structureDiagnosis = structureText(facts);
   const majorPathDiagnosis = majorText(facts);
+  const pushRateDiagnosis = pushRateText(facts);
   const bottomLineDiagnosis = bottomText(facts);
   const parentVersion = `${policy.zoneName}：${policy.mainGoal} 这不是固定分数段套话，而是基于当前位次、控制线和自选池结构的判断。`;
   const reportMarkdown = [
@@ -70,6 +84,8 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     '',
     `**专业路径：** ${majorPathDiagnosis}`,
     '',
+    `**升学与推免参考：** ${pushRateDiagnosis}`,
+    '',
     `**保底底线：** ${bottomLineDiagnosis}`,
     '',
     '**调整建议：**',
@@ -82,6 +98,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     reasoning: `${policy.mainConflict} 当前自选池需要按这个主矛盾检查，而不是只按固定分数段套话。`,
     structureDiagnosis,
     majorPathDiagnosis,
+    pushRateDiagnosis,
     bottomLineDiagnosis,
     riskDiagnosis,
     actions: finalActions,

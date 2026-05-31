@@ -136,6 +136,12 @@ function analysisLines(analysis = {}) {
       lines.push(clean(narrative.majorPathDiagnosis, 1000));
       lines.push('');
     }
+    if (narrative.pushRateDiagnosis) {
+      lines.push('### 升学与推免参考');
+      lines.push('');
+      lines.push(clean(narrative.pushRateDiagnosis, 1000));
+      lines.push('');
+    }
     if (narrative.bottomLineDiagnosis) {
       lines.push('### 保底底线');
       lines.push('');
