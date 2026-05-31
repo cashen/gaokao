@@ -98,55 +98,73 @@ function itemName(item) {
 
 function analysisLines(analysis = {}) {
   const lines = [];
-  const ai = analysis.aiNarrative && typeof analysis.aiNarrative === 'object' ? analysis.aiNarrative : null;
-  if (analysis.summary) {
-    lines.push('## 志愿排序诊断结论');
+  const narrative = analysis.narrative || analysis.aiNarrative || null;
+  if (!narrative) return lines;
+
+  lines.push('## AI高报师判断');
+  lines.push('');
+  if (analysis.source) lines.push(`- 解读来源：${analysis.source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
+  if (analysis.rankZone?.zoneName) lines.push(`- 位次功能区：${analysis.rankZone.zoneName}`);
+  if (!narrative.reportMarkdown && narrative.overall) lines.push(`- 整体判断：${clean(narrative.overall, 800)}`);
+  lines.push('');
+
+  if (narrative.reportMarkdown) {
+    lines.push(clean(narrative.reportMarkdown, 2600));
     lines.push('');
-    lines.push(`- 整体判断：${analysis.summary}`);
-    if (analysis.rankZone?.zoneName) lines.push(`- 位次功能区：${analysis.rankZone.zoneName}`);
-    if (analysis.source) lines.push(`- AI解读来源：${analysis.source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
-    lines.push('');
-  }
-  if (ai) {
-    lines.push('## AI高报师解读');
-    lines.push('');
-    if (ai.overall) lines.push(`- 整体解读：${clean(ai.overall, 600)}`);
-    if (ai.rankZoneExplain) lines.push(`- 位次定位：${clean(ai.rankZoneExplain, 600)}`);
-    if (ai.structureDiagnosis) lines.push(`- 结构诊断：${clean(ai.structureDiagnosis, 600)}`);
-    if (ai.majorPathDiagnosis) lines.push(`- 专业路径：${clean(ai.majorPathDiagnosis, 600)}`);
-    if (ai.bottomLineRisk) lines.push(`- 保底底线：${clean(ai.bottomLineRisk, 600)}`);
-    if (Array.isArray(ai.actions) && ai.actions.length) {
+  } else {
+    if (narrative.zoneJudgement) {
+      lines.push('### 位次功能区判断');
       lines.push('');
-      lines.push('### AI调整动作');
+      lines.push(clean(narrative.zoneJudgement, 1000));
       lines.push('');
-      ai.actions.slice(0, 6).forEach((action, index) => lines.push(`${index + 1}. ${clean(action, 160)}`));
     }
-    if (ai.disclaimer) {
+    if (narrative.reasoning) {
+      lines.push('### 为什么这样判断');
       lines.push('');
-      lines.push(`- 边界说明：${clean(ai.disclaimer, 500)}`);
+      lines.push(clean(narrative.reasoning, 1000));
+      lines.push('');
     }
-    lines.push('');
+    if (narrative.structureDiagnosis) {
+      lines.push('### 结构诊断');
+      lines.push('');
+      lines.push(clean(narrative.structureDiagnosis, 1000));
+      lines.push('');
+    }
+    if (narrative.majorPathDiagnosis) {
+      lines.push('### 专业与地域路径');
+      lines.push('');
+      lines.push(clean(narrative.majorPathDiagnosis, 1000));
+      lines.push('');
+    }
+    if (narrative.bottomLineDiagnosis) {
+      lines.push('### 保底底线');
+      lines.push('');
+      lines.push(clean(narrative.bottomLineDiagnosis, 1000));
+      lines.push('');
+    }
+    if (Array.isArray(narrative.riskDiagnosis) && narrative.riskDiagnosis.length) {
+      lines.push('### 主要风险');
+      lines.push('');
+      narrative.riskDiagnosis.slice(0, 8).forEach((risk, index) => lines.push(`${index + 1}. ${clean(risk, 180)}`));
+      lines.push('');
+    }
+    if (Array.isArray(narrative.actions) && narrative.actions.length) {
+      lines.push('### 调整建议');
+      lines.push('');
+      narrative.actions.slice(0, 8).forEach((action, index) => lines.push(`${index + 1}. ${clean(action, 180)}`));
+      lines.push('');
+    }
   }
-  if (Array.isArray(analysis.sections) && analysis.sections.length) {
-    analysis.sections.forEach(section => {
-      lines.push(`### ${clean(section.title, 80)}`);
-      lines.push('');
-      lines.push(clean(section.content, 1200));
-      lines.push('');
-    });
+
+  lines.push('## 冲稳保快速复核');
+  lines.push('');
+  if (analysis.stats?.total) {
+    lines.push(`- 冲刺：${fmt(analysis.stats.rushCount)} 个｜稳妥：${fmt(analysis.stats.stableCount)} 个｜保底：${fmt(analysis.stats.safeCount)} 个｜高冲：${fmt(analysis.stats.highRushCount || 0)} 个`);
   }
   if (Array.isArray(analysis.risks) && analysis.risks.length) {
-    lines.push('## 主要风险');
-    lines.push('');
-    analysis.risks.slice(0, 12).forEach((risk, index) => lines.push(`${index + 1}. ${risk}`));
-    lines.push('');
+    lines.push(`- 规则风险底稿：${analysis.risks.slice(0, 6).map(x => clean(x, 100)).join('；')}`);
   }
-  if (Array.isArray(analysis.actions) && analysis.actions.length) {
-    lines.push('## 调整建议');
-    lines.push('');
-    analysis.actions.slice(0, 12).forEach((action, index) => lines.push(`${index + 1}. ${action}`));
-    lines.push('');
-  }
+  lines.push('');
   return lines;
 }
 

@@ -1,5 +1,5 @@
 export const LN_PHYSICS_EXAM_CONFIG = {
-  version: 'v3.9.5.5',
+  version: 'v3.9.5.6',
   year: 2025,
   region: 'ln',
   subject: 'physics',
