@@ -1,8 +1,8 @@
-import { json, verifyFenxiRequest } from '../../_lib/fenxi-session.js';
+import { hasFenxiCookie, json, verifyFenxiRequest } from '../../_lib/fenxi-session.js';
 
 async function handle(context) {
   const authed = await verifyFenxiRequest(context.request, context.env);
-  return json({ ok: true, authed });
+  return json({ ok: true, authed, cookiePresent: hasFenxiCookie(context.request) });
 }
 
 export async function onRequestGet(context) {

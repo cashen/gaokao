@@ -12,6 +12,14 @@ function safeString(value) {
   return String(value || '').trim();
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function timingSafeEqual(a, b) {
   const left = safeString(a);
   const right = safeString(b);
@@ -19,6 +27,12 @@ function timingSafeEqual(a, b) {
   let out = 0;
   for (let i = 0; i < left.length; i += 1) out |= left.charCodeAt(i) ^ right.charCodeAt(i);
   return out === 0;
+}
+
+function normalizeCookiePath(path = '/') {
+  const clean = String(path || '/').trim();
+  if (!clean || clean === '/') return '/';
+  return clean.startsWith('/') ? clean.replace(/\/+$/, '') || '/' : `/${clean.replace(/\/+$/, '')}`;
 }
 
 export function getFenxiAccessCode(env = {}) {
@@ -40,7 +54,6 @@ export function getFenxiSessionSecret(env = {}) {
       env.ACCESS_COOKIE_SECRET ||
       env.FENXI_SESSION_SECRET ||
       env.SESSION_SECRET ||
-      env.ln2026 ||
       getFenxiAccessCode(env),
   );
 }
@@ -76,25 +89,30 @@ export async function createFenxiCookie(env = {}, maxAgeSeconds = SESSION_MAX_AG
   return token ? `${COOKIE_NAME}=${token}` : '';
 }
 
-export async function createFenxiSetCookie(env = {}, maxAgeSeconds = SESSION_MAX_AGE_SECONDS) {
+export async function createFenxiSetCookie(env = {}, maxAgeSeconds = SESSION_MAX_AGE_SECONDS, path = '/fenxi') {
   const cookie = await createFenxiCookie(env, maxAgeSeconds);
   if (!cookie) return '';
-  return `${cookie}; Path=/; Max-Age=${Number(maxAgeSeconds || SESSION_MAX_AGE_SECONDS)}; HttpOnly; Secure; SameSite=Lax`;
+  return `${cookie}; Path=${normalizeCookiePath(path)}; Max-Age=${Number(maxAgeSeconds || SESSION_MAX_AGE_SECONDS)}; HttpOnly; Secure; SameSite=Lax`;
 }
 
-export function clearFenxiSetCookie() {
-  return `${COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax`;
+export function clearFenxiSetCookie(path = '/') {
+  return `${COOKIE_NAME}=; Path=${normalizeCookiePath(path)}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax`;
 }
 
-export function readCookie(cookieHeader = '', name = COOKIE_NAME) {
+export function readCookies(cookieHeader = '', name = COOKIE_NAME) {
+  const values = [];
   const parts = String(cookieHeader || '').split(';');
   for (const part of parts) {
     const index = part.indexOf('=');
     if (index < 0) continue;
     const key = part.slice(0, index).trim();
-    if (key === name) return decodeURIComponent(part.slice(index + 1).trim());
+    if (key === name) values.push(safeDecode(part.slice(index + 1).trim()));
   }
-  return '';
+  return values.filter(Boolean);
+}
+
+export function readCookie(cookieHeader = '', name = COOKIE_NAME) {
+  return readCookies(cookieHeader, name)[0] || '';
 }
 
 export async function verifyFenxiSessionToken(token, env = {}) {
@@ -110,13 +128,20 @@ export async function verifyFenxiSessionToken(token, env = {}) {
 }
 
 export async function verifyFenxiCookieHeader(cookieHeader = '', env = {}) {
-  const token = readCookie(cookieHeader, COOKIE_NAME);
-  if (!token) return false;
-  return verifyFenxiSessionToken(token, env);
+  const tokens = readCookies(cookieHeader, COOKIE_NAME);
+  if (!tokens.length) return false;
+  for (const token of tokens) {
+    if (await verifyFenxiSessionToken(token, env)) return true;
+  }
+  return false;
 }
 
 export async function verifyFenxiRequest(request, env = {}) {
   return verifyFenxiCookieHeader(request.headers.get('cookie') || '', env);
+}
+
+export function hasFenxiCookie(request) {
+  return readCookies(request.headers.get('cookie') || '', COOKIE_NAME).length > 0;
 }
 
 export function json(data, init = {}) {
