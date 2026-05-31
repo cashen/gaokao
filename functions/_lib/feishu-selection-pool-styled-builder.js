@@ -123,6 +123,18 @@ function analysisBlocks(analysis = {}) {
       { content: clean(analysis.summary, 800) }
     ]));
   }
+  const ai = analysis.aiNarrative && typeof analysis.aiNarrative === 'object' ? analysis.aiNarrative : null;
+  if (ai) {
+    blocks.push(heading3('AI高报师解读', STYLE.action));
+    if (ai.overall) blocks.push(styledTextBlock(clean(ai.overall, 900), STYLE.strong));
+    if (ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.rankZoneExplain, 700) }]));
+    if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '结构诊断：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
+    if (ai.majorPathDiagnosis) blocks.push(bulletRunsBlock([{ content: '专业路径：', style: STYLE.strong }, { content: clean(ai.majorPathDiagnosis, 700) }]));
+    if (ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '保底底线：', style: STYLE.strong }, { content: clean(ai.bottomLineRisk, 700) }]));
+    if (Array.isArray(ai.actions) && ai.actions.length) {
+      ai.actions.slice(0, 6).forEach(action => blocks.push(bulletRunsBlock([{ content: clean(action, 500), style: STYLE.action }])));
+    }
+  }
   if (Array.isArray(analysis.sections) && analysis.sections.length) {
     analysis.sections.slice(0, 6).forEach(section => {
       blocks.push(heading3(clean(section.title, 80), STYLE.strong));
@@ -161,6 +173,18 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
     blocks.push(bulletRunsBlock([
       { content: '同分口径：', style: STYLE.strong },
       { content: `同分人数 ${formatNumber(summary.candidateSameCount)} 人｜内部计算采用同分末位累计 ${formatNumber(summary.candidateRankForGap)} 位。`, style: STYLE.muted }
+    ]));
+  }
+  if (summary.rankZoneName) {
+    blocks.push(bulletRunsBlock([
+      { content: '特控线锚点：', style: STYLE.strong },
+      { content: `${formatNumber(summary.specialControlScore)} 分｜${summary.specialControlRankLabel || '位次待核验'}｜${summary.rankZoneName}`, style: STYLE.action }
+    ]));
+  }
+  if (summary.densitySummary) {
+    blocks.push(bulletRunsBlock([
+      { content: '附近人数：', style: STYLE.strong },
+      { content: `同分 ${formatNumber(summary.densitySummary.sameCount)} 人｜上5分 ${formatNumber(summary.densitySummary.up5Count)} 人｜下5分 ${formatNumber(summary.densitySummary.down5Count)} 人`, style: STYLE.muted }
     ]));
   }
   blocks.push(bulletRunsBlock(groupSummaryRuns('冲刺区', summary.rush || {}, STYLE.rush)));

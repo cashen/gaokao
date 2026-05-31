@@ -98,10 +98,33 @@ function itemName(item) {
 
 function analysisLines(analysis = {}) {
   const lines = [];
+  const ai = analysis.aiNarrative && typeof analysis.aiNarrative === 'object' ? analysis.aiNarrative : null;
   if (analysis.summary) {
     lines.push('## 志愿排序诊断结论');
     lines.push('');
     lines.push(`- 整体判断：${analysis.summary}`);
+    if (analysis.rankZone?.zoneName) lines.push(`- 位次功能区：${analysis.rankZone.zoneName}`);
+    if (analysis.source) lines.push(`- AI解读来源：${analysis.source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
+    lines.push('');
+  }
+  if (ai) {
+    lines.push('## AI高报师解读');
+    lines.push('');
+    if (ai.overall) lines.push(`- 整体解读：${clean(ai.overall, 600)}`);
+    if (ai.rankZoneExplain) lines.push(`- 位次定位：${clean(ai.rankZoneExplain, 600)}`);
+    if (ai.structureDiagnosis) lines.push(`- 结构诊断：${clean(ai.structureDiagnosis, 600)}`);
+    if (ai.majorPathDiagnosis) lines.push(`- 专业路径：${clean(ai.majorPathDiagnosis, 600)}`);
+    if (ai.bottomLineRisk) lines.push(`- 保底底线：${clean(ai.bottomLineRisk, 600)}`);
+    if (Array.isArray(ai.actions) && ai.actions.length) {
+      lines.push('');
+      lines.push('### AI调整动作');
+      lines.push('');
+      ai.actions.slice(0, 6).forEach((action, index) => lines.push(`${index + 1}. ${clean(action, 160)}`));
+    }
+    if (ai.disclaimer) {
+      lines.push('');
+      lines.push(`- 边界说明：${clean(ai.disclaimer, 500)}`);
+    }
     lines.push('');
   }
   if (Array.isArray(analysis.sections) && analysis.sections.length) {
@@ -133,6 +156,9 @@ function summaryLines(summary) {
   lines.push('');
   lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜自选池 ${fmt(summary.totalCount)} 个`);
   if (summary.candidateSameCount != null) lines.push(`- 同分人数：${fmt(summary.candidateSameCount)} 人｜内部计算采用同分末位累计：${fmt(summary.candidateRankForGap)} 位`);
+  if (summary.rankZoneName) lines.push(`- 特控线锚点：${fmt(summary.specialControlScore)} 分｜${summary.specialControlRankLabel || '位次待核验'}｜功能区：${summary.rankZoneName}`);
+  if (summary.scoreOffsetFromSpecial != null) lines.push(`- 相对特控线：${summary.scoreOffsetFromSpecial >= 0 ? '高出' : '低于'} ${fmt(Math.abs(summary.scoreOffsetFromSpecial))} 分｜位次差 ${summary.rankOffsetFromSpecial == null ? '待核验' : (summary.rankOffsetFromSpecial < 0 ? '优于约 ' + fmt(Math.abs(summary.rankOffsetFromSpecial)) + ' 名' : '落后约 ' + fmt(summary.rankOffsetFromSpecial) + ' 名')}`);
+  if (summary.densitySummary) lines.push(`- 附近人数：同分 ${fmt(summary.densitySummary.sameCount)} 人｜上5分 ${fmt(summary.densitySummary.up5Count)} 人｜下5分 ${fmt(summary.densitySummary.down5Count)} 人`);
   lines.push(`- 冲刺区：${fmt(summary.rush.count)} 个｜超冲/高冲 ${fmt(summary.rush.superRushCount || 0)} 个｜小冲 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
   lines.push(`- 匹配/稳妥区：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
   lines.push(`- 保底区：${fmt(summary.safe.count)} 个｜较深保底 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
@@ -222,7 +248,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.49',
+    version: 'v3.9.5.5',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,

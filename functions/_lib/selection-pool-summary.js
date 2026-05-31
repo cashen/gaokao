@@ -1,3 +1,4 @@
+import { buildRankZoneContext } from './rank-zone-engine.js';
 import {
   formatNumber,
   getCandidateRankInfo,
@@ -85,8 +86,14 @@ function groupSummaryLine(label, group) {
 export function buildSelectionPoolSummary(input = {}, items = []) {
   const orderedItems = Array.isArray(items) ? items : [];
   const rankInfo = getCandidateRankInfo(input, orderedItems);
+  const rankZone = buildRankZoneContext({
+    candidateScore: input.candidateScore,
+    year: input.year || input.rankYear || 2025,
+    region: input.region || 'ln',
+    subject: input.subject || 'physics'
+  });
   const summary = {
-    version: 'v3.9.49',
+    version: 'v3.9.5.5',
     candidateScore: toNumber(input.candidateScore, null),
     candidateRank: rankInfo.rank,
     candidateRankSource: rankInfo.source,
@@ -103,6 +110,16 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     candidateRankSourceName: rankInfo.sourceName || '',
     candidateRankSourceNote: rankInfo.sourceNote || '',
     candidateRankPolicy: rankInfo.rankingPolicy || '',
+    rankZone,
+    rankZoneKey: rankZone.zoneKey,
+    rankZoneName: rankZone.zoneName,
+    specialControlScore: rankZone.specialControlScore,
+    specialControlRank: rankZone.specialControlRank,
+    specialControlRankLabel: rankZone.specialControlRankLabel,
+    scoreOffsetFromSpecial: rankZone.scoreOffsetFromSpecial,
+    rankOffsetFromSpecial: rankZone.rankOffsetFromSpecial,
+    densitySummary: rankZone.density,
+    rankZoneNote: rankZone.note,
     totalCount: orderedItems.length,
     rush: initGroup(),
     stable: initGroup(),
