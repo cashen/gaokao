@@ -6,6 +6,7 @@ import { parseAdvisorAiText, validateAdvisorAiNarrative } from '../_lib/advisor-
 import { buildAdvisorFallbackNarrative } from '../_lib/advisor-fallback-writer.js';
 import { buildAdvisorHealthLights } from '../_lib/advisor-health-lights.js';
 import { buildReportSnapshot } from '../_lib/report-snapshot-builder.js';
+import { buildRuleBasedParentCoach } from '../_lib/parent-decision-coach.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -196,7 +197,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.6.0',
+    version: 'v3.9.6.3',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -267,12 +268,14 @@ export async function onRequest(context) {
     const rankZone = buildRankZoneCompat(facts, candidateZones, narrative);
     const policy = getAdvisorZonePolicy(rankZone.zoneKey);
     const summary = buildSummary(facts, policy, rule.level);
-    const reportSnapshot = buildReportSnapshot({ facts, rankZone, stats: facts.poolStructure, narrative, healthLights, source: narrativeResult.source });
+    const parentCoach = buildRuleBasedParentCoach({ facts, healthLights, rule, candidateZones, narrative });
+    const reportSnapshot = buildReportSnapshot({ facts, rankZone, stats: facts.poolStructure, narrative, healthLights, parentCoach, source: narrativeResult.source });
     const result = {
       ok: true,
-      version: 'v3.9.6.0',
+      version: 'v3.9.6.3',
       level: rule.level,
       source: narrativeResult.source,
+      parentCoach,
       model: narrativeResult.model || '',
       message: narrativeResult.message || '',
       aiError: narrativeResult.aiError || '',

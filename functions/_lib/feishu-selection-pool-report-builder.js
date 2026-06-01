@@ -96,9 +96,44 @@ function itemName(item) {
   return `${item.school || '学校待核验'}｜${item.major || '专业待核验'}`;
 }
 
+
+function parentCoachLines(analysis = {}) {
+  const coach = analysis.parentCoach || analysis.reportSnapshot?.parentCoach || null;
+  const lines = [];
+  if (!coach) return lines;
+  lines.push('## 家长下一步复核清单');
+  lines.push('');
+  if (coach.headline) lines.push(`- ${clean(coach.headline, 500)}`);
+  if (Array.isArray(coach.nextActions) && coach.nextActions.length) {
+    lines.push('');
+    lines.push('### 优先动作');
+    coach.nextActions.slice(0, 6).forEach((x, i) => lines.push(`${i + 1}. ${clean(x, 220)}`));
+  }
+  if (coach.bottomLineReview) {
+    lines.push('');
+    lines.push('### 底线复核');
+    lines.push(clean(coach.bottomLineReview, 900));
+  }
+  if (Array.isArray(coach.familyQuestions) && coach.familyQuestions.length) {
+    lines.push('');
+    lines.push('### 家庭要确认的问题');
+    coach.familyQuestions.slice(0, 6).forEach((x, i) => lines.push(`${i + 1}. ${clean(x, 220)}`));
+  }
+  if (Array.isArray(coach.manualCheckList) && coach.manualCheckList.length) {
+    lines.push('');
+    lines.push('### 人工核验清单');
+    coach.manualCheckList.slice(0, 8).forEach((x, i) => lines.push(`${i + 1}. ${clean(x, 220)}`));
+  }
+  lines.push('');
+  return lines;
+}
+
 function analysisLines(analysis = {}) {
   const lines = [];
   const narrative = analysis.narrative || analysis.aiNarrative || null;
+  const coachLines = parentCoachLines(analysis);
+  if (!narrative && !coachLines.length) return lines;
+  if (coachLines.length) lines.push(...coachLines);
   if (!narrative) return lines;
 
   lines.push('## AI高报师判断');
