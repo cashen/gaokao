@@ -4,6 +4,8 @@ import { getAdvisorZonePolicy } from '../_lib/advisor-zone-policy.js';
 import { buildAdvisorAiMessages } from '../_lib/advisor-ai-prompt.js';
 import { parseAdvisorAiText, validateAdvisorAiNarrative } from '../_lib/advisor-ai-validator.js';
 import { buildAdvisorFallbackNarrative } from '../_lib/advisor-fallback-writer.js';
+import { buildAdvisorHealthLights } from '../_lib/advisor-health-lights.js';
+import { buildReportSnapshot } from '../_lib/report-snapshot-builder.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -184,7 +186,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.5.8',
+    version: 'v3.9.5.9',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -248,14 +250,16 @@ export async function onRequest(context) {
     const candidateZones = buildZoneCandidates(facts);
     const rule = buildRuleRisksAndActions(facts, candidateZones);
     const fallbackNarrative = buildAdvisorFallbackNarrative({ facts, candidateZones, risks: rule.risks, actions: rule.actions });
+    const healthLights = buildAdvisorHealthLights(facts, rule);
     const narrativeResult = await buildNarrative(context, { facts, candidateZones, risks: rule.risks, actions: rule.actions, fallbackNarrative });
     const narrative = narrativeResult.narrative;
     const rankZone = buildRankZoneCompat(facts, candidateZones, narrative);
     const policy = getAdvisorZonePolicy(rankZone.zoneKey);
     const summary = buildSummary(facts, policy, rule.level);
+    const reportSnapshot = buildReportSnapshot({ facts, rankZone, stats: facts.poolStructure, narrative, healthLights, source: narrativeResult.source });
     const result = {
       ok: true,
-      version: 'v3.9.5.8',
+      version: 'v3.9.5.9',
       level: rule.level,
       source: narrativeResult.source,
       model: narrativeResult.model || '',
@@ -272,6 +276,9 @@ export async function onRequest(context) {
       policySnapshot: policy,
       stats: facts.poolStructure,
       pushRateSummary: facts.pushRateSummary,
+      healthLights,
+      reportSnapshot,
+      recomputeVerified: true,
       risks: rule.risks,
       actions: rule.actions,
       sections: [],
@@ -292,6 +299,6 @@ export async function onRequest(context) {
     result.reportText = buildReportText({ facts, rankZone, stats: facts.poolStructure, narrative, source: result.source });
     return json(result);
   } catch (error) {
-    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.5.6 的 advisor 事实层、候选功能区和 AI 绑定。' }, 500);
+    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.5.9 的 advisor 事实层、候选功能区和 AI 绑定。' }, 500);
   }
 }

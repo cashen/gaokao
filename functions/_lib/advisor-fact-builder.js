@@ -190,7 +190,7 @@ export function buildAdvisorFacts(input = {}) {
   const pushRateSummary = buildPushRateSummary(orderedItems);
   const note = noteFromFacts({ config, candidateScore, specialControlScore: config.specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
   return {
-    version: 'v3.9.5.8',
+    version: 'v3.9.5.9',
     config,
     candidate: {
       score: candidateScore,
