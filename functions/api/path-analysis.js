@@ -184,7 +184,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.5.7',
+    version: 'v3.9.5.8',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -255,7 +255,7 @@ export async function onRequest(context) {
     const summary = buildSummary(facts, policy, rule.level);
     const result = {
       ok: true,
-      version: 'v3.9.5.7',
+      version: 'v3.9.5.8',
       level: rule.level,
       source: narrativeResult.source,
       model: narrativeResult.model || '',
@@ -277,6 +277,8 @@ export async function onRequest(context) {
       sections: [],
       orderedItems: facts.orderedItems,
       orderSignature: clean(body.orderSignature || '', 600),
+      contextSignature: clean(body.contextSignature || body.candidateContext?.signature || '', 240),
+      computedSignature: clean(body.computedSignature || '', 720),
       generatedAt: new Date().toISOString(),
       debug: {
         factsBuilt: true,

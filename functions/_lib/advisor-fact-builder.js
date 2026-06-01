@@ -72,9 +72,12 @@ function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];
 }
 
-function normalizeItems(items = [], candidateRank = null) {
+function normalizeItems(items = [], candidateRank = null, candidateScore = null) {
   return (Array.isArray(items) ? items : []).slice(0, 112).map((item, index) => {
-    const poolBand = item.poolBand?.detail ? item.poolBand : classify(item);
+    const score2025 = num(item.score2025 ?? item.score, null);
+    const scoreDelta = candidateScore != null && score2025 != null ? Math.round(score2025 - candidateScore) : null;
+    const dynamicItem = { ...item, statusKey: '', scoreDelta };
+    const poolBand = classify(dynamicItem);
     const rank2025 = num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null);
     const rankGap = getRankGap(candidateRank, rank2025);
     return {
@@ -83,13 +86,13 @@ function normalizeItems(items = [], candidateRank = null) {
       userOrder: num(item.userOrder, index + 1),
       school: clean(item.school, 120),
       major: clean(item.major, 180),
-      score2025: num(item.score2025 ?? item.score, null),
+      score2025,
       rank2025,
-      scoreDelta: num(item.scoreDelta, 0),
+      scoreDelta,
       rankGap,
       rankGapText: rankGapText(rankGap),
-      statusKey: clean(item.statusKey, 40),
-      statusLabel: clean(item.statusLabel || poolBand.detail, 40),
+      statusKey: '',
+      statusLabel: clean(poolBand.detail, 40),
       displayLocation: clean(item.displayLocation || item.geoEntity || item.city || '', 80),
       natureLabel: clean(item.natureLabel || item.nature || '', 60),
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
@@ -182,12 +185,12 @@ export function buildAdvisorFacts(input = {}) {
   const scoreOffsetFromUndergraduate = candidateScore == null || undergraduateScore == null ? null : Math.round(candidateScore - undergraduateScore);
   const rankOffsetFromUndergraduate = candidateRank == null || undergraduateControlRank == null ? null : Math.round(candidateRank - undergraduateControlRank);
   const density = densityOf({ score: candidateScore, year: config.rankYear, region: config.region, subject: config.subject });
-  const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank);
+  const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank, candidateScore);
   const stats = buildStats(orderedItems);
   const pushRateSummary = buildPushRateSummary(orderedItems);
   const note = noteFromFacts({ config, candidateScore, specialControlScore: config.specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
   return {
-    version: 'v3.9.5.7',
+    version: 'v3.9.5.8',
     config,
     candidate: {
       score: candidateScore,
