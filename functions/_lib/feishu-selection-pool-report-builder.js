@@ -322,3 +322,6 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     })
   };
 }
+
+
+// v3.9.6.4 keyword note: 专业/项目/行业关键词包括中外、合作办学、高收费、石油、交通、航天等；AI/报告不得把中外绕过办学费用底线，须提示学费、培养模式、毕业证书、校区、是否必须出国、保研资格与转专业政策。

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./css/tabs.css?v=3949" />
   <link rel="stylesheet" href="./css/filters.css?v=3949" />
   <link rel="stylesheet" href="./css/bottomline.v3962.css?v=3962" />
+  <link rel="stylesheet" href="./css/major-search.v3964.css?v=3964" />
   <link rel="stylesheet" href="./css/major-list.css?v=3949" />
   <link rel="stylesheet" href="./css/tags.css?v=3949" />
   <link rel="stylesheet" href="./css/responsive.css?v=3949" />
@@ -22,7 +23,7 @@
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.6.1</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.6.4</p>
         <h1 class="app-title">辽宁物理类志愿梯度位次参考工具</h1>
         <p class="app-subtitle">输入考生分数，按上探、主体、稳妥三个区间查看院校专业；加入自选池后，点击右侧小入口直接进入完整整理页，不再弹出半屏抽屉。</p>
       </div>
@@ -82,8 +83,9 @@
           <input id="schoolKeyword" class="input" type="search" placeholder="如：大连、辽宁大学" />
         </div>
         <div class="filter-field">
-          <label for="majorKeyword">专业名称</label>
-          <input id="majorKeyword" class="input" type="search" placeholder="如：计算机、电气、通信" />
+          <label for="majorKeyword">专业 / 项目 / 行业关键词</label>
+          <input id="majorKeyword" class="input" type="search" placeholder="如：计算机/土木/石油/中外，可输入多个" />
+          <div class="keyword-help">支持空格、逗号、/ 分隔；多个词为任意命中。</div>
         </div>
       </div>
 
@@ -109,6 +111,6 @@
       当前专业池基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据，用于形成可讨论专业池和自选池排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划和专业要求综合判断。
     </section>
   </main>
-  <script type="module" src="./js/app.v3962.js?v=3962"></script>
+  <script type="module" src="./js/app.v3964.js?v=3964"></script>
 </body>
 </html>

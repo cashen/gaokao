@@ -3,9 +3,13 @@ import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from '../_lib/fenxi-normalizer.js';
 import { makeBands, classifyBand } from '../_lib/band-engine.js';
 import { getStatus } from '../_lib/status-engine.js';
-import { matchRegion, matchKeyword } from '../_lib/major-filter.js';
+import { matchRegion } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
-import { normalizeBottomLineMode, passBottomLineMode, getBottomLineSortWeight, bottomLineModeSummary } from '../_lib/bottomline-policy.js';
+import { normalizeBottomLineMode, passBottomLineMode, getBottomLineSortWeight, bottomLineModeSummary, enrichBottomLineFields } from '../_lib/bottomline-policy.js';
+import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.js';
+import { matchMajorProject } from '../_lib/major-project-matcher.js';
+import { buildSearchIndex } from '../_lib/search-index-builder.js';
+import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -49,9 +53,7 @@ function chunkFile(chunk) {
 
 function rawKeywordPass(raw, filters) {
   const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  const majorKeyword = clean(filters.majorKeyword || '', 40);
   if (schoolKeyword && !rawSchool(raw).includes(schoolKeyword)) return false;
-  if (majorKeyword && !rawMajor(raw).includes(majorKeyword)) return false;
   return true;
 }
 
@@ -94,7 +96,7 @@ export async function onRequest(context) {
     const filters = {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
-      majorKeyword: clean(url.searchParams.get('majorKeyword') || '', 40),
+      majorKeyword: clean(url.searchParams.get('majorKeyword') || url.searchParams.get('majorName') || url.searchParams.get('keyword') || '', 160),
       bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all')
     };
 
@@ -106,6 +108,8 @@ export async function onRequest(context) {
     const bandsMeta = makeBands(candidateScore, rangePreset);
     const scoreWindow = minMaxScore(bandsMeta);
     const grouped = initGrouped(bandsMeta);
+    const keywordQuery = buildKeywordQuery(filters.majorKeyword);
+    const keywordWarnings = keywordQueryWarnings(keywordQuery);
 
     const manifest = await loadManifest(context.request, context.env || {});
     const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
@@ -114,6 +118,10 @@ export async function onRequest(context) {
     let rawCandidate = 0;
     let normalized = 0;
     let bottomLineExcluded = 0;
+    let majorKeywordExcluded = 0;
+    let majorHitCount = 0;
+    let projectHitCount = 0;
+    let industryHitCount = 0;
     let failedChunk = '';
 
     for (const chunk of chunks) {
@@ -138,10 +146,21 @@ export async function onRequest(context) {
 
         rawCandidate += 1;
 
-        const record = normalizeRecord(raw);
+        const record = { ...normalizeRecord(raw), rawText: JSON.stringify(raw).slice(0, 1600) };
+        Object.assign(record, enrichBottomLineFields(record));
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;
-        if (!matchKeyword(record, filters.schoolKeyword, filters.majorKeyword)) continue;
+        if (filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
+
+        const indexed = buildSearchIndex([record])[0];
+        const match = matchMajorProject(indexed, keywordQuery);
+        if (!match.matched) { majorKeywordExcluded += 1; continue; }
+        record.matchBadges = match.badges;
+        record.matchReason = match.reason;
+        record.matchScore = match.score;
+        if (match.badges.includes('专业命中')) majorHitCount += 1;
+        if (match.badges.includes('项目属性')) projectHitCount += 1;
+        if (match.badges.includes('行业院校') || match.badges.includes('行业路径')) industryHitCount += 1;
 
         if (!passBottomLineMode(record, filters.bottomLineMode)) {
           bottomLineExcluded += 1;
@@ -160,7 +179,7 @@ export async function onRequest(context) {
     for (const key of ['upper', 'near', 'steady']) {
       grouped[key].records.sort((a, b) => {
         const bw = getBottomLineSortWeight(b, filters.bottomLineMode) - getBottomLineSortWeight(a, filters.bottomLineMode);
-        return bw || Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank);
+        return bw || (Number(b.matchScore || 0) - Number(a.matchScore || 0)) || Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank);
       });
       grouped[key].displayedCount = grouped[key].records.length;
     }
@@ -171,6 +190,7 @@ export async function onRequest(context) {
       steady: grouped.steady.count
     };
     counts.total = counts.upper + counts.near + counts.steady;
+    const searchAdvices = buildSearchConflictAdvice({ keywordQuery, bottomLineMode: filters.bottomLineMode, resultStats: { total: counts.total } });
 
     return json({
       ok: true,
@@ -184,6 +204,9 @@ export async function onRequest(context) {
         maxPerBand,
         elapsedMs: Date.now() - started
       },
+      keywordQuery,
+      keywordWarnings,
+      searchAdvices,
       bands: grouped,
       counts,
       source: {
@@ -194,6 +217,10 @@ export async function onRequest(context) {
         rawCandidate,
         normalized,
         bottomLineExcluded,
+        majorKeywordExcluded,
+        majorHitCount,
+        projectHitCount,
+        industryHitCount,
         mode: 'streaming-filtered-capped'
       }
     });

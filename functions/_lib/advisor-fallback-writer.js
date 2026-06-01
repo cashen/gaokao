@@ -113,3 +113,6 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     disclaimer: 'AI/规则解读只负责解释位次功能区和方案结构，不预测录取概率；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。'
   };
 }
+
+
+// v3.9.6.4 keyword note: 专业/项目/行业关键词包括中外、合作办学、高收费、石油、交通、航天等；AI/报告不得把中外绕过办学费用底线，须提示学费、培养模式、毕业证书、校区、是否必须出国、保研资格与转专业政策。
