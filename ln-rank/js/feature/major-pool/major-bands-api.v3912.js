@@ -6,7 +6,8 @@ export async function fetchMajorBands({ candidateScore, rangePreset, filters }) 
     rangePreset: rangePreset || 'standard',
     region: filters.region || 'all',
     schoolKeyword: filters.schoolKeyword || '',
-    majorKeyword: filters.majorKeyword || ''
+    majorKeyword: filters.majorKeyword || '',
+    bottomLineMode: filters.bottomLineMode || 'all'
   });
   const res = await fetch(`/api/major-bands?${params.toString()}`, { cache: 'no-store' });
   const raw = await res.text();

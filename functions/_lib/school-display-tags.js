@@ -1,4 +1,5 @@
 import { getSchoolTags } from './school-tags.js';
+import { enrichBottomLineFields } from './bottomline-policy.js';
 function text(v){ return String(v || '').trim(); }
 export function mapNature(label) {
   const s = text(label);
@@ -22,10 +23,12 @@ export function buildDisplayTags(record) {
   const displayLocation = makeDisplayLocation(record);
   let natureLabel = nature.natureLabel;
   if (nature.natureType === 'public' && schoolTags.length === 0) natureLabel = '双非公办';
+  const bottomLine = enrichBottomLineFields({ ...record, natureLabel, natureType: nature.natureType });
   return {
     schoolTags,
     natureLabel,
     natureType: nature.natureType,
+    ...bottomLine,
     displayLocation,
     province: record.province || '',
     city: record.city || '',
