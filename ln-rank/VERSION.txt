@@ -1,1 +1,1 @@
-v3.9.6.4-ln-rank-major-project-industry-keyword-search
+v3.9.6.6-ln-rank-pool-entry-width-keyword-ui
