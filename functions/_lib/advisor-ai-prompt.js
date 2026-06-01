@@ -24,7 +24,9 @@ function safeFacts(facts = {}) {
       tuitionOrCoopCount: facts.poolStructure?.tuitionOrCoopCount || 0,
       privateOrFeeCount: facts.poolStructure?.privateOrFeeCount || 0
     },
-    pushRateSummary: facts.pushRateSummary || null
+    pushRateSummary: facts.pushRateSummary || null,
+    bottomLine: facts.bottomLine || null,
+    bottomLineSummary: facts.bottomLineSummary || null
   };
 }
 
@@ -41,6 +43,8 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       '升学与推免参考只能使用 facts.pushRateSummary 和 orderedItemsLite.pushRate 中提供的数据；没有数据必须说待核验。',
       '校级推免率不等于学院/专业保研率，不得把学校级数据说成某专业保研率。',
       '推免参考是升学路径参考，不是录取风险、硬排序或录取概率。',
+      '办学性质底线只能使用 facts.bottomLine 和 facts.bottomLineSummary；只看公办普通、公办含中外/高收费、公办优先三者要区分。',
+      '600分左右的公办中外合作上探可以作为策略提醒，但不要把它写成前端筛选按钮；低分段高收费兜底和高分段公办中外上探不能混为一谈。',
       '不要把用户举例的450/495/515/545/565/585/605写成固定分数规则。',
       'actions 数组只返回纯文本，不要带编号、项目符号或 Markdown。',
       '输出一个合法 JSON 对象，不要 Markdown 代码块。'
@@ -65,7 +69,7 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       structureDiagnosis: '冲稳保结构诊断，180字内',
       majorPathDiagnosis: '专业和地域路径诊断，220字内',
       pushRateDiagnosis: '升学与推免参考，220字内；只能基于已提供的学校级数据和待核验状态，不得编专业级保研率',
-      bottomLineDiagnosis: '保底类型诊断，160字内，要区分数量/深度/接受度/学费风险',
+      bottomLineDiagnosis: '保底与办学费用底线诊断，200字内，要区分保底数量/深度/接受度、公办普通、公办中外/高收费、民办风险',
       riskDiagnosis: ['2到5条主要风险，纯文本'],
       actions: ['3到6条可执行建议，纯文本，不带编号'],
       parentVersion: '给家长看的短说明，180字内',

@@ -48,10 +48,16 @@ function pushRateText(facts) {
 
 function bottomText(facts) {
   const s = facts.poolStructure || {};
-  if (!s.total) return '保底待补充。';
-  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return '保底数量偏少，后段承接不足，需要补充低一层位次且真实可接受的保底项。';
-  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return '保底数量不算少，但深层保底不足，需要检查是否真正拉开位次。';
-  return '保底数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；保底不是低分凑数。';
+  const b = facts.bottomLineSummary || {};
+  const modeText = b.mode && b.mode !== 'all' ? `当前办学性质底线为“${b.modeLabel || '已设置'}”。` : '';
+  let tail = '';
+  if (b.mode === 'public_regular_only') tail = `该模式要求只保留公办普通收费项目，若自选池里仍有公办中外/高收费或民办项目，需要人工复核。`;
+  if (b.mode === 'public_include_sino') tail = `该模式允许公办中外/高收费，但排除民办；相关项目要核验学费、培养模式、毕业证书、校区和家庭承受能力。`;
+  if (b.mode === 'public_first') tail = `该模式优先展示公办，但不自动删除其他候选；最终是否接受仍需家庭确认。`;
+  if (!s.total) return `${modeText}保底待补充。${tail}`.trim();
+  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return `${modeText}保底数量偏少，后段承接不足，需要补充低一层位次且真实可接受的保底项。${tail}`.trim();
+  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return `${modeText}保底数量不算少，但深层保底不足，需要检查是否真正拉开位次。${tail}`.trim();
+  return `${modeText}保底数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；保底不是低分凑数。${tail}`.trim();
 }
 
 export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [], actions = [] }) {

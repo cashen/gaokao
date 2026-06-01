@@ -5,6 +5,7 @@ import { makeBands, classifyBand } from '../_lib/band-engine.js';
 import { getStatus } from '../_lib/status-engine.js';
 import { matchRegion, matchKeyword } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
+import { normalizeBottomLineMode, passBottomLineMode, getBottomLineSortWeight, bottomLineModeSummary } from '../_lib/bottomline-policy.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -93,7 +94,8 @@ export async function onRequest(context) {
     const filters = {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
-      majorKeyword: clean(url.searchParams.get('majorKeyword') || '', 40)
+      majorKeyword: clean(url.searchParams.get('majorKeyword') || '', 40),
+      bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all')
     };
 
     if (!Number.isFinite(candidateScore)) {
@@ -111,6 +113,7 @@ export async function onRequest(context) {
     let rawTotal = 0;
     let rawCandidate = 0;
     let normalized = 0;
+    let bottomLineExcluded = 0;
     let failedChunk = '';
 
     for (const chunk of chunks) {
@@ -140,6 +143,11 @@ export async function onRequest(context) {
         if (!matchRegion(record, filters.region)) continue;
         if (!matchKeyword(record, filters.schoolKeyword, filters.majorKeyword)) continue;
 
+        if (!passBottomLineMode(record, filters.bottomLineMode)) {
+          bottomLineExcluded += 1;
+          continue;
+        }
+
         const band = classifyBand(record.score, bandsMeta);
         if (!band) continue;
 
@@ -150,9 +158,10 @@ export async function onRequest(context) {
     }
 
     for (const key of ['upper', 'near', 'steady']) {
-      grouped[key].records.sort(
-        (a, b) => Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank)
-      );
+      grouped[key].records.sort((a, b) => {
+        const bw = getBottomLineSortWeight(b, filters.bottomLineMode) - getBottomLineSortWeight(a, filters.bottomLineMode);
+        return bw || Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank);
+      });
       grouped[key].displayedCount = grouped[key].records.length;
     }
 
@@ -168,6 +177,8 @@ export async function onRequest(context) {
       meta: {
         candidateScore,
         rangePreset,
+        bottomLineMode: filters.bottomLineMode,
+        bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁2025物理类',
         bands: bandsMeta,
         maxPerBand,
@@ -182,6 +193,7 @@ export async function onRequest(context) {
         rawScanned: rawTotal,
         rawCandidate,
         normalized,
+        bottomLineExcluded,
         mode: 'streaming-filtered-capped'
       }
     });

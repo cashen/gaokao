@@ -118,6 +118,16 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   if (stats.tuitionOrCoopCount >= 1) {
     addUnique(actions, '涉及中外合作、高收费或特殊培养项目时，逐条核验学费、毕业证、校区和培养方式。');
   }
+  const bottomLine = facts.bottomLineSummary || {};
+  if (bottomLine.mode === 'public_regular_only' && bottomLine.publicSinoOrHighFeeCount) {
+    addUnique(risks, `当前底线为“只看公办普通”，但自选池中仍有${fmt(bottomLine.publicSinoOrHighFeeCount)}个公办中外/高收费项目，需要人工复核。`);
+  }
+  if (bottomLine.mode === 'public_include_sino' && bottomLine.publicSinoOrHighFeeCount) {
+    addUnique(actions, '当前允许“公办含中外/高收费”，这类项目可保留，但要重点核验费用、培养模式、毕业证书和家庭承受能力。');
+  }
+  if (bottomLine.mode && bottomLine.mode !== 'all' && bottomLine.privateLikeCount) {
+    addUnique(risks, `当前底线为“${bottomLine.modeLabel || '办学性质底线'}”，自选池中仍有${fmt(bottomLine.privateLikeCount)}个民办/独立类项目，建议人工确认是否保留。`);
+  }
 
   const push = facts.pushRateSummary || {};
   if (push.total) {
@@ -186,7 +196,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.5.9',
+    version: 'v3.9.6.0',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -245,7 +255,8 @@ export async function onRequest(context) {
       candidateScore: body.candidateScore || null,
       year: body.year || 2025,
       region: body.region || 'ln',
-      subject: body.subject || 'physics'
+      subject: body.subject || 'physics',
+      bottomLineMode: body.bottomLineMode || body.filterState?.bottomLineMode || body.candidateContext?.bottomLineMode || 'all'
     });
     const candidateZones = buildZoneCandidates(facts);
     const rule = buildRuleRisksAndActions(facts, candidateZones);
@@ -259,7 +270,7 @@ export async function onRequest(context) {
     const reportSnapshot = buildReportSnapshot({ facts, rankZone, stats: facts.poolStructure, narrative, healthLights, source: narrativeResult.source });
     const result = {
       ok: true,
-      version: 'v3.9.5.9',
+      version: 'v3.9.6.0',
       level: rule.level,
       source: narrativeResult.source,
       model: narrativeResult.model || '',
@@ -276,6 +287,8 @@ export async function onRequest(context) {
       policySnapshot: policy,
       stats: facts.poolStructure,
       pushRateSummary: facts.pushRateSummary,
+      bottomLine: facts.bottomLine,
+      bottomLineSummary: facts.bottomLineSummary,
       healthLights,
       reportSnapshot,
       recomputeVerified: true,

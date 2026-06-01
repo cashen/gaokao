@@ -2,6 +2,7 @@ import { getExamYearConfig } from './exam-year-config.js';
 import { lookupScoreRank, getRankTableRows } from './rank-table-provider.js';
 import { getRankGap, rankGapText } from './selection-pool-rank-utils.js';
 import { getPushRateReference, buildPushRateSummary } from './push-rate-matcher.js';
+import { enrichBottomLineFields, summarizeBottomLine, bottomLineModeSummary } from './bottomline-policy.js';
 
 function num(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -80,6 +81,7 @@ function normalizeItems(items = [], candidateRank = null, candidateScore = null)
     const poolBand = classify(dynamicItem);
     const rank2025 = num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null);
     const rankGap = getRankGap(candidateRank, rank2025);
+    const bottomLine = enrichBottomLineFields(item);
     return {
       id: clean(item.id || `${item.school}-${item.major}-${item.score2025}-${item.rank2025}`, 240),
       order: index + 1,
@@ -99,6 +101,7 @@ function normalizeItems(items = [], candidateRank = null, candidateScore = null)
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 50)).filter(Boolean).slice(0, 8) : [],
       poolBand,
       majorFamily: majorFamily(item.major),
+      ...bottomLine,
       pushRateRef: getPushRateReference(item.school || item.schoolName || '')
     };
   }).filter(x => x.school || x.major);
@@ -136,7 +139,7 @@ function buildStats(items) {
     inc(stats.byCity, item.displayLocation || '未知地域');
     inc(stats.byMajorFamily, item.majorFamily || '其他专业');
     inc(stats.byNature, item.natureLabel || '属性待核验');
-    const flagsText = [item.natureLabel, ...(item.flags || []), ...(item.schoolTags || [])].join(' ');
+    const flagsText = [item.natureLabel, item.schoolNature, item.feeType, ...(item.bottomLineTags || []), ...(item.flags || []), ...(item.schoolTags || [])].join(' ');
     if (/中外|合作|高收费|国际|学费/.test(flagsText)) stats.tuitionOrCoopCount += 1;
     if (/民办|独立学院|高收费|中外|合作/.test(flagsText)) stats.privateOrFeeCount += 1;
     if (item.rankGap == null) stats.missingRankCount += 1;
@@ -186,6 +189,8 @@ export function buildAdvisorFacts(input = {}) {
   const rankOffsetFromUndergraduate = candidateRank == null || undergraduateControlRank == null ? null : Math.round(candidateRank - undergraduateControlRank);
   const density = densityOf({ score: candidateScore, year: config.rankYear, region: config.region, subject: config.subject });
   const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank, candidateScore);
+  const bottomLineMode = input.bottomLineMode || input.filterState?.bottomLineMode || input.context?.bottomLineMode || 'all';
+  const bottomLineSummary = summarizeBottomLine(orderedItems, bottomLineMode);
   const stats = buildStats(orderedItems);
   const pushRateSummary = buildPushRateSummary(orderedItems);
   const note = noteFromFacts({ config, candidateScore, specialControlScore: config.specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
@@ -216,6 +221,8 @@ export function buildAdvisorFacts(input = {}) {
     },
     density,
     poolStructure: stats,
+    bottomLine: bottomLineModeSummary(bottomLineMode),
+    bottomLineSummary,
     pushRateSummary,
     orderedItems,
     note
@@ -235,6 +242,9 @@ export function compactItemsForAi(items = [], max = 40) {
     majorFamily: item.majorFamily,
     location: item.displayLocation,
     nature: item.natureLabel,
+    schoolNature: item.schoolNature,
+    feeType: item.feeType,
+    bottomLineTags: item.bottomLineTags || [],
     pushRate: item.pushRateRef ? {
       level: item.pushRateRef.pushOpportunityLevel,
       text: item.pushRateRef.schoolPushRateText,
