@@ -2,165 +2,77 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>辽宁本科高校宿舍空调指北｜2026-05-17核验版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>辽宁本科高校宿舍空调指北｜2026-06-01核验版</title>
 <style>
 :root{
-  --bg:#f7f3ec; --paper:#fffdf8; --ink:#25313b; --muted:#6c757d;
-  --line:#e6ddd1; --blue:#385f7e; --blue2:#4f7794; --warm:#b58a54;
-  --green:#4c7a5b; --amber:#b87931; --red:#a75b4a; --grey:#7c8792;
-  --chip:#eef3f6; --shadow:0 18px 45px rgba(63,49,31,.08);
+  --bg:#f7f3ec;--paper:#fffdf8;--ink:#24313b;--muted:#66737f;--line:#e7ded2;
+  --blue:#315f82;--blue2:#4f7794;--warm:#b58a54;--green:#4c7a5b;--amber:#b87931;
+  --red:#a75b4a;--grey:#7c8792;--chip:#eef3f6;--shadow:0 18px 45px rgba(63,49,31,.08);
+  --radius:24px;
 }
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#fbf7f0 0%,#f2eadf 100%);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;}
-.wrap{max-width:1240px;margin:0 auto;padding:28px 18px 42px}
-.hero{background:radial-gradient(circle at top right,rgba(80,119,148,.16),transparent 34%),
-       linear-gradient(135deg,#fffdf8 0%,#f7efe4 100%);
-  border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}
-.kicker{display:inline-flex;gap:8px;align-items:center;background:#eef3f6;color:#385f7e;
-  border:1px solid #d7e2e9;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700}
-h1{font-size:clamp(26px,4vw,44px);line-height:1.15;margin:18px 0 12px;letter-spacing:-.03em}
-.sub{font-size:16px;line-height:1.8;color:#4b5963;max-width:980px;margin:0}
-.notice{margin-top:16px;border-left:4px solid var(--warm);background:#fff8ec;border-radius:14px;padding:12px 14px;color:#5b4b38;line-height:1.7}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,#fbf7f0 0%,#f2eadf 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif}
+a{color:#315f82;text-decoration:none;border-bottom:1px dashed #8fb0c8}a:hover{color:#173f5d}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 18px 42px}
+.hero{background:radial-gradient(circle at 92% 10%,rgba(80,119,148,.18),transparent 34%),linear-gradient(135deg,#fffdf8 0%,#f7efe4 100%);border:1px solid var(--line);border-radius:30px;padding:28px;box-shadow:var(--shadow)}
+.kicker{display:inline-flex;gap:8px;align-items:center;background:#eef3f6;color:#385f7e;border:1px solid #d7e2e9;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800}
+h1{font-size:clamp(27px,4vw,46px);line-height:1.12;margin:18px 0 12px;letter-spacing:-.035em}
+.sub{font-size:16px;line-height:1.85;color:#4b5963;max-width:1000px;margin:0}
+.notice{margin-top:16px;border-left:4px solid var(--warm);background:#fff8ec;border-radius:16px;padding:13px 15px;color:#5b4b38;line-height:1.75}
+.grid{display:grid;gap:14px}
 .cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
 .card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 12px 28px rgba(55,39,20,.05)}
-.num{font-size:28px;font-weight:800;letter-spacing:-.03em}.lab{font-size:13px;color:var(--muted);margin-top:4px}
-.toolbar{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
-  background:rgba(247,243,236,.84);border:1px solid var(--line);border-radius:22px;
-  padding:14px;margin:18px 0;box-shadow:0 10px 26px rgba(52,39,24,.06)}
+.num{font-size:28px;font-weight:900;letter-spacing:-.04em}.lab{font-size:13px;color:var(--muted);margin-top:4px}
+.toolbar{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:rgba(247,243,236,.88);border:1px solid var(--line);border-radius:22px;padding:14px;margin:18px 0;box-shadow:0 10px 26px rgba(52,39,24,.06)}
 .toolbar-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-input,select,button{font:inherit}
-.search{flex:1;min-width:220px;border:1px solid var(--line);background:#fff;border-radius:14px;
-  padding:12px 14px;outline:none;color:var(--ink)}
-select{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 12px;color:var(--ink)}
-button{border:1px solid #cfdae2;background:#f5f9fb;color:#31546e;border-radius:14px;padding:12px 14px;cursor:pointer}
-button:hover{background:#edf4f8}
-.tablebox{background:var(--paper);border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
-.table-scroll{overflow:auto}
-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1120px}
-th,td{padding:13px 12px;border-bottom:1px solid #eee5db;text-align:left;vertical-align:top;font-size:14px}
-th{position:sticky;top:0;background:#f9f5ee;color:#42525e;font-size:13px;z-index:2}
-tr:hover td{background:#fffaf1}
-.school{font-weight:800;color:#263845}
-.mini{font-size:12px;color:var(--muted);margin-top:4px}
-.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}
-.pill.full{background:#edf7ef;color:#315e41;border-color:#d2ead8}
-.pill.partial{background:#fff4df;color:#825321;border-color:#f1dab4}
-.pill.installing{background:#eef5ff;color:#315b82;border-color:#d4e5f7}
-.pill.tender{background:#f6eefc;color:#64417d;border-color:#e7d7f1}
-.pill.planned{background:#f9f0ec;color:#8c4d3f;border-color:#ecd4ca}
-.pill.unknown{background:#f1f3f5;color:#66717b;border-color:#e1e5e8}
-.tag{display:inline-flex;background:var(--chip);color:#3b596d;border:1px solid #d8e4eb;border-radius:999px;padding:4px 8px;font-size:12px;margin:2px 4px 2px 0}
-a{color:#315f82;text-decoration:none;border-bottom:1px dashed #8fb0c8}
-a:hover{color:#1c4968}
-.footer{margin-top:18px;color:#687781;font-size:13px;line-height:1.8}
-.section-title{font-size:20px;font-weight:900;margin:26px 0 10px}
-.method{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:18px}
-.method .card{line-height:1.8}
-.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-@media(max-width:900px){
- .cards{grid-template-columns:repeat(2,1fr)}
- .hero{padding:22px}.method{grid-template-columns:1fr}
- .toolbar{position:static}
- table{min-width:960px}
-}
-@media(max-width:720px){
- .toolbar{padding:12px;border-radius:16px}
- .toolbar-row{gap:8px}
- .search,.toolbar select,.toolbar button{width:100%;min-width:0}
- .tablebox{border-radius:16px}
- th,td{padding:11px 10px;font-size:13px}
- table{min-width:860px}
- .kicker{font-size:12px;padding:6px 10px}
- .notice{font-size:14px;line-height:1.6}
-}
-@media(max-width:520px){
- .cards{grid-template-columns:1fr}
- .wrap{padding:18px 12px 32px}
- h1{font-size:27px}
- .hero{padding:18px;border-radius:20px}
- .sub{font-size:14px;line-height:1.7}
- .method .card{padding:14px}
- .section-title{font-size:18px}
- table{min-width:760px}
-}
-@media print{
- body{background:white}.toolbar{display:none}.wrap{max-width:none}.hero,.card,.tablebox{box-shadow:none}
- a{border:0;color:#000}.table-scroll{overflow:visible}table{min-width:0;font-size:11px}
- th,td{padding:8px}
-}
+input,select,button{font:inherit}.search{flex:1;min-width:240px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;outline:none;color:var(--ink)}
+select,button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;color:var(--ink)}button{background:#f5f9fb;color:#31546e;cursor:pointer}button:hover{background:#edf4f8}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;border:1px solid transparent;white-space:nowrap;line-height:1.2}
+.pill.full{background:#edf7ef;color:#315e41;border-color:#d2ead8}.pill.partial{background:#fff4df;color:#825321;border-color:#f1dab4}
+.pill.installing{background:#eef5ff;color:#315b82;border-color:#d4e5f7}.pill.tender{background:#f6eefc;color:#64417d;border-color:#e7d7f1}
+.pill.planned{background:#f9f0ec;color:#8c4d3f;border-color:#ecd4ca}.pill.unknown{background:#f1f3f5;color:#66717b;border-color:#e1e5e8}
+.tag{display:inline-flex;background:var(--chip);color:#3b596d;border:1px solid #d8e4eb;border-radius:999px;padding:4px 8px;font-size:12px;margin:2px 4px 2px 0;line-height:1.2}
+.tablebox{background:var(--paper);border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}.table-scroll{overflow:auto;max-height:none}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:1180px}th,td{padding:13px 12px;border-bottom:1px solid #eee5db;text-align:left;vertical-align:top;font-size:14px;line-height:1.55}th{position:sticky;top:0;background:#f9f5ee;color:#42525e;font-size:13px;z-index:2}tr:hover td{background:#fffaf1}.school{font-weight:900;color:#263845}.mini{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.mobile-list{display:none}.mcard{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 10px 22px rgba(55,39,20,.05)}.mhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.mname{font-weight:900;font-size:17px}.mmeta{color:var(--muted);font-size:13px;margin:4px 0 10px}.mrow{margin-top:10px;font-size:14px;line-height:1.7}.mrow b{color:#334a5b}
+.section-title{font-size:20px;font-weight:900;margin:26px 0 10px}.method{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-top:18px}.method .card{line-height:1.8}.footer{margin-top:18px;color:#687781;font-size:13px;line-height:1.85}
+.source-extra{display:block;margin-top:4px}
+@media(max-width:980px){.cards{grid-template-columns:repeat(3,1fr)}.method{grid-template-columns:1fr}.toolbar{position:static}}
+@media(max-width:760px){.wrap{padding:18px 12px 32px}.hero{padding:19px;border-radius:22px}h1{font-size:28px}.sub{font-size:14px;line-height:1.75}.notice{font-size:14px;line-height:1.65}.cards{grid-template-columns:repeat(2,1fr);gap:10px}.card{padding:14px}.toolbar{padding:12px;border-radius:16px}.toolbar-row{gap:8px}.search,.toolbar select,.toolbar button{width:100%;min-width:0}.tablebox{display:none}.mobile-list{display:grid;gap:10px}.kicker{font-size:12px}}
+@media(max-width:440px){.cards{grid-template-columns:1fr}.num{font-size:26px}.mhead{display:block}.mhead .pill{margin-top:8px}}
+@media print{body{background:white}.toolbar{display:none}.wrap{max-width:none}.hero,.card,.tablebox,.mcard{box-shadow:none}a{border:0;color:#000}.mobile-list{display:none}.tablebox{display:block}.table-scroll{overflow:visible}table{min-width:0}th,td{font-size:11px;padding:7px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <section class="hero">
-    <div class="kicker">辽宁本科高校 · 宿舍空调核验表 · 截止 2026-05-17</div>
+    <div class="kicker">辽宁本科高校 · 宿舍空调核验表 · 截止 2026-06-01</div>
     <h1>辽宁省本科高校宿舍空调安装统计</h1>
-    <p class="sub">本页按“学生宿舍空调”统计，不把教学楼、办公室、图书馆空调算入。学校范围采用辽宁本科高校 64 所口径：公办本科 42 所、民办本科 22 所。字段里同时标注 985、211、双一流、双非公办、民办本科等身份，便于嵌入高考志愿工具。</p>
-    <div class="notice">提示：宿舍空调非常容易受“校区、楼栋、房型、住宿费、当年分宿结果”影响。没有官方竣工/验收/迎新说明的学校，不建议在报考报告里写死“都有空调”。</div>
+    <p class="sub">本页按“学生宿舍空调”统计，不把教学楼、办公室、图书馆空调算入。学校范围采用辽宁本科高校 64 所口径：公办本科 42 所、民办本科 22 所。页面同时适配 PC、平板和手机显示，便于家长查看，也便于高报师在报告中引用。</p>
+    <div class="notice"><b>使用提醒：</b>宿舍空调受校区、楼栋、房型、住宿费、当年分宿结果影响很大。没有学校官网、后勤处、招采办、政府采购原网的竣工/验收/迎新说明，不建议在报考报告里写死“全都有空调”。</div>
   </section>
-
   <section class="cards" id="summaryCards"></section>
-
   <section class="toolbar">
     <div class="toolbar-row">
-      <input class="search" id="q" placeholder="搜索学校 / 城市 / 985 / 民办 / 安装状态">
+      <input class="search" id="q" placeholder="搜索学校 / 城市 / 985 / 民办 / 安装状态 / 来源">
       <select id="nature"><option value="">全部性质</option><option>公办</option><option>民办</option></select>
       <select id="status"><option value="">全部状态</option><option value="full">已安装/基本覆盖</option><option value="partial">部分/按房型</option><option value="installing">安装中/中标</option><option value="tender">招标采购</option><option value="planned">采购意向</option><option value="unknown">暂未核实</option></select>
       <select id="tag"><option value="">全部层次标签</option><option value="985">985</option><option value="211">211</option><option value="双一流">双一流</option><option value="双非公办">双非公办</option><option value="民办">民办</option></select>
       <button id="reset">重置</button>
     </div>
-    <div class="legend">
-      <span class="pill full">已安装</span>
-      <span class="pill partial">部分/按房型</span>
-      <span class="pill installing">安装中</span>
-      <span class="pill tender">招标采购</span>
-      <span class="pill planned">采购意向</span>
-      <span class="pill unknown">暂未核实</span>
-    </div>
+    <div class="legend"><span class="pill full">已安装</span><span class="pill partial">部分/按房型</span><span class="pill installing">安装中/中标</span><span class="pill tender">招标采购</span><span class="pill planned">采购意向</span><span class="pill unknown">暂未核实</span></div>
   </section>
-
-  <section class="tablebox">
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:64px">序号</th>
-            <th style="width:190px">学校</th>
-            <th style="width:80px">城市</th>
-            <th style="width:120px">性质/层次</th>
-            <th style="width:150px">高校标签</th>
-            <th style="width:140px">空调状态</th>
-            <th style="width:330px">安装进度说明</th>
-            <th style="width:180px">竣工/预计完成</th>
-            <th style="width:80px">可信度</th>
-            <th style="width:170px">来源</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </section>
-
+  <section class="tablebox"><div class="table-scroll"><table><thead><tr><th style="width:58px">序号</th><th style="width:190px">学校</th><th style="width:72px">城市</th><th style="width:116px">性质/层次</th><th style="width:145px">高校标签</th><th style="width:138px">空调状态</th><th style="width:390px">安装进度说明</th><th style="width:185px">竣工/预计完成</th><th style="width:78px">可信度</th><th style="width:190px">来源</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+  <section class="mobile-list" id="mobileList"></section>
   <section class="method">
-    <div class="card">
-      <div class="section-title">本报告</div>
-      
-      <p><b>“宿舍条件仅作舒适度参考，不替代当年新生入学须知、学校住宿安排和实际分宿结果。”</b></p>
-    </div>
-    <div class="card">
-      <div class="section-title">核验优先级</div>
-      <p>1. 学校官网、后勤处、招标采购办、招生网、迎新指南；<br>2. 辽宁政府采购网、公共资源交易平台；<br>3. 第三方宿舍资料仅作辅助，不能单独升级为“全覆盖”。</p>
-    </div>
+    <div class="card"><div class="section-title">报告建议写法</div><p><b>“宿舍条件仅作舒适度参考，不替代当年新生入学须知、学校住宿安排和实际分宿结果。”</b></p><p>对“安装中/中标/采购意向”的学校，建议在志愿报告里写“正在推进，需关注新生入学前官方通知”，不要写成“确定全覆盖”。</p></div>
+    <div class="card"><div class="section-title">核验优先级</div><p>1. 学校官网、后勤处、招标采购办、招生网、迎新指南；<br>2. 辽宁政府采购网、公共资源交易平台；<br>3. 第三方宿舍资料仅作辅助，不能单独升级为“全覆盖”。</p></div>
   </section>
-
-  <div class="footer">
-    生成口径：辽宁本科高校 64 所，截止 2026-05-17。<br>
-    说明：如果后续拿到学校官方竣工验收公告，应优先更新本页中“竣工/预计完成”和“可信度”字段。
-  </div>
+  <div class="footer">生成口径：辽宁本科高校 64 所，截止 2026-06-01。若后续拿到学校官方竣工验收公告，应优先更新本页中“状态、竣工/预计完成、可信度”字段。</div>
 </div>
-
 <script>
 const rows = [
   {
@@ -171,11 +83,19 @@ const rows = [
     "tag": "211 / 双一流",
     "status": "partial",
     "statusLabel": "已安装（部分楼栋）",
-    "progress": "蒲河校区A1、C3、B5等学生公寓已完成空调加装；暂未核到全校全部宿舍覆盖公告。",
-    "completion": "A1/C3：2024-09-10验收；B5：2025-08-22验收",
+    "progress": "蒲河校区A1、C3、B5等学生公寓已完成空调加装；5月下旬后勤简报显示学生宿舍基础设施改造、电力增容等仍在推进，但未核到全校全部宿舍空调覆盖公告。",
+    "completion": "B5：2025-08-22验收；截至2026-06-01未见全覆盖公告",
     "confidence": "高",
-    "sourceTitle": "辽宁大学后勤工作处",
-    "sourceUrl": "https://hqgzc.lnu.edu.cn/info/1008/2982.htm"
+    "sourceTitle": "辽宁大学后勤工作处（B5验收/后勤简报）",
+    "sourceUrl": "https://hqgzc.lnu.edu.cn/info/1008/2982.htm",
+    "sourceExtra": [
+      {
+        "title": "后勤工作处2026年第七期工作信息简报",
+        "url": "https://hqgzc.lnu.edu.cn/info/1008/3185.htm"
+      }
+    ],
+    "verifiedOn": "2026-06-01",
+    "changed": "yes"
   },
   {
     "id": 2,
@@ -189,7 +109,10 @@ const rows = [
     "completion": "首批：2024-06；第二批：计划2024暑期",
     "confidence": "高",
     "sourceTitle": "大连理工大学新闻网",
-    "sourceUrl": "https://news.dlut.edu.cn/info/1026/97654.htm"
+    "sourceUrl": "https://news.dlut.edu.cn/info/1026/97654.htm",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 3,
@@ -203,7 +126,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 4,
@@ -217,7 +143,10 @@ const rows = [
     "completion": "中标：2026-05-09；竣工待公告",
     "confidence": "中高",
     "sourceTitle": "沈阳航空航天大学招标采购办公室",
-    "sourceUrl": "https://zbcgb.sau.edu.cn/info/1060/2007.htm"
+    "sourceUrl": "https://zbcgb.sau.edu.cn/info/1060/2007.htm",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 5,
@@ -231,7 +160,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 6,
@@ -245,7 +177,10 @@ const rows = [
     "completion": "2024-09前后投入使用",
     "confidence": "高",
     "sourceTitle": "东北大学新闻网",
-    "sourceUrl": "https://neunews.neu.edu.cn/sshx/info/1051/5560.htm"
+    "sourceUrl": "https://neunews.neu.edu.cn/sshx/info/1051/5560.htm",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 7,
@@ -254,12 +189,15 @@ const rows = [
     "nature": "公办",
     "tag": "双非公办",
     "status": "tender",
-    "statusLabel": "招标采购中",
-    "progress": "学生宿舍及办公用房空调采购项目招标，投标截止2026-05-19；合同签订后45日内交货并完成安装调试。",
-    "completion": "预计：合同签订后45日；待中标/验收公告",
+    "statusLabel": "二次招标中",
+    "progress": "学生宿舍及办公用房空调采购项目已发布第二次招标公告；获取文件时间为2026-05-19至2026-05-27，开标时间为2026-06-09。尚未核到中标或竣工公告。",
+    "completion": "开标：2026-06-09；合同/竣工待公告",
     "confidence": "中高",
-    "sourceTitle": "辽宁科技大学招标采购管理中心",
-    "sourceUrl": "https://www.ustl.edu.cn/zbcgglzx/info/1007/3099.htm"
+    "sourceTitle": "辽宁科技大学招标采购管理中心（二次招标）",
+    "sourceUrl": "https://www.ustl.edu.cn/zbcgglzx/info/1007/3132.htm",
+    "verifiedOn": "2026-06-01",
+    "changed": "yes",
+    "sourceExtra": []
   },
   {
     "id": 8,
@@ -273,7 +211,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 9,
@@ -281,13 +222,21 @@ const rows = [
     "city": "抚顺",
     "nature": "公办",
     "tag": "双非公办",
-    "status": "planned",
-    "statusLabel": "采购意向/计划中",
-    "progress": "政府采购意向显示拟为学生宿舍安装空调约6000套，预计采购时间2026年4月；未核到中标或竣工公告。",
-    "completion": "计划采购：2026-04；竣工待公告",
-    "confidence": "中高",
-    "sourceTitle": "辽宁石油化工大学招标采购办公室",
-    "sourceUrl": "https://zbb.lnpu.edu.cn/info/1381/6361.htm"
+    "status": "installing",
+    "statusLabel": "结果公告线索/待原网复核",
+    "progress": "学校官方采购意向显示拟为学生宿舍安装空调约6000套、预算900万元；公开招标信息检索到2026-05-25结果公告线索，但尚未核到学校官网或政府采购原网可公开详情，暂按“中标线索，待原网复核”处理。",
+    "completion": "结果公告线索：2026-05-25；竣工待公告",
+    "confidence": "中",
+    "sourceTitle": "辽宁石油化工大学采购意向 / 结果公告线索",
+    "sourceUrl": "https://zbb.lnpu.edu.cn/info/1381/6361.htm",
+    "sourceExtra": [
+      {
+        "title": "结果公告线索（第三方招标信息）",
+        "url": "https://www.jrzb.cn/bidDetail/7B4D0517C8464A0CA004A62F6AFD8D19.html"
+      }
+    ],
+    "verifiedOn": "2026-06-01",
+    "changed": "yes"
   },
   {
     "id": 10,
@@ -295,13 +244,16 @@ const rows = [
     "city": "沈阳",
     "nature": "公办",
     "tag": "双非公办",
-    "status": "tender",
-    "statusLabel": "招标采购中",
-    "progress": "学生宿舍空调采购安装项目已进入采购公告阶段；同时有电力增容相关项目，说明仍在建设链路中。",
-    "completion": "招标公告：2026-05-06；竣工待公告",
-    "confidence": "中",
+    "status": "installing",
+    "statusLabel": "已中标/待安装验收",
+    "progress": "学生宿舍空调采购安装项目已于2026-05-28发布中标公告，供应商为青岛海尔空调器有限总公司，中标金额819.4816万元；截至2026-06-01未核到竣工验收或投入使用公告。",
+    "completion": "中标：2026-05-28；竣工待公告",
+    "confidence": "高",
     "sourceTitle": "沈阳化工大学招标采购办公室",
-    "sourceUrl": "https://zcb.syuct.edu.cn/cggg.htm"
+    "sourceUrl": "https://zcb.syuct.edu.cn/info/1007/3791.htm",
+    "verifiedOn": "2026-06-01",
+    "changed": "yes",
+    "sourceExtra": []
   },
   {
     "id": 11,
@@ -315,7 +267,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 12,
@@ -325,11 +280,14 @@ const rows = [
     "tag": "211 / 双一流",
     "status": "installing",
     "statusLabel": "中标/施工期",
-    "progress": "公共教学楼宇及学生宿舍空调采购项目已中标；监理公告显示施工同步工期为2026-03-03至2026-06-20。",
+    "progress": "公共教学楼宇及学生宿舍空调采购项目已中标；监理公告显示施工同步工期为2026-03-03至2026-06-20。截至2026-06-01仍未核到竣工验收公告。",
     "completion": "预计竣工：2026-06-20；待验收公告",
     "confidence": "高",
-    "sourceTitle": "大连海事大学信息公开网",
-    "sourceUrl": "https://xxgk.dlmu.edu.cn/info/1151/49406.htm"
+    "sourceTitle": "大连海事大学监理服务采购公告",
+    "sourceUrl": "https://www.dlmu.edu.cn/info/1825/201868.htm",
+    "verifiedOn": "2026-06-01",
+    "changed": "yes",
+    "sourceExtra": []
   },
   {
     "id": 13,
@@ -343,7 +301,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 14,
@@ -357,7 +318,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 15,
@@ -371,7 +335,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 16,
@@ -385,7 +352,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 17,
@@ -393,13 +363,21 @@ const rows = [
     "city": "大连",
     "nature": "公办",
     "tag": "双非公办",
-    "status": "installing",
-    "statusLabel": "安装推进/待验收确认",
-    "progress": "学生宿舍空调安装工程2026-02-09正式启动，全校学生宿舍计划安装3490台，计划2026-04-30前完成全部安装与调试；后续仍需核验最终验收公告。",
-    "completion": "计划完成：2026-04-30",
+    "status": "partial",
+    "statusLabel": "部分竣工/其余推进中",
+    "progress": "全校学生宿舍空调安装工程计划安装3490台。大学生公寓六舍192台已于2026-03-20全部安装调试完毕并投入使用；其他楼宇仍以“有序推进/待总体验收公告”处理。",
+    "completion": "六舍投入使用：2026-03-20；全校总体验收待公告",
     "confidence": "高",
-    "sourceTitle": "大连海洋大学官网",
-    "sourceUrl": "https://www.dlou.edu.cn/2026/0209/c5864a202635/page.htm"
+    "sourceTitle": "大连海洋大学官网（六舍竣工）",
+    "sourceUrl": "https://www.dlou.edu.cn/2026/0320/c8531a203844/page.htm",
+    "sourceExtra": [
+      {
+        "title": "安装工程启动公告",
+        "url": "https://www.dlou.edu.cn/2026/0209/c5864a202635/page.htm"
+      }
+    ],
+    "verifiedOn": "2026-06-01",
+    "changed": "yes"
   },
   {
     "id": 18,
@@ -413,7 +391,10 @@ const rows = [
     "completion": "招标：2026-04-23；结果：2026-05-15；竣工待公告",
     "confidence": "中",
     "sourceTitle": "辽宁政府采购网转载信息",
-    "sourceUrl": "https://xunshubao.com/web/datainfo/gkzb_69e9d25bc9b80f25004b1acb"
+    "sourceUrl": "https://xunshubao.com/web/datainfo/gkzb_69e9d25bc9b80f25004b1acb",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 19,
@@ -427,7 +408,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 20,
@@ -441,7 +425,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 21,
@@ -455,7 +442,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 22,
@@ -469,7 +459,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 23,
@@ -483,7 +476,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 24,
@@ -497,7 +493,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 25,
@@ -511,7 +510,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 26,
@@ -525,7 +527,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 27,
@@ -539,7 +544,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 28,
@@ -553,7 +561,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 29,
@@ -567,7 +578,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 30,
@@ -581,7 +595,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 31,
@@ -595,7 +612,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 32,
@@ -609,7 +629,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 33,
@@ -623,7 +646,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 34,
@@ -637,7 +663,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 35,
@@ -651,7 +680,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 36,
@@ -665,7 +697,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 37,
@@ -679,7 +714,10 @@ const rows = [
     "completion": "采购节点：2026-04；竣工待公告",
     "confidence": "中低",
     "sourceTitle": "采购项目信息（待原网复核）",
-    "sourceUrl": "https://lnyoucheng.com/article-detail/N1eyD3yN"
+    "sourceUrl": "https://lnyoucheng.com/article-detail/N1eyD3yN",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 38,
@@ -693,7 +731,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 39,
@@ -707,7 +748,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 40,
@@ -721,7 +765,10 @@ const rows = [
     "completion": "投入使用：2025-06-26",
     "confidence": "高",
     "sourceTitle": "大连民族大学官网",
-    "sourceUrl": "https://new.dlnu.edu.cn/esjszqh/info/1003/1181.htm"
+    "sourceUrl": "https://new.dlnu.edu.cn/esjszqh/info/1003/1181.htm",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 41,
@@ -735,7 +782,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 42,
@@ -749,7 +799,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 43,
@@ -763,7 +816,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 44,
@@ -777,7 +833,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 45,
@@ -791,7 +850,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "第三方宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 46,
@@ -805,7 +867,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 47,
@@ -819,7 +884,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 48,
@@ -833,7 +901,10 @@ const rows = [
     "completion": "页面发布：2026-05-08",
     "confidence": "高",
     "sourceTitle": "沈阳工学院官网",
-    "sourceUrl": "https://www.situ.edu.cn/info/1460/12524.htm"
+    "sourceUrl": "https://www.situ.edu.cn/info/1460/12524.htm",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 49,
@@ -847,7 +918,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "公开选宿资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 50,
@@ -861,7 +935,10 @@ const rows = [
     "completion": "2025级入学指南：2025-04-25",
     "confidence": "高",
     "sourceTitle": "大连科技学院招生网",
-    "sourceUrl": "https://sub2.dlust.edu.cn/kjzs/detail-3609.html"
+    "sourceUrl": "https://sub2.dlust.edu.cn/kjzs/detail-3609.html",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 51,
@@ -875,7 +952,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 52,
@@ -889,7 +969,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 53,
@@ -903,7 +986,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 54,
@@ -917,7 +1003,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "第三方宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 55,
@@ -931,7 +1020,10 @@ const rows = [
     "completion": "—",
     "confidence": "中高",
     "sourceTitle": "招生章程/公开资料",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 56,
@@ -945,7 +1037,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "公开宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 57,
@@ -959,7 +1054,10 @@ const rows = [
     "completion": "页面发布：2023-06-30",
     "confidence": "高",
     "sourceTitle": "沈阳城市学院官网",
-    "sourceUrl": "https://www.shenyangcu.edu.cn/gywm/xydt/202306/t20230630_44992.html"
+    "sourceUrl": "https://www.shenyangcu.edu.cn/gywm/xydt/202306/t20230630_44992.html",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 58,
@@ -973,7 +1071,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "公开宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 59,
@@ -987,7 +1088,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "公开宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 60,
@@ -1001,7 +1105,10 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 61,
@@ -1015,7 +1122,10 @@ const rows = [
     "completion": "—",
     "confidence": "中",
     "sourceTitle": "公开宿舍资料/待学校官方复核",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 62,
@@ -1024,12 +1134,20 @@ const rows = [
     "nature": "民办",
     "tag": "民办本科",
     "status": "installing",
-    "statusLabel": "安装推进中",
-    "progress": "官网2026年2月发布“学生寝室空调即将上岗”，双校区寝室空调安装推进中；待最终竣工/投入使用公告。",
-    "completion": "预计：2026夏季前；待竣工公告",
-    "confidence": "高",
-    "sourceTitle": "大连东软信息学院官网",
-    "sourceUrl": "https://www.neusoft.edu.cn/html/975/2026-02-14/content-7720.html"
+    "statusLabel": "安装推进/待最终公告",
+    "progress": "学校官网2月发布学生寝室空调即将上岗，后续公开信息显示双校区启动空调安装，施工时间为4月8日至5月；截至2026-06-01未核到最终竣工/全量投入使用公告。",
+    "completion": "施工期：2026-04-08至5月；竣工待公告",
+    "confidence": "中高",
+    "sourceTitle": "大连东软信息学院官网/一站式学生社区",
+    "sourceUrl": "https://www.neusoft.edu.cn/html/975/2026-02-14/content-7720.html",
+    "sourceExtra": [
+      {
+        "title": "一站式学生社区安装进度",
+        "url": "https://yurenhao1.sizhengwang.cn/a/dldrxxxy/260414/2369772.shtml"
+      }
+    ],
+    "verifiedOn": "2026-06-01",
+    "changed": "yes"
   },
   {
     "id": 63,
@@ -1043,7 +1161,10 @@ const rows = [
     "completion": "—",
     "confidence": "中高",
     "sourceTitle": "招生章程/公开资料",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   },
   {
     "id": 64,
@@ -1057,60 +1178,77 @@ const rows = [
     "completion": "—",
     "confidence": "低",
     "sourceTitle": "待核实",
-    "sourceUrl": ""
+    "sourceUrl": "",
+    "verifiedOn": "2026-05-17",
+    "changed": "no",
+    "sourceExtra": []
   }
 ];
-
+const changes = [
+  {
+    "school": "辽宁科技大学",
+    "change": "由“招标采购中”更新为“二次招标中”，开标时间顺延至2026-06-09。"
+  },
+  {
+    "school": "沈阳化工大学",
+    "change": "由“招标采购中”更新为“已中标/待安装验收”，官方中标公告日期2026-05-28。"
+  },
+  {
+    "school": "辽宁石油化工大学",
+    "change": "由“采购意向/计划中”更新为“结果公告线索/待原网复核”，仍不写成已竣工。"
+  },
+  {
+    "school": "大连海洋大学",
+    "change": "补充“大学生公寓六舍192台已竣工投入使用”，全校总体验收仍待公告。"
+  },
+  {
+    "school": "大连海事大学",
+    "change": "确认施工工期仍为2026-03-03至2026-06-20，截至6月1日未核到竣工公告。"
+  },
+  {
+    "school": "辽宁大学",
+    "change": "补充5月后勤简报线索：基础设施改造/电力增容推进中，但未见全校空调覆盖公告。"
+  },
+  {
+    "school": "大连东软信息学院",
+    "change": "补充4月至5月安装进度线索，仍按“安装推进/待最终公告”。"
+  }
+];
 const statusOrder = {full:1, partial:2, installing:3, tender:4, planned:5, unknown:6};
-const statusClass = s => s || "unknown";
+const statusClass = s => s || 'unknown';
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function sourceCell(r){
-  if(!r.sourceUrl) return `<span class="mini">${r.sourceTitle || "待核实"}</span>`;
-  return `<a href="${r.sourceUrl}" target="_blank" rel="noopener">${r.sourceTitle || "来源"}</a>`;
+  const bits=[];
+  if(r.sourceUrl) bits.push(`<a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">${esc(r.sourceTitle||'来源')}</a>`);
+  else bits.push(`<span class="mini">${esc(r.sourceTitle||'待核实')}</span>`);
+  (r.sourceExtra||[]).forEach(x=>bits.push(`<a class="source-extra" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title||'补充来源')}</a>`));
+  return bits.join('');
 }
-function tags(t){
-  return String(t).split('/').map(x=>x.trim()).filter(Boolean).map(x=>`<span class="tag">${x}</span>`).join('');
+function tags(t){return String(t||'').split('/').map(x=>x.trim()).filter(Boolean).map(x=>`<span class="tag">${esc(x)}</span>`).join('');}
+function getFiltered(){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const nature=document.getElementById('nature').value;
+  const status=document.getElementById('status').value;
+  const tag=document.getElementById('tag').value;
+  return rows.filter(r=>{
+    const hay=[r.school,r.city,r.nature,r.tag,r.statusLabel,r.progress,r.completion,r.confidence,r.sourceTitle,r.verifiedOn].join(' ').toLowerCase();
+    return (!q||hay.includes(q))&&(!nature||r.nature===nature)&&(!status||r.status===status)&&(!tag||String(r.tag).includes(tag));
+  }).sort((a,b)=>(statusOrder[a.status]-statusOrder[b.status])||a.id-b.id);
 }
 function render(){
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const nature = document.getElementById('nature').value;
-  const status = document.getElementById('status').value;
-  const tag = document.getElementById('tag').value;
-  let filtered = rows.filter(r=>{
-    const hay = [r.school,r.city,r.nature,r.tag,r.statusLabel,r.progress,r.completion,r.confidence].join(' ').toLowerCase();
-    return (!q || hay.includes(q)) && (!nature || r.nature===nature) && (!status || r.status===status) && (!tag || r.tag.includes(tag));
-  }).sort((a,b)=>(statusOrder[a.status]-statusOrder[b.status]) || a.id-b.id);
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = filtered.map((r,idx)=>`
-    <tr>
-      <td>${r.id}</td>
-      <td><div class="school">${r.school}</div><div class="mini">本科院校</div></td>
-      <td>${r.city}</td>
-      <td>${r.nature}<div class="mini">${r.tag.includes('职业大学')?'本科层次职业大学':'普通本科'}</div></td>
-      <td>${tags(r.tag)}</td>
-      <td><span class="pill ${statusClass(r.status)}">${r.statusLabel}</span></td>
-      <td>${r.progress}</td>
-      <td>${r.completion || '—'}</td>
-      <td>${r.confidence}</td>
-      <td>${sourceCell(r)}</td>
-    </tr>`).join('');
-  document.getElementById('visibleCount').textContent = filtered.length;
+  const filtered=getFiltered();
+  document.getElementById('tbody').innerHTML=filtered.map(r=>`<tr><td>${r.id}</td><td><div class="school">${esc(r.school)}</div><div class="mini">核验：${esc(r.verifiedOn||'')}</div></td><td>${esc(r.city)}</td><td>${esc(r.nature)}<div class="mini">${String(r.tag).includes('职业大学')?'本科层次职业大学':'普通本科'}</div></td><td>${tags(r.tag)}</td><td><span class="pill ${statusClass(r.status)}">${esc(r.statusLabel)}</span></td><td>${esc(r.progress)}</td><td>${esc(r.completion||'—')}</td><td>${esc(r.confidence)}</td><td>${sourceCell(r)}</td></tr>`).join('');
+  document.getElementById('mobileList').innerHTML=filtered.map(r=>`<article class="mcard"><div class="mhead"><div><div class="mname">${esc(r.school)}</div><div class="mmeta">${esc(r.city)}｜${esc(r.nature)}｜核验：${esc(r.verifiedOn||'')}</div></div><span class="pill ${statusClass(r.status)}">${esc(r.statusLabel)}</span></div><div>${tags(r.tag)}</div><div class="mrow"><b>进度：</b>${esc(r.progress)}</div><div class="mrow"><b>节点：</b>${esc(r.completion||'—')}</div><div class="mrow"><b>可信度：</b>${esc(r.confidence)} ｜ <b>来源：</b>${sourceCell(r)}</div></article>`).join('');
+  document.getElementById('visibleCount').textContent=filtered.length;
 }
 function renderSummary(){
-  const total = rows.length;
-  const counts = rows.reduce((m,r)=>(m[r.status]=(m[r.status]||0)+1,m),{});
-  const natures = rows.reduce((m,r)=>(m[r.nature]=(m[r.nature]||0)+1,m),{});
-  const cards = [
-    ["64","本科院校总数"],
-    [natures["公办"]||0,"公办本科"],
-    [natures["民办"]||0,"民办本科"],
-    [(counts.full||0)+(counts.partial||0),"已核到有空调"],
-    [(counts.installing||0)+(counts.tender||0)+(counts.planned||0),"安装/采购推进"],
-    [`<span id="visibleCount">${total}</span>`,"当前筛选结果"]
-  ];
-  document.getElementById('summaryCards').innerHTML = cards.map(c=>`<div class="card"><div class="num">${c[0]}</div><div class="lab">${c[1]}</div></div>`).join('');
+  const counts=rows.reduce((m,r)=>(m[r.status]=(m[r.status]||0)+1,m),{});
+  const natures=rows.reduce((m,r)=>(m[r.nature]=(m[r.nature]||0)+1,m),{});
+  const cards=[['64','本科院校总数'],[natures['公办']||0,'公办本科'],[natures['民办']||0,'民办本科'],[(counts.full||0)+(counts.partial||0),'已核到有空调'],[(counts.installing||0)+(counts.tender||0)+(counts.planned||0),'安装/采购推进'],[`<span id="visibleCount">${rows.length}</span>`,'当前筛选结果']];
+  document.getElementById('summaryCards').innerHTML=cards.map(c=>`<div class="card"><div class="num">${c[0]}</div><div class="lab">${c[1]}</div></div>`).join('');
 }
-["q","nature","status","tag"].forEach(id=>document.getElementById(id).addEventListener('input',render));
-document.getElementById('reset').addEventListener('click',()=>{["q","nature","status","tag"].forEach(id=>document.getElementById(id).value='');render();});
+['q','nature','status','tag'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+document.getElementById('reset').addEventListener('click',()=>{['q','nature','status','tag'].forEach(id=>document.getElementById(id).value='');render();});
 renderSummary();render();
 </script>
 </body>
