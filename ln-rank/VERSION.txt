@@ -1,1 +1,1 @@
-v3.9.6.8-ln-rank-mobile-pool-entry-humanized
+v3.9.6.9-ln-rank-pool-entry-responsive-human-fix
