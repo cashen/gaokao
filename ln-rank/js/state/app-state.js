@@ -5,7 +5,8 @@ export const state = {
   filters: {
     region: "all",
     schoolKeyword: "",
-    majorKeyword: ""
+    majorKeyword: "",
+    bottomLineMode: "all"
   },
   bands: {
     loading: false,
