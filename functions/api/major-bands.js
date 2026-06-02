@@ -122,6 +122,7 @@ export async function onRequest(context) {
     let majorHitCount = 0;
     let projectHitCount = 0;
     let industryHitCount = 0;
+    const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
     let failedChunk = '';
 
     for (const chunk of chunks) {
@@ -156,12 +157,12 @@ export async function onRequest(context) {
         const match = matchMajorProject(indexed, keywordQuery);
         if (!match.matched) { majorKeywordExcluded += 1; continue; }
         record.matchBadges = match.badges;
-        record.matchReason = match.reason;
+        record.matchLevel = match.matchLevel || '';
+        record.matchLabel = match.matchLabel || '';
+        record.matchReason = match.matchReason || match.reason || '';
+        record.matchedKeyword = match.matchedKeyword || '';
+        record.matchedTerms = match.matchedTerms || [];
         record.matchScore = match.score;
-        if (match.badges.includes('专业命中')) majorHitCount += 1;
-        if (match.badges.includes('项目属性')) projectHitCount += 1;
-        if (match.badges.includes('行业院校') || match.badges.includes('行业路径')) industryHitCount += 1;
-
         if (!passBottomLineMode(record, filters.bottomLineMode)) {
           bottomLineExcluded += 1;
           continue;
@@ -171,6 +172,10 @@ export async function onRequest(context) {
         if (!band) continue;
 
         normalized += 1;
+        if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
+        if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
+        if (record.matchLevel === 'project') projectHitCount += 1;
+        if (record.matchLevel === 'industry') industryHitCount += 1;
         grouped[band].scanned += 1;
         pushRecord(grouped, band, record, candidateScore, maxPerBand);
       }
@@ -207,6 +212,7 @@ export async function onRequest(context) {
       keywordQuery,
       keywordWarnings,
       searchAdvices,
+      matchSummary,
       bands: grouped,
       counts,
       source: {

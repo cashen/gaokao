@@ -1,9 +1,12 @@
-// v3.9.7.1 搜索命中打分策略。
-// 外部只依赖 scoreKeywordMatch，后续可调整权重而不改 major-bands 主流程。
+// v3.9.7.3 兼容导出：旧调用仍可用；新主流程使用 keyword-match-scorer.js。
 export const SEARCH_SCORE_WEIGHTS = {
+  exact: 100,
+  related: 72,
+  project: 70,
+  industry: 50,
+  weak: 25,
   majorExact: 100,
   majorAlias: 75,
-  project: 70,
   industrySchool: 65,
   industryTag: 55,
   remark: 45

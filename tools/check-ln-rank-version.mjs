@@ -1,1 +1,1 @@
-import './check-ln-rank-version-v3972.mjs';
+import './check-ln-rank-version-v3973.mjs';
