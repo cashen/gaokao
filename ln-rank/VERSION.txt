@@ -1,1 +1,1 @@
-v3.9.7.2-ln-rank-keyword-preset-visual-note
+v3.9.8.0-ln-rank-release-baseline-consolidation
