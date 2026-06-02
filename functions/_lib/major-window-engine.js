@@ -19,9 +19,9 @@ function classifyByView(score, viewScore) {
 }
 
 function groupTitle(key) {
-  if (key === 'upper') return '上探参考';
-  if (key === 'near') return '主体参考';
-  return '稳妥参考';
+  if (key === 'upper') return '稍高目标';
+  if (key === 'near') return '重点匹配';
+  return '稳妥补充';
 }
 
 function groupRange(key, viewScore) {

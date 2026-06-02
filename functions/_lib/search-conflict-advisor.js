@@ -16,7 +16,7 @@ export function buildSearchConflictAdvice({ keywordQuery, bottomLineMode, result
     advices.push({
       level: 'info',
       type: 'no_sino_result',
-      message: '当前条件下未找到中外/合作办学相关项目，可尝试放宽查询范围或切换办学费用底线。'
+      message: '当前条件下未找到中外/合作办学相关项目，可尝试选择“多看一些”，或切换办学费用底线。'
     });
   }
 

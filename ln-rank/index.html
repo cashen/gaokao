@@ -11,27 +11,27 @@
   <link rel="stylesheet" href="./css/tabs.css?v=3949" />
   <link rel="stylesheet" href="./css/filters.css?v=3949" />
   <link rel="stylesheet" href="./css/bottomline.v3962.css?v=3962" />
-  <link rel="stylesheet" href="./css/layout-shell.v3975.css?v=3975" />
-  <link rel="stylesheet" href="./css/major-search.v3975.css?v=3975" />
-  <link rel="stylesheet" href="./css/keyword-preset.v3975.css?v=3975" />
-  <link rel="stylesheet" href="./css/match-badge.v3975.css?v=3975" />
-  <link rel="stylesheet" href="./css/code-trust.v3975.css?v=3975" />
-  <link rel="stylesheet" href="./css/search-workbench.v3975.css?v=3975" />
+  <link rel="stylesheet" href="./css/layout-shell.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/major-search.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/keyword-preset.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/match-badge.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/code-trust.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/search-workbench.v3976.css?v=3976" />
   <link rel="stylesheet" href="./css/major-list.css?v=3949" />
   <link rel="stylesheet" href="./css/tags.css?v=3949" />
   <link rel="stylesheet" href="./css/responsive.css?v=3949" />
   <link rel="stylesheet" href="./css/feishu.css?v=3949" />
   <link rel="stylesheet" href="./css/diagnose.css?v=3949" />
   <link rel="stylesheet" href="./css/selection-pool.v3949.css?v=3949" />
-  <link rel="stylesheet" href="./css/floating-pool-entry.v3975.css?v=3975" />
+  <link rel="stylesheet" href="./css/floating-pool-entry.v3976.css?v=3976" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.5</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.6</p>
         <h1 class="app-title">辽宁物理类志愿梯度位次参考工具</h1>
-        <p class="app-subtitle">输入考生分数，按上探、主体、稳妥三个区间查看院校专业；加入自选池后，点击右侧固定入口（PC/Pad）或结果区整理条（手机）进入完整整理页。</p>
+        <p class="app-subtitle">输入考生分数，按稍高目标、重点匹配、稳妥补充三个区间查看院校专业；加入自选池后，点击右侧固定入口（PC/Pad）或结果区整理条（手机）进入完整整理页。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">程序就绪</span></div>
@@ -47,12 +47,12 @@
       <div class="range-box">
         <div class="field-label">查看范围</div>
         <div class="range-buttons" id="rangeButtons">
-          <button class="range-button is-active" data-preset="standard">标准</button>
-          <button class="range-button" data-preset="wide">放宽</button>
-          <button class="range-button" data-preset="safe">保守</button>
+          <button class="range-button is-active" data-preset="standard">正常查看</button>
+          <button class="range-button" data-preset="wide">多看一些</button>
+          <button class="range-button" data-preset="safe">稳妥一点</button>
         </div>
       </div>
-      <div class="top-note">标准范围：上探 +1~+10，主体 0~-10，稳妥 -11~-25。筛选只缩小结果，不改变区间。</div>
+      <div class="top-note">正常查看：稍高目标 +1~+10，重点匹配 0~-10，稳妥补充 -11~-25。筛选只缩小结果，不改变查看范围。</div>
       <div id="bottomLinePanel" class="bottomline-panel" hidden>
         <div class="bottomline-head">
           <div>
@@ -73,7 +73,7 @@
       <div class="tabs-head">
         <div>
           <h2 class="panel-title">分数区间</h2>
-          <p class="panel-desc">默认先看主体参考，也可以切换到上探或稳妥。</p>
+          <p class="panel-desc">第一次使用建议先看“重点匹配”，也可以切换到“稍高目标”或“稳妥补充”。</p>
         </div>
         
       </div>
@@ -120,7 +120,7 @@
     <section id="resultsPanel" class="panel results-shell band-near-shell">
       <div class="results-head">
         <div>
-          <h2 id="resultsTitle" class="results-title">主体参考</h2>
+          <h2 id="resultsTitle" class="results-title">重点匹配</h2>
           <p id="resultsMeta" class="results-meta">等待查看</p>
         </div>
         <div class="results-actions"><div id="feishuReportMount" class="feishu-report-mount"></div>
@@ -134,6 +134,6 @@
       当前专业池基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据，用于形成可讨论专业池和自选池排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划和专业要求综合判断。
     </section>
   </main>
-  <script type="module" src="./js/app.v3975.js?v=3975"></script>
+  <script type="module" src="./js/app.v3976.js?v=3976"></script>
 </body>
 </html>

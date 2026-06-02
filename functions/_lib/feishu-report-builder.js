@@ -3,6 +3,36 @@ function fmt(value) {
   return Number.isFinite(n) ? n.toLocaleString("zh-CN") : "—";
 }
 
+const BAND_LABELS = {
+  upper: '稍高目标',
+  near: '重点匹配',
+  steady: '稳妥补充'
+};
+
+const RANGE_LABELS = {
+  standard: '正常查看',
+  wide: '多看一些',
+  safe: '稳妥一点'
+};
+
+const BOTTOMLINE_LABELS = {
+  all: '全部院校',
+  public_first: '公办优先',
+  public_regular_only: '只看公办普通',
+  public_include_sino: '公办含中外/高收费'
+};
+
+function bandTitle(band) {
+  return BAND_LABELS[band?.key] || band?.title || '重点匹配';
+}
+
+function standardMajorText(record) {
+  const sm = record?.standardMajor || {};
+  if (sm.code && sm.name) return `${sm.code}｜${sm.name}`;
+  if (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category') return `专业类 ${sm.categoryCode}｜${sm.categoryName}`;
+  return '';
+}
+
 const REGION_LABELS = {
   all: "不限",
   ln: "辽宁省内",
@@ -40,8 +70,9 @@ function tags(record) {
 function filterText(filters) {
   const region = REGION_LABELS[filters.region] || "不限";
   const school = filters.schoolKeyword ? `学校：${filters.schoolKeyword}` : "学校不限";
-  const major = filters.majorKeyword ? `专业：${filters.majorKeyword}` : "专业不限";
-  return `${region} / ${school} / ${major}`;
+  const major = filters.majorKeyword ? `专业/项目/行业关键词：${filters.majorKeyword}` : "关键词不限";
+  const bottom = filters.bottomLineMode && filters.bottomLineMode !== "all" ? `公办底线：${BOTTOMLINE_LABELS[filters.bottomLineMode] || filters.bottomLineMode}` : "公办底线不限";
+  return `${region} / ${school} / ${major} / ${bottom}`;
 }
 
 function historyText(record) {
@@ -62,7 +93,8 @@ function locationText(record) {
 
 export function buildFeishuReport(data) {
   const band = data.selectedBand;
-  const title = `${data.candidateScore}分｜${band.title}专业池｜辽宁物理类`;
+  const displayBandTitle = bandTitle(band);
+  const title = `${data.candidateScore}分｜${displayBandTitle}专业池｜辽宁物理类`;
   const lines = [];
 
   lines.push(`# ${title}`);
@@ -70,28 +102,35 @@ export function buildFeishuReport(data) {
   lines.push("## 辽宁物理类分数区间专业池参考");
   lines.push("");
   lines.push(`- 考生分数：${data.candidateScore}`);
-  lines.push(`- 当前区间：${band.title}（${band.rangeText} 分）`);
+  lines.push(`- 当前区间：${displayBandTitle}（${band.rangeText} 分）`);
   lines.push(`- 筛选条件：${filterText(data.filters)}`);
   lines.push(`- 数据口径：${data.dataScope}专业数据`);
   lines.push("");
   lines.push("## 结果摘要");
   lines.push("");
-  lines.push(`- 上探参考：${fmt(data.counts.upper)} 条`);
-  lines.push(`- 主体参考：${fmt(data.counts.near)} 条`);
-  lines.push(`- 稳妥参考：${fmt(data.counts.steady)} 条`);
-  lines.push(`- 当前生成：${band.title}前 ${data.selectedRecords.length} 条`);
+  lines.push(`- 稍高目标：${fmt(data.counts.upper)} 条`);
+  lines.push(`- 重点匹配：${fmt(data.counts.near)} 条`);
+  lines.push(`- 稳妥补充：${fmt(data.counts.steady)} 条`);
+  lines.push(`- 当前生成：${displayBandTitle}前 ${data.selectedRecords.length} 条`);
+  lines.push(`- 查看范围：${RANGE_LABELS[data.rangePreset] || data.rangePreset || "正常查看"}`);
+  if (data.keywordQuery?.rawKeywords?.length) lines.push(`- 关键词识别：${data.keywordQuery.rawKeywords.join("、")}`);
+  if (data.matchSummary) lines.push(`- 命中统计：精准匹配 ${fmt(data.matchSummary.exact)} 个｜相关方向 ${fmt(data.matchSummary.related)} 个｜行业关联 ${fmt(data.matchSummary.industry)} 个｜项目属性 ${fmt(data.matchSummary.project)} 个`);
   lines.push("");
-  lines.push(`## ${band.title}专业列表`);
+  lines.push(`## ${displayBandTitle}专业列表`);
   lines.push("");
 
   data.selectedRecords.forEach((record, index) => {
     lines.push(`### ${index + 1}. ${record.school}｜${record.major}`);
     lines.push("");
+    const majorCode = standardMajorText(record);
     lines.push(`- 2025最低分：${fmt(record.score2025 ?? record.score)} 分`);
+    if (majorCode) lines.push(`- 专业代码：${majorCode}`);
     lines.push(`- 2025最低位次：${fmt(record.rank2025 ?? record.rank)}`);
     lines.push(`- ${historyText(record)}`);
     lines.push(`- 相对考生：${deltaText(record.scoreDelta)} 分`);
     lines.push(`- 状态：${record.statusLabel || "待核验"}`);
+    if (record.matchLabel) lines.push(`- 匹配关系：${record.matchLabel}`);
+    if (record.matchReason) lines.push(`- 命中原因：${record.matchReason}`);
     lines.push(`- 适合位置：${record.position || "待核验"}`);
     lines.push(`- 地域：${locationText(record)}`);
     lines.push(`- 标签：${tags(record)}`);
