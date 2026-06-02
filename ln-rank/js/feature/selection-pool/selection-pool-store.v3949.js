@@ -80,7 +80,23 @@ export function normalizePoolItem(record = {}, order = 1) {
     tuition: cleanText(record.tuition, 80),
     schoolTags: Array.isArray(record.schoolTags) ? record.schoolTags.map(x => cleanText(x, 40)).filter(Boolean).slice(0, 8) : [],
     flags: Array.isArray(record.flags) ? record.flags.map(x => cleanText(x, 80)).filter(Boolean).slice(0, 8) : [],
-    historyCompare: record.historyCompare || null
+    historyCompare: record.historyCompare || null,
+    // v3.9.7.5：自选池需要保留专业代码映射，用于排序、AI诊断和报告导出。
+    standardMajor: record.standardMajor && typeof record.standardMajor === 'object' ? {
+      code: cleanText(record.standardMajor.code, 24),
+      name: cleanText(record.standardMajor.name, 80),
+      categoryCode: cleanText(record.standardMajor.categoryCode, 24),
+      categoryName: cleanText(record.standardMajor.categoryName, 80),
+      mappingStatus: cleanText(record.standardMajor.mappingStatus, 24),
+      mappingSource: cleanText(record.standardMajor.mappingSource, 60),
+      confidence: toNum(record.standardMajor.confidence, null)
+    } : {},
+    codes: record.codes && typeof record.codes === 'object' ? {
+      standardMajorCode: cleanText(record.codes.standardMajorCode, 24),
+      rawFenxiMajorCode: cleanText(record.codes.rawFenxiMajorCode, 80),
+      rawFenxiId: cleanText(record.codes.rawFenxiId, 80),
+      schoolCode: cleanText(record.codes.schoolCode, 40)
+    } : {}
   };
   return { ...base, poolBand: classifyPoolItem(base) };
 }
