@@ -10,6 +10,8 @@ import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.j
 import { matchMajorProject } from '../_lib/major-project-matcher.js';
 import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
+import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
+import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -148,6 +150,13 @@ export async function onRequest(context) {
         rawCandidate += 1;
 
         const record = { ...normalizeRecord(raw), rawText: JSON.stringify(raw).slice(0, 1600) };
+        record.codes = normalizeFenxiCodes(raw);
+        const mappedStandardMajor = mapStandardMajor({
+          majorName: record.major,
+          standardMajorCode: record.codes.standardMajorCode || (record.codes.majorCodeLooksStandard ? record.codes.majorCode : '')
+        });
+        record.standardMajor = mappedStandardMajor;
+        if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
         Object.assign(record, enrichBottomLineFields(record));
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;

@@ -47,6 +47,8 @@ function normalizeItems(items = []) {
       natureLabel: clean(item.natureLabel || item.nature || '', 60),
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 40)).filter(Boolean).slice(0, 8) : [],
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
+      codes: item.codes || {},
+      standardMajor: item.standardMajor || {},
       poolBand
     };
   }).filter(x => x.school || x.major);
@@ -88,7 +90,9 @@ function itemLine(item) {
   const score = Number.isFinite(Number(item.score2025)) ? `${fmt(item.score2025)} 分` : '分数待核验';
   const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
-  return `${item.order}. ${item.school}｜${item.major}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
+  const code = item.codes?.majorCode ? `｜专业代码 ${item.codes.majorCode}` : '';
+  const std = item.standardMajor?.code && item.standardMajor?.name ? `｜本科专业代码 ${item.standardMajor.code} ${item.standardMajor.name}` : '';
+  return `${item.order}. ${item.school}｜${item.major}${code}${std}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
 function itemName(item) {

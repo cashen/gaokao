@@ -22,6 +22,6 @@ export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, nar
     healthLights,
     narrative,
     source,
-    items: (facts.orderedItems || []).map(item => ({ order: item.order, school: item.school, major: item.major, score2025: item.score2025, rank2025: item.rank2025, scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
+    items: (facts.orderedItems || []).map(item => ({ order: item.order, school: item.school, major: item.major, codes: item.codes || {}, standardMajor: item.standardMajor || {}, score2025: item.score2025, rank2025: item.rank2025, scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
   };
 }
