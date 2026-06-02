@@ -7,6 +7,7 @@ import { buildAdvisorFallbackNarrative } from '../_lib/advisor-fallback-writer.j
 import { buildAdvisorHealthLights } from '../_lib/advisor-health-lights.js';
 import { buildReportSnapshot } from '../_lib/report-snapshot-builder.js';
 import { buildRuleBasedParentCoach } from '../_lib/parent-decision-coach.js';
+import { resolveAiModel, buildAiModelDebug } from '../_lib/ai-model-resolver.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -172,9 +173,10 @@ function isAiQuotaLimit(error) {
 }
 
 async function buildNarrative(context, { facts, candidateZones, risks, actions, fallbackNarrative }) {
-  const model = String(context.env?.AI_PATH_MODEL || '@cf/meta/llama-3.1-8b-instruct').trim();
+  const resolvedModel = resolveAiModel(context.env || {}, { specificKey: 'AI_PATH_MODEL' });
+  const model = resolvedModel.model;
   if (!context.env?.AI || typeof context.env.AI.run !== 'function') {
-    return { source: 'fallback', model: '', message: '未检测到 Cloudflare Workers AI 绑定，已返回规则兜底人话解读。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
+    return { source: 'fallback', model: '', modelDebug: buildAiModelDebug(resolvedModel), message: '未检测到 Cloudflare Workers AI 绑定，已返回规则兜底人话解读。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
   }
   try {
     const messages = buildAdvisorAiMessages({ facts, candidateZones, ruleRisks: risks, ruleActions: actions, fallbackNarrative });
@@ -183,13 +185,13 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
     const parsed = parseAdvisorAiText(raw);
     const validation = validateAdvisorAiNarrative(parsed, { candidateZones, fallbackNarrative });
     if (!validation.ok) {
-      return { source: 'fallback-ai-invalid', model, message: `AI输出未通过安全校验，已使用规则兜底：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
+      return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: `AI输出未通过安全校验，已使用规则兜底：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
     }
-    return { source: 'workers-ai', model, message: 'AI高报师解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
+    return { source: 'workers-ai', model, modelDebug: buildAiModelDebug(resolvedModel), message: 'AI高报师解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
   } catch (error) {
     const source = isAiQuotaLimit(error) ? 'fallback-ai-quota' : 'fallback-ai-error';
     const message = source === 'fallback-ai-quota' ? 'Cloudflare AI 免费额度已用完，已自动切换为规则兜底解读。' : 'AI调用暂时失败，已自动切换为规则兜底解读。';
-    return { source, model, message, aiError: errorText(error).slice(0, 240), narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: errorText(error).slice(0, 180) } };
+    return { source, model, modelDebug: buildAiModelDebug(resolvedModel), message, aiError: errorText(error).slice(0, 240), narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: errorText(error).slice(0, 180) } };
   }
 }
 
@@ -197,7 +199,7 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
   const zoneKey = narrative?.finalZone?.zoneKey || candidateZones?.[0]?.zoneKey || 'missing-rank-zone';
   const policy = getAdvisorZonePolicy(zoneKey);
   return {
-    version: 'v3.9.6.3',
+    version: 'v3.9.7.0',
     candidateScore: facts.candidate?.score,
     candidateRank: facts.candidate?.rank,
     candidateRankStart: facts.candidate?.rankStart,
@@ -272,11 +274,12 @@ export async function onRequest(context) {
     const reportSnapshot = buildReportSnapshot({ facts, rankZone, stats: facts.poolStructure, narrative, healthLights, parentCoach, source: narrativeResult.source });
     const result = {
       ok: true,
-      version: 'v3.9.6.3',
+      version: 'v3.9.7.0',
       level: rule.level,
       source: narrativeResult.source,
       parentCoach,
       model: narrativeResult.model || '',
+      modelDebug: narrativeResult.modelDebug || {},
       message: narrativeResult.message || '',
       aiError: narrativeResult.aiError || '',
       summary,
@@ -315,6 +318,6 @@ export async function onRequest(context) {
     result.reportText = buildReportText({ facts, rankZone, stats: facts.poolStructure, narrative, source: result.source });
     return json(result);
   } catch (error) {
-    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.5.9 的 advisor 事实层、候选功能区和 AI 绑定。' }, 500);
+    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.7.0 的 advisor 事实层、候选功能区、AI_MODEL / AI_PATH_MODEL 和 AI 绑定。' }, 500);
   }
 }

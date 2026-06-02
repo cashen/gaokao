@@ -2,6 +2,7 @@ import { buildCardDiagnoseMessages } from '../_lib/ai-card-prompt.js';
 import { buildRuleOnlyDiagnosis } from '../_lib/ai-card-rules.js';
 import { parseDiagnosisFromModel, normalizeDiagnosis } from '../_lib/ai-card-output-schema.js';
 import { getKnowledgeContext } from '../_lib/kb/kb-retriever.js';
+import { resolveAiModel, buildAiModelDebug } from '../_lib/ai-model-resolver.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -101,13 +102,15 @@ export async function onRequest(context) {
     }
 
     const knowledgeContext = await getKnowledgeContext(record, context.request, context.env || {});
-    const model = String(context.env?.AI_CARD_MODEL || '@cf/meta/llama-3.1-8b-instruct').trim();
+    const resolvedModel = resolveAiModel(context.env || {}, { specificKey: 'AI_CARD_MODEL' });
+    const model = resolvedModel.model;
 
     if (!context.env?.AI || typeof context.env.AI.run !== 'function') {
       return json({
         ok: true,
         source: 'rules-only',
         model: '',
+        modelDebug: buildAiModelDebug(resolvedModel),
         message: '未检测到 Cloudflare Workers AI 绑定，已返回规则版诊断。',
         knowledgeContext,
         diagnosis: ruleDiagnosis(record, candidateScore)
@@ -129,6 +132,7 @@ export async function onRequest(context) {
           ok: true,
           source: 'rules-only-quota',
           model,
+          modelDebug: buildAiModelDebug(resolvedModel),
           message: '今日 Cloudflare AI 免费额度已用完，已自动切换为规则版诊断。',
           knowledgeContext,
           diagnosis: ruleDiagnosis(record, candidateScore)
@@ -139,6 +143,7 @@ export async function onRequest(context) {
         ok: true,
         source: 'rules-only-error',
         model,
+        modelDebug: buildAiModelDebug(resolvedModel),
         message: 'AI 调用暂时失败，已自动切换为规则版诊断。',
         aiError: shortError(aiError),
         knowledgeContext,
@@ -155,6 +160,7 @@ export async function onRequest(context) {
       ok: true,
       source: 'workers-ai',
       model,
+      modelDebug: buildAiModelDebug(resolvedModel),
       knowledgeContext,
       diagnosis
     });
@@ -162,7 +168,7 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error && error.message ? error.message : String(error),
-      hint: '请检查 Cloudflare Pages 是否绑定 Workers AI，绑定变量名是否为 AI，并配置 AI_CARD_MODEL。AI 额度用完时，本版会自动切换为规则版诊断。'
+      hint: '请检查 Cloudflare Pages 是否绑定 Workers AI，绑定变量名是否为 AI，并配置 AI_CARD_MODEL 或统一变量 AI_MODEL。AI 额度用完时，本版会自动切换为规则版诊断。'
     }, 500);
   }
 }
