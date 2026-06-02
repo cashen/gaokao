@@ -19,12 +19,7 @@ export function buildSearchIndex(records = []) {
       record.majorCategory,
       record.majorFamily,
       record.majorGroup,
-      record.majorTags,
-      record.standardMajor?.code,
-      record.standardMajor?.name,
-      record.standardMajor?.categoryCode,
-      record.standardMajor?.categoryName,
-      record.codes?.standardMajorCode
+      record.majorTags
     ])),
     projectText: normalizeSearchText(joinValues([
       record.majorName,
@@ -39,9 +34,7 @@ export function buildSearchIndex(records = []) {
       record.projectType,
       record.flags,
       record.tags,
-      record.rawText,
-      record.codes?.rawFenxiMajorCode,
-      record.codes?.standardMajorCode
+      record.rawText
     ])),
     schoolText: normalizeSearchText(joinValues([
       record.schoolName,

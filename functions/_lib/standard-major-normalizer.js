@@ -15,7 +15,7 @@ export function normalizeMajorNameForMap(value) {
 export function normalizeMajorCode(value) {
   const s = String(value == null ? '' : value).trim();
   if (!s) return '';
-  // 本科专业代码允许 K/T 后缀，招生条目专业代码可能含前导 0，全部按字符串保存。
+  // 专业代码允许 K/T 后缀，全部按字符串保存，避免丢失后缀。
   return s.replace(/\s+/g, '').toUpperCase();
 }
 

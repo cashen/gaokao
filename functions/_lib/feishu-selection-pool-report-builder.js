@@ -90,9 +90,9 @@ function itemLine(item) {
   const score = Number.isFinite(Number(item.score2025)) ? `${fmt(item.score2025)} 分` : '分数待核验';
   const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
-  const code = item.codes?.majorCode ? `｜专业代码 ${item.codes.majorCode}` : '';
-  const std = item.standardMajor?.code && item.standardMajor?.name ? `｜本科专业代码 ${item.standardMajor.code} ${item.standardMajor.name}` : '';
-  return `${item.order}. ${item.school}｜${item.major}${code}${std}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
+  const sm = item.standardMajor || {};
+  const code = sm.code && sm.name ? `｜专业代码 ${sm.code} ${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类 ${sm.categoryCode} ${sm.categoryName}` : '');
+  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
 function itemName(item) {

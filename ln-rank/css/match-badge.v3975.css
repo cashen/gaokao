@@ -1,0 +1,42 @@
+/* v3.9.7.3 结果卡片匹配可信度：低饱和、人话提示，不显示技术等级。 */
+.match-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 900;
+  vertical-align: middle;
+  border: 1px solid #d9e6df;
+  background: #f2f8f5;
+  color: #315e53;
+  white-space: nowrap;
+}
+.match-trust-badge.match-exact { background: #eaf5ef; border-color: #c9e0d5; color: #265d50; }
+.match-trust-badge.match-related { background: #f3f8f5; border-color: #dbe8e1; color: #52675d; }
+.match-trust-badge.match-industry { background: #f3f6f8; border-color: #dce4e9; color: #4a5f6a; }
+.match-trust-badge.match-project { background: #fff7ea; border-color: #ead7b6; color: #73592e; }
+.match-trust-badge.match-weak { background: #f6f6f4; border-color: #e2e2dd; color: #686b66; }
+.match-reason {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  background: #f8fbf9;
+  border: 1px solid #e3ece7;
+  color: #53655e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.keyword-match-summary {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  color: #375f55;
+  font-weight: 800;
+}
+@media (max-width: 720px) {
+  .match-trust-badge { margin-left: 6px; padding: 3px 7px; font-size: 11px; }
+  .match-reason { font-size: 12px; }
+}

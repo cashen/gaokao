@@ -18,12 +18,13 @@ export function normalizeFenxiCodes(raw = {}) {
   ]);
   const schoolCode = pick(raw, ['院校代码', '院校代号', 'schoolCode', 'collegeCode', 'enrollSchoolCode']);
   const rawFenxiId = pick(raw, ['id', '_id', 'rawId', 'detailId', 'planItemCode', '招生计划编号']);
-  // 注意：用户确认 /fenxi 详细卡片该字段前端叫“专业代码”。它可能不是 080601 这种本科专业代码。
+  // v3.9.7.5：ln-rank 前端“专业代码”统一指 080601 这类本科专业代码。
+  // /fenxi 原始条目号仅保留在 rawFenxiMajorCode，不参与前端显示。
   return {
-    majorCode: normalizeMajorCode(rawMajorCode),
+    rawFenxiMajorCode: normalizeMajorCode(rawMajorCode),
     schoolCode: normalizeMajorCode(schoolCode),
     standardMajorCode: normalizeMajorCode(standardMajorCode),
     rawFenxiId: normalizeMajorCode(rawFenxiId),
-    majorCodeLooksStandard: looksLikeStandardMajorCode(rawMajorCode)
+    rawFenxiMajorCodeLooksStandard: looksLikeStandardMajorCode(rawMajorCode)
   };
 }

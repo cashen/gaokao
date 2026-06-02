@@ -153,10 +153,11 @@ export async function onRequest(context) {
         record.codes = normalizeFenxiCodes(raw);
         const mappedStandardMajor = mapStandardMajor({
           majorName: record.major,
-          standardMajorCode: record.codes.standardMajorCode || (record.codes.majorCodeLooksStandard ? record.codes.majorCode : '')
+          standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
         });
         record.standardMajor = mappedStandardMajor;
         if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
+        // 前端展示的“专业代码”统一来自 standardMajor.code；/fenxi 原始条目号不作为专业代码展示。
         Object.assign(record, enrichBottomLineFields(record));
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;
