@@ -1,4 +1,5 @@
 import { normalizeSearchText } from './search-index-builder.js';
+import { scoreKeywordMatch } from './search-scorer.js';
 
 function hitAny(text, keywords = []) {
   if (!Array.isArray(keywords) || !keywords.length) return false;
@@ -24,12 +25,9 @@ export function matchMajorProject(recordOrIndexed, keywordQuery = {}) {
   const industrySchoolHit = hitAny(schoolText, keywordQuery.industrySchoolHints);
   const industryTagHit = hitAny(industryText, keywordQuery.industryTags);
 
-  const badges = [];
-  let score = 0;
-  if (majorHit) { badges.push('专业命中'); score += 80; }
-  if (projectHit) { badges.push('项目属性'); score += 60; }
-  if (industrySchoolHit) { badges.push('行业院校'); score += 55; }
-  if (industryTagHit) { badges.push('行业路径'); score += 45; }
+  const scored = scoreKeywordMatch({ majorHit, projectHit, industrySchoolHit, industryTagHit });
+  const badges = scored.badges;
+  const score = scored.score;
 
   const matched = majorHit || projectHit || industrySchoolHit || industryTagHit;
   return {
