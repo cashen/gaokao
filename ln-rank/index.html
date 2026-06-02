@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>辽宁物理类志愿梯度位次参考工具</title>
+  <title>辽宁物理类专业初选参考工具</title>
   <link rel="stylesheet" href="./css/tokens.css?v=3949" />
   <link rel="stylesheet" href="./css/base.css?v=3949" />
   <link rel="stylesheet" href="./css/layout.css?v=3949" />
@@ -11,27 +11,28 @@
   <link rel="stylesheet" href="./css/tabs.css?v=3949" />
   <link rel="stylesheet" href="./css/filters.css?v=3949" />
   <link rel="stylesheet" href="./css/bottomline.v3962.css?v=3962" />
-  <link rel="stylesheet" href="./css/layout-shell.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/major-search.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/keyword-preset.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/match-badge.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/code-trust.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/search-workbench.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/layout-shell.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/major-search.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/keyword-preset.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/match-badge.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/code-trust.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/search-workbench.v3977.css?v=3977" />
   <link rel="stylesheet" href="./css/major-list.css?v=3949" />
   <link rel="stylesheet" href="./css/tags.css?v=3949" />
   <link rel="stylesheet" href="./css/responsive.css?v=3949" />
   <link rel="stylesheet" href="./css/feishu.css?v=3949" />
   <link rel="stylesheet" href="./css/diagnose.css?v=3949" />
   <link rel="stylesheet" href="./css/selection-pool.v3949.css?v=3949" />
-  <link rel="stylesheet" href="./css/floating-pool-entry.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/floating-pool-entry.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/parent-copy.v3977.css?v=3977" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.6</p>
-        <h1 class="app-title">辽宁物理类志愿梯度位次参考工具</h1>
-        <p class="app-subtitle">输入考生分数，按稍高目标、重点匹配、稳妥补充三个区间查看院校专业；加入自选池后，点击右侧固定入口（PC/Pad）或结果区整理条（手机）进入完整整理页。</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.7</p>
+        <h1 class="app-title">辽宁物理类专业初选参考工具</h1>
+        <p class="app-subtitle">输入考生分数，先按稍高目标、主要参考、稳妥补充三个区间筛出可讨论专业；加入自选专业后，再统一排序、复核和生成家庭讨论报告。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">程序就绪</span></div>
@@ -52,7 +53,7 @@
           <button class="range-button" data-preset="safe">稳妥一点</button>
         </div>
       </div>
-      <div class="top-note">正常查看：稍高目标 +1~+10，重点匹配 0~-10，稳妥补充 -11~-25。筛选只缩小结果，不改变查看范围。</div>
+      <div class="top-note">正常查看：稍高目标 +1~+10，主要参考 0~-10，稳妥补充 -11~-25。筛选只缩小结果，不改变查看范围。</div>
       <div id="bottomLinePanel" class="bottomline-panel" hidden>
         <div class="bottomline-head">
           <div>
@@ -73,7 +74,7 @@
       <div class="tabs-head">
         <div>
           <h2 class="panel-title">分数区间</h2>
-          <p class="panel-desc">第一次使用建议先看“重点匹配”，也可以切换到“稍高目标”或“稳妥补充”。</p>
+          <p class="panel-desc">第一次使用建议先看“主要参考”，再少量看看“稍高目标”，最后用“稳妥补充”补足安全感。</p>
         </div>
         
       </div>
@@ -83,9 +84,9 @@
         <div class="search-workbench-head">
           <div>
             <h2 class="search-workbench-title">搜索条件</h2>
-            <p class="search-workbench-desc">按地域、学校、专业 / 项目 / 行业关键词查找候选专业。</p>
+            <p class="search-workbench-desc">按地域、学校、专业方向或项目关键词查找候选专业。</p>
           </div>
-          <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="自选池入口"></div>
+          <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="自选专业入口"></div>
         </div>
 
         <div class="search-grid-top">
@@ -101,9 +102,9 @@
 
         <div class="major-keyword-panel">
           <div class="filter-field filter-major">
-            <label for="majorKeyword">专业 / 项目 / 行业关键词</label>
+            <label for="majorKeyword">专业方向 / 项目关键词</label>
             <input id="majorKeyword" class="input" type="search" placeholder="如：计算机/中外/石油" />
-            <div class="keyword-help">支持空格、逗号、/ 分隔；多个词为任意命中。</div>
+            <div class="keyword-help">可输入专业、行业或项目词，如：计算机、电气、中外、交通；多个词可用空格、逗号或 / 分隔。</div>
           </div>
           <div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用关键词与更多方向"></div>
         </div>
@@ -120,7 +121,7 @@
     <section id="resultsPanel" class="panel results-shell band-near-shell">
       <div class="results-head">
         <div>
-          <h2 id="resultsTitle" class="results-title">重点匹配</h2>
+          <h2 id="resultsTitle" class="results-title">主要参考</h2>
           <p id="resultsMeta" class="results-meta">等待查看</p>
         </div>
         <div class="results-actions"><div id="feishuReportMount" class="feishu-report-mount"></div>
@@ -131,9 +132,9 @@
     </section>
 
     <section class="data-note">
-      当前专业池基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据，用于形成可讨论专业池和自选池排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划和专业要求综合判断。
+      当前专业池基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据，用于形成可讨论专业池和自选专业排序诊断，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划和专业要求综合判断。
     </section>
   </main>
-  <script type="module" src="./js/app.v3976.js?v=3976"></script>
+  <script type="module" src="./js/app.v3977.js?v=3977"></script>
 </body>
 </html>

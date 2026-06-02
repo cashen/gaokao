@@ -23,5 +23,5 @@ export function setFeishuResult(result) {
 
 export function setFeishuError(message) {
   feishuReportState.loading = false;
-  feishuReportState.error = message || "飞书报告生成失败，请稍后重试。";
+  feishuReportState.error = message || "报告暂时生成失败。可以先复制文字版，稍后再试。";
 }

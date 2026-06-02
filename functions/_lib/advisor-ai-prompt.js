@@ -47,6 +47,10 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       '600分左右的公办中外合作上探可以作为策略提醒，但不要把它写成前端筛选按钮；低分段高收费兜底和高分段公办中外上探不能混为一谈。',
       '不要把用户举例的450/495/515/545/565/585/605写成固定分数规则。',
       'actions 数组只返回纯文本，不要带编号、项目符号或 Markdown。',
+      '请用家长第一次使用也能读懂的短句：先说结论，再说原因，再给下一步动作。',
+      '可以保留“位次、特控线、保底”等必要术语，但每个风险必须配一条人话解释或下一步动作。',
+      '优先使用“前段尝试、主要承接、后段补充、最后兜底、城市集中、专业方向集中”等表达，少用“主体承接区、保底深度、地域单点风险”等生硬词。',
+      '不要输出原始 JSON、代码、接口字段、调试语言。',
       '输出一个合法 JSON 对象，不要 Markdown 代码块。'
     ],
     facts: safeFacts(facts),
@@ -57,7 +61,7 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
     orderedItemsLite: compactItemsForAi(facts.orderedItems, 40),
     fallbackNarrative,
     outputSchema: {
-      overall: '整体判断，120字内，人话，不要口号',
+      overall: '一句话结论，120字内，家长能懂，不要口号',
       finalZone: {
         zoneKey: '必须来自 candidateZones',
         zoneName: '中文名',
@@ -66,10 +70,10 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       },
       zoneJudgement: '位次功能区判断，180字内',
       reasoning: '为什么这样判断，220字内',
-      structureDiagnosis: '冲稳保结构诊断，180字内',
-      majorPathDiagnosis: '专业和地域路径诊断，220字内',
+      structureDiagnosis: '这套方案的前段、中段、后段结构，180字内，用家长能懂的表达',
+      majorPathDiagnosis: '专业方向和城市是否集中，220字内，必须给下一步复核动作',
       pushRateDiagnosis: '升学与推免参考，220字内；只能基于已提供的学校级数据和待核验状态，不得编专业级保研率',
-      bottomLineDiagnosis: '保底与办学费用底线诊断，200字内，要区分保底数量/深度/接受度、公办普通、公办中外/高收费、民办风险',
+      bottomLineDiagnosis: '后段是否够稳与办学费用底线，200字内，要区分数量、接受度、公办普通、公办中外/高收费、民办风险',
       riskDiagnosis: ['2到5条主要风险，纯文本'],
       actions: ['3到6条可执行建议，纯文本，不带编号'],
       parentVersion: '给家长看的短说明，180字内',

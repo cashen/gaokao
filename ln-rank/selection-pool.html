@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>辽宁物理类自选池拖拽排序与诊断</title>
+  <title>辽宁物理类自选专业整理与诊断</title>
   <link rel="stylesheet" href="./css/tokens.css?v=3955" />
   <link rel="stylesheet" href="./css/base.css?v=3955" />
   <link rel="stylesheet" href="./css/layout.css?v=3955" />
@@ -13,21 +13,22 @@
   <link rel="stylesheet" href="./css/responsive.css?v=3955" />
   <link rel="stylesheet" href="./css/selection-pool.v3959.css?v=3959" />
   <link rel="stylesheet" href="./css/decision-coach.v3963.css?v=3963" />
-  <link rel="stylesheet" href="./css/layout-shell.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/major-search.v3976.css?v=3976" />
-  <link rel="stylesheet" href="./css/code-trust.v3976.css?v=3976" />
+  <link rel="stylesheet" href="./css/layout-shell.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/major-search.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/code-trust.v3977.css?v=3977" />
+  <link rel="stylesheet" href="./css/parent-copy.v3977.css?v=3977" />
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.6</p>
-        <h1 class="app-title">自选池拖拽排序与诊断</h1>
-        <p class="app-subtitle">这里是自选池的完整整理页：拖拽或快速移动已选“专业+学校”顺序，系统会先按当前考生成绩统一重算相对分差、冲稳保标签、位次功能区、升学推免参考和 AI 解读，再生成飞书报告。</p>
+        <p class="eyebrow">辽宁 2025 物理类专业数据 · V3.9.7.7</p>
+        <h1 class="app-title">我的自选专业</h1>
+        <p class="app-subtitle">把搜索页里看中的“学校+专业”放到这里，再统一排序、复核、检查方案结构，并生成家庭讨论报告。系统会先按当前考生成绩重新计算分差、位次差和建议位置。</p>
       </div>
       <div class="hero-badges">
         <a class="scope-pill" href="./index.html">返回查询页</a>
-        <div class="scope-pill">自选池工作台</div>
+        <div class="scope-pill">自选专业整理</div>
       </div>
     </header>
 
@@ -38,19 +39,19 @@
           <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
         </div>
       </div>
-      <div class="top-note">排序诊断以当前输入的考生成绩和自选池当前顺序为准；每次按冲稳保整理、AI诊断、发送飞书前，都会按当前成绩统一重算相对分差、位次差和冲稳保标签。</div>
+      <div class="top-note">排序诊断以当前输入的考生成绩和自选专业当前顺序为准；每次整理、检查方案、生成报告前，都会按当前成绩统一重算相对分差、位次差和建议位置。</div>
     </section>
 
     <section class="selection-workspace">
       <div class="workspace-panel workspace-panel-list">
         <div class="workspace-head">
           <div>
-            <h2 class="workspace-title">自选池排序清单</h2>
-            <p class="workspace-desc">PC 可按住左侧手柄拖拽排序；手机长按手柄拖动，也可用“移动”快速到指定位置。</p>
+            <h2 class="workspace-title">自选专业清单</h2>
+            <p class="workspace-desc">可拖拽或用“移动”调整顺序；这份顺序会进入后续方案检查和家庭讨论报告。</p>
           </div>
           <div class="workspace-actions workspace-actions-list">
-            <button id="sortByBand" class="workspace-button">按冲稳保整理</button>
-            <button id="sendSelectionPool" class="workspace-button primary">发送当前排序到飞书</button>
+            <button id="sortByBand" class="workspace-button">按建议位置整理</button>
+            <button id="sendSelectionPool" class="workspace-button primary">生成家庭讨论报告</button>
             <button id="clearPool" class="workspace-button muted">清空</button>
           </div>
         </div>
@@ -61,12 +62,12 @@
       <aside class="workspace-panel workspace-panel-diagnose">
         <div class="workspace-head diagnose-head">
           <div>
-            <h2 class="workspace-title">志愿排序诊断</h2>
-            <p class="workspace-desc">点击“检查当前排序与AI解读”，系统会按特控线锚点、位次密度和自选池结构检查冲稳保、保底深度与专业路径。需要留档时，再点击“发送AI诊断报告到飞书”。</p>
+            <h2 class="workspace-title">方案解读</h2>
+            <p class="workspace-desc">点击“检查这套方案”，系统会按特控线锚点、位次密度和自选专业结构检查前段、中段和后段是否接得住。需要留档时，再生成带解读的家庭讨论报告。</p>
           </div>
           <div class="workspace-actions workspace-actions-diagnose">
-            <button id="runAnalysis" class="workspace-button primary">检查当前排序与AI解读</button>
-            <button id="sendAnalyzedPool" class="workspace-button">发送AI诊断报告到飞书</button>
+            <button id="runAnalysis" class="workspace-button primary">检查这套方案</button>
+            <button id="sendAnalyzedPool" class="workspace-button">生成带解读的报告</button>
           </div>
         </div>
         <div id="feishuSelectionStatus"></div>
@@ -75,9 +76,9 @@
     </section>
 
     <section class="data-note">
-      当前自选池清单与诊断报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。当前计算口径基于 2025 一分一段与 2025 专业数据。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。
+      当前自选专业清单与诊断报告基于 /fenxi 已接入的辽宁 2025 物理类院校专业数据形成讨论意见，不等同于录取预测。当前计算口径基于 2025 一分一段与 2025 专业数据。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3976.js?v=3976"></script>
+  <script type="module" src="./js/selection-pool.v3977.js?v=3977"></script>
 </body>
 </html>

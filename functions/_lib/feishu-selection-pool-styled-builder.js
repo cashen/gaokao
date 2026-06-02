@@ -85,7 +85,7 @@ function groupSummaryRuns(label, group, style) {
 function matchDetailRuns(summary = {}) {
   const stable = summary.stable || {};
   return [
-    { content: '匹配/稳妥区拆分：', style: STYLE.stable },
+    { content: '匹配/主要承接拆分：', style: STYLE.stable },
     { content: `向前 ${formatNumber(stable.forwardCount || 0)} 个`, style: STYLE.rankForward },
     { content: `｜接近 ${formatNumber(stable.nearCount || 0)} 个`, style: STYLE.rankNear },
     { content: `｜向后 ${formatNumber(stable.backwardCount || 0)} 个`, style: STYLE.rankBackward }
@@ -125,13 +125,13 @@ function analysisBlocks(analysis = {}) {
   }
   const ai = analysis.aiNarrative && typeof analysis.aiNarrative === 'object' ? analysis.aiNarrative : null;
   if (ai) {
-    blocks.push(heading3('AI高报师解读', STYLE.action));
+    blocks.push(heading3('方案解读解读', STYLE.action));
     if (ai.overall) blocks.push(styledTextBlock(clean(ai.overall, 900), STYLE.strong));
     if (ai.zoneJudgement || ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.zoneJudgement || ai.rankZoneExplain, 700) }]));
     if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '结构诊断：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
     if (ai.majorPathDiagnosis) blocks.push(bulletRunsBlock([{ content: '专业路径：', style: STYLE.strong }, { content: clean(ai.majorPathDiagnosis, 700) }]));
     if (ai.pushRateDiagnosis) blocks.push(bulletRunsBlock([{ content: '升学与推免参考：', style: STYLE.strong }, { content: clean(ai.pushRateDiagnosis, 700) }]));
-    if (ai.bottomLineDiagnosis || ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '保底底线：', style: STYLE.strong }, { content: clean(ai.bottomLineDiagnosis || ai.bottomLineRisk, 700) }]));
+    if (ai.bottomLineDiagnosis || ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '后段底线：', style: STYLE.strong }, { content: clean(ai.bottomLineDiagnosis || ai.bottomLineRisk, 700) }]));
     if (Array.isArray(ai.actions) && ai.actions.length) {
       ai.actions.slice(0, 6).forEach(action => blocks.push(bulletRunsBlock([{ content: clean(action, 500), style: STYLE.action }])));
     }
@@ -165,7 +165,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
   blocks.push(textRunsBlock([
     { content: '考生：', style: STYLE.strong },
     { content: `${scoreText}｜${rankText}`, style: STYLE.strong },
-    { content: '｜自选池 ' },
+    { content: '｜自选专业 ' },
     { content: `${formatNumber(summary.totalCount || 0)} 个`, style: STYLE.strong },
     { content: '｜报告类型：' },
     { content: reportType === 'selectionPoolWithAnalysis' ? '完整诊断报告' : '当前排序清单', style: STYLE.action }
@@ -188,10 +188,10 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
       { content: `同分 ${formatNumber(summary.densitySummary.sameCount)} 人｜上5分 ${formatNumber(summary.densitySummary.up5Count)} 人｜下5分 ${formatNumber(summary.densitySummary.down5Count)} 人`, style: STYLE.muted }
     ]));
   }
-  blocks.push(bulletRunsBlock(groupSummaryRuns('冲刺区', summary.rush || {}, STYLE.rush)));
-  blocks.push(bulletRunsBlock(groupSummaryRuns('匹配/稳妥区', summary.stable || {}, STYLE.stable)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('前段尝试', summary.rush || {}, STYLE.rush)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('匹配/主要承接', summary.stable || {}, STYLE.stable)));
   blocks.push(bulletRunsBlock(matchDetailRuns(summary)));
-  blocks.push(bulletRunsBlock(groupSummaryRuns('保底区', summary.safe || {}, STYLE.safe)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('后段补充', summary.safe || {}, STYLE.safe)));
   if (summary.topForwardItem) {
     blocks.push(bulletRunsBlock([
       { content: '全池最高向前跨越：', style: STYLE.rankForward },
@@ -211,7 +211,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
     ]));
   }
   blocks.push(styledTextBlock(summary.candidateRankNote || '位次口径待核验。', summary.candidateRankSource === 'scoreRankTable' ? STYLE.muted : STYLE.warning));
-  blocks.push(styledTextBlock(summary.maintenanceNote || '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。', STYLE.muted));
+  blocks.push(styledTextBlock(summary.maintenanceNote || '前中后段标签沿用自选专业现有判断，报告概要只做统计，不重新判定。', STYLE.muted));
   return blocks;
 }
 
@@ -242,20 +242,20 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(...summaryBlocks(summary || {}, reportType));
   blocks.push(dividerBlock());
 
-  blocks.push(heading2(hasAnalysis ? '三、自选池总览' : '二、自选池总览', STYLE.title));
+  blocks.push(heading2(hasAnalysis ? '三、自选专业总览' : '二、自选专业总览', STYLE.title));
   blocks.push(bulletRunsBlock([
     { content: '排序口径：', style: STYLE.strong },
-    { content: '按整理页当前显示的最终顺序写入飞书；每次排序后会重新编号并保存。' }
+    { content: '按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。' }
   ]));
   blocks.push(bulletRunsBlock([
     { content: '数据口径：', style: STYLE.strong },
     { content: '辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。' }
   ]));
-  blocks.push(statsBullet('冲刺', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
-  blocks.push(statsBullet('匹配 / 稳妥', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
-  blocks.push(statsBullet('保底', groups.safe.length || stats.safeCount || 0, total, STYLE.safe));
-  if (stats.highRushCount) blocks.push(bulletRunsBlock([{ content: `高冲：${fmt(stats.highRushCount)} 个，建议控制数量。`, style: STYLE.risk }]));
-  if (stats.floorCount) blocks.push(bulletRunsBlock([{ content: `兜底：${fmt(stats.floorCount)} 个，请确认专业和城市是否真的接受。`, style: STYLE.floor }]));
+  blocks.push(statsBullet('前段尝试', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
+  blocks.push(statsBullet('匹配 / 主要承接', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
+  blocks.push(statsBullet('后段补充', groups.safe.length || stats.safeCount || 0, total, STYLE.safe));
+  if (stats.highRushCount) blocks.push(bulletRunsBlock([{ content: `高一点：${fmt(stats.highRushCount)} 个，建议控制数量。`, style: STYLE.risk }]));
+  if (stats.floorCount) blocks.push(bulletRunsBlock([{ content: `最后兜底：${fmt(stats.floorCount)} 个，请确认专业和城市是否真的接受。`, style: STYLE.floor }]));
 
   blocks.push(dividerBlock());
 
@@ -264,7 +264,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     blocks.push(dividerBlock());
   }
 
-  blocks.push(heading2(hasAnalysis ? '四、冲稳保快速复核' : '三、冲稳保快速复核', STYLE.title));
+  blocks.push(heading2(hasAnalysis ? '四、前中后段快速复核' : '三、前中后段快速复核', STYLE.title));
   ['rush', 'stable', 'safe'].forEach(group => {
     const meta = groupMeta(group);
     const list = groups[group] || [];
@@ -281,7 +281,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(heading2(hasAnalysis ? '五、最终排序清单' : '四、最终排序清单', STYLE.title));
   blocks.push(styledTextBlock('以下按当前页面最终顺序排列，标签、相对分差和位次跨越会使用不同颜色提醒。', STYLE.muted));
   if (!displayItems.length) {
-    blocks.push(bulletBlock('当前自选池为空。'));
+    blocks.push(bulletBlock('当前自选专业为空。'));
   } else {
     displayItems.forEach(item => blocks.push(orderedRunsBlock(itemRuns(item))));
   }
@@ -295,7 +295,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     '家庭预算、城市接受度、专业接受度和未来转专业规则。'
   ].forEach(line => blocks.push(bulletBlock(line)));
   blocks.push(heading2(hasAnalysis ? '七、口径说明' : '六、口径说明', STYLE.title));
-  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
+  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选专业排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
 
   return blocks.slice(0, 190);
 }

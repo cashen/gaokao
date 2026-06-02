@@ -128,7 +128,7 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     withRankCount: 0,
     enrichedItems: [],
     overallLine: '',
-    maintenanceNote: '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定；考生位次只按一分一段表自动取数，不再由自选池专业位次反推。'
+    maintenanceNote: '前中后段标签沿用自选专业现有判断，报告概要只做统计，不重新判定；考生位次只按一分一段表自动取数，不再由自选专业专业位次反推。'
   };
 
   summary.enrichedItems = orderedItems.map(item => enrichItem(item, rankInfo.rankForGap ?? rankInfo.rank));
@@ -146,14 +146,14 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     summary.missingRankCount += summary[key].missingRankCount;
   }
 
-  summary.rush.superRushCount = (summary.rush.byDetail['高冲'] || 0) + (summary.rush.byDetail['超冲'] || 0);
-  summary.rush.smallRushCount = summary.rush.byDetail['小冲'] || 0;
-  summary.safe.deepSafeCount = (summary.safe.byDetail['强保'] || 0) + (summary.safe.byDetail['兜底'] || 0);
+  summary.rush.superRushCount = (summary.rush.byDetail['高一点'] || 0) + (summary.rush.byDetail['超冲'] || 0);
+  summary.rush.smallRushCount = summary.rush.byDetail['冲一冲'] || 0;
+  summary.safe.deepSafeCount = (summary.safe.byDetail['更稳补充'] || 0) + (summary.safe.byDetail['最后兜底'] || 0);
 
   const lines = [
-    groupSummaryLine('冲刺区', summary.rush),
-    groupSummaryLine('匹配/稳妥区', summary.stable),
-    groupSummaryLine('保底区', summary.safe)
+    groupSummaryLine('前段尝试', summary.rush),
+    groupSummaryLine('匹配/主要承接', summary.stable),
+    groupSummaryLine('后段补充', summary.safe)
   ];
   summary.overallLine = lines.join('；');
 

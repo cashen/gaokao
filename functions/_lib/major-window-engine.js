@@ -20,8 +20,8 @@ function classifyByView(score, viewScore) {
 
 function groupTitle(key) {
   if (key === 'upper') return '稍高目标';
-  if (key === 'near') return '重点匹配';
-  return '稳妥补充';
+  if (key === 'near') return '主要参考';
+  return '主要承接补充';
 }
 
 function groupRange(key, viewScore) {

@@ -19,13 +19,13 @@ function clean(value, max = 200) {
 function classify(item = {}) {
   const key = item.statusKey || '';
   const delta = num(item.scoreDelta, 0);
-  if (['superRush', 'bigRush'].includes(key) || delta >= 16) return { group: 'rush', detail: '高冲', position: '前段少量梦想位' };
-  if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '小冲', position: '前段冲刺区' };
-  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '边稳', position: '主体承接区' };
-  if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '稳妥', position: '主体偏稳区' };
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '小保', position: '后段保底区' };
-  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '强保', position: '后段强保区' };
-  return { group: 'safe', detail: '兜底', position: '兜底确认区' };
+  if (['superRush', 'bigRush'].includes(key) || delta >= 16) return { group: 'rush', detail: '高一点', position: '前段少量梦想位' };
+  if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '冲一冲', position: '前段尝试' };
+  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '接近匹配', position: '主要承接区' };
+  if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '主要承接', position: '主要承接偏稳' };
+  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '稳妥补充', position: '后段补充' };
+  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '更稳补充', position: '后段更稳补充' };
+  return { group: 'safe', detail: '最后兜底', position: '最后兜底确认' };
 }
 
 function normalizeItems(items = []) {
@@ -61,8 +61,8 @@ function getStats(items = []) {
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.detail === '高冲') stats.highRushCount += 1;
-    if (band.detail === '兜底') stats.floorCount += 1;
+    if (band.detail === '高一点') stats.highRushCount += 1;
+    if (band.detail === '最后兜底') stats.floorCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
   }
   return stats;
@@ -140,7 +140,7 @@ function analysisLines(analysis = {}) {
   if (coachLines.length) lines.push(...coachLines);
   if (!narrative) return lines;
 
-  lines.push('## AI高报师判断');
+  lines.push('## 方案解读判断');
   lines.push('');
   if (analysis.source) lines.push(`- 解读来源：${analysis.source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
   if (analysis.rankZone?.zoneName) lines.push(`- 位次功能区：${analysis.rankZone.zoneName}`);
@@ -182,7 +182,7 @@ function analysisLines(analysis = {}) {
       lines.push('');
     }
     if (narrative.bottomLineDiagnosis) {
-      lines.push('### 保底底线');
+      lines.push('### 后段补充底线');
       lines.push('');
       lines.push(clean(narrative.bottomLineDiagnosis, 1000));
       lines.push('');
@@ -204,7 +204,7 @@ function analysisLines(analysis = {}) {
   lines.push('## 冲稳保快速复核');
   lines.push('');
   if (analysis.stats?.total) {
-    lines.push(`- 冲刺：${fmt(analysis.stats.rushCount)} 个｜稳妥：${fmt(analysis.stats.stableCount)} 个｜保底：${fmt(analysis.stats.safeCount)} 个｜高冲：${fmt(analysis.stats.highRushCount || 0)} 个`);
+    lines.push(`- 前段尝试：${fmt(analysis.stats.rushCount)} 个｜主要承接：${fmt(analysis.stats.stableCount)} 个｜后段补充：${fmt(analysis.stats.safeCount)} 个｜高一点：${fmt(analysis.stats.highRushCount || 0)} 个`);
   }
   if (Array.isArray(analysis.risks) && analysis.risks.length) {
     lines.push(`- 规则风险底稿：${analysis.risks.slice(0, 6).map(x => clean(x, 100)).join('；')}`);
@@ -217,19 +217,19 @@ function summaryLines(summary) {
   const lines = [];
   lines.push('## 概要判断');
   lines.push('');
-  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜自选池 ${fmt(summary.totalCount)} 个`);
+  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜自选专业 ${fmt(summary.totalCount)} 个`);
   if (summary.candidateSameCount != null) lines.push(`- 同分人数：${fmt(summary.candidateSameCount)} 人｜内部计算采用同分末位累计：${fmt(summary.candidateRankForGap)} 位`);
   if (summary.rankZoneName) lines.push(`- 特控线锚点：${fmt(summary.specialControlScore)} 分｜${summary.specialControlRankLabel || '位次待核验'}｜功能区：${summary.rankZoneName}`);
   if (summary.scoreOffsetFromSpecial != null) lines.push(`- 相对特控线：${summary.scoreOffsetFromSpecial >= 0 ? '高出' : '低于'} ${fmt(Math.abs(summary.scoreOffsetFromSpecial))} 分｜位次差 ${summary.rankOffsetFromSpecial == null ? '待核验' : (summary.rankOffsetFromSpecial < 0 ? '优于约 ' + fmt(Math.abs(summary.rankOffsetFromSpecial)) + ' 名' : '落后约 ' + fmt(summary.rankOffsetFromSpecial) + ' 名')}`);
   if (summary.densitySummary) lines.push(`- 附近人数：同分 ${fmt(summary.densitySummary.sameCount)} 人｜上5分 ${fmt(summary.densitySummary.up5Count)} 人｜下5分 ${fmt(summary.densitySummary.down5Count)} 人`);
-  lines.push(`- 冲刺区：${fmt(summary.rush.count)} 个｜超冲/高冲 ${fmt(summary.rush.superRushCount || 0)} 个｜小冲 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
-  lines.push(`- 匹配/稳妥区：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
-  lines.push(`- 保底区：${fmt(summary.safe.count)} 个｜较深保底 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
+  lines.push(`- 前段尝试：${fmt(summary.rush.count)} 个｜高一点 ${fmt(summary.rush.superRushCount || 0)} 个｜冲一冲 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
+  lines.push(`- 主要承接：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
+  lines.push(`- 后段补充：${fmt(summary.safe.count)} 个｜较深后段补充 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
   if (summary.topForwardItem) lines.push(`- 全池最高向前跨越：${itemName(summary.topForwardItem)}｜${rankGapText(summary.topForwardItem.rankGap)}`);
   if (summary.topBackwardItem) lines.push(`- 全池最大向后回落：${itemName(summary.topBackwardItem)}｜${rankGapText(summary.topBackwardItem.rankGap)}`);
   if (summary.missingRankCount) lines.push(`- 位次缺失提醒：${fmt(summary.missingRankCount)} 个专业暂缺可识别参考位次，概要位次统计基于其余 ${fmt(summary.withRankCount)} 个专业。`);
   lines.push(`- 位次口径：${summary.candidateRankNote}`);
-  lines.push(`- 维护口径：${summary.maintenanceNote || '冲稳保标签沿用自选池现有判断，飞书概要只做统计，不重新判定。'}`);
+  lines.push(`- 维护口径：${summary.maintenanceNote || '冲稳保标签沿用自选专业现有判断，报告概要只做统计，不重新判定。'}`);
   lines.push('');
   return lines;
 }
@@ -244,38 +244,38 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜${displayRankForTitle}｜自选池诊断报告｜辽宁物理类`
-    : `${candidateScore}分｜${displayRankForTitle}｜自选池排序清单｜辽宁物理类`;
+    ? `${candidateScore}分｜${displayRankForTitle}｜自选专业带解读的家庭讨论报告｜辽宁物理类`
+    : `${candidateScore}分｜${displayRankForTitle}｜自选专业自选专业清单｜辽宁物理类`;
   const lines = [];
 
   lines.push(`# ${title}`);
   lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁物理类志愿自选池诊断报告' : '## 辽宁物理类志愿自选池排序清单');
+  lines.push(hasAnalysis ? '## 辽宁物理类自选专业方案解读报告' : '## 辽宁物理类自选专业清单');
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push(`- 考生位次：${displayRankForTitle}`);
   lines.push('- 数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。');
-  lines.push('- 使用边界：本报告用于志愿讨论和人工复核，不等同于录取预测。');
-  lines.push('- 排序口径：按整理页当前显示的最终顺序写入飞书；每次排序后会重新编号并保存。');
+  lines.push('- 使用边界：本报告用于家庭讨论和人工复核，不等同于录取预测。');
+  lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
   lines.push('');
   lines.push(...summaryLines(summary));
-  lines.push('## 自选池总览');
+  lines.push('## 自选专业总览');
   lines.push('');
-  lines.push(`- 自选池总数：${fmt(stats.total)} 个`);
-  lines.push(`- 冲刺：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）`);
-  lines.push(`- 稳妥：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）`);
-  lines.push(`- 保底：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）`);
-  if (stats.highRushCount) lines.push(`- 高冲：${fmt(stats.highRushCount)} 个`);
-  if (stats.floorCount) lines.push(`- 兜底：${fmt(stats.floorCount)} 个`);
+  lines.push(`- 自选专业总数：${fmt(stats.total)} 个`);
+  lines.push(`- 前段尝试：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）`);
+  lines.push(`- 主要承接：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）`);
+  lines.push(`- 后段补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）`);
+  if (stats.highRushCount) lines.push(`- 高一点：${fmt(stats.highRushCount)} 个`);
+  if (stats.floorCount) lines.push(`- 最后兜底：${fmt(stats.floorCount)} 个`);
   lines.push('');
 
   if (hasAnalysis) lines.push(...analysisLines(input.analysis));
 
-  lines.push('## 当前自选池排序');
+  lines.push('## 当前自选专业排序');
   lines.push('');
   const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
   if (!displayItems.length) {
-    lines.push('- 当前自选池为空。');
+    lines.push('- 当前自选专业为空。');
   } else {
     displayItems.forEach((item) => {
       lines.push(`### ${itemLine(item)}`);
@@ -303,7 +303,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
   lines.push('## 口径说明');
   lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选池排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
+  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选专业排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
 
   return {
     title,

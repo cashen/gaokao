@@ -1,5 +1,5 @@
-// 飞书 Docx 文本颜色枚举：1 红、2 橙、3 黄、4 绿、5 蓝、6 紫、7 灰。
-// 本项目只做克制提醒：冲刺用红/橙，主体用绿/蓝，兜底用灰。
+// 报告 Docx 文本颜色枚举：1 红、2 橙、3 黄、4 绿、5 蓝、6 紫、7 灰。
+// 本项目只做克制提醒：前段尝试用红/橙，主体用绿/蓝，最后兜底用灰。
 export const FEISHU_TEXT_COLOR = {
   red: 1,
   orange: 2,
@@ -30,10 +30,10 @@ export const STYLE = {
 
 export function styleForBand(band = {}) {
   const detail = String(band.detail || '');
-  if (detail.includes('高冲') || detail.includes('超冲')) return STYLE.rushHigh;
+  if (detail.includes('高一点') || detail.includes('超冲')) return STYLE.rushHigh;
   if (detail.includes('冲')) return STYLE.rush;
-  if (detail.includes('边稳') || detail.includes('稳') || band.group === 'stable') return STYLE.stable;
-  if (detail.includes('兜底')) return STYLE.floor;
+  if (detail.includes('接近匹配') || detail.includes('稳') || band.group === 'stable') return STYLE.stable;
+  if (detail.includes('最后兜底')) return STYLE.floor;
   if (detail.includes('保') || band.group === 'safe') return STYLE.safe;
   return STYLE.muted;
 }
@@ -51,22 +51,22 @@ export function styleForDelta(delta) {
 export function groupMeta(group) {
   if (group === 'rush') {
     return {
-      title: '一、冲刺区：少量保留，重点看专业接受度',
+      title: '一、前段尝试：少量保留，重点看专业接受度',
       style: STYLE.rush,
-      note: '冲刺区不是越多越好，建议控制数量，重点保留城市、学校、专业接受度都能认可的项目。'
+      note: '前段尝试不是越多越好，建议控制数量，重点保留城市、学校、专业接受度都能认可的项目。'
     };
   }
   if (group === 'stable') {
     return {
-      title: '二、匹配 / 稳妥区：主力承接区',
+      title: '二、匹配 / 主要承接：主力承接区',
       style: STYLE.stable,
       note: '这里应是整套排序的主体，重点看专业质量、城市接受度和计划变化后的承接稳定性。'
     };
   }
   return {
-    title: '三、保底区：保证志愿梯度不断档',
+    title: '三、后段补充：保证志愿梯度不断档',
     style: STYLE.safe,
-    note: '保底区要看是否真愿意读，不建议只为了低分安全而堆过多不接受的专业。'
+    note: '后段补充要看是否真愿意读，不建议只为了低分安全而堆过多不接受的专业。'
   };
 }
 

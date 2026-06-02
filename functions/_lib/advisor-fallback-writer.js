@@ -10,17 +10,17 @@ function cleanAction(value) {
 }
 
 function buildZoneSentence(facts, zone, policy) {
-  const note = facts.note || '分数只作展示，诊断以位次、控制线和自选池结构为主。';
+  const note = facts.note || '分数只作展示，诊断以位次、控制线和自选专业结构为主。';
   return `${note} 当前更接近“${policy.zoneName}”。${policy.mainConflict}`;
 }
 
 function structureText(facts) {
   const s = facts.poolStructure || {};
-  if (!s.total) return '自选池暂无专业志愿，暂时无法判断冲稳保结构。';
+  if (!s.total) return '自选专业暂无专业志愿，暂时无法判断前中后段结构。';
   const balance = s.safeCount >= Math.max(3, Math.ceil(s.total * 0.22)) && s.stableCount >= Math.ceil(s.total * 0.30) && s.rushCount <= Math.ceil(s.total * 0.40);
   return balance
-    ? `当前共有 ${s.total} 个志愿，冲刺 ${s.rushCount} 个、稳妥 ${s.stableCount} 个、保底 ${s.safeCount} 个，数量结构基本有框架。后续重点是复核稳妥区和保底区是否真能接受。`
-    : `当前共有 ${s.total} 个志愿，冲刺 ${s.rushCount} 个、稳妥 ${s.stableCount} 个、保底 ${s.safeCount} 个，结构还需要调整，重点检查中段承接和后段保底是否足够。`;
+    ? `当前共有 ${s.total} 个志愿，前段尝试 ${s.rushCount} 个、主要承接 ${s.stableCount} 个、后段补充 ${s.safeCount} 个，数量结构基本有框架。后续重点是复核主要承接和后段补充是否真能接受。`
+    : `当前共有 ${s.total} 个志愿，前段尝试 ${s.rushCount} 个、主要承接 ${s.stableCount} 个、后段补充 ${s.safeCount} 个，结构还需要调整，重点检查中段承接和后段补充是否足够。`;
 }
 
 function majorText(facts) {
@@ -29,15 +29,15 @@ function majorText(facts) {
   const parts = [];
   if (s.topMajorFamily && s.topMajorFamilyPct >= 50) parts.push(`${s.topMajorFamily}方向占比较高，如果孩子明确接受可以作为主线；如果只是因为就业想象而集中选择，建议补充相邻方向分散风险。`);
   if (s.topCity && s.topCityPct >= 45) parts.push(`地域集中在${s.topCity}，如果家庭目标就是本地就业和成本控制可以理解，但仍建议补充少量其他城市或院校层级。`);
-  if (s.tuitionOrCoopCount) parts.push(`自选池中存在中外合作/高收费相关项目，需要逐条核验预算、毕业证、校区和培养方式。`);
+  if (s.tuitionOrCoopCount) parts.push(`自选专业中存在中外合作/高收费相关项目，需要逐条核验预算、毕业证、校区和培养方式。`);
   return parts.join(' ') || '专业和地域集中度暂未形成明显单点风险，仍需逐条核验专业接受度、校区、学费和计划变化。';
 }
 
 
 function pushRateText(facts) {
   const p = facts.pushRateSummary || {};
-  if (!facts.poolStructure?.total) return '自选池暂无专业志愿，暂无法判断升学与推免参考。';
-  if (!p.matchedCount) return '当前自选池暂未匹配到可用的学校级推免参考数据，不能据此判断升学跳板价值。';
+  if (!facts.poolStructure?.total) return '自选专业暂无专业志愿，暂无法判断升学与推免参考。';
+  if (!p.matchedCount) return '当前自选专业暂未匹配到可用的学校级推免参考数据，不能据此判断升学跳板价值。';
   const parts = [];
   parts.push(p.advisorText || `当前有 ${p.matchedCount} 个志愿匹配到学校级推免参考数据。`);
   if (p.pathHint === 'study-platform-visible') parts.push('如果孩子有明确读研/保研规划，这些院校可作为升学跳板参考；如果本科就业优先，则仍应把行业就业、专业能力和地域放在前面。');
@@ -51,13 +51,13 @@ function bottomText(facts) {
   const b = facts.bottomLineSummary || {};
   const modeText = b.mode && b.mode !== 'all' ? `当前办学性质底线为“${b.modeLabel || '已设置'}”。` : '';
   let tail = '';
-  if (b.mode === 'public_regular_only') tail = `该模式要求只保留公办普通收费项目，若自选池里仍有公办中外/高收费或民办项目，需要人工复核。`;
+  if (b.mode === 'public_regular_only') tail = `该模式要求只保留公办普通收费项目，若自选专业里仍有公办中外/高收费或民办项目，需要人工复核。`;
   if (b.mode === 'public_include_sino') tail = `该模式允许公办中外/高收费，但排除民办；相关项目要核验学费、培养模式、毕业证书、校区和家庭承受能力。`;
   if (b.mode === 'public_first') tail = `该模式优先展示公办，但不自动删除其他候选；最终是否接受仍需家庭确认。`;
-  if (!s.total) return `${modeText}保底待补充。${tail}`.trim();
-  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return `${modeText}保底数量偏少，后段承接不足，需要补充低一层位次且真实可接受的保底项。${tail}`.trim();
-  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return `${modeText}保底数量不算少，但深层保底不足，需要检查是否真正拉开位次。${tail}`.trim();
-  return `${modeText}保底数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；保底不是低分凑数。${tail}`.trim();
+  if (!s.total) return `${modeText}后段补充待补充。${tail}`.trim();
+  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return `${modeText}后段补充数量偏少，后段承接不足，需要补充低一层位次且真实可接受的后段补充项。${tail}`.trim();
+  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return `${modeText}后段补充数量不算少，但深层后段补充不足，需要检查是否真正拉开位次。${tail}`.trim();
+  return `${modeText}后段补充数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；后段补充不是低分凑数。${tail}`.trim();
 }
 
 export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [], actions = [] }) {
@@ -65,22 +65,22 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
   const policy = getAdvisorZonePolicy(zone.zoneKey);
   const cleanedActions = (actions || []).map(cleanAction).filter(Boolean).slice(0, 6);
   const finalActions = cleanedActions.length ? cleanedActions : [
-    '先复核稳妥区是否都是孩子能接受的专业方向',
-    '保底区逐条确认学校、城市、专业、学费和校区',
+    '先复核主要承接是否都是孩子能接受的专业方向',
+    '后段补充逐条确认学校、城市、专业、学费和校区',
     '排序前确认家庭更重视省内就业、平台层级还是专业技能路径'
   ];
   const riskDiagnosis = risks.length ? risks.slice(0, 6) : ['暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。'];
   const overall = facts.poolStructure?.total
-    ? `当前方案已形成基本自选池，AI不可用时按规则兜底判断：本轮重点是围绕“${policy.mainGoal}”复核冲稳保结构和专业接受度。`
-    : '自选池暂无专业志愿，建议先补充上探、主体、稳妥和保底候选。';
+    ? `当前方案已形成基本自选专业，AI不可用时按规则兜底判断：本轮重点是围绕“${policy.mainGoal}”复核前中后段结构和专业接受度。`
+    : '自选专业暂无专业志愿，建议先补充上探、主体、主要承接和后段补充候选。';
   const zoneJudgement = buildZoneSentence(facts, zone, policy);
   const structureDiagnosis = structureText(facts);
   const majorPathDiagnosis = majorText(facts);
   const pushRateDiagnosis = pushRateText(facts);
   const bottomLineDiagnosis = bottomText(facts);
-  const parentVersion = `${policy.zoneName}：${policy.mainGoal} 这不是固定分数段套话，而是基于当前位次、控制线和自选池结构的判断。`;
+  const parentVersion = `${policy.zoneName}：${policy.mainGoal} 这不是固定分数段套话，而是基于当前位次、控制线和自选专业结构的判断。`;
   const reportMarkdown = [
-    '## AI高报师解读（规则兜底版）',
+    '## 方案解读解读（规则兜底版）',
     '',
     `**整体判断：** ${overall}`,
     '',
@@ -92,7 +92,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     '',
     `**升学与推免参考：** ${pushRateDiagnosis}`,
     '',
-    `**保底底线：** ${bottomLineDiagnosis}`,
+    `**后段底线：** ${bottomLineDiagnosis}`,
     '',
     '**调整建议：**',
     ...finalActions.map((a, i) => `${i + 1}. ${a}`)
@@ -101,7 +101,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     overall,
     finalZone: { zoneKey: zone.zoneKey, zoneName: policy.zoneName, secondaryZoneKey: candidateZones?.[1]?.zoneKey || '', confidenceText: '规则兜底判断' },
     zoneJudgement,
-    reasoning: `${policy.mainConflict} 当前自选池需要按这个主矛盾检查，而不是只按固定分数段套话。`,
+    reasoning: `${policy.mainConflict} 当前自选专业需要按这个主矛盾检查，而不是只按固定分数段套话。`,
     structureDiagnosis,
     majorPathDiagnosis,
     pushRateDiagnosis,

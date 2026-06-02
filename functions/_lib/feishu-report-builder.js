@@ -5,14 +5,14 @@ function fmt(value) {
 
 const BAND_LABELS = {
   upper: '稍高目标',
-  near: '重点匹配',
-  steady: '稳妥补充'
+  near: '主要参考',
+  steady: '主要承接补充'
 };
 
 const RANGE_LABELS = {
   standard: '正常查看',
   wide: '多看一些',
-  safe: '稳妥一点'
+  safe: '主要承接一点'
 };
 
 const BOTTOMLINE_LABELS = {
@@ -23,7 +23,7 @@ const BOTTOMLINE_LABELS = {
 };
 
 function bandTitle(band) {
-  return BAND_LABELS[band?.key] || band?.title || '重点匹配';
+  return BAND_LABELS[band?.key] || band?.title || '主要参考';
 }
 
 function standardMajorText(record) {
@@ -70,7 +70,7 @@ function tags(record) {
 function filterText(filters) {
   const region = REGION_LABELS[filters.region] || "不限";
   const school = filters.schoolKeyword ? `学校：${filters.schoolKeyword}` : "学校不限";
-  const major = filters.majorKeyword ? `专业/项目/行业关键词：${filters.majorKeyword}` : "关键词不限";
+  const major = filters.majorKeyword ? `专业方向/项目关键词：${filters.majorKeyword}` : "关键词不限";
   const bottom = filters.bottomLineMode && filters.bottomLineMode !== "all" ? `公办底线：${BOTTOMLINE_LABELS[filters.bottomLineMode] || filters.bottomLineMode}` : "公办底线不限";
   return `${region} / ${school} / ${major} / ${bottom}`;
 }
@@ -99,7 +99,7 @@ export function buildFeishuReport(data) {
 
   lines.push(`# ${title}`);
   lines.push("");
-  lines.push("## 辽宁物理类分数区间专业池参考");
+  lines.push("## 辽宁物理类专业初选参考");
   lines.push("");
   lines.push(`- 考生分数：${data.candidateScore}`);
   lines.push(`- 当前区间：${displayBandTitle}（${band.rangeText} 分）`);
@@ -109,8 +109,8 @@ export function buildFeishuReport(data) {
   lines.push("## 结果摘要");
   lines.push("");
   lines.push(`- 稍高目标：${fmt(data.counts.upper)} 条`);
-  lines.push(`- 重点匹配：${fmt(data.counts.near)} 条`);
-  lines.push(`- 稳妥补充：${fmt(data.counts.steady)} 条`);
+  lines.push(`- 主要参考：${fmt(data.counts.near)} 条`);
+  lines.push(`- 主要承接补充：${fmt(data.counts.steady)} 条`);
   lines.push(`- 当前生成：${displayBandTitle}前 ${data.selectedRecords.length} 条`);
   lines.push(`- 查看范围：${RANGE_LABELS[data.rangePreset] || data.rangePreset || "正常查看"}`);
   if (data.keywordQuery?.rawKeywords?.length) lines.push(`- 关键词识别：${data.keywordQuery.rawKeywords.join("、")}`);
@@ -145,7 +145,7 @@ export function buildFeishuReport(data) {
   lines.push("");
   lines.push("## 口径说明");
   lines.push("");
-  lines.push("本结果基于辽宁 2025 物理类历史录取数据，并补充 2024 历史参考字段；用于形成可讨论专业池，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科要求、校区/办学地点和专业组变化综合判断。");
+  lines.push("本结果基于辽宁 2025 物理类历史录取数据，并补充 2024 历史参考字段；用于家庭讨论和人工复核，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科要求、校区/办学地点和专业组变化综合判断。");
 
   return {
     title,
