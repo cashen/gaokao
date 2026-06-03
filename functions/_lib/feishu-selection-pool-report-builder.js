@@ -1,6 +1,15 @@
 import { buildSelectionPoolStyledBlocks } from './feishu-selection-pool-styled-builder.js';
 import { buildSelectionPoolSummary } from './selection-pool-summary.js';
 import { formatNumber, rankGapText } from './selection-pool-rank-utils.js';
+import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
+import { LIAONING_POLICY_KB } from './kb/liaoning-policy-kb.generated.js';
+import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
+import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
+import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
+import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
+import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
+import { MAJOR_CATALOG_CALIBER_KB } from './kb/major-catalog-caliber-kb.generated.js';
+import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -132,7 +141,41 @@ function parentCoachLines(analysis = {}) {
   return lines;
 }
 
+
+function governanceReviewLines(items = []) {
+  const lines = [];
+  lines.push('## 需要人工复核');
+  lines.push('');
+  const review = [];
+  const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
+  const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
+  const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));
+  const hasPhysicalExamSensitive = items.some(x => /医学|药学|生物|食品|农学|园艺|动物医学|交通运输|油气储运/.test(`${x.major || ''}`));
+  review.push(`招生章程：${ADMISSION_CHARTER_CHECK_KB.generalCheckItems.slice(0, 8).join('、')}。`);
+  if (hasMedical) review.push(CAREER_PATH_MEDICAL_KB.medicalCore.aiCopy);
+  if (hasLaw) review.push(CAREER_PATH_LAW_KB.law.aiCopy);
+  if (hasTeacher) review.push(CAREER_PATH_TEACHER_KB.teacher.aiCopy);
+  if (hasPhysicalExamSensitive) review.push(PHYSICAL_EXAM_KB.colorWeakness.aiCopy);
+  if (MAJOR_CATALOG_CALIBER_KB.catalogs?.[2026]?.aiBoundary?.[0]) review.push(`专业目录：${MAJOR_CATALOG_CALIBER_KB.catalogs[2026].aiBoundary[0]}`);
+  review.slice(0, 5).forEach((x, i) => lines.push(`${i + 1}. ${sanitizeParentCopy(clean(x, 260))}`));
+  lines.push('');
+  return lines;
+}
+
+function governanceBoundaryLines() {
+  return [
+    '## 数据和使用边界',
+    '',
+    `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
+    `- 辽宁志愿模式：普通类本科批按“${LIAONING_POLICY_KB.ordinary本科批.mode}”理解，最多 ${LIAONING_POLICY_KB.ordinary本科批.maxChoices} 个志愿；本报告按专业条目复核。`,
+    '- 专业热度：只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。',
+    '- 招生章程：学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
+    ''
+  ];
+}
+
 function majorTrendLines(summary = {}) {
+  summary = summary && typeof summary === 'object' ? summary : {};
   const lines = [];
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return lines;
@@ -263,11 +306,11 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push(`# ${title}`);
   lines.push('');
   lines.push(hasAnalysis ? '## 辽宁物理类专业初选参考报告' : '## 辽宁物理类自选专业清单');
-  if (hasAnalysis) lines.push('基于 2025 年数据生成，用于家庭讨论和人工复核；正式填报以当年一分一段、招生计划和志愿系统为准。');
+  if (hasAnalysis) lines.push(YEAR_CALIBER_KB.reportCopy);
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push(`- 考生位次：${displayRankForTitle}`);
-  lines.push('- 数据口径：辽宁 2025 物理类专业数据；正式填报以当年一分一段、招生计划和志愿系统为准。');
+  lines.push(`- 数据口径：${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。`);
   lines.push('- 使用边界：本报告用于家庭讨论和人工复核，不等同于录取预测。');
   lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
   lines.push('');
@@ -312,16 +355,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
 
   lines.push('---');
   lines.push('');
-  lines.push('## 人工复核清单');
-  lines.push('');
-  lines.push('- 2026 年一分一段发布后，按当年位次换算 2025 等位分/同位分。');
-  lines.push('- 2026 年招生计划、专业备注、选科要求、体检限制。');
-  lines.push('- 学费、校区、联合培养、中外合作、专项计划、高收费项目。');
-  lines.push('- 家庭预算、城市接受度、专业接受度和未来转专业规则。');
-  lines.push('');
-  lines.push('## 口径说明');
-  lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和已接入专业数据生成，用于形成可讨论专业范围与自选专业排序建议，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
+  lines.push(...governanceReviewLines(displayItems));
+  lines.push(...governanceBoundaryLines());
 
   return {
     title,
@@ -329,7 +364,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.8.4',
+    version: 'v3.9.8.5',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,

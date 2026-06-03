@@ -1,3 +1,4 @@
+import { YEAR_CALIBER_KB, isPublicBottomLineVisible } from './kb/year-caliber-kb.generated.js';
 function text(value) { return String(value == null ? '' : value).trim(); }
 function numFromText(value) {
   const m = text(value).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
@@ -98,9 +99,17 @@ export function getBottomLineSortWeight(record = {}, mode = 'all') {
   return 0;
 }
 
+export function shouldShowBottomLineControls(candidateScore) {
+  return isPublicBottomLineVisible(candidateScore);
+}
+
+export function getBottomLineYearPolicy() {
+  return YEAR_CALIBER_KB.publicBottomLinePolicy;
+}
+
 export function bottomLineModeSummary(mode) {
   const m = normalizeBottomLineMode(mode);
-  return { mode: m, ...(BOTTOMLINE_MODES[m] || BOTTOMLINE_MODES.all) };
+  return { mode: m, ...(BOTTOMLINE_MODES[m] || BOTTOMLINE_MODES.all), yearPolicy: YEAR_CALIBER_KB.publicBottomLinePolicy };
 }
 
 export function summarizeBottomLine(items = [], mode = 'all') {

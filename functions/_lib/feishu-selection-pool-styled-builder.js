@@ -11,6 +11,13 @@ import {
 } from './feishu-block-builder.js';
 import { groupMeta, STYLE, styleForBand, styleForDelta, styleForRankGap } from './feishu-selection-style-map.js';
 import { formatNumber, itemShortName, rankGapText } from './selection-pool-rank-utils.js';
+import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
+import { LIAONING_POLICY_KB } from './kb/liaoning-policy-kb.generated.js';
+import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
+import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
+import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
+import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
+import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -224,12 +231,41 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
 }
 
 function majorTrendBlocks(summary = {}) {
+  summary = summary && typeof summary === 'object' ? summary : {};
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return [];
   const blocks = [heading2('专业热度变化参考', STYLE.title)];
   notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
   blocks.push(styledTextBlock('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。', STYLE.warning));
   return blocks;
+}
+
+
+function governanceReviewBlocks(items = []) {
+  const blocks = [];
+  const review = [];
+  const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
+  const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
+  const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));
+  const hasExamSensitive = items.some(x => /医学|药学|生物|食品|农学|园艺|动物医学|交通运输|油气储运/.test(`${x.major || ''}`));
+  review.push(`招生章程：${ADMISSION_CHARTER_CHECK_KB.generalCheckItems.slice(0, 8).join('、')}。`);
+  if (hasMedical) review.push(CAREER_PATH_MEDICAL_KB.medicalCore.aiCopy);
+  if (hasLaw) review.push(CAREER_PATH_LAW_KB.law.aiCopy);
+  if (hasTeacher) review.push(CAREER_PATH_TEACHER_KB.teacher.aiCopy);
+  if (hasExamSensitive) review.push(PHYSICAL_EXAM_KB.colorWeakness.aiCopy);
+  blocks.push(heading2('需要人工复核', STYLE.title));
+  review.slice(0, 5).forEach(line => blocks.push(bulletBlock(clean(line, 260))));
+  return blocks;
+}
+
+function governanceBoundaryBlocks() {
+  return [
+    heading2('数据和使用边界', STYLE.title),
+    bulletBlock(YEAR_CALIBER_KB.reportCopy),
+    bulletBlock(`辽宁普通类本科批按“${LIAONING_POLICY_KB.ordinary本科批.mode}”理解，最多 ${LIAONING_POLICY_KB.ordinary本科批.maxChoices} 个志愿；本报告按专业条目复核。`),
+    bulletBlock('专业热度只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
+    bulletBlock('招生章程中的学费、校区、培养模式、体检限制、转专业和毕业证/学位证口径必须人工复核。')
+  ];
 }
 
 export function buildSelectionPoolStyledBlocks(input = {}) {
@@ -267,7 +303,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   ]));
   blocks.push(bulletRunsBlock([
     { content: '数据口径：', style: STYLE.strong },
-    { content: '辽宁 2025 物理类专业数据；正式填报以当年一分一段、招生计划和志愿系统为准。' }
+    { content: `${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。` }
   ]));
   blocks.push(statsBullet('前段尝试', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
   blocks.push(statsBullet('匹配 / 主要承接', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
@@ -310,15 +346,9 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   }
 
   blocks.push(dividerBlock());
-  blocks.push(heading2(hasAnalysis ? '六、人工复核清单' : '五、人工复核清单', STYLE.title));
-  [
-    '2026 年一分一段发布后，按当年位次换算 2025 等位分/同位分。',
-    '2026 年招生计划、专业备注、选科要求、体检限制。',
-    '学费、校区、联合培养、中外合作、专项计划、高收费项目。',
-    '家庭预算、城市接受度、专业接受度和未来转专业规则。'
-  ].forEach(line => blocks.push(bulletBlock(line)));
-  blocks.push(heading2(hasAnalysis ? '七、口径说明' : '六、口径说明', STYLE.title));
-  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和已接入专业数据生成，用于形成可讨论专业范围与自选专业排序建议，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
+  blocks.push(...governanceReviewBlocks(displayItems));
+  blocks.push(dividerBlock());
+  blocks.push(...governanceBoundaryBlocks());
 
   return blocks.slice(0, 190);
 }

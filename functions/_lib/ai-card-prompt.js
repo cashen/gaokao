@@ -63,7 +63,11 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       'A2医学强校、A3行业特色强校若来自规则初判，必须使用“线索/需核验”口径，不要说成官方结论。',
       '第四轮学科评估可作为公开学科基础线索，但学科评估不等同本科专业强弱。',
       '第五轮学科评估没有官方公开全量结果，除非knowledgeBaseContext提供学校官方来源，否则不得引用第五轮。',
-      'officialProfileSummary、admissionCampusSummary、employmentSummary为空时，不得自行编造学校官网简介、校区说明或就业质量结论。'
+      'officialProfileSummary、admissionCampusSummary、employmentSummary为空时，不得自行编造学校官网简介、校区说明或就业质量结论。',
+      '年度口径、辽宁专业+学校志愿规则、招生章程核验项、医学/法学/师范路径、体检限制、热度参考，优先使用 knowledgeBaseContext.governance。',
+      '专业热度数据属于内部统计，只能说“2025相比2024是否更拥挤”，不得说成官方结论或录取预测。',
+      '招生章程核验项只作为复核清单，不得替代学校当年章程下结论。',
+      '不要使用院校组、自选池、稳进、必录、保证、一定能上、捡漏等表达。'
     ]
   };
 

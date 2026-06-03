@@ -1,4 +1,6 @@
 import { MAJOR_KB, MAJOR_KB_META } from './major-kb.generated.js';
+import { buildGovernanceKnowledgeContext } from './knowledge-context-builder.js';
+import { KB_REGISTRY } from './kb-registry.js';
 
 const SCHOOL_KB_ASSET_PATH = '/ln-rank/kb/school-kb.compact.json';
 const CACHE_TTL_MS = 30 * 60 * 1000;
@@ -186,8 +188,10 @@ export async function getKnowledgeContext(record = {}, request = null, env = {})
         schoolKbVersion: kb.meta?.version || 'static-json',
         majorKbVersion: MAJOR_KB_META.version,
         sourcePolicy: '硬标签优先官方来源；全国第四轮学科评估可作为公开学科基础线索；第五轮非官方汇总不作为证据；A2/A3为线索需核验。',
-        storage: 'static-json'
+        storage: 'static-json',
+        kbRegistryVersion: KB_REGISTRY.version
       },
+      governance: buildGovernanceKnowledgeContext(record),
       school: compactSchoolContext(school, record.major),
       major: compactMajorContext(majors),
       hasSchoolKb: !!school,
@@ -201,6 +205,7 @@ export async function getKnowledgeContext(record = {}, request = null, env = {})
         sourcePolicy: '知识库静态文件暂不可读，AI不得编造学校证据。',
         error: error?.message || String(error)
       },
+      governance: buildGovernanceKnowledgeContext(record),
       school: null,
       major: compactMajorContext(findMajor(record.major)),
       hasSchoolKb: false,
@@ -221,7 +226,9 @@ export async function getKbStats(request = null, env = {}) {
       majorRuleCount: MAJOR_KB.length,
       schoolKbVersion: kb.meta?.version || 'static-json',
       majorKbVersion: MAJOR_KB_META.version,
-      storage: 'static-json'
+      storage: 'static-json',
+      kbRegistryVersion: KB_REGISTRY.version,
+      kbLayerCount: Object.keys(KB_REGISTRY.layers || {}).length
     };
   } catch (error) {
     return {
@@ -230,7 +237,9 @@ export async function getKbStats(request = null, env = {}) {
       majorRuleCount: MAJOR_KB.length,
       schoolKbVersion: 'unavailable',
       majorKbVersion: MAJOR_KB_META.version,
-      storage: 'static-json'
+      storage: 'static-json',
+      kbRegistryVersion: KB_REGISTRY.version,
+      kbLayerCount: Object.keys(KB_REGISTRY.layers || {}).length
     };
   }
 }

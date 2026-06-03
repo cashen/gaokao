@@ -1,3 +1,11 @@
+import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
+import { LIAONING_POLICY_KB } from './kb/liaoning-policy-kb.generated.js';
+import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
+import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
+import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
+import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
+import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
+
 function fmt(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString("zh-CN") : "—";
@@ -6,13 +14,13 @@ function fmt(value) {
 const BAND_LABELS = {
   upper: '稍高目标',
   near: '主要参考',
-  steady: '主要承接补充'
+  steady: '稳妥补充'
 };
 
 const RANGE_LABELS = {
   standard: '正常查看',
   wide: '多看一些',
-  safe: '主要承接一点'
+  safe: '稳妥一点'
 };
 
 const BOTTOMLINE_LABELS = {
@@ -91,6 +99,36 @@ function locationText(record) {
   return `${base}${entity}${warning}`;
 }
 
+
+function governanceReviewLines(records = []) {
+  const lines = [];
+  const hasMedical = records.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
+  const hasLaw = records.some(x => /法学/.test(`${x.major || ''}`));
+  const hasTeacher = records.some(x => /师范|教育/.test(`${x.major || ''}`));
+  const hasExamSensitive = records.some(x => /医学|药学|生物|食品|农学|园艺|动物医学|交通运输|油气储运/.test(`${x.major || ''}`));
+  lines.push('## 需要人工复核');
+  lines.push('');
+  lines.push(`1. 招生章程：${ADMISSION_CHARTER_CHECK_KB.generalCheckItems.slice(0, 8).join('、')}。`);
+  let index = 2;
+  if (hasMedical) lines.push(`${index++}. ${CAREER_PATH_MEDICAL_KB.medicalCore.aiCopy}`);
+  if (hasLaw) lines.push(`${index++}. ${CAREER_PATH_LAW_KB.law.aiCopy}`);
+  if (hasTeacher) lines.push(`${index++}. ${CAREER_PATH_TEACHER_KB.teacher.aiCopy}`);
+  if (hasExamSensitive) lines.push(`${index++}. ${PHYSICAL_EXAM_KB.colorWeakness.aiCopy}`);
+  lines.push('');
+  return lines;
+}
+
+function governanceBoundaryLines() {
+  return [
+    '## 数据和使用边界',
+    '',
+    `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
+    `- 辽宁志愿模式：普通类本科批按“${LIAONING_POLICY_KB.ordinary本科批.mode}”理解，最多 ${LIAONING_POLICY_KB.ordinary本科批.maxChoices} 个志愿；本报告按专业条目复核。`,
+    '- 学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
+    ''
+  ];
+}
+
 export function buildFeishuReport(data) {
   const band = data.selectedBand;
   const displayBandTitle = bandTitle(band);
@@ -110,7 +148,7 @@ export function buildFeishuReport(data) {
   lines.push("");
   lines.push(`- 稍高目标：${fmt(data.counts.upper)} 条`);
   lines.push(`- 主要参考：${fmt(data.counts.near)} 条`);
-  lines.push(`- 主要承接补充：${fmt(data.counts.steady)} 条`);
+  lines.push(`- 稳妥补充：${fmt(data.counts.steady)} 条`);
   lines.push(`- 当前生成：${displayBandTitle}前 ${data.selectedRecords.length} 条`);
   lines.push(`- 查看范围：${RANGE_LABELS[data.rangePreset] || data.rangePreset || "正常查看"}`);
   if (data.keywordQuery?.rawKeywords?.length) lines.push(`- 关键词识别：${data.keywordQuery.rawKeywords.join("、")}`);
@@ -143,9 +181,8 @@ export function buildFeishuReport(data) {
 
   lines.push("---");
   lines.push("");
-  lines.push("## 口径说明");
-  lines.push("");
-  lines.push("本结果基于辽宁 2025 物理类历史录取数据，并补充 2024 历史参考字段；用于家庭讨论和人工复核，不等同于录取预测。正式填报仍需结合当年位次、等位分/同位分、招生计划、选科要求、校区/办学地点和专业组变化综合判断。");
+  lines.push(...governanceReviewLines(data.selectedRecords || []));
+  lines.push(...governanceBoundaryLines());
 
   return {
     title,

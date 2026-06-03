@@ -63,10 +63,12 @@ export function renderFeishuReportView(reportState, appState, handlers) {
   }
 
   if (reportState.error) {
+    const detail = reportState.errorDetail ? `<details class="feishu-technical-detail"><summary>展开技术详情</summary><div>${reportState.errorDetail}</div></details>` : "";
     root.innerHTML = `
       <div class="feishu-box is-error">
         <button class="feishu-main-button is-error" data-generate-feishu type="button">${FEISHU_UI_CONFIG.labels.retry}</button>
-        <span class="feishu-note">${reportState.error}</span>
+        <span class="feishu-note">报告暂时生成失败。可以先复制文字版报告，稍后再试。</span>
+        ${detail}
       </div>
     `;
     root.querySelector("[data-generate-feishu]")?.addEventListener("click", handlers.onGenerate);

@@ -1,1 +1,1 @@
-v3.9.8.4-ln-rank-major-trend-integrated-baseline-no-fenxi
+v3.9.8.5-ln-rank-ai-kb-content-governance-baseline-no-fenxi

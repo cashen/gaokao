@@ -1,0 +1,50 @@
+{
+  "version": "v3.9.8.5",
+  "code": "v3985",
+  "name": "ai-kb-content-governance-baseline",
+  "pages": [
+    "ln-rank/index.html",
+    "ln-rank/selection-pool.html",
+    "ln-rank/major-trend-2025.html",
+    "ln-rank/ai-diagnostics.html"
+  ],
+  "entryScripts": [
+    "ln-rank/js/app.v3985.js",
+    "ln-rank/js/selection-pool.v3985.js",
+    "ln-rank/js/major-trend-render.v3985.js"
+  ],
+  "data": [
+    "ln-rank/data/major-trend-2025.json"
+  ],
+  "functions": [
+    "functions/api/card-diagnose.js",
+    "functions/api/feishu-create-report.js",
+    "functions/api/feishu-create-selection-pool-report.js",
+    "functions/api/feishu-report-health.js",
+    "functions/api/kb-health.js",
+    "functions/api/major-bands.js",
+    "functions/api/path-analysis.js"
+  ],
+  "excluded": [
+    "fenxi/",
+    "functions/fenxi/",
+    "functions/_middleware.js"
+  ],
+  "kb": [
+    "functions/_lib/kb/kb-registry.js",
+    "functions/_lib/kb/year-caliber-kb.generated.js",
+    "functions/_lib/kb/liaoning-policy-kb.generated.js",
+    "functions/_lib/kb/major-catalog-caliber-kb.generated.js",
+    "functions/_lib/kb/admission-charter-check-kb.generated.js",
+    "functions/_lib/kb/physical-exam-kb.generated.js",
+    "functions/_lib/kb/career-path-medical-kb.generated.js",
+    "functions/_lib/kb/career-path-law-kb.generated.js",
+    "functions/_lib/kb/career-path-teacher-kb.generated.js",
+    "functions/_lib/kb/discipline-strength-boundary-kb.generated.js",
+    "functions/_lib/kb/employment-report-boundary-kb.generated.js",
+    "functions/_lib/kb/major-trend-kb.generated.js",
+    "functions/_lib/kb/major-trend-retriever.js",
+    "functions/_lib/kb/copy-policy-kb.generated.js",
+    "functions/_lib/kb/knowledge-context-builder.js"
+  ]
+}
