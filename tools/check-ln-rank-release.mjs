@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const manifestPath = path.join(root, 'tools/ln-rank-release-manifest.v3980.json');
+const manifestPath = path.join(root, 'tools/ln-rank-release-manifest.v3982.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const errors = [];
 

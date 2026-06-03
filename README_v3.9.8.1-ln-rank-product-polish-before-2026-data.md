@@ -1,4 +1,4 @@
-# v3.9.8.1-ln-rank-product-polish-before-2026-data
+# v3.9.8.2-ln-rank-asset-integrity-and-report-stability-baseline
 
 本版是 2026 辽宁一分一段公布前的产品成熟度收口版。
 
