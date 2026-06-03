@@ -9,6 +9,13 @@ import { CAREER_PATH_TEACHER_KB } from './career-path-teacher-kb.generated.js';
 import { DISCIPLINE_STRENGTH_BOUNDARY_KB } from './discipline-strength-boundary-kb.generated.js';
 import { EMPLOYMENT_REPORT_BOUNDARY_KB } from './employment-report-boundary-kb.generated.js';
 import { COPY_POLICY_KB } from './copy-policy-kb.generated.js';
+import { STANDARD_MAJOR_CATALOG_2026_FULL_META } from './standard-major-catalog-2026-full.generated.js';
+import { STANDARD_MAJOR_CATALOG_BRIDGE } from './standard-major-catalog-bridge.generated.js';
+import { MAJOR_FILTER_PRESET_KB } from './major-filter-preset-kb.generated.js';
+import { MAJOR_DIRECTION_MAP } from './major-direction-map.generated.js';
+import { PROJECT_ATTRIBUTE_KB } from './project-attribute-kb.generated.js';
+import { KB_SOURCE_REGISTRY } from './kb-source-registry.js';
+import { ADMISSION_CHARTER_SOURCE_KB } from './admission-charter-source-kb.generated.js';
 import { getMajorTrendContext } from './major-trend-retriever.js';
 
 function text(value) { return String(value || ''); }
@@ -36,7 +43,14 @@ export function buildGovernanceKnowledgeContext(record = {}, options = {}) {
     yearCaliber: YEAR_CALIBER_KB,
     liaoningPolicy: LIAONING_POLICY_KB,
     majorCatalogCaliber: MAJOR_CATALOG_CALIBER_KB,
+    standardMajorCatalog2026: STANDARD_MAJOR_CATALOG_2026_FULL_META,
+    standardMajorBridge: STANDARD_MAJOR_CATALOG_BRIDGE,
+    majorFilterPreset: MAJOR_FILTER_PRESET_KB,
+    majorDirectionMap: MAJOR_DIRECTION_MAP,
+    projectAttribute: PROJECT_ATTRIBUTE_KB,
+    kbSourceRegistry: KB_SOURCE_REGISTRY,
     admissionCharterCheck: ADMISSION_CHARTER_CHECK_KB,
+    admissionCharterSource: ADMISSION_CHARTER_SOURCE_KB,
     physicalExam: { sourceName: PHYSICAL_EXAM_KB.sourceName, sourceLevel: PHYSICAL_EXAM_KB.sourceLevel, hints: examHints(record), aiBoundary: PHYSICAL_EXAM_KB.aiBoundary },
     careerPath: majorPathFor(record),
     disciplineBoundary: DISCIPLINE_STRENGTH_BOUNDARY_KB,

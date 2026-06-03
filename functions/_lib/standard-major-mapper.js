@@ -1,4 +1,5 @@
 import { STANDARD_MAJOR_CATALOG, STANDARD_MAJOR_CATEGORIES } from './standard-major-catalog.js';
+import { STANDARD_MAJOR_CATALOG_2026_FULL, STANDARD_MAJOR_CATEGORIES_2026_FULL } from './kb/standard-major-catalog-2026-full.generated.js';
 import { normalizeMajorNameForMap, normalizeMajorCode, looksLikeStandardMajorCode } from './standard-major-normalizer.js';
 
 let INDEX = null;
@@ -8,13 +9,13 @@ function buildIndex() {
   const byName = new Map();
   const byAlias = new Map();
   const byCategoryName = new Map();
-  for (const item of STANDARD_MAJOR_CATALOG) {
+  for (const item of [...STANDARD_MAJOR_CATALOG, ...STANDARD_MAJOR_CATALOG_2026_FULL]) {
     const normalized = { ...item, code: normalizeMajorCode(item.code) };
     byCode.set(normalized.code, normalized);
     byName.set(normalizeMajorNameForMap(normalized.name), normalized);
     for (const alias of normalized.aliases || []) byAlias.set(normalizeMajorNameForMap(alias), normalized);
   }
-  for (const cat of STANDARD_MAJOR_CATEGORIES) byCategoryName.set(normalizeMajorNameForMap(cat.name), cat);
+  for (const cat of [...STANDARD_MAJOR_CATEGORIES, ...STANDARD_MAJOR_CATEGORIES_2026_FULL]) byCategoryName.set(normalizeMajorNameForMap(cat.name), cat);
   return { byCode, byName, byAlias, byCategoryName };
 }
 
@@ -30,7 +31,17 @@ function resultFrom(item, status, source, confidence = 100) {
     name: item.name || '',
     categoryCode: item.categoryCode || '',
     categoryName: item.categoryName || '',
-    degreeCategory: item.degreeCategory || '',
+    degreeCategory: item.degreeCategory || item.disciplineName || '',
+    disciplineCode: item.disciplineCode || '',
+    disciplineName: item.disciplineName || item.degreeCategory || '',
+    catalogYear: item.catalogYear || 2025,
+    isSpecial: Boolean(item.isSpecial),
+    isNationalControlled: Boolean(item.isNationalControlled),
+    note: item.note || '',
+    catalogChange: item.oldCode ? { hasChange: true, oldCode: item.oldCode, note: item.note || '' } : { hasChange: false, oldCode: null, note: '' },
+    aiBoundary: item.aiBoundary || [],
+    directionId: item.directionId || '',
+    directionLabel: item.directionLabel || '',
     mappingStatus: status,
     mappingSource: source,
     confidence
@@ -43,7 +54,10 @@ function categoryResult(cat, source) {
     name: '',
     categoryCode: cat?.code || '',
     categoryName: cat?.name || '',
-    degreeCategory: '',
+    degreeCategory: cat?.disciplineName || '',
+    disciplineCode: cat?.disciplineCode || '',
+    disciplineName: cat?.disciplineName || '',
+    catalogYear: 2026,
     mappingStatus: 'category',
     mappingSource: source,
     confidence: 70
@@ -86,5 +100,5 @@ export function mapStandardMajor(input = {}) {
 }
 
 export function standardMajorSearchTerms(standardMajor = {}) {
-  return [standardMajor.code, standardMajor.name, standardMajor.categoryCode, standardMajor.categoryName, standardMajor.degreeCategory].filter(Boolean);
+  return [standardMajor.code, standardMajor.name, standardMajor.categoryCode, standardMajor.categoryName, standardMajor.degreeCategory, standardMajor.disciplineName].filter(Boolean);
 }

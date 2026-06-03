@@ -14,7 +14,7 @@ import { buildCandidateContext, buildComputedSignature } from './feature/selecti
 import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/recompute-selection-pool.v3959.js';
 import { renderHealthLights } from './feature/selection-pool/health-lights-render.v3959.js';
 import { createSelectionPoolFeishuReport } from './feature/selection-pool/feishu-selection-report-api.v3983.js';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './major-trend-integration.v3985.js';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './major-trend-integration.v3986.js';
 import { renderParentCoach } from './feature/decision-coach/decision-coach-render.v3963.js';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore.v3959';

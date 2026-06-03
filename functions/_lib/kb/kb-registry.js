@@ -1,5 +1,5 @@
 export const KB_REGISTRY = {
-  version: 'v3985-kb-governance',
+  version: 'v3986-catalog-filter-bridge-governance',
   region: 'ln',
   subject: 'physics',
   activeYear: 2025,
@@ -7,7 +7,15 @@ export const KB_REGISTRY = {
     yearCaliber: { module: './year-caliber-kb.generated.js', sourceLevel: 'A', affects: ['pageCopy','reportCopy','advisorAI','bottomLine','rankZone'] },
     liaoningPolicy: { module: './liaoning-policy-kb.generated.js', sourceLevel: 'A', affects: ['selectionAdvisor','report','copyPolicy'] },
     majorCatalogCaliber: { module: './major-catalog-caliber-kb.generated.js', sourceLevel: 'A', affects: ['standardMajor','majorDirection','AIExplanation'] },
+    standardMajorCatalog2026Core: { module: './standard-major-catalog-2026.generated.js', sourceLevel: 'A', affects: ['coreMajorMapping','AIExplanation'] },
+    standardMajorCatalog2026Full: { module: './standard-major-catalog-2026-full.generated.js', sourceLevel: 'A', affects: ['standardMajor','majorDirection','filterPreset','catalogReview'] },
+    standardMajorCatalogBridge: { module: './standard-major-catalog-bridge.generated.js', sourceLevel: 'policy', affects: ['standardMajorDisplay','card','report','AIExplanation'] },
+    majorCatalogChange: { module: './major-catalog-change-kb.generated.js', sourceLevel: 'A', affects: ['catalogReview','AIExplanation'] },
+    majorFilterPreset: { module: './major-filter-preset-kb.generated.js', sourceLevel: 'policy', affects: ['search','chip','report','trend'] },
+    majorDirectionMap: { module: './major-direction-map.generated.js', sourceLevel: 'policy', affects: ['search','trend','advisorAI','report'] },
+    projectAttribute: { module: './project-attribute-kb.generated.js', sourceLevel: 'A', affects: ['projectRisk','search','report'] },
     admissionCharterCheck: { module: './admission-charter-check-kb.generated.js', sourceLevel: 'A', affects: ['projectRisk','cardDiagnosis','report'] },
+    admissionCharterSource: { module: './admission-charter-source-kb.generated.js', sourceLevel: 'A', affects: ['projectRisk','reportReviewPoints'] },
     physicalExam: { module: './physical-exam-kb.generated.js', sourceLevel: 'A', affects: ['majorRisk','reportReviewPoints'] },
     medicalPath: { module: './career-path-medical-kb.generated.js', sourceLevel: 'A', affects: ['majorRisk','AIExplanation'] },
     lawPath: { module: './career-path-law-kb.generated.js', sourceLevel: 'A', affects: ['majorRisk','AIExplanation'] },
@@ -15,6 +23,7 @@ export const KB_REGISTRY = {
     disciplineBoundary: { module: './discipline-strength-boundary-kb.generated.js', sourceLevel: 'A', affects: ['schoolEvidence','AIExplanation'] },
     employmentBoundary: { module: './employment-report-boundary-kb.generated.js', sourceLevel: 'B+', affects: ['employmentExplanation'] },
     majorTrend: { module: './major-trend-kb.generated.js', sourceLevel: 'C', affects: ['searchHint','advisorAI','report'] },
-    copyPolicy: { module: './copy-policy-kb.generated.js', sourceLevel: 'policy', affects: ['page','advisorAI','report','feishu'] }
+    copyPolicy: { module: './copy-policy-kb.generated.js', sourceLevel: 'policy', affects: ['page','advisorAI','report','feishu'] },
+    kbSourceRegistry: { module: './kb-source-registry.js', sourceLevel: 'registry', affects: ['sourceAudit','releaseCheck'] }
   }
 };
