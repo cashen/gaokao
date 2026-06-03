@@ -33,10 +33,10 @@ function safeFacts(facts = {}) {
 export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleActions, fallbackNarrative }) {
   const zoneKeys = (candidateZones || []).map(z => z.zoneKey);
   const payload = {
-    task: '请基于事实和候选功能区，判断辽宁物理类自选池方案的位次功能区和主要矛盾，并用高报师人类口气输出。',
+    task: '请基于事实和候选功能区，判断辽宁物理类自选专业方案的位次功能区和主要矛盾，并用高报师人类口气输出。',
     hardRules: [
       'finalZone.zoneKey 必须来自 candidateZones，不得创造新 zoneKey。',
-      '分数只作展示，判断以位次、控制线锚点、一分一段密度和自选池结构为主。',
+      '分数只作展示，判断以位次、控制线锚点、一分一段密度和自选专业结构为主。',
       '你可以判断哪个候选功能区更贴近，但不得脱离 facts。',
       '不得预测录取概率，不得说必录、稳进、闭眼报、一定上岸。',
       '不得编造院校实力、招生计划、就业承诺、2026新数据。',
@@ -49,8 +49,8 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       'actions 数组只返回纯文本，不要带编号、项目符号或 Markdown。',
       '请用家长第一次使用也能读懂的短句：先说结论，再说原因，再给下一步动作。',
       '可以保留“位次、特控线、保底”等必要术语，但每个风险必须配一条人话解释或下一步动作。',
-      '优先使用“前段尝试、主要承接、后段补充、最后兜底、城市集中、专业方向集中”等表达，少用“主体承接区、保底深度、地域单点风险”等生硬词。',
-      '不要输出原始 JSON、代码、接口字段、调试语言。',
+      '优先使用“前段尝试、主要承接、后段补充、最后兜底、城市集中、专业方向集中”等表达，少用“主要承接区、后段是否够稳、城市过于集中”等生硬词。',
+      '不要输出原始接口内容、代码、接口字段、调试语言。',
       '输出一个合法 JSON 对象，不要 Markdown 代码块。'
     ],
     facts: safeFacts(facts),
@@ -77,7 +77,7 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       riskDiagnosis: ['2到5条主要风险，纯文本'],
       actions: ['3到6条可执行建议，纯文本，不带编号'],
       parentVersion: '给家长看的短说明，180字内',
-      reportMarkdown: '可放入飞书报告的 Markdown 段落，700字内',
+      reportMarkdown: '可放入家庭讨论报告的文字段落，700字内',
       disclaimer: '边界说明'
     }
   };

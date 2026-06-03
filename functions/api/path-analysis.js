@@ -189,10 +189,10 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
     if (!validation.ok) {
       return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: `AI输出未通过安全校验，已使用规则兜底：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
     }
-    return { source: 'workers-ai', model, modelDebug: buildAiModelDebug(resolvedModel), message: '方案解读解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
+    return { source: 'workers-ai', model, modelDebug: buildAiModelDebug(resolvedModel), message: '方案解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
   } catch (error) {
     const source = isAiQuotaLimit(error) ? 'fallback-ai-quota' : 'fallback-ai-error';
-    const message = source === 'fallback-ai-quota' ? 'Cloudflare AI 免费额度已用完，已自动切换为规则兜底解读。' : 'AI调用暂时失败，已自动切换为规则兜底解读。';
+    const message = source === 'fallback-ai-quota' ? '方案解读暂时使用基础规则生成。' : '方案解读暂时使用基础规则生成。';
     return { source, model, modelDebug: buildAiModelDebug(resolvedModel), message, aiError: errorText(error).slice(0, 240), narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: errorText(error).slice(0, 180) } };
   }
 }
@@ -235,14 +235,14 @@ function buildSummary(facts, zonePolicy, level) {
   return `当前自选专业结构相对均衡。结合${zonePolicy.zoneName}定位，可以进入人工复核、排序微调和报告整理。`;
 }
 
-function buildReportText({ facts, rankZone, stats, narrative, source }) {
+function buildReportText({ facts, rankZone, stats, narrative }) {
   const lines = [];
-  lines.push('辽宁物理类自选专业方案解读报告');
+  lines.push('辽宁物理类专业初选参考报告');
+  lines.push('基于 2025 年数据生成，用于家庭讨论和人工复核；正式填报以当年一分一段、招生计划和志愿系统为准。');
   lines.push('');
   lines.push(`考生分数：${facts.candidate?.score || '未填写'}`);
   lines.push(`考生位次：${facts.candidate?.rankLabel || '位次待核验'}`);
   lines.push(`当前定位：${rankZone.zoneName || '待判断'}`);
-  lines.push(`解读来源：${source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
   lines.push('数据口径：辽宁2025物理类一分一段与现有专业池；本报告用于家庭讨论，不等同录取预测。');
   lines.push('');
   lines.push(`前段尝试：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要承接：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜后段补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
@@ -317,7 +317,7 @@ export async function onRequest(context) {
         validatorReason: narrativeResult.validator?.reason || ''
       }
     };
-    result.reportText = buildReportText({ facts, rankZone, stats: facts.poolStructure, narrative, source: result.source });
+    result.reportText = buildReportText({ facts, rankZone, stats: facts.poolStructure, narrative });
     return json(result);
   } catch (error) {
     return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.7.0 的 advisor 事实层、候选功能区、AI_MODEL / AI_PATH_MODEL 和 AI 绑定。' }, 500);

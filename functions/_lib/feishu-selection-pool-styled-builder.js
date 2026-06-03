@@ -37,6 +37,13 @@ function scoreRankText(item) {
   return `2025最低 ${score} / ${rank}`;
 }
 
+function standardMajorText(item = {}) {
+  const sm = item.standardMajor || {};
+  if (sm.code && sm.name && ['exact', 'alias'].includes(sm.mappingStatus || 'exact')) return `专业代码：${sm.code}｜${sm.name}`;
+  if (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category') return `专业类：${sm.categoryCode}｜${sm.categoryName}`;
+  return '专业代码：—';
+}
+
 function shortTags(item) {
   const tags = [];
   if (item.displayLocation) tags.push(item.displayLocation);
@@ -101,7 +108,8 @@ function itemRuns(item) {
   const tags = shortTags(item);
   return [
     { content: `第 ${item.order} 位｜`, style: STYLE.muted },
-    { content: `${item.school || '学校待核验'}｜${item.major || '专业待核验'}`, style: STYLE.strong },
+    { content: `${item.school || '学校待核验'} · ${item.major || '专业待核验'}`, style: STYLE.strong },
+    { content: `｜${standardMajorText(item)}`, style: STYLE.muted },
     { content: '｜' },
     { content: bandLabel, style: bandStyle },
     { content: '｜' },
@@ -125,10 +133,10 @@ function analysisBlocks(analysis = {}) {
   }
   const ai = analysis.aiNarrative && typeof analysis.aiNarrative === 'object' ? analysis.aiNarrative : null;
   if (ai) {
-    blocks.push(heading3('方案解读解读', STYLE.action));
+    blocks.push(heading3('方案解读', STYLE.action));
     if (ai.overall) blocks.push(styledTextBlock(clean(ai.overall, 900), STYLE.strong));
     if (ai.zoneJudgement || ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.zoneJudgement || ai.rankZoneExplain, 700) }]));
-    if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '结构诊断：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
+    if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '自选专业结构：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
     if (ai.majorPathDiagnosis) blocks.push(bulletRunsBlock([{ content: '专业路径：', style: STYLE.strong }, { content: clean(ai.majorPathDiagnosis, 700) }]));
     if (ai.pushRateDiagnosis) blocks.push(bulletRunsBlock([{ content: '升学与推免参考：', style: STYLE.strong }, { content: clean(ai.pushRateDiagnosis, 700) }]));
     if (ai.bottomLineDiagnosis || ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '后段底线：', style: STYLE.strong }, { content: clean(ai.bottomLineDiagnosis || ai.bottomLineRisk, 700) }]));
@@ -168,7 +176,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
     { content: '｜自选专业 ' },
     { content: `${formatNumber(summary.totalCount || 0)} 个`, style: STYLE.strong },
     { content: '｜报告类型：' },
-    { content: reportType === 'selectionPoolWithAnalysis' ? '完整诊断报告' : '当前排序清单', style: STYLE.action }
+    { content: reportType === 'selectionPoolWithAnalysis' ? '带解读的报告' : '当前排序清单', style: STYLE.action }
   ]));
   if (summary.candidateSameCount != null) {
     blocks.push(bulletRunsBlock([
@@ -249,7 +257,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   ]));
   blocks.push(bulletRunsBlock([
     { content: '数据口径：', style: STYLE.strong },
-    { content: '辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。' }
+    { content: '辽宁 2025 物理类专业数据；正式填报以当年一分一段、招生计划和志愿系统为准。' }
   ]));
   blocks.push(statsBullet('前段尝试', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
   blocks.push(statsBullet('匹配 / 主要承接', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
@@ -295,7 +303,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     '家庭预算、城市接受度、专业接受度和未来转专业规则。'
   ].forEach(line => blocks.push(bulletBlock(line)));
   blocks.push(heading2(hasAnalysis ? '七、口径说明' : '六、口径说明', STYLE.title));
-  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选专业排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
+  blocks.push(styledTextBlock('本报告基于辽宁 2025 物理类历史录取数据和已接入专业数据生成，用于形成可讨论专业范围与自选专业排序建议，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。', STYLE.muted));
 
   return blocks.slice(0, 190);
 }

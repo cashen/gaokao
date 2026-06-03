@@ -48,7 +48,7 @@ function contextNote(ctx) {
   const rankDirection = ctx.rankOffsetFromSpecial < 0
     ? `优于特控线约 ${fmt(Math.abs(ctx.rankOffsetFromSpecial))} 名`
     : `落后特控线约 ${fmt(ctx.rankOffsetFromSpecial)} 名`;
-  return `按${ctx.config.year}辽宁物理类口径，考生${direction}，位次${rankDirection}；分数只作展示，方案诊断以位次、密度和自选池结构为主。`;
+  return `按${ctx.config.year}辽宁物理类口径，考生${direction}，位次${rankDirection}；分数只作展示，方案诊断以位次、密度和自选专业结构为主。`;
 }
 
 export function buildRankZoneContext(input = {}) {

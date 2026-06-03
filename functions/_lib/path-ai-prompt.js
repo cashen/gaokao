@@ -16,9 +16,9 @@ function compactItem(item = {}) {
 
 export function buildPathAiMessages({ candidateContext, zonePolicy, stats, risks, actions, sections, orderedItems }) {
   const payload = {
-    task: '生成辽宁物理类自选池志愿排序诊断。',
+    task: '生成辽宁物理类自选专业志愿排序诊断。',
     hardRules: [
-      '分数只做展示，判断必须以位次、特控线锚点、分数密度和自选池结构为主。',
+      '分数只做展示，判断必须以位次、特控线锚点、分数密度和自选专业结构为主。',
       '不要预测录取概率，不要说稳进、必录、闭眼报。',
       '不要编造院校实力、招生计划、就业承诺或2026新数据。',
       '短视频经验只能作为风险解释，不能当绝对硬规则。',
@@ -39,7 +39,7 @@ export function buildPathAiMessages({ candidateContext, zonePolicy, stats, risks
       bottomLineRisk: '解释保底风险和底线，160字内',
       actions: ['3到6条可执行调整建议'],
       parentVersion: '给家长看的口语版说明，160字内',
-      reportMarkdown: '可直接放进飞书报告的Markdown段落，500字内',
+      reportMarkdown: '可直接放进家庭讨论报告的文字段落，500字内',
       disclaimer: '固定边界说明'
     }
   };
@@ -47,7 +47,7 @@ export function buildPathAiMessages({ candidateContext, zonePolicy, stats, risks
   return [
     {
       role: 'system',
-      content: '你是辽宁物理类高考志愿方案诊断助手。你只解释结构化规则结果，不替代人工高报师，不预测录取概率。请只输出一个合法 JSON 对象，不要输出 Markdown 代码块。'
+      content: '你是辽宁物理类高考志愿方案诊断助手。你只解释结构化规则结果，不替代人工高报师，不预测录取概率。请只输出一个合法 JSON 对象，不要输出代码块。'
     },
     {
       role: 'user',

@@ -3,9 +3,9 @@ export const RANK_ZONE_POLICIES = {
     zoneName: '位次待核验区',
     role: '分数或一分一段缺失，暂不做功能区判断',
     mainGoal: '先补齐考生分数、当年一分一段和特控线配置。',
-    risks: ['没有考生位次时，冲稳保和保底深度只能做粗略参考。'],
+    risks: ['没有考生位次时，冲稳保和后段是否够稳只能做粗略参考。'],
     prefer: ['补齐分数与位次', '核验当年一分一段'],
-    cautions: ['不要用自选池专业位次反推考生位次'],
+    cautions: ['不要用自选专业专业位次反推考生位次'],
     bottomAdvice: '先完成位次换算，再做志愿排序诊断。',
     aiTone: '谨慎、强调数据缺失。'
   },
@@ -17,7 +17,7 @@ export const RANK_ZONE_POLICIES = {
     prefer: ['省内公办', '应用工科', '可接受专业', '低收费稳妥项'],
     cautions: ['盲目冲热门', '用低几分当保底', '未核验高收费/民办/中外合作'],
     bottomAdvice: '保底要按位次深度下探，后段必须是家庭和孩子都能接受的学校专业。',
-    aiTone: '现实、稳妥、强调保底深度。'
+    aiTone: '现实、稳妥、强调后段是否够稳。'
   },
   'applied-tech-main-zone': {
     zoneName: '应用型技术本科主体区',

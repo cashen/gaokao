@@ -1,0 +1,27 @@
+{
+  "version": "v3.9.8.3",
+  "code": "v3983",
+  "name": "formal-diagnosis-copy-cleanup",
+  "pages": [
+    "ln-rank/index.html",
+    "ln-rank/selection-pool.html",
+    "ln-rank/ai-diagnostics.html"
+  ],
+  "entryScripts": [
+    "ln-rank/js/app.v3983.js",
+    "ln-rank/js/selection-pool.v3983.js"
+  ],
+  "functions": [
+    "functions/api/major-bands.js",
+    "functions/api/feishu-create-report.js",
+    "functions/api/feishu-create-selection-pool-report.js",
+    "functions/api/feishu-report-health.js",
+    "functions/api/path-analysis.js",
+    "functions/api/card-diagnose.js"
+  ],
+  "excluded": [
+    "fenxi/",
+    "functions/fenxi/",
+    "functions/_middleware.js"
+  ]
+}

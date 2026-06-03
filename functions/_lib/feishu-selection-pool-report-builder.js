@@ -21,7 +21,7 @@ function classify(item = {}) {
   const delta = num(item.scoreDelta, 0);
   if (['superRush', 'bigRush'].includes(key) || delta >= 16) return { group: 'rush', detail: '高一点', position: '前段少量梦想位' };
   if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '冲一冲', position: '前段尝试' };
-  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '接近匹配', position: '主要承接区' };
+  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '接近匹配', position: '主要承接' };
   if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '主要承接', position: '主要承接偏稳' };
   if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '稳妥补充', position: '后段补充' };
   if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '更稳补充', position: '后段更稳补充' };
@@ -91,7 +91,7 @@ function itemLine(item) {
   const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
   const sm = item.standardMajor || {};
-  const code = sm.code && sm.name ? `｜专业代码 ${sm.code} ${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类 ${sm.categoryCode} ${sm.categoryName}` : '');
+  const code = sm.code && sm.name ? `｜专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类：${sm.categoryCode}｜${sm.categoryName}` : '');
   return `${item.order}. ${item.school}｜${item.major}${code}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
@@ -140,9 +140,8 @@ function analysisLines(analysis = {}) {
   if (coachLines.length) lines.push(...coachLines);
   if (!narrative) return lines;
 
-  lines.push('## 方案解读判断');
+  lines.push('## 方案解读');
   lines.push('');
-  if (analysis.source) lines.push(`- 解读来源：${analysis.source === 'workers-ai' ? 'Cloudflare Workers AI' : '规则兜底'}`);
   if (analysis.rankZone?.zoneName) lines.push(`- 位次功能区：${analysis.rankZone.zoneName}`);
   if (!narrative.reportMarkdown && narrative.overall) lines.push(`- 整体判断：${clean(narrative.overall, 800)}`);
   lines.push('');
@@ -164,7 +163,7 @@ function analysisLines(analysis = {}) {
       lines.push('');
     }
     if (narrative.structureDiagnosis) {
-      lines.push('### 结构诊断');
+      lines.push('### 自选专业结构');
       lines.push('');
       lines.push(clean(narrative.structureDiagnosis, 1000));
       lines.push('');
@@ -244,17 +243,18 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜${displayRankForTitle}｜自选专业带解读的家庭讨论报告｜辽宁物理类`
-    : `${candidateScore}分｜${displayRankForTitle}｜自选专业自选专业清单｜辽宁物理类`;
+    ? `${candidateScore}分｜${displayRankForTitle}｜辽宁物理类专业初选参考报告`
+    : `${candidateScore}分｜${displayRankForTitle}｜辽宁物理类自选专业清单`;
   const lines = [];
 
   lines.push(`# ${title}`);
   lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁物理类自选专业方案解读报告' : '## 辽宁物理类自选专业清单');
+  lines.push(hasAnalysis ? '## 辽宁物理类专业初选参考报告' : '## 辽宁物理类自选专业清单');
+  if (hasAnalysis) lines.push('基于 2025 年数据生成，用于家庭讨论和人工复核；正式填报以当年一分一段、招生计划和志愿系统为准。');
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push(`- 考生位次：${displayRankForTitle}`);
-  lines.push('- 数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池。');
+  lines.push('- 数据口径：辽宁 2025 物理类专业数据；正式填报以当年一分一段、招生计划和志愿系统为准。');
   lines.push('- 使用边界：本报告用于家庭讨论和人工复核，不等同于录取预测。');
   lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
   lines.push('');
@@ -278,16 +278,19 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     lines.push('- 当前自选专业为空。');
   } else {
     displayItems.forEach((item) => {
-      lines.push(`### ${itemLine(item)}`);
+      const sm = item.standardMajor || {};
+      const codeText = sm.code && sm.name ? `专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `专业类：${sm.categoryCode}｜${sm.categoryName}` : '专业代码：待人工复核');
+      lines.push(`### ${item.order}. ${item.school} · ${item.major}`);
       lines.push('');
-      lines.push(`- 适合位置：${item.position || item.poolBand?.position || '待核验'}`);
-      lines.push(`- 相对考生：${deltaText(item.scoreDelta)} 分`);
-      lines.push(`- 位次跨度：${rankGapText(item.rankGap)}`);
-      lines.push(`- 地域/标签：${tagsText(item)}`);
-      if (Number.isFinite(Number(item.score2024)) || Number.isFinite(Number(item.rank2024))) {
-        lines.push(`- 2024参考：${Number.isFinite(Number(item.score2024)) ? fmt(item.score2024) + ' 分' : '分数待核验'} / ${Number.isFinite(Number(item.rank2024)) ? fmt(item.rank2024) + ' 位' : '位次待核验'}`);
-      }
-      if (item.flags.length) lines.push(`- 需核验：${item.flags.slice(0, 3).join(' / ')}`);
+      lines.push(`- 顺序：${item.order}`);
+      lines.push(`- 学校：${item.school || '学校待核验'}`);
+      lines.push(`- 专业：${item.major || '专业待核验'}`);
+      lines.push(`- ${codeText}`);
+      lines.push(`- 2025最低分：${Number.isFinite(Number(item.score2025)) ? fmt(item.score2025) : '分数待核验'}`);
+      lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
+      lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
+      lines.push(`- 匹配关系：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
+      lines.push(`- 需要复核：${item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item)}`);
       lines.push('');
     });
   }
@@ -303,7 +306,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
   lines.push('## 口径说明');
   lines.push('');
-  lines.push('本报告基于辽宁 2025 物理类历史录取数据和 /fenxi 已接入专业池生成，用于形成可讨论专业池与自选专业排序诊断，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
+  lines.push('本报告基于辽宁 2025 物理类历史录取数据和已接入专业数据生成，用于形成可讨论专业范围与自选专业排序建议，不等同于录取预测。考生位次由辽宁2025物理类一分一段表按考生分数自动取数；展示同分位次区间，位次跨度计算默认采用同分末位累计口径。同分段内部排序未展开。2026一分一段发布后，应按2026考生位次换算到2025等位分/同位分，再与2025专业数据对照。');
 
   return {
     title,
@@ -311,7 +314,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.5.5',
+    version: 'v3.9.8.3',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
