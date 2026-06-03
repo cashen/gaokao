@@ -132,6 +132,19 @@ function parentCoachLines(analysis = {}) {
   return lines;
 }
 
+function majorTrendLines(summary = {}) {
+  const lines = [];
+  const notes = Array.isArray(summary.notes) ? summary.notes : [];
+  if (!notes.length) return lines;
+  lines.push('## 专业热度变化参考');
+  lines.push('');
+  notes.slice(0, 3).forEach((note, index) => lines.push(`${index + 1}. ${clean(note, 240)}`));
+  lines.push('');
+  lines.push('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。');
+  lines.push('');
+  return lines;
+}
+
 function analysisLines(analysis = {}) {
   const lines = [];
   const narrative = analysis.narrative || analysis.aiNarrative || null;
@@ -270,6 +283,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('');
 
   if (hasAnalysis) lines.push(...analysisLines(input.analysis));
+  const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
+  lines.push(...majorTrendLines(majorTrendSummary));
 
   lines.push('## 当前自选专业排序');
   lines.push('');
@@ -314,7 +329,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.8.3',
+    version: 'v3.9.8.4',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
@@ -325,6 +340,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       summary,
       hasAnalysis,
       analysis: input.analysis || null,
+      majorTrendSummary: input.majorTrendSummary || input.analysis?.majorTrendSummary || null,
       orderSignature
     })
   };

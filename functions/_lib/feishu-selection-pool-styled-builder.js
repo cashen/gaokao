@@ -223,6 +223,15 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
   return blocks;
 }
 
+function majorTrendBlocks(summary = {}) {
+  const notes = Array.isArray(summary.notes) ? summary.notes : [];
+  if (!notes.length) return [];
+  const blocks = [heading2('专业热度变化参考', STYLE.title)];
+  notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
+  blocks.push(styledTextBlock('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。', STYLE.warning));
+  return blocks;
+}
+
 export function buildSelectionPoolStyledBlocks(input = {}) {
   const {
     title,
@@ -232,7 +241,8 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     hasAnalysis = false,
     analysis = null,
     reportType = 'selectionPoolOnly',
-    summary = null
+    summary = null,
+    majorTrendSummary = null
   } = input;
   const blocks = [];
   const total = Number(stats.total) || items.length || 0;
@@ -269,6 +279,11 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
 
   if (hasAnalysis) {
     blocks.push(...analysisBlocks(analysis));
+    blocks.push(dividerBlock());
+  }
+  const trendBlocks = majorTrendBlocks(majorTrendSummary || analysis?.majorTrendSummary || {});
+  if (trendBlocks.length) {
+    blocks.push(...trendBlocks);
     blocks.push(dividerBlock());
   }
 
