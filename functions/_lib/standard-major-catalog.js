@@ -97,6 +97,26 @@ export const STANDARD_MAJOR_CATALOG = [
   { code:'071002', name:'生物技术', categoryCode:'0710', categoryName:'生物科学类', degreeCategory:'理学', aliases:['生物技术'] },
   { code:'071001', name:'生物科学', categoryCode:'0710', categoryName:'生物科学类', degreeCategory:'理学', aliases:['生物科学'] },
 
+
+  { code:'082703', name:'粮食工程', categoryCode:'0827', categoryName:'食品科学与工程类', degreeCategory:'工学', aliases:['粮食'] },
+  { code:'082704', name:'乳品工程', categoryCode:'0827', categoryName:'食品科学与工程类', degreeCategory:'工学', aliases:['乳品'] },
+  { code:'082705', name:'酿酒工程', categoryCode:'0827', categoryName:'食品科学与工程类', degreeCategory:'工学', aliases:['酿酒'] },
+  { code:'082710T', name:'食品营养与健康', categoryCode:'0827', categoryName:'食品科学与工程类', degreeCategory:'工学', aliases:['食品营养','营养与健康'] },
+  { code:'090301', name:'动物科学', categoryCode:'0903', categoryName:'动物生产类', degreeCategory:'农学', aliases:['动物科学'] },
+  { code:'090401', name:'动物医学', categoryCode:'0904', categoryName:'动物医学类', degreeCategory:'农学', aliases:['兽医','动物医学'] },
+  { code:'090402', name:'动物药学', categoryCode:'0904', categoryName:'动物医学类', degreeCategory:'农学', aliases:['动物药学'] },
+  { code:'090403T', name:'动植物检疫', categoryCode:'0904', categoryName:'动物医学类', degreeCategory:'农学', aliases:['动植物检疫'] },
+  { code:'090601', name:'水产养殖学', categoryCode:'0906', categoryName:'水产类', degreeCategory:'农学', aliases:['水产养殖','水产'] },
+  { code:'090602', name:'海洋渔业科学与技术', categoryCode:'0906', categoryName:'水产类', degreeCategory:'农学', aliases:['海洋渔业'] },
+  { code:'090603T', name:'水族科学与技术', categoryCode:'0906', categoryName:'水产类', degreeCategory:'农学', aliases:['水族'] },
+  { code:'090101', name:'农学', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['农学'] },
+  { code:'090104', name:'植物科学与技术', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['植物科学'] },
+  { code:'090105', name:'种子科学与工程', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['种子'] },
+  { code:'090102', name:'园艺', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['园艺'] },
+  { code:'090103', name:'植物保护', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['植保','植物保护'] },
+  { code:'090106', name:'设施农业科学与工程', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['设施农业'] },
+  { code:'090112T', name:'智慧农业', categoryCode:'0901', categoryName:'植物生产类', degreeCategory:'农学', aliases:['智慧农业'] },
+
   // 医学健康
   { code:'100201K', name:'临床医学', categoryCode:'1002', categoryName:'临床医学类', degreeCategory:'医学', aliases:['临床'] },
   { code:'100301K', name:'口腔医学', categoryCode:'1003', categoryName:'口腔医学类', degreeCategory:'医学', aliases:['口腔'] },
@@ -156,5 +176,5 @@ export const STANDARD_MAJOR_CATEGORIES = [
   { code:'0802', name:'机械类' }, { code:'0805', name:'能源动力类' }, { code:'0810', name:'土木类' }, { code:'0818', name:'交通运输类' },
   { code:'0815', name:'矿业类' }, { code:'0820', name:'航空航天类' }, { code:'1002', name:'临床医学类' }, { code:'1003', name:'口腔医学类' },
   { code:'1011', name:'护理学类' }, { code:'1007', name:'药学类' }, { code:'1202', name:'工商管理类' }, { code:'0301', name:'法学类' },
-  { code:'0501', name:'中国语言文学类' }, { code:'0401', name:'教育学类' }
+  { code:'0501', name:'中国语言文学类' }, { code:'0401', name:'教育学类' }, { code:'0827', name:'食品科学与工程类' }, { code:'0901', name:'植物生产类' }, { code:'0903', name:'动物生产类' }, { code:'0904', name:'动物医学类' }, { code:'0906', name:'水产类' }
 ];
