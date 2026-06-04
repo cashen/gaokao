@@ -1,4 +1,4 @@
-// v3.9.8.6 前端筛选预置词。与 functions/_lib/kb/major-filter-preset-kb.generated.js 保持同口径。
+// v3.9.8.7 前端筛选预置词。与 functions/_lib/kb/major-filter-preset-kb.generated.js 保持同口径。
 export const DEFAULT_KEYWORD_PRESETS = [
   {
     "label": "计算机",

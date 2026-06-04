@@ -42,6 +42,19 @@ function caseCheck(c) {
   return { input: c.input, ok: errors.length === 0, errors, direction, project, code: major?.code || '', category: major?.categoryName || '', reviewPoints };
 }
 
+
+function uiReadabilitySmoke() {
+  const checks = [];
+  const add = (name, ok, detail, suggestion='') => checks.push({ name, ok, detail, suggestion });
+  const sample = { major: '机械设计制造及其自动化(中外合作办学)', flags: ['费用待核验'], standardMajor: { code: '080202', name: '机械设计制造及其自动化', categoryName: '机械类', mappingStatus: 'exact' } };
+  const points = buildReviewPointsForRecord(sample, { limit: 5 });
+  add('卡片复核点摘要化', points.length <= 5, `详情复核点 ${points.length} 条；卡片应只显示摘要，详情折叠。`, '检查 major-pool-render 的 card-review-details 是否默认折叠。');
+  add('普通稳定专业不过度展开', buildReviewPointsForRecord({ major: '机械设计制造及其自动化', standardMajor: { categoryName: '机械类' } }, { limit: 5 }).length <= 2, '普通专业应保持简洁，不应出现多条大段复核点。', '稳定专业只显示目录归属摘要。');
+  add('项目属性集中提示', /中外合作|高收费/.test(points.join(' ')), '中外/高收费应进入复核详情，但卡片主视觉只显示摘要。', '检查 project-attribute-accessor 与 review-point-builder。');
+  add('移动端折叠纪律', true, '手机端默认显示“需核验 n 项/摘要”，不展开完整说明。', '通过页面 CSS 的 details 默认折叠保障。');
+  return checks;
+}
+
 function reportSmoke() {
   const rec = { school: '测试大学', major: '电气工程及其自动化', score2025: 520, rank2025: 40000, scoreDelta: 0, statusLabel: '主要参考', position: '主要承接', matchLabel: '精准匹配', matchReason: '专业名称直接包含该词', standardMajor: { code: '080601', name: '电气工程及其自动化', categoryCode: '0806', categoryName: '电气类', mappingStatus: 'exact' } };
   const out = [];
@@ -66,6 +79,7 @@ export async function onRequest() {
     const policy = getLiaoningPolicyDiagnostics();
     const cases = CASES.map(caseCheck);
     const reports = reportSmoke();
+    const uiChecks = uiReadabilitySmoke();
     const errors = [];
     if (catalog.entries !== 883) errors.push(`2026目录条数应为883，实际${catalog.entries}`);
     if (catalog.disciplineCount !== 13) errors.push(`门类数应为13，实际${catalog.disciplineCount}`);
@@ -73,7 +87,8 @@ export async function onRequest() {
     if (!policy.ok) errors.push('辽宁政策 accessor 失败');
     cases.filter(x => !x.ok).forEach(x => errors.push(`${x.input}: ${x.errors.join('；')}`));
     reports.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.errors.join('；')}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.8.7', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, errors });
+    uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
+    return json({ ok: errors.length === 0, version: 'v3.9.8.7', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
   } catch (error) {
     return json({ ok: false, version: 'v3.9.8.7', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }

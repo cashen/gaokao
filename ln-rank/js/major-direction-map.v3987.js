@@ -1,5 +1,5 @@
 export const MAJOR_DIRECTION_MAP = {
-  "version": "v3986-major-direction-map",
+  "version": "v3987-major-direction-map",
   "source": "standard-major-catalog-2026-full + ln-rank trend direction taxonomy",
   "directions": [
     {

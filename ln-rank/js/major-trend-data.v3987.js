@@ -1,5 +1,5 @@
 export const MAJOR_TREND_DATA = {
-  "version": "v3986-major-trend-2025",
+  "version": "v3987-major-trend-2025",
   "productVersion": "v3.9.8.4",
   "province": "辽宁",
   "subject": "物理类",

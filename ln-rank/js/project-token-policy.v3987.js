@@ -1,5 +1,5 @@
 export const PROJECT_ATTRIBUTE_KB = {
-  "version": "v3986-project-attribute-kb",
+  "version": "v3987-project-attribute-kb",
   "source": "admission-charter-source-kb + project-keyword-policy",
   "items": {
     "sinoForeign": {

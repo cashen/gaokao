@@ -19,11 +19,11 @@ function careerPoints(text='') {
 function catalogPoint(record={}) {
   const sm = record.standardMajor || {}; const name = `${sm.name || ''} ${record.major || ''}`;
   if (/具身智能|脑机科学与技术|智能医学工程|低空技术与工程|未来机器人|交叉工程|深地科学与工程|医工学/.test(name) || sm.disciplineCode === '14' || sm.disciplineName === '交叉学科') return '该方向涉及2026本科专业目录中的新目录或交叉学科，建议核验当年招生计划、培养学院、课程设置和就业路径。';
-  if (sm.categoryName) return `按2026本科专业目录，该专业属于${sm.categoryName}；正式填报仍以当年招生计划和志愿系统为准。`;
+  if (sm.categoryName) return `按2026本科专业目录，该专业属于${sm.categoryName}。`;
   return '';
 }
 export function buildReviewPointsForRecord(record={}, options={}) {
   const text = [record.major, record.school, record.matchReason, ...(Array.isArray(record.flags)?record.flags:[])].filter(Boolean).join(' ');
-  const points=[catalogPoint(record), ...projectPoints(text), ...careerPoints(text), ...(Array.isArray(record.flags)?record.flags:[])];
+  const points=[catalogPoint(record), ...projectPoints(text), ...careerPoints(text)];
   return [...new Set(points.map(x=>clean(x)).filter(Boolean))].slice(0, options.limit || 5);
 }
