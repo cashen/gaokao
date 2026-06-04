@@ -1,0 +1,43 @@
+/* v3.9.6.6: 收住大屏宽度，避免搜索页在 PC 上铺成“大白板” */
+.page,
+.ln-rank-shell,
+.page-shell,
+.main-shell {
+  width: min(100% - 48px, 1280px);
+  margin-inline: auto;
+}
+
+.middle,
+.topbar,
+.results-shell,
+.data-note,
+.hero {
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+.search-workbench,
+.score-band-grid,
+.band-tabs,
+.results-grid {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+@media (max-width: 720px) {
+  .page,
+  .ln-rank-shell,
+  .page-shell,
+  .main-shell {
+    width: min(100% - 24px, 100%);
+  }
+
+  body.has-floating-pool-entry {
+    padding-bottom: 76px;
+  }
+}
+
+/* v3.9.8.8: 首屏密度收口，顶部与分区卡片不再撑过高。 */
+.topbar.panel{padding:16px 18px;gap:14px;align-items:end}.top-note{font-size:12.5px;line-height:1.45}.score-box label,.range-box .field-label{font-size:13px}.score-input{min-height:54px;font-size:30px}.range-buttons{gap:8px}.range-button{padding:10px 14px;font-size:18px}.middle.panel{padding-top:14px}.tabs-head{margin-bottom:8px}.panel-title{font-size:17px}.panel-desc{font-size:12.5px;line-height:1.45}.band-tabs{gap:10px}.band-tab{padding:12px 14px;min-height:0}.band-tab strong{font-size:22px}.band-tab p{font-size:12px;margin-top:2px}.results-shell{margin-top:12px}.results-grid{gap:14px}.major-card{padding:15px 16px;border-radius:18px}.major-card .school-name,.major-card h3{font-size:17px}.major-card .major-name{font-size:14px}.pool-entry-floating{right:18px}
+@media(max-width:900px){.topbar.panel{padding:14px 14px;gap:12px}.score-input{min-height:50px;font-size:28px}.range-button{font-size:16px;padding:9px 12px}.band-tabs{grid-template-columns:1fr}.band-tab{padding:11px 12px}.results-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.topbar.panel{padding:12px 10px}.top-note{font-size:12px}.score-input{min-height:46px;font-size:26px}.range-buttons{display:flex;overflow-x:auto;scrollbar-width:none}.range-buttons::-webkit-scrollbar{display:none}.range-button{flex:0 0 auto;font-size:15px;padding:8px 11px}.major-card{padding:13px 12px}.pool-entry-floating{right:12px;bottom:12px;transform:scale(.92);transform-origin:right bottom}}
