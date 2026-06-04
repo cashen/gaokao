@@ -1,0 +1,86 @@
+/* v3.9.11 responsive control panel: PC 控制台、Pad 两行、Android 任务流。 */
+@media (min-width: 1181px){
+  .search-workbench{width:min(100%, var(--ui-control-max));}
+}
+
+@media (max-width: 1180px){
+  .search-workbench{
+    max-width:100%;
+    grid-template-columns:minmax(0,1fr) minmax(230px,280px);
+    column-gap:14px;
+  }
+  .major-keyword-panel .filter-major input{max-width:100%;}
+}
+
+/* Pad：不要硬挤 PC 双栏；输入两行、chip 横向可滚。 */
+@media (max-width: 1024px){
+  .search-workbench{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "head"
+      "top"
+      "keyword"
+      "summary"
+      "trend"
+      "action";
+    row-gap:9px;
+  }
+  .search-grid-top{max-width:100%;grid-template-columns:1fr 1fr;}
+  .major-keyword-panel{max-width:100%;}
+  .keyword-quick-row,.keyword-preset-mount{max-width:100%;}
+  .filter-summary,.major-trend-hint{max-width:100%;}
+  .search-workbench .filter-action{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .search-workbench .query-button{width:auto;min-width:210px;}
+  .filter-action-note{flex:1;min-width:240px;}
+  .pool-entry-floating{right:12px;}
+}
+
+/* Android：关键词优先；地区/学校继续可见但在关键词后方，避免首屏像长表单。 */
+@media (max-width: 720px){
+  .hero{margin-bottom:8px;}
+  .hero-badges{margin-top:8px;}
+  .topbar.panel{border-radius:16px;}
+  .middle.panel{border-radius:16px;}
+  .search-workbench{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:10px;
+    border-radius:16px;
+  }
+  .search-workbench-head{order:0;}
+  .major-keyword-panel{order:1;}
+  .keyword-help{font-size:11.5px;}
+  .keyword-quick-row,
+  .keyword-preset-mount .keyword-quick-row,
+  .keyword-preset-mount{max-width:100%;}
+  .keyword-quick-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+  .keyword-quick-row::-webkit-scrollbar{display:none;}
+  .keyword-quick-row button{flex:0 0 auto;}
+  .search-grid-top{order:2;grid-template-columns:1fr;gap:8px;padding-top:2px;}
+  .filter-summary{order:3;}
+  .major-trend-hint{order:4;}
+  .search-workbench .filter-action{order:5;display:grid;gap:7px;}
+  .search-workbench .query-button{width:100%;min-width:0;}
+  .filter-action-note{min-width:0;font-size:11.5px;}
+  .results-grid{grid-template-columns:1fr;}
+  body.has-floating-pool-entry{padding-bottom:78px;}
+  .pool-entry-floating{
+    left:10px;right:10px;bottom:10px;width:auto;transform:none;border-radius:18px;min-height:46px;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+  }
+  .pool-entry-floating .pool-entry-title{font-size:13px;}
+  .pool-entry-floating .pool-entry-count{min-width:28px;height:28px;}
+  .card-review-summary{white-space:normal;}
+}
+
+@media (max-width: 480px){
+  .app-title{font-size:23px;}
+  .app-subtitle{font-size:12px;}
+  .search-workbench-title{font-size:15.5px;}
+  .search-workbench-desc{font-size:11.5px;}
+  .input,.select,.major-keyword-panel .filter-major input{height:38px;font-size:13px;}
+  .band-tab{flex-basis:78%;}
+  .major-card .school,.major-card .school-name,.major-card h3{font-size:15.5px;}
+}

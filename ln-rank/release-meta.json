@@ -1,12 +1,12 @@
 {
-  "version": "v3.9.10rc",
-  "assetVersion": "v3910rc",
-  "name": "ln-rank-parent-readable-ui-baseline-no-fenxi",
+  "version": "v3.9.11",
+  "assetVersion": "v3911",
+  "name": "ln-rank-human-readable-ui-state-safe-full-with-fenxi-session",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": [
-    "3910rc 人类阅读舒适 UI 系统版：控制台结构、多终端任务流、结果卡片层级与自测 UI 规则",
-    "分数区间改为快速判断带，办学性质提醒保持紧凑且遵守本科线—特控线边界",
-    "2024/2025历史录取数据仍为主事实层，2026专业目录仅用于标准专业与复核提醒"
+    "3.9.11 在 3.9.10rc 基础上修正右侧辅助区空状态、自选入口遮挡和多终端安全区",
+    "未输入专业/关键词时不展开热度说明；输入方向后才显示热度摘要",
+    "保留 fenxi-session 依赖，避免 Cloudflare Pages Functions 因旧 fenxi 鉴权链路缺依赖而构建失败"
   ]
 }
