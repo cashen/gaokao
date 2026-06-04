@@ -37,6 +37,17 @@ for (const html of ['ln-rank/index.html','ln-rank/selection-pool.html','ln-rank/
   for (const ref of refs) exists(ref);
 }
 
+
+for (const html of ['ln-rank/index.html','ln-rank/selection-pool.html']) {
+  const text = read(html);
+  assert(text.includes('版本：v3.9.8.7'), `${html} visible footer version not v3.9.8.7`);
+  assert(!/版本：v3\.9\.8\.6/.test(text), `${html} still shows v3.9.8.6`);
+}
+assert(read('ln-rank/js/major-trend-render.v3987.js').includes('版本：v3.9.8.7'), 'major trend visible version not v3.9.8.7');
+assert(!/major-trend-rules\.v3986/.test(read('ln-rank/js/major-trend-render.v3987.js')), 'major trend render still imports v3986 rules');
+assert(/card-review-details/.test(read('ln-rank/js/feature/major-pool/major-pool-render.v3987.js')), 'card review details not collapsed');
+assert(/UI readability/.test(read('ln-rank/css/major-search.v3987.css')), 'UI readability css missing');
+
 const cases = [
   ['机械设计制造及其自动化','mechanical_vehicle','080202',''],
   ['自动化','electrical_energy','080801',''],

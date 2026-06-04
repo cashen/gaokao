@@ -74,10 +74,28 @@ function matchReason(record) {
 }
 
 
+function reviewSummary(record, points) {
+  const text = [record.major, record.school, record.matchReason, ...(Array.isArray(record.flags) ? record.flags : []), ...points].join(' ');
+  const labels = [];
+  if (/中外|合作办学/.test(text)) labels.push('中外合作');
+  if (/高收费|较高收费|费用待核验/.test(text)) labels.push('高收费/学费');
+  if (/公费师范|优师专项/.test(text)) labels.push('公费师范');
+  if (/定向/.test(text)) labels.push('定向');
+  if (/试验班|实验班|拔尖班|本博|本研/.test(text)) labels.push('试验班/分流');
+  if (labels.length) return `需核验：${labels.slice(0, 3).join(' / ')}`;
+  if (/交叉学科|新目录|培养学院|课程设置/.test(text)) return '需核验：新目录/交叉学科，查看招生计划与培养学院';
+  const sm = record.standardMajor || {};
+  if (sm.categoryName) return `复核：2026目录归属：${sm.categoryName}`;
+  return points[0] ? `需核验：${points[0].replace(/^按2026本科专业目录，?/, '').slice(0, 34)}` : '';
+}
+
 function renderReviewPoints(record) {
-  const points = buildReviewPointsForRecord(record, { limit: 3 });
+  const points = buildReviewPointsForRecord(record, { limit: 5 });
   if (!points.length) return '';
-  return `<div class="card-review-points">${points.map(p => `<div class="card-review-point">复核点：${escapeHtml(p)}</div>`).join('')}</div>`;
+  const summary = reviewSummary(record, points);
+  const detailItems = points.slice(0, 5).map(p => `<li>${escapeHtml(p)}</li>`).join('');
+  const details = points.length ? `<details class="card-review-details"><summary>查看复核详情</summary><ul class="card-review-list">${detailItems}</ul></details>` : '';
+  return `<div class="card-review-points"><div class="card-review-summary">${escapeHtml(summary || '需核验：查看复核详情')}</div>${details}</div>`;
 }
 
 function renderMajorCode(record) {

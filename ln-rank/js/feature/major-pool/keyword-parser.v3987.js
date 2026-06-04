@@ -1,6 +1,6 @@
-import { MAJOR_KEYWORD_ALIASES, BROAD_MAJOR_KEYWORDS } from './major-keyword-policy.v3986.js';
-import { PROJECT_KEYWORD_ALIASES } from './project-keyword-policy.v3986.js';
-import { INDUSTRY_KEYWORD_ALIASES } from './industry-keyword-policy.v3986.js';
+import { MAJOR_KEYWORD_ALIASES, BROAD_MAJOR_KEYWORDS } from './major-keyword-policy.v3987.js';
+import { PROJECT_KEYWORD_ALIASES } from './project-keyword-policy.v3987.js';
+import { INDUSTRY_KEYWORD_ALIASES } from './industry-keyword-policy.v3987.js';
 import { classifyKeywordTokens } from '../../keyword-token-classifier.v3987.js';
 
 export function normalizeKeyword(value) {
