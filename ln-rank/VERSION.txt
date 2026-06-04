@@ -1,1 +1,1 @@
-v3.9.8.7-ln-rank-kb-wiring-e2e-stability-no-fenxi
+v3.9.8.8-ln-rank-ui-density-public-bottomline-responsive-no-fenxi

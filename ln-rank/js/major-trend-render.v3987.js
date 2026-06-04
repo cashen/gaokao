@@ -62,7 +62,7 @@ export function mountMajorTrendPage() {
       </section>
       ${segmentNav(MAJOR_TREND_DATA.segments, active)}
       ${renderSegment(seg)}
-      <section class="data-note">${escapeHtml(MAJOR_TREND_DATA.disclaimer)}<br>版本：v3.9.8.7｜数据口径：辽宁 2025 物理类｜热度口径：2024/2025 同校同专业普通项目</section>`;
+      <section class="data-note">${escapeHtml(MAJOR_TREND_DATA.disclaimer)}<br>版本：v3.9.8.8｜数据口径：辽宁 2025 物理类｜热度口径：2024/2025 同校同专业普通项目</section>`;
     root.querySelectorAll('[data-segment]').forEach(btn => btn.addEventListener('click', () => { active = btn.dataset.segment; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
   }
   render();

@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.8.7",
-  "assetVersion": "v3987",
-  "name": "ln-rank-kb-wiring-e2e-stability-no-fenxi",
+  "version": "v3.9.8.8",
+  "assetVersion": "v3988",
+  "name": "ln-rank-ui-density-public-bottomline-responsive-no-fenxi",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": [
-    "3986接线验收与飞书端到端稳定版",
+    "3988 UI密度、公办底线与多终端可读性收口版",
     "2024/2025历史录取数据仍为主事实层",
     "2026专业目录、筛选预置词、项目属性、热度、AI和飞书统一通过accessor/自测页验收"
   ]
