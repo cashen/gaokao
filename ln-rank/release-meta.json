@@ -1,12 +1,12 @@
 {
-  "version": "v3.9.8.8",
-  "assetVersion": "v3988",
-  "name": "ln-rank-ui-density-public-bottomline-responsive-no-fenxi",
+  "version": "v3.9.8.9",
+  "assetVersion": "v3989",
+  "name": "ln-rank-parent-readable-ui-baseline-no-fenxi",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": [
-    "3988 UI密度、公办底线与多终端可读性收口版",
-    "2024/2025历史录取数据仍为主事实层",
-    "2026专业目录、筛选预置词、项目属性、热度、AI和飞书统一通过accessor/自测页验收"
+    "3989 家长可读 UI 收口版：降低顶部、分数区间、筛选区和卡片阅读负担",
+    "分数区间改为快速判断带，办学性质提醒保持紧凑且遵守本科线—特控线边界",
+    "2024/2025历史录取数据仍为主事实层，2026专业目录仅用于标准专业与复核提醒"
   ]
 }
