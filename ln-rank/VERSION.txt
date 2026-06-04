@@ -1,1 +1,1 @@
-v3.9.11-ln-rank-human-readable-ui-state-safe-full-with-fenxi-session
+v3.9.12-ln-rank-campus-kb-and-action-hierarchy-baseline-full-with-fenxi-session

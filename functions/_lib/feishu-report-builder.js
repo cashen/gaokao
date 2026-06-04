@@ -6,6 +6,7 @@ import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js
 import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
 import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
+import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -111,6 +112,8 @@ function governanceReviewLines(records = []) {
   lines.push('');
   lines.push(`1. 招生章程：${(ADMISSION_CHARTER_CHECK_KB?.generalCheckItems || []).slice(0, 8).join('、')}。`);
   let index = 2;
+  const campusReviews = getCampusReviewSummaryForItems(records, { limit: 4 });
+  if (campusReviews.length) lines.push(`${index++}. 校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
   if (hasMedical) lines.push(`${index++}. ${CAREER_PATH_MEDICAL_KB?.medicalCore?.aiCopy || '医学核心方向培养周期较长，需要考虑规培、执业资格和家庭承受能力。'}`);
   if (hasLaw) lines.push(`${index++}. ${CAREER_PATH_LAW_KB?.law?.aiCopy || '法学要关注法考、院校平台、城市实习资源和考公竞争。'}`);
   if (hasTeacher) lines.push(`${index++}. ${CAREER_PATH_TEACHER_KB?.teacher?.aiCopy || '师范方向要关注教师资格、编制机会、地区需求和是否接受异地就业。'}`);
@@ -161,6 +164,7 @@ export function buildFeishuReport(data) {
   lines.push("");
 
   data.selectedRecords.forEach((record, index) => {
+    const campus = getCampusForItem(record);
     lines.push(`### ${index + 1}. ${record.school}｜${record.major}`);
     lines.push("");
     const majorCode = standardMajorText(record);
@@ -174,6 +178,7 @@ export function buildFeishuReport(data) {
     if (record.matchReason) lines.push(`- 命中原因：${record.matchReason}`);
     lines.push(`- 适合位置：${record.position || "待核验"}`);
     lines.push(`- 地域：${locationText(record)}`);
+    if (campus?.displayTag) lines.push(`- 校区提醒：${campus.displayTag}｜${campus.reviewSummary}`);
     lines.push(`- 标签：${tags(record)}`);
     if (record.tuition) lines.push(`- 学费：${record.tuition}`);
     if (Array.isArray(record.flags) && record.flags.length) {

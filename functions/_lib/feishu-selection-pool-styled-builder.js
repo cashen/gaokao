@@ -19,6 +19,7 @@ import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js
 import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
 import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
+import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -57,6 +58,8 @@ function shortTags(item) {
   if (item.displayLocation) tags.push(item.displayLocation);
   if (item.natureLabel) tags.push(item.natureLabel);
   if (Array.isArray(item.schoolTags)) tags.push(...item.schoolTags.slice(0, 3));
+  const campusReview = getCampusForItem(item);
+  if (campusReview?.displayTag) tags.push(campusReview.displayTag);
   return [...new Set(tags.filter(Boolean))].join(' / ');
 }
 
@@ -245,6 +248,8 @@ function majorTrendBlocks(summary = {}) {
 function governanceReviewBlocks(items = []) {
   const blocks = [];
   const review = [];
+  const campusReviews = getCampusReviewSummaryForItems(items, { limit: 4 });
+  if (campusReviews.length) review.push(`校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
   const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
   const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
   const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));

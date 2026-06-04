@@ -11,6 +11,7 @@ import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js
 import { MAJOR_CATALOG_CALIBER_KB } from './kb/major-catalog-caliber-kb.generated.js';
 import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
+import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -59,7 +60,8 @@ function normalizeItems(items = []) {
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
       codes: item.codes || {},
       standardMajor: item.standardMajor || {},
-      poolBand
+      poolBand,
+      campusReview: getCampusForItem(item)
     };
   }).filter(x => x.school || x.major);
 }
@@ -93,6 +95,7 @@ function tagsText(item) {
   if (Array.isArray(item.schoolTags)) arr.push(...item.schoolTags);
   if (item.natureLabel) arr.push(item.natureLabel);
   if (item.displayLocation) arr.push(item.displayLocation);
+  if (item.campusReview?.displayTag) arr.push(item.campusReview.displayTag);
   return [...new Set(arr.filter(Boolean))].join(' / ') || '标签待核验';
 }
 
@@ -101,8 +104,9 @@ function itemLine(item) {
   const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
   const sm = item.standardMajor || {};
+  const campusText = item.campusReview?.displayTag ? `｜${item.campusReview.displayTag}` : '';
   const code = sm.code && sm.name ? `｜专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类：${sm.categoryCode}｜${sm.categoryName}` : '');
-  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
+  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}${campusText}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
 function itemName(item) {
@@ -148,6 +152,8 @@ function governanceReviewLines(items = []) {
   lines.push('## 需要人工复核');
   lines.push('');
   const review = [];
+  const campusReviews = getCampusReviewSummaryForItems(items, { limit: 4 });
+  if (campusReviews.length) review.push(`校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
   const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
   const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
   const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));

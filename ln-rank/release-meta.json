@@ -1,12 +1,13 @@
 {
-  "version": "v3.9.11",
-  "assetVersion": "v3911",
-  "name": "ln-rank-human-readable-ui-state-safe-full-with-fenxi-session",
+  "version": "v3.9.12",
+  "assetVersion": "v3912",
+  "name": "ln-rank campus KB and action hierarchy baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": [
-    "3.9.11 在 3.9.10rc 基础上修正右侧辅助区空状态、自选入口遮挡和多终端安全区",
-    "未输入专业/关键词时不展开热度说明；输入方向后才显示热度摘要",
-    "保留 fenxi-session 依赖，避免 Cloudflare Pages Functions 因旧 fenxi 鉴权链路缺依赖而构建失败"
+    "3.9.12 在 3.9.11 基础上新增辽宁省内重点多校区/办学地点 KB 与卡片短标签",
+    "卡片、自选专业页和飞书报告增加校区复核摘要，不改变搜索排序和历史录取数据",
+    "搜索控制台主操作统一为温和深绿色，查看/更新为同一个主按钮的状态文案；热度/更多/解读为次操作",
+    "保留 functions/_lib/fenxi-session.js，兼容当前 Cloudflare Pages 中旧 fenxi 鉴权链路"
   ]
 }

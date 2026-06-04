@@ -5,12 +5,24 @@ import { buildReviewPointsForRecord } from '../_lib/kb/review-point-builder.js';
 import { buildFeishuReport } from '../_lib/feishu-report-builder.js';
 import { buildSelectionPoolFeishuReport } from '../_lib/feishu-selection-pool-report-builder.js';
 import { buildSelectionPoolStyledBlocks } from '../_lib/feishu-selection-pool-styled-builder.js';
+import { getCampusForItem, getCampusDiagnostics } from '../_lib/kb/campus-accessor.js';
+import { getQueryActionLabel, getActionDiagnostics } from '../_lib/kb/action-hierarchy-policy.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload, null, 2), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 }
 
 const FORBIDDEN = /payload|raw|source|debug|model|JSON|workers-ai|fallback|AI_PATH_MODEL|internalDerived|sourceLevel/i;
+
+const CAMPUS_CASES = [
+  { school: '沈阳药科大学', major: '药学类', expectTag: '校区：本溪' },
+  { school: '沈阳工业大学', major: '化学工程与工艺', expectTag: '校区：辽阳' },
+  { school: '辽宁大学', major: '英语', expectTag: '校区：辽阳' },
+  { school: '辽宁工程技术大学', major: '计算机科学与技术', expectTag: '校区：葫芦岛' },
+  { school: '大连理工大学盘锦校区', major: '能源化学工程', expectTag: '校区：盘锦' },
+  { school: '大连交通大学', major: '机械工程', expectTag: '校区：旅顺口' }
+];
+
 const CASES = [
   { input: '机械设计制造及其自动化', expectDirection: 'mechanical_vehicle', expectCode: '080202' },
   { input: '自动化', expectDirection: 'electrical_energy', expectCode: '080801' },
@@ -52,16 +64,31 @@ function uiReadabilitySmoke() {
   add('普通稳定专业不过度展开', buildReviewPointsForRecord({ major: '机械设计制造及其自动化', standardMajor: { categoryName: '机械类' } }, { limit: 5 }).length <= 2, '普通专业应保持简洁，不应出现多条大段复核点。', '稳定专业只显示目录归属摘要。');
   add('项目属性集中提示', /中外合作|高收费/.test(points.join(' ')), '中外/高收费应进入复核详情，但卡片主视觉只显示摘要。', '检查 project-attribute-accessor 与 review-point-builder。');
   add('移动端折叠纪律', true, '手机端默认显示“需核验 n 项/摘要”，不展开完整说明。', '通过页面 CSS 的 details 默认折叠保障。');
-  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3911.js 的 shouldShowBottomLinePanel 与 bottomline.v3911.css。');
-  add('公办底线紧凑布局', true, '公办底线应为紧凑提醒条，PC一行优先，手机横向选择/折叠，不再作为大块筛选卡片。', '检查 bottomline.v3911.css 和首页筛选区高度。');
-  add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 ui-density.v3911.css 的 --ui-control-max 与 .search-workbench。');
-  add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 responsive-control-panel.v3911.css 的 1024px 断点。');
-  add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 responsive-control-panel.v3911.css 的 720px 断点。');
-  add('分数区间快速判断带', true, '分数区间应是扁平判断带，不应像大结果卡挤占首屏。', '检查 layout-shell.v3911.css 中 band-tab 高度。');
-  add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 major-trend-integration.v3911.js 和 .major-trend-hint.is-empty。');
-  add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 floating-pool-entry.v3911.css。');
-  add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 ui-density.v3911.css 和 renderSearchTrendHint。');
+  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3912.js 的 shouldShowBottomLinePanel 与 bottomline.v3912.css。');
+  add('公办底线紧凑布局', true, '公办底线应为紧凑提醒条，PC一行优先，手机横向选择/折叠，不再作为大块筛选卡片。', '检查 bottomline.v3912.css 和首页筛选区高度。');
+  add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 ui-density.v3912.css 的 --ui-control-max 与 .search-workbench。');
+  add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 responsive-control-panel.v3912.css 的 1024px 断点。');
+  add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 responsive-control-panel.v3912.css 的 720px 断点。');
+  add('分数区间快速判断带', true, '分数区间应是扁平判断带，不应像大结果卡挤占首屏。', '检查 layout-shell.v3912.css 中 band-tab 高度。');
+  add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 major-trend-integration.v3912.js 和 .major-trend-hint.is-empty。');
+  add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 floating-pool-entry.v3912.css。');
+  add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 ui-density.v3912.css 和 renderSearchTrendHint。');
   return checks;
+}
+
+
+function campusActionSmoke() {
+  const campusCases = CAMPUS_CASES.map(c => {
+    const campus = getCampusForItem(c);
+    const ok = campus?.displayTag === c.expectTag;
+    return { ...c, ok, actualTag: campus?.displayTag || '', reviewSummary: campus?.reviewSummary || '', errors: ok ? [] : [`校区标签应为${c.expectTag}，实际${campus?.displayTag || '未识别'}`] };
+  });
+  const actionCases = [
+    { name: '初始主按钮', ok: getQueryActionLabel({ hasQueried:false, dirty:false }) === '查看符合条件的专业', label: getQueryActionLabel({ hasQueried:false, dirty:false }) },
+    { name: '条件变化主按钮', ok: getQueryActionLabel({ hasQueried:true, dirty:true }) === '更新条件', label: getQueryActionLabel({ hasQueried:true, dirty:true }) },
+    { name: '高分段主按钮', ok: getQueryActionLabel({ hasQueried:false, dirty:false, topRange:true }) === '查看高分段专业', label: getQueryActionLabel({ hasQueried:false, dirty:false, topRange:true }) }
+  ];
+  return { campusCases, actionCases };
 }
 
 function reportSmoke() {
@@ -86,6 +113,9 @@ export async function onRequest() {
   try {
     const catalog = getCatalogStats();
     const policy = getLiaoningPolicyDiagnostics();
+    const campus = getCampusDiagnostics();
+    const action = getActionDiagnostics();
+    const campusAction = campusActionSmoke();
     const cases = CASES.map(caseCheck);
     const reports = reportSmoke();
     const uiChecks = uiReadabilitySmoke();
@@ -94,11 +124,15 @@ export async function onRequest() {
     if (catalog.disciplineCount !== 13) errors.push(`门类数应为13，实际${catalog.disciplineCount}`);
     if (catalog.categoryCount !== 92) errors.push(`专业类数应为92，实际${catalog.categoryCount}`);
     if (!policy.ok) errors.push('辽宁政策 accessor 失败');
+    if (!campus.ok) errors.push('校区 KB accessor 失败');
+    if (!action.ok) errors.push('按钮层级策略失败');
     cases.filter(x => !x.ok).forEach(x => errors.push(`${x.input}: ${x.errors.join('；')}`));
     reports.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.errors.join('；')}`));
+    campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
+    campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.11', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.12', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.11', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.12', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }
