@@ -2,7 +2,7 @@ import { buildSelectionPoolStyledBlocks } from './feishu-selection-pool-styled-b
 import { buildSelectionPoolSummary } from './selection-pool-summary.js';
 import { formatNumber, rankGapText } from './selection-pool-rank-utils.js';
 import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
-import { LIAONING_POLICY_KB } from './kb/liaoning-policy-kb.generated.js';
+import { formatLiaoningOrdinaryUndergraduatePolicyLine } from './kb/liaoning-policy-accessor.js';
 import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
 import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
 import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
@@ -10,6 +10,7 @@ import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
 import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
 import { MAJOR_CATALOG_CALIBER_KB } from './kb/major-catalog-caliber-kb.generated.js';
 import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
+import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -151,12 +152,13 @@ function governanceReviewLines(items = []) {
   const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
   const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));
   const hasPhysicalExamSensitive = items.some(x => /医学|药学|生物|食品|农学|园艺|动物医学|交通运输|油气储运/.test(`${x.major || ''}`));
-  review.push(`招生章程：${ADMISSION_CHARTER_CHECK_KB.generalCheckItems.slice(0, 8).join('、')}。`);
-  if (hasMedical) review.push(CAREER_PATH_MEDICAL_KB.medicalCore.aiCopy);
-  if (hasLaw) review.push(CAREER_PATH_LAW_KB.law.aiCopy);
-  if (hasTeacher) review.push(CAREER_PATH_TEACHER_KB.teacher.aiCopy);
-  if (hasPhysicalExamSensitive) review.push(PHYSICAL_EXAM_KB.colorWeakness.aiCopy);
-  if (MAJOR_CATALOG_CALIBER_KB.catalogs?.[2026]?.aiBoundary?.[0]) review.push(`专业目录：${MAJOR_CATALOG_CALIBER_KB.catalogs[2026].aiBoundary[0]}`);
+  review.push(`招生章程：${(ADMISSION_CHARTER_CHECK_KB?.generalCheckItems || []).slice(0, 8).join('、')}。`);
+  if (hasMedical) review.push(CAREER_PATH_MEDICAL_KB?.medicalCore?.aiCopy || '医学核心方向培养周期较长，需要考虑规培、执业资格和家庭承受能力。');
+  if (hasLaw) review.push(CAREER_PATH_LAW_KB?.law?.aiCopy || '法学要关注法考、院校平台、城市实习资源和考公竞争。');
+  if (hasTeacher) review.push(CAREER_PATH_TEACHER_KB?.teacher?.aiCopy || '师范方向要关注教师资格、编制机会、地区需求和是否接受异地就业。');
+  if (hasPhysicalExamSensitive) review.push(PHYSICAL_EXAM_KB?.colorWeakness?.aiCopy || '如孩子存在色弱、色盲等体检限制，相关专业需要重点核验招生章程和体检指导意见。');
+  if (MAJOR_CATALOG_CALIBER_KB?.catalogs?.[2026]?.aiBoundary?.[0]) review.push(`专业目录：${MAJOR_CATALOG_CALIBER_KB.catalogs[2026].aiBoundary[0]}`);
+  review.push(...buildReviewPointsForItems(items, { limit: 5 }));
   review.slice(0, 5).forEach((x, i) => lines.push(`${i + 1}. ${sanitizeParentCopy(clean(x, 260))}`));
   lines.push('');
   return lines;
@@ -167,7 +169,7 @@ function governanceBoundaryLines() {
     '## 数据和使用边界',
     '',
     `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
-    `- 辽宁志愿模式：普通类本科批按“${LIAONING_POLICY_KB.ordinary本科批.mode}”理解，最多 ${LIAONING_POLICY_KB.ordinary本科批.maxChoices} 个志愿；本报告按专业条目复核。`,
+    `- 辽宁志愿模式：${formatLiaoningOrdinaryUndergraduatePolicyLine()}`, 
     '- 专业热度：只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。',
     '- 招生章程：学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
     ''
@@ -364,7 +366,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.8.5',
+    version: 'v3.9.8.7',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,

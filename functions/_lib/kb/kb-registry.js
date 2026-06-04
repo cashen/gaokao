@@ -1,5 +1,5 @@
 export const KB_REGISTRY = {
-  version: 'v3986-catalog-filter-bridge-governance',
+  version: 'v3987-kb-wiring-e2e-stability',
   region: 'ln',
   subject: 'physics',
   activeYear: 2025,
@@ -24,6 +24,15 @@ export const KB_REGISTRY = {
     employmentBoundary: { module: './employment-report-boundary-kb.generated.js', sourceLevel: 'B+', affects: ['employmentExplanation'] },
     majorTrend: { module: './major-trend-kb.generated.js', sourceLevel: 'C', affects: ['searchHint','advisorAI','report'] },
     copyPolicy: { module: './copy-policy-kb.generated.js', sourceLevel: 'policy', affects: ['page','advisorAI','report','feishu'] },
+
+    liaoningPolicyAccessor: { module: './liaoning-policy-accessor.js', sourceLevel: 'accessor', affects: ['report','advisorAI','feishu'] },
+    yearCaliberAccessor: { module: './year-caliber-accessor.js', sourceLevel: 'accessor', affects: ['report','bottomLine','pageCopy'] },
+    catalogAccessor: { module: './catalog-accessor.js', sourceLevel: 'accessor', affects: ['standardMajor','cardReview','report'] },
+    projectAttributeAccessor: { module: './project-attribute-accessor.js', sourceLevel: 'accessor', affects: ['projectRisk','search','report'] },
+    careerPathAccessor: { module: './career-path-accessor.js', sourceLevel: 'accessor', affects: ['majorRisk','AIExplanation','report'] },
+    majorTrendAccessor: { module: './major-trend-accessor.js', sourceLevel: 'accessor', affects: ['trendHint','report'] },
+    keywordTokenClassifier: { module: './keyword-token-classifier.js', sourceLevel: 'accessor', affects: ['search','selfCheck'] },
+    reviewPointBuilder: { module: './review-point-builder.js', sourceLevel: 'accessor', affects: ['card','AIExplanation','report'] },
     kbSourceRegistry: { module: './kb-source-registry.js', sourceLevel: 'registry', affects: ['sourceAudit','releaseCheck'] }
   }
 };

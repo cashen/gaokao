@@ -1,12 +1,12 @@
 {
-  "version": "v3.9.8.6",
-  "assetVersion": "v3986",
-  "name": "ln-rank-2026-catalog-kb-filter-bridge-baseline-no-fenxi",
+  "version": "v3.9.8.7",
+  "assetVersion": "v3987",
+  "name": "ln-rank-kb-wiring-e2e-stability-no-fenxi",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": [
+    "3986接线验收与飞书端到端稳定版",
     "2024/2025历史录取数据仍为主事实层",
-    "2026教育部本科专业目录883条作为标准专业知识层",
-    "筛选预置词、项目属性、专业方向、AI诊断和飞书报告使用统一映射"
+    "2026专业目录、筛选预置词、项目属性、热度、AI和飞书统一通过accessor/自测页验收"
   ]
 }

@@ -1,0 +1,80 @@
+import { getCatalogStats, findCatalogMajorByNameOrCode } from '../_lib/kb/catalog-accessor.js';
+import { getLiaoningPolicyDiagnostics, formatLiaoningOrdinaryUndergraduatePolicyLine } from '../_lib/kb/liaoning-policy-accessor.js';
+import { classifyKeywordTokens } from '../_lib/kb/keyword-token-classifier.js';
+import { buildReviewPointsForRecord } from '../_lib/kb/review-point-builder.js';
+import { buildFeishuReport } from '../_lib/feishu-report-builder.js';
+import { buildSelectionPoolFeishuReport } from '../_lib/feishu-selection-pool-report-builder.js';
+import { buildSelectionPoolStyledBlocks } from '../_lib/feishu-selection-pool-styled-builder.js';
+
+function json(payload, status = 200) {
+  return new Response(JSON.stringify(payload, null, 2), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+}
+
+const FORBIDDEN = /payload|raw|source|debug|model|JSON|workers-ai|fallback|AI_PATH_MODEL|internalDerived|sourceLevel/i;
+const CASES = [
+  { input: '机械设计制造及其自动化', expectDirection: 'mechanical_vehicle', expectCode: '080202' },
+  { input: '自动化', expectDirection: 'electrical_energy', expectCode: '080801' },
+  { input: '园艺', expectDirection: 'agri_food_env', expectCode: '090102' },
+  { input: '园林', expectDirection: 'agri_food_env', expectCode: '090502' },
+  { input: '风景园林', expectDirection: 'civil_arch_transport', expectCode: '082803' },
+  { input: '动物医学', expectDirection: 'agri_food_env', expectCode: '090401' },
+  { input: '食品科学与工程', expectDirection: 'agri_food_env', expectCode: '082701' },
+  { input: '中外', expectProject: 'sinoForeign' },
+  { input: '电气 中外', expectDirection: 'electrical_energy', expectProject: 'sinoForeign' },
+  { input: '具身智能', expectDirection: 'computer_ai_software', expectCode: '140012TK', expectCatalogChange: true },
+  { input: '脑机科学与技术', expectDirection: 'medical_applied', expectCode: '140013TK', expectCatalogChange: true },
+  { input: '智能医学工程', expectDirection: 'medical_applied', expectCode: '140007T', expectCatalogChange: true },
+  { input: '公费师范', expectProject: 'publicTeacher' },
+  { input: '定向', expectProject: 'targeted' }
+];
+
+function caseCheck(c) {
+  const classified = classifyKeywordTokens(c.input);
+  const major = findCatalogMajorByNameOrCode(c.input);
+  const direction = classified.majorDirectionTokens[0]?.directionId || '';
+  const project = classified.projectAttributeTokens[0]?.id || '';
+  const reviewPoints = buildReviewPointsForRecord({ major: c.input, standardMajor: major ? { ...major, mappingStatus: 'exact' } : {} });
+  const errors = [];
+  if (c.expectDirection && direction !== c.expectDirection) errors.push(`方向应为${c.expectDirection}，实际${direction || '未识别'}`);
+  if (c.expectProject && project !== c.expectProject) errors.push(`项目属性应为${c.expectProject}，实际${project || '未识别'}`);
+  if (c.expectCode && major?.code !== c.expectCode) errors.push(`专业代码应为${c.expectCode}，实际${major?.code || '未识别'}`);
+  if (c.expectCatalogChange && !reviewPoints.some(x => /交叉学科|新目录|代码迁移|培养学院/.test(x))) errors.push('应出现新目录/交叉学科复核点');
+  return { input: c.input, ok: errors.length === 0, errors, direction, project, code: major?.code || '', category: major?.categoryName || '', reviewPoints };
+}
+
+function reportSmoke() {
+  const rec = { school: '测试大学', major: '电气工程及其自动化', score2025: 520, rank2025: 40000, scoreDelta: 0, statusLabel: '主要参考', position: '主要承接', matchLabel: '精准匹配', matchReason: '专业名称直接包含该词', standardMajor: { code: '080601', name: '电气工程及其自动化', categoryCode: '0806', categoryName: '电气类', mappingStatus: 'exact' } };
+  const out = [];
+  const basic = buildFeishuReport({ candidateScore: 520, selectedBand: { key: 'near', title: '主要参考', rangeText: '515-525' }, filters: { region: 'all', majorKeyword: '电气' }, dataScope: '2025历史', counts: { upper: 1, near: 1, steady: 1, total: 3 }, selectedRecords: [rec], rangePreset: 'standard', keywordQuery: { rawKeywords: ['电气'] }, matchSummary: { exact: 1 } });
+  const pool = buildSelectionPoolFeishuReport({ candidateScore: 520, items: [rec], reportType: 'selectionPoolWithAnalysis', analysis: { summary: '整体可以作为重点核验', stats: { total: 1, rushCount: 0, stableCount: 1, safeCount: 0 }, aiNarrative: { overall: '整体可以作为重点核验', structureDiagnosis: '专业结构待补充', actions: ['建议补充后段专业'] } } });
+  const styled = buildSelectionPoolStyledBlocks({ title: '测试报告', candidateScore: 520, items: [rec], stats: { total: 1 }, summary: pool.summary, hasAnalysis: false });
+  for (const [name, text] of [['家庭讨论报告', basic.markdown], ['带解读报告', pool.markdown]]) {
+    const errors = [];
+    if (!text || text.length < 200) errors.push('正文过短');
+    if (!/专业\+学校/.test(text)) errors.push('缺少辽宁专业+学校口径');
+    if (!/专业代码/.test(text)) errors.push('缺少专业代码');
+    if (FORBIDDEN.test(text)) errors.push('出现工程词');
+    out.push({ name, ok: errors.length === 0, errors, length: text.length });
+  }
+  out.push({ name: '复制文字版/样式块', ok: Array.isArray(styled) && styled.length > 5, errors: Array.isArray(styled) && styled.length > 5 ? [] : ['样式块为空'], length: Array.isArray(styled) ? styled.length : 0 });
+  return out;
+}
+
+export async function onRequest() {
+  try {
+    const catalog = getCatalogStats();
+    const policy = getLiaoningPolicyDiagnostics();
+    const cases = CASES.map(caseCheck);
+    const reports = reportSmoke();
+    const errors = [];
+    if (catalog.entries !== 883) errors.push(`2026目录条数应为883，实际${catalog.entries}`);
+    if (catalog.disciplineCount !== 13) errors.push(`门类数应为13，实际${catalog.disciplineCount}`);
+    if (catalog.categoryCount !== 92) errors.push(`专业类数应为92，实际${catalog.categoryCount}`);
+    if (!policy.ok) errors.push('辽宁政策 accessor 失败');
+    cases.filter(x => !x.ok).forEach(x => errors.push(`${x.input}: ${x.errors.join('；')}`));
+    reports.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.errors.join('；')}`));
+    return json({ ok: errors.length === 0, version: 'v3.9.8.7', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, errors });
+  } catch (error) {
+    return json({ ok: false, version: 'v3.9.8.7', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+  }
+}

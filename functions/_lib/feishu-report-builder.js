@@ -1,10 +1,11 @@
 import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
-import { LIAONING_POLICY_KB } from './kb/liaoning-policy-kb.generated.js';
+import { formatLiaoningOrdinaryUndergraduatePolicyLine } from './kb/liaoning-policy-accessor.js';
 import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
 import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
 import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
 import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
 import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
+import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -108,12 +109,14 @@ function governanceReviewLines(records = []) {
   const hasExamSensitive = records.some(x => /医学|药学|生物|食品|农学|园艺|动物医学|交通运输|油气储运/.test(`${x.major || ''}`));
   lines.push('## 需要人工复核');
   lines.push('');
-  lines.push(`1. 招生章程：${ADMISSION_CHARTER_CHECK_KB.generalCheckItems.slice(0, 8).join('、')}。`);
+  lines.push(`1. 招生章程：${(ADMISSION_CHARTER_CHECK_KB?.generalCheckItems || []).slice(0, 8).join('、')}。`);
   let index = 2;
-  if (hasMedical) lines.push(`${index++}. ${CAREER_PATH_MEDICAL_KB.medicalCore.aiCopy}`);
-  if (hasLaw) lines.push(`${index++}. ${CAREER_PATH_LAW_KB.law.aiCopy}`);
-  if (hasTeacher) lines.push(`${index++}. ${CAREER_PATH_TEACHER_KB.teacher.aiCopy}`);
-  if (hasExamSensitive) lines.push(`${index++}. ${PHYSICAL_EXAM_KB.colorWeakness.aiCopy}`);
+  if (hasMedical) lines.push(`${index++}. ${CAREER_PATH_MEDICAL_KB?.medicalCore?.aiCopy || '医学核心方向培养周期较长，需要考虑规培、执业资格和家庭承受能力。'}`);
+  if (hasLaw) lines.push(`${index++}. ${CAREER_PATH_LAW_KB?.law?.aiCopy || '法学要关注法考、院校平台、城市实习资源和考公竞争。'}`);
+  if (hasTeacher) lines.push(`${index++}. ${CAREER_PATH_TEACHER_KB?.teacher?.aiCopy || '师范方向要关注教师资格、编制机会、地区需求和是否接受异地就业。'}`);
+  if (hasExamSensitive) lines.push(`${index++}. ${PHYSICAL_EXAM_KB?.colorWeakness?.aiCopy || '如孩子存在色弱、色盲等体检限制，相关专业需要重点核验招生章程和体检指导意见。'}`);
+  const extra = buildReviewPointsForItems(records, { limit: 5 });
+  extra.slice(0, 3).forEach(x => lines.push(`${index++}. ${x}`));
   lines.push('');
   return lines;
 }
@@ -123,7 +126,7 @@ function governanceBoundaryLines() {
     '## 数据和使用边界',
     '',
     `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
-    `- 辽宁志愿模式：普通类本科批按“${LIAONING_POLICY_KB.ordinary本科批.mode}”理解，最多 ${LIAONING_POLICY_KB.ordinary本科批.maxChoices} 个志愿；本报告按专业条目复核。`,
+    `- 辽宁志愿模式：${formatLiaoningOrdinaryUndergraduatePolicyLine()}`, 
     '- 学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
     ''
   ];

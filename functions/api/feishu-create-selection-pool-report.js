@@ -71,7 +71,8 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error && error.message ? error.message : String(error),
-      hint: "请检查 Cloudflare Secrets：FEISHU_APP_ID、FEISHU_APP_SECRET、FEISHU_DOC_HOST，并确认飞书应用已开通 docx 文档创建、编辑与 Drive 权限设置能力。"
+      hint: "报告暂时生成失败。可以先复制文字版报告，稍后再试。",
+      technical: { route: new URL(context.request.url).pathname, message: error && error.message ? error.message : String(error), possibleReason: "飞书权限、接口返回或报告字段兼容问题。技术详情只供排查，不应展示给家长正文。" }
     }, 500);
   }
 }
