@@ -64,15 +64,15 @@ function uiReadabilitySmoke() {
   add('普通稳定专业不过度展开', buildReviewPointsForRecord({ major: '机械设计制造及其自动化', standardMajor: { categoryName: '机械类' } }, { limit: 5 }).length <= 2, '普通专业应保持简洁，不应出现多条大段复核点。', '稳定专业只显示目录归属摘要。');
   add('项目属性集中提示', /中外合作|高收费/.test(points.join(' ')), '中外/高收费应进入复核详情，但卡片主视觉只显示摘要。', '检查 project-attribute-accessor 与 review-point-builder。');
   add('移动端折叠纪律', true, '手机端默认显示“需核验 n 项/摘要”，不展开完整说明。', '通过页面 CSS 的 details 默认折叠保障。');
-  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3912.js 的 shouldShowBottomLinePanel 与 bottomline.v3912.css。');
-  add('公办底线紧凑布局', true, '公办底线应为紧凑提醒条，PC一行优先，手机横向选择/折叠，不再作为大块筛选卡片。', '检查 bottomline.v3912.css 和首页筛选区高度。');
-  add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 ui-density.v3912.css 的 --ui-control-max 与 .search-workbench。');
-  add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 responsive-control-panel.v3912.css 的 1024px 断点。');
-  add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 responsive-control-panel.v3912.css 的 720px 断点。');
-  add('分数区间快速判断带', true, '分数区间应是扁平判断带，不应像大结果卡挤占首屏。', '检查 layout-shell.v3912.css 中 band-tab 高度。');
-  add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 major-trend-integration.v3912.js 和 .major-trend-hint.is-empty。');
-  add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 floating-pool-entry.v3912.css。');
-  add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 ui-density.v3912.css 和 renderSearchTrendHint。');
+  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3913.js 的 shouldShowBottomLinePanel 与 bottomline.v3913.css。');
+  add('公办底线紧凑布局', true, '公办底线应为紧凑提醒条，PC一行优先，手机横向选择/折叠，不再作为大块筛选卡片。', '检查 bottomline.v3913.css 和首页筛选区高度。');
+  add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 ui-density.v3913.css 的 --ui-control-max 与 .search-workbench。');
+  add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 responsive-control-panel.v3913.css 的 1024px 断点。');
+  add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 responsive-control-panel.v3913.css 的 720px 断点。');
+  add('分数区间快速判断带', true, '分数区间应是扁平判断带，不应像大结果卡挤占首屏。', '检查 layout-shell.v3913.css 中 band-tab 高度。');
+  add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 major-trend-integration.v3913.js 和 .major-trend-hint.is-empty。');
+  add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 floating-pool-entry.v3913.css。');
+  add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 ui-density.v3913.css 和 renderSearchTrendHint。');
   return checks;
 }
 
@@ -131,8 +131,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.12', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.13', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.12', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.13', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }
