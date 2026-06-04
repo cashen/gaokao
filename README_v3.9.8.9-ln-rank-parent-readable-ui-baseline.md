@@ -1,4 +1,4 @@
-# v3.9.8.9 ln-rank parent readable UI baseline
+# v3.9.9.0 ln-rank parent readable UI baseline
 
 本版基于 v3.9.8.8 做 UI 阅读负担收口：
 

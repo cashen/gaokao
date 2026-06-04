@@ -5144,7 +5144,7 @@ export const SCHOOL_GEO_REFERENCE = [
   {
     "canonical": "南京邮电大学通达学院",
     "standardSchoolName": "南京邮电大学通达学院",
-    "schoolIdentifier": "4132013989",
+    "schoolIdentifier": "4132013990",
     "province": "江苏",
     "city": "扬州",
     "region": "华东",
