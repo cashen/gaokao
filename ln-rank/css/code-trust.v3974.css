@@ -1,3 +1,0 @@
-.code-trust-line{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;color:#52665f;font-size:13px;line-height:1.55}.code-trust-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid #dce8e2;background:#f8fbf9;border-radius:999px;padding:4px 9px}.code-trust-pill b{color:#2f665b;font-weight:900}.standard-major-line{margin:6px 0 0;color:#66756f;font-size:13px;line-height:1.55}.standard-major-line b{color:#3a5f55;font-weight:800}@media(max-width:720px){.code-trust-line{font-size:12.5px}.code-trust-pill{border-radius:12px}}
-
-.workspace-code-line{flex-basis:100%;color:#5f746c;font-size:12.5px}.workspace-code-line b{color:#2f665b}.workspace-item-meta .workspace-code-line{margin-top:2px}
