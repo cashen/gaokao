@@ -1,0 +1,31 @@
+{
+  "version": "v3.9.14",
+  "assetVersion": "v3914",
+  "entrypoints": {
+    "search": "js/app.v3914.js",
+    "selectionPool": "js/selection-pool.v3914.js",
+    "majorTrend": "js/major-trend-render.v3914.js",
+    "selfCheck": "js/self-check.v3914.js"
+  },
+  "stableModules": {
+    "majorPool": "js/feature/major-pool/index.js",
+    "selectionPool": "js/feature/selection-pool/index.js",
+    "feishu": "js/feature/feishu/index.js",
+    "decisionCoach": "js/feature/decision-coach/index.js",
+    "campus": "js/feature/campus/index.js",
+    "ui": "js/feature/ui/index.js",
+    "trend": "js/feature/trend/index.js",
+    "report": "js/feature/report/index.js"
+  },
+  "cssLayers": {
+    "core": "css/core/",
+    "components": "css/components/",
+    "pages": "css/pages/"
+  },
+  "rules": {
+    "entrypointsMayUseVersionSuffix": true,
+    "internalModulesShouldUseStableNames": true,
+    "orphanAssetsAllowed": false,
+    "legacyActiveAllowed": "fail"
+  }
+}

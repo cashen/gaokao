@@ -1,0 +1,39 @@
+
+/* ===== tokens.css ===== */
+:root {
+  color-scheme: light;
+  --bg: #f7f2ea;
+  --card: rgba(255, 255, 255, 0.88);
+  --card-strong: rgba(255, 255, 255, 0.96);
+  --ink: #1f2933;
+  --ink-2: #334155;
+  --muted: #667085;
+  --muted-2: #8a94a6;
+  --line: rgba(31, 41, 51, 0.12);
+  --line-strong: rgba(31, 41, 51, 0.18);
+  --shadow: 0 18px 46px rgba(30, 41, 59, 0.08);
+  --shadow-soft: 0 10px 28px rgba(30, 41, 59, 0.055);
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --primary: #3f6f68;
+  --primary-soft: #e7f2ef;
+  --band-upper: #b98245;
+  --band-upper-soft: #fff3e4;
+  --band-near: #3f6f8f;
+  --band-near-soft: #e9f1f5;
+  --band-steady: #2f7d68;
+  --band-steady-soft: #e8f5ef;
+  --status-tooLow: #64748b;
+  --status-low: #7a8796;
+  --status-guard: #3f7f6b;
+  --status-steady: #2f7d68;
+  --status-match: #3f6f8f;
+  --status-smallRush: #4f74b8;
+  --status-midRush: #b98245;
+  --status-bigRush: #b56a32;
+  --status-superRush: #a85f4d;
+}
+
+
+:root{--ln-control-max-width:1180px;}

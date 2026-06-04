@@ -1,13 +1,9 @@
 {
-  "version": "v3.9.13",
-  "assetVersion": "v3913",
+  "version": "v3.9.14",
+  "assetVersion": "v3914",
   "name": "ln-rank asset prune and one-click analysis baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": [
-    "3.9.13 在 3.9.12 基础上做 JS/CSS 资产依赖分析与清理，不改业务功能和搜索排序",
-    "新增一键资产分析脚本，输出 active / legacy-active / orphan 清单，防止凭版本号误删仍在使用的旧模块",
-    "清理当前入口不可达的历史 JS/CSS 文件，保留仍被 import 的历史功能模块",
-    "保留 functions/_lib/fenxi-session.js，兼容当前 Cloudflare Pages 中旧 fenxi 鉴权链路"
-  ]
+  "notes": "module facade + responsibility named modules + layered CSS + report copy baseline",
+  "builtAt": "2026-06-04T22:39:34Z"
 }
