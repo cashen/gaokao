@@ -1,0 +1,19 @@
+.band-tabs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.band-tab { position: relative; text-align: left; border-radius: 18px; padding: 14px 15px; border: 1px solid var(--line); background: rgba(255,255,255,.82); box-shadow: var(--shadow-soft); overflow: hidden; }
+.band-tab::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; opacity: .85; }
+.band-tab.upper { background: linear-gradient(145deg, var(--band-upper-soft), rgba(255,255,255,.95)); }
+.band-tab.near { background: linear-gradient(145deg, var(--band-near-soft), rgba(255,255,255,.95)); }
+.band-tab.steady { background: linear-gradient(145deg, var(--band-steady-soft), rgba(255,255,255,.95)); }
+.band-tab.upper::before { background: var(--band-upper); }
+.band-tab.near::before { background: var(--band-near); }
+.band-tab.steady::before { background: var(--band-steady); }
+.band-tab.is-active { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(30,41,59,.10); }
+.band-tab-title { display: flex; justify-content: space-between; gap: 8px; font-size: 17px; font-weight: 950; color: var(--ink); }
+.band-tab-range { margin-top: 8px; font-size: 25px; font-weight: 950; letter-spacing: -.03em; }
+.band-tab-desc { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.band-tab-count { flex: 0 0 auto; font-size: 12px; color: var(--ink-2); background: rgba(255,255,255,.75); border: 1px solid var(--line); padding: 5px 8px; border-radius: 999px; }
+.results-shell { border-width: 1.5px; }
+.band-upper-shell { border-color: rgba(185,130,69,.35); background: linear-gradient(180deg, rgba(255,243,228,.52), rgba(255,255,255,.86)); }
+.band-near-shell { border-color: rgba(63,111,143,.30); background: linear-gradient(180deg, rgba(233,241,245,.58), rgba(255,255,255,.86)); }
+.band-steady-shell { border-color: rgba(47,125,104,.30); background: linear-gradient(180deg, rgba(232,245,239,.58), rgba(255,255,255,.86)); }
+.active-band-badge { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.72); border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; font-weight: 900; }

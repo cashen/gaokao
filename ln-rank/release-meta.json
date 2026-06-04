@@ -1,0 +1,12 @@
+{
+  "version": "v3.9.10rc",
+  "assetVersion": "v3910rc",
+  "name": "ln-rank-parent-readable-ui-baseline-no-fenxi",
+  "dataYear": 2025,
+  "catalogYear": 2026,
+  "notes": [
+    "3910rc 人类阅读舒适 UI 系统版：控制台结构、多终端任务流、结果卡片层级与自测 UI 规则",
+    "分数区间改为快速判断带，办学性质提醒保持紧凑且遵守本科线—特控线边界",
+    "2024/2025历史录取数据仍为主事实层，2026专业目录仅用于标准专业与复核提醒"
+  ]
+}

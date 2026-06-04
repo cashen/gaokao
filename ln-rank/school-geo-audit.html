@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>学校地域匹配自检</title>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px}
+    .box{max-width:1180px;margin:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 16px 38px #0001}
+    button,input{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#fff}
+    input{min-width:220px}.ok{color:#2f7d68}.bad{color:#a85f4d}
+    table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+    th,td{border-bottom:1px solid #eef2f6;text-align:left;padding:9px;vertical-align:top}
+    th{background:#f8fafc}
+    .warn{color:#9a6631}.muted{color:#64748b}
+    pre{white-space:pre-wrap;background:#f8fafc;border-radius:12px;padding:12px}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>学校地域匹配自检</h1>
+    <p>从 /fenxi 数据中抽取学校，检查 ln-rank 的学校地理实体层是否匹配到省市、分校/校区与提示。</p>
+    <input id="kw" placeholder="可选：输入学校关键词，如 东北大学" />
+    <button id="run">开始检查</button>
+    <pre id="summary">等待检查…</pre>
+    <div id="table"></div>
+  </main>
+<script>
+const summary = document.getElementById('summary');
+const table = document.getElementById('table');
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+document.getElementById('run').onclick=async()=>{
+  summary.textContent='正在读取 /fenxi 学校数据…';
+  table.innerHTML='';
+  const kw=document.getElementById('kw').value.trim();
+  try{
+    const url='/api/school-geo-audit?limit=500'+(kw?'&keyword='+encodeURIComponent(kw):'');
+    const r=await fetch(url,{cache:'no-store'});
+    const j=await r.json();
+    if(!r.ok||!j.ok) throw new Error(j.message||r.status);
+    summary.className='ok';
+    summary.textContent=JSON.stringify(j.summary,null,2);
+    table.innerHTML='<table><thead><tr><th>学校</th><th>记录</th><th>地域</th><th>地理实体</th><th>来源</th><th>可信度/提示</th><th>源口径</th></tr></thead><tbody>'+
+      j.schools.map(s=>`<tr>
+        <td>${esc(s.school)}</td>
+        <td>${esc(s.count)} 条 / ${esc(s.majors)} 专业</td>
+        <td>${esc(s.displayLocation||'')}</td>
+        <td>${esc(s.geoEntity||s.schoolCanonical||'')}</td>
+        <td>${esc(s.locationSource||'')}</td>
+        <td class="${s.status==='needs-review'?'warn':'muted'}">${esc(s.locationConfidence||'')}${s.locationWarning?'｜'+esc(s.locationWarning):''}</td>
+        <td class="muted">${esc(s.geoSourceMethod||'')}${s.geoSourceYear?'｜'+esc(s.geoSourceYear):''}${s.geoMatchNote?'｜'+esc(s.geoMatchNote):''}</td>
+      </tr>`).join('')+'</tbody></table>';
+  }catch(e){
+    summary.className='bad';
+    summary.textContent='检查失败：'+(e.message||e);
+  }
+};
+</script>
+</body>
+</html>

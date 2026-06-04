@@ -1,0 +1,48 @@
+import { getSchoolTags } from './school-tags.js';
+import { enrichBottomLineFields } from './bottomline-policy.js';
+function text(v){ return String(v || '').trim(); }
+export function mapNature(label) {
+  const s = text(label);
+  if (!s) return { natureLabel: '性质待核验', natureType: 'unknown' };
+  if (s.includes('民办') || s.includes('独立')) return { natureLabel: '民办/独立', natureType: 'private' };
+  if (s.includes('公办')) return { natureLabel: '公办', natureType: 'public' };
+  return { natureLabel: '性质待核验', natureType: 'unknown' };
+}
+export function makeDisplayLocation(record) {
+  if (record.displayLocation) return record.displayLocation;
+  const p = text(record.province);
+  const c = text(record.city);
+  const area = text(record.lnArea || record.region);
+  if (p && c) return `${p} · ${c}`;
+  if (p) return p;
+  return area || '地域待核验';
+}
+export function buildDisplayTags(record) {
+  const schoolTags = getSchoolTags(record.school);
+  const nature = mapNature(record.natureRaw || record.nature);
+  const displayLocation = makeDisplayLocation(record);
+  let natureLabel = nature.natureLabel;
+  if (nature.natureType === 'public' && schoolTags.length === 0) natureLabel = '双非公办';
+  const bottomLine = enrichBottomLineFields({ ...record, natureLabel, natureType: nature.natureType });
+  return {
+    schoolTags,
+    natureLabel,
+    natureType: nature.natureType,
+    ...bottomLine,
+    displayLocation,
+    province: record.province || '',
+    city: record.city || '',
+    locationSource: record.locationSource || '',
+    locationConfidence: record.locationConfidence || '',
+    locationWarning: record.locationWarning || '',
+    geoEntity: record.geoEntity || '',
+    schoolCanonical: record.schoolCanonical || '',
+    regionGroups: record.regionGroups || [],
+    geoSourceMethod: record.geoSourceMethod || '',
+    geoSourceName: record.geoSourceName || '',
+    geoSourceUrl: record.geoSourceUrl || '',
+    geoSourceYear: record.geoSourceYear || '',
+    geoMatchNote: record.geoMatchNote || '',
+    schoolIdentifier: record.schoolIdentifier || ''
+  };
+}

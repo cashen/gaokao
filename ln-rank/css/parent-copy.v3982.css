@@ -1,0 +1,38 @@
+/* v3.9.8.0 家长初选文案收口：更温和、低饱和、少术语 */
+.parent-copy-note,
+.copy-help-note {
+  color: #5f706b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.match-copy-help {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f6faf8;
+  border: 1px solid #dfece6;
+  color: #405f57;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.diagnose-empty,
+.analysis-stale {
+  line-height: 1.75;
+}
+.analysis-ai-section p,
+.analysis-ai-grid p,
+.match-reason {
+  line-height: 1.72;
+}
+.workspace-desc,
+.search-workbench-desc,
+.panel-desc,
+.app-subtitle {
+  line-height: 1.75;
+}
+
+
+/* v3.9.8.2：隐藏工程感，底部数据说明更像产品说明。 */
+.data-note { color:#5f7069; line-height:1.8; }
+.ready-badge .ready-text { letter-spacing:.01em; }
+.eyebrow { color:#5b766d; }

@@ -1,0 +1,55 @@
+.results-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.results-title { margin: 0; font-size: 22px; font-weight: 950; letter-spacing: -0.02em; }
+.results-meta { margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.results-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.major-card { position: relative; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.84); padding: 14px 15px 14px 17px; overflow: hidden; }
+.major-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--status-match); }
+.major-card.status-tooLow::before { background: var(--status-tooLow); }
+.major-card.status-low::before { background: var(--status-low); }
+.major-card.status-guard::before { background: var(--status-guard); }
+.major-card.status-steady::before { background: var(--status-steady); }
+.major-card.status-match::before { background: var(--status-match); }
+.major-card.status-smallRush::before { background: var(--status-smallRush); }
+.major-card.status-midRush::before { background: var(--status-midRush); }
+.major-card.status-bigRush::before { background: var(--status-bigRush); }
+.major-card.status-superRush::before { background: var(--status-superRush); }
+.major-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.school { font-size: 17px; font-weight: 950; line-height: 1.35; }
+.major { margin-top: 4px; color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+.status-badge { flex: 0 0 auto; border-radius: 999px; padding: 6px 10px; color: #fff; font-size: 12px; font-weight: 900; }
+.status-tooLow .status-badge { background: var(--status-tooLow); }
+.status-low .status-badge { background: var(--status-low); }
+.status-guard .status-badge { background: var(--status-guard); }
+.status-steady .status-badge { background: var(--status-steady); }
+.status-match .status-badge { background: var(--status-match); }
+.status-smallRush .status-badge { background: var(--status-smallRush); }
+.status-midRush .status-badge { background: var(--status-midRush); }
+.status-bigRush .status-badge { background: var(--status-bigRush); }
+.status-superRush .status-badge { background: var(--status-superRush); }
+.meta-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+.meta-pill { padding: 6px 9px; border-radius: 999px; background: #f8fafc; color: var(--muted); font-size: 12px; font-weight: 780; }
+.more-button { grid-column: 1 / -1; width: 100%; min-height: 40px; border: 1px dashed var(--line-strong); border-radius: 14px; background: rgba(255,255,255,.56); color: var(--primary); font-weight: 900; }
+.empty, .error, .loading { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 18px; padding: 18px; background: rgba(255,255,255,.72); color: var(--muted); line-height: 1.7; }
+.error { color: #a85f4d; background: #fff7f4; }
+
+
+.history-score {
+  margin-top: 11px;
+  padding: 10px 11px;
+  border-radius: 14px;
+  background: rgba(63, 111, 104, .065);
+  border: 1px solid rgba(63, 111, 104, .10);
+  display: grid;
+  gap: 4px;
+}
+.history-label {
+  font-size: 12px;
+  font-weight: 950;
+  color: var(--primary);
+}
+.history-line {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  font-weight: 780;
+}

@@ -1,0 +1,182 @@
+/* v3.9.6.9: 自选池入口响应式人类化。
+   PC/Pad：右侧固定入口；手机：结果区 sticky 整理条；toast 只反馈不导航。 */
+.selection-pool-inline-mount { display: none !important; }
+.pool-entry-inline-mount { display: none !important; }
+.pool-entry-direct-shell { position: relative !important; z-index: 1600 !important; }
+
+.pool-entry-direct-shell .pool-entry-direct,
+#selectionPoolFab.pool-entry-direct {
+  position: fixed !important;
+  right: max(18px, calc((100vw - 1280px) / 2 + 18px)) !important;
+  top: 50% !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: translateY(-50%) !important;
+  z-index: 1600 !important;
+  width: 92px !important;
+  min-width: 92px !important;
+  max-width: 92px !important;
+  min-height: 82px !important;
+  padding: 10px 12px !important;
+  border-radius: 22px !important;
+  background: #2f665b !important;
+  background-image: linear-gradient(180deg, #356f64, #2b5c52) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  box-shadow: 0 14px 36px rgba(32,82,72,.26) !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 4px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(16px) !important;
+  opacity: 1 !important;
+}
+
+.pool-entry-direct-shell .pool-entry-direct:hover,
+#selectionPoolFab.pool-entry-direct:hover {
+  transform: translateY(-50%) translateX(-2px) !important;
+  box-shadow: 0 18px 42px rgba(32,82,72,.30) !important;
+}
+
+.pool-entry-direct-shell .pool-fab-title,
+#selectionPoolFab.pool-entry-direct .pool-fab-title {
+  display: block !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  line-height: 1.1 !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.12) !important;
+}
+
+.pool-entry-direct-shell .pool-fab-count,
+#selectionPoolFab.pool-entry-direct .pool-fab-count,
+.pool-entry-inline .pool-fab-count {
+  min-width: 30px !important;
+  height: 30px !important;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255,255,255,.20) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14) !important;
+}
+
+.pool-entry-direct-shell .pool-fab-sub,
+#selectionPoolFab.pool-entry-direct .pool-fab-sub { display: none !important; }
+
+.pool-entry-inline {
+  display: none !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 999px !important;
+  padding: 9px 14px !important;
+  background: #eef7f2 !important;
+  border: 1px solid #d7e9df !important;
+  color: #2f665b !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  box-shadow: 0 10px 24px rgba(34, 89, 76, .08) !important;
+}
+.pool-entry-inline .pool-fab-title { color: #2f665b !important; font-size: 14px !important; font-weight: 950 !important; }
+.pool-entry-inline .pool-fab-count { background: #2f665b !important; color: #fff !important; }
+
+.pool-result-sticky-bar {
+  position: sticky !important;
+  top: 8px !important;
+  z-index: 60 !important;
+  margin: 12px 0 !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  background: rgba(245, 250, 247, .98) !important;
+  border: 1px solid #dcebe3 !important;
+  color: #2f4f48 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 10px 24px rgba(22, 70, 60, .08) !important;
+  transition: box-shadow .18s ease, transform .18s ease, background .18s ease;
+}
+.pool-result-sticky-bar b { color: #2f665b !important; }
+.pool-result-sticky-bar a {
+  color: #fff !important;
+  background: #2f665b !important;
+  border-radius: 999px !important;
+  padding: 8px 12px !important;
+  font-weight: 950 !important;
+  text-decoration: none !important;
+  min-width: 76px !important;
+  text-align: center !important;
+}
+.pool-result-sticky-bar.is-pulsing {
+  background: #eef8f3 !important;
+  box-shadow: 0 0 0 4px rgba(47, 102, 91, .14), 0 12px 28px rgba(22, 70, 60, .10) !important;
+  transform: translateY(-1px) !important;
+}
+
+.pool-entry-toast {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  top: auto !important;
+  transform: translateX(-50%) !important;
+  z-index: 1700 !important;
+  max-width: min(92vw, 420px) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  border-radius: 999px !important;
+  background: #263f39 !important;
+  box-shadow: 0 14px 34px rgba(15,23,42,.18) !important;
+  color: #fff !important;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  font-weight: 900 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  backdrop-filter: blur(14px) !important;
+  pointer-events: none !important;
+}
+.pool-entry-toast a { display: none !important; }
+
+.selection-pool-mask,
+.selection-pool-drawer { display: none !important; }
+
+/* PC + Pad：右侧固定入口；搜索卡入口和结果区整理条不显示。 */
+@media (min-width: 768px) {
+  .pool-entry-direct-shell { display: block !important; }
+  .pool-entry-direct { display: grid !important; }
+  .pool-entry-inline-mount,
+  .pool-entry-inline,
+  .pool-result-sticky-bar { display: none !important; }
+}
+
+/* 手机：不显示右侧固定入口、不显示搜索卡入口；只在结果区显示整理条。 */
+@media (max-width: 767px) {
+  .pool-entry-direct-shell { display: none !important; }
+  .pool-entry-direct { display: none !important; }
+  .pool-entry-inline-mount,
+  .pool-entry-inline { display: none !important; }
+  .pool-result-sticky-bar { display: flex !important; }
+  .search-workbench-head {
+    display: block !important;
+  }
+  .pool-entry-toast {
+    left: 14px !important;
+    right: 14px !important;
+    transform: none !important;
+    max-width: none !important;
+    border-radius: 18px !important;
+    justify-content: center !important;
+  }
+  body.has-floating-pool-entry { padding-bottom: 0 !important; }
+}

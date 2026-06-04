@@ -1,0 +1,10 @@
+.school-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.school-tag { border-radius: 999px; padding: 6px 9px; background: #f4f7f8; color: var(--muted); font-size: 12px; font-weight: 800; }
+.school-tag.strong { background: #fff3e4; color: #9a6631; }
+.school-tag.public { background: #e8f5ef; color: #2f7d68; }
+.school-tag.private { background: #eef2f6; color: #64748b; }
+.school-tag.location { background: #e9f1f5; color: #3f6f8f; }
+
+.school-tag.warning { background: #fff8ed; color: #9a6631; }
+
+.school-tag.campus { background: #eef6ff; color: #34618d; }
