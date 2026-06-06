@@ -1,4 +1,4 @@
-# ln-rank dependency graph v3915
+# ln-rank dependency graph v3916
 
 ## Entrypoints
 - ln-rank/index.html
@@ -8,7 +8,7 @@
 - ln-rank/module-health.html
 
 ## Active JS
-- ln-rank/js/app.v3915.js
+- ln-rank/js/app.v3916.js
 - ln-rank/js/config/feishu-ui-config.js
 - ln-rank/js/config/range-presets.js
 - ln-rank/js/config/region-options.js
@@ -56,9 +56,9 @@
 - ln-rank/js/feature/trend/rules.js
 - ln-rank/js/feature/ui/action-state.js
 - ln-rank/js/feature/ui/index.js
-- ln-rank/js/major-trend-render.v3915.js
-- ln-rank/js/selection-pool.v3915.js
-- ln-rank/js/self-check.v3915.js
+- ln-rank/js/major-trend-render.v3916.js
+- ln-rank/js/selection-pool.v3916.js
+- ln-rank/js/self-check.v3916.js
 - ln-rank/js/state/app-state.js
 
 ## Active CSS

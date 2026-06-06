@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-06-06T10:36:45.693Z",
-  "version": "v3.9.15",
-  "assetVersion": "v3915",
+  "version": "v3.9.16",
+  "assetVersion": "v3916",
   "entries": [
     "ln-rank/index.html",
     "ln-rank/selection-pool.html",
@@ -21,7 +21,7 @@
     "cssLayerMissing": 0
   },
   "activeJs": [
-    "ln-rank/js/app.v3915.js",
+    "ln-rank/js/app.v3916.js",
     "ln-rank/js/config/feishu-ui-config.js",
     "ln-rank/js/config/range-presets.js",
     "ln-rank/js/config/region-options.js",
@@ -69,9 +69,9 @@
     "ln-rank/js/feature/trend/rules.js",
     "ln-rank/js/feature/ui/action-state.js",
     "ln-rank/js/feature/ui/index.js",
-    "ln-rank/js/major-trend-render.v3915.js",
-    "ln-rank/js/selection-pool.v3915.js",
-    "ln-rank/js/self-check.v3915.js",
+    "ln-rank/js/major-trend-render.v3916.js",
+    "ln-rank/js/selection-pool.v3916.js",
+    "ln-rank/js/self-check.v3916.js",
     "ln-rank/js/state/app-state.js"
   ],
   "activeCss": [

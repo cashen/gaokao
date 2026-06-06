@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.15",
-  "assetVersion": "v3915",
+  "version": "v3.9.16",
+  "assetVersion": "v3916",
   "entrypoints": {
-    "search": "js/app.v3915.js",
-    "selectionPool": "js/selection-pool.v3915.js",
-    "majorTrend": "js/major-trend-render.v3915.js",
-    "selfCheck": "js/self-check.v3915.js"
+    "search": "js/app.v3916.js",
+    "selectionPool": "js/selection-pool.v3916.js",
+    "majorTrend": "js/major-trend-render.v3916.js",
+    "selfCheck": "js/self-check.v3916.js"
   },
   "stableModules": {
     "majorPool": "js/feature/major-pool/index.js",

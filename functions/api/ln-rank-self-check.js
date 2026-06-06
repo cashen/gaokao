@@ -64,7 +64,7 @@ function uiReadabilitySmoke() {
   add('普通稳定专业不过度展开', buildReviewPointsForRecord({ major: '机械设计制造及其自动化', standardMajor: { categoryName: '机械类' } }, { limit: 5 }).length <= 2, '普通专业应保持简洁，不应出现多条大段复核点。', '稳定专业只显示目录归属摘要。');
   add('项目属性集中提示', /中外合作|高收费/.test(points.join(' ')), '中外/高收费应进入复核详情，但卡片主视觉只显示摘要。', '检查 project-attribute-accessor 与 review-point-builder。');
   add('移动端折叠纪律', true, '手机端默认显示“需核验 n 项/摘要”，不展开完整说明。', '通过页面 CSS 的 details 默认折叠保障。');
-  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3915.js 的 shouldShowBottomLinePanel 与 bottomline.css。');
+  add('办学性质底线显示边界', true, '500分应显示办学性质提醒；516分不显示；不使用特控线+10。', '检查 app.v3916.js 的 shouldShowBottomLinePanel 与 bottomline.css。');
   add('公办底线紧凑布局', true, '公办底线应为紧凑提醒条，PC一行优先，手机横向选择/折叠，不再作为大块筛选卡片。', '检查 bottomline.css 和首页筛选区高度。');
   add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 css/components/control-panel.css 的 --ui-control-max 与 .search-workbench。');
   add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 css/core/responsive.css 的 1024px 断点。');
@@ -176,8 +176,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.15', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.16', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.15', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.16', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }

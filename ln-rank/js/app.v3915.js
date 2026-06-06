@@ -16,7 +16,7 @@ let hasQueried = false;
 let dirty = false;
 const selectionPool = createSelectionPoolAdapter();
 document.body?.classList?.add('has-floating-pool-entry');
-// v3.9.15：公办底线前端菜单只在【本科线 <= 分数 <= 特控线】显示。
+// v3.9.16：公办底线前端菜单只在【本科线 <= 分数 <= 特控线】显示。
 // 2026 年公布后，应把这里替换为当年辽宁物理类本科线与特控线，禁止使用“特控线 + 10 分缓冲”。
 const UNDERGRADUATE_CONTROL_SCORE = 367;
 const SPECIAL_CONTROL_SCORE = 515;
