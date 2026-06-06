@@ -137,7 +137,7 @@ export function buildFeishuReport(data) {
 
   lines.push(`# ${title}`);
   lines.push("");
-  lines.push("## 辽宁物理类专业初选参考");
+  lines.push("## 辽宁 2026 物理类专业初选参考");
   lines.push("");
   lines.push(`- 考生分数：${data.candidateScore}`);
   lines.push(`- 当前区间：${displayBandTitle}（${band.rangeText} 分）`);

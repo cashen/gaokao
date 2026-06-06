@@ -301,13 +301,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜${displayRankForTitle}｜辽宁物理类专业初选参考报告`
-    : `${candidateScore}分｜${displayRankForTitle}｜辽宁物理类自选专业清单`;
+    ? `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类专业初选参考报告`
+    : `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类自选专业清单`;
   const lines = [];
 
   lines.push(`# ${title}`);
   lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁物理类专业初选参考报告' : '## 辽宁物理类自选专业清单');
+  lines.push(hasAnalysis ? '## 辽宁 2026 物理类专业初选参考报告' : '## 辽宁 2026 物理类自选专业清单');
   if (hasAnalysis) lines.push(YEAR_CALIBER_KB.reportCopy);
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);

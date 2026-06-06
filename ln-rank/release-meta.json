@@ -1,10 +1,11 @@
 {
-  "version": "v3.9.16",
-  "assetVersion": "v3916",
-  "name": "ln-rank runtime hardening and self-check truth baseline",
+  "version": "v3.9.16.2",
+  "assetVersion": "v3916_2",
+  "name": "ln-rank 2026 title caliber alignment",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "runtime hardening + self-check truth baseline + KB accessor convergence + preset consistency + diagnostics cleanup",
+  "notes": "align product-facing title to 2026 while keeping 2025 historical data caliber and 2024/2025 trend facts",
   "builtAt": "2026-06-04T23:15:00Z",
-  "releaseName": "ln-rank-runtime-hardening-and-selfcheck-truth-baseline"
+  "releaseName": "ln-rank-2026-title-caliber-alignment",
+  "productTitle": "辽宁 2026 物理类专业初选参考"
 }

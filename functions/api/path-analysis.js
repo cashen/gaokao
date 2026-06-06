@@ -237,8 +237,8 @@ function buildSummary(facts, zonePolicy, level) {
 
 function buildReportText({ facts, rankZone, stats, narrative }) {
   const lines = [];
-  lines.push('辽宁物理类专业初选参考报告');
-  lines.push('基于 2025 年数据生成，用于家庭讨论和人工复核；正式填报以当年一分一段、招生计划和志愿系统为准。');
+  lines.push('辽宁 2026 物理类专业初选参考报告');
+  lines.push('基于 2025 年历史数据生成，用于 2026 志愿初选、家庭讨论和人工复核；正式填报以 2026 年一分一段、招生计划和志愿系统为准。');
   lines.push('');
   lines.push(`考生分数：${facts.candidate?.score || '未填写'}`);
   lines.push(`考生位次：${facts.candidate?.rankLabel || '位次待核验'}`);
