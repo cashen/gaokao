@@ -49,7 +49,7 @@ function renderKeywordSummary(data) {
   if (s.project) summaryParts.push(`项目属性 ${s.project} 个`);
   if (s.weak) summaryParts.push(`弱关联 ${s.weak} 个`);
   const matchSummary = summaryParts.length ? `<span class="keyword-match-summary">${summaryParts.map(escapeHtml).join('｜')}</span>` : '';
-  return `<div class="keyword-summary"><span>当前关键词：</span>${chips}<span class="muted">已按关系远近排序</span>${matchSummary}${project}${industry}${warnings}<div class="match-copy-help">提示：精准匹配最接近你的关键词；相关方向可以一起参考；行业关联需要再看具体专业是否真的接受。中外、高收费、公费师范、定向属于项目或招生属性，不是专业名。</div></div>`;
+  return `<div class="keyword-summary"><span>当前关键词：</span>${chips}<span class="muted">已按关系远近排序</span>${matchSummary}${project}${industry}${warnings}<div class="match-copy-help">提示：精准匹配最接近你的关键词；相关方向可以一起参考；行业关联需要再看具体专业是否真的接受。中外、高收费等属于项目或招生属性，不是专业名。</div></div>`;
 }
 function renderSearchAdvices(data) {
   const advices = data?.searchAdvices || [];

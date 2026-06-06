@@ -1,5 +1,5 @@
 {
-  "version": "v3.9.14",
+  "version": "v3.9.14.1",
   "assetVersion": "v3914",
   "entrypoints": {
     "search": "js/app.v3914.js",

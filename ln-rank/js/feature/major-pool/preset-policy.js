@@ -212,20 +212,8 @@ export const MORE_KEYWORD_GROUPS = [
         "type": "project_attribute",
         "tone": "project",
         "badge": "项目"
-      },
-      {
-        "label": "公费师范",
-        "type": "project_attribute",
-        "tone": "project",
-        "badge": "项目"
-      },
-      {
-        "label": "定向",
-        "type": "project_attribute",
-        "tone": "project",
-        "badge": "项目"
       }
     ]
   }
 ];
-export const KEYWORD_PRESET_NOTE = '说明：方向词用于帮助搜索；“中外 / 高收费 / 公费师范 / 定向”属于项目或招生属性，不是标准专业名。页面不按性别推荐专业，更多方向只是补充入口，仍可直接手动输入任何专业词。';
+export const KEYWORD_PRESET_NOTE = '说明：方向词用于帮助搜索；“中外 / 高收费等”属于项目或招生属性，不是标准专业名。页面不按性别推荐专业，更多方向只是补充入口，仍可直接手动输入任何专业词。';

@@ -1,9 +1,10 @@
 {
-  "version": "v3.9.14",
+  "version": "v3.9.14.1",
   "assetVersion": "v3914",
   "name": "ln-rank asset prune and one-click analysis baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
   "notes": "module facade + responsibility named modules + layered CSS + report copy baseline",
-  "builtAt": "2026-06-04T22:39:34Z"
+  "builtAt": "2026-06-04T22:39:34Z",
+  "releaseName": "ln-rank-kb-accessor-and-search-preset-cleanup"
 }

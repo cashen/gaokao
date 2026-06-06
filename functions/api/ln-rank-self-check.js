@@ -7,6 +7,8 @@ import { buildSelectionPoolFeishuReport } from '../_lib/feishu-selection-pool-re
 import { buildSelectionPoolStyledBlocks } from '../_lib/feishu-selection-pool-styled-builder.js';
 import { getCampusForItem, getCampusDiagnostics } from '../_lib/kb/campus-accessor.js';
 import { getQueryActionLabel, getActionDiagnostics } from '../_lib/kb/action-hierarchy-policy.js';
+import { buildGovernanceKnowledgeContext, buildKbReviewPoints } from '../_lib/kb/knowledge-context-builder.js';
+import { MAJOR_FILTER_PRESET_KB } from '../_lib/kb/major-filter-preset-kb.generated.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload, null, 2), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
@@ -35,9 +37,7 @@ const CASES = [
   { input: '电气 中外', expectDirection: 'electrical_energy', expectProject: 'sinoForeign' },
   { input: '具身智能', expectDirection: 'computer_ai_software', expectCode: '140012TK', expectCatalogChange: true },
   { input: '脑机科学与技术', expectDirection: 'medical_applied', expectCode: '140013TK', expectCatalogChange: true },
-  { input: '智能医学工程', expectDirection: 'medical_applied', expectCode: '140007T', expectCatalogChange: true },
-  { input: '公费师范', expectProject: 'publicTeacher' },
-  { input: '定向', expectProject: 'targeted' }
+  { input: '智能医学工程', expectDirection: 'medical_applied', expectCode: '140007T', expectCatalogChange: true }
 ];
 
 function caseCheck(c) {
@@ -91,6 +91,47 @@ function campusActionSmoke() {
   return { campusCases, actionCases };
 }
 
+
+function kbAccessorSmoke() {
+  const cases = [
+    { school: '中国农业大学', major: '动物医学类(动物医学、中兽医学、兽医公共卫生)', expect: /色弱|色盲|体检|招生章程/ },
+    { school: '测试大学', major: '食品科学与工程', expect: /色弱|体检|招生章程/ },
+    { school: '测试大学', major: '园艺', expect: /色弱|体检|招生章程/ },
+    { school: '测试大学', major: '药学类', expect: /色弱|体检|招生章程/ },
+    { school: '测试大学', major: '油气储运工程', expect: /色盲|体检|招生章程/ }
+  ];
+  return cases.map(c => {
+    const errors = [];
+    let points = [];
+    try {
+      const ctx = buildGovernanceKnowledgeContext(c);
+      points = [...(ctx.physicalExam?.hints || []), ...buildKbReviewPoints(c)];
+      if (!points.some(p => c.expect.test(String(p)))) errors.push('未生成体检/招生章程复核提醒');
+      if (points.some(p => /不能报|必然受限|不适合报考/.test(String(p)))) errors.push('体检提醒存在过度否定表达');
+    } catch (error) {
+      errors.push(`KB accessor 抛错：${error?.message || String(error)}`);
+    }
+    return { ...c, ok: errors.length === 0, errors, points: points.slice(0, 4) };
+  });
+}
+
+function presetDisplaySmoke() {
+  const moreWords = (MAJOR_FILTER_PRESET_KB?.groups || MAJOR_FILTER_PRESET_KB?.moreGroups || []).flatMap(g => g.words || []);
+  const errors = [];
+  if (moreWords.includes('定向')) errors.push('更多方向不应展示“定向”快捷入口');
+  if (moreWords.includes('公费师范')) errors.push('更多方向不应展示“公费师范”快捷入口');
+  const targeted = classifyKeywordTokens('定向');
+  const publicTeacher = classifyKeywordTokens('公费师范');
+  if (targeted.projectAttributeTokens[0]?.id !== 'targeted') errors.push('内部仍应识别“定向”为项目属性');
+  if (publicTeacher.projectAttributeTokens[0]?.id !== 'publicTeacher') errors.push('内部仍应识别“公费师范”为项目属性');
+  return {
+    ok: errors.length === 0,
+    errors,
+    frontPresetRemoved: !moreWords.includes('定向') && !moreWords.includes('公费师范'),
+    internalProjectAttributesKept: targeted.projectAttributeTokens[0]?.id === 'targeted' && publicTeacher.projectAttributeTokens[0]?.id === 'publicTeacher'
+  };
+}
+
 function reportSmoke() {
   const rec = { school: '测试大学', major: '电气工程及其自动化', score2025: 520, rank2025: 40000, scoreDelta: 0, statusLabel: '主要参考', position: '主要承接', matchLabel: '精准匹配', matchReason: '专业名称直接包含该词', standardMajor: { code: '080601', name: '电气工程及其自动化', categoryCode: '0806', categoryName: '电气类', mappingStatus: 'exact' } };
   const out = [];
@@ -118,6 +159,8 @@ export async function onRequest() {
     const campusAction = campusActionSmoke();
     const cases = CASES.map(caseCheck);
     const reports = reportSmoke();
+    const kbAccessorCases = kbAccessorSmoke();
+    const presetDisplay = presetDisplaySmoke();
     const uiChecks = uiReadabilitySmoke();
     const errors = [];
     if (catalog.entries !== 883) errors.push(`2026目录条数应为883，实际${catalog.entries}`);
@@ -128,11 +171,13 @@ export async function onRequest() {
     if (!action.ok) errors.push('按钮层级策略失败');
     cases.filter(x => !x.ok).forEach(x => errors.push(`${x.input}: ${x.errors.join('；')}`));
     reports.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.errors.join('；')}`));
+    kbAccessorCases.filter(x => !x.ok).forEach(x => errors.push(`${x.major}: ${x.errors.join('；')}`));
+    if (!presetDisplay.ok) presetDisplay.errors.forEach(e => errors.push(e));
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.14', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.14.1', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.14', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.14.1', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }

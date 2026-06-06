@@ -70,9 +70,7 @@ export const MAJOR_FILTER_PRESET_KB = {
         "航天",
         "电力",
         "邮电",
-        "高收费",
-        "公费师范",
-        "定向"
+        "高收费"
       ]
     }
   ],
