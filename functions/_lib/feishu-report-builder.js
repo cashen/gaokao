@@ -1,10 +1,7 @@
 import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
 import { formatLiaoningOrdinaryUndergraduatePolicyLine } from './kb/liaoning-policy-accessor.js';
+import { buildCareerAndExamReviewHints } from './kb/report-review-hints.js';
 import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
-import { PHYSICAL_EXAM_KB } from './kb/physical-exam-kb.generated.js';
-import { CAREER_PATH_MEDICAL_KB } from './kb/career-path-medical-kb.generated.js';
-import { CAREER_PATH_LAW_KB } from './kb/career-path-law-kb.generated.js';
-import { CAREER_PATH_TEACHER_KB } from './kb/career-path-teacher-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 
@@ -114,10 +111,7 @@ function governanceReviewLines(records = []) {
   let index = 2;
   const campusReviews = getCampusReviewSummaryForItems(records, { limit: 4 });
   if (campusReviews.length) lines.push(`${index++}. 校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
-  if (hasMedical) lines.push(`${index++}. ${CAREER_PATH_MEDICAL_KB?.medicalCore?.aiCopy || '医学核心方向培养周期较长，需要考虑规培、执业资格和家庭承受能力。'}`);
-  if (hasLaw) lines.push(`${index++}. ${CAREER_PATH_LAW_KB?.law?.aiCopy || '法学要关注法考、院校平台、城市实习资源和考公竞争。'}`);
-  if (hasTeacher) lines.push(`${index++}. ${CAREER_PATH_TEACHER_KB?.teacher?.aiCopy || '师范方向要关注教师资格、编制机会、地区需求和是否接受异地就业。'}`);
-  if (hasExamSensitive) lines.push(`${index++}. ${PHYSICAL_EXAM_KB?.colorWeakness?.aiCopy || '如孩子存在色弱、色盲等体检限制，相关专业需要重点核验招生章程和体检指导意见。'}`);
+  for (const hint of buildCareerAndExamReviewHints(records, { limit: 4 })) lines.push(`${index++}. ${hint}`);
   const extra = buildReviewPointsForItems(records, { limit: 5 });
   extra.slice(0, 3).forEach(x => lines.push(`${index++}. ${x}`));
   lines.push('');

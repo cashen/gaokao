@@ -1,10 +1,10 @@
 {
-  "version": "v3.9.14.1",
-  "assetVersion": "v3914",
-  "name": "ln-rank asset prune and one-click analysis baseline",
+  "version": "v3.9.15",
+  "assetVersion": "v3915",
+  "name": "ln-rank runtime hardening and self-check truth baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "module facade + responsibility named modules + layered CSS + report copy baseline",
-  "builtAt": "2026-06-04T22:39:34Z",
-  "releaseName": "ln-rank-kb-accessor-and-search-preset-cleanup"
+  "notes": "runtime hardening + self-check truth baseline + KB accessor convergence + preset consistency + diagnostics cleanup",
+  "builtAt": "2026-06-04T23:15:00Z",
+  "releaseName": "ln-rank-runtime-hardening-and-selfcheck-truth-baseline"
 }
