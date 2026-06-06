@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.16.2",
-  "assetVersion": "v3916_2",
-  "name": "ln-rank 2026 title caliber alignment",
+  "version": "v3.9.17",
+  "assetVersion": "v3917",
+  "name": "ln-rank review checklist baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "align product-facing title to 2026 while keeping 2025 historical data caliber and 2024/2025 trend facts",
-  "builtAt": "2026-06-04T23:15:00Z",
-  "releaseName": "ln-rank-2026-title-caliber-alignment",
+  "notes": "add selection-pool review checklist and report checklist summary",
+  "builtAt": "2026-06-06T00:00:00Z",
+  "releaseName": "ln-rank-review-checklist-baseline",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

@@ -9,6 +9,7 @@ import { MAJOR_CATALOG_CALIBER_KB } from './kb/major-catalog-caliber-kb.generate
 import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
+import { buildSelectionReviewChecklist, reviewChecklistMarkdownLines } from './kb/review-checklist-builder.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -330,6 +331,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   if (hasAnalysis) lines.push(...analysisLines(input.analysis));
   const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
   lines.push(...majorTrendLines(majorTrendSummary));
+  const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
+  lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
 
   lines.push('## 当前自选专业排序');
   lines.push('');
@@ -366,7 +369,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.8.7',
+    version: 'v3.9.17',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
@@ -378,6 +381,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       hasAnalysis,
       analysis: input.analysis || null,
       majorTrendSummary: input.majorTrendSummary || input.analysis?.majorTrendSummary || null,
+      reviewChecklist: input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items),
       orderSignature
     })
   };

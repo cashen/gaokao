@@ -17,6 +17,7 @@ import { buildCareerAndExamReviewHints } from './kb/report-review-hints.js';
 import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
+import { buildSelectionReviewChecklist } from './kb/review-checklist-builder.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -242,6 +243,25 @@ function majorTrendBlocks(summary = {}) {
 }
 
 
+function reviewChecklistBlocks(items = [], checklist = null) {
+  const ck = checklist || buildSelectionReviewChecklist(items);
+  const categories = Array.isArray(ck.categories) ? ck.categories : [];
+  const blocks = [heading2('本方案复核清单', STYLE.title)];
+  if (!categories.length) {
+    blocks.push(bulletBlock('暂未汇总出明显复核事项；正式填报仍需核验 2026 招生计划和招生章程。'));
+    return blocks;
+  }
+  blocks.push(styledTextBlock(ck.summary?.headline || `本方案有 ${categories.length} 类事项建议人工复核。`, STYLE.warning));
+  categories.slice(0, 7).forEach(cat => {
+    blocks.push(heading3(`${cat.title}（${cat.count} 条）`, cat.level === 'high' ? STYLE.risk : STYLE.strong));
+    cat.items.slice(0, 4).forEach(item => blocks.push(bulletRunsBlock([
+      { content: `${item.school}｜${item.major}：`, style: STYLE.strong },
+      { content: `${item.reason} 建议：${item.action}` }
+    ])));
+  });
+  return blocks;
+}
+
 function governanceReviewBlocks(items = []) {
   const blocks = [];
   const review = [];
@@ -279,7 +299,8 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     analysis = null,
     reportType = 'selectionPoolOnly',
     summary = null,
-    majorTrendSummary = null
+    majorTrendSummary = null,
+    reviewChecklist = null
   } = input;
   const blocks = [];
   const total = Number(stats.total) || items.length || 0;
@@ -346,6 +367,8 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     displayItems.forEach(item => blocks.push(orderedRunsBlock(itemRuns(item))));
   }
 
+  blocks.push(dividerBlock());
+  blocks.push(...reviewChecklistBlocks(displayItems, reviewChecklist));
   blocks.push(dividerBlock());
   blocks.push(...governanceReviewBlocks(displayItems));
   blocks.push(dividerBlock());
