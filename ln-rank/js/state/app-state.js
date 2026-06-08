@@ -2,6 +2,7 @@ export const state = {
   candidateScore: null,
   rangePreset: "standard",
   activeBand: "near",
+  bandFocus: "near",
   filters: {
     region: "all",
     schoolKeyword: "",

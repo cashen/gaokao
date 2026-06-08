@@ -1,5 +1,7 @@
 import { FEISHU_UI_CONFIG } from '../../config/feishu-ui-config.js';
 import { buildKeywordQuery } from '../major-pool/keyword-parser.js';
+import { getRangePresetLabel } from '../../domain/range-policy.js';
+import { getBandFocusLabel } from '../../domain/band-policy.js';
 
 export function currentBandRecords(state) {
   const band = state?.bands?.data?.bands?.[state.activeBand];
@@ -13,6 +15,20 @@ export function canGenerateFeishuReport(state) {
   return { ok: true, reason: '' };
 }
 
+export function createReportContext(state) {
+  return {
+    candidateScore: Number(state?.candidateScore),
+    rangePreset: state?.rangePreset || 'standard',
+    rangePresetLabel: getRangePresetLabel(state?.rangePreset),
+    bandFocus: state?.bandFocus || state?.activeBand || 'near',
+    bandFocusLabel: getBandFocusLabel(state?.bandFocus || state?.activeBand),
+    region: state?.filters?.region || 'all',
+    schoolKeyword: state?.filters?.schoolKeyword || '',
+    majorKeyword: state?.filters?.majorKeyword || '',
+    ownershipFloor: state?.filters?.bottomLineMode || 'all'
+  };
+}
+
 export function buildFeishuReportPayload(state) {
   const candidateScore = Number(state.candidateScore);
   const majorKeyword = state.filters?.majorKeyword || '';
@@ -20,7 +36,8 @@ export function buildFeishuReportPayload(state) {
   return {
     candidateScore,
     rangePreset: state.rangePreset || 'standard',
-    activeBand: state.activeBand || 'near',
+    activeBand: state.bandFocus || state.activeBand || 'near',
+    bandFocus: state.bandFocus || state.activeBand || 'near',
     filters: {
       region: state.filters?.region || 'all',
       schoolKeyword: state.filters?.schoolKeyword || '',
@@ -29,6 +46,7 @@ export function buildFeishuReportPayload(state) {
       keywordQuery: buildKeywordQuery(majorKeyword)
     },
     reportType: 'currentBand',
-    maxRecords: FEISHU_UI_CONFIG.maxRecords
+    maxRecords: FEISHU_UI_CONFIG.maxRecords,
+    reportContext: createReportContext(state)
   };
 }

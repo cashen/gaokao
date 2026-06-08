@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.2",
-  "assetVersion": "v3918_2",
-  "name": "ln-rank human readable band switch and selfcheck stability",
+  "version": "v3.9.18.3",
+  "assetVersion": "v3918_3",
+  "name": "ln-rank unified console report safe baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "split static rank band explanation from result band switcher; fix selection pool report builder; restore self-check; add text report copy fallback",
+  "notes": "unify score, range, band and search controls in one console; add stable range/band state modules and report context guard; keep selection pool and Feishu report paths safe",
   "builtAt": "2026-06-09T00:00:00+08:00",
-  "releaseName": "ln-rank-human-readable-band-switch-and-selfcheck-stability",
+  "releaseName": "ln-rank-unified-console-report-safe-baseline",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }
