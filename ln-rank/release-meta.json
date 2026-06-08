@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.17",
-  "assetVersion": "v3917",
-  "name": "ln-rank review checklist baseline",
+  "version": "v3.9.18",
+  "assetVersion": "v3918",
+  "name": "ln-rank mobile bottomline and band humanized baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "add selection-pool review checklist and report checklist summary",
+  "notes": "mobile bottomline selector and rank band legend humanized",
   "builtAt": "2026-06-06T00:00:00Z",
-  "releaseName": "ln-rank-review-checklist-baseline",
+  "releaseName": "ln-rank-mobile-bottomline-and-band-humanized-baseline",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

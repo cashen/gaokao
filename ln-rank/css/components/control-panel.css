@@ -744,3 +744,8 @@
   #selectionPoolFab.pool-entry-direct .pool-fab-count{min-width:24px!important;height:24px!important;font-size:12px!important;}
 }
 
+
+/* v3.9.18: 分数区间降级为说明带，手机默认折叠，避免误解成三种模式。 */
+.rank-band-legend-toggle{display:none;border:1px solid var(--ln-color-primary-border,#c9ded7);background:var(--ln-color-primary-soft,#f4faf7);color:var(--ln-color-primary,#245f55);border-radius:14px;min-height:40px;padding:0 12px;font-weight:950;width:100%;margin:6px 0 8px}.rank-band-legend .band-tab{box-shadow:none}.rank-band-legend .band-tab-title{font-size:13px}.rank-band-legend .band-tab-range{font-size:18px}.rank-band-legend .band-tab-desc{font-size:11.5px}
+@media (max-width:640px){.rank-band-legend-toggle{display:block}.middle.panel:not(.is-band-legend-open) .rank-band-legend{display:none!important}.middle.panel.is-band-legend-open .rank-band-legend{display:flex}.rank-band-legend .band-tab{flex:0 0 86%;min-width:230px}.tabs-head .panel-title{font-size:15px}.tabs-head .panel-desc{font-size:11.5px}}
+@media (min-width:641px){.rank-band-legend-toggle{display:none!important}.rank-band-legend{display:grid!important}}

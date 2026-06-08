@@ -4,17 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类专业初选参考</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3917" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3917" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3917" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3917" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3917" />
-  <link rel="stylesheet" href="./css/pages/search.css?v=3917" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3918" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3918" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3918" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3918" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3918" />
+  <link rel="stylesheet" href="./css/pages/search.css?v=3918" />
 </head>
 <body>
   <main class="page">
@@ -51,11 +51,37 @@
             <p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示公办底线。</p>
           </div>
         </div>
+        <button id="bottomLineMobileTrigger" type="button" class="bottomline-mobile-trigger" aria-haspopup="dialog" aria-expanded="false">
+          <span>办学性质：</span><b id="bottomLineMobileLabel">全部院校</b><span class="bottomline-chevron">▼</span>
+        </button>
         <div class="bottomline-buttons" role="group" aria-label="办学性质底线">
           <button type="button" class="bottomline-button is-active" data-bottomline-mode="all">全部院校</button>
           <button type="button" class="bottomline-button" data-bottomline-mode="public_first">公办优先</button>
           <button type="button" class="bottomline-button" data-bottomline-mode="public_regular_only">只看公办普通</button>
           <button type="button" class="bottomline-button" data-bottomline-mode="public_include_sino">公办含中外/高收费</button>
+        </div>
+        <div id="bottomLineSheet" class="bottomline-sheet" role="dialog" aria-modal="true" aria-label="选择办学性质底线" hidden>
+          <div class="bottomline-sheet-backdrop" data-bottomline-sheet-close></div>
+          <div class="bottomline-sheet-card">
+            <div class="bottomline-sheet-grip"></div>
+            <div class="bottomline-sheet-head">
+              <div>
+                <h3>选择办学性质底线</h3>
+                <p>这只用于缩小结果，不改变分数查看范围。</p>
+              </div>
+              <button type="button" class="bottomline-sheet-close" data-bottomline-sheet-close aria-label="关闭">×</button>
+            </div>
+            <div class="bottomline-sheet-options">
+              <button type="button" class="bottomline-sheet-option is-active" data-bottomline-sheet-mode="all"><b>全部院校</b><span>先完整查看，不提前排除民办、中外或高收费项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_first"><b>公办优先</b><span>优先看公办，保留需要人工复核的特殊项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_regular_only"><b>只看公办普通</b><span>排除中外合作、高收费等特殊收费项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_include_sino"><b>公办含中外/高收费</b><span>保留公办院校里的中外合作或高收费项目。</span></button>
+            </div>
+            <div class="bottomline-sheet-actions">
+              <button type="button" class="action-secondary" data-bottomline-sheet-close>取消</button>
+              <button id="bottomLineSheetApply" type="button" class="action-primary">应用</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -63,12 +89,13 @@
     <section class="middle panel">
       <div class="tabs-head">
         <div>
-          <h2 class="panel-title">分数区间</h2>
-          <p class="panel-desc">第一次建议先看“主要参考”，结果少再看“多看一些”。</p>
+          <h2 class="panel-title">分数区间参考</h2>
+          <p class="panel-desc">这里不是三种模式，只是解释结果分层；查看范围在上方选择。</p>
         </div>
         
       </div>
-      <div id="bandTabs" class="band-tabs"></div>
+      <button id="rankBandLegendToggle" class="rank-band-legend-toggle" type="button" aria-expanded="false">展开分数区间说明</button>
+      <div id="bandTabs" class="band-tabs rank-band-legend" aria-label="分数区间参考"></div>
 
       <section class="search-workbench" aria-label="搜索条件">
         <div class="search-workbench-head">
@@ -123,9 +150,9 @@
     </section>
 
     <section class="data-note">
-      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.17｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
+      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.18｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
     </section>
   </main>
-  <script type="module" src="./js/app.v3917.js?v=3917"></script>
+  <script type="module" src="./js/app.v3918.js?v=3918"></script>
 </body>
 </html>
