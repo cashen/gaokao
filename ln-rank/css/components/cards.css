@@ -2116,3 +2116,7 @@ body.is-pool-dragging {
 .coach-card{margin:14px 0;border:1px solid #dfe7e3;border-radius:18px;padding:16px;background:linear-gradient(180deg,#fffdf8,#fbf7ee);box-shadow:0 10px 26px rgba(54,42,25,.06)}
 .coach-title{font-weight:900;font-size:18px;color:#25313b;margin-bottom:8px;letter-spacing:-.01em}.coach-headline{margin:0 0 12px;color:#3f4d57;line-height:1.75}.coach-block{margin-top:12px}.coach-block h3,.coach-checks summary{font-size:14px;font-weight:850;color:#355a72;margin:0 0 7px}.coach-list{margin:0;padding-left:22px}.coach-list li{margin:7px 0;line-height:1.7}.coach-bottomline{background:#f7f4ea;border:1px solid #ebe2d1;border-radius:14px;padding:12px}.coach-bottomline p{margin:0;line-height:1.75}.coach-checks{margin-top:12px;background:#f6f8f5;border:1px solid #e3e9e2;border-radius:14px;padding:10px 12px}.coach-checks summary{cursor:pointer;margin:0}.coach-checks .coach-list{margin-top:8px}@media(max-width:720px){.coach-card{padding:14px;border-radius:16px}.coach-title{font-size:17px}.coach-list{padding-left:19px}}
 
+
+
+/* v3.9.18.1: 空状态轻提示，不与结果卡片争视觉。 */
+.results-grid.empty,.results-grid.loading.is-light-empty{grid-column:1 / -1;border:1px dashed rgba(191,205,200,.9);border-radius:14px;padding:10px 12px;background:rgba(248,252,249,.66);color:#66736f;font-size:13px;line-height:1.55;}

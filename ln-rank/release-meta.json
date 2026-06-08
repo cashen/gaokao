@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18",
-  "assetVersion": "v3918",
-  "name": "ln-rank mobile bottomline and band humanized baseline",
+  "version": "v3.9.18.1",
+  "assetVersion": "v3918_1",
+  "name": "ln-rank human first control panel recut",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "mobile bottomline selector and rank band legend humanized",
+  "notes": "mobile bottomline status card, rank band always-visible explanation, light empty state",
   "builtAt": "2026-06-06T00:00:00Z",
-  "releaseName": "ln-rank-mobile-bottomline-and-band-humanized-baseline",
+  "releaseName": "ln-rank-human-first-control-panel-recut",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

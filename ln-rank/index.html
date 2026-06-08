@@ -4,17 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类专业初选参考</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3918" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3918" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3918" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3918" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3918" />
-  <link rel="stylesheet" href="./css/pages/search.css?v=3918" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3918_1" />
+  <link rel="stylesheet" href="./css/pages/search.css?v=3918_1" />
 </head>
 <body>
   <main class="page">
@@ -22,7 +22,7 @@
       <div>
         <p class="eyebrow">辽宁 2026 物理类专业初选</p>
         <h1 class="app-title">辽宁 2026 物理类专业初选参考</h1>
-        <p class="app-subtitle">输入考生分数，先按稍高目标、主要参考、稳妥补充三个区间筛出可讨论专业；加入自选专业后，再统一排序、复核和生成家庭讨论报告。</p>
+        <p class="app-subtitle">输入考生分数，选择查看范围和专业方向，先形成可讨论专业；加入自选专业后，再统一复核和生成家庭讨论报告。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">数据已准备好</span></div>
@@ -43,7 +43,7 @@
           <button class="range-button" data-preset="safe">稳妥一点</button>
         </div>
       </div>
-      <div class="top-note">正常查看：稍高目标 +1~+10，主要参考 0~-10，稳妥补充 -11~-25。筛选只缩小结果，不改变查看范围。</div>
+      <div class="top-note">首次建议：正常查看。结果太少再选“多看一些”；想先看更稳的再选“稳妥一点”。筛选只缩小结果，不改变查看范围。</div>
       <div id="bottomLinePanel" class="bottomline-panel" hidden>
         <div class="bottomline-head">
           <div>
@@ -51,9 +51,16 @@
             <p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示公办底线。</p>
           </div>
         </div>
-        <button id="bottomLineMobileTrigger" type="button" class="bottomline-mobile-trigger" aria-haspopup="dialog" aria-expanded="false">
-          <span>办学性质：</span><b id="bottomLineMobileLabel">全部院校</b><span class="bottomline-chevron">▼</span>
-        </button>
+        <div id="bottomLineMobileStatus" class="bottomline-mobile-status" aria-live="polite">
+          <div class="bottomline-mobile-status-row">
+            <div>
+              <span class="bottomline-mobile-kicker">办学性质</span>
+              <div class="bottomline-mobile-current">当前：<b id="bottomLineMobileLabel">全部院校</b></div>
+            </div>
+            <button id="bottomLineMobileTrigger" type="button" class="bottomline-change-button" aria-haspopup="dialog" aria-expanded="false">更改</button>
+          </div>
+          <p class="bottomline-mobile-hint">这个分数段建议核验公办、民办、中外合作和高收费项目。</p>
+        </div>
         <div class="bottomline-buttons" role="group" aria-label="办学性质底线">
           <button type="button" class="bottomline-button is-active" data-bottomline-mode="all">全部院校</button>
           <button type="button" class="bottomline-button" data-bottomline-mode="public_first">公办优先</button>
@@ -90,11 +97,10 @@
       <div class="tabs-head">
         <div>
           <h2 class="panel-title">分数区间参考</h2>
-          <p class="panel-desc">这里不是三种模式，只是解释结果分层；查看范围在上方选择。</p>
+          <p class="panel-desc">主要参考是重点，稍高目标少量看看，稳妥补充用于补安全感。</p>
         </div>
         
       </div>
-      <button id="rankBandLegendToggle" class="rank-band-legend-toggle" type="button" aria-expanded="false">展开分数区间说明</button>
       <div id="bandTabs" class="band-tabs rank-band-legend" aria-label="分数区间参考"></div>
 
       <section class="search-workbench" aria-label="搜索条件">
@@ -146,13 +152,13 @@
         <div id="activeBandBadge" class="active-band-badge">510-520 分</div></div>
       </div>
       <div id="poolResultStickyMount" class="pool-result-sticky-mount"></div>
-      <div id="results" class="results-grid loading">程序已就绪。请输入考生分数，选择筛选条件后点击“查看符合条件的专业”。</div>
+      <div id="results" class="results-grid loading is-light-empty">还没有查看结果。确认分数、范围和专业方向后，点击“查看符合条件的专业”。</div>
     </section>
 
     <section class="data-note">
-      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.18｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
+      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.18.1｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
     </section>
   </main>
-  <script type="module" src="./js/app.v3918.js?v=3918"></script>
+  <script type="module" src="./js/app.v3918_1.js?v=3918_1"></script>
 </body>
 </html>
