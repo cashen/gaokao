@@ -18,18 +18,18 @@ export async function diagnoseCard({ record, candidateScore }) {
   const raw = await response.text();
 
   if (looksLikeHtml(raw)) {
-    throw new Error('AI诊断接口返回了 HTML，不是 JSON。请检查 functions 是否部署在 Cloudflare Pages 项目根目录。');
+    throw new Error('单条解读接口返回了 HTML，不是 JSON。请检查 functions 是否部署在 Cloudflare Pages 项目根目录。');
   }
 
   let data;
   try {
     data = JSON.parse(raw);
   } catch {
-    throw new Error(`AI诊断接口返回内容不是 JSON：${firstChars(raw)}`);
+    throw new Error(`单条解读接口返回内容不是 JSON：${firstChars(raw)}`);
   }
 
   if (!response.ok || data.ok === false) {
-    throw new Error(data.message || data.hint || `AI诊断失败：${response.status}`);
+    throw new Error(data.message || data.hint || `单条解读失败：${response.status}`);
   }
 
   return data;

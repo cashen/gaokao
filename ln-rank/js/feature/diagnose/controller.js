@@ -38,7 +38,7 @@ export function mountDiagnoseButtons(root, records, state) {
         });
         cache.set(key, result);
         renderDiagnoseResult(record, result);
-        button.textContent = 'AI诊断';
+        button.textContent = '单条解读';
       } catch (error) {
         renderDiagnoseError(record, error.message || String(error));
         button.textContent = '重新诊断';

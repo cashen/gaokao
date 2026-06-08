@@ -69,7 +69,8 @@ function uiReadabilitySmoke() {
   add('搜索控制台宽度', true, 'PC 搜索控制台应设置 max-width，避免大屏横铺成后台表单。', '检查 css/components/control-panel.css 的 --ui-control-max 与 .search-workbench。');
   add('Pad 两行控制面板', true, 'Pad 端不硬挤 PC 两栏，输入、chip、当前条件和按钮应按行收口。', '检查 css/core/responsive.css 的 1024px 断点。');
   add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 css/core/responsive.css 的 720px 断点。');
-  add('分数区间快速判断带', true, '分数区间应是扁平判断带，不应像大结果卡挤占首屏。', '检查 css/components/control-panel.css 中 band-tab 高度。');
+  add('分数区间说明不可点击', true, '分数区间参考只做常驻说明带，不再使用 button 承担说明职责。', '检查 rankBandLegend 是否为静态说明，resultBandSwitcher 是否只在结果区切换。');
+  add('结果区切换反馈明确', true, '稍高目标/主要参考/稳妥补充的点击只发生在结果区，active 状态含颜色、边框和“当前查看”文字。', '检查 css/components/rank-band.css 与 feature/score-bands/render.js。');
   add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 feature/trend/integration.js 和 .major-trend-hint.is-empty。');
   add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 css/components/cards.css。');
   add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 css/components/control-panel.css 和 renderSearchTrendHint。');
@@ -176,8 +177,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.18', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.18.2', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.18', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.18.2', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }

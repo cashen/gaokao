@@ -42,7 +42,7 @@ function ensureModal() {
       <button class="diagnose-modal-close" type="button" aria-label="关闭诊断" data-diagnose-close>×</button>
       <div class="diagnose-modal-top">
         <div>
-          <div class="diagnose-modal-kicker">AI诊断</div>
+          <div class="diagnose-modal-kicker">方案解读</div>
           <h3 id="diagnoseModalTitle" class="diagnose-modal-title">专业卡片诊断</h3>
         </div>
       </div>
@@ -117,7 +117,7 @@ export function renderDiagnoseLoading(record) {
   if (!root) return;
   root.innerHTML = `
     <div class="diagnose-box is-loading">
-      正在生成AI诊断…
+      正在生成单条解读…
       <div class="diagnose-mini-note">只解释当前卡片，不改变原始专业池排序。</div>
     </div>
   `;
@@ -307,20 +307,20 @@ export function renderDiagnoseResult(record, payload) {
 
   const d = payload?.diagnosis || {};
   const sourceMap = {
-    'rules-only': '规则版',
-    'rules-only-quota': '额度已用完 · 规则版',
-    'rules-only-error': 'AI暂不可用 · 规则版',
-    'workers-ai': 'AI版'
+    'rules-only': '基础解读',
+    'rules-only-quota': '暂用基础解读',
+    'rules-only-error': '暂用基础解读',
+    'workers-ai': '方案解读'
   };
-  const source = sourceMap[payload?.source] || 'AI版';
+  const source = sourceMap[payload?.source] || '方案解读';
   const quotaNote = payload?.source === 'rules-only-quota'
-    ? '<div class="diagnose-quota-note">今日 Cloudflare AI 免费额度已用完，系统已自动切换为规则版诊断。</div>'
+    ? '<div class="diagnose-quota-note">当前暂用基础解读，仍可先做专业和项目复核。</div>'
     : (payload?.message ? `<div class="diagnose-quota-note">${esc(payload.message)}</div>` : '');
 
   root.innerHTML = `
     <div class="diagnose-box">
       <div class="diagnose-head">
-        <span class="diagnose-title">AI诊断</span>
+        <span class="diagnose-title">单条解读</span>
         <span class="diagnose-source">${source}</span>
       </div>
       <div class="diagnose-summary">${esc(d.summary || '暂无诊断')}</div>\n      ${quotaNote}

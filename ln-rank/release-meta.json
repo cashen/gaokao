@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.1",
-  "assetVersion": "v3918_1",
-  "name": "ln-rank human first control panel recut",
+  "version": "v3.9.18.2",
+  "assetVersion": "v3918_2",
+  "name": "ln-rank human readable band switch and selfcheck stability",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "mobile bottomline status card, rank band always-visible explanation, light empty state",
-  "builtAt": "2026-06-06T00:00:00Z",
-  "releaseName": "ln-rank-human-first-control-panel-recut",
+  "notes": "split static rank band explanation from result band switcher; fix selection pool report builder; restore self-check; add text report copy fallback",
+  "builtAt": "2026-06-09T00:00:00+08:00",
+  "releaseName": "ln-rank-human-readable-band-switch-and-selfcheck-stability",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

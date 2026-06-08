@@ -331,12 +331,12 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   if (hasAnalysis) lines.push(...analysisLines(input.analysis));
   const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
   lines.push(...majorTrendLines(majorTrendSummary));
+  const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
   const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
   lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
 
   lines.push('## 当前自选专业排序');
   lines.push('');
-  const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
   if (!displayItems.length) {
     lines.push('- 当前自选专业为空。');
   } else {
@@ -369,13 +369,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.17',
+    version: 'v3.9.18.2',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
       reportType,
       candidateScore,
-            items,
+      items: displayItems,
       stats,
       summary,
       hasAnalysis,

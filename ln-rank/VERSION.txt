@@ -1,2 +1,2 @@
-v3.9.18.1
-assetVersion=v3918_1
+v3.9.18.2
+assetVersion=v3918_2
