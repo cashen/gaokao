@@ -1,2 +1,3 @@
-v3.9.20.0-ln-rank-product-maturity-and-release-hardening-baseline-no-fenxi
-assetVersion=v3920_0
+v3.9.20.1-ln-rank-responsive-control-panel-human-flow
+入口：/ln-rank/
+不包含 /fenxi

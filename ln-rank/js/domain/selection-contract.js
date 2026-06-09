@@ -1,4 +1,4 @@
-import{toHumanCopy,HUMAN_BAND_LABELS}from'./human-copy-dictionary.js?v=3920_0';
+import{toHumanCopy,HUMAN_BAND_LABELS}from'./human-copy-dictionary.js?v=3920_1';
 function clean(v,max=180){return toHumanCopy(String(v==null?'':v).trim()).slice(0,max)}
 function num(v,f=null){const n=Number(v);return Number.isFinite(n)?n:f}
 function bandKey(item={}){const g=item.poolBand?.group||item.group||'';const raw=item.poolBand?.key||item.bandKey||item.band||'';if(raw==='upper'||raw==='up')return'upper';if(raw==='near'||raw==='main')return'near';if(raw==='steady'||raw==='safe'||raw==='lower')return'steady';if(g==='rush')return'upper';if(g==='stable')return'near';if(g==='safe')return'steady';const d=num(item.scoreDelta,null);if(d!=null&&d>=4)return'upper';if(d!=null&&d>=-15)return'near';return'steady'}
