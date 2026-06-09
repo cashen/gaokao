@@ -390,81 +390,6 @@
       white-space: nowrap;
     }
 
-    .schedule-card {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.68);
-      box-shadow: var(--shadow-soft);
-      overflow: hidden;
-    }
-
-    .schedule-row {
-      display: grid;
-      grid-template-columns: 110px 1fr;
-      gap: 0;
-      border-top: 1px solid rgba(32, 42, 62, 0.075);
-    }
-
-    .schedule-row:first-child {
-      border-top: none;
-    }
-
-    .schedule-date {
-      padding: 15px 16px;
-      background: rgba(255, 247, 237, 0.72);
-      color: var(--warm-deep);
-      font-size: 14px;
-      line-height: 1.45;
-      font-weight: 950;
-      display: flex;
-      align-items: center;
-    }
-
-    .schedule-list {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0;
-    }
-
-    .schedule-item {
-      min-width: 0;
-      padding: 14px 16px;
-      border-left: 1px solid rgba(32, 42, 62, 0.075);
-    }
-
-    .schedule-subject {
-      display: block;
-      color: #172033;
-      font-size: 15px;
-      line-height: 1.35;
-      font-weight: 950;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .schedule-time {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted-2);
-      font-size: 12px;
-      line-height: 1.35;
-      font-weight: 900;
-    }
-
-    .note {
-      margin: 14px 0 0;
-      padding: 12px 15px;
-      border: 1px solid rgba(255, 255, 255, 0.70);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.54);
-      color: #5d687a;
-      font-size: 13px;
-      line-height: 1.65;
-      text-align: center;
-      font-weight: 650;
-    }
-
     .nav-area {
       padding-bottom: 32px;
     }
@@ -695,33 +620,6 @@
         margin-top: 6px;
       }
 
-      .schedule-row {
-        grid-template-columns: 1fr;
-      }
-
-      .schedule-date {
-        padding: 12px 14px 9px;
-        border-bottom: 1px solid rgba(32, 42, 62, 0.055);
-      }
-
-      .schedule-list {
-        grid-template-columns: 1fr;
-      }
-
-      .schedule-item {
-        border-left: none;
-        border-top: 1px solid rgba(32, 42, 62, 0.06);
-        padding: 12px 14px;
-      }
-
-      .schedule-item:first-child {
-        border-top: none;
-      }
-
-      .note {
-        text-align: left;
-      }
-
       .nav-grid {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -825,72 +723,6 @@
           </article>
         </div>
       </header>
-
-      <section class="section" aria-label="2026 辽宁高考时间安排">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">2026 辽宁高考时间安排</h2>
-            <p class="section-desc">用于家庭查看考试节奏；具体安排仍以准考证、考点通知和官方发布为准。</p>
-          </div>
-          <span class="section-mark">6月7日 - 6月9日</span>
-        </div>
-
-        <div class="schedule-card">
-          <div class="schedule-row">
-            <div class="schedule-date">6月7日</div>
-            <div class="schedule-list">
-              <div class="schedule-item">
-                <span class="schedule-subject">语文</span>
-                <span class="schedule-time">09:00 - 11:30</span>
-              </div>
-              <div class="schedule-item">
-                <span class="schedule-subject">数学</span>
-                <span class="schedule-time">15:00 - 17:00</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="schedule-row">
-            <div class="schedule-date">6月8日</div>
-            <div class="schedule-list">
-              <div class="schedule-item">
-                <span class="schedule-subject">物理 / 历史</span>
-                <span class="schedule-time">09:00 - 10:15</span>
-              </div>
-              <div class="schedule-item">
-                <span class="schedule-subject">外语</span>
-                <span class="schedule-time">15:00 - 17:00</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="schedule-row">
-            <div class="schedule-date">6月9日</div>
-            <div class="schedule-list">
-              <div class="schedule-item">
-                <span class="schedule-subject">化学</span>
-                <span class="schedule-time">08:30 - 09:45</span>
-              </div>
-              <div class="schedule-item">
-                <span class="schedule-subject">地理</span>
-                <span class="schedule-time">11:00 - 12:15</span>
-              </div>
-              <div class="schedule-item">
-                <span class="schedule-subject">思想政治</span>
-                <span class="schedule-time">14:30 - 15:45</span>
-              </div>
-              <div class="schedule-item">
-                <span class="schedule-subject">生物学</span>
-                <span class="schedule-time">17:00 - 18:15</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <p class="note">
-          时间仅作提醒；考试安排、招生计划、投档规则和专业要求，请以官方发布为准。
-        </p>
-      </section>
 
       <section class="section nav-area" aria-label="辽宁高考资料入口">
         <div class="section-head">
