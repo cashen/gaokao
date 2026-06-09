@@ -4,22 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类自选专业整理与方案解读</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/rank-band.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/components/review-checklist.css?v=3918_3" />
-  <link rel="stylesheet" href="./css/pages/selection-pool.css?v=3918_3" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/rank-band.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/components/review-checklist.css?v=3918_4" />
+  <link rel="stylesheet" href="./css/pages/selection-pool.css?v=3918_4" />
 </head>
 <body>
-  <main class="page">
+  <main class="page ln-selection-page">
     <header class="hero">
       <div>
         <p class="eyebrow">辽宁 2026 物理类专业初选</p>
@@ -28,60 +28,24 @@
       </div>
       <div class="hero-badges">
         <a class="scope-pill" href="./index.html">返回查询页</a>
-        <div class="scope-pill">自选专业整理</div>
+        <div class="scope-pill">自选专业整理与报告</div>
       </div>
     </header>
 
-    <section class="panel topbar">
-      <div class="score-rank-inline">
-        <div class="score-box">
-          <label for="pathCandidateScore">考生分数</label>
-          <input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" />
-        </div>
-      </div>
-      <div class="top-note">方案检查以当前输入的考生成绩和自选专业当前顺序为准；每次整理、检查方案、生成报告前，都会按当前成绩统一重算相对分差、位次差和建议位置。</div>
+    <section class="ln-selection-step ln-selection-score-panel" aria-labelledby="selectionScoreTitle">
+      <div class="ln-step-marker">第一步</div>
+      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认考生分数</h2><p>自选专业里的“相对孩子分数”、方案检查和家庭讨论报告，都会按这里的分数重新计算。</p></div>
+      <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">考生分数</label><input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 520" /></div></div>
     </section>
-
-    <section class="selection-workspace">
-      <div class="workspace-panel workspace-panel-list">
-        <div class="workspace-head">
-          <div>
-            <h2 class="workspace-title">自选专业清单</h2>
-            <p class="workspace-desc">可拖拽或用“移动”调整顺序；这份顺序会进入后续方案检查和家庭讨论报告。</p>
-          </div>
-          <div class="report-copy-hint">清单版看“选了什么”；解读版看“方案结构、主要风险和调整建议”。</div>
-          <div class="workspace-actions workspace-actions-list">
-            <button id="sortByBand" class="workspace-button">按建议位置整理</button>
-            <button id="sendSelectionPool" class="workspace-button primary">生成清单版报告</button>
-            <button id="clearPool" class="workspace-button muted">清空自选专业</button>
-          </div>
-        </div>
-        <div id="workspaceStats"></div>
-        <div id="workspaceList" class="workspace-list compact-list"></div>
-        <div id="reviewChecklistPanel"></div>
-      </div>
-
-      <aside class="workspace-panel workspace-panel-diagnose">
-        <div class="workspace-head diagnose-head">
-          <div>
-            <h2 class="workspace-title">方案解读</h2>
-            <p class="workspace-desc">点击“检查这套方案”，系统会按特控线锚点、位次密度和自选专业结构检查前段、中段和后段是否接得住。需要留档时，再生成带解读的家庭讨论报告。</p>
-          </div>
-          <div class="workspace-actions workspace-actions-diagnose">
-            <button id="runAnalysis" class="workspace-button primary">检查这套方案</button>
-            <button id="sendAnalyzedPool" class="workspace-button">生成解读版报告</button>
-            <button id="copySelectionText" class="workspace-button muted">复制文字版报告</button>
-          </div>
-        </div>
-        <div id="feishuSelectionStatus"></div>
-        <div id="analysisResult"></div>
-      </aside>
+    <section class="ln-selection-main" aria-label="自选专业整理与报告生成">
+      <div class="workspace-panel workspace-panel-list ln-selection-list-panel"><div class="workspace-head ln-selection-panel-head"><div><div class="ln-step-marker">第二步</div><h2 class="workspace-title">整理自选专业顺序</h2><p class="workspace-desc">把更想去、也愿意认真核验的专业放在前面；明显不能接受的专业建议删除。手机端优先使用上移、下移和“移到第…”按钮。</p></div><div class="workspace-actions workspace-actions-list ln-selection-list-actions"><a class="workspace-button muted" href="./index.html">返回查询页继续添加</a><button id="sortByBand" class="workspace-button">按建议位置整理</button><button id="clearPool" class="workspace-button danger-muted">清空自选专业</button></div></div><div id="workspaceStats"></div><div id="workspaceList" class="workspace-list compact-list"></div><div id="reviewChecklistPanel"></div></div>
+      <aside class="ln-selection-side" aria-label="方案检查与报告"><section class="workspace-panel workspace-panel-diagnose ln-selection-review-panel"><div class="workspace-head diagnose-head ln-selection-panel-head"><div><div class="ln-step-marker">第三步</div><h2 class="workspace-title">检查这套方案</h2><p class="workspace-desc">先检查自选专业结构，再决定是否生成解读版报告。分数或顺序变化后，需要重新检查。</p></div><div class="workspace-actions workspace-actions-diagnose"><button id="runAnalysis" class="workspace-button primary">检查这套方案</button></div></div><div id="analysisResult"></div></section><section class="workspace-panel ln-selection-report-panel"><div class="workspace-head ln-selection-panel-head"><div><div class="ln-step-marker">第四步</div><h2 class="workspace-title">生成报告</h2><p class="workspace-desc">清单版看“选了什么”；解读版看“方案结构、主要风险和调整建议”；飞书暂时不可用时，先复制文字版报告。</p></div></div><div class="workspace-actions ln-report-actions"><button id="sendSelectionPool" class="workspace-button">生成清单版报告</button><button id="sendAnalyzedPool" class="workspace-button primary">生成解读版报告</button><button id="copySelectionText" class="workspace-button muted">复制文字版报告</button></div><div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div></section></aside>
     </section>
 
     <section class="data-note">
-      当前自选专业清单与方案解读报告基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取预测。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.18.3｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目｜<a href="./major-trend-2025.html">查看热度变化参考</a>
+      当前自选专业清单与方案解读报告基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取预测。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.18.4｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目｜<a href="./major-trend-2025.html">查看热度变化参考</a>
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3918_3.js?v=3918_3"></script>
+  <script type="module" src="./js/selection-pool.v3918_4.js?v=3918_4"></script>
 </body>
 </html>
