@@ -1,8 +1,8 @@
 export const STATUS_RULES = [
-  { max: -41, key: 'tooLow', label: '超低参考', position: '少量最后兜底或特殊偏好' },
-  { min: -40, max: -26, key: 'low', label: '偏低参考', position: '少量后段补充' },
-  { min: -25, max: -16, key: 'guard', label: '后段补充参考', position: '后段补充' },
-  { min: -15, max: -6, key: 'steady', label: '主要承接补充', position: '主体偏稳' },
+  { max: -41, key: 'tooLow', label: '超低参考', position: '少量稳妥补充或特殊偏好' },
+  { min: -40, max: -26, key: 'low', label: '偏低参考', position: '少量稳妥补充' },
+  { min: -25, max: -16, key: 'guard', label: '稳妥补充参考', position: '稳妥补充' },
+  { min: -15, max: -6, key: 'steady', label: '主要参考补充', position: '主体偏稳' },
   { min: -5, max: 3, key: 'match', label: '主要参考', position: '主体讨论' },
   { min: 4, max: 8, key: 'smallRush', label: '冲一冲参考', position: '前部可放' },
   { min: 9, max: 15, key: 'midRush', label: '中冲参考', position: '前部搭配' },

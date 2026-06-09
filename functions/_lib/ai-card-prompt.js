@@ -67,7 +67,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       '年度口径、辽宁专业+学校志愿规则、招生章程核验项、医学/法学/师范路径、体检限制、热度参考，优先使用 knowledgeBaseContext.governance。',
       '专业热度数据属于内部统计，只能说“2025相比2024是否更拥挤”，不得说成官方结论或录取预测。',
       '招生章程核验项只作为复核清单，不得替代学校当年章程下结论。',
-      '不要使用院校组、自选池、稳进、必录、保证、一定能上、捡漏等表达。'
+      '不要使用院校组、自选专业、稳进、必录、保证、一定能上、捡漏等表达。'
     ]
   };
 

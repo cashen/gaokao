@@ -135,7 +135,7 @@ function presetDisplaySmoke() {
 }
 
 function reportSmoke() {
-  const rec = { school: '测试大学', major: '电气工程及其自动化', score2025: 520, rank2025: 40000, scoreDelta: 0, statusLabel: '主要参考', position: '主要承接', matchLabel: '精准匹配', matchReason: '专业名称直接包含该词', standardMajor: { code: '080601', name: '电气工程及其自动化', categoryCode: '0806', categoryName: '电气类', mappingStatus: 'exact' } };
+  const rec = { school: '测试大学', major: '电气工程及其自动化', score2025: 520, rank2025: 40000, scoreDelta: 0, statusLabel: '主要参考', position: '主要参考', matchLabel: '精准匹配', matchReason: '专业名称直接包含该词', standardMajor: { code: '080601', name: '电气工程及其自动化', categoryCode: '0806', categoryName: '电气类', mappingStatus: 'exact' } };
   const out = [];
   const basic = buildFeishuReport({ candidateScore: 520, selectedBand: { key: 'near', title: '主要参考', rangeText: '515-525' }, filters: { region: 'all', majorKeyword: '电气' }, dataScope: '2025历史', counts: { upper: 1, near: 1, steady: 1, total: 3 }, selectedRecords: [rec], rangePreset: 'standard', keywordQuery: { rawKeywords: ['电气'] }, matchSummary: { exact: 1 } });
   const pool = buildSelectionPoolFeishuReport({ candidateScore: 520, items: [rec], reportType: 'selectionPoolWithAnalysis', analysis: { summary: '整体可以作为重点核验', stats: { total: 1, rushCount: 0, stableCount: 1, safeCount: 0 }, aiNarrative: { overall: '整体可以作为重点核验', structureDiagnosis: '专业结构待补充', actions: ['建议补充后段专业'] } } });
@@ -178,8 +178,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.18.9', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.19.0', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.18.9', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.19.0', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }

@@ -1,23 +1,21 @@
 {
-  "version": "v3.9.18.9",
-  "assetVersion": "v3918_9",
+  "version": "v3.9.19.0",
+  "assetVersion": "v3919_0",
   "entries": {
-    "search": "js/app.v3918_9.js",
-    "selectionPool": "js/selection-pool.v3918_9.js",
-    "majorTrend": "js/major-trend-render.v3918_9.js",
-    "selfCheck": "js/self-check.v3918_9.js"
+    "search": "js/app.v3919_0.js",
+    "selectionPool": "js/selection-pool.v3919_0.js",
+    "majorTrend": "js/major-trend-render.v3919_0.js",
+    "selfCheck": "js/self-check.v3919_0.js"
   },
   "stableModules": [
     "js/domain/range-policy.js",
     "js/domain/band-policy.js",
     "js/state/range-state.js",
     "js/ui/control-console.js",
-    "js/domain/score-band-contract.js"
+    "js/domain/score-band-contract.js",
+    "js/domain/selection-contract.js",
+    "js/domain/report-payload-contract.js",
+    "js/domain/human-copy-dictionary.js"
   ],
-  "entrypoints": {
-    "search": "js/app.v3918_9.js",
-    "selectionPool": "js/selection-pool.v3918_9.js",
-    "majorTrend": "js/major-trend-render.v3918_9.js",
-    "selfCheck": "js/self-check.v3918_9.js"
-  }
+  "activeAssets": "active-assets.json"
 }

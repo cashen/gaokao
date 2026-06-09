@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.18.9",
-  "assetVersion": "v3918_9",
-  "release": "v3.9.18.9-ln-rank-score-band-contract-import-path-baseline-no-fenxi",
-  "notes": "Score-band contract baseline: all score-band data is normalized before rendering; visible UI reads band.rangeText/count only; score-bands modules use cache-busted imports; self-check guards against NaN/undefined/null visible text.",
+  "version": "v3.9.19.0",
+  "assetVersion": "v3919_0",
+  "release": "v3.9.19.0-ln-rank-engineering-consistency-baseline-no-fenxi",
+  "notes": "Engineering consistency baseline: active asset manifest, dependency check, score-band/selection/report contracts, human-copy dictionary, CSS split, self-check flow guards.",
   "noFenxiIncluded": true
 }

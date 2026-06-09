@@ -43,7 +43,7 @@ function buildFamilyQuestions(facts = {}, healthLights = {}, zoneKey = '') {
   const stats = facts.poolStructure || {};
   const questions = [];
   addUnique(questions, '孩子是否明确接受当前自选专业里的主专业方向？');
-  addUnique(questions, '后段补充里的学校、城市、专业和学费，是否真的愿意读？');
+  addUnique(questions, '稳妥补充里的学校、城市、专业和学费，是否真的愿意读？');
   if (b.mode === 'public_regular_only') addUnique(questions, '家庭是否明确不接受公办中外/高收费和民办本科？');
   if (b.mode === 'public_include_sino') addUnique(questions, '如果保留公办中外/高收费，家庭是否能持续承担费用，并接受培养模式差异？');
   if (lightLevel(healthLights, 'majorDiversity') === 'warn' || stats.topMajorFamilyPct >= 55) addUnique(questions, '当前专业方向较集中，这是孩子真实偏好，还是因为就业想象而集中选择？');
@@ -55,7 +55,7 @@ function buildManualCheckList(facts = {}) {
   const checks = [
     '核验 2026 当年招生计划、专业代码和计划人数。',
     '核验选科、体检、单科、语种、校区、学费和培养模式。',
-    '核验后段补充是否真能接受，不要只因分数较低就当作安全项。'
+    '核验稳妥补充是否真能接受，不要只因分数较低就当作安全项。'
   ];
   const b = facts.bottomLineSummary || {};
   if (b.mode === 'public_regular_only') checks.push('若当前为“只看公办普通”，逐条排除公办中外/高收费和民办/独立项目。');
@@ -68,8 +68,8 @@ function buildHeadline(facts = {}, healthLights = {}, zonePolicy = {}) {
   const overall = healthLights.overall?.level || 'info';
   const zoneName = zonePolicy.zoneName || '当前位次功能区';
   if (!score) return '请先填写考生成绩，再进行自选专业体检和报告生成。';
-  if (overall === 'risk') return `当前方案在“${zoneName}”下风险偏高，建议先补齐主要承接和后段补充，再生成正式报告。`;
-  if (overall === 'warn') return `当前方案已有基础，但在“${zoneName}”下仍需先复核底线、后段补充和集中度风险。`;
+  if (overall === 'risk') return `当前方案在“${zoneName}”下风险偏高，建议先补齐主要参考和稳妥补充，再生成正式报告。`;
+  if (overall === 'warn') return `当前方案已有基础，但在“${zoneName}”下仍需先复核底线、稳妥补充和集中度风险。`;
   return `当前方案在“${zoneName}”下可以进入人工复核和排序微调，重点确认后段是否真能接受。`;
 }
 export function buildRuleBasedParentCoach({ facts = {}, healthLights = {}, rule = {}, candidateZones = [], narrative = null } = {}) {
@@ -79,18 +79,18 @@ export function buildRuleBasedParentCoach({ facts = {}, healthLights = {}, rule 
   const bottom = facts.bottomLineSummary || {};
   const actions = [];
   if (!stats.total) {
-    addUnique(actions, '先回查询页加入候选专业，至少形成上探、主体、主要承接和后段补充几个层次后再诊断。');
+    addUnique(actions, '先回查询页加入候选专业，至少形成上探、主体、主要参考和稳妥补充几个层次后再诊断。');
   }
   if (bottom.mode && bottom.mode !== 'all') {
     const issueCount = Number(bottom.filteredOutCount || 0);
     if (issueCount > 0) addUnique(actions, `当前底线为“${bottom.modeLabel || modeLabel(bottom.mode)}”，自选专业中有 ${fmt(issueCount)} 个项目不完全符合，请先人工复核是否保留。`);
     else addUnique(actions, `当前底线为“${bottom.modeLabel || modeLabel(bottom.mode)}”，下一步重点核验费用、校区和招生章程是否一致。`);
   }
-  if (lightLevel(healthLights, 'bottomDepth') === 'warn') addUnique(actions, '先补后段补充：增加低一层位次、学校城市专业都能接受的后段补充项。');
-  else addUnique(actions, '复核后段补充：确认后段不是“分低但不想读”的假后段补充。');
+  if (lightLevel(healthLights, 'bottomDepth') === 'warn') addUnique(actions, '先补稳妥补充：增加低一层位次、学校城市专业都能接受的稳妥补充项。');
+  else addUnique(actions, '复核稳妥补充：确认后段不是“分低但不想读”的假稳妥补充。');
   if (lightLevel(healthLights, 'majorDiversity') === 'warn') addUnique(actions, '专业方向较集中；若孩子不是强偏好，补充自动化、机械、电子信息、计算机软件等相邻方向。');
   if (lightLevel(healthLights, 'locationDiversity') === 'warn') addUnique(actions, '地域较集中；若不是家庭主动选择，补充 2—3 个其他可接受城市或院校层级。');
-  if (stats.rushCount > Math.ceil((stats.total || 0) * 0.4)) addUnique(actions, '前段尝试数量偏多，保留高价值目标即可，不要让前段尝试替代中后段承接。');
+  if (stats.rushCount > Math.ceil((stats.total || 0) * 0.4)) addUnique(actions, '稍高目标数量偏多，保留高价值目标即可，不要让稍高目标替代中后段承接。');
   if (facts.pushRateSummary?.matchedCount) addUnique(actions, '有读研目标时，可把学校级推免参考作为辅助，但仍需核验具体学院/专业名额。');
   if (['industry-platform-zone', 'platform-major-balance-zone', 'high-platform-zone'].includes(finalZoneKey)) {
     addUnique(actions, '若考虑公办中外合作上探平台，不作为前端底线按钮处理，只在人工复核中核验费用、培养模式和平台收益。');

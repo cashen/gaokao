@@ -54,29 +54,29 @@ function buildRuleRisksAndActions(facts, candidateZones) {
 
   if (total < 12) {
     addUnique(risks, '自选专业数量偏少，当前更像候选清单，不适合作为完整填报方案。');
-    addUnique(actions, '继续补充主要承接区和后段补充，先扩展到至少20个以上再做正式排序。');
+    addUnique(actions, '继续补充主要参考区和稳妥补充，先扩展到至少20个以上再做正式排序。');
   }
   if (stats.rushCount > Math.ceil(total * 0.40)) {
-    addUnique(risks, '前段尝试占比偏高，容易形成前段好看、中后段承接不足。');
-    addUnique(actions, '保留少量高价值前段尝试，其余用更接近位次的主体专业替换。');
+    addUnique(risks, '稍高目标占比偏高，容易形成前段好看、中后段承接不足。');
+    addUnique(actions, '保留少量高价值稍高目标，其余用更接近位次的主体专业替换。');
   }
   if (stats.highRushCount > 2) {
     addUnique(risks, '前段偏高的项目数量偏多，它们只能少量保留，不能当作主要依赖。');
     addUnique(actions, '偏高项目建议控制在1-2个左右，并确认学校、城市、专业都能接受。');
   }
   if (stats.stableCount < Math.ceil(total * 0.30)) {
-    addUnique(risks, '主要承接偏薄，中段承接不够厚。');
-    addUnique(actions, '优先补充接近孩子位次、孩子也愿意读的专业，作为主要承接。');
+    addUnique(risks, '主要参考偏薄，中段承接不够厚。');
+    addUnique(actions, '优先补充接近孩子位次、孩子也愿意读的专业，作为主要参考。');
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
-    addUnique(risks, '后段补充数量偏少，后段承接能力不足。');
-    addUnique(actions, '增加若干稳妥补充/更稳补充/最后兜底专业，尤其补充低风险、可接受专业方向。');
+    addUnique(risks, '稳妥补充数量偏少，后段承接能力不足。');
+    addUnique(actions, '增加若干稳妥补充/更稳补充/稳妥补充专业，尤其补充低风险、可接受专业方向。');
   } else if (stats.deepSafeCount < Math.max(1, Math.ceil(total * 0.08))) {
     addUnique(risks, '后段数量不算少，但真正拉开位次的选择还不够。');
     addUnique(actions, '补充低一层位次、学校城市专业都能接受的稳妥补充项。');
   }
   if (stats.missingRankCount) {
-    addUnique(risks, `${fmt(stats.missingRankCount)}个专业缺少可识别参考位次，后段补充深度和位次跨度需要人工补核。`);
+    addUnique(risks, `${fmt(stats.missingRankCount)}个专业缺少可识别参考位次，稳妥补充深度和位次跨度需要人工补核。`);
   }
 
   const key = primary.zoneKey;
@@ -85,11 +85,11 @@ function buildRuleRisksAndActions(facts, candidateZones) {
     if (stats.privateOrFeeCount >= Math.max(2, Math.ceil(total * 0.20))) addUnique(risks, '民办/高收费/中外合作相关项目占比不低，需要先核验预算和接受度。');
   }
   if (key === 'public-sensitive-zone') {
-    addUnique(actions, '公办竞争敏感区要避免后段太浅，不能只用低几分项目当最后兜底。');
+    addUnique(actions, '公办竞争敏感区要避免后段太浅，不能只用低几分项目当稳妥补充。');
   }
   if (key === 'special-edge-zone') {
-    if (stats.safeCount < Math.max(4, Math.ceil(total * 0.30))) addUnique(risks, '特控线附近后段补充偏薄，太接近分数的后段项目容易不够稳。');
-    addUnique(actions, '特控线边缘区应让主要承接更厚、后段补充更扎实，不要把希望都押在前段尝试上。');
+    if (stats.safeCount < Math.max(4, Math.ceil(total * 0.30))) addUnique(risks, '特控线附近稳妥补充偏薄，太接近分数的后段项目容易不够稳。');
+    addUnique(actions, '特控线边缘区应让主要参考更厚、稳妥补充更扎实，不要把希望都押在稍高目标上。');
   }
   if (key === 'applied-tech-main-zone') {
     const appliedCount = (stats.byMajorFamily?.['电气电子信息'] || 0) + (stats.byMajorFamily?.['机械自动化制造'] || 0) + (stats.byMajorFamily?.['计算机/软件数据'] || 0);
@@ -178,7 +178,7 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
   const resolvedModel = resolveAiModel(context.env || {}, { specificKey: 'AI_PATH_MODEL' });
   const model = resolvedModel.model;
   if (!context.env?.AI || typeof context.env.AI.run !== 'function') {
-    return { source: 'fallback', model: '', modelDebug: buildAiModelDebug(resolvedModel), message: '未检测到 Cloudflare Workers AI 绑定，已返回规则兜底人话解读。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
+    return { source: 'fallback', model: '', modelDebug: buildAiModelDebug(resolvedModel), message: '未检测到 Cloudflare Workers AI 绑定，已返回规则稳妥补充人话解读。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
   }
   try {
     const messages = buildAdvisorAiMessages({ facts, candidateZones, ruleRisks: risks, ruleActions: actions, fallbackNarrative });
@@ -187,7 +187,7 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
     const parsed = parseAdvisorAiText(raw);
     const validation = validateAdvisorAiNarrative(parsed, { candidateZones, fallbackNarrative });
     if (!validation.ok) {
-      return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: `AI输出未通过安全校验，已使用规则兜底：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
+      return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: `AI输出未通过安全校验，已使用规则稳妥补充：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
     }
     return { source: 'workers-ai', model, modelDebug: buildAiModelDebug(resolvedModel), message: '方案解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
   } catch (error) {
@@ -230,8 +230,8 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
 function buildSummary(facts, zonePolicy, level) {
   const total = facts.poolStructure?.total || 0;
   if (!total) return '自选专业暂无专业志愿。';
-  if (level === 'high') return `当前自选专业整体风险偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和后段补充，再做最终排序。`;
-  if (level === 'medium') return `当前自选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需复核前中后段比例、后段补充深度和集中度风险。`;
+  if (level === 'high') return `当前自选专业整体风险偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和稳妥补充，再做最终排序。`;
+  if (level === 'medium') return `当前自选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需复核前中后段比例、稳妥补充深度和集中度风险。`;
   return `当前自选专业结构相对均衡。结合${zonePolicy.zoneName}定位，可以进入人工复核、排序微调和报告整理。`;
 }
 
@@ -245,7 +245,7 @@ function buildReportText({ facts, rankZone, stats, narrative }) {
   lines.push(`当前定位：${rankZone.zoneName || '待判断'}`);
   lines.push('数据口径：辽宁2025物理类一分一段与现有专业池；本报告用于家庭讨论，不等同录取预测。');
   lines.push('');
-  lines.push(`前段尝试：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要承接：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜后段补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
+  lines.push(`稍高目标：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜稳妥补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
   lines.push('');
   lines.push(narrative.reportMarkdown || narrative.parentVersion || narrative.overall || '');
   return lines.join('\n');

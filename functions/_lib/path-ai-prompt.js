@@ -34,9 +34,9 @@ export function buildPathAiMessages({ candidateContext, zonePolicy, stats, risks
     outputSchema: {
       overall: '一句话整体判断，120字内',
       rankZoneExplain: '解释考生所属特控线/位次功能区，180字内',
-      structureDiagnosis: '解释冲稳保结构是否合理，180字内',
+      structureDiagnosis: '解释稍高目标/主要参考/稳妥补充结构是否合理，180字内',
       majorPathDiagnosis: '解释专业/地域/路径风险，180字内',
-      bottomLineRisk: '解释保底风险和底线，160字内',
+      bottomLineRisk: '解释后段是否够稳风险和底线，160字内',
       actions: ['3到6条可执行调整建议'],
       parentVersion: '给家长看的口语版说明，160字内',
       reportMarkdown: '可直接放进家庭讨论报告的文字段落，500字内',

@@ -21,7 +21,7 @@ function classifyByView(score, viewScore) {
 function groupTitle(key) {
   if (key === 'upper') return '稍高目标';
   if (key === 'near') return '主要参考';
-  return '主要承接补充';
+  return '主要参考补充';
 }
 
 function groupRange(key, viewScore) {
