@@ -24,7 +24,7 @@ export function buildCandidateContext(scoreLike, opts = {}) {
     signature,
     source: 'selection-pool-current-input',
     note: score
-      ? `当前计算口径：${year} 辽宁物理类 · 考生 ${score} 分。自选池相对分差、冲稳保标签、方案解读和飞书报告均应按此成绩重新计算。`
+      ? `当前计算口径：${year} 辽宁物理类 · 考生 ${score} 分。自选专业相对分差、前中后段标签、方案解读和飞书报告均应按此成绩重新计算。`
       : `当前计算口径：考生分数待填写。请先填写分数，再进行排序、方案解读或飞书报告。`
   };
 }

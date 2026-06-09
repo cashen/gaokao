@@ -10,9 +10,9 @@ function looksLikeHtml(text) {
 function buildInterfaceError({ path, status, raw }) {
   const preview = firstChars(raw, 140);
   if (looksLikeHtml(raw)) {
-    return new Error(`飞书自选池报告暂时生成失败。可以先复制文字版报告，稍后再试。技术详情：请求路径：${path}；HTTP状态：${status}；返回内容像 HTML。通常表示 functions/api/feishu-create-selection-pool-report.js 没有部署到当前 Cloudflare Pages 生产环境，或请求路径未命中 Functions。返回片段：${preview}`);
+    return new Error(`飞书自选专业报告暂时生成失败。可以先复制文字版报告，稍后再试。技术详情：请求路径：${path}；HTTP状态：${status}；返回内容像 HTML。通常表示 functions/api/feishu-create-selection-pool-report.js 没有部署到当前 Cloudflare Pages 生产环境，或请求路径未命中 Functions。返回片段：${preview}`);
   }
-  return new Error(`飞书自选池报告暂时生成失败。可以先复制文字版报告，稍后再试。技术详情：请求路径：${path}；HTTP状态：${status}；返回片段：${preview}`);
+  return new Error(`飞书自选专业报告暂时生成失败。可以先复制文字版报告，稍后再试。技术详情：请求路径：${path}；HTTP状态：${status}；返回片段：${preview}`);
 }
 
 export async function createSelectionPoolFeishuReport(payload) {

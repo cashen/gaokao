@@ -101,7 +101,7 @@ function groupSummaryRuns(label, group, style) {
 function matchDetailRuns(summary = {}) {
   const stable = summary.stable || {};
   return [
-    { content: '匹配/主要承接拆分：', style: STYLE.stable },
+    { content: '匹配/主要参考拆分：', style: STYLE.stable },
     { content: `向前 ${formatNumber(stable.forwardCount || 0)} 个`, style: STYLE.rankForward },
     { content: `｜接近 ${formatNumber(stable.nearCount || 0)} 个`, style: STYLE.rankNear },
     { content: `｜向后 ${formatNumber(stable.backwardCount || 0)} 个`, style: STYLE.rankBackward }
@@ -205,10 +205,10 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
       { content: `同分 ${formatNumber(summary.densitySummary.sameCount)} 人｜上5分 ${formatNumber(summary.densitySummary.up5Count)} 人｜下5分 ${formatNumber(summary.densitySummary.down5Count)} 人`, style: STYLE.muted }
     ]));
   }
-  blocks.push(bulletRunsBlock(groupSummaryRuns('前段尝试', summary.rush || {}, STYLE.rush)));
-  blocks.push(bulletRunsBlock(groupSummaryRuns('匹配/主要承接', summary.stable || {}, STYLE.stable)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('稍高目标', summary.rush || {}, STYLE.rush)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('匹配/主要参考', summary.stable || {}, STYLE.stable)));
   blocks.push(bulletRunsBlock(matchDetailRuns(summary)));
-  blocks.push(bulletRunsBlock(groupSummaryRuns('后段补充', summary.safe || {}, STYLE.safe)));
+  blocks.push(bulletRunsBlock(groupSummaryRuns('稳妥补充', summary.safe || {}, STYLE.safe)));
   if (summary.topForwardItem) {
     blocks.push(bulletRunsBlock([
       { content: '全池最高向前跨越：', style: STYLE.rankForward },
@@ -327,11 +327,11 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     { content: '数据口径：', style: STYLE.strong },
     { content: `${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。` }
   ]));
-  blocks.push(statsBullet('前段尝试', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
-  blocks.push(statsBullet('匹配 / 主要承接', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
-  blocks.push(statsBullet('后段补充', groups.safe.length || stats.safeCount || 0, total, STYLE.safe));
-  if (stats.highRushCount) blocks.push(bulletRunsBlock([{ content: `高一点：${fmt(stats.highRushCount)} 个，建议控制数量。`, style: STYLE.risk }]));
-  if (stats.floorCount) blocks.push(bulletRunsBlock([{ content: `最后兜底：${fmt(stats.floorCount)} 个，请确认专业和城市是否真的接受。`, style: STYLE.floor }]));
+  blocks.push(statsBullet('稍高目标', groups.rush.length || stats.rushCount || 0, total, STYLE.rush));
+  blocks.push(statsBullet('匹配 / 主要参考', groups.stable.length || stats.stableCount || 0, total, STYLE.stable));
+  blocks.push(statsBullet('稳妥补充', groups.safe.length || stats.safeCount || 0, total, STYLE.safe));
+  if (stats.highRushCount) blocks.push(bulletRunsBlock([{ content: `稍高目标：${fmt(stats.highRushCount)} 个，建议控制数量。`, style: STYLE.risk }]));
+  if (stats.floorCount) blocks.push(bulletRunsBlock([{ content: `稳妥补充：${fmt(stats.floorCount)} 个，请确认专业和城市是否真的接受。`, style: STYLE.floor }]));
 
   blocks.push(dividerBlock());
 

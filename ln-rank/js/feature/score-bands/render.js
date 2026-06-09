@@ -52,15 +52,22 @@ export function renderBandLegend(state) {
   const html = BAND_KEYS.map((key) => {
     const band = getBand(state, key);
     const copy = BAND_COPY[key] || {};
-    return `<span class="rank-band-chip rank-band-${escapeHtml(copy.tone || key)}" data-band-explain="${escapeHtml(key)}">
+    const active = (state.bandFocus || state.activeBand || 'near') === key;
+    return `<button type="button" class="rank-band-chip rank-band-${escapeHtml(copy.tone || key)}${active ? ' is-active' : ''}" data-rank-band="${escapeHtml(key)}" aria-pressed="${active ? 'true' : 'false'}">
       <b>${escapeHtml(band.title)}</b>
       <span>${escapeHtml(rangeText(state.candidateScore, band))}</span>
-      <em>${escapeHtml(copy.short || band.desc || '')}</em>
-    </span>`;
+      <em>${active ? '当前聚焦' : escapeHtml(copy.short || band.desc || '')}</em>
+    </button>`;
   }).join('');
   container.innerHTML = `<div class="rank-band-legend-line">${html}</div>`;
-  container.setAttribute('data-legend-role', 'explanation');
-  container.setAttribute('aria-label', '分数区间参考说明，不是筛选按钮');
+  container.setAttribute('data-legend-role', 'band-focus');
+  container.setAttribute('aria-label', '分数区间参考，可点击切换当前聚焦区间');
+  container.querySelectorAll('[data-rank-band]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.rankBand;
+      window.dispatchEvent(new CustomEvent('lnrank:band-focus-request', { detail: { band: key } }));
+    });
+  });
 }
 
 export function renderResultBandSwitcher(state, onSelect) {

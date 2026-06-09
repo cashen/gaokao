@@ -32,25 +32,13 @@ export function classifyPoolItem(item = {}) {
   const key = item.statusKey || '';
   const delta = toNum(item.scoreDelta, 0);
 
-  if (['superRush', 'bigRush'].includes(key) || delta >= 16) {
-    return { group: 'rush', detail: '高一点，谨慎少量', className: 'high-rush', position: '前段少量尝试' };
+  if (['superRush', 'bigRush', 'midRush', 'smallRush'].includes(key) || delta >= 4) {
+    return { group: 'rush', detail: '稍高目标', className: delta >= 16 ? 'high-rush' : 'light-rush', position: '稍高目标区' };
   }
-  if (['midRush', 'smallRush'].includes(key) || delta >= 4) {
-    return { group: 'rush', detail: '冲一冲', className: 'light-rush', position: '前段尝试' };
+  if (key === 'match' || key === 'steady' || (delta >= -15 && delta <= 3)) {
+    return { group: 'stable', detail: '主要参考', className: delta >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
   }
-  if (key === 'match' || (delta >= -5 && delta <= 3)) {
-    return { group: 'stable', detail: '接近匹配', className: 'edge-stable', position: '主要承接区' };
-  }
-  if (key === 'steady' || (delta >= -15 && delta <= -6)) {
-    return { group: 'stable', detail: '相对稳妥', className: 'stable', position: '主要承接偏稳' };
-  }
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) {
-    return { group: 'safe', detail: '稳妥补充', className: 'light-safe', position: '后段补充' };
-  }
-  if (key === 'low' || (delta >= -40 && delta <= -26)) {
-    return { group: 'safe', detail: '更稳补充', className: 'safe', position: '后段更稳补充区' };
-  }
-  return { group: 'safe', detail: '最后兜底', className: 'floor', position: '最后兜底确认' };
+  return { group: 'safe', detail: '稳妥补充', className: delta <= -26 ? 'safe' : 'light-safe', position: '稳妥补充区' };
 }
 
 export function normalizePoolItem(record = {}, order = 1) {
@@ -227,13 +215,10 @@ export function reorderPoolItemByIndex(fromIndex, toIndex) {
 }
 
 const BAND_ORDER = {
-  '高一点，谨慎少量': 10,
-  '冲一冲': 20,
-  '接近匹配': 30,
-  '相对稳妥': 40,
-  '稳妥补充': 50,
-  '更稳补充': 60,
-  '最后兜底': 70
+  '稍高目标': 10,
+  '主要参考': 20,
+  '稳妥补充': 30,
+  '待核验': 40
 };
 
 export function sortPoolItems(mode = 'band') {
@@ -274,8 +259,8 @@ export function getPoolStats(items = getPoolItems()) {
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.detail === '高一点，谨慎少量') stats.highRushCount += 1;
-    if (band.detail === '最后兜底') stats.floorCount += 1;
+    if (band.group === 'rush') stats.highRushCount += 1;
+    if (band.group === 'safe' && Number(item.scoreDelta) <= -26) stats.floorCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
     const city = item.displayLocation || item.geoEntity || '未知地域';
     stats.byCity[city] = (stats.byCity[city] || 0) + 1;

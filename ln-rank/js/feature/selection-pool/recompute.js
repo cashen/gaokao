@@ -6,13 +6,9 @@ function toNum(value, fallback = null) {
 function classifyByDelta(delta) {
   const d = Number(delta);
   if (!Number.isFinite(d)) return { group: 'safe', detail: '待核验', className: 'unknown', position: '需补齐分数/位次后再判断' };
-  if (d >= 16) return { group: 'rush', detail: '高冲', className: 'high-rush', position: '前段少量梦想位' };
-  if (d >= 4) return { group: 'rush', detail: '小冲', className: 'light-rush', position: '前段冲刺区' };
-  if (d >= -5 && d <= 3) return { group: 'stable', detail: '边稳', className: 'edge-stable', position: '主体承接区' };
-  if (d >= -15 && d <= -6) return { group: 'stable', detail: '稳妥', className: 'stable', position: '主体偏稳区' };
-  if (d >= -25 && d <= -16) return { group: 'safe', detail: '小保', className: 'light-safe', position: '后段保底区' };
-  if (d >= -40 && d <= -26) return { group: 'safe', detail: '强保', className: 'safe', position: '后段强保区' };
-  return { group: 'safe', detail: '兜底', className: 'floor', position: '兜底确认区' };
+  if (d >= 4) return { group: 'rush', detail: '稍高目标', className: d >= 16 ? 'high-rush' : 'light-rush', position: '稍高目标区' };
+  if (d >= -15 && d <= 3) return { group: 'stable', detail: '主要参考', className: d >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
+  return { group: 'safe', detail: '稳妥补充', className: d <= -26 ? 'safe' : 'light-safe', position: '稳妥补充区' };
 }
 
 export function recomputeSelectionPool(candidateContext, rawItems = []) {
@@ -60,8 +56,8 @@ export function getComputedStats(items = []) {
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.detail === '高冲') stats.highRushCount += 1;
-    if (band.detail === '兜底') stats.floorCount += 1;
+    if (band.group === 'rush' && Number(item.scoreDelta) >= 16) stats.highRushCount += 1;
+    if (band.group === 'safe' && Number(item.scoreDelta) <= -26) stats.floorCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
     const city = item.displayLocation || item.geoEntity || '未知地域';
     stats.byCity[city] = (stats.byCity[city] || 0) + 1;
@@ -72,14 +68,10 @@ export function getComputedStats(items = []) {
 }
 
 const BAND_ORDER = {
-  '高冲': 10,
-  '小冲': 20,
-  '边稳': 30,
-  '稳妥': 40,
-  '小保': 50,
-  '强保': 60,
-  '兜底': 70,
-  '待核验': 80
+  '稍高目标': 10,
+  '主要参考': 20,
+  '稳妥补充': 30,
+  '待核验': 40
 };
 
 export function sortComputedByBand(items = []) {

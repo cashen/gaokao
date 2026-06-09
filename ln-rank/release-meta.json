@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.5",
-  "assetVersion": "v3918_5",
-  "name": "ln-rank selection pool action flow fix",
+  "version": "v3.9.18.6",
+  "assetVersion": "v3918_6",
+  "name": "ln-rank human copy and maintenance baseline",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "selection pool action-flow fix: keep report buttons fixed in the action panel, move long analysis output below the main workspace, and protect Feishu/copy report actions from being pushed out of view after diagnosis",
+  "notes": "human-copy and maintenance baseline: unify selection-page terminology, fix candidate-score storage, keep report actions stable, normalize Feishu/copy report language, strengthen self-check, and make score-band reference chips actionable instead of visual-only.",
   "builtAt": "2026-06-09T00:00:00+08:00",
-  "releaseName": "ln-rank-selection-pool-action-flow-fix",
+  "releaseName": "ln-rank-human-copy-and-maintenance-baseline",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

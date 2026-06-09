@@ -146,14 +146,14 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     summary.missingRankCount += summary[key].missingRankCount;
   }
 
-  summary.rush.superRushCount = (summary.rush.byDetail['高一点'] || 0) + (summary.rush.byDetail['超冲'] || 0);
-  summary.rush.smallRushCount = summary.rush.byDetail['冲一冲'] || 0;
-  summary.safe.deepSafeCount = (summary.safe.byDetail['更稳补充'] || 0) + (summary.safe.byDetail['最后兜底'] || 0);
+  summary.rush.superRushCount = (summary.rush.byDetail['稍高目标'] || 0) + (summary.rush.byDetail['超冲'] || 0);
+  summary.rush.smallRushCount = summary.rush.byDetail['稍高目标'] || 0;
+  summary.safe.deepSafeCount = (summary.safe.byDetail['更稳补充'] || 0) + (summary.safe.byDetail['稳妥补充'] || 0);
 
   const lines = [
-    groupSummaryLine('前段尝试', summary.rush),
-    groupSummaryLine('匹配/主要承接', summary.stable),
-    groupSummaryLine('后段补充', summary.safe)
+    groupSummaryLine('稍高目标', summary.rush),
+    groupSummaryLine('匹配/主要参考', summary.stable),
+    groupSummaryLine('稳妥补充', summary.safe)
   ];
   summary.overallLine = lines.join('；');
 
