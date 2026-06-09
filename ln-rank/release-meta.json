@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.6",
-  "assetVersion": "v3918_6",
-  "name": "ln-rank human copy and maintenance baseline",
+  "version": "v3.9.18.7",
+  "assetVersion": "v3918_7",
+  "name": "ln-rank score-band range display guard",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "human-copy and maintenance baseline: unify selection-page terminology, fix candidate-score storage, keep report actions stable, normalize Feishu/copy report language, strengthen self-check, and make score-band reference chips actionable instead of visual-only.",
+  "notes": "Fix score-band range display guard: result band switcher now supports API minScore/maxScore/rangeText and frontend minDelta/maxDelta, preventing NaN-NaN score ranges while keeping search, selection pool and report actions stable.",
   "builtAt": "2026-06-09T00:00:00+08:00",
-  "releaseName": "ln-rank-human-copy-and-maintenance-baseline",
+  "releaseName": "ln-rank-score-band-range-display-guard",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }

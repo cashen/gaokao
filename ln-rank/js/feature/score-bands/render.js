@@ -31,11 +31,35 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function rangeText(candidateScore, band) {
-  if (!Number.isFinite(Number(candidateScore))) return '输入分数后生成';
-  const a = Number(candidateScore) + band.minDelta;
-  const b = Number(candidateScore) + band.maxDelta;
+function formatScoreRange(min, max) {
+  const a = Number(min);
+  const b = Number(max);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return '';
   return `${Math.min(a, b)}-${Math.max(a, b)} 分`;
+}
+
+function rangeText(candidateScore, band) {
+  if (!band || typeof band !== 'object') return '输入分数后生成';
+
+  // API 返回的结果分组使用 minScore/maxScore/rangeText；
+  // 前端配置使用 minDelta/maxDelta。这里必须同时兼容，避免结果区显示 NaN-NaN 分。
+  const byScore = formatScoreRange(band.minScore, band.maxScore);
+  if (byScore) return byScore;
+
+  if (band.rangeText) {
+    const text = String(band.rangeText).trim();
+    if (/^-?\d+(?:\.\d+)?\s*-\s*-?\d+(?:\.\d+)?$/.test(text)) return `${text} 分`;
+    if (text && !/NaN/i.test(text)) return text.includes('分') ? text : `${text} 分`;
+  }
+
+  const score = Number(candidateScore);
+  const minDelta = Number(band.minDelta);
+  const maxDelta = Number(band.maxDelta);
+  if (!Number.isFinite(score) || !Number.isFinite(minDelta) || !Number.isFinite(maxDelta)) {
+    return '输入分数后生成';
+  }
+
+  return formatScoreRange(score + minDelta, score + maxDelta) || '输入分数后生成';
 }
 
 function getPreset(state) {
