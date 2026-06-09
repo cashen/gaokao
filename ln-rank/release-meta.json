@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.2",
-  "assetVersion": "v3920_2",
-  "release": "v3.9.20.2-ln-rank-new-parent-human-guidance-baseline-no-fenxi",
-  "notes": "New parent guidance baseline: human-first copy, stateful primary action text, lighter heat hint, mobile bottomline fold, band chips guidance, Android/PAD/PC responsive flow, active manifest hardening.",
+  "version": "v3.9.20.3",
+  "assetVersion": "v3920_3",
+  "release": "v3.9.20.3-ln-rank-search-side-action-and-heat-layout-fix-no-fenxi",
+  "notes": "Search side action and heat layout fix: PC side panel keeps only current condition and primary action; heat reminder moves to a full-width summary row; Pad uses wide single-column flow; Android shows heat as a light expandable summary; no internal scrollbars in heat card.",
   "noFenxiIncluded": true,
-  "label": "new-parent-human-guidance-baseline"
+  "label": "search-side-action-and-heat-layout-fix"
 }

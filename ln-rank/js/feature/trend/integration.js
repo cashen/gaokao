@@ -1,4 +1,4 @@
-import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3920_2';
+import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3920_3';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -19,9 +19,13 @@ export function renderSearchTrendHint(root, { score, keyword } = {}) {
     root.className = 'major-trend-hint is-empty';
     return;
   }
-  root.className = 'major-trend-hint is-active';
-  const clean = escapeHtml(text.replace(/^专业热度参考：/, ''));
-  root.innerHTML = `<div><b>热度参考</b><p>${clean}</p></div><a class="major-trend-link" href="./major-trend-2025.html">完整热度</a>`;
+  root.className = 'major-trend-hint is-active ln-heat-summary-row';
+  const plain = text.replace(/^专业热度参考：/, '');
+  const firstSentence = plain.split('。').filter(Boolean)[0] || plain;
+  const summary = `${firstSentence}。建议多留几个备选专业。`;
+  const cleanSummary = escapeHtml(summary);
+  const cleanDetail = escapeHtml(plain);
+  root.innerHTML = `<div class="major-trend-main"><b>方向热度提醒</b><p>${cleanSummary}</p><details class="major-trend-detail"><summary>展开查看原因</summary><p>${cleanDetail}</p></details></div><a class="major-trend-link" href="./major-trend-2025.html">完整热度</a>`;
 }
 
 export function renderSelectionTrendBox(summary = {}) {
