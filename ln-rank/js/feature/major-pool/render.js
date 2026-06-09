@@ -1,8 +1,8 @@
-import { fmt } from '../../core/number-utils.js';
-import { renderHistoryScore } from './history-score-render.js';
-import { mountDiagnoseButtons } from '../diagnose/controller.js';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3919_0';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3919_0';
+import { fmt } from '../../core/number-utils.js?v=3920_0';
+import { renderHistoryScore } from './history-score-render.js?v=3920_0';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_0';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_0';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_0';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {

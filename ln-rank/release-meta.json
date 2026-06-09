@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.19.0",
-  "assetVersion": "v3919_0",
-  "release": "v3.9.19.0-ln-rank-engineering-consistency-baseline-no-fenxi",
-  "notes": "Engineering consistency baseline: active asset manifest, dependency check, score-band/selection/report contracts, human-copy dictionary, CSS split, self-check flow guards.",
+  "version": "v3.9.20.0",
+  "assetVersion": "v3920_0",
+  "release": "v3.9.20.0-ln-rank-product-maturity-and-release-hardening-baseline-no-fenxi",
+  "notes": "Product maturity and release hardening baseline: non-empty selection CSS components, stronger human copy dictionary, undo for delete/sort, stale analysis guard, active manifest and self-check hardening.",
   "noFenxiIncluded": true
 }

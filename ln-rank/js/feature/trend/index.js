@@ -1,3 +1,3 @@
-export * from './data.js';
-export * from './rules.js';
-export * from './integration.js';
+export * from './data.js?v=3920_0';
+export * from './rules.js?v=3920_0';
+export * from './integration.js?v=3920_0';

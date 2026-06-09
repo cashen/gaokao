@@ -1,4 +1,4 @@
-import { classifyPoolItem, getPoolStats, majorFamily } from './store.js';
+import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3920_0';
 
 function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];

@@ -1,5 +1,5 @@
-import { normalizeRangePreset } from '../domain/range-policy.js';
-import { normalizeBandFocus } from '../domain/band-policy.js';
+import { normalizeRangePreset } from '../domain/range-policy.js?v=3920_0';
+import { normalizeBandFocus } from '../domain/band-policy.js?v=3920_0';
 export function syncControlConsoleState(state) {
   const range = normalizeRangePreset(state?.rangePreset);
   const band = normalizeBandFocus(state?.bandFocus || state?.activeBand);

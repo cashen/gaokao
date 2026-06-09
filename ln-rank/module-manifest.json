@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.19.0",
-  "assetVersion": "v3919_0",
+  "version": "v3.9.20.0",
+  "assetVersion": "v3920_0",
   "entries": {
-    "search": "js/app.v3919_0.js",
-    "selectionPool": "js/selection-pool.v3919_0.js",
-    "majorTrend": "js/major-trend-render.v3919_0.js",
-    "selfCheck": "js/self-check.v3919_0.js"
+    "search": "js/app.v3920_0.js",
+    "selectionPool": "js/selection-pool.v3920_0.js",
+    "majorTrend": "js/major-trend-render.v3920_0.js",
+    "selfCheck": "js/self-check.v3920_0.js"
   },
   "stableModules": [
     "js/domain/range-policy.js",
