@@ -1,7 +1,8 @@
 import { fmt } from '../../core/number-utils.js';
 import { renderHistoryScore } from './history-score-render.js';
 import { mountDiagnoseButtons } from '../diagnose/controller.js';
-import { buildReviewPointsForRecord } from './review-point-builder.js';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3918_8';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3918_8';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -164,9 +165,9 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     root.textContent = state.bands.message || '请输入考生分数，选择地域、学校或专业后，点击查看符合条件的专业。';
     return;
   }
-  const group = data.bands[state.activeBand];
+  const group = normalizeScoreBand(data.bands[state.activeBand], { key: state.activeBand, candidateScore: state.candidateScore, rangePreset: state.rangePreset });
   title.textContent = group.title;
-  badge.textContent = `${group.rangeText} 分`;
+  badge.textContent = group.rangeText || '输入分数后生成';
   meta.textContent = `共 ${fmt(group.records.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
   const visible = state.visible[state.activeBand] || 16;
   const shown = group.records.slice(0, visible);

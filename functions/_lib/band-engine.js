@@ -15,7 +15,7 @@ export function makeBands(candidateScore, presetKey) {
     const b = preset.bands[key];
     const a = candidateScore + b.minDelta;
     const c = candidateScore + b.maxDelta;
-    out[key] = { key, title: b.title, desc: b.desc, minScore: Math.min(a,c), maxScore: Math.max(a,c), rangeText: `${Math.min(a,c)}-${Math.max(a,c)}` };
+    out[key] = { key, title: b.title, desc: b.desc, minScore: Math.min(a,c), maxScore: Math.max(a,c), rangeText: `${Math.min(a,c)}-${Math.max(a,c)} 分` };
   }
   return out;
 }

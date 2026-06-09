@@ -1,6 +1,7 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3918_8';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3918_8';
 
-const BAND_KEYS = ['upper', 'near', 'steady'];
+const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {
   upper: {
     tone: 'upper',
@@ -31,55 +32,47 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function formatScoreRange(min, max) {
-  const a = Number(min);
-  const b = Number(max);
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return '';
-  return `${Math.min(a, b)}-${Math.max(a, b)} 分`;
+function getPresetBands(state) {
+  const preset = RANGE_PRESETS[state?.rangePreset] || RANGE_PRESETS.standard;
+  return normalizeScoreBandsObject(preset.bands, {
+    candidateScore: state?.candidateScore,
+    rangePreset: preset.key || state?.rangePreset || 'standard'
+  });
 }
 
-function rangeText(candidateScore, band) {
-  if (!band || typeof band !== 'object') return '输入分数后生成';
-
-  // API 返回的结果分组使用 minScore/maxScore/rangeText；
-  // 前端配置使用 minDelta/maxDelta。这里必须同时兼容，避免结果区显示 NaN-NaN 分。
-  const byScore = formatScoreRange(band.minScore, band.maxScore);
-  if (byScore) return byScore;
-
-  if (band.rangeText) {
-    const text = String(band.rangeText).trim();
-    if (/^-?\d+(?:\.\d+)?\s*-\s*-?\d+(?:\.\d+)?$/.test(text)) return `${text} 分`;
-    if (text && !/NaN/i.test(text)) return text.includes('分') ? text : `${text} 分`;
+function getDisplayBands(state) {
+  if (state?.bands?.data?.bands) {
+    return normalizeScoreBandsObject(state.bands.data.bands, {
+      candidateScore: state.candidateScore,
+      rangePreset: state.rangePreset
+    });
   }
-
-  const score = Number(candidateScore);
-  const minDelta = Number(band.minDelta);
-  const maxDelta = Number(band.maxDelta);
-  if (!Number.isFinite(score) || !Number.isFinite(minDelta) || !Number.isFinite(maxDelta)) {
-    return '输入分数后生成';
-  }
-
-  return formatScoreRange(score + minDelta, score + maxDelta) || '输入分数后生成';
+  return getPresetBands(state || {});
 }
 
-function getPreset(state) {
-  return RANGE_PRESETS[state.rangePreset] || RANGE_PRESETS.standard;
+function safeRangeText(band) {
+  return band?.rangeText && !/NaN|undefined|null|\[object Object\]/.test(String(band.rangeText))
+    ? String(band.rangeText)
+    : '输入分数后生成';
 }
 
-function getBand(state, key) {
-  return getPreset(state).bands[key] || RANGE_PRESETS.standard.bands[key];
+function safeCount(band) {
+  const n = Number(band?.count ?? band?.records?.length ?? 0);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
 export function renderBandLegend(state) {
   const container = document.getElementById('rankBandLegend') || document.getElementById('bandTabs');
   if (!container) return;
+  const bands = getPresetBands(state || {});
+  const activeKey = BAND_KEYS.includes(state?.activeBand) ? state.activeBand : (BAND_KEYS.includes(state?.bandFocus) ? state.bandFocus : 'near');
   const html = BAND_KEYS.map((key) => {
-    const band = getBand(state, key);
+    const band = normalizeScoreBand(bands[key], { key, candidateScore: state?.candidateScore, rangePreset: state?.rangePreset });
     const copy = BAND_COPY[key] || {};
-    const active = (state.bandFocus || state.activeBand || 'near') === key;
+    const active = activeKey === key;
     return `<button type="button" class="rank-band-chip rank-band-${escapeHtml(copy.tone || key)}${active ? ' is-active' : ''}" data-rank-band="${escapeHtml(key)}" aria-pressed="${active ? 'true' : 'false'}">
       <b>${escapeHtml(band.title)}</b>
-      <span>${escapeHtml(rangeText(state.candidateScore, band))}</span>
+      <span>${escapeHtml(safeRangeText(band))}</span>
       <em>${active ? '当前聚焦' : escapeHtml(copy.short || band.desc || '')}</em>
     </button>`;
   }).join('');
@@ -97,24 +90,24 @@ export function renderBandLegend(state) {
 export function renderResultBandSwitcher(state, onSelect) {
   const container = document.getElementById('resultBandSwitcher');
   if (!container) return;
-  const data = state.bands?.data;
+  const data = state?.bands?.data;
   if (!data?.bands) {
     container.innerHTML = '';
     container.hidden = true;
     return;
   }
+  const bands = getDisplayBands(state || {});
   container.hidden = false;
   const activeKey = BAND_KEYS.includes(state.activeBand) ? state.activeBand : 'near';
-  const activeBand = data.bands[activeKey] || getBand(state, activeKey);
+  const activeBand = bands[activeKey] || bands.near;
   const activeCopy = BAND_COPY[activeKey] || {};
   const buttons = BAND_KEYS.map((key) => {
-    const group = data.bands[key] || getBand(state, key);
+    const band = bands[key] || normalizeScoreBand({}, { key, candidateScore: state?.candidateScore, rangePreset: state?.rangePreset });
     const copy = BAND_COPY[key] || {};
     const active = activeKey === key;
-    const count = Number.isFinite(Number(group?.records?.length)) ? group.records.length : (data.counts?.[key] ?? 0);
     return `<button type="button" class="result-band-option result-band-${escapeHtml(copy.tone || key)}${active ? ' is-active' : ''}" data-result-band="${escapeHtml(key)}" aria-pressed="${active ? 'true' : 'false'}">
-      <span class="result-band-title">${escapeHtml(group.title || '')}</span>
-      <span class="result-band-meta">${escapeHtml(rangeText(state.candidateScore, group))}｜${escapeHtml(count)} 条</span>
+      <span class="result-band-title">${escapeHtml(band.title || '')}</span>
+      <span class="result-band-meta">${escapeHtml(safeRangeText(band))}｜${escapeHtml(safeCount(band))} 条</span>
       <span class="result-band-state">${active ? '当前查看' : escapeHtml(copy.short || '切换查看')}</span>
     </button>`;
   }).join('');
@@ -135,7 +128,6 @@ export function renderResultBandSwitcher(state, onSelect) {
   });
 }
 
-// Backward-compatible export: old callers render only the static explanation now.
 export function renderBandTabs(state, onSelect) {
   renderBandLegend(state);
   renderResultBandSwitcher(state, onSelect);

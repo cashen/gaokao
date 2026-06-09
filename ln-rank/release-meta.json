@@ -1,11 +1,7 @@
 {
-  "version": "v3.9.18.7",
-  "assetVersion": "v3918_7",
-  "name": "ln-rank score-band range display guard",
-  "dataYear": 2025,
-  "catalogYear": 2026,
-  "notes": "Fix score-band range display guard: result band switcher now supports API minScore/maxScore/rangeText and frontend minDelta/maxDelta, preventing NaN-NaN score ranges while keeping search, selection pool and report actions stable.",
-  "builtAt": "2026-06-09T00:00:00+08:00",
-  "releaseName": "ln-rank-score-band-range-display-guard",
-  "productTitle": "辽宁 2026 物理类专业初选参考"
+  "version": "v3.9.18.8",
+  "assetVersion": "v3918_8",
+  "release": "v3.9.18.8-ln-rank-score-band-contract-baseline-no-fenxi",
+  "notes": "Score-band contract baseline: all score-band data is normalized before rendering; visible UI reads band.rangeText/count only; score-bands modules use cache-busted imports; self-check guards against NaN/undefined/null visible text.",
+  "noFenxiIncluded": true
 }

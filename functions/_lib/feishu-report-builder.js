@@ -140,7 +140,8 @@ export function buildFeishuReport(data) {
   lines.push("## 辽宁 2026 物理类专业初选参考");
   lines.push("");
   lines.push(`- 考生分数：${data.candidateScore}`);
-  lines.push(`- 当前区间：${displayBandTitle}（${band.rangeText} 分）`);
+  const bandRangeText = String(band.rangeText || '').includes('分') ? band.rangeText : `${band.rangeText} 分`;
+  lines.push(`- 当前区间：${displayBandTitle}（${bandRangeText}）`);
   lines.push(`- 筛选条件：${filterText(data.filters)}`);
   lines.push(`- 数据口径：${data.dataScope}专业数据`);
   lines.push("");
