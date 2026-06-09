@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.4",
-  "assetVersion": "v3918_4",
+  "version": "v3.9.18.5",
+  "assetVersion": "v3918_5",
   "entries": {
-    "search": "js/app.v3918_4.js",
-    "selectionPool": "js/selection-pool.v3918_4.js",
-    "majorTrend": "js/major-trend-render.v3918_4.js",
-    "selfCheck": "js/self-check.v3918_4.js"
+    "search": "js/app.v3918_5.js",
+    "selectionPool": "js/selection-pool.v3918_5.js",
+    "majorTrend": "js/major-trend-render.v3918_5.js",
+    "selfCheck": "js/self-check.v3918_5.js"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -14,9 +14,9 @@
     "js/ui/control-console.js"
   ],
   "entrypoints": {
-    "search": "js/app.v3918_4.js",
-    "selectionPool": "js/selection-pool.v3918_4.js",
-    "majorTrend": "js/major-trend-render.v3918_4.js",
-    "selfCheck": "js/self-check.v3918_4.js"
+    "search": "js/app.v3918_5.js",
+    "selectionPool": "js/selection-pool.v3918_5.js",
+    "majorTrend": "js/major-trend-render.v3918_5.js",
+    "selfCheck": "js/self-check.v3918_5.js"
   }
 }

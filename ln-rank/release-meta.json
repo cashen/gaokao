@@ -1,11 +1,11 @@
 {
-  "version": "v3.9.18.4",
-  "assetVersion": "v3918_4",
-  "name": "ln-rank selection pool human flow report safe baseline",
+  "version": "v3.9.18.5",
+  "assetVersion": "v3918_5",
+  "name": "ln-rank selection pool action flow fix",
   "dataYear": 2025,
   "catalogYear": 2026,
-  "notes": "selection pool human-flow rebuild: confirm score, organize selected majors, review plan, generate list/analysis/copy reports; keep report data based on selectedMajors",
+  "notes": "selection pool action-flow fix: keep report buttons fixed in the action panel, move long analysis output below the main workspace, and protect Feishu/copy report actions from being pushed out of view after diagnosis",
   "builtAt": "2026-06-09T00:00:00+08:00",
-  "releaseName": "ln-rank-selection-pool-human-flow-report-safe-baseline",
+  "releaseName": "ln-rank-selection-pool-action-flow-fix",
   "productTitle": "辽宁 2026 物理类专业初选参考"
 }
