@@ -1,22 +1,23 @@
 {
-  "version": "v3.9.18.8",
-  "assetVersion": "v3918_8",
+  "version": "v3.9.18.9",
+  "assetVersion": "v3918_9",
   "entries": {
-    "search": "js/app.v3918_8.js",
-    "selectionPool": "js/selection-pool.v3918_8.js",
-    "majorTrend": "js/major-trend-render.v3918_8.js",
-    "selfCheck": "js/self-check.v3918_8.js"
+    "search": "js/app.v3918_9.js",
+    "selectionPool": "js/selection-pool.v3918_9.js",
+    "majorTrend": "js/major-trend-render.v3918_9.js",
+    "selfCheck": "js/self-check.v3918_9.js"
   },
   "stableModules": [
     "js/domain/range-policy.js",
     "js/domain/band-policy.js",
     "js/state/range-state.js",
-    "js/ui/control-console.js"
+    "js/ui/control-console.js",
+    "js/domain/score-band-contract.js"
   ],
   "entrypoints": {
-    "search": "js/app.v3918_8.js",
-    "selectionPool": "js/selection-pool.v3918_8.js",
-    "majorTrend": "js/major-trend-render.v3918_8.js",
-    "selfCheck": "js/self-check.v3918_8.js"
+    "search": "js/app.v3918_9.js",
+    "selectionPool": "js/selection-pool.v3918_9.js",
+    "majorTrend": "js/major-trend-render.v3918_9.js",
+    "selfCheck": "js/self-check.v3918_9.js"
   }
 }
