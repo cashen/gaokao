@@ -1,4 +1,4 @@
-import { fmt } from '../../core/number-utils.js?v=3920_1';
+import { fmt } from '../../core/number-utils.js?v=3920_2';
 
 function has(value) {
   return value !== null && value !== undefined && value !== '';

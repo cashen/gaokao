@@ -1,17 +1,17 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_1';
-import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_1';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_2';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_2';
 
 const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {
   upper: {
     tone: 'upper',
-    short: '少量看看',
+    short: '少量看',
     current: '当前查看：稍高目标',
-    explain: '比孩子分数略高，只适合少量放在前段核验。'
+    explain: '比孩子分数略高，只适合少量看看。'
   },
   near: {
     tone: 'near',
-    short: '重点核验',
+    short: '重点看',
     current: '当前查看：主要参考',
     explain: '和孩子分数更接近，是专业初选时最该重点看的区间。'
   },
@@ -19,7 +19,7 @@ const BAND_COPY = {
     tone: 'steady',
     short: '补安全感',
     current: '当前查看：稳妥补充',
-    explain: '低于孩子分数一些，用来补后段承接和安全感。'
+    explain: '低于孩子分数一些，用来补安全感。'
   }
 };
 

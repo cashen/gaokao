@@ -1,4 +1,4 @@
-import { DEFAULT_KEYWORD_PRESETS, MORE_KEYWORD_GROUPS, KEYWORD_PRESET_NOTE } from './preset-policy.js?v=3920_1';
+import { DEFAULT_KEYWORD_PRESETS, MORE_KEYWORD_GROUPS, KEYWORD_PRESET_NOTE } from './preset-policy.js?v=3920_2';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -43,7 +43,7 @@ export function mountKeywordPresetPanel(root, { onKeyword } = {}) {
   if (!root) return;
   root.innerHTML = `
     <div class="keyword-preset-default" aria-label="常用关键词快捷输入">
-      <span class="keyword-preset-label">常用：</span>
+      <span class="keyword-preset-label">常用方向：不会输入时，可以先点一个看看</span>
       <div class="keyword-preset-chips">
         ${DEFAULT_KEYWORD_PRESETS.map(item => renderWordButton(item)).join('')}
       </div>

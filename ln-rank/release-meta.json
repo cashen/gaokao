@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.1",
-  "assetVersion": "v3920_1",
-  "release": "v3.9.20.1-ln-rank-product-maturity-and-release-hardening-baseline-no-fenxi",
-  "notes": "Product maturity and release hardening baseline: non-empty selection CSS components, stronger human copy dictionary, undo for delete/sort, stale analysis guard, active manifest and self-check hardening.",
+  "version": "v3.9.20.2",
+  "assetVersion": "v3920_2",
+  "release": "v3.9.20.2-ln-rank-new-parent-human-guidance-baseline-no-fenxi",
+  "notes": "New parent guidance baseline: human-first copy, stateful primary action text, lighter heat hint, mobile bottomline fold, band chips guidance, Android/PAD/PC responsive flow, active manifest hardening.",
   "noFenxiIncluded": true,
-  "label": "responsive-control-panel-human-flow"
+  "label": "new-parent-human-guidance-baseline"
 }

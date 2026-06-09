@@ -87,7 +87,7 @@ function campusActionSmoke() {
   });
   const actionCases = [
     { name: '初始主按钮', ok: getQueryActionLabel({ hasQueried:false, dirty:false }) === '查看符合条件的专业', label: getQueryActionLabel({ hasQueried:false, dirty:false }) },
-    { name: '条件变化主按钮', ok: getQueryActionLabel({ hasQueried:true, dirty:true }) === '更新条件', label: getQueryActionLabel({ hasQueried:true, dirty:true }) },
+    { name: '条件变化主按钮', ok: getQueryActionLabel({ hasQueried:true, dirty:true }) === '按新条件重新查看', label: getQueryActionLabel({ hasQueried:true, dirty:true }) },
     { name: '高分段主按钮', ok: getQueryActionLabel({ hasQueried:false, dirty:false, topRange:true }) === '查看高分段专业', label: getQueryActionLabel({ hasQueried:false, dirty:false, topRange:true }) }
   ];
   return { campusCases, actionCases };
@@ -178,8 +178,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.20.0', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: 'v3.9.20.2', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.20.0', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: 'v3.9.20.2', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
   }
 }

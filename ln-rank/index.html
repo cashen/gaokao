@@ -4,27 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类专业初选参考</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/responsive-control-panel.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_1" />
-  <link rel="stylesheet" href="./css/pages/search.css?v=3920_1" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/responsive-control-panel.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/new-parent-guide.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_2" />
+  <link rel="stylesheet" href="./css/pages/search.css?v=3920_2" />
 </head>
 <body>
   <main class="page ln-page-shell">
     <header class="hero">
       <div>
         <p class="eyebrow">辽宁 2026 物理类专业初选</p>
-        <h1 class="app-title">辽宁 2026 物理类专业初选参考</h1>
-        <p class="app-subtitle">输入考生分数，选择查看范围和专业方向，先形成可讨论专业；加入自选专业后，再统一复核和生成家庭讨论报告。</p>
+        <h1 class="app-title">辽宁物理类专业初选参考</h1>
+        <p class="app-subtitle">先帮孩子圈出一批可讨论专业。输入分数和方向后，系统会按 2025 年数据给出初选参考；正式填报仍以 2026 位次、招生计划和志愿系统为准。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">数据已准备好</span></div>
@@ -35,23 +36,23 @@
     <section class="ln-console panel" aria-label="搜索控制台">
       <div class="topbar ln-score-row">
       <div class="score-box">
-        <label for="candidateScore">考生分数</label>
-        <input id="candidateScore" class="score-input" type="text" inputmode="numeric" placeholder="请输入，如 520" />
+        <label for="candidateScore">第一步：孩子高考分数</label>
+        <input id="candidateScore" class="score-input" type="text" inputmode="numeric" placeholder="请输入，如 480" />
       </div>
       <div class="range-box">
-        <div class="field-label">查看范围</div>
+        <div class="field-label">第二步：先看多大范围</div>
         <div class="range-buttons" id="rangeButtons">
-          <button class="range-button is-active" data-preset="standard">正常查看</button>
-          <button class="range-button" data-preset="wide">多看一些</button>
-          <button class="range-button" data-preset="safe">稳妥一点</button>
+          <button class="range-button is-active" data-preset="standard"><b>正常查看</b><small>首次建议</small></button>
+          <button class="range-button" data-preset="wide"><b>多看一些</b><small>结果太少时</small></button>
+          <button class="range-button" data-preset="safe"><b>稳妥一点</b><small>多补低分侧</small></button>
         </div>
       </div>
-      <div class="top-note">首次建议：正常查看。结果太少再选“多看一些”；想先看更稳的再选“稳妥一点”。筛选只缩小结果，不改变查看范围。</div>
+      <div class="top-note">先用“正常查看”起步；结果太少再选“多看一些”；想多补低分侧再选“稳妥一点”。</div>
       <div id="bottomLinePanel" class="bottomline-panel" hidden>
         <div class="bottomline-head">
           <div>
-            <div class="field-label bottomline-title">公办底线</div>
-            <p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示公办底线。</p>
+            <div class="field-label bottomline-title">办学性质提醒</div>
+            <p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示办学性质提醒。</p>
           </div>
         </div>
         <div id="bottomLineMobileStatus" class="bottomline-mobile-status" aria-live="polite">
@@ -99,18 +100,18 @@
       <div class="middle ln-band-row">
       <div class="tabs-head">
         <div>
-          <h2 class="panel-title">分数区间参考</h2>
-          <p class="panel-desc">主要参考是重点，稍高目标少量看看，稳妥补充用于补安全感。</p>
+          <h2 class="panel-title">结果分成三段看</h2>
+          <p class="panel-desc">建议先看“主要参考”，再少量看看“稍高目标”，最后补一些“稳妥补充”。</p>
         </div>
         
       </div>
-      <div id="rankBandLegend" class="rank-band-legend" aria-label="分数区间参考"></div>
+      <div id="rankBandLegend" class="rank-band-legend" aria-label="结果分成三段看"></div>
 
-      <section class="search-workbench" aria-label="搜索条件">
+      <section class="search-workbench" aria-label="想看什么方向">
         <div class="search-workbench-head">
           <div>
-            <h2 class="search-workbench-title">搜索条件</h2>
-            <p class="search-workbench-desc">按地域、学校、专业方向或项目关键词查找候选专业。</p>
+            <h2 class="search-workbench-title">第三步：想看什么方向</h2>
+            <p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向或点常用方向看看。</p>
           </div>
           <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="自选专业入口"></div>
         </div>
@@ -130,7 +131,7 @@
           <div class="filter-field filter-major">
             <label for="majorKeyword">专业方向 / 项目关键词</label>
             <input id="majorKeyword" class="input" type="search" placeholder="如：计算机 / 会计 / 电气 / 中外" />
-            <div class="keyword-help">可输入专业、行业或项目词；多个词用空格、逗号或 / 分隔。</div>
+            <div class="keyword-help">不知道具体专业名，也可以输入大方向；多个词用空格、逗号或 / 分隔。</div>
           </div>
           <div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用关键词与更多方向"></div>
         </div>
@@ -140,7 +141,7 @@
 
         <div class="filter-action search-action-row">
           <button id="queryButton" class="query-button is-waiting" type="button">输入分数后查看专业</button>
-          <p id="queryGuide" class="filter-action-note">请先输入考生分数，例如 520。输入后可直接点击按钮查看专业。</p>
+          <p id="queryGuide" class="filter-action-note">请先输入孩子高考分数，例如 480。输入后可直接点击按钮查看专业。</p>
         </div>
       </section>
       </div>
@@ -159,13 +160,13 @@
       </div>
       <div id="resultBandSwitcher" class="result-band-switcher" hidden></div>
       <div id="poolResultStickyMount" class="pool-result-sticky-mount"></div>
-      <div id="results" class="results-grid loading is-light-empty">还没有查看结果。确认分数、范围和专业方向后，点击“查看符合条件的专业”。</div>
+      <div id="results" class="results-grid loading is-light-empty">还没有查看结果。输入孩子分数和专业方向后，点击“查看符合条件的专业”。</div>
     </section>
 
     <section class="data-note">
-      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.20.1｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
+      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.20.2｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
     </section>
   </main>
-  <script type="module" src="./js/app.v3920_1.js?v=3920_1"></script>
+  <script type="module" src="./js/app.v3920_2.js?v=3920_2"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 export function getQueryButtonLabel({ hasQueried=false, dirty=false, topRange=false }={}) {
-  if (dirty) return '更新下方结果';
+  if (dirty) return '按新条件重新查看';
   return topRange ? '查看高分段专业' : '查看符合条件的专业';
 }
 export function getQueryButtonClass({ ready=true, level='normal', primary=true, loading=false, error=false }={}) {
