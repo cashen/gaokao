@@ -369,7 +369,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.19.0',
+    version: 'v3.9.20.0',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
