@@ -1,1 +1,1 @@
-v3.9.26-ln-rank-console-alignment-contract-no-fenxi
+v3.9.27-ln-rank-visual-token-contract-no-fenxi

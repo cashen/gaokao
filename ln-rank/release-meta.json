@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.26",
-  "assetVersion": "v3926",
-  "release": "v3.9.26-ln-rank-console-alignment-contract-no-fenxi",
-  "name": "v3.9.26-ln-rank-console-alignment-contract-no-fenxi",
-  "label": "console-alignment-contract",
+  "version": "v3.9.27",
+  "assetVersion": "v3927",
+  "release": "v3.9.27-ln-rank-visual-token-contract-no-fenxi",
+  "name": "v3.9.27-ln-rank-visual-token-contract-no-fenxi",
+  "label": "visual-token-contract",
   "notes": [
-    "顶部控制区建立对齐合同：第一步/第二步标题顶线对齐，分数输入框和范围按钮顶线对齐",
-    "范围说明归属到第二步标题行，改为轻入口“怎么看”，默认不撑高右侧按钮区，Android 默认隐藏",
-    "更新 css/components/control-console-contract.css，集中管理 topbar/range-head/range-help 的最终布局规则",
-    "保留 Android 三个范围按钮同时可见，Pad 窄屏自动单列，PC 一行优先不横向溢出",
-    "保持 no-fenxi 边界，不新增账号、登录、云保存、缓存策略，不改算法"
+    "视觉 token 收口：以暖白、深灰、品牌青绿、三段柔和分段色为统一产品色系",
+    "旧 tokens.css 降级为兼容别名层，主线颜色统一指向 color-system.css 与 ui-token.css",
+    "新增 css/components/visual-token-contract.css，集中收口按钮、卡片、路标、方向探索器、确认页等 active 主线组件色彩",
+    "不重排主流程，不新增功能，不改算法；专业卡片仍是主角，辅助信息保持克制",
+    "保持 no-fenxi 边界，不新增账号、登录、云保存、缓存策略"
   ],
   "noFenxiIncluded": true,
   "generatedAt": "2026-06-11T00:00:00+08:00"

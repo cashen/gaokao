@@ -1,39 +1,57 @@
-
-/* ===== tokens.css ===== */
+/* ===== tokens.css =====
+   v3.9.27 visual-token-contract
+   旧 token 兼容层：不再另起一套颜色，统一指向 color-system.css / ui-token.css。
+*/
 :root {
   color-scheme: light;
-  --bg: #f7f2ea;
-  --card: rgba(255, 255, 255, 0.88);
-  --card-strong: rgba(255, 255, 255, 0.96);
-  --ink: #1f2933;
-  --ink-2: #334155;
-  --muted: #667085;
-  --muted-2: #8a94a6;
-  --line: rgba(31, 41, 51, 0.12);
-  --line-strong: rgba(31, 41, 51, 0.18);
-  --shadow: 0 18px 46px rgba(30, 41, 59, 0.08);
-  --shadow-soft: 0 10px 28px rgba(30, 41, 59, 0.055);
+
+  /* Page / surface aliases */
+  --bg: var(--page-bg, #F8FAF7);
+  --card: var(--surface, #FFFFFF);
+  --card-strong: var(--surface, #FFFFFF);
+  --surface-panel: var(--surface-soft, #FBFCF8);
+
+  /* Text aliases */
+  --ink: var(--text-main, #24312E);
+  --ink-2: var(--text-secondary, #60706B);
+  --muted: var(--text-secondary, #60706B);
+  --muted-2: var(--text-muted, #8A9892);
+
+  /* Border / shadow aliases */
+  --line: var(--line-soft, #DDE7E2);
+  --line-strong: var(--line-strong, #C7D8D1);
+  --shadow: var(--ui-shadow-card, 0 8px 22px rgba(36,49,46,.055));
+  --shadow-soft: 0 8px 18px rgba(36,49,46,.045);
+
+  /* Radius */
   --radius-lg: 24px;
   --radius-md: 18px;
   --radius-sm: 12px;
-  --primary: #3f6f68;
-  --primary-soft: #e7f2ef;
-  --band-upper: #b98245;
-  --band-upper-soft: #fff3e4;
-  --band-near: #3f6f8f;
-  --band-near-soft: #e9f1f5;
-  --band-steady: #2f7d68;
-  --band-steady-soft: #e8f5ef;
+
+  /* Brand aliases */
+  --primary: var(--brand, #2F7D6D);
+  --primary-hover: var(--brand-dark, #256758);
+  --primary-soft: var(--brand-soft, #EAF5F1);
+  --primary-border: var(--brand-border, #BFDCD3);
+
+  /* Band aliases */
+  --band-upper: var(--band-upper-text, #8A5A16);
+  --band-upper-soft: var(--band-upper-bg, #FFF6E8);
+  --band-near: var(--band-near-text, #315F9A);
+  --band-near-soft: var(--band-near-bg, #EEF5FF);
+  --band-steady: var(--band-steady-text, #2F7D6D);
+  --band-steady-soft: var(--band-steady-bg, #EDF8F3);
+
+  /* Status aliases used by old modules */
   --status-tooLow: #64748b;
   --status-low: #7a8796;
-  --status-guard: #3f7f6b;
-  --status-steady: #2f7d68;
-  --status-match: #3f6f8f;
-  --status-smallRush: #4f74b8;
-  --status-midRush: #b98245;
-  --status-bigRush: #b56a32;
-  --status-superRush: #a85f4d;
+  --status-guard: var(--brand, #2F7D6D);
+  --status-steady: var(--band-steady-text, #2F7D6D);
+  --status-match: var(--band-near-text, #315F9A);
+  --status-smallRush: var(--band-near-accent, #5F8FC1);
+  --status-midRush: var(--band-upper-text, #8A5A16);
+  --status-bigRush: #A8682D;
+  --status-superRush: #8A5A50;
+
+  --ln-control-max-width: 1180px;
 }
-
-
-:root{--ln-control-max-width:1180px;}
