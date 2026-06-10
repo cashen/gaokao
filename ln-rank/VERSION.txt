@@ -1,1 +1,1 @@
-v3.9.23-ln-rank-direction-explorer-mvp-no-fenxi
+v3.9.23.1-ln-rank-direction-explorer-drawer-hotfix-no-fenxi

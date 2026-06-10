@@ -1,6 +1,6 @@
-import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923';
-import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3923';
-import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3923';
+import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_1';
+import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3923_1';
+import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3923_1';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -28,10 +28,12 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
   let isOpen = false;
   let mergePrompt = false;
   let lastMode = 'empty';
+  let actionHint = '';
+  let highlightEntryTimer = null;
   const read = () => loadDirectionExplorerState();
   const write = (patch) => updateDirectionExplorerState(patch);
-  const open = () => { isOpen = true; mergePrompt = false; render(); };
-  const close = () => { isOpen = false; mergePrompt = false; render(); };
+  const open = () => { isOpen = true; mergePrompt = false; actionHint = ''; render(); };
+  const close = () => { isOpen = false; mergePrompt = false; actionHint = ''; render(); };
   const toggleAnswer = (questionKey, optionId) => {
     const state = read();
     const answers = { ...(state.answers || {}) };
@@ -39,24 +41,28 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     if (list.has(optionId)) list.delete(optionId); else list.add(optionId);
     answers[questionKey] = [...list];
     write({ answers });
-    render();
+    render({ restoreScroll: true });
   };
   const generate = () => {
     const state = read();
     const result = buildDirectionExplorerResult(state.answers || {});
     saveDirectionExplorerState({ ...state, result, applied: state.applied || null });
     mergePrompt = false;
+    actionHint = '方向参考已生成，可以按这些方向查专业。';
     render();
+    setTimeout(() => panelMount.querySelector('.direction-result')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
   };
   const applyResult = (mode = null) => {
     const state = read();
     const result = state.result || buildDirectionExplorerResult(state.answers || {});
     const keywords = uniq(result.queryKeywords || []);
-    if (!keywords.length) return;
+    if (!keywords.length) { actionHint = '还没有生成可用方向，先生成方向参考。'; render(); return; }
     const existing = getMajorKeyword?.() || '';
     if (!mode && hasDifferentExisting(existing, keywords)) {
       mergePrompt = true;
+      actionHint = '当前已有专业方向，请选择加入还是替换。';
       render();
+      setTimeout(() => panelMount.querySelector('.direction-merge-box')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
       return;
     }
     const current = splitWords(existing);
@@ -69,6 +75,7 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     setMajorKeyword?.(nextValue, { source: 'direction-explorer', mode: mode || (existing ? 'add' : 'replace'), applied });
     isOpen = false;
     mergePrompt = false;
+    actionHint = '';
     onApplied?.(result, applied);
     render();
   };
@@ -78,7 +85,7 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     onCleared?.(before);
     render();
   };
-  const clearAll = () => { clearDirectionExplorerAll(); mergePrompt = false; render(); };
+  const clearAll = () => { clearDirectionExplorerAll(); mergePrompt = false; actionHint = ''; render(); };
 
   function entryHtml() {
     const state = read();
@@ -125,16 +132,17 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     return `<div class="direction-panel-layer ${isOpen ? 'is-open' : ''}" ${isOpen ? '' : 'hidden'}>
       <div class="direction-backdrop" data-direction-close></div>
       <aside class="direction-panel" role="dialog" aria-modal="true" aria-label="孩子方向小判断">
-        <div class="direction-panel-head"><div><h2>孩子方向小判断</h2><p>不是给孩子定专业，只是帮家里找几个值得讨论、可以先了解、需要再确认的方向。</p></div><button type="button" class="direction-close" data-direction-close aria-label="关闭">×</button></div>
+        <div class="direction-panel-head"><div><h2>孩子方向小判断</h2><p>不是给孩子定专业，只是帮家里找几个值得讨论、可以先了解、需要再确认的方向。</p></div><button type="button" class="direction-close" data-direction-close aria-label="收起孩子方向小判断">收起</button></div>
         <div class="direction-panel-body">
           <div class="direction-principle">很多孩子不是不适合，只是还没接触过。这里不会因为“没感觉”就直接排除方向。</div>
           ${questionHtml()}
           ${resultHtml()}
         </div>
+        ${actionHint ? `<div class="direction-action-hint" role="status">${escapeHtml(actionHint)}</div>` : ''}
         <div class="direction-panel-actions">
           ${state.result ? `<button type="button" class="direction-primary" data-direction-apply>按这些方向查专业</button>` : `<button type="button" class="direction-primary" data-direction-generate>生成方向参考</button>`}
           <button type="button" data-direction-reset>${state.result ? '重新选择' : '清空选择'}</button>
-          <button type="button" data-direction-close>先关闭</button>
+          <button type="button" data-direction-close>收起</button>
         </div>
       </aside>
     </div>`;
@@ -154,17 +162,30 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
       const state = read();
       saveDirectionExplorerState({ ...state, answers: {}, result: null });
       mergePrompt = false;
+      actionHint = '已清空，可以重新选择。';
       render();
     });
   }
-  function render() {
+  function render(options = {}) {
+    const body = panelMount.querySelector('.direction-panel-body');
+    const oldScroll = options.restoreScroll && body ? body.scrollTop : null;
     entryMount.innerHTML = entryHtml();
     panelMount.innerHTML = panelHtml();
     document.body.classList.toggle('direction-panel-open', isOpen);
     bindEntry();
     bindPanel();
+    if (oldScroll != null) {
+      const nextBody = panelMount.querySelector('.direction-panel-body');
+      if (nextBody) nextBody.scrollTop = oldScroll;
+    }
   }
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && isOpen) close(); });
   render();
-  return { render, open, close, getMode: () => lastMode, clearApplied };
+  return { render, open, close, getMode: () => lastMode, clearApplied, highlightEntry: () => {
+    const el = entryMount.querySelector('.direction-entry');
+    if (!el) return;
+    el.classList.add('is-highlight');
+    clearTimeout(highlightEntryTimer);
+    highlightEntryTimer = setTimeout(() => el.classList.remove('is-highlight'), 1600);
+  } };
 }
