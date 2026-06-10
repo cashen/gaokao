@@ -1,5 +1,5 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_6';
-import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_6';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_7';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_7';
 
 const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {
@@ -98,6 +98,7 @@ export function renderResultBandSwitcher(state, onSelect) {
   }
   const bands = getDisplayBands(state || {});
   container.hidden = false;
+  container.classList.add('ln-result-band-nav');
   const activeKey = BAND_KEYS.includes(state.activeBand) ? state.activeBand : 'near';
   const activeBand = bands[activeKey] || bands.near;
   const activeCopy = BAND_COPY[activeKey] || {};
@@ -112,14 +113,12 @@ export function renderResultBandSwitcher(state, onSelect) {
     </button>`;
   }).join('');
   container.innerHTML = `
-    <div class="result-band-current result-band-current-${escapeHtml(activeCopy.tone || activeKey)}">
-      <div>
-        <span class="result-band-current-kicker">当前查看</span>
-        <strong>${escapeHtml(activeBand.title || '')}</strong>
-        <p>${escapeHtml(activeCopy.explain || activeBand.desc || '')}</p>
-      </div>
-    </div>
-    <div class="result-band-options" role="group" aria-label="切换结果区间">${buttons}</div>`;
+    <div class="result-band-nav-head">分段查看</div>
+    <div class="result-band-options" role="group" aria-label="切换结果区间">${buttons}</div>
+    <div class="result-assist-line result-current-line result-current-line-${escapeHtml(activeCopy.tone || activeKey)}">
+      <span class="result-assist-icon" aria-hidden="true">●</span>
+      <span>当前查看：<b>${escapeHtml(activeBand.title || '')}</b>｜${escapeHtml(activeCopy.explain || activeBand.desc || '')}</span>
+    </div>`;
   container.querySelectorAll('[data-result-band]').forEach((button) => {
     button.addEventListener('click', () => {
       const key = button.dataset.resultBand;

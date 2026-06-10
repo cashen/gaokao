@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.20.6",
-  "assetVersion": "v3920_6",
-  "name": "ln-rank-whole-flow-human-visual-contract-no-fenxi",
+  "version": "v3.9.20.7",
+  "assetVersion": "v3920_7",
+  "name": "ln-rank-result-and-card-visual-contract-no-fenxi",
   "changes": [
     "Android 添加自选专业后显示 3.8 秒可点击操作气泡",
     "气泡包含“去整理”入口，不点击会自动关闭，不强迫跳转",

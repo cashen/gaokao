@@ -1,4 +1,4 @@
-/* v3.9.20.6 家长查询卡：搜索筛选区统一结构 */
+/* v3.9.20.7 家长查询卡：搜索筛选区统一结构 */
 .ln-filter-panel {
   margin-top: 18px;
   padding: 22px;
@@ -141,7 +141,7 @@
   .ln-filter-panel .major-trend-main p { margin-top: 2px; font-size: 13px; }
 }
 
-/* 覆盖旧版右侧筛选栏 contract，v3.9.20.6 统一为顺序型家长查询卡 */
+/* 覆盖旧版右侧筛选栏 contract，v3.9.20.7 统一为顺序型家长查询卡 */
 .ln-new-parent-flow .ln-filter-panel {
   display: block !important;
   grid-template-columns: none !important;

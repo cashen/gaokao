@@ -1,5 +1,5 @@
-import { FEISHU_UI_CONFIG } from "../../config/feishu-ui-config.js?v=3920_6";
-import { canGenerateFeishuReport } from "../report/payload-builder.js?v=3920_6";
+import { FEISHU_UI_CONFIG } from "../../config/feishu-ui-config.js?v=3920_7";
+import { canGenerateFeishuReport } from "../report/payload-builder.js?v=3920_7";
 
 async function copyText(text) {
   if (!text) return false;
@@ -79,7 +79,7 @@ export function renderFeishuReportView(reportState, appState, handlers) {
   root.innerHTML = `
     <div class="feishu-box ${disabled ? "is-disabled" : ""}">
       <button class="feishu-main-button" data-generate-feishu type="button" ${disabled ? "disabled" : ""}>${FEISHU_UI_CONFIG.labels.idle}</button>
-      <span class="feishu-note">${disabled ? availability.reason : "生成当前区间前 20 条专业结果，形成家庭讨论报告；筛选条件会一并写入。"}</span>
+      <span class="feishu-note">${disabled ? availability.reason : "默认带入当前区间前 20 条结果。"}</span>
     </div>
   `;
 

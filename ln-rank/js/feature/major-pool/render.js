@@ -1,9 +1,9 @@
-import { fmt } from '../../core/number-utils.js?v=3920_6';
-import { renderHistoryScore } from './history-score-render.js?v=3920_6';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_6';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_6';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_6';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_6';
+import { fmt } from '../../core/number-utils.js?v=3920_7';
+import { renderHistoryScore } from './history-score-render.js?v=3920_7';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_7';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_7';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_7';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_7';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -130,7 +130,7 @@ function card(record, index = 0, selectionPool = null) {
   const deltaText = delta > 0 ? `+${delta}` : String(delta);
   const statusKey = record.statusKey || 'match';
   const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${escapeHtml(t)}</span>`).join('');
-  return `<article class="major-card status-${statusKey}">
+  return `<article class="major-card ln-major-card status-${statusKey}">
     <div class="major-card-top">
       <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
       <span class="status-badge">${escapeHtml(safe(record.statusLabel))}</span>
@@ -182,7 +182,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     return;
   }
   const group = normalizeScoreBand(data.bands[state.activeBand], { key: state.activeBand, candidateScore: state.candidateScore, rangePreset: state.rangePreset });
-  title.textContent = group.title;
+  title.textContent = `符合条件的可讨论专业：${group.title}`;
   badge.textContent = group.rangeText || '输入分数后生成';
   meta.textContent = `共 ${fmt(group.records.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
   const visible = state.visible[state.activeBand] || 16;
@@ -193,11 +193,11 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const keywordSummary = renderKeywordSummary(data);
   const searchAdvices = renderSearchAdvices(data);
   const bottomLineNote = bottomLine && bottomLineMode !== 'all'
-    ? `<div class="results-bottomline-note">当前办学性质底线：<b>${escapeHtml(bottomLine.label || '')}</b>。${escapeHtml(bottomLine.help || '')}${excluded ? ` 本轮按该底线排除 ${fmt(excluded)} 条不符合条件的记录。` : ''}</div>`
+    ? `<div class="results-bottomline-note result-assist-line"><span class="result-assist-icon" aria-hidden="true">◇</span><span>当前办学性质底线：<b>${escapeHtml(bottomLine.label || '')}</b>。${escapeHtml(bottomLine.help || '')}${excluded ? ` 本轮按该底线排除 ${fmt(excluded)} 条不符合条件的记录。` : ''}</span></div>`
     : '';
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
   const specialNoteText = specialProjectResultNote(specialMode, data.source || {});
-  const specialProjectNote = specialNoteText ? `<div class="results-special-project-note ${specialMode === SPECIAL_PROJECT_SHOW_MODE ? 'is-showing' : ''}">${escapeHtml(specialNoteText)}</div>` : '';
+  const specialProjectNote = specialNoteText ? `<div class="results-special-project-note result-assist-line ${specialMode === SPECIAL_PROJECT_SHOW_MODE ? 'is-showing' : ''}"><span class="result-assist-icon" aria-hidden="true">◎</span><span>${escapeHtml(specialNoteText)}</span></div>` : '';
   root.className = 'results-grid';
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
