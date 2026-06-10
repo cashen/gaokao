@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.5",
-  "assetVersion": "v3920_5",
-  "release": "v3.9.20.5-ln-rank-mobile-selection-pool-action-toast-no-fenxi",
-  "notes": "Mobile selection pool action toast: Android adds a short-lived clickable action bubble after adding a major, keeps a non-sticky lightweight selected-major status row, and preserves PC/Pad low-interference entry; no /fenxi directory included.",
+  "version": "v3.9.20.6",
+  "assetVersion": "v3920_6",
+  "release": "v3.9.20.6-ln-rank-whole-flow-human-visual-contract-no-fenxi",
+  "notes": "Whole-flow human visual contract: unifies search page visual rhythm, filter panel hierarchy, lightweight special-project and heat hints, and selection-pool family plan UI across PC/Pad/Android; no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "mobile-selection-pool-action-toast"
+  "label": "whole-flow-human-visual-contract"
 }

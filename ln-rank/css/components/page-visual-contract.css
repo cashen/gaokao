@@ -1,0 +1,59 @@
+/* v3.9.20.6 整页视觉契约：统一页面节奏、圆角、按钮层级和轻提示形态 */
+:root {
+  --ln-radius-panel: 22px;
+  --ln-radius-card: 18px;
+  --ln-radius-control: 14px;
+  --ln-control-h: 44px;
+  --ln-primary-h: 48px;
+  --ln-chip-h: 32px;
+  --ln-gap-page: 22px;
+  --ln-line-soft: #dbe8e3;
+  --ln-bg-soft: #fbfdfb;
+  --ln-bg-assist: #f7fbf8;
+  --ln-text-main: #102337;
+  --ln-text-muted: #5e716d;
+  --ln-green: #246b5b;
+  --ln-green-soft: #e8f4f1;
+  --ln-warm-soft: #fff8e9;
+}
+.ln-page-shell, .ln-selection-page { max-width: 1360px; }
+.hero, .panel, .ln-console, .workspace-panel, .ln-selection-step {
+  border-radius: var(--ln-radius-panel) !important;
+}
+.hero { margin-bottom: var(--ln-gap-page); }
+.app-title { letter-spacing: -0.02em; }
+.app-subtitle { max-width: 860px; color: var(--ln-text-muted); line-height: 1.75; }
+.ln-console { background: rgba(255,255,255,.94); box-shadow: 0 18px 45px rgba(26, 54, 47, .06); }
+.input, .select, .score-input { min-height: var(--ln-control-h); border-radius: var(--ln-radius-control) !important; }
+.query-button, .action-primary, .workspace-button.primary { min-height: var(--ln-primary-h); border-radius: 16px !important; }
+.scope-pill, .ready-badge, .active-band-badge { border-radius: 999px; }
+.field-label, .filter-field label { color: var(--ln-text-main); }
+.top-note, .panel-desc, .keyword-help, .filter-action-note, .results-meta, .workspace-desc { color: var(--ln-text-muted); }
+.range-button, .bottomline-button, .band-pill, .keyword-preset-chip, .quick-chip, .workspace-button {
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+.range-button:hover, .bottomline-button:hover, .band-pill:hover, .keyword-preset-chip:hover, .workspace-button:hover { transform: translateY(-1px); }
+.ln-band-row { padding-top: 18px; }
+.rank-band-legend { gap: 10px !important; overflow-x: auto; scrollbar-width: none; }
+.rank-band-legend::-webkit-scrollbar { display: none; }
+.band-pill { min-height: 34px; padding: 7px 13px !important; border-radius: 999px !important; white-space: nowrap; }
+.bottomline-panel { background: var(--ln-bg-assist) !important; border-color: var(--ln-line-soft) !important; box-shadow: 0 10px 24px rgba(30, 67, 59, .05) !important; }
+.results-shell { margin-top: var(--ln-gap-page); }
+.result-card, .major-card, .workspace-item { border-radius: var(--ln-radius-card) !important; }
+.results-grid { gap: 14px !important; }
+.pool-entry-direct-shell { box-shadow: 0 14px 32px rgba(23,70,59,.16) !important; }
+@media (max-width: 860px) {
+  :root { --ln-gap-page: 14px; --ln-control-h: 43px; --ln-primary-h: 46px; }
+  .page { padding-left: 12px !important; padding-right: 12px !important; }
+  .hero { padding: 18px 16px !important; }
+  .app-subtitle { font-size: 14px; }
+  .ln-console, .panel, .workspace-panel, .ln-selection-step { border-radius: 18px !important; }
+  .top-note { font-size: 13px; }
+  .range-buttons { overflow-x: auto; flex-wrap: nowrap !important; scrollbar-width: none; }
+  .range-buttons::-webkit-scrollbar { display: none; }
+  .range-button { min-width: 132px; }
+}
+@media (min-width: 861px) {
+  .ln-console { padding: 22px !important; }
+  .panel { padding: 22px !important; }
+}

@@ -4,23 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类专业初选参考</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/responsive-control-panel.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/new-parent-guide.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/pages/search.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/search-side-action-heat-layout.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/special-project-filter.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/selection-pool-mobile-entry.css?v=3920_5" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/responsive-control-panel.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/new-parent-guide.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/pages/search.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/search-side-action-heat-layout.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/special-project-filter.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-pool-mobile-entry.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/page-visual-contract.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/filter-panel-human.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-flow-human.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/report-action-human.css?v=3920_6" />
 </head>
 <body>
   <main class="page ln-page-shell">
@@ -110,52 +114,58 @@
       </div>
       <div id="rankBandLegend" class="rank-band-legend" aria-label="结果分成三段看"></div>
 
-      <section class="search-workbench" aria-label="想看什么方向">
-        <div class="search-workbench-head">
+      <section class="search-workbench ln-filter-panel" data-filter-panel aria-label="家长查询卡：想看什么方向">
+        <div class="search-workbench-head ln-filter-panel__head">
           <div>
             <h2 class="search-workbench-title">第三步：想看什么方向</h2>
-            <p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向或点常用方向看看。</p>
+            <p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向，比如计算机、电气、医学、会计。</p>
           </div>
           <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="自选专业入口"></div>
         </div>
 
-        <div class="search-grid-top">
+        <div class="major-keyword-panel ln-filter-panel__primary">
+          <div class="filter-field filter-major">
+            <label for="majorKeyword">专业方向 / 项目关键词</label>
+            <input id="majorKeyword" class="input" type="search" placeholder="如：计算机、电气、医学、会计、中外" />
+            <div class="keyword-help">多个词可以用空格、逗号或 / 分隔。</div>
+          </div>
+        </div>
+
+        <div class="search-grid-top ln-filter-panel__secondary">
           <div class="filter-field filter-region">
-            <label for="region">地域</label>
+            <label for="region">想看的地区</label>
             <select id="region" class="select"></select>
           </div>
           <div class="filter-field filter-school">
-            <label for="schoolKeyword">学校名称</label>
-            <input id="schoolKeyword" class="input" type="search" placeholder="如：大连、辽宁大学" />
+            <label for="schoolKeyword">指定学校，可不填</label>
+            <input id="schoolKeyword" class="input" type="search" placeholder="如：大连、沈阳、辽宁大学" />
           </div>
         </div>
 
-        <div class="major-keyword-panel">
-          <div class="filter-field filter-major">
-            <label for="majorKeyword">专业方向 / 项目关键词</label>
-            <input id="majorKeyword" class="input" type="search" placeholder="如：计算机 / 会计 / 电气 / 中外" />
-            <div class="keyword-help">不知道具体专业名，也可以输入大方向；多个词用空格、逗号或 / 分隔。</div>
-          </div>
+        <div class="ln-filter-panel__quick">
           <div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用关键词与更多方向"></div>
         </div>
 
-        <div id="specialProjectPanel" class="special-project-panel" data-mode="hide_eligibility_projects" aria-label="特殊项目显示设置">
-          <div class="special-project-main">
-            <div class="special-project-title">特殊项目</div>
-            <div id="specialProjectStatus" class="special-project-status">已默认隐藏专项、定向、预科等需要资格核验的专业。</div>
-            <div id="specialProjectHelp" class="special-project-help">多数普通家庭不具备专项、定向、预科等资格，默认隐藏可减少误判。</div>
+        <div class="ln-filter-panel__summary-action">
+          <div id="filterSummary" class="filter-summary ln-filter-summary"></div>
+          <div class="filter-action search-action-row ln-filter-action">
+            <button id="queryButton" class="query-button is-waiting" type="button">输入分数后查看专业</button>
+            <p id="queryGuide" class="filter-action-note">请先输入孩子高考分数，例如 480。输入后可直接点击按钮查看专业。</p>
           </div>
-          <button id="specialProjectToggle" class="special-project-toggle" type="button">显示特殊项目</button>
         </div>
 
-        <div id="filterSummary" class="filter-summary"></div>
+        <div class="ln-filter-panel__assist">
+          <div id="specialProjectPanel" class="special-project-panel ln-filter-assist-line" data-mode="hide_eligibility_projects" aria-label="特殊项目显示设置">
+            <div class="special-project-main">
+              <div class="special-project-title">特殊项目</div>
+              <div id="specialProjectStatus" class="special-project-status">已默认隐藏专项、定向、预科等需要资格核验的专业。</div>
+              <div id="specialProjectHelp" class="special-project-help">多数普通家庭不具备专项、定向、预科等资格，默认隐藏可减少误判。</div>
+            </div>
+            <button id="specialProjectToggle" class="special-project-toggle" type="button">显示特殊项目</button>
+          </div>
 
-        <div class="filter-action search-action-row">
-          <button id="queryButton" class="query-button is-waiting" type="button">输入分数后查看专业</button>
-          <p id="queryGuide" class="filter-action-note">请先输入孩子高考分数，例如 480。输入后可直接点击按钮查看专业。</p>
+          <div id="majorTrendHint" class="major-trend-hint is-soft ln-heat-summary-row ln-filter-assist-line" aria-live="polite"></div>
         </div>
-
-        <div id="majorTrendHint" class="major-trend-hint is-soft ln-heat-summary-row" aria-live="polite"></div>
       </section>
       </div>
     </section>
@@ -177,9 +187,9 @@
     </section>
 
     <section class="data-note">
-      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.20.5｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
+      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取承诺，只用于家庭讨论和人工复核。<br>版本：v3.9.20.6｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目
     </section>
   </main>
-  <script type="module" src="./js/app.v3920_5.js?v=3920_5"></script>
+  <script type="module" src="./js/app.v3920_6.js?v=3920_6"></script>
 </body>
 </html>

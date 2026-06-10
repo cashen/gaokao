@@ -4,34 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>辽宁 2026 物理类自选专业整理与方案解读</title>
-  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/base.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/layout.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/forms.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/chips.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/cards.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/review-checklist.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/selection-workspace.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/selection-report-actions.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/components/selection-analysis.css?v=3920_5" />
-  <link rel="stylesheet" href="./css/pages/selection-pool.css?v=3920_5" />
+  <link rel="stylesheet" href="./css/core/tokens.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/base.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/layout.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/core/responsive.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/forms.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/buttons.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/chips.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/cards.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/control-panel.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/bottomline.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/rank-band.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/review-checklist.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-workspace.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-report-actions.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-analysis.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/pages/selection-pool.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/page-visual-contract.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/selection-flow-human.css?v=3920_6" />
+  <link rel="stylesheet" href="./css/components/report-action-human.css?v=3920_6" />
 </head>
 <body>
   <main class="page ln-selection-page">
     <header class="hero">
       <div>
         <p class="eyebrow">辽宁 2026 物理类专业初选</p>
-        <h1 class="app-title">我的自选专业</h1>
-        <p class="app-subtitle">把搜索页里看中的“学校+专业”放到这里，再统一排序、复核、检查方案结构，并生成清单版报告。系统会先按当前考生成绩重新计算分差、位次差和建议位置。</p>
+        <h1 class="app-title">整理自选专业</h1>
+        <p class="app-subtitle">先把感兴趣的专业放在一起，再检查分段、地区、专业方向和特殊项目，最后生成家庭讨论报告。</p>
       </div>
       <div class="hero-badges">
         <a class="scope-pill" href="./index.html">返回查询页</a>
-        <div class="scope-pill">自选专业整理与报告</div>
+        <div class="scope-pill">家庭方案整理台</div>
       </div>
     </header>
 
@@ -45,8 +48,8 @@
         <div class="workspace-head ln-selection-panel-head">
           <div>
             <div class="ln-step-marker">第二步</div>
-            <h2 class="workspace-title">整理自选专业顺序</h2>
-            <p class="workspace-desc">把更想去、也愿意认真核验的专业放在前面；明显不能接受的专业建议删除。手机端优先使用上移、下移和“移到第…”按钮。</p>
+            <h2 class="workspace-title">整理已选专业</h2>
+            <p class="workspace-desc">把更想认真讨论、也愿意逐条复核的专业放在前面；明显不能接受的专业建议删除。</p>
           </div>
           <div class="workspace-actions workspace-actions-list ln-selection-list-actions">
             <a class="workspace-button muted" href="./index.html">返回查询页继续添加</a>
@@ -65,18 +68,18 @@
           <div class="workspace-head ln-selection-panel-head ln-action-panel-head">
             <div>
               <div class="ln-step-marker">第三步</div>
-              <h2 class="workspace-title">检查并生成报告</h2>
-              <p class="workspace-desc">操作按钮固定在这里。检查结果会显示在下方“方案解读结果”，不会再把报告按钮挤到看不见的位置。</p>
+              <h2 class="workspace-title">检查这套方案，再生成报告</h2>
+              <p class="workspace-desc">建议先检查方案结构，再生成解读版或清单版报告。</p>
             </div>
           </div>
           <div id="selectionActionHint"></div>
           <div class="workspace-actions ln-action-button-grid">
             <button id="runAnalysis" class="workspace-button primary">检查这套方案</button>
+            <button id="sendAnalyzedPool" class="workspace-button report-primary">生成解读版报告</button>
             <button id="sendSelectionPool" class="workspace-button">生成清单版报告</button>
-            <button id="sendAnalyzedPool" class="workspace-button">生成解读版报告</button>
             <button id="copySelectionText" class="workspace-button muted">复制文字版报告</button>
           </div>
-          <div class="ln-report-help">清单版看“选了什么”；解读版看“结构、主要风险和调整建议”；飞书暂时不可用时，先复制文字版报告。</div>
+          <div class="ln-report-help">解读版看“结构、主要风险和调整建议”；清单版看“选了什么”；飞书暂时不可用时，先复制文字版报告。</div>
           <div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div>
         </section>
       </aside>
@@ -94,9 +97,9 @@
     </section>
 
     <section class="data-note">
-      当前自选专业清单与方案解读报告基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取预测。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.20.5｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目｜<a href="./major-trend-2025.html">查看热度变化参考</a>
+      当前自选专业清单与方案解读报告基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取预测。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.20.6｜数据口径：辽宁 2025 物理类｜专业热度参考：2024/2025 同校同专业普通项目｜<a href="./major-trend-2025.html">查看热度变化参考</a>
     </section>
   </main>
-  <script type="module" src="./js/selection-pool.v3920_5.js?v=3920_5"></script>
+  <script type="module" src="./js/selection-pool.v3920_6.js?v=3920_6"></script>
 </body>
 </html>
