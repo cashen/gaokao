@@ -51,7 +51,11 @@ function tags(record) {
 function keywordContextParts(data) {
   const q = data?.keywordQuery;
   if (!q?.rawKeywords?.length) return null;
-  const keywords = q.rawKeywords.map(k => escapeHtml(k)).join(' / ');
+  const rawKeywords = q.rawKeywords.map(k => String(k || '').trim()).filter(Boolean);
+  if (!rawKeywords.length) return null;
+  const visibleKeywords = rawKeywords.slice(0, 3);
+  const extraCount = Math.max(0, rawKeywords.length - visibleKeywords.length);
+  const keywords = rawKeywords.map(k => escapeHtml(k)).join(' / ');
   const s = data?.matchSummary || {};
   const summaryParts = [];
   if (s.exact) summaryParts.push(`精准匹配 ${fmt(s.exact)} 个`);
@@ -62,7 +66,7 @@ function keywordContextParts(data) {
   if (q.hasProjectKeyword) flags.push('包含项目属性搜索');
   if (q.hasIndustryKeyword) flags.push('包含行业路径搜索');
   if (Array.isArray(data.keywordWarnings)) flags.push(...data.keywordWarnings.filter(Boolean));
-  return { keywords, summaryParts, flags };
+  return { rawKeywords, visibleKeywords, extraCount, keywords, summaryParts, flags };
 }
 
 function buildSpecialProjectContext(specialMode, source = {}) {
@@ -86,12 +90,15 @@ function buildSpecialProjectContext(specialMode, source = {}) {
 function renderResultContextBar(data, group, state, specialMode) {
   const keyword = keywordContextParts(data);
   const special = buildSpecialProjectContext(specialMode, data?.source || {});
-  const currentLine = `当前：${escapeHtml(group.title || '当前分段')}｜${escapeHtml(group.rangeText || '输入分数后生成')}｜${escapeHtml(fmt(group.records?.length || 0))} 条`;
+  const bandTitle = escapeHtml(group.title || '当前分段');
+  const rangeText = escapeHtml(group.rangeText || '输入分数后生成');
+  const recordCount = escapeHtml(fmt(group.records?.length || 0));
+  const currentLine = `<span class="result-context-label">当前</span><strong class="result-context-band">${bandTitle}</strong><span class="result-context-range">${rangeText}</span><span class="result-context-count">${recordCount} 条</span>`;
   const keywordLine = keyword
-    ? `关键词：${keyword.keywords}｜按接近程度排序`
-    : '未限定专业关键词｜按当前条件查看';
+    ? `<span class="result-context-label">关键词</span><span class="result-context-terms">${keyword.visibleKeywords.map(escapeHtml).join(' / ')}${keyword.extraCount ? ' 等' : ''}</span><span class="result-context-sort">按接近程度排序</span>`
+    : `<span class="result-context-label">关键词</span><span class="result-context-terms">未限定专业方向</span><span class="result-context-sort">按当前条件查看</span>`;
   const keywordDetail = keyword
-    ? `<div class="result-context-detail-row"><b>关键词说明：</b>${keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量'}${keyword.flags.length ? `｜${keyword.flags.map(escapeHtml).join('；')}` : ''}<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>`
+    ? `<div class="result-context-detail-row"><b>关键词：</b>${keyword.keywords}<br><b>关键词说明：</b>${keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量'}${keyword.flags.length ? `｜${keyword.flags.map(escapeHtml).join('；')}` : ''}<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>`
     : `<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按分数区间、地区、学校和底线条件筛选。</div>`;
   return `<section class="result-context-bar result-context-${escapeHtml(special.tone)}" aria-label="结果说明">
     <div class="result-context-main">

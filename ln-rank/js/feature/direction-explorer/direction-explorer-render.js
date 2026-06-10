@@ -94,8 +94,10 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     const mode = existing ? 'has-keyword' : 'empty';
     lastMode = mode;
     if (applied?.visibleDirections?.length) {
+      const visible = applied.visibleDirections.slice(0, 4).join(' / ');
+      const suffix = applied.visibleDirections.length > 4 ? ' 等' : '';
       return `<div class="direction-entry is-applied" id="direction-explorer">
-        <div><b>已按方向小判断加入：</b><span>${escapeHtml(applied.visibleDirections.slice(0, 4).join(' / '))}</span></div>
+        <div><b>已加入方向：</b><span>${escapeHtml(visible)}${suffix}</span></div>
         <div class="direction-entry-actions"><button type="button" data-direction-open>调整</button><button type="button" data-direction-clear>清除</button></div>
       </div>`;
     }

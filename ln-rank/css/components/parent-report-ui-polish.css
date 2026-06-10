@@ -514,3 +514,39 @@
   .ln-new-parent-flow .ln-filter-panel .keyword-more-toggle { padding-inline: 9px !important; }
 }
 
+
+/* v3.9.23.2：Android 结果说明抗撑开。结果说明只是路标，不能挤压专业卡片。 */
+.result-context-main,
+.result-context-current,
+.result-context-keyword{
+  min-width:0!important;
+  max-width:100%!important;
+}
+.result-context-current,
+.result-context-keyword{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+.result-context-range,
+.result-context-terms{
+  min-width:0!important;
+  overflow-wrap:anywhere!important;
+}
+@media (max-width:760px){
+  .result-context-bar{padding:8px 10px!important;border-radius:14px!important;margin-bottom:8px!important;box-shadow:none!important;}
+  .result-context-main{font-size:12px!important;gap:5px 7px!important;align-items:flex-start!important;}
+  .result-context-current,.result-context-keyword{display:flex!important;flex:1 0 100%!important;flex-wrap:wrap!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.45!important;}
+  .result-context-current{font-size:12.2px!important;color:var(--band-near-text,#315F9A)!important;}
+  .result-context-keyword{font-size:11.8px!important;color:var(--text-secondary,#60706B)!important;}
+  .result-context-range{flex:1 0 100%!important;font-size:11.8px!important;}
+  .result-context-sort{display:none!important;}
+  .result-context-special{font-size:11px!important;padding:2px 7px!important;max-width:100%!important;white-space:normal!important;}
+  .result-context-more{font-size:11.5px!important;margin-left:auto!important;}
+  .ln-major-card .major-card-top{display:block!important;min-width:0!important;}
+  .ln-major-card .major-card-top>div{min-width:0!important;}
+  .ln-major-card .school,.ln-major-card .major{max-width:100%!important;overflow-wrap:anywhere!important;word-break:normal!important;}
+  .ln-major-card .major{display:block!important;}
+  .ln-major-card .status-badge,.ln-major-card .ln-band-pill{display:inline-flex!important;margin-top:8px!important;max-width:100%!important;}
+  .ln-major-card .match-trust-badge,.ln-major-card .special-project-badge{margin-top:5px!important;max-width:100%!important;white-space:normal!important;}
+}
