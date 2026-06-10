@@ -1,4 +1,4 @@
-import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3922';
+import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3922_1_1_1';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)

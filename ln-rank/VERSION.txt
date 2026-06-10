@@ -1,2 +1,1 @@
-v3.9.22-ln-rank-report-flow-qa-tighten-no-fenxi
-assetVersion=v3922
+v3.9.22.1-ln-rank-android-filter-panel-tighten-no-fenxi

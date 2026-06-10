@@ -1,10 +1,10 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3922';
-import { fmt } from '../../core/number-utils.js?v=3922';
-import { renderHistoryScore } from './history-score-render.js?v=3922';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3922';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3922';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3922';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3922';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3922_1';
+import { fmt } from '../../core/number-utils.js?v=3922_1';
+import { renderHistoryScore } from './history-score-render.js?v=3922_1';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3922_1';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3922_1';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3922_1';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3922_1';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {

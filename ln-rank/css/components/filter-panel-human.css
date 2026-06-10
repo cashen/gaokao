@@ -128,8 +128,7 @@
   .ln-filter-panel__summary-action { grid-template-columns: 1fr; padding: 10px; }
   .ln-filter-summary { font-size: 13px; min-height: auto; }
   .ln-filter-action .query-button { width: 100%; }
-  .keyword-preset-mount { overflow-x: auto; white-space: nowrap; display: flex !important; gap: 8px; padding-bottom: 4px; scrollbar-width: none; }
-  .keyword-preset-mount::-webkit-scrollbar { display: none; }
+  .keyword-preset-mount { display: block !important; overflow: visible; white-space: normal; padding-bottom: 0; }
   .keyword-preset-mount button, .keyword-preset-chip, .quick-chip { flex: 0 0 auto; }
   .ln-filter-assist-line,
   .ln-filter-panel .special-project-panel,
