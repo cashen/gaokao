@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.21.0",
-  "assetVersion": "v3921_0",
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
   "release": "post-exam-calm-color-and-band-contract-no-fenxi",
   "changes": [
     "搜索页建立整页视觉契约，统一区块圆角、输入高度、主按钮高度、chip 高度与轻提示样式。",

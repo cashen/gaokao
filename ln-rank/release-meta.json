@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.21.0",
-  "assetVersion": "v3921_0",
-  "release": "v3.9.21.0-ln-rank-report-first-parent-flow-baseline-no-fenxi",
-  "notes": "Report-first parent flow: search cards now use 放进报告/已放进报告, the selection page is positioned as 生成报告前确认, and Feishu report generation uses human-friendly success/failure and backup-copy language; UI keeps post-exam calm color system and band-card breathing link; no /fenxi directory included.",
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
+  "release": "v3.9.21.1-ln-rank-compact-result-context-bar-no-fenxi",
+  "notes": "Compact result context bar: current band, keyword explanation, and hidden special-project count are merged into one light explanatory bar. Detailed keyword counts and special-project explanation are folded behind 展开说明. The result cards and report-first flow remain unchanged; no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "report-first-parent-flow-baseline"
+  "label": "compact-result-context-bar"
 }

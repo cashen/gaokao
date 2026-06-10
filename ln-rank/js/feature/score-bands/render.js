@@ -1,5 +1,5 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js?v=3921_0';
-import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3921_0';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3921_1';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3921_1';
 
 const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {
@@ -114,11 +114,11 @@ export function renderResultBandSwitcher(state, onSelect) {
   }).join('');
   container.innerHTML = `
     <div class="result-band-nav-head">分段查看</div>
-    <div class="result-band-options" role="group" aria-label="切换结果区间">${buttons}</div>
-    <div class="result-assist-line result-current-line result-current-line-${escapeHtml(activeCopy.tone || activeKey)}">
-      <span class="result-assist-icon" aria-hidden="true">●</span>
-      <span>当前查看：<b>${escapeHtml(activeBand.title || '')}</b><span class="result-current-detail">｜${escapeHtml(safeRangeText(activeBand))}｜${escapeHtml(safeCount(activeBand))} 条</span>｜${escapeHtml(activeCopy.explain || activeBand.desc || '')}</span>
-    </div>`;
+    <div class="result-band-options" role="group" aria-label="切换结果区间">${buttons}</div>`;
+  container.dataset.currentBandTitle = activeBand.title || '';
+  container.dataset.currentBandRange = safeRangeText(activeBand);
+  container.dataset.currentBandCount = String(safeCount(activeBand));
+  container.dataset.currentBandExplain = activeCopy.explain || activeBand.desc || '';
   container.querySelectorAll('[data-result-band]').forEach((button) => {
     button.addEventListener('click', () => {
       const key = button.dataset.resultBand;

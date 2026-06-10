@@ -1,4 +1,4 @@
-/* v3.9.21.0 报告操作层级：先检查，再报告 */
+/* v3.9.21.1 报告操作层级：先检查，再报告 */
 .ln-action-button-grid { display: grid; gap: 10px; }
 .ln-action-button-grid #runAnalysis {
   background: var(--ln-green) !important;

@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.21.0",
-  "assetVersion": "v3921_0",
-  "release": "v3.9.21.0-ln-rank-report-first-parent-flow-baseline-no-fenxi",
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
+  "release": "v3.9.21.1-ln-rank-report-first-parent-flow-baseline-no-fenxi",
   "changes": [
     "搜索结果按钮改为“放进报告 / 已放进报告”。",
     "搜索页浮层改为“已选 X 个专业｜生成报告”。",

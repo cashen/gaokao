@@ -1,9 +1,9 @@
-import { fmt } from '../../core/number-utils.js?v=3921_0';
-import { renderHistoryScore } from './history-score-render.js?v=3921_0';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3921_0';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3921_0';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3921_0';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3921_0';
+import { fmt } from '../../core/number-utils.js?v=3921_1';
+import { renderHistoryScore } from './history-score-render.js?v=3921_1';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3921_1';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3921_1';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3921_1';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3921_1';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -47,24 +47,63 @@ function tags(record) {
   return [...new Set(arr.filter(Boolean))].slice(0, 6);
 }
 
-function renderKeywordSummary(data) {
+function keywordContextParts(data) {
   const q = data?.keywordQuery;
-  if (!q?.rawKeywords?.length) return '';
-  const chips = q.rawKeywords.map(k => `<span class="keyword-chip">${escapeHtml(k)}</span>`).join('');
-  const project = q.hasProjectKeyword ? '<span class="muted">已启用项目属性搜索</span>' : '';
-  const industry = q.hasIndustryKeyword ? '<span class="muted">已启用行业路径搜索</span>' : '';
-  const warnings = Array.isArray(data.keywordWarnings) && data.keywordWarnings.length
-    ? `<span class="muted">${data.keywordWarnings.map(escapeHtml).join('；')}</span>`
-    : '';
+  if (!q?.rawKeywords?.length) return null;
+  const keywords = q.rawKeywords.map(k => escapeHtml(k)).join(' / ');
   const s = data?.matchSummary || {};
   const summaryParts = [];
-  if (s.exact) summaryParts.push(`精准匹配 ${s.exact} 个`);
-  if (s.related) summaryParts.push(`相关方向 ${s.related} 个`);
-  if (s.industry) summaryParts.push(`行业关联 ${s.industry} 个`);
-  if (s.project) summaryParts.push(`项目属性 ${s.project} 个`);
-  if (s.weak) summaryParts.push(`弱关联 ${s.weak} 个`);
-  const matchSummary = summaryParts.length ? `<span class="keyword-match-summary">${summaryParts.map(escapeHtml).join('｜')}</span>` : '';
-  return `<div class="keyword-summary"><span>当前关键词：</span>${chips}<span class="muted">已按关系远近排序</span>${matchSummary}${project}${industry}${warnings}<div class="match-copy-help">提示：精准匹配最接近你的关键词；相关方向可以一起参考；行业关联需要再看具体专业是否真的接受。中外、高收费等属于项目或招生属性，不是专业名。</div></div>`;
+  if (s.exact) summaryParts.push(`精准匹配 ${fmt(s.exact)} 个`);
+  if (s.related) summaryParts.push(`相关方向 ${fmt(s.related)} 个`);
+  if (s.industry) summaryParts.push(`行业关联 ${fmt(s.industry)} 个`);
+  if (s.project) summaryParts.push(`项目属性 ${fmt(s.project)} 个`);
+  const flags = [];
+  if (q.hasProjectKeyword) flags.push('包含项目属性搜索');
+  if (q.hasIndustryKeyword) flags.push('包含行业路径搜索');
+  if (Array.isArray(data.keywordWarnings)) flags.push(...data.keywordWarnings.filter(Boolean));
+  return { keywords, summaryParts, flags };
+}
+
+function buildSpecialProjectContext(specialMode, source = {}) {
+  const hidden = Number(source?.specialProjectHidden || source?.specialProjectStats?.hidden || 0);
+  if (specialMode === SPECIAL_PROJECT_SHOW_MODE) {
+    return {
+      tone: 'showing',
+      short: '特殊项目已显示',
+      action: '继续隐藏',
+      detail: '专项、定向、预科等需要单独确认资格、服务年限、费用和校区，不能按普通专业简单比较。'
+    };
+  }
+  return {
+    tone: 'hidden',
+    short: hidden ? `已隐藏特殊项目 ${fmt(hidden)} 条` : '特殊项目默认隐藏',
+    action: '显示',
+    detail: '专项、定向、预科等通常需要资格、服务年限或费用确认，普通家庭默认先看常规专业。'
+  };
+}
+
+function renderResultContextBar(data, group, state, specialMode) {
+  const keyword = keywordContextParts(data);
+  const special = buildSpecialProjectContext(specialMode, data?.source || {});
+  const currentLine = `当前：${escapeHtml(group.title || '当前分段')}｜${escapeHtml(group.rangeText || '输入分数后生成')}｜${escapeHtml(fmt(group.records?.length || 0))} 条`;
+  const keywordLine = keyword
+    ? `关键词：${keyword.keywords}｜按接近程度排序`
+    : '未限定专业关键词｜按当前条件查看';
+  const keywordDetail = keyword
+    ? `<div class="result-context-detail-row"><b>关键词说明：</b>${keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量'}${keyword.flags.length ? `｜${keyword.flags.map(escapeHtml).join('；')}` : ''}<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>`
+    : `<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按分数区间、地区、学校和底线条件筛选。</div>`;
+  return `<section class="result-context-bar result-context-${escapeHtml(special.tone)}" aria-label="结果说明">
+    <div class="result-context-main">
+      <span class="result-context-current">${currentLine}</span>
+      <span class="result-context-keyword">${keywordLine}</span>
+      <span class="result-context-special">${escapeHtml(special.short)} <button type="button" class="result-context-link" data-context-special-toggle>${escapeHtml(special.action)}</button></span>
+      <button type="button" class="result-context-more" data-result-context-toggle aria-expanded="false">展开说明</button>
+    </div>
+    <div class="result-context-details" hidden>
+      ${keywordDetail}
+      <div class="result-context-detail-row"><b>特殊项目：</b>${escapeHtml(special.detail)}</div>
+    </div>
+  </section>`;
 }
 function renderSearchAdvices(data) {
   const advices = data?.searchAdvices || [];
@@ -206,19 +245,33 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const bottomLine = data.meta?.bottomLine || null;
   const bottomLineMode = data.meta?.bottomLineMode || 'all';
   const excluded = Number(data.source?.bottomLineExcluded || 0);
-  const keywordSummary = renderKeywordSummary(data);
   const searchAdvices = renderSearchAdvices(data);
   const bottomLineNote = bottomLine && bottomLineMode !== 'all'
     ? `<div class="results-bottomline-note result-assist-line"><span class="result-assist-icon" aria-hidden="true">◇</span><span>当前办学性质底线：<b>${escapeHtml(bottomLine.label || '')}</b>。${escapeHtml(bottomLine.help || '')}${excluded ? ` 本轮按该底线排除 ${fmt(excluded)} 条不符合条件的记录。` : ''}</span></div>`
     : '';
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
-  const specialNoteText = specialProjectResultNote(specialMode, data.source || {});
-  const specialProjectNote = specialNoteText ? `<div class="results-special-project-note result-assist-line ${specialMode === SPECIAL_PROJECT_SHOW_MODE ? 'is-showing' : ''}"><span class="result-assist-icon" aria-hidden="true">◎</span><span>${escapeHtml(specialNoteText)}</span></div>` : '';
+  const resultContextBar = renderResultContextBar(data, group, state, specialMode);
   root.className = 'results-grid';
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
     : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
-  root.innerHTML = '<div class="result-report-soft-hint">看到合适的专业，可以先放进报告，最后生成一份给家里讨论。</div>' + keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
+  root.innerHTML = '<div class="result-report-soft-hint">看到合适的专业，可以先放进报告，最后生成一份给家里讨论。</div>' + resultContextBar + searchAdvices + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
+  root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
+    button.addEventListener('click', () => {
+      const bar = button.closest('.result-context-bar');
+      const detail = bar?.querySelector('.result-context-details');
+      const open = detail?.hidden;
+      if (!detail) return;
+      detail.hidden = !open;
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.textContent = open ? '收起说明' : '展开说明';
+    });
+  });
+  root.querySelectorAll('[data-context-special-toggle]').forEach(button => {
+    button.addEventListener('click', () => {
+      document.getElementById('specialProjectToggle')?.click?.();
+    });
+  });
   mountDiagnoseButtons(root, shown, state);
   root.querySelectorAll('[data-pool-index]').forEach(button => {
     button.addEventListener('click', () => {

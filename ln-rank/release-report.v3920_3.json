@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.21.0",
-  "assetVersion": "v3921_0",
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
   "completed": [
     "PC 搜索右侧只保留当前条件和主按钮",
     "方向热度提醒移出右侧窄栏，改为全宽摘要行",
