@@ -1,13 +1,13 @@
 {
-  "version": "v3.9.25",
-  "assetVersion": "v3925",
-  "release": "v3.9.25-ln-rank-control-console-contract-no-fenxi",
-  "name": "v3.9.25-ln-rank-control-console-contract-no-fenxi",
-  "label": "control-console-contract",
+  "version": "v3.9.26",
+  "assetVersion": "v3926",
+  "release": "v3.9.26-ln-rank-console-alignment-contract-no-fenxi",
+  "name": "v3.9.26-ln-rank-console-alignment-contract-no-fenxi",
+  "label": "console-alignment-contract",
   "notes": [
-    "顶部控制区从三列改为两列：只承载分数和查看范围，避免 PC 宽度临界时被长说明撑开",
-    "范围说明归属到范围按钮内部，改为“怎么看这三种范围”折叠说明，Android 默认隐藏长说明",
-    "新增 css/components/control-console-contract.css，集中管理 topbar/range/range-help 的最终布局规则",
+    "顶部控制区建立对齐合同：第一步/第二步标题顶线对齐，分数输入框和范围按钮顶线对齐",
+    "范围说明归属到第二步标题行，改为轻入口“怎么看”，默认不撑高右侧按钮区，Android 默认隐藏",
+    "更新 css/components/control-console-contract.css，集中管理 topbar/range-head/range-help 的最终布局规则",
     "保留 Android 三个范围按钮同时可见，Pad 窄屏自动单列，PC 一行优先不横向溢出",
     "保持 no-fenxi 边界，不新增账号、登录、云保存、缓存策略，不改算法"
   ],

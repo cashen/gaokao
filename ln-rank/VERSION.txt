@@ -1,1 +1,1 @@
-v3.9.25-ln-rank-control-console-contract-no-fenxi
+v3.9.26-ln-rank-console-alignment-contract-no-fenxi
