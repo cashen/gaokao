@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.20.7",
-  "assetVersion": "v3920_7",
-  "release": "result-and-card-visual-contract-no-fenxi",
+  "version": "v3.9.20.8",
+  "assetVersion": "v3920_8",
+  "release": "post-exam-calm-color-and-band-contract-no-fenxi",
   "changes": [
     "搜索页建立整页视觉契约，统一区块圆角、输入高度、主按钮高度、chip 高度与轻提示样式。",
     "筛选区重排为家长查询卡：专业方向优先，地区/学校为辅助条件，当前查看摘要与主按钮集中，特殊项目/热度变轻提示。",

@@ -1,0 +1,46 @@
+/* v3.9.20.8 考后松弛色系：暖白底 + 语义分段色 + 少量品牌青绿 */
+:root {
+  --page-bg: #F8FAF7;
+  --surface: #FFFFFF;
+  --surface-soft: #FBFCF8;
+  --surface-warm: #FFFDF8;
+  --line-soft: #DDE7E2;
+  --line-strong: #C7D8D1;
+
+  --text-main: #24312E;
+  --text-secondary: #60706B;
+  --text-muted: #8A9892;
+
+  --brand: #2F7D6D;
+  --brand-dark: #256758;
+  --brand-soft: #EAF5F1;
+  --brand-border: #BFDCD3;
+
+  --band-upper-text: #8A5A16;
+  --band-upper-bg: #FFF6E8;
+  --band-upper-border: #E8C98F;
+
+  --band-near-text: #315F9A;
+  --band-near-bg: #EEF5FF;
+  --band-near-border: #C8DAF5;
+
+  --band-steady-text: #2F7D6D;
+  --band-steady-bg: #EDF8F3;
+  --band-steady-border: #BFDCD3;
+
+  --special-text: #5B5E83;
+  --special-bg: #F4F3FA;
+  --special-border: #D9D7EE;
+
+  --heat-text: #3F668C;
+  --heat-bg: #F0F7FC;
+  --heat-border: #CDE2F1;
+
+  --fee-text: #8A5A16;
+  --fee-bg: #FFF7EA;
+  --fee-border: #EAD19D;
+
+  --tag-neutral-text: #53615D;
+  --tag-neutral-bg: #F4F7F5;
+  --tag-neutral-border: #DCE6E1;
+}

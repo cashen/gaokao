@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.7",
-  "assetVersion": "v3920_7",
-  "release": "v3.9.20.7-ln-rank-result-and-card-visual-contract-no-fenxi",
-  "notes": "Result section visual contract: compresses current-view into slim assist rows, turns three result bands into segment tabs, and makes major cards faster to scan across PC/Pad/Android; no /fenxi directory included.",
+  "version": "v3.9.20.8",
+  "assetVersion": "v3920_8",
+  "release": "v3.9.20.8-ln-rank-post-exam-calm-color-and-band-contract-no-fenxi",
+  "notes": "Post-exam calm visual system: reduces full-page green, adds warm white + semantic band colors, and changes Android result band selector to three visible choices instead of a single horizontal card; no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "result-and-card-visual-contract"
+  "label": "post-exam-calm-color-and-band-contract"
 }

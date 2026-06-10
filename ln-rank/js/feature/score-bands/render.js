@@ -1,5 +1,5 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_7';
-import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_7';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3920_8';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3920_8';
 
 const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {
@@ -106,7 +106,7 @@ export function renderResultBandSwitcher(state, onSelect) {
     const band = bands[key] || normalizeScoreBand({}, { key, candidateScore: state?.candidateScore, rangePreset: state?.rangePreset });
     const copy = BAND_COPY[key] || {};
     const active = activeKey === key;
-    return `<button type="button" class="result-band-option result-band-${escapeHtml(copy.tone || key)}${active ? ' is-active' : ''}" data-result-band="${escapeHtml(key)}" aria-pressed="${active ? 'true' : 'false'}">
+    return `<button type="button" class="result-band-option result-band-${escapeHtml(copy.tone || key)} is-band-${escapeHtml(key)}${active ? ' is-active' : ''}" data-result-band="${escapeHtml(key)}" aria-pressed="${active ? 'true' : 'false'}">
       <span class="result-band-title">${escapeHtml(band.title || '')}</span>
       <span class="result-band-meta">${escapeHtml(safeRangeText(band))}｜${escapeHtml(safeCount(band))} 条</span>
       <span class="result-band-state">${active ? '当前查看' : escapeHtml(copy.short || '切换查看')}</span>
@@ -117,7 +117,7 @@ export function renderResultBandSwitcher(state, onSelect) {
     <div class="result-band-options" role="group" aria-label="切换结果区间">${buttons}</div>
     <div class="result-assist-line result-current-line result-current-line-${escapeHtml(activeCopy.tone || activeKey)}">
       <span class="result-assist-icon" aria-hidden="true">●</span>
-      <span>当前查看：<b>${escapeHtml(activeBand.title || '')}</b>｜${escapeHtml(activeCopy.explain || activeBand.desc || '')}</span>
+      <span>当前查看：<b>${escapeHtml(activeBand.title || '')}</b><span class="result-current-detail">｜${escapeHtml(safeRangeText(activeBand))}｜${escapeHtml(safeCount(activeBand))} 条</span>｜${escapeHtml(activeCopy.explain || activeBand.desc || '')}</span>
     </div>`;
   container.querySelectorAll('[data-result-band]').forEach((button) => {
     button.addEventListener('click', () => {

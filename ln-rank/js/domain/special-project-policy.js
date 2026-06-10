@@ -1,4 +1,4 @@
-// v3.9.20.7 前端特殊项目策略：UI 文案、状态和卡片提示统一出口。
+// v3.9.20.8 前端特殊项目策略：UI 文案、状态和卡片提示统一出口。
 export const SPECIAL_PROJECT_HIDE_MODE = 'hide_eligibility_projects';
 export const SPECIAL_PROJECT_SHOW_MODE = 'show_eligibility_projects';
 export const SPECIAL_PROJECT_STORAGE_KEY = 'lnRank.specialProjectMode.current';

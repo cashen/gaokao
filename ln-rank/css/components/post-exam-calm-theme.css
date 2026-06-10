@@ -1,0 +1,152 @@
+/* v3.9.20.8 考后家庭讨论气质：降低全页绿色占比，统一暖白/中性/语义色 */
+html, body {
+  background: var(--page-bg) !important;
+  color: var(--text-main) !important;
+}
+body::before,
+body::after { opacity: .42 !important; }
+.panel,
+.ln-filter-panel,
+.ln-result-section,
+.major-card,
+.selection-card,
+.selection-workspace-card,
+.report-action-card {
+  background: var(--surface) !important;
+  border-color: var(--line-soft) !important;
+  box-shadow: 0 12px 32px rgba(36,49,46,.045) !important;
+}
+.ln-result-section {
+  background: linear-gradient(180deg, var(--surface-soft), var(--surface)) !important;
+}
+.page-title,
+.hero-title,
+.results-title,
+.section-title,
+.ln-filter-panel__head h2,
+.selection-hero h1,
+.selection-card h2,
+.school {
+  color: var(--text-main) !important;
+}
+.hero-subtitle,
+.results-meta,
+.muted,
+.filter-action-note,
+.ln-filter-panel__head p,
+.data-note {
+  color: var(--text-secondary) !important;
+}
+.query-button,
+.primary-button,
+.feishu-main-button,
+.pool-add-button {
+  background: var(--brand) !important;
+  color: #fff !important;
+  border-color: var(--brand-dark) !important;
+  box-shadow: 0 10px 22px rgba(47,125,109,.12) !important;
+}
+.feishu-main-button,
+.pool-add-button {
+  background: var(--surface) !important;
+  color: var(--brand-dark) !important;
+  border-color: var(--brand-border) !important;
+}
+.query-button.is-waiting,
+.query-button:disabled {
+  background: var(--tag-neutral-bg) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--line-soft) !important;
+  box-shadow: none !important;
+}
+input, select, textarea,
+.control-input, .filter-input {
+  background: var(--surface) !important;
+  border-color: var(--line-soft) !important;
+  color: var(--text-main) !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand-border) !important;
+  box-shadow: 0 0 0 3px rgba(47,125,109,.10) !important;
+}
+.ln-filter-assist-line,
+.result-assist-line,
+.results-bottomline-note {
+  background: var(--surface-soft) !important;
+  border-color: var(--line-soft) !important;
+  color: var(--text-secondary) !important;
+}
+.special-project-panel,
+.results-special-project-note {
+  background: var(--special-bg) !important;
+  border-color: var(--special-border) !important;
+  color: var(--special-text) !important;
+}
+.special-project-title,
+.special-project-status,
+.special-project-toggle,
+.results-special-project-note b {
+  color: var(--special-text) !important;
+}
+.major-trend-hint,
+.ln-heat-summary-row {
+  background: var(--heat-bg) !important;
+  border-color: var(--heat-border) !important;
+  color: var(--heat-text) !important;
+}
+.school-tag,
+.match-trust-badge,
+.special-project-badge {
+  background: var(--tag-neutral-bg) !important;
+  border: 1px solid var(--tag-neutral-border) !important;
+  color: var(--tag-neutral-text) !important;
+}
+.school-tag:where([data-tag*='公办'], .tag-public, .is-public) {
+  background: var(--band-steady-bg) !important;
+  border-color: var(--band-steady-border) !important;
+  color: var(--band-steady-text) !important;
+}
+.school-tag:where([data-tag*='辽宁'], [data-tag*='大连'], [data-tag*='沈阳'], .tag-region) {
+  background: var(--heat-bg) !important;
+  border-color: var(--heat-border) !important;
+  color: var(--heat-text) !important;
+}
+.school-tag:where([data-tag*='费用'], [data-tag*='中外'], [data-tag*='高收费'], .tag-fee) {
+  background: var(--fee-bg) !important;
+  border-color: var(--fee-border) !important;
+  color: var(--fee-text) !important;
+}
+.special-project-badge,
+.special-project-alert {
+  background: var(--special-bg) !important;
+  border-color: var(--special-border) !important;
+  color: var(--special-text) !important;
+}
+.ln-major-card .meta-pill strong,
+.ln-major-card .meta-pill b {
+  color: var(--brand-dark) !important;
+}
+.ln-major-card .history-score {
+  background: var(--surface-soft) !important;
+  border-color: var(--line-soft) !important;
+}
+.pool-result-sticky-bar,
+.pool-entry-action-toast {
+  background: var(--surface) !important;
+  border-color: var(--line-soft) !important;
+  color: var(--text-main) !important;
+}
+.selection-summary-card .summary-pill.is-upper,
+.summary-pill.is-upper { background: var(--band-upper-bg) !important; border-color: var(--band-upper-border) !important; color: var(--band-upper-text) !important; }
+.selection-summary-card .summary-pill.is-near,
+.summary-pill.is-near { background: var(--band-near-bg) !important; border-color: var(--band-near-border) !important; color: var(--band-near-text) !important; }
+.selection-summary-card .summary-pill.is-steady,
+.summary-pill.is-steady { background: var(--band-steady-bg) !important; border-color: var(--band-steady-border) !important; color: var(--band-steady-text) !important; }
+@media (max-width: 760px) {
+  .panel,
+  .ln-filter-panel,
+  .ln-result-section {
+    box-shadow: 0 8px 22px rgba(36,49,46,.04) !important;
+  }
+  .result-band-nav-head { color: var(--text-secondary) !important; }
+}

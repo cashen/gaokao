@@ -1,10 +1,10 @@
 {
-  "version": "v3.9.20.7",
-  "assetVersion": "v3920_7",
+  "version": "v3.9.20.8",
+  "assetVersion": "v3920_8",
   "entries": {
-    "search": "js/app.v3920_7.js",
-    "selectionPool": "js/selection-pool.v3920_7.js",
-    "majorTrend": "js/major-trend-render.v3920_7.js",
-    "selfCheck": "js/self-check.v3920_7.js"
+    "search": "js/app.v3920_8.js",
+    "selectionPool": "js/selection-pool.v3920_8.js",
+    "majorTrend": "js/major-trend-render.v3920_8.js",
+    "selfCheck": "js/self-check.v3920_8.js"
   }
 }

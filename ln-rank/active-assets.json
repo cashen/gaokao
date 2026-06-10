@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.20.7",
-  "assetVersion": "v3920_7",
+  "version": "v3.9.20.8",
+  "assetVersion": "v3920_8",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,13 +8,14 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3920_7.js",
-    "js/selection-pool.v3920_7.js",
-    "js/major-trend-render.v3920_7.js",
-    "js/self-check.v3920_7.js"
+    "js/app.v3920_8.js",
+    "js/selection-pool.v3920_8.js",
+    "js/major-trend-render.v3920_8.js",
+    "js/self-check.v3920_8.js"
   ],
   "cssEntry": [
     "css/core/tokens.css",
+    "css/core/color-system.css",
     "css/core/base.css",
     "css/core/layout.css",
     "css/core/responsive.css",
@@ -43,7 +44,9 @@
     "css/components/selection-flow-human.css",
     "css/components/report-action-human.css",
     "css/components/result-section-contract.css",
-    "css/components/major-card-contract.css"
+    "css/components/band-selector-contract.css",
+    "css/components/major-card-contract.css",
+    "css/components/post-exam-calm-theme.css"
   ],
   "stableModules": [
     "js/domain/range-policy.js",

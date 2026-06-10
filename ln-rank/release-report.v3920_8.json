@@ -1,0 +1,19 @@
+{
+  "version": "v3.9.20.8",
+  "assetVersion": "v3920_8",
+  "release": "v3.9.20.8-ln-rank-post-exam-calm-color-and-band-contract-no-fenxi",
+  "summary": [
+    "建立考后松弛色系：暖白底、深灰绿文字、柔和青绿主色、淡蓝/杏色/淡紫语义提示。",
+    "Android 结果分段从横向单卡改为三等分按钮，三个入口同时可见。",
+    "三段语义色统一：稍高目标=杏色，主要参考=柔和蓝，稳妥补充=浅青绿。",
+    "特殊项目、方向热度、费用复核不再使用强警告色，改成温和提示色。",
+    "搜索页、结果区、自选页共享同一套 color-system token。"
+  ],
+  "checks": {
+    "noFenxiDirectory": true,
+    "noFunctionsFenxiDirectory": true,
+    "noMiddleware": true,
+    "androidBandThreeVisible": true,
+    "greenOveruseReduced": true
+  }
+}
