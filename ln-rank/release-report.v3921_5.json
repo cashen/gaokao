@@ -1,0 +1,13 @@
+{
+  "version": "v3.9.21.5",
+  "assetVersion": "v3921_5",
+  "release": "v3.9.21.5-ln-rank-major-trend-import-barrel-fix-no-fenxi",
+  "focus": "修复 major-trend-2025 趋势模块 barrel export 冲突导致页面空白",
+  "checks": [
+    "trend/index.js 使用显式导出，不再 export *",
+    "MAJOR_TREND_DATA 只由 index.js 从 data.js 显式导出一次",
+    "trend 内部 import 统一 v3921_5",
+    "major-trend-render.v3921_5.js 语法通过",
+    "不包含 /fenxi/、functions/fenxi/、functions/_middleware.js"
+  ]
+}
