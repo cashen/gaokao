@@ -1,8 +1,9 @@
-import { fmt } from '../../core/number-utils.js?v=3920_3';
-import { renderHistoryScore } from './history-score-render.js?v=3920_3';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_3';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_3';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_3';
+import { fmt } from '../../core/number-utils.js?v=3920_4';
+import { renderHistoryScore } from './history-score-render.js?v=3920_4';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_4';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_4';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_4';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_4';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -74,6 +75,20 @@ function matchReason(record) {
   return `<div class="match-reason">命中原因：${escapeHtml(reason).replace(/^命中原因：/, '')}</div>`;
 }
 
+function renderSpecialProjectBadge(record) {
+  const label = specialProjectCardBadge(record);
+  return label ? `<span class="special-project-badge">${escapeHtml(label)}｜需资格核验</span>` : '';
+}
+
+function renderSpecialProjectAlert(record) {
+  const info = record.specialProject || {};
+  if (!info.hasSpecialProject) return '';
+  const review = Array.isArray(info.reviewPoints) && info.reviewPoints.length
+    ? info.reviewPoints.slice(0, 2).join('；')
+    : '请核验报考资格、招生批次和 2026 年招生计划备注。';
+  return `<div class="special-project-alert"><b>特殊项目提醒：</b>${escapeHtml(info.labelText || info.primaryLabel || '特殊项目')}不能按普通专业简单参考，${escapeHtml(review)}</div>`;
+}
+
 
 function reviewSummary(record, points) {
   const text = [record.major, record.school, record.matchReason, ...(Array.isArray(record.flags) ? record.flags : []), ...points].join(' ');
@@ -117,7 +132,7 @@ function card(record, index = 0, selectionPool = null) {
   const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${escapeHtml(t)}</span>`).join('');
   return `<article class="major-card status-${statusKey}">
     <div class="major-card-top">
-      <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}</div></div>
+      <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
       <span class="status-badge">${escapeHtml(safe(record.statusLabel))}</span>
     </div>
     <div class="meta-pills">
@@ -131,6 +146,7 @@ function card(record, index = 0, selectionPool = null) {
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
     ${renderMajorCode(record)}
     ${matchReason(record)}
+    ${renderSpecialProjectAlert(record)}
     ${renderReviewPoints(record)}
     <div class="major-card-actions">
       ${poolButton(record, index, selectionPool)}
@@ -179,11 +195,14 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const bottomLineNote = bottomLine && bottomLineMode !== 'all'
     ? `<div class="results-bottomline-note">当前办学性质底线：<b>${escapeHtml(bottomLine.label || '')}</b>。${escapeHtml(bottomLine.help || '')}${excluded ? ` 本轮按该底线排除 ${fmt(excluded)} 条不符合条件的记录。` : ''}</div>`
     : '';
+  const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
+  const specialNoteText = specialProjectResultNote(specialMode, data.source || {});
+  const specialProjectNote = specialNoteText ? `<div class="results-special-project-note ${specialMode === SPECIAL_PROJECT_SHOW_MODE ? 'is-showing' : ''}">${escapeHtml(specialNoteText)}</div>` : '';
   root.className = 'results-grid';
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
     : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
-  root.innerHTML = keywordSummary + searchAdvices + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool)).join('') : emptyReason);
+  root.innerHTML = keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool)).join('') : emptyReason);
   mountDiagnoseButtons(root, shown, state);
   root.querySelectorAll('[data-pool-index]').forEach(button => {
     button.addEventListener('click', () => {

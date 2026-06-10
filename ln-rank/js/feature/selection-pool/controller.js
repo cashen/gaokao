@@ -5,7 +5,7 @@ import {
   hasPoolItem,
   removePoolItem,
   movePoolItem
-} from './store.js?v=3920_3';
+} from './store.js?v=3920_4';
 
 let mounted = false;
 let latestState = null;

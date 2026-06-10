@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.3",
-  "assetVersion": "v3920_3",
-  "release": "v3.9.20.3-ln-rank-search-side-action-and-heat-layout-fix-no-fenxi",
-  "notes": "Search side action and heat layout fix: PC side panel keeps only current condition and primary action; heat reminder moves to a full-width summary row; Pad uses wide single-column flow; Android shows heat as a light expandable summary; no internal scrollbars in heat card.",
+  "version": "v3.9.20.4",
+  "assetVersion": "v3920_4",
+  "release": "v3.9.20.4-ln-rank-special-project-default-hide-baseline-no-fenxi",
+  "notes": "Special project default-hide baseline: eligibility projects such as高校专项、国家专项、地方专项、公费师范、优师专项、定向、民族班、预科、公安司法、航海轮机默认隐藏；用户可手动显示；结果、自选与报告保留资格复核提示；no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "search-side-action-and-heat-layout-fix"
+  "label": "special-project-default-hide-baseline"
 }

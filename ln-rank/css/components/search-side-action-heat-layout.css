@@ -1,4 +1,4 @@
-/* v3.9.20.3 search side action + heat layout fix
+/* v3.9.20.4 search side action + heat layout fix
    目标：操作区只放操作；热度解释不挤在 PC 右侧窄栏；Pad 单列；Android 摘要。 */
 
 .ln-new-parent-flow .search-workbench {

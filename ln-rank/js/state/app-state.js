@@ -7,7 +7,8 @@ export const state = {
     region: "all",
     schoolKeyword: "",
     majorKeyword: "",
-    bottomLineMode: "all"
+    bottomLineMode: "all",
+    specialProjectMode: "hide_eligibility_projects"
   },
   bands: {
     loading: false,

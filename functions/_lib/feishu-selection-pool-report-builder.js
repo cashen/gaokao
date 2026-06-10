@@ -55,7 +55,9 @@ function normalizeItems(items = []) {
       displayLocation: clean(item.displayLocation || item.geoEntity || '', 90),
       natureLabel: clean(item.natureLabel || item.nature || '', 60),
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 40)).filter(Boolean).slice(0, 8) : [],
-      flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
+      flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 100)).filter(Boolean).slice(0, 10) : [],
+      reviewPoints: Array.isArray(item.reviewPoints) ? item.reviewPoints.map(x => clean(x, 160)).filter(Boolean).slice(0, 8) : [],
+      specialProject: item.specialProject || null,
       codes: item.codes || {},
       standardMajor: item.standardMajor || {},
       poolBand,
@@ -101,10 +103,11 @@ function itemLine(item) {
   const score = Number.isFinite(Number(item.score2025)) ? `${fmt(item.score2025)} 分` : '分数待核验';
   const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
+  const special = item.specialProject?.hasSpecialProject ? `｜特殊项目：${item.specialProject.labelText || item.specialProject.primaryLabel || '需资格核验'}` : '';
   const sm = item.standardMajor || {};
   const campusText = item.campusReview?.displayTag ? `｜${item.campusReview.displayTag}` : '';
   const code = sm.code && sm.name ? `｜专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类：${sm.categoryCode}｜${sm.categoryName}` : '');
-  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}${campusText}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
+  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}${campusText}${special}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
 }
 
 function itemName(item) {

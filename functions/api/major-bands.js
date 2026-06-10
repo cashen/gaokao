@@ -12,6 +12,7 @@ import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
+import { normalizeSpecialProjectMode, detectSpecialProject, enrichSpecialProjectRecord, shouldHideSpecialProject, createSpecialProjectStats, addSpecialProjectStat, SPECIAL_PROJECT_COPY } from '../_lib/special-project-policy.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -99,7 +100,8 @@ export async function onRequest(context) {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
       majorKeyword: clean(url.searchParams.get('majorKeyword') || url.searchParams.get('majorName') || url.searchParams.get('keyword') || '', 160),
-      bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all')
+      bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all'),
+      specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects')
     };
 
     if (!Number.isFinite(candidateScore)) {
@@ -124,6 +126,9 @@ export async function onRequest(context) {
     let majorHitCount = 0;
     let projectHitCount = 0;
     let industryHitCount = 0;
+    const specialProjectStats = createSpecialProjectStats();
+    let specialProjectHidden = 0;
+    let specialProjectShown = 0;
     const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
     let failedChunk = '';
 
@@ -181,6 +186,21 @@ export async function onRequest(context) {
         const band = classifyBand(record.score, bandsMeta);
         if (!band) continue;
 
+        const specialProject = detectSpecialProject(record);
+        if (specialProject.hasSpecialProject && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode)) {
+          specialProjectHidden += 1;
+          grouped[band].scanned += 1;
+          addSpecialProjectStat(specialProjectStats, specialProject, band, 'hidden');
+          continue;
+        }
+        if (specialProject.hasSpecialProject) {
+          specialProjectShown += 1;
+          addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
+          Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
+        } else {
+          record.specialProject = specialProject;
+        }
+
         normalized += 1;
         if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
         if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
@@ -213,6 +233,13 @@ export async function onRequest(context) {
         candidateScore,
         rangePreset,
         bottomLineMode: filters.bottomLineMode,
+        specialProjectMode: filters.specialProjectMode,
+        specialProject: {
+          mode: filters.specialProjectMode,
+          hidden: specialProjectHidden,
+          shown: specialProjectShown,
+          copy: filters.specialProjectMode === 'show_eligibility_projects' ? SPECIAL_PROJECT_COPY.showLabel : SPECIAL_PROJECT_COPY.hideLabel
+        },
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁2025物理类',
         bands: bandsMeta,
@@ -237,6 +264,10 @@ export async function onRequest(context) {
         majorHitCount,
         projectHitCount,
         industryHitCount,
+        specialProjectHidden,
+        specialProjectShown,
+        specialProjectStats,
+        specialProjectMode: filters.specialProjectMode,
         mode: 'streaming-filtered-capped'
       }
     });

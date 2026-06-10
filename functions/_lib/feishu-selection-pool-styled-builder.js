@@ -115,6 +115,7 @@ function itemRuns(item) {
   const deltaStyle = styleForDelta(item.scoreDelta);
   const rankStyle = styleForRankGap(item.rankGap);
   const tags = shortTags(item);
+  const special = item.specialProject?.hasSpecialProject ? `特殊项目：${item.specialProject.labelText || item.specialProject.primaryLabel || '需资格核验'}` : '';
   return [
     { content: `第 ${item.order} 位｜`, style: STYLE.muted },
     { content: `${item.school || '学校待核验'} · ${item.major || '专业待核验'}`, style: STYLE.strong },
@@ -126,7 +127,8 @@ function itemRuns(item) {
     { content: '｜' },
     { content: rankGapText(item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
-    tags ? { content: `｜${tags}`, style: STYLE.muted } : null
+    tags ? { content: `｜${tags}`, style: STYLE.muted } : null,
+    special ? { content: `｜${special}`, style: STYLE.risk } : null
   ].filter(Boolean);
 }
 

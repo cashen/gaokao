@@ -1,0 +1,28 @@
+/* v3.9.20.4 特殊项目默认隐藏：搜索区轻状态条、结果提示与卡片标签。 */
+.special-project-panel{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid #e3eee8;
+  border-radius:16px;
+  background:#fbfdfb;
+  color:#40564f;
+  font-size:12.5px;
+  line-height:1.45;
+}
+.special-project-main{min-width:0;display:grid;gap:2px}.special-project-title{font-weight:950;color:#245f55}.special-project-status{font-weight:850}.special-project-help{color:#6a7b75;font-size:12px}.special-project-toggle{flex:0 0 auto;border:1px solid #cfe4da;background:#fff;color:#245f55;border-radius:999px;min-height:34px;padding:0 14px;font-weight:950;cursor:pointer}.special-project-toggle:hover{background:#f1faf6}.special-project-panel.is-showing{border-color:#f0d7a8;background:#fffaf0}.special-project-panel.is-showing .special-project-title{color:#8a5a05}.special-project-panel.is-showing .special-project-toggle{border-color:#ecc777;color:#7a4b00;background:#fff7df}
+.results-special-project-note{grid-column:1/-1;padding:10px 12px;border:1px solid #e5eee8;border-radius:16px;background:#fbfdfb;color:#435951;font-size:12.5px;line-height:1.55}.results-special-project-note.is-showing{border-color:#efd59a;background:#fff9ec;color:#68470b}.special-project-badge{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:3px 8px;border-radius:999px;background:#fff4db;color:#7a4b00;border:1px solid #efd39c;font-size:11px;font-weight:950;vertical-align:middle}.special-project-alert{margin-top:10px;padding:10px 12px;border-radius:16px;border:1px solid #efd59a;background:#fff9ec;color:#68470b;font-size:12.5px;line-height:1.5}.special-project-alert b{color:#7a4b00}
+@media (min-width:1181px){.ln-new-parent-flow .search-workbench{grid-template-areas:"head head" "top summary" "keyword action" "special special" "heat heat" !important}.ln-new-parent-flow .special-project-panel{grid-area:special!important}}
+@media (min-width:761px) and (max-width:1180px){.ln-new-parent-flow .special-project-panel{grid-area:special!important}}
+@media (max-width:760px){.special-project-panel{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 10px;font-size:11.8px}.special-project-help{display:none}.special-project-toggle{min-height:32px;padding:0 10px;font-size:12px}.results-special-project-note{font-size:11.8px;padding:9px 10px}}
+@media (min-width:761px) and (max-width:1180px){
+  .ln-new-parent-flow .search-workbench{grid-template-areas:"head" "top" "keyword" "special" "summary" "action" "heat" !important;}
+}
+@media (max-width:760px){
+  .ln-new-parent-flow .special-project-panel{order:3!important;}
+  .ln-new-parent-flow .filter-summary{order:4!important;}
+  .ln-new-parent-flow .search-workbench .filter-action{order:5!important;}
+  .ln-new-parent-flow .major-trend-hint,.ln-new-parent-flow .major-trend-hint.is-active,.ln-new-parent-flow .ln-heat-summary-row{order:6!important;}
+}
