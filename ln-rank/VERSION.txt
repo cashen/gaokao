@@ -1,1 +1,1 @@
-v3.9.24-ln-rank-ui-flow-contract-no-fenxi
+v3.9.25-ln-rank-control-console-contract-no-fenxi
