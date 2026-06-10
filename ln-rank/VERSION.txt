@@ -1,1 +1,1 @@
-v3.9.22.1-ln-rank-android-filter-panel-tighten-no-fenxi
+v3.9.23-ln-rank-direction-explorer-mvp-no-fenxi

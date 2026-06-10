@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA } from './data.js?v=3922_1_1';
+import { MAJOR_TREND_DATA } from './data.js?v=3923';
 
 const DIRECTION_LABELS = Object.fromEntries(MAJOR_TREND_DATA.directionCatalog.map(x => [x.id, x.label]));
 const NORMALIZE_RE = /[\s\u3000（）()【】\[\]·・,，、/|；;:+＋-]/g;

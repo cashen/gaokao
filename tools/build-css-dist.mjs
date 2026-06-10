@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3922_1';
+const assetVersion = process.argv[3] || '3923';
 const pages = [
   ['index.html', `css/dist/ln-rank-main.v${assetVersion}.css`],
   ['selection-pool.html', `css/dist/ln-rank-selection.v${assetVersion}.css`],
@@ -27,6 +27,16 @@ function loadSourceFallback() {
 
 const fallbackPages = loadSourceFallback();
 const fallbackByHtml = new Map(fallbackPages.map(page => [page.html, Array.isArray(page.sources) ? page.sources : []]));
+
+function withExtraSources(htmlName, sources) {
+  const list = [...sources];
+  const extra = [];
+  if (htmlName === 'index.html' || htmlName === 'selection-pool.html') extra.push('css/components/direction-explorer.css');
+  for (const rel of extra) {
+    if (fs.existsSync(path.join(projectRoot, rel)) && !list.includes(rel)) list.push(rel);
+  }
+  return list;
+}
 const distDir = path.join(projectRoot, 'css', 'dist');
 fs.mkdirSync(distDir, { recursive: true });
 const report = { assetVersion: `v${assetVersion}`, generatedAt: new Date().toISOString(), pages: [] };
@@ -46,9 +56,10 @@ for (const [htmlName, distRel] of pages) {
     sources.push(rel);
   }
   if (!sources.length) {
-    sources = fallbackByHtml.get(htmlName) || [];
+    sources = withExtraSources(htmlName, fallbackByHtml.get(htmlName) || []);
   }
   if (!sources.length) throw new Error(`${htmlName}: no source CSS links found and no css-dist-report fallback`);
+  sources = withExtraSources(htmlName, sources);
   const chunks = [];
   for (const rel of sources) {
     const abs = path.join(projectRoot, rel);

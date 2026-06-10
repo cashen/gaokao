@@ -274,6 +274,23 @@ function analysisLines(analysis = {}) {
   return lines;
 }
 
+
+function directionExplorerLines(direction = null) {
+  if (!direction || (!direction.focus?.length && !direction.explore?.length && !direction.confirm?.length)) return [];
+  const lines = [];
+  lines.push('## 孩子方向参考');
+  lines.push('');
+  lines.push('- 这部分不是给孩子定专业，只是帮助家里讨论：哪些方向更值得看，哪些方向只是没接触过，哪些地方需要再确认。');
+  if (Array.isArray(direction.focus) && direction.focus.length) lines.push(`- 更值得重点讨论：${direction.focus.slice(0, 8).map(x => clean(x, 80)).join('、')}`);
+  if (Array.isArray(direction.explore) && direction.explore.length) lines.push(`- 可以先了解：${direction.explore.slice(0, 8).map(x => clean(x, 80)).join('、')}。孩子接触不多的方向，不建议因为“没感觉”就直接排除。`);
+  if (Array.isArray(direction.confirm) && direction.confirm.length) {
+    lines.push('- 需要再确认：');
+    direction.confirm.slice(0, 5).forEach((x, index) => lines.push(`  ${index + 1}. ${clean(x, 160)}`));
+  }
+  lines.push('');
+  return lines;
+}
+
 function summaryLines(summary) {
   const lines = [];
   lines.push('## 概要判断');
@@ -321,6 +338,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
   lines.push('');
   lines.push(...summaryLines(summary));
+  lines.push(...directionExplorerLines(input.reportContext?.directionExplorer || input.directionExplorer || null));
   lines.push('## 已选专业总览');
   lines.push('');
   lines.push(`- 已选专业总数：${fmt(stats.total)} 个`);

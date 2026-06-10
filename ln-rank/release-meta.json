@@ -1,15 +1,16 @@
 {
-  "version": "v3.9.22",
-  "assetVersion": "v3922",
-  "release": "v3.9.22-ln-rank-report-flow-qa-tighten-no-fenxi",
-  "name": "v3.9.22-ln-rank-report-flow-qa-tighten-no-fenxi",
-  "label": "report-flow-qa-tighten",
+  "version": "v3.9.23",
+  "assetVersion": "v3923",
+  "release": "v3.9.23-ln-rank-direction-explorer-mvp-no-fenxi",
+  "name": "v3.9.23-ln-rank-direction-explorer-mvp-no-fenxi",
+  "label": "direction-explorer-mvp",
   "notes": [
-    "补齐 666 默认示例：修复运行时 score-guard 仍提示 520 的残留",
-    "确认页二级动作统一为“用已选专业生成报告”",
-    "footer 统一为“专业方向变化参考”，不再使用热度页口径",
-    "修复 self-check 对 dist CSS、v3922 active 资源和趋势 import 版本的过期检查",
-    "保持 no-fenxi 边界，不新增缓存，不改 API，不改算法"
+    "新增孩子方向小判断：入口轻放在专业方向区，不撑开搜索条件",
+    "PC 使用右侧抽屉，Pad 使用轻面板，Android 使用底部 sheet",
+    "结果按更值得重点讨论、可以先了解、需要再确认三层输出",
+    "完成后回填方向词包并回到查专业主线，不直接推荐学校专业",
+    "生成报告前确认页和复制文字版加入孩子方向参考",
+    "保持 no-fenxi 边界，不新增账号、登录、云保存、缓存策略，不改算法"
   ],
   "noFenxiIncluded": true,
   "generatedAt": "2026-06-11T00:00:00+08:00"

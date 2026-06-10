@@ -264,6 +264,17 @@ function reviewChecklistBlocks(items = [], checklist = null) {
   return blocks;
 }
 
+
+function directionExplorerBlocks(direction = null) {
+  if (!direction || (!direction.focus?.length && !direction.explore?.length && !direction.confirm?.length)) return [];
+  const blocks = [heading2('孩子方向参考', STYLE.title)];
+  blocks.push(styledTextBlock('这部分不是给孩子定专业，只是帮助家里讨论哪些方向更值得看，哪些只是没接触过，哪些地方需要再确认。', STYLE.muted));
+  if (Array.isArray(direction.focus) && direction.focus.length) blocks.push(bulletRunsBlock([{ content: '更值得重点讨论：', style: STYLE.strong }, { content: direction.focus.slice(0, 8).map(x => clean(x, 80)).join('、') }]));
+  if (Array.isArray(direction.explore) && direction.explore.length) blocks.push(bulletRunsBlock([{ content: '可以先了解：', style: STYLE.strong }, { content: `${direction.explore.slice(0, 8).map(x => clean(x, 80)).join('、')}。孩子接触不多的方向，不建议因为“没感觉”就直接排除。` }]));
+  if (Array.isArray(direction.confirm) && direction.confirm.length) direction.confirm.slice(0, 5).forEach(x => blocks.push(bulletBlock(`需要再确认：${clean(x, 180)}`)));
+  return blocks;
+}
+
 function governanceReviewBlocks(items = []) {
   const blocks = [];
   const review = [];
@@ -302,7 +313,8 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     reportType = 'selectionPoolOnly',
     summary = null,
     majorTrendSummary = null,
-    reviewChecklist = null
+    reviewChecklist = null,
+    directionExplorer = null
   } = input;
   const blocks = [];
   const total = Number(stats.total) || items.length || 0;
@@ -318,6 +330,11 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
 
   blocks.push(...summaryBlocks(summary || {}, reportType));
+  const directionBlocks = directionExplorerBlocks(directionExplorer);
+  if (directionBlocks.length) {
+    blocks.push(dividerBlock());
+    blocks.push(...directionBlocks);
+  }
   blocks.push(dividerBlock());
 
   blocks.push(heading2(hasAnalysis ? '三、已选专业总览' : '二、已选专业总览', STYLE.title));
