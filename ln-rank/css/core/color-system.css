@@ -1,4 +1,4 @@
-/* v3.9.20.8 考后松弛色系：暖白底 + 语义分段色 + 少量品牌青绿 */
+/* v3.9.20.9 考后松弛色系：暖白底 + 语义分段色 + 少量品牌青绿 */
 :root {
   --page-bg: #F8FAF7;
   --surface: #FFFFFF;
@@ -19,14 +19,20 @@
   --band-upper-text: #8A5A16;
   --band-upper-bg: #FFF6E8;
   --band-upper-border: #E8C98F;
+  --band-upper-accent: #D8A24C;
+  --band-upper-shadow: rgba(216, 162, 76, 0.12);
 
   --band-near-text: #315F9A;
   --band-near-bg: #EEF5FF;
   --band-near-border: #C8DAF5;
+  --band-near-accent: #5F8FC1;
+  --band-near-shadow: rgba(95, 143, 193, 0.12);
 
   --band-steady-text: #2F7D6D;
   --band-steady-bg: #EDF8F3;
   --band-steady-border: #BFDCD3;
+  --band-steady-accent: #78AD9D;
+  --band-steady-shadow: rgba(120, 173, 157, 0.12);
 
   --special-text: #5B5E83;
   --special-bg: #F4F3FA;

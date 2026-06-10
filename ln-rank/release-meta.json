@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.8",
-  "assetVersion": "v3920_8",
-  "release": "v3.9.20.8-ln-rank-post-exam-calm-color-and-band-contract-no-fenxi",
-  "notes": "Post-exam calm visual system: reduces full-page green, adds warm white + semantic band colors, and changes Android result band selector to three visible choices instead of a single horizontal card; no /fenxi directory included.",
+  "version": "v3.9.20.9",
+  "assetVersion": "v3920_9",
+  "release": "v3.9.20.9-ln-rank-band-card-breathing-link-contract-no-fenxi",
+  "notes": "Band-card breathing link contract: result cards now lightly echo the active band color using subtle top color strips, semantic band pills, fit-position color, and soft hover breathing without heavy borders or full-page green; no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "post-exam-calm-color-and-band-contract"
+  "label": "band-card-breathing-link-contract"
 }

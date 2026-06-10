@@ -1,4 +1,4 @@
-/* v3.9.20.8 分段选择契约：Android 三段同时可见，PC/Pad/Android 使用统一语义色 */
+/* v3.9.20.9 分段选择契约：Android 三段同时可见，PC/Pad/Android 使用统一语义色 */
 .result-band-option,
 .rank-band-chip {
   transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease !important;

@@ -698,7 +698,7 @@ body.diagnose-modal-open {
 /* v3.9.14 page-level hook */
 
 
-/* v3920_8 actionable rank band chips: top reference chips are real focus controls, not fake buttons. */
+/* v3920_9 actionable rank band chips: top reference chips are real focus controls, not fake buttons. */
 .rank-band-chip{appearance:none;text-align:left;cursor:pointer;transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;}
 .rank-band-chip:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(15,23,42,.08);}
 .rank-band-chip.is-active{border-color:rgba(37,99,235,.42);box-shadow:0 0 0 2px rgba(37,99,235,.10),0 10px 24px rgba(15,23,42,.08);}

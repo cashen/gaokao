@@ -1,9 +1,9 @@
-import { fmt } from '../../core/number-utils.js?v=3920_8';
-import { renderHistoryScore } from './history-score-render.js?v=3920_8';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_8';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_8';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_8';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_8';
+import { fmt } from '../../core/number-utils.js?v=3920_9';
+import { renderHistoryScore } from './history-score-render.js?v=3920_9';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_9';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_9';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_9';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_9';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -23,6 +23,19 @@ function tagClass(tag) {
   if (tag.includes('分校') || tag.includes('校区') || tag.includes('研究院')) return 'campus';
   return '';
 }
+
+function bandKeyFromActive(activeBand, record = {}) {
+  const key = String(activeBand || record.bandKey || record.band || '').trim();
+  if (['upper','near','steady'].includes(key)) return key;
+  const text = [record.statusLabel, record.position, record.matchBand, record.matchReason].filter(Boolean).join(' ');
+  if (/稍高目标|少量看|上探/.test(text)) return 'upper';
+  if (/稳妥补充|补安全|偏稳/.test(text)) return 'steady';
+  return 'near';
+}
+function bandLabel(key) {
+  return key === 'upper' ? '稍高目标' : key === 'steady' ? '稳妥补充' : '主要参考';
+}
+
 function tags(record) {
   const arr = [];
   if (Array.isArray(record.schoolTags)) arr.push(...record.schoolTags);
@@ -125,21 +138,24 @@ function renderMajorCode(record) {
   return '';
 }
 
-function card(record, index = 0, selectionPool = null) {
+function card(record, index = 0, selectionPool = null, activeBand = 'near') {
   const delta = Number(record.scoreDelta || 0);
   const deltaText = delta > 0 ? `+${delta}` : String(delta);
   const statusKey = record.statusKey || 'match';
+  const bandKey = bandKeyFromActive(activeBand, record);
+  const bandClass = `is-band-${bandKey}`;
+  const displayBandLabel = bandLabel(bandKey);
   const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${escapeHtml(t)}</span>`).join('');
-  return `<article class="major-card ln-major-card status-${statusKey}">
+  return `<article class="major-card ln-major-card status-${statusKey} ${bandClass}">
     <div class="major-card-top">
       <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
-      <span class="status-badge">${escapeHtml(safe(record.statusLabel))}</span>
+      <span class="status-badge ln-band-pill ${bandClass}">${escapeHtml(displayBandLabel)}</span>
     </div>
     <div class="meta-pills">
       <span class="meta-pill">2025最低分：${fmt(record.score2025 ?? record.score)} 分</span>
       <span class="meta-pill">2025最低位次：${fmt(record.rank2025 ?? record.rank)}</span>
       <span class="meta-pill">相对考生：${deltaText} 分</span>
-      <span class="meta-pill">适合位置：${escapeHtml(safe(record.position))}</span>
+      <span class="meta-pill">适合位置：<b class="ln-fit-position ${bandClass}">${escapeHtml(safe(record.position))}</b></span>
     </div>
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
@@ -202,7 +218,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
     : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
-  root.innerHTML = keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool)).join('') : emptyReason);
+  root.innerHTML = keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
   mountDiagnoseButtons(root, shown, state);
   root.querySelectorAll('[data-pool-index]').forEach(button => {
     button.addEventListener('click', () => {
