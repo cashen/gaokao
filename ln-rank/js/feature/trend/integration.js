@@ -1,4 +1,4 @@
-import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3921_2';
+import { buildTrendSummaryForSelection, trendHintText } from './rules.js?v=3921_4';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -20,17 +20,17 @@ export function renderSearchTrendHint(root, { score, keyword } = {}) {
     return;
   }
   root.className = 'major-trend-hint is-active ln-heat-summary-row';
-  const plain = text.replace(/^专业热度参考：/, '');
+  const plain = text.replace(/^专业方向变化参考：/, '');
   const firstSentence = plain.split('。').filter(Boolean)[0] || plain;
   const summary = `${firstSentence}。建议多留几个备选专业。`;
   const cleanSummary = escapeHtml(summary);
   const cleanDetail = escapeHtml(plain);
-  root.innerHTML = `<div class="major-trend-main"><b>方向热度提醒</b><p>${cleanSummary}</p><details class="major-trend-detail"><summary>展开查看原因</summary><p>${cleanDetail}</p></details></div><a class="major-trend-link" href="./major-trend-2025.html">完整热度</a>`;
+  root.innerHTML = `<div class="major-trend-main"><b>方向变化参考</b><p>${cleanSummary}</p><details class="major-trend-detail"><summary>展开查看原因</summary><p>${cleanDetail}</p></details></div><a class="major-trend-link" href="./major-trend-2025.html">方向变化</a>`;
 }
 
 export function renderSelectionTrendBox(summary = {}) {
   if (!summary?.visible || !Array.isArray(summary.notes) || !summary.notes.length) return '';
-  return `<div class="major-trend-selection-box"><div class="major-trend-selection-title">专业热度变化参考</div><ul>${summary.notes.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul><p>以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。</p></div>`;
+  return `<div class="major-trend-selection-box"><div class="major-trend-selection-title">专业方向变化参考</div><ul>${summary.notes.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul><p>以上只反映 2024/2025 两年同校同专业位次变化，不代表 2026 年录取结果。</p></div>`;
 }
 
 export { buildTrendSummaryForSelection };

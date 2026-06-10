@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.21.3",
-  "assetVersion": "v3921_3",
+  "version": "v3.9.21.4",
+  "assetVersion": "v3921_4",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,10 +8,10 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3921_3.js",
-    "js/selection-pool.v3921_3.js",
-    "js/major-trend-render.v3921_3.js",
-    "js/self-check.v3921_3.js"
+    "js/app.v3921_4.js",
+    "js/selection-pool.v3921_4.js",
+    "js/major-trend-render.v3921_4.js",
+    "js/self-check.v3921_4.js"
   ],
   "cssEntry": [
     "css/core/tokens.css",

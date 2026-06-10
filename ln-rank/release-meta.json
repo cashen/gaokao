@@ -1,16 +1,16 @@
 {
-  "version": "v3.9.21.3",
-  "assetVersion": "v3921_3",
-  "release": "v3.9.21.3-ln-rank-parent-report-ui-polish-no-fenxi",
-  "name": "v3.9.21.3-ln-rank-parent-report-ui-polish-no-fenxi",
-  "label": "parent-report-ui-polish",
+  "version": "v3.9.21.4",
+  "assetVersion": "v3921_4",
+  "release": "v3.9.21.4-ln-rank-major-trend-humanized-contract-no-fenxi",
+  "name": "v3.9.21.4-ln-rank-major-trend-humanized-contract-no-fenxi",
+  "label": "major-trend-humanized-contract",
   "notes": [
-    "家长报告流程 UI 精修：少模块感、多路径感",
-    "新增 ui-token 与 parent-report-ui-polish 统一视觉层级",
-    "专业卡片降噪，放进报告为中按钮，生成飞书报告为唯一主动作",
-    "确认页分布改轻摘要，生成前看一眼最多三条提醒",
+    "major-trend-2025 内页按主站一致性收口为“专业方向变化参考”",
+    "保留 2024/2025 同校同专业位次变化口径，默认不做热门榜、不做录取预测",
+    "先看这页怎么用、口径说明折叠、趋势指标折叠、移动端样本卡片化",
+    "与 v3.9.21 报告流程保持一致：返回查专业 / 生成报告前确认",
     "无 fenxi 目录与中间件变更"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-10T14:35:45.486030Z"
+  "generatedAt": "2026-06-10T14:56:25.291696Z"
 }

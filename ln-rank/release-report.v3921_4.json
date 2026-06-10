@@ -1,0 +1,12 @@
+{
+  "version": "v3.9.21.4",
+  "assetVersion": "v3921_4",
+  "name": "v3.9.21.4-ln-rank-major-trend-humanized-contract-no-fenxi",
+  "checks": [
+    "major trend page humanized",
+    "trend import version unified",
+    "no fenxi directory",
+    "active js syntax/import checked"
+  ],
+  "generatedAt": "2026-06-10T14:56:25.298329Z"
+}

@@ -1,7 +1,7 @@
-import { FEISHU_UI_CONFIG } from '../../config/feishu-ui-config.js?v=3921_2';
-import { buildKeywordQuery } from '../major-pool/keyword-parser.js?v=3921_2';
-import { getRangePresetLabel } from '../../domain/range-policy.js?v=3921_2';
-import { getBandFocusLabel } from '../../domain/band-policy.js?v=3921_2';
+import { FEISHU_UI_CONFIG } from '../../config/feishu-ui-config.js?v=3921_4';
+import { buildKeywordQuery } from '../major-pool/keyword-parser.js?v=3921_4';
+import { getRangePresetLabel } from '../../domain/range-policy.js?v=3921_4';
+import { getBandFocusLabel } from '../../domain/band-policy.js?v=3921_4';
 
 export function currentBandRecords(state) {
   const band = state?.bands?.data?.bands?.[state.activeBand];

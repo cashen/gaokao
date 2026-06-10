@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA } from './data.js?v=3921_2';
+import { MAJOR_TREND_DATA } from './data.js?v=3921_4';
 
 const DIRECTION_LABELS = Object.fromEntries(MAJOR_TREND_DATA.directionCatalog.map(x => [x.id, x.label]));
 const NORMALIZE_RE = /[\s\u3000（）()【】\[\]·・,，、/|；;:+＋-]/g;
@@ -98,11 +98,11 @@ export function trendTone(direction = {}) {
 
 export function trendLabel(direction = {}) {
   const tone = trendTone(direction);
-  if (tone === 'harder') return '2025 相比 2024 更拥挤';
-  if (tone === 'watch') return '2025 相比 2024 略偏拥挤';
-  if (tone === 'easier') return '2025 相比 2024 没那么挤';
-  if (tone === 'relaxed') return '2025 相比 2024 略有回落';
-  return '整体变化不大';
+  if (tone === 'harder') return '更挤一些';
+  if (tone === 'watch') return '略偏拥挤';
+  if (tone === 'easier') return '相对缓和';
+  if (tone === 'relaxed') return '略有回落';
+  return '变化不大';
 }
 
 export function trendHintText(score, keyword = '') {
@@ -114,12 +114,12 @@ export function trendHintText(score, keyword = '') {
   const sample = direction.sampleLevel === 'low' ? '该方向可比较样本不多，趋势只作辅助观察。' : direction.sampleLevel === 'caution' ? '该方向样本量中等，建议谨慎参考。' : '';
   const net = Math.abs(Number(direction.netChange || 0)).toFixed(1).replace('.0','');
   if (trendTone(direction) === 'harder' || trendTone(direction) === 'watch') {
-    return `专业热度参考：${segment.label} 分段中，${direction.directionLabel}方向 ${label}，净变化约 ${net}% 。查看这类方向时，建议额外留出位次余量。${sample}`;
+    return `专业方向变化参考：${segment.label} 分段中，${direction.directionLabel}方向${label}，净变化约 ${net}% 。查看这类方向时，建议多留一点位次余量。${sample}`;
   }
   if (trendTone(direction) === 'easier' || trendTone(direction) === 'relaxed') {
-    return `专业热度参考：${segment.label} 分段中，${direction.directionLabel}方向 ${label}，净变化约 ${net}% 。可以作为核验空间参考，但仍需看学校层次、招生计划和专业备注。${sample}`;
+    return `专业方向变化参考：${segment.label} 分段中，${direction.directionLabel}方向${label}，净变化约 ${net}% 。可以作为空间参考，但仍需看学校层次、招生计划和专业备注。${sample}`;
   }
-  return `专业热度参考：${segment.label} 分段中，${direction.directionLabel}方向整体变化不大。建议继续按位次、招生计划和孩子接受度逐条核验。${sample}`;
+  return `专业方向变化参考：${segment.label} 分段中，${direction.directionLabel}方向变化不大。建议继续按位次、招生计划和孩子接受度逐条核验。${sample}`;
 }
 
 export function buildTrendSummaryForSelection(items = [], score) {
@@ -146,10 +146,10 @@ export function buildTrendSummaryForSelection(items = [], score) {
     const tone = trendTone(row.trend);
     const base = `${row.directionLabel}：当前已选专业中有 ${row.count} 个；${segment.label} 分段该方向 ${label}。`;
     if (tone === 'harder' || tone === 'watch') {
-      notes.push(`${base}建议不要把同类专业集中放在一个分数带，需要补充更稳妥的方向。`);
-      risks.push(`专业热度参考：${row.directionLabel}在 ${segment.label} 分段 ${label}，当前已选专业中有 ${row.count} 个，建议人工复核位次余量。`);
+      notes.push(`${base}建议不要把同类专业过度集中在一个分数带，可以补充几个孩子也能接受的方向。`);
+      risks.push(`专业方向变化参考：${row.directionLabel}在 ${segment.label} 分段 ${label}，当前已选专业中有 ${row.count} 个，建议人工复核位次余量。`);
     } else if (tone === 'easier' || tone === 'relaxed') {
-      notes.push(`${base}这只能说明近两年没那么挤，仍需核验学校层次、专业实力、学费和当年计划。`);
+      notes.push(`${base}这只能说明近两年相对缓和，仍需核验学校层次、专业实力、学费和当年计划。`);
     } else {
       notes.push(`${base}趋势不作为增减依据，继续按位次和家庭接受度核验。`);
     }

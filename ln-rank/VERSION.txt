@@ -1,2 +1,2 @@
-v3.9.21.3
-v3.9.21.3-ln-rank-parent-report-ui-polish-no-fenxi
+v3.9.21.4
+v3.9.21.4-ln-rank-major-trend-humanized-contract-no-fenxi
