@@ -1,16 +1,22 @@
 {
-  "version": "v3.9.21.5",
-  "assetVersion": "v3921_5",
+  "version": "v3.9.21.6",
+  "assetVersion": "v3921_6",
   "entries": {
-    "search": "js/app.v3921_5.js",
-    "selectionPool": "js/selection-pool.v3921_5.js",
-    "majorTrend": "js/major-trend-render.v3921_5.js",
-    "selfCheck": "js/self-check.v3921_5.js"
+    "search": "js/app.v3921_6.js",
+    "selectionPool": "js/selection-pool.v3921_6.js",
+    "majorTrend": "js/major-trend-render.v3921_6.js",
+    "selfCheck": "js/self-check.v3921_6.js"
   },
   "entrypoints": {
-    "search": "js/app.v3921_5.js",
-    "selectionPool": "js/selection-pool.v3921_5.js",
-    "majorTrend": "js/major-trend-render.v3921_5.js",
-    "selfCheck": "js/self-check.v3921_5.js"
+    "search": "js/app.v3921_6.js",
+    "selectionPool": "js/selection-pool.v3921_6.js",
+    "majorTrend": "js/major-trend-render.v3921_6.js",
+    "selfCheck": "js/self-check.v3921_6.js"
+  },
+  "cssDist": {
+    "main": "css/dist/ln-rank-main.v3921_6.css",
+    "selection": "css/dist/ln-rank-selection.v3921_6.css",
+    "trend": "css/dist/ln-rank-trend.v3921_6.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3921_6.css"
   }
 }

@@ -1,14 +1,14 @@
 {
-  "version": "v3.9.21.5",
-  "assetVersion": "v3921_5",
-  "release": "v3.9.21.5-ln-rank-major-trend-import-barrel-fix-no-fenxi",
-  "name": "v3.9.21.5-ln-rank-major-trend-import-barrel-fix-no-fenxi",
-  "label": "major-trend-humanized-contract",
+  "version": "v3.9.21.6",
+  "assetVersion": "v3921_6",
+  "release": "v3.9.21.6-ln-rank-css-dist-safe-baseline-no-fenxi",
+  "name": "v3.9.21.6-ln-rank-css-dist-safe-baseline-no-fenxi",
+  "label": "css-dist-safe-baseline",
   "notes": [
-    "修复 trend/index.js 星号导出冲突，major-trend-2025 不再空白",
-    "保持上一版的一致性 UI 与家长化文案"
+    "只做 CSS 安全合并：按页面、按原 HTML link 顺序拼接",
+    "不新增 _headers，不改缓存，不改 API cache-control，不做 JS 打包",
+    "源码 CSS 全部保留，生产 HTML 只引用 dist CSS"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-10T14:56:25.291696Z",
-  "createdAt": "2026-06-10T15:22:00+08:00"
+  "generatedAt": "2026-06-10T15:45:00+08:00"
 }

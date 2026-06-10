@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA, trendLabel, trendTone } from './feature/trend/index.js?v=3921_5';
+import { MAJOR_TREND_DATA, trendLabel, trendTone } from './feature/trend/index.js?v=3921_6';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
