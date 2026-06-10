@@ -1,0 +1,20 @@
+/* v3.9.21.3 UI tokens：把半径、阴影、间距、按钮层级收成一套产品秩序 */
+:root{
+  --ui-radius-card:18px;
+  --ui-radius-panel:22px;
+  --ui-radius-chip:999px;
+  --ui-border-soft:rgba(36,49,46,.10);
+  --ui-border-softer:rgba(36,49,46,.075);
+  --ui-shadow-card:0 8px 22px rgba(36,49,46,.055);
+  --ui-shadow-float:0 12px 30px rgba(36,49,46,.12);
+  --ui-space-xs:6px;
+  --ui-space-sm:10px;
+  --ui-space-md:14px;
+  --ui-space-lg:18px;
+  --ui-space-xl:24px;
+  --action-primary:#2F7D6D;
+  --action-primary-hover:#27695C;
+  --action-primary-soft:rgba(47,125,109,.075);
+  --action-primary-border:rgba(47,125,109,.22);
+  --action-muted:#63736D;
+}

@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.21.2",
-  "assetVersion": "v3921_2",
+  "version": "v3.9.21.3",
+  "assetVersion": "v3921_3",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,14 +8,15 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3921_2.js",
-    "js/selection-pool.v3921_2.js",
-    "js/major-trend-render.v3921_2.js",
-    "js/self-check.v3921_2.js"
+    "js/app.v3921_3.js",
+    "js/selection-pool.v3921_3.js",
+    "js/major-trend-render.v3921_3.js",
+    "js/self-check.v3921_3.js"
   ],
   "cssEntry": [
     "css/core/tokens.css",
     "css/core/color-system.css",
+    "css/core/ui-token.css",
     "css/core/base.css",
     "css/core/layout.css",
     "css/core/responsive.css",
@@ -52,7 +53,8 @@
     "css/components/band-card-breathing-link.css",
     "css/components/report-flow-contract.css",
     "css/components/report-content-confirm.css",
-    "css/components/report-action-human-v3921.css"
+    "css/components/report-action-human-v3921.css",
+    "css/components/parent-report-ui-polish.css"
   ],
   "stableModules": [
     "js/domain/range-policy.js",

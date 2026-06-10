@@ -1,0 +1,311 @@
+/* v3.9.21.3 家长报告流程 UI 精修：少模块感，多路径感 */
+
+/* ---------- 全局动作层级 ---------- */
+.query-button,
+.workspace-button.primary,
+.workspace-button.report-primary,
+.feishu-main-button,
+.pool-result-sticky-bar a,
+.pool-entry-toast-action{
+  background:var(--action-primary)!important;
+  border-color:var(--action-primary)!important;
+  color:#fff!important;
+  box-shadow:0 10px 22px rgba(47,125,109,.14)!important;
+}
+.query-button:hover,
+.workspace-button.primary:hover,
+.workspace-button.report-primary:hover,
+.feishu-main-button:hover,
+.pool-result-sticky-bar a:hover,
+.pool-entry-toast-action:hover{background:var(--action-primary-hover)!important;border-color:var(--action-primary-hover)!important}
+.workspace-button:not(.primary):not(.report-primary),
+.feishu-link-button,
+.diagnose-button,
+.result-context-more,
+.result-context-link{
+  box-shadow:none!important;
+}
+
+/* “放进报告”是中按钮，不抢最终生成报告主动作 */
+.pool-add-button,
+.ln-major-card .pool-add-button{
+  min-height:36px!important;
+  padding:0 15px!important;
+  border-radius:var(--ui-radius-chip)!important;
+  background:rgba(255,255,255,.86)!important;
+  border:1px solid var(--action-primary-border)!important;
+  color:var(--action-primary)!important;
+  font-weight:860!important;
+  box-shadow:none!important;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease!important;
+}
+.pool-add-button:hover,
+.ln-major-card .pool-add-button:hover{
+  background:var(--action-primary-soft)!important;
+  border-color:rgba(47,125,109,.34)!important;
+  transform:translateY(-1px)!important;
+}
+.pool-add-button.is-added,
+.pool-add-button:disabled,
+.ln-major-card .pool-add-button.is-added,
+.ln-major-card .pool-add-button:disabled{
+  background:rgba(47,125,109,.085)!important;
+  border-color:rgba(47,125,109,.20)!important;
+  color:#2C6F62!important;
+  opacity:1!important;
+  cursor:default!important;
+}
+.pool-add-button.is-added::before,
+.pool-add-button:disabled::before{content:"✓ ";font-weight:950}
+.diagnose-button,
+.ln-major-card .diagnose-button{
+  min-height:36px!important;
+  color:var(--action-muted)!important;
+  background:transparent!important;
+  border:1px solid var(--ui-border-soft)!important;
+}
+
+/* ---------- 搜索页：提示像路标，不像模块 ---------- */
+.result-report-soft-hint{
+  grid-column:1/-1;
+  margin:0 0 8px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:var(--text-secondary,#60706B)!important;
+  font-size:12.5px!important;
+  line-height:1.45!important;
+  box-shadow:none!important;
+}
+.result-report-soft-hint::before{content:"提示：";font-weight:900;color:var(--text-main,#24312E)}
+.result-context-bar{
+  grid-column:1/-1;
+  display:block!important;
+  margin:0 0 10px!important;
+  padding:9px 12px!important;
+  border:1px solid var(--ui-border-soft)!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.74)!important;
+  box-shadow:none!important;
+  color:var(--text-secondary,#60706B)!important;
+}
+.result-context-main{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:6px 12px!important;
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+.result-context-current{font-weight:900!important;color:var(--band-near-text,#315F9A)!important}
+.result-context-keyword{font-weight:780!important;color:var(--text-main,#24312E)!important}
+.result-context-special{min-height:24px!important;padding:2px 8px!important;font-size:12px!important;border-radius:var(--ui-radius-chip)!important}
+.result-context-more{margin-left:auto!important;white-space:nowrap!important;font-size:12.5px!important;color:var(--action-primary)!important}
+.result-context-details{margin-top:8px!important;padding-top:8px!important;border-top:1px dashed rgba(36,49,46,.14)!important;font-size:12.5px!important;line-height:1.58!important}
+
+/* ---------- 专业卡片：资料库感降噪，保留学校、专业、分段、分数、核验点、放进报告 ---------- */
+.results-grid{align-items:start!important;gap:14px!important}
+.results-grid .major-card.ln-major-card{
+  position:relative!important;
+  padding:16px 16px 14px!important;
+  border-radius:var(--ui-radius-card)!important;
+  background:#fff!important;
+  border:1px solid var(--ui-border-soft)!important;
+  box-shadow:var(--ui-shadow-card)!important;
+  overflow:hidden!important;
+}
+.results-grid .major-card.ln-major-card::before{
+  content:""!important;
+  position:absolute!important;
+  left:16px!important;
+  right:16px!important;
+  top:0!important;
+  bottom:auto!important;
+  width:auto!important;
+  height:2px!important;
+  border-radius:0 0 999px 999px!important;
+  opacity:.78!important;
+}
+.ln-major-card .major-card-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:start!important}
+.ln-major-card .school{font-size:19px!important;line-height:1.18!important;letter-spacing:-.02em!important;color:#1F2B28!important}
+.ln-major-card .major{margin-top:4px!important;font-size:14px!important;line-height:1.4!important;color:#40504C!important}
+.ln-major-card .status-badge,
+.ln-major-card .ln-band-pill{min-height:26px!important;padding:0 10px!important;font-size:12px!important;font-weight:880!important}
+.ln-major-card .meta-pills{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+  margin-top:12px!important;
+  padding:0!important;
+  border:0!important;
+}
+.ln-major-card .meta-pill{
+  min-height:26px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  width:auto!important;
+  padding:4px 8px!important;
+  border-radius:var(--ui-radius-chip)!important;
+  border:1px solid var(--ui-border-softer)!important;
+  background:rgba(248,251,250,.82)!important;
+  color:#53635F!important;
+  font-size:12.2px!important;
+  line-height:1.35!important;
+  font-weight:800!important;
+}
+.ln-major-card .meta-pill b{color:var(--action-primary)!important}
+.ln-major-card .history-score{
+  margin-top:9px!important;
+  padding:8px 10px!important;
+  border-radius:13px!important;
+  background:rgba(248,251,250,.64)!important;
+  border:1px solid var(--ui-border-softer)!important;
+  box-shadow:none!important;
+}
+.ln-major-card .history-label,
+.ln-major-card .history-line{font-size:12.2px!important;line-height:1.45!important}
+.ln-major-card .school-tags{margin-top:9px!important;gap:5px!important}
+.ln-major-card .school-tag,
+.ln-major-card .special-project-badge,
+.ln-major-card .match-trust-badge{
+  min-height:22px!important;
+  padding:0 8px!important;
+  font-size:11.6px!important;
+  font-weight:820!important;
+  border-radius:var(--ui-radius-chip)!important;
+}
+.ln-major-card .match-reason{display:none!important}
+.ln-major-card .major-code-line{display:none!important}
+.ln-major-card .special-project-alert,
+.ln-major-card .card-review-points{
+  margin-top:8px!important;
+  padding:8px 10px!important;
+  border-radius:12px!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+  box-shadow:none!important;
+}
+.ln-major-card .card-review-details{margin-top:4px!important}
+.ln-major-card .major-card-actions{margin-top:11px!important;display:flex!important;justify-content:flex-end!important;gap:8px!important}
+
+/* ---------- 搜索页已选入口：下一步感，不像广告浮窗 ---------- */
+.pool-result-sticky-bar,
+.pool-entry-action-toast,
+.pool-entry-direct-shell{
+  border:1px solid var(--ui-border-soft)!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:var(--ui-shadow-float)!important;
+}
+.pool-fab-title{font-weight:900!important;color:#1F2B28!important}
+.pool-fab-sub{font-size:12px!important;color:var(--text-secondary,#60706B)!important}
+
+/* ---------- 报告确认页：像一张生成前确认单 ---------- */
+.ln-selection-page .hero{padding-bottom:16px!important}
+.ln-selection-page .app-title{letter-spacing:-.025em!important}
+.ln-selection-main{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(300px,360px)!important;
+  gap:16px!important;
+  align-items:start!important;
+}
+.ln-selection-side{position:sticky!important;top:14px!important;max-width:360px!important;width:100%!important}
+.ln-selection-step,
+.workspace-panel{
+  border:1px solid var(--ui-border-soft)!important;
+  border-radius:var(--ui-radius-panel)!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 10px 26px rgba(36,49,46,.055)!important;
+}
+.ln-step-marker{background:rgba(47,125,109,.075)!important;color:var(--action-primary)!important;border:1px solid rgba(47,125,109,.12)!important}
+.report-distribution-panel,
+.before-report-check-panel{
+  margin:10px 0!important;
+  padding:11px!important;
+  border:1px solid var(--ui-border-soft)!important;
+  border-radius:17px!important;
+  background:rgba(255,255,255,.78)!important;
+  box-shadow:none!important;
+}
+.report-distribution-head,
+.before-report-check-head{margin-bottom:8px!important}
+.report-distribution-head h3,
+.before-report-check-head h3{font-size:15px!important;letter-spacing:-.01em!important}
+.report-distribution-head p,
+.before-report-check-head p{font-size:12px!important;line-height:1.45!important}
+.report-distribution-grid{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+}
+.report-distribution-card{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  width:auto!important;
+  min-height:28px!important;
+  padding:4px 8px!important;
+  border-radius:var(--ui-radius-chip)!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+.report-distribution-card strong{display:inline!important;font-size:14px!important;line-height:1!important;order:2!important}
+.report-distribution-card span{display:inline!important;margin:0!important;font-size:12px!important;line-height:1!important;order:1!important}
+.before-report-check-panel ul{gap:6px!important}
+.before-report-check-panel li{
+  padding:7px 9px 7px 28px!important;
+  border-radius:12px!important;
+  background:rgba(248,251,250,.76)!important;
+  font-size:12.5px!important;
+  line-height:1.5!important;
+}
+.before-report-check-panel li::before{left:9px!important;top:8px!important;background:rgba(47,125,109,.08)!important}
+.ln-selection-action-panel .ln-action-button-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+.ln-selection-action-panel .workspace-button.report-primary{min-height:44px!important;font-size:15px!important;font-weight:900!important}
+.ln-selection-action-panel .workspace-button:not(.report-primary){min-height:38px!important;font-size:13px!important}
+.ln-report-help{font-size:12.2px!important;line-height:1.55!important;background:transparent!important;border:0!important;padding:6px 0 0!important;color:var(--text-secondary,#60706B)!important}
+.workspace-item{
+  border-color:var(--ui-border-soft)!important;
+  border-radius:16px!important;
+  box-shadow:var(--ui-shadow-card)!important;
+}
+.workspace-item-title{font-size:14.5px!important;line-height:1.4!important}
+.workspace-item-meta span{font-size:11.8px!important}
+.workspace-mini-button.danger{color:#8B4B3E!important;background:#FFF8F5!important;border-color:#E8CBC2!important}
+
+@media (min-width:1180px){
+  .results-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (min-width:761px) and (max-width:1179px){
+  .results-grid{grid-template-columns:1fr!important}
+  .ln-selection-main{grid-template-columns:1fr!important}
+  .ln-selection-side{position:static!important;max-width:none!important;order:-1!important}
+  .report-distribution-grid{gap:7px!important}
+}
+@media (max-width:760px){
+  .result-report-soft-hint{font-size:12px!important;margin-bottom:7px!important}
+  .result-context-bar{padding:8px 10px!important;border-radius:14px!important;margin-bottom:8px!important}
+  .result-context-main{font-size:12px!important;gap:4px 8px!important}
+  .result-context-current,.result-context-keyword{flex:1 0 100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .result-context-special{font-size:11px!important;padding:2px 7px!important}
+  .result-context-more{font-size:11.5px!important}
+  .result-context-details{font-size:11.5px!important;line-height:1.5!important}
+  .results-grid .major-card.ln-major-card{padding:13px 12px 12px!important;border-radius:16px!important}
+  .ln-major-card .school{font-size:17px!important}
+  .ln-major-card .major{font-size:13px!important}
+  .ln-major-card .status-badge,.ln-major-card .ln-band-pill{min-height:24px!important;font-size:11.4px!important;padding:0 8px!important}
+  .ln-major-card .history-score{display:none!important}
+  .ln-major-card .meta-pills{gap:5px!important;margin-top:9px!important}
+  .ln-major-card .meta-pill{font-size:11.5px!important;min-height:24px!important;padding:3px 7px!important}
+  .ln-major-card .major-card-actions{display:grid!important;grid-template-columns:1fr!important;gap:7px!important}
+  .ln-major-card .pool-add-button,.ln-major-card .diagnose-button{width:100%!important;min-height:36px!important}
+  .pool-result-sticky-bar{min-height:56px!important;border-radius:16px 16px 0 0!important}
+  .ln-selection-main{grid-template-columns:1fr!important;gap:12px!important}
+  .ln-selection-side{position:static!important;max-width:none!important;order:-1!important}
+  .report-distribution-panel,.before-report-check-panel{padding:10px!important;border-radius:15px!important}
+  .report-distribution-grid{display:flex!important;gap:5px!important}
+  .report-distribution-card{min-height:26px!important;padding:4px 7px!important}
+  .report-distribution-card strong{font-size:13px!important}.report-distribution-card span{font-size:11.5px!important}
+  .ln-selection-action-panel .workspace-button.report-primary{width:100%!important;min-height:46px!important}
+  .ln-selection-action-panel .workspace-button:not(.report-primary){width:100%!important}
+}
