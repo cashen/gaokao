@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.20.9",
-  "assetVersion": "v3920_9",
-  "release": "v3.9.20.9-ln-rank-band-card-breathing-link-contract-no-fenxi",
-  "notes": "Band-card breathing link contract: result cards now lightly echo the active band color using subtle top color strips, semantic band pills, fit-position color, and soft hover breathing without heavy borders or full-page green; no /fenxi directory included.",
+  "version": "v3.9.21.0",
+  "assetVersion": "v3921_0",
+  "release": "v3.9.21.0-ln-rank-report-first-parent-flow-baseline-no-fenxi",
+  "notes": "Report-first parent flow: search cards now use 放进报告/已放进报告, the selection page is positioned as 生成报告前确认, and Feishu report generation uses human-friendly success/failure and backup-copy language; UI keeps post-exam calm color system and band-card breathing link; no /fenxi directory included.",
   "noFenxiIncluded": true,
-  "label": "band-card-breathing-link-contract"
+  "label": "report-first-parent-flow-baseline"
 }

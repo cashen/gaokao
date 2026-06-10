@@ -128,7 +128,7 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     withRankCount: 0,
     enrichedItems: [],
     overallLine: '',
-    maintenanceNote: '前中后段标签沿用自选专业现有判断，报告概要只做统计，不重新判定；考生位次只按一分一段表自动取数，不再由自选专业里的专业位次反推。'
+    maintenanceNote: '前中后段标签沿用已选专业现有判断，报告概要只做统计，不重新判定；考生位次只按一分一段表自动取数，不再由已选专业里的专业位次反推。'
   };
 
   summary.enrichedItems = orderedItems.map(item => enrichItem(item, rankInfo.rankForGap ?? rankInfo.rank));

@@ -1,4 +1,4 @@
-import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3920_9';
+import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3921_0';
 
 function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];
@@ -20,17 +20,17 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
     return {
       ok: true,
       level: 'empty',
-      summary: '自选专业暂无专业志愿。请先从查询结果中加入若干“专业+学校”卡片，再进行排序诊断。',
+      summary: '还没有选择专业。请先从查询结果中把几个“学校+专业”放进报告。',
       stats,
-      risks: ['自选专业为空，无法判断前中后段结构。'],
-      actions: ['先加入上探、主体、稳妥三个区间的专业，再回到自选专业做排序。'],
+      risks: ['还没有选择专业，暂时无法判断分段搭配。'],
+      actions: ['先放入稍高目标、主要参考、稳妥补充三个分段的专业，再生成报告。'],
       sections: [],
-      reportText: '自选专业暂无专业志愿。'
+      reportText: '还没有选择专业。'
     };
   }
 
   if (total < 12) {
-    risks.push('自选专业数量偏少，暂时更像候选清单，不适合作为完整填报方案。');
+    risks.push('已选专业数量偏少，暂时更像候选内容，建议再补充几个可讨论专业。');
     actions.push('继续补充主要参考区和后段稳妥补充区，先把数量扩展到至少 20 个以上再做正式排序。');
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
@@ -87,10 +87,10 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
 
   const level = risks.length >= 4 ? 'high' : risks.length >= 2 ? 'medium' : 'low';
   const summary = level === 'high'
-    ? '当前自选专业整体风险偏高，需要先补齐中段承接和后段稳妥补充，再做最终排序。'
+    ? '当前已选专业整体偏高，建议先补齐主要参考和稳妥补充，再生成报告。'
     : level === 'medium'
-      ? '当前自选专业已有基本框架，但仍需调整前中后段比例和集中度风险。'
-      : '当前自选专业结构相对均衡，可以进入人工复核、排序微调和报告整理。';
+      ? '当前已选专业已有基本搭配，但仍建议看看分段比例和方向是否过于集中。'
+      : '当前已选专业搭配相对均衡，可以进入人工确认和报告生成。';
 
   if (!risks.length) risks.push('暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) actions.push('保持当前前中后段结构，逐条核验专业接受度、计划变化和特殊项目标签。');
@@ -113,12 +113,12 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
 
 function makeReportText({ candidateScore, stats, summary, risks, actions, sections, ordered }) {
   const lines = [];
-  lines.push('辽宁物理类志愿自选专业排序诊断报告');
+  lines.push('辽宁物理类专业初选报告生成前提醒');
   lines.push('');
   lines.push(`考生分数：${candidateScore || '未填写'}`);
   lines.push('数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池；本报告用于志愿讨论，不等同于录取预测。');
   lines.push('');
-  lines.push(`自选专业总数：${stats.total} 个`);
+  lines.push(`已选专业总数：${stats.total} 个`);
   lines.push(`稍高目标：${stats.rushCount} 个（${pct(stats.rushCount, stats.total)}%）`);
   lines.push(`稳妥：${stats.stableCount} 个（${pct(stats.stableCount, stats.total)}%）`);
   lines.push(`稳妥补充：${stats.safeCount} 个（${pct(stats.safeCount, stats.total)}%）`);

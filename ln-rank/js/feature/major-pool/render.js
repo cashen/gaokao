@@ -1,9 +1,9 @@
-import { fmt } from '../../core/number-utils.js?v=3920_9';
-import { renderHistoryScore } from './history-score-render.js?v=3920_9';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3920_9';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3920_9';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3920_9';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3920_9';
+import { fmt } from '../../core/number-utils.js?v=3921_0';
+import { renderHistoryScore } from './history-score-render.js?v=3921_0';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3921_0';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3921_0';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3921_0';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3921_0';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -74,7 +74,7 @@ function renderSearchAdvices(data) {
 
 function poolButton(record, index, selectionPool) {
   const inPool = Boolean(selectionPool?.has?.(record));
-  return `<button class="pool-add-button ${inPool ? 'is-added' : ''}" type="button" data-pool-index="${index}" ${inPool ? 'disabled' : ''}>${inPool ? '已加入自选专业' : '加入自选专业'}</button>`;
+  return `<button class="pool-add-button ${inPool ? 'is-added' : ''}" type="button" data-pool-index="${index}" ${inPool ? 'disabled' : ''}>${inPool ? '已放进报告' : '放进报告'}</button>`;
 }
 function matchBadge(record) {
   const label = record.matchLabel || (Array.isArray(record.matchBadges) ? record.matchBadges[0] : '');
@@ -218,7 +218,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
     : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
-  root.innerHTML = keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
+  root.innerHTML = '<div class="result-report-soft-hint">看到合适的专业，可以先放进报告，最后生成一份给家里讨论。</div>' + keywordSummary + searchAdvices + specialProjectNote + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
   mountDiagnoseButtons(root, shown, state);
   root.querySelectorAll('[data-pool-index]').forEach(button => {
     button.addEventListener('click', () => {
@@ -232,7 +232,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
         hint.className = `pool-add-hint ${result.ok ? 'is-ok' : 'is-warn'}`;
       }
       if (result.ok) {
-        button.textContent = '已加入自选专业';
+        button.textContent = '已放进报告';
         button.classList.add('is-added');
         button.disabled = true;
       }

@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.20.9",
-  "assetVersion": "v3920_9",
-  "release": "v3.9.20.9-ln-rank-band-card-breathing-link-contract-no-fenxi",
+  "version": "v3.9.21.0",
+  "assetVersion": "v3921_0",
+  "release": "v3.9.21.0-ln-rank-band-card-breathing-link-contract-no-fenxi",
   "changes": [
     "新增 band-card-breathing-link.css：卡片与分段颜色呼应独立契约",
     "专业卡片 article 输出 is-band-upper / is-band-near / is-band-steady",

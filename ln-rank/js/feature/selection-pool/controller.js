@@ -5,7 +5,7 @@ import {
   hasPoolItem,
   removePoolItem,
   movePoolItem
-} from './store.js?v=3920_9';
+} from './store.js?v=3921_0';
 
 let mounted = false;
 let latestState = null;
@@ -49,10 +49,10 @@ function getPoolHref() {
 function renderPoolEntry({ items, isBumped, variant = 'desktop' }) {
   const cls = variant === 'inline' ? 'pool-entry-inline' : 'pool-entry-direct pool-entry-desktop';
   const idAttr = variant === 'inline' ? '' : ' id="selectionPoolFab"';
-  return `<a${idAttr} class="${cls} ${isBumped ? 'is-bumped' : ''}" href="${getPoolHref()}" aria-label="进入自选专业完整整理页">
-      <span class="pool-fab-title">自选专业</span>
+  return `<a${idAttr} class="${cls} ${isBumped ? 'is-bumped' : ''}" href="${getPoolHref()}" aria-label="进入生成报告前确认页">
+      <span class="pool-fab-title">已选专业</span>
       <span class="pool-fab-count">${countLabel(items.length)}</span>
-      ${variant === 'desktop' ? '<span class="pool-fab-sub">完整整理页</span>' : ''}
+      ${variant === 'desktop' ? '<span class="pool-fab-sub">生成报告</span>' : ''}
     </a>`;
 }
 
@@ -60,7 +60,7 @@ function renderStickyBar(items, isBumped = false) {
   if (!items.length) return '';
   return `<div class="pool-result-sticky-bar ${isBumped ? 'is-pulsing' : ''}" role="status">
     <span>已选 <b>${countLabel(items.length)}</b> 个专业</span>
-    <a href="${getPoolHref()}">去整理</a>
+    <a href="${getPoolHref()}">生成报告</a>
   </div>`;
 }
 
@@ -70,10 +70,10 @@ function renderToast() {
   const cls = toastState.kind === 'warn' ? ' is-warn' : '';
   return `<div class="pool-entry-toast pool-entry-action-toast${cls}" role="status" aria-live="polite">
     <div class="pool-entry-toast-copy">
-      <b>${escapeHtml(toastState.title || '已加入自选专业')}</b>
-      <span>${escapeHtml(toastState.detail || '可以继续添加，或去整理这套方案')}</span>
+      <b>${escapeHtml(toastState.title || '已放进报告')}</b>
+      <span>${escapeHtml(toastState.detail || '可以继续添加，也可以先生成一份给家里看')}</span>
     </div>
-    <a class="pool-entry-toast-action" href="${escapeHtml(href)}">去整理</a>
+    <a class="pool-entry-toast-action" href="${escapeHtml(href)}">生成报告</a>
   </div>`;
 }
 
@@ -103,8 +103,8 @@ function showActionToast(options = {}) {
   toastState = {
     visible: true,
     kind: options.kind || 'add',
-    title: options.title || `已加入自选专业 · 共 ${countLabel(count)} 个`,
-    detail: options.detail || '可以继续添加，或去整理这套方案',
+    title: options.title || `已放进报告 · 共 ${countLabel(count)} 个`,
+    detail: options.detail || '可以继续添加，也可以先生成一份给家里看',
     count,
     href: getPoolHref(),
     until: Date.now() + 3800
@@ -148,13 +148,13 @@ export function createSelectionPoolAdapter() {
         const count = getPoolItems().length;
         bumpUntil = Date.now() + 1500;
         window.setTimeout(() => render(), 1550);
-        showActionToast({ title: `已加入自选专业 · 共 ${countLabel(count)} 个` });
+        showActionToast({ title: `已放进报告 · 共 ${countLabel(count)} 个`, detail: '可以继续添加，也可以先生成一份给家里看' });
         emitPoolUpdated({ action: 'add', count });
       } else if (/最多|已较多/.test(String(result.message || ''))) {
         showActionToast({
           kind: 'warn',
-          title: '自选专业数量已较多',
-          detail: '建议先去整理后再继续添加'
+          title: '已选专业数量较多',
+          detail: '建议先生成报告或移除几个后再继续添加'
         });
       }
       onChanged();

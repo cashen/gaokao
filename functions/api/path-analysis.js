@@ -44,16 +44,16 @@ function buildRuleRisksAndActions(facts, candidateZones) {
 
   if (!total) {
     return {
-      risks: ['自选专业为空，无法判断前中后段结构。'],
+      risks: ['已选专业为空，无法判断前中后段结构。'],
       actions: ['先从稍高目标、主要参考和稳妥补充三个区间各加入一些专业。'],
       level: 'empty'
     };
   }
 
-  addUnique(actions, `当前候选主定位为“${policy.zoneName}”，本轮排序应围绕“${policy.mainGoal}”复核。`);
+  addUnique(actions, `当前候选主定位为“${policy.zoneName}”，本轮排序应围绕“${policy.mainGoal}”确认。`);
 
   if (total < 12) {
-    addUnique(risks, '自选专业数量偏少，当前更像候选清单，不适合作为完整填报方案。');
+    addUnique(risks, '已选专业数量偏少，当前更像候选清单，不适合作为完整填报方案。');
     addUnique(actions, '继续补充主要参考区和稳妥补充，先扩展到至少20个以上再做正式排序。');
   }
   if (stats.rushCount > Math.ceil(total * 0.40)) {
@@ -70,7 +70,7 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
     addUnique(risks, '稳妥补充数量偏少，后段承接能力不足。');
-    addUnique(actions, '增加若干稳妥补充/更稳补充/稳妥补充专业，尤其补充低风险、可接受专业方向。');
+    addUnique(actions, '增加若干稳妥补充/更稳补充/稳妥补充专业，尤其补充低需要关注、可接受专业方向。');
   } else if (stats.deepSafeCount < Math.max(1, Math.ceil(total * 0.08))) {
     addUnique(risks, '后段数量不算少，但真正拉开位次的选择还不够。');
     addUnique(actions, '补充低一层位次、学校城市专业都能接受的稳妥补充项。');
@@ -93,8 +93,8 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   }
   if (key === 'applied-tech-main-zone') {
     const appliedCount = (stats.byMajorFamily?.['电气电子信息'] || 0) + (stats.byMajorFamily?.['机械自动化制造'] || 0) + (stats.byMajorFamily?.['计算机/软件数据'] || 0);
-    if (appliedCount < Math.ceil(total * 0.25)) addUnique(risks, '应用技术路线承接不足，当前自选专业里可形成技能积累的工科/信息类比例偏低。');
-    addUnique(actions, '主体区优先围绕机械、自动化、电气、电子信息、计算机软件等能形成技能路径的专业复核。');
+    if (appliedCount < Math.ceil(total * 0.25)) addUnique(risks, '应用技术路线承接不足，当前已选专业里可形成技能积累的工科/信息类比例偏低。');
+    addUnique(actions, '主体区优先围绕机械、自动化、电气、电子信息、计算机软件等能形成技能路径的专业确认。');
   }
   if (key === 'industry-entry-zone') {
     addUnique(actions, '行业入口选择区要逐条比较学校行业属性、专业课程、校招资源和是否适合回辽宁就业。');
@@ -108,11 +108,11 @@ function buildRuleRisksAndActions(facts, candidateZones) {
 
   if (stats.topCity && total >= 8 && stats.topCityPct >= 45) {
     addUnique(risks, `地域集中度偏高：${stats.topCity}相关志愿占比约${stats.topCityPct}%。`);
-    addUnique(actions, '如果家庭目标就是本地就业可以保留，但建议补充少量其他城市或院校层级，降低单点风险。');
+    addUnique(actions, '如果家庭目标就是本地就业可以保留，但建议补充少量其他城市或院校层级，降低单点需要关注。');
   }
   if (stats.topMajorFamily && total >= 8 && stats.topMajorFamilyPct >= 55) {
     addUnique(risks, `专业方向集中度偏高：${stats.topMajorFamily}占比约${stats.topMajorFamilyPct}%。`);
-    addUnique(actions, '如果孩子明确强偏好该方向可以保留；否则加入1-2个相邻专业方向做风险分散。');
+    addUnique(actions, '如果孩子明确强偏好该方向可以保留；否则加入1-2个相邻专业方向做需要关注分散。');
   }
   const aiMicroCount = stats.byMajorFamily?.['AI/微电子/智能类'] || 0;
   if (aiMicroCount >= Math.max(2, Math.ceil(total * 0.20))) {
@@ -124,32 +124,32 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   }
   const bottomLine = facts.bottomLineSummary || {};
   if (bottomLine.mode === 'public_regular_only' && bottomLine.publicSinoOrHighFeeCount) {
-    addUnique(risks, `当前底线为“只看公办普通”，但自选专业中仍有${fmt(bottomLine.publicSinoOrHighFeeCount)}个公办中外/高收费项目，需要人工复核。`);
+    addUnique(risks, `当前底线为“只看公办普通”，但已选专业中仍有${fmt(bottomLine.publicSinoOrHighFeeCount)}个公办中外/高收费项目，需要人工确认。`);
   }
   if (bottomLine.mode === 'public_include_sino' && bottomLine.publicSinoOrHighFeeCount) {
     addUnique(actions, '当前允许“公办含中外/高收费”，这类项目可保留，但要重点核验费用、培养模式、毕业证书和家庭承受能力。');
   }
   if (bottomLine.mode && bottomLine.mode !== 'all' && bottomLine.privateLikeCount) {
-    addUnique(risks, `当前底线为“${bottomLine.modeLabel || '办学性质底线'}”，自选专业中仍有${fmt(bottomLine.privateLikeCount)}个民办/独立类项目，建议人工确认是否保留。`);
+    addUnique(risks, `当前底线为“${bottomLine.modeLabel || '办学性质底线'}”，已选专业中仍有${fmt(bottomLine.privateLikeCount)}个民办/独立类项目，建议人工确认是否保留。`);
   }
 
   const push = facts.pushRateSummary || {};
   if (push.total) {
     if (!push.matchedCount) {
-      addUnique(actions, '当前自选专业暂未匹配到学校级推免参考数据，不要把保研机会作为排序依据。');
+      addUnique(actions, '当前已选专业暂未匹配到学校级推免参考数据，不要把保研机会作为排序依据。');
     } else {
       if (['industry-platform-zone', 'platform-major-balance-zone', 'high-platform-zone', 'top-platform-fine-sort-zone'].includes(key) && push.mediumHighOpportunityCount >= 1) {
         addUnique(actions, '本分段可把“升学与推免参考”作为辅助排序维度，但必须区分校级推免机会和专业实际名额。');
       }
       if (push.mediumHighOpportunityCount >= Math.ceil(total * 0.25)) {
-        addUnique(actions, '当前自选专业已有一定升学跳板型院校，可在报告中单独说明其保研/考研平台价值。');
+        addUnique(actions, '当前已选专业已有一定升学跳板型院校，可在报告中单独说明其保研/考研平台价值。');
       }
       if (push.needMajorCheckCount >= 1) {
         addUnique(risks, '校级推免率不等于所报专业保研率，相关学院/专业名额仍需人工核验。');
       }
     }
   }
-  if (!risks.length) addUnique(risks, '暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
+  if (!risks.length) addUnique(risks, '暂未发现明显结构性需要关注，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) addUnique(actions, '保持当前前中后段结构，逐条核验专业接受度、计划变化和特殊项目标签。');
   const level = risks.length >= 5 ? 'high' : risks.length >= 3 ? 'medium' : 'low';
   return { risks: normalizeDiagnosisLines(risks), actions: normalizeDiagnosisLines(actions), level };
@@ -229,16 +229,16 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
 
 function buildSummary(facts, zonePolicy, level) {
   const total = facts.poolStructure?.total || 0;
-  if (!total) return '自选专业暂无专业志愿。';
-  if (level === 'high') return `当前自选专业整体风险偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和稳妥补充，再做最终排序。`;
-  if (level === 'medium') return `当前自选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需复核前中后段比例、稳妥补充深度和集中度风险。`;
-  return `当前自选专业结构相对均衡。结合${zonePolicy.zoneName}定位，可以进入人工复核、排序微调和报告整理。`;
+  if (!total) return '已选专业暂无专业志愿。';
+  if (level === 'high') return `当前已选专业整体需要关注偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和稳妥补充，再做最终排序。`;
+  if (level === 'medium') return `当前已选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需确认前中后段比例、稳妥补充深度和集中度需要关注。`;
+  return `当前已选专业结构相对均衡。结合${zonePolicy.zoneName}定位，可以进入人工确认、排序微调和报告整理。`;
 }
 
 function buildReportText({ facts, rankZone, stats, narrative }) {
   const lines = [];
   lines.push('辽宁 2026 物理类专业初选参考报告');
-  lines.push('基于 2025 年历史数据生成，用于 2026 志愿初选、家庭讨论和人工复核；正式填报以 2026 年一分一段、招生计划和志愿系统为准。');
+  lines.push('基于 2025 年历史数据生成，用于 2026 志愿初选、家庭讨论和人工确认；正式填报以 2026 年一分一段、招生计划和志愿系统为准。');
   lines.push('');
   lines.push(`考生分数：${facts.candidate?.score || '未填写'}`);
   lines.push(`考生位次：${facts.candidate?.rankLabel || '位次待核验'}`);

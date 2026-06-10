@@ -147,7 +147,7 @@ function analysisBlocks(analysis = {}) {
     blocks.push(heading3('方案解读', STYLE.action));
     if (ai.overall) blocks.push(styledTextBlock(clean(ai.overall, 900), STYLE.strong));
     if (ai.zoneJudgement || ai.rankZoneExplain) blocks.push(bulletRunsBlock([{ content: '位次定位：', style: STYLE.strong }, { content: clean(ai.zoneJudgement || ai.rankZoneExplain, 700) }]));
-    if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '自选专业结构：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
+    if (ai.structureDiagnosis) blocks.push(bulletRunsBlock([{ content: '已选专业结构：', style: STYLE.strong }, { content: clean(ai.structureDiagnosis, 700) }]));
     if (ai.majorPathDiagnosis) blocks.push(bulletRunsBlock([{ content: '专业路径：', style: STYLE.strong }, { content: clean(ai.majorPathDiagnosis, 700) }]));
     if (ai.pushRateDiagnosis) blocks.push(bulletRunsBlock([{ content: '升学与推免参考：', style: STYLE.strong }, { content: clean(ai.pushRateDiagnosis, 700) }]));
     if (ai.bottomLineDiagnosis || ai.bottomLineRisk) blocks.push(bulletRunsBlock([{ content: '后段底线：', style: STYLE.strong }, { content: clean(ai.bottomLineDiagnosis || ai.bottomLineRisk, 700) }]));
@@ -162,7 +162,7 @@ function analysisBlocks(analysis = {}) {
     });
   }
   if (Array.isArray(analysis.risks) && analysis.risks.length) {
-    blocks.push(heading3('主要风险', STYLE.risk));
+    blocks.push(heading3('主要需要关注', STYLE.risk));
     analysis.risks.slice(0, 10).forEach(risk => blocks.push(bulletRunsBlock([
       { content: clean(risk, 500), style: STYLE.risk }
     ])));
@@ -184,7 +184,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
   blocks.push(textRunsBlock([
     { content: '考生：', style: STYLE.strong },
     { content: `${scoreText}｜${rankText}`, style: STYLE.strong },
-    { content: '｜自选专业 ' },
+    { content: '｜已选专业 ' },
     { content: `${formatNumber(summary.totalCount || 0)} 个`, style: STYLE.strong },
     { content: '｜报告类型：' },
     { content: reportType === 'selectionPoolWithAnalysis' ? '带解读的报告' : '当前排序清单', style: STYLE.action }
@@ -230,7 +230,7 @@ function summaryBlocks(summary = {}, reportType = 'selectionPoolOnly') {
     ]));
   }
   blocks.push(styledTextBlock(summary.candidateRankNote || '位次口径待核验。', summary.candidateRankSource === 'scoreRankTable' ? STYLE.muted : STYLE.warning));
-  blocks.push(styledTextBlock(summary.maintenanceNote || '前中后段标签沿用自选专业现有判断，报告概要只做统计，不重新判定。', STYLE.muted));
+  blocks.push(styledTextBlock(summary.maintenanceNote || '前中后段标签沿用已选专业现有判断，报告概要只做统计，不重新判定。', STYLE.muted));
   return blocks;
 }
 
@@ -248,12 +248,12 @@ function majorTrendBlocks(summary = {}) {
 function reviewChecklistBlocks(items = [], checklist = null) {
   const ck = checklist || buildSelectionReviewChecklist(items);
   const categories = Array.isArray(ck.categories) ? ck.categories : [];
-  const blocks = [heading2('本方案复核清单', STYLE.title)];
+  const blocks = [heading2('本方案确认清单', STYLE.title)];
   if (!categories.length) {
-    blocks.push(bulletBlock('暂未汇总出明显复核事项；正式填报仍需核验 2026 招生计划和招生章程。'));
+    blocks.push(bulletBlock('暂未汇总出明显确认事项；正式填报仍需核验 2026 招生计划和招生章程。'));
     return blocks;
   }
-  blocks.push(styledTextBlock(ck.summary?.headline || `本方案有 ${categories.length} 类事项建议人工复核。`, STYLE.warning));
+  blocks.push(styledTextBlock(ck.summary?.headline || `本方案有 ${categories.length} 类事项建议人工确认。`, STYLE.warning));
   categories.slice(0, 7).forEach(cat => {
     blocks.push(heading3(`${cat.title}（${cat.count} 条）`, cat.level === 'high' ? STYLE.risk : STYLE.strong));
     cat.items.slice(0, 4).forEach(item => blocks.push(bulletRunsBlock([
@@ -268,7 +268,7 @@ function governanceReviewBlocks(items = []) {
   const blocks = [];
   const review = [];
   const campusReviews = getCampusReviewSummaryForItems(items, { limit: 4 });
-  if (campusReviews.length) review.push(`校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
+  if (campusReviews.length) review.push(`校区确认：${campusReviews.map(formatCampusReviewLine).join('；')}`);
   const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
   const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
   const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));
@@ -276,7 +276,7 @@ function governanceReviewBlocks(items = []) {
   review.push(`招生章程：${(ADMISSION_CHARTER_CHECK_KB?.generalCheckItems || []).slice(0, 8).join('、')}。`);
   review.push(...buildCareerAndExamReviewHints(items, { limit: 4 }));
   review.push(...buildReviewPointsForItems(items, { limit: 5 }));
-  blocks.push(heading2('需要人工复核', STYLE.title));
+  blocks.push(heading2('需要人工确认', STYLE.title));
   [...new Set(review)].slice(0, 6).forEach(line => blocks.push(bulletBlock(clean(line, 260))));
   return blocks;
 }
@@ -287,7 +287,7 @@ function governanceBoundaryBlocks() {
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
     bulletBlock('专业热度只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
-    bulletBlock('招生章程中的学费、校区、培养模式、体检限制、转专业和毕业证/学位证口径必须人工复核。')
+    bulletBlock('招生章程中的学费、校区、培养模式、体检限制、转专业和毕业证/学位证口径必须人工确认。')
   ];
 }
 
@@ -315,12 +315,12 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     { content: String(candidateScore || '未填写'), style: STYLE.strong },
     { content: summary?.candidateRankLabel ? `｜考生位次：${summary.candidateRankLabel}` : '｜考生位次：位次待核验', style: summary?.candidateRankSource === 'scoreRankTable' ? STYLE.strong : STYLE.rankMissing }
   ]));
-  blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条复核。', STYLE.warning));
+  blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
 
   blocks.push(...summaryBlocks(summary || {}, reportType));
   blocks.push(dividerBlock());
 
-  blocks.push(heading2(hasAnalysis ? '三、自选专业总览' : '二、自选专业总览', STYLE.title));
+  blocks.push(heading2(hasAnalysis ? '三、已选专业总览' : '二、已选专业总览', STYLE.title));
   blocks.push(bulletRunsBlock([
     { content: '排序口径：', style: STYLE.strong },
     { content: '按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。' }
@@ -347,7 +347,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     blocks.push(dividerBlock());
   }
 
-  blocks.push(heading2(hasAnalysis ? '四、前中后段快速复核' : '三、前中后段快速复核', STYLE.title));
+  blocks.push(heading2(hasAnalysis ? '四、前中后段快速确认' : '三、前中后段快速确认', STYLE.title));
   ['rush', 'stable', 'safe'].forEach(group => {
     const meta = groupMeta(group);
     const list = groups[group] || [];
@@ -364,7 +364,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(heading2(hasAnalysis ? '五、最终排序清单' : '四、最终排序清单', STYLE.title));
   blocks.push(styledTextBlock('以下按当前页面最终顺序排列，标签、相对分差和位次跨越会使用不同颜色提醒。', STYLE.muted));
   if (!displayItems.length) {
-    blocks.push(bulletBlock('当前自选专业为空。'));
+    blocks.push(bulletBlock('当前已选专业为空。'));
   } else {
     displayItems.forEach(item => blocks.push(orderedRunsBlock(itemRuns(item))));
   }

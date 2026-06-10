@@ -120,7 +120,7 @@ function parentCoachLines(analysis = {}) {
   const coach = analysis.parentCoach || analysis.reportSnapshot?.parentCoach || null;
   const lines = [];
   if (!coach) return lines;
-  lines.push('## 家长下一步复核清单');
+  lines.push('## 家长下一步确认清单');
   lines.push('');
   if (coach.headline) lines.push(`- ${clean(coach.headline, 500)}`);
   if (Array.isArray(coach.nextActions) && coach.nextActions.length) {
@@ -130,7 +130,7 @@ function parentCoachLines(analysis = {}) {
   }
   if (coach.bottomLineReview) {
     lines.push('');
-    lines.push('### 底线复核');
+    lines.push('### 底线确认');
     lines.push(clean(coach.bottomLineReview, 900));
   }
   if (Array.isArray(coach.familyQuestions) && coach.familyQuestions.length) {
@@ -150,11 +150,11 @@ function parentCoachLines(analysis = {}) {
 
 function governanceReviewLines(items = []) {
   const lines = [];
-  lines.push('## 需要人工复核');
+  lines.push('## 需要人工确认');
   lines.push('');
   const review = [];
   const campusReviews = getCampusReviewSummaryForItems(items, { limit: 4 });
-  if (campusReviews.length) review.push(`校区复核：${campusReviews.map(formatCampusReviewLine).join('；')}`);
+  if (campusReviews.length) review.push(`校区确认：${campusReviews.map(formatCampusReviewLine).join('；')}`);
   const hasMedical = items.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
   const hasLaw = items.some(x => /法学/.test(`${x.major || ''}`));
   const hasTeacher = items.some(x => /师范|教育/.test(`${x.major || ''}`));
@@ -225,7 +225,7 @@ function analysisLines(analysis = {}) {
       lines.push('');
     }
     if (narrative.structureDiagnosis) {
-      lines.push('### 自选专业结构');
+      lines.push('### 已选专业结构');
       lines.push('');
       lines.push(clean(narrative.structureDiagnosis, 1000));
       lines.push('');
@@ -249,7 +249,7 @@ function analysisLines(analysis = {}) {
       lines.push('');
     }
     if (Array.isArray(narrative.riskDiagnosis) && narrative.riskDiagnosis.length) {
-      lines.push('### 主要风险');
+      lines.push('### 主要需要关注');
       lines.push('');
       narrative.riskDiagnosis.slice(0, 8).forEach((risk, index) => lines.push(`${index + 1}. ${clean(risk, 180)}`));
       lines.push('');
@@ -262,13 +262,13 @@ function analysisLines(analysis = {}) {
     }
   }
 
-  lines.push('## 前中后段快速复核');
+  lines.push('## 前中后段快速确认');
   lines.push('');
   if (analysis.stats?.total) {
     lines.push(`- 稍高目标：${fmt(analysis.stats.rushCount)} 个｜主要参考：${fmt(analysis.stats.stableCount)} 个｜稳妥补充：${fmt(analysis.stats.safeCount)} 个｜稍高目标：${fmt(analysis.stats.highRushCount || 0)} 个`);
   }
   if (Array.isArray(analysis.risks) && analysis.risks.length) {
-    lines.push(`- 规则风险底稿：${analysis.risks.slice(0, 6).map(x => clean(x, 100)).join('；')}`);
+    lines.push(`- 规则需要关注底稿：${analysis.risks.slice(0, 6).map(x => clean(x, 100)).join('；')}`);
   }
   lines.push('');
   return lines;
@@ -278,7 +278,7 @@ function summaryLines(summary) {
   const lines = [];
   lines.push('## 概要判断');
   lines.push('');
-  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜自选专业 ${fmt(summary.totalCount)} 个`);
+  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜已选专业 ${fmt(summary.totalCount)} 个`);
   if (summary.candidateSameCount != null) lines.push(`- 同分人数：${fmt(summary.candidateSameCount)} 人｜内部计算采用同分末位累计：${fmt(summary.candidateRankForGap)} 位`);
   if (summary.rankZoneName) lines.push(`- 特控线锚点：${fmt(summary.specialControlScore)} 分｜${summary.specialControlRankLabel || '位次待核验'}｜功能区：${summary.rankZoneName}`);
   if (summary.scoreOffsetFromSpecial != null) lines.push(`- 相对特控线：${summary.scoreOffsetFromSpecial >= 0 ? '高出' : '低于'} ${fmt(Math.abs(summary.scoreOffsetFromSpecial))} 分｜位次差 ${summary.rankOffsetFromSpecial == null ? '待核验' : (summary.rankOffsetFromSpecial < 0 ? '优于约 ' + fmt(Math.abs(summary.rankOffsetFromSpecial)) + ' 名' : '落后约 ' + fmt(summary.rankOffsetFromSpecial) + ' 名')}`);
@@ -290,7 +290,7 @@ function summaryLines(summary) {
   if (summary.topBackwardItem) lines.push(`- 全池最大向后回落：${itemName(summary.topBackwardItem)}｜${rankGapText(summary.topBackwardItem.rankGap)}`);
   if (summary.missingRankCount) lines.push(`- 位次缺失提醒：${fmt(summary.missingRankCount)} 个专业暂缺可识别参考位次，概要位次统计基于其余 ${fmt(summary.withRankCount)} 个专业。`);
   lines.push(`- 位次口径：${summary.candidateRankNote}`);
-  lines.push(`- 维护口径：${summary.maintenanceNote || '前中后段标签沿用自选专业现有判断，报告概要只做统计，不重新判定。'}`);
+  lines.push(`- 维护口径：${summary.maintenanceNote || '前中后段标签沿用已选专业现有判断，报告概要只做统计，不重新判定。'}`);
   lines.push('');
   return lines;
 }
@@ -306,24 +306,24 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
     ? `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类专业初选参考报告`
-    : `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类自选专业清单`;
+    : `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类家庭讨论报告`;
   const lines = [];
 
   lines.push(`# ${title}`);
   lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁 2026 物理类专业初选参考报告' : '## 辽宁 2026 物理类自选专业清单');
+  lines.push(hasAnalysis ? '## 辽宁 2026 物理类专业初选参考报告' : '## 辽宁 2026 物理类家庭讨论报告');
   if (hasAnalysis) lines.push(YEAR_CALIBER_KB.reportCopy);
   lines.push('');
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push(`- 考生位次：${displayRankForTitle}`);
   lines.push(`- 数据口径：${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。`);
-  lines.push('- 使用边界：本报告用于家庭讨论和人工复核，不等同于录取预测。');
+  lines.push('- 使用边界：本报告用于家庭讨论和人工确认，不等同于录取预测。');
   lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
   lines.push('');
   lines.push(...summaryLines(summary));
-  lines.push('## 自选专业总览');
+  lines.push('## 已选专业总览');
   lines.push('');
-  lines.push(`- 自选专业总数：${fmt(stats.total)} 个`);
+  lines.push(`- 已选专业总数：${fmt(stats.total)} 个`);
   lines.push(`- 稍高目标：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）`);
   lines.push(`- 主要参考：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）`);
   lines.push(`- 稳妥补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）`);
@@ -338,14 +338,14 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
   lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
 
-  lines.push('## 当前自选专业排序');
+  lines.push('## 当前已选专业排序');
   lines.push('');
   if (!displayItems.length) {
-    lines.push('- 当前自选专业为空。');
+    lines.push('- 当前已选专业为空。');
   } else {
     displayItems.forEach((item) => {
       const sm = item.standardMajor || {};
-      const codeText = sm.code && sm.name ? `专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `专业类：${sm.categoryCode}｜${sm.categoryName}` : '专业代码：待人工复核');
+      const codeText = sm.code && sm.name ? `专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `专业类：${sm.categoryCode}｜${sm.categoryName}` : '专业代码：待人工确认');
       lines.push(`### ${item.order}. ${item.school} · ${item.major}`);
       lines.push('');
       lines.push(`- 顺序：${item.order}`);
@@ -356,7 +356,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 匹配关系：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
-      lines.push(`- 需要复核：${item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item)}`);
+      lines.push(`- 需要确认：${item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item)}`);
       lines.push('');
     });
   }

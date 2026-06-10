@@ -124,10 +124,10 @@ export function buildPushRateSummary(items = []) {
 }
 
 function buildPushAdvisorText({ total, matchedCount, mediumHighOpportunityCount, highSchools, collegeSignals, needMajorCheckCount }) {
-  if (!total) return '自选专业为空，暂无法判断升学与推免参考。';
-  if (!matchedCount) return '当前自选专业暂未匹配到可用推免参考数据，不能据此判断升学跳板价值。';
+  if (!total) return '已选专业为空，暂无法判断升学与推免参考。';
+  if (!matchedCount) return '当前已选专业暂未匹配到可用推免参考数据，不能据此判断升学跳板价值。';
   const parts = [];
-  parts.push(`当前自选专业中有${matchedCount}个志愿匹配到学校级推免参考数据。`);
+  parts.push(`当前已选专业中有${matchedCount}个志愿匹配到学校级推免参考数据。`);
   if (mediumHighOpportunityCount) parts.push(`其中${mediumHighOpportunityCount}个来自整体推免机会较强或中高的院校，可作为升学跳板参考。`);
   if (highSchools?.length) parts.push(`代表院校：${highSchools.join('、')}。`);
   if (collegeSignals?.length) parts.push('部分学院/方向存在名额线索，但仍需补毕业生分母，不能直接当专业保研率。');

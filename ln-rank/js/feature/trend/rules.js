@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA } from './data.js?v=3920_9';
+import { MAJOR_TREND_DATA } from './data.js?v=3921_0';
 
 const DIRECTION_LABELS = Object.fromEntries(MAJOR_TREND_DATA.directionCatalog.map(x => [x.id, x.label]));
 const NORMALIZE_RE = /[\s\u3000（）()【】\[\]·・,，、/|；;:+＋-]/g;
@@ -144,10 +144,10 @@ export function buildTrendSummaryForSelection(items = [], score) {
     if (!row.trend) continue;
     const label = trendLabel(row.trend);
     const tone = trendTone(row.trend);
-    const base = `${row.directionLabel}：当前自选专业中有 ${row.count} 个；${segment.label} 分段该方向 ${label}。`;
+    const base = `${row.directionLabel}：当前已选专业中有 ${row.count} 个；${segment.label} 分段该方向 ${label}。`;
     if (tone === 'harder' || tone === 'watch') {
       notes.push(`${base}建议不要把同类专业集中放在一个分数带，需要补充更稳妥的方向。`);
-      risks.push(`专业热度参考：${row.directionLabel}在 ${segment.label} 分段 ${label}，当前自选专业中有 ${row.count} 个，建议人工复核位次余量。`);
+      risks.push(`专业热度参考：${row.directionLabel}在 ${segment.label} 分段 ${label}，当前已选专业中有 ${row.count} 个，建议人工复核位次余量。`);
     } else if (tone === 'easier' || tone === 'relaxed') {
       notes.push(`${base}这只能说明近两年没那么挤，仍需核验学校层次、专业实力、学费和当年计划。`);
     } else {

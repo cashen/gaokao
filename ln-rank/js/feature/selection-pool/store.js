@@ -159,11 +159,11 @@ export function hasPoolItem(recordOrId) {
 export function addPoolItem(record) {
   const items = getPoolItems();
   const id = itemId(record);
-  if (!id) return { ok: false, message: '专业信息不完整，暂时无法加入自选专业。', items };
-  if (items.some(item => item.id === id)) return { ok: false, message: '该专业已在自选专业中。', items };
-  if (items.length >= MAX_ITEMS) return { ok: false, message: `自选专业最多保留 ${MAX_ITEMS} 个专业志愿。`, items };
+  if (!id) return { ok: false, message: '专业信息不完整，暂时无法放进报告。', items };
+  if (items.some(item => item.id === id)) return { ok: false, message: '这个专业已经在报告里了。', items };
+  if (items.length >= MAX_ITEMS) return { ok: false, message: `最多可以先选 ${MAX_ITEMS} 个专业放进报告。`, items };
   const next = savePoolItems([...items, normalizePoolItem(record, items.length + 1)]);
-  return { ok: true, message: '已加入自选专业，可进入完整整理页。', items: next };
+  return { ok: true, message: '已放进报告，可以继续添加，也可以生成报告。', items: next };
 }
 
 export function removePoolItem(id) {

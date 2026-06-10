@@ -1,4 +1,4 @@
-import { getCampusForRecord } from '../campus/index.js?v=3920_9';
+import { getCampusForRecord } from '../campus/index.js?v=3921_0';
 
 function textOf(item = {}) {
   return `${item.school || ''} ${item.major || ''} ${item.displayLocation || ''} ${(item.flags || []).join(' ')} ${(item.schoolTags || []).join(' ')}`;
@@ -101,15 +101,15 @@ function escapeHtml(value) {
 export function renderReviewChecklist(checklist = {}) {
   const categories = Array.isArray(checklist.categories) ? checklist.categories : [];
   if (!categories.length) {
-    return `<section class="review-checklist-panel is-empty"><div class="review-checklist-head"><div><h2>本方案复核清单</h2><p>加入自选专业后，这里会汇总校区、费用、位次、体检和招生章程等需要人工核验的事项。</p></div></div></section>`;
+    return `<section class="review-checklist-panel is-empty"><div class="review-checklist-head"><div><h2>生成前需要再确认</h2><p>把专业放进报告后，这里会汇总校区、费用、位次、体检和招生章程等需要再确认的地方。</p></div></div></section>`;
   }
   const chips = categories.map(c => `<span class="review-check-chip level-${escapeHtml(c.level)}">${escapeHtml(c.title)}：${escapeHtml(c.count)}</span>`).join('');
   const detail = categories.map(c => `<details class="review-check-category level-${escapeHtml(c.level)}"><summary>${escapeHtml(c.title)} <b>${escapeHtml(c.count)}</b></summary><ul>${c.items.slice(0,6).map(item => `<li><strong>${escapeHtml(item.school)}｜${escapeHtml(item.major)}</strong><span>${escapeHtml(item.reason)}</span><em>${escapeHtml(item.action)}</em></li>`).join('')}</ul></details>`).join('');
-  return `<section class="review-checklist-panel"><div class="review-checklist-head"><div><h2>本方案复核清单</h2><p>${escapeHtml(checklist.summary?.headline || '本方案有事项建议人工复核')}。默认只做家庭复核提醒，不代表录取承诺。</p></div></div><div class="review-check-chips">${chips}</div><div class="review-check-details">${detail}</div></section>`;
+  return `<section class="review-checklist-panel"><div class="review-checklist-head"><div><h2>生成前需要再确认</h2><p>${escapeHtml(checklist.summary?.headline || '有事项建议再确认')}。默认只做家庭复核提醒，不代表录取承诺。</p></div></div><div class="review-check-chips">${chips}</div><div class="review-check-details">${detail}</div></section>`;
 }
 
 export function checklistPlainText(checklist = {}) {
   const categories = Array.isArray(checklist.categories) ? checklist.categories : [];
-  if (!categories.length) return '本方案暂未汇总出明显复核事项；正式填报仍需核验 2026 招生计划和招生章程。';
+  if (!categories.length) return '暂未汇总出明显需要再确认的地方；正式填报仍需核验 2026 招生计划和招生章程。';
   return categories.map(c => `${c.title}：${c.items.slice(0,3).map(i => `${i.school}｜${i.major}（${i.reason}）`).join('；')}`).join('\n');
 }
