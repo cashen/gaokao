@@ -5,14 +5,14 @@ import {
   hasPoolItem,
   removePoolItem,
   movePoolItem
-} from './store.js?v=3920_4';
+} from './store.js?v=3920_5';
 
 let mounted = false;
 let latestState = null;
 let onChanged = () => {};
 let bumpUntil = 0;
 let toastUntil = 0;
-let toastText = '';
+let toastState = { visible: false, kind: 'add', title: '', detail: '', count: 0, href: '', until: 0 };
 let toastTimer = null;
 
 function countLabel(count) {
@@ -65,9 +65,15 @@ function renderStickyBar(items, isBumped = false) {
 }
 
 function renderToast() {
-  if (!toastText || Date.now() >= toastUntil) return '';
-  return `<div class="pool-entry-toast" role="status">
-    <span>${escapeHtml(toastText)}</span>
+  if (!toastState.visible || Date.now() >= toastState.until) return '';
+  const href = toastState.href || getPoolHref();
+  const cls = toastState.kind === 'warn' ? ' is-warn' : '';
+  return `<div class="pool-entry-toast pool-entry-action-toast${cls}" role="status" aria-live="polite">
+    <div class="pool-entry-toast-copy">
+      <b>${escapeHtml(toastState.title || '已加入自选专业')}</b>
+      <span>${escapeHtml(toastState.detail || '可以继续添加，或去整理这套方案')}</span>
+    </div>
+    <a class="pool-entry-toast-action" href="${escapeHtml(href)}">去整理</a>
   </div>`;
 }
 
@@ -92,11 +98,22 @@ function render() {
   }
 }
 
-function showToast(message) {
-  toastText = message || `已加入自选专业 · 共 ${getPoolItems().length} 个`;
-  toastUntil = Date.now() + 2600;
+function showActionToast(options = {}) {
+  const count = getPoolItems().length;
+  toastState = {
+    visible: true,
+    kind: options.kind || 'add',
+    title: options.title || `已加入自选专业 · 共 ${countLabel(count)} 个`,
+    detail: options.detail || '可以继续添加，或去整理这套方案',
+    count,
+    href: getPoolHref(),
+    until: Date.now() + 3800
+  };
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => render(), 2700);
+  toastTimer = setTimeout(() => {
+    toastState.visible = false;
+    render();
+  }, 3900);
 }
 
 function emitPoolUpdated(detail = {}) {
@@ -131,8 +148,14 @@ export function createSelectionPoolAdapter() {
         const count = getPoolItems().length;
         bumpUntil = Date.now() + 1500;
         window.setTimeout(() => render(), 1550);
-        showToast(`已加入自选专业 · 共 ${countLabel(count)} 个`);
+        showActionToast({ title: `已加入自选专业 · 共 ${countLabel(count)} 个` });
         emitPoolUpdated({ action: 'add', count });
+      } else if (/最多|已较多/.test(String(result.message || ''))) {
+        showActionToast({
+          kind: 'warn',
+          title: '自选专业数量已较多',
+          detail: '建议先去整理后再继续添加'
+        });
       }
       onChanged();
       render();
