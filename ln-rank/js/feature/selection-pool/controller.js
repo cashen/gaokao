@@ -5,7 +5,8 @@ import {
   hasPoolItem,
   removePoolItem,
   movePoolItem
-} from './store.js?v=3921_1';
+} from './store.js?v=3921_2';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3921_2';
 
 let mounted = false;
 let latestState = null;
@@ -50,8 +51,7 @@ function renderPoolEntry({ items, isBumped, variant = 'desktop' }) {
   const cls = variant === 'inline' ? 'pool-entry-inline' : 'pool-entry-direct pool-entry-desktop';
   const idAttr = variant === 'inline' ? '' : ' id="selectionPoolFab"';
   return `<a${idAttr} class="${cls} ${isBumped ? 'is-bumped' : ''}" href="${getPoolHref()}" aria-label="进入生成报告前确认页">
-      <span class="pool-fab-title">已选专业</span>
-      <span class="pool-fab-count">${countLabel(items.length)}</span>
+      <span class="pool-fab-title">${REPORT_COPY.selectedCount(countLabel(items.length))}</span>
       ${variant === 'desktop' ? '<span class="pool-fab-sub">生成报告</span>' : ''}
     </a>`;
 }
@@ -70,10 +70,10 @@ function renderToast() {
   const cls = toastState.kind === 'warn' ? ' is-warn' : '';
   return `<div class="pool-entry-toast pool-entry-action-toast${cls}" role="status" aria-live="polite">
     <div class="pool-entry-toast-copy">
-      <b>${escapeHtml(toastState.title || '已放进报告')}</b>
+      <b>${escapeHtml(toastState.title || REPORT_COPY.added)}</b>
       <span>${escapeHtml(toastState.detail || '可以继续添加，也可以先生成一份给家里看')}</span>
     </div>
-    <a class="pool-entry-toast-action" href="${escapeHtml(href)}">生成报告</a>
+    <a class="pool-entry-toast-action" href="${escapeHtml(href)}">${REPORT_COPY.generate}</a>
   </div>`;
 }
 

@@ -1,8 +1,15 @@
 {
-  "version": "v3.9.21.1",
-  "assetVersion": "v3921_1",
-  "release": "v3.9.21.1-ln-rank-compact-result-context-bar-no-fenxi",
-  "notes": "Compact result context bar: current band, keyword explanation, and hidden special-project count are merged into one light explanatory bar. Detailed keyword counts and special-project explanation are folded behind 展开说明. The result cards and report-first flow remain unchanged; no /fenxi directory included.",
+  "version": "v3.9.21.2",
+  "assetVersion": "v3921_2",
+  "release": "v3.9.21.2-ln-rank-compact-result-context-bar-no-fenxi",
+  "notes": [
+    "报告优先家长流程硬化",
+    "ResultContextBar 轻量结果说明区",
+    "生成报告前确认页语义与视觉收口",
+    "无 fenxi 目录与中间件变更"
+  ],
   "noFenxiIncluded": true,
-  "label": "compact-result-context-bar"
+  "label": "compact-result-context-bar",
+  "name": "v3.9.21.2-ln-rank-parent-report-flow-hardening-no-fenxi",
+  "generatedAt": "2026-06-10T13:45:32.050341Z"
 }

@@ -1,4 +1,4 @@
-/* v3.9.21.2 结果说明区：把当前分段、关键词、特殊项目合并成轻量说明条 */
+/* v3.9.21.2 ResultContextBar：当前分段、关键词、特殊项目统一轻量说明条 */
 .result-context-bar{
   grid-column:1/-1;
   margin:0 0 12px;

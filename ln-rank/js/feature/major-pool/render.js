@@ -1,9 +1,10 @@
-import { fmt } from '../../core/number-utils.js?v=3921_1';
-import { renderHistoryScore } from './history-score-render.js?v=3921_1';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3921_1';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3921_1';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3921_1';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3921_1';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3921_2';
+import { fmt } from '../../core/number-utils.js?v=3921_2';
+import { renderHistoryScore } from './history-score-render.js?v=3921_2';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3921_2';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3921_2';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3921_2';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3921_2';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -113,7 +114,7 @@ function renderSearchAdvices(data) {
 
 function poolButton(record, index, selectionPool) {
   const inPool = Boolean(selectionPool?.has?.(record));
-  return `<button class="pool-add-button ${inPool ? 'is-added' : ''}" type="button" data-pool-index="${index}" ${inPool ? 'disabled' : ''}>${inPool ? '已放进报告' : '放进报告'}</button>`;
+  return `<button class="pool-add-button ${inPool ? 'is-added' : ''}" type="button" data-pool-index="${index}" ${inPool ? 'disabled' : ''}>${inPool ? REPORT_COPY.added : REPORT_COPY.add}</button>`;
 }
 function matchBadge(record) {
   const label = record.matchLabel || (Array.isArray(record.matchBadges) ? record.matchBadges[0] : '');
@@ -285,7 +286,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
         hint.className = `pool-add-hint ${result.ok ? 'is-ok' : 'is-warn'}`;
       }
       if (result.ok) {
-        button.textContent = '已放进报告';
+        button.textContent = REPORT_COPY.added;
         button.classList.add('is-added');
         button.disabled = true;
       }

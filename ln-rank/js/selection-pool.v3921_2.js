@@ -20,7 +20,7 @@ import { getCampusForRecord } from './feature/campus/index.js?v=3921_2';
 import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3921_2';
 import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3921_2';
 import { buildReportPayload } from './domain/report-payload-contract.js?v=3921_2';
-import { toHumanCopy } from './domain/human-copy-dictionary.js?v=3921_2';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3921_2';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -135,6 +135,65 @@ function getState() {
   return buildCurrentState();
 }
 
+
+function isSpecialProjectItem(item = {}) {
+  const info = item.specialProject || {};
+  const text = [item.school, item.major, item.matchReason, ...(Array.isArray(item.flags) ? item.flags : [])].join(' ');
+  return Boolean(info.hasSpecialProject) || /专项|定向|预科|公费师范|优师|强基/.test(text);
+}
+
+function needsFeeReview(item = {}) {
+  const text = [item.school, item.major, item.matchReason, ...(Array.isArray(item.flags) ? item.flags : [])].join(' ');
+  return /中外|合作办学|高收费|较高收费|学费|费用/.test(text);
+}
+
+function buildSelectedForReportSummary(state = getState()) {
+  const items = Array.isArray(state.items) ? state.items : [];
+  const stats = state.stats || getComputedStats(items);
+  return {
+    total: stats.total || items.length,
+    upper: stats.rushCount || 0,
+    near: stats.stableCount || 0,
+    steady: stats.safeCount || 0,
+    fee: items.filter(needsFeeReview).length,
+    special: items.filter(isSpecialProjectItem).length
+  };
+}
+
+function renderDistributionCards(summary) {
+  const cards = [
+    ['upper', '稍高目标', summary.upper],
+    ['near', '主要参考', summary.near],
+    ['steady', '稳妥补充', summary.steady],
+    ['fee', '需要确认费用', summary.fee],
+    ['special', '特殊项目', summary.special]
+  ];
+  return `<section class="report-distribution-panel" aria-label="${REPORT_COPY.distributionTitle}"><div class="report-distribution-head"><h3>${REPORT_COPY.distributionTitle}</h3><p>先看这几个专业搭配得是否合适。</p></div><div class="report-distribution-grid">${cards.map(([key,label,count])=>`<div class="report-distribution-card is-${key}"><strong>${fmt(count)}</strong><span>${escapeHtml(label)}</span></div>`).join('')}</div></section>`;
+}
+
+function buildBeforeGenerateHints(state = getState()) {
+  const items = Array.isArray(state.items) ? state.items : [];
+  if (!items.length) return ['请先从查询页选择几个可以讨论的专业放进报告。'];
+  const summary = buildSelectedForReportSummary(state);
+  const hints = [];
+  if (summary.upper > summary.near + summary.steady) hints.push('稍高目标偏多，可以再补几个主要参考或稳妥补充的专业。');
+  else if (!summary.steady) hints.push('目前还没有稳妥补充专业，可以考虑补 1-2 个让家里更安心。');
+  else hints.push('已选专业已经覆盖稍高目标、主要参考和稳妥补充，可以继续逐条确认。');
+  const majorWords = items.map(x => String(x.major || '')).join(' ');
+  if (/计算机|软件|人工智能|自动化|电气|电子|通信/.test(majorWords)) hints.push('这份报告里工科方向较多，可以和孩子确认是否真的接受课程强度和就业方向。');
+  else hints.push('生成报告前，可以再确认孩子是否接受这些专业方向和未来学习内容。');
+  if (summary.fee) hints.push(`有 ${fmt(summary.fee)} 个专业需要确认学费、培养方式或中外合作等信息，报告里会一起提醒。`);
+  else hints.push('目前没有明显费用或中外合作提醒，但仍建议查看招生计划备注。');
+  if (summary.special) hints.push(`有 ${fmt(summary.special)} 个特殊项目，需要确认资格、服务年限或招生批次。`);
+  else hints.push('目前没有专项、定向、预科等特殊项目。');
+  return hints.slice(0, 3);
+}
+
+function renderBeforeGenerateCheck(state = getState()) {
+  const hints = buildBeforeGenerateHints(state);
+  return `<section class="before-report-check-panel"><div class="before-report-check-head"><h3>${REPORT_COPY.beforeCheckTitle}</h3><p>看看专业方向、城市和费用是否过于集中，有没有需要再确认的地方。</p></div><ul>${hints.map(h=>`<li>${escapeHtml(h)}</li>`).join('')}</ul></section>`;
+}
+
 function contextStatusHtml(state) {
   const score = state?.candidateContext?.score;
   const total = state?.items?.length || 0;
@@ -151,16 +210,11 @@ function contextStatusHtml(state) {
 
 function statHtml(stats, items, state) {
   const count = stats.total || 0;
-  const lastOrder = count ? Math.max(...items.map(item => Number(item.userOrder) || 0)) : 0;
   const orderText = count
     ? `当前 ${count} 个专业会按这里看到的顺序放进报告。`
     : '还没有选择专业，先回查询页把可以讨论的专业放进报告。';
-  return `${contextStatusHtml(state)}<div class="pool-stats workspace-stats">
-    <div><strong>${stats.total}</strong><span>总数</span></div>
-    <div><strong>${stats.rushCount}</strong><span>稍高目标</span></div>
-    <div><strong>${stats.stableCount}</strong><span>主要参考</span></div>
-    <div><strong>${stats.safeCount}</strong><span>稳妥补充</span></div>
-  </div>${renderHealthLights(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
+  const summary = buildSelectedForReportSummary(state);
+  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
 }
 
 function moveMenuHtml(item, index, total) {
@@ -304,7 +358,7 @@ function renderAnalysis() {
   const root = $('analysisResult');
   if (!root) return;
   if (!currentAnalysis) {
-    root.innerHTML = '<div class="pool-empty diagnose-empty">点击“生成前看一眼”，这里会提示分段搭配、方向集中、费用和特殊项目等需要再确认的地方。</div>';
+    root.innerHTML = renderBeforeGenerateCheck(getState());
     return;
   }
   const state = getState();
@@ -381,8 +435,8 @@ function renderFeishuStatus() {
   if (!root) return;
   if (!feishuStatus) { root.innerHTML = ''; return; }
   const links = feishuStatus.url ? `<div class="pool-feishu-links">
-    <a class="pool-feishu-link" href="${escapeHtml(feishuStatus.url)}" target="_blank" rel="noopener">打开报告文档</a>
-    <button id="copyFeishuUrl" class="pool-feishu-link pool-feishu-copy" type="button">复制链接</button>
+    <a class="pool-feishu-link" href="${escapeHtml(feishuStatus.url)}" target="_blank" rel="noopener">打开飞书报告</a>
+    <button id="copyFeishuUrl" class="pool-feishu-link pool-feishu-copy" type="button">复制报告链接</button>
   </div>` : '';
   const detail = feishuStatus.detail ? `<details class="pool-feishu-tech"><summary>查看详情</summary><pre>${escapeHtml(feishuStatus.detail)}</pre></details>` : '';
   root.innerHTML = `<div class="pool-feishu-status ${feishuStatus.ok ? 'is-ok' : 'is-error'}">${escapeHtml(toHumanCopy(feishuStatus.message || ''))}${links}${detail}</div>`;
@@ -572,7 +626,7 @@ async function sendFeishu({ withAnalysis = false } = {}) {
       url: data.url || ''
     };
   } catch (error) {
-    feishuStatus = { ok: false, message: '报告暂时生成失败。可以先复制文字版，稍后再试。', detail: error?.message || String(error) };
+    feishuStatus = { ok: false, message: '飞书报告暂时没生成成功，可以先复制文字版保存。', detail: error?.message || String(error) };
   } finally {
     const latest = getState();
     if (btn) { btn.disabled = !latest.items.length || !latest.candidateContext.score; btn.textContent = withAnalysis ? '生成飞书报告' : '生成清单版'; }

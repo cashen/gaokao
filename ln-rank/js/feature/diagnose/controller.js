@@ -1,9 +1,9 @@
-import { diagnoseCard } from './api.js?v=3921_1';
+import { diagnoseCard } from './api.js?v=3921_2';
 import {
   renderDiagnoseError,
   renderDiagnoseLoading,
   renderDiagnoseResult
-} from './render.js?v=3921_1';
+} from './render.js?v=3921_2';
 
 const cache = new Map();
 

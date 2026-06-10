@@ -1,5 +1,5 @@
-import { FEISHU_UI_CONFIG } from "../../config/feishu-ui-config.js?v=3921_1";
-import { canGenerateFeishuReport } from "../report/payload-builder.js?v=3921_1";
+import { FEISHU_UI_CONFIG } from "../../config/feishu-ui-config.js?v=3921_2";
+import { canGenerateFeishuReport } from "../report/payload-builder.js?v=3921_2";
 
 async function copyText(text) {
   if (!text) return false;

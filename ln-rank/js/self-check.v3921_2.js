@@ -30,8 +30,8 @@ async function runResultUiChecks(){
     checks.push({name:'BAND-UI-006：稳妥补充使用浅青绿语义',ok:cssColor.includes('--band-steady-bg: #EDF8F3'),detail:'稳妥补充保留温和青绿，但不同于主按钮深色'});
     checks.push({name:'RESULT-UI-001：结果区视觉 CSS 存在',ok:cssResult.length>1200 && cssCard.length>1200,detail:`${cssResult.length}/${cssCard.length}`});
     checks.push({name:'RESULT-UI-002：结果区使用统一外壳',ok:/ln-result-section/.test(html),detail:'resultsPanel 已接入 ln-result-section'});
-    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-compact.css?v=3921_2').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
-    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-compact.css?v=3921_2').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
+    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-bar.css?v=3921_2').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
+    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-bar.css?v=3921_2').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
     checks.push({name:'CARD-BAND-001：专业卡片输出 is-band-* class',ok:renderMajor.includes('ln-major-card status-${statusKey} ${bandClass}')&&renderMajor.includes('bandKeyFromActive'),detail:'卡片 article 已跟随 activeBand 输出 is-band-upper/near/steady'});
     checks.push({name:'CARD-BAND-002：分段标签同步 is-band-* class',ok:renderMajor.includes('ln-band-pill ${bandClass}')&&cssBreath.includes('.ln-band-pill.is-band-near'),detail:'卡片右上分段标签与上方类别同色系'});
     checks.push({name:'CARD-BAND-003：适合位置跟随分段语义色',ok:renderMajor.includes('ln-fit-position ${bandClass}')&&cssBreath.includes('.ln-fit-position.is-band-near'),detail:'适合位置值按当前分段轻强调'});
@@ -86,6 +86,11 @@ const visibleJoined=indexText+'\n'+selectionText+'\n'+majorRenderText+'\n'+repor
 const foundForbidden=forbiddenReport.filter(w=>visibleJoined.includes(w));
 checks.push({name:'REPORT-FLOW-006：用户可见不出现账户/自选池/报告清单误导词',ok:!foundForbidden.length,detail:foundForbidden.length?foundForbidden.join('、'):'未发现误导词'});
 
+checks.push({name:'REPORT-FLOW-007：确认页存在已选专业分布组件',ok:selectionText.includes('已选专业分布') && (await text('./css/components/report-content-confirm.css').catch(e=>'')).includes('report-distribution-panel'),detail:'确认页分布组件用于家长快速判断稍高/主要/稳妥搭配'});
+checks.push({name:'REPORT-FLOW-008：确认页存在生成前看一眼组件',ok:selectionText.includes('生成前看一眼') && (await text('./css/components/report-content-confirm.css').catch(e=>'')).includes('before-report-check-panel'),detail:'生成前看一眼用于温和提示方向、城市、费用和特殊项目'});
+checks.push({name:'REPORT-FLOW-009：飞书失败态有人话备用方案',ok:(await text('./js/selection-pool.v3921_2.js').catch(e=>'')).includes('飞书报告暂时没生成成功，可以先复制文字版保存。'),detail:'失败态提供复制文字版，不用冰冷报错'});
+
+
 
 const contextCss=await text('./css/components/result-context-compact.css').catch(e=>'');
 const majorRenderText2=await text('./js/feature/major-pool/render.js').catch(e=>'');
@@ -99,4 +104,4 @@ checks.push({name:'CONTEXT-BAR-005：Android 使用摘要+展开',ok:/@media\(ma
 return checks}
 function renderClientChecks(checks){const root=document.getElementById('clientChecks')||document.getElementById('uiChecks');if(root)root.innerHTML=(checks||[]).map(row).join('')}
 async function run(){const overall=document.getElementById('overallBadge');overall.className='status warn';overall.textContent='正在自测…';const client=[...(await runManifest()), ...(await runResultUiChecks())];try{const res=await fetch('/api/ln-rank-self-check',{cache:'no-store'});const data=await res.json();document.getElementById('versionBox').textContent=JSON.stringify({version:data.version,catalog:data.catalog,policyLine:data.policyLine,clientChecks:client.length},null,2);document.getElementById('cases').innerHTML=(data.cases||[]).map(c=>row({name:c.input,ok:c.ok,detail:`方向：${c.direction||'—'}｜项目：${c.project||'—'}｜代码：${c.code||'—'}`})).join('');document.getElementById('reports').innerHTML=(data.reports||[]).map(r=>row({name:r.name,ok:r.ok,detail:'长度/块数：'+(r.length||'—')})).join('');document.getElementById('uiChecks').innerHTML=[...(data.uiChecks||[]),...client].map(x=>row({name:x.name,ok:x.ok,detail:x.detail,suggestion:x.suggestion})).join('');document.getElementById('errors').textContent=(data.errors&&data.errors.length)?data.errors.join('\n'):'暂无。';const ok=Boolean(data.ok)&&client.every(x=>x.ok);overall.className='status '+(ok?'ok':'bad');overall.textContent=ok?'全部通过':'存在失败'}catch(e){document.getElementById('errors').textContent=String(e?.stack||e);renderClientChecks(client);overall.className='status '+(client.every(x=>x.ok)?'ok':'bad');overall.textContent=client.every(x=>x.ok)?'客户端检查通过，接口未返回':'自测接口或客户端检查失败'}}
-document.getElementById('runSelfCheck')?.addEventListener('click',run);run();console.info('v3.9.21.2 紧凑结果说明区自测已启用。');
+document.getElementById('runSelfCheck')?.addEventListener('click',run);run();console.info('v3.9.21.2 报告优先流程硬化自测已启用。');

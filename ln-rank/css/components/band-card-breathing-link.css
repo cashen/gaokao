@@ -1,4 +1,4 @@
-/* v3.9.21.1 专业卡片与分段颜色“呼吸联动”契约：轻呼应，不做粗线条 */
+/* v3.9.21.2 专业卡片与分段颜色“呼吸联动”契约：轻呼应，不做粗线条 */
 .results-grid .major-card.ln-major-card {
   position: relative !important;
   border-color: color-mix(in srgb, var(--line-soft) 82%, var(--brand-border) 18%) !important;
