@@ -8,7 +8,7 @@ export function getScoreGuard(score) {
       canQuery: false,
       buttonText: '输入分数后查看专业',
       statusText: '数据已准备好',
-      guide: '请先输入考生分数，例如 520。输入后可直接点击按钮查看专业。',
+      guide: '请先输入考生分数，例如 666。输入后可直接点击按钮查看专业。',
       resultTitle: '等待查看',
       resultBadge: '待输入',
       resultMessage: '请输入考生分数，选择地域、学校或专业后，点击查看符合条件的专业。'

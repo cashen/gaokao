@@ -1,2 +1,2 @@
-v3.9.21.7-ln-rank-default-score-example-666-no-fenxi
-assetVersion=v3921_7
+v3.9.22-ln-rank-report-flow-qa-tighten-no-fenxi
+assetVersion=v3922
