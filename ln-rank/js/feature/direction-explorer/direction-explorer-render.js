@@ -1,6 +1,6 @@
-import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_1';
-import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3923_1';
-import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3923_1';
+import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_3';
+import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3923_3';
+import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3923_3';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -12,8 +12,18 @@ function escapeHtml(value) {
 }
 function uniq(list = []) { return [...new Set(list.map(x => String(x || '').trim()).filter(Boolean))]; }
 function splitWords(value = '') { return String(value || '').split(/[，,、/；;|\s]+/).map(x => x.trim()).filter(Boolean); }
+function compactDirectionLabel(item) {
+  return item && typeof item === 'object' ? (item.shortLabel || item.label || '') : item;
+}
+function compactTagList(items = [], limit = 4) {
+  const list = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!list.length) return '<em>暂时没有明显方向</em>';
+  const visible = list.slice(0, limit);
+  const tags = visible.map(x => `<span>${escapeHtml(compactDirectionLabel(x))}</span>`).join('');
+  return tags + (list.length > limit ? `<span class="direction-more-tag">等 ${list.length} 个方向</span>` : '');
+}
 function resultCard(title, desc, items = [], className = '') {
-  const tags = items.length ? items.map(x => `<span>${escapeHtml(x.label || x)}</span>`).join('') : '<em>暂时没有明显方向</em>';
+  const tags = compactTagList(items, 4);
   return `<div class="direction-result-card ${className}"><b>${escapeHtml(title)}</b><p>${escapeHtml(desc)}</p><div class="direction-result-tags">${tags}</div></div>`;
 }
 function hasDifferentExisting(existing = '', keywords = []) {

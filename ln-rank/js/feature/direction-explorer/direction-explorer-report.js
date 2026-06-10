@@ -1,5 +1,5 @@
-import { getDirectionExplorerResult } from './direction-explorer-state.js?v=3923_1';
-import { buildDirectionExplorerPlainText } from './direction-explorer-engine.js?v=3923_1';
+import { getDirectionExplorerResult } from './direction-explorer-state.js?v=3923_3';
+import { buildDirectionExplorerPlainText } from './direction-explorer-engine.js?v=3923_3';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -9,7 +9,16 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
-function list(items = []) { return items.length ? `<div class="direction-report-tags">${items.map(x => `<span>${escapeHtml(x.label || x)}</span>`).join('')}</div>` : ''; }
+function compactDirectionLabel(item) {
+  return item && typeof item === 'object' ? (item.shortLabel || item.label || '') : item;
+}
+function list(items = [], limit = 4) {
+  const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!arr.length) return '';
+  const visible = arr.slice(0, limit);
+  const tags = visible.map(x => `<span>${escapeHtml(compactDirectionLabel(x))}</span>`).join('');
+  return `<div class="direction-report-tags">${tags}${arr.length > limit ? `<span class="direction-more-tag">等 ${arr.length} 个方向</span>` : ''}</div>`;
+}
 export function buildDirectionExplorerReportText(result = getDirectionExplorerResult()) {
   return buildDirectionExplorerPlainText(result);
 }
@@ -21,9 +30,9 @@ export function renderDirectionExplorerReportHtml(root, { compact = false } = {}
     return;
   }
   root.innerHTML = `<section class="direction-report-box">
-    <div class="direction-report-head"><h3>孩子方向参考</h3><p>这部分不是给孩子定专业，只是帮家里讨论哪些方向值得看、哪些只是没接触过、哪些地方需要再确认。</p></div>
-    ${result.focus?.length ? `<div class="direction-report-row"><b>更值得重点讨论</b>${list(result.focus)}</div>` : ''}
-    ${result.explore?.length ? `<div class="direction-report-row"><b>可以先了解</b>${list(result.explore)}<p>孩子接触不多的方向，不建议因为“没感觉”就直接排除。</p></div>` : ''}
+    <div class="direction-report-head"><h3>孩子方向参考</h3><p>这部分只做讨论路标，不替孩子定专业；专业卡片和人工确认仍是主线。</p></div>
+    ${result.focus?.length ? `<div class="direction-report-row"><b>更值得重点讨论</b>${list(result.focus, 4)}</div>` : ''}
+    ${result.explore?.length ? `<div class="direction-report-row"><b>可以先了解</b>${list(result.explore, 4)}<p>没接触过不等于不适合，先看课程和场景。</p></div>` : ''}
     ${result.confirm?.length ? `<div class="direction-report-row"><b>需要再确认</b><ul>${result.confirm.slice(0, 4).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>` : ''}
   </section>`;
 }

@@ -138,3 +138,82 @@ body.direction-panel-open .pool-entry-floating {
   pointer-events: none !important;
   visibility: hidden !important;
 }
+
+/* v3.9.23.3：方向探索器抗长文本收口。专业卡片是主角，方向结果只做轻路标。 */
+.direction-entry,
+.direction-result-card,
+.direction-report-box,
+.direction-panel,
+.direction-panel-body {
+  min-width: 0;
+}
+.direction-entry span,
+.direction-result-card p,
+.direction-report-head p,
+.direction-report-row p,
+.direction-report-row li {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.direction-result-tags,
+.direction-report-tags {
+  min-width: 0;
+  max-width: 100%;
+  align-items: flex-start;
+}
+.direction-result-tags span,
+.direction-report-tags span,
+.direction-more-tag {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  text-align: left;
+}
+.direction-more-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.62);
+  border: 1px dashed rgba(52,79,82,.16);
+  padding: 5px 9px;
+  color: #6a777b;
+  font-size: 12px;
+  font-weight: 750;
+}
+.direction-chip {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: left;
+}
+.direction-report-box {
+  overflow: hidden;
+}
+.direction-report-row {
+  min-width: 0;
+}
+@media (max-width: 767px) {
+  .direction-report-box {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .direction-report-row {
+    margin-top: 10px;
+  }
+  .direction-result-tags,
+  .direction-report-tags {
+    gap: 6px;
+  }
+  .direction-result-tags span,
+  .direction-report-tags span,
+  .direction-more-tag {
+    font-size: 11.5px;
+    padding: 5px 8px;
+  }
+}

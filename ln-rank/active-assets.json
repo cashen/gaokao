@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.23.2",
-  "assetVersion": "v3923_2",
+  "version": "v3.9.23.3",
+  "assetVersion": "v3923_3",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,23 +8,23 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3923_2.js",
-    "js/selection-pool.v3923_2.js",
-    "js/major-trend-render.v3923_2.js",
-    "js/self-check.v3923_2.js"
+    "js/app.v3923_3.js",
+    "js/selection-pool.v3923_3.js",
+    "js/major-trend-render.v3923_3.js",
+    "js/self-check.v3923_3.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3923_2.css",
-    "css/dist/ln-rank-selection.v3923_2.css",
-    "css/dist/ln-rank-trend.v3923_2.css",
-    "css/dist/ln-rank-self-check.v3923_2.css"
+    "css/dist/ln-rank-main.v3923_3.css",
+    "css/dist/ln-rank-selection.v3923_3.css",
+    "css/dist/ln-rank-trend.v3923_3.css",
+    "css/dist/ln-rank-self-check.v3923_3.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3923_2.css",
-    "selection": "css/dist/ln-rank-selection.v3923_2.css",
-    "trend": "css/dist/ln-rank-trend.v3923_2.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3923_2.css"
+    "main": "css/dist/ln-rank-main.v3923_3.css",
+    "selection": "css/dist/ln-rank-selection.v3923_3.css",
+    "trend": "css/dist/ln-rank-trend.v3923_3.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3923_3.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",

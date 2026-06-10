@@ -1,4 +1,4 @@
-import { DIRECTION_GROUPS, DEFAULT_EXPLORE_DIRECTIONS, CONFIRM_NOTES, QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_1';
+import { DIRECTION_GROUPS, DEFAULT_EXPLORE_DIRECTIONS, CONFIRM_NOTES, QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_3';
 
 function uniq(list = []) { return [...new Set(list.map(x => String(x || '').trim()).filter(Boolean))]; }
 function addScore(scores, dirs = {}) {
@@ -25,6 +25,13 @@ function directionItem(id, reason = '') {
 function pickDirections(ids = [], limit = 5) {
   return uniq(ids).map(id => directionItem(id)).filter(Boolean).slice(0, limit);
 }
+
+function compactLabels(items = [], limit = 4) {
+  const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+  const names = arr.slice(0, limit).map(x => x.shortLabel || x.label || String(x));
+  return names.join('、') + (arr.length > limit ? `等 ${arr.length} 个方向` : '');
+}
+
 function notesFromTags(tags = []) {
   return uniq(tags.map(tag => CONFIRM_NOTES[tag]).filter(Boolean));
 }
@@ -83,12 +90,12 @@ export function buildDirectionExplorerPlainText(result = null) {
   if (result.focus?.length) {
     lines.push('');
     lines.push('更值得重点讨论：');
-    lines.push(result.focus.map(x => x.label).join('、'));
+    lines.push(compactLabels(result.focus, 4));
   }
   if (result.explore?.length) {
     lines.push('');
     lines.push('可以先了解：');
-    lines.push(result.explore.map(x => x.label).join('、'));
+    lines.push(compactLabels(result.explore, 4));
     lines.push('孩子接触不多的方向，不建议因为“没感觉”就直接排除。');
   }
   if (result.confirm?.length) {
