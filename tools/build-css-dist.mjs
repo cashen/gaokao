@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3923_2';
+const assetVersion = process.argv[3] || '3924';
 const pages = [
   ['index.html', `css/dist/ln-rank-main.v${assetVersion}.css`],
   ['selection-pool.html', `css/dist/ln-rank-selection.v${assetVersion}.css`],
@@ -32,6 +32,7 @@ function withExtraSources(htmlName, sources) {
   const list = [...sources];
   const extra = [];
   if (htmlName === 'index.html' || htmlName === 'selection-pool.html') extra.push('css/components/direction-explorer.css');
+  extra.push('css/components/ui-flow-contract.css');
   for (const rel of extra) {
     if (fs.existsSync(path.join(projectRoot, rel)) && !list.includes(rel)) list.push(rel);
   }

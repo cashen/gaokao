@@ -263,7 +263,9 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const emptyReason = bottomLineMode !== 'all'
     ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
     : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
-  root.innerHTML = '<div class="result-report-soft-hint">看到合适的专业，可以先放进报告，最后生成一份给家里讨论。</div>' + resultContextBar + searchAdvices + bottomLineNote + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
+  const assistParts = [searchAdvices, bottomLineNote].filter(Boolean).join('');
+  const assistBlock = assistParts ? `<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">${assistParts}</div></details>` : '';
+  root.innerHTML = resultContextBar + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
   root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       const bar = button.closest('.result-context-bar');

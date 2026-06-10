@@ -1,6 +1,6 @@
-import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3923_3';
-import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3923_3';
-import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3923_3';
+import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3924';
+import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3924';
+import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3924';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -111,12 +111,9 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
         <div class="direction-entry-actions"><button type="button" data-direction-open>调整</button><button type="button" data-direction-clear>清除</button></div>
       </div>`;
     }
-    const copy = mode === 'empty'
-      ? '孩子方向还不确定？很多孩子不是不适合，只是还没接触过。'
-      : '方向不确定？可以再找几个相近方向。';
     return `<div class="direction-entry ${mode === 'empty' ? 'is-empty-keyword' : 'is-soft-link'}" id="direction-explorer">
-      <div><b>${mode === 'empty' ? '孩子方向还不确定？' : '方向还想再看看？'}</b><span>${escapeHtml(copy)}</span></div>
-      <button type="button" data-direction-open>${mode === 'empty' ? '帮孩子找几个方向' : '调整一下'}</button>
+      <div><b>${mode === 'empty' ? '方向不确定？' : '方向还想再看看？'}</b></div>
+      <button type="button" data-direction-open>${mode === 'empty' ? '找几个方向' : '调整一下'}</button>
     </div>`;
   }
   function questionHtml() {
@@ -144,9 +141,9 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
     return `<div class="direction-panel-layer ${isOpen ? 'is-open' : ''}" ${isOpen ? '' : 'hidden'}>
       <div class="direction-backdrop" data-direction-close></div>
       <aside class="direction-panel" role="dialog" aria-modal="true" aria-label="孩子方向小判断">
-        <div class="direction-panel-head"><div><h2>孩子方向小判断</h2><p>不是给孩子定专业，只是帮家里找几个值得讨论、可以先了解、需要再确认的方向。</p></div><button type="button" class="direction-close" data-direction-close aria-label="收起孩子方向小判断">收起</button></div>
+        <div class="direction-panel-head"><div><h2>孩子方向小判断</h2><p>不替孩子定专业，只帮家里找几个可先看的方向。</p></div><button type="button" class="direction-close" data-direction-close aria-label="收起孩子方向小判断">收起</button></div>
         <div class="direction-panel-body">
-          <div class="direction-principle">很多孩子不是不适合，只是还没接触过。这里不会因为“没感觉”就直接排除方向。</div>
+          <div class="direction-principle">没接触过，不等于不适合。</div>
           ${questionHtml()}
           ${resultHtml()}
         </div>
@@ -178,6 +175,10 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
       render();
     });
   }
+  function renderEntryOnly() {
+    entryMount.innerHTML = entryHtml();
+    bindEntry();
+  }
   function render(options = {}) {
     const body = panelMount.querySelector('.direction-panel-body');
     const oldScroll = options.restoreScroll && body ? body.scrollTop : null;
@@ -193,7 +194,7 @@ export function initDirectionExplorer({ entryMount, panelMount, getMajorKeyword,
   }
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && isOpen) close(); });
   render();
-  return { render, open, close, getMode: () => lastMode, clearApplied, highlightEntry: () => {
+  return { render, renderEntry: renderEntryOnly, open, close, getMode: () => lastMode, clearApplied, highlightEntry: () => {
     const el = entryMount.querySelector('.direction-entry');
     if (!el) return;
     el.classList.add('is-highlight');
