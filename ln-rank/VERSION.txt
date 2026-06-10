@@ -1,2 +1,2 @@
-v3.9.21.6-ln-rank-css-dist-safe-baseline-no-fenxi
-assetVersion=v3921_6
+v3.9.21.7-ln-rank-default-score-example-666-no-fenxi
+assetVersion=v3921_7

@@ -1,14 +1,14 @@
 {
-  "version": "v3.9.21.6",
-  "assetVersion": "v3921_6",
-  "release": "v3.9.21.6-ln-rank-css-dist-safe-baseline-no-fenxi",
-  "name": "v3.9.21.6-ln-rank-css-dist-safe-baseline-no-fenxi",
-  "label": "css-dist-safe-baseline",
+  "version": "v3.9.21.7",
+  "assetVersion": "v3921_7",
+  "release": "v3.9.21.7-ln-rank-default-score-example-666-no-fenxi",
+  "name": "v3.9.21.7-ln-rank-default-score-example-666-no-fenxi",
+  "label": "default-score-example-666",
   "notes": [
-    "只做 CSS 安全合并：按页面、按原 HTML link 顺序拼接",
-    "不新增 _headers，不改缓存，不改 API cache-control，不做 JS 打包",
-    "源码 CSS 全部保留，生产 HTML 只引用 dist CSS"
+    "把面向家长的默认输入示例从 480 调整为 666，避免低分示例带来的心理不适",
+    "保持 CSS dist 安全合并策略，不新增缓存，不改 API，不做 JS 打包",
+    "仅调整默认提示文案和版本一致性，不改变算法与数据口径"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-10T15:45:00+08:00"
+  "generatedAt": "2026-06-10T16:05:00+08:00"
 }
