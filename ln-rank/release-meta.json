@@ -1,10 +1,11 @@
 {
-  "version": "v3.9.28",
-  "assetVersion": "v3928",
-  "release": "v3.9.28-ln-rank-long-text-contract-no-fenxi",
-  "name": "v3.9.28-ln-rank-long-text-contract-no-fenxi",
+  "version": "v3.9.28.1",
+  "assetVersion": "v3928_1",
+  "release": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
+  "name": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
   "label": "long-text-contract",
   "notes": [
+    "补充 ln-rank 子路径资源合同：active HTML 使用 /ln-rank/ 绝对资源路径，降低 /ln-rank 与 /ln-rank/ 访问差异导致 JS 被 HTML 回退的风险",
     "长文本抗变型合同：学校名、专业名、方向名、标签和说明文字统一按 text-resilience-contract 处理",
     "已选专业列表中长专业名默认两行展示，可展开完整名称；Pad 下操作区提前下移，不和长专业名抢宽度",
     "前台专业卡片、结果路标、方向探索器标签、确认页等主路径同步纳入长文本兜底",
