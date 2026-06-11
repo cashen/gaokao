@@ -1,6 +1,7 @@
 import { buildCatalogReviewPoint } from './catalog-accessor.js';
 import { buildProjectReviewPoints } from './project-attribute-accessor.js';
 import { buildCareerPathReviewPoints } from './career-path-accessor.js';
+import { buildKnowledgeReviewPoints } from './knowledge-contract.js';
 
 function clean(x, max = 180) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, max); }
 
@@ -11,8 +12,10 @@ export function buildReviewPointsForRecord(record = {}, options = {}) {
   if (catalog) points.push(catalog);
   points.push(...buildProjectReviewPoints(text));
   points.push(...buildCareerPathReviewPoints(text));
+  points.push(...buildKnowledgeReviewPoints(record, { limit: 4 }));
   if (Array.isArray(record.flags)) points.push(...record.flags);
-  return [...new Set(points.map(x => clean(x)).filter(Boolean))].slice(0, options.limit || 6);
+  if (Array.isArray(record.reviewPoints)) points.push(...record.reviewPoints);
+  return [...new Set(points.map(x => clean(x)).filter(Boolean))].slice(0, options.limit || 8);
 }
 
 export function buildReviewPointsForItems(items = [], options = {}) {

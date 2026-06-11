@@ -1,0 +1,58 @@
+/* v3.9.29 knowledge contract: 复核点 / 背景提示 / 报告解释的轻量呈现 */
+.knowledge-hint-card {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-border-soft, rgba(47, 125, 109, .18));
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(237, 248, 243, .72), rgba(255, 255, 255, .92));
+  color: var(--text-main, #24312e);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.knowledge-hint-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: var(--brand, #2f7d6d);
+}
+.knowledge-hint-title::before {
+  content: '◇';
+  font-size: 12px;
+  opacity: .72;
+}
+.knowledge-hint-card ul {
+  margin: 0;
+  padding-left: 1.15em;
+}
+.knowledge-hint-card li {
+  margin: 3px 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.knowledge-hint-more {
+  margin-top: 4px;
+  color: var(--text-secondary, #60706b);
+  font-size: 12px;
+}
+.workspace-knowledge-review {
+  border-left: 3px solid var(--brand, #2f7d6d);
+  background: rgba(237, 248, 243, .72);
+  color: var(--text-main, #24312e);
+}
+.workspace-knowledge-review span {
+  color: var(--brand, #2f7d6d);
+  font-weight: 700;
+}
+.before-report-check-panel li {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+@media (max-width: 760px) {
+  .knowledge-hint-card {
+    padding: 9px 10px;
+    font-size: 12.5px;
+  }
+}

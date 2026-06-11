@@ -1,10 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3922_1';
-import { fmt } from '../../core/number-utils.js?v=3922_1';
-import { renderHistoryScore } from './history-score-render.js?v=3922_1';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3922_1';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3922_1';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3922_1';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3922_1';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3929';
+import { fmt } from '../../core/number-utils.js?v=3929';
+import { renderHistoryScore } from './history-score-render.js?v=3929';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3929';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3929';
+import { buildKnowledgeSignalsForRecord } from '../../knowledge/knowledge-contract.js?v=3929';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3929';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3929';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -165,6 +166,18 @@ function reviewSummary(record, points) {
   return points[0] ? `需核验：${points[0].replace(/^按2026本科专业目录，?/, '').slice(0, 34)}` : '';
 }
 
+function renderKnowledgeHints(record) {
+  const signals = buildKnowledgeSignalsForRecord(record, { limit: 3 });
+  if (!signals.length) return '';
+  const visible = signals.slice(0, 2);
+  const extra = signals.length - visible.length;
+  return `<div class="knowledge-hint-card" aria-label="专业复核提示">
+    <div class="knowledge-hint-title">复核提示</div>
+    <ul>${visible.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+    ${extra > 0 ? `<div class="knowledge-hint-more">还有 ${extra} 条会写入报告确认项</div>` : ''}
+  </div>`;
+}
+
 function renderReviewPoints(record) {
   const points = buildReviewPointsForRecord(record, { limit: 5 });
   if (!points.length) return '';
@@ -208,6 +221,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
     ${renderMajorCode(record)}
+    ${renderKnowledgeHints(record)}
     ${matchReason(record)}
     ${renderSpecialProjectAlert(record)}
     ${renderReviewPoints(record)}

@@ -36,6 +36,7 @@ function withExtraSources(htmlName, sources) {
   extra.push('css/components/control-console-contract.css');
   extra.push('css/components/visual-token-contract.css');
   extra.push('css/components/text-resilience-contract.css');
+  extra.push('css/components/knowledge-contract.css');
   for (const rel of extra) {
     if (fs.existsSync(path.join(projectRoot, rel)) && !list.includes(rel)) list.push(rel);
   }

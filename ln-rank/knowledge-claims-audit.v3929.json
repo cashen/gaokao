@@ -1,0 +1,87 @@
+{
+  "version": "v3929",
+  "generatedAt": "2026-06-11T04:36:17.364Z",
+  "targets": 8,
+  "forbiddenCount": 0,
+  "missingFiles": [],
+  "knowledgeModules": [
+    "ln-rank/js/knowledge/knowledge-contract.js",
+    "functions/_lib/kb/knowledge-contract.js",
+    "css/components/knowledge-contract.css"
+  ],
+  "results": [
+    {
+      "file": "index.html",
+      "bytes": 9495,
+      "forbidden": [],
+      "requiredSignals": [
+        "招生章程",
+        "家庭讨论"
+      ]
+    },
+    {
+      "file": "selection-pool.html",
+      "bytes": 4426,
+      "forbidden": [],
+      "requiredSignals": []
+    },
+    {
+      "file": "js/knowledge/knowledge-contract.js",
+      "bytes": 7159,
+      "forbidden": [],
+      "requiredSignals": [
+        "招生章程",
+        "不替代"
+      ]
+    },
+    {
+      "file": "js/feature/major-pool/render.js",
+      "bytes": 18625,
+      "forbidden": [],
+      "requiredSignals": [
+        "复核提示"
+      ]
+    },
+    {
+      "file": "js/selection-pool.v3929.js",
+      "bytes": 41771,
+      "forbidden": [],
+      "requiredSignals": [
+        "复核提示",
+        "知识库复核",
+        "招生章程",
+        "家庭讨论"
+      ]
+    },
+    {
+      "file": "../functions/_lib/kb/knowledge-contract.js",
+      "bytes": 4149,
+      "forbidden": [],
+      "requiredSignals": []
+    },
+    {
+      "file": "../functions/_lib/feishu-selection-pool-report-builder.js",
+      "bytes": 21147,
+      "forbidden": [],
+      "requiredSignals": [
+        "复核提示",
+        "知识库复核",
+        "招生章程",
+        "家庭讨论",
+        "不替代"
+      ]
+    },
+    {
+      "file": "../functions/_lib/feishu-selection-pool-styled-builder.js",
+      "bytes": 18914,
+      "forbidden": [],
+      "requiredSignals": [
+        "复核提示",
+        "知识库复核",
+        "招生章程",
+        "家庭讨论",
+        "不替代"
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { buildKnowledgeReviewPoints } from '../../knowledge/knowledge-contract.js?v=3929';
 function clean(x, max=180) { return String(x == null ? '' : x).replace(/\s+/g,' ').trim().slice(0,max); }
 function projectPoints(text='') {
   const out=[]; const s=String(text||'');
@@ -24,6 +25,8 @@ function catalogPoint(record={}) {
 }
 export function buildReviewPointsForRecord(record={}, options={}) {
   const text = [record.major, record.school, record.matchReason, ...(Array.isArray(record.flags)?record.flags:[])].filter(Boolean).join(' ');
-  const points=[catalogPoint(record), ...projectPoints(text), ...careerPoints(text)];
-  return [...new Set(points.map(x=>clean(x)).filter(Boolean))].slice(0, options.limit || 5);
+  const knowledgePoints = buildKnowledgeReviewPoints(record, { limit: 4 });
+  const points=[catalogPoint(record), ...projectPoints(text), ...careerPoints(text), ...knowledgePoints];
+  if (Array.isArray(record.reviewPoints)) points.push(...record.reviewPoints);
+  return [...new Set(points.map(x=>clean(x)).filter(Boolean))].slice(0, options.limit || 6);
 }

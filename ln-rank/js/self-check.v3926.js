@@ -12,14 +12,14 @@ async function runResultUiChecks(){
   const checks=[];
   try{
     const html=await text('./index.html');
-    const cssResult=await text('./css/components/result-section-contract.css?v=3926');
-    const cssCard=await text('./css/components/major-card-contract.css?v=3926');
-    const cssBand=await text('./css/components/band-selector-contract.css?v=3926');
-    const cssColor=await text('./css/core/color-system.css?v=3926');
-    const cssTheme=await text('./css/components/post-exam-calm-theme.css?v=3926');
-    const cssBreath=await text('./css/components/band-card-breathing-link.css?v=3926');
-    const renderMajor=await text('./js/feature/major-pool/render.js?v=3926');
-    const bandRender=await text('./js/feature/score-bands/render.js?v=3926');
+    const cssResult=await text('./css/components/result-section-contract.css?v=3929');
+    const cssCard=await text('./css/components/major-card-contract.css?v=3929');
+    const cssBand=await text('./css/components/band-selector-contract.css?v=3929');
+    const cssColor=await text('./css/core/color-system.css?v=3929');
+    const cssTheme=await text('./css/components/post-exam-calm-theme.css?v=3929');
+    const cssBreath=await text('./css/components/band-card-breathing-link.css?v=3929');
+    const renderMajor=await text('./js/feature/major-pool/render.js?v=3929');
+    const bandRender=await text('./js/feature/score-bands/render.js?v=3929');
     checks.push({name:'VISUAL-COLOR-001：考后松弛色系文件存在',ok:cssColor.includes('--page-bg')&&cssColor.includes('--band-upper-bg')&&cssColor.includes('--band-near-bg')&&cssColor.includes('--band-steady-bg'),detail:'color-system.css 已定义暖白底、三段语义色、特殊项目/热度/费用色'});
     checks.push({name:'VISUAL-COLOR-002：主题覆盖文件存在',ok:cssTheme.includes('降低全页绿色占比')&&cssTheme.includes('--special-bg')&&cssTheme.includes('--heat-bg'),detail:'post-exam-calm-theme.css 已覆盖旧绿色堆叠'});
     checks.push({name:'BAND-UI-001：Android 三段同时可见',ok:/grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/.test(cssBand),detail:'移动端分段使用三等分 grid，不靠单卡横滑'});
@@ -30,8 +30,8 @@ async function runResultUiChecks(){
     checks.push({name:'BAND-UI-006：稳妥补充使用浅青绿语义',ok:cssColor.includes('--band-steady-bg: #EDF8F3'),detail:'稳妥补充保留温和青绿，但不同于主按钮深色'});
     checks.push({name:'RESULT-UI-001：结果区视觉 CSS 存在',ok:cssResult.length>1200 && cssCard.length>1200,detail:`${cssResult.length}/${cssCard.length}`});
     checks.push({name:'RESULT-UI-002：结果区使用统一外壳',ok:/ln-result-section/.test(html),detail:'resultsPanel 已接入 ln-result-section'});
-    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-bar.css?v=3926').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
-    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-bar.css?v=3926').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
+    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-bar.css?v=3929').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
+    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-bar.css?v=3929').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
     checks.push({name:'CARD-BAND-001：专业卡片输出 is-band-* class',ok:renderMajor.includes('ln-major-card status-${statusKey} ${bandClass}')&&renderMajor.includes('bandKeyFromActive'),detail:'卡片 article 已跟随 activeBand 输出 is-band-upper/near/steady'});
     checks.push({name:'CARD-BAND-002：分段标签同步 is-band-* class',ok:renderMajor.includes('ln-band-pill ${bandClass}')&&cssBreath.includes('.ln-band-pill.is-band-near'),detail:'卡片右上分段标签与上方类别同色系'});
     checks.push({name:'CARD-BAND-003：适合位置跟随分段语义色',ok:renderMajor.includes('ln-fit-position ${bandClass}')&&cssBreath.includes('.ln-fit-position.is-band-near'),detail:'适合位置值按当前分段轻强调'});

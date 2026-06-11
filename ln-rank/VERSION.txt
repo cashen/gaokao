@@ -1,1 +1,1 @@
-v3.9.28.1-ln-rank-asset-path-contract-no-fenxi
+v3.9.29-ln-rank-knowledge-contract-no-fenxi

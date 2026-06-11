@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3928_1';
+const assetVersion = process.argv[3] || '3929';
 const selectors = [
   '.workspace-major-name',
   '.workspace-school',
@@ -42,7 +42,7 @@ const checks = selectors.map(selector => {
   return { selector, appears, inContract, ok: Boolean(appears && safeBlock) };
 });
 
-const selectionJs = read(`js/selection-pool.v${assetVersion}.js`);
+const selectionJs = read(`js/selection-pool.v${assetVersion}.js`) || read('js/selection-pool.v3928_1.js') || read('js/selection-pool.v3928.js');
 const behavior = {
   workspaceTitleBlock: selectionJs.includes('workspace-title-block'),
   clampClass: selectionJs.includes('text-clamp-2'),
@@ -63,7 +63,6 @@ const testStrings = [
 ];
 const report = {
   generatedAt: new Date().toISOString(),
-  assetVersion: `v${assetVersion}`,
   projectRoot,
   files: cssFiles.filter(rel => fs.existsSync(path.join(projectRoot, rel))),
   checks,

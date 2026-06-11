@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA, trendTone } from './feature/trend/index.js?v=3923_1';
+import { MAJOR_TREND_DATA, trendTone } from './feature/trend/index.js?v=3929';
 
 const TREND_COPY = {
   pageTitle: '专业方向变化参考',

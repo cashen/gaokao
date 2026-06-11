@@ -18,6 +18,7 @@ import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.gene
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist } from './kb/review-checklist-builder.js';
+import { buildKnowledgeReportLines } from './kb/knowledge-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -245,6 +246,15 @@ function majorTrendBlocks(summary = {}) {
 }
 
 
+function knowledgeContractBlocks(items = []) {
+  const lines = buildKnowledgeReportLines(items, { limit: 8 });
+  if (!lines.length) return [];
+  const blocks = [heading2('知识库复核提示', STYLE.title)];
+  blocks.push(styledTextBlock('以下提示来自专业方向、院校背景和城市产业的规则集，只用于家庭讨论和人工复核，不替代招生章程。', STYLE.muted));
+  lines.slice(0, 8).forEach(line => blocks.push(bulletBlock(clean(line, 260))));
+  return blocks;
+}
+
 function reviewChecklistBlocks(items = [], checklist = null) {
   const ck = checklist || buildSelectionReviewChecklist(items);
   const categories = Array.isArray(ck.categories) ? ck.categories : [];
@@ -386,6 +396,11 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     displayItems.forEach(item => blocks.push(orderedRunsBlock(itemRuns(item))));
   }
 
+  const knowledgeBlocks = knowledgeContractBlocks(displayItems);
+  if (knowledgeBlocks.length) {
+    blocks.push(dividerBlock());
+    blocks.push(...knowledgeBlocks);
+  }
   blocks.push(dividerBlock());
   blocks.push(...reviewChecklistBlocks(displayItems, reviewChecklist));
   blocks.push(dividerBlock());
