@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.27",
-  "assetVersion": "v3927",
-  "release": "v3.9.27-ln-rank-visual-token-contract-no-fenxi",
-  "name": "v3.9.27-ln-rank-visual-token-contract-no-fenxi",
-  "label": "visual-token-contract",
+  "version": "v3.9.28",
+  "assetVersion": "v3928",
+  "release": "v3.9.28-ln-rank-long-text-contract-no-fenxi",
+  "name": "v3.9.28-ln-rank-long-text-contract-no-fenxi",
+  "label": "long-text-contract",
   "notes": [
-    "视觉 token 收口：以暖白、深灰、品牌青绿、三段柔和分段色为统一产品色系",
-    "旧 tokens.css 降级为兼容别名层，主线颜色统一指向 color-system.css 与 ui-token.css",
-    "新增 css/components/visual-token-contract.css，集中收口按钮、卡片、路标、方向探索器、确认页等 active 主线组件色彩",
-    "不重排主流程，不新增功能，不改算法；专业卡片仍是主角，辅助信息保持克制",
-    "保持 no-fenxi 边界，不新增账号、登录、云保存、缓存策略"
+    "长文本抗变型合同：学校名、专业名、方向名、标签和说明文字统一按 text-resilience-contract 处理",
+    "已选专业列表中长专业名默认两行展示，可展开完整名称；Pad 下操作区提前下移，不和长专业名抢宽度",
+    "前台专业卡片、结果路标、方向探索器标签、确认页等主路径同步纳入长文本兜底",
+    "新增 tools/audit-long-text-resilience.mjs，并生成 long-text-resilience-audit.v3928.json，用审计工具约束同类问题",
+    "不改算法、不动 /fenxi/、不新增账号/登录/云保存/缓存策略"
   ],
   "noFenxiIncluded": true,
   "generatedAt": "2026-06-11T00:00:00+08:00"

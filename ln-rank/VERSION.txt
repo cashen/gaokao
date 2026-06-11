@@ -1,1 +1,1 @@
-v3.9.27-ln-rank-visual-token-contract-no-fenxi
+v3.9.28-ln-rank-long-text-contract-no-fenxi

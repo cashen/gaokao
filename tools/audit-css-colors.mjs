@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3927';
+const assetVersion = process.argv[3] || '3928';
 const reportPath = path.join(projectRoot, `css-dist-report.v${assetVersion}.json`);
 const colorRe = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g;
 const allowedLiteralFiles = new Set([

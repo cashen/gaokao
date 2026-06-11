@@ -1,0 +1,226 @@
+/* v3.9.28 长文本抗变型合同
+   目标：长学校名、长专业名、长方向名、长标签、长说明不能撑坏 PC / Pad / Android 布局。
+   原则：主路径默认可读；列表中长专业名默认两行，可展开完整名称；报告内容保留完整信息。 */
+
+.text-safe,
+.text-safe-line,
+.text-safe-block,
+.workspace-school,
+.workspace-major-name,
+.ln-major-card .school,
+.ln-major-card .major,
+.result-context-range,
+.result-context-keyword,
+.result-context-special,
+.direction-result-tags span,
+.direction-report-tags span,
+.direction-chip,
+.workspace-item-meta span,
+.workspace-code-line,
+.workspace-item-review,
+.meta-pill,
+.school-tag,
+.major-code-line span,
+.card-review-points,
+.special-project-alert,
+.match-reason {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+.text-clamp-2 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+}
+
+.text-clamp-3 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+}
+
+.is-expanded .text-clamp-2,
+.is-expanded .text-clamp-3 {
+  display: block !important;
+  overflow: visible !important;
+  -webkit-line-clamp: unset;
+}
+
+/* 已选专业列表：学校和专业分层，长专业名不再和按钮抢宽度。 */
+.ln-selection-page .workspace-item,
+.ln-selection-list-panel .workspace-item,
+.ln-selection-page .workspace-item-main,
+.ln-selection-list-panel .workspace-item-main,
+.ln-selection-page .workspace-title-block,
+.ln-selection-list-panel .workspace-title-block,
+.ln-selection-page .workspace-item-title,
+.ln-selection-list-panel .workspace-item-title {
+  min-width: 0 !important;
+}
+
+.ln-selection-page .workspace-title-block,
+.ln-selection-list-panel .workspace-title-block {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.ln-selection-page .workspace-school,
+.ln-selection-list-panel .workspace-school {
+  display: block !important;
+  line-height: 1.35 !important;
+}
+
+.ln-selection-page .workspace-major-name,
+.ln-selection-list-panel .workspace-major-name {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+  white-space: normal !important;
+  line-height: 1.45 !important;
+}
+
+.ln-selection-page .workspace-item.is-expanded .workspace-major-name,
+.ln-selection-list-panel .workspace-item.is-expanded .workspace-major-name {
+  display: block !important;
+  overflow: visible !important;
+  -webkit-line-clamp: unset;
+}
+
+.workspace-text-toggle {
+  justify-self: start;
+  width: fit-content;
+  min-height: 28px;
+  margin-top: 2px;
+  padding: 0 10px;
+  border: 1px solid rgba(47,125,109,.18);
+  border-radius: 999px;
+  background: rgba(237,248,243,.72);
+  color: var(--brand, #2F7D6D);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.workspace-text-toggle:active { transform: translateY(1px); }
+
+.ln-selection-page .workspace-item-meta,
+.ln-selection-list-panel .workspace-item-meta {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.ln-selection-page .workspace-item-meta span,
+.ln-selection-list-panel .workspace-item-meta span {
+  white-space: normal !important;
+  line-height: 1.35 !important;
+}
+.ln-selection-page .workspace-item-meta .is-band,
+.ln-selection-list-panel .workspace-item-meta .is-band {
+  white-space: nowrap !important;
+}
+
+/* Pad / 窄 PC：操作区下移，不和长专业名抢中间宽度。 */
+@media (max-width: 1180px) {
+  .ln-selection-page .workspace-item,
+  .ln-selection-list-panel .workspace-item {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 10px 12px !important;
+  }
+  .ln-selection-page .workspace-drag-handle,
+  .ln-selection-list-panel .workspace-drag-handle {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+  }
+  .ln-selection-page .workspace-order,
+  .ln-selection-list-panel .workspace-order {
+    grid-column: 1 !important;
+  }
+  .ln-selection-page .workspace-item-main,
+  .ln-selection-list-panel .workspace-item-main {
+    grid-column: 2 !important;
+  }
+  .ln-selection-page .workspace-item-actions,
+  .ln-selection-list-panel .workspace-item-actions {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .ln-selection-page .workspace-mini-button,
+  .ln-selection-list-panel .workspace-mini-button {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+  }
+}
+
+/* Android：按钮仍可操作，但不压住长专业名。 */
+@media (max-width: 760px) {
+  .ln-selection-page .workspace-item,
+  .ln-selection-list-panel .workspace-item {
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+  }
+  .ln-selection-page .workspace-drag-handle,
+  .ln-selection-list-panel .workspace-drag-handle {
+    display: none !important;
+  }
+  .ln-selection-page .workspace-item-actions,
+  .ln-selection-list-panel .workspace-item-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    justify-content: stretch !important;
+  }
+  .ln-selection-page .workspace-mini-button,
+  .ln-selection-list-panel .workspace-mini-button {
+    width: 100% !important;
+    min-height: 36px !important;
+  }
+}
+
+/* 前台专业卡片：长学校名/专业名自然换行，不横向撑开。 */
+.ln-major-card .major-card-top,
+.ln-major-card .major-card-top > div {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.ln-major-card .school,
+.ln-major-card .major {
+  white-space: normal !important;
+}
+.ln-major-card .meta-pills,
+.ln-major-card .school-tags,
+.ln-major-card .major-code-line {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.ln-major-card .meta-pill,
+.ln-major-card .school-tag,
+.ln-major-card .special-project-badge,
+.ln-major-card .match-trust-badge {
+  min-width: 0 !important;
+  white-space: normal !important;
+}
+.ln-major-card .status-badge,
+.ln-major-card .score-pill,
+.ln-major-card .rank-pill {
+  white-space: nowrap !important;
+}
+
+/* 结果路标与方向标签纳入同一长文本合同。 */
+.result-context-bar,
+.result-context-main,
+.result-context-current,
+.result-context-keyword,
+.direction-entry,
+.direction-result-card,
+.direction-report-box {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
