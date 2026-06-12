@@ -10,7 +10,6 @@ import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist, reviewChecklistMarkdownLines } from './kb/review-checklist-builder.js';
-import { buildKnowledgeReportLines, buildKnowledgeSignalsForRecord } from './kb/knowledge-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -58,6 +57,7 @@ function normalizeItems(items = []) {
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 40)).filter(Boolean).slice(0, 8) : [],
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 100)).filter(Boolean).slice(0, 10) : [],
       reviewPoints: Array.isArray(item.reviewPoints) ? item.reviewPoints.map(x => clean(x, 160)).filter(Boolean).slice(0, 8) : [],
+      localStrongChain: item.localStrongChain || null,
       specialProject: item.specialProject || null,
       codes: item.codes || {},
       standardMajor: item.standardMajor || {},
@@ -114,6 +114,20 @@ function itemLine(item) {
 function itemName(item) {
   if (!item) return '暂无';
   return `${item.school || '学校待核验'}｜${item.major || '专业待核验'}`;
+}
+
+function localChainMarkdownLines(items = []) {
+  const hits = (Array.isArray(items) ? items : []).filter(item => item.localStrongChain && item.localStrongChain.matched);
+  if (!hits.length) return [];
+  const coreCount = hits.filter(item => item.localStrongChain.depth === 'core').length;
+  const supportCount = hits.filter(item => item.localStrongChain.depth === 'support').length;
+  const lines = ['## 辽宁属地强链复核', '', `- 学校主干方向：${fmt(coreCount)} 个`, `- 学校特色相关：${fmt(supportCount)} 个`, '- 说明：该标签不代表录取优势，只表示学校历史、专业方向和行业路径更一致，建议作为家庭讨论重点复核。', ''];
+  hits.slice(0, 10).forEach(item => {
+    const hit = item.localStrongChain;
+    lines.push(`- ${item.school} · ${item.major}：${hit.displayLabel}｜${hit.chainName}`);
+  });
+  lines.push('');
+  return lines;
 }
 
 
@@ -276,15 +290,6 @@ function analysisLines(analysis = {}) {
 }
 
 
-function knowledgeContractLines(items = []) {
-  const lines = buildKnowledgeReportLines(items, { limit: 8 });
-  if (!lines.length) return [];
-  const out = ['## 知识库复核提示', '', '以下提示来自专业方向、院校背景和城市产业的规则集，只用于家庭讨论和人工复核，不替代招生章程。'];
-  lines.slice(0, 8).forEach((line, index) => out.push(`${index + 1}. ${clean(line, 260)}`));
-  out.push('');
-  return out;
-}
-
 function directionExplorerLines(direction = null) {
   if (!direction || (!direction.focus?.length && !direction.explore?.length && !direction.confirm?.length)) return [];
   const lines = [];
@@ -363,9 +368,9 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
   lines.push(...majorTrendLines(majorTrendSummary));
   const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
-  lines.push(...knowledgeContractLines(displayItems));
   const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
   lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
+  lines.push(...localChainMarkdownLines(displayItems.length ? displayItems : items));
 
   lines.push('## 当前已选专业排序');
   lines.push('');
@@ -385,9 +390,12 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 匹配关系：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
-      const itemKnowledge = buildKnowledgeSignalsForRecord(item, { limit: 3 });
-      const itemReview = [...(Array.isArray(item.flags) ? item.flags : []), ...(Array.isArray(item.reviewPoints) ? item.reviewPoints : []), ...itemKnowledge].filter(Boolean);
-      lines.push(`- 需要确认：${itemReview.length ? [...new Set(itemReview)].slice(0, 4).join(' / ') : tagsText(item)}`);
+      if (item.localStrongChain?.matched) {
+        lines.push(`- 辽宁属地强链：${item.localStrongChain.displayLabel}｜${item.localStrongChain.chainName}`);
+        lines.push(`- 强链复核：${item.localStrongChain.reviewText || (item.localStrongChain.reviewPoints || []).join(' / ')}`);
+      }
+      const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item));
+      lines.push(`- 知识库复核：${reviewText}`);
       lines.push('');
     });
   }
@@ -403,7 +411,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.29',
+    version: 'v3.9.20.0',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
@@ -416,7 +424,6 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       analysis: input.analysis || null,
       majorTrendSummary: input.majorTrendSummary || input.analysis?.majorTrendSummary || null,
       reviewChecklist: input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items),
-      directionExplorer: input.reportContext?.directionExplorer || input.directionExplorer || null,
       orderSignature
     })
   };

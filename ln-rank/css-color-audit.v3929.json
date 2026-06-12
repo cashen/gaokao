@@ -1,13 +1,13 @@
 {
   "assetVersion": "v3929",
-  "generatedAt": "2026-06-11T04:36:17.511Z",
+  "generatedAt": "2026-06-11T04:39:26.024Z",
   "scannedSourceCount": 46,
   "totals": {
-    "totalMatches": 1530,
+    "totalMatches": 1528,
     "allowedCoreMatches": 93,
-    "rawOutsideCore": 846,
-    "fallbackOrTokenLine": 342,
-    "effectLiteral": 249
+    "rawOutsideCore": 845,
+    "fallbackOrTokenLine": 343,
+    "effectLiteral": 247
   },
   "topFiles": [
     {

@@ -1,1 +1,1 @@
-v3.9.29-ln-rank-knowledge-contract-no-fenxi
+v3.9.30-ln-rank-local-strong-chain-contract-no-fenxi

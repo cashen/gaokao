@@ -1,6 +1,6 @@
 {
   "assetVersion": "v3929",
-  "generatedAt": "2026-06-11T04:33:49.377Z",
+  "generatedAt": "2026-06-11T04:37:41.358Z",
   "pages": [
     {
       "html": "index.html",
@@ -47,7 +47,7 @@
         "css/components/text-resilience-contract.css",
         "css/components/knowledge-contract.css"
       ],
-      "bytes": 289719
+      "bytes": 289935
     },
     {
       "html": "selection-pool.html",
@@ -87,7 +87,7 @@
         "css/components/text-resilience-contract.css",
         "css/components/knowledge-contract.css"
       ],
-      "bytes": 239781
+      "bytes": 239997
     },
     {
       "html": "major-trend-2025.html",
@@ -115,7 +115,7 @@
         "css/components/text-resilience-contract.css",
         "css/components/knowledge-contract.css"
       ],
-      "bytes": 197453
+      "bytes": 197669
     },
     {
       "html": "self-check.html",
@@ -144,7 +144,7 @@
         "css/components/text-resilience-contract.css",
         "css/components/knowledge-contract.css"
       ],
-      "bytes": 172289
+      "bytes": 172505
     }
   ]
 }

@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3929';
-import { fmt } from '../../core/number-utils.js?v=3929';
-import { renderHistoryScore } from './history-score-render.js?v=3929';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3929';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3929';
-import { buildKnowledgeSignalsForRecord } from '../../knowledge/knowledge-contract.js?v=3929';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3929';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3929';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3930';
+import { fmt } from '../../core/number-utils.js?v=3930';
+import { renderHistoryScore } from './history-score-render.js?v=3930';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3930';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3930';
+import { buildSchoolIndustryTags, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3930';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3930';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3930';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -136,6 +136,20 @@ function matchReason(record) {
   return `<div class="match-reason">命中原因：${escapeHtml(reason).replace(/^命中原因：/, '')}</div>`;
 }
 
+
+function renderKnowledgeChips(record) {
+  const tags = buildSchoolIndustryTags(record).slice(0, 3);
+  if (!tags.length) return '';
+  return `<div class="knowledge-chip-row" aria-label="院校背景提示">${tags.map(x => `<span class="knowledge-chip">${escapeHtml(x.tag)}</span>`).join('')}</div>`;
+}
+
+function renderLocalStrongChainHint(record) {
+  const hit = matchLiaoningLocalStrongChain(record);
+  if (!hit) return '';
+  const review = hit.reviewPoints?.length ? `<div class="local-chain-review">建议复核：${hit.reviewPoints.slice(0, 5).map(escapeHtml).join(' / ')}</div>` : '';
+  return `<div class="local-chain-card-tip local-chain-${escapeHtml(hit.tier.toLowerCase())} local-chain-${escapeHtml(hit.depth)}"><div class="local-chain-head"><span class="local-chain-badge">${escapeHtml(hit.displayLabel)}</span><strong>${escapeHtml(hit.chainName)}</strong></div><p>${escapeHtml(hit.cardTip)}</p>${review}<small>${escapeHtml(hit.boundary)}</small></div>`;
+}
+
 function renderSpecialProjectBadge(record) {
   const label = specialProjectCardBadge(record);
   return label ? `<span class="special-project-badge">${escapeHtml(label)}｜需资格核验</span>` : '';
@@ -164,18 +178,6 @@ function reviewSummary(record, points) {
   const sm = record.standardMajor || {};
   if (sm.categoryName) return `复核：2026目录归属：${sm.categoryName}`;
   return points[0] ? `需核验：${points[0].replace(/^按2026本科专业目录，?/, '').slice(0, 34)}` : '';
-}
-
-function renderKnowledgeHints(record) {
-  const signals = buildKnowledgeSignalsForRecord(record, { limit: 3 });
-  if (!signals.length) return '';
-  const visible = signals.slice(0, 2);
-  const extra = signals.length - visible.length;
-  return `<div class="knowledge-hint-card" aria-label="专业复核提示">
-    <div class="knowledge-hint-title">复核提示</div>
-    <ul>${visible.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
-    ${extra > 0 ? `<div class="knowledge-hint-more">还有 ${extra} 条会写入报告确认项</div>` : ''}
-  </div>`;
 }
 
 function renderReviewPoints(record) {
@@ -219,9 +221,10 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     </div>
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
+    ${renderKnowledgeChips(record)}
+    ${renderLocalStrongChainHint(record)}
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
     ${renderMajorCode(record)}
-    ${renderKnowledgeHints(record)}
     ${matchReason(record)}
     ${renderSpecialProjectAlert(record)}
     ${renderReviewPoints(record)}

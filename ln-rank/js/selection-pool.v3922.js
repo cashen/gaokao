@@ -8,19 +8,19 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3929';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3929';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3929';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3929';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3929';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3929';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3929';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3929';
-import { getCampusForRecord } from './feature/campus/index.js?v=3929';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3929';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3929';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3929';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3929';
+} from './feature/selection-pool/index.js?v=3922';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3922';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3922';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3922';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3922';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3922';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3922';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3922';
+import { getCampusForRecord } from './feature/campus/index.js?v=3922';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3922';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3922';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3922';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3922';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';

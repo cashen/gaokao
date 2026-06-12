@@ -18,7 +18,6 @@ import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.gene
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist } from './kb/review-checklist-builder.js';
-import { buildKnowledgeReportLines } from './kb/knowledge-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -56,6 +55,7 @@ function shortTags(item) {
   const tags = [];
   if (item.displayLocation) tags.push(item.displayLocation);
   if (item.natureLabel) tags.push(item.natureLabel);
+  if (item.localStrongChain?.matched) tags.push(item.localStrongChain.chainName);
   if (Array.isArray(item.schoolTags)) tags.push(...item.schoolTags.slice(0, 3));
   const campusReview = getCampusForItem(item);
   if (campusReview?.displayTag) tags.push(campusReview.displayTag);
@@ -129,7 +129,9 @@ function itemRuns(item) {
     { content: rankGapText(item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,
-    special ? { content: `｜${special}`, style: STYLE.risk } : null
+    special ? { content: `｜${special}`, style: STYLE.risk } : null,
+    item.localStrongChain?.matched ? { content: `｜辽宁属地强链：${clean(item.localStrongChain.displayLabel, 40)} · ${clean(item.localStrongChain.chainName, 40)}`, style: STYLE.action } : null,
+    Array.isArray(item.reviewPoints) && item.reviewPoints.length ? { content: `｜知识库复核：${clean(item.reviewPoints[0], 120)}`, style: STYLE.risk } : null
   ].filter(Boolean);
 }
 
@@ -245,15 +247,6 @@ function majorTrendBlocks(summary = {}) {
   return blocks;
 }
 
-
-function knowledgeContractBlocks(items = []) {
-  const lines = buildKnowledgeReportLines(items, { limit: 8 });
-  if (!lines.length) return [];
-  const blocks = [heading2('知识库复核提示', STYLE.title)];
-  blocks.push(styledTextBlock('以下提示来自专业方向、院校背景和城市产业的规则集，只用于家庭讨论和人工复核，不替代招生章程。', STYLE.muted));
-  lines.slice(0, 8).forEach(line => blocks.push(bulletBlock(clean(line, 260))));
-  return blocks;
-}
 
 function reviewChecklistBlocks(items = [], checklist = null) {
   const ck = checklist || buildSelectionReviewChecklist(items);
@@ -396,11 +389,6 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     displayItems.forEach(item => blocks.push(orderedRunsBlock(itemRuns(item))));
   }
 
-  const knowledgeBlocks = knowledgeContractBlocks(displayItems);
-  if (knowledgeBlocks.length) {
-    blocks.push(dividerBlock());
-    blocks.push(...knowledgeBlocks);
-  }
   blocks.push(dividerBlock());
   blocks.push(...reviewChecklistBlocks(displayItems, reviewChecklist));
   blocks.push(dividerBlock());

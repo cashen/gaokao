@@ -1,4 +1,4 @@
-import { buildKnowledgeReviewPoints } from '../../knowledge/knowledge-contract.js?v=3929';
+import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3930';
 const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3949';
 const LEGACY_KEYS = ['lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
 const MAX_ITEMS = 112;
@@ -44,6 +44,7 @@ export function classifyPoolItem(item = {}) {
 
 export function normalizePoolItem(record = {}, order = 1) {
   const id = itemId(record);
+  const localStrongChain = record.localStrongChain?.matched ? record.localStrongChain : matchLiaoningLocalStrongChain(record);
   const base = {
     id,
     userOrder: order,
@@ -77,10 +78,8 @@ export function normalizePoolItem(record = {}, order = 1) {
     bottomLineTags: Array.isArray(record.bottomLineTags) ? record.bottomLineTags.map(x => cleanText(x, 40)).filter(Boolean).slice(0, 6) : [],
     schoolTags: Array.isArray(record.schoolTags) ? record.schoolTags.map(x => cleanText(x, 40)).filter(Boolean).slice(0, 8) : [],
     flags: Array.isArray(record.flags) ? record.flags.map(x => cleanText(x, 100)).filter(Boolean).slice(0, 10) : [],
-    reviewPoints: [
-      ...(Array.isArray(record.reviewPoints) ? record.reviewPoints : []),
-      ...buildKnowledgeReviewPoints(record, { limit: 5 })
-    ].map(x => cleanText(x, 180)).filter(Boolean).filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 10),
+    reviewPoints: [...new Set([...(Array.isArray(record.reviewPoints) ? record.reviewPoints : []), ...buildKnowledgeReviewForRecord({ ...record, localStrongChain }, { limit: 5 })].map(x => cleanText(x, 160)).filter(Boolean))].slice(0, 8),
+    localStrongChain,
     specialProject: record.specialProject || null,
     historyCompare: record.historyCompare || null,
     standardMajor: record.standardMajor || null,

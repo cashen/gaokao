@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.29",
-  "assetVersion": "v3929",
+  "version": "v3.9.28.1",
+  "assetVersion": "v3928_1",
   "release": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
   "name": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
   "label": "long-text-contract",
@@ -13,6 +13,5 @@
     "不改算法、不动 /fenxi/、不新增账号/登录/云保存/缓存策略"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-11T04:00:00+08:00",
-  "title": "knowledge-contract-no-fenxi"
+  "generatedAt": "2026-06-11T00:00:00+08:00"
 }

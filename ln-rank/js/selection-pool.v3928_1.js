@@ -8,21 +8,21 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3929';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3929';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3929';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3929';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3929';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3929';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3929';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3929';
-import { getCampusForRecord } from './feature/campus/index.js?v=3929';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3929';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3929';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3929';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3929';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3929';
-import { buildKnowledgeSignalsForRecord, buildKnowledgeReportLines } from './knowledge/knowledge-contract.js?v=3929';
+} from './feature/selection-pool/index.js?v=3928_1';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3928_1';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3928_1';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3928_1';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3928_1';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3928_1';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3928_1';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3928_1';
+import { getCampusForRecord } from './feature/campus/index.js?v=3928_1';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3928_1';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3928_1';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3928_1';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3928_1';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3928_1';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY } from './knowledge/index.js?v=3929';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -187,15 +187,15 @@ function buildBeforeGenerateHints(state = getState()) {
   else if (!summary.steady) hints.push('目前还没有稳妥补充专业，可以考虑补 1-2 个让家里更安心。');
   else hints.push('已选专业已经覆盖稍高目标、主要参考和稳妥补充，可以继续逐条确认。');
   const majorWords = items.map(x => String(x.major || '')).join(' ');
-  if (/计算机|软件|人工智能|自动化|电气|电子|通信/.test(majorWords)) hints.push('这份报告里工科方向较多，可以和孩子确认是否真的接受课程强度和就业方向。');
+  const knowledgeNotes = buildKnowledgePortfolioSummary(items).filter(x => !/本部分属于/.test(x));
+  if (knowledgeNotes.length) hints.push(knowledgeNotes[0]);
+  else if (/计算机|软件|人工智能|自动化|电气|电子|通信/.test(majorWords)) hints.push('这份报告里工科方向较多，可以和孩子确认是否真的接受课程强度和就业方向。');
   else hints.push('生成报告前，可以再确认孩子是否接受这些专业方向和未来学习内容。');
   if (summary.fee) hints.push(`有 ${fmt(summary.fee)} 个专业需要确认学费、培养方式或中外合作等信息，报告里会一起提醒。`);
   else hints.push('目前没有明显费用或中外合作提醒，但仍建议查看招生计划备注。');
   if (summary.special) hints.push(`有 ${fmt(summary.special)} 个特殊项目，需要确认资格、服务年限或招生批次。`);
   else hints.push('目前没有专项、定向、预科等特殊项目。');
-  const knowledgeLines = buildKnowledgeReportLines(items, { limit: 2 });
-  if (knowledgeLines.length) hints.push(`知识库复核：${knowledgeLines[0]}`);
-  return hints.slice(0, 4);
+  return hints.slice(0, 3);
 }
 
 function renderBeforeGenerateCheck(state = getState()) {
@@ -223,7 +223,7 @@ function statHtml(stats, items, state) {
     ? `当前 ${count} 个专业会按这里看到的顺序放进报告。`
     : '还没有选择专业，先回查询页把可以讨论的专业放进报告。';
   const summary = buildSelectedForReportSummary(state);
-  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
+  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}${renderKnowledgeSummaryPanel(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
 }
 
 function moveMenuHtml(item, index, total) {
@@ -238,17 +238,26 @@ function moveMenuHtml(item, index, total) {
 }
 
 
+
+function itemKnowledgeHtml(item = {}) {
+  const points = buildKnowledgeReviewForRecord(item, { limit: 3 });
+  const tags = buildSchoolIndustryTags(item).slice(0, 3);
+  if (!points.length && !tags.length) return '';
+  const chips = tags.length ? `<div class="knowledge-chip-row">${tags.map(x => `<span class="knowledge-chip">${escapeHtml(x.tag)}</span>`).join('')}</div>` : '';
+  const list = points.length ? `<ul>${points.slice(0, 3).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '';
+  return `<div class="workspace-knowledge-hints"><b>知识库复核：</b>${chips}${list}</div>`;
+}
+function renderKnowledgeSummaryPanel(state = getState()) {
+  const notes = buildKnowledgePortfolioSummary(state.items || []).slice(0, 5);
+  if (!notes.length) return '';
+  return `<section class="analysis-knowledge-card"><h3>知识库复核提示</h3><ul>${notes.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${escapeHtml(KNOWLEDGE_DATA_BOUNDARY.methodRule)}</p></section>`;
+}
+
 function itemCodeText(item = {}) {
   const sm = item.standardMajor || {};
   if (sm.code && sm.name) return `<span class="workspace-code-line">专业代码 ${escapeHtml(sm.code)}｜${escapeHtml(sm.name)}</span>`;
   if (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category') return `<span class="workspace-code-line">专业类 ${escapeHtml(sm.categoryCode)}｜${escapeHtml(sm.categoryName)}</span>`;
   return '';
-}
-
-function itemKnowledgeReviewHtml(item = {}) {
-  const signals = buildKnowledgeSignalsForRecord(item, { limit: 2 });
-  if (!signals.length) return '';
-  return `<div class="workspace-item-review workspace-knowledge-review"><span>知识库复核：</span>${signals.map(escapeHtml).join('；')}</div>`;
 }
 
 function itemHtml(item, index, total) {
@@ -273,7 +282,7 @@ function itemHtml(item, index, total) {
         <span class="is-band">${escapeHtml(band.detail || '')}</span><span>2025最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${location}${campusTag}${itemCodeText(item)}
       </div>
       ${campusReview ? `<div class="workspace-item-review">${campusReview}</div>` : ''}
-      ${itemKnowledgeReviewHtml(item)}
+      ${itemKnowledgeHtml(item)}
     </div>
     <div class="workspace-item-actions">
       <button class="workspace-mini-button icon" title="上移一位" data-up="${escapeHtml(item.id)}" ${index === 0 ? 'disabled' : ''}>上移</button>
@@ -448,7 +457,7 @@ function renderAnalysis() {
     ${(currentAnalysis.actions || []).length ? `<h3>可调整方向</h3>${listHtml(currentAnalysis.actions)}` : ''}
   </details>`;
   const trendBox = renderSelectionTrendBox(trendSummary);
-  root.innerHTML = toHumanCopy(`<div class="analysis-box">${staleNotice}${rankZoneCard}${trendBox}${narrativeCard}${dataReview}</div>`);
+  root.innerHTML = toHumanCopy(`<div class="analysis-box">${staleNotice}${rankZoneCard}${trendBox}${renderKnowledgeSummaryPanel(state)}${narrativeCard}${dataReview}</div>`);
 }
 
 function renderReviewChecklistPanel() {
@@ -569,12 +578,6 @@ function plainTextReport(state = getState()) {
     lines.push('');
     lines.push(directionText);
   }
-  const knowledgeLines = buildKnowledgeReportLines(state.items, { limit: 8 });
-  if (knowledgeLines.length) {
-    lines.push('');
-    lines.push('知识库复核提示：');
-    knowledgeLines.forEach((line, index) => lines.push(`${index + 1}. ${line}`));
-  }
   lines.push('');
   lines.push('已选专业：');
   state.items.forEach((item, index) => {
@@ -586,11 +589,9 @@ function plainTextReport(state = getState()) {
     lines.push(`   ${code}`);
     lines.push(`   2025最低分：${fmt(item.score2025 ?? item.score)}｜2025最低位次：${fmt(item.rank2025 ?? item.rank)}｜相对孩子：${item.scoreDelta == null ? '待核验' : (Number(item.scoreDelta) >= 0 ? '+' : '') + fmt(item.scoreDelta)} 分`);
     lines.push(`   分段归属：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
-    const itemReviewPoints = Array.isArray(item.reviewPoints) ? item.reviewPoints : [];
-    const itemKnowledge = buildKnowledgeSignalsForRecord(item, { limit: 2 });
-    const reviewList = [...(Array.isArray(item.flags) ? item.flags : []), ...itemReviewPoints, ...itemKnowledge].filter(Boolean);
-    const review = reviewList.length ? [...new Set(reviewList)].slice(0, 4).join(' / ') : '招生计划、校区、学费、体检和专业备注需人工复核';
-    lines.push(`   需要再确认：${review}`);
+    const reviewPoints = [...new Set([...(Array.isArray(item.reviewPoints) ? item.reviewPoints : []), ...buildKnowledgeReviewForRecord(item, { limit: 3 })])];
+    const review = reviewPoints.length ? reviewPoints.slice(0, 3).join(' / ') : '招生计划、校区、学费、体检和专业备注需人工复核';
+    lines.push(`   知识库复核：${review}`);
   });
   lines.push('');
   lines.push('下一步建议：先确认孩子是否接受城市、学费、校区和专业方向，再按当年位次、招生计划和招生章程逐条人工复核。');
