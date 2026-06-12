@@ -1,12 +1,12 @@
 {
   "assetVersion": "v3933",
-  "generatedAt": "2026-06-12T12:46:42.268Z",
+  "generatedAt": "2026-06-12T13:33:58.855Z",
   "scannedSourceCount": 47,
   "totals": {
-    "totalMatches": 1537,
+    "totalMatches": 1540,
     "allowedCoreMatches": 93,
-    "rawOutsideCore": 849,
-    "fallbackOrTokenLine": 346,
+    "rawOutsideCore": 851,
+    "fallbackOrTokenLine": 347,
     "effectLiteral": 249
   },
   "topFiles": [
@@ -171,6 +171,14 @@
       "allowedCore": 0
     },
     {
+      "file": "css/components/local-context-contract.css",
+      "total": 12,
+      "rawOutsideCore": 6,
+      "fallbackOrTokenLine": 4,
+      "effectLiteral": 2,
+      "allowedCore": 0
+    },
+    {
       "file": "css/components/report-action-human.css",
       "total": 7,
       "rawOutsideCore": 6,
@@ -192,14 +200,6 @@
       "rawOutsideCore": 4,
       "fallbackOrTokenLine": 5,
       "effectLiteral": 6,
-      "allowedCore": 0
-    },
-    {
-      "file": "css/components/local-context-contract.css",
-      "total": 9,
-      "rawOutsideCore": 4,
-      "fallbackOrTokenLine": 3,
-      "effectLiteral": 2,
       "allowedCore": 0
     },
     {

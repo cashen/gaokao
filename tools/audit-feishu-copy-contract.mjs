@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const fn = path.join(root, 'functions', '_lib');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const files = ['feishu-report-builder.js','feishu-selection-pool-report-builder.js','feishu-selection-pool-styled-builder.js','ai-card-rules.js','ai-card-prompt.js','ai-card-output-schema.js'];
+const text = files.map(f => fs.readFileSync(path.join(fn, f), 'utf8')).join('\n');
+const forbidden = ['匹配关系','命中原因','专业热度变化参考','本校背景关联','知识库复核','v3.9.20.0'];
+const failures = [];
+for (const word of forbidden) if (text.includes(word)) failures.push(`forbidden Feishu copy remains: ${word}`);
+for (const word of ['2024同口径参考','参考位置','建议再看','两年位次变化参考']) if (!text.includes(word)) failures.push(`required Feishu copy missing: ${word}`);
+const orderFile = fs.readFileSync(path.join(fn, 'feishu-selection-pool-report-builder.js'), 'utf8');
+if (!/2025最低位次[\s\S]{0,300}historyText\(item\)[\s\S]{0,800}localContextItems\(item\)/.test(orderFile)) failures.push('2024同口径参考 should be emitted before 院校专业背景');
+const out = { version: assets.version, assetVersion: assets.assetVersion, forbidden, failures, status: failures.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(lr, `feishu-copy-contract-audit.${q}.json`), JSON.stringify(out, null, 2));
+console.log(JSON.stringify(out, null, 2));
+if (failures.length) process.exit(1);

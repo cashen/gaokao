@@ -84,11 +84,11 @@ function filterText(filters) {
 
 function historyText(record) {
   const has2024 = record?.historyCompare?.has2024 || record.score2024 != null || record.rank2024 != null;
-  if (!has2024) return "2024参考：暂无同口径数据";
+  if (!has2024) return "2024同口径参考：暂无";
   const score = record.score2024 != null ? `${fmt(record.score2024)} 分` : "分数待核验";
   const rank = record.rank2024 != null ? `${fmt(record.rank2024)} 位` : "位次待核验";
-  const trend = record?.historyCompare?.rankTrendText ? `；${record.historyCompare.rankTrendText}` : "";
-  return `2024参考：${score} / ${rank}${trend}`;
+  const trend = record?.historyCompare?.rankTrendText ? `｜${String(record.historyCompare.rankTrendText).replace(/^两年位次：前移约\s*/,'2025位次更靠前约 ').replace(/^两年位次：后移约\s*/,'2025位次更靠后约 ')}` : "";
+  return `2024同口径参考：${score} / ${rank}${trend}`;
 }
 
 function locationText(record) {
@@ -168,9 +168,9 @@ export function buildFeishuReport(data) {
     lines.push(`- 2025最低位次：${fmt(record.rank2025 ?? record.rank)}`);
     lines.push(`- ${historyText(record)}`);
     lines.push(`- 相对考生：${deltaText(record.scoreDelta)} 分`);
-    lines.push(`- 状态：${record.statusLabel || "待核验"}`);
-    if (record.matchLabel) lines.push(`- 匹配关系：${record.matchLabel}`);
-    if (record.matchReason) lines.push(`- 命中原因：${record.matchReason}`);
+    lines.push(`- 参考位置：${record.statusLabel || "待核验"}`);
+    if (record.matchLabel) lines.push(`- 参考位置：${record.matchLabel}`);
+    if (record.matchReason) lines.push(`- 为什么出现：${record.matchReason}`);
     lines.push(`- 适合位置：${record.position || "待核验"}`);
     lines.push(`- 地域：${locationText(record)}`);
     if (campus?.displayTag) lines.push(`- 校区提醒：${campus.displayTag}｜${campus.reviewSummary}`);

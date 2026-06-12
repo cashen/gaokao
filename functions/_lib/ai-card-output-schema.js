@@ -86,7 +86,7 @@ function cleanBasis(items, fallback) {
   const factual = merged.filter(x => !isAdviceOrRiskLine(x) && !hasAny(x, ['核验', '需要确认', '建议额外']));
   const preferred = [];
 
-  for (const key of ['卡片状态', '相对考生', '2025最低', '2024参考', '211', '985', '双一流', '地域']) {
+  for (const key of ['卡片状态', '相对考生', '2025最低', '2024同口径参考', '211', '985', '双一流', '地域']) {
     const found = factual.find(x => x.includes(key) && !preferred.some(y => signature(y) === signature(x)));
     if (found) preferred.push(found);
     if (preferred.length >= 3) break;

@@ -49,6 +49,7 @@ function normalizeItems(items = []) {
       rank2025: num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null),
       score2024: num(item.score2024, null),
       rank2024: num(item.rank2024, null),
+      historyCompare: item.historyCompare || null,
       scoreDelta: num(item.scoreDelta, null),
       statusLabel: clean(item.statusLabel, 60),
       position: clean(item.position || poolBand.position, 80),
@@ -58,6 +59,7 @@ function normalizeItems(items = []) {
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 100)).filter(Boolean).slice(0, 10) : [],
       reviewPoints: Array.isArray(item.reviewPoints) ? item.reviewPoints.map(x => clean(x, 160)).filter(Boolean).slice(0, 8) : [],
       localStrongChain: item.localStrongChain || null,
+      trajectoryChain: item.trajectoryChain || null,
       specialProject: item.specialProject || null,
       codes: item.codes || {},
       standardMajor: item.standardMajor || {},
@@ -89,6 +91,16 @@ function deltaText(delta) {
   const n = Number(delta);
   if (!Number.isFinite(n)) return '—';
   return n > 0 ? `+${n}` : String(n);
+}
+
+
+function historyText(item = {}, { empty = '2024同口径参考：暂无' } = {}) {
+  const has2024 = item?.historyCompare?.has2024 || item.score2024 != null || item.rank2024 != null;
+  if (!has2024) return empty;
+  const score = item.score2024 != null ? `${fmt(item.score2024)} 分` : '分数待核验';
+  const rank = item.rank2024 != null ? `${fmt(item.rank2024)} 位` : '位次待核验';
+  const trend = item?.historyCompare?.rankTrendText ? `｜${String(item.historyCompare.rankTrendText).replace(/^两年位次：前移约\s*/,'2025位次更靠前约 ').replace(/^两年位次：后移约\s*/,'2025位次更靠后约 ')}` : '';
+  return `2024同口径参考：${score} / ${rank}${trend}`;
 }
 
 function tagsText(item) {
@@ -132,7 +144,7 @@ function localContextItems(item = {}) {
     if (!strongName || !trajectoryName || (!strongName.includes(trajectoryName.replace(/方向$/, '')) && !trajectoryName.includes(strongName.replace(/方向$/, '')))) {
       out.push({
         kind: 'trajectory',
-        title: `学习就业方向提醒：${trajectoryName || '方向待核验'}`,
+        title: `方向提醒：${trajectoryName || '方向待核验'}`,
         reviewText: item.trajectoryChain.reviewText || (item.trajectoryChain.reviewPoints || []).join(' / '),
         reportTip: item.trajectoryChain.reportTip || ''
       });
@@ -149,7 +161,7 @@ function localContextMarkdownLines(items = []) {
   if (!rows.length) return [];
   const backgroundCount = rows.filter(x => x.entry.kind === 'background').length;
   const trajectoryCount = rows.filter(x => x.entry.kind === 'trajectory').length;
-  const lines = ['## 院校专业背景复核', '', `- 本校背景关联：${fmt(backgroundCount)} 个`, `- 学习就业方向提醒：${fmt(trajectoryCount)} 个`, '- 说明：这些提示不代表录取优势，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
+  const lines = ['## 院校专业背景复核', '', `- 院校专业背景：${fmt(backgroundCount)} 条`, `- 方向提醒：${fmt(trajectoryCount)} 条`, '- 说明：这些提示不代表录取优势，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
   rows.slice(0, 10).forEach(({ item, entry }) => {
     lines.push(`- ${item.school} · ${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
   });
@@ -216,7 +228,7 @@ function governanceBoundaryLines() {
     '',
     `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
     `- 辽宁志愿模式：${formatLiaoningOrdinaryUndergraduatePolicyLine()}`, 
-    '- 专业热度：只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。',
+    '- 两年位次变化：只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。',
     '- 招生章程：学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
     ''
   ];
@@ -227,7 +239,7 @@ function majorTrendLines(summary = {}) {
   const lines = [];
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return lines;
-  lines.push('## 专业热度变化参考');
+  lines.push('## 两年位次变化参考');
   lines.push('');
   notes.slice(0, 3).forEach((note, index) => lines.push(`${index + 1}. ${clean(note, 240)}`));
   lines.push('');
@@ -415,8 +427,9 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- ${codeText}`);
       lines.push(`- 2025最低分：${Number.isFinite(Number(item.score2025)) ? fmt(item.score2025) : '分数待核验'}`);
       lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
+      lines.push(`- ${historyText(item)}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
-      lines.push(`- 匹配关系：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
+      lines.push(`- 参考位置：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
       const contextEntries = localContextItems(item);
       if (contextEntries.length) {
         contextEntries.slice(0, 2).forEach(entry => {
@@ -426,7 +439,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
         });
       }
       const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item));
-      lines.push(`- 知识库复核：${reviewText}`);
+      lines.push(`- 建议再看：${reviewText}`);
       lines.push('');
     });
   }
@@ -442,7 +455,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.20.0',
+    version: 'v3.9.33.2',
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,

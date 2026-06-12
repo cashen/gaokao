@@ -1,4 +1,4 @@
-import { DIRECTION_GROUPS, DEFAULT_EXPLORE_DIRECTIONS, CONFIRM_NOTES, QUESTION_SECTIONS } from './direction-explorer-data.js?v=3933_1';
+import { DIRECTION_GROUPS, DEFAULT_EXPLORE_DIRECTIONS, CONFIRM_NOTES, QUESTION_SECTIONS } from './direction-explorer-data.js?v=3933_2';
 
 function uniq(list = []) { return [...new Set(list.map(x => String(x || '').trim()).filter(Boolean))]; }
 function addScore(scores, dirs = {}) {

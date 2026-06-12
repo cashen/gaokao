@@ -14,12 +14,12 @@ function deltaText(delta) {
 
 function historyLine(record = {}) {
   if (!(record.historyCompare?.has2024 || record.score2024 != null || record.rank2024 != null)) {
-    return '2024暂无同口径数据';
+    return '2024同口径参考：暂无';
   }
   const score = record.score2024 != null ? `${fmt(record.score2024)}分` : '分数待核验';
   const rank = record.rank2024 != null ? `${fmt(record.rank2024)}位` : '位次待核验';
   const trend = record.historyCompare?.rankTrendText ? `；${record.historyCompare.rankTrendText}` : '';
-  return `2024参考：${score}/${rank}${trend}`;
+  return `2024同口径参考：${score}/${rank}${trend}`;
 }
 
 function shortRiskTag(value) {

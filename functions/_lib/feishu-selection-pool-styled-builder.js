@@ -109,6 +109,15 @@ function matchDetailRuns(summary = {}) {
   ];
 }
 
+
+function historyScoreText(item = {}) {
+  const has2024 = item?.historyCompare?.has2024 || item.score2024 != null || item.rank2024 != null;
+  if (!has2024) return '2024同口径参考：暂无';
+  const score = item.score2024 != null ? `${formatNumber(item.score2024)} 分` : '分数待核验';
+  const rank = item.rank2024 != null ? `${formatNumber(item.rank2024)} 位` : '位次待核验';
+  return `2024同口径参考：${score} / ${rank}`;
+}
+
 function itemRuns(item) {
   const band = item.poolBand || {};
   const bandLabel = band.detail || item.statusLabel || '待判断';
@@ -128,10 +137,11 @@ function itemRuns(item) {
     { content: '｜' },
     { content: rankGapText(item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
+    { content: `｜${historyScoreText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,
     special ? { content: `｜${special}`, style: STYLE.risk } : null,
     item.localStrongChain?.matched ? { content: `｜院校背景：${clean(item.localStrongChain.depth === 'core' ? '本校主干方向' : '本校特色相关', 40)} · ${clean(item.localStrongChain.chainName, 40)}`, style: STYLE.action } : (item.trajectoryChain?.matched ? { content: `｜方向提醒：${clean(item.trajectoryChain.cardShort || item.trajectoryChain.trajectoryName, 40)}`, style: STYLE.action } : null),
-    Array.isArray(item.reviewPoints) && item.reviewPoints.length ? { content: `｜知识库复核：${clean(item.reviewPoints[0], 120)}`, style: STYLE.risk } : null
+    Array.isArray(item.reviewPoints) && item.reviewPoints.length ? { content: `｜建议再看：${clean(item.reviewPoints[0], 120)}`, style: STYLE.risk } : null
   ].filter(Boolean);
 }
 
@@ -241,7 +251,7 @@ function majorTrendBlocks(summary = {}) {
   summary = summary && typeof summary === 'object' ? summary : {};
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return [];
-  const blocks = [heading2('专业热度变化参考', STYLE.title)];
+  const blocks = [heading2('两年位次变化参考', STYLE.title)];
   notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
   blocks.push(styledTextBlock('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。', STYLE.warning));
   return blocks;
@@ -300,7 +310,7 @@ function governanceBoundaryBlocks() {
     heading2('数据和使用边界', STYLE.title),
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
-    bulletBlock('专业热度只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
+    bulletBlock('两年位次变化只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
     bulletBlock('招生章程中的学费、校区、培养模式、体检限制、转专业和毕业证/学位证口径必须人工确认。')
   ];
 }

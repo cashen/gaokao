@@ -29,9 +29,17 @@ export function extractYearScore(raw, year) {
     `${y}_score`,
     `${y}最低分`,
     `${y}最低分数`,
+    `${y}分`,
+    `${y}年分`,
+    `${y}年最低分`,
+    `${y}最低录取分`,
+    `${y}最低投档分`,
+    `${y}专业最低分`,
+    `${y}最低分数线`,
     `${y}投档最低分`,
     `${y}录取最低分`,
     `${y}分数`,
+    `${yy}分`,
     `${yy}最低分`,
     `${yy}年最低分`,
     `最低分${y}`,
@@ -50,9 +58,16 @@ export function extractYearRank(raw, year) {
     `${y}Rank`,
     `${y}_rank`,
     `${y}最低位次`,
+    `${y}排位`,
+    `${y}年位次`,
+    `${y}年最低位次`,
+    `${y}最低录取位次`,
+    `${y}最低投档位次`,
+    `${y}专业最低位次`,
     `${y}位次`,
     `${y}最低排位`,
     `${y}录取位次`,
+    `${yy}位次`,
     `${yy}最低位次`,
     `${yy}年最低位次`,
     `最低位次${y}`,
@@ -72,7 +87,7 @@ function rankTrend(rank2025, rank2024) {
   if (rank2025 == null || rank2024 == null) return '';
   const delta = rank2025 - rank2024;
   if (Math.abs(delta) <= 1000) return '两年位次接近';
-  return delta < 0 ? '位次前移' : '位次后移';
+  return delta < 0 ? '2025位次更靠前' : '2025位次更靠后';
 }
 
 export function buildHistoryScore({ score2025, rank2025, score2024, rank2024 }) {
@@ -86,9 +101,9 @@ export function buildHistoryScore({ score2025, rank2025, score2024, rank2024 }) 
     if (Math.abs(rankDelta25vs24) <= 1000) {
       rankTrendText = '两年位次接近';
     } else if (rankDelta25vs24 < 0) {
-      rankTrendText = `两年位次：前移约 ${abs} 位`;
+      rankTrendText = `2025位次更靠前约 ${abs} 位`;
     } else {
-      rankTrendText = `两年位次：后移约 ${abs} 位`;
+      rankTrendText = `2025位次更靠后约 ${abs} 位`;
     }
   }
 

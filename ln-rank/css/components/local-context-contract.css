@@ -91,3 +91,29 @@
   .workspace-local-context-chip { font-size: 11.5px; padding: 4px 7px; }
   .local-context-summary-card { padding: 8px; border-radius: 12px; font-size: 12px; }
 }
+
+
+/* v3933_2: 历史成绩是硬数据，排序上优先于院校专业背景。 */
+.workspace-history-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--token-local-context-text, #0f5f59);
+  background: rgba(15, 118, 110, 0.06);
+  border: 1px solid rgba(15, 118, 110, 0.13);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width:760px) {
+  .workspace-history-chip {
+    font-size: 11.6px;
+    padding: 4px 7px;
+  }
+}
