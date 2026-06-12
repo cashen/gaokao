@@ -1,18 +1,16 @@
 {
-  "version": "v3.9.33.3",
-  "assetVersion": "v3933_3",
-  "release": "v3.9.33.3-ln-rank-active-audit-field-order-contract-no-fenxi",
-  "name": "v3.9.33.3-ln-rank-active-audit-field-order-contract-no-fenxi",
-  "label": "active-audit-field-order-contract",
+  "version": "v3.9.33.4",
+  "assetVersion": "v3933_4",
+  "release": "v3.9.33.4-ln-rank-release-migration-selection-human-contract-no-fenxi",
+  "name": "v3.9.33.4-ln-rank-release-migration-selection-human-contract-no-fenxi",
+  "label": "release-migration-selection-human-contract",
   "notes": [
-    "审计脚本改为读取 active-assets.json，避免 active 页面与审计版本漂移",
-    "搜索卡片字段顺序收口为 2025硬数据、2024同口径参考、地域/办学性质/专业代码、院校专业背景",
-    "搜索卡片 2024 行明确显示“2024同口径参考”，PC 和 Android 不吃掉同口径口径",
-    "搜索卡片“命中原因”改为“为什么出现”，减少工程化表达",
-    "飞书报告字段顺序统一为 2025最低分、2025最低位次、2024同口径参考、相对孩子、参考位置、地域、专业代码、院校专业背景、建议再看",
-    "飞书报告中的旧式院校背景分级文案统一收口为“本校方向 / 本校相关 / 方向提醒”",
-    "补强 copy、history、feishu、render resilience、density 等合同审计，继续保持 no-fenxi 发包范围",
-    "不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js；不新增 AI 顾问、不新增录取概率"
+    "新增发布迁移一致性合同，active-assets.json 作为版本与资源唯一来源，active HTML/JS/CSS/self-check/报告上下文统一迁移。",
+    "新增自选页人类层级合同，治理字号、位置标签、复核提示位置、按钮权重和位次诊断工程词。",
+    "自选页移除列表上方的组合级复核长提示，组合级提示只在生成前区域低权重出现一次。",
+    "自选单条按学校/专业、2025/位次/2024、位置标签、地域/专业代码/背景、操作的顺序呈现。",
+    "生成前诊断拆成硬数据、人话判断、下一步动作，移除候选区/锚点/功能区等前台工程词。",
+    "继续保持不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js，不新增 AI 顾问和录取概率。"
   ],
   "noFenxiIncluded": true
 }

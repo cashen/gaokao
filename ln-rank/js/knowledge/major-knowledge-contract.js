@@ -1,4 +1,4 @@
-import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3933_3';
+import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3933_4';
 function textOf(record = {}) {
   return [record.school, record.major, record.standardMajor?.name, record.standardMajor?.categoryName, record.matchReason, ...(Array.isArray(record.flags) ? record.flags : [])].filter(Boolean).join(' ');
 }
@@ -94,6 +94,6 @@ export function buildKnowledgePortfolioSummary(items = []) {
   if (sameMajorCount) notes.push(`有 ${sameMajorCount} 个专业名称较宽或方向差异较大，建议重点看培养方向和课程设置。`);
   if (feeCount) notes.push(`有 ${feeCount} 个专业涉及费用或合作办学线索，需要看招生章程和学费。`);
   if (campusCount) notes.push(`有 ${campusCount} 个专业涉及校区/异地线索，需要确认实际就读地点。`);
-  notes.push('本部分属于知识库复核提示，不替代当年招生计划、招生章程和家长孩子最终确认。');
+  notes.push('本部分属于专业方向复核提示，不替代当年招生计划、招生章程和家长孩子最终确认。');
   return uniq(notes).slice(0, 8);
 }

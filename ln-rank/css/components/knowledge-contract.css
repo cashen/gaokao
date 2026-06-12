@@ -33,3 +33,35 @@
   .workspace-knowledge-hints,.card-knowledge-hints{font-size:12px;padding:8px;border-radius:12px;}
   .knowledge-chip{font-size:11px;}
 }
+
+/* v3.9.33.4 复核提示位置合同：组合级提示只做低权重生成前提醒。 */
+.analysis-knowledge-card.is-compact {
+  margin: 10px 0 0 !important;
+  padding: 9px 11px !important;
+  border-radius: 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+  box-shadow: none !important;
+}
+.analysis-knowledge-card.is-compact summary {
+  cursor: pointer !important;
+  color: var(--text-main, #24312E) !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+.analysis-knowledge-card.is-compact ul {
+  margin: 7px 0 0 !important;
+  padding-left: 17px !important;
+}
+.analysis-knowledge-card.is-compact li {
+  margin: 3px 0 !important;
+  color: var(--text-secondary, #60706B) !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+}
+.analysis-knowledge-card.is-compact p {
+  margin: 7px 0 0 !important;
+  color: var(--text-secondary, #60706B) !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}

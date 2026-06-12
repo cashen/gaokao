@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.3",
-  "assetVersion": "v3933_3",
+  "version": "v3.9.33.4",
+  "assetVersion": "v3933_4",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,23 +8,23 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3933_3.js",
-    "js/selection-pool.v3933_3.js",
-    "js/major-trend-render.v3933_3.js",
-    "js/self-check.v3933_3.js"
+    "js/app.v3933_4.js",
+    "js/selection-pool.v3933_4.js",
+    "js/major-trend-render.v3933_4.js",
+    "js/self-check.v3933_4.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_3.css",
-    "css/dist/ln-rank-selection.v3933_3.css",
-    "css/dist/ln-rank-trend.v3933_3.css",
-    "css/dist/ln-rank-self-check.v3933_3.css"
+    "css/dist/ln-rank-main.v3933_4.css",
+    "css/dist/ln-rank-selection.v3933_4.css",
+    "css/dist/ln-rank-trend.v3933_4.css",
+    "css/dist/ln-rank-self-check.v3933_4.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_3.css",
-    "selection": "css/dist/ln-rank-selection.v3933_3.css",
-    "trend": "css/dist/ln-rank-trend.v3933_3.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_3.css"
+    "main": "css/dist/ln-rank-main.v3933_4.css",
+    "selection": "css/dist/ln-rank-selection.v3933_4.css",
+    "trend": "css/dist/ln-rank-trend.v3933_4.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_4.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -61,7 +61,9 @@
     "tools/audit-local-context-runtime.mjs",
     "tools/audit-render-resilience.mjs",
     "tools/audit-history-score-contract.mjs",
-    "tools/audit-feishu-copy-contract.mjs"
+    "tools/audit-feishu-copy-contract.mjs",
+    "tools/audit-release-migration-consistency.mjs",
+    "tools/audit-selection-human-hierarchy.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",

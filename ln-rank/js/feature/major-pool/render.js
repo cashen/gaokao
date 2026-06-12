@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_3';
-import { fmt } from '../../core/number-utils.js?v=3933_3';
-import { renderHistoryScore } from './history-score-render.js?v=3933_3';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_3';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_3';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_3';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_3';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_3';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_4';
+import { fmt } from '../../core/number-utils.js?v=3933_4';
+import { renderHistoryScore } from './history-score-render.js?v=3933_4';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_4';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_4';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_4';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_4';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_4';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
