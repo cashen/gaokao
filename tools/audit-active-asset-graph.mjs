@@ -4,9 +4,9 @@ import path from 'node:path';
 const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
 const lr = path.join(root, 'ln-rank');
 const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
-const expectedVersion = 'v3.9.33.1';
-const expectedAsset = 'v3933_1';
-const expectedQuery = '3933_1';
+const expectedVersion = assets.version;
+const expectedAsset = assets.assetVersion;
+const expectedQuery = String(assets.assetVersion || '').replace(/^v/, '');
 const failures = [];
 function read(rel){return fs.readFileSync(path.join(lr, rel), 'utf8');}
 function exists(rel){return fs.existsSync(path.join(lr, rel));}
@@ -15,8 +15,8 @@ for (const rel of [...(assets.jsEntry || []), ...(assets.cssEntry || [])]) if (!
 for (const rel of assets.html || []) {
   const html = read(rel);
   if (!html.includes(expectedVersion)) failures.push(`${rel}: missing ${expectedVersion}`);
-  if (/v3\.9\.33(?!\.1)/.test(html)) failures.push(`${rel}: old display version remains`);
-  if (/\?v=(?!3933_1\b)\d/.test(html)) failures.push(`${rel}: non-current query remains`);
+  if (html.includes('v3.9.33.1') && expectedVersion !== 'v3.9.33.1') failures.push(`${rel}: old display version remains`);
+  if (new RegExp('\\?v=(?!' + expectedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b)[^\"\']+').test(html)) failures.push(`${rel}: non-current query remains`);
 }
 const importRe = /(?:import|export)\s+(?:[^'\"]*?from\s*)?['\"]([^'\"]+\.js(?:\?v=[^'\"]+)?)['\"]/g;
 const seen = new Set();
@@ -37,6 +37,6 @@ function walk(rel){
 }
 for (const rel of assets.jsEntry || []) walk(rel);
 const report = { version: expectedVersion, assetVersion: expectedAsset, checkedFiles: [...seen].sort(), checkedCount: seen.size, failures, status: failures.length ? 'fail' : 'pass' };
-fs.writeFileSync(path.join(lr, 'active-asset-graph-audit.v3933_1.json'), JSON.stringify(report, null, 2));
+fs.writeFileSync(path.join(lr, 'active-asset-graph-audit.${expectedQuery}.json'), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 if (failures.length) process.exit(1);
