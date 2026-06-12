@@ -116,15 +116,42 @@ function itemName(item) {
   return `${item.school || '学校待核验'}｜${item.major || '专业待核验'}`;
 }
 
-function localChainMarkdownLines(items = []) {
-  const hits = (Array.isArray(items) ? items : []).filter(item => item.localStrongChain && item.localStrongChain.matched);
-  if (!hits.length) return [];
-  const coreCount = hits.filter(item => item.localStrongChain.depth === 'core').length;
-  const supportCount = hits.filter(item => item.localStrongChain.depth === 'support').length;
-  const lines = ['## 辽宁属地强链复核', '', `- 学校主干方向：${fmt(coreCount)} 个`, `- 学校特色相关：${fmt(supportCount)} 个`, '- 说明：该标签不代表录取优势，只表示学校历史、专业方向和行业路径更一致，建议作为家庭讨论重点复核。', ''];
-  hits.slice(0, 10).forEach(item => {
-    const hit = item.localStrongChain;
-    lines.push(`- ${item.school} · ${item.major}：${hit.displayLabel}｜${hit.chainName}`);
+function localContextItems(item = {}) {
+  const out = [];
+  if (item.localStrongChain?.matched) {
+    out.push({
+      kind: 'background',
+      title: `${item.localStrongChain.depth === 'core' ? '本校主干方向' : '本校特色相关'}：${item.localStrongChain.chainName || '院校背景'}`,
+      reviewText: item.localStrongChain.reviewText || (item.localStrongChain.reviewPoints || []).join(' / '),
+      reportTip: item.localStrongChain.reportTip || item.localStrongChain.cardTip || ''
+    });
+  }
+  if (item.trajectoryChain?.matched) {
+    const strongName = String(item.localStrongChain?.chainName || '');
+    const trajectoryName = String(item.trajectoryChain.trajectoryName || item.trajectoryChain.chainName || '');
+    if (!strongName || !trajectoryName || (!strongName.includes(trajectoryName.replace(/方向$/, '')) && !trajectoryName.includes(strongName.replace(/方向$/, '')))) {
+      out.push({
+        kind: 'trajectory',
+        title: `学习就业方向提醒：${trajectoryName || '方向待核验'}`,
+        reviewText: item.trajectoryChain.reviewText || (item.trajectoryChain.reviewPoints || []).join(' / '),
+        reportTip: item.trajectoryChain.reportTip || ''
+      });
+    }
+  }
+  return out;
+}
+
+function localContextMarkdownLines(items = []) {
+  const rows = [];
+  (Array.isArray(items) ? items : []).forEach(item => {
+    localContextItems(item).forEach(entry => rows.push({ item, entry }));
+  });
+  if (!rows.length) return [];
+  const backgroundCount = rows.filter(x => x.entry.kind === 'background').length;
+  const trajectoryCount = rows.filter(x => x.entry.kind === 'trajectory').length;
+  const lines = ['## 院校专业背景复核', '', `- 本校背景关联：${fmt(backgroundCount)} 个`, `- 学习就业方向提醒：${fmt(trajectoryCount)} 个`, '- 说明：这些提示不代表录取优势，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
+  rows.slice(0, 10).forEach(({ item, entry }) => {
+    lines.push(`- ${item.school} · ${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
   });
   lines.push('');
   return lines;
@@ -370,7 +397,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
   const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
   lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
-  lines.push(...localChainMarkdownLines(displayItems.length ? displayItems : items));
+  lines.push(...localContextMarkdownLines(displayItems.length ? displayItems : items));
 
   lines.push('## 当前已选专业排序');
   lines.push('');
@@ -390,9 +417,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 匹配关系：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
-      if (item.localStrongChain?.matched) {
-        lines.push(`- 辽宁属地强链：${item.localStrongChain.displayLabel}｜${item.localStrongChain.chainName}`);
-        lines.push(`- 强链复核：${item.localStrongChain.reviewText || (item.localStrongChain.reviewPoints || []).join(' / ')}`);
+      const contextEntries = localContextItems(item);
+      if (contextEntries.length) {
+        contextEntries.slice(0, 2).forEach(entry => {
+          lines.push(`- 院校专业背景：${entry.title}`);
+          if (entry.reviewText) lines.push(`- 建议再看：${entry.reviewText}`);
+          if (entry.reportTip) lines.push(`- 说明：${entry.reportTip}`);
+        });
       }
       const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item));
       lines.push(`- 知识库复核：${reviewText}`);

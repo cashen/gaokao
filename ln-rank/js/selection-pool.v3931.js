@@ -8,21 +8,21 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3931';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3931';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3931';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3931';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3931';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3931';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3931';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3931';
-import { getCampusForRecord } from './feature/campus/index.js?v=3931';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3931';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3931';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3931';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3931';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3931';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, matchLiaoningLocalStrongChain, buildLocalStrongChainSummary, getLocalChainPresentation } from './knowledge/index.js?v=3931';
+} from './feature/selection-pool/index.js?v=3932';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3932';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3932';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3932';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3932';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3932';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3932';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3932';
+import { getCampusForRecord } from './feature/campus/index.js?v=3932';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3932';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3932';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3932';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3932';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3932';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, matchLiaoningLocalStrongChain, buildLocalStrongChainSummary, getLocalChainPresentation } from './knowledge/index.js?v=3932';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -574,7 +574,7 @@ async function runAnalysis() {
 }
 
 function createReportContext(state = getState()) {
-  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.31' };
+  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.32' };
 }
 
 function plainTextReport(state = getState()) {

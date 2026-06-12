@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.31",
-  "assetVersion": "v3931",
+  "version": "v3.9.32",
+  "assetVersion": "v3932",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,23 +8,23 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3931.js",
-    "js/selection-pool.v3931.js",
-    "js/major-trend-render.v3931.js",
-    "js/self-check.v3931.js"
+    "js/app.v3932.js",
+    "js/selection-pool.v3932.js",
+    "js/major-trend-render.v3932.js",
+    "js/self-check.v3932.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3931.css",
-    "css/dist/ln-rank-selection.v3931.css",
-    "css/dist/ln-rank-trend.v3931.css",
-    "css/dist/ln-rank-self-check.v3931.css"
+    "css/dist/ln-rank-main.v3932.css",
+    "css/dist/ln-rank-selection.v3932.css",
+    "css/dist/ln-rank-trend.v3932.css",
+    "css/dist/ln-rank-self-check.v3932.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3931.css",
-    "selection": "css/dist/ln-rank-selection.v3931.css",
-    "trend": "css/dist/ln-rank-trend.v3931.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3931.css"
+    "main": "css/dist/ln-rank-main.v3932.css",
+    "selection": "css/dist/ln-rank-selection.v3932.css",
+    "trend": "css/dist/ln-rank-trend.v3932.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3932.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -47,7 +47,11 @@
     "css/components/knowledge-contract.css",
     "js/knowledge/liaoning-local-strong-chain.js",
     "css/components/local-strong-chain-contract.css",
-    "js/knowledge/local-chain-surface-contract.js"
+    "js/knowledge/local-chain-surface-contract.js",
+    "js/knowledge/liaoning-major-trajectory-chain.js",
+    "js/knowledge/local-context-resolver.js",
+    "css/components/local-context-contract.css",
+    "tools/audit-local-context-density.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",
@@ -57,6 +61,10 @@
     "js/knowledge/liaoning-local-strong-chain.js",
     "tools/audit-liaoning-local-chain.mjs",
     "css/components/local-strong-chain-contract.css",
-    "tools/audit-surface-density-contract.mjs"
+    "tools/audit-surface-density-contract.mjs",
+    "js/knowledge/liaoning-major-trajectory-chain.js",
+    "js/knowledge/local-context-resolver.js",
+    "css/components/local-context-contract.css",
+    "tools/audit-local-context-density.mjs"
   ]
 }

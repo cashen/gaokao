@@ -22,7 +22,7 @@ import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3932';
 import { buildReportPayload } from './domain/report-payload-contract.js?v=3932';
 import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3932';
 import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3932';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, matchLiaoningLocalStrongChain, buildLocalStrongChainSummary } from './knowledge/index.js?v=3932';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, getLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3932';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -223,7 +223,7 @@ function statHtml(stats, items, state) {
     ? `当前 ${count} 个专业会按这里看到的顺序放进报告。`
     : '还没有选择专业，先回查询页把可以讨论的专业放进报告。';
   const summary = buildSelectedForReportSummary(state);
-  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}${renderLocalStrongChainSummaryPanel(state)}${renderKnowledgeSummaryPanel(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
+  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}${renderKnowledgeSummaryPanel(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
 }
 
 function moveMenuHtml(item, index, total) {
@@ -253,16 +253,16 @@ function renderKnowledgeSummaryPanel(state = getState()) {
   return `<section class="analysis-knowledge-card"><h3>知识库复核提示</h3><ul>${notes.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul><p>${escapeHtml(KNOWLEDGE_DATA_BOUNDARY.methodRule)}</p></section>`;
 }
 
-function renderLocalStrongChainSummaryPanel(state = getState()) {
-  const summary = buildLocalStrongChainSummary(state.items || []);
+function renderLocalContextSummaryPanel(state = getState()) {
+  const summary = buildLocalContextSummary(state.items || []);
   if (!summary.total) return '';
-  const lines = summary.lines.slice(0, 6).map(x => `<li>${escapeHtml(x)}</li>`).join('');
-  return `<section class="local-chain-summary-card"><h3>辽宁属地强链复核</h3><p>${escapeHtml(summary.summaryText)}</p><ol>${lines}</ol><small>该标签不代表录取优势，只提示学校、专业和行业路径更一致。</small></section>`;
+  const lines = summary.lines.slice(0, 6).map(x => `<li><span>${escapeHtml(x.text)}</span>${x.reviewPoints?.length ? `<small>建议再看：${escapeHtml(x.reviewPoints.slice(0, 3).join(' / '))}</small>` : ''}</li>`).join('');
+  return `<section class="local-context-summary-card"><h3>院校专业背景复核</h3><p>${escapeHtml(summary.summaryText)}</p><ol>${lines}</ol><small>这些提示不代表录取优势，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。</small></section>`;
 }
-function itemLocalStrongChainHtml(item = {}) {
-  const hit = item.localStrongChain?.matched ? item.localStrongChain : matchLiaoningLocalStrongChain(item);
-  if (!hit) return '';
-  return `<div class="workspace-local-chain"><div><span class="local-chain-badge">${escapeHtml(hit.displayLabel)}</span><b>${escapeHtml(hit.chainName)}</b></div><p>${escapeHtml(hit.cardTip)}</p><small>建议复核：${escapeHtml(hit.reviewText || (hit.reviewPoints || []).join(' / '))}</small></div>`;
+function itemLocalContextChip(item = {}) {
+  const view = getLocalContextPresentation(item, 'selectionItem');
+  if (!view) return '';
+  return `<span class="workspace-local-context-chip" title="该提示不代表录取优势，只说明专业和学校办学背景、行业方向关联较强。">${escapeHtml(view.text)}</span>`;
 }
 
 function itemCodeText(item = {}) {
@@ -291,10 +291,9 @@ function itemHtml(item, index, total) {
         ${isLongMajorName(item.major) ? `<button class="workspace-text-toggle" type="button" data-toggle-major="${escapeHtml(item.id)}" aria-expanded="false">展开完整名称</button>` : ''}
       </div>
       <div class="workspace-item-meta">
-        <span class="is-band">${escapeHtml(band.detail || '')}</span><span>2025最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${location}${campusTag}${itemCodeText(item)}
+        <span class="is-band">${escapeHtml(band.detail || '')}</span><span>2025最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${location}${campusTag}${itemCodeText(item)}${itemLocalContextChip(item)}
       </div>
       ${campusReview ? `<div class="workspace-item-review">${campusReview}</div>` : ''}
-      ${itemLocalStrongChainHtml(item)}
       ${itemKnowledgeHtml(item)}
     </div>
     <div class="workspace-item-actions">
@@ -470,7 +469,7 @@ function renderAnalysis() {
     ${(currentAnalysis.actions || []).length ? `<h3>可调整方向</h3>${listHtml(currentAnalysis.actions)}` : ''}
   </details>`;
   const trendBox = renderSelectionTrendBox(trendSummary);
-  root.innerHTML = toHumanCopy(`<div class="analysis-box">${staleNotice}${rankZoneCard}${trendBox}${renderLocalStrongChainSummaryPanel(state)}${renderKnowledgeSummaryPanel(state)}${narrativeCard}${dataReview}</div>`);
+  root.innerHTML = toHumanCopy(`<div class="analysis-box">${staleNotice}${rankZoneCard}${trendBox}${renderLocalContextSummaryPanel(state)}${renderKnowledgeSummaryPanel(state)}${narrativeCard}${dataReview}</div>`);
 }
 
 function renderReviewChecklistPanel() {
@@ -586,10 +585,10 @@ function plainTextReport(state = getState()) {
   lines.push(`考生分数：${state.score || '待填写'} 分`);
   lines.push(`已选专业数量：${state.items.length} 个`);
   lines.push(`结构概览：稍高目标 ${state.stats.rushCount || 0} 个｜主要参考 ${state.stats.stableCount || 0} 个｜稳妥补充 ${state.stats.safeCount || 0} 个`);
-  const localChainSummary = buildLocalStrongChainSummary(state.items || []);
-  if (localChainSummary.total) {
-    lines.push(`辽宁属地强链：学校主干方向 ${localChainSummary.coreCount} 个｜学校特色相关 ${localChainSummary.supportCount} 个`);
-    localChainSummary.lines.slice(0, 6).forEach(x => lines.push(`- ${x}`));
+  const localContextSummary = buildLocalContextSummary(state.items || []);
+  if (localContextSummary.total) {
+    lines.push(`院校专业背景：本校背景关联 ${localContextSummary.backgroundCount} 个｜学习就业方向提醒 ${localContextSummary.trajectoryCount} 个`);
+    localContextSummary.lines.slice(0, 6).forEach(x => lines.push(`- ${x.text}${x.reviewPoints?.length ? `｜建议再看：${x.reviewPoints.slice(0, 3).join(' / ')}` : ''}`));
   }
   const directionText = buildDirectionExplorerReportText();
   if (directionText) {
@@ -607,12 +606,16 @@ function plainTextReport(state = getState()) {
     lines.push(`   ${code}`);
     lines.push(`   2025最低分：${fmt(item.score2025 ?? item.score)}｜2025最低位次：${fmt(item.rank2025 ?? item.rank)}｜相对孩子：${item.scoreDelta == null ? '待核验' : (Number(item.scoreDelta) >= 0 ? '+' : '') + fmt(item.scoreDelta)} 分`);
     lines.push(`   分段归属：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
-    const localChain = item.localStrongChain?.matched ? item.localStrongChain : matchLiaoningLocalStrongChain(item);
-    if (localChain) {
-      lines.push(`   辽宁属地强链：${localChain.displayLabel}｜${localChain.chainName}`);
-      lines.push(`   强链复核：${localChain.reviewText}`);
+    const localContext = getLocalContextPresentation(item, 'report');
+    if (localContext?.items?.length) {
+      lines.push('   院校专业背景：');
+      localContext.items.slice(0, 2).forEach(entry => {
+        lines.push(`   - ${entry.title}`);
+        if (entry.reviewPoints?.length) lines.push(`     建议再看：${entry.reviewPoints.slice(0, 5).join(' / ')}`);
+        if (entry.reportTip) lines.push(`     说明：${entry.reportTip}`);
+      });
     }
-    const reviewPoints = [...new Set([...(Array.isArray(item.reviewPoints) ? item.reviewPoints : []), ...buildKnowledgeReviewForRecord({ ...item, localStrongChain: localChain }, { limit: 3 })])];
+    const reviewPoints = [...new Set([...(Array.isArray(item.reviewPoints) ? item.reviewPoints : []), ...buildKnowledgeReviewForRecord(item, { limit: 3 })])];
     const review = reviewPoints.length ? reviewPoints.slice(0, 3).join(' / ') : '招生计划、校区、学费、体检和专业备注需人工复核';
     lines.push(`   知识库复核：${review}`);
   });

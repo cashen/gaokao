@@ -1,4 +1,4 @@
-/* v3.9.31 辽宁属地强链专业合同
+/* v3.9.32 辽宁院校专业背景合同
  * 作用：识别辽宁本地院校中“学校主干方向 / 学校特色相关”的专业组合。
  * 注意：该标签只表示学校历史、专业方向、行业路径更一致，不代表录取优势，不替代招生章程。
  */
@@ -41,11 +41,11 @@ function unique(arr = []) {
 function major(name, catalogCode = '') { return { name, catalogCode }; }
 
 export const LOCAL_CHAIN_COPY = {
-  coreS: '辽宁属地强链 · 学校主干方向',
-  supportS: '辽宁属地强链 · 学校特色相关',
-  coreA: '属地特色线索 · 学校主干方向',
-  supportA: '属地特色线索 · 学校特色相关',
-  boundary: '该提示只表示学校历史、专业方向和行业路径更一致，不代表录取优势，也不替代招生章程和孩子接受度确认。'
+  coreS: '本校主干方向',
+  supportS: '本校特色相关',
+  coreA: '本校主干方向',
+  supportA: '本校特色相关',
+  boundary: '该提示不代表录取优势，只说明这个专业与学校办学背景和行业方向关联较强，建议家长再看课程方向、就业场景和招生章程。'
 };
 
 export const LIAONING_LOCAL_STRONG_CHAINS = [
@@ -87,7 +87,7 @@ export const LIAONING_LOCAL_STRONG_CHAINS = [
     supportMajors: [major('材料成型及控制工程','080203'), major('焊接技术与工程','080411T'), major('工业工程','120701'), major('机器人工程','080803T')],
     reviewPoints: ['沈阳装备制造', '智能制造', '电机电器', '工业控制', '自动化系统'],
     cardTip: '该专业与沈阳工业大学电机电器、装备制造、工业自动化底盘较匹配，建议结合沈阳装备制造、智能制造、电机电器、工业控制路径复核。',
-    reportTip: '该专业属于沈阳工业大学的装备制造与电机电器强链，和沈阳工程学院的能源电力应用路径应区分看。'
+    reportTip: '该专业属于沈阳工业大学的装备制造与电机电器背景方向，和沈阳工程学院的能源电力应用路径应区分看。'
   },
   {
     school: '辽宁科技大学', schoolAliases: ['辽科大'], province: '辽宁', city: '鞍山', tier: 'S', chainName: '冶金材料方向',
@@ -267,7 +267,7 @@ export function buildLocalStrongChainSummary(items = []) {
     hits,
     lines,
     summaryText: hits.length
-      ? `已选专业中，有 ${core.length} 个属于辽宁本地院校的学校主干方向，${support.length} 个属于学校特色相关方向。这类专业不代表录取优势，但学校历史、专业方向和行业路径更一致，建议作为家庭讨论重点复核。`
+      ? `已选专业中，有 ${core.length} 个属于本校主干方向，${support.length} 个属于本校特色相关。这类提示不代表录取优势，只说明专业和学校办学背景、行业方向关联较强，建议作为家庭讨论重点复核。`
       : ''
   };
 }

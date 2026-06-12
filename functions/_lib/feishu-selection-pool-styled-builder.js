@@ -130,7 +130,7 @@ function itemRuns(item) {
     { content: `｜${scoreRankText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,
     special ? { content: `｜${special}`, style: STYLE.risk } : null,
-    item.localStrongChain?.matched ? { content: `｜辽宁属地强链：${clean(item.localStrongChain.displayLabel, 40)} · ${clean(item.localStrongChain.chainName, 40)}`, style: STYLE.action } : null,
+    item.localStrongChain?.matched ? { content: `｜院校背景：${clean(item.localStrongChain.depth === 'core' ? '本校主干方向' : '本校特色相关', 40)} · ${clean(item.localStrongChain.chainName, 40)}`, style: STYLE.action } : (item.trajectoryChain?.matched ? { content: `｜方向提醒：${clean(item.trajectoryChain.cardShort || item.trajectoryChain.trajectoryName, 40)}`, style: STYLE.action } : null),
     Array.isArray(item.reviewPoints) && item.reviewPoints.length ? { content: `｜知识库复核：${clean(item.reviewPoints[0], 120)}`, style: STYLE.risk } : null
   ].filter(Boolean);
 }

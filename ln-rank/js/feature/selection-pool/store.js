@@ -1,4 +1,4 @@
-import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3931';
+import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain, matchLiaoningMajorTrajectory, resolveLocalContext } from '../../knowledge/index.js?v=3932';
 const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3949';
 const LEGACY_KEYS = ['lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
 const MAX_ITEMS = 112;
@@ -45,6 +45,8 @@ export function classifyPoolItem(item = {}) {
 export function normalizePoolItem(record = {}, order = 1) {
   const id = itemId(record);
   const localStrongChain = record.localStrongChain?.matched ? record.localStrongChain : matchLiaoningLocalStrongChain(record);
+  const trajectoryChain = record.trajectoryChain?.matched ? record.trajectoryChain : matchLiaoningMajorTrajectory(record);
+  const localContext = record.localContext?.primary ? record.localContext : resolveLocalContext({ ...record, localStrongChain, trajectoryChain });
   const base = {
     id,
     userOrder: order,
@@ -80,6 +82,8 @@ export function normalizePoolItem(record = {}, order = 1) {
     flags: Array.isArray(record.flags) ? record.flags.map(x => cleanText(x, 100)).filter(Boolean).slice(0, 10) : [],
     reviewPoints: [...new Set([...(Array.isArray(record.reviewPoints) ? record.reviewPoints : []), ...buildKnowledgeReviewForRecord({ ...record, localStrongChain }, { limit: 5 })].map(x => cleanText(x, 160)).filter(Boolean))].slice(0, 8),
     localStrongChain,
+    trajectoryChain,
+    localContext,
     specialProject: record.specialProject || null,
     historyCompare: record.historyCompare || null,
     standardMajor: record.standardMajor || null,

@@ -1,18 +1,18 @@
 {
-  "version": "v3.9.31",
-  "assetVersion": "v3931",
-  "release": "v3.9.31-ln-rank-local-chain-density-recover-no-fenxi",
-  "name": "v3.9.31-ln-rank-local-chain-density-recover-no-fenxi",
-  "label": "local-chain-surface-density-contract",
+  "version": "v3.9.32",
+  "assetVersion": "v3932",
+  "release": "v3.9.32-ln-rank-local-context-copy-contract-no-fenxi",
+  "name": "v3.9.32-ln-rank-local-context-copy-contract-no-fenxi",
+  "label": "local-context-human-copy-trajectory-contract",
   "notes": [
-    "保留 v3.9.30 辽宁属地强链规则库，不回退知识资产",
-    "新增 local-chain-surface-contract 展示调度层，按 card / selectionItem / summary / report 分层输出",
-    "专业卡片恢复 v3.9.29 扫描密度，仅显示短标签，不默认输出完整 cardTip/reviewPoints/boundary",
-    "自选专业条目恢复管理清单节奏，仅显示一行强链 chip，不再输出块级长解释",
-    "生成前确认和飞书报告保留完整辽宁属地强链复核说明",
-    "新增 tools/audit-surface-density-contract.mjs，防止后续功能再次破坏卡片和自选页密度",
+    "保留 v3.9.31 的卡片/自选密度回归，不回退辽宁院校专业背景规则资产",
+    "前台不再显示“辽宁属地强链”等内部词，统一改为“院校专业背景 / 本校主干方向 / 本校特色相关 / 方向提醒”",
+    "新增 liaoning-major-trajectory-chain 后向学习就业方向规则，覆盖沈阳农业大学农机装备、大连交通大学轨道交通装备、沈阳化工大学化工过程装备等首批场景",
+    "新增 local-context-resolver 统一调度强校背景与轨迹提示，卡片/自选最多一条短提示，生成前确认和飞书报告才完整说明",
+    "统一 local-context 低饱和色系，避免新增功能造成视觉跳动或卡片变形",
+    "新增 audit-local-context-density.mjs，防止卡片、自选页再次被长文案撑坏",
     "不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-12T01:47:00+08:00"
+  "generatedAt": "2026-06-12T09:37:52.657385+00:00"
 }

@@ -1,0 +1,82 @@
+{
+  "version": "v3932",
+  "generatedAt": "2026-06-12T09:38:50.155Z",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "card uses local context resolver",
+      "ok": true,
+      "detail": "major card should use unified context resolver"
+    },
+    {
+      "name": "card only uses local-context classes",
+      "ok": true,
+      "detail": "card should render compact local-context chip"
+    },
+    {
+      "name": "card does not output full tips",
+      "ok": true,
+      "detail": "card surface must not output full explanation"
+    },
+    {
+      "name": "selection uses compact local context chip",
+      "ok": true,
+      "detail": "selection item should use one compact chip"
+    },
+    {
+      "name": "selection item does not output full tips",
+      "ok": true,
+      "detail": "selection item must not output full explanation"
+    },
+    {
+      "name": "summary title is human readable",
+      "ok": true,
+      "detail": "summary should use human-readable title"
+    },
+    {
+      "name": "front copy does not expose strong-chain wording",
+      "ok": true,
+      "detail": "frontend should not show internal strong-chain wording"
+    },
+    {
+      "name": "resolver supports trajectory",
+      "ok": true,
+      "detail": "trajectory must be integrated into resolver"
+    },
+    {
+      "name": "trajectory rules exist",
+      "ok": true,
+      "detail": "first batch trajectory rules must exist"
+    },
+    {
+      "name": "same-context merge exists",
+      "ok": true,
+      "detail": "strong background and trajectory duplicate should merge"
+    },
+    {
+      "name": "css has local context compact card",
+      "ok": true,
+      "detail": "card chip CSS must be compact"
+    },
+    {
+      "name": "css has local context selection chip",
+      "ok": true,
+      "detail": "selection chip CSS must be inline"
+    },
+    {
+      "name": "css avoids high saturation red/orange",
+      "ok": true,
+      "detail": "local context should use restrained colors"
+    },
+    {
+      "name": "main dist includes context css",
+      "ok": true,
+      "detail": "main dist should include local context css"
+    },
+    {
+      "name": "selection dist includes context css",
+      "ok": true,
+      "detail": "selection dist should include local context css"
+    }
+  ]
+}
