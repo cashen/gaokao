@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3928';
+let assetVersion = process.argv[3];
+if (!assetVersion) {
+  try {
+    const assets = JSON.parse(fs.readFileSync(path.join(projectRoot, 'active-assets.json'), 'utf8'));
+    assetVersion = String(assets.assetVersion || '').replace(/^v/, '') || '3928';
+  } catch { assetVersion = '3928'; }
+}
 const pages = [
   ['index.html', `css/dist/ln-rank-main.v${assetVersion}.css`],
   ['selection-pool.html', `css/dist/ln-rank-selection.v${assetVersion}.css`],

@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const assetVersion = process.argv[3] || '3933';
+let assetVersion = process.argv[3];
+if (!assetVersion) {
+  try {
+    const assets = JSON.parse(fs.readFileSync(path.join(projectRoot, 'active-assets.json'), 'utf8'));
+    assetVersion = String(assets.assetVersion || '').replace(/^v/, '') || '3933';
+  } catch { assetVersion = '3933'; }
+}
 const reportPath = path.join(projectRoot, `css-dist-report.v${assetVersion}.json`);
 const colorRe = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g;
 const allowedLiteralFiles = new Set([

@@ -120,7 +120,7 @@ function itemLine(item) {
   const sm = item.standardMajor || {};
   const campusText = item.campusReview?.displayTag ? `｜${item.campusReview.displayTag}` : '';
   const code = sm.code && sm.name ? `｜专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类：${sm.categoryCode}｜${sm.categoryName}` : '');
-  return `${item.order}. ${item.school}｜${item.major}${code}｜${band}${campusText}${special}｜2025最低分 ${score}｜2025最低位次 ${rank}`;
+  return `${item.order}. ${item.school}｜${item.major}｜2025最低分 ${score}｜2025最低位次 ${rank}｜${band}${campusText}${code}${special}`;
 }
 
 function itemName(item) {
@@ -133,7 +133,7 @@ function localContextItems(item = {}) {
   if (item.localStrongChain?.matched) {
     out.push({
       kind: 'background',
-      title: `${item.localStrongChain.depth === 'core' ? '本校主干方向' : '本校特色相关'}：${item.localStrongChain.chainName || '院校背景'}`,
+      title: `${item.localStrongChain.depth === 'core' ? '本校方向' : '本校相关'}：${item.localStrongChain.chainName || '院校背景'}`,
       reviewText: item.localStrongChain.reviewText || (item.localStrongChain.reviewPoints || []).join(' / '),
       reportTip: item.localStrongChain.reportTip || item.localStrongChain.cardTip || ''
     });
@@ -424,12 +424,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 顺序：${item.order}`);
       lines.push(`- 学校：${item.school || '学校待核验'}`);
       lines.push(`- 专业：${item.major || '专业待核验'}`);
-      lines.push(`- ${codeText}`);
       lines.push(`- 2025最低分：${Number.isFinite(Number(item.score2025)) ? fmt(item.score2025) : '分数待核验'}`);
       lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
       lines.push(`- ${historyText(item)}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 参考位置：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
+      lines.push(`- 地域：${tagsText(item)}`);
+      lines.push(`- ${codeText}`);
       const contextEntries = localContextItems(item);
       if (contextEntries.length) {
         contextEntries.slice(0, 2).forEach(entry => {
@@ -437,8 +438,10 @@ export function buildSelectionPoolFeishuReport(input = {}) {
           if (entry.reviewText) lines.push(`- 建议再看：${entry.reviewText}`);
           if (entry.reportTip) lines.push(`- 说明：${entry.reportTip}`);
         });
+      } else {
+        lines.push('- 院校专业背景：暂无明显提示');
       }
-      const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : tagsText(item));
+      const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : '招生计划 / 校区 / 学费 / 体检 / 专业备注');
       lines.push(`- 建议再看：${reviewText}`);
       lines.push('');
     });

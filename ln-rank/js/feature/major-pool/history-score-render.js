@@ -1,4 +1,4 @@
-import { fmt } from '../../core/number-utils.js?v=3933_2';
+import { fmt } from '../../core/number-utils.js?v=3933_3';
 
 function has(value) {
   return value !== null && value !== undefined && value !== '';
@@ -40,7 +40,7 @@ export function renderHistoryScore(record) {
   if (!text) return '';
   return `
     <div class="history-score" aria-label="2024同口径参考">
-      <span class="history-label">2024参考</span>
+      <span class="history-label">2024同口径参考</span>
       <span class="history-line">${text.replace(/^2024同口径参考：/, '')}</span>
     </div>
   `;

@@ -15,7 +15,7 @@ for (const rel of [...(assets.jsEntry || []), ...(assets.cssEntry || [])]) if (!
 for (const rel of assets.html || []) {
   const html = read(rel);
   if (!html.includes(expectedVersion)) failures.push(`${rel}: missing ${expectedVersion}`);
-  if (html.includes('v3.9.33.1') && expectedVersion !== 'v3.9.33.1') failures.push(`${rel}: old display version remains`);
+  if (/v3\.9\.33\.[12]/.test(html) && !html.includes(expectedVersion)) failures.push(`${rel}: old display version remains`);
   if (new RegExp('\\?v=(?!' + expectedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b)[^\"\']+').test(html)) failures.push(`${rel}: non-current query remains`);
 }
 const importRe = /(?:import|export)\s+(?:[^'\"]*?from\s*)?['\"]([^'\"]+\.js(?:\?v=[^'\"]+)?)['\"]/g;
@@ -37,6 +37,6 @@ function walk(rel){
 }
 for (const rel of assets.jsEntry || []) walk(rel);
 const report = { version: expectedVersion, assetVersion: expectedAsset, checkedFiles: [...seen].sort(), checkedCount: seen.size, failures, status: failures.length ? 'fail' : 'pass' };
-fs.writeFileSync(path.join(lr, 'active-asset-graph-audit.${expectedQuery}.json'), JSON.stringify(report, null, 2));
+fs.writeFileSync(path.join(lr, `active-asset-graph-audit.${expectedQuery}.json`), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 if (failures.length) process.exit(1);

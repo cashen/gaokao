@@ -99,6 +99,45 @@ function locationText(record) {
 }
 
 
+function localContextItems(record = {}) {
+  const out = [];
+  if (record.localStrongChain?.matched) {
+    const type = record.localStrongChain.depth === 'core' ? '本校方向' : '本校相关';
+    out.push({
+      type,
+      direction: record.localStrongChain.chainName || '方向待核验',
+      reviewText: record.localStrongChain.reviewText || (record.localStrongChain.reviewPoints || []).join(' / '),
+      reportTip: record.localStrongChain.reportTip || record.localStrongChain.cardTip || ''
+    });
+  }
+  if (record.trajectoryChain?.matched) {
+    const strongName = String(record.localStrongChain?.chainName || '');
+    const trajectoryName = String(record.trajectoryChain.trajectoryName || record.trajectoryChain.chainName || '');
+    if (!strongName || !trajectoryName || (!strongName.includes(trajectoryName.replace(/方向$/, '')) && !trajectoryName.includes(strongName.replace(/方向$/, '')))) {
+      out.push({
+        type: '方向提醒',
+        direction: trajectoryName || '方向待核验',
+        reviewText: record.trajectoryChain.reviewText || (record.trajectoryChain.reviewPoints || []).join(' / '),
+        reportTip: record.trajectoryChain.reportTip || ''
+      });
+    }
+  }
+  return out;
+}
+
+function localContextText(record = {}) {
+  const entry = localContextItems(record)[0];
+  if (!entry) return '暂无明显提示';
+  return `${entry.type}｜${entry.direction}`;
+}
+
+function reviewText(record = {}, entry = null) {
+  if (entry?.reviewText) return entry.reviewText;
+  if (Array.isArray(record.flags) && record.flags.length) return record.flags.slice(0, 3).join(' / ');
+  return '招生计划 / 校区 / 学费 / 体检 / 专业备注';
+}
+
+
 function governanceReviewLines(records = []) {
   const lines = [];
   const hasMedical = records.some(x => /临床|口腔|中医|中西医/.test(`${x.major || ''}`) && !/护理|药学|检验|影像技术|康复/.test(`${x.major || ''}`));
@@ -162,23 +201,22 @@ export function buildFeishuReport(data) {
     const campus = getCampusForItem(record);
     lines.push(`### ${index + 1}. ${record.school}｜${record.major}`);
     lines.push("");
-    const majorCode = standardMajorText(record);
+    const majorCode = standardMajorText(record) || '待人工核验';
+    const contextEntry = localContextItems(record)[0] || null;
+    const referencePosition = [record.statusLabel, record.matchLabel, record.position].filter(Boolean).join(' / ') || '待核验';
     lines.push(`- 2025最低分：${fmt(record.score2025 ?? record.score)} 分`);
-    if (majorCode) lines.push(`- 专业代码：${majorCode}`);
     lines.push(`- 2025最低位次：${fmt(record.rank2025 ?? record.rank)}`);
     lines.push(`- ${historyText(record)}`);
-    lines.push(`- 相对考生：${deltaText(record.scoreDelta)} 分`);
-    lines.push(`- 参考位置：${record.statusLabel || "待核验"}`);
-    if (record.matchLabel) lines.push(`- 参考位置：${record.matchLabel}`);
-    if (record.matchReason) lines.push(`- 为什么出现：${record.matchReason}`);
-    lines.push(`- 适合位置：${record.position || "待核验"}`);
+    lines.push(`- 相对孩子：${deltaText(record.scoreDelta)} 分`);
+    lines.push(`- 参考位置：${referencePosition}`);
     lines.push(`- 地域：${locationText(record)}`);
+    lines.push(`- 专业代码：${majorCode}`);
+    lines.push(`- 院校专业背景：${localContextText(record)}`);
+    lines.push(`- 建议再看：${reviewText(record, contextEntry)}`);
+    if (record.matchReason) lines.push(`- 为什么出现：${record.matchReason}`);
     if (campus?.displayTag) lines.push(`- 校区提醒：${campus.displayTag}｜${campus.reviewSummary}`);
     lines.push(`- 标签：${tags(record)}`);
     if (record.tuition) lines.push(`- 学费：${record.tuition}`);
-    if (Array.isArray(record.flags) && record.flags.length) {
-      lines.push(`- 需核验：${record.flags.slice(0, 2).join(" / ")}`);
-    }
     lines.push("");
   });
 

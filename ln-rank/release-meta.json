@@ -1,19 +1,18 @@
 {
-  "version": "v3.9.33.2",
-  "assetVersion": "v3933_2",
-  "release": "v3.9.33.2-ln-rank-history-score-report-copy-contract-no-fenxi",
-  "name": "v3.9.33.2-ln-rank-history-score-report-copy-contract-no-fenxi",
-  "label": "history-score-report-copy-contract",
+  "version": "v3.9.33.3",
+  "assetVersion": "v3933_3",
+  "release": "v3.9.33.3-ln-rank-active-audit-field-order-contract-no-fenxi",
+  "name": "v3.9.33.3-ln-rank-active-audit-field-order-contract-no-fenxi",
+  "label": "active-audit-field-order-contract",
   "notes": [
-    "恢复并统一 2024 同口径参考显示：搜索卡片、Android、自选页、飞书报告保持一致",
-    "搜索卡片有 2024 数据才显示历史参考，避免无数据条目噪音；Android 不再隐藏 history-score",
-    "自选页新增 2024参考 chip，排序在院校专业背景提示之前，硬数据优先于背景提示",
-    "飞书报告统一使用 2024同口径参考、参考位置、院校专业背景、建议再看等家长可理解文案",
-    "替换匹配关系、命中原因、专业热度变化参考、本校背景关联、知识库复核等不准确或工程化文案",
-    "扩展 2024 分数和位次字段别名识别，降低不同数据源字段名导致历史参考缺失的风险",
-    "新增 audit-history-score-contract.mjs 和 audit-feishu-copy-contract.mjs，防止历史成绩与飞书文案口径再次漂移",
-    "不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js"
+    "审计脚本改为读取 active-assets.json，避免 active 页面与审计版本漂移",
+    "搜索卡片字段顺序收口为 2025硬数据、2024同口径参考、地域/办学性质/专业代码、院校专业背景",
+    "搜索卡片 2024 行明确显示“2024同口径参考”，PC 和 Android 不吃掉同口径口径",
+    "搜索卡片“命中原因”改为“为什么出现”，减少工程化表达",
+    "飞书报告字段顺序统一为 2025最低分、2025最低位次、2024同口径参考、相对孩子、参考位置、地域、专业代码、院校专业背景、建议再看",
+    "飞书报告中的旧式院校背景分级文案统一收口为“本校方向 / 本校相关 / 方向提醒”",
+    "补强 copy、history、feishu、render resilience、density 等合同审计，继续保持 no-fenxi 发包范围",
+    "不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js；不新增 AI 顾问、不新增录取概率"
   ],
-  "noFenxiIncluded": true,
-  "generatedAt": "2026-06-12T13:40:00Z"
+  "noFenxiIncluded": true
 }

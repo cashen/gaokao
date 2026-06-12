@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
 const lr = path.join(root, 'ln-rank');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
 const failures = [];
 const samples = [
   { school: '辽宁石油化工大学', major: '油气储运工程', expect: /本校方向|背景|石油化工储运/ },
@@ -22,11 +24,11 @@ const negativeSamples = [
   { school: '华北电力大学', major: '电气工程及其自动化' },
   { school: '西南交通大学', major: '机械工程' },
 ];
-const { getLocalContextPresentation, safeGetLocalContextPresentation } = await import(pathToFileURL(path.join(lr, 'js/knowledge/local-context-resolver.js')).href + '?audit=3933_1');
-const { matchLiaoningLocalStrongChain } = await import(pathToFileURL(path.join(lr, 'js/knowledge/liaoning-local-strong-chain.js')).href + '?audit=3933_1');
-const { matchLiaoningMajorTrajectory } = await import(pathToFileURL(path.join(lr, 'js/knowledge/liaoning-major-trajectory-chain.js')).href + '?audit=3933_1');
 function pathToFileURL(p){ let url = path.resolve(p).replaceAll('\\','/'); if (!url.startsWith('/')) url='/' + url; return new URL('file://' + url); }
 function assert(condition, message){ if (!condition) failures.push(message); }
+const { getLocalContextPresentation, safeGetLocalContextPresentation } = await import(pathToFileURL(path.join(lr, 'js/knowledge/local-context-resolver.js')).href + `?audit=${q}`);
+const { matchLiaoningLocalStrongChain } = await import(pathToFileURL(path.join(lr, 'js/knowledge/liaoning-local-strong-chain.js')).href + `?audit=${q}`);
+const { matchLiaoningMajorTrajectory } = await import(pathToFileURL(path.join(lr, 'js/knowledge/liaoning-major-trajectory-chain.js')).href + `?audit=${q}`);
 for (const record of samples) {
   for (const surface of ['card','selectionItem','summary','report']) {
     try {
@@ -49,7 +51,7 @@ for (const record of negativeSamples) {
 }
 const exact = safeGetLocalContextPresentation({ school: '沈阳农业大学', major: '自动化' }, 'card');
 assert(exact?.text, '沈阳农业大学 · 自动化 should not throw and should match explicitly as its own rule');
-const report = { version: 'v3.9.33.1', runtimeSamples: samples.length, negativeSamples: negativeSamples.length, failures, status: failures.length ? 'fail' : 'pass' };
-fs.writeFileSync(path.join(lr, 'local-context-runtime-audit.v3933_1.json'), JSON.stringify(report, null, 2));
+const report = { version: assets.version, assetVersion: assets.assetVersion, runtimeSamples: samples.length, negativeSamples: negativeSamples.length, failures, status: failures.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(lr, `local-context-runtime-audit.${q}.json`), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 if (failures.length) process.exit(1);

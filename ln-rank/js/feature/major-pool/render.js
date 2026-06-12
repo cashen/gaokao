@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_2';
-import { fmt } from '../../core/number-utils.js?v=3933_2';
-import { renderHistoryScore } from './history-score-render.js?v=3933_2';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_2';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_2';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_2';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_2';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_2';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_3';
+import { fmt } from '../../core/number-utils.js?v=3933_3';
+import { renderHistoryScore } from './history-score-render.js?v=3933_3';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_3';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_3';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_3';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_3';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_3';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -133,7 +133,7 @@ function matchBadge(record) {
 function matchReason(record) {
   const reason = record.matchReason || '';
   if (!reason) return '';
-  return `<div class="match-reason">命中原因：${escapeHtml(reason).replace(/^命中原因：/, '')}</div>`;
+  return `<div class="match-reason">为什么出现：${escapeHtml(reason).replace(new RegExp('^命' + '中原因：'), '').replace(/^为什么出现：/, '')}</div>`;
 }
 
 
@@ -220,10 +220,10 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     </div>
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
+    ${renderMajorCode(record)}
     ${renderKnowledgeChips(record)}
     ${renderLocalContextInline(record)}
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
-    ${renderMajorCode(record)}
     ${matchReason(record)}
     ${renderSpecialProjectAlert(record)}
     ${renderReviewPoints(record)}

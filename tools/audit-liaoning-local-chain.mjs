@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-
 const argRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
 const projectRoot = fs.existsSync(path.join(argRoot, 'js')) ? argRoot : path.join(argRoot, 'ln-rank');
-const version = process.argv[3] || 'v3933_1';
+const assets = JSON.parse(fs.readFileSync(path.join(projectRoot, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const version = process.argv[3] || assets.assetVersion || `v${q}`;
 const src = fs.readFileSync(path.join(projectRoot, 'js/knowledge/liaoning-local-strong-chain.js'), 'utf8');
 const resolver = fs.readFileSync(path.join(projectRoot, 'js/knowledge/local-context-resolver.js'), 'utf8');
 const render = fs.readFileSync(path.join(projectRoot, 'js/feature/major-pool/render.js'), 'utf8');
-const selectionPath = fs.existsSync(path.join(projectRoot, 'js/selection-pool.v3933_1.js')) ? 'js/selection-pool.v3933_1.js' : 'js/selection-pool.v3933.js';
-const selection = fs.readFileSync(path.join(projectRoot, selectionPath), 'utf8');
+const activeSelection = (assets.jsEntry || []).find(x => x.includes('selection-pool')) || 'js/selection-pool.js';
+const selection = fs.readFileSync(path.join(projectRoot, activeSelection), 'utf8');
 const css = fs.readFileSync(path.join(projectRoot, 'css/components/local-context-contract.css'), 'utf8');
 const errors = [];
 const warnings = [];
@@ -32,7 +33,7 @@ if (!render.includes('renderLocalContextInline') || !render.includes('local-cont
 if (!selection.includes('renderLocalContextSummaryPanel') || !selection.includes('itemLocalContextChip')) errors.push('自选页未接入院校专业背景短提示/汇总。');
 if (!resolver.includes('getLocalContextPresentation') || !resolver.includes("'card'") || !resolver.includes("'report'")) errors.push('展示调度层缺失。');
 if (/辽宁属地强链|辽宁本地强链|强链：|强链复核|本校主干方向|本校特色相关/.test(render + selection + css)) errors.push('前台仍暴露内部强链文案。');
-const result = { version, generatedAt: new Date().toISOString(), chainCount, coreSections: coreCount, supportSections: supportCount, errors, warnings, status: errors.length ? 'fail' : 'pass' };
-fs.writeFileSync(path.join(projectRoot, `local-strong-chain-audit.${version}.json`), JSON.stringify(result, null, 2), 'utf8');
+const result = { version, assetVersion: assets.assetVersion, generatedAt: new Date().toISOString(), chainCount, coreSections: coreCount, supportSections: supportCount, errors, warnings, status: errors.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(projectRoot, `local-strong-chain-audit.${q}.json`), JSON.stringify(result, null, 2), 'utf8');
 console.log(JSON.stringify(result, null, 2));
 if (errors.length) process.exit(1);
