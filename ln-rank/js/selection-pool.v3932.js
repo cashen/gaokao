@@ -8,21 +8,21 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3932';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3932';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3932';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3932';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3932';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3932';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3932';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3932';
-import { getCampusForRecord } from './feature/campus/index.js?v=3932';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3932';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3932';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3932';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3932';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3932';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, getLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3932';
+} from './feature/selection-pool/index.js?v=3933';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3933';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3933';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3933';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3933';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3933';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3933';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3933';
+import { getCampusForRecord } from './feature/campus/index.js?v=3933';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3933';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3933';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3933';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3933';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3933';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, getLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3933';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';

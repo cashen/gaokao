@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.32",
-  "assetVersion": "v3932",
+  "version": "v3.9.33",
+  "assetVersion": "v3933",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -8,23 +8,23 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3932.js",
-    "js/selection-pool.v3932.js",
-    "js/major-trend-render.v3932.js",
-    "js/self-check.v3932.js"
+    "js/app.v3933.js",
+    "js/selection-pool.v3933.js",
+    "js/major-trend-render.v3933.js",
+    "js/self-check.v3933.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3932.css",
-    "css/dist/ln-rank-selection.v3932.css",
-    "css/dist/ln-rank-trend.v3932.css",
-    "css/dist/ln-rank-self-check.v3932.css"
+    "css/dist/ln-rank-main.v3933.css",
+    "css/dist/ln-rank-selection.v3933.css",
+    "css/dist/ln-rank-trend.v3933.css",
+    "css/dist/ln-rank-self-check.v3933.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3932.css",
-    "selection": "css/dist/ln-rank-selection.v3932.css",
-    "trend": "css/dist/ln-rank-trend.v3932.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3932.css"
+    "main": "css/dist/ln-rank-main.v3933.css",
+    "selection": "css/dist/ln-rank-selection.v3933.css",
+    "trend": "css/dist/ln-rank-trend.v3933.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -34,6 +34,7 @@
     "js/domain/score-band-contract.js",
     "js/domain/selection-contract.js",
     "js/domain/report-payload-contract.js",
+    "js/domain/version-contract.js",
     "js/domain/human-copy-dictionary.js",
     "js/domain/special-project-policy.js",
     "js/feature/direction-explorer/direction-explorer-data.js",
@@ -45,13 +46,17 @@
     "css/components/visual-token-contract.css",
     "css/components/text-resilience-contract.css",
     "css/components/knowledge-contract.css",
+    "css/components/local-context-contract.css",
     "js/knowledge/liaoning-local-strong-chain.js",
-    "css/components/local-strong-chain-contract.css",
     "js/knowledge/local-chain-surface-contract.js",
     "js/knowledge/liaoning-major-trajectory-chain.js",
     "js/knowledge/local-context-resolver.js",
-    "css/components/local-context-contract.css",
-    "tools/audit-local-context-density.mjs"
+    "js/knowledge/major-code-resolver.js",
+    "tools/audit-local-context-density.mjs",
+    "tools/audit-active-asset-graph.mjs",
+    "tools/audit-copy-contract.mjs",
+    "tools/audit-storage-version-contract.mjs",
+    "tools/audit-release-package-scope.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",
@@ -60,7 +65,6 @@
     "tools/audit-knowledge-claims.mjs",
     "js/knowledge/liaoning-local-strong-chain.js",
     "tools/audit-liaoning-local-chain.mjs",
-    "css/components/local-strong-chain-contract.css",
     "tools/audit-surface-density-contract.mjs",
     "js/knowledge/liaoning-major-trajectory-chain.js",
     "js/knowledge/local-context-resolver.js",

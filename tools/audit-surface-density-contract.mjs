@@ -3,18 +3,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const version = process.argv[3] || 'v3932';
+const version = process.argv[3] || 'v3933';
 const read = rel => fs.readFileSync(path.join(projectRoot, rel), 'utf8');
 const exists = rel => fs.existsSync(path.join(projectRoot, rel));
 const checks = [];
 function check(name, ok, detail = '') { checks.push({ name, ok: Boolean(ok), detail }); }
 
 const render = read('js/feature/major-pool/render.js');
-const selection = exists('js/selection-pool.v3932.js') ? read('js/selection-pool.v3932.js') : '';
+const selection = exists('js/selection-pool.v3933.js') ? read('js/selection-pool.v3933.js') : '';
 const knowledge = read('js/knowledge/major-knowledge-contract.js');
 const css = read('css/components/local-strong-chain-contract.css');
-const distMain = read('css/dist/ln-rank-main.v3932.css');
-const distSelection = read('css/dist/ln-rank-selection.v3932.css');
+const distMain = read('css/dist/ln-rank-main.v3933.css');
+const distSelection = read('css/dist/ln-rank-selection.v3933.css');
 
 check('card uses compact local context renderer', /renderLocalContextInline/.test(render), 'major card should use compact context renderer');
 check('card does not generate old full block class', !/local-chain-card-tip|local-context-summary-card/.test(render), 'no full block in card renderer');

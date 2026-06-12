@@ -29,7 +29,7 @@ const fallbackPages = loadSourceFallback();
 const fallbackByHtml = new Map(fallbackPages.map(page => [page.html, Array.isArray(page.sources) ? page.sources : []]));
 
 function withExtraSources(htmlName, sources) {
-  const list = [...sources];
+  const list = [...sources].filter(rel => rel !== 'css/components/local-strong-chain-contract.css');
   const extra = [];
   if (htmlName === 'index.html' || htmlName === 'selection-pool.html') extra.push('css/components/direction-explorer.css');
   extra.push('css/components/ui-flow-contract.css');
@@ -37,7 +37,7 @@ function withExtraSources(htmlName, sources) {
   extra.push('css/components/visual-token-contract.css');
   extra.push('css/components/text-resilience-contract.css');
   extra.push('css/components/knowledge-contract.css');
-  extra.push('css/components/local-strong-chain-contract.css');
+  extra.push('css/components/local-context-contract.css');
   for (const rel of extra) {
     if (fs.existsSync(path.join(projectRoot, rel)) && !list.includes(rel)) list.push(rel);
   }

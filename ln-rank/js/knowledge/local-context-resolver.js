@@ -1,12 +1,12 @@
-/* v3.9.32 院校专业背景展示调度器
- * 统一整合：本校主干方向、本校特色相关、学习就业方向提醒。
+/* v3.9.33 院校专业背景展示调度器
+ * 统一整合：本校方向、本校相关、方向提醒。
  * 卡片/自选只给短提示；生成前确认/报告才给完整解释。
  */
-import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3932';
-import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3932';
+import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3933';
+import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3933';
 
 const SURFACES = new Set(['card', 'selectionItem', 'summary', 'report']);
-const BOUNDARY = '该提示不代表录取优势，只说明这个专业与学校办学背景和行业方向关联较强，建议家长再看课程方向、就业场景和招生章程。';
+const BOUNDARY = '该提示不是录取判断，也不代表一定适合孩子；只提醒家长再看课程方向、就业场景和招生章程。';
 
 function clean(value, max = 160) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
@@ -23,16 +23,25 @@ function compactReviewPoints(points = [], max = 2) {
     .filter(Boolean)
     .slice(0, max);
 }
-function normalizeText(value = '') {
-  return clean(value, 120)
-    .replace(/方向|与|和|及|装备|专业|工程|智能/g, '')
-    .replace(/\s+/g, '')
-    .trim();
+const CONTEXT_TOKEN_GROUPS = [
+  ['石油','化工','储运'], ['能源','电力'], ['轨道','交通','车辆'], ['航空','航天','飞行器'],
+  ['电机','装备','制造'], ['冶金','材料'], ['矿业','测绘','安全'], ['建筑','土木','市政'],
+  ['药学','制药'], ['农机','农业装备'], ['财经','管理'], ['医学','临床']
+];
+function contextTokens(value = '') {
+  const text = clean(value, 120);
+  const tokens = new Set();
+  for (const group of CONTEXT_TOKEN_GROUPS) {
+    for (const token of group) if (text.includes(token)) tokens.add(token);
+  }
+  return tokens;
 }
 function sameContext(strong = {}, trajectory = {}) {
-  const a = normalizeText(strong.chainName || '');
-  const b = normalizeText(trajectory.trajectoryName || trajectory.chainName || '');
-  return Boolean(a && b && (a.includes(b) || b.includes(a) || strong.school === trajectory.school));
+  const a = contextTokens(strong.chainName || '');
+  const b = contextTokens(trajectory.trajectoryName || trajectory.chainName || '');
+  if (!a.size || !b.size) return false;
+  for (const token of a) if (b.has(token)) return true;
+  return false;
 }
 function localStrongOf(record = {}) {
   return record?.localStrongChain?.matched ? record.localStrongChain : matchLiaoningLocalStrongChain(record);
@@ -41,34 +50,47 @@ function trajectoryOf(record = {}) {
   return record?.trajectoryChain?.matched ? record.trajectoryChain : matchLiaoningMajorTrajectory(record);
 }
 function strongDepthLabel(hit = {}) {
-  return hit.depth === 'core' ? '本校主干方向' : '本校特色相关';
+  return hit.depth === 'core' ? '本校方向' : '本校相关';
 }
 function itemKind(hit = {}) {
   if (!hit) return '';
   return hit.kind === 'trajectory' ? 'trajectory' : 'background';
 }
 function summaryTitle(hit = {}) {
-  if (itemKind(hit) === 'trajectory') return `学习就业方向提醒：${compactDirectionName(hit.trajectoryName || hit.chainName)}`;
+  if (itemKind(hit) === 'trajectory') return `方向提醒：${compactDirectionName(hit.trajectoryName || hit.chainName)}`;
   return `${strongDepthLabel(hit)}：${compactDirectionName(hit.chainName)}`;
 }
 function reportTitle(hit = {}) {
-  if (itemKind(hit) === 'trajectory') return `学习就业方向提醒：${hit.trajectoryName || hit.chainName}`;
+  if (itemKind(hit) === 'trajectory') return `方向提醒：${hit.trajectoryName || hit.chainName}`;
   return `${strongDepthLabel(hit)}：${hit.chainName}`;
 }
 function cardText(hit = {}) {
   if (itemKind(hit) === 'trajectory') return `方向提醒｜${compactDirectionName(hit.cardShort || hit.trajectoryName || hit.chainName)}`;
   return `${strongDepthLabel(hit)}｜${compactDirectionName(hit.chainName)}`;
 }
+
+function safeReviewHints(hit = {}) {
+  const text = [hit.chainName, hit.trajectoryName, hit.cardShort, hit.selectionShort].filter(Boolean).join(' ');
+  if (/石油|化工储运/.test(text)) return ['行业环境', '工作地点'];
+  if (/能源|电力/.test(text)) return ['电力路径', '校招要求'];
+  if (/轨道|交通|车辆/.test(text)) return ['行业路径', '工作场景'];
+  if (/农机|农业/.test(text)) return ['课程', '校招'];
+  if (/化工/.test(text)) return ['现场环境', '安全要求'];
+  if (/冶金|钢铁/.test(text)) return ['工厂环境', '行业周期'];
+  if (/药学|制药|医药/.test(text)) return ['培养周期', '行业规范'];
+  if (/建筑|土木|市政/.test(text)) return ['行业周期', '项目现场'];
+  if (/财经|金融|会计|管理/.test(text)) return ['证书', '实习资源'];
+  if (/医学|临床|口腔/.test(text)) return ['培养周期', '体检限制'];
+  return ['课程方向', '招生章程'];
+}
 function selectionText(hit = {}) {
-  const points = compactReviewPoints(hit.reviewPoints, 2);
+  const points = safeReviewHints(hit).slice(0, 2);
   if (itemKind(hit) === 'trajectory') {
-    const raw = clean(hit.selectionShort || '', 80);
-    if (raw) return `提醒：${raw}`;
     const name = compactDirectionName(hit.cardShort || hit.trajectoryName || hit.chainName);
-    return `提醒：${name}${points.length ? `｜${points.join(' / ')}` : ''}`;
+    return `提醒：${name}｜再看 ${points.join(' / ')}`;
   }
   const name = compactDirectionName(hit.chainName);
-  return `背景：${name}${points.length ? `｜${points.join(' / ')}` : ''}`;
+  return `背景：${name}｜再看 ${points.join(' / ')}`;
 }
 
 export function resolveLocalContext(record = {}) {
@@ -179,7 +201,7 @@ export function buildLocalContextSummary(items = []) {
     trajectoryCount,
     lines,
     summaryText: uniqueRows.length
-      ? `已选专业中，有 ${backgroundCount} 个专业和本校办学背景、行业方向关联较强，${trajectoryCount} 个专业存在学习就业方向提醒。这些提示不代表录取优势，只用于帮助家长再看课程方向、就业场景和招生章程。`
+      ? `已选专业中，有 ${backgroundCount} 个专业和本校办学背景、行业方向关联较强，${trajectoryCount} 个专业存在方向提醒。这些信息不是录取判断，也不代表一定适合孩子；它的作用是提醒家长和孩子再看课程方向、就业场景和招生章程。`
       : ''
   };
 }

@@ -4,11 +4,11 @@ import path from 'node:path';
 
 const argRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
 const projectRoot = fs.existsSync(path.join(argRoot, 'js')) ? argRoot : path.join(argRoot, 'ln-rank');
-const version = process.argv[3] || 'v3932';
+const version = process.argv[3] || 'v3933';
 const src = fs.readFileSync(path.join(projectRoot, 'js/knowledge/liaoning-local-strong-chain.js'), 'utf8');
 const resolver = fs.readFileSync(path.join(projectRoot, 'js/knowledge/local-context-resolver.js'), 'utf8');
 const render = fs.readFileSync(path.join(projectRoot, 'js/feature/major-pool/render.js'), 'utf8');
-const selectionPath = fs.existsSync(path.join(projectRoot, 'js/selection-pool.v3932.js')) ? 'js/selection-pool.v3932.js' : 'js/selection-pool.v3931.js';
+const selectionPath = fs.existsSync(path.join(projectRoot, 'js/selection-pool.v3933.js')) ? 'js/selection-pool.v3933.js' : 'js/selection-pool.v3931.js';
 const selection = fs.readFileSync(path.join(projectRoot, selectionPath), 'utf8');
 const css = fs.readFileSync(path.join(projectRoot, 'css/components/local-strong-chain-contract.css'), 'utf8');
 const errors = [];

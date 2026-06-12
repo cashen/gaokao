@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+import fs from 'node:fs';import path from 'node:path';
+const root=process.argv[2]?path.resolve(process.argv[2]):process.cwd();const lr=path.join(root,'ln-rank');const active=['js/app.v3933.js','js/selection-pool.v3933.js','js/feature/selection-pool/store.js'];const failures=[];for(const rel of active){const txt=fs.readFileSync(path.join(lr,rel),'utf8');if(/setItem\([^)]*candidateScore\.v39(?!33)/.test(txt))failures.push(`${rel}: writes old/future candidateScore version`);if(/STORAGE_KEY = 'lnRank\.selectionPool\.physics2025\.v(?!3933)/.test(txt))failures.push(`${rel}: STORAGE_KEY not v3933`)}
+const report={version:'v3.9.33',failures,status:failures.length?'fail':'pass'};fs.writeFileSync(path.join(lr,'storage-version-audit.v3933.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));if(failures.length)process.exit(1);

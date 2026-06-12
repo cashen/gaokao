@@ -12,14 +12,14 @@ async function runResultUiChecks(){
   const checks=[];
   try{
     const html=await text('./index.html');
-    const cssResult=await text('./css/components/result-section-contract.css?v=3932');
-    const cssCard=await text('./css/components/major-card-contract.css?v=3932');
-    const cssBand=await text('./css/components/band-selector-contract.css?v=3932');
-    const cssColor=await text('./css/core/color-system.css?v=3932');
-    const cssTheme=await text('./css/components/post-exam-calm-theme.css?v=3932');
-    const cssBreath=await text('./css/components/band-card-breathing-link.css?v=3932');
-    const renderMajor=await text('./js/feature/major-pool/render.js?v=3932');
-    const bandRender=await text('./js/feature/score-bands/render.js?v=3932');
+    const cssResult=await text('./css/components/result-section-contract.css?v=3933');
+    const cssCard=await text('./css/components/major-card-contract.css?v=3933');
+    const cssBand=await text('./css/components/band-selector-contract.css?v=3933');
+    const cssColor=await text('./css/core/color-system.css?v=3933');
+    const cssTheme=await text('./css/components/post-exam-calm-theme.css?v=3933');
+    const cssBreath=await text('./css/components/band-card-breathing-link.css?v=3933');
+    const renderMajor=await text('./js/feature/major-pool/render.js?v=3933');
+    const bandRender=await text('./js/feature/score-bands/render.js?v=3933');
     checks.push({name:'VISUAL-COLOR-001：考后松弛色系文件存在',ok:cssColor.includes('--page-bg')&&cssColor.includes('--band-upper-bg')&&cssColor.includes('--band-near-bg')&&cssColor.includes('--band-steady-bg'),detail:'color-system.css 已定义暖白底、三段语义色、特殊项目/热度/费用色'});
     checks.push({name:'VISUAL-COLOR-002：主题覆盖文件存在',ok:cssTheme.includes('降低全页绿色占比')&&cssTheme.includes('--special-bg')&&cssTheme.includes('--heat-bg'),detail:'post-exam-calm-theme.css 已覆盖旧绿色堆叠'});
     checks.push({name:'BAND-UI-001：Android 三段同时可见',ok:/grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/.test(cssBand),detail:'移动端分段使用三等分 grid，不靠单卡横滑'});
@@ -30,8 +30,8 @@ async function runResultUiChecks(){
     checks.push({name:'BAND-UI-006：稳妥补充使用浅青绿语义',ok:cssColor.includes('--band-steady-bg: #EDF8F3'),detail:'稳妥补充保留温和青绿，但不同于主按钮深色'});
     checks.push({name:'RESULT-UI-001：结果区视觉 CSS 存在',ok:cssResult.length>1200 && cssCard.length>1200,detail:`${cssResult.length}/${cssCard.length}`});
     checks.push({name:'RESULT-UI-002：结果区使用统一外壳',ok:/ln-result-section/.test(html),detail:'resultsPanel 已接入 ln-result-section'});
-    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-bar.css?v=3932').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
-    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-bar.css?v=3932').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
+    checks.push({name:'RESULT-UI-003：结果说明区承载当前查看',ok:/result-context-bar/.test(await text('./css/components/result-context-bar.css?v=3933').catch(e=>''))&&/renderResultContextBar/.test(renderMajor),detail:'当前分段范围/数量进入紧凑结果说明区，不再重复占位'});
+    checks.push({name:'RESULT-UI-004：特殊项目提示进入结果说明区',ok:/result-context-special/.test(await text('./css/components/result-context-bar.css?v=3933').catch(e=>''))&&/data-context-special-toggle/.test(renderMajor),detail:'特殊项目数量与显示入口收纳进紧凑说明条'});
     checks.push({name:'CARD-BAND-001：专业卡片输出 is-band-* class',ok:renderMajor.includes('ln-major-card status-${statusKey} ${bandClass}')&&renderMajor.includes('bandKeyFromActive'),detail:'卡片 article 已跟随 activeBand 输出 is-band-upper/near/steady'});
     checks.push({name:'CARD-BAND-002：分段标签同步 is-band-* class',ok:renderMajor.includes('ln-band-pill ${bandClass}')&&cssBreath.includes('.ln-band-pill.is-band-near'),detail:'卡片右上分段标签与上方类别同色系'});
     checks.push({name:'CARD-BAND-003：适合位置跟随分段语义色',ok:renderMajor.includes('ln-fit-position ${bandClass}')&&cssBreath.includes('.ln-fit-position.is-band-near'),detail:'适合位置值按当前分段轻强调'});
@@ -62,8 +62,8 @@ checks.push({name:'SPECIAL-002：默认隐藏专项/定向/预科文案',ok:inde
 checks.push({name:'SPECIAL-003：active-assets 包含特殊项目策略',ok:(manifest.stableModules||[]).includes('js/domain/special-project-policy.js'),detail:(manifest.stableModules||[]).includes('js/domain/special-project-policy.js')?'special-project-policy 已纳入稳定模块':'stableModules 缺少 special-project-policy'});
 const mainDistCss=await text('./css/dist/ln-rank-main.v3928.css').catch(e=>'');
 checks.push({name:'SPECIAL-004：active dist CSS 包含特殊项目样式',ok:(manifest.cssEntry||[]).includes('css/dist/ln-rank-main.v3928.css')&&mainDistCss.includes('SOURCE: css/components/special-project-filter.css'),detail:mainDistCss.includes('SOURCE: css/components/special-project-filter.css')?'特殊项目样式已纳入 main dist CSS':'main dist CSS 缺少 special-project-filter.css source marker'});
-const textContractCss=await text('./css/components/text-resilience-contract.css?v=3932').catch(e=>'');
-const selectionActiveJs=await text('./js/selection-pool.v3928.js?v=3932').catch(e=>'');
+const textContractCss=await text('./css/components/text-resilience-contract.css?v=3933').catch(e=>'');
+const selectionActiveJs=await text('./js/selection-pool.v3928.js?v=3933').catch(e=>'');
 checks.push({name:'TEXT-RESILIENCE-001：长文本抗变型合同存在',ok:textContractCss.includes('.workspace-major-name')&&textContractCss.includes('overflow-wrap: anywhere')&&textContractCss.includes('.text-clamp-2'),detail:'长学校名、长专业名、长方向名和标签统一进入 text-resilience-contract.css'});
 checks.push({name:'TEXT-RESILIENCE-002：已选专业长名称可展开',ok:selectionActiveJs.includes('data-toggle-major')&&selectionActiveJs.includes('展开完整名称')&&selectionActiveJs.includes('isLongMajorName'),detail:'已选专业列表长专业名默认两行，可展开完整名称'});
 checks.push({name:'TEXT-RESILIENCE-003：Pad 下已选列表操作区下移',ok:textContractCss.includes('@media (max-width: 1180px)')&&textContractCss.includes('workspace-item-actions'),detail:'Pad / 窄 PC 不让操作按钮和长专业名抢宽度'});

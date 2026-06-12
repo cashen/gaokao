@@ -1,4 +1,4 @@
-import { buildPathAnalysis } from './analysis.js?v=3922_1';
+import { buildPathAnalysis } from './analysis.js?v=3933';
 
 function firstChars(text, len = 180) {
   return String(text || '').replace(/\s+/g, ' ').slice(0, len);

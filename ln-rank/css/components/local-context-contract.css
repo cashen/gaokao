@@ -1,12 +1,12 @@
-/* v3.9.32 院校专业背景展示合同
+/* v3.9.33 院校专业背景展示合同
  * 卡片/自选只显示短提示；生成前确认和报告才展示完整说明。
  */
 :root {
-  --local-context-bg: rgba(20, 122, 116, .075);
-  --local-context-border: rgba(20, 122, 116, .18);
-  --local-context-text: #175F5B;
-  --local-context-muted: #5E706D;
-  --local-context-panel-bg: linear-gradient(180deg, rgba(242, 250, 248, .94), rgba(250, 253, 252, .98));
+  --token-local-context-bg: rgba(20, 122, 116, .075);
+  --token-local-context-border: rgba(20, 122, 116, .18);
+  --token-local-context-text: #175F5B;
+  --token-local-context-muted: #5E706D;
+  --token-local-context-panel-bg: linear-gradient(180deg, rgba(242, 250, 248, .94), rgba(250, 253, 252, .98));
 }
 .local-context-inline {
   display: flex;
@@ -24,9 +24,9 @@
   min-height: 22px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--local-context-bg);
-  border: 1px solid var(--local-context-border);
-  color: var(--local-context-text);
+  background: var(--token-local-context-bg);
+  border: 1px solid var(--token-local-context-border);
+  color: var(--token-local-context-text);
   font-size: 11.8px;
   font-weight: 850;
   line-height: 1.25;
@@ -35,7 +35,7 @@
 .local-context-name {
   min-width: 0;
   max-width: 100%;
-  color: var(--local-context-muted);
+  color: var(--token-local-context-muted);
   font-size: 12px;
   font-weight: 750;
   overflow: hidden;
@@ -49,9 +49,9 @@
   min-width: 0;
   padding: 5px 8px;
   border-radius: 999px;
-  background: var(--local-context-bg);
-  border: 1px solid var(--local-context-border);
-  color: var(--local-context-text);
+  background: var(--token-local-context-bg);
+  border: 1px solid var(--token-local-context-border);
+  color: var(--token-local-context-text);
   font-size: 12px;
   font-weight: 850;
   line-height: 1.25;
@@ -62,8 +62,8 @@
 .local-context-summary-card {
   margin: 12px 0;
   padding: 10px 12px;
-  border: 1px solid var(--local-context-border);
-  background: var(--local-context-panel-bg);
+  border: 1px solid var(--token-local-context-border);
+  background: var(--token-local-context-panel-bg);
   border-radius: 14px;
   color: var(--text-main, #24312E);
   line-height: 1.55;
@@ -71,7 +71,7 @@
 }
 .local-context-summary-card h3 {
   margin: 0 0 6px;
-  color: var(--local-context-text);
+  color: var(--token-local-context-text);
   font-size: 15px;
 }
 .local-context-summary-card p { margin: 6px 0 0; color: var(--text-main, #24312E); }

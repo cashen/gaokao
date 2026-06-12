@@ -3,19 +3,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const projectRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
-const version = process.argv[3] || 'v3932';
+const version = process.argv[3] || 'v3933';
 const read = rel => fs.readFileSync(path.join(projectRoot, rel), 'utf8');
 const exists = rel => fs.existsSync(path.join(projectRoot, rel));
 const checks = [];
 function check(name, ok, detail = '') { checks.push({ name, ok: Boolean(ok), detail }); }
 
 const render = read('js/feature/major-pool/render.js');
-const selection = exists('js/selection-pool.v3932.js') ? read('js/selection-pool.v3932.js') : '';
+const selection = exists('js/selection-pool.v3933.js') ? read('js/selection-pool.v3933.js') : '';
 const resolver = read('js/knowledge/local-context-resolver.js');
 const trajectory = read('js/knowledge/liaoning-major-trajectory-chain.js');
 const css = read('css/components/local-strong-chain-contract.css');
-const distMain = exists('css/dist/ln-rank-main.v3932.css') ? read('css/dist/ln-rank-main.v3932.css') : '';
-const distSelection = exists('css/dist/ln-rank-selection.v3932.css') ? read('css/dist/ln-rank-selection.v3932.css') : '';
+const distMain = exists('css/dist/ln-rank-main.v3933.css') ? read('css/dist/ln-rank-main.v3933.css') : '';
+const distSelection = exists('css/dist/ln-rank-selection.v3933.css') ? read('css/dist/ln-rank-selection.v3933.css') : '';
 
 check('card uses local context resolver', /getLocalContextPresentation\(record, 'card'\)/.test(render), 'major card should use unified context resolver');
 check('card only uses local-context classes', /local-context-inline/.test(render) && /local-context-chip/.test(render), 'card should render compact local-context chip');

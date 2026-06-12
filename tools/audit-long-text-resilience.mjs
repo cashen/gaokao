@@ -41,7 +41,7 @@ const checks = selectors.map(selector => {
   return { selector, appears, inContract, ok: Boolean(appears && safeBlock) };
 });
 
-const selectionJs = read('js/selection-pool.v3928.js');
+const selectionJs = read('js/selection-pool.v3933.js');
 const behavior = {
   workspaceTitleBlock: selectionJs.includes('workspace-title-block'),
   clampClass: selectionJs.includes('text-clamp-2'),
@@ -70,6 +70,6 @@ const report = {
   testStrings,
   pass: checks.every(x => x.ok) && Object.values(behavior).every(Boolean) && Object.values(cssBehavior).every(Boolean)
 };
-fs.writeFileSync(path.join(projectRoot, 'long-text-resilience-audit.v3928.json'), JSON.stringify(report, null, 2), 'utf8');
+fs.writeFileSync(path.join(projectRoot, 'long-text-resilience-audit.v3933.json'), JSON.stringify(report, null, 2), 'utf8');
 console.log(JSON.stringify(report, null, 2));
 if (!report.pass) process.exitCode = 1;
