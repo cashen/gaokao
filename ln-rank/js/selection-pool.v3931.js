@@ -22,7 +22,7 @@ import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3931';
 import { buildReportPayload } from './domain/report-payload-contract.js?v=3931';
 import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3931';
 import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3931';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, matchLiaoningLocalStrongChain, buildLocalStrongChainSummary } from './knowledge/index.js?v=3931';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, matchLiaoningLocalStrongChain, buildLocalStrongChainSummary, getLocalChainPresentation } from './knowledge/index.js?v=3931';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -223,7 +223,7 @@ function statHtml(stats, items, state) {
     ? `当前 ${count} 个专业会按这里看到的顺序放进报告。`
     : '还没有选择专业，先回查询页把可以讨论的专业放进报告。';
   const summary = buildSelectedForReportSummary(state);
-  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}${renderLocalStrongChainSummaryPanel(state)}${renderKnowledgeSummaryPanel(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
+  return `${contextStatusHtml(state)}${renderDistributionCards(summary)}${renderKnowledgeSummaryPanel(state)}<div class="pool-stats-tip">${escapeHtml(orderText)}</div>`;
 }
 
 function moveMenuHtml(item, index, total) {
@@ -259,10 +259,10 @@ function renderLocalStrongChainSummaryPanel(state = getState()) {
   const lines = summary.lines.slice(0, 6).map(x => `<li>${escapeHtml(x)}</li>`).join('');
   return `<section class="local-chain-summary-card"><h3>辽宁属地强链复核</h3><p>${escapeHtml(summary.summaryText)}</p><ol>${lines}</ol><small>该标签不代表录取优势，只提示学校、专业和行业路径更一致。</small></section>`;
 }
-function itemLocalStrongChainHtml(item = {}) {
-  const hit = item.localStrongChain?.matched ? item.localStrongChain : matchLiaoningLocalStrongChain(item);
-  if (!hit) return '';
-  return `<div class="workspace-local-chain"><div><span class="local-chain-badge">${escapeHtml(hit.displayLabel)}</span><b>${escapeHtml(hit.chainName)}</b></div><p>${escapeHtml(hit.cardTip)}</p><small>建议复核：${escapeHtml(hit.reviewText || (hit.reviewPoints || []).join(' / '))}</small></div>`;
+function itemLocalStrongChainChip(item = {}) {
+  const view = getLocalChainPresentation(item, 'selectionItem');
+  if (!view) return '';
+  return `<span class="workspace-local-chain-chip" title="该标签不代表录取优势，只提示学校、专业和行业路径更一致。">${escapeHtml(view.text)}</span>`;
 }
 
 function itemCodeText(item = {}) {
@@ -291,10 +291,9 @@ function itemHtml(item, index, total) {
         ${isLongMajorName(item.major) ? `<button class="workspace-text-toggle" type="button" data-toggle-major="${escapeHtml(item.id)}" aria-expanded="false">展开完整名称</button>` : ''}
       </div>
       <div class="workspace-item-meta">
-        <span class="is-band">${escapeHtml(band.detail || '')}</span><span>2025最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${location}${campusTag}${itemCodeText(item)}
+        <span class="is-band">${escapeHtml(band.detail || '')}</span><span>2025最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${location}${campusTag}${itemCodeText(item)}${itemLocalStrongChainChip(item)}
       </div>
       ${campusReview ? `<div class="workspace-item-review">${campusReview}</div>` : ''}
-      ${itemLocalStrongChainHtml(item)}
       ${itemKnowledgeHtml(item)}
     </div>
     <div class="workspace-item-actions">

@@ -1,4 +1,4 @@
-import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3930';
+import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3931';
 function textOf(record = {}) {
   return [record.school, record.major, record.standardMajor?.name, record.standardMajor?.categoryName, record.matchReason, ...(Array.isArray(record.flags) ? record.flags : [])].filter(Boolean).join(' ');
 }
@@ -62,8 +62,11 @@ export function buildSchoolIndustryTags(record = {}) {
 export function buildKnowledgeReviewForRecord(record = {}, options = {}) {
   const text = textOf(record);
   const notes = [];
-  const localChainText = formatLocalStrongChainReviewText(record);
-  if (localChainText) notes.push(localChainText);
+  const includeLocalChain = options.includeLocalChain === true;
+  if (includeLocalChain) {
+    const localChainText = formatLocalStrongChainReviewText(record);
+    if (localChainText) notes.push(localChainText);
+  }
   SAME_MAJOR_DIFFERENCE_RULES.forEach(rule => { if (has(text, rule.test)) notes.push(`同名专业复核：${rule.note}`); });
   MAJOR_FIELD_RULES.forEach(rule => { if (has(text, rule.test)) notes.push(rule.note); });
   CITY_INDUSTRY_RULES.forEach(rule => { if (has(text, rule.test)) notes.push(rule.note); });

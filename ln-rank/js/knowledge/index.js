@@ -1,2 +1,3 @@
-export { KNOWLEDGE_DATA_BOUNDARY, SAME_MAJOR_DIFFERENCE_RULES, MAJOR_FIELD_RULES, CITY_INDUSTRY_RULES, SCHOOL_INDUSTRY_TAG_RULES, buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags } from './major-knowledge-contract.js?v=3930';
-export { LOCAL_CHAIN_COPY, LIAONING_LOCAL_STRONG_CHAINS, matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText, buildLocalStrongChainSummary } from './liaoning-local-strong-chain.js?v=3930';
+export { KNOWLEDGE_DATA_BOUNDARY, SAME_MAJOR_DIFFERENCE_RULES, MAJOR_FIELD_RULES, CITY_INDUSTRY_RULES, SCHOOL_INDUSTRY_TAG_RULES, buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags } from './major-knowledge-contract.js?v=3931';
+export { LOCAL_CHAIN_COPY, LIAONING_LOCAL_STRONG_CHAINS, matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText, buildLocalStrongChainSummary } from './liaoning-local-strong-chain.js?v=3931';
+export { getLocalChainPresentation, renderLocalChainShortText } from './local-chain-surface-contract.js?v=3931';

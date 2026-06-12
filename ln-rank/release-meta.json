@@ -1,17 +1,18 @@
 {
-  "version": "v3.9.28.1",
-  "assetVersion": "v3928_1",
-  "release": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
-  "name": "v3.9.28.1-ln-rank-asset-path-contract-no-fenxi",
-  "label": "long-text-contract",
+  "version": "v3.9.31",
+  "assetVersion": "v3931",
+  "release": "v3.9.31-ln-rank-local-chain-density-recover-no-fenxi",
+  "name": "v3.9.31-ln-rank-local-chain-density-recover-no-fenxi",
+  "label": "local-chain-surface-density-contract",
   "notes": [
-    "补充 ln-rank 子路径资源合同：active HTML 使用 /ln-rank/ 绝对资源路径，降低 /ln-rank 与 /ln-rank/ 访问差异导致 JS 被 HTML 回退的风险",
-    "长文本抗变型合同：学校名、专业名、方向名、标签和说明文字统一按 text-resilience-contract 处理",
-    "已选专业列表中长专业名默认两行展示，可展开完整名称；Pad 下操作区提前下移，不和长专业名抢宽度",
-    "前台专业卡片、结果路标、方向探索器标签、确认页等主路径同步纳入长文本兜底",
-    "新增 tools/audit-long-text-resilience.mjs，并生成 long-text-resilience-audit.v3928.json，用审计工具约束同类问题",
-    "不改算法、不动 /fenxi/、不新增账号/登录/云保存/缓存策略"
+    "保留 v3.9.30 辽宁属地强链规则库，不回退知识资产",
+    "新增 local-chain-surface-contract 展示调度层，按 card / selectionItem / summary / report 分层输出",
+    "专业卡片恢复 v3.9.29 扫描密度，仅显示短标签，不默认输出完整 cardTip/reviewPoints/boundary",
+    "自选专业条目恢复管理清单节奏，仅显示一行强链 chip，不再输出块级长解释",
+    "生成前确认和飞书报告保留完整辽宁属地强链复核说明",
+    "新增 tools/audit-surface-density-contract.mjs，防止后续功能再次破坏卡片和自选页密度",
+    "不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js"
   ],
   "noFenxiIncluded": true,
-  "generatedAt": "2026-06-11T00:00:00+08:00"
+  "generatedAt": "2026-06-12T01:47:00+08:00"
 }

@@ -1,4 +1,4 @@
-import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3930';
+import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3931';
 const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3949';
 const LEGACY_KEYS = ['lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
 const MAX_ITEMS = 112;

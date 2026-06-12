@@ -1,1 +1,1 @@
-export * from './render.js?v=3930';
+export * from './render.js?v=3931';

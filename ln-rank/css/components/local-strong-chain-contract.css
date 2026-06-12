@@ -1,8 +1,57 @@
-/* v3.9.30 local strong-chain contract */
-.local-chain-card-tip,
-.workspace-local-chain,
+/* v3.9.31 local strong-chain surface contract: compact in cards/selection, full only in summary/report */
+.local-chain-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.local-chain-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(136, 104, 48, .12);
+  border: 1px solid rgba(136, 104, 48, .28);
+  color: #73592B;
+  font-size: 11.8px;
+  font-weight: 850;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.local-chain-name {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text-secondary, #60706B);
+  font-size: 12px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-local-chain-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(136, 104, 48, .11);
+  border: 1px solid rgba(136, 104, 48, .24);
+  color: #73592B;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .local-chain-summary-card {
-  margin-top: 8px;
+  margin: 12px 0;
   padding: 10px 12px;
   border: 1px solid rgba(119, 92, 40, .20);
   background: linear-gradient(180deg, rgba(255, 249, 237, .92), rgba(255, 253, 248, .96));
@@ -11,49 +60,24 @@
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
-.local-chain-head,
-.workspace-local-chain > div {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
+.local-chain-summary-card h3 {
+  margin: 0 0 6px;
+  color: #5E4722;
+  font-size: 15px;
 }
-.local-chain-badge {
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(136, 104, 48, .12);
-  border: 1px solid rgba(136, 104, 48, .28);
-  color: #73592B;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: normal;
-}
-.local-chain-card-tip strong,
-.workspace-local-chain b,
-.local-chain-summary-card h3 { color: #5E4722; }
-.local-chain-card-tip p,
-.workspace-local-chain p,
 .local-chain-summary-card p { margin: 6px 0 0; color: var(--text-main, #24312E); }
-.local-chain-review,
-.workspace-local-chain small,
-.local-chain-card-tip small,
 .local-chain-summary-card small {
   display: block;
   margin-top: 6px;
   color: var(--text-secondary, #60706B);
   font-size: 12px;
 }
-.local-chain-summary-card { margin: 12px 0; }
-.local-chain-summary-card h3 { margin: 0 0 6px; font-size: 15px; }
 .local-chain-summary-card ol { margin: 8px 0 0; padding-left: 20px; }
 .local-chain-summary-card li { margin: 4px 0; }
 @media (max-width: 760px) {
-  .local-chain-card-tip,
-  .workspace-local-chain,
+  .local-chain-inline { gap: 5px; margin-top: 5px; }
+  .local-chain-chip { font-size: 11px; min-height: 20px; padding: 2px 7px; }
+  .local-chain-name { font-size: 11.5px; }
+  .workspace-local-chain-chip { font-size: 11.5px; padding: 4px 7px; }
   .local-chain-summary-card { padding: 8px; border-radius: 12px; font-size: 12px; }
-  .local-chain-badge { font-size: 11px; }
 }

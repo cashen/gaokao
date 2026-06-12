@@ -1,10 +1,13 @@
 {
   "version": "v3930",
-  "generatedAt": "2026-06-12T01:20:34.026Z",
+  "generatedAt": "2026-06-12T01:45:00.724Z",
   "chainCount": 16,
   "coreSections": 16,
   "supportSections": 16,
-  "errors": [],
+  "errors": [
+    "CSS 合同类缺失。",
+    "专业卡片未接入强链提示。"
+  ],
   "warnings": [],
-  "status": "pass"
+  "status": "fail"
 }

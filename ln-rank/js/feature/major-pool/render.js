@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3930';
-import { fmt } from '../../core/number-utils.js?v=3930';
-import { renderHistoryScore } from './history-score-render.js?v=3930';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3930';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3930';
-import { buildSchoolIndustryTags, matchLiaoningLocalStrongChain } from '../../knowledge/index.js?v=3930';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3930';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3930';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3931';
+import { fmt } from '../../core/number-utils.js?v=3931';
+import { renderHistoryScore } from './history-score-render.js?v=3931';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3931';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3931';
+import { buildSchoolIndustryTags, getLocalChainPresentation } from '../../knowledge/index.js?v=3931';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3931';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3931';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -143,11 +143,10 @@ function renderKnowledgeChips(record) {
   return `<div class="knowledge-chip-row" aria-label="院校背景提示">${tags.map(x => `<span class="knowledge-chip">${escapeHtml(x.tag)}</span>`).join('')}</div>`;
 }
 
-function renderLocalStrongChainHint(record) {
-  const hit = matchLiaoningLocalStrongChain(record);
-  if (!hit) return '';
-  const review = hit.reviewPoints?.length ? `<div class="local-chain-review">建议复核：${hit.reviewPoints.slice(0, 5).map(escapeHtml).join(' / ')}</div>` : '';
-  return `<div class="local-chain-card-tip local-chain-${escapeHtml(hit.tier.toLowerCase())} local-chain-${escapeHtml(hit.depth)}"><div class="local-chain-head"><span class="local-chain-badge">${escapeHtml(hit.displayLabel)}</span><strong>${escapeHtml(hit.chainName)}</strong></div><p>${escapeHtml(hit.cardTip)}</p>${review}<small>${escapeHtml(hit.boundary)}</small></div>`;
+function renderLocalStrongChainInline(record) {
+  const view = getLocalChainPresentation(record, 'card');
+  if (!view) return '';
+  return `<div class="local-chain-inline" title="该标签不代表录取优势，只提示学校、专业和行业路径更一致。"><span class="local-chain-chip">${escapeHtml(view.shortLabel)}</span><span class="local-chain-name">${escapeHtml(view.chainShort)}</span></div>`;
 }
 
 function renderSpecialProjectBadge(record) {
@@ -222,7 +221,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
     ${renderKnowledgeChips(record)}
-    ${renderLocalStrongChainHint(record)}
+    ${renderLocalStrongChainInline(record)}
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
     ${renderMajorCode(record)}
     ${matchReason(record)}
