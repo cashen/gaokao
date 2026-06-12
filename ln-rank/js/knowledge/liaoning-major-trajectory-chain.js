@@ -1,8 +1,9 @@
-/* v3.9.33 辽宁院校专业后向轨迹合同
+/* v3.9.33.1 辽宁院校专业后向轨迹合同
  * 作用：识别“同名专业在不同辽宁院校里，后续学习、实验室、实习、校招可能偏向的行业场景”。
  * 前台只显示短提示；完整解释只进入生成前确认和报告。
  */
-import { resolveMajorCodes, normalizeCatalogCode } from './major-code-resolver.js?v=3933';
+import { resolveMajorCodes } from './major-code-resolver.js?v=3933_1';
+import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_1';
 function clean(value, max = 200) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -23,7 +24,7 @@ function unique(arr = []) { return [...new Set(arr.map(x => clean(x, 120)).filte
 function major(name, catalogCode = '') { return { name, catalogCode }; }
 
 export const TRAJECTORY_COPY = {
-  displayLabel: '学习就业方向提醒',
+  displayLabel: '方向提醒',
   boundary: '该提示不是录取判断，也不代表就业保证，只帮助理解专业在该校可能面对的学习、实习和行业场景。'
 };
 
@@ -79,38 +80,13 @@ export const LIAONING_MAJOR_TRAJECTORY_CHAINS = [
 ];
 
 function matchSchool(rule, schoolName) {
-  const s = normalizeSchoolName(schoolName);
-  if (!s) return false;
-  const names = [rule.school, ...(Array.isArray(rule.schoolAliases) ? rule.schoolAliases : [])].map(normalizeSchoolName).filter(Boolean);
-  return names.some(name => s === name || s.includes(name) || name.includes(s));
+  return matchSchoolByRule(rule, schoolName);
 }
 function candidateMajorNames(record = {}) {
-  const names = new Set();
-  const base = normalizeMajorName(record.majorName || record.major || record.rawMajorName || record.standardMajor?.name || '');
-  if (base) names.add(base);
-  for (const value of [record.majorName, record.major, record.rawMajorName]) {
-    const text = clean(value, 300);
-    const inner = [...text.matchAll(/[（(]([^（）()]+)[）)]/g)].map(m => m[1]).join('、');
-    inner.split(/[、，,;；\/]/).map(normalizeMajorName).filter(Boolean).forEach(x => names.add(x));
-  }
-  if (record.standardMajor?.name) names.add(normalizeMajorName(record.standardMajor.name));
-  return names;
-}
-function matchMajorEntry(entry, candidateNames, catalogCode) {
-  const name = normalizeMajorName(entry.name);
-  const code = normalizeCatalogCode(entry.catalogCode);
-  const nameHit = Boolean(name && candidateNames.has(name));
-  const codeHit = Boolean(code && catalogCode && code === catalogCode);
-  if (nameHit && codeHit) return { ...entry, matchBy: 'name+catalogCode', confidence: 'high' };
-  if (nameHit) return { ...entry, matchBy: 'baseMajorName', confidence: 'ruleName' };
-  return null;
+  return buildCandidateMajorNames(record);
 }
 function matchMajorList(list = [], candidateNames, catalogCode) {
-  for (const entry of list) {
-    const hit = matchMajorEntry(entry, candidateNames, catalogCode);
-    if (hit) return hit;
-  }
-  return null;
+  return matchMajorListContract(list, candidateNames, catalogCode);
 }
 function buildResult(rule, hit) {
   const reviewPoints = unique(rule.reviewPoints || []).slice(0, 8);

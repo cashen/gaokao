@@ -1,9 +1,9 @@
-/* v3.9.33 院校专业背景展示调度器
+/* v3.9.33.1 院校专业背景展示调度器
  * 统一整合：本校方向、本校相关、方向提醒。
  * 卡片/自选只给短提示；生成前确认/报告才给完整解释。
  */
-import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3933';
-import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3933';
+import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3933_1';
+import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3933_1';
 
 const SURFACES = new Set(['card', 'selectionItem', 'summary', 'report']);
 const BOUNDARY = '该提示不是录取判断，也不代表一定适合孩子；只提醒家长再看课程方向、就业场景和招生章程。';
@@ -168,14 +168,28 @@ export function getLocalContextPresentation(record = {}, surface = 'card') {
   };
 }
 
+export function safeGetLocalContextPresentation(record = {}, surface = 'card') {
+  try {
+    return getLocalContextPresentation(record, surface);
+  } catch (error) {
+    console.warn('[ln-rank] local context presentation failed', {
+      surface,
+      school: record?.school || record?.schoolName || '',
+      major: record?.major || record?.majorName || record?.rawMajorName || '',
+      message: error?.message || String(error)
+    });
+    return null;
+  }
+}
+
 export function renderLocalContextShortText(record = {}, surface = 'card') {
-  return getLocalContextPresentation(record, surface)?.text || '';
+  return safeGetLocalContextPresentation(record, surface)?.text || '';
 }
 
 export function buildLocalContextSummary(items = []) {
   const rows = [];
   for (const item of Array.isArray(items) ? items : []) {
-    const presentation = getLocalContextPresentation(item, 'summary');
+    const presentation = safeGetLocalContextPresentation(item, 'summary');
     if (!presentation?.items?.length) continue;
     for (const entry of presentation.items) {
       rows.push({ item, ...entry });

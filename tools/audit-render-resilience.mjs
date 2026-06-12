@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const failures = [];
+const read = rel => fs.readFileSync(path.join(lr, rel), 'utf8');
+const render = read('js/feature/major-pool/render.js');
+const selection = read('js/selection-pool.v3933_1.js');
+const index = read('js/knowledge/index.js');
+const resolver = read('js/knowledge/local-context-resolver.js');
+if (!/safeGetLocalContextPresentation/.test(index)) failures.push('knowledge index does not export safeGetLocalContextPresentation');
+if (!/export function safeGetLocalContextPresentation/.test(resolver)) failures.push('resolver missing safeGetLocalContextPresentation');
+if (/getLocalContextPresentation\(record, 'card'\)/.test(render)) failures.push('card renderer directly calls unsafe local context');
+if (!/safeGetLocalContextPresentation\(record, 'card'\)/.test(render)) failures.push('card renderer does not use safe local context');
+if (/getLocalContextPresentation\(item,/.test(selection)) failures.push('selection page directly calls unsafe local context');
+if (!/safeGetLocalContextPresentation\(item, 'selectionItem'\)/.test(selection)) failures.push('selection item does not use safe local context');
+if (!/safeGetLocalContextPresentation\(item, 'report'\)/.test(selection)) failures.push('report builder does not use safe local context');
+const report = { version: 'v3.9.33.1', failures, status: failures.length ? 'fail' : 'pass' };
+fs.writeFileSync(path.join(lr, 'render-resilience-audit.v3933_1.json'), JSON.stringify(report, null, 2));
+console.log(JSON.stringify(report, null, 2));
+if (failures.length) process.exit(1);

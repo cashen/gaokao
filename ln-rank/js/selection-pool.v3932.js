@@ -8,21 +8,21 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3933';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3933';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3933';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3933';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3933';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3933';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3933';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3933';
-import { getCampusForRecord } from './feature/campus/index.js?v=3933';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3933';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3933';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3933';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3933';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3933';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, getLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3933';
+} from './feature/selection-pool/index.js?v=3933_1';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3933_1';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3933_1';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3933_1';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3933_1';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3933_1';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3933_1';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3933_1';
+import { getCampusForRecord } from './feature/campus/index.js?v=3933_1';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3933_1';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3933_1';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3933_1';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3933_1';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3933_1';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, getLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3933_1';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
@@ -587,7 +587,7 @@ function plainTextReport(state = getState()) {
   lines.push(`结构概览：稍高目标 ${state.stats.rushCount || 0} 个｜主要参考 ${state.stats.stableCount || 0} 个｜稳妥补充 ${state.stats.safeCount || 0} 个`);
   const localContextSummary = buildLocalContextSummary(state.items || []);
   if (localContextSummary.total) {
-    lines.push(`院校专业背景：本校背景关联 ${localContextSummary.backgroundCount} 个｜学习就业方向提醒 ${localContextSummary.trajectoryCount} 个`);
+    lines.push(`院校专业背景：本校背景关联 ${localContextSummary.backgroundCount} 个｜方向提醒 ${localContextSummary.trajectoryCount} 个`);
     localContextSummary.lines.slice(0, 6).forEach(x => lines.push(`- ${x.text}${x.reviewPoints?.length ? `｜建议再看：${x.reviewPoints.slice(0, 3).join(' / ')}` : ''}`));
   }
   const directionText = buildDirectionExplorerReportText();

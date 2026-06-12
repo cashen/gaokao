@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933';
-import { fmt } from '../../core/number-utils.js?v=3933';
-import { renderHistoryScore } from './history-score-render.js?v=3933';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933';
-import { buildSchoolIndustryTags, getLocalContextPresentation } from '../../knowledge/index.js?v=3933';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_1';
+import { fmt } from '../../core/number-utils.js?v=3933_1';
+import { renderHistoryScore } from './history-score-render.js?v=3933_1';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_1';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_1';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_1';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_1';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_1';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -144,7 +144,7 @@ function renderKnowledgeChips(record) {
 }
 
 function renderLocalContextInline(record) {
-  const view = getLocalContextPresentation(record, 'card');
+  const view = safeGetLocalContextPresentation(record, 'card');
   if (!view) return '';
   return `<div class="local-context-inline" title="该提示不是录取判断，只说明专业和学校办学背景、行业方向关联较强。"><span class="local-context-chip">${escapeHtml(view.label)}</span><span class="local-context-name">${escapeHtml(view.name)}</span></div>`;
 }
@@ -322,7 +322,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     button.addEventListener('click', () => {
       const target = button.dataset.target;
       if (!target) return;
-      try { localStorage.setItem('lnRank.bottomLineMode.v3980', target); localStorage.setItem('lnRank.bottomLineMode.v3962', target); } catch {}
+      try { localStorage.setItem('lnRank.bottomLineMode.current', target); } catch {}
       document.querySelectorAll('[data-bottomline-mode]').forEach(el => el.classList.toggle('is-active', el.dataset.bottomlineMode === target));
       document.querySelector(`[data-bottomline-mode="${target}"]`)?.click?.();
     });

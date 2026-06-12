@@ -1,8 +1,9 @@
-/* v3.9.33 辽宁院校专业背景合同
+/* v3.9.33.1 辽宁院校专业背景合同
  * 作用：识别辽宁本地院校中“本校方向 / 本校相关”的专业组合。
  * 注意：该提示只表示学校历史、专业方向、行业路径有背景关联，不是录取判断，不替代招生章程。
  */
-import { resolveMajorCodes, normalizeCatalogCode } from './major-code-resolver.js?v=3933';
+import { resolveMajorCodes } from './major-code-resolver.js?v=3933_1';
+import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_1';
 function clean(value, max = 200) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -168,41 +169,18 @@ export const LIAONING_LOCAL_STRONG_CHAINS = [
   }
 ];
 
+function displayLabel(tier, depth) {
+  if (depth === 'core') return tier === 'S' ? LOCAL_CHAIN_COPY.coreS : LOCAL_CHAIN_COPY.coreA;
+  return tier === 'S' ? LOCAL_CHAIN_COPY.supportS : LOCAL_CHAIN_COPY.supportA;
+}
 function matchSchool(chain, schoolName) {
-  const s = normalizeSchoolName(schoolName);
-  if (!s) return false;
-  const names = [chain.school, ...(Array.isArray(chain.schoolAliases) ? chain.schoolAliases : [])].map(normalizeSchoolName).filter(Boolean);
-  return names.some(name => s === name || s.includes(name) || name.includes(s));
+  return matchSchoolByRule(chain, schoolName);
 }
 function candidateMajorNames(record = {}) {
-  const raw = [record.majorName, record.major, record.rawMajorName, record.standardMajor?.name, record.standardMajor?.categoryName].filter(Boolean).join(' ');
-  const names = new Set();
-  const base = normalizeMajorName(record.majorName || record.major || record.rawMajorName || record.standardMajor?.name || '');
-  if (base) names.add(base);
-  for (const value of [record.majorName, record.major, record.rawMajorName]) {
-    const text = clean(value, 300);
-    const inner = [...text.matchAll(/[（(]([^（）()]+)[）)]/g)].map(m => m[1]).join('、');
-    inner.split(/[、，,;；\/]/).map(normalizeMajorName).filter(Boolean).forEach(x => names.add(x));
-  }
-  if (record.standardMajor?.name) names.add(normalizeMajorName(record.standardMajor.name));
-  return names;
-}
-function matchMajorEntry(entry, candidateNames, catalogCode) {
-  const name = normalizeMajorName(entry.name);
-  const code = normalizeCatalogCode(entry.catalogCode);
-  const nameHit = Boolean(name && candidateNames.has(name));
-  const codeHit = Boolean(code && catalogCode && code === catalogCode);
-  if (nameHit && codeHit) return { ...entry, matchBy: 'name+catalogCode', confidence: 'high' };
-  if (nameHit) return { ...entry, matchBy: 'baseMajorName', confidence: 'ruleName' };
-  // 目录码只能作为增强证据，不能单独触发前台提示。
-  return null;
+  return buildCandidateMajorNames(record);
 }
 function matchMajorList(list = [], candidateNames, catalogCode) {
-  for (const entry of list) {
-    const hit = matchMajorEntry(entry, candidateNames, catalogCode);
-    if (hit) return hit;
-  }
-  return null;
+  return matchMajorListContract(list, candidateNames, catalogCode);
 }
 function buildResult(chain, hit, depth) {
   const label = displayLabel(chain.tier, depth);
@@ -229,15 +207,14 @@ function buildResult(chain, hit, depth) {
 
 export function matchLiaoningLocalStrongChain(record = {}) {
   const schoolName = record.schoolName || record.school || '';
-  const majorName = record.majorName || record.major || record.rawMajorName || record.standardMajor?.name || '';
-  const baseMajorName = normalizeMajorName(majorName);
+  const candidateNames = candidateMajorNames(record);
   const catalogCode = catalogCodeFromRecord(record);
-  if (!schoolName || !baseMajorName) return null;
+  if (!schoolName || !candidateNames.size) return null;
   for (const chain of LIAONING_LOCAL_STRONG_CHAINS) {
     if (!matchSchool(chain, schoolName)) continue;
-    const coreHit = matchMajorList(chain.coreMajors, baseMajorName, catalogCode);
+    const coreHit = matchMajorList(chain.coreMajors, candidateNames, catalogCode);
     if (coreHit) return buildResult(chain, coreHit, 'core');
-    const supportHit = matchMajorList(chain.supportMajors, baseMajorName, catalogCode);
+    const supportHit = matchMajorList(chain.supportMajors, candidateNames, catalogCode);
     if (supportHit) return buildResult(chain, supportHit, 'support');
   }
   return null;
@@ -263,7 +240,7 @@ export function buildLocalStrongChainSummary(items = []) {
     hits,
     lines,
     summaryText: hits.length
-      ? `已选专业中，有 ${core.length} 个属于本校主干方向，${support.length} 个属于本校特色相关。这类提示不是录取判断，只说明专业和学校办学背景、行业方向关联较强，建议作为家庭讨论重点复核。`
+      ? `已选专业中，有 ${core.length} 个属于本校方向，${support.length} 个属于本校相关。这类提示不是录取判断，只说明专业和学校办学背景、行业方向关联较强，建议作为家庭讨论重点复核。`
       : ''
   };
 }

@@ -4,13 +4,13 @@ import path from 'node:path';
 
 const argRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.cwd(), 'ln-rank');
 const projectRoot = fs.existsSync(path.join(argRoot, 'js')) ? argRoot : path.join(argRoot, 'ln-rank');
-const version = process.argv[3] || 'v3933';
+const version = process.argv[3] || 'v3933_1';
 const src = fs.readFileSync(path.join(projectRoot, 'js/knowledge/liaoning-local-strong-chain.js'), 'utf8');
 const resolver = fs.readFileSync(path.join(projectRoot, 'js/knowledge/local-context-resolver.js'), 'utf8');
 const render = fs.readFileSync(path.join(projectRoot, 'js/feature/major-pool/render.js'), 'utf8');
-const selectionPath = fs.existsSync(path.join(projectRoot, 'js/selection-pool.v3933.js')) ? 'js/selection-pool.v3933.js' : 'js/selection-pool.v3931.js';
+const selectionPath = fs.existsSync(path.join(projectRoot, 'js/selection-pool.v3933_1.js')) ? 'js/selection-pool.v3933_1.js' : 'js/selection-pool.v3933.js';
 const selection = fs.readFileSync(path.join(projectRoot, selectionPath), 'utf8');
-const css = fs.readFileSync(path.join(projectRoot, 'css/components/local-strong-chain-contract.css'), 'utf8');
+const css = fs.readFileSync(path.join(projectRoot, 'css/components/local-context-contract.css'), 'utf8');
 const errors = [];
 const warnings = [];
 function count(re, text = src) { return [...text.matchAll(re)].length; }
@@ -20,7 +20,7 @@ const supportCount = count(/supportMajors:\s*\[/g);
 if (chainCount < 12) errors.push(`规则数量偏少：${chainCount}`);
 if (!src.includes('沈阳工程学院') || !src.includes('辽宁石油化工大学') || !src.includes('大连交通大学')) errors.push('代表院校缺失。');
 if (!src.includes('matchLiaoningLocalStrongChain')) errors.push('matcher 函数缺失。');
-if (!src.includes('本校主干方向') || !src.includes('本校特色相关')) errors.push('家长可理解显示文案缺失。');
+if (!src.includes('本校方向') || !src.includes('本校相关')) errors.push('家长可理解显示文案缺失。');
 const forbiddenVisible = ['一级命中', '二级命中', '王牌专业', '强烈推荐', '稳进', '必录', '录取概率'];
 for (const word of forbiddenVisible) {
   const hits = count(new RegExp(word, 'g'));
@@ -31,7 +31,7 @@ if (!css.includes('.local-context-inline') || !css.includes('.workspace-local-co
 if (!render.includes('renderLocalContextInline') || !render.includes('local-context-inline')) errors.push('专业卡片未接入院校专业背景短标签。');
 if (!selection.includes('renderLocalContextSummaryPanel') || !selection.includes('itemLocalContextChip')) errors.push('自选页未接入院校专业背景短提示/汇总。');
 if (!resolver.includes('getLocalContextPresentation') || !resolver.includes("'card'") || !resolver.includes("'report'")) errors.push('展示调度层缺失。');
-if (/辽宁属地强链|辽宁本地强链|强链：|强链复核/.test(render + selection + css)) errors.push('前台仍暴露内部强链文案。');
+if (/辽宁属地强链|辽宁本地强链|强链：|强链复核|本校主干方向|本校特色相关/.test(render + selection + css)) errors.push('前台仍暴露内部强链文案。');
 const result = { version, generatedAt: new Date().toISOString(), chainCount, coreSections: coreCount, supportSections: supportCount, errors, warnings, status: errors.length ? 'fail' : 'pass' };
 fs.writeFileSync(path.join(projectRoot, `local-strong-chain-audit.${version}.json`), JSON.stringify(result, null, 2), 'utf8');
 console.log(JSON.stringify(result, null, 2));
