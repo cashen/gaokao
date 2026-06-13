@@ -4,13 +4,13 @@ import {
   setFeishuError,
   setFeishuLoading,
   setFeishuResult
-} from "./state.js?v=3933_11";
-import { renderFeishuReportView } from "./report-render.js?v=3933_11";
+} from "./state.js?v=3933_12";
+import { renderFeishuReportView } from "./report-render.js?v=3933_12";
 import {
   buildFeishuReportPayload,
   canGenerateFeishuReport
-} from "../report/payload-builder.js?v=3933_11";
-import { createFeishuReport } from "./report-api.js?v=3933_11";
+} from "../report/payload-builder.js?v=3933_12";
+import { createFeishuReport } from "./report-api.js?v=3933_12";
 
 let currentAppState = null;
 

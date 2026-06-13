@@ -1,5 +1,5 @@
-import { RANGE_PRESETS } from '../../config/range-presets.js?v=3933_11';
-import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3933_11';
+import { RANGE_PRESETS } from '../../config/range-presets.js?v=3933_12';
+import { normalizeScoreBand, normalizeScoreBandsObject, SCORE_BAND_KEYS } from '../../domain/score-band-contract.js?v=3933_12';
 
 const BAND_KEYS = SCORE_BAND_KEYS;
 const BAND_COPY = {

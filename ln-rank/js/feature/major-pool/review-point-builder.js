@@ -1,4 +1,4 @@
-import { buildKnowledgeReviewForRecord } from '../../knowledge/index.js?v=3933_11';
+import { buildKnowledgeReviewForRecord } from '../../knowledge/index.js?v=3933_12';
 function clean(x, max=180) { return String(x == null ? '' : x).replace(/\s+/g,' ').trim().slice(0,max); }
 function projectPoints(text='') {
   const out=[]; const s=String(text||'');

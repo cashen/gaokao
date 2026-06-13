@@ -1,0 +1,39 @@
+{
+  "version": "v3.9.33.12",
+  "assetVersion": "v3933_12",
+  "checked": [
+    "local-mainline.html",
+    "js/local-mainline/local-mainline-app.v3933_12.js"
+  ],
+  "forbiddenInHtml": [
+    "飞书",
+    "推送",
+    "API",
+    "JSON",
+    "HTML",
+    "status",
+    "debug",
+    "log",
+    "待补证据",
+    "知识库暂未形成",
+    "专业入口",
+    "/ln-rank/",
+    "manifest"
+  ],
+  "forbiddenInJsCopy": [
+    "飞书",
+    "推送",
+    "待补证据",
+    "知识库暂未形成",
+    "专业入口"
+  ],
+  "required": [
+    "辽宁省内专业背景怎么先看",
+    "不知道从哪开始",
+    "返回专业初选",
+    "家庭讨论报告",
+    "回到初选工具查看"
+  ],
+  "failures": [],
+  "status": "pass"
+}

@@ -55,8 +55,8 @@ export async function onRequest(context) {
   return json({
     ok: failedCritical.length === 0,
     status: failedCritical.length ? 'fail' : failed.length ? 'warn' : 'pass',
-    version: 'v3.9.33.11',
-    assetVersion: 'v3933_11',
+    version: 'v3.9.33.12',
+    assetVersion: 'v3933_12',
     route: '/api/ln-rank-runtime-health',
     diagnosis: failedCritical.length
       ? '运行时关键链路没有通过。若本接口返回 JSON，说明 functions 已部署；请继续看失败项。若本接口返回 HTML/503，优先检查 Cloudflare Pages 项目根目录是否包含 functions/。'

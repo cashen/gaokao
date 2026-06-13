@@ -1,15 +1,14 @@
 {
-  "version": "v3.9.33.11",
-  "assetVersion": "v3933_11",
-  "release": "v3.9.33.11-ln-rank-local-mainline-human-logic-sort-contract-no-fenxi",
-  "name": "v3.9.33.11-ln-rank-local-mainline-human-logic-sort-contract-no-fenxi",
-  "label": "local-mainline-human-logic-sort-contract",
+  "version": "v3.9.33.12",
+  "assetVersion": "v3933_12",
+  "release": "v3.9.33.12-ln-rank-mobile-filter-summary-human-contract-no-fenxi",
+  "name": "v3.9.33.12-ln-rank-mobile-filter-summary-human-contract-no-fenxi",
+  "label": "mobile-filter-summary-human-contract",
   "notes": [
-    "将 local-mainline 的学校、专业、分数三入口从数据列表展示升级为家长阅读逻辑。",
-    "学校入口默认看学校背景摘要，详情按方向分组，分数作为 2025 历史参考轻量呈现。",
-    "专业入口先说明同名专业在不同学校的方向差异，再按本校方向、本校相关、方向提醒分组。",
-    "分数入口按接近孩子分数、稍高一点、低一些可讨论三组展示，并明确 2025 历史参考口径。",
-    "保留卡片本质字段，不新增录取概率、不新增 AI 顾问、不改变主筛选算法。"
+    "将主搜索查询条件摘要从单条长句改为短摘要 + 折叠完整条件，避免 Android 下逐字竖排。",
+    "移动端默认只展示当前查看位置、院校范围和必要关键词，低价值条件放入“查看完整条件”。",
+    "查询卡摘要和查看按钮在窄屏下单列布局，避免互相挤压、横向溢出和巨大空白。",
+    "新增移动端真实长文本审计，防止再次出现审计通过但手机实际反人类。"
   ],
   "noFenxiIncluded": true
 }
