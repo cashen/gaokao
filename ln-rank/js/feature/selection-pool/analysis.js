@@ -1,4 +1,4 @@
-import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3933_4';
+import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3933_5';
 
 function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];
@@ -34,16 +34,16 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
     actions.push('继续补充主要参考区和后段稳妥补充区，先把数量扩展到至少 20 个以上再做正式排序。');
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
-    risks.push('稳妥补充区数量偏少，后段承接能力不足。');
-    actions.push('增加若干“稳妥补充 / 稳妥补充 / 稳妥补充”专业，尤其补充低风险、可接受专业方向。');
+    risks.push('稳妥补充区数量偏少，稳妥补充偏浅。');
+    actions.push('补充几项孩子确实能接受的稳妥补充专业，重点看课程、城市、学费和校区。');
   }
   if (stats.stableCount < Math.ceil(total * 0.34)) {
-    risks.push('主体主要参考区偏薄，中段承接不够厚。');
-    actions.push('优先补充“主要参考 / 稳妥”专业，作为真实录取承接区。');
+    risks.push('主要参考区偏薄，中段可讨论专业不够厚。');
+    actions.push('优先补充“主要参考 / 稳妥”专业，作为真实讨论承接区。');
   }
   if (stats.rushCount > Math.ceil(total * 0.38)) {
     risks.push('稍高目标区占比偏高，容易形成“前段好看、后段发虚”的排序。');
-    actions.push('保留少量高价值稍高目标，其余用更接近位次的专业替换。');
+    actions.push('保留少量少量真正愿意讨论的稍高目标，其余用更接近位次的专业替换。');
   }
   if (stats.highRushCount > 2) {
     risks.push('稍高目标专业数量偏多，稍高目标只能承担梦想位，不应作为主要录取依赖。');
@@ -53,12 +53,12 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
   const [topCity, topCityCount] = topEntry(stats.byCity);
   if (topCity && total >= 8 && topCityCount >= Math.ceil(total * 0.45)) {
     risks.push(`城市过于集中偏高：${topCity} 相关志愿占比较大。`);
-    actions.push('在同专业方向下补充其他城市/省份的可接受选择，避免地域单点风险。');
+    actions.push('在同专业方向下补充其他城市/省份的可接受选择，避免地域单点提醒。');
   }
   const [topFamily, topFamilyCount] = topEntry(stats.byMajorFamily);
   if (topFamily && total >= 8 && topFamilyCount >= Math.ceil(total * 0.55)) {
     risks.push(`专业方向集中度偏高：${topFamily} 占比较大。`);
-    actions.push('如果孩子确实强偏好该方向，可以保留；否则建议加入 1-2 个相邻专业方向做风险分散。');
+    actions.push('如果孩子确实强偏好该方向，可以保留；否则建议加入 1-2 个相邻专业方向做提醒分散。');
   }
 
   const ordered = items.map((item, index) => ({ ...item, order: index + 1, poolBand: item.poolBand || classifyPoolItem(item), majorFamily: majorFamily(item.major) }));
@@ -75,24 +75,24 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
   sections.push({
     title: '中段主要参考区',
     content: stableItems.length
-      ? `当前有 ${stableItems.length} 个主要参考专业，这是方案的主要录取承接区。建议继续检查这些专业是否都是孩子能接受的方向。`
+      ? `当前有 ${stableItems.length} 个主要参考专业，这是方案的主要讨论区。建议继续检查这些专业是否都是孩子能接受的方向。`
       : '当前缺少主要参考专业，中段承接断层明显，需要优先补充。'
   });
   sections.push({
     title: '后段稳妥补充区',
     content: safeItems.length
       ? `当前有 ${safeItems.length} 个稳妥补充/稳妥补充志愿。后段不是随便填低分专业，而是要保证学校、城市、专业方向都能接受。`
-      : '当前没有明显稳妥补充志愿，滑档或被迫接受低接受度专业的风险较高。'
+      : '当前没有明显稳妥补充志愿，后段可接受选择偏少，建议先补几项孩子能接受的专业。'
   });
 
   const level = risks.length >= 4 ? 'high' : risks.length >= 2 ? 'medium' : 'low';
   const summary = level === 'high'
-    ? '当前已选专业整体偏高，建议先补齐主要参考和稳妥补充，再生成报告。'
+    ? '当前清单整体偏高，建议先补齐主要参考和稳妥补充，再生成报告。'
     : level === 'medium'
       ? '当前已选专业已有基本搭配，但仍建议看看分段比例和方向是否过于集中。'
       : '当前已选专业搭配相对均衡，可以进入人工确认和报告生成。';
 
-  if (!risks.length) risks.push('暂未发现明显结构性风险，但仍需人工核验招生计划、选科、体检、学费和校区。');
+  if (!risks.length) risks.push('暂未发现明显结构性提醒，但仍需人工核验招生计划、选科、体检、学费和校区。');
   if (!actions.length) actions.push('保持当前前中后段结构，逐条核验专业接受度、计划变化和特殊项目标签。');
 
   const reportText = makeReportText({ candidateScore, stats, summary, risks, actions, sections, ordered });
@@ -129,10 +129,10 @@ function makeReportText({ candidateScore, stats, summary, risks, actions, sectio
     lines.push(`${section.title}：${section.content}`);
   }
   lines.push('');
-  lines.push('主要风险：');
+  lines.push('主要提醒：');
   risks.forEach((risk, index) => lines.push(`${index + 1}. ${risk}`));
   lines.push('');
-  lines.push('调整建议：');
+  lines.push('下一步可以这样做：');
   actions.forEach((action, index) => lines.push(`${index + 1}. ${action}`));
   lines.push('');
   lines.push('当前排序：');

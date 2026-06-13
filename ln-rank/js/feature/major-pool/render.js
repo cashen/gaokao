@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_4';
-import { fmt } from '../../core/number-utils.js?v=3933_4';
-import { renderHistoryScore } from './history-score-render.js?v=3933_4';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_4';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_4';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_4';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_4';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_4';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_5';
+import { fmt } from '../../core/number-utils.js?v=3933_5';
+import { renderHistoryScore } from './history-score-render.js?v=3933_5';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_5';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_5';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_5';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_5';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_5';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -199,6 +199,12 @@ function renderMajorCode(record) {
   return '';
 }
 
+function localMainlineLink(record) {
+  if (!record?.school || !record?.major) return '';
+  const href = `/ln-rank/local-mainline.html?school=${encodeURIComponent(record.school)}&major=${encodeURIComponent(record.major)}`;
+  return `<a class="local-mainline-card-link" href="${href}">查看学校主线</a>`;
+}
+
 function card(record, index = 0, selectionPool = null, activeBand = 'near') {
   const delta = Number(record.scoreDelta || 0);
   const deltaText = delta > 0 ? `+${delta}` : String(delta);
@@ -230,6 +236,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     <div class="major-card-actions">
       ${poolButton(record, index, selectionPool)}
       <button class="diagnose-button" type="button" data-diagnose-index="${index}">单条解读</button>
+      ${localMainlineLink(record)}
     </div>
     <div class="pool-add-hint" data-pool-hint="${index}"></div>
   </article>`;

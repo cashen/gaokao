@@ -1,4 +1,4 @@
-import { DEFAULT_KEYWORD_PRESETS, MORE_KEYWORD_GROUPS, KEYWORD_PRESET_NOTE } from './preset-policy.js?v=3933_4';
+import { DEFAULT_KEYWORD_PRESETS, MORE_KEYWORD_GROUPS, KEYWORD_PRESET_NOTE } from './preset-policy.js?v=3933_5';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)

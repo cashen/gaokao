@@ -1,9 +1,9 @@
-/* v3.9.33.4 辽宁院校专业后向轨迹合同
+/* v3.9.33.5 辽宁院校专业后向轨迹合同
  * 作用：识别“同名专业在不同辽宁院校里，后续学习、实验室、实习、校招可能偏向的行业场景”。
  * 前台只显示短提示；完整解释只进入生成前确认和报告。
  */
-import { resolveMajorCodes } from './major-code-resolver.js?v=3933_4';
-import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_4';
+import { resolveMajorCodes } from './major-code-resolver.js?v=3933_5';
+import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_5';
 function clean(value, max = 200) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -25,7 +25,7 @@ function major(name, catalogCode = '') { return { name, catalogCode }; }
 
 export const TRAJECTORY_COPY = {
   displayLabel: '方向提醒',
-  boundary: '该提示不是录取判断，也不代表就业保证，只帮助理解专业在该校可能面对的学习、实习和行业场景。'
+  boundary: '该提示不是录取判断，也不代表就业结果承诺，只帮助理解专业在该校可能面对的学习、实习和行业场景。'
 };
 
 export const LIAONING_MAJOR_TRAJECTORY_CHAINS = [

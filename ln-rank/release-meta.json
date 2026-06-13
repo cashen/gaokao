@@ -1,16 +1,15 @@
 {
-  "version": "v3.9.33.4",
-  "assetVersion": "v3933_4",
-  "release": "v3.9.33.4-ln-rank-release-migration-selection-human-contract-no-fenxi",
-  "name": "v3.9.33.4-ln-rank-release-migration-selection-human-contract-no-fenxi",
-  "label": "release-migration-selection-human-contract",
+  "version": "v3.9.33.5",
+  "assetVersion": "v3933_5",
+  "release": "v3.9.33.5-ln-rank-local-mainline-human-system-contract-no-fenxi",
+  "name": "v3.9.33.5-ln-rank-local-mainline-human-system-contract-no-fenxi",
+  "label": "local-mainline-human-system-contract",
   "notes": [
-    "新增发布迁移一致性合同，active-assets.json 作为版本与资源唯一来源，active HTML/JS/CSS/self-check/报告上下文统一迁移。",
-    "新增自选页人类层级合同，治理字号、位置标签、复核提示位置、按钮权重和位次诊断工程词。",
-    "自选页移除列表上方的组合级复核长提示，组合级提示只在生成前区域低权重出现一次。",
-    "自选单条按学校/专业、2025/位次/2024、位置标签、地域/专业代码/背景、操作的顺序呈现。",
-    "生成前诊断拆成硬数据、人话判断、下一步动作，移除候选区/锚点/功能区等前台工程词。",
-    "继续保持不改 /fenxi/、不改 functions/fenxi/、不改 functions/_middleware.js，不新增 AI 顾问和录取概率。"
+    "新增辽宁省内院校专业培养路径复核页 local-mainline.html，提供按学校、按专业、按分数三个入口。",
+    "新增 local-mainline KB 基座：博士点、第四轮学科评估、学校主线、专业映射和来源登记分层管理。",
+    "新增 /api/local-mainline，分数入口运行时读取同一套 /fenxi 2025 物理类数据，不手写分数结果。",
+    "搜索卡片增加“查看学校主线”轻桥接，自选和飞书继续保持短提示/完整解释分层。",
+    "新增 local-mainline 人类文案、证据、分数入口和迁移一致性审计，继续保持 no-fenxi 发包边界。"
   ],
   "noFenxiIncluded": true
 }

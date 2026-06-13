@@ -3,7 +3,7 @@ export const DISCIPLINE_STRENGTH_BOUNDARY_KB = {
   doubleFirstClass: {
     sourceLevel: 'A',
     sourceName: '第二轮双一流建设高校及建设学科名单',
-    aiBoundary: ['双一流学科只能作为学科实力线索。','不能等同于本科专业就业保证。','不能等同于某专业一定值得报。','不能替代当年招生计划和位次判断。']
+    aiBoundary: ['双一流学科只能作为学科实力线索。','不能等同于本科专业就业结果承诺。','不能等同于某专业一定值得报。','不能替代当年招生计划和位次判断。']
   },
   disciplineEvaluation: {
     sourceLevel: 'A-',

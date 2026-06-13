@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辽宁省内院校专业培养路径复核｜ln-rank</title>
+  <link rel="stylesheet" href="/ln-rank/css/dist/local-mainline.v3933_5.css?v=3933_5" />
+</head>
+<body>
+  <main class="lm-page">
+    <header class="lm-hero">
+      <div>
+        <p class="lm-eyebrow">辽宁物理类 · 省内院校专业主线</p>
+        <h1>辽宁省内院校专业培养路径复核</h1>
+        <p>从学校、专业和分数三个入口，看看哪些专业背后有学校培养方向、博士点或第四轮学科评估记录。这里不是录取判断，只帮助家庭把需要再看的内容说清楚。</p>
+      </div>
+      <div class="lm-hero-actions">
+        <a href="/ln-rank/" class="lm-link-button">返回专业初选</a>
+        <a href="/ln-rank/selection-pool.html" class="lm-link-button secondary">查看自选清单</a>
+      </div>
+    </header>
+
+    <section class="lm-boundary" aria-label="使用边界">
+      <b>使用边界：</b>博士点和第四轮学科评估是学科证据，不代表录取判断依据，也不代表就业结果承诺。分数入口只按 2025 年历史最低分/位次做家庭讨论参考，正式填报仍要看 2026 位次、招生计划和招生章程。
+    </section>
+
+    <nav class="lm-tabs" aria-label="查询入口">
+      <button type="button" class="lm-tab is-active" data-tab="school">按学校看</button>
+      <button type="button" class="lm-tab" data-tab="major">按专业看</button>
+      <button type="button" class="lm-tab" data-tab="score">按分数看</button>
+    </nav>
+
+    <section class="lm-panel" data-panel="school">
+      <div class="lm-panel-head">
+        <div>
+          <h2>从学校看：这所学校大概偏什么方向</h2>
+          <p>先看学校主线，再看 2025 历史数据中这个学校有哪些专业能对应。</p>
+        </div>
+        <input id="schoolSearch" class="lm-input" type="search" placeholder="搜索学校，如 沈阳工业大学" />
+      </div>
+      <div id="schoolList" class="lm-grid"></div>
+      <div id="schoolDetail" class="lm-detail" hidden></div>
+    </section>
+
+    <section class="lm-panel" data-panel="major" hidden>
+      <div class="lm-panel-head">
+        <div>
+          <h2>从专业看：同名专业在不同学校有什么差别</h2>
+          <p>同样叫电气、计算机、临床或会计，不同学校的课程方向和培养场景可能不同。</p>
+        </div>
+        <input id="majorSearch" class="lm-input" type="search" placeholder="搜索专业，如 电气工程及其自动化" />
+      </div>
+      <div class="lm-quick-row" id="majorQuickRow"></div>
+      <div id="majorList" class="lm-grid"></div>
+      <div id="majorDetail" class="lm-detail" hidden></div>
+    </section>
+
+    <section class="lm-panel" data-panel="score" hidden>
+      <div class="lm-panel-head">
+        <div>
+          <h2>从分数看：这个分数附近有哪些可讨论的本校方向</h2>
+          <p>输入孩子分数，查看 2025 年历史最低分不高于或接近该分数、且有学校主线证据的省内专业。</p>
+        </div>
+      </div>
+      <div class="lm-score-console">
+        <label>孩子分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 580" /></label>
+        <label>证据层级
+          <select id="scoreLevel" class="lm-select">
+            <option value="primary">只看本校方向</option>
+            <option value="primary_secondary">本校方向 + 本校相关</option>
+            <option value="all">包含方向提醒</option>
+          </select>
+        </label>
+        <label>办学性质
+          <select id="scoreNature" class="lm-select">
+            <option value="all">全部先看</option>
+            <option value="public_regular_only">只看公办普通</option>
+          </select>
+        </label>
+        <button id="scoreQuery" class="lm-primary" type="button">按分数查看</button>
+      </div>
+      <div id="scoreResult" class="lm-detail"></div>
+    </section>
+
+    <section class="lm-howto">
+      <h2>这页和 /ln-rank/ 怎么配合</h2>
+      <div class="lm-howto-grid">
+        <div><b>卡片</b><p>只显示短标签和硬数据，帮助你快速判断是否值得放进清单。</p></div>
+        <div><b>自选</b><p>是家庭讨论清单，不展开长解释，只保留“背景/提醒”和需要再看的点。</p></div>
+        <div><b>这页</b><p>解释学校专业主线，支持从学校、专业、分数三个入口重新理解。</p></div>
+        <div><b>飞书报告</b><p>承载完整解释和边界说明，不替家长拍板。</p></div>
+      </div>
+    </section>
+
+    <footer class="lm-footer">版本：v3.9.33.5｜数据口径：辽宁 2025 物理类｜本页用于家庭讨论和人工复核，不做录取预测。</footer>
+  </main>
+  <script type="module" src="/ln-rank/js/local-mainline/local-mainline-app.v3933_5.js?v=3933_5"></script>
+</body>
+</html>

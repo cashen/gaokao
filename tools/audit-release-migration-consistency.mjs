@@ -21,8 +21,8 @@ for (const rel of assets.html || []) {
   const html = read(rel);
   fail(`${rel} contains active display version`, html.includes(assets.version), assets.version);
   fail(`${rel} contains active asset query`, html.includes(`?v=${q}`), `?v=${q}`);
-  fail(`${rel} has no stale query`, !/\?v=3933_[0-3]\b/.test(html) || q === '3933_3', 'stale ?v=3933_1/2/3');
-  fail(`${rel} references only active entry version`, !/v3933_[0-3]\.(?:js|css)/.test(html) || q === '3933_3', 'stale active file ref');
+  fail(`${rel} has no stale query`, !new RegExp('\\?v=3933_(?!' + q.split('_')[1] + '\\b)\\d+').test(html), 'stale query not matching active asset');
+  fail(`${rel} references only active entry version`, !new RegExp('v3933_(?!' + q.split('_')[1] + '\\b)\\d+\\.(?:js|css)').test(html), 'stale active file ref');
 }
 for (const rel of [...(assets.jsEntry || []), ...(assets.cssEntry || [])]) fail(`active entry exists ${rel}`, exists(rel));
 for (const rel of assets.jsEntry || []) fail(`jsEntry filename carries active asset ${rel}`, rel.includes(assets.assetVersion), rel);

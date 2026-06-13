@@ -161,7 +161,7 @@ function localContextMarkdownLines(items = []) {
   if (!rows.length) return [];
   const backgroundCount = rows.filter(x => x.entry.kind === 'background').length;
   const trajectoryCount = rows.filter(x => x.entry.kind === 'trajectory').length;
-  const lines = ['## 院校专业背景复核', '', `- 院校专业背景：${fmt(backgroundCount)} 条`, `- 方向提醒：${fmt(trajectoryCount)} 条`, '- 说明：这些提示不代表录取优势，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
+  const lines = ['## 院校专业背景复核', '', `- 院校专业背景：${fmt(backgroundCount)} 条`, `- 方向提醒：${fmt(trajectoryCount)} 条`, '- 说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
   rows.slice(0, 10).forEach(({ item, entry }) => {
     lines.push(`- ${item.school} · ${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
   });
