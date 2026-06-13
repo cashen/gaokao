@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.33.8",
-  "assetVersion": "v3933_8",
-  "release": "v3.9.33.8-ln-rank-local-background-hint-layer-contract-no-fenxi",
-  "name": "v3.9.33.8-ln-rank-local-background-hint-layer-contract-no-fenxi",
-  "label": "local-background-hint-layer-contract",
+  "version": "v3.9.33.9",
+  "assetVersion": "v3933_9",
+  "release": "v3.9.33.9-ln-rank-css-dist-source-visual-debug-contract-no-fenxi",
+  "name": "v3.9.33.9-ln-rank-css-dist-source-visual-debug-contract-no-fenxi",
+  "label": "css-dist-source-visual-debug-contract",
   "notes": [
-    "建立省内专业背景分层提示合同：无显示、方向提醒、本校相关、本校方向，不再一刀切显示或隐藏。",
-    "搜索卡片统一走 getLocalBackgroundHint()，省内专业背景提醒放在地域/专业代码之后、复核详情之前。",
-    "新增显式专业别名桥接：沈阳航空航天大学｜航空智能制造技术 → 本校相关｜航空制造，保留培养学院、课程方向、分流规则、招生章程复核点。",
-    "分数位置标签增加人话解释，避免“主要参考”被误解为主线或推荐。",
-    "新增省内背景分层、卡片顺序、可见样例审计，防止外省误显示、弱证据乱显示和专业背景被复核详情压住。"
+    "建立 CSS dist 来源合同：dist 构建固定读取 css/css-bundle-sources.json，不再从 active HTML 反推源 CSS。",
+    "恢复完整 main/selection/trend/self-check CSS dist，核心布局、卡片、按钮、输入和结果区样式重新进入 active CSS。",
+    "新增 css dist source coverage audit，检查 sourceCount、bytes、核心源文件和关键选择器，防止 CSS 残缺仍通过审计。",
+    "新增 main page style smoke audit，检查首页、自选页、趋势页、自测页和 local-mainline 的核心选择器和 CSS 体积。",
+    "将“页面视觉像裸 HTML 即发版失败”写入 release debug 合同，后续发包必须做可视层 smoke。"
   ],
   "noFenxiIncluded": true
 }

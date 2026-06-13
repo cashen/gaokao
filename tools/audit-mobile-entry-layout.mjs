@@ -7,8 +7,8 @@ const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), '
 const q = assets.assetVersion.replace(/^v/, '');
 const failures=[];
 function fail(name, ok, detail=''){ if(!ok) failures.push(`${name}${detail?': '+detail:''}`); }
-const mainCss = fs.readFileSync(path.join(lr, assets.cssDist?.main || 'css/dist/ln-rank-main.v3933_8.css'),'utf8');
-const localCss = fs.readFileSync(path.join(lr, assets.cssDist?.localMainline || 'css/dist/local-mainline.v3933_8.css'),'utf8');
+const mainCss = fs.readFileSync(path.join(lr, assets.cssDist?.main || 'css/dist/ln-rank-main.v3933_9.css'),'utf8');
+const localCss = fs.readFileSync(path.join(lr, assets.cssDist?.localMainline || 'css/dist/local-mainline.v3933_9.css'),'utf8');
 fail('main entry has 720px mobile contract', /@media\(max-width:720px\)/.test(mainCss));
 fail('main entry link full width on mobile', /\.mainline-entry-link\{[^}]*width:100%/s.test(mainCss));
 fail('card local link full width on mobile', /\.major-card-actions \.local-mainline-card-link\{[^}]*width:100%/s.test(mainCss));

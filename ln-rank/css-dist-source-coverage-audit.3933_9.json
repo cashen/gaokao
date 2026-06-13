@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "version": "v3.9.33.9",
+  "assetVersion": "v3933_9",
+  "checks": [
+    {
+      "bundle": "main",
+      "dist": "css/dist/ln-rank-main.v3933_9.css",
+      "sourceCount": 46,
+      "minSourceCount": 40,
+      "bytes": 321713,
+      "minBytes": 250000,
+      "missingSelectors": [],
+      "pass": true
+    },
+    {
+      "bundle": "selection",
+      "dist": "css/dist/ln-rank-selection.v3933_9.css",
+      "sourceCount": 46,
+      "minSourceCount": 40,
+      "bytes": 321433,
+      "minBytes": 220000,
+      "missingSelectors": [],
+      "pass": true
+    },
+    {
+      "bundle": "trend",
+      "dist": "css/dist/ln-rank-trend.v3933_9.css",
+      "sourceCount": 46,
+      "minSourceCount": 40,
+      "bytes": 320048,
+      "minBytes": 180000,
+      "missingSelectors": [],
+      "pass": true
+    },
+    {
+      "bundle": "selfCheck",
+      "dist": "css/dist/ln-rank-self-check.v3933_9.css",
+      "sourceCount": 46,
+      "minSourceCount": 40,
+      "bytes": 307628,
+      "minBytes": 160000,
+      "missingSelectors": [],
+      "pass": true
+    },
+    {
+      "bundle": "localMainline",
+      "dist": "css/dist/local-mainline.v3933_9.css",
+      "sourceCount": 1,
+      "minSourceCount": 1,
+      "bytes": 7947,
+      "minBytes": 6000,
+      "missingSelectors": [],
+      "pass": true
+    }
+  ]
+}

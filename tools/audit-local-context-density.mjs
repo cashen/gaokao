@@ -18,7 +18,7 @@ const trajectory = read('js/knowledge/liaoning-major-trajectory-chain.js');
 const css = read('css/components/local-context-contract.css');
 const distMain = read(mainCss);
 const distSelection = read(selectionCss);
-check('card uses safe local context resolver', /safeGetLocalContextPresentation\(record, 'card'\)/.test(render), 'major card should use safe compact context resolver');
+check('card uses unified safe local background/local context resolver', /safeGetLocalContextPresentation\(record, 'card'\)/.test(render) || /getLocalBackgroundHint\(record\)/.test(render), 'major card should use safe compact local context/background resolver');
 check('card only uses local-context classes', /local-context-inline/.test(render) && /local-context-chip/.test(render), 'card should render compact local-context chip');
 check('card does not output full tips', !/cardTip|reportTip|reviewPoints\.join|boundary/.test(render), 'card surface must not output full explanation');
 check('selection uses compact local context chip', /itemLocalContextChip/.test(selection) && /workspace-local-context-chip/.test(selection), 'selection item should use one compact chip');
