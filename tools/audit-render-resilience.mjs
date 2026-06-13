@@ -15,7 +15,7 @@ const resolver = read('js/knowledge/local-context-resolver.js');
 if (!/safeGetLocalContextPresentation/.test(index)) failures.push('knowledge index does not export safeGetLocalContextPresentation');
 if (!/export function safeGetLocalContextPresentation/.test(resolver)) failures.push('resolver missing safeGetLocalContextPresentation');
 if (/getLocalContextPresentation\(record, 'card'\)/.test(render)) failures.push('card renderer directly calls unsafe local context');
-if (!/safeGetLocalContextPresentation\(record, 'card'\)/.test(render)) failures.push('card renderer does not use safe local context');
+if (!/getLocalBackgroundHint\(record\)/.test(render)) failures.push('card renderer does not use unified safe local background hint');
 if (/getLocalContextPresentation\(item,/.test(selection)) failures.push('selection page directly calls unsafe local context');
 if (!/safeGetLocalContextPresentation\(item, 'selectionItem'\)/.test(selection)) failures.push('selection item does not use safe local context');
 if (!/safeGetLocalContextPresentation\(item, 'report'\)/.test(selection)) failures.push('report builder does not use safe local context');

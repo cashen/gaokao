@@ -8,7 +8,7 @@ const q = assets.assetVersion.replace(/^v/, '');
 const failures=[];
 function fail(name, ok, detail=''){ if(!ok) failures.push(`${name}${detail?': '+detail:''}`); }
 const index = fs.readFileSync(path.join(lr,'index.html'),'utf8');
-const css = fs.readFileSync(path.join(lr, assets.cssDist?.main || 'css/dist/ln-rank-main.v3933_7.css'),'utf8');
+const css = fs.readFileSync(path.join(lr, assets.cssDist?.main || 'css/dist/ln-rank-main.v3933_8.css'),'utf8');
 const section = index.slice(index.indexOf('class="mainline-entry'), index.indexOf('class="ln-console'));
 fail('auxiliary entry uses human title', section.includes('省内学校的专业背景'));
 fail('auxiliary entry button uses human copy', section.includes('查看省内专业背景'));

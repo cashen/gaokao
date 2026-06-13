@@ -10,8 +10,8 @@ function fail(name, ok, detail=''){ if(!ok) failures.push(`${name}${detail?': '+
 const render = fs.readFileSync(path.join(lr, 'js/feature/major-pool/render.js'), 'utf8');
 const linkBlock = render.slice(render.indexOf('function localMainlineLink'), render.indexOf('function card'));
 fail('localMainlineLink exists', linkBlock.includes('function localMainlineLink'));
-fail('card link requires local context evidence', /safeGetLocalContextPresentation\(record,\s*['"]card['"]\)/.test(linkBlock));
-fail('card link refuses no evidence', /!view\?\.matched/.test(linkBlock) || /view\?\.matched\s*!==\s*true/.test(linkBlock));
+fail('card link requires unified local background evidence', /getLocalBackgroundHint\(record\)/.test(linkBlock));
+fail('card link refuses no evidence', /!hint\?\.visible/.test(linkBlock) || /hint\?\.visible\s*!==\s*true/.test(linkBlock));
 fail('card link no longer unconditional school major only', !/if\s*\(record\?\.school\s*&&\s*record\?\.major\)\s*\{?\s*const href/s.test(linkBlock));
 fail('card link uses human label', linkBlock.includes('省内背景'));
 fail('card link removed old label', !linkBlock.includes('查看学校主线'));
