@@ -1,0 +1,78 @@
+{
+  "version": "v3.9.33.10",
+  "assetVersion": "v3933_10",
+  "generatedAt": "2026-06-13T05:35:30.175Z",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "card uses compact local context renderer",
+      "ok": true,
+      "detail": "major card should use compact context renderer"
+    },
+    {
+      "name": "card does not generate full block class",
+      "ok": true,
+      "detail": "no full block in card renderer"
+    },
+    {
+      "name": "card renderer does not output full tips",
+      "ok": true,
+      "detail": "card surface must not output full tips"
+    },
+    {
+      "name": "card puts major code before local context",
+      "ok": true,
+      "detail": "hard fields should appear before background hints"
+    },
+    {
+      "name": "selection uses compact local context chip",
+      "ok": true,
+      "detail": "selection item should use compact chip"
+    },
+    {
+      "name": "selection does not generate old workspace block",
+      "ok": true,
+      "detail": "no block-level local chain"
+    },
+    {
+      "name": "selection item does not output full tips",
+      "ok": true,
+      "detail": "selection item must not output full tips"
+    },
+    {
+      "name": "knowledge local chain opt-in",
+      "ok": true,
+      "detail": "knowledge review must not inject local chain by default"
+    },
+    {
+      "name": "css has card inline contract",
+      "ok": true,
+      "detail": ".local-context-inline must be flex"
+    },
+    {
+      "name": "css has selection chip contract",
+      "ok": true,
+      "detail": ".workspace-local-context-chip must be inline-flex"
+    },
+    {
+      "name": "source css removed old full classes",
+      "ok": true,
+      "detail": "old block classes not allowed in active source css"
+    },
+    {
+      "name": "main dist removed old full classes",
+      "ok": true,
+      "detail": "old block classes not allowed in active main dist"
+    },
+    {
+      "name": "selection dist removed old full classes",
+      "ok": true,
+      "detail": "old block classes not allowed in active selection dist"
+    },
+    {
+      "name": "frontend copy is human-readable",
+      "ok": true,
+      "detail": "front surfaces should use 院校专业背景/本校方向/方向提醒"
+    }
+  ]
+}

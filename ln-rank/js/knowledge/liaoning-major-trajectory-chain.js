@@ -1,9 +1,9 @@
-/* v3.9.33.9 辽宁院校专业后向轨迹合同
+/* v3.9.33.10 辽宁院校专业后向轨迹合同
  * 作用：识别“同名专业在不同辽宁院校里，后续学习、实验室、实习、校招可能偏向的行业场景”。
  * 前台只显示短提示；完整解释只进入生成前确认和报告。
  */
-import { resolveMajorCodes } from './major-code-resolver.js?v=3933_9';
-import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_9';
+import { resolveMajorCodes } from './major-code-resolver.js?v=3933_10';
+import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3933_10';
 function clean(value, max = 200) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }

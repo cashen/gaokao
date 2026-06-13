@@ -1,15 +1,16 @@
 {
-  "version": "v3.9.33.9",
-  "assetVersion": "v3933_9",
-  "release": "v3.9.33.9-ln-rank-css-dist-source-visual-debug-contract-no-fenxi",
-  "name": "v3.9.33.9-ln-rank-css-dist-source-visual-debug-contract-no-fenxi",
-  "label": "css-dist-source-visual-debug-contract",
+  "version": "v3.9.33.10",
+  "assetVersion": "v3933_10",
+  "release": "v3.9.33.10-ln-rank-local-mainline-parent-first-human-flow-no-fenxi",
+  "name": "v3.9.33.10-ln-rank-local-mainline-parent-first-human-flow-no-fenxi",
+  "label": "local-mainline-parent-first-human-flow",
   "notes": [
-    "建立 CSS dist 来源合同：dist 构建固定读取 css/css-bundle-sources.json，不再从 active HTML 反推源 CSS。",
-    "恢复完整 main/selection/trend/self-check CSS dist，核心布局、卡片、按钮、输入和结果区样式重新进入 active CSS。",
-    "新增 css dist source coverage audit，检查 sourceCount、bytes、核心源文件和关键选择器，防止 CSS 残缺仍通过审计。",
-    "新增 main page style smoke audit，检查首页、自选页、趋势页、自测页和 local-mainline 的核心选择器和 CSS 体积。",
-    "将“页面视觉像裸 HTML 即发版失败”写入 release debug 合同，后续发包必须做可视层 smoke。"
+    "将 local-mainline 从工程能力展示页改为第一次使用家长也能顺着走的省内专业背景复核页。",
+    "移除普通家长视图中的飞书、专业入口、待补证据、/ln-rank/ 路径等工程化表达。",
+    "新增“不知道从哪开始”三入口引导：按学校看、按专业看、按分数看。",
+    "分数入口筛选改成人话：先看背景更明确的专业、多看一些相关专业、连提醒也一起看；高级筛选折叠。",
+    "错误诊断默认只显示家长友好提示，技术排查信息折叠展示。",
+    "新增 local-mainline 家长优先文案、首次使用流程、筛选人话、空/错状态和卡片密度审计。"
   ],
   "noFenxiIncluded": true
 }

@@ -1,7 +1,7 @@
-/* v3.9.33.9 专业/院校匹配运行时合同
+/* v3.9.33.10 专业/院校匹配运行时合同
  * 目标：院校专业背景只在“专业名明确命中”时前台显示；目录代码只增强证据；短别名不做 contains，避免外省院校误命中。
  */
-import { normalizeCatalogCode } from './major-code-resolver.js?v=3933_9';
+import { normalizeCatalogCode } from './major-code-resolver.js?v=3933_10';
 
 export function clean(value, max = 240) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);

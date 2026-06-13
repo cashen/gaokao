@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.9",
-  "assetVersion": "v3933_9",
+  "version": "v3.9.33.10",
+  "assetVersion": "v3933_10",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -9,26 +9,26 @@
     "local-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_9.js",
-    "js/selection-pool.v3933_9.js",
-    "js/major-trend-render.v3933_9.js",
-    "js/self-check.v3933_9.js",
-    "js/local-mainline/local-mainline-app.v3933_9.js"
+    "js/app.v3933_10.js",
+    "js/selection-pool.v3933_10.js",
+    "js/major-trend-render.v3933_10.js",
+    "js/self-check.v3933_10.js",
+    "js/local-mainline/local-mainline-app.v3933_10.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_9.css",
-    "css/dist/ln-rank-selection.v3933_9.css",
-    "css/dist/ln-rank-trend.v3933_9.css",
-    "css/dist/ln-rank-self-check.v3933_9.css",
-    "css/dist/local-mainline.v3933_9.css"
+    "css/dist/ln-rank-main.v3933_10.css",
+    "css/dist/ln-rank-selection.v3933_10.css",
+    "css/dist/ln-rank-trend.v3933_10.css",
+    "css/dist/ln-rank-self-check.v3933_10.css",
+    "css/dist/local-mainline.v3933_10.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_9.css",
-    "selection": "css/dist/ln-rank-selection.v3933_9.css",
-    "trend": "css/dist/ln-rank-trend.v3933_9.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_9.css",
-    "localMainline": "css/dist/local-mainline.v3933_9.css"
+    "main": "css/dist/ln-rank-main.v3933_10.css",
+    "selection": "css/dist/ln-rank-selection.v3933_10.css",
+    "trend": "css/dist/ln-rank-trend.v3933_10.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_10.css",
+    "localMainline": "css/dist/local-mainline.v3933_10.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -88,7 +88,12 @@
     "tools/audit-local-background-visible-samples.mjs",
     "css/css-bundle-sources.json",
     "tools/audit-css-dist-source-coverage.mjs",
-    "tools/audit-main-page-style-smoke.mjs"
+    "tools/audit-main-page-style-smoke.mjs",
+    "tools/audit-local-mainline-parent-first-copy.mjs",
+    "tools/audit-local-mainline-first-use-flow.mjs",
+    "tools/audit-local-mainline-filter-human.mjs",
+    "tools/audit-local-mainline-empty-error-human.mjs",
+    "tools/audit-local-mainline-card-density.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",
