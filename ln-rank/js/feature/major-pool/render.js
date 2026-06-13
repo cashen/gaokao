@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_6';
-import { fmt } from '../../core/number-utils.js?v=3933_6';
-import { renderHistoryScore } from './history-score-render.js?v=3933_6';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_6';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_6';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_6';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_6';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_6';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_7';
+import { fmt } from '../../core/number-utils.js?v=3933_7';
+import { renderHistoryScore } from './history-score-render.js?v=3933_7';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_7';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_7';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_7';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_7';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_7';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -201,8 +201,11 @@ function renderMajorCode(record) {
 
 function localMainlineLink(record) {
   if (!record?.school || !record?.major) return '';
+  const view = safeGetLocalContextPresentation(record, 'card');
+  if (!view?.matched) return '';
   const href = `/ln-rank/local-mainline.html?school=${encodeURIComponent(record.school)}&major=${encodeURIComponent(record.major)}`;
-  return `<a class="local-mainline-card-link" href="${href}">查看学校主线</a>`;
+  const title = `${view.label || '背景'}：${view.name || '省内专业背景'}。这里只用于家庭复核，不代表录取判断。`;
+  return `<a class="local-mainline-card-link" href="${href}" title="${escapeHtml(title)}">省内背景</a>`;
 }
 
 function card(record, index = 0, selectionPool = null, activeBand = 'near') {

@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.33.6",
-  "assetVersion": "v3933_6",
-  "release": "v3.9.33.6-ln-rank-api-runtime-health-contract-no-fenxi",
-  "name": "v3.9.33.6-ln-rank-api-runtime-health-contract-no-fenxi",
-  "label": "api-runtime-health-contract",
+  "version": "v3.9.33.7",
+  "assetVersion": "v3933_7",
+  "release": "v3.9.33.7-ln-rank-local-mainline-entry-scope-human-surface-no-fenxi",
+  "name": "v3.9.33.7-ln-rank-local-mainline-entry-scope-human-surface-no-fenxi",
+  "label": "local-mainline-entry-scope-human-surface",
   "notes": [
-    "新增统一 API JSON 读取合同：前端能区分 HTML 响应、HTTP 错误、JSON 解析错误和业务错误。",
-    "新增 /api/ln-rank-runtime-health，用 JSON 汇总 major-bands、/fenxi manifest 和 local-mainline 基座健康状态。",
-    "搜索卡片读取失败时分层展示：家长看到简短提示，工程诊断指向 health 接口和部署根目录检查。",
-    "local-mainline 单页复用同一套 API 错误处理，单页失败不拖垮 /ln-rank/ 主搜索。",
-    "新增 API 运行时健康合同审计和前端 API 客户端审计，继续保持 no-fenxi 发包边界。"
+    "省内专业背景入口前台文案从“学校主线/专业主线”收口为“省内专业背景/学校办学方向”，降低家长理解成本。",
+    "搜索卡片的省内背景入口只在存在本校方向、本校相关或方向提醒证据时显示；外省院校和无证据条目不显示辅助入口。",
+    "首页省内背景提示带降权，按钮使用温和线框色系，Android 下单列并禁止按钮文字换行。",
+    "卡片动作层级调整为：放进报告、单条解读、省内背景轻链接，辅助跳转不再抢主流程。",
+    "local-mainline 单页同步前台文案，减少工程词和内部词；新增入口范围、辅助入口、跳转色系和移动端布局审计。"
   ],
   "noFenxiIncluded": true
 }

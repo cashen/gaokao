@@ -34,7 +34,7 @@
   .knowledge-chip{font-size:11px;}
 }
 
-/* v3.9.33.6 复核提示位置合同：组合级提示只做低权重生成前提醒。 */
+/* v3.9.33.7 复核提示位置合同：组合级提示只做低权重生成前提醒。 */
 .analysis-knowledge-card.is-compact {
   margin: 10px 0 0 !important;
   padding: 9px 11px !important;
