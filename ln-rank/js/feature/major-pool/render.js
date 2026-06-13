@@ -1,11 +1,12 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_7';
-import { fmt } from '../../core/number-utils.js?v=3933_7';
-import { renderHistoryScore } from './history-score-render.js?v=3933_7';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_7';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_7';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_7';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_7';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_7';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_8';
+import { fmt } from '../../core/number-utils.js?v=3933_8';
+import { renderHistoryScore } from './history-score-render.js?v=3933_8';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_8';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_8';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3933_8';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3933_8';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_8';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_8';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -144,9 +145,11 @@ function renderKnowledgeChips(record) {
 }
 
 function renderLocalContextInline(record) {
-  const view = safeGetLocalContextPresentation(record, 'card');
-  if (!view) return '';
-  return `<div class="local-context-inline" title="该提示不是录取判断，只说明专业和学校办学背景、行业方向关联较强。"><span class="local-context-chip">${escapeHtml(view.label)}</span><span class="local-context-name">${escapeHtml(view.name)}</span></div>`;
+  const hint = getLocalBackgroundHint(record);
+  if (!hint?.visible) return '';
+  const review = Array.isArray(hint.reviewPoints) && hint.reviewPoints.length ? `再看：${hint.reviewPoints.slice(0, 3).join(' / ')}` : '再看：课程方向 / 招生章程';
+  const title = `${hint.text}。${review}。该提示不是录取判断，只说明专业和学校办学背景有关。`;
+  return `<div class="local-context-inline local-background-hint is-${escapeHtml(hint.level || 'trajectory')}" title="${escapeHtml(title)}"><span class="local-context-chip">${escapeHtml(hint.label)}</span><span class="local-context-name">${escapeHtml(hint.direction)}</span><span class="local-context-review">${escapeHtml(review)}</span></div>`;
 }
 
 function renderSpecialProjectBadge(record) {
@@ -201,10 +204,10 @@ function renderMajorCode(record) {
 
 function localMainlineLink(record) {
   if (!record?.school || !record?.major) return '';
-  const view = safeGetLocalContextPresentation(record, 'card');
-  if (!view?.matched) return '';
+  const hint = getLocalBackgroundHint(record);
+  if (!hint?.visible) return '';
   const href = `/ln-rank/local-mainline.html?school=${encodeURIComponent(record.school)}&major=${encodeURIComponent(record.major)}`;
-  const title = `${view.label || '背景'}：${view.name || '省内专业背景'}。这里只用于家庭复核，不代表录取判断。`;
+  const title = `${hint.text}。这里只用于家庭复核，不代表录取判断。`;
   return `<a class="local-mainline-card-link" href="${href}" title="${escapeHtml(title)}">省内背景</a>`;
 }
 
@@ -219,7 +222,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
   return `<article class="major-card ln-major-card status-${statusKey} ${bandClass}">
     <div class="major-card-top">
       <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
-      <span class="status-badge ln-band-pill ${bandClass}">${escapeHtml(displayBandLabel)}</span>
+      <span class="status-badge ln-band-pill ${bandClass}" title="分数位置：只是当前查看分组，不代表录取把握。">分数位置：${escapeHtml(displayBandLabel)}</span>
     </div>
     <div class="meta-pills">
       <span class="meta-pill">2025最低分：${fmt(record.score2025 ?? record.score)} 分</span>

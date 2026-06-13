@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.33.7",
-  "assetVersion": "v3933_7",
-  "release": "v3.9.33.7-ln-rank-local-mainline-entry-scope-human-surface-no-fenxi",
-  "name": "v3.9.33.7-ln-rank-local-mainline-entry-scope-human-surface-no-fenxi",
-  "label": "local-mainline-entry-scope-human-surface",
+  "version": "v3.9.33.8",
+  "assetVersion": "v3933_8",
+  "release": "v3.9.33.8-ln-rank-local-background-hint-layer-contract-no-fenxi",
+  "name": "v3.9.33.8-ln-rank-local-background-hint-layer-contract-no-fenxi",
+  "label": "local-background-hint-layer-contract",
   "notes": [
-    "省内专业背景入口前台文案从“学校主线/专业主线”收口为“省内专业背景/学校办学方向”，降低家长理解成本。",
-    "搜索卡片的省内背景入口只在存在本校方向、本校相关或方向提醒证据时显示；外省院校和无证据条目不显示辅助入口。",
-    "首页省内背景提示带降权，按钮使用温和线框色系，Android 下单列并禁止按钮文字换行。",
-    "卡片动作层级调整为：放进报告、单条解读、省内背景轻链接，辅助跳转不再抢主流程。",
-    "local-mainline 单页同步前台文案，减少工程词和内部词；新增入口范围、辅助入口、跳转色系和移动端布局审计。"
+    "建立省内专业背景分层提示合同：无显示、方向提醒、本校相关、本校方向，不再一刀切显示或隐藏。",
+    "搜索卡片统一走 getLocalBackgroundHint()，省内专业背景提醒放在地域/专业代码之后、复核详情之前。",
+    "新增显式专业别名桥接：沈阳航空航天大学｜航空智能制造技术 → 本校相关｜航空制造，保留培养学院、课程方向、分流规则、招生章程复核点。",
+    "分数位置标签增加人话解释，避免“主要参考”被误解为主线或推荐。",
+    "新增省内背景分层、卡片顺序、可见样例审计，防止外省误显示、弱证据乱显示和专业背景被复核详情压住。"
   ],
   "noFenxiIncluded": true
 }

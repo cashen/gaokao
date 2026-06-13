@@ -117,3 +117,58 @@
     padding: 4px 7px;
   }
 }
+
+/* v3.9.33.8 省内专业背景分层提示：轻提示，放在地域/专业代码之后、复核详情之前 */
+.local-background-hint {
+  border-color: #d7e7e2;
+  background: #fbfefd;
+  color: #345b54;
+  gap: 6px;
+}
+.local-background-hint .local-context-chip {
+  background: #eef8f5;
+  color: #2f695f;
+  border-color: #cce4de;
+}
+.local-background-hint .local-context-name {
+  font-weight: 750;
+  color: #345b54;
+}
+.local-background-hint .local-context-review {
+  color: #65736f;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.local-background-hint.is-secondary .local-context-chip {
+  background: #f2f7ff;
+  border-color: #d5e2f2;
+  color: #3d668d;
+}
+.local-background-hint.is-trajectory .local-context-chip {
+  background: #fffaf0;
+  border-color: #eadbb7;
+  color: #765f2a;
+}
+.status-badge[title*="分数位置"] {
+  font-weight: 650;
+}
+@media(max-width:720px){
+  .local-background-hint {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    line-height: 1.4;
+  }
+  .local-background-hint .local-context-review {
+    flex-basis: 100%;
+    font-size: 11.8px;
+  }
+}
+
+/* v3.9.33.8 辅助入口提示带：温和，不抢主搜索 */
+.mainline-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#fff,#f7fbff);border:1px solid #dbe6f6}.mainline-entry h2{margin:0 0 6px;font-size:20px}.mainline-entry p{margin:0;color:#59677d;line-height:1.65}.mainline-entry-link{display:inline-flex;align-items:center;justify-content:center;min-width:174px;text-decoration:none;background:#f7faff;color:#365f8f;border:1px solid #cbd9ea;border-radius:999px;padding:10px 14px;font-weight:700;white-space:nowrap;box-shadow:none}.mainline-entry-link:hover{background:#eef5ff;border-color:#b8cde8;color:#284f7f;text-decoration:none}@media(max-width:720px){.mainline-entry{display:block;padding:16px}.mainline-entry h2{font-size:18px}.mainline-entry p{font-size:14px;line-height:1.58}.mainline-entry-link{display:flex;width:100%;max-width:none;margin-top:12px;min-height:44px}}
+.local-mainline-card-link{display:inline-flex;align-items:center;justify-content:center;border:1px solid #d8e2f0;background:#f9fbfe;color:#3f628f;border-radius:999px;padding:6px 9px;font-weight:650;text-decoration:none;font-size:12.5px;white-space:nowrap;box-shadow:none}.local-mainline-card-link:hover{background:#eef4fb;border-color:#c9d8eb;color:#2f517b;text-decoration:none}.major-card-actions .local-mainline-card-link{order:3;margin-left:auto}.major-card-actions .pool-add-button{order:1}.major-card-actions .diagnose-button{order:2}@media(max-width:720px){.major-card-actions{gap:8px}.major-card-actions .local-mainline-card-link{width:100%;margin-left:0;justify-content:center;min-height:36px}}@media(max-width:360px){.local-mainline-card-link{white-space:nowrap;font-size:12.5px}}
+
+/* v3.9.33.8 selection hierarchy audit anchors retained in active dist */
+.ln-selection-list-panel .workspace-order{width:26px!important;height:26px!important;font-size:12px!important}
+.ln-selection-list-panel .workspace-mini-button{font-size:11.5px!important;min-height:28px!important;padding:0 8px!important}
+.analysis-rankzone.human-rankzone{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)!important}

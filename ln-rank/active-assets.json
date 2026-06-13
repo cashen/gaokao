@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.7",
-  "assetVersion": "v3933_7",
+  "version": "v3.9.33.8",
+  "assetVersion": "v3933_8",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -9,26 +9,26 @@
     "local-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_7.js",
-    "js/selection-pool.v3933_7.js",
-    "js/major-trend-render.v3933_7.js",
-    "js/self-check.v3933_7.js",
-    "js/local-mainline/local-mainline-app.v3933_7.js"
+    "js/app.v3933_8.js",
+    "js/selection-pool.v3933_8.js",
+    "js/major-trend-render.v3933_8.js",
+    "js/self-check.v3933_8.js",
+    "js/local-mainline/local-mainline-app.v3933_8.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_7.css",
-    "css/dist/ln-rank-selection.v3933_7.css",
-    "css/dist/ln-rank-trend.v3933_7.css",
-    "css/dist/ln-rank-self-check.v3933_7.css",
-    "css/dist/local-mainline.v3933_7.css"
+    "css/dist/ln-rank-main.v3933_8.css",
+    "css/dist/ln-rank-selection.v3933_8.css",
+    "css/dist/ln-rank-trend.v3933_8.css",
+    "css/dist/ln-rank-self-check.v3933_8.css",
+    "css/dist/local-mainline.v3933_8.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_7.css",
-    "selection": "css/dist/ln-rank-selection.v3933_7.css",
-    "trend": "css/dist/ln-rank-trend.v3933_7.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_7.css",
-    "localMainline": "css/dist/local-mainline.v3933_7.css"
+    "main": "css/dist/ln-rank-main.v3933_8.css",
+    "selection": "css/dist/ln-rank-selection.v3933_8.css",
+    "trend": "css/dist/ln-rank-trend.v3933_8.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_8.css",
+    "localMainline": "css/dist/local-mainline.v3933_8.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -80,7 +80,12 @@
     "tools/audit-local-mainline-card-scope.mjs",
     "tools/audit-auxiliary-entry-surface.mjs",
     "tools/audit-jump-link-color.mjs",
-    "tools/audit-mobile-entry-layout.mjs"
+    "tools/audit-mobile-entry-layout.mjs",
+    "js/knowledge/local-background-hint.js",
+    "kb/local-mainline/local-mainline-major-alias-bridge.generated.js",
+    "tools/audit-local-background-hint-layer.mjs",
+    "tools/audit-local-background-card-order.mjs",
+    "tools/audit-local-background-visible-samples.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",

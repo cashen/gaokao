@@ -1,6 +1,6 @@
-import { RANGE_PRESETS } from '../config/range-presets.js?v=3933_7';
-import { normalizeRangePreset } from './range-policy.js?v=3933_7';
-import { normalizeBandFocus } from './band-policy.js?v=3933_7';
+import { RANGE_PRESETS } from '../config/range-presets.js?v=3933_8';
+import { normalizeRangePreset } from './range-policy.js?v=3933_8';
+import { normalizeBandFocus } from './band-policy.js?v=3933_8';
 
 export const SCORE_BAND_KEYS = ['upper', 'near', 'steady'];
 
