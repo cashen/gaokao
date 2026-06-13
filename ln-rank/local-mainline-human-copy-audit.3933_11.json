@@ -1,0 +1,12 @@
+{
+  "version": "v3.9.33.11",
+  "assetVersion": "v3933_11",
+  "scanned": [
+    "local-mainline.html",
+    "js/local-mainline/local-mainline-app.v3933_11.js",
+    "css/dist/local-mainline.v3933_11.css",
+    "data/local-mainline/local-mainline-index.generated.json"
+  ],
+  "status": "pass",
+  "failures": []
+}

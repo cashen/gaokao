@@ -1,12 +1,12 @@
-/* v3.9.33.10 省内专业背景分层提示合同
+/* v3.9.33.11 省内专业背景分层提示合同
  * 目标：不是所有省内院校都显示背景提示，也不是有省内背景却完全空白。
  * 层级：不显示 / 方向提醒 / 本校相关 / 本校方向。
  */
-import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3933_10';
-import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3933_10';
-import { normalizeMajorName, normalizeSchoolName, candidateMajorNames } from './major-match-contract.js?v=3933_10';
-import { LIAONING_SCHOOL_MAINLINE_EVIDENCE } from '../../kb/local-mainline/school-mainline-evidence.generated.js?v=3933_10';
-import { LOCAL_MAINLINE_MAJOR_ALIAS_BRIDGE } from '../../kb/local-mainline/local-mainline-major-alias-bridge.generated.js?v=3933_10';
+import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3933_11';
+import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3933_11';
+import { normalizeMajorName, normalizeSchoolName, candidateMajorNames } from './major-match-contract.js?v=3933_11';
+import { LIAONING_SCHOOL_MAINLINE_EVIDENCE } from '../../kb/local-mainline/school-mainline-evidence.generated.js?v=3933_11';
+import { LOCAL_MAINLINE_MAJOR_ALIAS_BRIDGE } from '../../kb/local-mainline/local-mainline-major-alias-bridge.generated.js?v=3933_11';
 
 const LIAONING_PROVINCE = '辽宁';
 const OUT_OF_SCOPE_CAMPUSES = [/秦皇岛/, /威海/, /珠海/, /深圳/, /苏州/, /雄安/];

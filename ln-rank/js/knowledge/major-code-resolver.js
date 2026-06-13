@@ -1,4 +1,4 @@
-/* v3.9.33.10 专业代码识别合同
+/* v3.9.33.11 专业代码识别合同
  * 区分招生专业代码（04/9U/BC）与本科目录代码（080601/081504）。
  */
 function clean(value, max = 80) { return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max); }

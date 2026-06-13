@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.10",
-  "assetVersion": "v3933_10",
+  "version": "v3.9.33.11",
+  "assetVersion": "v3933_11",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -9,26 +9,26 @@
     "local-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_10.js",
-    "js/selection-pool.v3933_10.js",
-    "js/major-trend-render.v3933_10.js",
-    "js/self-check.v3933_10.js",
-    "js/local-mainline/local-mainline-app.v3933_10.js"
+    "js/app.v3933_11.js",
+    "js/selection-pool.v3933_11.js",
+    "js/major-trend-render.v3933_11.js",
+    "js/self-check.v3933_11.js",
+    "js/local-mainline/local-mainline-app.v3933_11.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_10.css",
-    "css/dist/ln-rank-selection.v3933_10.css",
-    "css/dist/ln-rank-trend.v3933_10.css",
-    "css/dist/ln-rank-self-check.v3933_10.css",
-    "css/dist/local-mainline.v3933_10.css"
+    "css/dist/ln-rank-main.v3933_11.css",
+    "css/dist/ln-rank-selection.v3933_11.css",
+    "css/dist/ln-rank-trend.v3933_11.css",
+    "css/dist/ln-rank-self-check.v3933_11.css",
+    "css/dist/local-mainline.v3933_11.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_10.css",
-    "selection": "css/dist/ln-rank-selection.v3933_10.css",
-    "trend": "css/dist/ln-rank-trend.v3933_10.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_10.css",
-    "localMainline": "css/dist/local-mainline.v3933_10.css"
+    "main": "css/dist/ln-rank-main.v3933_11.css",
+    "selection": "css/dist/ln-rank-selection.v3933_11.css",
+    "trend": "css/dist/ln-rank-trend.v3933_11.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_11.css",
+    "localMainline": "css/dist/local-mainline.v3933_11.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -93,7 +93,8 @@
     "tools/audit-local-mainline-first-use-flow.mjs",
     "tools/audit-local-mainline-filter-human.mjs",
     "tools/audit-local-mainline-empty-error-human.mjs",
-    "tools/audit-local-mainline-card-density.mjs"
+    "tools/audit-local-mainline-card-density.mjs",
+    "tools/audit-local-mainline-human-logic-sort.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",

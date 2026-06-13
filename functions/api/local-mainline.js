@@ -70,18 +70,33 @@ async function loadMatchedRecords(request, env, filters = {}) {
     if (Number.isFinite(Number(filters.minScore)) && Number(record.score2025 ?? record.score) < Number(filters.minScore)) continue;
     out.push(shapeRecord(record, hit, filters.candidateScore));
   }
+  const candidate = Number(filters.candidateScore);
   out.sort((a, b) => {
     const levelWeight = (x) => x?.localMainlineRaw?.level === 'primary' ? 3 : x?.localMainlineRaw?.level === 'secondary' ? 2 : 1;
+    if (Number.isFinite(candidate)) {
+      const da = Math.abs(Number(a.score2025 || 0) - candidate);
+      const db = Math.abs(Number(b.score2025 || 0) - candidate);
+      if (da !== db) return da - db;
+    }
     return levelWeight(b) - levelWeight(a) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
   });
   return out.slice(0, max);
 }
+function sortByHumanScore(records, score) {
+  const candidate = Number(score);
+  const levelWeight = (x) => x?.localMainlineRaw?.level === 'primary' ? 3 : x?.localMainlineRaw?.level === 'secondary' ? 2 : 1;
+  return [...records].sort((a, b) => {
+    const da = Math.abs(Number(a.score2025 || 0) - candidate);
+    const db = Math.abs(Number(b.score2025 || 0) - candidate);
+    return da - db || levelWeight(b) - levelWeight(a) || rankSort(a.rank2025) - rankSort(b.rank2025);
+  });
+}
 function groupScore(records, score) {
   const candidate = Number(score);
   return {
-    under: records.filter(r => Number(r.score2025) <= candidate),
-    near: records.filter(r => Number(r.score2025) >= candidate - 10 && Number(r.score2025) <= candidate),
-    upper: records.filter(r => Number(r.score2025) > candidate && Number(r.score2025) <= candidate + 10)
+    near: sortByHumanScore(records.filter(r => Number(r.score2025) >= candidate - 10 && Number(r.score2025) <= candidate), score),
+    upper: sortByHumanScore(records.filter(r => Number(r.score2025) > candidate && Number(r.score2025) <= candidate + 10), score),
+    lower: sortByHumanScore(records.filter(r => Number(r.score2025) >= candidate - 25 && Number(r.score2025) < candidate - 10), score)
   };
 }
 
@@ -110,9 +125,9 @@ export async function onRequest(context) {
       if (!Number.isFinite(score) || score <= 0) return json({ ok: false, message: '请输入有效分数。' }, 400);
       const level = clean(url.searchParams.get('level') || 'primary', 30);
       const natureMode = clean(url.searchParams.get('natureMode') || 'all', 30);
-      const records = await loadMatchedRecords(context.request, context.env || {}, { candidateScore: score, maxScore: score + 10, minScore: score - 80, level, natureMode, max: url.searchParams.get('max') || 300 });
+      const records = await loadMatchedRecords(context.request, context.env || {}, { candidateScore: score, maxScore: score + 10, minScore: score - 25, level, natureMode, max: url.searchParams.get('max') || 300 });
       const grouped = groupScore(records, score);
-      return json({ ok: true, mode, score, level, natureMode, records, grouped, count: records.length, boundary: `这里不是录取判断，也不代表 2026 可以直接填。它只是把 2025 年历史最低分不高于或接近 ${score} 分、且有学校主线证据的专业列出来，方便家庭先讨论。` });
+      return json({ ok: true, mode, score, level, natureMode, records, grouped, count: records.length, boundary: `这里不是录取判断，也不代表 2026 可以直接填。它只是按 2025 年历史最低分和省内专业背景，把接近 ${score} 分、稍高一点和低一些可讨论的专业分组列出来，方便家庭先讨论。` });
     }
     return json({ ok: false, message: '未知查询方式。' }, 400);
   } catch (error) {
