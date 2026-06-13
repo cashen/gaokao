@@ -12,7 +12,7 @@ function scan(rel) {
   const m = txt.match(forbidden);
   if (m) failures.push(`${rel} contains forbidden copy: ${m[0]}`);
 }
-['local-mainline.html','js/local-mainline/local-mainline-app.v3933_5.js','css/dist/local-mainline.v3933_5.css','data/local-mainline/local-mainline-index.generated.json'].forEach(scan);
+['local-mainline.html','js/local-mainline/local-mainline-app.v3933_6.js','css/dist/local-mainline.v3933_6.css','data/local-mainline/local-mainline-index.generated.json'].forEach(scan);
 const out = { version: assets.version, assetVersion: assets.assetVersion, status: failures.length ? 'fail' : 'pass', failures };
 fs.writeFileSync(path.join(lr, `local-mainline-human-copy-audit.${q}.json`), JSON.stringify(out, null, 2));
 console.log(JSON.stringify(out, null, 2));

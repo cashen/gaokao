@@ -1,5 +1,5 @@
-import { getDirectionExplorerResult } from './direction-explorer-state.js?v=3933_5';
-import { buildDirectionExplorerPlainText } from './direction-explorer-engine.js?v=3933_5';
+import { getDirectionExplorerResult } from './direction-explorer-state.js?v=3933_6';
+import { buildDirectionExplorerPlainText } from './direction-explorer-engine.js?v=3933_6';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)

@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.5",
-  "assetVersion": "v3933_5",
+  "version": "v3.9.33.6",
+  "assetVersion": "v3933_6",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -9,26 +9,26 @@
     "local-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_5.js",
-    "js/selection-pool.v3933_5.js",
-    "js/major-trend-render.v3933_5.js",
-    "js/self-check.v3933_5.js",
-    "js/local-mainline/local-mainline-app.v3933_5.js"
+    "js/app.v3933_6.js",
+    "js/selection-pool.v3933_6.js",
+    "js/major-trend-render.v3933_6.js",
+    "js/self-check.v3933_6.js",
+    "js/local-mainline/local-mainline-app.v3933_6.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_5.css",
-    "css/dist/ln-rank-selection.v3933_5.css",
-    "css/dist/ln-rank-trend.v3933_5.css",
-    "css/dist/ln-rank-self-check.v3933_5.css",
-    "css/dist/local-mainline.v3933_5.css"
+    "css/dist/ln-rank-main.v3933_6.css",
+    "css/dist/ln-rank-selection.v3933_6.css",
+    "css/dist/ln-rank-trend.v3933_6.css",
+    "css/dist/ln-rank-self-check.v3933_6.css",
+    "css/dist/local-mainline.v3933_6.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_5.css",
-    "selection": "css/dist/ln-rank-selection.v3933_5.css",
-    "trend": "css/dist/ln-rank-trend.v3933_5.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_5.css",
-    "localMainline": "css/dist/local-mainline.v3933_5.css"
+    "main": "css/dist/ln-rank-main.v3933_6.css",
+    "selection": "css/dist/ln-rank-selection.v3933_6.css",
+    "trend": "css/dist/ln-rank-trend.v3933_6.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_6.css",
+    "localMainline": "css/dist/local-mainline.v3933_6.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -72,7 +72,11 @@
     "kb/local-mainline/local-mainline-copy-contract.js",
     "tools/audit-local-mainline-contract.mjs",
     "tools/audit-local-mainline-human-copy.mjs",
-    "tools/audit-score-entrance-accuracy.mjs"
+    "tools/audit-score-entrance-accuracy.mjs",
+    "js/shared/api-client.js",
+    "tools/audit-api-runtime-health-contract.mjs",
+    "tools/audit-api-client-contract.mjs",
+    "functions/api/ln-rank-runtime-health.js"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",

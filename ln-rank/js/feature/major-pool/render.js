@@ -1,11 +1,11 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_5';
-import { fmt } from '../../core/number-utils.js?v=3933_5';
-import { renderHistoryScore } from './history-score-render.js?v=3933_5';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_5';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_5';
-import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_5';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_5';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_5';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_6';
+import { fmt } from '../../core/number-utils.js?v=3933_6';
+import { renderHistoryScore } from './history-score-render.js?v=3933_6';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_6';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_6';
+import { buildSchoolIndustryTags, safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_6';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_6';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_6';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -256,7 +256,10 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   }
   if (state.bands.error) {
     title.textContent = '读取失败'; badge.textContent = '请检查'; meta.textContent = '专业数据暂时无法读取';
-    root.className = 'results-grid error'; root.textContent = state.bands.error; return;
+    const detail = state.bands.errorDetail ? `<div class="api-diagnostic-note"><b>工程诊断：</b>${escapeHtml(state.bands.errorDetail)}<br><span>先测 <code>/api/ln-rank-runtime-health</code>，再测 <code>/api/major-bands-health</code>。如果 health 也返回 HTML/503，优先检查 Cloudflare Pages 项目根目录是否包含 functions/。</span></div>` : '';
+    root.className = 'results-grid error';
+    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取数据判断问题，而是专业数据接口没有正常返回 JSON。可以稍后重试，或先检查运行时健康接口。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
+    return;
   }
   const data = state.bands.data;
   if (!data) {

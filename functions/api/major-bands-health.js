@@ -27,6 +27,7 @@ export async function onRequest(context) {
 
     return json({
       ok: true,
+      runtimeHealth: '/api/ln-rank-runtime-health',
       manifest: {
         version: manifest.version || '',
         totalRecords: manifest.totalRecords || '',
