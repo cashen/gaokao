@@ -1,14 +1,14 @@
 {
-  "version": "v3.9.40",
-  "assetVersion": "v3940_0",
-  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
-  "name": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
-  "label": "global-color-token-responsive-contract-12-role-no-fenxi",
+  "version": "v3.9.41",
+  "assetVersion": "v3941_0",
+  "release": "v3.9.41-ln-rank-serious-color-balance-responsive-contract-12-role-no-fenxi",
+  "name": "v3.9.41-ln-rank-serious-color-balance-responsive-contract-12-role-no-fenxi",
+  "label": "serious-color-balance-responsive-contract-12-role-no-fenxi",
   "notes": [
-    "基于 v3.9.39 门禁修复基线继续推进，不新增大而全功能，不改查询算法。",
-    "全站建立统一色彩 token：米白缓释背景、蓝灰可信主色、暖橙行动点、低饱和辅助色。",
-    "按页面角色分色：查询页主流程、自选池工作台、报告文档感、单卡诊断解释器、211/省内/趋势低权重辅助、自测页工程灰蓝。",
-    "响应式合同纳入发版门禁：375/390/414/430/768/1024/1366 重点防横向滚动、chip 竖排、按钮挤压和长文本溢出。",
+    "基于 v3.9.40 全站色系与响应式合同基线继续推进，不新增功能，不改查询算法。",
+    "针对实际截图反馈，将明亮暖橙和过软米白视觉回收为更严肃的深青蓝、冷静灰白和低饱和暖橙。",
+    "橙色退回到行动/核验提示，不再承担主流程步骤和辅助入口主情绪。",
+    "保持 375/390/414/430/768/1024/1366 响应式合同：防横向滚动、chip 竖排、按钮挤压和长文本溢出。",
     "no-fenxi 边界保持；functions/_middleware.js 不在包内。"
   ],
   "noFenxiIncluded": true,
@@ -21,7 +21,8 @@
   "selfCheckGate": true,
   "cssBlastRadiusScoped": true,
   "globalColorTokenContract": true,
+  "seriousColorBalanceContract": true,
   "responsiveContract": true,
   "parentNewUserReliefContract": true,
-  "functionLogicChangeScope": "none; visual token/responsive contract only, release version synchronized"
+  "functionLogicChangeScope": "none; visual seriousness balance only, release version synchronized"
 }
