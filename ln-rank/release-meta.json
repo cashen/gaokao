@@ -1,14 +1,15 @@
 {
-  "version": "v3.9.39",
-  "assetVersion": "v3939_0",
-  "release": "v3.9.39-ln-rank-report-contract-selfcheck-version-gate-12-role-no-fenxi",
-  "name": "v3.9.39-ln-rank-report-contract-selfcheck-version-gate-12-role-no-fenxi",
-  "label": "report-contract-selfcheck-version-gate-12-role-no-fenxi",
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "name": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "label": "global-color-token-responsive-contract-12-role-no-fenxi",
   "notes": [
-    "基于 v3.9.38 的 compact guide UI 基线，只修门禁问题，不新增大而全功能。",
-    "报告输出统一收口为固定六段：概要判断、当前方案怎么看、前中后段快速确认、最终排序清单、本方案确认清单、数据和使用边界。",
-    "self-check 增加独立结果容器，避免覆盖 body；active 资源、版本合同、报告六段、CSS selector blast-radius 纳入自测。",
-    "深层 API / report builder 版本号同步到 v3.9.39；CSS 长文本规则从 [class*=card] 收口为页面/组件作用域。"
+    "基于 v3.9.39 门禁修复基线继续推进，不新增大而全功能，不改查询算法。",
+    "全站建立统一色彩 token：米白缓释背景、蓝灰可信主色、暖橙行动点、低饱和辅助色。",
+    "按页面角色分色：查询页主流程、自选池工作台、报告文档感、单卡诊断解释器、211/省内/趋势低权重辅助、自测页工程灰蓝。",
+    "响应式合同纳入发版门禁：375/390/414/430/768/1024/1366 重点防横向滚动、chip 竖排、按钮挤压和长文本溢出。",
+    "no-fenxi 边界保持；functions/_middleware.js 不在包内。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
@@ -19,5 +20,8 @@
   "reportSixSectionContract": true,
   "selfCheckGate": true,
   "cssBlastRadiusScoped": true,
-  "functionLogicChangeScope": "report builders, self-check API version/error payload, runtime health version payload only"
+  "globalColorTokenContract": true,
+  "responsiveContract": true,
+  "parentNewUserReliefContract": true,
+  "functionLogicChangeScope": "none; visual token/responsive contract only, release version synchronized"
 }

@@ -1,9 +1,9 @@
 export const LN_RANK_RELEASE_CONTRACT = {
-  display: 'v3.9.39',
-  asset: '3939_0',
-  assetVersion: 'v3939_0',
-  release: 'v3.9.39-ln-rank-report-contract-selfcheck-version-gate-12-role-no-fenxi',
-  label: 'report-contract-selfcheck-version-gate-12-role-no-fenxi',
+  display: 'v3.9.40',
+  asset: '3940_0',
+  assetVersion: 'v3940_0',
+  release: 'v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi',
+  label: 'global-color-token-responsive-contract-12-role-no-fenxi',
   reportSections: [
     '一、概要判断',
     '二、当前方案怎么看',

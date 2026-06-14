@@ -187,8 +187,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: LN_RANK_RELEASE_CONTRACT.display, catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: LN_RANK_RELEASE_CONTRACT.display, assetVersion: LN_RANK_RELEASE_CONTRACT.assetVersion, release: LN_RANK_RELEASE_CONTRACT.release, catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: LN_RANK_RELEASE_CONTRACT.display, message: error?.message || String(error), hint: '自测接口失败。请查看服务端日志，不在前台暴露 stack trace。' }, 500);
+    return json({ ok: false, version: LN_RANK_RELEASE_CONTRACT.display, assetVersion: LN_RANK_RELEASE_CONTRACT.assetVersion, release: LN_RANK_RELEASE_CONTRACT.release, message: error?.message || String(error), hint: '自测接口失败。请查看服务端日志，不在前台暴露 stack trace。' }, 500);
   }
 }

@@ -20,3 +20,11 @@
 9. 自测页挂载点合同：self-check 必须渲染到明确容器，不允许 fallback 到 `document.body` 覆盖工程自查页。
 10. 深层版本合同：前端 version-contract、active-assets、module-manifest、release-meta、functions release contract、API health、报告 builder 版本必须一致。
 11. CSS selector blast-radius 合同：active CSS 禁止 `[class*=card]`、`[class*=chip]`、`[class*=tag]` 这类跨页面模糊选择器；长文本抗变形必须落在页面或组件作用域内。
+
+
+## v3.9.40 全站色系与响应式合同
+
+- 全站色彩只通过 token 收口，禁止为单页临时新增 fix/patch/final 样式文件。
+- 暖橙只用于行动点与人工核验提醒；蓝灰用于可信主流程；米白用于新手家长缓释。
+- 375/390/414/430/768/1024/1366 为多终端回归断点，重点检查 body 横向滚动、chip 竖排、按钮挤压、报告与诊断长文本溢出。
+- self-check 是工程页，不接入家长向导组件；211、省内、趋势保持辅助复核低权重。

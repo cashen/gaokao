@@ -14,3 +14,11 @@
 - self-check：点击“运行自测”后只更新合同门禁结果区域，不能覆盖 body；API 失败必须显示人话提示。
 - 版本合同：VERSION、active-assets、module-manifest、release-meta、HTML footer、self-check 文案、js/domain/version-contract.js、functions/_lib/release-contract.js、API health、report builder 均同步到当前版本。
 - CSS 半径：active CSS 不允许 `[class*=card]`、`[class*=chip]`、`[class*=tag]`；移动端按钮和长文本仍需保留抗变形。
+
+
+## v3.9.40 全站色系与响应式合同
+
+- 全站色彩只通过 token 收口，禁止为单页临时新增 fix/patch/final 样式文件。
+- 暖橙只用于行动点与人工核验提醒；蓝灰用于可信主流程；米白用于新手家长缓释。
+- 375/390/414/430/768/1024/1366 为多终端回归断点，重点检查 body 横向滚动、chip 竖排、按钮挤压、报告与诊断长文本溢出。
+- self-check 是工程页，不接入家长向导组件；211、省内、趋势保持辅助复核低权重。

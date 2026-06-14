@@ -1,0 +1,42 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "matrix": [
+    {
+      "area": "版本合同",
+      "case": "VERSION / release-meta / active-assets / module-manifest / footer / frontend contract / function contract",
+      "status": "pass"
+    },
+    {
+      "area": "全站色系",
+      "case": "active CSS 包含 ln color token，页面角色分色通过静态检查",
+      "status": "pass_static"
+    },
+    {
+      "area": "响应式",
+      "case": "375/390/414/430/768/1024/1366 合同写入 CSS；真实截图未完成",
+      "status": "partial"
+    },
+    {
+      "area": "主流程",
+      "case": "查询页、自选池、报告入口、单卡诊断入口未删除；未做浏览器交互回归",
+      "status": "partial"
+    },
+    {
+      "area": "报告",
+      "case": "self-check API 报告六段通过",
+      "status": "pass_local"
+    },
+    {
+      "area": "API",
+      "case": "self-check/kb-health 本地 onRequest 返回 JSON；线上未测",
+      "status": "partial"
+    },
+    {
+      "area": "no-fenxi",
+      "case": "无 /fenxi/ 目录、无 functions/fenxi、无 functions/_middleware.js",
+      "status": "pass"
+    }
+  ]
+}

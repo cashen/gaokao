@@ -16,3 +16,11 @@
 | self-check 脚本找不到 selfCheckResult 时覆盖整个 body | 自测页挂载点合同 | self-check 工程自查页 | 增加独立结果容器；按钮点击后运行；失败写入错误区，不覆盖页面骨架 | v3.9.39-self-check-contract-audit | 是 |
 | functions / report builder 深层版本仍返回旧版本 | 深层版本合同 | runtime-health、kb-health、ln-rank-self-check、report builder | 增加 functions/_lib/release-contract.js，API 与报告 builder 统一读取当前 release contract | v3.9.39-version-contract-sync-audit | 是 |
 | `[class*=card]` 跨页误伤组件 | CSS 选择器爆炸半径合同 | 查询页、自选池、趋势、省内、211、自测页 | active CSS 改为页面/组件作用域选择器，保留长文本抗变形但不扫全局 | v3.9.39-css-blast-radius-audit | 是 |
+
+
+## v3.9.40 全站色系与响应式合同
+
+- 全站色彩只通过 token 收口，禁止为单页临时新增 fix/patch/final 样式文件。
+- 暖橙只用于行动点与人工核验提醒；蓝灰用于可信主流程；米白用于新手家长缓释。
+- 375/390/414/430/768/1024/1366 为多终端回归断点，重点检查 body 横向滚动、chip 竖排、按钮挤压、报告与诊断长文本溢出。
+- self-check 是工程页，不接入家长向导组件；211、省内、趋势保持辅助复核低权重。
