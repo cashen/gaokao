@@ -1,12 +1,13 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_12';
-import { fmt } from '../../core/number-utils.js?v=3933_12';
-import { renderHistoryScore } from './history-score-render.js?v=3933_12';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_12';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_12';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3933_12';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3933_12';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_12';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_12';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_13';
+import { fmt } from '../../core/number-utils.js?v=3933_13';
+import { renderHistoryScore } from './history-score-render.js?v=3933_13';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_13';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_13';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3933_13';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3933_13';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_13';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_13';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_13';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -144,13 +145,21 @@ function renderKnowledgeChips(record) {
   return `<div class="knowledge-chip-row" aria-label="院校背景提示">${tags.map(x => `<span class="knowledge-chip">${escapeHtml(x.tag)}</span>`).join('')}</div>`;
 }
 
-function renderLocalContextInline(record) {
-  const hint = getLocalBackgroundHint(record);
-  if (!hint?.visible) return '';
-  const review = Array.isArray(hint.reviewPoints) && hint.reviewPoints.length ? `再看：${hint.reviewPoints.slice(0, 3).join(' / ')}` : '再看：课程方向 / 招生章程';
-  const title = `${hint.text}。${review}。该提示不是录取判断，只说明专业和学校办学背景有关。`;
-  return `<div class="local-context-inline local-background-hint is-${escapeHtml(hint.level || 'trajectory')}" title="${escapeHtml(title)}"><span class="local-context-chip">${escapeHtml(hint.label)}</span><span class="local-context-name">${escapeHtml(hint.direction)}</span><span class="local-context-review">${escapeHtml(review)}</span></div>`;
+function renderBackgroundHints(record) {
+  const local = getLocalBackgroundHint(record);
+  const national211 = get211BackgroundHint(record);
+  const hints = [];
+  if (local?.visible) hints.push({ ...local, kind: 'local', link: `/ln-rank/local-mainline.html?school=${encodeURIComponent(record.school)}&major=${encodeURIComponent(record.major)}`, linkText: '省内背景' });
+  if (national211?.visible) hints.push({ ...national211, kind: '211', link: `/ln-rank/211-mainline.html?school=${encodeURIComponent(record.school)}&major=${encodeURIComponent(record.major)}`, linkText: '211背景' });
+  if (!hints.length) return '';
+  return `<div class="background-hint-stack" aria-label="学校专业背景提示">${hints.slice(0, 2).map(hint => {
+    const review = Array.isArray(hint.reviewPoints) && hint.reviewPoints.length ? `再看：${hint.reviewPoints.slice(0, 3).join(' / ')}` : '再看：课程方向 / 招生章程';
+    const title = `${hint.text}。${review}。该提示不是录取判断，只说明专业和学校背景有可复核对应。`;
+    const extra = hint.kind === '211' ? ' national-211-hint' : '';
+    return `<div class="local-context-inline local-background-hint${extra} is-${escapeHtml(hint.level || 'trajectory')}" title="${escapeHtml(title)}"><span class="local-context-chip">${escapeHtml(hint.label)}</span><span class="local-context-name">${escapeHtml(hint.direction)}</span><span class="local-context-review">${escapeHtml(review)}</span><a class="mainline-card-link" href="${hint.link}">${escapeHtml(hint.linkText)}</a></div>`;
+  }).join('')}</div>`;
 }
+function renderLocalContextInline(record) { return renderBackgroundHints(record); }
 
 function renderSpecialProjectBadge(record) {
   const label = specialProjectCardBadge(record);
@@ -242,7 +251,6 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     <div class="major-card-actions">
       ${poolButton(record, index, selectionPool)}
       <button class="diagnose-button" type="button" data-diagnose-index="${index}">单条解读</button>
-      ${localMainlineLink(record)}
     </div>
     <div class="pool-add-hint" data-pool-hint="${index}"></div>
   </article>`;

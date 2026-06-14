@@ -17,7 +17,8 @@ const outputs = {
   selection: `css/dist/ln-rank-selection.v${assetVersion}.css`,
   trend: `css/dist/ln-rank-trend.v${assetVersion}.css`,
   selfCheck: `css/dist/ln-rank-self-check.v${assetVersion}.css`,
-  localMainline: `css/dist/local-mainline.v${assetVersion}.css`
+  localMainline: `css/dist/local-mainline.v${assetVersion}.css`,
+  main211: `css/dist/211-mainline.v${assetVersion}.css`
 };
 const distDir = path.join(projectRoot, 'css', 'dist');
 fs.mkdirSync(distDir, { recursive: true });

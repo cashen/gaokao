@@ -6,9 +6,10 @@ const assets = JSON.parse(fs.readFileSync(path.join(projectRoot,'active-assets.j
 const asset = String(assets.assetVersion||'').replace(/^v/,'');
 const cssFiles = (assets.cssEntry||[]).filter(Boolean);
 const requiredByFile = {
-  'ln-rank-main': ['.hero','.panel','.score-input','.range-button','.major-card','.major-card-actions','.pool-add-button','.diagnose-button','.mainline-entry','.local-background-hint'],
+  'ln-rank-main': ['.hero','.panel','.score-input','.range-button','.major-card','.major-card-actions','.pool-add-button','.diagnose-button','.aux-background-entry','.background-hint-stack','.local-background-hint'],
   'ln-rank-selection': ['.selection-workspace','.workspace-item','.analysis-box'],
-  'local-mainline': ['.lm-page','.lm-hero','.lm-tabs','.lm-card','.lm-record-card']
+  'local-mainline': ['.lm-page','.lm-hero','.lm-tabs','.lm-card','.lm-record-card'],
+  '211-mainline': ['.jm-page','.jm-hero','.jm-school-card','.lm-start-card']
 };
 const checks=[]; let ok=true;
 for (const rel of cssFiles) {

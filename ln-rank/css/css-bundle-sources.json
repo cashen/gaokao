@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.12",
-  "assetVersion": "v3933_12",
+  "version": "v3.9.33.13",
+  "assetVersion": "v3933_13",
   "contract": "css dist source list is explicit; build-css-dist must not infer full source list from active HTML dist links.",
   "bundles": {
     "main": [
@@ -49,6 +49,7 @@
       "css/components/text-resilience-contract.css",
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
+      "css/components/auxiliary-background-entry.css",
       "css/pages/search.css"
     ],
     "selection": [
@@ -197,6 +198,10 @@
     ],
     "localMainline": [
       "css/pages/local-mainline.css"
+    ],
+    "main211": [
+      "css/pages/local-mainline.css",
+      "css/pages/211-mainline.css"
     ]
   },
   "minimums": {
@@ -219,6 +224,10 @@
     "localMainline": {
       "sourceCount": 1,
       "bytes": 6000
+    },
+    "main211": {
+      "sourceCount": 2,
+      "bytes": 8000
     }
   },
   "requiredSelectors": {
@@ -231,8 +240,9 @@
       ".major-card-actions",
       ".pool-add-button",
       ".diagnose-button",
-      ".mainline-entry",
-      ".local-background-hint"
+      ".local-background-hint",
+      ".aux-background-entry",
+      ".background-hint-stack"
     ],
     "selection": [
       ".selection-workspace",
@@ -260,6 +270,19 @@
       ".lm-boundary-soft",
       ".lm-more-filter",
       ".lm-tech-detail"
+    ],
+    "main211": [
+      ".lm-page",
+      ".lm-hero",
+      ".lm-tabs",
+      ".lm-card",
+      ".lm-record-card",
+      ".lm-start-guide",
+      ".lm-start-card",
+      ".lm-boundary-soft",
+      ".jm-page",
+      ".jm-hero",
+      ".jm-school-card"
     ]
   }
 }

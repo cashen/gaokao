@@ -1,34 +1,38 @@
 {
-  "version": "v3.9.33.12",
-  "assetVersion": "v3933_12",
+  "version": "v3.9.33.13",
+  "assetVersion": "v3933_13",
   "html": [
     "index.html",
     "selection-pool.html",
     "major-trend-2025.html",
     "self-check.html",
-    "local-mainline.html"
+    "local-mainline.html",
+    "211-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_12.js",
-    "js/selection-pool.v3933_12.js",
-    "js/major-trend-render.v3933_12.js",
-    "js/self-check.v3933_12.js",
-    "js/local-mainline/local-mainline-app.v3933_12.js"
+    "js/app.v3933_13.js",
+    "js/selection-pool.v3933_13.js",
+    "js/major-trend-render.v3933_13.js",
+    "js/self-check.v3933_13.js",
+    "js/local-mainline/local-mainline-app.v3933_13.js",
+    "js/211-mainline/211-mainline-app.v3933_13.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_12.css",
-    "css/dist/ln-rank-selection.v3933_12.css",
-    "css/dist/ln-rank-trend.v3933_12.css",
-    "css/dist/ln-rank-self-check.v3933_12.css",
-    "css/dist/local-mainline.v3933_12.css"
+    "css/dist/ln-rank-main.v3933_13.css",
+    "css/dist/ln-rank-selection.v3933_13.css",
+    "css/dist/ln-rank-trend.v3933_13.css",
+    "css/dist/ln-rank-self-check.v3933_13.css",
+    "css/dist/local-mainline.v3933_13.css",
+    "css/dist/211-mainline.v3933_13.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_12.css",
-    "selection": "css/dist/ln-rank-selection.v3933_12.css",
-    "trend": "css/dist/ln-rank-trend.v3933_12.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_12.css",
-    "localMainline": "css/dist/local-mainline.v3933_12.css"
+    "main": "css/dist/ln-rank-main.v3933_13.css",
+    "selection": "css/dist/ln-rank-selection.v3933_13.css",
+    "trend": "css/dist/ln-rank-trend.v3933_13.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_13.css",
+    "localMainline": "css/dist/local-mainline.v3933_13.css",
+    "main211": "css/dist/211-mainline.v3933_13.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -97,7 +101,18 @@
     "tools/audit-local-mainline-human-logic-sort.mjs",
     "tools/audit-mobile-filter-summary-text.mjs",
     "tools/audit-mobile-filter-summary-layout.mjs",
-    "tools/audit-android-long-text-visual.mjs"
+    "tools/audit-android-long-text-visual.mjs",
+    "211-mainline.html",
+    "js/211-mainline/211-mainline-app.v3933_13.js",
+    "kb/211-mainline/211-school-background.generated.js",
+    "js/knowledge/211-background-hint.js",
+    "functions/api/211-mainline.js",
+    "functions/_lib/211-mainline-kb.js",
+    "css/pages/211-mainline.css",
+    "css/components/auxiliary-background-entry.css",
+    "tools/audit-211-mainline-contract.mjs",
+    "tools/audit-auxiliary-entry-weight.mjs",
+    "tools/audit-auxiliary-backlink-noise.mjs"
   ],
   "knowledgeContract": [
     "js/knowledge/major-knowledge-contract.js",
