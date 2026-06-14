@@ -1,0 +1,25 @@
+{
+  "audit": "audit-api-json-client-contract",
+  "version": "v3.9.33.14",
+  "passed": true,
+  "checks": [
+    {
+      "file": "ln-rank/js/211-mainline/211-mainline-app.v3933_14.js",
+      "hasFetchApiJson": true,
+      "nakedResJson": false,
+      "exposesUnexpectedToken": false
+    },
+    {
+      "file": "ln-rank/js/local-mainline/local-mainline-app.v3933_14.js",
+      "hasFetchApiJson": true,
+      "nakedResJson": false,
+      "exposesUnexpectedToken": false
+    },
+    {
+      "file": "ln-rank/js/shared/api-client.js",
+      "hasFetchApiJson": true,
+      "nakedResJson": false,
+      "exposesUnexpectedToken": false
+    }
+  ]
+}

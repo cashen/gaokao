@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.33.13",
-  "assetVersion": "v3933_13",
-  "release": "v3.9.33.13-ln-rank-aux-background-entry-211-mainline-human-contract-no-fenxi",
-  "name": "v3.9.33.13-ln-rank-aux-background-entry-211-mainline-human-contract-no-fenxi",
-  "label": "aux-background-entry-211-mainline-human-contract",
+  "version": "v3.9.33.14",
+  "assetVersion": "v3933_14",
+  "release": "v3.9.33.14-ln-rank-211-score-api-shell-json-contract-human-no-fenxi",
+  "name": "v3.9.33.14-ln-rank-211-score-api-shell-json-contract-human-no-fenxi",
+  "label": "211-score-api-shell-json-contract-human-no-fenxi",
   "notes": [
-    "首页首屏移除省内专业背景大卡片，改为结果区后的低权重资料与背景复核入口。",
-    "新增 /ln-rank/211-mainline.html，提供学校 / 专业 / 分数三个入口，但分数入口只做历史记录辅助复核。",
-    "结果卡片新增 211 背景轻提示：只在学校 + 本科专业 + 已核验证据同时命中时显示。",
-    "清理 local-mainline 多处回到初选工具的重复回跳噪音。",
-    "保持 no-fenxi 包边界，不新增 AI 顾问、不新增录取概率。"
+    "211 分数入口不再运行时读取 fenxi manifest/chunks，改为 no-fenxi 包内 score index 合同。",
+    "新增页面级低权重辅助导航：专业初选首页 / 省内背景 / 211 背景，避免独立页成为死链接。",
+    "211 分数 API 即使无内置历史记录也返回 application/json，不再向前端透出 HTML 503。",
+    "211 前端改用统一 API JSON 客户端，不再裸 res.json 解析错误页。",
+    "用户可见示例分数统一为 666；真实历史数据不做数字替换。"
   ],
   "noFenxiIncluded": true
 }

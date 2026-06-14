@@ -1,4 +1,4 @@
-import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3933_13';
+import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3933_14';
 const $ = (id) => document.getElementById(id);
 function esc(value=''){return String(value==null?'':value).replace(/[&<>"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));}
 function fmt(value){const n=Number(value);return Number.isFinite(n)?n.toLocaleString('zh-CN'):esc(value||'');}

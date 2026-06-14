@@ -1,4 +1,4 @@
-import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3933_13';
+import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3933_14';
 
 const state = { meta: null, activeTab: 'school', schools: [], majors: [] };
 const LEVEL_ORDER = { primary: 3, secondary: 2, trajectory: 1 };
@@ -115,7 +115,7 @@ function schoolCard(school) {
     <p class="lm-card-note">${esc(note)}</p>
     ${hasMainline ? `<div class="lm-stat-row"><span>本校方向 ${fmt(school.primaryCount)}</span><span>本校相关 ${fmt(school.secondaryCount)}</span><span>方向提醒 ${fmt(school.trajectoryCount)}</span></div><p class="lm-card-note is-subtle">打开后看方向分组和 2025 历史参考，不默认铺该校全部专业分数。</p>` : ''}
     <div class="lm-evidence-row">${renderEvidenceTags(school)}</div>
-    ${hasMainline ? `<button class="lm-card-action" data-school-detail="${esc(school.name)}">查看该校专业背景</button>` : `<a class="lm-card-text-link" href="/ln-rank/?school=${encodeURIComponent(school.name)}&source=local-mainline">回到专业初选继续看</a>`}
+    ${hasMainline ? `<button class="lm-card-action" data-school-detail="${esc(school.name)}">查看该校专业背景</button>` : `<a class="lm-card-text-link" href="/ln-rank/?school=${encodeURIComponent(school.name)}&source=local-mainline">查看主页面初选结果</a>`}
   </article>`;
 }
 function renderSchools() {
@@ -160,7 +160,7 @@ function recordCard(r, score = '') {
     <div class="lm-evidence-row">${(ev.evidence || []).slice(0,3).map(x => `<span class="lm-evidence-chip">${esc(String(x).replace('支撑','').replace('评估记录','学科评估'))}</span>`).join('') || '<span class="lm-evidence-chip">省内背景证据</span>'}</div>
     <p class="lm-card-note">${esc(ev.note || '这个专业需要结合学校办学方向、课程和招生章程再看。')}</p>
     <div class="lm-review-row">建议再看：${(ev.reviewPoints || ['培养方案','课程设置','招生章程']).slice(0,4).map(esc).join(' / ')}</div>
-    <div class="lm-card-links"><a href="${link}">回到初选工具查看</a></div>
+    <div class="lm-card-links"><a href="${link}">查看主页面初选结果</a></div>
   </article>`;
 }
 function miniRecordRow(r, score = '') {
@@ -221,7 +221,7 @@ function buildMajorSchoolGroups(records = []) {
   };
 }
 function emptyHtml(title, desc) { return `<div class="lm-empty"><b>${esc(title)}</b><p>${esc(desc)}</p></div>`; }
-function loadingHtml(text = '正在读取 2025 历史数据…') { return `<div class="lm-empty is-loading"><b>${esc(text)}</b><p>如果网络较慢，可以稍后重试，或返回专业初选继续查询。</p></div>`; }
+function loadingHtml(text = '正在读取 2025 历史数据…') { return `<div class="lm-empty is-loading"><b>${esc(text)}</b><p>如果网络较慢，可以稍后重试，或稍后再试，或回到主页面重新查询。</p></div>`; }
 async function showSchoolDetail(school) {
   const root = $('schoolDetail');
   root.hidden = false;

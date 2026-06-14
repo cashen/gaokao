@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.13",
-  "assetVersion": "v3933_13",
+  "version": "v3.9.33.14",
+  "assetVersion": "v3933_14",
   "contract": "css dist source list is explicit; build-css-dist must not infer full source list from active HTML dist links.",
   "bundles": {
     "main": [
@@ -197,9 +197,11 @@
       "css/pages/self-check.css"
     ],
     "localMainline": [
+      "css/components/aux-page-nav.css",
       "css/pages/local-mainline.css"
     ],
     "main211": [
+      "css/components/aux-page-nav.css",
       "css/pages/local-mainline.css",
       "css/pages/211-mainline.css"
     ]
@@ -222,11 +224,11 @@
       "bytes": 160000
     },
     "localMainline": {
-      "sourceCount": 1,
+      "sourceCount": 2,
       "bytes": 6000
     },
     "main211": {
-      "sourceCount": 2,
+      "sourceCount": 3,
       "bytes": 8000
     }
   },

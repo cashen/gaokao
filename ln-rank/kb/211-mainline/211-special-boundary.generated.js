@@ -1,4 +1,4 @@
-/* v3.9.33.13 211 院校专业背景字段化索引。由 all-211-school-background-kb-v0.1.md 转换。 */
+/* v3.9.33.14 211 院校专业背景字段化索引。由 all-211-school-background-kb-v0.1.md 转换。 */
 export const ALL_211_SPECIAL_BOUNDARY = [
   {
     "id": "S113",

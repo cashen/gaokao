@@ -1,6 +1,6 @@
-import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3933_13';
-import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3933_13';
-import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3933_13';
+import { QUESTION_SECTIONS } from './direction-explorer-data.js?v=3933_14';
+import { buildDirectionExplorerResult } from './direction-explorer-engine.js?v=3933_14';
+import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3933_14';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)

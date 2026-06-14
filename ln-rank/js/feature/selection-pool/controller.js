@@ -5,8 +5,8 @@ import {
   hasPoolItem,
   removePoolItem,
   movePoolItem
-} from './store.js?v=3933_13';
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_13';
+} from './store.js?v=3933_14';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_14';
 
 let mounted = false;
 let latestState = null;

@@ -1,8 +1,8 @@
-/* v3.9.33.13 全国 211 院校背景分层提示合同
+/* v3.9.33.14 全国 211 院校背景分层提示合同
  * 只在“学校 + 本科专业 + 已核验证据”同时命中时显示。
  */
-import { candidateMajorNames, normalizeMajorName } from './major-match-contract.js?v=3933_13';
-import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3933_13';
+import { candidateMajorNames, normalizeMajorName } from './major-match-contract.js?v=3933_14';
+import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3933_14';
 
 function clean(value, max = 160) { return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max); }
 function normalizeSchoolStrict(value = '') { return clean(value, 160).replace(/\(/g, '（').replace(/\)/g, '）').replace(/\s+/g, ''); }

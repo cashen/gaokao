@@ -97,5 +97,7 @@ export function apiErrorDiagnosticHtml(error, escapeHtml) {
   const esc = typeof escapeHtml === 'function' ? escapeHtml : (v) => String(v == null ? '' : v);
   if (!isApiClientError(error)) return '';
   const hint = formatApiErrorForEngineer(error);
-  return `<div class="api-diagnostic-note"><b>工程诊断：</b>${esc(hint)}<br><span>先测 /api/ln-rank-runtime-health，再测 /api/major-bands-health。若两个接口也返回 HTML，优先检查 Cloudflare Pages 项目根目录是否包含 functions/。</span></div>`;
+  return `<div class="api-diagnostic-note"><b>工程诊断：</b>${esc(hint)}<br><span>接口返回了 HTML 错误页。先测 /api/ln-rank-runtime-health；若 health 也返回 HTML/503，优先检查 Cloudflare Pages Functions 部署位置与对应 API 是否存在。</span></div>`;
 }
+
+export const safeFetchJson = fetchApiJson;

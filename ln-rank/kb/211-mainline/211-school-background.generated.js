@@ -1,8 +1,8 @@
-/* v3.9.33.13 211 院校专业背景字段化索引。由 all-211-school-background-kb-v0.1.md 转换。 */
+/* v3.9.33.14 211 院校专业背景字段化索引。由 all-211-school-background-kb-v0.1.md 转换。 */
 export const ALL_211_SCHOOL_BACKGROUND_INDEX = {
   "meta": {
-    "version": "v3.9.33.13",
-    "assetVersion": "v3933_13",
+    "version": "v3.9.33.14",
+    "assetVersion": "v3933_14",
     "generatedAt": "2026-06-14",
     "source": "all-211-school-background-kb-v0.1.md",
     "dataBoundary": "本页只帮助家庭理解 211 院校和本科专业之间的背景关系，不代表录取判断，也不代表专业推荐。",
