@@ -1,20 +1,21 @@
 {
-  "version": "v3.9.33.16",
-  "assetVersion": "v3933_16",
-  "release": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
-  "name": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
-  "label": "position-window-first-211-local-consistency-no-fenxi",
+  "version": "v3.9.34.0",
+  "assetVersion": "v3934_0",
+  "release": "v3.9.34.0-ln-rank-release-gate-unified-position-background-human-no-fenxi",
+  "name": "v3.9.34.0-ln-rank-release-gate-unified-position-background-human-no-fenxi",
+  "label": "release-gate-unified-position-background-human-no-fenxi",
   "notes": [
-    "本地属性背景与 211 背景统一使用 background-position-engine，分数/位置入口不再各跑一套逻辑。",
-    "211 分数入口恢复为读取同一套辽宁历史专业记录，再匹配 211 背景 KB；不再使用空 score index 作为主功能。",
-    "前台文案从“按分数看”收敛为“按孩子位置看”：当前先对照 2025 历史记录，2026 一分一段接入后统一按位次/等位参考窗口查看。",
-    "local-mainline 与 211-mainline 都保留低权重页面导航，不恢复卡片内强回跳噪音。",
-    "保持 no-fenxi 打包边界：不包含 /fenxi/、functions/fenxi/、functions/_middleware.js；但与本地背景一致，通过现有统一数据读取层读取历史专业记录。"
+    "从 v3.9.33.16 的资产缺失事故中恢复：所有 HTML、active-assets、module-manifest 声明的 JS/CSS 在 zip 内真实存在。",
+    "保留本地属性背景与 211 背景的统一孩子位置口径：先位置窗口，再做背景匹配。",
+    "前台使用“按孩子位置看”，避免家长误解为拿今年分数硬比去年分数。",
+    "API 错误保持 JSON，人话错误不掩盖真实功能；空状态只用于读取成功但无匹配。",
+    "保持 no-fenxi 打包边界：不包含 /fenxi/、functions/fenxi/、functions/_middleware.js。"
   ],
   "noFenxiIncluded": true,
+  "releaseAssetGraphGate": true,
   "positionContextContract": {
     "activeCandidateYear": 2026,
     "referenceAdmissionYear": 2025,
-    "futureSwitch": "2026 一分一段发布后，应由 2026 分数换算位次，再映射到历史专业记录参考窗口，本地属性与 211 背景同源使用。"
+    "futureSwitch": "2026 一分一段发布后，由 2026 分数换算位次，再映射到历史专业记录参考窗口；主查询、本地属性、211 背景同源使用。"
   }
 }

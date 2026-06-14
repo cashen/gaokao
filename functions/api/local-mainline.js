@@ -38,7 +38,7 @@ export async function onRequest(context) {
       const result = await loadMatchedRecords(context.request, context.env || {}, { major, max: url.searchParams.get('max') || 240 });
       return json({ ok: true, mode, major, records: result.records, count: result.records.length, scannedCount: result.scannedCount, matchedCount: result.matchedCount, windowCandidateCount: result.windowCandidateCount, normalizedCount: result.normalizedCount, dataReadOk: result.dataReadOk, boundary: '同名专业在不同学校的培养场景可能不同，需继续核验培养方案和招生章程。' });
     }
-    if (mode === 'score') {
+    if (mode === 'score' || mode === 'position') {
       const score = num(url.searchParams.get('score'));
       if (!Number.isFinite(score) || score <= 0) return json({ ok: false, message: '请输入有效分数。' }, 400);
       const level = clean(url.searchParams.get('level') || 'primary', 30);

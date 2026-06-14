@@ -57,7 +57,7 @@ export async function onRequest(context) {
       const matches = (get211MajorSummaries() || []).filter(m => includesText(m.major, major) || (m.schools || []).some(s => includesText(s.direction, major) || includesText(s.school, major)));
       return jsonOk({ mode, major, records: matches.slice(0, 80), count: matches.length, boundary: '同名专业在不同 211 院校的培养场景可能不同，需继续核验培养方案和招生章程。' });
     }
-    if (mode === 'score') {
+    if (mode === 'score' || mode === 'position') {
       const score = num(url.searchParams.get('score'));
       if (!Number.isFinite(score) || score <= 0) return jsonError('请输入有效分数。', 400);
       const level = clean(url.searchParams.get('level') || 'primary_secondary', 30);
