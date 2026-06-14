@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.34.2",
-  "assetVersion": "v3934_2",
+  "version": "v3.9.35",
+  "assetVersion": "v3935_0",
   "contract": "css dist source list is explicit; build-css-dist must not infer full source list from active HTML dist links.",
   "bundles": {
     "main": [
@@ -51,7 +51,9 @@
       "css/components/visual-token-contract.css",
       "css/components/auxiliary-background-entry.css",
       "css/pages/search.css",
-      "css/components/report-diagnosis-human-copy.css"
+      "css/components/report-diagnosis-human-copy.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ],
     "selection": [
       "css/core/tokens.css",
@@ -100,7 +102,9 @@
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
       "css/pages/selection-pool.css",
-      "css/components/report-diagnosis-human-copy.css"
+      "css/components/report-diagnosis-human-copy.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ],
     "trend": [
       "css/core/tokens.css",
@@ -148,7 +152,9 @@
       "css/components/text-resilience-contract.css",
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
-      "css/pages/major-trend.css"
+      "css/pages/major-trend.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ],
     "selfCheck": [
       "css/core/tokens.css",
@@ -196,18 +202,24 @@
       "css/components/text-resilience-contract.css",
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
-      "css/pages/self-check.css"
+      "css/pages/self-check.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ],
     "localMainline": [
       "css/components/aux-page-nav.css",
       "css/pages/local-mainline.css",
-      "css/components/report-diagnosis-human-copy.css"
+      "css/components/report-diagnosis-human-copy.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ],
     "main211": [
       "css/components/aux-page-nav.css",
       "css/pages/local-mainline.css",
       "css/pages/211-mainline.css",
-      "css/components/report-diagnosis-human-copy.css"
+      "css/components/report-diagnosis-human-copy.css",
+      "css/tokens/ui-consistency.v3935.css",
+      "css/components/parent-guidance-contract.v3935.css"
     ]
   },
   "minimums": {

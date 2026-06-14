@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.34.2",
-  "assetVersion": "v3934_2",
+  "version": "v3.9.35",
+  "assetVersion": "v3935_0",
   "html": [
     "index.html",
     "local-mainline.html",
@@ -10,31 +10,32 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3934_2.js",
-    "js/selection-pool.v3934_2.js",
-    "js/major-trend-render.v3934_2.js",
-    "js/self-check.v3934_2.js",
-    "js/local-mainline/local-mainline-app.v3934_2.js",
-    "js/211-mainline/211-mainline-app.v3934_2.js"
+    "js/app.v3935_0.js",
+    "js/selection-pool.v3935_0.js",
+    "js/major-trend-render.v3935_0.js",
+    "js/self-check.v3935_0.js",
+    "js/local-mainline/local-mainline-app.v3935_0.js",
+    "js/211-mainline/211-mainline-app.v3935_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3934_2.css",
-    "css/dist/ln-rank-selection.v3934_2.css",
-    "css/dist/ln-rank-trend.v3934_2.css",
-    "css/dist/ln-rank-self-check.v3934_2.css",
-    "css/dist/local-mainline.v3934_2.css",
-    "css/dist/211-mainline.v3934_2.css"
+    "css/dist/ln-rank-main.v3935_0.css",
+    "css/dist/ln-rank-selection.v3935_0.css",
+    "css/dist/ln-rank-trend.v3935_0.css",
+    "css/dist/ln-rank-self-check.v3935_0.css",
+    "css/dist/local-mainline.v3935_0.css",
+    "css/dist/211-mainline.v3935_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3934_2.css",
-    "selection": "css/dist/ln-rank-selection.v3934_2.css",
-    "trend": "css/dist/ln-rank-trend.v3934_2.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3934_2.css",
-    "localMainline": "css/dist/local-mainline.v3934_2.css",
-    "main211": "css/dist/211-mainline.v3934_2.css"
+    "main": "css/dist/ln-rank-main.v3935_0.css",
+    "selection": "css/dist/ln-rank-selection.v3935_0.css",
+    "trend": "css/dist/ln-rank-trend.v3935_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3935_0.css",
+    "localMainline": "css/dist/local-mainline.v3935_0.css",
+    "main211": "css/dist/211-mainline.v3935_0.css"
   },
   "releaseGate": "HTML/assets/module-manifest/release-meta paths must exist in package before zip output",
-  "positionContextContract": "main, local-mainline and 211-mainline share candidate position context; 2026 rank table will switch to equivalent-rank reference window.",
-  "auxEntryDensityContract": "Auxiliary background entry is compact, low-weight, below main results, and must not exceed main query visual priority."
+  "parentGuidanceContract": "Main flow first; auxiliary review second; report/AI diagnosis written as parent-readable guidance; no function logic changes.",
+  "twelveRoleReviewContract": true,
+  "noFunctionLogicChange": true
 }

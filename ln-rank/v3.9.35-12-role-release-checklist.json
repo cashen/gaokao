@@ -1,0 +1,67 @@
+{
+  "version": "v3.9.35",
+  "release": "v3.9.35-ln-rank-ui-consistency-parent-guidance-12-role-review-no-fenxi",
+  "ok": true,
+  "roles": [
+    {
+      "role": "发布资产审计员",
+      "gate": "asset_graph",
+      "status": "PASS_STATIC"
+    },
+    {
+      "role": "架构可维护性审计员",
+      "gate": "ui_only_scope",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "主流程回归审计员",
+      "gate": "function_regression_matrix",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "数据口径审计员",
+      "gate": "position_context_copy",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "高报口径审计员",
+      "gate": "gaokao_copy_contract",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "辅助功能边界审计员",
+      "gate": "aux_boundary",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "AI 输出审计员",
+      "gate": "copy_human_tone",
+      "status": "PASS_STATIC"
+    },
+    {
+      "role": "报告一致性审计员",
+      "gate": "report_order_contract",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "家长可读性审计员",
+      "gate": "parent_guidance",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "UI 一致性审计员",
+      "gate": "ui_token_consistency",
+      "status": "CHECKLIST_CREATED"
+    },
+    {
+      "role": "移动端行为审计员",
+      "gate": "mobile_layout_static",
+      "status": "PASS_STATIC"
+    },
+    {
+      "role": "API / 错误体验审计员",
+      "gate": "api_json_contract_static",
+      "status": "CHECKLIST_CREATED"
+    }
+  ]
+}
