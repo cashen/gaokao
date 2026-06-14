@@ -1,3 +1,3 @@
-v3.9.35.1
-v3.9.35.1-ln-rank-ui-state-matrix-layout-contract-auto-correction-no-fenxi
-asset=v3935_1
+v3.9.36
+v3.9.36-ln-rank-ui-engineer-product-intent-preservation-version-sync-no-fenxi
+asset=v3936_0

@@ -1,0 +1,14 @@
+{
+  "version": "v3.9.36",
+  "assetVersion": "v3936_0",
+  "status": "PASS",
+  "checked": [
+    "js/app.v3936_0.js",
+    "js/selection-pool.v3936_0.js",
+    "js/major-trend-render.v3936_0.js",
+    "js/self-check.v3936_0.js",
+    "js/local-mainline/local-mainline-app.v3936_0.js",
+    "js/211-mainline/211-mainline-app.v3936_0.js"
+  ],
+  "failed": []
+}

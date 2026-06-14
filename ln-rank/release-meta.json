@@ -1,19 +1,21 @@
 {
-  "version": "v3.9.35.1",
-  "assetVersion": "v3935_1",
-  "release": "v3.9.35.1-ln-rank-ui-state-matrix-layout-contract-auto-correction-no-fenxi",
-  "name": "v3.9.35.1-ln-rank-ui-state-matrix-layout-contract-auto-correction-no-fenxi",
-  "label": "ui-state-matrix-layout-contract-auto-correction-no-fenxi",
+  "version": "v3.9.36",
+  "assetVersion": "v3936_0",
+  "release": "v3.9.36-ln-rank-ui-engineer-product-intent-preservation-version-sync-no-fenxi",
+  "name": "v3.9.36-ln-rank-ui-engineer-product-intent-preservation-version-sync-no-fenxi",
+  "label": "ui-engineer-product-intent-preservation-version-sync-no-fenxi",
   "notes": [
-    "基于 v3.9.35 建立 UI 状态矩阵合同，修复低于 400、700–750、超过 750 等边界分数导致查询摘要竖排和布局变形的问题。",
-    "收窄全局 chip/card 选择器爆炸半径，短标签不拆字，长正文可换行，避免一个页面修好另一个页面被误伤。",
-    "新增 bug 自动归类与自动纠错机制文档：问题必须沉淀为规则集、审计用例和回归矩阵。",
-    "只做 UI 状态、文案展示和审计机制收口，不改主查询、数据、AI 调用、飞书、本地背景、211 背景和趋势业务逻辑。"
+    "基于 v3.9.35.1 的 UI 状态矩阵与自动纠错合同继续收口，新增 UI 工程师接入的产品意图保真纪律。",
+    "同步包名、VERSION、release-meta、active-assets、module-manifest、HTML 可见版本、自测页、version-contract.js 与报告 payload 版本来源。",
+    "补充 product-intent-map：UI 可调整视觉与折叠方式，但不能删除主流程入口、核验清单、报告结构、AI/飞书/背景/趋势能力。",
+    "只做版本合同、文档、审计和展示层保真，不改主查询、数据、AI 调用、飞书、本地背景、211 背景和趋势业务逻辑。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
   "twelveRoleReview": true,
   "uiStateMatrixContract": true,
   "autoCorrectionMechanism": true,
+  "productIntentPreservation": true,
+  "versionContractSync": true,
   "noFunctionLogicChange": true
 }

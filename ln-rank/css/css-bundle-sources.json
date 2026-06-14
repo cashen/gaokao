@@ -1,18 +1,19 @@
 {
-  "version": "v3.9.35.1",
-  "assetVersion": "v3935_1",
+  "version": "v3.9.36",
+  "assetVersion": "v3936_0",
   "dist": {
-    "main": "css/dist/ln-rank-main.v3935_1.css",
-    "selection": "css/dist/ln-rank-selection.v3935_1.css",
-    "trend": "css/dist/ln-rank-trend.v3935_1.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3935_1.css",
-    "localMainline": "css/dist/local-mainline.v3935_1.css",
-    "main211": "css/dist/211-mainline.v3935_1.css"
+    "main": "css/dist/ln-rank-main.v3936_0.css",
+    "selection": "css/dist/ln-rank-selection.v3936_0.css",
+    "trend": "css/dist/ln-rank-trend.v3936_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3936_0.css",
+    "localMainline": "css/dist/local-mainline.v3936_0.css",
+    "main211": "css/dist/211-mainline.v3936_0.css"
   },
   "addedContracts": [
-    "css/tokens/ui-state-contract.v3935_1.css",
-    "css/components/filter-summary-state-contract.v3935_1.css"
+    "css/tokens/ui-state-contract.v3936_0.css",
+    "css/components/filter-summary-state-contract.v3936_0.css"
   ],
   "sourcePreserved": true,
-  "selectorBlastRadiusRule": "Active dist must not use [class*=chip] to control white-space; component-level classes define wrap behavior."
+  "selectorBlastRadiusRule": "Active dist must not use [class*=chip] to control white-space; component-level classes define wrap behavior.",
+  "uiEngineerHandoffRule": "UI may adjust visual hierarchy but must not remove product intent, user-visible function entry, review checklist, report section, AI/card diagnosis, Feishu, local/211 background, trend or self-check entry."
 }
