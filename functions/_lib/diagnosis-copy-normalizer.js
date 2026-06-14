@@ -1,3 +1,4 @@
+import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
 const REPLACEMENTS = [
   [/已选专业/g, '已选专业'],
   [/AI高报师/g, '方案解读'],
@@ -26,11 +27,11 @@ function normalizeText(value) {
   let s = String(value == null ? '' : value).trim();
   if (!s) return s;
   for (const [pattern, replacement] of REPLACEMENTS) s = s.replace(pattern, replacement);
-  return s.replace(/\s+/g, ' ').trim();
+  return applyHumanCopyGate(s.replace(/[ \t\r\f]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim());
 }
 
 function normalizeArray(list) {
-  return Array.isArray(list) ? list.map(normalizeText).filter(Boolean) : [];
+  return Array.isArray(list) ? applyHumanCopyGate(list.map(normalizeText).filter(Boolean)) : [];
 }
 
 export function normalizeDiagnosisCopy(narrative = {}) {
@@ -44,7 +45,7 @@ export function normalizeDiagnosisCopy(narrative = {}) {
   }
   next.riskDiagnosis = normalizeArray(next.riskDiagnosis);
   next.actions = normalizeArray(next.actions);
-  return next;
+  return applyHumanCopyGate(next);
 }
 
 export function normalizeDiagnosisLines(lines = []) {

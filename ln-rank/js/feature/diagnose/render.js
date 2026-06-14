@@ -255,20 +255,20 @@ function kbEvidenceItems(payload, record) {
   if (da.matched) {
     const matched = Array.isArray(da.matchedMajorDisciplines) ? da.matchedMajorDisciplines : [];
     if (matched.length) {
-      items.push(`专业相关性：${family}命中已收录学科 ${matched.slice(0, 3).map(shortDiscipline).filter(Boolean).join('、')}`);
+      items.push(`背景线索：${family}有相关学科线索（${matched.slice(0, 3).map(shortDiscipline).filter(Boolean).join('、')}），仍需结合学院和培养方案核验。`);
     } else if (da.strongDirections) {
-      items.push(`学校较强方向：${da.strongDirections}`);
-      items.push(`专业相关性：${family}未命中已收录优势/相关学科，需核验学院实力和就业质量报告`);
+      items.push(`学校方向线索：${da.strongDirections}`);
+      items.push(`${family}暂未形成明确本科专业对应，需核验学院、培养方案和就业质量报告。`);
     } else if (da.highestRating) {
       items.push(`学科评估线索：第四轮最高评级 ${da.highestRating}`);
-      items.push(`专业相关性：${family}需结合学院和就业质量报告核验`);
+      items.push(`${family}需结合学院、培养方案和就业质量报告核验。`);
     }
   }
 
   const industries = Array.isArray(school.industrySignals) ? school.industrySignals.filter(Boolean) : [];
   const relatedIndustries = industries.filter(x => families.includes(x));
   if (relatedIndustries.length) {
-    items.push(`行业特色相关：${relatedIndustries.slice(0, 2).join(' / ')}（仍需结合官方材料核验）`);
+    items.push(`学校行业方向线索：${relatedIndustries.slice(0, 2).join(' / ')}，仍需结合官方材料核验。`);
   }
 
   if (school.medicalSignal && families.includes('医学')) {
@@ -292,9 +292,9 @@ function renderKbEvidence(payload, record) {
   if (!items.length) return '';
   return `
     <div class="diagnose-section diagnose-kb-section">
-      <strong>知识库依据</strong>
+      <strong>背景线索</strong>
       <ul>${items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>
-      <div class="diagnose-kb-note">注：学校层面优势不等于当前专业优势；学科评估是学科层面线索，不等同于本科专业强弱。</div>
+      <div class="diagnose-kb-note">注：学校层面线索不等于当前本科专业结论；学科评估只能作为复核线索。</div>
     </div>
   `;
 }
@@ -315,12 +315,12 @@ export function renderDiagnoseResult(record, payload) {
   const source = sourceMap[payload?.source] || '方案解读';
   const quotaNote = payload?.source === 'rules-only-quota'
     ? '<div class="diagnose-quota-note">当前暂用基础解读，仍可先做专业和项目复核。</div>'
-    : (payload?.message ? `<div class="diagnose-quota-note">${esc(payload.message)}</div>` : '');
+    : '';
 
   root.innerHTML = `
     <div class="diagnose-box">
       <div class="diagnose-head">
-        <span class="diagnose-title">单条解读</span>
+        <span class="diagnose-title">单条说明</span>
         <span class="diagnose-source">${source}</span>
       </div>
       <div class="diagnose-summary">${esc(d.summary || '暂无诊断')}</div>\n      ${quotaNote}

@@ -70,7 +70,7 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
     addUnique(risks, '稳妥补充数量偏少，后段承接能力不足。');
-    addUnique(actions, '增加若干稳妥补充/更稳补充/稳妥补充专业，尤其补充低需要关注、可接受专业方向。');
+    addUnique(actions, '增加若干稳妥补充专业，尤其补充需要关注较少、且家庭真实可接受的方向。');
   } else if (stats.deepSafeCount < Math.max(1, Math.ceil(total * 0.08))) {
     addUnique(risks, '后段数量不算少，但真正拉开位次的选择还不够。');
     addUnique(actions, '补充低一层位次、学校城市专业都能接受的稳妥补充项。');
@@ -178,7 +178,7 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
   const resolvedModel = resolveAiModel(context.env || {}, { specificKey: 'AI_PATH_MODEL' });
   const model = resolvedModel.model;
   if (!context.env?.AI || typeof context.env.AI.run !== 'function') {
-    return { source: 'fallback', model: '', modelDebug: buildAiModelDebug(resolvedModel), message: '未检测到 Cloudflare Workers AI 绑定，已返回规则稳妥补充人话解读。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
+    return { source: 'fallback', model: '', modelDebug: buildAiModelDebug(resolvedModel), message: '已根据当前方案结构生成基础说明。', narrative: fallbackNarrative, aiDecision: null, validator: { ok: false, reason: 'AI binding missing' } };
   }
   try {
     const messages = buildAdvisorAiMessages({ facts, candidateZones, ruleRisks: risks, ruleActions: actions, fallbackNarrative });
@@ -187,7 +187,7 @@ async function buildNarrative(context, { facts, candidateZones, risks, actions, 
     const parsed = parseAdvisorAiText(raw);
     const validation = validateAdvisorAiNarrative(parsed, { candidateZones, fallbackNarrative });
     if (!validation.ok) {
-      return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: `AI输出未通过安全校验，已使用规则稳妥补充：${validation.reason}`, narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
+      return { source: 'fallback-ai-invalid', model, modelDebug: buildAiModelDebug(resolvedModel), message: '已根据当前方案结构生成基础说明。', narrative: fallbackNarrative, aiDecision: parsed, validator: validation };
     }
     return { source: 'workers-ai', model, modelDebug: buildAiModelDebug(resolvedModel), message: '方案解读已生成。', narrative: validation.narrative, aiDecision: parsed, validator: validation };
   } catch (error) {
@@ -311,7 +311,7 @@ export async function onRequest(context) {
       debug: {
         factsBuilt: true,
         candidateZonesCount: candidateZones.length,
-        aiCalled: narrativeResult.source === 'workers-ai' || narrativeResult.source.startsWith('fallback-ai'),
+        aiCalled: narrativeResult.source === 'workers-ai',
         aiValidated: Boolean(narrativeResult.validator?.ok),
         fallbackUsed: narrativeResult.source !== 'workers-ai',
         validatorReason: narrativeResult.validator?.reason || ''
@@ -320,6 +320,6 @@ export async function onRequest(context) {
     result.reportText = buildReportText({ facts, rankZone, stats: facts.poolStructure, narrative });
     return json(result);
   } catch (error) {
-    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '请检查 path-analysis v3.9.7.0 的 advisor 事实层、候选功能区、AI_MODEL / AI_PATH_MODEL 和 AI 绑定。' }, 500);
+    return json({ ok: false, message: error && error.message ? error.message : String(error), hint: '方案说明暂时没有生成成功，请稍后重试；这不影响主页面专业初选。' }, 500);
   }
 }

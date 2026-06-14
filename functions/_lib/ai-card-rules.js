@@ -1,5 +1,6 @@
 import { classifyMajorReality, schoolLayerTags } from './ai-skills/major-risk-rules.js';
 import { detectSpecialProgram } from './special-program-rules.js';
+import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -10,6 +11,16 @@ function deltaText(delta) {
   const n = Number(delta);
   if (!Number.isFinite(n)) return '—';
   return n > 0 ? `高于考生 ${n} 分` : n < 0 ? `低于考生 ${Math.abs(n)} 分` : '与考生同分';
+}
+
+
+function cardStatusRange(status) {
+  const s = String(status || '').trim();
+  if (!s) return '当前范围';
+  if (s.includes('主要参考') || s.includes('匹配')) return '主要参考范围';
+  if (s.includes('稳妥')) return '稳妥补充范围';
+  if (s.includes('稍高')) return '稍高目标范围';
+  return s.endsWith('参考') ? `${s}范围` : `${s}范围`;
 }
 
 function historyLine(record = {}) {
@@ -74,22 +85,23 @@ export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   const positive = snap.realityTags.find(t => t.level === 'positive');
   const conditional = snap.realityTags.find(t => t.level === 'conditional');
 
-  let summary = `这条更适合作为${record.statusLabel || record.position || '当前区间'}参考。`;
+  let summary = `这条属于${cardStatusRange(record.statusLabel || record.position)}，可以放进家庭讨论。`;
   if (specialProgram.hasSpecial) summary = '这条可看，但特殊项目规则必须先核验。';
-  else if (risk) summary = '这条可以看，但需要重点核验专业现实风险。';
-  else if (conditional) summary = '这条可以关注，但属于有条件选择。';
-  else if (positive) summary = '这条现实确定性相对更强，可以重点讨论。';
+  else if (risk) summary = '这条可以看，但需要重点核验专业现实。';
+  else if (conditional) summary = '这条可以关注，但需要先确认限制条件。';
+  else if (positive) summary = '这条路径相对清晰，可以放进家庭讨论。';
 
   const tag = risk || conditional || positive;
 
-  return {
+  const diagnosis = applyHumanCopyGate({
     summary,
     basis: snap.basis.slice(0, 3),
     realityReminder: specialProgram.hasSpecial ? specialProgram.reminder : (tag?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。'),
     checks: snap.checks.slice(0, 4),
-    parentNote: specialProgram.hasSpecial ? specialProgram.parentNote : (risk ? '可以关注，但不要当作稳妥项。' : '可以保留讨论，但要结合孩子能力和当年计划。'),
+    parentNote: specialProgram.hasSpecial ? specialProgram.parentNote : (risk ? '可以关注，但不能只按低风险理解。' : '可以放进家庭讨论，但要结合孩子能力和当年计划。'),
     riskTags: [...new Set([...(specialProgram.riskTags || []), ...snap.realityTags.map(t => shortRiskTag(t.text)).filter(Boolean)])].slice(0, 5),
     specialProgram: specialProgram.hasSpecial ? specialProgram : null,
     disclaimer: snap.disclaimer
-  };
+  });
+  return diagnosis;
 }

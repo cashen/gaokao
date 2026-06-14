@@ -1,5 +1,6 @@
 import { buildRuleOnlyDiagnosis } from './ai-card-rules.js';
 import { detectSpecialProgram } from './special-program-rules.js';
+import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
 
 function pickJson(text) {
   const s = String(text || '').trim();
@@ -168,8 +169,8 @@ function normalizeSummary(obj, fallback, record) {
   let summary = raw;
 
   if (!summary || summary.length > 60 || splitSentences(summary).length > 1) {
-    if (status) summary = `这条更适合作为${status}参考。`;
-    else summary = fallback.summary || '这条可以保留讨论，但需结合当年数据核验。';
+    if (status) summary = status.includes('主要参考') ? '这条属于主要参考范围，可以放进家庭讨论。' : `这条属于${status}范围，需结合当年数据核验。`;
+    else summary = fallback.summary || '这条可以放进家庭讨论，但需结合当年数据核验。';
   }
 
   summary = summary
@@ -263,12 +264,12 @@ function specificParentNote(record, fallbackSummary) {
     return `可以关注，但不要当作稳妥项；先核验${major}方向实力和招生变化。`;
   }
   if (status.includes('稳妥') || status.includes('匹配') || (Number.isFinite(delta) && delta <= 0)) {
-    return `分数位置较舒服，可以保留；但不要只因${major}热门就忽略实际培养。`;
+    return `从历史位置看不属于明显上探，但是否靠前仍要看${major}方向接受度和当年计划。`;
   }
   if (fallbackSummary.includes('冲') || fallbackSummary.includes('上探')) {
-    return `可以关注，但不要当作稳妥项；重点核验${major}方向实力。`;
+    return `可以关注，但不能只按低风险理解；重点核验${major}方向实力。`;
   }
-  return `可以保留讨论，但要结合${major}方向实力和孩子能力。`;
+  return `可以放进家庭讨论，但要结合${major}方向实力和孩子能力。`;
 }
 
 function isGenericParentNote(value) {
@@ -321,7 +322,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
     ...(Array.isArray(obj.riskTags || obj.risk_tags) ? (obj.riskTags || obj.risk_tags) : [])
   ], fallback.riskTags);
 
-  return {
+  return applyHumanCopyGate({
     summary,
     basis,
     realityReminder,
@@ -330,7 +331,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
     riskTags,
     specialProgram: specialProgram.hasSpecial ? specialProgram : null,
     disclaimer: '仅做专业卡片解释，不等同于录取预测。'
-  };
+  });
 }
 
 export function parseDiagnosisFromModel(text, record, candidateScore) {

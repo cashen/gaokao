@@ -38,11 +38,11 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       'finalZone.zoneKey 必须来自 candidateZones，不得创造新 zoneKey。',
       '分数只作展示，判断以位次、控制线锚点、一分一段密度和已选专业结构为主。',
       '你可以判断哪个候选功能区更贴近，但不得脱离 facts。',
-      '不得预测录取概率，不得说必录、稳进、闭眼报、一定上岸。',
+      '不得做录取承诺，不得说必录、稳进、闭眼报、一定上岸。',
       '不得编造院校实力、招生计划、就业承诺、2026新数据。',
       '升学与推免参考只能使用 facts.pushRateSummary 和 orderedItemsLite.pushRate 中提供的数据；没有数据必须说待核验。',
       '校级推免率不等于学院/专业保研率，不得把学校级数据说成某专业保研率。',
-      '推免参考是升学路径参考，不是录取需要关注、硬排序或录取概率。',
+      '推免参考是升学路径参考，不是排序硬依据，也不代表录取判断。',
       '办学性质底线只能使用 facts.bottomLine 和 facts.bottomLineSummary；只看公办普通、公办含中外/高收费、公办优先三者要区分。',
       '600分左右的公办中外合作上探可以作为策略提醒，但不要把它写成前端筛选按钮；低分段高收费稳妥补充和高分段公办中外上探不能混为一谈。',
       '不要把用户举例的450/495/515/545/565/585/605写成固定分数规则。',
@@ -50,7 +50,7 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       '请用家长第一次使用也能读懂的短句：先说结论，再说原因，再给下一步动作。',
       '可以保留“位次、特控线、后段是否够稳”等必要术语，但每个需要关注必须配一条人话解释或下一步动作。',
       '优先使用“稍高目标、主要参考、稳妥补充、稳妥补充、城市集中、专业方向集中”等表达，少用“主要参考区、后段是否够稳、城市过于集中”等生硬词。',
-      '不要输出原始接口内容、代码、接口字段、调试语言。',
+      '不要输出原始接口内容、代码、接口字段、调试语言；不要写 AI、fallback、rules-only 等工程状态。',
       '输出一个合法 JSON 对象，不要 Markdown 代码块。'
     ],
     facts: safeFacts(facts),
@@ -77,12 +77,12 @@ export function buildAdvisorAiMessages({ facts, candidateZones, ruleRisks, ruleA
       riskDiagnosis: ['2到5条主要需要关注，纯文本'],
       actions: ['3到6条可执行建议，纯文本，不带编号'],
       parentVersion: '给家长看的短说明，180字内',
-      reportMarkdown: '可放入家庭讨论报告的文字段落，700字内',
+      reportMarkdown: '可放入家庭讨论报告的文字段落，700字内；不要生成一级/二级标题，标题由系统渲染',
       disclaimer: '边界说明'
     }
   };
   return [
-    { role: 'system', content: '你是辽宁物理类高考志愿生成前提醒助手。你不是自由聊天模型；必须基于 facts 和 candidateZones 做判断，用高报师口气解释，不预测录取概率。只输出 JSON。' },
+    { role: 'system', content: '你是辽宁物理类高考志愿生成前提醒助手。你不是自由聊天模型；必须基于 facts 和 candidateZones 做判断，用家长能读懂的温和口气解释，不做录取承诺。只输出 JSON。' },
     { role: 'user', content: JSON.stringify(payload) }
   ];
 }

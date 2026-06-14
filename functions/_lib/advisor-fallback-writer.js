@@ -1,4 +1,5 @@
 import { getAdvisorZonePolicy } from './advisor-zone-policy.js';
+import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -71,7 +72,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
   ];
   const riskDiagnosis = risks.length ? risks.slice(0, 6) : ['暂未发现明显结构性需要关注，但仍需人工核验招生计划、选科、体检、学费和校区。'];
   const overall = facts.poolStructure?.total
-    ? `当前方案已形成基本已选专业，AI不可用时按规则稳妥补充判断：本轮重点是围绕“${policy.mainGoal}”确认前中后段结构和专业接受度。`
+    ? `当前方案已有基本框架。本轮重点是围绕“${policy.mainGoal}”，把前中后段结构和专业接受度确认清楚。`
     : '已选专业暂无专业志愿，建议先补充上探、主体、主要参考和稳妥补充候选。';
   const zoneJudgement = buildZoneSentence(facts, zone, policy);
   const structureDiagnosis = structureText(facts);
@@ -80,7 +81,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
   const bottomLineDiagnosis = bottomText(facts);
   const parentVersion = `${policy.zoneName}：${policy.mainGoal} 这不是固定分数段套话，而是基于当前位次、控制线和已选专业结构的判断。`;
   const reportMarkdown = [
-    '## 方案解读解读（规则稳妥补充版）',
+    '## 方案解读',
     '',
     `**整体判断：** ${overall}`,
     '',
@@ -97,9 +98,9 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     '**调整建议：**',
     ...finalActions.map((a, i) => `${i + 1}. ${a}`)
   ].join('\n');
-  return {
+  const narrative = applyHumanCopyGate({
     overall,
-    finalZone: { zoneKey: zone.zoneKey, zoneName: policy.zoneName, secondaryZoneKey: candidateZones?.[1]?.zoneKey || '', confidenceText: '规则稳妥补充判断' },
+    finalZone: { zoneKey: zone.zoneKey, zoneName: policy.zoneName, secondaryZoneKey: candidateZones?.[1]?.zoneKey || '', confidenceText: '基础规则说明' },
     zoneJudgement,
     reasoning: `${policy.mainConflict} 当前已选专业需要按这个主矛盾检查，而不是只按固定分数段套话。`,
     structureDiagnosis,
@@ -110,8 +111,9 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     actions: finalActions,
     parentVersion,
     reportMarkdown,
-    disclaimer: 'AI/规则解读只负责解释位次功能区和方案结构，不预测录取概率；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。'
-  };
+    disclaimer: '本说明只解释位次功能区和方案结构，不做录取承诺；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。'
+  });
+  return narrative;
 }
 
 

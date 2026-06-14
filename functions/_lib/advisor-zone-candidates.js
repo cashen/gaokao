@@ -42,7 +42,7 @@ export function buildZoneCandidates(facts = {}) {
 
   if (sp <= 15 || (rp != null && rp >= -7600)) return addPair('special-edge-zone', 'applied-tech-main-zone', 0.68, ['考生贴近特控线', '稳妥区和深后段是否够稳仍是重点'], ['如果自选专业应用工科承接足，可少量上移到应用技术主体区']);
   if (sp <= 35 || (rp != null && rp >= -18000)) return addPair('applied-tech-main-zone', 'industry-entry-zone', rushHeavy ? 0.55 : 0.66, ['考生明显高于特控线', '主体仍适合围绕应用工科和老牌公办承接'], ['已有部分行业院校/强专业选择空间']);
-  if (sp <= 55 || (rp != null && rp >= -26000)) return addPair('industry-entry-zone', 'industry-platform-zone', 0.64, ['考生开始具备行业院校和专业选择权', '需要比较行业属性与专业质量'], ['若省外行业强校/211边缘较多，可辅助按特色行业院校区判断']);
+  if (sp <= 55 || (rp != null && rp >= -26000)) return addPair('industry-entry-zone', 'industry-platform-zone', 0.64, ['考生开始具备行业院校和专业选择权', '需要比较行业属性与专业质量'], ['若省外行业特色院校/211边缘较多，可辅助按特色行业院校区判断']);
   if (sp <= 75 || (rp != null && rp >= -34500)) return addPair('industry-platform-zone', 'platform-major-balance-zone', 0.62, ['考生进入特色行业院校选择区', '平台、行业、城市和家庭容错需要排序'], ['若高平台冲刺较多，要按平台专业博弈区复核']);
   if (sp <= 105) return addPair('platform-major-balance-zone', 'high-platform-zone', 0.62, ['考生进入平台与专业博弈区', '不能只看校名或只看热门专业'], ['分数位次已具备部分高平台比较空间']);
   if (sp <= 145) return addPair('high-platform-zone', 'top-platform-fine-sort-zone', 0.62, ['考生进入高分平台优先区', '平台价值、专业牺牲边界和城市需要综合判断'], ['如果接近顶尖平台边缘，需要更精细排序']);

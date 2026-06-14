@@ -1,14 +1,14 @@
 {
-  "version": "v3.9.34.0",
-  "assetVersion": "v3934_0",
-  "release": "v3.9.34.0-ln-rank-release-gate-unified-position-background-human-no-fenxi",
-  "name": "v3.9.34.0-ln-rank-release-gate-unified-position-background-human-no-fenxi",
-  "label": "release-gate-unified-position-background-human-no-fenxi",
+  "version": "v3.9.34.1",
+  "assetVersion": "v3934_1",
+  "release": "v3.9.34.1-ln-rank-p0-trend-fix-ai-human-copy-contract-no-fenxi",
+  "name": "v3.9.34.1-ln-rank-p0-trend-fix-ai-human-copy-contract-no-fenxi",
+  "label": "p0-trend-fix-ai-human-copy-contract-no-fenxi",
   "notes": [
-    "从 v3.9.33.16 的资产缺失事故中恢复：所有 HTML、active-assets、module-manifest 声明的 JS/CSS 在 zip 内真实存在。",
-    "保留本地属性背景与 211 背景的统一孩子位置口径：先位置窗口，再做背景匹配。",
-    "前台使用“按孩子位置看”，避免家长误解为拿今年分数硬比去年分数。",
-    "API 错误保持 JSON，人话错误不掩盖真实功能；空状态只用于读取成功但无匹配。",
+    "修复 major-trend getTrendHint 导入 P0，避免趋势、报告、飞书和诊断链路动态导入失败。",
+    "新增诊断文案人类化门禁：AI/规则兜底/单卡/飞书报告不得暴露工程状态或内部字段。",
+    "新增报告统计一致性合同：稍高目标、主要参考、稳妥补充统一从同一对象取数。",
+    "报告和单卡诊断增加多终端防溢出 CSS；无法截图时用 browserless layout invariant smoke 记录。",
     "保持 no-fenxi 打包边界：不包含 /fenxi/、functions/fenxi/、functions/_middleware.js。"
   ],
   "noFenxiIncluded": true,

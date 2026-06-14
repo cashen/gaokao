@@ -133,7 +133,7 @@ export async function onRequest(context) {
           source: 'rules-only-quota',
           model,
           modelDebug: buildAiModelDebug(resolvedModel),
-          message: '今日 Cloudflare AI 免费额度已用完，已自动切换为规则版诊断。',
+          message: '已根据当前卡片信息生成基础说明。',
           knowledgeContext,
           diagnosis: ruleDiagnosis(record, candidateScore)
         });
@@ -144,7 +144,7 @@ export async function onRequest(context) {
         source: 'rules-only-error',
         model,
         modelDebug: buildAiModelDebug(resolvedModel),
-        message: 'AI 调用暂时失败，已自动切换为规则版诊断。',
+        message: '已根据当前卡片信息生成基础说明。',
         aiError: shortError(aiError),
         knowledgeContext,
         diagnosis: ruleDiagnosis(record, candidateScore)
@@ -168,7 +168,7 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error && error.message ? error.message : String(error),
-      hint: '请检查 Cloudflare Pages 是否绑定 Workers AI，绑定变量名是否为 AI，并配置 AI_CARD_MODEL 或统一变量 AI_MODEL。AI 额度用完时，本版会自动切换为规则版诊断。'
+      hint: '单条说明暂时没有生成成功，请稍后重试；这不影响专业初选。'
     }, 500);
   }
 }

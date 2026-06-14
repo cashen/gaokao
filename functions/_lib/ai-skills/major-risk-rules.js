@@ -32,7 +32,7 @@ export function classifyMajorReality(record = {}) {
   }
 
   if (includesAny(major, ['法学'])) {
-    tags.push({ key: 'law', level: 'conditional', text: '法学要看院校层次和法考路径，非强校需要谨慎评估就业质量。' });
+    tags.push({ key: 'law', level: 'conditional', text: '法学要看院校层次和法考路径，院校平台一般时需要谨慎评估就业质量。' });
   }
 
   if (includesAny(major, ['金融', '经济学', '投资学', '保险学'])) {

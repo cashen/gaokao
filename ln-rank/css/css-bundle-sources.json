@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.34.0",
-  "assetVersion": "v3934_0",
+  "version": "v3.9.34.1",
+  "assetVersion": "v3934_1",
   "contract": "css dist source list is explicit; build-css-dist must not infer full source list from active HTML dist links.",
   "bundles": {
     "main": [
@@ -50,7 +50,8 @@
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
       "css/components/auxiliary-background-entry.css",
-      "css/pages/search.css"
+      "css/pages/search.css",
+      "css/components/report-diagnosis-human-copy.css"
     ],
     "selection": [
       "css/core/tokens.css",
@@ -98,7 +99,8 @@
       "css/components/text-resilience-contract.css",
       "css/components/ui-flow-contract.css",
       "css/components/visual-token-contract.css",
-      "css/pages/selection-pool.css"
+      "css/pages/selection-pool.css",
+      "css/components/report-diagnosis-human-copy.css"
     ],
     "trend": [
       "css/core/tokens.css",
@@ -198,12 +200,14 @@
     ],
     "localMainline": [
       "css/components/aux-page-nav.css",
-      "css/pages/local-mainline.css"
+      "css/pages/local-mainline.css",
+      "css/components/report-diagnosis-human-copy.css"
     ],
     "main211": [
       "css/components/aux-page-nav.css",
       "css/pages/local-mainline.css",
-      "css/pages/211-mainline.css"
+      "css/pages/211-mainline.css",
+      "css/components/report-diagnosis-human-copy.css"
     ]
   },
   "minimums": {

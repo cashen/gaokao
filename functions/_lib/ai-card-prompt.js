@@ -11,7 +11,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
   const specialProgram = detectSpecialProgram(record);
 
   const userPayload = {
-    task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不预测录取概率，不输出Markdown。',
+    task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不做录取承诺，不输出Markdown。',
     outputJsonSchema: {
       summary: '一句话判断，不超过45个中文字符，只写结论，不写依据',
       basis: ['主要依据，严格3条，只写事实依据，不写建议'],
@@ -30,7 +30,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       'checks只能写核验事项，不能写“持续自学/项目能力/就业风险”等专业评价。',
       'parentNote不得复制realityReminder。',
       '不要重复同一句话。',
-      '学校整体优势和当前专业相关性要分开；若当前专业未命中已收录优势学科，要明确说需核验，不要暗示该专业就是强项。',
+      '学校整体优势和当前专业相关性要分开；若当前专业没有明确本科专业对应证据，要说需核验学院、培养方案和招生章程，不要暗示该专业就是学校结论。',
       '如果specialProgram.hasSpecial为true，现实提醒必须先说明特殊项目风险，不得只写“核验招生章程”。',
       '中外合作办学必须提示收费、培养模式、外方合作院校、是否出国、英语授课比例、毕业证/学位证口径。',
       'specialProgram.reminder 放在特殊项目提醒里，realityReminder 不要重复同一句特殊项目提醒；现实提醒应写专业/培养现实。',
@@ -67,7 +67,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       '年度口径、辽宁专业+学校志愿规则、招生章程核验项、医学/法学/师范路径、体检限制、热度参考，优先使用 knowledgeBaseContext.governance。',
       '两年位次变化只属于内部参考，只能说“2025相比2024位次更靠前/更靠后”，不得说成官方结论或录取预测。',
       '招生章程核验项只作为复核清单，不得替代学校当年章程下结论。',
-      '不要使用院校组、自选专业、稳进、必录、保证、一定能上、捡漏等表达。'
+      '不要使用院校组、自选专业、稳进、必录、保证、一定能上、捡漏、优势、王牌等表达。'
     ]
   };
 

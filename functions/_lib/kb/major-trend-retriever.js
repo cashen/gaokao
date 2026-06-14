@@ -50,3 +50,16 @@ export function buildTrendParentNote(segment, item) {
   if (item.trend === 'easier') return `${segment.label}分段中，${label}方向2025相比2024整体没那么挤，但仍需核验学校层次、专业实力和招生计划。`;
   return `${segment.label}分段中，${label}方向近两年变化有分化，只作辅助观察。`;
 }
+
+
+// v3.9.34.1 compatibility export: older accessors expect getTrendHint.
+// It wraps the existing context/note API and always returns a small parent-readable object.
+export function getTrendHint(input = {}) {
+  const context = getMajorTrendContext(input);
+  const text = Array.isArray(context?.notes) && context.notes.length ? context.notes[0] : '';
+  return {
+    matched: Boolean(context?.matched),
+    text,
+    context
+  };
+}

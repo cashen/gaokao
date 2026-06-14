@@ -1,3 +1,4 @@
+import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
 function text(value, max = 800) {
   const s = String(value == null ? '' : value).replace(/```[\s\S]*?```/g, '').replace(/\s+/g, ' ').trim();
   return s.length > max ? s.slice(0, max - 1) + '…' : s;
@@ -60,7 +61,7 @@ export function normalizeAdvisorNarrative(obj = {}, fallback = {}) {
     actions: cleanList(obj.actions || fallback.actions, 6, 140),
     parentVersion: text(obj.parentVersion || fallback.parentVersion || obj.overall || fallback.overall, 420),
     reportMarkdown: text(obj.reportMarkdown || fallback.reportMarkdown, 1800),
-    disclaimer: text(obj.disclaimer || fallback.disclaimer || 'AI解读只负责解释位次功能区和方案结构，不预测录取概率；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 420)
+    disclaimer: text(obj.disclaimer || fallback.disclaimer || '本说明只解释位次功能区和方案结构，不做录取承诺；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 420)
   };
 }
 
@@ -74,7 +75,7 @@ export function validateAdvisorAiNarrative(rawObj, { candidateZones = [], fallba
   if (normalized.finalZone.secondaryZoneKey && !zoneKeys.has(normalized.finalZone.secondaryZoneKey)) normalized.finalZone.secondaryZoneKey = '';
   if (!normalized.reportMarkdown) {
     normalized.reportMarkdown = [
-      '## AI高报师解读',
+      '## 方案解读',
       '',
       `**整体判断：** ${normalized.overall}`,
       '',
@@ -88,11 +89,11 @@ export function validateAdvisorAiNarrative(rawObj, { candidateZones = [], fallba
       '',
       normalized.pushRateDiagnosis ? `**升学与推免参考：** ${normalized.pushRateDiagnosis}` : '',
       normalized.pushRateDiagnosis ? '' : '',
-      `**保底底线：** ${normalized.bottomLineDiagnosis}`,
+      `**后段底线：** ${normalized.bottomLineDiagnosis}`,
       '',
       '**调整建议：**',
       ...normalized.actions.map((a, i) => `${i + 1}. ${a}`)
     ].join('\n');
   }
-  return { ok: true, reason: '', narrative: normalized };
+  return { ok: true, reason: '', narrative: applyHumanCopyGate(normalized) };
 }
