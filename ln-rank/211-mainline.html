@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>全国 211 院校专业背景怎么先看｜ln-rank</title>
-  <link rel="stylesheet" href="/ln-rank/css/dist/211-mainline.v3933_14.css?v=3933_14" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/211-mainline.v3933_15.css?v=3933_15" />
 </head>
 <body>
   <main class="lm-page jm-page">
@@ -37,14 +37,14 @@
       <div class="lm-start-grid">
         <button type="button" class="lm-start-card" data-start-tab="school"><b>已经知道学校</b><span>按学校看：这所 211 院校主要和哪些本科专业方向有关。</span></button>
         <button type="button" class="lm-start-card" data-start-tab="major"><b>孩子有专业方向</b><span>按专业看：同一个专业在不同 211 院校里的学校背景差异。</span></button>
-        <button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道分数</b><span>按辽宁 2025 物理类历史数据，看分数附近的 211 院校专业记录。</span></button>
+        <button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道孩子位置</b><span>先按当前输入分数对照历史记录；2026 一分一段接入后，统一按位次/等位参考查看 211 背景。</span></button>
       </div>
     </section>
 
     <nav class="lm-tabs" aria-label="查询入口">
       <button type="button" class="lm-tab is-active" data-tab="school">按学校看</button>
       <button type="button" class="lm-tab" data-tab="major">按专业看</button>
-      <button type="button" class="lm-tab" data-tab="score">按分数看</button>
+      <button type="button" class="lm-tab" data-tab="score">按孩子位置看</button>
     </nav>
 
     <section class="lm-panel" data-panel="school">
@@ -58,8 +58,8 @@
     </section>
 
     <section class="lm-panel" data-panel="score" hidden>
-      <div class="lm-panel-head"><div><h2>从分数看：这个分数附近有哪些 211 专业记录可以先讨论</h2><p>这里只按 2025 历史最低分/位次整理，不代表 2026 录取结果。军事类特殊院校不混入普通分数入口。</p></div></div>
-      <div class="lm-score-console lm-score-console-human"><label>孩子分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 666" /></label><label>查看方式 <select id="scoreLevel" class="lm-select"><option value="primary_secondary">先看本校方向和本校相关</option><option value="primary">只看本校方向</option><option value="all">连方向提醒也一起看</option></select></label><button id="scoreQuery" class="lm-primary" type="button">按分数查看</button></div>
+      <div class="lm-panel-head"><div><h2>按孩子位置看：当前位置附近有哪些 211 专业记录可以先讨论</h2><p>当前先用输入分数对照辽宁 2025 物理类历史记录；2026 一分一段接入后，会统一按位次/等位参考查看。军事类特殊院校不混入普通入口。</p></div></div>
+      <div class="lm-score-console lm-score-console-human"><label>孩子当前分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 666" /></label><label>查看方式 <select id="scoreLevel" class="lm-select"><option value="primary_secondary">先看本校方向和本校相关</option><option value="primary">只看本校方向</option><option value="all">连方向提醒也一起看</option></select></label><button id="scoreQuery" class="lm-primary" type="button">按当前位置查看</button></div>
       <div id="scoreResult" class="lm-detail"></div>
     </section>
 
@@ -68,8 +68,8 @@
     <section class="aux-page-bottom-link" aria-label="返回主线">
       <span>需要重新查分数和专业？</span><a href="/ln-rank/">回到辽宁物理类专业初选参考</a>
     </section>
-    <footer class="lm-footer">版本：v3.9.33.14｜数据口径：211 KB v0.1 + 辽宁 2025 物理类历史数据｜本页用于家庭讨论和人工复核，不做录取预测。</footer>
+    <footer class="lm-footer">版本：v3.9.33.15｜数据口径：211 KB v0.1 + 统一背景位置口径｜本页用于家庭讨论和人工复核，不做录取预测。</footer>
   </main>
-  <script type="module" src="/ln-rank/js/211-mainline/211-mainline-app.v3933_14.js?v=3933_14"></script>
+  <script type="module" src="/ln-rank/js/211-mainline/211-mainline-app.v3933_15.js?v=3933_15"></script>
 </body>
 </html>

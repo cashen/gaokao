@@ -1,15 +1,20 @@
 {
-  "version": "v3.9.33.14",
-  "assetVersion": "v3933_14",
-  "release": "v3.9.33.14-ln-rank-211-score-api-shell-json-contract-human-no-fenxi",
-  "name": "v3.9.33.14-ln-rank-211-score-api-shell-json-contract-human-no-fenxi",
-  "label": "211-score-api-shell-json-contract-human-no-fenxi",
+  "version": "v3.9.33.15",
+  "assetVersion": "v3933_15",
+  "release": "v3.9.33.15-ln-rank-unified-position-background-engine-local-211-no-fenxi",
+  "name": "v3.9.33.15-ln-rank-unified-position-background-engine-local-211-no-fenxi",
+  "label": "unified-position-background-engine-local-211-no-fenxi",
   "notes": [
-    "211 分数入口不再运行时读取 fenxi manifest/chunks，改为 no-fenxi 包内 score index 合同。",
-    "新增页面级低权重辅助导航：专业初选首页 / 省内背景 / 211 背景，避免独立页成为死链接。",
-    "211 分数 API 即使无内置历史记录也返回 application/json，不再向前端透出 HTML 503。",
-    "211 前端改用统一 API JSON 客户端，不再裸 res.json 解析错误页。",
-    "用户可见示例分数统一为 666；真实历史数据不做数字替换。"
+    "本地属性背景与 211 背景统一使用 background-position-engine，分数/位置入口不再各跑一套逻辑。",
+    "211 分数入口恢复为读取同一套辽宁历史专业记录，再匹配 211 背景 KB；不再使用空 score index 作为主功能。",
+    "前台文案从“按分数看”收敛为“按孩子位置看”：当前先对照 2025 历史记录，2026 一分一段接入后统一按位次/等位参考窗口查看。",
+    "local-mainline 与 211-mainline 都保留低权重页面导航，不恢复卡片内强回跳噪音。",
+    "保持 no-fenxi 打包边界：不包含 /fenxi/、functions/fenxi/、functions/_middleware.js；但与本地背景一致，通过现有统一数据读取层读取历史专业记录。"
   ],
-  "noFenxiIncluded": true
+  "noFenxiIncluded": true,
+  "positionContextContract": {
+    "activeCandidateYear": 2026,
+    "referenceAdmissionYear": 2025,
+    "futureSwitch": "2026 一分一段发布后，应由 2026 分数换算位次，再映射到历史专业记录参考窗口，本地属性与 211 背景同源使用。"
+  }
 }
