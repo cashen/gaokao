@@ -37,12 +37,12 @@ button, .query-button, .action-primary, .action-secondary, .lm-primary, .lm-tab,
 .lm-score-console { border: 1px solid var(--ln-border-soft); background: var(--ln-bg-soft); border-radius: var(--ln-radius-md); }
 /* Search page: keep the railway clear. */
 .ln-filter-panel__summary-action, .search-action-row, .filter-action { min-width: 0; }
-.filter-summary, .ln-filter-summary { overflow-wrap: anywhere; }
+.filter-summary, .ln-filter-summary { overflow-wrap: normal; word-break: normal; }
 .rank-band-legend, .range-buttons, .bottomline-buttons { min-width: 0; }
 .range-button, .bottomline-button { min-width: 0; }
 /* Cards and chips */
 [class*="card"], [class*="Card"], .result-card, .major-card, .selection-card { min-width: 0; overflow-wrap: anywhere; }
-[class*="chip"], .scope-pill, .active-band-badge { font-size: var(--ln-chip); white-space: normal; }
+.scope-pill, .active-band-badge, .school-tag, .meta-pill, .evidence-pill, .report-tag { font-size: var(--ln-chip); white-space: normal; }
 /* Report and AI diagnosis readable blocks */
 .report-view, .report-content, .report-body, .diagnosis-block, .card-diagnosis, .report-diagnosis, .ai-diagnosis, .selection-report, .feishu-report-preview {
   max-width: var(--ln-read-max);

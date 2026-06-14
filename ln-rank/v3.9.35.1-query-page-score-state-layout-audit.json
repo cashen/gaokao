@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "checks": {
+    "bodyDatasetScoreState": true,
+    "compactSummaryValue": true,
+    "scoreGuardNoticeClass": true,
+    "belowCoverageCss": true,
+    "topRangeCss": true,
+    "invalidHighCss": true,
+    "summarySingleColumn": true
+  },
+  "samples": [
+    "empty",
+    "399",
+    "400",
+    "514",
+    "515",
+    "612",
+    "699",
+    "700",
+    "750",
+    "751"
+  ]
+}

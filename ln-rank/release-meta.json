@@ -1,22 +1,19 @@
 {
-  "version": "v3.9.35",
-  "assetVersion": "v3935_0",
-  "release": "v3.9.35-ln-rank-ui-consistency-parent-guidance-12-role-review-no-fenxi",
-  "name": "v3.9.35-ln-rank-ui-consistency-parent-guidance-12-role-review-no-fenxi",
-  "label": "ui-consistency-parent-guidance-12-role-review-no-fenxi",
+  "version": "v3.9.35.1",
+  "assetVersion": "v3935_1",
+  "release": "v3.9.35.1-ln-rank-ui-state-matrix-layout-contract-auto-correction-no-fenxi",
+  "name": "v3.9.35.1-ln-rank-ui-state-matrix-layout-contract-auto-correction-no-fenxi",
+  "label": "ui-state-matrix-layout-contract-auto-correction-no-fenxi",
   "notes": [
-    "建立 12 个独立审计角色清单，用角色化检查防止顾此失彼。",
-    "新增全站 UI consistency token 与 parent guidance 合同，统一字体、色系、按钮主次、卡片密度和移动端防溢出。",
-    "只做 UI / 文案展示层收口，不改主查询、数据、AI 调用、飞书、本地背景、211 背景和趋势逻辑。",
-    "查询页保持主流程优先；自选池作为整理台；省内/211/趋势保持辅助复核定位。"
+    "基于 v3.9.35 建立 UI 状态矩阵合同，修复低于 400、700–750、超过 750 等边界分数导致查询摘要竖排和布局变形的问题。",
+    "收窄全局 chip/card 选择器爆炸半径，短标签不拆字，长正文可换行，避免一个页面修好另一个页面被误伤。",
+    "新增 bug 自动归类与自动纠错机制文档：问题必须沉淀为规则集、审计用例和回归矩阵。",
+    "只做 UI 状态、文案展示和审计机制收口，不改主查询、数据、AI 调用、飞书、本地背景、211 背景和趋势业务逻辑。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
   "twelveRoleReview": true,
-  "noFunctionLogicChange": true,
-  "positionContextContract": {
-    "activeCandidateYear": 2026,
-    "referenceAdmissionYear": 2025,
-    "futureSwitch": "2026 一分一段发布后，由 2026 分数换算位次，再映射到历史专业记录参考窗口；主查询、本地属性、211 背景同源使用。"
-  }
+  "uiStateMatrixContract": true,
+  "autoCorrectionMechanism": true,
+  "noFunctionLogicChange": true
 }

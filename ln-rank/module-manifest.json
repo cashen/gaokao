@@ -1,28 +1,36 @@
 {
-  "version": "v3.9.35",
-  "assetVersion": "v3935_0",
+  "version": "v3.9.35.1",
+  "assetVersion": "v3935_1",
   "entries": {
-    "search": "js/app.v3935_0.js",
-    "selectionPool": "js/selection-pool.v3935_0.js",
-    "majorTrend": "js/major-trend-render.v3935_0.js",
-    "selfCheck": "js/self-check.v3935_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3935_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3935_0.js"
+    "search": "js/app.v3935_1.js",
+    "selectionPool": "js/selection-pool.v3935_1.js",
+    "majorTrend": "js/major-trend-render.v3935_1.js",
+    "selfCheck": "js/self-check.v3935_1.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3935_1.js",
+    "main211": "js/211-mainline/211-mainline-app.v3935_1.js"
   },
   "entrypoints": {
-    "search": "js/app.v3935_0.js",
-    "selectionPool": "js/selection-pool.v3935_0.js",
-    "majorTrend": "js/major-trend-render.v3935_0.js",
-    "selfCheck": "js/self-check.v3935_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3935_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3935_0.js"
+    "search": "js/app.v3935_1.js",
+    "selectionPool": "js/selection-pool.v3935_1.js",
+    "majorTrend": "js/major-trend-render.v3935_1.js",
+    "selfCheck": "js/self-check.v3935_1.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3935_1.js",
+    "main211": "js/211-mainline/211-mainline-app.v3935_1.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3935_0.css",
-    "selection": "css/dist/ln-rank-selection.v3935_0.css",
-    "trend": "css/dist/ln-rank-trend.v3935_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3935_0.css",
-    "localMainline": "css/dist/local-mainline.v3935_0.css",
-    "main211": "css/dist/211-mainline.v3935_0.css"
-  }
+    "main": "css/dist/ln-rank-main.v3935_1.css",
+    "selection": "css/dist/ln-rank-selection.v3935_1.css",
+    "trend": "css/dist/ln-rank-trend.v3935_1.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3935_1.css",
+    "localMainline": "css/dist/local-mainline.v3935_1.css",
+    "main211": "css/dist/211-mainline.v3935_1.css"
+  },
+  "contracts": [
+    "score-state",
+    "filter-summary-nowrap",
+    "selector-blast-radius",
+    "long-text-overflow",
+    "button-group-mobile",
+    "auto-correction-registry"
+  ]
 }

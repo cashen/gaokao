@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.35",
-  "assetVersion": "v3935_0",
+  "version": "v3.9.35.1",
+  "assetVersion": "v3935_1",
   "html": [
     "index.html",
     "local-mainline.html",
@@ -10,32 +10,45 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3935_0.js",
-    "js/selection-pool.v3935_0.js",
-    "js/major-trend-render.v3935_0.js",
-    "js/self-check.v3935_0.js",
-    "js/local-mainline/local-mainline-app.v3935_0.js",
-    "js/211-mainline/211-mainline-app.v3935_0.js"
+    "js/app.v3935_1.js",
+    "js/selection-pool.v3935_1.js",
+    "js/major-trend-render.v3935_1.js",
+    "js/self-check.v3935_1.js",
+    "js/local-mainline/local-mainline-app.v3935_1.js",
+    "js/211-mainline/211-mainline-app.v3935_1.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3935_0.css",
-    "css/dist/ln-rank-selection.v3935_0.css",
-    "css/dist/ln-rank-trend.v3935_0.css",
-    "css/dist/ln-rank-self-check.v3935_0.css",
-    "css/dist/local-mainline.v3935_0.css",
-    "css/dist/211-mainline.v3935_0.css"
+    "css/dist/ln-rank-main.v3935_1.css",
+    "css/dist/ln-rank-selection.v3935_1.css",
+    "css/dist/ln-rank-trend.v3935_1.css",
+    "css/dist/ln-rank-self-check.v3935_1.css",
+    "css/dist/local-mainline.v3935_1.css",
+    "css/dist/211-mainline.v3935_1.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3935_0.css",
-    "selection": "css/dist/ln-rank-selection.v3935_0.css",
-    "trend": "css/dist/ln-rank-trend.v3935_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3935_0.css",
-    "localMainline": "css/dist/local-mainline.v3935_0.css",
-    "main211": "css/dist/211-mainline.v3935_0.css"
+    "main": "css/dist/ln-rank-main.v3935_1.css",
+    "selection": "css/dist/ln-rank-selection.v3935_1.css",
+    "trend": "css/dist/ln-rank-trend.v3935_1.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3935_1.css",
+    "localMainline": "css/dist/local-mainline.v3935_1.css",
+    "main211": "css/dist/211-mainline.v3935_1.css"
   },
   "releaseGate": "HTML/assets/module-manifest/release-meta paths must exist in package before zip output",
-  "parentGuidanceContract": "Main flow first; auxiliary review second; report/AI diagnosis written as parent-readable guidance; no function logic changes.",
-  "twelveRoleReviewContract": true,
-  "noFunctionLogicChange": true
+  "uiStateMatrixContract": true,
+  "autoCorrectionMechanism": true,
+  "noFunctionLogicChange": true,
+  "noFenxiIncluded": true,
+  "stateMatrixSamples": [
+    "empty",
+    "399",
+    "400",
+    "514",
+    "515",
+    "612",
+    "699",
+    "700",
+    "750",
+    "751"
+  ]
 }
