@@ -1,21 +1,20 @@
 {
   "version": "v3.9.37",
   "assetVersion": "v3937_0",
-  "release": "v3.9.37-ln-rank-clean-responsive-layout-refactor-preserve-function-no-fenxi",
-  "name": "v3.9.37-ln-rank-clean-responsive-layout-refactor-preserve-function-no-fenxi",
-  "label": "clean-responsive-layout-refactor-preserve-function-no-fenxi",
+  "release": "v3.9.37-ln-rank-parent-guided-flow-visual-implementation-12-role-no-fenxi",
+  "name": "v3.9.37-ln-rank-parent-guided-flow-visual-implementation-12-role-no-fenxi",
+  "label": "parent-guided-flow-visual-implementation-12-role-no-fenxi",
   "notes": [
-    "基于 v3.9.36 继续，不回退；仅做 CSS 架构、多终端版式、产品意图保真和审计门禁收口。",
-    "不改主查询、筛选、数据读取、AI 调用、飞书、省内背景、211 背景和趋势业务逻辑。",
-    "移除 active CSS 中 [class*=card] 这类大范围布局选择器，建立 page role、component contract 和 responsive layout system。",
-    "生成改版前/后功能入口快照、语义字段快照和 12 角色审计报告，防止 UI 工程改版破相或移除功能。"
+    "基于 v3.9.36 的产品意图保真与版本合同继续推进，真正落地家长向导式视觉层，而不改业务逻辑。",
+    "查询页新增四步家长向导；自选池新增方案整理向导；省内/211/趋势页增加复核顺序提示。",
+    "统一视觉层级、按钮主次、卡片密度和移动端阅读秩序，同时保留查询、自选、飞书、AI、背景、趋势等入口。",
+    "继续执行 12 角色审计、产品意图不破相和 no-fenxi 包边界。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
   "twelveRoleReview": true,
-  "responsiveLayoutSystem": true,
   "productIntentPreservation": true,
-  "functionEntrySnapshot": true,
+  "parentGuidedFlowVisualImplementation": true,
   "versionContractSync": true,
   "noFunctionLogicChange": true
 }

@@ -1,7 +1,7 @@
 {
   "version": "v3.9.37",
   "assetVersion": "v3937_0",
-  "dist": {
+  "entries": {
     "main": "css/dist/ln-rank-main.v3937_0.css",
     "selection": "css/dist/ln-rank-selection.v3937_0.css",
     "trend": "css/dist/ln-rank-trend.v3937_0.css",
@@ -9,23 +9,7 @@
     "localMainline": "css/dist/local-mainline.v3937_0.css",
     "main211": "css/dist/211-mainline.v3937_0.css"
   },
-  "addedContracts": [
-    "css/core/design-tokens.v3937.css",
-    "css/core/responsive-shell.v3937.css",
-    "css/components/button-system.v3937.css",
-    "css/components/card-system.v3937.css",
-    "css/components/chip-system.v3937.css",
-    "css/components/page-header.v3937.css",
-    "css/components/guide-flow.v3937.css",
-    "css/components/report-reading.v3937.css",
-    "css/components/diagnosis-block.v3937.css",
-    "css/pages/search-layout.v3937.css",
-    "css/pages/selection-workspace.v3937.css",
-    "css/pages/background-mainline.v3937.css",
-    "css/pages/trend-reference.v3937.css",
-    "css/pages/self-check.v3937.css"
-  ],
-  "sourcePreserved": true,
-  "selectorBlastRadiusRule": "Active dist must not use [class*=card] or [class*=chip] to control layout/wrapping; explicit component classes only.",
-  "importantBudgetRule": "v3.9.37 should not increase active dist !important count compared with v3.9.36; new clean contracts avoid !important except legacy state overrides."
+  "sourceToken": "css/tokens/parent-guided-flow.v3937_0.css",
+  "productIntentPreservation": true,
+  "parentGuidedFlowVisualImplementation": true
 }

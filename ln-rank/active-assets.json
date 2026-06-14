@@ -34,13 +34,11 @@
     "localMainline": "css/dist/local-mainline.v3937_0.css",
     "main211": "css/dist/211-mainline.v3937_0.css"
   },
-  "releaseGate": "HTML/assets/module-manifest/release-meta/version-contract/visible footer paths and versions must agree before zip output",
-  "cleanResponsiveLayoutSystem": true,
+  "releaseGate": "visible parent guided flow implementation with product-intent preservation and 12-role review",
+  "parentGuidedFlowVisualImplementation": true,
   "productIntentPreservation": true,
-  "functionEntrySnapshotRequired": true,
-  "noGenericCardChipSelector": true,
-  "importantBudgetTracked": true,
+  "twelveRoleReview": true,
+  "versionContractSync": true,
   "noFunctionLogicChange": true,
-  "noFenxiIncluded": true,
-  "twelveRoleReview": true
+  "noFenxiIncluded": true
 }

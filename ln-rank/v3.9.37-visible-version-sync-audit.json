@@ -1,35 +1,62 @@
 {
-  "ok": true,
-  "items": [
-    {
-      "file": "index.html",
-      "hasVersion": true,
-      "hasAsset": true
+  "version": "v3.9.37",
+  "status": "PASS",
+  "checks": {
+    "index.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     },
-    {
-      "file": "selection-pool.html",
-      "hasVersion": true,
-      "hasAsset": true
+    "selection-pool.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     },
-    {
-      "file": "211-mainline.html",
-      "hasVersion": true,
-      "hasAsset": true
+    "211-mainline.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     },
-    {
-      "file": "local-mainline.html",
-      "hasVersion": true,
-      "hasAsset": true
+    "local-mainline.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     },
-    {
-      "file": "major-trend-2025.html",
-      "hasVersion": true,
-      "hasAsset": true
+    "major-trend-2025.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     },
-    {
-      "file": "self-check.html",
-      "hasVersion": true,
-      "hasAsset": true
+    "self-check.html": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
+    },
+    "VERSION.txt": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
+    },
+    "active-assets.json": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
+    },
+    "module-manifest.json": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
+    },
+    "release-meta.json": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
+    },
+    "js/domain/version-contract.js": {
+      "has_v3937": true,
+      "no_v3936": true,
+      "no_asset3936": true
     }
-  ]
+  },
+  "note": "release-meta notes may reference v3.9.36 as baseline only."
 }

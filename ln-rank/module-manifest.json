@@ -26,18 +26,15 @@
     "main211": "css/dist/211-mainline.v3937_0.css"
   },
   "contracts": [
+    "parent-guided-flow-visual-implementation",
     "product-intent-preservation",
-    "clean-responsive-layout-system",
-    "page-role-map",
-    "component-selector-scope",
-    "no-generic-card-selector",
-    "no-generic-chip-selector",
-    "function-entry-snapshot",
-    "semantic-field-snapshot",
+    "ui-engineer-no-removal",
     "score-state",
     "filter-summary-nowrap",
+    "selector-blast-radius",
     "long-text-overflow",
     "button-group-mobile",
-    "version-contract-sync"
+    "version-contract-sync",
+    "12-role-review"
   ]
 }

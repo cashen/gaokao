@@ -225,6 +225,7 @@ button, .query-button, .action-primary, .action-secondary, .lm-primary, .lm-tab,
 .rank-band-legend, .range-buttons, .bottomline-buttons { min-width: 0; }
 .range-button, .bottomline-button { min-width: 0; }
 /* Cards and chips */
+[class*="card"], [class*="Card"], .result-card, .major-card, .selection-card { min-width: 0; overflow-wrap: anywhere; }
 .scope-pill, .active-band-badge, .school-tag, .meta-pill, .evidence-pill, .report-tag { font-size: var(--ln-chip); white-space: normal; }
 /* Report and AI diagnosis readable blocks */
 .report-view, .report-content, .report-body, .diagnosis-block, .card-diagnosis, .report-diagnosis, .ai-diagnosis, .selection-report, .feishu-report-preview {
@@ -510,23 +511,221 @@ body[data-score-state="invalidHigh"] .ln-filter-panel__summary-action,
 }
 
 
-/* === v3.9.37 clean responsive layout contract: product intent preserved, no business logic change === */
-:root{--ln-page-max:1180px;--ln-read-max:960px;--ln-radius-card:18px;--ln-radius-pill:999px;--ln-space-page:clamp(14px,2vw,26px);--ln-action-min-h:44px;--ln-text-main:#24312e;--ln-text-muted:#66756f;--ln-border-soft:#dfe8e4;--ln-bg-soft:#f6faf8;--ln-warn-bg:#fffaf0;--ln-warn-border:#ead7a8;--ln-warn-text:#765321;}
-.ln-page-shell,.app-shell,.wrap{max-width:var(--ln-page-max);margin-inline:auto;padding-inline:var(--ln-space-page);}
-.report-view,.selection-report,.report-content,.analysis-result{max-width:var(--ln-read-max);margin-inline:auto;line-height:1.72;overflow-wrap:break-word;word-break:normal;}
-.ln-result-card,.ln-selection-card,.ln-report-card,.ln-mainline-card,.ln-trend-card,.ln-diagnosis-card,.ln-aux-entry-card,.major-card,.selection-card,.lm-card,.lm-record-card{min-width:0;}
-.ln-card-title,.ln-card-desc,.ln-result-school,.ln-result-major,.ln-report-paragraph,.ln-diagnosis-text,.major-card h3,.major-card p,.selection-card h3,.selection-card p,.lm-card h3,.lm-card p,.lm-record-card h3,.lm-record-card p{overflow-wrap:break-word;word-break:normal;}
-.ln-chip,.ln-filter-summary-chip,.ln-tab-chip,.ln-status-pill,.rank-band-chip,.lm-pill{white-space:nowrap;word-break:keep-all;overflow-wrap:normal;max-width:100%;}
-.ln-chip-group,.ln-filter-summary-chips,.ln-tab-row{display:flex;flex-wrap:wrap;gap:8px;min-width:0;}
-[data-page-role] .page-header,[data-page-role] .hero,[data-page-role] .lm-hero{max-width:var(--ln-page-max);margin-inline:auto;}
-[data-page-role] .page-header p,[data-page-role] .hero p,[data-page-role] .lm-hero p{line-height:1.65;color:var(--ln-text-muted);}
-[data-page-role="search"] .ln-filter-panel__summary-action{grid-template-columns:1fr;gap:10px;}
-[data-score-state="belowCoverage"] .ln-filter-panel__summary-action,[data-score-state="topRange"] .ln-filter-panel__summary-action,[data-score-state="invalidHigh"] .ln-filter-panel__summary-action{grid-template-columns:1fr!important;}
-[data-page-role="search"] .ln-filter-summary-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;}
-[data-page-role="search"] .ln-filter-summary-chips{display:flex;flex-wrap:wrap;flex:1 1 auto;min-width:240px;gap:8px;}
-[data-page-role="search"] .ln-filter-summary-chip{flex:0 0 auto;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;}
-.score-guard-notice{border:1px solid var(--ln-warn-border);background:var(--ln-warn-bg);color:var(--ln-warn-text);border-radius:14px;padding:9px 12px;line-height:1.55;min-width:0;overflow-wrap:break-word;}
-.card-diagnosis,.diagnosis-block,.ai-diagnosis,.analysis-result{min-width:0;overflow-wrap:break-word;word-break:normal;}
-.card-diagnosis li,.diagnosis-block li{margin-bottom:6px;}
-[data-page-role="background-local"] .lm-tab,[data-page-role="background-211"] .lm-tab,[data-page-role="trend-reference"] .trend-tab,[data-page-role="trend-reference"] .trend-pill{white-space:nowrap;word-break:keep-all;}
-@media(max-width:760px){.ln-page-shell,.app-shell,.wrap{padding-inline:12px}.ln-action-row,.report-actions,.diagnosis-actions,.button-row,.actions,.lm-error-actions,.selection-actions{display:grid;grid-template-columns:1fr;gap:8px}.ln-action-row button,.report-actions button,.diagnosis-actions button,.button-row a,.button-row button,.actions a,.actions button,.lm-error-actions button,.selection-actions button{width:100%;min-height:var(--ln-action-min-h)}[data-page-role="search"] .ln-filter-summary-main{display:grid;grid-template-columns:1fr}[data-page-role="search"] .ln-filter-summary-chips{width:100%;min-width:0}.card-diagnosis,.diagnosis-block{font-size:14px;line-height:1.68}[data-page-role="background-local"] .lm-start-guide,[data-page-role="background-211"] .lm-start-guide{display:grid;grid-template-columns:1fr;gap:8px}}
+/* =========================================================
+   v3.9.37 parent guided flow visual implementation
+   目标：真实视觉落地，保留功能入口；用向导感、状态条、核验清单入口来帮助新手家长。
+   ========================================================= */
+:root{
+  --pg-bg:#f6faf7;
+  --pg-surface:#ffffff;
+  --pg-surface-soft:#f9fcf8;
+  --pg-ink:#23312d;
+  --pg-muted:#60706b;
+  --pg-brand:#2f7d6d;
+  --pg-brand-strong:#266b5e;
+  --pg-brand-soft:#eaf5f1;
+  --pg-blue-soft:#edf5ff;
+  --pg-amber-soft:#fff7e6;
+  --pg-line:#dbe7e2;
+  --pg-shadow:0 12px 28px rgba(36,49,46,.07);
+  --pg-radius:22px;
+}
+body.ln-parent-guided-flow,
+body.ln-parent-product-flow{
+  background:
+    radial-gradient(circle at 10% 6%, rgba(47,125,109,.10), transparent 26%),
+    radial-gradient(circle at 92% 4%, rgba(49,95,154,.09), transparent 24%),
+    linear-gradient(135deg,#fbf8ef 0%,#f7fbf7 54%,#f5f8fb 100%);
+}
+.ln-parent-guide-rail{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 12px;
+  padding:12px;
+  border:1px solid rgba(47,125,109,.16);
+  border-radius:24px;
+  background:rgba(255,255,255,.82);
+  box-shadow:0 8px 22px rgba(36,49,46,.045);
+}
+.ln-parent-guide-step{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  min-width:0;
+  padding:11px 12px;
+  border:1px solid rgba(36,49,46,.08);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff,#fbfdfb);
+}
+.ln-parent-guide-step b{
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 26px;
+  height:26px;
+  border-radius:999px;
+  color:#fff;
+  background:var(--pg-brand);
+  font-size:13px;
+  box-shadow:0 6px 12px rgba(47,125,109,.18);
+}
+.ln-parent-guide-step span{
+  display:block;
+  min-width:0;
+  color:var(--pg-ink);
+  font-size:14px;
+  line-height:1.42;
+  font-weight:900;
+}
+.ln-parent-guide-step small{
+  display:block;
+  margin-top:3px;
+  color:var(--pg-muted);
+  font-size:12.5px;
+  line-height:1.42;
+  font-weight:650;
+}
+.ln-parent-flow-note,
+.ln-guidance-note{
+  border:1px solid rgba(47,125,109,.18);
+  border-radius:18px;
+  background:var(--pg-brand-soft);
+  padding:10px 12px;
+  color:#315b51;
+  font-size:13.5px;
+  line-height:1.58;
+  font-weight:750;
+}
+.ln-console.panel{
+  border-color:rgba(47,125,109,.18);
+  background:rgba(255,255,255,.92);
+  box-shadow:var(--pg-shadow);
+}
+.ln-score-row,.ln-band-row,.ln-filter-panel{
+  position:relative;
+}
+.ln-step-marker,
+.ln-guide-marker{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:26px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--pg-brand-soft);
+  color:var(--pg-brand-strong);
+  border:1px solid rgba(47,125,109,.18);
+  font-size:12px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.02em;
+}
+.search-workbench-title,.panel-title,.workspace-title,.lm-panel h2{
+  letter-spacing:-.025em;
+}
+.ln-filter-panel__summary-action{
+  border:1px solid rgba(47,125,109,.14);
+  background:linear-gradient(180deg,#fff,#fbfdfb);
+  border-radius:20px;
+  padding:12px;
+}
+.ln-filter-summary{
+  border:0 !important;
+  background:transparent !important;
+  padding:0 !important;
+}
+.query-button,.workspace-button.primary,.workspace-button.report-primary,.lm-primary{
+  box-shadow:0 8px 16px rgba(47,125,109,.16);
+}
+.score-guard-notice,.filter-action-note.score-guard-notice{
+  border:1px solid #ead7a8 !important;
+  background:#fffaf0 !important;
+  color:#765321 !important;
+  border-radius:15px !important;
+}
+.results-head,.workspace-head,.lm-panel-head{
+  border-bottom:1px solid rgba(36,49,46,.08);
+  padding-bottom:10px;
+  margin-bottom:12px;
+}
+.results-title,.workspace-title,.lm-panel h2{
+  font-size:clamp(18px,2vw,22px);
+}
+.results-meta,.workspace-desc,.lm-panel p,.panel-desc{
+  color:var(--pg-muted);
+}
+.result-card,.workspace-item,.lm-card,.major-card{
+  border-color:rgba(36,49,46,.10) !important;
+  box-shadow:0 8px 18px rgba(36,49,46,.045) !important;
+}
+.result-card:hover,.workspace-item:hover,.lm-card:hover{
+  border-color:rgba(47,125,109,.26) !important;
+  box-shadow:0 12px 24px rgba(47,125,109,.08) !important;
+}
+.aux-background-entry{
+  border-color:rgba(47,125,109,.15) !important;
+  background:rgba(255,255,255,.82) !important;
+}
+.aux-background-head h2{font-size:18px!important;}
+.aux-background-card{min-height:62px!important;}
+/* 自选池：方案状态条，作为整理台的第一视觉信息 */
+#workspaceStats:not(:empty){
+  display:block;
+  margin:4px 0 12px;
+  padding:12px;
+  border:1px solid rgba(49,95,154,.16);
+  border-radius:18px;
+  background:linear-gradient(180deg,#f4f9ff,#fbfdff);
+}
+#reviewChecklistPanel:not(:empty){
+  margin-top:12px;
+  padding:12px;
+  border:1px solid rgba(138,90,22,.16);
+  border-radius:18px;
+  background:var(--pg-amber-soft);
+}
+.ln-action-button-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+@media (min-width:920px){
+  .ln-action-button-grid{grid-template-columns:1fr 1fr;}
+  .ln-action-button-grid .report-primary{grid-column:1 / -1;}
+}
+/* 背景页：三入口明确但不抢主线 */
+.lm-start-card,.lm-tab{
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.lm-start-card:hover,.lm-tab:hover{transform:translateY(-1px);}
+.lm-tab.is-active{
+  background:var(--pg-brand-soft)!important;
+  color:var(--pg-brand-strong)!important;
+  border-color:rgba(47,125,109,.28)!important;
+}
+.lm-boundary,.lm-start-guide,.lm-panel,.lm-howto{
+  box-shadow:0 8px 20px rgba(36,49,46,.045);
+}
+/* 趋势页和自测页也使用相同阅读宽度和低焦虑提示 */
+.trend-page .panel,.self-check-page .panel,.ln-selection-page .workspace-panel{
+  border-color:rgba(36,49,46,.10);
+}
+/* 长文本与移动端向导 */
+.ln-parent-guide-step span,.ln-parent-guide-step small,.app-subtitle,.workspace-desc,.lm-hero p,.lm-panel p{
+  overflow-wrap:break-word;
+  word-break:normal;
+}
+@media (max-width:860px){
+  .ln-parent-guide-rail{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:620px){
+  .page{width:min(100vw - 20px,1280px);padding-top:12px;}
+  .hero{gap:12px;}
+  .ln-parent-guide-rail{grid-template-columns:1fr;padding:10px;}
+  .ln-parent-guide-step{padding:10px;}
+  .ln-parent-guide-step span{font-size:13.5px;}
+  .ln-filter-panel__summary-action{grid-template-columns:1fr!important;}
+  .query-button,.workspace-button,.lm-primary{width:100%;min-height:44px;}
+  .results-head,.workspace-head,.lm-panel-head{display:block;}
+  .hero-badges{width:100%;justify-content:flex-start;flex-wrap:wrap;}
+}

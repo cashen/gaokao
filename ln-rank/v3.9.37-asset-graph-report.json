@@ -1,7 +1,109 @@
 {
   "version": "v3.9.37",
-  "assetVersion": "v3937_0",
-  "checked": 18,
+  "status": "PASS",
   "missing": [],
-  "ok": true
+  "htmlAsAsset": [],
+  "oldActiveHtmlRefs": [],
+  "refs": [
+    {
+      "html": "index.html",
+      "path": "css/dist/ln-rank-main.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "index.html",
+      "path": "local-mainline.html",
+      "query": null
+    },
+    {
+      "html": "index.html",
+      "path": "211-mainline.html",
+      "query": null
+    },
+    {
+      "html": "index.html",
+      "path": "js/app.v3937_0.js",
+      "query": "3937_0"
+    },
+    {
+      "html": "selection-pool.html",
+      "path": "css/dist/ln-rank-selection.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "selection-pool.html",
+      "path": "major-trend-2025.html",
+      "query": null
+    },
+    {
+      "html": "selection-pool.html",
+      "path": "js/selection-pool.v3937_0.js",
+      "query": "3937_0"
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "css/dist/211-mainline.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "local-mainline.html",
+      "query": null
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "211-mainline.html",
+      "query": null
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "js/211-mainline/211-mainline-app.v3937_0.js",
+      "query": "3937_0"
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "css/dist/local-mainline.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "local-mainline.html",
+      "query": null
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "211-mainline.html",
+      "query": null
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "js/local-mainline/local-mainline-app.v3937_0.js",
+      "query": "3937_0"
+    },
+    {
+      "html": "major-trend-2025.html",
+      "path": "css/dist/ln-rank-trend.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "major-trend-2025.html",
+      "path": "selection-pool.html",
+      "query": null
+    },
+    {
+      "html": "major-trend-2025.html",
+      "path": "js/major-trend-render.v3937_0.js",
+      "query": "3937_0"
+    },
+    {
+      "html": "self-check.html",
+      "path": "css/dist/ln-rank-self-check.v3937_0.css",
+      "query": "3937_0"
+    },
+    {
+      "html": "self-check.html",
+      "path": "js/self-check.v3937_0.js",
+      "query": "3937_0"
+    }
+  ]
 }
