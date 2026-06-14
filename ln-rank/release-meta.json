@@ -1,15 +1,14 @@
 {
-  "version": "v3.9.34.1",
-  "assetVersion": "v3934_1",
-  "release": "v3.9.34.1-ln-rank-p0-trend-fix-ai-human-copy-contract-no-fenxi",
-  "name": "v3.9.34.1-ln-rank-p0-trend-fix-ai-human-copy-contract-no-fenxi",
-  "label": "p0-trend-fix-ai-human-copy-contract-no-fenxi",
+  "version": "v3.9.34.2",
+  "assetVersion": "v3934_2",
+  "release": "v3.9.34.2-ln-rank-aux-entry-density-ui-consistency-no-fenxi",
+  "name": "v3.9.34.2-ln-rank-aux-entry-density-ui-consistency-no-fenxi",
+  "label": "aux-entry-density-ui-consistency-no-fenxi",
   "notes": [
-    "修复 major-trend getTrendHint 导入 P0，避免趋势、报告、飞书和诊断链路动态导入失败。",
-    "新增诊断文案人类化门禁：AI/规则兜底/单卡/飞书报告不得暴露工程状态或内部字段。",
-    "新增报告统计一致性合同：稍高目标、主要参考、稳妥补充统一从同一对象取数。",
-    "报告和单卡诊断增加多终端防溢出 CSS；无法截图时用 browserless layout invariant smoke 记录。",
-    "保持 no-fenxi 打包边界：不包含 /fenxi/、functions/fenxi/、functions/_middleware.js。"
+    "首页“资料与背景复核”从大卡片宣传区降级为低权重紧凑入口条，避免辅助入口抢主查询权重。",
+    "压缩省内背景 / 211 背景入口高度、字号、按钮视觉；按钮改为弱化“查看”。",
+    "补充 PC / Pad / Android 辅助入口密度与溢出审计，保持多终端不横向溢出。",
+    "延续 v3.9.34.1 的 P0 趋势修复、AI 文案合同、报告统计合同和 no-fenxi 包边界。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
@@ -17,5 +16,6 @@
     "activeCandidateYear": 2026,
     "referenceAdmissionYear": 2025,
     "futureSwitch": "2026 一分一段发布后，由 2026 分数换算位次，再映射到历史专业记录参考窗口；主查询、本地属性、211 背景同源使用。"
-  }
+  },
+  "auxEntryDensityContract": true
 }
