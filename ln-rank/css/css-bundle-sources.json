@@ -1,15 +1,15 @@
 {
-  "version": "v3.9.37",
-  "assetVersion": "v3937_0",
+  "version": "v3.9.38",
+  "assetVersion": "v3938_0",
   "entries": {
-    "main": "css/dist/ln-rank-main.v3937_0.css",
-    "selection": "css/dist/ln-rank-selection.v3937_0.css",
-    "trend": "css/dist/ln-rank-trend.v3937_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3937_0.css",
-    "localMainline": "css/dist/local-mainline.v3937_0.css",
-    "main211": "css/dist/211-mainline.v3937_0.css"
+    "main": "css/dist/ln-rank-main.v3938_0.css",
+    "selection": "css/dist/ln-rank-selection.v3938_0.css",
+    "trend": "css/dist/ln-rank-trend.v3938_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3938_0.css",
+    "localMainline": "css/dist/local-mainline.v3938_0.css",
+    "main211": "css/dist/211-mainline.v3938_0.css"
   },
-  "sourceToken": "css/tokens/parent-guided-flow.v3937_0.css",
-  "productIntentPreservation": true,
-  "parentGuidedFlowVisualImplementation": true
+  "sourceToken": "css/tokens/compact-guide-ui.v3938_0.css",
+  "compactGuideUI": true,
+  "productIntentPreservation": true
 }

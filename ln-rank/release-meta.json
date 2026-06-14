@@ -1,20 +1,19 @@
 {
-  "version": "v3.9.37",
-  "assetVersion": "v3937_0",
-  "release": "v3.9.37-ln-rank-parent-guided-flow-visual-implementation-12-role-no-fenxi",
-  "name": "v3.9.37-ln-rank-parent-guided-flow-visual-implementation-12-role-no-fenxi",
-  "label": "parent-guided-flow-visual-implementation-12-role-no-fenxi",
+  "version": "v3.9.38",
+  "assetVersion": "v3938_0",
+  "release": "v3.9.38-ln-rank-compact-guide-ui-consistency-12-role-no-fenxi",
+  "name": "v3.9.38-ln-rank-compact-guide-ui-consistency-12-role-no-fenxi",
+  "label": "compact-guide-ui-consistency-12-role-no-fenxi",
   "notes": [
-    "基于 v3.9.36 的产品意图保真与版本合同继续推进，真正落地家长向导式视觉层，而不改业务逻辑。",
-    "查询页新增四步家长向导；自选池新增方案整理向导；省内/211/趋势页增加复核顺序提示。",
-    "统一视觉层级、按钮主次、卡片密度和移动端阅读秩序，同时保留查询、自选、飞书、AI、背景、趋势等入口。",
-    "继续执行 12 角色审计、产品意图不破相和 no-fenxi 包边界。"
+    "基于 v3.9.37 的家长向导方向继续收口，把大字说明改成紧凑流程条、方案状态条和辅助复核提示。",
+    "查询页使用 compact stepper；自选池使用 plan status strip；211/省内/趋势页使用 aux guidance note；self-check 保持工程自查风格。",
+    "只改视觉呈现和版本合同，不改主查询、数据、AI、飞书、本地背景、211 背景、趋势业务逻辑。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
   "twelveRoleReview": true,
   "productIntentPreservation": true,
-  "parentGuidedFlowVisualImplementation": true,
+  "compactGuideUI": true,
   "versionContractSync": true,
   "noFunctionLogicChange": true
 }
