@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.38",
-  "assetVersion": "v3938_0",
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,35 +10,39 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3938_0.js",
-    "js/selection-pool.v3938_0.js",
-    "js/major-trend-render.v3938_0.js",
-    "js/self-check.v3938_0.js",
-    "js/local-mainline/local-mainline-app.v3938_0.js",
-    "js/211-mainline/211-mainline-app.v3938_0.js"
+    "js/app.v3939_0.js",
+    "js/selection-pool.v3939_0.js",
+    "js/major-trend-render.v3939_0.js",
+    "js/self-check.v3939_0.js",
+    "js/local-mainline/local-mainline-app.v3939_0.js",
+    "js/211-mainline/211-mainline-app.v3939_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3938_0.css",
-    "css/dist/ln-rank-selection.v3938_0.css",
-    "css/dist/ln-rank-trend.v3938_0.css",
-    "css/dist/ln-rank-self-check.v3938_0.css",
-    "css/dist/local-mainline.v3938_0.css",
-    "css/dist/211-mainline.v3938_0.css"
+    "css/dist/ln-rank-main.v3939_0.css",
+    "css/dist/ln-rank-selection.v3939_0.css",
+    "css/dist/ln-rank-trend.v3939_0.css",
+    "css/dist/ln-rank-self-check.v3939_0.css",
+    "css/dist/local-mainline.v3939_0.css",
+    "css/dist/211-mainline.v3939_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3938_0.css",
-    "selection": "css/dist/ln-rank-selection.v3938_0.css",
-    "trend": "css/dist/ln-rank-trend.v3938_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3938_0.css",
-    "localMainline": "css/dist/local-mainline.v3938_0.css",
-    "main211": "css/dist/211-mainline.v3938_0.css"
+    "main": "css/dist/ln-rank-main.v3939_0.css",
+    "selection": "css/dist/ln-rank-selection.v3939_0.css",
+    "trend": "css/dist/ln-rank-trend.v3939_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3939_0.css",
+    "localMainline": "css/dist/local-mainline.v3939_0.css",
+    "main211": "css/dist/211-mainline.v3939_0.css"
   },
-  "releaseGate": "compact guide UI consistency with 12-role review",
+  "releaseGate": "report six-section contract, self-check mount, deep version contract, scoped CSS selector gate",
   "compactGuideUI": true,
   "productIntentPreservation": true,
   "twelveRoleReview": true,
   "versionContractSync": true,
-  "noFunctionLogicChange": true,
+  "reportSixSectionContract": true,
+  "selfCheckGate": true,
+  "cssBlastRadiusScoped": true,
+  "noFunctionLogicChange": false,
+  "functionLogicChangeScope": "report builders, self-check API version/error payload, runtime health version payload only",
   "noFenxiIncluded": true
 }

@@ -1,32 +1,34 @@
 {
-  "version": "v3.9.38",
-  "assetVersion": "v3938_0",
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
   "entries": {
-    "search": "js/app.v3938_0.js",
-    "selectionPool": "js/selection-pool.v3938_0.js",
-    "majorTrend": "js/major-trend-render.v3938_0.js",
-    "selfCheck": "js/self-check.v3938_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3938_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3938_0.js"
+    "search": "js/app.v3939_0.js",
+    "selectionPool": "js/selection-pool.v3939_0.js",
+    "majorTrend": "js/major-trend-render.v3939_0.js",
+    "selfCheck": "js/self-check.v3939_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3939_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3939_0.js"
   },
   "entrypoints": {
-    "search": "js/app.v3938_0.js",
-    "selectionPool": "js/selection-pool.v3938_0.js",
-    "majorTrend": "js/major-trend-render.v3938_0.js",
-    "selfCheck": "js/self-check.v3938_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3938_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3938_0.js"
+    "search": "js/app.v3939_0.js",
+    "selectionPool": "js/selection-pool.v3939_0.js",
+    "majorTrend": "js/major-trend-render.v3939_0.js",
+    "selfCheck": "js/self-check.v3939_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3939_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3939_0.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3938_0.css",
-    "selection": "css/dist/ln-rank-selection.v3938_0.css",
-    "trend": "css/dist/ln-rank-trend.v3938_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3938_0.css",
-    "localMainline": "css/dist/local-mainline.v3938_0.css",
-    "main211": "css/dist/211-mainline.v3938_0.css"
+    "main": "css/dist/ln-rank-main.v3939_0.css",
+    "selection": "css/dist/ln-rank-selection.v3939_0.css",
+    "trend": "css/dist/ln-rank-trend.v3939_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3939_0.css",
+    "localMainline": "css/dist/local-mainline.v3939_0.css",
+    "main211": "css/dist/211-mainline.v3939_0.css"
   },
   "compactGuideUI": true,
   "productIntentPreservation": true,
-  "noFunctionLogicChange": true,
+  "reportSixSectionContract": true,
+  "selfCheckGate": true,
+  "cssBlastRadiusScoped": true,
   "noFenxiIncluded": true
 }

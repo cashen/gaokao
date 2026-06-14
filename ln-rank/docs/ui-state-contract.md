@@ -14,3 +14,9 @@
 
 ## 固定分数样本
 空、399、400、514、515、612、699、700、750、751。
+
+## v3.9.39 补充合同
+8. 报告六段结构合同：报告二级标题必须固定为六段，不得因 AI 是否返回、是否有趋势、是否有方向判断而改变序号或增加额外二级标题。
+9. 自测页挂载点合同：self-check 必须渲染到明确容器，不允许 fallback 到 `document.body` 覆盖工程自查页。
+10. 深层版本合同：前端 version-contract、active-assets、module-manifest、release-meta、functions release contract、API health、报告 builder 版本必须一致。
+11. CSS selector blast-radius 合同：active CSS 禁止 `[class*=card]`、`[class*=chip]`、`[class*=tag]` 这类跨页面模糊选择器；长文本抗变形必须落在页面或组件作用域内。

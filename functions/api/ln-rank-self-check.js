@@ -9,6 +9,7 @@ import { getCampusForItem, getCampusDiagnostics } from '../_lib/kb/campus-access
 import { getQueryActionLabel, getActionDiagnostics } from '../_lib/kb/action-hierarchy-policy.js';
 import { buildGovernanceKnowledgeContext, buildKbReviewPoints } from '../_lib/kb/knowledge-context-builder.js';
 import { MAJOR_FILTER_PRESET_KB } from '../_lib/kb/major-filter-preset-kb.generated.js';
+import { LN_RANK_RELEASE_CONTRACT } from '../_lib/release-contract.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload, null, 2), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
@@ -140,12 +141,20 @@ function reportSmoke() {
   const basic = buildFeishuReport({ candidateScore: 520, selectedBand: { key: 'near', title: '主要参考', rangeText: '515-525' }, filters: { region: 'all', majorKeyword: '电气' }, dataScope: '2025历史', counts: { upper: 1, near: 1, steady: 1, total: 3 }, selectedRecords: [rec], rangePreset: 'standard', keywordQuery: { rawKeywords: ['电气'] }, matchSummary: { exact: 1 } });
   const pool = buildSelectionPoolFeishuReport({ candidateScore: 520, items: [rec], reportType: 'selectionPoolWithAnalysis', analysis: { summary: '整体可以作为重点核验', stats: { total: 1, rushCount: 0, stableCount: 1, safeCount: 0 }, aiNarrative: { overall: '整体可以作为重点核验', structureDiagnosis: '专业结构待补充', actions: ['建议补充后段专业'] } } });
   const styled = buildSelectionPoolStyledBlocks({ title: '测试报告', candidateScore: 520, items: [rec], stats: { total: 1 }, summary: pool.summary, hasAnalysis: false });
+  const requiredSections = (LN_RANK_RELEASE_CONTRACT.reportSections || []).map(x => `## ${x}`);
   for (const [name, text] of [['家庭讨论报告', basic.markdown], ['带解读报告', pool.markdown]]) {
     const errors = [];
     if (!text || text.length < 200) errors.push('正文过短');
     if (!/专业\+学校/.test(text)) errors.push('缺少辽宁专业+学校口径');
     if (!/专业代码/.test(text)) errors.push('缺少专业代码');
     if (FORBIDDEN.test(text)) errors.push('出现工程词');
+    if (name === '带解读报告') {
+      const h2 = String(text || '').split(/\n+/).filter(line => /^##\s+/.test(line)).map(line => line.trim());
+      if (h2.length !== requiredSections.length || !requiredSections.every((section, index) => h2[index] === section)) {
+        errors.push(`报告二级标题必须固定六段，实际：${h2.join('｜') || '未识别'}`);
+      }
+      if (pool.version !== LN_RANK_RELEASE_CONTRACT.display) errors.push(`报告版本未同步：${pool.version}`);
+    }
     out.push({ name, ok: errors.length === 0, errors, length: text.length });
   }
   out.push({ name: '复制文字版/样式块', ok: Array.isArray(styled) && styled.length > 5, errors: Array.isArray(styled) && styled.length > 5 ? [] : ['样式块为空'], length: Array.isArray(styled) ? styled.length : 0 });
@@ -178,8 +187,8 @@ export async function onRequest() {
     campusAction.campusCases.filter(x => !x.ok).forEach(x => errors.push(`${x.school} ${x.major}: ${x.errors.join('；')}`));
     campusAction.actionCases.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: 按钮文案异常 ${x.label}`));
     uiChecks.filter(x => !x.ok).forEach(x => errors.push(`${x.name}: ${x.detail || 'UI 可读性检查失败'}`));
-    return json({ ok: errors.length === 0, version: 'v3.9.20.2', catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
+    return json({ ok: errors.length === 0, version: LN_RANK_RELEASE_CONTRACT.display, catalog, policyLine: formatLiaoningOrdinaryUndergraduatePolicyLine(), cases, kbAccessorCases, presetDisplay, reports, uiChecks, errors });
   } catch (error) {
-    return json({ ok: false, version: 'v3.9.20.2', message: error?.message || String(error), stack: String(error?.stack || '') }, 500);
+    return json({ ok: false, version: LN_RANK_RELEASE_CONTRACT.display, message: error?.message || String(error), hint: '自测接口失败。请查看服务端日志，不在前台暴露 stack trace。' }, 500);
   }
 }

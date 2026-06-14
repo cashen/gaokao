@@ -10,6 +10,7 @@ import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist, reviewChecklistMarkdownLines } from './kb/review-checklist-builder.js';
+import { LN_RANK_RELEASE_CONTRACT } from './release-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -366,6 +367,90 @@ function summaryLines(summary) {
   return lines;
 }
 
+
+function nonHeadingLines(lines = []) {
+  return (Array.isArray(lines) ? lines : []).filter(line => !/^#{2,3}\s+/.test(String(line || '').trim()));
+}
+
+function appendChecklistLines(lines, checklist = {}) {
+  const categories = Array.isArray(checklist.categories) ? checklist.categories : [];
+  if (!categories.length) {
+    lines.push('- 暂未汇总出明显复核事项；正式填报仍需核验 2026 招生计划和招生章程。', '');
+    return;
+  }
+  lines.push(`- ${checklist.summary?.headline || `本方案有 ${categories.length} 类事项建议人工复核`}。`);
+  categories.slice(0, 7).forEach((cat, idx) => {
+    lines.push(`- ${idx + 1}. ${cat.title}（${cat.count} 条）`);
+    cat.items.slice(0, 5).forEach((it, i) => lines.push(`  ${i + 1}. ${it.school}｜${it.major}：${it.reason} 建议：${it.action}`));
+  });
+  lines.push('');
+}
+
+function appendLocalContextLines(lines, items = []) {
+  const rows = [];
+  (Array.isArray(items) ? items : []).forEach(item => {
+    localContextItems(item).forEach(entry => rows.push({ item, entry }));
+  });
+  if (!rows.length) {
+    lines.push('- 院校专业背景：暂无明显提示；仍需按招生章程、培养方案和当年计划人工核验。', '');
+    return;
+  }
+  lines.push(`- 院校专业背景复核：${fmt(rows.length)} 条。说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。`);
+  rows.slice(0, 10).forEach(({ item, entry }) => {
+    lines.push(`  - ${item.school}｜${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
+  });
+  lines.push('');
+}
+
+function appendManualReviewLines(lines, items = []) {
+  const review = nonHeadingLines(governanceReviewLines(items)).filter(Boolean);
+  if (review.length) lines.push(...review, '');
+}
+
+function appendCurrentPlanLines(lines, input, stats, summary, hasAnalysis) {
+  lines.push(`- 已选专业总数：${fmt(stats.total)} 个。`);
+  lines.push(`- 稍高目标：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）｜稳妥补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）。`);
+  if (stats.highRushCount) lines.push(`- 稍高目标数量：${fmt(stats.highRushCount)} 个，请控制数量并逐条核验孩子是否接受。`);
+  if (stats.floorCount) lines.push(`- 稳妥补充数量：${fmt(stats.floorCount)} 个，请确认专业、城市和费用是否真的接受。`);
+  const direction = directionExplorerLines(input.reportContext?.directionExplorer || input.directionExplorer || null);
+  const directionBody = nonHeadingLines(direction).filter(Boolean);
+  if (directionBody.length) lines.push('', ...directionBody);
+  if (hasAnalysis) {
+    const analysisBody = nonHeadingLines(analysisLines(input.analysis)).filter(Boolean);
+    if (analysisBody.length) lines.push('', ...analysisBody);
+  }
+  const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
+  const trendBody = nonHeadingLines(majorTrendLines(majorTrendSummary)).filter(Boolean);
+  if (trendBody.length) lines.push('', ...trendBody);
+  lines.push('', `- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。`);
+  lines.push(`- 维护口径：${summary.maintenanceNote || '前中后段标签沿用已选专业现有判断，报告概要只做统计，不重新判定。'}`);
+  lines.push('');
+}
+
+
+function groupCountsForReport(items = []) {
+  const groups = { rush: [], stable: [], safe: [] };
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const group = (item.poolBand || classify(item)).group || 'safe';
+    (groups[group] || groups.safe).push(item);
+  });
+  return groups;
+}
+
+function appendStructureLines(lines, groups = {}) {
+  const defs = [
+    ['rush', '稍高目标', '数量不要过多，逐条核验孩子是否能接受学校、专业、城市和费用。'],
+    ['stable', '主要参考', '重点看专业方向、院校背景、校区和培养路径是否匹配家庭讨论目标。'],
+    ['safe', '稳妥补充', '不是承诺结果，只是用于避免方案结构过于集中；仍要核验专业和城市是否接受。']
+  ];
+  defs.forEach(([key, title, note]) => {
+    const list = groups[key] || [];
+    const sample = list.slice(0, 12).map(item => `第${item.order}位`).join('、') || '暂无';
+    lines.push(`- ${title}：${fmt(list.length)} 个｜涉及顺序：${sample}。${note}`);
+  });
+  lines.push('');
+}
+
 export function buildSelectionPoolFeishuReport(input = {}) {
   const reportType = input.reportType === 'selectionPoolWithAnalysis' ? 'selectionPoolWithAnalysis' : 'selectionPoolOnly';
   const candidateScore = input.candidateScore || '未填写';
@@ -378,49 +463,35 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const title = hasAnalysis
     ? `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类专业初选参考报告`
     : `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类家庭讨论报告`;
+  const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
+  const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
+  const groups = groupCountsForReport(displayItems.length ? displayItems : items);
   const lines = [];
 
-  lines.push(`# ${title}`);
-  lines.push('');
-  lines.push(hasAnalysis ? '## 辽宁 2026 物理类专业初选参考报告' : '## 辽宁 2026 物理类家庭讨论报告');
-  if (hasAnalysis) lines.push(YEAR_CALIBER_KB.reportCopy);
-  lines.push('');
+  lines.push(`# ${title}`, '');
+  lines.push(`- 报告类型：${hasAnalysis ? '带解读的报告' : '当前排序清单'}`);
   lines.push(`- 考生分数：${candidateScore}`);
   lines.push(`- 考生位次：${displayRankForTitle}`);
   lines.push(`- 数据口径：${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。`);
-  lines.push('- 使用边界：本报告用于家庭讨论和人工确认，不等同于录取预测。');
-  lines.push('- 排序口径：按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。');
-  lines.push('');
-  lines.push(...summaryLines(summary));
-  lines.push(...directionExplorerLines(input.reportContext?.directionExplorer || input.directionExplorer || null));
-  lines.push('## 已选专业总览');
-  lines.push('');
-  lines.push(`- 已选专业总数：${fmt(stats.total)} 个`);
-  lines.push(`- 稍高目标：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）`);
-  lines.push(`- 主要参考：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）`);
-  lines.push(`- 稳妥补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）`);
-  if (stats.highRushCount) lines.push(`- 稍高目标：${fmt(stats.highRushCount)} 个`);
-  if (stats.floorCount) lines.push(`- 稳妥补充：${fmt(stats.floorCount)} 个`);
-  lines.push('');
+  lines.push('- 使用边界：本报告用于家庭讨论和人工确认，不等同于录取预测。', '');
 
-  if (hasAnalysis) lines.push(...analysisLines(input.analysis));
-  const majorTrendSummary = input.majorTrendSummary || input.analysis?.majorTrendSummary || null;
-  lines.push(...majorTrendLines(majorTrendSummary));
-  const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
-  const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
-  lines.push(...reviewChecklistMarkdownLines(reviewChecklist));
-  lines.push(...localContextMarkdownLines(displayItems.length ? displayItems : items));
+  lines.push('## 一、概要判断', '');
+  lines.push(...nonHeadingLines(summaryLines(summary)).filter(Boolean), '');
 
-  lines.push('## 当前已选专业排序');
-  lines.push('');
+  lines.push('## 二、当前方案怎么看', '');
+  appendCurrentPlanLines(lines, input, stats, summary, hasAnalysis);
+
+  lines.push('## 三、前中后段快速确认', '');
+  appendStructureLines(lines, groups);
+
+  lines.push('## 四、最终排序清单', '');
   if (!displayItems.length) {
-    lines.push('- 当前已选专业为空。');
+    lines.push('- 当前已选专业为空。', '');
   } else {
     displayItems.forEach((item) => {
       const sm = item.standardMajor || {};
       const codeText = sm.code && sm.name ? `专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `专业类：${sm.categoryCode}｜${sm.categoryName}` : '专业代码：待人工确认');
-      lines.push(`### ${item.order}. ${item.school} · ${item.major}`);
-      lines.push('');
+      lines.push(`### ${item.order}. ${item.school} · ${item.major}`, '');
       lines.push(`- 顺序：${item.order}`);
       lines.push(`- 学校：${item.school || '学校待核验'}`);
       lines.push(`- 专业：${item.major || '专业待核验'}`);
@@ -442,15 +513,17 @@ export function buildSelectionPoolFeishuReport(input = {}) {
         lines.push('- 院校专业背景：暂无明显提示');
       }
       const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : '招生计划 / 校区 / 学费 / 体检 / 专业备注');
-      lines.push(`- 建议再看：${reviewText}`);
-      lines.push('');
+      lines.push(`- 建议再看：${reviewText}`, '');
     });
   }
 
-  lines.push('---');
-  lines.push('');
-  lines.push(...governanceReviewLines(displayItems));
-  lines.push(...governanceBoundaryLines());
+  lines.push('## 五、本方案确认清单', '');
+  appendChecklistLines(lines, reviewChecklist);
+  appendLocalContextLines(lines, displayItems);
+  appendManualReviewLines(lines, displayItems);
+
+  lines.push('## 六、数据和使用边界', '');
+  lines.push(...nonHeadingLines(governanceBoundaryLines()).filter(Boolean), '');
 
   return {
     title,
@@ -458,7 +531,9 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: 'v3.9.33.2',
+    version: LN_RANK_RELEASE_CONTRACT.display,
+    assetVersion: LN_RANK_RELEASE_CONTRACT.assetVersion,
+    release: LN_RANK_RELEASE_CONTRACT.release,
     summary,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
@@ -470,7 +545,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       hasAnalysis,
       analysis: input.analysis || null,
       majorTrendSummary: input.majorTrendSummary || input.analysis?.majorTrendSummary || null,
-      reviewChecklist: input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items),
+      reviewChecklist,
+      directionExplorer: input.reportContext?.directionExplorer || input.directionExplorer || null,
       orderSignature
     })
   };

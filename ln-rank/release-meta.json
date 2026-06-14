@@ -1,13 +1,14 @@
 {
-  "version": "v3.9.38",
-  "assetVersion": "v3938_0",
-  "release": "v3.9.38-ln-rank-compact-guide-ui-consistency-12-role-no-fenxi",
-  "name": "v3.9.38-ln-rank-compact-guide-ui-consistency-12-role-no-fenxi",
-  "label": "compact-guide-ui-consistency-12-role-no-fenxi",
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
+  "release": "v3.9.39-ln-rank-report-contract-selfcheck-version-gate-12-role-no-fenxi",
+  "name": "v3.9.39-ln-rank-report-contract-selfcheck-version-gate-12-role-no-fenxi",
+  "label": "report-contract-selfcheck-version-gate-12-role-no-fenxi",
   "notes": [
-    "基于 v3.9.37 的家长向导方向继续收口，把大字说明改成紧凑流程条、方案状态条和辅助复核提示。",
-    "查询页使用 compact stepper；自选池使用 plan status strip；211/省内/趋势页使用 aux guidance note；self-check 保持工程自查风格。",
-    "只改视觉呈现和版本合同，不改主查询、数据、AI、飞书、本地背景、211 背景、趋势业务逻辑。"
+    "基于 v3.9.38 的 compact guide UI 基线，只修门禁问题，不新增大而全功能。",
+    "报告输出统一收口为固定六段：概要判断、当前方案怎么看、前中后段快速确认、最终排序清单、本方案确认清单、数据和使用边界。",
+    "self-check 增加独立结果容器，避免覆盖 body；active 资源、版本合同、报告六段、CSS selector blast-radius 纳入自测。",
+    "深层 API / report builder 版本号同步到 v3.9.39；CSS 长文本规则从 [class*=card] 收口为页面/组件作用域。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
@@ -15,5 +16,8 @@
   "productIntentPreservation": true,
   "compactGuideUI": true,
   "versionContractSync": true,
-  "noFunctionLogicChange": true
+  "reportSixSectionContract": true,
+  "selfCheckGate": true,
+  "cssBlastRadiusScoped": true,
+  "functionLogicChangeScope": "report builders, self-check API version/error payload, runtime health version payload only"
 }

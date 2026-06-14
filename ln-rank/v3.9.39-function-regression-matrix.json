@@ -1,0 +1,75 @@
+{
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
+  "generatedAt": "2026-06-14T21:37:14Z",
+  "ok": true,
+  "matrix": [
+    {
+      "area": "分数边界状态合同",
+      "cases": [
+        "空分数",
+        "399",
+        "400",
+        "514",
+        "515",
+        "612",
+        "699",
+        "700",
+        "750",
+        "751"
+      ],
+      "execution": "未做真实浏览器交互；本次只保留矩阵并做静态/语法门禁。"
+    },
+    {
+      "area": "主流程静态资产",
+      "cases": [
+        "成绩查询",
+        "筛选",
+        "结果卡片",
+        "加入自选",
+        "自选池",
+        "报告",
+        "飞书报告",
+        "单卡诊断"
+      ],
+      "execution": "active HTML/JS/CSS 存在且递归 import 无缺失。"
+    },
+    {
+      "area": "报告六段结构",
+      "cases": [
+        "文字版报告",
+        "飞书样式块",
+        "self-check API reportSmoke"
+      ],
+      "execution": "本地 Node 调用 report builder 与 self-check API 通过。"
+    },
+    {
+      "area": "辅助边界",
+      "cases": [
+        "省内背景",
+        "211背景",
+        "趋势页低权重提示"
+      ],
+      "execution": "active HTML 保留辅助复核提示；未做浏览器交互。"
+    },
+    {
+      "area": "移动端行为",
+      "cases": [
+        "375",
+        "390",
+        "768",
+        "1366"
+      ],
+      "execution": "本次沙盒未执行真实截图 smoke；CSS selector 与长文本合同做静态门禁。"
+    },
+    {
+      "area": "API JSON/错误体验",
+      "cases": [
+        "ln-rank-self-check JSON",
+        "runtime-health version payload",
+        "kb-health version payload"
+      ],
+      "execution": "self-check API 本地 onRequest 通过；线上 Cloudflare API 未测。"
+    }
+  ]
+}

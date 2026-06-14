@@ -148,7 +148,7 @@ function itemRuns(item) {
 function analysisBlocks(analysis = {}) {
   const blocks = [];
   if (!analysis || typeof analysis !== 'object') return blocks;
-  blocks.push(heading2('二、检查当前排序', STYLE.action));
+  blocks.push(heading3('检查当前排序', STYLE.action));
   if (analysis.summary) {
     blocks.push(bulletRunsBlock([
       { content: '整体判断：', style: STYLE.strong },
@@ -251,7 +251,7 @@ function majorTrendBlocks(summary = {}) {
   summary = summary && typeof summary === 'object' ? summary : {};
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return [];
-  const blocks = [heading2('两年位次变化参考', STYLE.title)];
+  const blocks = [heading3('两年位次变化参考', STYLE.title)];
   notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
   blocks.push(styledTextBlock('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。', STYLE.warning));
   return blocks;
@@ -261,7 +261,7 @@ function majorTrendBlocks(summary = {}) {
 function reviewChecklistBlocks(items = [], checklist = null) {
   const ck = checklist || buildSelectionReviewChecklist(items);
   const categories = Array.isArray(ck.categories) ? ck.categories : [];
-  const blocks = [heading2('本方案确认清单', STYLE.title)];
+  const blocks = [heading3('确认清单', STYLE.title)];
   if (!categories.length) {
     blocks.push(bulletBlock('暂未汇总出明显确认事项；正式填报仍需核验 2026 招生计划和招生章程。'));
     return blocks;
@@ -280,7 +280,7 @@ function reviewChecklistBlocks(items = [], checklist = null) {
 
 function directionExplorerBlocks(direction = null) {
   if (!direction || (!direction.focus?.length && !direction.explore?.length && !direction.confirm?.length)) return [];
-  const blocks = [heading2('孩子方向参考', STYLE.title)];
+  const blocks = [heading3('孩子方向参考', STYLE.title)];
   blocks.push(styledTextBlock('这部分不是给孩子定专业，只是帮助家里讨论哪些方向更值得看，哪些只是没接触过，哪些地方需要再确认。', STYLE.muted));
   if (Array.isArray(direction.focus) && direction.focus.length) blocks.push(bulletRunsBlock([{ content: '更值得重点讨论：', style: STYLE.strong }, { content: direction.focus.slice(0, 8).map(x => clean(x, 80)).join('、') }]));
   if (Array.isArray(direction.explore) && direction.explore.length) blocks.push(bulletRunsBlock([{ content: '可以先了解：', style: STYLE.strong }, { content: `${direction.explore.slice(0, 8).map(x => clean(x, 80)).join('、')}。孩子接触不多的方向，不建议因为“没感觉”就直接排除。` }]));
@@ -300,14 +300,14 @@ function governanceReviewBlocks(items = []) {
   review.push(`招生章程：${(ADMISSION_CHARTER_CHECK_KB?.generalCheckItems || []).slice(0, 8).join('、')}。`);
   review.push(...buildCareerAndExamReviewHints(items, { limit: 4 }));
   review.push(...buildReviewPointsForItems(items, { limit: 5 }));
-  blocks.push(heading2('需要人工确认', STYLE.title));
+  blocks.push(heading3('人工核验事项', STYLE.title));
   [...new Set(review)].slice(0, 6).forEach(line => blocks.push(bulletBlock(clean(line, 260))));
   return blocks;
 }
 
 function governanceBoundaryBlocks() {
   return [
-    heading2('数据和使用边界', STYLE.title),
+    heading2('六、数据和使用边界', STYLE.title),
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
     bulletBlock('两年位次变化只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
@@ -342,15 +342,11 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   ]));
   blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
 
+  // 固定六段合同：后续不要根据 AI/无 AI 动态改变二级标题顺序。
   blocks.push(...summaryBlocks(summary || {}, reportType));
-  const directionBlocks = directionExplorerBlocks(directionExplorer);
-  if (directionBlocks.length) {
-    blocks.push(dividerBlock());
-    blocks.push(...directionBlocks);
-  }
   blocks.push(dividerBlock());
 
-  blocks.push(heading2(hasAnalysis ? '三、已选专业总览' : '二、已选专业总览', STYLE.title));
+  blocks.push(heading2('二、当前方案怎么看', STYLE.title));
   blocks.push(bulletRunsBlock([
     { content: '排序口径：', style: STYLE.strong },
     { content: '按整理页当前显示的最终顺序写入报告；每次排序后会重新编号并保存。' }
@@ -364,20 +360,14 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(statsBullet('稳妥补充', groups.safe.length || stats.safeCount || 0, total, STYLE.safe));
   if (stats.highRushCount) blocks.push(bulletRunsBlock([{ content: `稍高目标：${fmt(stats.highRushCount)} 个，建议控制数量。`, style: STYLE.risk }]));
   if (stats.floorCount) blocks.push(bulletRunsBlock([{ content: `稳妥补充：${fmt(stats.floorCount)} 个，请确认专业和城市是否真的接受。`, style: STYLE.floor }]));
+  const directionBlocks = directionExplorerBlocks(directionExplorer);
+  if (directionBlocks.length) blocks.push(...directionBlocks);
+  if (hasAnalysis) blocks.push(...analysisBlocks(analysis));
+  const trendBlocks = majorTrendBlocks(majorTrendSummary || analysis?.majorTrendSummary || {});
+  if (trendBlocks.length) blocks.push(...trendBlocks);
 
   blocks.push(dividerBlock());
-
-  if (hasAnalysis) {
-    blocks.push(...analysisBlocks(analysis));
-    blocks.push(dividerBlock());
-  }
-  const trendBlocks = majorTrendBlocks(majorTrendSummary || analysis?.majorTrendSummary || {});
-  if (trendBlocks.length) {
-    blocks.push(...trendBlocks);
-    blocks.push(dividerBlock());
-  }
-
-  blocks.push(heading2(hasAnalysis ? '四、前中后段快速确认' : '三、前中后段快速确认', STYLE.title));
+  blocks.push(heading2('三、前中后段快速确认', STYLE.title));
   ['rush', 'stable', 'safe'].forEach(group => {
     const meta = groupMeta(group);
     const list = groups[group] || [];
@@ -391,7 +381,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   });
 
   blocks.push(dividerBlock());
-  blocks.push(heading2(hasAnalysis ? '五、最终排序清单' : '四、最终排序清单', STYLE.title));
+  blocks.push(heading2('四、最终排序清单', STYLE.title));
   blocks.push(styledTextBlock('以下按当前页面最终顺序排列，标签、相对分差和位次跨越会使用不同颜色提醒。', STYLE.muted));
   if (!displayItems.length) {
     blocks.push(bulletBlock('当前已选专业为空。'));
@@ -400,9 +390,10 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   }
 
   blocks.push(dividerBlock());
+  blocks.push(heading2('五、本方案确认清单', STYLE.title));
   blocks.push(...reviewChecklistBlocks(displayItems, reviewChecklist));
-  blocks.push(dividerBlock());
   blocks.push(...governanceReviewBlocks(displayItems));
+
   blocks.push(dividerBlock());
   blocks.push(...governanceBoundaryBlocks());
 
