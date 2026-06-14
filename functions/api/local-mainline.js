@@ -30,13 +30,13 @@ export async function onRequest(context) {
       const school = clean(url.searchParams.get('school') || '', 80);
       if (!school) return json({ ok: false, message: '请选择学校。' }, 400);
       const result = await loadMatchedRecords(context.request, context.env || {}, { school, max: url.searchParams.get('max') || 240 });
-      return json({ ok: true, mode, school, records: result.records, count: result.records.length, scannedCount: result.scannedCount, matchedCount: result.matchedCount, boundary: '这些信息只用于家庭讨论和人工复核，不代表录取判断依据。' });
+      return json({ ok: true, mode, school, records: result.records, count: result.records.length, scannedCount: result.scannedCount, matchedCount: result.matchedCount, windowCandidateCount: result.windowCandidateCount, normalizedCount: result.normalizedCount, dataReadOk: result.dataReadOk, boundary: '这些信息只用于家庭讨论和人工复核，不代表录取判断依据。' });
     }
     if (mode === 'major') {
       const major = clean(url.searchParams.get('major') || '', 80);
       if (!major) return json({ ok: false, message: '请输入专业名称。' }, 400);
       const result = await loadMatchedRecords(context.request, context.env || {}, { major, max: url.searchParams.get('max') || 240 });
-      return json({ ok: true, mode, major, records: result.records, count: result.records.length, scannedCount: result.scannedCount, matchedCount: result.matchedCount, boundary: '同名专业在不同学校的培养场景可能不同，需继续核验培养方案和招生章程。' });
+      return json({ ok: true, mode, major, records: result.records, count: result.records.length, scannedCount: result.scannedCount, matchedCount: result.matchedCount, windowCandidateCount: result.windowCandidateCount, normalizedCount: result.normalizedCount, dataReadOk: result.dataReadOk, boundary: '同名专业在不同学校的培养场景可能不同，需继续核验培养方案和招生章程。' });
     }
     if (mode === 'score') {
       const score = num(url.searchParams.get('score'));
@@ -57,6 +57,9 @@ export async function onRequest(context) {
         count: result.records.length,
         scannedCount: result.scannedCount,
         matchedCount: result.matchedCount,
+        windowCandidateCount: result.windowCandidateCount,
+        normalizedCount: result.normalizedCount,
+        dataReadOk: result.dataReadOk,
         positionContext,
         dataSourceLabel: positionContext.dataSourceLabel,
         humanMessage: result.records.length ? '' : '这个当前位置附近暂时没有匹配到省内背景记录，可以换一个位置，或按学校 / 专业入口查看。',

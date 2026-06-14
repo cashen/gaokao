@@ -1,5 +1,5 @@
 import { jsonOk, jsonError } from '../_lib/json-response.js';
-import { get211MainlineMeta, get211SchoolSummaries, get211MajorSummaries, match211Mainline } from '../_lib/211-mainline-kb.js';
+import { get211MainlineMeta, get211SchoolSummaries, get211MajorSummaries, match211Mainline, get211MatcherIndexStats } from '../_lib/211-mainline-kb.js';
 import { clean, num, includesText, loadBackgroundMatchedRecords, groupScoreRecords, buildCandidatePositionContext } from '../_lib/background-position-engine.js';
 
 function levelFromLine(line) { return line?.level || 'trajectory'; }
@@ -42,7 +42,7 @@ export async function onRequest(context) {
     const url = new URL(context.request.url);
     const mode = clean(url.searchParams.get('mode') || 'meta', 30);
     const index = get211MainlineMeta();
-    if (mode === 'meta') return jsonOk({ mode, index, schools: get211SchoolSummaries(), majors: get211MajorSummaries(), boundary: index.copy?.boundary || '只用于家庭复核，不代表录取判断。' });
+    if (mode === 'meta') return jsonOk({ mode, index, schools: get211SchoolSummaries(), majors: get211MajorSummaries(), boundary: index.copy?.boundary || '只用于家庭复核，不代表录取判断。', matcherIndex: get211MatcherIndexStats() });
     if (mode === 'school') {
       const schoolName = clean(url.searchParams.get('school') || '', 80);
       if (!schoolName) return jsonError('请选择学校。', 400);
@@ -75,6 +75,9 @@ export async function onRequest(context) {
         count: result.records.length,
         scannedCount: result.scannedCount,
         matchedCount: result.matchedCount,
+        windowCandidateCount: result.windowCandidateCount,
+        normalizedCount: result.normalizedCount,
+        dataReadOk: result.dataReadOk,
         positionContext,
         dataSourceLabel: positionContext.dataSourceLabel,
         humanMessage: result.records.length ? '' : '这个当前位置附近暂时没有匹配到 211 背景记录，可以换一个位置，或按学校 / 专业入口查看。',

@@ -1,9 +1,9 @@
 {
-  "version": "v3.9.33.15",
-  "assetVersion": "v3933_15",
-  "release": "v3.9.33.15-ln-rank-unified-position-background-engine-local-211-no-fenxi",
-  "name": "v3.9.33.15-ln-rank-unified-position-background-engine-local-211-no-fenxi",
-  "label": "unified-position-background-engine-local-211-no-fenxi",
+  "version": "v3.9.33.16",
+  "assetVersion": "v3933_16",
+  "release": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "name": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "label": "position-window-first-211-local-consistency-no-fenxi",
   "notes": [
     "本地属性背景与 211 背景统一使用 background-position-engine，分数/位置入口不再各跑一套逻辑。",
     "211 分数入口恢复为读取同一套辽宁历史专业记录，再匹配 211 背景 KB；不再使用空 score index 作为主功能。",

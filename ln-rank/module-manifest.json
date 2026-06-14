@@ -1,28 +1,28 @@
 {
-  "version": "v3.9.33.15",
-  "assetVersion": "v3933_15",
+  "version": "v3.9.33.16",
+  "assetVersion": "v3933_16",
   "entries": {
-    "search": "js/app.v3933_15.js",
-    "selectionPool": "js/selection-pool.v3933_15.js",
-    "majorTrend": "js/major-trend-render.v3933_15.js",
-    "selfCheck": "js/self-check.v3933_15.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3933_15.js",
-    "main211": "js/211-mainline/211-mainline-app.v3933_15.js"
+    "search": "js/app.v3933_16.js",
+    "selectionPool": "js/selection-pool.v3933_16.js",
+    "majorTrend": "js/major-trend-render.v3933_16.js",
+    "selfCheck": "js/self-check.v3933_16.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3933_16.js",
+    "main211": "js/211-mainline/211-mainline-app.v3933_16.js"
   },
   "entrypoints": {
-    "search": "js/app.v3933_15.js",
-    "selectionPool": "js/selection-pool.v3933_15.js",
-    "majorTrend": "js/major-trend-render.v3933_15.js",
-    "selfCheck": "js/self-check.v3933_15.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3933_15.js",
-    "main211": "js/211-mainline/211-mainline-app.v3933_15.js"
+    "search": "js/app.v3933_16.js",
+    "selectionPool": "js/selection-pool.v3933_16.js",
+    "majorTrend": "js/major-trend-render.v3933_16.js",
+    "selfCheck": "js/self-check.v3933_16.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3933_16.js",
+    "main211": "js/211-mainline/211-mainline-app.v3933_16.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_15.css",
-    "selection": "css/dist/ln-rank-selection.v3933_15.css",
-    "trend": "css/dist/ln-rank-trend.v3933_15.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_15.css",
-    "localMainline": "css/dist/local-mainline.v3933_15.css",
-    "main211": "css/dist/211-mainline.v3933_15.css"
+    "main": "css/dist/ln-rank-main.v3933_16.css",
+    "selection": "css/dist/ln-rank-selection.v3933_16.css",
+    "trend": "css/dist/ln-rank-trend.v3933_16.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_16.css",
+    "localMainline": "css/dist/local-mainline.v3933_16.css",
+    "main211": "css/dist/211-mainline.v3933_16.css"
   }
 }

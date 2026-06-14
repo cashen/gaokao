@@ -1,5 +1,6 @@
-import { loadAllRecords } from './fenxi-manifest.js';
-import { normalizeRecord } from './fenxi-normalizer.js';
+import { loadAllRecords, loadManifest } from './fenxi-manifest.js';
+import { fetchFenxiJson } from './fenxi-fetcher.js';
+import { normalizeRecord, rawScore, rawSchool, rawMajor } from './fenxi-normalizer.js';
 import { buildDisplayTags } from './school-display-tags.js';
 
 export function clean(value, max = 80) {
@@ -87,30 +88,84 @@ export function shapeBackgroundRecord(record, hit, filters = {}, config = {}) {
     backgroundSource: config.sourceName || 'background-kb'
   };
 }
-export async function loadBackgroundMatchedRecords(request, env, filters = {}, config = {}) {
-  const { records, manifest } = await loadAllRecords(request, env || {});
-  const out = [];
+function chunkFile(chunk) {
+  return chunk?.file || chunk?.path || '';
+}
+
+async function loadChunkRecords(request, env, file) {
+  const data = await fetchFenxiJson(request, env || {}, file);
+  return Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
+}
+
+function inScoreWindowRaw(raw, filters = {}) {
+  const score = rawScore(raw);
+  if (!Number.isFinite(score)) return false;
+  if (Number.isFinite(Number(filters.maxScore)) && score > Number(filters.maxScore)) return false;
+  if (Number.isFinite(Number(filters.minScore)) && score < Number(filters.minScore)) return false;
+  return true;
+}
+
+function rawTextPass(raw, filters = {}) {
   const schoolFilter = clean(filters.school || '', 80);
   const majorFilter = clean(filters.major || '', 80);
+  if (schoolFilter && !includesText(rawSchool(raw), schoolFilter)) return false;
+  if (majorFilter && !includesText(rawMajor(raw), majorFilter)) return false;
+  return true;
+}
+
+export async function loadBackgroundMatchedRecords(request, env, filters = {}, config = {}) {
+  const out = [];
   const max = Math.max(20, Math.min(500, Number(filters.max || 180)));
-  let scannedCount = 0;
+  const hasScoreWindow = Number.isFinite(Number(filters.maxScore)) || Number.isFinite(Number(filters.minScore));
+  let manifest = null;
+  let rawTotal = 0;
+  let windowCandidateCount = 0;
+  let normalizedCount = 0;
   let matchedBeforeLimit = 0;
-  for (const raw of records) {
-    scannedCount += 1;
+  let failedChunk = '';
+
+  const handleRaw = (raw) => {
+    rawTotal += 1;
+    // 位置入口必须先做原始分数窗口过滤，避免对全量专业记录跑本地/211 KB 匹配。
+    if (hasScoreWindow && !inScoreWindowRaw(raw, filters)) return;
+    if (!rawTextPass(raw, filters)) return;
+    windowCandidateCount += 1;
+
     const record = normalizeRecord(raw);
-    if (!record.school || !record.major || !Number.isFinite(Number(record.score2025 ?? record.score))) continue;
-    if (schoolFilter && !includesText(record.school, schoolFilter)) continue;
-    if (majorFilter && !includesText(record.major, majorFilter)) continue;
+    if (!record.school || !record.major || !Number.isFinite(Number(record.score2025 ?? record.score))) return;
+    normalizedCount += 1;
     record.rawText = JSON.stringify(raw).slice(0, 1600);
+
     const hit = config.matchRecord(record, raw);
-    if (!hit) continue;
-    if (!levelPass(hit.level, filters.level || 'all')) continue;
-    if (!publicPass(record, filters.natureMode || 'all')) continue;
-    if (Number.isFinite(Number(filters.maxScore)) && Number(record.score2025 ?? record.score) > Number(filters.maxScore)) continue;
-    if (Number.isFinite(Number(filters.minScore)) && Number(record.score2025 ?? record.score) < Number(filters.minScore)) continue;
+    if (!hit) return;
+    if (!levelPass(hit.level, filters.level || 'all')) return;
+    if (!publicPass(record, filters.natureMode || 'all')) return;
+
     matchedBeforeLimit += 1;
-    out.push(shapeBackgroundRecord(record, hit, filters, config));
+    if (out.length < max) out.push(shapeBackgroundRecord(record, hit, filters, config));
+  };
+
+  if (hasScoreWindow) {
+    manifest = await loadManifest(request, env || {});
+    const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+    for (const chunk of chunks) {
+      const file = chunkFile(chunk);
+      if (!file) continue;
+      let rawRecords = [];
+      try {
+        rawRecords = await loadChunkRecords(request, env || {}, file);
+      } catch (error) {
+        failedChunk = file;
+        throw error;
+      }
+      for (const raw of rawRecords) handleRaw(raw);
+    }
+  } else {
+    const loaded = await loadAllRecords(request, env || {});
+    manifest = loaded.manifest;
+    for (const raw of loaded.records || []) handleRaw(raw);
   }
+
   const candidate = Number(filters.candidateScore);
   const rawKey = config.rawKey || 'backgroundRaw';
   out.sort((a, b) => {
@@ -121,10 +176,16 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
     }
     return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
   });
+
   return {
-    records: out.slice(0, max),
-    scannedCount,
+    records: out,
+    scannedCount: rawTotal,
+    rawScanned: rawTotal,
+    windowCandidateCount,
+    normalizedCount,
     matchedCount: matchedBeforeLimit,
+    dataReadOk: true,
+    failedChunk,
     manifest,
     positionContext: buildCandidatePositionContext(filters.candidateScore)
   };

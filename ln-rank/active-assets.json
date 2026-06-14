@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.33.15",
-  "assetVersion": "v3933_15",
+  "version": "v3.9.33.16",
+  "assetVersion": "v3933_16",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,29 +10,29 @@
     "211-mainline.html"
   ],
   "jsEntry": [
-    "js/app.v3933_15.js",
-    "js/selection-pool.v3933_15.js",
-    "js/major-trend-render.v3933_15.js",
-    "js/self-check.v3933_15.js",
-    "js/local-mainline/local-mainline-app.v3933_15.js",
-    "js/211-mainline/211-mainline-app.v3933_15.js"
+    "js/app.v3933_16.js",
+    "js/selection-pool.v3933_16.js",
+    "js/major-trend-render.v3933_16.js",
+    "js/self-check.v3933_16.js",
+    "js/local-mainline/local-mainline-app.v3933_16.js",
+    "js/211-mainline/211-mainline-app.v3933_16.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3933_15.css",
-    "css/dist/ln-rank-selection.v3933_15.css",
-    "css/dist/ln-rank-trend.v3933_15.css",
-    "css/dist/ln-rank-self-check.v3933_15.css",
-    "css/dist/local-mainline.v3933_15.css",
-    "css/dist/211-mainline.v3933_15.css"
+    "css/dist/ln-rank-main.v3933_16.css",
+    "css/dist/ln-rank-selection.v3933_16.css",
+    "css/dist/ln-rank-trend.v3933_16.css",
+    "css/dist/ln-rank-self-check.v3933_16.css",
+    "css/dist/local-mainline.v3933_16.css",
+    "css/dist/211-mainline.v3933_16.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3933_15.css",
-    "selection": "css/dist/ln-rank-selection.v3933_15.css",
-    "trend": "css/dist/ln-rank-trend.v3933_15.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3933_15.css",
-    "localMainline": "css/dist/local-mainline.v3933_15.css",
-    "main211": "css/dist/211-mainline.v3933_15.css"
+    "main": "css/dist/ln-rank-main.v3933_16.css",
+    "selection": "css/dist/ln-rank-selection.v3933_16.css",
+    "trend": "css/dist/ln-rank-trend.v3933_16.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3933_16.css",
+    "localMainline": "css/dist/local-mainline.v3933_16.css",
+    "main211": "css/dist/211-mainline.v3933_16.css"
   },
   "stableModules": [
     "js/domain/range-policy.js",
@@ -103,7 +103,7 @@
     "tools/audit-mobile-filter-summary-layout.mjs",
     "tools/audit-android-long-text-visual.mjs",
     "211-mainline.html",
-    "js/211-mainline/211-mainline-app.v3933_15.js",
+    "js/211-mainline/211-mainline-app.v3933_16.js",
     "kb/211-mainline/211-school-background.generated.js",
     "js/knowledge/211-background-hint.js",
     "functions/api/211-mainline.js",

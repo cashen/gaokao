@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "checks": [
+    "background-position-engine imports loadManifest/fetchFenxiJson/rawScore/rawSchool/rawMajor",
+    "mode=score with minScore/maxScore filters raw score before normalizeRecord and before matcher",
+    "returns dataReadOk/windowCandidateCount/normalizedCount/matchedCount to distinguish read failure from no match"
+  ]
+}
