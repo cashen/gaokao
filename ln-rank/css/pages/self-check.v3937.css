@@ -1,0 +1,2 @@
+/* v3.9.37 self-check is an engineering page, not a parent-facing page. */
+[data-page-role="self-check"] .self-check-list{max-width:980px;margin-inline:auto;}

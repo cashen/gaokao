@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "genericSelectorHits": [],
+  "importantCounts": {
+    "css/dist/ln-rank-main.v3937_0.css": 2086,
+    "css/dist/ln-rank-selection.v3937_0.css": 2079,
+    "css/dist/ln-rank-trend.v3937_0.css": 2082,
+    "css/dist/ln-rank-self-check.v3937_0.css": 2077,
+    "css/dist/local-mainline.v3937_0.css": 23,
+    "css/dist/211-mainline.v3937_0.css": 23
+  },
+  "note": "Existing legacy !important budget is tracked; v3.9.37 removes generic card selector from active dist."
+}

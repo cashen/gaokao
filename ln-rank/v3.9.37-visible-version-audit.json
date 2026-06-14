@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "file": "index.html",
+      "hasVersion": true,
+      "hasAsset": true
+    },
+    {
+      "file": "selection-pool.html",
+      "hasVersion": true,
+      "hasAsset": true
+    },
+    {
+      "file": "211-mainline.html",
+      "hasVersion": true,
+      "hasAsset": true
+    },
+    {
+      "file": "local-mainline.html",
+      "hasVersion": true,
+      "hasAsset": true
+    },
+    {
+      "file": "major-trend-2025.html",
+      "hasVersion": true,
+      "hasAsset": true
+    },
+    {
+      "file": "self-check.html",
+      "hasVersion": true,
+      "hasAsset": true
+    }
+  ]
+}

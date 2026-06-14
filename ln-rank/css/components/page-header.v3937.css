@@ -1,0 +1,3 @@
+/* v3.9.37 page header: each page explains role and boundary before actions. */
+[data-page-role] .page-header,[data-page-role] .hero,[data-page-role] .lm-hero{max-width:var(--ln-page-max);margin-inline:auto;}
+[data-page-role] .page-header p,[data-page-role] .hero p,[data-page-role] .lm-hero p{line-height:1.65;color:var(--ln-text-muted);}

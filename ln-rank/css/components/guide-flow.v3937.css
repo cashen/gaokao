@@ -1,0 +1,4 @@
+/* v3.9.37 parent guide flow: search is a four-step operation table, not a portal. */
+[data-page-role="search"] .ln-filter-panel__summary-action{grid-template-columns:1fr;gap:10px;}
+[data-score-state="belowCoverage"] .ln-filter-panel__summary-action,[data-score-state="topRange"] .ln-filter-panel__summary-action,[data-score-state="invalidHigh"] .ln-filter-panel__summary-action{grid-template-columns:1fr!important;}
+.score-guard-notice{border:1px solid var(--ln-warn-border);background:var(--ln-warn-bg);color:var(--ln-warn-text);border-radius:14px;padding:9px 12px;line-height:1.55;min-width:0;overflow-wrap:break-word;}

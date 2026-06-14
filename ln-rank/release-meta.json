@@ -1,21 +1,21 @@
 {
-  "version": "v3.9.36",
-  "assetVersion": "v3936_0",
-  "release": "v3.9.36-ln-rank-ui-engineer-product-intent-preservation-version-sync-no-fenxi",
-  "name": "v3.9.36-ln-rank-ui-engineer-product-intent-preservation-version-sync-no-fenxi",
-  "label": "ui-engineer-product-intent-preservation-version-sync-no-fenxi",
+  "version": "v3.9.37",
+  "assetVersion": "v3937_0",
+  "release": "v3.9.37-ln-rank-clean-responsive-layout-refactor-preserve-function-no-fenxi",
+  "name": "v3.9.37-ln-rank-clean-responsive-layout-refactor-preserve-function-no-fenxi",
+  "label": "clean-responsive-layout-refactor-preserve-function-no-fenxi",
   "notes": [
-    "基于 v3.9.35.1 的 UI 状态矩阵与自动纠错合同继续收口，新增 UI 工程师接入的产品意图保真纪律。",
-    "同步包名、VERSION、release-meta、active-assets、module-manifest、HTML 可见版本、自测页、version-contract.js 与报告 payload 版本来源。",
-    "补充 product-intent-map：UI 可调整视觉与折叠方式，但不能删除主流程入口、核验清单、报告结构、AI/飞书/背景/趋势能力。",
-    "只做版本合同、文档、审计和展示层保真，不改主查询、数据、AI 调用、飞书、本地背景、211 背景和趋势业务逻辑。"
+    "基于 v3.9.36 继续，不回退；仅做 CSS 架构、多终端版式、产品意图保真和审计门禁收口。",
+    "不改主查询、筛选、数据读取、AI 调用、飞书、省内背景、211 背景和趋势业务逻辑。",
+    "移除 active CSS 中 [class*=card] 这类大范围布局选择器，建立 page role、component contract 和 responsive layout system。",
+    "生成改版前/后功能入口快照、语义字段快照和 12 角色审计报告，防止 UI 工程改版破相或移除功能。"
   ],
   "noFenxiIncluded": true,
   "releaseAssetGraphGate": true,
   "twelveRoleReview": true,
-  "uiStateMatrixContract": true,
-  "autoCorrectionMechanism": true,
+  "responsiveLayoutSystem": true,
   "productIntentPreservation": true,
+  "functionEntrySnapshot": true,
   "versionContractSync": true,
   "noFunctionLogicChange": true
 }

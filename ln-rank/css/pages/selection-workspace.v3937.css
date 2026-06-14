@@ -1,0 +1,3 @@
+/* v3.9.37 selection page role: plan workspace. */
+[data-page-role="selection-workspace"] .selection-summary,[data-page-role="selection-workspace"] .review-checklist{min-width:0;}
+@media(max-width:760px){[data-page-role="selection-workspace"] .selection-actions,[data-page-role="selection-workspace"] .report-actions{display:grid;grid-template-columns:1fr;gap:8px}}
