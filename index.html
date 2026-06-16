@@ -3,40 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2027 高考倒计时</title>
+  <title>辽宁家庭报考工作台｜2027 高考倒计时</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #172033;
-      --ink-2: #2f3a4f;
-      --muted: #667085;
-      --muted-2: #8a94a6;
-      --paper: rgba(255, 255, 255, 0.82);
-      --paper-strong: rgba(255, 255, 255, 0.94);
-      --line: rgba(32, 42, 62, 0.11);
-      --line-strong: rgba(32, 42, 62, 0.18);
-      --warm: #c58b55;
-      --warm-deep: #8f5b2a;
-      --blue: #4269b2;
-      --green: #3d806e;
-      --soft-warm: #fff6ea;
-      --soft-blue: #f3f6ff;
-      --soft-green: #f2faf5;
-      --shadow: 0 24px 70px rgba(30, 41, 59, 0.10);
-      --shadow-soft: 0 12px 32px rgba(30, 41, 59, 0.07);
-      --radius-xl: 30px;
-      --radius-lg: 24px;
-      --radius-md: 18px;
-      --radius-sm: 14px;
-      --max: 1120px;
+      --ln-bg: #f6f8f7;
+      --ln-surface: #ffffff;
+      --ln-surface-soft: #f9faf8;
+      --ln-text: #172033;
+      --ln-text-strong: #111827;
+      --ln-muted: #667085;
+      --ln-muted-soft: #8a94a6;
+      --ln-border: #dde5e1;
+      --ln-border-strong: #cfd9d5;
+      --ln-primary: #155e75;
+      --ln-primary-hover: #0f4a5c;
+      --ln-primary-soft: #e8f3f5;
+      --ln-action: #c65f25;
+      --ln-action-hover: #a94f1e;
+      --ln-action-soft: #fff4ea;
+      --ln-success: #2f6f5e;
+      --ln-success-soft: #eaf5f1;
+      --ln-warning: #9a5b16;
+      --ln-warning-soft: #fff7e8;
+      --ln-shadow: 0 18px 48px rgba(23, 32, 51, 0.08);
+      --ln-shadow-soft: 0 10px 28px rgba(23, 32, 51, 0.055);
+      --ln-radius-xl: 28px;
+      --ln-radius-lg: 22px;
+      --ln-radius-md: 16px;
+      --ln-radius-sm: 12px;
+      --ln-max: 1120px;
+      --ln-font-title: 38px;
+      --ln-font-section: 20px;
+      --ln-font-subsection: 17px;
+      --ln-font-body: 14.5px;
+      --ln-font-helper: 13.5px;
+      --ln-font-chip: 13px;
+      --ln-font-mini: 12px;
+      --ln-touch: 44px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       min-height: 100%;
       margin: 0;
@@ -45,319 +54,389 @@
 
     body {
       font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      color: var(--ink);
+      color: var(--ln-text);
       background:
-        radial-gradient(circle at 12% 8%, rgba(197, 139, 85, 0.22), transparent 30%),
-        radial-gradient(circle at 88% 12%, rgba(66, 105, 178, 0.12), transparent 28%),
-        radial-gradient(circle at 52% 92%, rgba(61, 128, 110, 0.12), transparent 35%),
-        linear-gradient(135deg, #fff7ed 0%, #f7f9ff 48%, #f5fbf6 100%);
+        radial-gradient(circle at 12% 4%, rgba(21, 94, 117, 0.08), transparent 28%),
+        radial-gradient(circle at 88% 8%, rgba(198, 95, 37, 0.06), transparent 30%),
+        linear-gradient(180deg, #f7f9f8 0%, var(--ln-bg) 100%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    body::before {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      pointer-events: none;
-      content: "";
-      background-image:
-        linear-gradient(rgba(22, 32, 51, 0.024) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(22, 32, 51, 0.024) 1px, transparent 1px);
-      background-size: 36px 36px;
-      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .9), transparent 82%);
-    }
-
-    body::after {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      content: "";
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.56));
-    }
-
-    a {
-      color: inherit;
-    }
+    a { color: inherit; }
 
     .page {
-      width: min(var(--max), calc(100vw - 32px));
-      min-height: 100vh;
+      width: min(var(--ln-max), calc(100vw - 32px));
       margin: 0 auto;
-      padding: 26px 0 34px;
+      padding: 24px 0 32px;
     }
 
     .shell {
-      width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.72);
-      border-radius: var(--radius-xl);
-      background: rgba(255, 255, 255, 0.72);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
       overflow: hidden;
+      border: 1px solid rgba(221, 229, 225, 0.88);
+      border-radius: var(--ln-radius-xl);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: var(--ln-shadow);
     }
 
     .hero {
-      padding: 32px 38px 28px;
-      border-bottom: 1px solid rgba(32, 42, 62, 0.07);
-      background:
-        linear-gradient(145deg, rgba(255, 249, 240, 0.92), rgba(255, 255, 255, 0.70) 50%, rgba(243, 248, 255, 0.74));
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+      gap: 18px;
+      padding: 34px;
+      border-bottom: 1px solid var(--ln-border);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(232, 243, 245, 0.46));
     }
 
-    .hero-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 22px;
-      margin-bottom: 24px;
+    .hero-main,
+    .action-panel,
+    .countdown-card,
+    .resource-card,
+    .section-card,
+    .resume-card {
+      border: 1px solid var(--ln-border);
+      background: var(--ln-surface);
+      box-shadow: var(--ln-shadow-soft);
     }
 
-    .eyebrow {
+    .hero-main {
+      min-width: 0;
+      border-radius: var(--ln-radius-lg);
+      padding: 24px;
+    }
+
+    .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 12px;
-      border: 1px solid rgba(185, 130, 69, 0.22);
+      min-height: 30px;
+      padding: 6px 12px;
+      border: 1px solid rgba(21, 94, 117, 0.18);
       border-radius: 999px;
-      background: rgba(255, 247, 237, 0.86);
-      color: var(--warm-deep);
-      font-size: 13px;
+      background: var(--ln-primary-soft);
+      color: var(--ln-primary);
+      font-size: var(--ln-font-chip);
       font-weight: 900;
-      letter-spacing: 0.02em;
     }
 
-    .eyebrow i {
+    .badge-dot {
       width: 7px;
       height: 7px;
-      border-radius: 50%;
-      background: var(--warm);
-      box-shadow: 0 0 0 5px rgba(185, 130, 69, 0.12);
+      border-radius: 999px;
+      background: var(--ln-primary);
+      box-shadow: 0 0 0 5px rgba(21, 94, 117, 0.10);
     }
 
     h1 {
-      margin: 14px 0 0;
-      color: #111827;
-      font-size: clamp(34px, 5vw, 58px);
-      line-height: 1.06;
+      margin: 16px 0 0;
+      color: var(--ln-text-strong);
+      font-size: clamp(32px, 4vw, var(--ln-font-title));
+      line-height: 1.1;
       font-weight: 950;
-      letter-spacing: -0.055em;
+      letter-spacing: -0.045em;
     }
 
     .lead {
       max-width: 680px;
-      margin: 13px 0 0;
-      color: var(--muted);
-      font-size: 16px;
+      margin: 14px 0 0;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-body);
       line-height: 1.75;
       font-weight: 650;
     }
 
-    .now-card {
-      flex: 0 0 300px;
-      border: 1px solid rgba(255, 255, 255, 0.76);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.66);
-      box-shadow: var(--shadow-soft);
-      padding: 16px 16px 15px;
-    }
-
-    .now-title {
-      display: block;
-      color: var(--muted-2);
-      font-size: 12px;
-      line-height: 1.4;
-      font-weight: 900;
-    }
-
-    .now-time {
-      display: block;
-      margin-top: 6px;
-      color: #263244;
-      font-size: 15px;
-      line-height: 1.45;
-      font-weight: 900;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .progress {
-      height: 8px;
-      margin-top: 13px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(100, 116, 139, 0.14);
-    }
-
-    .progress-bar {
-      width: 0%;
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #b98245, #315fbb, #27775f);
-      transition: width 360ms ease;
-    }
-
-    .progress-text {
-      margin: 8px 0 0;
-      color: var(--muted-2);
-      font-size: 12px;
-      line-height: 1.45;
-      font-weight: 800;
-      text-align: right;
-    }
-
-    .count-stage {
-      display: block;
-    }
-
-    .count-main {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(185, 130, 69, 0.18);
-      border-radius: 26px;
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 238, 0.86));
-      box-shadow: 0 18px 48px rgba(30, 41, 59, 0.08);
-      padding: 22px;
-    }
-
-    .count-main::before {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 6px;
-      content: "";
-      background: linear-gradient(180deg, var(--warm), var(--blue), var(--green));
+    .countdown-card {
+      margin-top: 22px;
+      border-radius: var(--ln-radius-lg);
+      padding: 20px;
     }
 
     .count-title-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 18px;
-      padding-left: 4px;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
     .count-title {
       margin: 0;
-      color: #111827;
-      font-size: 18px;
+      font-size: var(--ln-font-section);
       line-height: 1.25;
       font-weight: 950;
       letter-spacing: -0.02em;
     }
 
     .count-sub {
-      margin: 5px 0 0;
-      color: var(--muted-2);
-      font-size: 13px;
-      line-height: 1.45;
-      font-weight: 800;
+      margin: 6px 0 0;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.5;
+      font-weight: 650;
     }
 
     .status {
       flex: 0 0 auto;
-      padding: 7px 12px;
+      display: inline-flex;
+      min-height: 30px;
+      align-items: center;
+      padding: 6px 11px;
       border-radius: 999px;
-      background: rgba(49, 95, 187, 0.08);
-      color: #274f9d;
-      font-size: 13px;
+      background: var(--ln-warning-soft);
+      color: var(--ln-warning);
+      font-size: var(--ln-font-chip);
       line-height: 1.2;
-      font-weight: 950;
+      font-weight: 900;
       white-space: nowrap;
     }
 
     .time-grid {
       display: grid;
-      grid-template-columns: 1.45fr repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: 1.42fr repeat(3, minmax(0, 1fr));
+      gap: 10px;
     }
 
     .time-box {
       min-width: 0;
-      border: 1px solid rgba(22, 32, 51, 0.075);
-      border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.92),
-        0 8px 18px rgba(30, 41, 59, 0.042);
-      padding: 18px 8px 15px;
+      border: 1px solid rgba(221, 229, 225, 0.92);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff, var(--ln-surface-soft));
+      padding: 16px 8px 13px;
       text-align: center;
     }
 
     .time-box.day {
-      background:
-        linear-gradient(180deg, rgba(255, 250, 243, 0.98), rgba(255, 255, 255, 0.98) 56%, rgba(248, 250, 252, 0.94));
+      border-color: rgba(198, 95, 37, 0.20);
+      background: linear-gradient(180deg, #fffaf5, #ffffff);
     }
 
-    .num {
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.035em;
-    }
+    .num { font-variant-numeric: tabular-nums; }
 
     .time-num {
       display: block;
-      max-width: 100%;
       margin: 0;
       overflow: hidden;
-      color: #111827;
-      font-size: clamp(34px, 5.4vw, 60px);
+      color: var(--ln-text-strong);
+      font-size: clamp(34px, 5.2vw, 58px);
       line-height: 1;
       font-weight: 950;
+      letter-spacing: -0.035em;
       white-space: nowrap;
     }
 
     .time-box:not(.day) .time-num {
-      font-size: clamp(30px, 4vw, 46px);
+      font-size: clamp(28px, 3.8vw, 44px);
     }
 
     .time-label {
       margin: 9px 0 0;
-      color: var(--muted-2);
-      font-size: 13px;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-chip);
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
+    .now-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--ln-border);
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .now-time {
+      color: var(--ln-text);
+      font-weight: 900;
+      text-align: right;
+    }
+
+    .action-panel {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 14px;
+      border-radius: var(--ln-radius-lg);
+      padding: 20px;
+    }
+
+    .panel-title {
+      margin: 0;
+      color: var(--ln-text-strong);
+      font-size: var(--ln-font-section);
+      line-height: 1.25;
+      font-weight: 950;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-desc {
+      margin: 5px 0 0;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.6;
+      font-weight: 650;
+    }
+
+    .primary-action {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 4px;
+      padding: 15px 17px;
+      border: 1px solid rgba(21, 94, 117, 0.18);
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--ln-primary), var(--ln-primary-hover));
+      color: #fff;
+      text-decoration: none;
+      box-shadow: 0 14px 32px rgba(21, 94, 117, 0.20);
+      outline: none;
+    }
+
+    .primary-action:hover,
+    .primary-action:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgba(21, 94, 117, 0.24);
+    }
+
+    .primary-action strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 950;
+    }
+
+    .primary-action span {
+      display: block;
+      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: var(--ln-font-helper);
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .action-arrow { font-size: 20px; font-weight: 900; }
+
+    .resume-card {
+      display: none;
+      border-radius: 18px;
+      padding: 15px;
+      background: var(--ln-action-soft);
+      border-color: rgba(198, 95, 37, 0.18);
+    }
+
+    .resume-card.is-visible { display: block; }
+
+    .resume-card strong {
+      display: block;
+      color: var(--ln-text-strong);
+      font-size: var(--ln-font-body);
       line-height: 1.35;
       font-weight: 950;
     }
 
-    .second-cell {
-      display: inline-flex;
-      min-height: 48px;
-      align-items: center;
-      justify-content: center;
+    .resume-card p {
+      margin: 6px 0 12px;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.6;
+      font-weight: 650;
+    }
+
+    .resume-actions {
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
     }
 
-    .second-ring {
-      --second-progress: 0%;
-      position: relative;
-      width: 32px;
-      height: 32px;
-      flex: 0 0 auto;
-      border-radius: 50%;
-      background: conic-gradient(#315fbb var(--second-progress), rgba(22, 32, 51, 0.075) 0);
-      transition: background 180ms linear;
+    .small-link,
+    .ghost-link {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: var(--ln-font-chip);
+      line-height: 1.2;
+      font-weight: 900;
+      text-decoration: none;
     }
 
-    .second-ring::after {
-      position: absolute;
-      inset: 5px;
-      content: "";
-      border-radius: inherit;
+    .small-link {
+      border: 1px solid rgba(198, 95, 37, 0.24);
       background: #fff;
-      box-shadow: inset 0 0 0 1px rgba(22, 32, 51, 0.05);
+      color: var(--ln-action-hover);
     }
 
-    .second-num {
-      min-width: 2ch;
-      transition: opacity 120ms ease, transform 120ms ease;
+    .ghost-link {
+      border: 1px solid var(--ln-border);
+      background: #fff;
+      color: var(--ln-text);
     }
 
-    .second-num.is-ticking {
-      opacity: .66;
-      transform: translateY(1px);
+    .work-steps {
+      display: grid;
+      gap: 9px;
+      margin-top: auto;
     }
 
-    .section {
-      padding: 24px 38px 0;
+    .work-step {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border: 1px solid var(--ln-border);
+      border-radius: 15px;
+      background: var(--ln-surface-soft);
+    }
+
+    .step-num {
+      display: inline-flex;
+      width: 30px;
+      height: 30px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--ln-primary-soft);
+      color: var(--ln-primary);
+      font-size: var(--ln-font-mini);
+      font-weight: 950;
+    }
+
+    .work-step strong {
+      display: block;
+      color: var(--ln-text-strong);
+      font-size: var(--ln-font-body);
+      line-height: 1.35;
+      font-weight: 950;
+    }
+
+    .work-step span {
+      display: block;
+      margin-top: 3px;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.55;
+      font-weight: 650;
+    }
+
+    .sections {
+      display: grid;
+      gap: 16px;
+      padding: 22px 34px 30px;
+    }
+
+    .section-card {
+      border-radius: var(--ln-radius-lg);
+      padding: 20px;
     }
 
     .section-head {
@@ -365,13 +444,13 @@
       align-items: flex-end;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .section-title {
       margin: 0;
-      color: #172033;
-      font-size: 18px;
+      color: var(--ln-text-strong);
+      font-size: var(--ln-font-section);
       line-height: 1.25;
       font-weight: 950;
       letter-spacing: -0.02em;
@@ -379,344 +458,184 @@
 
     .section-desc {
       margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.55;
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
+      line-height: 1.6;
       font-weight: 650;
     }
 
     .section-mark {
       flex: 0 0 auto;
-      color: var(--muted-2);
-      font-size: 12px;
+      color: var(--ln-muted-soft);
+      font-size: var(--ln-font-mini);
       line-height: 1.4;
-      font-weight: 850;
+      font-weight: 900;
       white-space: nowrap;
     }
 
-    .nav-area {
-      padding-bottom: 32px;
-    }
-
-    .nav-grid {
+    .resource-grid {
       display: grid;
-      grid-template-columns: 1.1fr repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .entry {
+    .resource-card {
       position: relative;
       display: flex;
-      min-height: 86px;
+      min-height: 132px;
       flex-direction: column;
-      justify-content: center;
       gap: 7px;
-      padding: 16px 17px 15px;
-      border: 1px solid rgba(66, 105, 178, 0.13);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.70);
+      padding: 16px;
+      border-radius: 16px;
       text-decoration: none;
-      box-shadow: 0 10px 26px rgba(30, 41, 59, 0.05);
-      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
       outline: none;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     }
 
-    .entry::after {
+    .resource-card:hover,
+    .resource-card:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(21, 94, 117, 0.28);
+      box-shadow: 0 16px 34px rgba(21, 94, 117, 0.10);
+    }
+
+    .resource-card::after {
       position: absolute;
       top: 15px;
-      right: 16px;
+      right: 15px;
       content: "↗";
-      color: rgba(49, 95, 187, 0.44);
-      font-size: 15px;
-      font-weight: 900;
-      transition: transform 160ms ease, color 160ms ease;
+      color: rgba(21, 94, 117, 0.42);
+      font-size: 14px;
+      font-weight: 950;
     }
 
-    .entry:hover,
-    .entry:focus-visible {
-      transform: translateY(-2px);
-      border-color: rgba(49, 95, 187, 0.30);
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: 0 18px 40px rgba(49, 95, 187, 0.105);
-    }
-
-    .entry:hover::after,
-    .entry:focus-visible::after {
-      transform: translate(2px, -2px);
-      color: rgba(49, 95, 187, 0.72);
-    }
-
-    .entry.primary {
-      grid-row: span 2;
-      min-height: 184px;
-      border-color: rgba(185, 130, 69, 0.22);
-      background:
-        linear-gradient(145deg, rgba(255, 244, 230, 0.96), rgba(255, 255, 255, 0.78));
-    }
-
-    .entry-kicker {
-      color: var(--warm-deep);
-      font-size: 12px;
+    .resource-kicker {
+      color: var(--ln-primary);
+      font-size: var(--ln-font-mini);
       line-height: 1.3;
       font-weight: 950;
-      letter-spacing: 0.06em;
+      letter-spacing: .04em;
     }
 
-    .entry-title {
-      padding-right: 22px;
-      color: #172033;
-      font-size: 16px;
-      line-height: 1.25;
+    .resource-title {
+      padding-right: 20px;
+      color: var(--ln-text-strong);
+      font-size: var(--ln-font-subsection);
+      line-height: 1.3;
       font-weight: 950;
       letter-spacing: -0.015em;
     }
 
-    .primary .entry-title {
-      font-size: 23px;
-      line-height: 1.2;
-      letter-spacing: -0.035em;
-    }
-
-    .entry-desc {
-      max-width: 94%;
-      color: #697386;
-      font-size: 13px;
+    .resource-desc {
+      color: var(--ln-muted);
+      font-size: var(--ln-font-helper);
       line-height: 1.6;
       font-weight: 650;
     }
 
+    .resource-card.secondary {
+      background: var(--ln-surface-soft);
+    }
+
+    .resource-card.life {
+      border-style: dashed;
+      box-shadow: none;
+    }
+
+    .boundary {
+      border: 1px solid rgba(154, 91, 22, 0.16);
+      border-radius: var(--ln-radius-lg);
+      background: var(--ln-warning-soft);
+      padding: 16px 18px;
+      color: #60410f;
+      font-size: var(--ln-font-helper);
+      line-height: 1.75;
+      font-weight: 700;
+    }
+
+    .boundary strong {
+      color: var(--ln-text-strong);
+      font-weight: 950;
+    }
+
     .footer {
-      padding: 0 38px 30px;
-      color: rgba(102, 112, 133, 0.82);
-      font-size: 12px;
-      line-height: 1.6;
+      padding: 0 34px 30px;
+      color: rgba(102, 112, 133, 0.86);
+      font-size: var(--ln-font-mini);
+      line-height: 1.7;
       text-align: center;
     }
 
-    @media (max-width: 920px) {
-      .page {
-        padding: 20px 0 28px;
-      }
-
-      .hero {
-        padding: 28px 24px 24px;
-      }
-
-      .hero-top {
-        display: block;
-        margin-bottom: 20px;
-      }
-
-      .now-card {
-        width: 100%;
-        margin-top: 18px;
-      }
-
-      .now-time,
-      .progress-text {
-        text-align: left;
-      }
-
-      .time-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .section {
-        padding: 22px 24px 0;
-      }
-
-      .nav-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .entry.primary {
-        grid-column: span 2;
-        grid-row: auto;
-        min-height: 126px;
-      }
-
-      .footer {
-        padding-right: 24px;
-        padding-left: 24px;
-      }
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; padding: 26px; }
+      .sections { padding: 20px 26px 28px; }
+      .resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 620px) {
-      .page {
-        width: min(100vw - 24px, var(--max));
-        padding: 12px 0 22px;
+    @media (max-width: 640px) {
+      :root {
+        --ln-font-title: 28px;
+        --ln-font-section: 18px;
+        --ln-font-subsection: 16px;
+        --ln-font-body: 14px;
+        --ln-font-helper: 13px;
+        --ln-font-chip: 12.5px;
+        --ln-font-mini: 12px;
       }
 
-      .shell {
-        border-radius: 24px;
-      }
-
-      .hero {
-        padding: 23px 16px 20px;
-      }
-
-      h1 {
-        font-size: 34px;
-      }
-
-      .lead {
-        font-size: 15px;
-        line-height: 1.72;
-      }
-
-      .count-main {
-        border-radius: 22px;
-        padding: 18px 16px 18px 20px;
-      }
-
-      .count-title-row {
-        display: block;
-        margin-bottom: 15px;
-      }
-
-      .status {
-        display: inline-flex;
-        margin-top: 10px;
-      }
-
-      .time-grid {
-        grid-template-columns: minmax(0, 1.16fr) repeat(3, minmax(0, 0.92fr));
-        gap: 6px;
-      }
-
-      .time-box {
-        overflow: hidden;
-        border-radius: 15px;
-        padding: 13px 4px 11px;
-      }
-
-      .time-box.day .time-num {
-        font-size: clamp(30px, 8.4vw, 36px);
-        letter-spacing: -0.06em;
-      }
-
-      .time-box:not(.day) .time-num {
-        font-size: clamp(22px, 6.3vw, 25px);
-      }
-
-      .second-cell {
-        min-width: 0;
-        min-height: 31px;
-        gap: 4px;
-      }
-
-      .second-ring {
-        display: none;
-      }
-
-      .time-label {
-        margin-top: 7px;
-        font-size: 12px;
-      }
-
-      .section {
-        padding: 20px 16px 0;
-      }
-
-      .section-head {
-        display: block;
-      }
-
-      .section-mark {
-        display: block;
-        margin-top: 6px;
-      }
-
-      .nav-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .entry,
-      .entry.primary {
-        grid-column: auto;
-        min-height: 82px;
-        border-radius: 16px;
-      }
-
-      .primary .entry-title {
-        font-size: 19px;
-      }
-
-      .entry-desc {
-        max-width: 100%;
-      }
-
-      .footer {
-        padding: 0 16px 24px;
-        text-align: left;
-      }
-    }
-
-    @media (max-width: 430px) {
-      .count-main {
-        padding: 16px 12px 16px 16px;
-      }
-
-      .time-grid {
-        grid-template-columns: minmax(0, 1.22fr) repeat(3, minmax(0, 0.86fr));
-      }
-
-      .time-label {
-        font-size: 11px;
-      }
+      .page { width: min(100vw - 22px, var(--ln-max)); padding: 12px 0 22px; }
+      .shell { border-radius: 22px; }
+      .hero { padding: 16px; gap: 12px; }
+      .hero-main, .action-panel { padding: 17px; border-radius: 18px; }
+      h1 { margin-top: 12px; letter-spacing: -0.035em; }
+      .lead { line-height: 1.68; }
+      .countdown-card { margin-top: 16px; padding: 15px; border-radius: 18px; }
+      .count-title-row { display: block; margin-bottom: 13px; }
+      .status { margin-top: 10px; }
+      .time-grid { grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, .86fr)); gap: 6px; }
+      .time-box { border-radius: 13px; padding: 12px 4px 10px; }
+      .time-box.day .time-num { font-size: clamp(30px, 8.5vw, 38px); }
+      .time-box:not(.day) .time-num { font-size: clamp(22px, 6.4vw, 26px); }
+      .time-label { margin-top: 6px; font-size: var(--ln-font-mini); }
+      .now-row { grid-template-columns: 1fr; gap: 3px; }
+      .now-time { text-align: left; }
+      .primary-action { min-height: var(--ln-touch); padding: 13px 14px; border-radius: 15px; }
+      .resume-actions { display: grid; grid-template-columns: 1fr; }
+      .sections { padding: 14px 16px 24px; gap: 12px; }
+      .section-card { padding: 16px; border-radius: 18px; }
+      .section-head { display: block; }
+      .section-mark { display: block; margin-top: 6px; }
+      .resource-grid { grid-template-columns: 1fr; gap: 9px; }
+      .resource-card { min-height: 104px; padding: 14px; border-radius: 15px; }
+      .footer { padding: 0 16px 24px; text-align: left; }
     }
 
     @media (max-width: 380px) {
-      .time-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
+      .time-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .time-box.day .time-num,
-      .time-box:not(.day) .time-num {
-        font-size: 30px;
-      }
+      .time-box:not(.day) .time-num { font-size: 30px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .progress-bar,
-      .second-ring,
-      .second-num,
-      .entry,
-      .entry::after {
-        transition: none !important;
-      }
+      .primary-action,
+      .resource-card { transition: none !important; }
     }
   </style>
 </head>
-
 <body>
   <main class="page">
-    <section class="shell" aria-label="2027 高考倒计时与辽宁高考资料入口">
+    <section class="shell" aria-label="辽宁家庭报考工作台首页">
       <header class="hero">
-        <div class="hero-top">
-          <div>
-            <span class="eyebrow"><i aria-hidden="true"></i> 辽宁家庭报考工作台</span>
-            <h1>2027 高考倒计时</h1>
-            <p class="lead">把时间看清，把节奏放稳。今天开始，不急着焦虑，先一步一步把准备做实。</p>
-          </div>
+        <div class="hero-main">
+          <span class="badge"><i class="badge-dot" aria-hidden="true"></i> 辽宁家庭报考工作台</span>
+          <h1>2027 高考倒计时</h1>
+          <p class="lead">从倒计时开始，但不要只看时间。先用初选工具圈出可讨论范围，再用历史数据、章程、校区、学费和家庭真实选择逐步复核。</p>
 
-          <aside class="now-card" aria-label="当前北京时间">
-            <span class="now-title">当前北京时间</span>
-            <span id="nowText" class="now-time num">--</span>
-            <div class="progress" aria-hidden="true">
-              <div id="dayProgress" class="progress-bar"></div>
-            </div>
-            <p id="dayProgressText" class="progress-text">今日进度 --</p>
-          </aside>
-        </div>
-
-        <div class="count-stage">
-          <article class="count-main" aria-label="距离 2027 高考倒计时">
+          <article class="countdown-card" aria-label="距离 2027 高考倒计时">
             <div class="count-title-row">
               <div>
                 <h2 class="count-title">距离 2027 年高考</h2>
-                <p class="count-sub">目标时间：2027-06-07 09:00</p>
+                <p class="count-sub">目标时间：2027-06-07 09:00，北京时间</p>
               </div>
               <span id="status2027" class="status">倒计时中</span>
             </div>
@@ -735,67 +654,164 @@
                 <p class="time-label">分</p>
               </div>
               <div class="time-box">
-                <div class="second-cell">
-                  <span id="ring2027" class="second-ring" aria-hidden="true"></span>
-                  <p id="s2027" class="time-num second-num num" aria-label="秒">00</p>
-                </div>
+                <p id="s2027" class="time-num num" aria-label="秒">00</p>
                 <p class="time-label">秒</p>
               </div>
             </div>
+
+            <div class="now-row" aria-label="当前北京时间">
+              <span>当前北京时间</span>
+              <span id="nowText" class="now-time num">--</span>
+            </div>
           </article>
         </div>
+
+        <aside class="action-panel" aria-label="现在可以先做什么">
+          <div>
+            <h2 class="panel-title">现在可以先做什么</h2>
+            <p class="panel-desc">首页只做入口和节奏提醒。真正的专业初选、筛选冲突、自选池和报告，都回到 ln-rank 主工具里完成。</p>
+          </div>
+
+          <a href="/ln-rank/" class="primary-action">
+            <span>
+              <strong>进入专业初选工具</strong>
+              <span>按分数或位次圈出可讨论专业，再加入自选池看结构。</span>
+            </span>
+            <i class="action-arrow" aria-hidden="true">→</i>
+          </a>
+
+          <div id="resumeCard" class="resume-card" aria-live="polite">
+            <strong id="resumeTitle">检测到上次有自选记录</strong>
+            <p id="resumeText">可以继续整理自选池，也可以回到初选工具重新开始。首页不展示具体专业，避免泄露家庭选择。</p>
+            <div class="resume-actions">
+              <a href="/ln-rank/selection-pool.html" class="small-link">继续整理自选池</a>
+              <a href="/ln-rank/" class="ghost-link">重新进入初选</a>
+            </div>
+          </div>
+
+          <div class="work-steps" aria-label="家庭报考工作流">
+            <div class="work-step">
+              <span class="step-num">1</span>
+              <span><strong>先初选</strong><span>用分数、方向和学校性质缩小可讨论范围。</span></span>
+            </div>
+            <div class="work-step">
+              <span class="step-num">2</span>
+              <span><strong>再整理</strong><span>把能接受的专业加入自选池，看前中后段结构。</span></span>
+            </div>
+            <div class="work-step">
+              <span class="step-num">3</span>
+              <span><strong>最后复核</strong><span>报告只做家庭复核底稿，仍需看官方计划和章程。</span></span>
+            </div>
+          </div>
+        </aside>
       </header>
 
-      <section class="section nav-area" aria-label="辽宁高考资料入口">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">辽宁高考资料入口</h2>
-            <p class="section-desc">入口做减法：先初选，再查数据，再复核专业。</p>
+      <div class="sections">
+        <section class="section-card" aria-labelledby="mainEntryTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="mainEntryTitle" class="section-title">主流程入口</h2>
+              <p class="section-desc">先从这里开始，其他资料都只是初选后的辅助复核。</p>
+            </div>
+            <span class="section-mark">核心工具</span>
           </div>
-          <span class="section-mark">先稳住 · 再初选 · 再复核</span>
-        </div>
+          <div class="resource-grid">
+            <a href="/ln-rank/" class="resource-card">
+              <span class="resource-kicker">S 级入口</span>
+              <span class="resource-title">辽宁高考志愿初选工具</span>
+              <span class="resource-desc">输入分数或位次，先圈出可讨论专业，再加入自选池看结构、生成家庭复核报告。</span>
+            </a>
+            <a href="/ln-rank/selection-pool.html" class="resource-card secondary">
+              <span class="resource-kicker">整理方案</span>
+              <span class="resource-title">自选池与报告</span>
+              <span class="resource-desc">整理已选专业，检查前中后段结构，再生成报告底稿。</span>
+            </a>
+            <a href="/ln-rank/self-check.html" class="resource-card secondary">
+              <span class="resource-kicker">工程自查</span>
+              <span class="resource-title">工具自测页</span>
+              <span class="resource-desc">用于发版和排查，不是家长决策页。</span>
+            </a>
+          </div>
+        </section>
 
-        <nav class="nav-grid" aria-label="高考数据导航">
-          <a href="/ln-rank/" class="entry primary">
-            <span class="entry-kicker">核心入口</span>
-            <span class="entry-title">辽宁高考志愿初选工具</span>
-            <span class="entry-desc">输入分数或位次，先看可讨论范围、底线余量和初步梯度，给家庭讨论一个不慌的起点。</span>
-          </a>
+        <section class="section-card" aria-labelledby="dataEntryTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="dataEntryTitle" class="section-title">数据底盘</h2>
+              <p class="section-desc">看历史数据和年度观察，用来复核初选范围，不直接代表 2027 录取判断。</p>
+            </div>
+            <span class="section-mark">历史参考</span>
+          </div>
+          <div class="resource-grid">
+            <a href="./zy.html" class="resource-card secondary">
+              <span class="resource-kicker">投档数据</span>
+              <span class="resource-title">辽宁投档数据</span>
+              <span class="resource-desc">查近年院校专业投档情况，先把历史数据底盘看明白。</span>
+            </a>
+            <a href="./ln2025.html" class="resource-card secondary">
+              <span class="resource-kicker">年度观察</span>
+              <span class="resource-title">2025 报考观察</span>
+              <span class="resource-desc">看年度变化、冷热迁移和位次松紧，只作历史观察。</span>
+            </a>
+            <a href="./lngk.html" class="resource-card secondary">
+              <span class="resource-kicker">热度参考</span>
+              <span class="resource-title">专业热度与历史变化观察</span>
+              <span class="resource-desc">辅助理解专业热度和历史变化，不作录取判断。</span>
+            </a>
+          </div>
+        </section>
 
-          <a href="./zy.html" class="entry">
-            <span class="entry-title">辽宁投档数据</span>
-            <span class="entry-desc">查近年院校专业投档情况，先把数据底盘看明白。</span>
-          </a>
+        <section class="section-card" aria-labelledby="reviewEntryTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="reviewEntryTitle" class="section-title">专业与学校复核</h2>
+              <p class="section-desc">用于分清专业名称、学校背景和学科线索，不能替代院校章程和招生计划。</p>
+            </div>
+            <span class="section-mark">辅助复核</span>
+          </div>
+          <div class="resource-grid">
+            <a href="./gaokao-confusable-major-guide.html" class="resource-card secondary">
+              <span class="resource-kicker">专业理解</span>
+              <span class="resource-title">易混专业指北</span>
+              <span class="resource-desc">把名字相近、培养方向不同的专业先分清。</span>
+            </a>
+            <a href="./liaoning.html" class="resource-card secondary">
+              <span class="resource-kicker">学科背景</span>
+              <span class="resource-title">辽宁学科评估</span>
+              <span class="resource-desc">从学科背景角度辅助复核学校和专业。</span>
+            </a>
+            <a href="/ln-rank/local-mainline.html" class="resource-card secondary">
+              <span class="resource-kicker">省内复核</span>
+              <span class="resource-title">省内学校背景复核</span>
+              <span class="resource-desc">辅助看省内学校、校区和专业背景，不作录取判断。</span>
+            </a>
+          </div>
+        </section>
 
-          <a href="./ln2025.html" class="entry">
-            <span class="entry-title">2025 报考观察</span>
-            <span class="entry-desc">看年度变化、冷热迁移和位次松紧。</span>
-          </a>
+        <section class="section-card" aria-labelledby="lifeEntryTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="lifeEntryTitle" class="section-title">生活与就读辅助</h2>
+              <p class="section-desc">这些资料只帮助家庭了解就读体验，不参与录取判断。</p>
+            </div>
+            <span class="section-mark">低权重辅助</span>
+          </div>
+          <div class="resource-grid">
+            <a href="./Liaoning_Universit_Dorm_AC_Field_Guide.html" class="resource-card life">
+              <span class="resource-kicker">生活辅助</span>
+              <span class="resource-title">辽宁省高校宿舍空调指北</span>
+              <span class="resource-desc">按学校整理宿舍空调安装情况、进度和复核线索。</span>
+            </a>
+          </div>
+        </section>
 
-          <a href="./liaoning.html" class="entry">
-            <span class="entry-title">辽宁学科评估</span>
-            <span class="entry-desc">从学科实力角度复核学校和专业。</span>
-          </a>
-
-          <a href="./lngk.html" class="entry">
-            <span class="entry-title">专业难度观察</span>
-            <span class="entry-desc">辅助判断专业热度、报考难度和安全边界。</span>
-          </a>
-
-          <a href="./gaokao-confusable-major-guide.html" class="entry">
-            <span class="entry-title">易混专业指北</span>
-            <span class="entry-desc">把名字相近、培养方向不同的专业先分清。</span>
-          </a>
-
-          <a href="./Liaoning_Universit_Dorm_AC_Field_Guide.html" class="entry">
-            <span class="entry-title">辽宁省高校宿舍空调指北</span>
-            <span class="entry-desc">按学校整理宿舍空调安装情况、进度和复核线索。</span>
-          </a>
-        </nav>
-      </section>
+        <section class="boundary" aria-label="使用边界说明">
+          <strong>使用边界：</strong>本首页只做节奏提醒和资料入口。本工具只做家庭初选和复核辅助；正式填报仍需以辽宁省当年位次、招生计划、院校章程、校区、学费、体检要求和家庭真实选择为准。
+        </section>
+      </div>
 
       <footer class="footer">
-        给家庭讨论使用：孩子先休息好，家长先稳住；工具只负责把范围看清，最后仍以官方数据和家庭真实选择为准。
+        孩子先休息好，家长先稳住；先把范围看清，再逐项复核，不把任何工具页面当成录取判断。
       </footer>
     </section>
   </main>
@@ -814,14 +830,6 @@
       hour12: false
     });
 
-    const beijingPartsFormatter = new Intl.DateTimeFormat("zh-CN", {
-      timeZone: "Asia/Shanghai",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false
-    });
-
     function pad(value, length = 2) {
       return String(value).padStart(length, "0");
     }
@@ -831,50 +839,16 @@
       if (element) element.textContent = value;
     }
 
-    function getNow() {
-      return new Date();
-    }
-
-    function getBeijingTimeParts(date) {
-      const parts = beijingPartsFormatter.formatToParts(date);
-      const map = {};
-      for (const part of parts) {
-        if (part.type !== "literal") map[part.type] = Number(part.value);
-      }
-      return map;
-    }
-
-    function setSecondText(value) {
-      const element = document.getElementById("s2027");
-      const ring = document.getElementById("ring2027");
-      if (!element) return;
-
-      const nextValue = String(value);
-      if (element.textContent !== nextValue) {
-        element.classList.remove("is-ticking");
-        void element.offsetWidth;
-        element.textContent = nextValue;
-        element.classList.add("is-ticking");
-        window.setTimeout(() => element.classList.remove("is-ticking"), 150);
-      }
-
-      if (ring) {
-        const secondNumber = Number(nextValue);
-        const progress = ((secondNumber + 1) / 60) * 100;
-        ring.style.setProperty("--second-progress", `${progress.toFixed(2)}%`);
-      }
-    }
-
-    function renderCountdown2027() {
-      const now = getNow();
-      const diff = TARGET_2027 - now;
+    function renderCountdown() {
+      const now = new Date();
+      const diff = TARGET_2027.getTime() - now.getTime();
       const status = document.getElementById("status2027");
 
       if (diff <= 0) {
         setText("d2027", "0");
         setText("h2027", "00");
         setText("m2027", "00");
-        setSecondText("00");
+        setText("s2027", "00");
         if (status) status.textContent = "已开始";
         return;
       }
@@ -883,7 +857,6 @@
       const oneMinute = oneSecond * 60;
       const oneHour = oneMinute * 60;
       const oneDay = oneHour * 24;
-
       const days = Math.floor(diff / oneDay);
       const hours = Math.floor((diff % oneDay) / oneHour);
       const minutes = Math.floor((diff % oneHour) / oneMinute);
@@ -892,7 +865,7 @@
       setText("d2027", String(days));
       setText("h2027", pad(hours));
       setText("m2027", pad(minutes));
-      setSecondText(pad(seconds));
+      setText("s2027", pad(seconds));
 
       if (status) {
         if (days <= 7) status.textContent = "最后一周";
@@ -900,36 +873,58 @@
         else if (days <= 100) status.textContent = "百日内";
         else status.textContent = "倒计时中";
       }
-    }
-
-    function renderNow() {
-      const now = getNow();
-      const parts = getBeijingTimeParts(now);
-      const seconds = parts.hour * 3600 + parts.minute * 60 + parts.second;
-      const progress = (seconds / 86400) * 100;
 
       setText("nowText", beijingFormatter.format(now));
-      setText("dayProgressText", `今日进度 ${progress.toFixed(1)}%`);
+    }
 
-      const dayProgress = document.getElementById("dayProgress");
-      if (dayProgress) dayProgress.style.width = `${progress.toFixed(2)}%`;
+    function readPoolCount() {
+      const keys = [
+        "lnRank.selectionPool.physics2025.v3933_12",
+        "lnRank.selectionPool.physics2025.v3949",
+        "lnRank.selectionPool.physics2025.v3948",
+        "lnRank.selectionPool.physics2025.v3947",
+        "lnRank.selectionPool.physics2025.v3946",
+        "lnRank.selectionPool.physics2025.v3945",
+        "lnRank.selectionPool.physics2025.v3944",
+        "lnRank.selectionPool.physics2025.v3943",
+        "lnRank.selectionPool.physics2025.v3942",
+        "lnRank.selectionPool.physics2025.v3941",
+        "lnRank.selectionPool.physics2025.v3940",
+        "lnRank.selectionPool.physics2025",
+        "lnRankSelectionPool.v3940"
+      ];
+
+      for (const key of keys) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const parsed = JSON.parse(raw);
+          const items = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
+          if (items.length) return items.length;
+        } catch {}
+      }
+      return 0;
+    }
+
+    function renderResumeCard() {
+      const count = readPoolCount();
+      const card = document.getElementById("resumeCard");
+      const title = document.getElementById("resumeTitle");
+      const text = document.getElementById("resumeText");
+      if (!card || !count) return;
+
+      card.classList.add("is-visible");
+      if (title) title.textContent = `检测到上次有 ${count} 个已选专业`;
+      if (text) text.textContent = "可以继续整理自选池，也可以回到初选工具重新开始。首页只显示数量，不展示具体专业。";
     }
 
     function tick() {
-      renderCountdown2027();
-      renderNow();
+      renderCountdown();
+      window.setTimeout(tick, 1000 - (Date.now() % 1000));
     }
 
-    function scheduleNextTick() {
-      const delay = 1000 - (Date.now() % 1000);
-      window.setTimeout(() => {
-        tick();
-        scheduleNextTick();
-      }, delay);
-    }
-
+    renderResumeCard();
     tick();
-    scheduleNextTick();
   </script>
 </body>
 </html>
