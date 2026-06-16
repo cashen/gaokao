@@ -117,9 +117,12 @@ function renderResultContextBar(data, group, state, specialMode) {
   </section>`;
 }
 function renderSearchAdvices(data) {
-  const advices = data?.searchAdvices || [];
-  if (!Array.isArray(advices) || !advices.length) return '';
-  return advices.map(advice => `<div class="search-advice search-advice-${escapeHtml(advice.level || 'info')}"><div>${escapeHtml(advice.message || '')}</div>${advice.action ? `<button type="button" data-search-advice-action="${escapeHtml(advice.action.type)}" data-target="${escapeHtml(advice.action.target)}">${escapeHtml(advice.action.label || '应用建议')}</button>` : ''}</div>`).join('');
+  const advices = [...(Array.isArray(data?.filterConflicts) ? data.filterConflicts : []), ...(Array.isArray(data?.searchAdvices) ? data.searchAdvices : [])];
+  if (!advices.length) return '';
+  return advices.map(advice => {
+    const actions = Array.isArray(advice.actions) ? advice.actions : (advice.action ? [advice.action] : []);
+    return `<div class="search-advice search-advice-${escapeHtml(advice.level || 'info')}"><div>${escapeHtml(advice.message || '')}</div>${advice.explanation ? `<small>${escapeHtml(advice.explanation)}</small>` : ''}${actions.length ? `<div class="search-advice-actions">${actions.map(action => `<button type="button" data-search-advice-action="${escapeHtml(action.type)}" data-target="${escapeHtml(action.target || '')}">${escapeHtml(action.label || '应用建议')}</button>`).join('')}</div>` : ''}</div>`;
+  }).join('');
 }
 
 function poolButton(record, index, selectionPool) {
@@ -340,6 +343,23 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
         button.disabled = true;
       }
       if (typeof onSelectionChange === 'function') onSelectionChange();
+    });
+  });
+  root.querySelectorAll('[data-search-advice-action="switch_special_project"]').forEach(button => {
+    button.addEventListener('click', () => {
+      const target = button.dataset.target || 'show_eligibility_projects';
+      try { localStorage.setItem('lnRank.specialProjectMode.current', target); } catch {}
+      document.getElementById('specialProjectToggle')?.click?.();
+    });
+  });
+  root.querySelectorAll('[data-search-advice-action="remove_keyword_group"]').forEach(button => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById('majorKeyword');
+      if (!input) return;
+      const target = button.dataset.target || '';
+      const re = target === 'sino_high_fee' ? /中外|合作办学|高收费|较高收费|国际本科|国际班/ : target === 'special_project' ? /定向|专项|公费师范|优师|预科|民族班|公安|司法|航海|轮机/ : /民办|独立学院|独立院校/;
+      input.value = String(input.value || '').split(/[,，、\s/；;|]+/).filter(Boolean).filter(w => !re.test(w)).join(' ');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   });
   root.querySelectorAll('[data-search-advice-action="switch_bottomline"]').forEach(button => {

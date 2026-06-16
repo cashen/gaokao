@@ -10,6 +10,7 @@ import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.j
 import { matchMajorProject } from '../_lib/major-project-matcher.js';
 import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
+import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 import { normalizeSpecialProjectMode, detectSpecialProject, enrichSpecialProjectRecord, shouldHideSpecialProject, createSpecialProjectStats, addSpecialProjectStat, SPECIAL_PROJECT_COPY } from '../_lib/special-project-policy.js';
@@ -225,7 +226,8 @@ export async function onRequest(context) {
       steady: grouped.steady.count
     };
     counts.total = counts.upper + counts.near + counts.steady;
-    const searchAdvices = buildSearchConflictAdvice({ keywordQuery, bottomLineMode: filters.bottomLineMode, resultStats: { total: counts.total } });
+    const filterConflicts = buildFilterConflicts({ keywordQuery, rawKeywordText: filters.majorKeyword || '', bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode });
+    const searchAdvices = buildSearchConflictAdvice({ keywordQuery, bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode, resultStats: { total: counts.total } });
 
     return json({
       ok: true,
@@ -248,6 +250,7 @@ export async function onRequest(context) {
       },
       keywordQuery,
       keywordWarnings,
+      filterConflicts,
       searchAdvices,
       matchSummary,
       bands: grouped,
