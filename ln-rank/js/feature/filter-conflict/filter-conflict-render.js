@@ -7,6 +7,6 @@ export function renderFilterConflicts(root, conflicts = []) {
     <article class="ln-filter-conflict-card is-${escapeHtml(conflict.level || 'warn')}" data-conflict-type="${escapeHtml(conflict.type || '')}">
       <p>${escapeHtml(conflict.message || '')}</p>
       ${conflict.explanation ? `<small>${escapeHtml(conflict.explanation)}</small>` : ''}
-      <div class="ln-filter-conflict-actions">${(conflict.actions || []).map(action => `<button type="button" data-filter-conflict-action="${escapeHtml(action.type)}" data-target="${escapeHtml(action.target || '')}">${escapeHtml(action.label || '处理')}</button>`).join('')}</div>
+      <div class="ln-filter-conflict-actions">${(conflict.actions || []).map(action => `<button type="button" data-filter-conflict-action="${escapeHtml(action.type)}" data-target="${escapeHtml(action.target || '')}" data-conflict-signature="${escapeHtml(conflict.signature || '')}">${escapeHtml(action.label || '处理')}</button>`).join('')}</div>
     </article>`).join('');
 }

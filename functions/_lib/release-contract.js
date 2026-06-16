@@ -1,9 +1,9 @@
 export const LN_RANK_RELEASE_CONTRACT = {
-  display: 'v3.9.44',
-  asset: '3944_0',
-  assetVersion: 'v3944_0',
-  release: 'v3.9.44-ln-rank-real-flow-and-logic-conflict-contract-12-role-no-fenxi',
-  label: 'real-flow-and-logic-conflict-contract-12-role-no-fenxi',
+  display: 'v3.9.45',
+  asset: '3945_0',
+  assetVersion: 'v3945_0',
+  release: 'v3.9.45-ln-rank-human-workflow-state-and-typography-contract-12-role-no-fenxi',
+  label: 'human-workflow-state-and-typography-contract-12-role-no-fenxi',
   reportSections: [
     '一、概要判断',
     '二、当前方案怎么看',

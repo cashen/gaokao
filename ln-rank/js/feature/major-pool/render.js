@@ -278,6 +278,14 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取数据判断问题，而是专业数据接口没有正常返回 JSON。可以稍后重试，或先检查运行时健康接口。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
     return;
   }
+  if (state.bands.stale) {
+    title.textContent = '条件已变化';
+    badge.textContent = '需重新查看';
+    meta.textContent = '当前筛选条件已经变化，旧结果不再作为当前结果展示';
+    root.className = 'results-grid empty is-stale-result';
+    root.innerHTML = '<div class="stale-result-card"><b>条件已变化，请重新查看符合条件的专业。</b><p>你刚调整了分数、范围、地区、学校、专业方向、办学性质或特殊项目显示方式。为避免把上一轮结果当成当前结果，请重新点击查看。</p></div>';
+    return;
+  }
   const data = state.bands.data;
   if (!data) {
     title.textContent = state.bands.title || '等待查看';

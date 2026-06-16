@@ -523,6 +523,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   appendManualReviewLines(lines, displayItems);
 
   lines.push('## 六、数据和使用边界', '');
+  lines.push('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2026 招生计划人工核验。');
   lines.push(...nonHeadingLines(governanceBoundaryLines()).filter(Boolean), '');
 
   return {

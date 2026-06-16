@@ -308,6 +308,7 @@ function governanceReviewBlocks(items = []) {
 function governanceBoundaryBlocks() {
   return [
     heading2('六、数据和使用边界', STYLE.title),
+    bulletBlock('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2026 招生计划人工核验。'),
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
     bulletBlock('两年位次变化只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),

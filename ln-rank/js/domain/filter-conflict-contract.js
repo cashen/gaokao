@@ -9,7 +9,7 @@ export const FILTER_CONFLICT_TYPES = {
   SPECIAL_HIDDEN: 'special_hidden_by_default',
   PRIVATE_PUBLIC_ONLY: 'private_excluded_by_public'
 };
-export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', bottomLineMode = 'all', specialProjectMode = 'hide_eligibility_projects' } = {}) {
+export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', bottomLineMode = 'all', specialProjectMode = 'hide_eligibility_projects', querySignature = '', confirmedSignatures = [] } = {}) {
   const raw = keywordText(keywordQuery, rawKeywordText);
   const conflicts = [];
   const hasSino = hasAny(raw, /中外|合作办学|高收费|较高收费|国际本科|国际班/);
@@ -19,6 +19,7 @@ export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', b
     conflicts.push({
       level: 'warn',
       type: FILTER_CONFLICT_TYPES.SINO_PUBLIC_REGULAR,
+      signature: `${FILTER_CONFLICT_TYPES.SINO_PUBLIC_REGULAR}|${querySignature || raw}`,
       message: '你选择了“只看公办普通”，同时搜索“中外/高收费”。这两个条件方向相反：公办普通会排除中外/高收费项目。',
       explanation: '如果家庭可以接受较高学费和合作培养模式，应切换为“公办含中外/高收费”；如果不接受，就去掉中外/高收费关键词。',
       actions: [
@@ -32,6 +33,7 @@ export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', b
     conflicts.push({
       level: 'warn',
       type: FILTER_CONFLICT_TYPES.SPECIAL_HIDDEN,
+      signature: `${FILTER_CONFLICT_TYPES.SPECIAL_HIDDEN}|${querySignature || raw}`,
       message: '你正在搜索定向、专项、公费师范、预科等需要资格核验的项目，但当前系统默认隐藏这类项目。',
       explanation: '这类项目通常涉及资格、协议、服务年限、批次、体检或政审，不能按普通专业简单比较。',
       actions: [
@@ -45,6 +47,7 @@ export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', b
     conflicts.push({
       level: 'warn',
       type: FILTER_CONFLICT_TYPES.PRIVATE_PUBLIC_ONLY,
+      signature: `${FILTER_CONFLICT_TYPES.PRIVATE_PUBLIC_ONLY}|${querySignature || raw}`,
       message: '你选择了只看公办，同时搜索民办或独立学院。当前条件会排除你搜索的项目。',
       explanation: '如果想比较民办或独立学院，需要切换为“全部院校”；如果只想看公办，应去掉民办相关关键词。',
       actions: [
@@ -54,8 +57,26 @@ export function buildFilterConflicts({ keywordQuery = {}, rawKeywordText = '', b
       ]
     });
   }
-  return conflicts;
+  const confirmed = new Set(Array.isArray(confirmedSignatures) ? confirmedSignatures : []);
+  return conflicts.filter(item => !item.signature || !confirmed.has(item.signature));
 }
+
+const CONFIRMED_KEY = 'lnRank.conflict.confirmedSignatures';
+export function readConfirmedConflictSignatures() {
+  try { return JSON.parse(localStorage.getItem(CONFIRMED_KEY) || '[]'); } catch { return []; }
+}
+export function confirmFilterConflict(signature) {
+  if (!signature) return;
+  try {
+    const list = readConfirmedConflictSignatures().filter(Boolean);
+    const next = [...new Set([...list.slice(-30), String(signature)])];
+    localStorage.setItem(CONFIRMED_KEY, JSON.stringify(next));
+  } catch {}
+}
+export function clearConfirmedConflictsForNewQuery() {
+  try { localStorage.removeItem(CONFIRMED_KEY); } catch {}
+}
+
 export function hasBlockingFilterConflict(input = {}) { return buildFilterConflicts(input).some(x => x.level === 'block' || x.level === 'warn'); }
 export function removeKeywordGroup(rawKeywordText = '', group = '') {
   const words = text(rawKeywordText).split(/[,，、\s/；;|]+/).filter(Boolean);
