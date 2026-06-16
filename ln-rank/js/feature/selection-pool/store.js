@@ -39,7 +39,7 @@ export function classifyPoolItem(item = {}) {
   if (key === 'match' || key === 'steady' || (delta >= -15 && delta <= 3)) {
     return { group: 'stable', detail: '主要参考', className: delta >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
   }
-  return { group: 'safe', detail: '稳妥补充', className: delta <= -26 ? 'safe' : 'light-safe', position: '稳妥补充区' };
+  return { group: 'safe', detail: '低分侧补充', className: delta <= -26 ? 'safe' : 'light-safe', position: '低分侧补充区' };
 }
 
 export function normalizePoolItem(record = {}, order = 1) {
@@ -226,7 +226,7 @@ export function reorderPoolItemByIndex(fromIndex, toIndex) {
 const BAND_ORDER = {
   '稍高目标': 10,
   '主要参考': 20,
-  '稳妥补充': 30,
+  '低分侧补充': 30,
   '待核验': 40
 };
 

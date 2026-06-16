@@ -20,8 +20,8 @@ function structureText(facts) {
   if (!s.total) return '已选专业暂无专业志愿，暂时无法判断前中后段结构。';
   const balance = s.safeCount >= Math.max(3, Math.ceil(s.total * 0.22)) && s.stableCount >= Math.ceil(s.total * 0.30) && s.rushCount <= Math.ceil(s.total * 0.40);
   return balance
-    ? `当前共有 ${s.total} 个志愿，稍高目标 ${s.rushCount} 个、主要参考 ${s.stableCount} 个、稳妥补充 ${s.safeCount} 个，数量结构基本有框架。后续重点是确认主要参考和稳妥补充是否真能接受。`
-    : `当前共有 ${s.total} 个志愿，稍高目标 ${s.rushCount} 个、主要参考 ${s.stableCount} 个、稳妥补充 ${s.safeCount} 个，结构还需要调整，重点检查中段承接和稳妥补充是否足够。`;
+    ? `当前共有 ${s.total} 个志愿，稍高目标 ${s.rushCount} 个、主要参考 ${s.stableCount} 个、低分侧补充 ${s.safeCount} 个，数量结构基本有框架。后续重点是确认主要参考和低分侧补充是否真能接受。`
+    : `当前共有 ${s.total} 个志愿，稍高目标 ${s.rushCount} 个、主要参考 ${s.stableCount} 个、低分侧补充 ${s.safeCount} 个，结构还需要调整，重点检查中段承接和低分侧补充是否足够。`;
 }
 
 function majorText(facts) {
@@ -55,10 +55,10 @@ function bottomText(facts) {
   if (b.mode === 'public_regular_only') tail = `该模式要求只保留公办普通收费项目，若已选专业里仍有公办中外/高收费或民办项目，需要人工确认。`;
   if (b.mode === 'public_include_sino') tail = `该模式允许公办中外/高收费，但排除民办；相关项目要核验学费、培养模式、毕业证书、校区和家庭承受能力。`;
   if (b.mode === 'public_first') tail = `该模式优先展示公办，但不自动删除其他候选；最终是否接受仍需家庭确认。`;
-  if (!s.total) return `${modeText}稳妥补充待补充。${tail}`.trim();
-  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return `${modeText}稳妥补充数量偏少，后段承接不足，需要补充低一层位次且真实可接受的稳妥补充项。${tail}`.trim();
-  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return `${modeText}稳妥补充数量不算少，但深层稳妥补充不足，需要检查是否真正拉开位次。${tail}`.trim();
-  return `${modeText}稳妥补充数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；稳妥补充不是低分凑数。${tail}`.trim();
+  if (!s.total) return `${modeText}低分侧补充待补充。${tail}`.trim();
+  if (s.safeCount < Math.max(3, Math.ceil(s.total * 0.22))) return `${modeText}低分侧补充数量偏少，后段承接不足，需要补充低一层位次且真实可接受的低分侧补充项。${tail}`.trim();
+  if (s.deepSafeCount < Math.max(1, Math.ceil(s.total * 0.08))) return `${modeText}低分侧补充数量不算少，但深层低分侧补充不足，需要检查是否真正拉开位次。${tail}`.trim();
+  return `${modeText}低分侧补充数量不算少，但仍要核验学校、城市、专业、学费是否都能接受；低分侧补充不是低分凑数。${tail}`.trim();
 }
 
 export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [], actions = [] }) {
@@ -67,13 +67,13 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
   const cleanedActions = (actions || []).map(cleanAction).filter(Boolean).slice(0, 6);
   const finalActions = cleanedActions.length ? cleanedActions : [
     '先确认主要参考是否都是孩子能接受的专业方向',
-    '稳妥补充逐条确认学校、城市、专业、学费和校区',
+    '低分侧补充逐条确认学校、城市、专业、学费和校区',
     '排序前确认家庭更重视省内就业、平台层级还是专业技能路径'
   ];
   const riskDiagnosis = risks.length ? risks.slice(0, 6) : ['暂未发现明显结构性需要关注，但仍需人工核验招生计划、选科、体检、学费和校区。'];
   const overall = facts.poolStructure?.total
     ? `当前方案已有基本框架。本轮重点是围绕“${policy.mainGoal}”，把前中后段结构和专业接受度确认清楚。`
-    : '已选专业暂无专业志愿，建议先补充上探、主体、主要参考和稳妥补充候选。';
+    : '已选专业暂无专业志愿，建议先补充上探、主体、主要参考和低分侧补充候选。';
   const zoneJudgement = buildZoneSentence(facts, zone, policy);
   const structureDiagnosis = structureText(facts);
   const majorPathDiagnosis = majorText(facts);
@@ -111,7 +111,7 @@ export function buildAdvisorFallbackNarrative({ facts, candidateZones, risks = [
     actions: finalActions,
     parentVersion,
     reportMarkdown,
-    disclaimer: '本说明只解释位次功能区和方案结构，不做录取承诺；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。'
+    disclaimer: '本说明只解释位次功能区和方案结构，不做录取判断；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。'
   });
   return narrative;
 }

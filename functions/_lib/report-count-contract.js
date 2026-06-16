@@ -25,6 +25,6 @@ export function buildReportCountContract(items = []) {
     highTargetPercent: pct(groups.higher.length),
     mainReferencePercent: pct(groups.main.length),
     saferBackupPercent: pct(groups.safe.length),
-    labels: { higher: '稍高目标', main: '主要参考', safe: '稳妥补充' }
+    labels: { higher: '稍高目标', main: '主要参考', safe: '低分侧补充' }
   };
 }

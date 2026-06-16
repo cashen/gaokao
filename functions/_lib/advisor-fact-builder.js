@@ -26,9 +26,9 @@ function classify(item = {}) {
   if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '稍高目标', className: 'light-rush', position: '前段稍高目标区' };
   if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '主要参考', className: 'edge-stable', position: '主要参考区' };
   if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '稳妥', className: 'stable', position: '主体偏稳区' };
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '稳妥补充', className: 'light-safe', position: '后段稳妥补充区' };
-  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '稳妥补充', className: 'safe', position: '后段稳妥补充区' };
-  return { group: 'safe', detail: '稳妥补充', className: 'floor', position: '稳妥补充确认区' };
+  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '低分侧补充', className: 'light-safe', position: '后段低分侧补充区' };
+  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '低分侧补充', className: 'safe', position: '后段低分侧补充区' };
+  return { group: 'safe', detail: '低分侧补充', className: 'floor', position: '低分侧补充确认区' };
 }
 
 function majorFamily(major = '') {
@@ -133,8 +133,8 @@ function buildStats(items) {
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
     if (band.detail === '稍高目标') stats.highRushCount += 1;
-    if (band.detail === '稳妥补充') stats.floorCount += 1;
-    if (band.detail === '稳妥补充' || band.detail === '稳妥补充') stats.deepSafeCount += 1;
+    if (band.detail === '低分侧补充') stats.floorCount += 1;
+    if (band.detail === '低分侧补充' || band.detail === '低分侧补充') stats.deepSafeCount += 1;
     inc(stats.byDetail, band.detail);
     inc(stats.byCity, item.displayLocation || '未知地域');
     inc(stats.byMajorFamily, item.majorFamily || '其他专业');

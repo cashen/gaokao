@@ -33,11 +33,11 @@ function bandKeyFromActive(activeBand, record = {}) {
   if (['upper','near','steady'].includes(key)) return key;
   const text = [record.statusLabel, record.position, record.matchBand, record.matchReason].filter(Boolean).join(' ');
   if (/稍高目标|少量看|上探/.test(text)) return 'upper';
-  if (/稳妥补充|补安全|偏稳/.test(text)) return 'steady';
+  if (/低分侧补充|补安全|偏稳/.test(text)) return 'steady';
   return 'near';
 }
 function bandLabel(key) {
-  return key === 'upper' ? '稍高目标' : key === 'steady' ? '稳妥补充' : '主要参考';
+  return key === 'upper' ? '稍高目标' : key === 'steady' ? '低分侧补充' : '主要参考';
 }
 
 function tags(record) {

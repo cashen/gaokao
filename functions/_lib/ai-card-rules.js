@@ -18,7 +18,7 @@ function cardStatusRange(status) {
   const s = String(status || '').trim();
   if (!s) return '当前范围';
   if (s.includes('主要参考') || s.includes('匹配')) return '主要参考范围';
-  if (s.includes('稳妥')) return '稳妥补充范围';
+  if (s.includes('稳妥')) return '低分侧补充范围';
   if (s.includes('稍高')) return '稍高目标范围';
   return s.endsWith('参考') ? `${s}范围` : `${s}范围`;
 }

@@ -105,7 +105,7 @@ export const ADVISOR_ZONE_POLICIES = {
     mainGoal: '把平台、专业、城市和未来路径排顺。',
     mainConflict: '追平台可能牺牲专业，追热门专业可能放弃明显平台优势。',
     preferDirections: ['优质平台可接受专业', '行业特色院校可接受专业', '读研/考公/就业路径明确方向'],
-    cautionDirections: ['为了校名接受完全不能读的专业', '只追热门专业放弃平台', '无效大冲'],
+    cautionDirections: ['为了校名接受完全不能读的专业', '只追热门专业放弃平台', '无效稍高目标'],
     bottomLineAdvice: '高分段后段是否够稳重在可接受和路径清楚，不是越低越好。',
     forbiddenOverstatements: ['985/211一定优先', '热门专业一定优先']
   },

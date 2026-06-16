@@ -33,7 +33,7 @@ function cleanList(value, max = 6, itemMax = 130) {
 
 function containsForbidden(obj) {
   const s = JSON.stringify(obj || {}).toLowerCase();
-  const words = ['必录', '稳进', '闭眼报', '一定上岸', '稳上岸', '百分百', '100%', '录取概率'];
+  const words = ['必录', '稳进', '闭眼报', '一定上岸', '稳上岸', '百分百', '100%', '录取判断'];
   return words.find(w => s.includes(w.toLowerCase())) || '';
 }
 
@@ -61,7 +61,7 @@ export function normalizeAdvisorNarrative(obj = {}, fallback = {}) {
     actions: cleanList(obj.actions || fallback.actions, 6, 140),
     parentVersion: text(obj.parentVersion || fallback.parentVersion || obj.overall || fallback.overall, 420),
     reportMarkdown: text(obj.reportMarkdown || fallback.reportMarkdown, 1800),
-    disclaimer: text(obj.disclaimer || fallback.disclaimer || '本说明只解释位次功能区和方案结构，不做录取承诺；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 420)
+    disclaimer: text(obj.disclaimer || fallback.disclaimer || '本说明只解释位次功能区和方案结构，不做录取判断；最终以当年一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 420)
   };
 }
 

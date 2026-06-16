@@ -72,7 +72,7 @@ function uiReadabilitySmoke() {
   add('Android 关键词优先', true, '手机端专业关键词与常用方向优先展示，地区/学校在后，减少首屏长表单感。', '检查 css/core/responsive.css 的 720px 断点。');
   add('统一控制台结构', true, '考生分数、查看范围、分数区间参考、搜索条件同属 ln-console，避免三套左边界。', '检查 index.html 的 ln-console 结构与 control-panel.css。');
   add('分数区间二级聚焦', true, '分数区间参考在结果区承担二级聚焦，active 状态与报告上下文分离。', '检查 rankBandLegend/resultBandSwitcher 与 bandFocus。');
-  add('结果区切换反馈明确', true, '稍高目标/主要参考/稳妥补充的点击只发生在结果区，active 状态含颜色、边框和“当前查看”文字。', '检查 css/components/rank-band.css 与 feature/score-bands/render.js。');
+  add('结果区切换反馈明确', true, '稍高目标/主要参考/低分侧补充的点击只发生在结果区，active 状态含颜色、边框和“当前查看”文字。', '检查 css/components/rank-band.css 与 feature/score-bands/render.js。');
   add('无关键词空状态', true, '未输入专业方向/项目关键词时，右侧不展开热度说明，只保留当前条件和主按钮。', '检查 feature/trend/integration.js 和 .major-trend-hint.is-empty。');
   add('自选入口避让控制台', true, 'PC/Pad 自选入口应靠右下安全区，不遮挡搜索控制台右侧辅助区；Android 使用底部整理条。', '检查 css/components/cards.css。');
   add('右侧辅助区不窄列换行', true, '右侧辅助区只放短状态和主操作；热度参考在有关键词后显示摘要。', '检查 css/components/control-panel.css 和 renderSearchTrendHint。');

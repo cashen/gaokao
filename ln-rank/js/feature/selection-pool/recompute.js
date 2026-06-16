@@ -8,7 +8,7 @@ function classifyByDelta(delta) {
   if (!Number.isFinite(d)) return { group: 'safe', detail: '待核验', className: 'unknown', position: '需补齐分数/位次后再判断' };
   if (d >= 4) return { group: 'rush', detail: '稍高目标', className: d >= 16 ? 'high-rush' : 'light-rush', position: '稍高目标区' };
   if (d >= -15 && d <= 3) return { group: 'stable', detail: '主要参考', className: d >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
-  return { group: 'safe', detail: '稳妥补充', className: d <= -26 ? 'safe' : 'light-safe', position: '稳妥补充区' };
+  return { group: 'safe', detail: '低分侧补充', className: d <= -26 ? 'safe' : 'light-safe', position: '低分侧补充区' };
 }
 
 export function recomputeSelectionPool(candidateContext, rawItems = []) {
@@ -70,7 +70,7 @@ export function getComputedStats(items = []) {
 const BAND_ORDER = {
   '稍高目标': 10,
   '主要参考': 20,
-  '稳妥补充': 30,
+  '低分侧补充': 30,
   '待核验': 40
 };
 

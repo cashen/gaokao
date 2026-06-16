@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.41",
-  "assetVersion": "v3941_0",
+  "version": "v3.9.42",
+  "assetVersion": "v3942_0",
   "entries": {
-    "search": "js/app.v3941_0.js",
-    "selectionPool": "js/selection-pool.v3941_0.js",
-    "majorTrend": "js/major-trend-render.v3941_0.js",
-    "selfCheck": "js/self-check.v3941_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3941_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3941_0.js"
+    "search": "js/app.v3942_0.js",
+    "selectionPool": "js/selection-pool.v3942_0.js",
+    "majorTrend": "js/major-trend-render.v3942_0.js",
+    "selfCheck": "js/self-check.v3942_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3942_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3942_0.js"
   },
   "entrypoints": {
-    "search": "js/app.v3941_0.js",
-    "selectionPool": "js/selection-pool.v3941_0.js",
-    "majorTrend": "js/major-trend-render.v3941_0.js",
-    "selfCheck": "js/self-check.v3941_0.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3941_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3941_0.js"
+    "search": "js/app.v3942_0.js",
+    "selectionPool": "js/selection-pool.v3942_0.js",
+    "majorTrend": "js/major-trend-render.v3942_0.js",
+    "selfCheck": "js/self-check.v3942_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3942_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3942_0.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3941_0.css",
-    "selection": "css/dist/ln-rank-selection.v3941_0.css",
-    "trend": "css/dist/ln-rank-trend.v3941_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3941_0.css",
-    "localMainline": "css/dist/local-mainline.v3941_0.css",
-    "main211": "css/dist/211-mainline.v3941_0.css"
+    "main": "css/dist/ln-rank-main.v3942_0.css",
+    "selection": "css/dist/ln-rank-selection.v3942_0.css",
+    "trend": "css/dist/ln-rank-trend.v3942_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3942_0.css",
+    "localMainline": "css/dist/local-mainline.v3942_0.css",
+    "main211": "css/dist/211-mainline.v3942_0.css"
   },
   "compactGuideUI": true,
   "productIntentPreservation": true,
@@ -34,5 +34,6 @@
   "seriousColorBalanceContract": true,
   "responsiveContract": true,
   "parentNewUserReliefContract": true,
+  "humanMobileQueryUIContract": true,
   "noFenxiIncluded": true
 }

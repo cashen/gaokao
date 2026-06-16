@@ -46,7 +46,7 @@ export function normalizePathAiOutput(value = {}, fallback = {}) {
     actions,
     parentVersion: text(obj.parentVersion || fallback.parentVersion || obj.overall || '', 360),
     reportMarkdown: text(obj.reportMarkdown || fallback.reportMarkdown || '', 1600),
-    disclaimer: text(obj.disclaimer || 'AI解读只负责解释规则和结构，不预测录取概率；最终以2026一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 360)
+    disclaimer: text(obj.disclaimer || 'AI解读只负责解释规则和结构，不预测录取判断；最终以2026一分一段、招生计划、专业备注、选科、体检、学费和校区核验为准。', 360)
   };
 }
 

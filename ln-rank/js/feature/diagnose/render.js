@@ -350,7 +350,7 @@ export function renderDiagnoseResult(record, payload) {
           <p>${esc(d.parentNote)}</p>
         </div>
       ` : ''}
-      <div class="diagnose-disclaimer">${esc(d.disclaimer || '仅作专业卡片解释，不等同于录取预测。')}</div>
+      <div class="diagnose-disclaimer">${esc(d.disclaimer || '仅作专业卡片解释，不等同于录取判断。')}</div>
     </div>
   `;
 }

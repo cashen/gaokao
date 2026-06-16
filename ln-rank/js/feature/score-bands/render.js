@@ -17,9 +17,9 @@ const BAND_COPY = {
   },
   steady: {
     tone: 'steady',
-    short: '补安全感',
-    current: '当前查看：稳妥补充',
-    explain: '低于孩子分数一些，用来补安全感。'
+    short: '补后段承接',
+    current: '当前查看：低分侧补充',
+    explain: '低于孩子分数一些，用来补后段承接。'
   }
 };
 

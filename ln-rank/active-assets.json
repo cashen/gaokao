@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.41",
-  "assetVersion": "v3941_0",
+  "version": "v3.9.42",
+  "assetVersion": "v3942_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3941_0.js",
-    "js/selection-pool.v3941_0.js",
-    "js/major-trend-render.v3941_0.js",
-    "js/self-check.v3941_0.js",
-    "js/local-mainline/local-mainline-app.v3941_0.js",
-    "js/211-mainline/211-mainline-app.v3941_0.js"
+    "js/app.v3942_0.js",
+    "js/selection-pool.v3942_0.js",
+    "js/major-trend-render.v3942_0.js",
+    "js/self-check.v3942_0.js",
+    "js/local-mainline/local-mainline-app.v3942_0.js",
+    "js/211-mainline/211-mainline-app.v3942_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3941_0.css",
-    "css/dist/ln-rank-selection.v3941_0.css",
-    "css/dist/ln-rank-trend.v3941_0.css",
-    "css/dist/ln-rank-self-check.v3941_0.css",
-    "css/dist/local-mainline.v3941_0.css",
-    "css/dist/211-mainline.v3941_0.css"
+    "css/dist/ln-rank-main.v3942_0.css",
+    "css/dist/ln-rank-selection.v3942_0.css",
+    "css/dist/ln-rank-trend.v3942_0.css",
+    "css/dist/ln-rank-self-check.v3942_0.css",
+    "css/dist/local-mainline.v3942_0.css",
+    "css/dist/211-mainline.v3942_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3941_0.css",
-    "selection": "css/dist/ln-rank-selection.v3941_0.css",
-    "trend": "css/dist/ln-rank-trend.v3941_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3941_0.css",
-    "localMainline": "css/dist/local-mainline.v3941_0.css",
-    "main211": "css/dist/211-mainline.v3941_0.css"
+    "main": "css/dist/ln-rank-main.v3942_0.css",
+    "selection": "css/dist/ln-rank-selection.v3942_0.css",
+    "trend": "css/dist/ln-rank-trend.v3942_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3942_0.css",
+    "localMainline": "css/dist/local-mainline.v3942_0.css",
+    "main211": "css/dist/211-mainline.v3942_0.css"
   },
-  "releaseGate": "serious color balance, responsive contract, report six-section contract, self-check mount, deep version contract, scoped CSS selector gate",
+  "releaseGate": "human mobile query UI contract, parent beginner readability, strict high-report wording, responsive contract, report six-section contract, self-check gate, scoped CSS selector gate",
   "compactGuideUI": true,
   "productIntentPreservation": true,
   "twelveRoleReview": true,
@@ -46,7 +46,8 @@
   "seriousColorBalanceContract": true,
   "responsiveContract": true,
   "parentNewUserReliefContract": true,
-  "noFunctionLogicChange": true,
-  "functionLogicChangeScope": "none; visual seriousness balance only, functions keep v3.9.39/v3.9.40 report/self-check logic with release contract version synchronized to v3.9.41",
+  "humanMobileQueryUIContract": true,
+  "noFunctionLogicChange": false,
+  "functionLogicChangeScope": "copy and visual contract only: safer band labels and mobile-first query UI; no score/window/data algorithm change",
   "noFenxiIncluded": true
 }

@@ -45,7 +45,7 @@ function buildRuleRisksAndActions(facts, candidateZones) {
   if (!total) {
     return {
       risks: ['已选专业为空，无法判断前中后段结构。'],
-      actions: ['先从稍高目标、主要参考和稳妥补充三个区间各加入一些专业。'],
+      actions: ['先从稍高目标、主要参考和低分侧补充三个区间各加入一些专业。'],
       level: 'empty'
     };
   }
@@ -54,7 +54,7 @@ function buildRuleRisksAndActions(facts, candidateZones) {
 
   if (total < 12) {
     addUnique(risks, '已选专业数量偏少，当前更像候选清单，不适合作为完整填报方案。');
-    addUnique(actions, '继续补充主要参考区和稳妥补充，先扩展到至少20个以上再做正式排序。');
+    addUnique(actions, '继续补充主要参考区和低分侧补充，先扩展到至少20个以上再做正式排序。');
   }
   if (stats.rushCount > Math.ceil(total * 0.40)) {
     addUnique(risks, '稍高目标占比偏高，容易形成前段好看、中后段承接不足。');
@@ -69,14 +69,14 @@ function buildRuleRisksAndActions(facts, candidateZones) {
     addUnique(actions, '优先补充接近孩子位次、孩子也愿意读的专业，作为主要参考。');
   }
   if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
-    addUnique(risks, '稳妥补充数量偏少，后段承接能力不足。');
-    addUnique(actions, '增加若干稳妥补充专业，尤其补充需要关注较少、且家庭真实可接受的方向。');
+    addUnique(risks, '低分侧补充数量偏少，后段承接能力不足。');
+    addUnique(actions, '增加若干低分侧补充专业，尤其补充需要关注较少、且家庭真实可接受的方向。');
   } else if (stats.deepSafeCount < Math.max(1, Math.ceil(total * 0.08))) {
     addUnique(risks, '后段数量不算少，但真正拉开位次的选择还不够。');
-    addUnique(actions, '补充低一层位次、学校城市专业都能接受的稳妥补充项。');
+    addUnique(actions, '补充低一层位次、学校城市专业都能接受的低分侧补充项。');
   }
   if (stats.missingRankCount) {
-    addUnique(risks, `${fmt(stats.missingRankCount)}个专业缺少可识别参考位次，稳妥补充深度和位次跨度需要人工补核。`);
+    addUnique(risks, `${fmt(stats.missingRankCount)}个专业缺少可识别参考位次，低分侧补充深度和位次跨度需要人工补核。`);
   }
 
   const key = primary.zoneKey;
@@ -85,11 +85,11 @@ function buildRuleRisksAndActions(facts, candidateZones) {
     if (stats.privateOrFeeCount >= Math.max(2, Math.ceil(total * 0.20))) addUnique(risks, '民办/高收费/中外合作相关项目占比不低，需要先核验预算和接受度。');
   }
   if (key === 'public-sensitive-zone') {
-    addUnique(actions, '公办竞争敏感区要避免后段太浅，不能只用低几分项目当稳妥补充。');
+    addUnique(actions, '公办竞争敏感区要避免后段太浅，不能只用低几分项目当低分侧补充。');
   }
   if (key === 'special-edge-zone') {
-    if (stats.safeCount < Math.max(4, Math.ceil(total * 0.30))) addUnique(risks, '特控线附近稳妥补充偏薄，太接近分数的后段项目容易不够稳。');
-    addUnique(actions, '特控线边缘区应让主要参考更厚、稳妥补充更扎实，不要把希望都押在稍高目标上。');
+    if (stats.safeCount < Math.max(4, Math.ceil(total * 0.30))) addUnique(risks, '特控线附近低分侧补充偏薄，太接近分数的后段项目容易不够稳。');
+    addUnique(actions, '特控线边缘区应让主要参考更厚、低分侧补充更扎实，不要把希望都押在稍高目标上。');
   }
   if (key === 'applied-tech-main-zone') {
     const appliedCount = (stats.byMajorFamily?.['电气电子信息'] || 0) + (stats.byMajorFamily?.['机械自动化制造'] || 0) + (stats.byMajorFamily?.['计算机/软件数据'] || 0);
@@ -230,8 +230,8 @@ function buildRankZoneCompat(facts, candidateZones, narrative) {
 function buildSummary(facts, zonePolicy, level) {
   const total = facts.poolStructure?.total || 0;
   if (!total) return '已选专业暂无专业志愿。';
-  if (level === 'high') return `当前已选专业整体需要关注偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和稳妥补充，再做最终排序。`;
-  if (level === 'medium') return `当前已选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需确认前中后段比例、稳妥补充深度和集中度需要关注。`;
+  if (level === 'high') return `当前已选专业整体需要关注偏高。结合${zonePolicy.zoneName}定位，需要先补齐中段承接和低分侧补充，再做最终排序。`;
+  if (level === 'medium') return `当前已选专业已有基本框架。结合${zonePolicy.zoneName}定位，仍需确认前中后段比例、低分侧补充深度和集中度需要关注。`;
   return `当前已选专业结构相对均衡。结合${zonePolicy.zoneName}定位，可以进入人工确认、排序微调和报告整理。`;
 }
 
@@ -245,7 +245,7 @@ function buildReportText({ facts, rankZone, stats, narrative }) {
   lines.push(`当前定位：${rankZone.zoneName || '待判断'}`);
   lines.push('数据口径：辽宁2025物理类一分一段与现有专业池；本报告用于家庭讨论，不等同录取预测。');
   lines.push('');
-  lines.push(`稍高目标：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜稳妥补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
+  lines.push(`稍高目标：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜低分侧补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
   lines.push('');
   lines.push(narrative.reportMarkdown || narrative.parentVersion || narrative.overall || '');
   return lines.join('\n');

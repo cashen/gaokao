@@ -1,5 +1,5 @@
 // 报告 Docx 文本颜色枚举：1 红、2 橙、3 黄、4 绿、5 蓝、6 紫、7 灰。
-// 本项目只做克制提醒：稍高目标用红/橙，主体用绿/蓝，稳妥补充用灰。
+// 本项目只做克制提醒：稍高目标用红/橙，主体用绿/蓝，低分侧补充用灰。
 export const FEISHU_TEXT_COLOR = {
   red: 1,
   orange: 2,
@@ -30,10 +30,10 @@ export const STYLE = {
 
 export function styleForBand(band = {}) {
   const detail = String(band.detail || '');
-  if (detail.includes('高一点') || detail.includes('超冲')) return STYLE.rushHigh;
+  if (detail.includes('高一点') || detail.includes('稍高目标')) return STYLE.rushHigh;
   if (detail.includes('冲')) return STYLE.rush;
   if (detail.includes('接近匹配') || detail.includes('稳') || band.group === 'stable') return STYLE.stable;
-  if (detail.includes('稳妥补充')) return STYLE.floor;
+  if (detail.includes('低分侧补充')) return STYLE.floor;
   if (detail.includes('保') || band.group === 'safe') return STYLE.safe;
   return STYLE.muted;
 }
@@ -64,9 +64,9 @@ export function groupMeta(group) {
     };
   }
   return {
-    title: '三、稳妥补充：保证志愿梯度不断档',
+    title: '三、低分侧补充：保证志愿梯度不断档',
     style: STYLE.safe,
-    note: '稳妥补充要看是否真愿意读，不建议只为了低分安全而堆过多不接受的专业。'
+    note: '低分侧补充要看是否真愿意读，不建议只为了低分安全而堆过多不接受的专业。'
   };
 }
 

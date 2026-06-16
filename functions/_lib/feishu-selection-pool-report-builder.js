@@ -33,9 +33,9 @@ function classify(item = {}) {
   if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '稍高目标', position: '稍高目标' };
   if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '主要参考', position: '主要参考' };
   if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '主要参考', position: '主要参考偏稳' };
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '稳妥补充', position: '稳妥补充' };
+  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '低分侧补充', position: '低分侧补充' };
   if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '更稳补充', position: '后段更稳补充' };
-  return { group: 'safe', detail: '稳妥补充', position: '稳妥补充确认' };
+  return { group: 'safe', detail: '低分侧补充', position: '低分侧补充确认' };
 }
 
 function normalizeItems(items = []) {
@@ -78,7 +78,7 @@ function getStats(items = []) {
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
     if (band.detail === '稍高目标') stats.highRushCount += 1;
-    if (band.detail === '稳妥补充') stats.floorCount += 1;
+    if (band.detail === '低分侧补充') stats.floorCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
   }
   return stats;
@@ -298,7 +298,7 @@ function analysisLines(analysis = {}) {
       lines.push('');
     }
     if (narrative.bottomLineDiagnosis) {
-      lines.push('### 稳妥补充底线');
+      lines.push('### 低分侧补充底线');
       lines.push('');
       lines.push(clean(narrative.bottomLineDiagnosis, 1000));
       lines.push('');
@@ -320,7 +320,7 @@ function analysisLines(analysis = {}) {
   lines.push('## 前中后段快速确认');
   lines.push('');
   if (analysis.stats?.total) {
-    lines.push(`- 稍高目标：${fmt(analysis.stats.rushCount)} 个｜主要参考：${fmt(analysis.stats.stableCount)} 个｜稳妥补充：${fmt(analysis.stats.safeCount)} 个｜稍高目标：${fmt(analysis.stats.highRushCount || 0)} 个`);
+    lines.push(`- 稍高目标：${fmt(analysis.stats.rushCount)} 个｜主要参考：${fmt(analysis.stats.stableCount)} 个｜低分侧补充：${fmt(analysis.stats.safeCount)} 个｜稍高目标：${fmt(analysis.stats.highRushCount || 0)} 个`);
   }
   if (Array.isArray(analysis.risks) && analysis.risks.length) {
     lines.push(`- 规则需要关注底稿：${analysis.risks.slice(0, 6).map(x => clean(x, 100)).join('；')}`);
@@ -357,7 +357,7 @@ function summaryLines(summary) {
   if (summary.densitySummary) lines.push(`- 附近人数：同分 ${fmt(summary.densitySummary.sameCount)} 人｜上5分 ${fmt(summary.densitySummary.up5Count)} 人｜下5分 ${fmt(summary.densitySummary.down5Count)} 人`);
   lines.push(`- 稍高目标：${fmt(summary.rush.count)} 个｜稍高目标 ${fmt(summary.rush.superRushCount || 0)} 个｜稍高目标 ${fmt(summary.rush.smallRushCount || 0)} 个${summary.rush.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.rush.maxForwardRankGap)} 名` : ''}${summary.rush.missingRankCount ? `｜${fmt(summary.rush.missingRankCount)} 个位次待核验` : ''}`);
   lines.push(`- 主要参考：${fmt(summary.stable.count)} 个｜向前 ${fmt(summary.stable.forwardCount)} 个｜接近 ${fmt(summary.stable.nearCount)} 个｜向后 ${fmt(summary.stable.backwardCount)} 个${summary.stable.maxForwardRankGap != null ? `｜最高向前跨越约 ${fmt(summary.stable.maxForwardRankGap)} 名` : ''}${summary.stable.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.stable.maxBackwardRankGap)} 名` : ''}`);
-  lines.push(`- 稳妥补充：${fmt(summary.safe.count)} 个｜较深稳妥补充 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
+  lines.push(`- 低分侧补充：${fmt(summary.safe.count)} 个｜较深低分侧补充 ${fmt(summary.safe.deepSafeCount || 0)} 个${summary.safe.maxBackwardRankGap != null ? `｜最大向后回落约 ${fmt(summary.safe.maxBackwardRankGap)} 名` : ''}${summary.safe.missingRankCount ? `｜${fmt(summary.safe.missingRankCount)} 个位次待核验` : ''}`);
   if (summary.topForwardItem) lines.push(`- 全池最高向前跨越：${itemName(summary.topForwardItem)}｜${rankGapText(summary.topForwardItem.rankGap)}`);
   if (summary.topBackwardItem) lines.push(`- 全池最大向后回落：${itemName(summary.topBackwardItem)}｜${rankGapText(summary.topBackwardItem.rankGap)}`);
   if (summary.missingRankCount) lines.push(`- 位次缺失提醒：${fmt(summary.missingRankCount)} 个专业暂缺可识别参考位次，概要位次统计基于其余 ${fmt(summary.withRankCount)} 个专业。`);
@@ -409,9 +409,9 @@ function appendManualReviewLines(lines, items = []) {
 
 function appendCurrentPlanLines(lines, input, stats, summary, hasAnalysis) {
   lines.push(`- 已选专业总数：${fmt(stats.total)} 个。`);
-  lines.push(`- 稍高目标：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）｜稳妥补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）。`);
+  lines.push(`- 稍高目标：${fmt(stats.rushCount)} 个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${fmt(stats.stableCount)} 个（${pct(stats.stableCount, stats.total)}%）｜低分侧补充：${fmt(stats.safeCount)} 个（${pct(stats.safeCount, stats.total)}%）。`);
   if (stats.highRushCount) lines.push(`- 稍高目标数量：${fmt(stats.highRushCount)} 个，请控制数量并逐条核验孩子是否接受。`);
-  if (stats.floorCount) lines.push(`- 稳妥补充数量：${fmt(stats.floorCount)} 个，请确认专业、城市和费用是否真的接受。`);
+  if (stats.floorCount) lines.push(`- 低分侧补充数量：${fmt(stats.floorCount)} 个，请确认专业、城市和费用是否真的接受。`);
   const direction = directionExplorerLines(input.reportContext?.directionExplorer || input.directionExplorer || null);
   const directionBody = nonHeadingLines(direction).filter(Boolean);
   if (directionBody.length) lines.push('', ...directionBody);
@@ -441,7 +441,7 @@ function appendStructureLines(lines, groups = {}) {
   const defs = [
     ['rush', '稍高目标', '数量不要过多，逐条核验孩子是否能接受学校、专业、城市和费用。'],
     ['stable', '主要参考', '重点看专业方向、院校背景、校区和培养路径是否匹配家庭讨论目标。'],
-    ['safe', '稳妥补充', '不是承诺结果，只是用于避免方案结构过于集中；仍要核验专业和城市是否接受。']
+    ['safe', '低分侧补充', '不是承诺结果，只是用于避免方案结构过于集中；仍要核验专业和城市是否接受。']
   ];
   defs.forEach(([key, title, note]) => {
     const list = groups[key] || [];

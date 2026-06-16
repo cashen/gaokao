@@ -187,7 +187,7 @@ export const QUESTION_SECTIONS = [
         type: 'multi',
         options: [
           { id: 'near', label: '想先看主要参考方向', tags: ['goal_near'] },
-          { id: 'steady', label: '想补一些稳妥补充方向', tags: ['goal_steady'] },
+          { id: 'steady', label: '想补一些低分侧补充方向', tags: ['goal_steady'] },
           { id: 'upper', label: '想少量看看稍高目标', tags: ['goal_upper'] },
           { id: 'exclude', label: '想先排除明显不合适的', tags: ['goal_confirm'] },
           { id: 'explore', label: '想给孩子找几个方向先了解', tags: ['low_exposure', 'goal_explore'] }

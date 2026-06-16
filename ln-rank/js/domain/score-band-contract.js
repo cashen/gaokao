@@ -15,7 +15,7 @@ export function normalizeBandKey(value, fallback = 'near') {
 export function normalizeBandTitle(title, key) {
   const cleaned = String(title || '').trim();
   if (cleaned) return cleaned;
-  return ({ upper: '稍高目标', near: '主要参考', steady: '稳妥补充' })[normalizeBandKey(key)] || '主要参考';
+  return ({ upper: '稍高目标', near: '主要参考', steady: '低分侧补充' })[normalizeBandKey(key)] || '主要参考';
 }
 
 export function normalizeBandDesc(key, rawDesc = '') {

@@ -11,7 +11,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
   const specialProgram = detectSpecialProgram(record);
 
   const userPayload = {
-    task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不做录取承诺，不输出Markdown。',
+    task: '请基于这一张专业卡片做短诊断。只解释当前卡片，不重新排序，不做录取判断，不输出Markdown。',
     outputJsonSchema: {
       summary: '一句话判断，不超过45个中文字符，只写结论，不写依据',
       basis: ['主要依据，严格3条，只写事实依据，不写建议'],

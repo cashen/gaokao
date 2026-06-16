@@ -13,13 +13,13 @@ function fmt(value) {
 const BAND_LABELS = {
   upper: '稍高目标',
   near: '主要参考',
-  steady: '稳妥补充'
+  steady: '低分侧补充'
 };
 
 const RANGE_LABELS = {
   standard: '正常查看',
   wide: '多看一些',
-  safe: '稳妥一点'
+  safe: '多看低分侧'
 };
 
 const BOTTOMLINE_LABELS = {
@@ -188,7 +188,7 @@ export function buildFeishuReport(data) {
   lines.push("");
   lines.push(`- 稍高目标：${fmt(data.counts.upper)} 条`);
   lines.push(`- 主要参考：${fmt(data.counts.near)} 条`);
-  lines.push(`- 稳妥补充：${fmt(data.counts.steady)} 条`);
+  lines.push(`- 低分侧补充：${fmt(data.counts.steady)} 条`);
   lines.push(`- 当前生成：${displayBandTitle}前 ${data.selectedRecords.length} 条`);
   lines.push(`- 查看范围：${RANGE_LABELS[data.rangePreset] || data.rangePreset || "正常查看"}`);
   if (data.keywordQuery?.rawKeywords?.length) lines.push(`- 关键词识别：${data.keywordQuery.rawKeywords.join("、")}`);
