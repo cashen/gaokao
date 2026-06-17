@@ -1,0 +1,71 @@
+{
+  "version": "v3.9.45",
+  "assetVersion": "v3945_0",
+  "release": "v3.9.45-ln-rank-human-workflow-state-and-typography-contract-12-role-no-fenxi",
+  "contracts": {
+    "querySessionContract": true,
+    "humanWorkflowStateContract": true,
+    "staleResultContract": true,
+    "flowResetContract": true,
+    "reportFreshnessContract": true,
+    "selectionConsistencyContract": true,
+    "filterConflictConfirmationContract": true,
+    "typographyHierarchyContract": true,
+    "reportSixSectionContract": true,
+    "noFenxiBoundary": true
+  },
+  "humanBehaviorScenarios": [
+    "完整一轮后清空自选，流程应回退",
+    "改分数后旧结果过期，报告状态失效",
+    "改筛选后旧结果不再当当前结果",
+    "生成报告后删除/排序自选，报告过期",
+    "中外 + 只看公办普通提前提示",
+    "定向/专项 + 默认隐藏特殊项目提前提示",
+    "已选中外后切回公办普通，自选池解释不自动删除",
+    "关键说明字号不低于 helper token"
+  ],
+  "cssChecks": [
+    {
+      "file": "css/dist/ln-rank-main.v3945_0.css",
+      "bytes": 381605,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    },
+    {
+      "file": "css/dist/ln-rank-selection.v3945_0.css",
+      "bytes": 364145,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    },
+    {
+      "file": "css/dist/ln-rank-trend.v3945_0.css",
+      "bytes": 354341,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    },
+    {
+      "file": "css/dist/ln-rank-self-check.v3945_0.css",
+      "bytes": 340942,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    },
+    {
+      "file": "css/dist/local-mainline.v3945_0.css",
+      "bytes": 48096,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    },
+    {
+      "file": "css/dist/211-mainline.v3945_0.css",
+      "bytes": 49490,
+      "noClassStarCardChipTag": true,
+      "noBareButtonBlock": true,
+      "hasTypographyToken": true
+    }
+  ]
+}

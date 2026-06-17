@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>/fenxi 学校名录与专业池导出</title>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px}
+    .box{max-width:1180px;margin:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 16px 38px #0001}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+    button,a,input{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#fff;color:#1f2933;text-decoration:none}
+    button,a{font-weight:800;cursor:pointer}
+    input{min-width:240px}
+    .ok{color:#2f7d68}.bad{color:#a85f4d}.muted{color:#64748b}
+    table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+    th,td{border-bottom:1px solid #eef2f6;text-align:left;padding:9px;vertical-align:top}
+    th{background:#f8fafc;position:sticky;top:0}
+    pre{white-space:pre-wrap;background:#f8fafc;border-radius:12px;padding:12px;line-height:1.55}
+    .scroll{max-height:520px;overflow:auto;border-radius:14px}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>/fenxi 学校名录与专业池导出</h1>
+    <p class="muted">这个页面会从当前部署的 /fenxi/data/manifest.json 和 chunks 中抽取学校名录、学校-专业汇总、完整专业池。</p>
+
+    <div class="actions">
+      <input id="kw" placeholder="可选关键词：学校或专业，如 大连/计算机" />
+      <button id="loadSummary">读取概览</button>
+      <button id="loadSchools">预览学校名录</button>
+      <button id="loadMajors">预览专业池</button>
+    </div>
+
+    <div class="actions">
+      <a id="downloadSchools" href="/api/fenxi-catalog?type=schools&format=csv">下载学校名录 CSV</a>
+      <a id="downloadSchoolMajor" href="/api/fenxi-catalog?type=school-major&format=csv">下载学校-专业汇总 CSV</a>
+      <a id="downloadMajorPool" href="/api/fenxi-catalog?type=major-pool&format=csv">下载完整专业池 CSV</a>
+    </div>
+
+    <pre id="summary">等待读取…</pre>
+    <div id="table" class="scroll"></div>
+  </main>
+
+<script>
+const summary = document.getElementById('summary');
+const table = document.getElementById('table');
+const kw = document.getElementById('kw');
+
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function setDownloads(){
+  const q = kw.value.trim() ? '&keyword=' + encodeURIComponent(kw.value.trim()) : '';
+  document.getElementById('downloadSchools').href = '/api/fenxi-catalog?type=schools&format=csv' + q;
+  document.getElementById('downloadSchoolMajor').href = '/api/fenxi-catalog?type=school-major&format=csv' + q;
+  document.getElementById('downloadMajorPool').href = '/api/fenxi-catalog?type=major-pool&format=csv' + q;
+}
+kw.addEventListener('input', setDownloads);
+setDownloads();
+
+async function fetchJson(type){
+  setDownloads();
+  table.innerHTML = '';
+  summary.className = '';
+  summary.textContent = '正在从 /fenxi 读取数据…';
+  const q = kw.value.trim() ? '&keyword=' + encodeURIComponent(kw.value.trim()) : '';
+  const res = await fetch('/api/fenxi-catalog?type=' + type + '&limit=300' + q, { cache:'no-store' });
+  const raw = await res.text();
+  let j;
+  try { j = JSON.parse(raw); } catch { throw new Error('接口返回不是 JSON：' + raw.slice(0,160)); }
+  if (!res.ok || !j.ok) throw new Error(j.message || j.hint || res.status);
+  summary.className = 'ok';
+  summary.textContent = JSON.stringify({
+    manifestVersion: j.manifestVersion,
+    totalRawRecords: j.totalRawRecords,
+    totalNormalizedRecords: j.totalNormalizedRecords,
+    uniqueSchools: j.uniqueSchools,
+    schoolMajorPairs: j.schoolMajorPairs,
+    majorPoolRecords: j.majorPoolRecords,
+    keyword: j.keyword,
+    generatedAt: j.generatedAt
+  }, null, 2);
+  return j;
+}
+
+function renderRows(rows, columns){
+  if (!rows || !rows.length) {
+    table.innerHTML = '<p class="muted">暂无数据。</p>';
+    return;
+  }
+  table.innerHTML = '<table><thead><tr>' + columns.map(c=>`<th>${esc(c[1])}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(row => '<tr>' + columns.map(c=>`<td>${esc(row[c[0]])}</td>`).join('') + '</tr>').join('') +
+    '</tbody></table>';
+}
+
+document.getElementById('loadSummary').onclick = async () => {
+  try {
+    const j = await fetchJson('summary');
+    renderRows(j.preview?.schools || [], [
+      ['school','学校'], ['recordCount','记录数'], ['majorCount','专业数'], ['displayLocation','地域'], ['schoolTags','标签'], ['sampleMajors','专业示例']
+    ]);
+  } catch(e) {
+    summary.className = 'bad';
+    summary.textContent = '读取失败：' + (e.message || e);
+  }
+};
+
+document.getElementById('loadSchools').onclick = async () => {
+  try {
+    const j = await fetchJson('schools');
+    renderRows(j.schools || [], [
+      ['school','学校'], ['recordCount','记录数'], ['majorCount','专业数'], ['displayLocation','地域'], ['natureLabel','性质'], ['schoolTags','标签'], ['locationWarning','地域提示'], ['sampleMajors','专业示例']
+    ]);
+  } catch(e) {
+    summary.className = 'bad';
+    summary.textContent = '读取失败：' + (e.message || e);
+  }
+};
+
+document.getElementById('loadMajors').onclick = async () => {
+  try {
+    const j = await fetchJson('major-pool');
+    renderRows(j.majorPool || [], [
+      ['school','学校'], ['major','专业'], ['score2025','2025分'], ['rank2025','2025位次'], ['score2024','2024分'], ['rank2024','2024位次'], ['displayLocation','地域'], ['schoolTags','标签']
+    ]);
+  } catch(e) {
+    summary.className = 'bad';
+    summary.textContent = '读取失败：' + (e.message || e);
+  }
+};
+</script>
+</body>
+</html>

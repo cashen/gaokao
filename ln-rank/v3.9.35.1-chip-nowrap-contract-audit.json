@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "checks": {
+    "filterChipNoWrap": true,
+    "wordBreakKeepAll": true,
+    "writingModeHorizontal": true,
+    "chipsContainerFlex": true
+  }
+}

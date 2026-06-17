@@ -1,0 +1,21 @@
+{
+  "version": "v3.9.46",
+  "assetVersion": "v3946_0",
+  "release": "v3.9.46-ln-rank-child-direction-helper-human-mobile-contract-12-role-no-fenxi",
+  "roles": [
+    "产品：主任务收口为选择方向并验证。",
+    "高报：不输出推荐、概率、稳、保底。",
+    "数据：方向只作为线索，不当结论。",
+    "规则：最多 3 个方向。",
+    "前端：以合同层收口而非零散 fix。",
+    "UI：主按钮不换行，底部按钮降到两个。",
+    "移动端：375/390/430 需重点验收遮挡。",
+    "家长可读：卡片短文案+折叠详情。",
+    "AI：只解释，不决策。",
+    "报告：方向只进入讨论线索。",
+    "API：错误不显示技术栈。",
+    "质量：以一眼能懂为验收。"
+  ],
+  "passed": true,
+  "browserSmoke": "not-run-in-this-environment"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "type": "static matrix; no online Cloudflare runtime executed",
+  "items": {
+    "成绩查询": "入口 JS 存在，score-state 仅更新 UI 状态，不改 fetchMajorBands 调用",
+    "筛选": "buildEffectiveFilters / region / keyword state 未改业务逻辑",
+    "结果卡片": "renderMajorResults 调用未改",
+    "加入自选": "selectionPool adapter 调用未改",
+    "自选池": "v3935_1 entry copied from v3935_0",
+    "报告生成": "报告业务文件未改，本版只加布局合同",
+    "飞书报告": "API 与 builder 未改，本版只加布局合同",
+    "单卡诊断": "AI/card API 未改，本版只加布局合同",
+    "省内背景": "entry copied, CSS contract appended",
+    "211背景": "entry copied, CSS contract appended",
+    "分数趋势": "entry copied, CSS contract appended",
+    "自测页": "entry copied, CSS contract appended",
+    "API JSON": "API files未改；本地未执行线上 Cloudflare API smoke",
+    "资产图": "PASS",
+    "移动端布局": "static CSS contract PASS"
+  }
+}

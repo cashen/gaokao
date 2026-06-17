@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>飞书报告自检</title>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px}
+    .box{max-width:900px;margin:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 16px 38px #0001}
+    button{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#fff}
+    .ok{color:#2f7d68}.bad{color:#a85f4d}
+    pre{white-space:pre-wrap;background:#f8fafc;border-radius:12px;padding:12px}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>飞书报告自检</h1>
+    <p>会用 candidateScore=520 生成一篇测试飞书报告。请确认 Cloudflare 已配置 FEISHU_APP_ID / FEISHU_APP_SECRET / FEISHU_DOC_HOST。</p>
+    <button id="run">开始自检并生成测试报告</button>
+    <pre id="out">等待自检…</pre>
+  </main>
+<script>
+const out=document.getElementById('out');
+function oneLine(s){return String(s||'').replace(/\s+/g,' ').slice(0,240)}
+function looksLikeHtml(s){const x=String(s||'').trim().toLowerCase();return x.startsWith('<!doctype html')||x.startsWith('<html')||x.includes('<html')}
+document.getElementById('run').onclick=async()=>{
+  out.textContent='正在生成测试飞书报告…';
+  out.className='';
+  try{
+    const r=await fetch('/api/feishu-create-report',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({candidateScore:520,rangePreset:'standard',activeBand:'near',filters:{region:'all',schoolKeyword:'',majorKeyword:''},maxRecords:3})
+    });
+    const raw=await r.text();
+    if(looksLikeHtml(raw)) throw new Error('API 返回 HTML，不是 JSON。说明 /api/feishu-create-report 没有命中 Cloudflare Function。返回开头：'+oneLine(raw));
+    let j; try{j=JSON.parse(raw)}catch(e){throw new Error('API 返回内容不是 JSON：'+oneLine(raw))}
+    if(!r.ok||!j.ok) throw new Error(j.message||j.hint||r.status);
+    out.className='ok';
+    out.textContent='✓ 飞书报告已生成\n标题：'+j.title+'\n链接：'+j.url+'\n匿名可读：'+(j.sharePublic ? '是' : '否')+'\n权限提示：'+(j.permissionWarning||'无')+'\n写入方式：'+(j.writeMethod||'partial')+'\n\n'+JSON.stringify(j,null,2);
+  }catch(e){
+    out.className='bad';
+    out.textContent='✗ 自检失败：'+(e.message||e);
+  }
+};
+</script>
+</body>
+</html>

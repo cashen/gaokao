@@ -1,0 +1,133 @@
+/* v3.9.21.2 mobile selection pool action toast
+   自选专业入口：PC/Pad 保留轻入口；Android 使用添加成功短时气泡 + 结果区轻状态行，不做常驻遮挡。 */
+.pool-entry-toast.pool-entry-action-toast {
+  pointer-events: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.97) !important;
+  color: #243c36 !important;
+  border: 1px solid rgba(47,102,91,.16) !important;
+  box-shadow: 0 18px 46px rgba(15,23,42,.16) !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 11px 12px 11px 14px !important;
+  line-height: 1.35 !important;
+}
+.pool-entry-toast.pool-entry-action-toast .pool-entry-toast-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+.pool-entry-toast.pool-entry-action-toast b {
+  font-size: 13.5px !important;
+  font-weight: 950 !important;
+  color: #243c36 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.pool-entry-toast.pool-entry-action-toast span {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #61736d !important;
+}
+.pool-entry-toast.pool-entry-action-toast a,
+.pool-entry-toast.pool-entry-action-toast .pool-entry-toast-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border-radius: 999px !important;
+  background: #2f665b !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  text-decoration: none !important;
+  box-shadow: 0 8px 18px rgba(47,102,91,.18) !important;
+}
+.pool-entry-toast.pool-entry-action-toast.is-warn {
+  border-color: rgba(180,120,50,.22) !important;
+  background: #fffaf1 !important;
+}
+.pool-entry-toast.pool-entry-action-toast.is-warn .pool-entry-toast-action {
+  background: #8a5a16 !important;
+}
+.pool-result-sticky-mount:not(:empty) {
+  margin: 8px 0 10px !important;
+}
+.pool-result-sticky-bar {
+  position: static !important;
+  top: auto !important;
+  bottom: auto !important;
+  z-index: auto !important;
+  border-radius: 16px !important;
+  padding: 9px 10px !important;
+  font-size: 12.5px !important;
+  box-shadow: 0 8px 20px rgba(22,70,60,.06) !important;
+}
+.pool-result-sticky-bar a {
+  min-width: 70px !important;
+  min-height: 32px !important;
+  padding: 6px 10px !important;
+  font-size: 12.5px !important;
+}
+.pool-result-sticky-bar span::after {
+  content: '，稍后统一整理。';
+  font-weight: 800;
+  color: #60726b;
+}
+@media (min-width: 768px) {
+  .pool-entry-toast.pool-entry-action-toast {
+    left: auto !important;
+    right: max(18px, calc((100vw - 1420px) / 2 + 18px)) !important;
+    bottom: calc(94px + env(safe-area-inset-bottom)) !important;
+    transform: none !important;
+    width: min(360px, calc(100vw - 36px)) !important;
+    max-width: 360px !important;
+  }
+  .pool-result-sticky-mount,
+  .pool-result-sticky-bar { display: none !important; }
+}
+@media (max-width: 767px) {
+  body.has-floating-pool-entry { padding-bottom: 0 !important; }
+  .pool-entry-toast.pool-entry-action-toast {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    transform: none !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+  .pool-entry-toast.pool-entry-action-toast b { font-size: 13px !important; }
+  .pool-entry-toast.pool-entry-action-toast span { font-size: 11.6px !important; }
+  .pool-entry-toast.pool-entry-action-toast .pool-entry-toast-action { min-height: 34px !important; padding: 0 12px !important; }
+  .pool-result-sticky-mount:not(:empty) { position: static !important; bottom: auto !important; z-index: auto !important; }
+  .pool-result-sticky-bar { display: flex !important; }
+}
+@media (max-width: 380px) {
+  .pool-entry-toast.pool-entry-action-toast { padding: 10px 10px 10px 12px !important; gap: 8px !important; }
+  .pool-entry-toast.pool-entry-action-toast span { display: none !important; }
+  .pool-entry-toast.pool-entry-action-toast .pool-entry-toast-action { min-width: 64px !important; padding: 0 10px !important; }
+}
+
+/* Mobile: keep the shell available for the fixed toast, but hide the fixed desktop entry itself. */
+@media (max-width: 767px) {
+  .selection-pool-shell.pool-entry-direct-shell {
+    display: block !important;
+    position: static !important;
+    z-index: auto !important;
+    pointer-events: none !important;
+  }
+  .selection-pool-shell.pool-entry-direct-shell > .pool-entry-direct,
+  .selection-pool-shell.pool-entry-direct-shell > #selectionPoolFab {
+    display: none !important;
+  }
+  .selection-pool-shell.pool-entry-direct-shell > .pool-entry-toast.pool-entry-action-toast {
+    pointer-events: auto !important;
+  }
+}

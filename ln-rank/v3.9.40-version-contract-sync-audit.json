@@ -1,0 +1,25 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "contracts": {
+    "VERSION.txt": "v3.9.40",
+    "active-assets": "v3.9.40",
+    "active-assets.asset": "v3940_0",
+    "release-meta": "v3.9.40",
+    "release-meta.asset": "v3940_0",
+    "module-manifest": "v3.9.40",
+    "module-manifest.asset": "v3940_0",
+    "version-contract": "contains content",
+    "function-release-contract": "contains content"
+  },
+  "htmlVisibleVersion": {
+    "index.html": true,
+    "selection-pool.html": true,
+    "211-mainline.html": true,
+    "local-mainline.html": true,
+    "major-trend-2025.html": true,
+    "self-check.html": true
+  },
+  "ok": true
+}

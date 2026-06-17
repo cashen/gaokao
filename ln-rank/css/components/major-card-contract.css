@@ -1,0 +1,158 @@
+/* v3.9.21.2 专业卡片视觉契约：快速判断，不堆大段说明 */
+.results-grid {
+  align-items: start !important;
+}
+.results-grid .major-card.ln-major-card {
+  padding: 18px 18px 16px 20px !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(209,224,219,.96) !important;
+  box-shadow: 0 10px 30px rgba(15,23,42,.045) !important;
+  overflow: hidden !important;
+}
+.results-grid .major-card.ln-major-card::before {
+  width: 4px !important;
+  opacity: .9 !important;
+}
+.ln-major-card .major-card-top {
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+.ln-major-card .school {
+  font-size: 21px !important;
+  letter-spacing: -.02em !important;
+  color: #17212b !important;
+}
+.ln-major-card .major {
+  margin-top: 5px !important;
+  color: #374b57 !important;
+  font-size: 14.5px !important;
+  line-height: 1.45 !important;
+}
+.ln-major-card .status-badge {
+  min-height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 13px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+}
+.ln-major-card .meta-pills {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin-top: 16px !important;
+  padding: 11px 8px !important;
+  border-top: 1px solid rgba(216,226,222,.85) !important;
+  border-bottom: 1px solid rgba(216,226,222,.72) !important;
+}
+.ln-major-card .meta-pill {
+  display: grid !important;
+  align-content: center !important;
+  min-height: 40px !important;
+  padding: 0 12px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #4d5d69 !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  font-weight: 860 !important;
+  border-right: 1px solid rgba(216,226,222,.88) !important;
+}
+.ln-major-card .meta-pill:last-child { border-right: 0 !important; }
+.ln-major-card .meta-pill b,
+.ln-major-card .meta-pill strong { color: #176554 !important; }
+.ln-major-card .history-score {
+  margin-top: 13px !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(90deg, rgba(242,248,246,.95), rgba(248,252,250,.94)) !important;
+  border: 1px solid rgba(215,228,224,.9) !important;
+  grid-template-columns: auto 1fr !important;
+  column-gap: 12px !important;
+  row-gap: 4px !important;
+  align-items: start !important;
+}
+.ln-major-card .history-label {
+  grid-row: 1 / span 2 !important;
+  color: #2e6d61 !important;
+  font-size: 13px !important;
+}
+.ln-major-card .history-line {
+  font-size: 13px !important;
+  color: #536575 !important;
+}
+.ln-major-card .school-tags {
+  margin-top: 13px !important;
+  gap: 7px !important;
+}
+.ln-major-card .school-tag,
+.ln-major-card .special-project-badge,
+.ln-major-card .match-trust-badge {
+  min-height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-size: 12.5px !important;
+  font-weight: 900 !important;
+}
+.ln-major-card .major-code-line {
+  margin-top: 12px !important;
+  justify-content: flex-end !important;
+}
+.ln-major-card .major-code-line span {
+  border-radius: 12px !important;
+  background: rgba(248,252,250,.92) !important;
+}
+.ln-major-card .match-reason,
+.ln-major-card .card-review-points,
+.ln-major-card .special-project-alert {
+  margin-top: 10px !important;
+  border-radius: 13px !important;
+  font-size: 12.5px !important;
+}
+.ln-major-card .major-card-actions {
+  margin-top: 14px !important;
+  justify-content: flex-end !important;
+}
+.ln-major-card .pool-add-button {
+  min-height: 38px !important;
+  padding: 0 18px !important;
+  background: rgba(255,255,255,.94) !important;
+  color: #216354 !important;
+  border: 1px solid rgba(36,107,91,.40) !important;
+  box-shadow: 0 8px 20px rgba(36,107,91,.07) !important;
+}
+.ln-major-card .diagnose-button {
+  min-height: 38px !important;
+  background: rgba(248,252,250,.84) !important;
+}
+@media (min-width: 1180px) {
+  .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 16px !important; }
+}
+@media (min-width: 761px) and (max-width: 1179px) {
+  .results-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .results-grid .major-card.ln-major-card { padding: 17px 18px !important; }
+}
+@media (max-width: 760px) {
+  .results-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .results-grid .major-card.ln-major-card { padding: 14px 13px 13px 15px !important; border-radius: 17px !important; }
+  .ln-major-card .major-card-top { display: grid !important; grid-template-columns: 1fr auto !important; align-items: start !important; gap: 10px !important; }
+  .ln-major-card .school { font-size: 18px !important; }
+  .ln-major-card .major { font-size: 13.5px !important; }
+  .ln-major-card .status-badge { min-height: 28px !important; padding: 0 10px !important; font-size: 12px !important; }
+  .ln-major-card .meta-pills { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 7px !important; padding: 0 !important; border: 0 !important; margin-top: 12px !important; }
+  .ln-major-card .meta-pill { min-height: 34px !important; padding: 6px 9px !important; border: 0 !important; border-radius: 12px !important; background: rgba(245,248,247,.9) !important; font-size: 12.5px !important; }
+  .ln-major-card .history-score { grid-template-columns: 1fr !important; padding: 10px 11px !important; }
+  .ln-major-card .history-label { grid-row: auto !important; }
+  .ln-major-card .history-line { font-size: 12.5px !important; }
+  .ln-major-card .school-tags { gap: 6px !important; }
+  .ln-major-card .school-tag,
+  .ln-major-card .special-project-badge,
+  .ln-major-card .match-trust-badge { min-height: 24px !important; font-size: 11.8px !important; padding: 0 8px !important; }
+  .ln-major-card .major-code-line { justify-content: flex-start !important; }
+  .ln-major-card .major-card-actions { display: grid !important; grid-template-columns: 1fr !important; gap: 8px !important; }
+  .ln-major-card .pool-add-button,
+  .ln-major-card .diagnose-button { width: 100% !important; min-height: 38px !important; }
+}

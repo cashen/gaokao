@@ -1,0 +1,15 @@
+{
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
+  "release": "v3.9.21.1-ln-rank-band-card-breathing-link-contract-no-fenxi",
+  "changes": [
+    "新增 band-card-breathing-link.css：卡片与分段颜色呼应独立契约",
+    "专业卡片 article 输出 is-band-upper / is-band-near / is-band-steady",
+    "取消硬左线风格，使用顶部 2-3px 细色带建立归属",
+    "分段标签与上方分段同色系但降权，不再显示“主要参考补充”",
+    "适合位置值跟随分段语义色轻强调",
+    "PC hover 轻呼吸阴影，Android 保持轻量化",
+    "self-check 增加 CARD-BAND 检查项"
+  ],
+  "noFenxiIncluded": true
+}

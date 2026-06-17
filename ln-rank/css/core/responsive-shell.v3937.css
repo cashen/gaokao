@@ -1,0 +1,4 @@
+/* v3.9.37 responsive shell: PC readable, Pad restrained, Android single-column. */
+.ln-page-shell,.app-shell,.wrap{max-width:var(--ln-page-max);margin-inline:auto;padding-inline:var(--ln-space-page);}
+.report-view,.selection-report,.report-content{max-width:var(--ln-read-max);margin-inline:auto;}
+@media(max-width:760px){.ln-page-shell,.app-shell,.wrap{padding-inline:12px}.ln-action-row,.report-actions,.diagnosis-actions{display:grid;grid-template-columns:1fr;gap:8px}.ln-action-row button,.report-actions button,.diagnosis-actions button{width:100%;min-height:var(--ln-action-min-h)}}

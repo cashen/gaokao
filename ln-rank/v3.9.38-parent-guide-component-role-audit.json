@@ -1,0 +1,11 @@
+{
+  "version": "v3.9.38",
+  "status": "PASS",
+  "checks": {
+    "indexUsesCompactStepper": true,
+    "selectionUsesPlanStatusStrip": true,
+    "selectionNoParentGuideRail": true,
+    "auxPagesUseAuxGuidance": true,
+    "selfCheckNoParentProductFlow": true
+  }
+}

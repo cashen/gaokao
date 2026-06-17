@@ -1,0 +1,29 @@
+{
+  "version": "v3.9.33.5",
+  "assetVersion": "v3933_5",
+  "release": "v3.9.33.5-ln-rank-local-mainline-human-system-contract-no-fenxi",
+  "generatedAt": "2026-06-13T00:00:00+08:00",
+  "summary": "新增辽宁省内院校专业培养路径复核页、local-mainline KB 基座、三入口、运行时分数索引 API、主流程轻桥接和相关审计。",
+  "boundaries": [
+    "不包含 /fenxi/",
+    "不包含 functions/fenxi/",
+    "不包含 functions/_middleware.js",
+    "不新增录取判断",
+    "不新增 AI 顾问",
+    "博士点和第四轮只作为证据，不作为结论"
+  ],
+  "audits": [
+    "node --check",
+    "release migration consistency",
+    "active asset graph",
+    "copy contract",
+    "local-mainline contract",
+    "local-mainline human copy",
+    "score entrance accuracy",
+    "local-mainline card hierarchy",
+    "release package scope",
+    "history score contract",
+    "feishu copy contract",
+    "selection human hierarchy"
+  ]
+}
