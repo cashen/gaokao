@@ -1,5 +1,5 @@
 export const LN_RANK_VERSION = {
-  display: 'v3.9.46',
-  asset: '3946_0',
-  release: 'v3.9.46-ln-rank-child-direction-helper-human-mobile-contract-12-role-no-fenxi'
+  display: 'v3.9.46.1',
+  asset: '3946_1',
+  release: 'v3.9.46.1-ln-rank-visible-version-clean-package-contract-12-role-no-fenxi'
 };
