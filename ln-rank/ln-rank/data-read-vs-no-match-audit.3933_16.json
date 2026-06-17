@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
-  "checks": [
-    "API catch returns read failed JSON",
-    "API success with empty records returns ok true + humanMessage",
-    "frontend keeps human-readable failure message without exposing HTML by default"
-  ]
-}

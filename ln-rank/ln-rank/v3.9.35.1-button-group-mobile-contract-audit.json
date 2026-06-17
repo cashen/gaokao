@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "checks": {
-    "mobileActionGrid": true,
-    "minHeight44": true,
-    "buttonGroupsCovered": true
-  }
-}

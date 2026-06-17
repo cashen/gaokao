@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辽宁 2026 物理类专业初选参考</title>
+  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-main.v3946_3.css?v=3946_3" />
+</head>
+<body class="ln-parent-guided-flow ln-search-guided-flow">
+  <main class="page ln-page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">辽宁 2026 物理类专业初选</p>
+        <h1 class="app-title">辽宁物理类专业初选参考</h1>
+        <p class="app-subtitle">先按分数和方向圈出一批可讨论专业。正式填报仍要看 2026 位次、招生计划和院校章程。</p>
+      </div>
+      <div class="hero-badges">
+        <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">数据已准备好</span></div>
+        <div class="scope-pill">不做录取判断 · 只做专业池参考</div>
+      </div>
+    </header>
+
+    <section class="ln-parent-compact-stepper" aria-label="专业初选流程">
+      <div class="ln-stepper-head"><b>专业初选流程</b><span>先查出可讨论专业，再整理方案并按核验清单确认。</span></div>
+      <ol class="ln-stepper-list">
+        <li><span class="ln-stepper-index">1</span><span><b>输入位置</b><small>按分数定位</small></span></li>
+        <li><span class="ln-stepper-index">2</span><span><b>筛专业</b><small>缩小范围</small></span></li>
+        <li><span class="ln-stepper-index">3</span><span><b>加自选</b><small>整理方案</small></span></li>
+        <li><span class="ln-stepper-index">4</span><span><b>看报告</b><small>核验清单</small></span></li>
+      </ol>
+      <p class="ln-stepper-flow-note" data-flow-note>先输入孩子分数，确定查看位置。</p>
+      <details class="ln-stepper-details"><summary>查看步骤说明</summary><p>先用分数定位参考区间，再按方向、地区和学校缩小范围；把能接受的专业加入自选池，最后看报告里的校区、计划、体检和学费核验清单。</p></details>
+    </section>
+
+    <section class="ln-console panel" aria-label="搜索控制台">
+      <div class="topbar ln-score-row">
+      <div class="score-box">
+        <label for="candidateScore">第一步：孩子高考分数</label>
+        <input id="candidateScore" class="score-input" type="text" inputmode="numeric" placeholder="请输入，如 666" />
+      </div>
+      <div class="range-box">
+        <div class="range-head">
+          <div class="field-label">第二步：先看多大范围</div>
+          <details class="range-help">
+            <summary>怎么看</summary>
+            <p>默认先用“正常查看”。结果太少再看“多看一些”；想多补低分侧再看“多看低分侧”。</p>
+          </details>
+        </div>
+        <div class="range-buttons" id="rangeButtons">
+          <button class="range-button is-active" data-preset="standard"><b>正常查看</b><small>首次建议</small></button>
+          <button class="range-button" data-preset="wide"><b>多看一些</b><small>结果太少时</small></button>
+          <button class="range-button" data-preset="safe"><b>多看低分侧</b><small>补低分侧</small></button>
+        </div>
+      </div>
+      <div id="bottomLinePanel" class="bottomline-panel" hidden>
+        <div class="bottomline-head">
+          <div>
+            <div class="field-label bottomline-title">办学性质提醒</div>
+            <p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示办学性质提醒。</p>
+          </div>
+        </div>
+        <div id="bottomLineMobileStatus" class="bottomline-mobile-status" aria-live="polite">
+          <div class="bottomline-mobile-status-row">
+            <div>
+              <span class="bottomline-mobile-kicker">办学性质</span>
+              <div class="bottomline-mobile-current">当前：<b id="bottomLineMobileLabel">全部院校</b></div>
+            </div>
+            <button id="bottomLineMobileTrigger" type="button" class="bottomline-change-button" aria-haspopup="dialog" aria-expanded="false">更改</button>
+          </div>
+          <p class="bottomline-mobile-hint">这个分数段建议核验公办、民办、中外合作和高收费项目。</p>
+        </div>
+        <div class="bottomline-buttons" role="group" aria-label="办学性质底线">
+          <button type="button" class="bottomline-button is-active" data-bottomline-mode="all">全部院校</button>
+          <button type="button" class="bottomline-button" data-bottomline-mode="public_first">公办优先</button>
+          <button type="button" class="bottomline-button" data-bottomline-mode="public_regular_only">只看公办普通</button>
+          <button type="button" class="bottomline-button" data-bottomline-mode="public_include_sino">公办含中外/高收费</button>
+        </div>
+        <div id="bottomLineSheet" class="bottomline-sheet" role="dialog" aria-modal="true" aria-label="选择办学性质底线" hidden>
+          <div class="bottomline-sheet-backdrop" data-bottomline-sheet-close></div>
+          <div class="bottomline-sheet-card">
+            <div class="bottomline-sheet-grip"></div>
+            <div class="bottomline-sheet-head">
+              <div>
+                <h3>选择办学性质底线</h3>
+                <p>这只用于缩小结果，不改变分数查看范围。</p>
+              </div>
+              <button type="button" class="bottomline-sheet-close" data-bottomline-sheet-close aria-label="关闭">×</button>
+            </div>
+            <div class="bottomline-sheet-options">
+              <button type="button" class="bottomline-sheet-option is-active" data-bottomline-sheet-mode="all"><b>全部院校</b><span>先完整查看，不提前排除民办、中外或高收费项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_first"><b>公办优先</b><span>优先看公办，保留需要人工复核的特殊项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_regular_only"><b>只看公办普通</b><span>排除中外合作、高收费等特殊收费项目。</span></button>
+              <button type="button" class="bottomline-sheet-option" data-bottomline-sheet-mode="public_include_sino"><b>公办含中外/高收费</b><span>保留公办院校里的中外合作或高收费项目。</span></button>
+            </div>
+            <div class="bottomline-sheet-actions">
+              <button type="button" class="action-secondary" data-bottomline-sheet-close>取消</button>
+              <button id="bottomLineSheetApply" type="button" class="action-primary">应用</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class="middle ln-band-row">
+      <div class="tabs-head">
+        <div>
+          <h2 class="panel-title">结果分成三段看</h2>
+          <p class="panel-desc">先看“主要参考”，再少量看“稍高目标”，最后看“低分侧补充”。</p>
+        </div>
+        
+      </div>
+      <div id="rankBandLegend" class="rank-band-legend" aria-label="结果分成三段看"></div>
+
+      <section class="search-workbench ln-filter-panel" data-filter-panel aria-label="家长查询卡：想看什么方向">
+        <div class="search-workbench-head ln-filter-panel__head">
+          <div>
+            <h2 class="search-workbench-title">第三步：想看什么方向</h2>
+            <p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向，比如计算机、电气、医学、会计。</p>
+          </div>
+          <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="已选专业入口"></div>
+        </div>
+
+        <div class="major-keyword-panel ln-filter-panel__primary">
+          <div class="filter-field filter-major">
+            <label for="majorKeyword">专业方向 / 项目关键词</label>
+            <input id="majorKeyword" class="input" type="search" placeholder="如：计算机、电气、医学、会计" />
+            <div class="keyword-help">多个词可以用空格、逗号或 / 分隔。</div>
+          </div>
+        </div>
+
+        <div class="search-grid-top ln-filter-panel__secondary">
+          <div class="filter-field filter-region">
+            <label for="region">想看的地区</label>
+            <select id="region" class="select"></select>
+          </div>
+          <div class="filter-field filter-school">
+            <label for="schoolKeyword">指定学校，可不填</label>
+            <input id="schoolKeyword" class="input" type="search" placeholder="如：大连、沈阳、辽宁大学" />
+          </div>
+        </div>
+
+        <div class="ln-filter-panel__quick">
+          <div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用关键词与更多方向"></div>
+          <div id="directionExplorerEntryMount" class="direction-explorer-entry-mount" aria-label="孩子方向讨论助手入口"></div>
+        </div>
+
+          <div id="specialProjectPanel" class="special-project-panel ln-filter-assist-line ln-filter-panel__special" data-mode="hide_eligibility_projects" aria-label="特殊项目显示设置">
+            <div class="special-project-main">
+              <div class="special-project-title">特殊项目</div>
+              <div id="specialProjectStatus" class="special-project-status">特殊项目默认隐藏</div>
+              <div id="specialProjectHelp" class="special-project-help">需要时再显示专项、定向、预科等需要资格核验的项目。</div>
+            </div>
+            <button id="specialProjectToggle" class="special-project-toggle" type="button">显示特殊项目</button>
+          </div>
+
+        <div class="ln-filter-panel__summary-action">
+          <section id="filterConflictPanel" class="ln-filter-conflict-panel" hidden></section>
+      <div id="filterSummary" class="filter-summary ln-filter-summary"></div>
+          <div class="filter-action search-action-row ln-filter-action">
+            <button id="queryButton" class="query-button is-waiting" type="button">输入分数后查看专业</button>
+            <p id="queryGuide" class="filter-action-note">请先输入孩子高考分数，例如 666。输入后可直接点击按钮查看专业。</p>
+          </div>
+        </div>
+
+        <div class="ln-filter-panel__assist">
+          <div id="majorTrendHint" class="major-trend-hint is-soft ln-heat-summary-row ln-filter-assist-line" aria-live="polite"></div>
+        </div>
+      </section>
+      </div>
+    </section>
+
+    <div id="mobileDirtyBar" class="mobile-dirty-bar" hidden><span class="mobile-dirty-text">条件已变化</span><button id="mobileDirtyButton" type="button">更新结果</button></div>
+
+    <section id="resultsPanel" class="panel results-shell ln-result-section band-near-shell">
+      <div class="results-head ln-result-section__header">
+        <div>
+          <h2 id="resultsTitle" class="results-title">符合条件的可讨论专业：主要参考</h2>
+          <p id="resultsMeta" class="results-meta">等待查看</p>
+        </div>
+        <div class="results-actions"><div id="feishuReportMount" class="feishu-report-mount"></div>
+        <div id="activeBandBadge" class="active-band-badge">510-520 分</div></div>
+      </div>
+      <div id="resultBandSwitcher" class="result-band-switcher" hidden></div>
+      <div id="poolResultStickyMount" class="pool-result-sticky-mount"></div>
+      <div id="results" class="results-grid loading is-light-empty">还没有查看结果。输入孩子分数和专业方向后，点击“查看符合条件的专业”。</div>
+    </section>
+
+
+
+    <section class="aux-background-entry panel" aria-label="资料与背景复核">
+      <div class="aux-background-head">
+        <p class="aux-background-kicker">资料与背景复核</p>
+        <h2>查完专业结果后，再看学校和专业背景</h2>
+        <p>这些页面只帮助家庭复核学校与专业背景，不代表录取判断。</p>
+      </div>
+      <div class="aux-background-grid">
+        <a class="aux-background-card" href="/ln-rank/local-mainline.html"><span><b>省内学校专业背景</b><span>辽宁省内学校与专业方向的对应关系。</span></span><em>查看</em></a>
+        <a class="aux-background-card" href="/ln-rank/211-mainline.html"><span><b>全国 211 院校背景</b><span>211 院校与本科专业方向的对应关系。</span></span><em>查看</em></a>
+      </div>
+    </section>
+
+    <section class="data-note">
+      当前基于辽宁 2025 年物理类历史数据进行初选参考。正式填报应以 2026 年一分一段表、招生计划、院校招生章程和辽宁志愿填报系统为准。本工具不做录取判断，只用于家庭讨论和人工复核。<br>版本：v3.9.46.3｜数据口径：辽宁 2025 物理类｜专业方向变化参考：2024/2025 同校同专业普通项目
+    </section>
+  </main>
+  <div id="directionExplorerPanelMount" class="direction-explorer-panel-mount"></div>
+  <script type="module" src="/ln-rank/js/app.v3946_3.js?v=3946_3"></script>
+</body>
+</html>

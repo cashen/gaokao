@@ -1,0 +1,48 @@
+{
+  "version": "v3.9.46.3",
+  "assetVersion": "v3946_3",
+  "entries": {
+    "search": "js/app.v3946_3.js",
+    "selectionPool": "js/selection-pool.v3946_3.js",
+    "majorTrend": "js/major-trend-render.v3946_3.js",
+    "selfCheck": "js/self-check.v3946_3.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_3.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_3.js"
+  },
+  "entrypoints": {
+    "search": "js/app.v3946_3.js",
+    "selectionPool": "js/selection-pool.v3946_3.js",
+    "majorTrend": "js/major-trend-render.v3946_3.js",
+    "selfCheck": "js/self-check.v3946_3.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_3.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_3.js"
+  },
+  "cssDist": {
+    "main": "css/dist/ln-rank-main.v3946_3.css",
+    "selection": "css/dist/ln-rank-selection.v3946_3.css",
+    "trend": "css/dist/ln-rank-trend.v3946_3.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3946_3.css",
+    "localMainline": "css/dist/local-mainline.v3946_3.css",
+    "main211": "css/dist/211-mainline.v3946_3.css"
+  },
+  "directionHelperCopyContract": true,
+  "directionHelperSelectionContract": true,
+  "directionHelperMobileActionbarContract": true,
+  "directionHelperCardDensityContract": true,
+  "directionHelperSafeAreaContract": true,
+  "querySessionContract": true,
+  "humanWorkflowStateContract": true,
+  "staleResultContract": true,
+  "reportFreshnessContract": true,
+  "selectionConsistencyContract": true,
+  "typographyHierarchyContract": true,
+  "noFenxiIncluded": true,
+  "reportSixSectionContract": true,
+  "cleanPackageContract": true,
+  "legacyRuntimeAssetsRemoved": true,
+  "visibleVersionClean": true,
+  "runtimeOnlyPackage": true,
+  "importGraphPruned": true,
+  "auditToolsExcluded": true,
+  "oldVersionRuntimeFilesRemoved": true
+}
