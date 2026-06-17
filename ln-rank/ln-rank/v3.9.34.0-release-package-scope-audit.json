@@ -1,0 +1,5 @@
+{
+  "ok": true,
+  "forbidden": [],
+  "allowedFenxiLibNote": "functions/_lib/fenxi-* and functions/api/fenxi-catalog.js are preserved because current ln-rank data provider depends on them; /fenxi/ and functions/fenxi/ are not packaged."
+}

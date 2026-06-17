@@ -1,0 +1,19 @@
+{
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
+  "title": "ln-rank special project default-hide baseline",
+  "scope": [
+    "默认隐藏专项、定向、预科、民族班、公费师范、优师专项、公安司法、航海轮机等需要资格核验的特殊项目",
+    "搜索页新增特殊项目轻状态条，可手动显示/继续隐藏",
+    "专业池接口增加 specialProjectMode 参数并在服务端过滤",
+    "结果区显示隐藏数量提示；显示后卡片打特殊项目标签并给出资格复核点",
+    "自选专业与飞书报告保留特殊项目复核信息"
+  ],
+  "checks": {
+    "noFenxiDirectory": true,
+    "noFenxiFunctionDirectory": true,
+    "noMiddlewareIncluded": true,
+    "activeAssetsUpdated": true,
+    "specialProjectDefaultMode": "hide_eligibility_projects"
+  }
+}

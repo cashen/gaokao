@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "importantRealityCheck": "未在容器内连接线上 /fenxi/data 做真实网络 API 查询；本版完成静态工程修复和可维护性审计。部署后必须用线上 /api/local-mainline 和 /api/211-mainline 同分数实测。",
+  "audits": [
+    "background-window-provider",
+    "local-211-position-consistency",
+    "211-matcher-index",
+    "data-read-vs-no-match",
+    "2026-position-ready-copy"
+  ],
+  "syntheticApiSmoke": "PASS: local-mainline and 211-mainline both returned matched records from the same mock historical record window."
+}

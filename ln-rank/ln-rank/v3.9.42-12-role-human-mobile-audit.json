@@ -1,0 +1,41 @@
+{
+  "version": "v3.9.42",
+  "assetVersion": "v3942_0",
+  "release": "v3.9.42-ln-rank-human-mobile-query-ui-contract-12-role-no-fenxi",
+  "scope": "Human-first mobile query UI contract, safer high-report copy, responsive contract, no score/window/data algorithm change.",
+  "twelveRoleSummary": {
+    "productArchitect": "Main query path is kept: input position -> choose range -> filter majors -> enter discussable major pool -> selection pool/report -> auxiliary review.",
+    "gaokaoAdvisor": "Visible band wording is tightened from steady/guarantee-like terms to low-score-side supplementary reference; no admission judgment is added.",
+    "dataEngineer": "No /fenxi directory is included and existing data paths/functions are not moved.",
+    "rulesEngineer": "Score windows and filtering algorithms are not changed; label contract is safer for parent-facing copy.",
+    "frontendArchitect": "Active asset graph points to v3942_0 entries; recursive JS imports are present.",
+    "uiUxAdvisor": "Search page receives mobile-first, parent-friendly card rhythm, serious teal visual language and clearer task hierarchy.",
+    "mobileEngineer": "CSS keeps 44px touch target, 375/390 small screen collapse, no horizontal intent; real browser smoke attempted but not completed in sandbox.",
+    "serverlessEngineer": "Local onRequest smoke passed for ln-rank-self-check and kb-health JSON responses.",
+    "qaEngineer": "Static asset, syntax, report-six-section and API JSON checks passed; real user scenario smoke still needed after deployment.",
+    "devopsEngineer": "Version contract synchronized to v3.9.42/v3942_0; package boundary keeps no-fenxi.",
+    "securityCompliance": "No new data collection or secret exposure; visible copy remains reference-only and avoids admission decision language.",
+    "versionContractAuditor": "VERSION, release-meta, active-assets, module-manifest, version-contract and function release-contract are synchronized."
+  },
+  "executedChecks": [
+    "active HTML/JS/CSS existence",
+    "active JS/CSS non-HTML fallback check",
+    "recursive active JS import existence check: 85 JS files, no missing import",
+    "node --check for active frontend JS and functions JS",
+    "local onRequest JSON smoke: ln-rank-self-check",
+    "local onRequest JSON smoke: kb-health",
+    "report builder six-section contract smoke",
+    "CSS blast-radius static gate: no [class*=card/chip/tag], no bare button selector in active v3942 CSS",
+    "no-fenxi package boundary check"
+  ],
+  "notExecuted": [
+    "real Cloudflare online API smoke",
+    "real browser screenshot smoke for all 375/390/414/430/768/1024/1366 breakpoints; Chromium timed out in sandbox"
+  ],
+  "noFenxiBoundary": {
+    "containsFenxiDirectory": false,
+    "containsFunctionsFenxiDirectory": false,
+    "containsMiddleware": false,
+    "keepsFenxiSessionLib": true
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "checks": [
+    "front page uses 按孩子位置看, not isolated 按分数看 as permanent logic",
+    "boundary says 2026 one-rank table will switch to rank/equivalent reference window",
+    "local and 211 copy share same position context wording"
+  ]
+}

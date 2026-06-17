@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>高校知识库分层与证据自检</title>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f7f2ea;color:#1f2933;margin:0;padding:24px}
+    .box{max-width:1100px;margin:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 16px 38px #0001}
+    input,button{padding:10px 14px;border-radius:12px;border:1px solid #ddd;background:#fff}
+    input{min-width:280px} button{font-weight:800;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:16px 0}
+    .card{background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #eef2f6}
+    .card strong{display:block;margin-bottom:6px}
+    .ok{color:#2f7d68}.bad{color:#a85f4d}.muted{color:#64748b}
+    pre{white-space:pre-wrap;background:#f8fafc;border-radius:12px;padding:12px;line-height:1.55;max-height:560px;overflow:auto}
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>高校知识库分层与证据自检</h1>
+    <p class="muted">检查 A1 硬标签、A2 医学线索、A3 行业特色、第四轮学科评估、官网/章程/就业报告证据槽。</p>
+    <input id="school" value="辽宁大学" placeholder="学校，如 辽宁大学" />
+    <input id="major" value="计算机科学与技术" placeholder="专业，如 计算机科学与技术" />
+    <button id="run">查询</button>
+    <div id="cards" class="grid"></div>
+    <pre id="out">等待查询…</pre>
+  </main>
+<script>
+const out=document.getElementById('out');
+const cards=document.getElementById('cards');
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function card(title, body){return `<div class="card"><strong>${esc(title)}</strong><div>${body}</div></div>`}
+document.getElementById('run').onclick=async()=>{
+  out.className=''; cards.innerHTML='';
+  out.textContent='正在查询…';
+  const school=document.getElementById('school').value.trim();
+  const major=document.getElementById('major').value.trim();
+  try{
+    const r=await fetch('/api/kb-inspect?school='+encodeURIComponent(school)+'&major='+encodeURIComponent(major),{cache:'no-store'});
+    const j=await r.json();
+    if(!r.ok||!j.ok) throw new Error(j.message||r.status);
+    const s=j.knowledgeContext?.school || {};
+    const kl=s.knowledgeLayer || {};
+    const da=s.disciplineAssessment || {};
+    const slots=s.sourceSlots || {};
+    cards.innerHTML = [
+      card('A1硬标签', (kl.a1HardLabels?.labels||[]).join(' / ') || '无'),
+      card('A2医学线索', kl.a2Medical?.active ? '有线索，需核验附属医院/规培/读研' : '无明显线索'),
+      card('A3行业特色', (kl.a3Industry?.categories||[]).join(' / ') || '无明显线索'),
+      card('第四轮学科评估', da.matched ? `最高 ${esc(da.highestRating)}；${esc(da.strongDirections||'')}` : '未匹配'),
+      card('官网简介证据', slots.officialProfileSummary ? '已补' : '待补'),
+      card('招生章程/校区证据', slots.admissionCampusSummary ? '已补' : '待补'),
+      card('就业质量报告证据', slots.employmentSummary ? '已补' : '待补')
+    ].join('');
+    out.className='ok';
+    out.textContent=JSON.stringify(j,null,2);
+  }catch(e){
+    out.className='bad';
+    out.textContent='查询失败：'+(e.message||e);
+  }
+};
+</script>
+</body>
+</html>

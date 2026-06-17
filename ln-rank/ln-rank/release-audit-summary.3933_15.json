@@ -1,0 +1,13 @@
+{
+  "version": "v3.9.33.15",
+  "release": "v3.9.33.15-ln-rank-unified-position-background-engine-local-211-no-fenxi",
+  "audits": [
+    "background-position-engine-consistency",
+    "position-context-human-copy",
+    "release-package-scope"
+  ],
+  "knownLimitations": [
+    "未在容器内完成真实浏览器截图 smoke；部署后应以 /api/local-mainline 与 /api/211-mainline 同分数样例做真实数据联调。"
+  ],
+  "criticalFix": "v3.9.33.14 的 211 分数空索引被移除出主功能，改为与本地背景同源读取历史专业记录。"
+}

@@ -1,0 +1,46 @@
+{
+  "version": "v3.9.33.14",
+  "assetVersion": "v3933_14",
+  "release": "v3.9.33.14-ln-rank-211-score-api-shell-json-contract-human-no-fenxi",
+  "generatedAt": "2026-06-14T09:48:04.510475Z",
+  "audits": [
+    {
+      "file": "audit-211-score-api-smoke-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "audit-no-fenxi-runtime-dependency-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "audit-aux-page-navigation-contract-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "audit-example-score-copy-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "audit-api-json-client-contract-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "active-asset-graph-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "css-dist-source-coverage-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "main-page-style-smoke-audit.3933_14.json",
+      "passed": true
+    },
+    {
+      "file": "release-package-scope-audit.3933_14.json",
+      "passed": true
+    }
+  ],
+  "allPassed": true,
+  "manualVisualSmoke": "未运行真实浏览器截图；已完成静态样式、CSS 覆盖、active-assets、API smoke 和 no-fenxi 包边界审计。"
+}

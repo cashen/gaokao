@@ -1,0 +1,15 @@
+{
+  "version": "v3.9.21.7",
+  "assetVersion": "v3921_7",
+  "changes": [
+    "index.html 输入框 placeholder: 请输入，如 666",
+    "index.html 查询提示: 请先输入孩子高考分数，例如 666。输入后可直接点击按钮查看专业。",
+    "selection-pool.html 分数输入 placeholder: 如 666"
+  ],
+  "checksPlanned": [
+    "node --check active JS",
+    "import recursion",
+    "no-fenxi zip check",
+    "480 prompt scan"
+  ]
+}

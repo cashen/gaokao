@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "checks": [
+    "local-mainline and 211-mainline both call loadBackgroundMatchedRecords",
+    "both build positionContext through buildCandidatePositionContext",
+    "difference is only matcher/presenter: local KB vs 211 KB"
+  ]
+}

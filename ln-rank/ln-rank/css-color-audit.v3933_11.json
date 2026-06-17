@@ -1,0 +1,571 @@
+{
+  "assetVersion": "v3933_11",
+  "generatedAt": "2026-06-13T05:35:19.475Z",
+  "scannedSourceCount": 50,
+  "totals": {
+    "totalMatches": 1746,
+    "allowedCoreMatches": 93,
+    "rawOutsideCore": 901,
+    "fallbackOrTokenLine": 465,
+    "effectLiteral": 287
+  },
+  "topFiles": [
+    {
+      "file": "css/components/cards.css",
+      "total": 273,
+      "rawOutsideCore": 228,
+      "fallbackOrTokenLine": 16,
+      "effectLiteral": 29,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/chips.css",
+      "total": 94,
+      "rawOutsideCore": 92,
+      "fallbackOrTokenLine": 1,
+      "effectLiteral": 1,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/direction-explorer.css",
+      "total": 91,
+      "rawOutsideCore": 70,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 21,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/control-panel.css",
+      "total": 92,
+      "rawOutsideCore": 68,
+      "fallbackOrTokenLine": 6,
+      "effectLiteral": 18,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/pages/search.css",
+      "total": 76,
+      "rawOutsideCore": 68,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 8,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/pages/selection-pool.css",
+      "total": 71,
+      "rawOutsideCore": 53,
+      "fallbackOrTokenLine": 17,
+      "effectLiteral": 1,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/result-section-contract.css",
+      "total": 46,
+      "rawOutsideCore": 34,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 12,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/pages/local-mainline.css",
+      "total": 115,
+      "rawOutsideCore": 29,
+      "fallbackOrTokenLine": 69,
+      "effectLiteral": 17,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/special-project-filter.css",
+      "total": 28,
+      "rawOutsideCore": 28,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 0,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/parent-report-ui-polish.css",
+      "total": 37,
+      "rawOutsideCore": 24,
+      "fallbackOrTokenLine": 11,
+      "effectLiteral": 2,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/local-context-contract.css",
+      "total": 42,
+      "rawOutsideCore": 20,
+      "fallbackOrTokenLine": 4,
+      "effectLiteral": 18,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/forms.css",
+      "total": 22,
+      "rawOutsideCore": 20,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 2,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/major-card-contract.css",
+      "total": 22,
+      "rawOutsideCore": 18,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 4,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/buttons.css",
+      "total": 19,
+      "rawOutsideCore": 18,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 1,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/pages/major-trend.css",
+      "total": 106,
+      "rawOutsideCore": 15,
+      "fallbackOrTokenLine": 91,
+      "effectLiteral": 0,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/selection-report-actions.css",
+      "total": 15,
+      "rawOutsideCore": 15,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 0,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/filter-panel-human.css",
+      "total": 18,
+      "rawOutsideCore": 14,
+      "fallbackOrTokenLine": 1,
+      "effectLiteral": 3,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/selection-flow-human.css",
+      "total": 35,
+      "rawOutsideCore": 13,
+      "fallbackOrTokenLine": 19,
+      "effectLiteral": 3,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "total": 54,
+      "rawOutsideCore": 12,
+      "fallbackOrTokenLine": 12,
+      "effectLiteral": 30,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/selection-pool-mobile-entry.css",
+      "total": 14,
+      "rawOutsideCore": 11,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 3,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/rank-band.css",
+      "total": 14,
+      "rawOutsideCore": 9,
+      "fallbackOrTokenLine": 3,
+      "effectLiteral": 2,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/page-visual-contract.css",
+      "total": 12,
+      "rawOutsideCore": 8,
+      "fallbackOrTokenLine": 1,
+      "effectLiteral": 3,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/report-action-human.css",
+      "total": 7,
+      "rawOutsideCore": 6,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 1,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/search-side-action-heat-layout.css",
+      "total": 6,
+      "rawOutsideCore": 6,
+      "fallbackOrTokenLine": 0,
+      "effectLiteral": 0,
+      "allowedCore": 0
+    },
+    {
+      "file": "css/components/ui-flow-contract.css",
+      "total": 15,
+      "rawOutsideCore": 4,
+      "fallbackOrTokenLine": 5,
+      "effectLiteral": 6,
+      "allowedCore": 0
+    }
+  ],
+  "samples": [
+    {
+      "file": "css/components/band-selector-contract.css",
+      "line": 44,
+      "colors": [
+        "#fff"
+      ],
+      "text": "color: #fff !important;"
+    },
+    {
+      "file": "css/components/band-selector-contract.css",
+      "line": 62,
+      "colors": [
+        "rgba(255,255,255,.66)"
+      ],
+      "text": "background: rgba(255,255,255,.66) !important;"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 9,
+      "colors": [
+        "rgba(191,205,200,.82)"
+      ],
+      "text": "border:1px solid rgba(191,205,200,.82);"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 21,
+      "colors": [
+        "#eef7f1",
+        "#2b6a5b"
+      ],
+      "text": ".bottomline-head::before{content:'办学性质';display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:999px;background:#eef7f1;color:#2b6a5b;font-size:12px;font-weight:900;white-space:nowrap;margin-top:1"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 23,
+      "colors": [
+        "#596873"
+      ],
+      "text": ".bottomline-summary{margin:0;color:#596873;font-size:12.5px;line-height:1.45;max-width:780px}"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 27,
+      "colors": [
+        "#fff8ed",
+        "#ecd8b9",
+        "#6d5230",
+        "#d8e4eb",
+        "#fff",
+        "#31546e"
+      ],
+      "text": ".results-bottomline-note{margin:0 0 10px;padding:8px 10px;border-radius:12px;background:#fff8ed;border:1px solid #ecd8b9;color:#6d5230;font-size:12.5px;line-height:1.5}.empty-actions{margin-top:10px;display:flex;gap:8px;"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 48,
+      "colors": [
+        "#66736f"
+      ],
+      "text": ".bottomline-mobile-kicker{display:block;font-size:12px;font-weight:950;color:#66736f;margin-bottom:2px;}"
+    },
+    {
+      "file": "css/components/bottomline.css",
+      "line": 51,
+      "colors": [
+        "#66736f"
+      ],
+      "text": ".bottomline-mobile-hint{margin:7px 0 0;color:#66736f;font-size:12.5px;line-height:1.45;}"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 7,
+      "colors": [
+        "#245f55"
+      ],
+      "text": "background:#245f55!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 8,
+      "colors": [
+        "#fff"
+      ],
+      "text": "color:#fff!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 9,
+      "colors": [
+        "#245f55"
+      ],
+      "text": "border:1px solid #245f55!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 13,
+      "colors": [
+        "#1f5149"
+      ],
+      "text": ".search-workbench .query-button.is-ready:hover { background:#1f5149!important; }"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 19,
+      "colors": [
+        "#f4faf7"
+      ],
+      "text": "background:#f4faf7!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 20,
+      "colors": [
+        "#245f55"
+      ],
+      "text": "color:#245f55!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 21,
+      "colors": [
+        "#c9ded7"
+      ],
+      "text": "border:1px solid #c9ded7!important;"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 27,
+      "colors": [
+        "#eaf5ef"
+      ],
+      "text": ".diagnose-button:hover { background:#eaf5ef!important; }"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 30,
+      "colors": [
+        "#fff7f4",
+        "#8b4c3a",
+        "#ead0c7"
+      ],
+      "text": "button.danger { background:#fff7f4!important;color:#8b4c3a!important;border-color:#ead0c7!important; }"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 31,
+      "colors": [
+        "#6a7771"
+      ],
+      "text": ".search-workbench .filter-action-note { color:#6a7771; }"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 32,
+      "colors": [
+        "#fff5e8",
+        "#8a5524",
+        "#efd4ae"
+      ],
+      "text": ".school-tag.campus-risk-high{background:#fff5e8;color:#8a5524;border-color:#efd4ae;}"
+    },
+    {
+      "file": "css/components/buttons.css",
+      "line": 33,
+      "colors": [
+        "#f5faf7",
+        "#35695e",
+        "#d6e8df"
+      ],
+      "text": ".school-tag.campus-risk-medium{background:#f5faf7;color:#35695e;border-color:#d6e8df;}"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 21,
+      "colors": [
+        "#fff"
+      ],
+      "text": ".status-badge { flex: 0 0 auto; border-radius: 999px; padding: 6px 10px; color: #fff; font-size: 12px; font-weight: 900; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 35,
+      "colors": [
+        "#a85f4d",
+        "#fff7f4"
+      ],
+      "text": ".error { color: #a85f4d; background: #fff7f4; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 42,
+      "colors": [
+        "rgba(63, 111, 104, .065)"
+      ],
+      "text": "background: rgba(63, 111, 104, .065);"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 43,
+      "colors": [
+        "rgba(63, 111, 104, .10)"
+      ],
+      "text": "border: 1px solid rgba(63, 111, 104, .10);"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 72,
+      "colors": [
+        "#d9e6df"
+      ],
+      "text": "border: 1px solid #d9e6df;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 73,
+      "colors": [
+        "#f2f8f5"
+      ],
+      "text": "background: #f2f8f5;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 74,
+      "colors": [
+        "#315e53"
+      ],
+      "text": "color: #315e53;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 77,
+      "colors": [
+        "#eaf5ef",
+        "#c9e0d5",
+        "#265d50"
+      ],
+      "text": ".match-trust-badge.match-exact { background: #eaf5ef; border-color: #c9e0d5; color: #265d50; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 78,
+      "colors": [
+        "#f3f8f5",
+        "#dbe8e1",
+        "#52675d"
+      ],
+      "text": ".match-trust-badge.match-related { background: #f3f8f5; border-color: #dbe8e1; color: #52675d; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 79,
+      "colors": [
+        "#f3f6f8",
+        "#dce4e9",
+        "#4a5f6a"
+      ],
+      "text": ".match-trust-badge.match-industry { background: #f3f6f8; border-color: #dce4e9; color: #4a5f6a; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 80,
+      "colors": [
+        "#fff7ea",
+        "#ead7b6",
+        "#73592e"
+      ],
+      "text": ".match-trust-badge.match-project { background: #fff7ea; border-color: #ead7b6; color: #73592e; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 81,
+      "colors": [
+        "#f6f6f4",
+        "#e2e2dd",
+        "#686b66"
+      ],
+      "text": ".match-trust-badge.match-weak { background: #f6f6f4; border-color: #e2e2dd; color: #686b66; }"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 86,
+      "colors": [
+        "#f8fbf9"
+      ],
+      "text": "background: #f8fbf9;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 87,
+      "colors": [
+        "#e3ece7"
+      ],
+      "text": "border: 1px solid #e3ece7;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 88,
+      "colors": [
+        "#53655e"
+      ],
+      "text": "color: #53655e;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 96,
+      "colors": [
+        "#375f55"
+      ],
+      "text": "color: #375f55;"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 106,
+      "colors": [
+        "#52665f",
+        "#dce8e2",
+        "#f8fbf9",
+        "#2f665b",
+        "#66756f",
+        "#3a5f55"
+      ],
+      "text": ".code-trust-line{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;color:#52665f;font-size:13px;line-height:1.55}.code-trust-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid #dce8e2;background:#f8fb"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 108,
+      "colors": [
+        "#5f746c",
+        "#2f665b"
+      ],
+      "text": ".workspace-code-line{flex-basis:100%;color:#5f746c;font-size:12.5px}.workspace-code-line b{color:#2f665b}.workspace-item-meta .workspace-code-line{margin-top:2px}"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 111,
+      "colors": [
+        "#52665f",
+        "#dce8e2",
+        "#f8fbf9",
+        "#2f665b",
+        "#f7faf8",
+        "#65746f"
+      ],
+      "text": ".major-code-line{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;color:#52665f;font-size:13px;line-height:1.55}.major-code-line span{display:inline-flex;align-items:center;gap:4px;border:1px solid #dce8e2;background:"
+    },
+    {
+      "file": "css/components/cards.css",
+      "line": 118,
+      "colors": [
+        "#5f706b"
+      ],
+      "text": "color: #5f706b;"
+    }
+  ],
+  "note": "rawOutsideCore is the main watch item. Core token files are allowed to contain literal colors. Lines using var() are counted separately as fallback/token lines."
+}

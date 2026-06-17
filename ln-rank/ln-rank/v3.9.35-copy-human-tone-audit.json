@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "forbiddenHitsInHtml": [],
+  "checkedFiles": [
+    "211-mainline.html",
+    "ai-diagnostics.html",
+    "feishu-diagnostics.html",
+    "fenxi-catalog.html",
+    "index.html",
+    "kb-diagnostics.html",
+    "kb-layer-diagnostics.html",
+    "local-mainline.html",
+    "major-bands-diagnostics.html",
+    "major-trend-2025.html",
+    "module-health.html",
+    "school-geo-audit.html",
+    "selection-pool.html",
+    "self-check.html"
+  ]
+}

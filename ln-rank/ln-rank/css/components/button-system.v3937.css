@@ -1,0 +1,4 @@
+/* v3.9.37 button priority: one primary action per region; groups wrap on small screens. */
+.ln-btn-primary,.primary-action{min-height:var(--ln-action-min-h);}
+.ln-btn-secondary,.ln-btn-ghost,.secondary-action{min-height:var(--ln-action-min-h);}
+@media(max-width:640px){.button-row,.actions,.lm-error-actions,.selection-actions{display:grid;grid-template-columns:1fr;gap:8px}.button-row a,.button-row button,.actions a,.actions button,.lm-error-actions button,.selection-actions button{width:100%;}}

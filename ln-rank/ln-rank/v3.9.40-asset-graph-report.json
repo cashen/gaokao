@@ -1,0 +1,136 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "entries": [
+    {
+      "rel": "index.html",
+      "exists": true,
+      "bytes": 13198,
+      "sha256": "7ec461b11f5c5e25",
+      "htmlLike": true
+    },
+    {
+      "rel": "selection-pool.html",
+      "exists": true,
+      "bytes": 5816,
+      "sha256": "e5e1f4a799849bb6",
+      "htmlLike": true
+    },
+    {
+      "rel": "211-mainline.html",
+      "exists": true,
+      "bytes": 6329,
+      "sha256": "ef3c49d7a1fbcfb4",
+      "htmlLike": true
+    },
+    {
+      "rel": "local-mainline.html",
+      "exists": true,
+      "bytes": 7014,
+      "sha256": "a8591319b3f0f06b",
+      "htmlLike": true
+    },
+    {
+      "rel": "major-trend-2025.html",
+      "exists": true,
+      "bytes": 1703,
+      "sha256": "92e8361daeddabd8",
+      "htmlLike": true
+    },
+    {
+      "rel": "self-check.html",
+      "exists": true,
+      "bytes": 1936,
+      "sha256": "6ce80e0a8c34488a",
+      "htmlLike": true
+    },
+    {
+      "rel": "js/app.v3940_0.js",
+      "exists": true,
+      "bytes": 23033,
+      "sha256": "bb41cbf352ea8778",
+      "htmlLike": false
+    },
+    {
+      "rel": "js/selection-pool.v3940_0.js",
+      "exists": true,
+      "bytes": 50026,
+      "sha256": "242aa0fd7b0b3211",
+      "htmlLike": false
+    },
+    {
+      "rel": "js/major-trend-render.v3940_0.js",
+      "exists": true,
+      "bytes": 11441,
+      "sha256": "601cbdbeeb6f84ae",
+      "htmlLike": false
+    },
+    {
+      "rel": "js/self-check.v3940_0.js",
+      "exists": true,
+      "bytes": 8421,
+      "sha256": "18ede9876adba2d3",
+      "htmlLike": false
+    },
+    {
+      "rel": "js/local-mainline/local-mainline-app.v3940_0.js",
+      "exists": true,
+      "bytes": 23294,
+      "sha256": "930e3444b70d4601",
+      "htmlLike": false
+    },
+    {
+      "rel": "js/211-mainline/211-mainline-app.v3940_0.js",
+      "exists": true,
+      "bytes": 12035,
+      "sha256": "d5e6fa86c7585449",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/ln-rank-main.v3940_0.css",
+      "exists": true,
+      "bytes": 362495,
+      "sha256": "a789586b4bdcfe69",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/ln-rank-selection.v3940_0.css",
+      "exists": true,
+      "bytes": 358178,
+      "sha256": "6c7e03f799c4b022",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/ln-rank-trend.v3940_0.css",
+      "exists": true,
+      "bytes": 353551,
+      "sha256": "d9fa822469faef2b",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/ln-rank-self-check.v3940_0.css",
+      "exists": true,
+      "bytes": 340566,
+      "sha256": "f4faba9dc75fa52e",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/local-mainline.v3940_0.css",
+      "exists": true,
+      "bytes": 46265,
+      "sha256": "51c60e5609371d8e",
+      "htmlLike": false
+    },
+    {
+      "rel": "css/dist/211-mainline.v3940_0.css",
+      "exists": true,
+      "bytes": 47650,
+      "sha256": "3a67dc1f7ebafd82",
+      "htmlLike": false
+    }
+  ],
+  "recursiveJsFiles": 85,
+  "missingImports": [],
+  "ok": true
+}

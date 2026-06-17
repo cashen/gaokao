@@ -1,0 +1,62 @@
+{
+  "version": "v3.9.41",
+  "assetVersion": "v3941_0",
+  "release": "v3.9.41-ln-rank-serious-color-balance-responsive-contract-12-role-no-fenxi",
+  "matrix": [
+    {
+      "area": "查询页",
+      "checks": [
+        "成绩输入",
+        "范围选择",
+        "筛选入口",
+        "结果卡片",
+        "加入自选入口",
+        "单卡诊断入口"
+      ],
+      "status": "static gate only"
+    },
+    {
+      "area": "自选池",
+      "checks": [
+        "已选数量",
+        "结构状态条",
+        "报告预览",
+        "复制文字版",
+        "飞书报告入口"
+      ],
+      "status": "static gate + report builder runtime"
+    },
+    {
+      "area": "辅助页",
+      "checks": [
+        "211 低权重",
+        "省内背景低权重",
+        "趋势页不做预测"
+      ],
+      "status": "static gate"
+    },
+    {
+      "area": "响应式",
+      "checks": [
+        "375",
+        "390",
+        "414",
+        "430",
+        "768",
+        "1024",
+        "1366"
+      ],
+      "status": "CSS static gate; real browser screenshot not completed"
+    },
+    {
+      "area": "工程边界",
+      "checks": [
+        "no /fenxi",
+        "no functions/fenxi",
+        "no functions/_middleware.js",
+        "keep fenxi-session"
+      ],
+      "status": "passed"
+    }
+  ]
+}
