@@ -1,4 +1,5 @@
 import { safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3933_14';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_14';
 
 function clean(value, max = 120) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
@@ -28,37 +29,87 @@ function defaultVerifyItems(entry = {}) {
 }
 
 function strengthKind(entry = {}) {
+  if (entry.sourceKind === '211背景') return entry.strengthKind || '211背景';
   if (entry.kind === 'background') return /本校方向/.test(entry.title || '') ? '本校方向' : '本校相关';
   return '方向提醒';
 }
 
-export function resolveLocalStrengthMark(record = {}) {
-  const summary = safeGetLocalContextPresentation(record, 'summary');
-  if (!summary?.items?.length) return { matched: false, items: [] };
-  const primary = summary.items[0] || {};
-  const items = summary.items.slice(0, 2).map(entry => ({
+function normalizeLocalItem(entry = {}) {
+  return {
     kind: entry.kind || 'background',
+    sourceKind: entry.kind === 'trajectory' ? '方向提醒' : '省内背景',
     title: clean(entry.title, 90),
     direction: directionFromEntry(entry),
     strengthKind: strengthKind(entry),
     reviewPoints: defaultVerifyItems(entry),
-    reportTip: clean(entry.reportTip || entry.hit?.reportTip || entry.hit?.cardTip || '', 220),
+    reportTip: clean(entry.reportTip || entry.hit?.reportTip || entry.hit?.cardTip || '', 240),
     boundary: clean(entry.boundary || '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。', 220)
-  }));
-  const direction = items[0]?.direction || '学校背景方向';
+  };
+}
+
+function resolveLocalItems(record = {}) {
+  const summary = safeGetLocalContextPresentation(record, 'summary');
+  return (Array.isArray(summary?.items) ? summary.items : []).slice(0, 2).map(normalizeLocalItem);
+}
+
+function resolve211Items(record = {}) {
+  const hint = get211BackgroundHint(record);
+  if (!hint?.visible) return [];
+  const review = unique([...(Array.isArray(hint.reviewPoints) ? hint.reviewPoints : []), '招生章程', '培养方案', '课程方向', '专业分流', '近年位次']).slice(0, 6);
+  const direction = clean(hint.direction || hint.label || '211院校背景方向', 80);
+  return [{
+    kind: 'national211',
+    sourceKind: '211背景',
+    title: clean(`${hint.label || '211背景'}：${direction}`, 90),
+    direction,
+    strengthKind: '211背景',
+    reviewPoints: review,
+    reportTip: clean(`这条专业与学校公开的 211 院校学科背景存在可复核对应，建议重点查看培养方案、招生章程和专业方向。`, 240),
+    boundary: clean(hint.boundary || '211背景只作复核线索，不代表填报建议，也不代表录取判断。', 220)
+  }];
+}
+
+function itemPriority(item = {}) {
+  if (item.sourceKind === '省内背景' && item.strengthKind === '本校方向') return 10;
+  if (item.sourceKind === '211背景') return 8;
+  if (item.sourceKind === '省内背景') return 7;
+  if (item.sourceKind === '方向提醒') return 3;
+  return 1;
+}
+
+function choosePrimaryItem(items = []) {
+  return [...items].sort((a, b) => itemPriority(b) - itemPriority(a))[0] || {};
+}
+
+function sourceKindsText(items = []) {
+  const kinds = unique(items.map(x => x.sourceKind).filter(Boolean));
+  return kinds.length ? kinds.join(' / ') : '学校背景';
+}
+
+export function resolveLocalStrengthMark(record = {}) {
+  const items = [...resolveLocalItems(record), ...resolve211Items(record)];
+  if (!items.length) return { matched: false, items: [] };
+  const primary = choosePrimaryItem(items);
+  const direction = primary.direction || '学校背景方向';
+  const sourceKinds = unique(items.map(x => x.sourceKind).filter(Boolean));
   const why = clean(
-    items[0]?.reportTip
+    primary.reportTip
     || `这条专业与学校办学背景或行业方向有关，容易被只看学校综合名气时忽略，建议单独了解培养方向和行业场景。`,
-    220
+    240
   );
+  const verifyItems = Array.isArray(primary.reviewPoints) && primary.reviewPoints.length
+    ? primary.reviewPoints
+    : ['招生计划', '校区', '近年位次', '培养方向'];
   return {
     matched: true,
     label: '学校强项方向',
     direction,
-    strengthKind: items[0]?.strengthKind || '方向提醒',
+    strengthKind: primary.strengthKind || '方向提醒',
+    sourceKinds,
+    sourceText: sourceKindsText(items),
     why,
-    verifyItems: items[0]?.reviewPoints || ['招生计划', '校区', '近年位次', '培养方向'],
-    boundary: '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。',
+    verifyItems,
+    boundary: '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。211背景只作复核线索，不能替代招生章程和当年位次判断。',
     items
   };
 }
@@ -73,16 +124,26 @@ export function filterLocalStrengthRecords(records = []) {
 
 export function buildLocalStrengthSummary(records = []) {
   const rows = [];
+  const sourceCount = { local: 0, national211: 0, trajectory: 0 };
   for (const record of Array.isArray(records) ? records : []) {
     const mark = resolveLocalStrengthMark(record);
     if (!mark.matched) continue;
     rows.push({ record, mark });
+    if (mark.sourceKinds?.includes('省内背景')) sourceCount.local += 1;
+    if (mark.sourceKinds?.includes('211背景')) sourceCount.national211 += 1;
+    if (mark.sourceKinds?.includes('方向提醒')) sourceCount.trajectory += 1;
   }
+  const sourceParts = [];
+  if (sourceCount.local) sourceParts.push(`省内背景 ${sourceCount.local} 条`);
+  if (sourceCount.national211) sourceParts.push(`211背景 ${sourceCount.national211} 条`);
+  if (sourceCount.trajectory) sourceParts.push(`方向提醒 ${sourceCount.trajectory} 条`);
   return {
     total: rows.length,
     rows,
+    sourceCount,
+    sourceText: sourceParts.join('｜'),
     summaryText: rows.length
-      ? `当前结果中，有 ${rows.length} 条专业与学校背景、行业方向或专业建设线索关联较明显，可以单独看看。`
+      ? `当前结果中，有 ${rows.length} 条专业与省内学校背景、211院校背景、行业方向或专业建设线索关联较明显，可以单独看看。${sourceParts.length ? `其中：${sourceParts.join('，')}。` : ''}`
       : '当前范围暂时没有明显的学校强项提示，可以继续查看全部专业，或放宽地区、专业方向后再看。'
   };
 }

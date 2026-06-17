@@ -1,4 +1,4 @@
-import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3946_4';
+import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3946_5';
 
 const state = { meta: null, activeTab: 'school', schools: [], majors: [] };
 const LEVEL_ORDER = { primary: 3, secondary: 2, trajectory: 1 };

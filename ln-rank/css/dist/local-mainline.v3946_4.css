@@ -859,7 +859,7 @@ body{background:linear-gradient(135deg,#F7F9F8 0%,#F4F7F6 70%,#F3F6F8 100%)}
 .lm-link-button.secondary,.lm-card-text-link,.lm-pill.primary,.lm-evidence-chip{background:var(--ln-primary-soft);border-color:#CFE2E7;color:var(--ln-primary)}
 @media(max-width:640px){.lm-hero,.lm-panel,.lm-boundary,.lm-howto,.lm-start-guide,.lm-card,.lm-record-card{border-radius:14px}}
 
-/* v3.9.46.4 auxiliary page low-weight visual contract. */
+/* v3.9.46.5 auxiliary page low-weight visual contract. */
 body.ln-aux-guided-page{background:linear-gradient(180deg,#eef7f5 0%,#f8fbfa 260px,#f5f8f7 100%);color:#111827;}
 .ln-aux-guided-page .lm-page{max-width:1120px;margin:0 auto;padding:22px 16px 34px;}
 .ln-aux-guided-page .lm-hero,.ln-aux-guided-page .lm-boundary,.ln-aux-guided-page .lm-start-guide,.ln-aux-guided-page .lm-panel,.ln-aux-guided-page .lm-howto,.ln-aux-guided-page .aux-page-bottom-link{background:rgba(255,255,255,.86);border:1px solid #d9e5e2;border-radius:20px;box-shadow:0 16px 42px rgba(17,24,39,.07);}

@@ -10002,7 +10002,7 @@ body.direction-panel-open .pool-entry-floating {
   .direction-panel-actions .direction-primary{font-size:14px;}
 }
 
-/* v3.9.46.4 学校强项防漏看：结果二级视图，不改变主查询口径。 */
+/* v3.9.46.5 学校强项防漏看：结果二级视图，不改变主查询口径。 */
 .result-view-tabs{margin:12px 0 14px;padding:10px 12px;border:1px solid rgba(28,108,119,.16);border-radius:16px;background:rgba(242,250,249,.82)}
 .result-view-tab-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .result-view-tab{border:1px solid rgba(28,108,119,.22);background:#fff;border-radius:999px;padding:8px 13px;font-size:14px;line-height:1.2;color:#25545a;cursor:pointer;box-shadow:0 1px 2px rgba(15,70,75,.05)}

@@ -8805,7 +8805,7 @@ body.ln-selection-guided-flow{background:linear-gradient(180deg,#e7f5f2 0%,#f8fb
   .ln-plan-status-steps{grid-template-columns:1fr 1fr;}
 }
 
-/* v3.9.46.4 学校强项防漏看：自选池和报告承接。 */
+/* v3.9.46.5 学校强项防漏看：自选池和报告承接。 */
 .workspace-local-strength-chip{display:inline-flex;align-items:center;max-width:100%;border-radius:999px;background:#edf8f6;border:1px solid rgba(38,139,126,.16);color:#1f6a66;font-weight:700;padding:3px 8px;font-size:12px;line-height:1.4;white-space:normal}
 .local-strength-summary-card{margin:14px 0;padding:14px 16px;border:1px solid rgba(38,139,126,.18);border-radius:16px;background:linear-gradient(180deg,#f5fbfa,#fff);box-shadow:0 2px 8px rgba(26,89,91,.04)}
 .local-strength-summary-card h3{margin:0 0 8px;color:#203f44;font-size:16px}
