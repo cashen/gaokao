@@ -1,6 +1,0 @@
-{
-  "version": "v3.9.45",
-  "assetVersion": "v3945_0",
-  "browserSmoke": "not_completed_in_container",
-  "reason": "本环境 Chromium/真实浏览器截图 smoke 未执行完成；部署后需测 375/390/414/430/768/1024/1366。"
-}

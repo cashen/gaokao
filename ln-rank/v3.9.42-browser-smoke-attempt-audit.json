@@ -1,8 +1,0 @@
-{
-  "version":"v3.9.42",
-  "attempted":true,
-  "tool":"local Chromium headless via python http.server",
-  "result":"not completed",
-  "reason":"Chromium command timed out in sandbox before screenshot generation finished.",
-  "claim":"Browser screenshot smoke is NOT marked as passed. Static and Node-level checks passed; deployment should still run 375/390/768/1366 visual smoke."
-}
