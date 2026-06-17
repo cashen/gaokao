@@ -1,0 +1,13 @@
+{
+  "version": "v3.9.38",
+  "status": "PASS",
+  "checked": [
+    "js/app.v3938_0.js",
+    "js/selection-pool.v3938_0.js",
+    "js/major-trend-render.v3938_0.js",
+    "js/self-check.v3938_0.js",
+    "js/local-mainline/local-mainline-app.v3938_0.js",
+    "js/211-mainline/211-mainline-app.v3938_0.js"
+  ],
+  "note": "active entry JS passed node --check in local container"
+}

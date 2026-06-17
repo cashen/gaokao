@@ -1,0 +1,24 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "requiredSections": [
+    "一、概要判断",
+    "二、当前方案怎么看",
+    "三、前中后段快速确认",
+    "四、最终排序清单",
+    "五、本方案确认清单",
+    "六、数据和使用边界"
+  ],
+  "actualSections": [
+    "一、概要判断",
+    "二、当前方案怎么看",
+    "三、前中后段快速确认",
+    "四、最终排序清单",
+    "五、本方案确认清单",
+    "六、数据和使用边界"
+  ],
+  "reportVersion": "v3.9.40",
+  "styledBlockCount": 52,
+  "ok": true
+}

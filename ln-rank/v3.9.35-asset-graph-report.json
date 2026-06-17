@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "refs": [
+    {
+      "html": "index.html",
+      "path": "css/dist/ln-rank-main.v3935_0.css"
+    },
+    {
+      "html": "index.html",
+      "path": "js/app.v3935_0.js"
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "css/dist/local-mainline.v3935_0.css"
+    },
+    {
+      "html": "local-mainline.html",
+      "path": "js/local-mainline/local-mainline-app.v3935_0.js"
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "css/dist/211-mainline.v3935_0.css"
+    },
+    {
+      "html": "211-mainline.html",
+      "path": "js/211-mainline/211-mainline-app.v3935_0.js"
+    },
+    {
+      "html": "selection-pool.html",
+      "path": "css/dist/ln-rank-selection.v3935_0.css"
+    },
+    {
+      "html": "selection-pool.html",
+      "path": "js/selection-pool.v3935_0.js"
+    },
+    {
+      "html": "major-trend-2025.html",
+      "path": "css/dist/ln-rank-trend.v3935_0.css"
+    },
+    {
+      "html": "major-trend-2025.html",
+      "path": "js/major-trend-render.v3935_0.js"
+    },
+    {
+      "html": "self-check.html",
+      "path": "css/dist/ln-rank-self-check.v3935_0.css"
+    },
+    {
+      "html": "self-check.html",
+      "path": "js/self-check.v3935_0.js"
+    }
+  ],
+  "missing": [],
+  "htmlLike": []
+}

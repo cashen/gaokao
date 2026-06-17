@@ -1,0 +1,28 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "checks": [
+    {
+      "name": "ln-rank-self-check",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "jsonParsed": true,
+      "ok": true,
+      "version": "v3.9.40",
+      "assetVersion": "v3940_0",
+      "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi"
+    },
+    {
+      "name": "kb-health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "jsonParsed": true,
+      "ok": true,
+      "version": "v3.9.40",
+      "assetVersion": "v3940_0",
+      "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi"
+    }
+  ],
+  "ok": true
+}

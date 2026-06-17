@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-06-12T13:33:27.942Z",
+  "projectRoot": "/mnt/data/work3933_2",
+  "files": [],
+  "checks": [
+    {
+      "selector": ".workspace-major-name",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".workspace-school",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".workspace-item-meta span",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".ln-major-card .major",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".ln-major-card .school",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".result-context-range",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".result-context-keyword",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".direction-result-tags span",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".direction-report-tags span",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    },
+    {
+      "selector": ".meta-pill",
+      "appears": false,
+      "inContract": false,
+      "ok": false
+    }
+  ],
+  "behavior": {
+    "workspaceTitleBlock": false,
+    "clampClass": false,
+    "toggleMajor": false,
+    "longMajorDetector": false
+  },
+  "cssBehavior": {
+    "textClamp2": false,
+    "expandedUnlock": false,
+    "padActionsMove": false,
+    "mobileActionsGrid": false
+  },
+  "testStrings": [
+    "工科试验班（智能制造与先进材料类、机械类、自动化类、能源动力类）",
+    "计算机类（软件工程、网络工程、智能科学与技术、数据科学与大数据技术）",
+    "临床医学（5+3一体化，儿科学）",
+    "电气工程及其自动化（中外合作办学）"
+  ],
+  "pass": false
+}

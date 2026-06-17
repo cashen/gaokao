@@ -1,0 +1,14 @@
+{
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
+  "generatedAt": "2026-06-14T21:35:25Z",
+  "ok": true,
+  "foundForbiddenPaths": [],
+  "requiredFenxiSessionExists": true,
+  "boundary": [
+    "zip 不包含 /fenxi/",
+    "zip 不包含 functions/fenxi/",
+    "zip 不包含 functions/_middleware.js",
+    "functions/_lib/fenxi-session.js 保留"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "version": "v3933",
+  "generatedAt": "2026-06-12T12:46:42.358Z",
+  "chainCount": 16,
+  "coreSections": 16,
+  "supportSections": 16,
+  "errors": [
+    "家长可理解显示文案缺失。"
+  ],
+  "warnings": [],
+  "status": "fail"
+}

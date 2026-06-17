@@ -1,0 +1,5 @@
+/* v3.9.37 search page role: main railway. */
+[data-page-role="search"] .ln-filter-summary-main{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;}
+[data-page-role="search"] .ln-filter-summary-chips{display:flex;flex-wrap:wrap;flex:1 1 auto;min-width:240px;gap:8px;}
+[data-page-role="search"] .ln-filter-summary-chip{flex:0 0 auto;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;}
+@media(max-width:760px){[data-page-role="search"] .ln-filter-summary-main{display:grid;grid-template-columns:1fr}[data-page-role="search"] .ln-filter-summary-chips{width:100%;min-width:0}}

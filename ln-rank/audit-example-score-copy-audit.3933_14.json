@@ -1,0 +1,7 @@
+{
+  "audit": "audit-example-score-copy",
+  "version": "v3.9.33.14",
+  "passed": true,
+  "hits": [],
+  "note": "只检查用户可见示例，不扫描真实历史数据。"
+}

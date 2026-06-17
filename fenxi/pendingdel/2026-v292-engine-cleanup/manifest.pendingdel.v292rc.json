@@ -1,0 +1,550 @@
+{
+  "version": "V2.92RC2.4.audit-data-safe-runner",
+  "policy": "pendingdel is a rollback/quarantine area, not a trash folder. Files here are not active in the V2.92RC2 loader.",
+  "activeAssetCount": 75,
+  "movedCount": 60,
+  "items": [
+    {
+      "file": "assets/abc-decision-card-model.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-decision/abc-decision-card-model.v2981.js",
+      "category": "js-legacy-decision",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/abc-light-ui.v2983fix3.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/abc-light-ui.v2983fix3.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/abc-view.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/abc-view.v298.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/admission-evidence-rules.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-decision/admission-evidence-rules.v2981.js",
+      "category": "js-legacy-decision",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/admission-safety-rules.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-decision/admission-safety-rules.v2981.js",
+      "category": "js-legacy-decision",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/app.v2981fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-app-debug/app.v2981fix1.js",
+      "category": "js-legacy-app-debug",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/app.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-app-debug/app.v2981fix2.js",
+      "category": "js-legacy-app-debug",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/app.v2982.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-app-debug/app.v2982.js",
+      "category": "js-legacy-app-debug",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/campus-location-rules.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/campus-location-rules.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/candidate-card-view.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/candidate-card-view.v298.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/candidate-catalog-normalizer.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/candidate-catalog-normalizer.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/candidate-decision-tags.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-decision/candidate-decision-tags.v2981.js",
+      "category": "js-legacy-decision",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/candidate-tag-ui.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/candidate-tag-ui.v2981.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/candidate-tradeoff-rules.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-decision/candidate-tradeoff-rules.v2981.js",
+      "category": "js-legacy-decision",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/catalog-interest-binding.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/catalog-interest-binding.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/catalog-match-engine.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/catalog-match-engine.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/child-intent-interest-map.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/child-intent-interest-map.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/child-intent-translator.v298fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/child-intent-translator.v298fix1.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/child-intent-ui.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/child-intent-ui.v2981.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/child-interest-ui.v298fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/child-interest-ui.v298fix1.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/debug-selftest.v2983fix12.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-app-debug/debug-selftest.v2983fix12.js",
+      "category": "js-legacy-app-debug",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/decision-reminder-dedupe.v2981fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/decision-reminder-dedupe.v2981fix1.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/decision-reminder-dedupe.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/decision-reminder-dedupe.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/detail-candidate-card-model.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-detail-card/detail-candidate-card-model.v2981.js",
+      "category": "js-legacy-detail-card",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/detail-card-lite-model.v2981fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-detail-card/detail-card-lite-model.v2981fix1.js",
+      "category": "js-legacy-detail-card",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/detail-card-lite-ui.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-detail-card/detail-card-lite-ui.v2981fix2.js",
+      "category": "js-legacy-detail-card",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/detail-card-ui.v2981.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-detail-card/detail-card-ui.v2981.js",
+      "category": "js-legacy-detail-card",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/export-decision-fields.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/export-decision-fields.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/family-scenario-regression.v291rc0closure2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/family-scenario-regression.v291rc0closure2.js",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/family-scenario-regression.v291rc0closure3.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/family-scenario-regression.v291rc0closure3.js",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/frontend-trust.v291rc0front1.css",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-trust/frontend-trust.v291rc0front1.css",
+      "category": "js-legacy-trust",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/frontend-trust.v291rc0front1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-trust/frontend-trust.v291rc0front1.js",
+      "category": "js-legacy-trust",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/intent-conflict-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/intent-conflict-rules.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/interest-drawer-slim.v2983fix4.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/interest-drawer-slim.v2983fix4.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/interest-hit-summary.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/interest-hit-summary.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/interest-interaction-lite.v2983fix3.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/interest-interaction-lite.v2983fix3.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/interest-taxonomy.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/interest-taxonomy.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/interest-weight-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/interest-weight-rules.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/major-misread-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/major-misread-rules.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/module-step-priority.v2983fix3.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/module-step-priority.v2983fix3.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/notice-compact-ui.v2981fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/notice-compact-ui.v2981fix1.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/notice-compact-ui.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/notice-compact-ui.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/parent-must-read-rules.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/parent-must-read-rules.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/parent-trust.v291rc0parenttrust1.css",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-trust/parent-trust.v291rc0parenttrust1.css",
+      "category": "js-legacy-trust",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/parent-trust.v291rc0parenttrust1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-trust/parent-trust.v291rc0parenttrust1.js",
+      "category": "js-legacy-trust",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/path-explain-engine.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/path-explain-engine.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/path-review-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/path-review-rules.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/path-scenario-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/path-scenario-rules.v298.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/profile-interest-summary.v2981fix1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-interest-path/profile-interest-summary.v2981fix1.js",
+      "category": "js-legacy-interest-path",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure1.css",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure1.css",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure1.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure1.js",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure2.css",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure2.css",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure2.js",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure3.css",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure3.css",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules-closure.v291rc0closure3.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-closures/rules-closure.v291rc0closure3.js",
+      "category": "js-legacy-closures",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/rules.v297fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/rules.v297fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/scenario-ui.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-ui-source-bundled/scenario-ui.v298.js",
+      "category": "js-ui-source-bundled",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/score-rank-band-rules.v298.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/score-rank-band-rules.v298.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/student-profile-normalizer.v2981fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/student-profile-normalizer.v2981fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    },
+    {
+      "file": "assets/theme-tokens.v297fix2.js",
+      "movedTo": "pendingdel/2026-v292-engine-cleanup/js-legacy-other/theme-tokens.v297fix2.js",
+      "category": "js-legacy-other",
+      "reason": "not in V2.92RC2 active loader list; logic preserved through current core/bundle/final files or superseded by newer fix",
+      "removedFromIndex": true,
+      "baselineExpectation": "no business result change; debug.html can verify active resource chain",
+      "movedAt": "2026-05-21"
+    }
+  ],
+  "stamp": "292rc1-engine-cleanup-20260521",
+  "note": "V2.92RC2 未新增 pendingdel 移动；本清单继承 V2.92RC 的 60 个隔离文件，继续作为开发包回滚区。"
+}

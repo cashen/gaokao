@@ -1,0 +1,11 @@
+{
+  "version": "v3.9.40",
+  "assetVersion": "v3940_0",
+  "release": "v3.9.40-ln-rank-global-color-token-responsive-contract-12-role-no-fenxi",
+  "noFenxiFolder": true,
+  "noFunctionsFenxi": true,
+  "noMiddleware": true,
+  "violations": [],
+  "note": "ln-rank/fenxi-catalog.html 是既有页面文件，不是 /fenxi/ 目录或 functions/fenxi。",
+  "ok": true
+}

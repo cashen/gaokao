@@ -1,0 +1,32 @@
+{
+  "version": "v3.9.44",
+  "assetVersion": "v3944_0",
+  "release": "v3.9.44-ln-rank-real-flow-and-logic-conflict-contract-12-role-no-fenxi",
+  "actualExecuted": {
+    "activeImportRecursiveCount": 43,
+    "activeImportMissing": [],
+    "nodeCheckErrors": [],
+    "activeAssetsExist": true,
+    "noFenxiBoundary": true,
+    "cssBlastRadiusMatches": []
+  },
+  "flowStepStateContract": {
+    "mainFlow": "input/filter/select/report resolved from score/filter/results/selection/report facts",
+    "selectionPoolFlow": "score/selected/structure/report resolved from score/items/analysis/report facts",
+    "auxiliaryPages": "fake先/再/最后 flow downgraded to 本页可辅助复核 checklist"
+  },
+  "filterConflictContract": {
+    "coveredTypes": [
+      "sino_excluded_by_public_regular",
+      "special_hidden_by_default",
+      "private_excluded_by_public"
+    ],
+    "frontEndEarlyPrompt": true,
+    "backendFallback": true,
+    "selectedItemsCurrentFilterRelation": true
+  },
+  "notExecuted": {
+    "realBrowserScreenshotSmoke": "not executed in this sandbox",
+    "onlineCloudflareApiSmoke": "not executed"
+  }
+}

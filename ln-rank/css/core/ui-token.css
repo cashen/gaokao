@@ -1,0 +1,37 @@
+/* v3.9.21.6 UI tokens：把半径、阴影、间距、按钮层级收成一套产品秩序 */
+:root{
+  --ui-radius-card:18px;
+  --ui-radius-panel:22px;
+  --ui-radius-chip:999px;
+  --ui-border-soft:rgba(36,49,46,.10);
+  --ui-border-softer:rgba(36,49,46,.075);
+  --ui-shadow-card:0 8px 22px rgba(36,49,46,.055);
+  --ui-shadow-float:0 12px 30px rgba(36,49,46,.12);
+  --ui-space-xs:6px;
+  --ui-space-sm:10px;
+  --ui-space-md:14px;
+  --ui-space-lg:18px;
+  --ui-space-xl:24px;
+  --action-primary:var(--brand,#2F7D6D);
+  --action-primary-hover:var(--brand-dark,#256758);
+  --action-primary-soft:var(--brand-soft,#EAF5F1);
+  --action-primary-border:var(--brand-border,#BFDCD3);
+  --action-muted:var(--text-secondary,#60706B);
+}
+
+/* v3.9.27 visual-token-contract additions：常用透明层、焦点环、轻阴影统一出口 */
+:root{
+  --ui-surface-translucent:rgba(255,255,255,.82);
+  --ui-surface-translucent-strong:rgba(255,255,255,.94);
+  --ui-surface-warm-translucent:rgba(255,253,248,.96);
+  --ui-border-brand-soft:rgba(47,125,109,.22);
+  --ui-border-brand-weak:rgba(47,125,109,.14);
+  --ui-focus-ring:0 0 0 4px rgba(47,125,109,.10);
+  --ui-shadow-brand-soft:0 8px 18px rgba(47,125,109,.16);
+  --ui-shadow-float-soft:0 12px 26px rgba(36,49,46,.10);
+  --ui-overlay-soft:rgba(36,49,46,.28);
+  --ui-dashed-border:rgba(36,49,46,.14);
+  --ui-danger-subtle:#FFF4EF;
+  --ui-danger-text:#9A4B34;
+  --ui-danger-border:#E8C6B8;
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+const root = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
+const lr = path.join(root, 'ln-rank');
+const assets = JSON.parse(fs.readFileSync(path.join(lr, 'active-assets.json'), 'utf8'));
+const q = String(assets.assetVersion || '').replace(/^v/, '');
+const mainCssRel = assets.cssDist?.main || (assets.cssEntry || []).find(x=>x.includes('ln-rank-main'));
+const css = mainCssRel ? fs.readFileSync(path.join(lr, mainCssRel), 'utf8') : '';
+const failures=[];
+const required = ['.ln-filter-summary-main','.ln-filter-summary-chips','.ln-filter-summary-chip','.ln-filter-summary-details','.ln-filter-summary-row'];
+for (const sel of required) if (!css.includes(sel)) failures.push(`missing ${sel}`);
+if (!/@media \(max-width: 760px\)[\s\S]*\.ln-new-parent-flow \.ln-filter-panel__summary-action[\s\S]*flex-direction:\s*column/i.test(css)) failures.push('mobile summary-action is not forced to column');
+if (!/\.ln-filter-summary[\s\S]*min-width:\s*0/i.test(css)) failures.push('filter summary missing min-width:0 contract');
+if (!/\.ln-filter-summary-chip[\s\S]*white-space:\s*nowrap/i.test(css)) failures.push('summary chip missing nowrap contract');
+if (!/\.ln-filter-summary-chips[\s\S]*flex-wrap:\s*wrap/i.test(css)) failures.push('summary chips missing flex-wrap contract');
+const out={version:assets.version, assetVersion:assets.assetVersion, checked:mainCssRel, failures, status:failures.length?'fail':'pass'};
+fs.writeFileSync(path.join(lr, `mobile-filter-summary-layout-audit.${q}.json`), JSON.stringify(out,null,2));
+console.log(JSON.stringify(out,null,2));
+if (failures.length) process.exit(1);

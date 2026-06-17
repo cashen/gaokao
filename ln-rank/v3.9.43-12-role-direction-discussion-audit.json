@@ -1,0 +1,25 @@
+{
+  "version": "v3.9.43",
+  "assetVersion": "v3943_0",
+  "release": "v3.9.43-ln-rank-direction-discussion-helper-contract-12-role-no-fenxi",
+  "scope": "限定改造孩子方向抽屉；不改分数窗口、专业池数据读取、查询算法、/fenxi 边界和 middleware。",
+  "roles": {
+    "productArchitect": "孩子方向小判断改为孩子方向讨论助手，定位为家长与孩子讨论入口，不作为专业结论。",
+    "gaokaoAdvisor": "结果使用可以先放进查询/建议先了解/需要先确认，不写适合、推荐、录取判断。",
+    "dataEngineer": "方向到关键词最多 3 个方向、9 个关键词，避免自动塞入过多专业词导致专业池发散。",
+    "ruleEngineer": "接触、行为、排斥、家庭约束分层；新增冲突检测；家庭诉求不直接给方向加分。",
+    "frontendArchitect": "direction-explorer 拆为 data/engine/conflicts/render/report/state，active entry 已同步 v3943_0。",
+    "uiUxAdvisor": "抽屉改为分步问答、结果解释、二次勾选应用，减轻新手家长一次性信息压力。",
+    "mobileEngineer": "保持 44px 触控、底部按钮避让、结果卡片长文本换行和小屏 stepper 两列。",
+    "serverlessEngineer": "本功能继续前端本地可用；报告上下文结构稳定传入报告，不新增后端依赖。",
+    "qaEngineer": "新增 12 个方向讨论合同样本，覆盖空选择、低接触、冲突、家庭约束、关键词上限和报告禁词。",
+    "devopsEngineer": "版本合同同步到 v3.9.43/v3943_0；no-fenxi 边界保持。",
+    "securityComplianceAdvisor": "不收集后端敏感心理标签；sessionStorage 本地保存；文案避免测评/推荐/承诺方向。",
+    "qualityAuditor": "页面、报告、方向助手统一为讨论记录；应用到专业池需要二次确认，不覆盖已有关键词。"
+  },
+  "knownLimits": [
+    "真实浏览器截图 smoke 未完成，需部署前补 375/390/768/1366 断点检查。",
+    "线上 Cloudflare API 未实测，部署后需测 self-check、kb-health、飞书报告、单卡诊断。",
+    "本版仍保留旧版本资产，active-assets 指向 v3943_0，未做 active-only 包瘦身。"
+  ]
+}

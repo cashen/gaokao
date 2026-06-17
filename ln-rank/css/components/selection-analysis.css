@@ -1,0 +1,72 @@
+/* v3.9.21.2 selection analysis component */
+.ln-selection-analysis-panel{margin-top:18px}.analysis-stale{border:1px solid rgba(245,158,11,.28);background:#fffbeb;color:#92400e;border-radius:14px;padding:10px 12px;font-weight:900}.analysis-box{display:grid;gap:12px}.analysis-summary,.analysis-ai-card,.analysis-section,.analysis-ai-section,.analysis-rankzone{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;padding:14px;box-shadow:0 10px 26px rgba(15,23,42,.04)}.analysis-ai-section h3,.analysis-section h3{margin:0 0 6px;color:#0f766e;font-size:15px}.analysis-ai-section p,.analysis-section p{margin:0;color:#475569;line-height:1.75}.analysis-list{margin:8px 0 0;padding-left:18px;color:#475569;line-height:1.75}.analysis-raw-details{border:1px dashed rgba(15,23,42,.16);border-radius:16px;background:#f8fafc;padding:12px}.analysis-mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.analysis-mini-grid div{border-radius:14px;background:#fff;padding:10px}.analysis-mini-grid span{display:block;color:#64748b;font-size:12px}.analysis-mini-grid b{font-size:18px;color:#0f172a}@media(max-width:760px){.analysis-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* v3.9.33.12 生成前诊断人话合同：硬数据 / 人话判断 / 下一步动作分层展示。 */
+.analysis-rankzone.human-rankzone {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr) !important;
+  gap: 12px !important;
+  padding: 12px !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-label {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-bottom: 6px !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  color: var(--text-secondary, #60706B) !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-main strong {
+  display: block !important;
+  font-size: 17px !important;
+  line-height: 1.35 !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-main p,
+.analysis-rankzone.human-rankzone .rankzone-family-zone {
+  margin: 6px 0 0 !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+  color: var(--text-secondary, #60706B) !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-grid {
+  display: grid !important;
+  gap: 8px !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-grid div {
+  padding: 9px 10px !important;
+  border-radius: 13px !important;
+  background: var(--surface-soft, #FBFCF8) !important;
+  border: 1px solid var(--line-soft, #DDE7E2) !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-grid span {
+  display: block !important;
+  font-size: 11.8px !important;
+  color: var(--text-secondary, #60706B) !important;
+}
+.analysis-rankzone.human-rankzone .rankzone-grid b {
+  display: block !important;
+  margin-top: 3px !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  color: var(--text-main, #24312E) !important;
+}
+.analysis-ai-card,
+.analysis-section,
+.analysis-ai-section,
+.analysis-raw-details {
+  font-size: 13px !important;
+}
+.analysis-ai-section h3,
+.analysis-section h3 {
+  font-size: 14px !important;
+}
+.analysis-ai-section p,
+.analysis-section p,
+.analysis-list {
+  line-height: 1.65 !important;
+}
+@media (max-width: 760px) {
+  .analysis-rankzone.human-rankzone {
+    grid-template-columns: 1fr !important;
+  }
+}

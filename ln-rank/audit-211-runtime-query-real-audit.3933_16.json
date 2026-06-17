@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
+  "note": "使用 mock manifest/chunk 验证同一批历史专业记录下，本地属性与 211 均走位置窗口优先链路；线上仍需部署后用真实 /fenxi/data 复测。",
+  "samples": [
+    {
+      "api": "local-mainline",
+      "score": 650,
+      "windowCandidateCount": 4,
+      "matchedCount": 1,
+      "example": "沈阳工业大学-电气工程及其自动化"
+    },
+    {
+      "api": "211-mainline",
+      "score": 650,
+      "windowCandidateCount": 4,
+      "matchedCount": 2,
+      "examples": [
+        "西安电子科技大学-电子信息类",
+        "北京邮电大学-通信工程"
+      ]
+    }
+  ]
+}

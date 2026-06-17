@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "version": "v3.9.33.15",
+  "checks": [
+    "211 page score tab changed to 按孩子位置看",
+    "local-mainline score tab changed to 按孩子位置看",
+    "API boundary explains 2026 rank/equivalent reference switch",
+    "no user-facing empty score-index copy remains in 211 API"
+  ]
+}

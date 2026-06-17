@@ -1,4 +1,2 @@
-V2.91RC0.rules-closure4.front2｜家长端低调视觉修正版
-版本戳：291rc0front2-20260514
-基线：V2.91RC0.rules-closure4.front1
-边界：纯前端视觉层，不改候选池、排序、A/B/C 业务结果。
+V2.92RC2.5.audit-human-scenario-runner
+基于 V2.92RC2.4，只修 ABC 人类场景审计 runner 与 debug 外层超时归零问题；不改业务计算、筛选公式、A/B/C 规则。
