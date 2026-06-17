@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.45",
-  "assetVersion": "v3945_0",
+  "version": "v3.9.46",
+  "assetVersion": "v3946_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,36 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3945_0.js",
-    "js/selection-pool.v3945_0.js",
-    "js/major-trend-render.v3945_0.js",
-    "js/self-check.v3945_0.js",
-    "js/local-mainline/local-mainline-app.v3945_0.js",
-    "js/211-mainline/211-mainline-app.v3945_0.js"
+    "js/app.v3946_0.js",
+    "js/selection-pool.v3946_0.js",
+    "js/major-trend-render.v3946_0.js",
+    "js/self-check.v3946_0.js",
+    "js/local-mainline/local-mainline-app.v3946_0.js",
+    "js/211-mainline/211-mainline-app.v3946_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3945_0.css",
-    "css/dist/ln-rank-selection.v3945_0.css",
-    "css/dist/ln-rank-trend.v3945_0.css",
-    "css/dist/ln-rank-self-check.v3945_0.css",
-    "css/dist/local-mainline.v3945_0.css",
-    "css/dist/211-mainline.v3945_0.css"
+    "css/dist/ln-rank-main.v3946_0.css",
+    "css/dist/ln-rank-selection.v3946_0.css",
+    "css/dist/ln-rank-trend.v3946_0.css",
+    "css/dist/ln-rank-self-check.v3946_0.css",
+    "css/dist/local-mainline.v3946_0.css",
+    "css/dist/211-mainline.v3946_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3945_0.css",
-    "selection": "css/dist/ln-rank-selection.v3945_0.css",
-    "trend": "css/dist/ln-rank-trend.v3945_0.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3945_0.css",
-    "localMainline": "css/dist/local-mainline.v3945_0.css",
-    "main211": "css/dist/211-mainline.v3945_0.css"
+    "main": "css/dist/ln-rank-main.v3946_0.css",
+    "selection": "css/dist/ln-rank-selection.v3946_0.css",
+    "trend": "css/dist/ln-rank-trend.v3946_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3946_0.css",
+    "localMainline": "css/dist/local-mainline.v3946_0.css",
+    "main211": "css/dist/211-mainline.v3946_0.css"
   },
-  "releaseGate": "human workflow state + query session + stale result + report freshness + typography hierarchy contract, no-fenxi",
+  "releaseGate": "child direction helper parent-readable mobile two-action contract, no-fenxi",
+  "directionHelperCopyContract": true,
+  "directionHelperSelectionContract": true,
+  "directionHelperMobileActionbarContract": true,
+  "directionHelperCardDensityContract": true,
+  "directionHelperSafeAreaContract": true,
   "querySessionContract": true,
   "humanWorkflowStateContract": true,
   "staleResultContract": true,
