@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辽宁 2026 物理类生成报告前确认</title>
+  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-selection.v3946_3.css?v=3946_3" />
+</head>
+<body class="ln-parent-guided-flow ln-selection-guided-flow">
+  <main class="page ln-selection-page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">辽宁 2026 物理类专业初选</p>
+        <h1 class="app-title">生成报告前确认</h1>
+        <p class="app-subtitle">下面这些专业会放进报告里。不合适的可以先移除，确认后再生成飞书报告。</p>
+      </div>
+      <div class="hero-badges">
+        <a class="scope-pill" href="/ln-rank/">返回查询页</a>
+        <div class="scope-pill">生成飞书报告</div>
+      </div>
+    </header>
+
+    <section class="ln-plan-status-strip" aria-label="方案整理状态">
+      <div class="ln-plan-status-main"><b>方案整理工作台</b><span>先检查已选专业，再看结构和核验清单，最后生成报告复核。</span></div>
+      <ol class="ln-plan-status-steps"><li>确认分数</li><li>检查已选</li><li>看结构</li><li>保存报告</li></ol><p class="ln-plan-status-note" data-plan-flow-note>先检查已选专业，再看结构和核验清单。</p>
+    </section>
+
+    <section class="ln-selection-step ln-selection-score-panel" aria-labelledby="selectionScoreTitle">
+      <div class="ln-step-marker">分数确认</div>
+      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认孩子高考分数</h2><p>报告里的“相对孩子分数”和分段提醒，都会按这里的分数重新计算。</p></div>
+      <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">孩子高考分数</label><input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" placeholder="如 666" /></div></div>
+    </section>
+    <section class="ln-selection-main" aria-label="生成报告前确认">
+      <div class="workspace-panel workspace-panel-list ln-selection-list-panel">
+        <div class="workspace-head ln-selection-panel-head">
+          <div>
+            <div class="ln-step-marker">已选清单</div>
+            <h2 class="workspace-title">已选专业</h2>
+            <p class="workspace-desc">不想放进报告的，可以先移除；确认后再生成飞书报告。</p>
+          </div>
+          <div class="workspace-actions workspace-actions-list ln-selection-list-actions">
+            <a class="workspace-button muted" href="/ln-rank/">返回继续添加</a>
+            <button id="sortByBand" class="workspace-button">按分段整理</button>
+            <button id="clearPool" class="workspace-button danger-muted">清空已选</button>
+          </div>
+        </div>
+        <div id="workspaceStats"></div>
+        <section id="selectionFilterRelation" class="ln-selection-filter-relation" hidden></section>
+      <div id="selectionUndoStatus" class="ln-selection-undo-status" aria-live="polite"></div>
+        <div id="workspaceList" class="workspace-list compact-list"></div>
+        <div id="reviewChecklistPanel"></div>
+      </div>
+
+      <aside class="ln-selection-side" aria-label="检查与报告操作">
+        <section class="workspace-panel ln-selection-action-panel">
+          <div class="workspace-head ln-selection-panel-head ln-action-panel-head">
+            <div>
+              <div class="ln-step-marker">结构检查</div>
+              <h2 class="workspace-title">生成前看一眼</h2>
+              <p class="workspace-desc">看看专业方向、城市和费用是否过于集中，有没有需要再确认的地方。</p>
+            </div>
+          </div>
+          <div id="selectionActionHint"></div>
+          <div id="directionExplorerReportMount" class="direction-explorer-report-mount"></div>
+          <div class="workspace-actions ln-action-button-grid">
+            <button id="runAnalysis" class="workspace-button primary">生成前看一眼</button>
+            <button id="sendAnalyzedPool" class="workspace-button report-primary">生成飞书报告</button>
+            <button id="sendSelectionPool" class="workspace-button">用已选专业生成报告</button>
+            <button id="copySelectionText" class="workspace-button muted">复制文字版</button>
+          </div>
+          <div class="ln-report-help">生成飞书报告会带上已选专业、筛选条件和需要再确认的地方；飞书暂时不可用时，先复制文字版保存。</div>
+          <div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="workspace-panel ln-selection-analysis-panel" id="selectionAnalysisPanel" aria-labelledby="selectionAnalysisTitle">
+      <div class="workspace-head ln-selection-panel-head">
+        <div>
+          <div class="ln-step-marker">生成前提醒</div>
+          <h2 id="selectionAnalysisTitle" class="workspace-title">生成前看一眼的结果会显示在这里</h2>
+          <p class="workspace-desc">这里会提示分段搭配、方向集中、费用和特殊项目等需要再确认的地方。</p>
+        </div>
+      </div>
+      <div id="analysisResult"></div>
+    </section>
+
+    <section class="data-note">
+      当前报告内容基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取判断。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.46.3｜数据口径：辽宁 2025 物理类｜专业方向变化参考：2024/2025 同校同专业普通项目｜<a href="/ln-rank/major-trend-2025.html">查看专业方向变化参考</a>
+    </section>
+  </main>
+  <script type="module" src="/ln-rank/js/selection-pool.v3946_3.js?v=3946_3"></script>
+</body>
+</html>

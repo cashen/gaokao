@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全国 211 院校专业背景怎么先看｜ln-rank</title>
+  <link rel="stylesheet" href="/ln-rank/css/dist/211-mainline.v3946_3.css?v=3946_3" />
+</head>
+<body class="ln-parent-product-flow ln-aux-guided-page">
+  <main class="lm-page jm-page">
+    <nav class="aux-page-nav" aria-label="辅助页导航">
+      <a href="/ln-rank/">专业初选首页</a>
+      <a href="/ln-rank/local-mainline.html">省内背景</a>
+      <a href="/ln-rank/211-mainline.html" class="is-current">211 背景</a>
+    </nav>
+
+    <header class="lm-hero jm-hero">
+      <div>
+        <p class="lm-eyebrow">辽宁物理类 · 全国 211 院校专业背景</p>
+        <h1>全国 211 院校专业背景怎么先看？</h1>
+        <p>可以按学校、专业或分数查看：哪些 211 院校专业和学科建设、本科专业对应、方向提醒有关。这里只帮助家庭复核，不代表录取判断。</p>
+      </div>
+    </header>
+
+    <section class="ln-aux-guidance-note" aria-label="复核顺序提示">先查专业结果，再看 211 背景复核；本页只帮助理解学校与本科专业方向关系，不替代招生章程和当年计划核验。</section>
+
+    <section class="lm-boundary lm-boundary-soft" aria-label="使用边界">
+      <p><b>先说明：</b>本页只帮助家庭理解 211 院校和本科专业之间的背景关系，不代表录取判断，也不代表专业结论。</p>
+      <details>
+        <summary>为什么不能直接当结论？</summary>
+        <div class="lm-boundary-detail">
+          <p>博士点、重点学科、双一流建设学科和第四轮学科评估都是学校背景证据。只有能与本科招生专业明确对应时，才显示“本校方向 / 本校相关 / 方向提醒”。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="lm-start-guide jm-start-guide ln-aux-start-guide" aria-label="不知道从哪里开始">
+      <h2>不知道从哪开始？</h2>
+      <div class="lm-start-grid">
+        <button type="button" class="lm-start-card" data-start-tab="school"><b>已经知道学校</b><span>按学校看：这所 211 院校主要和哪些本科专业方向有关。</span></button>
+        <button type="button" class="lm-start-card" data-start-tab="major"><b>孩子有专业方向</b><span>按专业看：同一个专业在不同 211 院校里的学校背景差异。</span></button>
+        <button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道孩子位置</b><span>先按当前输入分数对照历史记录；2026 一分一段接入后，统一按位次/等位参考查看 211 背景。</span></button>
+      </div>
+    </section>
+
+    <nav class="lm-tabs" aria-label="查询入口">
+      <button type="button" class="lm-tab is-active" data-tab="school">按学校看</button>
+      <button type="button" class="lm-tab" data-tab="major">按专业看</button>
+      <button type="button" class="lm-tab" data-tab="score">按孩子位置看</button>
+    </nav>
+
+    <section class="lm-panel" data-panel="school">
+      <div class="lm-panel-head"><div><h2>从学校看：这所 211 院校大概偏什么方向</h2><p>适合已经有目标学校的家庭。学校背景，再看本科专业对应和建议再看。</p></div><input id="schoolSearch" class="lm-input" type="search" placeholder="搜索学校，如 西安电子科技大学" /></div>
+      <div id="schoolList" class="lm-grid"></div><div id="schoolDetail" class="lm-detail" hidden></div>
+    </section>
+
+    <section class="lm-panel" data-panel="major" hidden>
+      <div class="lm-panel-head"><div><h2>从专业看：同名专业在不同 211 院校有什么差别</h2><p>适合孩子已有方向的家庭。这里不写专业结论，只提示学校背景和本科专业对应关系。</p></div><input id="majorSearch" class="lm-input" type="search" placeholder="搜索专业，如 通信工程、电气、法学" /></div>
+      <div class="lm-quick-row" id="majorQuickRow"></div><div id="majorList" class="lm-grid"></div><div id="majorDetail" class="lm-detail" hidden></div>
+    </section>
+
+    <section class="lm-panel" data-panel="score" hidden>
+      <div class="lm-panel-head"><div><h2>按孩子位置看：当前位置附近的 211 专业背景记录</h2><p>当前先用输入分数对照辽宁 2025 物理类历史记录；2026 一分一段接入后，会统一按位次/等位参考查看。军事类特殊院校不混入普通入口。</p></div></div>
+      <div class="lm-score-console lm-score-console-human"><label>孩子当前分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 666" /></label><label>查看方式 <select id="scoreLevel" class="lm-select"><option value="primary_secondary">先看本校方向和本校相关</option><option value="primary">只看本校方向</option><option value="all">连方向提醒也一起看</option></select></label><button id="scoreQuery" class="lm-primary" type="button">按当前位置查看</button></div>
+      <div id="scoreResult" class="lm-detail"></div>
+    </section>
+
+    <section class="lm-howto lm-next-step"><h2>本页可辅助复核</h2><div class="lm-howto-grid"><div><b>学校背景</b><p>确认这所 211 院校与孩子想看的本科专业是否有可复核对应。</p></div><div><b>专业差异</b><p>同名专业在不同学校可能对应不同学院、课程和培养场景。</p></div><div><b>章程 / 校区 / 学费</b><p>继续核验招生章程、培养方案、校区、学费、大类分流和体检要求。</p></div><div><b>分数只作历史参考</b><p>分数入口只整理历史记录，不替家庭判断录取结果。</p></div></div></section>
+
+    <section class="aux-page-bottom-link" aria-label="返回主线">
+      <span>需要重新查分数和专业？</span><a href="/ln-rank/">回到辽宁物理类专业初选参考</a>
+    </section>
+    <footer class="lm-footer">版本：v3.9.46.3｜数据口径：211 KB v0.1 + 统一背景位置口径｜本页用于家庭讨论和人工复核，不做录取判断。</footer>
+  </main>
+  <script type="module" src="/ln-rank/js/211-mainline/211-mainline-app.v3946_3.js?v=3946_3"></script>
+</body>
+</html>
