@@ -1,5 +1,5 @@
 export const LN_RANK_VERSION = {
-  display: 'v3.9.46.1',
-  asset: '3946_1',
-  release: 'v3.9.46.1-ln-rank-visible-version-clean-package-contract-12-role-no-fenxi'
+  display: 'v3.9.46.2',
+  asset: '3946_2',
+  release: 'v3.9.46.2-ln-rank-release-contract-export-fix-clean-package-12-role-no-fenxi'
 };
