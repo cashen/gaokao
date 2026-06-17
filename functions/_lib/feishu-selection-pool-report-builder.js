@@ -163,7 +163,7 @@ function localContextMarkdownLines(items = []) {
   if (!rows.length) return [];
   const backgroundCount = rows.filter(x => x.entry.kind === 'background').length;
   const trajectoryCount = rows.filter(x => x.entry.kind === 'trajectory').length;
-  const lines = ['## 院校专业背景复核', '', `- 院校专业背景：${fmt(backgroundCount)} 条`, `- 方向提醒：${fmt(trajectoryCount)} 条`, '- 说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。', ''];
+  const lines = ['## 院校专业背景复核', '', `- 院校专业背景：${fmt(backgroundCount)} 条`, `- 方向提醒：${fmt(trajectoryCount)} 条`, '- 说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景、招生章程和 211/省内背景对应关系。', ''];
   rows.slice(0, 10).forEach(({ item, entry }) => {
     lines.push(`- ${item.school} · ${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
   });
@@ -174,16 +174,28 @@ function localContextMarkdownLines(items = []) {
 function localStrengthMarkdownLines(items = []) {
   const rows = [];
   (Array.isArray(items) ? items : []).forEach(item => {
+    const mark = item.localStrengthMark?.matched ? item.localStrengthMark : null;
+    if (mark) {
+      rows.push({ item, mark });
+      return;
+    }
     const entries = localContextItems(item);
     if (!entries.length) return;
     const primary = entries[0];
-    rows.push({ item, entry: primary });
+    rows.push({ item, mark: {
+      direction: primary.title || '学校背景方向',
+      sourceText: primary.kind === 'trajectory' ? '方向提醒' : '省内背景',
+      verifyItems: primary.reviewText ? String(primary.reviewText).split(/\s*\/\s*|、|；|;|，/).filter(Boolean) : [],
+      why: primary.reportTip || ''
+    }});
   });
   if (!rows.length) return [];
-  const lines = ['## 本次别漏看的学校强项方向', '', '- 说明：这些条目与学校背景、行业方向或专业建设线索有关，适合家庭重点复核；不是录取判断，也不是填报建议。', ''];
-  rows.slice(0, 10).forEach(({ item, entry }) => {
-    const review = entry.reviewText || '招生计划 / 校区 / 近年位次 / 培养方向';
-    lines.push(`- ${item.school} · ${item.major}：${entry.title}${review ? `｜建议再看：${review}` : ''}`);
+  const lines = ['## 本次别漏看的学校强项方向', '', '- 说明：这些条目与省内学校背景、211院校背景、行业方向或专业建设线索有关，适合家庭重点复核；不是录取判断，也不是填报建议。', ''];
+  rows.slice(0, 10).forEach(({ item, mark }) => {
+    const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
+    const review = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
+    lines.push(`- ${item.school} · ${item.major}：${mark.direction || '学校背景方向'}｜提示来源：${source}${review ? `｜建议再看：${review}` : ''}`);
+    if (mark.why) lines.push(`  - 为什么提醒：${clean(mark.why, 220)}`);
   });
   lines.push('');
   return lines;
