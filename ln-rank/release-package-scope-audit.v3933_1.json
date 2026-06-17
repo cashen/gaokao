@@ -1,7 +1,0 @@
-{
-  "version": "v3.9.33.1",
-  "failures": [
-    "old active-version entries remain: app.v3933_2.js,major-trend-render.v3933_2.js,selection-pool.v3933_2.js,self-check.v3933_2.js"
-  ],
-  "status": "fail"
-}

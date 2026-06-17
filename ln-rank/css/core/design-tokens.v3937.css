@@ -1,2 +1,0 @@
-/* v3.9.37 design tokens: visual consistency without changing business logic. */
-:root{--ln-page-max:1180px;--ln-read-max:960px;--ln-radius-card:18px;--ln-radius-pill:999px;--ln-space-page:clamp(14px,2vw,26px);--ln-action-min-h:44px;--ln-text-main:#24312e;--ln-text-muted:#66756f;--ln-border-soft:#dfe8e4;--ln-bg-soft:#f6faf8;--ln-warn-bg:#fffaf0;--ln-warn-border:#ead7a8;--ln-warn-text:#765321;}

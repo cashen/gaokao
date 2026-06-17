@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.46.2",
-  "assetVersion": "v3946_2",
-  "releaseName": "v3.9.46.2-ln-rank-release-contract-export-fix-clean-package-12-role-no-fenxi",
+  "version": "v3.9.46.3",
+  "assetVersion": "v3946_3",
+  "releaseName": "v3.9.46.3-ln-rank-pure-runtime-package-import-graph-12-role-no-fenxi",
   "generatedAt": "2026-06-17T11:40:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -23,5 +23,9 @@
   "legacyRuntimeAssetsRemoved": true,
   "visibleVersionClean": true,
   "cloudflarePagesExportContract": true,
-  "releaseContractExportFix": true
+  "releaseContractExportFix": true,
+  "pureRuntimePackage": true,
+  "importGraphPruned": true,
+  "auditToolsExcluded": true,
+  "oldVersionRuntimeFilesRemoved": true
 }

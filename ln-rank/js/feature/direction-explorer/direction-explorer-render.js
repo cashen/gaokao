@@ -1,6 +1,6 @@
-import { QUESTION_SECTIONS, DIRECTION_BUCKETS } from './direction-explorer-data.js?v=3946_2';
-import { buildDirectionExplorerResult, withDirectionSelection } from './direction-explorer-engine.js?v=3946_2';
-import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3946_2';
+import { QUESTION_SECTIONS, DIRECTION_BUCKETS } from './direction-explorer-data.js?v=3946_3';
+import { buildDirectionExplorerResult, withDirectionSelection } from './direction-explorer-engine.js?v=3946_3';
+import { loadDirectionExplorerState, saveDirectionExplorerState, updateDirectionExplorerState, clearDirectionExplorerAll, clearDirectionExplorerApplied } from './direction-explorer-state.js?v=3946_3';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');

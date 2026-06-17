@@ -1,5 +1,0 @@
-{
-  "status": "PASS",
-  "forbidden": [],
-  "note": "functions/_lib/fenxi-* shared helpers are preserved because current no-fenxi boundary only forbids /fenxi, functions/fenxi and functions/_middleware.js."
-}

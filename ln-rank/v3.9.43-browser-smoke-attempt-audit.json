@@ -1,9 +1,0 @@
-{
-  "version": "v3.9.43",
-  "assetVersion": "v3943_0",
-  "attempted": false,
-  "passed": false,
-  "reason": "当前环境未执行真实浏览器截图 smoke。部署前仍需补测 375/390/414/430/768/1024/1366。",
-  "requiredPages": ["index.html", "selection-pool.html", "211-mainline.html", "local-mainline.html", "major-trend-2025.html", "self-check.html"],
-  "requiredBreakpoints": [375, 390, 414, 430, 768, 1024, 1366]
-}

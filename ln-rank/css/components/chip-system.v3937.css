@@ -1,4 +1,0 @@
-/* v3.9.37 chip contract: chips may wrap as groups, but short chips must not split character-by-character. */
-.ln-chip,.ln-filter-summary-chip,.ln-tab-chip,.ln-status-pill,.rank-band-chip,.lm-pill{white-space:nowrap;word-break:keep-all;overflow-wrap:normal;max-width:100%;}
-.ln-chip-group,.ln-filter-summary-chips,.ln-tab-row{display:flex;flex-wrap:wrap;gap:8px;min-width:0;}
-@media(max-width:760px){.ln-filter-summary-chips{width:100%;min-width:0}.ln-filter-summary-chip{max-width:100%;}}
