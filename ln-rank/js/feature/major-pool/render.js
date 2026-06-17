@@ -8,6 +8,7 @@ import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js
 import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_14';
 import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_14';
 import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_14';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3946_4';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -116,6 +117,42 @@ function renderResultContextBar(data, group, state, specialMode) {
     </div>
   </section>`;
 }
+
+function renderResultViewTabs(state, group) {
+  const records = Array.isArray(group?.records) ? group.records : [];
+  const summary = buildLocalStrengthSummary(records);
+  const mode = state.resultViewMode === 'localStrength' ? 'localStrength' : 'all';
+  const allActive = mode === 'all' ? ' is-active' : '';
+  const strengthActive = mode === 'localStrength' ? ' is-active' : '';
+  const note = summary.total
+    ? `当前结果里发现 ${fmt(summary.total)} 条学校强项方向。它们不是录取判断，只是提醒家庭重点了解和复核。`
+    : '当前范围暂时没有明显的学校强项提示，可以继续查看全部专业，或放宽地区、专业方向后再看。';
+  return `<section class="result-view-tabs" aria-label="结果视图切换">
+    <div class="result-view-tab-row">
+      <button type="button" class="result-view-tab${allActive}" data-result-view="all" aria-pressed="${mode === 'all' ? 'true' : 'false'}">全部专业 <b>${fmt(records.length)}</b></button>
+      <button type="button" class="result-view-tab${strengthActive}" data-result-view="localStrength" aria-pressed="${mode === 'localStrength' ? 'true' : 'false'}">学校强项 <b>${fmt(summary.total)}</b></button>
+    </div>
+    <p class="result-view-note">${escapeHtml(note)}</p>
+  </section>`;
+}
+
+function renderLocalStrengthFeature(record, activeBand, viewMode) {
+  const mark = resolveLocalStrengthMark(record);
+  if (!mark.matched) return '';
+  const relation = localStrengthRelationText(record, activeBand);
+  const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
+  if (viewMode !== 'localStrength') {
+    return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(mark.direction || '学校背景方向')}</b></div>`;
+  }
+  return `<section class="local-strength-card-block" aria-label="学校强项提醒">
+    <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(mark.direction || '学校背景方向')}</b></div>
+    <p><strong>为什么提醒：</strong>${escapeHtml(mark.why || '这条专业与学校办学背景或行业方向有关，建议家庭单独了解和复核。')}</p>
+    <p><strong>和当前分数的关系：</strong>${escapeHtml(relation)}</p>
+    <p><strong>填报前再确认：</strong>${escapeHtml(verify)}</p>
+    <small>${escapeHtml(mark.boundary || '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。')}</small>
+  </section>`;
+}
+
 function renderSearchAdvices(data) {
   const advices = [...(Array.isArray(data?.filterConflicts) ? data.filterConflicts : []), ...(Array.isArray(data?.searchAdvices) ? data.searchAdvices : [])];
   if (!advices.length) return '';
@@ -223,7 +260,7 @@ function localMainlineLink(record) {
   return `<a class="local-mainline-card-link" href="${href}" title="${escapeHtml(title)}">省内背景</a>`;
 }
 
-function card(record, index = 0, selectionPool = null, activeBand = 'near') {
+function card(record, index = 0, selectionPool = null, activeBand = 'near', viewMode = 'all') {
   const delta = Number(record.scoreDelta || 0);
   const deltaText = delta > 0 ? `+${delta}` : String(delta);
   const statusKey = record.statusKey || 'match';
@@ -231,7 +268,9 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
   const bandClass = `is-band-${bandKey}`;
   const displayBandLabel = bandLabel(bandKey);
   const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${escapeHtml(t)}</span>`).join('');
-  return `<article class="major-card ln-major-card status-${statusKey} ${bandClass}">
+  const localStrength = resolveLocalStrengthMark(record);
+  const strengthClass = localStrength.matched ? ' has-local-strength' : '';
+  return `<article class="major-card ln-major-card status-${statusKey} ${bandClass}${strengthClass}">
     <div class="major-card-top">
       <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
       <span class="status-badge ln-band-pill ${bandClass}" title="分数位置：只是当前查看分组，不代表录取把握。">分数位置：${escapeHtml(displayBandLabel)}</span>
@@ -247,13 +286,14 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near') {
     ${renderMajorCode(record)}
     ${renderKnowledgeChips(record)}
     ${renderLocalContextInline(record)}
+    ${renderLocalStrengthFeature(record, activeBand, viewMode)}
     ${Array.isArray(record.flags) && record.flags.length ? `<div class="meta-pills">${record.flags.slice(0,2).map(f => `<span class="meta-pill">需核验：${escapeHtml(f)}</span>`).join('')}</div>` : ''}
     ${matchReason(record)}
     ${renderSpecialProjectAlert(record)}
     ${renderReviewPoints(record)}
     <div class="major-card-actions">
       ${poolButton(record, index, selectionPool)}
-      <button class="diagnose-button" type="button" data-diagnose-index="${index}">单条解读</button>
+      <button class="diagnose-button" type="button" data-diagnose-index="${index}">看懂这条</button>
     </div>
     <div class="pool-add-hint" data-pool-hint="${index}"></div>
   </article>`;
@@ -296,11 +336,16 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     return;
   }
   const group = normalizeScoreBand(data.bands[state.activeBand], { key: state.activeBand, candidateScore: state.candidateScore, rangePreset: state.rangePreset });
-  title.textContent = `符合条件的可讨论专业：${group.title}`;
+  const viewMode = state.resultViewMode === 'localStrength' ? 'localStrength' : 'all';
+  const localStrengthRecords = filterLocalStrengthRecords(group.records);
+  const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : group.records;
+  title.textContent = viewMode === 'localStrength' ? `别漏看的学校强项：${group.title}` : `符合条件的可讨论专业：${group.title}`;
   badge.textContent = group.rangeText || '输入分数后生成';
-  meta.textContent = `共 ${fmt(group.records.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
+  meta.textContent = viewMode === 'localStrength'
+    ? `学校强项 ${fmt(localStrengthRecords.length)} 条｜当前范围全部 ${fmt(group.records.length)} 条｜${data.meta.dataScope}`
+    : `共 ${fmt(group.records.length)} 条｜学校强项 ${fmt(localStrengthRecords.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
   const visible = state.visible[state.activeBand] || 16;
-  const shown = group.records.slice(0, visible);
+  const shown = visibleRecords.slice(0, visible);
   const bottomLine = data.meta?.bottomLine || null;
   const bottomLineMode = data.meta?.bottomLineMode || 'all';
   const excluded = Number(data.source?.bottomLineExcluded || 0);
@@ -310,13 +355,16 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     : '';
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
   const resultContextBar = renderResultContextBar(data, group, state, specialMode);
+  const resultViewTabs = renderResultViewTabs(state, group);
   root.className = 'results-grid';
-  const emptyReason = bottomLineMode !== 'all'
-    ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
-    : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`;
+  const emptyReason = viewMode === 'localStrength'
+    ? `<div class="empty local-strength-empty"><b>当前范围暂时没有明显的学校强项提示。</b><p>可以继续查看全部专业，或放宽地区、专业方向后再看。这里不是填报建议列表，只是帮家里防止漏看有学校背景的专业方向。</p><button type="button" class="result-view-inline-button" data-result-view="all">回到全部专业</button></div>`
+    : (bottomLineMode !== 'all'
+      ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
+      : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`);
   const assistParts = [searchAdvices, bottomLineNote].filter(Boolean).join('');
   const assistBlock = assistParts ? `<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">${assistParts}</div></details>` : '';
-  root.innerHTML = resultContextBar + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand)).join('') : emptyReason);
+  root.innerHTML = resultContextBar + resultViewTabs + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode)).join('') : emptyReason);
   root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       const bar = button.closest('.result-context-bar');
@@ -331,6 +379,13 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   root.querySelectorAll('[data-context-special-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       document.getElementById('specialProjectToggle')?.click?.();
+    });
+  });
+  root.querySelectorAll('[data-result-view]').forEach(button => {
+    button.addEventListener('click', () => {
+      const next = button.dataset.resultView === 'localStrength' ? 'localStrength' : 'all';
+      state.resultViewMode = next;
+      renderMajorResults(state, { onMore, selectionPool, onSelectionChange });
     });
   });
   mountDiagnoseButtons(root, shown, state);
@@ -379,8 +434,8 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       document.querySelector(`[data-bottomline-mode="${target}"]`)?.click?.();
     });
   });
-  if (group.records.length > visible) {
-    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}">查看更多 ${group.title}</button>`);
+  if (visibleRecords.length > visible) {
+    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}">查看更多 ${viewMode === 'localStrength' ? '学校强项' : group.title}</button>`);
     root.querySelector('[data-more]')?.addEventListener('click', () => onMore(state.activeBand));
   }
 }

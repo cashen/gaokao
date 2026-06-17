@@ -3,6 +3,7 @@ export const state = {
   rangePreset: "standard",
   activeBand: "near",
   bandFocus: "near",
+  resultViewMode: "all",
   filters: {
     region: "all",
     schoolKeyword: "",
