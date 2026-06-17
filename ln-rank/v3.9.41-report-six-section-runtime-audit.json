@@ -1,0 +1,21 @@
+{
+  "version": "v3.9.41",
+  "assetVersion": "v3941_0",
+  "release": "v3.9.41-ln-rank-serious-color-balance-responsive-contract-12-role-no-fenxi",
+  "ok": true,
+  "executed": "local Node report builder invocation",
+  "result": {
+    "styledBlocks": 45,
+    "reportVersion": "v3.9.41",
+    "ok": true,
+    "found": {
+      "一、概要判断": true,
+      "二、当前方案怎么看": true,
+      "三、前中后段快速确认": true,
+      "四、最终排序清单": true,
+      "五、本方案确认清单": true,
+      "六、数据和使用边界": true
+    }
+  },
+  "stderr": ""
+}

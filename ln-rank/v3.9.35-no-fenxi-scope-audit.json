@@ -1,0 +1,5 @@
+{
+  "ok": true,
+  "disallowed": [],
+  "note": "Allows existing functions/api/fenxi-catalog.js; disallows packaged /fenxi static, functions/fenxi, and functions/_middleware.js."
+}

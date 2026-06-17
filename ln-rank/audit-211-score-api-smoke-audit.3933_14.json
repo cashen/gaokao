@@ -1,0 +1,39 @@
+{
+  "audit": "audit-211-score-api-smoke",
+  "version": "v3.9.33.14",
+  "passed": true,
+  "results": [
+    {
+      "url": "/api/211-mainline?mode=meta",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "parseOk": true,
+      "okField": true,
+      "htmlLike": false
+    },
+    {
+      "url": "/api/211-mainline?mode=school&school=%E8%A5%BF%E5%AE%89%E7%94%B5%E5%AD%90%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "parseOk": true,
+      "okField": true,
+      "htmlLike": false
+    },
+    {
+      "url": "/api/211-mainline?mode=major&major=%E9%80%9A%E4%BF%A1%E5%B7%A5%E7%A8%8B",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "parseOk": true,
+      "okField": true,
+      "htmlLike": false
+    },
+    {
+      "url": "/api/211-mainline?mode=score&score=666&level=primary_secondary",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "parseOk": true,
+      "okField": true,
+      "htmlLike": false
+    }
+  ]
+}

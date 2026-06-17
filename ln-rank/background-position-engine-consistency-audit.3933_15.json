@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "version": "v3.9.33.15",
+  "checks": [
+    "functions/_lib/background-position-engine.js exists",
+    "functions/api/local-mainline.js imports background-position-engine",
+    "functions/api/211-mainline.js imports background-position-engine",
+    "211 score mode no longer imports ALL_211_SCORE_INDEX as primary score source",
+    "local and 211 score modes return positionContext"
+  ],
+  "humanNote": "本地属性和 211 背景统一按孩子位置口径处理。"
+}

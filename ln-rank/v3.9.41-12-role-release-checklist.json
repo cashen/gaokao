@@ -1,0 +1,22 @@
+{
+  "version": "v3.9.41",
+  "assetVersion": "v3941_0",
+  "release": "v3.9.41-ln-rank-serious-color-balance-responsive-contract-12-role-no-fenxi",
+  "ok": true,
+  "roles": [
+    "发布资产审计员",
+    "架构可维护性审计员",
+    "主流程回归审计员",
+    "数据口径审计员",
+    "高报口径审计员",
+    "辅助功能边界审计员",
+    "AI 输出审计员",
+    "报告一致性审计员",
+    "家长可读性审计员",
+    "UI 一致性审计员",
+    "移动端行为审计员",
+    "API / 错误体验审计员"
+  ],
+  "errors": [],
+  "summary": "v3.9.41 只做严肃色彩平衡与响应式合同保持，不改业务逻辑。"
+}

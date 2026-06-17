@@ -1,0 +1,83 @@
+{
+  "ok": true,
+  "version": "v3.9.33.13",
+  "assetVersion": "v3933_13",
+  "checks": [
+    {
+      "rel": "css/dist/ln-rank-main.v3933_13.css",
+      "bytes": 321366,
+      "required": [
+        ".hero",
+        ".panel",
+        ".score-input",
+        ".range-button",
+        ".major-card",
+        ".major-card-actions",
+        ".pool-add-button",
+        ".diagnose-button",
+        ".aux-background-entry",
+        ".background-hint-stack",
+        ".local-background-hint"
+      ],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    },
+    {
+      "rel": "css/dist/ln-rank-selection.v3933_13.css",
+      "bytes": 318927,
+      "required": [
+        ".selection-workspace",
+        ".workspace-item",
+        ".analysis-box"
+      ],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    },
+    {
+      "rel": "css/dist/ln-rank-trend.v3933_13.css",
+      "bytes": 317582,
+      "required": [],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    },
+    {
+      "rel": "css/dist/ln-rank-self-check.v3933_13.css",
+      "bytes": 305208,
+      "required": [],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    },
+    {
+      "rel": "css/dist/local-mainline.v3933_13.css",
+      "bytes": 12782,
+      "required": [
+        ".lm-page",
+        ".lm-hero",
+        ".lm-tabs",
+        ".lm-card",
+        ".lm-record-card"
+      ],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    },
+    {
+      "rel": "css/dist/211-mainline.v3933_13.css",
+      "bytes": 14167,
+      "required": [
+        ".jm-page",
+        ".jm-hero",
+        ".jm-school-card",
+        ".lm-start-card"
+      ],
+      "missing": [],
+      "tooSmall": false,
+      "pass": true
+    }
+  ],
+  "manualReviewReminder": "Before release, visually open /ln-rank/ at PC and mobile width; naked HTML is a release failure."
+}

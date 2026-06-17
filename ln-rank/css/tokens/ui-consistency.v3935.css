@@ -1,0 +1,41 @@
+/* v3.9.35 parent guidance UI consistency tokens
+   Purpose: unify type scale, color roles, buttons, cards and readable rhythm across search, selection, 211, local, trend and reports. */
+:root {
+  --ln-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --ln-page-max: 1080px;
+  --ln-read-max: 980px;
+  --ln-radius-lg: 22px;
+  --ln-radius-md: 16px;
+  --ln-radius-sm: 12px;
+  --ln-space-xs: 6px;
+  --ln-space-sm: 10px;
+  --ln-space-md: 16px;
+  --ln-space-lg: 22px;
+  --ln-space-xl: 30px;
+  --ln-text-main: #17232f;
+  --ln-text-soft: #516274;
+  --ln-text-muted: #6f7d8b;
+  --ln-bg-page: #f5f8f7;
+  --ln-bg-card: #ffffff;
+  --ln-bg-soft: #f8fbfa;
+  --ln-border-soft: #dbe7e2;
+  --ln-primary: #1f5f78;
+  --ln-primary-hover: #174d63;
+  --ln-primary-soft: #e8f3f4;
+  --ln-assist-bg: #f6faf8;
+  --ln-assist-border: #dbe9e3;
+  --ln-check-bg: #fff8ea;
+  --ln-check-border: #f0d9a8;
+  --ln-danger-soft: #fff1f0;
+  --ln-danger: #a4453d;
+  --ln-ready: #2f8a55;
+  --ln-shadow-card: 0 12px 30px rgba(22, 44, 58, .07);
+  --ln-title-xl: clamp(22px, 3vw, 30px);
+  --ln-title-lg: clamp(19px, 2.2vw, 24px);
+  --ln-title-md: 18px;
+  --ln-card-title: 16px;
+  --ln-body: 15px;
+  --ln-body-sm: 14px;
+  --ln-chip: 12.5px;
+  --ln-line: 1.68;
+}

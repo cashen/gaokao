@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.46.3",
-  "assetVersion": "v3946_3",
+  "version": "v3.9.46.2",
+  "assetVersion": "v3946_2",
   "entries": {
-    "search": "js/app.v3946_3.js",
-    "selectionPool": "js/selection-pool.v3946_3.js",
-    "majorTrend": "js/major-trend-render.v3946_3.js",
-    "selfCheck": "js/self-check.v3946_3.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_3.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_3.js"
+    "search": "js/app.v3946_2.js",
+    "selectionPool": "js/selection-pool.v3946_2.js",
+    "majorTrend": "js/major-trend-render.v3946_2.js",
+    "selfCheck": "js/self-check.v3946_2.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_2.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_2.js"
   },
   "entrypoints": {
-    "search": "js/app.v3946_3.js",
-    "selectionPool": "js/selection-pool.v3946_3.js",
-    "majorTrend": "js/major-trend-render.v3946_3.js",
-    "selfCheck": "js/self-check.v3946_3.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_3.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_3.js"
+    "search": "js/app.v3946_2.js",
+    "selectionPool": "js/selection-pool.v3946_2.js",
+    "majorTrend": "js/major-trend-render.v3946_2.js",
+    "selfCheck": "js/self-check.v3946_2.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_2.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_2.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3946_3.css",
-    "selection": "css/dist/ln-rank-selection.v3946_3.css",
-    "trend": "css/dist/ln-rank-trend.v3946_3.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3946_3.css",
-    "localMainline": "css/dist/local-mainline.v3946_3.css",
-    "main211": "css/dist/211-mainline.v3946_3.css"
+    "main": "css/dist/ln-rank-main.v3946_2.css",
+    "selection": "css/dist/ln-rank-selection.v3946_2.css",
+    "trend": "css/dist/ln-rank-trend.v3946_2.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3946_2.css",
+    "localMainline": "css/dist/local-mainline.v3946_2.css",
+    "main211": "css/dist/211-mainline.v3946_2.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -40,9 +40,5 @@
   "reportSixSectionContract": true,
   "cleanPackageContract": true,
   "legacyRuntimeAssetsRemoved": true,
-  "visibleVersionClean": true,
-  "runtimeOnlyPackage": true,
-  "importGraphPruned": true,
-  "auditToolsExcluded": true,
-  "oldVersionRuntimeFilesRemoved": true
+  "visibleVersionClean": true
 }

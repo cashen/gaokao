@@ -1,0 +1,65 @@
+{
+  "version": "v3.9.37",
+  "roles": [
+    {
+      "role": "发布资产审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "架构可维护性审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "主流程回归审计员",
+      "status": "PASS(static gates; deploy smoke recommended)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "数据口径审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "高报口径审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "辅助功能边界审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "AI 输出审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "报告一致性审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "家长可读性审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "UI 一致性审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "移动端行为审计员",
+      "status": "PASS(static)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    },
+    {
+      "role": "API / 错误体验审计员",
+      "status": "PASS(static gates; deploy smoke recommended)",
+      "note": "本版不改业务逻辑，静态门禁与产品意图保真通过。"
+    }
+  ]
+}

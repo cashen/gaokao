@@ -1,0 +1,233 @@
+
+/* v3.9.35.1 UI state matrix + overflow contract.
+   Purpose: fix boundary score / long text / chip/tag and button group deformation without changing business logic. */
+:root {
+  --ln-state-warn-bg: #fffaf0;
+  --ln-state-warn-border: #ead7a8;
+  --ln-state-warn-text: #765321;
+  --ln-state-top-bg: #eef8f6;
+  --ln-state-top-border: #b9ddd4;
+  --ln-state-top-text: #1c5f56;
+}
+
+/* Query summary and score guard layout: score state can change copy, never crush the layout skeleton. */
+.ln-filter-panel__summary-action {
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: stretch !important;
+}
+.ln-filter-action,
+.search-action-row,
+.filter-action {
+  min-width: 0 !important;
+  max-width: none !important;
+  width: 100%;
+}
+.ln-filter-action .query-button {
+  justify-self: stretch;
+  max-width: 100%;
+}
+.ln-filter-summary,
+.filter-summary {
+  min-width: 0 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+.ln-filter-summary-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+.ln-filter-summary-title {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+.ln-filter-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: min(240px, 100%);
+  gap: 8px;
+}
+.ln-filter-summary-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: max-content;
+  max-width: 100%;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+}
+.ln-filter-summary-chip-label,
+.ln-filter-summary-chip b {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+}
+.ln-filter-summary-details,
+.ln-filter-summary-details summary {
+  min-width: 0;
+}
+.ln-filter-summary-row dd {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* A score guard note is a separate guide band, not a cramped side note beside the summary. */
+.filter-action-note.score-guard-notice {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 0;
+  padding: 9px 12px;
+  border: 1px solid var(--ln-state-warn-border);
+  border-radius: 14px;
+  background: var(--ln-state-warn-bg);
+  color: var(--ln-state-warn-text);
+  font-weight: 700;
+  line-height: 1.56;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.filter-action-note.score-guard-notice.is-topRange {
+  border-color: var(--ln-state-top-border);
+  background: var(--ln-state-top-bg);
+  color: var(--ln-state-top-text);
+}
+body[data-score-state="belowCoverage"] .ln-filter-panel__summary-action,
+body[data-score-state="topRange"] .ln-filter-panel__summary-action,
+body[data-score-state="invalidHigh"] .ln-filter-panel__summary-action,
+.ln-filter-panel[data-score-state="belowCoverage"] .ln-filter-panel__summary-action,
+.ln-filter-panel[data-score-state="topRange"] .ln-filter-panel__summary-action,
+.ln-filter-panel[data-score-state="invalidHigh"] .ln-filter-panel__summary-action {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+/* Selector blast-radius repair: full-site text can wrap, short UI tokens cannot be crushed vertically. */
+.ln-filter-summary-chip,
+.keyword-preset-chip,
+.quick-chip,
+.bottomline-button,
+.range-button,
+.lm-tab,
+.trend-tab,
+.scope-pill,
+.active-band-badge,
+.special-project-toggle,
+.major-trend-link {
+  writing-mode: horizontal-tb !important;
+  word-break: keep-all;
+}
+.keyword-preset-chip,
+.quick-chip,
+.bottomline-button,
+.range-button,
+.lm-tab,
+.trend-tab {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* Long text contract: text blocks may wrap; card shells and dialogs must never force horizontal scrolling. */
+.result-card,
+.major-card,
+.selection-card,
+.report-view,
+.report-content,
+.report-body,
+.diagnosis-block,
+.card-diagnosis,
+.report-diagnosis,
+.ai-diagnosis,
+.selection-report,
+.feishu-report-preview,
+.lm-card,
+.lm-panel,
+.aux-background-entry,
+.aux-background-card {
+  min-width: 0;
+  max-width: 100%;
+}
+.result-card-title,
+.school-title,
+.major-title,
+.lm-card b,
+.report-view h1,
+.report-content h1,
+.card-diagnosis h1,
+.card-diagnosis h2 {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.report-view,
+.report-content,
+.diagnosis-block,
+.card-diagnosis,
+.score-guard-notice,
+.evidence-note,
+.lm-card span,
+.aux-background-card span {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Button group contract: one readable action per row on narrow screens; never compress text into vertical chips. */
+.ln-action-row,
+.report-actions,
+.diagnosis-actions,
+.results-actions,
+.selection-actions,
+.card-actions {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 760px) {
+  .ln-filter-summary-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ln-filter-summary-chips {
+    width: 100%;
+    min-width: 0;
+  }
+  .ln-filter-summary-chip {
+    min-width: auto;
+  }
+  .ln-action-row,
+  .report-actions,
+  .diagnosis-actions,
+  .results-actions,
+  .selection-actions,
+  .card-actions,
+  .search-action-row,
+  .filter-action {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+  .ln-action-row button,
+  .report-actions button,
+  .diagnosis-actions button,
+  .results-actions button,
+  .selection-actions button,
+  .card-actions button,
+  .search-action-row button,
+  .filter-action button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+@media (max-width: 430px) {
+  body { overflow-x: hidden; }
+  .ln-filter-panel__summary-action { padding: 10px !important; }
+  .filter-action-note.score-guard-notice { font-size: 13px; padding: 8px 10px; }
+}

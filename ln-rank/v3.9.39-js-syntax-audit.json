@@ -1,0 +1,1142 @@
+{
+  "version": "v3.9.39",
+  "assetVersion": "v3939_0",
+  "generatedAt": "2026-06-14T21:37:14Z",
+  "activeJsCount": 85,
+  "functionJsCount": 141,
+  "activeJs": [
+    {
+      "file": "ln-rank/js/211-mainline/211-mainline-app.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/app.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/config/feishu-ui-config.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/config/range-presets.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/config/region-options.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/core/number-utils.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/core/score-guard.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/band-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/human-copy-dictionary.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/range-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/report-payload-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/score-band-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/selection-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/domain/special-project-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/campus/display-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/campus/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/decision-coach/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/decision-coach/render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/diagnose/api.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/diagnose/controller.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/diagnose/render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/direction-explorer/direction-explorer-data.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/direction-explorer/direction-explorer-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/direction-explorer/direction-explorer-render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/direction-explorer/direction-explorer-report.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/direction-explorer/direction-explorer-state.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/feishu/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/feishu/report-api.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/feishu/report-controller.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/feishu/report-render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/feishu/state.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/bands-api.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/chips.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/history-score-render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/industry-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/keyword-parser.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/keyword-token-classifier.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/major-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/preset-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/project-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/major-pool/review-point-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/report/payload-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/review-checklist/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/score-bands/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/score-bands/render.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/analysis.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/candidate-context.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/controller.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/feishu-report-api.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/health-lights.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/path-analysis-api.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/recompute.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/selection-pool/store.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/trend/data.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/trend/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/trend/integration.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/trend/rules.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/ui/action-state.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/ui/bottomline-select.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/ui/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/feature/ui/rank-band-legend.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/211-background-hint.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/index.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/liaoning-local-strong-chain.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/liaoning-major-trajectory-chain.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/local-background-hint.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/local-chain-surface-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/local-context-resolver.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/major-code-resolver.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/major-knowledge-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/knowledge/major-match-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/local-mainline/local-mainline-app.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/major-trend-render.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/selection-pool.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/self-check.v3939_0.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/shared/api-client.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/state/app-state.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/state/range-state.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/js/ui/control-console.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/kb/211-mainline/211-school-background.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/kb/local-mainline/local-mainline-major-alias-bridge.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "ln-rank/kb/local-mainline/school-mainline-evidence.generated.js",
+      "ok": true,
+      "stderr": ""
+    }
+  ],
+  "functions": [
+    {
+      "file": "functions/_lib/211-mainline-kb.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/211-score-index.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-ai-prompt.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-ai-validator.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-fact-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-fallback-writer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-health-lights.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-zone-candidates.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/advisor-zone-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-card-output-schema.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-card-prompt.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-card-rules.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-model-resolver.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-skills/major-risk-rules.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ai-skills/realistic-career-skill.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/background-position-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/band-config.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/band-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/bottomline-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/diagnosis-copy-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/diagnosis-human-copy-gate.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/exam-year-config.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-auth.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-block-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-docx.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-link.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-permission.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-report-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-selection-pool-report-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-selection-pool-styled-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/feishu-selection-style-map.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/fenxi-code-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/fenxi-fetcher.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/fenxi-manifest.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/fenxi-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/fenxi-session.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/history-score-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/industry-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/json-response.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/action-hierarchy-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/admission-charter-check-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/admission-charter-source-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/campus-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/career-path-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/career-path-law-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/career-path-medical-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/career-path-teacher-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/catalog-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/copy-policy-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/discipline-strength-boundary-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/employment-report-boundary-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/kb-registry.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/kb-retriever.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/kb-source-registry.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/keyword-token-classifier.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/knowledge-context-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/liaoning-campus-major-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/liaoning-policy-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/liaoning-policy-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-catalog-caliber-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-catalog-change-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-direction-map.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-filter-preset-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-trend-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-trend-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/major-trend-retriever.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/physical-exam-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/project-attribute-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/project-attribute-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/report-review-hints.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/review-checklist-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/review-point-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/standard-major-catalog-2026-full.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/standard-major-catalog-2026.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/standard-major-catalog-bridge.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/year-caliber-accessor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/kb/year-caliber-kb.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/keyword-match-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/keyword-match-scorer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/keyword-preset-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/keyword-query.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/ln-2025-physics-score-rank.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/local-mainline-kb.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/location-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/major-filter.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/major-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/major-project-matcher.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/major-window-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/parent-copy-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/parent-decision-coach-prompt.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/parent-decision-coach-validator.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/parent-decision-coach.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/path-ai-output-schema.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/path-ai-prompt.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/project-keyword-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/push-rate-matcher.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/push-rate-reference-data.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/rank-table-provider.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/rank-zone-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/rank-zone-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/region-rules.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/release-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/report-count-contract.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/report-data-service.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/report-snapshot-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-alias-map.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-display-tags.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-geo-campus-overrides.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-geo-db.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-geo-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-geo-reference.generated.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-location-map.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/school-tags.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/search-conflict-advisor.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/search-index-builder.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/search-scorer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/selection-pool-rank-utils.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/selection-pool-summary.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/special-program-rules.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/special-project-policy.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/standard-major-catalog.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/standard-major-mapper.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/standard-major-normalizer.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/_lib/status-engine.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/211-mainline.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/card-diagnose.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/feishu-create-report.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/feishu-create-selection-pool-report.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/feishu-report-health.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/fenxi-catalog.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/kb-health.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/kb-inspect.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/ln-rank-runtime-health.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/ln-rank-self-check.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/local-mainline.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/major-bands-health.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/major-bands.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/major-window.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/path-analysis.js",
+      "ok": true,
+      "stderr": ""
+    },
+    {
+      "file": "functions/api/school-geo-audit.js",
+      "ok": true,
+      "stderr": ""
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,21 @@
+{
+  "version": "v3.9.21.1",
+  "assetVersion": "v3921_1",
+  "completed": [
+    "PC 搜索右侧只保留当前条件和主按钮",
+    "方向热度提醒移出右侧窄栏，改为全宽摘要行",
+    "删除热度提醒内部滚动条风险",
+    "Pad 使用宽单列：当前条件、主按钮、热度摘要依次展示",
+    "Android 主按钮在热度之前，热度默认摘要/可展开",
+    "趋势提示文案拆成摘要和展开原因",
+    "新增 search-side-action-heat-layout.css 作为独立响应式修正层",
+    "self-check 增加热度与主按钮顺序检查"
+  ],
+  "checks": [
+    "active HTML 引用资源存在",
+    "JS import 递归路径存在",
+    "主要 JS 语法通过",
+    "zip 不包含 /fenxi/、functions/fenxi/、functions/_middleware.js"
+  ],
+  "noFenxiIncluded": true
+}

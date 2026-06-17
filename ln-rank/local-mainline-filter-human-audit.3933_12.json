@@ -1,0 +1,10 @@
+{
+  "version": "v3.9.33.12",
+  "assetVersion": "v3933_12",
+  "checked": [
+    "local-mainline.html",
+    "js/local-mainline/local-mainline-app.v3933_12.js"
+  ],
+  "failures": [],
+  "status": "pass"
+}

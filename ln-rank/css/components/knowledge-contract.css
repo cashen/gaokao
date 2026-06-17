@@ -1,0 +1,67 @@
+/* v3.9.29 knowledge contract: practical high-school-volunteer review hints */
+.knowledge-hint-panel,
+.workspace-knowledge-hints,
+.card-knowledge-hints,
+.analysis-knowledge-card {
+  border: 1px solid var(--ui-border-soft, rgba(47,125,109,.18));
+  background: var(--surface-soft, #FBFCF8);
+  border-radius: 14px;
+  color: var(--text-main, #24312E);
+}
+.workspace-knowledge-hints,
+.card-knowledge-hints {
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.workspace-knowledge-hints b,
+.card-knowledge-hints b,
+.analysis-knowledge-card b { color: var(--brand-dark, #256758); }
+.workspace-knowledge-hints ul,
+.card-knowledge-hints ul,
+.analysis-knowledge-card ul { margin: 6px 0 0; padding-left: 18px; }
+.workspace-knowledge-hints li,
+.card-knowledge-hints li,
+.analysis-knowledge-card li { margin: 3px 0; overflow-wrap: anywhere; }
+.knowledge-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.knowledge-chip { display:inline-flex; align-items:center; max-width:100%; padding:3px 8px; border-radius:999px; background:var(--brand-soft, #EDF8F3); color:var(--brand-dark, #256758); border:1px solid var(--brand-line, #BFDCD3); font-size:12px; overflow-wrap:anywhere; }
+.analysis-knowledge-card { margin: 12px 0; padding: 12px 14px; }
+.analysis-knowledge-card h3 { margin:0 0 6px; font-size:15px; }
+.analysis-knowledge-card p { margin:6px 0 0; color:var(--text-secondary, #60706B); }
+@media (max-width:760px){
+  .workspace-knowledge-hints,.card-knowledge-hints{font-size:12px;padding:8px;border-radius:12px;}
+  .knowledge-chip{font-size:11px;}
+}
+
+/* v3.9.33.12 复核提示位置合同：组合级提示只做低权重生成前提醒。 */
+.analysis-knowledge-card.is-compact {
+  margin: 10px 0 0 !important;
+  padding: 9px 11px !important;
+  border-radius: 13px !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+  box-shadow: none !important;
+}
+.analysis-knowledge-card.is-compact summary {
+  cursor: pointer !important;
+  color: var(--text-main, #24312E) !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+.analysis-knowledge-card.is-compact ul {
+  margin: 7px 0 0 !important;
+  padding-left: 17px !important;
+}
+.analysis-knowledge-card.is-compact li {
+  margin: 3px 0 !important;
+  color: var(--text-secondary, #60706B) !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+}
+.analysis-knowledge-card.is-compact p {
+  margin: 7px 0 0 !important;
+  color: var(--text-secondary, #60706B) !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
