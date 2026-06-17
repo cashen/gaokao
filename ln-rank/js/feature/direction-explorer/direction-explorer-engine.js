@@ -172,10 +172,10 @@ export function buildDirectionExplorerPlainText(result = null) {
   if (!result) return '';
   const lines = [];
   lines.push('【孩子方向讨论记录】');
-  lines.push('这不是正式结论，也不替孩子定专业，只是帮助家里先找几个可讨论方向，再回到分数附近专业池核验。');
+  lines.push('这不是直接定专业，只是帮助家里先圈出几个可以继续了解的方向，再回到分数附近专业池核验。');
   if (result.respondent?.label) lines.push(`填写来源：${result.respondent.label}`);
   if (result.apply?.length) { lines.push('', '可以先放进查询：', compactLabels(result.apply, 4)); }
-  if (result.learn?.length) { lines.push('', '建议先了解：', compactLabels(result.learn, 4)); }
+  if (result.learn?.length) { lines.push('', '可以先了解：', compactLabels(result.learn, 4)); }
   if (result.confirm?.length || result.conflicts?.length) {
     lines.push('', '需要先确认：');
     uniq([...(result.confirm || []).flatMap(x => x.confirmNotes || []), ...(result.globalConfirm || [])]).slice(0, 6).forEach((x, i) => lines.push(`${i + 1}. ${x}`));

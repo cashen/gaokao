@@ -2,8 +2,8 @@ export const DIRECTION_EXPLORER_STORAGE_KEY = 'lnRank.directionExplorer.v2';
 export const DIRECTION_EXPLORER_VERSION = 'v2-discussion-helper-v3943_0';
 
 export const DIRECTION_BUCKETS = {
-  apply: '可以先放进查询',
-  learn: '建议先了解',
+  apply: '可以优先查看',
+  learn: '可以先了解',
   confirm: '需要先确认'
 };
 
