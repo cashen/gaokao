@@ -2,222 +2,1116 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>辽宁本科高校宿舍空调核验表｜2026-06-17更新</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>辽宁本科高校宿舍空调指北｜2026-05-17核验版</title>
 <style>
 :root{
-  color-scheme:light;
-  --ln-bg:#F6F8F7;
-  --ln-bg-warm:#FAF7F2;
-  --ln-surface:#FFFFFF;
-  --ln-surface-soft:#F9FAF8;
-  --ln-text:#172033;
-  --ln-text-soft:#334155;
-  --ln-muted:#667085;
-  --ln-muted-2:#8A94A6;
-  --ln-border:#DDE5E1;
-  --ln-border-soft:#E8EEEA;
-  --ln-primary:#155E75;
-  --ln-primary-hover:#0F4A5C;
-  --ln-primary-soft:#E8F3F5;
-  --ln-action:#C65F25;
-  --ln-action-soft:#FFF4EA;
-  --ln-success:#2F6F5E;
-  --ln-success-soft:#EAF5F1;
-  --ln-warning:#9A5B16;
-  --ln-warning-soft:#FFF7E8;
-  --ln-danger:#9E3D30;
-  --ln-danger-soft:#FFF1EE;
-  --ln-radius-xl:26px;
-  --ln-radius-lg:20px;
-  --ln-radius-md:16px;
-  --ln-shadow:0 18px 48px rgba(15,35,46,.08);
-  --ln-font-title:clamp(28px,4vw,42px);
-  --ln-font-section:20px;
-  --ln-font-subsection:16px;
-  --ln-font-body:14.5px;
-  --ln-font-helper:13.5px;
-  --ln-font-chip:13px;
-  --ln-font-mini:12px;
+  --bg:#f7f3ec; --paper:#fffdf8; --ink:#25313b; --muted:#6c757d;
+  --line:#e6ddd1; --blue:#385f7e; --blue2:#4f7794; --warm:#b58a54;
+  --green:#4c7a5b; --amber:#b87931; --red:#a75b4a; --grey:#7c8792;
+  --chip:#eef3f6; --shadow:0 18px 45px rgba(63,49,31,.08);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:linear-gradient(180deg,#F7FAF8 0%,#F6F3EF 100%);color:var(--ln-text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif}
-a{color:var(--ln-primary);text-decoration:none;border-bottom:1px dashed rgba(21,94,117,.38)}
-a:hover{color:var(--ln-primary-hover)}
-.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 44px}
-.hero{border:1px solid var(--ln-border);border-radius:var(--ln-radius-xl);background:linear-gradient(135deg,#fff 0%,#F9FAF8 58%,#F7F1EA 100%);box-shadow:var(--ln-shadow);padding:28px}
-.kicker{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid rgba(21,94,117,.14);border-radius:999px;background:var(--ln-primary-soft);color:var(--ln-primary);font-size:var(--ln-font-chip);font-weight:850;line-height:1.2}
-h1{margin:16px 0 10px;font-size:var(--ln-font-title);line-height:1.14;letter-spacing:-.035em}
-.sub{max-width:920px;margin:0;color:var(--ln-text-soft);font-size:15.5px;line-height:1.8;font-weight:520}
-.notice{margin-top:16px;border:1px solid rgba(198,95,37,.22);border-left:5px solid var(--ln-action);border-radius:18px;background:var(--ln-action-soft);padding:14px 15px;color:#5B4635;font-size:var(--ln-font-helper);line-height:1.75}
-.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:11px 15px;border:1px solid var(--ln-border);border-radius:14px;background:#fff;color:var(--ln-text);font-size:var(--ln-font-helper);font-weight:850;cursor:pointer;text-decoration:none}
-.btn.primary{background:var(--ln-primary);border-color:var(--ln-primary);color:#fff}
-.btn.soft{background:var(--ln-primary-soft);border-color:#CFE2E7;color:var(--ln-primary)}
-.quick{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-top:16px}
-.panel{border:1px solid var(--ln-border);border-radius:var(--ln-radius-lg);background:rgba(255,255,255,.82);box-shadow:0 10px 26px rgba(15,35,46,.045);padding:17px}
-.panel h2,.panel h3{margin:0 0 8px;font-size:var(--ln-font-section);line-height:1.28;letter-spacing:-.02em}
-.panel p{margin:0;color:var(--ln-muted);font-size:var(--ln-font-helper);line-height:1.7}
-.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0}
-.card{border:1px solid var(--ln-border);border-radius:18px;background:var(--ln-surface);padding:15px;box-shadow:0 12px 28px rgba(15,35,46,.045)}
-.num{font-size:27px;font-weight:950;letter-spacing:-.035em;color:var(--ln-text)}
-.lab{font-size:var(--ln-font-helper);color:var(--ln-muted);margin-top:4px;line-height:1.45}
-.section{margin-top:18px}
-.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:10px}
-.section-title{margin:0;font-size:var(--ln-font-section);font-weight:950;letter-spacing:-.02em}
-.section-desc{margin:5px 0 0;color:var(--ln-muted);font-size:var(--ln-font-helper);line-height:1.65}
-.update-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.update{border:1px solid var(--ln-border);border-radius:16px;background:#fff;padding:13px 14px;line-height:1.65}
-.update b{display:block;margin-bottom:3px;color:var(--ln-primary);font-size:var(--ln-font-helper)}
-.update span{font-size:var(--ln-font-helper);color:var(--ln-text-soft)}
-.toolbar{position:sticky;top:0;z-index:10;margin:16px 0;border:1px solid var(--ln-border);border-radius:20px;background:rgba(246,248,247,.94);box-shadow:0 10px 24px rgba(15,35,46,.06);backdrop-filter:blur(10px);padding:13px}
-.toolbar-row{display:grid;grid-template-columns:1.4fr repeat(3,minmax(130px,.5fr)) auto;gap:9px;align-items:center}
+body{margin:0;background:linear-gradient(180deg,#fbf7f0 0%,#f2eadf 100%);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 18px 42px}
+.hero{background:radial-gradient(circle at top right,rgba(80,119,148,.16),transparent 34%),
+       linear-gradient(135deg,#fffdf8 0%,#f7efe4 100%);
+  border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}
+.kicker{display:inline-flex;gap:8px;align-items:center;background:#eef3f6;color:#385f7e;
+  border:1px solid #d7e2e9;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700}
+h1{font-size:clamp(26px,4vw,44px);line-height:1.15;margin:18px 0 12px;letter-spacing:-.03em}
+.sub{font-size:16px;line-height:1.8;color:#4b5963;max-width:980px;margin:0}
+.notice{margin-top:16px;border-left:4px solid var(--warm);background:#fff8ec;border-radius:14px;padding:12px 14px;color:#5b4b38;line-height:1.7}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 12px 28px rgba(55,39,20,.05)}
+.num{font-size:28px;font-weight:800;letter-spacing:-.03em}.lab{font-size:13px;color:var(--muted);margin-top:4px}
+.toolbar{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+  background:rgba(247,243,236,.84);border:1px solid var(--line);border-radius:22px;
+  padding:14px;margin:18px 0;box-shadow:0 10px 26px rgba(52,39,24,.06)}
+.toolbar-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 input,select,button{font:inherit}
-.search,select{width:100%;border:1px solid var(--ln-border);border-radius:13px;background:#fff;color:var(--ln-text);padding:11px 12px;font-size:var(--ln-font-body);outline:none}
-.search:focus,select:focus{border-color:#9CC1CA;box-shadow:0 0 0 3px rgba(21,94,117,.10)}
-.reset{border:1px solid var(--ln-border);border-radius:13px;background:#fff;padding:11px 13px;color:var(--ln-text-soft);font-weight:800;cursor:pointer}
-.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:var(--ln-font-mini);font-weight:850;border:1px solid transparent;white-space:nowrap;line-height:1.2}
-.pill.full{background:var(--ln-success-soft);color:var(--ln-success);border-color:#CFE7DD}
-.pill.partial{background:var(--ln-warning-soft);color:var(--ln-warning);border-color:#F0D7AE}
-.pill.installing{background:var(--ln-primary-soft);color:var(--ln-primary);border-color:#CFE2E7}
-.pill.tender{background:#F2F1FA;color:#514C82;border-color:#DEDBF0}
-.pill.planned{background:#FFF2EF;color:var(--ln-danger);border-color:#F1D0C8}
-.pill.unknown{background:#F1F4F3;color:#667085;border-color:#E1E8E5}
-.tag{display:inline-flex;margin:2px 4px 2px 0;border:1px solid #D8E4E2;border-radius:999px;background:#F2F6F5;color:#36555D;padding:4px 8px;font-size:var(--ln-font-mini);font-weight:760;line-height:1.2}
-.tablebox{border:1px solid var(--ln-border);border-radius:22px;background:var(--ln-surface);overflow:hidden;box-shadow:var(--ln-shadow)}
+.search{flex:1;min-width:220px;border:1px solid var(--line);background:#fff;border-radius:14px;
+  padding:12px 14px;outline:none;color:var(--ink)}
+select{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 12px;color:var(--ink)}
+button{border:1px solid #cfdae2;background:#f5f9fb;color:#31546e;border-radius:14px;padding:12px 14px;cursor:pointer}
+button:hover{background:#edf4f8}
+.tablebox{background:var(--paper);border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
 .table-scroll{overflow:auto}
-table{width:100%;min-width:1060px;border-collapse:separate;border-spacing:0}
-th,td{padding:12px 12px;border-bottom:1px solid var(--ln-border-soft);text-align:left;vertical-align:top;font-size:var(--ln-font-body);line-height:1.55}
-th{position:sticky;top:0;background:#F8FAF8;color:#42525E;font-size:var(--ln-font-helper);z-index:2}
-tr:hover td{background:#FBFCFA}
-.school{font-weight:950;color:#20313A}
-.mini{font-size:var(--ln-font-mini);color:var(--ln-muted);line-height:1.55;margin-top:3px}
-.source-extra{display:block;margin-top:5px}
-.mobile-list{display:none}
-.mcard{border:1px solid var(--ln-border);border-radius:18px;background:#fff;padding:14px;box-shadow:0 10px 22px rgba(15,35,46,.045)}
-.mhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.mname{font-size:17px;font-weight:950}
-.mmeta{margin:4px 0 10px;color:var(--ln-muted);font-size:var(--ln-font-helper)}
-.mrow{margin-top:9px;color:var(--ln-text-soft);font-size:var(--ln-font-body);line-height:1.7}
-.mrow b{color:var(--ln-text)}
-.empty{display:none;border:1px dashed var(--ln-border);border-radius:18px;background:#fff;padding:18px;color:var(--ln-muted);font-size:var(--ln-font-body);line-height:1.7;text-align:center}
-.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
-.info{border:1px solid var(--ln-border);border-radius:18px;background:#fff;padding:16px;line-height:1.75;color:var(--ln-text-soft);font-size:var(--ln-font-body)}
-.info h3{margin:0 0 8px;font-size:17px;color:var(--ln-text)}
-.footer{margin-top:18px;color:var(--ln-muted);font-size:var(--ln-font-helper);line-height:1.8;text-align:center}
-@media(max-width:980px){.quick,.info-grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.toolbar{position:static}.toolbar-row{grid-template-columns:1fr 1fr}.reset{width:100%}}
-@media(max-width:760px){.wrap{padding:16px 12px 32px}.hero{padding:20px;border-radius:22px}.quick{margin-top:12px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.update-list{grid-template-columns:1fr}.toolbar{border-radius:16px;padding:12px}.toolbar-row{grid-template-columns:1fr}.tablebox{display:none}.mobile-list{display:grid;gap:10px}.section-head{display:block}.legend .pill{font-size:12px}}
-@media(max-width:430px){.cards{grid-template-columns:1fr}.hero-actions .btn{width:100%}.mhead{display:block}.mhead .pill{margin-top:8px}.footer{text-align:left}}
-@media print{body{background:white}.toolbar,.hero-actions{display:none}.wrap{max-width:none}.hero,.panel,.card,.tablebox,.mcard,.info{box-shadow:none}a{border:0;color:#000}.mobile-list{display:none}.tablebox{display:block}.table-scroll{overflow:visible}table{min-width:0}th,td{font-size:11px;padding:7px}}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:1120px}
+th,td{padding:13px 12px;border-bottom:1px solid #eee5db;text-align:left;vertical-align:top;font-size:14px}
+th{position:sticky;top:0;background:#f9f5ee;color:#42525e;font-size:13px;z-index:2}
+tr:hover td{background:#fffaf1}
+.school{font-weight:800;color:#263845}
+.mini{font-size:12px;color:var(--muted);margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.pill.full{background:#edf7ef;color:#315e41;border-color:#d2ead8}
+.pill.partial{background:#fff4df;color:#825321;border-color:#f1dab4}
+.pill.installing{background:#eef5ff;color:#315b82;border-color:#d4e5f7}
+.pill.tender{background:#f6eefc;color:#64417d;border-color:#e7d7f1}
+.pill.planned{background:#f9f0ec;color:#8c4d3f;border-color:#ecd4ca}
+.pill.unknown{background:#f1f3f5;color:#66717b;border-color:#e1e5e8}
+.tag{display:inline-flex;background:var(--chip);color:#3b596d;border:1px solid #d8e4eb;border-radius:999px;padding:4px 8px;font-size:12px;margin:2px 4px 2px 0}
+a{color:#315f82;text-decoration:none;border-bottom:1px dashed #8fb0c8}
+a:hover{color:#1c4968}
+.footer{margin-top:18px;color:#687781;font-size:13px;line-height:1.8}
+.section-title{font-size:20px;font-weight:900;margin:26px 0 10px}
+.method{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:18px}
+.method .card{line-height:1.8}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+@media(max-width:900px){
+ .cards{grid-template-columns:repeat(2,1fr)}
+ .hero{padding:22px}.method{grid-template-columns:1fr}
+ .toolbar{position:static}
+ table{min-width:960px}
+}
+@media(max-width:720px){
+ .toolbar{padding:12px;border-radius:16px}
+ .toolbar-row{gap:8px}
+ .search,.toolbar select,.toolbar button{width:100%;min-width:0}
+ .tablebox{border-radius:16px}
+ th,td{padding:11px 10px;font-size:13px}
+ table{min-width:860px}
+ .kicker{font-size:12px;padding:6px 10px}
+ .notice{font-size:14px;line-height:1.6}
+}
+@media(max-width:520px){
+ .cards{grid-template-columns:1fr}
+ .wrap{padding:18px 12px 32px}
+ h1{font-size:27px}
+ .hero{padding:18px;border-radius:20px}
+ .sub{font-size:14px;line-height:1.7}
+ .method .card{padding:14px}
+ .section-title{font-size:18px}
+ table{min-width:760px}
+}
+@media print{
+ body{background:white}.toolbar{display:none}.wrap{max-width:none}.hero,.card,.tablebox{box-shadow:none}
+ a{border:0;color:#000}.table-scroll{overflow:visible}table{min-width:0;font-size:11px}
+ th,td{padding:8px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <section class="hero" aria-label="页面说明">
-    <div class="kicker">生活条件复核 · 学生宿舍空调 · 公开资料检索至 2026-06-17</div>
-    <h1>辽宁本科高校宿舍空调核验表</h1>
-    <p class="sub">这页只帮家里看住宿舒适度线索，不替代专业选择、学校判断和正式志愿决策。统计只看学生宿舍空调，不把教学楼、办公室、图书馆空调算进去。</p>
-    <div class="notice"><b>先说清楚：</b>宿舍空调受校区、楼栋、房型、住宿费和当年分宿结果影响很大。看到“已投用”也要按新生实际入住楼栋复核；看到“暂未查到可靠依据”也不等于一定没有，只是当前公开资料还不能写死。</div>
-    <div class="hero-actions">
-      <a class="btn primary" href="/ln-rank/">回到专业初选工具</a>
-      <a class="btn soft" href="#schoolList">直接查学校</a>
-      <a class="btn" href="#howToUse">怎么在家庭记录里写</a>
-    </div>
+  <section class="hero">
+    <div class="kicker">辽宁本科高校 · 宿舍空调核验表 · 截止 2026-05-17</div>
+    <h1>辽宁省本科高校宿舍空调安装统计</h1>
+    <p class="sub">本页按“学生宿舍空调”统计，不把教学楼、办公室、图书馆空调算入。学校范围采用辽宁本科高校 64 所口径：公办本科 42 所、民办本科 22 所。字段里同时标注 985、211、双一流、双非公办、民办本科等身份，便于嵌入高考志愿工具。</p>
+    <div class="notice">提示：宿舍空调非常容易受“校区、楼栋、房型、住宿费、当年分宿结果”影响。没有官方竣工/验收/迎新说明的学校，不建议在报考报告里写死“都有空调”。</div>
   </section>
 
-  <section class="quick" aria-label="使用说明">
-    <div class="panel">
-      <h2>家长先看这三件事</h2>
-      <p>一看学校有没有可靠公开依据；二看是不是全校宿舍，还是部分楼栋或房型；三看是否只是采购、招标、安装推进，不能提前写成“已经全覆盖”。</p>
-    </div>
-    <div class="panel">
-      <h2>这页怎么用</h2>
-      <p>先搜索学校名；如果状态是“正在推进”或“采购意向”，填报前再去学校官网、招生网、新生指南和后勤通知核验。</p>
-    </div>
-  </section>
+  <section class="cards" id="summaryCards"></section>
 
-  <section class="cards" id="summaryCards" aria-label="快速统计"></section>
-
-  <section class="section" aria-label="最近更新">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">最近更新</h2>
-        <p class="section-desc">只列出本次复核后需要家长特别注意的变化。</p>
-      </div>
-    </div>
-    <div class="update-list" id="updates"></div>
-  </section>
-
-  <section class="toolbar" id="schoolList" aria-label="筛选学校">
+  <section class="toolbar">
     <div class="toolbar-row">
-      <input class="search" id="q" placeholder="搜索学校、城市、空调进度或来源">
-      <select id="nature"><option value="">学校性质</option><option>公办</option><option>民办</option></select>
-      <select id="status"><option value="">空调进度</option><option value="full">已明确可用</option><option value="partial">部分楼栋/房型</option><option value="installing">正在推进</option><option value="tender">招采阶段</option><option value="planned">采购意向</option><option value="unknown">暂未查到可靠依据</option></select>
-      <select id="tag"><option value="">学校标签</option><option value="985">985</option><option value="211">211</option><option value="双一流">双一流</option><option value="双非公办">双非公办</option><option value="民办">民办</option></select>
-      <button class="reset" id="reset">清空条件</button>
+      <input class="search" id="q" placeholder="搜索学校 / 城市 / 985 / 民办 / 安装状态">
+      <select id="nature"><option value="">全部性质</option><option>公办</option><option>民办</option></select>
+      <select id="status"><option value="">全部状态</option><option value="full">已安装/基本覆盖</option><option value="partial">部分/按房型</option><option value="installing">安装中/中标</option><option value="tender">招标采购</option><option value="planned">采购意向</option><option value="unknown">暂未核实</option></select>
+      <select id="tag"><option value="">全部层次标签</option><option value="985">985</option><option value="211">211</option><option value="双一流">双一流</option><option value="双非公办">双非公办</option><option value="民办">民办</option></select>
+      <button id="reset">重置</button>
     </div>
-    <div class="legend" aria-label="状态说明"><span class="pill full">已明确可用</span><span class="pill partial">部分楼栋/房型</span><span class="pill installing">正在推进</span><span class="pill tender">招采阶段</span><span class="pill planned">采购意向</span><span class="pill unknown">暂未查到可靠依据</span></div>
+    <div class="legend">
+      <span class="pill full">已安装</span>
+      <span class="pill partial">部分/按房型</span>
+      <span class="pill installing">安装中</span>
+      <span class="pill tender">招标采购</span>
+      <span class="pill planned">采购意向</span>
+      <span class="pill unknown">暂未核实</span>
+    </div>
   </section>
 
-  <section class="tablebox"><div class="table-scroll"><table><thead><tr><th style="width:52px">序号</th><th style="width:185px">学校</th><th style="width:120px">城市/性质</th><th style="width:150px">空调情况</th><th>说明</th><th style="width:175px">下一步怎么核验</th><th style="width:190px">依据</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
-  <section class="mobile-list" id="mobileList" aria-label="学校卡片列表"></section>
-  <div class="empty" id="emptyState">没有找到符合条件的学校。可以清空条件后再查一次。</div>
-
-  <section class="info-grid" id="howToUse">
-    <div class="info"><h3>家庭记录建议写法</h3><p><b>建议写：</b>“宿舍空调只作生活条件参考，需按当年新生入住校区、楼栋、房型和学校最新通知复核。”</p><p><b>不要写死：</b>“这个学校宿舍一定都有空调”。除非学校官方已经明确全覆盖，并且仍要看实际分宿。</p></div>
-    <div class="info"><h3>核验顺序</h3><p>优先看学校官网、招生网、后勤处、新生入学须知；其次看政府采购网、招标采购办、公共资源交易平台；第三方宿舍资料只能当线索，不能单独当结论。</p></div>
+  <section class="tablebox">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:64px">序号</th>
+            <th style="width:190px">学校</th>
+            <th style="width:80px">城市</th>
+            <th style="width:120px">性质/层次</th>
+            <th style="width:150px">高校标签</th>
+            <th style="width:140px">空调状态</th>
+            <th style="width:330px">安装进度说明</th>
+            <th style="width:180px">竣工/预计完成</th>
+            <th style="width:80px">可信度</th>
+            <th style="width:170px">来源</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </section>
-  <div class="footer">学校范围按辽宁本科高校 64 所口径整理。公开资料检索至 2026-06-17；每所学校卡片中保留该条最近核验日期。后续若学校发布竣工、验收、迎新或住宿安排，以学校最新官方说明为准。</div>
+
+  <section class="method">
+    <div class="card">
+      <div class="section-title">本报告</div>
+      
+      <p><b>“宿舍条件仅作舒适度参考，不替代当年新生入学须知、学校住宿安排和实际分宿结果。”</b></p>
+    </div>
+    <div class="card">
+      <div class="section-title">核验优先级</div>
+      <p>1. 学校官网、后勤处、招标采购办、招生网、迎新指南；<br>2. 辽宁政府采购网、公共资源交易平台；<br>3. 第三方宿舍资料仅作辅助，不能单独升级为“全覆盖”。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    生成口径：辽宁本科高校 64 所，截止 2026-05-17。<br>
+    说明：如果后续拿到学校官方竣工验收公告，应优先更新本页中“竣工/预计完成”和“可信度”字段。
+  </div>
 </div>
+
 <script>
-const rows = [{"id":1,"school":"辽宁大学","city":"沈阳","nature":"公办","tag":"211 / 双一流","status":"partial","statusLabel":"已安装（部分楼栋）","progress":"蒲河校区A1、C3、B5等学生公寓已有空调加装线索；后勤简报显示宿舍基础设施、电力增容、风扇配置统计等仍在推进。当前不能写成全校宿舍空调全覆盖。","completion":"部分楼栋已验收；截至2026-06-17未见全校覆盖公告","confidence":"高","sourceTitle":"辽宁大学后勤工作处（B5验收/后勤简报）","sourceUrl":"https://hqgzc.lnu.edu.cn/info/1008/2982.htm","sourceExtra":[{"title":"后勤工作处2026年第八期工作信息简报","url":"https://hqgzc.lnu.edu.cn/info/1008/3195.htm"},{"title":"后勤工作处2026年第七期工作信息简报","url":"https://hqgzc.lnu.edu.cn/info/1008/3185.htm"}],"verifiedOn":"2026-06-17","changed":"yes","evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":2,"school":"大连理工大学","city":"大连","nature":"公办","tag":"985 / 211 / 双一流","status":"full","statusLabel":"已安装（符合条件宿舍基本覆盖）","progress":"学生公寓首批近万台空调2024年6月安装完毕；校方计划暑期继续覆盖“一校两地三区”符合安装条件宿舍，新建宿舍随建随装。","completion":"首批：2024-06；第二批：计划2024暑期","confidence":"高","sourceTitle":"大连理工大学新闻网","sourceUrl":"https://news.dlut.edu.cn/info/1026/97654.htm","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":3,"school":"沈阳工业大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":4,"school":"沈阳航空航天大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"installing","statusLabel":"中标/安装推进","progress":"学生宿舍空调采购及安装项目已发布中标公告；截至本页日期未核到竣工验收公告。","completion":"中标：2026-05-09；竣工待公告","confidence":"中高","sourceTitle":"沈阳航空航天大学招标采购办公室","sourceUrl":"https://zbcgb.sau.edu.cn/info/1060/2007.htm","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":5,"school":"沈阳理工大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":6,"school":"东北大学","city":"沈阳","nature":"公办","tag":"985 / 211 / 双一流","status":"full","statusLabel":"已安装（全覆盖）","progress":"南湖、浑南两校区17栋学生宿舍完成9600余台空调安装调试，实现寝室空调全覆盖。","completion":"2024-09前后投入使用","confidence":"高","sourceTitle":"东北大学新闻网","sourceUrl":"https://neunews.neu.edu.cn/sshx/info/1051/5560.htm","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":7,"school":"辽宁科技大学","city":"鞍山","nature":"公办","tag":"双非公办","status":"installing","statusLabel":"结果公告线索/待验收","progress":"二次招标开标节点已过；学校招采结果公告列表已出现学生宿舍及办公用房空调采购项目相关结果项。当前只能写“招采已推进，待后续施工或验收说明”，不能写成已投用。","completion":"开标：2026-06-09；结果公告线索：2026-06-09；竣工待公告","confidence":"中高","sourceTitle":"辽宁科技大学招标采购管理中心结果公告列表","sourceUrl":"https://www.ustl.edu.cn/zbcgglzx/","verifiedOn":"2026-06-17","changed":"yes","sourceExtra":[{"title":"辽宁科技大学学生宿舍及办公用房空调采购项目（二次招标公告）","url":"https://www.ustl.edu.cn/zbcgglzx/info/1007/3132.htm"}],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":8,"school":"辽宁工程技术大学","city":"阜新","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":9,"school":"辽宁石油化工大学","city":"抚顺","nature":"公办","tag":"双非公办","status":"installing","statusLabel":"结果公告线索/待原网复核","progress":"学校官方采购意向显示拟为学生宿舍安装空调约6000套、预算900万元；公开招标信息检索到2026-05-25结果公告线索，但尚未核到学校官网或政府采购原网可公开详情，暂按“中标线索，待原网复核”处理。","completion":"结果公告线索：2026-05-25；竣工待公告","confidence":"中","sourceTitle":"辽宁石油化工大学采购意向 / 结果公告线索","sourceUrl":"https://zbb.lnpu.edu.cn/info/1381/6361.htm","sourceExtra":[{"title":"结果公告线索（第三方招标信息）","url":"https://www.jrzb.cn/bidDetail/7B4D0517C8464A0CA004A62F6AFD8D19.html"}],"verifiedOn":"2026-06-01","changed":"yes","evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":10,"school":"沈阳化工大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"installing","statusLabel":"已中标/待安装验收","progress":"学生宿舍空调采购安装项目已于2026-05-28发布中标公告，供应商为青岛海尔空调器有限总公司，中标金额819.4816万元；截至2026-06-01未核到竣工验收或投入使用公告。","completion":"中标：2026-05-28；竣工待公告","confidence":"高","sourceTitle":"沈阳化工大学招标采购办公室","sourceUrl":"https://zcb.syuct.edu.cn/info/1007/3791.htm","verifiedOn":"2026-06-01","changed":"yes","sourceExtra":[],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":11,"school":"大连交通大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":12,"school":"大连海事大学","city":"大连","nature":"公办","tag":"211 / 双一流","status":"full","statusLabel":"已投用（宿舍覆盖）","progress":"公开报道显示，大连海事大学学生宿舍与教学楼空调安装工程已全面竣工，约8000台空调正式投入使用，覆盖43栋学生公寓及2栋教学楼宇。宿舍条件仍建议按当年新生入住楼栋复核。","completion":"报道节点：2026-06-03；已投用，学校官网归档可继续关注","confidence":"高","sourceTitle":"辽宁日报：海大8000台空调正式投入使用","sourceUrl":"https://www.lnrbxmt.com/news_details.html?id=546845","verifiedOn":"2026-06-17","changed":"yes","sourceExtra":[{"title":"大连海事大学前期招采信息","url":"https://www.dlmu.edu.cn/info/1825/201868.htm"}],"evidenceLevel":"省级媒体/公开报道","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":13,"school":"大连工业大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":14,"school":"沈阳建筑大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"planned","statusLabel":"采购意向公开","progress":"学校采购招标办公室发布学生宿舍空调采购项目政府采购意向，拟采购学生宿舍壁挂式冷暖空调，预算915万元，预计2026年8月采购。当前只能说明已有采购意向，不能写成已中标或已安装。","completion":"采购意向：2026-06-11；预计采购：2026年8月；后续以采购公告为准","confidence":"中高","sourceTitle":"沈阳建筑大学采购招标办公室","sourceUrl":"https://cgzb.sjzu.edu.cn/info/1003/11029.htm","verifiedOn":"2026-06-17","changed":"yes","sourceExtra":[],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":15,"school":"辽宁工业大学","city":"锦州","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":16,"school":"沈阳农业大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":17,"school":"大连海洋大学","city":"大连","nature":"公办","tag":"双非公办","status":"partial","statusLabel":"部分竣工/其余推进中","progress":"全校学生宿舍空调安装工程计划安装3490台。大学生公寓六舍192台已于2026-03-20全部安装调试完毕并投入使用；其他楼宇仍以“有序推进/待总体验收公告”处理。","completion":"六舍投入使用：2026-03-20；全校总体验收待公告","confidence":"高","sourceTitle":"大连海洋大学官网（六舍竣工）","sourceUrl":"https://www.dlou.edu.cn/2026/0320/c8531a203844/page.htm","sourceExtra":[{"title":"安装工程启动公告","url":"https://www.dlou.edu.cn/2026/0209/c5864a202635/page.htm"}],"verifiedOn":"2026-06-01","changed":"yes","evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":18,"school":"中国医科大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"installing","statusLabel":"采购完成/安装推进","progress":"沈北校区1-17号学生宿舍与和平校区3号学生宿舍分体空调设备采购已出现2026年招标/结果信息；建议等待校方或政府采购原网竣工验收。","completion":"招标：2026-04-23；结果：2026-05-15；竣工待公告","confidence":"中","sourceTitle":"辽宁政府采购网转载信息","sourceUrl":"https://xunshubao.com/web/datainfo/gkzb_69e9d25bc9b80f25004b1acb","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":19,"school":"锦州医科大学","city":"锦州","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":20,"school":"大连医科大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":21,"school":"辽宁中医药大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。注意与民办杏林学院区分。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":22,"school":"沈阳药科大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":23,"school":"沈阳医学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":24,"school":"辽宁师范大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。注意与民办海华学院区分。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":25,"school":"沈阳师范大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":26,"school":"渤海大学","city":"锦州","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":27,"school":"鞍山师范学院","city":"鞍山","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":28,"school":"大连外国语大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":29,"school":"东北财经大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":30,"school":"中国刑事警察学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到本科生学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":31,"school":"沈阳体育学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":32,"school":"沈阳音乐学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":33,"school":"鲁迅美术学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":34,"school":"沈阳大学","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":35,"school":"大连大学","city":"大连","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":36,"school":"辽宁科技学院","city":"本溪","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":37,"school":"辽宁警察学院","city":"大连","nature":"公办","tag":"双非公办","status":"tender","statusLabel":"采购项目/待确认","progress":"有2026年学生宿舍空调安装采购项目信息，但暂未核到学院官网或政府采购原网竣工公告。","completion":"采购节点：2026-04；竣工待公告","confidence":"中低","sourceTitle":"采购项目信息（待原网复核）","sourceUrl":"https://lnyoucheng.com/article-detail/N1eyD3yN","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"招采/采购公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":38,"school":"沈阳工程学院","city":"沈阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":39,"school":"辽东学院","city":"丹东","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":40,"school":"大连民族大学","city":"大连","nature":"公办","tag":"双非公办","status":"full","statusLabel":"已安装（全覆盖）","progress":"全校共安装空调5800台，实现学生宿舍空调全覆盖；2025-06-26全面投入使用。","completion":"投入使用：2025-06-26","confidence":"高","sourceTitle":"大连民族大学官网","sourceUrl":"https://new.dlnu.edu.cn/esjszqh/info/1003/1181.htm","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":41,"school":"营口理工学院","city":"营口","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":42,"school":"朝阳师范学院","city":"朝阳","nature":"公办","tag":"双非公办","status":"unknown","statusLabel":"暂未核实","progress":"新升本科院校口径；未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":43,"school":"辽宁对外经贸学院","city":"大连","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"公开宿舍资料多写4人间等住宿条件，未核到可靠空调字段。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":44,"school":"辽宁理工职业大学","city":"锦州","nature":"民办","tag":"民办本科职业大学","status":"unknown","statusLabel":"暂未核实","progress":"公开宿舍资料未明确学生宿舍空调。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":45,"school":"大连理工大学城市学院","city":"大连","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"有空调（待官方复核）","progress":"公开宿舍资料显示4人寝配空调，但招生章程未明确；建议按新生实际楼栋复核。","completion":"—","confidence":"中","sourceTitle":"第三方宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"公开资料线索","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":46,"school":"沈阳工业大学工程学院","city":"辽阳","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":47,"school":"沈阳航空航天大学北方科技学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"未核到学生宿舍空调已安装或采购安装的可靠公告。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":48,"school":"沈阳工学院","city":"抚顺","nature":"民办","tag":"民办本科","status":"full","statusLabel":"已安装（高可信）","progress":"官网住宿环境页明确宿舍上床下桌、配备中央空调。","completion":"页面发布：2026-05-08","confidence":"高","sourceTitle":"沈阳工学院官网","sourceUrl":"https://www.situ.edu.cn/info/1460/12524.htm","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":49,"school":"大连工业大学艺术与信息工程学院","city":"大连","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"有空调（按房型）","progress":"2025级选宿资料显示部分房型统一配空调；建议按当年楼栋/房型复核。","completion":"—","confidence":"中","sourceTitle":"公开选宿资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":50,"school":"大连科技学院","city":"大连","nature":"民办","tag":"民办本科","status":"full","statusLabel":"已安装（高可信）","progress":"2025级新生入学指南明确写“宿舍设有暖气、空调”。","completion":"2025级入学指南：2025-04-25","confidence":"高","sourceTitle":"大连科技学院招生网","sourceUrl":"https://sub2.dlust.edu.cn/kjzs/detail-3609.html","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":51,"school":"沈阳城市建设学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"公开资料写不同房型、独卫/洗衣机等，未核到可靠空调字段。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":52,"school":"大连医科大学中山学院","city":"大连","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"公开宿舍资料未明确学生宿舍空调。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":53,"school":"锦州医科大学医疗学院","city":"锦州","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"公开宿舍资料未明确学生宿舍空调。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":54,"school":"辽宁师范大学海华学院","city":"大连","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"有空调（待官方复核）","progress":"公开宿舍资料显示3/4/6人间均有空调，但招生章程未展开，建议按当年新生楼栋复核。","completion":"—","confidence":"中","sourceTitle":"第三方宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"公开资料线索","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":55,"school":"辽宁理工学院","city":"锦州","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"部分房型有空调","progress":"招生章程/公开资料显示部分4人间等房型有空调，6人间等需单独确认。","completion":"—","confidence":"中高","sourceTitle":"招生章程/公开资料","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"公开资料线索","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":56,"school":"大连财经学院","city":"大连","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"部分房型有空调","progress":"公开资料显示部分两人间、三人间配置空调和独卫；不能直接写全校覆盖。","completion":"—","confidence":"中","sourceTitle":"公开宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":57,"school":"沈阳城市学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"full","statusLabel":"已安装（高可信）","progress":"官网写学生社区公寓“每个宿舍配备一台空调”。","completion":"页面发布：2023-06-30","confidence":"高","sourceTitle":"沈阳城市学院官网","sourceUrl":"https://www.shenyangcu.edu.cn/gywm/xydt/202306/t20230630_44992.html","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":58,"school":"大连艺术学院","city":"大连","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"部分房型有空调","progress":"高标准4人间明确配空调；普通4/6人间未全部明确。","completion":"—","confidence":"中","sourceTitle":"公开宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":59,"school":"辽宁中医药大学杏林学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"有空调（按房型）","progress":"公开宿舍资料显示多个房型有空调或中央空调；仍建议按楼栋复核。","completion":"—","confidence":"中","sourceTitle":"公开宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":60,"school":"辽宁何氏医学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"招生章程多写6人/8人间等住宿标准，未核到可靠空调字段。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"},{"id":61,"school":"沈阳科技学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"partial","statusLabel":"有空调（待官方复核）","progress":"公开宿舍资料显示4人间公寓配空调，但未核到官网招生章程明确字段。","completion":"—","confidence":"中","sourceTitle":"公开宿舍资料/待学校官方复核","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"学校官方公开信息","nextCheck":"重点核验校区、楼栋、房型、是否另收费用。"},{"id":62,"school":"大连东软信息学院","city":"大连","nature":"民办","tag":"民办本科","status":"installing","statusLabel":"安装推进/待最终公告","progress":"学校官网2月发布学生寝室空调即将上岗，后续公开信息显示双校区启动空调安装，施工时间为4月8日至5月；截至2026-06-01未核到最终竣工/全量投入使用公告。","completion":"施工期：2026-04-08至5月；竣工待公告","confidence":"中高","sourceTitle":"大连东软信息学院官网/一站式学生社区","sourceUrl":"https://www.neusoft.edu.cn/html/975/2026-02-14/content-7720.html","sourceExtra":[{"title":"一站式学生社区安装进度","url":"https://yurenhao1.sizhengwang.cn/a/dldrxxxy/260414/2369772.shtml"}],"verifiedOn":"2026-06-01","changed":"yes","evidenceLevel":"学校官方公开信息","nextCheck":"继续关注采购公告、中标公告、施工进度和验收/投用说明。"},{"id":63,"school":"辽宁财贸学院","city":"葫芦岛","nature":"民办","tag":"民办本科","status":"full","statusLabel":"已安装（中高可信）","progress":"招生章程/公开资料显示新生宿舍配置中央空调；仍建议按当年实际楼栋复核。","completion":"—","confidence":"中高","sourceTitle":"招生章程/公开资料","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"公开资料线索","nextCheck":"仍需按当年新生实际入住校区和楼栋复核。"},{"id":64,"school":"辽宁传媒学院","city":"沈阳","nature":"民办","tag":"民办本科","status":"unknown","statusLabel":"暂未核实","progress":"官方公寓介绍写家具、卫生间、洗衣机等，未核到可靠空调字段。","completion":"—","confidence":"低","sourceTitle":"待核实","sourceUrl":"","verifiedOn":"2026-05-17","changed":"no","sourceExtra":[],"evidenceLevel":"暂未查到可靠公开依据","nextCheck":"先按“未查到可靠公开依据”处理，填报前再查学校官网、招生网和新生指南。"}];
-const updates = [{"school":"大连海事大学","text":"由“施工期/待验收”更新为“已投用（宿舍覆盖）”，依据辽宁日报2026-06-03公开报道。"},{"school":"沈阳建筑大学","text":"由“暂未查到可靠依据”更新为“采购意向公开”，后续还要等采购公告、中标或验收信息。"},{"school":"辽宁科技大学","text":"由“二次招标中”更新为“结果公告线索/待验收”，不能直接写成已投用。"},{"school":"辽宁大学","text":"补充6月后勤简报线索，仍按“部分楼栋已安装/全校覆盖待公告”处理。"},{"school":"沈阳化工大学","text":"保持“已中标/待安装验收”，截至本次整理仍不写成已投用。"}];
+const rows = [
+  {
+    "id": 1,
+    "school": "辽宁大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "211 / 双一流",
+    "status": "partial",
+    "statusLabel": "已安装（部分楼栋）",
+    "progress": "蒲河校区A1、C3、B5等学生公寓已完成空调加装；暂未核到全校全部宿舍覆盖公告。",
+    "completion": "A1/C3：2024-09-10验收；B5：2025-08-22验收",
+    "confidence": "高",
+    "sourceTitle": "辽宁大学后勤工作处",
+    "sourceUrl": "https://hqgzc.lnu.edu.cn/info/1008/2982.htm"
+  },
+  {
+    "id": 2,
+    "school": "大连理工大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "985 / 211 / 双一流",
+    "status": "full",
+    "statusLabel": "已安装（符合条件宿舍基本覆盖）",
+    "progress": "学生公寓首批近万台空调2024年6月安装完毕；校方计划暑期继续覆盖“一校两地三区”符合安装条件宿舍，新建宿舍随建随装。",
+    "completion": "首批：2024-06；第二批：计划2024暑期",
+    "confidence": "高",
+    "sourceTitle": "大连理工大学新闻网",
+    "sourceUrl": "https://news.dlut.edu.cn/info/1026/97654.htm"
+  },
+  {
+    "id": 3,
+    "school": "沈阳工业大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 4,
+    "school": "沈阳航空航天大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "installing",
+    "statusLabel": "中标/安装推进",
+    "progress": "学生宿舍空调采购及安装项目已发布中标公告；截至本页日期未核到竣工验收公告。",
+    "completion": "中标：2026-05-09；竣工待公告",
+    "confidence": "中高",
+    "sourceTitle": "沈阳航空航天大学招标采购办公室",
+    "sourceUrl": "https://zbcgb.sau.edu.cn/info/1060/2007.htm"
+  },
+  {
+    "id": 5,
+    "school": "沈阳理工大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 6,
+    "school": "东北大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "985 / 211 / 双一流",
+    "status": "full",
+    "statusLabel": "已安装（全覆盖）",
+    "progress": "南湖、浑南两校区17栋学生宿舍完成9600余台空调安装调试，实现寝室空调全覆盖。",
+    "completion": "2024-09前后投入使用",
+    "confidence": "高",
+    "sourceTitle": "东北大学新闻网",
+    "sourceUrl": "https://neunews.neu.edu.cn/sshx/info/1051/5560.htm"
+  },
+  {
+    "id": 7,
+    "school": "辽宁科技大学",
+    "city": "鞍山",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "tender",
+    "statusLabel": "招标采购中",
+    "progress": "学生宿舍及办公用房空调采购项目招标，投标截止2026-05-19；合同签订后45日内交货并完成安装调试。",
+    "completion": "预计：合同签订后45日；待中标/验收公告",
+    "confidence": "中高",
+    "sourceTitle": "辽宁科技大学招标采购管理中心",
+    "sourceUrl": "https://www.ustl.edu.cn/zbcgglzx/info/1007/3099.htm"
+  },
+  {
+    "id": 8,
+    "school": "辽宁工程技术大学",
+    "city": "阜新",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 9,
+    "school": "辽宁石油化工大学",
+    "city": "抚顺",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "planned",
+    "statusLabel": "采购意向/计划中",
+    "progress": "政府采购意向显示拟为学生宿舍安装空调约6000套，预计采购时间2026年4月；未核到中标或竣工公告。",
+    "completion": "计划采购：2026-04；竣工待公告",
+    "confidence": "中高",
+    "sourceTitle": "辽宁石油化工大学招标采购办公室",
+    "sourceUrl": "https://zbb.lnpu.edu.cn/info/1381/6361.htm"
+  },
+  {
+    "id": 10,
+    "school": "沈阳化工大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "tender",
+    "statusLabel": "招标采购中",
+    "progress": "学生宿舍空调采购安装项目已进入采购公告阶段；同时有电力增容相关项目，说明仍在建设链路中。",
+    "completion": "招标公告：2026-05-06；竣工待公告",
+    "confidence": "中",
+    "sourceTitle": "沈阳化工大学招标采购办公室",
+    "sourceUrl": "https://zcb.syuct.edu.cn/cggg.htm"
+  },
+  {
+    "id": 11,
+    "school": "大连交通大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 12,
+    "school": "大连海事大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "211 / 双一流",
+    "status": "installing",
+    "statusLabel": "中标/施工期",
+    "progress": "公共教学楼宇及学生宿舍空调采购项目已中标；监理公告显示施工同步工期为2026-03-03至2026-06-20。",
+    "completion": "预计竣工：2026-06-20；待验收公告",
+    "confidence": "高",
+    "sourceTitle": "大连海事大学信息公开网",
+    "sourceUrl": "https://xxgk.dlmu.edu.cn/info/1151/49406.htm"
+  },
+  {
+    "id": 13,
+    "school": "大连工业大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 14,
+    "school": "沈阳建筑大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 15,
+    "school": "辽宁工业大学",
+    "city": "锦州",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 16,
+    "school": "沈阳农业大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 17,
+    "school": "大连海洋大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "installing",
+    "statusLabel": "安装推进/待验收确认",
+    "progress": "学生宿舍空调安装工程2026-02-09正式启动，全校学生宿舍计划安装3490台，计划2026-04-30前完成全部安装与调试；后续仍需核验最终验收公告。",
+    "completion": "计划完成：2026-04-30",
+    "confidence": "高",
+    "sourceTitle": "大连海洋大学官网",
+    "sourceUrl": "https://www.dlou.edu.cn/2026/0209/c5864a202635/page.htm"
+  },
+  {
+    "id": 18,
+    "school": "中国医科大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "installing",
+    "statusLabel": "采购完成/安装推进",
+    "progress": "沈北校区1-17号学生宿舍与和平校区3号学生宿舍分体空调设备采购已出现2026年招标/结果信息；建议等待校方或政府采购原网竣工验收。",
+    "completion": "招标：2026-04-23；结果：2026-05-15；竣工待公告",
+    "confidence": "中",
+    "sourceTitle": "辽宁政府采购网转载信息",
+    "sourceUrl": "https://xunshubao.com/web/datainfo/gkzb_69e9d25bc9b80f25004b1acb"
+  },
+  {
+    "id": 19,
+    "school": "锦州医科大学",
+    "city": "锦州",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 20,
+    "school": "大连医科大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 21,
+    "school": "辽宁中医药大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。注意与民办杏林学院区分。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 22,
+    "school": "沈阳药科大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 23,
+    "school": "沈阳医学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 24,
+    "school": "辽宁师范大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。注意与民办海华学院区分。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 25,
+    "school": "沈阳师范大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 26,
+    "school": "渤海大学",
+    "city": "锦州",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 27,
+    "school": "鞍山师范学院",
+    "city": "鞍山",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 28,
+    "school": "大连外国语大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 29,
+    "school": "东北财经大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 30,
+    "school": "中国刑事警察学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到本科生学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 31,
+    "school": "沈阳体育学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 32,
+    "school": "沈阳音乐学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 33,
+    "school": "鲁迅美术学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 34,
+    "school": "沈阳大学",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 35,
+    "school": "大连大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 36,
+    "school": "辽宁科技学院",
+    "city": "本溪",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 37,
+    "school": "辽宁警察学院",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "tender",
+    "statusLabel": "采购项目/待确认",
+    "progress": "有2026年学生宿舍空调安装采购项目信息，但暂未核到学院官网或政府采购原网竣工公告。",
+    "completion": "采购节点：2026-04；竣工待公告",
+    "confidence": "中低",
+    "sourceTitle": "采购项目信息（待原网复核）",
+    "sourceUrl": "https://lnyoucheng.com/article-detail/N1eyD3yN"
+  },
+  {
+    "id": 38,
+    "school": "沈阳工程学院",
+    "city": "沈阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 39,
+    "school": "辽东学院",
+    "city": "丹东",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 40,
+    "school": "大连民族大学",
+    "city": "大连",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "full",
+    "statusLabel": "已安装（全覆盖）",
+    "progress": "全校共安装空调5800台，实现学生宿舍空调全覆盖；2025-06-26全面投入使用。",
+    "completion": "投入使用：2025-06-26",
+    "confidence": "高",
+    "sourceTitle": "大连民族大学官网",
+    "sourceUrl": "https://new.dlnu.edu.cn/esjszqh/info/1003/1181.htm"
+  },
+  {
+    "id": 41,
+    "school": "营口理工学院",
+    "city": "营口",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 42,
+    "school": "朝阳师范学院",
+    "city": "朝阳",
+    "nature": "公办",
+    "tag": "双非公办",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "新升本科院校口径；未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 43,
+    "school": "辽宁对外经贸学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "公开宿舍资料多写4人间等住宿条件，未核到可靠空调字段。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 44,
+    "school": "辽宁理工职业大学",
+    "city": "锦州",
+    "nature": "民办",
+    "tag": "民办本科职业大学",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "公开宿舍资料未明确学生宿舍空调。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 45,
+    "school": "大连理工大学城市学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "有空调（待官方复核）",
+    "progress": "公开宿舍资料显示4人寝配空调，但招生章程未明确；建议按新生实际楼栋复核。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "第三方宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 46,
+    "school": "沈阳工业大学工程学院",
+    "city": "辽阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 47,
+    "school": "沈阳航空航天大学北方科技学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "未核到学生宿舍空调已安装或采购安装的可靠公告。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 48,
+    "school": "沈阳工学院",
+    "city": "抚顺",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "full",
+    "statusLabel": "已安装（高可信）",
+    "progress": "官网住宿环境页明确宿舍上床下桌、配备中央空调。",
+    "completion": "页面发布：2026-05-08",
+    "confidence": "高",
+    "sourceTitle": "沈阳工学院官网",
+    "sourceUrl": "https://www.situ.edu.cn/info/1460/12524.htm"
+  },
+  {
+    "id": 49,
+    "school": "大连工业大学艺术与信息工程学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "有空调（按房型）",
+    "progress": "2025级选宿资料显示部分房型统一配空调；建议按当年楼栋/房型复核。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "公开选宿资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 50,
+    "school": "大连科技学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "full",
+    "statusLabel": "已安装（高可信）",
+    "progress": "2025级新生入学指南明确写“宿舍设有暖气、空调”。",
+    "completion": "2025级入学指南：2025-04-25",
+    "confidence": "高",
+    "sourceTitle": "大连科技学院招生网",
+    "sourceUrl": "https://sub2.dlust.edu.cn/kjzs/detail-3609.html"
+  },
+  {
+    "id": 51,
+    "school": "沈阳城市建设学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "公开资料写不同房型、独卫/洗衣机等，未核到可靠空调字段。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 52,
+    "school": "大连医科大学中山学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "公开宿舍资料未明确学生宿舍空调。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 53,
+    "school": "锦州医科大学医疗学院",
+    "city": "锦州",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "公开宿舍资料未明确学生宿舍空调。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 54,
+    "school": "辽宁师范大学海华学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "有空调（待官方复核）",
+    "progress": "公开宿舍资料显示3/4/6人间均有空调，但招生章程未展开，建议按当年新生楼栋复核。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "第三方宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 55,
+    "school": "辽宁理工学院",
+    "city": "锦州",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "部分房型有空调",
+    "progress": "招生章程/公开资料显示部分4人间等房型有空调，6人间等需单独确认。",
+    "completion": "—",
+    "confidence": "中高",
+    "sourceTitle": "招生章程/公开资料",
+    "sourceUrl": ""
+  },
+  {
+    "id": 56,
+    "school": "大连财经学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "部分房型有空调",
+    "progress": "公开资料显示部分两人间、三人间配置空调和独卫；不能直接写全校覆盖。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "公开宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 57,
+    "school": "沈阳城市学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "full",
+    "statusLabel": "已安装（高可信）",
+    "progress": "官网写学生社区公寓“每个宿舍配备一台空调”。",
+    "completion": "页面发布：2023-06-30",
+    "confidence": "高",
+    "sourceTitle": "沈阳城市学院官网",
+    "sourceUrl": "https://www.shenyangcu.edu.cn/gywm/xydt/202306/t20230630_44992.html"
+  },
+  {
+    "id": 58,
+    "school": "大连艺术学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "部分房型有空调",
+    "progress": "高标准4人间明确配空调；普通4/6人间未全部明确。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "公开宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 59,
+    "school": "辽宁中医药大学杏林学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "有空调（按房型）",
+    "progress": "公开宿舍资料显示多个房型有空调或中央空调；仍建议按楼栋复核。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "公开宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 60,
+    "school": "辽宁何氏医学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "招生章程多写6人/8人间等住宿标准，未核到可靠空调字段。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  },
+  {
+    "id": 61,
+    "school": "沈阳科技学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "partial",
+    "statusLabel": "有空调（待官方复核）",
+    "progress": "公开宿舍资料显示4人间公寓配空调，但未核到官网招生章程明确字段。",
+    "completion": "—",
+    "confidence": "中",
+    "sourceTitle": "公开宿舍资料/待学校官方复核",
+    "sourceUrl": ""
+  },
+  {
+    "id": 62,
+    "school": "大连东软信息学院",
+    "city": "大连",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "installing",
+    "statusLabel": "安装推进中",
+    "progress": "官网2026年2月发布“学生寝室空调即将上岗”，双校区寝室空调安装推进中；待最终竣工/投入使用公告。",
+    "completion": "预计：2026夏季前；待竣工公告",
+    "confidence": "高",
+    "sourceTitle": "大连东软信息学院官网",
+    "sourceUrl": "https://www.neusoft.edu.cn/html/975/2026-02-14/content-7720.html"
+  },
+  {
+    "id": 63,
+    "school": "辽宁财贸学院",
+    "city": "葫芦岛",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "full",
+    "statusLabel": "已安装（中高可信）",
+    "progress": "招生章程/公开资料显示新生宿舍配置中央空调；仍建议按当年实际楼栋复核。",
+    "completion": "—",
+    "confidence": "中高",
+    "sourceTitle": "招生章程/公开资料",
+    "sourceUrl": ""
+  },
+  {
+    "id": 64,
+    "school": "辽宁传媒学院",
+    "city": "沈阳",
+    "nature": "民办",
+    "tag": "民办本科",
+    "status": "unknown",
+    "statusLabel": "暂未核实",
+    "progress": "官方公寓介绍写家具、卫生间、洗衣机等，未核到可靠空调字段。",
+    "completion": "—",
+    "confidence": "低",
+    "sourceTitle": "待核实",
+    "sourceUrl": ""
+  }
+];
+
 const statusOrder = {full:1, partial:2, installing:3, tender:4, planned:5, unknown:6};
-const statusText = {full:'已明确可用', partial:'部分楼栋/房型', installing:'正在推进', tender:'招采阶段', planned:'采购意向', unknown:'暂未查到可靠依据'};
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function statusClass(s){return s || 'unknown';}
+const statusClass = s => s || "unknown";
 function sourceCell(r){
-  const bits=[];
-  if(r.sourceUrl) bits.push(`<a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">${esc(r.sourceTitle||'来源')}</a>`);
-  else bits.push(`<span class="mini">${esc(r.sourceTitle||'暂未查到可靠公开依据')}</span>`);
-  (r.sourceExtra||[]).forEach(x=>bits.push(`<a class="source-extra" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title||'补充来源')}</a>`));
-  return bits.join('');
+  if(!r.sourceUrl) return `<span class="mini">${r.sourceTitle || "待核实"}</span>`;
+  return `<a href="${r.sourceUrl}" target="_blank" rel="noopener">${r.sourceTitle || "来源"}</a>`;
 }
-function tags(t){return String(t||'').split('/').map(x=>x.trim()).filter(Boolean).map(x=>`<span class="tag">${esc(x)}</span>`).join('');}
-function getFiltered(){
-  const q=document.getElementById('q').value.trim().toLowerCase();
-  const nature=document.getElementById('nature').value;
-  const status=document.getElementById('status').value;
-  const tag=document.getElementById('tag').value;
-  return rows.filter(r=>{
-    const hay=[r.school,r.city,r.nature,r.tag,r.statusLabel,r.progress,r.completion,r.confidence,r.sourceTitle,r.evidenceLevel,r.verifiedOn].join(' ').toLowerCase();
-    return (!q||hay.includes(q))&&(!nature||r.nature===nature)&&(!status||r.status===status)&&(!tag||String(r.tag).includes(tag));
-  }).sort((a,b)=>(statusOrder[a.status]-statusOrder[b.status])||a.id-b.id);
-}
-function renderSummary(){
-  const counts=rows.reduce((m,r)=>(m[r.status]=(m[r.status]||0)+1,m),{});
-  const natures=rows.reduce((m,r)=>(m[r.nature]=(m[r.nature]||0)+1,m),{});
-  const officialClear=rows.filter(r=>r.status==='full' && !['公开资料线索','暂未查到可靠公开依据'].includes(r.evidenceLevel)).length;
-  const clues=rows.filter(r=>['partial'].includes(r.status)).length;
-  const inProgress=(counts.installing||0)+(counts.tender||0)+(counts.planned||0);
-  const cards=[['64','本科院校总数'],[natures['公办']||0,'公办本科'],[natures['民办']||0,'民办本科'],[officialClear,'已明确可用'],[clues,'有线索需复核'],[inProgress,'正在推进/招采'],[counts.unknown||0,'暂未查到可靠依据'],[`<span id="visibleCount">${rows.length}</span>`,'当前筛选结果']];
-  document.getElementById('summaryCards').innerHTML=cards.map(c=>`<div class="card"><div class="num">${c[0]}</div><div class="lab">${c[1]}</div></div>`).join('');
-}
-function renderUpdates(){
-  document.getElementById('updates').innerHTML=updates.map(u=>`<article class="update"><b>${esc(u.school)}</b><span>${esc(u.text)}</span></article>`).join('');
+function tags(t){
+  return String(t).split('/').map(x=>x.trim()).filter(Boolean).map(x=>`<span class="tag">${x}</span>`).join('');
 }
 function render(){
-  const filtered=getFiltered();
-  document.getElementById('tbody').innerHTML=filtered.map(r=>`<tr><td>${r.id}</td><td><div class="school">${esc(r.school)}</div><div class="mini">核验：${esc(r.verifiedOn||'')}</div><div>${tags(r.tag)}</div></td><td>${esc(r.city)}<div class="mini">${esc(r.nature)}</div></td><td><span class="pill ${statusClass(r.status)}">${esc(r.statusLabel || statusText[r.status])}</span><div class="mini">${esc(r.evidenceLevel)}</div></td><td>${esc(r.progress)}<div class="mini">节点：${esc(r.completion||'—')}</div></td><td>${esc(r.nextCheck||'按当年新生实际安排复核。')}</td><td>${sourceCell(r)}</td></tr>`).join('');
-  document.getElementById('mobileList').innerHTML=filtered.map(r=>`<article class="mcard"><div class="mhead"><div><div class="mname">${esc(r.school)}</div><div class="mmeta">${esc(r.city)}｜${esc(r.nature)}｜核验：${esc(r.verifiedOn||'')}</div></div><span class="pill ${statusClass(r.status)}">${esc(r.statusLabel || statusText[r.status])}</span></div><div>${tags(r.tag)}</div><div class="mrow"><b>依据：</b>${esc(r.evidenceLevel)}｜${sourceCell(r)}</div><div class="mrow"><b>说明：</b>${esc(r.progress)}</div><div class="mrow"><b>节点：</b>${esc(r.completion||'—')}</div><div class="mrow"><b>下一步：</b>${esc(r.nextCheck||'按当年新生实际安排复核。')}</div></article>`).join('');
-  document.getElementById('emptyState').style.display=filtered.length?'none':'block';
-  const visible=document.getElementById('visibleCount'); if(visible) visible.textContent=filtered.length;
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const nature = document.getElementById('nature').value;
+  const status = document.getElementById('status').value;
+  const tag = document.getElementById('tag').value;
+  let filtered = rows.filter(r=>{
+    const hay = [r.school,r.city,r.nature,r.tag,r.statusLabel,r.progress,r.completion,r.confidence].join(' ').toLowerCase();
+    return (!q || hay.includes(q)) && (!nature || r.nature===nature) && (!status || r.status===status) && (!tag || r.tag.includes(tag));
+  }).sort((a,b)=>(statusOrder[a.status]-statusOrder[b.status]) || a.id-b.id);
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = filtered.map((r,idx)=>`
+    <tr>
+      <td>${r.id}</td>
+      <td><div class="school">${r.school}</div><div class="mini">本科院校</div></td>
+      <td>${r.city}</td>
+      <td>${r.nature}<div class="mini">${r.tag.includes('职业大学')?'本科层次职业大学':'普通本科'}</div></td>
+      <td>${tags(r.tag)}</td>
+      <td><span class="pill ${statusClass(r.status)}">${r.statusLabel}</span></td>
+      <td>${r.progress}</td>
+      <td>${r.completion || '—'}</td>
+      <td>${r.confidence}</td>
+      <td>${sourceCell(r)}</td>
+    </tr>`).join('');
+  document.getElementById('visibleCount').textContent = filtered.length;
 }
-['q','nature','status','tag'].forEach(id=>document.getElementById(id).addEventListener('input',render));
-document.getElementById('reset').addEventListener('click',()=>{['q','nature','status','tag'].forEach(id=>document.getElementById(id).value='');render();});
-renderSummary();renderUpdates();render();
+function renderSummary(){
+  const total = rows.length;
+  const counts = rows.reduce((m,r)=>(m[r.status]=(m[r.status]||0)+1,m),{});
+  const natures = rows.reduce((m,r)=>(m[r.nature]=(m[r.nature]||0)+1,m),{});
+  const cards = [
+    ["64","本科院校总数"],
+    [natures["公办"]||0,"公办本科"],
+    [natures["民办"]||0,"民办本科"],
+    [(counts.full||0)+(counts.partial||0),"已核到有空调"],
+    [(counts.installing||0)+(counts.tender||0)+(counts.planned||0),"安装/采购推进"],
+    [`<span id="visibleCount">${total}</span>`,"当前筛选结果"]
+  ];
+  document.getElementById('summaryCards').innerHTML = cards.map(c=>`<div class="card"><div class="num">${c[0]}</div><div class="lab">${c[1]}</div></div>`).join('');
+}
+["q","nature","status","tag"].forEach(id=>document.getElementById(id).addEventListener('input',render));
+document.getElementById('reset').addEventListener('click',()=>{["q","nature","status","tag"].forEach(id=>document.getElementById(id).value='');render();});
+renderSummary();render();
 </script>
 </body>
 </html>

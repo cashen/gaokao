@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "version": "v3.9.46.2",
-  "assetVersion": "v3946_2",
-  "release": "v3.9.46.2-ln-rank-release-contract-export-fix-clean-package-12-role-no-fenxi",
-  "fix": "functions/_lib/release-contract.js now exports LN_RANK_RELEASE_CONTRACT and RELEASE_CONTRACT alias",
-  "noFenxiIncluded": true,
-  "cloudflarePagesExportContract": true
-}

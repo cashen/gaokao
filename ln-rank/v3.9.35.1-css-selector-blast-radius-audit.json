@@ -1,5 +1,0 @@
-{
-  "status": "PASS",
-  "errors": [],
-  "rule": "Active dist CSS must not use [class*=chip] to control white-space."
-}

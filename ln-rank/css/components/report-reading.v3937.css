@@ -1,3 +1,0 @@
-/* v3.9.37 report reading contract: report is a family review document, not a wide console. */
-.report-view,.selection-report,.report-content,.analysis-result{max-width:var(--ln-read-max);margin-inline:auto;line-height:1.72;overflow-wrap:break-word;word-break:normal;}
-.report-view table,.selection-report table{max-width:100%;display:block;overflow-x:auto;}

@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "version": "v3.9.33.16-ln-rank-position-window-first-211-local-consistency-no-fenxi",
-  "checks": [
-    "211 matcher builds aliasMap/directionMap at module load",
-    "match211Mainline resolves school through alias index before matching directions",
-    "school array .find full scan is removed from match211Mainline runtime path"
-  ]
-}

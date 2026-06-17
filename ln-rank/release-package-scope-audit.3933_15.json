@@ -1,8 +1,0 @@
-{
-  "ok": true,
-  "version": "v3.9.33.15",
-  "noFenxiDirectory": true,
-  "noFunctionsFenxiDirectory": true,
-  "noMiddlewareIncluded": true,
-  "note": "包边界仍为 no-fenxi；211 与本地背景通过现有统一数据读取层读取历史专业记录。"
-}

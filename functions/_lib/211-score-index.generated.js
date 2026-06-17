@@ -1,1 +1,0 @@
-export const ALL_211_SCORE_INDEX = {"version": "v3.9.33.14", "assetVersion": "v3933_14", "boundary": "分数入口只按辽宁 2025 物理类历史记录做辅助查看，不代表 2026 录取结果。", "dataSource": "static score-211-index generated for static package", "requiresFenxiRuntime": false, "records": []};

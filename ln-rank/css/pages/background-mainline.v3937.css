@@ -1,4 +1,0 @@
-/* v3.9.37 background mainline role: review pages, not primary query. */
-[data-page-role="background-local"] .lm-start-guide,[data-page-role="background-211"] .lm-start-guide{gap:10px;}
-[data-page-role="background-local"] .lm-tab,[data-page-role="background-211"] .lm-tab{white-space:nowrap;word-break:keep-all;}
-@media(max-width:760px){[data-page-role="background-local"] .lm-start-guide,[data-page-role="background-211"] .lm-start-guide{display:grid;grid-template-columns:1fr;gap:8px}}

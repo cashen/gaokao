@@ -1,4 +1,0 @@
-/* v3.9.37 diagnosis block: parent-readable explanation, never a dense log wall. */
-.card-diagnosis,.diagnosis-block,.ai-diagnosis,.analysis-result{min-width:0;overflow-wrap:break-word;word-break:normal;}
-.card-diagnosis li,.diagnosis-block li{margin-bottom:6px;}
-@media(max-width:760px){.card-diagnosis,.diagnosis-block{font-size:14px;line-height:1.68}}
