@@ -1,4 +1,4 @@
-import { MAJOR_TREND_DATA, trendTone } from './feature/trend/index.js?v=3946_6';
+import { MAJOR_TREND_DATA, trendTone } from './feature/trend/index.js?v=3947_0';
 
 const TREND_COPY = {
   pageTitle: '专业方向变化参考',
@@ -198,7 +198,7 @@ export function mountMajorTrendPage() {
         <div><h2>看完变化，再回到报告流程</h2><p>趋势只是一盏辅助灯。真正决定时，还要回到专业卡片、孩子接受度、招生计划和章程。</p></div>
         <div class="trend-return-actions"><a class="scope-pill trend-action-main" href="./index.html">返回查专业</a><a class="scope-pill trend-action-soft" href="./selection-pool.html">生成报告前确认</a></div>
       </section>
-      <section class="data-note">${escapeHtml(MAJOR_TREND_DATA.disclaimer)}<br>版本：v3.9.46.6｜数据口径：辽宁 2025 物理类｜变化口径：2024/2025 同校同专业普通项目</section>`;
+      <section class="data-note">${escapeHtml(MAJOR_TREND_DATA.disclaimer)}<br>版本：v3.9.47.0｜数据口径：辽宁 2025 物理类｜变化口径：2024/2025 同校同专业普通项目</section>`;
     root.querySelectorAll('[data-segment]').forEach(btn => btn.addEventListener('click', () => { active = btn.dataset.segment; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
   }
   render();

@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.46.6",
-  "assetVersion": "v3946_6",
+  "version": "v3.9.47.0",
+  "assetVersion": "v3947_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3946_6.js",
-    "js/selection-pool.v3946_6.js",
-    "js/major-trend-render.v3946_6.js",
-    "js/self-check.v3946_6.js",
-    "js/local-mainline/local-mainline-app.v3946_6.js",
-    "js/211-mainline/211-mainline-app.v3946_6.js"
+    "js/app.v3947_0.js",
+    "js/selection-pool.v3947_0.js",
+    "js/major-trend-render.v3947_0.js",
+    "js/self-check.v3947_0.js",
+    "js/local-mainline/local-mainline-app.v3947_0.js",
+    "js/211-mainline/211-mainline-app.v3947_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3946_6.css",
-    "css/dist/ln-rank-selection.v3946_6.css",
-    "css/dist/ln-rank-trend.v3946_6.css",
-    "css/dist/ln-rank-self-check.v3946_6.css",
-    "css/dist/local-mainline.v3946_6.css",
-    "css/dist/211-mainline.v3946_6.css"
+    "css/dist/ln-rank-main.v3947_0.css",
+    "css/dist/ln-rank-selection.v3947_0.css",
+    "css/dist/ln-rank-trend.v3947_0.css",
+    "css/dist/ln-rank-self-check.v3947_0.css",
+    "css/dist/local-mainline.v3947_0.css",
+    "css/dist/211-mainline.v3947_0.css"
   ],
-  "sourceCssPreserved": false,
+  "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3946_6.css",
-    "selection": "css/dist/ln-rank-selection.v3946_6.css",
-    "trend": "css/dist/ln-rank-trend.v3946_6.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3946_6.css",
-    "localMainline": "css/dist/local-mainline.v3946_6.css",
-    "main211": "css/dist/211-mainline.v3946_6.css"
+    "main": "css/dist/ln-rank-main.v3947_0.css",
+    "selection": "css/dist/ln-rank-selection.v3947_0.css",
+    "trend": "css/dist/ln-rank-trend.v3947_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_0.css",
+    "localMainline": "css/dist/local-mainline.v3947_0.css",
+    "main211": "css/dist/211-mainline.v3947_0.css"
   },
-  "releaseGate": "visible version clean package contract, child direction helper retained, no-fenxi, school-strength-local-211-view, static-safe-prune",
+  "releaseGate": "visible version clean package contract, child direction helper retained, no-fenxi, school-strength-local-211-view, static-safe-prune, major-understanding-layered-kb, ui-human-regression",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -63,5 +63,15 @@
   "rarOverlayResiduePruned": true,
   "toolsRemovedFromDeployPackage": true,
   "oldVersionedRuntimeAssetsRemoved": true,
-  "cssSourceRemovedFromDeployPackage": true
+  "majorUnderstandingKb": true,
+  "knowledgeDisplayContract": true,
+  "uiHumanErgonomicsRegression": true,
+  "reportLayeredSectionContract": true,
+  "majorUnderstandingCatalogTotal": 883,
+  "kbAssets": {
+    "majorCatalog": "kb/major-understanding/major-catalog-2026.generated.js",
+    "majorUnderstanding": "kb/major-understanding/major-understanding.generated.js",
+    "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
+    "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
+  }
 }

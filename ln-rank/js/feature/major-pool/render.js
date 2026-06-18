@@ -8,7 +8,8 @@ import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js
 import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_14';
 import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_14';
 import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_14';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3946_6';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_0';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_0';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -242,6 +243,20 @@ function renderReviewPoints(record) {
   return `<div class="card-review-points"><div class="card-review-summary">${escapeHtml(summary || '需核验：查看复核详情')}</div>${details}</div>`;
 }
 
+
+function renderMajorUnderstandingPreview(record) {
+  const info = majorUnderstandingCard(record);
+  if (!info?.oneLine) return '';
+  const questions = Array.isArray(info.questions) ? info.questions.slice(0, 2).filter(Boolean) : [];
+  const qHtml = questions.length ? `<div class="major-understanding-questions">${questions.map(q => `<span>${escapeHtml(q)}</span>`).join('')}</div>` : '';
+  const classLevel = info.isClassLevel ? ' is-class-level' : '';
+  return `<section class="major-understanding-preview${classLevel}" aria-label="这个专业先了解什么">
+    <div class="major-understanding-title">这个专业先了解</div>
+    <p>${escapeHtml(info.oneLine)}</p>
+    ${qHtml}
+  </section>`;
+}
+
 function renderMajorCode(record) {
   const sm = record?.standardMajor || {};
   if (sm.code && sm.name && ['exact','alias'].includes(sm.mappingStatus || 'exact')) {
@@ -286,6 +301,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
     ${renderMajorCode(record)}
+    ${renderMajorUnderstandingPreview(record)}
     ${renderKnowledgeChips(record)}
     ${renderLocalContextInline(record)}
     ${renderLocalStrengthFeature(record, activeBand, viewMode)}
@@ -360,7 +376,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const resultViewTabs = renderResultViewTabs(state, group);
   root.className = 'results-grid';
   const emptyReason = viewMode === 'localStrength'
-    ? `<div class="empty local-strength-empty"><b>当前范围暂时没有明显的学校强项提示。</b><p>可以继续查看全部专业，或放宽地区、专业方向后再看。这里不是填报建议列表，只是帮家里防止漏看有省内背景、211背景或学校底子的专业方向。</p><button type="button" class="result-view-inline-button" data-result-view="all">回到全部专业</button></div>`
+    ? `<div class="empty local-strength-empty is-light"><span>当前范围暂无明显学校强项，已保留全部专业结果。</span><button type="button" class="result-view-inline-button" data-result-view="all">查看全部专业</button></div>`
     : (bottomLineMode !== 'all'
       ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
       : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`);

@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.46.6",
-  "assetVersion": "v3946_6",
+  "version": "v3.9.47.0",
+  "assetVersion": "v3947_0",
   "entries": {
-    "search": "js/app.v3946_6.js",
-    "selectionPool": "js/selection-pool.v3946_6.js",
-    "majorTrend": "js/major-trend-render.v3946_6.js",
-    "selfCheck": "js/self-check.v3946_6.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_6.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_6.js"
+    "search": "js/app.v3947_0.js",
+    "selectionPool": "js/selection-pool.v3947_0.js",
+    "majorTrend": "js/major-trend-render.v3947_0.js",
+    "selfCheck": "js/self-check.v3947_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_0.js"
   },
   "entrypoints": {
-    "search": "js/app.v3946_6.js",
-    "selectionPool": "js/selection-pool.v3946_6.js",
-    "majorTrend": "js/major-trend-render.v3946_6.js",
-    "selfCheck": "js/self-check.v3946_6.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_6.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_6.js"
+    "search": "js/app.v3947_0.js",
+    "selectionPool": "js/selection-pool.v3947_0.js",
+    "majorTrend": "js/major-trend-render.v3947_0.js",
+    "selfCheck": "js/self-check.v3947_0.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_0.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_0.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3946_6.css",
-    "selection": "css/dist/ln-rank-selection.v3946_6.css",
-    "trend": "css/dist/ln-rank-trend.v3946_6.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3946_6.css",
-    "localMainline": "css/dist/local-mainline.v3946_6.css",
-    "main211": "css/dist/211-mainline.v3946_6.css"
+    "main": "css/dist/ln-rank-main.v3947_0.css",
+    "selection": "css/dist/ln-rank-selection.v3947_0.css",
+    "trend": "css/dist/ln-rank-trend.v3947_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_0.css",
+    "localMainline": "css/dist/local-mainline.v3947_0.css",
+    "main211": "css/dist/211-mainline.v3947_0.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -49,5 +49,16 @@
   "schoolStrength211NoSchoolTagOnlyContract": true,
   "staticSafePruneContract": true,
   "rarOverlayResiduePruned": true,
-  "oldVersionedRuntimeAssetsRemoved": true
+  "oldVersionedRuntimeAssetsRemoved": true,
+  "majorUnderstandingKb": true,
+  "knowledgeDisplayContract": true,
+  "uiHumanErgonomicsRegression": true,
+  "reportLayeredSectionContract": true,
+  "majorUnderstandingCatalogTotal": 883,
+  "kbAssets": {
+    "majorCatalog": "kb/major-understanding/major-catalog-2026.generated.js",
+    "majorUnderstanding": "kb/major-understanding/major-understanding.generated.js",
+    "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
+    "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
+  }
 }

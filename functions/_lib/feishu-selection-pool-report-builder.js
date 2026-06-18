@@ -62,6 +62,7 @@ function normalizeItems(items = []) {
       localStrongChain: item.localStrongChain || null,
       trajectoryChain: item.trajectoryChain || null,
       localStrengthMark: item.localStrengthMark || null,
+      majorUnderstanding: item.majorUnderstanding || null,
       specialProject: item.specialProject || null,
       codes: item.codes || {},
       standardMajor: item.standardMajor || {},
@@ -459,6 +460,25 @@ function appendCurrentPlanLines(lines, input, stats, summary, hasAnalysis) {
 }
 
 
+
+function majorUnderstandingMarkdownLines(items = []) {
+  const rows = [];
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const info = item.majorUnderstanding?.matched ? item.majorUnderstanding : null;
+    if (!info) return;
+    const summary = clean(info.report?.shortSummary || info.card?.oneLine || '', 180);
+    const review = Array.isArray(info.report?.reviewItems) && info.report.reviewItems.length ? info.report.reviewItems.slice(0, 3).join(' / ') : '';
+    if (summary || review) rows.push({ item, summary, review });
+  });
+  if (!rows.length) return [];
+  const lines = ['## 专业理解与家庭确认问题', '', '- 说明：这里不预测就业，也不替孩子决定；只帮助家庭先看懂专业、再查培养方案和招生章程。', ''];
+  rows.slice(0, 10).forEach(({ item, summary, review }) => {
+    lines.push(`- ${item.school || '学校待核验'} · ${item.major || '专业待核验'}：${summary || '专业理解待复核'}${review ? `｜家庭复核：${review}` : ''}`);
+  });
+  lines.push('');
+  return lines;
+}
+
 function groupCountsForReport(items = []) {
   const groups = { rush: [], stable: [], safe: [] };
   (Array.isArray(items) ? items : []).forEach(item => {
@@ -533,6 +553,13 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 参考位置：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
       lines.push(`- 地域：${tagsText(item)}`);
       lines.push(`- ${codeText}`);
+      if (item.majorUnderstanding?.matched) {
+        const mu = item.majorUnderstanding;
+        const summaryText = clean(mu.report?.shortSummary || mu.card?.oneLine || '', 180);
+        const reviewItems = Array.isArray(mu.report?.reviewItems) ? mu.report.reviewItems.slice(0, 3).join(' / ') : '';
+        if (summaryText) lines.push(`- 专业理解：${summaryText}`);
+        if (reviewItems) lines.push(`- 家庭复核：${reviewItems}`);
+      }
       const contextEntries = localContextItems(item);
       if (contextEntries.length) {
         contextEntries.slice(0, 2).forEach(entry => {
@@ -550,6 +577,10 @@ export function buildSelectionPoolFeishuReport(input = {}) {
 
   lines.push('## 五、本方案确认清单', '');
   appendChecklistLines(lines, reviewChecklist);
+  {
+    const understandingLines = nonHeadingLines(majorUnderstandingMarkdownLines(displayItems)).filter(Boolean);
+    if (understandingLines.length) lines.push('- 专业理解与家庭确认问题：', ...understandingLines, '');
+  }
   {
     const strengthLines = nonHeadingLines(localStrengthMarkdownLines(displayItems)).filter(Boolean);
     if (strengthLines.length) lines.push('- 本次别漏看的学校强项方向：', ...strengthLines, '');

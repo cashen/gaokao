@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.46.6",
-  "assetVersion": "v3946_6",
-  "releaseName": "v3.9.46.6-ln-rank-static-safe-prune-asset-clean-regression-12-role-no-fenxi",
+  "version": "v3.9.47.0",
+  "assetVersion": "v3947_0",
+  "releaseName": "v3.9.47.0-ln-rank-major-kb-layered-ui-human-regression-12-role-no-fenxi",
   "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -33,5 +33,10 @@
   "staticSafePruneContract": true,
   "rarOverlayResiduePruned": true,
   "toolsRemovedFromDeployPackage": true,
-  "oldVersionedRuntimeAssetsRemoved": true
+  "oldVersionedRuntimeAssetsRemoved": true,
+  "majorUnderstandingKb": true,
+  "knowledgeDisplayContract": true,
+  "uiHumanErgonomicsRegression": true,
+  "reportLayeredSectionContract": true,
+  "majorUnderstandingCatalogTotal": 883
 }

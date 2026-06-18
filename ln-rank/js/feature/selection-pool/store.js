@@ -1,5 +1,6 @@
 import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain, matchLiaoningMajorTrajectory, resolveLocalContext } from '../../knowledge/index.js?v=3933_14';
-import { resolveLocalStrengthMark } from '../major-pool/local-strength-view.js?v=3946_6';
+import { resolveLocalStrengthMark } from '../major-pool/local-strength-view.js?v=3947_0';
+import { resolveMajorUnderstanding } from '../../knowledge/major-understanding-resolver.js?v=3947_0';
 const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3933_12';
 const LEGACY_KEYS = [STORAGE_KEY, 'lnRank.selectionPool.physics2025.v3933_5', 'lnRank.selectionPool.physics2025.v3933_3', 'lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
 const MAX_ITEMS = 112;
@@ -49,6 +50,7 @@ export function normalizePoolItem(record = {}, order = 1) {
   const trajectoryChain = record.trajectoryChain?.matched ? record.trajectoryChain : matchLiaoningMajorTrajectory(record);
   const localContext = record.localContext?.primary ? record.localContext : resolveLocalContext({ ...record, localStrongChain, trajectoryChain });
   const localStrengthMark = record.localStrengthMark?.matched ? record.localStrengthMark : resolveLocalStrengthMark({ ...record, localStrongChain, trajectoryChain, localContext });
+  const majorUnderstanding = record.majorUnderstanding?.matched ? record.majorUnderstanding : resolveMajorUnderstanding(record);
   const base = {
     id,
     userOrder: order,
@@ -87,6 +89,7 @@ export function normalizePoolItem(record = {}, order = 1) {
     trajectoryChain,
     localContext,
     localStrengthMark,
+    majorUnderstanding,
     specialProject: record.specialProject || null,
     historyCompare: record.historyCompare || null,
     standardMajor: record.standardMajor || null,

@@ -50,14 +50,6 @@
 .lm-direction-level{margin:10px 0}.lm-direction-level>b{font-size:13px;color:#344054}.lm-direction-level ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.lm-mini-record{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr) auto;gap:8px;align-items:center;background:#f8fbff;border:1px solid #e7edf6;border-radius:12px;padding:8px 10px}.lm-mini-title{font-weight:800;color:#24324a;line-height:1.35}.lm-mini-meta{font-size:12.5px;color:#526277;line-height:1.45}.lm-mini-record a{font-size:12.5px;color:#365f8f;text-decoration:none;font-weight:800;white-space:nowrap}.lm-record-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lm-score-section{margin:14px 0}.lm-score-section-desc{font-size:13px;color:#667085;margin:6px 0 10px;line-height:1.6}.lm-score-section .lm-record-card{margin-bottom:10px}@media(max-width:860px){.lm-record-list{grid-template-columns:1fr}.lm-mini-record{grid-template-columns:1fr}.lm-mini-record a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border:1px solid #d8e2f0;border-radius:999px;background:#fff}.lm-direction-head{display:block}.lm-direction-head span{display:inline-block;margin-top:8px;white-space:normal}}
 
 
-/* =========================================================
-   SOURCE: css/pages/211-mainline.css
-   ========================================================= */
-
-/* v3.9.33.14 211 mainline independent page */
-.jm-page{max-width:1180px}.jm-hero{background:linear-gradient(135deg,#fff,#f5f8ff)}.jm-start-guide .lm-start-card{min-height:118px}.jm-school-card .lm-card-note{min-height:70px}.jm-school-card.is-soft-muted{border-style:dashed;background:#fbfcff}.jm-school-card .lm-card-action{margin-top:4px}.jm-page .lm-direction-group ul{margin:8px 0 0;padding-left:18px;color:#526277;line-height:1.65}.jm-page .lm-record-list{grid-template-columns:repeat(2,minmax(0,1fr))}.jm-page .lm-record-card h3,.jm-page .lm-card h3{word-break:normal;overflow-wrap:anywhere}.jm-page .lm-card-note,.jm-page .lm-review-row{overflow-wrap:anywhere}.jm-page .lm-tech-detail{word-break:break-word}@media(max-width:960px){.jm-page .lm-record-list{grid-template-columns:1fr}.jm-school-card .lm-card-note{min-height:0}}@media(max-width:640px){.jm-start-guide .lm-start-card{min-height:0}.jm-page .lm-tabs{position:sticky;top:0}.jm-page .lm-input{width:100%}.jm-page .lm-panel-head{display:block}.jm-page .lm-panel-head .lm-input{margin-top:12px}.jm-page .lm-record-card,.jm-page .lm-card{padding:13px}.jm-page .lm-card-action{width:100%;min-height:42px}.jm-page .lm-score-console .lm-primary{width:100%}}
-
-
 /* v3.9.33.14 auxiliary navigation + API error human contract */
 .aux-page-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:1180px;margin:18px auto 0;padding:0 4px;font-size:14px;color:#50617a}
 .aux-page-nav a{display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border:1px solid rgba(67,105,150,.18);border-radius:999px;background:rgba(255,255,255,.76);color:#315b8b;text-decoration:none;font-weight:700;box-shadow:0 8px 22px rgba(31,55,83,.05)}
@@ -867,7 +859,7 @@ body{background:linear-gradient(135deg,#F7F9F8 0%,#F4F7F6 70%,#F3F6F8 100%)}
 .lm-link-button.secondary,.lm-card-text-link,.lm-pill.primary,.lm-evidence-chip{background:var(--ln-primary-soft);border-color:#CFE2E7;color:var(--ln-primary)}
 @media(max-width:640px){.lm-hero,.lm-panel,.lm-boundary,.lm-howto,.lm-start-guide,.lm-card,.lm-record-card{border-radius:14px}}
 
-/* v3.9.46.6 211 auxiliary page keeps low-weight reference role. */
+/* v3.9.47.0 auxiliary page low-weight visual contract. */
 body.ln-aux-guided-page{background:linear-gradient(180deg,#eef7f5 0%,#f8fbfa 260px,#f5f8f7 100%);color:#111827;}
 .ln-aux-guided-page .lm-page{max-width:1120px;margin:0 auto;padding:22px 16px 34px;}
 .ln-aux-guided-page .lm-hero,.ln-aux-guided-page .lm-boundary,.ln-aux-guided-page .lm-start-guide,.ln-aux-guided-page .lm-panel,.ln-aux-guided-page .lm-howto,.ln-aux-guided-page .aux-page-bottom-link{background:rgba(255,255,255,.86);border:1px solid #d9e5e2;border-radius:20px;box-shadow:0 16px 42px rgba(17,24,39,.07);}
