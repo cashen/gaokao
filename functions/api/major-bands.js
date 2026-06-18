@@ -43,6 +43,14 @@ function rankSortValue(value) {
   return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
 }
 
+function hasKeywordFilters(keywordQuery = {}) {
+  return Boolean(keywordQuery?.hasMajorKeyword || keywordQuery?.hasProjectKeyword || keywordQuery?.hasIndustryKeyword);
+}
+
+function matchAllKeywordResult() {
+  return { matched: true, score: 0, badges: [], reason: '', matchLevel: '', matchLabel: '', matchReason: '', matchedKeyword: '', matchedTerms: [] };
+}
+
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return {
@@ -115,6 +123,7 @@ export async function onRequest(context) {
     const grouped = initGrouped(bandsMeta);
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
+    const hasKeywordSearch = hasKeywordFilters(keywordQuery);
 
     const manifest = await loadManifest(context.request, context.env || {});
     const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
@@ -155,7 +164,10 @@ export async function onRequest(context) {
 
         rawCandidate += 1;
 
-        const record = { ...normalizeRecord(raw), rawText: JSON.stringify(raw).slice(0, 1600) };
+        const record = { ...normalizeRecord(raw) };
+        // 低分段候选多时，避免无关键词查询也为每条记录 JSON.stringify 大字段。
+        // rawText 只在专业/项目/行业关键词搜索时参与模糊匹配，普通查询不需要。
+        record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
         record.codes = normalizeFenxiCodes(raw);
         const mappedStandardMajor = mapStandardMajor({
           majorName: record.major,
@@ -169,8 +181,7 @@ export async function onRequest(context) {
         if (!matchRegion(record, filters.region)) continue;
         if (filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
 
-        const indexed = buildSearchIndex([record])[0];
-        const match = matchMajorProject(indexed, keywordQuery);
+        const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
         if (!match.matched) { majorKeywordExcluded += 1; continue; }
         record.matchBadges = match.badges;
         record.matchLevel = match.matchLevel || '';
@@ -278,7 +289,9 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error && error.message ? error.message : String(error),
-      hint: '专业池接口已改为分块筛选模式；若仍失败，请检查 /fenxi/data/manifest.json 与 chunks 路径，或打开 /api/major-bands-health 查看数据读取状态。'
+      userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
+      engineerHint: 'major-bands 返回了 JSON 错误。请先测 /api/major-bands-health?probe=1；若健康探针正常，重点检查当前查询参数、公办优先筛选和低分段候选量。',
+      hint: '专业池接口已改为分块筛选模式；若仍失败，请检查 /fenxi/data/manifest.json 与 chunks 路径，或打开 /api/major-bands-health?probe=1 查看数据读取与低分段探针状态。'
     }, 500);
   }
 }
