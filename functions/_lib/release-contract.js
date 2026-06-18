@@ -1,8 +1,8 @@
 export const LN_RANK_RELEASE_CONTRACT = {
-  display: 'v3.9.47.1',
-  asset: '3947_1',
-  assetVersion: 'v3947_1',
-  release: 'v3.9.47.1-ln-rank-report-dock-ui-human-fix-regression-12-role-no-fenxi',
+  display: 'v3.9.47.2',
+  asset: '3947_2',
+  assetVersion: 'v3947_2',
+  release: 'v3.9.47.2-ln-rank-module-syntax-hotfix-regression-12-role-no-fenxi',
   label: 'report-dock-ui-human-fix-regression-12-role-no-fenxi',
   noFenxiIncluded: true,
   cleanPackageContract: true,
