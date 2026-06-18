@@ -1,4 +1,4 @@
-import { MAIN_FLOW_STEPS, PLAN_FLOW_STEPS, stateClassFor } from '../../domain/flow-step-contract.js?v=3947_7';
+import { MAIN_FLOW_STEPS, PLAN_FLOW_STEPS, stateClassFor } from '../../domain/flow-step-contract.js?v=3947_8';
 function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function renderSteps(steps, resolved) {
   return steps.map((step, index) => `<li class="${stateClassFor(step.key, resolved)}" data-flow-step="${escapeHtml(step.key)}"><span class="ln-stepper-index">${stateClassFor(step.key, resolved) === 'is-complete' ? '✓' : index + 1}</span><span><b>${escapeHtml(step.label)}</b>${step.short ? `<small>${escapeHtml(step.short)}</small>` : ''}</span></li>`).join('');

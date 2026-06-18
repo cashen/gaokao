@@ -1,7 +1,7 @@
-import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../../kb/major-understanding/major-catalog-2026.generated.js?v=3947_7';
-import { MAJOR_UNDERSTANDING_2026 } from '../../kb/major-understanding/major-understanding.generated.js?v=3947_7';
-import { MAJOR_DISPLAY_CONTRACT_2026 } from '../../kb/major-understanding/major-display-contract.generated.js?v=3947_7';
-import { ADMISSION_MAJOR_ALIAS_2026 } from '../../kb/major-understanding/admission-major-alias.generated.js?v=3947_7';
+import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../../kb/major-understanding/major-catalog-2026.generated.js?v=3947_8';
+import { MAJOR_UNDERSTANDING_2026 } from '../../kb/major-understanding/major-understanding.generated.js?v=3947_8';
+import { MAJOR_DISPLAY_CONTRACT_2026 } from '../../kb/major-understanding/major-display-contract.generated.js?v=3947_8';
+import { ADMISSION_MAJOR_ALIAS_2026 } from '../../kb/major-understanding/admission-major-alias.generated.js?v=3947_8';
 
 function cleanText(value, max = 120) {
   return String(value == null ? '' : value).replace(/\s+/g, '').replace(/[（）]/g, m => m === '（' ? '(' : ')').trim().slice(0, max);

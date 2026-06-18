@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.47.7",
-  "assetVersion": "v3947_7",
+  "version": "v3.9.47.8",
+  "assetVersion": "v3947_8",
   "entries": {
-    "search": "js/app.v3947_7.js",
-    "selectionPool": "js/selection-pool.v3947_7.js",
-    "majorTrend": "js/major-trend-render.v3947_7.js",
-    "selfCheck": "js/self-check.v3947_7.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_7.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_7.js"
+    "search": "js/app.v3947_8.js",
+    "selectionPool": "js/selection-pool.v3947_8.js",
+    "majorTrend": "js/major-trend-render.v3947_8.js",
+    "selfCheck": "js/self-check.v3947_8.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_8.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_8.js"
   },
   "entrypoints": {
-    "search": "js/app.v3947_7.js",
-    "selectionPool": "js/selection-pool.v3947_7.js",
-    "majorTrend": "js/major-trend-render.v3947_7.js",
-    "selfCheck": "js/self-check.v3947_7.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_7.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_7.js"
+    "search": "js/app.v3947_8.js",
+    "selectionPool": "js/selection-pool.v3947_8.js",
+    "majorTrend": "js/major-trend-render.v3947_8.js",
+    "selfCheck": "js/self-check.v3947_8.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_8.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_8.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_7.css",
-    "selection": "css/dist/ln-rank-selection.v3947_7.css",
-    "trend": "css/dist/ln-rank-trend.v3947_7.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_7.css",
-    "localMainline": "css/dist/local-mainline.v3947_7.css",
-    "main211": "css/dist/211-mainline.v3947_7.css"
+    "main": "css/dist/ln-rank-main.v3947_8.css",
+    "selection": "css/dist/ln-rank-selection.v3947_8.css",
+    "trend": "css/dist/ln-rank-trend.v3947_8.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_8.css",
+    "localMainline": "css/dist/local-mainline.v3947_8.css",
+    "main211": "css/dist/211-mainline.v3947_8.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,

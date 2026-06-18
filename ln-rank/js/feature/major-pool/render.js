@@ -1,17 +1,24 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_7';
-import { fmt } from '../../core/number-utils.js?v=3947_7';
-import { renderHistoryScore } from './history-score-render.js?v=3947_7';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_7';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_7';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_7';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_7';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_7';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_7';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_7';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_7';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_7';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_8';
+import { fmt } from '../../core/number-utils.js?v=3947_8';
+import { renderHistoryScore } from './history-score-render.js?v=3947_8';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_8';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_8';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_8';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_8';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_8';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_8';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_8';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_8';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_8';
 
 const expandedMajorUnderstandingCards = new Set();
+const expandedLocalStrengthCards = new Set();
+const expandedReviewPointCards = new Set();
+
+function interactionKey(record = {}, prefix = 'card') {
+  const base = majorUnderstandingKey(record);
+  return `${prefix}__${base}`;
+}
 
 function majorUnderstandingKey(record = {}) {
   return [record.id, record.schoolCode2025, record.majorCode2025, record.school, record.major, record.score2025, record.rank2025].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
@@ -154,15 +161,18 @@ function renderLocalStrengthFeature(record, activeBand, viewMode) {
   if (viewMode !== 'localStrength') {
     return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
   }
-  return `<section class="local-strength-card-block is-compact" aria-label="学校强项提醒">
+  const key = interactionKey(record, 'local-strength');
+  const panelId = `local-strength-more-${Math.abs(hashText(key))}`;
+  const open = expandedLocalStrengthCards.has(key);
+  return `<section class="local-strength-card-block is-compact is-controlled${open ? ' is-expanded' : ''}" aria-label="学校强项提醒" data-local-strength-card="${escapeHtml(key)}">
     <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
     <p class="local-strength-one"><strong>提醒：</strong>${escapeHtml(why)}</p>
-    <details class="local-strength-details">
-      <summary>展开提醒原因</summary>
+    <button type="button" class="local-strength-toggle" data-local-strength-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">${open ? '收起提醒原因' : '展开提醒原因'}</button>
+    <div id="${panelId}" class="local-strength-details is-controlled-panel" ${open ? '' : 'hidden'}>
       <p><strong>和当前分数的关系：</strong>${escapeHtml(relation)}</p>
       <p><strong>填报前再确认：</strong>${escapeHtml(verify)}</p>
       <small>${escapeHtml(mark.boundary || '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。')}</small>
-    </details>
+    </div>
   </section>`;
 }
 
@@ -249,7 +259,10 @@ function renderReviewPoints(record) {
   if (!points.length) return '';
   const summary = reviewSummary(record, points);
   const detailItems = points.slice(0, 5).map(p => `<li>${escapeHtml(p)}</li>`).join('');
-  const details = points.length ? `<details class="card-review-details"><summary>查看复核详情</summary><ul class="card-review-list">${detailItems}</ul></details>` : '';
+  const key = interactionKey(record, 'review');
+  const panelId = `card-review-more-${Math.abs(hashText(key))}`;
+  const open = expandedReviewPointCards.has(key);
+  const details = points.length ? `<div class="card-review-details is-controlled${open ? ' is-expanded' : ''}" data-review-points-card="${escapeHtml(key)}"><button type="button" class="card-review-toggle" data-review-points-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">${open ? '收起复核详情' : '查看复核详情'}</button><ul id="${panelId}" class="card-review-list" ${open ? '' : 'hidden'}>${detailItems}</ul></div>` : '';
   return `<div class="card-review-points"><div class="card-review-summary">${escapeHtml(summary || '需核验：查看复核详情')}</div>${details}</div>`;
 }
 
@@ -350,6 +363,74 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
     <div class="pool-add-hint" data-pool-hint="${index}"></div>
   </article>`;
 }
+
+function setControlledOpen({ key, set, card, button, panel, nextOpen, expandedText = '收起', collapsedText = '展开' }) {
+  if (key) {
+    if (nextOpen) set.add(key);
+    else set.delete(key);
+  }
+  button?.setAttribute('aria-expanded', String(nextOpen));
+  card?.classList.toggle('is-expanded', nextOpen);
+  if (panel) panel.hidden = !nextOpen;
+  if (button) button.textContent = nextOpen ? expandedText : collapsedText;
+}
+
+function bindResultInteractionController(root) {
+  if (!root || root.__lnRankResultInteractionBound) return;
+  root.__lnRankResultInteractionBound = true;
+  root.addEventListener('click', (event) => {
+    const context = root.__lnRankResultInteractionContext || {};
+    const state = context.state;
+    const target = event.target;
+    const viewButton = target?.closest?.('[data-result-view]');
+    if (viewButton && root.contains(viewButton)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const next = viewButton.dataset.resultView === 'localStrength' ? 'localStrength' : 'all';
+      if (state) state.resultViewMode = next;
+      renderMajorResults(state, context.options || {});
+      return;
+    }
+
+    const majorButton = target?.closest?.('[data-major-understanding-toggle]');
+    if (majorButton && root.contains(majorButton)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const key = majorButton.dataset.majorUnderstandingToggle || '';
+      const card = majorButton.closest('[data-major-understanding-card]');
+      const panel = card?.querySelector('.major-understanding-more');
+      const nextOpen = majorButton.getAttribute('aria-expanded') !== 'true';
+      setControlledOpen({ key, set: expandedMajorUnderstandingCards, card, button: majorButton, panel, nextOpen, expandedText: '收起', collapsedText: '展开' });
+      const toggle = majorButton.querySelector('.major-understanding-toggle');
+      if (toggle) toggle.textContent = nextOpen ? '收起' : '展开';
+      return;
+    }
+
+    const localStrengthButton = target?.closest?.('[data-local-strength-toggle]');
+    if (localStrengthButton && root.contains(localStrengthButton)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const key = localStrengthButton.dataset.localStrengthToggle || '';
+      const card = localStrengthButton.closest('[data-local-strength-card]');
+      const panel = card?.querySelector('.local-strength-details');
+      const nextOpen = localStrengthButton.getAttribute('aria-expanded') !== 'true';
+      setControlledOpen({ key, set: expandedLocalStrengthCards, card, button: localStrengthButton, panel, nextOpen, expandedText: '收起提醒原因', collapsedText: '展开提醒原因' });
+      return;
+    }
+
+    const reviewButton = target?.closest?.('[data-review-points-toggle]');
+    if (reviewButton && root.contains(reviewButton)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const key = reviewButton.dataset.reviewPointsToggle || '';
+      const card = reviewButton.closest('[data-review-points-card]');
+      const panel = card?.querySelector('.card-review-list');
+      const nextOpen = reviewButton.getAttribute('aria-expanded') !== 'true';
+      setControlledOpen({ key, set: expandedReviewPointCards, card, button: reviewButton, panel, nextOpen, expandedText: '收起复核详情', collapsedText: '查看复核详情' });
+    }
+  }, true);
+}
+
 export function renderMajorResults(state, { onMore, selectionPool, onSelectionChange } = {}) {
   const meta = document.getElementById('resultsMeta');
   const root = document.getElementById('results');
@@ -357,6 +438,8 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const badge = document.getElementById('activeBandBadge');
   const panel = document.getElementById('resultsPanel');
   if (!root || !title || !badge || !meta || !panel) return;
+  bindResultInteractionController(root);
+  root.__lnRankResultInteractionContext = { state, options: { onMore, selectionPool, onSelectionChange } };
   panel.classList.remove('band-upper-shell','band-near-shell','band-steady-shell');
   panel.classList.add(`band-${state.activeBand}-shell`);
   if (state.bands.loading) {
@@ -433,14 +516,14 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       document.getElementById('specialProjectToggle')?.click?.();
     });
   });
-  root.querySelectorAll('[data-result-view]').forEach(button => {
+  root.querySelectorAll('[data-result-view-delegated-disabled]').forEach(button => {
     button.addEventListener('click', () => {
       const next = button.dataset.resultView === 'localStrength' ? 'localStrength' : 'all';
       state.resultViewMode = next;
       renderMajorResults(state, { onMore, selectionPool, onSelectionChange });
     });
   });
-  root.querySelectorAll('[data-major-understanding-toggle]').forEach(button => {
+  root.querySelectorAll('[data-major-understanding-toggle-delegated-disabled]').forEach(button => {
     button.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();

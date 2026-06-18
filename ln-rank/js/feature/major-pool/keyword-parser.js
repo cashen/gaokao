@@ -1,7 +1,7 @@
-import { MAJOR_KEYWORD_ALIASES, BROAD_MAJOR_KEYWORDS } from './major-keyword-policy.js?v=3947_7';
-import { PROJECT_KEYWORD_ALIASES } from './project-keyword-policy.js?v=3947_7';
-import { INDUSTRY_KEYWORD_ALIASES } from './industry-keyword-policy.js?v=3947_7';
-import { classifyKeywordTokens } from './keyword-token-classifier.js?v=3947_7';
+import { MAJOR_KEYWORD_ALIASES, BROAD_MAJOR_KEYWORDS } from './major-keyword-policy.js?v=3947_8';
+import { PROJECT_KEYWORD_ALIASES } from './project-keyword-policy.js?v=3947_8';
+import { INDUSTRY_KEYWORD_ALIASES } from './industry-keyword-policy.js?v=3947_8';
+import { classifyKeywordTokens } from './keyword-token-classifier.js?v=3947_8';
 
 export function normalizeKeyword(value) {
   return String(value || '').trim().replace(/\s+/g, '').toLowerCase();

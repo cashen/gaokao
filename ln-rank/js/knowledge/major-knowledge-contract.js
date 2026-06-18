@@ -1,4 +1,4 @@
-import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3947_7';
+import { matchLiaoningLocalStrongChain, formatLocalStrongChainReviewText } from './liaoning-local-strong-chain.js?v=3947_8';
 function textOf(record = {}) {
   return [record.school, record.major, record.standardMajor?.name, record.standardMajor?.categoryName, record.matchReason, ...(Array.isArray(record.flags) ? record.flags : [])].filter(Boolean).join(' ');
 }

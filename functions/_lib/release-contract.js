@@ -1,8 +1,8 @@
 export const LN_RANK_RELEASE_CONTRACT = {
-  display: 'v3.9.47.7',
-  asset: '3947_7',
-  assetVersion: 'v3947_7',
-  release: 'v3.9.47.7-ln-rank-controlled-major-understanding-toggle-regression-12-role-no-fenxi',
+  display: 'v3.9.47.8',
+  asset: '3947_8',
+  assetVersion: 'v3947_8',
+  release: 'v3.9.47.8-ln-rank-result-interaction-controller-regression-12-role-no-fenxi',
   label: 'card-density-major-understanding-responsive-regression-12-role-no-fenxi',
   noFenxiIncluded: true,
   cleanPackageContract: true,
