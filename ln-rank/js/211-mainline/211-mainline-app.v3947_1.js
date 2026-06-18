@@ -1,5 +1,5 @@
-import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3947_0';
-import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3947_0';
+import { ALL_211_SCHOOL_BACKGROUND_INDEX } from '../../kb/211-mainline/211-school-background.generated.js?v=3947_1';
+import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3947_1';
 const $ = (id) => document.getElementById(id);
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 function esc(value=''){return String(value==null?'':value).replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}

@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.47.0",
-  "assetVersion": "v3947_0",
-  "releaseName": "v3.9.47.0-ln-rank-major-kb-layered-ui-human-regression-12-role-no-fenxi",
+  "version": "v3.9.47.1",
+  "assetVersion": "v3947_1",
+  "releaseName": "v3.9.47.1-ln-rank-report-dock-ui-human-fix-regression-12-role-no-fenxi",
   "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -38,5 +38,9 @@
   "knowledgeDisplayContract": true,
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
-  "majorUnderstandingCatalogTotal": 883
+  "majorUnderstandingCatalogTotal": 883,
+  "releaseGate": "report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "reportDockUiHumanFix": true,
+  "nonBlockingToastContract": true,
+  "compactReportDockContract": true
 }

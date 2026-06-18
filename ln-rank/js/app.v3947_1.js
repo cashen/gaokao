@@ -1,31 +1,31 @@
-import { state } from './state/app-state.js?v=3947_0';
-import { toInt } from './core/number-utils.js?v=3947_0';
-import { getScoreGuard } from './core/score-guard.js?v=3947_0';
-import { REGION_OPTIONS } from './config/region-options.js?v=3947_0';
-import { fetchMajorBands } from './feature/major-pool/index.js?v=3947_0';
-import { renderBandLegend, renderResultBandSwitcher } from './feature/score-bands/index.js?v=3947_0';
-import { renderMajorResults } from './feature/major-pool/index.js?v=3947_0';
-import { buildKeywordQuery } from './feature/major-pool/index.js?v=3947_0';
-import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3947_0';
-import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3947_0';
-import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3947_0';
-import { renderSearchTrendHint } from './feature/trend/index.js?v=3947_0';
-import { getQueryButtonLabel, getQueryButtonClass, initBottomLineSheet, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3947_0';
-import { getRangePresetLabel } from './domain/range-policy.js?v=3947_0';
-import { getBandFocusLabel } from './domain/band-policy.js?v=3947_0';
-import { setRangePreset, setBandFocus, syncRangeState } from './state/range-state.js?v=3947_0';
-import { syncControlConsoleState } from './ui/control-console.js?v=3947_0';
-import { normalizeMajorBandsResponse } from './domain/score-band-contract.js?v=3947_0';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_STORAGE_KEY, SPECIAL_PROJECT_HIDE_MODE, SPECIAL_PROJECT_SHOW_MODE, specialProjectStatusCopy, specialProjectToggleLabel, specialProjectHelpCopy } from './domain/special-project-policy.js?v=3947_0';
-import { initDirectionExplorer } from './feature/direction-explorer/direction-explorer-render.js?v=3947_0';
-import { formatApiErrorForHuman, formatApiErrorForEngineer, isApiClientError } from './shared/api-client.js?v=3947_0';
-import { resolveMainFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3947_0';
-import { buildQuerySignature, saveSuccessfulQuerySignature, resolveResultFreshness, markResultStale, clearResultState } from './domain/query-session-contract.js?v=3947_0';
-import { resolveHumanWorkflowState } from './domain/human-workflow-state-contract.js?v=3947_0';
-import { expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3947_0';
-import { renderMainFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3947_0';
-import { buildFilterConflicts, removeKeywordGroup, readConfirmedConflictSignatures, confirmFilterConflict, clearConfirmedConflictsForNewQuery } from './domain/filter-conflict-contract.js?v=3947_0';
-import { renderFilterConflicts } from './feature/filter-conflict/filter-conflict-render.js?v=3947_0';
+import { state } from './state/app-state.js?v=3947_1';
+import { toInt } from './core/number-utils.js?v=3947_1';
+import { getScoreGuard } from './core/score-guard.js?v=3947_1';
+import { REGION_OPTIONS } from './config/region-options.js?v=3947_1';
+import { fetchMajorBands } from './feature/major-pool/index.js?v=3947_1';
+import { renderBandLegend, renderResultBandSwitcher } from './feature/score-bands/index.js?v=3947_1';
+import { renderMajorResults } from './feature/major-pool/index.js?v=3947_1';
+import { buildKeywordQuery } from './feature/major-pool/index.js?v=3947_1';
+import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3947_1';
+import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3947_1';
+import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3947_1';
+import { renderSearchTrendHint } from './feature/trend/index.js?v=3947_1';
+import { getQueryButtonLabel, getQueryButtonClass, initBottomLineSheet, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3947_1';
+import { getRangePresetLabel } from './domain/range-policy.js?v=3947_1';
+import { getBandFocusLabel } from './domain/band-policy.js?v=3947_1';
+import { setRangePreset, setBandFocus, syncRangeState } from './state/range-state.js?v=3947_1';
+import { syncControlConsoleState } from './ui/control-console.js?v=3947_1';
+import { normalizeMajorBandsResponse } from './domain/score-band-contract.js?v=3947_1';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_STORAGE_KEY, SPECIAL_PROJECT_HIDE_MODE, SPECIAL_PROJECT_SHOW_MODE, specialProjectStatusCopy, specialProjectToggleLabel, specialProjectHelpCopy } from './domain/special-project-policy.js?v=3947_1';
+import { initDirectionExplorer } from './feature/direction-explorer/direction-explorer-render.js?v=3947_1';
+import { formatApiErrorForHuman, formatApiErrorForEngineer, isApiClientError } from './shared/api-client.js?v=3947_1';
+import { resolveMainFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3947_1';
+import { buildQuerySignature, saveSuccessfulQuerySignature, resolveResultFreshness, markResultStale, clearResultState } from './domain/query-session-contract.js?v=3947_1';
+import { resolveHumanWorkflowState } from './domain/human-workflow-state-contract.js?v=3947_1';
+import { expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3947_1';
+import { renderMainFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3947_1';
+import { buildFilterConflicts, removeKeywordGroup, readConfirmedConflictSignatures, confirmFilterConflict, clearConfirmedConflictsForNewQuery } from './domain/filter-conflict-contract.js?v=3947_1';
+import { renderFilterConflicts } from './feature/filter-conflict/filter-conflict-render.js?v=3947_1';
 
 let hasQueried = false;
 let dirty = false;
@@ -228,7 +228,7 @@ function parseScoreFromInput() {
   try {
     if (state.candidateScore) {
       localStorage.setItem('lnRank.selectionPool.candidateScore', String(state.candidateScore));
-      localStorage.setItem('lnRank.selectionPool.candidateScore.v3947_0', String(state.candidateScore));
+      localStorage.setItem('lnRank.selectionPool.candidateScore.v3947_1', String(state.candidateScore));
     } else {
       localStorage.removeItem('lnRank.selectionPool.candidateScore');
     }

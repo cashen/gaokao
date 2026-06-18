@@ -12,8 +12,7 @@ let mounted = false;
 let latestState = null;
 let onChanged = () => {};
 let bumpUntil = 0;
-let toastUntil = 0;
-let toastState = { visible: false, kind: 'add', title: '', detail: '', count: 0, href: '', until: 0 };
+let let toastState = { visible: false, kind: 'add', title: '', detail: '', count: 0, href: '', until: 0 };
 let toastTimer = null;
 
 function countLabel(count) {
@@ -71,7 +70,7 @@ function renderToast() {
   return `<div class="pool-entry-toast pool-entry-action-toast${cls}" role="status" aria-live="polite">
     <div class="pool-entry-toast-copy">
       <b>${escapeHtml(toastState.title || REPORT_COPY.added)}</b>
-      <span>${escapeHtml(toastState.detail || '可以继续添加，也可以先生成一份给家里看')}</span>
+      <span>${escapeHtml(toastState.detail || '可继续添加，稍后统一整理')}</span>
     </div>
     <a class="pool-entry-toast-action" href="${escapeHtml(href)}">${REPORT_COPY.generate}</a>
   </div>`;
@@ -104,16 +103,16 @@ function showActionToast(options = {}) {
     visible: true,
     kind: options.kind || 'add',
     title: options.title || `已放进报告 · 共 ${countLabel(count)} 个`,
-    detail: options.detail || '可以继续添加，也可以先生成一份给家里看',
+    detail: options.detail || '可继续添加，稍后统一整理',
     count,
     href: getPoolHref(),
-    until: Date.now() + 3800
+    until: Date.now() + 2200
   };
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     toastState.visible = false;
     render();
-  }, 3900);
+  }, 2300);
 }
 
 function emitPoolUpdated(detail = {}) {
@@ -148,7 +147,7 @@ export function createSelectionPoolAdapter() {
         const count = getPoolItems().length;
         bumpUntil = Date.now() + 1500;
         window.setTimeout(() => render(), 1550);
-        showActionToast({ title: `已放进报告 · 共 ${countLabel(count)} 个`, detail: '可以继续添加，也可以先生成一份给家里看' });
+        showActionToast({ title: `已放进报告 · 共 ${countLabel(count)} 个`, detail: '可继续添加，稍后统一整理' });
         emitPoolUpdated({ action: 'add', count });
       } else if (/最多|已较多/.test(String(result.message || ''))) {
         showActionToast({
