@@ -1,15 +1,21 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_6';
-import { fmt } from '../../core/number-utils.js?v=3947_6';
-import { renderHistoryScore } from './history-score-render.js?v=3947_6';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_6';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_6';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_6';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_6';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_6';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_6';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_6';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_6';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_6';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_7';
+import { fmt } from '../../core/number-utils.js?v=3947_7';
+import { renderHistoryScore } from './history-score-render.js?v=3947_7';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_7';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_7';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_7';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_7';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_7';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_7';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_7';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_7';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_7';
+
+const expandedMajorUnderstandingCards = new Set();
+
+function majorUnderstandingKey(record = {}) {
+  return [record.id, record.schoolCode2025, record.majorCode2025, record.school, record.major, record.score2025, record.rank2025].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
+}
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -254,6 +260,9 @@ function renderMajorUnderstandingPreview(record) {
   const questions = Array.isArray(info.questions) ? info.questions.slice(0, 2).filter(Boolean) : [];
   const qHtml = questions.length ? `<ul class="major-understanding-questions">${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : '';
   const classLevel = info.isClassLevel ? ' is-class-level' : '';
+  const key = majorUnderstandingKey(record);
+  const panelId = `major-understanding-more-${Math.abs(hashText(key))}`;
+  const open = expandedMajorUnderstandingCards.has(key);
   if (!questions.length) {
     return `<section class="major-understanding-preview is-static${classLevel}" aria-label="这个专业先了解什么">
       <div class="major-understanding-summary">
@@ -262,14 +271,24 @@ function renderMajorUnderstandingPreview(record) {
       </div>
     </section>`;
   }
-  return `<details class="major-understanding-preview${classLevel}" aria-label="这个专业先了解什么">
-    <summary class="major-understanding-summary">
+  return `<section class="major-understanding-preview is-controlled${classLevel}${open ? ' is-expanded' : ''}" aria-label="这个专业先了解什么" data-major-understanding-card="${escapeHtml(key)}">
+    <button type="button" class="major-understanding-summary" data-major-understanding-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">
       <span class="major-understanding-title">这个专业先了解</span>
       <span class="major-understanding-one-line">${escapeHtml(info.oneLine)}</span>
-      <span class="major-understanding-toggle" aria-hidden="true">展开</span>
-    </summary>
-    <div class="major-understanding-more"><b>家庭先确认：</b>${qHtml}</div>
-  </details>`;
+      <span class="major-understanding-toggle" aria-hidden="true">${open ? '收起' : '展开'}</span>
+    </button>
+    <div id="${panelId}" class="major-understanding-more" ${open ? '' : 'hidden'}><b>家庭先确认：</b>${qHtml}</div>
+  </section>`;
+}
+
+function hashText(value = '') {
+  let hash = 0;
+  const text = String(value || '');
+  for (let i = 0; i < text.length; i += 1) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash || 1;
 }
 
 function renderMajorCode(record) {
@@ -419,6 +438,25 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       const next = button.dataset.resultView === 'localStrength' ? 'localStrength' : 'all';
       state.resultViewMode = next;
       renderMajorResults(state, { onMore, selectionPool, onSelectionChange });
+    });
+  });
+  root.querySelectorAll('[data-major-understanding-toggle]').forEach(button => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const key = button.dataset.majorUnderstandingToggle || '';
+      const card = button.closest('[data-major-understanding-card]');
+      const panel = card?.querySelector('.major-understanding-more');
+      const nextOpen = button.getAttribute('aria-expanded') !== 'true';
+      if (key) {
+        if (nextOpen) expandedMajorUnderstandingCards.add(key);
+        else expandedMajorUnderstandingCards.delete(key);
+      }
+      button.setAttribute('aria-expanded', String(nextOpen));
+      card?.classList.toggle('is-expanded', nextOpen);
+      if (panel) panel.hidden = !nextOpen;
+      const toggle = button.querySelector('.major-understanding-toggle');
+      if (toggle) toggle.textContent = nextOpen ? '收起' : '展开';
     });
   });
   mountDiagnoseButtons(root, shown, state);
