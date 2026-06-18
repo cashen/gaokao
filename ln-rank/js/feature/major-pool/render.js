@@ -1,15 +1,15 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3933_14';
-import { fmt } from '../../core/number-utils.js?v=3933_14';
-import { renderHistoryScore } from './history-score-render.js?v=3933_14';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3933_14';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3933_14';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3933_14';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3933_14';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_14';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_14';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_14';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_2';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_2';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_4';
+import { fmt } from '../../core/number-utils.js?v=3947_4';
+import { renderHistoryScore } from './history-score-render.js?v=3947_4';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_4';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_4';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_4';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_4';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_4';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_4';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_4';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_4';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_4';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -330,10 +330,10 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     root.className = 'results-grid loading'; root.textContent = '正在读取 /fenxi 专业数据…'; return;
   }
   if (state.bands.error) {
-    title.textContent = '读取失败'; badge.textContent = '请检查'; meta.textContent = '专业数据暂时无法读取';
-    const detail = state.bands.errorDetail ? `<div class="api-diagnostic-note"><b>工程诊断：</b>${escapeHtml(state.bands.errorDetail)}<br><span>先测 <code>/api/ln-rank-runtime-health</code>，再测 <code>/api/major-bands-health</code>。如果 health 也返回 HTML/503，优先检查 Cloudflare Pages 项目根目录是否包含 functions/。</span></div>` : '';
+    title.textContent = '读取失败'; badge.textContent = '可重试'; meta.textContent = '专业数据暂时无法读取';
+    const detail = state.bands.errorDetail ? `<details class="api-diagnostic-note"><summary>查看诊断信息</summary><div><b>工程诊断：</b>${escapeHtml(state.bands.errorDetail)}<br><span>先测 <code>/api/ln-rank-runtime-health</code>，再测 <code>/api/major-bands-health?probe=1</code>。如果 health 正常但这里失败，重点检查低分段查询耗时、公办优先筛选和浏览器缓存。</span></div></details>` : '';
     root.className = 'results-grid error';
-    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取数据判断问题，而是专业数据接口没有正常返回 JSON。可以稍后重试，或先检查运行时健康接口。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
+    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取判断，也不代表这个分数没有结果。可以先切回“全部院校”或放宽筛选条件后重试。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health?probe=1" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
     return;
   }
   if (state.bands.stale) {

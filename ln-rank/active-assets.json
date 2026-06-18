@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.47.3",
-  "assetVersion": "v3947_3",
+  "version": "v3.9.47.4",
+  "assetVersion": "v3947_4",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3947_3.js",
-    "js/selection-pool.v3947_3.js",
-    "js/major-trend-render.v3947_3.js",
-    "js/self-check.v3947_3.js",
-    "js/local-mainline/local-mainline-app.v3947_3.js",
-    "js/211-mainline/211-mainline-app.v3947_3.js"
+    "js/app.v3947_4.js",
+    "js/selection-pool.v3947_4.js",
+    "js/major-trend-render.v3947_4.js",
+    "js/self-check.v3947_4.js",
+    "js/local-mainline/local-mainline-app.v3947_4.js",
+    "js/211-mainline/211-mainline-app.v3947_4.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3947_3.css",
-    "css/dist/ln-rank-selection.v3947_3.css",
-    "css/dist/ln-rank-trend.v3947_3.css",
-    "css/dist/ln-rank-self-check.v3947_3.css",
-    "css/dist/local-mainline.v3947_3.css",
-    "css/dist/211-mainline.v3947_3.css"
+    "css/dist/ln-rank-main.v3947_4.css",
+    "css/dist/ln-rank-selection.v3947_4.css",
+    "css/dist/ln-rank-trend.v3947_4.css",
+    "css/dist/ln-rank-self-check.v3947_4.css",
+    "css/dist/local-mainline.v3947_4.css",
+    "css/dist/211-mainline.v3947_4.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_3.css",
-    "selection": "css/dist/ln-rank-selection.v3947_3.css",
-    "trend": "css/dist/ln-rank-trend.v3947_3.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_3.css",
-    "localMainline": "css/dist/local-mainline.v3947_3.css",
-    "main211": "css/dist/211-mainline.v3947_3.css"
+    "main": "css/dist/ln-rank-main.v3947_4.css",
+    "selection": "css/dist/ln-rank-selection.v3947_4.css",
+    "trend": "css/dist/ln-rank-trend.v3947_4.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_4.css",
+    "localMainline": "css/dist/local-mainline.v3947_4.css",
+    "main211": "css/dist/211-mainline.v3947_4.css"
   },
-  "releaseGate": "result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -79,5 +79,10 @@
   "compactReportDockContract": true,
   "moduleSyntaxHotfix": true,
   "resultTabsLayoutFix": true,
-  "resultViewControlsOutOfCardGrid": true
+  "resultViewControlsOutOfCardGrid": true,
+  "lowScoreApiBottomlineFix": true,
+  "majorBandsHealthProbe": true,
+  "queryImportVersionContract": true,
+  "bottomlineMobileSheetFallback": true,
+  "apiErrorFoldedDiagnostic": true
 }

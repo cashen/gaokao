@@ -48,11 +48,24 @@ export function formatApiErrorForEngineer(error) {
 }
 
 export async function fetchApiJson(url, options = {}) {
-  const response = await fetch(url, {
-    cache: 'no-store',
-    headers: { accept: 'application/json', ...(options.headers || {}) },
-    ...options.fetchOptions
-  });
+  let response;
+  const userMessageForNetwork = options.userMessage || '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。';
+  try {
+    response = await fetch(url, {
+      cache: 'no-store',
+      headers: { accept: 'application/json', ...(options.headers || {}) },
+      ...options.fetchOptions
+    });
+  } catch (error) {
+    throw new ApiClientError(userMessageForNetwork, {
+      type: 'network_fetch_failed',
+      status: 0,
+      url,
+      userMessage: userMessageForNetwork,
+      apiMessage: error?.message || String(error || ''),
+      engineerHint: `浏览器没有拿到接口 JSON 响应：${error?.message || String(error || 'Failed to fetch')}。请先测 /api/ln-rank-runtime-health 和 /api/major-bands-health?probe=1；如果 health 正常，重点检查 /api/major-bands 低分段查询是否超时或被平台中断。`
+    });
+  }
   const raw = await response.text();
   const bodyStart = firstChars(raw);
   const userMessage = options.userMessage || defaultUserMessage(response.status);
@@ -97,7 +110,7 @@ export function apiErrorDiagnosticHtml(error, escapeHtml) {
   const esc = typeof escapeHtml === 'function' ? escapeHtml : (v) => String(v == null ? '' : v);
   if (!isApiClientError(error)) return '';
   const hint = formatApiErrorForEngineer(error);
-  return `<div class="api-diagnostic-note"><b>工程诊断：</b>${esc(hint)}<br><span>接口返回了 HTML 错误页。先测 /api/ln-rank-runtime-health；若 health 也返回 HTML/503，优先检查 Cloudflare Pages Functions 部署位置与对应 API 是否存在。</span></div>`;
+  return `<details class="api-diagnostic-note"><summary>查看诊断信息</summary><div><b>工程诊断：</b>${esc(hint)}<br><span>先测 /api/ln-rank-runtime-health，再测 /api/major-bands-health?probe=1。若 health 也返回 HTML/503，优先检查 Cloudflare Pages Functions 部署位置。</span></div></details>`;
 }
 
 export const safeFetchJson = fetchApiJson;

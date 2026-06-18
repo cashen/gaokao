@@ -1,4 +1,4 @@
-import { fetchApiJson } from '../../shared/api-client.js?v=3933_14';
+import { fetchApiJson } from '../../shared/api-client.js?v=3947_4';
 export async function fetchMajorBands({ candidateScore, rangePreset, filters }) {
   const params = new URLSearchParams({
     candidateScore: String(candidateScore),
@@ -10,7 +10,7 @@ export async function fetchMajorBands({ candidateScore, rangePreset, filters }) 
     specialProjectMode: filters.specialProjectMode || 'hide_eligibility_projects'
   });
   return fetchApiJson(`/api/major-bands?${params.toString()}`, {
-    userMessage: '专业数据暂时没有读取成功。可以稍后重试。',
-    apiUserMessage: '专业数据暂时没有读取成功。可以稍后重试。'
+    userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
+    apiUserMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。'
   });
 }
