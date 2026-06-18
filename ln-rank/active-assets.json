@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.47.5",
-  "assetVersion": "v3947_5",
+  "version": "v3.9.47.6",
+  "assetVersion": "v3947_6",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3947_5.js",
-    "js/selection-pool.v3947_5.js",
-    "js/major-trend-render.v3947_5.js",
-    "js/self-check.v3947_5.js",
-    "js/local-mainline/local-mainline-app.v3947_5.js",
-    "js/211-mainline/211-mainline-app.v3947_5.js"
+    "js/app.v3947_6.js",
+    "js/selection-pool.v3947_6.js",
+    "js/major-trend-render.v3947_6.js",
+    "js/self-check.v3947_6.js",
+    "js/local-mainline/local-mainline-app.v3947_6.js",
+    "js/211-mainline/211-mainline-app.v3947_6.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3947_5.css",
-    "css/dist/ln-rank-selection.v3947_5.css",
-    "css/dist/ln-rank-trend.v3947_5.css",
-    "css/dist/ln-rank-self-check.v3947_5.css",
-    "css/dist/local-mainline.v3947_5.css",
-    "css/dist/211-mainline.v3947_5.css"
+    "css/dist/ln-rank-main.v3947_6.css",
+    "css/dist/ln-rank-selection.v3947_6.css",
+    "css/dist/ln-rank-trend.v3947_6.css",
+    "css/dist/ln-rank-self-check.v3947_6.css",
+    "css/dist/local-mainline.v3947_6.css",
+    "css/dist/211-mainline.v3947_6.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_5.css",
-    "selection": "css/dist/ln-rank-selection.v3947_5.css",
-    "trend": "css/dist/ln-rank-trend.v3947_5.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_5.css",
-    "localMainline": "css/dist/local-mainline.v3947_5.css",
-    "main211": "css/dist/211-mainline.v3947_5.css"
+    "main": "css/dist/ln-rank-main.v3947_6.css",
+    "selection": "css/dist/ln-rank-selection.v3947_6.css",
+    "trend": "css/dist/ln-rank-trend.v3947_6.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_6.css",
+    "localMainline": "css/dist/local-mainline.v3947_6.css",
+    "main211": "css/dist/211-mainline.v3947_6.css"
   },
-  "releaseGate": "android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -86,5 +86,10 @@
   "bottomlineMobileInlineControl": true,
   "apiErrorFoldedDiagnostic": true,
   "androidBottomlineInlineControlFix": true,
-  "bottomlineMobileSheetFallback": false
+  "bottomlineMobileSheetFallback": false,
+  "majorUnderstandingCardDensityContract": true,
+  "majorUnderstandingDefaultOneLine": true,
+  "majorUnderstandingExpandableQuestions": true,
+  "cardKeeps2024Reference": true,
+  "multiTerminalCardDensityContract": true
 }

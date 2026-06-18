@@ -1,5 +1,5 @@
 export const LN_RANK_VERSION = {
-  display: 'v3.9.47.5',
-  asset: '3947_5',
-  release: 'v3.9.47.5-ln-rank-android-bottomline-inline-control-regression-12-role-no-fenxi'
+  display: 'v3.9.47.6',
+  asset: '3947_6',
+  release: 'v3.9.47.6-ln-rank-card-density-major-understanding-responsive-regression-12-role-no-fenxi'
 };

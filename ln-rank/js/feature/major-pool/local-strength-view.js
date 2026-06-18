@@ -1,5 +1,5 @@
-import { safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3947_5';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_5';
+import { safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3947_6';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_6';
 
 function clean(value, max = 120) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);

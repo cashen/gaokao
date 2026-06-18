@@ -1,15 +1,15 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_5';
-import { fmt } from '../../core/number-utils.js?v=3947_5';
-import { renderHistoryScore } from './history-score-render.js?v=3947_5';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_5';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_5';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_5';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_5';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_5';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_5';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_5';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_5';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_5';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_6';
+import { fmt } from '../../core/number-utils.js?v=3947_6';
+import { renderHistoryScore } from './history-score-render.js?v=3947_6';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_6';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_6';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_6';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_6';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_6';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_6';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_6';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_6';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_6';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {
@@ -143,16 +143,20 @@ function renderLocalStrengthFeature(record, activeBand, viewMode) {
   const relation = localStrengthRelationText(record, activeBand);
   const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
   const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
+  const direction = mark.direction || '学校背景方向';
+  const why = mark.why || '这条专业与学校办学背景或行业方向有关，建议家庭单独了解和复核。';
   if (viewMode !== 'localStrength') {
-    return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(mark.direction || '学校背景方向')}</b><em>${escapeHtml(source)}</em></div>`;
+    return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
   }
-  return `<section class="local-strength-card-block" aria-label="学校强项提醒">
-    <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(mark.direction || '学校背景方向')}</b></div>
-    <p><strong>提示来源：</strong>${escapeHtml(source)}</p>
-    <p><strong>为什么提醒：</strong>${escapeHtml(mark.why || '这条专业与学校办学背景或行业方向有关，建议家庭单独了解和复核。')}</p>
-    <p><strong>和当前分数的关系：</strong>${escapeHtml(relation)}</p>
-    <p><strong>填报前再确认：</strong>${escapeHtml(verify)}</p>
-    <small>${escapeHtml(mark.boundary || '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。')}</small>
+  return `<section class="local-strength-card-block is-compact" aria-label="学校强项提醒">
+    <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
+    <p class="local-strength-one"><strong>提醒：</strong>${escapeHtml(why)}</p>
+    <details class="local-strength-details">
+      <summary>展开提醒原因</summary>
+      <p><strong>和当前分数的关系：</strong>${escapeHtml(relation)}</p>
+      <p><strong>填报前再确认：</strong>${escapeHtml(verify)}</p>
+      <small>${escapeHtml(mark.boundary || '不是录取判断，也不是填报建议；只提醒家庭重点了解和复核。')}</small>
+    </details>
   </section>`;
 }
 
@@ -248,13 +252,24 @@ function renderMajorUnderstandingPreview(record) {
   const info = majorUnderstandingCard(record);
   if (!info?.oneLine) return '';
   const questions = Array.isArray(info.questions) ? info.questions.slice(0, 2).filter(Boolean) : [];
-  const qHtml = questions.length ? `<div class="major-understanding-questions">${questions.map(q => `<span>${escapeHtml(q)}</span>`).join('')}</div>` : '';
+  const qHtml = questions.length ? `<ul class="major-understanding-questions">${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>` : '';
   const classLevel = info.isClassLevel ? ' is-class-level' : '';
-  return `<section class="major-understanding-preview${classLevel}" aria-label="这个专业先了解什么">
-    <div class="major-understanding-title">这个专业先了解</div>
-    <p>${escapeHtml(info.oneLine)}</p>
-    ${qHtml}
-  </section>`;
+  if (!questions.length) {
+    return `<section class="major-understanding-preview is-static${classLevel}" aria-label="这个专业先了解什么">
+      <div class="major-understanding-summary">
+        <span class="major-understanding-title">这个专业先了解</span>
+        <span class="major-understanding-one-line">${escapeHtml(info.oneLine)}</span>
+      </div>
+    </section>`;
+  }
+  return `<details class="major-understanding-preview${classLevel}" aria-label="这个专业先了解什么">
+    <summary class="major-understanding-summary">
+      <span class="major-understanding-title">这个专业先了解</span>
+      <span class="major-understanding-one-line">${escapeHtml(info.oneLine)}</span>
+      <span class="major-understanding-toggle" aria-hidden="true">展开</span>
+    </summary>
+    <div class="major-understanding-more"><b>家庭先确认：</b>${qHtml}</div>
+  </details>`;
 }
 
 function renderMajorCode(record) {
