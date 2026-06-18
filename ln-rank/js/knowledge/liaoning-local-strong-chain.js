@@ -2,8 +2,8 @@
  * 作用：识别辽宁本地院校中“本校方向 / 本校相关”的专业组合。
  * 注意：该提示只表示学校历史、专业方向、行业路径有背景关联，不是录取判断，不替代招生章程。
  */
-import { resolveMajorCodes } from './major-code-resolver.js?v=3947_4';
-import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3947_4';
+import { resolveMajorCodes } from './major-code-resolver.js?v=3947_5';
+import { candidateMajorNames as buildCandidateMajorNames, matchMajorList as matchMajorListContract, matchSchoolByRule } from './major-match-contract.js?v=3947_5';
 function clean(value, max = 200) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }

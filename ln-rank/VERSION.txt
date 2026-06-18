@@ -1,1 +1,1 @@
-v3.9.47.4-ln-rank-low-score-api-bottomline-query-contract-fix-regression-12-role-no-fenxi
+v3.9.47.5-ln-rank-android-bottomline-inline-control-regression-12-role-no-fenxi

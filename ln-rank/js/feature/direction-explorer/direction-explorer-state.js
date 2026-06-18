@@ -1,4 +1,4 @@
-import { DIRECTION_EXPLORER_STORAGE_KEY, DIRECTION_EXPLORER_VERSION } from './direction-explorer-data.js?v=3947_4';
+import { DIRECTION_EXPLORER_STORAGE_KEY, DIRECTION_EXPLORER_VERSION } from './direction-explorer-data.js?v=3947_5';
 
 function safeParse(raw) { try { return raw ? JSON.parse(raw) : null; } catch { return null; } }
 function fallbackState() { return { version: DIRECTION_EXPLORER_VERSION, answers: {}, result: null, applied: null, uiStep: 0, updatedAt: 0 }; }

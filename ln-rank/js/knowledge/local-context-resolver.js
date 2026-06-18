@@ -2,8 +2,8 @@
  * 统一整合：本校方向、本校相关、方向提醒。
  * 卡片/自选只给短提示；生成前确认/报告才给完整解释。
  */
-import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3947_4';
-import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3947_4';
+import { matchLiaoningLocalStrongChain } from './liaoning-local-strong-chain.js?v=3947_5';
+import { matchLiaoningMajorTrajectory } from './liaoning-major-trajectory-chain.js?v=3947_5';
 
 const SURFACES = new Set(['card', 'selectionItem', 'summary', 'report']);
 const BOUNDARY = '该提示不是录取判断，也不代表一定适合孩子；只提醒家长再看课程方向、就业场景和招生章程。';

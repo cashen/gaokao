@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.47.4",
-  "assetVersion": "v3947_4",
-  "releaseName": "v3.9.47.4-ln-rank-low-score-api-bottomline-query-contract-fix-regression-12-role-no-fenxi",
+  "version": "v3.9.47.5",
+  "assetVersion": "v3947_5",
+  "releaseName": "v3.9.47.5-ln-rank-android-bottomline-inline-control-regression-12-role-no-fenxi",
   "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -39,7 +39,7 @@
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
   "majorUnderstandingCatalogTotal": 883,
-  "releaseGate": "low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -48,6 +48,8 @@
   "lowScoreApiBottomlineFix": true,
   "majorBandsHealthProbe": true,
   "queryImportVersionContract": true,
-  "bottomlineMobileSheetFallback": true,
-  "apiErrorFoldedDiagnostic": true
+  "bottomlineMobileInlineControl": true,
+  "apiErrorFoldedDiagnostic": true,
+  "androidBottomlineInlineControlFix": true,
+  "bottomlineMobileSheetFallback": false
 }

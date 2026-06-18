@@ -1,15 +1,15 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_4';
-import { fmt } from '../../core/number-utils.js?v=3947_4';
-import { renderHistoryScore } from './history-score-render.js?v=3947_4';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_4';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_4';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_4';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_4';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_4';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_4';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_4';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_4';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_4';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_5';
+import { fmt } from '../../core/number-utils.js?v=3947_5';
+import { renderHistoryScore } from './history-score-render.js?v=3947_5';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_5';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_5';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_5';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_5';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_5';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_5';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_5';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_5';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_5';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {

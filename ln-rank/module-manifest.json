@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.47.4",
-  "assetVersion": "v3947_4",
+  "version": "v3.9.47.5",
+  "assetVersion": "v3947_5",
   "entries": {
-    "search": "js/app.v3947_4.js",
-    "selectionPool": "js/selection-pool.v3947_4.js",
-    "majorTrend": "js/major-trend-render.v3947_4.js",
-    "selfCheck": "js/self-check.v3947_4.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_4.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_4.js"
+    "search": "js/app.v3947_5.js",
+    "selectionPool": "js/selection-pool.v3947_5.js",
+    "majorTrend": "js/major-trend-render.v3947_5.js",
+    "selfCheck": "js/self-check.v3947_5.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_5.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_5.js"
   },
   "entrypoints": {
-    "search": "js/app.v3947_4.js",
-    "selectionPool": "js/selection-pool.v3947_4.js",
-    "majorTrend": "js/major-trend-render.v3947_4.js",
-    "selfCheck": "js/self-check.v3947_4.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_4.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_4.js"
+    "search": "js/app.v3947_5.js",
+    "selectionPool": "js/selection-pool.v3947_5.js",
+    "majorTrend": "js/major-trend-render.v3947_5.js",
+    "selfCheck": "js/self-check.v3947_5.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_5.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_5.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_4.css",
-    "selection": "css/dist/ln-rank-selection.v3947_4.css",
-    "trend": "css/dist/ln-rank-trend.v3947_4.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_4.css",
-    "localMainline": "css/dist/local-mainline.v3947_4.css",
-    "main211": "css/dist/211-mainline.v3947_4.css"
+    "main": "css/dist/ln-rank-main.v3947_5.css",
+    "selection": "css/dist/ln-rank-selection.v3947_5.css",
+    "trend": "css/dist/ln-rank-trend.v3947_5.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_5.css",
+    "localMainline": "css/dist/local-mainline.v3947_5.css",
+    "main211": "css/dist/211-mainline.v3947_5.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -61,7 +61,7 @@
     "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
     "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
   },
-  "releaseGate": "low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -71,6 +71,8 @@
   "lowScoreApiBottomlineFix": true,
   "majorBandsHealthProbe": true,
   "queryImportVersionContract": true,
-  "bottomlineMobileSheetFallback": true,
-  "apiErrorFoldedDiagnostic": true
+  "bottomlineMobileInlineControl": true,
+  "apiErrorFoldedDiagnostic": true,
+  "androidBottomlineInlineControlFix": true,
+  "bottomlineMobileSheetFallback": false
 }
