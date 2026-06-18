@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.47.2",
-  "assetVersion": "v3947_2",
-  "releaseName": "v3.9.47.2-ln-rank-module-syntax-hotfix-regression-12-role-no-fenxi",
+  "version": "v3.9.47.3",
+  "assetVersion": "v3947_3",
+  "releaseName": "v3.9.47.3-ln-rank-result-tabs-layout-fix-regression-12-role-no-fenxi",
   "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -39,9 +39,10 @@
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
   "majorUnderstandingCatalogTotal": 883,
-  "releaseGate": "module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
-  "moduleSyntaxHotfix": true
+  "moduleSyntaxHotfix": true,
+  "resultTabsLayoutFix": true
 }
