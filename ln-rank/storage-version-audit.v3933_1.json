@@ -1,8 +1,0 @@
-{
-  "version": "v3.9.33.1",
-  "failures": [
-    "js/app.v3933_2.js: writes non-current key lnRank.selectionPool.candidateScore.v3933_2",
-    "store STORAGE_KEY not v3933_1"
-  ],
-  "status": "fail"
-}

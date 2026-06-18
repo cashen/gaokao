@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.46.5",
-  "assetVersion": "v3946_5",
+  "version": "v3.9.46.6",
+  "assetVersion": "v3946_6",
   "entries": {
-    "search": "js/app.v3946_5.js",
-    "selectionPool": "js/selection-pool.v3946_5.js",
-    "majorTrend": "js/major-trend-render.v3946_5.js",
-    "selfCheck": "js/self-check.v3946_5.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_5.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_5.js"
+    "search": "js/app.v3946_6.js",
+    "selectionPool": "js/selection-pool.v3946_6.js",
+    "majorTrend": "js/major-trend-render.v3946_6.js",
+    "selfCheck": "js/self-check.v3946_6.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_6.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_6.js"
   },
   "entrypoints": {
-    "search": "js/app.v3946_5.js",
-    "selectionPool": "js/selection-pool.v3946_5.js",
-    "majorTrend": "js/major-trend-render.v3946_5.js",
-    "selfCheck": "js/self-check.v3946_5.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3946_5.js",
-    "main211": "js/211-mainline/211-mainline-app.v3946_5.js"
+    "search": "js/app.v3946_6.js",
+    "selectionPool": "js/selection-pool.v3946_6.js",
+    "majorTrend": "js/major-trend-render.v3946_6.js",
+    "selfCheck": "js/self-check.v3946_6.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3946_6.js",
+    "main211": "js/211-mainline/211-mainline-app.v3946_6.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3946_5.css",
-    "selection": "css/dist/ln-rank-selection.v3946_5.css",
-    "trend": "css/dist/ln-rank-trend.v3946_5.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3946_5.css",
-    "localMainline": "css/dist/local-mainline.v3946_5.css",
-    "main211": "css/dist/211-mainline.v3946_5.css"
+    "main": "css/dist/ln-rank-main.v3946_6.css",
+    "selection": "css/dist/ln-rank-selection.v3946_6.css",
+    "trend": "css/dist/ln-rank-trend.v3946_6.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3946_6.css",
+    "localMainline": "css/dist/local-mainline.v3946_6.css",
+    "main211": "css/dist/211-mainline.v3946_6.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -46,5 +46,8 @@
   "localStrengthCurrentResultOnly": true,
   "localStrengthReportSyncContract": true,
   "schoolStrength211UnifiedView": true,
-  "schoolStrength211NoSchoolTagOnlyContract": true
+  "schoolStrength211NoSchoolTagOnlyContract": true,
+  "staticSafePruneContract": true,
+  "rarOverlayResiduePruned": true,
+  "oldVersionedRuntimeAssetsRemoved": true
 }

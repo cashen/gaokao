@@ -8,7 +8,7 @@ import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js
 import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3933_14';
 import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3933_14';
 import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3933_14';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3946_5';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3946_6';
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
 function escapeHtml(value) {

@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.46.5",
-  "assetVersion": "v3946_5",
+  "version": "v3.9.46.6",
+  "assetVersion": "v3946_6",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3946_5.js",
-    "js/selection-pool.v3946_5.js",
-    "js/major-trend-render.v3946_5.js",
-    "js/self-check.v3946_5.js",
-    "js/local-mainline/local-mainline-app.v3946_5.js",
-    "js/211-mainline/211-mainline-app.v3946_5.js"
+    "js/app.v3946_6.js",
+    "js/selection-pool.v3946_6.js",
+    "js/major-trend-render.v3946_6.js",
+    "js/self-check.v3946_6.js",
+    "js/local-mainline/local-mainline-app.v3946_6.js",
+    "js/211-mainline/211-mainline-app.v3946_6.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3946_5.css",
-    "css/dist/ln-rank-selection.v3946_5.css",
-    "css/dist/ln-rank-trend.v3946_5.css",
-    "css/dist/ln-rank-self-check.v3946_5.css",
-    "css/dist/local-mainline.v3946_5.css",
-    "css/dist/211-mainline.v3946_5.css"
+    "css/dist/ln-rank-main.v3946_6.css",
+    "css/dist/ln-rank-selection.v3946_6.css",
+    "css/dist/ln-rank-trend.v3946_6.css",
+    "css/dist/ln-rank-self-check.v3946_6.css",
+    "css/dist/local-mainline.v3946_6.css",
+    "css/dist/211-mainline.v3946_6.css"
   ],
-  "sourceCssPreserved": true,
+  "sourceCssPreserved": false,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3946_5.css",
-    "selection": "css/dist/ln-rank-selection.v3946_5.css",
-    "trend": "css/dist/ln-rank-trend.v3946_5.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3946_5.css",
-    "localMainline": "css/dist/local-mainline.v3946_5.css",
-    "main211": "css/dist/211-mainline.v3946_5.css"
+    "main": "css/dist/ln-rank-main.v3946_6.css",
+    "selection": "css/dist/ln-rank-selection.v3946_6.css",
+    "trend": "css/dist/ln-rank-trend.v3946_6.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3946_6.css",
+    "localMainline": "css/dist/local-mainline.v3946_6.css",
+    "main211": "css/dist/211-mainline.v3946_6.css"
   },
-  "releaseGate": "visible version clean package contract, child direction helper retained, no-fenxi, school-strength-local-211-view",
+  "releaseGate": "visible version clean package contract, child direction helper retained, no-fenxi, school-strength-local-211-view, static-safe-prune",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -58,5 +58,10 @@
   "localStrengthCurrentResultOnly": true,
   "localStrengthReportSyncContract": true,
   "schoolStrength211UnifiedView": true,
-  "schoolStrength211NoSchoolTagOnlyContract": true
+  "schoolStrength211NoSchoolTagOnlyContract": true,
+  "staticSafePruneContract": true,
+  "rarOverlayResiduePruned": true,
+  "toolsRemovedFromDeployPackage": true,
+  "oldVersionedRuntimeAssetsRemoved": true,
+  "cssSourceRemovedFromDeployPackage": true
 }

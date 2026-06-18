@@ -1,3 +1,0 @@
-/* v3.9.37 card contract: explicit card classes only; no [class*=card] blast-radius selector. */
-.ln-result-card,.ln-selection-card,.ln-report-card,.ln-mainline-card,.ln-trend-card,.ln-diagnosis-card,.ln-aux-entry-card,.major-card,.selection-card,.lm-card,.lm-record-card{min-width:0;}
-.ln-card-title,.ln-card-desc,.ln-result-school,.ln-result-major,.ln-report-paragraph,.ln-diagnosis-text,.major-card h3,.major-card p,.selection-card h3,.selection-card p,.lm-card h3,.lm-card p,.lm-record-card h3,.lm-record-card p{overflow-wrap:break-word;word-break:normal;}

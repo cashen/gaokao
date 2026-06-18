@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.46.5",
-  "assetVersion": "v3946_5",
-  "releaseName": "v3.9.46.5-ln-rank-school-strength-local-211-view-regression-12-role-no-fenxi",
-  "generatedAt": "2026-06-18T00:00:00-07:00",
+  "version": "v3.9.46.6",
+  "assetVersion": "v3946_6",
+  "releaseName": "v3.9.46.6-ln-rank-static-safe-prune-asset-clean-regression-12-role-no-fenxi",
+  "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -29,5 +29,9 @@
   "localStrengthCurrentResultOnly": true,
   "localStrengthReportSyncContract": true,
   "schoolStrength211UnifiedView": true,
-  "schoolStrength211NoSchoolTagOnlyContract": true
+  "schoolStrength211NoSchoolTagOnlyContract": true,
+  "staticSafePruneContract": true,
+  "rarOverlayResiduePruned": true,
+  "toolsRemovedFromDeployPackage": true,
+  "oldVersionedRuntimeAssetsRemoved": true
 }
