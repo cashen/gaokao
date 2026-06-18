@@ -1,19 +1,20 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3947_8';
-import { fmt } from '../../core/number-utils.js?v=3947_8';
-import { renderHistoryScore } from './history-score-render.js?v=3947_8';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3947_8';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3947_8';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3947_8';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3947_8';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3947_8';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3947_8';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3947_8';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3947_8';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3947_8';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_0';
+import { fmt } from '../../core/number-utils.js?v=3949_0';
+import { renderHistoryScore } from './history-score-render.js?v=3949_0';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_0';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_0';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_0';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_0';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_0';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_0';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_0';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_0';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_0';
 
 const expandedMajorUnderstandingCards = new Set();
 const expandedLocalStrengthCards = new Set();
 const expandedReviewPointCards = new Set();
+const naturalCompareState = { open: false, type: '', key: '', signature: '' };
 
 function interactionKey(record = {}, prefix = 'card') {
   const base = majorUnderstandingKey(record);
@@ -202,6 +203,169 @@ function matchReason(record) {
 }
 
 
+
+function normalizeCompareText(value = '') {
+  return String(value || '')
+    .replace(/[（(].*?[）)]/g, '')
+    .replace(/\s+/g, '')
+    .trim();
+}
+
+function compareRecordKey(record = {}) {
+  return majorUnderstandingKey(record);
+}
+
+function scoreDistance(record = {}) {
+  const v = Number(record.scoreDelta);
+  return Number.isFinite(v) ? Math.abs(v) : 9999;
+}
+
+function compareYearText(record = {}) {
+  const s2025 = record.score2025 ?? record.score;
+  const r2025 = record.rank2025 ?? record.rank;
+  const s2024 = record.score2024 ?? record.historyScore2024 ?? record.lastYearScore;
+  const r2024 = record.rank2024 ?? record.historyRank2024 ?? record.lastYearRank;
+  const year2025 = `2025 ${fmt(s2025)}分 / ${fmt(r2025)}位`;
+  const year2024 = (s2024 || r2024) ? `2024 ${fmt(s2024)}分 / ${fmt(r2024)}位` : '2024同口径待核验';
+  return { year2025, year2024 };
+}
+
+function majorFamily(record = {}) {
+  const sm = record.standardMajor || {};
+  const raw = String(record.major || '').trim();
+  if (sm.name && ['exact', 'alias'].includes(sm.mappingStatus || 'exact')) {
+    return { key: `major:${normalizeCompareText(sm.name)}`, label: sm.name, level: 'exact' };
+  }
+  if (sm.categoryName && sm.categoryName.length >= 2) {
+    return { key: `category:${normalizeCompareText(sm.categoryName)}`, label: sm.categoryName, level: 'class' };
+  }
+  const cleaned = normalizeCompareText(raw)
+    .replace(/中外合作办学|合作办学|高收费|较高收费|国际本科|校企合作/g, '')
+    .replace(/\d\+\d|本硕|本博|菁英班|卓越班/g, '');
+  if (!cleaned || cleaned.length < 2) return null;
+  if (/试验班|实验班|拔尖|强基|预科|民族班|定向|专项/.test(cleaned)) return null;
+  return { key: `raw:${cleaned}`, label: cleaned.length > 18 ? `${cleaned.slice(0, 18)}…` : cleaned, level: 'raw' };
+}
+
+function makeCompareGroups(records = []) {
+  const list = Array.isArray(records) ? records : [];
+  const schools = new Map();
+  const majors = new Map();
+  const byRecord = new Map();
+  list.forEach((record) => {
+    const rKey = compareRecordKey(record);
+    if (!rKey) return;
+    const schoolLabel = String(record.school || '').trim();
+    const schoolKey = normalizeCompareText(schoolLabel);
+    if (schoolKey) {
+      if (!schools.has(schoolKey)) schools.set(schoolKey, { type: 'school', key: schoolKey, label: schoolLabel, records: [] });
+      schools.get(schoolKey).records.push(record);
+    }
+    const family = majorFamily(record);
+    if (family?.key) {
+      if (!majors.has(family.key)) majors.set(family.key, { type: 'major', key: family.key, label: family.label, level: family.level, records: [] });
+      majors.get(family.key).records.push(record);
+    }
+  });
+  const schoolGroups = [...schools.values()]
+    .filter(g => g.records.length >= 2)
+    .map(g => ({ ...g, records: g.records.sort((a, b) => scoreDistance(a) - scoreDistance(b)).slice(0, 8) }))
+    .sort((a, b) => b.records.length - a.records.length || String(a.label).localeCompare(String(b.label), 'zh-Hans-CN'))
+    .slice(0, 8);
+  const majorGroups = [...majors.values()]
+    .filter(g => new Set(g.records.map(r => normalizeCompareText(r.school))).size >= 2)
+    .map(g => ({ ...g, schoolCount: new Set(g.records.map(r => normalizeCompareText(r.school))).size, records: g.records.sort((a, b) => scoreDistance(a) - scoreDistance(b)).slice(0, 8) }))
+    .sort((a, b) => (b.schoolCount || 0) - (a.schoolCount || 0) || b.records.length - a.records.length || String(a.label).localeCompare(String(b.label), 'zh-Hans-CN'))
+    .slice(0, 8);
+  schoolGroups.forEach(g => g.records.forEach(record => {
+    const key = compareRecordKey(record);
+    const info = byRecord.get(key) || {};
+    info.school = g;
+    byRecord.set(key, info);
+  }));
+  majorGroups.forEach(g => g.records.forEach(record => {
+    const key = compareRecordKey(record);
+    const info = byRecord.get(key) || {};
+    info.major = g;
+    byRecord.set(key, info);
+  }));
+  return { schoolGroups, majorGroups, byRecord };
+}
+
+function compareRowNote(record = {}, type = 'school') {
+  const notes = [];
+  const mark = resolveLocalStrengthMark(record);
+  if (mark?.matched) notes.push('学校背景有提醒');
+  const review = reviewSummary(record, buildReviewPointsForRecord(record, { limit: 2 }));
+  if (review) notes.push(review.replace(/^复核：/, '复核：').replace(/^需核验：/, '需核验：'));
+  if (type === 'school') {
+    const info = majorUnderstandingCard(record);
+    if (info?.oneLine) notes.push(info.oneLine.replace(/。$/, '').slice(0, 34));
+  }
+  return notes.slice(0, 2).join('；') || '建议结合招生章程、校区和培养方案复核';
+}
+
+function renderCompareRows(group) {
+  const type = group?.type || 'school';
+  const rows = (group?.records || []).slice(0, 6).map(record => {
+    const years = compareYearText(record);
+    const first = type === 'school' ? safe(record.major) : safe(record.school);
+    const second = type === 'school' ? years.year2025 : `${record.displayLocation || record.geoEntity || '地区待核验'}｜${years.year2025}`;
+    return `<li class="natural-compare-row">
+      <b>${escapeHtml(first)}</b>
+      <span>${escapeHtml(second)}</span>
+      <span>${escapeHtml(years.year2024)}</span>
+      <em>${escapeHtml(compareRowNote(record, type))}</em>
+    </li>`;
+  }).join('');
+  return `<ul class="natural-compare-rows">${rows}</ul>`;
+}
+
+function renderNaturalComparePanel(compareInfo) {
+  const schoolGroups = compareInfo?.schoolGroups || [];
+  const majorGroups = compareInfo?.majorGroups || [];
+  const total = schoolGroups.length + majorGroups.length;
+  if (!total) return '';
+  if (naturalCompareState.key) {
+    const groups = naturalCompareState.type === 'major' ? majorGroups : schoolGroups;
+    if (!groups.some(g => g.key === naturalCompareState.key)) {
+      naturalCompareState.key = '';
+      naturalCompareState.type = '';
+    }
+  }
+  const selectedGroups = naturalCompareState.type === 'major' ? majorGroups : schoolGroups;
+  const selected = naturalCompareState.key ? selectedGroups.find(g => g.key === naturalCompareState.key) : null;
+  const opened = naturalCompareState.open || Boolean(selected);
+  const summary = `当前结果里有 ${fmt(total)} 组可以放一起横看：同校 ${fmt(schoolGroups.length)} 组，同类专业 ${fmt(majorGroups.length)} 组。`;
+  if (!opened) {
+    return `<section class="natural-compare-panel is-compact" aria-label="自然横看提示">
+      <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="open">看看</button></div>
+    </section>`;
+  }
+  const schoolButtons = schoolGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'school' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="school" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.records.length)} 条</span></button>`).join('');
+  const majorButtons = majorGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'major' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="major" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.schoolCount || g.records.length)} 所</span></button>`).join('');
+  const fallback = `<div class="natural-compare-empty">先点一个学校或专业组，只在当前结果范围内横看，不改变筛选条件。</div>`;
+  const selectedHtml = selected ? `<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>${escapeHtml(selected.type === 'school' ? `${selected.label}：同校不同专业` : `${selected.label}：同类专业不同学校`)}</b><span>只作家庭比较和复核，不是推荐排序。</span></div>${renderCompareRows(selected)}</div>` : fallback;
+  return `<section class="natural-compare-panel is-open" aria-label="自然横看提示">
+    <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="close">收起</button></div>
+    <div class="natural-compare-groups">
+      ${schoolButtons ? `<div class="natural-compare-bucket"><strong>同一学校</strong>${schoolButtons}</div>` : ''}
+      ${majorButtons ? `<div class="natural-compare-bucket"><strong>同类专业</strong>${majorButtons}</div>` : ''}
+    </div>
+    ${selectedHtml}
+  </section>`;
+}
+
+function renderCompareChips(record, compareInfo) {
+  const info = compareInfo?.byRecord?.get?.(compareRecordKey(record));
+  if (!info) return '';
+  const chips = [];
+  if (info.school) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="school" data-compare-key="${escapeHtml(info.school.key)}">同校还有 ${fmt(Math.max(0, info.school.records.length - 1))} 条</button>`);
+  if (info.major) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="major" data-compare-key="${escapeHtml(info.major.key)}">同类还有 ${fmt(Math.max(0, (info.major.schoolCount || info.major.records.length) - 1))} 所</button>`);
+  if (!chips.length) return '';
+  return `<div class="natural-compare-chip-row" aria-label="可横看提示">${chips.slice(0, 2).join('')}</div>`;
+}
+
 function renderKnowledgeChips(record) {
   const tags = buildSchoolIndustryTags(record).slice(0, 3);
   if (!tags.length) return '';
@@ -324,7 +488,7 @@ function localMainlineLink(record) {
   return `<a class="local-mainline-card-link" href="${href}" title="${escapeHtml(title)}">省内背景</a>`;
 }
 
-function card(record, index = 0, selectionPool = null, activeBand = 'near', viewMode = 'all') {
+function card(record, index = 0, selectionPool = null, activeBand = 'near', viewMode = 'all', compareInfo = null) {
   const delta = Number(record.scoreDelta || 0);
   const deltaText = delta > 0 ? `+${delta}` : String(delta);
   const statusKey = record.statusKey || 'match';
@@ -349,6 +513,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
     ${renderMajorCode(record)}
     ${renderMajorUnderstandingPreview(record)}
+    ${renderCompareChips(record, compareInfo)}
     ${renderKnowledgeChips(record)}
     ${renderLocalContextInline(record)}
     ${renderLocalStrengthFeature(record, activeBand, viewMode)}
@@ -382,6 +547,26 @@ function bindResultInteractionController(root) {
     const context = root.__lnRankResultInteractionContext || {};
     const state = context.state;
     const target = event.target;
+    const compareButton = target?.closest?.('[data-compare-action]');
+    if (compareButton && root.contains(compareButton)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const action = compareButton.dataset.compareAction || '';
+      if (action === 'close') {
+        naturalCompareState.open = false;
+        naturalCompareState.type = '';
+        naturalCompareState.key = '';
+      } else if (action === 'open') {
+        naturalCompareState.open = true;
+      } else if (action === 'group' || action === 'chip') {
+        naturalCompareState.open = true;
+        naturalCompareState.type = compareButton.dataset.compareType || '';
+        naturalCompareState.key = compareButton.dataset.compareKey || '';
+      }
+      renderMajorResults(state, context.options || {});
+      return;
+    }
+
     const viewButton = target?.closest?.('[data-result-view]');
     if (viewButton && root.contains(viewButton)) {
       event.preventDefault();
@@ -474,6 +659,14 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const viewMode = state.resultViewMode === 'localStrength' ? 'localStrength' : 'all';
   const localStrengthRecords = filterLocalStrengthRecords(group.records);
   const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : group.records;
+  const compareSignature = [state.activeBand, viewMode, group.title, group.rangeText, visibleRecords.length, data?.meta?.bottomLineMode || '', data?.keywordQuery?.rawKeywords?.join('|') || ''].join('__');
+  if (naturalCompareState.signature !== compareSignature) {
+    naturalCompareState.signature = compareSignature;
+    naturalCompareState.open = false;
+    naturalCompareState.type = '';
+    naturalCompareState.key = '';
+  }
+  const compareInfo = makeCompareGroups(visibleRecords);
   title.textContent = viewMode === 'localStrength' ? `别漏看的学校强项：${group.title}` : `符合条件的可讨论专业：${group.title}`;
   badge.textContent = group.rangeText || '输入分数后生成';
   meta.textContent = viewMode === 'localStrength'
@@ -491,6 +684,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
   const resultContextBar = renderResultContextBar(data, group, state, specialMode);
   const resultViewTabs = renderResultViewTabs(state, group);
+  const naturalComparePanel = renderNaturalComparePanel(compareInfo);
   root.className = 'results-grid';
   const emptyReason = viewMode === 'localStrength'
     ? `<div class="empty local-strength-empty is-light"><span>当前范围暂无明显学校强项，已保留全部专业结果。</span><button type="button" class="result-view-inline-button" data-result-view="all">查看全部专业</button></div>`
@@ -499,7 +693,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`);
   const assistParts = [searchAdvices, bottomLineNote].filter(Boolean).join('');
   const assistBlock = assistParts ? `<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">${assistParts}</div></details>` : '';
-  root.innerHTML = resultContextBar + resultViewTabs + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode)).join('') : emptyReason);
+  root.innerHTML = resultContextBar + resultViewTabs + naturalComparePanel + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode, compareInfo)).join('') : emptyReason);
   root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       const bar = button.closest('.result-context-bar');

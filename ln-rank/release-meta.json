@@ -1,7 +1,7 @@
 {
-  "version": "v3.9.47.8",
-  "assetVersion": "v3947_8",
-  "releaseName": "v3.9.47.8-ln-rank-result-interaction-controller-regression-12-role-no-fenxi",
+  "version": "v3.9.49.0",
+  "assetVersion": "v3949_0",
+  "releaseName": "v3.9.49.0-ln-rank-natural-compare-hints-regression-12-role-no-fenxi",
   "generatedAt": "2026-06-18T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -39,7 +39,7 @@
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
   "majorUnderstandingCatalogTotal": 883,
-  "releaseGate": "card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "natural-compare-hints, card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -56,5 +56,9 @@
   "majorUnderstandingDefaultOneLine": true,
   "majorUnderstandingExpandableQuestions": true,
   "cardKeeps2024Reference": true,
-  "multiTerminalCardDensityContract": true
+  "multiTerminalCardDensityContract": true,
+  "naturalCompareHints": true,
+  "naturalCompareNoApiContract": true,
+  "naturalCompareGridSafeContract": true,
+  "naturalCompareMobileInlineContract": true
 }

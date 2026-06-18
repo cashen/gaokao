@@ -1,4 +1,4 @@
-import { getCampusForRecord } from '../campus/index.js?v=3947_8';
+import { getCampusForRecord } from '../campus/index.js?v=3949_0';
 
 function textOf(item = {}) {
   return `${item.school || ''} ${item.major || ''} ${item.displayLocation || ''} ${(item.flags || []).join(' ')} ${(item.schoolTags || []).join(' ')}`;

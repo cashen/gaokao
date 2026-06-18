@@ -1,4 +1,4 @@
-import { RANGE_PRESETS } from '../config/range-presets.js?v=3947_8';
+import { RANGE_PRESETS } from '../config/range-presets.js?v=3949_0';
 
 export const RANGE_PRESET_KEYS = ['standard', 'wide', 'safe'];
 export function normalizeRangePreset(value) {

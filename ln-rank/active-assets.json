@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.47.8",
-  "assetVersion": "v3947_8",
+  "version": "v3.9.49.0",
+  "assetVersion": "v3949_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,31 +10,31 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3947_8.js",
-    "js/selection-pool.v3947_8.js",
-    "js/major-trend-render.v3947_8.js",
-    "js/self-check.v3947_8.js",
-    "js/local-mainline/local-mainline-app.v3947_8.js",
-    "js/211-mainline/211-mainline-app.v3947_8.js"
+    "js/app.v3949_0.js",
+    "js/selection-pool.v3949_0.js",
+    "js/major-trend-render.v3949_0.js",
+    "js/self-check.v3949_0.js",
+    "js/local-mainline/local-mainline-app.v3949_0.js",
+    "js/211-mainline/211-mainline-app.v3949_0.js"
   ],
   "cssEntry": [
-    "css/dist/ln-rank-main.v3947_8.css",
-    "css/dist/ln-rank-selection.v3947_8.css",
-    "css/dist/ln-rank-trend.v3947_8.css",
-    "css/dist/ln-rank-self-check.v3947_8.css",
-    "css/dist/local-mainline.v3947_8.css",
-    "css/dist/211-mainline.v3947_8.css"
+    "css/dist/ln-rank-main.v3949_0.css",
+    "css/dist/ln-rank-selection.v3949_0.css",
+    "css/dist/ln-rank-trend.v3949_0.css",
+    "css/dist/ln-rank-self-check.v3949_0.css",
+    "css/dist/local-mainline.v3949_0.css",
+    "css/dist/211-mainline.v3949_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_8.css",
-    "selection": "css/dist/ln-rank-selection.v3947_8.css",
-    "trend": "css/dist/ln-rank-trend.v3947_8.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_8.css",
-    "localMainline": "css/dist/local-mainline.v3947_8.css",
-    "main211": "css/dist/211-mainline.v3947_8.css"
+    "main": "css/dist/ln-rank-main.v3949_0.css",
+    "selection": "css/dist/ln-rank-selection.v3949_0.css",
+    "trend": "css/dist/ln-rank-trend.v3949_0.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3949_0.css",
+    "localMainline": "css/dist/local-mainline.v3949_0.css",
+    "main211": "css/dist/211-mainline.v3949_0.css"
   },
-  "releaseGate": "card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "natural-compare-hints, card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -91,5 +91,9 @@
   "majorUnderstandingDefaultOneLine": true,
   "majorUnderstandingExpandableQuestions": true,
   "cardKeeps2024Reference": true,
-  "multiTerminalCardDensityContract": true
+  "multiTerminalCardDensityContract": true,
+  "naturalCompareHints": true,
+  "naturalCompareNoApiContract": true,
+  "naturalCompareGridSafeContract": true,
+  "naturalCompareMobileInlineContract": true
 }
