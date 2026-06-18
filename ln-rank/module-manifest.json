@@ -1,29 +1,29 @@
 {
-  "version": "v3.9.47.1",
-  "assetVersion": "v3947_1",
+  "version": "v3.9.47.2",
+  "assetVersion": "v3947_2",
   "entries": {
-    "search": "js/app.v3947_1.js",
-    "selectionPool": "js/selection-pool.v3947_1.js",
-    "majorTrend": "js/major-trend-render.v3947_1.js",
-    "selfCheck": "js/self-check.v3947_1.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_1.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_1.js"
+    "search": "js/app.v3947_2.js",
+    "selectionPool": "js/selection-pool.v3947_2.js",
+    "majorTrend": "js/major-trend-render.v3947_2.js",
+    "selfCheck": "js/self-check.v3947_2.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_2.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_2.js"
   },
   "entrypoints": {
-    "search": "js/app.v3947_1.js",
-    "selectionPool": "js/selection-pool.v3947_1.js",
-    "majorTrend": "js/major-trend-render.v3947_1.js",
-    "selfCheck": "js/self-check.v3947_1.js",
-    "localMainline": "js/local-mainline/local-mainline-app.v3947_1.js",
-    "main211": "js/211-mainline/211-mainline-app.v3947_1.js"
+    "search": "js/app.v3947_2.js",
+    "selectionPool": "js/selection-pool.v3947_2.js",
+    "majorTrend": "js/major-trend-render.v3947_2.js",
+    "selfCheck": "js/self-check.v3947_2.js",
+    "localMainline": "js/local-mainline/local-mainline-app.v3947_2.js",
+    "main211": "js/211-mainline/211-mainline-app.v3947_2.js"
   },
   "cssDist": {
-    "main": "css/dist/ln-rank-main.v3947_1.css",
-    "selection": "css/dist/ln-rank-selection.v3947_1.css",
-    "trend": "css/dist/ln-rank-trend.v3947_1.css",
-    "selfCheck": "css/dist/ln-rank-self-check.v3947_1.css",
-    "localMainline": "css/dist/local-mainline.v3947_1.css",
-    "main211": "css/dist/211-mainline.v3947_1.css"
+    "main": "css/dist/ln-rank-main.v3947_2.css",
+    "selection": "css/dist/ln-rank-selection.v3947_2.css",
+    "trend": "css/dist/ln-rank-trend.v3947_2.css",
+    "selfCheck": "css/dist/ln-rank-self-check.v3947_2.css",
+    "localMainline": "css/dist/local-mainline.v3947_2.css",
+    "main211": "css/dist/211-mainline.v3947_2.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -61,8 +61,9 @@
     "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
     "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
   },
-  "releaseGate": "report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
-  "compactReportDockContract": true
+  "compactReportDockContract": true,
+  "moduleSyntaxHotfix": true
 }

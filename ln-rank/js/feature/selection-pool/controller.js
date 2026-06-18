@@ -12,7 +12,7 @@ let mounted = false;
 let latestState = null;
 let onChanged = () => {};
 let bumpUntil = 0;
-let let toastState = { visible: false, kind: 'add', title: '', detail: '', count: 0, href: '', until: 0 };
+let toastState = { visible: false, kind: 'add', title: '', detail: '', count: 0, href: '', until: 0 };
 let toastTimer = null;
 
 function countLabel(count) {
