@@ -349,7 +349,7 @@ function itemLocalStrengthChip(item = {}) {
   const mark = resolveLocalStrengthMark(item);
   if (!mark.matched) return '';
   const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
-  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提醒家庭别漏看这个学校强项方向。">学校强项｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(source)}</span>`;
+  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提醒家庭别漏看这个学校强项方向。">硬核专业｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(source)}</span>`;
 }
 
 function itemCodeText(item = {}) {
