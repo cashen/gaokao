@@ -145,7 +145,7 @@ function renderResultViewTabs(state, group) {
   return `<section class="result-view-tabs" aria-label="结果视图切换">
     <div class="result-view-tab-row">
       <button type="button" class="result-view-tab${allActive}" data-result-view="all" aria-pressed="${mode === 'all' ? 'true' : 'false'}">全部专业 <b>${fmt(records.length)}</b></button>
-      <button type="button" class="result-view-tab${strengthActive}" data-result-view="localStrength" aria-pressed="${mode === 'localStrength' ? 'true' : 'false'}">学校强项 <b>${fmt(summary.total)}</b></button>
+      <button type="button" class="result-view-tab${strengthActive}" data-result-view="localStrength" aria-pressed="${mode === 'localStrength' ? 'true' : 'false'}">硬核专业 <b>${fmt(summary.total)}</b></button>
     </div>
     <p class="result-view-note">${escapeHtml(note)}</p>
   </section>`;
