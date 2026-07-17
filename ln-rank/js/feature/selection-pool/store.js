@@ -2,7 +2,7 @@ import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain, matchLiao
 import { resolveLocalStrengthMark } from '../major-pool/local-strength-view.js?v=3949_3';
 import { resolveMajorUnderstanding } from '../../knowledge/major-understanding-resolver.js?v=3949_3';
 const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3933_12';
-const LEGACY_KEYS = [STORAGE_KEY, 'lnRank.selectionPool.physics2025.v3933_5', 'lnRank.selectionPool.physics2025.v3933_3', 'lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRankSelectionPool.v3940'];
+const LEGACY_KEYS = [STORAGE_KEY, 'lnRank.selectionPool.physics2025.v3933_5', 'lnRank.selectionPool.physics2025.v3933_3', 'lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
 const MAX_ITEMS = 112;
 
 function nowIso() {
@@ -238,13 +238,66 @@ const BAND_ORDER = {
 
 export function sortPoolItems(mode = 'band') {
   const items = getPoolItems();
-  if (mode === 'school') return savePoolItems([...items].sort((a, b) => a.school.localeCompare(b.school, 'zh-CN') || a.major.localeCompare(b.major, 'zh-CN')));
-  if (mode === 'score') return savePoolItems([...items].sort((a, b) => (b.score2025 || 0) - (a.score2025 || 0)));
-  return savePoolItems([...items].sort((a, b) => (BAND_ORDER[a.poolBand?.detail] || 99) - (BAND_ORDER[b.poolBand?.detail] || 99) || (b.score2025 || 0) - (a.score2025 || 0)));
+  const decorated = items.map((item, index) => ({ item, index, band: item.poolBand || classifyPoolItem(item) }));
+  if (mode === 'band') {
+    decorated.sort((a, b) => {
+      const bandA = BAND_ORDER[a.band.detail] || 999;
+      const bandB = BAND_ORDER[b.band.detail] || 999;
+      if (bandA !== bandB) return bandA - bandB;
+      const deltaA = Number(a.item.scoreDelta) || 0;
+      const deltaB = Number(b.item.scoreDelta) || 0;
+      if (deltaA !== deltaB) return deltaB - deltaA;
+      return a.index - b.index;
+    });
+  } else if (mode === 'school') {
+    decorated.sort((a, b) => String(a.item.school || '').localeCompare(String(b.item.school || ''), 'zh-CN') || a.index - b.index);
+  } else if (mode === 'major') {
+    decorated.sort((a, b) => String(a.item.major || '').localeCompare(String(b.item.major || ''), 'zh-CN') || a.index - b.index);
+  }
+  return savePoolItems(decorated.map(x => x.item));
+}
+
+export function getPoolStats(items = getPoolItems()) {
+  const stats = {
+    total: items.length,
+    rushCount: 0,
+    stableCount: 0,
+    safeCount: 0,
+    highRushCount: 0,
+    floorCount: 0,
+    byDetail: {},
+    byCity: {},
+    byMajorFamily: {}
+  };
+  for (const item of items) {
+    const band = item.poolBand || classifyPoolItem(item);
+    if (band.group === 'rush') stats.rushCount += 1;
+    if (band.group === 'stable') stats.stableCount += 1;
+    if (band.group === 'safe') stats.safeCount += 1;
+    if (band.group === 'rush') stats.highRushCount += 1;
+    if (band.group === 'safe' && Number(item.scoreDelta) <= -26) stats.floorCount += 1;
+    stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
+    const city = item.displayLocation || item.geoEntity || '未知地域';
+    stats.byCity[city] = (stats.byCity[city] || 0) + 1;
+    const family = majorFamily(item.major);
+    stats.byMajorFamily[family] = (stats.byMajorFamily[family] || 0) + 1;
+  }
+  return stats;
+}
+
+export function majorFamily(major = '') {
+  const s = String(major || '');
+  if (/计算机|软件|人工智能|数据|网络|信息安全|物联网/.test(s)) return '计算机/人工智能';
+  if (/电气|自动化|电子|通信|集成电路|微电子/.test(s)) return '电气电子信息';
+  if (/临床|口腔|医学|药学|护理|中医/.test(s)) return '医药卫生';
+  if (/会计|财务|金融|经济|工商|管理|审计/.test(s)) return '经管财经';
+  if (/机械|车辆|能源|材料|土木|建筑|化工|环境/.test(s)) return '工科制造/土建化材';
+  if (/法学|汉语|新闻|外语|英语|师范|教育/.test(s)) return '法学文教';
+  return '其他专业';
 }
 
 export function getPoolOrderSignature(items = getPoolItems()) {
-  return items.map((item, index) => `${index + 1}:${item.id}`).join('||');
+  return normalizeInGivenOrder(items).map(item => item.id).join('>');
 }
 
 export const SELECTION_POOL_MAX_ITEMS = MAX_ITEMS;
