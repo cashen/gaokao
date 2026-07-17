@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.49.0",
-  "assetVersion": "v3949_0",
-  "releaseName": "v3.9.49.0-ln-rank-natural-compare-hints-regression-12-role-no-fenxi",
-  "generatedAt": "2026-06-18T00:00:00+08:00",
+  "version": "v3.9.49.3",
+  "assetVersion": "v3949_3",
+  "releaseName": "v3.9.49.3-ln-rank-parent-result-scope-paging-compare-mobile-report-sync-12-role-no-fenxi",
+  "generatedAt": "2026-07-17T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -39,7 +39,7 @@
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
   "majorUnderstandingCatalogTotal": 883,
-  "releaseGate": "natural-compare-hints, card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "parent-result-scope-paging, global-ranked-api, loaded-vs-eligible-disclosure, comparison-variant-isolation, mobile-reading-order, report-background-evidence-sync, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -60,5 +60,14 @@
   "naturalCompareHints": true,
   "naturalCompareNoApiContract": true,
   "naturalCompareGridSafeContract": true,
-  "naturalCompareMobileInlineContract": true
+  "naturalCompareMobileInlineContract": true,
+  "parentResultScopePaging": true,
+  "globalRankedPagingContract": true,
+  "loadedVsEligibleDisclosure": true,
+  "comparisonVariantIsolation": true,
+  "comparisonProgressiveDisclosure": true,
+  "mobileResultReadingOrder": true,
+  "backgroundEvidenceLanguageContract": true,
+  "reportPayloadBackgroundEvidenceSync": true,
+  "runtimeCacheQueryVersion": "v3949_3"
 }
