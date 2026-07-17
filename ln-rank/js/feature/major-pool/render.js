@@ -431,7 +431,7 @@ function renderNaturalComparePanel(compareInfo, scope = {}) {
     ? (selected.type === 'school' ? selected.label + '：同校不同专业' : selected.label + '：同专业不同学校')
     : '';
   const selectedHtml = selected
-    ? '<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>' + escapeHtml(selectedTitle) + '</b><span>用于家庭比较和复核，不是推荐排序。</span></div>' + renderCompareRows(selected) + '</div>'
+    ? '<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>' + escapeHtml(selectedTitle) + '</b><span>用于家庭比较和复核，不替家庭下结论。</span></div>' + renderCompareRows(selected) + '</div>'
     : fallback;
   return '<section class="natural-compare-panel is-open" aria-label="同校与同专业比较">' +
     '<div class="natural-compare-head"><span>同校 / 同专业比较</span><p>' + escapeHtml(summary) + '</p><button type="button" data-compare-action="close">收起</button></div>' +
