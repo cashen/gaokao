@@ -448,10 +448,10 @@ function renderCompareChips(record, compareInfo) {
   const info = compareInfo?.byRecord?.get?.(compareRecordKey(record));
   if (!info) return '';
   const chips = [];
-  if (info.school) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="school" data-compare-key="${escapeHtml(info.school.key)}">同校还有 ${fmt(Math.max(0, info.school.records.length - 1))} 条</button>`);
-  if (info.major) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="major" data-compare-key="${escapeHtml(info.major.key)}">同类还有 ${fmt(Math.max(0, (info.major.schoolCount || info.major.records.length) - 1))} 所</button>`);
+  if (info.school) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="school" data-compare-key="${escapeHtml(info.school.key)}">同校比较（另 ${fmt(Math.max(0, info.school.records.length - 1))} 条）</button>`);
+  if (info.major) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="major" data-compare-key="${escapeHtml(info.major.key)}">同专业比较（另 ${fmt(Math.max(0, (info.major.schoolCount || info.major.records.length) - 1))} 所）</button>`);
   if (!chips.length) return '';
-  return `<div class="natural-compare-chip-row" aria-label="可横看提示">${chips.slice(0, 2).join('')}</div>`;
+  return `<div class="natural-compare-chip-row" aria-label="可横向比较">${chips.slice(0, 2).join('')}</div>`;
 }
 
 function renderKnowledgeChips(record) {
@@ -885,8 +885,21 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       document.querySelector(`[data-bottomline-mode="${target}"]`)?.click?.();
     });
   });
-  if (visibleRecords.length > visible) {
-    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}">查看更多 ${viewMode === 'localStrength' ? '学校强项' : group.title}</button>`);
-    root.querySelector('[data-more]')?.addEventListener('click', () => onMore(state.activeBand));
+  const canShowLoadedMore = viewMode === 'all' && visibleRecords.length > visible;
+  const canLoadAnotherPage = viewMode === 'all' && Boolean(group.pagination?.hasMore);
+  if (canShowLoadedMore || canLoadAnotherPage) {
+    const isLoadingMore = state.bands.loadingMoreBand === state.activeBand;
+    const shownNow = Math.min(visible, visibleRecords.length);
+    const remainingLoaded = Math.max(0, visibleRecords.length - shownNow);
+    const label = isLoadingMore
+      ? '正在加载下一批专业…'
+      : canShowLoadedMore
+        ? `查看下一批 ${fmt(Math.min(16, remainingLoaded))} 条（已显示 ${fmt(shownNow)} / 已加载 ${fmt(visibleRecords.length)}）`
+        : `继续加载符合条件的专业（已加载 ${fmt(visibleRecords.length)} / 共 ${fmt(group.count)}）`;
+    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}"${isLoadingMore ? ' disabled aria-busy="true"' : ''}>${label}</button>`);
+    if (!isLoadingMore) root.querySelector('[data-more]')?.addEventListener('click', () => onMore?.(state.activeBand));
+  }
+  if (viewMode === 'all' && state.bands.moreError) {
+    root.insertAdjacentHTML('beforeend', `<p class="result-load-more-error" role="status">${escapeHtml(state.bands.moreError)}</p>`);
   }
 }
