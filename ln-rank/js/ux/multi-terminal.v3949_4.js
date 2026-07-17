@@ -125,7 +125,9 @@ function enhanceResultControls(results) {
   markStableCards(results);
   results.querySelectorAll('.more-button').forEach((button) => {
     button.setAttribute('aria-live', 'polite');
-    if (/正在加载/.test(button.textContent || '')) button.setAttribute('aria-busy', 'true');
+    if (/正在加载/.test(button.textContent || '') && button.getAttribute('aria-busy') !== 'true') {
+      button.setAttribute('aria-busy', 'true');
+    }
   });
   results.querySelectorAll('.natural-compare-panel').forEach((panel) => panel.setAttribute('tabindex', '-1'));
   results.querySelectorAll('.major-card').forEach((card) => card.setAttribute('data-human-journey-card', 'true'));
@@ -173,8 +175,8 @@ function pushCompareHistory() {
 
 function closeCompareFromHistory() {
   const close = document.querySelector('#results [data-compare-action="close"]');
-  if (close) close.click();
   compareHistoryPushed = false;
+  if (close) close.click();
 }
 
 function setBusyAfterCurrentClick(button, message) {
@@ -250,6 +252,11 @@ function handleJourneyClick(event) {
     }
     pending.reportButton = report;
     setBusyAfterCurrentClick(report, report.id === 'runAnalysis' ? '正在检查当前方案结构。' : '正在生成报告，请保留当前页面。');
+    setTimeout(() => {
+      if (pending.reportButton !== report) return;
+      report.removeAttribute('aria-busy');
+      pending.reportButton = null;
+    }, 15000);
   }
 }
 
