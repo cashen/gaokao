@@ -186,17 +186,18 @@ function localStrengthMarkdownLines(items = []) {
     rows.push({ item, mark: {
       direction: primary.title || '学校背景方向',
       sourceText: primary.kind === 'trajectory' ? '方向提醒' : '省内背景',
+      evidenceLabel: primary.kind === 'trajectory' ? '方向提醒' : '本校相关',
       verifyItems: primary.reviewText ? String(primary.reviewText).split(/\s*\/\s*|、|；|;|，/).filter(Boolean) : [],
       why: primary.reportTip || ''
     }});
   });
   if (!rows.length) return [];
-  const lines = ['## 本次别漏看的学校强项方向', '', '- 说明：这些条目与省内学校背景、211院校背景、行业方向或专业建设线索有关，适合家庭重点复核；不是录取判断，也不是填报建议。', ''];
+  const lines = ['## 已选专业中的院校背景提示', '', '- 说明：这些已选条目与院校背景、专业建设或方向线索有关，供家庭逐条复核；不代表录取判断，也不替家庭下结论。', ''];
   rows.slice(0, 10).forEach(({ item, mark }) => {
     const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
     const review = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
-    lines.push(`- ${item.school} · ${item.major}：${mark.direction || '学校背景方向'}｜提示来源：${source}${review ? `｜建议再看：${review}` : ''}`);
-    if (mark.why) lines.push(`  - 为什么提醒：${clean(mark.why, 220)}`);
+    lines.push(`- ${item.school} · ${item.major}：${mark.direction || '学校背景方向'}｜提示层级：${mark.evidenceLabel || source}${review ? `｜建议再看：${review}` : ''}`);
+    if (mark.why) lines.push(`  - 提示依据：${clean(mark.why, 220)}`);
   });
   lines.push('');
   return lines;
