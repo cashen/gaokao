@@ -724,10 +724,11 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     root.className = 'results-grid loading'; root.textContent = '正在读取 /fenxi 专业数据…'; return;
   }
   if (state.bands.error) {
-    title.textContent = '读取失败'; badge.textContent = '可重试'; meta.textContent = '专业数据暂时无法读取';
-    const detail = state.bands.errorDetail ? `<details class="api-diagnostic-note"><summary>查看诊断信息</summary><div><b>工程诊断：</b>${escapeHtml(state.bands.errorDetail)}<br><span>先测 <code>/api/ln-rank-runtime-health</code>，再测 <code>/api/major-bands-health?probe=1</code>。如果 health 正常但这里失败，重点检查低分段查询耗时、公办优先筛选和浏览器缓存。</span></div></details>` : '';
+    title.textContent = '暂时没能读取';
+    badge.textContent = '可重试';
+    meta.textContent = '专业数据暂时没有读取成功';
     root.className = 'results-grid error';
-    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取判断，也不代表这个分数没有结果。可以先切回“全部院校”或放宽筛选条件后重试。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health?probe=1" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
+    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不代表这个分数没有专业可看。请稍后重试，或调整地区、学校和专业方向后再看。</p></div>`;
     return;
   }
   if (state.bands.stale) {
