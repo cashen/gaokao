@@ -750,9 +750,13 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   }
   const group = normalizeScoreBand(data.bands[state.activeBand], { key: state.activeBand, candidateScore: state.candidateScore, rangePreset: state.rangePreset });
   const viewMode = state.resultViewMode === 'localStrength' ? 'localStrength' : 'all';
-  const localStrengthRecords = filterLocalStrengthRecords(group.records);
-  const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : group.records;
-  const compareSignature = [state.activeBand, viewMode, group.title, group.rangeText, visibleRecords.length, data?.meta?.bottomLineMode || '', data?.keywordQuery?.rawKeywords?.join('|') || ''].join('__');
+  const loadedRecords = Array.isArray(group.records) ? group.records : [];
+  const localStrengthRecords = filterLocalStrengthRecords(loadedRecords);
+  const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : loadedRecords;
+  const visible = state.visible[state.activeBand] || 16;
+  const shown = visibleRecords.slice(0, visible);
+  const scope = resultScope(group, state);
+  const compareSignature = [state.activeBand, group.title, group.rangeText, loadedRecords.length, data?.meta?.bottomLineMode || '', data?.keywordQuery?.rawKeywords?.join('|') || ''].join('__');
   if (naturalCompareState.signature !== compareSignature) {
     naturalCompareState.signature = compareSignature;
     naturalCompareState.open = false;
@@ -760,14 +764,14 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     naturalCompareState.key = '';
     naturalCompareState.showAll = false;
   }
-  const compareInfo = makeCompareGroups(visibleRecords);
-  title.textContent = viewMode === 'localStrength' ? `别漏看的学校强项：${group.title}` : `符合条件的可讨论专业：${group.title}`;
+  const compareInfo = makeCompareGroups(loadedRecords);
+  title.textContent = viewMode === 'localStrength'
+    ? '院校背景提示：' + group.title
+    : '符合当前条件的可讨论专业：' + group.title;
   badge.textContent = group.rangeText || '输入分数后生成';
   meta.textContent = viewMode === 'localStrength'
-    ? `学校强项 ${fmt(localStrengthRecords.length)} 条｜当前范围全部 ${fmt(group.records.length)} 条｜${data.meta.dataScope}`
-    : `共 ${fmt(group.records.length)} 条｜学校强项 ${fmt(localStrengthRecords.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
-  const visible = state.visible[state.activeBand] || 16;
-  const shown = visibleRecords.slice(0, visible);
+    ? '已加载 ' + fmt(scope.loaded) + ' 条中有 ' + fmt(localStrengthRecords.length) + ' 条背景提示｜当前显示 ' + fmt(shown.length) + ' 条｜' + data.meta.dataScope
+    : '符合当前条件 ' + fmt(scope.eligible) + ' 条｜已加载 ' + fmt(scope.loaded) + ' 条｜当前显示 ' + fmt(shown.length) + ' 条｜' + data.meta.dataScope;
   const bottomLine = data.meta?.bottomLine || null;
   const bottomLineMode = data.meta?.bottomLineMode || 'all';
   const excluded = Number(data.source?.bottomLineExcluded || 0);
