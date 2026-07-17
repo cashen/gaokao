@@ -8,28 +8,28 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3949_0';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3949_0';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3949_0';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3949_0';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3949_0';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3949_0';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3949_0';
-import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.js?v=3949_0';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3949_0';
-import { getCampusForRecord } from './feature/campus/index.js?v=3949_0';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3949_0';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3949_0';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3949_0';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3949_0';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3949_0';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, safeGetLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3949_0';
-import { resolveLocalStrengthMark, buildLocalStrengthSummary } from './feature/major-pool/local-strength-view.js?v=3949_0';
-import { resolveMajorUnderstanding, majorUnderstandingReportLines } from './knowledge/major-understanding-resolver.js?v=3949_0';
-import { resolvePlanFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_0';
-import { buildSelectionSignature, markReportGenerating, markReportFresh, markReportFailed, expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_0';
-import { buildSelectionConsistencyNotes } from './domain/selection-consistency-contract.js?v=3949_0';
-import { renderPlanFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_0';
+} from './feature/selection-pool/index.js?v=3949_3';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3949_3';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3949_3';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3949_3';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3949_3';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3949_3';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3949_3';
+import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.js?v=3949_3';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3949_3';
+import { getCampusForRecord } from './feature/campus/index.js?v=3949_3';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3949_3';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3949_3';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3949_3';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3949_3';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3949_3';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, safeGetLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3949_3';
+import { resolveLocalStrengthMark, buildLocalStrengthSummary } from './feature/major-pool/local-strength-view.js?v=3949_3';
+import { resolveMajorUnderstanding, majorUnderstandingReportLines } from './knowledge/major-understanding-resolver.js?v=3949_3';
+import { resolvePlanFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_3';
+import { buildSelectionSignature, markReportGenerating, markReportFresh, markReportFailed, expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_3';
+import { buildSelectionConsistencyNotes } from './domain/selection-consistency-contract.js?v=3949_3';
+import { renderPlanFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_3';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const SCORE_VERSION_KEY = 'lnRank.selectionPool.candidateScore.v3949_0';
