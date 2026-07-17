@@ -30,7 +30,9 @@ function clean(value, max = 50) {
 }
 
 function pageNumber(value, fallback = 0) {
-  const n = Math.floor(Number(value));
+  const text = String(value ?? '').trim();
+  if (!text) return fallback;
+  const n = Math.floor(Number(text));
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
