@@ -29,11 +29,16 @@ function clean(value, max = 50) {
   return String(value || '').trim().slice(0, max);
 }
 
+function pageNumber(value, fallback = 0) {
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
 function initGrouped(bands) {
   return {
-    upper: { ...bands.upper, records: [], count: 0, scanned: 0, truncated: false },
-    near: { ...bands.near, records: [], count: 0, scanned: 0, truncated: false },
-    steady: { ...bands.steady, records: [], count: 0, scanned: 0, truncated: false }
+    upper: { ...bands.upper, records: [], candidates: [], count: 0, scanned: 0, truncated: false },
+    near: { ...bands.near, records: [], candidates: [], count: 0, scanned: 0, truncated: false },
+    steady: { ...bands.steady, records: [], candidates: [], count: 0, scanned: 0, truncated: false }
   };
 }
 
@@ -69,7 +74,15 @@ function rawKeywordPass(raw, filters) {
   return true;
 }
 
-function pushRecord(grouped, band, record, candidateScore, maxPerBand) {
+function compareBandRecords(a, b, bottomLineMode) {
+  const bottomLineWeight = getBottomLineSortWeight(b, bottomLineMode) - getBottomLineSortWeight(a, bottomLineMode);
+  return bottomLineWeight
+    || (Number(b.matchScore || 0) - Number(a.matchScore || 0))
+    || Math.abs(a.score - a.candidateScore) - Math.abs(b.score - b.candidateScore)
+    || rankSortValue(a.rank) - rankSortValue(b.rank);
+}
+
+function pushRecord(grouped, band, record, candidateScore) {
   const delta = record.score - candidateScore;
   const status = getStatus(delta);
   const display = buildDisplayTags(record);
@@ -77,6 +90,7 @@ function pushRecord(grouped, band, record, candidateScore, maxPerBand) {
     ...record,
     ...display,
     band,
+    candidateScore,
     scoreDelta: delta,
     statusKey: status.key,
     statusLabel: status.label,
@@ -84,11 +98,7 @@ function pushRecord(grouped, band, record, candidateScore, maxPerBand) {
   };
 
   grouped[band].count += 1;
-  if (grouped[band].records.length < maxPerBand) {
-    grouped[band].records.push(item);
-  } else {
-    grouped[band].truncated = true;
-  }
+  grouped[band].candidates.push(item);
 }
 
 async function loadChunkRecords(request, env, file) {
@@ -112,12 +122,16 @@ export async function onRequest(context) {
       bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all'),
       specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects')
     };
+    const requestedBandRaw = clean(url.searchParams.get('band') || '', 20);
+    const requestedBand = ['upper', 'near', 'steady'].includes(requestedBandRaw) ? requestedBandRaw : '';
+    const configuredPageSize = Math.max(16, Math.min(80, Number(context.env?.MAJOR_BANDS_MAX_PER_BAND || 40)));
+    const pageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));
+    const pageOffset = pageNumber(url.searchParams.get('offset'), 0);
 
     if (!Number.isFinite(candidateScore)) {
       return json({ ok: false, message: '考生分数格式不正确。' }, 400);
     }
 
-    const maxPerBand = Math.max(30, Math.min(240, Number(context.env?.MAJOR_BANDS_MAX_PER_BAND || 120)));
     const bandsMeta = makeBands(candidateScore, rangePreset);
     const scoreWindow = minMaxScore(bandsMeta);
     const grouped = initGrouped(bandsMeta);
@@ -219,16 +233,31 @@ export async function onRequest(context) {
         if (record.matchLevel === 'project') projectHitCount += 1;
         if (record.matchLevel === 'industry') industryHitCount += 1;
         grouped[band].scanned += 1;
-        pushRecord(grouped, band, record, candidateScore, maxPerBand);
+        pushRecord(grouped, band, record, candidateScore);
       }
     }
 
     for (const key of ['upper', 'near', 'steady']) {
-      grouped[key].records.sort((a, b) => {
-        const bw = getBottomLineSortWeight(b, filters.bottomLineMode) - getBottomLineSortWeight(a, filters.bottomLineMode);
-        return bw || (Number(b.matchScore || 0) - Number(a.matchScore || 0)) || Math.abs(a.score - candidateScore) - Math.abs(b.score - candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank);
-      });
-      grouped[key].displayedCount = grouped[key].records.length;
+      const group = grouped[key];
+      const ranked = group.candidates.sort((a, b) => compareBandRecords(a, b, filters.bottomLineMode));
+      const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
+      const records = requestedBand && requestedBand !== key
+        ? []
+        : ranked.slice(offset, offset + pageLimit);
+      const returned = records.length;
+      const hasMore = offset + returned < ranked.length;
+      group.records = records;
+      group.displayedCount = returned;
+      group.truncated = hasMore;
+      group.pagination = {
+        offset,
+        limit: pageLimit,
+        returned,
+        hasMore,
+        nextOffset: hasMore ? offset + returned : null,
+        order: 'global-ranked'
+      };
+      delete group.candidates;
     }
 
     const counts = {
@@ -256,7 +285,10 @@ export async function onRequest(context) {
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁2025物理类',
         bands: bandsMeta,
-        maxPerBand,
+        maxPerBand: configuredPageSize,
+        pageSize: pageLimit,
+        pageBand: requestedBand || 'all',
+        paginationContract: 'global-ranked-paged',
         elapsedMs: Date.now() - started
       },
       keywordQuery,
@@ -282,7 +314,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'streaming-filtered-capped'
+        mode: 'streaming-filtered-global-ranked-paged'
       }
     });
   } catch (error) {
