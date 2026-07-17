@@ -1,15 +1,15 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_0';
-import { fmt } from '../../core/number-utils.js?v=3949_0';
-import { renderHistoryScore } from './history-score-render.js?v=3949_0';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_0';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_0';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_0';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_0';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_0';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_0';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_0';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_0';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_0';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_3';
+import { fmt } from '../../core/number-utils.js?v=3949_3';
+import { renderHistoryScore } from './history-score-render.js?v=3949_3';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_3';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_3';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_3';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_3';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_3';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_3';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_3';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_3';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_3';
 
 const expandedMajorUnderstandingCards = new Set();
 const expandedLocalStrengthCards = new Set();
