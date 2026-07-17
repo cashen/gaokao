@@ -757,6 +757,7 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     naturalCompareState.open = false;
     naturalCompareState.type = '';
     naturalCompareState.key = '';
+    naturalCompareState.showAll = false;
   }
   const compareInfo = makeCompareGroups(visibleRecords);
   title.textContent = viewMode === 'localStrength' ? `别漏看的学校强项：${group.title}` : `符合条件的可讨论专业：${group.title}`;
