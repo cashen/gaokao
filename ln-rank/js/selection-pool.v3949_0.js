@@ -698,7 +698,7 @@ async function runAnalysis() {
 }
 
 function createReportContext(state = getState()) {
-  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.49.0' };
+  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.49.3' };
 }
 
 function plainTextReport(state = getState()) {
