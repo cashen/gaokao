@@ -1,20 +1,20 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_0';
-import { fmt } from '../../core/number-utils.js?v=3949_0';
-import { renderHistoryScore } from './history-score-render.js?v=3949_0';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_0';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_0';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_0';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_0';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_0';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_0';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_0';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_0';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_0';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_3';
+import { fmt } from '../../core/number-utils.js?v=3949_3';
+import { renderHistoryScore } from './history-score-render.js?v=3949_3';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_3';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_3';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_3';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_3';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_3';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_3';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_3';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_3';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_3';
 
 const expandedMajorUnderstandingCards = new Set();
 const expandedLocalStrengthCards = new Set();
 const expandedReviewPointCards = new Set();
-const naturalCompareState = { open: false, type: '', key: '', signature: '' };
+const naturalCompareState = { open: false, type: '', key: '', signature: '', showAll: false };
 
 function interactionKey(record = {}, prefix = 'card') {
   const base = majorUnderstandingKey(record);
@@ -90,10 +90,11 @@ function keywordContextParts(data) {
 
 function buildSpecialProjectContext(specialMode, source = {}) {
   const hidden = Number(source?.specialProjectHidden || source?.specialProjectStats?.hidden || 0);
+  const shown = Number(source?.specialProjectShown || source?.specialProjectStats?.shown || 0);
   if (specialMode === SPECIAL_PROJECT_SHOW_MODE) {
     return {
       tone: 'showing',
-      short: '特殊项目已显示',
+      short: shown ? `特殊项目已显示 ${fmt(shown)} 条` : '特殊项目已显示',
       action: '继续隐藏',
       detail: '专项、定向、预科等需要单独确认资格、服务年限、费用和校区，不能按普通专业简单比较。'
     };
@@ -106,31 +107,53 @@ function buildSpecialProjectContext(specialMode, source = {}) {
   };
 }
 
+function resultScope(group = {}, state = {}) {
+  const records = Array.isArray(group?.records) ? group.records : [];
+  const eligible = Math.max(records.length, Number(group?.count || 0));
+  const loaded = records.length;
+  const configuredVisible = Number(state?.visible?.[state?.activeBand] || 16);
+  const visible = Math.min(loaded, Math.max(0, configuredVisible));
+  const pagination = group?.pagination || {};
+  return {
+    eligible,
+    loaded,
+    visible,
+    hasMore: Boolean(pagination.hasMore),
+    remaining: Math.max(0, eligible - loaded)
+  };
+}
+
 function renderResultContextBar(data, group, state, specialMode) {
   const keyword = keywordContextParts(data);
   const special = buildSpecialProjectContext(specialMode, data?.source || {});
+  const scope = resultScope(group, state);
   const bandTitle = escapeHtml(group.title || '当前分段');
   const rangeText = escapeHtml(group.rangeText || '输入分数后生成');
-  const recordCount = escapeHtml(fmt(group.records?.length || 0));
-  const currentLine = `<span class="result-context-label">当前</span><strong class="result-context-band">${bandTitle}</strong><span class="result-context-range">${rangeText}</span><span class="result-context-count">${recordCount} 条</span>`;
+  const currentLine = '<span class="result-context-label">当前</span><strong class="result-context-band">' + bandTitle + '</strong><span class="result-context-range">' + rangeText + '</span>';
+  const scopeLine = '<span class="result-context-scope">符合当前条件 <b>' + fmt(scope.eligible) + '</b> 条｜已加载 <b>' + fmt(scope.loaded) + '</b> 条｜当前显示 <b>' + fmt(scope.visible) + '</b> 条</span>';
   const keywordLine = keyword
-    ? `<span class="result-context-label">关键词</span><span class="result-context-terms">${keyword.visibleKeywords.map(escapeHtml).join(' / ')}${keyword.extraCount ? ' 等' : ''}</span><span class="result-context-sort">按接近程度排序</span>`
-    : `<span class="result-context-label">关键词</span><span class="result-context-terms">未限定专业方向</span><span class="result-context-sort">按当前条件查看</span>`;
+    ? '<span class="result-context-label">关键词</span><span class="result-context-terms">' + keyword.visibleKeywords.map(escapeHtml).join(' / ') + (keyword.extraCount ? ' 等' : '') + '</span><span class="result-context-sort">按当前条件排序</span>'
+    : '<span class="result-context-label">关键词</span><span class="result-context-terms">未限定专业方向</span><span class="result-context-sort">按当前条件排序</span>';
   const keywordDetail = keyword
-    ? `<div class="result-context-detail-row"><b>关键词：</b>${keyword.keywords}<br><b>关键词说明：</b>${keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量'}${keyword.flags.length ? `｜${keyword.flags.map(escapeHtml).join('；')}` : ''}<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>`
-    : `<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按分数区间、地区、学校和底线条件筛选。</div>`;
-  return `<section class="result-context-bar result-context-${escapeHtml(special.tone)}" aria-label="结果说明">
-    <div class="result-context-main">
-      <span class="result-context-current">${currentLine}</span>
-      <span class="result-context-keyword">${keywordLine}</span>
-      <span class="result-context-special">${escapeHtml(special.short)} <button type="button" class="result-context-link" data-context-special-toggle>${escapeHtml(special.action)}</button></span>
-      <button type="button" class="result-context-more" data-result-context-toggle aria-expanded="false">展开说明</button>
-    </div>
-    <div class="result-context-details" hidden>
-      ${keywordDetail}
-      <div class="result-context-detail-row"><b>特殊项目：</b>${escapeHtml(special.detail)}</div>
-    </div>
-  </section>`;
+    ? '<div class="result-context-detail-row"><b>关键词：</b>' + keyword.keywords + '<br><b>关键词说明：</b>' + (keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量') + (keyword.flags.length ? '｜' + keyword.flags.map(escapeHtml).join('；') : '') + '<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>'
+    : '<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按历史分数区间、地区、学校和底线条件筛选。</div>';
+  const pageDetail = scope.hasMore
+    ? '<div class="result-context-detail-row"><b>结果范围：</b>当前已按统一顺序加载前 ' + fmt(scope.loaded) + ' 条，仍有 ' + fmt(scope.remaining) + ' 条符合条件的专业可继续加载。页面不会把已加载列表当成全部结果。</div>'
+    : '<div class="result-context-detail-row"><b>结果范围：</b>当前符合条件的专业已全部加载完成。</div>';
+  return '<section class="result-context-bar result-context-' + escapeHtml(special.tone) + '" aria-label="结果说明">' +
+    '<div class="result-context-main">' +
+      '<span class="result-context-current">' + currentLine + '</span>' +
+      scopeLine +
+      '<span class="result-context-keyword">' + keywordLine + '</span>' +
+      '<span class="result-context-special">' + escapeHtml(special.short) + ' <button type="button" class="result-context-link" data-context-special-toggle>' + escapeHtml(special.action) + '</button></span>' +
+      '<button type="button" class="result-context-more" data-result-context-toggle aria-expanded="false">展开说明</button>' +
+    '</div>' +
+    '<div class="result-context-details" hidden>' +
+      keywordDetail +
+      pageDetail +
+      '<div class="result-context-detail-row"><b>特殊项目：</b>' + escapeHtml(special.detail) + '</div>' +
+    '</div>' +
+  '</section>';
 }
 
 function renderResultViewTabs(state, group) {
@@ -140,15 +163,15 @@ function renderResultViewTabs(state, group) {
   const allActive = mode === 'all' ? ' is-active' : '';
   const strengthActive = mode === 'localStrength' ? ' is-active' : '';
   const note = summary.total
-    ? `当前结果里发现 ${fmt(summary.total)} 条学校强项方向。它们来自省内背景、211背景或方向线索，不是录取判断，只是提醒家庭重点了解和复核。`
-    : '当前范围暂时没有明显的学校强项提示，可以继续查看全部专业，或放宽地区、专业方向后再看。';
-  return `<section class="result-view-tabs" aria-label="结果视图切换">
-    <div class="result-view-tab-row">
-      <button type="button" class="result-view-tab${allActive}" data-result-view="all" aria-pressed="${mode === 'all' ? 'true' : 'false'}">全部专业 <b>${fmt(records.length)}</b></button>
-      <button type="button" class="result-view-tab${strengthActive}" data-result-view="localStrength" aria-pressed="${mode === 'localStrength' ? 'true' : 'false'}">硬核专业 <b>${fmt(summary.total)}</b></button>
-    </div>
-    <p class="result-view-note">${escapeHtml(note)}</p>
-  </section>`;
+    ? '已加载的 ' + fmt(records.length) + ' 条中，有 ' + fmt(summary.total) + ' 条院校背景提示' + (summary.sourceText ? '（' + summary.sourceText + '）' : '') + '。提示只说明院校与专业存在可复核对应，不代表录取判断，也不替家庭决定专业。'
+    : '已加载的 ' + fmt(records.length) + ' 条中暂未出现院校背景提示，可以继续查看当前列表或加载更多专业。';
+  return '<section class="result-view-tabs" aria-label="结果查看方式">' +
+    '<div class="result-view-tab-row">' +
+      '<button type="button" class="result-view-tab' + allActive + '" data-result-view="all" aria-pressed="' + (mode === 'all' ? 'true' : 'false') + '">当前列表 <b>' + fmt(records.length) + '</b></button>' +
+      '<button type="button" class="result-view-tab' + strengthActive + '" data-result-view="localStrength" aria-pressed="' + (mode === 'localStrength' ? 'true' : 'false') + '">背景提示 <b>' + fmt(summary.total) + '</b></button>' +
+    '</div>' +
+    '<p class="result-view-note">' + escapeHtml(note) + '</p>' +
+  '</section>';
 }
 
 function renderLocalStrengthFeature(record, activeBand, viewMode) {
@@ -156,17 +179,17 @@ function renderLocalStrengthFeature(record, activeBand, viewMode) {
   if (!mark.matched) return '';
   const relation = localStrengthRelationText(record, activeBand);
   const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
-  const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
-  const direction = mark.direction || '学校背景方向';
+  const source = mark.evidenceLabel || mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '院校背景');
+  const direction = mark.direction || '院校背景方向';
   const why = mark.why || '这条专业与学校办学背景或行业方向有关，建议家庭单独了解和复核。';
   if (viewMode !== 'localStrength') {
-    return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
+    return `<div class="local-strength-mini"><span>院校背景提示</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
   }
   const key = interactionKey(record, 'local-strength');
   const panelId = `local-strength-more-${Math.abs(hashText(key))}`;
   const open = expandedLocalStrengthCards.has(key);
-  return `<section class="local-strength-card-block is-compact is-controlled${open ? ' is-expanded' : ''}" aria-label="学校强项提醒" data-local-strength-card="${escapeHtml(key)}">
-    <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
+  return `<section class="local-strength-card-block is-compact is-controlled${open ? ' is-expanded' : ''}" aria-label="院校背景提示" data-local-strength-card="${escapeHtml(key)}">
+    <div class="local-strength-head"><span>院校背景提示</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
     <p class="local-strength-one"><strong>提醒：</strong>${escapeHtml(why)}</p>
     <button type="button" class="local-strength-toggle" data-local-strength-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">${open ? '收起提醒原因' : '展开提醒原因'}</button>
     <div id="${panelId}" class="local-strength-details is-controlled-panel" ${open ? '' : 'hidden'}>
@@ -230,21 +253,55 @@ function compareYearText(record = {}) {
   return { year2025, year2024 };
 }
 
+function compareProgramVariant(record = {}) {
+  const special = record.specialProject || {};
+  const text = [record.major, special.labelText, special.primaryLabel, ...(Array.isArray(record.flags) ? record.flags : [])].filter(Boolean).join(' ');
+  if (special.hasSpecialProject) {
+    const label = String(special.labelText || special.primaryLabel || '特殊项目').trim();
+    return { key: 'special:' + normalizeCompareText(label || 'special'), label: label || '特殊项目', isSpecial: true };
+  }
+  if (/中外|合作办学|国际本科|校企合作/.test(text)) return { key: 'cooperation', label: '合作项目', isSpecial: true };
+  if (/高收费|较高收费/.test(text)) return { key: 'high-fee', label: '高收费项目', isSpecial: true };
+  if (/定向|专项|预科|民族班/.test(text)) return { key: 'eligibility', label: '需资格项目', isSpecial: true };
+  if (/试验班|实验班|拔尖|强基|本硕|本博|菁英班|卓越班/.test(text)) return { key: 'program-variant', label: '培养项目', isSpecial: true };
+  return { key: 'regular', label: '', isSpecial: false };
+}
+
+function compareFamilyLabel(label, variant) {
+  const base = String(label || '').trim() || '专业待核验';
+  return variant?.label ? base + '（' + variant.label + '）' : base;
+}
+
 function majorFamily(record = {}) {
   const sm = record.standardMajor || {};
   const raw = String(record.major || '').trim();
+  const variant = compareProgramVariant(record);
   if (sm.name && ['exact', 'alias'].includes(sm.mappingStatus || 'exact')) {
-    return { key: `major:${normalizeCompareText(sm.name)}`, label: sm.name, level: 'exact' };
+    return {
+      key: 'major:' + normalizeCompareText(sm.name) + '|' + variant.key,
+      label: compareFamilyLabel(sm.name, variant),
+      level: 'exact',
+      variant
+    };
   }
   if (sm.categoryName && sm.categoryName.length >= 2) {
-    return { key: `category:${normalizeCompareText(sm.categoryName)}`, label: sm.categoryName, level: 'class' };
+    return {
+      key: 'category:' + normalizeCompareText(sm.categoryName) + '|' + variant.key,
+      label: compareFamilyLabel(sm.categoryName, variant),
+      level: 'class',
+      variant
+    };
   }
   const cleaned = normalizeCompareText(raw)
     .replace(/中外合作办学|合作办学|高收费|较高收费|国际本科|校企合作/g, '')
     .replace(/\d\+\d|本硕|本博|菁英班|卓越班/g, '');
   if (!cleaned || cleaned.length < 2) return null;
-  if (/试验班|实验班|拔尖|强基|预科|民族班|定向|专项/.test(cleaned)) return null;
-  return { key: `raw:${cleaned}`, label: cleaned.length > 18 ? `${cleaned.slice(0, 18)}…` : cleaned, level: 'raw' };
+  return {
+    key: 'raw:' + cleaned + '|' + variant.key,
+    label: compareFamilyLabel(cleaned.length > 18 ? cleaned.slice(0, 18) + '…' : cleaned, variant),
+    level: 'raw',
+    variant
+  };
 }
 
 function makeCompareGroups(records = []) {
@@ -292,36 +349,49 @@ function makeCompareGroups(records = []) {
   return { schoolGroups, majorGroups, byRecord };
 }
 
+function compareProjectSummary(record = {}) {
+  const variant = compareProgramVariant(record);
+  const campus = String(record.campusName || record.campus || record.campusLabel || '').trim();
+  const parts = [];
+  if (variant.isSpecial) parts.push(variant.label || '需单独比较项目');
+  if (campus) parts.push('校区：' + campus);
+  return parts.join('｜');
+}
+
 function compareRowNote(record = {}, type = 'school') {
   const notes = [];
   const mark = resolveLocalStrengthMark(record);
-  if (mark?.matched) notes.push('学校背景有提醒');
+  if (mark?.matched) notes.push('院校背景提示：' + (mark.evidenceLabel || mark.sourceText || '可复核'));
+  const project = compareProjectSummary(record);
+  if (project) notes.push(project);
   const review = reviewSummary(record, buildReviewPointsForRecord(record, { limit: 2 }));
   if (review) notes.push(review.replace(/^复核：/, '复核：').replace(/^需核验：/, '需核验：'));
   if (type === 'school') {
     const info = majorUnderstandingCard(record);
     if (info?.oneLine) notes.push(info.oneLine.replace(/。$/, '').slice(0, 34));
   }
-  return notes.slice(0, 2).join('；') || '建议结合招生章程、校区和培养方案复核';
+  return notes.slice(0, 3).join('；') || '建议结合招生章程、校区和培养方案复核';
 }
 
 function renderCompareRows(group) {
   const type = group?.type || 'school';
-  const rows = (group?.records || []).slice(0, 6).map(record => {
+  const rows = (group?.records || []).slice(0, 8).map(record => {
     const years = compareYearText(record);
     const first = type === 'school' ? safe(record.major) : safe(record.school);
-    const second = type === 'school' ? years.year2025 : `${record.displayLocation || record.geoEntity || '地区待核验'}｜${years.year2025}`;
-    return `<li class="natural-compare-row">
-      <b>${escapeHtml(first)}</b>
-      <span>${escapeHtml(second)}</span>
-      <span>${escapeHtml(years.year2024)}</span>
-      <em>${escapeHtml(compareRowNote(record, type))}</em>
-    </li>`;
+    const second = type === 'school'
+      ? years.year2025
+      : String(record.displayLocation || record.geoEntity || '地区待核验') + '｜' + years.year2025;
+    return '<li class="natural-compare-row">' +
+      '<b>' + escapeHtml(first) + '</b>' +
+      '<span>' + escapeHtml(second) + '</span>' +
+      '<span>' + escapeHtml(years.year2024) + '</span>' +
+      '<em>' + escapeHtml(compareRowNote(record, type)) + '</em>' +
+    '</li>';
   }).join('');
-  return `<ul class="natural-compare-rows">${rows}</ul>`;
+  return '<ul class="natural-compare-rows">' + rows + '</ul>';
 }
 
-function renderNaturalComparePanel(compareInfo) {
+function renderNaturalComparePanel(compareInfo, scope = {}) {
   const schoolGroups = compareInfo?.schoolGroups || [];
   const majorGroups = compareInfo?.majorGroups || [];
   const total = schoolGroups.length + majorGroups.length;
@@ -336,34 +406,52 @@ function renderNaturalComparePanel(compareInfo) {
   const selectedGroups = naturalCompareState.type === 'major' ? majorGroups : schoolGroups;
   const selected = naturalCompareState.key ? selectedGroups.find(g => g.key === naturalCompareState.key) : null;
   const opened = naturalCompareState.open || Boolean(selected);
-  const summary = `当前结果里有 ${fmt(total)} 组可以放一起横看：同校 ${fmt(schoolGroups.length)} 组，同类专业 ${fmt(majorGroups.length)} 组。`;
+  const loaded = Number(scope.loaded || 0);
+  const summary = '已加载的 ' + fmt(loaded) + ' 条里，有 ' + fmt(total) + ' 组可以放在一起比较：同一学校 ' + fmt(schoolGroups.length) + ' 组，同一专业 ' + fmt(majorGroups.length) + ' 组。';
   if (!opened) {
-    return `<section class="natural-compare-panel is-compact" aria-label="自然横看提示">
-      <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="open">看看</button></div>
-    </section>`;
+    return '<section class="natural-compare-panel is-compact" aria-label="同校与同专业比较">' +
+      '<div class="natural-compare-head"><span>同校 / 同专业比较</span><p>' + escapeHtml(summary) + '</p><button type="button" data-compare-action="open">开始比较</button></div>' +
+    '</section>';
   }
-  const schoolButtons = schoolGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'school' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="school" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.records.length)} 条</span></button>`).join('');
-  const majorButtons = majorGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'major' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="major" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.schoolCount || g.records.length)} 所</span></button>`).join('');
-  const fallback = `<div class="natural-compare-empty">先点一个学校或专业组，只在当前结果范围内横看，不改变筛选条件。</div>`;
-  const selectedHtml = selected ? `<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>${escapeHtml(selected.type === 'school' ? `${selected.label}：同校不同专业` : `${selected.label}：同类专业不同学校`)}</b><span>只作家庭比较和复核，不是推荐排序。</span></div>${renderCompareRows(selected)}</div>` : fallback;
-  return `<section class="natural-compare-panel is-open" aria-label="自然横看提示">
-    <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="close">收起</button></div>
-    <div class="natural-compare-groups">
-      ${schoolButtons ? `<div class="natural-compare-bucket"><strong>同一学校</strong>${schoolButtons}</div>` : ''}
-      ${majorButtons ? `<div class="natural-compare-bucket"><strong>同类专业</strong>${majorButtons}</div>` : ''}
-    </div>
-    ${selectedHtml}
-  </section>`;
+  const perBucket = naturalCompareState.showAll || Boolean(selected) ? 8 : 4;
+  const groupButton = (group, type) => {
+    const active = selected?.type === type && selected.key === group.key ? ' is-active' : '';
+    const count = type === 'school' ? group.records.length + ' 条' : (group.schoolCount || group.records.length) + ' 所';
+    return '<button type="button" class="natural-compare-group' + active + '" data-compare-action="group" data-compare-type="' + type + '" data-compare-key="' + escapeHtml(group.key) + '"><b>' + escapeHtml(group.label) + '</b><span>' + fmt(count.replace(/[^0-9]/g, '')) + (type === 'school' ? ' 条' : ' 所') + '</span></button>';
+  };
+  const schoolButtons = schoolGroups.slice(0, perBucket).map(g => groupButton(g, 'school')).join('');
+  const majorButtons = majorGroups.slice(0, perBucket).map(g => groupButton(g, 'major')).join('');
+  const shownGroups = Math.min(schoolGroups.length, perBucket) + Math.min(majorGroups.length, perBucket);
+  const hiddenGroups = Math.max(0, total - shownGroups);
+  const moreButton = hiddenGroups || naturalCompareState.showAll
+    ? '<button type="button" class="natural-compare-more" data-compare-action="more">' + (naturalCompareState.showAll ? '收起扩展分组' : '查看其余 ' + fmt(hiddenGroups) + ' 组') + '</button>'
+    : '';
+  const fallback = '<div class="natural-compare-empty">先选择“同一学校”或“同一专业”中的一组，只比较已加载的专业，不改变筛选条件。</div>';
+  const selectedTitle = selected
+    ? (selected.type === 'school' ? selected.label + '：同校不同专业' : selected.label + '：同专业不同学校')
+    : '';
+  const selectedHtml = selected
+    ? '<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>' + escapeHtml(selectedTitle) + '</b><span>用于家庭比较和复核，不替家庭下结论。</span></div>' + renderCompareRows(selected) + '</div>'
+    : fallback;
+  return '<section class="natural-compare-panel is-open" aria-label="同校与同专业比较">' +
+    '<div class="natural-compare-head"><span>同校 / 同专业比较</span><p>' + escapeHtml(summary) + '</p><button type="button" data-compare-action="close">收起</button></div>' +
+    '<div class="natural-compare-groups">' +
+      (schoolButtons ? '<div class="natural-compare-bucket"><strong>同一学校，比较专业</strong>' + schoolButtons + '</div>' : '') +
+      (majorButtons ? '<div class="natural-compare-bucket"><strong>同一专业，比较学校</strong>' + majorButtons + '</div>' : '') +
+    '</div>' +
+    moreButton +
+    selectedHtml +
+  '</section>';
 }
 
 function renderCompareChips(record, compareInfo) {
   const info = compareInfo?.byRecord?.get?.(compareRecordKey(record));
   if (!info) return '';
   const chips = [];
-  if (info.school) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="school" data-compare-key="${escapeHtml(info.school.key)}">同校还有 ${fmt(Math.max(0, info.school.records.length - 1))} 条</button>`);
-  if (info.major) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="major" data-compare-key="${escapeHtml(info.major.key)}">同类还有 ${fmt(Math.max(0, (info.major.schoolCount || info.major.records.length) - 1))} 所</button>`);
+  if (info.school) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="school" data-compare-key="${escapeHtml(info.school.key)}">同校比较（另 ${fmt(Math.max(0, info.school.records.length - 1))} 条）</button>`);
+  if (info.major) chips.push(`<button type="button" class="natural-compare-chip" data-compare-action="chip" data-compare-type="major" data-compare-key="${escapeHtml(info.major.key)}">同专业比较（另 ${fmt(Math.max(0, (info.major.schoolCount || info.major.records.length) - 1))} 所）</button>`);
   if (!chips.length) return '';
-  return `<div class="natural-compare-chip-row" aria-label="可横看提示">${chips.slice(0, 2).join('')}</div>`;
+  return `<div class="natural-compare-chip-row" aria-label="可横向比较">${chips.slice(0, 2).join('')}</div>`;
 }
 
 function renderKnowledgeChips(record) {
@@ -556,8 +644,12 @@ function bindResultInteractionController(root) {
         naturalCompareState.open = false;
         naturalCompareState.type = '';
         naturalCompareState.key = '';
+        naturalCompareState.showAll = false;
       } else if (action === 'open') {
         naturalCompareState.open = true;
+      } else if (action === 'more') {
+        naturalCompareState.open = true;
+        naturalCompareState.showAll = !naturalCompareState.showAll;
       } else if (action === 'group' || action === 'chip') {
         naturalCompareState.open = true;
         naturalCompareState.type = compareButton.dataset.compareType || '';
@@ -632,10 +724,11 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
     root.className = 'results-grid loading'; root.textContent = '正在读取 /fenxi 专业数据…'; return;
   }
   if (state.bands.error) {
-    title.textContent = '读取失败'; badge.textContent = '可重试'; meta.textContent = '专业数据暂时无法读取';
-    const detail = state.bands.errorDetail ? `<details class="api-diagnostic-note"><summary>查看诊断信息</summary><div><b>工程诊断：</b>${escapeHtml(state.bands.errorDetail)}<br><span>先测 <code>/api/ln-rank-runtime-health</code>，再测 <code>/api/major-bands-health?probe=1</code>。如果 health 正常但这里失败，重点检查低分段查询耗时、公办优先筛选和浏览器缓存。</span></div></details>` : '';
+    title.textContent = '暂时没能读取';
+    badge.textContent = '可重试';
+    meta.textContent = '专业数据暂时没有读取成功';
     root.className = 'results-grid error';
-    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不是录取判断，也不代表这个分数没有结果。可以先切回“全部院校”或放宽筛选条件后重试。</p>${detail}<div class="api-error-actions"><a href="/api/ln-rank-runtime-health" target="_blank" rel="noopener">查看运行时健康</a><a href="/api/major-bands-health?probe=1" target="_blank" rel="noopener">查看专业池健康</a></div></div>`;
+    root.innerHTML = `<div class="api-error-card"><b>${escapeHtml(state.bands.error)}</b><p>这不代表这个分数没有专业可看。请稍后重试，或调整地区、学校和专业方向后再看。</p></div>`;
     return;
   }
   if (state.bands.stale) {
@@ -657,23 +750,28 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   }
   const group = normalizeScoreBand(data.bands[state.activeBand], { key: state.activeBand, candidateScore: state.candidateScore, rangePreset: state.rangePreset });
   const viewMode = state.resultViewMode === 'localStrength' ? 'localStrength' : 'all';
-  const localStrengthRecords = filterLocalStrengthRecords(group.records);
-  const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : group.records;
-  const compareSignature = [state.activeBand, viewMode, group.title, group.rangeText, visibleRecords.length, data?.meta?.bottomLineMode || '', data?.keywordQuery?.rawKeywords?.join('|') || ''].join('__');
+  const loadedRecords = Array.isArray(group.records) ? group.records : [];
+  const localStrengthRecords = filterLocalStrengthRecords(loadedRecords);
+  const visibleRecords = viewMode === 'localStrength' ? localStrengthRecords : loadedRecords;
+  const visible = state.visible[state.activeBand] || 16;
+  const shown = visibleRecords.slice(0, visible);
+  const scope = resultScope(group, state);
+  const compareSignature = [state.activeBand, group.title, group.rangeText, loadedRecords.length, data?.meta?.bottomLineMode || '', data?.keywordQuery?.rawKeywords?.join('|') || ''].join('__');
   if (naturalCompareState.signature !== compareSignature) {
     naturalCompareState.signature = compareSignature;
     naturalCompareState.open = false;
     naturalCompareState.type = '';
     naturalCompareState.key = '';
+    naturalCompareState.showAll = false;
   }
-  const compareInfo = makeCompareGroups(visibleRecords);
-  title.textContent = viewMode === 'localStrength' ? `别漏看的学校强项：${group.title}` : `符合条件的可讨论专业：${group.title}`;
+  const compareInfo = makeCompareGroups(loadedRecords);
+  title.textContent = viewMode === 'localStrength'
+    ? '院校背景提示：' + group.title
+    : '符合当前条件的可讨论专业：' + group.title;
   badge.textContent = group.rangeText || '输入分数后生成';
   meta.textContent = viewMode === 'localStrength'
-    ? `学校强项 ${fmt(localStrengthRecords.length)} 条｜当前范围全部 ${fmt(group.records.length)} 条｜${data.meta.dataScope}`
-    : `共 ${fmt(group.records.length)} 条｜学校强项 ${fmt(localStrengthRecords.length)} 条｜总专业池 ${fmt(data.counts.total)} 条｜${data.meta.dataScope}`;
-  const visible = state.visible[state.activeBand] || 16;
-  const shown = visibleRecords.slice(0, visible);
+    ? '已加载 ' + fmt(scope.loaded) + ' 条中有 ' + fmt(localStrengthRecords.length) + ' 条背景提示｜当前显示 ' + fmt(shown.length) + ' 条｜' + data.meta.dataScope
+    : '符合当前条件 ' + fmt(scope.eligible) + ' 条｜已加载 ' + fmt(scope.loaded) + ' 条｜当前显示 ' + fmt(shown.length) + ' 条｜' + data.meta.dataScope;
   const bottomLine = data.meta?.bottomLine || null;
   const bottomLineMode = data.meta?.bottomLineMode || 'all';
   const excluded = Number(data.source?.bottomLineExcluded || 0);
@@ -684,16 +782,21 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
   const resultContextBar = renderResultContextBar(data, group, state, specialMode);
   const resultViewTabs = renderResultViewTabs(state, group);
-  const naturalComparePanel = renderNaturalComparePanel(compareInfo);
+  const naturalComparePanel = viewMode === 'all' ? renderNaturalComparePanel(compareInfo, scope) : '';
   root.className = 'results-grid';
   const emptyReason = viewMode === 'localStrength'
-    ? `<div class="empty local-strength-empty is-light"><span>当前范围暂无明显学校强项，已保留全部专业结果。</span><button type="button" class="result-view-inline-button" data-result-view="all">查看全部专业</button></div>`
+    ? '<div class="empty local-strength-empty is-light"><span>当前已加载范围暂时没有院校背景提示，已保留当前列表。</span><button type="button" class="result-view-inline-button" data-result-view="all">返回当前列表</button></div>'
     : (bottomLineMode !== 'all'
-      ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
-      : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`);
+      ? '<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和办学性质条件。</div>'
+      : '<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>');
   const assistParts = [searchAdvices, bottomLineNote].filter(Boolean).join('');
-  const assistBlock = assistParts ? `<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">${assistParts}</div></details>` : '';
-  root.innerHTML = resultContextBar + resultViewTabs + naturalComparePanel + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode, compareInfo)).join('') : emptyReason);
+  const assistBlock = assistParts ? '<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">' + assistParts + '</div></details>' : '';
+  const cards = shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode, compareInfo));
+  const initialCards = cards.slice(0, 4).join('');
+  const remainingCards = cards.slice(4).join('');
+  root.innerHTML = resultContextBar + resultViewTabs + (shown.length
+    ? initialCards + naturalComparePanel + assistBlock + remainingCards
+    : assistBlock + emptyReason);
   root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       const bar = button.closest('.result-context-bar');
@@ -782,8 +885,21 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
       document.querySelector(`[data-bottomline-mode="${target}"]`)?.click?.();
     });
   });
-  if (visibleRecords.length > visible) {
-    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}">查看更多 ${viewMode === 'localStrength' ? '学校强项' : group.title}</button>`);
-    root.querySelector('[data-more]')?.addEventListener('click', () => onMore(state.activeBand));
+  const canShowLoadedMore = viewMode === 'all' && visibleRecords.length > visible;
+  const canLoadAnotherPage = viewMode === 'all' && Boolean(group.pagination?.hasMore);
+  if (canShowLoadedMore || canLoadAnotherPage) {
+    const isLoadingMore = state.bands.loadingMoreBand === state.activeBand;
+    const shownNow = Math.min(visible, visibleRecords.length);
+    const remainingLoaded = Math.max(0, visibleRecords.length - shownNow);
+    const label = isLoadingMore
+      ? '正在加载下一批专业…'
+      : canShowLoadedMore
+        ? `查看下一批 ${fmt(Math.min(16, remainingLoaded))} 条（已显示 ${fmt(shownNow)} / 已加载 ${fmt(visibleRecords.length)}）`
+        : `继续加载符合条件的专业（已加载 ${fmt(visibleRecords.length)} / 共 ${fmt(group.count)}）`;
+    root.insertAdjacentHTML('beforeend', `<button class="more-button" data-more="${state.activeBand}"${isLoadingMore ? ' disabled aria-busy="true"' : ''}>${label}</button>`);
+    if (!isLoadingMore) root.querySelector('[data-more]')?.addEventListener('click', () => onMore?.(state.activeBand));
+  }
+  if (viewMode === 'all' && state.bands.moreError) {
+    root.insertAdjacentHTML('beforeend', `<p class="result-load-more-error" role="status">${escapeHtml(state.bands.moreError)}</p>`);
   }
 }

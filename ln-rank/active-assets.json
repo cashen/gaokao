@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.49.0",
-  "assetVersion": "v3949_0",
+  "version": "v3.9.49.3",
+  "assetVersion": "v3949_3",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -34,7 +34,7 @@
     "localMainline": "css/dist/local-mainline.v3949_0.css",
     "main211": "css/dist/211-mainline.v3949_0.css"
   },
-  "releaseGate": "natural-compare-hints, card-density-major-understanding-responsive-regression, android-bottomline-inline-control-fix, low-score-api-bottomline-query-contract-fix, result-tabs-layout-fix, module-syntax-hotfix, report-dock-ui-human-fix, major-understanding-layered-kb, school-strength-local-211-view, no-fenxi",
+  "releaseGate": "parent-result-scope-paging, global-ranked-api, loaded-vs-eligible-disclosure, comparison-variant-isolation, mobile-reading-order, report-background-evidence-sync, no-fenxi",
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
   "directionHelperMobileActionbarContract": true,
@@ -95,5 +95,14 @@
   "naturalCompareHints": true,
   "naturalCompareNoApiContract": true,
   "naturalCompareGridSafeContract": true,
-  "naturalCompareMobileInlineContract": true
+  "naturalCompareMobileInlineContract": true,
+  "parentResultScopePaging": true,
+  "globalRankedPagingContract": true,
+  "loadedVsEligibleDisclosure": true,
+  "comparisonVariantIsolation": true,
+  "comparisonProgressiveDisclosure": true,
+  "mobileResultReadingOrder": true,
+  "backgroundEvidenceLanguageContract": true,
+  "reportPayloadBackgroundEvidenceSync": true,
+  "runtimeCacheQueryVersion": "v3949_3"
 }

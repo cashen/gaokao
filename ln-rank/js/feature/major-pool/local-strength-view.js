@@ -1,5 +1,5 @@
-import { safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3949_0';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_0';
+import { safeGetLocalContextPresentation } from '../../knowledge/index.js?v=3949_3';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_3';
 
 function clean(value, max = 120) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
@@ -77,6 +77,13 @@ function itemPriority(item = {}) {
   return 1;
 }
 
+function evidenceLevel(item = {}) {
+  if (item.sourceKind === '省内背景' && item.strengthKind === '本校方向') return { key: 'school-direction', label: '本校方向' };
+  if (item.sourceKind === '211背景') return { key: '211-major-evidence', label: '211 专业对应' };
+  if (item.sourceKind === '省内背景') return { key: 'school-related', label: '本校相关' };
+  return { key: 'direction-clue', label: '方向提醒' };
+}
+
 function choosePrimaryItem(items = []) {
   return [...items].sort((a, b) => itemPriority(b) - itemPriority(a))[0] || {};
 }
@@ -100,11 +107,14 @@ export function resolveLocalStrengthMark(record = {}) {
   const verifyItems = Array.isArray(primary.reviewPoints) && primary.reviewPoints.length
     ? primary.reviewPoints
     : ['招生计划', '校区', '近年位次', '培养方向'];
+  const evidence = evidenceLevel(primary);
   return {
     matched: true,
-    label: '学校强项方向',
+    label: '院校背景提示',
     direction,
     strengthKind: primary.strengthKind || '方向提醒',
+    evidenceLevel: evidence.key,
+    evidenceLabel: evidence.label,
     sourceKinds,
     sourceText: sourceKindsText(items),
     why,
@@ -143,8 +153,8 @@ export function buildLocalStrengthSummary(records = []) {
     sourceCount,
     sourceText: sourceParts.join('｜'),
     summaryText: rows.length
-      ? `当前结果中，有 ${rows.length} 条专业与省内学校背景、211院校背景、行业方向或专业建设线索关联较明显，可以单独看看。${sourceParts.length ? `其中：${sourceParts.join('，')}。` : ''}`
-      : '当前范围暂时没有明显的学校强项提示，可以继续查看全部专业，或放宽地区、专业方向后再看。'
+      ? `当前已加载结果中，有 ${rows.length} 条院校背景提示；它们来自可复核的省内背景、211 专业对应或方向线索。${sourceParts.length ? `其中：${sourceParts.join('，')}。` : ''}`
+      : '当前已加载范围暂时没有院校背景提示，可以继续查看当前列表或加载更多专业。'
   };
 }
 

@@ -1,31 +1,31 @@
-import { state } from './state/app-state.js?v=3949_0';
-import { toInt } from './core/number-utils.js?v=3949_0';
-import { getScoreGuard } from './core/score-guard.js?v=3949_0';
-import { REGION_OPTIONS } from './config/region-options.js?v=3949_0';
-import { fetchMajorBands } from './feature/major-pool/index.js?v=3949_0';
-import { renderBandLegend, renderResultBandSwitcher } from './feature/score-bands/index.js?v=3949_0';
-import { renderMajorResults } from './feature/major-pool/index.js?v=3949_0';
-import { buildKeywordQuery } from './feature/major-pool/index.js?v=3949_0';
-import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3949_0';
-import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3949_0';
-import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3949_0';
-import { renderSearchTrendHint } from './feature/trend/index.js?v=3949_0';
-import { getQueryButtonLabel, getQueryButtonClass, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3949_0';
-import { getRangePresetLabel } from './domain/range-policy.js?v=3949_0';
-import { getBandFocusLabel } from './domain/band-policy.js?v=3949_0';
-import { setRangePreset, setBandFocus, syncRangeState } from './state/range-state.js?v=3949_0';
-import { syncControlConsoleState } from './ui/control-console.js?v=3949_0';
-import { normalizeMajorBandsResponse } from './domain/score-band-contract.js?v=3949_0';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_STORAGE_KEY, SPECIAL_PROJECT_HIDE_MODE, SPECIAL_PROJECT_SHOW_MODE, specialProjectStatusCopy, specialProjectToggleLabel, specialProjectHelpCopy } from './domain/special-project-policy.js?v=3949_0';
-import { initDirectionExplorer } from './feature/direction-explorer/direction-explorer-render.js?v=3949_0';
-import { formatApiErrorForHuman, formatApiErrorForEngineer, isApiClientError } from './shared/api-client.js?v=3949_0';
-import { resolveMainFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_0';
-import { buildQuerySignature, saveSuccessfulQuerySignature, resolveResultFreshness, markResultStale, clearResultState } from './domain/query-session-contract.js?v=3949_0';
-import { resolveHumanWorkflowState } from './domain/human-workflow-state-contract.js?v=3949_0';
-import { expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_0';
-import { renderMainFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_0';
-import { buildFilterConflicts, removeKeywordGroup, readConfirmedConflictSignatures, confirmFilterConflict, clearConfirmedConflictsForNewQuery } from './domain/filter-conflict-contract.js?v=3949_0';
-import { renderFilterConflicts } from './feature/filter-conflict/filter-conflict-render.js?v=3949_0';
+import { state } from './state/app-state.js?v=3949_3';
+import { toInt } from './core/number-utils.js?v=3949_3';
+import { getScoreGuard } from './core/score-guard.js?v=3949_3';
+import { REGION_OPTIONS } from './config/region-options.js?v=3949_3';
+import { fetchMajorBands } from './feature/major-pool/index.js?v=3949_3';
+import { renderBandLegend, renderResultBandSwitcher } from './feature/score-bands/index.js?v=3949_3';
+import { renderMajorResults } from './feature/major-pool/index.js?v=3949_3';
+import { buildKeywordQuery } from './feature/major-pool/index.js?v=3949_3';
+import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3949_3';
+import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3949_3';
+import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3949_3';
+import { renderSearchTrendHint } from './feature/trend/index.js?v=3949_3';
+import { getQueryButtonLabel, getQueryButtonClass, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3949_3';
+import { getRangePresetLabel } from './domain/range-policy.js?v=3949_3';
+import { getBandFocusLabel } from './domain/band-policy.js?v=3949_3';
+import { setRangePreset, setBandFocus, syncRangeState } from './state/range-state.js?v=3949_3';
+import { syncControlConsoleState } from './ui/control-console.js?v=3949_3';
+import { normalizeMajorBandsResponse } from './domain/score-band-contract.js?v=3949_3';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_STORAGE_KEY, SPECIAL_PROJECT_HIDE_MODE, SPECIAL_PROJECT_SHOW_MODE, specialProjectStatusCopy, specialProjectToggleLabel, specialProjectHelpCopy } from './domain/special-project-policy.js?v=3949_3';
+import { initDirectionExplorer } from './feature/direction-explorer/direction-explorer-render.js?v=3949_3';
+import { formatApiErrorForHuman } from './shared/api-client.js?v=3949_3';
+import { resolveMainFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_3';
+import { buildQuerySignature, saveSuccessfulQuerySignature, resolveResultFreshness, markResultStale, clearResultState } from './domain/query-session-contract.js?v=3949_3';
+import { resolveHumanWorkflowState } from './domain/human-workflow-state-contract.js?v=3949_3';
+import { expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_3';
+import { renderMainFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_3';
+import { buildFilterConflicts, removeKeywordGroup, readConfirmedConflictSignatures, confirmFilterConflict, clearConfirmedConflictsForNewQuery } from './domain/filter-conflict-contract.js?v=3949_3';
+import { renderFilterConflicts } from './feature/filter-conflict/filter-conflict-render.js?v=3949_3';
 
 let hasQueried = false;
 let dirty = false;
@@ -40,6 +40,7 @@ const SPECIAL_CONTROL_SCORE = 515;
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
 const BOTTOMLINE_LEGACY_KEYS = ['lnRank.bottomLineMode.v3980', 'lnRank.bottomLineMode.v3962', 'lnRank.bottomLineMode.v3960', 'lnRank.bottomLineMode.v3912'];
 const BOTTOMLINE_MODES = new Set(['all', 'public_first', 'public_regular_only', 'public_include_sino']);
+const RESULT_PAGE_SIZE = 40;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -224,6 +225,66 @@ let directionExplorerController = null;
 function resetVisible() {
   state.visible = { upper: 16, near: 16, steady: 16 };
   state.resultViewMode = 'all';
+  state.bands.loadingMoreBand = '';
+  state.bands.moreError = '';
+}
+
+function resultRecordKey(record = {}) {
+  return [record.id, record.schoolCode2025, record.majorCode2025, record.school, record.major, record.score2025 ?? record.score, record.rank2025 ?? record.rank]
+    .filter(value => value != null && value !== '')
+    .join('__');
+}
+
+function mergeBandRecords(existing = [], incoming = []) {
+  const seen = new Set();
+  return [...existing, ...incoming].filter(record => {
+    const key = resultRecordKey(record);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function loadMoreBand(band) {
+  const data = state.bands.data;
+  const group = data?.bands?.[band];
+  const page = group?.pagination || {};
+  if (!group || !page.hasMore || state.bands.loadingMoreBand) return;
+  const signature = state.bands.resultSignature || state.bands.querySignature || '';
+  const offset = Number.isFinite(Number(page.nextOffset)) ? Number(page.nextOffset) : (group.records || []).length;
+  state.bands.loadingMoreBand = band;
+  state.bands.moreError = '';
+  renderAll();
+
+  try {
+    const raw = await fetchMajorBands({
+      candidateScore: state.candidateScore,
+      rangePreset: state.rangePreset,
+      filters: buildEffectiveFilters(state.candidateScore),
+      page: { band, offset, limit: RESULT_PAGE_SIZE }
+    });
+    if (signature && signature !== (state.bands.resultSignature || state.bands.querySignature || '')) return;
+    const normalized = normalizeMajorBandsResponse(raw, {
+      candidateScore: state.candidateScore,
+      rangePreset: state.rangePreset
+    });
+    const incoming = normalized?.bands?.[band];
+    if (!incoming) throw new Error('下一批专业数据格式不完整。');
+    const records = mergeBandRecords(group.records, incoming.records);
+    group.records = records;
+    group.count = incoming.count;
+    group.displayedCount = records.length;
+    group.truncated = Boolean(incoming.pagination?.hasMore);
+    group.pagination = {
+      ...(incoming.pagination || {}),
+      loadedCount: records.length
+    };
+  } catch (error) {
+    state.bands.moreError = formatApiErrorForHuman(error, '下一批专业暂时没有读取成功，可以稍后再试。');
+  } finally {
+    state.bands.loadingMoreBand = '';
+    renderAll();
+  }
 }
 
 function scoreInput() {
@@ -467,8 +528,15 @@ function renderAll() {
   });
   renderMajorResults(state, {
     onMore: (band) => {
-      state.visible[band] = (state.visible[band] || 16) + 16;
-      renderAll();
+      const group = state.bands.data?.bands?.[band];
+      const visible = state.visible[band] || 16;
+      const loaded = Array.isArray(group?.records) ? group.records.length : 0;
+      if (visible < loaded) {
+        state.visible[band] = Math.min(loaded, visible + 16);
+        renderAll();
+        return;
+      }
+      loadMoreBand(band);
     },
     selectionPool,
     onSelectionChange: () => refreshSelectionPool(state)
@@ -512,10 +580,11 @@ async function loadData() {
     return;
   }
 
+  resetVisible();
   state.bands.loading = true;
+  state.bands.loadingMoreBand = '';
+  state.bands.moreError = '';
   state.bands.error = null;
-  state.bands.errorDetail = '';
-  state.bands.errorType = '';
   state.bands.message = '';
   state.bands.noticeClass = '';
   setReadyStatus('loading', '正在查询');
@@ -525,7 +594,8 @@ async function loadData() {
     const rawBandsResponse = await fetchMajorBands({
       candidateScore: state.candidateScore,
       rangePreset: state.rangePreset,
-      filters: buildEffectiveFilters(state.candidateScore)
+      filters: buildEffectiveFilters(state.candidateScore),
+      page: { limit: RESULT_PAGE_SIZE }
     });
     state.bands.data = normalizeMajorBandsResponse(rawBandsResponse, {
       candidateScore: state.candidateScore,
@@ -546,8 +616,6 @@ async function loadData() {
     document.getElementById('resultsPanel')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   } catch (error) {
     state.bands.error = formatApiErrorForHuman(error, '专业数据暂时没有读取成功。可以稍后重试。');
-    state.bands.errorDetail = formatApiErrorForEngineer(error);
-    state.bands.errorType = isApiClientError(error) ? error.type : 'unknown';
     state.bands.data = null;
     state.bands.querySignature = '';
     state.bands.stale = false;

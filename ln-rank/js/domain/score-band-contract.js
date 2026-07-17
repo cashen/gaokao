@@ -1,6 +1,6 @@
-import { RANGE_PRESETS } from '../config/range-presets.js?v=3949_0';
-import { normalizeRangePreset } from './range-policy.js?v=3949_0';
-import { normalizeBandFocus } from './band-policy.js?v=3949_0';
+import { RANGE_PRESETS } from '../config/range-presets.js?v=3949_3';
+import { normalizeRangePreset } from './range-policy.js?v=3949_3';
+import { normalizeBandFocus } from './band-policy.js?v=3949_3';
 
 export const SCORE_BAND_KEYS = ['upper', 'near', 'steady'];
 
@@ -24,7 +24,7 @@ export function normalizeBandDesc(key, rawDesc = '') {
   return ({
     upper: '比孩子分数略高，只适合少量放在前段核验。',
     near: '和孩子分数更接近，是专业初选时最该重点看的区间。',
-    steady: '低于孩子分数一些，用来补后段承接和安全感。'
+    steady: '低于孩子分数一些，用来补后段承接。'
   })[normalizeBandKey(key)] || '按当前分数区间显示。';
 }
 
@@ -87,6 +87,18 @@ function countRecords(raw) {
   return 0;
 }
 
+function normalizePagination(raw = {}, records = []) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const offset = Math.max(0, Number.isFinite(Number(source.offset)) ? Math.floor(Number(source.offset)) : 0);
+  const returned = Math.max(0, Number.isFinite(Number(source.returned)) ? Math.floor(Number(source.returned)) : records.length);
+  const limit = Math.max(returned || 0, Number.isFinite(Number(source.limit)) ? Math.floor(Number(source.limit)) : records.length);
+  const hasMore = Boolean(source.hasMore);
+  const nextOffset = hasMore && Number.isFinite(Number(source.nextOffset))
+    ? Math.max(offset + returned, Math.floor(Number(source.nextOffset)))
+    : null;
+  return { offset, limit, returned, hasMore, nextOffset, order: String(source.order || '') };
+}
+
 export function normalizeScoreBand(rawBand = {}, context = {}) {
   const raw = rawBand && typeof rawBand === 'object' ? rawBand : {};
   const key = normalizeBandKey(raw.key || context.key, context.key || 'near');
@@ -104,6 +116,8 @@ export function normalizeScoreBand(rawBand = {}, context = {}) {
     rangeText,
     count: countRecords(raw),
     displayedCount: Number.isFinite(Number(raw.displayedCount)) ? Number(raw.displayedCount) : records.length,
+    truncated: Boolean(raw.truncated),
+    pagination: normalizePagination(raw.pagination, records),
     records
   };
 }

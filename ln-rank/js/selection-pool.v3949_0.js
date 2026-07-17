@@ -8,28 +8,28 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.js?v=3949_0';
-import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3949_0';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3949_0';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3949_0';
-import { renderHealthLights } from './feature/selection-pool/index.js?v=3949_0';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3949_0';
-import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3949_0';
-import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.js?v=3949_0';
-import { renderParentCoach } from './feature/decision-coach/index.js?v=3949_0';
-import { getCampusForRecord } from './feature/campus/index.js?v=3949_0';
-import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3949_0';
-import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3949_0';
-import { buildReportPayload } from './domain/report-payload-contract.js?v=3949_0';
-import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3949_0';
-import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3949_0';
-import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, safeGetLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3949_0';
-import { resolveLocalStrengthMark, buildLocalStrengthSummary } from './feature/major-pool/local-strength-view.js?v=3949_0';
-import { resolveMajorUnderstanding, majorUnderstandingReportLines } from './knowledge/major-understanding-resolver.js?v=3949_0';
-import { resolvePlanFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_0';
-import { buildSelectionSignature, markReportGenerating, markReportFresh, markReportFailed, expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_0';
-import { buildSelectionConsistencyNotes } from './domain/selection-consistency-contract.js?v=3949_0';
-import { renderPlanFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_0';
+} from './feature/selection-pool/index.js?v=3949_3';
+import { requestPathAnalysis } from './feature/selection-pool/index.js?v=3949_3';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.js?v=3949_3';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.js?v=3949_3';
+import { renderHealthLights } from './feature/selection-pool/index.js?v=3949_3';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.js?v=3949_3';
+import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3949_3';
+import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.js?v=3949_3';
+import { renderParentCoach } from './feature/decision-coach/index.js?v=3949_3';
+import { getCampusForRecord } from './feature/campus/index.js?v=3949_3';
+import { buildReviewChecklist, renderReviewChecklist } from './feature/review-checklist/index.js?v=3949_3';
+import { normalizeSelectedMajors } from './domain/selection-contract.js?v=3949_3';
+import { buildReportPayload } from './domain/report-payload-contract.js?v=3949_3';
+import { toHumanCopy, REPORT_COPY } from './domain/human-copy-dictionary.js?v=3949_3';
+import { renderDirectionExplorerReportHtml, buildDirectionExplorerReportText, getDirectionExplorerReportContext } from './feature/direction-explorer/direction-explorer-report.js?v=3949_3';
+import { buildKnowledgeReviewForRecord, buildKnowledgePortfolioSummary, buildSchoolIndustryTags, KNOWLEDGE_DATA_BOUNDARY, safeGetLocalContextPresentation, buildLocalContextSummary } from './knowledge/index.js?v=3949_3';
+import { resolveLocalStrengthMark, buildLocalStrengthSummary } from './feature/major-pool/local-strength-view.js?v=3949_3';
+import { resolveMajorUnderstanding, majorUnderstandingReportLines } from './knowledge/major-understanding-resolver.js?v=3949_3';
+import { resolvePlanFlowStep, markFlowAction, clearFlowAction } from './domain/flow-step-contract.js?v=3949_3';
+import { buildSelectionSignature, markReportGenerating, markReportFresh, markReportFailed, expireReport, clearReportFreshness, readReportFreshness } from './domain/report-freshness-contract.js?v=3949_3';
+import { buildSelectionConsistencyNotes } from './domain/selection-consistency-contract.js?v=3949_3';
+import { renderPlanFlowStepper } from './feature/flow-stepper/flow-stepper-render.js?v=3949_3';
 
 const SCORE_KEY = 'lnRank.selectionPool.candidateScore';
 const SCORE_VERSION_KEY = 'lnRank.selectionPool.candidateScore.v3949_0';
@@ -308,7 +308,7 @@ function renderLocalStrengthSummaryPanel(state = getState()) {
     const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
     return `<li><span>${escapeHtml(record.school || '学校待核验')} · ${escapeHtml(record.major || '专业待核验')}｜${escapeHtml(mark.direction || '学校背景方向')}</span><small>提示来源：${escapeHtml(source)}｜建议再看：${escapeHtml(verify)}</small></li>`;
   }).join('');
-  return `<section class="local-strength-summary-card"><h3>本次别漏看的学校强项方向</h3><p>下面这些条目与省内学校背景、211院校背景、行业方向或专业建设线索有关，适合家庭重点复核；不是录取判断，也不是填报建议。</p><ol>${lines}</ol></section>`;
+  return `<section class="local-strength-summary-card"><h3>已选专业中的院校背景提示</h3><p>下面这些已选条目与院校背景、专业建设或方向线索有关，供家庭逐条复核；不代表录取判断，也不替家庭下结论。</p><ol>${lines}</ol></section>`;
 }
 
 function itemHistoryText(item = {}) {
@@ -349,7 +349,7 @@ function itemLocalStrengthChip(item = {}) {
   const mark = resolveLocalStrengthMark(item);
   if (!mark.matched) return '';
   const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
-  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提醒家庭别漏看这个学校强项方向。">硬核专业｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(source)}</span>`;
+  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提示院校与专业存在可复核的背景对应。">院校背景提示｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(mark.evidenceLabel || source)}</span>`;
 }
 
 function itemCodeText(item = {}) {
@@ -698,7 +698,7 @@ async function runAnalysis() {
 }
 
 function createReportContext(state = getState()) {
-  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.49.0' };
+  return { candidateScore: state.score || null, selectedCount: state.items?.length || 0, bottomLineMode: state.bottomLineMode || 'all', rangePreset: 'standard', activeBand: null, directionExplorer: getDirectionExplorerReportContext(), generatedAt: new Date().toISOString(), version: 'v3.9.49.3' };
 }
 
 function plainTextReport(state = getState()) {
@@ -712,13 +712,13 @@ function plainTextReport(state = getState()) {
   const localStrengthSummary = buildLocalStrengthSummary(state.items || []);
   if (localStrengthSummary.total) {
     lines.push('');
-    lines.push('本次别漏看的学校强项方向：');
+    lines.push('已选专业中的院校背景提示：');
     localStrengthSummary.rows.slice(0, 8).forEach(({ record, mark }) => {
       const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 4).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
       const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
       lines.push(`- ${record.school || '学校待核验'} · ${record.major || '专业待核验'}｜${mark.direction || '学校背景方向'}｜提示来源：${source}｜建议再看：${verify}`);
     });
-    lines.push('说明：这些不是录取判断，也不是填报建议；只是提醒家庭不要漏看与省内背景或211背景相关的专业方向。');
+    lines.push('说明：这些不是录取判断，也不是填报建议；只提示院校与专业存在可复核的背景对应。');
   }
   const localContextSummary = buildLocalContextSummary(state.items || []);
   if (localContextSummary.total) {
@@ -757,7 +757,7 @@ function plainTextReport(state = getState()) {
     if (localStrength.matched) {
       const verify = Array.isArray(localStrength.verifyItems) && localStrength.verifyItems.length ? localStrength.verifyItems.slice(0, 4).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
       const source = localStrength.sourceText || (Array.isArray(localStrength.sourceKinds) && localStrength.sourceKinds.length ? localStrength.sourceKinds.join(' / ') : '学校背景');
-      lines.push(`   学校强项提醒：${localStrength.direction || '学校背景方向'}｜提示来源：${source}`);
+      lines.push(`   院校背景提示：${localStrength.direction || '学校背景方向'}｜提示层级：${localStrength.evidenceLabel || source}`);
       lines.push(`   为什么提醒：${localStrength.why || '该专业与学校背景或行业方向有关，适合家庭重点复核。'}`);
       lines.push(`   再确认：${verify}`);
     }
