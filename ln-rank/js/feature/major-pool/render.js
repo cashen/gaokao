@@ -782,16 +782,21 @@ export function renderMajorResults(state, { onMore, selectionPool, onSelectionCh
   const specialMode = normalizeSpecialProjectMode(data.meta?.specialProjectMode || data.source?.specialProjectMode);
   const resultContextBar = renderResultContextBar(data, group, state, specialMode);
   const resultViewTabs = renderResultViewTabs(state, group);
-  const naturalComparePanel = renderNaturalComparePanel(compareInfo);
+  const naturalComparePanel = viewMode === 'all' ? renderNaturalComparePanel(compareInfo, scope) : '';
   root.className = 'results-grid';
   const emptyReason = viewMode === 'localStrength'
-    ? `<div class="empty local-strength-empty is-light"><span>当前范围暂无明显学校强项，已保留全部专业结果。</span><button type="button" class="result-view-inline-button" data-result-view="all">查看全部专业</button></div>`
+    ? '<div class="empty local-strength-empty is-light"><span>当前已加载范围暂时没有院校背景提示，已保留当前列表。</span><button type="button" class="result-view-inline-button" data-result-view="all">返回当前列表</button></div>'
     : (bottomLineMode !== 'all'
-      ? `<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和公办底线。</div>`
-      : `<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>`);
+      ? '<div class="empty">当前条件下暂时没有结果。可以先选择“多看一些”，或放宽地域、学校、专业关键词和办学性质条件。</div>'
+      : '<div class="empty">当前条件下暂时没有结果，可以放宽地域、学校或专业关键词。</div>');
   const assistParts = [searchAdvices, bottomLineNote].filter(Boolean).join('');
-  const assistBlock = assistParts ? `<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">${assistParts}</div></details>` : '';
-  root.innerHTML = resultContextBar + resultViewTabs + naturalComparePanel + assistBlock + (shown.length ? shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode, compareInfo)).join('') : emptyReason);
+  const assistBlock = assistParts ? '<details class="result-assist-details"><summary>查看筛选说明</summary><div class="result-assist-details-body">' + assistParts + '</div></details>' : '';
+  const cards = shown.map((record, index) => card(record, index, selectionPool, state.activeBand, viewMode, compareInfo));
+  const initialCards = cards.slice(0, 4).join('');
+  const remainingCards = cards.slice(4).join('');
+  root.innerHTML = resultContextBar + resultViewTabs + (shown.length
+    ? initialCards + naturalComparePanel + assistBlock + remainingCards
+    : assistBlock + emptyReason);
   root.querySelectorAll('[data-result-context-toggle]').forEach(button => {
     button.addEventListener('click', () => {
       const bar = button.closest('.result-context-bar');
