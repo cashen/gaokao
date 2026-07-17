@@ -1,5 +1,5 @@
 export const LN_RANK_VERSION = {
-  display: 'v3.9.49.3',
-  asset: '3949_3',
-  release: 'v3.9.49.3-ln-rank-parent-result-scope-paging-compare-mobile-report-sync-12-role-no-fenxi'
+  display: 'v3.9.49.4',
+  asset: '3949_4',
+  release: 'v3.9.49.4-ln-rank-multi-terminal-human-journey-regression-12-role-no-fenxi'
 };
