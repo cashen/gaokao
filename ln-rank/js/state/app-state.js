@@ -13,6 +13,8 @@ export const state = {
   },
   bands: {
     loading: false,
+    loadingMoreBand: "",
+    moreError: "",
     error: null,
     data: null,
     message: "请输入考生分数后查看专业列表。"
