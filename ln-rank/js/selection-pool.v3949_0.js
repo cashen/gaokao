@@ -308,7 +308,7 @@ function renderLocalStrengthSummaryPanel(state = getState()) {
     const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
     return `<li><span>${escapeHtml(record.school || '学校待核验')} · ${escapeHtml(record.major || '专业待核验')}｜${escapeHtml(mark.direction || '学校背景方向')}</span><small>提示来源：${escapeHtml(source)}｜建议再看：${escapeHtml(verify)}</small></li>`;
   }).join('');
-  return `<section class="local-strength-summary-card"><h3>本次别漏看的学校强项方向</h3><p>下面这些条目与省内学校背景、211院校背景、行业方向或专业建设线索有关，适合家庭重点复核；不是录取判断，也不是填报建议。</p><ol>${lines}</ol></section>`;
+  return `<section class="local-strength-summary-card"><h3>已选专业中的院校背景提示</h3><p>下面这些已选条目与院校背景、专业建设或方向线索有关，供家庭逐条复核；不代表录取判断，也不替家庭下结论。</p><ol>${lines}</ol></section>`;
 }
 
 function itemHistoryText(item = {}) {
@@ -349,7 +349,7 @@ function itemLocalStrengthChip(item = {}) {
   const mark = resolveLocalStrengthMark(item);
   if (!mark.matched) return '';
   const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
-  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提醒家庭别漏看这个学校强项方向。">硬核专业｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(source)}</span>`;
+  return `<span class="workspace-local-strength-chip" title="不是填报建议，只提示院校与专业存在可复核的背景对应。">院校背景提示｜${escapeHtml(mark.direction || '学校背景方向')}｜${escapeHtml(mark.evidenceLabel || source)}</span>`;
 }
 
 function itemCodeText(item = {}) {
@@ -712,13 +712,13 @@ function plainTextReport(state = getState()) {
   const localStrengthSummary = buildLocalStrengthSummary(state.items || []);
   if (localStrengthSummary.total) {
     lines.push('');
-    lines.push('本次别漏看的学校强项方向：');
+    lines.push('已选专业中的院校背景提示：');
     localStrengthSummary.rows.slice(0, 8).forEach(({ record, mark }) => {
       const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 4).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
       const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
       lines.push(`- ${record.school || '学校待核验'} · ${record.major || '专业待核验'}｜${mark.direction || '学校背景方向'}｜提示来源：${source}｜建议再看：${verify}`);
     });
-    lines.push('说明：这些不是录取判断，也不是填报建议；只是提醒家庭不要漏看与省内背景或211背景相关的专业方向。');
+    lines.push('说明：这些不是录取判断，也不是填报建议；只提示院校与专业存在可复核的背景对应。');
   }
   const localContextSummary = buildLocalContextSummary(state.items || []);
   if (localContextSummary.total) {
