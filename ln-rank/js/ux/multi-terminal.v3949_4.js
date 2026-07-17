@@ -218,7 +218,8 @@ function handleJourneyClick(event) {
   const compare = target.closest('#results [data-compare-action]');
   if (compare) {
     const action = compare.dataset.compareAction || '';
-    if (action === 'open') pushCompareHistory();
+    const compareAlreadyOpen = Boolean(document.querySelector('#results [data-compare-action="close"]'));
+    if ((action === 'open' || action === 'chip') && !compareAlreadyOpen) pushCompareHistory();
     if (action === 'group' || action === 'chip' || action === 'more') pending.focusSelector = compareSelector(compare);
     if (action === 'close' && compareHistoryPushed) {
       ignoreNextComparePop = true;
