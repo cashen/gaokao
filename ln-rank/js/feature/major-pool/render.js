@@ -106,31 +106,53 @@ function buildSpecialProjectContext(specialMode, source = {}) {
   };
 }
 
+function resultScope(group = {}, state = {}) {
+  const records = Array.isArray(group?.records) ? group.records : [];
+  const eligible = Math.max(records.length, Number(group?.count || 0));
+  const loaded = records.length;
+  const configuredVisible = Number(state?.visible?.[state?.activeBand] || 16);
+  const visible = Math.min(loaded, Math.max(0, configuredVisible));
+  const pagination = group?.pagination || {};
+  return {
+    eligible,
+    loaded,
+    visible,
+    hasMore: Boolean(pagination.hasMore),
+    remaining: Math.max(0, eligible - loaded)
+  };
+}
+
 function renderResultContextBar(data, group, state, specialMode) {
   const keyword = keywordContextParts(data);
   const special = buildSpecialProjectContext(specialMode, data?.source || {});
+  const scope = resultScope(group, state);
   const bandTitle = escapeHtml(group.title || '当前分段');
   const rangeText = escapeHtml(group.rangeText || '输入分数后生成');
-  const recordCount = escapeHtml(fmt(group.records?.length || 0));
-  const currentLine = `<span class="result-context-label">当前</span><strong class="result-context-band">${bandTitle}</strong><span class="result-context-range">${rangeText}</span><span class="result-context-count">${recordCount} 条</span>`;
+  const currentLine = '<span class="result-context-label">当前</span><strong class="result-context-band">' + bandTitle + '</strong><span class="result-context-range">' + rangeText + '</span>';
+  const scopeLine = '<span class="result-context-scope">符合当前条件 <b>' + fmt(scope.eligible) + '</b> 条｜已加载 <b>' + fmt(scope.loaded) + '</b> 条｜当前显示 <b>' + fmt(scope.visible) + '</b> 条</span>';
   const keywordLine = keyword
-    ? `<span class="result-context-label">关键词</span><span class="result-context-terms">${keyword.visibleKeywords.map(escapeHtml).join(' / ')}${keyword.extraCount ? ' 等' : ''}</span><span class="result-context-sort">按接近程度排序</span>`
-    : `<span class="result-context-label">关键词</span><span class="result-context-terms">未限定专业方向</span><span class="result-context-sort">按当前条件查看</span>`;
+    ? '<span class="result-context-label">关键词</span><span class="result-context-terms">' + keyword.visibleKeywords.map(escapeHtml).join(' / ') + (keyword.extraCount ? ' 等' : '') + '</span><span class="result-context-sort">按当前条件排序</span>'
+    : '<span class="result-context-label">关键词</span><span class="result-context-terms">未限定专业方向</span><span class="result-context-sort">按当前条件排序</span>';
   const keywordDetail = keyword
-    ? `<div class="result-context-detail-row"><b>关键词：</b>${keyword.keywords}<br><b>关键词说明：</b>${keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量'}${keyword.flags.length ? `｜${keyword.flags.map(escapeHtml).join('；')}` : ''}<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>`
-    : `<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按分数区间、地区、学校和底线条件筛选。</div>`;
-  return `<section class="result-context-bar result-context-${escapeHtml(special.tone)}" aria-label="结果说明">
-    <div class="result-context-main">
-      <span class="result-context-current">${currentLine}</span>
-      <span class="result-context-keyword">${keywordLine}</span>
-      <span class="result-context-special">${escapeHtml(special.short)} <button type="button" class="result-context-link" data-context-special-toggle>${escapeHtml(special.action)}</button></span>
-      <button type="button" class="result-context-more" data-result-context-toggle aria-expanded="false">展开说明</button>
-    </div>
-    <div class="result-context-details" hidden>
-      ${keywordDetail}
-      <div class="result-context-detail-row"><b>特殊项目：</b>${escapeHtml(special.detail)}</div>
-    </div>
-  </section>`;
+    ? '<div class="result-context-detail-row"><b>关键词：</b>' + keyword.keywords + '<br><b>关键词说明：</b>' + (keyword.summaryParts.length ? escapeHtml(keyword.summaryParts.join('｜')) : '暂无细分数量') + (keyword.flags.length ? '｜' + keyword.flags.map(escapeHtml).join('；') : '') + '<br><span>精准匹配更接近你输入的关键词；相关方向可以一起参考；行业关联需要看具体专业是否真的接受。</span></div>'
+    : '<div class="result-context-detail-row"><b>关键词说明：</b>当前未限定专业方向，结果主要按历史分数区间、地区、学校和底线条件筛选。</div>';
+  const pageDetail = scope.hasMore
+    ? '<div class="result-context-detail-row"><b>结果范围：</b>当前已按统一顺序加载前 ' + fmt(scope.loaded) + ' 条，仍有 ' + fmt(scope.remaining) + ' 条符合条件的专业可继续加载。页面不会把已加载列表当成全部结果。</div>'
+    : '<div class="result-context-detail-row"><b>结果范围：</b>当前符合条件的专业已全部加载完成。</div>';
+  return '<section class="result-context-bar result-context-' + escapeHtml(special.tone) + '" aria-label="结果说明">' +
+    '<div class="result-context-main">' +
+      '<span class="result-context-current">' + currentLine + '</span>' +
+      scopeLine +
+      '<span class="result-context-keyword">' + keywordLine + '</span>' +
+      '<span class="result-context-special">' + escapeHtml(special.short) + ' <button type="button" class="result-context-link" data-context-special-toggle>' + escapeHtml(special.action) + '</button></span>' +
+      '<button type="button" class="result-context-more" data-result-context-toggle aria-expanded="false">展开说明</button>' +
+    '</div>' +
+    '<div class="result-context-details" hidden>' +
+      keywordDetail +
+      pageDetail +
+      '<div class="result-context-detail-row"><b>特殊项目：</b>' + escapeHtml(special.detail) + '</div>' +
+    '</div>' +
+  '</section>';
 }
 
 function renderResultViewTabs(state, group) {
@@ -140,15 +162,15 @@ function renderResultViewTabs(state, group) {
   const allActive = mode === 'all' ? ' is-active' : '';
   const strengthActive = mode === 'localStrength' ? ' is-active' : '';
   const note = summary.total
-    ? `当前结果里发现 ${fmt(summary.total)} 条学校强项方向。它们来自省内背景、211背景或方向线索，不是录取判断，只是提醒家庭重点了解和复核。`
-    : '当前范围暂时没有明显的学校强项提示，可以继续查看全部专业，或放宽地区、专业方向后再看。';
-  return `<section class="result-view-tabs" aria-label="结果视图切换">
-    <div class="result-view-tab-row">
-      <button type="button" class="result-view-tab${allActive}" data-result-view="all" aria-pressed="${mode === 'all' ? 'true' : 'false'}">全部专业 <b>${fmt(records.length)}</b></button>
-      <button type="button" class="result-view-tab${strengthActive}" data-result-view="localStrength" aria-pressed="${mode === 'localStrength' ? 'true' : 'false'}">硬核专业 <b>${fmt(summary.total)}</b></button>
-    </div>
-    <p class="result-view-note">${escapeHtml(note)}</p>
-  </section>`;
+    ? '已加载的 ' + fmt(records.length) + ' 条中，有 ' + fmt(summary.total) + ' 条院校背景提示' + (summary.sourceText ? '（' + summary.sourceText + '）' : '') + '。提示只说明院校与专业存在可复核对应，不代表录取判断，也不替家庭决定专业。'
+    : '已加载的 ' + fmt(records.length) + ' 条中暂未出现院校背景提示，可以继续查看当前列表或加载更多专业。';
+  return '<section class="result-view-tabs" aria-label="结果查看方式">' +
+    '<div class="result-view-tab-row">' +
+      '<button type="button" class="result-view-tab' + allActive + '" data-result-view="all" aria-pressed="' + (mode === 'all' ? 'true' : 'false') + '">当前列表 <b>' + fmt(records.length) + '</b></button>' +
+      '<button type="button" class="result-view-tab' + strengthActive + '" data-result-view="localStrength" aria-pressed="' + (mode === 'localStrength' ? 'true' : 'false') + '">背景提示 <b>' + fmt(summary.total) + '</b></button>' +
+    '</div>' +
+    '<p class="result-view-note">' + escapeHtml(note) + '</p>' +
+  '</section>';
 }
 
 function renderLocalStrengthFeature(record, activeBand, viewMode) {
