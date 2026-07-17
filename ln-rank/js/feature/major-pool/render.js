@@ -90,10 +90,11 @@ function keywordContextParts(data) {
 
 function buildSpecialProjectContext(specialMode, source = {}) {
   const hidden = Number(source?.specialProjectHidden || source?.specialProjectStats?.hidden || 0);
+  const shown = Number(source?.specialProjectShown || source?.specialProjectStats?.shown || 0);
   if (specialMode === SPECIAL_PROJECT_SHOW_MODE) {
     return {
       tone: 'showing',
-      short: '特殊项目已显示',
+      short: shown ? `特殊项目已显示 ${fmt(shown)} 条` : '特殊项目已显示',
       action: '继续隐藏',
       detail: '专项、定向、预科等需要单独确认资格、服务年限、费用和校区，不能按普通专业简单比较。'
     };
