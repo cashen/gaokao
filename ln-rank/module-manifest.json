@@ -1,13 +1,15 @@
 {
-  "version": "v3.9.49.3",
-  "assetVersion": "v3949_3",
+  "version": "v3.9.49.4",
+  "assetVersion": "v3949_4",
   "entries": {
     "search": "js/app.v3949_0.js",
     "selectionPool": "js/selection-pool.v3949_0.js",
     "majorTrend": "js/major-trend-render.v3949_0.js",
     "selfCheck": "js/self-check.v3949_0.js",
     "localMainline": "js/local-mainline/local-mainline-app.v3949_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3949_0.js"
+    "main211": "js/211-mainline/211-mainline-app.v3949_0.js",
+    "multiTerminalUx": "js/ux/multi-terminal.v3949_4.js",
+    "multiTerminalSelfCheck": "js/ux/v3949_4-self-check.js"
   },
   "entrypoints": {
     "search": "js/app.v3949_0.js",
@@ -15,7 +17,9 @@
     "majorTrend": "js/major-trend-render.v3949_0.js",
     "selfCheck": "js/self-check.v3949_0.js",
     "localMainline": "js/local-mainline/local-mainline-app.v3949_0.js",
-    "main211": "js/211-mainline/211-mainline-app.v3949_0.js"
+    "main211": "js/211-mainline/211-mainline-app.v3949_0.js",
+    "multiTerminalUx": "js/ux/multi-terminal.v3949_4.js",
+    "multiTerminalSelfCheck": "js/ux/v3949_4-self-check.js"
   },
   "cssDist": {
     "main": "css/dist/ln-rank-main.v3949_0.css",
@@ -23,7 +27,8 @@
     "trend": "css/dist/ln-rank-trend.v3949_0.css",
     "selfCheck": "css/dist/ln-rank-self-check.v3949_0.css",
     "localMainline": "css/dist/local-mainline.v3949_0.css",
-    "main211": "css/dist/211-mainline.v3949_0.css"
+    "main211": "css/dist/211-mainline.v3949_0.css",
+    "multiTerminal": "css/dist/ln-rank-multi-terminal.v3949_4.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -61,7 +66,7 @@
     "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
     "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
   },
-  "releaseGate": "parent-result-scope-paging, global-ranked-api, loaded-vs-eligible-disclosure, comparison-variant-isolation, mobile-reading-order, report-background-evidence-sync, no-fenxi",
+  "releaseGate": "multi-terminal-human-journey, 375-android-ipad-wide, scroll-anchor, duplicate-action-guard, android-dvh-keyboard-back, selection-report-mobile, no-static-prune, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -92,5 +97,18 @@
   "mobileResultReadingOrder": true,
   "backgroundEvidenceLanguageContract": true,
   "reportPayloadBackgroundEvidenceSync": true,
-  "runtimeCacheQueryVersion": "v3949_3"
+  "multiTerminalHumanJourneyRegression": true,
+  "phone375JourneyContract": true,
+  "androidChromeViewportKeyboardBackContract": true,
+  "ipadLandscapeTwoColumnMaxContract": true,
+  "pcWideReadingWidthContract": true,
+  "resultScrollAnchorContract": true,
+  "duplicateActionGuardContract": true,
+  "focusRestoreContract": true,
+  "accessibleStatusAnnouncementContract": true,
+  "selectionReportMobileContract": true,
+  "noStaticPruneInThisRelease": true,
+  "additiveUxLayerContract": true,
+  "runtimeCacheQueryVersion": "v3949_4",
+  "preservedCoreModuleQueryVersion": "v3949_3"
 }
