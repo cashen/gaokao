@@ -1,4 +1,4 @@
-import { fetchApiJson } from '../../shared/api-client.js?v=3949_0';
+import { fetchApiJson } from '../../shared/api-client.js?v=3949_3';
 
 export async function fetchMajorBands({ candidateScore, rangePreset, filters, page = null }) {
   const params = new URLSearchParams({
