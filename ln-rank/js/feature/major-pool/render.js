@@ -179,17 +179,17 @@ function renderLocalStrengthFeature(record, activeBand, viewMode) {
   if (!mark.matched) return '';
   const relation = localStrengthRelationText(record, activeBand);
   const verify = Array.isArray(mark.verifyItems) && mark.verifyItems.length ? mark.verifyItems.slice(0, 5).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
-  const source = mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '学校背景');
-  const direction = mark.direction || '学校背景方向';
+  const source = mark.evidenceLabel || mark.sourceText || (Array.isArray(mark.sourceKinds) && mark.sourceKinds.length ? mark.sourceKinds.join(' / ') : '院校背景');
+  const direction = mark.direction || '院校背景方向';
   const why = mark.why || '这条专业与学校办学背景或行业方向有关，建议家庭单独了解和复核。';
   if (viewMode !== 'localStrength') {
-    return `<div class="local-strength-mini"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
+    return `<div class="local-strength-mini"><span>院校背景提示</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>`;
   }
   const key = interactionKey(record, 'local-strength');
   const panelId = `local-strength-more-${Math.abs(hashText(key))}`;
   const open = expandedLocalStrengthCards.has(key);
-  return `<section class="local-strength-card-block is-compact is-controlled${open ? ' is-expanded' : ''}" aria-label="学校强项提醒" data-local-strength-card="${escapeHtml(key)}">
-    <div class="local-strength-head"><span>学校强项方向</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
+  return `<section class="local-strength-card-block is-compact is-controlled${open ? ' is-expanded' : ''}" aria-label="院校背景提示" data-local-strength-card="${escapeHtml(key)}">
+    <div class="local-strength-head"><span>院校背景提示</span><b>${escapeHtml(direction)}</b><em>${escapeHtml(source)}</em></div>
     <p class="local-strength-one"><strong>提醒：</strong>${escapeHtml(why)}</p>
     <button type="button" class="local-strength-toggle" data-local-strength-toggle="${escapeHtml(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${panelId}">${open ? '收起提醒原因' : '展开提醒原因'}</button>
     <div id="${panelId}" class="local-strength-details is-controlled-panel" ${open ? '' : 'hidden'}>
