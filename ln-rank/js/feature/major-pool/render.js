@@ -14,7 +14,7 @@ import { majorUnderstandingCard } from '../../knowledge/major-understanding-reso
 const expandedMajorUnderstandingCards = new Set();
 const expandedLocalStrengthCards = new Set();
 const expandedReviewPointCards = new Set();
-const naturalCompareState = { open: false, type: '', key: '', signature: '' };
+const naturalCompareState = { open: false, type: '', key: '', signature: '', showAll: false };
 
 function interactionKey(record = {}, prefix = 'card') {
   const base = majorUnderstandingKey(record);
@@ -391,7 +391,7 @@ function renderCompareRows(group) {
   return '<ul class="natural-compare-rows">' + rows + '</ul>';
 }
 
-function renderNaturalComparePanel(compareInfo) {
+function renderNaturalComparePanel(compareInfo, scope = {}) {
   const schoolGroups = compareInfo?.schoolGroups || [];
   const majorGroups = compareInfo?.majorGroups || [];
   const total = schoolGroups.length + majorGroups.length;
@@ -406,24 +406,42 @@ function renderNaturalComparePanel(compareInfo) {
   const selectedGroups = naturalCompareState.type === 'major' ? majorGroups : schoolGroups;
   const selected = naturalCompareState.key ? selectedGroups.find(g => g.key === naturalCompareState.key) : null;
   const opened = naturalCompareState.open || Boolean(selected);
-  const summary = `当前结果里有 ${fmt(total)} 组可以放一起横看：同校 ${fmt(schoolGroups.length)} 组，同类专业 ${fmt(majorGroups.length)} 组。`;
+  const loaded = Number(scope.loaded || 0);
+  const summary = '已加载的 ' + fmt(loaded) + ' 条里，有 ' + fmt(total) + ' 组可以放在一起比较：同一学校 ' + fmt(schoolGroups.length) + ' 组，同一专业 ' + fmt(majorGroups.length) + ' 组。';
   if (!opened) {
-    return `<section class="natural-compare-panel is-compact" aria-label="自然横看提示">
-      <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="open">看看</button></div>
-    </section>`;
+    return '<section class="natural-compare-panel is-compact" aria-label="同校与同专业比较">' +
+      '<div class="natural-compare-head"><span>同校 / 同专业比较</span><p>' + escapeHtml(summary) + '</p><button type="button" data-compare-action="open">开始比较</button></div>' +
+    '</section>';
   }
-  const schoolButtons = schoolGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'school' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="school" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.records.length)} 条</span></button>`).join('');
-  const majorButtons = majorGroups.slice(0, 4).map(g => `<button type="button" class="natural-compare-group${selected?.type === 'major' && selected.key === g.key ? ' is-active' : ''}" data-compare-action="group" data-compare-type="major" data-compare-key="${escapeHtml(g.key)}"><b>${escapeHtml(g.label)}</b><span>${fmt(g.schoolCount || g.records.length)} 所</span></button>`).join('');
-  const fallback = `<div class="natural-compare-empty">先点一个学校或专业组，只在当前结果范围内横看，不改变筛选条件。</div>`;
-  const selectedHtml = selected ? `<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>${escapeHtml(selected.type === 'school' ? `${selected.label}：同校不同专业` : `${selected.label}：同类专业不同学校`)}</b><span>只作家庭比较和复核，不是推荐排序。</span></div>${renderCompareRows(selected)}</div>` : fallback;
-  return `<section class="natural-compare-panel is-open" aria-label="自然横看提示">
-    <div class="natural-compare-head"><span>可一起横看</span><p>${escapeHtml(summary)}</p><button type="button" data-compare-action="close">收起</button></div>
-    <div class="natural-compare-groups">
-      ${schoolButtons ? `<div class="natural-compare-bucket"><strong>同一学校</strong>${schoolButtons}</div>` : ''}
-      ${majorButtons ? `<div class="natural-compare-bucket"><strong>同类专业</strong>${majorButtons}</div>` : ''}
-    </div>
-    ${selectedHtml}
-  </section>`;
+  const perBucket = naturalCompareState.showAll || Boolean(selected) ? 8 : 4;
+  const groupButton = (group, type) => {
+    const active = selected?.type === type && selected.key === group.key ? ' is-active' : '';
+    const count = type === 'school' ? group.records.length + ' 条' : (group.schoolCount || group.records.length) + ' 所';
+    return '<button type="button" class="natural-compare-group' + active + '" data-compare-action="group" data-compare-type="' + type + '" data-compare-key="' + escapeHtml(group.key) + '"><b>' + escapeHtml(group.label) + '</b><span>' + fmt(count.replace(/[^0-9]/g, '')) + (type === 'school' ? ' 条' : ' 所') + '</span></button>';
+  };
+  const schoolButtons = schoolGroups.slice(0, perBucket).map(g => groupButton(g, 'school')).join('');
+  const majorButtons = majorGroups.slice(0, perBucket).map(g => groupButton(g, 'major')).join('');
+  const shownGroups = Math.min(schoolGroups.length, perBucket) + Math.min(majorGroups.length, perBucket);
+  const hiddenGroups = Math.max(0, total - shownGroups);
+  const moreButton = hiddenGroups || naturalCompareState.showAll
+    ? '<button type="button" class="natural-compare-more" data-compare-action="more">' + (naturalCompareState.showAll ? '收起扩展分组' : '查看其余 ' + fmt(hiddenGroups) + ' 组') + '</button>'
+    : '';
+  const fallback = '<div class="natural-compare-empty">先选择“同一学校”或“同一专业”中的一组，只比较已加载的专业，不改变筛选条件。</div>';
+  const selectedTitle = selected
+    ? (selected.type === 'school' ? selected.label + '：同校不同专业' : selected.label + '：同专业不同学校')
+    : '';
+  const selectedHtml = selected
+    ? '<div class="natural-compare-detail"><div class="natural-compare-detail-title"><b>' + escapeHtml(selectedTitle) + '</b><span>用于家庭比较和复核，不是推荐排序。</span></div>' + renderCompareRows(selected) + '</div>'
+    : fallback;
+  return '<section class="natural-compare-panel is-open" aria-label="同校与同专业比较">' +
+    '<div class="natural-compare-head"><span>同校 / 同专业比较</span><p>' + escapeHtml(summary) + '</p><button type="button" data-compare-action="close">收起</button></div>' +
+    '<div class="natural-compare-groups">' +
+      (schoolButtons ? '<div class="natural-compare-bucket"><strong>同一学校，比较专业</strong>' + schoolButtons + '</div>' : '') +
+      (majorButtons ? '<div class="natural-compare-bucket"><strong>同一专业，比较学校</strong>' + majorButtons + '</div>' : '') +
+    '</div>' +
+    moreButton +
+    selectedHtml +
+  '</section>';
 }
 
 function renderCompareChips(record, compareInfo) {
@@ -626,8 +644,12 @@ function bindResultInteractionController(root) {
         naturalCompareState.open = false;
         naturalCompareState.type = '';
         naturalCompareState.key = '';
+        naturalCompareState.showAll = false;
       } else if (action === 'open') {
         naturalCompareState.open = true;
+      } else if (action === 'more') {
+        naturalCompareState.open = true;
+        naturalCompareState.showAll = !naturalCompareState.showAll;
       } else if (action === 'group' || action === 'chip') {
         naturalCompareState.open = true;
         naturalCompareState.type = compareButton.dataset.compareType || '';
