@@ -349,33 +349,46 @@ function makeCompareGroups(records = []) {
   return { schoolGroups, majorGroups, byRecord };
 }
 
+function compareProjectSummary(record = {}) {
+  const variant = compareProgramVariant(record);
+  const campus = String(record.campusName || record.campus || record.campusLabel || '').trim();
+  const parts = [];
+  if (variant.isSpecial) parts.push(variant.label || '需单独比较项目');
+  if (campus) parts.push('校区：' + campus);
+  return parts.join('｜');
+}
+
 function compareRowNote(record = {}, type = 'school') {
   const notes = [];
   const mark = resolveLocalStrengthMark(record);
-  if (mark?.matched) notes.push('学校背景有提醒');
+  if (mark?.matched) notes.push('院校背景提示：' + (mark.evidenceLabel || mark.sourceText || '可复核'));
+  const project = compareProjectSummary(record);
+  if (project) notes.push(project);
   const review = reviewSummary(record, buildReviewPointsForRecord(record, { limit: 2 }));
   if (review) notes.push(review.replace(/^复核：/, '复核：').replace(/^需核验：/, '需核验：'));
   if (type === 'school') {
     const info = majorUnderstandingCard(record);
     if (info?.oneLine) notes.push(info.oneLine.replace(/。$/, '').slice(0, 34));
   }
-  return notes.slice(0, 2).join('；') || '建议结合招生章程、校区和培养方案复核';
+  return notes.slice(0, 3).join('；') || '建议结合招生章程、校区和培养方案复核';
 }
 
 function renderCompareRows(group) {
   const type = group?.type || 'school';
-  const rows = (group?.records || []).slice(0, 6).map(record => {
+  const rows = (group?.records || []).slice(0, 8).map(record => {
     const years = compareYearText(record);
     const first = type === 'school' ? safe(record.major) : safe(record.school);
-    const second = type === 'school' ? years.year2025 : `${record.displayLocation || record.geoEntity || '地区待核验'}｜${years.year2025}`;
-    return `<li class="natural-compare-row">
-      <b>${escapeHtml(first)}</b>
-      <span>${escapeHtml(second)}</span>
-      <span>${escapeHtml(years.year2024)}</span>
-      <em>${escapeHtml(compareRowNote(record, type))}</em>
-    </li>`;
+    const second = type === 'school'
+      ? years.year2025
+      : String(record.displayLocation || record.geoEntity || '地区待核验') + '｜' + years.year2025;
+    return '<li class="natural-compare-row">' +
+      '<b>' + escapeHtml(first) + '</b>' +
+      '<span>' + escapeHtml(second) + '</span>' +
+      '<span>' + escapeHtml(years.year2024) + '</span>' +
+      '<em>' + escapeHtml(compareRowNote(record, type)) + '</em>' +
+    '</li>';
   }).join('');
-  return `<ul class="natural-compare-rows">${rows}</ul>`;
+  return '<ul class="natural-compare-rows">' + rows + '</ul>';
 }
 
 function renderNaturalComparePanel(compareInfo) {
