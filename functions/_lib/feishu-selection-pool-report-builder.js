@@ -425,10 +425,10 @@ function appendLocalContextLines(lines, items = []) {
     localContextItems(item).forEach(entry => rows.push({ item, entry }));
   });
   if (!rows.length) {
-    lines.push('- 学校强项方向：暂无明显提示；仍需按招生章程、培养方案和当年计划人工核验。', '');
+    lines.push('- 院校背景提示：暂无明显提示；仍需按招生章程、培养方案和当年计划人工核验。', '');
     return;
   }
-  lines.push(`- 学校强项/院校背景复核：${fmt(rows.length)} 条。说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。`);
+  lines.push(`- 院校背景提示复核：${fmt(rows.length)} 条。说明：这些提示不代表录取判断依据，也不代表一定适合孩子；只提醒家长重点再看课程方向、就业场景和招生章程。`);
   rows.slice(0, 10).forEach(({ item, entry }) => {
     lines.push(`  - ${item.school}｜${item.major}：${entry.title}${entry.reviewText ? `｜建议再看：${entry.reviewText}` : ''}`);
   });
@@ -564,12 +564,12 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       const contextEntries = localContextItems(item);
       if (contextEntries.length) {
         contextEntries.slice(0, 2).forEach(entry => {
-          lines.push(`- 学校强项/院校背景：${entry.title}`);
+          lines.push(`- 院校背景提示：${entry.title}`);
           if (entry.reviewText) lines.push(`- 建议再看：${entry.reviewText}`);
           if (entry.reportTip) lines.push(`- 说明：${entry.reportTip}`);
         });
       } else {
-        lines.push('- 学校强项/院校背景：暂无明显提示');
+        lines.push('- 院校背景提示：暂无明显提示');
       }
       const reviewText = item.reviewPoints?.length ? item.reviewPoints.slice(0, 4).join(' / ') : (item.flags.length ? item.flags.slice(0, 3).join(' / ') : '招生计划 / 校区 / 学费 / 体检 / 专业备注');
       lines.push(`- 建议再看：${reviewText}`, '');
@@ -584,7 +584,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   }
   {
     const strengthLines = nonHeadingLines(localStrengthMarkdownLines(displayItems)).filter(Boolean);
-    if (strengthLines.length) lines.push('- 本次别漏看的学校强项方向：', ...strengthLines, '');
+    if (strengthLines.length) lines.push('- 已选专业中的院校背景提示：', ...strengthLines, '');
   }
   appendLocalContextLines(lines, displayItems);
   appendManualReviewLines(lines, displayItems);
