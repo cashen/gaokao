@@ -253,21 +253,55 @@ function compareYearText(record = {}) {
   return { year2025, year2024 };
 }
 
+function compareProgramVariant(record = {}) {
+  const special = record.specialProject || {};
+  const text = [record.major, special.labelText, special.primaryLabel, ...(Array.isArray(record.flags) ? record.flags : [])].filter(Boolean).join(' ');
+  if (special.hasSpecialProject) {
+    const label = String(special.labelText || special.primaryLabel || '特殊项目').trim();
+    return { key: 'special:' + normalizeCompareText(label || 'special'), label: label || '特殊项目', isSpecial: true };
+  }
+  if (/中外|合作办学|国际本科|校企合作/.test(text)) return { key: 'cooperation', label: '合作项目', isSpecial: true };
+  if (/高收费|较高收费/.test(text)) return { key: 'high-fee', label: '高收费项目', isSpecial: true };
+  if (/定向|专项|预科|民族班/.test(text)) return { key: 'eligibility', label: '需资格项目', isSpecial: true };
+  if (/试验班|实验班|拔尖|强基|本硕|本博|菁英班|卓越班/.test(text)) return { key: 'program-variant', label: '培养项目', isSpecial: true };
+  return { key: 'regular', label: '', isSpecial: false };
+}
+
+function compareFamilyLabel(label, variant) {
+  const base = String(label || '').trim() || '专业待核验';
+  return variant?.label ? base + '（' + variant.label + '）' : base;
+}
+
 function majorFamily(record = {}) {
   const sm = record.standardMajor || {};
   const raw = String(record.major || '').trim();
+  const variant = compareProgramVariant(record);
   if (sm.name && ['exact', 'alias'].includes(sm.mappingStatus || 'exact')) {
-    return { key: `major:${normalizeCompareText(sm.name)}`, label: sm.name, level: 'exact' };
+    return {
+      key: 'major:' + normalizeCompareText(sm.name) + '|' + variant.key,
+      label: compareFamilyLabel(sm.name, variant),
+      level: 'exact',
+      variant
+    };
   }
   if (sm.categoryName && sm.categoryName.length >= 2) {
-    return { key: `category:${normalizeCompareText(sm.categoryName)}`, label: sm.categoryName, level: 'class' };
+    return {
+      key: 'category:' + normalizeCompareText(sm.categoryName) + '|' + variant.key,
+      label: compareFamilyLabel(sm.categoryName, variant),
+      level: 'class',
+      variant
+    };
   }
   const cleaned = normalizeCompareText(raw)
     .replace(/中外合作办学|合作办学|高收费|较高收费|国际本科|校企合作/g, '')
     .replace(/\d\+\d|本硕|本博|菁英班|卓越班/g, '');
   if (!cleaned || cleaned.length < 2) return null;
-  if (/试验班|实验班|拔尖|强基|预科|民族班|定向|专项/.test(cleaned)) return null;
-  return { key: `raw:${cleaned}`, label: cleaned.length > 18 ? `${cleaned.slice(0, 18)}…` : cleaned, level: 'raw' };
+  return {
+    key: 'raw:' + cleaned + '|' + variant.key,
+    label: compareFamilyLabel(cleaned.length > 18 ? cleaned.slice(0, 18) + '…' : cleaned, variant),
+    level: 'raw',
+    variant
+  };
 }
 
 function makeCompareGroups(records = []) {
