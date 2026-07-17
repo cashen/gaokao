@@ -757,7 +757,7 @@ function plainTextReport(state = getState()) {
     if (localStrength.matched) {
       const verify = Array.isArray(localStrength.verifyItems) && localStrength.verifyItems.length ? localStrength.verifyItems.slice(0, 4).join(' / ') : '招生计划 / 校区 / 近年位次 / 培养方向';
       const source = localStrength.sourceText || (Array.isArray(localStrength.sourceKinds) && localStrength.sourceKinds.length ? localStrength.sourceKinds.join(' / ') : '学校背景');
-      lines.push(`   学校强项提醒：${localStrength.direction || '学校背景方向'}｜提示来源：${source}`);
+      lines.push(`   院校背景提示：${localStrength.direction || '学校背景方向'}｜提示层级：${localStrength.evidenceLabel || source}`);
       lines.push(`   为什么提醒：${localStrength.why || '该专业与学校背景或行业方向有关，适合家庭重点复核。'}`);
       lines.push(`   再确认：${verify}`);
     }
