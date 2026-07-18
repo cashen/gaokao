@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.49.4",
-  "assetVersion": "v3949_4",
+  "version": "v3.9.50.0",
+  "assetVersion": "v3950_0",
   "entries": {
     "search": "js/app.v3949_0.js",
     "selectionPool": "js/selection-pool.v3949_0.js",
@@ -28,7 +28,8 @@
     "selfCheck": "css/dist/ln-rank-self-check.v3949_0.css",
     "localMainline": "css/dist/local-mainline.v3949_0.css",
     "main211": "css/dist/211-mainline.v3949_0.css",
-    "multiTerminal": "css/dist/ln-rank-multi-terminal.v3949_4.css"
+    "multiTerminal": "css/dist/ln-rank-multi-terminal.v3949_4.css",
+    "humanUi": "css/dist/gaokao-human-ui.v3950_0.css"
   },
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -66,7 +67,7 @@
     "majorDisplayContract": "kb/major-understanding/major-display-contract.generated.js",
     "admissionMajorAlias": "kb/major-understanding/admission-major-alias.generated.js"
   },
-  "releaseGate": "multi-terminal-human-journey, 375-android-ipad-wide, scroll-anchor, duplicate-action-guard, android-dvh-keyboard-back, selection-report-mobile, no-static-prune, no-fenxi",
+  "releaseGate": "human-ui-additive, no-function-change, 360-375-412-ipad-wide, readable-width, touch-44, reduced-motion, no-static-prune, no-fenxi",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -109,6 +110,12 @@
   "selectionReportMobileContract": true,
   "noStaticPruneInThisRelease": true,
   "additiveUxLayerContract": true,
-  "runtimeCacheQueryVersion": "v3949_4",
-  "preservedCoreModuleQueryVersion": "v3949_3"
+  "humanUiTokenLayerContract": true,
+  "humanUiNoBusinessLogicChange": true,
+  "humanUiTouchTargetContract": true,
+  "humanUiReadableWidthContract": true,
+  "humanUiReducedMotionContract": true,
+  "runtimeCacheQueryVersion": "v3950_0",
+  "preservedCoreModuleQueryVersion": "v3949_3",
+  "preservedRuntimeModuleQueryVersion": "v3949_4"
 }
