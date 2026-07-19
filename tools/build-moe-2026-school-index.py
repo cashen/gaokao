@@ -9,7 +9,6 @@ import json
 import re
 import sys
 import urllib.request
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +19,7 @@ SOURCE_XLS = "https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W02026061830709
 EXPECTED_COUNT = 2952
 AS_OF_DATE = "2026-06-17"
 PUBLISHED_DATE = "2026-06-18"
+GENERATED_AT = "2026-06-18T00:00:00Z"
 
 HEADER_ALIASES = {
     "序号": "sequence",
@@ -49,7 +49,7 @@ def main() -> int:
     exact_map = {school["name"]: school["code"] for school in schools}
     payload = {
         "version": "moe-2026-06-17",
-        "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "generatedAt": GENERATED_AT,
         "asOfDate": AS_OF_DATE,
         "publishedDate": PUBLISHED_DATE,
         "source": {
@@ -172,9 +172,16 @@ def validate_schools(schools: list[dict[str, Any]]) -> None:
     if missing:
         raise RuntimeError(f"官方名单缺少测试学校：{missing}")
 
-    invalid_codes = [school for school in schools if not re.fullmatch(r"41\d{8}", school["code"])]
+    invalid_codes = [school for school in schools if not re.fullmatch(r"\d{10}", school["code"])]
     if invalid_codes:
         raise RuntimeError(f"学校标识码异常，示例：{invalid_codes[:3]}")
+
+    undergraduate_count = sum(1 for school in schools if school["level"] == "本科")
+    higher_vocational_count = sum(1 for school in schools if school["level"] == "专科")
+    if undergraduate_count != 1412 or higher_vocational_count != 1540:
+        raise RuntimeError(
+            f"办学层次数量异常：本科 {undergraduate_count}，专科 {higher_vocational_count}"
+        )
 
 
 def cell_text(value: Any) -> str:
@@ -186,7 +193,7 @@ def cell_text(value: Any) -> str:
 
 
 def normalize_name(value: str) -> str:
-    return value.replace("(", "（").replace(")", "）").strip()
+    return value.strip()
 
 
 def normalize_code(value: str) -> str:
