@@ -3,13 +3,11 @@ name: Tongxue live verification
 on:
   pull_request:
     paths:
-      - 'index.html'
       - 'tongxue.html'
       - 'school-name-resolver.js'
       - 'school-name-index.generated.json'
       - 'functions/api/tongxue-summary.js'
       - 'tools/build-moe-2026-school-index.py'
-      - 'tools/patch-home-tongxue-link.py'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -45,7 +43,7 @@ jobs:
           node --check school-name-resolver.js
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
-          python -m py_compile tools/build-moe-2026-school-index.py tools/patch-home-tongxue-link.py
+          python -m py_compile tools/build-moe-2026-school-index.py
           python - <<'PY'
           from pathlib import Path
           import re
@@ -56,27 +54,6 @@ jobs:
           Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/tongxue-page.mjs
-
-      - name: Apply and verify homepage link
-        run: |
-          python tools/patch-home-tongxue-link.py
-          python - <<'PY'
-          from pathlib import Path
-          html = Path('index.html').read_text(encoding='utf-8')
-          required = [
-              'href="./tongxue.html" class="resource-card life"',
-              '<span class="resource-kicker">学校体验</span>',
-              '<span class="resource-title">同学你好</span>',
-              '查看来源 AI 摘要或近期真实评论。',
-              '首页 v1.0.1 · 更新于 2026-07-19'
-          ]
-          missing = [item for item in required if item not in html]
-          if missing:
-              raise SystemExit('首页缺少内容：' + repr(missing))
-          if html.count('href="./tongxue.html"') != 1:
-              raise SystemExit('同学你好首页链接数量异常')
-          print('Homepage assertions passed.')
-          PY
 
       - name: Download official MOE 2026 XLS
         run: |
@@ -106,16 +83,16 @@ jobs:
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
 
-      - name: Commit verified generated changes
+      - name: Commit official generated JSON
         if: github.event_name == 'pull_request'
         run: |
-          git add index.html school-name-index.generated.json
+          git add school-name-index.generated.json
           if git diff --cached --quiet; then
-            echo 'Verified files are already current.'
+            echo 'Official JSON is already current.'
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'feat: add Tongxue homepage link and version'
+            git commit -m 'data: refresh official MOE 2026 school index'
             git push origin HEAD:${{ github.head_ref }}
           fi
 
