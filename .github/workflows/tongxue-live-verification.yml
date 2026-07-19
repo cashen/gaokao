@@ -29,10 +29,10 @@ jobs:
           node --check /tmp/tongxue-summary.mjs
           node --check tools/verify-tongxue-live.mjs
 
-      - name: Verify real source pages and parser
+      - name: Execute actual Function against real source API
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
-          TEST_SCHOOLS: 吉林大学,大连理工大学,辽宁大学,辽宁科技大学
+          EXPECTED_NULL_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
 
       - name: Upload verification report
