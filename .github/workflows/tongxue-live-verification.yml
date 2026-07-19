@@ -8,6 +8,7 @@ on:
       - 'school-name-index.generated.json'
       - 'functions/api/tongxue-summary.js'
       - 'tools/build-moe-2026-school-index.py'
+      - 'tools/discover-srgaoxiao-reviews.mjs'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -19,7 +20,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +42,7 @@ jobs:
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check school-name-resolver.js
+          node --check tools/discover-srgaoxiao-reviews.mjs
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
           python -m py_compile tools/build-moe-2026-school-index.py
@@ -54,6 +56,9 @@ jobs:
           Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/tongxue-page.mjs
+
+      - name: Discover live school review API
+        run: node tools/discover-srgaoxiao-reviews.mjs
 
       - name: Download official MOE 2026 XLS
         run: |
@@ -92,7 +97,7 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'data: add official MOE 2026 school index'
+            git commit -m 'data: refresh official MOE 2026 school index'
             git push origin HEAD:${{ github.head_ref }}
           fi
 
