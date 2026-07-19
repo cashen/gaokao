@@ -4,8 +4,11 @@ on:
   pull_request:
     paths:
       - 'tongxue.html'
+      - 'school-name-resolver.js'
+      - 'fenxi/data/school_nature.json'
       - 'functions/api/tongxue-summary.js'
       - 'tools/verify-tongxue-live.mjs'
+      - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
   workflow_dispatch:
 
@@ -27,7 +30,9 @@ jobs:
         run: |
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
+          node --check school-name-resolver.js
           node --check tools/verify-tongxue-live.mjs
+          node --check tools/verify-school-name-resolver.mjs
           python - <<'PY'
           from pathlib import Path
           import re
@@ -35,9 +40,12 @@ jobs:
           scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html, flags=re.I)
           if not scripts:
               raise SystemExit('No inline script found in tongxue.html')
-          Path('/tmp/tongxue-page.js').write_text('\n'.join(scripts), encoding='utf-8')
+          Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
           PY
-          node --check /tmp/tongxue-page.js
+          node --check /tmp/tongxue-page.mjs
+
+      - name: Verify all-school name resolver
+        run: node tools/verify-school-name-resolver.mjs
 
       - name: Execute actual Function against real source API
         env:
