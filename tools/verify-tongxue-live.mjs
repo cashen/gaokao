@@ -1,137 +1,97 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
-const schools = splitEnv('TEST_SCHOOLS', ['吉林大学', '大连理工大学', '辽宁大学', '辽宁科技大学']);
-const requiredSchools = new Set(splitEnv('REQUIRED_SUCCESS_SCHOOLS', ['吉林大学', '大连理工大学']));
-const sourceHosts = ['https://srgaoxiao.com', 'https://eo.srgaoxiao.com'];
+const requiredSuccess = splitEnv('REQUIRED_SUCCESS_SCHOOLS', ['吉林大学', '大连理工大学']);
+const expectedNull = splitEnv('EXPECTED_NULL_SCHOOLS', ['辽宁大学', '辽宁科技大学']);
+const schools = [...new Set([...requiredSuccess, ...expectedNull])];
 const artifactDir = '/tmp/tongxue-live-artifact';
 await mkdir(artifactDir, { recursive: true });
 
-const apiProbe = [];
+await cp('functions/api/tongxue-summary.js', '/tmp/tongxue-summary.mjs');
+const { onRequest } = await import(`${pathToFileURL('/tmp/tongxue-summary.mjs').href}?t=${Date.now()}`);
 
+const functionResults = [];
 for (const school of schools) {
-  for (const host of sourceHosts) {
-    const detailUrl = `${host}/api/schools/${encodeURIComponent(school)}`;
-    const detail = await fetchJson(detailUrl);
-    const schoolId = pickSchoolId(detail.payload);
+  const request = new Request(`https://verification.invalid/api/tongxue-summary?school=${encodeURIComponent(school)}`, {
+    method: 'GET',
+    headers: { accept: 'application/json' }
+  });
 
-    let summary = null;
-    let summaryUrl = '';
-    if (schoolId !== null) {
-      summaryUrl = `${host}/api/schools/${encodeURIComponent(String(schoolId))}/ai-summary`;
-      summary = await fetchJson(summaryUrl);
-    }
-
-    const summaryText = pickSummary(summary?.payload);
-    const row = {
-      school,
-      host,
-      detailUrl,
-      detailStatus: detail.status,
-      detailContentType: detail.contentType,
-      detailLength: detail.raw.length,
-      detailPreview: previewPayload(detail.payload, detail.raw),
-      schoolId,
-      summaryUrl,
-      summaryStatus: summary?.status ?? null,
-      summaryContentType: summary?.contentType || '',
-      summaryLength: summary?.raw.length || 0,
-      summaryTextLength: summaryText.length,
-      summaryPreview: summaryText.slice(0, 500),
-      summaryPayloadPreview: summary ? previewPayload(summary.payload, summary.raw) : ''
-    };
-    apiProbe.push(row);
-    console.log(`API_PROBE ${JSON.stringify(row)}`);
+  let response;
+  let payload;
+  let thrown = '';
+  try {
+    response = await onRequest({ request, env: {} });
+    const raw = await response.text();
+    try { payload = JSON.parse(raw); }
+    catch { payload = { raw: compact(raw).slice(0, 600) }; }
+  } catch (error) {
+    thrown = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack || ''}` : String(error);
+    payload = {};
   }
+
+  const row = {
+    school,
+    status: response?.status ?? null,
+    ok: Boolean(payload?.ok),
+    error: payload?.error || null,
+    message: payload?.message || null,
+    version: payload?.version || null,
+    schoolId: payload?.schoolMeta?.id ?? null,
+    canonicalName: payload?.school || payload?.schoolMeta?.name || null,
+    summaryLength: typeof payload?.summary === 'string' ? payload.summary.length : 0,
+    summaryPreview: typeof payload?.summary === 'string' ? compact(payload.summary).slice(0, 500) : '',
+    transport: payload?.transport || null,
+    diagnostics: payload?.diagnostics || null,
+    thrown
+  };
+  functionResults.push(row);
+  console.log(`FUNCTION_RESULT ${JSON.stringify(row)}`);
 }
 
-const bestBySchool = schools.map((school) => {
-  const attempts = apiProbe.filter((row) => row.school === school);
-  const success = attempts.find((row) => row.summaryTextLength >= 20);
-  return {
-    school,
-    ok: Boolean(success),
-    host: success?.host || null,
-    schoolId: success?.schoolId ?? null,
-    summaryLength: success?.summaryTextLength || 0,
-    summaryPreview: success?.summaryPreview || '',
-    attempts
-  };
+const html = await readFile('tongxue.html', 'utf8');
+const htmlChecks = {
+  version108: html.includes("const PAGE_VERSION='v1.0.8'") && html.includes('同学你好 v1.0.8'),
+  noDefaultJilin: !/<input[^>]*id=["']school["'][^>]*value=["'][^"']*吉林大学/i.test(html),
+  hasBlankSchoolInput: /<input[^>]*id=["']school["'][^>]*placeholder=["']例如：吉林大学["']/i.test(html),
+  noBrowserJina: !html.includes('r.jina.ai') && !html.includes('JINA_API_KEY')
+};
+console.log(`HTML_CHECKS ${JSON.stringify(htmlChecks)}`);
+
+const requiredFailures = requiredSuccess.filter((school) => {
+  const result = functionResults.find((item) => item.school === school);
+  return !result || !result.ok || result.status !== 200 || result.summaryLength < 40 || !result.summaryPreview.includes(school);
 });
 
-const failedRequired = bestBySchool.filter((item) => requiredSchools.has(item.school) && !item.ok);
+const nullStateFailures = expectedNull.filter((school) => {
+  const result = functionResults.find((item) => item.school === school);
+  if (!result) return true;
+  if (result.ok && result.status === 200 && result.summaryLength >= 20) return false;
+  return !(result.status === 404 && result.error === 'summary_not_available' && result.schoolId !== null);
+});
+
+const failedHtmlChecks = Object.entries(htmlChecks).filter(([, passed]) => !passed).map(([name]) => name);
 const report = {
   generatedAt: new Date().toISOString(),
-  requiredSchools: [...requiredSchools],
-  failedRequired: failedRequired.map((item) => item.school),
-  apiProbe,
-  bestBySchool
+  requiredSuccess,
+  expectedNull,
+  requiredFailures,
+  nullStateFailures,
+  failedHtmlChecks,
+  htmlChecks,
+  functionResults
 };
 await writeFile(path.join(artifactDir, 'tongxue-live-results.json'), JSON.stringify(report, null, 2));
 
-console.log(`RESULTS ${JSON.stringify(bestBySchool.map(({ attempts, ...item }) => item))}`);
-console.log(`SUMMARY ${JSON.stringify({ required: [...requiredSchools], failedRequired: failedRequired.map((item) => item.school) })}`);
-if (failedRequired.length) process.exitCode = 1;
-
-async function fetchJson(url) {
-  try {
-    const response = await fetch(url, {
-      redirect: 'follow',
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36',
-        accept: 'application/json,text/plain,*/*',
-        'accept-language': 'zh-CN,zh;q=0.9',
-        referer: new URL('/', url).href
-      }
-    });
-    const raw = await response.text();
-    let payload = null;
-    try { payload = JSON.parse(raw); } catch {}
-    return {
-      status: response.status,
-      contentType: response.headers.get('content-type') || '',
-      raw: raw.slice(0, 2_000_000),
-      payload
-    };
-  } catch (error) {
-    return {
-      status: 0,
-      contentType: '',
-      raw: `FETCH_ERROR: ${error instanceof Error ? error.message : String(error)}`,
-      payload: null
-    };
-  }
-}
-
-function pickSchoolId(payload) {
-  if (!payload || typeof payload !== 'object') return null;
-  const candidates = [payload.id, payload.school_id, payload.schoolId, payload.data?.id, payload.data?.school_id, payload.school?.id];
-  return candidates.find((value) => value !== undefined && value !== null) ?? null;
-}
-
-function pickSummary(payload) {
-  if (!payload) return '';
-  if (typeof payload === 'string') return payload.trim();
-  if (typeof payload !== 'object') return '';
-  const candidates = [
-    payload.summary,
-    payload.aiSummary,
-    payload.ai_summary,
-    payload.summaryText,
-    payload.data?.summary,
-    payload.data?.aiSummary,
-    payload.data?.ai_summary
-  ];
-  const value = candidates.find((item) => typeof item === 'string' && item.trim());
-  return value ? value.trim() : '';
-}
-
-function previewPayload(payload, raw) {
-  if (payload !== null) return JSON.stringify(payload).slice(0, 1000);
-  return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
-}
+console.log(`VERIFICATION_SUMMARY ${JSON.stringify({ requiredFailures, nullStateFailures, failedHtmlChecks })}`);
+if (requiredFailures.length || nullStateFailures.length || failedHtmlChecks.length) process.exitCode = 1;
 
 function splitEnv(name, fallback) {
   const value = String(process.env[name] || '').trim();
   return value ? value.split(',').map((item) => item.trim()).filter(Boolean) : fallback;
+}
+
+function compact(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
 }
