@@ -8,7 +8,6 @@ on:
       - 'school-name-index.generated.json'
       - 'functions/api/tongxue-summary.js'
       - 'tools/build-moe-2026-school-index.py'
-      - 'tools/discover-srgaoxiao-reviews.mjs'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -20,7 +19,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +41,6 @@ jobs:
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check school-name-resolver.js
-          node --check tools/discover-srgaoxiao-reviews.mjs
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
           python -m py_compile tools/build-moe-2026-school-index.py
@@ -56,9 +54,6 @@ jobs:
           Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/tongxue-page.mjs
-
-      - name: Discover live school review API
-        run: node tools/discover-srgaoxiao-reviews.mjs
 
       - name: Download official MOE 2026 XLS
         run: |
@@ -82,10 +77,10 @@ jobs:
       - name: Verify official school index and name resolver
         run: node tools/verify-school-name-resolver.mjs
 
-      - name: Execute actual Function against real source API
+      - name: Execute actual Function against live summary and review APIs
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
-          EXPECTED_NULL_SCHOOLS: 辽宁大学,辽宁科技大学
+          EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
 
       - name: Commit official generated JSON
