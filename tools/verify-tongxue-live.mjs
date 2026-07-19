@@ -65,11 +65,20 @@ globalThis.fetch = nativeFetch;
 
 const html = await readFile('tongxue.html', 'utf8');
 const htmlChecks = {
-  version110: html.includes("const PAGE_VERSION='v1.1.0'") && html.includes('同学你好 v1.1.0'),
+  version111: html.includes("const PAGE_VERSION='v1.1.1'") && html.includes('同学你好 v1.1.1'),
   noDefaultSchool: !/<input[^>]*id=["']school["'][^>]*value=["'][^"']+/i.test(html),
+  humanHeroCopy: html.includes('看看公开评价里常提到的校园生活') && html.includes('查看学校体验'),
+  hasBackHomeAndExamples: html.includes('← 返回首页') && html.includes('data-example="辽科大"'),
   hasReviewCards: html.includes('review-grid') && html.includes('review-card') && html.includes('renderReviewsResult'),
   hasLoadMore: html.includes('loadMoreReviews') && html.includes('加载更多近期评论'),
-  hasNoContentState: html.includes('renderNoContent') && html.includes('该校暂时没有可展示的公开评论'),
+  hasNoContentState: html.includes('来源站暂时没有可展示内容') && html.includes('这不代表学校没有学生评价'),
+  usesPublicReviewCopy: html.includes('近期公开评论') && !html.includes('近期真实评论'),
+  avoidsUnsupportedSummaryCause: !html.includes('评论数量或稳定性尚不足'),
+  humaneSummaryHeading: html.includes('来源站整理的主要观点') && !html.includes('同学们普遍认为'),
+  hasTechnicalLayering: html.includes('数据来源与技术信息') && html.includes('技术诊断（供排查）'),
+  hasCandidateMetadata: html.includes('schoolMetaIndex') && html.includes('meta.location') && html.includes('meta.level'),
+  hasAccessibilitySupport: html.includes('aria-activedescendant') && html.includes('liveStatus') && html.includes('prefers-reduced-motion'),
+  usesRealButtonsForRetry: html.includes('class="action-button"') && !html.includes('href="#" data-retry'),
   escapesReviewContent: html.includes('escapeHtml(content)'),
   noBrowserJina: !html.includes('r.jina.ai') && !html.includes('JINA_API_KEY'),
   noObjectArtifacts: !html.includes('[object Object]')
