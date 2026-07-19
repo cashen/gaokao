@@ -33,7 +33,7 @@ for (const school of schools) {
   for (const host of sourceHosts) {
     const url = `${host}/school/${encodeURIComponent(school)}`;
     const probe = await probeUrl(url);
-    const assetUrls = extractAssetUrls(probe.text, host);
+    const assetUrls = extractHtmlAssetUrls(probe.text, host);
     assetUrls.forEach((asset) => discoveredAssets.add(asset));
     directProbe.push({
       school,
@@ -51,20 +51,31 @@ for (const school of schools) {
 }
 
 const assetReports = [];
-for (const assetUrl of discoveredAssets) {
+const queue = [...discoveredAssets];
+const fetchedAssets = new Set();
+while (queue.length && fetchedAssets.size < 80) {
+  const assetUrl = queue.shift();
+  if (!assetUrl || fetchedAssets.has(assetUrl)) continue;
+  fetchedAssets.add(assetUrl);
+
   try {
-    const response = await nativeFetch(assetUrl, {
-      redirect: 'follow',
-      headers: { 'user-agent': 'Mozilla/5.0', accept: '*/*' }
-    });
-    const body = (await response.text()).slice(0, 10_000_000);
-    const safeName = new URL(assetUrl).hostname + '-' + path.basename(new URL(assetUrl).pathname);
+    const response = await nativeFetch(assetUrl, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0', accept: '*/*' } });
+    const body = (await response.text()).slice(0, 12_000_000);
+    const parsed = new URL(assetUrl);
+    const safeName = parsed.hostname + '-' + path.basename(parsed.pathname);
     await writeFile(path.join(assetsDir, safeName), body);
+
+    const lazyAssets = extractLazyAssetUrls(body, assetUrl);
+    for (const child of lazyAssets) {
+      if (!fetchedAssets.has(child)) queue.push(child);
+    }
+
     assetReports.push({
       assetUrl,
       status: response.status,
       contentType: response.headers.get('content-type') || '',
       length: body.length,
+      lazyAssets,
       apiCandidates: discoverApiCandidates(body),
       keywordContexts: discoverContexts(body)
     });
@@ -114,7 +125,8 @@ const report = {
 };
 await writeFile(path.join(artifactDir, 'tongxue-live-results.json'), JSON.stringify(report, null, 2));
 
-console.log(`ASSETS ${JSON.stringify(assetReports.map((item) => ({ url: item.assetUrl, status: item.status, length: item.length, apiCandidates: item.apiCandidates?.slice(0, 30), contexts: item.keywordContexts?.slice(0, 12) })))}`);
+const importantAssets = assetReports.filter((item) => /SchoolDetail|SchoolList|index-/.test(item.assetUrl || ''));
+console.log(`IMPORTANT_ASSETS ${JSON.stringify(importantAssets.map((item) => ({ url: item.assetUrl, status: item.status, length: item.length, apiCandidates: item.apiCandidates?.slice(0, 80), contexts: item.keywordContexts?.slice(0, 30) })))}`);
 console.log(`SUMMARY ${JSON.stringify({ required: [...requiredSchools], failedRequired: failedRequired.map((item) => item.school) })}`);
 if (failedRequired.length) process.exitCode = 1;
 
@@ -139,7 +151,7 @@ async function probeUrl(url) {
   }
 }
 
-function extractAssetUrls(html, base) {
+function extractHtmlAssetUrls(html, base) {
   const urls = new Set();
   const pattern = /<(?:script|link)[^>]+(?:src|href)=["']([^"']+\.(?:js|mjs)(?:\?[^"']*)?)["']/gi;
   let match;
@@ -149,31 +161,49 @@ function extractAssetUrls(html, base) {
   return [...urls];
 }
 
+function extractLazyAssetUrls(body, assetUrl) {
+  const urls = new Set();
+  const assetBase = new URL('./', assetUrl);
+  const patterns = [
+    /import\(["']\.\/([^"']+\.js)["']\)/g,
+    /["']\.\/([A-Za-z0-9_-]+\.js)["']/g,
+    /["']([A-Za-z][A-Za-z0-9_-]+-[A-Za-z0-9_-]+\.js)["']/g
+  ];
+  for (const pattern of patterns) {
+    for (const match of body.matchAll(pattern)) {
+      try { urls.add(new URL(match[1], assetBase).href); } catch {}
+    }
+  }
+  return [...urls];
+}
+
 function discoverApiCandidates(body) {
   const values = new Set();
   const patterns = [
     /https?:\\?\/\\?\/[^"'`\s)]+/g,
     /["'`]((?:\/|\\\/)(?:api|v\d|school|schools|comment|review|summary)[^"'`\s]*)["'`]/gi,
-    /baseURL\s*:\s*["'`]([^"'`]+)["'`]/gi
+    /baseURL\s*:\s*["'`]([^"'`]+)["'`]/gi,
+    /fetch\(\s*`([^`]{1,260})`/gi,
+    /fetch\(\s*["']([^"']{1,260})["']/gi
   ];
   for (const pattern of patterns) {
     for (const match of body.matchAll(pattern)) {
       const raw = match[1] || match[0];
       const value = raw.replace(/\\\//g, '/').replace(/[",;)}\]]+$/g, '');
-      if (value.length < 300) values.add(value);
+      if (value.length < 400) values.add(value);
     }
   }
-  return [...values].filter((value) => /api|school|comment|review|summary|srgaoxiao/i.test(value)).slice(0, 300);
+  return [...values].filter((value) => /api|school|comment|review|summary|srgaoxiao/i.test(value)).slice(0, 500);
 }
 
 function discoverContexts(body) {
-  const needles = ['同学们普遍认为', 'AI摘要', 'aiSummary', 'ai_summary', 'summaryText', 'schoolDetail', 'schoolName', 'axios.create', 'baseURL', '/api/'];
+  const needles = ['同学们普遍认为', 'AI摘要', 'AI 摘要', 'aiSummary', 'ai_summary', 'summaryText', 'schoolDetail', 'schoolName', 'review_count', 'summary_text', 'fetch(', '/api/', '/schools/'];
   const output = [];
   for (const needle of needles) {
     let index = body.indexOf(needle);
     let count = 0;
-    while (index !== -1 && count < 12) {
-      output.push({ needle, context: compact(body.slice(Math.max(0, index - 260), index + needle.length + 520)) });
+    while (index !== -1 && count < 30) {
+      output.push({ needle, context: compact(body.slice(Math.max(0, index - 400), index + needle.length + 900)) });
       index = body.indexOf(needle, index + needle.length);
       count += 1;
     }
