@@ -7,7 +7,6 @@ export async function onRequest(context) {
   }
 
   const target = `https://srgaoxiao.com/school/${encodeURIComponent(school)}`;
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -45,43 +44,47 @@ export async function onRequest(context) {
   }
 }
 
-function extractSummary(html, school) {
-  const text = html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<[^>]+>/g, '\n')
+function cleanText(input = '') {
+  return input
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function extractSummary(html, school) {
+  const raw = cleanText(html);
 
   const markers = [
     '同学们普遍认为',
     'AI摘要',
     'AI 摘要',
-    '学生评价'
+    '学生评价',
+    '同学们认为'
   ];
 
   for (const marker of markers) {
-    const index = text.indexOf(marker);
+    const index = raw.indexOf(marker);
     if (index !== -1) {
-      const content = text
-        .slice(index + marker.length, index + marker.length + 900)
+      const result = raw
+        .slice(index, index + 1200)
+        .replace(marker, `${marker}：`)
         .trim();
 
-      if (content.length > 20) {
-        return content;
+      if (result.length > 40) {
+        return result;
       }
     }
   }
 
-  const schoolIndex = text.indexOf(school);
+  const schoolIndex = raw.indexOf(school);
   if (schoolIndex !== -1) {
-    const fallback = text
-      .slice(schoolIndex, schoolIndex + 800)
-      .trim();
-
-    if (fallback.length > 30) {
+    const fallback = raw.slice(schoolIndex, schoolIndex + 1000).trim();
+    if (fallback.length > 50) {
       return fallback;
     }
   }
