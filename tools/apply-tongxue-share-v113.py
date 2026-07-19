@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Apply the Tongxue v1.1.3 share shell and verifier migration idempotently."""
 from pathlib import Path
+import subprocess
 
 page_path = Path("tongxue.html")
 text = page_path.read_text(encoding="utf-8")
@@ -39,4 +40,6 @@ required = [
 if not all(item in verifier for item in required):
     raise SystemExit("Tongxue v1.1.3 verifier migration incomplete")
 verifier_path.write_text(verifier, encoding="utf-8")
+if Path('.git').exists():
+    subprocess.run(['git', 'add', str(verifier_path)], check=True)
 print("Tongxue v1.1.3 share shell and verifier are current")
