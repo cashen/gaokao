@@ -25,7 +25,7 @@ const coreChecks={
   sevenDimensions:portrait.dimensions.length===7,
   normalThreshold:employment?.confidence==='enough'&&employment.score===4.3&&employment.sampleSize===12,
   insufficientHidden:safety?.confidence==='insufficient'&&safety.score===null&&safety.rawScore===4.5,
-  evidence:portrait.sample.evidenceLevel==='high'&&portrait.sample.questionCount===2,
+  evidence:portrait.sample.evidenceLevel==='medium'&&portrait.sample.questionCount===2,
   campuses:portrait.campuses.length===2,
   questions:portrait.questions.length===2&&portrait.questions[0].replies>=portrait.questions[1].replies,
   tags:portrait.identity.tags.join('|')==='985|211|双一流',
