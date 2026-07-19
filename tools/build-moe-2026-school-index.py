@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Download the official MOE 2026 national ordinary higher-education list and emit JSON."""
+"""Download the official MOE 2026 national ordinary higher-education list and emit JSON indexes."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ EXPECTED_COUNT = 2952
 AS_OF_DATE = "2026-06-17"
 PUBLISHED_DATE = "2026-06-18"
 GENERATED_AT = "2026-06-18T00:00:00Z"
+DEFAULT_SEARCH_OUTPUT = "school-search-index.20260617.json"
 
 HEADER_ALIASES = {
     "序号": "sequence",
@@ -35,16 +36,19 @@ HEADER_ALIASES = {
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="school-name-index.generated.json")
+    parser.add_argument("--search-output", default=DEFAULT_SEARCH_OUTPUT)
     parser.add_argument("--xls", default="")
     args = parser.parse_args()
 
     output = Path(args.output).resolve()
+    search_output = Path(args.search_output).resolve()
     xls_path = Path(args.xls).resolve() if args.xls else output.with_suffix(".source.xls")
     if not args.xls:
         download_file(SOURCE_XLS, xls_path)
 
     schools = parse_workbook(xls_path)
     validate_schools(schools)
+    source_hash = sha256_file(xls_path)
 
     exact_map = {school["name"]: school["code"] for school in schools}
     payload = {
@@ -56,7 +60,7 @@ def main() -> int:
             "publisher": "中华人民共和国教育部",
             "pageUrl": SOURCE_PAGE,
             "xlsUrl": SOURCE_XLS,
-            "sha256": sha256_file(xls_path),
+            "sha256": source_hash,
         },
         "scope": {
             "ordinaryHigherEducationInstitutions": EXPECTED_COUNT,
@@ -69,10 +73,25 @@ def main() -> int:
         "schools": schools,
     }
     output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    search_payload = {
+        "version": payload["version"],
+        "asOfDate": AS_OF_DATE,
+        "count": len(schools),
+        "schools": [[school["name"], school["location"], school["level"]] for school in schools],
+    }
+    search_output.write_text(
+        json.dumps(search_payload, ensure_ascii=False, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+
     print(json.dumps({
         "output": str(output),
+        "searchOutput": str(search_output),
         "count": len(schools),
-        "sha256": payload["source"]["sha256"],
+        "sha256": source_hash,
+        "fullBytes": output.stat().st_size,
+        "searchBytes": search_output.stat().st_size,
         "first": schools[0],
         "last": schools[-1],
     }, ensure_ascii=False))
@@ -99,34 +118,27 @@ def download_file(url: str, destination: Path) -> None:
 def parse_workbook(path: Path) -> list[dict[str, Any]]:
     workbook = xlrd.open_workbook(str(path))
     schools: list[dict[str, Any]] = []
-
     for sheet in workbook.sheets():
         header_row, columns = locate_header(sheet)
         if header_row is None:
             continue
-
         for row_index in range(header_row + 1, sheet.nrows):
             values = {
                 field: cell_text(sheet.cell_value(row_index, column_index))
                 for field, column_index in columns.items()
             }
             name = normalize_name(values.get("name", ""))
-            if not name or name in {"学校名称", "合计"}:
+            if not name or name in {"学校名称", "合计"} or not looks_like_school_name(name):
                 continue
-            if not looks_like_school_name(name):
-                continue
-
-            code = normalize_code(values.get("code", ""))
-            school = {
+            schools.append({
                 "sequence": normalize_integer(values.get("sequence", "")),
                 "name": name,
-                "code": code,
+                "code": normalize_code(values.get("code", "")),
                 "authority": values.get("authority", ""),
                 "location": values.get("location", ""),
                 "level": values.get("level", ""),
                 "remark": values.get("remark", ""),
-            }
-            schools.append(school)
+            })
 
     deduplicated: dict[str, dict[str, Any]] = {}
     for school in schools:
@@ -153,35 +165,23 @@ def locate_header(sheet: xlrd.sheet.Sheet) -> tuple[int | None, dict[str, int]]:
 def validate_schools(schools: list[dict[str, Any]]) -> None:
     if len(schools) != EXPECTED_COUNT:
         raise RuntimeError(f"教育部普通高校数量应为 {EXPECTED_COUNT}，实际解析为 {len(schools)}")
-
     names = [school["name"] for school in schools]
     if len(names) != len(set(names)):
         raise RuntimeError("正式校名存在重复")
-
     required = {
-        "北京大学",
-        "清华大学",
-        "吉林大学",
-        "大连理工大学",
-        "辽宁大学",
-        "辽宁科技大学",
-        "辽宁科技学院",
-        "北京航空航天大学",
+        "北京大学", "清华大学", "吉林大学", "大连理工大学", "辽宁大学",
+        "辽宁科技大学", "辽宁科技学院", "北京航空航天大学",
     }
     missing = sorted(required.difference(names))
     if missing:
         raise RuntimeError(f"官方名单缺少测试学校：{missing}")
-
     invalid_codes = [school for school in schools if not re.fullmatch(r"\d{10}", school["code"])]
     if invalid_codes:
         raise RuntimeError(f"学校标识码异常，示例：{invalid_codes[:3]}")
-
     undergraduate_count = sum(1 for school in schools if school["level"] == "本科")
     higher_vocational_count = sum(1 for school in schools if school["level"] == "专科")
     if undergraduate_count != 1412 or higher_vocational_count != 1540:
-        raise RuntimeError(
-            f"办学层次数量异常：本科 {undergraduate_count}，专科 {higher_vocational_count}"
-        )
+        raise RuntimeError(f"办学层次数量异常：本科 {undergraduate_count}，专科 {higher_vocational_count}")
 
 
 def cell_text(value: Any) -> str:
