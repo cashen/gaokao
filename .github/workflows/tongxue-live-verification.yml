@@ -7,7 +7,7 @@ on:
       - 'school-name-resolver.js'
       - 'school-name-index.generated.json'
       - 'functions/api/tongxue-summary.js'
-      - 'tools/build-school-name-index.mjs'
+      - 'tools/build-moe-2026-school-index.py'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -19,7 +19,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -27,14 +27,21 @@ jobs:
         with:
           node-version: '22'
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install XLS reader
+        run: python -m pip install --disable-pip-version-check xlrd==2.0.1
+
       - name: Syntax check
         run: |
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check school-name-resolver.js
-          node --check tools/build-school-name-index.mjs
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
+          python -m py_compile tools/build-moe-2026-school-index.py
           python - <<'PY'
           from pathlib import Path
           import re
@@ -46,10 +53,10 @@ jobs:
           PY
           node --check /tmp/tongxue-page.mjs
 
-      - name: Build unified school-name index
-        run: node tools/build-school-name-index.mjs --output school-name-index.generated.json
+      - name: Download official MOE 2026 list and build JSON
+        run: python tools/build-moe-2026-school-index.py --output school-name-index.generated.json
 
-      - name: Verify all-school name resolver
+      - name: Verify official school index and name resolver
         run: node tools/verify-school-name-resolver.mjs
 
       - name: Execute actual Function against real source API
