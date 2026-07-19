@@ -8,49 +8,66 @@
 :root{
   --bg:#f6f8f7;--card:#fff;--primary:#155e75;--primary-hover:#0f4a5c;
   --text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#e8f3f5;
-  --danger:#9a4336;--danger-bg:#fff0ec;--shadow:0 14px 38px rgba(20,40,50,.07)
+  --warm:#fff6ed;--warm-border:#f0d4bc;--danger:#9a4336;--danger-bg:#fff0ec;
+  --shadow:0 14px 38px rgba(20,40,50,.07)
 }
 *{box-sizing:border-box}
 html{min-height:100%}
 body{min-height:100vh;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
 button,input{font:inherit}
-.wrap{max-width:960px;margin:auto;padding:28px 20px calc(24px + env(safe-area-inset-bottom))}
+a{color:inherit}
+.wrap{max-width:1000px;margin:auto;padding:28px 20px calc(24px + env(safe-area-inset-bottom))}
 .brand{color:var(--primary);font-weight:800;font-size:18px}
 .hero{text-align:center;padding:58px 0 30px}
 .hero h1{font-size:42px;line-height:1.15;margin:16px 0 10px}
 .hero p{color:var(--muted);font-size:18px;line-height:1.7;margin:0}
-.search{display:flex;gap:12px;max-width:700px;margin:30px auto 0}
+.search{display:flex;gap:12px;max-width:720px;margin:30px auto 0}
 .search input{flex:1;min-width:0;height:58px;border:1px solid var(--border);border-radius:16px;padding:0 20px;font-size:18px;background:#fff;color:var(--text);outline:none}
 .search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,94,117,.13)}
 .btn{height:58px;border:0;border-radius:16px;background:var(--primary);color:#fff;padding:0 30px;font-size:16px;font-weight:800;cursor:pointer}
 .btn:hover{background:var(--primary-hover)}
 .btn:disabled{opacity:.65;cursor:wait}
-.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:30px;margin-top:24px;box-shadow:var(--shadow)}
+.result-shell{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:30px;margin-top:24px;box-shadow:var(--shadow)}
 .result-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
 .result-head h2{font-size:31px;line-height:1.25;margin:0}
 .badge{flex:none;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 11px;background:var(--soft);color:var(--primary);font-size:12px;font-weight:800}
 .meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin:16px 0 0;color:var(--muted);font-size:13px}
 .divider{height:1px;background:var(--border);margin:22px 0}
-.summary-title{display:flex;align-items:center;gap:9px;margin:0 0 13px;color:var(--primary);font-size:17px;font-weight:900}
-.summary-title::before{content:"";width:4px;height:19px;border-radius:3px;background:var(--primary)}
-.summary{font-size:17px;line-height:2;letter-spacing:.01em;word-break:break-word}
-.summary p{margin:0 0 14px}
-.summary p:last-child{margin-bottom:0}
-.source-note{margin-top:22px;padding:15px 17px;border-radius:14px;background:#f8faf9;color:var(--muted);font-size:13px;line-height:1.75}
+.summary-heading{display:flex;align-items:center;gap:9px;margin:0 0 16px;color:var(--primary);font-size:17px;font-weight:900}
+.summary-heading::before{content:"";width:4px;height:19px;border-radius:3px;background:var(--primary)}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.insight-card{min-width:0;border:1px solid var(--border);border-radius:17px;padding:18px;background:#fbfcfc}
+.insight-card.attention{background:var(--warm);border-color:var(--warm-border)}
+.insight-title{display:flex;align-items:center;gap:9px;margin:0 0 11px;font-size:15px;font-weight:900;color:var(--text)}
+.insight-dot{width:9px;height:9px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(21,94,117,.10)}
+.attention .insight-dot{background:#c65f25;box-shadow:0 0 0 4px rgba(198,95,37,.11)}
+.insight-list{margin:0;padding:0;list-style:none}
+.insight-list li{position:relative;margin:0;padding:0 0 9px 16px;font-size:15px;line-height:1.8;word-break:break-word}
+.insight-list li:last-child{padding-bottom:0}
+.insight-list li::before{content:"";position:absolute;left:1px;top:.78em;width:5px;height:5px;border-radius:50%;background:#8da7af}
+.raw-summary{margin-top:16px;border-top:1px dashed var(--border);padding-top:14px;color:var(--muted);font-size:13px}
+.raw-summary summary{cursor:pointer;color:var(--primary);font-weight:800}
+.raw-summary-text{margin-top:10px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
+.source-note{margin-top:20px;padding:15px 17px;border-radius:14px;background:#f8faf9;color:var(--muted);font-size:13px;line-height:1.75}
 .link{display:inline-flex;align-items:center;margin-top:18px;color:var(--primary);font-weight:800;text-underline-offset:4px}
+.state-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;margin-top:24px;box-shadow:var(--shadow)}
 .loading{color:var(--muted);text-align:center;padding-block:34px}
+.notice{border-color:var(--warm-border);background:var(--warm)}
 .error{border-color:rgba(154,67,54,.22);background:var(--danger-bg);color:var(--danger)}
-.error h2{font-size:20px;margin:0 0 10px}
-.error p{margin:0;line-height:1.7}
-.error details{margin-top:14px;color:#6e4a43;font-size:12px}
+.state-card h2{font-size:20px;margin:0 0 10px}
+.state-card p{margin:0;line-height:1.75}
+.state-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.state-actions .link{margin-top:0}
+.state-card details{margin-top:14px;color:var(--muted);font-size:12px}
 .footer{margin-top:42px;padding:22px 0 8px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.8;text-align:center}
 .version{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--primary);font-weight:800}
-@media(max-width:600px){
+@media(max-width:700px){
   .wrap{padding:18px 14px calc(18px + env(safe-area-inset-bottom))}
   .brand{font-size:16px}.hero{padding:38px 0 20px}.hero h1{font-size:32px}.hero p{font-size:15px}
   .search{display:block;margin-top:22px}.search input,.btn{width:100%;margin-bottom:12px;height:54px}
-  .card{padding:21px;border-radius:18px}.result-head{display:block}.result-head h2{font-size:26px}.badge{margin-top:12px}
-  .summary{font-size:16px;line-height:1.9}.footer{text-align:left}
+  .result-shell,.state-card{padding:21px;border-radius:18px}.result-head{display:block}.result-head h2{font-size:26px}.badge{margin-top:12px}
+  .summary-grid{grid-template-columns:1fr}.insight-card{padding:16px}.insight-list li{font-size:15px;line-height:1.75}
+  .footer{text-align:left}
 }
 </style>
 </head>
@@ -61,7 +78,7 @@ button,input{font:inherit}
     <h1>同学你好</h1>
     <p>输入一所大学，实时读取学生视角下的 AI 摘要。</p>
     <div class="search">
-      <input id="school" value="吉林大学" autocomplete="off" inputmode="search" placeholder="输入学校全名，例如：吉林大学" aria-label="学校名称">
+      <input id="school" value="吉林大学" autocomplete="off" inputmode="search" placeholder="输入学校全名，例如：辽宁大学" aria-label="学校名称">
       <button id="queryButton" class="btn" type="button">开始了解</button>
     </div>
   </section>
@@ -69,14 +86,14 @@ button,input{font:inherit}
   <div id="result" aria-live="polite"></div>
 
   <footer class="footer">
-    <div>摘要实时取自 srgaoxiao.com 的公开页面；本站不二次改写，仅做阅读格式化，并提供原页面入口。</div>
-    <div class="version">同学你好 v1.0.5 · 更新于 2026-07-19</div>
+    <div>摘要实时取自 srgaoxiao.com 的公开页面；本站不二次改写，只按原句做卡片化阅读整理，并提供原页面入口。</div>
+    <div class="version">同学你好 v1.0.6 · 更新于 2026-07-19</div>
   </footer>
 </div>
 
 <script>
-const PAGE_VERSION='v1.0.5';
-const SOURCE_ORIGIN='https://srgaoxiao.com';
+const PAGE_VERSION='v1.0.6';
+const SOURCE_HOSTS=['https://srgaoxiao.com','https://eo.srgaoxiao.com'];
 const READER_ORIGIN='https://r.jina.ai';
 const schoolInput=document.getElementById('school');
 const queryButton=document.getElementById('queryButton');
@@ -85,34 +102,29 @@ const resultBox=document.getElementById('result');
 queryButton.addEventListener('click',querySchool);
 schoolInput.addEventListener('keydown',(event)=>{if(event.key==='Enter')querySchool();});
 
+class TongxueError extends Error{
+  constructor(code,message,detail={}){super(message);this.name='TongxueError';this.code=code;this.detail=detail;}
+}
+
 async function querySchool(){
   const school=schoolInput.value.replace(/\s+/g,' ').trim();
   if(!school){schoolInput.focus();return;}
 
   queryButton.disabled=true;
   queryButton.textContent='正在获取';
-  resultBox.innerHTML='<div class="card loading">正在实时读取 '+escapeHtml(school)+' 的学生视角 AI 摘要…</div>';
+  resultBox.innerHTML='<div class="state-card loading">正在实时读取 '+escapeHtml(school)+' 的学生视角 AI 摘要…</div>';
 
   try{
     let data;
-    let firstError;
-
     try{
       data=await fetchOwnApi(school);
     }catch(error){
-      firstError=error;
-      data=await fetchRenderedReader(school);
+      if(error instanceof TongxueError&&error.code==='source_summary_unavailable')throw error;
+      data=await fetchRenderedReader(school,error);
     }
-
     renderResult(data,school);
   }catch(error){
-    const message=error&&error.message?error.message:'暂时无法读取来源摘要。';
-    resultBox.innerHTML='<div class="card error">'
-      +'<h2>暂时没有取得 AI 摘要</h2>'
-      +'<p>来源页面可能临时限制访问，或动态内容尚未加载完成。可以稍后重试，也可以先查看原页面。</p>'
-      +'<a class="link" href="'+escapeAttribute(buildSourceUrl(school))+'" target="_blank" rel="noopener noreferrer">查看来源页面 →</a>'
-      +'<details><summary>查看诊断信息</summary><div>'+escapeHtml(message)+'</div></details>'
-      +'</div>';
+    renderFailure(error,school);
   }finally{
     queryButton.disabled=false;
     queryButton.textContent='开始了解';
@@ -125,68 +137,162 @@ async function fetchOwnApi(school){
   });
   const raw=await response.text();
 
-  if(looksLikeHtml(raw)) throw new Error('自有 API 路由返回了 HTML，未命中 Cloudflare Function。');
+  if(looksLikeHtml(raw)){
+    throw new TongxueError('api_route_missed','自有 API 路由返回了 HTML，未命中 Cloudflare Function。');
+  }
 
   let data;
   try{data=JSON.parse(raw||'{}');}
-  catch(error){throw new Error('自有 API 返回内容不是有效 JSON。');}
+  catch(error){throw new TongxueError('api_invalid_json','自有 API 返回内容不是有效 JSON。');}
 
-  if(!response.ok||data.error||data.ok===false) throw new Error(data.message||'自有 API 暂时没有取得摘要。');
-  if(!isUsefulSummary(data.summary,school)) throw new Error('自有 API 返回内容未通过摘要校验。');
+  if(!response.ok||data.error||data.ok===false){
+    throw new TongxueError(data.error||'api_error',data.message||'自有 API 暂时没有取得摘要。',{data});
+  }
+  if(!isUsefulSummary(data.summary,school)){
+    throw new TongxueError('summary_invalid','自有 API 返回内容未通过摘要校验。');
+  }
 
   return {
     school:data.school||school,
     summary:tidySummary(data.summary),
     source:normalizeSource(data.source,school),
     fetchedAt:data.fetchedAt||data.updated||new Date().toISOString(),
-    transport:data.transport||'cloudflare-function',
+    transport:data.transport||'Cloudflare 实时读取',
     version:data.version||PAGE_VERSION
   };
 }
 
-async function fetchRenderedReader(school){
-  const paths=[
-    READER_ORIGIN+'/http://srgaoxiao.com/school/'+encodeURIComponent(school),
-    READER_ORIGIN+'/https://srgaoxiao.com/school/'+encodeURIComponent(school)
-  ];
-  let lastError;
+async function fetchRenderedReader(school,firstError){
+  const paths=[];
+  for(const host of SOURCE_HOSTS){
+    const hostname=host.replace(/^https?:\/\//,'');
+    for(const protocol of ['https','http']){
+      paths.push({
+        url:READER_ORIGIN+'/'+protocol+'://'+hostname+'/school/'+encodeURIComponent(school),
+        sourceUrl:host+'/school/'+encodeURIComponent(school),
+        label:hostname.startsWith('eo.')?'动态读取备用域':'动态读取主域'
+      });
+    }
+  }
 
-  for(const url of paths){
+  let lastError=firstError;
+  let authLimited=false;
+  let readablePageSeen=false;
+
+  for(const item of paths){
     try{
-      const response=await fetch(url,{cache:'no-store',headers:{accept:'text/plain,text/markdown,*/*'}});
+      const response=await fetch(item.url,{
+        cache:'no-store',
+        headers:{accept:'text/plain,text/markdown,*/*','x-no-cache':'true','x-return-format':'markdown'}
+      });
       const text=await response.text();
-      if(!response.ok)throw new Error('动态读取服务返回 HTTP '+response.status);
+
+      if(response.status===401||response.status===403){authLimited=true;continue;}
+      if(!response.ok){lastError=new Error('动态读取返回 HTTP '+response.status);continue;}
+
+      readablePageSeen=true;
       const summary=extractSummary(text,school);
-      if(!isUsefulSummary(summary,school))throw new Error('动态页面已读取，但没有识别到目标摘要。');
+      if(!isUsefulSummary(summary,school)){lastError=new Error('页面已读取，但没有识别到目标摘要。');continue;}
 
       return {
         school,
         summary:tidySummary(summary),
-        source:{name:'srgaoxiao.com',url:buildSourceUrl(school)},
+        source:{name:'srgaoxiao.com',url:item.sourceUrl},
         fetchedAt:new Date().toISOString(),
-        transport:'rendered-reader',
+        transport:item.label,
         version:PAGE_VERSION
       };
     }catch(error){lastError=error;}
   }
 
-  throw lastError||new Error('动态页面读取失败。');
+  if(readablePageSeen){
+    throw new TongxueError('source_summary_unavailable','来源站当前页面没有提供可识别的 AI 摘要。可能是该校评价数量暂不足、摘要尚未生成，或来源页面刚刚调整了结构。',{cause:lastError});
+  }
+  if(authLimited){
+    throw new TongxueError('reader_auth_limited','匿名动态读取通道受到访问限制。本站已经尝试来源主域和备用域。',{cause:lastError});
+  }
+  throw new TongxueError('source_access_limited','暂时无法连接来源页面。',{cause:lastError});
 }
 
 function renderResult(data,school){
   const source=normalizeSource(data.source,school);
-  const time=formatTime(data.fetchedAt);
-  const mode=data.transport==='rendered-reader'?'动态页面实时读取':'Cloudflare 实时读取';
+  const groups=buildSummaryGroups(data.summary);
+  const groupHtml=groups.map(group=>{
+    const items=group.items.map(item=>'<li>'+escapeHtml(item)+'</li>').join('');
+    return '<section class="insight-card '+(group.key==='attention'?'attention':'')+'">'
+      +'<h3 class="insight-title"><span class="insight-dot"></span>'+escapeHtml(group.title)+'</h3>'
+      +'<ul class="insight-list">'+items+'</ul>'
+      +'</section>';
+  }).join('');
 
-  resultBox.innerHTML='<article class="card">'
+  resultBox.innerHTML='<article class="result-shell">'
     +'<div class="result-head"><h2>'+escapeHtml(data.school||school)+'</h2><span class="badge">实时摘要</span></div>'
-    +'<div class="meta"><span>来源：'+escapeHtml(source.name)+'</span><span>获取时间：'+escapeHtml(time)+'</span><span>'+escapeHtml(mode)+'</span></div>'
+    +'<div class="meta"><span>来源：'+escapeHtml(source.name)+'</span><span>获取时间：'+escapeHtml(formatTime(data.fetchedAt))+'</span><span>'+escapeHtml(data.transport||'实时读取')+'</span></div>'
     +'<div class="divider"></div>'
-    +'<div class="summary-title">同学们普遍认为</div>'
-    +'<div class="summary">'+formatSummaryHtml(data.summary)+'</div>'
-    +'<div class="source-note">该文字由来源网站基于学生评价生成。本页面不改变原摘要含义，仅调整行距、段落和阅读宽度；学生评价具有个人差异，不代表学校官方结论。</div>'
+    +'<div class="summary-heading">同学们普遍认为</div>'
+    +'<div class="summary-grid">'+groupHtml+'</div>'
+    +'<details class="raw-summary"><summary>查看来源 AI 摘要原文</summary><div class="raw-summary-text">'+escapeHtml(tidySummary(data.summary))+'</div></details>'
+    +'<div class="source-note">卡片内容全部来自来源 AI 摘要原句。本页面只按关键词分组，不增加评分、不补写观点；学生评价具有个人差异，不代表学校官方结论。</div>'
     +'<a class="link" href="'+escapeAttribute(source.url)+'" target="_blank" rel="noopener noreferrer">查看完整学生评价与来源页面 →</a>'
     +'</article>';
+}
+
+function renderFailure(error,school){
+  const code=error instanceof TongxueError?error.code:'unknown';
+  const sourceUrl=buildSourceUrl(school);
+  let title='暂时没有取得 AI 摘要';
+  let message='来源页面暂时无法读取，可以稍后重试。';
+  let css='error';
+
+  if(code==='source_summary_unavailable'){
+    title='来源站暂未提供可读取的 AI 摘要';
+    message='这通常表示该校评价数量还不足以生成摘要，或来源站刚调整了页面结构。本站不会根据零散评价自行编写摘要。';
+    css='notice';
+  }else if(code==='reader_auth_limited'){
+    title='实时读取通道暂时受限';
+    message='匿名动态读取服务对部分学校页面返回了访问限制。已自动尝试主域、备用域和不同协议，但这次没有取得内容。';
+    css='notice';
+  }
+
+  resultBox.innerHTML='<div class="state-card '+css+'">'
+    +'<h2>'+escapeHtml(title)+'</h2>'
+    +'<p>'+escapeHtml(message)+'</p>'
+    +'<div class="state-actions"><a class="link" href="'+escapeAttribute(sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源页面 →</a><a class="link" href="#" data-retry="1">重新尝试</a></div>'
+    +'<details><summary>查看诊断信息</summary><div>'+escapeHtml(error&&error.message?error.message:'未知错误')+'</div></details>'
+    +'</div>';
+
+  const retry=resultBox.querySelector('[data-retry="1"]');
+  if(retry)retry.addEventListener('click',(event)=>{event.preventDefault();querySchool();});
+}
+
+function buildSummaryGroups(summary){
+  const text=tidySummary(summary)
+    .replace(/，但/g,'。但')
+    .replace(/，不过/g,'。不过')
+    .replace(/，然而/g,'。然而')
+    .replace(/；/g,'。');
+  const sentences=(text.match(/[^。！？\n]+[。！？]?/g)||[text]).map(item=>item.trim()).filter(item=>item.length>2);
+  const definitions=[
+    {key:'life',title:'校园与生活',words:['宿舍','寝室','食堂','校区','校园','交通','环境','空调','洗澡','生活','住宿']},
+    {key:'study',title:'学习与管理',words:['师资','课程','教学','学习','管理','跑操','自习','考试','课堂','形式主义']},
+    {key:'career',title:'就业与发展',words:['就业','实习','转专业','保研','考研','升学','科研','机会','发展','深造']},
+    {key:'attention',title:'需要留意',words:['但','不过','然而','较差','不足','较少','受限','问题','偏僻','严格','贵','卷','差异']},
+    {key:'overall',title:'综合印象',words:[]}
+  ];
+  const map=new Map(definitions.map(item=>[item.key,{...item,items:[]}]))
+
+  for(const sentence of sentences){
+    let selected=definitions.find(item=>item.key!=='attention'&&item.key!=='overall'&&item.words.some(word=>sentence.includes(word)));
+    const attention=definitions.find(item=>item.key==='attention');
+    if(attention.words.some(word=>sentence.includes(word))&&(!selected||/^(但|不过|然而)/.test(sentence)))selected=attention;
+    if(!selected)selected=definitions.find(item=>item.key==='overall');
+    map.get(selected.key).items.push(sentence);
+  }
+
+  const ordered=['overall','life','study','career','attention'];
+  const groups=ordered.map(key=>map.get(key)).filter(group=>group.items.length);
+  if(!groups.length)return[{key:'overall',title:'综合印象',items:[tidySummary(summary)]}];
+  return groups;
 }
 
 function extractSummary(payload,school){
@@ -198,11 +304,19 @@ function extractSummary(payload,school){
   ]).filter(Boolean);
 
   for(const source of sources){
-    const anchors=['同学们普遍认为','同学们认为'];
-    for(const anchor of anchors){
+    const fields=['aiSummary','ai_summary','summaryText','aiSummaryText','summary'];
+    for(const field of fields){
+      const pattern=new RegExp('["\']'+field+'["\']\\s*[:=]\\s*["\']([\\s\\S]{35,1800}?)["\'](?=\\s*[,}])','i');
+      const match=source.match(pattern);
+      if(match){const candidate=cleanCandidate(match[1],school);if(isUsefulSummary(candidate,school))return candidate;}
+    }
+  }
+
+  for(const source of sources){
+    for(const anchor of ['同学们普遍认为','同学们认为','学生普遍认为']){
       let start=source.indexOf(anchor);
       while(start!==-1){
-        const tail=source.slice(start+anchor.length,start+anchor.length+2600);
+        const tail=source.slice(start+anchor.length,start+anchor.length+2800);
         const candidate=cleanCandidate(stopAtBoundary(tail),school);
         if(isUsefulSummary(candidate,school))return candidate;
         start=source.indexOf(anchor,start+anchor.length);
@@ -213,25 +327,21 @@ function extractSummary(payload,school){
   for(const source of sources){
     const oneLine=source.replace(/\s+/g,' ');
     const patterns=[
-      new RegExp('学生对'+escapeRegExp(school)+'[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?'),
-      new RegExp('(?:学生|同学)[^。！？]{0,40}'+escapeRegExp(school)+'[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?'),
-      /学生对[^。！？]{2,24}(?:大学|学院)[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?/
+      new RegExp('学生对'+escapeRegExp(school)+'[^。！？]{20,1100}[。！？](?:[^。！？]{0,600}[。！？])?'),
+      new RegExp('(?:学生|同学)[^。！？]{0,50}'+escapeRegExp(school)+'[^。！？]{20,1100}[。！？](?:[^。！？]{0,600}[。！？])?'),
+      /学生对[^。！？]{2,24}(?:大学|学院)[^。！？]{20,1100}[。！？](?:[^。！？]{0,600}[。！？])?/
     ];
     for(const pattern of patterns){
       const match=oneLine.match(pattern);
-      if(match){
-        const candidate=cleanCandidate(match[0],school);
-        if(isUsefulSummary(candidate,school))return candidate;
-      }
+      if(match){const candidate=cleanCandidate(match[0],school);if(isUsefulSummary(candidate,school))return candidate;}
     }
   }
-
   return '';
 }
 
 function stopAtBoundary(value){
-  const markers=['\n# ','\n## ','\n### ','基于学生评价自动生成','仅供参考','查看完整','详细评价','热门评价','全部评价','写评价','学校简介','院校简介','对比','收藏','攻略'];
-  let stop=Math.min(value.length,1800);
+  const markers=['\n# ','\n## ','\n### ','基于学生评价自动生成','仅供参考','查看完整','详细评价','热门评价','全部评价','写评价','学校简介','院校简介','同学评价','最新评价','对比','收藏','攻略'];
+  let stop=Math.min(value.length,1900);
   for(const marker of markers){const index=value.indexOf(marker);if(index>20)stop=Math.min(stop,index);}
   return value.slice(0,stop);
 }
@@ -251,82 +361,37 @@ function cleanCandidate(value,school){
     .trim();
 
   text=text
-    .replace(/^(?:AI\s*摘要|[:：\-—|·\s])+/i,'')
+    .replace(/^(?:AI\s*(?:摘要|总结|概览)|[:：\-—|·\s])+/i,'')
     .replace(/基于学生评价自动生成[\s\S]*$/i,'')
     .replace(/仅供参考[\s\S]*$/i,'')
     .replace(/(?:查看完整|详细评价|热门评价|全部评价|写评价)[\s\S]*$/i,'')
     .trim();
 
-  const markers=['学生对'+school,'学生对','同学们'];
+  const markers=['学生对'+school,'学生对','同学们','学生普遍'];
   let best=-1;
   for(const marker of markers){const index=text.indexOf(marker);if(index>=0&&(best===-1||index<best))best=index;}
-  if(best>0&&best<500)text=text.slice(best);
-  return text.slice(0,1400).trim();
+  if(best>0&&best<600)text=text.slice(best);
+  return text.slice(0,1550).trim();
 }
 
 function isUsefulSummary(value,school){
   const text=String(value||'').trim();
-  if(text.length<35||text.length>1500)return false;
+  if(text.length<35||text.length>1650)return false;
   if(/暂未定位|摘要解析器|已连接来源页面|DOCTYPE|javascript required/i.test(text))return false;
-  const signals=['学生','同学','宿舍','食堂','就业','管理','校区','师资','学习','校园','性价比','转专业'];
+  if(/登录\/注册|搜学校|排行榜|投稿|更多/.test(text)&&text.length<220)return false;
+  const signals=['学生','同学','宿舍','食堂','就业','管理','校区','师资','学习','校园','性价比','转专业','保研','实习'];
   const score=signals.filter(word=>text.includes(word)).length;
   return score>=2||(text.includes(school)&&score>=1);
 }
 
-function tidySummary(value){
-  return String(value||'')
-    .replace(/\s*([，。！？；：、])\s*/g,'$1')
-    .replace(/[ \t]{2,}/g,' ')
-    .replace(/\n{3,}/g,'\n\n')
-    .replace(/^[：:，,。\s]+/,'')
-    .trim();
-}
-
-function formatSummaryHtml(value){
-  const text=tidySummary(value);
-  const paragraphs=text.split(/\n{2,}/).map(item=>item.trim()).filter(Boolean);
-  return (paragraphs.length?paragraphs:[text]).map(item=>'<p>'+escapeHtml(item)+'</p>').join('');
-}
-
-function markdownToText(value){
-  return String(value||'')
-    .replace(/^Title:.*$/gim,'')
-    .replace(/^URL Source:.*$/gim,'')
-    .replace(/^Published Time:.*$/gim,'')
-    .replace(/^Markdown Content:.*$/gim,'')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g,'')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
-    .replace(/^#{1,6}\s*/gm,'')
-    .replace(/^>\s?/gm,'')
-    .replace(/^[-*+]\s+/gm,'');
-}
-
-function htmlToText(value){
-  return String(value||'')
-    .replace(/<style[\s\S]*?<\/style>/gi,' ')
-    .replace(/<br\s*\/?>/gi,'\n')
-    .replace(/<\/(?:p|div|section|article|h1|h2|h3|h4|li)>/gi,'\n')
-    .replace(/<[^>]+>/g,' ');
-}
-
-function decodeEscapedPayload(value){
-  return String(value||'')
-    .replace(/\\u([0-9a-fA-F]{4})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
-    .replace(/\\x([0-9a-fA-F]{2})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
-    .replace(/\\"/g,'"').replace(/\\\//g,'/').replace(/\\n/g,'\n');
-}
-
-function decodeEntities(value){
-  const map={'&nbsp;':' ','&quot;':'"','&#39;':"'",'&amp;':'&','&lt;':'<','&gt;':'>','&mdash;':'—','&middot;':'·'};
-  return String(value||'')
-    .replace(/&(nbsp|quot|amp|lt|gt|mdash|middot);/g,match=>map[match]||match)
-    .replace(/&#(\d+);/g,(_,code)=>String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-fA-F]+);/g,(_,code)=>String.fromCharCode(parseInt(code,16)));
-}
-
+function tidySummary(value){return String(value||'').replace(/\s*([，。！？；：、])\s*/g,'$1').replace(/[ \t]{2,}/g,' ').replace(/\n{3,}/g,'\n\n').replace(/^[：:，,。\s]+/,'').trim();}
+function markdownToText(value){return String(value||'').replace(/^Title:.*$/gim,'').replace(/^URL Source:.*$/gim,'').replace(/^Published Time:.*$/gim,'').replace(/^Markdown Content:.*$/gim,'').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s*/gm,'').replace(/^>\s?/gm,'').replace(/^[-*+]\s+/gm,'');}
+function htmlToText(value){return String(value||'').replace(/<script[\s\S]*?<\/script>/gi,script=>'\n'+script+'\n').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(?:p|div|section|article|h1|h2|h3|h4|li)>/gi,'\n').replace(/<[^>]+>/g,' ');}
+function decodeEscapedPayload(value){return String(value||'').replace(/\\u([0-9a-fA-F]{4})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16))).replace(/\\x([0-9a-fA-F]{2})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16))).replace(/\\"/g,'"').replace(/\\\//g,'/').replace(/\\n/g,'\n');}
+function decodeEntities(value){const map={'&nbsp;':' ','&quot;':'"','&#39;':"'",'&amp;':'&','&lt;':'<','&gt;':'>','&mdash;':'—','&middot;':'·'};return String(value||'').replace(/&(nbsp|quot|amp|lt|gt|mdash|middot);/g,match=>map[match]||match).replace(/&#(\d+);/g,(_,code)=>String.fromCharCode(Number(code))).replace(/&#x([0-9a-fA-F]+);/g,(_,code)=>String.fromCharCode(parseInt(code,16)));}
 function normalizeDocument(value){return String(value||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();}
 function normalizeSource(source,school){if(source&&typeof source==='object')return{name:String(source.name||'srgaoxiao.com'),url:String(source.url||buildSourceUrl(school))};return{name:typeof source==='string'?source:'srgaoxiao.com',url:buildSourceUrl(school)};}
-function buildSourceUrl(school){return SOURCE_ORIGIN+'/school/'+encodeURIComponent(school);}
+function buildSourceUrl(school){return SOURCE_HOSTS[0]+'/school/'+encodeURIComponent(school);}
 function formatTime(value){const date=new Date(value||Date.now());return Number.isNaN(date.getTime())?'刚刚':date.toLocaleString('zh-CN',{hour12:false});}
 function looksLikeHtml(value){const text=String(value||'').trim().toLowerCase();return text.startsWith('<!doctype html')||text.startsWith('<html')||text.includes('<html');}
 function unique(values){return [...new Set(values)];}
