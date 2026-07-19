@@ -1,4 +1,4 @@
-export const SCHOOL_NAME_DATA_URL = '/fenxi/data/school_nature.json';
+export const SCHOOL_NAME_DATA_URL = '/school-name-index.generated.json';
 
 const GENERIC_SHORTCUTS = new Map([
   ['科大', ['科技大学', '科学技术大学']],
@@ -111,7 +111,11 @@ export async function loadSchoolNameResolver(url = SCHOOL_NAME_DATA_URL, fetchIm
   if (!response.ok) throw new Error(`学校名单加载失败：HTTP ${response.status}`);
   const payload = await response.json();
   const names = extractSchoolNames(payload);
-  if (names.length < 100) throw new Error('学校名单数量异常。');
+  const expectedCount = Number(payload?.scope?.ordinaryHigherEducationInstitutions || payload?.count || 0);
+  if (expectedCount && names.length !== expectedCount) {
+    throw new Error(`学校名单数量异常：应为 ${expectedCount}，实际为 ${names.length}`);
+  }
+  if (names.length < 2900) throw new Error('学校名单数量异常。');
   return createSchoolNameResolver(names);
 }
 
@@ -137,6 +141,7 @@ export function createSchoolNameResolver(schoolNames) {
     normalized: normalizeSchoolText(officialName),
     aliases: new Set()
   }));
+  const entryByName = new Map(entries.map((entry) => [entry.officialName, entry]));
   const officialMap = new Map();
   const aliasMap = new Map();
 
@@ -147,8 +152,7 @@ export function createSchoolNameResolver(schoolNames) {
 
   for (const [alias, officialName] of Object.entries(EXPLICIT_ALIASES)) {
     if (!nameSet.has(officialName)) continue;
-    const entry = entries.find((item) => item.officialName === officialName);
-    if (entry) entry.aliases.add(alias);
+    entryByName.get(officialName)?.aliases.add(alias);
   }
 
   for (const entry of entries) {
