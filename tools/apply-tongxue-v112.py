@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Apply the v1.1.2 performance-only shell and verifier migration idempotently."""
 
+# This migration remains idempotent so generated-artifact commits can be verified again.
 from pathlib import Path
 import re
 
