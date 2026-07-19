@@ -1,4 +1,4 @@
-import { cp } from 'node:fs/promises';
+import { cp, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const schools = splitEnv('TEST_SCHOOLS', ['吉林大学', '大连理工大学', '辽宁大学', '辽宁科技大学']);
@@ -88,6 +88,15 @@ for (const school of schools) {
 }
 
 const failedRequired = parserResults.filter((item) => requiredSchools.has(item.school) && !item.ok);
+const report = {
+  generatedAt: new Date().toISOString(),
+  requiredSchools: [...requiredSchools],
+  failedRequired: failedRequired.map((item) => item.school),
+  directProbe,
+  parserResults
+};
+await writeFile('/tmp/tongxue-live-results.json', JSON.stringify(report, null, 2));
+
 console.log(`SUMMARY ${JSON.stringify({ required: [...requiredSchools], failedRequired: failedRequired.map((item) => item.school) })}`);
 console.log('LIVE_PROBE_END');
 
