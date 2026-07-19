@@ -1,4 +1,4 @@
-name: Tongxue directory migration export
+name: Tongxue directory migration commit
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export:
+  migrate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
           show-progress: false
-      - name: Normalize current title
+      - name: Apply verified migration
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -28,8 +28,6 @@ jobs:
           text=path.read_text(encoding='utf-8').replace('<title>同学你好 - 看看学长学姐怎么说</title>','<title>同学你好 - 看看学校里的真实体验</title>')
           path.write_text(text,encoding='utf-8')
           PY
-      - name: Apply migration and restore title
-        run: |
           python3 tools/migrate-tongxue-directory-v121.py
           python3 - <<'PY'
           from pathlib import Path
@@ -37,13 +35,11 @@ jobs:
           text=path.read_text(encoding='utf-8').replace('<title>同学你好 - 看看学校里的真实体验</title>','<title>同学你好 - 看看学长学姐怎么说</title>')
           path.write_text(text,encoding='utf-8')
           PY
-      - name: Export migrated files
+          git checkout HEAD -- .github/workflows/tongxue-live-verification.yml
+      - name: Commit directory migration
         run: |
-          tar -czf /tmp/tongxue-directory-v121.tar.gz \
-            index.html tongxue.html tongxue tools/tongxue \
-            .github/workflows/tongxue-live-verification.yml
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tongxue-directory-v121-tree
-          path: /tmp/tongxue-directory-v121.tar.gz
-          retention-days: 1
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'refactor: consolidate Tongxue under directory'
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
