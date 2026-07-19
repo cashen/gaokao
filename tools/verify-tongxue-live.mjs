@@ -71,6 +71,8 @@ else globalThis.caches = nativeCaches;
 
 const html = await readFile('tongxue.html', 'utf8');
 const runtime = await readFile('tongxue-performance-v112.js', 'utf8');
+const runtime113 = await readFile('tongxue-performance-v113.js', 'utf8');
+const shareRuntime = await readFile('tongxue-share-v113.js', 'utf8');
 const copyLock = [
   '输入学校名，看看公开评价里常提到的校园生活、学习氛围和就业感受。',
   '简称和轻微错别字也能识别。',
@@ -84,10 +86,11 @@ const copyLock = [
   '技术诊断（供排查）'
 ];
 const htmlChecks = {
-  version112: html.includes('同学你好 v1.1.2') && runtime.includes("const PAGE_VERSION='v1.1.2'"),
+  version113: html.includes('同学你好 v1.1.3') && runtime.includes("const PAGE_VERSION='v1.1.2'") && runtime113.includes("pageVersion: 'v1.1.3'"),
   noDefaultSchool: !/<input[^>]*id=["']school["'][^>]*value=["'][^"']+/i.test(html),
   copyLocked: copyLock.every((text) => html.includes(text) || runtime.includes(text)),
-  externalRuntime: html.includes('<script type="module" src="/tongxue-performance-v112.js"></script>') && !html.includes('<script type="module">'),
+  externalRuntime: html.includes('<script type="module" src="/tongxue-performance-v113.js"></script>') && runtime113.includes('/tongxue-performance-v112.js?v=113') && !html.includes('<script type="module">'),
+  hasShareWorkflow: shareRuntime.includes('生成分享图') && shareRuntime.includes('navigator.share') && shareRuntime.includes('完整评论长图'),
   oneCatalogLoad: runtime.includes('loadSchoolCatalog') && !runtime.includes('loadSchoolMetadata') && !runtime.includes('school-name-index.generated.json'),
   hasAbortAndSessionCache: runtime.includes('AbortController') && runtime.includes('experienceCache') && runtime.includes('inflightExperience'),
   incrementalReviews: runtime.includes('appendReviewCards') && runtime.includes("grid.append(template.content)") && !runtime.includes('renderActiveReviews();announce'),
