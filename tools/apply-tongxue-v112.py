@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Apply the v1.1.2 performance-only shell patch while preserving user-facing copy."""
+"""Apply the v1.1.2 performance-only shell and verifier migration idempotently."""
 
 from pathlib import Path
 import re
 
-path = Path("tongxue.html")
-text = path.read_text(encoding="utf-8")
+page_path = Path("tongxue.html")
+text = page_path.read_text(encoding="utf-8")
 
 text = text.replace("同学你好 v1.1.1 · 更新于 2026-07-19", "同学你好 v1.1.2 · 更新于 2026-07-19")
 if "content-visibility:auto;contain-intrinsic-size:320px" not in text:
@@ -32,6 +32,15 @@ if '<script type="module">' in text:
     raise SystemExit("Old inline runtime remains")
 if "content-visibility:auto;contain-intrinsic-size:320px" not in text:
     raise SystemExit("Review layout optimization missing")
+page_path.write_text(text, encoding="utf-8")
 
-path.write_text(text, encoding="utf-8")
-print("Tongxue v1.1.2 performance shell is current")
+verifier_path = Path("tools/verify-tongxue-live.mjs")
+verifier = verifier_path.read_text(encoding="utf-8")
+old_check = "hasAccessibilitySupport: html.includes('aria-activedescendant') && html.includes('liveStatus') && html.includes('prefers-reduced-motion'),"
+new_check = "hasAccessibilitySupport: runtime.includes('aria-activedescendant') && html.includes('liveStatus') && html.includes('prefers-reduced-motion'),"
+verifier = verifier.replace(old_check, new_check)
+if new_check not in verifier:
+    raise SystemExit("External-runtime accessibility verifier migration missing")
+verifier_path.write_text(verifier, encoding="utf-8")
+
+print("Tongxue v1.1.2 performance shell and verifier are current")
