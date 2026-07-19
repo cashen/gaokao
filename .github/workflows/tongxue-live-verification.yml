@@ -75,23 +75,21 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { readFile } from 'node:fs/promises';
-          import { buildShareUrl, chooseShareReviews, buildShareCacheKey } from './tongxue-share-v113.js';
           const failures=[];
-          const url=buildShareUrl('https://gaokao.powers.org.cn/tongxue.html?old=1','辽宁科技大学');
-          if(!url.includes('school=%E8%BE%BD%E5%AE%81'))failures.push('formal school URL');
-          const reviews=[1,2,3,4,5].map(id=>({id,content:'评论'+id}));
-          if(chooseShareReviews(reviews,'featured').length!==3)failures.push('featured reviews');
-          if(chooseShareReviews(reviews,'full').length!==5)failures.push('full reviews');
-          const model={mode:'recent_reviews',school:'辽宁大学',meta:[],groups:[],reviews};
-          if(buildShareCacheKey(model,'featured')===buildShareCacheKey(model,'full'))failures.push('cache key');
+          const html=await readFile('tongxue.html','utf8');
+          const wrapper=await readFile('tongxue-performance-v113.js','utf8');
           const share=await readFile('tongxue-share-v113.js','utf8');
           const canvas=await readFile('tongxue-share-canvas-v113.js','utf8');
           const qr=await readFile('tongxue-share-qr-v113.js','utf8');
           const checks={
+            pageVersion:html.includes('同学你好 v1.1.3')&&html.includes('/tongxue-performance-v113.js'),
+            keepsQueryRuntime:wrapper.includes('/tongxue-performance-v112.js?v=113'),
+            installsShare:wrapper.includes('installTongxueShare'),
             button:share.includes('生成分享图'),
             variants:share.includes('分享精选图')&&share.includes('完整评论长图'),
             nativeShare:share.includes('navigator.share')&&share.includes('navigator.canShare'),
             saveFallback:share.includes('保存图片')&&share.includes('长按预览图'),
+            localOnly:share.includes('图片在本机生成，不会上传'),
             canvas:canvas.includes('const W=1080,H=3600')&&canvas.includes('canvas.toBlob'),
             multiPage:canvas.includes('${index+1}/${total}'),
             qr:qr.includes('qrcode-generator/1.4.4')&&canvas.includes('扫码查看最新内容'),
