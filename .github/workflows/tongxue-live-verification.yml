@@ -95,7 +95,7 @@ jobs:
       - name: Commit generated performance artifacts
         if: github.event_name == 'pull_request'
         run: |
-          git add tongxue.html school-name-index.generated.json school-search-index.20260617.json
+          git add tongxue.html school-name-index.generated.json school-search-index.20260617.json tools/verify-tongxue-live.mjs
           if git diff --cached --quiet; then
             echo 'Generated files are already current.'
           else
