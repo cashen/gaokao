@@ -20,8 +20,16 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
           show-progress: false
+      - name: Normalize current title for one-time migration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('tongxue.html')
+          text=path.read_text(encoding='utf-8')
+          text=text.replace('<title>同学你好 - 看看学长学姐怎么说</title>','<title>同学你好 - 看看学校里的真实体验</title>')
+          path.write_text(text,encoding='utf-8')
+          PY
       - name: Run migration diagnostic
-        id: migration
         shell: bash
         run: |
           set +e
