@@ -20,8 +20,24 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
           show-progress: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Run migration diagnostic
-        run: python tools/migrate-tongxue-directory-v121.py
+        id: migration
+        shell: bash
+        run: |
+          set +e
+          python3 tools/migrate-tongxue-directory-v121.py > /tmp/tongxue-migration.log 2>&1
+          code=$?
+          echo "$code" > /tmp/tongxue-migration-exit-code
+          cat /tmp/tongxue-migration.log
+          exit 0
+      - name: Upload migration diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-migration-diagnostic
+          path: |
+            /tmp/tongxue-migration.log
+            /tmp/tongxue-migration-exit-code
+          retention-days: 1
+      - name: Fail when migration failed
+        run: test "$(cat /tmp/tongxue-migration-exit-code)" = "0"
