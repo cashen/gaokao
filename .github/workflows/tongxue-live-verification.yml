@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - 'tongxue.html'
+      - 'tongxue-performance-v112.js'
       - 'school-name-resolver.js'
       - 'school-name-index.generated.json'
+      - 'school-search-index.20260617.json'
       - 'functions/api/tongxue-summary.js'
+      - 'tools/apply-tongxue-v112.py'
       - 'tools/build-moe-2026-school-index.py'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
@@ -36,24 +39,28 @@ jobs:
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
 
+      - name: Apply performance-only page shell patch
+        run: python tools/apply-tongxue-v112.py
+
       - name: Syntax check
         run: |
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check school-name-resolver.js
+          node --check tongxue-performance-v112.js
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
+          python -m py_compile tools/apply-tongxue-v112.py
           python -m py_compile tools/build-moe-2026-school-index.py
           python - <<'PY'
           from pathlib import Path
-          import re
           html = Path('tongxue.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html, flags=re.I)
-          if not scripts:
-              raise SystemExit('No inline script found in tongxue.html')
-          Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
+          expected = '<script type="module" src="/tongxue-performance-v112.js"></script>'
+          if expected not in html:
+              raise SystemExit('External Tongxue runtime reference missing')
+          if '<script type="module">' in html:
+              raise SystemExit('Old inline runtime remains')
           PY
-          node --check /tmp/tongxue-page.mjs
 
       - name: Download official MOE 2026 XLS
         run: |
@@ -67,12 +74,14 @@ jobs:
           test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
           file /tmp/tongxue-live-artifact/moe-2026-schools.xls
 
-      - name: Build official school JSON
+      - name: Build official and compact school JSON
         run: |
           python tools/build-moe-2026-school-index.py \
             --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls \
-            --output school-name-index.generated.json
+            --output school-name-index.generated.json \
+            --search-output school-search-index.20260617.json
           cp school-name-index.generated.json /tmp/tongxue-live-artifact/
+          cp school-search-index.20260617.json /tmp/tongxue-live-artifact/
 
       - name: Verify official school index and name resolver
         run: node tools/verify-school-name-resolver.mjs
@@ -83,16 +92,16 @@ jobs:
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
 
-      - name: Commit official generated JSON
+      - name: Commit generated performance artifacts
         if: github.event_name == 'pull_request'
         run: |
-          git add school-name-index.generated.json
+          git add tongxue.html school-name-index.generated.json school-search-index.20260617.json
           if git diff --cached --quiet; then
-            echo 'Official JSON is already current.'
+            echo 'Generated files are already current.'
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'data: refresh official MOE 2026 school index'
+            git commit -m 'build: refresh Tongxue v1.1.2 generated artifacts'
             git push origin HEAD:${{ github.head_ref }}
           fi
 
