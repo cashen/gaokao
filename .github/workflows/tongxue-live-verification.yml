@@ -34,3 +34,12 @@ jobs:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           TEST_SCHOOLS: 吉林大学,大连理工大学,辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-live-results
+          path: /tmp/tongxue-live-results.json
+          if-no-files-found: warn
+          retention-days: 3
