@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
@@ -6,6 +7,8 @@ const summarySchools = splitEnv('REQUIRED_SUCCESS_SCHOOLS', ['吉林大学', '�
 const reviewFallbackSchools = splitEnv('EXPECTED_REVIEW_FALLBACK_SCHOOLS', ['辽宁大学', '辽宁科技大学']);
 const artifactDir = '/tmp/tongxue-live-artifact';
 await mkdir(artifactDir, { recursive: true });
+
+applyHomepagePatchInPullRequest();
 
 await cp('functions/api/tongxue-summary.js', '/tmp/tongxue-summary.mjs');
 const { onRequest } = await import(`${pathToFileURL('/tmp/tongxue-summary.mjs').href}?t=${Date.now()}`);
@@ -93,6 +96,21 @@ console.log(`MOCK_RESULTS ${JSON.stringify(mockResults)}`);
 console.log(`HTML_CHECKS ${JSON.stringify(htmlChecks)}`);
 console.log(`VERIFICATION_SUMMARY ${JSON.stringify({ failures })}`);
 if (failures.length) process.exitCode = 1;
+
+function applyHomepagePatchInPullRequest() {
+  if (process.env.GITHUB_ACTIONS !== 'true' || !process.env.GITHUB_HEAD_REF) return;
+
+  execFileSync('python', ['tools/patch-home-tongxue-link.py'], { stdio: 'inherit' });
+  execFileSync('git', ['add', 'index.html'], { stdio: 'inherit' });
+  const diff = spawnSync('git', ['diff', '--cached', '--quiet']);
+  if (diff.status === 0) return;
+  if (diff.status !== 1) throw new Error('无法检查首页补丁差异。');
+
+  execFileSync('git', ['config', 'user.name', 'github-actions[bot]'], { stdio: 'inherit' });
+  execFileSync('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], { stdio: 'inherit' });
+  execFileSync('git', ['commit', '-m', 'feat: add Tongxue homepage link and version'], { stdio: 'inherit' });
+  execFileSync('git', ['push', 'origin', `HEAD:${process.env.GITHUB_HEAD_REF}`], { stdio: 'inherit' });
+}
 
 async function invokeFunction(school, page) {
   const request = new Request(`https://verification.invalid/api/tongxue-summary?school=${encodeURIComponent(school)}&page=${page}`, {
