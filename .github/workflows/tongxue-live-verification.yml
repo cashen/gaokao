@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   live-verification:
@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - uses: actions/setup-node@v4
         with:
@@ -80,6 +82,19 @@ jobs:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           EXPECTED_NULL_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
+
+      - name: Commit official generated JSON
+        if: github.event_name == 'pull_request'
+        run: |
+          git add school-name-index.generated.json
+          if git diff --cached --quiet; then
+            echo 'Official JSON is already current.'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'data: add official MOE 2026 school index'
+            git push origin HEAD:${{ github.head_ref }}
+          fi
 
       - name: Upload verification report
         if: always()
