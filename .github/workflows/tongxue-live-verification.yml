@@ -77,10 +77,10 @@ jobs:
       - name: Verify official school index and name resolver
         run: node tools/verify-school-name-resolver.mjs
 
-      - name: Execute actual Function against real source API
+      - name: Execute actual Function against live summary and review APIs
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
-          EXPECTED_NULL_SCHOOLS: 辽宁大学,辽宁科技大学
+          EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/verify-tongxue-live.mjs
 
       - name: Commit official generated JSON
@@ -92,7 +92,7 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'data: add official MOE 2026 school index'
+            git commit -m 'data: refresh official MOE 2026 school index'
             git push origin HEAD:${{ github.head_ref }}
           fi
 
