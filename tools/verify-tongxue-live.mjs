@@ -1,10 +1,14 @@
-import { cp, writeFile } from 'node:fs/promises';
+import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import path from 'node:path';
 
 const schools = splitEnv('TEST_SCHOOLS', ['吉林大学', '大连理工大学', '辽宁大学', '辽宁科技大学']);
 const requiredSchools = new Set(splitEnv('REQUIRED_SUCCESS_SCHOOLS', ['吉林大学', '大连理工大学']));
 const sourceHosts = ['https://srgaoxiao.com', 'https://eo.srgaoxiao.com'];
 const nativeFetch = globalThis.fetch.bind(globalThis);
+const artifactDir = '/tmp/tongxue-live-artifact';
+const assetsDir = path.join(artifactDir, 'assets');
+await mkdir(assetsDir, { recursive: true });
 
 await cp('functions/api/tongxue-summary.js', '/tmp/tongxue-summary.mjs');
 const { onRequest } = await import(`${pathToFileURL('/tmp/tongxue-summary.mjs').href}?t=${Date.now()}`);
@@ -15,30 +19,23 @@ globalThis.fetch = async (input, init = {}) => {
   const started = Date.now();
   try {
     const response = await nativeFetch(input, init);
-    outbound.push({
-      url,
-      status: response.status,
-      contentType: response.headers.get('content-type') || '',
-      elapsedMs: Date.now() - started
-    });
+    outbound.push({ url, status: response.status, contentType: response.headers.get('content-type') || '', elapsedMs: Date.now() - started });
     return response;
   } catch (error) {
-    outbound.push({
-      url,
-      error: error instanceof Error ? error.message : String(error),
-      elapsedMs: Date.now() - started
-    });
+    outbound.push({ url, error: error instanceof Error ? error.message : String(error), elapsedMs: Date.now() - started });
     throw error;
   }
 };
 
-console.log('LIVE_PROBE_BEGIN');
 const directProbe = [];
+const discoveredAssets = new Set();
 for (const school of schools) {
   for (const host of sourceHosts) {
     const url = `${host}/school/${encodeURIComponent(school)}`;
     const probe = await probeUrl(url);
-    const row = {
+    const assetUrls = extractAssetUrls(probe.text, host);
+    assetUrls.forEach((asset) => discoveredAssets.add(asset));
+    directProbe.push({
       school,
       host,
       status: probe.status,
@@ -47,11 +44,32 @@ for (const school of schools) {
       length: probe.text.length,
       hasSchool: probe.text.includes(school),
       hasSummaryAnchor: /同学们普遍认为|AI\s*摘要|aiSummary|ai_summary/.test(probe.text),
-      scriptUrls: extractAssetUrls(probe.text, host).slice(0, 8),
+      assetUrls,
       preview: compact(probe.text.slice(0, 180))
-    };
-    directProbe.push(row);
-    console.log(`DIRECT ${JSON.stringify(row)}`);
+    });
+  }
+}
+
+const assetReports = [];
+for (const assetUrl of discoveredAssets) {
+  try {
+    const response = await nativeFetch(assetUrl, {
+      redirect: 'follow',
+      headers: { 'user-agent': 'Mozilla/5.0', accept: '*/*' }
+    });
+    const body = (await response.text()).slice(0, 10_000_000);
+    const safeName = new URL(assetUrl).hostname + '-' + path.basename(new URL(assetUrl).pathname);
+    await writeFile(path.join(assetsDir, safeName), body);
+    assetReports.push({
+      assetUrl,
+      status: response.status,
+      contentType: response.headers.get('content-type') || '',
+      length: body.length,
+      apiCandidates: discoverApiCandidates(body),
+      keywordContexts: discoverContexts(body)
+    });
+  } catch (error) {
+    assetReports.push({ assetUrl, error: error instanceof Error ? error.message : String(error) });
   }
 }
 
@@ -70,7 +88,7 @@ for (const school of schools) {
     payload = { thrown: error instanceof Error ? `${error.name}: ${error.message}` : String(error) };
   }
 
-  const row = {
+  parserResults.push({
     school,
     status: response?.status ?? null,
     ok: Boolean(payload?.ok),
@@ -82,9 +100,7 @@ for (const school of schools) {
     diagnostics: payload?.diagnostics || null,
     thrown: payload?.thrown || null,
     outbound: [...outbound]
-  };
-  parserResults.push(row);
-  console.log(`PARSER ${JSON.stringify(row)}`);
+  });
 }
 
 const failedRequired = parserResults.filter((item) => requiredSchools.has(item.school) && !item.ok);
@@ -93,13 +109,13 @@ const report = {
   requiredSchools: [...requiredSchools],
   failedRequired: failedRequired.map((item) => item.school),
   directProbe,
+  assetReports,
   parserResults
 };
-await writeFile('/tmp/tongxue-live-results.json', JSON.stringify(report, null, 2));
+await writeFile(path.join(artifactDir, 'tongxue-live-results.json'), JSON.stringify(report, null, 2));
 
+console.log(`ASSETS ${JSON.stringify(assetReports.map((item) => ({ url: item.assetUrl, status: item.status, length: item.length, apiCandidates: item.apiCandidates?.slice(0, 30), contexts: item.keywordContexts?.slice(0, 12) })))}`);
 console.log(`SUMMARY ${JSON.stringify({ required: [...requiredSchools], failedRequired: failedRequired.map((item) => item.school) })}`);
-console.log('LIVE_PROBE_END');
-
 if (failedRequired.length) process.exitCode = 1;
 
 function splitEnv(name, fallback) {
@@ -117,19 +133,9 @@ async function probeUrl(url) {
         'accept-language': 'zh-CN,zh;q=0.9'
       }
     });
-    return {
-      status: response.status,
-      finalUrl: response.url,
-      contentType: response.headers.get('content-type') || '',
-      text: (await response.text()).slice(0, 3_000_000)
-    };
+    return { status: response.status, finalUrl: response.url, contentType: response.headers.get('content-type') || '', text: (await response.text()).slice(0, 3_000_000) };
   } catch (error) {
-    return {
-      status: 0,
-      finalUrl: url,
-      contentType: '',
-      text: `FETCH_ERROR: ${error instanceof Error ? error.message : String(error)}`
-    };
+    return { status: 0, finalUrl: url, contentType: '', text: `FETCH_ERROR: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
 
@@ -141,6 +147,38 @@ function extractAssetUrls(html, base) {
     try { urls.add(new URL(match[1], base).href); } catch {}
   }
   return [...urls];
+}
+
+function discoverApiCandidates(body) {
+  const values = new Set();
+  const patterns = [
+    /https?:\\?\/\\?\/[^"'`\s)]+/g,
+    /["'`]((?:\/|\\\/)(?:api|v\d|school|schools|comment|review|summary)[^"'`\s]*)["'`]/gi,
+    /baseURL\s*:\s*["'`]([^"'`]+)["'`]/gi
+  ];
+  for (const pattern of patterns) {
+    for (const match of body.matchAll(pattern)) {
+      const raw = match[1] || match[0];
+      const value = raw.replace(/\\\//g, '/').replace(/[",;)}\]]+$/g, '');
+      if (value.length < 300) values.add(value);
+    }
+  }
+  return [...values].filter((value) => /api|school|comment|review|summary|srgaoxiao/i.test(value)).slice(0, 300);
+}
+
+function discoverContexts(body) {
+  const needles = ['同学们普遍认为', 'AI摘要', 'aiSummary', 'ai_summary', 'summaryText', 'schoolDetail', 'schoolName', 'axios.create', 'baseURL', '/api/'];
+  const output = [];
+  for (const needle of needles) {
+    let index = body.indexOf(needle);
+    let count = 0;
+    while (index !== -1 && count < 12) {
+      output.push({ needle, context: compact(body.slice(Math.max(0, index - 260), index + needle.length + 520)) });
+      index = body.indexOf(needle, index + needle.length);
+      count += 1;
+    }
+  }
+  return output;
 }
 
 function compact(value) {
