@@ -1,4 +1,4 @@
-export const SCHOOL_NAME_DATA_URL = '/school-search-index.20260617.json';
+export const SCHOOL_NAME_DATA_URL = new URL('./school-search-index.20260617.json', import.meta.url).href;
 
 const SEARCH_CACHE_LIMIT = 100;
 

@@ -3,12 +3,12 @@ import {
   createSchoolNameResolver,
   extractSchoolNames,
   loadSchoolCatalog
-} from '../school-name-resolver.js';
+} from '../../tongxue/data/school-name-resolver.js';
 
-const payload = JSON.parse(await readFile('school-name-index.generated.json', 'utf8'));
-const searchPayload = JSON.parse(await readFile('school-search-index.20260617.json', 'utf8'));
+const payload = JSON.parse(await readFile('tongxue/data/school-name-index.generated.json', 'utf8'));
+const searchPayload = JSON.parse(await readFile('tongxue/data/school-search-index.20260617.json', 'utf8'));
 let catalogFetchCount = 0;
-const catalog = await loadSchoolCatalog('/school-search-index.20260617.json', async () => {
+const catalog = await loadSchoolCatalog('/tongxue/data/school-search-index.20260617.json', async () => {
   catalogFetchCount += 1;
   return new Response(JSON.stringify(searchPayload), {
     status: 200,
@@ -52,8 +52,8 @@ for (const name of requiredNames) {
   if (!metadata?.location || !metadata?.level) failures.push(`${name} 缺少搜索元数据`);
 }
 
-const fullBytes = (await stat('school-name-index.generated.json')).size;
-const searchBytes = (await stat('school-search-index.20260617.json')).size;
+const fullBytes = (await stat('tongxue/data/school-name-index.generated.json')).size;
+const searchBytes = (await stat('tongxue/data/school-search-index.20260617.json')).size;
 if (searchBytes >= fullBytes * 0.5) failures.push(`精简索引体积未减少 50%：${searchBytes}/${fullBytes}`);
 
 const performanceQueries = ['辽科大', '科大', '大连理功大学', '辽宁科技', '北京工业大学', '中国矿业大学北京'];

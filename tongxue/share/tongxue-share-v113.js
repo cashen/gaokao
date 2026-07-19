@@ -1,6 +1,6 @@
 import { generateShareAssets } from './tongxue-share-canvas-v113.js?v=114';
-const VERSION='v1.1.4',cache=new Map();let installed=false,overlay,model,assets,lastFocused;
-export function buildShareUrl(base,school){const url=new URL(base||'https://gaokao.powers.org.cn/tongxue.html');url.search='';url.hash='';url.searchParams.set('school',String(school||'').trim());return url.toString();}
+const VERSION='v1.2.1',cache=new Map();let installed=false,overlay,model,assets,lastFocused;
+export function buildShareUrl(base,school){const url=new URL(base||'https://gaokao.powers.org.cn/tongxue/');url.pathname='/tongxue/';url.search='';url.hash='';url.searchParams.set('school',String(school||'').trim());return url.toString();}
 export function chooseShareReviews(reviews,variant='featured'){const list=Array.isArray(reviews)?reviews:[];return variant==='full'?list:list.slice(0,3);}
 export function buildShareCacheKey(data,variant='featured',version=VERSION){return `${version}|${variant}|${hash(JSON.stringify({mode:data?.mode,school:data?.school,meta:data?.meta,groups:data?.groups,reviews:chooseShareReviews(data?.reviews,variant)}))}`;}
 export function installTongxueShare(options={}){if(installed||typeof document==='undefined')return;installed=true;styles();overlay=dialog();version(options.pageVersion||VERSION);const result=document.getElementById('result');if(!result)return;new MutationObserver(()=>queueMicrotask(()=>enhance(result,options.pageVersion||VERSION))).observe(result,{childList:true,subtree:true,characterData:true});enhance(result,options.pageVersion||VERSION);restore();}

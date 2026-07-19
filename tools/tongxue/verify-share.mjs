@@ -1,15 +1,15 @@
 import { readFile } from 'node:fs/promises';
 
 const failures=[];
-const html=await readFile('tongxue.html','utf8');
-const wrapper=await readFile('tongxue-performance-v120.js','utf8');
-const share=await readFile('tongxue-share-v113.js','utf8');
-const canvasSource=await readFile('tongxue-share-canvas-v113.js','utf8');
-const qr=await readFile('tongxue-share-qr-v113.js','utf8');
+const html=await readFile('tongxue/index.html','utf8');
+const wrapper=await readFile('tongxue/app/tongxue-performance-v120.js','utf8');
+const share=await readFile('tongxue/share/tongxue-share-v113.js','utf8');
+const canvasSource=await readFile('tongxue/share/tongxue-share-canvas-v113.js','utf8');
+const qr=await readFile('tongxue/share/tongxue-share-qr-v113.js','utf8');
 
 await import('node:fs/promises').then(async({writeFile})=>{
   await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from './tongxue-share-canvas-v113.js?v=114'","from './tongxue-share-canvas-v113.mjs'"));
-  await writeFile('/tmp/tongxue-share-canvas-v113.mjs',canvasSource.replace("from '/tongxue-share-qr-v113.js'","from './tongxue-share-qr-v113.mjs'"));
+  await writeFile('/tmp/tongxue-share-canvas-v113.mjs',canvasSource.replace("from './tongxue-share-qr-v113.js'","from './tongxue-share-qr-v113.mjs'"));
   await writeFile('/tmp/tongxue-share-qr-v113.mjs',qr);
 });
 
@@ -17,7 +17,7 @@ const {buildShareUrl,chooseShareReviews,buildShareCacheKey}=await import('file:/
 const canonical=buildShareUrl('https://gaokao.powers.org.cn/tongxue.html?old=1#x','辽宁科技大学');
 const sampleReviews=Array.from({length:8},(_,i)=>({id:i+1,content:'评论'+(i+1)}));
 const pureChecks={
-  canonicalUrl:canonical==='https://gaokao.powers.org.cn/tongxue.html?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6',
+  canonicalUrl:canonical==='https://gaokao.powers.org.cn/tongxue/?school=%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6',
   featuredThree:chooseShareReviews(sampleReviews,'featured').length===3,
   fullCurrent:chooseShareReviews(sampleReviews,'full').length===8,
   cacheVariant:buildShareCacheKey({mode:'recent_reviews',school:'辽宁大学',reviews:sampleReviews},'featured')!==buildShareCacheKey({mode:'recent_reviews',school:'辽宁大学',reviews:sampleReviews},'full')
@@ -54,8 +54,8 @@ if(originalCreateObjectURL)URL.createObjectURL=originalCreateObjectURL;
 for(const [name,passed] of Object.entries(executionChecks))if(!passed)failures.push(name);
 
 const checks={
-  pageVersion:html.includes('同学你好 v1.2.0')&&html.includes('/tongxue-performance-v120.js?v=120'),
-  newCopy:html.includes('看看学长学姐怎么说')&&html.includes('看看同学怎么说'),
+  pageVersion:html.includes('同学你好 v1.2.1')&&html.includes('./app/tongxue-performance-v120.js?v=121'),
+  newCopy:html.includes('看看学长学姐真实聊过的')&&html.includes('看看同学怎么说'),
   keepsQueryRuntime:wrapper.includes('tongxue-performance-v112.js?v=120'),
   installsShare:wrapper.includes('installTongxueShare'),
   installsPortrait:wrapper.includes('installSchoolPortrait'),

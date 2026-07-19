@@ -1,4 +1,4 @@
-import { loadSchoolCatalog } from '/school-name-resolver.js';
+import { loadSchoolCatalog } from '../data/school-name-resolver.js';
 
 const PAGE_VERSION='v1.1.2';
 const SOURCE_ORIGIN='https://srgaoxiao.com';

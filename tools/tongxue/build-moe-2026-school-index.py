@@ -20,7 +20,7 @@ EXPECTED_COUNT = 2952
 AS_OF_DATE = "2026-06-17"
 PUBLISHED_DATE = "2026-06-18"
 GENERATED_AT = "2026-06-18T00:00:00Z"
-DEFAULT_SEARCH_OUTPUT = "school-search-index.20260617.json"
+DEFAULT_SEARCH_OUTPUT = "tongxue/data/school-search-index.20260617.json"
 
 HEADER_ALIASES = {
     "序号": "sequence",
@@ -35,7 +35,7 @@ HEADER_ALIASES = {
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="school-name-index.generated.json")
+    parser.add_argument("--output", default="tongxue/data/school-name-index.generated.json")
     parser.add_argument("--search-output", default=DEFAULT_SEARCH_OUTPUT)
     parser.add_argument("--xls", default="")
     args = parser.parse_args()
@@ -103,7 +103,7 @@ def download_file(url: str, destination: Path) -> None:
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0 (compatible; GaokaoOS-SchoolIndex/1.0; +https://gaokao.powers.org.cn/tongxue.html)",
+            "User-Agent": "Mozilla/5.0 (compatible; GaokaoOS-SchoolIndex/1.0; +https://gaokao.powers.org.cn/tongxue/)",
             "Accept": "application/vnd.ms-excel,application/octet-stream;q=0.9,*/*;q=0.8",
             "Referer": SOURCE_PAGE,
         },

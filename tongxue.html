@@ -2,69 +2,24 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>同学你好 - 看看学长学姐怎么说</title>
-<style>
-:root{--bg:#f6f8f7;--card:#fff;--primary:#155e75;--primary-hover:#0f4a5c;--text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#e8f3f5;--warm:#fff6ed;--warm-border:#f0d4bc;--warm-text:#8d4b20;--danger:#9a4336;--danger-bg:#fff0ec;--danger-border:#efc5ba;--shadow:0 14px 38px rgba(20,40,50,.07)}
-*{box-sizing:border-box}
-html{min-height:100%}
-body{min-height:100vh;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
-button,input{font:inherit}a{color:inherit}[hidden]{display:none!important}
-button,a,input,summary{outline:none}
-button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{box-shadow:0 0 0 3px rgba(21,94,117,.18);border-radius:8px}
-.wrap{max-width:1040px;margin:auto;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}
-.brand{color:var(--primary);font-weight:850;font-size:18px}.back-home{color:var(--muted);font-size:13px;font-weight:750;text-decoration:none}.back-home:hover{color:var(--primary)}
-.hero{text-align:center;padding:44px 0 30px}.hero h1{font-size:42px;line-height:1.15;margin:15px 0 10px}.hero p{max-width:730px;margin:0 auto;color:var(--muted);font-size:17px;line-height:1.75}.hero p span{display:block;font-size:14px;margin-top:3px}
-.search-box{max-width:760px;margin:26px auto 0;text-align:left}.search-row{display:flex;gap:12px;align-items:flex-start}.input-wrap{position:relative;flex:1;min-width:0}
-.search-input{width:100%;height:58px;border:1px solid var(--border);border-radius:16px;padding:0 48px 0 20px;font-size:18px;background:#fff;color:var(--text)}.search-input:focus{border-color:var(--primary)}
-.input-state{position:absolute;right:17px;top:20px;width:18px;height:18px;border:2px solid #9bb0b7;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-.btn{height:58px;border:0;border-radius:16px;background:var(--primary);color:#fff;padding:0 25px;font-size:16px;font-weight:850;cursor:pointer;white-space:nowrap}.btn:hover:not(:disabled){background:var(--primary-hover)}.btn:disabled{opacity:.52;cursor:not-allowed}
-.quick-examples{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:11px 4px 0;color:var(--muted);font-size:12px}.quick-example{border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--primary);padding:5px 10px;font-size:12px;font-weight:750;cursor:pointer}.quick-example:hover{background:var(--soft);border-color:#bdd9df}
-.suggestions{position:absolute;z-index:20;left:0;right:0;top:66px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:7px;box-shadow:0 18px 44px rgba(20,40,50,.14);max-height:360px;overflow:auto}
-.suggestion{width:100%;border:0;background:transparent;border-radius:11px;padding:11px 13px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--text);cursor:pointer}.suggestion:hover,.suggestion.active{background:var(--soft)}
-.suggestion-main{min-width:0}.suggestion-name{display:block;font-size:15px;font-weight:850;line-height:1.45}.suggestion-meta{display:block;margin-top:3px;color:var(--muted);font-size:11px;line-height:1.4}.suggestion-type{flex:none;border-radius:999px;background:#f2f5f4;color:var(--muted);font-size:11px;padding:4px 8px}.suggestion-empty{padding:13px;color:var(--muted);font-size:13px;line-height:1.7}
-.resolve-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 4px 0;color:var(--primary);font-size:13px;font-weight:750;line-height:1.6}.resolve-hint::before{content:"✓";display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--soft);font-size:11px}.resolve-change{border:0;background:transparent;color:var(--muted);padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:12px}.index-status{margin:9px 4px 0;color:var(--muted);font-size:12px}
-.result-shell,.state-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:30px;margin-top:24px;box-shadow:var(--shadow)}.result-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.result-head h2{font-size:31px;line-height:1.25;margin:0}.badge{flex:none;display:inline-flex;align-items:center;border-radius:999px;padding:7px 11px;background:var(--soft);color:var(--primary);font-size:12px;font-weight:850}.badge.review{background:#eef5ff;color:#315e8a}
-.meta{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}.meta-chip{display:inline-flex;align-items:center;min-height:28px;border:1px solid var(--border);border-radius:999px;padding:4px 10px;background:#fbfcfc;color:var(--muted);font-size:12px}.meta-chip.resolve{border-color:#bdd9df;background:var(--soft);color:var(--primary);font-weight:850}.divider{height:1px;background:var(--border);margin:22px 0}
-.section-heading{display:flex;align-items:center;gap:9px;margin:0 0 16px;color:var(--primary);font-size:17px;font-weight:900}.section-heading::before{content:"";width:4px;height:19px;border-radius:3px;background:var(--primary)}
-.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.insight-card{min-width:0;border:1px solid var(--border);border-radius:17px;padding:18px;background:#fbfcfc}.insight-card.attention{background:var(--warm);border-color:var(--warm-border)}.insight-title{display:flex;align-items:center;gap:9px;margin:0 0 11px;font-size:15px;font-weight:900}.insight-dot{width:9px;height:9px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(21,94,117,.10)}.attention .insight-dot{background:#c65f25;box-shadow:0 0 0 4px rgba(198,95,37,.11)}.insight-list{margin:0;padding:0;list-style:none}.insight-list li{position:relative;padding:0 0 9px 16px;font-size:15px;line-height:1.82;word-break:break-word}.insight-list li:last-child{padding-bottom:0}.insight-list li::before{content:"";position:absolute;left:1px;top:.78em;width:5px;height:5px;border-radius:50%;background:#8da7af}
-.raw-summary{margin-top:16px;border-top:1px dashed var(--border);padding-top:14px;color:var(--muted);font-size:13px}.raw-summary summary,.technical-details summary{cursor:pointer;color:var(--primary);font-weight:850}.raw-summary-text{margin-top:10px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
-.review-intro{margin:0 0 18px;padding:16px 18px;border:1px solid var(--warm-border);border-radius:16px;background:var(--warm);color:var(--warm-text);font-size:14px;line-height:1.8}.review-intro strong{display:block;margin-bottom:2px;font-size:16px;color:#7b3f18}.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.review-card{content-visibility:auto;contain-intrinsic-size:320px;display:flex;flex-direction:column;min-width:0;border:1px solid var(--border);border-radius:18px;padding:18px;background:#fff;box-shadow:0 6px 18px rgba(20,40,50,.035)}.review-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:11px}.review-author{display:flex;align-items:center;gap:7px;min-width:0;font-size:14px;font-weight:900}.review-avatar{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:var(--soft);color:var(--primary);font-size:13px;font-weight:900}.review-author-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-date{flex:none;color:var(--muted);font-size:11px;line-height:1.6;text-align:right}.review-tags{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 11px}.review-tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;background:#f3f6f5;color:var(--muted);font-size:10px;font-weight:750}.review-tag.verified{background:#eaf5ee;color:#36704a}.review-tag.question{background:#fff4df;color:#9a5c0a}.review-content{font-size:15px;line-height:1.85;word-break:break-word;white-space:pre-wrap}.review-content.collapsed{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;white-space:normal}.review-expand{align-self:flex-start;margin:8px 0 0;padding:0;border:0;background:transparent;color:var(--primary);font-size:12px;font-weight:850;cursor:pointer}.review-rating{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:15px;padding-top:13px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}.review-score{font-size:17px;font-weight:900;color:#b36a18}.rating-note{font-size:10px}.rating-details{margin-top:9px;color:var(--muted);font-size:11px}.rating-details summary{cursor:pointer;color:var(--primary);font-weight:850}.rating-dims{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.rating-dim{border-radius:999px;padding:4px 8px;background:#f6f8f7;color:var(--muted)}.review-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:14px;color:var(--muted);font-size:11px}.review-source{margin-left:auto;color:var(--primary);font-weight:850;text-decoration:none}.review-source:hover{text-decoration:underline}
-.load-more-wrap{display:flex;justify-content:center;margin-top:20px}.load-more{height:44px;border:1px solid var(--border);border-radius:13px;background:#fff;color:var(--primary);padding:0 24px;font-weight:850;cursor:pointer}.load-more:hover:not(:disabled){border-color:var(--primary);background:var(--soft)}.load-more:disabled{opacity:.55;cursor:wait}
-.source-note{margin-top:20px;padding:15px 17px;border-radius:14px;background:#f8faf9;color:var(--muted);font-size:13px;line-height:1.75}.technical-details{margin-top:14px;border-top:1px dashed var(--border);padding-top:13px;color:var(--muted);font-size:12px}.technical-list{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.technical-item{border-radius:999px;background:#f5f7f6;padding:4px 9px}.link{display:inline-flex;align-items:center;margin-top:18px;color:var(--primary);font-weight:850;text-underline-offset:4px}.loading{color:var(--muted);text-align:center;padding-block:34px}.notice{border-color:var(--warm-border);background:var(--warm);color:var(--warm-text)}.error{border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger)}.state-card h2{font-size:21px;margin:0 0 10px}.state-card p{margin:0;line-height:1.8}.state-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.state-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:17px}.state-actions .link{margin-top:0}.action-button{border:0;background:transparent;color:var(--primary);font-weight:850;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:4px}.state-card details{margin-top:15px;color:var(--muted);font-size:12px}.diagnostic{margin-top:8px;white-space:pre-wrap;word-break:break-word;line-height:1.7}
-.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.choice-card{border:1px solid var(--warm-border);background:#fff;border-radius:15px;padding:15px;text-align:left;color:var(--text);cursor:pointer}.choice-card:hover,.choice-card:focus-visible{border-color:var(--primary)}.choice-name{display:block;font-weight:900;font-size:16px;line-height:1.45}.choice-note{display:block;margin-top:5px;color:var(--muted);font-size:12px}.footer{margin-top:42px;padding:22px 0 8px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.8;text-align:center}.version{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--primary);font-weight:850}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:700px){.wrap{padding:16px 14px calc(18px + env(safe-area-inset-bottom))}.brand{font-size:16px}.hero{padding:30px 0 20px}.hero h1{font-size:32px}.hero p{font-size:15px}.search-row{display:block}.search-input,.btn{width:100%;height:54px}.btn{margin-top:12px}.suggestions{top:62px}.result-shell,.state-card{padding:21px;border-radius:18px}.result-head{display:block}.result-head h2{font-size:26px}.badge{margin-top:12px}.summary-grid,.review-grid,.choice-grid{grid-template-columns:1fr}.insight-card,.review-card{padding:16px}.insight-list li{font-size:15px;line-height:1.75}.review-card-head{align-items:center}.footer{text-align:left}}
-@media(prefers-reduced-motion:reduce){.input-state{animation:none;border-top-color:#9bb0b7}.btn,.quick-example,.choice-card{transition:none!important}}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://gaokao.powers.org.cn/tongxue/">
+<title>同学你好 - 正在进入新页面</title>
+<script>
+(function(){
+  var target=new URL('/tongxue/',location.origin);
+  target.search=location.search;
+  target.hash=location.hash;
+  location.replace(target.href);
+})();
+</script>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar"><div class="brand">同学你好</div><a class="back-home" href="/">← 返回首页</a></div>
-  <section class="hero">
-    <h1>同学你好</h1>
-    <p>输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称和轻微错别字也能识别。</span></p>
-    <div class="search-box">
-      <div class="search-row">
-        <div class="input-wrap">
-          <input id="school" class="search-input" autocomplete="off" inputmode="search" placeholder="输入学校名称，如：东北大学" aria-label="学校名称" aria-autocomplete="list" aria-controls="schoolSuggestions" aria-expanded="false" aria-describedby="indexStatus" autofocus>
-          <span id="inputState" class="input-state" aria-hidden="true"></span>
-          <div id="schoolSuggestions" class="suggestions" role="listbox" hidden></div>
-        </div>
-        <button id="queryButton" class="btn" type="button" disabled>看看同学怎么说</button>
-      </div>
-      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="辽科大">辽科大</button><button class="quick-example" type="button" data-example="大工">大工</button></div>
-      <div id="resolveHint" class="resolve-hint" hidden></div>
-      <div id="indexStatus" class="index-status">正在载入教育部高校名单…</div>
-    </div>
-  </section>
-  <div id="result" aria-live="polite"></div>
-  <div id="liveStatus" class="sr-only" aria-live="polite"></div>
-  <footer class="footer">
-    <div>这些内容反映部分评论者的个人体验，可能受到专业、校区、年级和个人感受影响。了解学校时，请同时核验招生章程、校区安排、培养方案和官方就业信息。</div>
-    <div class="version">同学你好 v1.2.0 · 更新于 2026-07-20</div>
-  </footer>
-</div>
-<script type="module" src="/tongxue-performance-v120.js?v=120"></script>
+<p>同学你好已经迁移到新地址。<a id="newTongxueLink" href="/tongxue/">进入同学你好</a></p>
+<script>
+var link=document.getElementById('newTongxueLink');
+if(link){var target=new URL('/tongxue/',location.origin);target.search=location.search;target.hash=location.hash;link.href=target.href;}
+</script>
 </body>
 </html>

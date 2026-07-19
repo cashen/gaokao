@@ -1,4 +1,4 @@
-import { createQrCanvas } from '/tongxue-share-qr-v113.js';
+import { createQrCanvas } from './tongxue-share-qr-v113.js';
 const W=1080,H=3600,BOTTOM=3380;
 export async function generateShareAssets(model,variant='featured'){
   if(document.fonts?.ready)await document.fonts.ready.catch(()=>{});

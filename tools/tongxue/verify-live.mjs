@@ -69,10 +69,10 @@ globalThis.fetch = nativeFetch;
 if (nativeCaches === undefined) delete globalThis.caches;
 else globalThis.caches = nativeCaches;
 
-const html = await readFile('tongxue.html', 'utf8');
-const runtime = await readFile('tongxue-performance-v112.js', 'utf8');
-const runtime113 = await readFile('tongxue-performance-v113.js', 'utf8');
-const shareRuntime = await readFile('tongxue-share-v113.js', 'utf8');
+const html = await readFile('tongxue/index.html', 'utf8');
+const runtime = await readFile('tongxue/app/tongxue-performance-v112.js', 'utf8');
+const runtime113 = await readFile('tongxue/app/tongxue-performance-v113.js', 'utf8');
+const shareRuntime = await readFile('tongxue/share/tongxue-share-v113.js', 'utf8');
 const copyLock = [
   '输入学校名，看看公开评价里常提到的校园生活、学习氛围和就业感受。',
   '简称和轻微错别字也能识别。',
