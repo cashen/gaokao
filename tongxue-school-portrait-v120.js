@@ -12,6 +12,7 @@ let activeSchool='';
 export function installSchoolPortrait(options={}){
   if(installed||typeof document==='undefined')return;
   installed=true;
+  applyPageCopy(options.pageVersion||VERSION);
   installPortraitStyles();
   stabilizeButtonCopy();
   const result=document.getElementById('result');
@@ -74,6 +75,15 @@ async function fetchPortrait(school,{signal,refresh=false}={}){
   })();
   inflight.set(school,request);
   try{return clone(await request);}finally{if(inflight.get(school)===request)inflight.delete(school);}
+}
+
+function applyPageCopy(pageVersion){
+  document.title='同学你好 - 看看学长学姐怎么说';
+  const hero=document.querySelector('.hero p');
+  if(hero)hero.innerHTML='输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称和轻微错别字也能识别。</span>';
+  const input=document.getElementById('school');
+  if(input)input.placeholder='输入学校名称，如：东北大学';
+  document.querySelectorAll('.version').forEach(node=>{if(node.textContent.includes('同学你好'))node.textContent='同学你好 '+pageVersion+' · 更新于 2026-07-20';});
 }
 
 function stabilizeButtonCopy(){
