@@ -53,8 +53,24 @@ jobs:
           PY
           node --check /tmp/tongxue-page.mjs
 
-      - name: Download official MOE 2026 list and build JSON
-        run: python tools/build-moe-2026-school-index.py --output school-name-index.generated.json
+      - name: Download official MOE 2026 XLS
+        run: |
+          mkdir -p /tmp/tongxue-live-artifact
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
+            --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36' \
+            --header 'Accept: application/vnd.ms-excel,application/octet-stream;q=0.9,*/*;q=0.8' \
+            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
+            --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
+            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
+          test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
+          file /tmp/tongxue-live-artifact/moe-2026-schools.xls
+
+      - name: Build official school JSON
+        run: |
+          python tools/build-moe-2026-school-index.py \
+            --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls \
+            --output school-name-index.generated.json
+          cp school-name-index.generated.json /tmp/tongxue-live-artifact/
 
       - name: Verify official school index and name resolver
         run: node tools/verify-school-name-resolver.mjs
