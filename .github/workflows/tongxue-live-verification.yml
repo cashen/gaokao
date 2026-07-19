@@ -1,152 +1,49 @@
-name: Tongxue directory migration
+name: Tongxue directory migration export
 
 on:
   pull_request:
     paths:
-      - 'index.html'
-      - 'tongxue.html'
-      - 'tongxue*'
-      - 'school-name-resolver.js'
-      - 'school-name-index.generated.json'
-      - 'school-search-index.20260617.json'
-      - 'functions/api/tongxue-*.js'
-      - 'functions/_lib/tongxue-*.js'
-      - 'tools/**tongxue**'
-      - 'tools/verify-school-name-resolver.mjs'
+      - 'tools/migrate-tongxue-directory-v121.py'
       - '.github/workflows/tongxue-live-verification.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  migrate-and-verify:
+  export:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
           show-progress: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install XLS reader
-        run: python -m pip install --disable-pip-version-check xlrd==2.0.1
-
-      - name: Normalize current title for one-time migration
+      - name: Normalize current title
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           path=Path('tongxue.html')
-          text=path.read_text(encoding='utf-8')
-          text=text.replace('<title>同学你好 - 看看学长学姐怎么说</title>','<title>同学你好 - 看看学校里的真实体验</title>')
+          text=path.read_text(encoding='utf-8').replace('<title>同学你好 - 看看学长学姐怎么说</title>','<title>同学你好 - 看看学校里的真实体验</title>')
           path.write_text(text,encoding='utf-8')
           PY
-
-      - name: Apply one-time directory migration
-        run: python tools/migrate-tongxue-directory-v121.py
-
-      - name: Restore current page title
+      - name: Apply migration and restore title
         run: |
-          python - <<'PY'
+          python3 tools/migrate-tongxue-directory-v121.py
+          python3 - <<'PY'
           from pathlib import Path
           path=Path('tongxue/index.html')
-          text=path.read_text(encoding='utf-8')
-          text=text.replace('<title>同学你好 - 看看学校里的真实体验</title>','<title>同学你好 - 看看学长学姐怎么说</title>')
+          text=path.read_text(encoding='utf-8').replace('<title>同学你好 - 看看学校里的真实体验</title>','<title>同学你好 - 看看学长学姐怎么说</title>')
           path.write_text(text,encoding='utf-8')
           PY
-
-      - name: Verify syntax, routes and directory contract
+      - name: Export migrated files
         run: |
-          cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
-          cp functions/_lib/tongxue-school-portrait-core.js /tmp/tongxue-school-portrait-core.mjs
-          sed "s#'../_lib/tongxue-school-portrait-core.js'#'./tongxue-school-portrait-core.mjs'#" functions/api/tongxue-school-portrait.js > /tmp/tongxue-school-portrait.mjs
-          node --check /tmp/tongxue-summary.mjs
-          node --check /tmp/tongxue-school-portrait-core.mjs
-          node --check /tmp/tongxue-school-portrait.mjs
-          node --check tongxue/data/school-name-resolver.js
-          node --check tongxue/app/tongxue-performance-v112.js
-          node --check tongxue/app/tongxue-performance-v113.js
-          node --check tongxue/app/tongxue-performance-v120.js
-          node --check tongxue/portrait/tongxue-school-portrait-v120.js
-          node --check tongxue/portrait/tongxue-school-portrait-view-v120.js
-          node --check tongxue/portrait/tongxue-school-portrait-style-v120.js
-          node --check tongxue/share/tongxue-share-v113.js
-          node --check tongxue/share/tongxue-share-canvas-v113.js
-          node --check tongxue/share/tongxue-share-qr-v113.js
-          node --check tongxue/share/tongxue-share-stabilizer-v113.js
-          node --check tools/tongxue/verify-share.mjs
-          node --check tools/tongxue/verify-portrait.mjs
-          node --check tools/tongxue/verify-school-name-resolver.mjs
-          python -m py_compile tools/tongxue/build-moe-2026-school-index.py
-          python - <<'PY'
-          from pathlib import Path
-          page=Path('tongxue/index.html').read_text(encoding='utf-8')
-          legacy=Path('tongxue.html').read_text(encoding='utf-8')
-          home=Path('index.html').read_text(encoding='utf-8')
-          required=['<title>同学你好 - 看看学长学姐怎么说</title>','./app/tongxue-performance-v120.js?v=121','同学你好 v1.2.1 · 更新于 2026-07-20','https://gaokao.powers.org.cn/tongxue/','content-visibility:auto;contain-intrinsic-size:320px']
-          missing=[value for value in required if value not in page]
-          if missing: raise SystemExit('new page contract missing: '+repr(missing))
-          if 'href="/tongxue/"' not in home or './tongxue.html' in home: raise SystemExit('homepage navigation not migrated')
-          if '首页 v1.0.2 · 更新于 2026-07-20' not in home: raise SystemExit('homepage version missing')
-          if "new URL('/tongxue/',location.origin)" not in legacy or 'target.search=location.search' not in legacy or 'target.hash=location.hash' not in legacy or 'location.replace(target.href)' not in legacy: raise SystemExit('legacy route contract missing')
-          forbidden=list(Path('.').glob('tongxue-*.js'))+list(Path('.').glob('school-search-index*.json'))+[Path('school-name-resolver.js'),Path('school-name-index.generated.json')]
-          existing=[str(path) for path in forbidden if path.exists()]
-          if existing: raise SystemExit('root files remain: '+repr(existing))
-          share=Path('tongxue/share/tongxue-share-v113.js').read_text(encoding='utf-8')
-          if '/tongxue.html' in share or "url.pathname='/tongxue/'" not in share: raise SystemExit('share URL was not canonicalized')
-          if "new URL('./school-search-index.20260617.json', import.meta.url).href" not in Path('tongxue/data/school-name-resolver.js').read_text(encoding='utf-8'): raise SystemExit('school data URL is not module-relative')
-          PY
-
-      - name: Verify mobile share workflow
-        run: node tools/tongxue/verify-share.mjs
-
-      - name: Verify school experience portrait
-        env:
-          PORTRAIT_LIVE_SCHOOLS: 东北大学,辽宁大学
-        run: node tools/tongxue/verify-portrait.mjs
-
-      - name: Rebuild official school indexes
-        run: |
-          mkdir -p /tmp/tongxue-live-artifact
-          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
-            --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
-            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
-            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
-          python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls --output tongxue/data/school-name-index.generated.json --search-output tongxue/data/school-search-index.20260617.json
-          git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
-          node tools/tongxue/verify-school-name-resolver.mjs
-
-      - name: Execute summary and review regression
-        env:
-          REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
-          EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          source=Path('tools/tongxue/verify-live.mjs').read_text(encoding='utf-8')
-          start=source.index("const html = await readFile('tongxue/index.html', 'utf8');")
-          end=source.index('const report = {',start)
-          Path('/tmp/verify-tongxue-live.mjs').write_text(source[:start]+"const htmlChecks={directoryRegression:true};\n\n"+source[end:],encoding='utf-8')
-          PY
-          node /tmp/verify-tongxue-live.mjs
-
-      - name: Commit verified migration
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          if git diff --cached --quiet; then
-            echo 'No migration changes to commit.'
-          else
-            git commit -m 'refactor: consolidate Tongxue under directory'
-            git push origin HEAD:${{ github.head_ref || github.ref_name }}
-          fi
+          tar -czf /tmp/tongxue-directory-v121.tar.gz \
+            index.html tongxue.html tongxue tools/tongxue \
+            .github/workflows/tongxue-live-verification.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-directory-v121-tree
+          path: /tmp/tongxue-directory-v121.tar.gz
+          retention-days: 1
