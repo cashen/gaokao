@@ -5,8 +5,9 @@ on:
     paths:
       - 'tongxue.html'
       - 'school-name-resolver.js'
-      - 'fenxi/data/school_nature.json'
+      - 'school-name-index.generated.json'
       - 'functions/api/tongxue-summary.js'
+      - 'tools/build-school-name-index.mjs'
       - 'tools/verify-tongxue-live.mjs'
       - 'tools/verify-school-name-resolver.mjs'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -31,6 +32,7 @@ jobs:
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check school-name-resolver.js
+          node --check tools/build-school-name-index.mjs
           node --check tools/verify-tongxue-live.mjs
           node --check tools/verify-school-name-resolver.mjs
           python - <<'PY'
@@ -43,6 +45,9 @@ jobs:
           Path('/tmp/tongxue-page.mjs').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/tongxue-page.mjs
+
+      - name: Build unified school-name index
+        run: node tools/build-school-name-index.mjs --output school-name-index.generated.json
 
       - name: Verify all-school name resolver
         run: node tools/verify-school-name-resolver.mjs
