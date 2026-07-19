@@ -1,14 +1,338 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>同学你好 - 高考学校体验摘要</title>
 <style>
-:root{--bg:#f6f8f7;--card:#fff;--primary:#155e75;--text:#17242d;--muted:#60717a;--border:#dce6e2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif}.wrap{max-width:900px;margin:auto;padding:28px 20px}.brand{color:var(--primary);font-weight:800}.hero{text-align:center;padding:60px 0 30px}.hero h1{font-size:42px}.hero p{color:var(--muted)}.search{display:flex;gap:12px;max-width:680px;margin:30px auto}.search input{flex:1;height:56px;border:1px solid var(--border);border-radius:16px;padding:0 18px;font-size:18px}.btn{height:56px;border:0;border-radius:16px;background:var(--primary);color:white;padding:0 28px;font-weight:700}.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:28px;margin-top:20px}.summary{line-height:1.9;white-space:pre-wrap}.error{background:#fff0ec}.footer{margin-top:40px;border-top:1px solid var(--border);padding:20px;text-align:center;color:var(--muted);font-size:12px}@media(max-width:600px){.search{display:block}.search input,.btn{width:100%;margin-bottom:12px}}
-</style></head>
-<body><div class="wrap"><div class="brand">Gaokao OS / 同学你好</div><section class="hero"><h1>同学你好</h1><p>输入一所大学，快速了解学生视角下的学校体验。</p><div class="search"><input id="school" value="吉林大学" placeholder="输入学校名称"><button id="btn" class="btn">开始了解</button></div></section><div id="result"></div><footer class="footer">内容来源：srgaoxiao.com，本页面仅提供阅读入口。<br>同学你好 v1.0.4 · 更新于 2026-07-19</footer></div>
+:root{
+  --bg:#f6f8f7;--card:#fff;--primary:#155e75;--primary-hover:#0f4a5c;
+  --text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#e8f3f5;
+  --danger:#9a4336;--danger-bg:#fff0ec;--shadow:0 14px 38px rgba(20,40,50,.07)
+}
+*{box-sizing:border-box}
+html{min-height:100%}
+body{min-height:100vh;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+button,input{font:inherit}
+.wrap{max-width:960px;margin:auto;padding:28px 20px calc(24px + env(safe-area-inset-bottom))}
+.brand{color:var(--primary);font-weight:800;font-size:18px}
+.hero{text-align:center;padding:58px 0 30px}
+.hero h1{font-size:42px;line-height:1.15;margin:16px 0 10px}
+.hero p{color:var(--muted);font-size:18px;line-height:1.7;margin:0}
+.search{display:flex;gap:12px;max-width:700px;margin:30px auto 0}
+.search input{flex:1;min-width:0;height:58px;border:1px solid var(--border);border-radius:16px;padding:0 20px;font-size:18px;background:#fff;color:var(--text);outline:none}
+.search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,94,117,.13)}
+.btn{height:58px;border:0;border-radius:16px;background:var(--primary);color:#fff;padding:0 30px;font-size:16px;font-weight:800;cursor:pointer}
+.btn:hover{background:var(--primary-hover)}
+.btn:disabled{opacity:.65;cursor:wait}
+.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:30px;margin-top:24px;box-shadow:var(--shadow)}
+.result-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.result-head h2{font-size:31px;line-height:1.25;margin:0}
+.badge{flex:none;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 11px;background:var(--soft);color:var(--primary);font-size:12px;font-weight:800}
+.meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin:16px 0 0;color:var(--muted);font-size:13px}
+.divider{height:1px;background:var(--border);margin:22px 0}
+.summary-title{display:flex;align-items:center;gap:9px;margin:0 0 13px;color:var(--primary);font-size:17px;font-weight:900}
+.summary-title::before{content:"";width:4px;height:19px;border-radius:3px;background:var(--primary)}
+.summary{font-size:17px;line-height:2;letter-spacing:.01em;word-break:break-word}
+.summary p{margin:0 0 14px}
+.summary p:last-child{margin-bottom:0}
+.source-note{margin-top:22px;padding:15px 17px;border-radius:14px;background:#f8faf9;color:var(--muted);font-size:13px;line-height:1.75}
+.link{display:inline-flex;align-items:center;margin-top:18px;color:var(--primary);font-weight:800;text-underline-offset:4px}
+.loading{color:var(--muted);text-align:center;padding-block:34px}
+.error{border-color:rgba(154,67,54,.22);background:var(--danger-bg);color:var(--danger)}
+.error h2{font-size:20px;margin:0 0 10px}
+.error p{margin:0;line-height:1.7}
+.error details{margin-top:14px;color:#6e4a43;font-size:12px}
+.footer{margin-top:42px;padding:22px 0 8px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.8;text-align:center}
+.version{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--primary);font-weight:800}
+@media(max-width:600px){
+  .wrap{padding:18px 14px calc(18px + env(safe-area-inset-bottom))}
+  .brand{font-size:16px}.hero{padding:38px 0 20px}.hero h1{font-size:32px}.hero p{font-size:15px}
+  .search{display:block;margin-top:22px}.search input,.btn{width:100%;margin-bottom:12px;height:54px}
+  .card{padding:21px;border-radius:18px}.result-head{display:block}.result-head h2{font-size:26px}.badge{margin-top:12px}
+  .summary{font-size:16px;line-height:1.9}.footer{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Gaokao OS / 同学你好</div>
+  <section class="hero">
+    <h1>同学你好</h1>
+    <p>输入一所大学，实时读取学生视角下的 AI 摘要。</p>
+    <div class="search">
+      <input id="school" value="吉林大学" autocomplete="off" inputmode="search" placeholder="输入学校全名，例如：吉林大学" aria-label="学校名称">
+      <button id="queryButton" class="btn" type="button">开始了解</button>
+    </div>
+  </section>
+
+  <div id="result" aria-live="polite"></div>
+
+  <footer class="footer">
+    <div>摘要实时取自 srgaoxiao.com 的公开页面；本站不二次改写，仅做阅读格式化，并提供原页面入口。</div>
+    <div class="version">同学你好 v1.0.5 · 更新于 2026-07-19</div>
+  </footer>
+</div>
+
 <script>
-const box=document.getElementById('result');const input=document.getElementById('school');const btn=document.getElementById('btn');btn.onclick=querySchool;
-async function querySchool(){const school=input.value.trim();if(!school)return;box.innerHTML='<div class="card">正在获取...</div>';try{const r=await fetch('/api/tongxue-summary?school='+encodeURIComponent(school),{cache:'no-store'});const text=await r.text();let d;try{d=JSON.parse(text)}catch(e){throw new Error('API返回的不是JSON：'+text.slice(0,100))}if(!r.ok||d.error)throw new Error(d.message||'暂无摘要');const s=typeof d.source==='object'?d.source:{name:d.source||'srgaoxiao.com',url:d.url||'#'};box.innerHTML='<div class="card"><h2>'+esc(d.school||school)+'</h2><p>来源：'+esc(s.name)+'</p><hr><h3>同学们普遍认为</h3><div class="summary">'+esc(d.summary)+'</div><p><a href="'+esc(s.url)+'" target="_blank">查看完整详细信息 →</a></p></div>'}catch(e){box.innerHTML='<div class="card error"><b>暂时没有取得 AI 摘要</b><p>'+esc(e.message)+'</p></div>'}}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-</script></body></html>
+const PAGE_VERSION='v1.0.5';
+const SOURCE_ORIGIN='https://srgaoxiao.com';
+const READER_ORIGIN='https://r.jina.ai';
+const schoolInput=document.getElementById('school');
+const queryButton=document.getElementById('queryButton');
+const resultBox=document.getElementById('result');
+
+queryButton.addEventListener('click',querySchool);
+schoolInput.addEventListener('keydown',(event)=>{if(event.key==='Enter')querySchool();});
+
+async function querySchool(){
+  const school=schoolInput.value.replace(/\s+/g,' ').trim();
+  if(!school){schoolInput.focus();return;}
+
+  queryButton.disabled=true;
+  queryButton.textContent='正在获取';
+  resultBox.innerHTML='<div class="card loading">正在实时读取 '+escapeHtml(school)+' 的学生视角 AI 摘要…</div>';
+
+  try{
+    let data;
+    let firstError;
+
+    try{
+      data=await fetchOwnApi(school);
+    }catch(error){
+      firstError=error;
+      data=await fetchRenderedReader(school);
+    }
+
+    renderResult(data,school);
+  }catch(error){
+    const message=error&&error.message?error.message:'暂时无法读取来源摘要。';
+    resultBox.innerHTML='<div class="card error">'
+      +'<h2>暂时没有取得 AI 摘要</h2>'
+      +'<p>来源页面可能临时限制访问，或动态内容尚未加载完成。可以稍后重试，也可以先查看原页面。</p>'
+      +'<a class="link" href="'+escapeAttribute(buildSourceUrl(school))+'" target="_blank" rel="noopener noreferrer">查看来源页面 →</a>'
+      +'<details><summary>查看诊断信息</summary><div>'+escapeHtml(message)+'</div></details>'
+      +'</div>';
+  }finally{
+    queryButton.disabled=false;
+    queryButton.textContent='开始了解';
+  }
+}
+
+async function fetchOwnApi(school){
+  const response=await fetch('/api/tongxue-summary?school='+encodeURIComponent(school),{
+    cache:'no-store',headers:{accept:'application/json'}
+  });
+  const raw=await response.text();
+
+  if(looksLikeHtml(raw)) throw new Error('自有 API 路由返回了 HTML，未命中 Cloudflare Function。');
+
+  let data;
+  try{data=JSON.parse(raw||'{}');}
+  catch(error){throw new Error('自有 API 返回内容不是有效 JSON。');}
+
+  if(!response.ok||data.error||data.ok===false) throw new Error(data.message||'自有 API 暂时没有取得摘要。');
+  if(!isUsefulSummary(data.summary,school)) throw new Error('自有 API 返回内容未通过摘要校验。');
+
+  return {
+    school:data.school||school,
+    summary:tidySummary(data.summary),
+    source:normalizeSource(data.source,school),
+    fetchedAt:data.fetchedAt||data.updated||new Date().toISOString(),
+    transport:data.transport||'cloudflare-function',
+    version:data.version||PAGE_VERSION
+  };
+}
+
+async function fetchRenderedReader(school){
+  const paths=[
+    READER_ORIGIN+'/http://srgaoxiao.com/school/'+encodeURIComponent(school),
+    READER_ORIGIN+'/https://srgaoxiao.com/school/'+encodeURIComponent(school)
+  ];
+  let lastError;
+
+  for(const url of paths){
+    try{
+      const response=await fetch(url,{cache:'no-store',headers:{accept:'text/plain,text/markdown,*/*'}});
+      const text=await response.text();
+      if(!response.ok)throw new Error('动态读取服务返回 HTTP '+response.status);
+      const summary=extractSummary(text,school);
+      if(!isUsefulSummary(summary,school))throw new Error('动态页面已读取，但没有识别到目标摘要。');
+
+      return {
+        school,
+        summary:tidySummary(summary),
+        source:{name:'srgaoxiao.com',url:buildSourceUrl(school)},
+        fetchedAt:new Date().toISOString(),
+        transport:'rendered-reader',
+        version:PAGE_VERSION
+      };
+    }catch(error){lastError=error;}
+  }
+
+  throw lastError||new Error('动态页面读取失败。');
+}
+
+function renderResult(data,school){
+  const source=normalizeSource(data.source,school);
+  const time=formatTime(data.fetchedAt);
+  const mode=data.transport==='rendered-reader'?'动态页面实时读取':'Cloudflare 实时读取';
+
+  resultBox.innerHTML='<article class="card">'
+    +'<div class="result-head"><h2>'+escapeHtml(data.school||school)+'</h2><span class="badge">实时摘要</span></div>'
+    +'<div class="meta"><span>来源：'+escapeHtml(source.name)+'</span><span>获取时间：'+escapeHtml(time)+'</span><span>'+escapeHtml(mode)+'</span></div>'
+    +'<div class="divider"></div>'
+    +'<div class="summary-title">同学们普遍认为</div>'
+    +'<div class="summary">'+formatSummaryHtml(data.summary)+'</div>'
+    +'<div class="source-note">该文字由来源网站基于学生评价生成。本页面不改变原摘要含义，仅调整行距、段落和阅读宽度；学生评价具有个人差异，不代表学校官方结论。</div>'
+    +'<a class="link" href="'+escapeAttribute(source.url)+'" target="_blank" rel="noopener noreferrer">查看完整学生评价与来源页面 →</a>'
+    +'</article>';
+}
+
+function extractSummary(payload,school){
+  const sources=unique([
+    normalizeDocument(payload),
+    normalizeDocument(decodeEntities(decodeEscapedPayload(payload))),
+    normalizeDocument(markdownToText(payload)),
+    normalizeDocument(htmlToText(payload))
+  ]).filter(Boolean);
+
+  for(const source of sources){
+    const anchors=['同学们普遍认为','同学们认为'];
+    for(const anchor of anchors){
+      let start=source.indexOf(anchor);
+      while(start!==-1){
+        const tail=source.slice(start+anchor.length,start+anchor.length+2600);
+        const candidate=cleanCandidate(stopAtBoundary(tail),school);
+        if(isUsefulSummary(candidate,school))return candidate;
+        start=source.indexOf(anchor,start+anchor.length);
+      }
+    }
+  }
+
+  for(const source of sources){
+    const oneLine=source.replace(/\s+/g,' ');
+    const patterns=[
+      new RegExp('学生对'+escapeRegExp(school)+'[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?'),
+      new RegExp('(?:学生|同学)[^。！？]{0,40}'+escapeRegExp(school)+'[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?'),
+      /学生对[^。！？]{2,24}(?:大学|学院)[^。！？]{20,900}[。！？](?:[^。！？]{0,500}[。！？])?/
+    ];
+    for(const pattern of patterns){
+      const match=oneLine.match(pattern);
+      if(match){
+        const candidate=cleanCandidate(match[0],school);
+        if(isUsefulSummary(candidate,school))return candidate;
+      }
+    }
+  }
+
+  return '';
+}
+
+function stopAtBoundary(value){
+  const markers=['\n# ','\n## ','\n### ','基于学生评价自动生成','仅供参考','查看完整','详细评价','热门评价','全部评价','写评价','学校简介','院校简介','对比','收藏','攻略'];
+  let stop=Math.min(value.length,1800);
+  for(const marker of markers){const index=value.indexOf(marker);if(index>20)stop=Math.min(stop,index);}
+  return value.slice(0,stop);
+}
+
+function cleanCandidate(value,school){
+  let text=decodeEntities(decodeEscapedPayload(String(value||'')))
+    .replace(/!\[[^\]]*\]\([^)]*\)/g,' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+    .replace(/<script[\s\S]*?<\/script>/gi,' ')
+    .replace(/<style[\s\S]*?<\/style>/gi,' ')
+    .replace(/<[^>]+>/g,' ')
+    .replace(/^[#>*\-\s]+/gm,'')
+    .replace(/[{}\[\]"]/g,' ')
+    .replace(/\\[nrt]/g,' ')
+    .replace(/[ \t]+/g,' ')
+    .replace(/\s*\n\s*/g,'\n')
+    .trim();
+
+  text=text
+    .replace(/^(?:AI\s*摘要|[:：\-—|·\s])+/i,'')
+    .replace(/基于学生评价自动生成[\s\S]*$/i,'')
+    .replace(/仅供参考[\s\S]*$/i,'')
+    .replace(/(?:查看完整|详细评价|热门评价|全部评价|写评价)[\s\S]*$/i,'')
+    .trim();
+
+  const markers=['学生对'+school,'学生对','同学们'];
+  let best=-1;
+  for(const marker of markers){const index=text.indexOf(marker);if(index>=0&&(best===-1||index<best))best=index;}
+  if(best>0&&best<500)text=text.slice(best);
+  return text.slice(0,1400).trim();
+}
+
+function isUsefulSummary(value,school){
+  const text=String(value||'').trim();
+  if(text.length<35||text.length>1500)return false;
+  if(/暂未定位|摘要解析器|已连接来源页面|DOCTYPE|javascript required/i.test(text))return false;
+  const signals=['学生','同学','宿舍','食堂','就业','管理','校区','师资','学习','校园','性价比','转专业'];
+  const score=signals.filter(word=>text.includes(word)).length;
+  return score>=2||(text.includes(school)&&score>=1);
+}
+
+function tidySummary(value){
+  return String(value||'')
+    .replace(/\s*([，。！？；：、])\s*/g,'$1')
+    .replace(/[ \t]{2,}/g,' ')
+    .replace(/\n{3,}/g,'\n\n')
+    .replace(/^[：:，,。\s]+/,'')
+    .trim();
+}
+
+function formatSummaryHtml(value){
+  const text=tidySummary(value);
+  const paragraphs=text.split(/\n{2,}/).map(item=>item.trim()).filter(Boolean);
+  return (paragraphs.length?paragraphs:[text]).map(item=>'<p>'+escapeHtml(item)+'</p>').join('');
+}
+
+function markdownToText(value){
+  return String(value||'')
+    .replace(/^Title:.*$/gim,'')
+    .replace(/^URL Source:.*$/gim,'')
+    .replace(/^Published Time:.*$/gim,'')
+    .replace(/^Markdown Content:.*$/gim,'')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g,'')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+    .replace(/^#{1,6}\s*/gm,'')
+    .replace(/^>\s?/gm,'')
+    .replace(/^[-*+]\s+/gm,'');
+}
+
+function htmlToText(value){
+  return String(value||'')
+    .replace(/<style[\s\S]*?<\/style>/gi,' ')
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<\/(?:p|div|section|article|h1|h2|h3|h4|li)>/gi,'\n')
+    .replace(/<[^>]+>/g,' ');
+}
+
+function decodeEscapedPayload(value){
+  return String(value||'')
+    .replace(/\\u([0-9a-fA-F]{4})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
+    .replace(/\\x([0-9a-fA-F]{2})/g,(_,hex)=>String.fromCharCode(parseInt(hex,16)))
+    .replace(/\\"/g,'"').replace(/\\\//g,'/').replace(/\\n/g,'\n');
+}
+
+function decodeEntities(value){
+  const map={'&nbsp;':' ','&quot;':'"','&#39;':"'",'&amp;':'&','&lt;':'<','&gt;':'>','&mdash;':'—','&middot;':'·'};
+  return String(value||'')
+    .replace(/&(nbsp|quot|amp|lt|gt|mdash|middot);/g,match=>map[match]||match)
+    .replace(/&#(\d+);/g,(_,code)=>String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g,(_,code)=>String.fromCharCode(parseInt(code,16)));
+}
+
+function normalizeDocument(value){return String(value||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();}
+function normalizeSource(source,school){if(source&&typeof source==='object')return{name:String(source.name||'srgaoxiao.com'),url:String(source.url||buildSourceUrl(school))};return{name:typeof source==='string'?source:'srgaoxiao.com',url:buildSourceUrl(school)};}
+function buildSourceUrl(school){return SOURCE_ORIGIN+'/school/'+encodeURIComponent(school);}
+function formatTime(value){const date=new Date(value||Date.now());return Number.isNaN(date.getTime())?'刚刚':date.toLocaleString('zh-CN',{hour12:false});}
+function looksLikeHtml(value){const text=String(value||'').trim().toLowerCase();return text.startsWith('<!doctype html')||text.startsWith('<html')||text.includes('<html');}
+function unique(values){return [...new Set(values)];}
+function escapeRegExp(value){return String(value).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+function escapeAttribute(value){return escapeHtml(value).replace(/`/g,'&#96;');}
+</script>
+</body>
+</html>
