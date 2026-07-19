@@ -64,12 +64,7 @@ export async function loadSchoolCatalog(url = SCHOOL_NAME_DATA_URL, fetchImpl = 
   }
   if (records.length < 2900) throw new Error('学校名单数量异常。');
   const resolver = createSchoolNameResolver(records);
-  return Object.freeze({
-    resolver,
-    metadata: resolver.metadata,
-    count: resolver.count,
-    asOfDate: String(payload?.asOfDate || '')
-  });
+  return Object.freeze({ resolver, metadata: resolver.metadata, count: resolver.count, asOfDate: String(payload?.asOfDate || '') });
 }
 
 export async function loadSchoolNameResolver(url = SCHOOL_NAME_DATA_URL, fetchImpl = globalThis.fetch) {
@@ -80,9 +75,7 @@ export function extractSchoolRecords(payload) {
   if (Array.isArray(payload)) return uniqueRecords(payload.map(readRecord).filter(Boolean));
   if (!payload || typeof payload !== 'object') return [];
   if (Array.isArray(payload.schools)) return uniqueRecords(payload.schools.map(readRecord).filter(Boolean));
-  if (payload.exactMap && typeof payload.exactMap === 'object') {
-    return uniqueRecords(Object.keys(payload.exactMap).map((name) => readRecord(name)).filter(Boolean));
-  }
+  if (payload.exactMap && typeof payload.exactMap === 'object') return uniqueRecords(Object.keys(payload.exactMap).map((name) => readRecord(name)).filter(Boolean));
   return uniqueRecords(Object.keys(payload).map((name) => readRecord(name)).filter(Boolean));
 }
 
@@ -95,12 +88,7 @@ export function createSchoolNameResolver(schoolRows) {
   const names = records.map((record) => record.name);
   const nameSet = new Set(names);
   const metadata = new Map(records.map((record) => [record.name, Object.freeze({ ...record })]));
-  const entries = records.map((record) => ({
-    officialName: record.name,
-    normalized: normalizeSchoolText(record.name),
-    aliases: new Set(),
-    aliasNormalized: []
-  }));
+  const entries = records.map((record) => ({ officialName: record.name, normalized: normalizeSchoolText(record.name), aliases: new Set(), aliasNormalized: [] }));
   const entryByName = new Map(entries.map((entry) => [entry.officialName, entry]));
   const officialMap = new Map();
   const aliasMap = new Map();
@@ -113,41 +101,26 @@ export function createSchoolNameResolver(schoolRows) {
     addToSetMap(officialMap, entry.normalized, entry.officialName);
     for (const alias of generateAliases(entry.officialName)) entry.aliases.add(alias);
   }
-
   for (const [alias, officialName] of Object.entries(EXPLICIT_ALIASES)) {
     if (nameSet.has(officialName)) entryByName.get(officialName)?.aliases.add(alias);
   }
-
   for (const entry of entries) {
-    entry.aliasNormalized = [...entry.aliases]
-      .map(normalizeSchoolText)
-      .filter((alias) => alias && alias !== entry.normalized);
+    entry.aliasNormalized = [...entry.aliases].map(normalizeSchoolText).filter((alias) => alias && alias !== entry.normalized);
     for (const alias of entry.aliasNormalized) addToSetMap(aliasMap, alias, entry.officialName);
     indexEntry(firstCharIndex, bigramIndex, entry, entry.normalized);
     for (const alias of entry.aliasNormalized) indexEntry(firstCharIndex, bigramIndex, entry, alias);
   }
-
   for (const [shortcut, suffixes] of GENERIC_SHORTCUTS) {
-    genericIndex.set(shortcut, entries
-      .filter((entry) => suffixes.some((suffix) => entry.officialName.includes(suffix)))
-      .sort(compareEntries));
+    genericIndex.set(shortcut, entries.filter((entry) => suffixes.some((suffix) => entry.officialName.includes(suffix))).sort(compareEntries));
   }
-
   const context = { entries, officialMap, aliasMap, firstCharIndex, bigramIndex, genericIndex, searchCache };
-
   return Object.freeze({
     count: names.length,
     names: Object.freeze([...names]),
     metadata,
-    getMetadata(name) {
-      return metadata.get(cleanOfficialName(name)) || null;
-    },
-    resolve(query, options = {}) {
-      return resolveSchoolName(query, { ...context, ...options });
-    },
-    search(query, options = {}) {
-      return searchSchoolNames(query, context, options);
-    }
+    getMetadata(name) { return metadata.get(cleanOfficialName(name)) || null; },
+    resolve(query, options = {}) { return resolveSchoolName(query, { ...context, ...options }); },
+    search(query, options = {}) { return searchSchoolNames(query, context, options); }
   });
 }
 
@@ -156,35 +129,24 @@ export function resolveSchoolName(query, context) {
   const normalizedInput = normalizeSchoolText(input);
   const limit = Number.isFinite(context?.limit) ? Math.max(1, context.limit) : 8;
   if (!normalizedInput) return result('empty', input, null, [], 'empty');
-
   const officialMatches = [...(context?.officialMap?.get(normalizedInput) || [])];
   if (officialMatches.length === 1) return result('resolved', input, officialMatches[0], [], 'official_exact', 1);
   if (officialMatches.length > 1) return result('ambiguous', input, null, toCandidates(officialMatches, 1, 'official_exact'), 'official_exact');
-
   const aliasMatches = [...(context?.aliasMap?.get(normalizedInput) || [])];
   if (aliasMatches.length === 1) return result('resolved', input, aliasMatches[0], [], 'alias_exact', 0.99);
   if (aliasMatches.length > 1) return result('ambiguous', input, null, toCandidates(aliasMatches, 0.99, 'alias_exact'), 'alias_exact');
-
   const genericCandidates = getGenericCandidates(normalizedInput, context?.genericIndex, limit);
   if (genericCandidates.length > 1) return result('ambiguous', input, null, genericCandidates, 'generic_shortcut');
-
   const candidates = searchSchoolNames(input, context, { limit });
   if (!candidates.length) return result('not_found', input, null, [], 'none');
-
   const first = candidates[0];
   const second = candidates[1];
   const margin = first.score - (second?.score || 0);
   const autoThreshold = normalizedInput.length >= 5 ? 0.82 : 0.9;
   const requiredMargin = normalizedInput.length >= 5 ? 0.08 : 0.12;
-
-  if (first.score >= autoThreshold && margin >= requiredMargin) {
-    return result('resolved', input, first.officialName, candidates.slice(1, 4), first.matchType, first.score);
-  }
-
+  if (first.score >= autoThreshold && margin >= requiredMargin) return result('resolved', input, first.officialName, candidates.slice(1, 4), first.matchType, first.score);
   const plausible = candidates.filter((candidate) => candidate.score >= 0.57).slice(0, limit);
-  if (plausible.length === 1 && plausible[0].score >= 0.86) {
-    return result('resolved', input, plausible[0].officialName, [], plausible[0].matchType, plausible[0].score);
-  }
+  if (plausible.length === 1 && plausible[0].score >= 0.86) return result('resolved', input, plausible[0].officialName, [], plausible[0].matchType, plausible[0].score);
   if (plausible.length) return result('ambiguous', input, null, plausible, 'fuzzy');
   return result('not_found', input, null, candidates.slice(0, 3), 'none');
 }
@@ -193,17 +155,12 @@ export function searchSchoolNames(query, contextOrEntries, options = {}) {
   const normalizedInput = normalizeSchoolText(query);
   const limit = Number.isFinite(options.limit) ? Math.max(1, options.limit) : 8;
   if (!normalizedInput) return [];
-
-  const context = Array.isArray(contextOrEntries)
-    ? buildLegacyContext(contextOrEntries)
-    : (contextOrEntries || {});
+  const context = Array.isArray(contextOrEntries) ? buildLegacyContext(contextOrEntries) : (contextOrEntries || {});
   const cacheKey = `${normalizedInput}|${limit}`;
   const cached = context.searchCache?.get(cacheKey);
   if (cached) return cached.map((item) => ({ ...item }));
-
   const generic = getGenericCandidates(normalizedInput, context.genericIndex, limit);
   if (generic.length) return cacheSearch(context.searchCache, cacheKey, generic);
-
   const candidateEntries = selectCandidateEntries(normalizedInput, context);
   const scored = [];
   for (const entry of candidateEntries) {
@@ -215,19 +172,12 @@ export function searchSchoolNames(query, contextOrEntries, options = {}) {
     if (best.score < 0.42) continue;
     scored.push({ officialName: entry.officialName, score: roundScore(best.score), matchType: best.matchType });
   }
-
   scored.sort((a, b) => b.score - a.score || a.officialName.length - b.officialName.length || a.officialName.localeCompare(b.officialName, 'zh-CN'));
   return cacheSearch(context.searchCache, cacheKey, scored.slice(0, limit));
 }
 
 export function normalizeSchoolText(value) {
-  return String(value || '')
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[（【\[]/g, '(')
-    .replace(/[）】\]]/g, ')')
-    .replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '')
-    .trim();
+  return String(value || '').normalize('NFKC').toLowerCase().replace(/[（【\[]/g, '(').replace(/[）】\]]/g, ')').replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '').trim();
 }
 
 function selectCandidateEntries(query, context) {
@@ -243,163 +193,59 @@ function selectCandidateEntries(query, context) {
   if (!selected.size) return entries;
   return [...selected].filter((entry) => Math.abs(entry.normalized.length - query.length) <= Math.max(5, Math.ceil(query.length * 0.7)));
 }
-
-function indexEntry(firstCharIndex, bigramIndex, entry, value) {
-  if (!value) return;
-  addToSetMap(firstCharIndex, value[0], entry);
-  for (const gram of bigrams(value)) addToSetMap(bigramIndex, gram, entry);
-}
-
-function bigrams(value) {
-  const chars = [...String(value || '')];
-  const grams = [];
-  for (let index = 0; index < chars.length - 1; index += 1) grams.push(chars[index] + chars[index + 1]);
-  return grams;
-}
-
+function indexEntry(firstCharIndex, bigramIndex, entry, value) { if (!value) return; addToSetMap(firstCharIndex, value[0], entry); for (const gram of bigrams(value)) addToSetMap(bigramIndex, gram, entry); }
+function bigrams(value) { const chars=[...String(value||'')]; const grams=[]; for(let i=0;i<chars.length-1;i+=1)grams.push(chars[i]+chars[i+1]); return grams; }
 function buildLegacyContext(entries) {
-  const normalizedEntries = entries.map((entry) => ({
-    ...entry,
-    aliasNormalized: [...(entry.aliases || [])].map(normalizeSchoolText)
-  }));
-  const firstCharIndex = new Map();
-  const bigramIndex = new Map();
-  const genericIndex = new Map();
-  for (const entry of normalizedEntries) {
-    indexEntry(firstCharIndex, bigramIndex, entry, entry.normalized);
-    for (const alias of entry.aliasNormalized) indexEntry(firstCharIndex, bigramIndex, entry, alias);
-  }
-  for (const [shortcut, suffixes] of GENERIC_SHORTCUTS) {
-    genericIndex.set(shortcut, normalizedEntries.filter((entry) => suffixes.some((suffix) => entry.officialName.includes(suffix))).sort(compareEntries));
-  }
-  return { entries: normalizedEntries, firstCharIndex, bigramIndex, genericIndex, searchCache: new Map() };
+  const normalizedEntries=entries.map((entry)=>({...entry,aliasNormalized:[...(entry.aliases||[])].map(normalizeSchoolText)}));
+  const firstCharIndex=new Map(),bigramIndex=new Map(),genericIndex=new Map();
+  for(const entry of normalizedEntries){indexEntry(firstCharIndex,bigramIndex,entry,entry.normalized);for(const alias of entry.aliasNormalized)indexEntry(firstCharIndex,bigramIndex,entry,alias);}
+  for(const [shortcut,suffixes] of GENERIC_SHORTCUTS)genericIndex.set(shortcut,normalizedEntries.filter((entry)=>suffixes.some((suffix)=>entry.officialName.includes(suffix))).sort(compareEntries));
+  return{entries:normalizedEntries,firstCharIndex,bigramIndex,genericIndex,searchCache:new Map()};
 }
-
-function getGenericCandidates(normalizedInput, genericIndex, limit) {
-  return (genericIndex?.get(normalizedInput) || []).slice(0, limit)
-    .map((entry) => ({ officialName: entry.officialName, score: 0.72, matchType: 'generic_shortcut' }));
-}
-
-function cacheSearch(cache, key, results) {
-  const copy = results.map((item) => ({ ...item }));
-  if (cache) {
-    if (cache.size >= SEARCH_CACHE_LIMIT) cache.delete(cache.keys().next().value);
-    cache.set(key, copy);
-  }
-  return copy.map((item) => ({ ...item }));
-}
+function getGenericCandidates(normalizedInput,genericIndex,limit){return(genericIndex?.get(normalizedInput)||[]).slice(0,limit).map((entry)=>({officialName:entry.officialName,score:0.72,matchType:'generic_shortcut'}));}
+function cacheSearch(cache,key,results){const copy=results.map((item)=>({...item}));if(cache){if(cache.size>=SEARCH_CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,copy);}return copy.map((item)=>({...item}));}
 
 function generateAliases(officialName) {
-  const aliases = new Set();
-  const normalizedDisplay = officialName.replace(/[（]/g, '(').replace(/[）]/g, ')');
+  const aliases=new Set();
+  const normalizedDisplay=officialName.replace(/[（]/g,'(').replace(/[）]/g,')');
   aliases.add(normalizedDisplay);
-  aliases.add(normalizedDisplay.replace(/[()]/g, ''));
-
-  const withoutSuffix = officialName.replace(/(职业技术大学|职业大学|高等专科学校|大学|学院)$/u, '');
-  if (withoutSuffix.length >= 3) aliases.add(withoutSuffix);
-
-  for (const [suffix, shortSuffix] of TYPE_REPLACEMENTS) {
-    if (!officialName.endsWith(suffix)) continue;
-    const prefix = officialName.slice(0, -suffix.length);
-    if (!prefix) continue;
-    aliases.add(prefix + shortSuffix);
-    aliases.add(prefix + suffix.replace(/大学$/, ''));
-    const regionShort = REGION_ABBR.get(prefix) || CITY_ABBR.get(prefix);
-    if (regionShort) aliases.add(regionShort + shortSuffix);
+  aliases.add(normalizedDisplay.replace(/[()]/g,''));
+  const withoutSuffix=officialName.replace(/(职业技术大学|职业大学|高等专科学校|大学|学院)$/u,'');
+  if(withoutSuffix.length>=3)aliases.add(withoutSuffix);
+  for(const [suffix,shortSuffix] of TYPE_REPLACEMENTS){
+    if(!officialName.endsWith(suffix))continue;
+    const prefix=officialName.slice(0,-suffix.length);if(!prefix)continue;
+    aliases.add(prefix+shortSuffix);aliases.add(prefix+suffix.replace(/大学$/,''));
+    const regionShort=REGION_ABBR.get(prefix)||CITY_ABBR.get(prefix);if(regionShort)aliases.add(regionShort+shortSuffix);
   }
-
-  const genericUniversity = officialName.match(/^(.{2,8})大学$/u);
-  if (genericUniversity) {
-    const prefix = genericUniversity[1];
-    const regionShort = REGION_ABBR.get(prefix) || CITY_ABBR.get(prefix);
-    if (regionShort) aliases.add(regionShort + '大');
-  }
-
-  if (officialName.includes('（')) aliases.add(officialName.replace(/（/g, '(').replace(/）/g, ')'));
-  if (officialName.includes('(')) aliases.add(officialName.replace(/\(/g, '（').replace(/\)/g, '）'));
+  const genericUniversity=officialName.match(/^(.{2,8})大学$/u);
+  if(genericUniversity){const prefix=genericUniversity[1];const regionShort=REGION_ABBR.get(prefix)||CITY_ABBR.get(prefix);if(regionShort)aliases.add(regionShort+'大');}
+  if(officialName.includes('（'))aliases.add(officialName.replace(/（/g,'(').replace(/）/g,')'));
+  if(officialName.includes('('))aliases.add(officialName.replace(/\(/g,'（').replace(/\)/g,'）'));
   return aliases;
 }
-
-function scoreText(query, target, kind) {
-  if (!query || !target) return { score: 0, matchType: 'none' };
-  if (query === target) return { score: kind === 'official' ? 1 : 0.99, matchType: `${kind}_exact` };
-  if (target.startsWith(query)) {
-    const coverage = query.length / target.length;
-    return { score: Math.min(0.97, 0.78 + coverage * 0.19 + (kind === 'alias' ? 0.015 : 0)), matchType: `${kind}_prefix` };
-  }
-  if (target.includes(query)) {
-    const coverage = query.length / target.length;
-    return { score: Math.min(0.9, 0.65 + coverage * 0.22 + (kind === 'alias' ? 0.015 : 0)), matchType: `${kind}_contains` };
-  }
-  if (query.startsWith(target) && target.length >= 3) {
-    const coverage = target.length / query.length;
-    return { score: Math.min(0.86, 0.58 + coverage * 0.24), matchType: `${kind}_expanded` };
-  }
-  if (query.length < 3 || target.length < 3) return { score: 0, matchType: 'none' };
-  const distance = levenshtein(query, target);
-  const similarity = 1 - distance / Math.max(query.length, target.length);
-  const prefixBonus = query[0] === target[0] ? 0.035 : 0;
-  const suffixBonus = query.at(-1) === target.at(-1) ? 0.02 : 0;
-  return { score: Math.max(0, similarity + prefixBonus + suffixBonus + (kind === 'alias' ? 0.01 : 0)), matchType: `${kind}_fuzzy` };
+function scoreText(query,target,kind){
+  if(!query||!target)return{score:0,matchType:'none'};
+  if(query===target)return{score:kind==='official'?1:0.99,matchType:`${kind}_exact`};
+  if(target.startsWith(query)){const coverage=query.length/target.length;return{score:Math.min(0.97,0.78+coverage*0.19+(kind==='alias'?0.015:0)),matchType:`${kind}_prefix`};}
+  if(target.includes(query)){const coverage=query.length/target.length;return{score:Math.min(0.9,0.65+coverage*0.22+(kind==='alias'?0.015:0)),matchType:`${kind}_contains`};}
+  if(query.startsWith(target)&&target.length>=3){const coverage=target.length/query.length;return{score:Math.min(0.86,0.58+coverage*0.24),matchType:`${kind}_expanded`};}
+  if(query.length<3||target.length<3)return{score:0,matchType:'none'};
+  const distance=levenshtein(query,target);const similarity=1-distance/Math.max(query.length,target.length);const prefixBonus=query[0]===target[0]?0.035:0;const suffixBonus=query.at(-1)===target.at(-1)?0.02:0;
+  return{score:Math.max(0,similarity+prefixBonus+suffixBonus+(kind==='alias'?0.01:0)),matchType:`${kind}_fuzzy`};
 }
-
-function levenshtein(a, b) {
-  const source = [...a];
-  const target = [...b];
-  let previous = Array.from({ length: target.length + 1 }, (_, index) => index);
-  for (let i = 1; i <= source.length; i += 1) {
-    const current = [i];
-    for (let j = 1; j <= target.length; j += 1) {
-      const cost = source[i - 1] === target[j - 1] ? 0 : 1;
-      current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, previous[j - 1] + cost);
-    }
-    previous = current;
-  }
-  return previous[target.length];
+function levenshtein(a,b){const source=[...a],target=[...b];let previous=Array.from({length:target.length+1},(_,i)=>i);for(let i=1;i<=source.length;i+=1){const current=[i];for(let j=1;j<=target.length;j+=1){const cost=source[i-1]===target[j-1]?0:1;current[j]=Math.min(current[j-1]+1,previous[j]+1,previous[j-1]+cost);}previous=current;}return previous[target.length];}
+function result(status,input,resolvedName,candidates,matchType,confidence=0){return{status,input,resolvedName,candidates:candidates||[],matchType,confidence:roundScore(confidence)};}
+function toCandidates(names,score,matchType){return names.map((officialName)=>({officialName,score,matchType}));}
+function addToSetMap(map,key,value){if(!key)return;if(!map.has(key))map.set(key,new Set());map.get(key).add(value);}
+function readRecord(value){
+  if(typeof value==='string'){const name=cleanOfficialName(value);return name?{name,location:'',level:''}:null;}
+  if(Array.isArray(value)){const name=cleanOfficialName(value[0]);return name?{name,location:cleanOfficialName(value[1]),level:cleanOfficialName(value[2])}:null;}
+  if(!value||typeof value!=='object')return null;
+  const name=cleanOfficialName(value.name||value.school||value.schoolName||value.school_name||'');
+  return name?{name,location:cleanOfficialName(value.location||value.province||''),level:cleanOfficialName(value.level||'')}:null;
 }
-
-function result(status, input, resolvedName, candidates, matchType, confidence = 0) {
-  return { status, input, resolvedName, candidates: candidates || [], matchType, confidence: roundScore(confidence) };
-}
-
-function toCandidates(names, score, matchType) {
-  return names.map((officialName) => ({ officialName, score, matchType }));
-}
-
-function addToSetMap(map, key, value) {
-  if (!key) return;
-  if (!map.has(key)) map.set(key, new Set());
-  map.get(key).add(value);
-}
-
-function readRecord(value) {
-  if (typeof value === 'string') {
-    const name = cleanOfficialName(value);
-    return name ? { name, location: '', level: '' } : null;
-  }
-  if (Array.isArray(value)) {
-    const name = cleanOfficialName(value[0]);
-    return name ? { name, location: cleanOfficialName(value[1]), level: cleanOfficialName(value[2]) } : null;
-  }
-  if (!value || typeof value !== 'object') return null;
-  const name = cleanOfficialName(value.name || value.school || value.schoolName || value.school_name || '');
-  return name ? { name, location: cleanOfficialName(value.location || value.province || ''), level: cleanOfficialName(value.level || '') } : null;
-}
-
-function cleanOfficialName(value) {
-  return String(value || '').normalize('NFKC').replace(/\s+/g, ' ').replace(/[。；;，,]+$/g, '').trim();
-}
-
-function uniqueRecords(records) {
-  const map = new Map();
-  for (const record of records) if (record?.name && !map.has(record.name)) map.set(record.name, record);
-  return [...map.values()];
-}
-
-function compareEntries(a, b) {
-  return a.officialName.length - b.officialName.length || a.officialName.localeCompare(b.officialName, 'zh-CN');
-}
-
-function roundScore(value) {
-  return Math.round((Number(value) || 0) * 1000) / 1000;
-}
+function cleanOfficialName(value){return String(value||'').replace(/\s+/g,' ').replace(/[。；;，,]+$/g,'').trim();}
+function uniqueRecords(records){const map=new Map();for(const record of records)if(record?.name&&!map.has(record.name))map.set(record.name,record);return[...map.values()];}
+function compareEntries(a,b){return a.officialName.length-b.officialName.length||a.officialName.localeCompare(b.officialName,'zh-CN');}
+function roundScore(value){return Math.round((Number(value)||0)*1000)/1000;}
