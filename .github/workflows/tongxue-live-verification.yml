@@ -28,6 +28,16 @@ jobs:
           cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
           node --check /tmp/tongxue-summary.mjs
           node --check tools/verify-tongxue-live.mjs
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('tongxue.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html, flags=re.I)
+          if not scripts:
+              raise SystemExit('No inline script found in tongxue.html')
+          Path('/tmp/tongxue-page.js').write_text('\n'.join(scripts), encoding='utf-8')
+          PY
+          node --check /tmp/tongxue-page.js
 
       - name: Execute actual Function against real source API
         env:
