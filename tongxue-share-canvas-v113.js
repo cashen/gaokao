@@ -16,7 +16,7 @@ export async function generateShareAssets(model,variant='featured'){
 class Writer{
   constructor(model){this.model=model;this.pages=[];this.page();}
   page(){this.canvas=document.createElement('canvas');this.canvas.width=W;this.canvas.height=H;this.ctx=this.canvas.getContext('2d',{alpha:false});this.ctx.fillStyle='#f6f8f7';this.ctx.fillRect(0,0,W,H);this.y=58;this.header();}
-  header(){const c=this.ctx;c.fillStyle='#155e75';c.font=font(30,850);c.fillText('Gaokao OS / 同学你好',72,this.y);this.y+=72;c.fillStyle='#17242d';c.font=font(64,900);for(const line of wrap(c,this.model.school,900).slice(0,2)){c.fillText(line,72,this.y);this.y+=78;}c.fillStyle='#60717a';c.font=font(27,600);c.fillText(this.model.mode==='ai_summary'?'来源站 AI 摘要':'近期公开评论',72,this.y);this.y+=50;if(this.model.meta.length){c.font=font(25,600);for(const line of wrap(c,this.model.meta.join('　'),900)){c.fillText(line,72,this.y);this.y+=38;}}this.y+=22;}
+  header(){const c=this.ctx;c.fillStyle='#155e75';c.font=font(30,850);c.fillText('同学你好',72,this.y);this.y+=72;c.fillStyle='#17242d';c.font=font(64,900);for(const line of wrap(c,this.model.school,900).slice(0,2)){c.fillText(line,72,this.y);this.y+=78;}c.fillStyle='#60717a';c.font=font(27,600);c.fillText(this.model.mode==='ai_summary'?'来源站 AI 摘要':'近期公开评论',72,this.y);this.y+=50;if(this.model.meta.length){c.font=font(25,600);for(const line of wrap(c,this.model.meta.join('　'),900)){c.fillText(line,72,this.y);this.y+=38;}}this.y+=22;}
   ensure(height){if(this.y+height<=BOTTOM)return;this.crop();this.page();}
   summary(group){
     const c=this.ctx;c.font=font(31,500);const lines=[];
