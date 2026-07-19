@@ -57,18 +57,18 @@ const searchBytes = (await stat('school-search-index.20260617.json')).size;
 if (searchBytes >= fullBytes * 0.5) failures.push(`精简索引体积未减少 50%：${searchBytes}/${fullBytes}`);
 
 const performanceQueries = ['辽科大', '科大', '大连理功大学', '辽宁科技', '北京工业大学', '中国矿业大学北京'];
-const performance = [];
+const performanceResults = [];
 for (const query of performanceQueries) {
   resolver.search(query, { limit: 8 });
   const samples = [];
   for (let index = 0; index < 200; index += 1) {
-    const started = performance.now();
+    const started = globalThis.performance.now();
     resolver.search(query, { limit: 8 });
-    samples.push(performance.now() - started);
+    samples.push(globalThis.performance.now() - started);
   }
   samples.sort((a, b) => a - b);
   const p95 = samples[Math.floor(samples.length * 0.95)];
-  performance.push({ query, p95Ms: Number(p95.toFixed(3)) });
+  performanceResults.push({ query, p95Ms: Number(p95.toFixed(3)) });
   if (p95 > 16) failures.push(`${query} 搜索 P95 超过 16ms：${p95.toFixed(3)}ms`);
 }
 
@@ -81,7 +81,7 @@ const report = {
   fullBytes,
   searchBytes,
   reduction: Number((1 - searchBytes / fullBytes).toFixed(4)),
-  performance,
+  performance: performanceResults,
   checks,
   failures
 };
@@ -89,7 +89,7 @@ await mkdir('/tmp/tongxue-live-artifact', { recursive: true });
 await writeFile('/tmp/tongxue-live-artifact/school-name-resolver-results.json', JSON.stringify(report, null, 2));
 await writeFile('/tmp/tongxue-live-artifact/school-name-index.generated.json', JSON.stringify(payload, null, 2) + '\n');
 await writeFile('/tmp/tongxue-live-artifact/school-search-index.20260617.json', JSON.stringify(searchPayload));
-console.log(`SCHOOL_RESOLVER_RESULTS ${JSON.stringify({ count: report.count, catalogFetchCount, fullBytes, searchBytes, performance, failures })}`);
+console.log(`SCHOOL_RESOLVER_RESULTS ${JSON.stringify({ count: report.count, catalogFetchCount, fullBytes, searchBytes, performance: performanceResults, failures })}`);
 if (failures.length) process.exitCode = 1;
 
 function checkResolved(input, expected, label) {
