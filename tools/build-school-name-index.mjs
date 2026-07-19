@@ -50,12 +50,13 @@ for (const file of files) {
 }
 
 const names = [...schoolSources.keys()].sort((a, b) => a.localeCompare(b, 'zh-CN'));
+const exactMap = Object.fromEntries(names.map((name) => [name, 'school']));
 const sourceCounts = Object.fromEntries([...schoolSources.entries()].map(([name, sources]) => [name, sources.size]));
 const payload = {
   version: 'v1.0.9',
   generatedAt: new Date().toISOString(),
   count: names.length,
-  names,
+  exactMap,
   sourceCounts,
   parseErrors
 };
