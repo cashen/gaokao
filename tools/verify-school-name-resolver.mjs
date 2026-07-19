@@ -4,7 +4,7 @@ import {
   extractSchoolNames
 } from '../school-name-resolver.js';
 
-const payload = JSON.parse(await readFile('fenxi/data/school_nature.json', 'utf8'));
+const payload = JSON.parse(await readFile('school-name-index.generated.json', 'utf8'));
 const names = extractSchoolNames(payload);
 const resolver = createSchoolNameResolver(names);
 
@@ -26,9 +26,7 @@ checkAmbiguous('师大', '通用简称师大');
 checkDifferent('辽宁科技大学', '辽宁科技学院');
 checkDifferent('辽宁工业大学', '辽宁工程技术大学');
 
-if (resolver.count < 500) {
-  failures.push(`全站高校名单数量异常：${resolver.count}`);
-}
+if (resolver.count < 500) failures.push(`全站高校名单数量异常：${resolver.count}`);
 
 const requiredNames = ['辽宁科技大学', '辽宁科技学院', '吉林大学', '大连理工大学', '北京航空航天大学'];
 for (const name of requiredNames) {
@@ -37,13 +35,16 @@ for (const name of requiredNames) {
 
 const report = {
   generatedAt: new Date().toISOString(),
+  indexGeneratedAt: payload.generatedAt || null,
   count: resolver.count,
+  parseErrors: payload.parseErrors || [],
   checks,
   failures
 };
 await mkdir('/tmp/tongxue-live-artifact', { recursive: true });
 await writeFile('/tmp/tongxue-live-artifact/school-name-resolver-results.json', JSON.stringify(report, null, 2));
-console.log(`SCHOOL_RESOLVER_RESULTS ${JSON.stringify(report)}`);
+await writeFile('/tmp/tongxue-live-artifact/school-name-index.generated.json', JSON.stringify(payload, null, 2) + '\n');
+console.log(`SCHOOL_RESOLVER_RESULTS ${JSON.stringify({ count: report.count, failures, parseErrors: report.parseErrors.length })}`);
 if (failures.length) process.exitCode = 1;
 
 function checkResolved(input, expected, label) {
