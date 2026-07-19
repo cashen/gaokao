@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import {
   createSchoolNameResolver,
   extractSchoolNames
@@ -36,10 +36,13 @@ for (const name of requiredNames) {
 }
 
 const report = {
+  generatedAt: new Date().toISOString(),
   count: resolver.count,
   checks,
   failures
 };
+await mkdir('/tmp/tongxue-live-artifact', { recursive: true });
+await writeFile('/tmp/tongxue-live-artifact/school-name-resolver-results.json', JSON.stringify(report, null, 2));
 console.log(`SCHOOL_RESOLVER_RESULTS ${JSON.stringify(report)}`);
 if (failures.length) process.exitCode = 1;
 
