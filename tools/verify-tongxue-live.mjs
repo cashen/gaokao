@@ -93,7 +93,7 @@ const htmlChecks = {
   incrementalReviews: runtime.includes('appendReviewCards') && runtime.includes("grid.append(template.content)") && !runtime.includes('renderActiveReviews();announce'),
   lazyReviewLayout: html.includes('content-visibility:auto') && html.includes('contain-intrinsic-size:320px'),
   browserAllowsCache: runtime.includes("cache:'default'") && !runtime.includes("cache:'no-store'"),
-  hasAccessibilitySupport: html.includes('aria-activedescendant') && html.includes('liveStatus') && html.includes('prefers-reduced-motion'),
+  hasAccessibilitySupport: runtime.includes('aria-activedescendant') && html.includes('liveStatus') && html.includes('prefers-reduced-motion'),
   usesRealButtonsForRetry: runtime.includes('class="action-button"') && !runtime.includes('href="#" data-retry'),
   escapesReviewContent: runtime.includes('escapeHtml(content)'),
   noBrowserJina: !runtime.includes('r.jina.ai') && !runtime.includes('JINA_API_KEY'),
