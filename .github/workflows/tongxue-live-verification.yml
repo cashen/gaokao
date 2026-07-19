@@ -1,0 +1,36 @@
+name: Tongxue live verification
+
+on:
+  pull_request:
+    paths:
+      - 'tongxue.html'
+      - 'functions/api/tongxue-summary.js'
+      - 'tools/verify-tongxue-live.mjs'
+      - '.github/workflows/tongxue-live-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax check
+        run: |
+          cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
+          node --check /tmp/tongxue-summary.mjs
+          node --check tools/verify-tongxue-live.mjs
+
+      - name: Verify real source pages and parser
+        env:
+          REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
+          TEST_SCHOOLS: 吉林大学,大连理工大学,辽宁大学,辽宁科技大学
+        run: node tools/verify-tongxue-live.mjs
