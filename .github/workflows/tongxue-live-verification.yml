@@ -1,0 +1,55 @@
+name: Tongxue live verification
+
+on:
+  pull_request:
+    paths:
+      - 'tongxue.html'
+      - 'functions/api/tongxue-summary.js'
+      - 'tools/verify-tongxue-live.mjs'
+      - '.github/workflows/tongxue-live-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax check
+        run: |
+          cp functions/api/tongxue-summary.js /tmp/tongxue-summary.mjs
+          node --check /tmp/tongxue-summary.mjs
+          node --check tools/verify-tongxue-live.mjs
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('tongxue.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html, flags=re.I)
+          if not scripts:
+              raise SystemExit('No inline script found in tongxue.html')
+          Path('/tmp/tongxue-page.js').write_text('\n'.join(scripts), encoding='utf-8')
+          PY
+          node --check /tmp/tongxue-page.js
+
+      - name: Execute actual Function against real source API
+        env:
+          REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
+          EXPECTED_NULL_SCHOOLS: 辽宁大学,辽宁科技大学
+        run: node tools/verify-tongxue-live.mjs
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-live-results
+          path: /tmp/tongxue-live-artifact
+          if-no-files-found: warn
+          retention-days: 3
