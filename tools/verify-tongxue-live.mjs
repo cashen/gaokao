@@ -52,9 +52,11 @@ for (const school of schools) {
 
 const html = await readFile('tongxue.html', 'utf8');
 const htmlChecks = {
-  version108: html.includes("const PAGE_VERSION='v1.0.8'") && html.includes('同学你好 v1.0.8'),
-  noDefaultJilin: !/<input[^>]*id=["']school["'][^>]*value=["'][^"']*吉林大学/i.test(html),
-  hasBlankSchoolInput: /<input[^>]*id=["']school["'][^>]*placeholder=["']例如：吉林大学["']/i.test(html),
+  version109: html.includes("const PAGE_VERSION='v1.0.9'") && html.includes('同学你好 v1.0.9'),
+  noDefaultSchool: !/<input[^>]*id=["']school["'][^>]*value=/i.test(html),
+  hasAliasExamples: html.includes('辽科大') && html.includes('大连理功大学'),
+  importsResolver: html.includes("from '/school-name-resolver.js'"),
+  usesAllSchoolList: html.includes('正在载入全站高校名单'),
   noBrowserJina: !html.includes('r.jina.ai') && !html.includes('JINA_API_KEY')
 };
 console.log(`HTML_CHECKS ${JSON.stringify(htmlChecks)}`);
