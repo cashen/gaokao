@@ -18,12 +18,3 @@
   Cache-Control: public, max-age=31536000, immutable
 /tongxue/data/school-search-index.20260617-v150.json
   Cache-Control: public, max-age=31536000, immutable
-
-/tongxue/app/tongxue-performance-v160.js
-  Cache-Control: public, max-age=31536000, immutable
-/tongxue/portrait/tongxue-school-portrait-v160.js
-  Cache-Control: public, max-age=31536000, immutable
-/tongxue/portrait/tongxue-school-portrait-view-v160.js
-  Cache-Control: public, max-age=31536000, immutable
-/tongxue/portrait/tongxue-school-portrait-style-v160.js
-  Cache-Control: public, max-age=31536000, immutable

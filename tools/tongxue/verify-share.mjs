@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 const failures=[];
 const html=await readFile('tongxue/index.html','utf8');
-const wrapper=await readFile('tongxue/app/tongxue-performance-v160.js','utf8');
+const wrapper=await readFile('tongxue/app/tongxue-performance-v150.js','utf8');
 const share=await readFile('tongxue/share/tongxue-share-v130.js','utf8');
 const canvasSource=await readFile('tongxue/share/tongxue-share-canvas-v113.js','utf8');
 const qr=await readFile('tongxue/share/tongxue-share-qr-v113.js','utf8');
@@ -56,9 +56,9 @@ if(originalCreateObjectURL)URL.createObjectURL=originalCreateObjectURL;
 for(const [name,passed] of Object.entries(executionChecks))if(!passed)failures.push(name);
 
 const checks={
-  pageVersion:html.includes('同学你好 v1.6.0')&&html.includes('./app/tongxue-performance-v160.js?v=160'),
+  pageVersion:html.includes('同学你好 v1.5.0')&&html.includes('./app/tongxue-performance-v150.js?v=150'),
   newCopy:html.includes('看看学长学姐真实聊过的')&&html.includes('拼音首字母')&&html.includes('看看同学怎么说'),
-  keepsQueryRuntime:wrapper.includes('tongxue-performance-v112.js?v=160'),
+  keepsQueryRuntime:wrapper.includes('tongxue-performance-v112.js?v=150'),
   installsShare:wrapper.includes('installTongxueShare'),
   installsPortrait:wrapper.includes('installSchoolPortrait'),
   button:share.includes('生成分享图'),

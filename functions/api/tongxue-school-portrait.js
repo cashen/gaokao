@@ -1,6 +1,6 @@
 import{onRequest as baseOnRequest}from'../_lib/tongxue-school-portrait-base-v120.js';
 import{resolveEntityRequest,publicSchoolEntity,isEntitySourceAvailable,entitySourceQuery,entitySourceId}from'../../tongxue/data/school-entities-v130.js';
-const VERSION='v1.6.0';
+const VERSION='v1.3.0';
 export async function onRequest(context){
  const url=new URL(context.request.url),school=String(url.searchParams.get('school')||'').trim(),entityId=String(url.searchParams.get('entity')||'').trim();
  const resolved=resolveEntityRequest(entityId,school);
