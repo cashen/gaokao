@@ -41,12 +41,12 @@ jobs:
           node --check functions/api/tongxue-school-portrait.js
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
-      - name: Verify share and portrait
+      - name: Verify mobile share workflow
+        run: node tools/tongxue/verify-share.mjs
+      - name: Verify school portrait workflow
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
-        run: |
-          node tools/tongxue/verify-share.mjs
-          node tools/tongxue/verify-portrait.mjs
+        run: node tools/tongxue/verify-portrait.mjs
       - name: Rebuild official school indexes
         run: |
           mkdir -p /tmp/tongxue-live-artifact
