@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   live-verification:
@@ -21,9 +21,6 @@ jobs:
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -32,11 +29,6 @@ jobs:
           python-version: '3.12'
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
-      - name: Apply bounded v1.4.1 migration
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/tongxue-input-fluency-v141'
-        run: |
-          node tools/tongxue/apply-input-fluency-v141.mjs
-          node tools/tongxue/build-school-initial-index-v141.mjs
       - name: Syntax and directory contract
         run: |
           for file in \
@@ -74,27 +66,10 @@ jobs:
           test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
           python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
           node tools/tongxue/build-school-initial-index-v141.mjs
+          git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
           node tools/tongxue/verify-school-name-resolver.mjs
           node tools/tongxue/verify-school-initials-v141.mjs
           node tools/tongxue/verify-school-input-fluency-v141.mjs
-      - name: Commit generated v1.4.1 artifacts
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'agent/tongxue-input-fluency-v141'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            tongxue/app/tongxue-performance-v112.js \
-            tongxue/data/school-search-index.20260617.json \
-            tongxue/index.html \
-            tongxue/changelog.html \
-            tools/tongxue/verify-directory.mjs \
-            tools/tongxue/verify-share.mjs \
-            tools/tongxue/verify-school-initials-v140.mjs
-          if ! git diff --cached --quiet; then
-            git commit -m 'build: generate Tongxue v1.4.1 input index'
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi
-          git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json tongxue/app/tongxue-performance-v112.js tongxue/index.html tongxue/changelog.html
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
