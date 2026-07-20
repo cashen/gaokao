@@ -9,6 +9,7 @@ on:
       - 'functions/api/tongxue-*.js'
       - 'functions/_lib/tongxue-*.js'
       - 'tools/tongxue/**'
+      - '_headers'
       - '.github/workflows/tongxue-live-verification.yml'
   workflow_dispatch:
 
@@ -44,11 +45,13 @@ jobs:
             tools/tongxue/*.mjs; do
             node --check "$file"
           done
-          python -m py_compile tools/tongxue/build-moe-2026-school-index.py
+          python -m py_compile tools/tongxue/build-moe-2026-school-index.py tools/tongxue/build-school-region-index-v150.py
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
           node tools/tongxue/verify-school-initials-v141.mjs
           node tools/tongxue/verify-school-input-fluency-v141.mjs
+          node tools/tongxue/verify-school-region-v150.mjs
+          node tools/tongxue/verify-school-region-ui-v150.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
@@ -67,9 +70,14 @@ jobs:
           python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
           node tools/tongxue/build-school-initial-index-v141.mjs
           git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
+          python tools/tongxue/build-school-region-index-v150.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
+          node tools/tongxue/build-school-initial-index-v150.mjs
+          git diff --exit-code -- tongxue/data/school-search-index.20260617-v150.json
           node tools/tongxue/verify-school-name-resolver.mjs
           node tools/tongxue/verify-school-initials-v141.mjs
           node tools/tongxue/verify-school-input-fluency-v141.mjs
+          node tools/tongxue/verify-school-region-v150.mjs
+          node tools/tongxue/verify-school-region-ui-v150.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
