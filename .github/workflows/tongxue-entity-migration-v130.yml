@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: feat/tongxue-school-entities-v130
-          fetch-depth: 1
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -76,4 +76,10 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add tongxue functions/api/tongxue-summary.js functions/api/tongxue-school-portrait.js functions/_lib/tongxue-summary-base-v112.js functions/_lib/tongxue-school-portrait-base-v120.js tools/tongxue/verify-live.mjs tools/tongxue/verify-portrait.mjs tools/tongxue/verify-share.mjs tools/tongxue/verify-directory.mjs tools/tongxue/verify-school-entities-v130.mjs
           git diff --cached --quiet || git commit -m 'feat: support school branches and campuses v1.3.0'
-          git push origin HEAD:feat/tongxue-school-entities-v130
+          for attempt in 1 2 3 4 5; do
+            git fetch origin feat/tongxue-school-entities-v130
+            git rebase origin/feat/tongxue-school-entities-v130
+            if git push origin HEAD:feat/tongxue-school-entities-v130; then exit 0; fi
+            sleep 4
+          done
+          exit 1
