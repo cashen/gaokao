@@ -1,12 +1,13 @@
 import { readFile } from 'node:fs/promises';
 
-const [page,entry,loader,view,style,core,api,headers,changelog,workflow]=await Promise.all([
+const [page,entry,loader,view,style,core,baseApi,api,headers,changelog,workflow]=await Promise.all([
   readFile('tongxue/index.html','utf8'),
   readFile('tongxue/app/tongxue-performance-v160.js','utf8'),
   readFile('tongxue/portrait/tongxue-school-portrait-v160.js','utf8'),
   readFile('tongxue/portrait/tongxue-school-portrait-view-v160.js','utf8'),
   readFile('tongxue/portrait/tongxue-school-portrait-style-v160.js','utf8'),
   readFile('functions/_lib/tongxue-school-portrait-core.js','utf8'),
+  readFile('functions/_lib/tongxue-school-portrait-base-v120.js','utf8'),
   readFile('functions/api/tongxue-school-portrait.js','utf8'),
   readFile('_headers','utf8'),
   readFile('tongxue/changelog.html','utf8'),
@@ -35,7 +36,8 @@ check('移动端单列',style.includes('@media(max-width:700px)')&&style.include
 check('核心证据结构',core.includes("version:'v1.6.0'")&&core.includes('buildEvidenceInterpretation')&&core.includes('buildVerificationChecklist'));
 check('不复制评论正文到主题信号',core.includes('sourceUrls')&&!core.includes('snippet:'));
 check('官方事实边界',core.includes('不等于学校官方事实或统一排名'));
-check('API 升级',api.includes("const API_VERSION = 'v1.6.0';")&&api.includes("url.searchParams.set('schema', API_VERSION)"));
+check('底层 API 升级',baseApi.includes("const API_VERSION = 'v1.6.0';")&&baseApi.includes("url.searchParams.set('schema', API_VERSION)"));
+check('实体包装版本升级',api.includes("const VERSION='v1.6.0';")&&api.includes('payload.version=VERSION'));
 check('版本资源缓存',headers.includes('/tongxue/app/tongxue-performance-v160.js')&&headers.includes('/tongxue/portrait/tongxue-school-portrait-v160.js')&&headers.includes('immutable'));
 check('更新记录',changelog.includes('v1.6.0 · 证据解释层')&&changelog.indexOf('v1.6.0')<changelog.indexOf('v1.5.0'));
 check('工作流执行证据回归',workflow.includes('verify-school-evidence-v160.mjs')&&workflow.includes('verify-school-evidence-ui-v160.mjs'));
