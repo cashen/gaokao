@@ -18,7 +18,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,7 +35,9 @@ jobs:
             functions/api/tongxue-summary.js \
             functions/api/tongxue-school-portrait.js \
             functions/_lib/tongxue-school-portrait-core.js \
-            tongxue/data/school-name-resolver.js \
+            functions/_lib/tongxue-school-portrait-base-v120.js \
+            functions/_lib/tongxue-summary-base-v112.js \
+            tongxue/data/*.js \
             tongxue/app/*.js \
             tongxue/portrait/*.js \
             tongxue/share/*.js \
@@ -44,11 +46,12 @@ jobs:
           done
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py
           node tools/tongxue/verify-directory.mjs
+          node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
         env:
-          PORTRAIT_LIVE_SCHOOLS: 东北大学,辽宁大学
+          PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
         run: node tools/tongxue/verify-portrait.mjs
       - name: Rebuild official school indexes
         run: |
