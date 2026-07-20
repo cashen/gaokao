@@ -1,5 +1,4 @@
 import { createEntityAwareResolver } from './school-entities-v130.js';
-import { createSchoolInitialCodes, isInitialQuery, normalizeInitialQuery } from './school-pinyin-initials-v140.js';
 
 export const SCHOOL_NAME_DATA_URL = new URL('./school-search-index.20260617.json', import.meta.url).href;
 
@@ -26,6 +25,7 @@ export async function loadSchoolCatalog(url = SCHOOL_NAME_DATA_URL, fetchImpl = 
   return Object.freeze({ resolver, metadata: resolver.metadata, count: baseResolver.count, entityCount: resolver.entityCount, asOfDate: String(payload?.asOfDate || '') });
 }
 export async function loadSchoolNameResolver(url = SCHOOL_NAME_DATA_URL, fetchImpl = globalThis.fetch) { return (await loadSchoolCatalog(url, fetchImpl)).resolver; }
+
 export function extractSchoolRecords(payload) {
   if (Array.isArray(payload)) return uniqueRecords(payload.map(readRecord).filter(Boolean));
   if (!payload || typeof payload !== 'object') return [];
@@ -39,23 +39,24 @@ export function createSchoolNameResolver(schoolRows) {
   const records = uniqueRecords((schoolRows || []).map(readRecord).filter(Boolean));
   const names = records.map((record) => record.name);
   const nameSet = new Set(names);
-  const recordByName = new Map(records.map((record) => [record.name, record]));
   const metadata = new Map(records.map((record) => [record.name, Object.freeze({ ...record })]));
-  const entries = records.map((record) => ({ officialName: record.name, normalized: normalizeSchoolText(record.name), aliases: new Set(), aliasNormalized: [], initialCodes: [] }));
+  const entries = records.map((record) => ({ officialName: record.name, normalized: normalizeSchoolText(record.name), aliases: new Set(), aliasNormalized: [], initialCodes: record.initialCodes || [] }));
   const entryByName = new Map(entries.map((entry) => [entry.officialName, entry]));
-  const officialMap = new Map(), aliasMap = new Map(), firstCharIndex = new Map(), bigramIndex = new Map(), genericIndex = new Map(), initialExactMap = new Map(), initialPrefixIndex = new Map(), searchCache = new Map();
-  for (const entry of entries) { addToSetMap(officialMap, entry.normalized, entry.officialName); for (const alias of generateAliases(entry.officialName)) entry.aliases.add(alias); }
+  const officialMap = new Map(), aliasMap = new Map(), firstCharIndex = new Map(), bigramIndex = new Map(), genericIndex = new Map(), initialExactMap = new Map(), initialBucketIndex = new Map(), searchCache = new Map();
+  for (const entry of entries) {
+    addToSetMap(officialMap, entry.normalized, entry.officialName);
+    for (const alias of generateAliases(entry.officialName)) entry.aliases.add(alias);
+  }
   for (const [alias, officialName] of Object.entries(EXPLICIT_ALIASES)) if (nameSet.has(officialName)) entryByName.get(officialName)?.aliases.add(alias);
   for (const entry of entries) {
     entry.aliasNormalized = [...entry.aliases].map(normalizeSchoolText).filter((alias) => alias && alias !== entry.normalized);
-    entry.initialCodes = createSchoolInitialCodes(entry.officialName, [...entry.aliases], recordByName.get(entry.officialName)?.initialCodes || []);
     for (const alias of entry.aliasNormalized) addToSetMap(aliasMap, alias, entry.officialName);
-    for (const code of entry.initialCodes) indexInitial(initialExactMap, initialPrefixIndex, code, entry);
+    for (const code of entry.initialCodes) indexInitial(initialExactMap, initialBucketIndex, code, entry);
     indexEntry(firstCharIndex, bigramIndex, entry, entry.normalized);
     for (const alias of entry.aliasNormalized) indexEntry(firstCharIndex, bigramIndex, entry, alias);
   }
   for (const [shortcut, suffixes] of GENERIC_SHORTCUTS) genericIndex.set(shortcut, entries.filter((entry) => suffixes.some((suffix) => entry.officialName.includes(suffix))).sort(compareEntries));
-  const context = { entries, officialMap, aliasMap, firstCharIndex, bigramIndex, genericIndex, initialExactMap, initialPrefixIndex, searchCache };
+  const context = { entries, officialMap, aliasMap, firstCharIndex, bigramIndex, genericIndex, initialExactMap, initialBucketIndex, searchCache };
   return Object.freeze({ count: names.length, names: Object.freeze([...names]), metadata, getMetadata(name) { return metadata.get(cleanOfficialName(name)) || null; }, resolve(query, options = {}) { return resolveSchoolName(query, { ...context, ...options }); }, search(query, options = {}) { return searchSchoolNames(query, context, options); } });
 }
 
@@ -68,8 +69,10 @@ export function resolveSchoolName(query, context) {
   const aliasMatches = [...(context?.aliasMap?.get(normalizedInput) || [])];
   if (aliasMatches.length === 1) return result('resolved', input, aliasMatches[0], [], 'alias_exact', 0.99);
   if (aliasMatches.length > 1) return result('ambiguous', input, null, toCandidates(aliasMatches, 0.99, 'alias_exact'), 'alias_exact');
-  if (isInitialQuery(input)) {
-    const code = normalizeInitialQuery(input), exact = [...(context?.initialExactMap?.get(code) || [])];
+  if (isLatinCodeInput(input)) {
+    const code = normalizeInitialQuery(input);
+    if (code.length < 2) return result('not_found', input, null, [], 'none');
+    const exact = [...(context?.initialExactMap?.get(code) || [])];
     if (exact.length === 1) return result('resolved', input, exact[0].officialName, [], 'initial_exact', 0.995);
     if (exact.length > 1) return result('ambiguous', input, null, exact.map((entry) => initialCandidate(entry, 0.995, 'initial_exact')), 'initial_exact');
     const initials = searchInitialSchoolNames(code, context, limit);
@@ -93,7 +96,11 @@ export function searchSchoolNames(query, contextOrEntries, options = {}) {
   if (!normalizedInput) return [];
   const context = Array.isArray(contextOrEntries) ? buildLegacyContext(contextOrEntries) : (contextOrEntries || {}), cacheKey = `${normalizedInput}|${limit}`;
   const cached = context.searchCache?.get(cacheKey); if (cached) return cached.map((item) => ({ ...item }));
-  if (isInitialQuery(query)) return cacheSearch(context.searchCache, cacheKey, searchInitialSchoolNames(normalizeInitialQuery(query), context, limit));
+  if (isLatinCodeInput(query)) {
+    const code = normalizeInitialQuery(query);
+    if (code.length < 2) return cacheSearch(context.searchCache, cacheKey, []);
+    return cacheSearch(context.searchCache, cacheKey, searchInitialSchoolNames(code, context, limit));
+  }
   const generic = getGenericCandidates(normalizedInput, context.genericIndex, limit); if (generic.length) return cacheSearch(context.searchCache, cacheKey, generic);
   const candidateEntries = selectCandidateEntries(normalizedInput, context), scored = [];
   for (const entry of candidateEntries) {
@@ -105,25 +112,33 @@ export function searchSchoolNames(query, contextOrEntries, options = {}) {
   scored.sort((a, b) => b.score - a.score || a.officialName.length - b.officialName.length || a.officialName.localeCompare(b.officialName, 'zh-CN'));
   return cacheSearch(context.searchCache, cacheKey, scored.slice(0, limit));
 }
-export function normalizeSchoolText(value) { return String(value || '').normalize('NFKC').toLowerCase().replace(/[（【\[]/g, '(').replace(/[）】\]]/g, ')').replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '').trim(); }
 
+export function normalizeSchoolText(value) { return String(value || '').normalize('NFKC').toLowerCase().replace(/[（【\[]/g, '(').replace(/[）】\]]/g, ')').replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '').trim(); }
+export function normalizeInitialQuery(value) { return String(value || '').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+export function isInitialQuery(value) { return isLatinCodeInput(value) && normalizeInitialQuery(value).length >= 2; }
+
+function isLatinCodeInput(value) { const source=String(value||'').normalize('NFKC').trim(); return Boolean(source)&&/^[a-z0-9\s._-]+$/i.test(source); }
 function searchInitialSchoolNames(code, context, limit) {
+  if (code.length < 2) return [];
   const exact = [...(context.initialExactMap?.get(code) || [])];
   if (exact.length) return exact.sort(compareEntries).slice(0, limit).map((entry) => initialCandidate(entry, 0.995, 'initial_exact'));
-  const rows = [...(context.initialPrefixIndex?.get(code) || [])].map((entry) => {
+  const pool = [...(context.initialBucketIndex?.get(code.slice(0, 2)) || [])];
+  const rows = [];
+  for (const entry of pool) {
     const matching = (entry.initialCodes || []).filter((item) => item.startsWith(code)).sort((a,b)=>a.length-b.length)[0] || '';
-    const coverage = matching ? code.length / matching.length : 0;
-    return initialCandidate(entry, Math.min(0.97, 0.76 + coverage * 0.2), 'initial_prefix');
-  });
+    if (!matching) continue;
+    const coverage = code.length / matching.length;
+    rows.push(initialCandidate(entry, Math.min(0.97, 0.76 + coverage * 0.2), 'initial_prefix'));
+  }
   rows.sort((a,b)=>b.score-a.score||a.officialName.length-b.officialName.length||a.officialName.localeCompare(b.officialName,'zh-CN'));
   return rows.slice(0, limit);
 }
-function indexInitial(exactMap, prefixMap, code, entry) { if (!code) return; addToSetMap(exactMap, code, entry); for (let size=2; size<code.length; size+=1) addToSetMap(prefixMap, code.slice(0,size), entry); }
+function indexInitial(exactMap, bucketMap, code, entry) { const normalized=normalizeInitialQuery(code); if(normalized.length<2)return; addToSetMap(exactMap,normalized,entry); addToSetMap(bucketMap,normalized.slice(0,2),entry); }
 function initialCandidate(entry, score, matchType) { return { officialName: entry.officialName, score: roundScore(score), matchType }; }
 function selectCandidateEntries(query, context) { const entries=context.entries||[]; if(entries.length<500)return entries; const selected=new Set(),first=context.firstCharIndex?.get(query[0]); if(first)for(const entry of first)selected.add(entry); for(const gram of bigrams(query)){const matches=context.bigramIndex?.get(gram);if(matches)for(const entry of matches)selected.add(entry);} if(!selected.size)return entries; return [...selected].filter((entry)=>Math.abs(entry.normalized.length-query.length)<=Math.max(5,Math.ceil(query.length*0.7))); }
 function indexEntry(firstCharIndex,bigramIndex,entry,value){if(!value)return;addToSetMap(firstCharIndex,value[0],entry);for(const gram of bigrams(value))addToSetMap(bigramIndex,gram,entry);}
 function bigrams(value){const chars=[...String(value||'')],grams=[];for(let i=0;i<chars.length-1;i+=1)grams.push(chars[i]+chars[i+1]);return grams;}
-function buildLegacyContext(entries){const normalizedEntries=entries.map((entry)=>({...entry,aliasNormalized:[...(entry.aliases||[])].map(normalizeSchoolText),initialCodes:entry.initialCodes||createSchoolInitialCodes(entry.officialName,[...(entry.aliases||[])])}));const firstCharIndex=new Map(),bigramIndex=new Map(),genericIndex=new Map(),initialExactMap=new Map(),initialPrefixIndex=new Map();for(const entry of normalizedEntries){indexEntry(firstCharIndex,bigramIndex,entry,entry.normalized);for(const alias of entry.aliasNormalized)indexEntry(firstCharIndex,bigramIndex,entry,alias);for(const code of entry.initialCodes)indexInitial(initialExactMap,initialPrefixIndex,code,entry);}for(const [shortcut,suffixes] of GENERIC_SHORTCUTS)genericIndex.set(shortcut,normalizedEntries.filter((entry)=>suffixes.some((suffix)=>entry.officialName.includes(suffix))).sort(compareEntries));return{entries:normalizedEntries,firstCharIndex,bigramIndex,genericIndex,initialExactMap,initialPrefixIndex,searchCache:new Map()};}
+function buildLegacyContext(entries){const normalizedEntries=entries.map((entry)=>({...entry,aliasNormalized:[...(entry.aliases||[])].map(normalizeSchoolText),initialCodes:normalizeInitialCodes(entry.initialCodes||[])}));const firstCharIndex=new Map(),bigramIndex=new Map(),genericIndex=new Map(),initialExactMap=new Map(),initialBucketIndex=new Map();for(const entry of normalizedEntries){indexEntry(firstCharIndex,bigramIndex,entry,entry.normalized);for(const alias of entry.aliasNormalized)indexEntry(firstCharIndex,bigramIndex,entry,alias);for(const code of entry.initialCodes)indexInitial(initialExactMap,initialBucketIndex,code,entry);}for(const [shortcut,suffixes] of GENERIC_SHORTCUTS)genericIndex.set(shortcut,normalizedEntries.filter((entry)=>suffixes.some((suffix)=>entry.officialName.includes(suffix))).sort(compareEntries));return{entries:normalizedEntries,firstCharIndex,bigramIndex,genericIndex,initialExactMap,initialBucketIndex,searchCache:new Map()};}
 function getGenericCandidates(normalizedInput,genericIndex,limit){return(genericIndex?.get(normalizedInput)||[]).slice(0,limit).map((entry)=>({officialName:entry.officialName,score:0.72,matchType:'generic_shortcut'}));}
 function cacheSearch(cache,key,results){const copy=results.map((item)=>({...item}));if(cache){if(cache.size>=SEARCH_CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,copy);}return copy.map((item)=>({...item}));}
 function generateAliases(officialName){const aliases=new Set(),normalizedDisplay=officialName.replace(/[（]/g,'(').replace(/[）]/g,')');aliases.add(normalizedDisplay);aliases.add(normalizedDisplay.replace(/[()]/g,''));const withoutSuffix=officialName.replace(/(职业技术大学|职业大学|高等专科学校|大学|学院)$/u,'');if(withoutSuffix.length>=3)aliases.add(withoutSuffix);for(const [suffix,shortSuffix] of TYPE_REPLACEMENTS){if(!officialName.endsWith(suffix))continue;const prefix=officialName.slice(0,-suffix.length);if(!prefix)continue;aliases.add(prefix+shortSuffix);aliases.add(prefix+suffix.replace(/大学$/,''));const regionShort=REGION_ABBR.get(prefix)||CITY_ABBR.get(prefix);if(regionShort)aliases.add(regionShort+shortSuffix);}const genericUniversity=officialName.match(/^(.{2,8})大学$/u);if(genericUniversity){const prefix=genericUniversity[1],regionShort=REGION_ABBR.get(prefix)||CITY_ABBR.get(prefix);if(regionShort)aliases.add(regionShort+'大');}if(officialName.includes('（'))aliases.add(officialName.replace(/（/g,'(').replace(/）/g,')'));if(officialName.includes('('))aliases.add(officialName.replace(/\(/g,'（').replace(/\)/g,'）'));return aliases;}
@@ -133,7 +148,7 @@ function result(status,input,resolvedName,candidates,matchType,confidence=0){ret
 function toCandidates(names,score,matchType){return names.map((officialName)=>({officialName,score,matchType}));}
 function addToSetMap(map,key,value){if(!key)return;if(!map.has(key))map.set(key,new Set());map.get(key).add(value);}
 function readRecord(value){if(typeof value==='string'){const name=cleanOfficialName(value);return name?{name,location:'',level:'',initialCodes:[]}:null;}if(Array.isArray(value)){const name=cleanOfficialName(value[0]);return name?{name,location:cleanOfficialName(value[1]),level:cleanOfficialName(value[2]),initialCodes:normalizeInitialCodes(value[3])}:null;}if(!value||typeof value!=='object')return null;const name=cleanOfficialName(value.name||value.school||value.schoolName||value.school_name||'');return name?{name,location:cleanOfficialName(value.location||value.province||''),level:cleanOfficialName(value.level||''),initialCodes:normalizeInitialCodes(value.initialCodes||value.initials||value.pinyinInitials)}:null;}
-function normalizeInitialCodes(value){return(Array.isArray(value)?value:[value]).map(normalizeInitialQuery).filter(Boolean);}
+function normalizeInitialCodes(value){return[...new Set((Array.isArray(value)?value:[value]).map(normalizeInitialQuery).filter((code)=>code.length>=2))];}
 function cleanOfficialName(value){return String(value||'').replace(/\s+/g,' ').replace(/[。；;，,]+$/g,'').trim();}
 function uniqueRecords(records){const map=new Map();for(const record of records)if(record?.name&&!map.has(record.name))map.set(record.name,record);return[...map.values()];}
 function compareEntries(a,b){return a.officialName.length-b.officialName.length||a.officialName.localeCompare(b.officialName,'zh-CN');}
