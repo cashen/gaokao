@@ -1,7 +1,7 @@
 import { installPortraitStyles } from './tongxue-school-portrait-style-v120.js';
 import { addIdentityTags, renderPortrait, renderPortraitFailure, renderPortraitLoading } from './tongxue-school-portrait-view-v120.js';
 
-const VERSION='v1.5.3';
+const VERSION='v1.5.2';
 const TTL=600000;
 const cache=new Map();
 const inflight=new Map();
