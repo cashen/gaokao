@@ -4,8 +4,12 @@ import { pathToFileURL } from 'node:url';
 const artifactDir='/tmp/tongxue-live-artifact';
 await mkdir(artifactDir,{recursive:true});
 const coreSource=await readFile('functions/_lib/tongxue-school-portrait-core.js','utf8');
-const functionSource=(await readFile('functions/api/tongxue-school-portrait.js','utf8')).replace("'../_lib/tongxue-school-portrait-core.js'","'./tongxue-school-portrait-core.mjs'");
+const entitySource=await readFile('tongxue/data/school-entities-v130.js','utf8');
+const baseSource=(await readFile('functions/_lib/tongxue-school-portrait-base-v120.js','utf8')).replace("'./tongxue-school-portrait-core.js'","'./tongxue-school-portrait-core.mjs'");
+const functionSource=(await readFile('functions/api/tongxue-school-portrait.js','utf8')).replace("'../_lib/tongxue-school-portrait-base-v120.js'","'./tongxue-school-portrait-base-v120.mjs'").replace("'../../tongxue/data/school-entities-v130.js'","'./school-entities-v130.mjs'");
+await writeFile('/tmp/school-entities-v130.mjs',entitySource);
 await writeFile('/tmp/tongxue-school-portrait-core.mjs',coreSource);
+await writeFile('/tmp/tongxue-school-portrait-base-v120.mjs',baseSource);
 await writeFile('/tmp/tongxue-school-portrait.mjs',functionSource);
 const core=await import(pathToFileURL('/tmp/tongxue-school-portrait-core.mjs'));
 const portraitFunction=await import(pathToFileURL('/tmp/tongxue-school-portrait.mjs'));
@@ -53,7 +57,7 @@ globalThis.caches={default:memory};
 const first=await invoke(portraitFunction.onRequest,'测试大学');
 const second=await invoke(portraitFunction.onRequest,'测试大学');
 const functionChecks={
-  response:first.status===200&&first.payload.ok&&first.payload.version==='v1.2.0',
+  response:first.status===200&&first.payload.ok&&first.payload.version==='v1.3.0',
   shape:first.payload.dimensions?.length===7&&Array.isArray(first.payload.questions)&&Array.isArray(first.payload.campuses),
   sanitization:!JSON.stringify(first.payload).includes('<script'),
   requestBudget:fetchCount===3,
