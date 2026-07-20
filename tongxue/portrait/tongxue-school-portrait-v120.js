@@ -1,7 +1,7 @@
 import { installPortraitStyles } from './tongxue-school-portrait-style-v120.js';
 import { addIdentityTags, renderPortrait, renderPortraitFailure, renderPortraitLoading } from './tongxue-school-portrait-view-v120.js';
 
-const VERSION='v1.2.0';
+const VERSION='v1.3.0';
 const TTL=600000;
 const cache=new Map();
 const inflight=new Map();
@@ -80,9 +80,9 @@ async function fetchPortrait(school,{signal,refresh=false}={}){
 function applyPageCopy(pageVersion){
   document.title='同学你好 - 看看学长学姐怎么说';
   const hero=document.querySelector('.hero p');
-  if(hero)hero.innerHTML='输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称和轻微错别字也能识别。</span>';
+  if(hero)hero.innerHTML='输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称、轻微错别字、分校和招生校区也能识别。</span>';
   const input=document.getElementById('school');
-  if(input)input.placeholder='输入学校名称，如：东北大学';
+  if(input)input.placeholder='输入学校或校区，如：哈工威';
   document.querySelectorAll('.version').forEach(node=>{if(node.textContent.includes('同学你好'))node.textContent='同学你好 '+pageVersion+' · 更新于 2026-07-20';});
 }
 

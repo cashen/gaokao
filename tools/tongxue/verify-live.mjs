@@ -7,7 +7,12 @@ const reviewFallbackSchools = splitEnv('EXPECTED_REVIEW_FALLBACK_SCHOOLS', ['辽
 const artifactDir = '/tmp/tongxue-live-artifact';
 await mkdir(artifactDir, { recursive: true });
 
-await cp('functions/api/tongxue-summary.js', '/tmp/tongxue-summary.mjs');
+const entitySource=await readFile('tongxue/data/school-entities-v130.js','utf8');
+const summaryBase=await readFile('functions/_lib/tongxue-summary-base-v112.js','utf8');
+const summaryWrapper=(await readFile('functions/api/tongxue-summary.js','utf8')).replace("'../_lib/tongxue-summary-base-v112.js'","'./tongxue-summary-base-v112.mjs'").replace("'../../tongxue/data/school-entities-v130.js'","'./school-entities-v130.mjs'");
+await writeFile('/tmp/school-entities-v130.mjs',entitySource);
+await writeFile('/tmp/tongxue-summary-base-v112.mjs',summaryBase);
+await writeFile('/tmp/tongxue-summary.mjs',summaryWrapper);
 const { onRequest } = await import(`${pathToFileURL('/tmp/tongxue-summary.mjs').href}?t=${Date.now()}`);
 const nativeFetch = globalThis.fetch.bind(globalThis);
 const nativeCaches = globalThis.caches;
@@ -20,7 +25,7 @@ for (const school of summarySchools) {
   const passed = row.status === 200
     && row.ok
     && row.mode === 'ai_summary'
-    && row.version === 'v1.1.2'
+    && row.version === 'v1.3.0'
     && row.summaryLength >= 40
     && row.reviewCount === 0
     && row.serverTiming.includes('total;dur=');
@@ -33,7 +38,7 @@ for (const school of reviewFallbackSchools) {
   const reviewsPassed = firstPage.status === 200
     && firstPage.ok
     && firstPage.mode === 'recent_reviews'
-    && firstPage.version === 'v1.1.2'
+    && firstPage.version === 'v1.3.0'
     && firstPage.summaryLength === 0
     && firstPage.reviewCount >= 1
     && firstPage.reviewCount <= 6

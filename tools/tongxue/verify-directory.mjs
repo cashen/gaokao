@@ -6,13 +6,13 @@ const [page,legacy,home,share,resolver,rootFiles]=await Promise.all([
   readFile('tongxue/index.html','utf8'),
   readFile('tongxue.html','utf8'),
   readFile('index.html','utf8'),
-  readFile('tongxue/share/tongxue-share-v113.js','utf8'),
+  readFile('tongxue/share/tongxue-share-v130.js','utf8'),
   readFile('tongxue/data/school-name-resolver.js','utf8'),
   readdir('.')
 ]);
 requireText(page,'<title>同学你好 - 看看学长学姐怎么说</title>','页面标题');
-requireText(page,'./app/tongxue-performance-v120.js?v=121','页面入口');
-requireText(page,'同学你好 v1.2.1 · 更新于 2026-07-20','页面版本');
+requireText(page,'./app/tongxue-performance-v130.js?v=130','页面入口');
+requireText(page,'同学你好 v1.3.0 · 更新于 2026-07-20','页面版本');
 requireText(page,'https://gaokao.powers.org.cn/tongxue/','canonical');
 requireText(home,'href="/tongxue/"','首页导航');
 requireText(home,'首页 v1.0.2 · 更新于 2026-07-20','首页版本');

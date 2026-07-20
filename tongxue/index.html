@@ -44,17 +44,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{b
   <div class="topbar"><div class="brand">同学你好</div><a class="back-home" href="/">← 返回首页</a></div>
   <section class="hero">
     <h1>同学你好</h1>
-    <p>输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称和轻微错别字也能识别。</span></p>
+    <p>输入学校名称，看看学长学姐真实聊过的就业发展、学习氛围和校园生活。<span>简称、轻微错别字、分校和招生校区也能识别。</span></p>
     <div class="search-box">
       <div class="search-row">
         <div class="input-wrap">
-          <input id="school" class="search-input" autocomplete="off" inputmode="search" placeholder="输入学校名称，如：东北大学" aria-label="学校名称" aria-autocomplete="list" aria-controls="schoolSuggestions" aria-expanded="false" aria-describedby="indexStatus" autofocus>
+          <input id="school" class="search-input" autocomplete="off" inputmode="search" placeholder="输入学校或校区，如：哈工威" aria-label="学校名称" aria-autocomplete="list" aria-controls="schoolSuggestions" aria-expanded="false" aria-describedby="indexStatus" autofocus>
           <span id="inputState" class="input-state" aria-hidden="true"></span>
           <div id="schoolSuggestions" class="suggestions" role="listbox" hidden></div>
         </div>
         <button id="queryButton" class="btn" type="button" disabled>看看同学怎么说</button>
       </div>
-      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="辽科大">辽科大</button><button class="quick-example" type="button" data-example="大工">大工</button></div>
+      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="哈工威">哈工威</button><button class="quick-example" type="button" data-example="大工盘锦">大工盘锦</button></div>
       <div id="resolveHint" class="resolve-hint" hidden></div>
       <div id="indexStatus" class="index-status">正在载入教育部高校名单…</div>
     </div>
@@ -63,9 +63,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{b
   <div id="liveStatus" class="sr-only" aria-live="polite"></div>
   <footer class="footer">
     <div>这些内容反映部分评论者的个人体验，可能受到专业、校区、年级和个人感受影响。了解学校时，请同时核验招生章程、校区安排、培养方案和官方就业信息。</div>
-    <div class="version">同学你好 v1.2.1 · 更新于 2026-07-20</div>
+    <div class="version">同学你好 v1.3.0 · 更新于 2026-07-20</div>
   </footer>
 </div>
-<script type="module" src="./app/tongxue-performance-v120.js?v=121"></script>
+<script type="module" src="./app/tongxue-performance-v130.js?v=130"></script>
 </body>
 </html>

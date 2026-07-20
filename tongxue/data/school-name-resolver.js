@@ -1,3 +1,5 @@
+import { createEntityAwareResolver } from './school-entities-v130.js';
+
 export const SCHOOL_NAME_DATA_URL = new URL('./school-search-index.20260617.json', import.meta.url).href;
 
 const SEARCH_CACHE_LIMIT = 100;
@@ -63,8 +65,9 @@ export async function loadSchoolCatalog(url = SCHOOL_NAME_DATA_URL, fetchImpl = 
     throw new Error(`学校名单数量异常：应为 ${expectedCount}，实际为 ${records.length}`);
   }
   if (records.length < 2900) throw new Error('学校名单数量异常。');
-  const resolver = createSchoolNameResolver(records);
-  return Object.freeze({ resolver, metadata: resolver.metadata, count: resolver.count, asOfDate: String(payload?.asOfDate || '') });
+  const baseResolver = createSchoolNameResolver(records);
+  const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
+  return Object.freeze({ resolver, metadata: resolver.metadata, count: baseResolver.count, entityCount: resolver.entityCount, asOfDate: String(payload?.asOfDate || '') });
 }
 
 export async function loadSchoolNameResolver(url = SCHOOL_NAME_DATA_URL, fetchImpl = globalThis.fetch) {
