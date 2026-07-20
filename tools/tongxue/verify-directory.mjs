@@ -2,12 +2,12 @@ import { readFile, readdir } from 'node:fs/promises';
 const failures=[];
 const requireText=(content,value,label)=>{if(!content.includes(value))failures.push(label);};
 const [page,changelog,legacy,home,share,resolver,wrapper,rootFiles]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v160.js','utf8'),readdir('.')
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v150.js','utf8'),readdir('.')
 ]);
 requireText(page,'<title>同学你好 - 看看学长学姐怎么说</title>','页面标题');
-requireText(page,'./app/tongxue-performance-v160.js?v=160','页面入口');
-requireText(page,'同学你好 v1.6.0 · 更新于 2026-07-20','页面版本');
-requireText(page,'tongxue-v160-evidence-20260720','页面构建标识');
+requireText(page,'./app/tongxue-performance-v150.js?v=150','页面入口');
+requireText(page,'同学你好 v1.5.0 · 更新于 2026-07-20','页面版本');
+requireText(page,'tongxue-v150-region-20260617','页面构建标识');
 requireText(page,'/tongxue/data/school-name-resolver-v150.js?v=150','resolver 导入映射');
 requireText(page,'/tongxue/data/school-entities-v150.js?v=150','实体导入映射');
 requireText(page,'href="./changelog.html"','更新记录链接');
@@ -15,12 +15,11 @@ requireText(page,'城市或省份','地域说明');
 requireText(page,'data-example="hgw"','hgw 快捷示例');
 requireText(page,'data-example="深圳"','深圳快捷示例');
 requireText(page,'https://gaokao.powers.org.cn/tongxue/','canonical');
-requireText(changelog,'v1.6.0 · 证据解释层','更新记录 v1.6.0');
 requireText(changelog,'v1.5.0 · 省份与城市筛选','更新记录 v1.5.0');
 requireText(changelog,'v1.4.1 · 输入流畅性与代码语义修复','更新记录 v1.4.1');
-if(!(changelog.indexOf('v1.6.0')<changelog.indexOf('v1.5.0')&&changelog.indexOf('v1.5.0')<changelog.indexOf('v1.4.1')&&changelog.indexOf('v1.4.1')<changelog.indexOf('v1.4.0')))failures.push('更新记录未按倒序排列');
-requireText(wrapper,"installShareMetadataStabilizer('v1.6.0')",'运行时版本');
-requireText(wrapper,"tongxue-performance-v112.js?v=160",'核心运行时缓存版本');
+if(!(changelog.indexOf('v1.5.0')<changelog.indexOf('v1.4.1')&&changelog.indexOf('v1.4.1')<changelog.indexOf('v1.4.0')))failures.push('更新记录未按倒序排列');
+requireText(wrapper,"installShareMetadataStabilizer('v1.5.0')",'运行时版本');
+requireText(wrapper,"tongxue-performance-v112.js?v=150",'核心运行时缓存版本');
 requireText(home,'href="/tongxue/"','首页导航');
 requireText(legacy,"new URL('/tongxue/',location.origin)",'旧入口目标');
 if(home.includes('./tongxue.html'))failures.push('首页仍引用旧入口');
