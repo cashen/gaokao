@@ -33,7 +33,8 @@ ambiguous('dd',['中国地质大学（北京）','中国地质大学（武汉）
 ambiguous('kd',['中国矿业大学','中国矿业大学（北京）']);
 ambiguous('hndx',['河南大学','湖南大学','海南大学']);
 ambiguous('hbgydx',['河北工业大学','湖北工业大学']);
-const prefix=resolver.resolve('dgp',{limit:10});check('首字母前缀不自动选择',prefix.status==='ambiguous'&&prefix.candidates.some(item=>item.officialName==='大连理工大学（盘锦校区）'),JSON.stringify(prefix));
+const prefix=resolver.search('dgp',{limit:10});check('首字母前缀只联想不自动选择',prefix.some(item=>item.officialName==='大连理工大学（盘锦校区）'),JSON.stringify(prefix));
+const prefixResolution=resolver.resolve('dgp',{limit:10});check('首字母前缀不直接提交第一项',prefixResolution.status!=='resolved',JSON.stringify(prefixResolution));
 const unknown=resolver.resolve('zzzzzz',{limit:10});check('未知代码不猜测',unknown.status==='not_found',JSON.stringify(unknown));
 check('全角和分隔符标准化',normalizeInitialQuery('Ｈ-Ｇ Ｗ')==='hgw');
 check('纯字母识别',isInitialQuery('h g w')&&!isInitialQuery('哈工威'));
