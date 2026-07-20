@@ -1,6 +1,3 @@
-const INITIAL_BOUNDARIES=[['a','阿'],['b','八'],['c','嚓'],['d','搭'],['e','蛾'],['f','发'],['g','噶'],['h','哈'],['j','击'],['k','喀'],['l','垃'],['m','妈'],['n','拿'],['o','哦'],['p','啪'],['q','期'],['r','然'],['s','撒'],['t','塌'],['w','挖'],['x','昔'],['y','压'],['z','匝']];
-const INITIAL_PHRASES=[['哈尔滨','heb'],['呼和浩特','hhht'],['乌鲁木齐','wlmq'],['克拉玛依','klmy'],['重庆','cq'],['长春','cc'],['长沙','cs'],['长江','cj'],['长安','ca'],['厦门','xm'],['六安','la'],['乐山','ls'],['西藏','xz']].sort((a,b)=>b[0].length-a[0].length);
-const initialCollator=new Intl.Collator('zh-Hans-CN-u-co-pinyin',{usage:'sort',sensitivity:'base'}),initialCharCache=new Map();
 export const SCHOOL_ENTITIES_V130=Object.freeze([
 E('neu-main','东北大学','official_school','', '东北大学','辽宁省','沈阳市',['东北大学本部'],null,'neu'),
 E('neu-qhd','东北大学秦皇岛分校','branch_school','neu-main','东北大学秦皇岛分校','河北省','秦皇岛市',['东秦','东北大学秦皇岛','东北大学秦皇岛校区','东北大学（秦皇岛分校）'],820,'neu'),
@@ -31,6 +28,7 @@ E('uestc-shahe','电子科技大学（沙河校区）','ordinary_campus','uestc-
 E('hfut-main','合肥工业大学','official_school','','合肥工业大学','安徽省','合肥市',['合工大本部'],null,'hfut'),
 E('hfut-xuancheng','合肥工业大学（宣城校区）','admission_campus','hfut-main','合肥工业大学（宣城校区）','安徽省','宣城市',['合工宣城','合工大宣城','合肥工业大学宣城校区'],1310,'hfut')
 ]);
+
 export const SCHOOL_ENTITY_GROUPS_V130=Object.freeze([
 G('hit',['哈工大','哈工'],['hit-main','hit-weihai','hit-shenzhen']),
 G('ncepu',['华电','华北电力大学'],['ncepu-beijing','ncepu-baoding']),
@@ -38,12 +36,27 @@ G('cup',['中国石油大学','中石大','石大'],['cup-beijing','cup-east']),
 G('cug',['中国地质大学','地大'],['cugb','cug-wuhan']),
 G('cumt',['矿大','中国矿大'],['cumt','cumtb'])
 ]);
+
+const ENTITY_INITIAL_ALIASES=Object.freeze({
+ 'neu-main':['dbdx'],'neu-qhd':['dq','dbdxqhd'],'hit-main':['hgdbb'],'hit-weihai':['hgw'],'hit-shenzhen':['hgs'],
+ 'dlut-main':['dllgdx'],'dlut-panjin':['dgpj'],'ncepu-beijing':['hdbj'],'ncepu-baoding':['hdbd'],
+ 'cup-beijing':['zsdbj'],'cup-east':['zsdhd'],'cup-kelamayi':['zsdklmy'],'cugb':['ddbj'],'cug-wuhan':['ddwh'],
+ 'cumt':['kdxz'],'cumtb':['kdbj'],'sdu-main':['sddx'],'sdu-weihai':['sw'],'bjtu-main':['bjjtdx'],'bjtu-weihai':['bjwh'],
+ 'bnu-main':['bjsfdx'],'bnu-zhuhai':['bszh'],'ruc-main':['zgrmdx'],'ruc-suzhou':['rdsz'],
+ 'uestc-main':['dzkjdx'],'uestc-shahe':['cdsh'],'hfut-main':['hfgydx'],'hfut-xuancheng':['hgxc']
+});
+const GROUP_INITIAL_ALIASES=Object.freeze({hit:['hgd','hg'],ncepu:['hd'],cup:['zgsydx','zgsy','zsd','sd'],cug:['zgdzdx','zgdz','dd'],cumt:['kd','zgkd']});
 const byId=new Map(SCHOOL_ENTITIES_V130.map(item=>[item.entityId,item]));
 const byDisplay=new Map(SCHOOL_ENTITIES_V130.map(item=>[norm(item.displayName),item]));
-const aliasIndex=new Map();for(const entity of SCHOOL_ENTITIES_V130)for(const alias of [entity.displayName,...entity.aliases])add(aliasIndex,norm(alias),entity);
-const groupIndex=new Map();for(const group of SCHOOL_ENTITY_GROUPS_V130)for(const alias of group.aliases)groupIndex.set(norm(alias),group);
-const entityInitialIndex=new Map();for(const entity of SCHOOL_ENTITIES_V130)for(const code of createSchoolInitialCodes(entity.displayName,entity.aliases))add(entityInitialIndex,code,entity);
-const groupInitialIndex=new Map();for(const group of SCHOOL_ENTITY_GROUPS_V130)for(const code of createSchoolInitialCodes('',group.aliases))groupInitialIndex.set(code,group);
+const aliasIndex=new Map();
+for(const entity of SCHOOL_ENTITIES_V130)for(const alias of [entity.displayName,...entity.aliases])add(aliasIndex,norm(alias),entity);
+const groupIndex=new Map();
+for(const group of SCHOOL_ENTITY_GROUPS_V130)for(const alias of group.aliases)groupIndex.set(norm(alias),group);
+const entityInitialIndex=new Map();
+for(const entity of SCHOOL_ENTITIES_V130)for(const code of ENTITY_INITIAL_ALIASES[entity.entityId]||[])add(entityInitialIndex,normalizeInitialQuery(code),entity);
+const groupInitialIndex=new Map();
+for(const group of SCHOOL_ENTITY_GROUPS_V130)for(const code of GROUP_INITIAL_ALIASES[group.groupId]||[])add(groupInitialIndex,normalizeInitialQuery(code),group);
+
 export function getSchoolEntity(entityId){return byId.get(String(entityId||''))||null;}
 export function findSchoolEntityByName(name){const rows=aliasIndex.get(norm(name))||[];return rows.length===1?rows[0]:byDisplay.get(norm(name))||null;}
 export function publicSchoolEntity(entity){if(!entity)return null;const parent=getSchoolEntity(entity.parentEntityId);return{entityId:entity.entityId,displayName:entity.displayName,entityType:entity.entityType,typeLabel:typeLabel(entity.entityType),parentEntityId:entity.parentEntityId,parentSchoolName:parent?.displayName||'',province:entity.province,city:entity.city,groupId:entity.groupId,separateExperience:entity.entityType!=='official_school',sourceStatus:entity.sourceStatus};}
@@ -51,24 +64,51 @@ export function resolveEntityRequest(entityId,school){if(entityId){const entity=
 export function isEntitySourceAvailable(entity){return !entity||entity.sourceStatus!=='not_found';}
 export function entitySourceQuery(entity,fallback){return entity?.sourceQuery||fallback;}
 export function entitySourceId(entity){return entity?.sourceSchoolId??null;}
+
 export function createEntityAwareResolver(baseResolver,baseMetadata){
- const metadata=new Map(baseMetadata||[]);for(const entity of SCHOOL_ENTITIES_V130){const inherited=metadata.get(entity.officialCatalogName)||metadata.get(entity.displayName)||{};metadata.set(entity.displayName,Object.freeze({...inherited,name:entity.displayName,location:[entity.province,entity.city].filter(Boolean).join(' · '),level:inherited.level||'本科',entityId:entity.entityId,entityType:entity.entityType,entityTypeLabel:typeLabel(entity.entityType),parentEntityId:entity.parentEntityId,parentSchoolName:getSchoolEntity(entity.parentEntityId)?.displayName||'',sourceStatus:entity.sourceStatus}));}
- function candidatesFor(group,matchType='entity_group'){return group.entityIds.map(id=>byId.get(id)).filter(Boolean).map(entity=>candidate(entity,0.995,matchType));}
- function resolve(query,options={}){const key=norm(query),group=groupIndex.get(key);if(group)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:candidatesFor(group),matchType:'entity_group',confidence:0};const exact=aliasIndex.get(key)||[];if(exact.length===1)return{status:'resolved',input:String(query||'').trim(),resolvedName:exact[0].displayName,candidates:[],matchType:'entity_alias_exact',confidence:1,entityId:exact[0].entityId};if(exact.length>1)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:exact.map(entity=>candidate(entity,0.99,'entity_alias_exact')),matchType:'entity_alias_exact',confidence:0};if(isInitialQuery(query)){const code=normalizeInitialQuery(query),initialGroup=groupInitialIndex.get(code);if(initialGroup)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:candidatesFor(initialGroup,'entity_group_initial'),matchType:'entity_group_initial',confidence:0};const initialEntities=entityInitialIndex.get(code)||[];if(initialEntities.length===1)return{status:'resolved',input:String(query||'').trim(),resolvedName:initialEntities[0].displayName,candidates:[],matchType:'entity_initial_exact',confidence:1,entityId:initialEntities[0].entityId};if(initialEntities.length>1)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:initialEntities.map(entity=>candidate(entity,0.99,'entity_initial_exact')),matchType:'entity_initial_exact',confidence:0};}const result=baseResolver.resolve(query,options);const entity=result.resolvedName?byDisplay.get(norm(result.resolvedName)):null;return entity?{...result,entityId:entity.entityId}:result;}
- function search(query,options={}){const key=norm(query),limit=Math.max(1,Number(options.limit||8)),group=groupIndex.get(key);if(group)return candidatesFor(group).slice(0,limit);if(isInitialQuery(query)){const code=normalizeInitialQuery(query),initialGroup=groupInitialIndex.get(code);if(initialGroup)return candidatesFor(initialGroup,'entity_group_initial').slice(0,limit);}const entityRows=[];for(const entity of SCHOOL_ENTITIES_V130){let score=scoreEntity(key,entity);if(isInitialQuery(query))score=Math.max(score,scoreInitial(normalizeInitialQuery(query),entity));if(score>=0.5)entityRows.push(candidate(entity,score,score===1?'entity_alias_exact':(isInitialQuery(query)?'entity_initial_match':'entity_match')));}const merged=[...entityRows,...baseResolver.search(query,options)];const seen=new Set(),out=[];merged.sort((a,b)=>b.score-a.score||a.officialName.length-b.officialName.length);for(const item of merged){if(seen.has(item.officialName))continue;seen.add(item.officialName);out.push(item);if(out.length>=limit)break;}return out;}
- return Object.freeze({...baseResolver,metadata,entityCount:SCHOOL_ENTITIES_V130.filter(item=>item.entityType!=='official_school').length,getMetadata(name){return metadata.get(String(name||'').trim())||baseResolver.getMetadata?.(name)||null;},resolve,search});
+  const metadata=new Map(baseMetadata||[]);
+  for(const entity of SCHOOL_ENTITIES_V130){const inherited=metadata.get(entity.officialCatalogName)||metadata.get(entity.displayName)||{};metadata.set(entity.displayName,Object.freeze({...inherited,name:entity.displayName,location:[entity.province,entity.city].filter(Boolean).join(' · '),level:inherited.level||'本科',entityId:entity.entityId,entityType:entity.entityType,entityTypeLabel:typeLabel(entity.entityType),parentEntityId:entity.parentEntityId,parentSchoolName:getSchoolEntity(entity.parentEntityId)?.displayName||'',sourceStatus:entity.sourceStatus}));}
+  function candidatesFor(group,matchType='entity_group'){return group.entityIds.map(id=>byId.get(id)).filter(Boolean).map(entity=>candidate(entity,0.995,matchType));}
+  function resolve(query,options={}){
+    const key=norm(query),group=groupIndex.get(key);
+    if(group)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:candidatesFor(group),matchType:'entity_group',confidence:0};
+    const exact=aliasIndex.get(key)||[];
+    if(exact.length===1)return{status:'resolved',input:String(query||'').trim(),resolvedName:exact[0].displayName,candidates:[],matchType:'entity_alias_exact',confidence:1,entityId:exact[0].entityId};
+    if(exact.length>1)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:exact.map(entity=>candidate(entity,0.99,'entity_alias_exact')),matchType:'entity_alias_exact',confidence:0};
+    if(isInitialQuery(query)){
+      const code=normalizeInitialQuery(query),initialGroups=groupInitialIndex.get(code)||[];
+      if(initialGroups.length===1)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:candidatesFor(initialGroups[0],'entity_group_initial'),matchType:'entity_group_initial',confidence:0};
+      if(initialGroups.length>1){const candidates=initialGroups.flatMap(groupRow=>candidatesFor(groupRow,'entity_group_initial'));return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:dedupeCandidates(candidates),matchType:'entity_group_initial',confidence:0};}
+      const initialEntities=entityInitialIndex.get(code)||[];
+      if(initialEntities.length===1)return{status:'resolved',input:String(query||'').trim(),resolvedName:initialEntities[0].displayName,candidates:[],matchType:'entity_initial_exact',confidence:1,entityId:initialEntities[0].entityId};
+      if(initialEntities.length>1)return{status:'ambiguous',input:String(query||'').trim(),resolvedName:null,candidates:initialEntities.map(entity=>candidate(entity,0.99,'entity_initial_exact')),matchType:'entity_initial_exact',confidence:0};
+    }
+    const result=baseResolver.resolve(query,options),entity=result.resolvedName?byDisplay.get(norm(result.resolvedName)):null;
+    return entity?{...result,entityId:entity.entityId}:result;
+  }
+  function search(query,options={}){
+    const key=norm(query),limit=Math.max(1,Number(options.limit||8)),group=groupIndex.get(key);
+    if(group)return candidatesFor(group).slice(0,limit);
+    const initialCode=isInitialQuery(query)?normalizeInitialQuery(query):'',initialGroups=initialCode?(groupInitialIndex.get(initialCode)||[]):[];
+    if(initialGroups.length)return dedupeCandidates(initialGroups.flatMap(row=>candidatesFor(row,'entity_group_initial'))).slice(0,limit);
+    const entityRows=[];
+    for(const entity of SCHOOL_ENTITIES_V130){let score=scoreEntity(key,entity);if(initialCode)score=Math.max(score,scoreInitial(initialCode,entity));if(score>=0.5)entityRows.push(candidate(entity,score,score===1?'entity_alias_exact':(initialCode?'entity_initial_match':'entity_match')));}
+    const merged=[...entityRows,...baseResolver.search(query,options)],seen=new Set(),out=[];
+    merged.sort((a,b)=>b.score-a.score||a.officialName.length-b.officialName.length);
+    for(const item of merged){if(seen.has(item.officialName))continue;seen.add(item.officialName);out.push(item);if(out.length>=limit)break;}
+    return out;
+  }
+  return Object.freeze({...baseResolver,metadata,entityCount:SCHOOL_ENTITIES_V130.filter(item=>item.entityType!=='official_school').length,getMetadata(name){return metadata.get(String(name||'').trim())||baseResolver.getMetadata?.(name)||null;},resolve,search});
 }
+
 function E(entityId,displayName,entityType,parentEntityId,sourceQuery,province,city,aliases,sourceSchoolId,groupId,officialCatalogName='',sourceStatus='direct'){return Object.freeze({entityId,displayName,entityType,parentEntityId,sourceQuery,province,city,aliases:Object.freeze(aliases),sourceSchoolId,groupId,officialCatalogName:officialCatalogName||displayName,sourceStatus});}
 function G(groupId,aliases,entityIds){return Object.freeze({groupId,aliases:Object.freeze(aliases),entityIds:Object.freeze(entityIds)});}
 function norm(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[（【\[]/g,'(').replace(/[）】\]]/g,')').replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g,'').trim();}
-function add(map,key,value){if(!key)return;if(!map.has(key))map.set(key,[]);if(!map.get(key).includes(value))map.get(key).push(value);}
-function candidate(entity,score,matchType){return{officialName:entity.displayName,score,matchType,entityId:entity.entityId};}
-function scoreEntity(query,entity){if(!query)return 0;let best=0;for(const value of [entity.displayName,...entity.aliases].map(norm)){if(query===value)return 1;if(value.startsWith(query))best=Math.max(best,0.84+0.14*query.length/value.length);else if(value.includes(query))best=Math.max(best,0.7+0.18*query.length/value.length);else if(query.includes(value)&&value.length>=3)best=Math.max(best,0.78);}return Math.min(0.99,best);}
-function scoreInitial(query,entity){if(!query)return 0;let best=0;for(const code of createSchoolInitialCodes(entity.displayName,entity.aliases)){if(query===code)return 1;if(code.startsWith(query))best=Math.max(best,0.82+0.16*query.length/code.length);}return Math.min(0.99,best);}
-function typeLabel(type){return({official_school:'独立高校',branch_school:'分校',admission_campus:'招生校区',ordinary_campus:'校区'})[type]||'学校实体';}
-
 function normalizeInitialQuery(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,'');}
 function isInitialQuery(value){const source=String(value||'').normalize('NFKC').trim(),normalized=normalizeInitialQuery(source);return normalized.length>=2&&/^[a-z0-9\s._-]+$/i.test(source);}
-function createSchoolInitialCodes(name,aliases=[]){const codes=new Set();for(const raw of [name,...aliases]){const direct=normalizeInitialQuery(raw);if(direct&&/^[a-z0-9]+$/.test(String(raw||'').normalize('NFKC').toLowerCase().replace(/[\s._-]+/g,'')))codes.add(direct);const code=entityPinyinInitials(raw);if(code.length>=2)codes.add(code);}return[...codes];}
-function entityPinyinInitials(value){const text=String(value||'').normalize('NFKC').toLowerCase();let output='';for(let index=0;index<text.length;){const phrase=INITIAL_PHRASES.find(([word])=>text.startsWith(word,index));if(phrase){output+=phrase[1];index+=phrase[0].length;continue;}const char=text[index];if(/[a-z0-9]/.test(char))output+=char;else if(/\p{Script=Han}/u.test(char))output+=initialForEntityChar(char);index+=1;}return normalizeInitialQuery(output);}
-function initialForEntityChar(char){if(initialCharCache.has(char))return initialCharCache.get(char);let low=0,high=INITIAL_BOUNDARIES.length-1,answer='';while(low<=high){const middle=(low+high)>>1;if(initialCollator.compare(char,INITIAL_BOUNDARIES[middle][1])>=0){answer=INITIAL_BOUNDARIES[middle][0];low=middle+1;}else high=middle-1;}initialCharCache.set(char,answer);return answer;}
+function add(map,key,value){if(!key)return;if(!map.has(key))map.set(key,[]);if(!map.get(key).includes(value))map.get(key).push(value);}
+function candidate(entity,score,matchType){return{officialName:entity.displayName,score,matchType,entityId:entity.entityId};}
+function dedupeCandidates(rows){const seen=new Set();return rows.filter(row=>{if(seen.has(row.officialName))return false;seen.add(row.officialName);return true;});}
+function scoreEntity(query,entity){if(!query)return 0;let best=0;for(const value of [entity.displayName,...entity.aliases].map(norm)){if(query===value)return 1;if(value.startsWith(query))best=Math.max(best,0.84+0.14*query.length/value.length);else if(value.includes(query))best=Math.max(best,0.7+0.18*query.length/value.length);else if(query.includes(value)&&value.length>=3)best=Math.max(best,0.78);}return Math.min(0.99,best);}
+function scoreInitial(query,entity){if(!query)return 0;let best=0;for(const code of ENTITY_INITIAL_ALIASES[entity.entityId]||[]){if(query===code)return 1;if(code.startsWith(query))best=Math.max(best,0.82+0.16*query.length/code.length);}return Math.min(0.99,best);}
+function typeLabel(type){return({official_school:'独立高校',branch_school:'分校',admission_campus:'招生校区',ordinary_campus:'校区'})[type]||'学校实体';}
