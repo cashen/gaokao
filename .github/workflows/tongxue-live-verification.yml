@@ -57,10 +57,27 @@ jobs:
             tongxue/portrait/tongxue-school-portrait-view-v160.js \
             tools/tongxue/verify-school-evidence-ui-v160.mjs \
             tools/tongxue/verify-school-evidence-v160.mjs
-          test "$(git diff --name-only | wc -l)" -eq 18
-          ! git diff --name-only | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/_lib/release-contract\.js$)'
-          ! grep -R -n -E 'v1\.6\.0|v160-evidence|tongxue-performance-v160|报考前核验清单|高频讨论信号|共识与分歧' \
-            tongxue functions/api/tongxue-school-portrait.js functions/_lib/tongxue-school-portrait-core.js functions/_lib/tongxue-school-portrait-base-v120.js tools/tongxue .github/workflows/tongxue-live-verification.yml
+          git diff --name-status
+          grep -q 'tongxue-v150-region-20260617' tongxue/index.html
+          grep -q '同学你好 v1.5.0' tongxue/index.html
+          grep -q 'tongxue-performance-v150.js?v=150' tongxue/index.html
+          grep -q "const VERSION='v1.3.0'" functions/api/tongxue-school-portrait.js
+          grep -q "const API_VERSION = 'v1.2.0';" functions/_lib/tongxue-school-portrait-base-v120.js
+          test -f tongxue/app/tongxue-performance-v150.js
+          for file in \
+            functions/_lib/tongxue-school-portrait-base-v160.js \
+            tongxue/app/tongxue-performance-v160.js \
+            tongxue/portrait/tongxue-school-portrait-style-v160.js \
+            tongxue/portrait/tongxue-school-portrait-v160.js \
+            tongxue/portrait/tongxue-school-portrait-view-v160.js \
+            tools/tongxue/verify-school-evidence-ui-v160.mjs \
+            tools/tongxue/verify-school-evidence-v160.mjs; do
+            test ! -e "$file"
+          done
+          if git diff --name-only | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/_lib/release-contract\.js$)'; then
+            echo 'protected path changed'
+            exit 1
+          fi
       - name: Syntax and directory contract
         run: |
           for file in \
