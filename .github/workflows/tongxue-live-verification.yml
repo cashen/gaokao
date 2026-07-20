@@ -48,10 +48,10 @@ jobs:
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py tools/tongxue/build-school-region-index-v150.py
       - name: Verify directory contract
         run: node tools/tongxue/verify-directory.mjs
-      - name: Verify brand and copy contract
+      - name: Verify brand and final copy contract
         run: node tools/tongxue/verify-brand-ui-v152.mjs
-      - name: Verify mouse keyboard and IME contract
-        run: node tools/tongxue/verify-interaction-v152.mjs
+      - name: Verify mouse keyboard IME and copy ownership
+        run: node tools/tongxue/verify-interaction-v153.mjs
       - name: Verify school entity contract
         run: node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify school input contracts
@@ -89,7 +89,7 @@ jobs:
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
           node tools/tongxue/verify-brand-ui-v152.mjs
-          node tools/tongxue/verify-interaction-v152.mjs
+          node tools/tongxue/verify-interaction-v153.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
