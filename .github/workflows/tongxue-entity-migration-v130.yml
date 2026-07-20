@@ -42,7 +42,19 @@ jobs:
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify mobile share workflow
-        run: node tools/tongxue/verify-share.mjs
+        id: share
+        continue-on-error: true
+        run: node tools/tongxue/verify-share.mjs > /tmp/tongxue-share-v130.log 2>&1
+      - name: Upload share diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-share-v130-diagnostic
+          path: /tmp/tongxue-share-v130.log
+          retention-days: 1
+      - name: Enforce share result
+        if: steps.share.outcome != 'success'
+        run: cat /tmp/tongxue-share-v130.log && exit 1
       - name: Verify school portrait workflow
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
