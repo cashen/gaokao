@@ -35,7 +35,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
       - name: Apply Tongxue v1.5.1 brand migration
         run: node tools/tongxue/apply-brand-logo-v151.mjs
-      - name: Syntax and directory contract
+      - name: Syntax contract
         run: |
           for file in \
             functions/api/tongxue-summary.js \
@@ -51,13 +51,19 @@ jobs:
             node --check "$file"
           done
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py tools/tongxue/build-school-region-index-v150.py
+      - name: Verify directory and brand contracts
+        run: |
           node tools/tongxue/verify-directory.mjs
+          node tools/tongxue/verify-brand-ui-v151.mjs
+      - name: Verify school input contracts
+        run: |
           node tools/tongxue/verify-school-entities-v130.mjs
           node tools/tongxue/verify-school-initials-v141.mjs
           node tools/tongxue/verify-school-input-fluency-v141.mjs
+      - name: Verify school region contracts
+        run: |
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
-          node tools/tongxue/verify-brand-ui-v151.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
