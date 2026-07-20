@@ -47,6 +47,7 @@ jobs:
           done
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py tools/tongxue/build-school-region-index-v150.py
           node tools/tongxue/verify-directory.mjs
+          node tools/tongxue/verify-brand-ui-v151.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
           node tools/tongxue/verify-school-initials-v141.mjs
           node tools/tongxue/verify-school-input-fluency-v141.mjs
@@ -78,6 +79,7 @@ jobs:
           node tools/tongxue/verify-school-input-fluency-v141.mjs
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
+          node tools/tongxue/verify-brand-ui-v151.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
