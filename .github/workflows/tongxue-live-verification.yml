@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   live-verification:
@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: agent/revert-tongxue-v160-to-v150
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -30,6 +33,34 @@ jobs:
           python-version: '3.12'
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
+      - name: Restore exact v1.5.0 release
+        run: |
+          set -euo pipefail
+          BASE='b0679c74e1aa94516d3f9f88c201c0f532fcb02c'
+          git checkout "$BASE" -- \
+            .github/workflows/tongxue-live-verification.yml \
+            _headers \
+            functions/_lib/tongxue-school-portrait-base-v120.js \
+            functions/_lib/tongxue-school-portrait-core.js \
+            functions/api/tongxue-school-portrait.js \
+            tongxue/changelog.html \
+            tongxue/index.html \
+            tools/tongxue/verify-directory.mjs \
+            tools/tongxue/verify-portrait.mjs \
+            tools/tongxue/verify-school-region-ui-v150.mjs \
+            tools/tongxue/verify-share.mjs
+          rm -f \
+            functions/_lib/tongxue-school-portrait-base-v160.js \
+            tongxue/app/tongxue-performance-v160.js \
+            tongxue/portrait/tongxue-school-portrait-style-v160.js \
+            tongxue/portrait/tongxue-school-portrait-v160.js \
+            tongxue/portrait/tongxue-school-portrait-view-v160.js \
+            tools/tongxue/verify-school-evidence-ui-v160.mjs \
+            tools/tongxue/verify-school-evidence-v160.mjs
+          test "$(git diff --name-only | wc -l)" -eq 18
+          ! git diff --name-only | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|functions/_lib/release-contract\.js$)'
+          ! grep -R -n -E 'v1\.6\.0|v160-evidence|tongxue-performance-v160|报考前核验清单|高频讨论信号|共识与分歧' \
+            tongxue functions/api/tongxue-school-portrait.js functions/_lib/tongxue-school-portrait-core.js functions/_lib/tongxue-school-portrait-base-v120.js tools/tongxue .github/workflows/tongxue-live-verification.yml
       - name: Syntax and directory contract
         run: |
           for file in \
@@ -37,7 +68,6 @@ jobs:
             functions/api/tongxue-school-portrait.js \
             functions/_lib/tongxue-school-portrait-core.js \
             functions/_lib/tongxue-school-portrait-base-v120.js \
-            functions/_lib/tongxue-school-portrait-base-v160.js \
             functions/_lib/tongxue-summary-base-v112.js \
             tongxue/data/*.js \
             tongxue/app/*.js \
@@ -53,11 +83,9 @@ jobs:
           node tools/tongxue/verify-school-input-fluency-v141.mjs
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
-          node tools/tongxue/verify-school-evidence-v160.mjs
-          node tools/tongxue/verify-school-evidence-ui-v160.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
-      - name: Verify school experience evidence
+      - name: Verify school experience portrait
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
         run: node tools/tongxue/verify-portrait.mjs
@@ -81,13 +109,20 @@ jobs:
           node tools/tongxue/verify-school-input-fluency-v141.mjs
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
-          node tools/tongxue/verify-school-evidence-v160.mjs
-          node tools/tongxue/verify-school-evidence-ui-v160.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/tongxue/run-live-regression.mjs
+      - name: Commit exact v1.5.0 rollback
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/revert-tongxue-v160-to-v150'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && { echo 'rollback produced no changes'; exit 1; }
+          git commit -m 'revert: restore Tongxue v1.5.0 and remove v1.6.0'
+          git push origin HEAD:agent/revert-tongxue-v160-to-v150
       - name: Upload verification report
         if: always()
         uses: actions/upload-artifact@v4
