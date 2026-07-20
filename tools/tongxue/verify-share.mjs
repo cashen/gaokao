@@ -10,7 +10,7 @@ const qr=await readFile('tongxue/share/tongxue-share-qr-v113.js','utf8');
 await import('node:fs/promises').then(async({writeFile})=>{
   const entities=await readFile('tongxue/data/school-entities-v150.js','utf8');
   await writeFile('/tmp/school-entities-v150.mjs',entities);
-  await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from'./tongxue-share-canvas-v113.js?v=130'","from'./tongxue-share-canvas-v113.mjs'").replace("from'../data/school-entities-v130.js'","from'./school-entities-v150.mjs'"));
+  await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from'./tongxue-share-canvas-v113.js?v=130'","from'./tongxue-share-canvas-v113.mjs'").replace("from'./school-entities-v150.mjs'","from'./school-entities-v150.mjs'"));
   await writeFile('/tmp/tongxue-share-canvas-v113.mjs',canvasSource.replace("from './tongxue-share-qr-v113.js'","from './tongxue-share-qr-v113.mjs'"));
   await writeFile('/tmp/tongxue-share-qr-v113.mjs',qr);
 });
