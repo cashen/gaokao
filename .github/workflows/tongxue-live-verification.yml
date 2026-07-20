@@ -33,6 +33,10 @@ jobs:
           python-version: '3.12'
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
+      - name: Materialize Tongxue v1.5.1 brand assets
+        run: |
+          cat tools/tongxue/brand-assets-v151/primary-webp.*.b64 | base64 --decode > tongxue/assets/brand/tongxue-logo-primary-v1.webp
+          cat tools/tongxue/brand-assets-v151/source-webp.*.b64 | base64 --decode > tongxue/assets/brand/source/tongxue-logo-concept-original-v1.webp
       - name: Apply Tongxue v1.5.1 brand migration
         run: node tools/tongxue/apply-brand-logo-v151.mjs
       - name: Syntax contract
@@ -101,6 +105,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -rf tools/tongxue/brand-assets-v151
+          rm -f tongxue/assets/brand/tongxue-logo-primary-v1.png
           rm tools/tongxue/apply-brand-logo-v151.mjs
           git add -A
           if git diff --cached --quiet; then
