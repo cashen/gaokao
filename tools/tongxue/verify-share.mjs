@@ -10,7 +10,7 @@ const qr=await readFile('tongxue/share/tongxue-share-qr-v113.js','utf8');
 await import('node:fs/promises').then(async({writeFile})=>{
   const entities=await readFile('tongxue/data/school-entities-v150.js','utf8');
   await writeFile('/tmp/school-entities-v150.mjs',entities);
-  await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from'./tongxue-share-canvas-v113.js?v=130'","from'./tongxue-share-canvas-v113.mjs'").replace("from'./school-entities-v150.mjs'","from'./school-entities-v150.mjs'"));
+  await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from'./tongxue-share-canvas-v113.js?v=130'","from'./tongxue-share-canvas-v113.mjs'").replace("from'../data/school-entities-v130.js'","from'./school-entities-v150.mjs'"));
   await writeFile('/tmp/tongxue-share-canvas-v113.mjs',canvasSource.replace("from './tongxue-share-qr-v113.js'","from './tongxue-share-qr-v113.mjs'"));
   await writeFile('/tmp/tongxue-share-qr-v113.mjs',qr);
 });
@@ -56,7 +56,7 @@ if(originalCreateObjectURL)URL.createObjectURL=originalCreateObjectURL;
 for(const [name,passed] of Object.entries(executionChecks))if(!passed)failures.push(name);
 
 const checks={
-  pageVersion:html.includes('同学你好 v1.4.1')&&html.includes('./app/tongxue-performance-v150.js?v=141'),
+  pageVersion:html.includes('同学你好 v1.5.0')&&html.includes('./app/tongxue-performance-v150.js?v=150'),
   newCopy:html.includes('看看学长学姐真实聊过的')&&html.includes('拼音首字母')&&html.includes('看看同学怎么说'),
   keepsQueryRuntime:wrapper.includes('tongxue-performance-v112.js?v=150'),
   installsShare:wrapper.includes('installTongxueShare'),
