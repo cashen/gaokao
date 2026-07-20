@@ -47,6 +47,7 @@ jobs:
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
+          node tools/tongxue/verify-school-initials-v140.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
