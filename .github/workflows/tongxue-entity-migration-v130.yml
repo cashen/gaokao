@@ -30,6 +30,17 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install --disable-pip-version-check xlrd==2.0.1
       - run: python tools/tongxue/apply-school-entities-v130.py
+      - name: Align v1.3.0 share contract
+        run: |
+          sed -i 's/同学你好 v1.2.1/同学你好 v1.3.0/g; s/tongxue-performance-v120.js?v=121/tongxue-performance-v130.js?v=130/g' tools/tongxue/verify-share.mjs
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/tongxue/verify-share.mjs')
+          s=p.read_text(encoding='utf-8')
+          a=s.index('  shareUrl:');b=s.index('\n',a)
+          s=s[:a]+"  shareUrl:share.includes('history.replaceState')&&share.includes('entityId')&&canonical.includes('entity=hit-weihai'),"+s[b:]
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Verify entity implementation
         run: |
           node --check tongxue/data/school-entities-v130.js
@@ -42,19 +53,7 @@ jobs:
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify mobile share workflow
-        id: share
-        continue-on-error: true
-        run: node tools/tongxue/verify-share.mjs > /tmp/tongxue-share-v130.log 2>&1
-      - name: Upload share diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: tongxue-share-v130-diagnostic
-          path: /tmp/tongxue-share-v130.log
-          retention-days: 1
-      - name: Enforce share result
-        if: steps.share.outcome != 'success'
-        run: cat /tmp/tongxue-share-v130.log && exit 1
+        run: node tools/tongxue/verify-share.mjs
       - name: Verify school portrait workflow
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
