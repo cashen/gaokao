@@ -57,8 +57,8 @@ globalThis.caches={default:memory};
 const first=await invoke(portraitFunction.onRequest,'测试大学');
 const second=await invoke(portraitFunction.onRequest,'测试大学');
 const functionChecks={
-  response:first.status===200&&first.payload.ok&&first.payload.version==='v1.3.0',
-  shape:first.payload.dimensions?.length===7&&Array.isArray(first.payload.questions)&&Array.isArray(first.payload.campuses),
+  response:first.status===200&&first.payload.ok&&first.payload.version==='v1.6.0',
+  shape:first.payload.dimensions?.length===7&&Array.isArray(first.payload.questions)&&Array.isArray(first.payload.campuses)&&first.payload.evidence?.version==='v1.6.0'&&Array.isArray(first.payload.evidence?.checklist),
   sanitization:!JSON.stringify(first.payload).includes('<script'),
   requestBudget:fetchCount===3,
   cache:first.cache==='MISS'&&second.cache==='HIT'&&memory.size()===1
@@ -72,7 +72,7 @@ const live=[];
 for(const school of liveSchools){
   const result=await invoke(portraitFunction.onRequest,school,{refresh:true});
   live.push({school,status:result.status,ok:Boolean(result.payload.ok),dimensions:result.payload.dimensions?.length||0,fetchedReviews:result.payload.sample?.fetchedReviews??null,cache:result.cache});
-  if(!(result.status===200&&result.payload.ok&&result.payload.dimensions?.length===7))failures.push('live:'+school);
+  if(!(result.status===200&&result.payload.ok&&result.payload.dimensions?.length===7&&result.payload.evidence?.version==='v1.6.0'))failures.push('live:'+school);
 }
 
 const report={generatedAt:new Date().toISOString(),coreChecks,functionChecks,live,fetchCount,failures};

@@ -1,6 +1,6 @@
 import { buildSchoolPortrait, normalizeTags } from './tongxue-school-portrait-core.js';
 
-const API_VERSION = 'v1.2.0';
+const API_VERSION = 'v1.6.0';
 const API_HOSTS = ['https://eo.srgaoxiao.com', 'https://srgaoxiao.com'];
 const SOURCE_ORIGIN = 'https://srgaoxiao.com';
 const TOTAL_REQUEST_BUDGET_MS = 10_000;
@@ -212,6 +212,7 @@ function buildCacheRequest(request, school) {
   const url = new URL(request.url);
   url.search = '';
   url.searchParams.set('school', school);
+  url.searchParams.set('schema', API_VERSION);
   return new Request(url.toString(), { method:'GET', headers:{ accept:'application/json' } });
 }
 

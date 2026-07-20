@@ -1,0 +1,17 @@
+import{installSchoolEntityUi}from'./tongxue-school-entity-ui-v150.js?v=160';
+import{installRegionUi,announceRegionSupport}from'./tongxue-region-ui-v150.js?v=160';
+import{installShareMetadataStabilizer}from'../share/tongxue-share-stabilizer-v113.js';
+import{installTongxueShare}from'../share/tongxue-share-v130.js?v=160';
+import{installSchoolPortrait}from'../portrait/tongxue-school-portrait-v160.js?v=160';
+const EXPECTED_BUILD='tongxue-v160-evidence-20260720';
+const pageBuild=document.querySelector('meta[name="tongxue-build"]')?.content||'';
+if(pageBuild!==EXPECTED_BUILD)throw new Error('同学你好页面资源版本不一致，请刷新后重试。');
+document.documentElement.dataset.tongxueBuild=EXPECTED_BUILD;
+document.documentElement.dataset.tongxueEvidence='v160';
+installSchoolEntityUi();
+installRegionUi();
+await import('./tongxue-performance-v112.js?v=160');
+announceRegionSupport();
+installShareMetadataStabilizer('v1.6.0');
+installTongxueShare({pageVersion:'v1.6.0'});
+installSchoolPortrait({pageVersion:'v1.6.0'});

@@ -1,16 +1,16 @@
 import{readFile}from'node:fs/promises';
 const [page,entry,regionUi,entityUi,resolver,headers]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v150.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v150.js','utf8'),readFile('tongxue/app/tongxue-school-entity-ui-v150.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('_headers','utf8')
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v160.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v150.js','utf8'),readFile('tongxue/app/tongxue-school-entity-ui-v150.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('_headers','utf8')
 ]);
 const failures=[],check=(label,passed)=>{if(!passed)failures.push(label);},count=(source,value)=>source.split(value).length-1;
-const build='<meta name="tongxue-build" content="tongxue-v150-region-20260617">';
+const build='<meta name="tongxue-build" content="tongxue-v160-evidence-20260720">';
 const importMap='<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150"}}</script>';
-check('页面版本',page.includes('同学你好 v1.5.0')&&page.includes('tongxue-performance-v150.js?v=150'));
+check('页面版本',page.includes('同学你好 v1.6.0')&&page.includes('tongxue-performance-v160.js?v=160'));
 check('页面构建标识唯一',count(page,build)===1);
 check('导入映射唯一',count(page,importMap)===1);
 check('导入映射 resolver',page.includes('/tongxue/data/school-name-resolver.js')&&page.includes('/tongxue/data/school-name-resolver-v150.js?v=150'));
 check('导入映射 entities',page.includes('/tongxue/data/school-entities-v130.js')&&page.includes('/tongxue/data/school-entities-v150.js?v=150'));
-check('入口先安装地域层',entry.indexOf('installRegionUi();')<entry.indexOf("await import('./tongxue-performance-v112.js?v=150')"));
+check('入口先安装地域层',entry.indexOf('installRegionUi();')<entry.indexOf("await import('./tongxue-performance-v112.js?v=160')"));
 check('入口构建校验',entry.includes('pageBuild!==EXPECTED_BUILD'));
 check('地域不自动首项',regionUi.includes('地域输入只缩小范围，不会自动进入第一所学校')&&!regionUi.includes('candidates[0]'));
 check('输入变化清除旧结果',regionUi.includes('clearStaleResult(result)'));
