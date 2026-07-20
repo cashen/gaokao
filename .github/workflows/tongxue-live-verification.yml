@@ -33,6 +33,38 @@ jobs:
           python-version: '3.12'
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
+      - name: Normalize staged Tongxue WebP chunks
+        if: ${{ hashFiles('tools/tongxue/brand-assets-v151/*.b64') != '' }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+
+          def normalize(pattern):
+              paths = sorted(Path().glob(pattern))
+              if not paths:
+                  raise SystemExit(f'No chunks matched {pattern}')
+              candidate = b''
+              expected = None
+              for path in paths:
+                  encoded = ''.join(path.read_text(encoding='utf-8').split())
+                  encoded += '=' * (-len(encoded) % 4)
+                  candidate += base64.b64decode(encoded, validate=False)
+                  if len(candidate) >= 12 and candidate[:4] == b'RIFF' and candidate[8:12] == b'WEBP':
+                      expected = int.from_bytes(candidate[4:8], 'little') + 8
+                      if len(candidate) >= expected:
+                          candidate = candidate[:expected]
+                          break
+              if expected is None or len(candidate) != expected:
+                  raise SystemExit(f'Invalid staged WebP for {pattern}: {len(candidate)} bytes, expected {expected}')
+              paths[0].write_text(base64.b64encode(candidate).decode('ascii') + '\n', encoding='utf-8')
+              for path in paths[1:]:
+                  path.unlink()
+              print(f'Normalized {pattern}: {len(candidate)} bytes')
+
+          normalize('tools/tongxue/brand-assets-v151/primary-webp.*.b64')
+          normalize('tools/tongxue/brand-assets-v151/source-webp.*.b64')
+          PY
       - name: Materialize Tongxue v1.5.1 brand assets
         run: |
           cat tools/tongxue/brand-assets-v151/primary-webp.*.b64 | base64 --decode > tongxue/assets/brand/tongxue-logo-primary-v1.webp
