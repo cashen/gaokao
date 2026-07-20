@@ -1,0 +1,29 @@
+name: Tongxue entity audit v1.3.0
+
+on:
+  pull_request:
+    paths:
+      - 'tools/tongxue/audit-srgaoxiao-entities-v130.mjs'
+      - 'tools/tongxue/entity-audit-candidates-v130.json'
+      - '.github/workflows/tongxue-entity-audit-v130.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/tongxue/audit-srgaoxiao-entities-v130.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tongxue-entity-audit-v130
+          path: /tmp/tongxue-entity-audit
+          retention-days: 3
