@@ -12,7 +12,7 @@ const resolveHint=document.getElementById('resolveHint');
 const indexStatus=document.getElementById('indexStatus');
 const inputState=document.getElementById('inputState');
 const liveStatus=document.getElementById('liveStatus');
-let resolver=null,resolverError=null,suggestions=[],activeSuggestion=-1,selectedOfficialName='',inputTimer=0,currentResolution=null,activeReviewState=null;
+let resolver=null,resolverError=null,suggestions=[],activeSuggestion=-1,selectedOfficialName='',inputTimer=0,currentResolution=null,activeReviewState=null,inputComposing=false;
 let schoolMetaIndex=new Map(),activeChoiceCandidates=[],activeQueryController=null,activeQueryKey='',querySerial=0;
 const experienceCache=new Map();
 const inflightExperience=new Map();
@@ -35,17 +35,27 @@ async function initializeResolver(){
   }
 }
 
-schoolInput.addEventListener('input',()=>{
+function resetSchoolInputState(){
   selectedOfficialName='';
   currentResolution=null;
   activeReviewState=null;
   hideResolveHint();
   updateButtonState();
+}
+function scheduleSuggestions(){
   clearTimeout(inputTimer);
-  inputTimer=setTimeout(updateSuggestions,110);
+  if(!inputComposing)inputTimer=setTimeout(updateSuggestions,110);
+}
+schoolInput.addEventListener('compositionstart',()=>{inputComposing=true;clearTimeout(inputTimer);closeSuggestions();});
+schoolInput.addEventListener('compositionend',()=>{inputComposing=false;resetSchoolInputState();scheduleSuggestions();});
+schoolInput.addEventListener('input',event=>{
+  if(event.isComposing||inputComposing)return;
+  resetSchoolInputState();
+  scheduleSuggestions();
 });
-schoolInput.addEventListener('focus',()=>{if(schoolInput.value.trim().length>=2)updateSuggestions();});
+schoolInput.addEventListener('focus',()=>{if(!inputComposing&&schoolInput.value.trim().length>=2)updateSuggestions();});
 schoolInput.addEventListener('keydown',event=>{
+  if(event.isComposing||inputComposing)return;
   if(!suggestionsBox.hidden&&suggestions.length){
     if(event.key==='ArrowDown'){event.preventDefault();setActiveSuggestion(Math.min(activeSuggestion+1,suggestions.length-1));return;}
     if(event.key==='ArrowUp'){event.preventDefault();setActiveSuggestion(Math.max(activeSuggestion-1,0));return;}
@@ -94,7 +104,7 @@ function handleResultClick(event){
 function updateButtonState(){queryButton.disabled=!schoolInput.value.trim()||!resolver||Boolean(resolverError);}
 function updateSuggestions(){
   const query=normalizeSchool(schoolInput.value);
-  if(!resolver||query.length<2){closeSuggestions();return;}
+  if(inputComposing||!resolver||query.length<2){closeSuggestions();return;}
   suggestions=resolver.search(query,{limit:8});
   activeSuggestion=-1;
   if(!suggestions.length){
@@ -344,7 +354,7 @@ function dedupeReviews(reviews){const seen=new Set();return(Array.isArray(review
 function buildDiagnosticText(code,error,data){const lines=['错误类型：'+code,'信息：'+(error?.message||'未知错误')];if(Array.isArray(data.diagnostics)){for(const item of data.diagnostics)lines.push([item.stage,item.host,'HTTP '+item.status,item.contentType,item.length+' bytes',item.parseError].filter(Boolean).join(' | '));}return lines.join('\n');}
 function showResolveHint(input,officialName){resolveHint.innerHTML='<span>已识别：'+escapeHtml(input)+' → '+escapeHtml(officialName)+'</span><button type="button" class="resolve-change">不是这所？</button>';resolveHint.hidden=false;resolveHint.querySelector('button')?.addEventListener('click',()=>{selectedOfficialName='';currentResolution=null;schoolInput.value=input;hideResolveHint();schoolInput.focus();updateSuggestions();});}
 function hideResolveHint(){resolveHint.hidden=true;resolveHint.textContent='';}
-function matchTypeLabel(type){if(String(type).includes('official_exact'))return'正式校名';if(String(type).includes('alias_exact'))return'常用简称';if(String(type).includes('prefix'))return'名称匹配';if(String(type).includes('contains'))return'名称相近';if(String(type).includes('fuzzy'))return'可能是';if(type==='generic_shortcut')return'简称候选';return'学校候选';}
+function matchTypeLabel(type){const value=String(type||'');if(value.includes('initial_exact'))return'首字母代码';if(value.includes('initial_prefix')||value.includes('initial_match'))return'首字母联想';if(value.includes('official_exact'))return'正式校名';if(value.includes('alias_exact'))return'常用简称';if(value.includes('prefix'))return'名称匹配';if(value.includes('contains'))return'名称相近';if(value.includes('fuzzy'))return'可能是';if(type==='generic_shortcut')return'简称候选';return'学校候选';}
 function normalizeSource(source,school){if(source&&typeof source==='object')return{name:String(source.name||'srgaoxiao.com'),url:String(source.url||buildSourceUrl(school))};return{name:'srgaoxiao.com',url:buildSourceUrl(school)};}
 function buildSourceUrl(school){return SOURCE_ORIGIN+'/school/'+encodeURIComponent(normalizeSchool(school));}
 function normalizeSchool(value){return String(value||'').replace(/\s+/g,' ').trim();}

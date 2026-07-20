@@ -47,7 +47,8 @@ jobs:
           python -m py_compile tools/tongxue/build-moe-2026-school-index.py
           node tools/tongxue/verify-directory.mjs
           node tools/tongxue/verify-school-entities-v130.mjs
-          node tools/tongxue/verify-school-initials-v140.mjs
+          node tools/tongxue/verify-school-initials-v141.mjs
+          node tools/tongxue/verify-school-input-fluency-v141.mjs
       - name: Verify mobile share workflow
         run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
@@ -64,8 +65,11 @@ jobs:
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
           test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
           python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
+          node tools/tongxue/build-school-initial-index-v141.mjs
           git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
           node tools/tongxue/verify-school-name-resolver.mjs
+          node tools/tongxue/verify-school-initials-v141.mjs
+          node tools/tongxue/verify-school-input-fluency-v141.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
