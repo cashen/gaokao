@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   live-verification:
@@ -22,8 +22,6 @@ jobs:
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: agent/tongxue-region-search-v150
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -32,22 +30,6 @@ jobs:
           python-version: '3.12'
       - name: Install XLS reader
         run: python -m pip install --disable-pip-version-check xlrd==2.0.1
-      - name: Apply bounded v1.5.0 migration
-        run: node tools/tongxue/apply-region-v150.mjs
-      - name: Rebuild official school indexes
-        run: |
-          mkdir -p /tmp/tongxue-live-artifact
-          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
-            --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
-            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
-            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
-          python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
-          node tools/tongxue/build-school-initial-index-v141.mjs
-          git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
-          python tools/tongxue/build-school-region-index-v150.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
-          node tools/tongxue/build-school-initial-index-v150.mjs
       - name: Syntax and directory contract
         run: |
           for file in \
@@ -70,30 +52,37 @@ jobs:
           node tools/tongxue/verify-school-input-fluency-v141.mjs
           node tools/tongxue/verify-school-region-v150.mjs
           node tools/tongxue/verify-school-region-ui-v150.mjs
+      - name: Verify mobile share workflow
+        run: node tools/tongxue/verify-share.mjs
       - name: Verify school experience portrait
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
         run: node tools/tongxue/verify-portrait.mjs
+      - name: Rebuild official school indexes
+        run: |
+          mkdir -p /tmp/tongxue-live-artifact
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
+            --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
+            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
+            --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
+            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
+          test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
+          python tools/tongxue/build-moe-2026-school-index.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
+          node tools/tongxue/build-school-initial-index-v141.mjs
+          git diff --exit-code -- tongxue/data/school-name-index.generated.json tongxue/data/school-search-index.20260617.json
+          python tools/tongxue/build-school-region-index-v150.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
+          node tools/tongxue/build-school-initial-index-v150.mjs
+          git diff --exit-code -- tongxue/data/school-search-index.20260617-v150.json
+          node tools/tongxue/verify-school-name-resolver.mjs
+          node tools/tongxue/verify-school-initials-v141.mjs
+          node tools/tongxue/verify-school-input-fluency-v141.mjs
+          node tools/tongxue/verify-school-region-v150.mjs
+          node tools/tongxue/verify-school-region-ui-v150.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/tongxue/run-live-regression.mjs
-      - name: Commit generated v1.5.0 artifacts
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/tongxue-region-search-v150'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add _headers tongxue/index.html tongxue/changelog.html \
-            tongxue/data/school-name-resolver-v150.js \
-            tongxue/data/school-search-index.20260617-v150.json \
-            tools/tongxue/verify-directory.mjs tools/tongxue/verify-share.mjs
-          if git diff --cached --quiet; then
-            echo 'v1.5.0 generated artifacts already committed'
-          else
-            git commit -m 'feat: generate Tongxue v1.5.0 region artifacts'
-            git push origin HEAD:agent/tongxue-region-search-v150
-          fi
       - name: Upload verification report
         if: always()
         uses: actions/upload-artifact@v4
