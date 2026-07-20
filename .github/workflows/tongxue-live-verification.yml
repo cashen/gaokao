@@ -132,6 +132,10 @@ jobs:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
         run: node tools/tongxue/run-live-regression.mjs
+      - name: Keep workflow outside generated release commit
+        run: |
+          git restore --source=HEAD -- .github/workflows/tongxue-live-verification.yml
+          find tools/tongxue -type d -name __pycache__ -prune -exec rm -rf {} +
       - name: Commit Tongxue v1.5.1 brand release
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/tongxue-brand-logo-v151'
         run: |
@@ -154,6 +158,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           rm -rf tools/tongxue/brand-assets-v151
           rm -f tongxue/assets/brand/tongxue-logo-primary-v1.png tools/tongxue/apply-brand-logo-v151.mjs
+          git restore --source=HEAD -- .github/workflows/tongxue-live-verification.yml
+          find tools/tongxue -type d -name __pycache__ -prune -exec rm -rf {} +
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m 'feat: publish Tongxue brand homepage v1.5.1' || true
