@@ -1,13 +1,13 @@
 import { readFile, readdir } from 'node:fs/promises';
 const failures=[];
 const requireText=(content,value,label)=>{if(!content.includes(value))failures.push(label);};
-const [page,changelog,legacy,home,share,resolver,wrapper,copy,rootFiles]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v152.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readdir('.')
+const [page,changelog,legacy,home,share,resolver,wrapper,copy,portrait,rootFiles]=await Promise.all([
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v153.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readFile('tongxue/portrait/tongxue-school-portrait-v121.js','utf8'),readdir('.')
 ]);
 requireText(page,'<title>同学你好 - 找学校，看看大家怎么说</title>','页面标题');
-requireText(page,'./app/tongxue-performance-v152.js?v=152','页面入口');
-requireText(page,'同学你好 v1.5.2 · 更新于 2026-07-21','页面版本');
-requireText(page,'tongxue-v152-copy-20260721','页面构建标识');
+requireText(page,'./app/tongxue-performance-v153.js?v=153','页面入口');
+requireText(page,'同学你好 v1.5.3 · 更新于 2026-07-21','页面版本');
+requireText(page,'tongxue-v153-copyfix-20260721','页面构建标识');
 requireText(page,'tongxue-logo-primary-v1.webp','品牌 Logo');
 requireText(page,'<h1 class="sr-only">同学你好</h1>','隐藏主标题');
 requireText(page,'/tongxue/data/school-name-resolver-v150.js?v=150','resolver 导入映射');
@@ -22,9 +22,10 @@ requireText(changelog,'v1.5.2 · 文案精简与语义校准','更新记录 v1.5
 requireText(changelog,'v1.5.1 · 品牌 Logo 与多终端首页','更新记录 v1.5.1');
 requireText(changelog,'v1.5.0 · 省份与城市筛选','更新记录 v1.5.0');
 if(!(changelog.indexOf('v1.5.2')<changelog.indexOf('v1.5.1')&&changelog.indexOf('v1.5.1')<changelog.indexOf('v1.5.0')&&changelog.indexOf('v1.5.0')<changelog.indexOf('v1.4.1')))failures.push('更新记录未按倒序排列');
-requireText(wrapper,"installShareMetadataStabilizer('v1.5.2')",'运行时版本');
-requireText(wrapper,"tongxue-performance-v112.js?v=152",'核心运行时缓存版本');
+requireText(wrapper,"installShareMetadataStabilizer('v1.5.3')",'运行时版本');
+requireText(wrapper,"tongxue-performance-v112.js?v=153",'核心运行时缓存版本');
 requireText(wrapper,'installTongxueCopyV152();','文案层安装');
+requireText(wrapper,"tongxue-school-portrait-v121.js?v=153",'无副作用画像入口');
 requireText(copy,"button.textContent='看同学怎么说'",'按钮动态文案');
 requireText(home,'href="/tongxue/"','首页导航');
 requireText(legacy,"new URL('/tongxue/',location.origin)",'旧入口目标');
@@ -33,7 +34,8 @@ if(share.includes('/tongxue.html')||!share.includes("url.pathname='/tongxue/'"))
 if(!resolver.includes('school-search-index.20260617-v150.json'))failures.push('地域索引路径未版本化');
 if(resolver.includes('Intl.Collator')||resolver.includes('createSchoolInitialCodes'))failures.push('浏览器运行时仍在计算拼音首字母');
 if(!resolver.includes('initialBucketIndex')||resolver.includes('initialPrefixIndex'))failures.push('首字母索引不是有限两字母桶');
+if(portrait.includes('applyPageCopy')||portrait.includes('stabilizeButtonCopy')||portrait.includes('document.title')||portrait.includes('.hero p')||portrait.includes('input.placeholder')||portrait.includes("querySelectorAll('.version')"))failures.push('活动画像模块仍会覆盖首页文案');
 const scattered=rootFiles.filter(name=>/^tongxue-.*.js$/.test(name)||/^school-search-index.*.json$/.test(name)||name==='school-name-resolver.js'||name==='school-name-index.generated.json');
 if(scattered.length)failures.push('根目录残留：'+scattered.join(','));
-for(const forbidden of ['v1.6.0','高频讨论信号','报考前核验清单','共识与分歧','简称、轻微错别字','学校名称、拼音首字母、城市或省份都可以搜索','看看学长学姐怎么说'])if(page.includes(forbidden))failures.push('页面含不应出现的文案：'+forbidden);
+for(const forbidden of ['v1.6.0','高频讨论信号','报考前核验清单','共识与分歧','简称、轻微错别字','学校名称、拼音首字母、城市或省份都可以搜索','看看学长学姐怎么说'])if(page.includes(forbidden)||portrait.includes(forbidden))failures.push('活动页面含不应出现的文案：'+forbidden);
 console.log('TONGXUE_DIRECTORY_RESULTS '+JSON.stringify({failures}));if(failures.length)process.exitCode=1;
