@@ -1,0 +1,696 @@
+{
+  "generatedAt": "2026-07-20T00:39:29.329Z",
+  "results": [
+    {
+      "id": "neu-qhd",
+      "name": "东北大学秦皇岛分校",
+      "queries": [
+        "东北大学秦皇岛分校",
+        "东北大学（秦皇岛分校）",
+        "东北大学秦皇岛校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "东北大学秦皇岛分校",
+        "status": 200,
+        "durationMs": 778,
+        "id": 820,
+        "name": "东北大学秦皇岛分校",
+        "province": "河北省",
+        "city": "秦皇岛市",
+        "reviewCount": 6,
+        "slug": "东北大学秦皇岛分校"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "东北大学秦皇岛分校",
+          "status": 200,
+          "durationMs": 778,
+          "id": 820,
+          "name": "东北大学秦皇岛分校",
+          "province": "河北省",
+          "city": "秦皇岛市",
+          "reviewCount": 6,
+          "slug": "东北大学秦皇岛分校"
+        }
+      ]
+    },
+    {
+      "id": "hit-weihai",
+      "name": "哈尔滨工业大学（威海）",
+      "queries": [
+        "哈尔滨工业大学（威海）",
+        "哈尔滨工业大学(威海)",
+        "哈尔滨工业大学威海校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "哈尔滨工业大学（威海）",
+        "status": 200,
+        "durationMs": 811,
+        "id": 839,
+        "name": "哈尔滨工业大学（威海）",
+        "province": "山东省",
+        "city": "威海市",
+        "reviewCount": 12,
+        "slug": "哈尔滨工业大学（威海）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "哈尔滨工业大学（威海）",
+          "status": 200,
+          "durationMs": 811,
+          "id": 839,
+          "name": "哈尔滨工业大学（威海）",
+          "province": "山东省",
+          "city": "威海市",
+          "reviewCount": 12,
+          "slug": "哈尔滨工业大学（威海）"
+        }
+      ]
+    },
+    {
+      "id": "hit-shenzhen",
+      "name": "哈尔滨工业大学（深圳）",
+      "queries": [
+        "哈尔滨工业大学（深圳）",
+        "哈尔滨工业大学(深圳)",
+        "哈尔滨工业大学深圳校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "哈尔滨工业大学（深圳）",
+        "status": 200,
+        "durationMs": 620,
+        "id": 844,
+        "name": "哈尔滨工业大学（深圳）",
+        "province": "广东省",
+        "city": "深圳市",
+        "reviewCount": 4,
+        "slug": "哈尔滨工业大学（深圳）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "哈尔滨工业大学（深圳）",
+          "status": 200,
+          "durationMs": 620,
+          "id": 844,
+          "name": "哈尔滨工业大学（深圳）",
+          "province": "广东省",
+          "city": "深圳市",
+          "reviewCount": 4,
+          "slug": "哈尔滨工业大学（深圳）"
+        }
+      ]
+    },
+    {
+      "id": "dlut-panjin",
+      "name": "大连理工大学（盘锦校区）",
+      "queries": [
+        "大连理工大学（盘锦校区）",
+        "大连理工大学(盘锦校区)",
+        "大连理工大学盘锦校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "大连理工大学（盘锦校区）",
+        "status": 200,
+        "durationMs": 659,
+        "id": 1301,
+        "name": "大连理工大学（盘锦校区）",
+        "province": "辽宁省",
+        "city": "盘锦市",
+        "reviewCount": 6,
+        "slug": "大连理工大学（盘锦校区）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "大连理工大学（盘锦校区）",
+          "status": 200,
+          "durationMs": 659,
+          "id": 1301,
+          "name": "大连理工大学（盘锦校区）",
+          "province": "辽宁省",
+          "city": "盘锦市",
+          "reviewCount": 6,
+          "slug": "大连理工大学（盘锦校区）"
+        }
+      ]
+    },
+    {
+      "id": "ncepu-baoding",
+      "name": "华北电力大学（保定）",
+      "queries": [
+        "华北电力大学（保定）",
+        "华北电力大学(保定)",
+        "华北电力大学保定校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "华北电力大学（保定）",
+        "status": 200,
+        "durationMs": 540,
+        "id": 846,
+        "name": "华北电力大学（保定）",
+        "province": "河北省",
+        "city": "保定市",
+        "reviewCount": 10,
+        "slug": "华北电力大学（保定）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "华北电力大学（保定）",
+          "status": 200,
+          "durationMs": 540,
+          "id": 846,
+          "name": "华北电力大学（保定）",
+          "province": "河北省",
+          "city": "保定市",
+          "reviewCount": 10,
+          "slug": "华北电力大学（保定）"
+        }
+      ]
+    },
+    {
+      "id": "cup-kelamayi",
+      "name": "中国石油大学（北京）克拉玛依校区",
+      "queries": [
+        "中国石油大学（北京）克拉玛依校区",
+        "中国石油大学(北京)克拉玛依校区",
+        "中国石油大学克拉玛依校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国石油大学（北京）克拉玛依校区",
+        "status": 200,
+        "durationMs": 626,
+        "id": 979,
+        "name": "中国石油大学（北京）克拉玛依校区",
+        "province": "新疆维吾尔自治区",
+        "city": "克拉玛依市",
+        "reviewCount": 13,
+        "slug": "中国石油大学（北京）克拉玛依校区"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国石油大学（北京）克拉玛依校区",
+          "status": 200,
+          "durationMs": 626,
+          "id": 979,
+          "name": "中国石油大学（北京）克拉玛依校区",
+          "province": "新疆维吾尔自治区",
+          "city": "克拉玛依市",
+          "reviewCount": 13,
+          "slug": "中国石油大学（北京）克拉玛依校区"
+        }
+      ]
+    },
+    {
+      "id": "sdu-weihai",
+      "name": "山东大学（威海）",
+      "queries": [
+        "山东大学（威海）",
+        "山东大学(威海)",
+        "山东大学威海分校"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "山东大学（威海）",
+        "status": 200,
+        "durationMs": 685,
+        "id": 817,
+        "name": "山东大学（威海）",
+        "province": "山东省",
+        "city": "威海市",
+        "reviewCount": 4,
+        "slug": "山东大学（威海）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "山东大学（威海）",
+          "status": 200,
+          "durationMs": 685,
+          "id": 817,
+          "name": "山东大学（威海）",
+          "province": "山东省",
+          "city": "威海市",
+          "reviewCount": 4,
+          "slug": "山东大学（威海）"
+        }
+      ]
+    },
+    {
+      "id": "bjtu-weihai",
+      "name": "北京交通大学（威海校区）",
+      "queries": [
+        "北京交通大学（威海校区）",
+        "北京交通大学(威海校区)",
+        "北京交通大学威海校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "北京交通大学（威海校区）",
+        "status": 200,
+        "durationMs": 788,
+        "id": 1426,
+        "name": "北京交通大学（威海校区）",
+        "province": "山东省",
+        "city": "威海市",
+        "reviewCount": 7,
+        "slug": "北京交通大学（威海校区）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "北京交通大学（威海校区）",
+          "status": 200,
+          "durationMs": 788,
+          "id": 1426,
+          "name": "北京交通大学（威海校区）",
+          "province": "山东省",
+          "city": "威海市",
+          "reviewCount": 7,
+          "slug": "北京交通大学（威海校区）"
+        }
+      ]
+    },
+    {
+      "id": "bnu-zhuhai",
+      "name": "北京师范大学（珠海校区）",
+      "queries": [
+        "北京师范大学（珠海校区）",
+        "北京师范大学(珠海校区)",
+        "北京师范大学珠海校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "北京师范大学（珠海校区）",
+        "status": 200,
+        "durationMs": 312,
+        "id": 1421,
+        "name": "北京师范大学（珠海校区）",
+        "province": "广东省",
+        "city": "珠海市",
+        "reviewCount": 4,
+        "slug": "北京师范大学（珠海校区）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "北京师范大学（珠海校区）",
+          "status": 200,
+          "durationMs": 312,
+          "id": 1421,
+          "name": "北京师范大学（珠海校区）",
+          "province": "广东省",
+          "city": "珠海市",
+          "reviewCount": 4,
+          "slug": "北京师范大学（珠海校区）"
+        }
+      ]
+    },
+    {
+      "id": "ruc-suzhou",
+      "name": "中国人民大学（苏州校区）",
+      "queries": [
+        "中国人民大学（苏州校区）",
+        "中国人民大学(苏州校区)",
+        "中国人民大学苏州校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国人民大学（苏州校区）",
+        "status": 200,
+        "durationMs": 315,
+        "id": 1240,
+        "name": "中国人民大学（苏州校区）",
+        "province": "江苏省",
+        "city": "苏州市",
+        "reviewCount": 2,
+        "slug": "中国人民大学（苏州校区）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国人民大学（苏州校区）",
+          "status": 200,
+          "durationMs": 315,
+          "id": 1240,
+          "name": "中国人民大学（苏州校区）",
+          "province": "江苏省",
+          "city": "苏州市",
+          "reviewCount": 2,
+          "slug": "中国人民大学（苏州校区）"
+        }
+      ]
+    },
+    {
+      "id": "uestc-shahe",
+      "name": "电子科技大学（沙河校区）",
+      "queries": [
+        "电子科技大学（沙河校区）",
+        "电子科技大学(沙河校区)",
+        "电子科技大学沙河校区"
+      ],
+      "resolution": "not_found",
+      "resolved": null,
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "电子科技大学（沙河校区）",
+          "status": 404,
+          "durationMs": 657,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        },
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "电子科技大学(沙河校区)",
+          "status": 404,
+          "durationMs": 533,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        },
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "电子科技大学沙河校区",
+          "status": 404,
+          "durationMs": 317,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        },
+        {
+          "host": "https://srgaoxiao.com",
+          "query": "电子科技大学（沙河校区）",
+          "status": 403,
+          "durationMs": 96,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        },
+        {
+          "host": "https://srgaoxiao.com",
+          "query": "电子科技大学(沙河校区)",
+          "status": 403,
+          "durationMs": 42,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        },
+        {
+          "host": "https://srgaoxiao.com",
+          "query": "电子科技大学沙河校区",
+          "status": 403,
+          "durationMs": 43,
+          "id": null,
+          "name": "",
+          "province": "",
+          "city": "",
+          "reviewCount": null,
+          "slug": ""
+        }
+      ]
+    },
+    {
+      "id": "hfut-xuancheng",
+      "name": "合肥工业大学（宣城校区）",
+      "queries": [
+        "合肥工业大学（宣城校区）",
+        "合肥工业大学(宣城校区)",
+        "合肥工业大学宣城校区"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "合肥工业大学（宣城校区）",
+        "status": 200,
+        "durationMs": 337,
+        "id": 1310,
+        "name": "合肥工业大学（宣城校区）",
+        "province": "安徽省",
+        "city": "宣城市",
+        "reviewCount": 5,
+        "slug": "合肥工业大学（宣城校区）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "合肥工业大学（宣城校区）",
+          "status": 200,
+          "durationMs": 337,
+          "id": 1310,
+          "name": "合肥工业大学（宣城校区）",
+          "province": "安徽省",
+          "city": "宣城市",
+          "reviewCount": 5,
+          "slug": "合肥工业大学（宣城校区）"
+        }
+      ]
+    },
+    {
+      "id": "cup-beijing",
+      "name": "中国石油大学（北京）",
+      "queries": [
+        "中国石油大学（北京）",
+        "中国石油大学(北京)"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国石油大学（北京）",
+        "status": 200,
+        "durationMs": 574,
+        "id": 57,
+        "name": "中国石油大学（北京）",
+        "province": "北京市",
+        "city": "昌平区",
+        "reviewCount": 11,
+        "slug": "中国石油大学（北京）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国石油大学（北京）",
+          "status": 200,
+          "durationMs": 574,
+          "id": 57,
+          "name": "中国石油大学（北京）",
+          "province": "北京市",
+          "city": "昌平区",
+          "reviewCount": 11,
+          "slug": "中国石油大学（北京）"
+        }
+      ]
+    },
+    {
+      "id": "cup-east",
+      "name": "中国石油大学（华东）",
+      "queries": [
+        "中国石油大学（华东）",
+        "中国石油大学(华东)"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国石油大学（华东）",
+        "status": 200,
+        "durationMs": 310,
+        "id": 83,
+        "name": "中国石油大学（华东）",
+        "province": "山东省",
+        "city": "青岛市",
+        "reviewCount": 14,
+        "slug": "中国石油大学（华东）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国石油大学（华东）",
+          "status": 200,
+          "durationMs": 310,
+          "id": 83,
+          "name": "中国石油大学（华东）",
+          "province": "山东省",
+          "city": "青岛市",
+          "reviewCount": 14,
+          "slug": "中国石油大学（华东）"
+        }
+      ]
+    },
+    {
+      "id": "cugb",
+      "name": "中国地质大学（北京）",
+      "queries": [
+        "中国地质大学（北京）",
+        "中国地质大学(北京)"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国地质大学（北京）",
+        "status": 200,
+        "durationMs": 309,
+        "id": 93,
+        "name": "中国地质大学（北京）",
+        "province": "北京市",
+        "city": "海淀区",
+        "reviewCount": 5,
+        "slug": "中国地质大学（北京）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国地质大学（北京）",
+          "status": 200,
+          "durationMs": 309,
+          "id": 93,
+          "name": "中国地质大学（北京）",
+          "province": "北京市",
+          "city": "海淀区",
+          "reviewCount": 5,
+          "slug": "中国地质大学（北京）"
+        }
+      ]
+    },
+    {
+      "id": "cug-wuhan",
+      "name": "中国地质大学（武汉）",
+      "queries": [
+        "中国地质大学（武汉）",
+        "中国地质大学(武汉)",
+        "中国地质大学"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国地质大学（武汉）",
+        "status": 200,
+        "durationMs": 309,
+        "id": 63,
+        "name": "中国地质大学（武汉）",
+        "province": "湖北省",
+        "city": "武汉市",
+        "reviewCount": 10,
+        "slug": "中国地质大学（武汉）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国地质大学（武汉）",
+          "status": 200,
+          "durationMs": 309,
+          "id": 63,
+          "name": "中国地质大学（武汉）",
+          "province": "湖北省",
+          "city": "武汉市",
+          "reviewCount": 10,
+          "slug": "中国地质大学（武汉）"
+        }
+      ]
+    },
+    {
+      "id": "cumtb",
+      "name": "中国矿业大学（北京）",
+      "queries": [
+        "中国矿业大学（北京）",
+        "中国矿业大学(北京)"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国矿业大学（北京）",
+        "status": 200,
+        "durationMs": 332,
+        "id": 94,
+        "name": "中国矿业大学（北京）",
+        "province": "北京市",
+        "city": "海淀区",
+        "reviewCount": 7,
+        "slug": "中国矿业大学（北京）"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国矿业大学（北京）",
+          "status": 200,
+          "durationMs": 332,
+          "id": 94,
+          "name": "中国矿业大学（北京）",
+          "province": "北京市",
+          "city": "海淀区",
+          "reviewCount": 7,
+          "slug": "中国矿业大学（北京）"
+        }
+      ]
+    },
+    {
+      "id": "cumt",
+      "name": "中国矿业大学",
+      "queries": [
+        "中国矿业大学"
+      ],
+      "resolution": "direct_child",
+      "resolved": {
+        "host": "https://eo.srgaoxiao.com",
+        "query": "中国矿业大学",
+        "status": 200,
+        "durationMs": 307,
+        "id": 70,
+        "name": "中国矿业大学",
+        "province": "江苏省",
+        "city": "徐州市",
+        "reviewCount": 21,
+        "slug": "中国矿业大学"
+      },
+      "attempts": [
+        {
+          "host": "https://eo.srgaoxiao.com",
+          "query": "中国矿业大学",
+          "status": 200,
+          "durationMs": 307,
+          "id": 70,
+          "name": "中国矿业大学",
+          "province": "江苏省",
+          "city": "徐州市",
+          "reviewCount": 21,
+          "slug": "中国矿业大学"
+        }
+      ]
+    }
+  ]
+}
