@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -17,10 +17,20 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feat/tongxue-school-entities-v130
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: node tools/tongxue/audit-srgaoxiao-entities-v130.mjs
+      - name: Persist audit report
+        run: |
+          cp /tmp/tongxue-entity-audit/srgaoxiao-entity-audit-v130.json tools/tongxue/srgaoxiao-entity-audit-v130.json
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/tongxue/srgaoxiao-entity-audit-v130.json
+          git diff --cached --quiet || git commit -m 'test: record srgaoxiao entity audit'
+          git push origin HEAD:feat/tongxue-school-entities-v130
       - if: always()
         uses: actions/upload-artifact@v4
         with:
