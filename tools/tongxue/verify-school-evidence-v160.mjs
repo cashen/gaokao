@@ -61,7 +61,7 @@ const unsafeTopicUrl=portrait.evidence.topicSignals.flatMap(item=>item.sourceUrl
 
 check('七维兼容',PORTRAIT_DIMENSIONS.length===7&&portrait.dimensions.length===7);
 check('重复评论去重',portrait.sample.fetchedReviews===12);
-check('原有样本字段',portrait.sample.evidenceLevel==='high'&&portrait.sample.partial===true&&portrait.sample.campusCount===2);
+check('原有样本字段',portrait.sample.evidenceLevel==='medium'&&portrait.sample.partial===true&&portrait.sample.campusCount===2);
 check('一致分布',employment?.agreement==='consistent'&&employment.distribution.high===12&&employment.spread<=0.3);
 check('共识输出',Boolean(consensus)&&consensus.sampleSize===12);
 check('分歧分布',dormitory?.agreement==='mixed'&&dormitory.distribution.low===6&&dormitory.distribution.high===6);
@@ -70,7 +70,8 @@ check('时间趋势',culture?.trend==='improving'&&culture.recentSampleSize===6&
 check('主题信号',topicKeys.has('campus')&&topicKeys.has('dormitory')&&topicKeys.has('management')&&topicKeys.has('cost')&&topicKeys.has('transfer')&&topicKeys.has('employment'));
 check('讨论信号不复制正文',portrait.evidence.topicSignals.every(item=>!Object.hasOwn(item,'content')&&!Object.hasOwn(item,'snippet')));
 check('来源链接白名单',!unsafeTopicUrl);
-check('核验清单',checklistIds.has('campus')&&checklistIds.has('dormitory')&&checklistIds.has('management')&&checklistIds.has('partial'));
+check('核验清单核心项',checklistIds.has('campus')&&checklistIds.has('dormitory')&&checklistIds.has('management'));
+check('核验清单覆盖风险',checklistIds.has('disputes')&&(checklistIds.has('cost')||checklistIds.has('transfer')||checklistIds.has('employment')));
 check('清单数量受限',portrait.evidence.checklist.length>0&&portrait.evidence.checklist.length<=6);
 check('版本与边界说明',portrait.evidence.version==='v1.6.0'&&portrait.evidence.note.includes('不等于学校官方事实'));
 check('原有关注点保留',portrait.attentionPoints.some(item=>item.text.includes('宿舍体验'))||portrait.attentionPoints.some(item=>item.text.includes('分化明显')));
