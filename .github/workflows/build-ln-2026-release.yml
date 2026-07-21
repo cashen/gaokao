@@ -37,6 +37,8 @@ jobs:
               'ROOT = Path(os.environ["GITHUB_WORKSPACE"]) if os.environ.get("GITHUB_WORKSPACE") else Path(__file__).resolve().parents[2]')
           text = text.replace('subprocess.run(["pdftotext", "-layout", str(pdf), str(txt)], check=True)',
                               'subprocess.run(["pdftotext", "-raw", str(pdf), str(txt)], check=True)')
+          text = text.replace('text = txt.read_text(encoding="utf-8", errors="ignore")',
+                              'text = txt.read_text(encoding="utf-8", errors="ignore").replace(",", "")')
           needle = 'def download_rank_pdf(dest: Path):\n'
           inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
           if needle not in text: raise SystemExit('rank PDF loader not found')
