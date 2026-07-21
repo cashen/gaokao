@@ -43,14 +43,30 @@ jobs:
               print(target, 'decoded bytes', len(decoded))
           PY
       - name: Build 2026 admission data and three-year reports
-        run: python3 /tmp/build_release.py
+        run: |
+          set +e
+          python3 /tmp/build_release.py > /tmp/ln2026-build.log 2>&1
+          status=$?
+          cat /tmp/ln2026-build.log
+          if [ "$status" -ne 0 ]; then
+            mkdir -p tools/ln-2026
+            cp /tmp/ln2026-build.log tools/ln-2026/last-build-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/last-build-error.log
+            git commit -m "ci: capture LN 2026 build failure [generated-ln2026]" || true
+            git push origin HEAD:${{ github.head_ref }} || true
+            exit "$status"
+          fi
       - name: Verify generated release
         run: python3 /tmp/verify_release.py
       - name: Commit generated outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f tools/ln-2026/last-build-error.log
           git add \
+            tools/ln-2026/last-build-error.log \
             fenxi/data/rank_2026_physics.json \
             fenxi/data/ln-rank-2026 \
             functions/_lib/ln-2026-physics-score-rank.js \
