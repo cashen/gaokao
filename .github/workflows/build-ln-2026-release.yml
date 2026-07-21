@@ -45,8 +45,8 @@ jobs:
               'ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parents[2]))',
               'ROOT = Path(os.environ["GITHUB_WORKSPACE"]) if os.environ.get("GITHUB_WORKSPACE") else Path(__file__).resolve().parents[2]'
           )
-          needle = 'def download_rank_pdf(target: Path) -> str:\n'
-          inject = '''def download_rank_pdf(target: Path) -> str:\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        target.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "local verified mirror")\n'''
+          needle = 'def download_rank_pdf(dest: Path):\n'
+          inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "local verified mirror")\n'''
           if needle not in text:
               raise SystemExit('rank PDF loader function not found')
           text = text.replace(needle, inject, 1)
@@ -61,11 +61,9 @@ jobs:
           from pathlib import Path
           from urllib.request import Request, urlopen
           from urllib.parse import urljoin
-          import re, time
+          import os, re, time
 
-          direct = [
-              'https://www.lnzsks.com/lnzkbfiles/2026/lns2026gkcjtjb0624clhptll01.pdf',
-          ]
+          direct = ['https://www.lnzsks.com/lnzkbfiles/2026/lns2026gkcjtjb0624clhptll01.pdf']
           pages = [
               'https://gaokao.chsi.com.cn/gkxx/zc/ss/202606/20260625/2293847495.html',
               'https://www.555edu.com/liaoning/GaoKaoZiXun/2026-06-25/1266096.html',
@@ -90,8 +88,7 @@ jobs:
               except Exception as exc:
                   print('page discovery failed', page, repr(exc))
 
-          seen = set()
-          errors = []
+          seen, errors = set(), []
           target = Path('/tmp/ln2026-rank.pdf')
           source = None
           for url in candidates:
@@ -114,9 +111,7 @@ jobs:
                   break
           if not source:
               raise SystemExit('Unable to download verified rank PDF\n' + '\n'.join(errors[-12:]))
-          with open(Path.home() / '.bash_profile', 'a', encoding='utf-8') as f:
-              pass
-          with open(Path(__import__('os').environ['GITHUB_ENV']), 'a', encoding='utf-8') as f:
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as f:
               f.write(f'LN2026_RANK_PDF={target}\n')
               f.write(f'LN2026_RANK_SOURCE={source}\n')
           PY
