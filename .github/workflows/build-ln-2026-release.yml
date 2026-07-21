@@ -21,10 +21,24 @@ jobs:
           fetch-depth: 1
       - name: Install PDF tools
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      - name: Decode build tools
+      - name: Decode and validate build tools
         run: |
-          base64 -d tools/ln-2026/build_release.py.gz.b64 | gzip -d > /tmp/build_release.py
-          base64 -d tools/ln-2026/verify_release.py.gz.b64 | gzip -d > /tmp/verify_release.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, py_compile
+          pairs = [
+              ('tools/ln-2026/build_release.py.gz.b64', '/tmp/build_release.py'),
+              ('tools/ln-2026/verify_release.py.gz.b64', '/tmp/verify_release.py'),
+          ]
+          for source, target in pairs:
+              encoded = ''.join(Path(source).read_text(encoding='utf-8').split())
+              print(source, 'base64 chars', len(encoded))
+              payload = base64.b64decode(encoded, validate=True)
+              decoded = gzip.decompress(payload)
+              Path(target).write_bytes(decoded)
+              py_compile.compile(target, doraise=True)
+              print(target, 'decoded bytes', len(decoded))
+          PY
       - name: Build 2026 admission data and three-year reports
         run: python3 /tmp/build_release.py
       - name: Verify generated release
