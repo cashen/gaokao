@@ -63,8 +63,12 @@ jobs:
           from urllib.parse import urljoin
           import os, re, time
 
-          direct = ['https://www.lnzsks.com/lnzkbfiles/2026/lns2026gkcjtjb0624clhptll01.pdf']
+          direct = [
+              'https://img.gaokaozhitongche.com/uploads/file/2026/0625/1782387966574085.pdf',
+              'https://www.lnzsks.com/lnzkbfiles/2026/lns2026gkcjtjb0624clhptll01.pdf',
+          ]
           pages = [
+              'https://app.gaokaozhitongche.com/newsexam/h/6MnPGbNg?backstage=gkztc',
               'https://gaokao.chsi.com.cn/gkxx/zc/ss/202606/20260625/2293847495.html',
               'https://www.555edu.com/liaoning/GaoKaoZiXun/2026-06-25/1266096.html',
           ]
@@ -83,7 +87,7 @@ jobs:
                   links = re.findall(r'''(?:href|src)=["']([^"']+\.pdf(?:\?[^"']*)?)["']''', html, re.I)
                   links += re.findall(r'''https?://[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?''', html, re.I)
                   resolved = [urljoin(final, link.replace('&amp;', '&')) for link in links]
-                  preferred = [u for u in resolved if '物理' in u or 'ade44036fc2b41a76e9e6f7488db1b63' in u or 'clhptll01' in u]
+                  preferred = [u for u in resolved if '物理' in u or 'ade44036fc2b41a76e9e6f7488db1b63' in u or 'clhptll01' in u or '1782387966574085' in u]
                   candidates.extend(preferred + resolved)
               except Exception as exc:
                   print('page discovery failed', page, repr(exc))
