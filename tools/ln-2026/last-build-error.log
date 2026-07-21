@@ -1,45 +1,45 @@
-BUILD FAILED: rank PDF validation failed: 650: expected 2867, got 440; 600: expected 14235, got 442; 570: expected 24127, got 445; 550: expected 31674, got 462; 508: expected 49824, got 414; 480: expected 62667, got 442; 450: expected 76652, got 480; 400: expected 98648, got 436; 344: expected 119069, got 371; 150: expected 141691, got 460; non-monotonic at score 714: 438 < 454
+BUILD FAILED: rank PDF validation failed: 650: expected 2867, got 999; 600: expected 14235, got 999; 570: expected 24127, got 999; 550: expected 31674, got 999; 508: expected 49824, got 999; 480: expected 62667, got 999; 450: expected 76652, got 999; 400: expected 98648, got 999; 344: expected 119069, got 999; 150: expected 141691, got 141; non-monotonic at score 272: 134 < 999
 PDF text sample:
-                                                                                                         生
-                                                                 宁
-
-
-
-
-                                                                                                     招
-                                                             辽
-
-
-
-
-                                                                                                  育
-                   辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
-
-
-
-
-                                                                                                 教
-
-
-
-
-                                                                                                                                  员
-                                                                                              等
-
-
-
-
-                                                                                                                                 委
-                                                                                           中
-
-
-
-
-                                                                                                                                试
-                                                                                          高
-
-
-
+辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
+分数 人数 累计
+708 10 10
+及以上
+707 4 14
+706 2 16
+705 4 20
+704 6 26
+703 4 30
+702 7 37
+701 2 39
+700 2 41
+699 4 45
+698 4 49
+697 4 53
+696 9 62
+695 8 70
+694 6 76
+693 11 87
+692 24 111
+691 16 127
+690 16 143
+689 21 164
+688 19 183
+687 14 197
+686 23 220
+685 26 246
+684 31 277
+683 30 307
+682 37 344
+681 22 366
+680 38 404
+679 34 438
+678 37 475
+677 35 510
+676 32 542
+675 49 591
+674 44 635
+673 52 687
+672 58 745
 Traceback (most recent call last):
   File "/tmp/build_release.py", line 734, in <module>
     build_all()
@@ -48,45 +48,45 @@ Traceback (most recent call last):
                           ^^^^^^^^^^^^^^^^^^^
   File "/tmp/build_release.py", line 304, in parse_rank_pdf
     raise RuntimeError("rank PDF validation failed: " + "; ".join(errors) + "\nPDF text sample:\n" + sample)
-RuntimeError: rank PDF validation failed: 650: expected 2867, got 440; 600: expected 14235, got 442; 570: expected 24127, got 445; 550: expected 31674, got 462; 508: expected 49824, got 414; 480: expected 62667, got 442; 450: expected 76652, got 480; 400: expected 98648, got 436; 344: expected 119069, got 371; 150: expected 141691, got 460; non-monotonic at score 714: 438 < 454
+RuntimeError: rank PDF validation failed: 650: expected 2867, got 999; 600: expected 14235, got 999; 570: expected 24127, got 999; 550: expected 31674, got 999; 508: expected 49824, got 999; 480: expected 62667, got 999; 450: expected 76652, got 999; 400: expected 98648, got 999; 344: expected 119069, got 999; 150: expected 141691, got 141; non-monotonic at score 272: 134 < 999
 PDF text sample:
-                                                                                                         生
-                                                                 宁
-
-
-
-
-                                                                                                     招
-                                                             辽
-
-
-
-
-                                                                                                  育
-                   辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
-
-
-
-
-                                                                                                 教
-
-
-
-
-                                                                                                                                  员
-                                                                                              等
-
-
-
-
-                                                                                                                                 委
-                                                                                           中
-
-
-
-
-                                                                                                                                试
-                                                                                          高
-
-
-
+辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
+分数 人数 累计
+708 10 10
+及以上
+707 4 14
+706 2 16
+705 4 20
+704 6 26
+703 4 30
+702 7 37
+701 2 39
+700 2 41
+699 4 45
+698 4 49
+697 4 53
+696 9 62
+695 8 70
+694 6 76
+693 11 87
+692 24 111
+691 16 127
+690 16 143
+689 21 164
+688 19 183
+687 14 197
+686 23 220
+685 26 246
+684 31 277
+683 30 307
+682 37 344
+681 22 366
+680 38 404
+679 34 438
+678 37 475
+677 35 510
+676 32 542
+675 49 591
+674 44 635
+673 52 687
+672 58 745
