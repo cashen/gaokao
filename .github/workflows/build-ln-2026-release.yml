@@ -1,23 +1,23 @@
 name: Build LN 2026 release data
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/ln-rank-2026-three-year-release
-    paths:
-      - 'tools/ln-2026/READY'
+      - main
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: write
 
 jobs:
   build:
-    if: ${{ !contains(github.event.head_commit.message, '[generated-ln2026]') }}
+    if: ${{ !contains(github.event.pull_request.title, '[generated-ln2026]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 1
       - name: Install PDF tools
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
@@ -42,6 +42,10 @@ jobs:
             ln-rank/data/major-trend-2026.json \
             ln2026.html \
             lngk2026.html
-          git diff --cached --stat
-          git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
-          git push
+          if git diff --cached --quiet; then
+            echo "Generated outputs are already current."
+          else
+            git diff --cached --stat
+            git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
