@@ -1,10 +1,92 @@
-BUILD FAILED: cannot download official 2026 rank PDF: <urlopen error timed out>
+BUILD FAILED: rank PDF validation failed: 650: expected 2867, got 440; 600: expected 14235, got 442; 570: expected 24127, got 445; 550: expected 31674, got 462; 508: expected 49824, got 414; 480: expected 62667, got 442; 450: expected 76652, got 480; 400: expected 98648, got 436; 344: expected 119069, got 371; 150: expected 141691, got 460; non-monotonic at score 714: 438 < 454
+PDF text sample:
+                                                                                                         生
+                                                                 宁
+
+
+
+
+                                                                                                     招
+                                                             辽
+
+
+
+
+                                                                                                  育
+                   辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
+
+
+
+
+                                                                                                 教
+
+
+
+
+                                                                                                                                  员
+                                                                                              等
+
+
+
+
+                                                                                                                                 委
+                                                                                           中
+
+
+
+
+                                                                                                                                试
+                                                                                          高
+
+
+
 Traceback (most recent call last):
-  File "/tmp/build_release.py", line 730, in <module>
+  File "/tmp/build_release.py", line 734, in <module>
     build_all()
-  File "/tmp/build_release.py", line 432, in build_all
-    source_url = download_rank_pdf(pdf)
-                 ^^^^^^^^^^^^^^^^^^^^^^
-  File "/tmp/build_release.py", line 251, in download_rank_pdf
-    raise RuntimeError(f"cannot download official 2026 rank PDF: {last}")
-RuntimeError: cannot download official 2026 rank PDF: <urlopen error timed out>
+  File "/tmp/build_release.py", line 437, in build_all
+    rank_map, count_map = parse_rank_pdf(pdf)
+                          ^^^^^^^^^^^^^^^^^^^
+  File "/tmp/build_release.py", line 304, in parse_rank_pdf
+    raise RuntimeError("rank PDF validation failed: " + "; ".join(errors) + "\nPDF text sample:\n" + sample)
+RuntimeError: rank PDF validation failed: 650: expected 2867, got 440; 600: expected 14235, got 442; 570: expected 24127, got 445; 550: expected 31674, got 462; 508: expected 49824, got 414; 480: expected 62667, got 442; 450: expected 76652, got 480; 400: expected 98648, got 436; 344: expected 119069, got 371; 150: expected 141691, got 460; non-monotonic at score 714: 438 < 454
+PDF text sample:
+                                                                                                         生
+                                                                 宁
+
+
+
+
+                                                                                                     招
+                                                             辽
+
+
+
+
+                                                                                                  育
+                   辽宁省2026年普通高校招生考试成绩统计表(物理学科类)
+
+
+
+
+                                                                                                 教
+
+
+
+
+                                                                                                                                  员
+                                                                                              等
+
+
+
+
+                                                                                                                                 委
+                                                                                           中
+
+
+
+
+                                                                                                                                试
+                                                                                          高
+
+
+
