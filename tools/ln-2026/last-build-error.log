@@ -1,7 +1,10 @@
+BUILD FAILED: cannot download official 2026 rank PDF: <urlopen error timed out>
 Traceback (most recent call last):
-  File "/tmp/build_release.py", line 25, in <module>
-    ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parents[2]))
-                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
-  File "/usr/lib/python3.12/pathlib.py", line 281, in __getitem__
-    raise IndexError(idx)
-IndexError: 2
+  File "/tmp/build_release.py", line 730, in <module>
+    build_all()
+  File "/tmp/build_release.py", line 432, in build_all
+    source_url = download_rank_pdf(pdf)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/build_release.py", line 251, in download_rank_pdf
+    raise RuntimeError(f"cannot download official 2026 rank PDF: {last}")
+RuntimeError: cannot download official 2026 rank PDF: <urlopen error timed out>
