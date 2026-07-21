@@ -39,8 +39,16 @@ jobs:
               payload = base64.b64decode(encoded, validate=True)
               decoded = gzip.decompress(payload)
               Path(target).write_bytes(decoded)
+          build = Path('/tmp/build_release.py')
+          text = build.read_text(encoding='utf-8')
+          text = text.replace(
+              'ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parents[2]))',
+              'ROOT = Path(os.environ["GITHUB_WORKSPACE"]) if os.environ.get("GITHUB_WORKSPACE") else Path(__file__).resolve().parents[2]'
+          )
+          build.write_text(text, encoding='utf-8')
+          for target in ('/tmp/build_release.py', '/tmp/verify_release.py'):
               py_compile.compile(target, doraise=True)
-              print(target, 'decoded bytes', len(decoded))
+              print(target, 'decoded bytes', Path(target).stat().st_size)
           PY
       - name: Build 2026 admission data and three-year reports
         run: |
