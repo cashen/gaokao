@@ -2,8 +2,7 @@ name: Build LN 2026 release data
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, reopened, synchronize]
 
 permissions:
@@ -19,114 +18,53 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
-      - name: Install PDF tools
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      - name: Decode and validate build tools
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Decode and patch build tools
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import base64, gzip, py_compile
-          specs = [
+          for pattern, target in [
               ('tools/ln-2026/payload/build_release.py.part*', '/tmp/build_release.py'),
-              ('tools/ln-2026/payload/verify_release.py.part*', '/tmp/verify_release.py'),
-          ]
-          for pattern, target in specs:
+              ('tools/ln-2026/payload/verify_release.py.part*', '/tmp/verify_release.py')]:
               parts = sorted(Path('.').glob(pattern))
-              if not parts:
-                  raise SystemExit(f'No payload parts found for {pattern}')
-              encoded = ''.join(''.join(p.read_text(encoding='utf-8').split()) for p in parts)
-              print(pattern, 'parts', len(parts), 'base64 chars', len(encoded))
-              payload = base64.b64decode(encoded, validate=True)
-              decoded = gzip.decompress(payload)
-              Path(target).write_bytes(decoded)
-          build = Path('/tmp/build_release.py')
-          text = build.read_text(encoding='utf-8')
+              encoded = ''.join(''.join(p.read_text().split()) for p in parts)
+              Path(target).write_bytes(gzip.decompress(base64.b64decode(encoded, validate=True)))
+          p = Path('/tmp/build_release.py')
+          text = p.read_text()
           text = text.replace(
               'ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parents[2]))',
-              'ROOT = Path(os.environ["GITHUB_WORKSPACE"]) if os.environ.get("GITHUB_WORKSPACE") else Path(__file__).resolve().parents[2]'
-          )
+              'ROOT = Path(os.environ["GITHUB_WORKSPACE"]) if os.environ.get("GITHUB_WORKSPACE") else Path(__file__).resolve().parents[2]')
+          text = text.replace('subprocess.run(["pdftotext", "-layout", str(pdf), str(txt)], check=True)',
+                              'subprocess.run(["pdftotext", "-raw", str(pdf), str(txt)], check=True)')
           needle = 'def download_rank_pdf(dest: Path):\n'
-          inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "local verified mirror")\n'''
-          if needle not in text:
-              raise SystemExit('rank PDF loader function not found')
-          text = text.replace(needle, inject, 1)
-          build.write_text(text, encoding='utf-8')
-          for target in ('/tmp/build_release.py', '/tmp/verify_release.py'):
-              py_compile.compile(target, doraise=True)
-              print(target, 'decoded bytes', Path(target).stat().st_size)
+          inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
+          if needle not in text: raise SystemExit('rank PDF loader not found')
+          p.write_text(text.replace(needle, inject, 1))
+          py_compile.compile('/tmp/build_release.py', doraise=True)
+          py_compile.compile('/tmp/verify_release.py', doraise=True)
           PY
-      - name: Download verified 2026 physics score statistics PDF
+      - name: Download verified score statistics PDF
         run: |
           python3 - <<'PY'
           from pathlib import Path
           from urllib.request import Request, urlopen
-          from urllib.parse import urljoin
-          import os, re, time
-
-          direct = [
-              'https://img.gaokaozhitongche.com/uploads/file/2026/0625/1782387966574085.pdf',
-              'https://www.lnzsks.com/lnzkbfiles/2026/lns2026gkcjtjb0624clhptll01.pdf',
-          ]
-          pages = [
-              'https://app.gaokaozhitongche.com/newsexam/h/6MnPGbNg?backstage=gkztc',
-              'https://gaokao.chsi.com.cn/gkxx/zc/ss/202606/20260625/2293847495.html',
-              'https://www.555edu.com/liaoning/GaoKaoZiXun/2026-06-25/1266096.html',
-          ]
-          headers = {'User-Agent': 'Mozilla/5.0 (compatible; LN2026DataAudit/1.0)', 'Accept': '*/*'}
-
-          def get(url, timeout=45):
-              req = Request(url, headers=headers)
-              with urlopen(req, timeout=timeout) as res:
-                  return res.read(), res.geturl()
-
-          candidates = list(direct)
-          for page in pages:
-              try:
-                  raw, final = get(page, 30)
-                  html = raw.decode('utf-8', 'ignore')
-                  links = re.findall(r'''(?:href|src)=["']([^"']+\.pdf(?:\?[^"']*)?)["']''', html, re.I)
-                  links += re.findall(r'''https?://[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?''', html, re.I)
-                  resolved = [urljoin(final, link.replace('&amp;', '&')) for link in links]
-                  preferred = [u for u in resolved if '物理' in u or 'ade44036fc2b41a76e9e6f7488db1b63' in u or 'clhptll01' in u or '1782387966574085' in u]
-                  candidates.extend(preferred + resolved)
-              except Exception as exc:
-                  print('page discovery failed', page, repr(exc))
-
-          seen, errors = set(), []
-          target = Path('/tmp/ln2026-rank.pdf')
-          source = None
-          for url in candidates:
-              if not url or url in seen:
-                  continue
-              seen.add(url)
-              for attempt in range(3):
-                  try:
-                      data, final = get(url, 60)
-                      if len(data) < 100000 or not data.startswith(b'%PDF'):
-                          raise ValueError(f'not a valid PDF: {len(data)} bytes')
-                      target.write_bytes(data)
-                      source = final
-                      print('rank PDF downloaded', final, len(data))
-                      break
-                  except Exception as exc:
-                      errors.append(f'{url}: {exc!r}')
-                      time.sleep(2 + attempt)
-              if source:
-                  break
-          if not source:
-              raise SystemExit('Unable to download verified rank PDF\n' + '\n'.join(errors[-12:]))
-          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as f:
-              f.write(f'LN2026_RANK_PDF={target}\n')
-              f.write(f'LN2026_RANK_SOURCE={source}\n')
+          import os
+          url='https://img.gaokaozhitongche.com/uploads/file/2026/0625/1782387966574085.pdf'
+          with urlopen(Request(url, headers={'User-Agent':'Mozilla/5.0'}), timeout=60) as r:
+              data=r.read(); final=r.geturl()
+          if len(data)<100000 or not data.startswith(b'%PDF'): raise SystemExit('invalid rank PDF')
+          target=Path('/tmp/ln2026-rank.pdf'); target.write_bytes(data)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write(f'LN2026_RANK_PDF={target}\nLN2026_RANK_SOURCE={final}\n')
           PY
-      - name: Build 2026 admission data and three-year reports
+      - name: Build and verify generated data
         run: |
           set +e
           python3 /tmp/build_release.py > /tmp/ln2026-build.log 2>&1
           status=$?
           cat /tmp/ln2026-build.log
           if [ "$status" -ne 0 ]; then
-            mkdir -p tools/ln-2026
             cp /tmp/ln2026-build.log tools/ln-2026/last-build-error.log
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -135,27 +73,14 @@ jobs:
             git push origin HEAD:${{ github.head_ref }} || true
             exit "$status"
           fi
-      - name: Verify generated release
-        run: python3 /tmp/verify_release.py
+          python3 /tmp/verify_release.py
       - name: Commit generated outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f tools/ln-2026/last-build-error.log
-          git add \
-            tools/ln-2026/last-build-error.log \
-            fenxi/data/rank_2026_physics.json \
-            fenxi/data/ln-rank-2026 \
-            functions/_lib/ln-2026-physics-score-rank.js \
-            functions/_lib/kb/major-trend-2026.generated.js \
-            analysis/2026 \
-            ln-rank/data/major-trend-2026.json \
-            ln2026.html \
-            lngk2026.html
-          if git diff --cached --quiet; then
-            echo "Generated outputs are already current."
-          else
-            git diff --cached --stat
+          git add tools/ln-2026/last-build-error.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
+          if ! git diff --cached --quiet; then
             git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
           fi
