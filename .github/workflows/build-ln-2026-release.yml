@@ -5,8 +5,7 @@ on:
     branches:
       - agent/ln-rank-2026-three-year-release
     paths:
-      - 'tools/ln-2026/**'
-      - '.github/workflows/build-ln-2026-release.yml'
+      - 'tools/ln-2026/READY'
 
 permissions:
   contents: write
