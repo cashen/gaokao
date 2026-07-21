@@ -1,0 +1,48 @@
+name: Build LN 2026 release data
+
+on:
+  push:
+    branches:
+      - agent/ln-rank-2026-three-year-release
+    paths:
+      - 'tools/ln-2026/**'
+      - '.github/workflows/build-ln-2026-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: ${{ !contains(github.event.head_commit.message, '[generated-ln2026]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Install PDF tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Decode build tools
+        run: |
+          base64 -d tools/ln-2026/build_release.py.gz.b64 | gzip -d > /tmp/build_release.py
+          base64 -d tools/ln-2026/verify_release.py.gz.b64 | gzip -d > /tmp/verify_release.py
+      - name: Build 2026 admission data and three-year reports
+        run: python3 /tmp/build_release.py
+      - name: Verify generated release
+        run: python3 /tmp/verify_release.py
+      - name: Commit generated outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            fenxi/data/rank_2026_physics.json \
+            fenxi/data/ln-rank-2026 \
+            functions/_lib/ln-2026-physics-score-rank.js \
+            functions/_lib/kb/major-trend-2026.generated.js \
+            analysis/2026 \
+            ln-rank/data/major-trend-2026.json \
+            ln2026.html \
+            lngk2026.html
+          git diff --cached --stat
+          git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
+          git push
