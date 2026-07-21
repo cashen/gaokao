@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/tmp/build_release.py", line 25, in <module>
+    ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parents[2]))
+                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.12/pathlib.py", line 281, in __getitem__
+    raise IndexError(idx)
+IndexError: 2
