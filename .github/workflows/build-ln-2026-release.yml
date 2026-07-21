@@ -26,13 +26,16 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import base64, gzip, py_compile
-          pairs = [
-              ('tools/ln-2026/build_release.py.gz.b64', '/tmp/build_release.py'),
-              ('tools/ln-2026/verify_release.py.gz.b64', '/tmp/verify_release.py'),
+          specs = [
+              ('tools/ln-2026/payload/build_release.py.part*', '/tmp/build_release.py'),
+              ('tools/ln-2026/payload/verify_release.py.part*', '/tmp/verify_release.py'),
           ]
-          for source, target in pairs:
-              encoded = ''.join(Path(source).read_text(encoding='utf-8').split())
-              print(source, 'base64 chars', len(encoded))
+          for pattern, target in specs:
+              parts = sorted(Path('.').glob(pattern))
+              if not parts:
+                  raise SystemExit(f'No payload parts found for {pattern}')
+              encoded = ''.join(''.join(p.read_text(encoding='utf-8').split()) for p in parts)
+              print(pattern, 'parts', len(parts), 'base64 chars', len(encoded))
               payload = base64.b64decode(encoded, validate=True)
               decoded = gzip.decompress(payload)
               Path(target).write_bytes(decoded)
