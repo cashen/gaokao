@@ -58,17 +58,21 @@ export function getRegionLabel(key) {
 export function matchRegionRule(record = {}, region = 'all') {
   const key = String(region || 'all');
   if (key === 'all') return true;
-  const lnArea = String(record.lnArea || record.region || '');
+  const lnArea = String(record.lnArea || record.region || '').trim();
   const province = normalizeProvinceName(record.province);
   const city = normalizeCityName(record.city);
   const groups = Array.isArray(record.regionGroups) ? record.regionGroups : [];
 
   if (groups.includes(key) || groups.includes(region)) return true;
-  if (key === 'ln') return lnArea !== '省外' || province === '辽宁';
-  if (key === 'outside') return lnArea === '省外' || (province && province !== '辽宁');
+  if (key === 'ln') return province ? province === '辽宁' : lnArea !== '省外';
+  if (key === 'outside') return province ? province !== '辽宁' : lnArea === '省外';
   if (key === 'shenyang') return lnArea === '沈阳' || city === '沈阳';
   if (key === 'dalian') return lnArea === '大连' || city === '大连';
-  if (key === 'ln-other') return lnArea === '辽宁其他';
+  if (key === 'ln-other') {
+    if (province && province !== '辽宁') return false;
+    if (lnArea) return lnArea === '辽宁其他';
+    return province === '辽宁' && !['沈阳', '大连'].includes(city);
+  }
   if (DIRECT_PROVINCES[key]) return province === DIRECT_PROVINCES[key];
   if (REGION_GROUPS[key]) return REGION_GROUPS[key].includes(province);
   return true;
