@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f4f7f6" />
-  <title>辽宁 2026 物理类生成报告前确认</title>
-  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-selection.v3949_0.css?v=3949_4" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-multi-terminal.v3949_4.css?v=3949_4" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3950_0" />
+  <title>辽宁 2027 物理类生成报告前确认</title>
+  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-selection.v3949_0.css?v=3951_0" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-multi-terminal.v3949_4.css?v=3951_0" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3951_0" />
 </head>
-<body class="ln-parent-guided-flow ln-selection-guided-flow" data-release="v3.9.50.0">
+<body class="ln-parent-guided-flow ln-selection-guided-flow" data-release="v3.9.51.0">
   <main class="page ln-selection-page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2026 物理类专业初选</p>
+        <p class="eyebrow">辽宁 2027 物理类专业初选参考</p>
         <h1 class="app-title">生成报告前确认</h1>
         <p class="app-subtitle">下面这些专业会放进报告里。不合适的可以先移除，确认后再生成飞书报告。</p>
       </div>
@@ -30,8 +30,8 @@
 
     <section class="ln-selection-step ln-selection-score-panel" aria-labelledby="selectionScoreTitle">
       <div class="ln-step-marker">分数确认</div>
-      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认孩子高考分数</h2><p>报告里的“相对孩子分数”和分段提醒，都会按这里的分数重新计算。</p></div>
-      <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">孩子高考分数</label><input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="如 666" /></div></div>
+      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认模考 / 预估参考分数</h2><p>报告里的“相对参考分数”和三个分段，都会按这里的分数重新计算；位次只按 2026 一分一段解释历史位置。</p></div>
+      <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">模考 / 预估参考分数</label><input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="如 580" /></div></div>
     </section>
     <section class="ln-selection-main" aria-label="生成报告前确认">
       <div class="workspace-panel workspace-panel-list ln-selection-list-panel">
@@ -39,7 +39,7 @@
           <div>
             <div class="ln-step-marker">已选清单</div>
             <h2 class="workspace-title">已选专业</h2>
-            <p class="workspace-desc">不想放进报告的，可以先移除；确认后再生成飞书报告。</p>
+            <p class="workspace-desc">不想放进报告的，可以先移除；来自旧版 2025 自选池且未匹配到 2026 同口径记录的条目会单独标记，不进入当前正式报告。</p>
           </div>
           <div class="workspace-actions workspace-actions-list ln-selection-list-actions">
             <a class="workspace-button muted" href="/ln-rank/">返回继续添加</a>
@@ -49,7 +49,7 @@
         </div>
         <div id="workspaceStats"></div>
         <section id="selectionFilterRelation" class="ln-selection-filter-relation" hidden></section>
-      <div id="selectionUndoStatus" class="ln-selection-undo-status" aria-live="polite"></div>
+        <div id="selectionUndoStatus" class="ln-selection-undo-status" aria-live="polite"></div>
         <div id="workspaceList" class="workspace-list compact-list"></div>
         <div id="reviewChecklistPanel"></div>
       </div>
@@ -71,7 +71,7 @@
             <button id="sendSelectionPool" class="workspace-button">用已选专业生成报告</button>
             <button id="copySelectionText" class="workspace-button muted">复制文字版</button>
           </div>
-          <div class="ln-report-help">生成飞书报告会带上已选专业、筛选条件和需要再确认的地方；飞书暂时不可用时，先复制文字版保存。</div>
+          <div class="ln-report-help">报告以 2026 专业投档分和位次为主，附 2025、2024 同口径历史；飞书暂时不可用时，可先复制文字版保存。</div>
           <div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div>
         </section>
       </aside>
@@ -89,10 +89,10 @@
     </section>
 
     <section class="data-note">
-      当前报告内容基于辽宁 2025 年物理类历史数据形成讨论意见，不等同于录取判断。2026 年一分一段发布后，应按 2026 位次换算 2025 等位分/同位分，再结合招生计划、选科、体检、学费和校区逐条核验。<br>版本：v3.9.50.0｜数据口径：辽宁 2025 物理类｜专业方向变化参考：2024/2025 同校同专业普通项目｜<a href="/ln-rank/major-trend-2025.html">查看专业方向变化参考</a>
+      当前报告主要依据辽宁 2026 年普通类本科批物理类专业投档记录，2025、2024 仅作严格同口径历史对照。输入的是模考或预估参考分数，不是 2027 年正式高考成绩；历史位次不代表 2027 年实际位次。正式填报应重新核验 2027 年一分一段、招生计划、选科、体检、学费、校区和招生章程。<br>版本：v3.9.51.0｜数据口径：辽宁 2026 物理类专业投档｜三年变化方法：扣除年度共同位移后的相对观察｜<a href="/ln-rank/major-trend-2026.html">查看近三年投档位置变化参考</a>
     </section>
   </main>
-  <script type="module" src="/ln-rank/js/selection-pool.v3949_0.js?v=3949_4"></script>
-  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3949_4"></script>
+  <script type="module" src="/ln-rank/js/selection-pool.v3951_0.js?v=3951_0"></script>
+  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3951_0"></script>
 </body>
 </html>

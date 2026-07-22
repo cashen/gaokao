@@ -1,57 +1,9 @@
-import {
-  findLn2025PhysicsScoreByRank,
-  getLn2025PhysicsRankRows,
-  lookupLn2025PhysicsRank,
-  LN_2025_PHYSICS_SCORE_RANK_META
-} from './ln-2025-physics-score-rank.js';
-
-function norm(value) {
-  return String(value == null ? '' : value).trim().toLowerCase();
-}
-
-function isLnPhysics(region, subject) {
-  const r = norm(region || 'ln');
-  const s = norm(subject || 'physics');
-  return ['ln', 'liaoning', '辽宁'].includes(r) && ['physics', '物理', '物理类', 'physical'].includes(s);
-}
-
-export function lookupScoreRank({ year = 2025, region = 'ln', subject = 'physics', score } = {}) {
-  if (Number(year) === 2025 && isLnPhysics(region, subject)) {
-    return lookupLn2025PhysicsRank(score);
-  }
-  return null;
-}
-
-export function getRankTableMeta({ year = 2025, region = 'ln', subject = 'physics' } = {}) {
-  if (Number(year) === 2025 && isLnPhysics(region, subject)) return { ...LN_2025_PHYSICS_SCORE_RANK_META };
-  return null;
-}
-
-export function getRankTableRows({ year = 2025, region = 'ln', subject = 'physics' } = {}) {
-  if (Number(year) === 2025 && isLnPhysics(region, subject)) return getLn2025PhysicsRankRows();
-  return [];
-}
-
-export function findEquivalentScoreByRank({ targetYear = 2025, region = 'ln', subject = 'physics', rank } = {}) {
-  if (Number(targetYear) === 2025 && isLnPhysics(region, subject)) {
-    return findLn2025PhysicsScoreByRank(rank);
-  }
-  return null;
-}
-
-export function describeEquivalentRankRoadmap({ sourceYear = 2026, targetYear = 2025, region = 'ln', subject = 'physics' } = {}) {
-  const sourceReady = Boolean(getRankTableMeta({ year: sourceYear, region, subject }));
-  const targetReady = Boolean(getRankTableMeta({ year: targetYear, region, subject }));
-  return {
-    sourceYear: Number(sourceYear),
-    targetYear: Number(targetYear),
-    region,
-    subject,
-    sourceReady,
-    targetReady,
-    enabled: sourceReady && targetReady,
-    note: sourceReady && targetReady
-      ? '可按考生当年位次换算到目标年份等位分/同位分。'
-      : '当前仅内置辽宁2025物理类一分一段；2026表发布后新增数据文件即可启用等位分/同位分换算。'
-  };
-}
+import {findLn2025PhysicsScoreByRank,getLn2025PhysicsRankRows,lookupLn2025PhysicsRank,LN_2025_PHYSICS_SCORE_RANK_META} from './ln-2025-physics-score-rank.js';
+import {lookupLn2026PhysicsScore,lookupLn2026PhysicsRank,getLn2026PhysicsRows,LN_2026_PHYSICS_SCORE_RANK_META} from './ln-2026-physics-score-rank.js';
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function isLnPhysics(region,subject){return ['ln','liaoning','辽宁'].includes(norm(region||'ln'))&&['physics','物理','物理类','physical'].includes(norm(subject||'physics'))}
+export function lookupScoreRank({year=2026,region='ln',subject='physics',score}={}){if(!isLnPhysics(region,subject))return null;if(Number(year)===2026)return lookupLn2026PhysicsScore(score);if(Number(year)===2025)return lookupLn2025PhysicsRank(score);return null}
+export function getRankTableMeta({year=2026,region='ln',subject='physics'}={}){if(!isLnPhysics(region,subject))return null;if(Number(year)===2026)return {...LN_2026_PHYSICS_SCORE_RANK_META};if(Number(year)===2025)return {...LN_2025_PHYSICS_SCORE_RANK_META};return null}
+export function getRankTableRows({year=2026,region='ln',subject='physics'}={}){if(!isLnPhysics(region,subject))return[];if(Number(year)===2026)return getLn2026PhysicsRows();if(Number(year)===2025)return getLn2025PhysicsRankRows();return[]}
+export function findEquivalentScoreByRank({targetYear=2026,region='ln',subject='physics',rank}={}){if(!isLnPhysics(region,subject))return null;if(Number(targetYear)===2026)return lookupLn2026PhysicsRank(rank);if(Number(targetYear)===2025)return findLn2025PhysicsScoreByRank(rank);return null}
+export function describeEquivalentRankRoadmap({sourceYear=2026,targetYear=2025,region='ln',subject='physics'}={}){const sourceReady=!!getRankTableMeta({year:sourceYear,region,subject}),targetReady=!!getRankTableMeta({year:targetYear,region,subject});return{sourceYear:Number(sourceYear),targetYear:Number(targetYear),region,subject,sourceReady,targetReady,enabled:sourceReady&&targetReady,note:sourceReady&&targetReady?'可按官方一分一段进行跨年等位参考；结果仍需结合当年招生计划。':'对应年份一分一段尚未接入。'}}

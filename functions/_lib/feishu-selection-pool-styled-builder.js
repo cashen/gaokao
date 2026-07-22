@@ -35,13 +35,13 @@ function pct(part, total) {
 function deltaText(delta) {
   const n = Number(delta);
   if (!Number.isFinite(n)) return '分差待核验';
-  return `相对孩子 ${n > 0 ? '+' : ''}${n} 分`;
+  return `相对参考分数 ${n > 0 ? '+' : ''}${n} 分`;
 }
 
 function scoreRankText(item) {
-  const score = Number.isFinite(Number(item.score2025)) ? `${fmt(item.score2025)} 分` : '分数待核验';
-  const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
-  return `2025最低 ${score} / ${rank}`;
+  const score = Number.isFinite(Number(item.score2026 ?? item.score)) ? `${fmt(item.score2026 ?? item.score)} 分` : '分数待核验';
+  const rank = Number.isFinite(Number(item.rank2026 ?? item.rank)) ? `${fmt(item.rank2026 ?? item.rank)} 位` : '位次待核验';
+  return `2026投档最低 ${score} / 对应累计位次约 ${rank}`;
 }
 
 function standardMajorText(item = {}) {
@@ -111,19 +111,18 @@ function matchDetailRuns(summary = {}) {
 
 
 function historyScoreText(item = {}) {
-  const has2024 = item?.historyCompare?.has2024 || item.score2024 != null || item.rank2024 != null;
-  if (!has2024) return '2024同口径参考：暂无';
-  const score = item.score2024 != null ? `${formatNumber(item.score2024)} 分` : '分数待核验';
-  const rank = item.rank2024 != null ? `${formatNumber(item.rank2024)} 位` : '位次待核验';
-  return `2024同口径参考：${score} / ${rank}`;
+  const rows=[];
+  if(item.score2025!=null||item.rank2025!=null)rows.push(`2025：${item.score2025!=null?formatNumber(item.score2025)+' 分':'分数待核验'} / ${item.rank2025!=null?formatNumber(item.rank2025)+' 位':'位次待核验'}`);
+  if(item.score2024!=null||item.rank2024!=null)rows.push(`2024：${item.score2024!=null?formatNumber(item.score2024)+' 分':'分数待核验'} / ${item.rank2024!=null?formatNumber(item.rank2024)+' 位':'位次待核验'}`);
+  return rows.join('；')||'历史同口径参考：暂无';
 }
 
 function itemRuns(item) {
   const band = item.poolBand || {};
   const bandLabel = band.detail || item.statusLabel || '待判断';
   const bandStyle = styleForBand(band);
-  const deltaStyle = styleForDelta(item.scoreDelta);
-  const rankStyle = styleForRankGap(item.rankGap);
+  const deltaStyle = styleForDelta(item.scoreDelta2026 ?? item.scoreDelta);
+  const rankStyle = styleForRankGap(item.rankGap2026 ?? item.rankGap);
   const tags = shortTags(item);
   const special = item.specialProject?.hasSpecialProject ? `特殊项目：${item.specialProject.labelText || item.specialProject.primaryLabel || '需资格核验'}` : '';
   return [
@@ -133,9 +132,9 @@ function itemRuns(item) {
     { content: '｜' },
     { content: bandLabel, style: bandStyle },
     { content: '｜' },
-    { content: deltaText(item.scoreDelta), style: deltaStyle },
+    { content: deltaText(item.scoreDelta2026 ?? item.scoreDelta), style: deltaStyle },
     { content: '｜' },
-    { content: rankGapText(item.rankGap), style: rankStyle },
+    { content: rankGapText(item.rankGap2026 ?? item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
     { content: `｜${historyScoreText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,

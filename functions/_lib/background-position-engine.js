@@ -1,95 +1,156 @@
-import { loadAllRecords, loadManifest } from './fenxi-manifest.js';
+import { loadAllRecords, loadManifest } from './ln-rank-manifest.js';
 import { fetchFenxiJson } from './fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from './fenxi-normalizer.js';
 import { buildDisplayTags } from './school-display-tags.js';
+import { lookupScoreRank } from './rank-table-provider.js';
 
 export function clean(value, max = 80) {
   return String(value || '').trim().slice(0, max);
 }
+
 export function num(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
+
 export function rankSort(value) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
 }
+
 export function normalizeKey(value) {
   return String(value || '').replace(/[（(].*?[）)]/g, '').replace(/\s+/g, '').trim();
 }
+
 export function includesText(a, b) {
   const left = normalizeKey(a);
   const right = normalizeKey(b);
   return !right || left.includes(right) || right.includes(left);
 }
+
 export function levelPass(level, filter) {
-  if (filter === 'primary') return level === 'primary';
-  if (filter === 'core') return level === 'primary';
+  if (filter === 'primary' || filter === 'core') return level === 'primary';
   if (filter === 'primary_secondary') return level === 'primary' || level === 'secondary';
   return true;
 }
+
 export function publicPass(record, mode) {
   if (mode !== 'public_regular_only') return true;
   const text = [record.nature, record.natureRaw, ...(record.schoolTags || []), record.rawText].filter(Boolean).join(' ');
   if (/民办|独立学院|中外|合作办学|高收费|较高收费/.test(text)) return false;
   return /公办/.test(text) || !/民办|独立学院/.test(text);
 }
+
+function rankContext(score) {
+  const row = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
+  if (!row) return null;
+  const rankStart = num(row.rankStart);
+  const rankEnd = num(row.rankEnd ?? row.cumulative ?? row.rankForGap);
+  return {
+    score: num(row.score ?? score),
+    rankStart,
+    rankEnd,
+    rank: num(row.rankForGap) ?? rankEnd,
+    sameCount: num(row.sameCount),
+    emptyScore: Boolean(row.emptyScore)
+  };
+}
+
 export function buildCandidatePositionContext(score, extra = {}) {
   const candidateScore = num(score);
+  const candidateRank = extra.candidateRankContext || rankContext(candidateScore);
   return {
-    activeCandidateYear: extra.activeCandidateYear || 2026,
+    audienceYear: 2027,
+    activeCandidateYear: 2026,
     candidateScore,
-    candidateRank: extra.candidateRank ?? null,
-    referenceAdmissionYear: extra.referenceAdmissionYear || 2025,
+    candidateRank: extra.candidateRank ?? candidateRank?.rank ?? null,
+    candidateRankStart: extra.candidateRankStart ?? candidateRank?.rankStart ?? null,
+    candidateRankEnd: extra.candidateRankEnd ?? candidateRank?.rankEnd ?? null,
+    candidateSameCount: extra.candidateSameCount ?? candidateRank?.sameCount ?? null,
+    candidateRankEmptyScore: Boolean(candidateRank?.emptyScore),
+    referenceAdmissionYear: 2026,
     referenceScore: extra.referenceScore ?? candidateScore,
-    referenceRank: extra.referenceRank ?? null,
-    positionMode: extra.positionMode || 'history_score_until_current_rank_table_ready',
-    dataSourceLabel: extra.dataSourceLabel || '当前参考数据：辽宁 2025 物理类历史专业记录。2026 一分一段发布后，应统一切换为位次/等位参考窗口。',
-    humanBoundary: extra.humanBoundary || '这里不是录取判断。当前先按孩子输入分数对照辽宁 2025 物理类历史专业记录；2026 一分一段接入后，应先换算孩子位次，再按同一个参考窗口查看本地属性和 211 背景。',
+    referenceRank: extra.referenceRank ?? candidateRank?.rank ?? null,
+    positionMode: extra.positionMode || '2026_score_delta_with_rank_context',
+    classificationMode: 'score_delta',
+    dataSourceLabel: extra.dataSourceLabel || '辽宁 2026 普通类本科批物理类专业投档记录；位次来自 2026 物理类一分一段。',
+    humanBoundary: extra.humanBoundary || '这里不是录取判断。输入的是模考或预估参考分数；分段按参考分数与 2026 投档最低分的分差整理，位次只用于解释 2026 历史位置，不是 2027 实际位次。',
     referenceWindow: extra.referenceWindow || {
-      near: { minDelta: -10, maxDelta: 0, label: '接近当前位置的历史记录' },
-      upper: { minDelta: 1, maxDelta: 10, label: '稍高一些的历史记录' },
-      lower: { minDelta: -25, maxDelta: -11, label: '低一些可讨论的历史记录' }
+      near: { minDelta: -10, maxDelta: 0, label: '主要参考' },
+      upper: { minDelta: 1, maxDelta: 10, label: '稍高目标' },
+      lower: { minDelta: -25, maxDelta: -11, label: '低分侧补充' }
     }
   };
 }
+
 function levelWeightByRaw(record, rawKey) {
   const raw = rawKey ? record?.[rawKey] : null;
   const level = raw?.level || record?.level;
   return level === 'primary' ? 3 : level === 'secondary' ? 2 : level === 'trajectory' ? 1 : 0;
 }
+
 export function shapeBackgroundRecord(record, hit, filters = {}, config = {}) {
   const display = buildDisplayTags(record);
   const candidateScore = filters.candidateScore;
-  const score2025 = record.score2025 ?? record.score;
-  const rank2025 = record.rank2025 ?? record.rank;
-  const delta = Number.isFinite(Number(candidateScore)) && Number.isFinite(Number(score2025)) ? Number(score2025) - Number(candidateScore) : null;
-  const presentHit = typeof config.presentHit === 'function' ? config.presentHit : (x) => x;
+  const positionContext = buildCandidatePositionContext(candidateScore);
+  const score2026 = record.score2026 ?? record.score;
+  const rank2026 = record.rank2026 ?? record.rank;
+  const delta = Number.isFinite(Number(candidateScore)) && Number.isFinite(Number(score2026))
+    ? Number(score2026) - Number(candidateScore)
+    : null;
+  const rankGap2026 = Number.isFinite(Number(positionContext.candidateRank)) && Number.isFinite(Number(rank2026))
+    ? Number(positionContext.candidateRank) - Number(rank2026)
+    : null;
+  const presentHit = typeof config.presentHit === 'function' ? config.presentHit : value => value;
   const evidence = presentHit(hit);
   const outputKey = config.outputKey || 'background';
   const rawKey = config.rawKey || 'backgroundRaw';
+
   return {
     id: record.id,
+    dataYear: 2026,
+    primaryYear: 2026,
     school: record.school,
     major: record.major,
-    score2025,
-    rank2025,
+    score: score2026,
+    rank: rank2026,
+    score2026,
+    rank2026,
+    rankStart2026: record.rankStart2026 ?? null,
+    rankEnd2026: record.rankEnd2026 ?? rank2026 ?? null,
+    score2025: record.score2025 ?? null,
+    rank2025: record.rank2025 ?? null,
     score2024: record.score2024 ?? null,
     rank2024: record.rank2024 ?? null,
     historyCompare: record.historyCompare || null,
+    scoreDelta2026: delta,
     scoreDelta: delta,
+    rankGap2026,
+    rankGap: rankGap2026,
     displayLocation: record.displayLocation || display.displayLocation || '',
     natureLabel: display.natureLabel || record.nature || '',
     schoolTags: display.schoolTags || [],
     [outputKey]: evidence,
     [rawKey]: hit,
     reviewPoints: evidence?.reviewPoints || hit?.reviewPoints || [],
-    positionContext: buildCandidatePositionContext(candidateScore),
+    positionContext,
     backgroundSource: config.sourceName || 'background-kb'
   };
 }
+
 function chunkFile(chunk) {
   return chunk?.file || chunk?.path || '';
+}
+
+function chunkIntersectsWindow(chunk, filters = {}) {
+  const minScore = num(chunk?.minScore);
+  const maxScore = num(chunk?.maxScore);
+  if (minScore == null || maxScore == null) return true;
+  const wantedMin = num(filters.minScore);
+  const wantedMax = num(filters.maxScore);
+  if (wantedMin != null && maxScore < wantedMin) return false;
+  if (wantedMax != null && minScore > wantedMax) return false;
+  return true;
 }
 
 async function loadChunkRecords(request, env, file) {
@@ -123,16 +184,17 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
   let normalizedCount = 0;
   let matchedBeforeLimit = 0;
   let failedChunk = '';
+  let chunksRead = 0;
+  let chunksSkipped = 0;
 
-  const handleRaw = (raw) => {
+  const handleRaw = raw => {
     rawTotal += 1;
-    // 位置入口必须先做原始分数窗口过滤，避免对全量专业记录跑本地/211 KB 匹配。
     if (hasScoreWindow && !inScoreWindowRaw(raw, filters)) return;
     if (!rawTextPass(raw, filters)) return;
     windowCandidateCount += 1;
 
     const record = normalizeRecord(raw);
-    if (!record.school || !record.major || !Number.isFinite(Number(record.score2025 ?? record.score))) return;
+    if (!record.school || !record.major || !Number.isFinite(Number(record.score2026 ?? record.score))) return;
     normalizedCount += 1;
     record.rawText = JSON.stringify(raw).slice(0, 1600);
 
@@ -149,8 +211,13 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
     manifest = await loadManifest(request, env || {});
     const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
     for (const chunk of chunks) {
+      if (!chunkIntersectsWindow(chunk, filters)) {
+        chunksSkipped += 1;
+        continue;
+      }
       const file = chunkFile(chunk);
       if (!file) continue;
+      chunksRead += 1;
       let rawRecords = [];
       try {
         rawRecords = await loadChunkRecords(request, env || {}, file);
@@ -163,6 +230,7 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
   } else {
     const loaded = await loadAllRecords(request, env || {});
     manifest = loaded.manifest;
+    chunksRead = Array.isArray(manifest?.chunks) ? manifest.chunks.length : 0;
     for (const raw of loaded.records || []) handleRaw(raw);
   }
 
@@ -170,11 +238,13 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
   const rawKey = config.rawKey || 'backgroundRaw';
   out.sort((a, b) => {
     if (Number.isFinite(candidate)) {
-      const da = Math.abs(Number(a.score2025 || 0) - candidate);
-      const db = Math.abs(Number(b.score2025 || 0) - candidate);
+      const da = Math.abs(Number(a.score2026 || 0) - candidate);
+      const db = Math.abs(Number(b.score2026 || 0) - candidate);
       if (da !== db) return da - db;
     }
-    return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
+    return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey)
+      || Number(b.score2026 || 0) - Number(a.score2026 || 0)
+      || rankSort(a.rank2026) - rankSort(b.rank2026);
   });
 
   return {
@@ -187,22 +257,29 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
     dataReadOk: true,
     failedChunk,
     manifest,
+    chunksRead,
+    chunksSkipped,
     positionContext: buildCandidatePositionContext(filters.candidateScore)
   };
 }
+
 export function sortByPositionDistance(records, score, rawKey = 'backgroundRaw') {
   const candidate = Number(score);
   return [...records].sort((a, b) => {
-    const da = Math.abs(Number(a.score2025 || 0) - candidate);
-    const db = Math.abs(Number(b.score2025 || 0) - candidate);
-    return da - db || levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
+    const da = Math.abs(Number(a.score2026 || 0) - candidate);
+    const db = Math.abs(Number(b.score2026 || 0) - candidate);
+    return da - db
+      || levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey)
+      || Number(b.score2026 || 0) - Number(a.score2026 || 0)
+      || rankSort(a.rank2026) - rankSort(b.rank2026);
   });
 }
+
 export function groupScoreRecords(records, score, rawKey = 'backgroundRaw') {
   const candidate = Number(score);
   return {
-    near: sortByPositionDistance(records.filter(r => Number(r.score2025) >= candidate - 10 && Number(r.score2025) <= candidate), score, rawKey),
-    upper: sortByPositionDistance(records.filter(r => Number(r.score2025) > candidate && Number(r.score2025) <= candidate + 10), score, rawKey),
-    lower: sortByPositionDistance(records.filter(r => Number(r.score2025) >= candidate - 25 && Number(r.score2025) < candidate - 10), score, rawKey)
+    near: sortByPositionDistance(records.filter(record => Number(record.score2026) >= candidate - 10 && Number(record.score2026) <= candidate), score, rawKey),
+    upper: sortByPositionDistance(records.filter(record => Number(record.score2026) > candidate && Number(record.score2026) <= candidate + 10), score, rawKey),
+    lower: sortByPositionDistance(records.filter(record => Number(record.score2026) >= candidate - 25 && Number(record.score2026) < candidate - 10), score, rawKey)
   };
 }

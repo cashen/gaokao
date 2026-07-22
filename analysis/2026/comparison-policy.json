@@ -1,0 +1,26 @@
+{
+  "version": "three-year-2024-2026-centered-v1.0.0",
+  "generatedAt": "2026-07-22T01:12:12.894855+00:00",
+  "primaryYear": 2026,
+  "historyYears": [
+    2025,
+    2024
+  ],
+  "rankComparison": "累计位次比例扣除年度共同位移后的相对变化",
+  "neutralThresholdPctPoint": 1.326,
+  "thresholdMethod": "两段年度相对变化绝对值的第一四分位，限制在 0.50—1.50 个百分点",
+  "minimumAggregateSample": 15,
+  "strictMatchOnly": true,
+  "specialProjectsExcludedFromMainTrend": true,
+  "candidateTotals": {
+    "2024": 126332,
+    "2025": 118109,
+    "2026": 141691
+  },
+  "annualCommonShift": {
+    "pctPoint26vs25Median": -4.853927,
+    "pctPoint25vs24Median": 2.679232,
+    "method": "所有严格三年同口径项目的年度位次比例变化中位数"
+  },
+  "interpretationBoundary": "相对前移或后移仅说明相对于全体同口径项目的历史位置变化，不代表专业质量、就业、报名人数或未来录取结果。"
+}

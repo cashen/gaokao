@@ -1,8 +1,90 @@
-import{toHumanCopy,HUMAN_BAND_LABELS}from'./human-copy-dictionary.js?v=3949_0';import{buildKnowledgeReviewForRecord,matchLiaoningLocalStrongChain,matchLiaoningMajorTrajectory,resolveLocalContext}from'../knowledge/index.js?v=3949_0';
-function clean(v,max=180){return toHumanCopy(String(v==null?'':v).trim()).slice(0,max)}
-function num(v,f=null){const n=Number(v);return Number.isFinite(n)?n:f}
-function bandKey(item={}){const g=item.poolBand?.group||item.group||'';const raw=item.poolBand?.key||item.bandKey||item.band||'';if(raw==='upper'||raw==='up')return'upper';if(raw==='near'||raw==='main')return'near';if(raw==='steady'||raw==='safe'||raw==='lower')return'steady';if(g==='rush')return'upper';if(g==='stable')return'near';if(g==='safe')return'steady';const d=num(item.scoreDelta,null);if(d!=null&&d>=4)return'upper';if(d!=null&&d>=-15)return'near';return'steady'}
-function codeText(item={}){const sm=item.standardMajor||{};if(sm.code&&sm.name)return{majorCode:clean(sm.code,40),standardMajorName:clean(sm.name,80),majorCodeLabel:`专业代码：${clean(sm.code,40)}｜${clean(sm.name,80)}`};if(sm.categoryCode&&sm.categoryName&&sm.mappingStatus==='category')return{majorCode:clean(sm.categoryCode,40),standardMajorName:clean(sm.categoryName,80),majorCodeLabel:`专业类：${clean(sm.categoryCode,40)}｜${clean(sm.categoryName,80)}`};return{majorCode:'',standardMajorName:'',majorCodeLabel:'专业代码：待人工复核'}}
-export function normalizeSelectedMajor(item={},order=1,context={}){const k=bandKey(item);const c=codeText(item);const score2025=num(item.score2025??item.score,null);const rank2025=num(item.rank2025??item.rank,null);const scoreDelta=num(item.scoreDelta??item.computedScoreDelta,null);const special=item.specialProject&&item.specialProject.hasSpecialProject?item.specialProject:null;const reviewBase=Array.isArray(item.reviewPoints)?item.reviewPoints:(Array.isArray(item.flags)?item.flags:[]);const localStrongChain=item.localStrongChain?.matched?item.localStrongChain:matchLiaoningLocalStrongChain(item);const trajectoryChain=item.trajectoryChain?.matched?item.trajectoryChain:matchLiaoningMajorTrajectory(item);const localContext=item.localContext?.primary?item.localContext:resolveLocalContext({...item,localStrongChain,trajectoryChain});const knowledgeReview=buildKnowledgeReviewForRecord({...item,localStrongChain,trajectoryChain,localContext},{limit:4});const review=special?[...reviewBase,...knowledgeReview,...(Array.isArray(special.reviewPoints)?special.reviewPoints:[])]:[...reviewBase,...knowledgeReview];return{...item,order,userOrder:order,id:clean(item.id||`${item.school||''}|${item.major||''}|${score2025||''}|${rank2025||''}`,260),school:clean(item.school||'学校待核验',120),major:clean(item.major||'专业待核验',160),...c,score2025,score:score2025,rank2025,rank:rank2025,scoreDelta,bandKey:k,bandLabel:HUMAN_BAND_LABELS[k]||'主要参考',statusLabel:HUMAN_BAND_LABELS[k]||clean(item.statusLabel||'待判断',40),poolBand:{...(item.poolBand||{}),key:k,detail:HUMAN_BAND_LABELS[k]||'主要参考',group:k==='upper'?'rush':k==='near'?'stable':'safe',position:`${HUMAN_BAND_LABELS[k]||'主要参考'}区`},matchLabel:clean(item.matchLabel||item.matchRelation||'待复核',60),matchReason:clean(item.matchReason||item.reason||'',200),specialProject:special,localStrongChain,trajectoryChain,localContext,reviewPoints:review.map(x=>clean(x,160)).filter(Boolean).slice(0,8),sourceContext:{candidateScore:context.candidateScore??null,rangePreset:context.rangePreset||item.sourceContext?.rangePreset||'standard',activeBand:context.activeBand||k}}}
-export function normalizeSelectedMajors(items=[],context={}){return(Array.isArray(items)?items:[]).map((x,i)=>normalizeSelectedMajor(x,i+1,context))}
-export function selectedMajorsSignature(items=[]){return normalizeSelectedMajors(items).map(x=>`${x.order}:${x.id}:${x.scoreDelta??''}`).join('|')}
+import { toHumanCopy, HUMAN_BAND_LABELS } from './human-copy-dictionary.js?v=3951_0';
+import { classifySelectionDelta } from './selection-band-policy.js?v=3951_0';
+
+function clean(value, max = 180) {
+  return toHumanCopy(String(value == null ? '' : value).trim()).slice(0, max);
+}
+
+function num(value, fallback = null) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeBand(item = {}, context = {}) {
+  if (item.historicalOnly) {
+    return { key: 'unknown', group: 'unknown', detail: '历史自选', position: '尚未匹配到 2026 同口径记录' };
+  }
+  const existing = item.poolBand || {};
+  const key = existing.key || item.bandKey || item.band || '';
+  if (['upper', 'near', 'steady'].includes(key)) {
+    return {
+      ...existing,
+      key,
+      group: key === 'upper' ? 'rush' : key === 'near' ? 'stable' : 'safe',
+      detail: HUMAN_BAND_LABELS[key] || existing.detail,
+      position: existing.position || `${HUMAN_BAND_LABELS[key]}区`
+    };
+  }
+  return classifySelectionDelta(
+    item.scoreDelta2026 ?? item.scoreDelta ?? item.computedScoreDelta,
+    context.rangePreset || item.rangePreset || item.sourceContext?.rangePreset || 'standard'
+  );
+}
+
+export function normalizeSelectedMajor(item = {}, order = 1, context = {}) {
+  const historicalOnly = Boolean(item.historicalOnly);
+  const score2026 = historicalOnly ? null : num(item.score2026 ?? (Number(item.dataYear) === 2026 ? item.score : null));
+  const rank2026 = historicalOnly ? null : num(item.rank2026 ?? (Number(item.dataYear) === 2026 ? item.rank : null));
+  const scoreDelta2026 = historicalOnly ? null : num(item.scoreDelta2026 ?? item.scoreDelta ?? item.computedScoreDelta);
+  const rankGap2026 = historicalOnly ? null : num(item.rankGap2026 ?? item.rankGap);
+  const poolBand = normalizeBand(item, context);
+  const id = clean(
+    item.id || `${historicalOnly ? 'legacy-2025' : 'ln-2026'}|${item.school || ''}|${item.major || ''}|${item.schoolCode2026 || ''}|${item.majorCode2026 || ''}`,
+    260
+  );
+
+  return {
+    ...item,
+    order,
+    userOrder: order,
+    id,
+    historicalOnly,
+    dataYear: historicalOnly ? Number(item.dataYear || 2025) : 2026,
+    primaryYear: historicalOnly ? Number(item.primaryYear || item.dataYear || 2025) : 2026,
+    school: clean(item.school || '学校待核验', 120),
+    major: clean(item.major || '专业待核验', 180),
+    score2026,
+    score: score2026,
+    rank2026,
+    rank: rank2026,
+    score2025: num(item.score2025 ?? (historicalOnly ? item.score : null)),
+    rank2025: num(item.rank2025 ?? (historicalOnly ? item.rank : null)),
+    score2024: num(item.score2024),
+    rank2024: num(item.rank2024),
+    scoreDelta2026,
+    scoreDelta: scoreDelta2026,
+    rankGap2026,
+    rankGap: rankGap2026,
+    bandKey: poolBand.key,
+    bandLabel: poolBand.detail || '待核验',
+    statusLabel: poolBand.detail || '待核验',
+    poolBand,
+    sourceContext: {
+      ...(item.sourceContext || {}),
+      candidateScore: context.candidateScore ?? item.sourceContext?.candidateScore ?? null,
+      candidateReferenceRank2026: context.candidateReferenceRank2026 ?? item.sourceContext?.candidateReferenceRank2026 ?? null,
+      rankYear: 2026,
+      dataYear: 2026,
+      rangePreset: context.rangePreset || item.sourceContext?.rangePreset || 'standard',
+      activeBand: context.activeBand || poolBand.key
+    }
+  };
+}
+
+export function normalizeSelectedMajors(items = [], context = {}) {
+  return (Array.isArray(items) ? items : []).map((item, index) => normalizeSelectedMajor(item, index + 1, context));
+}
+
+export function selectedMajorsSignature(items = []) {
+  return normalizeSelectedMajors(items).map(item => `${item.order}:${item.id}:${item.scoreDelta2026 ?? ''}`).join('|');
+}

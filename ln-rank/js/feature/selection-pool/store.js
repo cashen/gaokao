@@ -1,8 +1,26 @@
-import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain, matchLiaoningMajorTrajectory, resolveLocalContext } from '../../knowledge/index.js?v=3949_3';
-import { resolveLocalStrengthMark } from '../major-pool/local-strength-view.js?v=3949_3';
-import { resolveMajorUnderstanding } from '../../knowledge/major-understanding-resolver.js?v=3949_3';
-const STORAGE_KEY = 'lnRank.selectionPool.physics2025.v3933_12';
-const LEGACY_KEYS = [STORAGE_KEY, 'lnRank.selectionPool.physics2025.v3933_5', 'lnRank.selectionPool.physics2025.v3933_3', 'lnRank.selectionPool.physics2025.v3949', 'lnRank.selectionPool.physics2025.v3948', 'lnRank.selectionPool.physics2025.v3947', 'lnRank.selectionPool.physics2025.v3946', 'lnRank.selectionPool.physics2025.v3945', 'lnRank.selectionPool.physics2025.v3944', 'lnRank.selectionPool.physics2025.v3943', 'lnRank.selectionPool.physics2025.v3942', 'lnRank.selectionPool.physics2025.v3941', 'lnRank.selectionPool.physics2025.v3940', 'lnRank.selectionPool.physics2025', 'lnRankSelectionPool.v3940'];
+import { buildKnowledgeReviewForRecord, matchLiaoningLocalStrongChain, matchLiaoningMajorTrajectory, resolveLocalContext } from '../../knowledge/index.js?v=3951_0';
+import { resolveLocalStrengthMark } from '../major-pool/local-strength-view.js?v=3951_0';
+import { resolveMajorUnderstanding } from '../../knowledge/major-understanding-resolver.js?v=3951_0';
+import { classifySelectionDelta, selectionBandOrder } from '../../domain/selection-band-policy.js?v=3951_0';
+
+const STORAGE_KEY = 'lnRank.selectionPool.lnPhysics.2026.v3951';
+const LEGACY_KEYS = [
+  'lnRank.selectionPool.physics2025.v3933_12',
+  'lnRank.selectionPool.physics2025.v3933_5',
+  'lnRank.selectionPool.physics2025.v3933_3',
+  'lnRank.selectionPool.physics2025.v3949',
+  'lnRank.selectionPool.physics2025.v3948',
+  'lnRank.selectionPool.physics2025.v3947',
+  'lnRank.selectionPool.physics2025.v3946',
+  'lnRank.selectionPool.physics2025.v3945',
+  'lnRank.selectionPool.physics2025.v3944',
+  'lnRank.selectionPool.physics2025.v3943',
+  'lnRank.selectionPool.physics2025.v3942',
+  'lnRank.selectionPool.physics2025.v3941',
+  'lnRank.selectionPool.physics2025.v3940',
+  'lnRank.selectionPool.physics2025',
+  'lnRankSelectionPool.v3940'
+];
 const MAX_ITEMS = 112;
 
 function nowIso() {
@@ -20,60 +38,102 @@ function toNum(value, fallback = null) {
 
 function toRank(value, fallback = null) {
   const n = toNum(value, fallback);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : fallback;
+}
+
+function isCurrent2026Record(record = {}) {
+  return Number(record.dataYear || record.primaryYear) === 2026
+    || record.score2026 != null
+    || record.rank2026 != null
+    || /^ln-2026-/.test(String(record.id || ''));
 }
 
 export function itemId(record = {}) {
-  const explicit = cleanText(record.id, 180);
+  const explicit = cleanText(record.id, 220);
   if (explicit) return explicit;
-  const parts = [record.school, record.major, record.score2025 ?? record.score, record.rank2025 ?? record.rank]
-    .map(v => cleanText(v, 80));
-  return parts.some(Boolean) ? parts.join('|') : '';
+
+  const school = cleanText(record.school, 100);
+  const major = cleanText(record.major, 150);
+  const schoolCode = cleanText(record.schoolCode2026 || record.codes?.schoolCode2026 || '', 40);
+  const majorCode = cleanText(record.majorCode2026 || record.codes?.majorCode2026 || '', 40);
+  if (school || major) {
+    if (isCurrent2026Record(record)) return `ln-2026|${schoolCode}|${majorCode}|${school}|${major}`;
+    return `legacy-2025|${school}|${major}|${cleanText(record.score2025 ?? record.score, 20)}`;
+  }
+  return '';
 }
 
 export function classifyPoolItem(item = {}) {
-  const key = item.statusKey || '';
-  const delta = toNum(item.scoreDelta, 0);
-
-  if (['superRush', 'bigRush', 'midRush', 'smallRush'].includes(key) || delta >= 4) {
-    return { group: 'rush', detail: '稍高目标', className: delta >= 16 ? 'high-rush' : 'light-rush', position: '稍高目标区' };
+  if (item.historicalOnly) {
+    return { key: 'unknown', group: 'unknown', detail: '历史自选', className: 'unknown', position: '尚未匹配到 2026 同口径记录' };
   }
-  if (key === 'match' || key === 'steady' || (delta >= -15 && delta <= 3)) {
-    return { group: 'stable', detail: '主要参考', className: delta >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
+  const existingKey = item.poolBand?.key || item.bandKey || item.band || '';
+  if (['upper', 'near', 'steady'].includes(existingKey)) {
+    const detail = existingKey === 'upper' ? '稍高目标' : existingKey === 'near' ? '主要参考' : '低分侧补充';
+    return {
+      key: existingKey,
+      group: existingKey === 'upper' ? 'rush' : existingKey === 'near' ? 'stable' : 'safe',
+      detail,
+      className: existingKey === 'upper' ? 'light-rush' : existingKey === 'near' ? 'stable' : 'light-safe',
+      position: `${detail}区`
+    };
   }
-  return { group: 'safe', detail: '低分侧补充', className: delta <= -26 ? 'safe' : 'light-safe', position: '低分侧补充区' };
+  return classifySelectionDelta(item.scoreDelta2026 ?? item.scoreDelta, item.rangePreset || item.sourceContext?.rangePreset || 'standard');
 }
 
 export function normalizePoolItem(record = {}, order = 1) {
-  const id = itemId(record);
+  const current2026 = isCurrent2026Record(record);
+  const historicalOnly = Boolean(record.historicalOnly || !current2026);
+  const score2026 = current2026 ? toNum(record.score2026 ?? record.score, null) : null;
+  const rank2026 = current2026 ? toRank(record.rank2026 ?? record.rank, null) : null;
+  const scoreDelta2026 = current2026 ? toNum(record.scoreDelta2026 ?? record.scoreDelta, null) : null;
+  const rankGap2026 = current2026 ? toNum(record.rankGap2026 ?? record.rankGap, null) : null;
+  const id = itemId({ ...record, historicalOnly, dataYear: historicalOnly ? Number(record.dataYear || 2025) : 2026 });
   const localStrongChain = record.localStrongChain?.matched ? record.localStrongChain : matchLiaoningLocalStrongChain(record);
   const trajectoryChain = record.trajectoryChain?.matched ? record.trajectoryChain : matchLiaoningMajorTrajectory(record);
   const localContext = record.localContext?.primary ? record.localContext : resolveLocalContext({ ...record, localStrongChain, trajectoryChain });
   const localStrengthMark = record.localStrengthMark?.matched ? record.localStrengthMark : resolveLocalStrengthMark({ ...record, localStrongChain, trajectoryChain, localContext });
   const majorUnderstanding = record.majorUnderstanding?.matched ? record.majorUnderstanding : resolveMajorUnderstanding(record);
+
   const base = {
+    ...record,
     id,
+    dataYear: historicalOnly ? Number(record.dataYear || record.primaryYear || 2025) : 2026,
+    primaryYear: historicalOnly ? Number(record.primaryYear || record.dataYear || 2025) : 2026,
+    historicalOnly,
     userOrder: order,
     addedAt: record.addedAt || nowIso(),
     locked: Boolean(record.locked),
     userNote: cleanText(record.userNote || '', 240),
     school: cleanText(record.school, 120),
     major: cleanText(record.major, 180),
-    score: toNum(record.score2025 ?? record.score, null),
-    score2025: toNum(record.score2025 ?? record.score, null),
-    rank: toRank(record.rank2025 ?? record.rank, null),
-    rank2025: toRank(record.rank2025 ?? record.rank, null),
+    schoolCode2026: cleanText(record.schoolCode2026 || record.codes?.schoolCode2026 || '', 40),
+    majorCode2026: cleanText(record.majorCode2026 || record.codes?.majorCode2026 || '', 40),
+    score: score2026,
+    rank: rank2026,
+    score2026,
+    rank2026,
+    rankStart2026: current2026 ? toRank(record.rankStart2026, null) : null,
+    rankEnd2026: current2026 ? toRank(record.rankEnd2026 ?? rank2026, null) : null,
+    score2025: toNum(record.score2025 ?? (!current2026 ? record.score : null), null),
+    rank2025: toRank(record.rank2025 ?? (!current2026 ? record.rank : null), null),
     score2024: toNum(record.score2024, null),
     rank2024: toRank(record.rank2024, null),
-    scoreDelta: toNum(record.scoreDelta, 0),
+    scoreDelta2026,
+    scoreDelta: scoreDelta2026,
+    rankGap2026,
+    rankGap: rankGap2026,
     statusKey: cleanText(record.statusKey, 40),
     statusLabel: cleanText(record.statusLabel, 40),
-    position: cleanText(record.position, 60),
+    position: cleanText(record.position, 80),
     band: cleanText(record.band, 40),
+    bandKey: cleanText(record.bandKey || record.band, 40),
+    rangePreset: cleanText(record.rangePreset || record.sourceContext?.rangePreset || 'standard', 30),
     displayLocation: cleanText(record.displayLocation, 80),
     geoEntity: cleanText(record.geoEntity, 120),
     natureLabel: cleanText(record.natureLabel || record.nature || '', 40),
     tuition: cleanText(record.tuition, 80),
+    tuitionSourceYear: toNum(record.tuitionSourceYear, null),
     schoolNature: cleanText(record.schoolNature, 40),
     feeType: cleanText(record.feeType, 40),
     isPublicSchool: Boolean(record.isPublicSchool),
@@ -84,7 +144,10 @@ export function normalizePoolItem(record = {}, order = 1) {
     bottomLineTags: Array.isArray(record.bottomLineTags) ? record.bottomLineTags.map(x => cleanText(x, 40)).filter(Boolean).slice(0, 6) : [],
     schoolTags: Array.isArray(record.schoolTags) ? record.schoolTags.map(x => cleanText(x, 40)).filter(Boolean).slice(0, 8) : [],
     flags: Array.isArray(record.flags) ? record.flags.map(x => cleanText(x, 100)).filter(Boolean).slice(0, 10) : [],
-    reviewPoints: [...new Set([...(Array.isArray(record.reviewPoints) ? record.reviewPoints : []), ...buildKnowledgeReviewForRecord({ ...record, localStrongChain }, { limit: 5 })].map(x => cleanText(x, 160)).filter(Boolean))].slice(0, 8),
+    reviewPoints: [...new Set([
+      ...(Array.isArray(record.reviewPoints) ? record.reviewPoints : []),
+      ...buildKnowledgeReviewForRecord({ ...record, localStrongChain }, { limit: 5 })
+    ].map(x => cleanText(x, 160)).filter(Boolean))].slice(0, 8),
     localStrongChain,
     trajectoryChain,
     localContext,
@@ -113,12 +176,11 @@ function dedupeNormalized(items) {
     out.push(normalized);
     if (out.length >= MAX_ITEMS) break;
   }
-  return out.map((x, index) => normalizePoolItem(x, index + 1));
+  return out.map((item, index) => normalizePoolItem(item, index + 1));
 }
 
 function sortAndRepair(items) {
-  const decorated = (Array.isArray(items) ? items : [])
-    .map((item, index) => ({ item, index, order: Number(item && item.userOrder) }));
+  const decorated = (Array.isArray(items) ? items : []).map((item, index) => ({ item, index, order: Number(item?.userOrder) }));
   decorated.sort((a, b) => {
     const ao = Number.isFinite(a.order) ? a.order : 9999 + a.index;
     const bo = Number.isFinite(b.order) ? b.order : 9999 + b.index;
@@ -140,6 +202,25 @@ function readRaw(key) {
   }
 }
 
+function migrateLegacyItems(items) {
+  return (Array.isArray(items) ? items : []).map(item => ({
+    ...item,
+    id: /^legacy-2025\|/.test(String(item.id || '')) ? item.id : '',
+    dataYear: 2025,
+    primaryYear: 2025,
+    historicalOnly: true,
+    score2025: toNum(item.score2025 ?? item.score, null),
+    rank2025: toRank(item.rank2025 ?? item.rank, null),
+    score2026: null,
+    rank2026: null,
+    score: null,
+    rank: null,
+    scoreDelta2026: null,
+    rankGap2026: null,
+    migrationNote: '该条目来自旧版 2025 自选池，尚未自动认定为 2026 同口径专业。请回到查询页重新添加当前记录。'
+  }));
+}
+
 function normalizeInGivenOrder(items) {
   return dedupeNormalized(items);
 }
@@ -147,12 +228,9 @@ function normalizeInGivenOrder(items) {
 export function getPoolItems() {
   const current = readRaw(STORAGE_KEY);
   if (current.exists) return sortAndRepair(current.items);
-
   for (const key of LEGACY_KEYS) {
     const legacy = readRaw(key);
-    if (legacy.exists && legacy.items.length) {
-      return savePoolItems(sortAndRepair(legacy.items));
-    }
+    if (legacy.exists && legacy.items.length) return savePoolItems(sortAndRepair(migrateLegacyItems(legacy.items)));
   }
   return [];
 }
@@ -171,11 +249,11 @@ export function hasPoolItem(recordOrId) {
 
 export function addPoolItem(record) {
   const items = getPoolItems();
-  const id = itemId(record);
-  if (!id) return { ok: false, message: '专业信息不完整，暂时无法放进报告。', items };
-  if (items.some(item => item.id === id)) return { ok: false, message: '这个专业已经在报告里了。', items };
+  const normalized = normalizePoolItem({ ...record, dataYear: 2026, primaryYear: 2026, historicalOnly: false }, items.length + 1);
+  if (!normalized.id || normalized.score2026 == null) return { ok: false, message: '2026 专业信息不完整，暂时无法放进报告。', items };
+  if (items.some(item => item.id === normalized.id)) return { ok: false, message: '这个专业已经在报告里了。', items };
   if (items.length >= MAX_ITEMS) return { ok: false, message: `最多可以先选 ${MAX_ITEMS} 个专业放进报告。`, items };
-  const next = savePoolItems([...items, normalizePoolItem(record, items.length + 1)]);
+  const next = savePoolItems([...items, normalized]);
   return { ok: true, message: '已放进报告，可以继续添加，也可以生成报告。', items: next };
 }
 
@@ -209,7 +287,6 @@ export function movePoolItemTo(id, targetIndex) {
   return savePoolItems(next);
 }
 
-
 export function movePoolItemByOffset(id, offset) {
   const items = getPoolItems();
   const index = items.findIndex(item => item.id === id);
@@ -229,25 +306,16 @@ export function reorderPoolItemByIndex(fromIndex, toIndex) {
   return savePoolItems(next);
 }
 
-const BAND_ORDER = {
-  '稍高目标': 10,
-  '主要参考': 20,
-  '低分侧补充': 30,
-  '待核验': 40
-};
-
 export function sortPoolItems(mode = 'band') {
   const items = getPoolItems();
   const decorated = items.map((item, index) => ({ item, index, band: item.poolBand || classifyPoolItem(item) }));
   if (mode === 'band') {
     decorated.sort((a, b) => {
-      const bandA = BAND_ORDER[a.band.detail] || 999;
-      const bandB = BAND_ORDER[b.band.detail] || 999;
-      if (bandA !== bandB) return bandA - bandB;
-      const deltaA = Number(a.item.scoreDelta) || 0;
-      const deltaB = Number(b.item.scoreDelta) || 0;
-      if (deltaA !== deltaB) return deltaB - deltaA;
-      return a.index - b.index;
+      const order = selectionBandOrder({ ...a.item, poolBand: a.band }) - selectionBandOrder({ ...b.item, poolBand: b.band });
+      if (order) return order;
+      const deltaA = Number(a.item.scoreDelta2026 ?? a.item.scoreDelta) || 0;
+      const deltaB = Number(b.item.scoreDelta2026 ?? b.item.scoreDelta) || 0;
+      return deltaB - deltaA || a.index - b.index;
     });
   } else if (mode === 'school') {
     decorated.sort((a, b) => String(a.item.school || '').localeCompare(String(b.item.school || ''), 'zh-CN') || a.index - b.index);
@@ -260,22 +328,24 @@ export function sortPoolItems(mode = 'band') {
 export function getPoolStats(items = getPoolItems()) {
   const stats = {
     total: items.length,
+    currentCount: 0,
+    historicalOnlyCount: 0,
     rushCount: 0,
     stableCount: 0,
     safeCount: 0,
-    highRushCount: 0,
-    floorCount: 0,
+    outsideCount: 0,
     byDetail: {},
     byCity: {},
     byMajorFamily: {}
   };
   for (const item of items) {
     const band = item.poolBand || classifyPoolItem(item);
+    if (item.historicalOnly) stats.historicalOnlyCount += 1;
+    else stats.currentCount += 1;
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.group === 'rush') stats.highRushCount += 1;
-    if (band.group === 'safe' && Number(item.scoreDelta) <= -26) stats.floorCount += 1;
+    if (band.group === 'outside' || band.group === 'unknown') stats.outsideCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
     const city = item.displayLocation || item.geoEntity || '未知地域';
     stats.byCity[city] = (stats.byCity[city] || 0) + 1;
