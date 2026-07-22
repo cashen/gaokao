@@ -142,7 +142,7 @@
   "zy2026StableCollapsedContract": true,
   "zy2026FeaturedDiscoveryContract": true,
   "zy2026ChangePriorityOrderContract": true,
-  "zy2026投档表语义Contract": true,
+  "zy2026RecordLanguageContract": true,
   "ln2026ScoreBandAscendingContract": true,
   "compareWorkspaceHumanJourneyContract": true,
   "compareWorkspaceDesktopHorizontalContract": true,
