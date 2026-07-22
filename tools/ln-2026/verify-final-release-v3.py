@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -83,7 +82,9 @@ def verify_compare_workspace():
     page = base.text('ln-rank/index.html')
     js = base.text('ln-rank/js/ux/compare-workspace.v3953_0.js')
     css = base.text('ln-rank/css/dist/compare-workspace.v3953_0.css')
+    year_fix = base.text('ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css')
     base.check('compare-workspace.v3953_0.css' in page, 'compare workspace CSS not loaded')
+    base.check('compare-workspace-year-fix.v3953_0.css' in page, 'compare year-label fix not loaded')
     base.check('compare-workspace.v3953_0.js' in page, 'compare workspace JS not loaded')
     base.check('data-release="v3.9.53.0"' in page, 'main page release version')
     for phrase in (
@@ -97,6 +98,7 @@ def verify_compare_workspace():
         'grid-auto-flow:column', 'scroll-snap-type:x mandatory', 'min-height:44px'
     ):
         base.check(phrase in css, f'compare workspace responsive contract missing {phrase}')
+    base.check('span::before{content:none!important}' in year_fix, 'compare year labels must not be duplicated')
     base.check('initialCards + naturalComparePanel' in base.text('ln-rank/js/feature/major-pool/render.js'), 'core compare insertion contract unexpectedly changed')
 
 
@@ -111,14 +113,27 @@ def verify_release_meta():
         base.check(meta['ln2026ScoreBandAscendingContract'] is True, 'ln2026 ascending score bands contract')
         base.check(meta['compareWorkspaceHumanJourneyContract'] is True, 'compare human journey contract')
         base.check(meta['compareWorkspaceAutoNavigateContract'] is True, 'compare auto navigation contract')
+        base.check(meta['compareWorkspaceYearLabelContract'] is True, 'compare single year-label contract')
     base.check(release['zy2026PrimaryComparison'] == '2025-2026', 'zy2026 primary comparison')
     base.check(release['zy2026Year2024Role'] == 'reappearance-and-continuity-evidence-only', 'zy2026 2024 role')
+    base.check(release['majorDifficultyJs'] == 'js/major-difficulty-2026.v3953_0.js', 'release major difficulty asset')
     structure = active['structure2026']
     for key in ('page', 'css', 'js', 'summary', 'schoolIndex', 'majorIndex'):
         base.check(key in structure, f'zy2026 active asset missing {key}')
     for asset in ('js/major-difficulty-2026.v3953_0.js', 'js/ux/compare-workspace.v3953_0.js'):
         base.check(asset in active['jsEntry'], f'active JS missing {asset}')
-    base.check('css/dist/compare-workspace.v3953_0.css' in active['cssEntry'], 'active compare CSS missing')
+    for asset in ('css/dist/compare-workspace.v3953_0.css', 'css/dist/compare-workspace-year-fix.v3953_0.css'):
+        base.check(asset in active['cssEntry'], f'active CSS missing {asset}')
+    base.check('js/major-difficulty-2026.v3952_0.js' not in active['jsEntry'], 'inactive old difficulty JS remains active')
+
+
+def verify_temporary_files_removed():
+    for path in (
+        '.bootstrap',
+        '.github/workflows/bootstrap-zy2026-v3953.yml',
+        '.github/workflows/materialize-zy2026-v3953.yml',
+    ):
+        base.check(not (base.ROOT / path).exists(), f'temporary build path remains: {path}')
 
 
 def main():
@@ -133,6 +148,7 @@ def main():
     verify_ln2026_score_band_order()
     verify_compare_workspace()
     verify_release_meta()
+    verify_temporary_files_removed()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
     print('LN 2026 v3.9.53.0 structure, score-order and compare-workspace verification passed')
