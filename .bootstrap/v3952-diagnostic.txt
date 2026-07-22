@@ -12,7 +12,9 @@ PART .bootstrap/v3952-rpart-05 bytes=2772 sha256=7b7e6ec6aa53c0b077a01c79ee3c6f7
 DECODE_OK .bootstrap/v3952-rpart-05
 PART .bootstrap/v3952-rpart-05a bytes=1384 sha256=5d155fad27f6d186800d957ecdbc39c1326a73004f805d2cc15d4ea63b2531a9
 DECODE_OK .bootstrap/v3952-rpart-05a
-ARCHIVE bytes=21867 sha256=f888f4e5675e1e35b08db66df1c5dfed23a6c7c71e060778256739ba777a5b90
+PART .bootstrap/v3952-rpart-05b bytes=1388 sha256=efc865482a29a9365685e6afac848534478cc61970a27a1161edac6a14f01ddd
+DECODE_OK .bootstrap/v3952-rpart-05b
+ARCHIVE bytes=22908 sha256=655a89f50cb771b7a53f00b03fa82d9d92416246219826ceb307bdc1b9eb6069
 
 gzip: /tmp/v3952-remain.tar.gz: invalid compressed data--crc error
 
