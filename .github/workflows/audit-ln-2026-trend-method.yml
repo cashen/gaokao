@@ -1,0 +1,31 @@
+name: Audit LN 2026 trend method
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - name: Audit annual baseline shift
+        run: python3 tools/ln-2026/audit-trend-method.py
+      - name: Commit audit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis/2026/trend-method-audit.json
+          if ! git diff --cached --quiet; then
+            git commit -m "test: record LN 2026 trend method audit [audited-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
