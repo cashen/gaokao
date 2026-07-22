@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -9,181 +10,134 @@ v2 = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 SPEC.loader.exec_module(v2)
 base = v2.base
-base.VERSION = 'v3.9.53.0'
+base.VERSION = 'v3.9.55.0'
 
 
-def verify_structure_data():
+def contains(path: str, *phrases: str) -> None:
+    source = base.text(path)
+    for phrase in phrases:
+        base.check(phrase in source, f'{path} missing {phrase}')
+
+
+def verify_manifest_and_chunks() -> None:
+    manifest = base.data('fenxi/data/ln-rank-2026/manifest.json')
+    base.check(manifest['dataYear'] == 2026, 'manifest data year')
+    base.check(manifest['audienceYear'] == 2027, 'manifest audience year')
+    base.check(manifest['totalRecords'] == 11628, 'manifest record count')
+    base.check(manifest['schoolCount'] == 956, 'manifest school count')
+    base.check(manifest['historyMatch'] == {'unmatched': 2699, 'exact': 8929}, 'history match counts')
+    total = 0
+    schools = set()
+    for chunk in manifest['chunks']:
+        path = base.ROOT / 'fenxi' / chunk['file']
+        base.check(path.exists(), f'missing chunk {chunk["file"]}')
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        rows = payload if isinstance(payload, list) else payload.get('records', [])
+        base.check(len(rows) == chunk['recordCount'], f'chunk count {chunk["file"]}')
+        total += len(rows)
+        schools.update(row.get('school') for row in rows if row.get('school'))
+    base.check(total == manifest['totalRecords'], 'manifest chunk sum')
+    base.check(len(schools) == manifest['schoolCount'], 'manifest school sum')
+
+
+def verify_runtime_current() -> None:
+    contains('functions/_lib/exam-year-config.js', 'shared/resources/exam/liaoning-physics.js', 'getExamResourceConfig')
+    contains('functions/_lib/rank-table-provider.js', 'ln-2026-physics-score-rank.js', 'ln-2025-physics-score-rank.js')
+    contains('ln-rank/js/core/score-guard.js', 'validateExamScore', 'belowVocational', 'belowUndergraduate', 'underSpecial', 'topRange')
+    contains('functions/api/major-bands.js', "classificationMode: 'score_delta'", 'candidateReferenceRank2026', 'chunksSkipped', 'ln-rank-manifest.js')
+    contains('functions/_lib/background-position-engine.js', 'referenceAdmissionYear: 2026', 'groupScoreRecords')
+    for path in ('functions/api/local-mainline.js', 'functions/api/211-mainline.js'):
+        contains(path, 'dataYear: 2026', 'rankYear: 2026', '344—750')
+
+
+def verify_family_and_reports() -> None:
+    contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏')
+    root = base.text('index.html')
+    base.check('近期真实评论' not in root, 'homepage real-review claim')
+    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3955_0.js?v=3955_0', 'data-release="v3.9.55.0"')
+    contains('ln-rank/selection-pool.html', '检查已选专业', '看看当前方案有没有明显偏科', '生成家庭复核报告', '其他保存方式', '2026年普通类本科批物理类专业投档记录')
+    contains('ln-rank/js/ux/family-presentation.v3955_0.js', '为什么出现', '最需要确认', '现在还不知道', '最低投档位置基本稳定', 'tongxue-card-entry', 'shared/resources/schools/school-resource-center.js')
+    presentation = base.text('ln-rank/js/ux/family-presentation.v3955_0.js')
+    base.check('近两年录取位置基本稳定' not in presentation, 'old admission wording')
+    base.check('/tongxue/data/school-entities-v150.js' not in presentation, 'direct Tongxue entity import remains')
+    contains('ln-rank/js/ux/family-decision-bar.v3955_0.js', '当前家庭方案', 'data-mobile-selected', 'data-mobile-pending')
+    contains('ln-rank/js/ux/family-home.v3955_0.js', 'returning', 'score-ready', '继续检查家庭方案')
+    store = base.text('ln-rank/js/feature/selection-pool/store.js')
+    for name in ('getPoolItems', 'savePoolItems', 'addPoolItem', 'removePoolItem', 'clearPoolItems', 'movePoolItem', 'movePoolItemTo', 'sortPoolItems', 'getPoolStats'):
+        base.check(f'export function {name}' in store, f'selection store lost {name}')
+    base.check('lnRank.selectionPool.lnPhysics.2026.v3951' in store and 'historicalOnly: true' in store, 'selection migration contract')
+    report = base.text('functions/_lib/feishu-selection-pool-report-builder.js') + base.text('functions/_lib/feishu-selection-pool-styled-builder.js')
+    for key in ('score2026', 'rank2026', 'score2025', 'rank2025', 'score2024', 'rank2024'):
+        base.check(key in report, f'report missing {key}')
+
+
+def verify_card_ai_2026() -> None:
+    contains('functions/_lib/kb/year-caliber-kb.generated.js', 'shared/resources/exam/liaoning-physics.js', '2026063013492555300', '2026063014014729932')
+    contains('functions/_lib/ai-card-prompt.js', 'score2026', 'rank2026', '2026专业最低投档分和位次为主事实', 'checks中的年份必须面向2027正式填报')
+    rules = base.text('functions/_lib/ai-card-rules.js')
+    schema = base.text('functions/_lib/ai-card-output-schema.js')
+    base.check('2026最低投档：' in rules and '核验2027招生计划' in rules, 'AI rules not 2026-first')
+    base.check("'核验2026招生计划" not in rules, 'AI rule output still uses 2026 plan check')
+    base.check('.replace(/核验2026年?招生计划/g' in schema, 'AI schema must normalize legacy 2026-plan output')
+    contains('functions/api/card-diagnose.js', 'caliber: diagnosisCaliber()', 'score2026', 'rank2026')
+    contains('ln-rank/js/feature/diagnose/controller.js', 'score2026:', 'rank2026:', 'candidate:')
+    history = base.text('functions/_lib/history-score-engine.js')
+    base.check('最低投档所需位次' in history and '录取所需位次' not in history, 'history engine wording')
+
+
+def verify_shared_resources() -> None:
+    contains('shared/resources/exam/liaoning-physics.js', 'specialControlScore: 508', 'undergraduateControlScore: 344', 'vocationalControlScore: 150', 'isPublicBottomLineVisible')
+    contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'jiangzhehu')
+    contains('shared/resources/schools/school-resource-center.js', 'resolveCompactSchoolResource', 'resolveCardSchoolResource', 'combinedCampusCandidates', 'buildTongxueSchoolHref', 'tongxueDirectoryPromise')
+    contains('shared/resources/resource-registry.js', 'lazy-single-flight')
+    for path in ('functions/_lib/exam-year-config.js', 'ln-rank/js/core/score-guard.js', 'ln-rank/js/feature/selection-pool/candidate-context.js'):
+        contains(path, 'shared/resources/exam/liaoning-physics.js')
+    contains('functions/_lib/region-rules.js', 'shared/resources/geo/china-region-catalog.js')
+    contains('ln-rank/js/config/region-options.js', 'shared/resources/geo/china-region-catalog.js')
+    contains('ln-rank/js/app.v3955_0.js', 'isPublicBottomLineVisible', "url.pathname !== '/api/major-bands'", "url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')")
+
+
+def verify_zy2026() -> None:
     summary = base.data('data/zy2026/summary.json')
     audit = base.data('analysis/2026/zy2026-audit.json')
-    school_index = base.data('data/zy2026/school-index.json')
-    major_index = base.data('data/zy2026/major-index.json')
-    base.check(summary['productVersion'] == 'v3.9.53.0', 'zy2026 data product version')
-    base.check(summary['assetVersion'] == 'v3953_0', 'zy2026 data asset version')
-    base.check(summary['records2026'] == 11628, 'zy2026 2026 record count')
-    base.check(10000 <= summary['records2025'] <= 12000, f'zy2026 unexpected 2025 record count {summary["records2025"]}')
-    base.check(summary['recordDelta'] == summary['records2026'] - summary['records2025'], 'zy2026 record delta')
-    base.check(audit['coverage']['records2025'] == audit['coverage']['assigned2025'], 'zy2026 2025 coverage')
-    base.check(audit['coverage']['records2026'] == audit['coverage']['assigned2026'], 'zy2026 2026 coverage')
-    base.check(sum(summary['relationRecordCounts2025'].values()) == summary['records2025'], 'zy2026 relation 2025 sum')
-    base.check(sum(summary['relationRecordCounts2026'].values()) == summary['records2026'], 'zy2026 relation 2026 sum')
-    for key in ('continued', 'name_adjustment', 'project_change', 'class_split', 'class_merge', 'reappeared', 'first_seen', 'not_listed', 'needs_review'):
-        base.check(key in summary['relationCounts'], f'zy2026 missing relation type {key}')
-    base.check(summary['relationRecordCounts2026']['continued'] >= 7000, 'zy2026 continuity unexpectedly low')
-    base.check(len(summary['directions']) >= 10, 'zy2026 direction coverage')
-    base.check(len(school_index['schools']) >= 900, 'zy2026 school index coverage')
-    base.check(len(major_index['majors']) >= 300, 'zy2026 major index coverage')
-    base.check(any(sum(v for k, v in item.get('relationCounts', {}).items() if k != 'continued') >= 3 for item in school_index['schools']), 'zy2026 featured school candidates')
-    base.check(any(abs(item.get('schoolDelta', 0)) >= 3 for item in major_index['majors']), 'zy2026 featured major candidates')
-    chunks = base.ROOT / 'data/zy2026/chunks'
-    base.check(chunks.exists(), 'zy2026 chunks missing')
-    for item in school_index['schools'][:80]:
-        base.check((chunks / item['chunk']).exists(), f'zy2026 school chunk missing {item["chunk"]}')
-    for item in major_index['majors'][:80]:
-        base.check((chunks / item['chunk']).exists(), f'zy2026 major chunk missing {item["chunk"]}')
-
-
-def verify_structure_pages():
+    base.check(summary['records2026'] == 11628, 'zy2026 record count')
+    base.check(audit['coverage']['records2026'] == audit['coverage']['assigned2026'], 'zy2026 coverage')
     page = base.text('zy2026/index.html')
     alias = base.text('zy2026.html')
-    js = base.text('zy2026/assets/zy2026.v3954_0.js')
-    css = base.text('zy2026/assets/zy2026.v3954_0.css')
-    for phrase in (
-        '辽宁2026招生变化发现', '重点比较2025→2026', '不用盲猜，先从变化明显的地方开始',
-        '真正变化放前面，稳定记录放最后', '默认只显示值得确认的变化',
-        '基本连续的学校默认收起', '页面体验版本：v3.9.54.0', '2024的角色'
-    ):
-        base.check(phrase in page, f'zy2026 visible copy missing {phrase}')
-    for phrase in ('unmatched', 'fuzzy match', 'similarity_score', '真实新增', '真实消失', '新增659个专业'):
-        base.check(phrase not in page + js, f'zy2026 technical or misleading copy visible: {phrase}')
-    for phrase in (
-        "CHANGE_ORDER=['project_change'", "RELATION_ORDER=[...CHANGE_ORDER,'continued']",
-        'renderFeatured', 'featuredSchools', 'featuredMajors', 'stableBlock', 'stableSets',
-        'groupedChanges', 'changes=sorted.filter', 'data-featured-school', 'data-featured-major',
-        'data-stable-toggle', 'slice(0,6)', '默认只展示真正变化', '填报前确认'
-    ):
-        base.check(phrase in js, f'zy2026 change-first runtime contract missing {phrase}')
-    base.check("RELATION_ORDER=['continued'" not in js, 'zy2026 old stable-first order remains')
-    base.check(js.find("'project_change'") < js.find("'continued'"), 'zy2026 change priority order')
-    for phrase in (
-        'zy2026.v3953_0.css', '.featured-grid', '.featured-card', '.change-overview',
-        '.stable-block', '.stable-list', '@media(max-width:680px)'
-    ):
-        base.check(phrase in css, f'zy2026 change-first responsive CSS missing {phrase}')
-    base.check('zy2026.v3954_0.css?v=3954_0' in page, 'zy2026 new css not loaded')
-    base.check('zy2026.v3954_0.js?v=3954_0' in page, 'zy2026 new js not loaded')
-    base.check(alias == page, 'zy2026 extensionless alias must mirror directory page')
-    base.check("location.replace('/zy2026')" not in alias, 'zy2026 alias must not self-redirect')
-    runner = base.text('tools/ln-2026/run-build-zy2026-structure.py')
-    finalizer = base.text('tools/ln-2026/finalize-v3953-assets.py')
-    for phrase in ('sync_extensionless_alias', 'sync_change_first_contract', 'zy2026ChangeFirstContract', 'zy2026.v3954_0.js'):
-        base.check(phrase in runner, f'zy2026 rebuild guard missing {phrase}')
-    for phrase in ('sync_zy2026_alias', 'apply_zy2026_change_first', 'zy2026StableCollapsedContract', 'zy2026.v3954_0.css'):
-        base.check(phrase in finalizer, f'zy2026 finalizer guard missing {phrase}')
-    root = base.text('index.html')
-    base.check('href="/zy2026"' in root, 'root zy2026 entry')
-    base.check('href="/zy.html"' not in root, 'root old zy entry remains')
-    base.check('招生结构变化' in root and '首页版本：v3.9.53.0' in root, 'root zy2026 copy/version')
-    redirect = base.text('zy.html')
-    base.check("location.replace('/zy2026')" in redirect, 'zy.html redirect')
-    base.check('v3.9.53.0' in redirect, 'zy.html version')
+    runtime = base.text('zy2026/assets/zy2026.v3955_0.js')
+    for phrase in ('辽宁2026招生变化发现', '2026投档表首次可见', '2026投档表未再单列', '页面体验版本：v3.9.55.0'):
+        base.check(phrase in page + runtime, f'zy2026 missing {phrase}')
+    base.check('不能直接说专业被撤销' in runtime, 'zy2026撤销边界')
+    base.check(alias == page, 'zy2026 alias mismatch')
 
 
-def verify_ln2026_score_band_order():
-    page = base.text('ln2026.html')
-    js = base.text('ln-rank/js/major-difficulty-2026.v3953_0.js')
-    base.check('major-difficulty-2026.v3953_0.js' in page, 'ln2026 new score-band asset')
-    base.check('分数段统一按从低到高排列' in page, 'ln2026 visible ascending-order explanation')
-    expected = ['344—449 分', '450—499 分', '500—549 分', '550—589 分', '590—624 分', '625 分及以上']
-    positions = [js.find(f"['{label}'") for label in expected]
-    base.check(all(position >= 0 for position in positions), f'ln2026 score-band labels missing: {positions}')
-    base.check(positions == sorted(positions), f'ln2026 score-band labels not low-to-high: {positions}')
-    base.check('scoreBandOrder(a) - scoreBandOrder(b)' in js, 'ln2026 score-band ascending runtime sort')
-    base.check('Number(b.maxScore || 0) - Number(a.maxScore || 0)' not in js, 'ln2026 old descending sort remains')
-
-
-def verify_compare_workspace():
-    page = base.text('ln-rank/index.html')
-    js = base.text('ln-rank/js/ux/compare-workspace.v3953_0.js')
-    css = base.text('ln-rank/css/dist/compare-workspace.v3953_0.css')
-    year_fix = base.text('ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css')
-    base.check('compare-workspace.v3953_0.css' in page, 'compare workspace CSS not loaded')
-    base.check('compare-workspace-year-fix.v3953_0.css' in page, 'compare year-label fix not loaded')
-    base.check('compare-workspace.v3953_0.js' in page, 'compare workspace JS not loaded')
-    base.check('data-release="v3.9.53.0"' in page, 'main page release version')
-    for phrase in (
-        'movePanelToWorkspace', 'scrollIntoView', 'panel.focus', '已打开',
-        '横向一起看', '左右滑动比较', 'MutationObserver', "action === 'chip'"
-    ):
-        base.check(phrase in js, f'compare workspace journey missing {phrase}')
-    for phrase in (
-        'grid-column:1/-1', '@media (min-width:1200px)',
-        '@media (min-width:768px) and (max-width:1199px)', '@media (max-width:767px)',
-        'grid-auto-flow:column', 'scroll-snap-type:x mandatory', 'min-height:44px'
-    ):
-        base.check(phrase in css, f'compare workspace responsive contract missing {phrase}')
-    base.check('span::before{content:none!important}' in year_fix, 'compare year labels must not be duplicated')
-    base.check('initialCards + naturalComparePanel' in base.text('ln-rank/js/feature/major-pool/render.js'), 'core compare insertion contract unexpectedly changed')
-
-
-def verify_release_meta():
+def verify_release_meta() -> None:
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
     for meta in (release, active):
-        base.check(meta['version'] == 'v3.9.53.0', 'v3953 core release version')
-        base.check(meta['assetVersion'] == 'v3953_0', 'v3953 core asset version')
-        base.check(meta['zy2026StructureContract'] is True, 'zy2026 structure contract')
-        base.check(meta['zy2026RouteMigrationContract'] is True, 'zy2026 route contract')
-        base.check(meta['zy2026ExtensionlessAliasContract'] is True, 'zy2026 extensionless alias contract')
-        base.check(meta['zy2026ExperienceVersion'] == 'v3.9.54.0', 'zy2026 experience version')
-        base.check(meta['zy2026ExperienceAssetVersion'] == 'v3954_0', 'zy2026 experience asset version')
-        base.check(meta['zy2026ChangeFirstContract'] is True, 'zy2026 change-first contract')
-        base.check(meta['zy2026StableCollapsedContract'] is True, 'zy2026 stable collapsed contract')
-        base.check(meta['zy2026FeaturedDiscoveryContract'] is True, 'zy2026 featured discovery contract')
-        base.check(meta['zy2026ChangePriorityOrderContract'] is True, 'zy2026 change order contract')
-        base.check(meta['ln2026ScoreBandAscendingContract'] is True, 'ln2026 ascending score bands contract')
-        base.check(meta['compareWorkspaceHumanJourneyContract'] is True, 'compare human journey contract')
-        base.check(meta['compareWorkspaceAutoNavigateContract'] is True, 'compare auto navigation contract')
-        base.check(meta['compareWorkspaceYearLabelContract'] is True, 'compare single year-label contract')
-    base.check(release['zy2026PrimaryComparison'] == '2025-2026', 'zy2026 primary comparison')
-    base.check(release['zy2026Year2024Role'] == 'reappearance-and-continuity-evidence-only', 'zy2026 2024 role')
-    base.check(release['majorDifficultyJs'] == 'js/major-difficulty-2026.v3953_0.js', 'release major difficulty asset')
-    structure = active['structure2026']
-    for key in ('page', 'css', 'js', 'summary', 'schoolIndex', 'majorIndex'):
-        base.check(key in structure, f'zy2026 active asset missing {key}')
-    base.check(structure['css'] == '../zy2026/assets/zy2026.v3954_0.css', 'zy2026 active css')
-    base.check(structure['js'] == '../zy2026/assets/zy2026.v3954_0.js', 'zy2026 active js')
-    for asset in ('js/major-difficulty-2026.v3953_0.js', 'js/ux/compare-workspace.v3953_0.js'):
-        base.check(asset in active['jsEntry'], f'active JS missing {asset}')
-    for asset in ('css/dist/compare-workspace.v3953_0.css', 'css/dist/compare-workspace-year-fix.v3953_0.css'):
-        base.check(asset in active['cssEntry'], f'active CSS missing {asset}')
-    base.check('js/major-difficulty-2026.v3952_0.js' not in active['jsEntry'], 'inactive old difficulty JS remains active')
+        base.check(meta['version'] == 'v3.9.55.0' and meta['assetVersion'] == 'v3955_0', 'release version')
+        for key in ('familyLanguageTrustContract', 'cardAi2026FirstContract', 'zy2026RecordLanguageContract', 'sharedResourceCenterContract', 'sharedExamResourceContract', 'sharedRegionResourceContract', 'sharedSchoolResourceContract', 'sharedSchoolDirectoryLazySingleFlightContract'):
+            base.check(meta.get(key) is True, f'missing contract {key}')
+        base.check(meta['sharedResourceCenterVersion'] == 'v3955_0', 'shared resource version')
+    base.check(active['mainJs'] == 'js/app.v3955_0.js', 'active main JS')
+    base.check('js/app.v3955_0.js' in active['jsEntry'] and 'js/app.v3951_0.js' not in active['jsEntry'], 'main wrapper activation')
+    base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3955_0.js', 'zy2026 active JS')
 
 
-def verify_temporary_files_removed():
-    for path in (
-        '.bootstrap',
-        '.github/workflows/bootstrap-zy2026-v3953.yml',
-        '.github/workflows/materialize-zy2026-v3953.yml',
-    ):
-        base.check(not (base.ROOT / path).exists(), f'temporary build path remains: {path}')
-
-
-def main():
+def main() -> None:
     base.verify_protected_paths()
     base.verify_rank_table()
-    v2.verify_manifest_and_chunks()
+    verify_manifest_and_chunks()
     base.verify_centered_analysis()
-    base.verify_runtime_contracts()
-    v2.verify_selection_and_feishu()
-    verify_structure_data()
-    verify_structure_pages()
-    verify_ln2026_score_band_order()
-    verify_compare_workspace()
+    verify_runtime_current()
+    verify_family_and_reports()
+    verify_card_ai_2026()
+    verify_shared_resources()
+    verify_zy2026()
     verify_release_meta()
-    verify_temporary_files_removed()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.53.0 core with ZY2026 v3.9.54.0 change-first experience verification passed')
+    print('LN 2026 v3.9.55.0 family decision, 2026-first AI and shared resource center verification passed')
 
 
 if __name__ == '__main__':

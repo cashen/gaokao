@@ -4,21 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f4f7f6" />
-  <title>辽宁 2027 物理类专业初选参考</title>
+  <title>辽宁 2027 物理类家庭专业初选</title>
   <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-main.v3949_0.css?v=3951_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-multi-terminal.v3949_4.css?v=3951_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3951_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/family-human-layer.v3952_0.css?v=3952_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/compare-workspace.v3953_0.css?v=3953_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css?v=3953_0" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/family-decision-workspace.v3955_0.css?v=3955_0" />
 </head>
-<body class="ln-parent-guided-flow ln-search-guided-flow" data-release="v3.9.53.0">
+<body class="ln-parent-guided-flow ln-search-guided-flow" data-release="v3.9.55.0">
   <main class="page ln-page-shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2027 物理类专业初选参考</p>
-        <h1 class="app-title">先圈出一批能讨论的专业</h1>
-        <p class="app-subtitle">输入模考或预估参考分数，再按专业方向、地区和学校性质缩小范围。这里用2026历史投档数据帮助家庭讨论，不替代2027正式填报。</p>
+        <p class="eyebrow">辽宁 2027 物理类家庭专业初选</p>
+        <h1 class="app-title">先圈出一批值得家庭继续讨论的专业</h1>
+        <p class="app-subtitle">输入孩子的模考或预估参考分数，再结合专业方向、地区和学校性质缩小范围。这里使用2026历史最低投档记录帮助家庭讨论，不替代2027正式填报。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-ready"><span class="ready-dot"></span><span class="ready-text">数据已准备好</span></div>
@@ -26,37 +27,37 @@
       </div>
     </header>
 
-    <section class="ln-parent-compact-stepper" aria-label="专业初选流程">
-      <div class="ln-stepper-head"><b>专业初选流程</b><span>先查出能讨论的专业，再整理已选专业并逐项确认。</span></div>
+    <section class="ln-parent-compact-stepper" aria-label="家庭专业初选流程">
+      <div class="ln-stepper-head"><b>家庭专业初选流程</b><span>先确认孩子目前的位置，再说清想看的方向和家庭条件，最后整理已选专业并逐项复核。</span></div>
       <ol class="ln-stepper-list">
-        <li><span class="ln-stepper-index">1</span><span><b>输入位置</b><small>按分数定位</small></span></li>
-        <li><span class="ln-stepper-index">2</span><span><b>筛专业</b><small>缩小范围</small></span></li>
-        <li><span class="ln-stepper-index">3</span><span><b>加入已选</b><small>整理方案</small></span></li>
-        <li><span class="ln-stepper-index">4</span><span><b>看报告</b><small>逐项确认</small></span></li>
+        <li><span class="ln-stepper-index">1</span><span><b>确认孩子的位置</b><small>输入参考分数</small></span></li>
+        <li><span class="ln-stepper-index">2</span><span><b>说清想看什么</b><small>专业与家庭条件</small></span></li>
+        <li><span class="ln-stepper-index">3</span><span><b>圈出并整理专业</b><small>加入已选</small></span></li>
+        <li><span class="ln-stepper-index">4</span><span><b>家庭逐项复核</b><small>生成报告</small></span></li>
       </ol>
       <p class="ln-stepper-flow-note" data-flow-note>先输入孩子的模考或预估参考分数。</p>
-      <details class="ln-stepper-details"><summary>查看步骤说明</summary><p>先用分数定位历史参考区间，再按方向、地区和学校缩小范围；把家庭能接受的专业加入已选专业，最后查看校区、招生计划、体检和学费等确认事项。</p></details>
+      <details class="ln-stepper-details"><summary>查看步骤说明</summary><p>先用分数确定历史参考位置，再选择孩子愿意了解的方向和家庭能够接受的地区、学校性质；把能继续讨论的专业加入已选专业，最后确认校区、招生计划、体检、学费和培养方式。</p></details>
     </section>
 
-    <section class="ln-console panel" aria-label="搜索控制台">
+    <section class="ln-console panel" aria-label="专业初选条件">
       <div class="topbar ln-score-row">
         <div class="score-box">
-          <label for="candidateScore">第一步：模考 / 预估参考分数</label>
+          <label for="candidateScore">确认孩子目前的位置</label>
           <input id="candidateScore" class="score-input" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="例如 580" />
         </div>
         <div class="range-box">
           <div class="range-head">
-            <div class="field-label">第二步：先看多大范围</div>
-            <details class="range-help"><summary>怎么看</summary><p>默认先用“正常查看”。结果太少再选“多看一些”；想多补低分侧再选“多看低分侧”。</p></details>
+            <div class="field-label">查看范围（需要时调整）</div>
+            <details class="range-help"><summary>怎么看</summary><p>默认先用“正常查看”。结果太少再选“多看一些”；想补充低分侧再选“多看低分侧”。这只是查看范围，不代表录取把握。</p></details>
           </div>
           <div class="range-buttons" id="rangeButtons">
             <button class="range-button is-active" data-preset="standard"><b>正常查看</b><small>首次建议</small></button>
             <button class="range-button" data-preset="wide"><b>多看一些</b><small>结果太少时</small></button>
-            <button class="range-button" data-preset="safe"><b>多看低分侧</b><small>补低分侧</small></button>
+            <button class="range-button" data-preset="safe"><b>多看低分侧</b><small>补充低分侧</small></button>
           </div>
         </div>
         <div id="bottomLinePanel" class="bottomline-panel" hidden>
-          <div class="bottomline-head"><div><div class="field-label bottomline-title">学校性质与费用提醒</div><p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示学校性质和费用提醒。</p></div></div>
+          <div class="bottomline-head"><div><div class="field-label bottomline-title">家庭能够接受的学校性质</div><p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示学校性质和费用提醒。</p></div></div>
           <div class="bottomline-buttons" role="group" aria-label="学校性质范围">
             <button type="button" class="bottomline-button is-active" data-bottomline-mode="all">全部院校</button>
             <button type="button" class="bottomline-button" data-bottomline-mode="public_first">公办优先</button>
@@ -67,21 +68,21 @@
       </div>
 
       <div class="middle ln-band-row">
-        <div class="tabs-head"><div><h2 class="panel-title">结果分成三段看</h2><p class="panel-desc">先看“主要参考”，再少量看“稍高目标”，最后补充“低分侧”。</p></div></div>
-        <div id="rankBandLegend" class="rank-band-legend" aria-label="结果分成三段看"></div>
+        <div class="tabs-head"><div><h2 class="panel-title">结果按三个位置分组</h2><p class="panel-desc">先看“主要参考”，再少量看“稍高目标”，最后补充“低分侧”。这些只是历史位置分组，不代表录取概率。</p></div></div>
+        <div id="rankBandLegend" class="rank-band-legend" aria-label="结果按三个位置分组"></div>
 
-        <section class="search-workbench ln-filter-panel" data-filter-panel aria-label="想看什么专业方向">
+        <section class="search-workbench ln-filter-panel" data-filter-panel aria-label="专业方向和家庭条件">
           <div class="search-workbench-head ln-filter-panel__head">
-            <div><h2 class="search-workbench-title">第三步：想看什么方向</h2><p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向，例如计算机、电气、医学、会计。</p></div>
+            <div><h2 class="search-workbench-title">说清想看的专业和家庭条件</h2><p class="search-workbench-desc">不知道具体专业名，也可以先输入大方向，例如计算机、电气、医学、会计。孩子是否真正接受，还要结合课程内容继续确认。</p></div>
             <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="已选专业入口"></div>
           </div>
 
           <div class="major-keyword-panel ln-filter-panel__primary">
-            <div class="filter-field filter-major"><label for="majorKeyword">专业方向 / 项目关键词</label><input id="majorKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：计算机、电气、医学、会计" /><div class="keyword-help">多个词可以用空格、逗号或 / 分隔。</div></div>
+            <div class="filter-field filter-major"><label for="majorKeyword">孩子想了解的专业方向 / 项目关键词</label><input id="majorKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：计算机、电气、医学、会计" /><div class="keyword-help">多个词可以用空格、逗号或 / 分隔。</div></div>
           </div>
 
           <div class="search-grid-top ln-filter-panel__secondary">
-            <div class="filter-field filter-region"><label for="region">想看的地区</label><select id="region" class="select"></select></div>
+            <div class="filter-field filter-region"><label for="region">家庭能够接受的地区</label><select id="region" class="select"></select></div>
             <div class="filter-field filter-school"><label for="schoolKeyword">指定学校，可不填</label><input id="schoolKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：大连、沈阳、辽宁大学" /></div>
           </div>
 
@@ -116,19 +117,20 @@
     </section>
 
     <section class="aux-background-entry panel" aria-label="学校与专业背景">
-      <div class="aux-background-head"><p class="aux-background-kicker">填报前再确认</p><h2>查完专业以后，再看学校和专业背景</h2><p>这些页面只帮助家庭了解学校与专业背景，不代表录取结果。</p></div>
+      <div class="aux-background-head"><p class="aux-background-kicker">需要进一步了解时</p><h2>对某个专业产生兴趣以后，再看学校和专业背景</h2><p>这些页面只帮助家庭补充了解，不代表录取结果，也不替孩子决定专业。</p></div>
       <div class="aux-background-grid">
         <a class="aux-background-card" href="/ln-rank/local-mainline.html"><span><b>省内学校专业背景</b><span>查看辽宁省内学校与专业方向的公开对应线索。</span></span><em>查看</em></a>
         <a class="aux-background-card" href="/ln-rank/211-mainline.html"><span><b>全国211院校背景</b><span>查看211院校与本科专业方向的公开对应线索。</span></span><em>查看</em></a>
       </div>
     </section>
 
-    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>版本：v3.9.53.0｜数据口径：辽宁2026物理类专业投档｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>版本：v3.9.55.0｜数据口径：辽宁2026物理类专业投档｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
   </main>
   <div id="directionExplorerPanelMount" class="direction-explorer-panel-mount"></div>
-  <script type="module" src="/ln-rank/js/app.v3951_0.js?v=3951_0"></script>
-  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3951_0"></script>
-  <script type="module" src="/ln-rank/js/ux/family-presentation.v3952_0.js?v=3952_0"></script>
-  <script type="module" src="/ln-rank/js/ux/compare-workspace.v3953_0.js?v=3953_0"></script>
+  <script type="module" src="/ln-rank/js/app.v3955_0.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/family-presentation.v3955_0.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/compare-workspace.v3953_0.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/family-decision-bar.v3955_0.js?v=3955_0"></script>
 </body>
 </html>

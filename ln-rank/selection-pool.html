@@ -9,33 +9,34 @@
   <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-multi-terminal.v3949_4.css?v=3951_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3951_0" />
   <link rel="stylesheet" href="/ln-rank/css/dist/family-human-layer.v3952_0.css?v=3952_0" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/family-decision-workspace.v3955_0.css?v=3955_0" />
 </head>
-<body class="ln-parent-guided-flow ln-selection-guided-flow" data-release="v3.9.53.0">
+<body class="ln-parent-guided-flow ln-selection-guided-flow" data-release="v3.9.55.0">
   <main class="page ln-selection-page">
     <header class="hero">
       <div>
-        <p class="eyebrow">辽宁 2027 物理类专业初选参考</p>
-        <h1 class="app-title">已选专业与家庭复核报告</h1>
-        <p class="app-subtitle">先检查已经选中的专业，不合适的可以移除；确认以后再生成一份用于家庭讨论的复核报告。</p>
+        <p class="eyebrow">辽宁 2027 物理类家庭专业初选</p>
+        <h1 class="app-title">检查已选专业与家庭复核报告</h1>
+        <p class="app-subtitle">先看孩子是否真正接受这些专业，再检查地区、费用、校区和培养方式。确认以后生成一份用于家庭讨论的复核报告。</p>
       </div>
-      <div class="hero-badges"><a class="scope-pill" href="/ln-rank/">返回专业初选</a><div class="scope-pill">最后仍要查官方计划和章程</div></div>
+      <div class="hero-badges"><a class="scope-pill" href="/ln-rank/">返回继续筛专业</a><div class="scope-pill">最后仍要查官方计划和章程</div></div>
     </header>
 
-    <section class="ln-plan-status-strip" aria-label="专业整理状态">
-      <div class="ln-plan-status-main"><b>专业整理流程</b><span>先检查已选专业，再看分布和确认事项，最后保存报告。</span></div>
-      <ol class="ln-plan-status-steps"><li>确认分数</li><li>检查已选</li><li>看分布</li><li>保存报告</li></ol><p class="ln-plan-status-note" data-plan-flow-note>先检查已选专业，再看需要确认的地方。</p>
+    <section class="ln-plan-status-strip" aria-label="家庭方案整理流程">
+      <div class="ln-plan-status-main"><b>家庭方案整理流程</b><span>确认孩子目前的位置，检查已选专业和方案结构，最后保存复核报告。</span></div>
+      <ol class="ln-plan-status-steps"><li>确认孩子的位置</li><li>检查已选专业</li><li>检查方案结构</li><li>保存复核报告</li></ol><p class="ln-plan-status-note" data-plan-flow-note>先检查已选专业，再看需要确认的地方。</p>
     </section>
 
     <section class="ln-selection-step ln-selection-score-panel" aria-labelledby="selectionScoreTitle">
-      <div class="ln-step-marker">分数确认</div>
-      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认模考 / 预估参考分数</h2><p>报告中的“与参考分数的差距”和三个查看分段，都会按这里的分数重新计算；历史位次只用来说明过去的位置。</p></div>
+      <div class="ln-step-marker">孩子目前的位置</div>
+      <div class="ln-selection-step-main"><h2 id="selectionScoreTitle">确认模考 / 预估参考分数</h2><p>报告中的“与参考分数的差距”和三个查看分段，都会按这里的分数重新计算；历史位次只用来说明过去的最低投档位置。</p></div>
       <div class="score-rank-inline ln-selection-score-control"><div class="score-box"><label for="pathCandidateScore">模考 / 预估参考分数</label><input id="pathCandidateScore" class="score-input" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="如 580" /></div></div>
     </section>
 
-    <section class="ln-selection-main" aria-label="已选专业与报告">
+    <section class="ln-selection-main" aria-label="已选专业与家庭复核">
       <div class="workspace-panel workspace-panel-list ln-selection-list-panel">
         <div class="workspace-head ln-selection-panel-head">
-          <div><div class="ln-step-marker">已选专业</div><h2 class="workspace-title">检查准备放进报告的专业</h2><p class="workspace-desc">不想保留的可以先移除。旧版保存且暂时无法对应到2026同口径记录的条目会单独标记，不进入当前正式报告。</p></div>
+          <div><div class="ln-step-marker">已选专业</div><h2 class="workspace-title">检查已选专业</h2><p class="workspace-desc">先让孩子确认是否愿意继续了解这些专业，不合适的可以移除。旧版保存且暂时无法对应到2026同口径记录的条目会单独标记，不进入当前正式报告。</p></div>
           <div class="workspace-actions workspace-actions-list ln-selection-list-actions"><a class="workspace-button muted" href="/ln-rank/">返回继续添加</a><button id="sortByBand" class="workspace-button">按分段整理</button><button id="clearPool" class="workspace-button danger-muted">清空已选</button></div>
         </div>
         <div id="workspaceStats"></div>
@@ -47,30 +48,36 @@
 
       <aside class="ln-selection-side" aria-label="检查与报告操作">
         <section class="workspace-panel ln-selection-action-panel">
-          <div class="workspace-head ln-selection-panel-head ln-action-panel-head"><div><div class="ln-step-marker">生成前检查</div><h2 class="workspace-title">先看有没有过于集中</h2><p class="workspace-desc">看看专业方向、城市和费用是不是集中在少数选择上，还有哪些事项需要填报前确认。</p></div></div>
+          <div class="workspace-head ln-selection-panel-head ln-action-panel-head"><div><div class="ln-step-marker">生成前检查</div><h2 class="workspace-title">看看当前方案有没有明显偏科</h2><p class="workspace-desc">检查专业方向、城市、费用和特殊项目是否过于集中，以及孩子和家庭之间还有哪些地方需要继续讨论。</p></div></div>
           <div id="selectionActionHint"></div>
           <div id="directionExplorerReportMount" class="direction-explorer-report-mount"></div>
           <div class="workspace-actions ln-action-button-grid">
-            <button id="runAnalysis" class="workspace-button primary">检查已选专业分布</button>
-            <button id="sendAnalyzedPool" class="workspace-button report-primary">生成飞书复核报告</button>
-            <button id="sendSelectionPool" class="workspace-button">直接用已选专业生成报告</button>
-            <button id="copySelectionText" class="workspace-button muted">复制文字版</button>
+            <button id="runAnalysis" class="workspace-button primary">先检查当前方案</button>
+            <button id="sendAnalyzedPool" class="workspace-button report-primary">生成家庭复核报告</button>
+            <details class="family-secondary-actions">
+              <summary>其他保存方式</summary>
+              <div class="family-secondary-actions__body">
+                <button id="sendSelectionPool" class="workspace-button">跳过检查直接生成</button>
+                <button id="copySelectionText" class="workspace-button muted">复制文字版</button>
+              </div>
+            </details>
           </div>
-          <div class="ln-report-help">报告以2026专业投档分和位次为主要历史参考，并附2025、2024同口径记录。飞书暂时不可用时，可以先复制文字版保存。</div>
+          <div class="ln-report-help">报告以2026专业最低投档分和位次为主要历史参考，并附2025、2024同口径记录。飞书暂时不可用时，可以先复制文字版保存。</div>
           <div id="feishuSelectionStatus" class="ln-report-status" aria-live="polite"></div>
         </section>
       </aside>
     </section>
 
     <section class="workspace-panel ln-selection-analysis-panel" id="selectionAnalysisPanel" aria-labelledby="selectionAnalysisTitle">
-      <div class="workspace-head ln-selection-panel-head"><div><div class="ln-step-marker">检查结果</div><h2 id="selectionAnalysisTitle" class="workspace-title">专业分布和确认事项会显示在这里</h2><p class="workspace-desc">这里会提醒分段搭配、专业方向、费用和特殊项目等需要家庭再确认的地方。</p></div></div>
+      <div class="workspace-head ln-selection-panel-head"><div><div class="ln-step-marker">检查结果</div><h2 id="selectionAnalysisTitle" class="workspace-title">专业分布和待确认事项会显示在这里</h2><p class="workspace-desc">这里会提醒分段搭配、专业方向、费用、校区和特殊项目等需要家庭继续确认的地方。</p></div></div>
       <div id="analysisResult"></div>
     </section>
 
-    <section class="data-note">当前报告主要依据辽宁2026年普通类本科批物理类专业投档记录，2025、2024只作严格同口径历史对照。输入的是模考或预估参考分数，不是2027年正式高考成绩；历史位次也不代表2027年实际位次。正式填报应重新确认2027年一分一段、招生计划、选科、体检、学费、校区和院校章程。<br>版本：v3.9.53.0｜数据口径：辽宁2026物理类专业投档｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+    <section class="data-note">当前报告主要依据辽宁2026年普通类本科批物理类专业投档记录，2025、2024只作严格同口径历史对照。输入的是模考或预估参考分数，不是2027年正式高考成绩；历史位次也不代表2027年实际位次。正式填报应重新确认2027年一分一段、招生计划、选科、体检、学费、校区和院校章程。<br>版本：v3.9.55.0｜数据口径：辽宁2026物理类专业投档｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
   </main>
-  <script type="module" src="/ln-rank/js/selection-pool.v3951_0.js?v=3951_0"></script>
-  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3951_0"></script>
-  <script type="module" src="/ln-rank/js/ux/family-presentation.v3952_0.js?v=3952_0"></script>
+  <script type="module" src="/ln-rank/js/selection-pool.v3951_0.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/multi-terminal.v3949_4.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/family-presentation.v3955_0.js?v=3955_0"></script>
+  <script type="module" src="/ln-rank/js/ux/family-decision-bar.v3955_0.js?v=3955_0"></script>
 </body>
 </html>

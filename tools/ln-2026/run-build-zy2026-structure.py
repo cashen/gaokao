@@ -13,8 +13,8 @@ assert SPEC.loader
 sys.modules[SPEC.name] = builder
 SPEC.loader.exec_module(builder)
 
-ZY_EXPERIENCE_VERSION = 'v3.9.54.0'
-ZY_ASSET_VERSION = 'v3954_0'
+ZY_EXPERIENCE_VERSION = 'v3.9.55.0'
+ZY_ASSET_VERSION = 'v3955_0'
 
 
 def load_manifest_rows(manifest_path: Path, prefix: Path) -> list[dict]:
@@ -60,6 +60,7 @@ def sync_change_first_contract() -> None:
         'zy2026StableCollapsedContract': True,
         'zy2026FeaturedDiscoveryContract': True,
         'zy2026ChangePriorityOrderContract': True,
+        'zy2026RecordLanguageContract': True,
     })
     dump_json(release_path, release)
 
@@ -71,12 +72,13 @@ def sync_change_first_contract() -> None:
         'zy2026StableCollapsedContract': True,
         'zy2026FeaturedDiscoveryContract': True,
         'zy2026ChangePriorityOrderContract': True,
+        'zy2026RecordLanguageContract': True,
     })
     structure = active.setdefault('structure2026', {})
     structure.update({
         'page': '../zy2026/index.html',
         'css': '../zy2026/assets/zy2026.v3954_0.css',
-        'js': '../zy2026/assets/zy2026.v3954_0.js',
+        'js': '../zy2026/assets/zy2026.v3955_0.js',
         'summary': '../data/zy2026/summary.json',
         'schoolIndex': '../data/zy2026/school-index.json',
         'majorIndex': '../data/zy2026/major-index.json',
