@@ -1,0 +1,83 @@
+name: Prepare clean LN 2026 release
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - name: Decode readable build sources
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, py_compile
+          mappings = [
+              ('tools/ln-2026/payload/build_release.py.part*', 'tools/ln-2026/build-release.py'),
+              ('tools/ln-2026/payload/verify_release.py.part*', 'tools/ln-2026/verify-generated-release.py'),
+              ('tools/ln-2026/payload/integrate_release.py.part*', 'tools/ln-2026/integrate-release.py'),
+          ]
+          for pattern, target in mappings:
+              parts=sorted(Path('.').glob(pattern))
+              if not parts:
+                  raise SystemExit(f'missing payload parts: {pattern}')
+              encoded=''.join(''.join(part.read_text(encoding='utf-8').split()) for part in parts)
+              decoded=gzip.decompress(base64.b64decode(encoded,validate=True))
+              out=Path(target)
+              out.write_bytes(decoded)
+              py_compile.compile(str(out),doraise=True)
+              print(target, len(decoded))
+          PY
+      - name: Remove temporary build machinery
+        run: |
+          rm -rf tools/ln-2026/payload
+          rm -f \
+            tools/ln-2026/READY \
+            tools/ln-2026/build_release.py.gz.b64 \
+            tools/ln-2026/verify_release.py.gz.b64 \
+            tools/ln-2026/rank-pdf-layout-diagnostic.txt \
+            tools/ln-2026/apply-runtime-corrections.py \
+            tools/ln-2026/finalize-release-metadata.py \
+            tools/ln-2026/last-build-error.log \
+            tools/ln-2026/last-build-error-current.log \
+            tools/ln-2026/last-verifier-error-current.log \
+            tools/ln-2026/last-integration-error.log \
+            tools/ln-2026/trend-audit-error.log
+          rm -f \
+            .github/workflows/build-ln-2026-release.yml \
+            .github/workflows/integrate-ln-2026-release.yml \
+            .github/workflows/apply-ln-2026-runtime-corrections.yml \
+            .github/workflows/audit-ln-2026-trend-method.yml \
+            .github/workflows/rebuild-ln-2026-centered-trends.yml \
+            .github/workflows/finalize-ln-2026-metadata.yml \
+            .github/workflows/prepare-clean-ln-2026-release.yml
+      - name: Verify clean source set
+        run: |
+          python3 -m py_compile \
+            tools/ln-2026/build-release.py \
+            tools/ln-2026/verify-generated-release.py \
+            tools/ln-2026/integrate-release.py \
+            tools/ln-2026/audit-trend-method.py \
+            tools/ln-2026/rebuild-centered-trend-analysis.py \
+            tools/ln-2026/verify-final-release.py
+          test ! -d tools/ln-2026/payload
+          test ! -f tools/ln-2026/build_release.py.gz.b64
+      - name: Commit clean release sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --stat
+          git commit -m "chore: clean and expose LN 2026 release build sources [clean-ln2026]"
+          git push origin HEAD:${{ github.head_ref }}
