@@ -26,24 +26,18 @@ export function isCampusLikeSchoolName(value) {
   return /校区|分校|研究院/.test(String(value || ''));
 }
 
-export function resolveCompactSchoolResource(name) {
-  const school = String(name || '').trim();
-  if (!school) return null;
-  const entity = findSchoolEntityByName(school);
-  if (!entity) {
-    if (isCampusLikeSchoolName(school)) return null;
-    return Object.freeze({
-      school,
-      entityId: '',
-      entityType: 'official_school',
-      sourceStatus: 'directory_resolve_on_open',
-      source: 'ordinary-school-fallback'
-    });
-  }
-  if (!isEntitySourceAvailable(entity)) return null;
+function cleanCampusLabel(value) {
+  return String(value || '')
+    .replace(/^(?:办学地点|实际校区|所在校区|校区|分校)[：:]\s*/g, '')
+    .replace(/^学校标签[：:]\s*/g, '')
+    .trim();
+}
+
+function compactEntityResult(entity, fallbackSchool = '') {
+  if (!entity || !isEntitySourceAvailable(entity)) return null;
   const publicEntity = publicSchoolEntity(entity);
   return Object.freeze({
-    school: publicEntity?.displayName || entity.displayName || school,
+    school: publicEntity?.displayName || entity.displayName || fallbackSchool,
     entityId: publicEntity?.entityId || entity.entityId || '',
     entityType: publicEntity?.entityType || entity.entityType || 'official_school',
     sourceStatus: publicEntity?.sourceStatus || entity.sourceStatus || 'direct',
@@ -51,16 +45,65 @@ export function resolveCompactSchoolResource(name) {
   });
 }
 
+export function resolveCompactSchoolResource(name) {
+  const school = String(name || '').trim();
+  if (!school) return null;
+  const entity = findSchoolEntityByName(school);
+  if (entity) return compactEntityResult(entity, school);
+  if (isCampusLikeSchoolName(school)) return null;
+  return Object.freeze({
+    school,
+    entityId: '',
+    entityType: 'official_school',
+    sourceStatus: 'directory_resolve_on_open',
+    source: 'ordinary-school-fallback'
+  });
+}
+
+function combinedCampusCandidates(baseSchool, campusLabel) {
+  const base = String(baseSchool || '').trim();
+  const campus = cleanCampusLabel(campusLabel);
+  if (!base || !campus) return [];
+  const baseNorm = normalizeSchoolName(base);
+  const campusNorm = normalizeSchoolName(campus);
+  if (!campusNorm || campusNorm.includes(baseNorm) || baseNorm.includes(campusNorm)) return [campus];
+  return [
+    `${base}${campus}`,
+    `${base}（${campus}）`,
+    `${base}(${campus})`
+  ];
+}
+
 export function resolveCardSchoolResource(candidates = []) {
   const rows = [...new Set((Array.isArray(candidates) ? candidates : [candidates])
     .map(value => String(value || '').trim())
     .filter(Boolean))];
-  const fallback = rows.at(-1) || '';
-  for (const row of rows) {
-    const resolved = resolveCompactSchoolResource(row);
-    if (resolved?.source === 'compact-entity-table') return resolved;
+  if (!rows.length) return null;
+
+  const baseSchool = [...rows].reverse().find(row => !isCampusLikeSchoolName(row)) || rows.at(-1) || '';
+  const campusRows = rows.filter(isCampusLikeSchoolName);
+
+  for (const row of campusRows) {
+    const direct = findSchoolEntityByName(row);
+    const resolved = compactEntityResult(direct, row);
+    if (resolved) return resolved;
   }
-  return resolveCompactSchoolResource(fallback);
+
+  for (const campus of campusRows) {
+    for (const combined of combinedCampusCandidates(baseSchool, campus)) {
+      const entity = findSchoolEntityByName(combined);
+      const resolved = compactEntityResult(entity, combined);
+      if (resolved) return resolved;
+    }
+  }
+
+  for (const row of rows) {
+    const entity = findSchoolEntityByName(row);
+    const resolved = compactEntityResult(entity, row);
+    if (resolved) return resolved;
+  }
+
+  return resolveCompactSchoolResource(baseSchool || rows.at(-1));
 }
 
 export function buildTongxueSchoolHref({ school, entityId = '' } = {}) {
