@@ -79,6 +79,27 @@ def verify_ln2026_score_band_order():
     base.check('Number(b.maxScore || 0) - Number(a.maxScore || 0)' not in js, 'ln2026 old descending sort remains')
 
 
+def verify_compare_workspace():
+    page = base.text('ln-rank/index.html')
+    js = base.text('ln-rank/js/ux/compare-workspace.v3953_0.js')
+    css = base.text('ln-rank/css/dist/compare-workspace.v3953_0.css')
+    base.check('compare-workspace.v3953_0.css' in page, 'compare workspace CSS not loaded')
+    base.check('compare-workspace.v3953_0.js' in page, 'compare workspace JS not loaded')
+    base.check('data-release="v3.9.53.0"' in page, 'main page release version')
+    for phrase in (
+        'movePanelToWorkspace', 'scrollIntoView', 'panel.focus', '已打开',
+        '横向一起看', '左右滑动比较', 'MutationObserver', "action === 'chip'"
+    ):
+        base.check(phrase in js, f'compare workspace journey missing {phrase}')
+    for phrase in (
+        'grid-column:1/-1', '@media (min-width:1200px)',
+        '@media (min-width:768px) and (max-width:1199px)', '@media (max-width:767px)',
+        'grid-auto-flow:column', 'scroll-snap-type:x mandatory', 'min-height:44px'
+    ):
+        base.check(phrase in css, f'compare workspace responsive contract missing {phrase}')
+    base.check('initialCards + naturalComparePanel' in base.text('ln-rank/js/feature/major-pool/render.js'), 'core compare insertion contract unexpectedly changed')
+
+
 def verify_release_meta():
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
@@ -87,11 +108,17 @@ def verify_release_meta():
         base.check(meta['assetVersion'] == 'v3953_0', 'v3953 asset version')
         base.check(meta['zy2026StructureContract'] is True, 'zy2026 structure contract')
         base.check(meta['zy2026RouteMigrationContract'] is True, 'zy2026 route contract')
+        base.check(meta['ln2026ScoreBandAscendingContract'] is True, 'ln2026 ascending score bands contract')
+        base.check(meta['compareWorkspaceHumanJourneyContract'] is True, 'compare human journey contract')
+        base.check(meta['compareWorkspaceAutoNavigateContract'] is True, 'compare auto navigation contract')
     base.check(release['zy2026PrimaryComparison'] == '2025-2026', 'zy2026 primary comparison')
     base.check(release['zy2026Year2024Role'] == 'reappearance-and-continuity-evidence-only', 'zy2026 2024 role')
     structure = active['structure2026']
     for key in ('page', 'css', 'js', 'summary', 'schoolIndex', 'majorIndex'):
         base.check(key in structure, f'zy2026 active asset missing {key}')
+    for asset in ('js/major-difficulty-2026.v3953_0.js', 'js/ux/compare-workspace.v3953_0.js'):
+        base.check(asset in active['jsEntry'], f'active JS missing {asset}')
+    base.check('css/dist/compare-workspace.v3953_0.css' in active['cssEntry'], 'active compare CSS missing')
 
 
 def main():
@@ -104,10 +131,11 @@ def main():
     verify_structure_data()
     verify_structure_pages()
     verify_ln2026_score_band_order()
+    verify_compare_workspace()
     verify_release_meta()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.53.0 structure-analysis release verification passed')
+    print('LN 2026 v3.9.53.0 structure, score-order and compare-workspace verification passed')
 
 
 if __name__ == '__main__':
