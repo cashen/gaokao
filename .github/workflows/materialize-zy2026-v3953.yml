@@ -27,6 +27,7 @@ jobs:
           fetch-depth: 1
           show-progress: false
       - name: Build audited 2025 to 2026 structure relations
+        id: build_relations
         shell: bash
         run: |
           set +e
@@ -38,6 +39,14 @@ jobs:
             tail -n 60 /tmp/zy2026-build.err
             exit "$status"
           fi
+      - name: Upload concise build diagnostic
+        if: failure() && steps.build_relations.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zy2026-build-error
+          path: /tmp/zy2026-build.err
+          if-no-files-found: error
+          retention-days: 1
       - name: Finalize v3953 pages and active asset contracts
         run: python3 tools/ln-2026/finalize-v3953-assets.py
       - name: Remove temporary bootstrap and materialization files
