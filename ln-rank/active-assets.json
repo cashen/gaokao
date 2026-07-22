@@ -12,7 +12,6 @@
   "jsEntry": [
     "js/app.v3951_0.js",
     "js/selection-pool.v3951_0.js",
-    "js/major-difficulty-2026.v3952_0.js",
     "js/ux/family-presentation.v3952_0.js",
     "js/self-check.v3949_0.js",
     "js/local-mainline/local-mainline-app.v3951_0.js",
@@ -32,7 +31,8 @@
     "css/dist/gaokao-human-ui.v3950_0.css",
     "css/dist/family-human-layer.v3952_0.css",
     "css/dist/major-difficulty-2026.v3952_0.css",
-    "css/dist/compare-workspace.v3953_0.css"
+    "css/dist/compare-workspace.v3953_0.css",
+    "css/dist/compare-workspace-year-fix.v3953_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
@@ -45,9 +45,10 @@
     "humanUi": "css/dist/gaokao-human-ui.v3950_0.css",
     "familyHumanLayer": "css/dist/family-human-layer.v3952_0.css",
     "majorDifficulty": "css/dist/major-difficulty-2026.v3952_0.css",
-    "compareWorkspace": "css/dist/compare-workspace.v3953_0.css"
+    "compareWorkspace": "css/dist/compare-workspace.v3953_0.css",
+    "compareWorkspaceYearFix": "css/dist/compare-workspace-year-fix.v3953_0.css"
   },
-  "releaseGate": "zy2026-structure-analysis, human-language, progressive-evidence, 320-430-ipad-desktop, protected-fenxi-runtime-unchanged",
+  "releaseGate": "zy2026-structure-analysis, ascending-score-bands, compare-auto-navigation, desktop-horizontal, tablet-swipe, android-snap, human-language, protected-fenxi-runtime-unchanged",
   "versionContractSync": true,
   "noFenxiIncluded": true,
   "typographyHierarchyContract": true,
@@ -69,7 +70,7 @@
   "humanUiTouchTargetContract": true,
   "humanUiReadableWidthContract": true,
   "humanUiReducedMotionContract": true,
-  "runtimeCacheQueryVersion": "v3952_0",
+  "runtimeCacheQueryVersion": "v3953_0",
   "preservedCoreModuleQueryVersion": "v3951_0",
   "preservedRuntimeModuleQueryVersion": "v3951_0",
   "mainJs": "js/app.v3951_0.js",
@@ -104,5 +105,6 @@
   "compareWorkspaceDesktopHorizontalContract": true,
   "compareWorkspaceTabletSwipeContract": true,
   "compareWorkspaceAndroidSnapContract": true,
-  "compareWorkspaceAutoNavigateContract": true
+  "compareWorkspaceAutoNavigateContract": true,
+  "compareWorkspaceYearLabelContract": true
 }
