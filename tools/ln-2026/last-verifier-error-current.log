@@ -1,10 +1,3 @@
-VERIFY_HEAD=e83c1754af91e2433e819e5e62d5d039a4ac55a4
-VERIFY_RUN=29879985323
-VERIFY_LOG:
-Traceback (most recent call last):
-  File "/tmp/verify_release.py", line 4, in <module>
-    ROOT=Path(os.environ.get('GITHUB_WORKSPACE', Path(__file__).resolve().parents[2]))
-                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
-  File "/usr/lib/python3.12/pathlib.py", line 281, in __getitem__
-    raise IndexError(idx)
-IndexError: 2
+VERIFY_HEAD=26da8dc8a282b6482b32a94252a68724b10b840d
+VERIFY_RUN=29880074593
+ERROR: lngk2026.html forbidden copy: 稳录
