@@ -17,13 +17,15 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
-      - name: Detect generated data
+      - name: Detect verified generated data
         run: |
-          if [ -f fenxi/data/ln-rank-2026/manifest.json ] && [ -f functions/_lib/ln-2026-physics-score-rank.js ]; then
+          if [ -f fenxi/data/ln-rank-2026/manifest.json ] \
+             && [ -f functions/_lib/ln-2026-physics-score-rank.js ] \
+             && [ ! -f tools/ln-2026/last-verifier-error-current.log ]; then
             echo "HAS_LN2026_DATA=1" >> "$GITHUB_ENV"
           else
             echo "HAS_LN2026_DATA=0" >> "$GITHUB_ENV"
-            echo "2026 generated data is not ready; runtime integration will wait for the generator commit."
+            echo "Verified 2026 generated data is not ready; runtime integration will wait."
           fi
       - name: Decode and validate integration tool
         if: env.HAS_LN2026_DATA == '1'
