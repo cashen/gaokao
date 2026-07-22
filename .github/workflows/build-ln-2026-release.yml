@@ -39,13 +39,21 @@ jobs:
                               'subprocess.run(["pdftotext", "-raw", str(pdf), str(txt)], check=True)')
           text = text.replace('text = txt.read_text(encoding="utf-8", errors="ignore")',
                               'text = txt.read_text(encoding="utf-8", errors="ignore").replace(",", "")')
-          text = text.replace('"schoolCode": school_code.zfill(4) if school_code.isdigit() else school_code,', '"id": f"ln-2026-{school_code.zfill(4) if school_code.isdigit() else school_code}-{major_code}",\n                        "schoolCode2026": school_code.zfill(4) if school_code.isdigit() else school_code,')
+          text = text.replace('"schoolCode": school_code.zfill(4) if school_code.isdigit() else school_code,', '"schoolCode2026": school_code.zfill(4) if school_code.isdigit() else school_code,')
           text = text.replace('"school": school, "majorCode": major_code, "major": major,', '"school": school, "majorCode2026": major_code, "major": major,')
           text = text.replace('"score": nums[0], "tieChineseMath": nums[1]', '"score2026": nums[0], "tieChineseMath": nums[1]')
+          source = '''        rec = {\n            **src,\n            **profile,'''
+          replacement = '''        rec = {\n            **src,\n            "id": src.get("id") or f"ln-2026-{src.get('schoolCode2026', '')}-{src.get('majorCode2026', '')}",\n            **profile,'''
+          if source not in text:
+              raise SystemExit('enriched record block not found')
+          text = text.replace(source, replacement, 1)
           needle = 'def download_rank_pdf(dest: Path):\n'
           inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
           if needle not in text: raise SystemExit('rank PDF loader not found')
-          p.write_text(text.replace(needle, inject, 1))
+          text = text.replace(needle, inject, 1)
+          if '"id": src.get("id") or f"ln-2026-' not in text:
+              raise SystemExit('stable record ID patch not applied')
+          p.write_text(text)
           py_compile.compile('/tmp/build_release.py', doraise=True)
           py_compile.compile('/tmp/verify_release.py', doraise=True)
           PY
