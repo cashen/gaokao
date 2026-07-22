@@ -16,6 +16,8 @@ for(const path of pages)ok(!/版本：v3\.9\.50\.0/.test(t(path)),`${path} old f
 
 const main=t('ln-rank/index.html');
 ok(main.includes('v3.9.55.0'),'main version');
+ok(main.includes('app.v3955_0.js?v=3955_0'),'shared main wrapper loaded');
+ok(!main.includes('app.v3951_0.js?v=3955_0'),'legacy main not loaded directly');
 ok(main.includes('family-decision-workspace.v3955_0.css'),'family decision css loaded');
 ok(main.includes('family-presentation.v3955_0.js'),'family presentation loaded');
 ok(main.includes('family-decision-bar.v3955_0.js'),'family status bar loaded');
@@ -42,7 +44,7 @@ ok(!zyAlias.includes("location.replace('/zy2026')"),'zy2026 alias self redirect 
 ok(zyPage.includes('辽宁2026招生变化发现')&&zyPage.includes('页面体验版本：v3.9.55.0'),'zy2026 family copy page');
 ok(zyPage.includes('zy2026.v3955_0.js?v=3955_0')&&zyPage.includes('zy2026.v3954_0.css?v=3955_0'),'zy2026 v3955 runtime loaded');
 ok(t('tools/ln-2026/run-build-zy2026-structure.py').includes("ZY_EXPERIENCE_VERSION = 'v3.9.55.0'"),'zy rebuild v3955 guard');
-ok(t('tools/ln-2026/finalize-v3953-assets.py').includes('apply_family_decision_contract'),'family finalizer guard');
+ok(t('tools/ln-2026/finalize-v3953-assets.py').includes('apply_shared_resource_contract'),'shared resource finalizer guard');
 ok(t('lngk2026.html').includes('/ln2026.html#score-band'),'score-band redirect');
 
 const zyJs=t('zy2026/assets/zy2026.v3955_0.js');
@@ -62,6 +64,19 @@ const compareCss=t('ln-rank/css/dist/compare-workspace.v3953_0.css');
 ok(compareCss.includes('@media (min-width:1200px)')&&compareCss.includes('@media (max-width:767px)')&&compareCss.includes('scroll-snap-type:x mandatory'),'compare responsive');
 ok(t('ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css').includes('span::before{content:none!important}'),'single year labels');
 
+const sharedExam=t('shared/resources/exam/liaoning-physics.js');
+const sharedGeo=t('shared/resources/geo/china-region-catalog.js');
+const sharedSchool=t('shared/resources/schools/school-resource-center.js');
+const appWrapper=t('ln-rank/js/app.v3955_0.js');
+ok(sharedExam.includes('specialControlScore: 508')&&sharedExam.includes('undergraduateControlScore: 344'),'shared exam controls');
+ok(sharedGeo.includes('REGION_OPTIONS')&&sharedGeo.includes('matchRegionRule'),'shared region catalog');
+ok(sharedSchool.includes('tongxueDirectoryPromise')&&sharedSchool.includes('resolveCardSchoolResource'),'shared school center');
+ok(appWrapper.includes("url.pathname !== '/api/major-bands'")&&appWrapper.includes("url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')"),'shared main API rewrite');
+ok(t('functions/_lib/exam-year-config.js').includes('shared/resources/exam/liaoning-physics.js'),'exam adapter');
+ok(t('functions/_lib/region-rules.js').includes('shared/resources/geo/china-region-catalog.js'),'region backend adapter');
+ok(t('ln-rank/js/config/region-options.js').includes('shared/resources/geo/china-region-catalog.js'),'region frontend adapter');
+ok(t('ln-rank/js/ux/family-presentation.v3955_0.js').includes('shared/resources/schools/school-resource-center.js'),'card school center');
+
 const zy=j('data/zy2026/summary.json');
 ok(zy.productVersion==='v3.9.53.0','zy data version preserved');
 ok(zy.records2026===11628,'zy 2026 count');
@@ -73,6 +88,9 @@ ok(audit.coverage.records2026===audit.coverage.assigned2026,'zy 2026 coverage');
 
 const active=j('ln-rank/active-assets.json');
 ok(active.version==='v3.9.55.0','active version');
+ok(active.mainJs==='js/app.v3955_0.js'&&active.jsEntry.includes('js/app.v3955_0.js'),'active shared main');
+ok(!active.jsEntry.includes('js/app.v3951_0.js'),'legacy main not directly active');
+ok(active.sharedResourceCenterContract===true&&active.sharedSchoolDirectoryLazySingleFlightContract===true,'shared active contracts');
 ok(active.zy2026ExperienceVersion==='v3.9.55.0','zy experience version');
 ok(active.zy2026ChangeFirstContract===true&&active.zy2026StableCollapsedContract===true&&active.zy2026FeaturedDiscoveryContract===true,'zy active contracts');
 ok(active.structure2026.js==='../zy2026/assets/zy2026.v3955_0.js'&&active.structure2026.css==='../zy2026/assets/zy2026.v3954_0.css','zy active assets');
@@ -88,9 +106,10 @@ ok(release.version==='v3.9.55.0','release version');
 ok(release.majorDifficultyJs==='js/major-difficulty-2026.v3953_0.js','release difficulty js');
 ok(release.compareWorkspaceYearLabelContract===true,'year-label contract');
 ok(release.familyDecisionTongxueEntityContract===true&&release.familyDecisionNoApiPrefetchContract===true,'Tongxue efficient auto-match contract');
+ok(release.cardAi2026FirstContract===true,'card AI 2026 contract');
+ok(release.sharedResourceCenterContract===true&&release.sharedMajorBandsRequestRewriteContract===true,'shared release contracts');
 ok(release.zy2026ExperienceVersion==='v3.9.55.0'&&release.zy2026RecordLanguageContract===true,'zy release contracts');
 
 for(const path of ['.bootstrap','.github/workflows/bootstrap-zy2026-v3953.yml','.github/workflows/materialize-zy2026-v3953.yml'])ok(!fs.existsSync(path),`temporary path remains ${path}`);
 ok(!t('ln-rank/js/core/score-guard.js').includes('<400'),'no 400 guard');
-ok(t('functions/_lib/exam-year-config.js').includes('specialControlScore: 508')&&t('functions/_lib/exam-year-config.js').includes('undergraduateControlScore: 344'),'controls');
-console.log('LN 2026 v3.9.55.0 family decision workspace checks passed');
+console.log('LN 2026 v3.9.55.0 shared resource center checks passed');
