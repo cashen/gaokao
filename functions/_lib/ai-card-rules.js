@@ -7,30 +7,55 @@ function fmt(value) {
   return Number.isFinite(n) ? n.toLocaleString('zh-CN') : '—';
 }
 
-function deltaText(delta) {
-  const n = Number(delta);
-  if (!Number.isFinite(n)) return '—';
-  return n > 0 ? `高于考生 ${n} 分` : n < 0 ? `低于考生 ${Math.abs(n)} 分` : '与考生同分';
+function finite(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
+function deltaText(delta) {
+  const n = Number(delta);
+  if (!Number.isFinite(n)) return '与参考分数的差距待确认';
+  return n > 0 ? `高于参考分数 ${n} 分` : n < 0 ? `低于参考分数 ${Math.abs(n)} 分` : '与参考分数相同';
+}
 
 function cardStatusRange(status) {
   const s = String(status || '').trim();
   if (!s) return '当前范围';
   if (s.includes('主要参考') || s.includes('匹配')) return '主要参考范围';
-  if (s.includes('稳妥')) return '低分侧补充范围';
+  if (s.includes('稳妥') || s.includes('低分侧')) return '低分侧补充范围';
   if (s.includes('稍高')) return '稍高目标范围';
-  return s.endsWith('参考') ? `${s}范围` : `${s}范围`;
+  return s.endsWith('范围') ? s : `${s}范围`;
+}
+
+function rankTrend(year, rank, oldYear, oldRank) {
+  const current = finite(rank);
+  const previous = finite(oldRank);
+  if (current == null || previous == null || previous <= 0) return '';
+  const delta = current - previous;
+  const absolute = Math.abs(delta);
+  const stableLimit = Math.max(500, previous * 0.025);
+  if (absolute <= stableLimit) return `${year}与${oldYear}最低投档位置基本稳定`;
+  const degree = absolute / previous >= 0.08 ? '明显' : '略微';
+  return delta < 0
+    ? `${year}最低投档所需位次${degree}更靠前`
+    : `${year}最低投档所需位次${degree}相对靠后`;
+}
+
+function yearRecord(record, year) {
+  const score = finite(record[`score${year}`]);
+  const rank = finite(record[`rank${year}`]);
+  if (score == null && rank == null) return '';
+  return `${year} ${score == null ? '分数待核验' : `${fmt(score)}分`} / ${rank == null ? '位次待核验' : `约${fmt(rank)}名`}`;
 }
 
 function historyLine(record = {}) {
-  if (!(record.historyCompare?.has2024 || record.score2024 != null || record.rank2024 != null)) {
-    return '2024同口径参考：暂无';
-  }
-  const score = record.score2024 != null ? `${fmt(record.score2024)}分` : '分数待核验';
-  const rank = record.rank2024 != null ? `${fmt(record.rank2024)}位` : '位次待核验';
-  const trend = record.historyCompare?.rankTrendText ? `；${record.historyCompare.rankTrendText}` : '';
-  return `2024同口径参考：${score}/${rank}${trend}`;
+  const rows = [yearRecord(record, 2025), yearRecord(record, 2024)].filter(Boolean);
+  if (!rows.length) return '历史对照：暂无可严格对应的2025、2024记录';
+  const trends = [
+    rankTrend(2026, record.rank2026 ?? record.rank, 2025, record.rank2025),
+    rankTrend(2025, record.rank2025, 2024, record.rank2024)
+  ].filter(Boolean);
+  return `历史对照：${rows.join('；')}${trends.length ? `；${trends.join('；')}` : ''}`;
 }
 
 function shortRiskTag(value) {
@@ -50,31 +75,36 @@ export function buildCardRuleSnapshot(record = {}, candidateScore) {
   const realityTags = classifyMajorReality(record);
   const specialProgram = detectSpecialProgram(record);
   const platformTags = schoolLayerTags(record);
-  const delta = Number(record.scoreDelta ?? ((record.score2025 ?? record.score) - candidateScore));
+  const score2026 = finite(record.score2026 ?? record.score);
+  const delta = finite(record.scoreDelta) ?? (score2026 == null ? null : score2026 - Number(candidateScore));
+  const scoreText = score2026 == null ? '分数待核验' : `${fmt(score2026)}分`;
+  const rank2026 = finite(record.rank2026 ?? record.rank);
+  const rankText = rank2026 == null ? '位次待核验' : `约${fmt(rank2026)}名`;
 
   const basis = [
-    `卡片状态：${record.statusLabel || '待核验'}`,
-    `相对考生：${deltaText(delta)}`,
-    `2025最低：${fmt(record.score2025 ?? record.score)}分 / ${fmt(record.rank2025 ?? record.rank)}位`,
+    `当前位置：${cardStatusRange(record.statusLabel || record.position)}；${deltaText(delta)}`,
+    `2026最低投档：${scoreText} / ${rankText}`,
     historyLine(record),
     ...platformTags.slice(0, 2)
   ].filter(Boolean);
 
   const checks = [
     ...(specialProgram.hasSpecial ? specialProgram.checks : []),
-    '核验2026招生计划是否变化',
-    '核验专业组、选科、体检或单科要求',
-    '核验办学地点、校区和收费口径',
-    '用当年一分一段做最终换算'
+    '核验2027招生计划和专业是否继续投放',
+    '核验2027选科、体检、语种或单科要求',
+    '核验2027办学地点、校区、培养方式和收费口径',
+    '用2027一分一段和正式志愿系统做最终换算'
   ];
 
   return {
+    activeDataYear: 2026,
+    audienceYear: 2027,
     basis,
     realityTags,
     specialProgram,
-    checks: [...new Set(checks)].slice(0, 6),
-    suggestedTone: '温和、现实、短句、面向家长',
-    disclaimer: '仅做专业卡片解释，不等同于录取预测。'
+    checks: [...new Set(checks)].slice(0, 7),
+    suggestedTone: '温和、现实、短句、面向家长和孩子',
+    disclaimer: '以2026最低投档记录为历史参考，不等同于2027录取预测。'
   };
 }
 
@@ -86,8 +116,8 @@ export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   const conditional = snap.realityTags.find(t => t.level === 'conditional');
 
   let summary = `这条属于${cardStatusRange(record.statusLabel || record.position)}，可以放进家庭讨论。`;
-  if (specialProgram.hasSpecial) summary = '这条可看，但特殊项目规则必须先核验。';
-  else if (risk) summary = '这条可以看，但需要重点核验专业现实。';
+  if (specialProgram.hasSpecial) summary = '这条可看，但特殊项目规则必须先确认。';
+  else if (risk) summary = '这条可以看，但需要重点了解专业现实。';
   else if (conditional) summary = '这条可以关注，但需要先确认限制条件。';
   else if (positive) summary = '这条路径相对清晰，可以放进家庭讨论。';
 
@@ -96,9 +126,9 @@ export function buildRuleOnlyDiagnosis(record = {}, candidateScore) {
   const diagnosis = applyHumanCopyGate({
     summary,
     basis: snap.basis.slice(0, 3),
-    realityReminder: specialProgram.hasSpecial ? specialProgram.reminder : (tag?.text || '建议同时看学校层次、城市资源、专业出口和家庭容错率。'),
+    realityReminder: specialProgram.hasSpecial ? specialProgram.reminder : (tag?.text || '建议同时看专业内容、学校资源、城市条件和孩子真实接受度。'),
     checks: snap.checks.slice(0, 4),
-    parentNote: specialProgram.hasSpecial ? specialProgram.parentNote : (risk ? '可以关注，但不能只按低风险理解。' : '可以放进家庭讨论，但要结合孩子能力和当年计划。'),
+    parentNote: specialProgram.hasSpecial ? specialProgram.parentNote : (risk ? '可以关注，但不能只按分数位置理解。' : '可以放进家庭讨论，先听孩子想法，再核对2027正式资料。'),
     riskTags: [...new Set([...(specialProgram.riskTags || []), ...snap.realityTags.map(t => shortRiskTag(t.text)).filter(Boolean)])].slice(0, 5),
     specialProgram: specialProgram.hasSpecial ? specialProgram : null,
     disclaimer: snap.disclaimer
