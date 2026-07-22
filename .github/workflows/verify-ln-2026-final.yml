@@ -30,6 +30,7 @@ jobs:
             tools/ln-2026/audit-trend-method.py \
             tools/ln-2026/rebuild-centered-trend-analysis.py \
             tools/ln-2026/build-zy2026-structure.py \
+            tools/ln-2026/run-build-zy2026-structure.py \
             tools/ln-2026/finalize-v3953-assets.py \
             tools/ln-2026/verify-final-release.py \
             tools/ln-2026/verify-final-release-v2.py \
