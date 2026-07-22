@@ -44,13 +44,11 @@ jobs:
           text = text.replace('"score": nums[0], "tieChineseMath": nums[1]', '"score2026": nums[0], "tieChineseMath": nums[1]')
           source = '''        rec = {\n            **src,\n            **profile,'''
           replacement = '''        rec = {\n            **src,\n            "id": src.get("id") or f"ln-2026-{src.get('schoolCode2026', '')}-{src.get('majorCode2026', '')}",\n            **profile,'''
-          if source not in text:
-              raise SystemExit('enriched record block not found')
+          if source not in text: raise SystemExit('enriched record block not found')
           text = text.replace(source, replacement, 1)
           trend_source = '''    for r in complete:\n        r["trendType"] = classify_trend'''
           trend_replacement = '''    for r in complete:\n        r["id"] = r.get("id") or f"ln-2026-{r.get('schoolCode2026', '')}-{r.get('majorCode2026', '')}"\n        r["trendType"] = classify_trend'''
-          if trend_source not in text:
-              raise SystemExit('three-year trend loop not found')
+          if trend_source not in text: raise SystemExit('three-year trend loop not found')
           text = text.replace(trend_source, trend_replacement, 1)
           needle = 'def download_rank_pdf(dest: Path):\n'
           inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
@@ -81,7 +79,13 @@ jobs:
           status=$?
           cat /tmp/ln2026-build.log
           if [ "$status" -ne 0 ]; then
-            cp /tmp/ln2026-build.log tools/ln-2026/last-build-error.log
+            {
+              echo "BUILD_HEAD=$(git rev-parse HEAD)"
+              echo "ID_PATCH_LINES:"
+              grep -n 'r\["id"\]\|src.get("id")' /tmp/build_release.py || true
+              echo "BUILD_LOG:"
+              cat /tmp/ln2026-build.log
+            } > tools/ln-2026/last-build-error.log
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add tools/ln-2026/last-build-error.log
