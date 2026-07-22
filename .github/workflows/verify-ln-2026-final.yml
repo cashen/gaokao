@@ -23,20 +23,20 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v3.py > /tmp/v3953-verify.out 2> /tmp/v3953-verify.err
+          python3 tools/ln-2026/verify-final-release-v3.py > /tmp/v3955-verify.out 2> /tmp/v3955-verify.err
           status=$?
-          cat /tmp/v3953-verify.out
+          cat /tmp/v3955-verify.out
           if [ "$status" -ne 0 ]; then
-            echo '--- V3953 VERIFY ERROR ---'
-            cat /tmp/v3953-verify.err
+            echo '--- V3955 VERIFY ERROR ---'
+            cat /tmp/v3955-verify.err
             exit "$status"
           fi
       - name: Upload concise verification diagnostic
         if: failure() && steps.release_contract.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3953-verify-error
-          path: /tmp/v3953-verify.err
+          name: v3955-verify-error
+          path: /tmp/v3955-verify.err
           if-no-files-found: error
           retention-days: 1
       - name: Verify generated data source contract
@@ -75,9 +75,14 @@ jobs:
           for (const [delta,key] of [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']]) { const result=classifySelectionDelta(delta,'standard'); if(result.key!==key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`); }
           for (const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) { const result=lookupScoreRank({year:2026,region:'ln',subject:'physics',score}); if(!result||result.rankEnd!==rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`); }
           const equivalent=findEquivalentScoreByRank({targetYear:2026,region:'ln',subject:'physics',rank:14235}); if(!equivalent||equivalent.score!==600) throw new Error(`equivalent rank: ${JSON.stringify(equivalent)}`);
-          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('录取所需位次')) throw new Error(`history: ${JSON.stringify(history)}`);
+          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('最低投档所需位次')) throw new Error(`history: ${JSON.stringify(history)}`);
           console.log('critical runtime module checks passed');
           NODE
+      - name: Run family decision and shared resource audits
+        run: |
+          node tools/verify-family-decision-v3955.mjs
+          node tools/verify-card-ai-2026-v3955.mjs
+          node tools/audit-shared-resource-center-v3955.mjs
       - name: Run compact release contract
         run: node tools/check-ln-2026-release.mjs
       - name: Smoke-test current static pages
@@ -86,7 +91,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          for path in / /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html /zy2026 /zy2026/ /zy.html /zy2026.html; do
+          for path in / /shared/resources/exam/liaoning-physics.js /shared/resources/geo/china-region-catalog.js /shared/resources/schools/school-resource-center.js /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html /zy2026 /zy2026/ /zy.html /zy2026.html; do
             echo "GET $path"
             curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
           done
