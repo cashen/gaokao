@@ -31,10 +31,19 @@ jobs:
         run: |
           set -u
           diag=.bootstrap/v3952-diagnostic.txt
+          parts=(
+            .bootstrap/v3952-rpart-00
+            .bootstrap/v3952-rpart-01
+            .bootstrap/v3952-rpart-02
+            .bootstrap/v3952-rpart-03
+            .bootstrap/v3952-rpart-04
+            .bootstrap/v3952-rpart-05a
+            .bootstrap/v3952-rpart-05b
+          )
           : > "${diag}"
           : > /tmp/v3952-remain.tar.gz
           archive_ok=1
-          for part in .bootstrap/v3952-rpart-*; do
+          for part in "${parts[@]}"; do
             echo "PART ${part} bytes=$(wc -c < "${part}") sha256=$(sha256sum "${part}" | cut -d' ' -f1)" >> "${diag}"
             if base64 --decode "${part}" >> /tmp/v3952-remain.tar.gz 2>> "${diag}"; then
               echo "DECODE_OK ${part}" >> "${diag}"
