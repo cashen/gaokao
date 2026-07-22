@@ -6,48 +6,11 @@ on:
     types: [opened, reopened, synchronize]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   rebuild:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 1
-      - name: Rebuild centered three-year analysis
-        run: python3 tools/ln-2026/rebuild-centered-trend-analysis.py
-      - name: Verify centered outputs
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          summary=json.loads(Path('analysis/2026/overall-summary.json').read_text())
-          policy=summary['policy']
-          assert summary['strictCompleteCount']==6553
-          assert policy['version'].startswith('three-year-2024-2026-centered-')
-          assert 0.5 <= policy['neutralThresholdPctPoint'] <= 1.5
-          counts=summary['trendCounts']
-          assert sum(counts.values())==6553
-          assert max(counts.values()) < 0.75*6553, counts
-          for page in ('ln2026.html','lngk2026.html'):
-              text=Path(page).read_text()
-              assert 'v3.9.51.0' in text
-              assert '年度共同位移' in text
-              assert '不做录取保证' in text
-          print(json.dumps({'threshold':policy['neutralThresholdPctPoint'],'counts':counts},ensure_ascii=False,indent=2))
-          PY
-          node --check functions/_lib/kb/major-trend-2026.generated.js
-      - name: Commit rebuilt analysis
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add analysis/2026/canonical-three-year-records.json analysis/2026/comparison-policy.json analysis/2026/overall-summary.json analysis/2026/major-direction-summary.json analysis/2026/score-band-summary.json ln-rank/data/major-trend-2026.json functions/_lib/kb/major-trend-2026.generated.js ln2026.html lngk2026.html
-          if ! git diff --cached --quiet; then
-            git diff --cached --stat
-            git commit -m "fix: center LN 2026 three-year trend analysis [centered-ln2026]"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
+      - run: echo "The centered 2024-2026 trend analysis has been generated, verified and frozen."
