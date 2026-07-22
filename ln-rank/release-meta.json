@@ -1,7 +1,7 @@
 {
   "version": "v3.9.51.0",
   "assetVersion": "v3951_0",
-  "releaseName": "v3.9.51.0-ln-rank-2026-three-year-family-analysis-12-role-no-fenxi",
+  "releaseName": "v3.9.51.0-ln-rank-2026-centered-three-year-family-analysis-12-role-no-fenxi",
   "generatedAt": "2026-07-22T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
@@ -39,7 +39,7 @@
   "uiHumanErgonomicsRegression": true,
   "reportLayeredSectionContract": true,
   "majorUnderstandingCatalogTotal": 883,
-  "releaseGate": "human-ui-additive, no-function-change, 360-375-412-ipad-wide, readable-width, touch-44, reduced-motion, no-static-prune, no-fenxi",
+  "releaseGate": "2026-data, 2024-2026-centered-trends, selection-feishu-sync, multi-terminal-regression, protected-fenxi-runtime-unchanged",
   "reportDockUiHumanFix": true,
   "nonBlockingToastContract": true,
   "compactReportDockContract": true,
@@ -82,7 +82,7 @@
   "noStaticPruneInThisRelease": true,
   "additiveUxLayerContract": true,
   "humanUiTokenLayerContract": true,
-  "humanUiNoBusinessLogicChange": true,
+  "humanUiNoBusinessLogicChange": false,
   "humanUiTouchTargetContract": true,
   "humanUiReadableWidthContract": true,
   "humanUiReducedMotionContract": true,
@@ -90,13 +90,23 @@
   "multiTerminalUxJs": "js/ux/multi-terminal.v3949_4.js",
   "multiTerminalUxCss": "css/dist/ln-rank-multi-terminal.v3949_4.css",
   "runtimeCacheQueryVersion": "v3951_0",
-  "preservedCoreModuleQueryVersion": "v3949_3",
-  "preservedRuntimeModuleQueryVersion": "v3949_4",
+  "preservedCoreModuleQueryVersion": "v3951_0",
+  "preservedRuntimeModuleQueryVersion": "v3951_0",
   "activeDataYear": 2026,
   "audienceYear": 2027,
   "threeYearAnalysis": true,
   "ln2026AnnualObservation": true,
   "lngk2026HeatObservation": true,
   "selectionPool2026Migration": true,
-  "feishuThreeYearContract": true
+  "feishuThreeYearContract": true,
+  "rankTableYear": 2026,
+  "controlLines": {
+    "special": 508,
+    "undergraduate": 344,
+    "vocational": 150
+  },
+  "threeYearAnalysisVersion": "three-year-2024-2026-centered-v1.0.0",
+  "centeredThreeYearTrendContract": true,
+  "annualCommonShiftAuditContract": true,
+  "protectedFenxiRuntimeUnchanged": true
 }
