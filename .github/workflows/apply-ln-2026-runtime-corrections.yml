@@ -1,0 +1,47 @@
+name: Apply LN 2026 runtime corrections
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - name: Apply deterministic corrections
+        run: python3 tools/ln-2026/apply-runtime-corrections.py
+      - name: Check JavaScript syntax
+        run: |
+          node --check ln-rank/js/app.v3951_0.js
+          node --check ln-rank/js/selection-pool.v3951_0.js
+          node --check ln-rank/js/feature/major-pool/render.js
+          node --check ln-rank/js/local-mainline/local-mainline-app.v3951_0.js
+          node --check ln-rank/js/211-mainline/211-mainline-app.v3951_0.js
+          node --check functions/api/major-bands.js
+          node --check functions/api/local-mainline.js
+          node --check functions/api/211-mainline.js
+          node --check functions/_lib/background-position-engine.js
+          node --check functions/_lib/feishu-selection-pool-report-builder.js
+          node --check functions/_lib/feishu-selection-pool-styled-builder.js
+      - name: Commit corrected runtime
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git diff --cached --stat
+            git commit -m "fix: complete LN 2026 runtime contracts [corrected-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "Runtime corrections already applied."
+          fi
