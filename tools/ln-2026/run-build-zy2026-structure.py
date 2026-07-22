@@ -13,6 +13,9 @@ assert SPEC.loader
 sys.modules[SPEC.name] = builder
 SPEC.loader.exec_module(builder)
 
+ZY_EXPERIENCE_VERSION = 'v3.9.54.0'
+ZY_ASSET_VERSION = 'v3954_0'
+
 
 def load_manifest_rows(manifest_path: Path, prefix: Path) -> list[dict]:
     """Resolve both legacy manifest-relative paths and fenxi-relative paths."""
@@ -32,10 +35,53 @@ def load_manifest_rows(manifest_path: Path, prefix: Path) -> list[dict]:
         ]
         path = next((candidate for candidate in candidates if candidate.exists()), None)
         if path is None:
-            tried = ', '.join(str(candidate.relative_to(ROOT)) if candidate.is_relative_to(ROOT) else str(candidate) for candidate in candidates)
+            tried = ', '.join(
+                str(candidate.relative_to(ROOT)) if candidate.is_relative_to(ROOT) else str(candidate)
+                for candidate in candidates
+            )
             raise RuntimeError(f'missing data chunk: {raw}; tried: {tried}')
         rows.extend(builder.load_rows(path))
     return rows
+
+
+def dump_json(path: Path, value: dict) -> None:
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def sync_change_first_contract() -> None:
+    """Restore the user-facing change-first assets after rebuilding data."""
+    release_path = ROOT / 'ln-rank/release-meta.json'
+    active_path = ROOT / 'ln-rank/active-assets.json'
+    release = json.loads(release_path.read_text(encoding='utf-8'))
+    release.update({
+        'zy2026ExperienceVersion': ZY_EXPERIENCE_VERSION,
+        'zy2026ExperienceAssetVersion': ZY_ASSET_VERSION,
+        'zy2026ChangeFirstContract': True,
+        'zy2026StableCollapsedContract': True,
+        'zy2026FeaturedDiscoveryContract': True,
+        'zy2026ChangePriorityOrderContract': True,
+    })
+    dump_json(release_path, release)
+
+    active = json.loads(active_path.read_text(encoding='utf-8'))
+    active.update({
+        'zy2026ExperienceVersion': ZY_EXPERIENCE_VERSION,
+        'zy2026ExperienceAssetVersion': ZY_ASSET_VERSION,
+        'zy2026ChangeFirstContract': True,
+        'zy2026StableCollapsedContract': True,
+        'zy2026FeaturedDiscoveryContract': True,
+        'zy2026ChangePriorityOrderContract': True,
+    })
+    structure = active.setdefault('structure2026', {})
+    structure.update({
+        'page': '../zy2026/index.html',
+        'css': '../zy2026/assets/zy2026.v3954_0.css',
+        'js': '../zy2026/assets/zy2026.v3954_0.js',
+        'summary': '../data/zy2026/summary.json',
+        'schoolIndex': '../data/zy2026/school-index.json',
+        'majorIndex': '../data/zy2026/major-index.json',
+    })
+    dump_json(active_path, active)
 
 
 def sync_extensionless_alias() -> None:
@@ -49,4 +95,5 @@ def sync_extensionless_alias() -> None:
 
 builder.load_manifest_rows = load_manifest_rows
 builder.build()
+sync_change_first_contract()
 sync_extensionless_alias()

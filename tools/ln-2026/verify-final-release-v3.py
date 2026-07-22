@@ -17,8 +17,8 @@ def verify_structure_data():
     audit = base.data('analysis/2026/zy2026-audit.json')
     school_index = base.data('data/zy2026/school-index.json')
     major_index = base.data('data/zy2026/major-index.json')
-    base.check(summary['productVersion'] == 'v3.9.53.0', 'zy2026 product version')
-    base.check(summary['assetVersion'] == 'v3953_0', 'zy2026 asset version')
+    base.check(summary['productVersion'] == 'v3.9.53.0', 'zy2026 data product version')
+    base.check(summary['assetVersion'] == 'v3953_0', 'zy2026 data asset version')
     base.check(summary['records2026'] == 11628, 'zy2026 2026 record count')
     base.check(10000 <= summary['records2025'] <= 12000, f'zy2026 unexpected 2025 record count {summary["records2025"]}')
     base.check(summary['recordDelta'] == summary['records2026'] - summary['records2025'], 'zy2026 record delta')
@@ -32,6 +32,8 @@ def verify_structure_data():
     base.check(len(summary['directions']) >= 10, 'zy2026 direction coverage')
     base.check(len(school_index['schools']) >= 900, 'zy2026 school index coverage')
     base.check(len(major_index['majors']) >= 300, 'zy2026 major index coverage')
+    base.check(any(sum(v for k, v in item.get('relationCounts', {}).items() if k != 'continued') >= 3 for item in school_index['schools']), 'zy2026 featured school candidates')
+    base.check(any(abs(item.get('schoolDelta', 0)) >= 3 for item in major_index['majors']), 'zy2026 featured major candidates')
     chunks = base.ROOT / 'data/zy2026/chunks'
     base.check(chunks.exists(), 'zy2026 chunks missing')
     for item in school_index['schools'][:80]:
@@ -43,26 +45,40 @@ def verify_structure_data():
 def verify_structure_pages():
     page = base.text('zy2026/index.html')
     alias = base.text('zy2026.html')
-    js = base.text('zy2026/assets/zy2026.v3953_0.js')
-    css = base.text('zy2026/assets/zy2026.v3953_0.css')
+    js = base.text('zy2026/assets/zy2026.v3954_0.js')
+    css = base.text('zy2026/assets/zy2026.v3954_0.css')
     for phrase in (
-        '辽宁2026招生专业结构变化', '重点比较2025→2026', '查一所学校', '查一个专业',
-        '切换到高报师核验视图', '2024的角色', '投档表多一行，不等于多一个招生名额'
+        '辽宁2026招生变化发现', '重点比较2025→2026', '不用盲猜，先从变化明显的地方开始',
+        '真正变化放前面，稳定记录放最后', '默认只显示值得确认的变化',
+        '基本连续的学校默认收起', '页面体验版本：v3.9.54.0', '2024的角色'
     ):
         base.check(phrase in page, f'zy2026 visible copy missing {phrase}')
     for phrase in ('unmatched', 'fuzzy match', 'similarity_score', '真实新增', '真实消失', '新增659个专业'):
         base.check(phrase not in page + js, f'zy2026 technical or misleading copy visible: {phrase}')
-    for phrase in ('school-index.json', 'major-index.json', '填报前确认'):
-        base.check(phrase in js, f'zy2026 runtime contract missing {phrase}')
-    base.check("证据${level==='high'?'充分'" in js, 'zy2026 rendered adviser evidence label')
-    for phrase in ('@media(max-width:680px)', '@media(max-width:380px)', 'min-height:44px', 'font-size:16px'):
-        base.check(phrase in css, f'zy2026 responsive contract missing {phrase}')
+    for phrase in (
+        "CHANGE_ORDER=['project_change'", "RELATION_ORDER=[...CHANGE_ORDER,'continued']",
+        'renderFeatured', 'featuredSchools', 'featuredMajors', 'stableBlock', 'stableSets',
+        'groupedChanges', 'changes=sorted.filter', 'data-featured-school', 'data-featured-major',
+        'data-stable-toggle', 'slice(0,6)', '默认只展示真正变化', '填报前确认'
+    ):
+        base.check(phrase in js, f'zy2026 change-first runtime contract missing {phrase}')
+    base.check("RELATION_ORDER=['continued'" not in js, 'zy2026 old stable-first order remains')
+    base.check(js.find("'project_change'") < js.find("'continued'"), 'zy2026 change priority order')
+    for phrase in (
+        'zy2026.v3953_0.css', '.featured-grid', '.featured-card', '.change-overview',
+        '.stable-block', '.stable-list', '@media(max-width:680px)'
+    ):
+        base.check(phrase in css, f'zy2026 change-first responsive CSS missing {phrase}')
+    base.check('zy2026.v3954_0.css?v=3954_0' in page, 'zy2026 new css not loaded')
+    base.check('zy2026.v3954_0.js?v=3954_0' in page, 'zy2026 new js not loaded')
     base.check(alias == page, 'zy2026 extensionless alias must mirror directory page')
     base.check("location.replace('/zy2026')" not in alias, 'zy2026 alias must not self-redirect')
     runner = base.text('tools/ln-2026/run-build-zy2026-structure.py')
     finalizer = base.text('tools/ln-2026/finalize-v3953-assets.py')
-    base.check('sync_extensionless_alias' in runner, 'zy2026 rebuild alias guard missing')
-    base.check('sync_zy2026_alias' in finalizer, 'zy2026 finalizer alias guard missing')
+    for phrase in ('sync_extensionless_alias', 'sync_change_first_contract', 'zy2026ChangeFirstContract', 'zy2026.v3954_0.js'):
+        base.check(phrase in runner, f'zy2026 rebuild guard missing {phrase}')
+    for phrase in ('sync_zy2026_alias', 'apply_zy2026_change_first', 'zy2026StableCollapsedContract', 'zy2026.v3954_0.css'):
+        base.check(phrase in finalizer, f'zy2026 finalizer guard missing {phrase}')
     root = base.text('index.html')
     base.check('href="/zy2026"' in root, 'root zy2026 entry')
     base.check('href="/zy.html"' not in root, 'root old zy entry remains')
@@ -113,10 +129,17 @@ def verify_release_meta():
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
     for meta in (release, active):
-        base.check(meta['version'] == 'v3.9.53.0', 'v3953 release version')
-        base.check(meta['assetVersion'] == 'v3953_0', 'v3953 asset version')
+        base.check(meta['version'] == 'v3.9.53.0', 'v3953 core release version')
+        base.check(meta['assetVersion'] == 'v3953_0', 'v3953 core asset version')
         base.check(meta['zy2026StructureContract'] is True, 'zy2026 structure contract')
         base.check(meta['zy2026RouteMigrationContract'] is True, 'zy2026 route contract')
+        base.check(meta['zy2026ExtensionlessAliasContract'] is True, 'zy2026 extensionless alias contract')
+        base.check(meta['zy2026ExperienceVersion'] == 'v3.9.54.0', 'zy2026 experience version')
+        base.check(meta['zy2026ExperienceAssetVersion'] == 'v3954_0', 'zy2026 experience asset version')
+        base.check(meta['zy2026ChangeFirstContract'] is True, 'zy2026 change-first contract')
+        base.check(meta['zy2026StableCollapsedContract'] is True, 'zy2026 stable collapsed contract')
+        base.check(meta['zy2026FeaturedDiscoveryContract'] is True, 'zy2026 featured discovery contract')
+        base.check(meta['zy2026ChangePriorityOrderContract'] is True, 'zy2026 change order contract')
         base.check(meta['ln2026ScoreBandAscendingContract'] is True, 'ln2026 ascending score bands contract')
         base.check(meta['compareWorkspaceHumanJourneyContract'] is True, 'compare human journey contract')
         base.check(meta['compareWorkspaceAutoNavigateContract'] is True, 'compare auto navigation contract')
@@ -127,6 +150,8 @@ def verify_release_meta():
     structure = active['structure2026']
     for key in ('page', 'css', 'js', 'summary', 'schoolIndex', 'majorIndex'):
         base.check(key in structure, f'zy2026 active asset missing {key}')
+    base.check(structure['css'] == '../zy2026/assets/zy2026.v3954_0.css', 'zy2026 active css')
+    base.check(structure['js'] == '../zy2026/assets/zy2026.v3954_0.js', 'zy2026 active js')
     for asset in ('js/major-difficulty-2026.v3953_0.js', 'js/ux/compare-workspace.v3953_0.js'):
         base.check(asset in active['jsEntry'], f'active JS missing {asset}')
     for asset in ('css/dist/compare-workspace.v3953_0.css', 'css/dist/compare-workspace-year-fix.v3953_0.css'):
@@ -158,7 +183,7 @@ def main():
     verify_temporary_files_removed()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.53.0 structure, route-alias, score-order and compare-workspace verification passed')
+    print('LN 2026 v3.9.53.0 core with ZY2026 v3.9.54.0 change-first experience verification passed')
 
 
 if __name__ == '__main__':
