@@ -22,7 +22,7 @@ function interactionKey(record = {}, prefix = 'card') {
 }
 
 function majorUnderstandingKey(record = {}) {
-  return [record.id, record.schoolCode2025, record.majorCode2025, record.school, record.major, record.score2025, record.rank2025].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
+  return [record.id, record.schoolCode2026, record.majorCode2026, record.school, record.major, record.score2025, record.rank2025].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
 }
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
@@ -244,13 +244,14 @@ function scoreDistance(record = {}) {
 }
 
 function compareYearText(record = {}) {
-  const s2025 = record.score2025 ?? record.score;
-  const r2025 = record.rank2025 ?? record.rank;
+  const s2025 = record.score2026 ?? record.score;
+  const r2025 = record.rank2026 ?? record.rank;
   const s2024 = record.score2024 ?? record.historyScore2024 ?? record.lastYearScore;
   const r2024 = record.rank2024 ?? record.historyRank2024 ?? record.lastYearRank;
-  const year2025 = `2025 ${fmt(s2025)}分 / ${fmt(r2025)}位`;
+  const year2026 = `2026 ${fmt(s2026)}分 / ${fmt(r2026)}位`;
+  const year2025 = (s2025 || r2025) ? `2025 ${fmt(s2025)}分 / ${fmt(r2025)}位` : '2025同口径待核验';
   const year2024 = (s2024 || r2024) ? `2024 ${fmt(s2024)}分 / ${fmt(r2024)}位` : '2024同口径待核验';
-  return { year2025, year2024 };
+  return { year2026, year2025, year2024 };
 }
 
 function compareProgramVariant(record = {}) {
@@ -592,8 +593,8 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
       <span class="status-badge ln-band-pill ${bandClass}" title="分数位置：只是当前查看分组，不代表录取把握。">分数位置：${escapeHtml(displayBandLabel)}</span>
     </div>
     <div class="meta-pills">
-      <span class="meta-pill">2025最低分：${fmt(record.score2025 ?? record.score)} 分</span>
-      <span class="meta-pill">2025最低位次：${fmt(record.rank2025 ?? record.rank)}</span>
+      <span class="meta-pill">2026投档最低分：${fmt(record.score2026 ?? record.score)} 分</span>
+      <span class="meta-pill">2025最低位次：${fmt(record.rank2026 ?? record.rank)}</span>
       <span class="meta-pill">相对考生：${deltaText} 分</span>
       <span class="meta-pill">适合位置：<b class="ln-fit-position ${bandClass}">${escapeHtml(safe(record.position))}</b></span>
     </div>

@@ -1,4 +1,4 @@
-import { loadAllRecords, loadManifest } from './fenxi-manifest.js';
+import { loadAllRecords, loadManifest } from './ln-rank-manifest.js';
 import { fetchFenxiJson } from './fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from './fenxi-normalizer.js';
 import { buildDisplayTags } from './school-display-tags.js';
@@ -61,9 +61,9 @@ function levelWeightByRaw(record, rawKey) {
 export function shapeBackgroundRecord(record, hit, filters = {}, config = {}) {
   const display = buildDisplayTags(record);
   const candidateScore = filters.candidateScore;
-  const score2025 = record.score2025 ?? record.score;
-  const rank2025 = record.rank2025 ?? record.rank;
-  const delta = Number.isFinite(Number(candidateScore)) && Number.isFinite(Number(score2025)) ? Number(score2025) - Number(candidateScore) : null;
+  const score2026 = record.score2026 ?? record.score;
+  const rank2026 = record.rank2026 ?? record.rank;
+  const delta = Number.isFinite(Number(candidateScore)) && Number.isFinite(Number(score2026)) ? Number(score2026) - Number(candidateScore) : null;
   const presentHit = typeof config.presentHit === 'function' ? config.presentHit : (x) => x;
   const evidence = presentHit(hit);
   const outputKey = config.outputKey || 'background';
@@ -72,8 +72,8 @@ export function shapeBackgroundRecord(record, hit, filters = {}, config = {}) {
     id: record.id,
     school: record.school,
     major: record.major,
-    score2025,
-    rank2025,
+    score2026,
+    rank2026,
     score2024: record.score2024 ?? null,
     rank2024: record.rank2024 ?? null,
     historyCompare: record.historyCompare || null,
@@ -132,7 +132,7 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
     windowCandidateCount += 1;
 
     const record = normalizeRecord(raw);
-    if (!record.school || !record.major || !Number.isFinite(Number(record.score2025 ?? record.score))) return;
+    if (!record.school || !record.major || !Number.isFinite(Number(record.score2026 ?? record.score))) return;
     normalizedCount += 1;
     record.rawText = JSON.stringify(raw).slice(0, 1600);
 
@@ -170,11 +170,11 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
   const rawKey = config.rawKey || 'backgroundRaw';
   out.sort((a, b) => {
     if (Number.isFinite(candidate)) {
-      const da = Math.abs(Number(a.score2025 || 0) - candidate);
-      const db = Math.abs(Number(b.score2025 || 0) - candidate);
+      const da = Math.abs(Number(a.score2026 || 0) - candidate);
+      const db = Math.abs(Number(b.score2026 || 0) - candidate);
       if (da !== db) return da - db;
     }
-    return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
+    return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2026 || 0) - Number(a.score2026 || 0) || rankSort(a.rank2026) - rankSort(b.rank2026);
   });
 
   return {
@@ -193,16 +193,16 @@ export async function loadBackgroundMatchedRecords(request, env, filters = {}, c
 export function sortByPositionDistance(records, score, rawKey = 'backgroundRaw') {
   const candidate = Number(score);
   return [...records].sort((a, b) => {
-    const da = Math.abs(Number(a.score2025 || 0) - candidate);
-    const db = Math.abs(Number(b.score2025 || 0) - candidate);
-    return da - db || levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2025 || 0) - Number(a.score2025 || 0) || rankSort(a.rank2025) - rankSort(b.rank2025);
+    const da = Math.abs(Number(a.score2026 || 0) - candidate);
+    const db = Math.abs(Number(b.score2026 || 0) - candidate);
+    return da - db || levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey) || Number(b.score2026 || 0) - Number(a.score2026 || 0) || rankSort(a.rank2026) - rankSort(b.rank2026);
   });
 }
 export function groupScoreRecords(records, score, rawKey = 'backgroundRaw') {
   const candidate = Number(score);
   return {
-    near: sortByPositionDistance(records.filter(r => Number(r.score2025) >= candidate - 10 && Number(r.score2025) <= candidate), score, rawKey),
-    upper: sortByPositionDistance(records.filter(r => Number(r.score2025) > candidate && Number(r.score2025) <= candidate + 10), score, rawKey),
-    lower: sortByPositionDistance(records.filter(r => Number(r.score2025) >= candidate - 25 && Number(r.score2025) < candidate - 10), score, rawKey)
+    near: sortByPositionDistance(records.filter(r => Number(r.score2026) >= candidate - 10 && Number(r.score2026) <= candidate), score, rawKey),
+    upper: sortByPositionDistance(records.filter(r => Number(r.score2026) > candidate && Number(r.score2026) <= candidate + 10), score, rawKey),
+    lower: sortByPositionDistance(records.filter(r => Number(r.score2026) >= candidate - 25 && Number(r.score2026) < candidate - 10), score, rawKey)
   };
 }

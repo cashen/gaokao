@@ -46,8 +46,10 @@ function normalizeItems(items = []) {
       userOrder: num(item.userOrder, index + 1),
       school: clean(item.school, 120),
       major: clean(item.major, 180),
-      score2025: num(item.score2025 ?? item.score, null),
-      rank2025: num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null),
+      score2026: num(item.score2026 ?? item.score, null),
+      rank2026: num(item.rank2026 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null),
+      score2025: num(item.score2025, null),
+      rank2025: num(item.rank2025, null),
       score2024: num(item.score2024, null),
       rank2024: num(item.rank2024, null),
       historyCompare: item.historyCompare || null,
@@ -97,13 +99,12 @@ function deltaText(delta) {
 }
 
 
-function historyText(item = {}, { empty = '2024同口径参考：暂无' } = {}) {
-  const has2024 = item?.historyCompare?.has2024 || item.score2024 != null || item.rank2024 != null;
-  if (!has2024) return empty;
-  const score = item.score2024 != null ? `${fmt(item.score2024)} 分` : '分数待核验';
-  const rank = item.rank2024 != null ? `${fmt(item.rank2024)} 位` : '位次待核验';
-  const trend = item?.historyCompare?.rankTrendText ? `｜${String(item.historyCompare.rankTrendText).replace(/^两年位次：前移约\s*/,'2025位次更靠前约 ').replace(/^两年位次：后移约\s*/,'2025位次更靠后约 ')}` : '';
-  return `2024同口径参考：${score} / ${rank}${trend}`;
+function historyText(item = {}, { empty = '历史同口径参考：暂无' } = {}) {
+  const rows=[];
+  if(item.score2025!=null||item.rank2025!=null)rows.push(`2025：${item.score2025!=null?fmt(item.score2025)+' 分':'分数待核验'} / ${item.rank2025!=null?fmt(item.rank2025)+' 位':'位次待核验'}`);
+  if(item.score2024!=null||item.rank2024!=null)rows.push(`2024：${item.score2024!=null?fmt(item.score2024)+' 分':'分数待核验'} / ${item.rank2024!=null?fmt(item.rank2024)+' 位':'位次待核验'}`);
+  const trend=item?.historyCompare?.rankTrendText?`｜${item.historyCompare.rankTrendText}`:'';
+  return rows.length?rows.join('；')+trend:empty;
 }
 
 function tagsText(item) {
@@ -116,14 +117,14 @@ function tagsText(item) {
 }
 
 function itemLine(item) {
-  const score = Number.isFinite(Number(item.score2025)) ? `${fmt(item.score2025)} 分` : '分数待核验';
-  const rank = Number.isFinite(Number(item.rank2025)) ? `${fmt(item.rank2025)} 位` : '位次待核验';
+  const score = Number.isFinite(Number(item.score2026)) ? `${fmt(item.score2026)} 分` : '分数待核验';
+  const rank = Number.isFinite(Number(item.rank2026)) ? `${fmt(item.rank2026)} 位` : '位次待核验';
   const band = item.poolBand?.detail || '待判断';
   const special = item.specialProject?.hasSpecialProject ? `｜特殊项目：${item.specialProject.labelText || item.specialProject.primaryLabel || '需资格核验'}` : '';
   const sm = item.standardMajor || {};
   const campusText = item.campusReview?.displayTag ? `｜${item.campusReview.displayTag}` : '';
   const code = sm.code && sm.name ? `｜专业代码：${sm.code}｜${sm.name}` : (sm.categoryCode && sm.categoryName && sm.mappingStatus === 'category' ? `｜专业类：${sm.categoryCode}｜${sm.categoryName}` : '');
-  return `${item.order}. ${item.school}｜${item.major}｜2025最低分 ${score}｜2025最低位次 ${rank}｜${band}${campusText}${code}${special}`;
+  return `${item.order}. ${item.school}｜${item.major}｜2026投档最低分 ${score}｜对应累计位次约 ${rank}｜${band}${campusText}${code}${special}`;
 }
 
 function itemName(item) {

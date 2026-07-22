@@ -1,8 +1,8 @@
 {
-  "version": "v3.9.50.0",
-  "assetVersion": "v3950_0",
-  "releaseName": "v3.9.50.0-ln-rank-human-ui-additive-no-function-change-12-role-no-fenxi",
-  "generatedAt": "2026-07-18T00:00:00+08:00",
+  "version": "v3.9.51.0",
+  "assetVersion": "v3951_0",
+  "releaseName": "v3.9.51.0-ln-rank-2026-three-year-family-analysis-12-role-no-fenxi",
+  "generatedAt": "2026-07-22T00:00:00+08:00",
   "noFenxiIncluded": true,
   "directionHelperCopyContract": true,
   "directionHelperSelectionContract": true,
@@ -89,7 +89,14 @@
   "humanUiCss": "css/dist/gaokao-human-ui.v3950_0.css",
   "multiTerminalUxJs": "js/ux/multi-terminal.v3949_4.js",
   "multiTerminalUxCss": "css/dist/ln-rank-multi-terminal.v3949_4.css",
-  "runtimeCacheQueryVersion": "v3950_0",
+  "runtimeCacheQueryVersion": "v3951_0",
   "preservedCoreModuleQueryVersion": "v3949_3",
-  "preservedRuntimeModuleQueryVersion": "v3949_4"
+  "preservedRuntimeModuleQueryVersion": "v3949_4",
+  "activeDataYear": 2026,
+  "audienceYear": 2027,
+  "threeYearAnalysis": true,
+  "ln2026AnnualObservation": true,
+  "lngk2026HeatObservation": true,
+  "selectionPool2026Migration": true,
+  "feishuThreeYearContract": true
 }

@@ -1,4 +1,4 @@
-import { loadManifest } from '../_lib/fenxi-manifest.js';
+import { loadManifest } from '../_lib/ln-rank-manifest.js';
 import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from '../_lib/fenxi-normalizer.js';
 import { makeBands, classifyBand } from '../_lib/band-engine.js';

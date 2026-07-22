@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.50.0",
-  "assetVersion": "v3950_0",
+  "version": "v3.9.51.0",
+  "assetVersion": "v3951_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -129,5 +129,7 @@
   "humanUiReducedMotionContract": true,
   "runtimeCacheQueryVersion": "v3950_0",
   "preservedCoreModuleQueryVersion": "v3949_3",
-  "preservedRuntimeModuleQueryVersion": "v3949_4"
+  "preservedRuntimeModuleQueryVersion": "v3949_4",
+  "mainJs": "js/app.v3951_0.js",
+  "selectionPoolJs": "js/selection-pool.v3951_0.js"
 }

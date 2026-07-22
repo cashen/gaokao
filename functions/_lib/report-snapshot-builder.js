@@ -15,13 +15,15 @@ export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, nar
     },
     dataVersion: {
       rankTable: `${facts.config?.rankYear || 2025}-${facts.config?.region || 'ln'}-${facts.config?.subject || 'physics'}`,
-      majorData: 'fenxi-2025-physics-current',
+      majorData: 'ln-rank-2026-physics-current',
       pushRateData: 'push-rate-first-pass-2025'
     },
     summary: stats,
     healthLights,
     narrative,
     source,
-    items: (facts.orderedItems || []).map(item => ({ order: item.order, school: item.school, major: item.major, codes: item.codes || {}, standardMajor: item.standardMajor || {}, score2025: item.score2025, rank2025: item.rank2025, scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
+    items: (facts.orderedItems || []).map(item => ({ order: item.order, school: item.school, major: item.major, codes: item.codes || {}, standardMajor: item.standardMajor || {}, score2026: item.score2026 ?? item.score,
+    rank2026: item.rank2026 ?? item.rank,
+    score2025: item.score2025, rank2025: item.rank2025, scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
   };
 }
