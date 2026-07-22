@@ -1,8 +1,8 @@
-BUILD FAILED: 'schoolCode2026'
+BUILD FAILED: 'id'
 Traceback (most recent call last):
   File "/tmp/build_release.py", line 734, in <module>
     build_all()
-  File "/tmp/build_release.py", line 474, in build_all
-    unmatched.append({"school": school, "major": major, "schoolCode2026": src["schoolCode2026"], "majorCode2026": src["majorCode2026"]})
-                                                                          ~~~^^^^^^^^^^^^^^^^^^
-KeyError: 'schoolCode2026'
+  File "/tmp/build_release.py", line 646, in build_all
+    "id": r["id"], "school": r["school"], "major": r["major"], "score2026": r["score2026"], "rank2026": r["rank2026"], "score2025": r["score2025"], "rank2025": r["rank2025"], "score2024": r["score2024"], "rank2024": r["rank2024"], "trendType": r["trendType"], "trendLabel": r["trendLabel"], "rankDelta26vs25": r["rankDelta26vs25"], "rankDelta25vs24": r["rankDelta25vs24"], "rankPctPoint26vs25": r["rankPctPoint26vs25"], "majorDirectionLabel": r["majorDirectionLabel"], "scoreBandLabel": r["scoreBandLabel"]
+          ~^^^^^^
+KeyError: 'id'
