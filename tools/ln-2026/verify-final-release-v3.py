@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -26,13 +27,17 @@ def verify_manifest_and_chunks() -> None:
     base.check(manifest['schoolCount'] == 956, 'manifest school count')
     base.check(manifest['historyMatch'] == {'unmatched': 2699, 'exact': 8929}, 'history match counts')
     total = 0
+    schools = set()
     for chunk in manifest['chunks']:
         path = base.ROOT / 'fenxi' / chunk['file']
         base.check(path.exists(), f'missing chunk {chunk["file"]}')
-        rows = base.data(str(path.relative_to(base.ROOT)))
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        rows = payload if isinstance(payload, list) else payload.get('records', [])
         base.check(len(rows) == chunk['recordCount'], f'chunk count {chunk["file"]}')
         total += len(rows)
+        schools.update(row.get('school') for row in rows if row.get('school'))
     base.check(total == manifest['totalRecords'], 'manifest chunk sum')
+    base.check(len(schools) == manifest['schoolCount'], 'manifest school sum')
 
 
 def verify_family_and_reports() -> None:
