@@ -1,5 +1,8 @@
-import { findSchoolEntityByName, publicSchoolEntity } from '/tongxue/data/school-entities-v150.js?v=150';
-import { FAMILY_LANGUAGE, buildTongxueHref, tongxueEntryCopy } from '../domain/family-decision-contract.v3955_0.js?v=3955_0';
+import {
+  resolveCardSchoolResource,
+  buildTongxueSchoolHref
+} from '../../../shared/resources/schools/school-resource-center.js?v=3955_0';
+import { FAMILY_LANGUAGE, tongxueEntryCopy } from '../domain/family-decision-contract.v3955_0.js?v=3955_0';
 
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 
@@ -191,29 +194,14 @@ function schoolCandidates(card) {
 }
 
 function resolveTongxueTarget(card) {
-  const candidates = schoolCandidates(card);
-  const school = candidates.at(-1) || '';
-  for (const candidate of candidates) {
-    const entity = findSchoolEntityByName(candidate);
-    if (!entity) continue;
-    const publicEntity = publicSchoolEntity(entity);
-    if (publicEntity?.sourceStatus === 'not_found') return null;
-    return {
-      school: publicEntity?.displayName || entity.displayName || candidate,
-      entityId: publicEntity?.entityId || entity.entityId || '',
-      entityType: publicEntity?.entityType || entity.entityType || ''
-    };
-  }
-  if (!school) return null;
-  if (/校区|分校|研究院/.test(candidates.join(' '))) return null;
-  return { school, entityId: '', entityType: 'official_school' };
+  return resolveCardSchoolResource(schoolCandidates(card));
 }
 
 function ensureTongxueEntry(card) {
   if (card.querySelector('.tongxue-card-entry')) return;
   const target = resolveTongxueTarget(card);
   if (!target) return;
-  const href = buildTongxueHref(target);
+  const href = buildTongxueSchoolHref(target);
   if (!href) return;
   const link = document.createElement('a');
   link.className = 'tongxue-card-entry';
