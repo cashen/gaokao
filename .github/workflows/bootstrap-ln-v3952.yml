@@ -25,11 +25,18 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Materialize reviewed source files
+      - name: Decode and verify archive
         shell: bash
         run: |
           set -euo pipefail
+          ls -l .bootstrap/v3952-rpart-*
           cat .bootstrap/v3952-rpart-* | base64 --decode > /tmp/v3952-remain.tar.gz
+          gzip -t /tmp/v3952-remain.tar.gz
+          tar -tzf /tmp/v3952-remain.tar.gz
+      - name: Extract and commit sources
+        shell: bash
+        run: |
+          set -euo pipefail
           tar -xzf /tmp/v3952-remain.tar.gz
           git checkout -- .github/workflows/verify-ln-2026-final.yml
           git config user.name 'github-actions[bot]'
@@ -40,4 +47,11 @@ jobs:
             exit 0
           fi
           git commit -m 'Materialize LN v3.9.52.0 reviewed sources'
+      - name: Push materialized sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git status --porcelain | grep -q '^'; then
+            git status --short
+          fi
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
