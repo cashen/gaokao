@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'analysis/2026/canonical-three-year-records.json'
+POLICY = ROOT / 'analysis/2026/comparison-policy.json'
 TARGET = ROOT / 'analysis/2026/trend-method-audit.json'
 
 
@@ -55,7 +56,7 @@ def record_score(value):
     samples = [x for x in value[:50] if isinstance(x, dict)]
     if not samples:
         return 0
-    wanted = {'rank2024', 'rank2025', 'rank2026', 'score2026', 'rankPctPoint26vs25'}
+    wanted = {'rank2024', 'rank2025', 'rank2026', 'score2026'}
     overlap = max(len(set(sample).intersection(wanted)) for sample in samples)
     return len(value) * (1 + overlap * 100)
 
@@ -69,17 +70,22 @@ def find_records(raw):
     return candidates[0]
 
 
+def rank_pct_point(rank_new, total_new, rank_old, total_old):
+    return round((float(rank_new) / float(total_new) - float(rank_old) / float(total_old)) * 100, 6)
+
+
 def main():
     raw = json.loads(SOURCE.read_text(encoding='utf-8'))
+    policy = json.loads(POLICY.read_text(encoding='utf-8'))
+    totals = {int(year): int(value) for year, value in policy['candidateTotals'].items()}
     container_key, records = find_records(raw)
     complete = [r for r in records if isinstance(r, dict) and r.get('rank2024') and r.get('rank2025') and r.get('rank2026')]
-    d26 = [r.get('rankPctPoint26vs25') for r in complete if r.get('rankPctPoint26vs25') is not None]
-    d25 = [r.get('rankPctPoint25vs24') for r in complete if r.get('rankPctPoint25vs24') is not None]
-    raw26 = [r.get('rankDelta26vs25') for r in complete if r.get('rankDelta26vs25') is not None]
-    raw25 = [r.get('rankDelta25vs24') for r in complete if r.get('rankDelta25vs24') is not None]
+    d26 = [rank_pct_point(r['rank2026'], totals[2026], r['rank2025'], totals[2025]) for r in complete]
+    d25 = [rank_pct_point(r['rank2025'], totals[2025], r['rank2024'], totals[2024]) for r in complete]
+    raw26 = [float(r['rank2026']) - float(r['rank2025']) for r in complete]
+    raw25 = [float(r['rank2025']) - float(r['rank2024']) for r in complete]
     if not d26 or not d25:
-        sample_keys = sorted(complete[0]) if complete else sorted(records[0]) if records and isinstance(records[0], dict) else []
-        raise RuntimeError(f'Comparable percentile deltas missing. container={container_key}; records={len(records)}; complete={len(complete)}; sampleKeys={sample_keys}')
+        raise RuntimeError(f'No complete comparable records. container={container_key}; records={len(records)}')
     median26 = statistics.median(d26)
     median25 = statistics.median(d25)
     centered26 = [x - median26 for x in d26]
@@ -89,6 +95,7 @@ def main():
         'recordContainerKey': container_key,
         'sourceCount': len(records),
         'completeCount': len(complete),
+        'candidateTotals': totals,
         'sampleKeys': sorted(complete[0].keys()) if complete else [],
         'sampleRecords': complete[:3],
         'rankPctPoint26vs25': describe(d26),
