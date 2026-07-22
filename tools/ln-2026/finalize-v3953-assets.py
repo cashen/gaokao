@@ -74,6 +74,27 @@ def apply_family_decision_contract(meta: dict) -> None:
     })
 
 
+def apply_shared_resource_contract(meta: dict) -> None:
+    meta.update({
+        'sharedResourceCenterContract': True,
+        'sharedResourceCenterVersion': 'v3955_0',
+        'sharedExamResourceContract': True,
+        'sharedRegionResourceContract': True,
+        'sharedSchoolResourceContract': True,
+        'sharedSchoolDirectoryLazySingleFlightContract': True,
+        'sharedResourceCompatibilityAdapterContract': True,
+        'sharedResourceNoPerCardNetworkContract': True,
+        'sharedMainAppWrapperContract': True,
+        'sharedMajorBandsRequestRewriteContract': True,
+        'mainJs': 'js/app.v3955_0.js',
+        'legacyMainJs': 'js/app.v3951_0.js',
+        'sharedResourceRegistry': '../shared/resources/resource-registry.js',
+        'sharedExamResource': '../shared/resources/exam/liaoning-physics.js',
+        'sharedRegionResource': '../shared/resources/geo/china-region-catalog.js',
+        'sharedSchoolResource': '../shared/resources/schools/school-resource-center.js',
+    })
+
+
 def main() -> None:
     for path in (
         'ln-rank/index.html', 'ln-rank/selection-pool.html',
@@ -92,7 +113,7 @@ def main() -> None:
     release.update({
         'version': VERSION,
         'assetVersion': ASSET_VERSION,
-        'releaseName': 'v3.9.55.0-family-decision-workspace-and-tongxue-entry-no-fenxi',
+        'releaseName': 'v3.9.55.0-family-decision-card-ai-shared-resource-center-no-fenxi',
         'majorDifficultyJs': 'js/major-difficulty-2026.v3953_0.js',
         'compareWorkspaceCss': 'css/dist/compare-workspace.v3953_0.css',
         'compareWorkspaceYearFixCss': 'css/dist/compare-workspace-year-fix.v3953_0.css',
@@ -108,6 +129,7 @@ def main() -> None:
         'zy2026ExtensionlessAliasContract': True,
     })
     apply_family_decision_contract(release)
+    apply_shared_resource_contract(release)
     apply_zy2026_change_first(release)
     dump('ln-rank/release-meta.json', release)
 
@@ -127,6 +149,7 @@ def main() -> None:
         'majorDifficultyJs': 'js/major-difficulty-2026.v3953_0.js',
     })
     apply_family_decision_contract(active)
+    apply_shared_resource_contract(active)
     apply_zy2026_change_first(active)
     active['structure2026'] = {
         'page': '../zy2026/index.html',
@@ -137,7 +160,13 @@ def main() -> None:
         'majorIndex': '../data/zy2026/major-index.json',
     }
     js_entries = active.setdefault('jsEntry', [])
-    active['jsEntry'] = [item for item in js_entries if item not in ('js/major-difficulty-2026.v3952_0.js', 'js/ux/family-presentation.v3952_0.js')]
+    active['jsEntry'] = [item for item in js_entries if item not in (
+        'js/app.v3951_0.js',
+        'js/major-difficulty-2026.v3952_0.js',
+        'js/ux/family-presentation.v3952_0.js',
+    )]
+    if 'js/app.v3955_0.js' not in active['jsEntry']:
+        active['jsEntry'].insert(0, 'js/app.v3955_0.js')
     for item in (
         'js/major-difficulty-2026.v3953_0.js',
         'js/ux/compare-workspace.v3953_0.js',
@@ -163,15 +192,20 @@ def main() -> None:
     print(json.dumps({
         'version': VERSION,
         'assets': [
+            'ln-rank/js/app.v3955_0.js',
             'ln-rank/js/major-difficulty-2026.v3953_0.js',
             'ln-rank/js/ux/compare-workspace.v3953_0.js',
             'ln-rank/js/ux/family-presentation.v3955_0.js',
             'ln-rank/js/ux/family-decision-bar.v3955_0.js',
             'ln-rank/js/ux/family-home.v3955_0.js',
             'ln-rank/css/dist/family-decision-workspace.v3955_0.css',
+            'shared/resources/exam/liaoning-physics.js',
+            'shared/resources/geo/china-region-catalog.js',
+            'shared/resources/schools/school-resource-center.js',
             'zy2026/assets/zy2026.v3955_0.js',
             'zy2026/assets/zy2026.v3954_0.css',
         ],
+        'sharedResourceCenterVersion': 'v3955_0',
         'zy2026ExperienceVersion': ZY_EXPERIENCE_VERSION,
         'zy2026Alias': 'zy2026.html mirrors zy2026/index.html',
     }, ensure_ascii=False))
