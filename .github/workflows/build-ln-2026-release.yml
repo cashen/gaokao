@@ -47,6 +47,7 @@ jobs:
           if trend_source not in text: raise SystemExit('three-year trend loop not found')
           text=text.replace(trend_source,trend_replacement,1)
           text=text.replace('"id": r["id"], "school": r["school"]','"id": r.get("id") or f"ln-2026-{r.get(\'schoolCode2026\', \'\')}-{r.get(\'majorCode2026\', \'\')}", "school": r["school"]')
+          text=text.replace('也不会把后移写成稳录或捡漏。','也不会把后移写成录取保证或所谓捡漏。')
           needle='def download_rank_pdf(dest: Path):\n'
           inject='''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
           if needle not in text: raise SystemExit('rank PDF loader not found')
