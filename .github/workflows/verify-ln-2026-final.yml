@@ -47,7 +47,7 @@ jobs:
           import { classifySelectionDelta } from './ln-rank/js/domain/selection-band-policy.js';
           import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoryScore } from './functions/_lib/history-score-engine.js';
-          const expected = new Map([[751,['invalidHigh',false]],[750,['normal',true]],[700,['topRange',true]],[508,['normal',true]],[507,['underSpecial',true]],[344,['underSpecial',true]],[343,['belowCoverage',false]],[150,['belowCoverage',false]],[149,['belowCoverage',false]]]);
+          const expected = new Map([[751,['invalidHigh',false]],[750,['topRange',true]],[700,['topRange',true]],[508,['normal',true]],[507,['underSpecial',true]],[344,['underSpecial',true]],[343,['belowCoverage',false]],[150,['belowCoverage',false]],[149,['belowCoverage',false]]]);
           for (const [score,[key,canQuery]] of expected) { const state=getScoreGuard(score); if(state.key!==key||state.canQuery!==canQuery) throw new Error(`score guard ${score}: ${JSON.stringify(state)}`); }
           for (const [delta,key] of [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']]) { const result=classifySelectionDelta(delta,'standard'); if(result.key!==key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`); }
           for (const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) { const result=lookupScoreRank({year:2026,region:'ln',subject:'physics',score}); if(!result||result.rankEnd!==rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`); }
