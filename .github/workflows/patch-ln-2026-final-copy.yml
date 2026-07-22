@@ -1,0 +1,32 @@
+name: Patch LN 2026 final copy
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+      - run: python3 tools/ln-2026/patch-final-copy.py
+      - run: |
+          ! grep -R "保证录取" ln2026.html lngk2026.html ln-rank/major-trend-2026.html
+          grep -R "不承诺录取结果" ln2026.html lngk2026.html ln-rank/major-trend-2026.html
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f tools/ln-2026/final-verification-error.log
+          git add -A -- tools/ln-2026/rebuild-centered-trend-analysis.py tools/ln-2026/final-verification-error.log ln2026.html lngk2026.html ln-rank/major-trend-2026.html
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: tighten LN 2026 report boundary copy [copy-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
