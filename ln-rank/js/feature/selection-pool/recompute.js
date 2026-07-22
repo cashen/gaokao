@@ -1,30 +1,56 @@
+import { classifySelectionDelta, selectionBandOrder } from '../../domain/selection-band-policy.js?v=3951_0';
+
 function toNum(value, fallback = null) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function classifyByDelta(delta) {
-  const d = Number(delta);
-  if (!Number.isFinite(d)) return { group: 'safe', detail: '待核验', className: 'unknown', position: '需补齐分数/位次后再判断' };
-  if (d >= 4) return { group: 'rush', detail: '稍高目标', className: d >= 16 ? 'high-rush' : 'light-rush', position: '稍高目标区' };
-  if (d >= -15 && d <= 3) return { group: 'stable', detail: '主要参考', className: d >= -5 ? 'edge-stable' : 'stable', position: '主要参考区' };
-  return { group: 'safe', detail: '低分侧补充', className: d <= -26 ? 'safe' : 'light-safe', position: '低分侧补充区' };
+function toRank(value, fallback = null) {
+  const n = toNum(value, fallback);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : fallback;
 }
 
 export function recomputeSelectionPool(candidateContext, rawItems = []) {
-  const score = toNum(candidateContext?.score, null);
+  const candidateScore = toNum(candidateContext?.score, null);
+  const candidateRank = toRank(candidateContext?.rankEnd ?? candidateContext?.rank, null);
+  const preset = candidateContext?.rangePreset || 'standard';
+
   return (Array.isArray(rawItems) ? rawItems : []).map((item, index) => {
-    const score2025 = toNum(item.score2025 ?? item.score, null);
-    const scoreDelta = score != null && score2025 != null ? Math.round(score2025 - score) : null;
-    const poolBand = classifyByDelta(scoreDelta);
+    const score2026 = toNum(item.score2026 ?? (Number(item.dataYear) === 2026 ? item.score : null), null);
+    const rank2026 = toRank(item.rank2026 ?? (Number(item.dataYear) === 2026 ? item.rank : null), null);
+    const historicalOnly = Boolean(item.historicalOnly || (score2026 == null && Number(item.dataYear || 2025) < 2026));
+    const scoreDelta2026 = candidateScore != null && score2026 != null
+      ? Math.round(score2026 - candidateScore)
+      : null;
+    const rankGap2026 = candidateRank != null && rank2026 != null
+      ? Math.round(candidateRank - rank2026)
+      : null;
+    const poolBand = historicalOnly
+      ? {
+          key: 'unknown',
+          group: 'unknown',
+          detail: '历史自选',
+          className: 'unknown',
+          position: '尚未匹配到 2026 同口径记录'
+        }
+      : classifySelectionDelta(scoreDelta2026, preset);
+
     return {
       ...item,
       userOrder: index + 1,
-      score2025,
-      score: score2025,
-      scoreDelta,
-      computedScoreDelta: scoreDelta,
-      statusKey: '',
+      dataYear: historicalOnly ? Number(item.dataYear || 2025) : 2026,
+      primaryYear: historicalOnly ? Number(item.primaryYear || item.dataYear || 2025) : 2026,
+      historicalOnly,
+      score2026,
+      rank2026,
+      score: score2026,
+      rank: rank2026,
+      scoreDelta2026,
+      scoreDelta: scoreDelta2026,
+      rankGap2026,
+      rankGap: rankGap2026,
+      computedScoreDelta: scoreDelta2026,
+      statusKey: poolBand.key,
       statusLabel: poolBand.detail,
       position: poolBand.position,
       poolBand,
@@ -42,22 +68,25 @@ export function stripComputedForStorage(item = {}) {
 export function getComputedStats(items = []) {
   const stats = {
     total: items.length,
+    currentCount: 0,
+    historicalOnlyCount: 0,
     rushCount: 0,
     stableCount: 0,
     safeCount: 0,
-    highRushCount: 0,
-    floorCount: 0,
+    outsideCount: 0,
     byDetail: {},
     byCity: {},
     byMajorFamily: {}
   };
+
   for (const item of items) {
-    const band = item.poolBand || classifyByDelta(item.scoreDelta);
+    const band = item.poolBand || classifySelectionDelta(item.scoreDelta2026 ?? item.scoreDelta, 'standard');
+    if (item.historicalOnly) stats.historicalOnlyCount += 1;
+    else stats.currentCount += 1;
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.group === 'rush' && Number(item.scoreDelta) >= 16) stats.highRushCount += 1;
-    if (band.group === 'safe' && Number(item.scoreDelta) <= -26) stats.floorCount += 1;
+    if (band.group === 'outside' || band.group === 'unknown') stats.outsideCount += 1;
     stats.byDetail[band.detail] = (stats.byDetail[band.detail] || 0) + 1;
     const city = item.displayLocation || item.geoEntity || '未知地域';
     stats.byCity[city] = (stats.byCity[city] || 0) + 1;
@@ -67,20 +96,12 @@ export function getComputedStats(items = []) {
   return stats;
 }
 
-const BAND_ORDER = {
-  '稍高目标': 10,
-  '主要参考': 20,
-  '低分侧补充': 30,
-  '待核验': 40
-};
-
 export function sortComputedByBand(items = []) {
   return [...items].sort((a, b) => {
-    const bandA = BAND_ORDER[a.poolBand?.detail] || 999;
-    const bandB = BAND_ORDER[b.poolBand?.detail] || 999;
-    if (bandA !== bandB) return bandA - bandB;
-    const deltaA = Number.isFinite(Number(a.scoreDelta)) ? Number(a.scoreDelta) : -999;
-    const deltaB = Number.isFinite(Number(b.scoreDelta)) ? Number(b.scoreDelta) : -999;
+    const bandOrder = selectionBandOrder(a) - selectionBandOrder(b);
+    if (bandOrder) return bandOrder;
+    const deltaA = Number.isFinite(Number(a.scoreDelta2026 ?? a.scoreDelta)) ? Number(a.scoreDelta2026 ?? a.scoreDelta) : -999;
+    const deltaB = Number.isFinite(Number(b.scoreDelta2026 ?? b.scoreDelta)) ? Number(b.scoreDelta2026 ?? b.scoreDelta) : -999;
     if (deltaA !== deltaB) return deltaB - deltaA;
     return (Number(a.userOrder) || 0) - (Number(b.userOrder) || 0);
   }).map((item, index) => ({ ...item, userOrder: index + 1 }));
