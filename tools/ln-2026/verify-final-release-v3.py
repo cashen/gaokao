@@ -66,6 +66,19 @@ def verify_structure_pages():
         base.check('v3.9.53.0' in redirect, f'{path} version')
 
 
+def verify_ln2026_score_band_order():
+    page = base.text('ln2026.html')
+    js = base.text('ln-rank/js/major-difficulty-2026.v3953_0.js')
+    base.check('major-difficulty-2026.v3953_0.js' in page, 'ln2026 new score-band asset')
+    base.check('分数段统一按从低到高排列' in page, 'ln2026 visible ascending-order explanation')
+    expected = ['344—449 分', '450—499 分', '500—549 分', '550—589 分', '590—624 分', '625 分及以上']
+    positions = [js.find(f"['{label}'") for label in expected]
+    base.check(all(position >= 0 for position in positions), f'ln2026 score-band labels missing: {positions}')
+    base.check(positions == sorted(positions), f'ln2026 score-band labels not low-to-high: {positions}')
+    base.check('scoreBandOrder(a) - scoreBandOrder(b)' in js, 'ln2026 score-band ascending runtime sort')
+    base.check('Number(b.maxScore || 0) - Number(a.maxScore || 0)' not in js, 'ln2026 old descending sort remains')
+
+
 def verify_release_meta():
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
@@ -90,6 +103,7 @@ def main():
     v2.verify_selection_and_feishu()
     verify_structure_data()
     verify_structure_pages()
+    verify_ln2026_score_band_order()
     verify_release_meta()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
