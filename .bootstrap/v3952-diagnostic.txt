@@ -8,16 +8,10 @@ PART .bootstrap/v3952-rpart-03 bytes=5000 sha256=3d80a08e355342f56f580b668705c3f
 DECODE_OK .bootstrap/v3952-rpart-03
 PART .bootstrap/v3952-rpart-04 bytes=5000 sha256=910cf690354ae9904105ee773ae323193c3f68d69de5089f78900c5fc9f0bb8c
 DECODE_OK .bootstrap/v3952-rpart-04
-PART .bootstrap/v3952-rpart-05 bytes=2772 sha256=7b7e6ec6aa53c0b077a01c79ee3c6f76b8aa94e68bb48f6e27562a420b7752c4
-DECODE_OK .bootstrap/v3952-rpart-05
 PART .bootstrap/v3952-rpart-05a bytes=1384 sha256=5d155fad27f6d186800d957ecdbc39c1326a73004f805d2cc15d4ea63b2531a9
 DECODE_OK .bootstrap/v3952-rpart-05a
 PART .bootstrap/v3952-rpart-05b bytes=1388 sha256=efc865482a29a9365685e6afac848534478cc61970a27a1161edac6a14f01ddd
 DECODE_OK .bootstrap/v3952-rpart-05b
-ARCHIVE bytes=22908 sha256=655a89f50cb771b7a53f00b03fa82d9d92416246219826ceb307bdc1b9eb6069
-
-gzip: /tmp/v3952-remain.tar.gz: invalid compressed data--crc error
-
-gzip: /tmp/v3952-remain.tar.gz: invalid compressed data--length error
-GZIP_FAIL
-EXTRACT_SKIPPED
+ARCHIVE bytes=20829 sha256=29caac9e6c2a65379300bc09ef615c0495c1f385ad575c0fa9f3476256357e3a
+GZIP_OK
+EXTRACT_OK
