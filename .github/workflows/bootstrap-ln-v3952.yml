@@ -26,34 +26,41 @@ jobs:
           fetch-depth: 1
           show-progress: false
           ref: ${{ github.head_ref || github.ref_name }}
-      - name: Decode and verify archive
+      - name: Diagnose and materialize archive
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
+          diag=.bootstrap/v3952-diagnostic.txt
+          : > "${diag}"
           : > /tmp/v3952-remain.tar.gz
+          archive_ok=1
           for part in .bootstrap/v3952-rpart-*; do
-            echo "decoding ${part} ($(wc -c < "${part}") bytes)"
-            base64 --decode "${part}" >> /tmp/v3952-remain.tar.gz
+            echo "PART ${part} bytes=$(wc -c < "${part}") sha256=$(sha256sum "${part}" | cut -d' ' -f1)" >> "${diag}"
+            if base64 --decode "${part}" >> /tmp/v3952-remain.tar.gz 2>> "${diag}"; then
+              echo "DECODE_OK ${part}" >> "${diag}"
+            else
+              echo "DECODE_FAIL ${part}" >> "${diag}"
+              archive_ok=0
+            fi
           done
-          echo "archive bytes: $(wc -c < /tmp/v3952-remain.tar.gz)"
-          gzip -t /tmp/v3952-remain.tar.gz
-          tar -tzf /tmp/v3952-remain.tar.gz
-      - name: Extract and commit sources
-        shell: bash
-        run: |
-          set -euo pipefail
-          tar -xzf /tmp/v3952-remain.tar.gz
-          git checkout -- .github/workflows/verify-ln-2026-final.yml
+          echo "ARCHIVE bytes=$(wc -c < /tmp/v3952-remain.tar.gz) sha256=$(sha256sum /tmp/v3952-remain.tar.gz | cut -d' ' -f1)" >> "${diag}"
+          if gzip -t /tmp/v3952-remain.tar.gz 2>> "${diag}"; then
+            echo "GZIP_OK" >> "${diag}"
+          else
+            echo "GZIP_FAIL" >> "${diag}"
+            archive_ok=0
+          fi
+          if [ "${archive_ok}" = 1 ]; then
+            tar -xzf /tmp/v3952-remain.tar.gz
+            git checkout -- .github/workflows/verify-ln-2026-final.yml
+            echo "EXTRACT_OK" >> "${diag}"
+          else
+            echo "EXTRACT_SKIPPED" >> "${diag}"
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add ln-rank tools
-          if git diff --cached --quiet; then
-            echo 'No materialization changes required.'
-            exit 0
+          git add "${diag}" ln-rank tools
+          if ! git diff --cached --quiet; then
+            git commit -m 'Diagnose and materialize LN v3.9.52.0 sources'
           fi
-          git commit -m 'Materialize LN v3.9.52.0 reviewed sources'
-      - name: Push materialized sources
-        shell: bash
-        run: |
-          set -euo pipefail
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
