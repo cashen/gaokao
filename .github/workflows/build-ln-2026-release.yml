@@ -100,7 +100,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log tools/ln-2026/last-verifier-error-current.log
-          git add tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log tools/ln-2026/last-verifier-error-current.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
+          git add -A -- tools/ln-2026 fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
           if ! git diff --cached --quiet; then
             git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
