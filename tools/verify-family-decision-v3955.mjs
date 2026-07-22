@@ -11,6 +11,7 @@ const presentation = text('ln-rank/js/ux/family-presentation.v3955_0.js');
 const decisionBar = text('ln-rank/js/ux/family-decision-bar.v3955_0.js');
 const home = text('ln-rank/js/ux/family-home.v3955_0.js');
 const decisionContract = text('ln-rank/js/domain/family-decision-contract.v3955_0.js');
+const schoolCenter = text('shared/resources/schools/school-resource-center.js');
 const css = text('ln-rank/css/dist/family-decision-workspace.v3955_0.css');
 const zyPage = text('zy2026/index.html');
 const zyAlias = text('zy2026.html');
@@ -33,6 +34,7 @@ assert.ok(!root.includes('id="h2027"') && !root.includes('id="s2027"'), 'homepag
 for (const phrase of ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核']) {
   assert.ok(main.includes(phrase), `main flow missing ${phrase}`);
 }
+assert.ok(main.includes('app.v3955_0.js?v=3955_0'));
 assert.ok(main.includes('family-decision-workspace.v3955_0.css'));
 assert.ok(main.includes('family-presentation.v3955_0.js'));
 assert.ok(main.includes('family-decision-bar.v3955_0.js'));
@@ -49,9 +51,13 @@ for (const phrase of ['为什么出现','最需要确认','现在还不知道','
 }
 assert.ok(!presentation.includes('近两年录取位置基本稳定'), 'old visible admission-position copy remains');
 assert.ok(!presentation.includes('2026年录取所需位次'), 'old visible admission-rank copy remains');
-assert.ok(presentation.includes("sourceStatus === 'not_found'"), 'campus unavailable source guard missing');
-assert.ok(presentation.includes('/tongxue/data/school-entities-v150.js'), 'Tongxue entity resolver not used');
+assert.ok(presentation.includes('shared/resources/schools/school-resource-center.js'), 'shared school resource center not used');
+assert.ok(!presentation.includes('/tongxue/data/school-entities-v150.js'), 'presentation must not bypass shared school center');
 assert.ok(!presentation.includes("fetch('/api/tongxue"), 'card layer must not prefetch Tongxue API');
+assert.ok(schoolCenter.includes('isEntitySourceAvailable'), 'campus unavailable source guard missing');
+assert.ok(schoolCenter.includes('directory_resolve_on_open'), 'ordinary school automatic resolution missing');
+assert.ok(schoolCenter.includes('combinedCampusCandidates'), 'school plus campus tag resolution missing');
+assert.ok(schoolCenter.includes('tongxueDirectoryPromise'), 'lazy single-flight school directory missing');
 
 for (const phrase of ['当前家庭方案','data-mobile-selected','data-mobile-pending','lnrank-selection-pool-updated']) {
   assert.ok(decisionBar.includes(phrase), `decision bar missing ${phrase}`);
@@ -59,7 +65,7 @@ for (const phrase of ['当前家庭方案','data-mobile-selected','data-mobile-p
 for (const phrase of ['returning','score-ready','继续检查家庭方案','孩子先确认']) {
   assert.ok(home.includes(phrase), `home runtime missing ${phrase}`);
 }
-for (const phrase of ['resolveFamilyNextAction','countFamilyPendingItems','buildTongxueHref','tongxueEntryCopy']) {
+for (const phrase of ['resolveFamilyNextAction','countFamilyPendingItems','buildTongxueHref','tongxueEntryCopy','buildTongxueSchoolHref']) {
   assert.ok(decisionContract.includes(phrase), `decision contract missing ${phrase}`);
 }
 for (const phrase of ['.family-decision-bar','.family-decision-mobile','.family-decision-summary','.tongxue-card-entry','min-height:48px','prefers-reduced-motion']) {
@@ -83,22 +89,27 @@ for (const key of [
   'familyLanguageTrustContract','familyFourStageLanguageContract','familyNextStepHomepageContract',
   'familyDecisionStatusBarContract','familyDecisionCardSummaryContract','familyDecisionTongxueEntityContract',
   'familyDecisionPublicReviewCopyContract','familyDecisionNoRankingInfluenceContract','familyDecisionNoApiPrefetchContract',
-  'zy2026RecordLanguageContract'
+  'sharedSchoolResourceContract','sharedSchoolDirectoryLazySingleFlightContract','zy2026RecordLanguageContract'
 ]) {
   assert.equal(release[key], true, `release contract false: ${key}`);
   assert.equal(active[key], true, `active contract false: ${key}`);
 }
 assert.equal(active.structure2026.js, '../zy2026/assets/zy2026.v3955_0.js');
+assert.ok(active.jsEntry.includes('js/app.v3955_0.js'));
 assert.ok(active.jsEntry.includes('js/ux/family-presentation.v3955_0.js'));
 assert.ok(active.jsEntry.includes('js/ux/family-decision-bar.v3955_0.js'));
 assert.ok(active.cssEntry.includes('css/dist/family-decision-workspace.v3955_0.css'));
+assert.ok(!active.jsEntry.includes('js/app.v3951_0.js'));
 assert.ok(!active.jsEntry.includes('js/ux/family-presentation.v3952_0.js'));
 
 const { buildTongxueHref, tongxueEntryCopy } = await import('../ln-rank/js/domain/family-decision-contract.v3955_0.js');
+const { resolveCardSchoolResource } = await import('../shared/resources/schools/school-resource-center.js');
 assert.equal(
   buildTongxueHref({ school: '大连理工大学（盘锦校区）', entityId: 'dlut-panjin' }),
   '/tongxue/?school=%E5%A4%A7%E8%BF%9E%E7%90%86%E5%B7%A5%E5%A4%A7%E5%AD%A6%EF%BC%88%E7%9B%98%E9%94%A6%E6%A0%A1%E5%8C%BA%EF%BC%89&entity=dlut-panjin'
 );
+assert.equal(resolveCardSchoolResource(['盘锦校区', '大连理工大学']).entityId, 'dlut-panjin');
+assert.equal(resolveCardSchoolResource(['辽宁大学']).source, 'ordinary-school-fallback');
 assert.equal(tongxueEntryCopy('admission_campus'), '看看这个校区的公开评论');
 assert.equal(tongxueEntryCopy('branch_school'), '看看这所分校的公开评论');
 assert.equal(tongxueEntryCopy('official_school'), '看看这所学校的公开评论');
