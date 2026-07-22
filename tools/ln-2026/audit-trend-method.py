@@ -35,31 +35,37 @@ def describe(values):
     }
 
 
+def iter_lists(value, path='root', depth=0):
+    if depth > 8:
+        return
+    if isinstance(value, list):
+        yield path, value
+        for index, item in enumerate(value[:20]):
+            if isinstance(item, (dict, list)):
+                yield from iter_lists(item, f'{path}[{index}]', depth + 1)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if isinstance(item, (dict, list)):
+                yield from iter_lists(item, f'{path}.{key}', depth + 1)
+
+
 def record_score(value):
     if not isinstance(value, list) or not value:
         return 0
-    sample = next((x for x in value[:20] if isinstance(x, dict)), None)
-    if not sample:
+    samples = [x for x in value[:50] if isinstance(x, dict)]
+    if not samples:
         return 0
-    keys = set(sample)
-    return len(value) * (1 + len(keys.intersection({'rank2024', 'rank2025', 'rank2026', 'score2026'})))
+    wanted = {'rank2024', 'rank2025', 'rank2026', 'score2026', 'rankPctPoint26vs25'}
+    overlap = max(len(set(sample).intersection(wanted)) for sample in samples)
+    return len(value) * (1 + overlap * 100)
 
 
 def find_records(raw):
-    candidates = []
-    if isinstance(raw, list):
-        candidates.append(('root', raw))
-    elif isinstance(raw, dict):
-        for key, value in raw.items():
-            if isinstance(value, list):
-                candidates.append((key, value))
-            elif isinstance(value, dict):
-                for subkey, subvalue in value.items():
-                    if isinstance(subvalue, list):
-                        candidates.append((f'{key}.{subkey}', subvalue))
+    candidates = [(path, value) for path, value in iter_lists(raw) if record_score(value) > 0]
     candidates.sort(key=lambda item: record_score(item[1]), reverse=True)
-    if not candidates or record_score(candidates[0][1]) == 0:
-        raise RuntimeError(f'No record array found. Top-level type={type(raw).__name__}; keys={list(raw)[:30] if isinstance(raw, dict) else "n/a"}')
+    if not candidates:
+        top = list(raw)[:30] if isinstance(raw, dict) else f'list:{len(raw)}' if isinstance(raw, list) else type(raw).__name__
+        raise RuntimeError(f'No record array found. Top-level={top}')
     return candidates[0]
 
 
@@ -72,7 +78,8 @@ def main():
     raw26 = [r.get('rankDelta26vs25') for r in complete if r.get('rankDelta26vs25') is not None]
     raw25 = [r.get('rankDelta25vs24') for r in complete if r.get('rankDelta25vs24') is not None]
     if not d26 or not d25:
-        raise RuntimeError(f'Comparable percentile deltas missing. container={container_key}; complete={len(complete)}; sampleKeys={sorted(complete[0]) if complete else []}')
+        sample_keys = sorted(complete[0]) if complete else sorted(records[0]) if records and isinstance(records[0], dict) else []
+        raise RuntimeError(f'Comparable percentile deltas missing. container={container_key}; records={len(records)}; complete={len(complete)}; sampleKeys={sample_keys}')
     median26 = statistics.median(d26)
     median25 = statistics.median(d25)
     centered26 = [x - median26 for x in d26]
