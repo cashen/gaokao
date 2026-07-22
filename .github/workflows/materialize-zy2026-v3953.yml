@@ -7,6 +7,13 @@ on:
     paths:
       - 'tools/ln-2026/build-zy2026-structure.py'
       - '.github/workflows/materialize-zy2026-v3953.yml'
+  pull_request:
+    branches:
+      - main
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ln-2026/build-zy2026-structure.py'
+      - '.github/workflows/materialize-zy2026-v3953.yml'
 
 permissions:
   contents: write
@@ -18,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/zy2026-structure-v3953
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 1
       - name: Build audited 2025 to 2026 structure relations
         run: python3 tools/ln-2026/build-zy2026-structure.py
@@ -41,4 +48,4 @@ jobs:
             exit 0
           fi
           git commit -m 'Materialize ZY2026 audited structure relations'
-          git push origin HEAD:agent/zy2026-structure-v3953
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
