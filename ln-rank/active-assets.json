@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.52.0",
-  "assetVersion": "v3952_0",
+  "version": "v3.9.53.0",
+  "assetVersion": "v3953_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -12,13 +12,14 @@
   "jsEntry": [
     "js/app.v3951_0.js",
     "js/selection-pool.v3951_0.js",
-    "js/major-difficulty-2026.v3952_0.js",
     "js/ux/family-presentation.v3952_0.js",
     "js/self-check.v3949_0.js",
     "js/local-mainline/local-mainline-app.v3951_0.js",
     "js/211-mainline/211-mainline-app.v3951_0.js",
     "js/ux/multi-terminal.v3949_4.js",
-    "js/ux/v3949_4-self-check.js"
+    "js/ux/v3949_4-self-check.js",
+    "js/major-difficulty-2026.v3953_0.js",
+    "js/ux/compare-workspace.v3953_0.js"
   ],
   "cssEntry": [
     "css/dist/ln-rank-main.v3949_0.css",
@@ -29,7 +30,9 @@
     "css/dist/ln-rank-multi-terminal.v3949_4.css",
     "css/dist/gaokao-human-ui.v3950_0.css",
     "css/dist/family-human-layer.v3952_0.css",
-    "css/dist/major-difficulty-2026.v3952_0.css"
+    "css/dist/major-difficulty-2026.v3952_0.css",
+    "css/dist/compare-workspace.v3953_0.css",
+    "css/dist/compare-workspace-year-fix.v3953_0.css"
   ],
   "sourceCssPreserved": true,
   "cssDist": {
@@ -41,9 +44,11 @@
     "multiTerminal": "css/dist/ln-rank-multi-terminal.v3949_4.css",
     "humanUi": "css/dist/gaokao-human-ui.v3950_0.css",
     "familyHumanLayer": "css/dist/family-human-layer.v3952_0.css",
-    "majorDifficulty": "css/dist/major-difficulty-2026.v3952_0.css"
+    "majorDifficulty": "css/dist/major-difficulty-2026.v3952_0.css",
+    "compareWorkspace": "css/dist/compare-workspace.v3953_0.css",
+    "compareWorkspaceYearFix": "css/dist/compare-workspace-year-fix.v3953_0.css"
   },
-  "releaseGate": "human-language, unified-difficulty-page, card-hierarchy, hidden-technical-status, 320-375-430-ipad-wide, readable-width, touch-44, reduced-motion, protected-fenxi-runtime-unchanged",
+  "releaseGate": "zy2026-structure-analysis, ascending-score-bands, compare-auto-navigation, desktop-horizontal, tablet-swipe, android-snap, human-language, protected-fenxi-runtime-unchanged",
   "versionContractSync": true,
   "noFenxiIncluded": true,
   "typographyHierarchyContract": true,
@@ -65,7 +70,7 @@
   "humanUiTouchTargetContract": true,
   "humanUiReadableWidthContract": true,
   "humanUiReducedMotionContract": true,
-  "runtimeCacheQueryVersion": "v3952_0",
+  "runtimeCacheQueryVersion": "v3953_0",
   "preservedCoreModuleQueryVersion": "v3951_0",
   "preservedRuntimeModuleQueryVersion": "v3951_0",
   "mainJs": "js/app.v3951_0.js",
@@ -84,5 +89,22 @@
   "selectionPool2026MigrationContract": true,
   "feishu2026ThreeYearContract": true,
   "majorTrendJson": "data/major-trend-2026.json",
-  "majorDifficultyJs": "js/major-difficulty-2026.v3952_0.js"
+  "majorDifficultyJs": "js/major-difficulty-2026.v3953_0.js",
+  "zy2026StructureContract": true,
+  "zy2026RouteMigrationContract": true,
+  "structure2026": {
+    "page": "../zy2026/index.html",
+    "css": "../zy2026/assets/zy2026.v3953_0.css",
+    "js": "../zy2026/assets/zy2026.v3953_0.js",
+    "summary": "../data/zy2026/summary.json",
+    "schoolIndex": "../data/zy2026/school-index.json",
+    "majorIndex": "../data/zy2026/major-index.json"
+  },
+  "ln2026ScoreBandAscendingContract": true,
+  "compareWorkspaceHumanJourneyContract": true,
+  "compareWorkspaceDesktopHorizontalContract": true,
+  "compareWorkspaceTabletSwipeContract": true,
+  "compareWorkspaceAndroidSnapContract": true,
+  "compareWorkspaceAutoNavigateContract": true,
+  "compareWorkspaceYearLabelContract": true
 }
