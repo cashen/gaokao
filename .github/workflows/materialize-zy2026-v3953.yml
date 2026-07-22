@@ -6,14 +6,12 @@ on:
       - agent/zy2026-structure-v3953
     paths:
       - 'tools/ln-2026/build-zy2026-structure.py'
+      - 'tools/ln-2026/finalize-v3953-assets.py'
       - '.github/workflows/materialize-zy2026-v3953.yml'
   pull_request:
     branches:
       - main
     types: [opened, reopened, synchronize]
-    paths:
-      - 'tools/ln-2026/build-zy2026-structure.py'
-      - '.github/workflows/materialize-zy2026-v3953.yml'
 
 permissions:
   contents: write
@@ -29,7 +27,9 @@ jobs:
           fetch-depth: 1
       - name: Build audited 2025 to 2026 structure relations
         run: python3 tools/ln-2026/build-zy2026-structure.py
-      - name: Commit generated structure data and route migration
+      - name: Finalize v3953 pages and active asset contracts
+        run: python3 tools/ln-2026/finalize-v3953-assets.py
+      - name: Commit generated structure data and release metadata
         shell: bash
         run: |
           set -euo pipefail
@@ -40,12 +40,19 @@ jobs:
             analysis/2026/zy2026-audit.json \
             analysis/2026/zy2026-summary.json \
             analysis/2026/zy2026-relations.json \
+            ln-rank/data/major-trend-2026.json \
             ln-rank/release-meta.json \
             ln-rank/active-assets.json \
+            ln-rank/index.html \
+            ln-rank/selection-pool.html \
+            ln-rank/local-mainline.html \
+            ln-rank/211-mainline.html \
+            ln-rank/major-trend-2026.html \
+            ln2026.html lngk2026.html \
             index.html e.html zy.html zy2026.html
           if git diff --cached --quiet; then
             echo 'No generated changes.'
             exit 0
           fi
-          git commit -m 'Materialize ZY2026 audited structure relations'
+          git commit -m 'Materialize ZY2026 data and finalize v3.9.53.0'
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
