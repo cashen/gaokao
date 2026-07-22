@@ -48,6 +48,7 @@ assert.ok(snapshot.checks.some(line => line.includes('核验2027招生计划')))
 const fallback = buildRuleOnlyDiagnosis(record, 580);
 assert.ok(fallback.basis.some(line => line.includes('2026最低投档')));
 assert.ok(fallback.checks.some(line => line.includes('2027招生计划')));
+assert.ok(fallback.checks.every(line => !line.includes('核验2026招生计划')));
 assert.ok(fallback.disclaimer.includes('2026最低投档记录'));
 assert.ok(fallback.disclaimer.includes('2027录取预测'));
 
@@ -103,6 +104,7 @@ assert.equal(result.caliber.activeDataYear, 2026);
 assert.equal(result.caliber.audienceYear, 2027);
 assert.equal(result.caliber.primaryFact, '2026专业最低投档分和位次');
 assert.ok(result.diagnosis.basis.some(line => line.includes('2026最低投档')));
+assert.ok(result.diagnosis.checks.every(line => !line.includes('核验2026招生计划')));
 
 const controller = fs.readFileSync('ln-rank/js/feature/diagnose/controller.js', 'utf8');
 assert.ok(controller.includes('score2026:'));
@@ -114,9 +116,9 @@ const promptSource = fs.readFileSync('functions/_lib/ai-card-prompt.js', 'utf8')
 const ruleSource = fs.readFileSync('functions/_lib/ai-card-rules.js', 'utf8');
 const schemaSource = fs.readFileSync('functions/_lib/ai-card-output-schema.js', 'utf8');
 const caliberSource = fs.readFileSync('functions/_lib/kb/year-caliber-kb.generated.js', 'utf8');
-for (const [name, source] of [['prompt', promptSource], ['rules', ruleSource], ['schema', schemaSource], ['caliber', caliberSource]]) {
-  assert.ok(!source.includes('核验2026招生计划'), `${name} still asks families to verify 2026 plan`);
-}
+assert.ok(promptSource.includes('不得继续要求核验2026招生计划'), 'prompt must explicitly reject the old check year');
+assert.ok(!ruleSource.includes("'核验2026招生计划"), 'rule output must not contain a 2026-plan check');
+assert.ok(schemaSource.includes('.replace(/核验2026年?招生计划/g'), 'schema must normalize legacy model output to 2027');
 assert.ok(!ruleSource.includes('`2025最低：'));
 assert.ok(schemaSource.includes("'2026最低投档'"));
 assert.ok(caliberSource.includes('2026063013492555300'));
