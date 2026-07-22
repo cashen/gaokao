@@ -18,13 +18,14 @@ def verify_manifest_and_chunks():
     base.check(manifest['audienceYear'] == 2027, 'manifest audience year')
     base.check(manifest['totalRecords'] == 11628, 'manifest record count')
     base.check(manifest['schoolCount'] == 956, 'manifest school count')
-    base.check(manifest['historyMatch']['strictCompleteThreeYear'] == 6553, 'strict three-year count')
+    base.check(manifest['historyMatch']['exact'] == 8929, 'exact history match count')
+    base.check(manifest['historyMatch']['unmatched'] == 2699, 'unmatched history count')
     total = 0
     for chunk in manifest['chunks']:
         path = base.ROOT / 'fenxi/data/ln-rank-2026' / chunk['file']
         base.check(path.exists(), f'missing chunk {chunk["file"]}')
         rows = base.data(str(path.relative_to(base.ROOT)))
-        base.check(len(rows) == chunk['count'], f'chunk count {chunk["file"]}')
+        base.check(len(rows) == chunk['recordCount'], f'chunk count {chunk["file"]}')
         total += len(rows)
     base.check(total == manifest['totalRecords'], 'manifest chunk sum')
 
