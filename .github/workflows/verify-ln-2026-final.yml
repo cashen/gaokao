@@ -78,11 +78,12 @@ jobs:
           const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('最低投档所需位次')) throw new Error(`history: ${JSON.stringify(history)}`);
           console.log('critical runtime module checks passed');
           NODE
-      - name: Run family decision and shared resource audits
-        run: |
-          node tools/verify-family-decision-v3955.mjs
-          node tools/verify-card-ai-2026-v3955.mjs
-          node tools/audit-shared-resource-center-v3955.mjs
+      - name: Verify family decision workspace
+        run: node tools/verify-family-decision-v3955.mjs
+      - name: Verify 2026-first card AI
+        run: node tools/verify-card-ai-2026-v3955.mjs
+      - name: Audit shared resource center
+        run: node tools/audit-shared-resource-center-v3955.mjs
       - name: Run compact release contract
         run: node tools/check-ln-2026-release.mjs
       - name: Smoke-test current static pages
