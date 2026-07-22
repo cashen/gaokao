@@ -19,12 +19,26 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
       - name: Audit annual baseline shift
-        run: python3 tools/ln-2026/audit-trend-method.py
+        run: |
+          set +e
+          python3 tools/ln-2026/audit-trend-method.py > /tmp/trend-audit.log 2>&1
+          status=$?
+          cat /tmp/trend-audit.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/trend-audit.log tools/ln-2026/trend-audit-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/trend-audit-error.log
+            git commit -m "ci: capture LN 2026 trend audit failure [audited-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
       - name: Commit audit result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add analysis/2026/trend-method-audit.json
+          rm -f tools/ln-2026/trend-audit-error.log
+          git add -A -- analysis/2026/trend-method-audit.json tools/ln-2026/trend-audit-error.log
           if ! git diff --cached --quiet; then
             git commit -m "test: record LN 2026 trend method audit [audited-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
