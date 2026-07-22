@@ -143,7 +143,8 @@ function handleCompareClick(event) {
     announce('已收起横向对比。');
     return;
   }
-  if (!['open', 'group', 'chip', 'more'].includes(action)) return;
+  const isSupportedAction = action === 'open' || action === 'group' || action === 'chip' || action === 'more';
+  if (!isSupportedAction) return;
   pendingCompare = {
     action,
     type: button.dataset.compareType || '',
