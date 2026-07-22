@@ -7,6 +7,12 @@ on:
     paths:
       - '.bootstrap/v3952-rpart-*'
       - '.github/workflows/bootstrap-ln-v3952.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.bootstrap/v3952-rpart-*'
+      - '.github/workflows/bootstrap-ln-v3952.yml'
 
 permissions:
   contents: write
@@ -18,6 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Materialize reviewed source files
         shell: bash
         run: |
@@ -32,4 +39,4 @@ jobs:
             exit 0
           fi
           git commit -m 'Materialize LN v3.9.52.0 reviewed sources'
-          git push
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
