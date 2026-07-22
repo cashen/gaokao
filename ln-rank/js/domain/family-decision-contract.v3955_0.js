@@ -1,3 +1,5 @@
+import { buildTongxueSchoolHref } from '../../../shared/resources/schools/school-resource-center.js?v=3955_0';
+
 export const FAMILY_DECISION_VERSION = 'v3.9.55.0';
 
 export const FAMILY_DECISION_STORAGE = Object.freeze({
@@ -83,12 +85,8 @@ export function resolveFamilyNextAction({ score = readFamilyCandidateScore(), it
   return { key: 'report', label: '生成家庭复核报告', href: '/ln-rank/selection-pool.html' };
 }
 
-export function buildTongxueHref({ school = '', entityId = '' } = {}) {
-  const name = String(school || '').trim();
-  if (!name) return '';
-  const params = new URLSearchParams({ school: name });
-  if (entityId) params.set('entity', String(entityId));
-  return `/tongxue/?${params.toString()}`;
+export function buildTongxueHref(input = {}) {
+  return buildTongxueSchoolHref(input);
 }
 
 export function tongxueEntryCopy(entityType = '') {
