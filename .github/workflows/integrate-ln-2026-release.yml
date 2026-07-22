@@ -6,73 +6,11 @@ on:
     types: [opened, reopened, synchronize]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   integrate:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 1
-      - name: Detect verified generated data
-        run: |
-          if [ -f fenxi/data/ln-rank-2026/manifest.json ] \
-             && [ -f functions/_lib/ln-2026-physics-score-rank.js ] \
-             && [ ! -f tools/ln-2026/last-verifier-error-current.log ]; then
-            echo "HAS_LN2026_DATA=1" >> "$GITHUB_ENV"
-          else
-            echo "HAS_LN2026_DATA=0" >> "$GITHUB_ENV"
-            echo "Verified 2026 generated data is not ready; runtime integration will wait."
-          fi
-      - name: Decode and validate integration tool
-        if: env.HAS_LN2026_DATA == '1'
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import base64, gzip, py_compile
-          parts = sorted(Path('.').glob('tools/ln-2026/payload/integrate_release.py.part*'))
-          if not parts:
-              raise SystemExit('integration payload parts missing')
-          encoded = ''.join(''.join(p.read_text(encoding='utf-8').split()) for p in parts)
-          target = Path('/tmp/integrate_release.py')
-          target.write_bytes(gzip.decompress(base64.b64decode(encoded, validate=True)))
-          py_compile.compile(str(target), doraise=True)
-          print('integration tool bytes', target.stat().st_size)
-          PY
-      - name: Integrate 2026 runtime and pages
-        if: env.HAS_LN2026_DATA == '1'
-        run: |
-          set +e
-          python3 /tmp/integrate_release.py > /tmp/ln2026-integration.log 2>&1
-          status=$?
-          cat /tmp/ln2026-integration.log
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/ln2026-integration.log tools/ln-2026/last-integration-error.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tools/ln-2026/last-integration-error.log
-            git commit -m "ci: capture LN 2026 integration failure [integrated-ln2026]" || true
-            git push origin HEAD:${{ github.head_ref }} || true
-            exit "$status"
-          fi
-      - name: Run LN 2026 release contract
-        if: env.HAS_LN2026_DATA == '1'
-        run: node tools/check-ln-2026-release.mjs
-      - name: Commit integrated release
-        if: env.HAS_LN2026_DATA == '1'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f tools/ln-2026/last-integration-error.log
-          git add -A
-          if ! git diff --cached --quiet; then
-            git diff --cached --stat
-            git commit -m "feat: integrate LN Rank 2026 three-year release [integrated-ln2026]"
-            git push origin HEAD:${{ github.head_ref }}
-          else
-            echo "Runtime integration is already current."
-          fi
+      - run: echo "LN 2026 runtime integration is frozen after the verified generated commit; final corrections are validated by the release test workflow."
