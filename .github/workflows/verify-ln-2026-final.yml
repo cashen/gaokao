@@ -11,14 +11,14 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Verify protected paths, data, pages and contracts
-        run: python3 tools/ln-2026/verify-final-release-v2.py
+        run: python3 tools/ln-2026/verify-final-release-v3.py
       - name: Verify generated data source contract
         run: python3 tools/ln-2026/verify-generated-release.py
       - name: Compile readable Python build tools
@@ -29,8 +29,11 @@ jobs:
             tools/ln-2026/integrate-release.py \
             tools/ln-2026/audit-trend-method.py \
             tools/ln-2026/rebuild-centered-trend-analysis.py \
+            tools/ln-2026/build-zy2026-structure.py \
+            tools/ln-2026/finalize-v3953-assets.py \
             tools/ln-2026/verify-final-release.py \
-            tools/ln-2026/verify-final-release-v2.py
+            tools/ln-2026/verify-final-release-v2.py \
+            tools/ln-2026/verify-final-release-v3.py
       - name: Check changed JavaScript syntax
         run: |
           set -euo pipefail
@@ -62,7 +65,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          for path in / /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html; do
+          for path in / /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html /zy2026 /zy2026/ /zy.html /zy2026.html; do
             echo "GET $path"
             curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
           done
