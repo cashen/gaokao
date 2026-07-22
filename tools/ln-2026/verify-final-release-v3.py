@@ -40,6 +40,16 @@ def verify_manifest_and_chunks() -> None:
     base.check(len(schools) == manifest['schoolCount'], 'manifest school sum')
 
 
+def verify_runtime_current() -> None:
+    contains('functions/_lib/exam-year-config.js', 'shared/resources/exam/liaoning-physics.js', 'getExamResourceConfig')
+    contains('functions/_lib/rank-table-provider.js', 'ln-2026-physics-score-rank.js', 'ln-2025-physics-score-rank.js')
+    contains('ln-rank/js/core/score-guard.js', 'validateExamScore', 'belowVocational', 'belowUndergraduate', 'underSpecial', 'topRange')
+    contains('functions/api/major-bands.js', "classificationMode: 'score_delta'", 'candidateReferenceRank2026', 'chunksSkipped', 'ln-rank-manifest.js')
+    contains('functions/_lib/background-position-engine.js', 'referenceAdmissionYear: 2026', 'groupScoreRecords')
+    for path in ('functions/api/local-mainline.js', 'functions/api/211-mainline.js'):
+        contains(path, 'dataYear: 2026', 'rankYear: 2026', '344—750')
+
+
 def verify_family_and_reports() -> None:
     contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏')
     root = base.text('index.html')
@@ -117,7 +127,7 @@ def main() -> None:
     base.verify_rank_table()
     verify_manifest_and_chunks()
     base.verify_centered_analysis()
-    base.verify_runtime_contracts()
+    verify_runtime_current()
     verify_family_and_reports()
     verify_card_ai_2026()
     verify_shared_resources()
