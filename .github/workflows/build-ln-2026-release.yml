@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    if: ${{ !contains(github.event.pull_request.title, '[generated-ln2026]') }}
+    if: ${{ github.actor != 'github-actions[bot]' && !contains(github.event.pull_request.title, '[generated-ln2026]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -50,6 +50,7 @@ jobs:
           trend_replacement = '''    for r in complete:\n        r["id"] = r.get("id") or f"ln-2026-{r.get('schoolCode2026', '')}-{r.get('majorCode2026', '')}"\n        r["trendType"] = classify_trend'''
           if trend_source not in text: raise SystemExit('three-year trend loop not found')
           text = text.replace(trend_source, trend_replacement, 1)
+          text = text.replace('"id": r["id"], "school": r["school"]', '"id": r.get("id") or f"ln-2026-{r.get(\'schoolCode2026\', \'\')}-{r.get(\'majorCode2026\', \'\')}", "school": r["school"]')
           needle = 'def download_rank_pdf(dest: Path):\n'
           inject = '''def download_rank_pdf(dest: Path):\n    local = os.environ.get("LN2026_RANK_PDF")\n    if local:\n        dest.write_bytes(Path(local).read_bytes())\n        return os.environ.get("LN2026_RANK_SOURCE", "verified mirror")\n'''
           if needle not in text: raise SystemExit('rank PDF loader not found')
@@ -81,16 +82,17 @@ jobs:
           if [ "$status" -ne 0 ]; then
             {
               echo "BUILD_HEAD=$(git rev-parse HEAD)"
+              echo "BUILD_RUN=${GITHUB_RUN_ID}"
               echo "ID_PATCH_LINES:"
-              grep -n 'r\["id"\]\|src.get("id")' /tmp/build_release.py || true
+              grep -n 'r\["id"\]\|src.get("id")\|r.get("id")' /tmp/build_release.py || true
               echo "BUILD_LOG:"
               cat /tmp/ln2026-build.log
-            } > tools/ln-2026/last-build-error.log
+            } > tools/ln-2026/last-build-error-current.log
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tools/ln-2026/last-build-error.log
-            git commit -m "ci: capture LN 2026 build failure [generated-ln2026]" || true
-            git push origin HEAD:${{ github.head_ref }} || true
+            git add tools/ln-2026/last-build-error-current.log
+            git commit -m "ci: capture LN 2026 build failure [generated-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
             exit "$status"
           fi
           python3 /tmp/verify_release.py
@@ -98,8 +100,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f tools/ln-2026/last-build-error.log
-          git add tools/ln-2026/last-build-error.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
+          rm -f tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log
+          git add tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
           if ! git diff --cached --quiet; then
             git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
