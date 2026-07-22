@@ -1,6 +1,6 @@
 import { loadManifest } from '../_lib/ln-rank-manifest.js';
 import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
-import { normalizeRecord, rawScore, rawSchool, rawMajor } from '../_lib/fenxi-normalizer.js';
+import { normalizeRecord, rawScore, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { makeBands, classifyBand } from '../_lib/band-engine.js';
 import { getStatus } from '../_lib/status-engine.js';
 import { matchRegion } from '../_lib/major-filter.js';
@@ -13,7 +13,16 @@ import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
-import { normalizeSpecialProjectMode, detectSpecialProject, enrichSpecialProjectRecord, shouldHideSpecialProject, createSpecialProjectStats, addSpecialProjectStat, SPECIAL_PROJECT_COPY } from '../_lib/special-project-policy.js';
+import { lookupScoreRank } from '../_lib/rank-table-provider.js';
+import {
+  normalizeSpecialProjectMode,
+  detectSpecialProject,
+  enrichSpecialProjectRecord,
+  shouldHideSpecialProject,
+  createSpecialProjectStats,
+  addSpecialProjectStat,
+  SPECIAL_PROJECT_COPY
+} from '../_lib/special-project-policy.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -44,7 +53,6 @@ function initGrouped(bands) {
   };
 }
 
-
 function rankSortValue(value) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
@@ -61,8 +69,8 @@ function matchAllKeywordResult() {
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return {
-    min: Math.min(...all.map(b => b.minScore)),
-    max: Math.max(...all.map(b => b.maxScore))
+    min: Math.min(...all.map(band => band.minScore)),
+    max: Math.max(...all.map(band => band.maxScore))
   };
 }
 
@@ -70,16 +78,22 @@ function chunkFile(chunk) {
   return chunk?.file || chunk?.path || '';
 }
 
+function chunkIntersectsScoreWindow(chunk, window) {
+  const min = Number(chunk?.minScore);
+  const max = Number(chunk?.maxScore);
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return true;
+  return max >= window.min && min <= window.max;
+}
+
 function rawKeywordPass(raw, filters) {
   const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  if (schoolKeyword && !rawSchool(raw).includes(schoolKeyword)) return false;
-  return true;
+  return !schoolKeyword || rawSchool(raw).includes(schoolKeyword);
 }
 
 function compareBandRecords(a, b, bottomLineMode) {
   const bottomLineWeight = getBottomLineSortWeight(b, bottomLineMode) - getBottomLineSortWeight(a, bottomLineMode);
   return bottomLineWeight
-    || (Number(b.matchScore || 0) - Number(a.matchScore || 0))
+    || Number(b.matchScore || 0) - Number(a.matchScore || 0)
     || Math.abs(a.score - a.candidateScore) - Math.abs(b.score - b.candidateScore)
     || rankSortValue(a.rank) - rankSortValue(b.rank);
 }
@@ -92,13 +106,15 @@ function pushRecord(grouped, band, record, candidateScore) {
     ...record,
     ...display,
     band,
+    bandKey: band,
     candidateScore,
+    candidateReferenceScore: candidateScore,
+    scoreDelta2026: delta,
     scoreDelta: delta,
     statusKey: status.key,
     statusLabel: status.label,
     position: status.position
   };
-
   grouped[band].count += 1;
   grouped[band].candidates.push(item);
 }
@@ -108,9 +124,33 @@ async function loadChunkRecords(request, env, file) {
   return Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
 }
 
+function rankContextForScore(score) {
+  const row = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
+  if (!row) return null;
+  const rankStart = Number(row.rankStart);
+  const rankEnd = Number(row.rankEnd ?? row.cumulative ?? row.rankForGap);
+  const sameCount = Number(row.sameCount);
+  return {
+    score: Number(row.score ?? score),
+    rankStart: Number.isFinite(rankStart) ? rankStart : null,
+    rankEnd: Number.isFinite(rankEnd) ? rankEnd : null,
+    rankForGap: Number.isFinite(Number(row.rankForGap)) ? Number(row.rankForGap) : (Number.isFinite(rankEnd) ? rankEnd : null),
+    sameCount: Number.isFinite(sameCount) ? sameCount : null,
+    emptyScore: Boolean(row.emptyScore)
+  };
+}
+
+function rankLabel(context) {
+  if (!context?.rankEnd) return '位次待核验';
+  if (context.emptyScore) return `2026 年该分数没有同分考生，历史参考位置约在第 ${context.rankEnd.toLocaleString('zh-CN')} 位附近`;
+  if (context.rankStart && context.rankStart !== context.rankEnd) {
+    return `按 2026 年成绩分布，历史参考位置约为 ${context.rankStart.toLocaleString('zh-CN')}—${context.rankEnd.toLocaleString('zh-CN')} 位`;
+  }
+  return `按 2026 年成绩分布，历史参考位置约为第 ${context.rankEnd.toLocaleString('zh-CN')} 位`;
+}
+
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);
-
   const started = Date.now();
 
   try {
@@ -130,8 +170,8 @@ export async function onRequest(context) {
     const pageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));
     const pageOffset = pageNumber(url.searchParams.get('offset'), 0);
 
-    if (!Number.isFinite(candidateScore)) {
-      return json({ ok: false, message: '考生分数格式不正确。' }, 400);
+    if (!Number.isFinite(candidateScore) || candidateScore < 1 || candidateScore > 750) {
+      return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
 
     const bandsMeta = makeBands(candidateScore, rangePreset);
@@ -140,9 +180,10 @@ export async function onRequest(context) {
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const hasKeywordSearch = hasKeywordFilters(keywordQuery);
-
     const manifest = await loadManifest(context.request, context.env || {});
-    const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+    const allChunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+    const chunks = allChunks.filter(chunk => chunkIntersectsScoreWindow(chunk, scoreWindow));
+    const candidateRank = rankContextForScore(candidateScore);
 
     let rawTotal = 0;
     let rawCandidate = 0;
@@ -161,7 +202,6 @@ export async function onRequest(context) {
     for (const chunk of chunks) {
       const file = chunkFile(chunk);
       if (!file) continue;
-
       let rawRecords = [];
       try {
         rawRecords = await loadChunkRecords(context.request, context.env || {}, file);
@@ -169,20 +209,15 @@ export async function onRequest(context) {
         failedChunk = file;
         throw error;
       }
-
       rawTotal += rawRecords.length;
 
       for (const raw of rawRecords) {
         const score = rawScore(raw);
-        if (!Number.isFinite(score)) continue;
-        if (score < scoreWindow.min || score > scoreWindow.max) continue;
+        if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
         if (!rawKeywordPass(raw, filters)) continue;
-
         rawCandidate += 1;
 
         const record = { ...normalizeRecord(raw) };
-        // 低分段候选多时，避免无关键词查询也为每条记录 JSON.stringify 大字段。
-        // rawText 只在专业/项目/行业关键词搜索时参与模糊匹配，普通查询不需要。
         record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
         record.codes = normalizeFenxiCodes(raw);
         const mappedStandardMajor = mapStandardMajor({
@@ -191,14 +226,16 @@ export async function onRequest(context) {
         });
         record.standardMajor = mappedStandardMajor;
         if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
-        // 前端展示的“专业代码”统一来自 standardMajor.code；/fenxi 原始条目号不作为专业代码展示。
         Object.assign(record, enrichBottomLineFields(record));
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;
         if (filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
 
         const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
-        if (!match.matched) { majorKeywordExcluded += 1; continue; }
+        if (!match.matched) {
+          majorKeywordExcluded += 1;
+          continue;
+        }
         record.matchBadges = match.badges;
         record.matchLevel = match.matchLevel || '';
         record.matchLabel = match.matchLabel || '';
@@ -213,7 +250,6 @@ export async function onRequest(context) {
 
         const band = classifyBand(record.score, bandsMeta);
         if (!band) continue;
-
         const specialProject = detectSpecialProject(record);
         if (specialProject.hasSpecialProject && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode)) {
           specialProjectHidden += 1;
@@ -229,6 +265,10 @@ export async function onRequest(context) {
           record.specialProject = specialProject;
         }
 
+        if (candidateRank?.rankForGap && record.rank2026) {
+          record.rankGap2026 = candidateRank.rankForGap - Number(record.rank2026);
+          record.rankGap = record.rankGap2026;
+        }
         normalized += 1;
         if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
         if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
@@ -243,9 +283,7 @@ export async function onRequest(context) {
       const group = grouped[key];
       const ranked = group.candidates.sort((a, b) => compareBandRecords(a, b, filters.bottomLineMode));
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
-      const records = requestedBand && requestedBand !== key
-        ? []
-        : ranked.slice(offset, offset + pageLimit);
+      const records = requestedBand && requestedBand !== key ? [] : ranked.slice(offset, offset + pageLimit);
       const returned = records.length;
       const hasMore = offset + returned < ranked.length;
       group.records = records;
@@ -274,7 +312,18 @@ export async function onRequest(context) {
     return json({
       ok: true,
       meta: {
+        audienceYear: 2027,
+        activeDataYear: 2026,
+        rankYear: 2026,
         candidateScore,
+        candidateReferenceScore: candidateScore,
+        candidateReferenceRank2026: candidateRank?.rankForGap || null,
+        candidateReferenceRankStart2026: candidateRank?.rankStart || null,
+        candidateReferenceRankEnd2026: candidateRank?.rankEnd || null,
+        candidateSameCount2026: candidateRank?.sameCount ?? null,
+        candidateRankEmptyScore: Boolean(candidateRank?.emptyScore),
+        candidateRankLabel: rankLabel(candidateRank),
+        classificationMode: 'score_delta',
         rangePreset,
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
@@ -285,7 +334,8 @@ export async function onRequest(context) {
           copy: filters.specialProjectMode === 'show_eligibility_projects' ? SPECIAL_PROJECT_COPY.showLabel : SPECIAL_PROJECT_COPY.hideLabel
         },
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
-        dataScope: '辽宁2025物理类',
+        dataScope: '辽宁 2026 物理类专业投档最低分',
+        dataBoundary: '面向 2027 备考家庭；输入为模考或预估参考分数，位次是 2026 历史参考位置，不是 2027 实际位次。',
         bands: bandsMeta,
         maxPerBand: configuredPageSize,
         pageSize: pageLimit,
@@ -301,9 +351,12 @@ export async function onRequest(context) {
       bands: grouped,
       counts,
       source: {
+        dataYear: 2026,
         manifestVersion: manifest.version || '',
         totalRecords: manifest.totalRecords || rawTotal,
-        chunks: chunks.length,
+        chunksTotal: allChunks.length,
+        chunksRead: chunks.length,
+        chunksSkipped: allChunks.length - chunks.length,
         rawScanned: rawTotal,
         rawCandidate,
         normalized,
@@ -316,16 +369,16 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'streaming-filtered-global-ranked-paged'
+        mode: 'score-window-pruned-global-ranked-paged'
       }
     });
   } catch (error) {
     return json({
       ok: false,
-      message: error && error.message ? error.message : String(error),
+      message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: 'major-bands 返回了 JSON 错误。请先测 /api/major-bands-health?probe=1；若健康探针正常，重点检查当前查询参数、公办优先筛选和低分段候选量。',
-      hint: '专业池接口已改为分块筛选模式；若仍失败，请检查 /fenxi/data/manifest.json 与 chunks 路径，或打开 /api/major-bands-health?probe=1 查看数据读取与低分段探针状态。'
+      engineerHint: '请检查 2026 ln-rank manifest、对应分块、年份配置和当前查询参数。',
+      hint: '可先打开 /api/major-bands-health?probe=1 检查数据读取；活动数据路径是 /fenxi/data/ln-rank-2026/。'
     }, 500);
   }
 }
