@@ -23,7 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+          show-progress: false
           ref: ${{ github.head_ref || github.ref_name }}
       - name: Decode and verify archive
         shell: bash
@@ -31,9 +32,10 @@ jobs:
           set -euo pipefail
           : > /tmp/v3952-remain.tar.gz
           for part in .bootstrap/v3952-rpart-*; do
-            echo "decoding ${part}"
+            echo "decoding ${part} ($(wc -c < "${part}") bytes)"
             base64 --decode "${part}" >> /tmp/v3952-remain.tar.gz
           done
+          echo "archive bytes: $(wc -c < /tmp/v3952-remain.tar.gz)"
           gzip -t /tmp/v3952-remain.tar.gz
           tar -tzf /tmp/v3952-remain.tar.gz
       - name: Extract and commit sources
