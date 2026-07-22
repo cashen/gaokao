@@ -17,8 +17,28 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+          show-progress: false
       - name: Verify protected paths, data, pages and contracts
-        run: python3 tools/ln-2026/verify-final-release-v3.py
+        id: release_contract
+        shell: bash
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release-v3.py > /tmp/v3953-verify.out 2> /tmp/v3953-verify.err
+          status=$?
+          cat /tmp/v3953-verify.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- V3953 VERIFY ERROR ---'
+            cat /tmp/v3953-verify.err
+            exit "$status"
+          fi
+      - name: Upload concise verification diagnostic
+        if: failure() && steps.release_contract.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3953-verify-error
+          path: /tmp/v3953-verify.err
+          if-no-files-found: error
+          retention-days: 1
       - name: Verify generated data source contract
         run: python3 tools/ln-2026/verify-generated-release.py
       - name: Compile readable Python build tools
