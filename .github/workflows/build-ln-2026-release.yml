@@ -39,7 +39,7 @@ jobs:
                               'subprocess.run(["pdftotext", "-raw", str(pdf), str(txt)], check=True)')
           text = text.replace('text = txt.read_text(encoding="utf-8", errors="ignore")',
                               'text = txt.read_text(encoding="utf-8", errors="ignore").replace(",", "")')
-          text = text.replace('"schoolCode": school_code.zfill(4) if school_code.isdigit() else school_code,', '"schoolCode2026": school_code.zfill(4) if school_code.isdigit() else school_code,')
+          text = text.replace('"schoolCode": school_code.zfill(4) if school_code.isdigit() else school_code,', '"id": f"ln-2026-{school_code.zfill(4) if school_code.isdigit() else school_code}-{major_code}",\n                        "schoolCode2026": school_code.zfill(4) if school_code.isdigit() else school_code,')
           text = text.replace('"school": school, "majorCode": major_code, "major": major,', '"school": school, "majorCode2026": major_code, "major": major,')
           text = text.replace('"score": nums[0], "tieChineseMath": nums[1]', '"score2026": nums[0], "tieChineseMath": nums[1]')
           needle = 'def download_rank_pdf(dest: Path):\n'
