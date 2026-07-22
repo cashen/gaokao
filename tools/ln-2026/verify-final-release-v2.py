@@ -26,8 +26,9 @@ def verify_manifest_and_chunks():
     for chunk in manifest['chunks']:
         path = base.ROOT / 'fenxi' / chunk['file']
         base.check(path.exists(), f'missing chunk {path}')
-        rows = json.loads(path.read_text(encoding='utf-8'))
-        base.check(len(rows) == chunk['recordCount'], f'chunk count mismatch {chunk["file"]}')
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        rows = payload if isinstance(payload, list) else payload.get('records', [])
+        base.check(len(rows) == chunk['recordCount'], f'chunk count mismatch {chunk["file"]}: {len(rows)} != {chunk["recordCount"]}')
         records.extend(rows)
     base.check(len(records) == 11628, f'chunk record sum {len(records)}')
     schools = {row.get('school') for row in records}
