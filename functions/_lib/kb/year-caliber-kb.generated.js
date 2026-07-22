@@ -1,21 +1,28 @@
+import {
+  LIAONING_PHYSICS_EXAM_CONFIG,
+  isPublicBottomLineVisible as sharedBottomLineVisible
+} from '../../../shared/resources/exam/liaoning-physics.js';
+
+const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
+
 export const YEAR_CALIBER_KB = {
-  version: 'v3955-year-caliber-ln-physics-2026',
-  province: '辽宁',
-  subject: '物理类',
-  activeDataYear: 2026,
-  rankTableYear: 2026,
-  referencePlanYear: 2026,
-  audienceYear: 2027,
+  version: 'v3955-year-caliber-ln-physics-2026-shared',
+  province: EXAM.provinceName,
+  subject: EXAM.subjectName,
+  activeDataYear: EXAM.dataYear,
+  rankTableYear: EXAM.rankYear,
+  referencePlanYear: EXAM.admissionBaseYear,
+  audienceYear: EXAM.audienceYear,
   planYear: null,
   lines: {
-    specialControlLine: 508,
-    undergraduateLine: 344,
-    vocationalLine: 150
+    specialControlLine: EXAM.specialControlScore,
+    undergraduateLine: EXAM.undergraduateControlScore,
+    vocationalLine: EXAM.vocationalControlScore
   },
   publicBottomLinePolicy: {
     visibleWhen: 'undergraduateLine <= candidateScore <= specialControlLine',
-    visibleMin: 344,
-    visibleMax: 508,
+    visibleMin: EXAM.undergraduateControlScore,
+    visibleMax: EXAM.specialControlScore,
     forbidBufferAboveSpecialControlLine: true,
     note: '中外合作、高收费和特殊项目只作为家庭复核事项，不因分数接近而自动判断适合。'
   },
@@ -42,7 +49,5 @@ export function getActiveLines() {
 }
 
 export function isPublicBottomLineVisible(score) {
-  const n = Number(score);
-  const { undergraduateLine, specialControlLine } = YEAR_CALIBER_KB.lines;
-  return Number.isFinite(n) && n >= undergraduateLine && n <= specialControlLine;
+  return sharedBottomLineVisible(score, EXAM);
 }
