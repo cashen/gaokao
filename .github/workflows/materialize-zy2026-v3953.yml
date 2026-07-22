@@ -1,0 +1,44 @@
+name: Materialize ZY2026 structure data
+
+on:
+  push:
+    branches:
+      - agent/zy2026-structure-v3953
+    paths:
+      - 'tools/ln-2026/build-zy2026-structure.py'
+      - '.github/workflows/materialize-zy2026-v3953.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/zy2026-structure-v3953
+          fetch-depth: 1
+      - name: Build audited 2025 to 2026 structure relations
+        run: python3 tools/ln-2026/build-zy2026-structure.py
+      - name: Commit generated structure data and route migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            data/zy2026 \
+            analysis/2026/zy2026-audit.json \
+            analysis/2026/zy2026-summary.json \
+            analysis/2026/zy2026-relations.json \
+            ln-rank/release-meta.json \
+            ln-rank/active-assets.json \
+            index.html e.html zy.html zy2026.html
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m 'Materialize ZY2026 audited structure relations'
+          git push origin HEAD:agent/zy2026-structure-v3953
