@@ -1,0 +1,20 @@
+{
+  "version": "three-year-2024-2026-v1.0.0",
+  "generatedAt": "2026-07-22T00:21:33.802969+00:00",
+  "primaryYear": 2026,
+  "historyYears": [
+    2025,
+    2024
+  ],
+  "rankComparison": "累计位次比例",
+  "neutralThresholdPctPoint": 0.4,
+  "thresholdMethod": "严格可比普通项目两次年度变化绝对值的第一四分位，限制在0.10—0.40个百分点",
+  "minimumAggregateSample": 15,
+  "strictMatchOnly": true,
+  "specialProjectsExcludedFromMainTrend": true,
+  "candidateTotals": {
+    "2024": 126332,
+    "2025": 118109,
+    "2026": 141691
+  }
+}
