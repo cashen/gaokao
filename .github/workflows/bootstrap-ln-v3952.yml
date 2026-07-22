@@ -29,8 +29,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ls -l .bootstrap/v3952-rpart-*
-          cat .bootstrap/v3952-rpart-* | base64 --decode > /tmp/v3952-remain.tar.gz
+          : > /tmp/v3952-remain.tar.gz
+          for part in .bootstrap/v3952-rpart-*; do
+            echo "decoding ${part}"
+            base64 --decode "${part}" >> /tmp/v3952-remain.tar.gz
+          done
           gzip -t /tmp/v3952-remain.tar.gz
           tar -tzf /tmp/v3952-remain.tar.gz
       - name: Extract and commit sources
@@ -51,7 +54,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git status --porcelain | grep -q '^'; then
-            git status --short
-          fi
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
