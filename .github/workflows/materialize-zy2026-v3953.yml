@@ -6,6 +6,7 @@ on:
       - agent/zy2026-structure-v3953
     paths:
       - 'tools/ln-2026/build-zy2026-structure.py'
+      - 'tools/ln-2026/run-build-zy2026-structure.py'
       - 'tools/ln-2026/finalize-v3953-assets.py'
       - '.github/workflows/materialize-zy2026-v3953.yml'
   pull_request:
@@ -31,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/build-zy2026-structure.py > /tmp/zy2026-build.out 2> /tmp/zy2026-build.err
+          python3 tools/ln-2026/run-build-zy2026-structure.py > /tmp/zy2026-build.out 2> /tmp/zy2026-build.err
           status=$?
           cat /tmp/zy2026-build.out
           if [ "$status" -ne 0 ]; then
