@@ -51,8 +51,9 @@ def verify_structure_pages():
         base.check(phrase in page, f'zy2026 visible copy missing {phrase}')
     for phrase in ('unmatched', 'fuzzy match', 'similarity_score', '真实新增', '真实消失', '新增659个专业'):
         base.check(phrase not in page + js, f'zy2026 technical or misleading copy visible: {phrase}')
-    for phrase in ('school-index.json', 'major-index.json', '证据充分', '填报前确认'):
+    for phrase in ('school-index.json', 'major-index.json', '填报前确认'):
         base.check(phrase in js, f'zy2026 runtime contract missing {phrase}')
+    base.check("证据${level==='high'?'充分'" in js, 'zy2026 rendered adviser evidence label')
     for phrase in ('@media(max-width:680px)', '@media(max-width:380px)', 'min-height:44px', 'font-size:16px'):
         base.check(phrase in css, f'zy2026 responsive contract missing {phrase}')
     root = base.text('index.html')
