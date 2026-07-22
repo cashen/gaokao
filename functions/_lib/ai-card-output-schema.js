@@ -31,7 +31,7 @@ function clip(value, max) {
 function signature(value) {
   return text(value)
     .replace(/[。；，、,.!！?？\s]/g, '')
-    .replace(/2026|2025|是否|变化|增减/g, '')
+    .replace(/2027|2026|2025|2024|是否|变化|增减/g, '')
     .slice(0, 42);
 }
 
@@ -76,18 +76,27 @@ function checkCategory(value) {
   if (hasAny(s, ['收费', '学费', '总成本', '家庭预算', '奖助'])) return 'fee';
   if (hasAny(s, ['转专业', '保研', '升学'])) return 'path';
   if (hasAny(s, ['计划', '招生'])) return 'plan';
-  if (hasAny(s, ['专业组', '选科', '体检', '单科'])) return 'requirement';
+  if (hasAny(s, ['专业组', '选科', '体检', '单科', '语种'])) return 'requirement';
   if (hasAny(s, ['校区', '办学地点'])) return 'campus';
-  if (hasAny(s, ['一分一段', '等位分', '同位分'])) return 'rank';
+  if (hasAny(s, ['一分一段', '等位分', '同位分', '志愿系统'])) return 'rank';
   return signature(s).slice(0, 12);
 }
 
+function normalizeCheckYear(value) {
+  return text(value)
+    .replace(/核验2026年?招生计划/g, '核验2027招生计划')
+    .replace(/2026年?招生计划、专业组、选科、体检或单科要求/g, '2027招生计划、选科、体检、语种或单科要求')
+    .replace(/用当年一分一段做最终换算/g, '用2027一分一段和正式志愿系统做最终换算');
+}
+
 function cleanBasis(items, fallback) {
-  const merged = uniqueList([...(Array.isArray(items) ? items : []), ...(fallback || [])], 8, 68);
+  const canonical = uniqueList(fallback || [], 8, 82);
+  const modelItems = uniqueList(Array.isArray(items) ? items : [], 8, 82);
+  const merged = uniqueList([...canonical, ...modelItems], 12, 82);
   const factual = merged.filter(x => !isAdviceOrRiskLine(x) && !hasAny(x, ['核验', '需要确认', '建议额外']));
   const preferred = [];
 
-  for (const key of ['卡片状态', '相对考生', '2025最低', '2024同口径参考', '211', '985', '双一流', '地域']) {
+  for (const key of ['当前位置', '相对参考分数', '2026最低投档', '历史对照', '2025同口径', '2024同口径', '211', '985', '双一流', '地域']) {
     const found = factual.find(x => x.includes(key) && !preferred.some(y => signature(y) === signature(x)));
     if (found) preferred.push(found);
     if (preferred.length >= 3) break;
@@ -102,23 +111,26 @@ function cleanBasis(items, fallback) {
 }
 
 function cleanChecks(items, fallback) {
-  const merged = uniqueList([...(Array.isArray(items) ? items : []), ...(fallback || [])], 12, 52);
+  const modelItems = (Array.isArray(items) ? items : []).map(normalizeCheckYear);
+  const fallbackItems = (Array.isArray(fallback) ? fallback : []).map(normalizeCheckYear);
+  const merged = uniqueList([...modelItems, ...fallbackItems], 12, 58);
   const defaults = [
-    '核验2026招生计划是否变化',
-    '核验专业组、选科、体检或单科要求',
-    '核验办学地点、校区和收费口径',
-    '用当年一分一段做最终换算'
+    '核验2027招生计划和专业是否继续投放',
+    '核验2027选科、体检、语种或单科要求',
+    '核验2027办学地点、校区、培养方式和收费口径',
+    '用2027一分一段和正式志愿系统做最终换算'
   ];
 
   const out = [];
   const categories = new Set();
 
-  for (const item of [...merged, ...defaults]) {
+  for (const raw of [...merged, ...defaults]) {
+    const item = normalizeCheckYear(raw);
     if (!isCheckLine(item)) continue;
     if (isAdviceOrRiskLine(item) && !hasAny(item, ['招生计划', '专业组', '校区', '选科', '体检', '单科', '收费'])) continue;
     const cat = checkCategory(item);
     if (categories.has(cat)) continue;
-    const cleaned = clip(item.replace(/[。；;]+$/g, ''), 48);
+    const cleaned = clip(item.replace(/[。；;]+$/g, ''), 54);
     categories.add(cat);
     out.push(cleaned);
     if (out.length >= 4) break;
@@ -128,7 +140,6 @@ function cleanChecks(items, fallback) {
 }
 
 function tagify(value) {
-
   const s = text(value);
   if (!s) return '';
   if (s.includes('中外合作')) return '中外合作';
@@ -144,7 +155,7 @@ function tagify(value) {
   if (s.includes('就业')) return '就业核验';
   if (s.includes('招生计划') || s.includes('计划')) return '计划变化';
   if (s.includes('校区') || s.includes('办学地点')) return '校区核验';
-  if (s.includes('专业组') || s.includes('选科')) return '专业组变化';
+  if (s.includes('专业组') || s.includes('选科')) return '选科核验';
   if (s.includes('课程') || s.includes('工科')) return '课程强度';
   if (s.includes('资源')) return '资源依赖';
   if (s.includes('行业')) return '行业周期';
@@ -168,9 +179,9 @@ function normalizeSummary(obj, fallback, record) {
   const status = record?.statusLabel || record?.position || '';
   let summary = raw;
 
-  if (!summary || summary.length > 60 || splitSentences(summary).length > 1) {
-    if (status) summary = status.includes('主要参考') ? '这条属于主要参考范围，可以放进家庭讨论。' : `这条属于${status}范围，需结合当年数据核验。`;
-    else summary = fallback.summary || '这条可以放进家庭讨论，但需结合当年数据核验。';
+  if (!summary || summary.length > 60 || splitSentences(summary).length > 1 || hasAny(summary, ['录取概率', '稳上', '必录', '一定能上'])) {
+    if (status) summary = status.includes('主要参考') ? '这条属于主要参考范围，可以放进家庭讨论。' : `这条属于${status}范围，需结合2027正式资料确认。`;
+    else summary = fallback.summary || '这条可以放进家庭讨论，但需结合2027正式资料确认。';
   }
 
   summary = summary
@@ -188,25 +199,24 @@ function cleanReminder(value, fallback, checks) {
     .filter(x => !checks.some(c => signature(c) === signature(x)))
     .filter(Boolean);
 
-  return clip(sentences[0] || source || '建议结合学校层次、城市资源、专业出口和家庭容错率判断。', 88);
+  return clip(sentences[0] || source || '建议结合专业内容、学校资源、城市条件和孩子真实接受度判断。', 88);
 }
-
 
 function specialRealityReminder(record, specialProgram) {
   const m = String(record?.major || '');
   if (m.includes('电子') || m.includes('通信') || m.includes('信息工程') || m.includes('计算机') || m.includes('软件') || m.includes('人工智能')) {
-    return '电子信息/计算机方向看重课程质量、项目训练和就业去向；特殊项目还要单独看培养资源。';
+    return '电子信息和计算机方向看重课程质量、项目训练和持续学习；特殊项目还要单独看培养资源。';
   }
   if (m.includes('医学') || m.includes('临床') || m.includes('口腔') || m.includes('药学')) {
-    return '医学相关方向周期长、路径硬；特殊项目还要单独看培养资源、执业路径和家庭预算。';
+    return '医学相关方向学习周期长、资格路径明确；特殊项目还要单独看培养资源、执业路径和家庭预算。';
   }
   if (m.includes('金融') || m.includes('会计') || m.includes('经济') || m.includes('法学')) {
-    return '财经法学方向更看学校平台、城市资源和实习机会；特殊项目还要单独看培养资源。';
+    return '财经法学方向更依赖学校平台、城市资源和实习机会；特殊项目还要单独看培养资源。';
   }
   if (specialProgram?.primaryType) {
-    return '专业本身仍要看培养质量、课程安排和就业去向，特殊项目不能只按普通专业理解。';
+    return '专业本身仍要看培养质量、课程安排和毕业去向，特殊项目不能只按普通专业理解。';
   }
-  return '建议同时看学校层次、城市资源、专业出口和家庭容错率。';
+  return '建议同时看专业内容、学校资源、城市条件和孩子真实接受度。';
 }
 
 function specialCheckLines(specialProgram) {
@@ -216,30 +226,30 @@ function specialCheckLines(specialProgram) {
     return [
       '核验中外合作办学收费、培养模式和毕业证/学位证口径',
       '核验外方合作院校、是否出国、英语授课比例及转专业/升学政策',
-      '核验2026招生计划、专业组、选科、体检或单科要求',
-      '用当年一分一段做最终换算'
+      '核验2027招生计划、选科、体检、语种或单科要求',
+      '用2027一分一段和正式志愿系统做最终换算'
     ];
   }
   if (types.includes('高收费专业')) {
     return [
       '核验学费、住宿费、奖助政策和四年总成本',
-      '核验2026招生计划、专业组、选科、体检或单科要求',
-      '核验办学地点、校区和收费口径',
-      '用当年一分一段做最终换算'
+      '核验2027招生计划、选科、体检、语种或单科要求',
+      '核验2027办学地点、校区、培养方式和收费口径',
+      '用2027一分一段和正式志愿系统做最终换算'
     ];
   }
   if (types.includes('联合培养') || types.includes('校企合作/定向')) {
     return [
       '核验培养地点、培养单位和毕业证/学位证口径',
       '核验企业参与、实习安排、服务期或协议约束',
-      '核验2026招生计划、专业组、选科、体检或单科要求',
-      '用当年一分一段做最终换算'
+      '核验2027招生计划、选科、体检、语种或单科要求',
+      '用2027一分一段和正式志愿系统做最终换算'
     ];
   }
   return [
     ...(specialProgram.checks || []),
-    '核验2026招生计划、专业组、选科、体检或单科要求',
-    '用当年一分一段做最终换算'
+    '核验2027招生计划、选科、体检、语种或单科要求',
+    '用2027一分一段和正式志愿系统做最终换算'
   ];
 }
 
@@ -261,15 +271,15 @@ function specificParentNote(record, fallbackSummary) {
   const status = String(record?.statusLabel || record?.position || '');
 
   if (Number.isFinite(delta) && delta > 0) {
-    return `可以关注，但不要当作稳妥项；先核验${major}方向实力和招生变化。`;
+    return `可以关注，但不要当作稳妥项；先确认孩子是否接受${major}方向，再核验2027正式资料。`;
   }
-  if (status.includes('稳妥') || status.includes('匹配') || (Number.isFinite(delta) && delta <= 0)) {
-    return `从历史位置看不属于明显上探，但是否靠前仍要看${major}方向接受度和当年计划。`;
+  if (status.includes('稳妥') || status.includes('匹配') || status.includes('主要参考') || (Number.isFinite(delta) && delta <= 0)) {
+    return `从2026历史位置看不属于明显上探，但仍要看孩子对${major}方向的接受度和2027计划。`;
   }
   if (fallbackSummary.includes('冲') || fallbackSummary.includes('上探')) {
-    return `可以关注，但不能只按低风险理解；重点核验${major}方向实力。`;
+    return `可以关注，但不能只按低风险理解；先确认孩子是否接受${major}方向。`;
   }
-  return `可以放进家庭讨论，但要结合${major}方向实力和孩子能力。`;
+  return `可以放进家庭讨论，先听孩子对${major}方向的想法，再核对2027正式资料。`;
 }
 
 function isGenericParentNote(value) {
@@ -304,7 +314,7 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
     : cleanChecks(obj.checks, fallback.checks);
 
   const summary = specialProgram.hasSpecial
-    ? clip(`这条可看，但${specialProgram.primaryType}规则必须先核验。`, 45)
+    ? clip(`这条可看，但${specialProgram.primaryType}规则必须先确认。`, 45)
     : normalizeSummary(obj, fallback, record);
 
   const basis = cleanBasis(obj.basis, fallback.basis);
@@ -330,11 +340,11 @@ export function normalizeDiagnosis(data, record, candidateScore, modelText = '')
     parentNote,
     riskTags,
     specialProgram: specialProgram.hasSpecial ? specialProgram : null,
-    disclaimer: '仅做专业卡片解释，不等同于录取预测。'
+    disclaimer: '以2026最低投档记录为历史参考，不等同于2027录取预测。'
   });
 }
 
-export function parseDiagnosisFromModel(text, record, candidateScore) {
-  const parsed = pickJson(text);
+export function parseDiagnosisFromModel(value, record, candidateScore) {
+  const parsed = pickJson(value);
   return normalizeDiagnosis(parsed, record, candidateScore, '');
 }
