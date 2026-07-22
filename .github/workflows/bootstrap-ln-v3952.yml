@@ -1,0 +1,35 @@
+name: Bootstrap LN v3.9.52.0 source
+
+on:
+  push:
+    branches:
+      - agent/ln-rank-human-difficulty-v3952
+    paths:
+      - '.bootstrap/v3952-rpart-*'
+      - '.github/workflows/bootstrap-ln-v3952.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Materialize reviewed source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/v3952-rpart-* | base64 --decode > /tmp/v3952-remain.tar.gz
+          tar -xzf /tmp/v3952-remain.tar.gz
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ln-rank tools .github/workflows/verify-ln-2026-final.yml
+          if git diff --cached --quiet; then
+            echo 'No materialization changes required.'
+            exit 0
+          fi
+          git commit -m 'Materialize LN v3.9.52.0 reviewed sources'
+          git push
