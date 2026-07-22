@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/audit-trend-method.py", line 111, in <module>
-    main()
-  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/audit-trend-method.py", line 82, in main
-    raise RuntimeError(f'Comparable percentile deltas missing. container={container_key}; records={len(records)}; complete={len(complete)}; sampleKeys={sample_keys}')
-RuntimeError: Comparable percentile deltas missing. container=root.records; records=6553; complete=6553; sampleKeys=['id', 'major', 'majorDirectionLabel', 'rank2024', 'rank2025', 'rank2026', 'rankDelta25vs24', 'rankDelta26vs25', 'rankPctPoint26vs25', 'school', 'score2024', 'score2025', 'score2026', 'scoreBandLabel', 'trendLabel', 'trendType']
