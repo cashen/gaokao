@@ -33,7 +33,20 @@ jobs:
             exit "$status"
           fi
       - name: Verify generated data source contract
-        run: python3 tools/ln-2026/verify-generated-release.py
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-generated-release.py > /tmp/generated-verification.log 2>&1
+          status=$?
+          cat /tmp/generated-verification.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/generated-verification.log tools/ln-2026/generated-verification-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/generated-verification-error.log
+            git commit -m "ci: capture LN 2026 generated-data verification failure [verify-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
       - name: Compile readable Python build tools
         run: |
           python3 -m py_compile \
