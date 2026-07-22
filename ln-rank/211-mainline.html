@@ -40,7 +40,7 @@
       <div class="lm-start-grid">
         <button type="button" class="lm-start-card" data-start-tab="school"><b>已经知道学校</b><span>按学校看：这所 211 院校主要和哪些本科专业方向有关。</span></button>
         <button type="button" class="lm-start-card" data-start-tab="major"><b>孩子有专业方向</b><span>按专业看：同一个专业在不同 211 院校里的学校背景差异。</span></button>
-        <button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道孩子位置</b><span>先按当前输入分数对照历史记录；当前已接入2026一分一段，位次用于解释历史位置 211 背景。</span></button>
+        <button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道孩子位置</b><span>先用模考或预估参考分数对照 2026 投档记录；位次来自 2026 一分一段，只用于解释历史位置。</span></button>
       </div>
     </section>
 
@@ -61,7 +61,7 @@
     </section>
 
     <section class="lm-panel" data-panel="score" hidden>
-      <div class="lm-panel-head"><div><h2>按孩子位置看：当前位置附近的 211 专业背景记录</h2><p>当前按输入参考分数对照辽宁2026专业投档记录，位次只用于解释历史位置。军事类特殊院校不混入普通入口。</p></div></div>
+      <div class="lm-panel-head"><div><h2>按孩子位置看：当前位置附近的 211 专业背景记录</h2><p>当前按输入参考分数对照辽宁 2026 专业投档记录，位次只用于解释历史位置。军事类特殊院校不混入普通入口。</p></div></div>
       <div class="lm-score-console lm-score-console-human"><label>参考分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 580" /></label><label>查看方式 <select id="scoreLevel" class="lm-select"><option value="primary_secondary">先看本校方向和本校相关</option><option value="primary">只看本校方向</option><option value="all">连方向提醒也一起看</option></select></label><button id="scoreQuery" class="lm-primary" type="button">按当前位置查看</button></div>
       <div id="scoreResult" class="lm-detail"></div>
     </section>
@@ -71,7 +71,7 @@
     <section class="aux-page-bottom-link" aria-label="返回主线">
       <span>需要重新查分数和专业？</span><a href="/ln-rank/">回到辽宁物理类专业初选参考</a>
     </section>
-    <footer class="lm-footer">版本：v3.9.51.0｜数据口径：211 KB v0.1 + 统一背景位置口径｜本页用于家庭讨论和人工复核，不做录取判断。</footer>
+    <footer class="lm-footer">版本：v3.9.51.0｜数据口径：辽宁 2026 物理类专业投档 + 211 KB v0.1｜本页用于家庭讨论和人工复核，不做录取判断。</footer>
   </main>
   <script type="module" src="/ln-rank/js/211-mainline/211-mainline-app.v3951_0.js?v=3951_0"></script>
 </body>

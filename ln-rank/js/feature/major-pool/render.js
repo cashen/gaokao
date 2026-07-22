@@ -1,15 +1,15 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3949_3';
-import { fmt } from '../../core/number-utils.js?v=3949_3';
-import { renderHistoryScore } from './history-score-render.js?v=3949_3';
-import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3949_3';
-import { buildReviewPointsForRecord } from './review-point-builder.js?v=3949_3';
-import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3949_3';
-import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3949_3';
-import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3949_3';
-import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3949_3';
-import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3949_3';
-import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3949_3';
-import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3949_3';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3951_0';
+import { fmt } from '../../core/number-utils.js?v=3951_0';
+import { renderHistoryScore } from './history-score-render.js?v=3951_0';
+import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3951_0';
+import { buildReviewPointsForRecord } from './review-point-builder.js?v=3951_0';
+import { buildSchoolIndustryTags } from '../../knowledge/index.js?v=3951_0';
+import { getLocalBackgroundHint } from '../../knowledge/local-background-hint.js?v=3951_0';
+import { get211BackgroundHint } from '../../knowledge/211-background-hint.js?v=3951_0';
+import { normalizeScoreBand } from '../../domain/score-band-contract.js?v=3951_0';
+import { normalizeSpecialProjectMode, SPECIAL_PROJECT_SHOW_MODE, specialProjectResultNote, specialProjectCardBadge } from '../../domain/special-project-policy.js?v=3951_0';
+import { resolveLocalStrengthMark, filterLocalStrengthRecords, buildLocalStrengthSummary, localStrengthRelationText } from './local-strength-view.js?v=3951_0';
+import { majorUnderstandingCard } from '../../knowledge/major-understanding-resolver.js?v=3951_0';
 
 const expandedMajorUnderstandingCards = new Set();
 const expandedLocalStrengthCards = new Set();
@@ -22,7 +22,7 @@ function interactionKey(record = {}, prefix = 'card') {
 }
 
 function majorUnderstandingKey(record = {}) {
-  return [record.id, record.schoolCode2026, record.majorCode2026, record.school, record.major, record.score2025, record.rank2025].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
+  return [record.id, record.schoolCode2026, record.majorCode2026, record.school, record.major, record.score2026 ?? record.score, record.rank2026 ?? record.rank].filter(Boolean).join('__') || `${record.school || ''}__${record.major || ''}`;
 }
 
 function safe(value, fallback = '—') { return value == null || value === '' ? fallback : value; }
@@ -244,13 +244,15 @@ function scoreDistance(record = {}) {
 }
 
 function compareYearText(record = {}) {
-  const s2025 = record.score2026 ?? record.score;
-  const r2025 = record.rank2026 ?? record.rank;
+  const s2026 = record.score2026 ?? record.score;
+  const r2026 = record.rank2026 ?? record.rank;
+  const s2025 = record.score2025;
+  const r2025 = record.rank2025;
   const s2024 = record.score2024 ?? record.historyScore2024 ?? record.lastYearScore;
   const r2024 = record.rank2024 ?? record.historyRank2024 ?? record.lastYearRank;
-  const year2026 = `2026 ${fmt(s2026)}分 / ${fmt(r2026)}位`;
-  const year2025 = (s2025 || r2025) ? `2025 ${fmt(s2025)}分 / ${fmt(r2025)}位` : '2025同口径待核验';
-  const year2024 = (s2024 || r2024) ? `2024 ${fmt(s2024)}分 / ${fmt(r2024)}位` : '2024同口径待核验';
+  const year2026 = (s2026 != null || r2026 != null) ? `2026 ${fmt(s2026)}分 / ${fmt(r2026)}位` : '2026投档数据待核验';
+  const year2025 = (s2025 != null || r2025 != null) ? `2025 ${fmt(s2025)}分 / ${fmt(r2025)}位` : '2025同口径待核验';
+  const year2024 = (s2024 != null || r2024 != null) ? `2024 ${fmt(s2024)}分 / ${fmt(r2024)}位` : '2024同口径待核验';
   return { year2026, year2025, year2024 };
 }
 
@@ -380,11 +382,12 @@ function renderCompareRows(group) {
     const years = compareYearText(record);
     const first = type === 'school' ? safe(record.major) : safe(record.school);
     const second = type === 'school'
-      ? years.year2025
-      : String(record.displayLocation || record.geoEntity || '地区待核验') + '｜' + years.year2025;
+      ? years.year2026
+      : String(record.displayLocation || record.geoEntity || '地区待核验') + '｜' + years.year2026;
     return '<li class="natural-compare-row">' +
       '<b>' + escapeHtml(first) + '</b>' +
       '<span>' + escapeHtml(second) + '</span>' +
+      '<span>' + escapeHtml(years.year2025) + '</span>' +
       '<span>' + escapeHtml(years.year2024) + '</span>' +
       '<em>' + escapeHtml(compareRowNote(record, type)) + '</em>' +
     '</li>';
@@ -594,8 +597,8 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
     </div>
     <div class="meta-pills">
       <span class="meta-pill">2026投档最低分：${fmt(record.score2026 ?? record.score)} 分</span>
-      <span class="meta-pill">2025最低位次：${fmt(record.rank2026 ?? record.rank)}</span>
-      <span class="meta-pill">相对考生：${deltaText} 分</span>
+      <span class="meta-pill">2026对应累计位次约：${fmt(record.rank2026 ?? record.rank)}</span>
+      <span class="meta-pill">相对参考分数：${deltaText} 分</span>
       <span class="meta-pill">适合位置：<b class="ln-fit-position ${bandClass}">${escapeHtml(safe(record.position))}</b></span>
     </div>
     ${renderHistoryScore(record)}

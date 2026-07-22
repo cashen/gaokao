@@ -230,7 +230,7 @@ function resetVisible() {
 }
 
 function resultRecordKey(record = {}) {
-  return [record.id, record.schoolCode2025, record.majorCode2025, record.school, record.major, record.score2026 ?? record.score, record.rank2026 ?? record.rank]
+  return [record.id, record.schoolCode2026, record.majorCode2026, record.school, record.major, record.score2026 ?? record.score, record.rank2026 ?? record.rank]
     .filter(value => value != null && value !== '')
     .join('__');
 }
@@ -601,6 +601,20 @@ async function loadData() {
       candidateScore: state.candidateScore,
       rangePreset: state.rangePreset
     });
+    try {
+      const rankMeta = state.bands.data?.meta || {};
+      const values = {
+        'lnRank.selectionPool.candidateRank2026': rankMeta.candidateReferenceRank2026,
+        'lnRank.selectionPool.candidateRankStart2026': rankMeta.candidateReferenceRankStart2026,
+        'lnRank.selectionPool.candidateRankEnd2026': rankMeta.candidateReferenceRankEnd2026,
+        'lnRank.selectionPool.candidateSameCount2026': rankMeta.candidateSameCount2026,
+        'lnRank.selectionPool.candidateRankLabel2026': rankMeta.candidateRankLabel
+      };
+      Object.entries(values).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') localStorage.setItem(key, String(value));
+        else localStorage.removeItem(key);
+      });
+    } catch {}
     const signature = currentQuerySignature();
     state.bands.querySignature = signature;
     state.bands.resultSignature = signature;

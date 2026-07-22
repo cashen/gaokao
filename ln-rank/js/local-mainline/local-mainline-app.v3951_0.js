@@ -144,8 +144,11 @@ function renderMajors() {
   $('majorList').innerHTML = arr.length ? arr.slice(0, 80).map(majorCard).join('') : emptyHtml('没有找到专业', '可以换成更标准的专业名称，例如“电气工程及其自动化”。');
 }
 function historyLine(r) {
-  if (r.score2024 || r.rank2024) return `<div class="lm-history">2024同口径参考：${r.score2024 ? `${fmt(r.score2024)}分` : '分数暂无'} / ${r.rank2024 ? `${fmt(r.rank2024)}位` : '位次暂无'}${r.historyCompare?.rankTrendText ? `｜${esc(r.historyCompare.rankTrendText)}` : ''}</div>`;
-  return '';
+  const rows = [];
+  if (r.score2025 != null || r.rank2025 != null) rows.push(`2025：${r.score2025 != null ? `${fmt(r.score2025)}分` : '分数暂无'} / ${r.rank2025 != null ? `${fmt(r.rank2025)}位` : '位次暂无'}`);
+  if (r.score2024 != null || r.rank2024 != null) rows.push(`2024：${r.score2024 != null ? `${fmt(r.score2024)}分` : '分数暂无'} / ${r.rank2024 != null ? `${fmt(r.rank2024)}位` : '位次暂无'}`);
+  const trend = r.historyCompare?.rankTrendText ? `｜${esc(r.historyCompare.rankTrendText)}` : '';
+  return rows.length ? `<div class="lm-history">历史同口径参考：${rows.join('；')}${trend}</div>` : '';
 }
 function recordCard(r, score = '') {
   const ev = r.localMainline || {};
@@ -154,7 +157,7 @@ function recordCard(r, score = '') {
   const link = `/ln-rank/?${scoreParam}school=${encodeURIComponent(r.school)}&major=${encodeURIComponent(r.major)}&source=local-mainline`;
   return `<article class="lm-record-card">
     <div class="lm-record-top"><div><h3>${esc(r.school)}｜${esc(r.major)}</h3><p>${esc(r.displayLocation || '')}${r.natureLabel ? `｜${esc(r.natureLabel)}` : ''}</p></div><span class="lm-pill ${levelClass(level)}">${esc(levelHumanLabel(level))}</span></div>
-    <div class="lm-data-row"><span>2025历史参考：<b>${fmt(r.score2026)}分</b></span><span>最低位次：<b>${fmt(r.rank2026)}</b></span>${Number.isFinite(Number(r.scoreDelta)) ? `<span>相对孩子：<b>${r.scoreDelta > 0 ? '+' : ''}${fmt(r.scoreDelta)}分</b></span>` : ''}</div>
+    <div class="lm-data-row"><span>2026投档参考：<b>${fmt(r.score2026)}分</b></span><span>对应累计位次约：<b>${fmt(r.rank2026)}</b></span>${Number.isFinite(Number(r.scoreDelta)) ? `<span>相对参考分数：<b>${r.scoreDelta > 0 ? '+' : ''}${fmt(r.scoreDelta)}分</b></span>` : ''}</div>
     ${historyLine(r)}
     <div class="lm-mainline-row"><span>${esc(ev.label || levelText(level))}｜${esc(ev.direction || '')}</span></div>
     <div class="lm-evidence-row">${(ev.evidence || []).slice(0,3).map(x => `<span class="lm-evidence-chip">${esc(String(x).replace('支撑','').replace('评估记录','学科评估'))}</span>`).join('') || '<span class="lm-evidence-chip">省内背景证据</span>'}</div>

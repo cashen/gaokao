@@ -35,7 +35,7 @@ function pct(part, total) {
 function deltaText(delta) {
   const n = Number(delta);
   if (!Number.isFinite(n)) return '分差待核验';
-  return `相对孩子 ${n > 0 ? '+' : ''}${n} 分`;
+  return `相对参考分数 ${n > 0 ? '+' : ''}${n} 分`;
 }
 
 function scoreRankText(item) {
@@ -121,8 +121,8 @@ function itemRuns(item) {
   const band = item.poolBand || {};
   const bandLabel = band.detail || item.statusLabel || '待判断';
   const bandStyle = styleForBand(band);
-  const deltaStyle = styleForDelta(item.scoreDelta);
-  const rankStyle = styleForRankGap(item.rankGap);
+  const deltaStyle = styleForDelta(item.scoreDelta2026 ?? item.scoreDelta);
+  const rankStyle = styleForRankGap(item.rankGap2026 ?? item.rankGap);
   const tags = shortTags(item);
   const special = item.specialProject?.hasSpecialProject ? `特殊项目：${item.specialProject.labelText || item.specialProject.primaryLabel || '需资格核验'}` : '';
   return [
@@ -132,9 +132,9 @@ function itemRuns(item) {
     { content: '｜' },
     { content: bandLabel, style: bandStyle },
     { content: '｜' },
-    { content: deltaText(item.scoreDelta), style: deltaStyle },
+    { content: deltaText(item.scoreDelta2026 ?? item.scoreDelta), style: deltaStyle },
     { content: '｜' },
-    { content: rankGapText(item.rankGap), style: rankStyle },
+    { content: rankGapText(item.rankGap2026 ?? item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
     { content: `｜${historyScoreText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,

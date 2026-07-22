@@ -27,15 +27,22 @@ function clean(value, max = 200) {
 }
 
 function classify(item = {}) {
-  const key = item.statusKey || '';
-  const delta = num(item.scoreDelta, 0);
-  if (['superRush', 'bigRush'].includes(key) || delta >= 16) return { group: 'rush', detail: '稍高目标', position: '稍高目标区' };
-  if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '稍高目标', position: '稍高目标' };
-  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '主要参考', position: '主要参考' };
-  if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '主要参考', position: '主要参考偏稳' };
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '低分侧补充', position: '低分侧补充' };
-  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '更稳补充', position: '后段更稳补充' };
-  return { group: 'safe', detail: '低分侧补充', position: '低分侧补充确认' };
+  if (item.historicalOnly) return { key: 'unknown', group: 'unknown', detail: '历史自选', position: '尚未匹配到 2026 同口径记录' };
+  const existing = item.poolBand || {};
+  const key = existing.key || item.bandKey || item.band || '';
+  if (['upper', 'near', 'steady'].includes(key)) return {
+    ...existing,
+    key,
+    group: key === 'upper' ? 'rush' : key === 'near' ? 'stable' : 'safe',
+    detail: key === 'upper' ? '稍高目标' : key === 'near' ? '主要参考' : '低分侧补充',
+    position: existing.position || (key === 'upper' ? '稍高目标区' : key === 'near' ? '主要参考区' : '低分侧补充区')
+  };
+  const delta = num(item.scoreDelta2026 ?? item.scoreDelta, null);
+  if (delta == null) return { key: 'unknown', group: 'unknown', detail: '待核验', position: '分差待核验' };
+  if (delta >= 1 && delta <= 10) return { key: 'upper', group: 'rush', detail: '稍高目标', position: '稍高目标区' };
+  if (delta >= -10 && delta <= 0) return { key: 'near', group: 'stable', detail: '主要参考', position: '主要参考区' };
+  if (delta >= -25 && delta <= -11) return { key: 'steady', group: 'safe', detail: '低分侧补充', position: '低分侧补充区' };
+  return { key: 'outside', group: 'unknown', detail: '当前范围外', position: '不在当前查看范围内' };
 }
 
 function normalizeItems(items = []) {
@@ -53,7 +60,11 @@ function normalizeItems(items = []) {
       score2024: num(item.score2024, null),
       rank2024: num(item.rank2024, null),
       historyCompare: item.historyCompare || null,
-      scoreDelta: num(item.scoreDelta, null),
+      scoreDelta2026: num(item.scoreDelta2026 ?? item.scoreDelta, null),
+      scoreDelta: num(item.scoreDelta2026 ?? item.scoreDelta, null),
+      rankGap2026: num(item.rankGap2026 ?? item.rankGap, null),
+      rankGap: num(item.rankGap2026 ?? item.rankGap, null),
+      historicalOnly: Boolean(item.historicalOnly),
       statusLabel: clean(item.statusLabel, 60),
       position: clean(item.position || poolBand.position, 80),
       displayLocation: clean(item.displayLocation || item.geoEntity || '', 90),
@@ -71,7 +82,7 @@ function normalizeItems(items = []) {
       poolBand,
       campusReview: getCampusForItem(item)
     };
-  }).filter(x => x.school || x.major);
+  }).filter(x => (x.school || x.major) && !x.historicalOnly);
 }
 
 function getStats(items = []) {
@@ -263,7 +274,7 @@ function governanceBoundaryLines() {
     '',
     `- 年度口径：${YEAR_CALIBER_KB.reportCopy}`,
     `- 辽宁志愿模式：${formatLiaoningOrdinaryUndergraduatePolicyLine()}`, 
-    '- 两年位次变化：只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。',
+    '- 三年位置变化：只反映 2024—2026 同校同专业同项目属性的历史投档位置变化，不代表 2027 年录取结果。',
     '- 招生章程：学费、校区、培养模式、体检限制、外语语种、转专业和毕业证/学位证口径必须以学校当年招生章程为准。',
     ''
   ];
@@ -274,11 +285,11 @@ function majorTrendLines(summary = {}) {
   const lines = [];
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return lines;
-  lines.push('## 两年位次变化参考');
+  lines.push('## 近三年投档位置变化参考');
   lines.push('');
   notes.slice(0, 3).forEach((note, index) => lines.push(`${index + 1}. ${clean(note, 240)}`));
   lines.push('');
-  lines.push('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。');
+  lines.push('以上只反映 2024—2026 同校同专业同项目属性的历史投档位置变化，不代表 2027 年录取结果。');
   lines.push('');
   return lines;
 }
@@ -384,7 +395,7 @@ function summaryLines(summary) {
   const lines = [];
   lines.push('## 概要判断');
   lines.push('');
-  lines.push(`- 考生：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜已选专业 ${fmt(summary.totalCount)} 个`);
+  lines.push(`- 参考分数：${summary.candidateScore ? fmt(summary.candidateScore) + ' 分' : '分数未填写'}｜${summary.candidateRankLabel || '位次待核验'}｜已选专业 ${fmt(summary.totalCount)} 个`);
   if (summary.candidateSameCount != null) lines.push(`- 同分人数：${fmt(summary.candidateSameCount)} 人｜内部计算采用同分末位累计：${fmt(summary.candidateRankForGap)} 位`);
   if (summary.rankZoneName) lines.push(`- 特控线锚点：${fmt(summary.specialControlScore)} 分｜${summary.specialControlRankLabel || '位次待核验'}｜功能区：${summary.rankZoneName}`);
   if (summary.scoreOffsetFromSpecial != null) lines.push(`- 相对特控线：${summary.scoreOffsetFromSpecial >= 0 ? '高出' : '低于'} ${fmt(Math.abs(summary.scoreOffsetFromSpecial))} 分｜位次差 ${summary.rankOffsetFromSpecial == null ? '待核验' : (summary.rankOffsetFromSpecial < 0 ? '优于约 ' + fmt(Math.abs(summary.rankOffsetFromSpecial)) + ' 名' : '落后约 ' + fmt(summary.rankOffsetFromSpecial) + ' 名')}`);
@@ -523,8 +534,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
 
   lines.push(`# ${title}`, '');
   lines.push(`- 报告类型：${hasAnalysis ? '带解读的报告' : '当前排序清单'}`);
-  lines.push(`- 考生分数：${candidateScore}`);
-  lines.push(`- 考生位次：${displayRankForTitle}`);
+  lines.push(`- 模考 / 预估参考分数：${candidateScore}`);
+  lines.push(`- 2026 历史参考位置：${displayRankForTitle}`);
   lines.push(`- 数据口径：${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。`);
   lines.push('- 使用边界：本报告用于家庭讨论和人工确认，不等同于录取预测。', '');
 
