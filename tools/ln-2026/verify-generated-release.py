@@ -21,11 +21,16 @@ analysis=json.loads((ROOT/'analysis/2026/overall-summary.json').read_text(encodi
 check(analysis.get('version')=='three-year-2024-2026-centered-v1.0.0','centered analysis version');check(analysis.get('strictCompleteCount')==6553,'three-year strict sample count');check(sum(analysis.get('trendCounts',{}).values())==6553,'three-year trend count sum')
 policy=analysis.get('policy',{});check(policy.get('rankComparison')=='累计位次比例扣除年度共同位移后的相对变化','centered rank comparison method');check(.5<=float(policy.get('neutralThresholdPctPoint',0))<=1.5,'centered neutral threshold')
 unified=(ROOT/'ln2026.html').read_text(encoding='utf-8');redirect=(ROOT/'lngk2026.html').read_text(encoding='utf-8')
-check('v3.9.52.0' in unified,'unified page product version');check('2024—2026' in unified,'unified page three-year copy');check('相比多数专业，更难报了' in unified and '相比多数专业，更容易报了' in unified,'human difficulty copy');check('不承诺录取结果' in unified,'result boundary');check('/ln2026.html#score-band' in redirect,'legacy score-band redirect')
+check('v3.9.53.0' in unified,'unified page product version');check('2024—2026' in unified,'unified page three-year copy');check('相比多数专业，更难报了' in unified and '相比多数专业，更容易报了' in unified,'human difficulty copy');check('不承诺录取结果' in unified,'result boundary');check('/ln2026.html#score-band' in redirect,'legacy score-band redirect')
+check('major-difficulty-2026.v3953_0.js' in unified,'ascending score-band asset')
 for bad in ('保证录取','稳录','必报','一定上涨','冷门捡漏','就业一定更好','专业投档热度观察','相对全体前移','相对全体后移'):
     check(bad not in unified,f'unified page forbidden copy: {bad}')
+zy=json.loads((ROOT/'data/zy2026/summary.json').read_text(encoding='utf-8'))
+audit=json.loads((ROOT/'analysis/2026/zy2026-audit.json').read_text(encoding='utf-8'))
+check(zy.get('productVersion')=='v3.9.53.0','zy2026 version');check(zy.get('records2026')==11628,'zy2026 record count');check(10000<=int(zy.get('records2025',0))<=12000,'zy2026 2025 count');check(zy.get('recordDelta')==zy.get('records2026')-zy.get('records2025'),'zy2026 delta')
+check(audit.get('coverage',{}).get('records2025')==audit.get('coverage',{}).get('assigned2025'),'zy2026 2025 coverage');check(audit.get('coverage',{}).get('records2026')==audit.get('coverage',{}).get('assigned2026'),'zy2026 2026 coverage')
 rank_module=(ROOT/'functions/_lib/ln-2026-physics-score-rank.js').read_text(encoding='utf-8')
 for export in ('lookupLn2026PhysicsScore','lookupLn2026PhysicsRank','getLn2026PhysicsRows'): check(export in rank_module,f'2026 rank export {export}')
 if errors:
     print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr);sys.exit(1)
-print(json.dumps({'ok':True,'records':count,'strictCompleteCount':analysis['strictCompleteCount'],'analysisVersion':analysis['version'],'pageVersion':'v3.9.52.0'},ensure_ascii=False))
+print(json.dumps({'ok':True,'records':count,'strictCompleteCount':analysis['strictCompleteCount'],'analysisVersion':analysis['version'],'pageVersion':'v3.9.53.0','zyRelations':zy.get('relations')},ensure_ascii=False))
