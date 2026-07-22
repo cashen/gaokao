@@ -6,7 +6,7 @@ on:
     types: [opened, reopened, synchronize]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -15,9 +15,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Verify protected paths, data, pages and contracts
-        run: python3 tools/ln-2026/verify-final-release.py
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release.py > /tmp/final-verification.log 2>&1
+          status=$?
+          cat /tmp/final-verification.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/final-verification.log tools/ln-2026/final-verification-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/final-verification-error.log
+            git commit -m "ci: capture LN 2026 final verification failure [verify-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
       - name: Verify generated data source contract
         run: python3 tools/ln-2026/verify-generated-release.py
       - name: Compile readable Python build tools
@@ -44,35 +58,12 @@ jobs:
           import { classifySelectionDelta } from './ln-rank/js/domain/selection-band-policy.js';
           import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoryScore } from './functions/_lib/history-score-engine.js';
-
-          const expected = new Map([
-            [751, ['invalidHigh', false]],
-            [750, ['normal', true]],
-            [700, ['topRange', true]],
-            [508, ['normal', true]],
-            [507, ['underSpecial', true]],
-            [344, ['underSpecial', true]],
-            [343, ['belowCoverage', false]],
-            [150, ['belowCoverage', false]],
-            [149, ['belowCoverage', false]],
-          ]);
-          for (const [score, [key, canQuery]] of expected) {
-            const state = getScoreGuard(score);
-            if (state.key !== key || state.canQuery !== canQuery) throw new Error(`score guard ${score}: ${JSON.stringify(state)}`);
-          }
-          const bands = [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']];
-          for (const [delta, key] of bands) {
-            const result = classifySelectionDelta(delta, 'standard');
-            if (result.key !== key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`);
-          }
-          for (const [score, rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) {
-            const result = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
-            if (!result || result.rankEnd !== rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`);
-          }
-          const equivalent = findEquivalentScoreByRank({ targetYear: 2026, region: 'ln', subject: 'physics', rank: 14235 });
-          if (!equivalent || equivalent.score !== 600) throw new Error(`equivalent rank: ${JSON.stringify(equivalent)}`);
-          const history = buildHistoryScore({ score2026: 583, rank2026: 21460, score2025: 578, rank2025: 22700, score2024: 590, rank2024: 21980 });
-          if (history.rankDelta26vs25 !== -1240 || !history.rankTrendText.includes('前移')) throw new Error(`history: ${JSON.stringify(history)}`);
+          const expected = new Map([[751,['invalidHigh',false]],[750,['normal',true]],[700,['topRange',true]],[508,['normal',true]],[507,['underSpecial',true]],[344,['underSpecial',true]],[343,['belowCoverage',false]],[150,['belowCoverage',false]],[149,['belowCoverage',false]]]);
+          for (const [score,[key,canQuery]] of expected) { const state=getScoreGuard(score); if(state.key!==key||state.canQuery!==canQuery) throw new Error(`score guard ${score}: ${JSON.stringify(state)}`); }
+          for (const [delta,key] of [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']]) { const result=classifySelectionDelta(delta,'standard'); if(result.key!==key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`); }
+          for (const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) { const result=lookupScoreRank({year:2026,region:'ln',subject:'physics',score}); if(!result||result.rankEnd!==rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`); }
+          const equivalent=findEquivalentScoreByRank({targetYear:2026,region:'ln',subject:'physics',rank:14235}); if(!equivalent||equivalent.score!==600) throw new Error(`equivalent rank: ${JSON.stringify(equivalent)}`);
+          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('前移')) throw new Error(`history: ${JSON.stringify(history)}`);
           console.log('critical runtime module checks passed');
           NODE
       - name: Run compact release contract
