@@ -18,35 +18,9 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Verify protected paths, data, pages and contracts
-        run: |
-          set +e
-          python3 tools/ln-2026/verify-final-release-v2.py > /tmp/final-verification.log 2>&1
-          status=$?
-          cat /tmp/final-verification.log
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/final-verification.log tools/ln-2026/final-verification-error.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tools/ln-2026/final-verification-error.log
-            git commit -m "ci: capture LN 2026 final verification failure [verify-ln2026]"
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
+        run: python3 tools/ln-2026/verify-final-release-v2.py
       - name: Verify generated data source contract
-        run: |
-          set +e
-          python3 tools/ln-2026/verify-generated-release.py > /tmp/generated-verification.log 2>&1
-          status=$?
-          cat /tmp/generated-verification.log
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/generated-verification.log tools/ln-2026/generated-verification-error.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tools/ln-2026/generated-verification-error.log
-            git commit -m "ci: capture LN 2026 generated-data verification failure [verify-ln2026]"
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
+        run: python3 tools/ln-2026/verify-generated-release.py
       - name: Compile readable Python build tools
         run: |
           python3 -m py_compile \
@@ -67,7 +41,8 @@ jobs:
           done
       - name: Exercise critical runtime modules
         run: |
-          node --experimental-default-type=module - <<'NODE'
+          set +e
+          node --experimental-default-type=module - <<'NODE' > /tmp/runtime-modules.log 2>&1
           import { getScoreGuard } from './ln-rank/js/core/score-guard.js';
           import { classifySelectionDelta } from './ln-rank/js/domain/selection-band-policy.js';
           import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
@@ -80,6 +55,17 @@ jobs:
           const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('前移')) throw new Error(`history: ${JSON.stringify(history)}`);
           console.log('critical runtime module checks passed');
           NODE
+          status=$?
+          cat /tmp/runtime-modules.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/runtime-modules.log tools/ln-2026/runtime-modules-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/runtime-modules-error.log
+            git commit -m "ci: capture LN 2026 runtime module failure [verify-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
       - name: Run compact release contract
         run: node tools/check-ln-2026-release.mjs
       - name: Smoke-test current static pages
