@@ -51,7 +51,7 @@ jobs:
           for (const [delta,key] of [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']]) { const result=classifySelectionDelta(delta,'standard'); if(result.key!==key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`); }
           for (const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) { const result=lookupScoreRank({year:2026,region:'ln',subject:'physics',score}); if(!result||result.rankEnd!==rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`); }
           const equivalent=findEquivalentScoreByRank({targetYear:2026,region:'ln',subject:'physics',rank:14235}); if(!equivalent||equivalent.score!==600) throw new Error(`equivalent rank: ${JSON.stringify(equivalent)}`);
-          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('前移')) throw new Error(`history: ${JSON.stringify(history)}`);
+          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('录取所需位次')) throw new Error(`history: ${JSON.stringify(history)}`);
           console.log('critical runtime module checks passed');
           NODE
       - name: Run compact release contract

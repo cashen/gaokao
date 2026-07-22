@@ -18,23 +18,15 @@ const DIRECTION_LABELS = {
   other: '其他'
 };
 
-function norm(value) {
-  return String(value == null ? '' : value).toLowerCase().replace(NORMALIZE_RE, '');
-}
-
-function includesAny(text, words) {
-  return words.some(word => text.includes(norm(word)));
-}
+function norm(value) { return String(value == null ? '' : value).toLowerCase().replace(NORMALIZE_RE, ''); }
+function includesAny(text, words) { return words.some(word => text.includes(norm(word))); }
 
 export function segmentForScore(score) {
   const n = Number(score);
   if (!Number.isFinite(n)) return null;
   return MAJOR_TREND_DATA.segments.find(segment => n >= segment.minScore && n <= segment.maxScore) || null;
 }
-
-export function directionLabel(directionId) {
-  return DIRECTION_LABELS[directionId] || '其他';
-}
+export function directionLabel(directionId) { return DIRECTION_LABELS[directionId] || '其他'; }
 
 export function classifyDirectionFromText(text = '', standardMajor = {}) {
   const t = norm([text, standardMajor?.name, standardMajor?.categoryName].filter(Boolean).join(' '));
@@ -62,36 +54,30 @@ export function classifyDirectionFromText(text = '', standardMajor = {}) {
   if (code.startsWith('090') || code.startsWith('0827') || code.startsWith('0828') || code.startsWith('0830')) return 'agri_food_env';
   return 'other';
 }
-
-export function classifyDirectionFromKeyword(keyword = '') {
-  return classifyDirectionFromText(keyword);
-}
-
-export function trendRecordFor() {
-  return null;
-}
+export function classifyDirectionFromKeyword(keyword = '') { return classifyDirectionFromText(keyword); }
+export function trendRecordFor() { return null; }
 
 export function trendTone(direction = {}) {
   const value = Number(direction.medianRelativePctPoint26vs25 ?? direction.relativePctPoint26vs25);
   if (!Number.isFinite(value)) return 'neutral';
-  const threshold = Number(direction.neutralThresholdPctPoint || 1.326);
-  if (value < -threshold) return 'forward';
-  if (value > threshold) return 'backward';
+  const threshold = Number(direction.neutralThresholdPctPoint || MAJOR_TREND_DATA?.policy?.neutralThresholdPctPoint || 1.326);
+  if (value < -threshold) return 'harder';
+  if (value > threshold) return 'easier';
   return 'neutral';
 }
 
 export function trendLabel(direction = {}) {
   const tone = trendTone(direction);
-  if (tone === 'forward') return '相对全体前移';
-  if (tone === 'backward') return '相对全体后移';
-  return '相对全体变化较小';
+  if (tone === 'harder') return '相比多数专业更难报';
+  if (tone === 'easier') return '相比多数专业更容易报';
+  return '和多数专业变化接近';
 }
 
 export function trendHintText(score, keyword = '') {
   const segment = segmentForScore(score);
   const directionId = classifyDirectionFromKeyword(keyword);
   if (!segment || !keyword) return '';
-  return `三年位置观察：${segment.label}中可查看“${directionLabel(directionId)}”方向的 2024—2026 相对投档位置变化。趋势先扣除年度共同位移，不代表报名人数、专业质量或 2027 年录取结果。`;
+  return `${segment.label}这一层可以查看“${directionLabel(directionId)}”过去三年的报考难度变化。这里只看历史投档记录，不代表专业质量，也不预测2027年录取。`;
 }
 
 export function buildTrendSummaryForSelection(items = [], score) {
@@ -105,11 +91,11 @@ export function buildTrendSummaryForSelection(items = [], score) {
     map.set(id, (map.get(id) || 0) + 1);
   }
   const counts = [...map.entries()].map(([directionId, count]) => ({ directionId, directionLabel: directionLabel(directionId), count })).sort((a, b) => b.count - a.count).slice(0, 5);
-  const notes = counts.slice(0, 3).map(row => `${row.directionLabel}：当前已选 ${row.count} 个。建议先确认孩子是否真正接受该方向，再到 2026 三年观察页查看相对投档位置；趋势不作为自动增减依据。`);
+  const notes = counts.slice(0, 3).map(row => `${row.directionLabel}：当前已选${row.count}个。先确认孩子是否真正接受这个方向，再查看过去三年的报考难度变化；历史变化不能自动决定增加或删除专业。`);
   return {
     visible: Boolean(notes.length),
     segmentLabel: segment.label,
-    sourceNote: MAJOR_TREND_DATA.disclaimer,
+    sourceNote: '只观察过去三年的投档记录，不代表报名人数、专业质量或2027年录取结果。',
     notes,
     risks: [],
     counts
