@@ -56,8 +56,9 @@ for page in ('ln2026.html', 'lngk2026.html'):
         check(bad not in page_text, f'{page} forbidden copy: {bad}')
 
 rank_module = (ROOT / 'functions/_lib/ln-2026-physics-score-rank.js').read_text(encoding='utf-8')
-check('lookupLn2026PhysicsScore' in rank_module, '2026 rank module export')
-check('findLn2026PhysicsScoreByRank' in rank_module, '2026 rank reverse lookup export')
+check('lookupLn2026PhysicsScore' in rank_module, '2026 score-to-rank export')
+check('lookupLn2026PhysicsRank' in rank_module, '2026 rank-to-score export')
+check('getLn2026PhysicsRows' in rank_module, '2026 rank row export')
 
 if errors:
     print('\n'.join('ERROR: ' + error for error in errors), file=sys.stderr)
