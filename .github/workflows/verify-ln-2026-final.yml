@@ -20,7 +20,7 @@ jobs:
       - name: Verify protected paths, data, pages and contracts
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release.py > /tmp/final-verification.log 2>&1
+          python3 tools/ln-2026/verify-final-release-v2.py > /tmp/final-verification.log 2>&1
           status=$?
           cat /tmp/final-verification.log
           if [ "$status" -ne 0 ]; then
@@ -42,7 +42,8 @@ jobs:
             tools/ln-2026/integrate-release.py \
             tools/ln-2026/audit-trend-method.py \
             tools/ln-2026/rebuild-centered-trend-analysis.py \
-            tools/ln-2026/verify-final-release.py
+            tools/ln-2026/verify-final-release.py \
+            tools/ln-2026/verify-final-release-v2.py
       - name: Check changed JavaScript syntax
         run: |
           set -euo pipefail
