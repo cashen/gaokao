@@ -77,14 +77,12 @@ jobs:
         run: |
           set +e
           python3 /tmp/build_release.py > /tmp/ln2026-build.log 2>&1
-          status=$?
+          build_status=$?
           cat /tmp/ln2026-build.log
-          if [ "$status" -ne 0 ]; then
+          if [ "$build_status" -ne 0 ]; then
             {
               echo "BUILD_HEAD=$(git rev-parse HEAD)"
               echo "BUILD_RUN=${GITHUB_RUN_ID}"
-              echo "ID_PATCH_LINES:"
-              grep -n 'r\["id"\]\|src.get("id")\|r.get("id")' /tmp/build_release.py || true
               echo "BUILD_LOG:"
               cat /tmp/ln2026-build.log
             } > tools/ln-2026/last-build-error-current.log
@@ -93,15 +91,31 @@ jobs:
             git add tools/ln-2026/last-build-error-current.log
             git commit -m "ci: capture LN 2026 build failure [generated-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
+            exit "$build_status"
           fi
-          python3 /tmp/verify_release.py
+          python3 /tmp/verify_release.py > /tmp/ln2026-verifier.log 2>&1
+          verify_status=$?
+          cat /tmp/ln2026-verifier.log
+          if [ "$verify_status" -ne 0 ]; then
+            {
+              echo "VERIFY_HEAD=$(git rev-parse HEAD)"
+              echo "VERIFY_RUN=${GITHUB_RUN_ID}"
+              echo "VERIFY_LOG:"
+              cat /tmp/ln2026-verifier.log
+            } > tools/ln-2026/last-verifier-error-current.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/ln-2026/last-verifier-error-current.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
+            git commit -m "ci: capture LN 2026 verifier failure [generated-ln2026]"
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$verify_status"
+          fi
       - name: Commit generated outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log
-          git add tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
+          rm -f tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log tools/ln-2026/last-verifier-error-current.log
+          git add tools/ln-2026/last-build-error.log tools/ln-2026/last-build-error-current.log tools/ln-2026/last-verifier-error-current.log fenxi/data/rank_2026_physics.json fenxi/data/ln-rank-2026 functions/_lib/ln-2026-physics-score-rank.js functions/_lib/kb/major-trend-2026.generated.js analysis/2026 ln-rank/data/major-trend-2026.json ln2026.html lngk2026.html
           if ! git diff --cached --quiet; then
             git commit -m "build: generate Liaoning 2026 three-year data [generated-ln2026]"
             git push origin HEAD:${{ github.head_ref }}
