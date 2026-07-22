@@ -42,6 +42,7 @@ def verify_structure_data():
 
 def verify_structure_pages():
     page = base.text('zy2026/index.html')
+    alias = base.text('zy2026.html')
     js = base.text('zy2026/assets/zy2026.v3953_0.js')
     css = base.text('zy2026/assets/zy2026.v3953_0.css')
     for phrase in (
@@ -56,14 +57,19 @@ def verify_structure_pages():
     base.check("证据${level==='high'?'充分'" in js, 'zy2026 rendered adviser evidence label')
     for phrase in ('@media(max-width:680px)', '@media(max-width:380px)', 'min-height:44px', 'font-size:16px'):
         base.check(phrase in css, f'zy2026 responsive contract missing {phrase}')
+    base.check(alias == page, 'zy2026 extensionless alias must mirror directory page')
+    base.check("location.replace('/zy2026')" not in alias, 'zy2026 alias must not self-redirect')
+    runner = base.text('tools/ln-2026/run-build-zy2026-structure.py')
+    finalizer = base.text('tools/ln-2026/finalize-v3953-assets.py')
+    base.check('sync_extensionless_alias' in runner, 'zy2026 rebuild alias guard missing')
+    base.check('sync_zy2026_alias' in finalizer, 'zy2026 finalizer alias guard missing')
     root = base.text('index.html')
     base.check('href="/zy2026"' in root, 'root zy2026 entry')
     base.check('href="/zy.html"' not in root, 'root old zy entry remains')
     base.check('招生结构变化' in root and '首页版本：v3.9.53.0' in root, 'root zy2026 copy/version')
-    for path in ('zy.html', 'zy2026.html'):
-        redirect = base.text(path)
-        base.check("location.replace('/zy2026')" in redirect, f'{path} redirect')
-        base.check('v3.9.53.0' in redirect, f'{path} version')
+    redirect = base.text('zy.html')
+    base.check("location.replace('/zy2026')" in redirect, 'zy.html redirect')
+    base.check('v3.9.53.0' in redirect, 'zy.html version')
 
 
 def verify_ln2026_score_band_order():
@@ -152,7 +158,7 @@ def main():
     verify_temporary_files_removed()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.53.0 structure, score-order and compare-workspace verification passed')
+    print('LN 2026 v3.9.53.0 structure, route-alias, score-order and compare-workspace verification passed')
 
 
 if __name__ == '__main__':
