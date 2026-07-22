@@ -38,5 +38,15 @@ def load_manifest_rows(manifest_path: Path, prefix: Path) -> list[dict]:
     return rows
 
 
+def sync_extensionless_alias() -> None:
+    """Keep /zy2026 working when Pages resolves it to zy2026.html first."""
+    source = ROOT / 'zy2026/index.html'
+    target = ROOT / 'zy2026.html'
+    if not source.exists():
+        raise RuntimeError('missing zy2026/index.html for route alias')
+    target.write_text(source.read_text(encoding='utf-8'), encoding='utf-8')
+
+
 builder.load_manifest_rows = load_manifest_rows
 builder.build()
+sync_extensionless_alias()

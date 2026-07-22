@@ -29,6 +29,14 @@ def append_unique(items, value):
         items.append(value)
 
 
+def sync_zy2026_alias() -> None:
+    source = ROOT / 'zy2026/index.html'
+    target = ROOT / 'zy2026.html'
+    if not source.exists():
+        raise RuntimeError('missing zy2026/index.html for extensionless route alias')
+    target.write_text(source.read_text(encoding='utf-8'), encoding='utf-8')
+
+
 def main() -> None:
     for path in (
         'ln-rank/index.html', 'ln-rank/selection-pool.html',
@@ -60,6 +68,7 @@ def main() -> None:
         'compareWorkspaceAndroidSnapContract': True,
         'compareWorkspaceAutoNavigateContract': True,
         'compareWorkspaceYearLabelContract': True,
+        'zy2026ExtensionlessAliasContract': True,
     })
     dump('ln-rank/release-meta.json', release)
 
@@ -75,6 +84,7 @@ def main() -> None:
         'compareWorkspaceAndroidSnapContract': True,
         'compareWorkspaceAutoNavigateContract': True,
         'compareWorkspaceYearLabelContract': True,
+        'zy2026ExtensionlessAliasContract': True,
         'majorDifficultyJs': 'js/major-difficulty-2026.v3953_0.js',
     })
     js_entries = active.setdefault('jsEntry', [])
@@ -88,6 +98,8 @@ def main() -> None:
     css_dist['compareWorkspaceYearFix'] = 'css/dist/compare-workspace-year-fix.v3953_0.css'
     dump('ln-rank/active-assets.json', active)
 
+    sync_zy2026_alias()
+
     print(json.dumps({
         'version': VERSION,
         'assets': [
@@ -96,6 +108,7 @@ def main() -> None:
             'ln-rank/css/dist/compare-workspace.v3953_0.css',
             'ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css',
         ],
+        'zy2026Alias': 'zy2026.html mirrors zy2026/index.html',
     }, ensure_ascii=False))
 
 
