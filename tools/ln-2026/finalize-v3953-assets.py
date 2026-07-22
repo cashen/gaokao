@@ -6,6 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 VERSION = 'v3.9.53.0'
 ASSET_VERSION = 'v3953_0'
+ZY_EXPERIENCE_VERSION = 'v3.9.54.0'
+ZY_ASSET_VERSION = 'v3954_0'
 
 
 def load(path: str):
@@ -35,6 +37,17 @@ def sync_zy2026_alias() -> None:
     if not source.exists():
         raise RuntimeError('missing zy2026/index.html for extensionless route alias')
     target.write_text(source.read_text(encoding='utf-8'), encoding='utf-8')
+
+
+def apply_zy2026_change_first(meta: dict) -> None:
+    meta.update({
+        'zy2026ExperienceVersion': ZY_EXPERIENCE_VERSION,
+        'zy2026ExperienceAssetVersion': ZY_ASSET_VERSION,
+        'zy2026ChangeFirstContract': True,
+        'zy2026StableCollapsedContract': True,
+        'zy2026FeaturedDiscoveryContract': True,
+        'zy2026ChangePriorityOrderContract': True,
+    })
 
 
 def main() -> None:
@@ -70,6 +83,7 @@ def main() -> None:
         'compareWorkspaceYearLabelContract': True,
         'zy2026ExtensionlessAliasContract': True,
     })
+    apply_zy2026_change_first(release)
     dump('ln-rank/release-meta.json', release)
 
     active = load('ln-rank/active-assets.json')
@@ -87,6 +101,15 @@ def main() -> None:
         'zy2026ExtensionlessAliasContract': True,
         'majorDifficultyJs': 'js/major-difficulty-2026.v3953_0.js',
     })
+    apply_zy2026_change_first(active)
+    active['structure2026'] = {
+        'page': '../zy2026/index.html',
+        'css': '../zy2026/assets/zy2026.v3954_0.css',
+        'js': '../zy2026/assets/zy2026.v3954_0.js',
+        'summary': '../data/zy2026/summary.json',
+        'schoolIndex': '../data/zy2026/school-index.json',
+        'majorIndex': '../data/zy2026/major-index.json',
+    }
     js_entries = active.setdefault('jsEntry', [])
     active['jsEntry'] = [item for item in js_entries if item != 'js/major-difficulty-2026.v3952_0.js']
     append_unique(active['jsEntry'], 'js/major-difficulty-2026.v3953_0.js')
@@ -107,7 +130,10 @@ def main() -> None:
             'ln-rank/js/ux/compare-workspace.v3953_0.js',
             'ln-rank/css/dist/compare-workspace.v3953_0.css',
             'ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css',
+            'zy2026/assets/zy2026.v3954_0.js',
+            'zy2026/assets/zy2026.v3954_0.css',
         ],
+        'zy2026ExperienceVersion': ZY_EXPERIENCE_VERSION,
         'zy2026Alias': 'zy2026.html mirrors zy2026/index.html',
     }, ensure_ascii=False))
 
