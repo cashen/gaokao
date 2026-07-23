@@ -75,6 +75,7 @@ assert.ok(mainPage.includes('/ln-rank/js/app.v3956_0.js?v=3956_0'));
 assert.ok(!mainPage.includes('/ln-rank/js/app.v3951_0.js?v=3956_0'));
 assert.ok(appWrapper.includes("await import('./app.v3951_0.js?v=3956_0')"));
 assert.ok(appWrapper.includes("url.pathname !== '/api/major-bands'"));
+assert.ok(!read('ln-rank/js/app.v3951_0.js').includes('SPECIAL_CONTROL_SCORE'), 'active main core control lines are duplicated');
 assert.ok(schoolCenter.includes('let tongxueDirectoryPromise = null'));
 assert.ok(!schoolCenter.includes("fetch('/api/tongxue"));
 

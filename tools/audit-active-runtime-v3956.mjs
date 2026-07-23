@@ -55,6 +55,22 @@ for (const file of visited) {
 }
 assert.deepEqual(routeLiteralOwners, ['shared/resources/reports/feishu-report-contract.js'], `Feishu routes are duplicated in active graph: ${routeLiteralOwners.join(', ')}`);
 
+
+const allFrontendRouteOwners = [];
+function collectJs(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) collectJs(file);
+    else if (entry.name.endsWith('.js')) {
+      const source = fs.readFileSync(file, 'utf8');
+      if (source.includes('/api/feishu-create-report') || source.includes('/api/feishu-create-selection-pool-report')) allFrontendRouteOwners.push(file);
+    }
+  }
+}
+collectJs('ln-rank/js');
+assert.deepEqual(allFrontendRouteOwners, [], `frontend modules still own Feishu route strings: ${allFrontendRouteOwners.join(', ')}`);
+assert.ok(!fs.readFileSync('ln-rank/js/app.v3951_0.js', 'utf8').includes('SPECIAL_CONTROL_SCORE'));
+
 for (const forbidden of ['fenxi/pendingdel', 'v3.9.46.3', 'pure runtime']) {
   assert.ok(!reachableSource.includes(forbidden), `active graph contains forbidden runtime marker: ${forbidden}`);
 }

@@ -149,22 +149,4 @@ if "active main core control lines" not in shared_audit:
     shared_audit = shared_audit.replace("assert.ok(appWrapper.includes(\"url.pathname !== '/api/major-bands'\"));", "assert.ok(appWrapper.includes(\"url.pathname !== '/api/major-bands'\"));\nassert.ok(!read('ln-rank/js/app.v3951_0.js').includes('SPECIAL_CONTROL_SCORE'), 'active main core control lines are duplicated');")
 write('tools/audit-shared-resource-center-v3956.mjs', shared_audit)
 
-# Final branch cleanup. These files exist only to materialize the integration and must not enter main.
-for rel in [
-    '.github/workflows/agent-v3956-integration.yml',
-    'tools/agent/apply-v3956-integration.py',
-    'tools/agent/v3956-trigger.txt',
-    'tools/agent/__pycache__/apply-v3956-integration.cpython-312.pyc',
-    'tools/agent/finalize-v3956.py'
-]:
-    target = p(rel)
-    if target.exists():
-        target.unlink()
-cache = p('tools/agent/__pycache__')
-if cache.exists():
-    shutil.rmtree(cache)
-agent_dir = p('tools/agent')
-if agent_dir.exists() and not any(agent_dir.iterdir()):
-    agent_dir.rmdir()
-
-print('v3956 release finalized and temporary integration files removed')
+print('v3956 release finalized; temporary files retained for connector cleanup')
