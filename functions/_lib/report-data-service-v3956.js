@@ -1,16 +1,26 @@
 import { loadAllRecords } from './ln-rank-manifest.js';
 import { normalizeRecord, rawScore, rawSchool } from './fenxi-normalizer.js';
-import { classifyBand, makeBands } from './band-engine.js';
-import { getStatus } from './status-engine.js';
+import { makeBands } from './band-engine.js';
 import { matchRegion } from './major-filter.js';
 import { buildDisplayTags } from './school-display-tags.js';
-import { normalizeBottomLineMode, passBottomLineMode, enrichBottomLineFields, bottomLineModeSummary } from './bottomline-policy.js';
+import {
+  normalizeBottomLineMode,
+  getBottomLineEligibility,
+  getBottomLineSortWeight,
+  enrichBottomLineFields,
+  bottomLineModeSummary
+} from './bottomline-policy.js';
 import { buildKeywordQuery } from './keyword-query.js';
 import { matchMajorProject } from './major-project-matcher.js';
 import { buildSearchIndex } from './search-index-builder.js';
 import { normalizeFenxiCodes } from './fenxi-code-normalizer.js';
 import { mapStandardMajor } from './standard-major-mapper.js';
+import { lookupScoreRank } from './rank-table-provider.js';
 import { FEISHU_REPORT_CONTRACT, validateFeishuCandidateScore } from '../../shared/resources/reports/feishu-report-contract.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { rankRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
+import { makeDecisionSnapshot } from '../../shared/algorithms/contracts/decision-snapshot.v3960_0.js';
+import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 
 function clean(value, max = 50) {
   return String(value || '').trim().slice(0, max);
@@ -19,11 +29,6 @@ function clean(value, max = 50) {
 function finite(value, fallback = null) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
-}
-
-function rankSortValue(value) {
-  const number = Number(value);
-  return Number.isFinite(number) && number > 0 ? number : Number.MAX_SAFE_INTEGER;
 }
 
 function initGrouped(bands) {
@@ -39,6 +44,11 @@ function rawSchoolPass(raw, schoolKeyword) {
   return !keyword || rawSchool(raw).includes(keyword);
 }
 
+function candidateRankForScore(score) {
+  const row = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
+  return finite(row?.rankForGap ?? row?.rankEnd, null);
+}
+
 export function normalizeReportParams(input = {}) {
   const candidate = validateFeishuCandidateScore(input.candidateScore);
   if (!candidate.valid) {
@@ -52,6 +62,7 @@ export function normalizeReportParams(input = {}) {
   const majorKeyword = clean(input.filters?.majorKeyword || '', 160);
   return {
     candidateScore: candidate.score,
+    candidateReferenceRank2026: finite(input.candidateReferenceRank2026, candidateRankForScore(candidate.score)),
     activeBand,
     rangePreset,
     maxRecords,
@@ -75,38 +86,86 @@ function normalizeCodesAndMajor(record, raw = record) {
   const standardMajor = record.standardMajor?.code || record.standardMajor?.categoryCode
     ? record.standardMajor
     : mapStandardMajor({
-      majorName: record.major,
-      standardMajorCode: codes.standardMajorCode || (codes.rawFenxiMajorCodeLooksStandard ? codes.rawFenxiMajorCode : '')
-    });
+        majorName: record.major,
+        standardMajorCode: codes.standardMajorCode || (codes.rawFenxiMajorCodeLooksStandard ? codes.rawFenxiMajorCode : '')
+      });
   if (!codes.standardMajorCode && standardMajor?.code) codes.standardMajorCode = standardMajor.code;
   return { codes, standardMajor };
 }
 
-function normalizeDirectRecord(raw = {}, candidateScore, fallbackBand = '') {
+function normalizeCanonicalRecord(raw = {}, params, fallbackBand = '') {
   const score = finite(raw.score2026 ?? raw.score, null);
   if (!raw.school || !raw.major || score == null) return null;
   const rank = finite(raw.rank2026 ?? raw.rank ?? raw.minRank ?? raw.lowestRank ?? raw.referenceRank, null);
-  const delta = finite(raw.scoreDelta2026 ?? raw.scoreDelta, score - candidateScore);
-  const status = getStatus(delta);
   const display = buildDisplayTags({ ...raw, score, rank });
   const mapped = normalizeCodesAndMajor({ ...raw, score, rank }, raw);
+  const bottomLine = enrichBottomLineFields(raw);
+  const eligibility = getBottomLineEligibility({ ...raw, ...bottomLine }, params.filters.bottomLineMode);
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: params.candidateScore,
+    candidateRank: params.candidateReferenceRank2026,
+    recordScore: score,
+    recordRank: rank,
+    scoreDelta: raw.scoreDelta2026 ?? raw.scoreDelta,
+    rankGap: raw.rankGap2026 ?? raw.rankGap,
+    rangePreset: params.rangePreset
+  });
+  const bandKey = canonicalPosition.bandKey === 'outside' || canonicalPosition.bandKey === 'unknown'
+    ? fallbackBand
+    : canonicalPosition.bandKey;
   return {
     ...raw,
     ...display,
     ...mapped,
+    ...bottomLine,
     score,
     rank,
     score2026: score,
     rank2026: rank,
-    scoreDelta2026: delta,
-    scoreDelta: delta,
-    rankGap2026: finite(raw.rankGap2026 ?? raw.rankGap, null),
-    rankGap: finite(raw.rankGap2026 ?? raw.rankGap, null),
-    band: raw.band || raw.bandKey || fallbackBand,
-    bandKey: raw.bandKey || raw.band || fallbackBand,
-    statusKey: raw.statusKey || status.key,
-    statusLabel: raw.statusLabel || status.label,
-    position: raw.position || status.position
+    scoreDelta2026: canonicalPosition.scoreDelta,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap2026: canonicalPosition.rankGap,
+    rankGap: canonicalPosition.rankGap,
+    band: bandKey,
+    bandKey,
+    statusKey: canonicalPosition.statusKey,
+    statusLabel: canonicalPosition.statusLabel,
+    position: canonicalPosition.position,
+    canonicalPosition,
+    bottomLineEligibility: eligibility.status,
+    bottomLineEligibilityReason: eligibility.reason
+  };
+}
+
+function baseReportOutput(params, bandsMeta, selectedRecords, counts, sourceMode, extra = {}) {
+  const selectedBand = { ...bandsMeta[params.activeBand], records: selectedRecords, count: selectedRecords.length };
+  const decisionSnapshot = makeDecisionSnapshot({
+    candidateScore: params.candidateScore,
+    candidateReferenceRank2026: params.candidateReferenceRank2026,
+    rangePreset: params.rangePreset,
+    filters: params.filters,
+    records: selectedRecords
+  });
+  return {
+    ...params,
+    dataScope: `辽宁${FEISHU_REPORT_CONTRACT.dataYear}物理类`,
+    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
+    bands: {
+      upper: { ...bandsMeta.upper, records: params.activeBand === 'upper' ? selectedRecords : [], count: counts.upper },
+      near: { ...bandsMeta.near, records: params.activeBand === 'near' ? selectedRecords : [], count: counts.near },
+      steady: { ...bandsMeta.steady, records: params.activeBand === 'steady' ? selectedRecords : [], count: counts.steady }
+    },
+    counts,
+    selectedBand,
+    selectedRecords,
+    decisionSnapshot,
+    bandRanges: bandsMeta,
+    keywordQuery: params.filters.keywordQuery,
+    bottomLine: bottomLineModeSummary(params.filters.bottomLineMode),
+    sourceMode,
+    ...extra
   };
 }
 
@@ -115,7 +174,7 @@ function directReportData(input, params, bandsMeta) {
   if (!raw.length) return null;
   const selectedRecords = raw
     .slice(0, params.maxRecords)
-    .map(item => normalizeDirectRecord(item, params.candidateScore, params.activeBand))
+    .map(item => normalizeCanonicalRecord(item, params, params.activeBand))
     .filter(Boolean);
   if (!selectedRecords.length) throw new Error('当前页面传入的专业记录不完整，无法生成报告。');
   const countsInput = input.counts && typeof input.counts === 'object' ? input.counts : {};
@@ -125,58 +184,23 @@ function directReportData(input, params, bandsMeta) {
     steady: finite(countsInput.steady, params.activeBand === 'steady' ? selectedRecords.length : 0)
   };
   counts.total = finite(countsInput.total, counts.upper + counts.near + counts.steady);
-  const selectedBand = { ...bandsMeta[params.activeBand], records: selectedRecords, count: selectedRecords.length };
-  return {
-    ...params,
-    dataScope: `辽宁${FEISHU_REPORT_CONTRACT.dataYear}物理类`,
-    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
-    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+  return baseReportOutput(params, bandsMeta, selectedRecords, counts, 'current-decision-snapshot', {
     manifest: null,
-    bands: {
-      upper: { ...bandsMeta.upper, records: params.activeBand === 'upper' ? selectedRecords : [], count: counts.upper },
-      near: { ...bandsMeta.near, records: params.activeBand === 'near' ? selectedRecords : [], count: counts.near },
-      steady: { ...bandsMeta.steady, records: params.activeBand === 'steady' ? selectedRecords : [], count: counts.steady }
-    },
-    counts,
-    selectedBand,
-    selectedRecords,
-    bandRanges: bandsMeta,
-    keywordQuery: input.filters?.keywordQuery || buildKeywordQuery(params.filters.majorKeyword),
-    bottomLine: bottomLineModeSummary(params.filters.bottomLineMode),
     bottomLineExcluded: 0,
+    bottomLineUnresolved: selectedRecords.filter(item => item.bottomLineEligibility === 'unresolved').length,
     keywordExcluded: 0,
-    matchSummary: input.matchSummary || null,
-    sourceMode: 'current-visible-band'
-  };
-}
-
-function pushRecord(grouped, band, record, candidateScore) {
-  const delta = record.score - candidateScore;
-  const status = getStatus(delta);
-  const display = buildDisplayTags(record);
-  grouped[band].records.push({
-    ...record,
-    ...display,
-    band,
-    bandKey: band,
-    score2026: record.score,
-    rank2026: record.rank,
-    scoreDelta2026: delta,
-    scoreDelta: delta,
-    statusKey: status.key,
-    statusLabel: status.label,
-    position: status.position
+    matchSummary: input.matchSummary || null
   });
-  grouped[band].count += 1;
 }
 
-async function rebuildLegacyReportData(request, env, input, params, bandsMeta) {
+async function rebuildCanonicalReportData(request, env, input, params, bandsMeta) {
   const { manifest, records: rawRecords } = await loadAllRecords(request, env || {});
   const scoreWindow = minMaxScore(bandsMeta);
   const grouped = initGrouped(bandsMeta);
   const keywordQuery = buildKeywordQuery(params.filters.majorKeyword);
   const filters = { ...params.filters, keywordQuery };
   let bottomLineExcluded = 0;
+  let bottomLineUnresolved = 0;
   let keywordExcluded = 0;
   const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
 
@@ -201,44 +225,38 @@ async function rebuildLegacyReportData(request, env, input, params, bandsMeta) {
       matchedTerms: match.matchedTerms || [],
       matchScore: match.score
     });
-    if (!passBottomLineMode(record, filters.bottomLineMode)) { bottomLineExcluded += 1; continue; }
-    const band = classifyBand(record.score, bandsMeta);
-    if (!band) continue;
-    if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
-    pushRecord(grouped, band, record, params.candidateScore);
+    const normalized = normalizeCanonicalRecord(record, params, '');
+    if (!normalized || !['upper', 'near', 'steady'].includes(normalized.bandKey)) continue;
+    if (normalized.bottomLineEligibility === 'fail') { bottomLineExcluded += 1; continue; }
+    if (normalized.bottomLineEligibility === 'unresolved') bottomLineUnresolved += 1;
+    if (normalized.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, normalized.matchLevel)) matchSummary[normalized.matchLevel] += 1;
+    grouped[normalized.bandKey].records.push(normalized);
+    grouped[normalized.bandKey].count += 1;
   }
 
   for (const key of ['upper', 'near', 'steady']) {
-    grouped[key].records.sort((a, b) => (Number(b.matchScore || 0) - Number(a.matchScore || 0)) || Math.abs(a.score - params.candidateScore) - Math.abs(b.score - params.candidateScore) || rankSortValue(a.rank) - rankSortValue(b.rank));
-    grouped[key].count = grouped[key].records.length;
+    grouped[key].records = rankRecords(grouped[key].records, {
+      getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
+    });
   }
   const counts = { upper: grouped.upper.count, near: grouped.near.count, steady: grouped.steady.count };
   counts.total = counts.upper + counts.near + counts.steady;
-  const selectedBand = grouped[params.activeBand];
-  if (!selectedBand?.records?.length) throw new Error('当前筛选条件下没有可生成的专业结果。');
-  return {
-    ...params,
-    dataScope: `辽宁${FEISHU_REPORT_CONTRACT.dataYear}物理类`,
-    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
-    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+  const selectedRecords = grouped[params.activeBand].records.slice(0, params.maxRecords);
+  if (!selectedRecords.length) throw new Error('当前筛选条件下没有可生成的专业结果。');
+  return baseReportOutput(params, bandsMeta, selectedRecords, counts, 'canonical-server-rebuild-2026', {
     manifest,
     bands: grouped,
-    counts,
-    selectedBand,
-    selectedRecords: selectedBand.records.slice(0, params.maxRecords),
-    bandRanges: bandsMeta,
-    keywordQuery,
-    bottomLine: bottomLineModeSummary(filters.bottomLineMode),
+    selectedBand: { ...grouped[params.activeBand], records: selectedRecords, count: selectedRecords.length },
     bottomLineExcluded,
+    bottomLineUnresolved,
     keywordExcluded,
-    matchSummary,
-    sourceMode: 'legacy-server-rebuild-2026'
-  };
+    matchSummary
+  });
 }
 
 export async function buildReportDataV3956(request, env, input = {}) {
   const params = normalizeReportParams(input);
   const bandsMeta = makeBands(params.candidateScore, params.rangePreset);
   return directReportData(input, params, bandsMeta)
-    || rebuildLegacyReportData(request, env, input, params, bandsMeta);
+    || rebuildCanonicalReportData(request, env, input, params, bandsMeta);
 }
