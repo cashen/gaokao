@@ -1,0 +1,62 @@
+name: Agent Tongxue direct result v156
+
+on:
+  push:
+    branches: [agent/tongxue-direct-result-v156]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, '[v156 integrated]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/tongxue-direct-result-v156
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply direct result patch
+        run: python3 tools/tongxue/apply-direct-result-v156.py
+      - name: Syntax checks
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/tongxue/apply-direct-result-v156.py
+          node --check tongxue/app/tongxue-direct-result-v156.js
+          node --check tongxue/app/tongxue-performance-v156.js
+          node --check tools/tongxue/verify-direct-result-v156.mjs
+      - name: Direct result regression
+        run: node tools/tongxue/verify-direct-result-v156.mjs
+      - name: Existing Tongxue contracts
+        run: |
+          set -euo pipefail
+          node tools/tongxue/verify-directory.mjs
+          node tools/tongxue/verify-brand-ui-v152.mjs
+          node tools/tongxue/verify-interaction-v153.mjs
+          node tools/tongxue/verify-direct-handoff-v155.mjs
+          node tools/tongxue/verify-school-entities-v130.mjs
+          node tools/tongxue/verify-school-region-ui-v150.mjs
+          node tools/tongxue/verify-share.mjs
+      - name: Commit generated integration
+        run: |
+          set -euo pipefail
+          rm -rf tools/tongxue/__pycache__
+          if git diff --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Integrate Tongxue direct result v1.5.6 [v156 integrated]'
+          git push origin HEAD:agent/tongxue-direct-result-v156
