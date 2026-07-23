@@ -5,7 +5,7 @@ import {
   setFeishuLoading,
   setFeishuResult
 } from './state.js?v=3956_0';
-import { renderFeishuReportView } from './report-render.js?v=3956_0';
+import { renderFeishuReportView } from './report-render.v3956_0.js?v=3956_0';
 import {
   buildFeishuReportPayload,
   canGenerateFeishuReport
@@ -35,7 +35,6 @@ export async function generateFeishuReport() {
     renderFeishuReport(currentAppState);
     return;
   }
-
   setFeishuLoading();
   renderFeishuReport(currentAppState);
   try {
