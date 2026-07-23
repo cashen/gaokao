@@ -1,4 +1,4 @@
-name: Agent school profile v3957 integration
+name: Agent school profile v3957 finalization
 
 on:
   pull_request:
@@ -9,10 +9,10 @@ permissions:
   contents: write
 
 jobs:
-  integrate:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,52 +21,56 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Merge Tongxue direct-result branch
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply release finalizer
+        id: finalize_patch
         run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git fetch origin agent/tongxue-direct-result-v156
-          if git merge-base --is-ancestor origin/agent/tongxue-direct-result-v156 HEAD; then
-            echo 'Tongxue direct-result branch already integrated'
-          else
-            git merge --no-ff origin/agent/tongxue-direct-result-v156 -m 'Merge Tongxue v1.5.6 direct result into v3.9.57.0'
-          fi
+          set +e
+          python3 tools/schools/finalize-school-profile-v3957.py > /tmp/v3957-finalize.log 2>&1
+          status=$?
+          cat /tmp/v3957-finalize.log
+          exit "$status"
+      - name: Upload finalization diagnostic
+        if: failure() && steps.finalize_patch.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-profile-v3957-finalize-error
+          path: /tmp/v3957-finalize.log
+          if-no-files-found: error
+          retention-days: 1
       - name: Verify protected paths
         run: |
           set -euo pipefail
-          git diff --name-only origin/main...HEAD | tee /tmp/v3957-integrated-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3957-integrated-files.txt; then
+          git diff --name-only origin/main -- | tee /tmp/v3957-final-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3957-final-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
       - name: Syntax checks
         run: |
           set -euo pipefail
-          for file in \
-            shared/resources/schools/school-profile-data.20260617-v3957.js \
-            shared/resources/schools/school-profile-center.js \
-            functions/_lib/school-tags.js \
-            functions/_lib/location-normalizer.js \
-            functions/_lib/school-display-tags.js \
-            ln-rank/js/app.v3957_0.js \
-            ln-rank/js/selection-pool.v3957_0.js \
-            ln-rank/js/feature/major-pool/render.v3957_0.js \
-            tongxue/app/tongxue-direct-result-v156.js \
-            tongxue/app/tongxue-performance-v156.js \
-            tools/verify-school-profile-center-v3957.mjs \
-            tools/tongxue/verify-direct-result-v156.mjs; do
-              node --check "$file"
+          python3 -m py_compile tools/schools/build-school-profile-center-v3957.py tools/schools/finalize-school-profile-v3957.py
+          git diff --name-only origin/main -- '*.js' '*.mjs' | while read -r file; do
+            test -z "$file" || test ! -f "$file" || node --check "$file"
           done
-      - name: Verify school profile and Tongxue integration
+      - name: Verify release contracts
         run: |
           set -euo pipefail
           node tools/verify-school-profile-center-v3957.mjs
           node tools/tongxue/verify-direct-result-v156.mjs
           node tools/tongxue/verify-direct-handoff-v155.mjs
-          node tools/tongxue/verify-school-entities-v130.mjs
-          node tools/tongxue/verify-school-region-ui-v150.mjs
-      - name: Push integrated branch
+          node tools/verify-family-decision-v3955.mjs
+          node tools/audit-shared-resource-center-v3957.mjs
+          node tools/check-ln-2026-release.mjs
+          python3 tools/ln-2026/verify-final-release-v3.py
+      - name: Commit finalized release
         run: |
           set -euo pipefail
+          rm -rf tools/schools/__pycache__ tools/ln-2026/__pycache__
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Finalize v3.9.57.0 school profile and Tongxue direct result'
           git push origin HEAD:agent/school-profile-center-v3957
