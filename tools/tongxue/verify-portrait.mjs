@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 const artifactDir='/tmp/tongxue-live-artifact';
 await mkdir(artifactDir,{recursive:true});
 const coreSource=await readFile('functions/_lib/tongxue-school-portrait-core.js','utf8');
-const entitySource=await readFile('tongxue/data/school-entities-v130.js','utf8');
+const entitySource=await readFile('shared/resources/schools/school-identity-center.js','utf8');
 const baseSource=(await readFile('functions/_lib/tongxue-school-portrait-base-v120.js','utf8')).replace("'./tongxue-school-portrait-core.js'","'./tongxue-school-portrait-core.mjs'");
 const functionSource=(await readFile('functions/api/tongxue-school-portrait.js','utf8')).replace("'../_lib/tongxue-school-portrait-base-v120.js'","'./tongxue-school-portrait-base-v120.mjs'").replace("'../../tongxue/data/school-entities-v130.js'","'./school-entities-v130.mjs'");
 await writeFile('/tmp/school-entities-v130.mjs',entitySource);
@@ -61,7 +61,8 @@ const functionChecks={
   shape:first.payload.dimensions?.length===7&&Array.isArray(first.payload.questions)&&Array.isArray(first.payload.campuses),
   sanitization:!JSON.stringify(first.payload).includes('<script'),
   requestBudget:fetchCount===3,
-  cache:first.cache==='MISS'&&second.cache==='HIT'&&memory.size()===1
+  cache:first.cache==='MISS'&&second.cache==='HIT'&&memory.size()===1,
+  identityOwner:entitySource.includes("E('dlut-panjin'")
 };
 for(const [name,passed] of Object.entries(functionChecks))if(!passed)failures.push('function:'+name);
 
@@ -75,7 +76,7 @@ for(const school of liveSchools){
   if(!(result.status===200&&result.payload.ok&&result.payload.dimensions?.length===7))failures.push('live:'+school);
 }
 
-const report={generatedAt:new Date().toISOString(),coreChecks,functionChecks,live,fetchCount,failures};
+const report={generatedAt:new Date().toISOString(),identityOwner:'shared/resources/schools/school-identity-center.js',coreChecks,functionChecks,live,fetchCount,failures};
 await writeFile(`${artifactDir}/tongxue-portrait-results.json`,JSON.stringify(report,null,2));
 console.log('TONGXUE_PORTRAIT_RESULTS '+JSON.stringify(report));
 if(failures.length)process.exitCode=1;
