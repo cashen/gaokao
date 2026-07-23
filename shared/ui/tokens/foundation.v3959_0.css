@@ -34,18 +34,36 @@
 
 body.ui-orchestrated{
   --bg:var(--ui-page-bg);
+  --page:var(--ui-page-bg);
   --card:var(--ui-surface);
   --surface:var(--ui-surface);
+  --surface-soft:var(--ui-surface-soft);
   --ink:var(--ui-ink);
   --text:var(--ui-text);
   --muted:var(--ui-muted);
   --line:var(--ui-line);
   --border:var(--ui-line);
   --brand:var(--ui-brand-primary);
+  --brand-dark:var(--ui-brand-deep);
   --brand-deep:var(--ui-brand-deep);
+  --brand-soft:var(--ui-brand-soft);
   --soft:var(--ui-brand-soft);
   --primary:var(--ui-brand-primary);
   --primary-hover:var(--ui-brand-deep);
+  --good:var(--ui-success);
+  --good-soft:var(--ui-success-soft);
+  --easy:var(--ui-success);
+  --easy-soft:var(--ui-success-soft);
+  --warning:var(--ui-warning);
+  --warning-soft:var(--ui-warning-soft);
+  --warm:var(--ui-warning);
+  --warm-soft:var(--ui-warning-soft);
+  --hard:var(--ui-risk);
+  --hard-soft:var(--ui-risk-soft);
+  --danger:var(--ui-risk);
+  --danger-soft:var(--ui-risk-soft);
+  --shadow:var(--ui-shadow-md);
+  --radius:var(--ui-radius-lg);
   --family-ink:var(--ui-ink);
   --family-text:var(--ui-text);
   --family-muted:var(--ui-muted);
@@ -71,6 +89,14 @@ body.ui-orchestrated[data-ui-brand="tongxue"]{
   --ui-brand-deep:#102352;
   --ui-brand-soft:#eaf7f3;
   --ui-focus:rgba(69,185,154,.24);
+  --brand-teal:#45b99a;
+  --brand-teal-soft:#eaf7f3;
+  --warm:#fff6ed;
+  --warm-border:#f0d4bc;
+  --warm-text:#8d4b20;
+  --danger:#9a4336;
+  --danger-bg:#fff0ec;
+  --danger-border:#efc5ba;
 }
 
 body.ui-orchestrated *,body.ui-orchestrated *::before,body.ui-orchestrated *::after{box-sizing:border-box}
