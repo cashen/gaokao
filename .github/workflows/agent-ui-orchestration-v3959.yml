@@ -1,6 +1,8 @@
 name: Agent UI orchestration v3959
 
 on:
+  push:
+    branches: [agent/ui-orchestration-v3959]
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
@@ -10,7 +12,7 @@ permissions:
 
 jobs:
   integrate:
-    if: github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, '[v3959 integrated]')
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 24
     steps:
