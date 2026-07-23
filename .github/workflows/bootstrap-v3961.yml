@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/selection-workspace-orchestration-v3961
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
