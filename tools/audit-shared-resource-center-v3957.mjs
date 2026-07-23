@@ -15,11 +15,15 @@ import { MAJOR_CATALOG_RESOURCE_CONTRACT, createMajorCatalogResolver } from '../
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
 import { FEISHU_REPORT_CONTRACT, FEISHU_REPORT_ROUTES, validateFeishuCandidateScore } from '../shared/resources/reports/feishu-report-contract.js';
 import { SHARED_RESOURCE_CENTER_VERSION, SHARED_RESOURCE_REGISTRY } from '../shared/resources/resource-registry.js';
+import { UI_ORCHESTRATION_VERSION, UI_PAGE_REGISTRY } from '../shared/ui/ui-registry.js';
 import { STANDARD_MAJOR_CATALOG_2026_FULL, STANDARD_MAJOR_CATEGORIES_2026_FULL } from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
 
 const read = file => fs.readFileSync(file, 'utf8');
 const json = file => JSON.parse(read(file));
 assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);
+assert.equal(UI_ORCHESTRATION_VERSION, 'v3959_0');
+assert.equal(Object.keys(UI_PAGE_REGISTRY).length, 6);
+assert.equal(SHARED_RESOURCE_REGISTRY.ui.policy, 'single-ui-language-shell-state-and-responsive-contract');
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.dataYear, 2026);
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.audienceYear, 2027);
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.specialControlScore, 508);
@@ -108,16 +112,21 @@ const adapters = [
   ['functions/_lib/kb/catalog-accessor.js', 'shared/resources/majors/major-catalog-contract.js'],
   ['ln-rank/js/knowledge/major-understanding-resolver.js', 'shared/resources/majors/major-catalog-contract.js'],
   ['ln-rank/js/shared/feishu-api-client.v3956_0.js', 'shared/resources/reports/feishu-report-contract.js'],
-  ['functions/_lib/report-data-service-v3956.js', 'shared/resources/reports/feishu-report-contract.js']
+  ['functions/_lib/report-data-service-v3956.js', 'shared/resources/reports/feishu-report-contract.js'],
+  ['ln-rank/js/app.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
+  ['ln-rank/js/selection-pool.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
+  ['ln-rank/js/major-difficulty-2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
+  ['zy2026/assets/zy2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
+  ['tongxue/app/tongxue-performance-v156.js', 'shared/ui/shell/family-shell.v3959_0.js']
 ];
 for (const [file, marker] of adapters) assert.ok(read(file).includes(marker), `${file} bypasses shared resource ${marker}`);
 
 const mainPage = read('ln-rank/index.html');
-const appWrapper = read('ln-rank/js/app.v3958_0.js');
+const appWrapper = read('ln-rank/js/app.v3959_0.js');
 const schoolLinkCenter = read('shared/resources/schools/school-resource-center.js');
-assert.ok(mainPage.includes('/ln-rank/js/app.v3958_0.js?v=3958_0'));
-assert.ok(!mainPage.includes('/ln-rank/js/app.v3951_0.js?v=3958_0'));
-assert.ok(appWrapper.includes("await import('./app.v3951_0.js?v=3958_0')"));
+assert.ok(mainPage.includes('/ln-rank/js/app.v3959_0.js?v=3959_0'));
+assert.ok(!mainPage.includes('/ln-rank/js/app.v3951_0.js?v=3959_0'));
+assert.ok(appWrapper.includes("await import('./app.v3951_0.js?v=3959_0')"));
 assert.ok(appWrapper.includes("url.pathname !== '/api/major-bands'"));
 assert.ok(!read('ln-rank/js/app.v3951_0.js').includes('SPECIAL_CONTROL_SCORE'));
 assert.ok(schoolLinkCenter.includes('let tongxueDirectoryPromise = null'));
@@ -152,8 +161,9 @@ for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-asse
     'schoolProfile985211Contract','schoolProfileDoubleNonContract','schoolProfileCampusInheritanceContract',
     'schoolProfileCardAlwaysVisibleContract','schoolProfileSelectionPoolContract','unifiedResourceOwnershipContract',
     'sharedReleaseOwnerContract','singleMoeSchoolBuildContract','sharedSchoolIdentityOwnerContract',
-    'sharedMajorCatalogResolverContract','sharedRegionDerivationContract','sharedSchoolNaturePriorityContract'
+    'sharedMajorCatalogResolverContract','sharedRegionDerivationContract','sharedSchoolNaturePriorityContract',
+    'sharedUiOwnershipContract','sharedUiShellContract','sharedUiSixPageAdapterContract'
   ]) assert.equal(meta[key], true, `missing ${key}`);
   assert.equal(meta.sharedResourceCenterVersion, CURRENT_RELEASE.assetVersion);
 }
-console.log('SHARED_RESOURCE_CENTER_V3958_OK');
+console.log('SHARED_RESOURCE_AND_UI_CENTER_V3959_OK');
