@@ -53,6 +53,16 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     canonicalCount: 883,
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports'])
   }),
+  ui: Object.freeze({
+    id: 'family-ui-orchestration',
+    registry: '/shared/ui/ui-registry.js',
+    foundation: '/shared/ui/tokens/foundation.v3959_0.css',
+    semantic: '/shared/ui/tokens/semantic.v3959_0.css',
+    shellCss: '/shared/ui/shell/family-shell.v3959_0.css',
+    shellJs: '/shared/ui/shell/family-shell.v3959_0.js',
+    policy: 'single-ui-language-shell-state-and-responsive-contract',
+    consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue'])
+  }),
   campusAssignments: Object.freeze({
     id: 'liaoning-major-campus-assignment',
     module: '/functions/_lib/kb/liaoning-campus-major-kb.generated.js',
