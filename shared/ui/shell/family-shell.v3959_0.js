@@ -9,6 +9,11 @@ import { UI_LANGUAGE } from '../contracts/copy-contract.v3959_0.js?v=3959_0';
 import { UI_PAGE_REGISTRY, UI_ORCHESTRATION_VERSION, getUiPage } from '../ui-registry.js?v=3959_0';
 
 const ROUTE_ORDER=Object.freeze(['home','selection','selected','difficulty','structure','tongxue']);
+const STYLE_URLS=Object.freeze([
+  '/shared/ui/tokens/foundation.v3959_0.css?v=3959_0',
+  '/shared/ui/tokens/semantic.v3959_0.css?v=3959_0',
+  '/shared/ui/shell/family-shell.v3959_0.css?v=3959_0'
+]);
 let mounted=false;
 let scheduled=false;
 let baseViewportHeight=0;
@@ -16,6 +21,19 @@ let baseViewportHeight=0;
 function number(value){
   const n=Number(value);
   return Number.isFinite(n)?n.toLocaleString('zh-CN'):'—';
+}
+
+function ensureUiStyles(){
+  if(typeof document==='undefined')return;
+  for(const href of STYLE_URLS){
+    const path=href.split('?')[0];
+    if(document.querySelector(`link[href^="${path}"]`))continue;
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=href;
+    link.dataset.uiResource=UI_ORCHESTRATION_VERSION;
+    document.head.append(link);
+  }
 }
 
 export function resolveUiPage(pathname=globalThis.location?.pathname||'/'){
@@ -168,6 +186,7 @@ function bind(){
 export function mountFamilyShell(){
   if(mounted||typeof document==='undefined')return;
   mounted=true;
+  ensureUiStyles();
   const pageKey=document.body.dataset.uiPage||resolveUiPage();
   const page=getUiPage(pageKey);
   document.body.dataset.uiPage=pageKey;
@@ -186,6 +205,7 @@ export function mountFamilyShell(){
 }
 
 if(typeof document!=='undefined'){
+  ensureUiStyles();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountFamilyShell,{once:true});
   else mountFamilyShell();
 }
