@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v3.py > /tmp/v3958-verify.out 2> /tmp/v3958-verify.err
+          python3 tools/ln-2026/verify-final-release-v4.py > /tmp/v3958-verify.out 2> /tmp/v3958-verify.err
           status=$?
           cat /tmp/v3958-verify.out
           if [ "$status" -ne 0 ]; then
@@ -61,6 +61,7 @@ jobs:
             tools/ln-2026/verify-final-release.py \
             tools/ln-2026/verify-final-release-v2.py \
             tools/ln-2026/verify-final-release-v3.py \
+            tools/ln-2026/verify-final-release-v4.py \
             tools/schools/school_resource_bundle.py \
             tools/schools/build-school-profile-center-v3957.py \
             tools/tongxue/build-moe-2026-school-index.py \
