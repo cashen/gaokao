@@ -47,6 +47,27 @@ export function normalizeCityName(value) {
   return String(value || '').replace(/[市区县]/g, '').trim();
 }
 
+export function deriveRegionGroups(record = {}) {
+  const province = normalizeProvinceName(record.province);
+  const city = normalizeCityName(record.city);
+  const groups = [];
+  if (province === '辽宁') {
+    groups.push('ln', '辽宁省内');
+    if (city === '沈阳') groups.push('shenyang', '沈阳');
+    else if (city === '大连') groups.push('dalian', '大连');
+    else groups.push('ln-other', '辽宁其他');
+  } else if (province) {
+    groups.push('outside', '省外', province);
+  }
+  for (const [key, provinces] of Object.entries(REGION_GROUPS)) {
+    if (provinces.includes(province)) groups.push(key, getRegionLabel(key));
+  }
+  for (const [key, value] of Object.entries(DIRECT_PROVINCES)) {
+    if (value === province) groups.push(key);
+  }
+  return [...new Set(groups.filter(Boolean))];
+}
+
 export function getRegionOption(key) {
   return REGION_OPTIONS.find(item => item.key === String(key || 'all')) || REGION_OPTIONS[0];
 }
