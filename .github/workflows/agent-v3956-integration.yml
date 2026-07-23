@@ -88,14 +88,16 @@ jobs:
             tools/tongxue/verify-direct-handoff-v155.mjs; do
               node --check "$file"
           done
-      - name: Focused integration regressions
-        run: |
-          set -euo pipefail
-          node tools/tongxue/verify-direct-handoff-v155.mjs
-          node tools/verify-feishu-report-v3956.mjs
-          node tools/audit-feishu-copy-contract.mjs
-          node tools/audit-shared-resource-center-v3956.mjs
-          node tools/audit-active-runtime-v3956.mjs
+      - name: Verify Tongxue direct handoff
+        run: node tools/tongxue/verify-direct-handoff-v155.mjs
+      - name: Verify three Feishu report flows
+        run: node tools/verify-feishu-report-v3956.mjs
+      - name: Verify Feishu family copy
+        run: node tools/audit-feishu-copy-contract.mjs
+      - name: Audit shared resource ownership
+        run: node tools/audit-shared-resource-center-v3956.mjs
+      - name: Audit active runtime graph
+        run: node tools/audit-active-runtime-v3956.mjs
       - name: Commit generated integration
         run: |
           set -euo pipefail
