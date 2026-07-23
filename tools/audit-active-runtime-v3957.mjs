@@ -7,6 +7,7 @@ const { CURRENT_RELEASE } = await import(pathToFileURL(`${process.cwd()}/shared/
 const active = JSON.parse(fs.readFileSync('ln-rank/active-assets.json', 'utf8'));
 assert.equal(active.version, CURRENT_RELEASE.display);
 assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
+assert.equal(active.algorithmOrchestrationVersion, CURRENT_RELEASE.algorithmOrchestrationVersion);
 
 const entryFiles = [
   ...active.jsEntry.map(item => path.join('ln-rank', item)),
@@ -18,6 +19,11 @@ const entryFiles = [
   'shared/resources/reports/feishu-report-contract.js',
   'shared/ui/ui-registry.js',
   'shared/ui/shell/family-shell.v3959_0.js',
+  'shared/ui/shell/family-shell.v3960_0.js',
+  'shared/algorithms/algorithm-registry.js',
+  'shared/algorithms/position/canonical-position.v3960_0.js',
+  'shared/algorithms/ranking/staged-ranking.v3960_0.js',
+  'shared/algorithms/contracts/decision-snapshot.v3960_0.js',
   'tongxue/app/tongxue-performance-v156.js'
 ];
 for (const file of [
@@ -54,17 +60,12 @@ const reachableSource = [...visited]
   .filter(file => fs.existsSync(file) && /\.(?:m?js)$/.test(file))
   .map(file => fs.readFileSync(file, 'utf8'))
   .join('\n');
-assert.ok(reachableSource.includes('feishu-api-client.v3956_0.js'));
-assert.ok(reachableSource.includes('feishu-report-contract.js'));
-assert.ok(reachableSource.includes('current-release.js'));
-assert.ok(reachableSource.includes('school-identity-center.js'));
-assert.ok(reachableSource.includes('major-catalog-contract.js'));
-assert.ok(reachableSource.includes('school-profile-data.20260617-v3957.js'));
-assert.ok(reachableSource.includes('tongxue-direct-handoff-v155.js'));
-assert.ok(reachableSource.includes('tongxue-direct-result-v156.js'));
-assert.ok(reachableSource.includes('render.v3957_0.js'));
-assert.ok(reachableSource.includes('family-shell.v3959_0.js'));
-assert.ok(reachableSource.includes('UI_ORCHESTRATION_VERSION'));
+for (const marker of [
+  'feishu-api-client.v3956_0.js','feishu-report-contract.js','current-release.js','school-identity-center.js',
+  'major-catalog-contract.js','school-profile-data.20260617-v3957.js','tongxue-direct-handoff-v155.js',
+  'tongxue-direct-result-v156.js','render.v3957_0.js','family-shell.v3960_0.js','UI_ORCHESTRATION_VERSION',
+  'algorithm-orchestration-v3960','resolveCanonicalPosition','staged-ranking-v3960_0','decision-snapshot-v3960_0'
+]) assert.ok(reachableSource.includes(marker), `active graph missing ${marker}`);
 assert.ok(!reachableSource.includes("from './feature/feishu/index.js?v=3951_0'"));
 
 const routeLiteralOwners = [];
@@ -111,10 +112,11 @@ for (const source of [compatEntity150, compatEntity130]) {
   assert.ok(!source.includes("E('dlut-panjin'"));
 }
 
-const shell = fs.readFileSync('shared/ui/shell/family-shell.v3959_0.js', 'utf8');
+const shell = fs.readFileSync('shared/ui/shell/family-shell.v3960_0.js', 'utf8');
 assert.ok(!shell.includes('MutationObserver'));
 assert.ok(!shell.includes("fetch('/api/"));
-assert.ok(fs.readFileSync('shared/ui/shell/family-shell.v3959_0.css', 'utf8').includes('family-decision-bar'));
+assert.ok(fs.readFileSync('shared/ui/shell/family-shell.v3960_0.css', 'utf8').includes('family-decision-bar'));
+assert.ok(fs.readFileSync('shared/ui/shell/family-shell.v3959_0.js', 'utf8').includes('family-shell.v3960_0.js'));
 
 for (const forbidden of ['fenxi/pendingdel', 'v3.9.46.3', 'pure runtime']) {
   assert.ok(!reachableSource.includes(forbidden), `active graph contains forbidden marker: ${forbidden}`);
@@ -124,9 +126,11 @@ for (const temp of [
   '.github/workflows/agent-school-profile-v3957.yml',
   '.github/workflows/agent-tongxue-direct-result-v156.yml',
   '.github/workflows/agent-ui-orchestration-v3959.yml',
+  '.github/workflows/agent-algorithm-orchestration-v3960.yml',
   'tools/schools/apply-school-profile-v3957.py',
   'tools/tongxue/apply-direct-result-v156.py',
-  'tools/ui/apply-ui-orchestration-v3959.py'
+  'tools/ui/apply-ui-orchestration-v3959.py',
+  'tools/algorithms/apply-algorithm-orchestration-v3960.py'
 ]) assert.ok(!fs.existsSync(temp), `temporary integration file remains: ${temp}`);
 
 console.log(JSON.stringify({
@@ -138,5 +142,6 @@ console.log(JSON.stringify({
   schoolProfileOwner: 'shared/resources/schools/school-profile-center.js',
   schoolIdentityOwner: 'shared/resources/schools/school-identity-center.js',
   majorResolverOwner: 'shared/resources/majors/major-catalog-contract.js',
-  uiOwner: 'shared/ui/ui-registry.js'
+  uiOwner: 'shared/ui/ui-registry.js',
+  algorithmOwner: 'shared/algorithms/algorithm-registry.js'
 }));
