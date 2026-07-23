@@ -16,6 +16,8 @@ const entryFiles = [
   'shared/resources/schools/school-identity-center.js',
   'shared/resources/schools/school-profile-center.js',
   'shared/resources/reports/feishu-report-contract.js',
+  'shared/ui/ui-registry.js',
+  'shared/ui/shell/family-shell.v3959_0.js',
   'tongxue/app/tongxue-performance-v156.js'
 ];
 for (const file of [
@@ -61,6 +63,8 @@ assert.ok(reachableSource.includes('school-profile-data.20260617-v3957.js'));
 assert.ok(reachableSource.includes('tongxue-direct-handoff-v155.js'));
 assert.ok(reachableSource.includes('tongxue-direct-result-v156.js'));
 assert.ok(reachableSource.includes('render.v3957_0.js'));
+assert.ok(reachableSource.includes('family-shell.v3959_0.js'));
+assert.ok(reachableSource.includes('UI_ORCHESTRATION_VERSION'));
 assert.ok(!reachableSource.includes("from './feature/feishu/index.js?v=3951_0'"));
 
 const routeLiteralOwners = [];
@@ -107,6 +111,11 @@ for (const source of [compatEntity150, compatEntity130]) {
   assert.ok(!source.includes("E('dlut-panjin'"));
 }
 
+const shell = fs.readFileSync('shared/ui/shell/family-shell.v3959_0.js', 'utf8');
+assert.ok(!shell.includes('MutationObserver'));
+assert.ok(!shell.includes("fetch('/api/"));
+assert.ok(fs.readFileSync('shared/ui/shell/family-shell.v3959_0.css', 'utf8').includes('family-decision-bar'));
+
 for (const forbidden of ['fenxi/pendingdel', 'v3.9.46.3', 'pure runtime']) {
   assert.ok(!reachableSource.includes(forbidden), `active graph contains forbidden marker: ${forbidden}`);
 }
@@ -114,8 +123,10 @@ for (const forbidden of ['fenxi/pendingdel', 'v3.9.46.3', 'pure runtime']) {
 for (const temp of [
   '.github/workflows/agent-school-profile-v3957.yml',
   '.github/workflows/agent-tongxue-direct-result-v156.yml',
+  '.github/workflows/agent-ui-orchestration-v3959.yml',
   'tools/schools/apply-school-profile-v3957.py',
-  'tools/tongxue/apply-direct-result-v156.py'
+  'tools/tongxue/apply-direct-result-v156.py',
+  'tools/ui/apply-ui-orchestration-v3959.py'
 ]) assert.ok(!fs.existsSync(temp), `temporary integration file remains: ${temp}`);
 
 console.log(JSON.stringify({
@@ -126,5 +137,6 @@ console.log(JSON.stringify({
   feishuRouteOwner: routeLiteralOwners[0],
   schoolProfileOwner: 'shared/resources/schools/school-profile-center.js',
   schoolIdentityOwner: 'shared/resources/schools/school-identity-center.js',
-  majorResolverOwner: 'shared/resources/majors/major-catalog-contract.js'
+  majorResolverOwner: 'shared/resources/majors/major-catalog-contract.js',
+  uiOwner: 'shared/ui/ui-registry.js'
 }));
