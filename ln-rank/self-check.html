@@ -3,14 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>ln-rank 发版自测｜v3.9.58.0</title>
-  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-self-check.v3956_0.css?v=3958_0" />
+  <title>ln-rank 发版自测｜v3.9.59.0</title>
+  <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3959_0" />
+  <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3959_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3959_0.css?v=3959_0" />
+  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-self-check.v3956_0.css?v=3959_0" />
 </head>
-<body class="ln-self-check-guided-page" data-release="v3.9.58.0">
+<body class="ln-self-check-guided-page ui-orchestrated" data-ui-page="selected" data-ui-brand="family" data-ui-density="reading" data-release="v3.9.59.0">
   <main class="self-wrap">
     <section class="self-hero">
       <h1>ln-rank 发版自测</h1>
-      <p class="muted">用于确认 v3.9.58.0 活动资源、全站统一资源所有权、统一学校资料、同学你好直达结果、报告流程和多终端真实使用路径合同。这个页面不是给家长看的，是发版自查入口。</p>
+      <p class="muted">用于确认 v3.9.59.0 活动资源、全站统一资源所有权、统一学校资料、全站 UI 调度、同学你好直达结果、报告流程和多终端真实使用路径合同。这个页面不是给家长看的，是发版自查入口。</p>
       <button id="runSelfCheck" class="btn" type="button">运行自测</button>
       <span id="overallBadge" class="status warn">等待自测</span>
     </section>
@@ -32,17 +35,18 @@
 
     <section class="self-card">
       <h2>UI 可读性检查</h2>
-      <p class="muted">检查卡片复核点是否摘要化、默认折叠，避免卡片过大、按钮被挤压、移动端信息爆炸。</p>
+      <p class="muted">检查共享页面壳、家庭状态、卡片复核点、移动端底栏和键盘安全区，避免页面之间重复制作交互规则。</p>
       <div id="uiChecks" class="grid"></div>
     </section>
 
     <section class="self-card">
       <h2>错误日志与修复建议</h2>
       <div id="errors" class="mono">暂无。</div>
-      <p class="muted">出现失败时，复制这里的日志给开发者；重点检查共享资源所有者、兼容适配层、accessor、报告构建器和体验保护层。</p>
+      <p class="muted">出现失败时，复制这里的日志给开发者；重点检查共享资源所有者、UI 所有者、兼容适配层、accessor、报告构建器和体验保护层。</p>
     </section>
   </main>
-  <script type="module" src="/ln-rank/js/self-check.v3958_0.js?v=3958_0"></script>
-  <script type="module" src="/ln-rank/js/ux/v3956_0-self-check.js?v=3958_0"></script>
+  <script type="module" src="/ln-rank/js/self-check.v3959_0.js?v=3959_0"></script>
+  <script type="module" src="/ln-rank/js/ux/v3956_0-self-check.js?v=3959_0"></script>
+  <script type="module" src="/shared/ui/shell/family-shell.v3959_0.js?v=3959_0"></script>
 </body>
 </html>
