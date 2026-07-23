@@ -1,3 +1,4 @@
+import '../../shared/ui/shell/family-shell.v3959_0.js?v=3959_0';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
