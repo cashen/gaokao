@@ -10,7 +10,7 @@ v2 = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 SPEC.loader.exec_module(v2)
 base = v2.base
-base.VERSION = 'v3.9.57.0'
+base.VERSION = 'v3.9.58.0'
 
 
 def contains(path: str, *phrases: str) -> None:
@@ -41,6 +41,7 @@ def verify_manifest_and_chunks() -> None:
 
 
 def verify_runtime_current() -> None:
+    contains('functions/_lib/release-contract.js', 'shared/resources/release/current-release.js', 'LN_RANK_RELEASE_CONTRACT', 'RELEASE_CONTRACT')
     contains('functions/_lib/exam-year-config.js', 'shared/resources/exam/liaoning-physics.js', 'getExamResourceConfig')
     contains('functions/_lib/rank-table-provider.js', 'ln-2026-physics-score-rank.js', 'ln-2025-physics-score-rank.js')
     contains('ln-rank/js/core/score-guard.js', 'validateExamScore', 'belowVocational', 'belowUndergraduate', 'underSpecial', 'topRange')
@@ -54,8 +55,8 @@ def verify_family_and_reports() -> None:
     contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏')
     root = base.text('index.html')
     base.check('近期真实评论' not in root, 'homepage real-review claim')
-    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3957_0.js?v=3957_0', 'data-release="v3.9.57.0"')
-    contains('ln-rank/selection-pool.html', '检查已选专业', '看看当前方案有没有明显偏科', '生成家庭复核报告', '其他保存方式', '2026年普通类本科批物理类专业投档记录')
+    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3958_0.js?v=3958_0', 'data-release="v3.9.58.0"', '资源口径：全站统一调用')
+    contains('ln-rank/selection-pool.html', '检查已选专业', '看看当前方案有没有明显偏科', '生成家庭复核报告', '其他保存方式', '2026年普通类本科批物理类专业投档记录', '/ln-rank/js/selection-pool.v3958_0.js?v=3958_0')
     contains('ln-rank/js/ux/family-presentation.v3955_0.js', '为什么出现', '最需要确认', '现在还不知道', '最低投档位置基本稳定', 'tongxue-card-entry', 'shared/resources/schools/school-resource-center.js')
     presentation = base.text('ln-rank/js/ux/family-presentation.v3955_0.js')
     base.check('近两年录取位置基本稳定' not in presentation, 'old admission wording')
@@ -72,6 +73,7 @@ def verify_family_and_reports() -> None:
     base.check('2026最低投档分' in report and '2025最低分' not in report, 'Feishu report is not 2026-first')
     contains('functions/_lib/report-data-service-v3956.js', 'ln-rank-manifest.js', 'selectedRecords', 'current-visible-band')
     contains('functions/_lib/feishu-report-service.js', 'createFeishuReportResponse')
+    contains('shared/resources/reports/feishu-report-contract.js', 'CURRENT_RELEASE', '/api/feishu-create-report', '/api/feishu-create-selection-pool-report')
     contains('tongxue/index.html', 'tongxue-performance-v156.js?v=156', '同学你好 v1.5.6')
     contains('tongxue/app/tongxue-direct-handoff-v155.js', 'button.click()', 'shouldAutoQuery')
     contains('tongxue/app/tongxue-direct-result-v156.js', 'hero.hidden = !visible', 'suggestionsBox.replaceChildren()', 'needs-confirmation', '换一所学校')
@@ -92,20 +94,31 @@ def verify_card_ai_2026() -> None:
 
 
 def verify_shared_resources() -> None:
+    contains('shared/resources/release/current-release.js', "display: 'v3.9.58.0'", "assetVersion: 'v3958_0'", 'resourceOwners')
     contains('shared/resources/exam/liaoning-physics.js', 'specialControlScore: 508', 'undergraduateControlScore: 344', 'vocationalControlScore: 150', 'isPublicBottomLineVisible')
-    contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'jiangzhehu')
-    contains('shared/resources/schools/school-resource-center.js', 'resolveCompactSchoolResource', 'resolveCardSchoolResource', 'combinedCampusCandidates', 'buildTongxueSchoolHref', 'tongxueDirectoryPromise')
-    contains('shared/resources/resource-registry.js', 'lazy-single-flight')
+    contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'jiangzhehu', 'getLiaoningAreaLabel')
+    contains('shared/resources/schools/school-resource-center.js', 'resolveCompactSchoolResource', 'resolveCardSchoolResource', 'combinedCampusCandidates', 'buildTongxueSchoolHref', 'tongxueDirectoryPromise', "from './school-identity-center.js'")
+    contains('shared/resources/schools/school-identity-center.js', "E('dlut-panjin'", 'createEntityAwareResolver')
+    contains('shared/resources/resource-registry.js', 'lazy-single-flight', 'single-source-release-contract', 'single-resolver-derived-runtime-formats')
     contains('shared/resources/schools/school-profile-center.js', 'SCHOOL_PROFILE_ROWS', 'SCHOOL_PROFILE_SPECIALS', '双非（非985/211）')
+    contains('shared/resources/majors/major-catalog-contract.js', 'createMajorCatalogResolver', 'canonicalCount: 883')
     contains('functions/_lib/school-tags.js', 'shared/resources/schools/school-profile-center.js')
-    contains('functions/_lib/location-normalizer.js', 'shared/resources/schools/school-profile-center.js')
+    contains('functions/_lib/location-normalizer.js', 'shared/resources/schools/school-profile-center.js', 'shared/resources/geo/china-region-catalog.js')
     contains('functions/_lib/school-display-tags.js', 'shared/resources/schools/school-profile-center.js')
+    contains('functions/_lib/bottomline-policy.js', 'shared/resources/schools/school-profile-center.js')
+    contains('functions/_lib/standard-major-mapper.js', 'shared/resources/majors/major-catalog-contract.js')
+    contains('functions/_lib/kb/catalog-accessor.js', 'shared/resources/majors/major-catalog-contract.js')
+    contains('ln-rank/js/knowledge/major-understanding-resolver.js', 'shared/resources/majors/major-catalog-contract.js')
     contains('ln-rank/js/feature/major-pool/render.v3957_0.js', 'schoolEntityTypeLabel', '地域待核验', '双非（非985/211）')
     for path in ('functions/_lib/exam-year-config.js', 'ln-rank/js/core/score-guard.js', 'ln-rank/js/feature/selection-pool/candidate-context.js'):
         contains(path, 'shared/resources/exam/liaoning-physics.js')
     contains('functions/_lib/region-rules.js', 'shared/resources/geo/china-region-catalog.js')
     contains('ln-rank/js/config/region-options.js', 'shared/resources/geo/china-region-catalog.js')
-    contains('ln-rank/js/app.v3957_0.js', 'isPublicBottomLineVisible', "url.pathname !== '/api/major-bands'", "url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')")
+    contains('ln-rank/js/app.v3958_0.js', 'isPublicBottomLineVisible', "url.pathname !== '/api/major-bands'", "url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')", 'resourceOwnershipVersion')
+    for path in ('tools/schools/build-school-profile-center-v3957.py', 'tools/tongxue/build-school-region-index-v150.py', 'tools/tongxue/build-moe-2026-school-index.py'):
+        contains(path, 'school_resource_bundle')
+    contains('tools/schools/school_resource_bundle.py', 'def parse_workbook', 'def build_all', 'write_profile_module', 'write_region_index')
+    contains('tools/audit-resource-ownership-v3958.mjs', 'RESOURCE_OWNERSHIP_AUDIT_FAILED')
 
 
 def verify_zy2026() -> None:
@@ -126,12 +139,23 @@ def verify_release_meta() -> None:
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
     for meta in (release, active):
-        base.check(meta['version'] == 'v3.9.57.0' and meta['assetVersion'] == 'v3957_0', 'release version')
-        for key in ('familyLanguageTrustContract', 'cardAi2026FirstContract', 'zy2026RecordLanguageContract', 'sharedResourceCenterContract', 'sharedExamResourceContract', 'sharedRegionResourceContract', 'sharedSchoolResourceContract', 'sharedSchoolDirectoryLazySingleFlightContract', 'feishuSharedResourceContract', 'feishuThreeEntryRegressionContract', 'tongxueDirectHandoffContract', 'tongxueDirectResultContract', 'sharedSchoolProfileContract', 'schoolProfileNatureContract', 'schoolProfile985211Contract', 'schoolProfileDoubleNonContract', 'schoolProfileCardAlwaysVisibleContract'):
+        base.check(meta['version'] == 'v3.9.58.0' and meta['assetVersion'] == 'v3958_0', 'release version')
+        for key in (
+            'familyLanguageTrustContract', 'cardAi2026FirstContract', 'zy2026RecordLanguageContract',
+            'sharedResourceCenterContract', 'sharedExamResourceContract', 'sharedRegionResourceContract',
+            'sharedSchoolResourceContract', 'sharedSchoolDirectoryLazySingleFlightContract', 'feishuSharedResourceContract',
+            'feishuThreeEntryRegressionContract', 'tongxueDirectHandoffContract', 'tongxueDirectResultContract',
+            'sharedSchoolProfileContract', 'schoolProfileNatureContract', 'schoolProfile985211Contract',
+            'schoolProfileDoubleNonContract', 'schoolProfileCardAlwaysVisibleContract', 'unifiedResourceOwnershipContract',
+            'sharedReleaseOwnerContract', 'singleMoeSchoolBuildContract', 'sharedSchoolIdentityOwnerContract',
+            'sharedMajorCatalogResolverContract', 'sharedRegionDerivationContract', 'sharedSchoolNaturePriorityContract',
+            'resourceOwnershipAuditContract'
+        ):
             base.check(meta.get(key) is True, f'missing contract {key}')
-        base.check(meta['sharedResourceCenterVersion'] == 'v3957_0', 'shared resource version')
-    base.check(active['mainJs'] == 'js/app.v3957_0.js', 'active main JS')
-    base.check('js/app.v3957_0.js' in active['jsEntry'] and 'js/app.v3951_0.js' not in active['jsEntry'], 'main wrapper activation')
+        base.check(meta['sharedResourceCenterVersion'] == 'v3958_0', 'shared resource version')
+    base.check(active['mainJs'] == 'js/app.v3958_0.js', 'active main JS')
+    base.check(active['selectionPoolJs'] == 'js/selection-pool.v3958_0.js', 'active selection JS')
+    base.check('js/app.v3958_0.js' in active['jsEntry'] and 'js/app.v3951_0.js' not in active['jsEntry'], 'main wrapper activation')
     base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3955_0.js', 'zy2026 active JS')
 
 
@@ -148,7 +172,7 @@ def main() -> None:
     verify_release_meta()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.57.0 school profile and Tongxue direct-result verification passed')
+    print('LN 2026 v3.9.58.0 unified resource ownership verification passed')
 
 
 if __name__ == '__main__':
