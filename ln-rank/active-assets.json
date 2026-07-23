@@ -1,6 +1,6 @@
 {
-  "version": "v3.9.55.0",
-  "assetVersion": "v3955_0",
+  "version": "v3.9.56.0",
+  "assetVersion": "v3956_0",
   "html": [
     "index.html",
     "selection-pool.html",
@@ -10,18 +10,21 @@
     "self-check.html"
   ],
   "jsEntry": [
-    "js/app.v3955_0.js",
-    "js/selection-pool.v3951_0.js",
+    "js/app.v3956_0.js",
+    "js/selection-pool.v3956_0.js",
     "js/ux/family-presentation.v3955_0.js",
     "js/ux/family-decision-bar.v3955_0.js",
     "js/ux/family-home.v3955_0.js",
-    "js/self-check.v3949_0.js",
+    "js/self-check.v3956_0.js",
     "js/local-mainline/local-mainline-app.v3951_0.js",
     "js/211-mainline/211-mainline-app.v3951_0.js",
     "js/ux/multi-terminal.v3949_4.js",
     "js/ux/v3949_4-self-check.js",
     "js/major-difficulty-2026.v3953_0.js",
-    "js/ux/compare-workspace.v3953_0.js"
+    "js/ux/compare-workspace.v3953_0.js",
+    "js/feature/feishu/report-api.v3956_0.js",
+    "js/feature/selection-pool/feishu-report-api.v3956_0.js",
+    "js/shared/feishu-api-client.v3956_0.js"
   ],
   "cssEntry": [
     "css/dist/ln-rank-main.v3949_0.css",
@@ -52,7 +55,7 @@
     "compareWorkspace": "css/dist/compare-workspace.v3953_0.css",
     "compareWorkspaceYearFix": "css/dist/compare-workspace-year-fix.v3953_0.css"
   },
-  "releaseGate": "family-decision-language, family-status-continuity, decision-card-summary, tongxue-auto-school-link, card-ai-2026-first, shared-resource-center, zy2026-record-language, protected-fenxi-runtime-unchanged",
+  "releaseGate": "tongxue-direct-handoff, feishu-three-entry-2026, shared-report-resource, active-runtime-audit, protected-fenxi-runtime-unchanged",
   "versionContractSync": true,
   "noFenxiIncluded": true,
   "typographyHierarchyContract": true,
@@ -87,7 +90,10 @@
   "familyDecisionNoNewObserverContract": true,
   "cardAi2026FirstContract": true,
   "cardAiPrimaryDataYear": 2026,
-  "cardAiHistoryYears": [2025, 2024],
+  "cardAiHistoryYears": [
+    2025,
+    2024
+  ],
   "cardAiAudienceYear": 2027,
   "cardAiNo2025PrimaryContract": true,
   "cardAi2027OfficialUnknownContract": true,
@@ -95,19 +101,19 @@
   "cardAiYearCaliberSourceContract": true,
   "cardAiRulesFallbackContract": true,
   "sharedResourceCenterContract": true,
-  "sharedResourceCenterVersion": "v3955_0",
+  "sharedResourceCenterVersion": "v3956_0",
   "sharedExamResourceContract": true,
   "sharedRegionResourceContract": true,
   "sharedSchoolResourceContract": true,
   "sharedSchoolDirectoryLazySingleFlightContract": true,
   "sharedResourceCompatibilityAdapterContract": true,
   "sharedResourceNoPerCardNetworkContract": true,
-  "runtimeCacheQueryVersion": "v3955_0",
+  "runtimeCacheQueryVersion": "v3956_0",
   "preservedCoreModuleQueryVersion": "v3951_0",
   "preservedRuntimeModuleQueryVersion": "v3951_0",
-  "mainJs": "js/app.v3955_0.js",
+  "mainJs": "js/app.v3956_0.js",
   "legacyMainJs": "js/app.v3951_0.js",
-  "selectionPoolJs": "js/selection-pool.v3951_0.js",
+  "selectionPoolJs": "js/selection-pool.v3956_0.js",
   "familyPresentationJs": "js/ux/family-presentation.v3955_0.js",
   "familyDecisionBarJs": "js/ux/family-decision-bar.v3955_0.js",
   "familyHomeJs": "js/ux/family-home.v3955_0.js",
@@ -155,5 +161,20 @@
   "compareWorkspaceTabletSwipeContract": true,
   "compareWorkspaceAndroidSnapContract": true,
   "compareWorkspaceAutoNavigateContract": true,
-  "compareWorkspaceYearLabelContract": true
+  "compareWorkspaceYearLabelContract": true,
+  "tongxueDirectHandoffContract": true,
+  "tongxueDirectHandoffVersion": "v1.5.5",
+  "feishuSharedResourceContract": true,
+  "feishuSharedServerServiceContract": true,
+  "feishuSharedFrontendClientContract": true,
+  "feishuCurrentBandExactRecordContract": true,
+  "feishuLegacy2026FallbackContract": true,
+  "feishuThreeEntryRegressionContract": true,
+  "feishu2026PrimaryContract": true,
+  "feishuHistoryYears": [
+    2025,
+    2024
+  ],
+  "activeRuntimeAuditContract": true,
+  "sharedReportResource": "../shared/resources/reports/feishu-report-contract.js"
 }

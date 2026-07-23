@@ -29,7 +29,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 
 def regex_once(text: str, pattern: str, replacement: str, label: str, flags: int = 0) -> str:
-    output, count = re.subn(pattern, replacement, text, count=1, flags=flags)
+    output, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=flags)
     if count != 1:
         raise RuntimeError(f'{label}: expected exactly one regex match, got {count}')
     return output
@@ -63,6 +63,7 @@ write('_headers', headers)
 # 2. Active app bridges. Keep old core files, but route their report imports through v3956 modules.
 app_core = read('ln-rank/js/app.v3951_0.js')
 app_core = replace_once(app_core, "from './feature/feishu/index.js?v=3951_0';", "from './feature/feishu/index.v3956_0.js?v=3956_0';", 'main Feishu index')
+app_core = replace_once(app_core, "from './feature/selection-pool/index.js?v=3951_0';", "from './feature/selection-pool/index.v3956_0.js?v=3956_0';", 'main selection index')
 write('ln-rank/js/app.v3951_0.js', app_core)
 
 pool_core = read('ln-rank/js/selection-pool.v3951_0.js')

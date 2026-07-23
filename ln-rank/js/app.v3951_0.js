@@ -7,8 +7,8 @@ import { renderBandLegend, renderResultBandSwitcher } from './feature/score-band
 import { renderMajorResults } from './feature/major-pool/index.js?v=3951_0';
 import { buildKeywordQuery } from './feature/major-pool/index.js?v=3951_0';
 import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3951_0';
-import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3951_0';
-import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3951_0';
+import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.v3956_0.js?v=3956_0';
+import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
 import { renderSearchTrendHint } from './feature/trend/index.js?v=3951_0';
 import { getQueryButtonLabel, getQueryButtonClass, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3951_0';
 import { getRangePresetLabel } from './domain/range-policy.js?v=3951_0';

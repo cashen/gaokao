@@ -10,7 +10,7 @@ import { sanitizeParentCopy } from './kb/copy-policy-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist, reviewChecklistMarkdownLines } from './kb/review-checklist-builder.js';
-import { LN_RANK_RELEASE_CONTRACT } from './release-contract.js';
+import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -420,7 +420,7 @@ function nonHeadingLines(lines = []) {
 function appendChecklistLines(lines, checklist = {}) {
   const categories = Array.isArray(checklist.categories) ? checklist.categories : [];
   if (!categories.length) {
-    lines.push('- 暂未汇总出明显复核事项；正式填报仍需核验 2026 招生计划和招生章程。', '');
+    lines.push('- 暂未汇总出明显复核事项；正式填报仍需核验 2027 招生计划和招生章程。', '');
     return;
   }
   lines.push(`- ${checklist.summary?.headline || `本方案有 ${categories.length} 类事项建议人工复核`}。`);
@@ -559,8 +559,8 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 顺序：${item.order}`);
       lines.push(`- 学校：${item.school || '学校待核验'}`);
       lines.push(`- 专业：${item.major || '专业待核验'}`);
-      lines.push(`- 2025最低分：${Number.isFinite(Number(item.score2025)) ? fmt(item.score2025) : '分数待核验'}`);
-      lines.push(`- 2025最低位次：${Number.isFinite(Number(item.rank2025)) ? fmt(item.rank2025) : '位次待核验'}`);
+      lines.push(`- 2026最低投档分：${Number.isFinite(Number(item.score2026)) ? fmt(item.score2026) : '分数待核验'}`);
+      lines.push(`- 2026最低投档位次：${Number.isFinite(Number(item.rank2026)) ? fmt(item.rank2026) : '位次待核验'}`);
       lines.push(`- ${historyText(item)}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 参考位置：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
@@ -602,7 +602,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   appendManualReviewLines(lines, displayItems);
 
   lines.push('## 六、数据和使用边界', '');
-  lines.push('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2026 招生计划人工核验。');
+  lines.push('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2027 招生计划人工核验。');
   lines.push(...nonHeadingLines(governanceBoundaryLines()).filter(Boolean), '');
 
   return {
@@ -611,10 +611,12 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     recordsCount: items.length,
     reportType,
     orderSignature,
-    version: LN_RANK_RELEASE_CONTRACT.display,
-    assetVersion: LN_RANK_RELEASE_CONTRACT.assetVersion,
-    release: LN_RANK_RELEASE_CONTRACT.release,
+    version: FEISHU_REPORT_CONTRACT.releaseVersion,
+    assetVersion: FEISHU_REPORT_CONTRACT.assetVersion,
+    release: FEISHU_REPORT_CONTRACT.releaseName,
     summary,
+    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
       reportType,
