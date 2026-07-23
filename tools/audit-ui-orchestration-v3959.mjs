@@ -25,6 +25,7 @@ for(const action of Object.values(UI_ACTION_COPY))assert.equal(validateUiAction(
 for(const state of Object.values(UI_STATE_COPY))assert.equal(validateUiState(state),true,`invalid state ${JSON.stringify(state)}`);
 assert.equal(UI_LANGUAGE.minimumFilingPosition,'最低投档位置');
 assert.equal(UI_LANGUAGE.publicReviews,'公开评论');
+assert.ok(UI_LANGUAGE.probabilityBoundary.includes('不代表录取概率'));
 
 assert.equal(shellModule.resolveUiPage('/'),'home');
 assert.equal(shellModule.resolveUiPage('/ln-rank/'),'selection');
@@ -45,9 +46,10 @@ assert.ok(!shell.includes("fetch('/api/"));
 const foundation=read('shared/ui/tokens/foundation.v3959_0.css');
 const semantic=read('shared/ui/tokens/semantic.v3959_0.css');
 const shellCss=read('shared/ui/shell/family-shell.v3959_0.css');
-for(const token of ['--ui-page-bg','--ui-surface','--ui-ink','--ui-brand-primary','--ui-touch-min','--ui-reading-width','--ui-workspace-width'])assert.ok(foundation.includes(token),`foundation missing ${token}`);
+for(const token of ['--ui-page-bg','--ui-surface','--ui-ink','--ui-brand-primary','--ui-touch-min','--ui-reading-width','--ui-workspace-width','--ui-safe-bottom'])assert.ok(foundation.includes(token),`foundation missing ${token}`);
+assert.ok(foundation.includes('env(safe-area-inset-bottom'), 'foundation must own safe-area environment value');
 for(const component of ['.ui-button','.ui-card','.ui-state--loading','.ui-state--pending','.ui-state--error'])assert.ok(semantic.includes(component),`semantic missing ${component}`);
-for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','env(safe-area-inset-bottom','@media(max-width:767px)','family-decision-bar'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
+for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','var(--ui-safe-bottom)','@media(max-width:767px)','family-decision-bar'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
 
 const staticPages={
   'index.html':['home','family','reading'],
