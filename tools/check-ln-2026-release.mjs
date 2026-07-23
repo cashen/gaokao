@@ -15,15 +15,15 @@ const pages=['ln-rank/index.html','ln-rank/selection-pool.html','ln-rank/local-m
 for(const path of pages)ok(!/版本：v3\.9\.50\.0/.test(t(path)),`${path} old footer`);
 
 const main=t('ln-rank/index.html');
-ok(main.includes('v3.9.56.0'),'main version');
-ok(main.includes('app.v3956_0.js?v=3956_0'),'shared main wrapper loaded');
-ok(!main.includes('app.v3951_0.js?v=3956_0'),'legacy main not loaded directly');
+ok(main.includes('v3.9.57.0'),'main version');
+ok(main.includes('app.v3957_0.js?v=3957_0'),'shared main wrapper loaded');
+ok(!main.includes('app.v3951_0.js?v=3957_0'),'legacy main not loaded directly');
 ok(main.includes('family-decision-workspace.v3955_0.css'),'family decision css loaded');
 ok(main.includes('family-presentation.v3955_0.js'),'family presentation loaded');
 ok(main.includes('family-decision-bar.v3955_0.js'),'family status bar loaded');
 ok(main.includes('compare-workspace-year-fix.v3953_0.css'),'compare year fix loaded');
 const selection=t('ln-rank/selection-pool.html');
-ok(selection.includes('v3.9.56.0'),'selection version');
+ok(selection.includes('v3.9.57.0'),'selection version');
 ok(selection.includes('生成家庭复核报告')&&selection.includes('其他保存方式'),'selection action simplification');
 ok(t('ln2026.html').includes('v3.9.53.0'),'difficulty core version preserved');
 
@@ -67,10 +67,14 @@ ok(t('ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css').includes('span::
 const sharedExam=t('shared/resources/exam/liaoning-physics.js');
 const sharedGeo=t('shared/resources/geo/china-region-catalog.js');
 const sharedSchool=t('shared/resources/schools/school-resource-center.js');
-const appWrapper=t('ln-rank/js/app.v3956_0.js');
+const appWrapper=t('ln-rank/js/app.v3957_0.js');
 ok(sharedExam.includes('specialControlScore: 508')&&sharedExam.includes('undergraduateControlScore: 344'),'shared exam controls');
 ok(sharedGeo.includes('REGION_OPTIONS')&&sharedGeo.includes('matchRegionRule'),'shared region catalog');
 ok(sharedSchool.includes('tongxueDirectoryPromise')&&sharedSchool.includes('resolveCardSchoolResource'),'shared school center');
+const schoolProfile=t('shared/resources/schools/school-profile-center.js');
+ok(schoolProfile.includes('SCHOOL_PROFILE_ROWS')&&schoolProfile.includes('SCHOOL_PROFILE_SPECIALS'),'shared school profile center');
+ok(t('functions/_lib/school-tags.js').includes('school-profile-center.js')&&t('functions/_lib/location-normalizer.js').includes('school-profile-center.js'),'school profile adapters');
+ok(t('ln-rank/js/feature/major-pool/render.v3957_0.js').includes('双非（非985/211）'),'school profile card tags');
 ok(appWrapper.includes("url.pathname !== '/api/major-bands'")&&appWrapper.includes("url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')"),'shared main API rewrite');
 ok(t('functions/_lib/exam-year-config.js').includes('shared/resources/exam/liaoning-physics.js'),'exam adapter');
 ok(t('functions/_lib/region-rules.js').includes('shared/resources/geo/china-region-catalog.js'),'region backend adapter');
@@ -87,8 +91,8 @@ ok(audit.coverage.records2025===audit.coverage.assigned2025,'zy 2025 coverage');
 ok(audit.coverage.records2026===audit.coverage.assigned2026,'zy 2026 coverage');
 
 const active=j('ln-rank/active-assets.json');
-ok(active.version==='v3.9.56.0'&&active.assetVersion==='v3956_0','active version');
-ok(active.mainJs==='js/app.v3956_0.js'&&active.jsEntry.includes('js/app.v3956_0.js'),'active shared main');
+ok(active.version==='v3.9.57.0'&&active.assetVersion==='v3957_0','active version');
+ok(active.mainJs==='js/app.v3957_0.js'&&active.jsEntry.includes('js/app.v3957_0.js'),'active shared main');
 ok(!active.jsEntry.includes('js/app.v3951_0.js'),'legacy main not directly active');
 ok(active.sharedResourceCenterContract===true&&active.sharedSchoolDirectoryLazySingleFlightContract===true,'shared active contracts');
 ok(active.zy2026ExperienceVersion==='v3.9.55.0','zy experience version');
@@ -102,17 +106,18 @@ ok(!active.jsEntry.includes('js/ux/family-presentation.v3952_0.js'),'old present
 ok(!active.jsEntry.includes('js/major-difficulty-2026.v3952_0.js'),'old difficulty js inactive');
 
 const release=j('ln-rank/release-meta.json');
-ok(release.version==='v3.9.56.0'&&release.assetVersion==='v3956_0','release version');
+ok(release.version==='v3.9.57.0'&&release.assetVersion==='v3957_0','release version');
 ok(release.majorDifficultyJs==='js/major-difficulty-2026.v3953_0.js','release difficulty js');
 ok(release.compareWorkspaceYearLabelContract===true,'year-label contract');
 ok(release.familyDecisionTongxueEntityContract===true&&release.familyDecisionNoApiPrefetchContract===true,'Tongxue efficient auto-match contract');
 ok(release.cardAi2026FirstContract===true,'card AI 2026 contract');
 ok(release.sharedResourceCenterContract===true&&release.sharedMajorBandsRequestRewriteContract===true,'shared release contracts');
-ok(release.feishuSharedResourceContract===true&&release.feishuThreeEntryRegressionContract===true&&release.tongxueDirectHandoffContract===true,'v3956 integration contracts');
+ok(release.feishuSharedResourceContract===true&&release.feishuThreeEntryRegressionContract===true&&release.tongxueDirectHandoffContract===true,'Feishu and Tongxue contracts');
+ok(release.sharedSchoolProfileContract===true&&release.schoolProfileCardAlwaysVisibleContract===true&&release.tongxueDirectResultContract===true,'v3957 school profile contracts');
 ok(t('shared/resources/reports/feishu-report-contract.js').includes('/api/feishu-create-selection-pool-report'),'shared Feishu route contract');
-ok(t('tongxue/index.html').includes('tongxue-performance-v155.js?v=155'),'Tongxue v155 active');
+ok(t('tongxue/index.html').includes('tongxue-performance-v156.js?v=156'),'Tongxue v156 active');
 ok(release.zy2026ExperienceVersion==='v3.9.55.0'&&release.zy2026RecordLanguageContract===true,'zy release contracts');
 
 for(const path of ['.bootstrap','.github/workflows/bootstrap-zy2026-v3953.yml','.github/workflows/materialize-zy2026-v3953.yml'])ok(!fs.existsSync(path),`temporary path remains ${path}`);
 ok(!t('ln-rank/js/core/score-guard.js').includes('<400'),'no 400 guard');
-console.log('LN 2026 v3.9.56.0 Feishu, Tongxue and shared resource checks passed');
+console.log('LN 2026 v3.9.57.0 school profile and Tongxue direct-result checks passed');

@@ -1,4 +1,4 @@
-export const SHARED_RESOURCE_CENTER_VERSION = 'v3956_0';
+export const SHARED_RESOURCE_CENTER_VERSION = 'v3957_0';
 
 export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   exam: Object.freeze({
@@ -24,6 +24,9 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     module: '/shared/resources/schools/school-resource-center.js',
     compactEntityPolicy: 'eager-small-static-module',
     fullDirectoryPolicy: 'lazy-single-flight',
+    profileModule: '/shared/resources/schools/school-profile-center.js',
+    profilePolicy: 'server-sync-official-2026',
+    profileFields: Object.freeze(['officialName','campusEntity','province','city','nature','985','211','doubleNon']),
     consumers: Object.freeze(['ln-rank-cards', 'tongxue', 'future-school-tools'])
   })
 });

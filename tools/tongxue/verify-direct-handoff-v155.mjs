@@ -28,13 +28,13 @@ delete globalThis.document;
 
 const source = fs.readFileSync('tongxue/app/tongxue-direct-handoff-v155.js', 'utf8');
 const page = fs.readFileSync('tongxue/index.html', 'utf8');
-const entry = fs.readFileSync('tongxue/app/tongxue-performance-v155.js', 'utf8');
+const entry = fs.readFileSync('tongxue/app/tongxue-performance-v156.js', 'utf8');
 assert.ok(source.includes('button.click()'));
 assert.ok(!source.includes("fetch('/api/tongxue"));
-assert.ok(page.includes('tongxue-v155-direct-handoff-20260723'));
-assert.ok(page.includes('./app/tongxue-performance-v155.js?v=155'));
+assert.ok(page.includes('tongxue-v156-direct-result-20260723'));
+assert.ok(page.includes('./app/tongxue-performance-v156.js?v=156'));
 assert.ok(!page.includes('aria-describedby="indexStatus" autofocus'));
-assert.ok(entry.indexOf('prepareTongxueDirectHandoff') < entry.indexOf("await import('./tongxue-performance-v112.js?v=155')"));
-assert.ok(entry.indexOf('await directHandoff.start()') > entry.indexOf("await import('./tongxue-performance-v112.js?v=155')"));
+assert.ok(entry.indexOf('prepareTongxueDirectHandoff') < entry.indexOf("await import('./tongxue-performance-v112.js?v=156')"));
+assert.ok(entry.indexOf('await directHandoff.start()') > entry.indexOf("await import('./tongxue-performance-v112.js?v=156')"));
 
-console.log('TONGXUE_DIRECT_HANDOFF_V155_OK');
+console.log('TONGXUE_DIRECT_HANDOFF_V155_COMPAT_OK');

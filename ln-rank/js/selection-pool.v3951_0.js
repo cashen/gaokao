@@ -8,12 +8,12 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.v3956_0.js?v=3956_0';
-import { requestPathAnalysis } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
-import { renderHealthLights } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
+} from './feature/selection-pool/index.v3957_0.js?v=3957_0';
+import { requestPathAnalysis } from './feature/selection-pool/index.v3957_0.js?v=3957_0';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.v3957_0.js?v=3957_0';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.v3957_0.js?v=3957_0';
+import { renderHealthLights } from './feature/selection-pool/index.v3957_0.js?v=3957_0';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.v3957_0.js?v=3957_0';
 import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3951_0';
 import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.js?v=3951_0';
 import { renderParentCoach } from './feature/decision-coach/index.js?v=3951_0';
@@ -383,6 +383,19 @@ function itemCodeText(item = {}) {
   return '';
 }
 
+
+function itemSchoolProfileHtml(item = {}) {
+  const tier = Array.isArray(item.schoolTierTags) && item.schoolTierTags.length ? item.schoolTierTags : item.schoolTags;
+  const tags = [
+    ...(Array.isArray(tier) ? tier : []),
+    item.natureLabel || '性质待核验',
+    item.schoolEntityTypeLabel || '',
+    item.displayLocation || '地域待核验'
+  ];
+  const values = [...new Set(tags.filter(Boolean))];
+  return values.map(value => `<span class="workspace-school-profile-tag">${escapeHtml(value)}</span>`).join('');
+}
+
 function itemHtml(item, index, total) {
   const band = item.poolBand || classifyPoolItem(item);
   const score = Number.isFinite(Number(item.score2026 ?? item.score)) ? `${item.score2026 ?? item.score} 分` : '分数待核验';
@@ -402,7 +415,7 @@ function itemHtml(item, index, total) {
         ${isLongMajorName(item.major) ? `<button class="workspace-text-toggle" type="button" data-toggle-major="${escapeHtml(item.id)}" aria-expanded="false">展开完整名称</button>` : ''}
       </div>
       <div class="workspace-item-meta">
-        <span>2026投档最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${itemHistoryText(item) ? `<span class="workspace-history-chip">${escapeHtml(itemHistoryText(item))}</span>` : ''}<span class="is-band">${escapeHtml(band.detail || '')}</span>${location}${campusTag}${itemCodeText(item)}${itemLocalContextChip(item)}${itemLocalStrengthChip(item)}
+        <span>2026投档最低分 ${score}</span><span>${rank}</span><span>${delta}</span>${itemHistoryText(item) ? `<span class="workspace-history-chip">${escapeHtml(itemHistoryText(item))}</span>` : ''}<span class="is-band">${escapeHtml(band.detail || '')}</span>${itemSchoolProfileHtml(item)}${campusTag}${itemCodeText(item)}${itemLocalContextChip(item)}${itemLocalStrengthChip(item)}
       </div>
       ${campusReview ? `<div class="workspace-item-review">${campusReview}</div>` : ''}
       ${itemMajorUnderstandingHtml(item)}

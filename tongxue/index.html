@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="tongxue-build" content="tongxue-v155-direct-handoff-20260723">
+<meta name="tongxue-build" content="tongxue-v156-direct-result-20260723">
 <title>同学你好 - 找学校，看看大家怎么说</title>
 <link rel="canonical" href="https://gaokao.powers.org.cn/tongxue/">
 <script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150"}}</script>
@@ -17,7 +17,7 @@ button,a,input,summary{outline:none}
 button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{box-shadow:0 0 0 3px rgba(69,185,154,.22);border-radius:8px}
 .wrap{max-width:1040px;margin:auto;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}
-.brand{color:var(--primary);font-weight:850;font-size:18px;text-decoration:none}.brand:hover{color:var(--brand-teal)}.back-home{color:var(--muted);font-size:13px;font-weight:750;text-decoration:none}.back-home:hover{color:var(--primary)}
+.brand{color:var(--primary);font-weight:850;font-size:18px;text-decoration:none}.brand:hover{color:var(--brand-teal)}.back-home{color:var(--muted);font-size:13px;font-weight:750;text-decoration:none}.back-home:hover{color:var(--primary)}.direct-change-school{border:0;background:transparent;padding:0;cursor:pointer}
 .hero{text-align:center;padding:46px 0 34px}.hero-logo-link{display:inline-flex;align-items:center;justify-content:center;border-radius:22px}.hero-logo{display:block;width:clamp(330px,34vw,430px);height:auto}.hero-copy{margin-top:18px}.hero-title{margin:0;color:var(--text);font-size:20px;font-weight:850;line-height:1.4}.hero-description{max-width:620px;margin:5px auto 0;color:var(--muted);font-size:14px;line-height:1.7}
 .search-box{max-width:760px;margin:24px auto 0;text-align:left}.search-row{display:flex;gap:12px;align-items:flex-start}.input-wrap{position:relative;flex:1;min-width:0}
 .search-input{width:100%;height:58px;border:1px solid var(--border);border-radius:16px;padding:0 48px 0 20px;font-size:18px;background:#fff;color:var(--text)}.search-input:focus{border-color:var(--brand-teal);box-shadow:0 0 0 4px rgba(69,185,154,.14)}
@@ -39,6 +39,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{b
 .choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.choice-card{border:1px solid var(--warm-border);background:#fff;border-radius:15px;padding:15px;text-align:left;color:var(--text);cursor:pointer}.choice-card:hover,.choice-card:focus-visible{border-color:var(--primary)}.choice-name{display:block;font-weight:900;font-size:16px;line-height:1.45}.choice-note{display:block;margin-top:5px;color:var(--muted);font-size:12px}.footer{margin-top:42px;padding:22px 0 8px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.8;text-align:center}.version{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--primary);font-weight:850;text-underline-offset:4px}.version:hover{text-decoration-thickness:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 body:has(#result:not(:empty)) .hero{padding-top:22px;padding-bottom:22px}
 body:has(#result:not(:empty)) .hero-logo{width:clamp(210px,27vw,320px)}
+body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #result>.result-shell,body.tongxue-direct-result #result>.state-card{margin-top:18px}body.tongxue-needs-confirmation .hero{padding-top:24px}
 @media(min-width:701px) and (max-width:1023px){.hero{padding:38px 0 34px}.hero-logo{width:clamp(280px,42vw,350px)}.search-box{max-width:680px}}
 @media(max-width:700px){.wrap{padding:16px 14px calc(18px + env(safe-area-inset-bottom))}.brand{font-size:16px}.hero{padding:22px 0 26px}.hero-logo{width:clamp(190px,61vw,245px)}.hero-copy{margin-top:12px}.hero-title{font-size:18px}.hero-description{max-width:310px;font-size:13px}.search-box{margin-top:18px}.search-row{display:grid;grid-template-columns:1fr;gap:10px}.search-input{height:54px;font-size:16px}.btn{width:100%;height:52px;margin-top:0}.quick-examples{justify-content:center;margin-top:10px}.suggestions{top:62px}.result-shell,.state-card{padding:21px;border-radius:18px}.result-head{display:block}.result-head h2{font-size:26px}.badge{margin-top:12px}.summary-grid,.review-grid,.choice-grid{grid-template-columns:1fr}.insight-card,.review-card{padding:16px}.insight-list li{font-size:15px;line-height:1.75}.review-card-head{align-items:center}.footer{text-align:left}body:has(#result:not(:empty)) .hero{padding-top:16px;padding-bottom:18px}body:has(#result:not(:empty)) .hero-logo{width:clamp(160px,46vw,195px)}}
 @media(max-width:700px) and (max-height:700px){.hero{padding-top:14px;padding-bottom:20px}.hero-logo{width:clamp(175px,52vw,205px)}.hero-copy{margin-top:10px}.search-box{margin-top:15px}}
@@ -75,9 +76,9 @@ body:has(#result:not(:empty)) .hero-logo{width:clamp(210px,27vw,320px)}
   <div id="liveStatus" class="sr-only" aria-live="polite"></div>
   <footer class="footer">
     <div>公开评论只代表部分评论者在特定专业、校区和年份的个人体验，不代表学校官方结论。</div>
-    <a class="version" href="./changelog.html">同学你好 v1.5.5 · 更新于 2026-07-23 · 查看更新记录</a>
+    <a class="version" href="./changelog.html">同学你好 v1.5.6 · 更新于 2026-07-23 · 查看更新记录</a>
   </footer>
 </div>
-<script type="module" src="./app/tongxue-performance-v155.js?v=155"></script>
+<script type="module" src="./app/tongxue-performance-v156.js?v=156"></script>
 </body>
 </html>

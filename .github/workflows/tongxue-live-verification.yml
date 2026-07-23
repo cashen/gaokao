@@ -19,7 +19,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,6 +54,8 @@ jobs:
         run: node tools/tongxue/verify-interaction-v153.mjs
       - name: Verify direct school handoff
         run: node tools/tongxue/verify-direct-handoff-v155.mjs
+      - name: Verify result-only direct experience
+        run: node tools/tongxue/verify-direct-result-v156.mjs
       - name: Verify school entity contract
         run: node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify school input contracts
@@ -93,6 +95,7 @@ jobs:
           node tools/tongxue/verify-brand-ui-v152.mjs
           node tools/tongxue/verify-interaction-v153.mjs
           node tools/tongxue/verify-direct-handoff-v155.mjs
+          node tools/tongxue/verify-direct-result-v156.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
