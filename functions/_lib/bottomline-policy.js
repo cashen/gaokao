@@ -1,4 +1,6 @@
 import { YEAR_CALIBER_KB, isPublicBottomLineVisible } from './kb/year-caliber-kb.generated.js';
+import { resolveSchoolProfile } from '../../shared/resources/schools/school-profile-center.js';
+
 function text(value) { return String(value == null ? '' : value).trim(); }
 function numFromText(value) {
   const m = text(value).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
@@ -32,12 +34,20 @@ export function normalizeBottomLineMode(value) {
 }
 
 export function inferSchoolNature(record = {}) {
-  const s = [record.natureType, record.schoolNature, record.natureLabel, record.nature, record.natureRaw, record.schoolTags, record.flags]
+  const profile = record.schoolProfile || resolveSchoolProfile(record.school || record.schoolName || '', record);
+  if (profile?.natureType === 'private') return 'private';
+  if (profile?.natureType === 'public' || profile?.natureType === 'cooperative') return 'public';
+
+  const explicit = text(record.natureType || record.schoolNature);
+  if (explicit === 'private') return 'private';
+  if (explicit === 'public' || explicit === 'cooperative') return 'public';
+
+  const s = [record.schoolNature, record.natureLabel, record.nature, record.natureRaw, record.schoolTags, record.flags]
     .flat()
     .map(text)
     .join(' ');
   if (/民办|独立学院|独立|民办\/独立/.test(s)) return 'private';
-  if (/公办|双非公办|985|211|双一流/.test(s)) return 'public';
+  if (/公办/.test(s)) return 'public';
   return 'unknown';
 }
 
