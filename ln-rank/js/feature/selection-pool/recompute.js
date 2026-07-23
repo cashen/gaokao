@@ -1,4 +1,4 @@
-import { classifySelectionDelta, selectionBandOrder } from '../../domain/selection-band-policy.js?v=3951_0';
+import { classifySelectionPosition, selectionBandOrder } from '../../domain/selection-band-policy.js?v=3960_0';
 
 function toNum(value, fallback = null) {
   const n = Number(value);
@@ -31,9 +31,18 @@ export function recomputeSelectionPool(candidateContext, rawItems = []) {
           group: 'unknown',
           detail: '历史自选',
           className: 'unknown',
-          position: '尚未匹配到 2026 同口径记录'
+          position: '尚未匹配到 2026 同口径记录',
+          canonicalPosition: null
         }
-      : classifySelectionDelta(scoreDelta2026, preset);
+      : classifySelectionPosition({
+          candidateScore,
+          candidateRank,
+          recordScore: score2026,
+          recordRank: rank2026,
+          scoreDelta: scoreDelta2026,
+          rankGap: rankGap2026,
+          rangePreset: preset
+        });
 
     return {
       ...item,
@@ -50,9 +59,12 @@ export function recomputeSelectionPool(candidateContext, rawItems = []) {
       rankGap2026,
       rankGap: rankGap2026,
       computedScoreDelta: scoreDelta2026,
-      statusKey: poolBand.key,
-      statusLabel: poolBand.detail,
-      position: poolBand.position,
+      canonicalPosition: poolBand.canonicalPosition || item.canonicalPosition || null,
+      statusKey: poolBand.canonicalPosition?.statusKey || poolBand.key,
+      statusLabel: poolBand.canonicalPosition?.statusLabel || poolBand.detail,
+      position: poolBand.canonicalPosition?.position || poolBand.position,
+      bandKey: poolBand.key,
+      band: poolBand.key,
       poolBand,
       contextSignature: candidateContext?.signature || '',
       computedAt: new Date().toISOString()
@@ -80,7 +92,15 @@ export function getComputedStats(items = []) {
   };
 
   for (const item of items) {
-    const band = item.poolBand || classifySelectionDelta(item.scoreDelta2026 ?? item.scoreDelta, 'standard');
+    const band = item.poolBand || classifySelectionPosition({
+      candidateScore: item.sourceContext?.candidateScore,
+      candidateRank: item.sourceContext?.candidateReferenceRank2026,
+      recordScore: item.score2026,
+      recordRank: item.rank2026,
+      scoreDelta: item.scoreDelta2026 ?? item.scoreDelta,
+      rankGap: item.rankGap2026 ?? item.rankGap,
+      rangePreset: item.rangePreset || 'standard'
+    });
     if (item.historicalOnly) stats.historicalOnlyCount += 1;
     else stats.currentCount += 1;
     if (band.group === 'rush') stats.rushCount += 1;
@@ -100,9 +120,12 @@ export function sortComputedByBand(items = []) {
   return [...items].sort((a, b) => {
     const bandOrder = selectionBandOrder(a) - selectionBandOrder(b);
     if (bandOrder) return bandOrder;
-    const deltaA = Number.isFinite(Number(a.scoreDelta2026 ?? a.scoreDelta)) ? Number(a.scoreDelta2026 ?? a.scoreDelta) : -999;
-    const deltaB = Number.isFinite(Number(b.scoreDelta2026 ?? b.scoreDelta)) ? Number(b.scoreDelta2026 ?? b.scoreDelta) : -999;
-    if (deltaA !== deltaB) return deltaB - deltaA;
+    const distanceA = Number(a.canonicalPosition?.positionDistance);
+    const distanceB = Number(b.canonicalPosition?.positionDistance);
+    if (Number.isFinite(distanceA) && Number.isFinite(distanceB) && distanceA !== distanceB) return distanceA - distanceB;
+    const rankA = Number(a.rank2026 ?? a.rank);
+    const rankB = Number(b.rank2026 ?? b.rank);
+    if (Number.isFinite(rankA) && Number.isFinite(rankB) && rankA !== rankB) return rankA - rankB;
     return (Number(a.userOrder) || 0) - (Number(b.userOrder) || 0);
   }).map((item, index) => ({ ...item, userOrder: index + 1 }));
 }
