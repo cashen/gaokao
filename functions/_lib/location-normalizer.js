@@ -1,27 +1,27 @@
 import { resolveSchoolProfile } from '../../shared/resources/schools/school-profile-center.js';
+import {
+  normalizeProvinceName,
+  normalizeCityName,
+  getLiaoningAreaLabel,
+  deriveRegionGroups
+} from '../../shared/resources/geo/china-region-catalog.js';
 import { normalizeSchoolGeo } from './school-geo-normalizer.js';
 
 function text(value) { return String(value == null ? '' : value).trim(); }
-function normalizeProvince(value) { return text(value).replace(/省$|市$|自治区$|特别行政区$/g, ''); }
-function normalizeCity(value) { return text(value).replace(/市$|地区$|自治州$|盟$/g, ''); }
-function lnAreaFromProvinceCity(province, city, fallback = '') {
-  if (province !== '辽宁') return province ? '省外' : fallback;
-  if (city === '沈阳') return '沈阳';
-  if (city === '大连') return '大连';
-  return '辽宁其他';
-}
+
 function rawLocation(raw = {}) {
   return {
-    province: normalizeProvince(raw.schoolProvince || raw.province || raw['省份'] || raw['学校省份']),
-    city: normalizeCity(raw.schoolCity || raw.city || raw['城市'] || raw['学校城市'] || raw['所在地']),
+    province: normalizeProvinceName(raw.schoolProvince || raw.province || raw['省份'] || raw['学校省份']),
+    city: normalizeCityName(raw.schoolCity || raw.city || raw['城市'] || raw['学校城市'] || raw['所在地']),
     lnArea: text(raw.lnArea || raw['辽宁区域'] || raw['地域'])
   };
 }
+
 function fromProfile(profile, rawLoc) {
-  const province = normalizeProvince(profile.province);
-  const city = normalizeCity(profile.city);
+  const province = normalizeProvinceName(profile.province);
+  const city = normalizeCityName(profile.city);
   return {
-    lnArea: lnAreaFromProvinceCity(province, city, rawLoc.lnArea),
+    lnArea: getLiaoningAreaLabel({ province, city }, rawLoc.lnArea),
     province,
     city,
     displayLocation: profile.displayLocation || (province && city ? `${province} · ${city}` : province || city || '地域待核验'),
@@ -30,7 +30,7 @@ function fromProfile(profile, rawLoc) {
     locationWarning: profile.entityType === 'official_school' ? '' : '地域按该分校或校区实际办学地显示；具体专业就读地点仍需核验当年招生计划。',
     geoEntity: profile.school || '',
     schoolCanonical: profile.standardSchoolName || profile.school || '',
-    regionGroups: profile.regionGroups || [],
+    regionGroups: profile.regionGroups?.length ? profile.regionGroups : deriveRegionGroups({ province, city }),
     geoSourceMethod: 'official-2026-school-profile',
     geoSourceName: profile.sourceName || '教育部全国普通高等学校名单',
     geoSourceUrl: profile.sourceUrl || '',
@@ -49,17 +49,19 @@ export function normalizeLocation(raw, school, major = '') {
 
   const geo = normalizeSchoolGeo(school, major);
   if (geo) {
+    const province = normalizeProvinceName(geo.province);
+    const city = normalizeCityName(geo.city);
     return {
-      lnArea: lnAreaFromProvinceCity(geo.province, geo.city, rawLoc.lnArea),
-      province: geo.province,
-      city: geo.city,
+      lnArea: getLiaoningAreaLabel({ province, city }, rawLoc.lnArea),
+      province,
+      city,
       displayLocation: geo.displayLocation,
       locationSource: geo.locationSource,
       locationConfidence: geo.locationConfidence,
       locationWarning: geo.locationWarning,
       geoEntity: geo.geoEntity,
       schoolCanonical: geo.schoolCanonical,
-      regionGroups: geo.regionGroups,
+      regionGroups: geo.regionGroups?.length ? geo.regionGroups : deriveRegionGroups({ province, city }),
       geoSourceMethod: geo.geoSourceMethod || '',
       geoSourceName: geo.geoSourceName || '',
       geoSourceUrl: geo.geoSourceUrl || '',
@@ -71,23 +73,28 @@ export function normalizeLocation(raw, school, major = '') {
   }
   if (rawLoc.province) {
     return {
-      lnArea: rawLoc.lnArea || lnAreaFromProvinceCity(rawLoc.province, rawLoc.city),
+      lnArea: rawLoc.lnArea || getLiaoningAreaLabel(rawLoc),
       province: rawLoc.province,
       city: rawLoc.city,
       displayLocation: rawLoc.city ? `${rawLoc.province} · ${rawLoc.city}` : rawLoc.province,
       locationSource: 'record-fallback',
       locationConfidence: rawLoc.city ? 'medium' : 'low',
       locationWarning: rawLoc.city ? '学校未进入统一资料中心，地域来自记录字段。' : '城市字段待核验',
-      geoEntity: '', schoolCanonical: '', regionGroups: []
+      geoEntity: '',
+      schoolCanonical: '',
+      regionGroups: deriveRegionGroups(rawLoc)
     };
   }
   return {
     lnArea: rawLoc.lnArea,
-    province: '', city: '',
+    province: '',
+    city: '',
     displayLocation: rawLoc.lnArea || '地域待核验',
     locationSource: rawLoc.lnArea ? 'ln-area' : 'missing',
     locationConfidence: 'low',
     locationWarning: '地域待核验',
-    geoEntity: '', schoolCanonical: '', regionGroups: []
+    geoEntity: '',
+    schoolCanonical: '',
+    regionGroups: []
   };
 }
