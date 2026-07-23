@@ -13,8 +13,8 @@ export function classifyTongxueDirectResult({ hasResult = false, hasChoice = fal
 
 function clearSuggestionList(input, suggestionsBox) {
   if (suggestionsBox) {
-    suggestionsBox.hidden = true;
-    suggestionsBox.replaceChildren();
+    if (!suggestionsBox.hidden) suggestionsBox.hidden = true;
+    if (suggestionsBox.childNodes.length) suggestionsBox.replaceChildren();
   }
   input?.setAttribute('aria-expanded', 'false');
   input?.removeAttribute('aria-activedescendant');
