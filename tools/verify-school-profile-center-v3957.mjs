@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   SCHOOL_PROFILE_SOURCE_META,
+  SCHOOL_PROFILE_SPECIALS,
   resolveSchoolProfile,
   getSchoolProfileDisplayTags
 } from '../shared/resources/schools/school-profile-center.js';
@@ -18,6 +19,7 @@ assert.ok(SCHOOL_PROFILE_SOURCE_META['985MatchedCount'] >= 38);
 assert.ok(SCHOOL_PROFILE_SOURCE_META['211MatchedCount'] >= 100);
 assert.equal(SCHOOL_PROFILE_SOURCE_META.doubleNonDefinition, '非985且非211；不等同于非双一流');
 assert.ok(SCHOOL_PROFILE_SOURCE_META.source.schoolListPageUrl.includes('moe.gov.cn'));
+assert.equal(SCHOOL_PROFILE_SPECIALS.length, 3);
 
 const cases = [
   ['北京大学', { province: '北京', city: '北京', natureType: 'public', is985: true, is211: true, isNon985211: false, tags: ['985', '211', '公办', '北京'] }],
@@ -25,7 +27,10 @@ const cases = [
   ['辽宁大学', { province: '辽宁', city: '沈阳', natureType: 'public', is985: false, is211: true, isNon985211: false, tags: ['211', '公办', '辽宁 · 沈阳'] }],
   ['深圳大学', { province: '广东', city: '深圳', natureType: 'public', is985: false, is211: false, isNon985211: true, tags: ['双非（非985/211）', '公办', '广东 · 深圳'] }],
   ['三亚学院', { province: '海南', city: '三亚', natureType: 'private', is985: false, is211: false, isNon985211: true, tags: ['双非（非985/211）', '民办', '海南 · 三亚'] }],
-  ['大连东软信息学院', { province: '辽宁', city: '大连', natureType: 'private', is985: false, is211: false, isNon985211: true, tags: ['双非（非985/211）', '民办', '辽宁 · 大连'] }]
+  ['大连东软信息学院', { province: '辽宁', city: '大连', natureType: 'private', is985: false, is211: false, isNon985211: true, tags: ['双非（非985/211）', '民办', '辽宁 · 大连'] }],
+  ['国防科技大学', { province: '湖南', city: '长沙', natureType: 'public', is985: true, is211: true, isNon985211: false, tags: ['985', '211', '公办', '湖南 · 长沙'] }],
+  ['第二军医大学', { province: '上海', city: '上海', natureType: 'public', is985: false, is211: true, isNon985211: false, tags: ['211', '公办', '上海'] }],
+  ['第四军医大学', { province: '陕西', city: '西安', natureType: 'public', is985: false, is211: true, isNon985211: false, tags: ['211', '公办', '陕西 · 西安'] }]
 ];
 
 for (const [name, expected] of cases) {
@@ -43,8 +48,8 @@ assert.ok(panjin);
 assert.equal(panjin.standardSchoolName, '大连理工大学');
 assert.equal(panjin.entityType, 'admission_campus');
 assert.equal(panjin.entityTypeLabel, '招生校区');
-assert.equal(panjin.province.replace(/省$/, ''), '辽宁');
-assert.equal(panjin.city.replace(/市$/, ''), '盘锦');
+assert.equal(panjin.province, '辽宁');
+assert.equal(panjin.city, '盘锦');
 assert.equal(panjin.is985, true);
 assert.equal(panjin.is211, true);
 assert.equal(panjin.natureType, 'public');
@@ -55,8 +60,8 @@ assert.ok(qinhuangdao);
 assert.equal(qinhuangdao.standardSchoolName, '东北大学');
 assert.equal(qinhuangdao.entityType, 'branch_school');
 assert.equal(qinhuangdao.entityTypeLabel, '分校');
-assert.equal(qinhuangdao.province.replace(/省$/, ''), '河北');
-assert.equal(qinhuangdao.city.replace(/市$/, ''), '秦皇岛');
+assert.equal(qinhuangdao.province, '河北');
+assert.equal(qinhuangdao.city, '秦皇岛');
 assert.equal(qinhuangdao.is985, true);
 assert.equal(qinhuangdao.is211, true);
 assert.equal(qinhuangdao.natureType, 'public');
@@ -83,9 +88,9 @@ assert.equal(campusLocation.schoolProfile.is985, true);
 
 const render = fs.readFileSync('ln-rank/js/feature/major-pool/render.v3957_0.js', 'utf8');
 assert.ok(render.includes("arr.push(record.natureLabel || '性质待核验')"));
-assert.ok(render.includes("record.schoolEntityTypeLabel"));
+assert.ok(render.includes('record.schoolEntityTypeLabel'));
 assert.ok(render.includes("record.displayLocation || '地域待核验'"));
-assert.ok(render.includes("双非（非985/211）"));
+assert.ok(render.includes('双非（非985/211）'));
 assert.ok(!/return \[\.\.\.new Set\(arr\.filter\(Boolean\)\)\]\.slice\(0,\s*6\)/.test(render));
 
 const selection = fs.readFileSync('ln-rank/js/selection-pool.v3951_0.js', 'utf8');
