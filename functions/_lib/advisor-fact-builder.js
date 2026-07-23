@@ -3,6 +3,8 @@ import { lookupScoreRank, getRankTableRows } from './rank-table-provider.js';
 import { getRankGap, rankGapText } from './selection-pool-rank-utils.js';
 import { getPushRateReference, buildPushRateSummary } from './push-rate-matcher.js';
 import { enrichBottomLineFields, summarizeBottomLine, bottomLineModeSummary } from './bottomline-policy.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 
 function num(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -17,18 +19,6 @@ function clean(value, max = 200) {
 function fmt(value) {
   const n = num(value, null);
   return n == null ? '—' : Math.round(n).toLocaleString('zh-CN');
-}
-
-function classify(item = {}) {
-  const key = item.statusKey || '';
-  const delta = num(item.scoreDelta, 0);
-  if (['superRush', 'bigRush'].includes(key) || delta >= 16) return { group: 'rush', detail: '稍高目标', className: 'high-rush', position: '稍高目标区' };
-  if (['midRush', 'smallRush'].includes(key) || delta >= 4) return { group: 'rush', detail: '稍高目标', className: 'light-rush', position: '前段稍高目标区' };
-  if (key === 'match' || (delta >= -5 && delta <= 3)) return { group: 'stable', detail: '主要参考', className: 'edge-stable', position: '主要参考区' };
-  if (key === 'steady' || (delta >= -15 && delta <= -6)) return { group: 'stable', detail: '稳妥', className: 'stable', position: '主体偏稳区' };
-  if (key === 'guard' || (delta >= -25 && delta <= -16)) return { group: 'safe', detail: '低分侧补充', className: 'light-safe', position: '后段低分侧补充区' };
-  if (key === 'low' || (delta >= -40 && delta <= -26)) return { group: 'safe', detail: '低分侧补充', className: 'safe', position: '后段低分侧补充区' };
-  return { group: 'safe', detail: '低分侧补充', className: 'floor', position: '低分侧补充确认区' };
 }
 
 function majorFamily(major = '') {
@@ -73,34 +63,61 @@ function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];
 }
 
-function normalizeItems(items = [], candidateRank = null, candidateScore = null) {
+function normalizeItems(items = [], candidateRank = null, candidateScore = null, rangePreset = 'standard') {
   return (Array.isArray(items) ? items : []).slice(0, 112).map((item, index) => {
-    const score2025 = num(item.score2025 ?? item.score, null);
-    const scoreDelta = candidateScore != null && score2025 != null ? Math.round(score2025 - candidateScore) : null;
-    const dynamicItem = { ...item, statusKey: '', scoreDelta };
-    const poolBand = classify(dynamicItem);
-    const rank2025 = num(item.rank2025 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null);
-    const rankGap = getRankGap(candidateRank, rank2025);
+    const current2026 = Number(item.dataYear || item.primaryYear || 2026) === 2026 || item.score2026 != null || item.rank2026 != null;
+    const score2026 = current2026 ? num(item.score2026 ?? item.score, null) : null;
+    const rank2026 = current2026 ? num(item.rank2026 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null) : null;
+    const scoreDelta2026 = candidateScore != null && score2026 != null ? Math.round(score2026 - candidateScore) : num(item.scoreDelta2026 ?? item.scoreDelta, null);
+    const rankGap2026 = candidateRank != null && rank2026 != null ? getRankGap(candidateRank, rank2026) : num(item.rankGap2026 ?? item.rankGap, null);
+    const canonicalPosition = item.canonicalPosition || resolveCanonicalPosition({
+      candidateScore,
+      candidateRank,
+      recordScore: score2026,
+      recordRank: rank2026,
+      scoreDelta: scoreDelta2026,
+      rankGap: rankGap2026,
+      rangePreset: item.rangePreset || item.sourceContext?.rangePreset || rangePreset
+    });
+    const poolBand = item.poolBand || {
+      key: canonicalPosition.bandKey,
+      group: canonicalPosition.group,
+      detail: canonicalPosition.bandLabel,
+      position: canonicalPosition.position,
+      canonicalPosition
+    };
     const bottomLine = enrichBottomLineFields(item);
     return {
-      id: clean(item.id || `${item.school}-${item.major}-${item.score2025}-${item.rank2025}`, 240),
+      ...item,
+      id: clean(item.id || `${item.school}-${item.major}-${score2026}-${rank2026}`, 240),
       order: index + 1,
       userOrder: num(item.userOrder, index + 1),
       school: clean(item.school, 120),
       major: clean(item.major, 180),
-      score2025,
-      rank2025,
-      scoreDelta,
-      rankGap,
-      rankGapText: rankGapText(rankGap),
-      statusKey: '',
-      statusLabel: clean(poolBand.detail, 40),
+      dataYear: current2026 ? 2026 : Number(item.dataYear || 2025),
+      primaryYear: current2026 ? 2026 : Number(item.primaryYear || item.dataYear || 2025),
+      historicalOnly: !current2026,
+      score2026,
+      rank2026,
+      score2025: num(item.score2025, null),
+      rank2025: num(item.rank2025, null),
+      score2024: num(item.score2024, null),
+      rank2024: num(item.rank2024, null),
+      scoreDelta2026,
+      scoreDelta: scoreDelta2026,
+      rankGap2026,
+      rankGap: rankGap2026,
+      rankGapText: rankGapText(rankGap2026),
+      statusKey: canonicalPosition.statusKey,
+      statusLabel: clean(canonicalPosition.statusLabel, 40),
+      position: canonicalPosition.position,
+      canonicalPosition,
       displayLocation: clean(item.displayLocation || item.geoEntity || item.city || '', 80),
       natureLabel: clean(item.natureLabel || item.nature || '', 60),
       flags: Array.isArray(item.flags) ? item.flags.map(x => clean(x, 80)).filter(Boolean).slice(0, 8) : [],
       schoolTags: Array.isArray(item.schoolTags) ? item.schoolTags.map(x => clean(x, 50)).filter(Boolean).slice(0, 8) : [],
       poolBand,
-      majorFamily: majorFamily(item.major),
+      majorFamily: item.majorFamily || majorFamily(item.major),
       ...bottomLine,
       pushRateRef: getPushRateReference(item.school || item.schoolName || '')
     };
@@ -118,6 +135,8 @@ function buildStats(items) {
     deepSafeCount: 0,
     missingRankCount: 0,
     withRankCount: 0,
+    unresolvedCount: 0,
+    rejectedCount: 0,
     maxForwardRankGap: null,
     maxBackwardRankGap: null,
     byCity: {},
@@ -128,13 +147,15 @@ function buildStats(items) {
     privateOrFeeCount: 0
   };
   for (const item of items) {
-    const band = item.poolBand || classify(item);
+    const band = item.poolBand || {};
     if (band.group === 'rush') stats.rushCount += 1;
     if (band.group === 'stable') stats.stableCount += 1;
     if (band.group === 'safe') stats.safeCount += 1;
-    if (band.detail === '稍高目标') stats.highRushCount += 1;
-    if (band.detail === '低分侧补充') stats.floorCount += 1;
-    if (band.detail === '低分侧补充' || band.detail === '低分侧补充') stats.deepSafeCount += 1;
+    if (item.canonicalPosition?.statusKey === 'bigRush' || item.canonicalPosition?.statusKey === 'superRush') stats.highRushCount += 1;
+    if (band.group === 'safe') stats.floorCount += 1;
+    if (band.group === 'safe' && Number(item.rankGap2026) < 0) stats.deepSafeCount += 1;
+    if (item.bottomLineEligibility === 'unresolved' || item.schoolNature === 'unknown' || item.feeType === 'unknown' || item.historicalOnly) stats.unresolvedCount += 1;
+    if (Object.values(item.acceptability || {}).includes('rejected')) stats.rejectedCount += 1;
     inc(stats.byDetail, band.detail);
     inc(stats.byCity, item.displayLocation || '未知地域');
     inc(stats.byMajorFamily, item.majorFamily || '其他专业');
@@ -142,11 +163,11 @@ function buildStats(items) {
     const flagsText = [item.natureLabel, item.schoolNature, item.feeType, ...(item.bottomLineTags || []), ...(item.flags || []), ...(item.schoolTags || [])].join(' ');
     if (/中外|合作|高收费|国际|学费/.test(flagsText)) stats.tuitionOrCoopCount += 1;
     if (/民办|独立学院|高收费|中外|合作/.test(flagsText)) stats.privateOrFeeCount += 1;
-    if (item.rankGap == null) stats.missingRankCount += 1;
+    if (item.rankGap2026 == null) stats.missingRankCount += 1;
     else {
       stats.withRankCount += 1;
-      if (item.rankGap > 0 && (stats.maxForwardRankGap == null || item.rankGap > stats.maxForwardRankGap)) stats.maxForwardRankGap = item.rankGap;
-      if (item.rankGap < 0 && (stats.maxBackwardRankGap == null || Math.abs(item.rankGap) > stats.maxBackwardRankGap)) stats.maxBackwardRankGap = Math.abs(item.rankGap);
+      if (item.rankGap2026 > 0 && (stats.maxForwardRankGap == null || item.rankGap2026 > stats.maxForwardRankGap)) stats.maxForwardRankGap = item.rankGap2026;
+      if (item.rankGap2026 < 0 && (stats.maxBackwardRankGap == null || Math.abs(item.rankGap2026) > stats.maxBackwardRankGap)) stats.maxBackwardRankGap = Math.abs(item.rankGap2026);
     }
   }
   const [topCity, topCityCount] = topEntry(stats.byCity);
@@ -166,11 +187,11 @@ function controlLabel(row) {
   return `位次 ${fmt(row.rankStart)}–${fmt(row.rankEnd)}`;
 }
 
-function noteFromFacts({ config, candidateScore, specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial }) {
+function noteFromFacts({ config, candidateScore, scoreOffsetFromSpecial, rankOffsetFromSpecial }) {
   if (candidateScore == null) return '考生分数待填写，暂无法进行位次功能区判断。';
   const direction = scoreOffsetFromSpecial == null ? '与特控线距离待核验' : (scoreOffsetFromSpecial >= 0 ? `高出特控线 ${fmt(scoreOffsetFromSpecial)} 分` : `低于特控线 ${fmt(Math.abs(scoreOffsetFromSpecial))} 分`);
   const rankDirection = rankOffsetFromSpecial == null ? '位次差待核验' : (rankOffsetFromSpecial < 0 ? `位次优于特控线约 ${fmt(Math.abs(rankOffsetFromSpecial))} 名` : `位次落后特控线约 ${fmt(rankOffsetFromSpecial)} 名`);
-  return `按${config.year}辽宁物理类口径，考生${direction}，${rankDirection}；分数只作展示，诊断以位次、密度和自选专业结构为主。`;
+  return `按${config.rankYear || config.year}辽宁物理类口径，考生${direction}，${rankDirection}；分数用于解释，诊断以位次、密度、证据完整度和已选结构为主。`;
 }
 
 export function buildAdvisorFacts(input = {}) {
@@ -188,14 +209,18 @@ export function buildAdvisorFacts(input = {}) {
   const scoreOffsetFromUndergraduate = candidateScore == null || undergraduateScore == null ? null : Math.round(candidateScore - undergraduateScore);
   const rankOffsetFromUndergraduate = candidateRank == null || undergraduateControlRank == null ? null : Math.round(candidateRank - undergraduateControlRank);
   const density = densityOf({ score: candidateScore, year: config.rankYear, region: config.region, subject: config.subject });
-  const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank, candidateScore);
+  const rangePreset = input.rangePreset || input.context?.rangePreset || 'standard';
+  const orderedItems = normalizeItems(input.items || input.orderedItems || [], candidateRank, candidateScore, rangePreset);
   const bottomLineMode = input.bottomLineMode || input.filterState?.bottomLineMode || input.context?.bottomLineMode || 'all';
   const bottomLineSummary = summarizeBottomLine(orderedItems, bottomLineMode);
   const stats = buildStats(orderedItems);
   const pushRateSummary = buildPushRateSummary(orderedItems);
-  const note = noteFromFacts({ config, candidateScore, specialControlScore: config.specialControlScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
+  const note = noteFromFacts({ config, candidateScore, scoreOffsetFromSpecial, rankOffsetFromSpecial });
   return {
-    version: 'v3.9.5.9',
+    version: 'v3.9.60.0',
+    algorithmVersion: ALGORITHM_ORCHESTRATION_VERSION,
+    dataYear: 2026,
+    audienceYear: 2027,
     config,
     candidate: {
       score: candidateScore,
@@ -234,16 +259,22 @@ export function compactItemsForAi(items = [], max = 40) {
     order: item.order,
     school: item.school,
     major: item.major,
+    score2026: item.score2026,
+    rank2026: item.rank2026,
     score2025: item.score2025,
     rank2025: item.rank2025,
-    scoreDelta: item.scoreDelta,
-    rankGap: item.rankGap,
+    score2024: item.score2024,
+    rank2024: item.rank2024,
+    scoreDelta2026: item.scoreDelta2026,
+    rankGap2026: item.rankGap2026,
     band: item.poolBand?.detail || item.statusLabel || '',
+    evidenceStrength: item.canonicalPosition?.evidenceStrength || 'weak',
     majorFamily: item.majorFamily,
     location: item.displayLocation,
     nature: item.natureLabel,
     schoolNature: item.schoolNature,
     feeType: item.feeType,
+    bottomLineEligibility: item.bottomLineEligibility || '',
     bottomLineTags: item.bottomLineTags || [],
     pushRate: item.pushRateRef ? {
       level: item.pushRateRef.pushOpportunityLevel,
