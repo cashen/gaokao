@@ -3,6 +3,9 @@ name: Agent v3956 integration
 on:
   push:
     branches: [agent/tongxue-direct-handoff-v155]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: write
