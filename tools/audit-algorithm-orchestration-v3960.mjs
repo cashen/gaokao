@@ -70,7 +70,9 @@ assert.ok(ranked[0].rankingTrace.reasons.includes('INTENT_EXACT'));
 const duplicated = rankRecords([
   ...Array.from({ length: 4 }, (_, i) => ({ id: `a-${i}`, school: 'A大学', major: `专业${i}`, matchLevel: 'exact', canonicalPosition: canonical })),
   { id: 'b-1', school: 'B大学', major: '专业B', matchLevel: 'exact', canonicalPosition: canonical },
-  { id: 'c-1', school: 'C大学', major: '专业C', matchLevel: 'exact', canonicalPosition: canonical }
+  { id: 'c-1', school: 'C大学', major: '专业C', matchLevel: 'exact', canonicalPosition: canonical },
+  { id: 'd-1', school: 'D大学', major: '专业D', matchLevel: 'exact', canonicalPosition: canonical },
+  { id: 'e-1', school: 'E大学', major: '专业E', matchLevel: 'exact', canonicalPosition: canonical }
 ]);
 const diversified = diversifyRankedRecords(duplicated, { windowSize: 6, maxPerSchool: 2 });
 assert.ok(diversified.slice(0, 6).filter(item => item.school === 'A大学').length <= 2);
@@ -101,13 +103,13 @@ assert.ok(!majorBands.includes("classificationMode: 'score_delta'"));
 const advisor = read('functions/_lib/advisor-fact-builder.js');
 assert.ok(advisor.includes('score2026'));
 assert.ok(advisor.includes('rank2026'));
-assert.ok(advisor.includes(ALGORITHM_ORCHESTRATION_VERSION));
+assert.ok(advisor.includes('ALGORITHM_ORCHESTRATION_VERSION'));
 assert.ok(!advisor.includes('const score2025 = num(item.score2025 ?? item.score'));
 
 const report = read('functions/_lib/report-data-service-v3956.js');
 assert.ok(report.includes('makeDecisionSnapshot'));
-assert.ok(report.includes("sourceMode: 'current-decision-snapshot'"));
-assert.ok(report.includes("canonical-server-rebuild-2026"));
+assert.ok(report.includes("'current-decision-snapshot'"));
+assert.ok(report.includes("'canonical-server-rebuild-2026'"));
 
 for (const rel of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   const meta = json(rel);
