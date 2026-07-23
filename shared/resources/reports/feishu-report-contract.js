@@ -1,4 +1,5 @@
 import { LIAONING_PHYSICS_EXAM_CONFIG } from '../exam/liaoning-physics.js';
+import { CURRENT_RELEASE } from '../release/current-release.js';
 
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 
@@ -9,10 +10,10 @@ export const FEISHU_REPORT_ROUTES = Object.freeze({
 });
 
 export const FEISHU_REPORT_CONTRACT = Object.freeze({
-  version: 'v1.0.0',
-  releaseVersion: 'v3.9.56.0',
-  assetVersion: 'v3956_0',
-  releaseName: 'v3.9.56.0-feishu-tongxue-direct-resource-audit-no-fenxi',
+  version: 'v1.1.0',
+  releaseVersion: CURRENT_RELEASE.display,
+  assetVersion: CURRENT_RELEASE.assetVersion,
+  releaseName: CURRENT_RELEASE.releaseName,
   dataYear: EXAM.dataYear,
   audienceYear: EXAM.audienceYear,
   region: EXAM.region,
@@ -22,7 +23,9 @@ export const FEISHU_REPORT_CONTRACT = Object.freeze({
   currentBandMaxRecords: 20,
   selectionPoolMaxRecords: 112,
   currentBandReportType: 'currentBand',
-  selectionPoolReportTypes: Object.freeze(['selectionPoolOnly', 'selectionPoolWithAnalysis'])
+  selectionPoolReportTypes: Object.freeze(['selectionPoolOnly', 'selectionPoolWithAnalysis']),
+  resourceOwner: CURRENT_RELEASE.resourceOwners.reports,
+  releaseOwner: CURRENT_RELEASE.resourceOwners.release
 });
 
 export function validateFeishuCandidateScore(value) {
