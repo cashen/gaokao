@@ -16,15 +16,15 @@ export const BOTTOMLINE_MODES = {
   },
   public_first: {
     label: '公办优先',
-    help: '优先展示公办普通收费项目，不隐藏其他候选。'
+    help: '优先展示已确认的公办普通收费项目，不隐藏其他候选。'
   },
   public_regular_only: {
     label: '只看公办普通',
-    help: '只保留公办普通收费项目，排除民办、独立学院、公办中外合作和高收费。'
+    help: '只保留已确认的公办普通收费项目；办学性质或费用未知的记录进入待确认，不冒充普通收费。'
   },
   public_include_sino: {
     label: '公办含中外/高收费',
-    help: '只保留公办学校项目，但允许公办中外合作或高收费专业，需核验费用与培养模式。'
+    help: '只保留已确认的公办学校项目，允许中外合作或高收费专业；费用和培养模式仍需核验。'
   }
 };
 
@@ -77,6 +77,7 @@ export function enrichBottomLineFields(record = {}) {
   if (schoolNature === 'public' && feeType === 'sino_foreign') bottomLineTags.push('公办中外');
   if (schoolNature === 'public' && feeType === 'high_fee') bottomLineTags.push('公办高收费');
   if (schoolNature === 'private') bottomLineTags.push('民办/独立');
+  if (schoolNature === 'unknown') bottomLineTags.push('办学性质待核验');
   if (feeType === 'unknown') bottomLineTags.push('费用待核验');
   return {
     schoolNature,
@@ -90,13 +91,29 @@ export function enrichBottomLineFields(record = {}) {
   };
 }
 
-export function passBottomLineMode(record = {}, mode = 'all') {
+export function getBottomLineEligibility(record = {}, mode = 'all') {
   const m = normalizeBottomLineMode(mode);
-  if (m === 'all' || m === 'public_first') return true;
   const b = record.schoolNature && record.feeType ? record : { ...record, ...enrichBottomLineFields(record) };
-  if (m === 'public_regular_only') return b.schoolNature === 'public' && b.feeType !== 'sino_foreign' && b.feeType !== 'high_fee';
-  if (m === 'public_include_sino') return b.schoolNature === 'public';
-  return true;
+  if (m === 'all' || m === 'public_first') return { status: 'pass', reason: 'mode_does_not_exclude', record: b };
+  if (m === 'public_regular_only') {
+    if (b.schoolNature === 'private' || b.feeType === 'sino_foreign' || b.feeType === 'high_fee') {
+      return { status: 'fail', reason: 'not_confirmed_public_regular', record: b };
+    }
+    if (b.schoolNature === 'unknown' || b.feeType === 'unknown') {
+      return { status: 'unresolved', reason: 'nature_or_fee_unknown', record: b };
+    }
+    return { status: b.schoolNature === 'public' && b.feeType === 'normal' ? 'pass' : 'fail', reason: 'confirmed_public_regular', record: b };
+  }
+  if (m === 'public_include_sino') {
+    if (b.schoolNature === 'private') return { status: 'fail', reason: 'private_school', record: b };
+    if (b.schoolNature === 'unknown') return { status: 'unresolved', reason: 'school_nature_unknown', record: b };
+    return { status: b.schoolNature === 'public' ? 'pass' : 'fail', reason: 'confirmed_public_school', record: b };
+  }
+  return { status: 'pass', reason: 'fallback', record: b };
+}
+
+export function passBottomLineMode(record = {}, mode = 'all') {
+  return getBottomLineEligibility(record, mode).status === 'pass';
 }
 
 export function getBottomLineSortWeight(record = {}, mode = 'all') {
@@ -131,16 +148,19 @@ export function summarizeBottomLine(items = [], mode = 'all') {
     publicSinoOrHighFeeCount: 0,
     privateLikeCount: 0,
     unknownCount: 0,
-    filteredOutCount: 0
+    filteredOutCount: 0,
+    unresolvedCount: 0
   };
   for (const raw of Array.isArray(items) ? items : []) {
     const item = raw.schoolNature && raw.feeType ? raw : { ...raw, ...enrichBottomLineFields(raw) };
     summary.total += 1;
     if (item.schoolNature === 'public' && item.feeType === 'normal') summary.publicRegularCount += 1;
-    else if (item.schoolNature === 'public') summary.publicSinoOrHighFeeCount += 1;
+    else if (item.schoolNature === 'public' && ['sino_foreign', 'high_fee'].includes(item.feeType)) summary.publicSinoOrHighFeeCount += 1;
     else if (item.schoolNature === 'private') summary.privateLikeCount += 1;
     else summary.unknownCount += 1;
-    if (!passBottomLineMode(item, mode)) summary.filteredOutCount += 1;
+    const eligibility = getBottomLineEligibility(item, mode);
+    if (eligibility.status === 'fail') summary.filteredOutCount += 1;
+    if (eligibility.status === 'unresolved') summary.unresolvedCount += 1;
   }
   return summary;
 }
