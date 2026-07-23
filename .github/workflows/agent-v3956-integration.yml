@@ -97,7 +97,21 @@ jobs:
       - name: Audit shared resource ownership
         run: node tools/audit-shared-resource-center-v3956.mjs
       - name: Audit active runtime graph
-        run: node tools/audit-active-runtime-v3956.mjs
+        id: active_runtime
+        run: |
+          set +e
+          node tools/audit-active-runtime-v3956.mjs > /tmp/v3956-active-runtime.log 2>&1
+          status=$?
+          cat /tmp/v3956-active-runtime.log
+          exit "$status"
+      - name: Upload active runtime diagnostic
+        if: failure() && steps.active_runtime.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3956-active-runtime-error
+          path: /tmp/v3956-active-runtime.log
+          if-no-files-found: error
+          retention-days: 1
       - name: Commit generated integration
         run: |
           set -euo pipefail
