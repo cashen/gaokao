@@ -39,15 +39,11 @@ jobs:
           base64 --decode /tmp/v3961.b64 > /tmp/v3961.tar.gz
           echo '437423131ee3b43141c6e70a54810f2ff9556405a52076fe7359443e2b7487b5  /tmp/v3961.tar.gz' | sha256sum -c -
           gzip -t /tmp/v3961.tar.gz
-      - name: Extract payload
+      - name: Extract and validate implementation
         shell: bash
         run: |
           set -euo pipefail
           tar -xzf /tmp/v3961.tar.gz -C .
-      - name: Validate implementation diff
-        shell: bash
-        run: |
-          set -euo pipefail
           rm -rf .bootstrap
           rm -f .github/workflows/bootstrap-v3961.yml
           git add -A
@@ -59,4 +55,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'v3.9.61.0：专业初选工作区统一调度'
+      - name: Push implementation
+        shell: bash
+        run: |
+          set -euo pipefail
           git push origin HEAD:agent/selection-workspace-orchestration-v3961
