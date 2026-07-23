@@ -20,7 +20,37 @@ jobs:
         with:
           ref: agent/selection-workspace-orchestration-v3961
           fetch-depth: 0
-      - name: Verify payload parts
+      - name: Verify part00
+        continue-on-error: true
+        run: echo '6f6dded19b67aaa9e5d0a11cdea0b7baca88e05cd277715c13a019215ff94c83  .bootstrap/v3961/payload.part00' | sha256sum -c -
+      - name: Verify part01
+        continue-on-error: true
+        run: echo 'daf4e4d06a05cbb98cfab7d01c737bd721d5f22e705dce6f38fe7188ccffc296  .bootstrap/v3961/payload.part01' | sha256sum -c -
+      - name: Verify part02
+        continue-on-error: true
+        run: echo '17de02adc8ca72d289aeba3ab2cf3c875b96a19412803b0350d978bc78205a71  .bootstrap/v3961/payload.part02' | sha256sum -c -
+      - name: Verify part03
+        continue-on-error: true
+        run: echo '7182d4b9a51e6098855cadcc67f98b7d462142214ca9894ea72ba05dd509e915  .bootstrap/v3961/payload.part03' | sha256sum -c -
+      - name: Verify part04
+        continue-on-error: true
+        run: echo '55ab7276a60981f5b5ebdaa4271a57d9c32d953e941c4a5c2aca4f5a7ba126a8  .bootstrap/v3961/payload.part04' | sha256sum -c -
+      - name: Verify part05
+        continue-on-error: true
+        run: echo 'd2e7ae982666ebe87a1b35298249337d8dab31f3865d1f2dcb945b71a08431ef  .bootstrap/v3961/payload.part05' | sha256sum -c -
+      - name: Verify part06
+        continue-on-error: true
+        run: echo '216c8f8ed0ae0868bb749b62fc903da2802769764d7978744f0afb6aefa15ea8  .bootstrap/v3961/payload.part06' | sha256sum -c -
+      - name: Verify part07
+        continue-on-error: true
+        run: echo '90f5749ec43b957a34444de8b0bbb4ed9ba9037f4568d82ea31341474ed81d6a  .bootstrap/v3961/payload.part07' | sha256sum -c -
+      - name: Verify part08
+        continue-on-error: true
+        run: echo '069092df3f4949d166824c9d4eaef9f568b66f893fbad20bc3083d8ff7b97cdc  .bootstrap/v3961/payload.part08' | sha256sum -c -
+      - name: Verify part09
+        continue-on-error: true
+        run: echo '7e9e1c534159baa518feb5492cf4ef15dcb66f29989091788b3fecdb26da8a83  .bootstrap/v3961/payload.part09' | sha256sum -c -
+      - name: Verify all payload parts
         shell: bash
         run: |
           set -euo pipefail
