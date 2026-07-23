@@ -19,6 +19,7 @@ const schoolCenter = read('shared/resources/schools/school-resource-center.js');
 const schoolIdentity = read('shared/resources/schools/school-identity-center.js');
 const entityCompat = read('tongxue/data/school-entities-v150.js');
 const css = read('ln-rank/css/dist/family-decision-workspace.v3955_0.css');
+const foundationCss = read('shared/ui/tokens/foundation.v3959_0.css');
 const shellCss = read('shared/ui/shell/family-shell.v3959_0.css');
 const zyPage = read('zy2026/index.html');
 const zyAlias = read('zy2026.html');
@@ -60,7 +61,8 @@ includesAll(sharedShell, ['当前家庭方案','data-ui-mobile-selected','data-u
 assert.ok(!sharedShell.includes('MutationObserver'), 'shared shell must not add global observer');
 includesAll(decisionContract, ['resolveFamilyNextAction','countFamilyPendingItems','buildTongxueHref','tongxueEntryCopy','buildTongxueSchoolHref'], 'decision contract');
 includesAll(css, ['.family-decision-summary','.tongxue-card-entry','min-height:48px','prefers-reduced-motion'], 'family compatibility CSS');
-includesAll(shellCss, ['.ui-global-header','.ui-family-status','.ui-mobile-nav','family-decision-bar','env(safe-area-inset-bottom'], 'shared shell CSS');
+includesAll(foundationCss, ['--ui-safe-bottom','env(safe-area-inset-bottom'], 'shared foundation CSS');
+includesAll(shellCss, ['.ui-global-header','.ui-family-status','.ui-mobile-nav','family-decision-bar','var(--ui-safe-bottom)'], 'shared shell CSS');
 
 assert.equal(zyAlias, zyPage, 'ZY2026 extensionless alias must exactly mirror directory page');
 for (const phrase of ['2026投档表首次可见','2026投档表未再单列','2026投档表重新出现']) {
