@@ -1,11 +1,16 @@
 import { loadManifest } from '../_lib/ln-rank-manifest.js';
 import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool } from '../_lib/fenxi-normalizer.js';
-import { makeBands, classifyBand } from '../_lib/band-engine.js';
-import { getStatus } from '../_lib/status-engine.js';
+import { makeBands } from '../_lib/band-engine.js';
 import { matchRegion } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
-import { normalizeBottomLineMode, passBottomLineMode, getBottomLineSortWeight, bottomLineModeSummary, enrichBottomLineFields } from '../_lib/bottomline-policy.js';
+import {
+  normalizeBottomLineMode,
+  getBottomLineEligibility,
+  getBottomLineSortWeight,
+  bottomLineModeSummary,
+  enrichBottomLineFields
+} from '../_lib/bottomline-policy.js';
 import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.js';
 import { matchMajorProject } from '../_lib/major-project-matcher.js';
 import { buildSearchIndex } from '../_lib/search-index-builder.js';
@@ -14,6 +19,9 @@ import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 import { lookupScoreRank } from '../_lib/rank-table-provider.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { rankRecords, diversifyRankedRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
+import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
   normalizeSpecialProjectMode,
   detectSpecialProject,
@@ -53,11 +61,6 @@ function initGrouped(bands) {
   };
 }
 
-function rankSortValue(value) {
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER;
-}
-
 function hasKeywordFilters(keywordQuery = {}) {
   return Boolean(keywordQuery?.hasMajorKeyword || keywordQuery?.hasProjectKeyword || keywordQuery?.hasIndustryKeyword);
 }
@@ -90,33 +93,41 @@ function rawKeywordPass(raw, filters) {
   return !schoolKeyword || rawSchool(raw).includes(schoolKeyword);
 }
 
-function compareBandRecords(a, b, bottomLineMode) {
-  const bottomLineWeight = getBottomLineSortWeight(b, bottomLineMode) - getBottomLineSortWeight(a, bottomLineMode);
-  return bottomLineWeight
-    || Number(b.matchScore || 0) - Number(a.matchScore || 0)
-    || Math.abs(a.score - a.candidateScore) - Math.abs(b.score - b.candidateScore)
-    || rankSortValue(a.rank) - rankSortValue(b.rank);
+function explicitSpecialProjectIntent(value = '') {
+  return /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(String(value || ''));
 }
 
-function pushRecord(grouped, band, record, candidateScore) {
-  const delta = record.score - candidateScore;
-  const status = getStatus(delta);
+function pushRecord(grouped, record, context) {
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: context.candidateScore,
+    candidateRank: context.candidateRank?.rankForGap,
+    recordScore: record.score2026 ?? record.score,
+    recordRank: record.rank2026 ?? record.rank,
+    rangePreset: context.rangePreset
+  });
+  if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return false;
   const display = buildDisplayTags(record);
   const item = {
     ...record,
     ...display,
-    band,
-    bandKey: band,
-    candidateScore,
-    candidateReferenceScore: candidateScore,
-    scoreDelta2026: delta,
-    scoreDelta: delta,
-    statusKey: status.key,
-    statusLabel: status.label,
-    position: status.position
+    band: canonicalPosition.bandKey,
+    bandKey: canonicalPosition.bandKey,
+    candidateScore: context.candidateScore,
+    candidateReferenceScore: context.candidateScore,
+    scoreDelta2026: canonicalPosition.scoreDelta,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap2026: canonicalPosition.rankGap,
+    rankGap: canonicalPosition.rankGap,
+    statusKey: canonicalPosition.statusKey,
+    statusLabel: canonicalPosition.statusLabel,
+    position: canonicalPosition.position,
+    canonicalPosition,
+    bottomLineEligibility: context.bottomLineEligibility.status,
+    bottomLineEligibilityReason: context.bottomLineEligibility.reason
   };
-  grouped[band].count += 1;
-  grouped[band].candidates.push(item);
+  grouped[canonicalPosition.bandKey].count += 1;
+  grouped[canonicalPosition.bandKey].candidates.push(item);
+  return true;
 }
 
 async function loadChunkRecords(request, env, file) {
@@ -180,6 +191,7 @@ export async function onRequest(context) {
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const hasKeywordSearch = hasKeywordFilters(keywordQuery);
+    const specialIntent = explicitSpecialProjectIntent(filters.majorKeyword);
     const manifest = await loadManifest(context.request, context.env || {});
     const allChunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
     const chunks = allChunks.filter(chunk => chunkIntersectsScoreWindow(chunk, scoreWindow));
@@ -189,6 +201,7 @@ export async function onRequest(context) {
     let rawCandidate = 0;
     let normalized = 0;
     let bottomLineExcluded = 0;
+    let bottomLineUnresolved = 0;
     let majorKeywordExcluded = 0;
     let majorHitCount = 0;
     let projectHitCount = 0;
@@ -243,49 +256,71 @@ export async function onRequest(context) {
         record.matchedKeyword = match.matchedKeyword || '';
         record.matchedTerms = match.matchedTerms || [];
         record.matchScore = match.score;
-        if (!passBottomLineMode(record, filters.bottomLineMode)) {
+
+        const bottomLineEligibility = getBottomLineEligibility(record, filters.bottomLineMode);
+        if (bottomLineEligibility.status === 'fail') {
           bottomLineExcluded += 1;
           continue;
         }
+        if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
 
-        const band = classifyBand(record.score, bandsMeta);
-        if (!band) continue;
         const specialProject = detectSpecialProject(record);
-        if (specialProject.hasSpecialProject && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode)) {
+        const hideSpecial = specialProject.hasSpecialProject
+          && !specialIntent
+          && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
+        if (hideSpecial) {
           specialProjectHidden += 1;
-          grouped[band].scanned += 1;
-          addSpecialProjectStat(specialProjectStats, specialProject, band, 'hidden');
+          addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
           continue;
         }
         if (specialProject.hasSpecialProject) {
           specialProjectShown += 1;
-          addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
           Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
+          record.specialProjectExplicitIntent = specialIntent;
         } else {
           record.specialProject = specialProject;
         }
 
-        if (candidateRank?.rankForGap && record.rank2026) {
-          record.rankGap2026 = candidateRank.rankForGap - Number(record.rank2026);
-          record.rankGap = record.rankGap2026;
-        }
         normalized += 1;
         if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
         if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
         if (record.matchLevel === 'project') projectHitCount += 1;
         if (record.matchLevel === 'industry') industryHitCount += 1;
-        grouped[band].scanned += 1;
-        pushRecord(grouped, band, record, candidateScore);
+
+        const added = pushRecord(grouped, record, {
+          candidateScore,
+          candidateRank,
+          rangePreset,
+          bottomLineEligibility
+        });
+        if (added) {
+          const band = resolveCanonicalPosition({
+            candidateScore,
+            candidateRank: candidateRank?.rankForGap,
+            recordScore: record.score2026 ?? record.score,
+            recordRank: record.rank2026 ?? record.rank,
+            rangePreset
+          }).bandKey;
+          grouped[band].scanned += 1;
+          if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
+        }
       }
     }
 
     for (const key of ['upper', 'near', 'steady']) {
       const group = grouped[key];
-      const ranked = group.candidates.sort((a, b) => compareBandRecords(a, b, filters.bottomLineMode));
+      const ranked = rankRecords(group.candidates, {
+        getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
+      });
+      const diversified = diversifyRankedRecords(ranked, {
+        enabled: !filters.schoolKeyword,
+        windowSize: 8,
+        maxPerSchool: 2
+      });
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
-      const records = requestedBand && requestedBand !== key ? [] : ranked.slice(offset, offset + pageLimit);
+      const records = requestedBand && requestedBand !== key ? [] : diversified.slice(offset, offset + pageLimit);
       const returned = records.length;
-      const hasMore = offset + returned < ranked.length;
+      const hasMore = offset + returned < diversified.length;
       group.records = records;
       group.displayedCount = returned;
       group.truncated = hasMore;
@@ -295,7 +330,7 @@ export async function onRequest(context) {
         returned,
         hasMore,
         nextOffset: hasMore ? offset + returned : null,
-        order: 'global-ranked'
+        order: 'canonical-staged-ranked'
       };
       delete group.candidates;
     }
@@ -308,6 +343,20 @@ export async function onRequest(context) {
     counts.total = counts.upper + counts.near + counts.steady;
     const filterConflicts = buildFilterConflicts({ keywordQuery, rawKeywordText: filters.majorKeyword || '', bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode });
     const searchAdvices = buildSearchConflictAdvice({ keywordQuery, bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode, resultStats: { total: counts.total } });
+    if (bottomLineUnresolved) {
+      searchAdvices.unshift({
+        level: 'warn',
+        message: `有 ${bottomLineUnresolved} 条记录的办学性质或费用尚未确认，已降低排序并标记待核验。`,
+        explanation: '未知不等于公办普通，填报前需要核对当年招生计划和学费。'
+      });
+    }
+    if (specialIntent && specialProjectShown) {
+      searchAdvices.unshift({
+        level: 'warn',
+        message: '已按你的明确关键词显示特殊项目。',
+        explanation: '请逐条核验资格、批次、体检、服务年限和违约责任。'
+      });
+    }
 
     return json({
       ok: true,
@@ -323,15 +372,17 @@ export async function onRequest(context) {
         candidateSameCount2026: candidateRank?.sameCount ?? null,
         candidateRankEmptyScore: Boolean(candidateRank?.emptyScore),
         candidateRankLabel: rankLabel(candidateRank),
-        classificationMode: 'score_delta',
+        classificationMode: 'canonical_rank_aware_score_window',
+        algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
         rangePreset,
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
         specialProject: {
           mode: filters.specialProjectMode,
+          explicitIntent: specialIntent,
           hidden: specialProjectHidden,
           shown: specialProjectShown,
-          copy: filters.specialProjectMode === 'show_eligibility_projects' ? SPECIAL_PROJECT_COPY.showLabel : SPECIAL_PROJECT_COPY.hideLabel
+          copy: filters.specialProjectMode === 'show_eligibility_projects' || specialIntent ? SPECIAL_PROJECT_COPY.showLabel : SPECIAL_PROJECT_COPY.hideLabel
         },
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁 2026 物理类专业投档最低分',
@@ -340,7 +391,7 @@ export async function onRequest(context) {
         maxPerBand: configuredPageSize,
         pageSize: pageLimit,
         pageBand: requestedBand || 'all',
-        paginationContract: 'global-ranked-paged',
+        paginationContract: 'canonical-staged-ranked-paged',
         elapsedMs: Date.now() - started
       },
       keywordQuery,
@@ -361,6 +412,7 @@ export async function onRequest(context) {
         rawCandidate,
         normalized,
         bottomLineExcluded,
+        bottomLineUnresolved,
         majorKeywordExcluded,
         majorHitCount,
         projectHitCount,
@@ -369,7 +421,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'score-window-pruned-global-ranked-paged'
+        mode: 'score-window-pruned-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
@@ -377,7 +429,7 @@ export async function onRequest(context) {
       ok: false,
       message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 2026 ln-rank manifest、对应分块、年份配置和当前查询参数。',
+      engineerHint: '请检查 2026 ln-rank manifest、算法统一调度模块、年份配置和当前查询参数。',
       hint: '可先打开 /api/major-bands-health?probe=1 检查数据读取；活动数据路径是 /fenxi/data/ln-rank-2026/。'
     }, 500);
   }
