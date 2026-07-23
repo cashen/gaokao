@@ -27,7 +27,21 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply deterministic integration
-        run: python3 tools/agent/apply-v3956-integration.py
+        id: integrate_patch
+        run: |
+          set +e
+          python3 tools/agent/apply-v3956-integration.py > /tmp/v3956-integration.log 2>&1
+          status=$?
+          cat /tmp/v3956-integration.log
+          exit "$status"
+      - name: Upload integration diagnostic
+        if: failure() && steps.integrate_patch.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3956-integration-error
+          path: /tmp/v3956-integration.log
+          if-no-files-found: error
+          retention-days: 1
       - name: Check protected paths
         run: |
           set -euo pipefail
