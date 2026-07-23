@@ -23,20 +23,20 @@ const entities = read('tongxue/data/school-entities-v150.js');
 const release = json('ln-rank/release-meta.json');
 const active = json('ln-rank/active-assets.json');
 
-assert.equal(release.version, 'v3.9.56.0');
-assert.equal(active.version, 'v3.9.56.0');
-assert.equal(release.assetVersion, 'v3956_0');
-assert.equal(active.assetVersion, 'v3956_0');
+assert.equal(release.version, 'v3.9.57.0');
+assert.equal(active.version, 'v3.9.57.0');
+assert.equal(release.assetVersion, 'v3957_0');
+assert.equal(active.assetVersion, 'v3957_0');
 
 includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏'], 'homepage');
 assert.ok(!root.includes('近期真实评论'), 'homepage must not claim real reviews');
 assert.ok(!root.includes('id="h2027"') && !root.includes('id="s2027"'), 'homepage must not foreground second-level countdown');
 includesAll(home, ['returning','score-ready','继续检查当前家庭方案','继续检查家庭方案','先让孩子确认','2027招生计划'], 'homepage runtime');
 
-includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3956_0.js?v=3956_0','family-decision-workspace.v3955_0.css','family-presentation.v3955_0.js','family-decision-bar.v3955_0.js','data-release="v3.9.56.0"'], 'main flow');
+includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3957_0.js?v=3957_0','family-decision-workspace.v3955_0.css','family-presentation.v3955_0.js','family-decision-bar.v3955_0.js','data-release="v3.9.57.0"'], 'main flow');
 assert.ok(!main.includes('第一步：模考') && !main.includes('第二步：先看多大范围') && !main.includes('第三步：想看什么方向'), 'old duplicate field step numbering remains');
 
-includesAll(selection, ['检查已选专业','看看当前方案有没有明显偏科','生成家庭复核报告','其他保存方式','data-release="v3.9.56.0"'], 'selection page');
+includesAll(selection, ['检查已选专业','看看当前方案有没有明显偏科','生成家庭复核报告','其他保存方式','data-release="v3.9.57.0"'], 'selection page');
 
 includesAll(presentation, ['为什么出现','最需要确认','现在还不知道','最低投档位置基本稳定','最低投档所需位次','tongxue-card-entry','公开评论和来源摘要','shared/resources/schools/school-resource-center.js'], 'card presentation');
 assert.ok(!presentation.includes('近两年录取位置基本稳定'), 'old visible admission-position copy remains');
@@ -69,7 +69,7 @@ for (const key of [
   assert.equal(active[key], true, `active contract false: ${key}`);
 }
 assert.equal(active.structure2026.js, '../zy2026/assets/zy2026.v3955_0.js');
-assert.ok(active.jsEntry.includes('js/app.v3956_0.js'));
+assert.ok(active.jsEntry.includes('js/app.v3957_0.js'));
 assert.ok(active.jsEntry.includes('js/ux/family-presentation.v3955_0.js'));
 assert.ok(active.jsEntry.includes('js/ux/family-decision-bar.v3955_0.js'));
 assert.ok(active.cssEntry.includes('css/dist/family-decision-workspace.v3955_0.css'));
@@ -89,4 +89,4 @@ assert.equal(tongxueEntryCopy('admission_campus'), '看看这个校区的公开�
 assert.equal(tongxueEntryCopy('branch_school'), '看看这所分校的公开评论');
 assert.equal(tongxueEntryCopy('official_school'), '看看这所学校的公开评论');
 
-console.log('FAMILY_DECISION_V3956_OK');
+console.log('FAMILY_DECISION_V3957_OK');
