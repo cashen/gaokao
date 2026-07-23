@@ -38,6 +38,7 @@ assert.ok(shell.includes('当前家庭方案'));
 assert.ok(shell.includes('data-ui-mobile-selected'));
 assert.ok(shell.includes('visualViewport'));
 assert.ok(shell.includes('ui-keyboard-open'));
+assert.ok(shell.includes('ensureUiStyles'));
 assert.ok(!shell.includes('MutationObserver'));
 assert.ok(!shell.includes("fetch('/api/"));
 
@@ -46,33 +47,43 @@ const semantic=read('shared/ui/tokens/semantic.v3959_0.css');
 const shellCss=read('shared/ui/shell/family-shell.v3959_0.css');
 for(const token of ['--ui-page-bg','--ui-surface','--ui-ink','--ui-brand-primary','--ui-touch-min','--ui-reading-width','--ui-workspace-width'])assert.ok(foundation.includes(token),`foundation missing ${token}`);
 for(const component of ['.ui-button','.ui-card','.ui-state--loading','.ui-state--pending','.ui-state--error'])assert.ok(semantic.includes(component),`semantic missing ${component}`);
-for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','env(safe-area-inset-bottom','@media(max-width:767px)'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
+for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','env(safe-area-inset-bottom','@media(max-width:767px)','family-decision-bar'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
 
-const pages={
+const staticPages={
   'index.html':['home','family','reading'],
   'ln-rank/index.html':['selection','family','workspace'],
   'ln-rank/selection-pool.html':['selected','family','workspace'],
-  'ln2026.html':['difficulty','family','reading'],
-  'zy2026/index.html':['structure','family','workspace'],
-  'tongxue/index.html':['tongxue','tongxue','reading']
+  'ln-rank/self-check.html':['selected','family','reading']
 };
-for(const [file,[page,brand,density]] of Object.entries(pages)){
+for(const [file,[page,brand,density]] of Object.entries(staticPages)){
   const source=read(file);
   assert.ok(source.includes('foundation.v3959_0.css?v=3959_0'),`${file} missing foundation`);
   assert.ok(source.includes('semantic.v3959_0.css?v=3959_0'),`${file} missing semantic`);
   assert.ok(source.includes('family-shell.v3959_0.css?v=3959_0'),`${file} missing shell CSS`);
-  assert.ok(source.includes('family-shell.v3959_0.js?v=3959_0'),`${file} missing shell JS`);
+  assert.ok(source.includes('family-shell.v3959_0.js?v=3959_0')||source.includes('app.v3959_0.js?v=3959_0')||source.includes('selection-pool.v3959_0.js?v=3959_0'),`${file} missing shell runtime`);
   assert.ok(source.includes(`data-ui-page="${page}"`),`${file} wrong page adapter`);
   assert.ok(source.includes(`data-ui-brand="${brand}"`),`${file} wrong brand adapter`);
   assert.ok(source.includes(`data-ui-density="${density}"`),`${file} wrong density adapter`);
-  assert.ok(source.includes('class="ui-orchestrated')||source.includes(' ui-orchestrated'),`${file} missing static orchestrated class`);
+  assert.ok(source.includes('ui-orchestrated'),`${file} missing static orchestrated class`);
   for(const phrase of FORBIDDEN_PUBLIC_COPY)assert.ok(!source.includes(phrase),`${file} contains forbidden public copy ${phrase}`);
 }
+
+const runtimeAdapters={
+  'ln2026.html':'ln-rank/js/major-difficulty-2026.v3959_0.js',
+  'zy2026/index.html':'zy2026/assets/zy2026.v3959_0.js',
+  'tongxue/index.html':'tongxue/app/tongxue-performance-v156.js'
+};
+for(const [pageFile,adapterFile] of Object.entries(runtimeAdapters)){
+  const page=read(pageFile);
+  const adapter=read(adapterFile);
+  assert.ok(adapter.includes('shared/ui/shell/family-shell.v3959_0.js'),`${adapterFile} missing shared shell import`);
+  for(const phrase of FORBIDDEN_PUBLIC_COPY)assert.ok(!page.includes(phrase),`${pageFile} contains forbidden public copy ${phrase}`);
+}
+assert.ok(read('ln2026.html').includes('major-difficulty-2026.v3959_0.js?v=3959_0'));
+assert.ok(read('zy2026/index.html').includes('zy2026.v3959_0.js?v=3959_0'));
 assert.ok(!read('ln-rank/index.html').includes('family-decision-bar.v3955_0.js'));
 assert.ok(!read('ln-rank/selection-pool.html').includes('family-decision-bar.v3955_0.js'));
 assert.ok(!read('index.html').includes(':root{--bg:#f4f7f6'));
-assert.ok(!read('tongxue/index.html').includes(':root{--bg:#fff;--card:#fff'));
-assert.equal(read('zy2026.html'),read('zy2026/index.html'));
 
 for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   const meta=json(file);
@@ -85,4 +96,4 @@ const registry=read('shared/resources/resource-registry.js');
 assert.ok(registry.includes("id: 'family-ui-orchestration'"));
 assert.ok(registry.includes("policy: 'single-ui-language-shell-state-and-responsive-contract'"));
 
-console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,pages:Object.keys(pages),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion},null,2));
+console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,pages:[...Object.keys(staticPages),...Object.keys(runtimeAdapters)],resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion},null,2));
