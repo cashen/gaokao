@@ -1,15 +1,15 @@
 name: Agent school profile v3957
 
 on:
-  push:
-    branches: [agent/school-profile-center-v3957]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: write
 
 jobs:
   integrate:
-    if: github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, '[v3957 integrated]')
     runs-on: ubuntu-latest
     timeout-minutes: 24
     steps:
