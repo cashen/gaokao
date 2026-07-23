@@ -19,7 +19,7 @@ for(const path of pages)ok(!/版本：v3\.9\.50\.0/.test(t(path)),`${path} old f
 
 const main=t('ln-rank/index.html');
 ok(main.includes(VERSION),'main version');
-ok(main.includes(`app.v3958_0.js?${ASSET}`),'shared main wrapper loaded');
+ok(main.includes('app.v3958_0.js?v=3958_0'),'shared main wrapper loaded');
 ok(!main.includes('app.v3951_0.js?v=3958_0'),'legacy main not loaded directly');
 ok(main.includes('family-decision-workspace.v3955_0.css'),'family decision css loaded');
 ok(main.includes('family-presentation.v3955_0.js'),'family presentation loaded');
