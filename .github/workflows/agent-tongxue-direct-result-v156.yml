@@ -37,16 +37,20 @@ jobs:
           node --check tools/tongxue/verify-direct-result-v156.mjs
       - name: Direct result regression
         run: node tools/tongxue/verify-direct-result-v156.mjs
-      - name: Existing Tongxue contracts
-        run: |
-          set -euo pipefail
-          node tools/tongxue/verify-directory.mjs
-          node tools/tongxue/verify-brand-ui-v152.mjs
-          node tools/tongxue/verify-interaction-v153.mjs
-          node tools/tongxue/verify-direct-handoff-v155.mjs
-          node tools/tongxue/verify-school-entities-v130.mjs
-          node tools/tongxue/verify-school-region-ui-v150.mjs
-          node tools/tongxue/verify-share.mjs
+      - name: Directory contract
+        run: node tools/tongxue/verify-directory.mjs
+      - name: Brand contract
+        run: node tools/tongxue/verify-brand-ui-v152.mjs
+      - name: Interaction contract
+        run: node tools/tongxue/verify-interaction-v153.mjs
+      - name: Direct handoff compatibility
+        run: node tools/tongxue/verify-direct-handoff-v155.mjs
+      - name: Entity contract
+        run: node tools/tongxue/verify-school-entities-v130.mjs
+      - name: Region UI contract
+        run: node tools/tongxue/verify-school-region-ui-v150.mjs
+      - name: Share contract
+        run: node tools/tongxue/verify-share.mjs
       - name: Commit generated integration
         run: |
           set -euo pipefail
