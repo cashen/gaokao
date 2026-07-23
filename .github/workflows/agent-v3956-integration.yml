@@ -30,6 +30,15 @@ jobs:
         id: integrate_patch
         run: |
           set +e
+          python3 - <<'PY'
+          from pathlib import Path
+          target = Path('tools/agent/apply-v3956-integration.py')
+          source = target.read_text(encoding='utf-8')
+          old = "output, count = re.subn(pattern, replacement, text, count=1, flags=flags)"
+          new = "output, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=flags)"
+          if old in source:
+              target.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
           python3 tools/agent/apply-v3956-integration.py > /tmp/v3956-integration.log 2>&1
           status=$?
           cat /tmp/v3956-integration.log
