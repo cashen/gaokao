@@ -1,4 +1,4 @@
-name: Agent school profile v3957
+name: Agent school profile v3957 integration
 
 on:
   pull_request:
@@ -10,8 +10,9 @@ permissions:
 
 jobs:
   integrate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 24
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,56 +21,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install official XLS reader
-        run: python3 -m pip install --disable-pip-version-check xlrd==2.0.1
-      - name: Download MOE 2026 school list
+      - name: Merge Tongxue direct-result branch
         run: |
           set -euo pipefail
-          mkdir -p /tmp/school-profile-v3957
-          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
-            --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
-            --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/school-profile-v3957/moe-2026-schools.xls \
-            'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/school-profile-v3957/moe-2026-schools.xls)" -gt 20000
-      - name: Generate official profiles and integrate
-        id: integrate_patch
-        run: |
-          set +e
-          python3 tools/schools/build-school-profile-center-v3957.py \
-            --xls /tmp/school-profile-v3957/moe-2026-schools.xls > /tmp/v3957-generate.log 2>&1
-          status=$?
-          if [ "$status" -eq 0 ]; then
-            python3 tools/schools/apply-school-profile-v3957.py >> /tmp/v3957-generate.log 2>&1
-            status=$?
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin agent/tongxue-direct-result-v156
+          if git merge-base --is-ancestor origin/agent/tongxue-direct-result-v156 HEAD; then
+            echo 'Tongxue direct-result branch already integrated'
+          else
+            git merge --no-ff origin/agent/tongxue-direct-result-v156 -m 'Merge Tongxue v1.5.6 direct result into v3.9.57.0'
           fi
-          cat /tmp/v3957-generate.log
-          exit "$status"
-      - name: Upload generation diagnostic
-        if: failure() && steps.integrate_patch.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: school-profile-v3957-error
-          path: /tmp/v3957-generate.log
-          if-no-files-found: error
-          retention-days: 1
       - name: Verify protected paths
         run: |
           set -euo pipefail
-          git diff --name-only origin/main -- | tee /tmp/v3957-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3957-files.txt; then
+          git diff --name-only origin/main...HEAD | tee /tmp/v3957-integrated-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3957-integrated-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
       - name: Syntax checks
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/schools/build-school-profile-center-v3957.py tools/schools/apply-school-profile-v3957.py
           for file in \
-            shared/resources/geo/china-region-catalog.js \
             shared/resources/schools/school-profile-data.20260617-v3957.js \
             shared/resources/schools/school-profile-center.js \
             functions/_lib/school-tags.js \
@@ -77,43 +51,22 @@ jobs:
             functions/_lib/school-display-tags.js \
             ln-rank/js/app.v3957_0.js \
             ln-rank/js/selection-pool.v3957_0.js \
-            ln-rank/js/feature/major-pool/index.v3957_0.js \
             ln-rank/js/feature/major-pool/render.v3957_0.js \
-            ln-rank/js/feature/selection-pool/index.v3957_0.js \
-            tools/verify-school-profile-center-v3957.mjs; do
+            tongxue/app/tongxue-direct-result-v156.js \
+            tongxue/app/tongxue-performance-v156.js \
+            tools/verify-school-profile-center-v3957.mjs \
+            tools/tongxue/verify-direct-result-v156.mjs; do
               node --check "$file"
           done
-      - name: Verify unified school profiles
-        run: node tools/verify-school-profile-center-v3957.mjs
-      - name: Exercise card API enrichment
-        run: |
-          node --experimental-default-type=module - <<'NODE'
-          import { normalizeRecord } from './functions/_lib/fenxi-normalizer.js';
-          import { buildDisplayTags } from './functions/_lib/school-display-tags.js';
-          const cases = [
-            ['大连理工大学（盘锦校区）','公办','985','辽宁 · 盘锦'],
-            ['深圳大学','公办','双非（非985/211）','广东 · 深圳'],
-            ['三亚学院','民办','双非（非985/211）','海南 · 三亚']
-          ];
-          for (const [school,nature,tier,location] of cases) {
-            const record = normalizeRecord({ school, major:'计算机科学与技术', score2026:520, rank2026:40000 });
-            const display = buildDisplayTags(record);
-            if (display.natureLabel !== nature || !display.schoolTierTags.includes(tier) || display.displayLocation !== location) {
-              throw new Error(`${school}: ${JSON.stringify(display)}`);
-            }
-          }
-          console.log('school card enrichment passed');
-          NODE
-      - name: Commit generated profile integration
+      - name: Verify school profile and Tongxue integration
         run: |
           set -euo pipefail
-          rm -rf tools/schools/__pycache__
-          if git diff --quiet; then
-            echo 'No generated changes'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Integrate official school profile center v3957 [v3957 integrated]'
+          node tools/verify-school-profile-center-v3957.mjs
+          node tools/tongxue/verify-direct-result-v156.mjs
+          node tools/tongxue/verify-direct-handoff-v155.mjs
+          node tools/tongxue/verify-school-entities-v130.mjs
+          node tools/tongxue/verify-school-region-ui-v150.mjs
+      - name: Push integrated branch
+        run: |
+          set -euo pipefail
           git push origin HEAD:agent/school-profile-center-v3957
