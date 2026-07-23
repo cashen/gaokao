@@ -20,12 +20,21 @@ jobs:
         with:
           ref: agent/selection-workspace-orchestration-v3961
           fetch-depth: 0
-      - name: Assemble payload
+      - name: Concatenate payload
         shell: bash
         run: |
           set -euo pipefail
-          cat .bootstrap/v3961/payload.part{00..09} | base64 -d > /tmp/v3961.tar.gz
-          echo '437423131ee3b43141c6e70a54810f2ff9556405a52076fe7359443e2b7487b5  /tmp/v3961.tar.gz' | sha256sum -c -
+          cat .bootstrap/v3961/payload.part00 .bootstrap/v3961/payload.part01 .bootstrap/v3961/payload.part02 .bootstrap/v3961/payload.part03 .bootstrap/v3961/payload.part04 .bootstrap/v3961/payload.part05 .bootstrap/v3961/payload.part06 .bootstrap/v3961/payload.part07 .bootstrap/v3961/payload.part08 .bootstrap/v3961/payload.part09 > /tmp/v3961.b64
+          test "$(stat -c%s /tmp/v3961.b64)" = '73640'
+      - name: Decode payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode /tmp/v3961.b64 > /tmp/v3961.tar.gz
+          test "$(stat -c%s /tmp/v3961.tar.gz)" = '55230'
+      - name: Verify archive checksum
+        shell: bash
+        run: echo '437423131ee3b43141c6e70a54810f2ff9556405a52076fe7359443e2b7487b5  /tmp/v3961.tar.gz' | sha256sum -c -
       - name: Extract payload
         shell: bash
         run: |
