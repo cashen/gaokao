@@ -30,6 +30,16 @@ jobs:
         run: |
           set -euo pipefail
           base64 --decode /tmp/v3961.b64 > /tmp/v3961.tar.gz
+          sha256sum /tmp/v3961.tar.gz > /tmp/v3961.sha256
+      - name: Upload decoded archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3961-decoded-archive
+          path: |
+            /tmp/v3961.tar.gz
+            /tmp/v3961.sha256
+          if-no-files-found: error
+          retention-days: 1
       - name: Extract payload
         shell: bash
         run: |
