@@ -26,7 +26,7 @@ export function resolveUiPage(pathname=globalThis.location?.pathname||'/'){
   if(path.startsWith('/ln2026')||path.startsWith('/lngk2026'))return 'difficulty';
   if(path.startsWith('/zy2026')||path==='/zy'||path==='/zy.html')return 'structure';
   if(path.startsWith('/tongxue'))return 'tongxue';
-  return document?.body?.dataset?.uiPage||'home';
+  return globalThis.document?.body?.dataset?.uiPage||'home';
 }
 
 export function buildFamilyStatus({score=null,items=[]}={}){
