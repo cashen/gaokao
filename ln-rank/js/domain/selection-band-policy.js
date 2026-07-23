@@ -1,20 +1,9 @@
-const PRESETS = {
-  standard: {
-    upper: { min: 1, max: 10 },
-    near: { min: -10, max: 0 },
-    steady: { min: -25, max: -11 }
-  },
-  wide: {
-    upper: { min: 1, max: 20 },
-    near: { min: -15, max: 0 },
-    steady: { min: -40, max: -16 }
-  },
-  safe: {
-    upper: { min: 1, max: 5 },
-    near: { min: -10, max: 0 },
-    steady: { min: -20, max: -11 }
-  }
-};
+import {
+  resolveCanonicalPosition,
+  canonicalBandOrder,
+  canonicalBandLabel,
+  normalizePositionPreset
+} from '../../../shared/algorithms/position/canonical-position.v3960_0.js?v=3960_0';
 
 export const SELECTION_BAND_LABELS = {
   upper: '稍高目标',
@@ -25,48 +14,50 @@ export const SELECTION_BAND_LABELS = {
 };
 
 export function normalizeSelectionPreset(value) {
-  const key = String(value || '').trim();
-  return Object.prototype.hasOwnProperty.call(PRESETS, key) ? key : 'standard';
+  return normalizePositionPreset(value);
 }
 
-export function classifySelectionDelta(delta, presetLike = 'standard') {
-  const n = Number(delta);
-  if (!Number.isFinite(n)) {
-    return {
-      key: 'unknown',
-      group: 'unknown',
-      detail: SELECTION_BAND_LABELS.unknown,
-      className: 'unknown',
-      position: '需补齐 2026 投档分后再判断'
-    };
-  }
+function classNameFor(key) {
+  return key === 'upper' ? 'light-rush' : key === 'near' ? 'stable' : key === 'steady' ? 'light-safe' : 'unknown';
+}
 
-  const preset = PRESETS[normalizeSelectionPreset(presetLike)];
-  for (const key of ['upper', 'near', 'steady']) {
-    const range = preset[key];
-    if (n >= range.min && n <= range.max) {
-      return {
-        key,
-        group: key === 'upper' ? 'rush' : key === 'near' ? 'stable' : 'safe',
-        detail: SELECTION_BAND_LABELS[key],
-        className: key === 'upper' ? 'light-rush' : key === 'near' ? 'stable' : 'light-safe',
-        position: `${SELECTION_BAND_LABELS[key]}区`,
-        minDelta: range.min,
-        maxDelta: range.max
-      };
-    }
-  }
-
+export function classifySelectionPosition(input = {}) {
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: input.candidateScore,
+    candidateRank: input.candidateRank,
+    recordScore: input.recordScore,
+    recordRank: input.recordRank,
+    scoreDelta: input.scoreDelta,
+    rankGap: input.rankGap,
+    rangePreset: input.rangePreset || input.preset || 'standard'
+  });
+  const key = canonicalPosition.bandKey;
   return {
-    key: 'outside',
-    group: 'outside',
-    detail: SELECTION_BAND_LABELS.outside,
-    className: 'unknown',
-    position: '不在当前查看范围内'
+    key,
+    group: canonicalPosition.group,
+    detail: canonicalPosition.bandLabel,
+    className: classNameFor(key),
+    position: key === 'unknown'
+      ? '需补齐 2026 投档位置后再判断'
+      : key === 'outside'
+        ? '不在当前查看范围内'
+        : `${canonicalPosition.bandLabel}区`,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap: canonicalPosition.rankGap,
+    canonicalPosition
   };
 }
 
+export function classifySelectionDelta(delta, presetLike = 'standard') {
+  return classifySelectionPosition({ scoreDelta: delta, rangePreset: presetLike });
+}
+
 export function selectionBandOrder(item = {}) {
-  const key = item.poolBand?.key || item.bandKey || '';
-  return ({ upper: 10, near: 20, steady: 30, outside: 40, unknown: 50 })[key] || 99;
+  const key = item.poolBand?.key || item.canonicalPosition?.bandKey || item.bandKey || '';
+  return canonicalBandOrder(key) || 99;
+}
+
+export function selectionBandLabel(item = {}) {
+  const key = typeof item === 'string' ? item : item.poolBand?.key || item.canonicalPosition?.bandKey || item.bandKey || '';
+  return canonicalBandLabel(key);
 }

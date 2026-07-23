@@ -1,4 +1,4 @@
-import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3949_0';
+import { classifyPoolItem, getPoolStats, majorFamily } from './store.js?v=3960_0';
 
 function topEntry(map = {}) {
   return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || ['', 0];
@@ -9,8 +9,25 @@ function pct(part, total) {
   return Math.round((part / total) * 100);
 }
 
-export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
-  const stats = getPoolStats(items);
+function isExplicitlyRejected(item = {}) {
+  const values = [item.acceptability?.major, item.acceptability?.city, item.acceptability?.cost, item.acceptability?.campus, item.acceptability?.project];
+  return values.includes('rejected');
+}
+
+function isUnresolved(item = {}) {
+  if (item.bottomLineEligibility === 'unresolved' || item.eligibilityStatus === 'unresolved') return true;
+  if (item.schoolNature === 'unknown' || item.feeType === 'unknown') return true;
+  return Boolean(item.historicalOnly || item.canonicalPosition?.evidenceStrength === 'weak');
+}
+
+export function buildPathAnalysis({ items = [], candidateScore = null, explicitPreferences = {} } = {}) {
+  const ordered = (Array.isArray(items) ? items : []).map((item, index) => ({
+    ...item,
+    order: index + 1,
+    poolBand: item.poolBand || classifyPoolItem(item),
+    majorFamily: item.majorFamily || majorFamily(item.major)
+  }));
+  const stats = getPoolStats(ordered);
   const total = stats.total;
   const risks = [];
   const actions = [];
@@ -20,128 +37,141 @@ export function buildPathAnalysis({ items = [], candidateScore = null } = {}) {
     return {
       ok: true,
       level: 'empty',
-      summary: '还没有选择专业。请先从查询结果中把几个“学校+专业”放进报告。',
+      summary: '还没有选择专业，暂时无法检查这套方案。',
       stats,
-      risks: ['还没有选择专业，暂时无法判断分段搭配。'],
-      actions: ['先放入稍高目标、主要参考、低分侧补充三个分段的专业，再生成报告。'],
+      risks: ['当前清单为空。'],
+      actions: ['先加入几项孩子愿意继续了解的专业，再检查位置、费用、校区和资格。'],
       sections: [],
       reportText: '还没有选择专业。'
     };
   }
 
-  if (total < 12) {
-    risks.push('已选专业数量偏少，暂时更像候选内容，建议再补充几个可讨论专业。');
-    actions.push('继续补充主要参考区和后段低分侧补充区，先把数量扩展到至少 20 个以上再做正式排序。');
+  const rejectedItems = ordered.filter(isExplicitlyRejected);
+  const unresolvedItems = ordered.filter(isUnresolved);
+  const effectiveItems = ordered.filter(item => !isExplicitlyRejected(item));
+  const effectiveStats = getPoolStats(effectiveItems);
+
+  if (rejectedItems.length) {
+    risks.push(`有 ${rejectedItems.length} 项已经被家庭明确判定为不能接受，不能继续算作有效承接。`);
+    actions.push('先移除或重新确认这些项目，再检查前中后段结构。');
   }
-  if (stats.safeCount < Math.max(3, Math.ceil(total * 0.22))) {
-    risks.push('低分侧补充区数量偏少，低分侧补充偏浅。');
-    actions.push('补充几项孩子确实能接受的低分侧补充专业，重点看课程、城市、学费和校区。');
+  if (unresolvedItems.length) {
+    risks.push(`有 ${unresolvedItems.length} 项的办学性质、费用、历史对应或位置证据仍待确认。`);
+    actions.push('优先核对待确认项目；未知不等于公办普通，也不等于可以承担后段承接。');
   }
-  if (stats.stableCount < Math.ceil(total * 0.34)) {
-    risks.push('主要参考区偏薄，中段可讨论专业不够厚。');
-    actions.push('优先补充“主要参考 / 稳妥”专业，作为真实讨论承接区。');
+  if (effectiveStats.stableCount === 0) {
+    risks.push('当前没有可识别的主要参考项，中段讨论出现断层。');
+    actions.push('补充几项位置更接近、孩子也愿意读的专业作为主体讨论对象。');
   }
-  if (stats.rushCount > Math.ceil(total * 0.38)) {
-    risks.push('稍高目标区占比偏高，容易形成“前段好看、后段发虚”的排序。');
-    actions.push('保留少量少量真正愿意讨论的稍高目标，其余用更接近位次的专业替换。');
+  if (effectiveStats.safeCount === 0) {
+    risks.push('当前没有可识别且未被拒绝的低分侧补充项。');
+    actions.push('补充真正能接受的低分侧项目，并同时核验专业、城市、学费和校区。');
   }
-  if (stats.highRushCount > 2) {
-    risks.push('稍高目标专业数量偏多，稍高目标只能承担梦想位，不应作为主要录取依赖。');
-    actions.push('稍高目标建议控制在 1-2 个左右，并放在排序最前部。');
+  if (effectiveStats.rushCount > effectiveStats.stableCount + effectiveStats.safeCount) {
+    risks.push('稍高目标数量多于主要参考和低分侧补充之和，方案重心偏高。');
+    actions.push('保留少量高价值上探，其余用更接近位次且可接受的项目替换。');
   }
 
-  const [topCity, topCityCount] = topEntry(stats.byCity);
-  if (topCity && total >= 8 && topCityCount >= Math.ceil(total * 0.45)) {
-    risks.push(`城市过于集中偏高：${topCity} 相关志愿占比较大。`);
-    actions.push('在同专业方向下补充其他城市/省份的可接受选择，避免地域单点提醒。');
-  }
-  const [topFamily, topFamilyCount] = topEntry(stats.byMajorFamily);
-  if (topFamily && total >= 8 && topFamilyCount >= Math.ceil(total * 0.55)) {
-    risks.push(`专业方向集中度偏高：${topFamily} 占比较大。`);
-    actions.push('如果孩子确实强偏好该方向，可以保留；否则建议加入 1-2 个相邻专业方向做提醒分散。');
+  const [topCity, topCityCount] = topEntry(effectiveStats.byCity);
+  const cityPreferenceExplicit = Boolean(explicitPreferences.city || explicitPreferences.location || explicitPreferences.localFirst);
+  if (!cityPreferenceExplicit && topCity && effectiveItems.length >= 6 && topCityCount >= Math.ceil(effectiveItems.length * 0.55)) {
+    risks.push(`城市集中在“${topCity}”，但当前没有记录到明确的地域单选偏好。`);
+    actions.push('确认这是家庭真实偏好，还是浏览过程中无意识形成的集中。');
   }
 
-  const ordered = items.map((item, index) => ({ ...item, order: index + 1, poolBand: item.poolBand || classifyPoolItem(item), majorFamily: majorFamily(item.major) }));
-  const rushItems = ordered.filter(x => x.poolBand.group === 'rush');
-  const stableItems = ordered.filter(x => x.poolBand.group === 'stable');
-  const safeItems = ordered.filter(x => x.poolBand.group === 'safe');
+  const [topFamily, topFamilyCount] = topEntry(effectiveStats.byMajorFamily);
+  const majorPreferenceExplicit = Boolean(explicitPreferences.major || explicitPreferences.majorFamily || explicitPreferences.mustMajor);
+  if (!majorPreferenceExplicit && topFamily && effectiveItems.length >= 6 && topFamilyCount >= Math.ceil(effectiveItems.length * 0.65)) {
+    risks.push(`专业方向主要集中在“${topFamily}”，但当前没有记录到明确的单方向偏好。`);
+    actions.push('先让孩子确认是否愿意长期学习该方向；明确强偏好时集中可以保留。');
+  }
+
+  const rushItems = effectiveItems.filter(x => x.poolBand.group === 'rush');
+  const stableItems = effectiveItems.filter(x => x.poolBand.group === 'stable');
+  const safeItems = effectiveItems.filter(x => x.poolBand.group === 'safe');
 
   sections.push({
-    title: '前段稍高目标区',
+    title: '前段稍高目标',
     content: rushItems.length
-      ? `当前有 ${rushItems.length} 个稍高目标志愿，其中稍高目标 ${stats.highRushCount} 个。稍高目标位适合放在前段，但不能替代中后段承接。`
-      : '当前几乎没有稍高目标志愿，方案偏保守；如果孩子和家长愿意尝试，可以少量加入可接受的上探专业。'
+      ? `当前有 ${rushItems.length} 项。它们可以放在前段讨论，但不能替代主要参考和后段承接。`
+      : '当前没有明显稍高目标项；是否增加应由孩子和家庭的真实取舍决定，不是必填比例。'
   });
   sections.push({
-    title: '中段主要参考区',
+    title: '中段主要参考',
     content: stableItems.length
-      ? `当前有 ${stableItems.length} 个主要参考专业，这是方案的主要讨论区。建议继续检查这些专业是否都是孩子能接受的方向。`
-      : '当前缺少主要参考专业，中段承接断层明显，需要优先补充。'
+      ? `当前有 ${stableItems.length} 项，是这套方案最需要逐条确认专业接受度的部分。`
+      : '当前缺少主要参考项，需要先补齐真实可讨论的主体。'
   });
   sections.push({
-    title: '后段低分侧补充区',
+    title: '后段低分侧补充',
     content: safeItems.length
-      ? `当前有 ${safeItems.length} 个低分侧补充/低分侧补充志愿。后段不是随便填低分专业，而是要保证学校、城市、专业方向都能接受。`
-      : '当前没有明显低分侧补充志愿，后段可接受选择偏少，建议先补几项孩子能接受的专业。'
+      ? `当前有 ${safeItems.length} 项。只有学校、专业、城市、费用和项目条件都能接受时，才算有效承接。`
+      : '当前没有有效低分侧补充项；不能用完全不想读的专业制造表面安全感。'
   });
 
-  const level = risks.length >= 4 ? 'high' : risks.length >= 2 ? 'medium' : 'low';
+  const level = rejectedItems.length || effectiveStats.safeCount === 0 || effectiveStats.stableCount === 0
+    ? 'high'
+    : unresolvedItems.length || risks.length >= 2
+      ? 'medium'
+      : 'low';
   const summary = level === 'high'
-    ? '当前清单整体偏高，建议先补齐主要参考和低分侧补充，再生成报告。'
+    ? '当前清单存在真实承接缺口或明确不可接受项目，建议先修正再生成报告。'
     : level === 'medium'
-      ? '当前已选专业已有基本搭配，但仍建议看看分段比例和方向是否过于集中。'
-      : '当前已选专业搭配相对均衡，可以进入人工确认和报告生成。';
+      ? '当前清单已有基本结构，但仍有关键事实或家庭接受度需要确认。'
+      : '当前未发现明显结构断层，可以继续逐条人工复核并生成家庭报告。';
 
-  if (!risks.length) risks.push('暂未发现明显结构性提醒，但仍需人工核验招生计划、选科、体检、学费和校区。');
-  if (!actions.length) actions.push('保持当前前中后段结构，逐条核验专业接受度、计划变化和特殊项目标签。');
+  if (!risks.length) risks.push('暂未发现明显结构性问题，但仍需核验2027招生计划、选科、体检、学费、校区和院校章程。');
+  if (!actions.length) actions.push('保持当前顺序，逐条确认孩子是否愿意读、家庭是否能承担、关键条件是否已核实。');
 
-  const reportText = makeReportText({ candidateScore, stats, summary, risks, actions, sections, ordered });
+  const reportText = makeReportText({ candidateScore, stats, effectiveStats, summary, risks, actions, sections, ordered });
 
   return {
     ok: true,
     level,
     summary,
-    stats,
+    stats: { ...stats, effectiveTotal: effectiveItems.length, unresolvedCount: unresolvedItems.length, rejectedCount: rejectedItems.length },
     risks,
     actions,
     sections,
     orderedItems: ordered,
     reportText,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
+    dataYear: 2026,
+    audienceYear: 2027,
+    algorithmVersion: 'algorithm-orchestration-v3960'
   };
 }
 
-function makeReportText({ candidateScore, stats, summary, risks, actions, sections, ordered }) {
+function makeReportText({ candidateScore, stats, effectiveStats, summary, risks, actions, sections, ordered }) {
   const lines = [];
   lines.push('辽宁物理类专业初选报告生成前提醒');
   lines.push('');
-  lines.push(`考生分数：${candidateScore || '未填写'}`);
-  lines.push('数据口径：辽宁 2025 物理类专业数据，数据来源为 /fenxi 已接入专业池；本报告用于志愿讨论，不等同于录取判断。');
+  lines.push(`参考分数：${candidateScore || '未填写'}`);
+  lines.push('数据口径：辽宁2026物理类专业最低投档分和位次；2025、2024仅作同口径历史对照。本报告用于家庭讨论，不代表录取判断。');
   lines.push('');
   lines.push(`已选专业总数：${stats.total} 个`);
-  lines.push(`稍高目标：${stats.rushCount} 个（${pct(stats.rushCount, stats.total)}%）`);
-  lines.push(`稳妥：${stats.stableCount} 个（${pct(stats.stableCount, stats.total)}%）`);
-  lines.push(`低分侧补充：${stats.safeCount} 个（${pct(stats.safeCount, stats.total)}%）`);
+  lines.push(`当前可继续讨论：${effectiveStats.total} 个`);
+  lines.push(`稍高目标：${effectiveStats.rushCount} 个（${pct(effectiveStats.rushCount, effectiveStats.total)}%）`);
+  lines.push(`主要参考：${effectiveStats.stableCount} 个（${pct(effectiveStats.stableCount, effectiveStats.total)}%）`);
+  lines.push(`低分侧补充：${effectiveStats.safeCount} 个（${pct(effectiveStats.safeCount, effectiveStats.total)}%）`);
   lines.push('');
   lines.push(`整体判断：${summary}`);
   lines.push('');
-  for (const section of sections) {
-    lines.push(`${section.title}：${section.content}`);
-  }
+  for (const section of sections) lines.push(`${section.title}：${section.content}`);
   lines.push('');
   lines.push('主要提醒：');
   risks.forEach((risk, index) => lines.push(`${index + 1}. ${risk}`));
   lines.push('');
-  lines.push('下一步可以这样做：');
+  lines.push('下一步：');
   actions.forEach((action, index) => lines.push(`${index + 1}. ${action}`));
   lines.push('');
   lines.push('当前排序：');
   ordered.slice(0, 112).forEach((item) => {
-    const score = Number.isFinite(Number(item.score2025)) ? `${item.score2025}分` : '分数缺失';
-    const rank = Number.isFinite(Number(item.rank2025)) ? `位次${item.rank2025}` : '位次缺失';
+    const score = Number.isFinite(Number(item.score2026)) ? `${item.score2026}分` : '2026分数待核验';
+    const rank = Number.isFinite(Number(item.rank2026)) ? `最低投档位置约${Number(item.rank2026).toLocaleString('zh-CN')}` : '2026位次待核验';
     lines.push(`${item.order}. ${item.school} · ${item.major}｜${item.poolBand.detail}｜${score}｜${rank}`);
   });
   lines.push('');
-  lines.push('人工复核清单：2026 年一分一段、招生计划、选科要求、体检限制、学费、校区、中外合作/专项/高收费等特殊项目。');
+  lines.push('正式填报前复核：2027一分一段、招生计划、选科要求、体检限制、学费、校区、中外合作/专项/高收费项目和院校章程。');
   return lines.join('\n');
 }
