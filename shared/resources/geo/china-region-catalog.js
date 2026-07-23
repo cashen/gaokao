@@ -44,7 +44,17 @@ export function normalizeProvinceName(value) {
 }
 
 export function normalizeCityName(value) {
-  return String(value || '').replace(/[市区县]/g, '').trim();
+  return String(value || '').replace(/市$|地区$|自治州$|盟$/g, '').trim();
+}
+
+export function getLiaoningAreaLabel(record = {}, fallback = '') {
+  const province = normalizeProvinceName(record.province);
+  const city = normalizeCityName(record.city);
+  if (!province) return String(fallback || '').trim();
+  if (province !== '辽宁') return '省外';
+  if (city === '沈阳') return '沈阳';
+  if (city === '大连') return '大连';
+  return '辽宁其他';
 }
 
 export function deriveRegionGroups(record = {}) {

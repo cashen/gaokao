@@ -1,4 +1,5 @@
 import { LIAONING_CAMPUS_MAJOR_KB } from './liaoning-campus-major-kb.generated.js';
+import { resolveSchoolProfile } from '../../../shared/resources/schools/school-profile-center.js';
 
 function textOf(item = {}) {
   return `${item.school || ''} ${item.major || ''} ${Array.isArray(item.schoolTags) ? item.schoolTags.join(' ') : ''} ${item.displayLocation || ''}`;
@@ -16,13 +17,23 @@ function ruleMatches(rule, item = {}) {
 }
 export function getCampusForItem(item = {}) {
   const schoolText = String(item.school || '');
-  const school = (LIAONING_CAMPUS_MAJOR_KB.schools || []).find(s => schoolText.includes(s.school) || s.school.includes(schoolText));
+  const profile = item.schoolProfile || resolveSchoolProfile(schoolText, item);
+  const names = [
+    schoolText,
+    profile?.school,
+    profile?.standardSchoolName,
+    profile?.parentSchoolName
+  ].filter(Boolean);
+  const school = (LIAONING_CAMPUS_MAJOR_KB.schools || []).find(row => names.some(name => name.includes(row.school) || row.school.includes(name)));
   if (!school) return null;
   const rule = (school.rules || []).find(r => ruleMatches(r, item));
   const found = rule || school.fallback || null;
   if (!found) return null;
   return {
     school: school.school,
+    schoolEntityId: profile?.entityId || '',
+    schoolCanonical: profile?.standardSchoolName || profile?.school || school.school,
+    schoolEntityType: profile?.entityType || 'official_school',
     defaultCity: school.defaultCity,
     campusName: found.campusName || '',
     city: found.city || '',
@@ -38,7 +49,7 @@ export function getCampusReviewSummaryForItems(items = [], { limit = 5 } = {}) {
   for (const item of Array.isArray(items) ? items : []) {
     const campus = getCampusForItem(item);
     if (!campus) continue;
-    const key = `${campus.school}|${campus.displayTag}|${campus.reviewSummary}`;
+    const key = `${campus.schoolEntityId || campus.school}|${campus.displayTag}|${campus.reviewSummary}`;
     if (!seen.has(key)) seen.set(key, { ...campus, count: 0, examples: [] });
     const entry = seen.get(key);
     entry.count += 1;
@@ -52,5 +63,10 @@ export function formatCampusReviewLine(entry) {
   return `${entry.displayTag}：涉及 ${count}专业。${entry.reviewSummary}`;
 }
 export function getCampusDiagnostics() {
-  return { ok: true, version: LIAONING_CAMPUS_MAJOR_KB.version, schoolCount: LIAONING_CAMPUS_MAJOR_KB.schools.length };
+  return {
+    ok: true,
+    version: LIAONING_CAMPUS_MAJOR_KB.version,
+    schoolCount: LIAONING_CAMPUS_MAJOR_KB.schools.length,
+    identityOwner: 'shared/resources/schools/school-profile-center.js'
+  };
 }

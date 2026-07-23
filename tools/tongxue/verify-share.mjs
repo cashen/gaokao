@@ -8,7 +8,7 @@ const canvasSource=await readFile('tongxue/share/tongxue-share-canvas-v113.js','
 const qr=await readFile('tongxue/share/tongxue-share-qr-v113.js','utf8');
 
 await import('node:fs/promises').then(async({writeFile})=>{
-  const entities=await readFile('tongxue/data/school-entities-v150.js','utf8');
+  const entities=await readFile('shared/resources/schools/school-identity-center.js','utf8');
   await writeFile('/tmp/school-entities-v150.mjs',entities);
   await writeFile('/tmp/tongxue-share-v113.mjs',share.replace("from'./tongxue-share-canvas-v113.js?v=130'","from'./tongxue-share-canvas-v113.mjs'").replace("from'../data/school-entities-v130.js'","from'./school-entities-v150.mjs'"));
   await writeFile('/tmp/tongxue-share-canvas-v113.mjs',canvasSource.replace("from './tongxue-share-qr-v113.js'","from './tongxue-share-qr-v113.mjs'"));
@@ -72,8 +72,11 @@ const checks={
   qr:qr.includes('qrcode-generator/1.4.4')&&canvasSource.includes('扫码查看最新内容'),
   currentReviews:share.includes("shell.querySelectorAll('.review-card')"),
   shareUrl:share.includes('history.replaceState')&&share.includes('entityId')&&canonical.includes('entity=hit-weihai'),
-  accessibility:share.includes('aria-modal')&&share.includes("event.key==='Escape'")
+  accessibility:share.includes('aria-modal')&&share.includes("event.key==='Escape'"),
+  identityOwner:entitiesOwnerCheck(await readFile('tongxue/data/school-entities-v150.js','utf8'))
 };
 for(const [name,passed] of Object.entries(checks))if(!passed)failures.push(name);
 console.log('TONGXUE_SHARE_RESULTS '+JSON.stringify({checks,pureChecks,executionChecks,summaryPages:summaryAssets.files.length,reviewPages:reviewAssets.files.length,failures}));
 if(failures.length)process.exitCode=1;
+
+function entitiesOwnerCheck(source){return source.includes('shared/resources/schools/school-identity-center.js')&&!source.includes("E('dlut-panjin'");}

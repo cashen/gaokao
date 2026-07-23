@@ -2,58 +2,92 @@ import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../../kb/major-unde
 import { MAJOR_UNDERSTANDING_2026 } from '../../kb/major-understanding/major-understanding.generated.js?v=3949_0';
 import { MAJOR_DISPLAY_CONTRACT_2026 } from '../../kb/major-understanding/major-display-contract.generated.js?v=3949_0';
 import { ADMISSION_MAJOR_ALIAS_2026 } from '../../kb/major-understanding/admission-major-alias.generated.js?v=3949_0';
+import { createMajorCatalogResolver, normalizeMajorText } from '../../../shared/resources/majors/major-catalog-contract.js';
 
-function cleanText(value, max = 120) {
-  return String(value == null ? '' : value).replace(/\s+/g, '').replace(/[（）]/g, m => m === '（' ? '(' : ')').trim().slice(0, max);
-}
-function stripAdmissionSuffix(value = '') {
-  return cleanText(value, 180)
-    .replace(/\([^)]*(中外|合作|校企|高收费|较高收费|国际|实验班|试验班|拔尖|方向|卓越|师范|非师范|英语|日语|俄语|民族|定向|专项)[^)]*\)/g, '')
-    .replace(/（[^）]*(中外|合作|校企|高收费|较高收费|国际|实验班|试验班|拔尖|方向|卓越|师范|非师范|英语|日语|俄语|民族|定向|专项)[^）]*）/g, '')
-    .replace(/[\s·・]/g, '');
-}
+const CATALOG_RESOLVER = createMajorCatalogResolver(MAJOR_CATALOG_2026);
 const BY_CODE = MAJOR_UNDERSTANDING_2026;
 const DISPLAY_BY_CODE = MAJOR_DISPLAY_CONTRACT_2026;
-const NAME_TO_CODE = new Map(MAJOR_CATALOG_2026.map(x => [cleanText(x.name), x.code]));
-const CLASS_TO_CODES = new Map();
-for (const item of MAJOR_CATALOG_2026) {
-  if (!item.majorClass) continue;
-  const key = cleanText(item.majorClass);
-  if (!CLASS_TO_CODES.has(key)) CLASS_TO_CODES.set(key, []);
-  CLASS_TO_CODES.get(key).push(item.code);
-}
-const ALIASES = ADMISSION_MAJOR_ALIAS_2026.map(x => ({ ...x, key: cleanText(x.pattern) })).sort((a, b) => b.key.length - a.key.length);
+const ALIASES = ADMISSION_MAJOR_ALIAS_2026
+  .map(item => ({ ...item, key: normalizeMajorText(item.pattern) }))
+  .sort((a, b) => b.key.length - a.key.length);
+
 function resolveCodeByName(rawName = '') {
-  const cleaned = cleanText(rawName);
-  const stripped = stripAdmissionSuffix(rawName);
-  if (NAME_TO_CODE.has(cleaned)) return { code: NAME_TO_CODE.get(cleaned), matchType: 'exact', confidence: 'high' };
-  if (NAME_TO_CODE.has(stripped)) return { code: NAME_TO_CODE.get(stripped), matchType: 'bracket-clean', confidence: 'high' };
-  const alias = ALIASES.find(x => x.confidence === 'high' && x.key && (cleaned === x.key || stripped === x.key));
-  if (alias?.targetCodes?.length) return { code: alias.targetCodes[0], matchType: alias.matchType || 'alias', confidence: alias.confidence || 'high' };
+  const direct = CATALOG_RESOLVER.resolve(rawName, { allowContains: false });
+  if (direct?.kind === 'major') {
+    return {
+      code: direct.item.code,
+      matchType: direct.matchType,
+      confidence: direct.confidence >= 90 ? 'high' : 'medium'
+    };
+  }
+  const key = normalizeMajorText(rawName);
+  const alias = ALIASES.find(item => item.confidence === 'high' && item.key && key === item.key);
+  if (alias?.targetCodes?.length) {
+    return {
+      code: alias.targetCodes[0],
+      matchType: alias.matchType || 'alias',
+      confidence: alias.confidence || 'high'
+    };
+  }
+  const contains = CATALOG_RESOLVER.resolve(rawName);
+  if (contains?.kind === 'major') {
+    return {
+      code: contains.item.code,
+      matchType: contains.matchType,
+      confidence: contains.confidence >= 90 ? 'high' : 'medium'
+    };
+  }
   return null;
 }
+
 function resolveClassByName(rawName = '') {
-  const cleaned = cleanText(rawName);
-  const stripped = stripAdmissionSuffix(rawName);
-  const directClass = [cleaned, stripped].find(x => CLASS_TO_CODES.has(x));
-  if (directClass) return { majorClass: directClass, candidateCodes: CLASS_TO_CODES.get(directClass).slice(0, 24), matchType: 'major-class', confidence: 'class-level' };
-  const alias = ALIASES.find(x => x.confidence === 'class-level' && x.key && (cleaned === x.key || stripped === x.key));
-  if (alias) return { majorClass: alias.targetMajorClass || alias.pattern, candidateCodes: alias.candidateCodes || [], matchType: 'major-class', confidence: 'class-level', warning: alias.warning };
+  const direct = CATALOG_RESOLVER.resolve(rawName, { allowContains: false });
+  if (direct?.kind === 'category') {
+    return {
+      majorClass: direct.item.name,
+      candidateCodes: direct.item.codes || [],
+      matchType: direct.matchType,
+      confidence: 'class-level'
+    };
+  }
+  const key = normalizeMajorText(rawName);
+  const alias = ALIASES.find(item => item.confidence === 'class-level' && item.key && key === item.key);
+  if (alias) {
+    const majorClass = alias.targetMajorClass || alias.pattern;
+    return {
+      majorClass,
+      candidateCodes: alias.candidateCodes || CATALOG_RESOLVER.codesForCategory(majorClass),
+      matchType: 'major-class',
+      confidence: 'class-level',
+      warning: alias.warning
+    };
+  }
+  const contains = CATALOG_RESOLVER.resolve(rawName);
+  if (contains?.kind === 'category') {
+    return {
+      majorClass: contains.item.name,
+      candidateCodes: contains.item.codes || [],
+      matchType: contains.matchType,
+      confidence: 'class-level'
+    };
+  }
   return null;
 }
+
 function byStandardMajor(record = {}) {
-  const sm = record.standardMajor || {};
-  if (sm.code && BY_CODE[sm.code]) return { code: sm.code, matchType: sm.mappingStatus || 'standardMajor', confidence: 'high' };
-  if (sm.name) {
-    const found = resolveCodeByName(sm.name);
+  const standard = record.standardMajor || {};
+  if (standard.code && BY_CODE[standard.code]) return { code: standard.code, matchType: standard.mappingStatus || 'standardMajor', confidence: 'high' };
+  if (standard.name) {
+    const found = resolveCodeByName(standard.name);
     if (found) return found;
   }
-  if (sm.categoryName) {
-    const foundClass = resolveClassByName(sm.categoryName);
+  if (standard.categoryName) {
+    const foundClass = resolveClassByName(standard.categoryName);
     if (foundClass) return foundClass;
   }
   return null;
 }
+
 export function resolveMajorUnderstanding(record = {}) {
   const standard = byStandardMajor(record);
   const fromMajor = standard || resolveCodeByName(record.major || record.majorName || record.name || '');
@@ -110,12 +144,20 @@ export function resolveMajorUnderstanding(record = {}) {
   }
   return { matched: false, meta: MAJOR_CATALOG_2026_META };
 }
+
 export function majorUnderstandingCard(record = {}) {
   const info = resolveMajorUnderstanding(record);
   if (!info.matched) return null;
   const card = info.card || {};
-  return { oneLine: card.oneLine || info.report?.shortSummary || '', questions: Array.isArray(card.questions) ? card.questions.slice(0, 2) : [], confidence: info.confidence, boundary: info.boundary, isClassLevel: Boolean(info.isClassLevel) };
+  return {
+    oneLine: card.oneLine || info.report?.shortSummary || '',
+    questions: Array.isArray(card.questions) ? card.questions.slice(0, 2) : [],
+    confidence: info.confidence,
+    boundary: info.boundary,
+    isClassLevel: Boolean(info.isClassLevel)
+  };
 }
+
 export function majorUnderstandingReportLines(item = {}, { limit = 3 } = {}) {
   const info = item.majorUnderstanding?.matched ? item.majorUnderstanding : resolveMajorUnderstanding(item);
   if (!info.matched) return [];
@@ -126,4 +168,8 @@ export function majorUnderstandingReportLines(item = {}, { limit = 3 } = {}) {
   lines.push(info.boundary || '仅用于家庭讨论和人工复核。');
   return lines;
 }
-export const MAJOR_UNDERSTANDING_META = MAJOR_CATALOG_2026_META;
+
+export const MAJOR_UNDERSTANDING_META = Object.freeze({
+  ...MAJOR_CATALOG_2026_META,
+  resolverVersion: CATALOG_RESOLVER.contract.version
+});

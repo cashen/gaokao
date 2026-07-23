@@ -1,9 +1,7 @@
-export const LN_RANK_RELEASE_CONTRACT = {
-  display: 'v3.9.49.4',
-  asset: '3949_4',
-  assetVersion: 'v3949_4',
-  release: 'v3.9.49.4-ln-rank-multi-terminal-human-journey-regression-12-role-no-fenxi',
-  label: 'multi-terminal-human-journey-regression-12-role-no-fenxi',
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js';
+
+export const LN_RANK_RELEASE_CONTRACT = Object.freeze({
+  ...CURRENT_RELEASE,
   noFenxiIncluded: true,
   cleanPackageContract: true,
   visibleVersionClean: true,
@@ -47,8 +45,13 @@ export const LN_RANK_RELEASE_CONTRACT = {
   selectionReportMobileContract: true,
   noStaticPruneInThisRelease: true,
   additiveUxLayerContract: true,
-  preservedCoreModuleQueryVersion: 'v3949_3',
-  reportSections: [
+  unifiedResourceOwnershipContract: true,
+  sharedReleaseOwnerContract: true,
+  sharedSchoolIdentityOwnerContract: true,
+  sharedMajorCatalogContract: true,
+  sharedReportItemContract: true,
+  preservedCoreModuleQueryVersion: 'v3951_0',
+  reportSections: Object.freeze([
     '一、概要判断',
     '二、当前方案怎么看',
     '三、前中后段快速确认',
@@ -56,8 +59,8 @@ export const LN_RANK_RELEASE_CONTRACT = {
     '五、本方案确认清单',
     '六、专业理解与家庭确认问题',
     '七、数据和使用边界'
-  ]
-};
+  ])
+});
 
 // Backward-compatible alias: older helpers may import RELEASE_CONTRACT,
 // while current Pages Functions import LN_RANK_RELEASE_CONTRACT.

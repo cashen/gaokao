@@ -1,14 +1,19 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
+const { CURRENT_RELEASE } = await import(pathToFileURL(`${process.cwd()}/shared/resources/release/current-release.js`));
 const active = JSON.parse(fs.readFileSync('ln-rank/active-assets.json', 'utf8'));
-assert.equal(active.version, 'v3.9.57.0');
-assert.equal(active.assetVersion, 'v3957_0');
+assert.equal(active.version, CURRENT_RELEASE.display);
+assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
 
 const entryFiles = [
   ...active.jsEntry.map(item => path.join('ln-rank', item)),
   'shared/resources/resource-registry.js',
+  'shared/resources/release/current-release.js',
+  'shared/resources/majors/major-catalog-contract.js',
+  'shared/resources/schools/school-identity-center.js',
   'shared/resources/schools/school-profile-center.js',
   'shared/resources/reports/feishu-report-contract.js',
   'tongxue/app/tongxue-performance-v156.js'
@@ -49,6 +54,9 @@ const reachableSource = [...visited]
   .join('\n');
 assert.ok(reachableSource.includes('feishu-api-client.v3956_0.js'));
 assert.ok(reachableSource.includes('feishu-report-contract.js'));
+assert.ok(reachableSource.includes('current-release.js'));
+assert.ok(reachableSource.includes('school-identity-center.js'));
+assert.ok(reachableSource.includes('major-catalog-contract.js'));
 assert.ok(reachableSource.includes('school-profile-data.20260617-v3957.js'));
 assert.ok(reachableSource.includes('tongxue-direct-handoff-v155.js'));
 assert.ok(reachableSource.includes('tongxue-direct-result-v156.js'));
@@ -92,6 +100,13 @@ collectTierOwners('functions');
 assert.deepEqual(oldSchoolTierOwners, [], `legacy school tier tables remain active: ${oldSchoolTierOwners.join(', ')}`);
 assert.ok(!fs.readFileSync('ln-rank/js/app.v3951_0.js', 'utf8').includes('SPECIAL_CONTROL_SCORE'));
 
+const compatEntity150 = fs.readFileSync('tongxue/data/school-entities-v150.js', 'utf8');
+const compatEntity130 = fs.readFileSync('tongxue/data/school-entities-v130.js', 'utf8');
+for (const source of [compatEntity150, compatEntity130]) {
+  assert.ok(source.includes('shared/resources/schools/school-identity-center.js'));
+  assert.ok(!source.includes("E('dlut-panjin'"));
+}
+
 for (const forbidden of ['fenxi/pendingdel', 'v3.9.46.3', 'pure runtime']) {
   assert.ok(!reachableSource.includes(forbidden), `active graph contains forbidden marker: ${forbidden}`);
 }
@@ -105,8 +120,11 @@ for (const temp of [
 
 console.log(JSON.stringify({
   ok: true,
+  release: CURRENT_RELEASE.display,
   entries: entryFiles.length,
   reachableFiles: visited.size,
   feishuRouteOwner: routeLiteralOwners[0],
-  schoolProfileOwner: 'shared/resources/schools/school-profile-center.js'
+  schoolProfileOwner: 'shared/resources/schools/school-profile-center.js',
+  schoolIdentityOwner: 'shared/resources/schools/school-identity-center.js',
+  majorResolverOwner: 'shared/resources/majors/major-catalog-contract.js'
 }));

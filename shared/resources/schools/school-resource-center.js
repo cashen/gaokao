@@ -2,12 +2,12 @@ import {
   findSchoolEntityByName,
   publicSchoolEntity,
   isEntitySourceAvailable
-} from '../../../tongxue/data/school-entities-v150.js';
+} from './school-identity-center.js';
 
 export const SCHOOL_RESOURCE_PATHS = Object.freeze({
   tongxueDirectoryModule: '/tongxue/data/school-name-resolver-v150.js',
   tongxueDirectoryData: '/tongxue/data/school-search-index.20260617-v150.json',
-  tongxueCompactEntities: '/tongxue/data/school-entities-v150.js'
+  sharedSchoolIdentity: '/shared/resources/schools/school-identity-center.js'
 });
 
 let tongxueDirectoryPromise = null;
@@ -41,7 +41,7 @@ function compactEntityResult(entity, fallbackSchool = '') {
     entityId: publicEntity?.entityId || entity.entityId || '',
     entityType: publicEntity?.entityType || entity.entityType || 'official_school',
     sourceStatus: publicEntity?.sourceStatus || entity.sourceStatus || 'direct',
-    source: 'compact-entity-table'
+    source: 'shared-school-identity-center'
   });
 }
 

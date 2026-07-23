@@ -9,6 +9,8 @@ import {
 import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.js';
 import { buildDisplayTags } from '../functions/_lib/school-display-tags.js';
 import { normalizeLocation } from '../functions/_lib/location-normalizer.js';
+import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
+import { getSchoolEntity } from '../shared/resources/schools/school-identity-center.js';
 
 assert.equal(SCHOOL_PROFILE_SOURCE_META.version, 'v3957_0');
 assert.equal(SCHOOL_PROFILE_SOURCE_META.count, 2952);
@@ -20,6 +22,7 @@ assert.ok(SCHOOL_PROFILE_SOURCE_META['211MatchedCount'] >= 100);
 assert.equal(SCHOOL_PROFILE_SOURCE_META.doubleNonDefinition, '非985且非211；不等同于非双一流');
 assert.ok(SCHOOL_PROFILE_SOURCE_META.source.schoolListPageUrl.includes('moe.gov.cn'));
 assert.equal(SCHOOL_PROFILE_SPECIALS.length, 3);
+assert.equal(getSchoolEntity('dlut-panjin')?.parentEntityId, 'dlut-main');
 
 const cases = [
   ['北京大学', { province: '北京', city: '北京', natureType: 'public', is985: true, is211: true, isNon985211: false, tags: ['985', '211', '公办', '北京'] }],
@@ -106,17 +109,18 @@ const locationAdapter = fs.readFileSync('functions/_lib/location-normalizer.js',
 for (const source of [tagsAdapter, displayAdapter, locationAdapter]) {
   assert.ok(source.includes('shared/resources/schools/school-profile-center.js'));
 }
+assert.ok(locationAdapter.includes('shared/resources/geo/china-region-catalog.js'));
 assert.ok(!tagsAdapter.includes("'大连理工大学':"));
 
 for (const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']) {
   const meta = JSON.parse(fs.readFileSync(file, 'utf8'));
-  assert.equal(meta.version, 'v3.9.57.0');
-  assert.equal(meta.assetVersion, 'v3957_0');
+  assert.equal(meta.version, CURRENT_RELEASE.display);
+  assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   for (const key of [
     'sharedSchoolProfileContract','schoolProfileOfficial2026Contract','schoolProfileNatureContract',
     'schoolProfile985211Contract','schoolProfileDoubleNonContract','schoolProfileCampusInheritanceContract',
-    'schoolProfileCardAlwaysVisibleContract','schoolProfileSelectionPoolContract'
+    'schoolProfileCardAlwaysVisibleContract','schoolProfileSelectionPoolContract','sharedSchoolIdentityOwnerContract'
   ]) assert.equal(meta[key], true, `${file} missing ${key}`);
 }
 
-console.log('SCHOOL_PROFILE_CENTER_V3957_OK');
+console.log('SCHOOL_PROFILE_CENTER_V3958_OK');
