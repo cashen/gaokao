@@ -14,6 +14,21 @@ function text(value) {
   return String(value == null ? '' : value).trim();
 }
 
+function cleanProvince(value) {
+  return text(value).replace(/省$|市$|自治区$|特别行政区$/g, '');
+}
+
+function cleanCity(value) {
+  return text(value).replace(/市$|地区$|自治州$|盟$/g, '');
+}
+
+function displayLocation(provinceValue, cityValue) {
+  const province = cleanProvince(provinceValue);
+  const city = cleanCity(cityValue);
+  if (province && city && province !== city) return `${province} · ${city}`;
+  return city || province || '地域待核验';
+}
+
 export function normalizeSchoolProfileName(value) {
   return text(value)
     .normalize('NFKC')
@@ -63,9 +78,9 @@ function profileFromRow(row) {
     parentSchoolName: '',
     schoolIdentifier,
     competentDepartment,
-    province,
-    city,
-    displayLocation: province && city ? `${province} · ${city}` : (city || province || '地域待核验'),
+    province: cleanProvince(province),
+    city: cleanCity(city),
+    displayLocation: displayLocation(province, city),
     educationLevel,
     natureType,
     natureLabel: natureLabel(natureType),
@@ -131,8 +146,8 @@ function entityProfile(entity, fallbackName = '') {
   const base = entityBaseProfile(entity);
   const publicEntity = publicSchoolEntity(entity) || {};
   const parent = entity.parentEntityId ? getSchoolEntity(entity.parentEntityId) : null;
-  const province = text(publicEntity.province || entity.province || base?.province);
-  const city = text(publicEntity.city || entity.city || base?.city);
+  const province = cleanProvince(publicEntity.province || entity.province || base?.province);
+  const city = cleanCity(publicEntity.city || entity.city || base?.city);
   const standardSchoolName = text(base?.standardSchoolName || entity.officialCatalogName || parent?.displayName || entity.displayName || fallbackName);
   const displayName = text(entity.displayName || fallbackName || standardSchoolName);
   const natureType = base?.natureType || 'unknown';
@@ -148,7 +163,7 @@ function entityProfile(entity, fallbackName = '') {
     parentSchoolName: text(parent?.displayName || ''),
     province,
     city,
-    displayLocation: province && city ? `${province.replace(/省$|市$|自治区$/g, '')} · ${city.replace(/市$|地区$|自治州$/g, '')}` : (city || province || '地域待核验'),
+    displayLocation: displayLocation(province, city),
     natureType,
     natureLabel: natureLabel(natureType),
     is985,
@@ -177,8 +192,8 @@ export function resolveSchoolProfile(name, fallback = {}) {
   const fallbackNatureType = ['public', 'private', 'cooperative'].includes(fallback.natureType)
     ? fallback.natureType
     : 'unknown';
-  const fallbackProvince = text(fallback.province);
-  const fallbackCity = text(fallback.city);
+  const fallbackProvince = cleanProvince(fallback.province);
+  const fallbackCity = cleanCity(fallback.city);
   if (!fallbackProvince && !fallbackCity && fallbackNatureType === 'unknown') return null;
   return Object.freeze({
     school,
@@ -188,7 +203,7 @@ export function resolveSchoolProfile(name, fallback = {}) {
     competentDepartment: '',
     province: fallbackProvince,
     city: fallbackCity,
-    displayLocation: fallbackProvince && fallbackCity ? `${fallbackProvince} · ${fallbackCity}` : (fallbackCity || fallbackProvince || '地域待核验'),
+    displayLocation: displayLocation(fallbackProvince, fallbackCity),
     educationLevel: '',
     natureType: fallbackNatureType,
     natureLabel: natureLabel(fallbackNatureType),
