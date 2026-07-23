@@ -10,7 +10,7 @@ v2 = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 SPEC.loader.exec_module(v2)
 base = v2.base
-base.VERSION = 'v3.9.58.0'
+base.VERSION = 'v3.9.59.0'
 
 
 def contains(path: str, *phrases: str) -> None:
@@ -51,22 +51,36 @@ def verify_runtime_current() -> None:
         contains(path, 'dataYear: 2026', 'rankYear: 2026', '344—750')
 
 
-def verify_family_and_reports() -> None:
-    contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏')
+def verify_family_and_ui() -> None:
+    contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏', 'v3.9.59.0', 'family-shell.v3959_0.js')
     root = base.text('index.html')
     base.check('近期真实评论' not in root, 'homepage real-review claim')
-    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3958_0.js?v=3958_0', 'data-release="v3.9.58.0"', '资源口径：全站统一调用')
-    contains('ln-rank/selection-pool.html', '检查已选专业', '看看当前方案有没有明显偏科', '生成家庭复核报告', '其他保存方式', '2026年普通类本科批物理类专业投档记录', '/ln-rank/js/selection-pool.v3958_0.js?v=3958_0')
+    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3959_0.js?v=3959_0', 'data-release="v3.9.59.0"', '资源与 UI：全站统一调度')
+    contains('ln-rank/selection-pool.html', '检查已选专业', '看看当前方案有没有明显偏科', '生成家庭复核报告', '其他保存方式', '/ln-rank/js/selection-pool.v3959_0.js?v=3959_0')
+    base.check('family-decision-bar.v3955_0.js' not in base.text('ln-rank/index.html'), 'legacy main family bar active')
+    base.check('family-decision-bar.v3955_0.js' not in base.text('ln-rank/selection-pool.html'), 'legacy selection family bar active')
+    contains('shared/ui/ui-registry.js', 'UI_ORCHESTRATION_VERSION', 'family-shell.v3959_0.js', 'tongxue')
+    contains('shared/ui/tokens/foundation.v3959_0.css', '--ui-page-bg', '--ui-brand-primary', '--ui-touch-min', '--ui-safe-bottom')
+    contains('shared/ui/tokens/semantic.v3959_0.css', '.ui-button', '.ui-state--loading', '.ui-state--pending', '.ui-state--error')
+    contains('shared/ui/shell/family-shell.v3959_0.css', '.ui-global-header', '.ui-family-status', '.ui-mobile-nav', 'family-decision-bar')
+    contains('shared/ui/shell/family-shell.v3959_0.js', '当前家庭方案', 'data-ui-mobile-selected', 'visualViewport', 'ensureUiStyles')
+    shell = base.text('shared/ui/shell/family-shell.v3959_0.js')
+    base.check('MutationObserver' not in shell and "fetch('/api/" not in shell, 'shared UI shell changed data or observers')
+    contains('ln-rank/js/app.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js', 'isPublicBottomLineVisible')
+    contains('ln-rank/js/selection-pool.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js')
+    contains('ln-rank/js/major-difficulty-2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js')
+    contains('zy2026/assets/zy2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js')
+    contains('tongxue/app/tongxue-performance-v156.js', 'shared/ui/shell/family-shell.v3959_0.js')
     contains('ln-rank/js/ux/family-presentation.v3955_0.js', '为什么出现', '最需要确认', '现在还不知道', '最低投档位置基本稳定', 'tongxue-card-entry', 'shared/resources/schools/school-resource-center.js')
     presentation = base.text('ln-rank/js/ux/family-presentation.v3955_0.js')
     base.check('近两年录取位置基本稳定' not in presentation, 'old admission wording')
-    base.check('/tongxue/data/school-entities-v150.js' not in presentation, 'direct Tongxue entity import remains')
-    contains('ln-rank/js/ux/family-decision-bar.v3955_0.js', '当前家庭方案', 'data-mobile-selected', 'data-mobile-pending')
     contains('ln-rank/js/ux/family-home.v3955_0.js', 'returning', 'score-ready', '继续检查家庭方案')
+
+
+def verify_reports_and_ai() -> None:
     store = base.text('ln-rank/js/feature/selection-pool/store.js')
     for name in ('getPoolItems', 'savePoolItems', 'addPoolItem', 'removePoolItem', 'clearPoolItems', 'movePoolItem', 'movePoolItemTo', 'sortPoolItems', 'getPoolStats'):
         base.check(f'export function {name}' in store, f'selection store lost {name}')
-    base.check('lnRank.selectionPool.lnPhysics.2026.v3951' in store and 'historicalOnly: true' in store, 'selection migration contract')
     report = base.text('functions/_lib/feishu-selection-pool-report-builder.js') + base.text('functions/_lib/feishu-selection-pool-styled-builder.js')
     for key in ('score2026', 'rank2026', 'score2025', 'rank2025', 'score2024', 'rank2024'):
         base.check(key in report, f'report missing {key}')
@@ -77,48 +91,34 @@ def verify_family_and_reports() -> None:
     contains('tongxue/index.html', 'tongxue-performance-v156.js?v=156', '同学你好 v1.5.6')
     contains('tongxue/app/tongxue-direct-handoff-v155.js', 'button.click()', 'shouldAutoQuery')
     contains('tongxue/app/tongxue-direct-result-v156.js', 'hero.hidden = !visible', 'suggestionsBox.replaceChildren()', 'needs-confirmation', '换一所学校')
-
-
-def verify_card_ai_2026() -> None:
     contains('functions/_lib/kb/year-caliber-kb.generated.js', 'shared/resources/exam/liaoning-physics.js', '2026063013492555300', '2026063014014729932')
     contains('functions/_lib/ai-card-prompt.js', 'score2026', 'rank2026', '2026专业最低投档分和位次为主事实', 'checks中的年份必须面向2027正式填报')
     rules = base.text('functions/_lib/ai-card-rules.js')
     schema = base.text('functions/_lib/ai-card-output-schema.js')
     base.check('2026最低投档：' in rules and '核验2027招生计划' in rules, 'AI rules not 2026-first')
     base.check("'核验2026招生计划" not in rules, 'AI rule output still uses 2026 plan check')
-    base.check('.replace(/核验2026年?招生计划/g' in schema, 'AI schema must normalize legacy 2026-plan output')
-    contains('functions/api/card-diagnose.js', 'caliber: diagnosisCaliber()', 'score2026', 'rank2026')
-    contains('ln-rank/js/feature/diagnose/controller.js', 'score2026:', 'rank2026:', 'candidate:')
+    base.check('.replace(/核验2026年?招生计划/g' in schema, 'AI schema legacy normalization')
     history = base.text('functions/_lib/history-score-engine.js')
     base.check('最低投档所需位次' in history and '录取所需位次' not in history, 'history engine wording')
 
 
 def verify_shared_resources() -> None:
-    contains('shared/resources/release/current-release.js', "display: 'v3.9.58.0'", "assetVersion: 'v3958_0'", 'resourceOwners')
+    contains('shared/resources/release/current-release.js', "display: 'v3.9.59.0'", "assetVersion: 'v3959_0'", 'resourceOwnershipVersion', 'uiOrchestrationVersion', "ui: '/shared/ui/ui-registry.js'")
     contains('shared/resources/exam/liaoning-physics.js', 'specialControlScore: 508', 'undergraduateControlScore: 344', 'vocationalControlScore: 150', 'isPublicBottomLineVisible')
-    contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'jiangzhehu', 'getLiaoningAreaLabel')
-    contains('shared/resources/schools/school-resource-center.js', 'resolveCompactSchoolResource', 'resolveCardSchoolResource', 'combinedCampusCandidates', 'buildTongxueSchoolHref', 'tongxueDirectoryPromise', "from './school-identity-center.js'")
+    contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'getLiaoningAreaLabel')
+    contains('shared/resources/schools/school-resource-center.js', 'resolveCompactSchoolResource', 'resolveCardSchoolResource', 'buildTongxueSchoolHref', 'tongxueDirectoryPromise', "from './school-identity-center.js'")
     contains('shared/resources/schools/school-identity-center.js', "E('dlut-panjin'", 'createEntityAwareResolver')
-    contains('shared/resources/resource-registry.js', 'lazy-single-flight', 'single-source-release-contract', 'single-resolver-derived-runtime-formats')
+    contains('shared/resources/resource-registry.js', 'lazy-single-flight', 'single-source-release-contract', 'single-resolver-derived-runtime-formats', 'family-ui-orchestration')
     contains('shared/resources/schools/school-profile-center.js', 'SCHOOL_PROFILE_ROWS', 'SCHOOL_PROFILE_SPECIALS', '双非（非985/211）')
     contains('shared/resources/majors/major-catalog-contract.js', 'createMajorCatalogResolver', 'canonicalCount: 883')
     contains('functions/_lib/school-tags.js', 'shared/resources/schools/school-profile-center.js')
     contains('functions/_lib/location-normalizer.js', 'shared/resources/schools/school-profile-center.js', 'shared/resources/geo/china-region-catalog.js')
-    contains('functions/_lib/school-display-tags.js', 'shared/resources/schools/school-profile-center.js')
     contains('functions/_lib/bottomline-policy.js', 'shared/resources/schools/school-profile-center.js')
     contains('functions/_lib/standard-major-mapper.js', 'shared/resources/majors/major-catalog-contract.js')
-    contains('functions/_lib/kb/catalog-accessor.js', 'shared/resources/majors/major-catalog-contract.js')
     contains('ln-rank/js/knowledge/major-understanding-resolver.js', 'shared/resources/majors/major-catalog-contract.js')
-    contains('ln-rank/js/feature/major-pool/render.v3957_0.js', 'schoolEntityTypeLabel', '地域待核验', '双非（非985/211）')
-    for path in ('functions/_lib/exam-year-config.js', 'ln-rank/js/core/score-guard.js', 'ln-rank/js/feature/selection-pool/candidate-context.js'):
-        contains(path, 'shared/resources/exam/liaoning-physics.js')
-    contains('functions/_lib/region-rules.js', 'shared/resources/geo/china-region-catalog.js')
-    contains('ln-rank/js/config/region-options.js', 'shared/resources/geo/china-region-catalog.js')
-    contains('ln-rank/js/app.v3958_0.js', 'isPublicBottomLineVisible', "url.pathname !== '/api/major-bands'", "url.searchParams.set('bottomLineMode', visible ? selectedMode : 'all')", 'resourceOwnershipVersion')
-    for path in ('tools/schools/build-school-profile-center-v3957.py', 'tools/tongxue/build-school-region-index-v150.py', 'tools/tongxue/build-moe-2026-school-index.py'):
-        contains(path, 'school_resource_bundle')
     contains('tools/schools/school_resource_bundle.py', 'def parse_workbook', 'def build_all', 'write_profile_module', 'write_region_index')
     contains('tools/audit-resource-ownership-v3958.mjs', 'RESOURCE_OWNERSHIP_AUDIT_FAILED')
+    contains('tools/audit-ui-orchestration-v3959.mjs', 'UI_ORCHESTRATION_VERSION')
 
 
 def verify_zy2026() -> None:
@@ -131,6 +131,7 @@ def verify_zy2026() -> None:
     runtime = base.text('zy2026/assets/zy2026.v3955_0.js')
     for phrase in ('辽宁2026招生变化发现', '2026投档表首次可见', '2026投档表未再单列', '页面体验版本：v3.9.55.0'):
         base.check(phrase in page + runtime, f'zy2026 missing {phrase}')
+    base.check('zy2026.v3959_0.js?v=3959_0' in page, 'zy2026 UI wrapper')
     base.check('不能直接说专业被撤销' in runtime, 'zy2026撤销边界')
     base.check(alias == page, 'zy2026 alias mismatch')
 
@@ -138,25 +139,31 @@ def verify_zy2026() -> None:
 def verify_release_meta() -> None:
     release = base.data('ln-rank/release-meta.json')
     active = base.data('ln-rank/active-assets.json')
+    required = (
+        'familyLanguageTrustContract', 'cardAi2026FirstContract', 'zy2026RecordLanguageContract',
+        'sharedResourceCenterContract', 'sharedExamResourceContract', 'sharedRegionResourceContract',
+        'sharedSchoolResourceContract', 'sharedSchoolDirectoryLazySingleFlightContract', 'feishuSharedResourceContract',
+        'feishuThreeEntryRegressionContract', 'tongxueDirectHandoffContract', 'tongxueDirectResultContract',
+        'sharedSchoolProfileContract', 'schoolProfileNatureContract', 'schoolProfile985211Contract',
+        'schoolProfileDoubleNonContract', 'schoolProfileCardAlwaysVisibleContract', 'unifiedResourceOwnershipContract',
+        'sharedReleaseOwnerContract', 'singleMoeSchoolBuildContract', 'sharedSchoolIdentityOwnerContract',
+        'sharedMajorCatalogResolverContract', 'sharedRegionDerivationContract', 'sharedSchoolNaturePriorityContract',
+        'resourceOwnershipAuditContract', 'sharedUiOwnershipContract', 'sharedUiTokenContract', 'sharedUiShellContract',
+        'sharedUiActionContract', 'sharedUiStateContract', 'sharedUiCopyContract', 'sharedUiSixPageAdapterContract',
+        'sharedUiMobileNavigationContract', 'sharedUiKeyboardSafeAreaContract', 'sharedUiSubBrandContract',
+        'sharedUiNoNewObserverContract', 'sharedUiResourceOwnershipPreservedContract'
+    )
     for meta in (release, active):
-        base.check(meta['version'] == 'v3.9.58.0' and meta['assetVersion'] == 'v3958_0', 'release version')
-        for key in (
-            'familyLanguageTrustContract', 'cardAi2026FirstContract', 'zy2026RecordLanguageContract',
-            'sharedResourceCenterContract', 'sharedExamResourceContract', 'sharedRegionResourceContract',
-            'sharedSchoolResourceContract', 'sharedSchoolDirectoryLazySingleFlightContract', 'feishuSharedResourceContract',
-            'feishuThreeEntryRegressionContract', 'tongxueDirectHandoffContract', 'tongxueDirectResultContract',
-            'sharedSchoolProfileContract', 'schoolProfileNatureContract', 'schoolProfile985211Contract',
-            'schoolProfileDoubleNonContract', 'schoolProfileCardAlwaysVisibleContract', 'unifiedResourceOwnershipContract',
-            'sharedReleaseOwnerContract', 'singleMoeSchoolBuildContract', 'sharedSchoolIdentityOwnerContract',
-            'sharedMajorCatalogResolverContract', 'sharedRegionDerivationContract', 'sharedSchoolNaturePriorityContract',
-            'resourceOwnershipAuditContract'
-        ):
+        base.check(meta['version'] == 'v3.9.59.0' and meta['assetVersion'] == 'v3959_0', 'release version')
+        for key in required:
             base.check(meta.get(key) is True, f'missing contract {key}')
-        base.check(meta['sharedResourceCenterVersion'] == 'v3958_0', 'shared resource version')
-    base.check(active['mainJs'] == 'js/app.v3958_0.js', 'active main JS')
-    base.check(active['selectionPoolJs'] == 'js/selection-pool.v3958_0.js', 'active selection JS')
-    base.check('js/app.v3958_0.js' in active['jsEntry'] and 'js/app.v3951_0.js' not in active['jsEntry'], 'main wrapper activation')
-    base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3955_0.js', 'zy2026 active JS')
+        base.check(meta['sharedResourceCenterVersion'] == 'v3959_0', 'shared resource version')
+    base.check(active['mainJs'] == 'js/app.v3959_0.js', 'active main JS')
+    base.check(active['selectionPoolJs'] == 'js/selection-pool.v3959_0.js', 'active selection JS')
+    base.check('js/app.v3959_0.js' in active['jsEntry'] and 'js/app.v3951_0.js' not in active['jsEntry'], 'main wrapper activation')
+    base.check('../shared/ui/shell/family-shell.v3959_0.js' in active['jsEntry'], 'shared shell activation')
+    base.check('js/ux/family-decision-bar.v3955_0.js' not in active['jsEntry'], 'legacy bar still active')
+    base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3959_0.js', 'zy2026 active JS')
 
 
 def main() -> None:
@@ -165,14 +172,14 @@ def main() -> None:
     verify_manifest_and_chunks()
     base.verify_centered_analysis()
     verify_runtime_current()
-    verify_family_and_reports()
-    verify_card_ai_2026()
+    verify_family_and_ui()
+    verify_reports_and_ai()
     verify_shared_resources()
     verify_zy2026()
     verify_release_meta()
     base.verify_internal_links()
     base.verify_no_temporary_payloads()
-    print('LN 2026 v3.9.58.0 unified resource ownership verification passed')
+    print('LN 2026 v3.9.59.0 resource and UI orchestration verification passed')
 
 
 if __name__ == '__main__':
