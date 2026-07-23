@@ -16,11 +16,11 @@ const visibleReportText = ['feishu-report-builder.js','feishu-selection-pool-rep
 for (const word of riskWords) if (visibleReportText.includes(word)) failures.push(`forbidden report copy remains: ${word}`);
 const advantageText = visibleReportText.replaceAll('不代表录取优势', '');
 if (advantageText.includes('录取优势')) failures.push('forbidden report copy remains: 录取优势');
-for (const word of ['2024同口径参考','参考位置','建议再看','两年位次变化参考','院校专业背景']) if (!text.includes(word)) failures.push(`required Feishu copy missing: ${word}`);
+for (const word of ['2026最低投档','2025','2024','参考位置','建议再看','院校专业背景']) if (!text.includes(word)) failures.push(`required Feishu copy missing: ${word}`);
 const selectionReport = fs.readFileSync(path.join(fn, 'feishu-selection-pool-report-builder.js'), 'utf8');
-if (!/2025最低分[\s\S]{0,180}2025最低位次[\s\S]{0,260}historyText\(item\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}codeText[\s\S]{0,900}localContextItems\(item\)/.test(selectionReport)) failures.push('selection Feishu field order should follow 2025/2024/hard-fields/background contract');
+if (!/2026最低投档分[\s\S]{0,180}2026最低投档位次[\s\S]{0,260}historyText\(item\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}codeText[\s\S]{0,900}localContextItems\(item\)/.test(selectionReport)) failures.push('selection Feishu field order should follow 2026/2025/2024/hard-fields/background contract');
 const searchReport = fs.readFileSync(path.join(fn, 'feishu-report-builder.js'), 'utf8');
-if (!/2025最低分[\s\S]{0,180}2025最低位次[\s\S]{0,260}historyText\(record\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}专业代码[\s\S]{0,260}院校专业背景[\s\S]{0,260}建议再看/.test(searchReport)) failures.push('search Feishu field order should follow fixed report contract');
+if (!/2026最低投档分[\s\S]{0,180}2026最低投档位次[\s\S]{0,260}historyText\(record\)[\s\S]{0,260}相对孩子[\s\S]{0,260}参考位置[\s\S]{0,260}地域[\s\S]{0,260}专业代码[\s\S]{0,260}院校专业背景[\s\S]{0,260}建议再看/.test(searchReport)) failures.push('search Feishu field order should follow 2026-first report contract');
 const out = { version: assets.version, assetVersion: assets.assetVersion, forbidden, failures, status: failures.length ? 'fail' : 'pass' };
 fs.writeFileSync(path.join(lr, `feishu-copy-contract-audit.${q}.json`), JSON.stringify(out, null, 2));
 console.log(JSON.stringify(out, null, 2));

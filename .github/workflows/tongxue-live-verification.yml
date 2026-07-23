@@ -52,6 +52,8 @@ jobs:
         run: node tools/tongxue/verify-brand-ui-v152.mjs
       - name: Verify mouse keyboard IME and copy ownership
         run: node tools/tongxue/verify-interaction-v153.mjs
+      - name: Verify direct school handoff
+        run: node tools/tongxue/verify-direct-handoff-v155.mjs
       - name: Verify school entity contract
         run: node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify school input contracts
@@ -90,6 +92,7 @@ jobs:
           node tools/tongxue/verify-school-region-ui-v150.mjs
           node tools/tongxue/verify-brand-ui-v152.mjs
           node tools/tongxue/verify-interaction-v153.mjs
+          node tools/tongxue/verify-direct-handoff-v155.mjs
       - name: Execute summary and review regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学

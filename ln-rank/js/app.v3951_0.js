@@ -1,4 +1,5 @@
 import { state } from './state/app-state.js?v=3951_0';
+import { LIAONING_PHYSICS_EXAM_CONFIG, isPublicBottomLineVisible } from '../../shared/resources/exam/liaoning-physics.js?v=3956_0';
 import { toInt } from './core/number-utils.js?v=3951_0';
 import { getScoreGuard } from './core/score-guard.js?v=3951_0';
 import { REGION_OPTIONS } from './config/region-options.js?v=3951_0';
@@ -7,8 +8,8 @@ import { renderBandLegend, renderResultBandSwitcher } from './feature/score-band
 import { renderMajorResults } from './feature/major-pool/index.js?v=3951_0';
 import { buildKeywordQuery } from './feature/major-pool/index.js?v=3951_0';
 import { mountKeywordPresetPanel } from './feature/major-pool/index.js?v=3951_0';
-import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.js?v=3951_0';
-import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.js?v=3951_0';
+import { initFeishuReport, renderFeishuReport, clearFeishuReport } from './feature/feishu/index.v3956_0.js?v=3956_0';
+import { initSelectionPool, refreshSelectionPool, createSelectionPoolAdapter } from './feature/selection-pool/index.v3956_0.js?v=3956_0';
 import { renderSearchTrendHint } from './feature/trend/index.js?v=3951_0';
 import { getQueryButtonLabel, getQueryButtonClass, bottomLineLabel as uiBottomLineLabel, initRankBandLegend } from './feature/ui/index.js?v=3951_0';
 import { getRangePresetLabel } from './domain/range-policy.js?v=3951_0';
@@ -33,10 +34,7 @@ const selectionPool = createSelectionPoolAdapter();
 syncRangeState(state);
 document.body?.classList?.add('has-floating-pool-entry','ln-new-parent-flow');
 document.body.dataset.scoreState = 'empty';
-// v3.9.16：公办底线前端菜单只在【本科线 <= 分数 <= 特控线】显示。
-// 2026 年公布后，应把这里替换为当年辽宁物理类本科线与特控线，禁止使用“特控线 + 10 分缓冲”。
-const UNDERGRADUATE_CONTROL_SCORE = 344;
-const SPECIAL_CONTROL_SCORE = 508;
+const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
 const BOTTOMLINE_LEGACY_KEYS = ['lnRank.bottomLineMode.v3980', 'lnRank.bottomLineMode.v3962', 'lnRank.bottomLineMode.v3960', 'lnRank.bottomLineMode.v3912'];
 const BOTTOMLINE_MODES = new Set(['all', 'public_first', 'public_regular_only', 'public_include_sino']);
@@ -53,10 +51,7 @@ function normalizeBottomLineMode(value) {
 }
 
 function shouldShowBottomLinePanel(score) {
-  const n = Number(score);
-  return Number.isFinite(n)
-    && n >= UNDERGRADUATE_CONTROL_SCORE
-    && n <= SPECIAL_CONTROL_SCORE;
+  return isPublicBottomLineVisible(score, EXAM);
 }
 
 function getEffectiveBottomLineMode(score = state.candidateScore) {

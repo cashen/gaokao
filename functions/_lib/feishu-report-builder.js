@@ -4,6 +4,8 @@ import { buildCareerAndExamReviewHints } from './kb/report-review-hints.js';
 import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.generated.js';
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
+import { getRegionLabel } from '../../shared/resources/geo/china-region-catalog.js';
+import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -40,25 +42,6 @@ function standardMajorText(record) {
   return '';
 }
 
-const REGION_LABELS = {
-  all: "不限",
-  ln: "辽宁省内",
-  shenyang: "沈阳",
-  dalian: "大连",
-  "ln-other": "辽宁其他",
-  outside: "省外",
-  beijing: "北京",
-  tianjin: "天津",
-  hebei: "河北",
-  shandong: "山东",
-  jilin: "吉林",
-  heilongjiang: "黑龙江",
-  jiangzhehu: "江浙沪",
-  guangdong: "广东",
-  huazhong: "华中",
-  southwest: "西南",
-  northwest: "西北"
-};
 
 function deltaText(delta) {
   const n = Number(delta);
@@ -75,7 +58,7 @@ function tags(record) {
 }
 
 function filterText(filters) {
-  const region = REGION_LABELS[filters.region] || "不限";
+  const region = getRegionLabel(filters.region);
   const school = filters.schoolKeyword ? `学校：${filters.schoolKeyword}` : "学校不限";
   const major = filters.majorKeyword ? `专业方向/项目关键词：${filters.majorKeyword}` : "关键词不限";
   const bottom = filters.bottomLineMode && filters.bottomLineMode !== "all" ? `公办底线：${BOTTOMLINE_LABELS[filters.bottomLineMode] || filters.bottomLineMode}` : "公办底线不限";
@@ -83,12 +66,11 @@ function filterText(filters) {
 }
 
 function historyText(record) {
-  const has2024 = record?.historyCompare?.has2024 || record.score2024 != null || record.rank2024 != null;
-  if (!has2024) return "2024同口径参考：暂无";
-  const score = record.score2024 != null ? `${fmt(record.score2024)} 分` : "分数待核验";
-  const rank = record.rank2024 != null ? `${fmt(record.rank2024)} 位` : "位次待核验";
-  const trend = record?.historyCompare?.rankTrendText ? `｜${String(record.historyCompare.rankTrendText).replace(/^两年位次：前移约\s*/,'2025位次更靠前约 ').replace(/^两年位次：后移约\s*/,'2025位次更靠后约 ')}` : "";
-  return `2024同口径参考：${score} / ${rank}${trend}`;
+  const rows = [];
+  if (record.score2025 != null || record.rank2025 != null) rows.push(`2025：${record.score2025 != null ? fmt(record.score2025) + ' 分' : '分数待核验'} / ${record.rank2025 != null ? fmt(record.rank2025) + ' 位' : '位次待核验'}`);
+  if (record.score2024 != null || record.rank2024 != null) rows.push(`2024：${record.score2024 != null ? fmt(record.score2024) + ' 分' : '分数待核验'} / ${record.rank2024 != null ? fmt(record.rank2024) + ' 位' : '位次待核验'}`);
+  const trend = record?.historyCompare?.rankTrendText ? `｜${record.historyCompare.rankTrendText}` : '';
+  return rows.length ? `历史同口径参考：${rows.join('；')}${trend}` : '历史同口径参考：暂无';
 }
 
 function locationText(record) {
@@ -204,8 +186,8 @@ export function buildFeishuReport(data) {
     const majorCode = standardMajorText(record) || '待人工核验';
     const contextEntry = localContextItems(record)[0] || null;
     const referencePosition = [record.statusLabel, record.matchLabel, record.position].filter(Boolean).join(' / ') || '待核验';
-    lines.push(`- 2025最低分：${fmt(record.score2025 ?? record.score)} 分`);
-    lines.push(`- 2025最低位次：${fmt(record.rank2025 ?? record.rank)}`);
+    lines.push(`- 2026最低投档分：${fmt(record.score2026 ?? record.score)} 分`);
+    lines.push(`- 2026最低投档位次：${fmt(record.rank2026 ?? record.rank)}`);
     lines.push(`- ${historyText(record)}`);
     lines.push(`- 相对孩子：${deltaText(record.scoreDelta)} 分`);
     lines.push(`- 参考位置：${referencePosition}`);
@@ -230,6 +212,9 @@ export function buildFeishuReport(data) {
     markdown: lines.join("\n"),
     recordsCount: data.selectedRecords.length,
     bandTitle: band.title,
-    rangeText: band.rangeText
+    rangeText: band.rangeText,
+    reportType: FEISHU_REPORT_CONTRACT.currentBandReportType,
+    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear
   };
 }

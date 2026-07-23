@@ -1,4 +1,4 @@
-export const SHARED_RESOURCE_CENTER_VERSION = 'v3955_0';
+export const SHARED_RESOURCE_CENTER_VERSION = 'v3956_0';
 
 export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   exam: Object.freeze({
@@ -12,6 +12,12 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     module: '/shared/resources/geo/china-region-catalog.js',
     policy: 'single-source-static-module',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api'])
+  }),
+  reports: Object.freeze({
+    id: 'feishu-report-contract',
+    module: '/shared/resources/reports/feishu-report-contract.js',
+    policy: 'single-source-contract-and-client',
+    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'self-check'])
   }),
   schools: Object.freeze({
     id: 'school-resource-center',
