@@ -2,12 +2,12 @@ import { readFile, readdir } from 'node:fs/promises';
 const failures=[];
 const requireText=(content,value,label)=>{if(!content.includes(value))failures.push(label);};
 const [page,changelog,legacy,home,share,resolver,wrapper,copy,portrait,rootFiles]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v155.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readFile('tongxue/portrait/tongxue-school-portrait-v121.js','utf8'),readdir('.')
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/changelog.html','utf8'),readFile('tongxue.html','utf8'),readFile('index.html','utf8'),readFile('tongxue/share/tongxue-share-v130.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('tongxue/app/tongxue-performance-v156.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readFile('tongxue/portrait/tongxue-school-portrait-v121.js','utf8'),readdir('.')
 ]);
 requireText(page,'<title>同学你好 - 找学校，看看大家怎么说</title>','页面标题');
-requireText(page,'./app/tongxue-performance-v155.js?v=155','页面入口');
-requireText(page,'同学你好 v1.5.5 · 更新于 2026-07-23','页面版本');
-requireText(page,'tongxue-v155-direct-handoff-20260723','页面构建标识');
+requireText(page,'./app/tongxue-performance-v156.js?v=156','页面入口');
+requireText(page,'同学你好 v1.5.6 · 更新于 2026-07-23','页面版本');
+requireText(page,'tongxue-v156-direct-result-20260723','页面构建标识');
 requireText(page,'tongxue-logo-primary-v1.webp','品牌 Logo');
 requireText(page,'<h1 class="sr-only">同学你好</h1>','隐藏主标题');
 requireText(page,'/tongxue/data/school-name-resolver-v150.js?v=150','resolver 导入映射');
@@ -26,12 +26,12 @@ requireText(changelog,'.timeline::before','纵向时间轴连线');
 requireText(changelog,'.release::before','纵向时间轴节点');
 requireText(changelog,'.release:first-child::before','当前版本节点');
 requireText(changelog,'@media(max-width:640px)','时间轴手机适配');
-if(!(changelog.indexOf('v1.5.5')<changelog.indexOf('v1.5.4')&&changelog.indexOf('v1.5.4')<changelog.indexOf('v1.5.3')&&changelog.indexOf('v1.5.3')<changelog.indexOf('v1.5.2')&&changelog.indexOf('v1.5.2')<changelog.indexOf('v1.5.1')))failures.push('更新记录未按倒序排列');
+if(!(changelog.indexOf('v1.5.6')<changelog.indexOf('v1.5.4')&&changelog.indexOf('v1.5.4')<changelog.indexOf('v1.5.3')&&changelog.indexOf('v1.5.3')<changelog.indexOf('v1.5.2')&&changelog.indexOf('v1.5.2')<changelog.indexOf('v1.5.1')))failures.push('更新记录未按倒序排列');
 for(const detailed of ['文案精简与语义校准','品牌 Logo 与多终端首页','省份与城市筛选','输入流畅性与代码语义修复'])if(changelog.includes(detailed))failures.push('更新记录仍过度详细：'+detailed);
-requireText(wrapper,"installShareMetadataStabilizer('v1.5.5')",'运行时版本');
-requireText(wrapper,"tongxue-performance-v112.js?v=155",'核心运行时缓存版本');
+requireText(wrapper,"installShareMetadataStabilizer('v1.5.6')",'运行时版本');
+requireText(wrapper,"tongxue-performance-v112.js?v=156",'核心运行时缓存版本');
 requireText(wrapper,'installTongxueCopyV152();','文案层安装');
-requireText(wrapper,"tongxue-school-portrait-v121.js?v=155",'无副作用画像入口');
+requireText(wrapper,"tongxue-school-portrait-v121.js?v=156",'无副作用画像入口');
 requireText(copy,"button.textContent='看同学怎么说'",'按钮动态文案');
 requireText(home,'href="/tongxue/"','首页导航');
 requireText(legacy,"new URL('/tongxue/',location.origin)",'旧入口目标');
