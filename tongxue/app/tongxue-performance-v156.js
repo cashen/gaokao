@@ -1,3 +1,4 @@
+import'../../shared/ui/shell/family-shell.v3959_0.js?v=3959_0';
 import{installSchoolEntityUi}from'./tongxue-school-entity-ui-v152.js?v=156';
 import{installRegionUi,announceRegionSupport}from'./tongxue-region-ui-v152.js?v=156';
 import{installTongxueCopyV152,refreshTongxueCopyV152}from'./tongxue-copy-v152.js?v=156';

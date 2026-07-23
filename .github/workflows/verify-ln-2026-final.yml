@@ -24,30 +24,44 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify protected paths, data, pages and contracts
+
+      - name: Check protected paths
+        run: |
+          set -euo pipefail
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base"...HEAD | tee /tmp/v3959-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3959-files.txt; then
+            echo 'Protected path changed'
+            exit 1
+          fi
+
+      - name: Verify release contracts
         id: release_contract
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v4.py > /tmp/v3958-verify.out 2> /tmp/v3958-verify.err
+          python3 tools/ln-2026/verify-final-release-v4.py > /tmp/v3959-verify.out 2> /tmp/v3959-verify.err
           status=$?
-          cat /tmp/v3958-verify.out
+          cat /tmp/v3959-verify.out
           if [ "$status" -ne 0 ]; then
-            echo '--- V3958 VERIFY ERROR ---'
-            cat /tmp/v3958-verify.err
+            echo '--- V3959 VERIFY ERROR ---'
+            cat /tmp/v3959-verify.err
             exit "$status"
           fi
+
       - name: Upload concise verification diagnostic
         if: failure() && steps.release_contract.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3958-verify-error
-          path: /tmp/v3958-verify.err
+          name: v3959-verify-error
+          path: /tmp/v3959-verify.err
           if-no-files-found: error
           retention-days: 1
+
       - name: Verify generated data source contract
         run: python3 tools/ln-2026/verify-generated-release.py
-      - name: Compile readable Python build tools
+
+      - name: Compile Python build and verification tools
         run: |
           python3 -m py_compile \
             tools/ln-2026/build-release.py \
@@ -67,21 +81,22 @@ jobs:
             tools/schools/build-school-profile-center-v3957.py \
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
-      - name: Rebuild all official 2026 school resources once
+
+      - name: Rebuild official 2026 school resources once
         id: school_bundle
         shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check xlrd==2.0.1
-          mkdir -p /tmp/school-resources-v3958
+          mkdir -p /tmp/school-resources-v3959
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
             --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
             --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/school-resources-v3958/moe-2026-schools.xls \
+            --output /tmp/school-resources-v3959/moe-2026-schools.xls \
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/school-resources-v3958/moe-2026-schools.xls)" -gt 20000
-          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3958/moe-2026-schools.xls | tee /tmp/school-resources-v3958/build-result.json
-          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3958/compat-result.json
+          test "$(stat -c%s /tmp/school-resources-v3959/moe-2026-schools.xls)" -gt 20000
+          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3959/moe-2026-schools.xls | tee /tmp/school-resources-v3959/build-result.json
+          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3959/compat-result.json
           node tools/tongxue/build-school-initial-index-v141.mjs
           node tools/tongxue/build-school-initial-index-v150.mjs
           files=(
@@ -90,25 +105,17 @@ jobs:
             tongxue/data/school-search-index.20260617.json
             tongxue/data/school-search-index.20260617-v150.json
           )
-          set +e
-          git diff --exit-code -- "${files[@]}" > /tmp/school-resources-v3958/resource-drift.diff
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            git diff --stat -- "${files[@]}" | tee /tmp/school-resources-v3958/resource-drift.stat
-            git diff --numstat -- "${files[@]}" | tee /tmp/school-resources-v3958/resource-drift.numstat
-            echo '--- FIRST 240 LINES OF RESOURCE DRIFT ---'
-            sed -n '1,240p' /tmp/school-resources-v3958/resource-drift.diff
-            exit "$status"
-          fi
+          git diff --exit-code -- "${files[@]}"
+
       - name: Upload school resource drift diagnostic
         if: failure() && steps.school_bundle.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3958-school-resource-drift
-          path: /tmp/school-resources-v3958
-          if-no-files-found: error
+          name: v3959-school-resource-drift
+          path: /tmp/school-resources-v3959
+          if-no-files-found: warn
           retention-days: 1
+
       - name: Check changed JavaScript syntax
         run: |
           set -euo pipefail
@@ -118,6 +125,7 @@ jobs:
             echo "node --check $file"
             node --check "$file"
           done
+
       - name: Exercise critical runtime modules
         run: |
           node --experimental-default-type=module - <<'NODE'
@@ -141,11 +149,14 @@ jobs:
           }
           const panjin=resolveCompactSchoolResource('大连理工大学盘锦校区');
           if(panjin?.entityId!=='dlut-panjin') throw new Error(`shared school identity: ${JSON.stringify(panjin)}`);
-          if(CURRENT_RELEASE.display!=='v3.9.58.0') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
+          if(CURRENT_RELEASE.display!=='v3.9.59.0'||CURRENT_RELEASE.assetVersion!=='v3959_0') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
           console.log('critical runtime module checks passed');
           NODE
+
       - name: Audit unified resource ownership
         run: node tools/audit-resource-ownership-v3958.mjs
+      - name: Audit full-site UI orchestration
+        run: node tools/audit-ui-orchestration-v3959.mjs
       - name: Verify family decision workspace
         run: node tools/verify-family-decision-v3955.mjs
       - name: Verify unified school profile center
@@ -162,13 +173,14 @@ jobs:
         run: node tools/audit-active-runtime-v3957.mjs
       - name: Run compact release contract
         run: node tools/check-ln-2026-release.mjs
+
       - name: Smoke-test current static pages
         run: |
           python3 -m http.server 8765 >/tmp/ln2026-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          for path in / /shared/resources/release/current-release.js /shared/resources/exam/liaoning-physics.js /shared/resources/geo/china-region-catalog.js /shared/resources/schools/school-resource-center.js /shared/resources/schools/school-identity-center.js /shared/resources/schools/school-profile-center.js /shared/resources/schools/school-profile-data.20260617-v3957.js /shared/resources/majors/major-catalog-contract.js /shared/resources/reports/feishu-report-contract.js /ln-rank/ /ln-rank/selection-pool.html /ln-rank/self-check.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html /zy2026 /zy2026/ /zy.html /zy2026.html /tongxue/; do
+          for path in / /shared/resources/release/current-release.js /shared/resources/exam/liaoning-physics.js /shared/resources/geo/china-region-catalog.js /shared/resources/schools/school-resource-center.js /shared/resources/schools/school-identity-center.js /shared/resources/schools/school-profile-center.js /shared/resources/schools/school-profile-data.20260617-v3957.js /shared/resources/majors/major-catalog-contract.js /shared/resources/reports/feishu-report-contract.js /shared/ui/ui-registry.js /shared/ui/tokens/foundation.v3959_0.css /shared/ui/tokens/semantic.v3959_0.css /shared/ui/shell/family-shell.v3959_0.css /shared/ui/shell/family-shell.v3959_0.js /ln-rank/ /ln-rank/selection-pool.html /ln-rank/self-check.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/major-trend-2026.html /ln2026.html /lngk2026.html /zy2026 /zy2026/ /zy.html /zy2026.html /tongxue/; do
             echo "GET $path"
             curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
           done
