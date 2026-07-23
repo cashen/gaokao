@@ -37,7 +37,14 @@ jobs:
           old = "output, count = re.subn(pattern, replacement, text, count=1, flags=flags)"
           new = "output, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=flags)"
           if old in source:
-              target.write_text(source.replace(old, new, 1), encoding='utf-8')
+              source = source.replace(old, new, 1)
+          needle = "app_core = replace_once(app_core, \"from './feature/feishu/index.js?v=3951_0';\", \"from './feature/feishu/index.v3956_0.js?v=3956_0';\", 'main Feishu index')\n"
+          addition = "app_core = replace_once(app_core, \"from './feature/selection-pool/index.js?v=3951_0';\", \"from './feature/selection-pool/index.v3956_0.js?v=3956_0';\", 'main selection index')\n"
+          if addition not in source:
+              if needle not in source:
+                  raise SystemExit('main Feishu patch anchor missing')
+              source = source.replace(needle, needle + addition, 1)
+          target.write_text(source, encoding='utf-8')
           PY
           python3 tools/agent/apply-v3956-integration.py > /tmp/v3956-integration.log 2>&1
           status=$?
