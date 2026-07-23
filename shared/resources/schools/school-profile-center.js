@@ -55,6 +55,12 @@ function entityTypeLabel(type) {
   })[type] || '';
 }
 
+function tierTags(is985, is211) {
+  if (is985) return Object.freeze(['985', '211']);
+  if (is211) return Object.freeze(['211']);
+  return Object.freeze(['双非（非985/211）']);
+}
+
 function profileFromRow(row) {
   const [
     school,
@@ -71,7 +77,6 @@ function profileFromRow(row) {
   const is985 = Boolean(is985Raw);
   const is211 = Boolean(is211Raw || is985Raw);
   const isNon985211 = !is985 && !is211;
-  const schoolTierTags = is985 ? ['985', '211'] : (is211 ? ['211'] : ['双非（非985/211）']);
   return Object.freeze({
     school,
     standardSchoolName: school,
@@ -88,7 +93,7 @@ function profileFromRow(row) {
     is985,
     is211,
     isNon985211,
-    schoolTierTags: Object.freeze(schoolTierTags),
+    schoolTierTags: tierTags(is985, is211),
     entityType: 'official_school',
     entityTypeLabel: '',
     entityId: '',
@@ -104,10 +109,78 @@ function profileFromRow(row) {
   });
 }
 
+function specialProfile({ school, aliases, province, city, is985 = false, is211 = false, sourceUrl }) {
+  return Object.freeze({
+    school,
+    aliases: Object.freeze(aliases || []),
+    standardSchoolName: school,
+    parentSchoolName: '',
+    schoolIdentifier: '',
+    competentDepartment: '中央军委',
+    province: cleanProvince(province),
+    city: cleanCity(city),
+    displayLocation: displayLocation(province, city),
+    educationLevel: '本科',
+    natureType: 'public',
+    natureLabel: '公办',
+    officialRemark: '军队院校；普通高考招生资格和培养方式以当年招生章程为准',
+    is985: Boolean(is985),
+    is211: Boolean(is211 || is985),
+    isNon985211: !is985 && !is211,
+    schoolTierTags: tierTags(Boolean(is985), Boolean(is211 || is985)),
+    entityType: 'official_school',
+    entityTypeLabel: '',
+    entityId: '',
+    regionGroups: Object.freeze(deriveRegionGroups({ province, city })),
+    sourceVersion: SCHOOL_PROFILE_SOURCE_META.version,
+    sourceAsOfDate: '2026-07-23',
+    sourceName: '学校官方招生信息',
+    sourceUrl,
+    source985Url: SCHOOL_PROFILE_SOURCE_META.source.source985Url,
+    source211Url: SCHOOL_PROFILE_SOURCE_META.source.source211Url,
+    confidence: 'high',
+    matchNote: '该校不在教育部普通高校名单主表中，名称和所在地按学校官方招生信息补充。',
+    doubleNonDefinition: SCHOOL_PROFILE_SOURCE_META.doubleNonDefinition
+  });
+}
+
+export const SCHOOL_PROFILE_SPECIALS = Object.freeze([
+  specialProfile({
+    school: '中国人民解放军国防科技大学',
+    aliases: ['国防科技大学', '中国人民解放军国防科学技术大学', '国防科学技术大学'],
+    province: '湖南',
+    city: '长沙',
+    is985: true,
+    is211: true,
+    sourceUrl: 'https://www.nudt.edu.cn/bkzs/xxgk/zsjz/e92b19fd22dd4ca9ab9f255e5db4603d.htm'
+  }),
+  specialProfile({
+    school: '中国人民解放军海军军医大学',
+    aliases: ['海军军医大学', '第二军医大学', '中国人民解放军第二军医大学'],
+    province: '上海',
+    city: '上海',
+    is211: true,
+    sourceUrl: 'https://www.smmu.edu.cn/'
+  }),
+  specialProfile({
+    school: '中国人民解放军空军军医大学',
+    aliases: ['空军军医大学', '第四军医大学', '中国人民解放军第四军医大学'],
+    province: '陕西',
+    city: '西安',
+    is211: true,
+    sourceUrl: 'https://www.fmmu.edu.cn/zhaosheng/info/1016/1692.htm'
+  })
+]);
+
 const byName = new Map();
 for (const row of SCHOOL_PROFILE_ROWS) {
   const profile = profileFromRow(row);
   byName.set(normalizeSchoolProfileName(profile.school), profile);
+}
+for (const profile of SCHOOL_PROFILE_SPECIALS) {
+  for (const name of [profile.school, ...profile.aliases]) {
+    byName.set(normalizeSchoolProfileName(name), profile);
+  }
 }
 
 const aliasMap = new Map();
