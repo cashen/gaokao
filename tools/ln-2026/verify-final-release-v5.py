@@ -10,7 +10,7 @@ assert SPEC.loader
 SPEC.loader.exec_module(v4)
 v3 = v4.v3
 base = v4.base
-base.VERSION = 'v3.9.61.0'
+base.VERSION = 'v3.9.62.0'
 
 
 def contains(path: str, *phrases: str) -> None:
@@ -22,11 +22,11 @@ def contains(path: str, *phrases: str) -> None:
 def verify_family_and_ui_v3961() -> None:
     contains('index.html', '辽宁高考家庭决策工作台', '先圈出一批可以讨论的专业', '近期公开评论', '时间只帮助安排节奏', 'data-current-release')
     base.check('近期真实评论' not in base.text('index.html'), 'homepage real-review claim')
-    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3961_0.js?v=3961_0', '/ln-rank/css/selection-workspace.v3961_0.css?v=3961_0', 'data-release="v3.9.61.0"', 'data-current-release', '资源、UI与算法：全站统一调度')
+    contains('ln-rank/index.html', '确认孩子的位置', '说清想看什么', '圈出并整理专业', '家庭逐项复核', '/ln-rank/js/app.v3961_0.js?v=3962_0', '/ln-rank/css/selection-workspace.v3961_0.css?v=3961_0', 'data-release="v3.9.62.0"', 'data-current-release', '资源、UI与算法：全站统一调度')
     main = base.text('ln-rank/index.html')
     for inactive in ('family-decision-bar.v3955_0.js', 'multi-terminal.v3949_4.js', 'family-presentation.v3955_0.js', 'compare-workspace.v3953_0.js'):
         base.check(inactive not in main, f'legacy main layer active: {inactive}')
-    contains('ln-rank/selection-pool.html', 'id="selected-list"', 'id="family-review"', '检查已选专业', '生成家庭复核报告', '同一算法快照', '/ln-rank/js/selection-pool.v3960_0.js?v=3961_0', 'data-release="v3.9.61.0"', 'data-current-release')
+    contains('ln-rank/selection-pool.html', 'id="selected-list"', 'id="family-review"', '检查已选专业', '生成家庭复核报告', '同一算法快照', '/ln-rank/js/selection-pool.v3960_0.js?v=3961_0', 'data-release="v3.9.62.0"', 'data-current-release')
     base.check('family-decision-bar.v3955_0.js' not in base.text('ln-rank/selection-pool.html'), 'legacy selection family bar active')
     contains('shared/ui/ui-registry.js', 'ui-registry.v3961_0.js')
     contains('shared/ui/ui-registry.v3961_0.js', 'UI_ORCHESTRATION_VERSION', '#selected-list', '#family-review', 'UI_ACTION_PRIORITY', 'SELECTION_WORKSPACE_CONTRACT')
@@ -51,10 +51,13 @@ def verify_family_and_ui_v3961() -> None:
     contains('ln-rank/js/feature/score-bands/render.v3961_0.js', 'score-band-segmented', 'role="tablist"', '只切换当前列表，不重新查询')
     contains('ln-rank/css/selection-workspace.v3961_0.css', '.score-band-segmented', '.score-band-current', '.ln-result-workspace-status', '.workspace-compare-slot', 'overflow-anchor: none')
     contains('ln-rank/js/selection-pool.v3960_0.js', 'release-presenter.js?v=3961_0', 'shared/ui/shell/family-shell.v3960_0.js', 'ALGORITHM_CONTRACT')
+    contains('ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js', 'resolveCompactSchoolResource', 'createSelectionPoolAdapter', "const API_PATH = '/api/school-majors'", 'school-all-mode-v3962')
+    contains('ln-rank/css/school-all-mode.v3962_0.css', 'body[data-result-mode="school-all"]', '@media (max-width: 767px)', '@media (max-width: 390px)')
+    contains('functions/api/school-majors.js', "../_lib/ln-rank-manifest.js", 'school-identity-center.js', 'canonical-position.v3960_0.js', "mode: 'shared-records-school-exact'")
 
 
 def verify_shared_resources_v3961() -> None:
-    contains('shared/resources/release/current-release.js', "display: 'v3.9.61.0'", "assetVersion: 'v3961_0'", "uiOrchestrationVersion: 'ui-orchestration-v3961'", "selectionWorkspaceVersion: 'selection-workspace-orchestration-v3961'", "algorithmOrchestrationVersion: 'algorithm-orchestration-v3960'", "algorithms: '/shared/algorithms/algorithm-registry.js'")
+    contains('shared/resources/release/current-release.js', "display: 'v3.9.62.0'", "assetVersion: 'v3962_0'", "uiOrchestrationVersion: 'ui-orchestration-v3961'", "selectionWorkspaceVersion: 'selection-workspace-orchestration-v3961'", "algorithmOrchestrationVersion: 'algorithm-orchestration-v3960'", "algorithms: '/shared/algorithms/algorithm-registry.js'")
     contains('shared/resources/release/release-presenter.js', "from './current-release.js'", 'syncCurrentRelease', 'mountCurrentRelease')
     contains('shared/resources/exam/liaoning-physics.js', 'specialControlScore: 508', 'undergraduateControlScore: 344', 'vocationalControlScore: 150', 'isPublicBottomLineVisible')
     contains('shared/resources/geo/china-region-catalog.js', 'REGION_OPTIONS', 'REGION_GROUPS', 'matchRegionRule', 'getLiaoningAreaLabel')
@@ -109,10 +112,12 @@ def verify_release_meta_v3961() -> None:
         'stableResultSlotsContract', 'singleUiCommitPerIntentContract', 'noStructuralResultObserverContract',
         'singleScrollOwnerContract', 'userScrollWinsContract', 'bandSwitchViewOnlyContract',
         'compareSingleLayoutOwnerContract', 'cardFirstPassPresentationContract', 'selectionEventDedupContract',
-        'keyboardViewportSingleOwnerContract', 'androidNoLayoutJitterContract', 'layoutShiftBudgetContract'
+        'keyboardViewportSingleOwnerContract', 'androidNoLayoutJitterContract', 'layoutShiftBudgetContract',
+        'schoolAllModeContract', 'schoolAllSharedResourceContract', 'schoolAllEntityIsolationContract',
+        'schoolAllScoreInvariantContract', 'schoolAllMultiTerminalContract', 'schoolAllSharedSelectionPoolContract'
     )
     for meta in (release, active):
-        base.check(meta['version'] == 'v3.9.61.0' and meta['assetVersion'] == 'v3961_0', 'release version')
+        base.check(meta['version'] == 'v3.9.62.0' and meta['assetVersion'] == 'v3962_0', 'release version')
         for key in required:
             base.check(meta.get(key) is True, f'missing contract {key}')
         base.check(meta['sharedResourceCenterVersion'] == 'v3961_0', 'shared resource version')
@@ -126,6 +131,8 @@ def verify_release_meta_v3961() -> None:
     for inactive in ('js/app.v3960_0.js', 'js/app.v3951_0.js', 'js/ux/family-presentation.v3955_0.js', 'js/ux/multi-terminal.v3949_4.js', 'js/ux/compare-workspace.v3953_0.js'):
         base.check(inactive not in active['jsEntry'], f'legacy active entry {inactive}')
     base.check('css/selection-workspace.v3961_0.css' in active['cssEntry'], 'workspace CSS not active')
+    base.check('css/school-all-mode.v3962_0.css' in active['cssEntry'], 'school-all CSS not active')
+    base.check('js/feature/school-majors/school-all-mode.v3962_0.js' in active['jsEntry'], 'school-all JS not active')
     base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3959_0.js', 'zy2026 active JS')
 
 
@@ -136,4 +143,4 @@ v3.verify_release_meta = verify_release_meta_v3961
 
 if __name__ == '__main__':
     v3.main()
-    print('LN 2026 v3.9.61.0 selection workspace orchestration verification passed')
+    print('LN 2026 v3.9.62.0 selection workspace orchestration verification passed')

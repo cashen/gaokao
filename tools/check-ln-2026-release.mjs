@@ -18,7 +18,7 @@ for(const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,14
 const pages=['ln-rank/index.html','ln-rank/selection-pool.html','ln-rank/local-mainline.html','ln-rank/211-mainline.html','ln-rank/major-trend-2026.html','ln2026.html','lngk2026.html','index.html','e.html','zy.html','zy2026.html','zy2026/index.html'];
 for(const path of pages)ok(!/版本：v3\.9\.50\.0/.test(t(path)),`${path} old footer`);
 
-ok(VERSION==='v3.9.61.0'&&ASSET==='v3961_0','current release version');
+ok(VERSION==='v3.9.62.0'&&ASSET==='v3961_0','current release version');
 ok(CURRENT_RELEASE.uiOrchestrationVersion==='ui-orchestration-v3961','current UI version');
 ok(CURRENT_RELEASE.algorithmOrchestrationVersion==='algorithm-orchestration-v3960','algorithm version preserved');
 ok(CURRENT_RELEASE.selectionWorkspaceVersion==='selection-workspace-orchestration-v3961','workspace version');

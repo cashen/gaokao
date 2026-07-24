@@ -37,7 +37,7 @@ assert.equal(release.version, CURRENT_RELEASE.display);
 assert.equal(active.version, CURRENT_RELEASE.display);
 assert.equal(release.assetVersion, CURRENT_RELEASE.assetVersion);
 assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
-assert.equal(CURRENT_RELEASE.display, 'v3.9.61.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.62.0');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
 
 includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏','family-shell.v3959_0.js','data-current-release'], 'homepage');

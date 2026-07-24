@@ -3,13 +3,13 @@ import { LIAONING_PHYSICS_EXAM_CONFIG } from '../exam/liaoning-physics.js';
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 
 export const CURRENT_RELEASE = Object.freeze({
-  display: 'v3.9.61.0',
-  version: 'v3.9.61.0',
-  asset: '3961_0',
-  assetVersion: 'v3961_0',
-  release: 'v3.9.61.0-selection-workspace-orchestration-no-fenxi',
-  releaseName: 'v3.9.61.0-selection-workspace-orchestration-no-fenxi',
-  label: 'selection-workspace-orchestration-no-fenxi',
+  display: 'v3.9.62.0',
+  version: 'v3.9.62.0',
+  asset: '3962_0',
+  assetVersion: 'v3962_0',
+  release: 'v3.9.62.0-selection-workspace-orchestration-no-fenxi',
+  releaseName: 'v3.9.62.0-selection-workspace-orchestration-no-fenxi',
+  label: 'school-all-majors-no-fenxi',
   dataYear: EXAM.dataYear,
   audienceYear: EXAM.audienceYear,
   rankTableYear: EXAM.rankYear,
@@ -20,6 +20,7 @@ export const CURRENT_RELEASE = Object.freeze({
   uiOrchestrationVersion: 'ui-orchestration-v3961',
   algorithmOrchestrationVersion: 'algorithm-orchestration-v3960',
   selectionWorkspaceVersion: 'selection-workspace-orchestration-v3961',
+  schoolAllModeVersion: 'school-all-mode-v3962',
   resourceOwners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
     exam: '/shared/resources/exam/liaoning-physics.js',

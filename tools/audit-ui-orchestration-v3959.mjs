@@ -12,7 +12,7 @@ const { UI_STATE_COPY, validateUiState }=await import(pathToFileURL(`${process.c
 const { UI_LANGUAGE, FORBIDDEN_PUBLIC_COPY }=await import(pathToFileURL(`${process.cwd()}/shared/ui/contracts/copy-contract.v3959_0.js`));
 const shellModule=await import(pathToFileURL(`${process.cwd()}/shared/ui/shell/family-shell.v3961_0.js`));
 
-assert.equal(CURRENT_RELEASE.display,'v3.9.61.0');
+assert.equal(CURRENT_RELEASE.display,'v3.9.62.0');
 assert.equal(CURRENT_RELEASE.assetVersion,'v3961_0');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion,'ui-orchestration-v3961');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion,'algorithm-orchestration-v3960');
@@ -87,7 +87,7 @@ for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','
 for(const feature of ['.score-band-segmented','.score-band-current','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none','grid-template-columns: repeat(3, minmax(0, 1fr))'])assert.ok(workspaceCss.includes(feature),`workspace CSS missing ${feature}`);
 
 const home=read('index.html');
-assert.ok(home.includes('data-release="v3.9.61.0"'));
+assert.ok(home.includes('data-release="v3.9.62.0"'));
 assert.ok(home.includes('data-current-release'));
 assert.ok(!home.includes('首页版本：v3.9.59.0'));
 
@@ -95,7 +95,7 @@ const main=read('ln-rank/index.html');
 assert.ok(main.includes('family-shell.v3960_0.css?v=3961_0'));
 assert.ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'));
 assert.ok(main.includes('app.v3961_0.js?v=3961_0'));
-assert.ok(main.includes('data-release="v3.9.61.0"'));
+assert.ok(main.includes('data-release="v3.9.62.0"'));
 assert.ok(main.includes('data-current-release'));
 assert.ok(main.includes('资源、UI与算法：全站统一调度'));
 for(const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js'])assert.ok(!main.includes(inactive),`legacy active layer ${inactive}`);
@@ -109,7 +109,7 @@ const selected=read('ln-rank/selection-pool.html');
 assert.ok(selected.includes('id="selected-list"'));
 assert.ok(selected.includes('id="family-review"'));
 assert.ok(selected.includes('selection-pool.v3960_0.js?v=3961_0'));
-assert.ok(selected.includes('data-release="v3.9.61.0"'));
+assert.ok(selected.includes('data-release="v3.9.62.0"'));
 assert.ok(selected.includes('data-current-release'));
 assert.ok(selected.includes('同一算法快照'));
 assert.ok(!selected.includes('family-decision-bar.v3955_0.js'));
@@ -174,7 +174,7 @@ for(const [file,target] of Object.entries(redirectPages)){
 
 for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   const meta=json(file);
-  assert.equal(meta.version,'v3.9.61.0');
+  assert.equal(meta.version,'v3.9.62.0');
   assert.equal(meta.assetVersion,'v3961_0');
   assert.equal(meta.uiOrchestrationVersion,'ui-orchestration-v3961');
   assert.equal(meta.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');

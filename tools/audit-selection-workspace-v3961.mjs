@@ -7,7 +7,7 @@ const json = path => JSON.parse(read(path));
 const release = await import(new URL('../shared/resources/release/current-release.js', import.meta.url));
 const ui = await import(new URL('../shared/ui/ui-registry.js', import.meta.url));
 
-assert.equal(release.CURRENT_RELEASE.display, 'v3.9.61.0');
+assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.0');
 assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3961_0');
 assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
 assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3961_0');
@@ -121,7 +121,7 @@ for (const marker of [
 
 for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   const meta = json(file);
-  assert.equal(meta.version, 'v3.9.61.0');
+  assert.equal(meta.version, 'v3.9.62.0');
   assert.equal(meta.assetVersion, 'v3961_0');
   for (const contract of [
     'selectionWorkspaceOrchestrationContract',
