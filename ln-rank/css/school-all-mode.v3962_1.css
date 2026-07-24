@@ -516,7 +516,7 @@ body[data-result-mode="school-all"] .filter-school label::after {
   }
 }
 
-@container school-results (max-width: 360px) {
+@container school-results (max-width: 260px) {
   .school-all-head-actions,
   .school-major-actions {
     grid-template-columns: minmax(0, 1fr);
