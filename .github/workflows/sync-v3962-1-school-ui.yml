@@ -44,6 +44,7 @@ jobs:
             ln-rank/release-meta.json \
             ln-rank/selection-pool.html \
             ln-rank/css/selection-workspace.v3961_0.css \
+            ln-rank/css/school-all-mode.v3962_1.css \
             ln2026.html \
             zy2026.html \
             zy2026/index.html \
@@ -53,6 +54,7 @@ jobs:
             tools/audit-selection-workspace-v3961.mjs \
             tools/audit-algorithm-orchestration-v3960.mjs \
             tools/verify-family-decision-v3955.mjs \
-            tools/audit-shared-resource-center-v3957.mjs
+            tools/audit-shared-resource-center-v3957.mjs \
+            tools/audit-school-ui-governance-v3962_1.mjs
           git commit -m 'release: synchronize v3.9.62.1 governance metadata'
           git push origin HEAD:${{ github.head_ref }}
