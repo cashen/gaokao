@@ -23,8 +23,13 @@ ok(CURRENT_RELEASE.uiOrchestrationVersion==='ui-orchestration-v3961','current UI
 ok(CURRENT_RELEASE.algorithmOrchestrationVersion==='algorithm-orchestration-v3960','algorithm version preserved');
 ok(CURRENT_RELEASE.selectionWorkspaceVersion==='selection-workspace-orchestration-v3961','workspace version');
 
+const releasePresenter=t('shared/resources/release/release-presenter.js');
+ok(releasePresenter.includes("from './current-release.js'")&&releasePresenter.includes('data-current-release')&&releasePresenter.includes('dataset.release')&&releasePresenter.includes('dataset.uiRelease'),'shared release presenter');
+ok(!releasePresenter.includes('MutationObserver')&&!releasePresenter.includes('setTimeout'),'release presenter observer or timer');
+
 const main=t('ln-rank/index.html');
-ok(main.includes(VERSION),'main version');
+ok(main.includes(VERSION),'main version fallback');
+ok(main.includes('data-current-release'),'main shared release marker');
 ok(main.includes('app.v3961_0.js?v=3961_0'),'v3961 main wrapper loaded');
 ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'),'workspace CSS loaded');
 ok(!main.includes('app.v3960_0.js?v=3960_0'),'old main not loaded directly');
@@ -35,18 +40,21 @@ for(const inactive of ['family-presentation.v3955_0.js','multi-terminal.v3949_4.
 ok(main.includes('资源、UI与算法：全站统一调度'),'orchestration copy');
 
 const selection=t('ln-rank/selection-pool.html');
-ok(selection.includes(VERSION),'selection version');
+ok(selection.includes(VERSION),'selection version fallback');
+ok(selection.includes('data-current-release'),'selection shared release marker');
 ok(selection.includes('selection-pool.v3960_0.js?v=3961_0'),'selection preserved runtime');
 ok(selection.includes('id="selected-list"')&&selection.includes('id="family-review"'),'distinct selected/review targets');
 ok(selection.includes('生成家庭复核报告')&&selection.includes('其他保存方式'),'selection action simplification');
 ok(selection.includes('同一算法快照'),'decision snapshot copy');
-ok(t('ln2026.html').includes('v3.9.53.0'),'difficulty core version preserved');
-ok(t('ln2026.html').includes('major-difficulty-2026.v3959_0.js?v=3959_0'),'difficulty UI adapter preserved');
+const difficultyPage=t('ln2026.html');
+ok(difficultyPage.includes('data-current-release')&&difficultyPage.includes('当前发布：'),'difficulty shared release presentation');
+ok(difficultyPage.includes('major-difficulty-2026.v3959_0.js?v=3959_0'),'difficulty UI adapter preserved');
 
 const root=t('index.html');
 ok(root.includes('辽宁高考家庭决策工作台'),'root family workspace');
 ok(root.includes('近期公开评论'),'root public review copy');
 ok(!root.includes('近期真实评论'),'root no real-review claim');
+ok(root.includes('data-current-release'),'root shared release marker');
 ok(root.includes('foundation.v3959_0.css?v=3959_0')&&root.includes('family-shell.v3959_0.js?v=3959_0'),'root compatibility UI shell');
 ok((root.match(/ln2026\.html/g)||[]).length===1,'root unified difficulty link');
 ok(root.includes('href="/zy2026"'),'root zy2026 link');
@@ -58,7 +66,8 @@ ok(t('zy.html').includes("location.replace('/zy2026')"),'zy redirect');
 const zyPage=t('zy2026/index.html'),zyAlias=t('zy2026.html');
 ok(zyAlias===zyPage,'zy2026 extensionless alias');
 ok(!zyAlias.includes("location.replace('/zy2026')"),'zy2026 alias self redirect removed');
-ok(zyPage.includes('辽宁2026招生变化发现')&&zyPage.includes('页面体验版本：v3.9.55.0'),'zy2026 family copy page');
+ok(zyPage.includes('辽宁2026招生变化发现')&&zyPage.includes('data-current-release'),'zy2026 family copy and release marker');
+ok(!zyPage.includes('页面体验版本：v3.9.55.0'),'zy2026 no second visible release owner');
 ok(zyPage.includes('zy2026.v3959_0.js?v=3959_0')&&zyPage.includes('zy2026.v3954_0.css?v=3955_0'),'zy2026 UI wrapper preserved');
 ok(t('tools/ln-2026/run-build-zy2026-structure.py').includes("ZY_EXPERIENCE_VERSION = 'v3.9.55.0'"),'zy rebuild guard');
 ok(t('tools/ln-2026/finalize-v3953-assets.py').includes('apply_shared_resource_contract'),'shared resource finalizer guard');
@@ -86,6 +95,7 @@ ok(schoolProfile.includes('SCHOOL_PROFILE_ROWS')&&schoolProfile.includes('SCHOOL
 ok(t('functions/_lib/school-tags.js').includes('school-profile-center.js')&&t('functions/_lib/location-normalizer.js').includes('school-profile-center.js'),'school profile adapters');
 ok(t('ln-rank/js/feature/major-pool/render.v3957_0.js').includes('双非（非985/211）'),'school profile card tags');
 ok(appWrapper.includes("url.pathname !== '/api/major-bands'")&&appWrapper.includes("url.searchParams.get('bottomLineMode') || state?.filters?.bottomLineMode"),'shared request uses submitted snapshot');
+ok(appWrapper.includes('release-presenter.js?v=3961_0'),'main shared release presenter');
 ok(appWrapper.includes('shared/ui/shell/family-shell.v3961_0.js'),'main v3961 UI adapter');
 ok(appWrapper.includes('ALGORITHM_CONTRACT'),'main algorithm contract');
 ok(t('functions/_lib/exam-year-config.js').includes('shared/resources/exam/liaoning-physics.js'),'exam adapter');
@@ -100,7 +110,7 @@ ok(uiRegistry.includes('UI_ORCHESTRATION_VERSION')&&uiRegistry.includes('#select
 ok(uiRegistry.includes('SELECTION_WORKSPACE_CONTRACT')&&uiRegistry.includes('bandSwitchIsViewOnly'),'workspace UI contract');
 ok(t('shared/ui/shell/family-shell.v3961_0.js').includes('当前家庭方案'),'shared family shell');
 ok(!t('shared/ui/shell/family-shell.v3961_0.js').includes('visualViewport'),'single viewport owner');
-ok(t('shared/ui/shell/family-shell.v3959_0.js').includes('family-shell.v3960_0.js'),'legacy shell bridge');
+ok(t('shared/ui/shell/family-shell.v3959_0.js').includes('family-shell.v3960_0.js')&&t('shared/ui/shell/family-shell.v3959_0.js').includes('release-presenter.js?v=3961_0'),'legacy shell bridge and release presenter');
 ok(t('tongxue/app/tongxue-performance-v156.js').includes('shared/ui/shell/family-shell.v3959_0.js'),'Tongxue compatibility UI adapter');
 
 const orchestrator=t('ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js');

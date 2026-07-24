@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 const read=file=>fs.readFileSync(file,'utf8');
 const json=file=>JSON.parse(read(file));
 const { CURRENT_RELEASE }=await import(pathToFileURL(`${process.cwd()}/shared/resources/release/current-release.js`));
+const releasePresenter=await import(pathToFileURL(`${process.cwd()}/shared/resources/release/release-presenter.js`));
 const { UI_PAGE_REGISTRY, UI_RESOURCE_REGISTRY, UI_ORCHESTRATION_VERSION, UI_ACTION_PRIORITY, SELECTION_WORKSPACE_CONTRACT }=await import(pathToFileURL(`${process.cwd()}/shared/ui/ui-registry.js`));
 const { UI_ACTION_COPY, validateUiAction }=await import(pathToFileURL(`${process.cwd()}/shared/ui/contracts/action-contract.v3959_0.js`));
 const { UI_STATE_COPY, validateUiState }=await import(pathToFileURL(`${process.cwd()}/shared/ui/contracts/state-contract.v3959_0.js`));
@@ -18,6 +19,8 @@ assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion,'algorithm-orchestrat
 assert.equal(CURRENT_RELEASE.resourceOwnershipVersion,'resource-ownership-v3958');
 assert.equal(CURRENT_RELEASE.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
 assert.equal(CURRENT_RELEASE.resourceOwners.ui,'/shared/ui/ui-registry.js');
+assert.equal(typeof releasePresenter.syncCurrentRelease,'function');
+assert.equal(typeof releasePresenter.mountCurrentRelease,'function');
 assert.equal(UI_ORCHESTRATION_VERSION,'v3961_0');
 assert.equal(Object.keys(UI_PAGE_REGISTRY).length,7);
 assert.equal(UI_PAGE_REGISTRY.selected.route,'/ln-rank/selection-pool.html#selected-list');
@@ -47,6 +50,11 @@ assert.equal(shellModule.resolveUiPage('/ln2026.html'),'difficulty');
 assert.equal(shellModule.resolveUiPage('/zy2026/'),'structure');
 assert.equal(shellModule.resolveUiPage('/tongxue/?school=x'),'tongxue');
 
+const releasePresentation=read('shared/resources/release/release-presenter.js');
+for(const marker of ['CURRENT_RELEASE','data-current-release','dataset.release','dataset.uiRelease','__GAOKAO_RELEASE__'])assert.ok(releasePresentation.includes(marker),`release presenter missing ${marker}`);
+assert.ok(!releasePresentation.includes('MutationObserver'));
+assert.ok(!releasePresentation.includes('setTimeout'));
+
 const shell=read('shared/ui/shell/family-shell.v3961_0.js');
 for(const marker of ['当前家庭方案','data-ui-mobile-selected','data-ui-mobile-pending','ui-mobile-update-required','query.click()','#selected-list','#family-review','gaokao:workspace-state','gaokao:selection-change'])assert.ok(shell.includes(marker),`shell missing ${marker}`);
 assert.ok(!shell.includes('MutationObserver'));
@@ -55,6 +63,8 @@ assert.ok(!shell.includes("fetch('/api/"));
 assert.ok(!shell.includes("document.addEventListener('input'"));
 const compatShell=read('shared/ui/shell/family-shell.v3960_0.js');
 assert.ok(compatShell.includes('当前家庭方案'));
+const legacyCompatShell=read('shared/ui/shell/family-shell.v3959_0.js');
+assert.ok(legacyCompatShell.includes('release-presenter.js?v=3961_0'));
 
 const viewport=read('ln-rank/js/workspace/viewport-orchestrator.v3961_0.js');
 assert.ok(viewport.includes('visualViewport'));
@@ -76,19 +86,31 @@ for(const component of ['.ui-button','.ui-card','.ui-state--loading','.ui-state-
 for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','var(--ui-safe-bottom)','@media(max-width:767px)','mobile-dirty-bar','pool-entry-toast','#selected-list','#family-review'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
 for(const feature of ['.score-band-segmented','.score-band-current','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none','grid-template-columns: repeat(3, minmax(0, 1fr))'])assert.ok(workspaceCss.includes(feature),`workspace CSS missing ${feature}`);
 
+const home=read('index.html');
+assert.ok(home.includes('data-release="v3.9.61.0"'));
+assert.ok(home.includes('data-current-release'));
+assert.ok(!home.includes('首页版本：v3.9.59.0'));
+
 const main=read('ln-rank/index.html');
 assert.ok(main.includes('family-shell.v3960_0.css?v=3961_0'));
 assert.ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'));
 assert.ok(main.includes('app.v3961_0.js?v=3961_0'));
 assert.ok(main.includes('data-release="v3.9.61.0"'));
+assert.ok(main.includes('data-current-release'));
 assert.ok(main.includes('资源、UI与算法：全站统一调度'));
 for(const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js'])assert.ok(!main.includes(inactive),`legacy active layer ${inactive}`);
+
+const appEntry=read('ln-rank/js/app.v3961_0.js');
+assert.ok(appEntry.includes('release-presenter.js?v=3961_0'));
+const selectedEntry=read('ln-rank/js/selection-pool.v3960_0.js');
+assert.ok(selectedEntry.includes('release-presenter.js?v=3961_0'));
 
 const selected=read('ln-rank/selection-pool.html');
 assert.ok(selected.includes('id="selected-list"'));
 assert.ok(selected.includes('id="family-review"'));
 assert.ok(selected.includes('selection-pool.v3960_0.js?v=3961_0'));
 assert.ok(selected.includes('data-release="v3.9.61.0"'));
+assert.ok(selected.includes('data-current-release'));
 assert.ok(selected.includes('同一算法快照'));
 assert.ok(!selected.includes('family-decision-bar.v3955_0.js'));
 
@@ -118,6 +140,8 @@ for(const [pageFile,adapterFile] of Object.entries(runtimeAdapters)){
   assert.ok(adapter.includes('shared/ui/shell/family-shell.v3959_0.js'),`${adapterFile} missing compatibility shell import`);
   for(const phrase of FORBIDDEN_PUBLIC_COPY)assert.ok(!page.includes(phrase),`${pageFile} contains forbidden public copy ${phrase}`);
 }
+assert.ok(read('ln2026.html').includes('data-current-release'));
+assert.ok(read('zy2026/index.html').includes('data-current-release'));
 
 for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   const meta=json(file);
@@ -128,4 +152,4 @@ for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   for(const key of ['sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract'])assert.equal(meta[key],true,`${file} missing ${key}`);
 }
 
-console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion},null,2));
+console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner'},null,2));

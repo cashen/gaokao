@@ -1,3 +1,4 @@
+import '../../shared/resources/release/release-presenter.js?v=3961_0';
 import './workspace/viewport-orchestrator.v3961_0.js?v=3961_0';
 import '../../shared/ui/shell/family-shell.v3961_0.js?v=3961_0';
 import {

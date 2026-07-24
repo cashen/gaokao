@@ -1,3 +1,4 @@
+import '../../shared/resources/release/release-presenter.js?v=3961_0';
 import '../../shared/ui/shell/family-shell.v3960_0.js?v=3960_0';
 import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3960_0';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3960_0';
