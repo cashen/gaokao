@@ -1,4 +1,4 @@
-name: Verify school-all UI v3962.1
+name: Verify school mode v3962.2
 
 on:
   pull_request:
@@ -26,31 +26,31 @@ jobs:
         run: |
           set -euo pipefail
           base=$(git merge-base origin/main HEAD)
-          git diff --name-only "$base"...HEAD | tee /tmp/school-all-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/school-all-files.txt; then
+          git diff --name-only "$base"...HEAD | tee /tmp/school-mode-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/school-mode-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
 
-      - name: Check school UI JavaScript syntax
+      - name: Check school mode JavaScript syntax
         run: |
           node --check functions/api/school-majors.js
-          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js
           node --check tools/audit-school-all-mode-v3962.mjs
-          node --check tools/audit-school-ui-governance-v3962_1.mjs
-          node --check tools/browser-school-ui-v3962_1.mjs
+          node --check tools/audit-school-mode-static-v3962_2.mjs
+          node --check tools/browser-school-mode-journey-v3962_2.mjs
 
-      - name: Enforce shared UI governance
-        id: ui_governance
+      - name: Enforce static shared UI ownership
+        id: static_governance
         shell: bash
         run: |
           set +e
-          node tools/audit-school-ui-governance-v3962_1.mjs > /tmp/school-ui-governance.out 2> /tmp/school-ui-governance.err
+          node tools/audit-school-mode-static-v3962_2.mjs > /tmp/school-mode-governance.out 2> /tmp/school-mode-governance.err
           status=$?
-          cat /tmp/school-ui-governance.out
+          cat /tmp/school-mode-governance.out
           if [ "$status" -ne 0 ]; then
-            echo '--- SCHOOL UI GOVERNANCE ERROR ---'
-            cat /tmp/school-ui-governance.err
+            echo '--- SCHOOL MODE GOVERNANCE ERROR ---'
+            cat /tmp/school-mode-governance.err
             exit "$status"
           fi
 
@@ -69,13 +69,13 @@ jobs:
           fi
 
       - name: Upload static audit diagnostics
-        if: failure() && (steps.ui_governance.outcome == 'failure' || steps.school_all_audit.outcome == 'failure')
+        if: failure() && (steps.static_governance.outcome == 'failure' || steps.school_all_audit.outcome == 'failure')
         uses: actions/upload-artifact@v4
         with:
-          name: school-ui-v3962-1-audit-error
+          name: school-mode-v3962-2-audit-error
           path: |
-            /tmp/school-ui-governance.out
-            /tmp/school-ui-governance.err
+            /tmp/school-mode-governance.out
+            /tmp/school-mode-governance.err
             /tmp/school-all-audit.out
             /tmp/school-all-audit.err
           if-no-files-found: warn
@@ -83,15 +83,16 @@ jobs:
 
       - name: Smoke-test governed static resources
         run: |
-          python3 -m http.server 8765 >/tmp/school-all-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/school-mode-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
           for path in \
             /ln-rank/ \
             /ln-rank/js/app.v3961_0.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js \
-            /ln-rank/css/school-all-mode.v3962_1.css \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js \
+            /ln-rank/css/school-all-mode.v3962_2.css \
+            /shared/ui/components/mode-switch.v3962_2.css \
             /shared/ui/tokens/semantic.v3959_0.css \
             /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/resources/schools/school-resource-center.js \
@@ -105,33 +106,33 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install chromium
 
-      - name: Verify PC Pad Android layouts in Chromium
+      - name: Verify actual PC Pad Android school flow
         id: browser_ui
         shell: bash
         run: |
           set +e
-          python3 -m http.server 8765 >/tmp/school-ui-browser-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/school-mode-browser-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          SCHOOL_UI_ARTIFACT_DIR=/tmp/school-ui-v3962_1 node tools/browser-school-ui-v3962_1.mjs > /tmp/school-ui-browser.out 2> /tmp/school-ui-browser.err
+          SCHOOL_UI_ARTIFACT_DIR=/tmp/school-mode-v3962_2 node tools/browser-school-mode-journey-v3962_2.mjs > /tmp/school-mode-browser.out 2> /tmp/school-mode-browser.err
           status=$?
-          cat /tmp/school-ui-browser.out
+          cat /tmp/school-mode-browser.out
           if [ "$status" -ne 0 ]; then
-            echo '--- SCHOOL UI BROWSER ERROR ---'
-            cat /tmp/school-ui-browser.err
+            echo '--- SCHOOL MODE BROWSER ERROR ---'
+            cat /tmp/school-mode-browser.err
             exit "$status"
           fi
 
-      - name: Upload browser layout diagnostics
+      - name: Upload browser journey diagnostics
         if: failure() && steps.browser_ui.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: school-ui-v3962-1-browser-error
+          name: school-mode-v3962-2-browser-error
           path: |
-            /tmp/school-ui-browser.out
-            /tmp/school-ui-browser.err
-            /tmp/school-ui-browser-http.log
-            /tmp/school-ui-v3962_1
+            /tmp/school-mode-browser.out
+            /tmp/school-mode-browser.err
+            /tmp/school-mode-browser-http.log
+            /tmp/school-mode-v3962_2
           if-no-files-found: warn
           retention-days: 3
