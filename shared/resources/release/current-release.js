@@ -3,13 +3,13 @@ import { LIAONING_PHYSICS_EXAM_CONFIG } from '../exam/liaoning-physics.js';
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 
 export const CURRENT_RELEASE = Object.freeze({
-  display: 'v3.9.62.0',
-  version: 'v3.9.62.0',
-  asset: '3962_0',
-  assetVersion: 'v3962_0',
-  release: 'v3.9.62.0-school-all-majors-no-fenxi',
-  releaseName: 'v3.9.62.0-school-all-majors-no-fenxi',
-  label: 'school-all-majors-no-fenxi',
+  display: 'v3.9.62.1',
+  version: 'v3.9.62.1',
+  asset: '3962_1',
+  assetVersion: 'v3962_1',
+  release: 'v3.9.62.1-school-ui-governance-no-fenxi',
+  releaseName: 'v3.9.62.1-school-ui-governance-no-fenxi',
+  label: 'school-ui-governance-no-fenxi',
   dataYear: EXAM.dataYear,
   audienceYear: EXAM.audienceYear,
   rankTableYear: EXAM.rankYear,
@@ -20,7 +20,8 @@ export const CURRENT_RELEASE = Object.freeze({
   uiOrchestrationVersion: 'ui-orchestration-v3961',
   algorithmOrchestrationVersion: 'algorithm-orchestration-v3960',
   selectionWorkspaceVersion: 'selection-workspace-orchestration-v3961',
-  schoolAllModeVersion: 'school-all-mode-v3962',
+  schoolAllModeVersion: 'school-all-mode-v3962_1',
+  schoolUiGovernanceVersion: 'school-ui-governance-v3962_1',
   resourceOwners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
     exam: '/shared/resources/exam/liaoning-physics.js',
@@ -30,6 +31,8 @@ export const CURRENT_RELEASE = Object.freeze({
     majors: '/shared/resources/majors/major-catalog-contract.js',
     reports: '/shared/resources/reports/feishu-report-contract.js',
     ui: '/shared/ui/ui-registry.js',
+    uiActions: '/shared/ui/contracts/action-contract.v3959_0.js',
+    uiSemantic: '/shared/ui/tokens/semantic.v3959_0.css',
     algorithms: '/shared/algorithms/algorithm-registry.js'
   })
 });
