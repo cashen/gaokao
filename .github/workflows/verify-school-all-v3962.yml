@@ -39,7 +39,29 @@ jobs:
           node --check tools/audit-school-all-mode-v3962.mjs
 
       - name: Audit shared resources and real 2026 data
-        run: node tools/audit-school-all-mode-v3962.mjs
+        id: school_all_audit
+        shell: bash
+        run: |
+          set +e
+          node tools/audit-school-all-mode-v3962.mjs > /tmp/school-all-audit.out 2> /tmp/school-all-audit.err
+          status=$?
+          cat /tmp/school-all-audit.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- SCHOOL ALL AUDIT ERROR ---'
+            cat /tmp/school-all-audit.err
+            exit "$status"
+          fi
+
+      - name: Upload school-all audit diagnostic
+        if: failure() && steps.school_all_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-all-v3962-audit-error
+          path: |
+            /tmp/school-all-audit.out
+            /tmp/school-all-audit.err
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Smoke-test school-all static resources
         run: |
