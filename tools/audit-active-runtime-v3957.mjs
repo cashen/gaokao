@@ -64,7 +64,8 @@ for (const marker of [
   'feishu-api-client.v3956_0.js','feishu-report-contract.js','current-release.js','school-identity-center.js',
   'major-catalog-contract.js','school-profile-data.20260617-v3957.js','tongxue-direct-handoff-v155.js',
   'tongxue-direct-result-v156.js','render.v3957_0.js','family-shell.v3960_0.js','UI_ORCHESTRATION_VERSION',
-  'algorithm-orchestration-v3960','resolveCanonicalPosition','staged-ranking-v3960_0','decision-snapshot-v3960_0'
+  'algorithm-orchestration-v3960','resolveCanonicalPosition','staged-ranking-v3960_0','decision-snapshot-v3960_0',
+  'school-all-mode-v3962','/api/school-majors','resolveCompactSchoolResource'
 ]) assert.ok(reachableSource.includes(marker), `active graph missing ${marker}`);
 assert.ok(!reachableSource.includes("from './feature/feishu/index.js?v=3951_0'"));
 

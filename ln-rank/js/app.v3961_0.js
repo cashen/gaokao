@@ -67,4 +67,5 @@ function syncSharedBottomLine() {
 
 document.addEventListener('gaokao:workspace-state', syncSharedBottomLine);
 await import('./workspace/selection-workspace-orchestrator.v3961_0.js?v=3961_0');
+await import('./feature/school-majors/school-all-mode.v3962_0.js?v=3962_0');
 syncSharedBottomLine();

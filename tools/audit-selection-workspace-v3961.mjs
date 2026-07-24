@@ -7,9 +7,10 @@ const json = path => JSON.parse(read(path));
 const release = await import(new URL('../shared/resources/release/current-release.js', import.meta.url));
 const ui = await import(new URL('../shared/ui/ui-registry.js', import.meta.url));
 
-assert.equal(release.CURRENT_RELEASE.display, 'v3.9.61.0');
-assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3961_0');
+assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.0');
+assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3962_0');
 assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
+assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962');
 assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.version, 'selection-workspace-orchestration-v3961');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.filterChangeQueriesImmediately, false);
@@ -18,8 +19,9 @@ assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.bandSwitchIsViewOnly, true);
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.resultStructuralObserverAllowed, false);
 
 const page = read('ln-rank/index.html');
-assert.ok(page.includes('app.v3961_0.js?v=3961_0'));
+assert.ok(page.includes('app.v3961_0.js?v=3962_0'));
 assert.ok(page.includes('selection-workspace.v3961_0.css?v=3961_0'));
+assert.ok(page.includes('school-all-mode.v3962_0.css?v=3962_0'));
 for (const inactive of [
   'multi-terminal.v3949_4.js',
   'family-presentation.v3955_0.js',
@@ -121,8 +123,9 @@ for (const marker of [
 
 for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   const meta = json(file);
-  assert.equal(meta.version, 'v3.9.61.0');
-  assert.equal(meta.assetVersion, 'v3961_0');
+  assert.equal(meta.version, 'v3.9.62.0');
+  assert.equal(meta.assetVersion, 'v3962_0');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962');
   for (const contract of [
     'selectionWorkspaceOrchestrationContract',
     'draftCommittedQueryContract',
@@ -138,7 +141,9 @@ for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) 
     'selectionEventDedupContract',
     'keyboardViewportSingleOwnerContract',
     'androidNoLayoutJitterContract',
-    'layoutShiftBudgetContract'
+    'layoutShiftBudgetContract',
+    'schoolAllModeContract',
+    'schoolAllSharedSelectionPoolContract'
   ]) assert.equal(meta[contract], true, `${file} missing ${contract}`);
 }
 
@@ -146,5 +151,6 @@ console.log(JSON.stringify({
   ok: true,
   release: release.CURRENT_RELEASE.display,
   workspace: ui.SELECTION_WORKSPACE_CONTRACT.version,
+  schoolAll: release.CURRENT_RELEASE.schoolAllModeVersion,
   checks: 'state, result commit, scroll, viewport, Android bands, selection events'
 }, null, 2));

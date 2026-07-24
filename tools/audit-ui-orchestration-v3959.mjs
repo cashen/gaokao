@@ -12,12 +12,13 @@ const { UI_STATE_COPY, validateUiState }=await import(pathToFileURL(`${process.c
 const { UI_LANGUAGE, FORBIDDEN_PUBLIC_COPY }=await import(pathToFileURL(`${process.cwd()}/shared/ui/contracts/copy-contract.v3959_0.js`));
 const shellModule=await import(pathToFileURL(`${process.cwd()}/shared/ui/shell/family-shell.v3961_0.js`));
 
-assert.equal(CURRENT_RELEASE.display,'v3.9.61.0');
-assert.equal(CURRENT_RELEASE.assetVersion,'v3961_0');
+assert.equal(CURRENT_RELEASE.display,'v3.9.62.0');
+assert.equal(CURRENT_RELEASE.assetVersion,'v3962_0');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion,'ui-orchestration-v3961');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion,'algorithm-orchestration-v3960');
 assert.equal(CURRENT_RELEASE.resourceOwnershipVersion,'resource-ownership-v3958');
 assert.equal(CURRENT_RELEASE.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion,'school-all-mode-v3962');
 assert.equal(CURRENT_RELEASE.resourceOwners.ui,'/shared/ui/ui-registry.js');
 assert.equal(typeof releasePresenter.syncCurrentRelease,'function');
 assert.equal(typeof releasePresenter.mountCurrentRelease,'function');
@@ -80,28 +81,32 @@ const foundation=read('shared/ui/tokens/foundation.v3959_0.css');
 const semantic=read('shared/ui/tokens/semantic.v3959_0.css');
 const shellCss=read('shared/ui/shell/family-shell.v3960_0.css');
 const workspaceCss=read('ln-rank/css/selection-workspace.v3961_0.css');
+const schoolAllCss=read('ln-rank/css/school-all-mode.v3962_0.css');
 for(const token of ['--ui-page-bg','--ui-surface','--ui-ink','--ui-brand-primary','--ui-touch-min','--ui-reading-width','--ui-workspace-width','--ui-safe-bottom'])assert.ok(foundation.includes(token),`foundation missing ${token}`);
 assert.ok(foundation.includes('env(safe-area-inset-bottom'), 'foundation must own safe-area environment value');
 for(const component of ['.ui-button','.ui-card','.ui-state--loading','.ui-state--pending','.ui-state--error'])assert.ok(semantic.includes(component),`semantic missing ${component}`);
 for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','var(--ui-safe-bottom)','@media(max-width:767px)','mobile-dirty-bar','pool-entry-toast','#selected-list','#family-review'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
 for(const feature of ['.score-band-segmented','.score-band-current','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none','grid-template-columns: repeat(3, minmax(0, 1fr))'])assert.ok(workspaceCss.includes(feature),`workspace CSS missing ${feature}`);
+for(const feature of ['body[data-result-mode="school-all"]','.school-major-row','.school-all-summary','@media (max-width: 767px)','@media (max-width: 390px)'])assert.ok(schoolAllCss.includes(feature),`school-all CSS missing ${feature}`);
 
 const home=read('index.html');
-assert.ok(home.includes('data-release="v3.9.61.0"'));
+assert.ok(home.includes('data-release="v3.9.62.0"'));
 assert.ok(home.includes('data-current-release'));
 assert.ok(!home.includes('首页版本：v3.9.59.0'));
 
 const main=read('ln-rank/index.html');
 assert.ok(main.includes('family-shell.v3960_0.css?v=3961_0'));
 assert.ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'));
-assert.ok(main.includes('app.v3961_0.js?v=3961_0'));
-assert.ok(main.includes('data-release="v3.9.61.0"'));
+assert.ok(main.includes('school-all-mode.v3962_0.css?v=3962_0'));
+assert.ok(main.includes('app.v3961_0.js?v=3962_0'));
+assert.ok(main.includes('data-release="v3.9.62.0"'));
 assert.ok(main.includes('data-current-release'));
 assert.ok(main.includes('资源、UI与算法：全站统一调度'));
 for(const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js'])assert.ok(!main.includes(inactive),`legacy active layer ${inactive}`);
 
 const appEntry=read('ln-rank/js/app.v3961_0.js');
 assert.ok(appEntry.includes('release-presenter.js?v=3961_0'));
+assert.ok(appEntry.includes('school-all-mode.v3962_0.js?v=3962_0'));
 const selectedEntry=read('ln-rank/js/selection-pool.v3960_0.js');
 assert.ok(selectedEntry.includes('release-presenter.js?v=3961_0'));
 
@@ -109,7 +114,7 @@ const selected=read('ln-rank/selection-pool.html');
 assert.ok(selected.includes('id="selected-list"'));
 assert.ok(selected.includes('id="family-review"'));
 assert.ok(selected.includes('selection-pool.v3960_0.js?v=3961_0'));
-assert.ok(selected.includes('data-release="v3.9.61.0"'));
+assert.ok(selected.includes('data-release="v3.9.62.0"'));
 assert.ok(selected.includes('data-current-release'));
 assert.ok(selected.includes('同一算法快照'));
 assert.ok(!selected.includes('family-decision-bar.v3955_0.js'));
@@ -174,11 +179,12 @@ for(const [file,target] of Object.entries(redirectPages)){
 
 for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   const meta=json(file);
-  assert.equal(meta.version,'v3.9.61.0');
-  assert.equal(meta.assetVersion,'v3961_0');
+  assert.equal(meta.version,'v3.9.62.0');
+  assert.equal(meta.assetVersion,'v3962_0');
   assert.equal(meta.uiOrchestrationVersion,'ui-orchestration-v3961');
   assert.equal(meta.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
-  for(const key of ['sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract'])assert.equal(meta[key],true,`${file} missing ${key}`);
+  assert.equal(meta.schoolAllModeVersion,'school-all-mode-v3962');
+  for(const key of ['sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract','schoolAllModeContract','schoolAllSharedResourceContract','schoolAllEntityIsolationContract','schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract'])assert.equal(meta[key],true,`${file} missing ${key}`);
 }
 
-console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner-all-pages'},null,2));
+console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,schoolAll:CURRENT_RELEASE.schoolAllModeVersion,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner-all-pages'},null,2));
