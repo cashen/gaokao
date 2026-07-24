@@ -7,11 +7,11 @@ const json = path => JSON.parse(read(path));
 const release = await import(new URL('../shared/resources/release/current-release.js', import.meta.url));
 const ui = await import(new URL('../shared/ui/ui-registry.js', import.meta.url));
 
-assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.1');
-assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3962_1');
+assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.2');
+assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3962_2');
 assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
-assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1');
-assert.equal(release.CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_1');
+assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_2');
+assert.equal(release.CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
 assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.version, 'selection-workspace-orchestration-v3961');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.filterChangeQueriesImmediately, false);
@@ -20,9 +20,9 @@ assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.bandSwitchIsViewOnly, true);
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.resultStructuralObserverAllowed, false);
 
 const page = read('ln-rank/index.html');
-assert.ok(page.includes('app.v3961_0.js?v=3962_1'));
+assert.ok(page.includes('app.v3961_0.js?v=3962_2'));
 assert.ok(page.includes('selection-workspace.v3961_0.css?v=3961_0'));
-assert.ok(page.includes('school-all-mode.v3962_1.css?v=3962_1'));
+assert.ok(page.includes('school-all-mode.v3962_2.css?v=3962_2'));
 for (const inactive of [
   'multi-terminal.v3949_4.js',
   'family-presentation.v3955_0.js',
@@ -113,7 +113,7 @@ assert.equal((selectionController.match(/gaokao:selection-change/g) || []).lengt
 assert.ok(!selectionController.includes('lnrank:pool-updated'));
 assert.ok(!selectionController.includes("window.addEventListener('resize'"));
 
-const schoolRuntime = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js');
+const schoolRuntime = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js');
 assert.ok(schoolRuntime.includes('expandedRecordKey'));
 assert.ok(schoolRuntime.includes('data-school-detail-toggle'));
 assert.ok(schoolRuntime.includes('UI_ACTION_COPY'));
@@ -129,15 +129,15 @@ for (const marker of [
   '.workspace-compare-slot',
   'overflow-anchor: none'
 ]) assert.ok(css.includes(marker), `workspace CSS missing ${marker}`);
-const schoolCss = read('ln-rank/css/school-all-mode.v3962_1.css');
+const schoolCss = read('ln-rank/css/school-all-mode.v3962_2.css');
 for (const marker of ['container-name: school-results','@container school-results (max-width: 1040px)','@container school-results (max-width: 600px)','@container school-results (max-width: 360px)']) assert.ok(schoolCss.includes(marker), `school CSS missing ${marker}`);
 
 for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   const meta = json(file);
-  assert.equal(meta.version, 'v3.9.62.1');
-  assert.equal(meta.assetVersion, 'v3962_1');
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_1');
-  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3962_1');
+  assert.equal(meta.version, 'v3.9.62.2');
+  assert.equal(meta.assetVersion, 'v3962_2');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_2');
+  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
   for (const contract of [
     'selectionWorkspaceOrchestrationContract',
     'draftCommittedQueryContract',
