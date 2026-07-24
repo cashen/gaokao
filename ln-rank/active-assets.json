@@ -2,7 +2,7 @@
   "version": "v3.9.62.0",
   "assetVersion": "v3962_0",
   "releaseName": "v3.9.62.0-school-all-majors-no-fenxi",
-  "generatedAt": "2026-07-24T13:56:52+08:00",
+  "generatedAt": "2026-07-24T13:58:25+08:00",
   "noFenxiIncluded": true,
   "releaseGate": "resource-ownership-v3958-preserved, shared-ui-v3961, selection-workspace-v3961, school-all-v3962, algorithm-orchestration-v3960, protected-fenxi-runtime-unchanged",
   "sharedResourceCenterVersion": "v3961_0",

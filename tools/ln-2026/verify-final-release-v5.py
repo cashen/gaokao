@@ -135,6 +135,8 @@ def verify_release_meta_v3961() -> None:
     base.check('js/feature/school-majors/school-all-mode.v3962_0.js' in active['jsEntry'], 'school-all JS not active')
     base.check('css/school-all-mode.v3962_0.css' in active['cssEntry'], 'school-all CSS not active')
     base.check('js/feature/school-majors/school-all-mode.v3962_0.js' in active['jsEntry'], 'school-all JS not active')
+    base.check('css/school-all-mode.v3962_0.css' in active['cssEntry'], 'school-all CSS not active')
+    base.check('js/feature/school-majors/school-all-mode.v3962_0.js' in active['jsEntry'], 'school-all JS not active')
     base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3959_0.js', 'zy2026 active JS')
 
 
