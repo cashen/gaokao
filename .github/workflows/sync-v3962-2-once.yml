@@ -1,0 +1,49 @@
+name: Sync v3962.2 once
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.head_ref == 'fix/v3.9.62.2-unified-school-mode'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synchronize explicit release owners
+        run: node tools/release/sync-v3962_2.mjs
+      - name: Validate generated files
+        run: |
+          node --check tools/audit-school-mode-static-v3962_2.mjs
+          node --check tools/browser-school-mode-journey-v3962_2.mjs
+          node -e "for(const p of ['ln-rank/release-meta.json','ln-rank/active-assets.json'])JSON.parse(require('fs').readFileSync(p,'utf8'))"
+          grep -q "v3.9.62.2" shared/resources/release/current-release.js
+          grep -q "school-all-mode.v3962_2.js" ln-rank/js/app.v3961_0.js
+          grep -q "mode-switch.v3962_2.css" ln-rank/index.html
+      - name: Commit synchronized release files
+        run: |
+          if git diff --quiet; then
+            echo 'Release files already synchronized'
+            exit 0
+          fi
+          git config user.name 'gaokao-release-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html ln-rank/selection-pool.html ln2026.html zy2026.html zy2026/index.html \
+            ln-rank/release-meta.json ln-rank/active-assets.json \
+            tools/ln-2026/verify-final-release-v5.py tools/audit-ui-orchestration-v3959.mjs \
+            tools/audit-selection-workspace-v3961.mjs tools/audit-algorithm-orchestration-v3960.mjs \
+            tools/verify-family-decision-v3955.mjs tools/audit-shared-resource-center-v3957.mjs \
+            tools/check-ln-2026-release.mjs .github/workflows/verify-ln-2026-final.yml
+          git commit -m '同步 v3.9.62.2 正式发布合同'
+          git push origin HEAD:${{ github.head_ref }}
