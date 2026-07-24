@@ -19,6 +19,10 @@
 .ui-state--error{border-color:rgba(154,67,54,.22);background:var(--ui-risk-soft);color:var(--ui-risk)}
 .ui-state-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
 
+.ui-segmented{display:grid;grid-template-columns:repeat(var(--ui-segment-count,2),minmax(0,1fr));gap:4px;width:100%;min-width:0;padding:4px;border:1px solid var(--ui-line);border-radius:var(--ui-radius-md);background:var(--ui-surface)}
+.ui-segmented>.ui-button{width:100%;min-width:0;max-width:none;white-space:normal;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word;text-align:center}
+.ui-segmented>.ui-button[aria-pressed="true"]{border-color:var(--ui-brand-primary);background:var(--ui-brand-soft);color:var(--ui-brand-deep)}
+
 body.ui-orchestrated .query-button,
 body.ui-orchestrated .workspace-button,
 body.ui-orchestrated .button,
