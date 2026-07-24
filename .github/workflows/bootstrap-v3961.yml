@@ -44,8 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           tar -xzf /tmp/v3961.tar.gz -C .
+          git checkout -- .github/workflows/verify-ln-2026-final.yml
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap-v3961.yml
           git add -A
           git diff --cached --check
       - name: Commit implementation
