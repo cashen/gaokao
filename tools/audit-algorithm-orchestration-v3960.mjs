@@ -18,7 +18,7 @@ const { classifySelectionPosition } = await import(url('ln-rank/js/domain/select
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_1');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
 assert.equal(ALGORITHM_CONTRACT.activeDataYear, 2026);
 assert.equal(ALGORITHM_CONTRACT.audienceYear, 2027);
 assert.ok(ALGORITHM_CONTRACT.principles.includes('ai-explains-but-does-not-rank'));

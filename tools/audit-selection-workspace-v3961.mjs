@@ -10,7 +10,7 @@ const ui = await import(new URL('../shared/ui/ui-registry.js', import.meta.url))
 assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.1');
 assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3962_1');
 assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
-assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1');
+assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
 assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.version, 'selection-workspace-orchestration-v3961');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.filterChangeQueriesImmediately, false);
@@ -125,7 +125,7 @@ for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) 
   const meta = json(file);
   assert.equal(meta.version, 'v3.9.62.1');
   assert.equal(meta.assetVersion, 'v3962_1');
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_1_1');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
   for (const contract of [
     'selectionWorkspaceOrchestrationContract',
     'draftCommittedQueryContract',

@@ -57,7 +57,7 @@ for (const marker of [
   'container-type: inline-size',
   'container-name: school-results',
   '@container school-results (max-width: 1040px)',
-  '@container school-results (max-width: 720px)',
+  '@container school-results (max-width: 600px)',
   '@container school-results (max-width: 360px)'
 ]) assert.ok(css.includes(marker), `container-responsive contract missing ${marker}`);
 assert.ok(!/@media\s*\(\s*max-width/i.test(css), 'school layout may not regress to device-width breakpoints');

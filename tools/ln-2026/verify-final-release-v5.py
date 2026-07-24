@@ -51,7 +51,7 @@ def verify_family_and_ui_v3961() -> None:
     contains('ln-rank/js/feature/score-bands/render.v3961_0.js', 'score-band-segmented', 'role="tablist"', '只切换当前列表，不重新查询')
     contains('ln-rank/css/selection-workspace.v3961_0.css', '.score-band-segmented', '.score-band-current', '.ln-result-workspace-status', '.workspace-compare-slot', 'overflow-anchor: none')
     contains('ln-rank/js/selection-pool.v3960_0.js', 'release-presenter.js?v=3961_0', 'shared/ui/shell/family-shell.v3960_0.js', 'ALGORITHM_CONTRACT')
-    contains('ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js', 'resolveCompactSchoolResource', 'createSelectionPoolAdapter', "const API_PATH = '/api/school-majors'", 'school-all-mode-v3962_1_1')
+    contains('ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js', 'resolveCompactSchoolResource', 'createSelectionPoolAdapter', "const API_PATH = '/api/school-majors'", 'school-all-mode-v3962_1_1_1')
     contains('ln-rank/css/school-all-mode.v3962_1.css', 'body[data-result-mode="school-all"]', '@media (max-width: 767px)', '@media (max-width: 390px)')
     contains('functions/api/school-majors.js', "../_lib/ln-rank-manifest.js", 'school-identity-center.js', 'canonical-position.v3960_0.js', "mode: 'shared-records-school-exact'")
 

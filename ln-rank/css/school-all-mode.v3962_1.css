@@ -402,7 +402,7 @@ body[data-result-mode="school-all"] .filter-school label::after {
   }
 }
 
-@container school-results (max-width: 720px) {
+@container school-results (max-width: 600px) {
   .school-all-results-head {
     display: grid;
     gap: 9px;
