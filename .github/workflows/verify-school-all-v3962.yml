@@ -1,0 +1,59 @@
+name: Verify school-all mode v3962
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  school-all-mode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check protected paths
+        run: |
+          set -euo pipefail
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base"...HEAD | tee /tmp/school-all-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/school-all-files.txt; then
+            echo 'Protected path changed'
+            exit 1
+          fi
+
+      - name: Check school-all JavaScript syntax
+        run: |
+          node --check functions/api/school-majors.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js
+          node --check tools/audit-school-all-mode-v3962.mjs
+
+      - name: Audit shared resources and real 2026 data
+        run: node tools/audit-school-all-mode-v3962.mjs
+
+      - name: Smoke-test school-all static resources
+        run: |
+          python3 -m http.server 8765 >/tmp/school-all-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          for path in \
+            /ln-rank/ \
+            /ln-rank/js/app.v3961_0.js \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js \
+            /ln-rank/css/school-all-mode.v3962_0.css \
+            /shared/resources/schools/school-resource-center.js \
+            /shared/resources/schools/school-identity-center.js; do
+            echo "GET $path"
+            curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
+          done
