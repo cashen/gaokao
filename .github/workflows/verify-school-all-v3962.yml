@@ -1,4 +1,4 @@
-name: Verify school-all mode v3962
+name: Verify school-all UI v3962.1
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   school-all-mode:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,11 +32,27 @@ jobs:
             exit 1
           fi
 
-      - name: Check school-all JavaScript syntax
+      - name: Check school UI JavaScript syntax
         run: |
           node --check functions/api/school-majors.js
-          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js
           node --check tools/audit-school-all-mode-v3962.mjs
+          node --check tools/audit-school-ui-governance-v3962_1.mjs
+          node --check tools/browser-school-ui-v3962_1.mjs
+
+      - name: Enforce shared UI governance
+        id: ui_governance
+        shell: bash
+        run: |
+          set +e
+          node tools/audit-school-ui-governance-v3962_1.mjs > /tmp/school-ui-governance.out 2> /tmp/school-ui-governance.err
+          status=$?
+          cat /tmp/school-ui-governance.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- SCHOOL UI GOVERNANCE ERROR ---'
+            cat /tmp/school-ui-governance.err
+            exit "$status"
+          fi
 
       - name: Audit shared resources and real 2026 data
         id: school_all_audit
@@ -52,18 +68,20 @@ jobs:
             exit "$status"
           fi
 
-      - name: Upload school-all audit diagnostic
-        if: failure() && steps.school_all_audit.outcome == 'failure'
+      - name: Upload static audit diagnostics
+        if: failure() && (steps.ui_governance.outcome == 'failure' || steps.school_all_audit.outcome == 'failure')
         uses: actions/upload-artifact@v4
         with:
-          name: school-all-v3962-audit-error
+          name: school-ui-v3962-1-audit-error
           path: |
+            /tmp/school-ui-governance.out
+            /tmp/school-ui-governance.err
             /tmp/school-all-audit.out
             /tmp/school-all-audit.err
-          if-no-files-found: error
-          retention-days: 1
+          if-no-files-found: warn
+          retention-days: 2
 
-      - name: Smoke-test school-all static resources
+      - name: Smoke-test governed static resources
         run: |
           python3 -m http.server 8765 >/tmp/school-all-http.log 2>&1 &
           server=$!
@@ -72,10 +90,48 @@ jobs:
           for path in \
             /ln-rank/ \
             /ln-rank/js/app.v3961_0.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js \
-            /ln-rank/css/school-all-mode.v3962_0.css \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js \
+            /ln-rank/css/school-all-mode.v3962_1.css \
+            /shared/ui/tokens/semantic.v3959_0.css \
+            /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/resources/schools/school-resource-center.js \
             /shared/resources/schools/school-identity-center.js; do
             echo "GET $path"
             curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
           done
+
+      - name: Install Chromium layout test
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install chromium
+
+      - name: Verify PC Pad Android layouts in Chromium
+        id: browser_ui
+        shell: bash
+        run: |
+          set +e
+          python3 -m http.server 8765 >/tmp/school-ui-browser-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          SCHOOL_UI_ARTIFACT_DIR=/tmp/school-ui-v3962_1 node tools/browser-school-ui-v3962_1.mjs > /tmp/school-ui-browser.out 2> /tmp/school-ui-browser.err
+          status=$?
+          cat /tmp/school-ui-browser.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- SCHOOL UI BROWSER ERROR ---'
+            cat /tmp/school-ui-browser.err
+            exit "$status"
+          fi
+
+      - name: Upload browser layout diagnostics
+        if: failure() && steps.browser_ui.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-ui-v3962-1-browser-error
+          path: |
+            /tmp/school-ui-browser.out
+            /tmp/school-ui-browser.err
+            /tmp/school-ui-browser-http.log
+            /tmp/school-ui-v3962_1
+          if-no-files-found: warn
+          retention-days: 3
