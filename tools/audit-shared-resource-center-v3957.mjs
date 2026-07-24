@@ -22,7 +22,7 @@ import { STANDARD_MAJOR_CATALOG_2026_FULL, STANDARD_MAJOR_CATEGORIES_2026_FULL }
 const read = file => fs.readFileSync(file, 'utf8');
 const json = file => JSON.parse(read(file));
 assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);
-assert.equal(UI_ORCHESTRATION_VERSION, 'v3960_0');
+assert.equal(UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ALGORITHM_ORCHESTRATION_VERSION, 'algorithm-orchestration-v3960');
 assert.equal(Object.keys(UI_PAGE_REGISTRY).length, 7);
 assert.equal(UI_PAGE_REGISTRY.selected.route, '/ln-rank/selection-pool.html#selected-list');
@@ -109,6 +109,7 @@ const adapters = [
   ['functions/_lib/location-normalizer.js', 'shared/resources/geo/china-region-catalog.js'],
   ['functions/_lib/school-geo-db.js', 'shared/resources/geo/china-region-catalog.js'],
   ['ln-rank/js/ux/family-presentation.v3955_0.js', 'shared/resources/schools/school-resource-center.js'],
+  ['ln-rank/js/workspace/family-card-presenter.v3961_0.js', 'shared/resources/schools/school-resource-center.js'],
   ['functions/_lib/school-tags.js', 'shared/resources/schools/school-profile-center.js'],
   ['functions/_lib/location-normalizer.js', 'shared/resources/schools/school-profile-center.js'],
   ['functions/_lib/school-display-tags.js', 'shared/resources/schools/school-profile-center.js'],
@@ -118,8 +119,8 @@ const adapters = [
   ['ln-rank/js/knowledge/major-understanding-resolver.js', 'shared/resources/majors/major-catalog-contract.js'],
   ['ln-rank/js/shared/feishu-api-client.v3956_0.js', 'shared/resources/reports/feishu-report-contract.js'],
   ['functions/_lib/report-data-service-v3956.js', 'shared/resources/reports/feishu-report-contract.js'],
-  ['ln-rank/js/app.v3960_0.js', 'shared/ui/shell/family-shell.v3960_0.js'],
-  ['ln-rank/js/app.v3960_0.js', 'shared/algorithms/algorithm-registry.js'],
+  ['ln-rank/js/app.v3961_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
+  ['ln-rank/js/app.v3961_0.js', 'shared/algorithms/algorithm-registry.js'],
   ['ln-rank/js/selection-pool.v3960_0.js', 'shared/ui/shell/family-shell.v3960_0.js'],
   ['ln-rank/js/selection-pool.v3960_0.js', 'shared/algorithms/algorithm-registry.js'],
   ['ln-rank/js/major-difficulty-2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
@@ -129,11 +130,11 @@ const adapters = [
 for (const [file, marker] of adapters) assert.ok(read(file).includes(marker), `${file} bypasses shared resource ${marker}`);
 
 const mainPage = read('ln-rank/index.html');
-const appWrapper = read('ln-rank/js/app.v3960_0.js');
+const appWrapper = read('ln-rank/js/app.v3961_0.js');
 const schoolLinkCenter = read('shared/resources/schools/school-resource-center.js');
-assert.ok(mainPage.includes('/ln-rank/js/app.v3960_0.js?v=3960_0'));
-assert.ok(!mainPage.includes('/ln-rank/js/app.v3951_0.js?v=3960_0'));
-assert.ok(appWrapper.includes("await import('./app.v3951_0.js?v=3960_0')"));
+assert.ok(mainPage.includes('/ln-rank/js/app.v3961_0.js?v=3961_0'));
+assert.ok(!mainPage.includes('/ln-rank/js/app.v3960_0.js?v=3961_0'));
+assert.ok(appWrapper.includes("await import('./workspace/selection-workspace-orchestrator.v3961_0.js?v=3961_0')"));
 assert.ok(appWrapper.includes("url.pathname !== '/api/major-bands'"));
 assert.ok(appWrapper.includes('algorithmOrchestrationVersion'));
 assert.ok(!read('ln-rank/js/app.v3951_0.js').includes('SPECIAL_CONTROL_SCORE'));
@@ -162,7 +163,7 @@ assert.ok(!read('functions/_lib/school-tags.js').includes("'大连理工大学':
 for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-assets.json')]) {
   assert.equal(meta.version, CURRENT_RELEASE.display);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
-  assert.equal(meta.uiOrchestrationVersion, 'ui-orchestration-v3960');
+  assert.equal(meta.uiOrchestrationVersion, 'ui-orchestration-v3961');
   assert.equal(meta.algorithmOrchestrationVersion, 'algorithm-orchestration-v3960');
   for (const key of [
     'sharedResourceCenterContract','sharedExamResourceContract','sharedRegionResourceContract',
@@ -177,4 +178,4 @@ for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-asse
   ]) assert.equal(meta[key], true, `missing ${key}`);
   assert.equal(meta.sharedResourceCenterVersion, CURRENT_RELEASE.assetVersion);
 }
-console.log('SHARED_RESOURCE_UI_ALGORITHM_CENTER_V3960_OK');
+console.log('SHARED_RESOURCE_UI_ALGORITHM_CENTER_V3961_OK');
