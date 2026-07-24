@@ -4,6 +4,25 @@ export const state = {
   activeBand: "near",
   bandFocus: "near",
   resultViewMode: "all",
+  resultMode: "score-bands",
+  schoolSelection: {
+    status: "empty",
+    input: "",
+    entityId: "",
+    displayName: "",
+    entityType: "",
+    parentEntityId: ""
+  },
+  schoolAll: {
+    loading: false,
+    loadingMore: false,
+    error: null,
+    data: null,
+    sort: "score-desc",
+    offset: 0,
+    limit: 40,
+    dirty: false
+  },
   filters: {
     region: "all",
     schoolKeyword: "",
