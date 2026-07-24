@@ -20,6 +20,7 @@ verifier.write_text(source, encoding='utf-8')
 audit = ROOT / 'tools/audit-shared-resource-center-v3957.mjs'
 source = audit.read_text(encoding='utf-8')
 source = source.replace("assert.equal(SHARED_RESOURCE_CENTER_VERSION, 'v3961_0');", "assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);")
+source = source.replace("'feature/selection-pool/index.v3961_0.js'", "'../selection-pool/index.v3961_0.js'")
 audit.write_text(source, encoding='utf-8')
 
 print('RESOURCE_CENTER_V3962_SYNC_OK')
