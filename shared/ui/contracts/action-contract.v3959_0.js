@@ -4,6 +4,8 @@ export const UI_ACTION_INTENTS=Object.freeze(['continue','inspect','verify','sav
 export const UI_ACTION_COPY=Object.freeze({
   startSelection:Object.freeze({level:'primary',intent:'continue',label:'开始专业初选',pendingLabel:'正在准备专业初选…'}),
   viewResults:Object.freeze({level:'primary',intent:'continue',label:'查看符合条件的专业',pendingLabel:'正在按当前条件整理专业…'}),
+  viewScoreNearby:Object.freeze({level:'secondary',intent:'inspect',label:'按我的分数附近看',compactLabel:'分数附近'}),
+  viewSchoolAllMajors:Object.freeze({level:'secondary',intent:'inspect',label:'看该校全部招生专业',compactLabel:'全部招生专业'}),
   addDiscussion:Object.freeze({level:'primary',intent:'save',label:'加入家庭讨论',pendingLabel:'正在加入…',successLabel:'已加入家庭讨论'}),
   addSelectedMajor:Object.freeze({level:'secondary',intent:'save',label:'加入已选',pendingLabel:'正在加入…',successLabel:'已加入'}),
   removeSelectedMajor:Object.freeze({level:'tertiary',intent:'leave',label:'移出已选'}),
