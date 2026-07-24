@@ -107,7 +107,7 @@ try {
     mainNoScore.meta.filteredTotal,
     'special projects must remain included in the full-school total'
   );
-  assert.equal(mainNoScore.meta.dataBoundary.includes('不是学校全国全部本科专业'), true);
+  assert.equal(mainNoScore.meta.dataBoundary.includes('不代表该校全国全部本科专业'), true);
   assert.equal(mainNoScore.source.mode, 'shared-records-school-exact');
 
   console.log(JSON.stringify({
