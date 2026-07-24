@@ -18,11 +18,11 @@ for(const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,14
 const pages=['ln-rank/index.html','ln-rank/selection-pool.html','ln-rank/local-mainline.html','ln-rank/211-mainline.html','ln-rank/major-trend-2026.html','ln2026.html','lngk2026.html','index.html','e.html','zy.html','zy2026.html','zy2026/index.html'];
 for(const path of pages)ok(!/版本：v3\.9\.50\.0/.test(t(path)),`${path} old footer`);
 
-ok(VERSION==='v3.9.62.0'&&ASSET==='v3962_0','current release version');
+ok(VERSION==='v3.9.62.1'&&ASSET==='v3962_1','current release version');
 ok(CURRENT_RELEASE.uiOrchestrationVersion==='ui-orchestration-v3961','current UI version');
 ok(CURRENT_RELEASE.algorithmOrchestrationVersion==='algorithm-orchestration-v3960','algorithm version preserved');
 ok(CURRENT_RELEASE.selectionWorkspaceVersion==='selection-workspace-orchestration-v3961','workspace version');
-ok(CURRENT_RELEASE.schoolAllModeVersion==='school-all-mode-v3962','school-all mode version');
+ok(CURRENT_RELEASE.schoolAllModeVersion==='school-all-mode-v3962_1','school-all mode version');
 
 const releasePresenter=t('shared/resources/release/release-presenter.js');
 ok(releasePresenter.includes("from './current-release.js'")&&releasePresenter.includes('data-current-release')&&releasePresenter.includes('dataset.release')&&releasePresenter.includes('dataset.uiRelease'),'shared release presenter');
@@ -33,7 +33,7 @@ ok(main.includes(VERSION),'main version fallback');
 ok(main.includes('data-current-release'),'main shared release marker');
 ok(main.includes('app.v3961_0.js?v=3962_0'),'v3962 cached main wrapper loaded');
 ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'),'workspace CSS loaded');
-ok(main.includes('school-all-mode.v3962_0.css?v=3962_0'),'school-all CSS loaded');
+ok(main.includes('school-all-mode.v3962_1.css?v=3962_0'),'school-all CSS loaded');
 ok(!main.includes('app.v3960_0.js?v=3960_0'),'old main not loaded directly');
 ok(main.includes('foundation.v3959_0.css'),'shared UI tokens loaded');
 ok(main.includes('family-shell.v3960_0.css?v=3961_0'),'shared shell CSS loaded');
@@ -101,7 +101,7 @@ ok(appWrapper.includes("url.pathname !== '/api/major-bands'")&&appWrapper.includ
 ok(appWrapper.includes('release-presenter.js?v=3961_0'),'main shared release presenter');
 ok(appWrapper.includes('shared/ui/shell/family-shell.v3961_0.js'),'main v3961 UI adapter');
 ok(appWrapper.includes('ALGORITHM_CONTRACT'),'main algorithm contract');
-ok(appWrapper.includes("school-all-mode.v3962_0.js?v=3962_0"),'main school-all adapter');
+ok(appWrapper.includes("school-all-mode.v3962_1.js?v=3962_0"),'main school-all adapter');
 ok(t('functions/_lib/exam-year-config.js').includes('shared/resources/exam/liaoning-physics.js'),'exam adapter');
 ok(t('functions/_lib/region-rules.js').includes('shared/resources/geo/china-region-catalog.js'),'region backend adapter');
 ok(t('ln-rank/js/config/region-options.js').includes('shared/resources/geo/china-region-catalog.js'),'region frontend adapter');
@@ -109,7 +109,7 @@ ok(t('ln-rank/js/workspace/family-card-presenter.v3961_0.js').includes('shared/r
 ok(t('functions/_lib/standard-major-mapper.js').includes('shared/resources/majors/major-catalog-contract.js'),'server major resolver shared');
 ok(t('ln-rank/js/knowledge/major-understanding-resolver.js').includes('shared/resources/majors/major-catalog-contract.js'),'browser major resolver shared');
 
-const schoolAll=t('ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js');
+const schoolAll=t('ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js');
 const schoolApi=t('functions/api/school-majors.js');
 ok(schoolAll.includes('resolveCompactSchoolResource')&&schoolAll.includes('createSelectionPoolAdapter')&&schoolAll.includes("const API_PATH = '/api/school-majors'"),'school-all shared frontend resources');
 ok(!schoolAll.includes('MutationObserver')&&!schoolAll.includes('setTimeout('),'school-all no observer or timer');
@@ -155,7 +155,7 @@ ok(active.version===VERSION&&active.assetVersion===ASSET,'active version');
 ok(active.sharedResourceCenterVersion===ASSET,'active shared resource center version');
 ok(active.mainJs==='js/app.v3961_0.js'&&active.jsEntry.includes('js/app.v3961_0.js'),'active v3961 main');
 ok(active.selectionPoolJs==='js/selection-pool.v3960_0.js'&&active.jsEntry.includes('js/selection-pool.v3960_0.js'),'active selection');
-for(const entry of ['js/workspace/selection-workspace-orchestrator.v3961_0.js','js/workspace/result-commit.v3961_0.js','js/workspace/family-card-presenter.v3961_0.js','js/workspace/scroll-policy.v3961_0.js','js/workspace/viewport-orchestrator.v3961_0.js','js/feature/school-majors/school-all-mode.v3962_0.js','../shared/ui/shell/family-shell.v3961_0.js'])ok(active.jsEntry.includes(entry),`active workspace ${entry}`);
+for(const entry of ['js/workspace/selection-workspace-orchestrator.v3961_0.js','js/workspace/result-commit.v3961_0.js','js/workspace/family-card-presenter.v3961_0.js','js/workspace/scroll-policy.v3961_0.js','js/workspace/viewport-orchestrator.v3961_0.js','js/feature/school-majors/school-all-mode.v3962_1.js','../shared/ui/shell/family-shell.v3961_0.js'])ok(active.jsEntry.includes(entry),`active workspace ${entry}`);
 for(const inactive of ['js/app.v3960_0.js','js/app.v3951_0.js','js/ux/family-presentation.v3955_0.js','js/ux/multi-terminal.v3949_4.js','js/ux/compare-workspace.v3953_0.js'])ok(!active.jsEntry.includes(inactive),`legacy active ${inactive}`);
 ok(active.sharedResourceCenterContract===true&&active.sharedSchoolDirectoryLazySingleFlightContract===true,'shared active contracts');
 ok(active.unifiedResourceOwnershipContract===true&&active.resourceOwnershipAuditContract===true,'resource ownership active contracts');
@@ -164,7 +164,7 @@ ok(active.selectionWorkspaceOrchestrationContract===true&&active.preserveStaleRe
 ok(active.algorithmOrchestrationContract===true&&active.canonicalPositionContract===true&&active.decisionSnapshotContract===true,'algorithm active contracts');
 ok(active.schoolAllModeContract===true&&active.schoolAllEntityIsolationContract===true&&active.schoolAllScoreInvariantContract===true&&active.schoolAllSharedSelectionPoolContract===true,'school-all active contracts');
 ok(active.cssEntry.includes('css/selection-workspace.v3961_0.css'),'workspace css active');
-ok(active.cssEntry.includes('css/school-all-mode.v3962_0.css'),'school-all css active');
+ok(active.cssEntry.includes('css/school-all-mode.v3962_1.css'),'school-all css active');
 ok(active.zy2026ExperienceVersion==='v3.9.55.0','zy experience version');
 ok(active.structure2026.js==='../zy2026/assets/zy2026.v3959_0.js'&&active.structure2026.css==='../zy2026/assets/zy2026.v3954_0.css','zy active assets');
 
