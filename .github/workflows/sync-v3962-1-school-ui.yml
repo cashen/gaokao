@@ -1,23 +1,22 @@
 name: Sync v3962.1 school UI release
 
 on:
-  push:
-    branches: [fix/v3.9.62.1-school-ui-governance]
-    paths:
-      - tools/release/sync-v3962-1-school-ui.py
-      - .github/workflows/sync-v3962-1-school-ui.yml
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 permissions:
   contents: write
 
 jobs:
   sync-release:
+    if: github.head_ref == 'fix/v3.9.62.1-school-ui-governance'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix/v3.9.62.1-school-ui-governance
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -56,4 +55,4 @@ jobs:
             tools/verify-family-decision-v3955.mjs \
             tools/audit-shared-resource-center-v3957.mjs
           git commit -m 'release: synchronize v3.9.62.1 governance metadata'
-          git push origin HEAD:fix/v3.9.62.1-school-ui-governance
+          git push origin HEAD:${{ github.head_ref }}
