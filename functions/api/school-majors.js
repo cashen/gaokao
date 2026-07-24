@@ -1,4 +1,4 @@
-import { loadAllRecords } from '../_lib/fenxi-manifest.js';
+import { loadAllRecords } from '../_lib/ln-rank-manifest.js';
 import { normalizeRecord, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
