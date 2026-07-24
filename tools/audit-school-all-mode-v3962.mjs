@@ -58,7 +58,7 @@ for (const marker of [
   'container-name: school-mode',
   'container-name: school-results',
   '@container school-results (max-width: 1040px)',
-  '@container school-results (max-width: 720px)',
+  '@container school-results (max-width: 600px)',
   '@container school-results (max-width: 360px)',
   '.school-major-row',
   '.school-all-summary'
