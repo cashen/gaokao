@@ -1,0 +1,26 @@
+/* v3.9.62.2 shared mode switch.
+   Shared UI owns structure, spacing, text flow and terminal adaptation. */
+.ui-mode-switch{
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+  display:grid;
+  gap:8px;
+  padding:11px;
+  border:1px solid var(--ui-line);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface-soft);
+  writing-mode:horizontal-tb;
+  container-name:ui-mode-switch;
+  container-type:inline-size;
+}
+.ui-mode-switch[hidden]{display:none!important}
+.ui-mode-switch__head{min-width:0;display:grid;gap:3px;writing-mode:horizontal-tb}
+.ui-mode-switch__head b{min-width:0;color:var(--ui-ink);font-size:14px;line-height:1.45;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word}
+.ui-mode-switch__head span,.ui-mode-switch__status{min-width:0;margin:0;color:var(--ui-muted);font-size:12px;line-height:1.55;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word}
+.ui-mode-switch__actions{min-width:0;--ui-segment-count:2}
+.ui-mode-switch__actions>.ui-button{min-width:0;min-height:42px;padding-inline:8px;font-size:12.5px;line-height:1.35;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word}
+@container ui-mode-switch (max-width:280px){
+  .ui-mode-switch__actions{--ui-segment-count:1}
+}
+@media(prefers-reduced-motion:reduce){.ui-mode-switch *{transition:none!important}}
