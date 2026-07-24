@@ -16,8 +16,9 @@ const { getBottomLineEligibility } = await import(url('functions/_lib/bottomline
 const { classifySelectionPosition } = await import(url('ln-rank/js/domain/selection-band-policy.js'));
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.0');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3961_0');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_0');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962');
 assert.equal(ALGORITHM_CONTRACT.activeDataYear, 2026);
 assert.equal(ALGORITHM_CONTRACT.audienceYear, 2027);
 assert.ok(ALGORITHM_CONTRACT.principles.includes('ai-explains-but-does-not-rank'));
