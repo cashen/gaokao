@@ -18,7 +18,7 @@ assert.equal(CURRENT_RELEASE.uiOrchestrationVersion,'ui-orchestration-v3961');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion,'algorithm-orchestration-v3960');
 assert.equal(CURRENT_RELEASE.resourceOwnershipVersion,'resource-ownership-v3958');
 assert.equal(CURRENT_RELEASE.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion,'school-all-mode-v3962_1_1_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion,'school-all-mode-v3962_1_1_1_1');
 assert.equal(CURRENT_RELEASE.resourceOwners.ui,'/shared/ui/ui-registry.js');
 assert.equal(typeof releasePresenter.syncCurrentRelease,'function');
 assert.equal(typeof releasePresenter.mountCurrentRelease,'function');
@@ -183,7 +183,7 @@ for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   assert.equal(meta.assetVersion,'v3962_1');
   assert.equal(meta.uiOrchestrationVersion,'ui-orchestration-v3961');
   assert.equal(meta.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
-  assert.equal(meta.schoolAllModeVersion,'school-all-mode-v3962_1_1_1');
+  assert.equal(meta.schoolAllModeVersion,'school-all-mode-v3962_1_1_1_1');
   for(const key of ['sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract','schoolAllModeContract','schoolAllSharedResourceContract','schoolAllEntityIsolationContract','schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract'])assert.equal(meta[key],true,`${file} missing ${key}`);
 }
 

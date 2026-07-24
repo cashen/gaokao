@@ -42,7 +42,7 @@ assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_1');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1_1');
 
 includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏','family-shell.v3959_0.js','data-current-release'], 'homepage');
 assert.ok(!root.includes('近期真实评论'), 'homepage must not claim real reviews');
@@ -63,7 +63,7 @@ assert.ok(!presentation.includes('2026年录取所需位次'), 'old visible admi
 assert.ok(!presentation.includes("fetch('/api/tongxue"), 'card layer must not prefetch Tongxue API');
 assert.ok(oldPresentation.includes('为什么出现'), 'preserved compatibility presentation changed unexpectedly');
 
-includesAll(schoolAll, ['createSelectionPoolAdapter','buildTongxueSchoolHref','school-all-mode-v3962_1_1_1','看该校全部招生专业','输入参考分数后，可查看历史位置关系'], 'school-all family flow');
+includesAll(schoolAll, ['createSelectionPoolAdapter','buildTongxueSchoolHref','school-all-mode-v3962_1_1_1_1','看该校全部招生专业','输入参考分数后，可查看历史位置关系'], 'school-all family flow');
 assert.ok(!schoolAll.includes('MutationObserver'), 'school-all mode must not add observer');
 assert.ok(!schoolAll.includes('setTimeout('), 'school-all mode must not add timer ownership');
 

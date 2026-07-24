@@ -23,7 +23,7 @@ const read = file => fs.readFileSync(file, 'utf8');
 const json = file => JSON.parse(read(file));
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_1');
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1_1');
 assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);
 assert.equal(UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ALGORITHM_ORCHESTRATION_VERSION, 'algorithm-orchestration-v3960');
@@ -177,7 +177,7 @@ for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-asse
   assert.equal(meta.sharedResourceCenterVersion, SHARED_RESOURCE_CENTER_VERSION);
   assert.equal(meta.uiOrchestrationVersion, 'ui-orchestration-v3961');
   assert.equal(meta.algorithmOrchestrationVersion, 'algorithm-orchestration-v3960');
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1_1');
   for (const key of [
     'sharedResourceCenterContract','sharedExamResourceContract','sharedRegionResourceContract',
     'sharedSchoolResourceContract','sharedSchoolDirectoryLazySingleFlightContract','feishuSharedResourceContract',
