@@ -8,24 +8,28 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 const app = read('ln-rank/js/app.v3961_0.js');
 const state = read('ln-rank/js/state/app-state.js');
-const frontend = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js');
-const css = read('ln-rank/css/school-all-mode.v3962_0.css');
+const frontend = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_1.js');
+const css = read('ln-rank/css/school-all-mode.v3962_1.css');
 const api = read('functions/api/school-majors.js');
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.ok(app.includes("school-all-mode.v3962_0.js?v=3962_0"), 'main app must mount school-all mode');
+assert.ok(app.includes("school-all-mode.v3962_1.js?v=3962_1"), 'main app must mount governed school-all mode');
 assert.ok(state.includes('resultMode: "score-bands"'), 'state must keep score-bands as default');
 assert.ok(state.includes('schoolSelection:'), 'state must own school selection');
 assert.ok(state.includes('schoolAll:'), 'state must own school-all request state');
 
 for (const marker of [
-  "resolveCompactSchoolResource",
-  "createSelectionPoolAdapter",
-  "buildTongxueSchoolHref",
+  'resolveCompactSchoolResource',
+  'createSelectionPoolAdapter',
+  'buildTongxueSchoolHref',
+  'UI_ACTION_COPY',
   "const API_PATH = '/api/school-majors'",
   "mode', MODE_SCHOOL",
   'schoolEntity',
-  'candidateScore'
+  'candidateScore',
+  'data-school-detail-toggle',
+  'ui-button ui-button--compact',
+  'ui-chip ui-chip--compact'
 ]) assert.ok(frontend.includes(marker), `school-all frontend missing ${marker}`);
 
 for (const forbidden of ['MutationObserver', 'setTimeout(', 'lnRank.schoolAll.selectionPool', 'new Map(SCHOOL']) {
@@ -33,27 +37,29 @@ for (const forbidden of ['MutationObserver', 'setTimeout(', 'lnRank.schoolAll.se
 }
 
 for (const marker of [
-  "../_lib/ln-rank-manifest.js",
-  "../_lib/fenxi-normalizer.js",
-  "../_lib/standard-major-mapper.js",
-  "../_lib/school-display-tags.js",
-  "../_lib/special-project-policy.js",
-  "canonical-position.v3960_0.js",
-  "school-identity-center.js",
+  '../_lib/ln-rank-manifest.js',
+  '../_lib/fenxi-normalizer.js',
+  '../_lib/standard-major-mapper.js',
+  '../_lib/school-display-tags.js',
+  '../_lib/special-project-policy.js',
+  'canonical-position.v3960_0.js',
+  'school-identity-center.js',
   "mode: 'school-all'",
   "mode: 'shared-records-school-exact'"
 ]) assert.ok(api.includes(marker), `school-all API missing shared owner ${marker}`);
 
 assert.ok(!api.includes("from '../_lib/fenxi-manifest.js'"), 'school-all API must not use historical manifest');
-assert.ok(!api.includes("SCHOOL_ENTITIES_V150=Object.freeze"), 'school identities must not be duplicated in API');
+assert.ok(!api.includes('SCHOOL_ENTITIES_V150=Object.freeze'), 'school identities must not be duplicated in API');
 assert.ok(releaseContract.includes('LN_RANK_RELEASE_CONTRACT'), 'release contract must keep LN_RANK_RELEASE_CONTRACT');
 assert.ok(releaseContract.includes('RELEASE_CONTRACT'), 'release contract must keep RELEASE_CONTRACT');
 
 for (const marker of [
   'body[data-result-mode="school-all"]',
-  '@media (max-width: 1180px)',
-  '@media (max-width: 767px)',
-  '@media (max-width: 390px)',
+  'container-name: school-mode',
+  'container-name: school-results',
+  '@container school-results (max-width: 1040px)',
+  '@container school-results (max-width: 720px)',
+  '@container school-results (max-width: 360px)',
   '.school-major-row',
   '.school-all-summary'
 ]) assert.ok(css.includes(marker), `responsive school-all CSS missing ${marker}`);
@@ -112,11 +118,12 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    mode: 'school-all-mode-v3962',
+    mode: 'school-all-mode-v3962_1',
     northeastUniversity: mainNoScore.meta.filteredTotal,
     northeastUniversityQinhuangdao: qhd.meta.filteredTotal,
     scoreInvariant: [mainNoScore.meta.filteredTotal, main580.meta.filteredTotal, main620.meta.filteredTotal],
     sharedSelectionPool: true,
+    sharedUiGovernance: true,
     protectedReleaseExports: true
   }));
 } finally {
