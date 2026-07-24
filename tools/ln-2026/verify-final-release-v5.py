@@ -32,20 +32,36 @@ def verify_family_and_ui_v3962_2() -> None:
         '/ln-rank/css/selection-workspace.v3961_0.css?v=3961_0',
         '/ln-rank/css/school-all-mode.v3962_2.css?v=3962_2',
         '/shared/ui/tokens/semantic.v3959_0.css?v=3962_2',
+        '/shared/ui/components/mode-switch.v3962_2.css?v=3962_2',
+        'id="schoolViewModeMount"',
+        'id="schoolAllResultsPanel"',
+        'class="ui-mode-switch"',
+        'class="ui-segmented ui-mode-switch__actions"',
         'data-release="v3.9.62.2"',
         'data-current-release',
         '资源、UI与算法：全站统一调度'
     )
     main = base.text('ln-rank/index.html')
-    for inactive in ('family-decision-bar.v3955_0.js', 'multi-terminal.v3949_4.js', 'family-presentation.v3955_0.js', 'compare-workspace.v3953_0.js'):
+    for inactive in ('family-decision-bar.v3955_0.js', 'multi-terminal.v3949_4.js', 'family-presentation.v3955_0.js', 'compare-workspace.v3953_0.js', 'school-all-mode.v3962_1.css?v=3962_1'):
         base.check(inactive not in main, f'legacy main layer active: {inactive}')
     contains('ln-rank/selection-pool.html', 'id="selected-list"', 'id="family-review"', '检查已选专业', '生成家庭复核报告', '同一算法快照', '/ln-rank/js/selection-pool.v3960_0.js?v=3961_0', 'data-release="v3.9.62.2"', 'data-current-release')
     base.check('family-decision-bar.v3955_0.js' not in base.text('ln-rank/selection-pool.html'), 'legacy selection family bar active')
     contains('shared/ui/ui-registry.js', 'ui-registry.v3961_0.js')
-    contains('shared/ui/ui-registry.v3961_0.js', 'UI_ORCHESTRATION_VERSION', '#selected-list', '#family-review', 'UI_ACTION_PRIORITY', 'SELECTION_WORKSPACE_CONTRACT')
+    contains(
+        'shared/ui/ui-registry.v3961_0.js',
+        'UI_ORCHESTRATION_VERSION',
+        '#selected-list',
+        '#family-review',
+        'UI_ACTION_PRIORITY',
+        'SELECTION_WORKSPACE_CONTRACT',
+        "modeSwitch: '/shared/ui/components/mode-switch.v3962_2.css'",
+        "schoolModeMountOwner: 'static-selection-filter-grid'",
+        "schoolModeControlOwner: 'shared-ui-mode-switch'"
+    )
     contains('shared/ui/tokens/foundation.v3959_0.css', '--ui-page-bg', '--ui-brand-primary', '--ui-touch-min', '--ui-safe-bottom')
-    contains('shared/ui/tokens/semantic.v3959_0.css', '.ui-button', '.ui-button--compact', '.ui-chip--compact', '.ui-state--loading', '.ui-state--pending', '.ui-state--error', '@media(pointer:coarse)')
-    contains('shared/ui/contracts/action-contract.v3959_0.js', 'addSelectedMajor', 'removeSelectedMajor', 'inspectDetails', 'publicReviews', "label:'加入已选'", "label:'移出已选'", "expandedLabel:'收起详情'")
+    contains('shared/ui/tokens/semantic.v3959_0.css', '.ui-button', '.ui-button--compact', '.ui-chip--compact', '.ui-state--loading', '.ui-state--pending', '.ui-state--error', '.ui-segmented', 'writing-mode:horizontal-tb', '@media(pointer:coarse)')
+    contains('shared/ui/components/mode-switch.v3962_2.css', '.ui-mode-switch', 'grid-column:1 / -1', 'container-name:ui-mode-switch', 'writing-mode:horizontal-tb', '@container ui-mode-switch (max-width:280px)')
+    contains('shared/ui/contracts/action-contract.v3959_0.js', 'viewScoreNearby', 'viewSchoolAllMajors', 'addSelectedMajor', 'removeSelectedMajor', 'inspectDetails', 'publicReviews', "label:'加入已选'", "label:'移出已选'", "expandedLabel:'收起详情'")
     contains('shared/ui/shell/family-shell.v3960_0.css', '.ui-global-header', '.ui-family-status', '.ui-mobile-nav', 'mobile-dirty-bar', 'pool-entry-toast')
     contains('shared/ui/shell/family-shell.v3961_0.js', '当前家庭方案', 'data-ui-mobile-selected', 'ensureUiStyles', 'query.click()', 'gaokao:workspace-state', 'gaokao:selection-change')
     contains('shared/resources/release/release-presenter.js', 'CURRENT_RELEASE', 'data-current-release', 'dataset.release', 'dataset.uiRelease', '__GAOKAO_RELEASE__')
@@ -72,28 +88,33 @@ def verify_family_and_ui_v3962_2() -> None:
         'UI_ACTION_COPY',
         "const API_PATH = '/api/school-majors'",
         "version: 'school-all-mode-v3962_2'",
+        "mountPolicy: 'static-shared-ui'",
+        'assertStaticStructure',
+        'filterGrid?.contains(mount)',
         'data-school-detail-toggle',
         'aria-expanded',
         'expandedRecordKey'
     )
     school_runtime = base.text('ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js')
-    base.check('<details>' not in school_runtime and '<summary>' not in school_runtime, 'school details must use the governed full-row panel')
+    for forbidden in ('injectStylesheet', 'ensureModeMount', 'ensureWorkspace', 'document.createElement', 'insertAdjacentElement', '<details>', '<summary>', 'MutationObserver', 'setTimeout('):
+        base.check(forbidden not in school_runtime, f'school runtime layout owner regression: {forbidden}')
     contains(
         'ln-rank/css/school-all-mode.v3962_2.css',
         'body[data-result-mode="school-all"]',
-        'container-name: school-results',
-        '@container school-results (max-width: 1040px)',
-        '@container school-results (max-width: 600px)',
-        '@container school-results (max-width: 360px)',
+        'container-name:school-results',
+        '@container school-results (max-width:1040px)',
+        '@container school-results (max-width:600px)',
+        '@container school-results (max-width:360px)',
         '.school-major-detail',
-        'grid-column: 1 / -1'
+        'grid-column:1 / -1'
     )
     school_css = base.text('ln-rank/css/school-all-mode.v3962_2.css')
     base.check('@media (max-width:' not in school_css, 'school list must remain container-responsive')
     base.check('min-width: min(620px' not in school_css, 'school detail forced width regression')
+    base.check('.ui-mode-switch' not in school_css and '.school-view-mode' not in school_css, 'school result CSS escaped shared mode-switch ownership')
     contains('functions/api/school-majors.js', '../_lib/ln-rank-manifest.js', 'school-identity-center.js', 'canonical-position.v3960_0.js', "mode: 'shared-records-school-exact'")
-    contains('tools/audit-school-mode-static-v3962_2.mjs', 'school-ui-governance-v3962_2', 'sharedActionCopy', 'fullRowDetails', 'containerResponsive')
-    contains('tools/browser-school-mode-journey-v3962_2.mjs', 'pc-1440', 'pad-820', 'android-412', 'android-360-large-text', 'documentOverflow', 'singleExpanded')
+    contains('tools/audit-school-mode-static-v3962_2.mjs', 'school-mode-static-shared-ui-v3962_2', 'staticFilterMount', 'runtimeLayoutInjection', 'sharedModeSwitch')
+    contains('tools/browser-school-mode-journey-v3962_2.mjs', 'pc-1440', 'pad-820', 'android-412', 'android-360-large-text', 'mode content collapsed into a narrow column', 'writingModes', 'school-mode-real-journey-v3962_2')
 
 
 def verify_shared_resources_v3962_2() -> None:
@@ -105,8 +126,10 @@ def verify_shared_resources_v3962_2() -> None:
         "selectionWorkspaceVersion: 'selection-workspace-orchestration-v3961'",
         "schoolAllModeVersion: 'school-all-mode-v3962_2'",
         "schoolUiGovernanceVersion: 'school-ui-governance-v3962_2'",
+        "schoolModeMountVersion: 'school-mode-static-mount-v3962_2'",
         "algorithmOrchestrationVersion: 'algorithm-orchestration-v3960'",
         "uiActions: '/shared/ui/contracts/action-contract.v3959_0.js'",
+        "uiModeSwitch: '/shared/ui/components/mode-switch.v3962_2.css'",
         "algorithms: '/shared/algorithms/algorithm-registry.js'"
     )
     contains('shared/resources/release/release-presenter.js', "from './current-release.js'", 'syncCurrentRelease', 'mountCurrentRelease')
@@ -116,6 +139,7 @@ def verify_shared_resources_v3962_2() -> None:
     contains('shared/resources/schools/school-identity-center.js', "E('dlut-panjin'", 'createEntityAwareResolver')
     contains('shared/resources/schools/school-profile-center.js', 'SCHOOL_PROFILE_ROWS', 'SCHOOL_PROFILE_SPECIALS', '双非（非985/211）')
     contains('shared/resources/majors/major-catalog-contract.js', 'createMajorCatalogResolver', 'canonicalCount: 883')
+    contains('shared/resources/resource-registry.js', "modeSwitch: '/shared/ui/components/mode-switch.v3962_2.css'")
     contains('tools/schools/school_resource_bundle.py', 'def parse_workbook', 'def build_all', 'write_profile_module', 'write_region_index')
     contains('tools/audit-resource-ownership-v3958.mjs', 'RESOURCE_OWNERSHIP_AUDIT_FAILED')
     contains('tools/audit-ui-orchestration-v3959.mjs', 'SELECTION_WORKSPACE_CONTRACT', 'releasePresentation')
@@ -167,7 +191,9 @@ def verify_release_meta_v3962_2() -> None:
         'schoolAllModeContract', 'schoolAllSharedResourceContract', 'schoolAllEntityIsolationContract',
         'schoolAllScoreInvariantContract', 'schoolAllMultiTerminalContract', 'schoolAllSharedSelectionPoolContract',
         'schoolAllSharedUiGovernanceContract', 'schoolAllFullRowDetailsContract',
-        'schoolAllContainerResponsiveContract', 'schoolAllBrowserMultiTerminalContract'
+        'schoolAllContainerResponsiveContract', 'schoolAllBrowserMultiTerminalContract',
+        'schoolModeStaticMountContract', 'schoolModeSharedSwitchContract',
+        'schoolModeNoRuntimeLayoutInjectionContract', 'schoolModeRealFilterJourneyContract'
     )
     for meta in (release, active):
         base.check(meta['version'] == 'v3.9.62.2' and meta['assetVersion'] == 'v3962_2', 'release version')
@@ -179,6 +205,7 @@ def verify_release_meta_v3962_2() -> None:
         base.check(meta['algorithmOrchestrationVersion'] == 'algorithm-orchestration-v3960', 'algorithm version')
         base.check(meta['schoolAllModeVersion'] == 'school-all-mode-v3962_2', 'school-all version')
         base.check(meta['schoolUiGovernanceVersion'] == 'school-ui-governance-v3962_2', 'school UI governance version')
+        base.check(meta['schoolModeMountVersion'] == 'school-mode-static-mount-v3962_2', 'school static mount version')
     base.check(active['mainJs'] == 'js/app.v3961_0.js', 'active main JS')
     base.check(active['selectionPoolJs'] == 'js/selection-pool.v3960_0.js', 'active selection JS')
     for entry in (
@@ -199,12 +226,15 @@ def verify_release_meta_v3962_2() -> None:
         'js/ux/family-presentation.v3955_0.js',
         'js/ux/multi-terminal.v3949_4.js',
         'js/ux/compare-workspace.v3953_0.js',
-        'js/feature/school-majors/school-all-mode.v3962_0.js'
+        'js/feature/school-majors/school-all-mode.v3962_0.js',
+        'js/feature/school-majors/school-all-mode.v3962_1.js'
     ):
         base.check(inactive not in active['jsEntry'], f'legacy active entry {inactive}')
+    base.check('../shared/ui/components/mode-switch.v3962_2.css' in active['cssEntry'], 'shared mode switch CSS not active')
     base.check('css/selection-workspace.v3961_0.css' in active['cssEntry'], 'workspace CSS not active')
     base.check('css/school-all-mode.v3962_2.css' in active['cssEntry'], 'school-all CSS not active')
     base.check('css/school-all-mode.v3962_0.css' not in active['cssEntry'], 'legacy school-all CSS active')
+    base.check('css/school-all-mode.v3962_1.css' not in active['cssEntry'], 'previous school-all CSS active')
     base.check(active['structure2026']['js'] == '../zy2026/assets/zy2026.v3959_0.js', 'zy2026 active JS')
 
 
@@ -215,4 +245,4 @@ v3.verify_release_meta = verify_release_meta_v3962_2
 
 if __name__ == '__main__':
     v3.main()
-    print('LN 2026 v3.9.62.2 school UI governance verification passed')
+    print('LN 2026 v3.9.62.2 unified school-mode verification passed')
