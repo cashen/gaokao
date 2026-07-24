@@ -120,7 +120,7 @@ def verify_release_meta_v3961() -> None:
         base.check(meta['version'] == 'v3.9.62.0' and meta['assetVersion'] == 'v3962_0', 'release version')
         for key in required:
             base.check(meta.get(key) is True, f'missing contract {key}')
-        base.check(meta['sharedResourceCenterVersion'] == 'v3961_0', 'shared resource version')
+        base.check(meta['sharedResourceCenterVersion'] == 'v3962_0', 'shared resource version')
         base.check(meta['uiOrchestrationVersion'] == 'ui-orchestration-v3961', 'UI version')
         base.check(meta['selectionWorkspaceVersion'] == 'selection-workspace-orchestration-v3961', 'workspace version')
         base.check(meta['algorithmOrchestrationVersion'] == 'algorithm-orchestration-v3960', 'algorithm version')

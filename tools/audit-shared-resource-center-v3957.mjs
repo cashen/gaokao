@@ -24,7 +24,7 @@ const json = file => JSON.parse(read(file));
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.0');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_0');
 assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962');
-assert.equal(SHARED_RESOURCE_CENTER_VERSION, 'v3961_0');
+assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);
 assert.equal(UI_ORCHESTRATION_VERSION, 'v3961_0');
 assert.equal(ALGORITHM_ORCHESTRATION_VERSION, 'algorithm-orchestration-v3960');
 assert.equal(Object.keys(UI_PAGE_REGISTRY).length, 7);
@@ -116,7 +116,7 @@ const adapters = [
   ['ln-rank/js/ux/family-presentation.v3955_0.js', 'shared/resources/schools/school-resource-center.js'],
   ['ln-rank/js/workspace/family-card-presenter.v3961_0.js', 'shared/resources/schools/school-resource-center.js'],
   ['ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js', 'shared/resources/schools/school-resource-center.js'],
-  ['ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js', 'feature/selection-pool/index.v3961_0.js'],
+  ['ln-rank/js/feature/school-majors/school-all-mode.v3962_0.js', '../selection-pool/index.v3961_0.js'],
   ['functions/api/school-majors.js', 'shared/resources/schools/school-identity-center.js'],
   ['functions/api/school-majors.js', 'shared/algorithms/position/canonical-position.v3960_0.js'],
   ['functions/_lib/school-tags.js', 'shared/resources/schools/school-profile-center.js'],

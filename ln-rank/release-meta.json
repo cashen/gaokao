@@ -5,7 +5,7 @@
   "generatedAt": "2026-07-24T13:58:25+08:00",
   "noFenxiIncluded": true,
   "releaseGate": "resource-ownership-v3958-preserved, shared-ui-v3961, selection-workspace-v3961, school-all-v3962, algorithm-orchestration-v3960, protected-fenxi-runtime-unchanged",
-  "sharedResourceCenterVersion": "v3961_0",
+  "sharedResourceCenterVersion": "v3962_0",
   "resourceOwnershipVersion": "resource-ownership-v3958",
   "uiOrchestrationVersion": "ui-orchestration-v3961",
   "selectionWorkspaceVersion": "selection-workspace-orchestration-v3961",
