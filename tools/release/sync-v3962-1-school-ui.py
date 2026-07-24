@@ -32,6 +32,24 @@ def replace_required(path, replacements):
     write(path, source)
 
 
+def replace_present(path, replacements):
+    source = read(path)
+    observed = []
+    changed = []
+    for old, new in replacements:
+        if old in source:
+            source = source.replace(old, new)
+            observed.append(old)
+            changed.append(old)
+        elif new in source:
+            observed.append(new)
+    if not observed:
+        expected = ', '.join(old for old, _ in replacements)
+        raise SystemExit(f'{path}: none of the controlled release markers were found: {expected}')
+    write(path, source)
+    return changed
+
+
 def sync_manifest(path):
     target = ROOT / path
     data = json.loads(target.read_text(encoding='utf-8'))
@@ -71,6 +89,13 @@ for page in (
 
 replace_required('ln-rank/css/selection-workspace.v3961_0.css', [('v3.9.62.0 selection workspace orchestration', 'v3.9.62.1 selection workspace orchestration')])
 
+controlled_markers = [
+    (OLD_VERSION, VERSION),
+    (OLD_ASSET, ASSET),
+    ('school-all-mode.v3962_0.js', 'school-all-mode.v3962_1.js'),
+    ('school-all-mode.v3962_0.css', 'school-all-mode.v3962_1.css'),
+    ('school-all-mode-v3962', 'school-all-mode-v3962_1'),
+]
 for verifier in (
     'tools/ln-2026/verify-final-release-v5.py',
     'tools/check-ln-2026-release.mjs',
@@ -80,13 +105,7 @@ for verifier in (
     'tools/verify-family-decision-v3955.mjs',
     'tools/audit-shared-resource-center-v3957.mjs',
 ):
-    replace_required(verifier, [
-        (OLD_VERSION, VERSION),
-        (OLD_ASSET, ASSET),
-        ('school-all-mode.v3962_0.js', 'school-all-mode.v3962_1.js'),
-        ('school-all-mode.v3962_0.css', 'school-all-mode.v3962_1.css'),
-        ('school-all-mode-v3962', 'school-all-mode-v3962_1'),
-    ])
+    replace_present(verifier, controlled_markers)
 
 for path in ('ln-rank/release-meta.json', 'ln-rank/active-assets.json'):
     data = json.loads(read(path))
@@ -96,5 +115,8 @@ for path in ('ln-rank/release-meta.json', 'ln-rank/active-assets.json'):
     assert data['schoolAllSharedUiGovernanceContract'] is True
     assert NEW_JS in data['jsEntry'] and OLD_JS not in data['jsEntry']
     assert NEW_CSS in data['cssEntry'] and OLD_CSS not in data['cssEntry']
+
+for page in ('index.html', 'ln-rank/selection-pool.html', 'ln2026.html', 'zy2026.html', 'zy2026/index.html'):
+    assert OLD_VERSION not in read(page), f'{page}: old visible release remains'
 
 print('V3962_1_RELEASE_SYNC_OK')
