@@ -59,7 +59,7 @@ for (const marker of [
   'container-name: school-results',
   '@container school-results (max-width: 1040px)',
   '@container school-results (max-width: 600px)',
-  '@container school-results (max-width: 360px)',
+  '@container school-results (max-width: 260px)',
   '.school-major-row',
   '.school-all-summary'
 ]) assert.ok(css.includes(marker), `responsive school-all CSS missing ${marker}`);
