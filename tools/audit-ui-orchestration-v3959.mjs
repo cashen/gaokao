@@ -143,6 +143,35 @@ for(const [pageFile,adapterFile] of Object.entries(runtimeAdapters)){
 assert.ok(read('ln2026.html').includes('data-current-release'));
 assert.ok(read('zy2026/index.html').includes('data-current-release'));
 
+const directReleasePages=['ln-rank/local-mainline.html','ln-rank/211-mainline.html'];
+for(const file of directReleasePages){
+  const source=read(file);
+  assert.ok(source.includes('data-current-release'),`${file} missing current release marker`);
+  assert.ok(source.includes('/shared/resources/release/release-presenter.js?v=3961_0'),`${file} missing direct release presenter`);
+  assert.ok(!source.includes('data-release="v3.9.'),`${file} retains static release owner`);
+  assert.ok(!/版本：v3\.9\./.test(source),`${file} retains visible static release`);
+}
+
+const selfCheck=read('ln-rank/self-check.html');
+assert.ok(selfCheck.includes('data-current-release'));
+assert.ok(selfCheck.includes('family-shell.v3959_0.js?v=3959_0'));
+assert.ok(!selfCheck.includes('data-release="v3.9.'));
+assert.ok(!selfCheck.includes('发版自测｜v3.9.'));
+assert.ok(!selfCheck.includes('用于确认 v3.9.'));
+
+const redirectPages={
+  'ln-rank/major-trend-2026.html':"location.replace('/ln2026.html#overview')",
+  'lngk2026.html':"location.replace('/ln2026.html#score-band')",
+  'e.html':"location.replace('/')",
+  'zy.html':"location.replace('/zy2026')"
+};
+for(const [file,target] of Object.entries(redirectPages)){
+  const source=read(file);
+  assert.ok(source.includes(target),`${file} redirect target changed`);
+  assert.ok(!/版本：v3\.9\./.test(source),`${file} redirect owns a release version`);
+  assert.ok(!source.includes('data-release="v3.9.'),`${file} redirect owns data-release`);
+}
+
 for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   const meta=json(file);
   assert.equal(meta.version,'v3.9.61.0');
@@ -152,4 +181,4 @@ for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   for(const key of ['sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract'])assert.equal(meta[key],true,`${file} missing ${key}`);
 }
 
-console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner'},null,2));
+console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner-all-pages'},null,2));
