@@ -15,8 +15,8 @@ const { makeDecisionSnapshot, isCompatibleDecisionSnapshot } = await import(url(
 const { getBottomLineEligibility } = await import(url('functions/_lib/bottomline-policy.js'));
 const { classifySelectionPosition } = await import(url('ln-rank/js/domain/selection-band-policy.js'));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.60.0');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3960_0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.61.0');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3961_0');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
 assert.equal(ALGORITHM_CONTRACT.activeDataYear, 2026);
 assert.equal(ALGORITHM_CONTRACT.audienceYear, 2027);
@@ -91,13 +91,7 @@ assert.equal(snapshot.audienceYear, 2027);
 assert.ok(snapshot.signature.includes('exact-nonpreferred'));
 
 const majorBands = read('functions/api/major-bands.js');
-for (const marker of [
-  'resolveCanonicalPosition',
-  'rankRecords',
-  'getBottomLineEligibility',
-  'algorithmOrchestrationVersion',
-  'canonical_rank_aware_score_window'
-]) assert.ok(majorBands.includes(marker), `major-bands missing ${marker}`);
+for (const marker of ['resolveCanonicalPosition','rankRecords','getBottomLineEligibility','algorithmOrchestrationVersion','canonical_rank_aware_score_window']) assert.ok(majorBands.includes(marker), `major-bands missing ${marker}`);
 assert.ok(!majorBands.includes("classificationMode: 'score_delta'"));
 
 const advisor = read('functions/_lib/advisor-fact-builder.js');
@@ -116,11 +110,7 @@ for (const rel of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   assert.equal(meta.version, CURRENT_RELEASE.display);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   assert.equal(meta.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-  for (const key of [
-    'algorithmOrchestrationContract', 'canonicalPositionContract', 'rankAwarePositionContract',
-    'stagedRankingTraceContract', 'intentBeforeSoftPreferenceContract', 'bottomLineUnknownTriStateContract',
-    'explicitSpecialProjectIntentContract', 'decisionSnapshotContract', 'aiExplainsButDoesNotRankContract'
-  ]) assert.equal(meta[key], true, `${rel} missing ${key}`);
+  for (const key of ['algorithmOrchestrationContract', 'canonicalPositionContract', 'rankAwarePositionContract','stagedRankingTraceContract', 'intentBeforeSoftPreferenceContract', 'bottomLineUnknownTriStateContract','explicitSpecialProjectIntentContract', 'decisionSnapshotContract', 'aiExplainsButDoesNotRankContract']) assert.equal(meta[key], true, `${rel} missing ${key}`);
 }
 
 console.log(JSON.stringify({

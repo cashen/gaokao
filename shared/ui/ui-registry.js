@@ -3,5 +3,6 @@ export {
   UI_PAGE_REGISTRY,
   UI_RESOURCE_REGISTRY,
   UI_ACTION_PRIORITY,
+  SELECTION_WORKSPACE_CONTRACT,
   getUiPage
-} from './ui-registry.v3960_0.js?v=3960_0';
+} from './ui-registry.v3961_0.js?v=3961_0';
