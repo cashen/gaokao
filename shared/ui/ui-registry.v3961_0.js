@@ -13,6 +13,7 @@ export const UI_PAGE_REGISTRY = Object.freeze({
 export const UI_RESOURCE_REGISTRY = Object.freeze({
   foundation: '/shared/ui/tokens/foundation.v3959_0.css',
   semantic: '/shared/ui/tokens/semantic.v3959_0.css',
+  modeSwitch: '/shared/ui/components/mode-switch.v3962_2.css',
   shellCss: '/shared/ui/shell/family-shell.v3960_0.css',
   shellJs: '/shared/ui/shell/family-shell.v3961_0.js',
   workspaceCss: '/ln-rank/css/selection-workspace.v3961_0.css',
@@ -42,7 +43,9 @@ export const SELECTION_WORKSPACE_CONTRACT = Object.freeze({
   scrollOwner: 'scroll-policy',
   viewportOwner: 'viewport-orchestrator',
   resultStructuralObserverAllowed: false,
-  singleSemanticSelectionEvent: true
+  singleSemanticSelectionEvent: true,
+  schoolModeMountOwner: 'static-selection-filter-grid',
+  schoolModeControlOwner: 'shared-ui-mode-switch'
 });
 
 export function getUiPage(key) {
