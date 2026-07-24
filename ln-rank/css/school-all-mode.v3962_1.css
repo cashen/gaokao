@@ -516,6 +516,26 @@ body[data-result-mode="school-all"] .filter-school label::after {
   }
 }
 
+@container school-results (max-width: 360px) {
+  .school-all-summary > div {
+    padding: 8px 9px;
+  }
+
+  .school-major-row {
+    gap: 4px 7px;
+    padding: 8px;
+  }
+
+  .school-major-score,
+  .school-major-position {
+    padding-inline: 6px;
+  }
+
+  .school-major-actions {
+    gap: 4px;
+  }
+}
+
 @container school-results (max-width: 260px) {
   .school-all-head-actions,
   .school-major-actions {
