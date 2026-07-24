@@ -1,11 +1,11 @@
-import '../../shared/resources/release/release-presenter.js?v=3962_1';
+import '../../shared/resources/release/release-presenter.js?v=3962_2';
 import './workspace/viewport-orchestrator.v3961_0.js?v=3961_0';
 import '../../shared/ui/shell/family-shell.v3961_0.js?v=3961_0';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
-} from '../../shared/resources/exam/liaoning-physics.js?v=3962_1';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3962_1';
+} from '../../shared/resources/exam/liaoning-physics.js?v=3962_2';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3962_2';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3961_0';
 import { state } from './state/app-state.js?v=3961_0';
 
@@ -67,5 +67,5 @@ function syncSharedBottomLine() {
 
 document.addEventListener('gaokao:workspace-state', syncSharedBottomLine);
 await import('./workspace/selection-workspace-orchestrator.v3961_0.js?v=3961_0');
-await import('./feature/school-majors/school-all-mode.v3962_1.js?v=3962_1');
+await import('./feature/school-majors/school-all-mode.v3962_2.js?v=3962_2');
 syncSharedBottomLine();
