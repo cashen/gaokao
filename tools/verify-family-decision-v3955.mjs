@@ -26,6 +26,8 @@ const entityCompat = read('tongxue/data/school-entities-v150.js');
 const css = read('ln-rank/css/dist/family-decision-workspace.v3955_0.css');
 const workspaceCss = read('ln-rank/css/selection-workspace.v3961_0.css');
 const schoolAllCss = read('ln-rank/css/school-all-mode.v3962_1.css');
+const semanticCss = read('shared/ui/tokens/semantic.v3959_0.css');
+const actionContract = read('shared/ui/contracts/action-contract.v3959_0.js');
 const foundationCss = read('shared/ui/tokens/foundation.v3959_0.css');
 const shellCss = read('shared/ui/shell/family-shell.v3960_0.css');
 const zyPage = read('zy2026/index.html');
@@ -42,15 +44,16 @@ assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
 assert.equal(CURRENT_RELEASE.display, 'v3.9.62.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_1');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1_1_1_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_1');
+assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_1');
 
 includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏','family-shell.v3959_0.js','data-current-release'], 'homepage');
 assert.ok(!root.includes('近期真实评论'), 'homepage must not claim real reviews');
 assert.ok(!root.includes('id="h2027"') && !root.includes('id="s2027"'), 'homepage must not foreground second-level countdown');
 includesAll(home, ['returning','score-ready','继续检查当前家庭方案','继续检查家庭方案','先让孩子确认','2027招生计划'], 'homepage runtime');
 
-includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3961_0.js?v=3962_0','selection-workspace.v3961_0.css?v=3961_0','school-all-mode.v3962_1.css?v=3962_0','family-decision-workspace.v3955_0.css',`data-release="${CURRENT_RELEASE.display}"`,'data-current-release'], 'main flow');
-for (const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js']) assert.ok(!main.includes(inactive), `legacy main layer active: ${inactive}`);
+includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3961_0.js?v=3962_1','selection-workspace.v3961_0.css?v=3961_0','school-all-mode.v3962_1.css?v=3962_1','semantic.v3959_0.css?v=3962_1','family-decision-workspace.v3955_0.css',`data-release="${CURRENT_RELEASE.display}"`,'data-current-release'], 'main flow');
+for (const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js','school-all-mode.v3962_0.css?v=3962_0']) assert.ok(!main.includes(inactive), `legacy main layer active: ${inactive}`);
 assert.ok(!main.includes('第一步：模考') && !main.includes('第二步：先看多大范围') && !main.includes('第三步：想看什么方向'), 'old duplicate field step numbering remains');
 
 includesAll(selection, ['id="selected-list"','id="family-review"','检查已选专业','检查真实承接与待确认事项','生成家庭复核报告','其他保存方式','selection-pool.v3960_0.js?v=3961_0','同一算法快照',`data-release="${CURRENT_RELEASE.display}"`,'data-current-release'], 'selection page');
@@ -63,9 +66,10 @@ assert.ok(!presentation.includes('2026年录取所需位次'), 'old visible admi
 assert.ok(!presentation.includes("fetch('/api/tongxue"), 'card layer must not prefetch Tongxue API');
 assert.ok(oldPresentation.includes('为什么出现'), 'preserved compatibility presentation changed unexpectedly');
 
-includesAll(schoolAll, ['createSelectionPoolAdapter','buildTongxueSchoolHref','school-all-mode-v3962_1_1_1_1','看该校全部招生专业','输入参考分数后，可查看历史位置关系'], 'school-all family flow');
+includesAll(schoolAll, ['createSelectionPoolAdapter','buildTongxueSchoolHref',"version: 'school-all-mode-v3962_1'",'看该校全部招生专业','输入参考分数后，可查看历史位置关系','UI_ACTION_COPY','data-school-detail-toggle','expandedRecordKey'], 'school-all family flow');
 assert.ok(!schoolAll.includes('MutationObserver'), 'school-all mode must not add observer');
 assert.ok(!schoolAll.includes('setTimeout('), 'school-all mode must not add timer ownership');
+assert.ok(!schoolAll.includes('<details>') && !schoolAll.includes('<summary>'), 'school-all details must use full-row governed panel');
 
 includesAll(schoolCenter, ['isEntitySourceAvailable','directory_resolve_on_open','combinedCampusCandidates','tongxueDirectoryPromise','loadTongxueSchoolDirectory',"from './school-identity-center.js'"], 'shared school center');
 assert.ok(schoolIdentity.includes("E('dlut-main','大连理工大学'"), 'Dalian University of Technology main entity missing');
@@ -85,7 +89,10 @@ assert.ok(!releasePresenter.includes('MutationObserver') && !releasePresenter.in
 includesAll(decisionContract, ['resolveFamilyNextAction','countFamilyPendingItems','buildTongxueHref','tongxueEntryCopy','buildTongxueSchoolHref'], 'decision contract');
 includesAll(css, ['.family-decision-summary','.tongxue-card-entry','min-height:48px','prefers-reduced-motion'], 'family compatibility CSS');
 includesAll(workspaceCss, ['.score-band-segmented','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none'], 'workspace orchestration CSS');
-includesAll(schoolAllCss, ['.school-major-row','.school-all-summary','@media (max-width: 767px)','@media (max-width: 390px)'], 'school-all responsive CSS');
+includesAll(schoolAllCss, ['.school-major-row','.school-all-summary','container-name: school-results','@container school-results (max-width: 1040px)','@container school-results (max-width: 600px)','@container school-results (max-width: 360px)'], 'school-all responsive CSS');
+assert.ok(!schoolAllCss.includes('@media (max-width:'), 'school list must not own device breakpoints');
+includesAll(semanticCss, ['.ui-button--compact','.ui-chip--compact','@media(pointer:coarse)'], 'shared semantic UI');
+includesAll(actionContract, ['addSelectedMajor','removeSelectedMajor','inspectDetails',"label:'加入已选'", "label:'移出已选'", "expandedLabel:'收起详情'"], 'shared action copy');
 includesAll(foundationCss, ['--ui-safe-bottom','env(safe-area-inset-bottom'], 'shared foundation CSS');
 includesAll(shellCss, ['.ui-global-header','.ui-family-status','.ui-mobile-nav','family-decision-bar','var(--ui-safe-bottom)','mobile-dirty-bar','pool-entry-toast'], 'shared shell CSS');
 
@@ -107,14 +114,19 @@ for (const key of [
   'selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract',
   'bandSwitchViewOnlyContract','compareSingleLayoutOwnerContract','cardFirstPassPresentationContract',
   'schoolAllModeContract','schoolAllSharedResourceContract','schoolAllEntityIsolationContract',
-  'schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract'
+  'schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract',
+  'schoolAllSharedUiGovernanceContract','schoolAllFullRowDetailsContract','schoolAllContainerResponsiveContract','schoolAllBrowserMultiTerminalContract'
 ]) {
   assert.equal(release[key], true, `release contract false: ${key}`);
   assert.equal(active[key], true, `active contract false: ${key}`);
 }
+assert.equal(release.schoolAllModeVersion, 'school-all-mode-v3962_1');
+assert.equal(active.schoolAllModeVersion, 'school-all-mode-v3962_1');
+assert.equal(release.schoolUiGovernanceVersion, 'school-ui-governance-v3962_1');
+assert.equal(active.schoolUiGovernanceVersion, 'school-ui-governance-v3962_1');
 assert.equal(active.structure2026.js, '../zy2026/assets/zy2026.v3959_0.js');
 for (const entry of ['js/app.v3961_0.js','js/workspace/selection-workspace-orchestrator.v3961_0.js','js/workspace/family-card-presenter.v3961_0.js','js/feature/school-majors/school-all-mode.v3962_1.js','../shared/ui/shell/family-shell.v3961_0.js','../shared/algorithms/algorithm-registry.js']) assert.ok(active.jsEntry.includes(entry), `active entry missing ${entry}`);
-for (const inactive of ['js/app.v3960_0.js','js/ux/family-presentation.v3955_0.js','js/ux/multi-terminal.v3949_4.js','js/ux/compare-workspace.v3953_0.js','js/app.v3951_0.js']) assert.ok(!active.jsEntry.includes(inactive), `legacy active entry remains ${inactive}`);
+for (const inactive of ['js/app.v3960_0.js','js/ux/family-presentation.v3955_0.js','js/ux/multi-terminal.v3949_4.js','js/ux/compare-workspace.v3953_0.js','js/app.v3951_0.js','js/feature/school-majors/school-all-mode.v3962_0.js']) assert.ok(!active.jsEntry.includes(inactive), `legacy active entry remains ${inactive}`);
 assert.ok(active.cssEntry.includes('../shared/ui/tokens/foundation.v3959_0.css'));
 assert.ok(active.cssEntry.includes('../shared/ui/shell/family-shell.v3960_0.css'));
 assert.ok(active.cssEntry.includes('css/selection-workspace.v3961_0.css'));
@@ -130,4 +142,4 @@ assert.equal(tongxueEntryCopy('admission_campus'), '看看这个校区的公开�
 assert.equal(tongxueEntryCopy('branch_school'), '看看这所分校的公开评论');
 assert.equal(tongxueEntryCopy('official_school'), '看看这所学校的公开评论');
 
-console.log('FAMILY_DECISION_V3962_OK');
+console.log('FAMILY_DECISION_V3962_1_OK');
