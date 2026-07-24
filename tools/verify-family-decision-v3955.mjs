@@ -15,6 +15,8 @@ const oldPresentation = read('ln-rank/js/ux/family-presentation.v3955_0.js');
 const legacyDecisionBar = read('ln-rank/js/ux/family-decision-bar.v3955_0.js');
 const sharedShell = read('shared/ui/shell/family-shell.v3961_0.js');
 const compatShell = read('shared/ui/shell/family-shell.v3960_0.js');
+const legacyCompatShell = read('shared/ui/shell/family-shell.v3959_0.js');
+const releasePresenter = read('shared/resources/release/release-presenter.js');
 const home = read('ln-rank/js/ux/family-home.v3955_0.js');
 const decisionContract = read('ln-rank/js/domain/family-decision-contract.v3955_0.js');
 const schoolCenter = read('shared/resources/schools/school-resource-center.js');
@@ -38,16 +40,16 @@ assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
 assert.equal(CURRENT_RELEASE.display, 'v3.9.61.0');
 assert.equal(CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
 
-includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏','family-shell.v3959_0.js'], 'homepage');
+includesAll(root, ['辽宁高考家庭决策工作台','先圈出一批可以讨论的专业','近期公开评论','时间只帮助安排节奏','family-shell.v3959_0.js','data-current-release'], 'homepage');
 assert.ok(!root.includes('近期真实评论'), 'homepage must not claim real reviews');
 assert.ok(!root.includes('id="h2027"') && !root.includes('id="s2027"'), 'homepage must not foreground second-level countdown');
 includesAll(home, ['returning','score-ready','继续检查当前家庭方案','继续检查家庭方案','先让孩子确认','2027招生计划'], 'homepage runtime');
 
-includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3961_0.js?v=3961_0','selection-workspace.v3961_0.css?v=3961_0','family-decision-workspace.v3955_0.css',`data-release="${CURRENT_RELEASE.display}"`], 'main flow');
+includesAll(main, ['确认孩子的位置','说清想看什么','圈出并整理专业','家庭逐项复核','app.v3961_0.js?v=3961_0','selection-workspace.v3961_0.css?v=3961_0','family-decision-workspace.v3955_0.css',`data-release="${CURRENT_RELEASE.display}"`,'data-current-release'], 'main flow');
 for (const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js']) assert.ok(!main.includes(inactive), `legacy main layer active: ${inactive}`);
 assert.ok(!main.includes('第一步：模考') && !main.includes('第二步：先看多大范围') && !main.includes('第三步：想看什么方向'), 'old duplicate field step numbering remains');
 
-includesAll(selection, ['id="selected-list"','id="family-review"','检查已选专业','检查真实承接与待确认事项','生成家庭复核报告','其他保存方式','selection-pool.v3960_0.js?v=3961_0','同一算法快照',`data-release="${CURRENT_RELEASE.display}"`], 'selection page');
+includesAll(selection, ['id="selected-list"','id="family-review"','检查已选专业','检查真实承接与待确认事项','生成家庭复核报告','其他保存方式','selection-pool.v3960_0.js?v=3961_0','同一算法快照',`data-release="${CURRENT_RELEASE.display}"`,'data-current-release'], 'selection page');
 assert.ok(!selection.includes('family-decision-bar.v3955_0.js'), 'legacy family bar still active on selection');
 
 includesAll(presentation, ['为什么出现','最需要确认','现在还不知道','最低投档位置基本稳定','最低投档所需位次','tongxue-card-entry','公开评论和来源摘要','shared/resources/schools/school-resource-center.js','export function presentFamilyResults'], 'synchronous card presentation');
@@ -67,6 +69,9 @@ includesAll(sharedShell, ['当前家庭方案','data-ui-mobile-selected','data-u
 assert.ok(!sharedShell.includes('MutationObserver'), 'shared shell must not add global observer');
 assert.ok(!sharedShell.includes('visualViewport'), 'shared shell must not be second viewport owner');
 assert.ok(compatShell.includes('family-shell.v3960_0.js') || compatShell.includes('CURRENT_RELEASE'), 'v3960 compatibility shell must remain');
+assert.ok(legacyCompatShell.includes('release-presenter.js?v=3961_0'), 'legacy compatibility shell must mount current release presenter');
+includesAll(releasePresenter, ['CURRENT_RELEASE','data-current-release','dataset.release','dataset.uiRelease','__GAOKAO_RELEASE__'], 'release presenter');
+assert.ok(!releasePresenter.includes('MutationObserver') && !releasePresenter.includes('setTimeout'), 'release presenter must not add observer or timer');
 includesAll(decisionContract, ['resolveFamilyNextAction','countFamilyPendingItems','buildTongxueHref','tongxueEntryCopy','buildTongxueSchoolHref'], 'decision contract');
 includesAll(css, ['.family-decision-summary','.tongxue-card-entry','min-height:48px','prefers-reduced-motion'], 'family compatibility CSS');
 includesAll(workspaceCss, ['.score-band-segmented','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none'], 'workspace orchestration CSS');
@@ -75,7 +80,8 @@ includesAll(shellCss, ['.ui-global-header','.ui-family-status','.ui-mobile-nav',
 
 assert.equal(zyAlias, zyPage, 'ZY2026 extensionless alias must exactly mirror directory page');
 for (const phrase of ['2026投档表首次可见','2026投档表未再单列','2026投档表重新出现']) assert.ok(zyPage.includes(phrase) || zyRuntime.includes(phrase), `ZY2026 missing precise copy ${phrase}`);
-includesAll(zyPage, ['zy2026.v3959_0.js?v=3959_0','页面体验版本：v3.9.55.0'], 'ZY2026 page');
+includesAll(zyPage, ['zy2026.v3959_0.js?v=3959_0','data-current-release'], 'ZY2026 page');
+assert.ok(!zyPage.includes('页面体验版本：v3.9.55.0'), 'ZY2026 must not retain a second visible release owner');
 includesAll(zyRuntime, ["first_seen:'2026投档表首次可见'",'不等于教育部新设专业或扩招','不能直接说专业被撤销'], 'ZY2026 runtime');
 
 for (const key of [
