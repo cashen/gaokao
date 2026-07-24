@@ -20,9 +20,11 @@ assert.equal(CURRENT_RELEASE.resourceOwnershipVersion,'resource-ownership-v3958'
 assert.equal(CURRENT_RELEASE.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
 assert.equal(CURRENT_RELEASE.schoolAllModeVersion,'school-all-mode-v3962_2');
 assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion,'school-ui-governance-v3962_2');
+assert.equal(CURRENT_RELEASE.schoolModeMountVersion,'school-mode-static-mount-v3962_2');
 assert.equal(CURRENT_RELEASE.resourceOwners.ui,'/shared/ui/ui-registry.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.uiActions,'/shared/ui/contracts/action-contract.v3959_0.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.uiSemantic,'/shared/ui/tokens/semantic.v3959_0.css');
+assert.equal(CURRENT_RELEASE.resourceOwners.uiModeSwitch,'/shared/ui/components/mode-switch.v3962_2.css');
 assert.equal(typeof releasePresenter.syncCurrentRelease,'function');
 assert.equal(typeof releasePresenter.mountCurrentRelease,'function');
 assert.equal(UI_ORCHESTRATION_VERSION,'v3961_0');
@@ -34,15 +36,20 @@ assert.equal(UI_PAGE_REGISTRY.tongxue.brand,'tongxue');
 assert.equal(UI_RESOURCE_REGISTRY.shellJs,'/shared/ui/shell/family-shell.v3961_0.js');
 assert.equal(UI_RESOURCE_REGISTRY.workspaceJs,'/ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js');
 assert.equal(UI_RESOURCE_REGISTRY.viewportOrchestrator,'/ln-rank/js/workspace/viewport-orchestrator.v3961_0.js');
+assert.equal(UI_RESOURCE_REGISTRY.modeSwitch,'/shared/ui/components/mode-switch.v3962_2.css');
 assert.equal(UI_ACTION_PRIORITY.filterDirty,'update-results');
 assert.equal(UI_ACTION_PRIORITY.keyboardOpen,'hidden');
 assert.equal(SELECTION_WORKSPACE_CONTRACT.filterChangeQueriesImmediately,false);
 assert.equal(SELECTION_WORKSPACE_CONTRACT.preservePreviousResultsWhileDirty,true);
 assert.equal(SELECTION_WORKSPACE_CONTRACT.bandSwitchIsViewOnly,true);
 assert.equal(SELECTION_WORKSPACE_CONTRACT.resultStructuralObserverAllowed,false);
+assert.equal(SELECTION_WORKSPACE_CONTRACT.schoolModeMountOwner,'static-selection-filter-grid');
+assert.equal(SELECTION_WORKSPACE_CONTRACT.schoolModeControlOwner,'shared-ui-mode-switch');
 
 for(const action of Object.values(UI_ACTION_COPY))assert.equal(validateUiAction(action),true,`invalid action ${JSON.stringify(action)}`);
 for(const state of Object.values(UI_STATE_COPY))assert.equal(validateUiState(state),true,`invalid state ${JSON.stringify(state)}`);
+assert.equal(UI_ACTION_COPY.viewScoreNearby.label,'按我的分数附近看');
+assert.equal(UI_ACTION_COPY.viewSchoolAllMajors.label,'看该校全部招生专业');
 assert.equal(UI_ACTION_COPY.addSelectedMajor.label,'加入已选');
 assert.equal(UI_ACTION_COPY.removeSelectedMajor.label,'移出已选');
 assert.equal(UI_ACTION_COPY.inspectDetails.label,'查看详情');
@@ -86,18 +93,23 @@ assert.ok(scroll.includes('intent.revision !== userScrollRevision'));
 
 const foundation=read('shared/ui/tokens/foundation.v3959_0.css');
 const semantic=read('shared/ui/tokens/semantic.v3959_0.css');
+const modeSwitch=read('shared/ui/components/mode-switch.v3962_2.css');
 const shellCss=read('shared/ui/shell/family-shell.v3960_0.css');
 const workspaceCss=read('ln-rank/css/selection-workspace.v3961_0.css');
 const schoolAllCss=read('ln-rank/css/school-all-mode.v3962_2.css');
 for(const token of ['--ui-page-bg','--ui-surface','--ui-ink','--ui-brand-primary','--ui-touch-min','--ui-reading-width','--ui-workspace-width','--ui-safe-bottom'])assert.ok(foundation.includes(token),`foundation missing ${token}`);
 assert.ok(foundation.includes('env(safe-area-inset-bottom'), 'foundation must own safe-area environment value');
-for(const component of ['.ui-button','.ui-button--compact','.ui-chip--compact','.ui-card','.ui-state--loading','.ui-state--pending','.ui-state--error'])assert.ok(semantic.includes(component),`semantic missing ${component}`);
+for(const component of ['.ui-button','.ui-button--compact','.ui-chip--compact','.ui-card','.ui-state--loading','.ui-state--pending','.ui-state--error','.ui-segmented'])assert.ok(semantic.includes(component),`semantic missing ${component}`);
+assert.ok(semantic.includes('writing-mode:horizontal-tb'));
 assert.ok(semantic.includes('@media(pointer:coarse)'));
+for(const feature of ['.ui-mode-switch','grid-column:1 / -1','container-name:ui-mode-switch','writing-mode:horizontal-tb','@container ui-mode-switch (max-width:280px)'])assert.ok(modeSwitch.includes(feature),`mode switch missing ${feature}`);
 for(const feature of ['.ui-global-header','.ui-family-status','.ui-mobile-nav','var(--ui-safe-bottom)','@media(max-width:767px)','mobile-dirty-bar','pool-entry-toast','#selected-list','#family-review'])assert.ok(shellCss.includes(feature),`shell CSS missing ${feature}`);
 for(const feature of ['.score-band-segmented','.score-band-current','.ln-result-workspace-status','.workspace-compare-slot','overflow-anchor: none','grid-template-columns: repeat(3, minmax(0, 1fr))'])assert.ok(workspaceCss.includes(feature),`workspace CSS missing ${feature}`);
-for(const feature of ['body[data-result-mode="school-all"]','.school-major-row','.school-all-summary','container-name: school-results','@container school-results (max-width: 1040px)','@container school-results (max-width: 600px)','@container school-results (max-width: 360px)','.school-major-detail','grid-column: 1 / -1'])assert.ok(schoolAllCss.includes(feature),`school-all CSS missing ${feature}`);
+for(const feature of ['body[data-result-mode="school-all"]','.school-major-row','.school-all-summary','container-name:school-results','@container school-results (max-width:1040px)','@container school-results (max-width:600px)','@container school-results (max-width:360px)','.school-major-detail','grid-column:1 / -1'])assert.ok(schoolAllCss.includes(feature),`school-all CSS missing ${feature}`);
 assert.ok(!schoolAllCss.includes('@media (max-width:'));
 assert.ok(!schoolAllCss.includes('min-width: min(620px'));
+assert.ok(!schoolAllCss.includes('.ui-mode-switch'));
+assert.ok(!schoolAllCss.includes('.school-view-mode'));
 
 const home=read('index.html');
 assert.ok(home.includes('data-release="v3.9.62.2"'));
@@ -108,21 +120,26 @@ const main=read('ln-rank/index.html');
 assert.ok(main.includes('family-shell.v3960_0.css?v=3961_0'));
 assert.ok(main.includes('selection-workspace.v3961_0.css?v=3961_0'));
 assert.ok(main.includes('semantic.v3959_0.css?v=3962_2'));
+assert.ok(main.includes('mode-switch.v3962_2.css?v=3962_2'));
 assert.ok(main.includes('school-all-mode.v3962_2.css?v=3962_2'));
 assert.ok(main.includes('app.v3961_0.js?v=3962_2'));
+assert.ok(main.includes('id="schoolViewModeMount"'));
+assert.ok(main.includes('id="schoolAllResultsPanel"'));
+assert.ok(main.includes('class="ui-mode-switch"'));
+assert.ok(main.includes('class="ui-segmented ui-mode-switch__actions"'));
 assert.ok(main.includes('data-release="v3.9.62.2"'));
 assert.ok(main.includes('data-current-release'));
 assert.ok(main.includes('资源、UI与算法：全站统一调度'));
-for(const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js','school-all-mode.v3962_0.css?v=3962_0'])assert.ok(!main.includes(inactive),`legacy active layer ${inactive}`);
+for(const inactive of ['family-decision-bar.v3955_0.js','multi-terminal.v3949_4.js','family-presentation.v3955_0.js','compare-workspace.v3953_0.js','school-all-mode.v3962_0.css?v=3962_0','school-all-mode.v3962_1.css?v=3962_1'])assert.ok(!main.includes(inactive),`legacy active layer ${inactive}`);
 
 const appEntry=read('ln-rank/js/app.v3961_0.js');
 assert.ok(appEntry.includes('release-presenter.js?v=3962_2'));
 assert.ok(appEntry.includes('school-all-mode.v3962_2.js?v=3962_2'));
 assert.ok(!appEntry.includes('school-all-mode.v3962_0.js?v=3962_0'));
+assert.ok(!appEntry.includes('school-all-mode.v3962_1.js?v=3962_1'));
 const schoolRuntime=read('ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js');
-for(const marker of ['UI_ACTION_COPY','ui-button ui-button--compact','ui-chip ui-chip--compact','data-school-detail-toggle','aria-expanded','aria-controls','expandedRecordKey'])assert.ok(schoolRuntime.includes(marker),`school runtime missing ${marker}`);
-assert.ok(!schoolRuntime.includes('<details>'));
-assert.ok(!schoolRuntime.includes('<summary>'));
+for(const marker of ['UI_ACTION_COPY','data-school-detail-toggle','aria-expanded','aria-controls','expandedRecordKey',"mountPolicy: 'static-shared-ui'",'assertStaticStructure','filterGrid?.contains(mount)'])assert.ok(schoolRuntime.includes(marker),`school runtime missing ${marker}`);
+for(const forbidden of ['injectStylesheet','ensureModeMount','ensureWorkspace','document.createElement','insertAdjacentElement','<details>','<summary>','MutationObserver','setTimeout('])assert.ok(!schoolRuntime.includes(forbidden),`school runtime layout owner regression ${forbidden}`);
 const selectedEntry=read('ln-rank/js/selection-pool.v3960_0.js');
 assert.ok(selectedEntry.includes('release-presenter.js?v=3961_0'));
 
@@ -201,9 +218,10 @@ for(const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']){
   assert.equal(meta.selectionWorkspaceVersion,'selection-workspace-orchestration-v3961');
   assert.equal(meta.schoolAllModeVersion,'school-all-mode-v3962_2');
   assert.equal(meta.schoolUiGovernanceVersion,'school-ui-governance-v3962_2');
+  assert.equal(meta.schoolModeMountVersion,'school-mode-static-mount-v3962_2');
   for(const key of [
-    'sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract','schoolAllModeContract','schoolAllSharedResourceContract','schoolAllEntityIsolationContract','schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract','schoolAllSharedUiGovernanceContract','schoolAllFullRowDetailsContract','schoolAllContainerResponsiveContract','schoolAllBrowserMultiTerminalContract'
+    'sharedUiOwnershipContract','sharedUiTokenContract','sharedUiShellContract','sharedUiActionContract','sharedUiStateContract','sharedUiCopyContract','sharedUiSixPageAdapterContract','sharedUiMobileNavigationContract','sharedUiKeyboardSafeAreaContract','sharedUiSubBrandContract','sharedUiNoNewObserverContract','sharedUiResourceOwnershipPreservedContract','sharedUiSingleActionSurfaceContract','quietSelectionFeedbackContract','selectedReviewDistinctRouteContract','tabletDecisionLayoutContract','selectionWorkspaceOrchestrationContract','preserveStaleResultsContract','singleScrollOwnerContract','bandSwitchViewOnlyContract','androidNoLayoutJitterContract','schoolAllModeContract','schoolAllSharedResourceContract','schoolAllEntityIsolationContract','schoolAllScoreInvariantContract','schoolAllMultiTerminalContract','schoolAllSharedSelectionPoolContract','schoolAllSharedUiGovernanceContract','schoolAllFullRowDetailsContract','schoolAllContainerResponsiveContract','schoolAllBrowserMultiTerminalContract','schoolModeStaticMountContract','schoolModeSharedSwitchContract','schoolModeNoRuntimeLayoutInjectionContract','schoolModeRealFilterJourneyContract'
   ])assert.equal(meta[key],true,`${file} missing ${key}`);
 }
 
-console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,schoolAll:CURRENT_RELEASE.schoolAllModeVersion,schoolUiGovernance:CURRENT_RELEASE.schoolUiGovernanceVersion,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner-all-pages'},null,2));
+console.log(JSON.stringify({ok:true,release:CURRENT_RELEASE.display,ui:UI_ORCHESTRATION_VERSION,workspace:SELECTION_WORKSPACE_CONTRACT.version,schoolAll:CURRENT_RELEASE.schoolAllModeVersion,schoolUiGovernance:CURRENT_RELEASE.schoolUiGovernanceVersion,schoolModeMount:CURRENT_RELEASE.schoolModeMountVersion,pages:Object.keys(UI_PAGE_REGISTRY),resourceOwnership:CURRENT_RELEASE.resourceOwnershipVersion,releasePresentation:'shared-owner-all-pages'},null,2));
