@@ -88,6 +88,8 @@ for page in (
     replace_required(page, [(OLD_VERSION, VERSION)])
 
 replace_required('ln-rank/css/selection-workspace.v3961_0.css', [('v3.9.62.0 selection workspace orchestration', 'v3.9.62.1 selection workspace orchestration')])
+replace_required('ln-rank/css/school-all-mode.v3962_1.css', [('@container school-results (max-width: 720px)', '@container school-results (max-width: 600px)')])
+replace_required('tools/audit-school-ui-governance-v3962_1.mjs', [("'@container school-results (max-width: 720px)'", "'@container school-results (max-width: 600px)'")])
 
 controlled_markers = [
     (OLD_VERSION, VERSION),
@@ -118,5 +120,8 @@ for path in ('ln-rank/release-meta.json', 'ln-rank/active-assets.json'):
 
 for page in ('index.html', 'ln-rank/selection-pool.html', 'ln2026.html', 'zy2026.html', 'zy2026/index.html'):
     assert OLD_VERSION not in read(page), f'{page}: old visible release remains'
+
+assert '@container school-results (max-width: 600px)' in read('ln-rank/css/school-all-mode.v3962_1.css')
+assert '@container school-results (max-width: 720px)' not in read('ln-rank/css/school-all-mode.v3962_1.css')
 
 print('V3962_1_RELEASE_SYNC_OK')
