@@ -22,7 +22,7 @@ ok(VERSION==='v3.9.62.1'&&ASSET==='v3962_1','current release version');
 ok(CURRENT_RELEASE.uiOrchestrationVersion==='ui-orchestration-v3961','current UI version');
 ok(CURRENT_RELEASE.algorithmOrchestrationVersion==='algorithm-orchestration-v3960','algorithm version preserved');
 ok(CURRENT_RELEASE.selectionWorkspaceVersion==='selection-workspace-orchestration-v3961','workspace version');
-ok(CURRENT_RELEASE.schoolAllModeVersion==='school-all-mode-v3962_1','school-all mode version');
+ok(CURRENT_RELEASE.schoolAllModeVersion==='school-all-mode-v3962_1_1','school-all mode version');
 
 const releasePresenter=t('shared/resources/release/release-presenter.js');
 ok(releasePresenter.includes("from './current-release.js'")&&releasePresenter.includes('data-current-release')&&releasePresenter.includes('dataset.release')&&releasePresenter.includes('dataset.uiRelease'),'shared release presenter');
