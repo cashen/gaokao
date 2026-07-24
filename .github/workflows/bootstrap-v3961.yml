@@ -56,7 +56,22 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'v3.9.61.0：专业初选工作区统一调度'
       - name: Push implementation
+        id: push
         shell: bash
         run: |
-          set -euo pipefail
-          git push origin HEAD:agent/selection-workspace-orchestration-v3961
+          set +e
+          git push origin HEAD:agent/selection-workspace-orchestration-v3961 > /tmp/v3961-push.log 2>&1
+          code=$?
+          cat /tmp/v3961-push.log
+          echo "$code" > /tmp/v3961-push.code
+          exit "$code"
+      - name: Upload push diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3961-push-diagnostics
+          path: |
+            /tmp/v3961-push.log
+            /tmp/v3961-push.code
+          if-no-files-found: error
+          retention-days: 1
