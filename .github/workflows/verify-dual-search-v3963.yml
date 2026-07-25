@@ -1,4 +1,4 @@
-name: Verify school mode v3962.2
+name: Verify dual search v3963.0
 
 on:
   pull_request:
@@ -35,10 +35,13 @@ jobs:
       - name: Check school mode JavaScript syntax
         run: |
           node --check functions/api/school-majors.js
-          node --check ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js
+          node --check ln-rank/js/feature/major-pool/render.v3963_0.js
           node --check tools/audit-school-all-mode-v3962.mjs
           node --check tools/audit-school-mode-static-v3962_2.mjs
-          node --check tools/browser-school-mode-journey-v3962_2.mjs
+          node --check tools/audit-dual-search-v3963.mjs
+          node --check tools/browser-dual-search-journey-v3963.mjs
 
       - name: Enforce static shared UI ownership
         id: static_governance
@@ -68,16 +71,32 @@ jobs:
             exit "$status"
           fi
 
+      - name: Audit both search paths and owner boundaries
+        id: dual_search_audit
+        shell: bash
+        run: |
+          set +e
+          node tools/audit-dual-search-v3963.mjs > /tmp/dual-search-audit.out 2> /tmp/dual-search-audit.err
+          status=$?
+          cat /tmp/dual-search-audit.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- DUAL SEARCH AUDIT ERROR ---'
+            cat /tmp/dual-search-audit.err
+            exit "$status"
+          fi
+
       - name: Upload static audit diagnostics
-        if: failure() && (steps.static_governance.outcome == 'failure' || steps.school_all_audit.outcome == 'failure')
+        if: failure() && (steps.static_governance.outcome == 'failure' || steps.school_all_audit.outcome == 'failure' || steps.dual_search_audit.outcome == 'failure')
         uses: actions/upload-artifact@v4
         with:
-          name: school-mode-v3962-2-audit-error
+          name: dual-search-v3963-0-audit-error
           path: |
             /tmp/school-mode-governance.out
             /tmp/school-mode-governance.err
             /tmp/school-all-audit.out
             /tmp/school-all-audit.err
+            /tmp/dual-search-audit.out
+            /tmp/dual-search-audit.err
           if-no-files-found: warn
           retention-days: 2
 
@@ -89,10 +108,13 @@ jobs:
           sleep 1
           for path in \
             /ln-rank/ \
-            /ln-rank/js/app.v3961_0.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js \
-            /ln-rank/css/school-all-mode.v3962_2.css \
-            /shared/ui/components/mode-switch.v3962_2.css \
+            /ln-rank/js/app.v3963_0.js \
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js \
+            /ln-rank/js/feature/major-pool/render.v3963_0.js \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js \
+            /ln-rank/css/selection-workspace.v3963_0.css \
+            /ln-rank/css/school-all-mode.v3963_0.css \
+            /shared/ui/components/mode-switch.v3963_0.css \
             /shared/ui/tokens/semantic.v3959_0.css \
             /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/resources/schools/school-resource-center.js \
@@ -106,7 +128,7 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install chromium
 
-      - name: Verify actual PC Pad Android school flow
+      - name: Verify actual PC Pad Android dual-search flow
         id: browser_ui
         shell: bash
         run: |
@@ -115,12 +137,12 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          SCHOOL_UI_ARTIFACT_DIR=/tmp/school-mode-v3962_2 node tools/browser-school-mode-journey-v3962_2.mjs > /tmp/school-mode-browser.out 2> /tmp/school-mode-browser.err
+          DUAL_SEARCH_ARTIFACT_DIR=/tmp/dual-search-v3963_0 node tools/browser-dual-search-journey-v3963.mjs > /tmp/dual-search-browser.out 2> /tmp/dual-search-browser.err
           status=$?
-          cat /tmp/school-mode-browser.out
+          cat /tmp/dual-search-browser.out
           if [ "$status" -ne 0 ]; then
-            echo '--- SCHOOL MODE BROWSER ERROR ---'
-            cat /tmp/school-mode-browser.err
+            echo '--- DUAL SEARCH BROWSER ERROR ---'
+            cat /tmp/dual-search-browser.err
             exit "$status"
           fi
 
@@ -128,11 +150,11 @@ jobs:
         if: failure() && steps.browser_ui.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: school-mode-v3962-2-browser-error
+          name: dual-search-v3963-0-browser-error
           path: |
-            /tmp/school-mode-browser.out
-            /tmp/school-mode-browser.err
+            /tmp/dual-search-browser.out
+            /tmp/dual-search-browser.err
             /tmp/school-mode-browser-http.log
-            /tmp/school-mode-v3962_2
+            /tmp/dual-search-v3963_0
           if-no-files-found: warn
           retention-days: 3

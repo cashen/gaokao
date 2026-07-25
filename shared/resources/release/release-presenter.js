@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './current-release.js';
+import { CURRENT_RELEASE } from './current-release.js?v=3963_0';
 
 export function syncCurrentRelease(root = document) {
   if (typeof document === 'undefined') return CURRENT_RELEASE;

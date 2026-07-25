@@ -19,11 +19,11 @@ export const RANGE_PRESETS = {
   },
   safe: {
     key: 'safe', label: '多看低分侧',
-    help: '想先看多看低分侧的选择时使用。',
+    help: '想把更多低分侧专业带进家庭讨论时使用。',
     bands: {
       upper: { title: '稍高目标', minDelta: 1, maxDelta: 5, desc: '只看略高一点的目标。' },
       near: { title: '主要参考', minDelta: -10, maxDelta: 0, desc: '保留接近分数的主要参考区。' },
-      steady: { title: '低分侧补充', minDelta: -20, maxDelta: -11, desc: '保留偏低分侧的补充区间。' }
+      steady: { title: '低分侧补充', minDelta: -35, maxDelta: -11, desc: '扩大低分侧补充区间，仍需结合孩子意愿和家庭底线逐条排除。' }
     }
   }
 };
