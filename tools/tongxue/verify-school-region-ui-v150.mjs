@@ -1,11 +1,11 @@
 import{readFile}from'node:fs/promises';
 const [page,entry,regionUi,entityUi,resolver,headers]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v156.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v152.js','utf8'),readFile('tongxue/app/tongxue-school-entity-ui-v152.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('_headers','utf8')
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v157.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v152.js','utf8'),readFile('tongxue/app/tongxue-school-entity-ui-v152.js','utf8'),readFile('tongxue/data/school-name-resolver-v150.js','utf8'),readFile('_headers','utf8')
 ]);
 const failures=[],check=(label,passed)=>{if(!passed)failures.push(label);},count=(source,value)=>source.split(value).length-1;
-const build='<meta name="tongxue-build" content="tongxue-v156-direct-result-20260723">';
+const build='<meta name="tongxue-build" content="tongxue-v157-family-shell-20260725">';
 const importMap='<script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150"}}</script>';
-check('页面版本',page.includes('同学你好 v1.5.6')&&page.includes('tongxue-performance-v156.js?v=156'));
+check('页面版本',page.includes('同学你好 v1.5.7')&&page.includes('tongxue-performance-v157.js?v=157'));
 check('品牌 Logo',page.includes('tongxue-logo-primary-v1.webp')&&page.includes('alt="同学你好"'));
 check('页面构建标识唯一',count(page,build)===1);
 check('导入映射唯一',count(page,importMap)===1);
@@ -22,7 +22,7 @@ check('无候选 MutationObserver',!regionUi.includes('MutationObserver'));
 check('地域 JSON 版本化',resolver.includes('school-search-index.20260617-v150.json'));
 check('JSON 构建标识校验',resolver.includes('payload?.buildId!==TONGXUE_V150_BUILD_ID'));
 check('HTML 不缓存',headers.includes('/tongxue/index.html')&&headers.includes('must-revalidate'));
-check('版本资源长期缓存',headers.includes('/tongxue/data/school-search-index.20260617-v150.json')&&headers.includes('/tongxue/app/tongxue-performance-v156.js')&&headers.includes('immutable'));
+check('版本资源长期缓存',headers.includes('/tongxue/data/school-search-index.20260617-v150.json')&&headers.includes('/tongxue/app/tongxue-performance-v157.js')&&headers.includes('immutable'));
 check('实体层使用 v150 数据',entityUi.includes('school-entities-v150.js?v=150'));
 check('实体内容隔离',entityUi.includes('不会混入其他校区或母体学校评价')&&entityUi.includes("url.searchParams.set('entity',entity.entityId)"));
 console.log('TONGXUE_REGION_UI_V154_RESULTS '+JSON.stringify({failures}));if(failures.length)process.exitCode=1;
