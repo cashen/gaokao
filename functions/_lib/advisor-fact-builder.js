@@ -3,8 +3,9 @@ import { lookupScoreRank, getRankTableRows } from './rank-table-provider.js';
 import { getRankGap, rankGapText } from './selection-pool-rank-utils.js';
 import { getPushRateReference, buildPushRateSummary } from './push-rate-matcher.js';
 import { enrichBottomLineFields, summarizeBottomLine, bottomLineModeSummary } from './bottomline-policy.js';
-import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
+import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
 
 function num(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -219,8 +220,10 @@ export function buildAdvisorFacts(input = {}) {
   return {
     version: 'v3.9.60.0',
     algorithmVersion: ALGORITHM_ORCHESTRATION_VERSION,
-    dataYear: 2026,
-    audienceYear: 2027,
+    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion,
     config,
     candidate: {
       score: candidateScore,

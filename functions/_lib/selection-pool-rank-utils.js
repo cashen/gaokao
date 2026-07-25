@@ -36,8 +36,9 @@ function pickNumber(obj, keys) {
 }
 
 export function getItemReferenceRank(item = {}) {
+  if (item.historicalOnly || Number(item.dataYear || item.primaryYear || 2026) !== 2026) return null;
   return pickNumber(item, [
-    'rank2025',
+    'rank2026',
     'rank',
     'minRank',
     'lowestRank',
@@ -45,22 +46,19 @@ export function getItemReferenceRank(item = {}) {
     'referenceRank',
     'reference_rank',
     'lastYearRank',
-    'admissionRank',
-    'historyCompare.rank2025',
-    'historyCompare.rank'
+    'admissionRank'
   ]);
 }
 
 export function getItemReferenceScore(item = {}) {
+  if (item.historicalOnly || Number(item.dataYear || item.primaryYear || 2026) !== 2026) return null;
   return pickNumber(item, [
-    'score2025',
+    'score2026',
     'score',
     'minScore',
     'lowestScore',
     'lowest_score',
-    'referenceScore',
-    'historyCompare.score2025',
-    'historyCompare.score'
+    'referenceScore'
   ]);
 }
 
@@ -72,7 +70,7 @@ export function rankRangeText(rankInfo) {
 
 export function getCandidateRankInfo(input = {}, items = []) {
   const candidateScore = toNumber(input.candidateScore, null);
-  const year = toNumber(input.year ?? input.dataYear ?? input.rankYear, 2025) || 2025;
+  const year = toNumber(input.year ?? input.dataYear ?? input.rankYear, 2026) || 2026;
   const region = input.region || 'ln';
   const subject = input.subject || 'physics';
   const rankRow = lookupScoreRank({ year, region, subject, score: candidateScore });
@@ -133,7 +131,7 @@ export function getCandidateRankInfo(input = {}, items = []) {
     subject,
     source: 'missingCandidateScore',
     label: '位次待核验',
-    note: '未填写考生分数，无法按辽宁2025物理类一分一段自动取位次；报告不会用自选池专业位次反推考生位次。'
+    note: `未填写考生分数，无法按辽宁${year}物理类一分一段自动取位次；报告不会用自选池专业位次反推考生位次。`
   };
 }
 

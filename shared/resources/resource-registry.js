@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3963_1';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 
@@ -8,6 +8,12 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     module: '/shared/resources/release/current-release.js',
     policy: 'single-source-release-contract',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'feishu', 'self-check'])
+  }),
+  runtimeCache: Object.freeze({
+    id: 'ln-rank-runtime-cache-coherence',
+    module: '/shared/resources/release/runtime-cache-contract.v3963_1.js',
+    policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
+    consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
   }),
   exam: Object.freeze({
     id: 'liaoning-physics-exam',
@@ -29,9 +35,10 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   reports: Object.freeze({
     id: 'feishu-report-contract',
-    module: '/shared/resources/reports/feishu-report-contract.js',
-    policy: 'single-source-contract-and-client',
-    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'self-check'])
+    module: '/shared/resources/reports/feishu-report-contract.v3963_1.js',
+    yearCaliberVersion: 'ln-physics-report-years-v3963_1',
+    policy: 'single-source-contract-client-and-year-caliber',
+    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'path-analysis', 'self-check'])
   }),
   schools: Object.freeze({
     id: 'school-resource-center',
@@ -55,12 +62,12 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   ui: Object.freeze({
     id: 'family-ui-orchestration',
-    registry: '/shared/ui/ui-registry.js',
+    registry: '/shared/ui/ui-registry.v3963_1.js',
     foundation: '/shared/ui/tokens/foundation.v3959_0.css',
     semantic: '/shared/ui/tokens/semantic.v3959_0.css',
-    modeSwitch: '/shared/ui/components/mode-switch.v3962_2.css',
-    shellCss: '/shared/ui/shell/family-shell.v3959_0.css',
-    shellJs: '/shared/ui/shell/family-shell.v3959_0.js',
+    modeSwitch: '/shared/ui/components/mode-switch.v3963_0.css',
+    shellCss: '/shared/ui/shell/family-shell.v3960_0.css',
+    shellJs: '/shared/ui/shell/family-shell.v3963_1.js',
     policy: 'single-ui-language-shell-state-and-responsive-contract',
     consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue'])
   }),

@@ -1,6 +1,6 @@
 export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, narrative = {}, healthLights = {}, source = 'fallback' } = {}) {
   return {
-    snapshotId: `ln-rank-${facts.config?.year || 2025}-${facts.candidate?.score || 'score-missing'}-${Date.now()}`,
+    snapshotId: `ln-rank-${facts.config?.year || 2026}-${facts.candidate?.score || 'score-missing'}-${Date.now()}`,
     version: 'v3.9.5.9',
     generatedAt: new Date().toISOString(),
     candidateContext: {
@@ -14,7 +14,7 @@ export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, nar
       zoneName: rankZone.zoneName || ''
     },
     dataVersion: {
-      rankTable: `${facts.config?.rankYear || 2025}-${facts.config?.region || 'ln'}-${facts.config?.subject || 'physics'}`,
+      rankTable: `${facts.config?.rankYear || 2026}-${facts.config?.region || 'ln'}-${facts.config?.subject || 'physics'}`,
       majorData: 'ln-rank-2026-physics-current',
       pushRateData: 'push-rate-first-pass-2025'
     },

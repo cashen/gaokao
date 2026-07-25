@@ -6,15 +6,16 @@ import { pathToFileURL } from 'node:url';
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-const app = read('ln-rank/js/app.v3961_0.js');
+const app = read('ln-rank/js/app.v3963_0.js');
 const state = read('ln-rank/js/state/app-state.js');
-const frontend = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js');
-const css = read('ln-rank/css/school-all-mode.v3962_2.css');
+const frontend = read('ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js');
+const orchestrator = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js');
+const css = read('ln-rank/css/school-all-mode.v3963_0.css');
 const page = read('ln-rank/index.html');
 const api = read('functions/api/school-majors.js');
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.ok(app.includes("school-all-mode.v3962_2.js?v=3962_2"), 'main app must mount current school-all mode');
+assert.ok(app.includes("school-all-mode.v3963_0.js?v=3963_0"), 'main app must mount current school-all mode');
 assert.ok(state.includes('resultMode: "score-bands"'), 'state must keep score-bands as default');
 assert.ok(state.includes('schoolSelection:'), 'state must own school selection');
 assert.ok(state.includes('schoolAll:'), 'state must own school-all request state');
@@ -22,10 +23,14 @@ assert.ok(page.includes('id="schoolViewModeMount"'), 'page must own the static s
 assert.ok(page.includes('id="schoolAllResultsPanel"'), 'page must own the static school results mount');
 
 for (const marker of [
-  'resolveCompactSchoolResource','createSelectionPoolAdapter','buildTongxueSchoolHref','UI_ACTION_COPY',
+  'createSelectionPoolAdapter','buildTongxueSchoolHref','UI_ACTION_COPY',
   "const API_PATH = '/api/school-majors'",'schoolEntity','candidateScore','data-school-detail-toggle',
-  'ui-button ui-button--compact','ui-chip ui-chip--compact',"mountPolicy: 'static-shared-ui'"
+  'ui-button ui-button--compact','ui-chip ui-chip--compact',"mountPolicy: 'static-result-owner'",
+  "sharedControlOwner: 'selection-workspace-orchestration-v3963'"
 ]) assert.ok(frontend.includes(marker), `school-all frontend missing ${marker}`);
+for (const marker of ['resolveCompactSchoolResource','submitActiveSearch','gaokao:school-search-submit']) {
+  assert.ok(orchestrator.includes(marker), `shared search owner missing ${marker}`);
+}
 
 for (const forbidden of ['MutationObserver','setTimeout(','lnRank.schoolAll.selectionPool','new Map(SCHOOL','injectStylesheet','ensureModeMount','ensureWorkspace','document.createElement','insertAdjacentElement']) {
   assert.ok(!frontend.includes(forbidden), `school-all frontend contains forbidden owner: ${forbidden}`);
@@ -33,8 +38,8 @@ for (const forbidden of ['MutationObserver','setTimeout(','lnRank.schoolAll.sele
 
 for (const marker of [
   '../_lib/ln-rank-manifest.js','../_lib/fenxi-normalizer.js','../_lib/standard-major-mapper.js',
-  '../_lib/school-display-tags.js','../_lib/special-project-policy.js','canonical-position.v3960_0.js',
-  'school-identity-center.js',"mode: 'school-all'","mode: 'shared-records-school-exact'"
+  '../_lib/school-display-tags.js','../_lib/special-project-policy.js','canonical-position.v3963_0.js',
+  'school-identity-center.js','buildKeywordQuery','matchMajorProject',"mode: 'school-all'","mode: 'shared-records-school-exact'"
 ]) assert.ok(api.includes(marker), `school-all API missing shared owner ${marker}`);
 
 assert.ok(!api.includes("from '../_lib/fenxi-manifest.js'"), 'school-all API must not use historical manifest');
@@ -75,6 +80,7 @@ try {
   const main580 = await call('schoolEntityId=neu-main&school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&candidateScore=580&limit=100');
   const main620 = await call('schoolEntityId=neu-main&school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&candidateScore=620&limit=100');
   const qhd = await call('schoolEntityId=neu-qhd&school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6%E7%A7%A6%E7%9A%87%E5%B2%9B%E5%88%86%E6%A0%A1&candidateScore=580&limit=100');
+  const keyword = await call('schoolEntityId=neu-main&school=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&candidateScore=600&majorKeyword=%E7%94%B5%E6%B0%94%2F%E8%87%AA%E5%8A%A8%E5%8C%96&limit=100');
 
   assert.ok(mainNoScore.meta.filteredTotal > 0, '东北大学 should have active 2026 records');
   assert.ok(qhd.meta.filteredTotal > 0, '东北大学秦皇岛分校 should have active 2026 records');
@@ -88,15 +94,18 @@ try {
   assert.ok(qhd.records.every(record => !mainIds.has(record.id)), 'main and branch record identities must not overlap');
   assert.ok(main580.records.every(record => Number.isFinite(Number(record.scoreDelta2026))), 'score context must add position deltas');
   assert.ok(main580.records.every(record => record.schoolCode2026 && record.majorCode2026), 'records must retain 2026 school/major codes');
-  assert.ok(mainNoScore.records.every((record, index, rows) => index === 0 || Number(rows[index - 1].score2026) >= Number(record.score2026)), 'default sort must be score-desc');
+  assert.ok(mainNoScore.records.every((record, index, rows) => index === 0 || Number(rows[index - 1].rank2026) <= Number(record.rank2026)), 'historical position sort must be rank-first');
+  assert.equal(keyword.meta.keywordMode, 'any');
+  assert.deepEqual(keyword.meta.keywordTerms, ['电气', '自动化']);
+  assert.ok(keyword.meta.filteredTotal > 0, 'school keyword query must match either direction');
   assert.equal(mainNoScore.summary.regularCount + mainNoScore.summary.specialCount, mainNoScore.meta.filteredTotal, 'special projects must remain included in the full-school total');
   assert.equal(mainNoScore.meta.dataBoundary.includes('不代表该校全国全部本科专业'), true);
   assert.equal(mainNoScore.source.mode, 'shared-records-school-exact');
 
   console.log(JSON.stringify({
     ok: true,
-    mode: 'school-all-mode-v3962_2',
-    mountPolicy: 'static-shared-ui',
+    mode: 'school-all-mode-v3963_0',
+    mountPolicy: 'static-result-owner',
     northeastUniversity: mainNoScore.meta.filteredTotal,
     northeastUniversityQinhuangdao: qhd.meta.filteredTotal,
     scoreInvariant: [mainNoScore.meta.filteredTotal, main580.meta.filteredTotal, main620.meta.filteredTotal],

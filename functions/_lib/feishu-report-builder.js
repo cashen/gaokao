@@ -215,6 +215,8 @@ export function buildFeishuReport(data) {
     rangeText: band.rangeText,
     reportType: FEISHU_REPORT_CONTRACT.currentBandReportType,
     dataYear: FEISHU_REPORT_CONTRACT.dataYear,
-    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear
+    rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion
   };
 }

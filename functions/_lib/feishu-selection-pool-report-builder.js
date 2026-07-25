@@ -520,13 +520,20 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   const candidateScore = input.candidateScore || '未填写';
   const items = normalizeItems(input.items || input.orderedItems || []);
   const stats = input.analysis?.stats?.total ? input.analysis.stats : getStats(items);
-  const summary = buildSelectionPoolSummary(input, items);
+  const summary = buildSelectionPoolSummary({
+    ...input,
+    year: FEISHU_REPORT_CONTRACT.dataYear,
+    dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+    audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion
+  }, items);
   const displayRankForTitle = summary.candidateRankLabel || '位次待核验';
   const orderSignature = clean(input.orderSignature || input.analysis?.orderSignature || '', 600);
   const hasAnalysis = reportType === 'selectionPoolWithAnalysis' && input.analysis;
   const title = hasAnalysis
-    ? `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类专业初选参考报告`
-    : `${candidateScore}分｜${displayRankForTitle}｜辽宁 2026 物理类家庭讨论报告`;
+    ? `${candidateScore}分｜${displayRankForTitle}｜辽宁 ${FEISHU_REPORT_CONTRACT.dataYear} 物理类专业初选参考报告`
+    : `${candidateScore}分｜${displayRankForTitle}｜辽宁 ${FEISHU_REPORT_CONTRACT.dataYear} 物理类家庭讨论报告`;
   const displayItems = summary.enrichedItems?.length === items.length ? summary.enrichedItems : items;
   const reviewChecklist = input.reviewChecklist || buildSelectionReviewChecklist(displayItems.length ? displayItems : items);
   const groups = groupCountsForReport(displayItems.length ? displayItems : items);
@@ -535,7 +542,7 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   lines.push(`# ${title}`, '');
   lines.push(`- 报告类型：${hasAnalysis ? '带解读的报告' : '当前排序清单'}`);
   lines.push(`- 模考 / 预估参考分数：${candidateScore}`);
-  lines.push(`- 2026 历史参考位置：${displayRankForTitle}`);
+  lines.push(`- ${FEISHU_REPORT_CONTRACT.dataYear} 历史参考位置：${displayRankForTitle}`);
   lines.push(`- 数据口径：${YEAR_CALIBER_KB.pageCopy}正式填报以当年一分一段、招生计划和志愿系统为准。`);
   lines.push('- 使用边界：本报告用于家庭讨论和人工确认，不等同于录取预测。', '');
 
@@ -616,7 +623,9 @@ export function buildSelectionPoolFeishuReport(input = {}) {
     release: FEISHU_REPORT_CONTRACT.releaseName,
     summary,
     dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    rankYear: FEISHU_REPORT_CONTRACT.rankYear,
     audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion,
     styledBlocks: buildSelectionPoolStyledBlocks({
       title,
       reportType,

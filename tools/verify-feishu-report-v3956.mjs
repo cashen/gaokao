@@ -3,14 +3,15 @@ import fs from 'node:fs';
 import { buildReportDataV3956, normalizeReportParams } from '../functions/_lib/report-data-service-v3956.js';
 import { buildFeishuReport } from '../functions/_lib/feishu-report-builder.js';
 import { buildSelectionPoolFeishuReport } from '../functions/_lib/feishu-selection-pool-report-builder.js';
-import { FEISHU_REPORT_CONTRACT, FEISHU_REPORT_ROUTES } from '../shared/resources/reports/feishu-report-contract.js';
+import { FEISHU_REPORT_CONTRACT, FEISHU_REPORT_ROUTES, FEISHU_YEAR_CALIBER } from '../shared/resources/reports/feishu-report-contract.js';
 import { isCompatibleDecisionSnapshot } from '../shared/algorithms/contracts/decision-snapshot.v3960_0.js';
+import { onRequest as analyzeSelectionPath } from '../functions/api/path-analysis.js';
 
 const record = {
   id: 'demo-2026', school: '大连理工大学（盘锦校区）', major: '能源化学工程',
   dataYear: 2026, primaryYear: 2026,
   score2026: 589, rank2026: 18420, score2025: 581, rank2025: 19100, score2024: 576, rank2024: 20500,
-  scoreDelta2026: 9, rankGap2026: -820, band: 'upper', bandKey: 'upper',
+  scoreDelta2026: 9, band: 'upper', bandKey: 'upper',
   statusLabel: '稍高目标', position: '稍高目标区', matchLevel: 'related', matchLabel: '相关方向', matchReason: '专业名称符合当前方向',
   displayLocation: '辽宁 · 盘锦', geoEntity: '大连理工大学（盘锦校区）', schoolTags: ['公办', '盘锦校区'],
   schoolNature: 'public', feeType: 'normal',
@@ -20,7 +21,14 @@ const record = {
 };
 
 assert.equal(FEISHU_REPORT_CONTRACT.dataYear, 2026);
+assert.equal(FEISHU_REPORT_CONTRACT.rankYear, 2026);
 assert.equal(FEISHU_REPORT_CONTRACT.audienceYear, 2027);
+assert.equal(FEISHU_REPORT_CONTRACT.version, 'v1.2.0');
+assert.equal(FEISHU_REPORT_CONTRACT.yearCaliberVersion, 'ln-physics-report-years-v3963_1');
+assert.deepEqual(FEISHU_REPORT_CONTRACT.historicalYears, [2025, 2024]);
+assert.match(FEISHU_YEAR_CALIBER.reportCopy, /基于2026年/);
+assert.match(FEISHU_YEAR_CALIBER.reportCopy, /2025、2024只作严格同口径历史对照/);
+assert.match(FEISHU_YEAR_CALIBER.reportCopy, /正式填报以2027年/);
 assert.equal(FEISHU_REPORT_ROUTES.currentBand, '/api/feishu-create-report');
 assert.equal(normalizeReportParams({ candidateScore: 580 }).candidateScore, 580);
 assert.throws(() => normalizeReportParams({ candidateScore: 149 }));
@@ -37,25 +45,51 @@ const payload = {
 const reportData = await buildReportDataV3956(new Request('https://example.com/api/feishu-create-report'), {}, payload);
 assert.equal(reportData.sourceMode, 'current-decision-snapshot');
 assert.equal(reportData.dataScope, '辽宁2026物理类');
-assert.equal(reportData.algorithmOrchestrationVersion, 'algorithm-orchestration-v3960');
+assert.equal(reportData.algorithmOrchestrationVersion, 'algorithm-orchestration-v3963');
 assert.equal(reportData.selectedRecords[0].score2026, 589);
 assert.equal(reportData.selectedRecords[0].canonicalPosition.bandKey, 'upper');
 assert.equal(isCompatibleDecisionSnapshot(reportData.decisionSnapshot), true);
 assert.equal(reportData.decisionSnapshot.records[0].id, record.id);
 assert.equal(reportData.decisionSnapshot.records[0].bandKey, 'upper');
 const current = buildFeishuReport(reportData);
-const list = buildSelectionPoolFeishuReport({ candidateScore: 580, items: [record], reportType: 'selectionPoolOnly' });
-const analyzed = buildSelectionPoolFeishuReport({ candidateScore: 580, items: [record], reportType: 'selectionPoolWithAnalysis', analysis: { stats: { total: 1, rushCount: 1, stableCount: 0, safeCount: 0 }, aiNarrative: { overall: '先确认孩子是否接受化学与实验课程。', actions: ['确认校区和培养方案'] } } });
+const list = buildSelectionPoolFeishuReport({ candidateScore: 580, year: 2025, dataYear: 2025, rankYear: 2025, items: [record], reportType: 'selectionPoolOnly' });
+const analyzed = buildSelectionPoolFeishuReport({ candidateScore: 580, year: 2025, dataYear: 2025, rankYear: 2025, items: [record], reportType: 'selectionPoolWithAnalysis', analysis: { stats: { total: 1, rushCount: 1, stableCount: 0, safeCount: 0 }, aiNarrative: { overall: '先确认孩子是否接受化学与实验课程。', actions: ['确认校区和培养方案'] } } });
 
 for (const [name, report] of [['currentBand', current], ['selectionPoolOnly', list], ['selectionPoolWithAnalysis', analyzed]]) {
   assert.ok(report.markdown.includes('2026最低投档'), `${name} missing 2026 primary fields`);
   assert.ok(report.markdown.includes('2025') && report.markdown.includes('2024'), `${name} missing history years`);
   assert.ok(!report.markdown.includes('2025最低分') && !report.markdown.includes('2025最低位次'), `${name} still treats 2025 as primary`);
-  assert.ok(report.markdown.includes('2027') || report.markdown.includes('当年'), `${name} missing current verification boundary`);
+  assert.ok(report.markdown.includes('2027'), `${name} missing unpublished-year boundary`);
+  assert.ok(!report.markdown.includes('基于 2025') && !report.markdown.includes('基于辽宁 2025'), `${name} contains stale 2025 primary copy`);
+  assert.ok(!report.markdown.includes('数据口径：辽宁2025'), `${name} contains stale 2025 data scope`);
+  assert.equal(report.dataYear, 2026);
+  assert.equal(report.rankYear, 2026);
+  assert.equal(report.audienceYear, 2027);
+  assert.equal(report.yearCaliberVersion, FEISHU_REPORT_CONTRACT.yearCaliberVersion);
 }
 assert.equal(list.reportType, 'selectionPoolOnly');
 assert.equal(analyzed.reportType, 'selectionPoolWithAnalysis');
 assert.equal(list.version, FEISHU_REPORT_CONTRACT.releaseVersion);
+assert.equal(list.summary.candidateRankYear, 2026);
+assert.equal(list.summary.enrichedItems[0].referenceRank, record.rank2026);
+
+const analysisResponse = await analyzeSelectionPath({
+  request: new Request('https://example.com/api/path-analysis', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ candidateScore: 580, year: 2025, dataYear: 2025, rankYear: 2025, items: [record] })
+  }),
+  env: {}
+});
+assert.equal(analysisResponse.status, 200);
+const analysisResult = await analysisResponse.json();
+assert.equal(analysisResult.dataYear, 2026);
+assert.equal(analysisResult.rankYear, 2026);
+assert.equal(analysisResult.audienceYear, 2027);
+assert.equal(analysisResult.yearCaliberVersion, FEISHU_REPORT_CONTRACT.yearCaliberVersion);
+assert.equal(analysisResult.facts.config.year, 2026);
+assert.match(analysisResult.reportText, /基于2026年/);
+assert.doesNotMatch(analysisResult.reportText, /基于 2025|数据口径：辽宁2025|正式填报以 2026/);
 
 const service = fs.readFileSync('functions/_lib/report-data-service-v3956.js', 'utf8');
 assert.ok(service.includes('makeDecisionSnapshot'));
@@ -67,10 +101,14 @@ for (const source of [routeCurrent, routePool]) {
   assert.ok(source.includes('createFeishuReportResponse'));
   assert.ok(!source.includes('getTenantAccessToken') && !source.includes('createFeishuDocument'));
 }
-const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3956_0.js', 'utf8');
+assert.ok(routePool.includes('year: FEISHU_REPORT_CONTRACT.dataYear'));
+assert.ok(routePool.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
+const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3963_1.js', 'utf8');
 assert.ok(frontendClient.includes('FEISHU_REPORT_ROUTES'));
 assert.ok(frontendClient.includes('AbortController'));
-const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3956_0.js', 'utf8');
+assert.ok(frontendClient.includes('data.yearCaliberVersion !== FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
+const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3963_1.js', 'utf8');
 assert.ok(currentPayload.includes('selectedRecords') && currentPayload.includes('score2026') && currentPayload.includes('rank2026'));
+assert.ok(currentPayload.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
 
-console.log('FEISHU_REPORT_V3960_OK');
+console.log('FEISHU_REPORT_V3963_1_OK');

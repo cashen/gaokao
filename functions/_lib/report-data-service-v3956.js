@@ -17,7 +17,7 @@ import { normalizeFenxiCodes } from './fenxi-code-normalizer.js';
 import { mapStandardMajor } from './standard-major-mapper.js';
 import { lookupScoreRank } from './rank-table-provider.js';
 import { FEISHU_REPORT_CONTRACT, validateFeishuCandidateScore } from '../../shared/resources/reports/feishu-report-contract.js';
-import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
 import { makeDecisionSnapshot } from '../../shared/algorithms/contracts/decision-snapshot.v3960_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';

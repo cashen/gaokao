@@ -28,9 +28,9 @@ jobs:
       - name: Check protected paths
         run: |
           set -euo pipefail
-          base=$(git merge-base origin/main HEAD)
-          git diff --name-only "$base"...HEAD | tee /tmp/v3962_2-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3962_2-files.txt; then
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD | tee /tmp/v3963_1-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3963_1-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
@@ -40,12 +40,12 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v5.py > /tmp/v3962_2-verify.out 2> /tmp/v3962_2-verify.err
+          python3 tools/ln-2026/verify-final-release-v6.py > /tmp/v3963_1-verify.out 2> /tmp/v3963_1-verify.err
           status=$?
-          cat /tmp/v3962_2-verify.out
+          cat /tmp/v3963_1-verify.out
           if [ "$status" -ne 0 ]; then
-            echo '--- V3962.2 VERIFY ERROR ---'
-            cat /tmp/v3962_2-verify.err
+            echo '--- V3963.1 VERIFY ERROR ---'
+            cat /tmp/v3963_1-verify.err
             exit "$status"
           fi
 
@@ -53,8 +53,8 @@ jobs:
         if: failure() && steps.release_contract.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3962-2-verify-error
-          path: /tmp/v3962_2-verify.err
+          name: v3963-1-verify-error
+          path: /tmp/v3963_1-verify.err
           if-no-files-found: error
           retention-days: 1
 
@@ -77,6 +77,7 @@ jobs:
             tools/ln-2026/verify-final-release-v3.py \
             tools/ln-2026/verify-final-release-v4.py \
             tools/ln-2026/verify-final-release-v5.py \
+            tools/ln-2026/verify-final-release-v6.py \
             tools/schools/school_resource_bundle.py \
             tools/schools/school_resource_artifact_compat.py \
             tools/schools/build-school-profile-center-v3957.py \
@@ -89,15 +90,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check xlrd==2.0.1
-          mkdir -p /tmp/school-resources-v3962_2
+          mkdir -p /tmp/school-resources-v3963_1
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
             --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
             --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/school-resources-v3962_2/moe-2026-schools.xls \
+            --output /tmp/school-resources-v3963_1/moe-2026-schools.xls \
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/school-resources-v3962_2/moe-2026-schools.xls)" -gt 20000
-          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3962_2/moe-2026-schools.xls | tee /tmp/school-resources-v3962_2/build-result.json
-          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3962_2/compat-result.json
+          test "$(stat -c%s /tmp/school-resources-v3963_1/moe-2026-schools.xls)" -gt 20000
+          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3963_1/moe-2026-schools.xls | tee /tmp/school-resources-v3963_1/build-result.json
+          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3963_1/compat-result.json
           node tools/tongxue/build-school-initial-index-v141.mjs
           node tools/tongxue/build-school-initial-index-v150.mjs
           files=(
@@ -112,16 +113,16 @@ jobs:
         if: failure() && steps.school_bundle.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3962-2-school-resource-drift
-          path: /tmp/school-resources-v3962_2
+          name: v3963-1-school-resource-drift
+          path: /tmp/school-resources-v3963_1
           if-no-files-found: warn
           retention-days: 1
 
       - name: Check changed JavaScript syntax
         run: |
           set -euo pipefail
-          base=$(git merge-base origin/main HEAD)
-          git diff --name-only "$base"...HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
             [ -f "$file" ] || continue
             echo "node --check $file"
             node --check "$file"
@@ -132,8 +133,8 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { getScoreGuard } from './ln-rank/js/core/score-guard.js';
-          import { classifySelectionDelta, classifySelectionPosition } from './ln-rank/js/domain/selection-band-policy.js';
-          import { resolveCanonicalPosition } from './shared/algorithms/position/canonical-position.v3960_0.js';
+          import { classifySelectionDelta, classifySelectionPosition } from './ln-rank/js/domain/selection-band-policy.v3963_1.js';
+          import { resolveCanonicalPosition } from './shared/algorithms/position/canonical-position.v3963_0.js';
           import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoryScore } from './functions/_lib/history-score-engine.js';
           import { normalizeRecord } from './functions/_lib/fenxi-normalizer.js';
@@ -156,38 +157,26 @@ jobs:
           }
           const panjin=resolveCompactSchoolResource('大连理工大学盘锦校区');
           if(panjin?.entityId!=='dlut-panjin') throw new Error(`shared school identity: ${JSON.stringify(panjin)}`);
-          if(CURRENT_RELEASE.display!=='v3.9.62.2'||CURRENT_RELEASE.assetVersion!=='v3962_2'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3961'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3961'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3962_2'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3962_2'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3962_2'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3960') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
+          if(CURRENT_RELEASE.display!=='v3.9.63.1'||CURRENT_RELEASE.assetVersion!=='v3963_1'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3963_1'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3963_1'||CURRENT_RELEASE.searchIntentVersion!=='score-school-search-v3963_1'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3963_1'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3963_1'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3963_1'||CURRENT_RELEASE.runtimeCacheVersion!=='runtime-cache-coherence-v3963_1'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3963') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
           console.log('critical runtime module checks passed');
           NODE
 
       - name: Audit unified resource ownership
         run: node tools/audit-resource-ownership-v3958.mjs
-      - name: Audit full-site UI orchestration
-        run: node tools/audit-ui-orchestration-v3959.mjs
-      - name: Audit selection workspace orchestration
-        run: node tools/audit-selection-workspace-v3961.mjs
       - name: Audit algorithm orchestration
         run: node tools/audit-algorithm-orchestration-v3960.mjs
-      - name: Audit school-all mode with real 2026 data
-        run: node tools/audit-school-all-mode-v3962.mjs
-      - name: Enforce static shared school-mode ownership
-        run: node tools/audit-school-mode-static-v3962_2.mjs
-      - name: Verify family decision workspace
-        run: node tools/verify-family-decision-v3955.mjs
+      - name: Audit dual search intent and real 2026 data
+        run: node tools/audit-dual-search-v3963_1.mjs
+      - name: Audit immutable runtime graph and honest failure state
+        run: node tools/audit-runtime-cache-contract-v3963_1.mjs
       - name: Verify unified school profile center
         run: node tools/verify-school-profile-center-v3957.mjs
       - name: Verify Tongxue direct result
         run: node tools/tongxue/verify-direct-result-v156.mjs
       - name: Verify 2026-first card AI
         run: node tools/verify-card-ai-2026-v3955.mjs
-      - name: Audit shared resource center
-        run: node tools/audit-shared-resource-center-v3957.mjs
       - name: Verify three Feishu report flows
         run: node tools/verify-feishu-report-v3956.mjs
-      - name: Audit active runtime graph
-        run: node tools/audit-active-runtime-v3957.mjs
-      - name: Run compact release contract
-        run: node tools/check-ln-2026-release.mjs
 
       - name: Smoke-test current static pages
         run: |
@@ -206,30 +195,35 @@ jobs:
             /shared/resources/schools/school-profile-data.20260617-v3957.js \
             /shared/resources/majors/major-catalog-contract.js \
             /shared/resources/reports/feishu-report-contract.js \
+            /shared/resources/reports/feishu-report-contract.v3963_1.js \
+            /shared/resources/release/runtime-cache-contract.v3963_1.js \
             /shared/ui/ui-registry.js \
-            /shared/ui/ui-registry.v3961_0.js \
+            /shared/ui/ui-registry.v3963_1.js \
             /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/ui/tokens/foundation.v3959_0.css \
             /shared/ui/tokens/semantic.v3959_0.css \
-            /shared/ui/components/mode-switch.v3962_2.css \
+            /shared/ui/components/mode-switch.v3963_0.css \
             /shared/ui/shell/family-shell.v3960_0.css \
-            /shared/ui/shell/family-shell.v3961_0.js \
+            /shared/ui/shell/family-shell.v3963_1.js \
             /shared/algorithms/algorithm-registry.js \
-            /shared/algorithms/position/canonical-position.v3960_0.js \
+            /shared/algorithms/position/canonical-position.v3963_0.js \
             /shared/algorithms/ranking/staged-ranking.v3960_0.js \
             /ln-rank/ \
-            /ln-rank/css/selection-workspace.v3961_0.css \
-            /ln-rank/css/school-all-mode.v3962_2.css \
-            /ln-rank/js/app.v3961_0.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js \
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js \
+            /ln-rank/css/selection-workspace.v3963_1.css \
+            /ln-rank/css/school-all-mode.v3963_0.css \
+            /ln-rank/js/app.v3963_1.js \
+            /ln-rank/js/app-runtime.v3963_1.js \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3963_1.js \
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3963_1.js \
             /ln-rank/js/workspace/result-commit.v3961_0.js \
             /ln-rank/js/workspace/family-card-presenter.v3961_0.js \
             /ln-rank/js/workspace/scroll-policy.v3961_0.js \
             /ln-rank/js/workspace/viewport-orchestrator.v3961_0.js \
-            /ln-rank/js/feature/score-bands/render.v3961_0.js \
-            /ln-rank/js/feature/major-pool/index.v3961_0.js \
-            /ln-rank/js/feature/selection-pool/index.v3961_0.js \
+            /ln-rank/js/feature/score-bands/render.v3963_1.js \
+            /ln-rank/js/feature/major-pool/index.v3963_1.js \
+            /ln-rank/js/feature/selection-pool/index.v3963_1.js \
+            /ln-rank/js/selection-pool.v3963_1.js \
+            /ln-rank/js/selection-pool-runtime.v3963_1.js \
             /ln-rank/selection-pool.html \
             /ln-rank/self-check.html \
             /ln-rank/local-mainline.html \

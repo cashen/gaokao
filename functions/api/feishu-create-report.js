@@ -10,7 +10,9 @@ export function onRequest(context) {
       ...buildFeishuReport(data),
       reportType: FEISHU_REPORT_CONTRACT.currentBandReportType,
       dataYear: FEISHU_REPORT_CONTRACT.dataYear,
-      audienceYear: FEISHU_REPORT_CONTRACT.audienceYear
+      rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+      audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+      yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion
     };
   }, FEISHU_REPORT_CONTRACT);
 }
