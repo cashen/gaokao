@@ -19,16 +19,9 @@ import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 import { lookupScoreRank } from '../_lib/rank-table-provider.js';
-import {
-  resolveCanonicalPosition,
-  rankBandRangeText
-} from '../../shared/algorithms/position/canonical-position.v3963_0.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
 import { rankRecords, diversifyRankedRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
-import {
-  getSchoolEntity,
-  entitySourceQuery
-} from '../../shared/resources/schools/school-identity-center.js';
 import {
   normalizeSpecialProjectMode,
   detectSpecialProject,
@@ -95,28 +88,8 @@ function chunkIntersectsScoreWindow(chunk, window) {
   return max >= window.min && min <= window.max;
 }
 
-function normalizeSchoolName(value) {
-  return clean(value, 120)
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[（【\[]/g, '(')
-    .replace(/[）】\]]/g, ')')
-    .replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '');
-}
-
-function exactSchoolNames(entity, schoolKeyword) {
-  if (!entity) return null;
-  return new Set([
-    entitySourceQuery(entity, schoolKeyword),
-    entity?.displayName,
-    entity?.sourceQuery,
-    ...(Array.isArray(entity?.aliases) ? entity.aliases : [])
-  ].map(normalizeSchoolName).filter(Boolean));
-}
-
-function rawKeywordPass(raw, filters, acceptedSchoolNames) {
+function rawKeywordPass(raw, filters) {
   const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  if (acceptedSchoolNames?.size) return acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
   return !schoolKeyword || rawSchool(raw).includes(schoolKeyword);
 }
 
@@ -198,7 +171,6 @@ export async function onRequest(context) {
     const filters = {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
-      schoolEntityId: clean(url.searchParams.get('schoolEntityId') || '', 80),
       majorKeyword: clean(url.searchParams.get('majorKeyword') || url.searchParams.get('majorName') || url.searchParams.get('keyword') || '', 160),
       bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all'),
       specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects')
@@ -212,11 +184,6 @@ export async function onRequest(context) {
     if (!Number.isFinite(candidateScore) || candidateScore < 1 || candidateScore > 750) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
-    const schoolEntity = filters.schoolEntityId ? getSchoolEntity(filters.schoolEntityId) : null;
-    if (filters.schoolEntityId && !schoolEntity) {
-      return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
-    }
-    const acceptedSchoolNames = exactSchoolNames(schoolEntity, filters.schoolKeyword);
 
     const bandsMeta = makeBands(candidateScore, rangePreset);
     const scoreWindow = minMaxScore(bandsMeta);
@@ -229,13 +196,6 @@ export async function onRequest(context) {
     const allChunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
     const chunks = allChunks.filter(chunk => chunkIntersectsScoreWindow(chunk, scoreWindow));
     const candidateRank = rankContextForScore(candidateScore);
-    for (const key of ['upper', 'near', 'steady']) {
-      const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, 141691);
-      if (rankRangeText) {
-        grouped[key].rankRangeText = rankRangeText;
-        grouped[key].rangeText = rankRangeText;
-      }
-    }
 
     let rawTotal = 0;
     let rawCandidate = 0;
@@ -267,7 +227,7 @@ export async function onRequest(context) {
       for (const raw of rawRecords) {
         const score = rawScore(raw);
         if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
-        if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
+        if (!rawKeywordPass(raw, filters)) continue;
         rawCandidate += 1;
 
         const record = { ...normalizeRecord(raw) };
@@ -282,8 +242,7 @@ export async function onRequest(context) {
         Object.assign(record, enrichBottomLineFields(record));
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;
-        if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
-        if (!acceptedSchoolNames?.size && filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
+        if (filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
 
         const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
         if (!match.matched) {
@@ -413,11 +372,9 @@ export async function onRequest(context) {
         candidateSameCount2026: candidateRank?.sameCount ?? null,
         candidateRankEmptyScore: Boolean(candidateRank?.emptyScore),
         candidateRankLabel: rankLabel(candidateRank),
-        classificationMode: 'canonical_rank_primary_2026_position',
+        classificationMode: 'canonical_rank_aware_score_window',
         algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
         rangePreset,
-        schoolEntityId: schoolEntity?.entityId || '',
-        schoolMatchMode: schoolEntity ? 'exact-entity' : (filters.schoolKeyword ? 'keyword-fragment' : 'all-schools'),
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
         specialProject: {
@@ -464,7 +421,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'score-prefilter-rank-primary-canonical-staged-ranked-paged'
+        mode: 'score-window-pruned-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {

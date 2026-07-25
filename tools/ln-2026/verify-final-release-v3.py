@@ -45,12 +45,12 @@ def verify_runtime_current() -> None:
     contains('functions/_lib/exam-year-config.js', 'shared/resources/exam/liaoning-physics.js', 'getExamResourceConfig')
     contains('functions/_lib/rank-table-provider.js', 'ln-2026-physics-score-rank.js', 'ln-2025-physics-score-rank.js')
     contains('ln-rank/js/core/score-guard.js', 'validateExamScore', 'belowVocational', 'belowUndergraduate', 'underSpecial', 'topRange')
-    contains('functions/api/major-bands.js', "classificationMode: 'canonical_rank_primary_2026_position'", 'candidateReferenceRank2026', 'resolveCanonicalPosition', 'rankRecords', 'getBottomLineEligibility', 'algorithmOrchestrationVersion')
+    contains('functions/api/major-bands.js', "classificationMode: 'canonical_rank_aware_score_window'", 'candidateReferenceRank2026', 'resolveCanonicalPosition', 'rankRecords', 'getBottomLineEligibility', 'algorithmOrchestrationVersion')
     base.check("classificationMode: 'score_delta'" not in base.text('functions/api/major-bands.js'), 'legacy score-only classification remains')
     contains('functions/_lib/report-data-service-v3956.js', 'makeDecisionSnapshot', 'current-decision-snapshot', 'canonical-server-rebuild-2026')
     contains('functions/_lib/advisor-fact-builder.js', 'score2026', 'rank2026', 'algorithmVersion')
-    contains('shared/algorithms/algorithm-registry.js', 'algorithm-orchestration-v3963', 'rank-primary-2026-position', 'ai-explains-but-does-not-rank')
-    contains('shared/algorithms/position/canonical-position.v3963_0.js', 'resolveCanonicalPosition', 'rankGapRatio', 'positionDistance')
+    contains('shared/algorithms/algorithm-registry.js', 'algorithm-orchestration-v3960', 'ai-explains-but-does-not-rank')
+    contains('shared/algorithms/position/canonical-position.v3960_0.js', 'resolveCanonicalPosition', 'rankGapRatio', 'positionDistance')
     contains('shared/algorithms/ranking/staged-ranking.v3960_0.js', 'eligibilityTier', 'intentTier', 'softPreferenceWeight')
 
 

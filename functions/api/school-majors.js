@@ -7,11 +7,8 @@ import {
   detectSpecialProject,
   enrichSpecialProjectRecord
 } from '../_lib/special-project-policy.js';
-import { buildKeywordQuery } from '../_lib/keyword-query.js';
-import { matchMajorProject } from '../_lib/major-project-matcher.js';
-import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { lookupScoreRank } from '../_lib/rank-table-provider.js';
-import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
   getSchoolEntity,
@@ -103,23 +100,11 @@ function positionRecord(record, candidateScore, candidateRank) {
 function compareRecords(a, b, sort) {
   const scoreA = Number(a.score2026 ?? a.score ?? -1);
   const scoreB = Number(b.score2026 ?? b.score ?? -1);
-  const rawRankA = Number(a.rank2026 ?? a.rank);
-  const rawRankB = Number(b.rank2026 ?? b.rank);
-  const rankA = Number.isFinite(rawRankA) ? rawRankA : null;
-  const rankB = Number.isFinite(rawRankB) ? rawRankB : null;
-  if (sort === 'position-near') {
-    const distanceA = Number(a.canonicalPosition?.positionDistance);
-    const distanceB = Number(b.canonicalPosition?.positionDistance);
-    const safeA = Number.isFinite(distanceA) ? distanceA : Number.MAX_SAFE_INTEGER;
-    const safeB = Number.isFinite(distanceB) ? distanceB : Number.MAX_SAFE_INTEGER;
-    if (safeA !== safeB) return safeA - safeB;
-  }
-  const rankDirection = sort === 'score-asc' ? -1 : 1;
-  if (rankA != null && rankB != null && rankA !== rankB) return rankDirection * (rankA - rankB);
-  if (rankA != null && rankB == null) return -1;
-  if (rankA == null && rankB != null) return 1;
-  const scoreDirection = sort === 'score-asc' ? 1 : -1;
-  return scoreDirection * (scoreA - scoreB)
+  const rankA = Number(a.rank2026 ?? a.rank ?? Number.MAX_SAFE_INTEGER);
+  const rankB = Number(b.rank2026 ?? b.rank ?? Number.MAX_SAFE_INTEGER);
+  const direction = sort === 'score-asc' ? 1 : -1;
+  return direction * (scoreA - scoreB)
+    || rankA - rankB
     || Number(a.sourceOrder ?? 0) - Number(b.sourceOrder ?? 0)
     || String(a.schoolCode2026 || '').localeCompare(String(b.schoolCode2026 || ''), 'zh-CN')
     || String(a.majorCode2026 || '').localeCompare(String(b.majorCode2026 || ''), 'zh-CN');
@@ -161,11 +146,8 @@ export async function onRequest(context) {
     }
 
     const majorKeyword = clean(url.searchParams.get('majorKeyword') || '', 160);
-    const keywordQuery = buildKeywordQuery(majorKeyword);
-    const requestedSort = clean(url.searchParams.get('sort') || '', 30);
-    const sort = ['position-near', 'score-asc', 'score-desc'].includes(requestedSort)
-      ? requestedSort
-      : (candidateScore ? 'position-near' : 'score-desc');
+    const keywordNeedle = normalizeText(majorKeyword);
+    const sort = url.searchParams.get('sort') === 'score-asc' ? 'score-asc' : 'score-desc';
     const offset = pageNumber(url.searchParams.get('offset'), 0);
     const limit = Math.max(20, Math.min(100, pageNumber(url.searchParams.get('limit'), 40)));
     const { manifest, records: rawRecords } = await loadAllRecords(context.request, context.env || {});
@@ -208,18 +190,14 @@ export async function onRequest(context) {
       record.projectLabel = projectLabel(record);
       record.schoolEntity = entity ? publicSchoolEntity(entity) : null;
       record = positionRecord(record, candidateScore, candidateRank);
-      record.rawText = JSON.stringify(raw).slice(0, 900);
-      const match = keywordQuery.rawKeywords.length
-        ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery)
-        : { matched: true, score: 0, badges: [], matchLevel: '', matchLabel: '', matchReason: '', matchedKeyword: '', matchedTerms: [] };
-      if (!match.matched) return;
-      record.matchScore = Number(match.score || 0);
-      record.matchBadges = match.badges || [];
-      record.matchLevel = match.matchLevel || '';
-      record.matchLabel = match.matchLabel || '';
-      record.matchReason = match.matchReason || match.reason || '';
-      record.matchedKeyword = match.matchedKeyword || '';
-      record.matchedTerms = match.matchedTerms || [];
+
+      const searchable = normalizeText([
+        record.major,
+        record.standardMajor?.name,
+        record.projectLabel,
+        ...(record.specialProject?.types || [])
+      ].filter(Boolean).join(' '));
+      if (keywordNeedle && !searchable.includes(keywordNeedle)) return;
       all.push(record);
     });
 
@@ -227,31 +205,15 @@ export async function onRequest(context) {
     const records = all.slice(offset, offset + limit);
     const hasMore = offset + records.length < all.length;
     const scores = all.map(item => Number(item.score2026 ?? item.score)).filter(Number.isFinite);
-    const uniqueMajorKeys = new Set(all.map(item => normalizeText(
-      item.standardMajor?.code
-      || item.standardMajor?.name
-      || item.major
-    )).filter(Boolean));
-    const nearest = candidateScore && all.length
-      ? [...all].sort((a, b) => compareRecords(a, b, 'position-near'))[0]
-      : null;
     const summary = {
       minScore: scores.length ? Math.min(...scores) : null,
       maxScore: scores.length ? Math.max(...scores) : null,
-      uniqueMajorCount: uniqueMajorKeys.size,
       regularCount: all.filter(item => !item.specialProject?.hasSpecialProject).length,
       specialCount: all.filter(item => item.specialProject?.hasSpecialProject).length,
       upperCount: all.filter(item => item.bandKey === 'upper').length,
       nearCount: all.filter(item => item.bandKey === 'near').length,
       steadyCount: all.filter(item => item.bandKey === 'steady').length,
-      outsideCount: all.filter(item => item.bandKey === 'outside').length,
-      nearestRecord: nearest ? {
-        major: nearest.major,
-        score2026: nearest.score2026 ?? nearest.score,
-        rank2026: nearest.rank2026 ?? nearest.rank,
-        rankGap2026: nearest.rankGap2026 ?? nearest.rankGap,
-        bandKey: nearest.bandKey
-      } : null
+      outsideCount: all.filter(item => item.bandKey === 'outside').length
     };
 
     return json({
@@ -271,8 +233,6 @@ export async function onRequest(context) {
         dataScope: '辽宁2026普通类本科批物理类专业投档记录',
         dataBoundary: '只展示该校在辽宁2026物理类投档表中的招生专业与项目，不代表该校全国全部本科专业，也不判断2027录取结果。',
         sort,
-        keywordMode: 'any',
-        keywordTerms: keywordQuery.rawKeywords,
         pagination: {
           offset,
           limit,
@@ -284,7 +244,6 @@ export async function onRequest(context) {
         elapsedMs: Date.now() - started
       },
       summary,
-      keywordQuery,
       records,
       source: {
         dataYear: 2026,

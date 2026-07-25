@@ -1,8 +1,8 @@
-export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3963';
-export const ALGORITHM_ASSET_VERSION = 'v3963_0';
+export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3960';
+export const ALGORITHM_ASSET_VERSION = 'v3960_0';
 
 export const ALGORITHM_RESOURCE_REGISTRY = Object.freeze({
-  position: '/shared/algorithms/position/canonical-position.v3963_0.js',
+  position: '/shared/algorithms/position/canonical-position.v3960_0.js',
   ranking: '/shared/algorithms/ranking/staged-ranking.v3960_0.js',
   snapshot: '/shared/algorithms/contracts/decision-snapshot.v3960_0.js'
 });
@@ -14,8 +14,7 @@ export const ALGORITHM_CONTRACT = Object.freeze({
   audienceYear: 2027,
   principles: Object.freeze([
     'single-position-owner',
-    'rank-primary-2026-position',
-    'score-prefilter-performance-boundary',
+    'rank-aware-score-window',
     'hard-constraints-before-preferences',
     'intent-before-soft-preference',
     'deterministic-ranking-trace',

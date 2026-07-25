@@ -1,5 +1,5 @@
 export * from './bands-api.js?v=3951_0';
-export * from './render.v3963_0.js?v=3957_0';
+export * from './render.v3957_0.js?v=3957_0';
 export * from './keyword-parser.js?v=3951_0';
 export * from './chips.js?v=3951_0';
 export * from './preset-policy.js?v=3951_0';

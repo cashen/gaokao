@@ -21,18 +21,18 @@ import { STANDARD_MAJOR_CATALOG_2026_FULL, STANDARD_MAJOR_CATEGORIES_2026_FULL }
 
 const read = file => fs.readFileSync(file, 'utf8');
 const json = file => JSON.parse(read(file));
-assert.equal(CURRENT_RELEASE.display, 'v3.9.63.0');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3963_0');
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3963_0');
-assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.62.2');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_2');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_2');
+assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
 assert.equal(SHARED_RESOURCE_CENTER_VERSION, CURRENT_RELEASE.assetVersion);
-assert.equal(UI_ORCHESTRATION_VERSION, 'v3963_0');
-assert.equal(ALGORITHM_ORCHESTRATION_VERSION, 'algorithm-orchestration-v3963');
+assert.equal(UI_ORCHESTRATION_VERSION, 'v3961_0');
+assert.equal(ALGORITHM_ORCHESTRATION_VERSION, 'algorithm-orchestration-v3960');
 assert.equal(Object.keys(UI_PAGE_REGISTRY).length, 7);
 assert.equal(UI_PAGE_REGISTRY.selected.route, '/ln-rank/selection-pool.html#selected-list');
 assert.equal(UI_PAGE_REGISTRY.review.route, '/ln-rank/selection-pool.html#family-review');
 assert.equal(SHARED_RESOURCE_REGISTRY.ui.policy, 'single-ui-language-shell-state-and-responsive-contract');
-assert.equal(ALGORITHM_RESOURCE_REGISTRY.position, '/shared/algorithms/position/canonical-position.v3963_0.js');
+assert.equal(ALGORITHM_RESOURCE_REGISTRY.position, '/shared/algorithms/position/canonical-position.v3960_0.js');
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.dataYear, 2026);
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.audienceYear, 2027);
 assert.equal(LIAONING_PHYSICS_EXAM_CONFIG.specialControlScore, 508);
@@ -116,11 +116,11 @@ const adapters = [
   ['functions/_lib/school-geo-db.js', 'shared/resources/geo/china-region-catalog.js'],
   ['ln-rank/js/ux/family-presentation.v3955_0.js', 'shared/resources/schools/school-resource-center.js'],
   ['ln-rank/js/workspace/family-card-presenter.v3961_0.js', 'shared/resources/schools/school-resource-center.js'],
-  ['ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js', 'shared/resources/schools/school-resource-center.js'],
-  ['ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js', '../selection-pool/index.v3961_0.js'],
-  ['ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js', 'shared/ui/contracts/action-contract.v3959_0.js'],
+  ['ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js', 'shared/resources/schools/school-resource-center.js'],
+  ['ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js', '../selection-pool/index.v3961_0.js'],
+  ['ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js', 'shared/ui/contracts/action-contract.v3959_0.js'],
   ['functions/api/school-majors.js', 'shared/resources/schools/school-identity-center.js'],
-  ['functions/api/school-majors.js', 'shared/algorithms/position/canonical-position.v3963_0.js'],
+  ['functions/api/school-majors.js', 'shared/algorithms/position/canonical-position.v3960_0.js'],
   ['functions/_lib/school-tags.js', 'shared/resources/schools/school-profile-center.js'],
   ['functions/_lib/location-normalizer.js', 'shared/resources/schools/school-profile-center.js'],
   ['functions/_lib/school-display-tags.js', 'shared/resources/schools/school-profile-center.js'],
@@ -130,25 +130,25 @@ const adapters = [
   ['ln-rank/js/knowledge/major-understanding-resolver.js', 'shared/resources/majors/major-catalog-contract.js'],
   ['ln-rank/js/shared/feishu-api-client.v3956_0.js', 'shared/resources/reports/feishu-report-contract.js'],
   ['functions/_lib/report-data-service-v3956.js', 'shared/resources/reports/feishu-report-contract.js'],
-  ['ln-rank/js/app.v3963_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
-  ['ln-rank/js/app.v3963_0.js', 'shared/algorithms/algorithm-registry.js'],
-  ['ln-rank/js/selection-pool.v3960_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
+  ['ln-rank/js/app.v3961_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
+  ['ln-rank/js/app.v3961_0.js', 'shared/algorithms/algorithm-registry.js'],
+  ['ln-rank/js/selection-pool.v3960_0.js', 'shared/ui/shell/family-shell.v3960_0.js'],
   ['ln-rank/js/selection-pool.v3960_0.js', 'shared/algorithms/algorithm-registry.js'],
-  ['ln-rank/js/major-difficulty-2026.v3959_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
-  ['zy2026/assets/zy2026.v3959_0.js', 'shared/ui/shell/family-shell.v3961_0.js'],
+  ['ln-rank/js/major-difficulty-2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
+  ['zy2026/assets/zy2026.v3959_0.js', 'shared/ui/shell/family-shell.v3959_0.js'],
   ['tongxue/app/tongxue-performance-v156.js', 'shared/ui/shell/family-shell.v3959_0.js']
 ];
 for (const [file, marker] of adapters) assert.ok(read(file).includes(marker), `${file} bypasses shared resource ${marker}`);
 
 const mainPage = read('ln-rank/index.html');
-const appWrapper = read('ln-rank/js/app.v3963_0.js');
+const appWrapper = read('ln-rank/js/app.v3961_0.js');
 const schoolLinkCenter = read('shared/resources/schools/school-resource-center.js');
-assert.ok(mainPage.includes('/ln-rank/js/app.v3963_0.js?v=3963_0'));
-assert.ok(mainPage.includes('/ln-rank/css/school-all-mode.v3963_0.css?v=3963_0'));
+assert.ok(mainPage.includes('/ln-rank/js/app.v3961_0.js?v=3962_2'));
+assert.ok(mainPage.includes('/ln-rank/css/school-all-mode.v3962_2.css?v=3962_2'));
 assert.ok(mainPage.includes('/shared/ui/tokens/semantic.v3959_0.css?v=3962_2'));
 assert.ok(!mainPage.includes('/ln-rank/js/app.v3960_0.js?v=3961_0'));
-assert.ok(appWrapper.includes("await import('./workspace/selection-workspace-orchestrator.v3963_0.js?v=3963_0')"));
-assert.ok(appWrapper.includes("await import('./feature/school-majors/school-all-mode.v3963_0.js?v=3963_0')"));
+assert.ok(appWrapper.includes("await import('./workspace/selection-workspace-orchestrator.v3961_0.js?v=3961_0')"));
+assert.ok(appWrapper.includes("await import('./feature/school-majors/school-all-mode.v3962_2.js?v=3962_2')"));
 assert.ok(appWrapper.includes("url.pathname !== '/api/major-bands'"));
 assert.ok(appWrapper.includes('algorithmOrchestrationVersion'));
 assert.ok(!read('ln-rank/js/app.v3951_0.js').includes('SPECIAL_CONTROL_SCORE'));
@@ -178,10 +178,10 @@ for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-asse
   assert.equal(meta.version, CURRENT_RELEASE.display);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   assert.equal(meta.sharedResourceCenterVersion, SHARED_RESOURCE_CENTER_VERSION);
-  assert.equal(meta.uiOrchestrationVersion, 'ui-orchestration-v3963');
-  assert.equal(meta.algorithmOrchestrationVersion, 'algorithm-orchestration-v3963');
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3963_0');
-  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
+  assert.equal(meta.uiOrchestrationVersion, 'ui-orchestration-v3961');
+  assert.equal(meta.algorithmOrchestrationVersion, 'algorithm-orchestration-v3960');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_2');
+  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
   for (const key of [
     'sharedResourceCenterContract','sharedExamResourceContract','sharedRegionResourceContract',
     'sharedSchoolResourceContract','sharedSchoolDirectoryLazySingleFlightContract','feishuSharedResourceContract',
@@ -197,4 +197,4 @@ for (const meta of [json('ln-rank/release-meta.json'), json('ln-rank/active-asse
     'schoolAllSharedUiGovernanceContract','schoolAllFullRowDetailsContract','schoolAllContainerResponsiveContract','schoolAllBrowserMultiTerminalContract'
   ]) assert.equal(meta[key], true, `missing ${key}`);
 }
-console.log('SHARED_RESOURCE_UI_ALGORITHM_CENTER_V3963_0_OK');
+console.log('SHARED_RESOURCE_UI_ALGORITHM_CENTER_V3962_2_OK');

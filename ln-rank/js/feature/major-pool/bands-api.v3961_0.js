@@ -1,4 +1,4 @@
-import { fetchApiJson } from '../../shared/api-client.js?v=3963_0';
+import { fetchApiJson } from '../../shared/api-client.js?v=3961_0';
 
 export async function fetchMajorBands({ candidateScore, rangePreset, filters, page = null, signal = null }) {
   const params = new URLSearchParams({
@@ -6,7 +6,6 @@ export async function fetchMajorBands({ candidateScore, rangePreset, filters, pa
     rangePreset: rangePreset || 'standard',
     region: filters.region || 'all',
     schoolKeyword: filters.schoolKeyword || '',
-    schoolEntityId: filters.schoolEntityId || '',
     majorKeyword: filters.majorKeyword || '',
     bottomLineMode: filters.bottomLineMode || 'all',
     specialProjectMode: filters.specialProjectMode || 'hide_eligibility_projects'

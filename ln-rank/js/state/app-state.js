@@ -18,7 +18,7 @@ export const state = {
     loadingMore: false,
     error: null,
     data: null,
-    sort: "position-near",
+    sort: "score-desc",
     offset: 0,
     limit: 40,
     dirty: false
@@ -26,7 +26,6 @@ export const state = {
   filters: {
     region: "all",
     schoolKeyword: "",
-    schoolEntityId: "",
     majorKeyword: "",
     bottomLineMode: "all",
     specialProjectMode: "hide_eligibility_projects"

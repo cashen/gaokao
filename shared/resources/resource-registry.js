@@ -58,9 +58,9 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     registry: '/shared/ui/ui-registry.js',
     foundation: '/shared/ui/tokens/foundation.v3959_0.css',
     semantic: '/shared/ui/tokens/semantic.v3959_0.css',
-    modeSwitch: '/shared/ui/components/mode-switch.v3963_0.css',
-    shellCss: '/shared/ui/shell/family-shell.v3960_0.css',
-    shellJs: '/shared/ui/shell/family-shell.v3961_0.js',
+    modeSwitch: '/shared/ui/components/mode-switch.v3962_2.css',
+    shellCss: '/shared/ui/shell/family-shell.v3959_0.css',
+    shellJs: '/shared/ui/shell/family-shell.v3959_0.js',
     policy: 'single-ui-language-shell-state-and-responsive-contract',
     consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue'])
   }),
