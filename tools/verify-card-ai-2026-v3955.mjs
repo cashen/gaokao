@@ -34,7 +34,7 @@ assert.deepEqual(YEAR_CALIBER_KB.lines, {
   undergraduateLine: 344,
   vocationalLine: 150
 });
-assert.match(YEAR_CALIBER_KB.aiCopy, /2026年专业最低投档分和位次为主事实/);
+assert.match(YEAR_CALIBER_KB.aiCopy, /辽宁2026物理类专业最低投档分、最低投档位次和一分一段为主事实/);
 assert.match(YEAR_CALIBER_KB.aiCopy, /2027招生计划/);
 
 const snapshot = buildCardRuleSnapshot(record, 580);

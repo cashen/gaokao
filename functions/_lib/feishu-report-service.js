@@ -52,7 +52,9 @@ export async function createFeishuReportResponse(context, buildReport, options =
       url,
       reportType: report.reportType || options.reportType || '',
       dataYear: report.dataYear || options.dataYear || 2026,
+      rankYear: report.rankYear || options.rankYear || report.dataYear || options.dataYear || 2026,
       audienceYear: report.audienceYear || options.audienceYear || 2027,
+      yearCaliberVersion: report.yearCaliberVersion || options.yearCaliberVersion || '',
       permissionType: permissionResult.type || '',
       permissionWarning: permissionResult.ok ? '' : permissionResult.message
     };

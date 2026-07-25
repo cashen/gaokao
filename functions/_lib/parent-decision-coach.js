@@ -53,7 +53,7 @@ function buildFamilyQuestions(facts = {}, healthLights = {}, zoneKey = '') {
 }
 function buildManualCheckList(facts = {}) {
   const checks = [
-    '核验 2026 当年招生计划、专业代码和计划人数。',
+    '核验 2027 正式招生计划、专业代码和计划人数。',
     '核验选科、体检、单科、语种、校区、学费和培养模式。',
     '核验低分侧补充是否真能接受，不要只因分数较低就当作安全项。'
   ];

@@ -5,4 +5,4 @@ export {
   UI_ACTION_PRIORITY,
   SELECTION_WORKSPACE_CONTRACT,
   getUiPage
-} from './ui-registry.v3961_0.js?v=3961_0';
+} from './ui-registry.v3963_1.js?v=3963_1';

@@ -9,6 +9,7 @@ import { buildReportSnapshot } from '../_lib/report-snapshot-builder.js';
 import { buildRuleBasedParentCoach } from '../_lib/parent-decision-coach.js';
 import { resolveAiModel, buildAiModelDebug } from '../_lib/ai-model-resolver.js';
 import { normalizeDiagnosisCopy, normalizeDiagnosisLines } from '../_lib/diagnosis-copy-normalizer.js';
+import { FEISHU_REPORT_CONTRACT, FEISHU_YEAR_CALIBER } from '../../shared/resources/reports/feishu-report-contract.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -237,13 +238,13 @@ function buildSummary(facts, zonePolicy, level) {
 
 function buildReportText({ facts, rankZone, stats, narrative }) {
   const lines = [];
-  lines.push('辽宁 2026 物理类专业初选参考报告');
-  lines.push('基于 2025 年历史数据生成，用于 2026 志愿初选、家庭讨论和人工确认；正式填报以 2026 年一分一段、招生计划和志愿系统为准。');
+  lines.push(`辽宁 ${FEISHU_REPORT_CONTRACT.dataYear} 物理类专业初选参考报告`);
+  lines.push(FEISHU_YEAR_CALIBER.reportCopy);
   lines.push('');
   lines.push(`考生分数：${facts.candidate?.score || '未填写'}`);
   lines.push(`考生位次：${facts.candidate?.rankLabel || '位次待核验'}`);
   lines.push(`当前定位：${rankZone.zoneName || '待判断'}`);
-  lines.push('数据口径：辽宁2025物理类一分一段与现有专业池；本报告用于家庭讨论，不等同录取预测。');
+  lines.push(`数据口径：${FEISHU_YEAR_CALIBER.primaryFact}；${FEISHU_YEAR_CALIBER.historicalBoundary}`);
   lines.push('');
   lines.push(`稍高目标：${stats.rushCount}个（${pct(stats.rushCount, stats.total)}%）｜主要参考：${stats.stableCount}个（${pct(stats.stableCount, stats.total)}%）｜低分侧补充：${stats.safeCount}个（${pct(stats.safeCount, stats.total)}%）`);
   lines.push('');
@@ -258,9 +259,12 @@ export async function onRequest(context) {
     const facts = buildAdvisorFacts({
       items: body.items || body.orderedItems || [],
       candidateScore: body.candidateScore || null,
-      year: body.year || 2025,
-      region: body.region || 'ln',
-      subject: body.subject || 'physics',
+      year: FEISHU_REPORT_CONTRACT.dataYear,
+      dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+      rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+      audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+      region: FEISHU_REPORT_CONTRACT.region,
+      subject: FEISHU_REPORT_CONTRACT.subject,
       bottomLineMode: body.bottomLineMode || body.filterState?.bottomLineMode || body.candidateContext?.bottomLineMode || 'all'
     });
     const candidateZones = buildZoneCandidates(facts);
@@ -308,6 +312,10 @@ export async function onRequest(context) {
       contextSignature: clean(body.contextSignature || body.candidateContext?.signature || '', 240),
       computedSignature: clean(body.computedSignature || '', 720),
       generatedAt: new Date().toISOString(),
+      dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+      rankYear: FEISHU_REPORT_CONTRACT.rankYear,
+      audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+      yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion,
       debug: {
         factsBuilt: true,
         candidateZonesCount: candidateZones.length,

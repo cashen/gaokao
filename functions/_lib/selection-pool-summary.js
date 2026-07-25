@@ -88,7 +88,7 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
   const rankInfo = getCandidateRankInfo(input, orderedItems);
   const rankZone = buildRankZoneContext({
     candidateScore: input.candidateScore,
-    year: input.year || input.rankYear || 2025,
+    year: input.year || input.dataYear || input.rankYear || 2026,
     region: input.region || 'ln',
     subject: input.subject || 'physics'
   });
@@ -106,7 +106,7 @@ export function buildSelectionPoolSummary(input = {}, items = []) {
     candidatePreviousCumulative: rankInfo.previousCumulative ?? null,
     candidateCumulative: rankInfo.cumulative ?? null,
     candidateRankScoreLabel: rankInfo.scoreLabel || '',
-    candidateRankYear: rankInfo.year || 2025,
+    candidateRankYear: rankInfo.year || 2026,
     candidateRankSourceName: rankInfo.sourceName || '',
     candidateRankSourceNote: rankInfo.sourceNote || '',
     candidateRankPolicy: rankInfo.rankingPolicy || '',

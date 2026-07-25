@@ -8,7 +8,9 @@ export function onRequest(context) {
     ok: true,
     version: FEISHU_REPORT_CONTRACT.releaseVersion,
     dataYear: FEISHU_REPORT_CONTRACT.dataYear,
+    rankYear: FEISHU_REPORT_CONTRACT.rankYear,
     audienceYear: FEISHU_REPORT_CONTRACT.audienceYear,
+    yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion,
     routes: FEISHU_REPORT_ROUTES,
     env: {
       FEISHU_APP_ID: hasSecret('FEISHU_APP_ID'),

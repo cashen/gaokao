@@ -1,0 +1,135 @@
+name: Verify school mode v3962.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  school-all-mode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check protected paths
+        run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD | tee /tmp/v3963_1-protected-paths.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3963_1-protected-paths.txt; then
+            echo 'Protected path changed'
+            exit 1
+          fi
+
+      - name: Check current JavaScript syntax
+        run: |
+          set -euo pipefail
+          files=(
+            functions/api/path-analysis.js
+            functions/api/feishu-create-report.js
+            functions/api/feishu-create-selection-pool-report.js
+            ln-rank/js/app.v3963_1.js
+            ln-rank/js/app-runtime.v3963_1.js
+            ln-rank/js/workspace/selection-workspace-orchestrator.v3963_1.js
+            ln-rank/js/feature/school-majors/school-all-mode.v3963_1.js
+            ln-rank/js/selection-pool.v3963_1.js
+            ln-rank/js/selection-pool-runtime.v3963_1.js
+            shared/resources/release/runtime-cache-contract.v3963_1.js
+            shared/resources/reports/feishu-report-contract.v3963_1.js
+            tools/audit-dual-search-v3963_1.mjs
+            tools/audit-runtime-cache-contract-v3963_1.mjs
+            tools/browser-dual-search-journey-v3963_1.mjs
+            tools/browser-runtime-cache-journey-v3963_1.mjs
+            tools/verify-feishu-report-v3956.mjs
+          )
+          for file in "${files[@]}"; do
+            node --check "$file"
+          done
+
+      - name: Audit runtime generation and static ownership
+        id: runtime_audit
+        run: node tools/audit-runtime-cache-contract-v3963_1.mjs
+
+      - name: Audit both search paths and real 2026 data
+        id: dual_search_audit
+        run: node tools/audit-dual-search-v3963_1.mjs
+
+      - name: Verify unified Feishu year caliber
+        id: feishu_audit
+        run: node tools/verify-feishu-report-v3956.mjs
+
+      - name: Smoke-test current governed resources
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3963_1-smoke-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          paths=(
+            /ln-rank/
+            /ln-rank/selection-pool.html
+            /ln-rank/js/app.v3963_1.js
+            /ln-rank/js/app-runtime.v3963_1.js
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3963_1.js
+            /ln-rank/js/feature/school-majors/school-all-mode.v3963_1.js
+            /ln-rank/js/selection-pool.v3963_1.js
+            /ln-rank/js/selection-pool-runtime.v3963_1.js
+            /ln-rank/css/selection-workspace.v3963_1.css
+            /ln-rank/css/school-all-mode.v3963_0.css
+            /shared/resources/release/current-release.js
+            /shared/resources/release/runtime-cache-contract.v3963_1.js
+            /shared/resources/reports/feishu-report-contract.v3963_1.js
+            /shared/resources/schools/school-resource-center.js
+            /shared/resources/schools/school-identity-center.js
+            /shared/ui/ui-registry.v3963_1.js
+            /shared/ui/components/mode-switch.v3963_0.css
+          )
+          for path in "${paths[@]}"; do
+            echo "GET $path"
+            curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
+          done
+
+      - name: Install Chromium journey runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify PC Pad Android score school and Feishu journeys
+        id: browser_journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3963_1-browser-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3963_1-dual-search \
+            node tools/browser-dual-search-journey-v3963_1.mjs \
+            | tee /tmp/v3963_1-dual-search.out
+          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3963_1-runtime-cache \
+            node tools/browser-runtime-cache-journey-v3963_1.mjs \
+            | tee /tmp/v3963_1-runtime-cache.out
+
+      - name: Upload verification diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-mode-v3963-1-diagnostics
+          path: |
+            /tmp/v3963_1-*.txt
+            /tmp/v3963_1-*.out
+            /tmp/v3963_1-*.log
+            /tmp/v3963_1-dual-search
+            /tmp/v3963_1-runtime-cache
+          if-no-files-found: warn
+          retention-days: 3

@@ -250,9 +250,9 @@ function majorTrendBlocks(summary = {}) {
   summary = summary && typeof summary === 'object' ? summary : {};
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return [];
-  const blocks = [heading3('两年位次变化参考', STYLE.title)];
+  const blocks = [heading3('近三年投档位置变化参考', STYLE.title)];
   notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
-  blocks.push(styledTextBlock('以上只反映 2024/2025 两年同校同专业录取位次变化，不代表 2026 年录取结果。', STYLE.warning));
+  blocks.push(styledTextBlock('以上只反映 2024—2026 同校、同专业、同项目属性的历史投档位置变化，不代表 2027 年录取结果。', STYLE.warning));
   return blocks;
 }
 
@@ -262,7 +262,7 @@ function reviewChecklistBlocks(items = [], checklist = null) {
   const categories = Array.isArray(ck.categories) ? ck.categories : [];
   const blocks = [heading3('确认清单', STYLE.title)];
   if (!categories.length) {
-    blocks.push(bulletBlock('暂未汇总出明显确认事项；正式填报仍需核验 2026 招生计划和招生章程。'));
+    blocks.push(bulletBlock('暂未汇总出明显确认事项；正式填报仍需核验 2027 招生计划和招生章程。'));
     return blocks;
   }
   blocks.push(styledTextBlock(ck.summary?.headline || `本方案有 ${categories.length} 类事项建议人工确认。`, STYLE.warning));
@@ -307,10 +307,10 @@ function governanceReviewBlocks(items = []) {
 function governanceBoundaryBlocks() {
   return [
     heading2('六、数据和使用边界', STYLE.title),
-    bulletBlock('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2026 招生计划人工核验。'),
+    bulletBlock('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2027 招生计划人工核验。'),
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
-    bulletBlock('两年位次变化只反映 2024/2025 两年同校同专业普通项目位次变化，不代表 2026 年录取结果。'),
+    bulletBlock('近三年投档位置变化只反映 2024—2026 同校、同专业、同项目属性的历史记录，不代表 2027 年录取结果。'),
     bulletBlock('招生章程中的学费、校区、培养模式、体检限制、转专业和毕业证/学位证口径必须人工确认。')
   ];
 }
@@ -340,7 +340,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
     { content: String(candidateScore || '未填写'), style: STYLE.strong },
     { content: summary?.candidateRankLabel ? `｜考生位次：${summary.candidateRankLabel}` : '｜考生位次：位次待核验', style: summary?.candidateRankSource === 'scoreRankTable' ? STYLE.strong : STYLE.rankMissing }
   ]));
-  blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2026 年当年位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
+  blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2027 年正式位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
 
   // 固定六段合同：后续不要根据 AI/无 AI 动态改变二级标题顺序。
   blocks.push(...summaryBlocks(summary || {}, reportType));
