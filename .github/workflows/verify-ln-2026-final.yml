@@ -29,8 +29,8 @@ jobs:
         run: |
           set -euo pipefail
           base=$(git merge-base origin/main HEAD)
-          git diff --name-only "$base"...HEAD | tee /tmp/v3962_2-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3962_2-files.txt; then
+          git diff --name-only "$base"...HEAD | tee /tmp/v3963_0-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3963_0-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
@@ -40,12 +40,12 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v5.py > /tmp/v3962_2-verify.out 2> /tmp/v3962_2-verify.err
+          python3 tools/ln-2026/verify-final-release-v5.py > /tmp/v3963_0-verify.out 2> /tmp/v3963_0-verify.err
           status=$?
-          cat /tmp/v3962_2-verify.out
+          cat /tmp/v3963_0-verify.out
           if [ "$status" -ne 0 ]; then
-            echo '--- V3962.2 VERIFY ERROR ---'
-            cat /tmp/v3962_2-verify.err
+            echo '--- V3963.0 VERIFY ERROR ---'
+            cat /tmp/v3963_0-verify.err
             exit "$status"
           fi
 
@@ -53,8 +53,8 @@ jobs:
         if: failure() && steps.release_contract.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3962-2-verify-error
-          path: /tmp/v3962_2-verify.err
+          name: v3963-0-verify-error
+          path: /tmp/v3963_0-verify.err
           if-no-files-found: error
           retention-days: 1
 
@@ -89,15 +89,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check xlrd==2.0.1
-          mkdir -p /tmp/school-resources-v3962_2
+          mkdir -p /tmp/school-resources-v3963_0
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
             --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
             --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/school-resources-v3962_2/moe-2026-schools.xls \
+            --output /tmp/school-resources-v3963_0/moe-2026-schools.xls \
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/school-resources-v3962_2/moe-2026-schools.xls)" -gt 20000
-          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3962_2/moe-2026-schools.xls | tee /tmp/school-resources-v3962_2/build-result.json
-          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3962_2/compat-result.json
+          test "$(stat -c%s /tmp/school-resources-v3963_0/moe-2026-schools.xls)" -gt 20000
+          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3963_0/moe-2026-schools.xls | tee /tmp/school-resources-v3963_0/build-result.json
+          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3963_0/compat-result.json
           node tools/tongxue/build-school-initial-index-v141.mjs
           node tools/tongxue/build-school-initial-index-v150.mjs
           files=(
@@ -112,8 +112,8 @@ jobs:
         if: failure() && steps.school_bundle.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: v3962-2-school-resource-drift
-          path: /tmp/school-resources-v3962_2
+          name: v3963-0-school-resource-drift
+          path: /tmp/school-resources-v3963_0
           if-no-files-found: warn
           retention-days: 1
 
@@ -133,7 +133,7 @@ jobs:
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { getScoreGuard } from './ln-rank/js/core/score-guard.js';
           import { classifySelectionDelta, classifySelectionPosition } from './ln-rank/js/domain/selection-band-policy.js';
-          import { resolveCanonicalPosition } from './shared/algorithms/position/canonical-position.v3960_0.js';
+          import { resolveCanonicalPosition } from './shared/algorithms/position/canonical-position.v3963_0.js';
           import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoryScore } from './functions/_lib/history-score-engine.js';
           import { normalizeRecord } from './functions/_lib/fenxi-normalizer.js';
@@ -156,7 +156,7 @@ jobs:
           }
           const panjin=resolveCompactSchoolResource('大连理工大学盘锦校区');
           if(panjin?.entityId!=='dlut-panjin') throw new Error(`shared school identity: ${JSON.stringify(panjin)}`);
-          if(CURRENT_RELEASE.display!=='v3.9.62.2'||CURRENT_RELEASE.assetVersion!=='v3962_2'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3961'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3961'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3962_2'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3962_2'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3962_2'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3960') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
+          if(CURRENT_RELEASE.display!=='v3.9.63.0'||CURRENT_RELEASE.assetVersion!=='v3963_0'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3963'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3963'||CURRENT_RELEASE.searchIntentVersion!=='score-school-search-v3963_0'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3963_0'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3963_0'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3963_0'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3963') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
           console.log('critical runtime module checks passed');
           NODE
 
@@ -172,6 +172,8 @@ jobs:
         run: node tools/audit-school-all-mode-v3962.mjs
       - name: Enforce static shared school-mode ownership
         run: node tools/audit-school-mode-static-v3962_2.mjs
+      - name: Audit dual search intent and real 2026 data
+        run: node tools/audit-dual-search-v3963.mjs
       - name: Verify family decision workspace
         run: node tools/verify-family-decision-v3955.mjs
       - name: Verify unified school profile center
@@ -207,28 +209,28 @@ jobs:
             /shared/resources/majors/major-catalog-contract.js \
             /shared/resources/reports/feishu-report-contract.js \
             /shared/ui/ui-registry.js \
-            /shared/ui/ui-registry.v3961_0.js \
+            /shared/ui/ui-registry.v3963_0.js \
             /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/ui/tokens/foundation.v3959_0.css \
             /shared/ui/tokens/semantic.v3959_0.css \
-            /shared/ui/components/mode-switch.v3962_2.css \
+            /shared/ui/components/mode-switch.v3963_0.css \
             /shared/ui/shell/family-shell.v3960_0.css \
             /shared/ui/shell/family-shell.v3961_0.js \
             /shared/algorithms/algorithm-registry.js \
-            /shared/algorithms/position/canonical-position.v3960_0.js \
+            /shared/algorithms/position/canonical-position.v3963_0.js \
             /shared/algorithms/ranking/staged-ranking.v3960_0.js \
             /ln-rank/ \
-            /ln-rank/css/selection-workspace.v3961_0.css \
-            /ln-rank/css/school-all-mode.v3962_2.css \
-            /ln-rank/js/app.v3961_0.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js \
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js \
+            /ln-rank/css/selection-workspace.v3963_0.css \
+            /ln-rank/css/school-all-mode.v3963_0.css \
+            /ln-rank/js/app.v3963_0.js \
+            /ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js \
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js \
             /ln-rank/js/workspace/result-commit.v3961_0.js \
             /ln-rank/js/workspace/family-card-presenter.v3961_0.js \
             /ln-rank/js/workspace/scroll-policy.v3961_0.js \
             /ln-rank/js/workspace/viewport-orchestrator.v3961_0.js \
             /ln-rank/js/feature/score-bands/render.v3961_0.js \
-            /ln-rank/js/feature/major-pool/index.v3961_0.js \
+            /ln-rank/js/feature/major-pool/index.v3963_0.js \
             /ln-rank/js/feature/selection-pool/index.v3961_0.js \
             /ln-rank/selection-pool.html \
             /ln-rank/self-check.html \

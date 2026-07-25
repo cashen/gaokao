@@ -1,4 +1,4 @@
-import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3951_0';
+import { REPORT_COPY } from '../../domain/human-copy-dictionary.js?v=3963_0';
 import { fmt } from '../../core/number-utils.js?v=3951_0';
 import { renderHistoryScore } from './history-score-render.js?v=3951_0';
 import { mountDiagnoseButtons } from '../diagnose/controller.js?v=3951_0';
@@ -592,16 +592,17 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
   const tagHtml = tags(record).map(t => `<span class="school-tag ${tagClass(t)}">${escapeHtml(t)}</span>`).join('');
   const localStrength = resolveLocalStrengthMark(record);
   const strengthClass = localStrength.matched ? ' has-local-strength' : '';
+  const schoolEntity = record.schoolEntity || {};
   return `<article class="major-card ln-major-card status-${statusKey} ${bandClass}${strengthClass}">
     <div class="major-card-top">
       <div><div class="school">${escapeHtml(safe(record.school))}</div><div class="major">${escapeHtml(safe(record.major))}${matchBadge(record)}${renderSpecialProjectBadge(record)}</div></div>
-      <span class="status-badge ln-band-pill ${bandClass}" title="分数位置：只是当前查看分组，不代表录取把握。">分数位置：${escapeHtml(displayBandLabel)}</span>
+      <span class="status-badge ln-band-pill ${bandClass}" title="历史位置：按辽宁2026位次关系分组，不代表录取把握。">历史位置：${escapeHtml(displayBandLabel)}</span>
     </div>
     <div class="meta-pills">
       <span class="meta-pill">2026投档最低分：${fmt(record.score2026 ?? record.score)} 分</span>
       <span class="meta-pill">2026对应累计位次约：${fmt(record.rank2026 ?? record.rank)}</span>
       <span class="meta-pill">相对参考分数：${deltaText} 分</span>
-      <span class="meta-pill">适合位置：<b class="ln-fit-position ${bandClass}">${escapeHtml(safe(record.position))}</b></span>
+      <span class="meta-pill">讨论位置：<b class="ln-fit-position ${bandClass}">${escapeHtml(safe(record.position))}</b></span>
     </div>
     ${renderHistoryScore(record)}
     ${tagHtml ? `<div class="school-tags">${tagHtml}</div>` : ''}
@@ -618,6 +619,7 @@ function card(record, index = 0, selectionPool = null, activeBand = 'near', view
     <div class="major-card-actions">
       ${poolButton(record, index, selectionPool)}
       <button class="diagnose-button" type="button" data-diagnose-index="${index}">看懂这条</button>
+      <button class="school-all-entry-button" type="button" data-view-school-all data-school="${escapeHtml(record.school || '')}" data-school-entity="${escapeHtml(schoolEntity.entityId || record.schoolEntityId || '')}" data-school-entity-type="${escapeHtml(schoolEntity.entityType || record.schoolEntityType || '')}">看该校全部专业</button>
     </div>
     <div class="pool-add-hint" data-pool-hint="${index}"></div>
   </article>`;
@@ -641,10 +643,21 @@ function bindResultInteractionController(root) {
     const context = root.__lnRankResultInteractionContext || {};
     const state = context.state;
     const target = event.target;
+    const schoolButton = target?.closest?.('[data-view-school-all]');
+    if (schoolButton && root.contains(schoolButton)) {
+      event.preventDefault();
+      document.dispatchEvent(new CustomEvent('gaokao:view-school-all', {
+        detail: Object.freeze({
+          school: schoolButton.dataset.school || '',
+          entityId: schoolButton.dataset.schoolEntity || '',
+          entityType: schoolButton.dataset.schoolEntityType || ''
+        })
+      }));
+      return;
+    }
     const compareButton = target?.closest?.('[data-compare-action]');
     if (compareButton && root.contains(compareButton)) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const action = compareButton.dataset.compareAction || '';
       if (action === 'close') {
         naturalCompareState.open = false;
@@ -668,7 +681,6 @@ function bindResultInteractionController(root) {
     const viewButton = target?.closest?.('[data-result-view]');
     if (viewButton && root.contains(viewButton)) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const next = viewButton.dataset.resultView === 'localStrength' ? 'localStrength' : 'all';
       if (state) state.resultViewMode = next;
       renderMajorResults(state, context.options || {});
@@ -678,7 +690,6 @@ function bindResultInteractionController(root) {
     const majorButton = target?.closest?.('[data-major-understanding-toggle]');
     if (majorButton && root.contains(majorButton)) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const key = majorButton.dataset.majorUnderstandingToggle || '';
       const card = majorButton.closest('[data-major-understanding-card]');
       const panel = card?.querySelector('.major-understanding-more');
@@ -692,7 +703,6 @@ function bindResultInteractionController(root) {
     const localStrengthButton = target?.closest?.('[data-local-strength-toggle]');
     if (localStrengthButton && root.contains(localStrengthButton)) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const key = localStrengthButton.dataset.localStrengthToggle || '';
       const card = localStrengthButton.closest('[data-local-strength-card]');
       const panel = card?.querySelector('.local-strength-details');
@@ -704,14 +714,13 @@ function bindResultInteractionController(root) {
     const reviewButton = target?.closest?.('[data-review-points-toggle]');
     if (reviewButton && root.contains(reviewButton)) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const key = reviewButton.dataset.reviewPointsToggle || '';
       const card = reviewButton.closest('[data-review-points-card]');
       const panel = card?.querySelector('.card-review-list');
       const nextOpen = reviewButton.getAttribute('aria-expanded') !== 'true';
       setControlledOpen({ key, set: expandedReviewPointCards, card, button: reviewButton, panel, nextOpen, expandedText: '收起复核详情', collapsedText: '查看复核详情' });
     }
-  }, true);
+  });
 }
 
 export function renderMajorResults(state, { onMore, selectionPool, onSelectionChange } = {}) {

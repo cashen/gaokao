@@ -3,10 +3,17 @@ const FLOW_ACTION_AT_KEY = 'lnRank.flow.lastActionAt';
 const FLOW_ACTION_TTL = 30 * 60 * 1000;
 
 export const MAIN_FLOW_STEPS = [
-  { key: 'input', label: '输入位置', short: '按分数定位' },
-  { key: 'filter', label: '筛专业', short: '缩小范围' },
-  { key: 'select', label: '加自选', short: '整理方案' },
-  { key: 'report', label: '看报告', short: '核验清单' }
+  { key: 'input', label: '确认参考位置', short: '分数换算2026位次' },
+  { key: 'filter', label: '圈出可讨论专业', short: '方向与家庭条件' },
+  { key: 'select', label: '留下孩子愿意读的', short: '加入已选清单' },
+  { key: 'report', label: '家庭逐项复核', short: '和孩子讨论' }
+];
+
+export const SCHOOL_FLOW_STEPS = [
+  { key: 'input', label: '确认目标学校', short: '本部·分校·校区' },
+  { key: 'filter', label: '看校内专业', short: '普通与特殊分开' },
+  { key: 'select', label: '留下能讨论的', short: '加入同一已选清单' },
+  { key: 'report', label: '家庭逐项复核', short: '和孩子讨论' }
 ];
 
 export const PLAN_FLOW_STEPS = [

@@ -25,9 +25,9 @@ check('data-current-release' in unified and '当前发布：' in unified,'unifie
 check('major-difficulty-2026.v3959_0.js' in unified,'difficulty UI orchestration wrapper')
 difficulty_wrapper=(ROOT/'ln-rank/js/major-difficulty-2026.v3959_0.js').read_text(encoding='utf-8')
 check('major-difficulty-2026.v3953_0.js' in difficulty_wrapper,'ascending score-band core behind UI wrapper')
-check('shared/ui/shell/family-shell.v3959_0.js' in difficulty_wrapper,'difficulty shared UI shell')
-release_compat=(ROOT/'shared/ui/shell/family-shell.v3959_0.js').read_text(encoding='utf-8')
-check('release-presenter.js?v=3961_0' in release_compat,'difficulty shared release presenter')
+check('shared/ui/shell/family-shell.v3961_0.js?v=3963_0' in difficulty_wrapper,'difficulty shared UI shell')
+release_compat=(ROOT/'shared/ui/shell/family-shell.v3961_0.js').read_text(encoding='utf-8')
+check('current-release.js?v=3963_0' in release_compat,'difficulty shared release owner')
 for bad in ('保证录取','稳录','必报','一定上涨','冷门捡漏','就业一定更好','专业投档热度观察','相对全体前移','相对全体后移'):
     check(bad not in unified,f'unified page forbidden copy: {bad}')
 zy=json.loads((ROOT/'data/zy2026/summary.json').read_text(encoding='utf-8'))

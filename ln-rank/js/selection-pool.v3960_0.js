@@ -1,7 +1,7 @@
-import '../../shared/resources/release/release-presenter.js?v=3961_0';
-import '../../shared/ui/shell/family-shell.v3960_0.js?v=3960_0';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3960_0';
-import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3960_0';
+import '../../shared/resources/release/release-presenter.js?v=3963_0';
+import '../../shared/ui/shell/family-shell.v3961_0.js?v=3963_0';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3963_0';
+import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3963_0';
 
 globalThis.__GAOKAO_SHARED_RESOURCES__ = Object.freeze({
   ...(globalThis.__GAOKAO_SHARED_RESOURCES__ || {}),

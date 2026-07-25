@@ -3,7 +3,7 @@ import { lookupScoreRank, getRankTableRows } from './rank-table-provider.js';
 import { getRankGap, rankGapText } from './selection-pool-rank-utils.js';
 import { getPushRateReference, buildPushRateSummary } from './push-rate-matcher.js';
 import { enrichBottomLineFields, summarizeBottomLine, bottomLineModeSummary } from './bottomline-policy.js';
-import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3960_0.js';
+import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 
 function num(value, fallback = null) {
