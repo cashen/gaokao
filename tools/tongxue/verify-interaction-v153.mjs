@@ -1,6 +1,6 @@
 import{readFile}from'node:fs/promises';
 const [page,core,entry,copy,region,portrait]=await Promise.all([
- readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v112.js','utf8'),readFile('tongxue/app/tongxue-performance-v156.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v152.js','utf8'),readFile('tongxue/portrait/tongxue-school-portrait-v121.js','utf8')
+ readFile('tongxue/index.html','utf8'),readFile('tongxue/app/tongxue-performance-v112.js','utf8'),readFile('tongxue/app/tongxue-performance-v157.js','utf8'),readFile('tongxue/app/tongxue-copy-v152.js','utf8'),readFile('tongxue/app/tongxue-region-ui-v152.js','utf8'),readFile('tongxue/portrait/tongxue-school-portrait-v121.js','utf8')
 ]);
 const failures=[],check=(label,passed)=>{if(!passed)failures.push(label);};
 check('原生按钮',page.includes('<button id="queryButton" class="btn" type="button" disabled>看同学怎么说</button>'));
