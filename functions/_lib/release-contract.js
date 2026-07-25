@@ -3,7 +3,7 @@ import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.
 export const LN_RANK_RELEASE_CONTRACT = Object.freeze({
   ...CURRENT_RELEASE,
   noFenxiIncluded: true,
-  cleanPackageContract: true,
+  cleanPackageContract: false,
   visibleVersionClean: true,
   cloudflarePagesExportContract: true,
   majorUnderstandingKb: true,
@@ -99,6 +99,12 @@ export const LN_RANK_RELEASE_CONTRACT = Object.freeze({
   runtimeFailureHonestyContract: true,
   runtimeCacheMismatchBrowserRegressionContract: true,
   scoreSchoolFeishuBrowserJourneyContract: true,
+  staticActionReadinessContract: true,
+  singleActivePageStylesheetContract: true,
+  progressiveResultCardContract: true,
+  reportHistoryAppendixContract: true,
+  historyNeverParticipatesInCurrentGroupingContract: true,
+  mobileContextActionNeverSubmitsQueryContract: true,
   previousImmutableAssetsPreservedContract: true,
   feishuYearCaliberContract: true,
   feishuServerAuthoritativeYearContract: true,
@@ -114,7 +120,7 @@ export const LN_RANK_RELEASE_CONTRACT = Object.freeze({
     '三、前中后段快速确认',
     '四、最终排序清单',
     '五、本方案确认清单',
-    '六、专业理解与家庭确认问题',
+    '六、历史对照附录（不参与2026当前分组）',
     '七、数据和使用边界'
   ])
 });
