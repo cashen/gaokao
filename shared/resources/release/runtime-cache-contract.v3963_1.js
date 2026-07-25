@@ -52,7 +52,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     Object.freeze({ path: '/ln-rank/js/feature/major-pool/bands-api.v3961_0.js', gitBlobSha: '13546153e0a02e21406c4df3bf9bc7f41023713f' }),
     Object.freeze({ path: '/ln-rank/js/feature/major-pool/index.v3957_0.js', gitBlobSha: 'c59078585ee5e65fc8da37d5e8ba16e9731836ba' }),
     Object.freeze({ path: '/ln-rank/js/feature/major-pool/index.v3961_0.js', gitBlobSha: '9be8569a3bc387c56bb74cc4978ab5ae1a266b71' }),
-    Object.freeze({ path: '/ln-rank/js/feature/major-pool/render.v3957_0.js', gitBlobSha: '36436d9165dadf9a043ac0dbda14f15ad515c52f' }),
+    Object.freeze({ path: '/ln-rank/js/feature/major-pool/render.v3957_0.js', gitBlobSha: 'a3f915add953fa1264164f06dfe7738c5125fde3' }),
     Object.freeze({ path: '/ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js', gitBlobSha: 'b82bae9ff1a212902922a2ae4e1f4ce2176f56d0' }),
     Object.freeze({ path: '/ln-rank/js/major-difficulty-2026.v3959_0.js', gitBlobSha: 'b22a9092791d1a2e326c3e2a209cca939c580752' }),
     Object.freeze({ path: '/ln-rank/js/selection-pool.v3960_0.js', gitBlobSha: '03cc817b6b47d6aa58ef327d53eca0a5a132e686' }),

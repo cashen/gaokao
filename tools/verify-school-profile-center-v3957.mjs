@@ -89,7 +89,7 @@ assert.equal(campusLocation.city, '盘锦');
 assert.equal(campusLocation.natureHint, '公办');
 assert.equal(campusLocation.schoolProfile.is985, true);
 
-const render = fs.readFileSync('ln-rank/js/feature/major-pool/render.v3963_0.js', 'utf8');
+const render = fs.readFileSync('ln-rank/js/feature/major-pool/render.v3963_1.js', 'utf8');
 assert.ok(render.includes("arr.push(record.natureLabel || '性质待核验')"));
 assert.ok(render.includes('record.schoolEntityTypeLabel'));
 assert.ok(render.includes("record.displayLocation || '地域待核验'"));

@@ -21,7 +21,7 @@ const entryFiles = [
   'shared/ui/shell/family-shell.v3959_0.js',
   'shared/ui/shell/family-shell.v3960_0.js',
   'shared/algorithms/algorithm-registry.js',
-  'shared/algorithms/position/canonical-position.v3963_0.js',
+  'shared/algorithms/position/canonical-position.v3960_0.js',
   'shared/algorithms/ranking/staged-ranking.v3960_0.js',
   'shared/algorithms/contracts/decision-snapshot.v3960_0.js',
   'tongxue/app/tongxue-performance-v156.js'
@@ -63,9 +63,9 @@ const reachableSource = [...visited]
 for (const marker of [
   'feishu-api-client.v3956_0.js','feishu-report-contract.js','current-release.js','school-identity-center.js',
   'major-catalog-contract.js','school-profile-data.20260617-v3957.js','tongxue-direct-handoff-v155.js',
-  'tongxue-direct-result-v156.js','render.v3963_0.js','family-shell.v3960_0.js','UI_ORCHESTRATION_VERSION',
-  'algorithm-orchestration-v3963','resolveCanonicalPosition','staged-ranking-v3960_0','decision-snapshot-v3960_0',
-  'school-all-mode-v3963_0','/api/school-majors','resolveCompactSchoolResource'
+  'tongxue-direct-result-v156.js','render.v3957_0.js','family-shell.v3960_0.js','UI_ORCHESTRATION_VERSION',
+  'algorithm-orchestration-v3960','resolveCanonicalPosition','staged-ranking-v3960_0','decision-snapshot-v3960_0',
+  'school-all-mode-v3962','/api/school-majors','resolveCompactSchoolResource'
 ]) assert.ok(reachableSource.includes(marker), `active graph missing ${marker}`);
 assert.ok(!reachableSource.includes("from './feature/feishu/index.js?v=3951_0'"));
 
@@ -127,11 +127,11 @@ for (const temp of [
   '.github/workflows/agent-school-profile-v3957.yml',
   '.github/workflows/agent-tongxue-direct-result-v156.yml',
   '.github/workflows/agent-ui-orchestration-v3959.yml',
-  '.github/workflows/agent-algorithm-orchestration-v3963.yml',
+  '.github/workflows/agent-algorithm-orchestration-v3960.yml',
   'tools/schools/apply-school-profile-v3957.py',
   'tools/tongxue/apply-direct-result-v156.py',
   'tools/ui/apply-ui-orchestration-v3959.py',
-  'tools/algorithms/apply-algorithm-orchestration-v3963.py'
+  'tools/algorithms/apply-algorithm-orchestration-v3960.py'
 ]) assert.ok(!fs.existsSync(temp), `temporary integration file remains: ${temp}`);
 
 console.log(JSON.stringify({

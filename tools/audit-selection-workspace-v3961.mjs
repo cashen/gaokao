@@ -7,34 +7,34 @@ const json = path => JSON.parse(read(path));
 const release = await import(new URL('../shared/resources/release/current-release.js', import.meta.url));
 const ui = await import(new URL('../shared/ui/ui-registry.js', import.meta.url));
 
-assert.equal(release.CURRENT_RELEASE.display, 'v3.9.63.0');
-assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3963_0');
-assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3963');
-assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3963_0');
-assert.equal(release.CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
-assert.equal(release.CURRENT_RELEASE.schoolModeMountVersion, 'school-mode-static-mount-v3963_0');
-assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3963_0');
-assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.version, 'selection-workspace-orchestration-v3963');
+assert.equal(release.CURRENT_RELEASE.display, 'v3.9.62.2');
+assert.equal(release.CURRENT_RELEASE.assetVersion, 'v3962_2');
+assert.equal(release.CURRENT_RELEASE.uiOrchestrationVersion, 'ui-orchestration-v3961');
+assert.equal(release.CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_2');
+assert.equal(release.CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
+assert.equal(release.CURRENT_RELEASE.schoolModeMountVersion, 'school-mode-static-mount-v3962_2');
+assert.equal(ui.UI_ORCHESTRATION_VERSION, 'v3961_0');
+assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.version, 'selection-workspace-orchestration-v3961');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.filterChangeQueriesImmediately, false);
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.preservePreviousResultsWhileDirty, true);
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.bandSwitchIsViewOnly, true);
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.resultStructuralObserverAllowed, false);
-assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.schoolModeMountOwner, 'static-selection-console');
+assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.schoolModeMountOwner, 'static-selection-filter-grid');
 assert.equal(ui.SELECTION_WORKSPACE_CONTRACT.schoolModeControlOwner, 'shared-ui-mode-switch');
-assert.equal(ui.UI_RESOURCE_REGISTRY.modeSwitch, '/shared/ui/components/mode-switch.v3963_0.css');
+assert.equal(ui.UI_RESOURCE_REGISTRY.modeSwitch, '/shared/ui/components/mode-switch.v3962_2.css');
 
 const page = read('ln-rank/index.html');
-assert.ok(page.includes('app.v3963_0.js?v=3963_0'));
-assert.ok(page.includes('selection-workspace.v3963_0.css?v=3963_0'));
-assert.ok(page.includes('mode-switch.v3963_0.css?v=3963_0'));
-assert.ok(page.includes('school-all-mode.v3963_0.css?v=3963_0'));
+assert.ok(page.includes('app.v3961_0.js?v=3962_2'));
+assert.ok(page.includes('selection-workspace.v3961_0.css?v=3961_0'));
+assert.ok(page.includes('mode-switch.v3962_2.css?v=3962_2'));
+assert.ok(page.includes('school-all-mode.v3962_2.css?v=3962_2'));
 assert.ok(page.includes('id="schoolViewModeMount"'));
 assert.ok(page.includes('id="schoolAllResultsPanel"'));
-assert.ok(page.includes('class="ui-mode-switch search-intent-switch"'));
+assert.ok(page.includes('class="ui-mode-switch"'));
 assert.ok(page.includes('class="ui-segmented ui-mode-switch__actions"'));
 const filterStart = page.indexOf('<div class="search-grid-top ln-filter-panel__secondary">');
 const modeIndex = page.indexOf('id="schoolViewModeMount"');
-assert.ok(filterStart >= 0 && modeIndex >= 0 && modeIndex < filterStart, 'search intent switch must be a top-level static child of the shared console');
+assert.ok(filterStart >= 0 && modeIndex > filterStart, 'school mode switch must be a static child of the shared filter region');
 for (const inactive of [
   'multi-terminal.v3949_4.js',
   'family-presentation.v3955_0.js',
@@ -46,7 +46,7 @@ for (const inactive of [
   assert.ok(!page.includes(inactive), `legacy active layer remains: ${inactive}`);
 }
 
-const orchestrator = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js');
+const orchestrator = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js');
 for (const marker of [
   'querySnapshotFromDraft',
   "bandFocus: 'all-bands'",
@@ -102,7 +102,7 @@ assert.ok(scroll.includes('userScrollRevision'));
 assert.ok(scroll.includes('finishQueryScrollIntent'));
 assert.ok(scroll.includes('intent.revision !== userScrollRevision'));
 const activeWorkspaceFiles = [
-  'ln-rank/js/workspace/selection-workspace-orchestrator.v3963_0.js',
+  'ln-rank/js/workspace/selection-workspace-orchestrator.v3961_0.js',
   'ln-rank/js/workspace/result-commit.v3961_0.js',
   'ln-rank/js/workspace/family-card-presenter.v3961_0.js',
   'ln-rank/js/workspace/viewport-orchestrator.v3961_0.js',
@@ -126,11 +126,11 @@ assert.equal((selectionController.match(/gaokao:selection-change/g) || []).lengt
 assert.ok(!selectionController.includes('lnrank:pool-updated'));
 assert.ok(!selectionController.includes("window.addEventListener('resize'"));
 
-const schoolRuntime = read('ln-rank/js/feature/school-majors/school-all-mode.v3963_0.js');
-for(const marker of ['expandedRecordKey','data-school-detail-toggle','UI_ACTION_COPY',"mountPolicy: 'static-result-owner'",'assertStaticStructure',"sharedControlOwner: 'selection-workspace-orchestration-v3963'",'gaokao:school-search-submit']) assert.ok(schoolRuntime.includes(marker), `school runtime missing ${marker}`);
+const schoolRuntime = read('ln-rank/js/feature/school-majors/school-all-mode.v3962_2.js');
+for(const marker of ['expandedRecordKey','data-school-detail-toggle','UI_ACTION_COPY',"mountPolicy: 'static-shared-ui'",'assertStaticStructure','filterGrid?.contains(mount)']) assert.ok(schoolRuntime.includes(marker), `school runtime missing ${marker}`);
 for(const forbidden of ['injectStylesheet','ensureModeMount','ensureWorkspace','document.createElement','insertAdjacentElement','<details>','MutationObserver','setTimeout(']) assert.ok(!schoolRuntime.includes(forbidden), `school runtime bypasses static owner: ${forbidden}`);
 
-const css = read('ln-rank/css/selection-workspace.v3963_0.css');
+const css = read('ln-rank/css/selection-workspace.v3961_0.css');
 for (const marker of [
   '.score-band-segmented',
   'grid-template-columns: repeat(3, minmax(0, 1fr))',
@@ -139,23 +139,23 @@ for (const marker of [
   '.workspace-compare-slot',
   'overflow-anchor: none'
 ]) assert.ok(css.includes(marker), `workspace CSS missing ${marker}`);
-const modeCss = read('shared/ui/components/mode-switch.v3963_0.css');
-for (const marker of ['.ui-mode-switch','.search-intent-switch','writing-mode:horizontal-tb','container-name:ui-mode-switch','@container ui-mode-switch (max-width:280px)']) assert.ok(modeCss.includes(marker), `shared mode CSS missing ${marker}`);
-const schoolCss = read('ln-rank/css/school-all-mode.v3963_0.css');
+const modeCss = read('shared/ui/components/mode-switch.v3962_2.css');
+for (const marker of ['.ui-mode-switch','grid-column:1 / -1','writing-mode:horizontal-tb','container-name:ui-mode-switch','@container ui-mode-switch (max-width:280px)']) assert.ok(modeCss.includes(marker), `shared mode CSS missing ${marker}`);
+const schoolCss = read('ln-rank/css/school-all-mode.v3962_2.css');
 for (const marker of ['container-name:school-results','@container school-results (max-width:1040px)','@container school-results (max-width:600px)','@container school-results (max-width:360px)']) assert.ok(schoolCss.includes(marker), `school CSS missing ${marker}`);
 assert.ok(!schoolCss.includes('.ui-mode-switch'));
 assert.ok(!schoolCss.includes('.school-view-mode'));
 
 for (const file of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   const meta = json(file);
-  assert.equal(meta.version, 'v3.9.63.0');
-  assert.equal(meta.assetVersion, 'v3963_0');
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3963_0');
-  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
-  assert.equal(meta.schoolModeMountVersion, 'school-mode-static-mount-v3963_0');
-  assert.ok(meta.cssEntry.includes('../shared/ui/components/mode-switch.v3963_0.css'));
-  assert.ok(meta.cssEntry.includes('css/school-all-mode.v3963_0.css'));
-  assert.ok(meta.jsEntry.includes('js/feature/school-majors/school-all-mode.v3963_0.js'));
+  assert.equal(meta.version, 'v3.9.62.2');
+  assert.equal(meta.assetVersion, 'v3962_2');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_2');
+  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
+  assert.equal(meta.schoolModeMountVersion, 'school-mode-static-mount-v3962_2');
+  assert.ok(meta.cssEntry.includes('../shared/ui/components/mode-switch.v3962_2.css'));
+  assert.ok(meta.cssEntry.includes('css/school-all-mode.v3962_2.css'));
+  assert.ok(meta.jsEntry.includes('js/feature/school-majors/school-all-mode.v3962_2.js'));
   assert.ok(!meta.cssEntry.includes('css/school-all-mode.v3962_1.css'));
   assert.ok(!meta.jsEntry.includes('js/feature/school-majors/school-all-mode.v3962_1.js'));
   for (const contract of [
