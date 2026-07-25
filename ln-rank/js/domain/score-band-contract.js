@@ -22,10 +22,10 @@ export function normalizeBandDesc(key, rawDesc = '') {
   const cleaned = String(rawDesc || '').trim();
   if (cleaned) return cleaned;
   return ({
-    upper: '2026历史位次比孩子参考位置靠前，只适合少量放在前段核验。',
-    near: '2026历史位次和孩子参考位置更接近，是专业初选时最该重点看的区间。',
-    steady: '2026历史位次在孩子参考位置后侧，用来补充家庭可接受的后段选择。'
-  })[normalizeBandKey(key)] || '按2026历史位次关系显示。';
+    upper: '比孩子分数略高，只适合少量放在前段核验。',
+    near: '和孩子分数更接近，是专业初选时最该重点看的区间。',
+    steady: '低于孩子分数一些，用来补后段承接。'
+  })[normalizeBandKey(key)] || '按当前分数区间显示。';
 }
 
 function finiteNumber(value) {
@@ -105,8 +105,7 @@ export function normalizeScoreBand(rawBand = {}, context = {}) {
   const title = normalizeBandTitle(raw.title, key);
   const range = rangeFromScores(raw) || rangeFromText(raw.rangeText || raw.scoreRange || raw.label) || rangeFromDelta(raw, context.candidateScore);
   const records = Array.isArray(raw.records) ? raw.records : [];
-  const rankRangeText = String(raw.rankRangeText || '').trim();
-  const rangeText = rankRangeText || formatScoreBandRange(range);
+  const rangeText = formatScoreBandRange(range);
   return {
     ...raw,
     key,
@@ -114,7 +113,6 @@ export function normalizeScoreBand(rawBand = {}, context = {}) {
     desc: normalizeBandDesc(key, raw.desc),
     minScore: range ? range.minScore : null,
     maxScore: range ? range.maxScore : null,
-    rankRangeText,
     rangeText,
     count: countRecords(raw),
     displayedCount: Number.isFinite(Number(raw.displayedCount)) ? Number(raw.displayedCount) : records.length,

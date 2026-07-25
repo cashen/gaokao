@@ -1,13 +1,13 @@
-import '../../shared/resources/release/release-presenter.js?v=3963_0';
+import '../../shared/resources/release/release-presenter.js?v=3962_2';
 import './workspace/viewport-orchestrator.v3961_0.js?v=3961_0';
-import '../../shared/ui/shell/family-shell.v3961_0.js?v=3963_0';
+import '../../shared/ui/shell/family-shell.v3961_0.js?v=3961_0';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
 } from '../../shared/resources/exam/liaoning-physics.js?v=3962_2';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3963_0';
-import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3963_0';
-import { state } from './state/app-state.js?v=3963_0';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3962_2';
+import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3961_0';
+import { state } from './state/app-state.js?v=3961_0';
 
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 const originalFetch = globalThis.fetch?.bind(globalThis);
@@ -42,10 +42,6 @@ function rewriteMajorBandsRequest(input, init) {
   url.searchParams.set('resourceOwnershipVersion', CURRENT_RELEASE.resourceOwnershipVersion);
   url.searchParams.set('uiOrchestrationVersion', CURRENT_RELEASE.uiOrchestrationVersion);
   url.searchParams.set('algorithmOrchestrationVersion', CURRENT_RELEASE.algorithmOrchestrationVersion);
-  url.searchParams.set('searchIntentVersion', CURRENT_RELEASE.searchIntentVersion);
-  if (!url.searchParams.get('schoolEntityId') && state?.filters?.schoolEntityId) {
-    url.searchParams.set('schoolEntityId', state.filters.schoolEntityId);
-  }
   if (input instanceof Request) return [new Request(url.toString(), input), init];
   return [url.toString(), init];
 }
@@ -61,7 +57,8 @@ function syncSharedBottomLine() {
   const input = document.getElementById('candidateScore');
   const panel = document.getElementById('bottomLinePanel');
   if (!panel) return;
-  panel.dataset.bottomLineEligible = String(isPublicBottomLineVisible(numericScore(input), EXAM));
+  const visible = isPublicBottomLineVisible(numericScore(input), EXAM);
+  panel.hidden = !visible;
   panel.dataset.examResource = `${EXAM.region}-${EXAM.subject}-${EXAM.dataYear}`;
   panel.dataset.releaseResource = CURRENT_RELEASE.assetVersion;
   panel.dataset.uiResource = CURRENT_RELEASE.uiOrchestrationVersion;
@@ -69,6 +66,6 @@ function syncSharedBottomLine() {
 }
 
 document.addEventListener('gaokao:workspace-state', syncSharedBottomLine);
-await import('./workspace/selection-workspace-orchestrator.v3963_0.js?v=3963_0');
-await import('./feature/school-majors/school-all-mode.v3963_0.js?v=3963_0');
+await import('./workspace/selection-workspace-orchestrator.v3961_0.js?v=3961_0');
+await import('./feature/school-majors/school-all-mode.v3962_2.js?v=3962_2');
 syncSharedBottomLine();

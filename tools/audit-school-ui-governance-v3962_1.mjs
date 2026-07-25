@@ -10,7 +10,7 @@ const css = read('ln-rank/css/school-all-mode.v3962_1.css');
 const semantic = read('shared/ui/tokens/semantic.v3959_0.css');
 const actionContract = read('shared/ui/contracts/action-contract.v3959_0.js');
 const index = read('ln-rank/index.html');
-const app = read('ln-rank/js/app.v3963_0.js');
+const app = read('ln-rank/js/app.v3961_0.js');
 
 assert.ok(frontend.includes('UI_ACTION_COPY'), 'school UI copy must come from the shared action contract');
 for (const key of ['addSelectedMajor', 'removeSelectedMajor', 'inspectDetails', 'publicReviews', 'retry']) {

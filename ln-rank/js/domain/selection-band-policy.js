@@ -3,7 +3,7 @@ import {
   canonicalBandOrder,
   canonicalBandLabel,
   normalizePositionPreset
-} from '../../../shared/algorithms/position/canonical-position.v3963_0.js?v=3963_0';
+} from '../../../shared/algorithms/position/canonical-position.v3960_0.js?v=3960_0';
 
 export const SELECTION_BAND_LABELS = {
   upper: '稍高目标',

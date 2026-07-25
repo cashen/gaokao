@@ -10,7 +10,7 @@ const record = {
   id: 'demo-2026', school: '大连理工大学（盘锦校区）', major: '能源化学工程',
   dataYear: 2026, primaryYear: 2026,
   score2026: 589, rank2026: 18420, score2025: 581, rank2025: 19100, score2024: 576, rank2024: 20500,
-  scoreDelta2026: 9, band: 'upper', bandKey: 'upper',
+  scoreDelta2026: 9, rankGap2026: -820, band: 'upper', bandKey: 'upper',
   statusLabel: '稍高目标', position: '稍高目标区', matchLevel: 'related', matchLabel: '相关方向', matchReason: '专业名称符合当前方向',
   displayLocation: '辽宁 · 盘锦', geoEntity: '大连理工大学（盘锦校区）', schoolTags: ['公办', '盘锦校区'],
   schoolNature: 'public', feeType: 'normal',
@@ -37,7 +37,7 @@ const payload = {
 const reportData = await buildReportDataV3956(new Request('https://example.com/api/feishu-create-report'), {}, payload);
 assert.equal(reportData.sourceMode, 'current-decision-snapshot');
 assert.equal(reportData.dataScope, '辽宁2026物理类');
-assert.equal(reportData.algorithmOrchestrationVersion, 'algorithm-orchestration-v3963');
+assert.equal(reportData.algorithmOrchestrationVersion, 'algorithm-orchestration-v3960');
 assert.equal(reportData.selectedRecords[0].score2026, 589);
 assert.equal(reportData.selectedRecords[0].canonicalPosition.bandKey, 'upper');
 assert.equal(isCompatibleDecisionSnapshot(reportData.decisionSnapshot), true);

@@ -1,4 +1,4 @@
-import { state } from '../state/app-state.js?v=3963_0';
+import { state } from '../state/app-state.js?v=3961_0';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
@@ -11,7 +11,7 @@ import {
   renderMajorResults,
   buildKeywordQuery,
   mountKeywordPresetPanel
-} from '../feature/major-pool/index.v3963_0.js?v=3963_0';
+} from '../feature/major-pool/index.v3961_0.js?v=3961_0';
 import {
   renderBandLegend,
   renderResultBandSwitcher
@@ -55,10 +55,8 @@ import { initDirectionExplorer } from '../feature/direction-explorer/direction-e
 import { formatApiErrorForHuman } from '../shared/api-client.js?v=3961_0';
 import {
   resolveMainFlowStep,
-  SCHOOL_FLOW_STEPS,
   clearFlowAction
 } from '../domain/flow-step-contract.js?v=3961_0';
-import { resolveCompactSchoolResource } from '../../../shared/resources/schools/school-resource-center.js?v=3963_0';
 import {
   buildQuerySignature,
   saveSuccessfulQuerySignature,
@@ -91,8 +89,6 @@ import {
 } from './scroll-policy.v3961_0.js?v=3961_0';
 
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
-const MODE_SCORE = 'score-bands';
-const MODE_SCHOOL = 'school-all';
 const BOTTOMLINE_STORAGE_KEY = 'lnRank.bottomLineMode.current';
 const BOTTOMLINE_LEGACY_KEYS = [
   'lnRank.bottomLineMode.v3980',
@@ -133,24 +129,22 @@ const selectionPool = createSelectionPoolAdapter();
 syncRangeState(state);
 document.body?.classList?.add('has-floating-pool-entry', 'ln-new-parent-flow');
 document.body.dataset.scoreState = 'empty';
-document.body.dataset.workspaceOrchestration = 'selection-workspace-orchestration-v3963';
+document.body.dataset.workspaceOrchestration = 'selection-workspace-orchestration-v3961';
 
 function log(...args) {
-  if (DEBUG) console.info('[selection-workspace-v3963]', ...args);
+  if (DEBUG) console.info('[selection-workspace-v3961]', ...args);
 }
 
 function emitWorkspaceState(reason) {
-  const schoolMode = state.resultMode === MODE_SCHOOL;
   document.dispatchEvent(new CustomEvent('gaokao:workspace-state', {
     detail: Object.freeze({
       reason,
-      mode: state.resultMode,
-      dirty: schoolMode ? Boolean(state.schoolAll.dirty) : dirty,
-      loading: schoolMode ? Boolean(state.schoolAll.loading || state.schoolAll.loadingMore) : requestState.loading,
-      hasResult: schoolMode ? Boolean(state.schoolAll.data) : Boolean(state.bands?.data),
+      dirty,
+      loading: requestState.loading,
+      hasResult: Boolean(state.bands?.data),
       activeBand: state.activeBand,
-      resultSignature: schoolMode ? '' : (state.bands?.resultSignature || ''),
-      currentSignature: schoolMode ? '' : currentQuerySignature()
+      resultSignature: state.bands?.resultSignature || '',
+      currentSignature: currentQuerySignature()
     })
   }));
 }
@@ -163,153 +157,6 @@ function escapeHtml(value) {
     '"': '&quot;',
     "'": '&#39;'
   })[char]);
-}
-
-function schoolInputValue() {
-  return String(document.getElementById('schoolKeyword')?.value || state.filters.schoolKeyword || '').trim();
-}
-
-function resolveSchoolSelectionFromInput() {
-  const input = schoolInputValue();
-  const resolved = input ? resolveCompactSchoolResource(input) : null;
-  state.schoolSelection = {
-    status: !input ? 'empty' : (resolved?.entityId ? 'resolved' : 'input'),
-    input,
-    entityId: resolved?.entityId || '',
-    displayName: resolved?.school || input,
-    entityType: resolved?.entityType || '',
-    parentEntityId: resolved?.parentEntityId || ''
-  };
-  state.filters.schoolKeyword = input;
-  state.filters.schoolEntityId = state.schoolSelection.entityId;
-  return state.schoolSelection;
-}
-
-function normalizeSchoolSort(value) {
-  const key = String(value || '').trim();
-  return ['position-near', 'score-desc', 'score-asc'].includes(key) ? key : 'position-near';
-}
-
-function updateSearchUrl({ push = false } = {}) {
-  const url = new URL(location.href);
-  const score = String(document.getElementById('candidateScore')?.value || '').replace(/[^0-9]/g, '');
-  const school = state.schoolSelection?.displayName || schoolInputValue();
-  const major = String(state.filters.majorKeyword || '').trim();
-  if (state.resultMode === MODE_SCHOOL) url.searchParams.set('mode', MODE_SCHOOL);
-  else url.searchParams.delete('mode');
-  if (score) url.searchParams.set('score', score);
-  else url.searchParams.delete('score');
-  if (school) url.searchParams.set('school', school);
-  else url.searchParams.delete('school');
-  if (state.schoolSelection?.entityId) url.searchParams.set('schoolEntity', state.schoolSelection.entityId);
-  else url.searchParams.delete('schoolEntity');
-  if (major) url.searchParams.set('majorKeyword', major);
-  else url.searchParams.delete('majorKeyword');
-  if (state.resultMode === MODE_SCHOOL) url.searchParams.set('schoolSort', normalizeSchoolSort(state.schoolAll.sort));
-  else url.searchParams.delete('schoolSort');
-  const nextUrl = `${url.pathname}${url.search}${url.hash}`;
-  if (push) history.pushState(history.state, '', nextUrl);
-  else history.replaceState(history.state, '', nextUrl);
-}
-
-function schoolSortLabel(value) {
-  return ({
-    'position-near': '离参考位次最近',
-    'score-desc': '历史投档位次靠前',
-    'score-asc': '历史投档位次靠后'
-  })[normalizeSchoolSort(value)] || '离参考位次最近';
-}
-
-function syncSearchIntentUi() {
-  const schoolMode = state.resultMode === MODE_SCHOOL;
-  const selection = state.schoolSelection || {};
-  document.body.dataset.resultMode = schoolMode ? MODE_SCHOOL : MODE_SCORE;
-  document.getElementById('resultsPanel')?.toggleAttribute('hidden', schoolMode);
-  document.getElementById('schoolAllResultsPanel')?.toggleAttribute('hidden', !schoolMode);
-  document.querySelectorAll('[data-school-view-mode]').forEach(button => {
-    const active = button.dataset.schoolViewMode === state.resultMode;
-    button.classList.toggle('is-active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-
-  const scoreLabel = document.getElementById('candidateScoreLabel');
-  const scoreHelp = document.getElementById('candidateScoreHelp');
-  const workbenchTitle = document.getElementById('searchWorkbenchTitle');
-  const workbenchDesc = document.getElementById('searchWorkbenchDesc');
-  const schoolLabel = document.getElementById('schoolKeywordLabel');
-  const schoolHelp = document.getElementById('schoolKeywordHelp');
-  if (scoreLabel) scoreLabel.textContent = schoolMode ? '参考分数（可不填）' : '确认孩子目前的位置';
-  if (scoreHelp) scoreHelp.textContent = schoolMode
-    ? '不填也会展示该校记录；填写后只用于标出与2026历史位次的距离，不会删掉该校专业。'
-    : '系统会换算为辽宁2026物理类历史位次，再按位次关系分组。';
-  if (workbenchTitle) workbenchTitle.textContent = schoolMode ? '先确认学校，再缩小校内专业范围' : '说清想看的专业和家庭条件';
-  if (workbenchDesc) workbenchDesc.textContent = schoolMode
-    ? '学校本部、分校和校区要准确区分。专业方向可以不填，也可以用“电气/自动化”一次看任意一个方向。'
-    : '不知道具体专业名，也可以先输入大方向。孩子是否真正接受，还要结合课程内容继续确认。';
-  if (schoolLabel) schoolLabel.textContent = schoolMode ? '目标学校' : '学校名称关键词，可不填';
-  if (schoolHelp) schoolHelp.textContent = schoolMode
-    ? '请输入完整学校名称；如果存在本部、分校或校区差异，页面会要求你从候选项中确认。'
-    : '完整学校名称会尽量按本部、分校、校区精确筛选；只输入名称片段时按学校名称包含关系扩大查看。';
-
-  const status = document.getElementById('schoolResolveStatus');
-  if (status) {
-    if (!schoolMode) {
-      status.textContent = selection.input
-        ? `当前按分数查看，并保留学校条件：${selection.displayName || selection.input}。`
-        : '当前从参考分数开始；也可以先输入目标学校，再切换查看该校全部专业。';
-    } else if (!selection.input) {
-      status.textContent = '请先输入完整学校名称；参考分数可以不填。';
-    } else if (selection.status === 'resolved' && selection.entityId) {
-      status.textContent = `当前学校：${selection.displayName}（已按学校实体区分本部、分校或校区）`;
-    } else if (selection.status === 'unresolved') {
-      status.textContent = '这所学校需要进一步确认，请从下方候选学校中选择准确名称。';
-    } else {
-      status.textContent = `将按完整名称核对“${selection.displayName || selection.input}”；如有本部、分校或校区差异，会让你确认。`;
-    }
-  }
-
-  const sort = document.getElementById('schoolAllSort');
-  if (sort && sort.value !== normalizeSchoolSort(state.schoolAll.sort)) sort.value = normalizeSchoolSort(state.schoolAll.sort);
-  const back = document.getElementById('schoolAllBack');
-  if (back) back.textContent = state.bands?.data ? '回到刚才的分数结果' : '切到按分数查看';
-}
-
-function setResultMode(mode, { updateHistory = true } = {}) {
-  const next = mode === MODE_SCHOOL ? MODE_SCHOOL : MODE_SCORE;
-  const changed = state.resultMode !== next;
-  if (next === MODE_SCHOOL && state.schoolSelection?.input !== schoolInputValue()) {
-    resolveSchoolSelectionFromInput();
-  }
-  state.resultMode = next;
-  syncSearchIntentUi();
-  if (updateHistory) updateSearchUrl({ push: changed });
-  scheduleWorkspaceCommit('result-mode-changed', true);
-  document.dispatchEvent(new CustomEvent('gaokao:result-mode-change', { detail: { mode: next } }));
-  if (next === MODE_SCHOOL) document.dispatchEvent(new CustomEvent('gaokao:school-result-render'));
-}
-
-function restoreSearchIntentFromUrl() {
-  const params = new URLSearchParams(location.search);
-  const school = String(params.get('school') || '').trim();
-  const major = String(params.get('majorKeyword') || '').trim();
-  const score = String(params.get('score') || '').replace(/[^0-9]/g, '');
-  const schoolInput = document.getElementById('schoolKeyword');
-  const majorInput = document.getElementById('majorKeyword');
-  const candidateInput = document.getElementById('candidateScore');
-  if (schoolInput && school) schoolInput.value = school;
-  if (majorInput && major) majorInput.value = major;
-  if (candidateInput && score && !candidateInput.value) candidateInput.value = score;
-  state.filters.schoolKeyword = school;
-  state.filters.majorKeyword = major;
-  state.schoolAll.sort = normalizeSchoolSort(params.get('schoolSort'));
-  resolveSchoolSelectionFromInput();
-  const requestedEntity = String(params.get('schoolEntity') || '').trim();
-  if (requestedEntity && state.schoolSelection.input) {
-    state.schoolSelection.status = 'resolved';
-    state.schoolSelection.entityId = requestedEntity;
-    state.filters.schoolEntityId = requestedEntity;
-  }
-  state.resultMode = params.get('mode') === MODE_SCHOOL ? MODE_SCHOOL : MODE_SCORE;
 }
 
 function normalizeBottomLineMode(value) {
@@ -330,7 +177,6 @@ function buildEffectiveFilters(score = state.candidateScore, filters = state.fil
   return {
     ...filters,
     majorKeyword,
-    schoolEntityId: state.schoolSelection?.entityId || filters.schoolEntityId || '',
     keywordQuery: buildKeywordQuery(majorKeyword),
     bottomLineMode: getEffectiveBottomLineMode(score, filters),
     specialProjectMode: normalizeSpecialProjectMode(filters.specialProjectMode)
@@ -430,36 +276,6 @@ function renderFilterSummary() {
   const regionValue = regionText && regionText !== '不限' ? regionText : '不限';
   const schoolKeyword = String(state.filters.schoolKeyword || '').trim();
   const majorKeyword = String(state.filters.majorKeyword || '').trim();
-  if (state.resultMode === MODE_SCHOOL) {
-    const score = state.candidateScore || parseScoreFromInput();
-    const schoolChips = [
-      filterSummaryItem('学校', schoolKeyword || '待输入'),
-      filterSummaryItem('范围', '该校辽宁2026记录')
-    ];
-    if (majorKeyword) schoolChips.push(filterSummaryItem('方向任一', majorKeyword));
-    const schoolDetails = [
-      filterSummaryItem('学校实体', state.schoolSelection?.entityId ? `${state.schoolSelection.displayName}（已区分实体）` : (schoolKeyword || '待输入')),
-      filterSummaryItem('专业关键词', majorKeyword ? `${majorKeyword}（任意一个词匹配）` : '不限定'),
-      filterSummaryItem('参考分数', score ? `${score}分，仅用于位次对照` : '未填写，不影响专业数量'),
-      filterSummaryItem('普通与特殊项目', '分组展示，不混在一起'),
-      filterSummaryItem('排序', schoolSortLabel(state.schoolAll.sort))
-    ];
-    root.innerHTML = `
-      <div class="ln-filter-summary-main" aria-label="当前学校查看条件摘要">
-        <span class="ln-filter-summary-title">当前查看</span>
-        <div class="ln-filter-summary-chips">${schoolChips.map(item => `
-          <span class="ln-filter-summary-chip">
-            <span class="ln-filter-summary-chip-label">${escapeHtml(item.label)}</span>
-            <b>${escapeHtml(compactSummaryValue(item.value))}</b>
-          </span>`).join('')}</div>
-      </div>
-      <details class="ln-filter-summary-details">
-        <summary>查看完整条件</summary>
-        <dl>${schoolDetails.map(item => `
-          <div class="ln-filter-summary-row"><dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd></div>`).join('')}</dl>
-      </details>`;
-    return;
-  }
   const effectiveBottomLine = getEffectiveBottomLineMode();
   const bottomLineText = effectiveBottomLine !== 'all' ? bottomLineLabel(effectiveBottomLine) : '全部院校';
   const specialText = normalizeSpecialProjectMode(state.filters.specialProjectMode) === SPECIAL_PROJECT_SHOW_MODE ? '已显示' : '默认隐藏';
@@ -609,16 +425,6 @@ function setMessageFromGuard(g) {
 function syncMobileDirtyBar(g) {
   const bar = document.getElementById('mobileDirtyBar');
   if (!bar) return;
-  if (state.resultMode === MODE_SCHOOL) {
-    const show = Boolean(state.schoolAll.data && state.schoolAll.dirty && !state.schoolAll.loading && !state.schoolAll.loadingMore);
-    bar.hidden = !show;
-    bar.classList.toggle('is-visible', show);
-    const text = bar.querySelector('.mobile-dirty-text');
-    const action = bar.querySelector('button');
-    if (text) text.textContent = '学校或专业条件已变化';
-    if (action) action.textContent = '更新学校专业';
-    return;
-  }
   const keyword = state.filters.majorKeyword ? `｜${state.filters.majorKeyword}` : '';
   const show = Boolean(dirty && g?.canQuery);
   bar.hidden = !show;
@@ -629,50 +435,13 @@ function syncMobileDirtyBar(g) {
 
 function setActionButton() {
   const g = guard();
-  const schoolMode = state.resultMode === MODE_SCHOOL;
-  const schoolLoading = Boolean(state.schoolAll.loading || state.schoolAll.loadingMore);
-  const activeLoading = schoolMode ? schoolLoading : requestState.loading;
-  const activeDirty = schoolMode ? Boolean(state.schoolAll.dirty) : Boolean(dirty && g.canQuery);
   syncScoreState(g);
-  document.body.classList.toggle('is-filter-dirty', activeDirty);
-  document.body.classList.toggle('is-workspace-updating', activeLoading);
+  document.body.classList.toggle('is-filter-dirty', Boolean(dirty && g.canQuery));
+  document.body.classList.toggle('is-workspace-updating', requestState.loading);
   syncMobileDirtyBar(g);
   const button = document.getElementById('queryButton');
   const guide = document.getElementById('queryGuide');
   if (!button) return;
-  if (schoolMode) {
-    const selection = state.schoolSelection || {};
-    const label = selection.displayName || selection.input || '这所学校';
-    button.disabled = Boolean(schoolLoading || !selection.input);
-    if (schoolLoading) {
-      button.textContent = state.schoolAll.loadingMore ? '正在继续加载…' : '正在读取该校招生专业…';
-      button.className = getQueryButtonClass({ loading: true });
-      updateGuideNote(guide, g, state.schoolAll.data ? '正在更新，下面暂时保留上一轮学校结果。' : '正在核对学校实体和辽宁2026招生记录。');
-      return;
-    }
-    if (!selection.input) {
-      button.textContent = '输入学校后查看全部专业';
-      button.className = 'query-button is-waiting';
-      updateGuideNote(guide, g, '请先输入完整学校名称；参考分数可以不填。');
-      return;
-    }
-    if (state.schoolAll.error && !state.schoolAll.data) {
-      button.textContent = '重新读取该校专业';
-      button.className = getQueryButtonClass({ error: true });
-      updateGuideNote(guide, g, '读取异常，可以检查学校名称或稍后重试。');
-      return;
-    }
-    if (state.schoolAll.data && state.schoolAll.dirty) {
-      button.textContent = '按新条件更新学校专业';
-      button.className = getQueryButtonClass({ ready: true, primary: true });
-      updateGuideNote(guide, g, '条件已变化；下面保留上一轮学校结果，点击后统一更新。');
-      return;
-    }
-    button.textContent = state.schoolAll.data ? `重新查看${label}专业` : `查看${label}全部专业`;
-    button.className = getQueryButtonClass({ ready: true, primary: true });
-    updateGuideNote(guide, g, '参考分数可以不填；填写后只增加位次对照，不会减少该校专业数量。');
-    return;
-  }
   button.disabled = Boolean(requestState.loading);
 
   if (requestState.loading) {
@@ -722,7 +491,7 @@ function renderBottomLinePanel() {
   const summary = document.getElementById('bottomLineSummary');
   if (!panel) return;
   const score = state.candidateScore || parseScoreFromInput();
-  const visible = state.resultMode !== MODE_SCHOOL && shouldShowBottomLinePanel(score);
+  const visible = shouldShowBottomLinePanel(score);
   panel.hidden = !visible;
   panel.classList.toggle('is-visible', visible);
   document.querySelectorAll('[data-bottomline-mode]').forEach(button => {
@@ -777,73 +546,10 @@ function computeFilterConflicts() {
 }
 
 function renderConflictsOnly() {
-  renderFilterConflicts(
-    document.getElementById('filterConflictPanel'),
-    state.resultMode === MODE_SCHOOL ? [] : computeFilterConflicts()
-  );
+  renderFilterConflicts(document.getElementById('filterConflictPanel'), computeFilterConflicts());
 }
 
 function renderFlowAndConflicts() {
-  const flowRoot = document.querySelector('.ln-parent-compact-stepper');
-  if (state.resultMode === MODE_SCHOOL) {
-    const hasSchool = Boolean(state.schoolSelection?.input || schoolInputValue());
-    const hasResult = Boolean(state.schoolAll.data);
-    const selectionCount = selectionPool.items?.()?.length || 0;
-    let resolved;
-    if (state.schoolAll.error && !hasResult) {
-      resolved = {
-        current: hasSchool ? 'filter' : 'input',
-        completed: hasSchool ? ['input'] : [],
-        status: 'failed',
-        note: '学校专业暂时没有读取成功，请核对学校名称后重新尝试。'
-      };
-    } else if (state.schoolAll.loading || state.schoolAll.loadingMore) {
-      resolved = {
-        current: 'filter',
-        completed: hasSchool ? ['input'] : [],
-        status: 'loading',
-        note: '正在核对学校实体，并读取辽宁2026物理类招生记录。'
-      };
-    } else if (hasResult && state.schoolAll.dirty) {
-      resolved = {
-        current: 'filter',
-        completed: ['input'],
-        status: 'stale',
-        note: '学校、专业方向或参考分数已变化，请更新后再继续取舍。'
-      };
-    } else if (hasResult && selectionCount > 0) {
-      resolved = {
-        current: 'select',
-        completed: ['input', 'filter'],
-        status: 'active',
-        note: `同一已选清单已有 ${selectionCount} 个专业，可继续比较后和孩子逐项讨论。`
-      };
-    } else if (hasResult) {
-      resolved = {
-        current: 'select',
-        completed: ['input', 'filter'],
-        status: 'active',
-        note: '普通招生与特殊项目已分开；把孩子愿意读、家庭能承担的专业加入已选。'
-      };
-    } else if (hasSchool) {
-      resolved = {
-        current: 'filter',
-        completed: ['input'],
-        status: 'active',
-        note: '可以不填参考分数；填写专业方向时，多个词按“任意一个”匹配。'
-      };
-    } else {
-      resolved = {
-        current: 'input',
-        completed: [],
-        status: 'active',
-        note: '先输入完整学校名称，避免把本部、分校和校区混在一起。'
-      };
-    }
-    renderMainFlowStepper(flowRoot, resolved, SCHOOL_FLOW_STEPS);
-    renderFilterConflicts(document.getElementById('filterConflictPanel'), []);
-    return;
-  }
   const conflicts = computeFilterConflicts();
   const freshness = currentResultFreshness();
   const selectionCount = selectionPool.items?.()?.length || 0;
@@ -872,7 +578,7 @@ function renderFlowAndConflicts() {
     errorActive: Boolean(state.bands?.error || requestState.updateError)
   });
   resolved.note = workflow.note || resolved.note;
-  renderMainFlowStepper(flowRoot, resolved);
+  renderMainFlowStepper(document.querySelector('.ln-parent-compact-stepper'), resolved);
   renderFilterConflicts(document.getElementById('filterConflictPanel'), conflicts);
 }
 
@@ -925,7 +631,6 @@ function renderResultRegion(reason, preserveScroll) {
 function renderDraftChrome(reason) {
   syncRangeState(state);
   syncControlConsoleState(state);
-  syncSearchIntentUi();
   renderBottomLinePanel();
   renderFilterSummary();
   renderSpecialProjectPanel();
@@ -960,22 +665,6 @@ function shouldKeepRenderedResult(reason) {
 function renderWorkspace(reason = 'render', preserveScroll = false) {
   diagnostics.commits += 1;
 
-  if (state.resultMode === MODE_SCHOOL) {
-    syncRangeState(state);
-    syncControlConsoleState(state);
-    syncSearchIntentUi();
-    refreshSelectionPool(state);
-    renderBottomLinePanel();
-    renderFilterSummary();
-    renderSpecialProjectPanel();
-    directionExplorerController?.renderEntry?.();
-    renderFlowAndConflicts();
-    setActionButton();
-    emitWorkspaceState(reason);
-    log('school-mode shared commit', diagnostics.commits, reason);
-    return;
-  }
-
   if (isResultOnlyReason(reason)) {
     renderResultRegion(reason, preserveScroll);
     emitWorkspaceState(reason);
@@ -992,7 +681,6 @@ function renderWorkspace(reason = 'render', preserveScroll = false) {
 
   syncRangeState(state);
   syncControlConsoleState(state);
-  syncSearchIntentUi();
   renderBandLegend(state);
   renderResultRegion(reason, preserveScroll);
   refreshSelectionPool(state);
@@ -1040,40 +728,6 @@ function markDirty(reason = 'filter_changed') {
     setReadyStatus('ready', g.key === 'topRange' ? '高分段' : '条件已变化');
   }
   scheduleWorkspaceCommit(reason, true);
-}
-
-function markSchoolDirty(reason = 'school_filter_changed') {
-  state.schoolAll.dirty = Boolean(state.schoolAll.data);
-  state.schoolAll.error = null;
-  scheduleWorkspaceCommit(reason, true);
-}
-
-function markSharedInputDirty(reason = 'shared_filter_changed') {
-  markDirty(reason);
-  markSchoolDirty(reason);
-  if (state.resultMode === MODE_SCHOOL) setReadyStatus('ready', '学校条件已变化');
-  updateSearchUrl();
-}
-
-function submitActiveSearch() {
-  if (state.resultMode === MODE_SCHOOL) {
-    const selection = resolveSchoolSelectionFromInput();
-    syncSearchIntentUi();
-    updateSearchUrl();
-    if (!selection.input) {
-      setActionButton();
-      document.getElementById('schoolKeyword')?.focus();
-      return;
-    }
-    document.dispatchEvent(new CustomEvent('gaokao:school-search-submit', {
-      detail: Object.freeze({
-        school: selection.displayName || selection.input,
-        entityId: selection.entityId || ''
-      })
-    }));
-    return;
-  }
-  loadData();
 }
 
 async function loadMoreBand(band) {
@@ -1254,7 +908,7 @@ function appendMajorKeyword(word) {
   const parts = current.split(/[,\s，、/；;|]+/).map(item => item.trim()).filter(Boolean);
   if (!parts.includes(word)) input.value = current ? `${current}/${word}` : word;
   state.filters.majorKeyword = input.value;
-  markSharedInputDirty('preset_keyword_added');
+  markDirty('preset_keyword_added');
 }
 
 function setMajorKeywordFromDirectionExplorer(value) {
@@ -1281,18 +935,18 @@ function initDirectionExplorerBridge() {
     panelMount: document.getElementById('directionExplorerPanelMount'),
     getMajorKeyword: () => state.filters.majorKeyword || document.getElementById('majorKeyword')?.value || '',
     setMajorKeyword: setMajorKeywordFromDirectionExplorer,
-    onApplied: () => markSharedInputDirty('direction_keywords_changed'),
+    onApplied: () => markDirty('direction_keywords_changed'),
     onCleared: applied => {
       removeDirectionExplorerKeywords(applied || {});
-      markSharedInputDirty('direction_keywords_cleared');
+      markDirty('direction_keywords_cleared');
     }
   });
   if (location.hash === '#direction-explorer') {
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    setTimeout(() => {
       const target = document.getElementById('direction-explorer');
       if (target) scrollToExplicitTarget(target);
       directionExplorerController?.highlightEntry?.();
-    }));
+    }, 160);
   }
 }
 
@@ -1307,7 +961,19 @@ function bind() {
     const after = state.candidateScore;
     if (before === after) return;
     lastNormalizedScore = after;
-    markSharedInputDirty('score_changed');
+    const g = getScoreGuard(after);
+    if (!g.canQuery && !state.bands.data) {
+      hasQueried = false;
+      dirty = false;
+      clearFeishuReport();
+      clearFlowAction('report');
+      expireReport('score_invalid');
+      setMessageFromGuard(g);
+      setReadyStatus(g.level === 'warn' ? 'loading' : 'ready', g.statusText);
+      scheduleWorkspaceCommit('score-invalid', true);
+      return;
+    }
+    markDirty('score_changed');
   };
 
   input?.addEventListener('input', onScoreInput);
@@ -1315,7 +981,7 @@ function bind() {
   input?.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      submitActiveSearch();
+      loadData();
     }
   });
 
@@ -1357,27 +1023,19 @@ function bind() {
   document.getElementById('schoolKeyword')?.addEventListener('input', event => {
     if (state.filters.schoolKeyword === event.target.value) return;
     state.filters.schoolKeyword = event.target.value;
-    resolveSchoolSelectionFromInput();
-    markSharedInputDirty('school_keyword_changed');
+    markDirty('school_keyword_changed');
   });
 
   document.getElementById('majorKeyword')?.addEventListener('input', event => {
     if (state.filters.majorKeyword === event.target.value) return;
     state.filters.majorKeyword = event.target.value;
-    markSharedInputDirty('major_keyword_changed');
-  });
-
-  document.getElementById('schoolKeyword')?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      submitActiveSearch();
-    }
+    markDirty('major_keyword_changed');
   });
 
   document.getElementById('majorKeyword')?.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      submitActiveSearch();
+      loadData();
     }
   });
 
@@ -1396,69 +1054,12 @@ function bind() {
 
   document.getElementById('queryButton')?.addEventListener('click', event => {
     event.preventDefault();
-    submitActiveSearch();
+    loadData();
   });
 
   document.getElementById('mobileDirtyButton')?.addEventListener('click', event => {
     event.preventDefault();
-    submitActiveSearch();
-  });
-
-  document.getElementById('schoolViewModeMount')?.addEventListener('click', event => {
-    const button = event.target.closest('[data-school-view-mode]');
-    if (!button) return;
-    event.preventDefault();
-    setResultMode(button.dataset.schoolViewMode);
-  });
-
-  document.getElementById('schoolAllBack')?.addEventListener('click', event => {
-    event.preventDefault();
-    setResultMode(MODE_SCORE);
-  });
-
-  document.addEventListener('gaokao:school-search-state', event => {
-    updateSearchUrl();
-    scheduleWorkspaceCommit(`school-${event.detail?.reason || 'state'}`, true);
-  });
-
-  document.addEventListener('gaokao:school-candidate-selected', () => {
-    resolveSchoolSelectionFromInput();
-    syncSearchIntentUi();
-    updateSearchUrl();
-    scheduleWorkspaceCommit('school-candidate-selected', true);
-  });
-
-  document.addEventListener('gaokao:view-school-all', event => {
-    const school = String(event.detail?.school || '').trim();
-    if (!school) return;
-    const schoolInput = document.getElementById('schoolKeyword');
-    if (schoolInput) schoolInput.value = school;
-    state.filters.schoolKeyword = school;
-    state.schoolSelection = {
-      status: event.detail?.entityId ? 'resolved' : 'input',
-      input: school,
-      entityId: String(event.detail?.entityId || ''),
-      displayName: school,
-      entityType: String(event.detail?.entityType || ''),
-      parentEntityId: String(event.detail?.parentEntityId || '')
-    };
-    state.filters.schoolEntityId = state.schoolSelection.entityId;
-    markDirty('school_handoff_changed');
-    state.schoolAll.dirty = Boolean(state.schoolAll.data);
-    setResultMode(MODE_SCHOOL);
-    submitActiveSearch();
-  });
-
-  window.addEventListener('popstate', () => {
-    restoreSearchIntentFromUrl();
-    parseScoreFromInput();
-    lastNormalizedScore = state.candidateScore;
-    syncSearchIntentUi();
-    scheduleWorkspaceCommit('history-restored', true);
-    document.dispatchEvent(new CustomEvent('gaokao:result-mode-change', {
-      detail: { mode: state.resultMode }
-    }));
-    if (state.resultMode === MODE_SCHOOL) document.dispatchEvent(new CustomEvent('gaokao:school-result-render'));
+    loadData();
   });
 
   window.addEventListener('storage', () => {
@@ -1470,7 +1071,6 @@ function bind() {
 
 export function mountSelectionWorkspace() {
   renderRegionOptions();
-  restoreSearchIntentFromUrl();
   renderBottomLinePanel();
   initFeishuReport(state);
   initSelectionPool(state, {
@@ -1488,7 +1088,7 @@ export function mountSelectionWorkspace() {
   setMessageFromGuard(guard());
   renderWorkspace('initial', false);
   globalThis.__GAOKAO_SELECTION_WORKSPACE__ = Object.freeze({
-    version: 'selection-workspace-orchestration-v3963',
+    version: 'selection-workspace-orchestration-v3961',
     getState: () => ({
       dirty,
       committedQuery,
@@ -1497,7 +1097,7 @@ export function mountSelectionWorkspace() {
       activeBand: state.activeBand,
       diagnostics: { ...diagnostics }
     }),
-    submit: submitActiveSearch,
+    submit: loadData,
     selectBand: handleBandSelection
   });
   log('mounted');

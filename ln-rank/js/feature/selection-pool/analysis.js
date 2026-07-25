@@ -138,7 +138,7 @@ export function buildPathAnalysis({ items = [], candidateScore = null, explicitP
     generatedAt: new Date().toISOString(),
     dataYear: 2026,
     audienceYear: 2027,
-    algorithmVersion: 'algorithm-orchestration-v3963'
+    algorithmVersion: 'algorithm-orchestration-v3960'
   };
 }
 

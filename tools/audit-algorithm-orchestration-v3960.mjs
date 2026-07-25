@@ -9,17 +9,17 @@ const json = rel => JSON.parse(read(rel));
 
 const { CURRENT_RELEASE } = await import(url('shared/resources/release/current-release.js'));
 const { ALGORITHM_CONTRACT, ALGORITHM_ORCHESTRATION_VERSION } = await import(url('shared/algorithms/algorithm-registry.js'));
-const { resolveCanonicalPosition } = await import(url('shared/algorithms/position/canonical-position.v3963_0.js'));
+const { resolveCanonicalPosition } = await import(url('shared/algorithms/position/canonical-position.v3960_0.js'));
 const { rankRecords, diversifyRankedRecords } = await import(url('shared/algorithms/ranking/staged-ranking.v3960_0.js'));
 const { makeDecisionSnapshot, isCompatibleDecisionSnapshot } = await import(url('shared/algorithms/contracts/decision-snapshot.v3960_0.js'));
 const { getBottomLineEligibility } = await import(url('functions/_lib/bottomline-policy.js'));
 const { classifySelectionPosition } = await import(url('ln-rank/js/domain/selection-band-policy.js'));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.63.0');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3963_0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.62.2');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3962_2');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3963_0');
-assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3962_2');
+assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
 assert.equal(ALGORITHM_CONTRACT.activeDataYear, 2026);
 assert.equal(ALGORITHM_CONTRACT.audienceYear, 2027);
 assert.ok(ALGORITHM_CONTRACT.principles.includes('ai-explains-but-does-not-rank'));
@@ -34,7 +34,7 @@ const canonical = resolveCanonicalPosition({
 assert.equal(canonical.bandKey, 'near');
 assert.equal(canonical.scoreDelta, -5);
 assert.equal(canonical.rankGap, -2265);
-assert.equal(canonical.classificationBasis, 'rank-primary-2026-position');
+assert.equal(canonical.classificationBasis, 'rank-aware-score-window');
 assert.equal(canonical.evidenceStrength, 'strong');
 
 const selection = classifySelectionPosition({
@@ -93,7 +93,7 @@ assert.equal(snapshot.audienceYear, 2027);
 assert.ok(snapshot.signature.includes('exact-nonpreferred'));
 
 const majorBands = read('functions/api/major-bands.js');
-for (const marker of ['resolveCanonicalPosition','rankRecords','getBottomLineEligibility','algorithmOrchestrationVersion','canonical_rank_primary_2026_position']) assert.ok(majorBands.includes(marker), `major-bands missing ${marker}`);
+for (const marker of ['resolveCanonicalPosition','rankRecords','getBottomLineEligibility','algorithmOrchestrationVersion','canonical_rank_aware_score_window']) assert.ok(majorBands.includes(marker), `major-bands missing ${marker}`);
 assert.ok(!majorBands.includes("classificationMode: 'score_delta'"));
 
 const advisor = read('functions/_lib/advisor-fact-builder.js');
@@ -112,8 +112,8 @@ for (const rel of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   assert.equal(meta.version, CURRENT_RELEASE.display);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   assert.equal(meta.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3963_0');
-  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3963_0');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3962_2');
+  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3962_2');
   for (const key of ['algorithmOrchestrationContract', 'canonicalPositionContract', 'rankAwarePositionContract','stagedRankingTraceContract', 'intentBeforeSoftPreferenceContract', 'bottomLineUnknownTriStateContract','explicitSpecialProjectIntentContract', 'decisionSnapshotContract', 'aiExplainsButDoesNotRankContract']) assert.equal(meta[key], true, `${rel} missing ${key}`);
 }
 

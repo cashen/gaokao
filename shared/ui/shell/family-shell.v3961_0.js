@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from '../../resources/release/current-release.js?v=3963_0';
+import { CURRENT_RELEASE } from '../../resources/release/current-release.js?v=3961_0';
 import {
   readFamilyCandidateScore,
   readFamilySelectionItems,
@@ -6,7 +6,7 @@ import {
   resolveFamilyNextAction
 } from '../../../ln-rank/js/domain/family-decision-contract.v3955_0.js?v=3961_0';
 import { UI_LANGUAGE } from '../contracts/copy-contract.v3959_0.js?v=3961_0';
-import { UI_PAGE_REGISTRY, UI_ORCHESTRATION_VERSION, getUiPage } from '../ui-registry.v3963_0.js?v=3963_0';
+import { UI_PAGE_REGISTRY, UI_ORCHESTRATION_VERSION, getUiPage } from '../ui-registry.v3961_0.js?v=3961_0';
 
 const ROUTE_ORDER = Object.freeze(['home', 'selection', 'selected', 'review', 'difficulty', 'structure', 'tongxue']);
 const STYLE_URLS = Object.freeze([
