@@ -8,24 +8,18 @@
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3962_2" />
   <link rel="stylesheet" href="/shared/ui/components/mode-switch.v3963_0.css?v=3963_0" />
-  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3960_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-main.v3949_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/ln-rank-multi-terminal.v3949_4.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/family-human-layer.v3952_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/compare-workspace.v3953_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/compare-workspace-year-fix.v3953_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/family-decision-workspace.v3955_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/ln-rank/css/selection-workspace.v3963_1.css?v=3963_1" />
-  <link rel="stylesheet" href="/ln-rank/css/school-all-mode.v3963_0.css?v=3963_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3964_0.css?v=3964_0" />
+  <link rel="stylesheet" href="/ln-rank/css/ln-rank-workspace.v3964_0.css?v=3964_0" />
 </head>
-<body class="ln-parent-guided-flow ln-search-guided-flow ui-orchestrated" data-ui-page="selection" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.63.1" data-result-mode="score-bands" data-runtime-state="loading">
+<body class="ln-parent-guided-flow ln-search-guided-flow ui-orchestrated" data-ui-page="selection" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.64.0" data-result-mode="score-bands" data-runtime-state="loading">
+  <div data-ui-global-header-mount></div>
+  <div data-ui-family-status-mount></div>
   <main class="page ln-page-shell">
     <header class="hero">
       <div>
         <p class="eyebrow">辽宁 2027 物理类家庭专业初选</p>
-        <h1 class="app-title">从分数或目标学校出发，圈出值得家庭讨论的专业</h1>
-        <p class="app-subtitle">有参考分数，可以先找学校和专业；已经有目标学校，可以先看校内专业差异。两条路径共用同一份已选清单，依据都是辽宁2026历史投档记录，不替代2027正式填报。</p>
+        <h1 class="app-title">先从分数或一所学校开始，再留下愿意认真讨论的专业</h1>
+        <p class="app-subtitle">输入分数，先圈出能考虑的学校和专业；已有目标学校，就直接看它在辽宁2026物理类的投档专业。看懂原因、排除不能接受的、加入同一份已选清单，再和孩子逐项确认。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-loading"><span class="ready-dot"></span><span class="ready-text">筛选功能正在准备</span></div>
@@ -55,9 +49,9 @@
         <div class="ui-mode-switch__head"><b>你现在想从哪里开始？</b><span>有参考分数，就先圈学校和专业；已有目标学校，就先看清校内专业差异。随时切换，已选专业和顺序不会丢。</span></div>
         <div class="ui-segmented ui-mode-switch__actions" role="group" aria-label="专业初选查看方式">
           <button type="button" data-school-view-mode="score-bands" data-runtime-control class="ui-button ui-button--compact ui-button--secondary is-active" aria-pressed="true" disabled>按分数找学校和专业</button>
-          <button type="button" data-school-view-mode="school-all" data-runtime-control class="ui-button ui-button--compact ui-button--secondary" aria-pressed="false" disabled>按学校看全部专业</button>
+          <button type="button" data-school-view-mode="school-all" data-runtime-control class="ui-button ui-button--compact ui-button--secondary" aria-pressed="false" disabled>看一所学校的在辽专业</button>
         </div>
-        <p id="schoolResolveStatus" class="ui-mode-switch__status" aria-live="polite">当前从参考分数开始；也可以先输入目标学校，再切换查看该校全部专业。</p>
+        <p id="schoolResolveStatus" class="ui-mode-switch__status" aria-live="polite">当前从参考分数开始；已有目标学校，可切换后直接查看该校在辽投档专业。</p>
       </section>
 
       <div class="topbar ln-score-row">
@@ -66,7 +60,7 @@
           <input id="candidateScore" class="score-input" type="text" inputmode="numeric" enterkeyhint="done" autocomplete="off" placeholder="例如 580" data-runtime-control disabled />
           <small id="candidateScoreHelp" class="field-help">系统会换算为辽宁2026物理类历史位次，再按位次关系分组。</small>
         </div>
-        <div class="range-box">
+        <details id="scoreAdvancedOptions" class="range-box ln-advanced-options"><summary>需要时再调查看范围</summary><div class="ln-advanced-options__body">
           <div class="range-head">
             <div class="field-label">查看范围（需要时调整）</div>
             <details class="range-help"><summary>怎么看</summary><p>默认先用“正常查看”。结果太少再选“多看一些”；想补充低分侧再选“多看低分侧”。这只是查看范围，不代表录取把握。</p></details>
@@ -76,7 +70,7 @@
             <button class="range-button" type="button" data-preset="wide" data-runtime-control disabled><b>多看一些</b><small>结果太少时</small></button>
             <button class="range-button" type="button" data-preset="safe" data-runtime-control disabled><b>多看低分侧</b><small>补充低分侧</small></button>
           </div>
-        </div>
+        </div></details>
         <div id="bottomLinePanel" class="bottomline-panel" hidden>
           <div class="bottomline-head"><div><div class="field-label bottomline-title">家庭能够接受的学校性质</div><p id="bottomLineSummary" class="bottomline-summary">输入分数后，本科线至特控线区间会显示学校性质和费用提醒。</p></div></div>
           <div class="bottomline-buttons" role="group" aria-label="学校性质范围">
@@ -102,6 +96,9 @@
             <div class="filter-field filter-major"><label for="majorKeyword">孩子想了解的专业方向 / 项目关键词</label><input id="majorKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：计算机/电气/医学" data-runtime-control disabled /><div class="keyword-help">多个词表示“任意一个方向”，例如“电气/自动化”；不是要求一条记录同时包含全部词。结果会说明为什么出现。</div></div>
           </div>
 
+          <details id="familyConditionsDetails" class="ln-more-conditions">
+            <summary>再加地区、学校和特殊项目条件</summary>
+            <div class="ln-more-conditions__body">
           <div class="search-grid-top ln-filter-panel__secondary">
             <div class="filter-field filter-region"><label for="region">家庭能够接受的地区</label><select id="region" class="select" data-runtime-control disabled></select></div>
             <div class="filter-field filter-school"><label id="schoolKeywordLabel" for="schoolKeyword">学校名称关键词，可不填</label><input id="schoolKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：大连、辽宁大学" data-runtime-control disabled /><div id="schoolKeywordHelp" class="keyword-help">完整学校名称会尽量按本部、分校、校区精确筛选；只输入名称片段时按学校名称包含关系扩大查看。</div></div>
@@ -113,6 +110,9 @@
             <div class="special-project-main"><div class="special-project-title">特殊项目</div><div id="specialProjectStatus" class="special-project-status">特殊项目默认隐藏</div><div id="specialProjectHelp" class="special-project-help">需要时再显示专项、定向、预科等需要资格确认的项目；明确搜索这些项目时会显示并持续提醒资格核验。</div></div>
             <button id="specialProjectToggle" class="special-project-toggle" type="button" data-runtime-control disabled>显示特殊项目</button>
           </div>
+
+            </div>
+          </details>
 
           <div class="ln-filter-panel__summary-action">
             <section id="filterConflictPanel" class="ln-filter-conflict-panel" hidden></section>
@@ -139,7 +139,7 @@
 
     <section id="schoolAllResultsPanel" class="panel school-all-results-shell" aria-label="学校全部招生专业" hidden>
       <header class="school-all-results-head">
-        <div><p class="school-all-kicker">指定学校 · 全部招生专业</p><h2 id="schoolAllTitle">先输入一所学校</h2><p id="schoolAllMeta">展示范围是辽宁2026普通类本科批物理类投档记录，不是学校全国全部本科专业。</p></div>
+        <div><p class="school-all-kicker">指定学校 · 辽宁2026物理类投档专业</p><h2 id="schoolAllTitle">先输入一所学校</h2><p id="schoolAllMeta">这里展示该校在辽宁2026普通类本科批物理类有投档记录的专业，不等于学校全国全部专业。</p></div>
         <div class="school-all-head-actions">
           <label>先看什么<select id="schoolAllSort" data-runtime-control disabled><option value="position-near">离参考位次最近</option><option value="score-desc">历史投档位次靠前</option><option value="score-asc">历史投档位次靠后</option></select></label>
           <button id="schoolAllBack" class="ui-button ui-button--compact ui-button--tertiary" type="button" data-runtime-control disabled>回到分数结果</button>
@@ -156,9 +156,10 @@
       </div>
     </section>
 
-    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>当前发布：<span data-current-release>v3.9.63.1</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>当前发布：<span data-current-release>v3.9.64.0</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
   </main>
   <div id="directionExplorerPanelMount" class="direction-explorer-panel-mount"></div>
-  <script type="module" src="/ln-rank/js/app.v3963_1.js?v=3963_1"></script>
+  <div data-ui-mobile-action-mount></div>
+  <script type="module" src="/ln-rank/js/app.v3964_0.js?v=3964_0"></script>
 </body>
 </html>
