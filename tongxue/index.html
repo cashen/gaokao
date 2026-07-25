@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="tongxue-build" content="tongxue-v156-direct-result-20260723">
+<meta name="tongxue-build" content="tongxue-v157-family-shell-20260725">
 <title>同学你好 - 找学校，看看大家怎么说</title>
 <link rel="canonical" href="https://gaokao.powers.org.cn/tongxue/">
+  <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
+  <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3961_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3964_0.css?v=3964_0" />
 <script type="importmap">{"imports":{"/tongxue/data/school-name-resolver.js":"/tongxue/data/school-name-resolver-v150.js?v=150","/tongxue/data/school-entities-v130.js":"/tongxue/data/school-entities-v150.js?v=150"}}</script>
 <style>
 :root{--bg:#fff;--card:#fff;--primary:#172d67;--primary-hover:#102352;--brand-teal:#45b99a;--brand-teal-soft:#eaf7f3;--text:#17242d;--muted:#60717a;--border:#dce6e2;--soft:#eaf7f3;--warm:#fff6ed;--warm-border:#f0d4bc;--warm-text:#8d4b20;--danger:#9a4336;--danger-bg:#fff0ec;--danger-border:#efc5ba;--shadow:0 14px 38px rgba(20,40,50,.07)}
@@ -46,9 +49,11 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
 @media(prefers-reduced-motion:reduce){.input-state{animation:none;border-top-color:#9bb0b7}.btn,.quick-example,.choice-card{transition:none!important}}
 </style>
 </head>
-<body>
+<body data-ui-page="tongxue">
+<div data-ui-global-header-mount></div>
+<div data-ui-family-status-mount></div>
 <div class="wrap">
-  <div class="topbar"><a class="brand" href="/tongxue/" aria-label="返回同学你好首页">同学你好</a><a class="back-home" href="/">← 返回首页</a></div>
+  <div class="topbar"><span class="brand">学校体验线索</span><a class="back-home" href="/ln-rank/">返回专业初选</a></div>
   <section class="hero">
     <h1 class="sr-only">同学你好</h1>
     <a class="hero-logo-link" href="/tongxue/" aria-label="返回同学你好首页">
@@ -67,7 +72,7 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
         </div>
         <button id="queryButton" class="btn" type="button" disabled>看同学怎么说</button>
       </div>
-      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="hgw">hgw</button><button class="quick-example" type="button" data-example="深圳">深圳</button></div>
+      <div class="quick-examples"><span>试试：</span><button class="quick-example" type="button" data-example="吉林大学">吉林大学</button><button class="quick-example" type="button" data-example="哈尔滨工业大学">哈尔滨工业大学</button><button class="quick-example" type="button" data-example="深圳">深圳</button></div>
       <div id="resolveHint" class="resolve-hint" hidden></div>
       <div id="indexStatus" class="index-status">正在准备学校名单…</div>
     </div>
@@ -76,9 +81,9 @@ body.tongxue-direct-result .wrap{padding-top:18px}body.tongxue-direct-result #re
   <div id="liveStatus" class="sr-only" aria-live="polite"></div>
   <footer class="footer">
     <div>公开评论只代表部分评论者在特定专业、校区和年份的个人体验，不代表学校官方结论。</div>
-    <a class="version" href="./changelog.html">同学你好 v1.5.6 · 更新于 2026-07-23 · 查看更新记录</a>
+    <a class="version" href="./changelog.html">同学你好 v1.5.7 · 更新于 2026-07-25 · 查看更新记录</a>
   </footer>
 </div>
-<script type="module" src="./app/tongxue-performance-v156.js?v=156"></script>
+<script type="module" src="./app/tongxue-performance-v157.js?v=157"></script>
 </body>
 </html>
