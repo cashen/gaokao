@@ -1,9 +1,9 @@
 name: Bootstrap LN 2024 rank table
 
 on:
-  push:
-    branches:
-      - agent/v3966-three-year-rank-evidence
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
     paths:
       - tools/ln-2026/build-ln-2024-rank-table.py
       - .github/workflows/bootstrap-ln-2024-rank.yml
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/v3966-three-year-rank-evidence
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
@@ -42,4 +42,4 @@ jobs:
             exit 0
           fi
           git commit -m '生成2024辽宁物理类官方一分一段资源'
-          git push origin HEAD:agent/v3966-three-year-rank-evidence
+          git push origin HEAD:${{ github.head_ref }}
