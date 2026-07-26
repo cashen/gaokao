@@ -25,6 +25,7 @@ export const CURRENT_RELEASE = Object.freeze({
   schoolUiGovernanceVersion: 'school-ui-governance-v3964_0',
   schoolModeMountVersion: 'school-mode-static-mount-v3964_0',
   runtimeCacheVersion: 'runtime-cache-coherence-v3964_0',
+  reportFrontendVersion: 'feishu-browser-v3964_0',
   resourceOwners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
     exam: '/shared/resources/exam/liaoning-physics.js',
@@ -33,6 +34,7 @@ export const CURRENT_RELEASE = Object.freeze({
     schoolIdentity: '/shared/resources/schools/school-identity-center.js',
     majors: '/shared/resources/majors/major-catalog-contract.js',
     reports: '/shared/resources/reports/feishu-report-contract.v3964_0.js',
+    reportFrontend: '/ln-rank/js/feature/feishu/index.v3964_0.js',
     ui: '/shared/ui/ui-registry.v3964_0.js',
     uiActions: '/shared/ui/contracts/action-contract.v3959_0.js',
     uiSemantic: '/shared/ui/tokens/semantic.v3959_0.css',
@@ -46,6 +48,7 @@ export const CURRENT_RELEASE = Object.freeze({
     mainPageStyles: '/ln-rank/css/ln-rank-workspace.v3964_0.css',
     selectionPageStyles: '/ln-rank/css/selection-pool.v3964_0.css',
     selectionRuntime: '/ln-rank/js/selection-pool-runtime.v3964_0.js',
+    selectionQuickEntryStructure: '/ln-rank/index.html#selectionPoolShell',
     reportHistoryPlacement: 'appendix-only'
   })
 });
