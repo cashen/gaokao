@@ -15,11 +15,11 @@ const { makeDecisionSnapshot, isCompatibleDecisionSnapshot } = await import(url(
 const { getBottomLineEligibility } = await import(url('functions/_lib/bottomline-policy.js'));
 const { classifySelectionPosition } = await import(url('ln-rank/js/domain/selection-band-policy.v3963_1.js'));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.63.1');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3963_1');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.64.0');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3964_0');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3963_1');
-assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3963_1');
+assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3964_0');
+assert.equal(CURRENT_RELEASE.schoolUiGovernanceVersion, 'school-ui-governance-v3964_0');
 assert.equal(ALGORITHM_CONTRACT.activeDataYear, 2026);
 assert.equal(ALGORITHM_CONTRACT.audienceYear, 2027);
 assert.ok(ALGORITHM_CONTRACT.principles.includes('ai-explains-but-does-not-rank'));
@@ -112,8 +112,8 @@ for (const rel of ['ln-rank/release-meta.json', 'ln-rank/active-assets.json']) {
   assert.equal(meta.version, CURRENT_RELEASE.display);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   assert.equal(meta.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
-  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3963_1');
-  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3963_1');
+  assert.equal(meta.schoolAllModeVersion, 'school-all-mode-v3964_0');
+  assert.equal(meta.schoolUiGovernanceVersion, 'school-ui-governance-v3964_0');
   for (const key of ['algorithmOrchestrationContract', 'canonicalPositionContract', 'rankAwarePositionContract','stagedRankingTraceContract', 'intentBeforeSoftPreferenceContract', 'bottomLineUnknownTriStateContract','explicitSpecialProjectIntentContract', 'decisionSnapshotContract', 'aiExplainsButDoesNotRankContract']) assert.equal(meta[key], true, `${rel} missing ${key}`);
 }
 
