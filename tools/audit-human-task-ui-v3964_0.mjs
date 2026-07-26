@@ -21,6 +21,11 @@ const selectionRuntime = read('ln-rank/js/selection-pool-runtime.v3964_0.js');
 const shell = read('shared/ui/shell/family-shell.v3964_0.js');
 const registry = read('shared/ui/ui-registry.v3964_0.js');
 const reportContract = read('shared/resources/reports/feishu-report-contract.v3964_0.js');
+const reportClient = read('ln-rank/js/shared/feishu-api-client.v3964_0.js');
+const reportPayload = read('ln-rank/js/feature/report/payload-builder.v3964_0.js');
+const reportApi = read('ln-rank/js/feature/feishu/report-api.v3964_0.js');
+const selectionReportApi = read('ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js');
+const selectionController = read('ln-rank/js/feature/selection-pool/controller.v3964_0.js');
 const currentReport = read('functions/_lib/feishu-report-builder.js');
 const selectionReport = read('functions/_lib/feishu-selection-pool-report-builder.js');
 const styledReport = read('functions/_lib/feishu-selection-pool-styled-builder.js');
@@ -82,7 +87,8 @@ for (const marker of [
   'id="familyConditionsDetails"',
   '看一所学校的在辽专业',
   'data-runtime-control',
-  '/ln-rank/js/app.v3964_0.js?v=3964_0'
+  '/ln-rank/js/app.v3964_0.js?v=3964_0',
+  'id="selectionPoolShell"'
 ]) assert.ok(main.includes(marker), `main missing ${marker}`);
 for (const marker of [
   'id="selectionRuntimeStatus"',
@@ -103,8 +109,10 @@ assert.ok(selectionRuntime.includes('analysis-not-run'));
 assert.ok(selectionRuntime.includes('data-only-item'));
 assert.ok(!selectionRuntime.includes('data-drag-id'));
 assert.ok(!selectionRuntime.includes('autoScrollWhileDragging'));
+assert.ok(!selectionController.includes('document.createElement'));
+assert.ok(!selectionController.includes('appendChild'));
 
-for (const [name, source] of Object.entries({ app, appRuntime, orchestrator, school, selectionEntry, selectionRuntime, shell })) {
+for (const [name, source] of Object.entries({ app, appRuntime, orchestrator, school, selectionEntry, selectionRuntime, shell, selectionController })) {
   assert.ok(!source.includes('MutationObserver'), `${name} introduced MutationObserver ownership`);
   assert.ok(!/setTimeout\s*\(/.test(source), `${name} introduced delayed runtime ownership`);
 }
@@ -131,6 +139,10 @@ assert.equal(FEISHU_REPORT_CONTRACT.audienceYear, 2027);
 assert.deepEqual(FEISHU_REPORT_CONTRACT.historicalYears, [2025, 2024]);
 assert.equal(FEISHU_REPORT_CONTRACT.historyPlacement, 'appendix-only');
 assert.equal(FEISHU_REPORT_CONTRACT.historyParticipatesInCurrentGrouping, false);
+for (const [name, source] of Object.entries({ reportClient, reportPayload, reportApi, selectionReportApi })) {
+  assert.ok(source.includes('feishu-report-contract.v3964_0.js?v=3964_0'), `${name} is not bound to the active report contract`);
+  assert.ok(!source.includes('feishu-report-contract.v3963_1.js'), `${name} retains the stale report contract`);
+}
 for (const source of [currentReport, selectionReport, styledReport]) {
   assert.ok(source.includes('历史对照附录（不参与2026当前分组）'));
 }
@@ -150,7 +162,9 @@ for (const flag of [
   'singleActivePageStylesheetContract',
   'progressiveResultCardContract',
   'reportHistoryAppendixContract',
-  'historyNeverParticipatesInCurrentGroupingContract'
+  'historyNeverParticipatesInCurrentGroupingContract',
+  'feishuFrontendRuntimeContract',
+  'staticSelectionShellMountContract'
 ]) {
   assert.equal(active[flag], true, `active manifest missing ${flag}`);
   assert.ok(releaseContract.includes(`${flag}: true`), `release contract missing ${flag}`);
@@ -168,6 +182,9 @@ for (const asset of [
   'js/workspace/selection-workspace-orchestrator.v3964_0.js',
   'js/feature/school-majors/school-all-mode.v3964_0.js',
   '../shared/resources/reports/feishu-report-contract.v3964_0.js',
+  'js/feature/feishu/index.v3964_0.js',
+  'js/feature/selection-pool/controller.v3964_0.js',
+  'js/shared/feishu-api-client.v3964_0.js',
   '../shared/ui/shell/family-shell.v3964_0.js'
 ]) assert.ok(active.jsEntry.includes(asset), `active JS missing ${asset}`);
 
