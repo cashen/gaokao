@@ -219,6 +219,12 @@ function updateSuggestions(ui, state, searchView) {
     searchView.closeSuggestions();
     return;
   }
+  const resolution = state.resolver.resolve(query, { limit: 8 });
+  if (resolution.status === 'region') {
+    state.suggestions = [];
+    searchView.closeSuggestions();
+    return;
+  }
   searchView.setSuggestions(state.resolver.search(query, { limit: 8 }));
 }
 
