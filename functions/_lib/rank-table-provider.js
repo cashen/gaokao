@@ -20,24 +20,9 @@ import {
 export const SUPPORTED_LIAONING_PHYSICS_RANK_YEARS = Object.freeze([2024, 2025, 2026]);
 
 const PROVIDERS = Object.freeze({
-  2024: Object.freeze({
-    score: lookupLn2024PhysicsRank,
-    rank: findLn2024PhysicsScoreByRank,
-    rows: getLn2024PhysicsRankRows,
-    meta: LN_2024_PHYSICS_SCORE_RANK_META
-  }),
-  2025: Object.freeze({
-    score: lookupLn2025PhysicsRank,
-    rank: findLn2025PhysicsScoreByRank,
-    rows: getLn2025PhysicsRankRows,
-    meta: LN_2025_PHYSICS_SCORE_RANK_META
-  }),
-  2026: Object.freeze({
-    score: lookupLn2026PhysicsScore,
-    rank: lookupLn2026PhysicsRank,
-    rows: getLn2026PhysicsRows,
-    meta: LN_2026_PHYSICS_SCORE_RANK_META
-  })
+  2024: Object.freeze({ score: lookupLn2024PhysicsRank, rank: findLn2024PhysicsScoreByRank, rows: getLn2024PhysicsRankRows, meta: LN_2024_PHYSICS_SCORE_RANK_META }),
+  2025: Object.freeze({ score: lookupLn2025PhysicsRank, rank: findLn2025PhysicsScoreByRank, rows: getLn2025PhysicsRankRows, meta: LN_2025_PHYSICS_SCORE_RANK_META }),
+  2026: Object.freeze({ score: lookupLn2026PhysicsScore, rank: lookupLn2026PhysicsRank, rows: getLn2026PhysicsRows, meta: LN_2026_PHYSICS_SCORE_RANK_META })
 });
 
 function norm(value) {
@@ -54,8 +39,32 @@ function provider(year, region, subject) {
   return PROVIDERS[Number(year)] || null;
 }
 
+function normalizeRow(row = {}) {
+  const score = Number(row.score);
+  const sameCount = Number(row.sameCount ?? 0);
+  const cumulative = Number(row.cumulative ?? row.rankEnd ?? row.rankForGap);
+  const previousCumulative = Number.isFinite(Number(row.previousCumulative))
+    ? Number(row.previousCumulative)
+    : Math.max(0, cumulative - sameCount);
+  const rankStart = Number.isFinite(Number(row.rankStart))
+    ? Number(row.rankStart)
+    : (sameCount ? previousCumulative + 1 : cumulative);
+  const rankEnd = Number.isFinite(Number(row.rankEnd)) ? Number(row.rankEnd) : cumulative;
+  return {
+    ...row,
+    score,
+    sameCount,
+    previousCumulative,
+    cumulative,
+    rankStart,
+    rankEnd,
+    rankForGap: Number.isFinite(Number(row.rankForGap)) ? Number(row.rankForGap) : rankEnd
+  };
+}
+
 export function lookupScoreRank({ year = 2026, region = 'ln', subject = 'physics', score } = {}) {
-  return provider(year, region, subject)?.score(score) || null;
+  const row = provider(year, region, subject)?.score(score) || null;
+  return row ? normalizeRow(row) : null;
 }
 
 export function getRankTableMeta({ year = 2026, region = 'ln', subject = 'physics' } = {}) {
@@ -65,11 +74,12 @@ export function getRankTableMeta({ year = 2026, region = 'ln', subject = 'physic
 
 export function getRankTableRows({ year = 2026, region = 'ln', subject = 'physics' } = {}) {
   const rows = provider(year, region, subject)?.rows?.();
-  return Array.isArray(rows) ? rows : [];
+  return Array.isArray(rows) ? rows.map(normalizeRow) : [];
 }
 
 export function findEquivalentScoreByRank({ targetYear = 2026, region = 'ln', subject = 'physics', rank } = {}) {
-  return provider(targetYear, region, subject)?.rank(rank) || null;
+  const row = provider(targetYear, region, subject)?.rank(rank) || null;
+  return row ? normalizeRow(row) : null;
 }
 
 export function validateScoreRank({ year = 2026, region = 'ln', subject = 'physics', score, rank } = {}) {
@@ -77,7 +87,7 @@ export function validateScoreRank({ year = 2026, region = 'ln', subject = 'physi
   const suppliedRank = Number(rank);
   if (!row) return { ok: false, status: 'rank-table-unavailable', year: Number(year), score: Number(score), suppliedRank: Number.isFinite(suppliedRank) ? suppliedRank : null, row: null };
   const rankStart = Number(row.rankStart);
-  const rankEnd = Number(row.rankEnd ?? row.cumulative ?? row.rankForGap);
+  const rankEnd = Number(row.rankEnd);
   if (!Number.isFinite(suppliedRank)) return { ok: true, status: 'derived', year: Number(year), score: Number(score), suppliedRank: null, row };
   if (Number.isFinite(rankEnd) && suppliedRank === rankEnd) return { ok: true, status: 'matched', year: Number(year), score: Number(score), suppliedRank, row };
   if (Number.isFinite(rankStart) && Number.isFinite(rankEnd) && suppliedRank >= rankStart && suppliedRank <= rankEnd) return { ok: true, status: 'within-score-range', year: Number(year), score: Number(score), suppliedRank, row };
