@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3964_1';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3965_0';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 
@@ -11,7 +11,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   runtimeCache: Object.freeze({
     id: 'ln-rank-runtime-cache-coherence',
-    module: '/shared/resources/release/runtime-cache-contract.v3964_1.js',
+    module: '/shared/resources/release/runtime-cache-contract.v3965_0.js',
     policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
     consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
   }),
@@ -37,8 +37,8 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     id: 'feishu-report-contract',
     module: '/shared/resources/reports/feishu-report-contract.v3964_0.js',
     yearCaliberVersion: 'ln-physics-report-years-v3964_0',
-    frontend: '/ln-rank/js/feature/feishu/index.v3964_0.js',
-    policy: 'single-source-contract-client-and-year-caliber',
+    frontend: '/ln-rank/js/feature/feishu/index.v3965_0.js',
+    policy: 'single-source-contract-client-year-caliber-and-operation-state',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'path-analysis', 'self-check'])
   }),
   schools: Object.freeze({
@@ -63,14 +63,14 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   ui: Object.freeze({
     id: 'family-ui-orchestration',
-    registry: '/shared/ui/ui-registry.v3964_1.js',
+    registry: '/shared/ui/ui-registry.v3965_0.js',
     foundation: '/shared/ui/tokens/foundation.v3959_0.css',
     semantic: '/shared/ui/tokens/semantic.v3959_0.css',
     modeSwitch: '/shared/ui/components/mode-switch.v3963_0.css',
     shellCss: '/shared/ui/shell/family-shell.v3964_0.css',
-    shellJs: '/shared/ui/shell/family-shell.v3964_1.js',
+    shellJs: '/shared/ui/shell/family-shell.v3965_0.js',
     selectionQuickEntryMount: '/ln-rank/index.html#selectionPoolShell',
-    policy: 'single-ui-language-shell-state-and-responsive-contract',
+    policy: 'single-ui-language-shell-state-responsive-and-tongxue-runtime-contract',
     consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue'])
   }),
   campusAssignments: Object.freeze({

@@ -18,7 +18,7 @@ export const UI_RESOURCE_REGISTRY = Object.freeze({
   shellCss: '/shared/ui/shell/family-shell.v3964_0.css',
   shellJs: '/shared/ui/shell/family-shell.v3965_0.js',
   workspaceCss: '/ln-rank/css/ln-rank-workspace.v3964_0.css',
-  workspaceJs: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js',
+  workspaceJs: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js',
   runtimeBootstrap: '/ln-rank/js/app.v3965_0.js',
   runtimeContract: '/shared/resources/release/runtime-cache-contract.v3965_0.js',
   reportFrontend: '/ln-rank/js/feature/feishu/index.v3965_0.js',
@@ -39,7 +39,7 @@ export const UI_ACTION_PRIORITY = Object.freeze({
 });
 
 export const SELECTION_WORKSPACE_CONTRACT = Object.freeze({
-  version: 'selection-workspace-orchestration-v3964_0',
+  version: 'selection-workspace-orchestration-v3965_0',
   filterChangeQueriesImmediately: false,
   preservePreviousResultsWhileDirty: true,
   bandSwitchIsViewOnly: true,

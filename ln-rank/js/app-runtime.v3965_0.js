@@ -70,7 +70,7 @@ let startPromise = null;
 export function startLnRankRuntime() {
   if (startPromise) return startPromise;
   startPromise = (async () => {
-    const workspace = await import('./workspace/selection-workspace-orchestrator.v3964_0.js?v=3964_0');
+    const workspace = await import('./workspace/selection-workspace-orchestrator.v3965_0.js?v=3965_0');
     await workspace.selectionWorkspaceReady;
     const schoolMode = await import('./feature/school-majors/school-all-mode.v3964_0.js?v=3964_0');
     await schoolMode.schoolAllModeReady;
