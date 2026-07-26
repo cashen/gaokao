@@ -157,7 +157,7 @@ jobs:
           }
           const panjin=resolveCompactSchoolResource('大连理工大学盘锦校区');
           if(panjin?.entityId!=='dlut-panjin') throw new Error(`shared school identity: ${JSON.stringify(panjin)}`);
-          if(CURRENT_RELEASE.display!=='v3.9.64.0'||CURRENT_RELEASE.assetVersion!=='v3964_0'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3964_0'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3964_0'||CURRENT_RELEASE.searchIntentVersion!=='score-school-search-v3964_0'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3964_0'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3964_0'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3964_0'||CURRENT_RELEASE.runtimeCacheVersion!=='runtime-cache-coherence-v3964_0'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3963') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
+          if(CURRENT_RELEASE.display!=='v3.9.64.1'||CURRENT_RELEASE.assetVersion!=='v3964_1'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3964_0'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3964_0'||CURRENT_RELEASE.searchIntentVersion!=='score-school-search-v3964_0'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3964_0'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3964_0'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3964_0'||CURRENT_RELEASE.runtimeCacheVersion!=='runtime-cache-coherence-v3964_1'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3963') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
           console.log('critical runtime module checks passed');
           NODE
 
@@ -166,13 +166,13 @@ jobs:
       - name: Audit algorithm orchestration
         run: node tools/audit-algorithm-orchestration-v3960.mjs
       - name: Audit human task UI and dual search
-        run: node tools/audit-human-task-ui-v3964_0.mjs
+        run: node tools/audit-human-task-ui-v3964_1.mjs
       - name: Recheck immutable runtime graph and honest failure state
-        run: node tools/audit-human-task-ui-v3964_0.mjs
+        run: node tools/audit-human-task-ui-v3964_1.mjs
       - name: Verify unified school profile center
         run: node tools/verify-school-profile-center-v3957.mjs
       - name: Verify Tongxue direct result
-        run: node tools/tongxue/verify-direct-result-v157.mjs
+        run: node tools/tongxue/verify-direct-result-v158.mjs
       - name: Verify 2026-first card AI
         run: node tools/verify-card-ai-2026-v3955.mjs
       - name: Verify three Feishu report flows
@@ -196,23 +196,23 @@ jobs:
             /shared/resources/majors/major-catalog-contract.js \
             /shared/resources/reports/feishu-report-contract.js \
             /shared/resources/reports/feishu-report-contract.v3964_0.js \
-            /shared/resources/release/runtime-cache-contract.v3964_0.js \
+            /shared/resources/release/runtime-cache-contract.v3964_1.js \
             /shared/ui/ui-registry.js \
-            /shared/ui/ui-registry.v3964_0.js \
+            /shared/ui/ui-registry.v3964_1.js \
             /shared/ui/contracts/action-contract.v3959_0.js \
             /shared/ui/tokens/foundation.v3959_0.css \
             /shared/ui/tokens/semantic.v3959_0.css \
             /shared/ui/components/mode-switch.v3963_0.css \
             /shared/ui/shell/family-shell.v3964_0.css \
-            /shared/ui/shell/family-shell.v3964_0.js \
+            /shared/ui/shell/family-shell.v3964_1.js \
             /shared/algorithms/algorithm-registry.js \
             /shared/algorithms/position/canonical-position.v3963_0.js \
             /shared/algorithms/ranking/staged-ranking.v3960_0.js \
             /ln-rank/ \
             /ln-rank/css/ln-rank-workspace.v3964_0.css \
             /ln-rank/css/selection-pool.v3964_0.css \
-            /ln-rank/js/app.v3964_0.js \
-            /ln-rank/js/app-runtime.v3964_0.js \
+            /ln-rank/js/app.v3964_1.js \
+            /ln-rank/js/app-runtime.v3964_1.js \
             /ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js \
             /ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js \
             /ln-rank/js/workspace/result-commit.v3961_0.js \
@@ -222,8 +222,8 @@ jobs:
             /ln-rank/js/feature/score-bands/render.v3963_1.js \
             /ln-rank/js/feature/major-pool/index.v3964_0.js \
             /ln-rank/js/feature/selection-pool/index.v3964_0.js \
-            /ln-rank/js/selection-pool.v3964_0.js \
-            /ln-rank/js/selection-pool-runtime.v3964_0.js \
+            /ln-rank/js/selection-pool.v3964_1.js \
+            /ln-rank/js/selection-pool-runtime.v3964_1.js \
             /ln-rank/selection-pool.html \
             /ln-rank/self-check.html \
             /ln-rank/local-mainline.html \
