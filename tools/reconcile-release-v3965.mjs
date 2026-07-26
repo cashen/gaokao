@@ -115,6 +115,12 @@ replaceExact(resultView,
   "      originalInput: resolution?.input || school,\n      entityId: data.entity?.entityId || resolution?.entityId || '',\n      resolution,"
 );
 
+replaceExact(
+  'tongxue/index.html',
+  '.suggestions{top:62px}',
+  '.suggestions{position:static;margin-top:8px;max-height:min(46vh,320px)}'
+);
+
 let headers = read('_headers');
 const currentReleaseRule = '/shared/resources/release/current-release.js\n  Cache-Control: no-cache, max-age=0, must-revalidate';
 if (!headers.includes(currentReleaseRule)) headers += `\n${currentReleaseRule}\n`;
@@ -124,5 +130,6 @@ console.log(JSON.stringify({
   ok: true,
   reconciled: 'v3.9.65.0',
   workspace: 'selection-workspace-orchestration-v3965_0',
-  tongxueEntityRequest: true
+  tongxueEntityRequest: true,
+  tongxueMobileSuggestionsInFlow: true
 }, null, 2));
