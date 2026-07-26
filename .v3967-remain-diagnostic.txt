@@ -1,0 +1,47 @@
+== chunk sizes ==
+10000 .v3967-remain-00
+10000 .v3967-remain-01
+10000 .v3967-remain-02
+ 1802 .v3967-remain-03
+31802 total
+== combined base64 ==
+31802 /tmp/v3967-remain.b64
+kWKPqP6UWQIZKkiLOqXZyYOQwm9gaDJE7yfS7P/oN8FKVPP+4C4BNTjyd+5pYfaeVrcWwSJ0cGEJ2/npr9rQOfdyekpEV+z9WC8R/csy1pf1hkgynySwWEuTcU0jpl0KFqovKHfzdeRfSs62dmRdJoUeQ7Ss2oHY
+base64: invalid input
+base64_exit=1
+23851 /tmp/v3967-remain.tar.xz
+c192c185b891a90b1159977e9f1fcc891b782325ac5776840fb841c40b0aa7ee  /tmp/v3967-remain.tar.xz
+== xz test ==
+/tmp/v3967-remain.tar.xz: 99.9 %, 23.3 KiB / 103.5 KiB = 0.225
+xz: /tmp/v3967-remain.tar.xz: Unexpected end of input
+/tmp/v3967-remain.tar.xz: 99.9 %, 23.3 KiB / 103.5 KiB = 0.225
+xz_exit=1
+xz: /tmp/v3967-remain.tar.xz: Unexpected end of input
+xz_decode_exit=1
+106028 /tmp/v3967-remain.tar
+== tar list ==
+tar_list_exit=2
+7 /tmp/v3967-remain-list.txt
+-rw-r--r-- root/root     55944 2026-07-26 21:53 ln-rank/js/feature/major-pool/render.v3967_0.js
+-rw-r--r-- root/root      5662 2026-07-26 21:53 ln-rank/js/feature/report/payload-builder.v3967_0.js
+-rw-r--r-- root/root     22270 2026-07-26 21:31 ln-rank/js/feature/school-majors/school-all-mode.v3967_0.js
+-rw-r--r-- root/root      9312 2026-07-26 21:54 ln-rank/js/feature/selection-pool/analysis.v3967_0.js
+-rw-r--r-- root/root      3450 2026-07-26 21:54 ln-rank/js/feature/selection-pool/controller.v3967_0.js
+-rw-r--r-- root/root       400 2026-07-26 21:54 ln-rank/js/feature/selection-pool/index.v3967_0.js
+-rw-r--r-- root/root     17299 2026-07-26 21:54 ln-rank/js/feature/selection-pool/store.v3967_0.js
+tar: Unexpected EOF in archive
+tar: Error is not recoverable: exiting now
+== tar extract ==
+tar_extract_exit=2
+22270 /tmp/v3967-remain-probe/ln-rank/js/feature/school-majors/school-all-mode.v3967_0.js
+3450 /tmp/v3967-remain-probe/ln-rank/js/feature/selection-pool/controller.v3967_0.js
+3584 /tmp/v3967-remain-probe/ln-rank/js/feature/selection-pool/store.v3967_0.js
+400 /tmp/v3967-remain-probe/ln-rank/js/feature/selection-pool/index.v3967_0.js
+55944 /tmp/v3967-remain-probe/ln-rank/js/feature/major-pool/render.v3967_0.js
+5662 /tmp/v3967-remain-probe/ln-rank/js/feature/report/payload-builder.v3967_0.js
+9312 /tmp/v3967-remain-probe/ln-rank/js/feature/selection-pool/analysis.v3967_0.js
+== extracted count ==
+7
+tar: Unexpected EOF in archive
+tar: Unexpected EOF in archive
+tar: Error is not recoverable: exiting now
