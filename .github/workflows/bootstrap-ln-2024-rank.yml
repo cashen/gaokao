@@ -26,10 +26,12 @@ jobs:
           python-version: '3.12'
       - name: Install OCR runtime
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends tesseract-ocr
-          python -m pip install --disable-pip-version-check pillow
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq --no-install-recommends tesseract-ocr >/dev/null
+          python -m pip install -q --disable-pip-version-check pillow
       - name: Build and validate 2024 official rank table
+        env:
+          PYTHONUNBUFFERED: '1'
         run: python tools/ln-2026/build-ln-2024-rank-table.py
       - name: Commit generated immutable resources
         run: |
