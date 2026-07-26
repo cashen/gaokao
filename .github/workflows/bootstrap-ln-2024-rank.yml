@@ -30,6 +30,15 @@ jobs:
           sudo apt-get update -qq >/dev/null
           sudo apt-get install -y -qq --no-install-recommends tesseract-ocr >/dev/null
           python -m pip install -q --disable-pip-version-check pillow
+      - name: Preserve all authoritative source images
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ln-2024-rank-debug
+          base='https://jyt.ln.gov.cn/jyt/imageDir/2024/06/img_pc_site'
+          curl --fail --silent --show-error --location "$base/2024062510272296122.jpg" -o /tmp/ln-2024-rank-debug/official-page-1.jpg
+          curl --fail --silent --show-error --location "$base/2024062510272259656.jpg" -o /tmp/ln-2024-rank-debug/official-page-2.jpg
+          curl --fail --silent --show-error --location "$base/2024062510272212732.jpg" -o /tmp/ln-2024-rank-debug/official-page-3.jpg
+          curl --fail --silent --show-error --location "$base/2024062510272389940.jpg" -o /tmp/ln-2024-rank-debug/official-page-4.jpg
       - name: Build and validate 2024 official rank table
         env:
           PYTHONUNBUFFERED: '1'
