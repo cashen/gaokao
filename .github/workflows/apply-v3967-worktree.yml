@@ -1,21 +1,23 @@
 name: Apply v3967 governed worktree
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/v3967-resource-execution-governance
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3967-resource-execution-governance'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Apply verified patch
@@ -25,7 +27,7 @@ jobs:
           echo '6880d4db487eb8f9ec1a33d56357aea40f6908303d6c3a6113795958e1a1fc36  /tmp/v3967.patch.xz' | sha256sum -c -
           xz -dc /tmp/v3967.patch.xz > /tmp/v3967.patch
           git apply --binary --index /tmp/v3967.patch
-          rm .v3967-patch-00 .v3967-patch-01
+          rm .v3967-patch-00 .v3967-patch-01 .v3967-apply-trigger
 
       - name: Verify governed release before commit
         run: |
@@ -49,4 +51,4 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
           git commit -m 'v3.9.67.0：升级全站资源执行中心与组件自适应治理'
-          git push
+          git push origin HEAD:${{ github.head_ref }}
