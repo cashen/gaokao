@@ -1,3 +1,4 @@
+import { formatHistoricalEvidenceText, historyRankRangeText, historyYearEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 import { classifyMajorReality, schoolLayerTags } from './ai-skills/major-risk-rules.js';
 import { detectSpecialProgram } from './special-program-rules.js';
 import { applyHumanCopyGate } from './diagnosis-human-copy-gate.js';
@@ -27,35 +28,8 @@ function cardStatusRange(status) {
   return s.endsWith('范围') ? s : `${s}范围`;
 }
 
-function rankTrend(year, rank, oldYear, oldRank) {
-  const current = finite(rank);
-  const previous = finite(oldRank);
-  if (current == null || previous == null || previous <= 0) return '';
-  const delta = current - previous;
-  const absolute = Math.abs(delta);
-  const stableLimit = Math.max(500, previous * 0.025);
-  if (absolute <= stableLimit) return `${year}与${oldYear}最低投档位置基本稳定`;
-  const degree = absolute / previous >= 0.08 ? '明显' : '略微';
-  return delta < 0
-    ? `${year}最低投档所需位次${degree}更靠前`
-    : `${year}最低投档所需位次${degree}相对靠后`;
-}
-
-function yearRecord(record, year) {
-  const score = finite(record[`score${year}`]);
-  const rank = finite(record[`rank${year}`]);
-  if (score == null && rank == null) return '';
-  return `${year} ${score == null ? '分数待核验' : `${fmt(score)}分`} / ${rank == null ? '位次待核验' : `约${fmt(rank)}名`}`;
-}
-
 function historyLine(record = {}) {
-  const rows = [yearRecord(record, 2025), yearRecord(record, 2024)].filter(Boolean);
-  if (!rows.length) return '历史对照：暂无可严格对应的2025、2024记录';
-  const trends = [
-    rankTrend(2026, record.rank2026 ?? record.rank, 2025, record.rank2025),
-    rankTrend(2025, record.rank2025, 2024, record.rank2024)
-  ].filter(Boolean);
-  return `历史对照：${rows.join('；')}${trends.length ? `；${trends.join('；')}` : ''}`;
+  return formatHistoricalEvidenceText(record, { years: [2025, 2024], prefix: true, empty: '历史对照：暂无可严格对应的2025、2024记录' });
 }
 
 function shortRiskTag(value) {
@@ -75,11 +49,11 @@ export function buildCardRuleSnapshot(record = {}, candidateScore) {
   const realityTags = classifyMajorReality(record);
   const specialProgram = detectSpecialProgram(record);
   const platformTags = schoolLayerTags(record);
-  const score2026 = finite(record.score2026 ?? record.score);
+  const currentEvidence = historyYearEvidence(record, 2026);
+  const score2026 = finite(currentEvidence?.score ?? record.score2026 ?? record.score);
   const delta = finite(record.scoreDelta) ?? (score2026 == null ? null : score2026 - Number(candidateScore));
   const scoreText = score2026 == null ? '分数待核验' : `${fmt(score2026)}分`;
-  const rank2026 = finite(record.rank2026 ?? record.rank);
-  const rankText = rank2026 == null ? '位次待核验' : `约${fmt(rank2026)}名`;
+  const rankText = currentEvidence ? historyRankRangeText(currentEvidence) : '位次待核验';
 
   const basis = [
     `当前位置：${cardStatusRange(record.statusLabel || record.position)}；${deltaText(delta)}`,

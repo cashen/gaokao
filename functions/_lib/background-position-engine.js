@@ -3,6 +3,7 @@ import { fetchFenxiJson } from './fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from './fenxi-normalizer.js';
 import { buildDisplayTags } from './school-display-tags.js';
 import { lookupScoreRank } from './rank-table-provider.js';
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 export function clean(value, max = 80) {
   return String(value || '').trim().slice(0, max);
@@ -123,6 +124,7 @@ export function shapeBackgroundRecord(record, hit, filters = {}, config = {}) {
     score2024: record.score2024 ?? null,
     rank2024: record.rank2024 ?? null,
     historyCompare: record.historyCompare || null,
+    historyEvidence: getHistoryScoreRankEvidence(record),
     scoreDelta2026: delta,
     scoreDelta: delta,
     rankGap2026,

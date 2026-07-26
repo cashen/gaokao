@@ -1,4 +1,4 @@
-export const HISTORY_SCORE_RANK_CONTRACT_VERSION = 'ln-physics-history-evidence-v3966_0';
+export const HISTORY_SCORE_RANK_CONTRACT_VERSION = 'ln-physics-history-evidence-v3967_0';
 export const HISTORY_SCORE_RANK_YEARS = Object.freeze([2026, 2025, 2024]);
 export const HISTORY_SCORE_RANK_STATES = Object.freeze({
   MATCHED: 'matched',

@@ -1,3 +1,4 @@
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, narrative = {}, healthLights = {}, source = 'fallback' } = {}) {
   return {
     snapshotId: `ln-rank-${facts.config?.year || 2026}-${facts.candidate?.score || 'score-missing'}-${Date.now()}`,
@@ -24,6 +25,6 @@ export function buildReportSnapshot({ facts = {}, rankZone = {}, stats = {}, nar
     source,
     items: (facts.orderedItems || []).map(item => ({ order: item.order, school: item.school, major: item.major, codes: item.codes || {}, standardMajor: item.standardMajor || {}, score2026: item.score2026 ?? item.score,
     rank2026: item.rank2026 ?? item.rank,
-    score2025: item.score2025, rank2025: item.rank2025, scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
+    historyEvidence: getHistoryScoreRankEvidence(item), scoreDelta: item.scoreDelta, rankGap: item.rankGap, statusLabel: item.statusLabel }))
   };
 }

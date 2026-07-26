@@ -11,6 +11,7 @@ import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist, reviewChecklistMarkdownLines } from './kb/review-checklist-builder.js';
 import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
+import { formatHistoricalEvidenceText, getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -55,11 +56,7 @@ function normalizeItems(items = []) {
       major: clean(item.major, 180),
       score2026: num(item.score2026 ?? item.score, null),
       rank2026: num(item.rank2026 ?? item.rank ?? item.minRank ?? item.lowestRank ?? item.referenceRank, null),
-      score2025: num(item.score2025, null),
-      rank2025: num(item.rank2025, null),
-      score2024: num(item.score2024, null),
-      rank2024: num(item.rank2024, null),
-      historyCompare: item.historyCompare || null,
+      historyEvidence: getHistoryScoreRankEvidence(item),
       scoreDelta2026: num(item.scoreDelta2026 ?? item.scoreDelta, null),
       scoreDelta: num(item.scoreDelta2026 ?? item.scoreDelta, null),
       rankGap2026: num(item.rankGap2026 ?? item.rankGap, null),
@@ -111,10 +108,7 @@ function deltaText(delta) {
 
 
 function historyText(item = {}, { empty = '历史同口径参考：暂无' } = {}) {
-  const rows=[];
-  if(item.score2025!=null||item.rank2025!=null)rows.push(`2025：${item.score2025!=null?fmt(item.score2025)+' 分':'分数待核验'} / ${item.rank2025!=null?fmt(item.rank2025)+' 位':'位次待核验'}`);
-  if(item.score2024!=null||item.rank2024!=null)rows.push(`2024：${item.score2024!=null?fmt(item.score2024)+' 分':'分数待核验'} / ${item.rank2024!=null?fmt(item.rank2024)+' 位':'位次待核验'}`);
-  return rows.length?rows.join('；'):empty;
+  return formatHistoricalEvidenceText(item, { years: [2025, 2024], prefix: false, empty });
 }
 
 function tagsText(item) {

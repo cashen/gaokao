@@ -18,12 +18,12 @@ import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
-import { lookupScoreRank } from '../_lib/rank-table-provider.js';
+import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
 import {
   resolveCanonicalPosition,
   rankBandRangeText
 } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
-import { rankRecords, diversifyRankedRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
+import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
   getSchoolEntity,
@@ -230,7 +230,7 @@ export async function onRequest(context) {
     const chunks = allChunks.filter(chunk => chunkIntersectsScoreWindow(chunk, scoreWindow));
     const candidateRank = rankContextForScore(candidateScore);
     for (const key of ['upper', 'near', 'steady']) {
-      const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, 141691);
+      const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' }));
       if (rankRangeText) {
         grouped[key].rankRangeText = rankRangeText;
         grouped[key].rangeText = rankRangeText;
@@ -350,13 +350,13 @@ export async function onRequest(context) {
 
     for (const key of ['upper', 'near', 'steady']) {
       const group = grouped[key];
-      const ranked = rankRecords(group.candidates, {
-        getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
-      });
-      const diversified = diversifyRankedRecords(ranked, {
-        enabled: !filters.schoolKeyword,
+      const diversified = rankResultRecords(group.candidates, {
+        intent: 'score-search',
+        sortMode: 'canonical-staged',
+        diversify: !filters.schoolKeyword,
         windowSize: 8,
-        maxPerSchool: 2
+        maxPerSchool: 2,
+        getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
       });
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
       const records = requestedBand && requestedBand !== key ? [] : diversified.slice(offset, offset + pageLimit);
@@ -371,7 +371,7 @@ export async function onRequest(context) {
         returned,
         hasMore,
         nextOffset: hasMore ? offset + returned : null,
-        order: 'canonical-staged-ranked'
+        order: 'result-ranking-v3967_0'
       };
       delete group.candidates;
     }

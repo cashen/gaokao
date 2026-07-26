@@ -1,10 +1,10 @@
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 function compactItem(item = {}) {
   return {
     order: item.order,
     school: item.school,
     major: item.major,
-    score2025: item.score2025,
-    rank2025: item.rank2025,
+    historyEvidence: getHistoryScoreRankEvidence(item),
     scoreDelta: item.scoreDelta,
     rankGap: item.rankGap ?? null,
     statusLabel: item.statusLabel || item.poolBand?.detail || '',
@@ -20,9 +20,9 @@ export function buildPathAiMessages({ candidateContext, zonePolicy, stats, risks
     hardRules: [
       '分数只做展示，判断必须以位次、特控线锚点、分数密度和已选专业结构为主。',
       '不要预测录取判断，不要说稳进、必录、闭眼报。',
-      '不要编造院校实力、招生计划、就业承诺或2026新数据。',
+      '不要编造院校实力、招生计划、就业承诺或2027正式数据。',
       '短视频经验只能作为需要关注解释，不能当绝对硬规则。',
-      '必须提醒最终以2026一分一段、招生计划、选科、体检、学费、校区等人工核验为准。'
+      '必须提醒最终以2027一分一段、招生计划、选科、体检、学费、校区等正式资料人工核验为准。'
     ],
     candidateContext,
     zonePolicy,

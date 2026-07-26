@@ -6,6 +6,7 @@ import { enrichBottomLineFields, summarizeBottomLine, bottomLineModeSummary } fr
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function num(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -100,10 +101,7 @@ function normalizeItems(items = [], candidateRank = null, candidateScore = null,
       historicalOnly: !current2026,
       score2026,
       rank2026,
-      score2025: num(item.score2025, null),
-      rank2025: num(item.rank2025, null),
-      score2024: num(item.score2024, null),
-      rank2024: num(item.rank2024, null),
+      historyEvidence: getHistoryScoreRankEvidence(item),
       scoreDelta2026,
       scoreDelta: scoreDelta2026,
       rankGap2026,
@@ -264,10 +262,7 @@ export function compactItemsForAi(items = [], max = 40) {
     major: item.major,
     score2026: item.score2026,
     rank2026: item.rank2026,
-    score2025: item.score2025,
-    rank2025: item.rank2025,
-    score2024: item.score2024,
-    rank2024: item.rank2024,
+    historyEvidence: getHistoryScoreRankEvidence(item),
     scoreDelta2026: item.scoreDelta2026,
     rankGap2026: item.rankGap2026,
     band: item.poolBand?.detail || item.statusLabel || '',

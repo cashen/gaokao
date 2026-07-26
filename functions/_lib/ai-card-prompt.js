@@ -2,6 +2,7 @@ import { skillSystemPrompt } from './ai-skills/realistic-career-skill.js';
 import { buildCardRuleSnapshot } from './ai-card-rules.js';
 import { detectSpecialProgram } from './special-program-rules.js';
 import { YEAR_CALIBER_KB } from './kb/year-caliber-kb.generated.js';
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function safe(value) {
   return value == null || value === '' ? '—' : String(value);
@@ -63,12 +64,7 @@ export function buildCardDiagnoseMessages({ record, candidateScore, knowledgeCon
       scoreDelta: safe(record.scoreDelta),
       score2026: safe(record.score2026 ?? record.score),
       rank2026: safe(record.rank2026 ?? record.rank),
-      score2025: safe(record.score2025),
-      rank2025: safe(record.rank2025),
-      score2024: safe(record.score2024),
-      rank2024: safe(record.rank2024),
-      historyCompare: record.historyCompare || null,
-      historyEvidence: record.historyEvidence || null,
+      historyEvidence: getHistoryScoreRankEvidence(record),
       displayLocation: safe(record.displayLocation),
       geoEntity: safe(record.geoEntity),
       locationWarning: safe(record.locationWarning),

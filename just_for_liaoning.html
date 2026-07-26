@@ -46,7 +46,7 @@
     @media print{.topbar,.rank-tool,.drawer,.drawer-backdrop,.footerbar,.compare-panel,.card-actions{display:none!important}.page{width:100%;padding:0}.subject-card{box-shadow:none;break-inside:avoid}.panel,.note,.hero-main,.source-card{box-shadow:none}}
   </style>
 </head>
-<body>
+<body data-release="v3.9.67.0" data-resource-page="liaoning-key-subjects">
   <div class="page">
     <header class="hero" id="top">
       <div class="hero-main">
@@ -57,6 +57,7 @@
       <aside class="source-card">
         <div class="source-title">数据口径</div>
         <p><b>投档线：</b>2024、2025 辽宁普通类本科批物理学科类投档最低分。</p>
+        <p><b>当前执行资源：</b><span data-current-release>v3.9.67.0</span>｜历史位次分层由全站统一算法所有者执行。</p>
         <p><b>位次：</b>按对应年份辽宁物理类一分一段表换算的累计人数。</p>
         <p><b>已收录计划：</b>仅展示页面已整理记录，未收录不代表当年无招生计划。</p>
       </aside>
@@ -154,7 +155,11 @@
   <div class="footerbar"><button class="smallbtn" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'});document.body.classList.remove('mobile-filters-collapsed');setTimeout(()=>{const b=document.getElementById('mobileFilterToggle');if(b){b.textContent='收起筛选';b.setAttribute('aria-expanded','true')}},20)">返回顶部 / 筛选</button></div>
 
   <script src="./liaoning_key_subjects_phase2_tuition_data.js"></script>
-  <script>
+  <script type="module">
+    import '/shared/resources/release/release-presenter.v3967_0.js?v=3967_0';
+    import { LIAONING_KEY_SUBJECTS_RESOURCE } from '/shared/resources/auxiliary/liaoning-key-subjects.v3967_0.js?v=3967_0';
+    import { classifyHistoricalRankSelection, resolveHistoricalRankChange } from '/shared/algorithms/position/historical-rank-selection.v3967_0.js?v=3967_0';
+    globalThis.__GAOKAO_LIAONING_KEY_SUBJECTS_RESOURCE__ = LIAONING_KEY_SUBJECTS_RESOURCE;
     const DATA = window.LIAONING_KEY_SUBJECTS_DATA;
     const $ = id => document.getElementById(id);
     const fmt = n => (n===null||n===undefined||Number.isNaN(Number(n))) ? '—' : Number(n).toLocaleString('zh-CN');
@@ -170,7 +175,7 @@
     const ratingWeight = r => String(r||'').startsWith('A') ? 0 : String(r||'').startsWith('B') ? 1 : 2;
     function scoreRankBlock(score, rank){ return score==null ? '<span class="dash">未匹配</span>' : `<div class="score">${fmtScore(score)}</div><div class="rank">${fmtRank(rank)}</div>`; }
     function scoreDiffHTML(v){ if(v==null) return pill('无法比较','gray'); if(v>0) return pill(`分数上升 ${fmt(v)} 分`,'bad'); if(v<0) return pill(`分数下降 ${fmt(Math.abs(v))} 分`,'good'); return pill('分数持平','gray'); }
-    function rankDiffHTML(v){ if(v==null) return pill('位次无法比较','gray'); if(v<0) return pill(`位次提高 ${fmt(Math.abs(v))}`,'bad'); if(v>0) return pill(`位次放宽 ${fmt(v)}`,'good'); return pill('位次持平','gray'); }
+    function rankDiffHTML(v){ const state=resolveHistoricalRankChange({delta:v}); return pill(state.label,state.className); }
     function planDiffHTML(v){ if(v==null) return pill('计划无法比较','gray'); if(v>0) return pill(`已收录计划增加 ${fmt(v)} 人`,'brand'); if(v<0) return pill(`已收录计划减少 ${fmt(Math.abs(v))} 人`,'warn'); return pill('已收录计划持平','gray'); }
     function planLine(label,n){ return `<div class="planline"><b>${label}已收录计划：</b>${planText(n)}</div>`; }
     function tuitionClass(info){ return !info ? 'gray' : (info.max>=20000 || info.amount>=20000 ? 'warn' : (info.status==='matched'?'brand':'gray')); }
@@ -216,17 +221,8 @@
     function getMyRank(){ const raw=String(state.myRank||'').replace(/[,，\s]/g,''); const n=Number(raw); return n>0 ? n : null; }
     function selectionFor(r){
       if(!state.rankUnlocked) return {key:'locked',label:'初筛未开启',cls:'gray',phrase:'位次初筛功能未开启。'};
-      const my=getMyRank();
-      if(!my) return {key:'none',label:'未输入位次',cls:'gray',phrase:'输入本人位次后，可显示该记录对应的初选层级。'};
-      const target = r.rank2025;
-      if(target==null) return {key:'unknown',label:'无法测算',cls:'unknown',phrase:'该记录缺少 2025 对应位次，无法按本人位次测算层级。'};
-      const ratio = target / my;
-      if(ratio>=0.88 && ratio<0.95) return {key:'reach',label:'可冲',cls:'reach',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，属于可冲区间。`};
-      if(ratio>=0.95 && ratio<=1.05) return {key:'match',label:'匹配',cls:'match',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，属于匹配区间。`};
-      if(ratio>1.05 && ratio<=1.15) return {key:'safe',label:'稳妥',cls:'safe',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，属于稳妥区间。`};
-      if(ratio>1.15 && ratio<=1.30) return {key:'backup',label:'保底',cls:'backup',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，属于保底区间。`};
-      if(ratio<0.88) return {key:'out',label:'偏高',cls:'out',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，高于本页设定的可冲区间。`};
-      return {key:'out',label:'低于初筛区',cls:'gray',phrase:`以 ${fmt(my)} 位为参照，该记录 2025 对应${fmtRank(target)}，低于本页设定的保底区间。`};
+      const classified=classifyHistoricalRankSelection({candidateRank:getMyRank(),targetRank:r.rank2025});
+      return {key:classified.key,label:classified.label,cls:classified.className,phrase:classified.phrase,executionVersion:classified.version};
     }
     function tagKeysForRecord(r){
       const keys=[]; const allHits=[...(r.hits2025||[]),...(r.hits2024||[])];

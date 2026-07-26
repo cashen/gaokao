@@ -1,3 +1,4 @@
+import { getHistoryScoreRankEvidence } from '../../../shared/resources/exam/historical-score-rank-contract.js';
 import { getCampusForItem } from './campus-accessor.js';
 
 function clean(value, max = 180) { return String(value == null ? '' : value).trim().slice(0, max); }
@@ -8,7 +9,8 @@ function outProvince(item = {}) {
   return /北京|天津|河北|山东|江苏|浙江|上海|广东|福建|湖北|湖南|陕西|四川|重庆|吉林|黑龙江|内蒙古|河南|安徽|江西|山西|甘肃|贵州|云南|广西|海南|新疆|西藏|青海|宁夏/.test(t);
 }
 function rankVolatility(item = {}) {
-  const ranks = [item.rank2026 ?? item.rank, item.rank2025, item.rank2024]
+  const history = getHistoryScoreRankEvidence(item);
+  const ranks = [2026, 2025, 2024].map(year => history.years?.[year]?.rankForGap).filter(Number.isFinite)
     .map(Number)
     .filter(Number.isFinite);
   if (ranks.length < 2) return null;
