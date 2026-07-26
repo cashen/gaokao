@@ -8,4 +8,21 @@ if (actualBuild !== EXPECTED_BUILD) {
   throw new Error(`Tongxue build mismatch: expected ${EXPECTED_BUILD}, received ${actualBuild || 'missing'}`);
 }
 
+function installTongxueRuntimeLayout() {
+  if (document.querySelector('[data-tongxue-runtime-layout="v159"]')) return;
+  const style = document.createElement('style');
+  style.dataset.tongxueRuntimeLayout = 'v159';
+  style.textContent = `
+    @media (max-width: 700px) {
+      #schoolSuggestions.suggestions {
+        position: static;
+        margin-top: 8px;
+        max-height: min(46vh, 320px);
+      }
+    }
+  `;
+  document.head.append(style);
+}
+
+installTongxueRuntimeLayout();
 await startTongxueRuntime();
