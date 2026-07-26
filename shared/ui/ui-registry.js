@@ -1,8 +1,1 @@
-export {
-  UI_ORCHESTRATION_VERSION,
-  UI_PAGE_REGISTRY,
-  UI_RESOURCE_REGISTRY,
-  UI_ACTION_PRIORITY,
-  SELECTION_WORKSPACE_CONTRACT,
-  getUiPage
-} from './ui-registry.v3963_1.js?v=3963_1';
+export * from './ui-registry.v3964_0.js?v=3964_0';

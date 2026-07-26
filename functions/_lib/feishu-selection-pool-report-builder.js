@@ -114,8 +114,7 @@ function historyText(item = {}, { empty = '历史同口径参考：暂无' } = {
   const rows=[];
   if(item.score2025!=null||item.rank2025!=null)rows.push(`2025：${item.score2025!=null?fmt(item.score2025)+' 分':'分数待核验'} / ${item.rank2025!=null?fmt(item.rank2025)+' 位':'位次待核验'}`);
   if(item.score2024!=null||item.rank2024!=null)rows.push(`2024：${item.score2024!=null?fmt(item.score2024)+' 分':'分数待核验'} / ${item.rank2024!=null?fmt(item.rank2024)+' 位':'位次待核验'}`);
-  const trend=item?.historyCompare?.rankTrendText?`｜${item.historyCompare.rankTrendText}`:'';
-  return rows.length?rows.join('；')+trend:empty;
+  return rows.length?rows.join('；'):empty;
 }
 
 function tagsText(item) {
@@ -568,7 +567,6 @@ export function buildSelectionPoolFeishuReport(input = {}) {
       lines.push(`- 专业：${item.major || '专业待核验'}`);
       lines.push(`- 2026最低投档分：${Number.isFinite(Number(item.score2026)) ? fmt(item.score2026) : '分数待核验'}`);
       lines.push(`- 2026最低投档位次：${Number.isFinite(Number(item.rank2026)) ? fmt(item.rank2026) : '位次待核验'}`);
-      lines.push(`- ${historyText(item)}`);
       lines.push(`- 相对孩子：${deltaText(item.scoreDelta)} 分`);
       lines.push(`- 参考位置：${item.poolBand?.detail || item.statusLabel || '待判断'}`);
       lines.push(`- 地域：${tagsText(item)}`);
@@ -608,7 +606,18 @@ export function buildSelectionPoolFeishuReport(input = {}) {
   appendLocalContextLines(lines, displayItems);
   appendManualReviewLines(lines, displayItems);
 
-  lines.push('## 六、数据和使用边界', '');
+  lines.push('## 六、历史对照附录（不参与2026当前分组）', '');
+  lines.push('- 下面的2025、2024记录只作同校、同专业、同项目属性的历史对照，不改变前面按2026数据形成的位置分组。');
+  if (!displayItems.length) {
+    lines.push('- 当前没有可列出的历史对照。', '');
+  } else {
+    displayItems.forEach(item => {
+      lines.push(`- ${item.order}. ${item.school || '学校待核验'} · ${item.major || '专业待核验'}｜${historyText(item)}`);
+    });
+    lines.push('');
+  }
+
+  lines.push('## 七、数据和使用边界', '');
   lines.push('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2027 招生计划人工核验。');
   lines.push(...nonHeadingLines(governanceBoundaryLines()).filter(Boolean), '');
 

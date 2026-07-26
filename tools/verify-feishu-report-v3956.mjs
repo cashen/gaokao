@@ -23,9 +23,11 @@ const record = {
 assert.equal(FEISHU_REPORT_CONTRACT.dataYear, 2026);
 assert.equal(FEISHU_REPORT_CONTRACT.rankYear, 2026);
 assert.equal(FEISHU_REPORT_CONTRACT.audienceYear, 2027);
-assert.equal(FEISHU_REPORT_CONTRACT.version, 'v1.2.0');
-assert.equal(FEISHU_REPORT_CONTRACT.yearCaliberVersion, 'ln-physics-report-years-v3963_1');
+assert.equal(FEISHU_REPORT_CONTRACT.version, 'v1.3.0');
+assert.equal(FEISHU_REPORT_CONTRACT.yearCaliberVersion, 'ln-physics-report-years-v3964_0');
 assert.deepEqual(FEISHU_REPORT_CONTRACT.historicalYears, [2025, 2024]);
+assert.equal(FEISHU_REPORT_CONTRACT.historyPlacement, 'appendix-only');
+assert.equal(FEISHU_REPORT_CONTRACT.historyParticipatesInCurrentGrouping, false);
 assert.match(FEISHU_YEAR_CALIBER.reportCopy, /基于2026年/);
 assert.match(FEISHU_YEAR_CALIBER.reportCopy, /2025、2024只作严格同口径历史对照/);
 assert.match(FEISHU_YEAR_CALIBER.reportCopy, /正式填报以2027年/);
@@ -66,12 +68,19 @@ for (const [name, report] of [['currentBand', current], ['selectionPoolOnly', li
   assert.equal(report.rankYear, 2026);
   assert.equal(report.audienceYear, 2027);
   assert.equal(report.yearCaliberVersion, FEISHU_REPORT_CONTRACT.yearCaliberVersion);
+  const appendixIndex = report.markdown.indexOf('历史对照附录（不参与2026当前分组）');
+  assert.ok(appendixIndex > 0, `${name} missing history appendix`);
+  assert.ok(!report.markdown.slice(0, appendixIndex).includes('2025：'), `${name} still places 2025 inside current decision items`);
+  assert.ok(!report.markdown.slice(0, appendixIndex).includes('2024：'), `${name} still places 2024 inside current decision items`);
 }
 assert.equal(list.reportType, 'selectionPoolOnly');
 assert.equal(analyzed.reportType, 'selectionPoolWithAnalysis');
 assert.equal(list.version, FEISHU_REPORT_CONTRACT.releaseVersion);
 assert.equal(list.summary.candidateRankYear, 2026);
 assert.equal(list.summary.enrichedItems[0].referenceRank, record.rank2026);
+assert.match(JSON.stringify(list.styledBlocks), /六、历史对照附录/);
+assert.match(JSON.stringify(list.styledBlocks), /七、数据和使用边界/);
+assert.ok(JSON.stringify(list.styledBlocks).indexOf('六、历史对照附录') < JSON.stringify(list.styledBlocks).indexOf('七、数据和使用边界'));
 
 const analysisResponse = await analyzeSelectionPath({
   request: new Request('https://example.com/api/path-analysis', {
@@ -103,12 +112,21 @@ for (const source of [routeCurrent, routePool]) {
 }
 assert.ok(routePool.includes('year: FEISHU_REPORT_CONTRACT.dataYear'));
 assert.ok(routePool.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
-const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3963_1.js', 'utf8');
+const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3964_0.js', 'utf8');
 assert.ok(frontendClient.includes('FEISHU_REPORT_ROUTES'));
 assert.ok(frontendClient.includes('AbortController'));
 assert.ok(frontendClient.includes('data.yearCaliberVersion !== FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
-const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3963_1.js', 'utf8');
+const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3964_0.js', 'utf8');
 assert.ok(currentPayload.includes('selectedRecords') && currentPayload.includes('score2026') && currentPayload.includes('rank2026'));
 assert.ok(currentPayload.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
+for (const file of [
+  'ln-rank/js/feature/feishu/report-api.v3964_0.js',
+  'ln-rank/js/feature/selection-pool/path-analysis-api.v3964_0.js',
+  'ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js'
+]) {
+  const source = fs.readFileSync(file, 'utf8');
+  assert.ok(source.includes('feishu-report-contract.v3964_0.js?v=3964_0'), `${file} does not use the active year contract`);
+  assert.ok(!source.includes('feishu-report-contract.v3963_1.js'), `${file} retains stale report contract`);
+}
 
-console.log('FEISHU_REPORT_V3963_1_OK');
+console.log('FEISHU_REPORT_V3964_0_HISTORY_APPENDIX_OK');

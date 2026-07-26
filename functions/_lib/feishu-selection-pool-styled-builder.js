@@ -136,7 +136,6 @@ function itemRuns(item) {
     { content: '｜' },
     { content: rankGapText(item.rankGap2026 ?? item.rankGap), style: rankStyle },
     { content: `｜${scoreRankText(item)}` },
-    { content: `｜${historyScoreText(item)}` },
     tags ? { content: `｜${tags}`, style: STYLE.muted } : null,
     special ? { content: `｜${special}`, style: STYLE.risk } : null,
     item.localStrongChain?.matched ? { content: `｜院校背景：${clean(item.localStrongChain.depth === 'core' ? '本校方向' : '本校相关', 40)} · ${clean(item.localStrongChain.chainName, 40)}`, style: STYLE.action } : (item.trajectoryChain?.matched ? { content: `｜方向提醒：${clean(item.trajectoryChain.cardShort || item.trajectoryChain.trajectoryName, 40)}`, style: STYLE.action } : null),
@@ -251,7 +250,7 @@ function majorTrendBlocks(summary = {}) {
   const notes = Array.isArray(summary.notes) ? summary.notes : [];
   if (!notes.length) return [];
   const blocks = [heading3('近三年投档位置变化参考', STYLE.title)];
-  notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240))));
+  notes.slice(0, 3).forEach(note => blocks.push(bulletBlock(clean(note, 240).replace(/录取所需位次/g, '历史投档位次').replace(/录取位置/g, '历史投档位置'))));
   blocks.push(styledTextBlock('以上只反映 2024—2026 同校、同专业、同项目属性的历史投档位置变化，不代表 2027 年录取结果。', STYLE.warning));
   return blocks;
 }
@@ -304,9 +303,24 @@ function governanceReviewBlocks(items = []) {
   return blocks;
 }
 
+function historyAppendixBlocks(items = [], trendSummary = {}) {
+  const blocks = [
+    heading2('六、历史对照附录（不参与2026当前分组）', STYLE.title),
+    styledTextBlock('2025、2024只作同校、同专业、同项目属性的历史对照，不改变前面按2026数据形成的位置分组。', STYLE.warning)
+  ];
+  if (!items.length) {
+    blocks.push(bulletBlock('当前没有可列出的历史对照。'));
+  } else {
+    items.forEach(item => blocks.push(bulletBlock(`${item.order}. ${item.school || '学校待核验'} · ${item.major || '专业待核验'}｜${historyScoreText(item)}`)));
+  }
+  const trend = majorTrendBlocks(trendSummary);
+  if (trend.length) blocks.push(...trend);
+  return blocks;
+}
+
 function governanceBoundaryBlocks() {
   return [
-    heading2('六、数据和使用边界', STYLE.title),
+    heading2('七、数据和使用边界', STYLE.title),
     bulletBlock('本报告按当前已选清单生成；修改查询筛选不会自动删除已选专业。若已选清单中包含中外/高收费或特殊项目，需按院校章程和 2027 招生计划人工核验。'),
     bulletBlock(YEAR_CALIBER_KB.reportCopy),
     bulletBlock(formatLiaoningOrdinaryUndergraduatePolicyLine()),
@@ -342,7 +356,7 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   ]));
   blocks.push(styledTextBlock('颜色只用于辅助阅读，不代表录取承诺。正式填报仍需结合 2027 年正式位次、招生计划、选科、体检、学费、校区和专业备注逐条确认。', STYLE.warning));
 
-  // 固定六段合同：后续不要根据 AI/无 AI 动态改变二级标题顺序。
+  // 固定七段合同：是否生成方案解读都不能改变二级标题顺序。
   blocks.push(...summaryBlocks(summary || {}, reportType));
   blocks.push(dividerBlock());
 
@@ -363,9 +377,6 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   const directionBlocks = directionExplorerBlocks(directionExplorer);
   if (directionBlocks.length) blocks.push(...directionBlocks);
   if (hasAnalysis) blocks.push(...analysisBlocks(analysis));
-  const trendBlocks = majorTrendBlocks(majorTrendSummary || analysis?.majorTrendSummary || {});
-  if (trendBlocks.length) blocks.push(...trendBlocks);
-
   blocks.push(dividerBlock());
   blocks.push(heading2('三、前中后段快速确认', STYLE.title));
   ['rush', 'stable', 'safe'].forEach(group => {
@@ -393,6 +404,9 @@ export function buildSelectionPoolStyledBlocks(input = {}) {
   blocks.push(heading2('五、本方案确认清单', STYLE.title));
   blocks.push(...reviewChecklistBlocks(displayItems, reviewChecklist));
   blocks.push(...governanceReviewBlocks(displayItems));
+
+  blocks.push(dividerBlock());
+  blocks.push(...historyAppendixBlocks(displayItems, majorTrendSummary || analysis?.majorTrendSummary || {}));
 
   blocks.push(dividerBlock());
   blocks.push(...governanceBoundaryBlocks());

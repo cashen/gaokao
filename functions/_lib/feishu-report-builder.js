@@ -69,8 +69,7 @@ function historyText(record) {
   const rows = [];
   if (record.score2025 != null || record.rank2025 != null) rows.push(`2025：${record.score2025 != null ? fmt(record.score2025) + ' 分' : '分数待核验'} / ${record.rank2025 != null ? fmt(record.rank2025) + ' 位' : '位次待核验'}`);
   if (record.score2024 != null || record.rank2024 != null) rows.push(`2024：${record.score2024 != null ? fmt(record.score2024) + ' 分' : '分数待核验'} / ${record.rank2024 != null ? fmt(record.rank2024) + ' 位' : '位次待核验'}`);
-  const trend = record?.historyCompare?.rankTrendText ? `｜${record.historyCompare.rankTrendText}` : '';
-  return rows.length ? `历史同口径参考：${rows.join('；')}${trend}` : '历史同口径参考：暂无';
+  return rows.length ? rows.join('；') : '暂无严格同口径记录';
 }
 
 function locationText(record) {
@@ -188,7 +187,6 @@ export function buildFeishuReport(data) {
     const referencePosition = [record.statusLabel, record.matchLabel, record.position].filter(Boolean).join(' / ') || '待核验';
     lines.push(`- 2026最低投档分：${fmt(record.score2026 ?? record.score)} 分`);
     lines.push(`- 2026最低投档位次：${fmt(record.rank2026 ?? record.rank)}`);
-    lines.push(`- ${historyText(record)}`);
     lines.push(`- 相对孩子：${deltaText(record.scoreDelta)} 分`);
     lines.push(`- 参考位置：${referencePosition}`);
     lines.push(`- 地域：${locationText(record)}`);
@@ -202,6 +200,14 @@ export function buildFeishuReport(data) {
     lines.push("");
   });
 
+  lines.push("## 历史对照附录（不参与2026当前分组）");
+  lines.push("");
+  lines.push("2025、2024只作同校、同专业、同项目属性的历史对照，不改变前面按2026数据形成的位置分组。");
+  lines.push("");
+  data.selectedRecords.forEach((record, index) => {
+    lines.push(`- ${index + 1}. ${record.school || '学校待核验'} · ${record.major || '专业待核验'}｜${historyText(record)}`);
+  });
+  lines.push("");
   lines.push("---");
   lines.push("");
   lines.push(...governanceReviewLines(data.selectedRecords || []));

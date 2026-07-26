@@ -1,4 +1,4 @@
-name: Verify school mode v3962.2
+name: Verify human task UI v3964.0
 
 on:
   pull_request:
@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  school-all-mode:
+  human-task-ui:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,79 +21,75 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Check protected paths
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3963_1-protected-paths.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3963_1-protected-paths.txt; then
+          git diff --name-only "$base" HEAD | tee /tmp/v3964_0-protected-paths.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3964_0-protected-paths.txt; then
             echo 'Protected path changed'
             exit 1
           fi
 
-      - name: Check current JavaScript syntax
+      - name: Check changed JavaScript syntax
         run: |
           set -euo pipefail
-          files=(
-            functions/api/path-analysis.js
-            functions/api/feishu-create-report.js
-            functions/api/feishu-create-selection-pool-report.js
-            ln-rank/js/app.v3963_1.js
-            ln-rank/js/app-runtime.v3963_1.js
-            ln-rank/js/workspace/selection-workspace-orchestrator.v3963_1.js
-            ln-rank/js/feature/school-majors/school-all-mode.v3963_1.js
-            ln-rank/js/selection-pool.v3963_1.js
-            ln-rank/js/selection-pool-runtime.v3963_1.js
-            shared/resources/release/runtime-cache-contract.v3963_1.js
-            shared/resources/reports/feishu-report-contract.v3963_1.js
-            tools/audit-dual-search-v3963_1.mjs
-            tools/audit-runtime-cache-contract-v3963_1.mjs
-            tools/browser-dual-search-journey-v3963_1.mjs
-            tools/browser-runtime-cache-journey-v3963_1.mjs
-            tools/verify-feishu-report-v3956.mjs
-          )
-          for file in "${files[@]}"; do
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            echo "node --check $file"
             node --check "$file"
           done
+          python3 -m py_compile tools/ln-2026/verify-final-release-v7.py
 
-      - name: Audit runtime generation and static ownership
-        id: runtime_audit
-        run: node tools/audit-runtime-cache-contract-v3963_1.mjs
+      - name: Verify final release contract
+        env:
+          LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 tools/ln-2026/verify-final-release-v7.py
 
-      - name: Audit both search paths and real 2026 data
-        id: dual_search_audit
-        run: node tools/audit-dual-search-v3963_1.mjs
+      - name: Audit ownership, readiness and human task flow
+        run: node tools/audit-human-task-ui-v3964_0.mjs
 
-      - name: Verify unified Feishu year caliber
-        id: feishu_audit
+      - name: Verify Feishu 2026 primary and history appendix
         run: node tools/verify-feishu-report-v3956.mjs
 
-      - name: Smoke-test current governed resources
+      - name: Verify Tongxue shared shell and direct result
+        run: node tools/tongxue/verify-direct-result-v157.mjs
+
+      - name: Smoke-test governed assets
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3963_1-smoke-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3964_0-smoke-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
           paths=(
+            /
             /ln-rank/
             /ln-rank/selection-pool.html
-            /ln-rank/js/app.v3963_1.js
-            /ln-rank/js/app-runtime.v3963_1.js
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3963_1.js
-            /ln-rank/js/feature/school-majors/school-all-mode.v3963_1.js
-            /ln-rank/js/selection-pool.v3963_1.js
-            /ln-rank/js/selection-pool-runtime.v3963_1.js
-            /ln-rank/css/selection-workspace.v3963_1.css
-            /ln-rank/css/school-all-mode.v3963_0.css
+            /ln2026.html
+            /zy2026/
+            /tongxue/
+            /ln-rank/js/app.v3964_0.js
+            /ln-rank/js/app-runtime.v3964_0.js
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js
+            /ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js
+            /ln-rank/js/feature/major-pool/render.v3964_0.js
+            /ln-rank/js/selection-pool.v3964_0.js
+            /ln-rank/js/selection-pool-runtime.v3964_0.js
+            /ln-rank/css/ln-rank-workspace.v3964_0.css
+            /ln-rank/css/selection-pool.v3964_0.css
             /shared/resources/release/current-release.js
-            /shared/resources/release/runtime-cache-contract.v3963_1.js
-            /shared/resources/reports/feishu-report-contract.v3963_1.js
-            /shared/resources/schools/school-resource-center.js
-            /shared/resources/schools/school-identity-center.js
-            /shared/ui/ui-registry.v3963_1.js
-            /shared/ui/components/mode-switch.v3963_0.css
+            /shared/resources/release/runtime-cache-contract.v3964_0.js
+            /shared/resources/reports/feishu-report-contract.v3964_0.js
+            /shared/ui/ui-registry.v3964_0.js
+            /shared/ui/shell/family-shell.v3964_0.css
+            /shared/ui/shell/family-shell.v3964_0.js
+            /tongxue/app/tongxue-performance-v157.js
           )
           for path in "${paths[@]}"; do
             echo "GET $path"
@@ -105,31 +101,26 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify PC Pad Android score school and Feishu journeys
-        id: browser_journeys
+      - name: Verify PC Pad Android score school selection and Feishu
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3963_1-browser-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3964_0-browser-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3963_1-dual-search \
-            node tools/browser-dual-search-journey-v3963_1.mjs \
-            | tee /tmp/v3963_1-dual-search.out
-          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3963_1-runtime-cache \
-            node tools/browser-runtime-cache-journey-v3963_1.mjs \
-            | tee /tmp/v3963_1-runtime-cache.out
+          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3964_0-human-task             node tools/browser-human-task-journey-v3964_0.mjs             | tee /tmp/v3964_0-human-task.out
+          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3964_0-runtime-readiness             node tools/browser-runtime-readiness-v3964_0.mjs             | tee /tmp/v3964_0-runtime-readiness.out
 
       - name: Upload verification diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: school-mode-v3963-1-diagnostics
+          name: human-task-ui-v3964-0-diagnostics
           path: |
-            /tmp/v3963_1-*.txt
-            /tmp/v3963_1-*.out
-            /tmp/v3963_1-*.log
-            /tmp/v3963_1-dual-search
-            /tmp/v3963_1-runtime-cache
+            /tmp/v3964_0-*.txt
+            /tmp/v3964_0-*.out
+            /tmp/v3964_0-*.log
+            /tmp/v3964_0-human-task
+            /tmp/v3964_0-runtime-readiness
           if-no-files-found: warn
-          retention-days: 3
+          retention-days: 2
