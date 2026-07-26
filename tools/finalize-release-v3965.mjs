@@ -15,6 +15,14 @@ const replaceExact = (file, from, to) => {
   if (!source.includes(from)) throw new Error(`${file}: expected source fragment not found`);
   write(file, source.replace(from, to));
 };
+const copyWithReplacements = (sourceFile, targetFile, pairs) => {
+  let source = read(sourceFile);
+  for (const [from, to] of pairs) source = source.split(from).join(to);
+  const target = path.join(root, targetFile);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const normalized = source.endsWith('\n') ? source : `${source}\n`;
+  if (!fs.existsSync(target) || fs.readFileSync(target, 'utf8') !== normalized) fs.writeFileSync(target, normalized);
+};
 
 replaceExact(
   'tongxue/app/tongxue-runtime-controller-v159.js',
@@ -51,5 +59,23 @@ for (const [pattern, type] of [
   if (!headers.includes(rule)) headers = `${rule}\n${headers}`;
 }
 write('_headers', headers);
+
+copyWithReplacements(
+  'tools/browser-human-task-journey-v3964_1.mjs',
+  'tools/browser-human-task-journey-v3965_0.mjs',
+  [
+    ['v3964_1', 'v3965_0'],
+    ['v3.9.64.1', 'v3.9.65.0'],
+    ['selection-workspace-orchestration-v3964_0', 'selection-workspace-orchestration-v3965_0']
+  ]
+);
+copyWithReplacements(
+  'tools/browser-runtime-readiness-v3964_1.mjs',
+  'tools/browser-runtime-readiness-v3965_0.mjs',
+  [
+    ['v3964_1', 'v3965_0'],
+    ['v3.9.64.1', 'v3.9.65.0']
+  ]
+);
 
 console.log(JSON.stringify({ ok: true, finalized: 'v3.9.65.0' }, null, 2));
