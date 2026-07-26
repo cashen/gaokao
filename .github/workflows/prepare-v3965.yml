@@ -7,6 +7,7 @@ on:
     paths:
       - 'tools/prepare-release-v3965.mjs'
       - 'tools/finalize-release-v3965.mjs'
+      - 'tools/reconcile-release-v3965.mjs'
       - 'ln-rank/js/feature/feishu/**'
       - 'ln-rank/js/app.v3965_0.js'
       - 'ln-rank/js/app-runtime.v3965_0.js'
@@ -41,6 +42,7 @@ jobs:
         run: |
           node tools/prepare-release-v3965.mjs
           node tools/finalize-release-v3965.mjs
+          node tools/reconcile-release-v3965.mjs
       - name: Commit generated release state
         run: |
           set -euo pipefail
