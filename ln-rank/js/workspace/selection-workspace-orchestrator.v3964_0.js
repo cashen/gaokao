@@ -20,7 +20,7 @@ import {
   initFeishuReport,
   renderFeishuReport,
   clearFeishuReport
-} from '../feature/feishu/index.v3963_1.js?v=3963_1';
+} from '../feature/feishu/index.v3964_0.js?v=3964_0';
 import {
   initSelectionPool,
   refreshSelectionPool,
