@@ -24,11 +24,11 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     Object.freeze({ legacy: '/ln-rank/js/domain/selection-contract.js', active: '/ln-rank/js/domain/selection-contract.v3963_1.js' }),
     Object.freeze({ legacy: '/ln-rank/js/domain/report-payload-contract.js', active: '/ln-rank/js/domain/report-payload-contract.v3963_1.js' }),
     Object.freeze({ legacy: '/ln-rank/js/feature/flow-stepper/flow-stepper-render.js', active: '/ln-rank/js/feature/flow-stepper/flow-stepper-render.v3963_1.js' }),
-    Object.freeze({ legacy: '/ln-rank/js/feature/selection-pool/analysis.js', active: '/ln-rank/js/feature/selection-pool/analysis.v3963_1.js' }),
+    Object.freeze({ legacy: '/ln-rank/js/feature/selection-pool/analysis.js', active: '/ln-rank/js/feature/selection-pool/analysis.v3964_0.js' }),
     Object.freeze({ legacy: '/ln-rank/js/state/app-state.js', active: '/ln-rank/js/state/app-state.v3963_1.js' }),
     Object.freeze({ legacy: '/ln-rank/js/state/range-state.js', active: '/ln-rank/js/state/range-state.v3963_1.js' }),
     Object.freeze({ legacy: '/ln-rank/js/ui/control-console.js', active: '/ln-rank/js/ui/control-console.v3963_1.js' }),
-    Object.freeze({ legacy: '/ln-rank/js/shared/feishu-api-client.v3956_0.js', active: '/ln-rank/js/shared/feishu-api-client.v3963_1.js' }),
+    Object.freeze({ legacy: '/ln-rank/js/shared/feishu-api-client.v3956_0.js', active: '/ln-rank/js/shared/feishu-api-client.v3964_0.js' }),
     Object.freeze({ legacy: '/shared/resources/reports/feishu-report-contract.js', active: '/shared/resources/reports/feishu-report-contract.v3964_0.js' })
   ]),
   activeGenerationModules: Object.freeze([
@@ -41,7 +41,16 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     '/ln-rank/js/feature/major-pool/render.v3964_0.js',
     '/ln-rank/js/feature/major-pool/history-score-render.v3964_0.js',
     '/ln-rank/js/feature/selection-pool/index.v3964_0.js',
-    '/ln-rank/js/feature/feishu/index.v3963_1.js',
+    '/ln-rank/js/feature/feishu/index.v3964_0.js',
+    '/ln-rank/js/feature/feishu/report-controller.v3964_0.js',
+    '/ln-rank/js/feature/feishu/report-render.v3964_0.js',
+    '/ln-rank/js/feature/feishu/report-api.v3964_0.js',
+    '/ln-rank/js/feature/report/payload-builder.v3964_0.js',
+    '/ln-rank/js/feature/selection-pool/analysis.v3964_0.js',
+    '/ln-rank/js/feature/selection-pool/path-analysis-api.v3964_0.js',
+    '/ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js',
+    '/ln-rank/js/feature/selection-pool/controller.v3964_0.js',
+    '/ln-rank/js/shared/feishu-api-client.v3964_0.js',
     '/ln-rank/js/selection-pool.v3964_0.js',
     '/ln-rank/js/selection-pool-runtime.v3964_0.js',
     '/shared/resources/reports/feishu-report-contract.v3964_0.js',
@@ -93,6 +102,8 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     'active-html-assets-match-release-manifest',
     'history-is-appendix-only',
     'shared-shell-never-submits-business-search',
-    'one-active-page-stylesheet-per-workspace'
+    'one-active-page-stylesheet-per-workspace',
+    'single-report-year-caliber-across-browser-and-functions',
+    'selection-floating-action-has-static-page-mount'
   ])
 });
