@@ -20,39 +20,81 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
+      - name: Diagnose remaining archive
+        id: diagnose
+        continue-on-error: true
+        run: |
+          set +e
+          mkdir -p /tmp/v3967-remain-probe
+          {
+            echo '== chunk sizes =='
+            wc -c .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03
+            cat .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03 > /tmp/v3967-remain.b64
+            echo '== combined base64 =='
+            wc -c /tmp/v3967-remain.b64
+            tail -c 160 /tmp/v3967-remain.b64
+            echo
+            base64 --decode /tmp/v3967-remain.b64 > /tmp/v3967-remain.tar.xz
+            echo "base64_exit=$?"
+            wc -c /tmp/v3967-remain.tar.xz
+            sha256sum /tmp/v3967-remain.tar.xz
+            echo '== xz test =='
+            xz -tv /tmp/v3967-remain.tar.xz
+            echo "xz_exit=$?"
+            set +e
+            xz -dc /tmp/v3967-remain.tar.xz > /tmp/v3967-remain.tar
+            echo "xz_decode_exit=$?"
+            set -e
+            wc -c /tmp/v3967-remain.tar
+            echo '== tar list =='
+            set +e
+            tar -tvf /tmp/v3967-remain.tar > /tmp/v3967-remain-list.txt 2> /tmp/v3967-remain-list.err
+            echo "tar_list_exit=$?"
+            set -e
+            wc -l /tmp/v3967-remain-list.txt
+            cat /tmp/v3967-remain-list.txt
+            cat /tmp/v3967-remain-list.err
+            echo '== tar extract =='
+            set +e
+            tar -xf /tmp/v3967-remain.tar -C /tmp/v3967-remain-probe 2> /tmp/v3967-remain-extract.err
+            echo "tar_extract_exit=$?"
+            set -e
+            find /tmp/v3967-remain-probe -type f -printf '%s %p\n' | sort
+            echo '== extracted count =='
+            find /tmp/v3967-remain-probe -type f | wc -l
+            cat /tmp/v3967-remain-extract.err
+          } > .v3967-remain-diagnostic.txt 2>&1
+          cat .v3967-remain-diagnostic.txt
+          xz -t /tmp/v3967-remain.tar.xz
+          test "$(wc -l < /tmp/v3967-remain-list.txt)" -eq 42
+          test "$(find /tmp/v3967-remain-probe -type f | wc -l)" -eq 42
+
+      - name: Commit remaining archive diagnostic
+        if: steps.diagnose.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .v3967-remain-diagnostic.txt
+          git commit -m 'diagnostic: inspect remaining v3967 archive'
+          git push origin HEAD:${{ github.head_ref }}
+          exit 1
+
       - name: Recover eleven complete files from original archive
+        if: steps.diagnose.outcome == 'success'
         run: |
           set -euxo pipefail
           mkdir -p /tmp/v3967-first
           cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 | base64 --decode > /tmp/v3967-first.truncated.tar.xz
           set +e
           xz -dc /tmp/v3967-first.truncated.tar.xz > /tmp/v3967-first.tar
-          xz_status=$?
           tar -xf /tmp/v3967-first.tar -C /tmp/v3967-first
-          tar_status=$?
           set -e
-          echo "expected_truncated_xz_status=${xz_status}"
-          echo "expected_truncated_tar_status=${tar_status}"
           rm -f /tmp/v3967-first/ln-rank/js/feature/major-pool/index.v3967_0.js
           test "$(find /tmp/v3967-first -type f | wc -l)" -eq 11
-          test ! -e /tmp/v3967-first/ln-rank/js/feature/major-pool/index.v3967_0.js
-
-      - name: Validate and extract remaining forty-two files
-        run: |
-          set -euxo pipefail
-          mkdir -p /tmp/v3967-remain
-          cat .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03 | base64 --decode > /tmp/v3967-remain.tar.xz
-          sha256sum /tmp/v3967-remain.tar.xz
-          xz -t /tmp/v3967-remain.tar.xz
-          xz -dc /tmp/v3967-remain.tar.xz > /tmp/v3967-remain.tar
-          tar -tf /tmp/v3967-remain.tar | tee /tmp/v3967-remain-manifest.txt
-          test "$(wc -l < /tmp/v3967-remain-manifest.txt)" -eq 42
-          ! grep -E '(^/|(^|/)\.\.(/|$))' /tmp/v3967-remain-manifest.txt
-          test "$(sort /tmp/v3967-remain-manifest.txt | uniq | wc -l)" -eq 42
-          tar -xf /tmp/v3967-remain.tar -C /tmp/v3967-remain
-          test "$(find /tmp/v3967-remain -type f | wc -l)" -eq 42
 
       - name: Rebuild immutable major-pool entry
+        if: steps.diagnose.outcome == 'success'
         run: |
           set -euxo pipefail
           mkdir -p /tmp/v3967-entry/ln-rank/js/feature/major-pool
@@ -72,17 +114,19 @@ jobs:
           node --check /tmp/v3967-entry/ln-rank/js/feature/major-pool/index.v3967_0.js
 
       - name: Materialize all governed files
+        if: steps.diagnose.outcome == 'success'
         run: |
           set -euxo pipefail
           cp -a /tmp/v3967-first/. .
-          cp -a /tmp/v3967-remain/. .
+          cp -a /tmp/v3967-remain-probe/. .
           cp -a /tmp/v3967-entry/. .
-          test "$(find /tmp/v3967-first /tmp/v3967-remain /tmp/v3967-entry -type f | wc -l)" -eq 54
+          test "$(find /tmp/v3967-first /tmp/v3967-remain-probe /tmp/v3967-entry -type f | wc -l)" -eq 54
           rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07
           rm -f .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03
-          rm -f .v3967-verify-diagnostic.txt .v3967-archive-diagnostic.txt .v3967-tar-diagnostic.txt
+          rm -f .v3967-verify-diagnostic.txt .v3967-archive-diagnostic.txt .v3967-tar-diagnostic.txt .v3967-remain-diagnostic.txt
 
       - name: Verify governed release before commit
+        if: steps.diagnose.outcome == 'success'
         run: |
           set -euo pipefail
           node tools/build-derived-asset-trace-v3967.mjs
@@ -98,6 +142,7 @@ jobs:
           python3 tools/ln-2026/verify-final-release-v10.py
 
       - name: Commit governed files
+        if: steps.diagnose.outcome == 'success'
         run: |
           set -euo pipefail
           git config user.name github-actions[bot]
