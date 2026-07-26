@@ -21,6 +21,12 @@ orchestrator = orchestrator
   .join('selection-workspace-orchestration-v3965_0')
   .split('[selection-workspace-v3963]')
   .join('[selection-workspace-v3965]');
+if (orchestrator.includes('selection-workspace-orchestration-v3964_0')) {
+  throw new Error('v3965 orchestrator still exposes the v3964 workspace contract');
+}
+if (!orchestrator.includes("version: 'selection-workspace-orchestration-v3965_0'")) {
+  throw new Error('v3965 orchestrator does not expose the current workspace contract');
+}
 write(orchestratorPath, orchestrator);
 
 let headers = read('_headers');
