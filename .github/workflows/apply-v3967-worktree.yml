@@ -20,13 +20,26 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Rebuild and validate new-file archive
+      - name: Combine and decode archive chunks
         run: |
           set -euxo pipefail
-          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 | base64 --decode > /tmp/v3967-new.tar.xz
+          wc -c .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07
+          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 > /tmp/v3967-new.b64
+          wc -c /tmp/v3967-new.b64
+          base64 --decode /tmp/v3967-new.b64 > /tmp/v3967-new.tar.xz
           sha256sum /tmp/v3967-new.tar.xz
+          wc -c /tmp/v3967-new.tar.xz
+
+      - name: Validate XZ archive integrity
+        run: |
+          set -euxo pipefail
           xz -t /tmp/v3967-new.tar.xz
           xz -dc /tmp/v3967-new.tar.xz > /tmp/v3967-new.tar
+          wc -c /tmp/v3967-new.tar
+
+      - name: Validate TAR manifest
+        run: |
+          set -euxo pipefail
           tar -tf /tmp/v3967-new.tar | tee /tmp/v3967-new-files.txt
           test "$(wc -l < /tmp/v3967-new-files.txt)" -eq 54
           ! grep -E '(^/|(^|/)\.\.(/|$))' /tmp/v3967-new-files.txt
