@@ -42,4 +42,14 @@ replaceExact(
   "  selectionWorkspaceVersion: 'selection-workspace-orchestration-v3965_0',"
 );
 
+let headers = read('_headers');
+for (const [pattern, type] of [
+  ['/tongxue/app/*.js', 'application/javascript; charset=utf-8'],
+  ['/shared/resources/release/*.js', 'application/javascript; charset=utf-8']
+]) {
+  const rule = `${pattern}\n  Content-Type: ${type}`;
+  if (!headers.includes(rule)) headers = `${rule}\n${headers}`;
+}
+write('_headers', headers);
+
 console.log(JSON.stringify({ ok: true, finalized: 'v3.9.65.0' }, null, 2));
