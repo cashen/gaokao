@@ -19,7 +19,7 @@ export const CURRENT_RELEASE = Object.freeze({
   resourceOwnershipVersion: 'resource-ownership-v3965_0',
   uiOrchestrationVersion: 'ui-orchestration-v3965_0',
   algorithmOrchestrationVersion: 'algorithm-orchestration-v3963',
-  selectionWorkspaceVersion: 'selection-workspace-orchestration-v3964_0',
+  selectionWorkspaceVersion: 'selection-workspace-orchestration-v3965_0',
   searchIntentVersion: 'score-school-search-v3964_0',
   schoolAllModeVersion: 'school-all-mode-v3964_0',
   schoolUiGovernanceVersion: 'school-ui-governance-v3964_0',

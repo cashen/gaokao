@@ -1,4 +1,4 @@
-import { findSchoolEntityByName, getSchoolEntity } from '../data/school-entities-v150.js?v=150';
+import { findSchoolEntityByName, getSchoolEntity, publicSchoolEntity } from '../data/school-entities-v150.js?v=150';
 import { escapeHtml as html, escapeAttribute as attr } from './tongxue-runtime-utils-v159.js?v=159';
 
 export function createTongxueSearchView(ui, state) {
@@ -150,7 +150,7 @@ export function createTongxueSearchView(ui, state) {
     const entity = findSchoolEntityByName(name);
     if (!entity) return null;
     const parent = entity.parentEntityId ? getSchoolEntity(entity.parentEntityId) : null;
-    return { ...entity, parentName: parent?.displayName || '' };
+    return { ...publicSchoolEntity(entity), parentName: parent?.displayName || '' };
   }
 
   return Object.freeze({

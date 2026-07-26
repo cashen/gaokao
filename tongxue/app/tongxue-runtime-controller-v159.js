@@ -130,11 +130,13 @@ function bindEvents(ui, state, searchView, resultView) {
     state.composing = false;
     resetResolution(state, searchView);
     scheduleSuggestions(ui, state, searchView);
+    updateButton(ui, state);
   });
   on(ui.input, 'input', event => {
     if (event.isComposing || state.composing) return;
     resetResolution(state, searchView);
     scheduleSuggestions(ui, state, searchView);
+    updateButton(ui, state);
   });
   on(ui.input, 'focus', () => {
     if (!state.composing && ui.input.value.trim().length >= 2) updateSuggestions(ui, state, searchView);
@@ -302,8 +304,8 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
 async function performExperienceQuery(ui, state, searchView, resultView, school, originalInput, resolution, options = {}) {
   const key = experienceKey(school, 1);
   if (state.activeQueryPromise && state.activeQueryKey === key && !options.forceRefresh) return state.activeQueryPromise;
-  const serial = ++state.querySerial;
   abortActive(state);
+  const serial = ++state.querySerial;
   const controller = new AbortController();
   state.activeQueryController = controller;
   state.activeQueryKey = key;
