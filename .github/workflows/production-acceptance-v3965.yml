@@ -1,0 +1,124 @@
+name: Production acceptance v3965.0
+
+on:
+  push:
+    branches:
+      - agent/v3965-production-acceptance
+    paths:
+      - 'tools/production-acceptance-v3965.mjs'
+      - 'tools/production-feishu-once-v3965.mjs'
+      - '.github/workflows/production-acceptance-v3965.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-acceptance-v3965
+  cancel-in-progress: false
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/v3965-production-acceptance
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Wait for v3.9.65.0 deployment
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3965-production
+          for attempt in $(seq 1 90); do
+            echo "deployment poll $attempt/90"
+            if curl --fail --silent --show-error --location --max-time 30 \
+              'https://gaokao.powers.org.cn/shared/resources/release/current-release.js?acceptance=3965' \
+              -o /tmp/v3965-production/current-release.js \
+              && grep -q "display: 'v3.9.65.0'" /tmp/v3965-production/current-release.js \
+              && curl --fail --silent --show-error --location --max-time 30 \
+                'https://gaokao.powers.org.cn/ln-rank/?acceptance=3965' \
+                -o /tmp/v3965-production/ln-rank.html \
+              && grep -q '/ln-rank/js/app.v3965_0.js?v=3965_0' /tmp/v3965-production/ln-rank.html \
+              && curl --fail --silent --show-error --location --max-time 30 \
+                'https://gaokao.powers.org.cn/tongxue/?acceptance=159' \
+                -o /tmp/v3965-production/tongxue.html \
+              && grep -q 'tongxue-runtime-v159.js?v=159' /tmp/v3965-production/tongxue.html; then
+              echo 'v3.9.65.0 deployment is visible.'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Production deployment did not become visible.'
+          exit 1
+
+      - name: Verify production HTML assets MIME and cache headers
+        run: |
+          set -euo pipefail
+          check_html() {
+            local path="$1"
+            local marker="$2"
+            local name="$3"
+            curl --fail --silent --show-error --location --max-time 30 \
+              -D "/tmp/v3965-production/${name}.headers" \
+              -o "/tmp/v3965-production/${name}.body" \
+              "https://gaokao.powers.org.cn${path}?acceptance=3965"
+            grep -qi '^content-type: text/html' "/tmp/v3965-production/${name}.headers"
+            grep -qi '^cache-control:.*no-cache.*must-revalidate' "/tmp/v3965-production/${name}.headers"
+            grep -q "$marker" "/tmp/v3965-production/${name}.body"
+          }
+          check_js() {
+            local path="$1"
+            local marker="$2"
+            local name="$3"
+            curl --fail --silent --show-error --location --max-time 30 \
+              -D "/tmp/v3965-production/${name}.headers" \
+              -o "/tmp/v3965-production/${name}.body" \
+              "https://gaokao.powers.org.cn${path}"
+            grep -qi '^content-type: application/javascript' "/tmp/v3965-production/${name}.headers"
+            grep -qi '^cache-control:.*max-age=31536000.*immutable' "/tmp/v3965-production/${name}.headers"
+            if head -c 200 "/tmp/v3965-production/${name}.body" | grep -qi '<!doctype\|<html'; then
+              echo "$path returned HTML fallback instead of JavaScript"
+              exit 1
+            fi
+            grep -q "$marker" "/tmp/v3965-production/${name}.body"
+          }
+          check_html '/ln-rank/' 'app.v3965_0.js?v=3965_0' 'ln-rank-live'
+          check_html '/ln-rank/selection-pool.html' 'selection-pool.v3965_0.js?v=3965_0' 'selection-live'
+          check_html '/tongxue/' 'tongxue-runtime-v159.js?v=159' 'tongxue-live'
+          check_js '/ln-rank/js/app.v3965_0.js?v=3965_0' 'runtime-cache-coherence-v3965_0' 'app-v3965'
+          check_js '/ln-rank/js/app-runtime.v3965_0.js?v=3965_0' 'selection-workspace-orchestrator.v3965_0.js?v=3965_0' 'app-runtime-v3965'
+          check_js '/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js?v=3965_0' 'selection-workspace-orchestration-v3965_0' 'workspace-v3965'
+          check_js '/ln-rank/js/feature/feishu/report-controller.v3965_0.js?v=3965_0' 'copyPromise' 'feishu-controller-v3965'
+          check_js '/tongxue/app/tongxue-runtime-v159.js?v=159' 'Tongxue build mismatch' 'tongxue-runtime-v159'
+          check_js '/tongxue/app/tongxue-runtime-controller-v159.js?v=159' "params.set('entity', options.entityId)" 'tongxue-controller-v159'
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify production PC Pad Android journeys
+        env:
+          PRODUCTION_BASE_URL: https://gaokao.powers.org.cn
+          PRODUCTION_ARTIFACT_DIR: /tmp/v3965-production
+        run: node tools/production-acceptance-v3965.mjs | tee /tmp/v3965-production/browser-acceptance.out
+
+      - name: Generate exactly one controlled Feishu report and verify operations
+        env:
+          PRODUCTION_BASE_URL: https://gaokao.powers.org.cn
+          PRODUCTION_ARTIFACT_DIR: /tmp/v3965-production
+        run: node tools/production-feishu-once-v3965.mjs | tee /tmp/v3965-production/feishu-once.out
+
+      - name: Upload production acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-acceptance-v3965
+          path: /tmp/v3965-production
+          if-no-files-found: error
+          retention-days: 7
