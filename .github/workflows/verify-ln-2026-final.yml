@@ -125,7 +125,7 @@ jobs:
       - name: Audit resources algorithms UI reports and runtime ownership
         run: |
           node tools/audit-resource-ownership-v3958.mjs
-          node tools/audit-algorithm-orchestration-v3960.mjs
+          node tools/audit-algorithm-orchestration-v3965.mjs
           node tools/audit-runtime-ownership-v3965.mjs
           node tools/audit-static-content-types-v3965.mjs
           node tools/verify-school-profile-center-v3957.mjs
