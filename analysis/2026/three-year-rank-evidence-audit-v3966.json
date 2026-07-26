@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "release": "v3.9.66.0",
+  "assetVersion": "v3966_0",
+  "tableSummary": {
+    "2024": {
+      "rows": 559,
+      "topScore": 708,
+      "bottomScore": 150,
+      "totalAtBottom": 149645,
+      "undergraduateScore": 368,
+      "undergraduatePopulation": 116198
+    },
+    "2025": {
+      "rows": 556,
+      "topScore": 707,
+      "bottomScore": 150,
+      "totalAtBottom": 143368,
+      "undergraduateScore": 367,
+      "undergraduatePopulation": 118109
+    },
+    "2026": {
+      "rows": 559,
+      "topScore": 708,
+      "bottomScore": 150,
+      "totalAtBottom": 141691,
+      "undergraduateScore": 344,
+      "undergraduatePopulation": 119069
+    }
+  },
+  "historicalCrossCheck": {
+    "records2024": 10574,
+    "records2025": 10915,
+    "conflicts2024": 0,
+    "conflicts2025": 0
+  },
+  "evidenceStates": [
+    "matched",
+    "derived",
+    "conflict",
+    "no-record"
+  ],
+  "comparisonPopulationPolicy": "undergraduate-control-line-cumulative"
+}
