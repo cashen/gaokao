@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "v3.9.64.0"
-ASSET = "v3964_0"
+VERSION = "v3.9.64.1"
+ASSET = "v3964_1"
 
 
 def text(path: str) -> str:
@@ -59,7 +59,7 @@ def verify_release() -> None:
         "selectionWorkspaceVersion: 'selection-workspace-orchestration-v3964_0'",
         "searchIntentVersion: 'score-school-search-v3964_0'",
         "schoolAllModeVersion: 'school-all-mode-v3964_0'",
-        "runtimeCacheVersion: 'runtime-cache-coherence-v3964_0'",
+        "runtimeCacheVersion: 'runtime-cache-coherence-v3964_1'",
         "reportHistoryPlacement: 'appendix-only'",
         "reportFrontendVersion: 'feishu-browser-v3964_0'"
     )
@@ -79,7 +79,12 @@ def verify_release() -> None:
             "historyNeverParticipatesInCurrentGroupingContract",
             "fullSiteSharedShellV3964Contract",
             "feishuFrontendRuntimeContract",
-            "staticSelectionShellMountContract"
+            "staticSelectionShellMountContract",
+            "staticContentTypeOwnershipContract",
+            "cachedRuntimeFailureRecoveryContract",
+            "activeHtmlRevalidationContract",
+            "fullSiteSharedShellRecoveryContract",
+            "tongxueSharedShellV158Contract"
         ):
             check(data.get(flag) is True, f"{path} missing {flag}")
 
@@ -87,13 +92,13 @@ def verify_release() -> None:
 def verify_ui_and_runtime() -> None:
     contains(
         "ln-rank/index.html",
-        'data-release="v3.9.64.0"',
+        'data-release="v3.9.64.1"',
         'data-runtime-state="loading"',
         'data-ui-global-header-mount',
         'id="scoreAdvancedOptions"',
         'id="familyConditionsDetails"',
         '/ln-rank/css/ln-rank-workspace.v3964_0.css?v=3964_0',
-        '/ln-rank/js/app.v3964_0.js?v=3964_0'
+        '/ln-rank/js/app.v3964_1.js?v=3964_1'
     )
     contains(
         "ln-rank/selection-pool.html",
@@ -101,7 +106,7 @@ def verify_ui_and_runtime() -> None:
         'id="selectionRuntimeStatus"',
         'data-selection-runtime-control disabled',
         '/ln-rank/css/selection-pool.v3964_0.css?v=3964_0',
-        '/ln-rank/js/selection-pool.v3964_0.js?v=3964_0'
+        '/ln-rank/js/selection-pool.v3964_1.js?v=3964_1'
     )
     main = text("ln-rank/index.html")
     selection = text("ln-rank/selection-pool.html")
@@ -117,13 +122,13 @@ def verify_ui_and_runtime() -> None:
     check("ux/family-presentation" not in selection, "selection mounts old family-presentation UX")
 
     owners = (
-        "ln-rank/js/app.v3964_0.js",
-        "ln-rank/js/app-runtime.v3964_0.js",
+        "ln-rank/js/app.v3964_1.js",
+        "ln-rank/js/app-runtime.v3964_1.js",
         "ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js",
         "ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js",
-        "ln-rank/js/selection-pool.v3964_0.js",
-        "ln-rank/js/selection-pool-runtime.v3964_0.js",
-        "shared/ui/shell/family-shell.v3964_0.js",
+        "ln-rank/js/selection-pool.v3964_1.js",
+        "ln-rank/js/selection-pool-runtime.v3964_1.js",
+        "shared/ui/shell/family-shell.v3964_1.js",
         "ln-rank/js/feature/selection-pool/controller.v3964_0.js",
         "ln-rank/js/feature/feishu/report-render.v3964_0.js",
     )
@@ -131,10 +136,10 @@ def verify_ui_and_runtime() -> None:
         source = text(path)
         check("MutationObserver" not in source, f"{path} contains MutationObserver")
         check("setTimeout(" not in source, f"{path} contains delayed ownership")
-    shell = text("shared/ui/shell/family-shell.v3964_0.js")
+    shell = text("shared/ui/shell/family-shell.v3964_1.js")
     check("queryButton" not in shell and "mobileDirtyButton" not in shell, "shared shell owns business search")
     check("results-title::before" not in text("ln-rank/css/ln-rank-workspace.v3964_0.css"), "generated result title remains")
-    check("data-drag-id" not in text("ln-rank/js/selection-pool-runtime.v3964_0.js"), "custom drag owner remains")
+    check("data-drag-id" not in text("ln-rank/js/selection-pool-runtime.v3964_1.js"), "custom drag owner remains")
     contains("ln-rank/index.html", 'id="selectionPoolShell"')
     selection_controller = text("ln-rank/js/feature/selection-pool/controller.v3964_0.js")
     check("document.createElement" not in selection_controller and "appendChild" not in selection_controller, "selection controller creates page layout")
@@ -161,7 +166,7 @@ def verify_reports_and_site() -> None:
     )
     for path in ("index.html", "ln2026.html", "zy2026/index.html", "zy2026.html", "tongxue/index.html"):
         contains(path, "data-ui-global-header-mount", "data-ui-family-status-mount")
-    contains("tongxue/index.html", "哈尔滨工业大学", "tongxue-performance-v157.js?v=157")
+    contains("tongxue/index.html", "哈尔滨工业大学", "tongxue-performance-v158.js?v=158")
     contains("shared/resources/resource-registry.js", "feishu-report-contract.v3964_0.js", "index.v3964_0.js")
     contains("ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js", "feature/feishu/index.v3964_0.js?v=3964_0")
     contains("ln-rank/js/feature/selection-pool/index.v3964_0.js", "analysis.v3964_0.js?v=3964_0", "path-analysis-api.v3964_0.js?v=3964_0", "feishu-report-api.v3964_0.js?v=3964_0", "controller.v3964_0.js?v=3964_0")
