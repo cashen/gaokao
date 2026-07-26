@@ -54,6 +54,9 @@ jobs:
       - name: Audit ownership, readiness and human task flow
         run: node tools/audit-human-task-ui-v3964_0.mjs
 
+      - name: Audit active static resource Content-Type ownership
+        run: node tools/audit-static-content-types-v3964_0.mjs
+
       - name: Verify Feishu 2026 primary and history appendix
         run: node tools/verify-feishu-report-v3956.mjs
 
