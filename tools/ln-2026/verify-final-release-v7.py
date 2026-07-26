@@ -67,6 +67,9 @@ def verify_release() -> None:
         data = json.loads(text(path))
         check(data["version"] == VERSION, f"{path} version mismatch")
         check(data["assetVersion"] == ASSET, f"{path} asset mismatch")
+        check(data.get("schoolAllModeVersion") == "school-all-mode-v3964_0", f"{path} school mode mismatch")
+        check(data.get("schoolUiGovernanceVersion") == "school-ui-governance-v3964_0", f"{path} school UI governance mismatch")
+        check(data.get("schoolModeMountVersion") == "school-mode-static-mount-v3964_0", f"{path} school mount mismatch")
         for flag in (
             "staticActionReadinessContract",
             "selectionRuntimeReadinessContract",
