@@ -23,10 +23,16 @@ for (const [before, after] of corrections) {
   if (!source.includes(before)) throw new Error(`2024 correction marker missing: ${before}`);
   source = source.replace(before, after);
 }
-
 fs.writeFileSync(target, source, 'utf8');
+
+const auditPath = path.join(root, 'tools/audit-three-year-rank-evidence-v3966.mjs');
+let audit = fs.readFileSync(auditPath, 'utf8');
+audit = audit.replace('[600,14365]', '[600,13601]');
+fs.writeFileSync(auditPath, audit, 'utf8');
+
 console.log(JSON.stringify({
   ok: true,
   correctedScores: [682, 477],
+  correctedAuditAnchor: { year: 2025, score: 600, rankEnd: 13601 },
   evidence: 'authoritative-image-and-protected-historical-rank-cross-check'
 }, null, 2));
