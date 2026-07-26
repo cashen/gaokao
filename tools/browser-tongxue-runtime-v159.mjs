@@ -94,24 +94,29 @@ try {
         await input.fill(region);
         assert.equal(await button.isEnabled(), true, `${testCase.name}: query button stayed disabled after typing ${region}`);
         await button.click();
-        await page.waitForFunction(expected => document.getElementById('result')?.dataset.viewState === 'region' && document.getElementById('resultTitle')?.textContent?.includes(expected), region);
+        await page.waitForFunction(expected => document.getElementById('result')?.dataset.viewState === 'region'
+          && document.getElementById('resultTitle')?.textContent?.includes(expected), region);
       }
       assert.equal(summaryRequests.length, 0, `${testCase.name}: region switching must not submit school API`);
       assert.match(await page.locator('#resultTitle').textContent(), /辽宁/);
-      assert.ok(await page.locator('[data-region-school]').count() > 0, `${testCase.name}: region school list empty`);
+      assert.ok(await page.locator('[data-region-query]').count() > 0, `${testCase.name}: province city list empty`);
 
       for (const region of ['深圳', '大连', '辽宁', '深圳', '大连']) {
         await input.fill(region);
         await button.click();
       }
-      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'region');
+      await page.waitForFunction(expected => document.getElementById('result')?.dataset.viewState === 'region'
+        && document.getElementById('resultTitle')?.textContent?.includes(expected)
+        && document.querySelectorAll('[data-region-school]').length > 0, '大连');
       const afterSwitch = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(afterSwitch.listenerCount, initial.listenerCount, `${testCase.name}: listeners were registered again`);
       assert.equal(afterSwitch.observerCount, 0);
       assert.equal(summaryRequests.length, 0);
+      assert.match(await page.locator('#resultTitle').textContent(), /大连/);
 
       const firstSchool = page.locator('[data-region-school]').first();
       const selectedName = await firstSchool.getAttribute('data-region-school');
+      assert.ok(selectedName, `${testCase.name}: latest region did not expose a school entity`);
       await firstSchool.click();
       await page.waitForFunction(() => ['success', 'empty'].includes(document.getElementById('result')?.dataset.viewState), null, { timeout: 15000 });
       assert.equal(summaryRequests.length, 1, `${testCase.name}: school selection submitted more than once`);
@@ -119,18 +124,20 @@ try {
       assert.match(new URL(page.url()).searchParams.get('school') || '', /.+/);
 
       await page.goBack({ waitUntil: 'networkidle' });
-      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'region');
+      await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'region'
+        && document.getElementById('resultTitle')?.textContent?.includes('大连'));
       await page.goForward({ waitUntil: 'networkidle' });
       await page.waitForFunction(() => ['success', 'empty'].includes(document.getElementById('result')?.dataset.viewState), null, { timeout: 15000 });
-      assert.equal(await page.locator('#result [data-school-entity]').count() >= 0, true);
 
       await page.reload({ waitUntil: 'networkidle' });
-      await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true && ['success', 'empty'].includes(document.getElementById('result')?.dataset.viewState), null, { timeout: 20000 });
+      await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true
+        && ['success', 'empty'].includes(document.getElementById('result')?.dataset.viewState), null, { timeout: 20000 });
       assert.equal(await page.locator('.hero').isHidden(), true, `${testCase.name}: direct refresh did not enter result-only mode`);
       assert.equal(await page.locator('[data-change-school]').isVisible(), true);
 
       await page.goto(`${baseUrl}/tongxue/?school=${encodeURIComponent('哈尔滨工业大学（深圳）')}&entity=hit-shenzhen`, { waitUntil: 'networkidle', timeout: 60000 });
-      await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true && document.getElementById('result')?.dataset.viewState === 'success', null, { timeout: 20000 });
+      await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true
+        && document.getElementById('result')?.dataset.viewState === 'success', null, { timeout: 20000 });
       assert.equal(await page.locator('[data-school-entity="hit-shenzhen"]').count(), 1);
       assert.equal(await page.locator('[data-school-entity-type="admission_campus"]').count(), 1);
       assert.match(await page.locator('#result').textContent(), /独立招生实体/);
