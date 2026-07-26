@@ -8,8 +8,27 @@ const OLD_SHELL_CSS = '/shared/ui/shell/family-shell.v3964_0.css?v=3964_0';
 const NEW_SHELL_CSS = '/shared/ui/shell/family-shell.v3965_0.css?v=3965_0';
 const OLD_SHELL_JS = '/shared/ui/shell/family-shell.v3964_1.js?v=3964_1';
 const NEW_SHELL_JS = '/shared/ui/shell/family-shell.v3965_0.js?v=3965_0';
+const OLD_RELEASE_PRESENTER = '/shared/resources/release/release-presenter.v3964_1.js?v=3964_1';
+const NEW_RELEASE_PRESENTER = '/shared/resources/release/release-presenter.v3965_0.js?v=3965_0';
 const OLD_HOME_JS = '/ln-rank/js/ux/family-home.v3955_0.js?v=3955_0';
 const NEW_HOME_JS = '/ln-rank/js/ux/family-home.v3965_0.js?v=3965_0';
+const OLD_DIFFICULTY_JS = '/ln-rank/js/major-difficulty-2026.v3964_1.js?v=3964_1';
+const NEW_DIFFICULTY_JS = '/ln-rank/js/major-difficulty-2026.v3965_0.js?v=3965_0';
+const OLD_STRUCTURE_JS = '/zy2026/assets/zy2026.v3964_1.js?v=3964_1';
+const NEW_STRUCTURE_JS = '/zy2026/assets/zy2026.v3965_0.js?v=3965_0';
+
+const ACTIVE_PAGES = Object.freeze([
+  'index.html',
+  'ln-rank/index.html',
+  'ln-rank/selection-pool.html',
+  'ln-rank/local-mainline.html',
+  'ln-rank/211-mainline.html',
+  'ln2026.html',
+  'zy2026.html',
+  'zy2026/index.html',
+  'tongxue/index.html',
+  'tongxue/changelog.html'
+]);
 
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = file => fs.existsSync(path.join(root, file));
@@ -77,14 +96,37 @@ globalThis.__GAOKAO_HOME_RUNTIME__ = Object.freeze({
   write('ln-rank/js/ux/family-home.v3965_0.js', source);
 }
 
-function updateHomepage() {
-  let source = read('index.html');
+function buildEvidenceWrappers() {
+  write('ln-rank/js/major-difficulty-2026.v3965_0.js', `import '../../shared/resources/release/release-presenter.v3965_0.js?v=3965_0';
+import '../../shared/ui/shell/family-shell.v3965_0.js?v=3965_0';
+await import('./major-difficulty-2026.v3953_0.js?v=3953_0');
+`);
+  write('zy2026/assets/zy2026.v3965_0.js', `import '../../shared/resources/release/release-presenter.v3965_0.js?v=3965_0';
+import '../../shared/ui/shell/family-shell.v3965_0.js?v=3965_0';
+await import('./zy2026.v3955_0.js?v=3955_0');
+`);
+}
+
+function ensureReleaseAttributes(file) {
+  let source = read(file);
   source = source
     .split(OLD_SHELL_CSS).join(NEW_SHELL_CSS)
     .split(OLD_SHELL_JS).join(NEW_SHELL_JS)
+    .split(OLD_RELEASE_PRESENTER).join(NEW_RELEASE_PRESENTER)
     .split(OLD_HOME_JS).join(NEW_HOME_JS)
+    .split(OLD_DIFFICULTY_JS).join(NEW_DIFFICULTY_JS)
+    .split(OLD_STRUCTURE_JS).join(NEW_STRUCTURE_JS)
     .split('data-release="v3.9.64.1"').join(`data-release="${VERSION}"`)
     .split('<span data-current-release>v3.9.64.1</span>').join(`<span data-current-release>${VERSION}</span>`);
+  if (/<body\b/.test(source) && !/<body\b[^>]*\bdata-release=/.test(source)) {
+    source = source.replace(/<body\b/, `<body data-release="${VERSION}"`);
+  }
+  source = source.replace(/(<span data-current-release>)(?:读取中|v3\.9\.64\.1)(<\/span>)/g, `$1${VERSION}$2`);
+  write(file, source);
+}
+
+function updateHomepage() {
+  let source = read('index.html');
   source = source.replace(/\n  <script>\n    const t=new Date\('2027-06-07T09:00:00\+08:00'\)[\s\S]*?setInterval\(r,60000\);\n  <\/script>/, '');
   if (!source.includes(NEW_HOME_JS)) throw new Error('homepage did not activate family-home.v3965_0.js');
   if (!source.includes(NEW_SHELL_CSS) || !source.includes(NEW_SHELL_JS)) throw new Error('homepage shell assets are not v3965_0');
@@ -92,25 +134,30 @@ function updateHomepage() {
   write('index.html', source);
 }
 
-function updateActiveUiReferences() {
-  const activePages = [
-    'index.html',
-    'ln-rank/index.html',
-    'ln-rank/selection-pool.html',
-    'ln-rank/local-mainline.html',
-    'ln-rank/211-mainline.html',
-    'ln2026.html',
-    'zy2026.html',
-    'zy2026/index.html',
-    'tongxue/index.html',
-    'tongxue/changelog.html'
-  ];
-  for (const file of activePages) {
-    replaceAll(file, [
-      [OLD_SHELL_CSS, NEW_SHELL_CSS],
-      [OLD_SHELL_JS, NEW_SHELL_JS]
-    ]);
+function updateActivePages() {
+  for (const file of ACTIVE_PAGES) ensureReleaseAttributes(file);
+  updateHomepage();
+
+  let changelog = read('tongxue/changelog.html');
+  if (!changelog.includes(NEW_RELEASE_PRESENTER)) {
+    changelog = changelog.replace(
+      `<script type="module" src="${NEW_SHELL_JS}"></script>`,
+      `<script type="module" src="${NEW_RELEASE_PRESENTER}"></script>\n<script type="module" src="${NEW_SHELL_JS}"></script>`
+    );
   }
+  if (!changelog.includes('data-current-release')) {
+    changelog = changelog.replace('同学你好 · 更新记录</footer>', `同学你好 · 更新记录｜当前全站发布：<span data-current-release>${VERSION}</span></footer>`);
+  }
+  write('tongxue/changelog.html', changelog);
+
+  for (const file of ACTIVE_PAGES) {
+    const source = read(file);
+    if (!source.includes(`data-release="${VERSION}"`)) throw new Error(`${file} is missing current release data attribute`);
+    if (source.includes('release-presenter.v3964_1.js')) throw new Error(`${file} still activates the old release presenter`);
+  }
+}
+
+function updateRegistries() {
   replaceAll('shared/ui/shell/family-shell.v3965_0.js', [
     ["'/shared/ui/shell/family-shell.v3964_0.css?v=3964_0'", "'/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'"]
   ]);
@@ -120,100 +167,59 @@ function updateActiveUiReferences() {
   replaceAll('shared/resources/resource-registry.js', [
     ["shellCss: '/shared/ui/shell/family-shell.v3964_0.css'", "shellCss: '/shared/ui/shell/family-shell.v3965_0.css'"]
   ]);
+  replaceAll('shared/resources/release/current-release.js', [
+    ["searchIntentState: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js'", "searchIntentState: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js'"]
+  ]);
 }
 
 function updateManifests() {
   for (const file of ['ln-rank/active-assets.json', 'ln-rank/release-meta.json']) {
     const data = JSON.parse(read(file));
     data.familyHomeJs = 'js/ux/family-home.v3965_0.js';
+    data.majorDifficultyJs = 'js/major-difficulty-2026.v3965_0.js';
     data.sharedUiShellCss = '../shared/ui/shell/family-shell.v3965_0.css';
     data.sharedUiShellJs = '../shared/ui/shell/family-shell.v3965_0.js';
+    data.structure2026 = { ...data.structure2026, js: '../zy2026/assets/zy2026.v3965_0.js' };
     data.jsEntry = ensureArraySwap(data.jsEntry, 'js/ux/family-home.v3955_0.js', 'js/ux/family-home.v3965_0.js');
+    data.jsEntry = ensureArraySwap(data.jsEntry, 'js/major-difficulty-2026.v3964_1.js', 'js/major-difficulty-2026.v3965_0.js');
+    data.jsEntry = ensureArraySwap(data.jsEntry, '../zy2026/assets/zy2026.v3964_1.js', '../zy2026/assets/zy2026.v3965_0.js');
     data.cssEntry = ensureArraySwap(data.cssEntry, '../shared/ui/shell/family-shell.v3964_0.css', '../shared/ui/shell/family-shell.v3965_0.css');
     write(file, JSON.stringify(data, null, 2));
   }
+}
+
+function ensureHeaderRule(headers, pathname, headerLine) {
+  const rule = `${pathname}\n  ${headerLine}`;
+  return headers.includes(rule) ? headers : `${headers.trimEnd()}\n\n${rule}\n`;
 }
 
 function updateHeaders() {
   let headers = read('_headers');
   for (const asset of [
     '/ln-rank/js/ux/family-home.v3965_0.js',
-    '/shared/ui/shell/family-shell.v3965_0.css'
-  ]) {
-    const rule = `${asset}\n  Cache-Control: public, max-age=31536000, immutable`;
-    if (!headers.includes(rule)) headers += `\n${rule}\n`;
-  }
+    '/shared/ui/shell/family-shell.v3965_0.css',
+    '/ln-rank/js/major-difficulty-2026.v3965_0.js',
+    '/zy2026/assets/zy2026.v3965_0.js'
+  ]) headers = ensureHeaderRule(headers, asset, 'Cache-Control: public, max-age=31536000, immutable');
+  headers = ensureHeaderRule(headers, '/zy2026/assets/zy2026.v3965_0.js', 'Content-Type: application/javascript; charset=utf-8');
+  headers = ensureHeaderRule(headers, '/tongxue/changelog.html', 'Cache-Control: no-cache, max-age=0, must-revalidate');
   write('_headers', headers);
 }
 
-function updateReleasePreparation() {
-  const file = 'tools/prepare-release-v3965.mjs';
-  let source = read(file);
+function verifyReleasePreparation() {
+  const source = read('tools/prepare-release-v3965.mjs');
   const hook = "await import('./fix-home-version-ownership-v3965.mjs');";
-  if (!source.includes(hook)) {
-    source = source.replace(
-      "console.log(JSON.stringify({ ok: true, version: VERSION, asset: ASSET }, null, 2));",
-      `${hook}\nconsole.log(JSON.stringify({ ok: true, version: VERSION, asset: ASSET }, null, 2));`
-    );
-  }
-  if (!source.includes(hook)) throw new Error('prepare-release-v3965.mjs could not be connected to homepage ownership sync');
-  write(file, source);
-}
-
-function updateAudits() {
-  let runtimeAudit = read('tools/audit-runtime-ownership-v3965.mjs');
-  if (!runtimeAudit.includes("const home = read('index.html');")) {
-    runtimeAudit = runtimeAudit.replace(
-      "const main = read('ln-rank/index.html');",
-      "const home = read('index.html');\nconst homeRuntime = read('ln-rank/js/ux/family-home.v3965_0.js');\nconst shellRuntime = read('shared/ui/shell/family-shell.v3965_0.js');\nconst main = read('ln-rank/index.html');"
-    );
-  }
-  const ownershipAssertions = `
-assert.ok(home.includes('/ln-rank/js/ux/family-home.v3965_0.js?v=3965_0'));
-assert.ok(home.includes('/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'));
-assert.ok(home.includes('/shared/ui/shell/family-shell.v3965_0.js?v=3965_0'));
-assert.ok(home.includes('data-release="v3.9.65.0"'));
-assert.ok(home.includes('<span data-current-release>v3.9.65.0</span>'));
-assert.ok(!home.includes('family-shell.v3964_'));
-assert.ok(!home.includes('family-home.v3955_0.js'));
-assert.ok(!home.includes("const t=new Date('2027-06-07T09:00:00+08:00')"));
-assert.ok(homeRuntime.includes("HOME_RUNTIME_VERSION = 'family-home-runtime-v3965_0'"));
-assert.ok(homeRuntime.includes('mountCurrentRelease'));
-assert.ok(homeRuntime.includes('countdownOwner: HOME_RUNTIME_VERSION'));
-assert.ok(shellRuntime.includes('/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'));
-assert.equal(active.familyHomeJs, 'js/ux/family-home.v3965_0.js');
-assert.equal(active.sharedUiShellCss, '../shared/ui/shell/family-shell.v3965_0.css');
-assert.ok(active.jsEntry.includes('js/ux/family-home.v3965_0.js'));
-assert.ok(!active.jsEntry.includes('js/ux/family-home.v3955_0.js'));
-assert.ok(active.cssEntry.includes('../shared/ui/shell/family-shell.v3965_0.css'));
-assert.ok(!active.cssEntry.includes('../shared/ui/shell/family-shell.v3964_0.css'));
-`;
-  if (!runtimeAudit.includes("assert.equal(active.familyHomeJs, 'js/ux/family-home.v3965_0.js');")) {
-    runtimeAudit = runtimeAudit.replace("assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);", `assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);${ownershipAssertions}`);
-  }
-  write('tools/audit-runtime-ownership-v3965.mjs', runtimeAudit);
-
-  let staticAudit = read('tools/audit-static-content-types-v3965.mjs');
-  staticAudit = staticAudit
-    .split("['/shared/ui/shell/family-shell.v3964_0.css', 'text/css']")
-    .join("['/shared/ui/shell/family-shell.v3965_0.css', 'text/css'],\n  ['/ln-rank/js/ux/family-home.v3965_0.js', 'application/javascript']");
-  if (!staticAudit.includes("'/ln-rank/js/ux/family-home.v3965_0.js',")) {
-    staticAudit = staticAudit.replace(
-      "  '/shared/ui/shell/family-shell.v3965_0.js',",
-      "  '/shared/ui/shell/family-shell.v3965_0.js',\n  '/shared/ui/shell/family-shell.v3965_0.css',\n  '/ln-rank/js/ux/family-home.v3965_0.js',"
-    );
-  }
-  write('tools/audit-static-content-types-v3965.mjs', staticAudit);
+  if (!source.includes(hook)) throw new Error('prepare-release-v3965.mjs is not connected to release ownership sync');
 }
 
 write('shared/ui/shell/family-shell.v3965_0.css', read('shared/ui/shell/family-shell.v3964_0.css'));
 buildHomeRuntime();
-updateHomepage();
-updateActiveUiReferences();
+buildEvidenceWrappers();
+updateActivePages();
+updateRegistries();
 updateManifests();
 updateHeaders();
-updateReleasePreparation();
-updateAudits();
+verifyReleasePreparation();
 
 console.log(JSON.stringify({
   ok: true,
@@ -221,5 +227,9 @@ console.log(JSON.stringify({
   asset: ASSET,
   homeRuntime: 'family-home-runtime-v3965_0',
   shellCss: 'family-shell.v3965_0.css',
+  evidenceWrappers: [
+    'major-difficulty-2026.v3965_0.js',
+    'zy2026.v3965_0.js'
+  ],
   singleReleaseOwner: true
 }, null, 2));

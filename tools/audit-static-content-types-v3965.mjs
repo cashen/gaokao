@@ -36,6 +36,8 @@ const types = new Map([
   ['/shared/ui/shell/family-shell.v3965_0.js', 'application/javascript'],
   ['/shared/resources/release/runtime-cache-contract.v3965_0.js', 'application/javascript'],
   ['/tongxue/app/tongxue-runtime-v159.js', 'application/javascript'],
+  ['/ln-rank/js/major-difficulty-2026.v3965_0.js', 'application/javascript'],
+  ['/zy2026/assets/zy2026.v3965_0.js', 'application/javascript'],
   ['/ln-rank/css/ln-rank-workspace.v3964_0.css', 'text/css'],
   ['/shared/ui/shell/family-shell.v3965_0.css', 'text/css'],
   ['/ln-rank/js/ux/family-home.v3965_0.js', 'application/javascript']
@@ -47,7 +49,9 @@ for (const [pathname, expected] of types) {
 
 for (const pathname of [
   '/', '/index.html', '/ln-rank/', '/ln-rank/index.html', '/ln-rank/selection-pool.html',
-  '/ln2026.html', '/zy2026/', '/tongxue/', '/tongxue/index.html'
+  '/ln-rank/local-mainline.html', '/ln-rank/211-mainline.html', '/ln2026.html',
+  '/zy2026.html', '/zy2026/', '/zy2026/index.html', '/tongxue/', '/tongxue/index.html',
+  '/tongxue/changelog.html', '/shared/resources/release/current-release.js'
 ]) {
   assert.deepEqual(values(pathname, 'cache-control'), ['no-cache, max-age=0, must-revalidate'], `${pathname} must revalidate`);
 }
@@ -59,7 +63,9 @@ for (const pathname of [
   '/shared/ui/shell/family-shell.v3965_0.js',
   '/shared/resources/release/runtime-cache-contract.v3965_0.js',
   '/tongxue/app/tongxue-runtime-v159.js',
-  '/tongxue/app/tongxue-runtime-controller-v159.js'
+  '/tongxue/app/tongxue-runtime-controller-v159.js',
+  '/ln-rank/js/major-difficulty-2026.v3965_0.js',
+  '/zy2026/assets/zy2026.v3965_0.js'
 ]) {
   assert.deepEqual(values(pathname, 'cache-control'), ['public, max-age=31536000, immutable'], `${pathname} must have one immutable owner`);
 }

@@ -48,7 +48,7 @@ export const CURRENT_RELEASE = Object.freeze({
     searchIntentStructure: '/ln-rank/index.html',
     runtimeCache: '/shared/resources/release/runtime-cache-contract.v3965_0.js',
     runtimeBootstrap: '/ln-rank/js/app.v3965_0.js',
-    searchIntentState: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js',
+    searchIntentState: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js',
     schoolResults: '/ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js',
     mainPageStyles: '/ln-rank/css/ln-rank-workspace.v3964_0.css',
     selectionPageStyles: '/ln-rank/css/selection-pool.v3964_0.css',
