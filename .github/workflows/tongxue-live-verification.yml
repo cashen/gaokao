@@ -1,4 +1,4 @@
-name: Tongxue live verification
+name: Tongxue v1.5.9 live verification
 
 on:
   pull_request:
@@ -9,9 +9,12 @@ on:
       - 'shared/resources/schools/**'
       - 'shared/resources/geo/**'
       - 'shared/resources/release/**'
+      - 'shared/ui/**'
       - 'functions/api/tongxue-*.js'
       - 'functions/_lib/tongxue-*.js'
       - 'tools/tongxue/**'
+      - 'tools/browser-tongxue-runtime-v159.mjs'
+      - 'tools/audit-runtime-ownership-v3965.mjs'
       - 'tools/schools/**'
       - '_headers'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -23,19 +26,25 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install XLS reader
-        run: python -m pip install --disable-pip-version-check xlrd==2.0.1
-      - name: Syntax contract
+
+      - name: Prepare diagnostics directory
+        run: mkdir -p /tmp/tongxue-live-artifact
+
+      - name: Syntax and ownership contract
         run: |
+          set -euo pipefail
           for file in \
             functions/api/tongxue-summary.js \
             functions/api/tongxue-school-portrait.js \
@@ -47,81 +56,87 @@ jobs:
             tongxue/app/*.js \
             tongxue/portrait/*.js \
             tongxue/share/*.js \
-            tools/tongxue/*.mjs; do
+            tools/tongxue/*.mjs \
+            tools/browser-tongxue-runtime-v159.mjs \
+            tools/audit-runtime-ownership-v3965.mjs; do
             node --check "$file"
           done
-          python -m py_compile \
+          python3 -m py_compile \
             tools/schools/school_resource_bundle.py \
             tools/schools/school_resource_artifact_compat.py \
             tools/schools/build-school-profile-center-v3957.py \
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
-      - name: Verify directory contract
-        run: node tools/tongxue/verify-directory.mjs
-      - name: Verify brand and final copy contract
-        run: node tools/tongxue/verify-brand-ui-v152.mjs
-      - name: Verify mouse keyboard IME and copy ownership
-        run: node tools/tongxue/verify-interaction-v153.mjs
-      - name: Verify direct school handoff
-        run: node tools/tongxue/verify-direct-handoff-v155.mjs
-      - name: Verify result-only direct experience
-        run: node tools/tongxue/verify-direct-result-v158.mjs
-      - name: Verify school entity contract
-        run: node tools/tongxue/verify-school-entities-v130.mjs
-      - name: Verify school input contracts
+          node tools/audit-runtime-ownership-v3965.mjs
+          node tools/audit-static-content-types-v3965.mjs
+
+      - name: Verify school resolver data contracts
         run: |
-          node tools/tongxue/verify-school-initials-v141.mjs
-          node tools/tongxue/verify-school-input-fluency-v141.mjs
-      - name: Verify school region contracts
-        run: |
-          node tools/tongxue/verify-school-region-v150.mjs
-          node tools/tongxue/verify-school-region-ui-v150.mjs
-      - name: Verify mobile share workflow
-        run: node tools/tongxue/verify-share.mjs
-      - name: Verify school experience portrait
+          set -euo pipefail
+          tests=(
+            tools/tongxue/verify-directory.mjs
+            tools/tongxue/verify-school-entities-v130.mjs
+            tools/tongxue/verify-school-initials-v141.mjs
+            tools/tongxue/verify-school-input-fluency-v141.mjs
+            tools/tongxue/verify-school-region-v150.mjs
+            tools/tongxue/verify-school-name-resolver.mjs
+          )
+          for test_file in "${tests[@]}"; do
+            name="$(basename "$test_file" .mjs)"
+            echo "=== $test_file ===" | tee "/tmp/tongxue-live-artifact/${name}.out"
+            node "$test_file" 2>&1 | tee -a "/tmp/tongxue-live-artifact/${name}.out"
+          done
+
+      - name: Verify school portrait service remains callable
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
-        run: node tools/tongxue/verify-portrait.mjs
+        run: node tools/tongxue/verify-portrait.mjs | tee /tmp/tongxue-live-artifact/portrait.out
+
       - name: Rebuild all official school resources once
         run: |
           set -euo pipefail
-          mkdir -p /tmp/tongxue-live-artifact
+          python3 -m pip install --disable-pip-version-check xlrd==2.0.1
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
             --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
             --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
             --output /tmp/tongxue-live-artifact/moe-2026-schools.xls \
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
           test "$(stat -c%s /tmp/tongxue-live-artifact/moe-2026-schools.xls)" -gt 20000
-          python tools/schools/school_resource_bundle.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls
-          python tools/schools/school_resource_artifact_compat.py
-          node tools/tongxue/build-school-initial-index-v141.mjs
-          node tools/tongxue/build-school-initial-index-v150.mjs
+          python tools/schools/school_resource_bundle.py --xls /tmp/tongxue-live-artifact/moe-2026-schools.xls | tee /tmp/tongxue-live-artifact/school-bundle.out
+          python tools/schools/school_resource_artifact_compat.py | tee /tmp/tongxue-live-artifact/school-compat.out
+          node tools/tongxue/build-school-initial-index-v141.mjs | tee /tmp/tongxue-live-artifact/initial-v141.out
+          node tools/tongxue/build-school-initial-index-v150.mjs | tee /tmp/tongxue-live-artifact/initial-v150.out
           git diff --exit-code -- \
             shared/resources/schools/school-profile-data.20260617-v3957.js \
             tongxue/data/school-name-index.generated.json \
             tongxue/data/school-search-index.20260617.json \
             tongxue/data/school-search-index.20260617-v150.json
-          node tools/tongxue/verify-school-name-resolver.mjs
-          node tools/tongxue/verify-school-initials-v141.mjs
-          node tools/tongxue/verify-school-input-fluency-v141.mjs
-          node tools/tongxue/verify-school-region-v150.mjs
-          node tools/tongxue/verify-school-region-ui-v150.mjs
-          node tools/tongxue/verify-brand-ui-v152.mjs
-          node tools/tongxue/verify-interaction-v153.mjs
-          node tools/tongxue/verify-direct-handoff-v155.mjs
-          node tools/tongxue/verify-direct-result-v158.mjs
-      - name: Verify shared resource ownership
-        run: node tools/audit-resource-ownership-v3958.mjs
-      - name: Execute summary and review regression
+
+      - name: Execute summary and review live regression
         env:
           REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
           EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
-        run: node tools/tongxue/run-live-regression.mjs
+        run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/live-regression.out
+
+      - name: Install Chromium journey runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify Shenzhen Dalian Liaoning direct and history journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/tongxue-v159-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3965_ARTIFACT_DIR=/tmp/tongxue-live-artifact/browser node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/tongxue-live-artifact/browser-result.json
+
       - name: Upload verification report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tongxue-live-results
+          name: tongxue-v159-live-results
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3

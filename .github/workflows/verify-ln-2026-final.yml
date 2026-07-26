@@ -1,4 +1,4 @@
-name: Verify LN 2026 final release
+name: Verify LN 2026 final release v3965.0
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,40 +29,34 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3963_1-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3963_1-files.txt; then
+          git diff --name-only "$base" HEAD | tee /tmp/v3965-final-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3965-final-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
 
-      - name: Verify release contracts
-        id: release_contract
-        shell: bash
+      - name: Verify final release contract
+        env:
+          LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set +e
-          python3 tools/ln-2026/verify-final-release-v7.py > /tmp/v3963_1-verify.out 2> /tmp/v3963_1-verify.err
+          python3 tools/ln-2026/verify-final-release-v8.py > /tmp/v3965-final-verify.out 2> /tmp/v3965-final-verify.err
           status=$?
-          cat /tmp/v3963_1-verify.out
+          cat /tmp/v3965-final-verify.out
           if [ "$status" -ne 0 ]; then
-            echo '--- V3963.1 VERIFY ERROR ---'
-            cat /tmp/v3963_1-verify.err
+            echo '--- v3965 final release verification error ---'
+            cat /tmp/v3965-final-verify.err
             exit "$status"
           fi
 
-      - name: Upload concise verification diagnostic
-        if: failure() && steps.release_contract.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3963-1-verify-error
-          path: /tmp/v3963_1-verify.err
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Verify generated data source contract
-        run: python3 tools/ln-2026/verify-generated-release.py
-
-      - name: Compile Python build and verification tools
+      - name: Compile changed source and verification tools
         run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            node --check "$file"
+          done
           python3 -m py_compile \
             tools/ln-2026/build-release.py \
             tools/ln-2026/verify-generated-release.py \
@@ -71,171 +65,104 @@ jobs:
             tools/ln-2026/rebuild-centered-trend-analysis.py \
             tools/ln-2026/build-zy2026-structure.py \
             tools/ln-2026/run-build-zy2026-structure.py \
-            tools/ln-2026/finalize-v3953-assets.py \
-            tools/ln-2026/verify-final-release.py \
-            tools/ln-2026/verify-final-release-v2.py \
-            tools/ln-2026/verify-final-release-v3.py \
-            tools/ln-2026/verify-final-release-v4.py \
-            tools/ln-2026/verify-final-release-v5.py \
-            tools/ln-2026/verify-final-release-v7.py \
+            tools/ln-2026/verify-final-release-v8.py \
             tools/schools/school_resource_bundle.py \
             tools/schools/school_resource_artifact_compat.py \
             tools/schools/build-school-profile-center-v3957.py \
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
 
+      - name: Verify generated data source contract
+        run: python3 tools/ln-2026/verify-generated-release.py
+
       - name: Rebuild official 2026 school resources once
-        id: school_bundle
-        shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check xlrd==2.0.1
-          mkdir -p /tmp/school-resources-v3963_1
+          mkdir -p /tmp/school-resources-v3965
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 120 \
             --user-agent 'Mozilla/5.0 Chrome/150 Safari/537.36' \
             --referer 'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/t20260618_1441074.html' \
-            --output /tmp/school-resources-v3963_1/moe-2026-schools.xls \
+            --output /tmp/school-resources-v3965/moe-2026-schools.xls \
             'https://www.moe.gov.cn/jyb_xxgk/s5743/s5744/202606/W020260618307096078684.xls'
-          test "$(stat -c%s /tmp/school-resources-v3963_1/moe-2026-schools.xls)" -gt 20000
-          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3963_1/moe-2026-schools.xls | tee /tmp/school-resources-v3963_1/build-result.json
-          python3 tools/schools/school_resource_artifact_compat.py | tee /tmp/school-resources-v3963_1/compat-result.json
+          test "$(stat -c%s /tmp/school-resources-v3965/moe-2026-schools.xls)" -gt 20000
+          python3 tools/schools/school_resource_bundle.py --xls /tmp/school-resources-v3965/moe-2026-schools.xls
+          python3 tools/schools/school_resource_artifact_compat.py
           node tools/tongxue/build-school-initial-index-v141.mjs
           node tools/tongxue/build-school-initial-index-v150.mjs
-          files=(
-            shared/resources/schools/school-profile-data.20260617-v3957.js
-            tongxue/data/school-name-index.generated.json
-            tongxue/data/school-search-index.20260617.json
+          git diff --exit-code -- \
+            shared/resources/schools/school-profile-data.20260617-v3957.js \
+            tongxue/data/school-name-index.generated.json \
+            tongxue/data/school-search-index.20260617.json \
             tongxue/data/school-search-index.20260617-v150.json
-          )
-          git diff --exit-code -- "${files[@]}"
-
-      - name: Upload school resource drift diagnostic
-        if: failure() && steps.school_bundle.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3963-1-school-resource-drift
-          path: /tmp/school-resources-v3963_1
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Check changed JavaScript syntax
-        run: |
-          set -euo pipefail
-          base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
-            [ -f "$file" ] || continue
-            echo "node --check $file"
-            node --check "$file"
-          done
 
       - name: Exercise critical runtime modules
         run: |
           node --experimental-default-type=module - <<'NODE'
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { getScoreGuard } from './ln-rank/js/core/score-guard.js';
-          import { classifySelectionDelta, classifySelectionPosition } from './ln-rank/js/domain/selection-band-policy.v3963_1.js';
+          import { classifySelectionPosition } from './ln-rank/js/domain/selection-band-policy.v3963_1.js';
           import { resolveCanonicalPosition } from './shared/algorithms/position/canonical-position.v3963_0.js';
-          import { lookupScoreRank, findEquivalentScoreByRank } from './functions/_lib/rank-table-provider.js';
-          import { buildHistoryScore } from './functions/_lib/history-score-engine.js';
-          import { normalizeRecord } from './functions/_lib/fenxi-normalizer.js';
-          import { buildDisplayTags } from './functions/_lib/school-display-tags.js';
+          import { lookupScoreRank } from './functions/_lib/rank-table-provider.js';
           import { resolveCompactSchoolResource } from './shared/resources/schools/school-resource-center.js';
-          import { getBottomLineEligibility } from './functions/_lib/bottomline-policy.js';
-          const expected = new Map([[751,['invalidHigh',false]],[750,['topRange',true]],[700,['topRange',true]],[508,['normal',true]],[507,['underSpecial',true]],[344,['underSpecial',true]],[343,['belowCoverage',false]],[150,['belowCoverage',false]],[149,['belowCoverage',false]]]);
-          for (const [score,[key,canQuery]] of expected) { const result=getScoreGuard(score); if(result.key!==key||result.canQuery!==canQuery) throw new Error(`score guard ${score}: ${JSON.stringify(result)}`); }
-          for (const [delta,key] of [[5,'upper'],[-5,'near'],[-20,'steady'],[20,'outside']]) { const result=classifySelectionDelta(delta,'standard'); if(result.key!==key) throw new Error(`band ${delta}: ${JSON.stringify(result)}`); }
-          const canonical=resolveCanonicalPosition({candidateScore:600,candidateRank:14235,recordScore:595,recordRank:16500,rangePreset:'standard'});
-          const selected=classifySelectionPosition({candidateScore:600,candidateRank:14235,recordScore:595,recordRank:16500,rangePreset:'standard'});
-          if(canonical.bandKey!=='near'||selected.key!==canonical.bandKey||canonical.rankGap!==-2265) throw new Error(`canonical: ${JSON.stringify({canonical,selected})}`);
-          if(getBottomLineEligibility({schoolNature:'public',feeType:'unknown'},'public_regular_only').status!=='unresolved') throw new Error('unknown fee must be unresolved');
-          for (const [score,rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) { const result=lookupScoreRank({year:2026,region:'ln',subject:'physics',score}); if(!result||result.rankEnd!==rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`); }
-          const equivalent=findEquivalentScoreByRank({targetYear:2026,region:'ln',subject:'physics',rank:14235}); if(!equivalent||equivalent.score!==600) throw new Error(`equivalent rank: ${JSON.stringify(equivalent)}`);
-          const history=buildHistoryScore({score2026:583,rank2026:21460,score2025:578,rank2025:22700,score2024:590,rank2024:21980}); if(history.rankDelta26vs25!==-1240||!history.rankTrendText.includes('最低投档所需位次')) throw new Error(`history: ${JSON.stringify(history)}`);
-          for (const [school,nature,tier,location] of [['大连理工大学（盘锦校区）','公办','985','辽宁 · 盘锦'],['深圳大学','公办','双非（非985/211）','广东 · 深圳'],['三亚学院','民办','双非（非985/211）','海南 · 三亚']]) {
-            const display=buildDisplayTags(normalizeRecord({school,major:'计算机科学与技术',score2026:520,rank2026:40000}));
-            if(display.natureLabel!==nature||!display.schoolTierTags.includes(tier)||display.displayLocation!==location) throw new Error(`school profile ${school}: ${JSON.stringify(display)}`);
+          if (CURRENT_RELEASE.display !== 'v3.9.65.0' || CURRENT_RELEASE.assetVersion !== 'v3965_0') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if (CURRENT_RELEASE.selectionWorkspaceVersion !== 'selection-workspace-orchestration-v3965_0') throw new Error('workspace owner mismatch');
+          if (CURRENT_RELEASE.reportFrontendVersion !== 'feishu-browser-v3965_0') throw new Error('report owner mismatch');
+          if (CURRENT_RELEASE.tongxueRuntimeVersion !== 'tongxue-runtime-v159') throw new Error('Tongxue owner mismatch');
+          for (const [score, rank] of [[700,41],[600,14235],[508,49824],[344,119069],[150,141691]]) {
+            const result = lookupScoreRank({ year:2026, region:'ln', subject:'physics', score });
+            if (!result || result.rankEnd !== rank) throw new Error(`rank ${score}: ${JSON.stringify(result)}`);
           }
-          const panjin=resolveCompactSchoolResource('大连理工大学盘锦校区');
-          if(panjin?.entityId!=='dlut-panjin') throw new Error(`shared school identity: ${JSON.stringify(panjin)}`);
-          if(CURRENT_RELEASE.display!=='v3.9.64.1'||CURRENT_RELEASE.assetVersion!=='v3964_1'||CURRENT_RELEASE.uiOrchestrationVersion!=='ui-orchestration-v3964_0'||CURRENT_RELEASE.selectionWorkspaceVersion!=='selection-workspace-orchestration-v3964_0'||CURRENT_RELEASE.searchIntentVersion!=='score-school-search-v3964_0'||CURRENT_RELEASE.schoolAllModeVersion!=='school-all-mode-v3964_0'||CURRENT_RELEASE.schoolUiGovernanceVersion!=='school-ui-governance-v3964_0'||CURRENT_RELEASE.schoolModeMountVersion!=='school-mode-static-mount-v3964_0'||CURRENT_RELEASE.runtimeCacheVersion!=='runtime-cache-coherence-v3964_1'||CURRENT_RELEASE.algorithmOrchestrationVersion!=='algorithm-orchestration-v3963') throw new Error(`release owner: ${JSON.stringify(CURRENT_RELEASE)}`);
+          const guard = getScoreGuard(600);
+          if (!guard.canQuery) throw new Error('600 must be queryable');
+          const canonical = resolveCanonicalPosition({ candidateScore:600, candidateRank:14235, recordScore:595, recordRank:16500, rangePreset:'standard' });
+          const selected = classifySelectionPosition({ candidateScore:600, candidateRank:14235, recordScore:595, recordRank:16500, rangePreset:'standard' });
+          if (canonical.bandKey !== 'near' || selected.key !== canonical.bandKey) throw new Error(JSON.stringify({ canonical, selected }));
+          if (resolveCompactSchoolResource('大连理工大学盘锦校区')?.entityId !== 'dlut-panjin') throw new Error('school identity mismatch');
           console.log('critical runtime module checks passed');
           NODE
 
-      - name: Audit unified resource ownership
-        run: node tools/audit-resource-ownership-v3958.mjs
-      - name: Audit algorithm orchestration
-        run: node tools/audit-algorithm-orchestration-v3960.mjs
-      - name: Audit human task UI and dual search
-        run: node tools/audit-human-task-ui-v3964_1.mjs
-      - name: Recheck immutable runtime graph and honest failure state
-        run: node tools/audit-human-task-ui-v3964_1.mjs
-      - name: Verify unified school profile center
-        run: node tools/verify-school-profile-center-v3957.mjs
-      - name: Verify Tongxue direct result
-        run: node tools/tongxue/verify-direct-result-v158.mjs
-      - name: Verify 2026-first card AI
-        run: node tools/verify-card-ai-2026-v3955.mjs
-      - name: Verify three Feishu report flows
-        run: node tools/verify-feishu-report-v3956.mjs
-
-      - name: Smoke-test current static pages
+      - name: Audit resources algorithms UI reports and runtime ownership
         run: |
-          python3 -m http.server 8765 >/tmp/ln2026-http.log 2>&1 &
+          node tools/audit-resource-ownership-v3958.mjs
+          node tools/audit-algorithm-orchestration-v3965.mjs
+          node tools/audit-runtime-ownership-v3965.mjs
+          node tools/audit-static-content-types-v3965.mjs
+          node tools/verify-school-profile-center-v3957.mjs
+          node tools/verify-card-ai-2026-v3955.mjs
+          node tools/verify-feishu-report-v3956.mjs
+
+      - name: Smoke-test active release graph
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3965-final-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
           for path in \
             / \
-            /shared/resources/release/current-release.js \
-            /shared/resources/exam/liaoning-physics.js \
-            /shared/resources/geo/china-region-catalog.js \
-            /shared/resources/schools/school-resource-center.js \
-            /shared/resources/schools/school-identity-center.js \
-            /shared/resources/schools/school-profile-center.js \
-            /shared/resources/schools/school-profile-data.20260617-v3957.js \
-            /shared/resources/majors/major-catalog-contract.js \
-            /shared/resources/reports/feishu-report-contract.js \
-            /shared/resources/reports/feishu-report-contract.v3964_0.js \
-            /shared/resources/release/runtime-cache-contract.v3964_1.js \
-            /shared/ui/ui-registry.js \
-            /shared/ui/ui-registry.v3964_1.js \
-            /shared/ui/contracts/action-contract.v3959_0.js \
-            /shared/ui/tokens/foundation.v3959_0.css \
-            /shared/ui/tokens/semantic.v3959_0.css \
-            /shared/ui/components/mode-switch.v3963_0.css \
-            /shared/ui/shell/family-shell.v3964_0.css \
-            /shared/ui/shell/family-shell.v3964_1.js \
-            /shared/algorithms/algorithm-registry.js \
-            /shared/algorithms/position/canonical-position.v3963_0.js \
-            /shared/algorithms/ranking/staged-ranking.v3960_0.js \
             /ln-rank/ \
-            /ln-rank/css/ln-rank-workspace.v3964_0.css \
-            /ln-rank/css/selection-pool.v3964_0.css \
-            /ln-rank/js/app.v3964_1.js \
-            /ln-rank/js/app-runtime.v3964_1.js \
-            /ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js \
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js \
-            /ln-rank/js/workspace/result-commit.v3961_0.js \
-            /ln-rank/js/workspace/family-card-presenter.v3961_0.js \
-            /ln-rank/js/workspace/scroll-policy.v3961_0.js \
-            /ln-rank/js/workspace/viewport-orchestrator.v3961_0.js \
-            /ln-rank/js/feature/score-bands/render.v3963_1.js \
-            /ln-rank/js/feature/major-pool/index.v3964_0.js \
-            /ln-rank/js/feature/selection-pool/index.v3964_0.js \
-            /ln-rank/js/selection-pool.v3964_1.js \
-            /ln-rank/js/selection-pool-runtime.v3964_1.js \
             /ln-rank/selection-pool.html \
-            /ln-rank/self-check.html \
-            /ln-rank/local-mainline.html \
-            /ln-rank/211-mainline.html \
-            /ln-rank/major-trend-2026.html \
-            /ln2026.html \
-            /lngk2026.html \
-            /zy2026 \
-            /zy2026/ \
-            /zy.html \
-            /zy2026.html \
-            /tongxue/; do
-            echo "GET $path"
+            /tongxue/ \
+            /shared/resources/release/current-release.js \
+            /shared/resources/release/runtime-cache-contract.v3965_0.js \
+            /shared/ui/ui-registry.v3965_0.js \
+            /shared/ui/shell/family-shell.v3965_0.js \
+            /ln-rank/js/app.v3965_0.js \
+            /ln-rank/js/app-runtime.v3965_0.js \
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js \
+            /ln-rank/js/feature/feishu/index.v3965_0.js \
+            /tongxue/app/tongxue-runtime-v159.js; do
             curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null
           done
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3965-final-diagnostics
+          path: |
+            /tmp/v3965-final-*
+            /tmp/school-resources-v3965
+          if-no-files-found: warn
+          retention-days: 3

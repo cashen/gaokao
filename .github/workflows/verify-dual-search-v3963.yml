@@ -1,4 +1,4 @@
-name: Verify human task UI v3964.1
+name: Verify runtime ownership v3965.0
 
 on:
   pull_request:
@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  human-task-ui:
+  runtime-ownership:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,13 +29,13 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3964_1-protected-paths.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3964_1-protected-paths.txt; then
+          git diff --name-only "$base" HEAD | tee /tmp/v3965-protected-paths.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3965-protected-paths.txt; then
             echo 'Protected path changed'
             exit 1
           fi
 
-      - name: Check changed JavaScript syntax
+      - name: Check changed source syntax
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
@@ -44,29 +44,42 @@ jobs:
             echo "node --check $file"
             node --check "$file"
           done
-          python3 -m py_compile tools/ln-2026/verify-final-release-v7.py
+          python3 -m py_compile tools/ln-2026/verify-final-release-v8.py
 
-      - name: Verify final release contract
+      - name: Verify v3.9.65.0 release contract
         env:
           LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python3 tools/ln-2026/verify-final-release-v7.py
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release-v8.py > /tmp/v3965-release-verify.out 2> /tmp/v3965-release-verify.err
+          status=$?
+          cat /tmp/v3965-release-verify.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- v3965 release verification error ---'
+            cat /tmp/v3965-release-verify.err
+            exit "$status"
+          fi
 
-      - name: Audit ownership, readiness and human task flow
-        run: node tools/audit-human-task-ui-v3964_1.mjs
+      - name: Audit runtime ownership and active graph
+        run: node tools/audit-runtime-ownership-v3965.mjs
 
-      - name: Audit active static resource Content-Type ownership
-        run: node tools/audit-static-content-types-v3964_1.mjs
+      - name: Audit MIME and cache ownership
+        run: node tools/audit-static-content-types-v3965.mjs
 
-      - name: Verify Feishu 2026 primary and history appendix
+      - name: Verify Feishu year hierarchy and report builders
         run: node tools/verify-feishu-report-v3956.mjs
 
-      - name: Verify Tongxue shared shell and direct result
-        run: node tools/tongxue/verify-direct-result-v158.mjs
+      - name: Verify shared resource and algorithm owners
+        run: |
+          node tools/audit-resource-ownership-v3958.mjs
+          node tools/audit-algorithm-orchestration-v3965.mjs
+          node tools/verify-school-profile-center-v3957.mjs
+          node tools/verify-card-ai-2026-v3955.mjs
 
       - name: Smoke-test governed assets
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3964_1-smoke-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3965-smoke-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
@@ -77,22 +90,24 @@ jobs:
             /ln2026.html
             /zy2026/
             /tongxue/
-            /ln-rank/js/app.v3964_1.js
-            /ln-rank/js/app-runtime.v3964_1.js
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js
-            /ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js
-            /ln-rank/js/feature/major-pool/render.v3964_0.js
-            /ln-rank/js/selection-pool.v3964_1.js
-            /ln-rank/js/selection-pool-runtime.v3964_1.js
-            /ln-rank/css/ln-rank-workspace.v3964_0.css
-            /ln-rank/css/selection-pool.v3964_0.css
+            /ln-rank/js/app.v3965_0.js
+            /ln-rank/js/app-runtime.v3965_0.js
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js
+            /ln-rank/js/feature/feishu/index.v3965_0.js
+            /ln-rank/js/feature/feishu/report-state.v3965_0.js
+            /ln-rank/js/feature/feishu/report-render.v3965_0.js
+            /ln-rank/js/feature/feishu/report-controller.v3965_0.js
+            /ln-rank/js/selection-pool.v3965_0.js
+            /ln-rank/js/selection-pool-runtime.v3965_0.js
             /shared/resources/release/current-release.js
-            /shared/resources/release/runtime-cache-contract.v3964_1.js
-            /shared/resources/reports/feishu-report-contract.v3964_0.js
-            /shared/ui/ui-registry.v3964_1.js
-            /shared/ui/shell/family-shell.v3964_0.css
-            /shared/ui/shell/family-shell.v3964_1.js
-            /tongxue/app/tongxue-performance-v158.js
+            /shared/resources/release/runtime-cache-contract.v3965_0.js
+            /shared/ui/ui-registry.v3965_0.js
+            /shared/ui/shell/family-shell.v3965_0.js
+            /tongxue/app/tongxue-runtime-v159.js
+            /tongxue/app/tongxue-runtime-controller-v159.js
+            /tongxue/app/tongxue-runtime-search-view-v159.js
+            /tongxue/app/tongxue-runtime-result-view-v159.js
+            /tongxue/app/tongxue-runtime-utils-v159.js
           )
           for path in "${paths[@]}"; do
             echo "GET $path"
@@ -104,26 +119,31 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify PC Pad Android score school selection and Feishu
+      - name: Verify complete mainline and ownership journeys
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3964_1-browser-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3965-browser-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3964_1-human-task             node tools/browser-human-task-journey-v3964_1.mjs             | tee /tmp/v3964_1-human-task.out
-          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3964_1-runtime-readiness             node tools/browser-runtime-readiness-v3964_1.mjs             | tee /tmp/v3964_1-runtime-readiness.out
+          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3965-human-task node tools/browser-human-task-journey-v3965_0.mjs | tee /tmp/v3965-human-task.out
+          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3965-runtime-readiness node tools/browser-runtime-readiness-v3965_0.mjs | tee /tmp/v3965-runtime-readiness.out
+          V3965_ARTIFACT_DIR=/tmp/v3965-feishu node tools/browser-feishu-ownership-v3965.mjs | tee /tmp/v3965-feishu.out
+          V3965_ARTIFACT_DIR=/tmp/v3965-tongxue node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/v3965-tongxue.out
 
       - name: Upload verification diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: human-task-ui-v3964-1-diagnostics
+          name: runtime-ownership-v3965-diagnostics
           path: |
-            /tmp/v3964_1-*.txt
-            /tmp/v3964_1-*.out
-            /tmp/v3964_1-*.log
-            /tmp/v3964_1-human-task
-            /tmp/v3964_1-runtime-readiness
+            /tmp/v3965-*.txt
+            /tmp/v3965-*.out
+            /tmp/v3965-*.err
+            /tmp/v3965-*.log
+            /tmp/v3965-human-task
+            /tmp/v3965-runtime-readiness
+            /tmp/v3965-feishu
+            /tmp/v3965-tongxue
           if-no-files-found: warn
-          retention-days: 2
+          retention-days: 3
