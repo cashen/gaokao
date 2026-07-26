@@ -1,0 +1,14 @@
+file:///home/runner/work/gaokao/gaokao/tools/ln-2026/migrate-three-year-evidence-v3966.mjs:14
+  if (!text.includes(from)) throw new Error(`${label}: source marker missing`);
+                                  ^
+
+Error: report history evidence payload: source marker missing
+    at exactReplace (file:///home/runner/work/gaokao/gaokao/tools/ln-2026/migrate-three-year-evidence-v3966.mjs:14:35)
+    at file:///home/runner/work/gaokao/gaokao/tools/ln-2026/migrate-three-year-evidence-v3966.mjs:143:3
+    at update (file:///home/runner/work/gaokao/gaokao/tools/ln-2026/migrate-three-year-evidence-v3966.mjs:25:17)
+    at file:///home/runner/work/gaokao/gaokao/tools/ln-2026/migrate-three-year-evidence-v3966.mjs:142:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.1
