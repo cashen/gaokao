@@ -31,6 +31,7 @@ jobs:
           node tools/ln-2026/patch-runtime-contract-v3966.mjs
           python3 tools/ln-2026/patch-three-year-population-v3966.py
           node tools/ln-2026/finalize-v3966-transport.mjs
+          git checkout -- .github/workflows/verify-dual-search-v3963.yml .github/workflows/verify-ln-2026-final.yml
       - name: Check generated source
         run: |
           set -euo pipefail
@@ -51,8 +52,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
             _headers \
-            .github/workflows/verify-dual-search-v3963.yml \
-            .github/workflows/verify-ln-2026-final.yml \
             index.html \
             ln-rank \
             zy2026.html \
