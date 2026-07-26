@@ -150,13 +150,19 @@ def verify_ownership() -> None:
 def verify_years() -> None:
     contains(
         "shared/resources/reports/feishu-report-contract.v3964_0.js",
-        "dataYear: 2026",
-        "rankYear: 2026",
-        "audienceYear: 2027",
-        "historicalYears: Object.freeze([2025, 2024])",
+        "const HISTORICAL_YEARS = Object.freeze([2025, 2024])",
+        "primaryDataYear: EXAM.dataYear",
+        "rankTableYear: EXAM.rankYear",
+        "audienceYear: EXAM.audienceYear",
+        "dataYear: EXAM.dataYear",
+        "rankYear: EXAM.rankYear",
+        "historicalYears: FEISHU_YEAR_CALIBER.historicalYears",
         "historyPlacement: 'appendix-only'",
         "historyParticipatesInCurrentGrouping: false",
     )
+    exam = text("shared/resources/exam/liaoning-physics.js")
+    for phrase in ("dataYear: 2026", "rankYear: 2026", "audienceYear: 2027"):
+        check(phrase in exam, f"shared exam contract missing {phrase}")
 
 
 def main() -> None:
