@@ -4,7 +4,7 @@
   Content-Type: text/css; charset=utf-8
 /shared/ui/*.js
   Content-Type: application/javascript; charset=utf-8
-/shared/ui/*
+/shared/ui/*.css
   Content-Type: text/css; charset=utf-8
 /tongxue/
   Cache-Control: no-cache, max-age=0, must-revalidate
