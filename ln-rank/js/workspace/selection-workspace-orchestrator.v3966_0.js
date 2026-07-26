@@ -1504,7 +1504,7 @@ export function mountSelectionWorkspace() {
   setMessageFromGuard(guard());
   renderWorkspace('initial', false);
   globalThis.__GAOKAO_SELECTION_WORKSPACE__ = Object.freeze({
-    version: 'selection-workspace-orchestration-v3965_0',
+    version: 'selection-workspace-orchestration-v3966_0',
     getState: () => ({
       dirty,
       committedQuery,
