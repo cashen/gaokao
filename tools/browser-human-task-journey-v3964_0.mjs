@@ -279,7 +279,8 @@ try {
           buttonTexts: buttons.map(button => button.textContent.trim()),
           buttonHeights: buttons.map(button => button.getBoundingClientRect().height),
           writingModes: buttons.map(button => getComputedStyle(button).writingMode),
-          mode: document.body.dataset.resultMode
+          mode: document.body.dataset.resultMode,
+          selectionShellCount: document.querySelectorAll('#selectionPoolShell').length
         };
       });
       assert.ok(initial.overflow <= 1, `${testCase.name}: initial horizontal overflow ${initial.overflow}`);
@@ -287,6 +288,7 @@ try {
       assert.deepEqual(initial.buttonTexts, ['按分数找学校和专业', '看一所学校的在辽专业']);
       assert.ok(initial.writingModes.every(mode => mode === 'horizontal-tb'));
       assert.equal(initial.mode, 'score-bands');
+      assert.equal(initial.selectionShellCount, 1, `${testCase.name}: selection quick entry must have one static mount`);
       if (testCase.touch) assert.ok(initial.buttonHeights.every(height => height >= 44), `${testCase.name}: mode touch target ${initial.buttonHeights}`);
 
       await page.locator('#candidateScore').fill('600');
