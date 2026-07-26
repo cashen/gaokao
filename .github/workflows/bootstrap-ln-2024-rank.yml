@@ -21,6 +21,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+          show-progress: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -32,7 +33,21 @@ jobs:
       - name: Build and validate 2024 official rank table
         env:
           PYTHONUNBUFFERED: '1'
-        run: python tools/ln-2026/build-ln-2024-rank-table.py
+        run: |
+          set +e
+          mkdir -p analysis/2026
+          python tools/ln-2026/build-ln-2024-rank-table.py > /tmp/ln-2024-rank-build.log 2>&1
+          status=$?
+          cat /tmp/ln-2024-rank-build.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/ln-2024-rank-build.log analysis/2026/ln-2024-rank-build-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add analysis/2026/ln-2024-rank-build-error.txt
+            git commit -m '记录2024一分一段生成诊断' || true
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
       - name: Commit generated immutable resources
         run: |
           set -euo pipefail
