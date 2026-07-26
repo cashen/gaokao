@@ -1,0 +1,45 @@
+name: Bootstrap LN 2024 rank table
+
+on:
+  push:
+    branches:
+      - agent/v3966-three-year-rank-evidence
+    paths:
+      - tools/ln-2026/build-ln-2024-rank-table.py
+      - .github/workflows/bootstrap-ln-2024-rank.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/v3966-three-year-rank-evidence
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install OCR runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr
+          python -m pip install --disable-pip-version-check pillow
+      - name: Build and validate 2024 official rank table
+        run: python tools/ln-2026/build-ln-2024-rank-table.py
+      - name: Commit generated immutable resources
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ln-2024-physics-score-rank.js analysis/2026/ln-2024-rank-source-audit.json
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m '生成2024辽宁物理类官方一分一段资源'
+          git push origin HEAD:agent/v3966-three-year-rank-evidence
