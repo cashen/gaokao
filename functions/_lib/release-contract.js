@@ -110,6 +110,8 @@ export const LN_RANK_RELEASE_CONTRACT = Object.freeze({
   feishuServerAuthoritativeYearContract: true,
   feishuPathAnalysisYearContract: true,
   feishu2026PrimaryBrowserPayloadContract: true,
+  feishuFrontendRuntimeContract: true,
+  staticSelectionShellMountContract: true,
   activeDataYear: 2026,
   historyYears: Object.freeze([2025, 2024]),
   audienceYear: 2027,
