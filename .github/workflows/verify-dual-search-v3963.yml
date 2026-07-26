@@ -72,7 +72,7 @@ jobs:
       - name: Verify shared resource and algorithm owners
         run: |
           node tools/audit-resource-ownership-v3958.mjs
-          node tools/audit-algorithm-orchestration-v3960.mjs
+          node tools/audit-algorithm-orchestration-v3965.mjs
           node tools/verify-school-profile-center-v3957.mjs
           node tools/verify-card-ai-2026-v3955.mjs
 
