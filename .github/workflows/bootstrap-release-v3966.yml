@@ -28,15 +28,27 @@ jobs:
         run: |
           node tools/prepare-release-v3966.mjs
           python3 tools/ln-2026/patch-three-year-population-v3966.py
-      - name: Check generated JavaScript
+      - name: Check generated source
         run: |
-          set -euo pipefail
-          git diff --name-only | grep -E '\.(js|mjs)$' | while IFS= read -r file; do
+          set +e
+          : > /tmp/v3966-source-check.log
+          while IFS= read -r file; do
             [ -f "$file" ] || continue
-            echo "node --check $file"
-            node --check "$file"
-          done
-          python3 -m py_compile tools/ln-2026/build-release.py
+            echo "node --check $file" | tee -a /tmp/v3966-source-check.log
+            node --check "$file" >> /tmp/v3966-source-check.log 2>&1 || status=$?
+          done < <(git diff --name-only | grep -E '\.(js|mjs)$')
+          python3 -m py_compile tools/ln-2026/build-release.py >> /tmp/v3966-source-check.log 2>&1 || status=$?
+          cat /tmp/v3966-source-check.log
+          if [ "${status:-0}" -ne 0 ]; then
+            mkdir -p analysis/2026
+            cp /tmp/v3966-source-check.log analysis/2026/v3966-release-source-check-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add analysis/2026/v3966-release-source-check-error.txt
+            git commit -m '记录v3966发布源代码诊断' || true
+            git push origin HEAD:${{ github.head_ref }} || true
+            exit "${status:-1}"
+          fi
       - name: Commit release graph
         run: |
           set -euo pipefail
