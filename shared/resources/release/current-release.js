@@ -30,6 +30,7 @@ export const CURRENT_RELEASE = Object.freeze({
   reportFrontendVersion: 'feishu-browser-v3964_0',
   resourceOwners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
+    releasePresenter: '/shared/resources/release/release-presenter.v3964_1.js',
     exam: '/shared/resources/exam/liaoning-physics.js',
     regions: '/shared/resources/geo/china-region-catalog.js',
     schools: '/shared/resources/schools/school-profile-center.js',
