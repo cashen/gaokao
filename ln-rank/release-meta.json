@@ -88,6 +88,7 @@
     "js/selection-pool.v3964_1.js",
     "js/selection-pool-runtime.v3964_1.js",
     "../shared/resources/release/runtime-cache-contract.v3964_1.js",
+    "../shared/resources/release/release-presenter.v3964_1.js",
     "../shared/ui/shell/family-shell.v3964_1.js",
     "../shared/algorithms/algorithm-registry.js",
     "../shared/algorithms/position/canonical-position.v3963_0.js",
