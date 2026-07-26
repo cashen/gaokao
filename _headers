@@ -90,3 +90,36 @@
   Cache-Control: public, max-age=31536000, immutable
 /shared/ui/shell/family-shell.v3964_0.js
   Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/index.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-controller.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-render.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/feishu/report-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/report/payload-builder.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/analysis.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/path-analysis-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/feature/selection-pool/controller.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/shared/feishu-api-client.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/shared/resources/reports/feishu-report-contract.v3964_0.js
+  Cache-Control: public, max-age=31536000, immutable
