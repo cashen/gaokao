@@ -22,7 +22,7 @@
   "selectionPoolRuntimeJs": "js/selection-pool-runtime.v3965_0.js",
   "selfCheckJs": "js/self-check.v3959_0.js",
   "familyPresentationJs": "js/workspace/family-card-presenter.v3961_0.js",
-  "familyDecisionBarJs": "../shared/ui/shell/family-shell.v3964_1.js",
+  "familyDecisionBarJs": "../shared/ui/shell/family-shell.v3965_0.js",
   "familyHomeJs": "js/ux/family-home.v3955_0.js",
   "familyDecisionContractJs": "js/domain/family-decision-contract.v3955_0.js",
   "sharedResourceRegistry": "../shared/resources/resource-registry.js",
