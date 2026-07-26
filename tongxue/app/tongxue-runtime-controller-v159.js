@@ -35,6 +35,7 @@ export async function startTongxueRuntime() {
     currentResolution: null,
     choiceCandidates: [],
     currentSchool: '',
+    currentEntityId: '',
     directMode: false,
     requestInFlight: false,
     activeQueryController: null,
@@ -83,6 +84,7 @@ export async function startTongxueRuntime() {
     getState: () => Object.freeze({
       ready: state.ready,
       currentSchool: state.currentSchool,
+      currentEntityId: state.currentEntityId,
       directMode: state.directMode,
       requestInFlight: state.requestInFlight,
       loadingMore: state.loadingMore,
@@ -194,6 +196,7 @@ function bindEvents(ui, state, searchView, resultView) {
     abortActive(state);
     state.directMode = false;
     state.currentSchool = '';
+    state.currentEntityId = '';
     state.currentResolution = null;
     state.selectedOfficialName = '';
     ui.input.value = '';
@@ -229,7 +232,8 @@ function chooseSuggestion(ui, state, searchView, candidate) {
     resolvedName: candidate.officialName,
     candidates: [],
     matchType: candidate.matchType || 'candidate',
-    confidence: candidate.score || 0
+    confidence: candidate.score || 0,
+    entityId: candidate.entityId || ''
   };
   ui.input.value = candidate.officialName;
   searchView.closeSuggestions();
@@ -239,6 +243,7 @@ function chooseSuggestion(ui, state, searchView, candidate) {
 
 function resetResolution(state, searchView) {
   state.selectedOfficialName = '';
+  state.currentEntityId = '';
   state.currentResolution = null;
   searchView.hideResolved();
 }
@@ -262,6 +267,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   if (resolution.status === 'region') {
     abortActive(state);
     state.currentSchool = '';
+    state.currentEntityId = '';
     state.currentResolution = resolution;
     state.activeReviewState = null;
     state.directMode = Boolean(options.directMode);
@@ -274,6 +280,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   if (resolution.status === 'ambiguous') {
     abortActive(state);
     state.currentSchool = '';
+    state.currentEntityId = '';
     state.currentResolution = resolution;
     state.directMode = Boolean(options.directMode ?? state.directMode);
     searchView.renderChoices(input, resolution.candidates);
@@ -284,6 +291,7 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   if (resolution.status !== 'resolved' || !resolution.resolvedName) {
     abortActive(state);
     state.currentSchool = '';
+    state.currentEntityId = '';
     state.currentResolution = resolution;
     state.directMode = false;
     searchView.renderNotFound(input, resolution.candidates || []);
@@ -295,16 +303,18 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   state.selectedOfficialName = resolution.resolvedName;
   state.currentResolution = resolution;
   state.currentSchool = resolution.resolvedName;
+  const entity = (resolution.entityId && getSchoolEntity(resolution.entityId)) || findSchoolEntityByName(resolution.resolvedName);
+  state.currentEntityId = entity?.entityId || options.entityId || '';
   state.directMode = Boolean(options.directMode ?? state.directMode);
   ui.input.value = resolution.resolvedName;
   searchView.showResolved(input, resolution.resolvedName);
-  const entity = findSchoolEntityByName(resolution.resolvedName);
-  writeLocation('school', resolution.resolvedName, entity?.entityId || '', options.historyMode || 'push');
-  return performExperienceQuery(ui, state, searchView, resultView, resolution.resolvedName, input, resolution, options);
+  writeLocation('school', resolution.resolvedName, state.currentEntityId, options.historyMode || 'push');
+  return performExperienceQuery(ui, state, searchView, resultView, resolution.resolvedName, input, resolution, { ...options, entityId: state.currentEntityId });
 }
 
 async function performExperienceQuery(ui, state, searchView, resultView, school, originalInput, resolution, options = {}) {
-  const key = experienceKey(school, 1);
+  const entityId = options.entityId || state.currentEntityId || '';
+  const key = experienceKey(school, entityId, 1);
   if (state.activeQueryPromise && state.activeQueryKey === key && !options.forceRefresh) return state.activeQueryPromise;
   abortActive(state);
   const serial = ++state.querySerial;
@@ -320,6 +330,7 @@ async function performExperienceQuery(ui, state, searchView, resultView, school,
     try {
       const data = await fetchExperience(state, school, originalInput, 1, {
         forceRefresh: Boolean(options.forceRefresh),
+        entityId,
         signal: controller.signal
       });
       if (serial !== state.querySerial) return null;
@@ -343,12 +354,13 @@ async function performExperienceQuery(ui, state, searchView, resultView, school,
 }
 
 async function fetchExperience(state, school, originalInput, page = 1, options = {}) {
-  const key = experienceKey(school, page);
+  const key = experienceKey(school, options.entityId || '', page);
   const cached = state.cache.get(key);
   if (!options.forceRefresh && cached && cached.expiresAt > Date.now()) return cloneData(cached.data);
   if (!options.forceRefresh && state.inflight.has(key)) return cloneData(await state.inflight.get(key));
   const request = (async () => {
     const params = new URLSearchParams({ school, page: String(page) });
+    if (options.entityId) params.set('entity', options.entityId);
     if (originalInput) params.set('input', originalInput);
     if (options.forceRefresh) params.set('refresh', '1');
     let response;
@@ -401,7 +413,7 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     return;
   }
   if (event.target.closest('[data-retry-school]') && state.currentSchool) {
-    await performExperienceQuery(ui, state, searchView, resultView, state.currentSchool, state.currentResolution?.input || state.currentSchool, state.currentResolution, { forceRefresh: true });
+    await performExperienceQuery(ui, state, searchView, resultView, state.currentSchool, state.currentResolution?.input || state.currentSchool, state.currentResolution, { forceRefresh: true, entityId: state.currentEntityId });
     return;
   }
   const choice = event.target.closest('[data-school-choice]');
@@ -440,7 +452,7 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
   button.textContent = '正在加载';
   try {
     const nextPage = Number(active.pagination.page || 1) + 1;
-    const data = await fetchExperience(state, active.school, active.originalInput, nextPage, { signal: controller.signal });
+    const data = await fetchExperience(state, active.school, active.originalInput, nextPage, { entityId: active.entityId || '', signal: controller.signal });
     if (serial !== state.loadMoreSerial || state.activeReviewState !== active) return;
     if (data.mode !== 'recent_reviews') throw new TongxueError('reviews_page_invalid', '后续评论页没有返回评论列表。', data);
     const existing = new Set(active.reviews.map(reviewKey));
@@ -469,6 +481,7 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
 async function restoreFromLocation(ui, state, searchView, resultView) {
   abortActive(state);
   state.currentSchool = '';
+  state.currentEntityId = '';
   state.currentResolution = null;
   state.selectedOfficialName = '';
   state.activeReviewState = null;
@@ -481,7 +494,7 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   if (school) {
     state.directMode = true;
     ui.input.value = school;
-    return submitInput(ui, state, searchView, resultView, { input: school, historyMode: 'none', directMode: true });
+    return submitInput(ui, state, searchView, resultView, { input: school, entityId, historyMode: 'none', directMode: true });
   }
   if (query) {
     state.directMode = false;
@@ -532,6 +545,6 @@ function updateButton(ui, state) {
   ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
 }
 
-function experienceKey(school, page) {
-  return `${normalizeSchool(school)}|${Number(page || 1)}`;
+function experienceKey(school, entityId, page) {
+  return `${normalizeSchool(school)}|${String(entityId || '')}|${Number(page || 1)}`;
 }

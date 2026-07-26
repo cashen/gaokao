@@ -36,6 +36,7 @@ export function createTongxueResultView(ui, state, searchView) {
     state.activeReviewState = {
       school: actual,
       originalInput: resolution?.input || school,
+      entityId: data.entity?.entityId || resolution?.entityId || '',
       resolution,
       schoolMeta: data.schoolMeta || {},
       source,
