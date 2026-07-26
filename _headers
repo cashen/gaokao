@@ -1,3 +1,7 @@
+/shared/resources/release/*.js
+  Content-Type: application/javascript; charset=utf-8
+/tongxue/app/*.js
+  Content-Type: application/javascript; charset=utf-8
 /ln-rank/js/*
   Content-Type: application/javascript; charset=utf-8
 /ln-rank/css/*
