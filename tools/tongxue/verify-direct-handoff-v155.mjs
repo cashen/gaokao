@@ -28,11 +28,11 @@ delete globalThis.document;
 
 const source = fs.readFileSync('tongxue/app/tongxue-direct-handoff-v155.js', 'utf8');
 const page = fs.readFileSync('tongxue/index.html', 'utf8');
-const entry = fs.readFileSync('tongxue/app/tongxue-performance-v157.js', 'utf8');
+const entry = fs.readFileSync('tongxue/app/tongxue-performance-v158.js', 'utf8');
 assert.ok(source.includes('button.click()'));
 assert.ok(!source.includes("fetch('/api/tongxue"));
-assert.ok(page.includes('tongxue-v157-family-shell-20260725'));
-assert.ok(page.includes('./app/tongxue-performance-v157.js?v=157'));
+assert.ok(page.includes('tongxue-v158-cache-recovery-20260725'));
+assert.ok(page.includes('./app/tongxue-performance-v158.js?v=158'));
 assert.ok(!page.includes('aria-describedby="indexStatus" autofocus'));
 assert.ok(entry.indexOf('prepareTongxueDirectHandoff') < entry.indexOf("await import('./tongxue-performance-v112.js?v=156')"));
 assert.ok(entry.indexOf('await directHandoff.start()') > entry.indexOf("await import('./tongxue-performance-v112.js?v=156')"));

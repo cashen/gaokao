@@ -65,7 +65,7 @@ jobs:
       - name: Verify direct school handoff
         run: node tools/tongxue/verify-direct-handoff-v155.mjs
       - name: Verify result-only direct experience
-        run: node tools/tongxue/verify-direct-result-v157.mjs
+        run: node tools/tongxue/verify-direct-result-v158.mjs
       - name: Verify school entity contract
         run: node tools/tongxue/verify-school-entities-v130.mjs
       - name: Verify school input contracts
@@ -109,7 +109,7 @@ jobs:
           node tools/tongxue/verify-brand-ui-v152.mjs
           node tools/tongxue/verify-interaction-v153.mjs
           node tools/tongxue/verify-direct-handoff-v155.mjs
-          node tools/tongxue/verify-direct-result-v157.mjs
+          node tools/tongxue/verify-direct-result-v158.mjs
       - name: Verify shared resource ownership
         run: node tools/audit-resource-ownership-v3958.mjs
       - name: Execute summary and review regression
