@@ -64,7 +64,8 @@ for(const rel of ['ln-rank/active-assets.json','ln-rank/release-meta.json']){
    historicalEvidenceContract:true,
    rankRangeDisplayContract:true,
    conflictBlocksTrendContract:true,
-   undergraduatePopulationPolicyContract:true
+   undergraduatePopulationPolicyContract:true,
+   feishuTransportContract:true
  });
  if(data.structure2026) data.structure2026.js='../zy2026/assets/zy2026.v3966_0.js';
  const replacements=new Map([
@@ -84,7 +85,11 @@ for(const rel of ['ln-rank/active-assets.json','ln-rank/release-meta.json']){
   ['js/feature/major-pool/history-score-render.v3964_0.js','js/feature/major-pool/history-score-render.v3966_0.js'],
   ['js/feature/feishu/index.v3965_0.js','js/feature/feishu/index.v3966_0.js'],
   ['js/feature/feishu/report-controller.v3965_0.js','js/feature/feishu/report-controller.v3966_0.js'],
-  ['js/feature/report/payload-builder.v3964_0.js','js/feature/report/payload-builder.v3966_0.js']
+  ['js/feature/report/payload-builder.v3964_0.js','js/feature/report/payload-builder.v3966_0.js'],
+  ['js/feature/feishu/report-api.v3964_0.js','js/feature/feishu/report-api.v3966_0.js'],
+  ['js/feature/selection-pool/index.v3964_0.js','js/feature/selection-pool/index.v3966_0.js'],
+  ['js/feature/selection-pool/feishu-report-api.v3964_0.js','js/feature/selection-pool/feishu-report-api.v3966_0.js'],
+  ['js/shared/feishu-api-client.v3964_0.js','js/shared/feishu-api-client.v3966_0.js']
  ]);
  data.jsEntry=(data.jsEntry||[]).map(x=>replacements.get(x)||x);
  for(const required of ['../shared/resources/exam/historical-score-rank-contract.js','js/feature/major-pool/history-score-render.v3966_0.js']) if(!data.jsEntry.includes(required)) data.jsEntry.push(required);

@@ -73,6 +73,7 @@ def verify_release() -> None:
         "rankRangeDisplayContract",
         "conflictBlocksTrendContract",
         "undergraduatePopulationPolicyContract",
+        "feishuTransportContract",
     )
     for path in ("ln-rank/active-assets.json", "ln-rank/release-meta.json"):
         data = json.loads(text(path))
@@ -107,7 +108,7 @@ def verify_active_graph() -> None:
     contains(
         "ln-rank/js/workspace/selection-workspace-orchestrator.v3966_0.js",
         "feature/feishu/index.v3966_0.js?v=3966_0",
-        "selection-workspace-orchestration-v3965_0",
+        "selection-workspace-orchestration-v3966_0",
         "major-pool/index.v3966_0.js?v=3966_0",
     )
     contains(
@@ -127,6 +128,10 @@ def verify_active_graph() -> None:
         "js/feature/feishu/report-state.v3965_0.js",
         "js/feature/feishu/report-render.v3965_0.js",
         "js/feature/feishu/report-controller.v3966_0.js",
+        "js/feature/feishu/report-api.v3966_0.js",
+        "js/feature/selection-pool/index.v3966_0.js",
+        "js/feature/selection-pool/feishu-report-api.v3966_0.js",
+        "js/shared/feishu-api-client.v3966_0.js",
         "js/selection-pool.v3966_0.js",
         "js/selection-pool-runtime.v3966_0.js",
         "../tongxue/app/tongxue-runtime-v159-r3966.js",
@@ -140,6 +145,9 @@ def verify_active_graph() -> None:
         "js/workspace/selection-workspace-orchestrator.v3965_0.js",
         "js/feature/feishu/index.v3965_0.js",
         "../tongxue/app/tongxue-runtime-v159.js",
+        "js/feature/feishu/report-api.v3964_0.js",
+        "js/feature/selection-pool/feishu-report-api.v3964_0.js",
+        "js/shared/feishu-api-client.v3964_0.js",
     ):
         check(legacy not in active["jsEntry"], f"legacy active JS remains {legacy}")
 
@@ -148,6 +156,10 @@ def verify_ownership() -> None:
     feishu = text("ln-rank/js/feature/feishu/report-controller.v3966_0.js")
     check("generationPromise" in feishu and "copyPromise" in feishu, "Feishu locks missing")
     check("event.currentTarget" not in feishu, "Feishu retains event object across await")
+    contains("ln-rank/js/feature/feishu/report-controller.v3966_0.js", "report-api.v3966_0.js?v=3966_0")
+    contains("ln-rank/js/feature/feishu/report-api.v3966_0.js", "feishu-report-contract.v3966_0.js?v=3966_0", "feishu-api-client.v3966_0.js?v=3966_0")
+    contains("ln-rank/js/shared/feishu-api-client.v3966_0.js", "feishu-report-contract.v3966_0.js?v=3966_0")
+    contains("ln-rank/js/feature/selection-pool/feishu-report-api.v3966_0.js", "feishu-report-contract.v3966_0.js?v=3966_0", "feishu-api-client.v3966_0.js?v=3966_0")
     contains(
         "shared/resources/resource-registry.js",
         "supportedYears: Object.freeze([2024, 2025, 2026])",

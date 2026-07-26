@@ -8,12 +8,12 @@ import {
   classifyPoolItem,
   getPoolOrderSignature,
   savePoolItems
-} from './feature/selection-pool/index.v3964_0.js?v=3964_0';
-import { requestPathAnalysis } from './feature/selection-pool/index.v3964_0.js?v=3964_0';
-import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.v3964_0.js?v=3964_0';
-import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.v3964_0.js?v=3964_0';
-import { renderHealthLights } from './feature/selection-pool/index.v3964_0.js?v=3964_0';
-import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.v3964_0.js?v=3964_0';
+} from './feature/selection-pool/index.v3966_0.js?v=3966_0';
+import { requestPathAnalysis } from './feature/selection-pool/index.v3966_0.js?v=3966_0';
+import { buildCandidateContext, buildComputedSignature } from './feature/selection-pool/index.v3966_0.js?v=3966_0';
+import { getComputedStats, recomputeSelectionPool, sortComputedByBand, stripComputedForStorage } from './feature/selection-pool/index.v3966_0.js?v=3966_0';
+import { renderHealthLights } from './feature/selection-pool/index.v3966_0.js?v=3966_0';
+import { createSelectionPoolFeishuReport } from './feature/selection-pool/index.v3966_0.js?v=3966_0';
 import { buildTrendSummaryForSelection, renderSelectionTrendBox } from './feature/trend/index.js?v=3951_0';
 import { compactHistoryScoreText, historyScoreText } from './feature/major-pool/history-score-render.v3966_0.js?v=3966_0';
 import { renderParentCoach } from './feature/decision-coach/index.js?v=3951_0';

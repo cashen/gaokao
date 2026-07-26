@@ -14,7 +14,7 @@ import {
   buildFeishuReportPayload,
   canGenerateFeishuReport
 } from '../report/payload-builder.v3966_0.js?v=3966_0';
-import { createFeishuReport } from './report-api.v3964_0.js?v=3964_0';
+import { createFeishuReport } from './report-api.v3966_0.js?v=3966_0';
 
 const state = createFeishuViewState();
 let currentAppState = null;
