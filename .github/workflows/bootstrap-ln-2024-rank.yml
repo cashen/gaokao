@@ -33,21 +33,32 @@ jobs:
       - name: Build and validate 2024 official rank table
         env:
           PYTHONUNBUFFERED: '1'
+          LN_2024_DEBUG_DIR: /tmp/ln-2024-rank-debug
         run: |
           set +e
           mkdir -p analysis/2026
           python tools/ln-2026/build-ln-2024-rank-table.py > /tmp/ln-2024-rank-build.log 2>&1
           status=$?
           cat /tmp/ln-2024-rank-build.log
+          echo "$status" > /tmp/ln-2024-rank-debug/exit-status.txt
+          cp /tmp/ln-2024-rank-build.log /tmp/ln-2024-rank-debug/build.log
           if [ "$status" -ne 0 ]; then
             cp /tmp/ln-2024-rank-build.log analysis/2026/ln-2024-rank-build-error.txt
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git add analysis/2026/ln-2024-rank-build-error.txt
             git commit -m '记录2024一分一段生成诊断' || true
-            git push origin HEAD:${{ github.head_ref }}
+            git push origin HEAD:${{ github.head_ref }} || true
             exit "$status"
           fi
+      - name: Upload OCR diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ln-2024-rank-ocr-${{ github.run_id }}
+          path: /tmp/ln-2024-rank-debug
+          if-no-files-found: warn
+          retention-days: 3
       - name: Commit generated immutable resources
         run: |
           set -euo pipefail
