@@ -195,7 +195,8 @@ for (const asset of [
   'js/feature/feishu/index.v3964_0.js',
   'js/feature/selection-pool/controller.v3964_0.js',
   'js/shared/feishu-api-client.v3964_0.js',
-  '../shared/ui/shell/family-shell.v3964_1.js'
+  '../shared/ui/shell/family-shell.v3964_1.js',
+  '../shared/resources/release/release-presenter.v3964_1.js'
 ]) assert.ok(active.jsEntry.includes(asset), `active JS missing ${asset}`);
 
 console.log(JSON.stringify({
