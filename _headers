@@ -221,3 +221,15 @@
 
 /shared/ui/shell/family-shell.v3965_0.css
   Cache-Control: public, max-age=31536000, immutable
+
+/ln-rank/js/major-difficulty-2026.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/zy2026/assets/zy2026.v3965_0.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/zy2026/assets/zy2026.v3965_0.js
+  Content-Type: application/javascript; charset=utf-8
+
+/tongxue/changelog.html
+  Cache-Control: no-cache, max-age=0, must-revalidate

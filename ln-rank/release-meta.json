@@ -60,13 +60,13 @@
     2024
   ],
   "majorTrendJson": "data/major-trend-2026.json",
-  "majorDifficultyJs": "js/major-difficulty-2026.v3964_1.js",
+  "majorDifficultyJs": "js/major-difficulty-2026.v3965_0.js",
   "zy2026ExperienceVersion": "v3.9.64.1",
   "zy2026ExperienceAssetVersion": "v3964_1",
   "structure2026": {
     "page": "../zy2026/index.html",
     "css": "../zy2026/assets/zy2026.v3954_0.css",
-    "js": "../zy2026/assets/zy2026.v3964_1.js",
+    "js": "../zy2026/assets/zy2026.v3965_0.js",
     "summary": "../data/zy2026/summary.json",
     "schoolIndex": "../data/zy2026/school-index.json",
     "majorIndex": "../data/zy2026/major-index.json"
@@ -115,8 +115,8 @@
     "js/local-mainline/local-mainline-app.v3951_0.js",
     "js/211-mainline/211-mainline-app.v3951_0.js",
     "js/ux/v3949_4-self-check.js",
-    "js/major-difficulty-2026.v3964_1.js",
-    "../zy2026/assets/zy2026.v3964_1.js",
+    "js/major-difficulty-2026.v3965_0.js",
+    "../zy2026/assets/zy2026.v3965_0.js",
     "../tongxue/app/tongxue-runtime-v159.js",
     "../shared/resources/reports/feishu-report-contract.v3964_0.js",
     "../shared/ui/ui-registry.v3965_0.js",
