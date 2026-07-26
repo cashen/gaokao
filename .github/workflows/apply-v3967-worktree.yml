@@ -23,7 +23,7 @@ jobs:
       - name: Rebuild verified new-file archive
         run: |
           set -euxo pipefail
-          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 | base64 --decode > /tmp/v3967-new.tar.xz
+          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 | base64 --decode > /tmp/v3967-new.tar.xz
           echo 'a885b9ee431c42685e417c185134f4aef4100ea70ffb7b2c2622b26c7292c47e  /tmp/v3967-new.tar.xz' | sha256sum -c -
           xz -t /tmp/v3967-new.tar.xz
           xz -dc /tmp/v3967-new.tar.xz > /tmp/v3967-new.tar
@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euxo pipefail
           tar -xf /tmp/v3967-new.tar
-          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-verify-diagnostic.txt
+          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 .v3967-verify-diagnostic.txt
 
       - name: Verify governed release before commit
         run: |
