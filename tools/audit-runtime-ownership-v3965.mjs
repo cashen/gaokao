@@ -24,6 +24,7 @@ const headers = read('_headers');
 const active = json('ln-rank/active-assets.json');
 const meta = json('ln-rank/release-meta.json');
 const { CURRENT_RELEASE } = await import(moduleUrl('shared/resources/release/current-release.js'));
+const { summaryGroups } = await import(moduleUrl('tongxue/app/tongxue-runtime-utils-v159.js'));
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.65.0');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3965_0');
@@ -73,6 +74,9 @@ assert.ok(tongxueController.includes("on(window, 'popstate'"));
 assert.ok(tongxueController.includes('activeQueryPromise'));
 assert.ok(tongxueController.includes('loadingMore'));
 assert.ok(tongxueController.includes("resolution.status === 'region'"));
+assert.ok(tongxueController.includes("params.set('entity', options.entityId)"));
+assert.ok(tongxueController.includes('currentEntityId'));
+assert.ok(tongxueController.includes('experienceKey(school, entityId, 1)'));
 for (const source of [tongxueEntry, tongxueController, tongxueSearchView, tongxueResultView]) {
   assert.ok(!source.includes('MutationObserver'), 'Tongxue v159 must not contain MutationObserver');
   assert.ok(!source.includes('setInterval('), 'Tongxue v159 must not poll DOM state');
@@ -85,6 +89,15 @@ assert.ok(!tongxueResultView.includes('fetch('));
 assert.equal((tongxueController.match(/function bindEvents/g) || []).length, 1);
 assert.equal((tongxueController.match(/ui\.result, 'click'/g) || []).length, 1);
 assert.equal((tongxueController.match(/ui\.button, 'click'/g) || []).length, 1);
+
+const groupedSummary = summaryGroups('整体体验稳定。宿舍条件需要结合校区核对。课程管理较严格。就业机会较多。不过专业资源存在差异。');
+const groupedByKey = new Map(groupedSummary.map(group => [group.key, group.items]));
+assert.ok(groupedByKey.get('overall')?.length);
+assert.ok(groupedByKey.get('life')?.length);
+assert.ok(groupedByKey.get('study')?.length);
+assert.ok(groupedByKey.get('career')?.length);
+assert.ok(groupedByKey.get('attention')?.length);
+assert.equal(groupedSummary.reduce((count, group) => count + group.items.length, 0), 5);
 
 assert.ok(releaseContract.includes('export const LN_RANK_RELEASE_CONTRACT'));
 assert.ok(releaseContract.includes('export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT'));
@@ -137,5 +150,6 @@ console.log(JSON.stringify({
   version: CURRENT_RELEASE.display,
   feishuOwner: CURRENT_RELEASE.resourceOwners.reportFeedbackState,
   tongxueOwner: CURRENT_RELEASE.resourceOwners.tongxueState,
+  tongxueSummaryGroups: groupedSummary.map(group => group.key),
   activeEntries: active.jsEntry.length
 }, null, 2));
