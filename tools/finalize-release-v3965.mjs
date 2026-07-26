@@ -35,6 +35,21 @@ replaceExact(
   "  abortActive(state);\n  const serial = ++state.querySerial;\n  const controller = new AbortController();"
 );
 replaceExact(
+  'tongxue/app/tongxue-runtime-controller-v159.js',
+  "    loadingMore: false,\n    activeReviewState: null,",
+  "    loadingMore: false,\n    loadMoreController: null,\n    loadMoreSerial: 0,\n    activeReviewState: null,"
+);
+replaceExact(
+  'tongxue/app/tongxue-runtime-controller-v159.js',
+  "async function loadMoreReviews(ui, state, searchView, resultView) {\n  const active = state.activeReviewState;\n  const button = document.getElementById('loadMoreReviews');\n  if (!active || !button || !active.pagination?.hasMore || state.loadingMore) return;\n  state.loadingMore = true;\n  button.disabled = true;\n  button.textContent = '正在加载';\n  try {\n    const nextPage = Number(active.pagination.page || 1) + 1;\n    const data = await fetchExperience(state, active.school, active.originalInput, nextPage);\n    if (data.mode !== 'recent_reviews') throw new TongxueError('reviews_page_invalid', '后续评论页没有返回评论列表。', data);\n    const existing = new Set(active.reviews.map(reviewKey));\n    const added = dedupeReviews(data.reviews || []).filter(review => !existing.has(reviewKey(review)));\n    resultView.appendReviews(added, active.reviews.length);\n    active.reviews.push(...added);\n    active.pagination = data.reviewPagination || { ...active.pagination, page: nextPage, hasMore: false };\n    active.fetchedAt = data.fetchedAt || active.fetchedAt;\n    active.transport = data.transport || active.transport;\n    resultView.updateLoadMore();\n    searchView.announce(`已新增 ${added.length} 条评论`);\n  } catch (error) {\n    button.disabled = false;\n    button.textContent = '加载失败，点击重试';\n    button.title = error?.message || '加载失败';\n    searchView.announce('评论加载失败，可以再次点击重试');\n  } finally {\n    state.loadingMore = false;\n  }\n}",
+  "async function loadMoreReviews(ui, state, searchView, resultView) {\n  const active = state.activeReviewState;\n  const button = document.getElementById('loadMoreReviews');\n  if (!active || !button || !active.pagination?.hasMore || state.loadingMore) return;\n  state.loadingMore = true;\n  state.loadMoreController?.abort();\n  const controller = new AbortController();\n  const serial = ++state.loadMoreSerial;\n  state.loadMoreController = controller;\n  button.disabled = true;\n  button.textContent = '正在加载';\n  try {\n    const nextPage = Number(active.pagination.page || 1) + 1;\n    const data = await fetchExperience(state, active.school, active.originalInput, nextPage, { signal: controller.signal });\n    if (serial !== state.loadMoreSerial || state.activeReviewState !== active) return;\n    if (data.mode !== 'recent_reviews') throw new TongxueError('reviews_page_invalid', '后续评论页没有返回评论列表。', data);\n    const existing = new Set(active.reviews.map(reviewKey));\n    const added = dedupeReviews(data.reviews || []).filter(review => !existing.has(reviewKey(review)));\n    resultView.appendReviews(added, active.reviews.length);\n    active.reviews.push(...added);\n    active.pagination = data.reviewPagination || { ...active.pagination, page: nextPage, hasMore: false };\n    active.fetchedAt = data.fetchedAt || active.fetchedAt;\n    active.transport = data.transport || active.transport;\n    resultView.updateLoadMore();\n    searchView.announce(`已新增 ${added.length} 条评论`);\n  } catch (error) {\n    if (isAbortError(error) || serial !== state.loadMoreSerial) return;\n    button.disabled = false;\n    button.textContent = '加载失败，点击重试';\n    button.title = error?.message || '加载失败';\n    searchView.announce('评论加载失败，可以再次点击重试');\n  } finally {\n    if (serial === state.loadMoreSerial) {\n      state.loadingMore = false;\n      state.loadMoreController = null;\n    }\n  }\n}"
+);
+replaceExact(
+  'tongxue/app/tongxue-runtime-controller-v159.js',
+  "  state.activeQueryKey = '';\n  state.requestInFlight = false;\n  state.loadingMore = false;",
+  "  state.activeQueryKey = '';\n  state.requestInFlight = false;\n  state.loadMoreSerial += 1;\n  state.loadMoreController?.abort();\n  state.loadMoreController = null;\n  state.loadingMore = false;"
+);
+replaceExact(
   'tongxue/app/tongxue-runtime-search-view-v159.js',
   "import { findSchoolEntityByName, getSchoolEntity } from '../data/school-entities-v150.js?v=150';",
   "import { findSchoolEntityByName, getSchoolEntity, publicSchoolEntity } from '../data/school-entities-v150.js?v=150';"
@@ -48,6 +63,16 @@ replaceExact(
   'shared/resources/release/current-release.js',
   "  selectionWorkspaceVersion: 'selection-workspace-orchestration-v3964_0',",
   "  selectionWorkspaceVersion: 'selection-workspace-orchestration-v3965_0',"
+);
+replaceExact(
+  'tools/browser-feishu-ownership-v3965.mjs',
+  "      await generate.click({ clickCount: 2, delay: 0 });",
+  "      await generate.evaluate(button => {\n        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));\n        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));\n      });"
+);
+replaceExact(
+  'tools/browser-tongxue-runtime-v159.mjs',
+  "          const nav = document.querySelector('[data-ui-mobile-nav]')?.getBoundingClientRect();\n          return {\n            inputBottom: inputBox?.bottom || 0,\n            buttonBottom: buttonBox?.bottom || 0,\n            viewportHeight: window.innerHeight,\n            navTop: nav?.top || window.innerHeight\n          };",
+  "          const navElement = document.querySelector('[data-ui-mobile-nav]');\n          const navVisible = navElement && getComputedStyle(navElement).display !== 'none' && navElement.getBoundingClientRect().height > 0;\n          const nav = navVisible ? navElement.getBoundingClientRect() : null;\n          return {\n            inputBottom: inputBox?.bottom || 0,\n            buttonBottom: buttonBox?.bottom || 0,\n            viewportHeight: window.innerHeight,\n            navTop: nav?.top || window.innerHeight\n          };"
 );
 
 let headers = read('_headers');
