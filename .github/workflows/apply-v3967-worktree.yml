@@ -1,4 +1,4 @@
-name: Apply v3967 governed worktree
+name: Materialize v3967 governed files
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  materialize:
     if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3967-resource-execution-governance'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -20,61 +20,42 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Rebuild verified patch archive
+      - name: Rebuild verified new-file archive
         run: |
           set -euxo pipefail
-          wc -c .v3967-patch-00 .v3967-patch-01
-          git hash-object .v3967-patch-00
-          git hash-object .v3967-patch-01
-          cat .v3967-patch-00 .v3967-patch-01 | base64 --decode > /tmp/v3967.patch.xz
-          echo '6880d4db487eb8f9ec1a33d56357aea40f6908303d6c3a6113795958e1a1fc36  /tmp/v3967.patch.xz' | sha256sum -c -
-          xz -t /tmp/v3967.patch.xz
-          xz -dc /tmp/v3967.patch.xz > /tmp/v3967.patch
+          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 | base64 --decode > /tmp/v3967-new.tar.xz
+          echo 'a885b9ee431c42685e417c185134f4aef4100ea70ffb7b2c2622b26c7292c47e  /tmp/v3967-new.tar.xz' | sha256sum -c -
+          xz -t /tmp/v3967-new.tar.xz
+          xz -dc /tmp/v3967-new.tar.xz > /tmp/v3967-new.tar
+          tar -tf /tmp/v3967-new.tar | tee /tmp/v3967-new-files.txt
+          test "$(wc -l < /tmp/v3967-new-files.txt)" -eq 54
 
-      - name: Check and apply governed patch
+      - name: Materialize governed files
         run: |
           set -euxo pipefail
-          APPLY_EXCLUDES=(
-            --exclude=tools/run-release-v3966.txt
-            --exclude=tools/run-v3966-snapshot.txt
-          )
-          git apply --check --verbose "${APPLY_EXCLUDES[@]}" /tmp/v3967.patch
-          git apply --binary --index --verbose "${APPLY_EXCLUDES[@]}" /tmp/v3967.patch
-          rm -f .v3967-patch-00 .v3967-patch-01 .v3967-apply-trigger .v3967-apply-diagnostic.txt
+          tar -xf /tmp/v3967-new.tar
+          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-verify-diagnostic.txt
 
-      - name: Verify governed release and persist worktree
+      - name: Verify governed release before commit
         run: |
-          set +e
-          : > .v3967-verify-diagnostic.txt
-          status=0
-          run_check() {
-            echo "===== $* =====" | tee -a .v3967-verify-diagnostic.txt
-            "$@" >> .v3967-verify-diagnostic.txt 2>&1
-            code=$?
-            if [ "$code" -ne 0 ]; then
-              echo "FAILED($code): $*" | tee -a .v3967-verify-diagnostic.txt
-              status=1
-            else
-              echo "PASSED: $*" | tee -a .v3967-verify-diagnostic.txt
-            fi
-          }
-          run_check node tools/build-derived-asset-trace-v3967.mjs
-          run_check node tools/audit-resource-execution-v3967.mjs
-          run_check node tools/audit-derived-assets-v3967.mjs
-          run_check node tools/audit-algorithm-parity-v3967.mjs
-          run_check node tools/audit-css-component-isolation-v3967.mjs
-          run_check node tools/audit-report-execution-v3967.mjs
-          run_check node tools/audit-three-year-rank-evidence-v3967.mjs
-          run_check node tools/verify-school-profile-center-v3957.mjs
-          run_check node tools/verify-card-ai-2026-v3955.mjs
-          run_check python3 tools/ln-2026/verify-generated-release-v3967.py
-          run_check python3 tools/ln-2026/verify-final-release-v10.py
-          if [ "$status" -eq 0 ]; then
-            rm -f .v3967-verify-diagnostic.txt
-          fi
+          set -euo pipefail
+          node tools/build-derived-asset-trace-v3967.mjs
+          node tools/audit-resource-execution-v3967.mjs
+          node tools/audit-derived-assets-v3967.mjs
+          node tools/audit-algorithm-parity-v3967.mjs
+          node tools/audit-css-component-isolation-v3967.mjs
+          node tools/audit-report-execution-v3967.mjs
+          node tools/audit-three-year-rank-evidence-v3967.mjs
+          node tools/verify-school-profile-center-v3957.mjs
+          node tools/verify-card-ai-2026-v3955.mjs
+          python3 tools/ln-2026/verify-generated-release-v3967.py
+          python3 tools/ln-2026/verify-final-release-v10.py
+
+      - name: Commit governed files
+        run: |
+          set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
-          git commit -m 'v3.9.67.0：升级全站资源执行中心与组件自适应治理'
+          git commit -m 'v3.9.67.0：补齐资源执行中心、算法与组件治理文件'
           git push origin HEAD:${{ github.head_ref }}
-          exit "$status"
