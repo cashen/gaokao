@@ -14,9 +14,22 @@ for (const file of ['ln-rank/active-assets.json', 'ln-rank/release-meta.json']) 
   write(file, JSON.stringify(data, null, 2));
 }
 
+const orchestratorPath = 'ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js';
+let orchestrator = read(orchestratorPath);
+orchestrator = orchestrator
+  .split('selection-workspace-orchestration-v3964_0')
+  .join('selection-workspace-orchestration-v3965_0')
+  .split('[selection-workspace-v3963]')
+  .join('[selection-workspace-v3965]');
+write(orchestratorPath, orchestrator);
+
 let headers = read('_headers');
 const currentReleaseRule = '/shared/resources/release/current-release.js\n  Cache-Control: no-cache, max-age=0, must-revalidate';
 if (!headers.includes(currentReleaseRule)) headers += `\n${currentReleaseRule}\n`;
 write('_headers', headers);
 
-console.log(JSON.stringify({ ok: true, reconciled: 'v3.9.65.0' }, null, 2));
+console.log(JSON.stringify({
+  ok: true,
+  reconciled: 'v3.9.65.0',
+  workspace: 'selection-workspace-orchestration-v3965_0'
+}, null, 2));
