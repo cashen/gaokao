@@ -12,7 +12,7 @@ const ROUTE_ORDER = Object.freeze(['home', 'selection', 'selected', 'difficulty'
 const STYLE_URLS = Object.freeze([
   '/shared/ui/tokens/foundation.v3959_0.css?v=3961_0',
   '/shared/ui/tokens/semantic.v3959_0.css?v=3961_0',
-  '/shared/ui/shell/family-shell.v3964_0.css?v=3964_0'
+  '/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'
 ]);
 let mounted = false;
 let scheduled = false;

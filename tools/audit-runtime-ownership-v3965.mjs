@@ -8,6 +8,9 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const json = file => JSON.parse(read(file));
 const moduleUrl = file => `${pathToFileURL(path.join(root, file)).href}?audit=v3965_0`;
 
+const home = read('index.html');
+const homeRuntime = read('ln-rank/js/ux/family-home.v3965_0.js');
+const shellRuntime = read('shared/ui/shell/family-shell.v3965_0.js');
 const main = read('ln-rank/index.html');
 const selection = read('ln-rank/selection-pool.html');
 const tongxue = read('tongxue/index.html');
@@ -36,6 +39,25 @@ assert.equal(CURRENT_RELEASE.tongxueRuntimeVersion, 'tongxue-runtime-v159');
 assert.equal(active.version, CURRENT_RELEASE.display);
 assert.equal(meta.version, CURRENT_RELEASE.display);
 assert.equal(active.assetVersion, CURRENT_RELEASE.assetVersion);
+assert.ok(home.includes('/ln-rank/js/ux/family-home.v3965_0.js?v=3965_0'));
+assert.ok(home.includes('/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'));
+assert.ok(home.includes('/shared/ui/shell/family-shell.v3965_0.js?v=3965_0'));
+assert.ok(home.includes('data-release="v3.9.65.0"'));
+assert.ok(home.includes('<span data-current-release>v3.9.65.0</span>'));
+assert.ok(!home.includes('family-shell.v3964_'));
+assert.ok(!home.includes('family-home.v3955_0.js'));
+assert.ok(!home.includes("const t=new Date('2027-06-07T09:00:00+08:00')"));
+assert.ok(homeRuntime.includes("HOME_RUNTIME_VERSION = 'family-home-runtime-v3965_0'"));
+assert.ok(homeRuntime.includes('mountCurrentRelease'));
+assert.ok(homeRuntime.includes('countdownOwner: HOME_RUNTIME_VERSION'));
+assert.ok(shellRuntime.includes('/shared/ui/shell/family-shell.v3965_0.css?v=3965_0'));
+assert.equal(active.familyHomeJs, 'js/ux/family-home.v3965_0.js');
+assert.equal(active.sharedUiShellCss, '../shared/ui/shell/family-shell.v3965_0.css');
+assert.ok(active.jsEntry.includes('js/ux/family-home.v3965_0.js'));
+assert.ok(!active.jsEntry.includes('js/ux/family-home.v3955_0.js'));
+assert.ok(active.cssEntry.includes('../shared/ui/shell/family-shell.v3965_0.css'));
+assert.ok(!active.cssEntry.includes('../shared/ui/shell/family-shell.v3964_0.css'));
+
 
 assert.ok(main.includes('/ln-rank/js/app.v3965_0.js?v=3965_0'));
 assert.ok(selection.includes('/ln-rank/js/selection-pool.v3965_0.js?v=3965_0'));

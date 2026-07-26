@@ -37,7 +37,8 @@ const types = new Map([
   ['/shared/resources/release/runtime-cache-contract.v3965_0.js', 'application/javascript'],
   ['/tongxue/app/tongxue-runtime-v159.js', 'application/javascript'],
   ['/ln-rank/css/ln-rank-workspace.v3964_0.css', 'text/css'],
-  ['/shared/ui/shell/family-shell.v3964_0.css', 'text/css']
+  ['/shared/ui/shell/family-shell.v3965_0.css', 'text/css'],
+  ['/ln-rank/js/ux/family-home.v3965_0.js', 'application/javascript']
 ]);
 for (const [pathname, expected] of types) {
   const contentTypes = values(pathname, 'content-type').map(value => value.split(';')[0].trim());
