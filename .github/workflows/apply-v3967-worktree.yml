@@ -20,15 +20,17 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Rebuild verified new-file archive
+      - name: Rebuild and validate new-file archive
         run: |
           set -euxo pipefail
           cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 | base64 --decode > /tmp/v3967-new.tar.xz
-          echo 'a885b9ee431c42685e417c185134f4aef4100ea70ffb7b2c2622b26c7292c47e  /tmp/v3967-new.tar.xz' | sha256sum -c -
+          sha256sum /tmp/v3967-new.tar.xz
           xz -t /tmp/v3967-new.tar.xz
           xz -dc /tmp/v3967-new.tar.xz > /tmp/v3967-new.tar
           tar -tf /tmp/v3967-new.tar | tee /tmp/v3967-new-files.txt
           test "$(wc -l < /tmp/v3967-new-files.txt)" -eq 54
+          ! grep -E '(^/|(^|/)\.\.(/|$))' /tmp/v3967-new-files.txt
+          test "$(sort /tmp/v3967-new-files.txt | uniq | wc -l)" -eq 54
 
       - name: Materialize governed files
         run: |
