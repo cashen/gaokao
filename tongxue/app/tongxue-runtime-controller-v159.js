@@ -42,6 +42,8 @@ export async function startTongxueRuntime() {
     activeQueryKey: '',
     querySerial: 0,
     loadingMore: false,
+    loadMoreController: null,
+    loadMoreSerial: 0,
     activeReviewState: null,
     cache: new Map(),
     inflight: new Map(),
@@ -430,11 +432,16 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
   const button = document.getElementById('loadMoreReviews');
   if (!active || !button || !active.pagination?.hasMore || state.loadingMore) return;
   state.loadingMore = true;
+  state.loadMoreController?.abort();
+  const controller = new AbortController();
+  const serial = ++state.loadMoreSerial;
+  state.loadMoreController = controller;
   button.disabled = true;
   button.textContent = '正在加载';
   try {
     const nextPage = Number(active.pagination.page || 1) + 1;
-    const data = await fetchExperience(state, active.school, active.originalInput, nextPage);
+    const data = await fetchExperience(state, active.school, active.originalInput, nextPage, { signal: controller.signal });
+    if (serial !== state.loadMoreSerial || state.activeReviewState !== active) return;
     if (data.mode !== 'recent_reviews') throw new TongxueError('reviews_page_invalid', '后续评论页没有返回评论列表。', data);
     const existing = new Set(active.reviews.map(reviewKey));
     const added = dedupeReviews(data.reviews || []).filter(review => !existing.has(reviewKey(review)));
@@ -446,12 +453,16 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
     resultView.updateLoadMore();
     searchView.announce(`已新增 ${added.length} 条评论`);
   } catch (error) {
+    if (isAbortError(error) || serial !== state.loadMoreSerial) return;
     button.disabled = false;
     button.textContent = '加载失败，点击重试';
     button.title = error?.message || '加载失败';
     searchView.announce('评论加载失败，可以再次点击重试');
   } finally {
-    state.loadingMore = false;
+    if (serial === state.loadMoreSerial) {
+      state.loadingMore = false;
+      state.loadMoreController = null;
+    }
   }
 }
 
@@ -510,6 +521,9 @@ function abortActive(state) {
   state.activeQueryPromise = null;
   state.activeQueryKey = '';
   state.requestInFlight = false;
+  state.loadMoreSerial += 1;
+  state.loadMoreController?.abort();
+  state.loadMoreController = null;
   state.loadingMore = false;
 }
 

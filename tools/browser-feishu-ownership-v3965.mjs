@@ -138,7 +138,10 @@ try {
 
       const generate = page.locator('#feishuReportMount [data-generate-feishu]');
       await generate.waitFor({ state: 'visible', timeout: 10000 });
-      await generate.click({ clickCount: 2, delay: 0 });
+      await generate.evaluate(button => {
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
       await page.locator('#feishuReportMount .feishu-box.is-success').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(reportPosts.length, 1, `${testCase.name}: repeated click generated ${reportPosts.length} reports`);
       assert.equal(reportPosts[0].candidateScore, 600);

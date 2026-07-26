@@ -144,7 +144,9 @@ try {
         const mobile = await page.evaluate(() => {
           const inputBox = document.getElementById('school')?.getBoundingClientRect();
           const buttonBox = document.getElementById('queryButton')?.getBoundingClientRect();
-          const nav = document.querySelector('[data-ui-mobile-nav]')?.getBoundingClientRect();
+          const navElement = document.querySelector('[data-ui-mobile-nav]');
+          const navVisible = navElement && getComputedStyle(navElement).display !== 'none' && navElement.getBoundingClientRect().height > 0;
+          const nav = navVisible ? navElement.getBoundingClientRect() : null;
           return {
             inputBottom: inputBox?.bottom || 0,
             buttonBottom: buttonBox?.bottom || 0,
