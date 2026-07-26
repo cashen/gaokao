@@ -120,13 +120,14 @@ export function summaryGroups(summary) {
   ];
   const groups = new Map(definitions.map(item => [item.key, { ...item, items: [] }]));
   for (const sentence of sentences) {
-    let selected;
+    let selectedKey = 'overall';
     if (/^(但|不过|然而)|较差|不足|较少|受限|问题|偏高|争议|参差|槽点/.test(sentence)) {
-      selected = definitions[3];
+      selectedKey = 'attention';
     } else {
-      selected = definitions.find(item => !['attention','overall'].includes(item.key) && item.words.some(word => sentence.includes(word)));
+      selectedKey = definitions.find(item => !['attention','overall'].includes(item.key)
+        && item.words.some(word => sentence.includes(word)))?.key || 'overall';
     }
-    (selected || definitions[4]).items.push(sentence);
+    groups.get(selectedKey).items.push(sentence);
   }
   const output = ['overall','life','study','career','attention']
     .map(key => groups.get(key))
