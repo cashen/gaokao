@@ -1,0 +1,52 @@
+name: Prepare v3965 release branch
+
+on:
+  push:
+    branches:
+      - agent/v3965-runtime-ownership
+    paths:
+      - 'tools/prepare-release-v3965.mjs'
+      - 'ln-rank/js/feature/feishu/**'
+      - 'ln-rank/js/app.v3965_0.js'
+      - 'ln-rank/js/app-runtime.v3965_0.js'
+      - 'ln-rank/js/selection-pool.v3965_0.js'
+      - 'ln-rank/js/selection-pool-runtime.v3965_0.js'
+      - 'shared/resources/release/**'
+      - 'shared/ui/ui-registry.v3965_0.js'
+      - 'shared/ui/shell/family-shell.v3965_0.js'
+      - 'tongxue/app/tongxue-runtime-*.js'
+      - '.github/workflows/prepare-v3965.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-v3965-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/v3965-runtime-ownership
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synchronize release files
+        run: node tools/prepare-release-v3965.mjs
+      - name: Commit generated release state
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'Release state already synchronized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all
+          git commit -m '同步 v3.9.65.0 活动入口与发布清单'
+          git push origin HEAD:agent/v3965-runtime-ownership
