@@ -15,7 +15,7 @@ export const UI_RESOURCE_REGISTRY = Object.freeze({
   foundation: '/shared/ui/tokens/foundation.v3959_0.css',
   semantic: '/shared/ui/tokens/semantic.v3959_0.css',
   modeSwitch: '/shared/ui/components/mode-switch.v3963_0.css',
-  shellCss: '/shared/ui/shell/family-shell.v3964_0.css',
+  shellCss: '/shared/ui/shell/family-shell.v3965_0.css',
   shellJs: '/shared/ui/shell/family-shell.v3965_0.js',
   workspaceCss: '/ln-rank/css/ln-rank-workspace.v3964_0.css',
   workspaceJs: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js',

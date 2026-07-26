@@ -203,4 +203,5 @@ updateManifest('ln-rank/release-meta.json');
 updateHeaders();
 write('VERSION.txt', VERSION);
 write('ln-rank/VERSION.txt', VERSION);
+await import('./fix-home-version-ownership-v3965.mjs');
 console.log(JSON.stringify({ ok: true, version: VERSION, asset: ASSET }, null, 2));
