@@ -18,6 +18,7 @@ import { ADMISSION_CHARTER_CHECK_KB } from './kb/admission-charter-check-kb.gene
 import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { buildSelectionReviewChecklist } from './kb/review-checklist-builder.js';
+import { formatHistoricalEvidenceText } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -111,10 +112,7 @@ function matchDetailRuns(summary = {}) {
 
 
 function historyScoreText(item = {}) {
-  const rows=[];
-  if(item.score2025!=null||item.rank2025!=null)rows.push(`2025：${item.score2025!=null?formatNumber(item.score2025)+' 分':'分数待核验'} / ${item.rank2025!=null?formatNumber(item.rank2025)+' 位':'位次待核验'}`);
-  if(item.score2024!=null||item.rank2024!=null)rows.push(`2024：${item.score2024!=null?formatNumber(item.score2024)+' 分':'分数待核验'} / ${item.rank2024!=null?formatNumber(item.rank2024)+' 位':'位次待核验'}`);
-  return rows.join('；')||'历史同口径参考：暂无';
+  return formatHistoricalEvidenceText(item, { years: [2025, 2024], prefix: false, empty: '历史同口径参考：暂无' });
 }
 
 function itemRuns(item) {
