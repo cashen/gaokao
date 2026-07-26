@@ -15,7 +15,7 @@ const { makeDecisionSnapshot, isCompatibleDecisionSnapshot } = await import(url(
 const { getBottomLineEligibility } = await import(url('functions/_lib/bottomline-policy.js'));
 const { classifySelectionPosition } = await import(url('ln-rank/js/domain/selection-band-policy.v3963_1.js'));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.64.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.64.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3964_0');
 assert.equal(CURRENT_RELEASE.algorithmOrchestrationVersion, ALGORITHM_ORCHESTRATION_VERSION);
 assert.equal(CURRENT_RELEASE.schoolAllModeVersion, 'school-all-mode-v3964_0');
