@@ -74,14 +74,17 @@ jobs:
           if(!html.includes('tongxue-runtime-v159-r3966.js?v=3966_0')) throw new Error('active wrapper missing');
           if(html.includes('tongxue-runtime-v159.js?v=159')) throw new Error('old wrapper still active');
           const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3966.js','utf8');
-          for(const marker of ['release-presenter.v3966_0.js?v=3966_0','tongxue-runtime-controller-v159.js?v=159','tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159']){
+          for(const marker of ['release-presenter.v3966_0.js?v=3966_0','tongxue-runtime-controller-v159.js?v=159']){
             if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
+          }
+          const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
+          for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']){
+            if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
           }
           for(const rel of ['tongxue/app/tongxue-runtime-v159-r3966.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
             const source=fs.readFileSync(rel,'utf8');
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
-          const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
           console.log('Tongxue v159 core + v3966 wrapper ownership passed');
           NODE
