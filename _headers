@@ -125,28 +125,47 @@
   Cache-Control: public, max-age=31536000, immutable
 
 /
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /index.html
   Cache-Control: no-cache, max-age=0, must-revalidate
 /ln-rank/
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /ln-rank/index.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /ln-rank/selection-pool.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /ln-rank/local-mainline.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /ln-rank/211-mainline.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /ln2026.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /zy2026.html
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /zy2026/
+  Cache-Control: no-cache, max-age=0, must-revalidate
 /zy2026/index.html
   Cache-Control: no-cache, max-age=0, must-revalidate
 
 /shared/ui/shell/family-shell.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /shared/ui/ui-registry.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /shared/resources/release/release-presenter.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /shared/resources/release/runtime-cache-contract.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/app.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/app-runtime.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/selection-pool.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/selection-pool-runtime.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/major-difficulty-2026.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /zy2026/assets/zy2026.v3964_1.js
+  Cache-Control: public, max-age=31536000, immutable
 /tongxue/app/tongxue-performance-v158.js
   Cache-Control: public, max-age=31536000, immutable
