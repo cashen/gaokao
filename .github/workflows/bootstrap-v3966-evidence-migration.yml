@@ -27,7 +27,7 @@ jobs:
       - name: Apply v3966 evidence migration
         run: |
           set +e
-          node tools/ln-2026/migrate-three-year-evidence-v3966.mjs > /tmp/v3966-migration.log 2>&1
+          node tools/ln-2026/migrate-three-year-evidence-v3966-followup.mjs > /tmp/v3966-migration.log 2>&1
           status=$?
           cat /tmp/v3966-migration.log
           if [ "$status" -ne 0 ]; then
@@ -69,5 +69,5 @@ jobs:
             ln-rank/js/feature/feishu/index.v3966_0.js \
             ln-rank/js/feature/feishu/report-controller.v3966_0.js \
             ln-rank/js/feature/school-majors/school-all-mode.v3966_0.js
-          git commit -m '统一全站三年成绩位次消费者'
+          git commit -m '统一全站三年成绩位次消费者' || true
           git push origin HEAD:${{ github.head_ref }}
