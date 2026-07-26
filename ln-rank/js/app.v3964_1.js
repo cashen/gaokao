@@ -68,7 +68,7 @@ globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__ = Object.freeze({
 setRuntimeState('loading');
 
 try {
-  const runtime = await import('./app-runtime.v3964_1.js?v=3964_0');
+  const runtime = await import('./app-runtime.v3964_1.js?v=3964_1');
   await runtime.startLnRankRuntime();
   currentState = 'ready';
   unlockRuntimeControls();
