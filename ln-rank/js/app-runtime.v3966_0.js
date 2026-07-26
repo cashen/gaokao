@@ -1,12 +1,12 @@
-import '../../shared/resources/release/release-presenter.v3965_0.js?v=3965_0';
+import '../../shared/resources/release/release-presenter.v3966_0.js?v=3966_0';
 import './workspace/viewport-orchestrator.v3961_0.js?v=3961_0';
 import '../../shared/ui/shell/family-shell.v3965_0.js?v=3965_0';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
 } from '../../shared/resources/exam/liaoning-physics.js?v=3966_0';
-import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3965_0';
-import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../../shared/resources/release/runtime-cache-contract.v3965_0.js?v=3965_0';
+import { CURRENT_RELEASE } from '../../shared/resources/release/current-release.js?v=3966_0';
+import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../../shared/resources/release/runtime-cache-contract.v3966_0.js?v=3966_0';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3963_0';
 import { state } from './state/app-state.v3963_1.js?v=3963_1';
 
@@ -41,6 +41,7 @@ function rewriteMajorBandsRequest(input, init) {
   url.searchParams.set('uiOrchestrationVersion', CURRENT_RELEASE.uiOrchestrationVersion);
   url.searchParams.set('algorithmOrchestrationVersion', CURRENT_RELEASE.algorithmOrchestrationVersion);
   url.searchParams.set('searchIntentVersion', CURRENT_RELEASE.searchIntentVersion);
+  url.searchParams.set('historyEvidenceVersion', CURRENT_RELEASE.historyEvidenceVersion);
   if (!url.searchParams.get('schoolEntityId') && state?.filters?.schoolEntityId) url.searchParams.set('schoolEntityId', state.filters.schoolEntityId);
   if (input instanceof Request) return [new Request(url.toString(), input), init];
   return [url.toString(), init];
@@ -62,6 +63,7 @@ function syncSharedBottomLine() {
   panel.dataset.releaseResource = CURRENT_RELEASE.assetVersion;
   panel.dataset.uiResource = CURRENT_RELEASE.uiOrchestrationVersion;
   panel.dataset.algorithmResource = CURRENT_RELEASE.algorithmOrchestrationVersion;
+  panel.dataset.historyEvidenceResource = CURRENT_RELEASE.historyEvidenceVersion;
 }
 
 document.addEventListener('gaokao:workspace-state', syncSharedBottomLine);
@@ -78,7 +80,9 @@ export function startLnRankRuntime() {
     return Object.freeze({
       version: LN_RANK_RUNTIME_CACHE_CONTRACT.version,
       workspace: globalThis.__GAOKAO_SELECTION_WORKSPACE__?.version || '',
-      schoolMode: globalThis.__GAOKAO_SCHOOL_ALL_MODE__?.version || ''
+      schoolMode: globalThis.__GAOKAO_SCHOOL_ALL_MODE__?.version || '',
+      report: globalThis.__GAOKAO_FEISHU_REPORT__?.version || '',
+      historyEvidence: CURRENT_RELEASE.historyEvidenceVersion
     });
   })();
   return startPromise;
