@@ -1,0 +1,57 @@
+name: Bootstrap v3966 evidence migration
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - tools/ln-2026/run-migration-v3966.txt
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply v3966 evidence migration
+        run: node tools/ln-2026/migrate-three-year-evidence-v3966.mjs
+      - name: Validate generated JavaScript syntax
+        run: |
+          set -euo pipefail
+          git diff --name-only | grep -E '\.(js|mjs)$' | while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            node --check "$file"
+          done
+      - name: Commit migrated consumers
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            functions/_lib/feishu-report-builder.js \
+            functions/_lib/feishu-selection-pool-styled-builder.js \
+            functions/_lib/ai-card-prompt.js \
+            ln-rank/index.html \
+            ln-rank/selection-pool.html \
+            ln-rank/js/app.v3966_0.js \
+            ln-rank/js/app-runtime.v3966_0.js \
+            ln-rank/js/selection-pool.v3966_0.js \
+            ln-rank/js/selection-pool-runtime.v3966_0.js \
+            ln-rank/js/workspace/selection-workspace-orchestrator.v3966_0.js \
+            ln-rank/js/feature/major-pool/index.v3966_0.js \
+            ln-rank/js/feature/major-pool/render.v3966_0.js \
+            ln-rank/js/feature/school-majors/school-all-mode.v3966_0.js \
+            ln-rank/js/feature/feishu/report-controller.v3965_0.js
+          git commit -m '统一全站三年成绩位次消费者'
+          git push origin HEAD:${{ github.head_ref }}
