@@ -1,47 +1,9 @@
 Traceback (most recent call last):
-  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 238, in <module>
+  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 359, in <module>
     main()
-  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 213, in main
-    all_rows.extend(parse_block(text, start, end))
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 139, in parse_block
-    raise RuntimeError(
-RuntimeError: OCR range mismatch 708-671: got 707-677 (5 rows)
-70814      14
-707     5    416
-706        924
-705     5
-704     2332
-703 42
-702,5   47
-79582
-00     13    65
-,699    1378
-698     2098
-697     16    114,,
-696     2044
-695      15 449
-694     166
-6037 47183
-62429212
-691     24236
-690     28264
-689     2289
-688     3167
-687
-686     36   389
-685     53442
-684     35477
-847524
- 681     40609
-680     45654
-679
-678,     48746
-677     83 , 1831
-676897
-6757954
-6744601,014
-761090
-672     681,158
-671     791,237
-
+  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 311, in main
+    cumulative, _ = read_cumulative(
+                    ^^^^^^^^^^^^^^^^
+  File "/home/runner/work/gaokao/gaokao/tools/ln-2026/build-ln-2024-rank-table.py", line 196, in read_cumulative
+    raise RuntimeError(f"cannot read official cumulative rank for score {score}: {json.dumps(diagnostic, ensure_ascii=False)[:1800]}")
+RuntimeError: cannot read official cumulative rank for score 704: {"score": 704, "previous": 201, "candidates": [5], "attempts": [{"crop": [0.655, 0.985], "threshold": 145, "psm": 7, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 145, "psm": 8, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 145, "psm": 13, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 165, "psm": 7, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 165, "psm": 8, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 165, "psm": 13, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 185, "psm": 7, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 185, "psm": 8, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 185, "psm": 13, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 205, "psm": 7, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 205, "psm": 8, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 205, "psm": 13, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 220, "psm": 7, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 220, "psm": 8, "text": "", "values": []}, {"crop": [0.655, 0.985], "threshold": 220, "psm": 13, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 145, "psm": 7, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 145, "psm": 8, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 145, "psm": 13, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 165, "psm": 7, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 165, "psm": 8, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 165, "psm": 13, "text": "", "values": []}, {"crop": [0.62, 0.985], "threshold": 185, "psm": 7, "te
