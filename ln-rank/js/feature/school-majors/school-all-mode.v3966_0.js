@@ -7,11 +7,7 @@ import {
   createSelectionPoolAdapter,
   refreshSelectionPool
 } from '../selection-pool/index.v3964_0.js?v=3964_0';
-import {
-  compactHistoryScoreText,
-  renderCurrentScoreRank,
-  renderThreeYearEvidenceDetail
-} from '../major-pool/history-score-render.v3966_0.js?v=3966_0';
+import { compactHistoryScoreText, renderCurrentScoreRank, renderThreeYearEvidenceDetail } from '../major-pool/history-score-render.v3966_0.js?v=3966_0';
 
 const MODE_SCHOOL = 'school-all';
 const API_PATH = '/api/school-majors';
