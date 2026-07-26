@@ -49,7 +49,16 @@ jobs:
       - name: Verify v3.9.65.0 release contract
         env:
           LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python3 tools/ln-2026/verify-final-release-v8.py
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release-v8.py > /tmp/v3965-release-verify.out 2> /tmp/v3965-release-verify.err
+          status=$?
+          cat /tmp/v3965-release-verify.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- v3965 release verification error ---'
+            cat /tmp/v3965-release-verify.err
+            exit "$status"
+          fi
 
       - name: Audit runtime ownership and active graph
         run: node tools/audit-runtime-ownership-v3965.mjs
@@ -130,6 +139,7 @@ jobs:
           path: |
             /tmp/v3965-*.txt
             /tmp/v3965-*.out
+            /tmp/v3965-*.err
             /tmp/v3965-*.log
             /tmp/v3965-human-task
             /tmp/v3965-runtime-readiness
