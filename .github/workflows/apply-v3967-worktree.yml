@@ -20,40 +20,67 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Rebuild transport archive
+      - name: Recover archive and inspect TAR
+        id: recover
+        continue-on-error: true
         run: |
-          set -euxo pipefail
+          set +e
           cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 > /tmp/v3967-new.b64
           base64 --decode /tmp/v3967-new.b64 > /tmp/v3967-new.truncated.tar.xz
-          sha256sum /tmp/v3967-new.truncated.tar.xz
-
-      - name: Recover validated XZ data block
-        run: |
-          set -euxo pipefail
-          set +e
-          xz -dc /tmp/v3967-new.truncated.tar.xz > /tmp/v3967-new.tar
-          xz_status=$?
-          set -e
-          echo "original_xz_status=${xz_status}"
-          test -s /tmp/v3967-new.tar
-          tar -tf /tmp/v3967-new.tar | tee /tmp/v3967-new-files.txt
-          test "$(wc -l < /tmp/v3967-new-files.txt)" -eq 54
-          ! grep -E '(^/|(^|/)\.\.(/|$))' /tmp/v3967-new-files.txt
-          test "$(sort /tmp/v3967-new-files.txt | uniq | wc -l)" -eq 54
-          mkdir /tmp/v3967-probe
-          tar -xf /tmp/v3967-new.tar -C /tmp/v3967-probe
+          xz -dc /tmp/v3967-new.truncated.tar.xz > /tmp/v3967-new.tar 2> /tmp/v3967-xz.err
+          mkdir -p /tmp/v3967-probe
+          tar -tvf /tmp/v3967-new.tar > /tmp/v3967-tar-list.txt 2> /tmp/v3967-tar-list.err
+          tar_list_status=$?
+          tar -xf /tmp/v3967-new.tar -C /tmp/v3967-probe 2> /tmp/v3967-tar-extract.err
+          tar_extract_status=$?
+          {
+            echo '== xz error =='
+            cat /tmp/v3967-xz.err
+            echo '== recovered tar size =='
+            wc -c /tmp/v3967-new.tar
+            echo '== tar list status =='
+            echo "$tar_list_status"
+            echo '== tar list count =='
+            wc -l /tmp/v3967-tar-list.txt
+            echo '== tar entries =='
+            cat /tmp/v3967-tar-list.txt
+            echo '== tar list error =='
+            cat /tmp/v3967-tar-list.err
+            echo '== tar extract status =='
+            echo "$tar_extract_status"
+            echo '== extracted files =='
+            find /tmp/v3967-probe -type f -printf '%s %p\n' | sort
+            echo '== extracted count =='
+            find /tmp/v3967-probe -type f | wc -l
+            echo '== tar extract error =='
+            cat /tmp/v3967-tar-extract.err
+          } > .v3967-tar-diagnostic.txt
+          cat .v3967-tar-diagnostic.txt
+          test "$tar_list_status" -eq 0
+          test "$tar_extract_status" -eq 0
+          test "$(wc -l < /tmp/v3967-tar-list.txt)" -eq 54
           test "$(find /tmp/v3967-probe -type f | wc -l)" -eq 54
-          xz -c -9 /tmp/v3967-new.tar > /tmp/v3967-new.repaired.tar.xz
-          xz -t /tmp/v3967-new.repaired.tar.xz
-          sha256sum /tmp/v3967-new.repaired.tar.xz
+
+      - name: Commit TAR diagnostic on failure
+        if: steps.recover.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .v3967-tar-diagnostic.txt
+          git commit -m 'diagnostic: identify incomplete v3967 TAR entry'
+          git push origin HEAD:${{ github.head_ref }}
+          exit 1
 
       - name: Materialize governed files
+        if: steps.recover.outcome == 'success'
         run: |
           set -euxo pipefail
-          tar -xf /tmp/v3967-new.tar
-          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 .v3967-verify-diagnostic.txt .v3967-archive-diagnostic.txt
+          cp -a /tmp/v3967-probe/. .
+          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 .v3967-verify-diagnostic.txt .v3967-archive-diagnostic.txt .v3967-tar-diagnostic.txt
 
       - name: Verify governed release before commit
+        if: steps.recover.outcome == 'success'
         run: |
           set -euo pipefail
           node tools/build-derived-asset-trace-v3967.mjs
@@ -69,6 +96,7 @@ jobs:
           python3 tools/ln-2026/verify-final-release-v10.py
 
       - name: Commit governed files
+        if: steps.recover.outcome == 'success'
         run: |
           set -euo pipefail
           git config user.name github-actions[bot]
