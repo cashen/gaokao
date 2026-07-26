@@ -38,7 +38,16 @@ jobs:
       - name: Verify final release contract
         env:
           LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python3 tools/ln-2026/verify-final-release-v8.py
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release-v8.py > /tmp/v3965-final-verify.out 2> /tmp/v3965-final-verify.err
+          status=$?
+          cat /tmp/v3965-final-verify.out
+          if [ "$status" -ne 0 ]; then
+            echo '--- v3965 final release verification error ---'
+            cat /tmp/v3965-final-verify.err
+            exit "$status"
+          fi
 
       - name: Compile changed source and verification tools
         run: |
