@@ -36,9 +36,18 @@ jobs:
         run: |
           set -euxo pipefail
           git status --short
-          git apply --check --verbose /tmp/v3967.patch
+          if ! git apply --check --verbose /tmp/v3967.patch > /tmp/v3967-apply-check.log 2>&1; then
+            cat /tmp/v3967-apply-check.log
+            cp /tmp/v3967-apply-check.log .v3967-apply-diagnostic.txt
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add .v3967-apply-diagnostic.txt
+            git commit -m 'diagnostic: capture v3967 patch conflict'
+            git push origin HEAD:${{ github.head_ref }}
+            exit 1
+          fi
           git apply --binary --index --verbose /tmp/v3967.patch
-          rm -f .v3967-patch-00 .v3967-patch-01 .v3967-apply-trigger
+          rm -f .v3967-patch-00 .v3967-patch-01 .v3967-apply-trigger .v3967-apply-diagnostic.txt
 
       - name: Verify governed release before commit
         run: |
