@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3965_0';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3966_0';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 
@@ -11,21 +11,28 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   runtimeCache: Object.freeze({
     id: 'ln-rank-runtime-cache-coherence',
-    module: '/shared/resources/release/runtime-cache-contract.v3965_0.js',
+    module: '/shared/resources/release/runtime-cache-contract.v3966_0.js',
     policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
     consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
   }),
   exam: Object.freeze({
     id: 'liaoning-physics-exam',
     module: '/shared/resources/exam/liaoning-physics.js',
-    policy: 'single-source-static-module',
+    supportedYears: Object.freeze([2024, 2025, 2026]),
+    policy: 'single-source-three-year-static-module',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports'])
   }),
   rankTables: Object.freeze({
     id: 'liaoning-physics-rank-tables',
     provider: '/functions/_lib/rank-table-provider.js',
-    policy: 'single-provider-generated-year-tables',
-    consumers: Object.freeze(['functions-api', 'card-ai', 'reports', 'selection-pool'])
+    examConfig: '/shared/resources/exam/liaoning-physics.js',
+    evidenceService: '/functions/_lib/historical-score-rank-evidence.js',
+    evidenceContract: '/shared/resources/exam/historical-score-rank-contract.js',
+    presenter: '/ln-rank/js/feature/major-pool/history-score-render.v3966_0.js',
+    supportedYears: Object.freeze([2024, 2025, 2026]),
+    comparisonPopulationPolicy: 'undergraduate-control-line-cumulative',
+    policy: 'single-provider-official-generated-year-tables-and-evidence',
+    consumers: Object.freeze(['functions-api', 'card-ai', 'reports', 'selection-pool', 'school-search', 'trend-analysis'])
   }),
   regions: Object.freeze({
     id: 'china-region-catalog',
@@ -35,10 +42,11 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   reports: Object.freeze({
     id: 'feishu-report-contract',
-    module: '/shared/resources/reports/feishu-report-contract.v3964_0.js',
-    yearCaliberVersion: 'ln-physics-report-years-v3964_0',
-    frontend: '/ln-rank/js/feature/feishu/index.v3965_0.js',
-    policy: 'single-source-contract-client-year-caliber-and-operation-state',
+    module: '/shared/resources/reports/feishu-report-contract.v3966_0.js',
+    yearCaliberVersion: 'ln-physics-report-years-v3966_0',
+    frontend: '/ln-rank/js/feature/feishu/index.v3966_0.js',
+    historyEvidenceOwner: '/functions/_lib/historical-score-rank-evidence.js',
+    policy: 'single-source-contract-client-year-caliber-evidence-and-operation-state',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'path-analysis', 'self-check'])
   }),
   schools: Object.freeze({
