@@ -1,0 +1,45 @@
+== xz error ==
+xz: /tmp/v3967-new.truncated.tar.xz: Unexpected end of input
+== recovered tar size ==
+531012 /tmp/v3967-new.tar
+== tar list status ==
+2
+== tar list count ==
+12 /tmp/v3967-tar-list.txt
+== tar entries ==
+-rw-r--r-- root/root       969 2026-07-26 22:19 analysis/2026/three-year-rank-evidence-audit-v3967.json
+-rw-r--r-- root/root      3144 2026-07-26 21:30 ln-rank/css/history-evidence.v3967_0.css
+-rw-r--r-- root/root    490100 2026-07-26 21:59 ln-rank/css/ln-rank-workspace.v3967_0.css
+-rw-r--r-- root/root      7684 2026-07-26 21:59 ln-rank/css/school-all-mode.v3967_0.css
+-rw-r--r-- root/root      4499 2026-07-26 21:32 ln-rank/js/app-runtime.v3967_0.js
+-rw-r--r-- root/root      2629 2026-07-26 21:32 ln-rank/js/app.v3967_0.js
+-rw-r--r-- root/root      1449 2026-07-26 21:53 ln-rank/js/feature/diagnose/api.v3967_0.js
+-rw-r--r-- root/root      1923 2026-07-26 21:53 ln-rank/js/feature/diagnose/controller.v3967_0.js
+-rw-r--r-- root/root       212 2026-07-26 21:53 ln-rank/js/feature/feishu/index.v3967_0.js
+-rw-r--r-- root/root      3656 2026-07-26 21:53 ln-rank/js/feature/feishu/report-controller.v3967_0.js
+-rw-r--r-- root/root      5326 2026-07-26 21:30 ln-rank/js/feature/major-pool/history-score-render.v3967_0.js
+-rw-r--r-- root/root       543 2026-07-26 21:31 ln-rank/js/feature/major-pool/index.v3967_0.js
+== tar list error ==
+tar: Unexpected EOF in archive
+tar: Error is not recoverable: exiting now
+== tar extract status ==
+2
+== extracted files ==
+0 /tmp/v3967-probe/ln-rank/js/feature/major-pool/index.v3967_0.js
+1449 /tmp/v3967-probe/ln-rank/js/feature/diagnose/api.v3967_0.js
+1923 /tmp/v3967-probe/ln-rank/js/feature/diagnose/controller.v3967_0.js
+212 /tmp/v3967-probe/ln-rank/js/feature/feishu/index.v3967_0.js
+2629 /tmp/v3967-probe/ln-rank/js/app.v3967_0.js
+3144 /tmp/v3967-probe/ln-rank/css/history-evidence.v3967_0.css
+3656 /tmp/v3967-probe/ln-rank/js/feature/feishu/report-controller.v3967_0.js
+4499 /tmp/v3967-probe/ln-rank/js/app-runtime.v3967_0.js
+490100 /tmp/v3967-probe/ln-rank/css/ln-rank-workspace.v3967_0.css
+5326 /tmp/v3967-probe/ln-rank/js/feature/major-pool/history-score-render.v3967_0.js
+7684 /tmp/v3967-probe/ln-rank/css/school-all-mode.v3967_0.css
+969 /tmp/v3967-probe/analysis/2026/three-year-rank-evidence-audit-v3967.json
+== extracted count ==
+12
+== tar extract error ==
+tar: Unexpected EOF in archive
+tar: Unexpected EOF in archive
+tar: Error is not recoverable: exiting now
