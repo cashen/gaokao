@@ -112,12 +112,21 @@ for (const source of [routeCurrent, routePool]) {
 }
 assert.ok(routePool.includes('year: FEISHU_REPORT_CONTRACT.dataYear'));
 assert.ok(routePool.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
-const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3963_1.js', 'utf8');
+const frontendClient = fs.readFileSync('ln-rank/js/shared/feishu-api-client.v3964_0.js', 'utf8');
 assert.ok(frontendClient.includes('FEISHU_REPORT_ROUTES'));
 assert.ok(frontendClient.includes('AbortController'));
 assert.ok(frontendClient.includes('data.yearCaliberVersion !== FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
-const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3963_1.js', 'utf8');
+const currentPayload = fs.readFileSync('ln-rank/js/feature/report/payload-builder.v3964_0.js', 'utf8');
 assert.ok(currentPayload.includes('selectedRecords') && currentPayload.includes('score2026') && currentPayload.includes('rank2026'));
 assert.ok(currentPayload.includes('yearCaliberVersion: FEISHU_REPORT_CONTRACT.yearCaliberVersion'));
+for (const file of [
+  'ln-rank/js/feature/feishu/report-api.v3964_0.js',
+  'ln-rank/js/feature/selection-pool/path-analysis-api.v3964_0.js',
+  'ln-rank/js/feature/selection-pool/feishu-report-api.v3964_0.js'
+]) {
+  const source = fs.readFileSync(file, 'utf8');
+  assert.ok(source.includes('feishu-report-contract.v3964_0.js?v=3964_0'), `${file} does not use the active year contract`);
+  assert.ok(!source.includes('feishu-report-contract.v3963_1.js'), `${file} retains stale report contract`);
+}
 
 console.log('FEISHU_REPORT_V3964_0_HISTORY_APPENDIX_OK');
