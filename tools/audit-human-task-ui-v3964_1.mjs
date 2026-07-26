@@ -185,10 +185,10 @@ for (const asset of ['../shared/ui/shell/family-shell.v3964_0.css', 'css/ln-rank
   assert.ok(activeCss.has(asset), `active CSS missing ${asset}`);
 }
 for (const asset of [
-  'js/app.v3964_0.js',
-  'js/app-runtime.v3964_0.js',
-  'js/selection-pool.v3964_0.js',
-  'js/selection-pool-runtime.v3964_0.js',
+  'js/app.v3964_1.js',
+  'js/app-runtime.v3964_1.js',
+  'js/selection-pool.v3964_1.js',
+  'js/selection-pool-runtime.v3964_1.js',
   'js/workspace/selection-workspace-orchestrator.v3964_0.js',
   'js/feature/school-majors/school-all-mode.v3964_0.js',
   '../shared/resources/reports/feishu-report-contract.v3964_0.js',
