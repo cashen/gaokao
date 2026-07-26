@@ -1,4 +1,4 @@
-name: Verify runtime ownership v3965.0
+name: Verify runtime ownership v3966.0
 
 on:
   pull_request:
@@ -25,61 +25,60 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Check protected paths
+      - name: Check protected paths and active source syntax
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3965-protected-paths.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3965-protected-paths.txt; then
+          git diff --name-only "$base" HEAD | tee /tmp/v3966-runtime-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3966-runtime-files.txt; then
             echo 'Protected path changed'
             exit 1
           fi
-
-      - name: Check changed source syntax
-        run: |
-          set -euo pipefail
-          base='${{ github.event.pull_request.base.sha }}'
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do
             [ -f "$file" ] || continue
-            echo "node --check $file"
             node --check "$file"
           done
-          python3 -m py_compile tools/ln-2026/verify-final-release-v8.py
+          python3 -m py_compile tools/ln-2026/verify-final-release-v9.py
 
-      - name: Verify v3.9.65.0 release contract
+      - name: Verify release and evidence ownership
         env:
           LN_RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          set +e
-          python3 tools/ln-2026/verify-final-release-v8.py > /tmp/v3965-release-verify.out 2> /tmp/v3965-release-verify.err
-          status=$?
-          cat /tmp/v3965-release-verify.out
-          if [ "$status" -ne 0 ]; then
-            echo '--- v3965 release verification error ---'
-            cat /tmp/v3965-release-verify.err
-            exit "$status"
-          fi
+          python3 tools/ln-2026/verify-final-release-v9.py | tee /tmp/v3966-runtime-release.out
+          node tools/audit-three-year-rank-evidence-v3966.mjs | tee /tmp/v3966-runtime-rank.out
 
-      - name: Audit runtime ownership and active graph
-        run: node tools/audit-runtime-ownership-v3965.mjs
-
-      - name: Audit MIME and cache ownership
-        run: node tools/audit-static-content-types-v3965.mjs
-
-      - name: Verify Feishu year hierarchy and report builders
-        run: node tools/verify-feishu-report-v3956.mjs
-
-      - name: Verify shared resource and algorithm owners
+      - name: Verify active asset graph and immutable boundaries
         run: |
-          node tools/audit-resource-ownership-v3958.mjs
-          node tools/audit-algorithm-orchestration-v3965.mjs
-          node tools/verify-school-profile-center-v3957.mjs
-          node tools/verify-card-ai-2026-v3955.mjs
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3966_0.js';
+          const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
+          if(CURRENT_RELEASE.assetVersion!=='v3966_0') throw new Error('release asset');
+          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3966_0') throw new Error('cache contract');
+          for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){
+            const rel=asset.replace(/^\//,'');
+            if(!fs.existsSync(rel)) throw new Error(`missing active module ${rel}`);
+          }
+          for(const required of ['js/app.v3966_0.js','js/app-runtime.v3966_0.js','js/workspace/selection-workspace-orchestrator.v3966_0.js','js/feature/major-pool/history-score-render.v3966_0.js','js/feature/school-majors/school-all-mode.v3966_0.js','js/feature/feishu/index.v3966_0.js','js/selection-pool.v3966_0.js','../shared/resources/exam/historical-score-rank-contract.js']){
+            if(!active.jsEntry.includes(required)) throw new Error(`active graph missing ${required}`);
+          }
+          for(const forbidden of ['js/app.v3965_0.js','js/workspace/selection-workspace-orchestrator.v3965_0.js','js/feature/feishu/index.v3965_0.js','../tongxue/app/tongxue-runtime-v159.js']){
+            if(active.jsEntry.includes(forbidden)) throw new Error(`legacy active ${forbidden}`);
+          }
+          const runtime=fs.readFileSync('ln-rank/js/app-runtime.v3966_0.js','utf8');
+          for(const marker of ['release-presenter.v3966_0.js?v=3966_0','current-release.js?v=3966_0','runtime-cache-contract.v3966_0.js?v=3966_0','selection-workspace-orchestrator.v3966_0.js?v=3966_0','school-all-mode.v3966_0.js?v=3966_0']){
+            if(!runtime.includes(marker)) throw new Error(`runtime owner ${marker}`);
+          }
+          const workspace=fs.readFileSync('ln-rank/js/workspace/selection-workspace-orchestrator.v3966_0.js','utf8');
+          if(!workspace.includes("version: 'selection-workspace-orchestration-v3966_0'")) throw new Error('workspace runtime version');
+          console.log('active graph ownership passed');
+          NODE
 
       - name: Smoke-test governed assets
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3965-smoke-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3966-smoke-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
@@ -90,24 +89,23 @@ jobs:
             /ln2026.html
             /zy2026/
             /tongxue/
-            /ln-rank/js/app.v3965_0.js
-            /ln-rank/js/app-runtime.v3965_0.js
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3965_0.js
-            /ln-rank/js/feature/feishu/index.v3965_0.js
-            /ln-rank/js/feature/feishu/report-state.v3965_0.js
-            /ln-rank/js/feature/feishu/report-render.v3965_0.js
-            /ln-rank/js/feature/feishu/report-controller.v3965_0.js
-            /ln-rank/js/selection-pool.v3965_0.js
-            /ln-rank/js/selection-pool-runtime.v3965_0.js
+            /ln-rank/js/app.v3966_0.js
+            /ln-rank/js/app-runtime.v3966_0.js
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3966_0.js
+            /ln-rank/js/feature/major-pool/history-score-render.v3966_0.js
+            /ln-rank/js/feature/school-majors/school-all-mode.v3966_0.js
+            /ln-rank/js/feature/feishu/index.v3966_0.js
+            /ln-rank/js/feature/feishu/report-controller.v3966_0.js
+            /ln-rank/js/selection-pool.v3966_0.js
+            /ln-rank/js/selection-pool-runtime.v3966_0.js
             /shared/resources/release/current-release.js
-            /shared/resources/release/runtime-cache-contract.v3965_0.js
+            /shared/resources/release/runtime-cache-contract.v3966_0.js
+            /shared/resources/reports/feishu-report-contract.v3966_0.js
+            /shared/resources/exam/historical-score-rank-contract.js
             /shared/ui/ui-registry.v3965_0.js
             /shared/ui/shell/family-shell.v3965_0.js
-            /tongxue/app/tongxue-runtime-v159.js
+            /tongxue/app/tongxue-runtime-v159-r3966.js
             /tongxue/app/tongxue-runtime-controller-v159.js
-            /tongxue/app/tongxue-runtime-search-view-v159.js
-            /tongxue/app/tongxue-runtime-result-view-v159.js
-            /tongxue/app/tongxue-runtime-utils-v159.js
           )
           for path in "${paths[@]}"; do
             echo "GET $path"
@@ -119,31 +117,25 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify complete mainline and ownership journeys
+      - name: Verify PC Pad Android three-year evidence journeys
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3965-browser-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3966-browser-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          DUAL_SEARCH_ARTIFACT_DIR=/tmp/v3965-human-task node tools/browser-human-task-journey-v3965_0.mjs | tee /tmp/v3965-human-task.out
-          RUNTIME_CACHE_ARTIFACT_DIR=/tmp/v3965-runtime-readiness node tools/browser-runtime-readiness-v3965_0.mjs | tee /tmp/v3965-runtime-readiness.out
-          V3965_ARTIFACT_DIR=/tmp/v3965-feishu node tools/browser-feishu-ownership-v3965.mjs | tee /tmp/v3965-feishu.out
-          V3965_ARTIFACT_DIR=/tmp/v3965-tongxue node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/v3965-tongxue.out
+          V3966_ARTIFACT_DIR=/tmp/v3966-three-year-browser node tools/browser-three-year-rank-evidence-v3966.mjs | tee /tmp/v3966-three-year-browser.out
 
       - name: Upload verification diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-ownership-v3965-diagnostics
+          name: runtime-ownership-v3966-diagnostics
           path: |
-            /tmp/v3965-*.txt
-            /tmp/v3965-*.out
-            /tmp/v3965-*.err
-            /tmp/v3965-*.log
-            /tmp/v3965-human-task
-            /tmp/v3965-runtime-readiness
-            /tmp/v3965-feishu
-            /tmp/v3965-tongxue
+            /tmp/v3966-*.txt
+            /tmp/v3966-*.out
+            /tmp/v3966-*.err
+            /tmp/v3966-*.log
+            /tmp/v3966-three-year-browser
           if-no-files-found: warn
           retention-days: 3

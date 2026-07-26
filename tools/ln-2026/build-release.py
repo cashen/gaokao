@@ -421,6 +421,27 @@ def section_html(sid: str, title: str, body: str) -> str:
     return f'<section id="{esc(sid)}" class="section"><h2>{esc(title)}</h2>{body}</section>'
 
 
+def load_rank_population_from_module(year: int, score: int) -> int:
+    """Read cumulative rank at a score from the canonical yearly JS module."""
+    module = ROOT / f"functions/_lib/ln-{year}-physics-score-rank.js"
+    text = module.read_text(encoding="utf-8")
+    rows = []
+    rows_match = re.search(r"const ROWS=(\[.*?\]);", text, re.S)
+    if rows_match:
+        rows = json.loads(rows_match.group(1))
+    else:
+        raw_match = re.search(r"const RAW_ROWS = `([\s\S]*?)`;", text)
+        if raw_match:
+            for line in raw_match.group(1).strip().splitlines():
+                parts = [part.strip() for part in line.split(',')]
+                if len(parts) == 3 and all(re.fullmatch(r"\d+", part) for part in parts):
+                    rows.append([int(parts[0]), int(parts[1]), int(parts[2])])
+    for row in rows:
+        if int(row[0]) == int(score):
+            return int(row[2])
+    raise RuntimeError(f"rank population missing: {year} score {score}")
+
+
 def build_all():
     admission_bytes = download_bytes(ADMISSION_XLSX_URL, min_size=100_000)
     admission = parse_admission_xlsx(admission_bytes)
@@ -563,9 +584,12 @@ def build_all():
     (ROOT / "functions/_lib/ln-2026-physics-score-rank.js").write_text(js, encoding="utf-8")
 
     # Three-year canonical comparison.
-    total2026 = rank_map[150]
-    total2025 = max((int(r.get("rank2025") or 0) for r in old), default=0)
-    total2024 = max((int(r.get("rank2024") or 0) for r in old), default=0)
+    # One cross-year population definition: official cumulative position at
+    # each year's undergraduate control line. Admission-record maximum rank is
+    # never a population source.
+    total2024 = load_rank_population_from_module(2024, 368)
+    total2025 = load_rank_population_from_module(2025, 367)
+    total2026 = rank_map[344]
     complete = []
     abs_changes = []
     for r in enriched:

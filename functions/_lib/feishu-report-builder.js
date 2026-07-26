@@ -6,6 +6,7 @@ import { buildReviewPointsForItems } from './kb/review-point-builder.js';
 import { getCampusForItem, getCampusReviewSummaryForItems, formatCampusReviewLine } from './kb/campus-accessor.js';
 import { getRegionLabel } from '../../shared/resources/geo/china-region-catalog.js';
 import { FEISHU_REPORT_CONTRACT } from '../../shared/resources/reports/feishu-report-contract.js';
+import { formatHistoricalEvidenceText } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function fmt(value) {
   const n = Number(value);
@@ -66,10 +67,7 @@ function filterText(filters) {
 }
 
 function historyText(record) {
-  const rows = [];
-  if (record.score2025 != null || record.rank2025 != null) rows.push(`2025：${record.score2025 != null ? fmt(record.score2025) + ' 分' : '分数待核验'} / ${record.rank2025 != null ? fmt(record.rank2025) + ' 位' : '位次待核验'}`);
-  if (record.score2024 != null || record.rank2024 != null) rows.push(`2024：${record.score2024 != null ? fmt(record.score2024) + ' 分' : '分数待核验'} / ${record.rank2024 != null ? fmt(record.rank2024) + ' 位' : '位次待核验'}`);
-  return rows.length ? rows.join('；') : '暂无严格同口径记录';
+  return formatHistoricalEvidenceText(record, { years: [2025, 2024], prefix: false, empty: '暂无严格同口径记录' });
 }
 
 function locationText(record) {

@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "version": "ln-2024-authoritative-rank-source-v3966_0",
+  "sourcePage": "https://jyt.ln.gov.cn/jyt/jyzx/jyyw/2024062510394164694/index.shtml",
+  "sourceImages": [
+    {
+      "page": 1,
+      "url": "https://jyt.ln.gov.cn/jyt/imageDir/2024/06/img_pc_site/2024062510272296122.jpg",
+      "sha256": "b4ab2daf6a288ce08debf98372f6264bd93aef936f387ad9bace30f43e8e4c14",
+      "width": 1280,
+      "height": 1810
+    },
+    {
+      "page": 2,
+      "url": "https://jyt.ln.gov.cn/jyt/imageDir/2024/06/img_pc_site/2024062510272259656.jpg",
+      "sha256": "ce0f9a34bb64ece9bf6aa52c918eed91bbed6690af7f7418684edd4d1ec80be9",
+      "width": 1280,
+      "height": 1810
+    },
+    {
+      "page": 3,
+      "url": "https://jyt.ln.gov.cn/jyt/imageDir/2024/06/img_pc_site/2024062510272212732.jpg",
+      "sha256": "2aa866bedca2c86c0b4d0c4ff4d0de34f7ffb6b748b7c3f6be666d6ba14a03c5",
+      "width": 1280,
+      "height": 1810
+    },
+    {
+      "page": 4,
+      "url": "https://jyt.ln.gov.cn/jyt/imageDir/2024/06/img_pc_site/2024062510272389940.jpg",
+      "sha256": "9931424d88d6df6b98f3d63d8b0a71c6c40e35ac7f93c72285db7ec12c724734",
+      "width": 1280,
+      "height": 1810
+    }
+  ],
+  "rowCount": 559,
+  "topScore": 708,
+  "bottomScore": 150,
+  "totalAt150": 149645,
+  "specialControlScore": 510,
+  "undergraduateControlScore": 368,
+  "undergraduateControlRank": 116198,
+  "anchors": {
+    "708": 11,
+    "700": 65,
+    "650": 3561,
+    "600": 14612,
+    "599": 14879,
+    "592": 16928,
+    "556": 29170,
+    "515": 46174,
+    "480": 62571,
+    "442": 81351,
+    "404": 100014,
+    "368": 116198,
+    "367": 116629,
+    "344": 125617,
+    "300": 138675,
+    "252": 146385,
+    "150": 149645
+  },
+  "validation": [
+    "contiguous-score-coverage",
+    "cumulative-equals-prior-plus-same-count",
+    "official-anchor-match",
+    "source-image-sha256-pinned"
+  ],
+  "module": "functions/_lib/ln-2024-physics-score-rank.js"
+}

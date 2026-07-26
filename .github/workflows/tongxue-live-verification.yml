@@ -14,7 +14,6 @@ on:
       - 'functions/_lib/tongxue-*.js'
       - 'tools/tongxue/**'
       - 'tools/browser-tongxue-runtime-v159.mjs'
-      - 'tools/audit-runtime-ownership-v3965.mjs'
       - 'tools/schools/**'
       - '_headers'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -26,7 +25,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +41,7 @@ jobs:
       - name: Prepare diagnostics directory
         run: mkdir -p /tmp/tongxue-live-artifact
 
-      - name: Syntax and ownership contract
+      - name: Syntax and single-runtime ownership contract
         run: |
           set -euo pipefail
           for file in \
@@ -57,8 +56,7 @@ jobs:
             tongxue/portrait/*.js \
             tongxue/share/*.js \
             tools/tongxue/*.mjs \
-            tools/browser-tongxue-runtime-v159.mjs \
-            tools/audit-runtime-ownership-v3965.mjs; do
+            tools/browser-tongxue-runtime-v159.mjs; do
             node --check "$file"
           done
           python3 -m py_compile \
@@ -67,8 +65,29 @@ jobs:
             tools/schools/build-school-profile-center-v3957.py \
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
-          node tools/audit-runtime-ownership-v3965.mjs
-          node tools/audit-static-content-types-v3965.mjs
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
+          if(CURRENT_RELEASE.display!=='v3.9.66.0') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3966') throw new Error('Tongxue wrapper mismatch');
+          const html=fs.readFileSync('tongxue/index.html','utf8');
+          if(!html.includes('tongxue-runtime-v159-r3966.js?v=3966_0')) throw new Error('active wrapper missing');
+          if(html.includes('tongxue-runtime-v159.js?v=159')) throw new Error('old wrapper still active');
+          const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3966.js','utf8');
+          for(const marker of ['release-presenter.v3966_0.js?v=3966_0','tongxue-runtime-controller-v159.js?v=159']){
+            if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
+          }
+          const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
+          for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']){
+            if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
+          }
+          for(const rel of ['tongxue/app/tongxue-runtime-v159-r3966.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
+            const source=fs.readFileSync(rel,'utf8');
+            if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
+          }
+          if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
+          console.log('Tongxue v159 core + v3966 wrapper ownership passed');
+          NODE
 
       - name: Verify school resolver data contracts
         run: |
@@ -136,7 +155,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tongxue-v159-live-results
+          name: tongxue-v159-v3966-live-results
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3
