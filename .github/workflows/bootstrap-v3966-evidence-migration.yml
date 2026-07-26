@@ -25,7 +25,21 @@ jobs:
         with:
           node-version: '22'
       - name: Apply v3966 evidence migration
-        run: node tools/ln-2026/migrate-three-year-evidence-v3966.mjs
+        run: |
+          set +e
+          node tools/ln-2026/migrate-three-year-evidence-v3966.mjs > /tmp/v3966-migration.log 2>&1
+          status=$?
+          cat /tmp/v3966-migration.log
+          if [ "$status" -ne 0 ]; then
+            mkdir -p analysis/2026
+            cp /tmp/v3966-migration.log analysis/2026/v3966-migration-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add analysis/2026/v3966-migration-error.txt
+            git commit -m '记录v3966消费者迁移诊断' || true
+            git push origin HEAD:${{ github.head_ref }} || true
+            exit "$status"
+          fi
       - name: Validate generated JavaScript syntax
         run: |
           set -euo pipefail
