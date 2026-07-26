@@ -13,14 +13,24 @@ const viewports = [
   { name: 'android-390', viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 ];
 
-function responseFor(school) {
+function responseFor(school, entityId = '') {
+  const entity = entityId
+    ? {
+        entityId,
+        displayName: school,
+        entityType: entityId === 'hit-shenzhen' ? 'admission_campus' : 'official_school',
+        typeLabel: entityId === 'hit-shenzhen' ? '独立招生校区' : '学校',
+        separateExperience: entityId === 'hit-shenzhen'
+      }
+    : null;
   if (school.includes('深圳')) {
     return {
       ok: true,
       mode: 'ai_summary',
       school,
+      entity,
       summary: '深圳校区的评论常提到课程节奏、城市实习机会和住宿安排。不同专业体验差异较大，报考前仍需核对具体培养地点与专业课程。',
-      schoolMeta: { name: school, province: '广东省', city: '深圳市', type: '普通本科', reviewCount: 18 },
+      schoolMeta: { id: 844, name: school, province: '广东省', city: '深圳市', type: '普通本科', reviewCount: 18 },
       fetchedAt: new Date().toISOString(),
       transport: 'mock-browser',
       version: 'test-v159',
@@ -31,6 +41,7 @@ function responseFor(school) {
     ok: true,
     mode: 'no_content',
     school,
+    entity,
     schoolMeta: { name: school, province: '辽宁省', city: school.includes('大连') ? '大连市' : '沈阳市', type: '普通本科', reviewCount: 0 },
     fetchedAt: new Date().toISOString(),
     transport: 'mock-browser',
@@ -61,23 +72,26 @@ try {
         globalThis.__tongxueUnhandled = String(event.reason?.stack || event.reason || 'unhandled rejection');
       });
     });
-    const page = await context.newPage();
-    const pageErrors = [];
-    const consoleErrors = [];
     const summaryRequests = [];
-    page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
-    page.on('console', message => {
-      if (message.type() === 'error') consoleErrors.push(message.text());
-    });
-    await page.route('**/api/tongxue-summary**', route => {
+    const entityRequests = [];
+    await context.route('**/api/tongxue-summary**', route => {
       const url = new URL(route.request().url());
       const school = url.searchParams.get('school') || '';
+      const entityId = url.searchParams.get('entity') || '';
       summaryRequests.push(school);
+      entityRequests.push(entityId);
       return route.fulfill({
         status: 200,
         contentType: 'application/json; charset=utf-8',
-        body: JSON.stringify(responseFor(school))
+        body: JSON.stringify(responseFor(school, entityId))
       });
+    });
+    const page = await context.newPage();
+    const pageErrors = [];
+    const consoleErrors = [];
+    page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
+    page.on('console', message => {
+      if (message.type() === 'error') consoleErrors.push(message.text());
     });
 
     try {
@@ -86,6 +100,7 @@ try {
       const initial = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(initial.observerCount, 0);
       assert.ok(initial.listenerCount >= 8 && initial.listenerCount <= 20, `${testCase.name}: listener count ${initial.listenerCount}`);
+      assert.equal(initial.currentEntityId, '');
       await page.evaluate(() => { globalThis.__tongxueLongTasks = []; });
 
       const input = page.locator('#school');
@@ -111,6 +126,7 @@ try {
       const afterSwitch = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
       assert.equal(afterSwitch.listenerCount, initial.listenerCount, `${testCase.name}: listeners were registered again`);
       assert.equal(afterSwitch.observerCount, 0);
+      assert.equal(afterSwitch.currentEntityId, '');
       assert.equal(summaryRequests.length, 0);
       assert.match(await page.locator('#resultTitle').textContent(), /大连/);
 
@@ -138,6 +154,9 @@ try {
       await page.goto(`${baseUrl}/tongxue/?school=${encodeURIComponent('哈尔滨工业大学（深圳）')}&entity=hit-shenzhen`, { waitUntil: 'networkidle', timeout: 60000 });
       await page.waitForFunction(() => globalThis.__TONGXUE_RUNTIME_V159__?.getState?.().ready === true
         && document.getElementById('result')?.dataset.viewState === 'success', null, { timeout: 20000 });
+      const directState = await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState());
+      assert.equal(directState.currentEntityId, 'hit-shenzhen');
+      assert.equal(entityRequests.at(-1), 'hit-shenzhen', `${testCase.name}: direct API request lost entity ID`);
       assert.equal(await page.locator('[data-school-entity="hit-shenzhen"]').count(), 1);
       assert.equal(await page.locator('[data-school-entity-type="admission_campus"]').count(), 1);
       assert.match(await page.locator('#result').textContent(), /独立招生实体/);
@@ -145,6 +164,7 @@ try {
       await page.waitForFunction(() => document.getElementById('result')?.dataset.viewState === 'idle');
       assert.equal(new URL(page.url()).pathname, '/tongxue/');
       assert.equal(new URL(page.url()).search, '');
+      assert.equal((await page.evaluate(() => globalThis.__TONGXUE_RUNTIME_V159__.getState())).currentEntityId, '');
 
       await input.focus();
       if (testCase.isMobile) {
@@ -184,12 +204,19 @@ try {
         listenerCount: diagnostics.state.listenerCount,
         submitCount: diagnostics.state.submitCount,
         summaryRequests: summaryRequests.length,
+        entityRequests: entityRequests.filter(Boolean),
         maxLongTask,
         overflow: diagnostics.overflow
       });
     } catch (error) {
+      const diagnostic = await page.evaluate(() => ({
+        url: location.href,
+        viewState: document.getElementById('result')?.dataset.viewState || '',
+        resultText: document.getElementById('result')?.textContent || '',
+        runtime: globalThis.__TONGXUE_RUNTIME_V159__?.getState?.() || null
+      })).catch(() => null);
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
-      fs.writeFileSync(path.join(artifactDir, `${testCase.name}-error.txt`), String(error?.stack || error));
+      fs.writeFileSync(path.join(artifactDir, `${testCase.name}-error.txt`), `${String(error?.stack || error)}\n\n${JSON.stringify({ summaryRequests, entityRequests, pageErrors, consoleErrors, diagnostic }, null, 2)}`);
       throw error;
     } finally {
       await context.close();
