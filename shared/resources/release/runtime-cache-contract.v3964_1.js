@@ -33,6 +33,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
   ]),
   activeGenerationModules: Object.freeze([
     '/ln-rank/js/app.v3964_1.js',
+    '/shared/resources/release/release-presenter.v3964_1.js',
     '/ln-rank/js/app-runtime.v3964_1.js',
     '/ln-rank/js/workspace/selection-workspace-orchestrator.v3964_0.js',
     '/ln-rank/js/feature/school-majors/school-all-mode.v3964_0.js',
