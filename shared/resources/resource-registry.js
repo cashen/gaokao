@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3967_0';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3968_0';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 
@@ -32,7 +32,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     cssOwner: '/ln-rank/css/history-evidence.v3967_0.css',
     supportedYears: Object.freeze([2024, 2025, 2026]),
     comparisonPopulationPolicy: 'undergraduate-control-line-cumulative',
-    executionContract: '/shared/governance/resource-execution-contract.v3967_0.js',
+    executionContract: '/shared/governance/resource-execution-contract.v3968_0.js',
     policy: 'single-provider-exclusive-consumption-derived-trace-and-evidence',
     consumers: Object.freeze(['functions-api', 'card-ai', 'reports', 'selection-pool', 'school-search', 'trend-analysis'])
   }),
@@ -62,14 +62,33 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     profilePolicy: 'server-sync-official-2026',
     identityPolicy: 'shared-upstream-tongxue-compatibility-export',
     profileFields: Object.freeze(['officialName','campusEntity','province','city','nature','985','211','doubleNon']),
-    consumers: Object.freeze(['ln-rank-cards', 'selection-pool', 'reports', 'tongxue', 'future-school-tools'])
+    consumers: Object.freeze(['ln-rank-cards', 'selection-pool', 'reports', 'tongxue', 'future-school-tools', 'academic-background'])
   }),
   majors: Object.freeze({
     id: 'major-catalog-2026',
     resolverModule: '/shared/resources/majors/major-catalog-contract.js',
     policy: 'single-resolver-derived-runtime-formats',
     canonicalCount: 883,
-    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports'])
+    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports', 'academic-background'])
+  }),
+  academicBackground: Object.freeze({
+    id: 'academic-background-evidence-center',
+    contract: '/shared/resources/background/academic-background-contract.v3968_0.js',
+    sourceRegistry: '/shared/resources/background/academic-background-source-registry.v3968_0.js',
+    provider: '/functions/_lib/academic-background-provider.js',
+    service: '/functions/_lib/academic-background-api.js',
+    api: '/functions/api/academic-background.js',
+    matcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
+    browserRuntime: '/ln-rank/js/academic-background/academic-background-app.v3968_0.js',
+    cssOwner: '/ln-rank/css/academic-background.v3968_0.css',
+    scopes: Object.freeze(['liaoning', '211']),
+    admissionYears: Object.freeze([2026, 2025, 2024]),
+    legacyInputs: Object.freeze([
+      '/functions/_lib/local-mainline-kb.js',
+      '/functions/_lib/211-mainline-kb.js'
+    ]),
+    policy: 'single-evidence-owner-single-provider-single-matcher-source-year-separated-from-admission-year',
+    consumers: Object.freeze(['local-mainline', '211-mainline', 'functions-api', 'browser-regression', 'audits'])
   }),
   ui: Object.freeze({
     id: 'family-ui-orchestration',
@@ -82,15 +101,16 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     shellJs: '/shared/ui/shell/family-shell.v3965_0.js',
     selectionQuickEntryMount: '/ln-rank/index.html#selectionPoolShell',
     policy: 'single-ui-shell-plus-component-execution-css-isolation-and-geometry-contract',
-    consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue'])
+    consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue','local-mainline','211-mainline'])
   }),
   algorithms: Object.freeze({
     id: 'algorithm-execution-center',
     registry: '/shared/algorithms/algorithm-registry.js',
     resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
     trendInterpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
+    academicBackgroundMatcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
     policy: 'single-algorithm-owner-with-intent-trace',
-    consumers: Object.freeze(['functions-api','browser-runtime','selection-pool','reports','ai-facts'])
+    consumers: Object.freeze(['functions-api','browser-runtime','selection-pool','reports','ai-facts','academic-background'])
   }),
   trends: Object.freeze({
     id: 'liaoning-major-trend',
