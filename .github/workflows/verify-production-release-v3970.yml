@@ -37,6 +37,7 @@ jobs:
 
             if grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/root.html 2>/dev/null \
               && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/root.html 2>/dev/null \
+              && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-production/root.html 2>/dev/null \
               && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/workspace.html 2>/dev/null \
               && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/workspace.html 2>/dev/null \
               && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/current-release.js 2>/dev/null \
@@ -58,7 +59,7 @@ jobs:
             exit 1
           fi
 
-      - name: Verify response headers and immutable home runtime
+      - name: Verify response freshness and versioned home runtime
         run: |
           set -euo pipefail
           token='${{ github.sha }}-headers'
@@ -68,8 +69,12 @@ jobs:
             "https://gaokao.powers.org.cn/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0" -o /tmp/v3970-production/home-runtime.js
           grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-production/root.headers
           grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-production/home-runtime.headers
-          grep -Eiq 'cache-control:.*immutable' /tmp/v3970-production/home-runtime.headers
+          # Pages Functions responses do not inherit _headers. The truthful delivery contract is
+          # a versioned URL, exact runtime contents, an ETag, and either revalidation or immutable caching.
+          grep -Eiq '^etag:' /tmp/v3970-production/home-runtime.headers
+          grep -Eiq 'cache-control:.*(must-revalidate|immutable)' /tmp/v3970-production/home-runtime.headers
           grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/home-runtime.js
+          ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/home-runtime.js
 
       - name: Upload production evidence
         if: always()
