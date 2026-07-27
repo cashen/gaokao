@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import json,sys,re
+import json,sys
 ROOT=Path(__file__).resolve().parents[2]
 errors=[]
 def text(rel):
@@ -15,10 +15,12 @@ for marker in [
  "display: 'v3.9.70.0'", "assetVersion: 'v3970_0'", "resourceExecutionVersion: 'resource-execution-v3970_0'",
  "uiOrchestrationVersion: 'ui-orchestration-v3970_0'", "uiComponentExecutionVersion: 'ui-component-execution-v3970_0'",
  "familyActionVersion: 'family-action-v3970_0'", "schoolQueryVersion: 'school-query-contract-v3969_0'",
- "schoolAdmissionDirectoryVersion: 'liaoning-2026-admission-school-directory-v3969_0'"
+ "schoolAdmissionDirectoryVersion: 'liaoning-2026-admission-school-directory-v3969_0'",
+ "homeStructure: '/index.html'", "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'"
 ]: require(marker in current,f'current release missing {marker}')
 
 required=[
+ 'index.html','ln-rank/js/ux/family-home.v3970_0.js',
  'shared/governance/resource-execution-contract.v3970_0.js','shared/governance/derived-asset-trace.v3970_0.json',
  'shared/resources/release/runtime-cache-contract.v3970_0.js','shared/resources/release/release-presenter.v3970_0.js',
  'shared/ui/ui-registry.v3970_0.js','shared/ui/component-registry.v3970_0.js',
@@ -27,11 +29,22 @@ required=[
  'shared/ui/components/family-plan-entry.v3970_0.js','shared/ui/components/family-plan-entry.v3970_0.css',
  'ln-rank/js/app.v3970_0.js','ln-rank/js/app-runtime.v3970_0.js','ln-rank/js/selection-pool.v3970_0.js',
  'ln-rank/js/domain/family-decision-contract.v3970_0.js','ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
- 'tools/audit-family-action-v3970.mjs','tools/audit-school-query-v3970.mjs','tools/browser-family-action-v3970.mjs',
+ 'tools/audit-family-action-v3970.mjs','tools/audit-home-release-ownership-v3970.mjs','tools/audit-school-query-v3970.mjs',
+ 'tools/browser-family-action-v3970.mjs','tools/browser-home-release-v3970.mjs',
  'shared/resources/schools/school-query-contract.v3969_0.js','shared/resources/schools/school-query-engine.v3969_0.js',
- 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
+ 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json',
+ '.github/workflows/verify-home-release-v3970.yml','.github/workflows/verify-production-release-v3970.yml'
 ]
 for rel in required: require((ROOT/rel).exists(),f'missing required {rel}')
+
+home=text('index.html'); home_runtime=text('ln-rank/js/ux/family-home.v3970_0.js')
+for marker in ['data-release="v3.9.70.0"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核']:
+ require(marker in home,f'home missing {marker}')
+for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-release="v3.9.68.0"','v3.9.68.0']:
+ require(forbidden not in home,f'stale home resource remains: {forbidden}')
+for marker in ['release-presenter.v3970_0.js?v=3970_0','family-shell.v3970_0.js?v=3970_0','family-decision-contract.v3970_0.js?v=3970_0',"HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'",'gaokao:selection-change']:
+ require(marker in home_runtime,f'home runtime missing {marker}')
+require('MutationObserver' not in home_runtime,'home runtime must not self-observe DOM')
 
 index=text('ln-rank/index.html'); selection=text('ln-rank/selection-pool.html')
 for marker in ['data-release="v3.9.70.0"','app.v3970_0.js?v=3970_0','data-ui-family-plan-results-footer','data-ui-family-plan-live','加入家庭方案']:
@@ -51,17 +64,27 @@ active=json.loads(text('ln-rank/active-assets.json') or '{}'); meta=json.loads(t
 for payload,name in [(active,'active'),(meta,'meta')]:
  require(payload.get('version')=='v3.9.70.0',f'{name} version mismatch')
  require(payload.get('assetVersion')=='v3970_0',f'{name} asset mismatch')
- require(payload.get('familyActionSingleOwnerContract') is True,f'{name} family owner')
- require(payload.get('familyPlanEntryDocumentFlowContract') is True,f'{name} document flow')
- require(payload.get('noFixedMobileFamilyPlanActionContract') is True,f'{name} fixed action')
- require(payload.get('feishuPublicSharePreservedContract') is True,f'{name} public share')
-for rel in ['js/app.v3970_0.js','js/app-runtime.v3970_0.js','js/selection-pool.v3970_0.js','../shared/ui/components/family-plan-entry.v3970_0.js','js/domain/family-plan-copy-adapter.v3970_0.js']:
+ for flag in ['familyActionSingleOwnerContract','familyPlanEntryDocumentFlowContract','noFixedMobileFamilyPlanActionContract','feishuPublicSharePreservedContract','homeReleaseSingleOwnerContract','homeStaticRuntimeParityContract','homeCurrentShellContract','productionReleaseVerificationContract']:
+  require(payload.get(flag) is True,f'{name} flag missing {flag}')
+ require(payload.get('familyHomeJs')=='js/ux/family-home.v3970_0.js',f'{name} home owner mismatch')
+ require('../index.html' in payload.get('html',[]),f'{name} root home missing')
+for rel in ['js/ux/family-home.v3970_0.js','js/app.v3970_0.js','js/app-runtime.v3970_0.js','js/selection-pool.v3970_0.js','../shared/ui/components/family-plan-entry.v3970_0.js','js/domain/family-plan-copy-adapter.v3970_0.js']:
  require(rel in active.get('jsEntry',[]),f'active entry missing {rel}')
+require('js/ux/family-home.v3968_0.js' not in active.get('jsEntry',[]),'old home remains active')
 for rel in ['../shared/ui/shell/family-shell.v3970_0.css','../shared/ui/components/family-plan-entry.v3970_0.css']:
  require(rel in active.get('cssEntry',[]),f'active css missing {rel}')
 
+cache=text('shared/resources/release/runtime-cache-contract.v3970_0.js')
+for marker in ["home: '/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0'","home: '/ln-rank/js/ux/family-home.v3970_0.js'",'/ln-rank/js/ux/family-home.v3970_0.js','homeReleaseOwnershipRequired: true','productionReleaseVerificationRequired: true']:
+ require(marker in cache,f'cache contract missing {marker}')
+require('/ln-rank/js/ux/family-home.v3968_0.js' not in cache,'old home remains in cache contract')
+
+execution=text('shared/governance/resource-execution-contract.v3970_0.js')
+for marker in ["home: entry({","owner: '/ln-rank/js/ux/family-home.v3970_0.js'","structureOwner: '/index.html'",'/tools/audit-home-release-ownership-v3970.mjs']:
+ require(marker in execution,f'execution registry missing {marker}')
+
 contract=text('functions/_lib/release-contract.js')
-for marker in ['familyActionSingleOwnerContract: true','familyPlanEntryDocumentFlowContract: true','noFixedMobileFamilyPlanActionContract: true','feishuPublicSharePreservedContract: true','export const LN_RANK_RELEASE_CONTRACT','export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT']:
+for marker in ['familyActionSingleOwnerContract: true','familyPlanEntryDocumentFlowContract: true','noFixedMobileFamilyPlanActionContract: true','feishuPublicSharePreservedContract: true','homeReleaseSingleOwnerContract: true','homeStaticRuntimeParityContract: true','homeCurrentShellContract: true','productionReleaseVerificationContract: true','export const LN_RANK_RELEASE_CONTRACT','export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT']:
  require(marker in contract,f'release contract missing {marker}')
 
 admission=json.loads(text('shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json') or '{}')
@@ -70,4 +93,4 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.70.0','requiredFiles':len(required),'admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({'ok':True,'version':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
