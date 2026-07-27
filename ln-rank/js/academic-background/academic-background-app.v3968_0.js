@@ -41,13 +41,13 @@ function errorHtml(title, error) {
 function sourceRows(background = {}) {
   const sources = Array.isArray(background.sources) ? background.sources : [];
   if (!sources.length) return '<p class="ab-source-empty">来源未通过门禁，本条不应进入活动结果。</p>';
-  return `<div class="ab-source-list">${sources.map(source => `<a class="ab-source" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(source.title)}</b><span>证据年份：${esc(source.year || '未标注')}｜${esc(source.authority || '')}</span></a>`).join('')}</div>`;
+  return `<div class="ab-source-list">${sources.map(source => `<a class="ab-source" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(source.title)}</b><span>背景证据年份：${esc(source.year || '未标注')}｜${esc(source.authority || '')}</span></a>`).join('')}</div>`;
 }
 
 function evidenceRows(background = {}) {
   const evidence = Array.isArray(background.evidence) ? background.evidence : [];
   if (!evidence.length) return '';
-  return `<div class="ab-evidence-list">${evidence.map(item => `<div class="ab-evidence"><b>${esc(item.disciplineName || item.detail || '学校学科背景')}</b><span>${esc(item.evidenceYear ? `${item.evidenceYear}年证据` : '证据年份未标注')}${item.grade ? `｜${esc(item.grade)}` : ''}</span><small>${esc(item.detail || '')}</small></div>`).join('')}</div>`;
+  return `<div class="ab-evidence-list">${evidence.map(item => `<div class="ab-evidence"><b>${esc(item.disciplineName || item.detail || '学校学科背景')}</b><span>${esc(item.evidenceYear ? `${item.evidenceYear}年证据` : '背景证据年份未标注')}${item.grade ? `｜${esc(item.grade)}` : ''}</span><small>${esc(item.detail || '')}</small></div>`).join('')}</div>`;
 }
 
 function historyHtml(record = {}) {
@@ -71,7 +71,7 @@ function recordCard(record = {}) {
     <div class="lm-record-top"><div><h3>${esc(record.school)}｜${esc(record.major)}</h3><p>${esc(record.displayLocation || '')}${record.natureLabel ? `｜${esc(record.natureLabel)}` : ''}</p></div><span class="lm-pill ${esc(background.level || 'trajectory')}">${esc(background.label || '背景证据')}</span></div>
     <div class="lm-data-row"><span>2026投档参考：<b>${fmt(record.score2026)}分</b></span><span>2026同分位次：<b>${rankText(record)}</b></span>${Number.isFinite(Number(record.scoreDelta2026 ?? record.scoreDelta)) ? `<span>相对参考分数：<b>${Number(record.scoreDelta2026 ?? record.scoreDelta) > 0 ? '+' : ''}${fmt(record.scoreDelta2026 ?? record.scoreDelta)}分</b></span>` : ''}</div>
     ${historyHtml(record)}
-    <div class="ab-background-head"><b>${esc(background.label || '背景证据')}｜${esc(background.direction || '学校专业背景')}</b><span>投档年份与证据年份分开显示</span></div>
+    <div class="ab-background-head"><b>${esc(background.label || '背景证据')}｜${esc(background.direction || '学校专业背景')}</b><span>投档年份与背景证据年份分开显示</span></div>
     ${evidenceRows(background)}
     <details class="ab-sources"><summary>${esc(COPY.sourceLabel)}（${fmt(background.sources?.length || 0)}）</summary>${sourceRows(background)}</details>
     <p class="lm-card-note">${esc(background.note || '背景证据只用于学校专业方向复核，需继续查看培养方案和招生章程。')}</p>
