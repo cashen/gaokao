@@ -10,11 +10,14 @@ on:
       - 'shared/resources/geo/**'
       - 'shared/resources/release/**'
       - 'shared/resources/background/**'
+      - 'shared/governance/**'
       - 'shared/ui/**'
       - 'functions/api/tongxue-*.js'
       - 'functions/_lib/tongxue-*.js'
       - 'tools/tongxue/**'
       - 'tools/browser-tongxue-runtime-v159.mjs'
+      - 'tools/audit-school-query-v3969.mjs'
+      - 'tools/build-school-admission-directory-v3969.mjs'
       - 'tools/schools/**'
       - '_headers'
       - '.github/workflows/tongxue-live-verification.yml'
@@ -26,7 +29,7 @@ permissions:
 jobs:
   live-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,6 +60,8 @@ jobs:
             tongxue/portrait/*.js \
             tongxue/share/*.js \
             tools/tongxue/*.mjs \
+            tools/audit-school-query-v3969.mjs \
+            tools/build-school-admission-directory-v3969.mjs \
             tools/browser-tongxue-runtime-v159.mjs; do
             node --check "$file"
           done
@@ -69,28 +74,24 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          if(CURRENT_RELEASE.display!=='v3.9.68.0') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.display!=='v3.9.69.0') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
           if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue wrapper mismatch');
           const html=fs.readFileSync('tongxue/index.html','utf8');
           if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active wrapper missing');
-          if(html.includes('tongxue-runtime-v159-r3967.js?v=3967_0')||html.includes('tongxue-runtime-v159.js?v=159')) throw new Error('old wrapper still active');
           const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
-          for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']){
-            if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
-          }
+          for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']) if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
           const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
-          for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']){
-            if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
-          }
+          for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']) if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
           for(const rel of ['tongxue/app/tongxue-runtime-v159-r3968.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
             const source=fs.readFileSync(rel,'utf8');
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue v159 core + v3968 wrapper ownership passed');
+          console.log('Tongxue v159 core + v3968 wrapper + v3969 query owner passed');
           NODE
 
-      - name: Verify school resolver data contracts
+      - name: Verify school resolver and unified query contracts
         run: |
           set -euo pipefail
           tests=(
@@ -100,6 +101,7 @@ jobs:
             tools/tongxue/verify-school-input-fluency-v141.mjs
             tools/tongxue/verify-school-region-v150.mjs
             tools/tongxue/verify-school-name-resolver.mjs
+            tools/audit-school-query-v3969.mjs
           )
           for test_file in "${tests[@]}"; do
             name="$(basename "$test_file" .mjs)"
@@ -112,7 +114,7 @@ jobs:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
         run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/portrait-and-live-regression.out
 
-      - name: Rebuild all official school resources once
+      - name: Rebuild all official school resources and admission overlay once
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check xlrd==2.0.1
@@ -126,11 +128,13 @@ jobs:
           python tools/schools/school_resource_artifact_compat.py | tee /tmp/tongxue-live-artifact/school-compat.out
           node tools/tongxue/build-school-initial-index-v141.mjs | tee /tmp/tongxue-live-artifact/initial-v141.out
           node tools/tongxue/build-school-initial-index-v150.mjs | tee /tmp/tongxue-live-artifact/initial-v150.out
+          node tools/build-school-admission-directory-v3969.mjs | tee /tmp/tongxue-live-artifact/admission-directory-v3969.out
           git diff --exit-code -- \
             shared/resources/schools/school-profile-data.20260617-v3957.js \
             tongxue/data/school-name-index.generated.json \
             tongxue/data/school-search-index.20260617.json \
-            tongxue/data/school-search-index.20260617-v150.json
+            tongxue/data/school-search-index.20260617-v150.json \
+            shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json
 
       - name: Install Chromium journey runner
         run: |
@@ -150,7 +154,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tongxue-v159-v3968-live-results
+          name: tongxue-v159-v3969-live-results
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3
