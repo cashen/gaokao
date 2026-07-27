@@ -1,0 +1,55 @@
+name: Materialize v3969 school query core
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3969-unified-school-query'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build directory and core consumers
+        run: |
+          set -euo pipefail
+          node tools/apply-v3969-school-query-release.mjs >/tmp/v3969-generator.out 2>/tmp/v3969-generator.err || true
+          test -f shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json
+          test -f ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js
+          test -f ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js
+          grep -q "schoolQueryContractVersion" functions/api/major-bands.js
+          grep -q "schoolQueryIntent" functions/_lib/report-data-service-v3956.js
+          node --check shared/resources/schools/school-query-contract.v3969_0.js
+          node --check shared/resources/schools/school-query-engine.v3969_0.js
+          node --check functions/_lib/school-query-provider.v3969.js
+          node --check functions/api/school-majors.js
+          node --check functions/api/major-bands.js
+          node --check functions/_lib/report-data-service-v3956.js
+          node --check ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js
+          node -e "const x=require('./shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json');if(!x.schools.some(s=>s.officialName==='沈阳化工大学'))process.exit(1);console.log(x.schoolCount,x.admissionRecordCount)"
+          git diff --check
+      - name: Commit core materialization
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json \
+            ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js \
+            ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js \
+            functions/api/major-bands.js \
+            functions/_lib/report-data-service-v3956.js
+          git commit -m 'v3.9.69.0：落地统一学校查询核心与招生目录'
+          git push origin HEAD:${{ github.head_ref }}
