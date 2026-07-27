@@ -23,8 +23,6 @@ jobs:
       - name: Repair browser and Functions URL ownership atomically
         run: |
           set -euo pipefail
-          node tools/build-active-release-metadata-v3969.mjs --write
-          node tools/build-derived-asset-trace-v3969.mjs --write
           python3 - <<'PY'
           from pathlib import Path
 
@@ -51,9 +49,11 @@ jobs:
           node --check tongxue/data/school-name-resolver-v150.js
           node --check tools/audit-school-query-v3969.mjs
           node tools/audit-school-query-v3969.mjs
+          node tools/build-active-release-metadata-v3969.mjs --write
+          node tools/build-derived-asset-trace-v3969.mjs --write
           node tools/build-active-release-metadata-v3969.mjs
           node tools/build-derived-asset-trace-v3969.mjs
-          git checkout HEAD^ -- .github/workflows/write-v3969-active-metadata.yml
+          git checkout ff3817d669246c1cf6c338e33d326e246809666a -- .github/workflows/write-v3969-active-metadata.yml
           git diff --check
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
