@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Verify latest branch preview content and headers
+      - name: Verify latest branch preview content and freshness
         env:
           PREVIEW_BASE: https://agent-v3970-1-home-release-o.gaokao-4y9.pages.dev
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -48,8 +48,10 @@ jobs:
             "${PREVIEW_BASE}/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0" -o /tmp/v3970-preview/home-runtime.js
           grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-preview/root.headers
           grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-preview/home-runtime.headers
-          grep -Eiq 'cache-control:.*immutable' /tmp/v3970-preview/home-runtime.headers
+          grep -Eiq '^etag:' /tmp/v3970-preview/home-runtime.headers
+          grep -Eiq 'cache-control:.*(must-revalidate|immutable)' /tmp/v3970-preview/home-runtime.headers
           grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-preview/home-runtime.js
+          ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-preview/home-runtime.js
       - uses: actions/upload-artifact@v4
         if: always()
         with:
