@@ -20,39 +20,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Commit Cloudflare-safe school resolver URL
+      - name: Normalize metadata, refresh trace, and commit atomically
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          resolver_path = Path('tongxue/data/school-name-resolver-v150.js')
-          resolver = resolver_path.read_text(encoding='utf-8')
-          old_url = "export const SCHOOL_NAME_DATA_URL=new URL('./school-search-index.20260617-v150.json',import.meta.url).href;"
-          new_url = "export const SCHOOL_NAME_DATA_URL='/tongxue/data/school-search-index.20260617-v150.json';"
-          if resolver.count(old_url) != 1:
-              raise SystemExit(f'expected one module-evaluation URL, found {resolver.count(old_url)}')
-          resolver_path.write_text(resolver.replace(old_url, new_url), encoding='utf-8')
-
-          audit_path = Path('tools/audit-school-query-v3969.mjs')
-          audit = audit_path.read_text(encoding='utf-8')
-          anchor = "const index = read('ln-rank/index.html');"
-          guard = """const browserSchoolResolver = read('tongxue/data/school-name-resolver-v150.js');
-          assert.equal(browserSchoolResolver.includes('new URL('), false, 'school resolver must not construct a URL during module evaluation');
-          assert.ok(browserSchoolResolver.includes(\"export const SCHOOL_NAME_DATA_URL='/tongxue/data/school-search-index.20260617-v150.json';\"), 'school resolver must use a same-origin browser pathname');
-
-          const index = read('ln-rank/index.html');"""
-          if audit.count(anchor) != 1:
-              raise SystemExit(f'expected one school-query audit anchor, found {audit.count(anchor)}')
-          audit_path.write_text(audit.replace(anchor, guard), encoding='utf-8')
-          PY
-          node --check tongxue/data/school-name-resolver-v150.js
-          node --check tools/audit-school-query-v3969.mjs
-          node tools/audit-school-query-v3969.mjs
+          node tools/build-active-release-metadata-v3969.mjs --write
+          node tools/build-derived-asset-trace-v3969.mjs --write
+          node tools/build-active-release-metadata-v3969.mjs
+          node tools/build-derived-asset-trace-v3969.mjs
           git diff --check
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add tongxue/data/school-name-resolver-v150.js tools/audit-school-query-v3969.mjs
+          git add ln-rank/active-assets.json ln-rank/release-meta.json shared/governance/derived-asset-trace.v3969_0.json
           git diff --cached --quiet && exit 0
-          git commit -m 'fix: make school resolver URL safe for Cloudflare Functions'
+          git commit -m 'build: normalize v3969 metadata and derived trace'
           git push origin HEAD:${{ github.head_ref }}
