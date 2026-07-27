@@ -1,0 +1,133 @@
+===== node tools/audit-resource-execution-v3967.mjs =====
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: stale self-mutating release mechanism remains: .github/workflows/prepare-v3965.yml
+    at file:///home/runner/work/gaokao/gaokao/tools/audit-resource-execution-v3967.mjs:107:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.23.1
+EXIT=1
+===== node tools/audit-derived-assets-v3967.mjs =====
+{
+  "ok": true,
+  "version": "derivation-trace-v3967_0",
+  "items": 14
+}
+EXIT=0
+===== node tools/audit-algorithm-parity-v3967.mjs =====
+{
+  "ok": true,
+  "ranking": "result-ranking-v3967_0",
+  "trend": "trend-interpretation-v3967_0",
+  "historicalRankSelection": "historical-rank-selection-v3967_0",
+  "scoreOrder": [
+    "a",
+    "b",
+    "c"
+  ],
+  "schoolOrder": [
+    "a",
+    "b",
+    "c"
+  ]
+}
+EXIT=0
+===== node tools/audit-css-component-isolation-v3967.mjs =====
+{
+  "ok": true,
+  "activeCss": 12,
+  "owners": {
+    "history": "ln-rank/css/history-evidence.v3967_0.css",
+    "school": "ln-rank/css/school-all-mode.v3967_0.css",
+    "workspace": "ln-rank/css/ln-rank-workspace.v3967_0.css"
+  },
+  "registered": [
+    "ui-mode-switch",
+    "school-results",
+    "ln-history-evidence"
+  ],
+  "queried": [
+    "ui-mode-switch",
+    "school-results",
+    "ln-history-evidence"
+  ]
+}
+EXIT=0
+===== node tools/audit-report-execution-v3967.mjs =====
+{
+  "ok": true,
+  "contract": "report-execution-v3967_0",
+  "currentRecords": 1,
+  "selectionRecords": 1
+}
+EXIT=0
+===== node tools/audit-three-year-rank-evidence-v3967.mjs =====
+{
+  "ok": true,
+  "release": "v3.9.67.0",
+  "assetVersion": "v3967_0",
+  "tableSummary": {
+    "2024": {
+      "rows": 559,
+      "topScore": 708,
+      "bottomScore": 150,
+      "totalAtBottom": 149645,
+      "undergraduateScore": 368,
+      "undergraduatePopulation": 116198
+    },
+    "2025": {
+      "rows": 556,
+      "topScore": 707,
+      "bottomScore": 150,
+      "totalAtBottom": 143368,
+      "undergraduateScore": 367,
+      "undergraduatePopulation": 118109
+    },
+    "2026": {
+      "rows": 559,
+      "topScore": 708,
+      "bottomScore": 150,
+      "totalAtBottom": 141691,
+      "undergraduateScore": 344,
+      "undergraduatePopulation": 119069
+    }
+  },
+  "historicalCrossCheck": {
+    "records2024": 10574,
+    "records2025": 10915,
+    "conflicts2024": 0,
+    "conflicts2025": 0
+  },
+  "evidenceStates": [
+    "matched",
+    "derived",
+    "conflict",
+    "no-record"
+  ],
+  "comparisonPopulationPolicy": "undergraduate-control-line-cumulative"
+}
+EXIT=0
+===== node tools/verify-school-profile-center-v3957.mjs =====
+SCHOOL_PROFILE_CENTER_V3958_OK
+EXIT=0
+===== node tools/verify-card-ai-2026-v3955.mjs =====
+CARD_AI_2026_V3955_OK
+EXIT=0
+===== python3 tools/ln-2026/verify-generated-release-v3967.py =====
+{"ok": true, "records": 11628, "strictCompleteCount": 6553, "analysisVersion": "three-year-2024-2026-centered-v1.0.0", "releasePresentation": "shared-current-release-v3967_0", "zyRelations": 13024}
+EXIT=0
+===== python3 tools/ln-2026/verify-final-release-v10.py =====
+ERROR: stale self-mutating release mechanism .github/workflows/prepare-v3965.yml
+EXIT=1
+TOTAL_FAILURES=2
