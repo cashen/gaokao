@@ -1,0 +1,21 @@
+name: Probe v3969 runner startup
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - run: |
+          echo runner-started
+          test -f VERSION.txt
+          grep -q 'v3.9.69.0' VERSION.txt
