@@ -1,0 +1,51 @@
+name: Patch v3967 browser geometry contract
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3967-resource-execution-governance'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Align geometry assertions with component registry
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/browser-resource-execution-v3967.mjs')
+          s=p.read_text()
+          pairs=[
+            ("import { chromium } from 'playwright';", "import { chromium } from 'playwright';\nimport { UI_COMPONENT_REGISTRY } from '../shared/ui/component-registry.v3967_0.js';"),
+            ("const artifactDir = process.env.V3967_ARTIFACT_DIR || '/tmp/v3967-resource-execution-browser';", "const artifactDir = process.env.V3967_ARTIFACT_DIR || '/tmp/v3967-resource-execution-browser';\nconst historyMinReadableWidth = UI_COMPONENT_REGISTRY.historyEvidence.minReadableWidth;"),
+            ("assert.ok(historyGeometry.rootWidth > 240, `${testCase.name}: history root too narrow ${historyGeometry.rootWidth}`);", "assert.ok(historyGeometry.rootWidth >= historyMinReadableWidth + 20, `${testCase.name}: history root too narrow ${historyGeometry.rootWidth}`);"),
+            ("assert.ok(row.width >= 160, `${testCase.name}: history year unreadable width ${row.width}`);", "assert.ok(row.width >= historyMinReadableWidth, `${testCase.name}: history year unreadable width ${row.width}`);"),
+            ("assert.ok(row.width >= 160, `${testCase.name}: detail year unreadable width ${row.width}`);", "assert.ok(row.width >= historyMinReadableWidth, `${testCase.name}: detail year unreadable width ${row.width}`);")
+          ]
+          for old,new in pairs:
+            if s.count(old)!=1:
+              raise SystemExit(f'expected exactly one marker: {old}')
+            s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          node --check tools/browser-resource-execution-v3967.mjs
+          node tools/audit-css-component-isolation-v3967.mjs
+          node tools/audit-resource-execution-v3967.mjs
+          git diff --check
+      - name: Commit exact browser gate update
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/browser-resource-execution-v3967.mjs
+          git commit -m 'test: bind history geometry gate to component registry'
+          git push origin HEAD:${{ github.head_ref }}
