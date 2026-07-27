@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { UI_COMPONENT_REGISTRY } from '../shared/ui/component-registry.v3967_0.js';
 
 const baseUrl = process.env.V3967_BASE_URL || 'http://127.0.0.1:8765';
 const artifactDir = process.env.V3967_ARTIFACT_DIR || '/tmp/v3967-resource-execution-browser';
+const historyMinReadableWidth = UI_COMPONENT_REGISTRY.historyEvidence.minReadableWidth;
 fs.mkdirSync(artifactDir, { recursive: true });
 
 function yearEvidence(year, score, rankStart, rankEnd) {
@@ -195,9 +197,9 @@ try {
         return { rootWidth: rootRect.width, rootHeight: rootRect.height, years, legacy: Boolean(root.matches('.history-score,.history-evidence') || root.querySelector('.history-score,.history-evidence')) };
       });
       assert.equal(historyGeometry.legacy, false, `${testCase.name}: legacy history class leaked`);
-      assert.ok(historyGeometry.rootWidth > 240, `${testCase.name}: history root too narrow ${historyGeometry.rootWidth}`);
+      assert.ok(historyGeometry.rootWidth >= historyMinReadableWidth + 20, `${testCase.name}: history root too narrow ${historyGeometry.rootWidth}`);
       for (const row of historyGeometry.years) {
-        assert.ok(row.width >= 160, `${testCase.name}: history year unreadable width ${row.width}`);
+        assert.ok(row.width >= historyMinReadableWidth, `${testCase.name}: history year unreadable width ${row.width}`);
         assert.ok(row.scrollWidth <= row.clientWidth + 1, `${testCase.name}: history year overflow`);
         assert.ok(row.height / row.width < 4, `${testCase.name}: history year vertical distortion ${row.width}x${row.height}`);
       }
@@ -225,7 +227,7 @@ try {
       assert.ok(!detailText.includes('位次待核验'));
       const detailGeometry = await detail.evaluate(root => [...root.querySelectorAll('.ln-history-evidence__year')].map(node => { const rect=node.getBoundingClientRect(); return { width:rect.width, height:rect.height, overflow:node.scrollWidth-node.clientWidth }; }));
       for (const row of detailGeometry) {
-        assert.ok(row.width >= 160, `${testCase.name}: detail year unreadable width ${row.width}`);
+        assert.ok(row.width >= historyMinReadableWidth, `${testCase.name}: detail year unreadable width ${row.width}`);
         assert.ok(row.overflow <= 1, `${testCase.name}: detail year overflow ${row.overflow}`);
         assert.ok(row.height / row.width < 4.5, `${testCase.name}: detail vertical distortion`);
       }
