@@ -38,11 +38,10 @@ jobs:
           node tools/build-active-release-metadata-v3969.mjs
           node tools/build-derived-asset-trace-v3969.mjs
           node --check tools/browser-resource-execution-v3969.mjs
-          git checkout HEAD^ -- .github/workflows/write-v3969-active-metadata.yml
           git diff --check
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .github/workflows/write-v3969-active-metadata.yml ln-rank/active-assets.json ln-rank/release-meta.json shared/governance/derived-asset-trace.v3969_0.json tools/browser-resource-execution-v3969.mjs
+          git add ln-rank/active-assets.json ln-rank/release-meta.json shared/governance/derived-asset-trace.v3969_0.json tools/browser-resource-execution-v3969.mjs
           git diff --cached --quiet && exit 0
           git commit -m 'test: align auxiliary browser release assertion with v3969'
           git push origin HEAD:${{ github.head_ref }}
