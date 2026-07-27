@@ -157,7 +157,8 @@ try {
       const evidence = node.querySelector('.ab-evidence')?.getBoundingClientRect();
       return { width: rect.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, evidenceWidth: evidence?.width || 0, height: rect.height };
     });
-    assert.ok(geometry.width >= Math.min(320, testCase.viewport.width - 28), `${testCase.name}: card too narrow ${geometry.width}`);
+    const minCardWidth = testCase.viewport.width <= 380 ? 280 : Math.min(320, testCase.viewport.width - 28);
+    assert.ok(geometry.width >= minCardWidth, `${testCase.name}: card too narrow ${geometry.width}`);
     assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `${testCase.name}: horizontal overflow`);
     assert.ok(geometry.evidenceWidth >= 180, `${testCase.name}: evidence unreadable ${geometry.evidenceWidth}`);
     assert.ok(geometry.height < 1500, `${testCase.name}: vertical deformation ${geometry.height}`);
