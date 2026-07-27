@@ -1,0 +1,59 @@
+name: Verify Cloudflare preview v3970 temporary
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify latest branch preview content and headers
+        env:
+          PREVIEW_BASE: https://agent-v3970-1-home-release-o.gaokao-4y9.pages.dev
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3970-preview
+          ready=0
+          for attempt in $(seq 1 30); do
+            token="${HEAD_SHA}-${attempt}-$(date +%s)"
+            curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' \
+              "${PREVIEW_BASE}/?preview-check=${token}" -o /tmp/v3970-preview/root.html || true
+            curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' \
+              "${PREVIEW_BASE}/ln-rank/?preview-check=${token}" -o /tmp/v3970-preview/workspace.html || true
+            curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' \
+              "${PREVIEW_BASE}/shared/resources/release/current-release.js?preview-check=${token}" -o /tmp/v3970-preview/release.js || true
+            if grep -q 'data-release="v3.9.70.0"' /tmp/v3970-preview/root.html 2>/dev/null \
+              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-preview/root.html 2>/dev/null \
+              && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-preview/root.html 2>/dev/null \
+              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-preview/workspace.html 2>/dev/null \
+              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-preview/workspace.html 2>/dev/null \
+              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-preview/release.js 2>/dev/null \
+              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-preview/release.js 2>/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 15
+          done
+          test "$ready" -eq 1
+          curl --fail --silent --show-error --location --dump-header /tmp/v3970-preview/root.headers \
+            -H 'Cache-Control: no-cache' "${PREVIEW_BASE}/?preview-check=${HEAD_SHA}-headers" -o /dev/null
+          curl --fail --silent --show-error --location --dump-header /tmp/v3970-preview/home-runtime.headers \
+            "${PREVIEW_BASE}/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0" -o /tmp/v3970-preview/home-runtime.js
+          grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-preview/root.headers
+          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-preview/home-runtime.headers
+          grep -Eiq 'cache-control:.*immutable' /tmp/v3970-preview/home-runtime.headers
+          grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-preview/home-runtime.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v3970-preview-evidence
+          path: /tmp/v3970-preview
+          if-no-files-found: warn
+          retention-days: 3
