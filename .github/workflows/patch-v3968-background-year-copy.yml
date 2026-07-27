@@ -1,0 +1,47 @@
+name: Patch v3968 background evidence year copy
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3968-unified-academic-background'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Make year dimension explicit
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('ln-rank/js/academic-background/academic-background-app.v3968_0.js')
+          s=p.read_text()
+          pairs=[
+            ('证据年份：${esc(source.year', '背景证据年份：${esc(source.year'),
+            ('证据年份未标注', '背景证据年份未标注'),
+            ('投档年份与证据年份分开显示', '投档年份与背景证据年份分开显示')
+          ]
+          for old,new in pairs:
+            if old not in s: raise SystemExit(f'missing marker {old}')
+            s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          node --check ln-rank/js/academic-background/academic-background-app.v3968_0.js
+          node tools/audit-academic-background-v3968.mjs
+          git diff --check
+      - name: Commit copy contract correction
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ln-rank/js/academic-background/academic-background-app.v3968_0.js
+          git commit -m 'fix: make background evidence year dimension explicit'
+          git push origin HEAD:${{ github.head_ref }}
