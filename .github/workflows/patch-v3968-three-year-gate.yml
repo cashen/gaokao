@@ -1,0 +1,42 @@
+name: Patch v3968 three-year audit entry
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3968-unified-academic-background'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Switch exact audit entry
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/verify-ln-2026-final.yml')
+          s=p.read_text()
+          old='node tools/audit-three-year-rank-evidence-v3967.mjs 2>&1 | tee /tmp/v3968-three-year-rank.out'
+          new='node tools/audit-three-year-rank-evidence-v3968.mjs 2>&1 | tee /tmp/v3968-three-year-rank.out'
+          if s.count(old)!=1: raise SystemExit(f'expected one old entry, got {s.count(old)}')
+          p.write_text(s.replace(old,new))
+          PY
+          node --check tools/audit-three-year-rank-evidence-v3968.mjs
+          node tools/audit-three-year-rank-evidence-v3968.mjs
+          git diff --check
+      - name: Commit formal gate update
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/workflows/verify-ln-2026-final.yml
+          git commit -m 'ci: enforce v3968 three-year rank evidence audit'
+          git push origin HEAD:${{ github.head_ref }}
