@@ -39,8 +39,8 @@ jobs:
           set -euo pipefail
           python3 tools/ln-2026/verify-final-release-v10.py | tee /tmp/v3968-runtime-release.out
           node tools/audit-resource-execution-v3968.mjs 2>&1 | tee /tmp/v3968-runtime-resource.out
-          node tools/build-derived-asset-trace-v3967.mjs 2>&1 | tee /tmp/v3968-derived-build.out
-          node tools/audit-derived-assets-v3967.mjs 2>&1 | tee /tmp/v3968-runtime-derived.out
+          node tools/build-derived-asset-trace-v3968.mjs 2>&1 | tee /tmp/v3968-derived-build.out
+          node tools/audit-derived-assets-v3968.mjs 2>&1 | tee /tmp/v3968-runtime-derived.out
           node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3968-runtime-algorithm.out
           node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3968-report-execution.out
           node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3968-runtime-css.out
