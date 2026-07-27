@@ -431,3 +431,41 @@
 
 /shared/algorithms/background/academic-background-matcher.v3968_0.js
   Cache-Control: public, max-age=31536000, immutable
+
+# v3970 unified family action and root home ownership
+/shared/resources/release/release-presenter.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/ui-registry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/component-registry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/action-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/copy-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/contracts/state-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3970_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3970_0.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/domain/family-decision-contract.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3970_0.js
+  Cache-Control: public, max-age=31536000, immutable
