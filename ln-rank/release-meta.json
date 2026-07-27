@@ -447,8 +447,8 @@
   "conflictBlocksTrendContract": true,
   "undergraduatePopulationPolicyContract": true,
   "feishuTransportContract": true,
-  "resourceExecutionVersion": "resource-execution-v3967_0",
-  "derivationTraceVersion": "derivation-trace-v3967_0",
+  "resourceExecutionVersion": "resource-execution-v3968_0",
+  "derivationTraceVersion": "derivation-trace-v3968_0",
   "uiComponentExecutionVersion": "ui-component-execution-v3967_0",
   "resultRankingVersion": "result-ranking-v3967_0",
   "trendInterpretationVersion": "trend-interpretation-v3967_0",
@@ -488,5 +488,8 @@
   "academicBackgroundLegacyInputOnlyContract": true,
   "academicBackgroundOfficialSourceGateContract": true,
   "academicBackgroundSingleMatcherContract": true,
-  "academicBackgroundRankDistanceContract": true
+  "academicBackgroundRankDistanceContract": true,
+  "academicBackgroundVersion": "academic-background-v3968_0",
+  "academicBackgroundMatcherVersion": "academic-background-matcher-v3968_0",
+  "academicBackgroundProviderVersion": "academic-background-provider-v3968_0"
 }
