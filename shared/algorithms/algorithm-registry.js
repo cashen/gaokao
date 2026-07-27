@@ -1,5 +1,5 @@
-export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3967';
-export const ALGORITHM_ASSET_VERSION = 'v3967_0';
+export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3968';
+export const ALGORITHM_ASSET_VERSION = 'v3968_0';
 
 export const ALGORITHM_RESOURCE_REGISTRY = Object.freeze({
   position: '/shared/algorithms/position/canonical-position.v3963_0.js',
@@ -7,6 +7,8 @@ export const ALGORITHM_RESOURCE_REGISTRY = Object.freeze({
   resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
   trendInterpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
   historicalRankSelection: '/shared/algorithms/position/historical-rank-selection.v3967_0.js',
+  academicBackgroundMatcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
+  academicBackgroundPosition: '/functions/_lib/academic-background-api.js',
   snapshot: '/shared/algorithms/contracts/decision-snapshot.v3960_0.js'
 });
 
@@ -20,6 +22,10 @@ export const ALGORITHM_CONTRACT = Object.freeze({
     'single-result-ranking-owner',
     'single-trend-interpretation-owner',
     'single-historical-rank-selection-owner',
+    'single-academic-background-matcher-owner',
+    'academic-background-rank-distance-primary',
+    'background-source-year-separated-from-admission-year',
+    'background-source-gate-before-frontend',
     'rank-primary-2026-position',
     'score-prefilter-performance-boundary',
     'hard-constraints-before-preferences',
@@ -31,7 +37,8 @@ export const ALGORITHM_CONTRACT = Object.freeze({
   forbiddenOutputs: Object.freeze([
     'admission-probability',
     'guaranteed-admission',
-    'unverified-employment-promise'
+    'unverified-employment-promise',
+    'unverified-academic-background-as-fact'
   ])
 });
 
