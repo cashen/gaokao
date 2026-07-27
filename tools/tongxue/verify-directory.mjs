@@ -27,7 +27,7 @@ const [
   readFile('index.html', 'utf8'),
   readFile('tongxue/share/tongxue-share-v130.js', 'utf8'),
   readFile('tongxue/data/school-name-resolver-v150.js', 'utf8'),
-  readFile('tongxue/app/tongxue-runtime-v159-r3966.js', 'utf8'),
+  readFile('tongxue/app/tongxue-runtime-v159-r3967.js', 'utf8'),
   readFile('tongxue/app/tongxue-runtime-controller-v159.js', 'utf8'),
   readFile('tongxue/app/tongxue-runtime-search-view-v159.js', 'utf8'),
   readFile('tongxue/app/tongxue-runtime-result-view-v159.js', 'utf8'),
@@ -35,7 +35,7 @@ const [
 ]);
 
 requireText(page, '<title>同学你好 - 找学校，看看大家怎么说</title>', '页面标题');
-requireText(page, './app/tongxue-runtime-v159-r3966.js?v=3966_0', '页面入口');
+requireText(page, './app/tongxue-runtime-v159-r3967.js?v=3967_0', '页面入口');
 forbidText(page, './app/tongxue-runtime-v159.js?v=159', '页面仍加载旧入口');
 requireText(page, '同学你好 v1.5.9 · 更新于 2026-07-26', '页面版本');
 requireText(page, 'tongxue-v159-single-runtime-owner-20260726', '页面构建标识');
@@ -85,7 +85,7 @@ for (const detailed of ['文案精简与语义校准', '品牌 Logo 与多终端
   if (changelog.includes(detailed)) failures.push(`更新记录仍过度详细：${detailed}`);
 }
 
-requireText(entry, "release-presenter.v3966_0.js?v=3966_0", 'v3966发布展示器');
+requireText(entry, "release-presenter.v3967_0.js?v=3967_0", 'v3967发布展示器');
 requireText(entry, "family-shell.v3965_0.js?v=3965_0", '共享家庭壳层');
 requireText(entry, "tongxue-runtime-controller-v159.js?v=159", '唯一控制器入口');
 requireText(entry, 'tongxue-v159-single-runtime-owner-20260726', '运行时构建校验');
