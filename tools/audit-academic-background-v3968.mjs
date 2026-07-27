@@ -101,7 +101,7 @@ for (const [path, scope] of [
 
 const service = read('functions/_lib/academic-background-api.js');
 assert.match(service, /rank-distance-2026/);
-assert.match(service, /backgroundEvidence/);
+assert.match(service, /academicBackground/);
 assert.match(service, /historyYears: \[2025, 2024\]/);
 assert.match(service, /matchAcademicBackground/);
 
