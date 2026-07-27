@@ -2,320 +2,430 @@ node:internal/modules/run_main:123
     triggerUncaughtException(
     ^
 
-AssertionError [ERR_ASSERTION]: The input did not match the regular expression /背景证据年份/. Input:
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /backgroundEvidence/. Input:
 
-"import { formatHistoricalEvidenceText } from '../../../shared/resources/exam/historical-score-rank-contract.js?v=3968_0';\n" +
-  "import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3951_0';\n" +
+'import {\n' +
+  '  clean,\n' +
+  '  num,\n' +
+  '  loadBackgroundMatchedRecords,\n' +
+  '  buildCandidatePositionContext\n' +
+  "} from './background-position-engine.js';\n" +
+  'import {\n' +
+  '  ACADEMIC_BACKGROUND_PROVIDER_VERSION,\n' +
+  '  getAcademicBackgroundMeta,\n' +
+  '  getAcademicBackgroundSchoolSummaries,\n' +
+  '  getAcademicBackgroundMajorSummaries,\n' +
+  '  matchAcademicBackground,\n' +
+  '  presentAcademicBackground\n' +
+  "} from './academic-background-provider.js';\n" +
+  "import { normalizeAcademicBackgroundScope } from '../../shared/resources/background/academic-background-contract.v3968_0.js';\n" +
   '\n' +
-  'const $ = id => document.getElementById(id);\n' +
-  `const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));\n` +
-  "const fmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString('zh-CN') : '—';\n" +
-  "const norm = value => String(value || '').replace(/[（(].*?[）)]/g, '').replace(/\\s+/g, '').toLowerCase();\n" +
-  "const scope = document.body?.dataset?.backgroundScope === '211' ? '211' : 'liaoning';\n" +
-  "const state = { meta: null, schools: [], majors: [], activeTab: 'school' };\n" +
+  'const json = (payload, status = 200) => new Response(JSON.stringify(payload), {\n' +
+  '  status,\n' +
+  "  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }\n" +
+  '});\n' +
   '\n' +
-  'const COPY = Object.freeze({\n' +
-  '  liaoning: {\n' +
-  "    pageName: '省内学校专业背景',\n" +
-  "    schoolEmpty: '当前没有通过权威来源门禁的省内专业背景记录。',\n" +
-  "    majorEmpty: '当前没有通过权威来源门禁的省内学校专业记录。',\n" +
-  "    positionTitle: '按孩子当前位置查看省内学校专业背景',\n" +
-  "    sourceLabel: '背景证据来源'\n" +
-  '  },\n' +
-  "  '211': {\n" +
-  "    pageName: '211院校专业背景',\n" +
-  "    schoolEmpty: '当前没有通过权威来源门禁的211专业背景记录。',\n" +
-  "    majorEmpty: '当前没有通过权威来源门禁的211学校专业记录。',\n" +
-  "    positionTitle: '按孩子当前位置查看211院校专业背景',\n" +
-  "    sourceLabel: '背景证据来源'\n" +
-  '  }\n' +
-  '})[scope];\n' +
-  '\n' +
-  "function emptyHtml(title, desc = '') {\n" +
-  '  return `<div class="lm-empty"><b>${esc(title)}</b>${desc ? `<p>${esc(desc)}</p>` : \'\'}</div>`;\n' +
+  'function rankDistance(record, candidateRank) {\n' +
+  '  const rank = Number(record?.rank2026 ?? record?.rank);\n' +
+  '  return Number.isFinite(rank) && Number.isFinite(candidateRank)\n' +
+  '    ? Math.abs(rank - candidateRank)\n' +
+  '    : Number.MAX_SAFE_INTEGER;\n' +
   '}\n' +
   '\n' +
-  "function loadingHtml(text = '正在读取统一背景证据…') {\n" +
-  '  return `<div class="lm-empty is-loading"><b>${esc(text)}</b><p>只显示通过权威来源门禁的记录。</p></div>`;\n' +
+  'function scoreDistance(record, candidateScore) {\n' +
+  '  const score = Number(record?.score2026 ?? record?.score);\n' +
+  '  return Number.isFinite(score) && Number.isFinite(candidateScore)\n' +
+  '    ? Math.abs(score - candidateScore)\n' +
+  '    : Number.MAX_SAFE_INTEGER;\n' +
   '}\n' +
   '\n' +
-  'function errorHtml(title, error) {\n' +
-  '  const detail = apiErrorDiagnosticHtml(error, esc);\n' +
-  '  return `${emptyHtml(title, formatApiErrorForHuman(error, \'数据暂时没有读取成功，可以稍后重试。\'))}${detail ? `<details class="lm-tech-detail"><summary>展开排查信息</summary>${detail}</details>` : \'\'}`;\n' +
+  'function levelWeight(record) {\n' +
+  "  const level = record?.academicBackground?.level || record?.academicBackgroundRaw?.level || 'trajectory';\n" +
+  "  return level === 'primary' ? 3 : level === 'secondary' ? 2 : 1;\n" +
   '}\n' +
   '\n' +
-  'function sourceRows(background = {}) {\n' +
-  '  const sources = Array.isArray(background.sources) ? background.sources : [];\n' +
-  `  if (!sources.length) return '<p class="ab-source-empty">来源未通过门禁，本条不应进入活动结果。</p>';\n` +
-  '  return `<div class="ab-source-list">${sources.map(source => `<a class="ab-source" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(source.title)}</b><span>证据年份：${esc(source.year || \'未标注\')}｜${esc(source.authority || \'\')}</span></a>`).join(\'\')}</div>`;\n' +
+  'function sortByUnifiedPosition(records = [], score, positionContext) {\n' +
+  '  const candidateScore = Number(score);\n' +
+  '  const candidateRank = Number(positionContext?.candidateRank);\n' +
+  '  return [...records].sort((a, b) => {\n' +
+  '    const rankGap = rankDistance(a, candidateRank) - rankDistance(b, candidateRank);\n' +
+  '    if (rankGap) return rankGap;\n' +
+  '    const scoreGap = scoreDistance(a, candidateScore) - scoreDistance(b, candidateScore);\n' +
+  '    if (scoreGap) return scoreGap;\n' +
+  '    return levelWeight(b) - levelWeight(a)\n' +
+  '      || Number(b.score2026 || 0) - Number(a.score2026 || 0)\n' +
+  '      || Number(a.rank2026 || Number.MAX_SAFE_INTEGER) - Number(b.rank2026 || Number.MAX_SAFE_INTEGER)\n' +
+  "      || String(a.school || '').localeCompare(String(b.school || ''), 'zh-Hans-CN')\n" +
+  "      || String(a.major || '').localeCompare(String(b.major || ''), 'zh-Hans-CN');\n" +
+  '  }).map(record => ({\n' +
+  '    ...record,\n' +
+  '    rankingTrace: {\n' +
+  "      owner: 'academic-background-position-v3968_0',\n" +
+  "      primaryMetric: Number.isFinite(candidateRank) ? 'rank-distance-2026' : 'score-distance-2026',\n" +
+  '      candidateRank: Number.isFinite(candidateRank) ? candidateRank : null,\n' +
+  '      rankGap: Number.isFinite(candidateRank) && Number.isFinite(Number(record.rank2026))\n' +
+  '        ? Number(record.rank2026) - candidateRank\n' +
+  '        : null,\n' +
+  '      scoreGap: Number.isFinite(candidateScore) && Number.isFinite(Number(record.score2026))\n' +
+  '        ? Number(record.score2026) - candidateScore\n' +
+  '        : null\n' +
+  '    }\n' +
+  '  }));\n' +
   '}\n' +
   '\n' +
-  'function evidenceRows(background = {}) {\n' +
-  '  const evidence = Array.isArray(background.evidence) ? background.evidence : [];\n' +
-  "  if (!evidence.length) return '';\n" +
-  '  return `<div class="ab-evidence-list">${evidence.map(item => `<div class="ab-evidence"><b>${esc(item.disciplineName || item.detail || \'学校学科背景\')}</b><span>${esc(item.evidenceYear ? `${item.evidenceYear}年证据` : \'证据年份未标注\')}${item.grade ? `｜${esc(item.grade)}` : \'\'}</span><small>${esc(item.detail || \'\')}</small></div>`).join(\'\')}</div>`;\n' +
+  'function groupUnifiedPosition(records = [], score, positionContext) {\n' +
+  '  const candidate = Number(score);\n' +
+  '  const sorted = list => sortByUnifiedPosition(list, candidate, positionContext);\n' +
+  '  return {\n' +
+  '    near: sorted(records.filter(record => Number(record.score2026) >= candidate - 10 && Number(record.score2026) <= candidate)),\n' +
+  '    upper: sorted(records.filter(record => Number(record.score2026) > candidate && Number(record.score2026) <= candidate + 10)),\n' +
+  '    lower: sorted(records.filter(record => Number(record.score2026) >= candidate - 25 && Number(record.score2026) < candidate - 10))\n' +
+  '  };\n' +
   '}\n' +
   '\n' +
-  'function historyHtml(record = {}) {\n' +
-  "  const text = formatHistoricalEvidenceText(record, { years: [2025, 2024], prefix: false, empty: '' });\n" +
-  '  return text\n' +
-  '    ? `<div class="ab-history"><b>历史同口径：</b>${esc(text)}</div>`\n' +
-  `    : '<div class="ab-history is-empty"><b>历史同口径：</b>暂无2025/2024严格同口径记录</div>';\n` +
+  'async function loadRecords(context, scope, filters = {}) {\n' +
+  '  return loadBackgroundMatchedRecords(context.request, context.env || {}, filters, {\n' +
+  '    matchRecord: record => matchAcademicBackground(record, scope),\n' +
+  '    presentHit: presentAcademicBackground,\n' +
+  "    outputKey: 'academicBackground',\n" +
+  "    rawKey: 'academicBackgroundRaw',\n" +
+  "    sourceName: 'academic-background-provider-v3968_0'\n" +
+  '  });\n' +
   '}\n' +
   '\n' +
-  'function rankText(record = {}) {\n' +
-  '  const start = Number(record.rankStart2026);\n' +
-  '  const end = Number(record.rankEnd2026 ?? record.rank2026);\n' +
-  '  if (Number.isFinite(start) && Number.isFinite(end)) return start === end ? fmt(end) : `${fmt(start)}–${fmt(end)}`;\n' +
-  '  return fmt(record.rank2026);\n' +
-  '}\n' +
-  '\n' +
-  'function recordCard(record = {}) {\n' +
-  '  const background = record.academicBackground || {};\n' +
-  '  const trace = record.rankingTrace || {};\n' +
-  '  return `<article class="lm-record-card ab-record" data-background-scope="${esc(scope)}">\n' +
-  '    <div class="lm-record-top"><div><h3>${esc(record.school)}｜${esc(record.major)}</h3><p>${esc(record.displayLocation || \'\')}${record.natureLabel ? `｜${esc(record.natureLabel)}` : \'\'}</p></div><span class="lm-pill ${esc(background.level || \'trajectory\')}">${esc(background.label || \'背景证据\')}</span></div>\n' +
-  '    <div class="lm-data-row"><span>2026投档参考：<b>${fmt(record.score2026)}分</b></span><span>2026同分位次：<b>${rankText(record)}</b></span>${Number.isFinite(Number(record.scoreDelta2026 ?? record.scoreDelta)) ? `<span>相对参考分数：<b>${Number(record.scoreDelta2026 ?? record.scoreDelta) > 0 ? \'+\' : \'\'}${fmt(record.scoreDelta2026 ?? record.scoreDelta)}分</b></span>` : \'\'}</div>\n' +
-  '    ${historyHtml(record)}\n' +
-  '    <div class="ab-background-head"><b>${esc(background.label || \'背景证据\')}｜${esc(background.direction || \'学校专业背景\')}</b><span>投档年份与证据年份分开显示</span></div>\n' +
-  '    ${evidenceRows(background)}\n' +
-  '    <details class="ab-sources"><summary>${esc(COPY.sourceLabel)}（${fmt(background.sources?.length || 0)}）</summary>${sourceRows(background)}</details>\n' +
-  '    <p class="lm-card-note">${esc(background.note || \'背景证据只用于学校专业方向复核，需继续查看培养方案和招生章程。\')}</p>\n' +
-  '    <div class="lm-review-row">建议再看：${(background.reviewPoints || [\'培养方案\', \'招生章程\']).map(esc).join(\' / \')}</div>\n' +
-  '    ${trace.primaryMetric ? `<p class="ab-ranking-trace">位置排序：${esc(trace.primaryMetric === \'rank-distance-2026\' ? \'2026位次距离优先\' : \'2026分数距离兜底\')}</p>` : \'\'}\n' +
-  '  </article>`;\n' +
-  '}\n' +
-  '\n' +
-  'function schoolCard(item = {}) {\n' +
-  '  return `<article class="lm-card"><div class="lm-card-top"><div><h3>${esc(item.school || item.name)}</h3><p>${esc(item.city || item.province || (scope === \'liaoning\' ? \'辽宁\' : \'211院校\'))}</p></div><span class="lm-pill primary">${scope === \'211\' ? \'211\' : \'省内\'}</span></div><p class="lm-card-note">${esc(item.overview || \'打开后只显示通过权威来源门禁、并能对应2026招生专业的背景记录。\')}</p><button class="lm-card-action" data-school-detail="${esc(item.school || item.name)}">查看统一背景证据</button></article>`;\n' +
-  '}\n' +
-  '\n' +
-  'function majorCard(item = {}) {\n' +
-  '  return `<article class="lm-card"><div class="lm-card-top"><div><h3>${esc(item.major)}</h3><p>涉及 ${fmt(item.schoolCount)} 所学校的历史背景索引</p></div><span class="lm-pill primary">专业</span></div><p class="lm-card-note">打开后按统一学校身份、专业身份和权威来源门禁重新匹配，不直接使用旧KB结论。</p><button class="lm-card-action" data-major-detail="${esc(item.major)}">查看统一背景证据</button></article>`;\n' +
-  '}\n' +
-  '\n' +
-  'function renderSchools() {\n' +
-  "  const query = norm($('schoolSearch')?.value || '');\n" +
-  '  const list = state.schools.filter(item => !query || norm(`${item.school || item.name}${item.city}${item.overview}`).includes(query));\n' +
-  "  $('schoolList').innerHTML = list.length ? list.slice(0, query ? 80 : 42).map(schoolCard).join('') : emptyHtml('没有找到学校', '可以换用学校正式名称。');\n" +
-  "  $('schoolList').querySelectorAll('[data-school-detail]').forEach(button => button.addEventListener('click', () => showDetail('school', button.dataset.schoolDetail)));\n" +
-  '}\n' +
-  '\n' +
-  'function renderMajors() {\n' +
-  "  const query = norm($('majorSearch')?.value || '');\n" +
-  '  const list = state.majors.filter(item => !query || norm(item.major).includes(query));\n' +
-  "  $('majorList').innerHTML = list.length ? list.slice(0, query ? 100 : 48).map(majorCard).join('') : emptyHtml('没有找到专业', '可以换用教育部专业目录中的标准专业名称。');\n" +
-  "  $('majorList').querySelectorAll('[data-major-detail]').forEach(button => button.addEventListener('click', () => showDetail('major', button.dataset.majorDetail)));\n" +
-  '}\n' +
-  '\n' +
-  'async function showDetail(mode, value) {\n' +
-  "  const root = mode === 'school' ? $('schoolDetail') : $('majorDetail');\n" +
-  '  root.hidden = false;\n' +
-  '  root.innerHTML = loadingHtml();\n' +
+  "export async function handleAcademicBackgroundRequest(context, forcedScope = '') {\n" +
+  "  if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);\n" +
   '  try {\n' +
-  "    const data = await fetchApiJson(`/api/academic-background?scope=${encodeURIComponent(scope)}&mode=${encodeURIComponent(mode)}&${mode}=${encodeURIComponent(value)}&max=320`, { userMessage: '统一背景证据暂时没有读取成功。' });\n" +
-  '    root.innerHTML = `<div class="lm-detail-head"><h2>${esc(value)}：统一背景证据</h2><p>${esc(data.boundary || state.meta?.boundary || \'\')}</p></div>${data.records?.length ? `<div class="lm-record-list">${data.records.map(recordCard).join(\'\')}</div>` : emptyHtml(mode === \'school\' ? COPY.schoolEmpty : COPY.majorEmpty, \'旧KB中缺少精确权威来源的线索已被拦截，不会伪装成确定背景。\')}`;\n' +
-  "    root.scrollIntoView({ behavior: 'smooth', block: 'start' });\n" +
+  '    const url = new URL(context.request.url);\n' +
+  "    const scope = normalizeAcademicBackgroundScope(forcedScope || url.searchParams.get('scope'));\n" +
+  "    const mode = clean(url.searchParams.get('mode') || 'meta', 30);\n" +
+  '    const meta = getAcademicBackgroundMeta(scope);\n' +
+  '\n' +
+  "    if (mode === 'meta') {\n" +
+  '      return json({\n' +
+  '        ok: true,\n' +
+  '        mode,\n' +
+  '        scope,\n' +
+  '        providerVersion: ACADEMIC_BACKGROUND_PROVIDER_VERSION,\n' +
+  '        meta,\n' +
+  '        schools: getAcademicBackgroundSchoolSummaries(scope),\n' +
+  '        majors: getAcademicBackgroundMajorSummaries(scope),\n' +
+  '        boundary: meta.boundary\n' +
+  '      });\n' +
+  '    }\n' +
+  '\n' +
+  "    if (mode === 'school') {\n" +
+  "      const school = clean(url.searchParams.get('school') || '', 100);\n" +
+  "      if (!school) return json({ ok: false, message: '请选择学校。' }, 400);\n" +
+  "      const result = await loadRecords(context, scope, { school, max: url.searchParams.get('max') || 300 });\n" +
+  '      return json({\n' +
+  '        ok: true,\n' +
+  '        mode,\n' +
+  '        scope,\n' +
+  '        admissionDataYear: 2026,\n' +
+  '        historyYears: [2025, 2024],\n' +
+  '        school,\n' +
+  '        records: result.records,\n' +
+  '        count: result.records.length,\n' +
+  '        scannedCount: result.scannedCount,\n' +
+  '        matchedCount: result.matchedCount,\n' +
+  '        dataReadOk: result.dataReadOk,\n' +
+  '        meta,\n' +
+  '        boundary: meta.boundary\n' +
+  '      });\n' +
+  '    }\n' +
+  '\n' +
+  "    if (mode === 'major') {\n" +
+  "      const major = clean(url.searchParams.get('major') || '', 100);\n" +
+  "      if (!major) return json({ ok: false, message: '请输入专业名称。' }, 400);\n" +
+  "      const result = await loadRecords(context, scope, { major, max: url.searchParams.get('max') || 300 });\n" +
+  '      return json({\n' +
+  '        ok: true,\n' +
+  '        mode,\n' +
+  '        scope,\n' +
+  '        admissionDataYear: 2026,\n' +
+  '        historyYears: [2025, 2024],\n' +
+  '        major,\n' +
+  '        records: result.records,\n' +
+  '        count: result.records.length,\n' +
+  '        scannedCount: result.scannedCount,\n' +
+  '        matchedCount: result.matchedCount,\n' +
+  '        dataReadOk: result.dataReadOk,\n' +
+  '        meta,\n' +
+  '        boundary: meta.boundary\n' +
+  '      });\n' +
+  '    }\n' +
+  '\n' +
+  "    if (mode === 'score' || mode === 'position') {\n" +
+  "      const score = num(url.searchParams.get('score'));\n" +
+  '      if (!Number.isFinite(score) || score < 344 || score > 750) {\n' +
+  "        return json({ ok: false, message: '请输入 344—750 之间的有效参考分数。' }, 400);\n" +
+  '      }\n' +
+  "      const level = clean(url.searchParams.get('level') || 'primary_secondary', 30);\n" +
+  "      const natureMode = clean(url.searchParams.get('natureMode') || 'all', 30);\n" +
+  '      const result = await loadRecords(context, scope, {\n' +
+  '        candidateScore: score,\n' +
+  '        maxScore: score + 10,\n' +
+  '        minScore: score - 25,\n' +
+  '        level,\n' +
+  '        natureMode,\n' +
+  "        max: url.searchParams.get('max') || 360\n" +
+  '      });\n' +
+  '      const positionContext = result.positionContext || buildCandidatePositionContext(score);\n' +
+  '      const grouped = groupUnifiedPosition(result.records, score, positionContext);\n' +
+  '      return json({\n' +
+  '        ok: true,\n' +
+  "        mode: 'position',\n" +
+  '        scope,\n' +
+  '        audienceYear: 2027,\n' +
+  '        admissionDataYear: 2026,\n' +
+  '        historyYears: [2025, 2024],\n' +
+  '        rankYear: 2026,\n' +
+  '        score,\n' +
+  '        level,\n' +
+  '        natureMode,\n' +
+  '        records: sortByUnifiedPosition(result.records, score, positionContext),\n' +
+  '        grouped,\n' +
+  '        count: result.records.length,\n' +
+  '        scannedCount: result.scannedCount,\n' +
+  '        matchedCount: result.matchedCount,\n' +
+  '        windowCandidateCount: result.windowCandidateCount,\n' +
+  '        normalizedCount: result.normalizedCount,\n' +
+  '        chunksRead: result.chunksRead,\n' +
+  '        chunksSkipped: result.chunksSkipped,\n' +
+  '        dataReadOk: result.dataReadOk,\n' +
+  '        positionContext,\n' +
+  '        meta,\n' +
+  "        humanMessage: result.records.length ? '' : '这个参考位置附近没有通过权威来源门禁的学校专业背景记录。可以按学校或专业继续查看，待核验旧线索不会混入结果。',\n" +
+  "        boundary: positionContext.humanBoundary + ' 背景证据按自身来源年份展示，不能把2017或2022年的学科证据理解为2026新增事实。'\n" +
+  '      });\n' +
+  '    }\n' +
+  '\n' +
+  "    return json({ ok: false, message: '未知查询方式。' }, 400);\n" +
   '  } catch (error) {\n' +
-  "    root.innerHTML = errorHtml('统一背景证据暂时没有读取成功', error);\n" +
+  '    return json({\n' +
+  '      ok: false,\n' +
+  "      message: '学校专业背景数据暂时没有读取成功。',\n" +
+  "      hint: '这不影响主页面专业初选。背景证据必须通过权威来源门禁后才会显示。',\n" +
+  '      engineerHint: error?.message || String(error)\n' +
+  '    }, 500);\n' +
   '  }\n' +
-  '}\n' +
-  '\n' +
-  'function renderScoreSection(title, desc, records = []) {\n' +
-  '  return `<section class="lm-score-section"><h3>${esc(title)}</h3><p class="lm-score-section-desc">${esc(desc)}</p>${records.length ? records.map(recordCard).join(\'\') : emptyHtml(\'这一段没有通过来源门禁的记录\', \'不使用待核验旧线索填充结果。\')}</section>`;\n' +
-  '}\n' +
-  '\n' +
-  'async function queryScore() {\n' +
-  "  const score = Number($('scoreInput')?.value);\n" +
-  "  const root = $('scoreResult');\n" +
-  '  if (!Number.isFinite(score) || score < 344 || score > 750) {\n' +
-  "    root.innerHTML = emptyHtml('请输入344—750之间的参考分数', '输入的是模考或预估分数，不是录取结论。');\n" +
-  '    return;\n' +
-  '  }\n' +
-  "  root.innerHTML = loadingHtml('正在按2026位置和权威背景证据整理结果…');\n" +
-  '  try {\n' +
-  "    const level = $('scoreLevel')?.value || 'primary_secondary';\n" +
-  "    const natureMode = $('scoreNature')?.value || 'all';\n" +
-  "    const data = await fetchApiJson(`/api/academic-background?scope=${encodeURIComponent(scope)}&mode=position&score=${encodeURIComponent(score)}&level=${encodeURIComponent(level)}&natureMode=${encodeURIComponent(natureMode)}&max=360`, { userMessage: '位置背景查询暂时没有读取成功。' });\n" +
-  '    root.innerHTML = `<div class="lm-detail-head"><h2>${esc(COPY.positionTitle)}</h2><p>${esc(data.boundary || \'\')}</p><p class="ab-year-caliber">投档：2026｜历史对照：2025、2024｜背景证据：按每条来源的实际年份</p></div>\n' +
-  "      ${data.count === 0 ? emptyHtml('附近没有通过权威来源门禁的记录', data.humanMessage || '') : ''}\n" +
-  "      ${renderScoreSection('接近当前位置', `${fmt(score - 10)}–${fmt(score)}分范围；内部排序优先使用2026位次距离。`, data.grouped?.near || [])}\n" +
-  "      ${renderScoreSection('稍高一点可少量了解', `${fmt(score + 1)}–${fmt(score + 10)}分范围，只作历史讨论。`, data.grouped?.upper || [])}\n" +
-  "      ${renderScoreSection('低一些的可讨论选择', `${fmt(score - 25)}–${fmt(score - 11)}分范围，不代表安全或录取概率。`, data.grouped?.lower || [])}`;\n" +
-  '  } catch (error) {\n' +
-  "    root.innerHTML = errorHtml('位置背景查询暂时没有读取成功', error);\n" +
-  '  }\n' +
-  '}\n' +
-  '\n' +
-  'function switchTab(tab) {\n' +
-  '  state.activeTab = tab;\n' +
-  "  document.querySelectorAll('.lm-tab').forEach(button => button.classList.toggle('is-active', button.dataset.tab === tab));\n" +
-  "  document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== tab; });\n" +
-  '}\n' +
-  '\n' +
-  'function bind() {\n' +
-  "  document.querySelectorAll('.lm-tab').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));\n" +
-  '  document.'... 1629 more characters
+  '}\n'
 
-    at file:///home/runner/work/gaokao/gaokao/tools/audit-academic-background-v3968.mjs:86:8
+    at file:///home/runner/work/gaokao/gaokao/tools/audit-academic-background-v3968.mjs:104:8
     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
-  actual: "import { formatHistoricalEvidenceText } from '../../../shared/resources/exam/historical-score-rank-contract.js?v=3968_0';\n" +
-    "import { fetchApiJson, formatApiErrorForHuman, apiErrorDiagnosticHtml } from '../shared/api-client.js?v=3951_0';\n" +
+  actual: 'import {\n' +
+    '  clean,\n' +
+    '  num,\n' +
+    '  loadBackgroundMatchedRecords,\n' +
+    '  buildCandidatePositionContext\n' +
+    "} from './background-position-engine.js';\n" +
+    'import {\n' +
+    '  ACADEMIC_BACKGROUND_PROVIDER_VERSION,\n' +
+    '  getAcademicBackgroundMeta,\n' +
+    '  getAcademicBackgroundSchoolSummaries,\n' +
+    '  getAcademicBackgroundMajorSummaries,\n' +
+    '  matchAcademicBackground,\n' +
+    '  presentAcademicBackground\n' +
+    "} from './academic-background-provider.js';\n" +
+    "import { normalizeAcademicBackgroundScope } from '../../shared/resources/background/academic-background-contract.v3968_0.js';\n" +
     '\n' +
-    'const $ = id => document.getElementById(id);\n' +
-    `const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));\n` +
-    "const fmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString('zh-CN') : '—';\n" +
-    "const norm = value => String(value || '').replace(/[（(].*?[）)]/g, '').replace(/\\s+/g, '').toLowerCase();\n" +
-    "const scope = document.body?.dataset?.backgroundScope === '211' ? '211' : 'liaoning';\n" +
-    "const state = { meta: null, schools: [], majors: [], activeTab: 'school' };\n" +
+    'const json = (payload, status = 200) => new Response(JSON.stringify(payload), {\n' +
+    '  status,\n' +
+    "  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }\n" +
+    '});\n' +
     '\n' +
-    'const COPY = Object.freeze({\n' +
-    '  liaoning: {\n' +
-    "    pageName: '省内学校专业背景',\n" +
-    "    schoolEmpty: '当前没有通过权威来源门禁的省内专业背景记录。',\n" +
-    "    majorEmpty: '当前没有通过权威来源门禁的省内学校专业记录。',\n" +
-    "    positionTitle: '按孩子当前位置查看省内学校专业背景',\n" +
-    "    sourceLabel: '背景证据来源'\n" +
-    '  },\n' +
-    "  '211': {\n" +
-    "    pageName: '211院校专业背景',\n" +
-    "    schoolEmpty: '当前没有通过权威来源门禁的211专业背景记录。',\n" +
-    "    majorEmpty: '当前没有通过权威来源门禁的211学校专业记录。',\n" +
-    "    positionTitle: '按孩子当前位置查看211院校专业背景',\n" +
-    "    sourceLabel: '背景证据来源'\n" +
-    '  }\n' +
-    '})[scope];\n' +
-    '\n' +
-    "function emptyHtml(title, desc = '') {\n" +
-    '  return `<div class="lm-empty"><b>${esc(title)}</b>${desc ? `<p>${esc(desc)}</p>` : \'\'}</div>`;\n' +
+    'function rankDistance(record, candidateRank) {\n' +
+    '  const rank = Number(record?.rank2026 ?? record?.rank);\n' +
+    '  return Number.isFinite(rank) && Number.isFinite(candidateRank)\n' +
+    '    ? Math.abs(rank - candidateRank)\n' +
+    '    : Number.MAX_SAFE_INTEGER;\n' +
     '}\n' +
     '\n' +
-    "function loadingHtml(text = '正在读取统一背景证据…') {\n" +
-    '  return `<div class="lm-empty is-loading"><b>${esc(text)}</b><p>只显示通过权威来源门禁的记录。</p></div>`;\n' +
+    'function scoreDistance(record, candidateScore) {\n' +
+    '  const score = Number(record?.score2026 ?? record?.score);\n' +
+    '  return Number.isFinite(score) && Number.isFinite(candidateScore)\n' +
+    '    ? Math.abs(score - candidateScore)\n' +
+    '    : Number.MAX_SAFE_INTEGER;\n' +
     '}\n' +
     '\n' +
-    'function errorHtml(title, error) {\n' +
-    '  const detail = apiErrorDiagnosticHtml(error, esc);\n' +
-    '  return `${emptyHtml(title, formatApiErrorForHuman(error, \'数据暂时没有读取成功，可以稍后重试。\'))}${detail ? `<details class="lm-tech-detail"><summary>展开排查信息</summary>${detail}</details>` : \'\'}`;\n' +
+    'function levelWeight(record) {\n' +
+    "  const level = record?.academicBackground?.level || record?.academicBackgroundRaw?.level || 'trajectory';\n" +
+    "  return level === 'primary' ? 3 : level === 'secondary' ? 2 : 1;\n" +
     '}\n' +
     '\n' +
-    'function sourceRows(background = {}) {\n' +
-    '  const sources = Array.isArray(background.sources) ? background.sources : [];\n' +
-    `  if (!sources.length) return '<p class="ab-source-empty">来源未通过门禁，本条不应进入活动结果。</p>';\n` +
-    '  return `<div class="ab-source-list">${sources.map(source => `<a class="ab-source" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(source.title)}</b><span>证据年份：${esc(source.year || \'未标注\')}｜${esc(source.authority || \'\')}</span></a>`).join(\'\')}</div>`;\n' +
+    'function sortByUnifiedPosition(records = [], score, positionContext) {\n' +
+    '  const candidateScore = Number(score);\n' +
+    '  const candidateRank = Number(positionContext?.candidateRank);\n' +
+    '  return [...records].sort((a, b) => {\n' +
+    '    const rankGap = rankDistance(a, candidateRank) - rankDistance(b, candidateRank);\n' +
+    '    if (rankGap) return rankGap;\n' +
+    '    const scoreGap = scoreDistance(a, candidateScore) - scoreDistance(b, candidateScore);\n' +
+    '    if (scoreGap) return scoreGap;\n' +
+    '    return levelWeight(b) - levelWeight(a)\n' +
+    '      || Number(b.score2026 || 0) - Number(a.score2026 || 0)\n' +
+    '      || Number(a.rank2026 || Number.MAX_SAFE_INTEGER) - Number(b.rank2026 || Number.MAX_SAFE_INTEGER)\n' +
+    "      || String(a.school || '').localeCompare(String(b.school || ''), 'zh-Hans-CN')\n" +
+    "      || String(a.major || '').localeCompare(String(b.major || ''), 'zh-Hans-CN');\n" +
+    '  }).map(record => ({\n' +
+    '    ...record,\n' +
+    '    rankingTrace: {\n' +
+    "      owner: 'academic-background-position-v3968_0',\n" +
+    "      primaryMetric: Number.isFinite(candidateRank) ? 'rank-distance-2026' : 'score-distance-2026',\n" +
+    '      candidateRank: Number.isFinite(candidateRank) ? candidateRank : null,\n' +
+    '      rankGap: Number.isFinite(candidateRank) && Number.isFinite(Number(record.rank2026))\n' +
+    '        ? Number(record.rank2026) - candidateRank\n' +
+    '        : null,\n' +
+    '      scoreGap: Number.isFinite(candidateScore) && Number.isFinite(Number(record.score2026))\n' +
+    '        ? Number(record.score2026) - candidateScore\n' +
+    '        : null\n' +
+    '    }\n' +
+    '  }));\n' +
     '}\n' +
     '\n' +
-    'function evidenceRows(background = {}) {\n' +
-    '  const evidence = Array.isArray(background.evidence) ? background.evidence : [];\n' +
-    "  if (!evidence.length) return '';\n" +
-    '  return `<div class="ab-evidence-list">${evidence.map(item => `<div class="ab-evidence"><b>${esc(item.disciplineName || item.detail || \'学校学科背景\')}</b><span>${esc(item.evidenceYear ? `${item.evidenceYear}年证据` : \'证据年份未标注\')}${item.grade ? `｜${esc(item.grade)}` : \'\'}</span><small>${esc(item.detail || \'\')}</small></div>`).join(\'\')}</div>`;\n' +
+    'function groupUnifiedPosition(records = [], score, positionContext) {\n' +
+    '  const candidate = Number(score);\n' +
+    '  const sorted = list => sortByUnifiedPosition(list, candidate, positionContext);\n' +
+    '  return {\n' +
+    '    near: sorted(records.filter(record => Number(record.score2026) >= candidate - 10 && Number(record.score2026) <= candidate)),\n' +
+    '    upper: sorted(records.filter(record => Number(record.score2026) > candidate && Number(record.score2026) <= candidate + 10)),\n' +
+    '    lower: sorted(records.filter(record => Number(record.score2026) >= candidate - 25 && Number(record.score2026) < candidate - 10))\n' +
+    '  };\n' +
     '}\n' +
     '\n' +
-    'function historyHtml(record = {}) {\n' +
-    "  const text = formatHistoricalEvidenceText(record, { years: [2025, 2024], prefix: false, empty: '' });\n" +
-    '  return text\n' +
-    '    ? `<div class="ab-history"><b>历史同口径：</b>${esc(text)}</div>`\n' +
-    `    : '<div class="ab-history is-empty"><b>历史同口径：</b>暂无2025/2024严格同口径记录</div>';\n` +
+    'async function loadRecords(context, scope, filters = {}) {\n' +
+    '  return loadBackgroundMatchedRecords(context.request, context.env || {}, filters, {\n' +
+    '    matchRecord: record => matchAcademicBackground(record, scope),\n' +
+    '    presentHit: presentAcademicBackground,\n' +
+    "    outputKey: 'academicBackground',\n" +
+    "    rawKey: 'academicBackgroundRaw',\n" +
+    "    sourceName: 'academic-background-provider-v3968_0'\n" +
+    '  });\n' +
     '}\n' +
     '\n' +
-    'function rankText(record = {}) {\n' +
-    '  const start = Number(record.rankStart2026);\n' +
-    '  const end = Number(record.rankEnd2026 ?? record.rank2026);\n' +
-    '  if (Number.isFinite(start) && Number.isFinite(end)) return start === end ? fmt(end) : `${fmt(start)}–${fmt(end)}`;\n' +
-    '  return fmt(record.rank2026);\n' +
-    '}\n' +
-    '\n' +
-    'function recordCard(record = {}) {\n' +
-    '  const background = record.academicBackground || {};\n' +
-    '  const trace = record.rankingTrace || {};\n' +
-    '  return `<article class="lm-record-card ab-record" data-background-scope="${esc(scope)}">\n' +
-    '    <div class="lm-record-top"><div><h3>${esc(record.school)}｜${esc(record.major)}</h3><p>${esc(record.displayLocation || \'\')}${record.natureLabel ? `｜${esc(record.natureLabel)}` : \'\'}</p></div><span class="lm-pill ${esc(background.level || \'trajectory\')}">${esc(background.label || \'背景证据\')}</span></div>\n' +
-    '    <div class="lm-data-row"><span>2026投档参考：<b>${fmt(record.score2026)}分</b></span><span>2026同分位次：<b>${rankText(record)}</b></span>${Number.isFinite(Number(record.scoreDelta2026 ?? record.scoreDelta)) ? `<span>相对参考分数：<b>${Number(record.scoreDelta2026 ?? record.scoreDelta) > 0 ? \'+\' : \'\'}${fmt(record.scoreDelta2026 ?? record.scoreDelta)}分</b></span>` : \'\'}</div>\n' +
-    '    ${historyHtml(record)}\n' +
-    '    <div class="ab-background-head"><b>${esc(background.label || \'背景证据\')}｜${esc(background.direction || \'学校专业背景\')}</b><span>投档年份与证据年份分开显示</span></div>\n' +
-    '    ${evidenceRows(background)}\n' +
-    '    <details class="ab-sources"><summary>${esc(COPY.sourceLabel)}（${fmt(background.sources?.length || 0)}）</summary>${sourceRows(background)}</details>\n' +
-    '    <p class="lm-card-note">${esc(background.note || \'背景证据只用于学校专业方向复核，需继续查看培养方案和招生章程。\')}</p>\n' +
-    '    <div class="lm-review-row">建议再看：${(background.reviewPoints || [\'培养方案\', \'招生章程\']).map(esc).join(\' / \')}</div>\n' +
-    '    ${trace.primaryMetric ? `<p class="ab-ranking-trace">位置排序：${esc(trace.primaryMetric === \'rank-distance-2026\' ? \'2026位次距离优先\' : \'2026分数距离兜底\')}</p>` : \'\'}\n' +
-    '  </article>`;\n' +
-    '}\n' +
-    '\n' +
-    'function schoolCard(item = {}) {\n' +
-    '  return `<article class="lm-card"><div class="lm-card-top"><div><h3>${esc(item.school || item.name)}</h3><p>${esc(item.city || item.province || (scope === \'liaoning\' ? \'辽宁\' : \'211院校\'))}</p></div><span class="lm-pill primary">${scope === \'211\' ? \'211\' : \'省内\'}</span></div><p class="lm-card-note">${esc(item.overview || \'打开后只显示通过权威来源门禁、并能对应2026招生专业的背景记录。\')}</p><button class="lm-card-action" data-school-detail="${esc(item.school || item.name)}">查看统一背景证据</button></article>`;\n' +
-    '}\n' +
-    '\n' +
-    'function majorCard(item = {}) {\n' +
-    '  return `<article class="lm-card"><div class="lm-card-top"><div><h3>${esc(item.major)}</h3><p>涉及 ${fmt(item.schoolCount)} 所学校的历史背景索引</p></div><span class="lm-pill primary">专业</span></div><p class="lm-card-note">打开后按统一学校身份、专业身份和权威来源门禁重新匹配，不直接使用旧KB结论。</p><button class="lm-card-action" data-major-detail="${esc(item.major)}">查看统一背景证据</button></article>`;\n' +
-    '}\n' +
-    '\n' +
-    'function renderSchools() {\n' +
-    "  const query = norm($('schoolSearch')?.value || '');\n" +
-    '  const list = state.schools.filter(item => !query || norm(`${item.school || item.name}${item.city}${item.overview}`).includes(query));\n' +
-    "  $('schoolList').innerHTML = list.length ? list.slice(0, query ? 80 : 42).map(schoolCard).join('') : emptyHtml('没有找到学校', '可以换用学校正式名称。');\n" +
-    "  $('schoolList').querySelectorAll('[data-school-detail]').forEach(button => button.addEventListener('click', () => showDetail('school', button.dataset.schoolDetail)));\n" +
-    '}\n' +
-    '\n' +
-    'function renderMajors() {\n' +
-    "  const query = norm($('majorSearch')?.value || '');\n" +
-    '  const list = state.majors.filter(item => !query || norm(item.major).includes(query));\n' +
-    "  $('majorList').innerHTML = list.length ? list.slice(0, query ? 100 : 48).map(majorCard).join('') : emptyHtml('没有找到专业', '可以换用教育部专业目录中的标准专业名称。');\n" +
-    "  $('majorList').querySelectorAll('[data-major-detail]').forEach(button => button.addEventListener('click', () => showDetail('major', button.dataset.majorDetail)));\n" +
-    '}\n' +
-    '\n' +
-    'async function showDetail(mode, value) {\n' +
-    "  const root = mode === 'school' ? $('schoolDetail') : $('majorDetail');\n" +
-    '  root.hidden = false;\n' +
-    '  root.innerHTML = loadingHtml();\n' +
+    "export async function handleAcademicBackgroundRequest(context, forcedScope = '') {\n" +
+    "  if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);\n" +
     '  try {\n' +
-    "    const data = await fetchApiJson(`/api/academic-background?scope=${encodeURIComponent(scope)}&mode=${encodeURIComponent(mode)}&${mode}=${encodeURIComponent(value)}&max=320`, { userMessage: '统一背景证据暂时没有读取成功。' });\n" +
-    '    root.innerHTML = `<div class="lm-detail-head"><h2>${esc(value)}：统一背景证据</h2><p>${esc(data.boundary || state.meta?.boundary || \'\')}</p></div>${data.records?.length ? `<div class="lm-record-list">${data.records.map(recordCard).join(\'\')}</div>` : emptyHtml(mode === \'school\' ? COPY.schoolEmpty : COPY.majorEmpty, \'旧KB中缺少精确权威来源的线索已被拦截，不会伪装成确定背景。\')}`;\n' +
-    "    root.scrollIntoView({ behavior: 'smooth', block: 'start' });\n" +
+    '    const url = new URL(context.request.url);\n' +
+    "    const scope = normalizeAcademicBackgroundScope(forcedScope || url.searchParams.get('scope'));\n" +
+    "    const mode = clean(url.searchParams.get('mode') || 'meta', 30);\n" +
+    '    const meta = getAcademicBackgroundMeta(scope);\n' +
+    '\n' +
+    "    if (mode === 'meta') {\n" +
+    '      return json({\n' +
+    '        ok: true,\n' +
+    '        mode,\n' +
+    '        scope,\n' +
+    '        providerVersion: ACADEMIC_BACKGROUND_PROVIDER_VERSION,\n' +
+    '        meta,\n' +
+    '        schools: getAcademicBackgroundSchoolSummaries(scope),\n' +
+    '        majors: getAcademicBackgroundMajorSummaries(scope),\n' +
+    '        boundary: meta.boundary\n' +
+    '      });\n' +
+    '    }\n' +
+    '\n' +
+    "    if (mode === 'school') {\n" +
+    "      const school = clean(url.searchParams.get('school') || '', 100);\n" +
+    "      if (!school) return json({ ok: false, message: '请选择学校。' }, 400);\n" +
+    "      const result = await loadRecords(context, scope, { school, max: url.searchParams.get('max') || 300 });\n" +
+    '      return json({\n' +
+    '        ok: true,\n' +
+    '        mode,\n' +
+    '        scope,\n' +
+    '        admissionDataYear: 2026,\n' +
+    '        historyYears: [2025, 2024],\n' +
+    '        school,\n' +
+    '        records: result.records,\n' +
+    '        count: result.records.length,\n' +
+    '        scannedCount: result.scannedCount,\n' +
+    '        matchedCount: result.matchedCount,\n' +
+    '        dataReadOk: result.dataReadOk,\n' +
+    '        meta,\n' +
+    '        boundary: meta.boundary\n' +
+    '      });\n' +
+    '    }\n' +
+    '\n' +
+    "    if (mode === 'major') {\n" +
+    "      const major = clean(url.searchParams.get('major') || '', 100);\n" +
+    "      if (!major) return json({ ok: false, message: '请输入专业名称。' }, 400);\n" +
+    "      const result = await loadRecords(context, scope, { major, max: url.searchParams.get('max') || 300 });\n" +
+    '      return json({\n' +
+    '        ok: true,\n' +
+    '        mode,\n' +
+    '        scope,\n' +
+    '        admissionDataYear: 2026,\n' +
+    '        historyYears: [2025, 2024],\n' +
+    '        major,\n' +
+    '        records: result.records,\n' +
+    '        count: result.records.length,\n' +
+    '        scannedCount: result.scannedCount,\n' +
+    '        matchedCount: result.matchedCount,\n' +
+    '        dataReadOk: result.dataReadOk,\n' +
+    '        meta,\n' +
+    '        boundary: meta.boundary\n' +
+    '      });\n' +
+    '    }\n' +
+    '\n' +
+    "    if (mode === 'score' || mode === 'position') {\n" +
+    "      const score = num(url.searchParams.get('score'));\n" +
+    '      if (!Number.isFinite(score) || score < 344 || score > 750) {\n' +
+    "        return json({ ok: false, message: '请输入 344—750 之间的有效参考分数。' }, 400);\n" +
+    '      }\n' +
+    "      const level = clean(url.searchParams.get('level') || 'primary_secondary', 30);\n" +
+    "      const natureMode = clean(url.searchParams.get('natureMode') || 'all', 30);\n" +
+    '      const result = await loadRecords(context, scope, {\n' +
+    '        candidateScore: score,\n' +
+    '        maxScore: score + 10,\n' +
+    '        minScore: score - 25,\n' +
+    '        level,\n' +
+    '        natureMode,\n' +
+    "        max: url.searchParams.get('max') || 360\n" +
+    '      });\n' +
+    '      const positionContext = result.positionContext || buildCandidatePositionContext(score);\n' +
+    '      const grouped = groupUnifiedPosition(result.records, score, positionContext);\n' +
+    '      return json({\n' +
+    '        ok: true,\n' +
+    "        mode: 'position',\n" +
+    '        scope,\n' +
+    '        audienceYear: 2027,\n' +
+    '        admissionDataYear: 2026,\n' +
+    '        historyYears: [2025, 2024],\n' +
+    '        rankYear: 2026,\n' +
+    '        score,\n' +
+    '        level,\n' +
+    '        natureMode,\n' +
+    '        records: sortByUnifiedPosition(result.records, score, positionContext),\n' +
+    '        grouped,\n' +
+    '        count: result.records.length,\n' +
+    '        scannedCount: result.scannedCount,\n' +
+    '        matchedCount: result.matchedCount,\n' +
+    '        windowCandidateCount: result.windowCandidateCount,\n' +
+    '        normalizedCount: result.normalizedCount,\n' +
+    '        chunksRead: result.chunksRead,\n' +
+    '        chunksSkipped: result.chunksSkipped,\n' +
+    '        dataReadOk: result.dataReadOk,\n' +
+    '        positionContext,\n' +
+    '        meta,\n' +
+    "        humanMessage: result.records.length ? '' : '这个参考位置附近没有通过权威来源门禁的学校专业背景记录。可以按学校或专业继续查看，待核验旧线索不会混入结果。',\n" +
+    "        boundary: positionContext.humanBoundary + ' 背景证据按自身来源年份展示，不能把2017或2022年的学科证据理解为2026新增事实。'\n" +
+    '      });\n' +
+    '    }\n' +
+    '\n' +
+    "    return json({ ok: false, message: '未知查询方式。' }, 400);\n" +
     '  } catch (error) {\n' +
-    "    root.innerHTML = errorHtml('统一背景证据暂时没有读取成功', error);\n" +
+    '    return json({\n' +
+    '      ok: false,\n' +
+    "      message: '学校专业背景数据暂时没有读取成功。',\n" +
+    "      hint: '这不影响主页面专业初选。背景证据必须通过权威来源门禁后才会显示。',\n" +
+    '      engineerHint: error?.message || String(error)\n' +
+    '    }, 500);\n' +
     '  }\n' +
-    '}\n' +
-    '\n' +
-    'function renderScoreSection(title, desc, records = []) {\n' +
-    '  return `<section class="lm-score-section"><h3>${esc(title)}</h3><p class="lm-score-section-desc">${esc(desc)}</p>${records.length ? records.map(recordCard).join(\'\') : emptyHtml(\'这一段没有通过来源门禁的记录\', \'不使用待核验旧线索填充结果。\')}</section>`;\n' +
-    '}\n' +
-    '\n' +
-    'async function queryScore() {\n' +
-    "  const score = Number($('scoreInput')?.value);\n" +
-    "  const root = $('scoreResult');\n" +
-    '  if (!Number.isFinite(score) || score < 344 || score > 750) {\n' +
-    "    root.innerHTML = emptyHtml('请输入344—750之间的参考分数', '输入的是模考或预估分数，不是录取结论。');\n" +
-    '    return;\n' +
-    '  }\n' +
-    "  root.innerHTML = loadingHtml('正在按2026位置和权威背景证据整理结果…');\n" +
-    '  try {\n' +
-    "    const level = $('scoreLevel')?.value || 'primary_secondary';\n" +
-    "    const natureMode = $('scoreNature')?.value || 'all';\n" +
-    "    const data = await fetchApiJson(`/api/academic-background?scope=${encodeURIComponent(scope)}&mode=position&score=${encodeURIComponent(score)}&level=${encodeURIComponent(level)}&natureMode=${encodeURIComponent(natureMode)}&max=360`, { userMessage: '位置背景查询暂时没有读取成功。' });\n" +
-    '    root.innerHTML = `<div class="lm-detail-head"><h2>${esc(COPY.positionTitle)}</h2><p>${esc(data.boundary || \'\')}</p><p class="ab-year-caliber">投档：2026｜历史对照：2025、2024｜背景证据：按每条来源的实际年份</p></div>\n' +
-    "      ${data.count === 0 ? emptyHtml('附近没有通过权威来源门禁的记录', data.humanMessage || '') : ''}\n" +
-    "      ${renderScoreSection('接近当前位置', `${fmt(score - 10)}–${fmt(score)}分范围；内部排序优先使用2026位次距离。`, data.grouped?.near || [])}\n" +
-    "      ${renderScoreSection('稍高一点可少量了解', `${fmt(score + 1)}–${fmt(score + 10)}分范围，只作历史讨论。`, data.grouped?.upper || [])}\n" +
-    "      ${renderScoreSection('低一些的可讨论选择', `${fmt(score - 25)}–${fmt(score - 11)}分范围，不代表安全或录取概率。`, data.grouped?.lower || [])}`;\n" +
-    '  } catch (error) {\n' +
-    "    root.innerHTML = errorHtml('位置背景查询暂时没有读取成功', error);\n" +
-    '  }\n' +
-    '}\n' +
-    '\n' +
-    'function switchTab(tab) {\n' +
-    '  state.activeTab = tab;\n' +
-    "  document.querySelectorAll('.lm-tab').forEach(button => button.classList.toggle('is-active', button.dataset.tab === tab));\n" +
-    "  document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== tab; });\n" +
-    '}\n' +
-    '\n' +
-    'function bind() {\n' +
-    "  document.querySelectorAll('.lm-tab').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));\n" +
-    '  document.'... 1629 more characters,
-  expected: /背景证据年份/,
+    '}\n',
+  expected: /backgroundEvidence/,
   operator: 'match',
   diff: 'simple'
 }
