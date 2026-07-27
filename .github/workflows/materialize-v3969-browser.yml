@@ -1,0 +1,50 @@
+name: Materialize v3969 browser journey
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3969-unified-school-query'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create current immutable browser journey
+        run: |
+          set -euo pipefail
+          cp tools/browser-resource-execution-v3968.mjs tools/browser-resource-execution-v3969.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/browser-resource-execution-v3969.mjs')
+          s=p.read_text()
+          replacements={
+            'V3968_BASE_URL':'V3969_BASE_URL',
+            'V3968_ARTIFACT_DIR':'V3969_ARTIFACT_DIR',
+            '/tmp/v3968-resource-execution-browser':'/tmp/v3969-resource-execution-browser',
+            "assert.equal(runtime.release, 'v3.9.68.0');":"assert.equal(runtime.release, 'v3.9.69.0');",
+            "assert.equal(runtime.workspace, 'selection-workspace-orchestration-v3967_0');":"assert.equal(runtime.workspace, 'selection-workspace-orchestration-v3969_0');",
+            "assert.equal(runtime.school, 'school-all-mode-v3967_0');":"assert.equal(runtime.school, 'school-all-mode-v3969_0');"
+          }
+          for old,new in replacements.items():
+            if old not in s: raise SystemExit(f'missing browser marker: {old}')
+            s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          node --check tools/browser-resource-execution-v3969.mjs
+          git diff --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/browser-resource-execution-v3969.mjs
+          git commit -m 'test: add v3969 main workspace browser journey'
+          git push origin HEAD:${{ github.head_ref }}
