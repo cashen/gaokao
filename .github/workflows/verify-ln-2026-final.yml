@@ -53,8 +53,8 @@ jobs:
         run: |
           set -euo pipefail
           node tools/audit-resource-execution-v3968.mjs 2>&1 | tee /tmp/v3968-resource-execution.out
-          node tools/build-derived-asset-trace-v3967.mjs 2>&1 | tee /tmp/v3968-derived-build.out
-          node tools/audit-derived-assets-v3967.mjs 2>&1 | tee /tmp/v3968-derived-assets.out
+          node tools/build-derived-asset-trace-v3968.mjs 2>&1 | tee /tmp/v3968-derived-build.out
+          node tools/audit-derived-assets-v3968.mjs 2>&1 | tee /tmp/v3968-derived-assets.out
           node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3968-algorithm-parity.out
           node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3968-report-execution.out
           node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3968-css-isolation.out
@@ -139,6 +139,7 @@ jobs:
             /shared/resources/release/release-presenter.v3968_0.js
             /shared/resources/release/runtime-cache-contract.v3968_0.js
             /shared/governance/resource-execution-contract.v3968_0.js
+            /shared/governance/derived-asset-trace.v3968_0.json
             /shared/resources/background/academic-background-contract.v3968_0.js
             /shared/resources/background/academic-background-source-registry.v3968_0.js
             /shared/algorithms/background/academic-background-matcher.v3968_0.js
