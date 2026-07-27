@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3968_0';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3969_0';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 
@@ -11,7 +11,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   }),
   runtimeCache: Object.freeze({
     id: 'ln-rank-runtime-cache-coherence',
-    module: '/shared/resources/release/runtime-cache-contract.v3967_0.js',
+    module: '/shared/resources/release/runtime-cache-contract.v3969_0.js',
     policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
     consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
   }),
@@ -32,7 +32,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     cssOwner: '/ln-rank/css/history-evidence.v3967_0.css',
     supportedYears: Object.freeze([2024, 2025, 2026]),
     comparisonPopulationPolicy: 'undergraduate-control-line-cumulative',
-    executionContract: '/shared/governance/resource-execution-contract.v3968_0.js',
+    executionContract: '/shared/governance/resource-execution-contract.v3969_0.js',
     policy: 'single-provider-exclusive-consumption-derived-trace-and-evidence',
     consumers: Object.freeze(['functions-api', 'card-ai', 'reports', 'selection-pool', 'school-search', 'trend-analysis'])
   }),
@@ -56,13 +56,20 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     module: '/shared/resources/schools/school-resource-center.js',
     identityModule: '/shared/resources/schools/school-identity-center.js',
     profileModule: '/shared/resources/schools/school-profile-center.js',
+    queryContract: '/shared/resources/schools/school-query-contract.v3969_0.js',
+    queryEngine: '/shared/resources/schools/school-query-engine.v3969_0.js',
+    admissionDirectory: '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json',
+    queryProvider: '/functions/_lib/school-query-provider.v3969.js',
     buildKernel: '/tools/schools/school_resource_bundle.py',
+    admissionDirectoryGenerator: '/tools/build-school-admission-directory-v3969.mjs',
     compactEntityPolicy: 'eager-small-static-module',
     fullDirectoryPolicy: 'lazy-single-flight',
     profilePolicy: 'server-sync-official-2026',
     identityPolicy: 'shared-upstream-tongxue-compatibility-export',
+    queryPolicy: 'single-directory-single-identity-single-query-intent-and-admission-availability-owner',
+    candidatePolicy: 'no-silent-truncation-record-count-tiebreak-only',
     profileFields: Object.freeze(['officialName','campusEntity','province','city','nature','985','211','doubleNon']),
-    consumers: Object.freeze(['ln-rank-cards', 'selection-pool', 'reports', 'tongxue', 'future-school-tools', 'academic-background'])
+    consumers: Object.freeze(['ln-rank-cards', 'selection-pool', 'reports', 'tongxue', 'school-search', 'score-search', 'future-school-tools', 'academic-background'])
   }),
   majors: Object.freeze({
     id: 'major-catalog-2026',
@@ -83,10 +90,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     cssOwner: '/ln-rank/css/academic-background.v3968_0.css',
     scopes: Object.freeze(['liaoning', '211']),
     admissionYears: Object.freeze([2026, 2025, 2024]),
-    legacyInputs: Object.freeze([
-      '/functions/_lib/local-mainline-kb.js',
-      '/functions/_lib/211-mainline-kb.js'
-    ]),
+    legacyInputs: Object.freeze(['/functions/_lib/local-mainline-kb.js','/functions/_lib/211-mainline-kb.js']),
     policy: 'single-evidence-owner-single-provider-single-matcher-source-year-separated-from-admission-year',
     consumers: Object.freeze(['local-mainline', '211-mainline', 'functions-api', 'browser-regression', 'audits'])
   }),
@@ -107,6 +111,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     id: 'algorithm-execution-center',
     registry: '/shared/algorithms/algorithm-registry.js',
     resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
+    schoolQuery: '/shared/resources/schools/school-query-engine.v3969_0.js',
     trendInterpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
     academicBackgroundMatcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
     policy: 'single-algorithm-owner-with-intent-trace',
