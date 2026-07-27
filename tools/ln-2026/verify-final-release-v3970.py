@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import json,sys
+import json,sys,re
 ROOT=Path(__file__).resolve().parents[2]
 errors=[]
 def text(rel):
@@ -9,6 +9,10 @@ def text(rel):
  return p.read_text(encoding='utf-8')
 def require(condition,message):
  if not condition: errors.append(message)
+
+def header_block(headers,path):
+ match=re.search(rf'(?m)^{re.escape(path)}\n((?:  .*(?:\n|$))+)',headers)
+ return match.group(1) if match else ''
 
 current=text('shared/resources/release/current-release.js')
 for marker in [
@@ -20,7 +24,7 @@ for marker in [
 ]: require(marker in current,f'current release missing {marker}')
 
 required=[
- 'index.html','ln-rank/js/ux/family-home.v3970_0.js',
+ 'index.html','_headers','ln-rank/js/ux/family-home.v3970_0.js',
  'shared/governance/resource-execution-contract.v3970_0.js','shared/governance/derived-asset-trace.v3970_0.json',
  'shared/resources/release/runtime-cache-contract.v3970_0.js','shared/resources/release/release-presenter.v3970_0.js',
  'shared/ui/ui-registry.v3970_0.js','shared/ui/component-registry.v3970_0.js',
@@ -45,6 +49,19 @@ for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-relea
 for marker in ['release-presenter.v3970_0.js?v=3970_0','family-shell.v3970_0.js?v=3970_0','family-decision-contract.v3970_0.js?v=3970_0',"HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'",'gaokao:selection-change']:
  require(marker in home_runtime,f'home runtime missing {marker}')
 require('MutationObserver' not in home_runtime,'home runtime must not self-observe DOM')
+
+headers=text('_headers')
+for page in ['/','/index.html']:
+ block=header_block(headers,page)
+ require(block,f'headers missing {page}')
+ require('Cache-Control: no-cache, max-age=0, must-revalidate' in block,f'{page} must revalidate')
+home_header=header_block(headers,'/ln-rank/js/ux/family-home.v3970_0.js')
+require(home_header,'headers missing v3970 home runtime')
+require('Cache-Control: public, max-age=31536000, immutable' in home_header,'home runtime must be immutable')
+for asset in ['/shared/ui/shell/family-shell.v3970_0.js','/shared/ui/shell/family-shell.v3970_0.css','/shared/ui/components/family-plan-entry.v3970_0.js','/shared/ui/components/family-plan-entry.v3970_0.css']:
+ block=header_block(headers,asset)
+ require(block,f'headers missing {asset}')
+ require('immutable' in block,f'{asset} must be immutable')
 
 index=text('ln-rank/index.html'); selection=text('ln-rank/selection-pool.html')
 for marker in ['data-release="v3.9.70.0"','app.v3970_0.js?v=3970_0','data-ui-family-plan-results-footer','data-ui-family-plan-live','加入家庭方案']:
@@ -93,4 +110,4 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({'ok':True,'version':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
