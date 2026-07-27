@@ -50,7 +50,7 @@ jobs:
           node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3970-algorithm-parity.out
           node tools/audit-report-execution-v3967.mjs | tee /tmp/v3970-report-execution.out
           node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3970-css-isolation.out
-          node tools/audit-academic-background-v3968.mjs | tee /tmp/v3970-academic-background.out
+          node tools/audit-academic-background-v3970.mjs | tee /tmp/v3970-academic-background.out
           python3 tools/ln-2026/verify-generated-release-v3968.py | tee /tmp/v3970-generated-release.out
 
       - name: Verify deterministic admission directory
