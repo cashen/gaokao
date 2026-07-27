@@ -4,6 +4,7 @@ import { parseDiagnosisFromModel, normalizeDiagnosis } from '../_lib/ai-card-out
 import { getKnowledgeContext } from '../_lib/kb/kb-retriever.js';
 import { YEAR_CALIBER_KB } from '../_lib/kb/year-caliber-kb.generated.js';
 import { resolveAiModel, buildAiModelDebug } from '../_lib/ai-model-resolver.js';
+import { getHistoryScoreRankEvidence } from '../../shared/resources/exam/historical-score-rank-contract.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -42,11 +43,7 @@ function cleanRecord(input = {}) {
     rank: rank2026,
     score2026,
     rank2026,
-    score2025: finite(record.score2025),
-    rank2025: finite(record.rank2025),
-    score2024: finite(record.score2024),
-    rank2024: finite(record.rank2024),
-    historyCompare: record.historyCompare && typeof record.historyCompare === 'object' ? record.historyCompare : null,
+    historyEvidence: getHistoryScoreRankEvidence(record),
     displayLocation: String(record.displayLocation || '').slice(0, 80),
     geoEntity: String(record.geoEntity || '').slice(0, 100),
     locationWarning: String(record.locationWarning || '').slice(0, 140),

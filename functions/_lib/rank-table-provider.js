@@ -110,3 +110,18 @@ export function describeEquivalentRankRoadmap({ sourceYear = 2026, targetYear = 
       : '对应年份一分一段尚未接入。'
   };
 }
+
+export function getRankPopulation({ year = 2026, region = 'ln', subject = 'physics', policy = 'table-total', controlScore = null } = {}) {
+  const rows = getRankTableRows({ year, region, subject });
+  if (!rows.length) return null;
+  if (policy === 'undergraduate-control-line-cumulative') {
+    const score = Number(controlScore);
+    if (!Number.isFinite(score)) return null;
+    return lookupScoreRank({ year, region, subject, score })?.rankEnd ?? null;
+  }
+  const meta = getRankTableMeta({ year, region, subject }) || {};
+  const metaTotal = Number(meta.totalAt150 ?? meta.total ?? meta.totalCount);
+  if (Number.isFinite(metaTotal) && metaTotal > 0) return Math.round(metaTotal);
+  const totals = rows.map(row => Number(row.rankEnd ?? row.cumulative)).filter(Number.isFinite);
+  return totals.length ? Math.max(...totals) : null;
+}

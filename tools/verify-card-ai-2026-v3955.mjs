@@ -42,8 +42,8 @@ assert.match(YEAR_CALIBER_KB.aiCopy, /2027招生计划/);
 const snapshot = buildCardRuleSnapshot(record, 580);
 assert.equal(snapshot.activeDataYear, 2026);
 assert.equal(snapshot.audienceYear, 2027);
-assert.ok(snapshot.basis.some(line => line.includes('2026最低投档：589分 / 约18,420名')));
-assert.ok(snapshot.basis.some(line => line.includes('历史对照：2025')));
+assert.ok(snapshot.basis.some(line => line.includes('2026最低投档：589分 / 约第18,420位')));
+assert.ok(snapshot.basis.some(line => line.includes('历史对照') && line.includes('2025')));
 assert.ok(snapshot.checks.every(line => !line.includes('核验2026招生计划')));
 assert.ok(snapshot.checks.some(line => line.includes('核验2027招生计划')));
 
@@ -76,7 +76,11 @@ assert.equal(payload.dataCaliber.activeDataYear, 2026);
 assert.equal(payload.dataCaliber.audienceYear, 2027);
 assert.equal(payload.card.score2026, '589');
 assert.equal(payload.card.rank2026, '18420');
-assert.equal(payload.card.score2025, '584');
+assert.equal(payload.card.historyEvidence.years['2025'].score, 584);
+assert.equal(payload.card.historyEvidence.years['2025'].rankEnd, 19300);
+assert.equal(payload.card.historyEvidence.years['2024'].score, 590);
+assert.ok(!Object.prototype.hasOwnProperty.call(payload.card, 'score2025'));
+assert.ok(!Object.prototype.hasOwnProperty.call(payload.card, 'rank2025'));
 assert.match(payload.task, /2026专业最低投档分和位次为主事实/);
 assert.ok(payload.outputRules.some(line => line.includes('checks中的年份必须面向2027正式填报')));
 

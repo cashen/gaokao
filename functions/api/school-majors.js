@@ -13,6 +13,7 @@ import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { lookupScoreRank } from '../_lib/rank-table-provider.js';
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
+import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import {
   getSchoolEntity,
   publicSchoolEntity,
@@ -98,31 +99,6 @@ function positionRecord(record, candidateScore, candidateRank) {
     position: canonicalPosition.position,
     canonicalPosition
   };
-}
-
-function compareRecords(a, b, sort) {
-  const scoreA = Number(a.score2026 ?? a.score ?? -1);
-  const scoreB = Number(b.score2026 ?? b.score ?? -1);
-  const rawRankA = Number(a.rank2026 ?? a.rank);
-  const rawRankB = Number(b.rank2026 ?? b.rank);
-  const rankA = Number.isFinite(rawRankA) ? rawRankA : null;
-  const rankB = Number.isFinite(rawRankB) ? rawRankB : null;
-  if (sort === 'position-near') {
-    const distanceA = Number(a.canonicalPosition?.positionDistance);
-    const distanceB = Number(b.canonicalPosition?.positionDistance);
-    const safeA = Number.isFinite(distanceA) ? distanceA : Number.MAX_SAFE_INTEGER;
-    const safeB = Number.isFinite(distanceB) ? distanceB : Number.MAX_SAFE_INTEGER;
-    if (safeA !== safeB) return safeA - safeB;
-  }
-  const rankDirection = sort === 'score-asc' ? -1 : 1;
-  if (rankA != null && rankB != null && rankA !== rankB) return rankDirection * (rankA - rankB);
-  if (rankA != null && rankB == null) return -1;
-  if (rankA == null && rankB != null) return 1;
-  const scoreDirection = sort === 'score-asc' ? 1 : -1;
-  return scoreDirection * (scoreA - scoreB)
-    || Number(a.sourceOrder ?? 0) - Number(b.sourceOrder ?? 0)
-    || String(a.schoolCode2026 || '').localeCompare(String(b.schoolCode2026 || ''), 'zh-CN')
-    || String(a.majorCode2026 || '').localeCompare(String(b.majorCode2026 || ''), 'zh-CN');
 }
 
 function schoolCandidates(records, query) {
@@ -223,28 +199,28 @@ export async function onRequest(context) {
       all.push(record);
     });
 
-    all.sort((a, b) => compareRecords(a, b, sort));
-    const records = all.slice(offset, offset + limit);
-    const hasMore = offset + records.length < all.length;
-    const scores = all.map(item => Number(item.score2026 ?? item.score)).filter(Number.isFinite);
-    const uniqueMajorKeys = new Set(all.map(item => normalizeText(
+    const rankedAll = rankResultRecords(all, { intent: 'school-search', sortMode: sort, diversify: false });
+    const records = rankedAll.slice(offset, offset + limit);
+    const hasMore = offset + records.length < rankedAll.length;
+    const scores = rankedAll.map(item => Number(item.score2026 ?? item.score)).filter(Number.isFinite);
+    const uniqueMajorKeys = new Set(rankedAll.map(item => normalizeText(
       item.standardMajor?.code
       || item.standardMajor?.name
       || item.major
     )).filter(Boolean));
     const nearest = candidateScore && all.length
-      ? [...all].sort((a, b) => compareRecords(a, b, 'position-near'))[0]
+      ? rankResultRecords(rankedAll, { intent: 'school-search', sortMode: 'position-near', diversify: false })[0]
       : null;
     const summary = {
       minScore: scores.length ? Math.min(...scores) : null,
       maxScore: scores.length ? Math.max(...scores) : null,
       uniqueMajorCount: uniqueMajorKeys.size,
-      regularCount: all.filter(item => !item.specialProject?.hasSpecialProject).length,
-      specialCount: all.filter(item => item.specialProject?.hasSpecialProject).length,
-      upperCount: all.filter(item => item.bandKey === 'upper').length,
-      nearCount: all.filter(item => item.bandKey === 'near').length,
-      steadyCount: all.filter(item => item.bandKey === 'steady').length,
-      outsideCount: all.filter(item => item.bandKey === 'outside').length,
+      regularCount: rankedAll.filter(item => !item.specialProject?.hasSpecialProject).length,
+      specialCount: rankedAll.filter(item => item.specialProject?.hasSpecialProject).length,
+      upperCount: rankedAll.filter(item => item.bandKey === 'upper').length,
+      nearCount: rankedAll.filter(item => item.bandKey === 'near').length,
+      steadyCount: rankedAll.filter(item => item.bandKey === 'steady').length,
+      outsideCount: rankedAll.filter(item => item.bandKey === 'outside').length,
       nearestRecord: nearest ? {
         major: nearest.major,
         score2026: nearest.score2026 ?? nearest.score,
