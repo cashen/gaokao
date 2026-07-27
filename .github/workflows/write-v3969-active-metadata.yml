@@ -11,7 +11,7 @@ permissions:
 jobs:
   write:
     if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3969-unified-school-query'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v4
         with:
