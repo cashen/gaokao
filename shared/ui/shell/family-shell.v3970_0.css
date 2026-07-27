@@ -59,7 +59,7 @@ body.ui-orchestrated .ui-current-page-anchor,#selected-list,#family-review{scrol
   .ui-family-status [data-ui-family-plan-header-mount]{justify-self:end}
   .ui-family-status__next{grid-column:1/-1;margin-left:0;justify-content:flex-start;min-height:38px;padding:7px 9px}
   .ui-family-status__boundary{display:none}
-  #poolEntryInlineMount,#selectionPoolShell,[data-ui-mobile-action-mount]{display:none!important}
+  #poolEntryInlineMount,#selectionPoolShell{display:none!important}
 }
 @media(max-width:380px){
   .ui-global-brand__mark{width:28px;height:28px}
