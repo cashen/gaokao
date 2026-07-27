@@ -153,6 +153,10 @@ for (const [file, markers] of Object.entries(forbiddenByFile)) {
   for (const marker of markers) assert.ok(!text.includes(marker), `${file}: forbidden direct school query logic ${marker}`);
 }
 
+const browserSchoolResolver = read('tongxue/data/school-name-resolver-v150.js');
+assert.equal(browserSchoolResolver.includes('new URL('), false, 'school resolver must not construct a URL during module evaluation');
+assert.ok(browserSchoolResolver.includes("export const SCHOOL_NAME_DATA_URL='/tongxue/data/school-search-index.20260617-v150.json';"), 'school resolver must use a same-origin browser pathname');
+
 const index = read('ln-rank/index.html');
 assert.ok(index.includes('app.v3969_0.js?v=3969_0'));
 assert.ok(index.includes('城市请用地区'));
