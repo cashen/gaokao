@@ -140,13 +140,17 @@ try {
     await page.locator('#scoreQuery').click();
     const card = page.locator('.ab-record').first();
     await card.waitFor({ state: 'visible' });
-    const text = await card.innerText();
-    for (const marker of ['2026投档参考', '2025：562分', '2024：570分', '背景证据年份', testCase.evidenceYear, testCase.sourceTitle, '2026位次距离优先']) {
-      assert.ok(text.includes(marker), `${testCase.name}: missing ${marker}`);
+    const defaultText = await card.innerText();
+    for (const marker of ['2026投档参考', '2025：562分', '2024：570分', '背景证据年份', testCase.evidenceYear, '2026位次距离优先']) {
+      assert.ok(defaultText.includes(marker), `${testCase.name}: missing ${marker}`);
     }
-    assert.ok(!text.includes('2025历史参考'), `${testCase.name}: stale 2025 copy`);
-    assert.ok(!text.includes('历史最低分'), `${testCase.name}: ambiguous historical score copy`);
-    const sourceHref = await card.locator('.ab-source').first().getAttribute('href');
+    assert.ok(!defaultText.includes('2025历史参考'), `${testCase.name}: stale 2025 copy`);
+    assert.ok(!defaultText.includes('历史最低分'), `${testCase.name}: ambiguous historical score copy`);
+    const sourceDetails = card.locator('.ab-sources');
+    await sourceDetails.locator('summary').click();
+    const sourceText = await sourceDetails.innerText();
+    assert.ok(sourceText.includes(testCase.sourceTitle), `${testCase.name}: missing expanded official source title`);
+    const sourceHref = await sourceDetails.locator('.ab-source').first().getAttribute('href');
     assert.match(sourceHref || '', /^https:\/\/(?:www\.|hudong\.)?moe\.gov\.cn\//, `${testCase.name}: official source link`);
     const geometry = await card.evaluate(node => {
       const rect = node.getBoundingClientRect();
