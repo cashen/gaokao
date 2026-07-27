@@ -9,6 +9,7 @@ on:
       - 'shared/resources/schools/**'
       - 'shared/resources/geo/**'
       - 'shared/resources/release/**'
+      - 'shared/resources/background/**'
       - 'shared/ui/**'
       - 'functions/api/tongxue-*.js'
       - 'functions/_lib/tongxue-*.js'
@@ -68,25 +69,25 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          if(CURRENT_RELEASE.display!=='v3.9.67.0') throw new Error('release mismatch');
-          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3967') throw new Error('Tongxue wrapper mismatch');
+          if(CURRENT_RELEASE.display!=='v3.9.68.0') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue wrapper mismatch');
           const html=fs.readFileSync('tongxue/index.html','utf8');
-          if(!html.includes('tongxue-runtime-v159-r3967.js?v=3967_0')) throw new Error('active wrapper missing');
-          if(html.includes('tongxue-runtime-v159.js?v=159')) throw new Error('old wrapper still active');
-          const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3967.js','utf8');
-          for(const marker of ['release-presenter.v3967_0.js?v=3967_0','tongxue-runtime-controller-v159.js?v=159']){
+          if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active wrapper missing');
+          if(html.includes('tongxue-runtime-v159-r3967.js?v=3967_0')||html.includes('tongxue-runtime-v159.js?v=159')) throw new Error('old wrapper still active');
+          const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
+          for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']){
             if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
           }
           const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
           for(const marker of ['tongxue-runtime-search-view-v159.js?v=159','tongxue-runtime-result-view-v159.js?v=159','tongxue-runtime-utils-v159.js?v=159']){
             if(!controller.includes(marker)) throw new Error(`controller marker ${marker}`);
           }
-          for(const rel of ['tongxue/app/tongxue-runtime-v159-r3967.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
+          for(const rel of ['tongxue/app/tongxue-runtime-v159-r3968.js','tongxue/app/tongxue-runtime-controller-v159.js','tongxue/app/tongxue-runtime-search-view-v159.js','tongxue/app/tongxue-runtime-result-view-v159.js']){
             const source=fs.readFileSync(rel,'utf8');
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue v159 core + v3967 wrapper ownership passed');
+          console.log('Tongxue v159 core + v3968 wrapper ownership passed');
           NODE
 
       - name: Verify school resolver data contracts
@@ -109,7 +110,7 @@ jobs:
       - name: Verify school portrait service remains callable
         env:
           PORTRAIT_LIVE_SCHOOLS: 东北大学秦皇岛分校,哈尔滨工业大学（威海）
-        run: node tools/tongxue/verify-portrait.mjs | tee /tmp/tongxue-live-artifact/portrait.out
+        run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/portrait-and-live-regression.out
 
       - name: Rebuild all official school resources once
         run: |
@@ -131,12 +132,6 @@ jobs:
             tongxue/data/school-search-index.20260617.json \
             tongxue/data/school-search-index.20260617-v150.json
 
-      - name: Execute summary and review live regression
-        env:
-          REQUIRED_SUCCESS_SCHOOLS: 吉林大学,大连理工大学
-          EXPECTED_REVIEW_FALLBACK_SCHOOLS: 辽宁大学,辽宁科技大学
-        run: node tools/tongxue/run-live-regression.mjs | tee /tmp/tongxue-live-artifact/live-regression.out
-
       - name: Install Chromium journey runner
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0
@@ -155,7 +150,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tongxue-v159-v3967-live-results
+          name: tongxue-v159-v3968-live-results
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3
