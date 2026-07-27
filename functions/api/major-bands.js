@@ -19,6 +19,9 @@ import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
+import { resolveAdmissionSchoolQuery } from '../_lib/school-query-provider.v3969.js';
+import { SCHOOL_QUERY_CONTRACT_VERSION, SCHOOL_QUERY_STATUSES, normalizeSchoolQueryIntent } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
+import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 import {
   resolveCanonicalPosition,
   rankBandRangeText
@@ -116,8 +119,9 @@ function exactSchoolNames(entity, schoolKeyword) {
 
 function rawKeywordPass(raw, filters, acceptedSchoolNames) {
   const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  if (acceptedSchoolNames?.size) return acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
-  return !schoolKeyword || rawSchool(raw).includes(schoolKeyword);
+  if (!schoolKeyword) return true;
+  return Boolean(acceptedSchoolNames?.size)
+    && acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
 }
 
 function explicitSpecialProjectIntent(value = '') {
@@ -199,6 +203,7 @@ export async function onRequest(context) {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
       schoolEntityId: clean(url.searchParams.get('schoolEntityId') || '', 80),
+      schoolQueryIntent: normalizeSchoolQueryIntent(url.searchParams.get('schoolQueryIntent') || 'auto'),
       majorKeyword: clean(url.searchParams.get('majorKeyword') || url.searchParams.get('majorName') || url.searchParams.get('keyword') || '', 160),
       bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all'),
       specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects')
@@ -216,7 +221,28 @@ export async function onRequest(context) {
     if (filters.schoolEntityId && !schoolEntity) {
       return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
     }
-    const acceptedSchoolNames = exactSchoolNames(schoolEntity, filters.schoolKeyword);
+    let acceptedSchoolNames = exactSchoolNames(schoolEntity, filters.schoolKeyword);
+    let schoolQueryResult = null;
+    if (!schoolEntity && filters.schoolKeyword) {
+      schoolQueryResult = await resolveAdmissionSchoolQuery(context.request, {
+        query: filters.schoolKeyword,
+        intent: filters.schoolQueryIntent,
+        limit: 500
+      });
+      if (schoolQueryResult.status === SCHOOL_QUERY_STATUSES.RESOLVED) {
+        acceptedSchoolNames = acceptedAdmissionSchoolNames(schoolQueryResult);
+      } else {
+        return json({
+          ok: false,
+          code: 'school_query_requires_choice',
+          message: schoolQueryResult.status === SCHOOL_QUERY_STATUSES.AMBIGUOUS
+            ? '学校条件同时可能表示地域或校名，请先确认一所准确学校；查看城市范围请使用地区条件。'
+            : '学校条件没有解析为辽宁2026物理类有投档记录的唯一学校。',
+          schoolQuery: schoolQueryResult,
+          schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION
+        }, schoolQueryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409);
+      }
+    }
 
     const bandsMeta = makeBands(candidateScore, rangePreset);
     const scoreWindow = minMaxScore(bandsMeta);
@@ -283,7 +309,7 @@ export async function onRequest(context) {
         if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
         if (!matchRegion(record, filters.region)) continue;
         if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
-        if (!acceptedSchoolNames?.size && filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
+        if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
 
         const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
         if (!match.matched) {
@@ -417,7 +443,9 @@ export async function onRequest(context) {
         algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
         rangePreset,
         schoolEntityId: schoolEntity?.entityId || '',
-        schoolMatchMode: schoolEntity ? 'exact-entity' : (filters.schoolKeyword ? 'keyword-fragment' : 'all-schools'),
+        schoolMatchMode: schoolEntity ? 'exact-entity' : (schoolQueryResult?.status === SCHOOL_QUERY_STATUSES.RESOLVED ? 'unified-school-query' : 'all-schools'),
+        schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
+        schoolQueryIntent: filters.schoolQueryIntent,
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
         specialProject: {

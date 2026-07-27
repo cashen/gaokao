@@ -16,6 +16,9 @@ import { buildSearchIndex } from './search-index-builder.js';
 import { normalizeFenxiCodes } from './fenxi-code-normalizer.js';
 import { mapStandardMajor } from './standard-major-mapper.js';
 import { lookupScoreRank } from './rank-table-provider.js';
+import { resolveAdmissionSchoolQuery } from './school-query-provider.v3969.js';
+import { SCHOOL_QUERY_STATUSES, normalizeSchoolQueryIntent } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
+import { acceptedAdmissionSchoolNames, normalizeUnifiedSchoolName } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 import { FEISHU_REPORT_CONTRACT, validateFeishuCandidateScore } from '../../shared/resources/reports/feishu-report-contract.js';
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankRecords } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
@@ -39,9 +42,8 @@ function initGrouped(bands) {
   };
 }
 
-function rawSchoolPass(raw, schoolKeyword) {
-  const keyword = clean(schoolKeyword || '', 40);
-  return !keyword || rawSchool(raw).includes(keyword);
+function rawSchoolPass(raw, acceptedSchoolNames) {
+  return !acceptedSchoolNames?.size || acceptedSchoolNames.has(normalizeUnifiedSchoolName(rawSchool(raw)));
 }
 
 function candidateRankForScore(score) {
@@ -69,6 +71,7 @@ export function normalizeReportParams(input = {}) {
     filters: {
       region: clean(input.filters?.region || 'all', 30),
       schoolKeyword: clean(input.filters?.schoolKeyword || '', 40),
+      schoolQueryIntent: normalizeSchoolQueryIntent(input.filters?.schoolQueryIntent || 'auto'),
       majorKeyword,
       bottomLineMode: normalizeBottomLineMode(input.filters?.bottomLineMode || 'all'),
       keywordQuery: input.filters?.keywordQuery || buildKeywordQuery(majorKeyword)
@@ -199,6 +202,18 @@ async function rebuildCanonicalReportData(request, env, input, params, bandsMeta
   const grouped = initGrouped(bandsMeta);
   const keywordQuery = buildKeywordQuery(params.filters.majorKeyword);
   const filters = { ...params.filters, keywordQuery };
+  let acceptedSchoolNames = null;
+  if (filters.schoolKeyword) {
+    const schoolQueryResult = await resolveAdmissionSchoolQuery(request, {
+      query: filters.schoolKeyword,
+      intent: filters.schoolQueryIntent,
+      limit: 500
+    });
+    if (schoolQueryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED) {
+      throw new Error('学校条件需要先在主页面确认一所准确学校；城市范围请使用地区条件。');
+    }
+    acceptedSchoolNames = acceptedAdmissionSchoolNames(schoolQueryResult);
+  }
   let bottomLineExcluded = 0;
   let bottomLineUnresolved = 0;
   let keywordExcluded = 0;
@@ -207,13 +222,13 @@ async function rebuildCanonicalReportData(request, env, input, params, bandsMeta
   for (const raw of rawRecords) {
     const score = rawScore(raw);
     if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
-    if (!rawSchoolPass(raw, filters.schoolKeyword)) continue;
+    if (!rawSchoolPass(raw, acceptedSchoolNames)) continue;
     const record = { ...normalizeRecord(raw), rawText: JSON.stringify(raw).slice(0, 1600) };
     Object.assign(record, normalizeCodesAndMajor(record, raw));
     Object.assign(record, enrichBottomLineFields(record));
     if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
     if (!matchRegion(record, filters.region)) continue;
-    if (filters.schoolKeyword && !record.school.includes(filters.schoolKeyword)) continue;
+    if (filters.schoolKeyword && !acceptedSchoolNames?.has(normalizeUnifiedSchoolName(record.school))) continue;
     const match = matchMajorProject(buildSearchIndex([record])[0], keywordQuery);
     if (!match.matched) { keywordExcluded += 1; continue; }
     Object.assign(record, {

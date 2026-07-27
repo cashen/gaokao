@@ -16,7 +16,7 @@ import {
 } from '../functions/_lib/academic-background-provider.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
 import { SHARED_RESOURCE_REGISTRY } from '../shared/resources/resource-registry.js';
-import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3968_0.js';
+import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3969_0.js';
 import { ALGORITHM_RESOURCE_REGISTRY } from '../shared/algorithms/algorithm-registry.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
@@ -24,9 +24,9 @@ const read = path => fs.readFileSync(path, 'utf8');
 assert.equal(ACADEMIC_BACKGROUND_CONTRACT_VERSION, 'academic-background-v3968_0');
 assert.equal(ACADEMIC_BACKGROUND_MATCHER_VERSION, 'academic-background-matcher-v3968_0');
 assert.equal(ACADEMIC_BACKGROUND_PROVIDER_VERSION, 'academic-background-provider-v3968_0');
-assert.equal(CURRENT_RELEASE.display, 'v3.9.68.0');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3968_0');
-assert.equal(CURRENT_RELEASE.resourceExecutionVersion, 'resource-execution-v3968_0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.69.0');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3969_0');
+assert.equal(CURRENT_RELEASE.resourceExecutionVersion, 'resource-execution-v3969_0');
 assert.equal(CURRENT_RELEASE.resourceOwners.academicBackgroundProvider, '/functions/_lib/academic-background-provider.js');
 assert.equal(SHARED_RESOURCE_REGISTRY.academicBackground.provider, '/functions/_lib/academic-background-provider.js');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.academicBackground.matcher, '/shared/algorithms/background/academic-background-matcher.v3968_0.js');

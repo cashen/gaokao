@@ -1,10 +1,11 @@
-export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3968';
-export const ALGORITHM_ASSET_VERSION = 'v3968_0';
+export const ALGORITHM_ORCHESTRATION_VERSION = 'algorithm-orchestration-v3969';
+export const ALGORITHM_ASSET_VERSION = 'v3969_0';
 
 export const ALGORITHM_RESOURCE_REGISTRY = Object.freeze({
   position: '/shared/algorithms/position/canonical-position.v3963_0.js',
   ranking: '/shared/algorithms/ranking/staged-ranking.v3960_0.js',
   resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
+  schoolQuery: '/shared/resources/schools/school-query-engine.v3969_0.js',
   trendInterpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
   historicalRankSelection: '/shared/algorithms/position/historical-rank-selection.v3967_0.js',
   academicBackgroundMatcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
@@ -20,6 +21,10 @@ export const ALGORITHM_CONTRACT = Object.freeze({
   principles: Object.freeze([
     'single-position-owner',
     'single-result-ranking-owner',
+    'single-school-query-owner',
+    'school-region-name-ambiguity-explicit',
+    'school-admission-record-count-tiebreak-only',
+    'school-candidates-never-silently-truncated',
     'single-trend-interpretation-owner',
     'single-historical-rank-selection-owner',
     'single-academic-background-matcher-owner',

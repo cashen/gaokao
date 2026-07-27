@@ -1,7 +1,7 @@
 import { createEntityAwareResolver } from './school-entities-v150.js';
 
 export const TONGXUE_V150_BUILD_ID='tongxue-v150-region-20260617';
-export const SCHOOL_NAME_DATA_URL=new URL('./school-search-index.20260617-v150.json',import.meta.url).href;
+export const SCHOOL_NAME_DATA_URL='/tongxue/data/school-search-index.20260617-v150.json';
 const SEARCH_CACHE_LIMIT=100;
 const MUNICIPALITIES=new Set(['北京市','天津市','上海市','重庆市']);
 const GENERIC_SHORTCUTS=new Map([

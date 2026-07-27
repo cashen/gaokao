@@ -19,6 +19,16 @@ import {
   publicSchoolEntity,
   entitySourceQuery
 } from '../../shared/resources/schools/school-identity-center.js';
+import {
+  resolveAdmissionSchoolQuery,
+  getAdmissionSchoolDirectoryMeta
+} from '../_lib/school-query-provider.v3969.js';
+import {
+  SCHOOL_QUERY_CONTRACT_VERSION,
+  SCHOOL_QUERY_STATUSES,
+  normalizeSchoolQueryIntent
+} from '../../shared/resources/schools/school-query-contract.v3969_0.js';
+import { normalizeUnifiedSchoolName } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -101,19 +111,41 @@ function positionRecord(record, candidateScore, candidateRank) {
   };
 }
 
-function schoolCandidates(records, query) {
-  const needle = normalizeText(query);
-  if (!needle) return [];
-  const counts = new Map();
-  for (const raw of records) {
-    const name = clean(rawSchool(raw), 120);
-    if (!name || !normalizeText(name).includes(needle)) continue;
-    counts.set(name, (counts.get(name) || 0) + 1);
+function queryMessage(queryResult) {
+  if (queryResult?.status === SCHOOL_QUERY_STATUSES.AMBIGUOUS) {
+    return '这个输入同时可能表示学校所在地或学校名称，请先选择你真正想看的学校。';
   }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
-    .slice(0, 8)
-    .map(([school, count]) => ({ school, count }));
+  if (queryResult?.status === SCHOOL_QUERY_STATUSES.NOT_AVAILABLE) {
+    return '已经识别到学校，但没有找到该校的2026辽宁物理类投档记录。';
+  }
+  return '没有精确确认这所学校，请从统一学校目录候选中选择。';
+}
+
+function unresolvedPayload(queryResult, directoryMeta) {
+  const candidates = Array.isArray(queryResult?.candidates) ? queryResult.candidates : [];
+  return {
+    ok: false,
+    code: 'school_query_requires_choice',
+    message: queryMessage(queryResult),
+    query: queryResult,
+    candidates,
+    candidateTotal: queryResult?.pagination?.total ?? candidates.length,
+    candidateReturned: candidates.length,
+    candidateHasMore: Boolean(queryResult?.pagination?.hasMore),
+    schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
+    admissionDirectory: directoryMeta
+  };
+}
+
+function acceptedNamesForSelection(selection, entity) {
+  return new Set([
+    ...(Array.isArray(selection?.admissionNames) ? selection.admissionNames : []),
+    selection?.admissionName,
+    selection?.officialName,
+    entity?.displayName,
+    entity?.sourceQuery,
+    ...(Array.isArray(entity?.aliases) ? entity.aliases : [])
+  ].map(normalizeUnifiedSchoolName).filter(Boolean));
 }
 
 export async function onRequest(context) {
@@ -124,11 +156,7 @@ export async function onRequest(context) {
     const url = new URL(context.request.url);
     const entityId = clean(url.searchParams.get('schoolEntityId') || '', 80);
     const schoolInput = clean(url.searchParams.get('school') || '', 120);
-    const entity = entityId ? getSchoolEntity(entityId) : null;
-    if (entityId && !entity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
-
-    const school = clean(entitySourceQuery(entity, schoolInput) || entity?.displayName || schoolInput, 120);
-    if (!school) return json({ ok: false, message: '请先输入或选择一所学校。' }, 400);
+    if (!schoolInput && !entityId) return json({ ok: false, message: '请先输入或选择一所学校。' }, 400);
 
     const scoreText = String(url.searchParams.get('candidateScore') || '').trim();
     const candidateScore = scoreText ? Math.round(Number(scoreText)) : null;
@@ -144,23 +172,54 @@ export async function onRequest(context) {
       : (candidateScore ? 'position-near' : 'score-desc');
     const offset = pageNumber(url.searchParams.get('offset'), 0);
     const limit = Math.max(20, Math.min(100, pageNumber(url.searchParams.get('limit'), 40)));
-    const { manifest, records: rawRecords } = await loadAllRecords(context.request, context.env || {});
+    const candidateOffset = pageNumber(url.searchParams.get('candidateOffset'), 0);
+    const candidateLimit = Math.max(8, Math.min(500, pageNumber(url.searchParams.get('candidateLimit'), 200)));
+    const schoolIntent = normalizeSchoolQueryIntent(url.searchParams.get('schoolIntent') || 'auto');
 
-    const acceptedNames = new Set([
-      school,
-      entity?.displayName,
-      entity?.sourceQuery,
-      ...(Array.isArray(entity?.aliases) ? entity.aliases : [])
-    ].map(normalizeText).filter(Boolean));
+    const [{ manifest, records: rawRecords }, directoryMeta] = await Promise.all([
+      loadAllRecords(context.request, context.env || {}),
+      getAdmissionSchoolDirectoryMeta(context.request)
+    ]);
 
-    const exactRaw = rawRecords.filter(raw => acceptedNames.has(normalizeText(rawSchool(raw))));
+    let entity = entityId ? getSchoolEntity(entityId) : null;
+    if (entityId && !entity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
+
+    let selection = null;
+    let queryResult = null;
+    if (entity) {
+      const officialName = entity.displayName;
+      selection = {
+        officialName,
+        admissionName: entitySourceQuery(entity, officialName),
+        admissionNames: [entitySourceQuery(entity, officialName)],
+        entityId: entity.entityId,
+        entityType: entity.entityType
+      };
+    } else {
+      queryResult = await resolveAdmissionSchoolQuery(context.request, {
+        query: schoolInput,
+        intent: schoolIntent,
+        offset: candidateOffset,
+        limit: candidateLimit
+      });
+      if (queryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED || !queryResult.resolvedSchool) {
+        const status = queryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409;
+        return json(unresolvedPayload(queryResult, directoryMeta), status);
+      }
+      selection = queryResult.resolvedSchool;
+      entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
+    }
+
+    const acceptedNames = acceptedNamesForSelection(selection, entity);
+    const exactRaw = rawRecords.filter(raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))));
     if (!exactRaw.length) {
-      return json({
-        ok: false,
-        code: 'school_not_resolved',
-        message: '没有找到这所学校的2026辽宁物理类投档记录，请从候选学校中选择。',
-        candidates: schoolCandidates(rawRecords, schoolInput || school)
-      }, 404);
+      const fallback = queryResult || await resolveAdmissionSchoolQuery(context.request, {
+        query: schoolInput || selection.officialName,
+        intent: schoolIntent,
+        offset: candidateOffset,
+        limit: candidateLimit
+      });
+      return json(unresolvedPayload({ ...fallback, status: SCHOOL_QUERY_STATUSES.NOT_AVAILABLE }, directoryMeta), 404);
     }
 
     const candidateRank = rankContextForScore(candidateScore);
@@ -239,8 +298,8 @@ export async function onRequest(context) {
         rankYear: 2026,
         candidateScore,
         candidateReferenceRank2026: candidateRank?.rankForGap || null,
-        school: entity?.displayName || school,
-        schoolQuery: school,
+        school: selection.officialName || selection.admissionName,
+        schoolQuery: schoolInput || selection.officialName,
         schoolEntity: entity ? publicSchoolEntity(entity) : null,
         schoolRecordTotal: exactRaw.length,
         filteredTotal: all.length,
@@ -249,6 +308,10 @@ export async function onRequest(context) {
         sort,
         keywordMode: 'any',
         keywordTerms: keywordQuery.rawKeywords,
+        schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
+        schoolQueryIntent: 'school',
+        admissionDirectoryVersion: directoryMeta.version,
+        admissionDirectorySourceHash: directoryMeta.sourceHash,
         pagination: {
           offset,
           limit,
@@ -268,7 +331,7 @@ export async function onRequest(context) {
         totalRecords: manifest.totalRecords || rawRecords.length,
         rawScanned: rawRecords.length,
         exactSchoolRecords: exactRaw.length,
-        mode: 'shared-records-school-exact'
+        mode: 'unified-school-query-exact-admission-names'
       }
     });
   } catch (error) {
@@ -276,7 +339,7 @@ export async function onRequest(context) {
       ok: false,
       message: error?.message || String(error),
       userMessage: '学校全部专业暂时没有读取成功，可以稍后重试。',
-      engineerHint: '请检查2026 ln-rank manifest、统一学校实体和学校专业接口。'
+      engineerHint: '请检查2026 ln-rank manifest、统一学校查询合同、招生学校目录和学校专业接口。'
     }, 500);
   }
 }
