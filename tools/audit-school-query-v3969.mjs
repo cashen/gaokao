@@ -145,7 +145,7 @@ for (const [file, markers] of Object.entries(activeConsumers)) {
 
 const forbiddenByFile = {
   'functions/api/school-majors.js': ['.slice(0, 8)', 'b[1] - a[1]'],
-  'functions/api/major-bands.js': ['record.school.includes(filters.schoolKeyword)'],
+  'functions/api/major-bands.js': ['record.school.includes(filters.schoolKeyword)', 'rawSchool(raw).includes(schoolKeyword)'],
   'functions/_lib/report-data-service-v3956.js': ['rawSchool(raw).includes(keyword)', 'record.school.includes(filters.schoolKeyword)']
 };
 for (const [file, markers] of Object.entries(forbiddenByFile)) {
