@@ -6,70 +6,70 @@
       "source": "shared/resources/release/current-release.js",
       "sourceSha256": "b370fda9615d2a2f98e6171cdfbbbd9c0ea17f0b087704771f44a365ddd37407",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active asset graph bound to current release"
     },
     {
       "source": "shared/governance/resource-execution-contract.v3969_0.js",
       "sourceSha256": "c965d264199636e7d9e9c76cc10d90cbbd7e361a669a1ce514dfd00ca2b9b146",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active asset graph bound to execution owners"
     },
     {
       "source": "shared/algorithms/algorithm-registry.js",
       "sourceSha256": "418a5463a9c0175765b8d5bf24ad3d041606d9dba5b71d9805effc6a3515a290",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active algorithm graph bound to algorithm registry"
     },
     {
       "source": "shared/ui/component-registry.v3967_0.js",
       "sourceSha256": "1ae8cea4875372b1144c99c2eb07dc1fde016f29981eaaf279fa0a4fddc2c06b",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active CSS and component graph bound to component registry"
     },
     {
       "source": "shared/resources/schools/school-query-contract.v3969_0.js",
       "sourceSha256": "b57f6445f8ea49b435a9b742e85f7451a0ba00d3c1979762ee156086eb470267",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active graph bound to unified school query contract"
     },
     {
       "source": "shared/resources/schools/school-query-engine.v3969_0.js",
       "sourceSha256": "07a47b9eadad0a19063761b53f96113dbd3f16e2bc864bd34308bfc50be461fd",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active graph bound to single school query engine"
     },
     {
       "source": "shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json",
       "sourceSha256": "8976eacdc5d800c5a93a84e1095ebc0282d9758e4d8dc957127dec71fece4e85",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "5d3deca8a59f8f0a45ccf73ca66d912e14beb98fbf31231d88a3faa46a1ac33d",
+      "derivedSha256": "b907dcabdc49d4af62247618c0cbb0029c9ee7e694fb3c9ec9eacf3277d8540d",
       "reason": "active graph bound to admission availability directory"
     },
     {
       "source": "shared/resources/release/current-release.js",
       "sourceSha256": "b370fda9615d2a2f98e6171cdfbbbd9c0ea17f0b087704771f44a365ddd37407",
       "derived": "ln-rank/release-meta.json",
-      "derivedSha256": "e733b85d0e87221fe2037a545fb1ce4e8c08cf3e3e331ccb9e88efa02b77b6c1",
+      "derivedSha256": "b075c9d8d49efba1456ba05f91ebb9ef05503cbbdb69550eb51c14be2bd16af0",
       "reason": "release metadata bound to current release"
     },
     {
       "source": "shared/governance/resource-execution-contract.v3969_0.js",
       "sourceSha256": "c965d264199636e7d9e9c76cc10d90cbbd7e361a669a1ce514dfd00ca2b9b146",
       "derived": "ln-rank/release-meta.json",
-      "derivedSha256": "e733b85d0e87221fe2037a545fb1ce4e8c08cf3e3e331ccb9e88efa02b77b6c1",
+      "derivedSha256": "b075c9d8d49efba1456ba05f91ebb9ef05503cbbdb69550eb51c14be2bd16af0",
       "reason": "release metadata bound to execution owners"
     },
     {
       "source": "shared/resources/schools/school-query-contract.v3969_0.js",
       "sourceSha256": "b57f6445f8ea49b435a9b742e85f7451a0ba00d3c1979762ee156086eb470267",
       "derived": "ln-rank/release-meta.json",
-      "derivedSha256": "e733b85d0e87221fe2037a545fb1ce4e8c08cf3e3e331ccb9e88efa02b77b6c1",
+      "derivedSha256": "b075c9d8d49efba1456ba05f91ebb9ef05503cbbdb69550eb51c14be2bd16af0",
       "reason": "release metadata bound to school query contract"
     },
     {
@@ -139,7 +139,7 @@
       "source": "functions/_lib/school-query-provider.v3969.js",
       "sourceSha256": "50e6cfb150086507a974aa290cd2d6604ea99b0cf118748a33181fb250ab4150",
       "derived": "functions/api/major-bands.js",
-      "derivedSha256": "12c895cfeea900f00ee8a7af0a0e9b48538b125782b1f4a903b3334ed806ac03",
+      "derivedSha256": "c402f31b998c4f284e6b51dbf04c816490440bf2e0517db5bb8296aa681b93fc",
       "reason": "score search school filter delegates to shared provider"
     },
     {
