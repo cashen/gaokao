@@ -23,19 +23,35 @@ jobs:
           node-version: '22'
       - name: Finalize release metadata and active graph
         run: |
-          set -euo pipefail
-          node tools/finalize-v3969-release.mjs
-          node --check ln-rank/js/app.v3969_0.js
-          node --check ln-rank/js/app-runtime.v3969_0.js
-          node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/runtime-cache-contract.v3969_0.js
-          node --check shared/resources/release/release-presenter.v3969_0.js
-          node --check shared/governance/resource-execution-contract.v3969_0.js
-          node --check shared/algorithms/algorithm-registry.js
-          node --check shared/resources/resource-registry.js
-          grep -q 'v3.9.69.0' VERSION.txt
-          grep -q 'app.v3969_0.js?v=3969_0' ln-rank/index.html
-          git diff --check
+          set +e
+          {
+            node tools/finalize-v3969-release.mjs
+            node --check ln-rank/js/app.v3969_0.js
+            node --check ln-rank/js/app-runtime.v3969_0.js
+            node --check shared/resources/release/current-release.js
+            node --check shared/resources/release/runtime-cache-contract.v3969_0.js
+            node --check shared/resources/release/release-presenter.v3969_0.js
+            node --check shared/governance/resource-execution-contract.v3969_0.js
+            node --check shared/algorithms/algorithm-registry.js
+            node --check shared/resources/resource-registry.js
+            grep -q 'v3.9.69.0' VERSION.txt
+            grep -q 'app.v3969_0.js?v=3969_0' ln-rank/index.html
+            git diff --check
+          } >/tmp/v3969-finalize.out 2>/tmp/v3969-finalize.err
+          status=$?
+          cat /tmp/v3969-finalize.out
+          cat /tmp/v3969-finalize.err >&2
+          exit $status
+      - name: Upload finalization diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3969-finalize-diagnostics
+          path: |
+            /tmp/v3969-finalize.out
+            /tmp/v3969-finalize.err
+          if-no-files-found: error
+          retention-days: 3
       - name: Commit finalized release graph
         run: |
           set -euo pipefail
