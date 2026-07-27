@@ -59,35 +59,56 @@ try {
       assert.equal(await page.locator('text=已选 1 个 · 去整理').count(), 0);
 
       const geometry = await page.evaluate(() => {
+        const familySelector = '[data-ui-family-plan-header-mount] a,[data-ui-family-plan-results-footer] a';
+        const positionedAncestor = element => {
+          let current = element;
+          while (current) {
+            const position = getComputedStyle(current).position;
+            if (position === 'fixed' || position === 'sticky') {
+              return {
+                tag: current.tagName,
+                className: String(current.className || ''),
+                position
+              };
+            }
+            current = current.parentElement;
+          }
+          return null;
+        };
         const footer = document.querySelector('[data-ui-family-plan-results-footer]');
         const results = document.querySelector('#results');
         const footerRect = footer?.getBoundingClientRect();
         const resultsRect = results?.getBoundingClientRect();
-        const familyElements = [...document.querySelectorAll('a,button,nav,section')]
-          .filter(node => /家庭方案/.test(node.textContent || ''))
+        const familyElements = [...document.querySelectorAll(familySelector)].map(node => ({
+          tag: node.tagName,
+          text: (node.textContent || '').trim().slice(0, 80),
+          position: getComputedStyle(node).position,
+          positionedAncestor: positionedAncestor(node),
+          rect: node.getBoundingClientRect().toJSON()
+        }));
+        const bottomFamilyOverlays = [...document.elementsFromPoint(Math.floor(innerWidth / 2), innerHeight - 8)]
+          .map(node => node.closest?.(familySelector))
+          .filter(Boolean)
           .map(node => ({
-            tag: node.tagName,
             text: (node.textContent || '').trim().slice(0, 80),
-            position: getComputedStyle(node).position,
-            rect: node.getBoundingClientRect().toJSON()
-          }));
-        const bottomNode = document.elementFromPoint(Math.floor(innerWidth / 2), innerHeight - 8);
+            positionedAncestor: positionedAncestor(node)
+          }))
+          .filter(node => node.positionedAncestor);
         return {
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           footerTop: footerRect?.top ?? null,
           resultsBottom: resultsRect?.bottom ?? null,
           familyElements,
-          bottomText: (bottomNode?.textContent || '').trim().slice(0, 80),
+          bottomFamilyOverlays,
           bodyPaddingBottom: getComputedStyle(document.body).paddingBottom
         };
       });
       assert.ok(geometry.overflow <= 1, `${testCase.name}: horizontal overflow ${geometry.overflow}`);
       assert.ok(geometry.footerTop >= geometry.resultsBottom - 1, `${testCase.name}: footer is not after results`);
       for (const node of geometry.familyElements) {
-        assert.notEqual(node.position, 'fixed', `${testCase.name}: fixed family action ${node.text}`);
-        assert.notEqual(node.position, 'sticky', `${testCase.name}: sticky family action ${node.text}`);
+        assert.equal(node.positionedAncestor, null, `${testCase.name}: family action escapes document flow ${node.text}`);
       }
-      assert.ok(!/家庭方案/.test(geometry.bottomText), `${testCase.name}: family action covers viewport bottom`);
+      assert.deepEqual(geometry.bottomFamilyOverlays, [], `${testCase.name}: fixed or sticky family action covers viewport bottom`);
       if (testCase.mobile) assert.ok(!/^7[0-9]px$/.test(geometry.bodyPaddingBottom), `${testCase.name}: legacy bottom spacer ${geometry.bodyPaddingBottom}`);
 
       await page.evaluate(({ storageKey, item }) => {
