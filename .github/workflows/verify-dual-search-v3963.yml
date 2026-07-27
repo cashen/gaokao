@@ -88,7 +88,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3967_ARTIFACT_DIR=/tmp/v3968-browser-main node tools/browser-resource-execution-v3967.mjs | tee /tmp/v3968-browser-main.out
+          V3968_ARTIFACT_DIR=/tmp/v3968-browser-main node tools/browser-resource-execution-v3968.mjs 2>&1 | tee /tmp/v3968-browser-main.out
 
       - name: Verify local and 211 unified background PC Pad Android journeys
         run: |
@@ -97,7 +97,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3968_ARTIFACT_DIR=/tmp/v3968-browser-background node tools/browser-academic-background-v3968.mjs | tee /tmp/v3968-browser-background.out
+          V3968_ARTIFACT_DIR=/tmp/v3968-browser-background node tools/browser-academic-background-v3968.mjs 2>&1 | tee /tmp/v3968-browser-background.out
 
       - name: Upload verification diagnostics
         if: failure()
