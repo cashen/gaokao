@@ -83,7 +83,7 @@
       "source": "shared/resources/release/current-release.js",
       "sourceSha256": "2ab1d31f5acd8bc3016b323e0f871416cf6d84360f14312f2439a249f4a164c3",
       "derived": "shared/resources/release/runtime-cache-contract.v3970_0.js",
-      "derivedSha256": "9f7d6776e88569a72834d0937a4311ce2e2386c18e9483708415d261e333b4df",
+      "derivedSha256": "45ec9f4d7e017cf7dde1fe35c9e24024a15304484adda73017a3a0dd0d7f3e3c",
       "reason": "runtime cache graph bound to the current release"
     }
   ]
