@@ -1,7 +1,8 @@
 {
   "version": "liaoning-2026-admission-school-directory-v3969_0",
   "contractVersion": "school-query-contract-v3969_0",
-  "generatedAt": "2026-07-27T06:43:09.043Z",
+  "generatorVersion": "school-admission-directory-builder-v3969_0",
+  "generatedAt": "2026-07-22T01:12:12.894855+00:00",
   "dataYear": 2026,
   "audienceYear": 2027,
   "region": "辽宁",
