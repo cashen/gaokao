@@ -5,8 +5,10 @@ import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runt
 import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3970_0.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
+const headerBlock = (headers, route) => headers.match(new RegExp(`^${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n((?:  .*(?:\\n|$))+)`, 'm'))?.[1] || '';
 const home = read('index.html');
 const runtime = read('ln-rank/js/ux/family-home.v3970_0.js');
+const headers = read('_headers');
 const active = JSON.parse(read('ln-rank/active-assets.json'));
 const meta = JSON.parse(read('ln-rank/release-meta.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
@@ -52,6 +54,23 @@ for (const marker of [
 assert.ok(!runtime.includes('MutationObserver'), 'home runtime must not add a structural observer');
 assert.equal((runtime.match(/setInterval\(/g) || []).length, 1, 'home countdown must have one timer owner');
 
+for (const route of ['/', '/index.html']) {
+  const block = headerBlock(headers, route);
+  assert.ok(block, `headers missing ${route}`);
+  assert.match(block, /Cache-Control: no-cache, max-age=0, must-revalidate/, `${route} must revalidate`);
+}
+for (const route of [
+  '/ln-rank/js/ux/family-home.v3970_0.js',
+  '/shared/ui/shell/family-shell.v3970_0.js',
+  '/shared/ui/shell/family-shell.v3970_0.css',
+  '/shared/ui/components/family-plan-entry.v3970_0.js',
+  '/shared/ui/components/family-plan-entry.v3970_0.css'
+]) {
+  const block = headerBlock(headers, route);
+  assert.ok(block, `headers missing ${route}`);
+  assert.match(block, /Cache-Control: public, max-age=31536000, immutable/, `${route} must be immutable`);
+}
+
 for (const [payload, name] of [[active, 'active'], [meta, 'meta']]) {
   assert.equal(payload.version, 'v3.9.70.0', `${name} release`);
   assert.equal(payload.assetVersion, 'v3970_0', `${name} asset`);
@@ -78,6 +97,8 @@ console.log(JSON.stringify({
   release: CURRENT_RELEASE.display,
   homeRuntime: 'family-home-runtime-v3970_0',
   bootstrapCount: (home.match(/<script type="module"/g) || []).length,
+  homeHtmlCache: 'revalidate',
+  homeRuntimeCache: 'immutable',
   activeHome: active.familyHomeJs,
   productionGate: active.productionReleaseVerificationContract
 }, null, 2));
