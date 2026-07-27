@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Repair browser and Functions URL ownership atomically
+      - name: Commit Cloudflare-safe school resolver URL
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -49,15 +49,10 @@ jobs:
           node --check tongxue/data/school-name-resolver-v150.js
           node --check tools/audit-school-query-v3969.mjs
           node tools/audit-school-query-v3969.mjs
-          node tools/build-active-release-metadata-v3969.mjs --write
-          node tools/build-derived-asset-trace-v3969.mjs --write
-          node tools/build-active-release-metadata-v3969.mjs
-          node tools/build-derived-asset-trace-v3969.mjs
-          git checkout ff3817d669246c1cf6c338e33d326e246809666a -- .github/workflows/write-v3969-active-metadata.yml
           git diff --check
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .github/workflows/write-v3969-active-metadata.yml tongxue/data/school-name-resolver-v150.js tools/audit-school-query-v3969.mjs ln-rank/active-assets.json ln-rank/release-meta.json shared/governance/derived-asset-trace.v3969_0.json
+          git add tongxue/data/school-name-resolver-v150.js tools/audit-school-query-v3969.mjs
           git diff --cached --quiet && exit 0
           git commit -m 'fix: make school resolver URL safe for Cloudflare Functions'
           git push origin HEAD:${{ github.head_ref }}
