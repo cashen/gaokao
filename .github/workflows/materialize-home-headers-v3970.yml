@@ -1,0 +1,67 @@
+name: Materialize home headers v3970
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  headers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Append current immutable resource contracts in isolated runner
+        run: |
+          set -euo pipefail
+          cat >> _headers <<'HEADERS'
+
+          # v3970 unified family action and root home ownership
+          /shared/resources/release/release-presenter.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/resources/release/runtime-cache-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/governance/resource-execution-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/ui-registry.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/component-registry.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/contracts/action-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/contracts/copy-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/contracts/state-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/shell/family-shell.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/shell/family-shell.v3970_0.css
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/components/family-plan-entry.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /shared/ui/components/family-plan-entry.v3970_0.css
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/domain/family-decision-contract.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/app.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/app-runtime.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/selection-pool.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          /ln-rank/js/ux/family-home.v3970_0.js
+            Cache-Control: public, max-age=31536000, immutable
+          HEADERS
+          cp _headers /tmp/_headers
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3970-home-headers-generated
+          path: /tmp/_headers
+          retention-days: 1
