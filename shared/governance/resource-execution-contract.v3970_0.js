@@ -17,7 +17,19 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     schemaVersion: 'current-release-v3970_0',
     allowedConsumers: ['browser-runtime', 'functions', 'reports', 'audits'],
     generatedArtifacts: ['/ln-rank/active-assets.json', '/ln-rank/release-meta.json'],
-    validationTools: ['/tools/ln-2026/verify-final-release-v3970.py', '/tools/audit-family-action-v3970.mjs', '/tools/audit-school-query-v3970.mjs', '/tools/audit-academic-background-v3968.mjs']
+    validationTools: ['/tools/ln-2026/verify-final-release-v3970.py', '/tools/audit-family-action-v3970.mjs', '/tools/audit-home-release-ownership-v3970.mjs', '/tools/audit-school-query-v3970.mjs', '/tools/audit-academic-background-v3968.mjs']
+  }),
+  home: entry({
+    owner: '/ln-rank/js/ux/family-home.v3970_0.js',
+    structureOwner: '/index.html',
+    releaseOwner: '/shared/resources/release/current-release.js',
+    shellOwner: '/shared/ui/shell/family-shell.v3970_0.js',
+    stateOwner: '/ln-rank/js/domain/family-decision-contract.v3970_0.js',
+    schemaVersion: 'family-home-runtime-v3970_0',
+    allowedConsumers: ['root-homepage', 'browser-regression', 'production-verification', 'audits'],
+    forbiddenImports: ['/ln-rank/js/ux/family-home.v3968_0.js', '/shared/ui/shell/family-shell.v3965_0.js'],
+    forbiddenLiterals: ['data-release="v3.9.68.0"', 'family-home.v3968_0.js?v=3968_0', 'family-shell.v3965_0.js?v=3965_0'],
+    validationTools: ['/tools/audit-home-release-ownership-v3970.mjs', '/tools/browser-home-release-v3970.mjs', '/.github/workflows/verify-production-release-v3970.yml']
   }),
   exam: entry({
     owner: '/shared/resources/exam/liaoning-physics.js',
