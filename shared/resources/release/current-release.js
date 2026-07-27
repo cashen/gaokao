@@ -84,6 +84,8 @@ export const CURRENT_RELEASE = Object.freeze({
     familyActionStyles: '/shared/ui/components/family-plan-entry.v3970_0.css',
     familyDecisionState: '/ln-rank/js/domain/family-decision-contract.v3970_0.js',
     familyPlanCopyAdapter: '/ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
+    homeStructure: '/index.html',
+    homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js',
     algorithms: '/shared/algorithms/algorithm-registry.js',
     resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
     trendResource: '/shared/resources/trends/liaoning-major-trend.v3967_0.js',

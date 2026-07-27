@@ -3,6 +3,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
   releaseVersion: 'v3.9.70.0',
   assetVersion: 'v3970_0',
   entrypoints: Object.freeze({
+    home: '/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0',
     search: '/ln-rank/js/app.v3970_0.js?v=3970_0',
     searchRuntime: '/ln-rank/js/app-runtime.v3970_0.js?v=3970_0',
     selectionPool: '/ln-rank/js/selection-pool.v3970_0.js?v=3970_0',
@@ -18,6 +19,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     auxiliaryLiaoningKeySubjects: '/shared/resources/auxiliary/liaoning-key-subjects.v3967_0.js?v=3967_0'
   }),
   owners: Object.freeze({
+    home: '/ln-rank/js/ux/family-home.v3970_0.js',
     bootstrap: '/ln-rank/js/app.v3970_0.js',
     searchState: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js',
     schoolState: '/ln-rank/js/feature/school-majors/school-all-mode.v3969_0.js',
@@ -35,11 +37,11 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     registry: '/shared/resources/release/runtime-cache-contract.v3970_0.js'
   }),
   activeGenerationModules: Object.freeze([
+    '/ln-rank/js/ux/family-home.v3970_0.js',
     '/ln-rank/js/app.v3970_0.js',
     '/ln-rank/js/app-runtime.v3970_0.js',
     '/ln-rank/js/selection-pool.v3970_0.js',
     '/ln-rank/js/selection-pool-runtime.v3967_0.js',
-    '/ln-rank/js/ux/family-home.v3968_0.js',
     '/ln-rank/js/workspace/selection-workspace-orchestrator.v3969_0.js',
     '/ln-rank/js/workspace/result-commit.v3967_0.js',
     '/ln-rank/js/workspace/family-card-presenter.v3967_0.js',
@@ -100,6 +102,9 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     fixedMobileFamilyPlanActionAllowed: false,
     floatingFamilyPlanActionAllowed: false,
     familyPlanEntryMustStayInDocumentFlow: true,
-    familyPlanPublicCopySingleOwner: true
+    familyPlanPublicCopySingleOwner: true,
+    homeReleaseOwnershipRequired: true,
+    homeStaticRuntimeParityRequired: true,
+    productionReleaseVerificationRequired: true
   })
 });
