@@ -2,8 +2,7 @@ name: Materialize v3967 governed files
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, synchronize, reopened]
 
 permissions:
@@ -20,113 +19,56 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Diagnose remaining archive
-        id: diagnose
+      - name: Rebuild and inspect complete archive
+        id: archive
         continue-on-error: true
         run: |
           set +e
-          mkdir -p /tmp/v3967-remain-probe
           {
-            echo '== chunk sizes =='
-            wc -c .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03
-            cat .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03 > /tmp/v3967-remain.b64
+            echo '== source chunks =='
+            find . -maxdepth 1 -name '.v3967-new-*' -type f -printf '%f %s\n' | sort
+            find . -maxdepth 1 -name '.v3967-new-*' -type f -printf '%f\n' | sort | xargs cat > /tmp/v3967-new.b64
             echo '== combined base64 =='
-            wc -c /tmp/v3967-remain.b64
-            tail -c 160 /tmp/v3967-remain.b64
-            echo
-            base64 --decode /tmp/v3967-remain.b64 > /tmp/v3967-remain.tar.xz
+            wc -c /tmp/v3967-new.b64
+            sha256sum /tmp/v3967-new.b64
+            base64 --decode /tmp/v3967-new.b64 > /tmp/v3967-new.tar.xz
             echo "base64_exit=$?"
-            wc -c /tmp/v3967-remain.tar.xz
-            sha256sum /tmp/v3967-remain.tar.xz
+            wc -c /tmp/v3967-new.tar.xz
+            sha256sum /tmp/v3967-new.tar.xz
             echo '== xz test =='
-            xz -tv /tmp/v3967-remain.tar.xz
+            xz -tv /tmp/v3967-new.tar.xz
             echo "xz_exit=$?"
-            set +e
-            xz -dc /tmp/v3967-remain.tar.xz > /tmp/v3967-remain.tar
-            echo "xz_decode_exit=$?"
-            set -e
-            wc -c /tmp/v3967-remain.tar
-            echo '== tar list =='
-            set +e
-            tar -tvf /tmp/v3967-remain.tar > /tmp/v3967-remain-list.txt 2> /tmp/v3967-remain-list.err
-            echo "tar_list_exit=$?"
-            set -e
-            wc -l /tmp/v3967-remain-list.txt
-            cat /tmp/v3967-remain-list.txt
-            cat /tmp/v3967-remain-list.err
-            echo '== tar extract =='
-            set +e
-            tar -xf /tmp/v3967-remain.tar -C /tmp/v3967-remain-probe 2> /tmp/v3967-remain-extract.err
-            echo "tar_extract_exit=$?"
-            set -e
-            find /tmp/v3967-remain-probe -type f -printf '%s %p\n' | sort
-            echo '== extracted count =='
-            find /tmp/v3967-remain-probe -type f | wc -l
-            cat /tmp/v3967-remain-extract.err
-          } > .v3967-remain-diagnostic.txt 2>&1
-          cat .v3967-remain-diagnostic.txt
-          xz -t /tmp/v3967-remain.tar.xz
-          test "$(wc -l < /tmp/v3967-remain-list.txt)" -eq 42
-          test "$(find /tmp/v3967-remain-probe -type f | wc -l)" -eq 42
+            echo '== archive list =='
+            tar -tf /tmp/v3967-new.tar.xz > /tmp/v3967-new-list.txt
+            echo "tar_exit=$?"
+            wc -l /tmp/v3967-new-list.txt
+            cat /tmp/v3967-new-list.txt
+          } > .v3967-full-archive-diagnostic.txt 2>&1
+          cat .v3967-full-archive-diagnostic.txt
+          echo 'a885b9ee431c42685e417c185134f4aef4100ea70ffb7b2c2622b26c7292c47e  /tmp/v3967-new.tar.xz' | sha256sum -c -
+          xz -t /tmp/v3967-new.tar.xz
+          test "$(wc -l < /tmp/v3967-new-list.txt)" -eq 54
 
-      - name: Commit remaining archive diagnostic
-        if: steps.diagnose.outcome == 'failure'
+      - name: Save archive diagnostic
+        if: steps.archive.outcome == 'failure'
         run: |
           set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .v3967-remain-diagnostic.txt
-          git commit -m 'diagnostic: inspect remaining v3967 archive'
+          git add .v3967-full-archive-diagnostic.txt
+          git commit -m 'diagnostic: inspect complete v3967 archive'
           git push origin HEAD:${{ github.head_ref }}
           exit 1
 
-      - name: Recover eleven complete files from original archive
-        if: steps.diagnose.outcome == 'success'
+      - name: Materialize governed files
+        if: steps.archive.outcome == 'success'
         run: |
           set -euxo pipefail
-          mkdir -p /tmp/v3967-first
-          cat .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07 | base64 --decode > /tmp/v3967-first.truncated.tar.xz
-          set +e
-          xz -dc /tmp/v3967-first.truncated.tar.xz > /tmp/v3967-first.tar
-          tar -xf /tmp/v3967-first.tar -C /tmp/v3967-first
-          set -e
-          rm -f /tmp/v3967-first/ln-rank/js/feature/major-pool/index.v3967_0.js
-          test "$(find /tmp/v3967-first -type f | wc -l)" -eq 11
-
-      - name: Rebuild immutable major-pool entry
-        if: steps.diagnose.outcome == 'success'
-        run: |
-          set -euxo pipefail
-          mkdir -p /tmp/v3967-entry/ln-rank/js/feature/major-pool
-          cat > /tmp/v3967-entry/ln-rank/js/feature/major-pool/index.v3967_0.js <<'EOF'
-          export * from './bands-api.v3963_0.js?v=3963_0';
-          export * from './render.v3967_0.js?v=3967_0';
-          export * from './keyword-parser.js?v=3961_0';
-          export * from './chips.js?v=3961_0';
-          export * from './preset-policy.js?v=3961_0';
-          export * from './major-keyword-policy.js?v=3961_0';
-          export * from './project-keyword-policy.js?v=3961_0';
-          export * from './industry-keyword-policy.js?v=3961_0';
-          export * from './keyword-token-classifier.js?v=3961_0';
-          export * from './review-point-builder.js?v=3961_0';
-          export * from './local-strength-view.js?v=3961_0';
-          EOF
-          node --check /tmp/v3967-entry/ln-rank/js/feature/major-pool/index.v3967_0.js
-
-      - name: Materialize all governed files
-        if: steps.diagnose.outcome == 'success'
-        run: |
-          set -euxo pipefail
-          cp -a /tmp/v3967-first/. .
-          cp -a /tmp/v3967-remain-probe/. .
-          cp -a /tmp/v3967-entry/. .
-          test "$(find /tmp/v3967-first /tmp/v3967-remain-probe /tmp/v3967-entry -type f | wc -l)" -eq 54
-          rm -f .v3967-new-00 .v3967-new-01 .v3967-new-02 .v3967-new-03 .v3967-new-04 .v3967-new-05 .v3967-new-06 .v3967-new-07
-          rm -f .v3967-remain-00 .v3967-remain-01 .v3967-remain-02 .v3967-remain-03
-          rm -f .v3967-verify-diagnostic.txt .v3967-archive-diagnostic.txt .v3967-tar-diagnostic.txt .v3967-remain-diagnostic.txt
+          tar -xf /tmp/v3967-new.tar.xz
+          rm -f .v3967-new-* .v3967-remain-* .v3967-tail-* .v3967-*-diagnostic.txt
 
       - name: Verify governed release before commit
-        if: steps.diagnose.outcome == 'success'
+        if: steps.archive.outcome == 'success'
         run: |
           set -euo pipefail
           node tools/build-derived-asset-trace-v3967.mjs
@@ -142,7 +84,7 @@ jobs:
           python3 tools/ln-2026/verify-final-release-v10.py
 
       - name: Commit governed files
-        if: steps.diagnose.outcome == 'success'
+        if: steps.archive.outcome == 'success'
         run: |
           set -euo pipefail
           git config user.name github-actions[bot]
