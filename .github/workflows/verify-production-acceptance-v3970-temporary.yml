@@ -1,0 +1,79 @@
+name: Production acceptance v3970 temporary
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  production-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Compare Pages production domain and custom domain
+        env:
+          EXPECTED_SHA: 52c59ea998ff7c1fd5f6367659074aa3d96ba1cd
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3970-production-acceptance
+          pages_ready=0
+          custom_ready=0
+          check_site() {
+            local label="$1" base="$2" token="$3"
+            curl --fail --silent --show-error --location --max-time 25 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              "${base}/?release-check=${token}" -o "/tmp/v3970-production-acceptance/${label}-root.html" || true
+            curl --fail --silent --show-error --location --max-time 25 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              "${base}/ln-rank/?release-check=${token}" -o "/tmp/v3970-production-acceptance/${label}-workspace.html" || true
+            curl --fail --silent --show-error --location --max-time 25 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              "${base}/shared/resources/release/current-release.js?release-check=${token}" -o "/tmp/v3970-production-acceptance/${label}-release.js" || true
+            grep -q 'data-release="v3.9.70.0"' "/tmp/v3970-production-acceptance/${label}-root.html" 2>/dev/null \
+              && grep -q 'family-home.v3970_0.js?v=3970_0' "/tmp/v3970-production-acceptance/${label}-root.html" 2>/dev/null \
+              && ! grep -q 'family-home.v3968_0.js' "/tmp/v3970-production-acceptance/${label}-root.html" 2>/dev/null \
+              && grep -q 'data-release="v3.9.70.0"' "/tmp/v3970-production-acceptance/${label}-workspace.html" 2>/dev/null \
+              && grep -q 'app.v3970_0.js?v=3970_0' "/tmp/v3970-production-acceptance/${label}-workspace.html" 2>/dev/null \
+              && grep -q "display: 'v3.9.70.0'" "/tmp/v3970-production-acceptance/${label}-release.js" 2>/dev/null \
+              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" "/tmp/v3970-production-acceptance/${label}-release.js" 2>/dev/null
+          }
+          for attempt in $(seq 1 45); do
+            token="${EXPECTED_SHA}-${attempt}-$(date +%s)"
+            if check_site pages "$PAGES_BASE" "$token"; then pages_ready=1; fi
+            if check_site custom "$CUSTOM_BASE" "$token"; then custom_ready=1; fi
+            printf 'attempt=%s pages_ready=%s custom_ready=%s\n' "$attempt" "$pages_ready" "$custom_ready" | tee /tmp/v3970-production-acceptance/status.txt
+            if [ "$pages_ready" -eq 1 ] && [ "$custom_ready" -eq 1 ]; then break; fi
+            sleep 20
+          done
+
+          for label in pages custom; do
+            base_var="${label^^}_BASE"
+            base="${!base_var}"
+            curl --fail --silent --show-error --location --dump-header "/tmp/v3970-production-acceptance/${label}-root.headers" \
+              -H 'Cache-Control: no-cache' "${base}/?release-check=${EXPECTED_SHA}-headers" -o /dev/null || true
+            curl --fail --silent --show-error --location --dump-header "/tmp/v3970-production-acceptance/${label}-home-runtime.headers" \
+              "${base}/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0" -o "/tmp/v3970-production-acceptance/${label}-home-runtime.js" || true
+          done
+
+          if [ "$pages_ready" -eq 1 ] && [ "$custom_ready" -eq 1 ]; then
+            printf '%s\n' 'PRODUCTION_ACCEPTANCE_OK' | tee -a /tmp/v3970-production-acceptance/status.txt
+            exit 0
+          fi
+          if [ "$pages_ready" -eq 1 ] && [ "$custom_ready" -ne 1 ]; then
+            printf '%s\n' 'CUSTOM_DOMAIN_STALE_PAGES_PROJECT_CURRENT' | tee -a /tmp/v3970-production-acceptance/status.txt
+          else
+            printf '%s\n' 'PAGES_PRODUCTION_NOT_UPDATED_OR_WRONG_PRODUCTION_BRANCH' | tee -a /tmp/v3970-production-acceptance/status.txt
+          fi
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v3970-production-acceptance-evidence
+          path: /tmp/v3970-production-acceptance
+          if-no-files-found: warn
+          retention-days: 3
