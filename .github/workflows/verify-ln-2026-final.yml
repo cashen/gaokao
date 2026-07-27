@@ -52,14 +52,14 @@ jobs:
       - name: Verify resources derived assets algorithms CSS and unified background
         run: |
           set -euo pipefail
-          node tools/audit-resource-execution-v3967.mjs | tee /tmp/v3968-resource-execution.out
-          node tools/build-derived-asset-trace-v3967.mjs | tee /tmp/v3968-derived-build.out
-          node tools/audit-derived-assets-v3967.mjs | tee /tmp/v3968-derived-assets.out
-          node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3968-algorithm-parity.out
-          node tools/audit-report-execution-v3967.mjs | tee /tmp/v3968-report-execution.out
-          node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3968-css-isolation.out
-          node tools/audit-three-year-rank-evidence-v3967.mjs | tee /tmp/v3968-three-year-rank.out
-          node tools/audit-academic-background-v3968.mjs | tee /tmp/v3968-academic-background.out
+          node tools/audit-resource-execution-v3968.mjs 2>&1 | tee /tmp/v3968-resource-execution.out
+          node tools/build-derived-asset-trace-v3967.mjs 2>&1 | tee /tmp/v3968-derived-build.out
+          node tools/audit-derived-assets-v3967.mjs 2>&1 | tee /tmp/v3968-derived-assets.out
+          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3968-algorithm-parity.out
+          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3968-report-execution.out
+          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3968-css-isolation.out
+          node tools/audit-three-year-rank-evidence-v3967.mjs 2>&1 | tee /tmp/v3968-three-year-rank.out
+          node tools/audit-academic-background-v3968.mjs 2>&1 | tee /tmp/v3968-academic-background.out
 
       - name: Verify generated data and critical owners
         run: |
