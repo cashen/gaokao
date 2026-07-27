@@ -1,4 +1,4 @@
-name: Verify runtime ownership v3967.0
+name: Verify runtime ownership v3968.0
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   runtime-ownership:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,33 +29,50 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3967-runtime-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3967-runtime-files.txt; then exit 1; fi
+          git diff --name-only "$base" HEAD | tee /tmp/v3968-runtime-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3968-runtime-files.txt; then exit 1; fi
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           python3 -m py_compile tools/ln-2026/verify-final-release-v10.py
 
       - name: Verify execution ownership graph
         run: |
-          python3 tools/ln-2026/verify-final-release-v10.py | tee /tmp/v3967-runtime-release.out
-          node tools/audit-resource-execution-v3967.mjs | tee /tmp/v3967-runtime-resource.out
-          node tools/build-derived-asset-trace-v3967.mjs | tee /tmp/v3967-derived-build.out
-          node tools/audit-derived-assets-v3967.mjs | tee /tmp/v3967-runtime-derived.out
-          node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3967-runtime-algorithm.out
-          node tools/audit-report-execution-v3967.mjs | tee /tmp/v3967-report-execution.out
-          node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3967-runtime-css.out
+          set -euo pipefail
+          python3 tools/ln-2026/verify-final-release-v10.py | tee /tmp/v3968-runtime-release.out
+          node tools/audit-resource-execution-v3967.mjs | tee /tmp/v3968-runtime-resource.out
+          node tools/build-derived-asset-trace-v3967.mjs | tee /tmp/v3968-derived-build.out
+          node tools/audit-derived-assets-v3967.mjs | tee /tmp/v3968-runtime-derived.out
+          node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3968-runtime-algorithm.out
+          node tools/audit-report-execution-v3967.mjs | tee /tmp/v3968-report-execution.out
+          node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3968-runtime-css.out
+          node tools/audit-academic-background-v3968.mjs | tee /tmp/v3968-runtime-background.out
 
       - name: Verify active immutable assets
         run: |
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3967_0.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3968_0.js';
           const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
-          if(CURRENT_RELEASE.assetVersion!=='v3967_0'||LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3967_0') throw new Error('release/cache');
+          if(CURRENT_RELEASE.display!=='v3.9.68.0'||CURRENT_RELEASE.assetVersion!=='v3968_0'||LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3968_0') throw new Error('release/cache');
           for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}
-          for(const required of ['js/app.v3967_0.js','js/app-runtime.v3967_0.js','js/workspace/selection-workspace-orchestrator.v3967_0.js','js/feature/major-pool/history-score-render.v3967_0.js','js/feature/school-majors/school-all-mode.v3967_0.js','js/selection-pool.v3967_0.js','../shared/governance/resource-execution-contract.v3967_0.js','../shared/ui/component-registry.v3967_0.js','../shared/algorithms/position/historical-rank-selection.v3967_0.js','../shared/resources/auxiliary/liaoning-key-subjects.v3967_0.js']) if(!active.jsEntry.includes(required)) throw new Error(required);
-          const runtime=fs.readFileSync('ln-rank/js/app-runtime.v3967_0.js','utf8');
-          for(const marker of ['release-presenter.v3967_0.js?v=3967_0','runtime-cache-contract.v3967_0.js?v=3967_0','selection-workspace-orchestrator.v3967_0.js?v=3967_0','school-all-mode.v3967_0.js?v=3967_0']) if(!runtime.includes(marker)) throw new Error(marker);
+          for(const required of [
+            'js/app.v3968_0.js','js/app-runtime.v3968_0.js','js/selection-pool.v3968_0.js',
+            'js/academic-background/academic-background-app.v3968_0.js',
+            '../shared/resources/release/runtime-cache-contract.v3968_0.js',
+            '../shared/governance/resource-execution-contract.v3968_0.js',
+            '../shared/resources/background/academic-background-contract.v3968_0.js',
+            '../shared/resources/background/academic-background-source-registry.v3968_0.js',
+            '../shared/algorithms/background/academic-background-matcher.v3968_0.js',
+            '../shared/ui/component-registry.v3967_0.js'
+          ]) if(!active.jsEntry.includes(required)) throw new Error(required);
+          for(const forbidden of ['js/local-mainline/local-mainline-app.v3967_0.js','js/211-mainline/211-mainline-app.v3951_0.js']) if(active.jsEntry.includes(forbidden)) throw new Error(`legacy active ${forbidden}`);
+          const runtime=fs.readFileSync('ln-rank/js/app-runtime.v3968_0.js','utf8');
+          for(const marker of ['release-presenter.v3968_0.js?v=3968_0','runtime-cache-contract.v3968_0.js?v=3968_0','selection-workspace-orchestrator.v3967_0.js?v=3967_0','school-all-mode.v3967_0.js?v=3967_0']) if(!runtime.includes(marker)) throw new Error(marker);
+          for(const [page,scope] of [['ln-rank/local-mainline.html','liaoning'],['ln-rank/211-mainline.html','211']]){
+            const html=fs.readFileSync(page,'utf8');
+            if(!html.includes(`data-background-scope="${scope}"`)||!html.includes('academic-background-app.v3968_0.js?v=3968_0')) throw new Error(page);
+            if(/local-mainline-app\.v3967_0|211-mainline-app\.v3951_0/.test(html)) throw new Error(`legacy runtime ${page}`);
+          }
           console.log('immutable execution graph passed');
           NODE
 
@@ -64,25 +81,35 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify PC Pad Android component geometry and complete journey
+      - name: Verify PC Pad Android main workspace geometry and complete journey
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3967-browser-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3968-browser-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3967_ARTIFACT_DIR=/tmp/v3967-browser node tools/browser-resource-execution-v3967.mjs | tee /tmp/v3967-browser.out
+          V3967_ARTIFACT_DIR=/tmp/v3968-browser-main node tools/browser-resource-execution-v3967.mjs | tee /tmp/v3968-browser-main.out
+
+      - name: Verify local and 211 unified background PC Pad Android journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3968-background-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3968_ARTIFACT_DIR=/tmp/v3968-browser-background node tools/browser-academic-background-v3968.mjs | tee /tmp/v3968-browser-background.out
 
       - name: Upload verification diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-ownership-v3967-diagnostics
+          name: runtime-ownership-v3968-diagnostics
           path: |
-            /tmp/v3967-*.txt
-            /tmp/v3967-*.out
-            /tmp/v3967-*.err
-            /tmp/v3967-*.log
-            /tmp/v3967-browser
+            /tmp/v3968-*.txt
+            /tmp/v3968-*.out
+            /tmp/v3968-*.err
+            /tmp/v3968-*.log
+            /tmp/v3968-browser-main
+            /tmp/v3968-browser-background
           if-no-files-found: warn
           retention-days: 3
