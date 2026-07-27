@@ -1,4 +1,4 @@
-name: Materialize v3967 governed files
+name: Diagnose v3967 governed release
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  materialize:
+  diagnose:
     if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/v3967-resource-execution-governance'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -19,53 +19,33 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Rebuild verified full copy patch
+      - name: Run every governed audit and preserve results
         run: |
-          set -euxo pipefail
-          cat \
-            .v3967-all-copy-00 \
-            .v3967-all-copy-01 \
-            .v3967-all-copy-02 \
-            .v3967-all-copy-03a \
-            .v3967-all-copy-03b \
-            .v3967-all-copy-03c \
-            .v3967-all-copy-03d > /tmp/v3967-all-copy.patch.xz.b64
-          echo '2e077133f0439e2a3ffe76906311f8405529ca65d685a62c87e800bd60373fef  /tmp/v3967-all-copy.patch.xz.b64' | sha256sum -c -
-          base64 --decode /tmp/v3967-all-copy.patch.xz.b64 > /tmp/v3967-all-copy.patch.xz
-          echo 'e523379d9a6319a8327708136237551c7f3d4a8dfbd431350dffcc75e72fe02a  /tmp/v3967-all-copy.patch.xz' | sha256sum -c -
-          xz -t /tmp/v3967-all-copy.patch.xz
-          xz -dc /tmp/v3967-all-copy.patch.xz > /tmp/v3967-all-copy.patch
-          test "$(grep -c '^diff --git ' /tmp/v3967-all-copy.patch)" -eq 54
-
-      - name: Apply and preserve complete governed worktree
-        run: |
-          set -euxo pipefail
-          grep '^diff --git ' /tmp/v3967-all-copy.patch | sed -E 's#^diff --git a/.* b/##' > /tmp/v3967-targets.txt
-          while IFS= read -r path; do
-            git rm -f --ignore-unmatch -- "$path"
-            rm -f -- "$path"
-          done < /tmp/v3967-targets.txt
-          git apply --check --verbose /tmp/v3967-all-copy.patch
-          git apply --binary --index --verbose /tmp/v3967-all-copy.patch
-          while IFS= read -r path; do test -f "$path"; done < /tmp/v3967-targets.txt
-          rm -f .v3967-*
-          node tools/build-derived-asset-trace-v3967.mjs
+          set +e
+          failures=0
+          : > .v3967-audit-diagnostic.txt
+          run_check() {
+            echo "===== $* =====" | tee -a .v3967-audit-diagnostic.txt
+            "$@" >> .v3967-audit-diagnostic.txt 2>&1
+            status=$?
+            echo "EXIT=$status" | tee -a .v3967-audit-diagnostic.txt
+            if [ "$status" -ne 0 ]; then failures=$((failures + 1)); fi
+          }
+          run_check node tools/audit-resource-execution-v3967.mjs
+          run_check node tools/audit-derived-assets-v3967.mjs
+          run_check node tools/audit-algorithm-parity-v3967.mjs
+          run_check node tools/audit-css-component-isolation-v3967.mjs
+          run_check node tools/audit-report-execution-v3967.mjs
+          run_check node tools/audit-three-year-rank-evidence-v3967.mjs
+          run_check node tools/verify-school-profile-center-v3957.mjs
+          run_check node tools/verify-card-ai-2026-v3955.mjs
+          run_check python3 tools/ln-2026/verify-generated-release-v3967.py
+          run_check python3 tools/ln-2026/verify-final-release-v10.py
+          echo "TOTAL_FAILURES=$failures" | tee -a .v3967-audit-diagnostic.txt
+          cat .v3967-audit-diagnostic.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
-          git commit -m 'v3.9.67.0：补齐资源执行中心、算法与组件治理文件'
+          git add .v3967-audit-diagnostic.txt
+          git commit -m 'diagnostic: capture v3967 governed audit results'
           git push origin HEAD:${{ github.head_ref }}
-
-      - name: Verify preserved governed release
-        run: |
-          set -euo pipefail
-          node tools/audit-resource-execution-v3967.mjs
-          node tools/audit-derived-assets-v3967.mjs
-          node tools/audit-algorithm-parity-v3967.mjs
-          node tools/audit-css-component-isolation-v3967.mjs
-          node tools/audit-report-execution-v3967.mjs
-          node tools/audit-three-year-rank-evidence-v3967.mjs
-          node tools/verify-school-profile-center-v3957.mjs
-          node tools/verify-card-ai-2026-v3955.mjs
-          python3 tools/ln-2026/verify-generated-release-v3967.py
-          python3 tools/ln-2026/verify-final-release-v10.py
+          test "$failures" -eq 0
