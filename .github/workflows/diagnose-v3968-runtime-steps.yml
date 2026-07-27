@@ -1,0 +1,41 @@
+name: Diagnose v3968 runtime audit steps
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'agent/v3968-unified-academic-background'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Final release verifier
+        run: python3 tools/ln-2026/verify-final-release-v3968.py
+      - name: Resource execution
+        run: node tools/audit-resource-execution-v3968.mjs
+      - name: Derived trace builder
+        run: node tools/build-derived-asset-trace-v3968.mjs
+      - name: Derived trace audit
+        run: node tools/audit-derived-assets-v3968.mjs
+      - name: Algorithm parity
+        run: node tools/audit-algorithm-parity-v3967.mjs
+      - name: Report execution
+        run: node tools/audit-report-execution-v3967.mjs
+      - name: CSS isolation
+        run: node tools/audit-css-component-isolation-v3967.mjs
+      - name: Academic background
+        run: node tools/audit-academic-background-v3968.mjs
