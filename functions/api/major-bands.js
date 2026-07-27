@@ -119,8 +119,9 @@ function exactSchoolNames(entity, schoolKeyword) {
 
 function rawKeywordPass(raw, filters, acceptedSchoolNames) {
   const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  if (acceptedSchoolNames?.size) return acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
-  return !schoolKeyword || rawSchool(raw).includes(schoolKeyword);
+  if (!schoolKeyword) return true;
+  return Boolean(acceptedSchoolNames?.size)
+    && acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
 }
 
 function explicitSpecialProjectIntent(value = '') {
