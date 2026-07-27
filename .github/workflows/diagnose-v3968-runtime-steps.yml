@@ -23,19 +23,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Final release verifier
-        run: python3 tools/ln-2026/verify-final-release-v3968.py
+      - name: Capture final release verifier
+        id: final
+        continue-on-error: true
+        run: |
+          set +e
+          python3 tools/ln-2026/verify-final-release-v3968.py > /tmp/v3968-final-verifier.txt 2>&1
+          code=$?
+          echo "exit_code=$code" >> /tmp/v3968-final-verifier.txt
+          echo "code=$code" >> "$GITHUB_OUTPUT"
       - name: Resource execution
-        run: node tools/audit-resource-execution-v3968.mjs
-      - name: Derived trace builder
-        run: node tools/build-derived-asset-trace-v3968.mjs
-      - name: Derived trace audit
-        run: node tools/audit-derived-assets-v3968.mjs
-      - name: Algorithm parity
-        run: node tools/audit-algorithm-parity-v3967.mjs
-      - name: Report execution
-        run: node tools/audit-report-execution-v3967.mjs
-      - name: CSS isolation
-        run: node tools/audit-css-component-isolation-v3967.mjs
-      - name: Academic background
-        run: node tools/audit-academic-background-v3968.mjs
+        if: always()
+        continue-on-error: true
+        run: node tools/audit-resource-execution-v3968.mjs > /tmp/v3968-resource.txt 2>&1
+      - name: Derived trace
+        if: always()
+        continue-on-error: true
+        run: |
+          node tools/build-derived-asset-trace-v3968.mjs > /tmp/v3968-derived-builder.txt 2>&1
+          node tools/audit-derived-assets-v3968.mjs > /tmp/v3968-derived-audit.txt 2>&1
+      - name: Other audits
+        if: always()
+        continue-on-error: true
+        run: |
+          node tools/audit-algorithm-parity-v3967.mjs > /tmp/v3968-algorithm.txt 2>&1
+          node tools/audit-report-execution-v3967.mjs > /tmp/v3968-report.txt 2>&1
+          node tools/audit-css-component-isolation-v3967.mjs > /tmp/v3968-css.txt 2>&1
+          node tools/audit-academic-background-v3968.mjs > /tmp/v3968-background.txt 2>&1
+      - name: Upload exact diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3968-split-audit-diagnostics
+          path: /tmp/v3968-*.txt
+          retention-days: 3
+      - name: Preserve failure state
+        if: steps.final.outputs.code != '0'
+        run: exit 1
