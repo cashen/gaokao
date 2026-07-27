@@ -6,21 +6,21 @@
       "source": "shared/resources/release/current-release.js",
       "sourceSha256": "2ab1d31f5acd8bc3016b323e0f871416cf6d84360f14312f2439a249f4a164c3",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "4781d524f23823ccb60a15dc2b1d1ac686d0bf5cb7114beb73dfa4617c43f2a9",
+      "derivedSha256": "16ccd673fca7ed7fc7065413dc9799f8e8727dfc527bcf5c6fc91957089cda01",
       "reason": "active asset graph bound to the current release"
     },
     {
       "source": "shared/governance/resource-execution-contract.v3970_0.js",
       "sourceSha256": "0d32523ebd3cadb6b05cfbe2fa54321e47b8428876151f67ae51f7eff99f083b",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "4781d524f23823ccb60a15dc2b1d1ac686d0bf5cb7114beb73dfa4617c43f2a9",
+      "derivedSha256": "16ccd673fca7ed7fc7065413dc9799f8e8727dfc527bcf5c6fc91957089cda01",
       "reason": "active graph bound to execution owners"
     },
     {
       "source": "shared/ui/component-registry.v3970_0.js",
       "sourceSha256": "ea4f4a7ce742a62ac54b31b66cfbb2c9528e4d1d9b4be34e3cd886f74bf3a4ae",
       "derived": "ln-rank/active-assets.json",
-      "derivedSha256": "4781d524f23823ccb60a15dc2b1d1ac686d0bf5cb7114beb73dfa4617c43f2a9",
+      "derivedSha256": "16ccd673fca7ed7fc7065413dc9799f8e8727dfc527bcf5c6fc91957089cda01",
       "reason": "active UI graph bound to the component registry"
     },
     {
@@ -76,7 +76,7 @@
       "source": "shared/resources/release/current-release.js",
       "sourceSha256": "2ab1d31f5acd8bc3016b323e0f871416cf6d84360f14312f2439a249f4a164c3",
       "derived": "ln-rank/release-meta.json",
-      "derivedSha256": "4781d524f23823ccb60a15dc2b1d1ac686d0bf5cb7114beb73dfa4617c43f2a9",
+      "derivedSha256": "16ccd673fca7ed7fc7065413dc9799f8e8727dfc527bcf5c6fc91957089cda01",
       "reason": "release metadata bound to the current release"
     },
     {
