@@ -8,20 +8,21 @@
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3962_2" />
   <link rel="stylesheet" href="/shared/ui/components/mode-switch.v3963_0.css?v=3963_0" />
-  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3965_0.css?v=3965_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3970_0.css?v=3970_0" />
+  <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0" />
   <link rel="stylesheet" href="/ln-rank/css/ln-rank-workspace.v3967_0.css?v=3967_0" />
   <link rel="stylesheet" href="/ln-rank/css/school-all-mode.v3967_0.css?v=3967_0" />
   <link rel="stylesheet" href="/ln-rank/css/history-evidence.v3967_0.css?v=3967_0" />
 </head>
-<body class="ln-parent-guided-flow ln-search-guided-flow ui-orchestrated" data-ui-page="selection" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.69.0" data-result-mode="score-bands" data-runtime-state="loading">
+<body class="ln-parent-guided-flow ln-search-guided-flow ui-orchestrated" data-ui-page="selection" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.70.0" data-result-mode="score-bands" data-runtime-state="loading">
   <div data-ui-global-header-mount></div>
   <div data-ui-family-status-mount></div>
   <main class="page ln-page-shell">
     <header class="hero">
       <div>
         <p class="eyebrow">辽宁 2027 物理类家庭专业初选</p>
-        <h1 class="app-title">先从分数或一所学校开始，再留下愿意认真讨论的专业</h1>
-        <p class="app-subtitle">输入分数，先圈出能考虑的学校和专业；已有目标学校，就直接看它在辽宁2026物理类的投档专业。看懂原因、排除不能接受的、加入同一份已选清单，再和孩子逐项确认。</p>
+        <h1 class="app-title">先圈出值得继续了解的专业，再和孩子一起整理家庭方案</h1>
+        <p class="app-subtitle">有参考分数，就先看能继续讨论的学校和专业；已有目标学校，就直接查看它在辽宁2026物理类的投档专业。看懂为什么出现，排除明确不能接受的，再把愿意继续了解的专业加入同一份家庭方案。</p>
       </div>
       <div class="hero-badges">
         <div id="appReadyBadge" class="ready-badge is-loading"><span class="ready-dot"></span><span class="ready-text">筛选功能正在准备</span></div>
@@ -30,15 +31,15 @@
     </header>
 
     <section class="ln-parent-compact-stepper" aria-label="家庭专业初选流程">
-      <div class="ln-stepper-head"><b>家庭专业初选流程</b><span>先选择从分数还是学校开始，再缩小专业范围、加入已选，最后和孩子逐项复核。</span></div>
+      <div class="ln-stepper-head"><b>家庭专业初选流程</b><span>先从分数或学校开始，缩小范围，再把愿意继续讨论的专业放进家庭方案。</span></div>
       <ol class="ln-stepper-list">
         <li><span class="ln-stepper-index">1</span><span><b>确认孩子的位置</b><small>输入参考分数</small></span></li>
         <li><span class="ln-stepper-index">2</span><span><b>说清想看什么</b><small>专业与家庭条件</small></span></li>
-        <li><span class="ln-stepper-index">3</span><span><b>圈出并整理专业</b><small>加入已选</small></span></li>
-        <li><span class="ln-stepper-index">4</span><span><b>家庭逐项复核</b><small>生成报告</small></span></li>
+        <li><span class="ln-stepper-index">3</span><span><b>留下值得讨论的专业</b><small>加入家庭方案</small></span></li>
+        <li><span class="ln-stepper-index">4</span><span><b>家庭逐项复核</b><small>整理并分享报告</small></span></li>
       </ol>
       <p class="ln-stepper-flow-note" data-flow-note>先输入孩子的模考或预估参考分数。</p>
-      <details class="ln-stepper-details"><summary>查看步骤说明</summary><p>从分数出发时，先用2026位次圈出历史参考范围；从学校出发时，先确认学校本部、分校或校区，再看该校在辽宁2026物理类的专业记录。两条路径都把能继续讨论的专业加入同一份已选清单，最后确认校区、招生计划、体检、学费和培养方式。</p></details>
+      <details class="ln-stepper-details"><summary>查看步骤说明</summary><p>从分数出发时，先用2026位次圈出历史参考范围；从学校出发时，先确认学校本部、分校或校区，再看该校在辽宁2026物理类的专业记录。两条路径都把愿意继续了解的专业加入同一份家庭方案，最后再确认校区、招生计划、体检、学费和培养方式。</p></details>
     </section>
 
     <section class="ln-console panel" aria-label="专业初选条件">
@@ -48,7 +49,7 @@
       </section>
 
       <section id="schoolViewModeMount" class="ui-mode-switch search-intent-switch" aria-label="专业初选查看方式">
-        <div class="ui-mode-switch__head"><b>你现在想从哪里开始？</b><span>有参考分数，就先圈学校和专业；已有目标学校，就先看清校内专业差异。随时切换，已选专业和顺序不会丢。</span></div>
+        <div class="ui-mode-switch__head"><b>你现在想从哪里开始？</b><span>有参考分数，就先圈学校和专业；已有目标学校，就先看清校内专业差异。随时切换，家庭方案里的专业和顺序不会丢。</span></div>
         <div class="ui-segmented ui-mode-switch__actions" role="group" aria-label="专业初选查看方式">
           <button type="button" data-school-view-mode="score-bands" data-runtime-control class="ui-button ui-button--compact ui-button--secondary is-active" aria-pressed="true" disabled>按分数找学校和专业</button>
           <button type="button" data-school-view-mode="school-all" data-runtime-control class="ui-button ui-button--compact ui-button--secondary" aria-pressed="false" disabled>看一所学校的在辽专业</button>
@@ -91,7 +92,6 @@
         <section class="search-workbench ln-filter-panel" data-filter-panel aria-label="专业方向和家庭条件">
           <div class="search-workbench-head ln-filter-panel__head">
             <div><h2 id="searchWorkbenchTitle" class="search-workbench-title">说清想看的专业和家庭条件</h2><p id="searchWorkbenchDesc" class="search-workbench-desc">不知道具体专业名，也可以先输入大方向，例如计算机、电气、医学、会计。孩子是否真正接受，还要结合课程内容继续确认。</p></div>
-            <div id="poolEntryInlineMount" class="pool-entry-inline-mount" aria-label="已选专业入口"></div>
           </div>
 
           <div class="major-keyword-panel ln-filter-panel__primary">
@@ -101,18 +101,15 @@
           <details id="familyConditionsDetails" class="ln-more-conditions">
             <summary>再加地区、学校和特殊项目条件</summary>
             <div class="ln-more-conditions__body">
-          <div class="search-grid-top ln-filter-panel__secondary">
-            <div class="filter-field filter-region"><label for="region">家庭能够接受的地区</label><select id="region" class="select" data-runtime-control disabled></select></div>
-            <div class="filter-field filter-school"><label id="schoolKeywordLabel" for="schoolKeyword">学校名称关键词，可不填</label><input id="schoolKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：辽大、沈阳化工大学；城市请用地区" data-runtime-control disabled /><div id="schoolKeywordHelp" class="keyword-help">学校条件统一按正式校名、简称和学校实体解析；查看沈阳、大连等城市范围请使用地区条件。</div></div>
-          </div>
-
-          <div class="ln-filter-panel__quick"><div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用专业方向"></div><div id="directionExplorerEntryMount" class="direction-explorer-entry-mount" aria-label="专业方向讨论助手入口"></div></div>
-
-          <div id="specialProjectPanel" class="special-project-panel ln-filter-assist-line ln-filter-panel__special" data-mode="hide_eligibility_projects" aria-label="特殊项目显示设置">
-            <div class="special-project-main"><div class="special-project-title">特殊项目</div><div id="specialProjectStatus" class="special-project-status">特殊项目默认隐藏</div><div id="specialProjectHelp" class="special-project-help">需要时再显示专项、定向、预科等需要资格确认的项目；明确搜索这些项目时会显示并持续提醒资格核验。</div></div>
-            <button id="specialProjectToggle" class="special-project-toggle" type="button" data-runtime-control disabled>显示特殊项目</button>
-          </div>
-
+              <div class="search-grid-top ln-filter-panel__secondary">
+                <div class="filter-field filter-region"><label for="region">家庭能够接受的地区</label><select id="region" class="select" data-runtime-control disabled></select></div>
+                <div class="filter-field filter-school"><label id="schoolKeywordLabel" for="schoolKeyword">学校名称关键词，可不填</label><input id="schoolKeyword" class="input" type="search" enterkeyhint="search" autocomplete="off" placeholder="如：辽大、沈阳化工大学；城市请用地区" data-runtime-control disabled /><div id="schoolKeywordHelp" class="keyword-help">学校条件统一按正式校名、简称和学校实体解析；查看沈阳、大连等城市范围请使用地区条件。</div></div>
+              </div>
+              <div class="ln-filter-panel__quick"><div id="keywordPresetMount" class="keyword-preset-mount" aria-label="常用专业方向"></div><div id="directionExplorerEntryMount" class="direction-explorer-entry-mount" aria-label="专业方向讨论助手入口"></div></div>
+              <div id="specialProjectPanel" class="special-project-panel ln-filter-assist-line ln-filter-panel__special" data-mode="hide_eligibility_projects" aria-label="特殊项目显示设置">
+                <div class="special-project-main"><div class="special-project-title">特殊项目</div><div id="specialProjectStatus" class="special-project-status">特殊项目默认隐藏</div><div id="specialProjectHelp" class="special-project-help">需要时再显示专项、定向、预科等需要资格确认的项目；明确搜索这些项目时会显示并持续提醒资格核验。</div></div>
+                <button id="specialProjectToggle" class="special-project-toggle" type="button" data-runtime-control disabled>显示特殊项目</button>
+              </div>
             </div>
           </details>
 
@@ -121,7 +118,6 @@
             <div id="filterSummary" class="filter-summary ln-filter-summary"></div>
             <div class="filter-action search-action-row ln-filter-action"><button id="queryButton" class="query-button is-waiting" type="button" data-runtime-control disabled>输入分数后查看专业</button><p id="queryGuide" class="filter-action-note">请先输入模考 / 预估参考分数，例如580。输入后可直接查看专业。</p></div>
           </div>
-
           <div class="ln-filter-panel__assist"><div id="majorTrendHint" class="major-trend-hint is-soft ln-heat-summary-row ln-filter-assist-line" aria-live="polite"></div></div>
         </section>
       </div>
@@ -132,11 +128,11 @@
     <section id="resultsPanel" class="panel results-shell ln-result-section band-near-shell">
       <div class="results-head ln-result-section__header">
         <div><h2 id="resultsTitle" class="results-title">主要参考专业</h2><p id="resultsMeta" class="results-meta">输入分数并选择条件后查看</p></div>
-        <div class="results-actions"><div id="feishuReportMount" class="feishu-report-mount"></div><div id="activeBandBadge" class="active-band-badge">输入分数后生成</div></div>
+        <div class="results-actions"><div><div id="feishuReportMount" class="feishu-report-mount"></div><p class="feishu-note">当前结果报告包含当前分组前 20 条结果，生成后会得到可直接打开和转发的飞书链接。知道链接的人可以查看。</p></div><div id="activeBandBadge" class="active-band-badge">输入分数后生成</div></div>
       </div>
       <div id="resultBandSwitcher" class="result-band-switcher" hidden></div>
-      <div id="poolResultStickyMount" class="pool-result-sticky-mount"></div>
       <div id="results" class="results-grid loading is-light-empty" aria-live="polite" aria-busy="false">还没有查看结果。输入参考分数和专业方向后，点击“查看符合条件的专业”。</div>
+      <div data-ui-family-plan-results-footer hidden></div>
     </section>
 
     <section id="schoolAllResultsPanel" class="panel school-all-results-shell" aria-label="学校全部招生专业" hidden>
@@ -158,11 +154,10 @@
       </div>
     </section>
 
-    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>当前发布：<span data-current-release>v3.9.69.0</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+    <section class="data-note">当前主要依据辽宁2026年普通类本科批物理类专业投档记录和2026一分一段。2025、2024只作同校、同专业、同项目的历史对照；正式填报应以2027年一分一段、招生计划、院校章程和志愿系统为准。本工具只帮助家庭初选和人工确认。<br>当前发布：<span data-current-release>v3.9.70.0</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
   </main>
   <div id="directionExplorerPanelMount" class="direction-explorer-panel-mount"></div>
-  <div id="selectionPoolShell" class="selection-pool-shell pool-entry-direct-shell" aria-label="已选专业快捷入口"></div>
-  <div data-ui-mobile-action-mount></div>
-  <script type="module" src="/ln-rank/js/app.v3969_0.js?v=3969_0"></script>
+  <div data-ui-family-plan-live class="ui-family-plan-live" aria-live="polite"></div>
+  <script type="module" src="/ln-rank/js/app.v3970_0.js?v=3970_0"></script>
 </body>
 </html>
