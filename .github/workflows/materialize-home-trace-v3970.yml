@@ -1,0 +1,32 @@
+name: Materialize home trace v3970
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate current trace in isolated runner
+        run: |
+          set -euo pipefail
+          node tools/build-derived-asset-trace-v3970.mjs --write
+          cp shared/governance/derived-asset-trace.v3970_0.json /tmp/derived-asset-trace.v3970_0.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3970-home-trace-generated
+          path: /tmp/derived-asset-trace.v3970_0.json
+          retention-days: 1
