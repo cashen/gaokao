@@ -1,0 +1,44 @@
+== source chunks ==
+.v3967-new-00 15000
+.v3967-new-01 15000
+.v3967-new-02 15000
+.v3967-new-03 15000
+.v3967-new-04 15000
+.v3967-new-05 8000
+.v3967-new-06 8000
+.v3967-new-07 8000
+.v3967-new-08 10000
+.v3967-new-09 10000
+.v3967-new-10 5000
+.v3967-new-11 10000
+.v3967-new-12 10000
+== combined base64 ==
+144000 /tmp/v3967-new.b64
+2bdcb78f9b18d03ce717fc529852a71fa03b49321257b5b6ae5d8a246c7996cf  /tmp/v3967-new.b64
+base64_exit=0
+108000 /tmp/v3967-new.tar.xz
+b832a3350612fb561f49a1d7d56b55b84cf74381c5c72919e86c0b5f153e2117  /tmp/v3967-new.tar.xz
+== xz test ==
+/tmp/v3967-new.tar.xz: 69.1 %, 73.0 KiB / 520.8 KiB = 0.140
+xz: /tmp/v3967-new.tar.xz: Compressed data is corrupt
+/tmp/v3967-new.tar.xz: 69.1 %, 73.0 KiB / 520.8 KiB = 0.140
+xz_exit=1
+== archive list ==
+xz: tar: (stdin): Compressed data is corruptSkipping to next header
+
+tar: Child returned status 1
+tar: Error is not recoverable: exiting now
+tar_exit=2
+12 /tmp/v3967-new-list.txt
+analysis/2026/three-year-rank-evidence-audit-v3967.json
+ln-rank/css/history-evidence.v3967_0.css
+ln-rank/css/ln-rank-workspace.v3967_0.css
+ln-rank/css/school-all-mode.v3967_0.css
+ln-rank/js/app-runtime.v3967_0.js
+ln-rank/js/app.v3967_0.js
+ln-rank/js/feature/diagnose/api.v3967_0.js
+ln-rank/js/feature/diagnose/controller.v3967_0.js
+ln-rank/js/feature/feishu/index.v3967_0.js
+ln-rank/js/feature/feishu/report-controller.v3967_0.js
+ln-rank/js/feature/major-pool/history-score-render.v3967_0.js
+ln-rank/js/feature/major-pool/index.v3967_0.js
