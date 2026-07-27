@@ -272,7 +272,7 @@ try {
         algorithm: globalThis.__GAOKAO_LIAONING_KEY_SUBJECTS_RESOURCE__?.selectionAlgorithmVersion || '',
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
       }));
-      assert.equal(state.release, 'v3.9.68.0');
+      assert.equal(state.release, 'v3.9.69.0');
       assert.equal(state.resource, 'liaoning-key-subjects-execution-v3967_0');
       assert.equal(state.algorithm, 'historical-rank-selection-v3967_0');
       assert.ok(state.overflow <= 1, `${testCase.name}: horizontal overflow ${state.overflow}`);
