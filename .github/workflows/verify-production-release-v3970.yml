@@ -3,6 +3,11 @@ name: Verify production release v3970
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/verify-production-release-v3970.yml'
   workflow_dispatch:
 
 permissions:
@@ -13,68 +18,115 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Wait for custom domain to serve current main
+      - name: Verify Pages production and custom-domain release ownership
         env:
-          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
         run: |
           set -euo pipefail
           mkdir -p /tmp/v3970-production
-          success=0
+
+          fetch_response() {
+            local label="$1" url="$2"
+            curl --silent --show-error --location --max-time 25 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              --dump-header "/tmp/v3970-production/${label}.headers" \
+              --output "/tmp/v3970-production/${label}.body" \
+              --write-out '%{http_code}' "$url" \
+              > "/tmp/v3970-production/${label}.status" || true
+          }
+
+          ready=0
           for attempt in $(seq 1 36); do
             token="${RELEASE_SHA}-${attempt}-$(date +%s)"
-            root="https://gaokao.powers.org.cn/?release-check=${token}"
-            workspace="https://gaokao.powers.org.cn/ln-rank/?release-check=${token}"
-            release="https://gaokao.powers.org.cn/shared/resources/release/current-release.js?release-check=${token}"
-            curl --fail --silent --show-error --location --max-time 25 \
-              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              "$root" -o /tmp/v3970-production/root.html || true
-            curl --fail --silent --show-error --location --max-time 25 \
-              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              "$workspace" -o /tmp/v3970-production/workspace.html || true
-            curl --fail --silent --show-error --location --max-time 25 \
-              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              "$release" -o /tmp/v3970-production/current-release.js || true
 
-            if grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/root.html 2>/dev/null \
-              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/root.html 2>/dev/null \
-              && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-production/root.html 2>/dev/null \
-              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/workspace.html 2>/dev/null \
-              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/workspace.html 2>/dev/null \
-              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/current-release.js 2>/dev/null \
-              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/current-release.js 2>/dev/null; then
-              success=1
-              printf 'production release ready on attempt %s\n' "$attempt"
+            fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
+            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
+            fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
+
+            fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
+            fetch_response custom-workspace "${CUSTOM_BASE}/ln-rank/?release-check=${token}"
+            fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?release-check=${token}"
+            fetch_response custom-home-runtime "${CUSTOM_BASE}/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0"
+            fetch_response custom-app "${CUSTOM_BASE}/ln-rank/js/app.v3970_0.js?v=3970_0"
+
+            pages_current=0
+            custom_assets_current=0
+            custom_html_or_challenge=0
+
+            if [ "$(cat /tmp/v3970-production/pages-root.status)" = '200' ] \
+              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/pages-root.body \
+              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-root.body \
+              && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-production/pages-root.body \
+              && [ "$(cat /tmp/v3970-production/pages-workspace.status)" = '200' ] \
+              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/pages-workspace.body \
+              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-workspace.body \
+              && [ "$(cat /tmp/v3970-production/pages-release.status)" = '200' ] \
+              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/pages-release.body \
+              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/pages-release.body; then
+              pages_current=1
+            fi
+
+            if [ "$(cat /tmp/v3970-production/custom-release.status)" = '200' ] \
+              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/custom-release.body \
+              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/custom-release.body \
+              && [ "$(cat /tmp/v3970-production/custom-home-runtime.status)" = '200' ] \
+              && grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/custom-home-runtime.body \
+              && ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/custom-home-runtime.body \
+              && [ "$(cat /tmp/v3970-production/custom-app.status)" = '200' ] \
+              && grep -q 'app-runtime.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-app.body; then
+              custom_assets_current=1
+            fi
+
+            custom_root_status="$(cat /tmp/v3970-production/custom-root.status)"
+            custom_workspace_status="$(cat /tmp/v3970-production/custom-workspace.status)"
+            if [ "$custom_root_status" = '200' ] \
+              && [ "$custom_workspace_status" = '200' ] \
+              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/custom-root.body \
+              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-root.body \
+              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-workspace.body; then
+              custom_html_or_challenge=1
+              printf '%s\n' 'custom domain HTML returned current release directly' > /tmp/v3970-production/custom-domain-mode.txt
+            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3970-production/custom-root.headers \
+              && grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3970-production/custom-workspace.headers; then
+              custom_html_or_challenge=1
+              printf '%s\n' 'custom domain HTML protected by Cloudflare Managed Challenge; current assets verified separately' > /tmp/v3970-production/custom-domain-mode.txt
+            fi
+
+            printf 'attempt=%s pages_current=%s custom_assets_current=%s custom_html_or_challenge=%s root_status=%s workspace_status=%s\n' \
+              "$attempt" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$custom_root_status" "$custom_workspace_status" \
+              | tee /tmp/v3970-production/status.txt
+
+            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then
+              ready=1
               break
             fi
-            printf 'attempt %s: custom domain has not switched to the complete v3970 release yet\n' "$attempt"
             sleep 20
           done
-          if [ "$success" -ne 1 ]; then
-            printf '%s\n' 'Root response:'
-            head -c 2000 /tmp/v3970-production/root.html 2>/dev/null || true
-            printf '\n%s\n' 'Workspace response:'
-            head -c 2000 /tmp/v3970-production/workspace.html 2>/dev/null || true
-            printf '\n%s\n' 'Release response:'
-            head -c 2000 /tmp/v3970-production/current-release.js 2>/dev/null || true
+
+          if [ "$ready" -ne 1 ]; then
+            for label in pages-root pages-workspace pages-release custom-root custom-workspace custom-release custom-home-runtime custom-app; do
+              printf '\n--- %s status ---\n' "$label"
+              cat "/tmp/v3970-production/${label}.status" 2>/dev/null || true
+              printf '\n--- %s headers ---\n' "$label"
+              head -c 2000 "/tmp/v3970-production/${label}.headers" 2>/dev/null || true
+              printf '\n--- %s body ---\n' "$label"
+              head -c 2000 "/tmp/v3970-production/${label}.body" 2>/dev/null || true
+            done
             exit 1
           fi
 
-      - name: Verify response freshness and versioned home runtime
+      - name: Verify freshness, ETags, and exact versioned runtimes
         run: |
           set -euo pipefail
-          token='${{ github.sha }}-headers'
-          curl --fail --silent --show-error --location --dump-header /tmp/v3970-production/root.headers \
-            -H 'Cache-Control: no-cache' "https://gaokao.powers.org.cn/?release-check=${token}" -o /dev/null
-          curl --fail --silent --show-error --location --dump-header /tmp/v3970-production/home-runtime.headers \
-            "https://gaokao.powers.org.cn/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0" -o /tmp/v3970-production/home-runtime.js
-          grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-production/root.headers
-          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-production/home-runtime.headers
-          # Pages Functions responses do not inherit _headers. The truthful delivery contract is
-          # a versioned URL, exact runtime contents, an ETag, and either revalidation or immutable caching.
-          grep -Eiq '^etag:' /tmp/v3970-production/home-runtime.headers
-          grep -Eiq 'cache-control:.*(must-revalidate|immutable)' /tmp/v3970-production/home-runtime.headers
-          grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/home-runtime.js
-          ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/home-runtime.js
+          grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-production/pages-root.headers
+          grep -Eiq '^etag:' /tmp/v3970-production/custom-home-runtime.headers
+          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-production/custom-home-runtime.headers
+          grep -Eiq 'cache-control:.*(must-revalidate|immutable)' /tmp/v3970-production/custom-home-runtime.headers
+          grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/custom-home-runtime.body
+          ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/custom-home-runtime.body
+          grep -q 'app-runtime.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-app.body
 
       - name: Upload production evidence
         if: always()
