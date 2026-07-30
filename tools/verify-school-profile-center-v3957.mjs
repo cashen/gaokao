@@ -114,7 +114,7 @@ assert.ok(!tagsAdapter.includes("'大连理工大学':"));
 
 for (const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']) {
   const meta = JSON.parse(fs.readFileSync(file, 'utf8'));
-  assert.equal(meta.version, CURRENT_RELEASE.display);
+  assert.equal(meta.version, CURRENT_RELEASE.assetReleaseVersion);
   assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
   for (const key of [
     'sharedSchoolProfileContract','schoolProfileOfficial2026Contract','schoolProfileNatureContract',
