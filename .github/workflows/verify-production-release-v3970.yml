@@ -21,11 +21,22 @@ jobs:
       - name: Verify Pages production and custom-domain release ownership
         env:
           RELEASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
         run: |
           set -euo pipefail
           mkdir -p /tmp/v3970-production
+
+          if [ "$EVENT_NAME" = 'pull_request' ]; then
+            expected_root_release='v3.9.70.0'
+            require_home_industry_link=0
+          else
+            expected_root_release='v3.9.70.1'
+            require_home_industry_link=1
+          fi
+          printf 'expected_root_release=%s require_home_industry_link=%s\n' "$expected_root_release" "$require_home_industry_link" \
+            > /tmp/v3970-production/expectation.txt
 
           fetch_response() {
             local label="$1" url="$2"
@@ -43,6 +54,7 @@ jobs:
 
             fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
             fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
+            fetch_response pages-industry "${PAGES_BASE}/Public_company/?release-check=${token}"
             fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
 
             fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
@@ -54,22 +66,36 @@ jobs:
             pages_current=0
             custom_assets_current=0
             custom_html_or_challenge=0
+            pages_home_link_current=1
+            custom_home_link_current=1
+
+            if [ "$require_home_industry_link" -eq 1 ]; then
+              grep -q 'href="/Public_company/"' /tmp/v3970-production/pages-root.body || pages_home_link_current=0
+              if [ "$(cat /tmp/v3970-production/custom-root.status)" = '200' ]; then
+                grep -q 'href="/Public_company/"' /tmp/v3970-production/custom-root.body || custom_home_link_current=0
+              fi
+            fi
 
             if [ "$(cat /tmp/v3970-production/pages-root.status)" = '200' ] \
-              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/pages-root.body \
+              && grep -q "data-release=\"${expected_root_release}\"" /tmp/v3970-production/pages-root.body \
               && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-root.body \
               && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-production/pages-root.body \
+              && [ "$pages_home_link_current" -eq 1 ] \
               && [ "$(cat /tmp/v3970-production/pages-workspace.status)" = '200' ] \
               && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/pages-workspace.body \
               && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-workspace.body \
+              && [ "$(cat /tmp/v3970-production/pages-industry.status)" = '200' ] \
+              && grep -q '产业落点地图' /tmp/v3970-production/pages-industry.body \
               && [ "$(cat /tmp/v3970-production/pages-release.status)" = '200' ] \
-              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/pages-release.body \
+              && grep -q "display: '${expected_root_release}'" /tmp/v3970-production/pages-release.body \
+              && grep -q "assetVersion: 'v3970_0'" /tmp/v3970-production/pages-release.body \
               && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/pages-release.body; then
               pages_current=1
             fi
 
             if [ "$(cat /tmp/v3970-production/custom-release.status)" = '200' ] \
-              && grep -q "display: 'v3.9.70.0'" /tmp/v3970-production/custom-release.body \
+              && grep -q "display: '${expected_root_release}'" /tmp/v3970-production/custom-release.body \
+              && grep -q "assetVersion: 'v3970_0'" /tmp/v3970-production/custom-release.body \
               && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/custom-release.body \
               && [ "$(cat /tmp/v3970-production/custom-home-runtime.status)" = '200' ] \
               && grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/custom-home-runtime.body \
@@ -83,8 +109,9 @@ jobs:
             custom_workspace_status="$(cat /tmp/v3970-production/custom-workspace.status)"
             if [ "$custom_root_status" = '200' ] \
               && [ "$custom_workspace_status" = '200' ] \
-              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/custom-root.body \
+              && grep -q "data-release=\"${expected_root_release}\"" /tmp/v3970-production/custom-root.body \
               && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-root.body \
+              && [ "$custom_home_link_current" -eq 1 ] \
               && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-workspace.body; then
               custom_html_or_challenge=1
               printf '%s\n' 'custom domain HTML returned current release directly' > /tmp/v3970-production/custom-domain-mode.txt
@@ -94,8 +121,8 @@ jobs:
               printf '%s\n' 'custom domain HTML protected by Cloudflare Managed Challenge; current assets verified separately' > /tmp/v3970-production/custom-domain-mode.txt
             fi
 
-            printf 'attempt=%s pages_current=%s custom_assets_current=%s custom_html_or_challenge=%s root_status=%s workspace_status=%s\n' \
-              "$attempt" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$custom_root_status" "$custom_workspace_status" \
+            printf 'attempt=%s expected=%s pages_current=%s custom_assets_current=%s custom_html_or_challenge=%s root_status=%s workspace_status=%s\n' \
+              "$attempt" "$expected_root_release" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$custom_root_status" "$custom_workspace_status" \
               | tee /tmp/v3970-production/status.txt
 
             if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then
@@ -106,7 +133,7 @@ jobs:
           done
 
           if [ "$ready" -ne 1 ]; then
-            for label in pages-root pages-workspace pages-release custom-root custom-workspace custom-release custom-home-runtime custom-app; do
+            for label in pages-root pages-workspace pages-industry pages-release custom-root custom-workspace custom-release custom-home-runtime custom-app; do
               printf '\n--- %s status ---\n' "$label"
               cat "/tmp/v3970-production/${label}.status" 2>/dev/null || true
               printf '\n--- %s headers ---\n' "$label"
