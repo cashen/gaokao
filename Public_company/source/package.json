@@ -1,0 +1,23 @@
+{
+  "name": "public-company-map",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "data": "node scripts/fetch-data.mjs",
+    "check:data": "node scripts/validate-data.mjs",
+    "test": "node --test",
+    "build": "vite build",
+    "verify": "npm run check:data && npm test && npm run build",
+    "release": "npm run verify && node scripts/sync-dist.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:browser": "node scripts/verify-browser.mjs"
+  },
+  "dependencies": {
+    "d3": "7.9.0"
+  },
+  "devDependencies": {
+    "vite": "7.1.7"
+  }
+}
