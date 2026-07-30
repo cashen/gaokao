@@ -14,7 +14,8 @@ const admissionDirectory = json('shared/resources/schools/liaoning-2026-admissio
 const baseResolver = createSchoolNameResolver(extractSchoolRecords(directoryPayload));
 const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.70.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.70.1');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.schoolQueryVersion, SCHOOL_QUERY_CONTRACT_VERSION);
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3970_0');
@@ -43,4 +44,4 @@ assert.ok(shenyang.interpretations.find(row => row.intent === 'school-name')?.to
 for (const rel of ['functions/api/school-majors.js','functions/api/major-bands.js','functions/_lib/report-data-service-v3956.js']) {
   assert.ok(fs.readFileSync(rel, 'utf8').includes('school-query-provider.v3969.js'), `${rel} provider`);
 }
-console.log(JSON.stringify({ ok:true, release:CURRENT_RELEASE.display, schoolQuery:SCHOOL_QUERY_CONTRACT_VERSION, admissionSchools:admissionDirectory.schoolCount }, null, 2));
+console.log(JSON.stringify({ ok:true, release:CURRENT_RELEASE.display, assetRelease:CURRENT_RELEASE.assetReleaseVersion, schoolQuery:SCHOOL_QUERY_CONTRACT_VERSION, admissionSchools:admissionDirectory.schoolCount }, null, 2));
