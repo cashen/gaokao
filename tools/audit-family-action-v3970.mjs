@@ -19,7 +19,8 @@ const componentCss = read('shared/ui/components/family-plan-entry.v3970_0.css');
 const adapter = read('ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js');
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.70.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.70.1');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
 assert.equal(CURRENT_RELEASE.familyActionVersion, 'family-action-v3970_0');
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
@@ -102,6 +103,7 @@ for (const marker of [
 console.log(JSON.stringify({
   ok: true,
   release: CURRENT_RELEASE.display,
+  assetRelease: CURRENT_RELEASE.assetReleaseVersion,
   component: UI_COMPONENT_REGISTRY.familyPlanEntry.id,
   variants: UI_COMPONENT_REGISTRY.familyPlanEntry.variants,
   fixedMobileAction: false,
