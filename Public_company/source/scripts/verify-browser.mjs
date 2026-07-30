@@ -62,12 +62,41 @@ try {
   });
 
   await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.locator('body[data-company-directory-version="2.0.0"]').waitFor();
   await page.locator("#totalMetric").waitFor({ state: "visible" });
 
   assert.equal(await page.locator("#totalMetric").textContent(), "5,522");
   assert.equal(await page.locator("path.province-shape").count(), 35);
   assert.equal(await page.locator("#provinceTitle").textContent(), "辽宁省");
   assert.equal(await page.locator("#provinceCount").textContent(), "84");
+  assert.equal(await page.locator(".directory-company-row").count(), 12);
+  assert.equal(await page.locator("#companyPageStatus").textContent(), "第 1 / 7 页");
+  assert.equal(await page.locator("#loadMoreButton").isVisible(), false);
+
+  const firstCode = await page.locator(".directory-company-row .company-code").first().textContent();
+  await page.getByRole("button", { name: "下一页", exact: true }).click();
+  await page.locator("#companyPageStatus").filter({ hasText: "第 2 / 7 页" }).waitFor();
+  assert.equal(await page.locator(".directory-company-row").count(), 12);
+  assert.notEqual(
+    await page.locator(".directory-company-row .company-code").first().textContent(),
+    firstCode
+  );
+  await page.getByRole("button", { name: "上一页", exact: true }).click();
+
+  const firstIndustryButton = page
+    .locator('.industry-filter-button:not([data-industry="all"])')
+    .first();
+  const firstIndustry = await firstIndustryButton.getAttribute("data-industry");
+  await firstIndustryButton.click();
+  assert.equal(await firstIndustryButton.getAttribute("aria-pressed"), "true");
+  assert.ok((await page.locator(".directory-company-row").count()) <= 12);
+  assert.ok((await page.locator("#directoryContext").textContent()).includes(firstIndustry));
+  await page.locator('.industry-filter-button[data-industry="all"]').click();
+
+  const detailHeight = await page.locator(".detail-column").evaluate(
+    (element) => Math.round(element.getBoundingClientRect().height)
+  );
+  assert.ok(detailHeight < 2500, `桌面企业目录仍然过长：${detailHeight}px`);
 
   await page.getByRole("button", { name: "科创板604", exact: true }).click();
   assert.equal(await page.locator("#totalMetric").textContent(), "604");
@@ -77,6 +106,7 @@ try {
     .click();
   assert.equal(await page.locator("#provinceTitle").textContent(), "广东省");
   assert.equal(await page.locator("#provinceCount").textContent(), "95");
+  await page.locator("#directoryContext").filter({ hasText: "广东省" }).waitFor();
 
   await page.getByRole("searchbox", { name: "搜索当前省份的企业" }).fill("688007");
   assert.equal(await page.locator("#companyResultCount").textContent(), "找到 1 家");
@@ -85,11 +115,14 @@ try {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: "networkidle" });
+  await page.locator('body[data-company-directory-version="2.0.0"]').waitFor();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
   assert.ok(overflow <= 1, `移动端出现横向溢出：${overflow}px`);
   assert.equal(await page.locator("#totalMetric").textContent(), "5,522");
+  assert.equal(await page.locator(".directory-company-row").count(), 8);
+  assert.equal(await page.locator("#companyPageStatus").textContent(), "第 1 / 11 页");
   assert.deepEqual(browserErrors, []);
 
   process.stdout.write(
@@ -97,6 +130,9 @@ try {
       {
         totalCompanies: 5522,
         mapFeatures: 35,
+        initialDesktopRows: 12,
+        initialMobileRows: 8,
+        desktopDetailHeight: detailHeight,
         starCompanies: 604,
         guangdongStarCompanies: 95,
         searchCode: "688007",
