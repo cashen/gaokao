@@ -16,15 +16,17 @@ def header_block(headers,path):
 
 current=text('shared/resources/release/current-release.js')
 for marker in [
- "display: 'v3.9.70.0'", "assetVersion: 'v3970_0'", "resourceExecutionVersion: 'resource-execution-v3970_0'",
+ "display: 'v3.9.70.1'", "version: 'v3.9.70.1'", "assetVersion: 'v3970_0'", "assetReleaseVersion: 'v3.9.70.0'",
+ "homeEntryVersion: 'home-industry-map-entry-v3970_1'", "resourceExecutionVersion: 'resource-execution-v3970_0'",
  "uiOrchestrationVersion: 'ui-orchestration-v3970_0'", "uiComponentExecutionVersion: 'ui-component-execution-v3970_0'",
  "familyActionVersion: 'family-action-v3970_0'", "schoolQueryVersion: 'school-query-contract-v3969_0'",
  "schoolAdmissionDirectoryVersion: 'liaoning-2026-admission-school-directory-v3969_0'",
- "homeStructure: '/index.html'", "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'"
+ "homeStructure: '/index.html'", "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'",
+ "homeIndustryMapEntry: '/index.html#[data-home-industry-map-entry]'", "industryMap: '/Public_company/'"
 ]: require(marker in current,f'current release missing {marker}')
 
 required=[
- 'index.html','_headers','ln-rank/js/ux/family-home.v3970_0.js',
+ 'index.html','_headers','Public_company/index.html','ln-rank/js/ux/family-home.v3970_0.js',
  'shared/governance/resource-execution-contract.v3970_0.js','shared/governance/derived-asset-trace.v3970_0.json',
  'shared/resources/release/runtime-cache-contract.v3970_0.js','shared/resources/release/release-presenter.v3970_0.js',
  'shared/ui/ui-registry.v3970_0.js','shared/ui/component-registry.v3970_0.js',
@@ -42,8 +44,9 @@ required=[
 for rel in required: require((ROOT/rel).exists(),f'missing required {rel}')
 
 home=text('index.html'); home_runtime=text('ln-rank/js/ux/family-home.v3970_0.js')
-for marker in ['data-release="v3.9.70.0"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核']:
+for marker in ['data-release="v3.9.70.1"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核','data-home-industry-map-entry','href="/Public_company/"','全国上市公司产业落地图']:
  require(marker in home,f'home missing {marker}')
+require(home.count('data-home-industry-map-entry')==1,'home industry map entry must have one owner')
 for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-release="v3.9.68.0"','v3.9.68.0']:
  require(forbidden not in home,f'stale home resource remains: {forbidden}')
 for marker in ['release-presenter.v3970_0.js?v=3970_0','family-shell.v3970_0.js?v=3970_0','family-decision-contract.v3970_0.js?v=3970_0',"HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'",'gaokao:selection-change']:
@@ -65,9 +68,9 @@ for asset in ['/shared/ui/shell/family-shell.v3970_0.js','/shared/ui/shell/famil
 
 index=text('ln-rank/index.html'); selection=text('ln-rank/selection-pool.html')
 for marker in ['data-release="v3.9.70.0"','app.v3970_0.js?v=3970_0','data-ui-family-plan-results-footer','data-ui-family-plan-live','加入家庭方案']:
- require(marker in index,f'main missing {marker}')
+ require(marker in index,f'main asset shell missing {marker}')
 for marker in ['data-release="v3.9.70.0"','selection-pool.v3970_0.js?v=3970_0','生成家庭方案报告','知道链接的人可以查看']:
- require(marker in selection,f'selection missing {marker}')
+ require(marker in selection,f'selection asset shell missing {marker}')
 for forbidden in ['data-ui-mobile-action-mount','selectionPoolShell','poolResultStickyMount','已选 0 个 · 去整理','还没选专业 · 回到结果继续看']:
  require(forbidden not in index,f'old mobile action remains in main: {forbidden}')
 
@@ -79,7 +82,7 @@ for forbidden in ['position:fixed','position: fixed','position:sticky','position
 
 active=json.loads(text('ln-rank/active-assets.json') or '{}'); meta=json.loads(text('ln-rank/release-meta.json') or '{}')
 for payload,name in [(active,'active'),(meta,'meta')]:
- require(payload.get('version')=='v3.9.70.0',f'{name} version mismatch')
+ require(payload.get('version')=='v3.9.70.0',f'{name} asset-lineage version mismatch')
  require(payload.get('assetVersion')=='v3970_0',f'{name} asset mismatch')
  for flag in ['familyActionSingleOwnerContract','familyPlanEntryDocumentFlowContract','noFixedMobileFamilyPlanActionContract','feishuPublicSharePreservedContract','homeReleaseSingleOwnerContract','homeStaticRuntimeParityContract','homeCurrentShellContract','productionReleaseVerificationContract']:
   require(payload.get(flag) is True,f'{name} flag missing {flag}')
@@ -110,4 +113,4 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({'ok':True,'version':'v3.9.70.1','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))

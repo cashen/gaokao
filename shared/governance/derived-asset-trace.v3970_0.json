@@ -4,7 +4,7 @@
   "items": [
     {
       "source": "shared/resources/release/current-release.js",
-      "sourceSha256": "242c9089e220aa309507107f2e24b82f27562b722db89389313e28fcc954ec92",
+      "sourceSha256": "4024af3affadc7fe01d9a184e622f5ba3bb60cdd0f987e44bebac69b67bc8182",
       "derived": "ln-rank/active-assets.json",
       "derivedSha256": "d21e3a9006535cf3659525561036d3b8e76beca52d0fe659c1dcbc6c0c0b37f1",
       "reason": "active asset graph bound to the current release"
@@ -74,14 +74,14 @@
     },
     {
       "source": "shared/resources/release/current-release.js",
-      "sourceSha256": "242c9089e220aa309507107f2e24b82f27562b722db89389313e28fcc954ec92",
+      "sourceSha256": "4024af3affadc7fe01d9a184e622f5ba3bb60cdd0f987e44bebac69b67bc8182",
       "derived": "ln-rank/release-meta.json",
       "derivedSha256": "d21e3a9006535cf3659525561036d3b8e76beca52d0fe659c1dcbc6c0c0b37f1",
       "reason": "release metadata bound to the current release"
     },
     {
       "source": "shared/resources/release/current-release.js",
-      "sourceSha256": "242c9089e220aa309507107f2e24b82f27562b722db89389313e28fcc954ec92",
+      "sourceSha256": "4024af3affadc7fe01d9a184e622f5ba3bb60cdd0f987e44bebac69b67bc8182",
       "derived": "shared/resources/release/runtime-cache-contract.v3970_0.js",
       "derivedSha256": "d03d11dd0962ba511dc4fe7d2f58b06741fede19214d696b5e8dee48ed478fcc",
       "reason": "runtime cache graph bound to the current release"

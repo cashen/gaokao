@@ -54,7 +54,7 @@ jobs:
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { UI_COMPONENT_REGISTRY } from './shared/ui/component-registry.v3970_0.js';
           const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
-          if(CURRENT_RELEASE.display!=='v3.9.70.0'||CURRENT_RELEASE.assetVersion!=='v3970_0') throw new Error('release');
+          if(CURRENT_RELEASE.display!=='v3.9.70.1'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release');
           if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('cache');
           if(UI_COMPONENT_REGISTRY.familyPlanEntry.domOwner!=='/shared/ui/components/family-plan-entry.v3970_0.js') throw new Error('family action owner');
           for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}

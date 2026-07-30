@@ -37,29 +37,35 @@ try {
     await page.goto(`${baseURL}/?home-release=${Date.now()}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3970_0');
 
-    const state = await page.evaluate(() => ({
-      bodyRelease: document.body.dataset.release,
-      htmlRelease: document.documentElement.dataset.release,
-      visibleRelease: document.querySelector('[data-current-release]')?.textContent?.trim(),
-      runtime: globalThis.__GAOKAO_HOME_RUNTIME__,
-      shell: globalThis.__GAOKAO_UI__?.version || '',
-      scripts: [...document.scripts].map(node => node.src).filter(Boolean),
-      styles: [...document.querySelectorAll('link[rel="stylesheet"]')].map(node => node.href),
-      title: document.getElementById('homeTitle')?.textContent?.trim(),
-      action: document.querySelector('#homePrimaryAction span')?.textContent?.trim(),
-      actionHref: document.getElementById('homePrimaryAction')?.getAttribute('href'),
-      countdown: Number(document.getElementById('d2027')?.textContent || NaN),
-      scrollWidth: document.documentElement.scrollWidth,
-      clientWidth: document.documentElement.clientWidth,
-      pageHeight: document.documentElement.scrollHeight,
-      viewportHeight: window.innerHeight
-    }));
+    const state = await page.evaluate(() => {
+      const industryEntry = document.querySelector('[data-home-industry-map-entry]');
+      return {
+        bodyRelease: document.body.dataset.release,
+        htmlRelease: document.documentElement.dataset.release,
+        visibleRelease: document.querySelector('[data-current-release]')?.textContent?.trim(),
+        runtime: globalThis.__GAOKAO_HOME_RUNTIME__,
+        shell: globalThis.__GAOKAO_UI__?.version || '',
+        scripts: [...document.scripts].map(node => node.src).filter(Boolean),
+        styles: [...document.querySelectorAll('link[rel="stylesheet"]')].map(node => node.href),
+        title: document.getElementById('homeTitle')?.textContent?.trim(),
+        action: document.querySelector('#homePrimaryAction span')?.textContent?.trim(),
+        actionHref: document.getElementById('homePrimaryAction')?.getAttribute('href'),
+        industryEntryCount: document.querySelectorAll('[data-home-industry-map-entry]').length,
+        industryTitle: industryEntry?.querySelector('strong')?.textContent?.trim(),
+        industryHref: industryEntry?.getAttribute('href'),
+        countdown: Number(document.getElementById('d2027')?.textContent || NaN),
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+        pageHeight: document.documentElement.scrollHeight,
+        viewportHeight: window.innerHeight
+      };
+    });
 
-    assert.equal(state.bodyRelease, 'v3.9.70.0', `${device.name}: body release`);
-    assert.equal(state.htmlRelease, 'v3.9.70.0', `${device.name}: html release`);
-    assert.equal(state.visibleRelease, 'v3.9.70.0', `${device.name}: visible release`);
+    assert.equal(state.bodyRelease, 'v3.9.70.1', `${device.name}: body release`);
+    assert.equal(state.htmlRelease, 'v3.9.70.1', `${device.name}: html release`);
+    assert.equal(state.visibleRelease, 'v3.9.70.1', `${device.name}: visible release`);
     assert.equal(state.runtime?.version, 'family-home-runtime-v3970_0', `${device.name}: runtime`);
-    assert.equal(state.runtime?.release, 'v3.9.70.0', `${device.name}: runtime release`);
+    assert.equal(state.runtime?.release, 'v3.9.70.1', `${device.name}: runtime release`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3970_0\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.scripts.length, 1, `${device.name}: one bootstrap script`);
@@ -70,6 +76,9 @@ try {
     assert.match(state.title || '', /家庭方案/);
     assert.equal(state.action, '继续检查家庭方案');
     assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
+    assert.equal(state.industryEntryCount, 1, `${device.name}: one industry map entry`);
+    assert.equal(state.industryTitle, '全国上市公司产业落地图', `${device.name}: industry map title`);
+    assert.equal(state.industryHref, '/Public_company/', `${device.name}: industry map route`);
     assert.ok(Number.isFinite(state.countdown) && state.countdown >= 0, `${device.name}: countdown`);
     assert.ok(state.scrollWidth <= state.clientWidth + 1, `${device.name}: horizontal overflow ${state.scrollWidth}/${state.clientWidth}`);
     assert.equal(errors.length, 0, `${device.name}: ${errors.join(' | ')}`);
@@ -83,4 +92,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok: true, release: 'v3.9.70.0', runtime: 'family-home-runtime-v3970_0', devices: results }, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.70.1', runtime: 'family-home-runtime-v3970_0', devices: results }, null, 2));
