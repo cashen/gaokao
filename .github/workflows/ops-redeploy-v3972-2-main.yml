@@ -23,8 +23,6 @@ jobs:
     env:
       LOCKED_MAIN_SHA: 658740a613af447d1f313fa794f59708b3d1aed9
       CF_PROJECT_NAME: gaokao
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,11 +42,20 @@ jobs:
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
-      - name: Verify Cloudflare deployment credentials are configured
+      - name: Resolve and verify Cloudflare deployment credentials
+        env:
+          CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_FALLBACK: ${{ secrets.CF_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          test -n "${CLOUDFLARE_API_TOKEN:-}" || { echo 'missing CLOUDFLARE_API_TOKEN/CF_API_TOKEN'; exit 2; }
-          test -n "${CLOUDFLARE_ACCOUNT_ID:-}" || { echo 'missing CLOUDFLARE_ACCOUNT_ID/CF_ACCOUNT_ID'; exit 2; }
+          token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
+          account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
+          test -n "$token" || { echo 'missing CLOUDFLARE_API_TOKEN/CF_API_TOKEN'; exit 2; }
+          test -n "$account" || { echo 'missing CLOUDFLARE_ACCOUNT_ID/CF_ACCOUNT_ID'; exit 2; }
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
       - name: Deploy exact main commit to Cloudflare Pages
         run: |
           set -euo pipefail
