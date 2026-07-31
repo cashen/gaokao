@@ -1,4 +1,4 @@
-name: Assemble academic background static index v3972.1
+name: Assemble academic background static index v3972.2
 
 on:
   pull_request:
@@ -87,10 +87,14 @@ jobs:
           if(index.scoreBands.reduce((sum,item)=>sum+item.admissionRecordCount,0)!==index.records.length) throw new Error('band coverage');
           if(fs.statSync(file).size>3500000) throw new Error('browser index too large');
           const release=fs.readFileSync('shared/resources/release/current-release.js','utf8');
-          if(!release.includes("display: 'v3.9.72.1'")) throw new Error('release display');
+          if(!release.includes("display: 'v3.9.72.2'")) throw new Error('release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
           const compat=fs.readFileSync('functions/_lib/211-static-compat-response.js','utf8');
           if(!compat.includes('scannedCount: 0')||!compat.includes('build-time-static-index')) throw new Error('scan-free compatibility contract');
+          const health=fs.readFileSync('functions/api/major-bands-health.js','utf8');
+          const fetcher=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
+          if(!health.includes("maximumProbeChunks: 1")||!health.includes("fullDatasetScan: false")) throw new Error('bounded health probe contract');
+          if(!fetcher.includes('Large admission chunks are deliberately request-scoped')) throw new Error('request-scoped chunk contract');
           console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size},null,2));
           NODE
       - name: Commit generated data and release contracts
@@ -121,13 +125,13 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'assemble(academic-background): synchronize v3972.1 contracts'
+            git commit -m 'assemble(academic-background): synchronize v3972.2 contracts'
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
       - name: Upload assembly evidence
         uses: actions/upload-artifact@v4
         with:
-          name: academic-background-static-v3972-1
+          name: academic-background-static-v3972-2
           path: |
             /tmp/academic-background-static-assemble.out
             /tmp/academic-background-static-audit.out
