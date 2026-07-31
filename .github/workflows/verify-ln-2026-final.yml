@@ -1,4 +1,4 @@
-name: Verify LN 2026 final release v3972.1
+name: Verify LN 2026 final release v3972.2
 
 on:
   pull_request:
@@ -41,7 +41,7 @@ jobs:
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
 
-      - name: Verify v3970 assets under v3.9.72.1 release
+      - name: Verify v3970 assets under v3.9.72.2 release
         run: |
           set -euo pipefail
           python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-final-release.out
@@ -60,7 +60,7 @@ jobs:
           node tools/build-school-admission-directory-v3969.mjs | tee /tmp/v3972-admission-directory.out
           git diff --exit-code -- shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json
 
-      - name: Verify critical owners and three-year facts
+      - name: Verify critical owners, resource budget and three-year facts
         run: |
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
@@ -70,7 +70,7 @@ jobs:
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
-          if(CURRENT_RELEASE.display!=='v3.9.72.1'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query owner');
           if(CURRENT_RELEASE.resourceOwners.industryMap!=='/Public_company/') throw new Error('industry map owner');
@@ -78,6 +78,10 @@ jobs:
           if(ALGORITHM_CONTRACT.version!=='algorithm-orchestration-v3969') throw new Error('algorithm owner');
           if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('cache owner');
           if(RESOURCE_EXECUTION_REGISTRY.familyAction.owner!=='/shared/ui/components/family-plan-entry.v3970_0.js') throw new Error('family action owner');
+          const healthSource=fs.readFileSync('functions/api/major-bands-health.js','utf8');
+          const fetcherSource=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
+          if(!healthSource.includes("maximumProbeChunks: 1")||!healthSource.includes("fullDatasetScan: false")||!healthSource.includes("bounded-manifest-plus-one-chunk")) throw new Error('health probe resource budget');
+          if(!fetcherSource.includes('Large admission chunks are deliberately request-scoped')||!fetcherSource.includes("/(^|\\/)chunks\\//")) throw new Error('large chunk cache boundary');
           for(const [year,score,rank] of [[2024,600,14612],[2025,600,13601],[2026,600,14235],[2024,368,116198],[2025,367,118109],[2026,344,119069]]){
             const row=lookupScoreRank({year,region:'ln',subject:'physics',score});
             if(row?.rankEnd!==rank) throw new Error(`rank ${year}/${score}`);
@@ -91,7 +95,7 @@ jobs:
           if(!directory.schools.some(row=>row.officialName==='沈阳化工大学')) throw new Error('沈阳化工大学 missing');
           const all211=JSON.parse(fs.readFileSync('ln-rank/data/211-static/211-static-index.v3972_0.json','utf8'));
           if(!all211.meta.completeEvaluation||all211.records.length!==2494||all211.scoreBands.length!==8) throw new Error('211 static integrity');
-          console.log('critical v3970 owners and v3972 static 211 passed');
+          console.log('critical v3970 owners, worker resource budget and v3972 static 211 passed');
           NODE
           node tools/verify-school-profile-center-v3957.mjs
           node tools/verify-card-ai-2026-v3955.mjs
