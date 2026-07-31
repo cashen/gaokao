@@ -80,6 +80,22 @@ async function fetchFenxiResponse(request, env, clean) {
   return { response, url, contentType };
 }
 
+function scoreFromRecordJson(raw) {
+  for (const key of ['score2026', 'score', 'minScore']) {
+    const match = new RegExp(`"${key}"\\s*:\\s*"?(-?\\d+(?:\\.\\d+)?)`).exec(raw);
+    if (match && Number.isFinite(Number(match[1]))) return Number(match[1]);
+  }
+  return null;
+}
+
+function outsideScoreWindow(raw, scoreWindow) {
+  const min = Number(scoreWindow?.min);
+  const max = Number(scoreWindow?.max);
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return false;
+  const score = scoreFromRecordJson(raw);
+  return Number.isFinite(score) && (score < min || score > max);
+}
+
 function parseRecordObject(raw, context) {
   try {
     return JSON.parse(raw);
@@ -92,7 +108,13 @@ async function* parseRecordArrayStream(response, context) {
   if (!response.body || typeof response.body.getReader !== 'function') {
     const data = await parseLargeJsonResponse(response, context);
     const records = Array.isArray(data) ? data : (Array.isArray(data?.records) ? data.records : []);
-    for (const record of records) yield record;
+    for (const record of records) {
+      context.onRawRecord?.();
+      const score = Number(record?.score2026 ?? record?.score ?? record?.minScore);
+      if (Number.isFinite(Number(context.scoreWindow?.min)) && Number.isFinite(Number(context.scoreWindow?.max))
+        && Number.isFinite(score) && (score < context.scoreWindow.min || score > context.scoreWindow.max)) continue;
+      yield record;
+    }
     return;
   }
 
@@ -147,7 +169,7 @@ async function* parseRecordArrayStream(response, context) {
           scan += 1;
         }
 
-        let yielded = false;
+        let recordCompleted = false;
         while (objectStart >= 0 && scan < buffer.length) {
           const char = buffer[scan];
           if (inString) {
@@ -167,19 +189,21 @@ async function* parseRecordArrayStream(response, context) {
             if (depth === 0) {
               index += 1;
               const raw = buffer.slice(objectStart, scan + 1);
-              const record = parseRecordObject(raw, { ...context, index });
               buffer = buffer.slice(scan + 1);
               scan = 0;
               objectStart = -1;
-              yielded = true;
-              yield record;
+              recordCompleted = true;
+              context.onRawRecord?.();
+              if (!outsideScoreWindow(raw, context.scoreWindow)) {
+                yield parseRecordObject(raw, { ...context, index });
+              }
               break;
             }
           }
           scan += 1;
         }
 
-        if (yielded) continue;
+        if (recordCompleted) continue;
         if (objectStart >= 0) {
           if (objectStart > 0) {
             buffer = buffer.slice(objectStart);
@@ -204,14 +228,17 @@ async function* parseRecordArrayStream(response, context) {
 
 // Large admission chunks are deliberately request-scoped.
 // Streaming keeps both the raw JSON array and previously normalized candidates
-// from coexisting in one Worker request. Records are yielded one at a time and
-// no large module cache is used.
-export async function* streamFenxiChunkRecords(request, env, path) {
+// from coexisting in one Worker request. Score boundaries are checked against
+// each raw object before JSON.parse, and no large module cache is used.
+export async function* streamFenxiChunkRecords(request, env, path, options = {}) {
   const clean = normalizeFenxiDataPath(path);
   if (!isLargeChunk(clean)) {
     const data = await fetchFenxiJson(request, env, clean);
     const records = Array.isArray(data) ? data : (Array.isArray(data?.records) ? data.records : []);
-    for (const record of records) yield record;
+    for (const record of records) {
+      options.onRawRecord?.();
+      yield record;
+    }
     return;
   }
 
@@ -221,7 +248,13 @@ export async function* streamFenxiChunkRecords(request, env, path) {
     await invalid;
     return;
   }
-  yield* parseRecordArrayStream(response, { clean, url, contentType });
+  yield* parseRecordArrayStream(response, {
+    clean,
+    url,
+    contentType,
+    scoreWindow: options.scoreWindow,
+    onRawRecord: options.onRawRecord
+  });
 }
 
 export async function fetchFenxiJson(request, env, path) {
