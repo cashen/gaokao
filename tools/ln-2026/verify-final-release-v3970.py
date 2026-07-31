@@ -16,25 +16,29 @@ def header_block(headers,path):
 
 current=text('shared/resources/release/current-release.js')
 for marker in [
- "display: 'v3.9.70.1'", "version: 'v3.9.70.1'", "assetVersion: 'v3970_0'", "assetReleaseVersion: 'v3.9.70.0'",
+ "display: 'v3.9.71.0'", "version: 'v3.9.71.0'", "assetVersion: 'v3970_0'", "assetReleaseVersion: 'v3.9.70.0'",
  "homeEntryVersion: 'home-industry-map-entry-v3970_1'", "resourceExecutionVersion: 'resource-execution-v3970_0'",
  "uiOrchestrationVersion: 'ui-orchestration-v3970_0'", "uiComponentExecutionVersion: 'ui-component-execution-v3970_0'",
  "familyActionVersion: 'family-action-v3970_0'", "schoolQueryVersion: 'school-query-contract-v3969_0'",
  "schoolAdmissionDirectoryVersion: 'liaoning-2026-admission-school-directory-v3969_0'",
  "homeStructure: '/index.html'", "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'",
- "homeIndustryMapEntry: '/index.html#[data-home-industry-map-entry]'", "industryMap: '/Public_company/'"
+ "homeIndustryMapEntry: '/index.html#[data-home-industry-map-entry]'", "industryMap: '/Public_company/'",
+ "localStrengthVersion: 'local-strength-v3971_0'", "localStrengthPage: '/ln-rank/local-mainline.html'"
 ]: require(marker in current,f'current release missing {marker}')
 
 required=[
  'index.html','_headers','Public_company/index.html','ln-rank/js/ux/family-home.v3970_0.js',
  'shared/governance/resource-execution-contract.v3970_0.js','shared/governance/derived-asset-trace.v3970_0.json',
  'shared/resources/release/runtime-cache-contract.v3970_0.js','shared/resources/release/release-presenter.v3970_0.js',
+ 'shared/resources/release/release-presenter.v3971_0.js',
  'shared/ui/ui-registry.v3970_0.js','shared/ui/component-registry.v3970_0.js',
  'shared/ui/contracts/action-contract.v3970_0.js','shared/ui/contracts/copy-contract.v3970_0.js','shared/ui/contracts/state-contract.v3970_0.js',
  'shared/ui/shell/family-shell.v3970_0.js','shared/ui/shell/family-shell.v3970_0.css',
  'shared/ui/components/family-plan-entry.v3970_0.js','shared/ui/components/family-plan-entry.v3970_0.css',
  'ln-rank/js/app.v3970_0.js','ln-rank/js/app-runtime.v3970_0.js','ln-rank/js/selection-pool.v3970_0.js',
  'ln-rank/js/domain/family-decision-contract.v3970_0.js','ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
+ 'ln-rank/local-mainline.html','ln-rank/js/local-strength/local-strength-app.v3971_0.js','ln-rank/css/local-strength.v3971_0.css',
+ 'functions/api/local-strength.js','functions/_lib/local-strength-api.js',
  'tools/audit-family-action-v3970.mjs','tools/audit-home-release-ownership-v3970.mjs','tools/audit-school-query-v3970.mjs',
  'tools/browser-family-action-v3970.mjs','tools/browser-home-release-v3970.mjs',
  'shared/resources/schools/school-query-contract.v3969_0.js','shared/resources/schools/school-query-engine.v3969_0.js',
@@ -44,7 +48,7 @@ required=[
 for rel in required: require((ROOT/rel).exists(),f'missing required {rel}')
 
 home=text('index.html'); home_runtime=text('ln-rank/js/ux/family-home.v3970_0.js')
-for marker in ['data-release="v3.9.70.1"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核','data-home-industry-map-entry','href="/Public_company/"','全国上市公司产业落地图']:
+for marker in ['data-release="v3.9.71.0"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核','data-home-industry-map-entry','href="/Public_company/"','全国上市公司产业落地图']:
  require(marker in home,f'home missing {marker}')
 require(home.count('data-home-industry-map-entry')==1,'home industry map entry must have one owner')
 for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-release="v3.9.68.0"','v3.9.68.0']:
@@ -52,6 +56,10 @@ for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-relea
 for marker in ['release-presenter.v3970_0.js?v=3970_0','family-shell.v3970_0.js?v=3970_0','family-decision-contract.v3970_0.js?v=3970_0',"HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'",'gaokao:selection-change']:
  require(marker in home_runtime,f'home runtime missing {marker}')
 require('MutationObserver' not in home_runtime,'home runtime must not self-observe DOM')
+
+local_strength=text('ln-rank/local-mainline.html')
+for marker in ['data-release="v3.9.71.0"','local-strength.v3971_0.css?v=3971_0','local-strength-app.v3971_0.js?v=3971_0','release-presenter.v3971_0.js?v=3971_0','全部背景专业','按学校查询','按分数位置看']:
+ require(marker in local_strength,f'local strength page missing {marker}')
 
 headers=text('_headers')
 for page in ['/','/index.html']:
@@ -113,4 +121,4 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.70.1','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({'ok':True,'version':'v3.9.71.0','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','localStrength':'local-strength-v3971_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
