@@ -18,7 +18,7 @@ const DEFINITIONS=[
  ['shared/resources/release/current-release.js','shared/resources/release/runtime-cache-contract.v3970_0.js','runtime cache graph bound to the current release']
 ];
 const hash=rel=>crypto.createHash('sha256').update(fs.readFileSync(rel)).digest('hex');
-const payload={version:'derivation-trace-v3970_0',generatedAt:'2026-07-28T08:00:00Z',items:DEFINITIONS.map(([source,derived,reason])=>({source,sourceSha256:hash(source),derived,derivedSha256:hash(derived),reason}))};
+const payload={version:'derivation-trace-v3970_0',generatedAt:'2026-07-31T02:12:00Z',items:DEFINITIONS.map(([source,derived,reason])=>({source,sourceSha256:hash(source),derived,derivedSha256:hash(derived),reason}))};
 const expected=JSON.stringify(payload,null,2)+'\n';
 if(process.argv.includes('--write')){
  fs.writeFileSync(OUTPUT,expected);
