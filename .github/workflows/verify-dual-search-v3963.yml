@@ -103,14 +103,14 @@ jobs:
           sleep 1
           V3969_ARTIFACT_DIR=/tmp/v3970-browser-school node tools/browser-school-query-v3970.mjs 2>&1 | tee /tmp/v3970-browser-school.out
 
-      - name: Verify local and 211 background journeys
+      - name: Verify preserved 211 background journeys
         run: |
           set -euo pipefail
           python3 -m http.server 8765 >/tmp/v3970-background-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3968_ARTIFACT_DIR=/tmp/v3970-browser-background node tools/browser-academic-background-v3968.mjs 2>&1 | tee /tmp/v3970-browser-background.out
+          V3968_ARTIFACT_DIR=/tmp/v3970-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3970-browser-background.out
 
       - name: Upload verification diagnostics
         if: failure()
