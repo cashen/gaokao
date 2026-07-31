@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-static-index:
@@ -56,27 +56,36 @@ jobs:
           if(audit.assertions.liaoningUniversityOfScienceAndTechnologyMatched<1) throw new Error('辽宁科技大学 coverage');
           console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(indexPath).size},null,2));
           NODE
-      - name: Commit generated immutable data and synchronized contracts on PR branch
-        if: github.event_name == 'pull_request'
+      - name: Package synchronized files for connector writeback
         run: |
           set -euo pipefail
-          git add -u
-          git add ln-rank/data/local-strength/local-strength-index.v3971_2.json ln-rank/data/local-strength/local-strength-audit.v3971_2.json
-          if git diff --cached --quiet; then
-            echo 'generated data and release contracts already current'
-          else
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'build(local-strength): synchronize static v3971.2 release'
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi
-      - name: Upload generated static data
-        uses: actions/upload-artifact@v4
-        with:
-          name: local-strength-static-v3971-2
-          path: |
+          files=(
+            index.html
+            shared/resources/release/current-release.js
+            tools/browser-school-query-v3970.mjs
+            tools/browser-home-release-v3970.mjs
+            tools/audit-academic-background-v3970.mjs
+            tools/browser-resource-execution-v3970.mjs
+            tools/audit-home-release-ownership-v3970.mjs
+            tools/ln-2026/verify-final-release-v3970.py
+            tools/audit-school-query-v3970.mjs
+            tools/browser-family-action-v3970.mjs
+            tools/audit-family-action-v3970.mjs
+            .github/workflows/verify-ln-2026-final.yml
+            .github/workflows/tongxue-live-verification.yml
+            .github/workflows/verify-dual-search-v3963.yml
+            .github/workflows/verify-production-release-v3970.yml
+            .github/workflows/verify-local-strength-static-v3971.yml
             ln-rank/data/local-strength/local-strength-index.v3971_2.json
             ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+          )
+          tar -czf /tmp/local-strength-v3971-2-writeback.tgz "${files[@]}"
+      - name: Upload generated static data and synchronized files
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-strength-static-v3971-2-writeback
+          path: |
+            /tmp/local-strength-v3971-2-writeback.tgz
             /tmp/local-strength-static-build.out
             /tmp/local-strength-static-compact.out
             /tmp/local-strength-static-release-sync.out
