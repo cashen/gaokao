@@ -1,6 +1,9 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 
 const BASE = process.env.LOCAL_STRENGTH_BASE || 'http://127.0.0.1:8789';
+const INDEX = JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json', 'utf8'));
+const expected = INDEX.meta;
 const viewports = [
   { name: 'android-360', width: 360, height: 800, columns: 2 },
   { name: 'android-390', width: 390, height: 844, columns: 2 },
@@ -30,7 +33,7 @@ try {
     await page.waitForFunction(() => document.body.dataset.localStrengthRuntime === 'ready');
 
     const summary = await page.locator('[data-summary-compact]').textContent();
-    assert(summary.includes('62') && summary.includes('22') && summary.includes('243'), `${viewport.name}: summary counts`);
+    assert(summary.includes(String(expected.localAdmissionSchoolCount)) && summary.includes(String(expected.matchedSchoolCount)) && summary.includes(String(expected.matchedRecordCount)), `${viewport.name}: summary counts`);
     assert(apiCalls.length === 0, `${viewport.name}: unexpected API calls ${apiCalls.join(',')}`);
     assert(failures.length === 0, `${viewport.name}: request failures ${failures.join(',')}`);
 
@@ -70,7 +73,7 @@ try {
       assert(await page.locator('.ls-record').count() === 6, `${viewport.name}: 辽宁科技大学 six records`);
 
       await page.locator('[data-view="list_all"]').click();
-      await page.waitForFunction(() => document.querySelector('#resultsMeta')?.textContent?.includes('共 243 条'));
+      await page.waitForFunction(count => document.querySelector('#resultsMeta')?.textContent?.includes(`共 ${count} 条`), expected.matchedRecordCount);
       const next = page.locator('#pagination button').filter({ hasText: '下一页' });
       await next.click();
       await page.waitForFunction(() => new URL(location.href).searchParams.get('page') === '2');

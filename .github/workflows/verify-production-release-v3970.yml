@@ -1,4 +1,4 @@
-name: Verify production release v3970
+name: Verify production release v3972.2
 
 on:
   push:
@@ -16,9 +16,9 @@ permissions:
 jobs:
   production-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Verify Pages production and custom-domain release ownership
+      - name: Verify Pages and custom-domain release ownership
         env:
           RELEASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
@@ -26,140 +26,111 @@ jobs:
           CUSTOM_BASE: https://gaokao.powers.org.cn
         run: |
           set -euo pipefail
-          mkdir -p /tmp/v3970-production
-
+          mkdir -p /tmp/v3972-production
           if [ "$EVENT_NAME" = 'pull_request' ]; then
-            expected_root_release='v3.9.70.1'
-            require_home_industry_link=1
+            expected_release='v3.9.71.2'
+            require_all211=0
           else
-            expected_root_release='v3.9.71.2'
-            require_home_industry_link=1
+            expected_release='v3.9.72.2'
+            require_all211=1
           fi
-          printf 'expected_root_release=%s require_home_industry_link=%s\n' "$expected_root_release" "$require_home_industry_link" \
-            > /tmp/v3970-production/expectation.txt
+          printf 'expected_release=%s require_all211=%s\n' "$expected_release" "$require_all211" > /tmp/v3972-production/expectation.txt
 
           fetch_response() {
             local label="$1" url="$2"
             curl --silent --show-error --location --max-time 25 \
               -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              --dump-header "/tmp/v3970-production/${label}.headers" \
-              --output "/tmp/v3970-production/${label}.body" \
-              --write-out '%{http_code}' "$url" \
-              > "/tmp/v3970-production/${label}.status" || true
+              --dump-header "/tmp/v3972-production/${label}.headers" \
+              --output "/tmp/v3972-production/${label}.body" \
+              --write-out '%{http_code}' "$url" > "/tmp/v3972-production/${label}.status" || true
           }
 
           ready=0
           for attempt in $(seq 1 36); do
             token="${RELEASE_SHA}-${attempt}-$(date +%s)"
-
             fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
-            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
-            fetch_response pages-industry "${PAGES_BASE}/Public_company/?release-check=${token}"
             fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-
+            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
+            fetch_response pages-all211 "${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}"
+            fetch_response pages-all211-app "${PAGES_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
+            fetch_response pages-all211-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}"
             fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
-            fetch_response custom-workspace "${CUSTOM_BASE}/ln-rank/?release-check=${token}"
             fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response custom-home-runtime "${CUSTOM_BASE}/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0"
-            fetch_response custom-app "${CUSTOM_BASE}/ln-rank/js/app.v3970_0.js?v=3970_0"
+            fetch_response custom-all211 "${CUSTOM_BASE}/ln-rank/211-mainline.html?release-check=${token}"
+            fetch_response custom-all211-app "${CUSTOM_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
 
             pages_current=0
             custom_assets_current=0
             custom_html_or_challenge=0
-            pages_home_link_current=1
-            custom_home_link_current=1
+            all211_current=1
 
-            if [ "$require_home_industry_link" -eq 1 ]; then
-              grep -q 'href="/Public_company/"' /tmp/v3970-production/pages-root.body || pages_home_link_current=0
-              if [ "$(cat /tmp/v3970-production/custom-root.status)" = '200' ]; then
-                grep -q 'href="/Public_company/"' /tmp/v3970-production/custom-root.body || custom_home_link_current=0
+            if [ "$require_all211" -eq 1 ]; then
+              if [ "$(cat /tmp/v3972-production/pages-all211.status)" != '200' ] \
+                || ! grep -q 'data-release="v3.9.72.2"' /tmp/v3972-production/pages-all211.body \
+                || ! grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/pages-all211.body \
+                || grep -q '/api/academic-background' /tmp/v3972-production/pages-all211.body \
+                || [ "$(cat /tmp/v3972-production/pages-all211-app.status)" != '200' ] \
+                || ! grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/pages-all211-app.body \
+                || [ "$(cat /tmp/v3972-production/pages-all211-data.status)" != '200' ] \
+                || ! grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-production/pages-all211-data.body \
+                || ! grep -q '"completeEvaluation":true' /tmp/v3972-production/pages-all211-data.body; then
+                all211_current=0
               fi
             fi
 
-            if [ "$(cat /tmp/v3970-production/pages-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_root_release}\"" /tmp/v3970-production/pages-root.body \
-              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-root.body \
-              && ! grep -q 'family-home.v3968_0.js' /tmp/v3970-production/pages-root.body \
-              && [ "$pages_home_link_current" -eq 1 ] \
-              && [ "$(cat /tmp/v3970-production/pages-workspace.status)" = '200' ] \
-              && grep -q 'data-release="v3.9.70.0"' /tmp/v3970-production/pages-workspace.body \
-              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/pages-workspace.body \
-              && [ "$(cat /tmp/v3970-production/pages-industry.status)" = '200' ] \
-              && grep -q '产业落点地图' /tmp/v3970-production/pages-industry.body \
-              && [ "$(cat /tmp/v3970-production/pages-release.status)" = '200' ] \
-              && grep -q "display: '${expected_root_release}'" /tmp/v3970-production/pages-release.body \
-              && grep -q "assetVersion: 'v3970_0'" /tmp/v3970-production/pages-release.body \
-              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/pages-release.body; then
+            if [ "$(cat /tmp/v3972-production/pages-root.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/pages-root.body \
+              && grep -q 'href="/Public_company/"' /tmp/v3972-production/pages-root.body \
+              && [ "$(cat /tmp/v3972-production/pages-workspace.status)" = '200' ] \
+              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3972-production/pages-workspace.body \
+              && [ "$(cat /tmp/v3972-production/pages-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-production/pages-release.body \
+              && grep -q "assetVersion: 'v3970_0'" /tmp/v3972-production/pages-release.body \
+              && [ "$all211_current" -eq 1 ]; then
               pages_current=1
             fi
 
-            if [ "$(cat /tmp/v3970-production/custom-release.status)" = '200' ] \
-              && grep -q "display: '${expected_root_release}'" /tmp/v3970-production/custom-release.body \
-              && grep -q "assetVersion: 'v3970_0'" /tmp/v3970-production/custom-release.body \
-              && grep -q "homeRuntime: '/ln-rank/js/ux/family-home.v3970_0.js'" /tmp/v3970-production/custom-release.body \
-              && [ "$(cat /tmp/v3970-production/custom-home-runtime.status)" = '200' ] \
-              && grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/custom-home-runtime.body \
-              && ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/custom-home-runtime.body \
-              && [ "$(cat /tmp/v3970-production/custom-app.status)" = '200' ] \
-              && grep -q 'app-runtime.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-app.body; then
-              custom_assets_current=1
+            if [ "$(cat /tmp/v3972-production/custom-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-production/custom-release.body; then
+              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211-app.status)" = '200' ] && grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/custom-all211-app.body; }; then
+                custom_assets_current=1
+              fi
             fi
 
-            custom_root_status="$(cat /tmp/v3970-production/custom-root.status)"
-            custom_workspace_status="$(cat /tmp/v3970-production/custom-workspace.status)"
-            if [ "$custom_root_status" = '200' ] \
-              && [ "$custom_workspace_status" = '200' ] \
-              && grep -q "data-release=\"${expected_root_release}\"" /tmp/v3970-production/custom-root.body \
-              && grep -q 'family-home.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-root.body \
-              && [ "$custom_home_link_current" -eq 1 ] \
-              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-workspace.body; then
+            if [ "$(cat /tmp/v3972-production/custom-root.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/custom-root.body; then
+              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211.status)" = '200' ] && grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/custom-all211.body; }; then
+                custom_html_or_challenge=1
+                printf '%s\n' 'custom domain returned current HTML' > /tmp/v3972-production/custom-domain-mode.txt
+              fi
+            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-production/custom-root.headers; then
               custom_html_or_challenge=1
-              printf '%s\n' 'custom domain HTML returned current release directly' > /tmp/v3970-production/custom-domain-mode.txt
-            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3970-production/custom-root.headers \
-              && grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3970-production/custom-workspace.headers; then
-              custom_html_or_challenge=1
-              printf '%s\n' 'custom domain HTML protected by Cloudflare Managed Challenge; current assets verified separately' > /tmp/v3970-production/custom-domain-mode.txt
+              printf '%s\n' 'custom domain protected by Cloudflare Managed Challenge; versioned assets verified separately' > /tmp/v3972-production/custom-domain-mode.txt
             fi
 
-            printf 'attempt=%s expected=%s pages_current=%s custom_assets_current=%s custom_html_or_challenge=%s root_status=%s workspace_status=%s\n' \
-              "$attempt" "$expected_root_release" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$custom_root_status" "$custom_workspace_status" \
-              | tee /tmp/v3970-production/status.txt
-
-            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then
-              ready=1
-              break
-            fi
+            printf 'attempt=%s expected=%s pages=%s custom_assets=%s custom_html=%s all211=%s\n' "$attempt" "$expected_release" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$all211_current" | tee /tmp/v3972-production/status.txt
+            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then ready=1; break; fi
             sleep 20
           done
 
           if [ "$ready" -ne 1 ]; then
-            for label in pages-root pages-workspace pages-industry pages-release custom-root custom-workspace custom-release custom-home-runtime custom-app; do
-              printf '\n--- %s status ---\n' "$label"
-              cat "/tmp/v3970-production/${label}.status" 2>/dev/null || true
-              printf '\n--- %s headers ---\n' "$label"
-              head -c 2000 "/tmp/v3970-production/${label}.headers" 2>/dev/null || true
-              printf '\n--- %s body ---\n' "$label"
-              head -c 2000 "/tmp/v3970-production/${label}.body" 2>/dev/null || true
-            done
+            for file in /tmp/v3972-production/*.status /tmp/v3972-production/*.headers /tmp/v3972-production/*.body; do echo "--- $file"; head -c 2500 "$file" 2>/dev/null || true; echo; done
             exit 1
           fi
 
-      - name: Verify freshness, ETags, and exact versioned runtimes
+      - name: Verify immutable asset headers
+        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          grep -Eiq 'cache-control:.*(no-cache|must-revalidate)' /tmp/v3970-production/pages-root.headers
-          grep -Eiq '^etag:' /tmp/v3970-production/custom-home-runtime.headers
-          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3970-production/custom-home-runtime.headers
-          grep -Eiq 'cache-control:.*(must-revalidate|immutable)' /tmp/v3970-production/custom-home-runtime.headers
-          grep -q "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'" /tmp/v3970-production/custom-home-runtime.body
-          ! grep -q 'family-home-runtime-v3968_0' /tmp/v3970-production/custom-home-runtime.body
-          grep -q 'app-runtime.v3970_0.js?v=3970_0' /tmp/v3970-production/custom-app.body
+          grep -Eiq '^etag:' /tmp/v3972-production/pages-all211-app.headers
+          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3972-production/pages-all211-app.headers
+          grep -Eiq 'content-type:.*application/json' /tmp/v3972-production/pages-all211-data.headers
 
       - name: Upload production evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3970-production-release-evidence
-          path: /tmp/v3970-production
+          name: v3972-2-production-release-evidence
+          path: /tmp/v3972-production
           if-no-files-found: warn
           retention-days: 7

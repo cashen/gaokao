@@ -1,7 +1,6 @@
 import { loadManifest } from '../_lib/fenxi-manifest.js';
 import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
 import { makeBands } from '../_lib/band-engine.js';
-import { rawScore } from '../_lib/fenxi-normalizer.js';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -10,65 +9,110 @@ function json(payload, status = 200) {
   });
 }
 
+function number(value) {
+  if (value == null || value === '') return null;
+  const match = String(value).replace(/[,，\s]/g, '').match(/-?\d+(?:\.\d+)?/);
+  const parsed = match ? Number(match[0]) : NaN;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function rawScore(record = {}) {
+  return number(record.score2026 ?? record.score ?? record.minScore ?? record['2026最低分'] ?? record['最低分']);
+}
+
 function chunkFile(chunk) {
   return chunk?.file || chunk?.path || '';
+}
+
+function chunkRecordCount(chunk) {
+  return number(chunk?.recordCount ?? chunk?.records ?? chunk?.count) || 0;
+}
+
+function chunkScoreBounds(chunk) {
+  const min = number(chunk?.minScore ?? chunk?.scoreMin ?? chunk?.minimumScore);
+  const max = number(chunk?.maxScore ?? chunk?.scoreMax ?? chunk?.maximumScore);
+  return { min, max };
+}
+
+function chunkIntersectsWindow(chunk, window) {
+  const bounds = chunkScoreBounds(chunk);
+  if (!Number.isFinite(bounds.min) || !Number.isFinite(bounds.max)) return true;
+  return bounds.max >= window.min && bounds.min <= window.max;
 }
 
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return {
-    min: Math.min(...all.map(b => b.minScore)),
-    max: Math.max(...all.map(b => b.maxScore))
+    min: Math.min(...all.map(item => item.minScore)),
+    max: Math.max(...all.map(item => item.maxScore))
   };
 }
 
 function shouldRunProbe(url) {
-  const v = String(url.searchParams.get('probe') || '').trim().toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes';
+  const value = String(url.searchParams.get('probe') || '').trim().toLowerCase();
+  return value === '1' || value === 'true' || value === 'yes';
 }
 
-async function runScoreProbes(request, env, chunks) {
-  const probes = [
+async function runBoundedProbe(request, env, chunks) {
+  const definitions = [
     { candidateScore: 499, rangePreset: 'standard', bottomLineMode: 'all', label: '低分段全部院校' },
     { candidateScore: 499, rangePreset: 'standard', bottomLineMode: 'public_first', label: '低分段公办优先' },
     { candidateScore: 515, rangePreset: 'standard', bottomLineMode: 'public_first', label: '特控线边界公办优先' },
     { candidateScore: 580, rangePreset: 'standard', bottomLineMode: 'all', label: '普通主流程' },
     { candidateScore: 666, rangePreset: 'standard', bottomLineMode: 'all', label: '高分段长专业名压力' }
   ];
-  const windows = probes.map(p => ({ ...p, ...minMaxScore(makeBands(p.candidateScore, p.rangePreset)) }));
-  const resultMap = new Map(windows.map(p => [`${p.candidateScore}-${p.bottomLineMode}`, { ...p, candidateCount: 0, chunksChecked: 0 } ]));
+  const probes = definitions.map(definition => {
+    const window = minMaxScore(makeBands(definition.candidateScore, definition.rangePreset));
+    const intersecting = chunks.filter(chunk => chunkIntersectsWindow(chunk, window));
+    return {
+      ...definition,
+      scoreWindow: window,
+      chunksMatched: intersecting.length,
+      manifestRecordCapacity: intersecting.reduce((sum, chunk) => sum + chunkRecordCount(chunk), 0),
+      chunkFiles: intersecting.map(chunkFile).filter(Boolean),
+      ok: intersecting.length > 0
+    };
+  });
+
+  const representative = probes.find(probe => probe.candidateScore === 580 && probe.bottomLineMode === 'all') || probes[0];
+  const representativeChunk = chunks.find(chunk => representative.chunkFiles.includes(chunkFile(chunk))) || null;
+  let sample = null;
   let rawScanned = 0;
   const started = Date.now();
 
-  for (const chunk of chunks) {
-    const file = chunkFile(chunk);
-    if (!file) continue;
-    const data = await fetchFenxiJson(request, env || {}, file);
-    const records = Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
-    rawScanned += records.length;
-    for (const probe of resultMap.values()) probe.chunksChecked += 1;
-    for (const raw of records) {
-      const score = rawScore(raw);
-      if (!Number.isFinite(score)) continue;
-      for (const probe of resultMap.values()) {
-        if (score >= probe.min && score <= probe.max) probe.candidateCount += 1;
-      }
+  if (representativeChunk) {
+    const file = chunkFile(representativeChunk);
+    const payload = await fetchFenxiJson(request, env || {}, file);
+    const records = Array.isArray(payload) ? payload : (Array.isArray(payload.records) ? payload.records : []);
+    rawScanned = records.length;
+    let candidateCount = 0;
+    for (const record of records) {
+      const score = rawScore(record);
+      if (Number.isFinite(score) && score >= representative.scoreWindow.min && score <= representative.scoreWindow.max) candidateCount += 1;
     }
+    sample = {
+      file,
+      records: records.length,
+      candidateScore: representative.candidateScore,
+      scoreWindow: representative.scoreWindow,
+      candidateCount,
+      sampleKeys: records[0] ? Object.keys(records[0]).slice(0, 12) : []
+    };
   }
 
   return {
+    mode: 'bounded-manifest-plus-one-chunk',
     elapsedMs: Date.now() - started,
     rawScanned,
-    probes: Array.from(resultMap.values()).map(p => ({
-      label: p.label,
-      candidateScore: p.candidateScore,
-      rangePreset: p.rangePreset,
-      bottomLineMode: p.bottomLineMode,
-      scoreWindow: { min: p.min, max: p.max },
-      candidateCount: p.candidateCount,
-      chunksChecked: p.chunksChecked,
-      ok: p.candidateCount >= 0
-    }))
+    chunksRead: sample ? 1 : 0,
+    chunksAvailable: chunks.length,
+    fullDatasetScan: false,
+    resourceBudget: {
+      maxChunksRead: 1,
+      parsedChunkCache: false
+    },
+    sample,
+    probes
   };
 }
 
@@ -77,15 +121,6 @@ export async function onRequest(context) {
     const url = new URL(context.request.url);
     const manifest = await loadManifest(context.request, context.env || {});
     const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-    const firstFile = chunkFile(chunks[0]);
-    let firstChunk = null;
-
-    if (firstFile) {
-      const data = await fetchFenxiJson(context.request, context.env || {}, firstFile);
-      const records = Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
-      firstChunk = { file: firstFile, records: records.length, sampleKeys: records[0] ? Object.keys(records[0]).slice(0, 12) : [] };
-    }
-
     const payload = {
       ok: true,
       runtimeHealth: '/api/ln-rank-runtime-health',
@@ -93,7 +128,17 @@ export async function onRequest(context) {
         version: manifest.version || '',
         totalRecords: manifest.totalRecords || '',
         chunkCount: chunks.length,
-        firstChunk
+        chunks: chunks.map(chunk => ({
+          file: chunkFile(chunk),
+          recordCount: chunkRecordCount(chunk),
+          ...chunkScoreBounds(chunk)
+        }))
+      },
+      resourcePolicy: {
+        version: 'major-bands-health-budget-v3972_2',
+        fullDatasetProbeDisabled: true,
+        largeChunkModuleCacheDisabled: true,
+        maximumProbeChunks: 1
       },
       env: {
         hasFenxiBase: Boolean(context.env?.FENXI_DATA_BASE),
@@ -102,13 +147,17 @@ export async function onRequest(context) {
     };
 
     if (shouldRunProbe(url)) {
-      payload.probe = await runScoreProbes(context.request, context.env || {}, chunks);
+      payload.probe = await runBoundedProbe(context.request, context.env || {}, chunks);
     } else {
-      payload.probeHint = '追加 ?probe=1 可执行 499/515/580/666 低分段与高分段读取探针。';
+      payload.probeHint = '追加 ?probe=1 执行单分片受限探针；生产健康检查不会再扫描全部投档分片。';
     }
 
     return json(payload);
   } catch (error) {
-    return json({ ok: false, message: error?.message || String(error), engineerHint: 'major-bands-health 无法完成数据读取或探针，请优先检查 /fenxi/data/manifest.json、chunks 路径、Functions 部署位置和授权 cookie。' }, 500);
+    return json({
+      ok: false,
+      message: error?.message || String(error),
+      engineerHint: 'major-bands-health 无法完成 manifest 或受限分片探针，请检查 /fenxi/data/manifest.json、分片路径和 Functions 授权。'
+    }, 500);
   }
 }

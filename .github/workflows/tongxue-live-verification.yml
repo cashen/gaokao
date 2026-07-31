@@ -74,7 +74,7 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          if(CURRENT_RELEASE.display!=='v3.9.71.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release mismatch');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
           if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue wrapper mismatch');
           const html=fs.readFileSync('tongxue/index.html','utf8');
@@ -88,7 +88,7 @@ jobs:
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue v159 core + v3968 wrapper + v3969 query owner + v3.9.71.2 release passed');
+          console.log('Tongxue v159 core + v3968 wrapper + v3969 query owner + v3.9.72.2 release passed');
           NODE
 
       - name: Verify school resolver and unified query contracts

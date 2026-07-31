@@ -1,4 +1,4 @@
-name: Verify production API health v3971.2
+name: Verify production API health v3972.2
 
 on:
   push:
@@ -14,24 +14,80 @@ permissions:
 jobs:
   production-api-health:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 32
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify production score school APIs and static LocalStrength
+      - name: Verify worker resource-budget source contracts
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/fenxi-fetcher.js
+          node --check functions/api/major-bands-health.js
+          node --check tools/verify-worker-budget-local-v3972.mjs
+          node --check tools/verify-production-v3971.mjs
+          grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
+          grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
+          grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
+          grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
+      - name: Verify local Wrangler concurrent resource journey
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-worker-budget-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8792/api/ln-rank-runtime-health' >/tmp/v3972-runtime.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-worker-budget-wrangler.log; exit 1; fi
+          for cycle in $(seq 1 8); do
+            token="${cycle}-$(date +%s%N)"
+            curl -fsS "http://127.0.0.1:8792/api/major-bands-health?probe=1&budget=${token}" > "/tmp/v3972-health-${cycle}.json" &
+            p1=$!
+            curl -fsS "http://127.0.0.1:8792/api/major-bands?candidateScore=579&limit=16&budget=${token}" > "/tmp/v3972-score-${cycle}.json" &
+            p2=$!
+            curl -fsS --get 'http://127.0.0.1:8792/api/major-bands' \
+              --data-urlencode 'candidateScore=650' \
+              --data-urlencode 'schoolKeyword=东北大学' \
+              --data-urlencode 'limit=16' \
+              --data-urlencode "budget=${token}" > "/tmp/v3972-school-${cycle}.json" &
+            p3=$!
+            wait "$p1" "$p2" "$p3"
+            node tools/verify-worker-budget-local-v3972.mjs "$cycle"
+          done
+      - name: Verify stable production baseline before merge
+        if: github.event_name == 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.71.2
+          PRODUCTION_VERIFY_ATTEMPTS: '15'
+          PRODUCTION_VERIFY_WAIT_MS: '10000'
+        run: node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
+      - name: Verify v3.9.72.2 production score school APIs and bounded health probe
+        if: github.event_name != 'pull_request'
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.72.2
           PRODUCTION_VERIFY_ATTEMPTS: '30'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
-        run: node tools/verify-production-v3971.mjs | tee /tmp/v3971-production-health.out
+          PRODUCTION_STRESS_CYCLES: '40'
+          PRODUCTION_STRESS_WAIT_MS: '1000'
+        run: node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3971-production-api-health
-          path: /tmp/v3971-production-health.out
+          name: v3972-2-production-api-health
+          path: |
+            /tmp/v3972-production-health.out
+            /tmp/v3972-worker-budget-wrangler.log
+            /tmp/v3972-*.json
           if-no-files-found: warn
           retention-days: 7
