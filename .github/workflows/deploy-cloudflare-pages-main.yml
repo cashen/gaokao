@@ -1,0 +1,86 @@
+name: Deploy main to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CF_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'gaokao' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployable main source and protected boundaries
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'main'
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
+          grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
+          grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
+          grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
+          node --check functions/api/major-bands-health.js
+          node --check functions/_lib/fenxi-fetcher.js
+          node --check tools/verify-production-v3971.mjs
+      - name: Resolve and verify Cloudflare deployment credentials
+        env:
+          CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_FALLBACK: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
+          account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
+          test -n "$token" || { echo 'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.'; exit 2; }
+          test -n "$account" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'; exit 2; }
+          test -n "${CF_PROJECT_NAME:-}" || { echo 'Missing Cloudflare Pages project name.'; exit 2; }
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+      - name: Deploy exact main commit
+        run: |
+          set -euo pipefail
+          commit_message="$(git log -1 --pretty=%s)"
+          npx --yes wrangler@4.28.1 pages deploy . \
+            --project-name="$CF_PROJECT_NAME" \
+            --branch=main \
+            --commit-hash="$GITHUB_SHA" \
+            --commit-message="$commit_message"
+      - name: Verify v3.9.72.2 production with 40 concurrent cycles
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.72.2
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          PRODUCTION_VERIFY_ATTEMPTS: '45'
+          PRODUCTION_VERIFY_WAIT_MS: '10000'
+          PRODUCTION_STRESS_CYCLES: '40'
+          PRODUCTION_STRESS_WAIT_MS: '1000'
+        run: |
+          set -euo pipefail
+          node tools/verify-production-v3971.mjs | tee /tmp/cloudflare-pages-production-verification.out
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-pages-v3972-2-production
+          path: /tmp/cloudflare-pages-production-verification.out
+          if-no-files-found: warn
+          retention-days: 7
