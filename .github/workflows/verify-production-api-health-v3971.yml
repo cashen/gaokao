@@ -1,0 +1,137 @@
+name: Verify production API health v3971.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-api-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Verify Pages runtime APIs and static LocalStrength after merge
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3971-production-api
+
+          fetch() {
+            local label="$1" url="$2"
+            curl --silent --show-error --location --max-time 30 \
+              -H 'Accept: application/json' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              --dump-header "/tmp/v3971-production-api/${label}.headers" \
+              --output "/tmp/v3971-production-api/${label}.body" \
+              --write-out '%{http_code}' "$url" > "/tmp/v3971-production-api/${label}.status" || true
+          }
+
+          ready=0
+          for attempt in $(seq 1 30); do
+            token="${RELEASE_SHA}-${attempt}-$(date +%s)"
+            fetch pages-runtime "${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}"
+            fetch pages-health "${PAGES_BASE}/api/major-bands-health?probe=1&release-check=${token}"
+            fetch pages-score "${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}"
+            fetch pages-school "${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=%E4%B8%9C%E5%8C%97%E5%A4%A7%E5%AD%A6&limit=16&release-check=${token}"
+
+            if [ "$EVENT_NAME" = 'push' ]; then
+              fetch pages-local-page "${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}"
+              fetch pages-local-index "${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}"
+            fi
+
+            if node --input-type=module - <<'NODE'
+              import fs from 'node:fs';
+              const dir='/tmp/v3971-production-api';
+              const status=name=>Number(fs.readFileSync(`${dir}/${name}.status`,'utf8'));
+              const read=name=>JSON.parse(fs.readFileSync(`${dir}/${name}.body`,'utf8'));
+              for(const name of ['pages-runtime','pages-health','pages-score','pages-school']){
+                if(status(name)!==200) process.exit(1);
+              }
+              const runtime=read('pages-runtime');
+              const health=read('pages-health');
+              const score=read('pages-score');
+              const school=read('pages-school');
+              if(runtime.ok===false||health.ok===false||score.ok===false||school.ok===false) process.exit(1);
+              const count=data=>['upper','near','steady'].reduce((sum,key)=>sum+(data.bands?.[key]?.records?.length||0),0);
+              if(count(score)<1||count(school)<1) process.exit(1);
+              if(process.env.EVENT_NAME==='push'){
+                if(status('pages-local-page')!==200||status('pages-local-index')!==200) process.exit(1);
+                const html=fs.readFileSync(`${dir}/pages-local-page.body`,'utf8');
+                const index=read('pages-local-index');
+                if(!html.includes('data-release="v3.9.71.2"')) process.exit(1);
+                if(!html.includes('local-strength-app.v3971_2.js?v=3971_2')) process.exit(1);
+                if(html.includes('/api/local-strength')) process.exit(1);
+                if(index.version!=='local-strength-static-v3971_2'||!index.meta?.completeEvaluation) process.exit(1);
+                if(index.meta.evaluatedRecordCount!==1992||index.meta.matchedRecordCount!==243) process.exit(1);
+              }
+              console.log(JSON.stringify({scoreRecords:count(score),schoolRecords:count(school),runtime:true,health:true,event:process.env.EVENT_NAME},null,2));
+NODE
+            then
+              ready=1
+              break
+            fi
+            sleep 15
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            for label in pages-runtime pages-health pages-score pages-school pages-local-page pages-local-index; do
+              echo "--- ${label} status ---"
+              cat "/tmp/v3971-production-api/${label}.status" 2>/dev/null || true
+              echo "--- ${label} headers ---"
+              head -c 1600 "/tmp/v3971-production-api/${label}.headers" 2>/dev/null || true
+              echo "--- ${label} body ---"
+              head -c 2400 "/tmp/v3971-production-api/${label}.body" 2>/dev/null || true
+            done
+            exit 1
+          fi
+
+      - name: Verify custom-domain API visibility or managed challenge
+        env:
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3971-production-custom
+          status=$(curl --silent --show-error --location --max-time 30 \
+            -H 'Accept: application/json' -H 'Cache-Control: no-cache' \
+            --dump-header /tmp/v3971-production-custom/headers \
+            --output /tmp/v3971-production-custom/body \
+            --write-out '%{http_code}' \
+            "${CUSTOM_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=$(date +%s)" || true)
+          printf '%s' "$status" > /tmp/v3971-production-custom/status
+          if [ "$status" = '200' ]; then
+            node --input-type=module - <<'NODE'
+            import fs from 'node:fs';
+            const data=JSON.parse(fs.readFileSync('/tmp/v3971-production-custom/body','utf8'));
+            if(data.ok===false) throw new Error(JSON.stringify(data));
+            const count=['upper','near','steady'].reduce((sum,key)=>sum+(data.bands?.[key]?.records?.length||0),0);
+            if(count<1) throw new Error('custom domain score query empty');
+            console.log(JSON.stringify({customDomain:'json-200',count},null,2));
+NODE
+          elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3971-production-custom/headers; then
+            echo 'custom domain protected by Cloudflare Managed Challenge; strict API health verified on Pages default domain'
+          else
+            echo "custom domain API returned unexpected status ${status}"
+            head -c 2000 /tmp/v3971-production-custom/headers || true
+            head -c 2000 /tmp/v3971-production-custom/body || true
+            exit 1
+          fi
+
+      - name: Upload production API evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3971-production-api-health
+          path: |
+            /tmp/v3971-production-api
+            /tmp/v3971-production-custom
+          if-no-files-found: warn
+          retention-days: 7
