@@ -24,7 +24,7 @@ assert(styles.includes('.ls-chip-row{display:grid;grid-template-columns:repeat(8
 assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(4'), 'pad score grid');
 assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(2'), 'android score grid');
 assert(!/\.ls-chip-row[^}]*overflow-x\s*:\s*(auto|scroll)/.test(styles), 'score bands must not horizontally scroll');
-assert(release.includes("display: 'v3.9.72.1'"), 'release display');
+assert(release.includes("display: 'v3.9.72.2'"), 'release display');
 assert(release.includes("assetVersion: 'v3970_0'"), 'stable asset lineage');
 assert(release.includes("assetReleaseVersion: 'v3.9.70.0'"), 'stable release lineage');
 assert(release.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'static data version');
@@ -47,7 +47,7 @@ assert(audit.assertions.sortedDescending, 'audit order');
 assert(fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size < 800000, 'browser index size');
 
 console.log(JSON.stringify({
-  release: 'v3.9.72.1',
+  release: 'v3.9.72.2',
   architecture: 'build-time-static-index',
   schools: index.meta.localAdmissionSchoolCount,
   evaluated: index.meta.evaluatedRecordCount,
