@@ -14,7 +14,7 @@
     "localAdmissionRecordCount": 1992,
     "evaluatedRecordCount": 1992,
     "matchedSchoolCount": 22,
-    "matchedRecordCount": 243,
+    "matchedRecordCount": 244,
     "noEvidenceSchoolCount": 40,
     "duplicatePublicRecordCount": 0,
     "unresolvedLocalRecordCount": 0,
@@ -286,32 +286,6 @@
       "status": "matched"
     },
     {
-      "officialName": "东北大学",
-      "admissionNames": [
-        "东北大学"
-      ],
-      "searchNames": [
-        "东北大学"
-      ],
-      "city": "沈阳市",
-      "province": "辽宁省",
-      "nature": "",
-      "recordCount2026": 31,
-      "evaluatedRecordCount": 31,
-      "matchedRecordCount": 12,
-      "noEvidenceCount": 19,
-      "directions": [
-        "计算机与软件信息",
-        "控制科学与工程",
-        "冶金工程",
-        "自动化与智能控制"
-      ],
-      "scoreMin": 581,
-      "scoreMax": 651,
-      "directionCount": 4,
-      "status": "matched"
-    },
-    {
       "officialName": "辽宁石油化工大学",
       "admissionNames": [
         "辽宁石油化工大学"
@@ -347,8 +321,8 @@
       "nature": "",
       "recordCount2026": 74,
       "evaluatedRecordCount": 74,
-      "matchedRecordCount": 10,
-      "noEvidenceCount": 64,
+      "matchedRecordCount": 11,
+      "noEvidenceCount": 63,
       "directions": [
         "法学与公共治理",
         "经济金融与统计",
@@ -356,6 +330,31 @@
       ],
       "scoreMin": 516,
       "scoreMax": 607,
+      "directionCount": 3,
+      "status": "matched"
+    },
+    {
+      "officialName": "东北大学",
+      "admissionNames": [
+        "东北大学"
+      ],
+      "searchNames": [
+        "东北大学"
+      ],
+      "city": "沈阳市",
+      "province": "辽宁省",
+      "nature": "",
+      "recordCount2026": 31,
+      "evaluatedRecordCount": 31,
+      "matchedRecordCount": 10,
+      "noEvidenceCount": 21,
+      "directions": [
+        "计算机与软件信息",
+        "控制科学与工程",
+        "自动化与智能控制"
+      ],
+      "scoreMin": 581,
+      "scoreMax": 651,
       "directionCount": 3,
       "status": "matched"
     },
@@ -395,16 +394,17 @@
       "nature": "",
       "recordCount2026": 41,
       "evaluatedRecordCount": 41,
-      "matchedRecordCount": 7,
-      "noEvidenceCount": 34,
+      "matchedRecordCount": 8,
+      "noEvidenceCount": 33,
       "directions": [
         "化工过程与材料",
+        "机械工程",
         "机械装备与智能制造",
         "力学"
       ],
       "scoreMin": 617,
       "scoreMax": 667,
-      "directionCount": 3,
+      "directionCount": 4,
       "status": "matched"
     },
     {
@@ -538,14 +538,15 @@
       "nature": "",
       "recordCount2026": 13,
       "evaluatedRecordCount": 13,
-      "matchedRecordCount": 2,
-      "noEvidenceCount": 11,
+      "matchedRecordCount": 3,
+      "noEvidenceCount": 10,
       "directions": [
-        "化工过程与材料"
+        "化工过程与材料",
+        "化学工程与技术"
       ],
       "scoreMin": 597,
       "scoreMax": 624,
-      "directionCount": 1,
+      "directionCount": 2,
       "status": "matched"
     },
     {
