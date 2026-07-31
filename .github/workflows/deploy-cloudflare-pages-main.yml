@@ -30,6 +30,8 @@ jobs:
           set -euo pipefail
           test "${GITHUB_REF_NAME}" = 'main'
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -f 404.html
+          grep -q '页面不存在' 404.html
           grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
           grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
