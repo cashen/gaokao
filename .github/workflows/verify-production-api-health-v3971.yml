@@ -14,7 +14,7 @@ permissions:
 jobs:
   production-api-health:
     runs-on: ubuntu-latest
-    timeout-minutes: 32
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,16 +24,25 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/_lib/fenxi-fetcher.js
+          node --check functions/api/major-bands.js
           node --check functions/api/major-bands-health.js
           node --check tools/verify-worker-budget-local-v3972.mjs
           node --check tools/verify-production-v3971.mjs
           node --check tools/verify-production-baseline-v3971.mjs
           test -f 404.html
           grep -q '页面不存在' 404.html
+          grep -q 'streamed-admission-chunks-v3972-2' 404.html
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
           grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
+          grep -q "streamFenxiChunkRecords" functions/_lib/fenxi-fetcher.js
+          grep -q "streamFenxiChunkRecords" functions/api/major-bands.js
+          if grep -q "fetchFenxiJson(request, env, file)" functions/api/major-bands.js; then
+            echo 'major-bands still materializes complete admission chunks'
+            exit 1
+          fi
+          grep -q "score-prefilter-streamed-chunks" functions/api/major-bands.js
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
           grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
           grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
@@ -76,6 +85,30 @@ jobs:
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
+      - name: Verify Cloudflare preview Worker journey
+        if: github.event_name == 'pull_request'
+        env:
+          PREVIEW_BASE: https://hotfix-v3972-2-production-ga.gaokao-4y9.pages.dev
+          EXPECTED_RELEASE: v3.9.72.2
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          PRODUCTION_VERIFY_ATTEMPTS: '1'
+          PRODUCTION_VERIFY_WAIT_MS: '1000'
+          PRODUCTION_STRESS_CYCLES: '8'
+          PRODUCTION_STRESS_WAIT_MS: '500'
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 60); do
+            marker="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/404.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
+            if grep -q 'streamed-admission-chunks-v3972-2' <<<"$marker"; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1
+          PAGES_BASE="$PREVIEW_BASE" CUSTOM_BASE="$PREVIEW_BASE" \
+            node tools/verify-production-v3971.mjs | tee /tmp/v3972-preview-worker-health.out
       - name: Verify currently deployed safe baseline before merge
         if: github.event_name == 'pull_request'
         env:
@@ -108,6 +141,7 @@ jobs:
           name: v3972-2-production-api-health
           path: |
             /tmp/v3972-production-health.out
+            /tmp/v3972-preview-worker-health.out
             /tmp/v3972-worker-budget-wrangler.log
             /tmp/v3972-*.json
             /tmp/v3972-*.html
