@@ -27,10 +27,14 @@ jobs:
           node --check functions/api/major-bands-health.js
           node --check tools/verify-worker-budget-local-v3972.mjs
           node --check tools/verify-production-v3971.mjs
+          node --check tools/verify-production-baseline-v3971.mjs
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
           grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
+          grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
+          grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
+          grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
       - name: Verify local Wrangler concurrent resource journey
         if: github.event_name == 'pull_request'
         run: |
@@ -60,26 +64,31 @@ jobs:
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
-      - name: Verify stable production baseline before merge
+      - name: Verify currently deployed safe baseline before merge
         if: github.event_name == 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.71.2
-          PRODUCTION_VERIFY_ATTEMPTS: '15'
+          EXPECTED_RELEASE: auto
+          PRODUCTION_VERIFY_ATTEMPTS: '8'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
-        run: node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
-      - name: Verify v3.9.72.2 production score school APIs and bounded health probe
+        run: |
+          set -euo pipefail
+          node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
+      - name: Verify v3.9.72.2 production after main deployment
         if: github.event_name != 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
           EXPECTED_RELEASE: v3.9.72.2
-          PRODUCTION_VERIFY_ATTEMPTS: '30'
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          PRODUCTION_VERIFY_ATTEMPTS: '45'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
           PRODUCTION_STRESS_CYCLES: '40'
           PRODUCTION_STRESS_WAIT_MS: '1000'
-        run: node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
+        run: |
+          set -euo pipefail
+          node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
