@@ -15,6 +15,7 @@ on:
       - 'shared/resources/schools/**'
       - 'shared/resources/exam/**'
       - 'shared/resources/release/**'
+      - 'shared/governance/derived-asset-trace.v3970_0.json'
       - 'ln-rank/211-mainline.html'
       - 'ln-rank/js/academic-background/all211-static-app.v3972_0.js'
       - 'ln-rank/css/all211-static.v3972_0.css'
@@ -55,6 +56,7 @@ jobs:
           node --experimental-default-type=module tools/assemble-academic-background-static-v3972.mjs | tee /tmp/academic-background-static-assemble.out
           node --experimental-default-type=module tools/audit-211-static-v3972.mjs | tee /tmp/academic-background-static-audit.out
           python3 tools/sync-all211-static-release-v3972.py | tee /tmp/all211-static-release-sync.out
+          node tools/build-derived-asset-trace-v3970.mjs --write | tee /tmp/all211-static-derived-trace.out
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           const file='ln-rank/data/211-static/211-static-index.v3972_0.json';
@@ -79,6 +81,7 @@ jobs:
             VERSION.txt \
             index.html \
             shared/resources/release/current-release.js \
+            shared/governance/derived-asset-trace.v3970_0.json \
             tools/browser-school-query-v3970.mjs \
             tools/browser-home-release-v3970.mjs \
             tools/audit-academic-background-v3970.mjs \
@@ -106,6 +109,7 @@ jobs:
             /tmp/academic-background-static-assemble.out
             /tmp/academic-background-static-audit.out
             /tmp/all211-static-release-sync.out
+            /tmp/all211-static-derived-trace.out
             ln-rank/data/211-static/211-static-audit.v3972_0.json
           if-no-files-found: error
           retention-days: 7
