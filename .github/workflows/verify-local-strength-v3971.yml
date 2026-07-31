@@ -1,4 +1,4 @@
-name: Verify LocalStrength full coverage v3971
+name: Verify LocalStrength full coverage and human UI v3971.1
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'ln-rank/local-mainline.html'
-      - 'ln-rank/css/local-strength.v3971_0.css'
+      - 'ln-rank/css/local-strength.v3971_*.css'
       - 'ln-rank/js/local-strength/**'
       - 'functions/api/local-strength.js'
       - 'functions/_lib/local-strength-api.js'
@@ -18,7 +18,7 @@ on:
     branches: [main]
     paths:
       - 'ln-rank/local-mainline.html'
-      - 'ln-rank/css/local-strength.v3971_0.css'
+      - 'ln-rank/css/local-strength.v3971_*.css'
       - 'ln-rank/js/local-strength/**'
       - 'functions/api/local-strength.js'
       - 'functions/_lib/local-strength-api.js'
@@ -33,7 +33,7 @@ permissions:
 jobs:
   local-strength:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,9 +53,9 @@ jobs:
           fi
           node --check functions/_lib/local-strength-api.js
           node --check functions/api/local-strength.js
-          node --check ln-rank/js/local-strength/local-strength-app.v3971_0.js
+          node --check ln-rank/js/local-strength/local-strength-app.v3971_1.js
           node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/release-presenter.v3971_0.js
+          node --check shared/resources/release/release-presenter.v3971_1.js
           node --check tools/audit-local-strength-v3971.mjs
           node --check tools/browser-local-strength-v3971.mjs
           node tools/audit-local-strength-v3971.mjs | tee /tmp/local-strength-audit.out
@@ -65,7 +65,7 @@ jobs:
           npm install --no-save --no-package-lock wrangler@4.28.1 playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify full API coverage and PC Pad Android journeys
+      - name: Verify full API coverage and Android Pad PC journeys
         run: |
           set -euo pipefail
           npx wrangler pages dev . --port 8788 --compatibility-date=2026-07-01 >/tmp/local-strength-wrangler.log 2>&1 &
@@ -83,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: local-strength-v3971-results
+          name: local-strength-v3971-1-results
           path: |
             /tmp/local-strength-*.txt
             /tmp/local-strength-*.out
