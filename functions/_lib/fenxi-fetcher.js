@@ -202,9 +202,10 @@ async function* parseRecordArrayStream(response, context) {
   }
 }
 
-// Streaming admission chunks keeps both the raw JSON array and previously
-// normalized candidates from coexisting in one Worker request. Records remain
-// request-scoped and are yielded one at a time; no large module cache is used.
+// Large admission chunks are deliberately request-scoped.
+// Streaming keeps both the raw JSON array and previously normalized candidates
+// from coexisting in one Worker request. Records are yielded one at a time and
+// no large module cache is used.
 export async function* streamFenxiChunkRecords(request, env, path) {
   const clean = normalizeFenxiDataPath(path);
   if (!isLargeChunk(clean)) {
