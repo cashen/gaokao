@@ -1,0 +1,21 @@
+/* LocalStrength v3971_1 UX overrides: human-first responsive layout */
+
+/* score bands are choices, not a carousel */
+.ls-chip-row{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));overflow:visible;padding-bottom:0}
+.ls-chip{width:100%;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center}
+
+@media(max-width:1023px){
+  .ls-chip-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+@media(max-width:767px){
+  .ls-summary .ls-stat-grid{grid-template-columns:1fr 1fr}
+  .ls-chip-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .ls-chip{font-size:13px;padding:10px 6px;white-space:normal}
+  .ls-view-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
+  .ls-view-tab{padding-inline:6px;font-size:13px;white-space:normal}
+}
+
+@media(max-width:430px){
+  .ls-chip-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
