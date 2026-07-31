@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 35
     env:
       LOCKED_MAIN_SHA: 658740a613af447d1f313fa794f59708b3d1aed9
-      CF_PROJECT_NAME: gaokao-4y9
+      CF_PROJECT_NAME: gaokao
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
     steps:
