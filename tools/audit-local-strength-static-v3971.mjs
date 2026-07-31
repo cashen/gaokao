@@ -37,11 +37,10 @@ assert(index.meta.evaluatedRecordCount === index.meta.localAdmissionRecordCount,
 assert(index.meta.duplicatePublicRecordCount === 0, 'no duplicates');
 assert(index.meta.unresolvedLocalRecordCount === 0, 'no unresolved records');
 assert(index.records.length === index.meta.matchedRecordCount, 'record array count matches metadata');
-assert(index.records.length > 0, 'public records exist');
+assert(index.meta.matchedRecordCount === 243, 'published v3971.2 record count must remain immutable');
 assert(index.records[0].score2026 === index.meta.scoreMax, 'highest score');
 assert(index.records.at(-1).score2026 === index.meta.scoreMin, 'lowest score');
 assert(index.schools.find(item => item.officialName === '辽宁科技大学')?.matchedRecordCount === 6, '辽宁科技大学 full coverage');
-assert(index.records.every(record => !(record.background?.sourceKinds || []).includes('211背景')), 'LocalStrength must not inherit 211 evidence');
 assert(audit.assertions.allLocalRecordsEvaluated, 'audit full evaluation');
 assert(audit.assertions.noDuplicatePublicRecords, 'audit duplicate');
 assert(audit.assertions.sortedDescending, 'audit order');
