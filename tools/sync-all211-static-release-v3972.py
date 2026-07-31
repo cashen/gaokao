@@ -15,7 +15,6 @@ DISPLAY_VERSION_FILES = [
     'tools/browser-family-action-v3970.mjs',
     'tools/audit-family-action-v3970.mjs',
     'tools/browser-all211-static-v3972.mjs',
-    'tools/audit-211-static-v3972.mjs',
     'ln-rank/211-mainline.html',
 ]
 
