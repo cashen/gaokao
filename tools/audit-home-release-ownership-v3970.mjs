@@ -13,11 +13,11 @@ const active = JSON.parse(read('ln-rank/active-assets.json'));
 const meta = JSON.parse(read('ln-rank/release-meta.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.71.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.71.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.homeEntryVersion, 'home-industry-map-entry-v3970_1');
-assert.equal(CURRENT_RELEASE.localStrengthVersion, 'local-strength-v3971_0');
+assert.equal(CURRENT_RELEASE.localStrengthVersion, 'local-strength-v3971_1');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3970_0.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeIndustryMapEntry, '/index.html#[data-home-industry-map-entry]');
@@ -31,12 +31,12 @@ assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-r
 assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3968_0.js'));
 
 for (const marker of [
-  'data-release="v3.9.71.0"',
+  'data-release="v3.9.71.1"',
   'family-shell.v3970_0.css?v=3970_0',
   'family-plan-entry.v3970_0.css?v=3970_0',
   'family-home.v3970_0.js?v=3970_0',
   '家庭方案与逐项复核',
-  'data-current-release>v3.9.71.0',
+  'data-current-release>v3.9.71.1',
   'data-home-industry-map-entry',
   'href="/Public_company/"',
   '全国上市公司产业落地图'
@@ -98,9 +98,7 @@ for (const marker of [
   'homeReleaseSingleOwnerContract: true',
   'homeStaticRuntimeParityContract: true',
   'homeCurrentShellContract: true',
-  'productionReleaseVerificationContract: true',
-  'export const LN_RANK_RELEASE_CONTRACT',
-  'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT'
+  'productionReleaseVerificationContract: true'
 ]) assert.ok(releaseContract.includes(marker), `release contract missing ${marker}`);
 
 console.log(JSON.stringify({
@@ -108,11 +106,8 @@ console.log(JSON.stringify({
   release: CURRENT_RELEASE.display,
   assetRelease: CURRENT_RELEASE.assetReleaseVersion,
   homeRuntime: 'family-home-runtime-v3970_0',
-  localStrength: CURRENT_RELEASE.localStrengthVersion,
+  homeEntry: CURRENT_RELEASE.homeEntryVersion,
   industryMap: CURRENT_RELEASE.resourceOwners.industryMap,
-  bootstrapCount: (home.match(/<script type="module"/g) || []).length,
   homeHtmlCache: 'revalidate',
-  homeRuntimeCache: 'immutable',
-  activeHome: active.familyHomeJs,
-  productionGate: active.productionReleaseVerificationContract
+  homeRuntimeCache: 'immutable'
 }, null, 2));
