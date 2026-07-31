@@ -29,10 +29,10 @@ jobs:
           mkdir -p /tmp/v3970-production
 
           if [ "$EVENT_NAME" = 'pull_request' ]; then
-            expected_root_release='v3.9.70.0'
-            require_home_industry_link=0
-          else
             expected_root_release='v3.9.70.1'
+            require_home_industry_link=1
+          else
+            expected_root_release='v3.9.71.0'
             require_home_industry_link=1
           fi
           printf 'expected_root_release=%s require_home_industry_link=%s\n' "$expected_root_release" "$require_home_industry_link" \
