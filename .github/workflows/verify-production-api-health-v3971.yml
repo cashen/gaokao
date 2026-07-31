@@ -20,18 +20,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify production score school APIs and static LocalStrength
+      - name: Generate compact school runtime profile
         env:
-          PAGES_BASE: https://gaokao-4y9.pages.dev
-          CUSTOM_BASE: https://gaokao.powers.org.cn
-          PRODUCTION_VERIFY_ATTEMPTS: '30'
-          PRODUCTION_VERIFY_WAIT_MS: '10000'
+          SCHOOL_RUNTIME_PROFILE_OUTPUT: /tmp/school-runtime-profile.generated.js
         run: node tools/verify-production-v3971.mjs | tee /tmp/v3971-production-health.out
-      - name: Upload production health evidence
+      - name: Upload runtime profile evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3971-production-api-health
-          path: /tmp/v3971-production-health.out
-          if-no-files-found: warn
+          name: v3972-school-runtime-profile
+          path: |
+            /tmp/v3971-production-health.out
+            /tmp/school-runtime-profile.generated.js
+          if-no-files-found: error
           retention-days: 7
