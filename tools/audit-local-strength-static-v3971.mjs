@@ -12,7 +12,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-assert(page.includes('data-release="v3.9.71.2"'), 'page release');
+assert(page.includes('data-release="v3.9.71.2"'), 'page build lineage');
 assert(page.includes('local-strength.v3971_2.css?v=3971_2'), 'page style');
 assert(page.includes('local-strength-app.v3971_2.js?v=3971_2'), 'page runtime');
 assert(page.includes('release-presenter.v3971_2.js?v=3971_2'), 'page presenter');
@@ -24,7 +24,7 @@ assert(styles.includes('.ls-chip-row{display:grid;grid-template-columns:repeat(8
 assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(4'), 'pad score grid');
 assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(2'), 'android score grid');
 assert(!/\.ls-chip-row[^}]*overflow-x\s*:\s*(auto|scroll)/.test(styles), 'score bands must not horizontally scroll');
-assert(release.includes("display: 'v3.9.71.2'"), 'release display');
+assert(release.includes("display: 'v3.9.72.0'"), 'release display');
 assert(release.includes("assetVersion: 'v3970_0'"), 'stable asset lineage');
 assert(release.includes("assetReleaseVersion: 'v3.9.70.0'"), 'stable release lineage');
 assert(release.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'static data version');
@@ -35,10 +35,10 @@ assert(index.meta.localAdmissionSchoolCount === 62, '62 local admission schools'
 assert(index.meta.localAdmissionRecordCount === 1992, '1992 local records');
 assert(index.meta.evaluatedRecordCount === 1992, 'all local records evaluated');
 assert(index.meta.matchedSchoolCount === 22, '22 matched schools');
-assert(index.meta.matchedRecordCount === 243, '243 matched records');
+assert(index.meta.matchedRecordCount === 244, '244 matched records after restored 211 evidence adapter');
 assert(index.meta.duplicatePublicRecordCount === 0, 'no duplicates');
 assert(index.meta.unresolvedLocalRecordCount === 0, 'no unresolved records');
-assert(index.records.length === 243, 'record array count');
+assert(index.records.length === 244, 'record array count');
 assert(index.records[0].score2026 === 660, 'highest score');
 assert(index.records.at(-1).score2026 === 427, 'lowest score');
 assert(index.schools.find(item => item.officialName === '辽宁科技大学')?.matchedRecordCount === 6, '辽宁科技大学 full coverage');
@@ -48,7 +48,7 @@ assert(audit.assertions.sortedDescending, 'audit order');
 assert(fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size < 800000, 'browser index size');
 
 console.log(JSON.stringify({
-  release: 'v3.9.71.2',
+  release: 'v3.9.72.0',
   architecture: 'build-time-static-index',
   schools: index.meta.localAdmissionSchoolCount,
   evaluated: index.meta.evaluatedRecordCount,
