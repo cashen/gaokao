@@ -5,15 +5,32 @@ import { resolveSchoolProfile, normalizeSchoolProfileName } from '../shared/reso
 const manifestPath = 'fenxi/data/ln-rank-2026/manifest.json';
 const outputPath = process.env.SCHOOL_RUNTIME_PROFILE_OUTPUT || '/tmp/school-runtime-profile.generated.js';
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-const schoolNames = new Set();
+const schoolRecords = new Map();
+
+function text(value) { return String(value == null ? '' : value).trim(); }
+function natureTypeFromRecord(record = {}) {
+  const value = text(record.schoolNatureLabel || record.natureLabel || record.nature || record.natureRaw || record['院校性质']);
+  if (/民办|独立/.test(value)) return 'private';
+  if (/合作办学/.test(value)) return 'cooperative';
+  if (/公办/.test(value)) return 'public';
+  return 'unknown';
+}
+function cleanProvince(value) { return text(value).replace(/省$|市$|自治区$|特别行政区$/g, ''); }
+function cleanCity(value) { return text(value).replace(/市$|地区$|自治州$|盟$/g, ''); }
+function displayLocation(province, city, area = '') {
+  const p = cleanProvince(province);
+  const c = cleanCity(city);
+  if (p && c && p !== c) return `${p} · ${c}`;
+  return c || p || text(area) || '地域待核验';
+}
 
 for (const chunk of manifest.chunks || []) {
   const file = path.join('fenxi', String(chunk.file || chunk.path || '').replace(/^\/+/, ''));
   const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
   const records = Array.isArray(payload) ? payload : (Array.isArray(payload.records) ? payload.records : []);
   for (const record of records) {
-    const school = String(record.school || record.schoolName || record['院校名称'] || record['学校名称'] || '').trim();
-    if (school) schoolNames.add(school);
+    const school = text(record.school || record.schoolName || record['院校名称'] || record['学校名称']);
+    if (school && !schoolRecords.has(school)) schoolRecords.set(school, record);
   }
 }
 
@@ -47,11 +64,50 @@ function compact(profile = {}, requestedName = '') {
 const rows = [];
 const rowBySignature = new Map();
 const index = {};
-let unresolved = 0;
-for (const school of [...schoolNames].sort((a, b) => a.localeCompare(b, 'zh-CN'))) {
-  const profile = resolveSchoolProfile(school, {});
-  if (!profile) unresolved += 1;
-  const row = compact(profile || { school }, school);
+const fallbackSchools = [];
+for (const school of [...schoolRecords.keys()].sort((a, b) => a.localeCompare(b, 'zh-CN'))) {
+  const raw = schoolRecords.get(school) || {};
+  const fallback = {
+    school,
+    province: raw.schoolProvince || raw.province || raw['省份'] || raw['学校省份'] || '',
+    city: raw.schoolCity || raw.city || raw['城市'] || raw['学校城市'] || raw['所在地'] || '',
+    natureType: natureTypeFromRecord(raw),
+    natureLabel: raw.schoolNatureLabel || raw.natureLabel || raw.nature || '',
+    schoolIdentifier: raw.schoolCode2026 || raw.schoolIdentifier || '',
+    confidence: 'low'
+  };
+  let profile = resolveSchoolProfile(school, fallback);
+  if (!profile) {
+    fallbackSchools.push(school);
+    const province = cleanProvince(fallback.province);
+    const city = cleanCity(fallback.city);
+    const natureType = fallback.natureType;
+    profile = {
+      school,
+      standardSchoolName: school,
+      parentSchoolName: '',
+      province,
+      city,
+      displayLocation: displayLocation(province, city, raw.lnArea || raw['辽宁区域'] || raw['地域']),
+      natureType,
+      is985: false,
+      is211: false,
+      isNon985211: false,
+      schoolTierTags: [],
+      entityType: 'official_school',
+      entityTypeLabel: '',
+      entityId: '',
+      regionGroups: [],
+      confidence: 'low',
+      sourceName: '2026 辽宁投档记录字段回退',
+      sourceUrl: '',
+      sourceAsOfDate: '2026',
+      matchNote: '该校未匹配统一画像中心，地域和性质按投档记录字段显示，需继续核验。',
+      schoolIdentifier: fallback.schoolIdentifier,
+      doubleNonDefinition: '非985且非211；不等同于非双一流'
+    };
+  }
+  const row = compact(profile, school);
   const signature = JSON.stringify(row);
   let rowIndex = rowBySignature.get(signature);
   if (rowIndex == null) {
@@ -171,10 +227,11 @@ const report = {
   version: 'school-runtime-profile-v3972_0',
   outputPath,
   outputBytes: Buffer.byteLength(source),
-  admissionSchoolNames: schoolNames.size,
+  admissionSchoolNames: schoolRecords.size,
   indexedNames: Object.keys(index).length,
   profileRows: rows.length,
-  unresolved
+  fallbackCount: fallbackSchools.length,
+  fallbackSchools
 };
 console.log(JSON.stringify(report, null, 2));
-if (unresolved > 0) throw new Error(`Unresolved admission schools: ${unresolved}`);
+if (Object.keys(index).length < schoolRecords.size) throw new Error('Runtime school profile index is incomplete');
