@@ -1,4 +1,4 @@
-name: Verify production release v3972.1
+name: Verify production release v3972.2
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
             expected_release='v3.9.71.2'
             require_all211=0
           else
-            expected_release='v3.9.72.1'
+            expected_release='v3.9.72.2'
             require_all211=1
           fi
           printf 'expected_release=%s require_all211=%s\n' "$expected_release" "$require_all211" > /tmp/v3972-production/expectation.txt
@@ -66,7 +66,7 @@ jobs:
 
             if [ "$require_all211" -eq 1 ]; then
               if [ "$(cat /tmp/v3972-production/pages-all211.status)" != '200' ] \
-                || ! grep -q 'data-release="v3.9.72.1"' /tmp/v3972-production/pages-all211.body \
+                || ! grep -q 'data-release="v3.9.72.2"' /tmp/v3972-production/pages-all211.body \
                 || ! grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/pages-all211.body \
                 || grep -q '/api/academic-background' /tmp/v3972-production/pages-all211.body \
                 || [ "$(cat /tmp/v3972-production/pages-all211-app.status)" != '200' ] \
@@ -130,7 +130,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-1-production-release-evidence
+          name: v3972-2-production-release-evidence
           path: /tmp/v3972-production
           if-no-files-found: warn
           retention-days: 7
