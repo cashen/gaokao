@@ -25,7 +25,7 @@ for relative in DISPLAY_VERSION_FILES:
 release = (ROOT / 'shared/resources/release/current-release.js').read_text()
 for marker in [
     "display: 'v3.9.72.0'",
-    "localStrengthVersion: 'local-strength-static-v3971_2'",
+    "localStrengthVersion: 'local-strength-v3971_2'",
     "localStrengthDataVersion: 'local-strength-static-v3971_2'",
     "localStrengthArchitecture: 'build-time-static-index'",
     "localStrengthReleasePresenter: '/shared/resources/release/release-presenter.v3971_2.js'",
