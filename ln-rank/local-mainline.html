@@ -3,34 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>辽宁省内学校专业背景怎么先看｜ln-rank</title>
-  <link rel="stylesheet" href="/ln-rank/css/dist/local-mainline.v3949_0.css?v=3951_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/gaokao-human-ui.v3950_0.css?v=3951_0" />
-  <link rel="stylesheet" href="/ln-rank/css/dist/family-human-layer.v3952_0.css?v=3952_0" />
+  <meta name="theme-color" content="#f4f7f6" />
+  <title>辽宁省内院校背景专业｜ln-rank</title>
+  <meta name="description" content="覆盖辽宁省内2026物理类投档专业，查看所有通过背景证据门禁的学校专业对应。" />
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3961_0" />
-  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3965_0.css?v=3965_0" />
-  <link rel="stylesheet" href="/ln-rank/css/academic-background.v3968_0.css?v=3968_0" />
+  <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3962_2" />
+  <link rel="stylesheet" href="/shared/ui/components/mode-switch.v3963_0.css?v=3963_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3970_0.css?v=3970_0" />
+  <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0" />
+  <link rel="stylesheet" href="/ln-rank/css/local-strength.v3971_2.css?v=3971_2" />
 </head>
-<body class="ln-parent-product-flow ln-aux-guided-page" data-ui-page="background" data-background-scope="liaoning" data-release="v3.9.68.0">
+<body class="ui-orchestrated ln-local-strength-page" data-ui-page="background" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.71.2" data-local-strength-runtime="loading">
   <div data-ui-global-header-mount></div>
   <div data-ui-family-status-mount></div>
-  <main class="lm-page">
-    <nav class="aux-page-nav" aria-label="辅助页导航"><a href="/ln-rank/">专业初选首页</a><a href="/ln-rank/local-mainline.html" class="is-current">省内背景</a><a href="/ln-rank/211-mainline.html">211背景</a></nav>
-    <header class="lm-hero lm-hero-parent-first"><div><p class="lm-eyebrow">辽宁物理类 · 统一学校专业背景证据</p><h1>辽宁省内学校专业背景怎么先看？</h1><p>这里与211背景页使用同一投档、位次、学校、专业、背景来源和匹配服务，只通过“省内学校”范围筛选。投档年份与背景证据年份分别展示。</p></div></header>
-    <section class="ln-aux-guidance-note" aria-label="复核顺序提示">先查2026专业投档位置，再看2025、2024历史同口径；学校背景按学科评估、双一流或其他权威来源的实际年份单列，不能替代招生章程和当年计划。</section>
-    <section class="lm-boundary lm-boundary-soft" aria-label="使用边界"><p><b>先说明：</b>只有通过权威来源门禁、并能与本科招生专业明确对应的背景证据才进入结果。旧KB缺少精确来源的线索不会继续作为“本校方向”显示。</p><details><summary>三个年份维度怎样区分？</summary><div class="lm-boundary-detail"><p>2026是当前投档参考年；2025和2024是历史同口径；2017、2022或其他年份是学校学科背景证据的来源年份。</p></div></details></section>
-    <section class="lm-start-guide ln-aux-start-guide" aria-label="不知道从哪里开始"><h2>不知道从哪开始？</h2><div class="lm-start-grid"><button type="button" class="lm-start-card" data-start-tab="school"><b>已经有目标学校</b><span>按学校查看通过权威来源门禁的2026招生专业背景。</span></button><button type="button" class="lm-start-card" data-start-tab="major"><b>孩子有大概专业方向</b><span>按统一专业身份查看不同省内学校的背景证据。</span></button><button type="button" class="lm-start-card" data-start-tab="score"><b>现在只知道分数</b><span>按2026位次距离优先，查看附近可复核的省内专业。</span></button></div></section>
-    <nav class="lm-tabs" aria-label="查询入口"><button type="button" class="lm-tab is-active" data-tab="school">按学校看</button><button type="button" class="lm-tab" data-tab="major">按专业看</button><button type="button" class="lm-tab" data-tab="score">按孩子位置看</button></nav>
-    <section class="lm-panel" data-panel="school"><div class="lm-panel-head"><div><h2>从学校看：统一投档与背景证据</h2><p>结果同时展示2026投档、2025/2024历史同口径和背景证据来源年份。</p></div><input id="schoolSearch" class="lm-input" type="search" placeholder="搜索学校，如 沈阳工业大学" /></div><div id="schoolList" class="lm-grid"></div><div id="schoolDetail" class="lm-detail" hidden></div></section>
-    <section class="lm-panel" data-panel="major" hidden><div class="lm-panel-head"><div><h2>从专业看：同一专业身份下的省内学校背景</h2><p>不再由页面自行模糊匹配，统一通过背景证据提供器和来源门禁。</p></div><input id="majorSearch" class="lm-input" type="search" placeholder="搜索专业，如 电气工程及其自动化" /></div><div class="lm-quick-row" id="majorQuickRow"></div><div id="majorList" class="lm-grid"></div><div id="majorDetail" class="lm-detail" hidden></div></section>
-    <section class="lm-panel" data-panel="score" hidden><div class="lm-panel-head"><div><h2>从分数看：这个分数附近有哪些省内专业可以先讨论</h2><p>输入参考分数与2026专业投档记录比较，内部排序优先使用2026位次距离；每条记录同时给出2025、2024历史同口径和背景来源年份。</p></div></div><div class="lm-score-console lm-score-console-human"><label>参考分数 <input id="scoreInput" class="lm-score-input" inputmode="numeric" placeholder="如 580" /></label><label>查看方式 <select id="scoreLevel" class="lm-select"><option value="primary">先看背景更明确的专业</option><option value="primary_secondary">多看一些相关专业</option><option value="all">连方向提醒也一起看</option></select></label><button id="scoreQuery" class="lm-primary" type="button">按当前位置查看</button><details class="lm-more-filter"><summary>更多筛选</summary><label>学校类型 <select id="scoreNature" class="lm-select"><option value="all">全部先看</option><option value="public_regular_only">只看公办普通</option></select></label></details></div><div id="scoreResult" class="lm-detail"></div></section>
-    <section class="lm-howto lm-next-step"><h2>本页可以帮助确认什么</h2><div class="lm-howto-grid"><div><b>投档位置</b><p>统一查看2026投档和位次，不把背景证据年份混进投档年份。</p></div><div><b>历史同口径</b><p>同一记录显示2025、2024分数与位次证据。</p></div><div><b>背景来源</b><p>逐条查看教育部、学位中心等来源及证据年份。</p></div><div><b>待核验线索</b><p>来源不完整的旧线索被门禁拦截，不填充附近结果。</p></div></div></section>
-    <section class="aux-page-bottom-link" aria-label="返回主线"><span>需要重新查分数和专业？</span><a href="/ln-rank/">回到辽宁物理类专业初选参考</a></section>
-    <footer class="lm-footer">当前发布：<span data-current-release>v3.9.68.0</span>｜投档口径：辽宁2026物理类专业投档；历史：2025/2024；背景证据按来源年份单列｜不判断录取结果。</footer>
+  <main class="ls-page" id="mainContent">
+    <header class="ls-hero">
+      <div>
+        <p class="ls-eyebrow">ln-rank · LocalStrength</p>
+        <h1>辽宁省内院校背景专业</h1>
+        <p class="ls-lead">逐条检查辽宁2026物理类省内院校投档专业，公开展示所有通过学校背景证据门禁的专业项目。背景提示帮助家庭确定“还要核验什么”，不代表专业排名、就业承诺或录取判断。</p>
+      </div>
+      <div class="ls-runtime is-loading" data-runtime-status aria-live="polite"><span class="ls-runtime-dot"></span><span>正在读取静态背景目录…</span></div>
+    </header>
+
+    <section class="ls-summary" aria-label="全量覆盖摘要">
+      <div class="ls-stat-grid">
+        <div class="ls-stat"><b data-stat-schools>—</b><span>省内投档院校</span></div>
+        <div class="ls-stat"><b data-stat-matched-schools>—</b><span>有背景专业院校</span></div>
+        <div class="ls-stat"><b data-stat-records>—</b><span>背景专业记录</span></div>
+        <div class="ls-stat"><b data-stat-range>—</b><span>历史最低分范围</span></div>
+      </div>
+      <p class="ls-coverage-note" data-coverage-note>正在读取覆盖审计。</p>
+      <div class="ls-summary-mobile">
+        <p class="ls-summary-compact" data-summary-compact>正在读取覆盖摘要。</p>
+        <details><summary>查看完整覆盖口径</summary><p data-coverage-note-mobile>所有省内投档专业都会经过同一背景证据门禁；未显示不代表学校没有优势专业。</p></details>
+      </div>
+    </section>
+
+    <section class="ls-workspace" aria-label="辽宁省内院校背景专业查询">
+      <nav class="ls-view-tabs" role="tablist" aria-label="查看方式">
+        <button id="scoreTab" type="button" class="ls-view-tab" role="tab" data-view="score" aria-selected="false" aria-controls="scorePanel" tabindex="-1"><span class="ls-tab-label-long">按分数位置看</span><span class="ls-tab-label-short">按分数</span></button>
+        <button id="schoolTab" type="button" class="ls-view-tab" role="tab" data-view="school" aria-selected="false" aria-controls="schoolPanel" tabindex="-1"><span class="ls-tab-label-long">按学校查询</span><span class="ls-tab-label-short">按学校</span></button>
+        <button id="listTab" type="button" class="ls-view-tab is-active" role="tab" data-view="list_all" aria-selected="true" aria-controls="listPanel"><span class="ls-tab-label-long">全部背景专业</span><span class="ls-tab-label-short">全部目录</span></button>
+      </nav>
+
+      <section id="scorePanel" class="ls-console" role="tabpanel" aria-labelledby="scoreTab" data-view-panel="score" hidden>
+        <div class="ls-console-row"><input id="scoreInput" type="text" inputmode="numeric" enterkeyhint="search" autocomplete="off" aria-describedby="scoreHelp scoreError" placeholder="输入参考分数，例如 579" /><button id="scoreSubmit" type="button" class="ui-button ui-button--primary">查看这个分数段</button></div>
+        <p id="scoreHelp" class="ls-console-help">按2026历史最低投档分定位分数段，不计算录取概率。</p>
+        <p id="scoreError" class="ls-inline-error" hidden></p>
+        <p id="scoreContext" class="ls-score-context" hidden></p>
+        <details id="scoreBandDisclosure" class="ls-score-band-disclosure"><summary>没有具体分数？按分数段浏览</summary><div id="scoreBandButtons" class="ls-chip-row" aria-label="历史分数段"></div></details>
+      </section>
+
+      <section id="schoolPanel" class="ls-console" role="tabpanel" aria-labelledby="schoolTab" data-view-panel="school" hidden>
+        <div class="ls-console-row"><input id="schoolInput" type="search" list="schoolOptions" enterkeyhint="search" autocomplete="off" placeholder="输入辽宁省内院校，如 辽宁科技大学" /><datalist id="schoolOptions"></datalist><button id="schoolSubmit" type="button" class="ui-button ui-button--primary">查看该校背景专业</button></div>
+        <p class="ls-console-help">会检查该校全部2026物理类投档专业；没有结果时会说明是证据不足，还是没有当前投档记录。</p>
+      </section>
+
+      <section id="listPanel" class="ls-console" role="tabpanel" aria-labelledby="listTab" data-view-panel="list_all">
+        <div class="ls-console-row"><input id="queryInput" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索学校、专业或背景方向" /><button id="querySubmit" type="button" class="ui-button ui-button--primary">查看结果</button></div>
+        <p class="ls-console-help">默认按2026最低投档分从高到低排列；“全部”表示数据范围完整，不代表一次渲染全部记录。</p>
+      </section>
+
+      <details class="ls-filter-shell" data-filter-shell>
+        <summary data-filter-summary>更多筛选</summary>
+        <div class="ls-filter-grid">
+          <label class="ls-filter-field"><span>背景方向</span><select id="directionFilter"><option value="">全部背景方向</option></select></label>
+          <label class="ls-filter-field"><span>提示类型</span><select id="evidenceFilter"><option value="">全部提示类型</option><option value="学校主线">学校主线</option><option value="学校相关">学校相关</option><option value="方向线索">方向线索</option></select></label>
+          <label class="ls-filter-field"><span>所在城市</span><input id="cityFilter" type="search" placeholder="例如 沈阳" /></label>
+          <fieldset id="scoreRangeFields" class="ls-filter-field" style="border:0;padding:0;margin:0"><span>历史分数范围</span><div class="ls-score-range-fields"><input id="minScoreFilter" type="number" min="344" max="750" placeholder="最低分" aria-label="历史最低分下限" /><input id="maxScoreFilter" type="number" min="344" max="750" placeholder="最高分" aria-label="历史最低分上限" /></div></fieldset>
+          <label class="ls-filter-field"><span>项目类型</span><select id="projectFilter"><option value="all">普通与特殊项目</option><option value="regular">只看普通项目</option><option value="special">只看特殊项目</option></select></label>
+        </div>
+        <div class="ls-filter-actions"><button id="resetFilters" type="button" class="ui-button ui-button--secondary">清除筛选</button><button id="applyFilters" type="button" class="ui-button ui-button--primary">应用筛选</button></div>
+      </details>
+      <div id="activeFilters" class="ls-active-filters" aria-label="已生效筛选" hidden></div>
+    </section>
+
+    <section id="resultsPanel" class="ls-results" aria-live="polite">
+      <header class="ls-results-head"><div><h2 id="resultsTitle">全部背景专业</h2><p id="resultsMeta">按2026最低投档分从高到低排列。</p></div></header>
+      <div id="records" class="ls-records"><div class="ls-loading">正在读取静态目录。</div></div>
+      <nav id="pagination" class="ls-pagination" aria-label="结果分页"></nav>
+    </section>
+
+    <footer class="ls-footer">当前发布：<span data-current-release>v3.9.71.2</span>｜投档口径：辽宁2026普通类本科批物理类｜背景证据按各自来源年份展示｜未显示不代表学校没有优势专业。</footer>
   </main>
-  <script type="module" src="/shared/resources/release/release-presenter.v3968_0.js?v=3968_0"></script>
-  <script type="module" src="/ln-rank/js/academic-background/academic-background-app.v3968_0.js?v=3968_0"></script>
-  <script type="module" src="/shared/ui/shell/family-shell.v3965_0.js?v=3965_0"></script>
+  <script type="module" src="/shared/resources/release/release-presenter.v3971_2.js?v=3971_2"></script>
+  <script type="module" src="/shared/ui/shell/family-shell.v3970_0.js?v=3970_0"></script>
+  <script type="module" src="/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3971_2"></script>
 </body>
 </html>
