@@ -24,10 +24,12 @@ const read = path => fs.readFileSync(path, 'utf8');
 assert.equal(ACADEMIC_BACKGROUND_CONTRACT_VERSION, 'academic-background-v3968_0');
 assert.equal(ACADEMIC_BACKGROUND_MATCHER_VERSION, 'academic-background-matcher-v3968_0');
 assert.equal(ACADEMIC_BACKGROUND_PROVIDER_VERSION, 'academic-background-provider-v3968_0');
-assert.equal(CURRENT_RELEASE.display, 'v3.9.71.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.71.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, 'resource-execution-v3970_0');
-assert.equal(CURRENT_RELEASE.localStrengthVersion, 'local-strength-v3971_0');
+assert.equal(CURRENT_RELEASE.localStrengthVersion, 'local-strength-v3971_1');
+assert.equal(CURRENT_RELEASE.localStrengthApiVersion, 'local-strength-api-v3971_0');
+assert.equal(CURRENT_RELEASE.localStrengthIndexVersion, 'local-strength-index-v3971_0');
 assert.equal(CURRENT_RELEASE.resourceOwners.academicBackgroundProvider, '/functions/_lib/academic-background-provider.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.localStrengthPage, '/ln-rank/local-mainline.html');
 assert.equal(SHARED_RESOURCE_REGISTRY.academicBackground.provider, '/functions/_lib/academic-background-provider.js');
@@ -72,10 +74,10 @@ if (all211Candidate?.matched) {
 const localHtml = read('ln-rank/local-mainline.html');
 for (const marker of [
   'data-ui-page="background"',
-  'data-release="v3.9.71.0"',
-  'local-strength-app.v3971_0.js',
-  'local-strength.v3971_0.css',
-  'release-presenter.v3971_0.js',
+  'data-release="v3.9.71.1"',
+  'local-strength-app.v3971_1.js',
+  'local-strength.v3971_1.css',
+  'release-presenter.v3971_1.js',
   '全部背景专业',
   '按分数位置看',
   '按学校查询'
