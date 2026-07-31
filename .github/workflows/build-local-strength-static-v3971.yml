@@ -1,0 +1,103 @@
+name: Build LocalStrength static index v3971.2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'tools/build-local-strength-static-v3971.mjs'
+      - 'tools/compact-local-strength-static-v3971.mjs'
+      - 'tools/sync-local-strength-release-v3971.py'
+      - 'functions/_lib/academic-background-provider.js'
+      - 'functions/_lib/fenxi-normalizer.js'
+      - 'functions/_lib/school-display-tags.js'
+      - 'fenxi/data/ln-rank-2026/**'
+      - 'shared/resources/schools/**'
+      - 'shared/resources/exam/**'
+      - 'shared/resources/release/**'
+      - 'index.html'
+      - '.github/workflows/build-local-strength-static-v3971.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-static-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build, compact and synchronize release contracts
+        run: |
+          set -euo pipefail
+          node --experimental-default-type=module tools/build-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-build.out
+          node --experimental-default-type=module tools/compact-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-compact.out
+          python3 tools/sync-local-strength-release-v3971.py | tee /tmp/local-strength-static-release-sync.out
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const indexPath='ln-rank/data/local-strength/local-strength-index.v3971_2.json';
+          const index=JSON.parse(fs.readFileSync(indexPath,'utf8'));
+          const audit=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-audit.v3971_2.json','utf8'));
+          if(index.version!=='local-strength-static-v3971_2') throw new Error('index version');
+          if(!index.meta.completeEvaluation) throw new Error('coverage incomplete');
+          if(index.meta.evaluatedRecordCount!==index.meta.localAdmissionRecordCount) throw new Error('evaluation mismatch');
+          if(index.meta.duplicatePublicRecordCount!==0) throw new Error('duplicates');
+          if(index.meta.unresolvedLocalRecordCount!==0) throw new Error('unresolved');
+          if(index.records.length!==index.meta.matchedRecordCount) throw new Error('record count mismatch');
+          if(fs.statSync(indexPath).size>800000) throw new Error('browser index too large');
+          if(!audit.assertions.sortedDescending) throw new Error('sort');
+          if(audit.assertions.liaoningUniversityOfScienceAndTechnologyMatched<1) throw new Error('辽宁科技大学 coverage');
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(indexPath).size},null,2));
+          NODE
+      - name: Commit generated data and non-workflow release contracts
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git add \
+            index.html \
+            shared/resources/release/current-release.js \
+            tools/browser-school-query-v3970.mjs \
+            tools/browser-home-release-v3970.mjs \
+            tools/audit-academic-background-v3970.mjs \
+            tools/browser-resource-execution-v3970.mjs \
+            tools/audit-home-release-ownership-v3970.mjs \
+            tools/ln-2026/verify-final-release-v3970.py \
+            tools/audit-school-query-v3970.mjs \
+            tools/browser-family-action-v3970.mjs \
+            tools/audit-family-action-v3970.mjs \
+            ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+            ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+          if git diff --cached --quiet; then
+            echo 'non-workflow release contracts already current'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'build(local-strength): synchronize static v3971.2 contracts'
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
+      - name: Package synchronized files for evidence
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/local-strength-v3971-2-writeback.tgz \
+            index.html \
+            shared/resources/release/current-release.js \
+            ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+            ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+      - name: Upload generated static data and synchronization evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-strength-static-v3971-2-writeback
+          path: |
+            /tmp/local-strength-v3971-2-writeback.tgz
+            /tmp/local-strength-static-build.out
+            /tmp/local-strength-static-compact.out
+            /tmp/local-strength-static-release-sync.out
+          if-no-files-found: error
+          retention-days: 7

@@ -14,7 +14,7 @@ const admissionDirectory = json('shared/resources/schools/liaoning-2026-admissio
 const baseResolver = createSchoolNameResolver(extractSchoolRecords(directoryPayload));
 const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.70.1');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.71.2');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.schoolQueryVersion, SCHOOL_QUERY_CONTRACT_VERSION);
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);

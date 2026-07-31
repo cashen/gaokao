@@ -35,12 +35,13 @@ jobs:
           python3 -m py_compile \
             tools/ln-2026/verify-final-release-v3970.py \
             tools/ln-2026/verify-generated-release-v3968.py \
+            tools/ln-2026/verify-generated-release-v3971.py \
             tools/schools/school_resource_bundle.py \
             tools/schools/school_resource_artifact_compat.py \
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
 
-      - name: Verify v3970 assets and v3.9.70.1 homepage patch
+      - name: Verify v3970 assets and v3.9.71.2 homepage patch
         run: |
           set -euo pipefail
           python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3970-final-release.out
@@ -51,7 +52,7 @@ jobs:
           node tools/audit-report-execution-v3967.mjs | tee /tmp/v3970-report-execution.out
           node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3970-css-isolation.out
           node tools/audit-academic-background-v3970.mjs | tee /tmp/v3970-academic-background.out
-          python3 tools/ln-2026/verify-generated-release-v3968.py | tee /tmp/v3970-generated-release.out
+          python3 tools/ln-2026/verify-generated-release-v3971.py | tee /tmp/v3970-generated-release.out
 
       - name: Verify deterministic admission directory
         run: |
@@ -69,7 +70,7 @@ jobs:
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
-          if(CURRENT_RELEASE.display!=='v3.9.70.1'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if(CURRENT_RELEASE.display!=='v3.9.71.2'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query owner');
           if(CURRENT_RELEASE.resourceOwners.industryMap!=='/Public_company/') throw new Error('industry map owner');
