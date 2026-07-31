@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3970_0.css?v=3970_0" />
   <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0" />
   <link rel="stylesheet" href="/ln-rank/css/local-strength.v3971_0.css?v=3971_0" />
+  <link rel="stylesheet" href="/ln-rank/css/local-strength-mobile-ux.v3971_1.css?v=3971_1" />
 </head>
 <body class="ui-orchestrated ln-local-strength-page" data-ui-page="background" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.71.0" data-local-strength-runtime="loading">
   <div data-ui-global-header-mount></div>
@@ -25,61 +26,17 @@
       </div>
       <div class="ls-runtime is-loading" data-runtime-status aria-live="polite"><span class="ls-runtime-dot"></span><span>正在核对全省投档专业与背景证据…</span></div>
     </header>
-
     <section class="ls-summary" aria-label="全量覆盖摘要">
-      <div class="ls-stat-grid">
-        <div class="ls-stat"><b data-stat-schools>—</b><span>省内投档院校</span></div>
-        <div class="ls-stat"><b data-stat-matched-schools>—</b><span>有背景专业院校</span></div>
-        <div class="ls-stat"><b data-stat-records>—</b><span>背景专业记录</span></div>
-        <div class="ls-stat"><b data-stat-range>—</b><span>历史最低分范围</span></div>
-      </div>
+      <div class="ls-stat-grid"><div class="ls-stat"><b data-stat-schools>—</b><span>省内投档院校</span></div><div class="ls-stat"><b data-stat-matched-schools>—</b><span>有背景专业院校</span></div><div class="ls-stat"><b data-stat-records>—</b><span>背景专业记录</span></div><div class="ls-stat"><b data-stat-range>—</b><span>历史最低分范围</span></div></div>
       <p class="ls-coverage-note" data-coverage-note>正在读取覆盖审计。</p>
     </section>
-
     <section class="ls-workspace" aria-label="辽宁省内院校背景专业查询">
-      <nav class="ls-view-tabs" aria-label="查看方式">
-        <button type="button" class="ls-view-tab" data-view="score" aria-pressed="false">按分数位置看</button>
-        <button type="button" class="ls-view-tab" data-view="school" aria-pressed="false">按学校查询</button>
-        <button type="button" class="ls-view-tab is-active" data-view="list_all" aria-pressed="true">全部背景专业</button>
-      </nav>
-
-      <section class="ls-console" data-view-panel="score" hidden>
-        <div class="ls-console-row"><input id="scoreInput" type="text" inputmode="numeric" enterkeyhint="search" autocomplete="off" placeholder="输入参考分数，例如 579" /><button id="scoreSubmit" type="button" class="ui-button ui-button--primary">查看这个分数段</button></div>
-        <p class="ls-console-help">按2026历史最低投档分定位分数段，不计算录取概率。</p>
-        <div id="scoreBandButtons" class="ls-chip-row" aria-label="常用历史分数段"></div>
-      </section>
-
-      <section class="ls-console" data-view-panel="school" hidden>
-        <div class="ls-console-row"><input id="schoolInput" type="search" list="schoolOptions" enterkeyhint="search" autocomplete="off" placeholder="输入辽宁省内院校，如 辽宁科技大学" /><datalist id="schoolOptions"></datalist><button id="schoolSubmit" type="button" class="ui-button ui-button--primary">查看该校背景专业</button></div>
-        <p class="ls-console-help">会检查该校全部2026物理类投档专业；没有结果时也会说明是“证据不足”还是“没有当前投档记录”。</p>
-      </section>
-
-      <section class="ls-console" data-view-panel="list_all">
-        <div class="ls-console-row"><input id="queryInput" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索学校、专业或背景方向" /><button id="querySubmit" type="button" class="ui-button ui-button--primary">查看结果</button></div>
-        <p class="ls-console-help">默认按2026最低投档分从高到低排列；“全部”表示数据范围完整，不代表一次渲染全部记录。</p>
-      </section>
-
-      <details class="ls-filter-shell">
-        <summary>更多筛选</summary>
-        <div class="ls-filter-grid">
-          <select id="directionFilter" aria-label="背景方向"><option value="">全部背景方向</option></select>
-          <select id="evidenceFilter" aria-label="提示类型"><option value="">全部提示类型</option><option value="学校主线">学校主线</option><option value="学校相关">学校相关</option><option value="方向线索">方向线索</option></select>
-          <input id="cityFilter" type="search" placeholder="城市，如 沈阳" aria-label="城市" />
-          <input id="minScoreFilter" type="number" min="344" max="750" placeholder="最低分" aria-label="最低分" />
-          <input id="maxScoreFilter" type="number" min="344" max="750" placeholder="最高分" aria-label="最高分" />
-          <select id="projectFilter" aria-label="项目类型"><option value="all">普通与特殊项目</option><option value="regular">只看普通项目</option><option value="special">只看特殊项目</option></select>
-        </div>
-        <div class="ls-filter-actions"><button id="resetFilters" type="button" class="ui-button ui-button--secondary">清除筛选</button><button id="applyFilters" type="button" class="ui-button ui-button--primary">应用筛选</button></div>
-      </details>
+      <nav class="ls-view-tabs" aria-label="查看方式"><button type="button" class="ls-view-tab" data-view="score" aria-pressed="false">按分数位置看</button><button type="button" class="ls-view-tab" data-view="school" aria-pressed="false">按学校查询</button><button type="button" class="ls-view-tab is-active" data-view="list_all" aria-pressed="true">全部背景专业</button></nav>
+      <section class="ls-console" data-view-panel="score" hidden><div class="ls-console-row"><input id="scoreInput" type="text" inputmode="numeric" placeholder="输入参考分数，例如 579" /><button id="scoreSubmit" type="button" class="ui-button ui-button--primary">查看这个分数段</button></div><p class="ls-console-help">按2026历史最低投档分定位分数段，不计算录取概率。</p><div id="scoreBandButtons" class="ls-chip-row" aria-label="常用历史分数段"></div></section>
+      <section class="ls-console" data-view-panel="school" hidden><div class="ls-console-row"><input id="schoolInput" type="search" list="schoolOptions" placeholder="输入辽宁省内院校，如 辽宁科技大学" /><datalist id="schoolOptions"></datalist><button id="schoolSubmit" type="button" class="ui-button ui-button--primary">查看该校背景专业</button></div></section>
+      <section class="ls-console" data-view-panel="list_all"><div class="ls-console-row"><input id="queryInput" type="search" placeholder="搜索学校、专业或背景方向" /><button id="querySubmit" type="button" class="ui-button--primary ui-button">查看结果</button></div></section>
     </section>
-
-    <section id="resultsPanel" class="ls-results" aria-live="polite">
-      <header class="ls-results-head"><div><h2 id="resultsTitle">全部背景专业</h2><p id="resultsMeta">正在读取全量目录。</p></div></header>
-      <div id="records" class="ls-records"><div class="ls-loading">正在整理全部符合条件的背景专业…</div></div>
-      <nav id="pagination" class="ls-pagination" aria-label="结果分页"></nav>
-    </section>
-
-    <footer class="ls-footer">当前发布：<span data-current-release>v3.9.71.0</span>｜投档口径：辽宁2026普通类本科批物理类｜背景证据按各自来源年份展示｜未显示不代表学校没有优势专业。</footer>
+    <section id="resultsPanel" class="ls-results" aria-live="polite"><header class="ls-results-head"><div><h2 id="resultsTitle">全部背景专业</h2><p id="resultsMeta">正在读取全量目录。</p></div></header><div id="records" class="ls-records"><div class="ls-loading">正在整理全部符合条件的背景专业…</div></div><nav id="pagination" class="ls-pagination" aria-label="结果分页"></nav></section>
   </main>
   <script type="module" src="/shared/resources/release/release-presenter.v3971_0.js?v=3971_0"></script>
   <script type="module" src="/shared/ui/shell/family-shell.v3970_0.js?v=3970_0"></script>
