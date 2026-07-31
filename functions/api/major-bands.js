@@ -128,6 +128,24 @@ function explicitSpecialProjectIntent(value = '') {
   return /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(String(value || ''));
 }
 
+function enrichMajorCodeFields(record) {
+  if (!record.codes) record.codes = normalizeFenxiCodes(record);
+  if (!record.standardMajor) {
+    const mappedStandardMajor = mapStandardMajor({
+      majorName: record.major,
+      standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
+    });
+    record.standardMajor = mappedStandardMajor;
+    if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
+  }
+  return record;
+}
+
+function finalizeRecordForResponse(record) {
+  const item = enrichMajorCodeFields({ ...record });
+  return { ...item, ...buildDisplayTags(item) };
+}
+
 function pushRecord(grouped, record, context) {
   const canonicalPosition = resolveCanonicalPosition({
     candidateScore: context.candidateScore,
@@ -137,10 +155,8 @@ function pushRecord(grouped, record, context) {
     rangePreset: context.rangePreset
   });
   if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return false;
-  const display = buildDisplayTags(record);
   const item = {
     ...record,
-    ...display,
     band: canonicalPosition.bandKey,
     bandKey: canonicalPosition.bandKey,
     candidateScore: context.candidateScore,
@@ -277,8 +293,10 @@ export async function onRequest(context) {
       const file = chunkFile(chunk);
       if (!file) continue;
       try {
-        for await (const raw of streamFenxiChunkRecords(context.request, context.env || {}, file)) {
-          rawTotal += 1;
+        for await (const raw of streamFenxiChunkRecords(context.request, context.env || {}, file, {
+          scoreWindow,
+          onRawRecord: () => { rawTotal += 1; }
+        })) {
           const score = rawScore(raw);
           if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
           if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
@@ -286,13 +304,7 @@ export async function onRequest(context) {
 
           const record = { ...normalizeRecord(raw) };
           record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
-          record.codes = normalizeFenxiCodes(raw);
-          const mappedStandardMajor = mapStandardMajor({
-            majorName: record.major,
-            standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
-          });
-          record.standardMajor = mappedStandardMajor;
-          if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
+          if (hasKeywordSearch) enrichMajorCodeFields(record);
           Object.assign(record, enrichBottomLineFields(record));
           if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
           if (!matchRegion(record, filters.region)) continue;
@@ -377,7 +389,9 @@ export async function onRequest(context) {
         getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
       });
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
-      const records = requestedBand && requestedBand !== key ? [] : diversified.slice(offset, offset + pageLimit);
+      const records = requestedBand && requestedBand !== key
+        ? []
+        : diversified.slice(offset, offset + pageLimit).map(finalizeRecordForResponse);
       const returned = records.length;
       const hasMore = offset + returned < diversified.length;
       group.records = records;
@@ -484,7 +498,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'score-prefilter-streamed-chunks-rank-primary-canonical-staged-ranked-paged'
+        mode: 'score-prefilter-streamed-chunks-delayed-output-enrichment-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
@@ -492,7 +506,7 @@ export async function onRequest(context) {
       ok: false,
       message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 2026 ln-rank manifest、算法统一调度模块、年份配置和当前查询参数。',
+      engineerHint: `请检查 2026 ln-rank manifest、算法统一调度模块、年份配置和当前查询参数。${failedChunk ? `失败分片：${failedChunk}` : ''}`,
       hint: '可先打开 /api/major-bands-health?probe=1 检查数据读取；活动数据路径是 /fenxi/data/ln-rank-2026/。'
     }, 500);
   }
