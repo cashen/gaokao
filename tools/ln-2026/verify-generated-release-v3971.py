@@ -25,13 +25,20 @@ check(local_index.get('meta',{}).get('evaluatedRecordCount')==local_index.get('m
 check(local_index.get('providerVersion')=='academic-background-provider-v3968_0','LocalStrength evidence provider')
 check('local-mainline-app.v3967_0.js' not in local_page,'ln-rank/local-mainline.html legacy runtime')
 
-page='ln-rank/211-mainline.html'; scope='211'
-text=(ROOT/page).read_text(encoding='utf-8')
-check('academic-background-app.v3968_0.js?v=3968_0' in text,f'{page} unified background runtime')
-check(f'data-background-scope=\"{scope}\"' in text,f'{page} scope')
-check('2025' in text and '2024' in text,f'{page} three-year history copy')
-check('背景证据' in text and '来源年份' in text,f'{page} evidence year copy')
-check('211-mainline-app.v3951_0.js' not in text,f'{page} legacy runtime')
+all211_page=(ROOT/'ln-rank/211-mainline.html').read_text(encoding='utf-8')
+all211_runtime=(ROOT/'ln-rank/js/academic-background/all211-static-app.v3972_0.js').read_text(encoding='utf-8')
+all211_index=json.loads((ROOT/'ln-rank/data/211-static/211-static-index.v3972_0.json').read_text(encoding='utf-8'))
+check('all211-static-app.v3972_0.js?v=3972_0' in all211_page,'ln-rank/211-mainline.html static background runtime')
+check('data-all211-runtime=\"loading\"' in all211_page,'ln-rank/211-mainline.html static runtime scope')
+check('score2025' in all211_runtime and 'score2024' in all211_runtime,'ln-rank/211-mainline.html three-year history runtime')
+check('背景证据' in all211_page and '官方建设学科' in all211_page,'ln-rank/211-mainline.html evidence boundary copy')
+check('/api/academic-background' not in all211_page and '/api/academic-background' not in all211_runtime,'211 page must not use dynamic background API')
+check(all211_index.get('version')=='all-211-static-v3972_0','211 static index version')
+check(all211_index.get('meta',{}).get('completeEvaluation') is True,'211 complete evaluation')
+check(all211_index.get('meta',{}).get('evaluatedRecordCount')==all211_index.get('meta',{}).get('admission211RecordCount'),'211 evaluated record count')
+check(len(all211_index.get('scoreBands',[]))==8,'211 real score bands')
+check(sum(item.get('admissionRecordCount',0) for item in all211_index.get('scoreBands',[]))==len(all211_index.get('records',[])),'211 score band coverage')
+check('211-mainline-app.v3951_0.js' not in all211_page and 'academic-background-app.v3968_0.js' not in all211_page,'ln-rank/211-mainline.html legacy runtime')
 """
 if old not in source:
     raise SystemExit('verify-generated-release-v3968 page block changed unexpectedly')
