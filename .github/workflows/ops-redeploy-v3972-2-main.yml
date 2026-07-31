@@ -6,6 +6,11 @@ on:
       - ops/redeploy-v3972-2-main
     paths:
       - '.github/workflows/ops-redeploy-v3972-2-main.yml'
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/ops-redeploy-v3972-2-main.yml'
   workflow_dispatch:
 
 permissions:
@@ -35,6 +40,8 @@ jobs:
           test "$actual" = "$LOCKED_MAIN_SHA"
           grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
           grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
+          grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
+          grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
       - name: Verify Cloudflare deployment credentials are configured
