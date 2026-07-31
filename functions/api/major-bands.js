@@ -1,5 +1,5 @@
 import { loadManifest } from '../_lib/ln-rank-manifest.js';
-import { fetchFenxiJson } from '../_lib/fenxi-fetcher.js';
+import { streamFenxiChunkRecords } from '../_lib/fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { makeBands } from '../_lib/band-engine.js';
 import { matchRegion } from '../_lib/major-filter.js';
@@ -161,11 +161,6 @@ function pushRecord(grouped, record, context) {
   return true;
 }
 
-async function loadChunkRecords(request, env, file) {
-  const data = await fetchFenxiJson(request, env, file);
-  return Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : []);
-}
-
 function rankContextForScore(score) {
   const row = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
   if (!row) return null;
@@ -281,96 +276,93 @@ export async function onRequest(context) {
     for (const chunk of chunks) {
       const file = chunkFile(chunk);
       if (!file) continue;
-      let rawRecords = [];
       try {
-        rawRecords = await loadChunkRecords(context.request, context.env || {}, file);
+        for await (const raw of streamFenxiChunkRecords(context.request, context.env || {}, file)) {
+          rawTotal += 1;
+          const score = rawScore(raw);
+          if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
+          if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
+          rawCandidate += 1;
+
+          const record = { ...normalizeRecord(raw) };
+          record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
+          record.codes = normalizeFenxiCodes(raw);
+          const mappedStandardMajor = mapStandardMajor({
+            majorName: record.major,
+            standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
+          });
+          record.standardMajor = mappedStandardMajor;
+          if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
+          Object.assign(record, enrichBottomLineFields(record));
+          if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
+          if (!matchRegion(record, filters.region)) continue;
+          if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
+          if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
+
+          const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
+          if (!match.matched) {
+            majorKeywordExcluded += 1;
+            continue;
+          }
+          record.matchBadges = match.badges;
+          record.matchLevel = match.matchLevel || '';
+          record.matchLabel = match.matchLabel || '';
+          record.matchReason = match.matchReason || match.reason || '';
+          record.matchedKeyword = match.matchedKeyword || '';
+          record.matchedTerms = match.matchedTerms || [];
+          record.matchScore = match.score;
+
+          const bottomLineEligibility = getBottomLineEligibility(record, filters.bottomLineMode);
+          if (bottomLineEligibility.status === 'fail') {
+            bottomLineExcluded += 1;
+            continue;
+          }
+          if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
+
+          const specialProject = detectSpecialProject(record);
+          const hideSpecial = specialProject.hasSpecialProject
+            && !specialIntent
+            && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
+          if (hideSpecial) {
+            specialProjectHidden += 1;
+            addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
+            continue;
+          }
+          if (specialProject.hasSpecialProject) {
+            specialProjectShown += 1;
+            Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
+            record.specialProjectExplicitIntent = specialIntent;
+          } else {
+            record.specialProject = specialProject;
+          }
+
+          normalized += 1;
+          if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
+          if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
+          if (record.matchLevel === 'project') projectHitCount += 1;
+          if (record.matchLevel === 'industry') industryHitCount += 1;
+
+          const added = pushRecord(grouped, record, {
+            candidateScore,
+            candidateRank,
+            rangePreset,
+            bottomLineEligibility
+          });
+          if (added) {
+            const band = resolveCanonicalPosition({
+              candidateScore,
+              candidateRank: candidateRank?.rankForGap,
+              recordScore: record.score2026 ?? record.score,
+              recordRank: record.rank2026 ?? record.rank,
+              rangePreset
+            }).bandKey;
+            grouped[band].scanned += 1;
+            if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
+          }
+        }
       } catch (error) {
         failedChunk = file;
         throw error;
-      }
-      rawTotal += rawRecords.length;
-
-      for (const raw of rawRecords) {
-        const score = rawScore(raw);
-        if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
-        if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
-        rawCandidate += 1;
-
-        const record = { ...normalizeRecord(raw) };
-        record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
-        record.codes = normalizeFenxiCodes(raw);
-        const mappedStandardMajor = mapStandardMajor({
-          majorName: record.major,
-          standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
-        });
-        record.standardMajor = mappedStandardMajor;
-        if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
-        Object.assign(record, enrichBottomLineFields(record));
-        if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
-        if (!matchRegion(record, filters.region)) continue;
-        if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
-        if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
-
-        const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
-        if (!match.matched) {
-          majorKeywordExcluded += 1;
-          continue;
-        }
-        record.matchBadges = match.badges;
-        record.matchLevel = match.matchLevel || '';
-        record.matchLabel = match.matchLabel || '';
-        record.matchReason = match.matchReason || match.reason || '';
-        record.matchedKeyword = match.matchedKeyword || '';
-        record.matchedTerms = match.matchedTerms || [];
-        record.matchScore = match.score;
-
-        const bottomLineEligibility = getBottomLineEligibility(record, filters.bottomLineMode);
-        if (bottomLineEligibility.status === 'fail') {
-          bottomLineExcluded += 1;
-          continue;
-        }
-        if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
-
-        const specialProject = detectSpecialProject(record);
-        const hideSpecial = specialProject.hasSpecialProject
-          && !specialIntent
-          && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
-        if (hideSpecial) {
-          specialProjectHidden += 1;
-          addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
-          continue;
-        }
-        if (specialProject.hasSpecialProject) {
-          specialProjectShown += 1;
-          Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
-          record.specialProjectExplicitIntent = specialIntent;
-        } else {
-          record.specialProject = specialProject;
-        }
-
-        normalized += 1;
-        if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
-        if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
-        if (record.matchLevel === 'project') projectHitCount += 1;
-        if (record.matchLevel === 'industry') industryHitCount += 1;
-
-        const added = pushRecord(grouped, record, {
-          candidateScore,
-          candidateRank,
-          rangePreset,
-          bottomLineEligibility
-        });
-        if (added) {
-          const band = resolveCanonicalPosition({
-            candidateScore,
-            candidateRank: candidateRank?.rankForGap,
-            recordScore: record.score2026 ?? record.score,
-            recordRank: record.rank2026 ?? record.rank,
-            rangePreset
-          }).bandKey;
-          grouped[band].scanned += 1;
-          if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
-        }
       }
     }
 
@@ -492,7 +484,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'score-prefilter-rank-primary-canonical-staged-ranked-paged'
+        mode: 'score-prefilter-streamed-chunks-rank-primary-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
