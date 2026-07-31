@@ -47,6 +47,32 @@ assert.equal(all211Index.meta.evaluatedRecordCount, all211Index.meta.admission21
 assert.equal(all211Index.scoreBands.length, 8);`;
 source = source.slice(0, pageBlockStart) + replacement + source.slice(pageBlockEnd);
 
+const apiBlockStart = source.indexOf("for (const [path, scope] of [\n  ['functions/api/local-mainline.js', 'liaoning'],");
+const apiBlockEnd = source.indexOf("\n\nconst service = read('functions/_lib/academic-background-api.js');", apiBlockStart);
+if (apiBlockStart < 0 || apiBlockEnd < 0) throw new Error('academic background API audit block changed unexpectedly');
+const apiReplacement = `const localApi = read('functions/api/local-mainline.js');
+assert.match(localApi, /handleAcademicBackgroundRequest/);
+assert.match(localApi, /'liaoning'/);
+assert.ok(!localApi.includes('loadBackgroundMatchedRecords'), 'local API still owns business logic');
+assert.ok(!localApi.includes('score2025'), 'local API still owns legacy score logic');
+
+const all211Api = read('functions/api/211-mainline.js');
+assert.match(all211Api, /handle211StaticCompatibility/);
+assert.ok(!all211Api.includes('handleAcademicBackgroundRequest'), '211 legacy API must not enter dynamic background service');
+assert.ok(!all211Api.includes('loadBackgroundMatchedRecords'), '211 legacy API must not scan admission records');
+
+const unifiedApi = read('functions/api/academic-background.js');
+assert.match(unifiedApi, /is211ScopeRequest/);
+assert.match(unifiedApi, /handle211StaticCompatibility/);
+assert.match(unifiedApi, /handleAcademicBackgroundRequest/);
+
+const compat211 = read('functions/_lib/211-static-compat-response.js');
+assert.match(compat211, /migratedToStatic: true/);
+assert.match(compat211, /scannedCount: 0/);
+assert.match(compat211, /matchedCount: 0/);
+assert.ok(!compat211.includes('loadAllRecords'), '211 compatibility response must not load admission records');`;
+source = source.slice(0, apiBlockStart) + apiReplacement + source.slice(apiBlockEnd);
+
 fs.writeFileSync(generatedPath, source);
 try {
   await import(`${pathToFileURL(generatedPath.pathname).href}?v=${Date.now()}`);
