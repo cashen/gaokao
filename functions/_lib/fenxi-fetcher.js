@@ -43,20 +43,184 @@ function isLargeChunk(path) {
   return /(^|\/)chunks\//.test(path);
 }
 
-async function parseLargeJsonResponse(response, { clean, url, contentType }) {
+function assertJsonResponse(response, { clean, url, contentType }) {
   if (!response.ok) {
-    const raw = await response.text();
-    throw new Error(`读取 /fenxi 数据失败：${clean}，HTTP ${response.status}。请求路径：${url}。返回内容：${first(raw)}`);
+    return response.text().then(raw => {
+      throw new Error(`读取 /fenxi 数据失败：${clean}，HTTP ${response.status}。请求路径：${url}。返回内容：${first(raw)}`);
+    });
   }
   if (contentType.toLowerCase().includes('text/html')) {
-    const raw = await response.text();
-    throw new Error(`读取 /fenxi 数据时返回了 HTML，不是 JSON。请求路径：${url}。请确认路径是 /fenxi/data/chunks/xxx，而不是 /fenxi/data/data/chunks/xxx。返回开头：${first(raw)}`);
+    return response.text().then(raw => {
+      throw new Error(`读取 /fenxi 数据时返回了 HTML，不是 JSON。请求路径：${url}。请确认路径是 /fenxi/data/chunks/xxx，而不是 /fenxi/data/data/chunks/xxx。返回开头：${first(raw)}`);
+    });
   }
+  return null;
+}
+
+async function parseLargeJsonResponse(response, { clean, url, contentType }) {
+  const invalid = assertJsonResponse(response, { clean, url, contentType });
+  if (invalid) return invalid;
   try {
     return await response.json();
   } catch (error) {
     throw new Error(`读取 /fenxi 大分片后 JSON 解析失败：${clean}。Content-Type=${contentType}。请求路径：${url}。${error?.message || String(error)}`);
   }
+}
+
+async function fetchFenxiResponse(request, env, clean) {
+  const url = `${base(request, env)}/${clean}`;
+  const cookie = await createFenxiCookie(env);
+  const headers = { accept: 'application/json' };
+  if (cookie) headers.cookie = cookie;
+  const response = await fetch(url, {
+    headers,
+    cf: { cacheTtl: 60, cacheEverything: false }
+  });
+  const contentType = response.headers.get('content-type') || '';
+  return { response, url, contentType };
+}
+
+function parseRecordObject(raw, context) {
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`流式解析 /fenxi 大分片记录失败：${context.clean}，第 ${context.index} 条。请求路径：${context.url}。${error?.message || String(error)}`);
+  }
+}
+
+async function* parseRecordArrayStream(response, context) {
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    const data = await parseLargeJsonResponse(response, context);
+    const records = Array.isArray(data) ? data : (Array.isArray(data?.records) ? data.records : []);
+    for (const record of records) yield record;
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let phase = 'seek-records';
+  let scan = 0;
+  let objectStart = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let index = 0;
+  let completed = false;
+
+  try {
+    while (!completed) {
+      const { done, value } = await reader.read();
+      if (value) buffer += decoder.decode(value, { stream: !done });
+      if (done) buffer += decoder.decode();
+
+      if (phase === 'seek-records') {
+        const match = /"records"\s*:\s*\[/.exec(buffer);
+        if (!match) {
+          if (done) throw new Error(`流式读取 /fenxi 大分片时未找到 records 数组：${context.clean}。请求路径：${context.url}`);
+          if (buffer.length > 131072) throw new Error(`流式读取 /fenxi 大分片头部异常：${context.clean}。请求路径：${context.url}`);
+          continue;
+        }
+        buffer = buffer.slice(match.index + match[0].length);
+        phase = 'records';
+        scan = 0;
+      }
+
+      while (phase === 'records' && scan < buffer.length) {
+        if (objectStart < 0) {
+          const char = buffer[scan];
+          if (/\s|,/.test(char)) {
+            scan += 1;
+            continue;
+          }
+          if (char === ']') {
+            completed = true;
+            break;
+          }
+          if (char !== '{') {
+            throw new Error(`流式读取 /fenxi 大分片遇到非法 records 内容：${context.clean}，位置 ${scan}。`);
+          }
+          objectStart = scan;
+          depth = 1;
+          inString = false;
+          escaped = false;
+          scan += 1;
+        }
+
+        let yielded = false;
+        while (objectStart >= 0 && scan < buffer.length) {
+          const char = buffer[scan];
+          if (inString) {
+            if (escaped) {
+              escaped = false;
+            } else if (char === '\\') {
+              escaped = true;
+            } else if (char === '"') {
+              inString = false;
+            }
+          } else if (char === '"') {
+            inString = true;
+          } else if (char === '{') {
+            depth += 1;
+          } else if (char === '}') {
+            depth -= 1;
+            if (depth === 0) {
+              index += 1;
+              const raw = buffer.slice(objectStart, scan + 1);
+              const record = parseRecordObject(raw, { ...context, index });
+              buffer = buffer.slice(scan + 1);
+              scan = 0;
+              objectStart = -1;
+              yielded = true;
+              yield record;
+              break;
+            }
+          }
+          scan += 1;
+        }
+
+        if (yielded) continue;
+        if (objectStart >= 0) {
+          if (objectStart > 0) {
+            buffer = buffer.slice(objectStart);
+            scan -= objectStart;
+            objectStart = 0;
+          }
+          break;
+        }
+      }
+
+      if (done && !completed) {
+        throw new Error(`流式读取 /fenxi 大分片提前结束：${context.clean}，已解析 ${index} 条。请求路径：${context.url}`);
+      }
+    }
+  } finally {
+    if (!completed) {
+      try { await reader.cancel(); } catch {}
+    }
+    try { reader.releaseLock(); } catch {}
+  }
+}
+
+// Streaming admission chunks keeps both the raw JSON array and previously
+// normalized candidates from coexisting in one Worker request. Records remain
+// request-scoped and are yielded one at a time; no large module cache is used.
+export async function* streamFenxiChunkRecords(request, env, path) {
+  const clean = normalizeFenxiDataPath(path);
+  if (!isLargeChunk(clean)) {
+    const data = await fetchFenxiJson(request, env, clean);
+    const records = Array.isArray(data) ? data : (Array.isArray(data?.records) ? data.records : []);
+    for (const record of records) yield record;
+    return;
+  }
+
+  const { response, url, contentType } = await fetchFenxiResponse(request, env, clean);
+  const invalid = assertJsonResponse(response, { clean, url, contentType });
+  if (invalid) {
+    await invalid;
+    return;
+  }
+  yield* parseRecordArrayStream(response, { clean, url, contentType });
 }
 
 export async function fetchFenxiJson(request, env, path) {
@@ -67,19 +231,11 @@ export async function fetchFenxiJson(request, env, path) {
     if (fresh(cached)) return cached.data;
   }
 
-  const url = `${base(request, env)}/${clean}`;
-  const cookie = await createFenxiCookie(env);
-  const headers = { accept: 'application/json' };
-  if (cookie) headers.cookie = cookie;
-  const response = await fetch(url, {
-    headers,
-    cf: { cacheTtl: 60, cacheEverything: false }
-  });
-  const contentType = response.headers.get('content-type') || '';
+  const { response, url, contentType } = await fetchFenxiResponse(request, env, clean);
 
   if (largeChunk) {
-    // Large admission chunks are deliberately request-scoped. Keeping parsed
-    // arrays in module globals can retain the full 2026 dataset in one isolate.
+    // Compatibility path for callers that still require an entire chunk.
+    // The major-bands runtime uses streamFenxiChunkRecords instead.
     return parseLargeJsonResponse(response, { clean, url, contentType });
   }
 
