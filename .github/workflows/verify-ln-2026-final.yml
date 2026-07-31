@@ -1,4 +1,4 @@
-name: Verify LN 2026 final release v3972.0
+name: Verify LN 2026 final release v3972.1
 
 on:
   pull_request:
@@ -41,7 +41,7 @@ jobs:
             tools/tongxue/build-moe-2026-school-index.py \
             tools/tongxue/build-school-region-index-v150.py
 
-      - name: Verify v3970 assets under v3.9.72.0 release
+      - name: Verify v3970 assets under v3.9.72.1 release
         run: |
           set -euo pipefail
           python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-final-release.out
@@ -70,7 +70,7 @@ jobs:
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
-          if(CURRENT_RELEASE.display!=='v3.9.72.0'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if(CURRENT_RELEASE.display!=='v3.9.72.1'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query owner');
           if(CURRENT_RELEASE.resourceOwners.industryMap!=='/Public_company/') throw new Error('industry map owner');
