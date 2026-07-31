@@ -50,7 +50,8 @@ export const CURRENT_RELEASE = Object.freeze({
   tongxueRuntimeVersion: 'tongxue-runtime-v159-r3968',
   resourceOwners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
-    releasePresenter: '/shared/resources/release/release-presenter.v3971_2.js',
+    releasePresenter: '/shared/resources/release/release-presenter.v3970_0.js',
+    localStrengthReleasePresenter: '/shared/resources/release/release-presenter.v3971_2.js',
     resourceExecution: '/shared/governance/resource-execution-contract.v3970_0.js',
     exam: '/shared/resources/exam/liaoning-physics.js',
     rankTables: '/functions/_lib/rank-table-provider.js',
