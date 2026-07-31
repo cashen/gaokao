@@ -1,5 +1,5 @@
-import { handleAcademicBackgroundRequest } from '../_lib/academic-background-api.js';
+import { handle211StaticCompatibility } from '../_lib/211-static-compat-response.js';
 
 export async function onRequest(context) {
-  return handleAcademicBackgroundRequest(context, '211');
+  return handle211StaticCompatibility(context.request);
 }

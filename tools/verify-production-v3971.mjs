@@ -1,6 +1,6 @@
 const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
 const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
-const EXPECTED_RELEASE = 'v3.9.71.2';
+const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.1';
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
@@ -55,20 +55,22 @@ async function verifyOnce(token) {
     school: `${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=${encodeURIComponent('东北大学')}&limit=16&release-check=${token}`,
     localPage: `${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}`,
     localIndex: `${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}`,
+    compat211: `${PAGES_BASE}/api/academic-background?scope=211&mode=score&score=579&release-check=${token}`,
     customScore: `${CUSTOM_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}`
   };
 
-  const [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult, customResult] = await Promise.all([
+  const [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult, compat211Result, customResult] = await Promise.all([
     request(urls.runtime),
     request(urls.health),
     request(urls.score),
     request(urls.school),
     request(urls.localPage, 'text/html'),
     request(urls.localIndex),
+    request(urls.compat211),
     request(urls.customScore)
   ]);
 
-  for (const result of [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult]) {
+  for (const result of [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult, compat211Result]) {
     if (result.status !== 200) throw new Error(`${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`);
   }
 
@@ -77,6 +79,7 @@ async function verifyOnce(token) {
   const score = parseJson(scoreResult);
   const school = parseJson(schoolResult);
   const index = parseJson(indexResult);
+  const compat211 = parseJson(compat211Result);
 
   for (const [name, data] of Object.entries({ runtime, health, score, school })) {
     if (data?.ok === false) throw new Error(`${name} returned ok=false: ${JSON.stringify(data).slice(0, 1000)}`);
@@ -84,15 +87,28 @@ async function verifyOnce(token) {
   if (recordCount(score) < 1) throw new Error('579 score query returned no records');
   if (recordCount(school) < 1) throw new Error('650 东北大学 query returned no records');
 
+  if (!compat211?.migratedToStatic || compat211?.architecture !== 'build-time-static-index') {
+    throw new Error(`211 compatibility route is not static-only: ${compat211Result.text.slice(0, 1000)}`);
+  }
+  if (Number(compat211.scannedCount) !== 0 || Number(compat211.matchedCount) !== 0) {
+    throw new Error(`211 compatibility route performed runtime work: ${compat211Result.text.slice(0, 1000)}`);
+  }
+
   if (!pageResult.text.includes(`data-release="${EXPECTED_RELEASE}"`)) throw new Error('LocalStrength production page release mismatch');
   if (!pageResult.text.includes('local-strength-app.v3971_2.js?v=3971_2')) throw new Error('LocalStrength production runtime mismatch');
   if (pageResult.text.includes('/api/local-strength')) throw new Error('LocalStrength production page references forbidden full-scan API');
 
   if (index.version !== EXPECTED_INDEX) throw new Error(`LocalStrength index version mismatch: ${index.version}`);
   if (!index.meta?.completeEvaluation) throw new Error('LocalStrength production index coverage incomplete');
-  if (index.meta.localAdmissionSchoolCount !== 62) throw new Error(`LocalStrength school count mismatch: ${index.meta.localAdmissionSchoolCount}`);
-  if (index.meta.evaluatedRecordCount !== 1992) throw new Error(`LocalStrength evaluated count mismatch: ${index.meta.evaluatedRecordCount}`);
-  if (index.meta.matchedRecordCount !== 243) throw new Error(`LocalStrength matched count mismatch: ${index.meta.matchedRecordCount}`);
+  if (index.meta.evaluatedRecordCount !== index.meta.localAdmissionRecordCount) {
+    throw new Error(`LocalStrength evaluation mismatch: ${index.meta.evaluatedRecordCount}/${index.meta.localAdmissionRecordCount}`);
+  }
+  if (Number(index.meta.duplicatePublicRecordCount) !== 0 || Number(index.meta.unresolvedLocalRecordCount) !== 0) {
+    throw new Error(`LocalStrength integrity mismatch: duplicates=${index.meta.duplicatePublicRecordCount}, unresolved=${index.meta.unresolvedLocalRecordCount}`);
+  }
+  if (!Array.isArray(index.records) || index.records.length !== index.meta.matchedRecordCount || index.records.length < 1) {
+    throw new Error(`LocalStrength public record mismatch: records=${index.records?.length}, meta=${index.meta.matchedRecordCount}`);
+  }
 
   let customDomain;
   if (customResult.status === 200) {
@@ -111,6 +127,10 @@ async function verifyOnce(token) {
     pagesHealth: healthResult.status,
     scoreRecords: recordCount(score),
     schoolRecords: recordCount(school),
+    compatibility211: {
+      migratedToStatic: compat211.migratedToStatic,
+      scannedCount: compat211.scannedCount
+    },
     localStrength: {
       index: index.version,
       schools: index.meta.localAdmissionSchoolCount,

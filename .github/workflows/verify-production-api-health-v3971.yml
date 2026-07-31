@@ -1,4 +1,4 @@
-name: Verify production API health v3971.2
+name: Verify production API health v3972.1
 
 on:
   push:
@@ -14,24 +14,35 @@ permissions:
 jobs:
   production-api-health:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify production score school APIs and static LocalStrength
+      - name: Verify stable production baseline before merge
+        if: github.event_name == 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.71.2
+          PRODUCTION_VERIFY_ATTEMPTS: '15'
+          PRODUCTION_VERIFY_WAIT_MS: '10000'
+        run: node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
+      - name: Verify v3.9.72.1 production score school APIs and scan-free 211 compatibility
+        if: github.event_name != 'pull_request'
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.72.1
           PRODUCTION_VERIFY_ATTEMPTS: '30'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
-        run: node tools/verify-production-v3971.mjs | tee /tmp/v3971-production-health.out
+        run: node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3971-production-api-health
-          path: /tmp/v3971-production-health.out
+          name: v3972-1-production-api-health
+          path: /tmp/v3972-production-health.out
           if-no-files-found: warn
           retention-days: 7
