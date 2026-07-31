@@ -1,101 +1,112 @@
-const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
-const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
-const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.71.2';
-const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
-const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 15);
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync, execSync } from 'node:child_process';
 
-async function request(url, accept = 'application/json') {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30000);
-  try {
-    const response = await fetch(url, {
-      redirect: 'follow',
-      signal: controller.signal,
-      headers: { accept, 'cache-control': 'no-cache', pragma: 'no-cache' }
-    });
-    return {
-      url,
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
-      text: await response.text()
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+const STABLE_SHA = 'f347fd268ad06e2bd0b339786dd4daf692974a34';
+const ROOT = process.cwd();
+const TMP = '/tmp/v3972-worker-bundle-diagnosis';
+const STABLE_DIR = path.join(TMP, 'stable-src');
+
+fs.rmSync(TMP, { recursive: true, force: true });
+fs.mkdirSync(TMP, { recursive: true });
+fs.mkdirSync(STABLE_DIR, { recursive: true });
+
+function run(command, args, cwd = ROOT) {
+  console.log(`$ ${command} ${args.join(' ')}`);
+  return execFileSync(command, args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, CI: '1', NO_COLOR: '1' }
+  });
 }
 
-function parseJson(result) {
-  try {
-    return JSON.parse(result.text);
-  } catch (error) {
-    throw new Error(`${result.url} JSON parse failed: ${error.message}; body=${result.text.slice(0, 500)}`);
-  }
+function build(label, cwd) {
+  const outfile = path.join(TMP, `${label}-worker.js`);
+  const metafile = path.join(TMP, `${label}-meta.json`);
+  const output = run('npx', [
+    '--yes', 'wrangler@4.28.1',
+    'pages', 'functions', 'build', 'functions',
+    `--outfile=${outfile}`,
+    `--metafile=${metafile}`,
+    '--compatibility-date=2026-07-01'
+  ], cwd);
+  console.log(output);
+  if (!fs.existsSync(outfile) || !fs.existsSync(metafile)) throw new Error(`${label} bundle output missing`);
+  return { outfile, metafile };
 }
 
-function recordCount(data) {
-  return ['upper', 'near', 'steady'].reduce((sum, key) => sum + Number(data?.bands?.[key]?.records?.length || 0), 0);
-}
-
-async function verifyOnce(token) {
-  const urls = {
-    runtime: `${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}`,
-    health: `${PAGES_BASE}/api/major-bands-health?probe=1&release-check=${token}`,
-    score: `${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}`,
-    school: `${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=${encodeURIComponent('东北大学')}&limit=16&release-check=${token}`,
-    page: `${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}`,
-    index: `${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}`,
-    custom: `${CUSTOM_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}`
-  };
-  const [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult, customResult] = await Promise.all([
-    request(urls.runtime), request(urls.health), request(urls.score), request(urls.school),
-    request(urls.page, 'text/html'), request(urls.index), request(urls.custom)
-  ]);
-  for (const result of [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult]) {
-    if (result.status !== 200) throw new Error(`${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`);
+function analyze(label, bundle) {
+  const workerBytes = fs.statSync(bundle.outfile).size;
+  const meta = JSON.parse(fs.readFileSync(bundle.metafile, 'utf8'));
+  const contributions = new Map();
+  for (const output of Object.values(meta.outputs || {})) {
+    for (const [input, info] of Object.entries(output.inputs || {})) {
+      contributions.set(input, (contributions.get(input) || 0) + Number(info.bytesInOutput || 0));
+    }
   }
-  const runtime = parseJson(runtimeResult);
-  const health = parseJson(healthResult);
-  const score = parseJson(scoreResult);
-  const school = parseJson(schoolResult);
-  const index = parseJson(indexResult);
-  if (runtime?.ok === false || health?.ok === false || score?.ok === false || school?.ok === false) throw new Error('production API returned ok=false');
-  if (recordCount(score) < 1 || recordCount(school) < 1) throw new Error('production query returned no records');
-  if (!pageResult.text.includes(`data-release="${EXPECTED_RELEASE}"`)) throw new Error(`production release is not ${EXPECTED_RELEASE}`);
-  if (pageResult.text.includes('/api/local-strength')) throw new Error('forbidden LocalStrength API reference');
-  if (index.version !== 'local-strength-static-v3971_2' || !index.meta?.completeEvaluation) throw new Error('LocalStrength index invalid');
-  if (index.meta.evaluatedRecordCount !== index.meta.localAdmissionRecordCount) throw new Error('LocalStrength coverage mismatch');
-  if (index.meta.duplicatePublicRecordCount !== 0 || index.meta.unresolvedLocalRecordCount !== 0) throw new Error('LocalStrength integrity mismatch');
-  if (!Array.isArray(index.records) || index.records.length !== index.meta.matchedRecordCount) throw new Error('LocalStrength count mismatch');
-  let customDomain = '';
-  if (customResult.status === 200) {
-    const custom = parseJson(customResult);
-    if (custom?.ok === false || recordCount(custom) < 1) throw new Error('custom domain query invalid');
-    customDomain = 'json-200';
-  } else if (String(customResult.headers['cf-mitigated'] || '').toLowerCase() === 'challenge') {
-    customDomain = 'managed-challenge';
-  } else {
-    throw new Error(`custom domain HTTP ${customResult.status}`);
-  }
+  const rows = [...contributions.entries()]
+    .map(([input, bytesInOutput]) => ({ input, bytesInOutput, sourceBytes: Number(meta.inputs?.[input]?.bytes || 0) }))
+    .sort((a, b) => b.bytesInOutput - a.bytesInOutput || b.sourceBytes - a.sourceBytes);
+  const workerText = fs.readFileSync(bundle.outfile, 'utf8');
   return {
-    release: EXPECTED_RELEASE,
-    scoreRecords: recordCount(score),
-    schoolRecords: recordCount(school),
-    matchedRecords: index.meta.matchedRecordCount,
-    customDomain
+    label,
+    workerBytes,
+    inputCount: Object.keys(meta.inputs || {}).length,
+    outputCount: Object.keys(meta.outputs || {}).length,
+    topInputs: rows.slice(0, 40),
+    markers: {
+      all211StaticIndex: workerText.includes('211-static-index.v3972_0.json'),
+      doubleFirstClass: workerText.includes('double-first-class-disciplines'),
+      schoolProfileCenter: workerText.includes('school-profile-center'),
+      all211Compat: workerText.includes('all-211-functions-compat-v3972_1'),
+      admissionDataLiteral: workerText.includes('ln-rank-2026')
+    },
+    contributions
   };
 }
 
-let lastError;
-for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
-  try {
-    const result = await verifyOnce(`baseline-${attempt}-${Date.now()}`);
-    console.log(JSON.stringify({ attempt, ...result }, null, 2));
-    process.exit(0);
-  } catch (error) {
-    lastError = error;
-    console.error(`attempt ${attempt}/${ATTEMPTS}: ${error.message}`);
-    if (attempt < ATTEMPTS) await sleep(WAIT_MS);
+console.log(`Fetching stable baseline ${STABLE_SHA}`);
+execSync(`git fetch --depth=1 origin ${STABLE_SHA}`, { cwd: ROOT, stdio: 'inherit' });
+execSync(`git archive ${STABLE_SHA} | tar -x -C ${STABLE_DIR}`, { cwd: ROOT, stdio: 'inherit', shell: '/bin/bash' });
+
+const stableBundle = build('stable', STABLE_DIR);
+const incidentBundle = build('incident', ROOT);
+const stable = analyze('stable', stableBundle);
+const incident = analyze('incident', incidentBundle);
+
+const keys = new Set([...stable.contributions.keys(), ...incident.contributions.keys()]);
+const delta = [...keys].map(input => ({
+  input,
+  stableBytes: stable.contributions.get(input) || 0,
+  incidentBytes: incident.contributions.get(input) || 0,
+  deltaBytes: (incident.contributions.get(input) || 0) - (stable.contributions.get(input) || 0)
+})).filter(row => row.deltaBytes !== 0)
+  .sort((a, b) => Math.abs(b.deltaBytes) - Math.abs(a.deltaBytes));
+
+const report = {
+  stable: {
+    workerBytes: stable.workerBytes,
+    inputCount: stable.inputCount,
+    outputCount: stable.outputCount,
+    markers: stable.markers,
+    topInputs: stable.topInputs
+  },
+  incident: {
+    workerBytes: incident.workerBytes,
+    inputCount: incident.inputCount,
+    outputCount: incident.outputCount,
+    markers: incident.markers,
+    topInputs: incident.topInputs
+  },
+  difference: {
+    workerBytes: incident.workerBytes - stable.workerBytes,
+    inputCount: incident.inputCount - stable.inputCount,
+    topChangedInputs: delta.slice(0, 80)
   }
-}
-throw lastError || new Error('baseline production verification failed');
+};
+
+fs.writeFileSync(path.join(TMP, 'bundle-report.json'), `${JSON.stringify(report, null, 2)}\n`);
+console.log('=== BUNDLE DIAGNOSIS ===');
+console.log(JSON.stringify(report, null, 2));
+console.log(`diagnostics=${TMP}`);
