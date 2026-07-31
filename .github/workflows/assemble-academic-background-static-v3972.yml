@@ -1,4 +1,4 @@
-name: Assemble academic background static index v3972.0
+name: Assemble academic background static index v3972.1
 
 on:
   pull_request:
@@ -9,7 +9,10 @@ on:
       - 'tools/audit-211-static-v3972.mjs'
       - 'tools/sync-all211-static-release-v3972.py'
       - 'tools/lib/211-static-*.mjs'
+      - 'functions/api/academic-background.js'
+      - 'functions/api/211-mainline.js'
       - 'functions/_lib/211-mainline-kb.js'
+      - 'functions/_lib/211-static-compat-response.js'
       - 'functions/_lib/academic-background-provider.js'
       - 'shared/resources/background/double-first-class-disciplines.2022*.js'
       - 'shared/resources/schools/**'
@@ -39,17 +42,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify source syntax
+      - name: Verify source syntax and Functions isolation
         run: |
           set -euo pipefail
-          node --check shared/resources/background/double-first-class-disciplines.2022.js
-          node --check functions/_lib/211-mainline-kb.js
-          node --check tools/lib/211-static-common.v3972.mjs
-          node --check tools/lib/211-static-records.v3972.mjs
-          node --check tools/assemble-academic-background-static-v3972.mjs
-          node --check tools/audit-211-static-v3972.mjs
-          node --check ln-rank/js/academic-background/all211-static-app.v3972_0.js
+          for file in \
+            shared/resources/background/double-first-class-disciplines.2022.js \
+            functions/_lib/211-mainline-kb.js \
+            functions/_lib/211-static-compat-response.js \
+            functions/api/academic-background.js \
+            functions/api/211-mainline.js \
+            tools/lib/211-static-common.v3972.mjs \
+            tools/lib/211-static-evidence.v3972.mjs \
+            tools/lib/211-static-records.v3972.mjs \
+            tools/assemble-academic-background-static-v3972.mjs \
+            tools/audit-211-static-v3972.mjs \
+            ln-rank/js/academic-background/all211-static-app.v3972_0.js; do
+            node --check "$file"
+          done
           python3 -m py_compile tools/sync-all211-static-release-v3972.py
+          if grep -Eq 'school-profile-center|double-first-class-disciplines' functions/_lib/211-mainline-kb.js; then
+            echo '211 Functions adapter imports build-time evidence graph'
+            exit 1
+          fi
+          if grep -q 'academic-background-provider' tools/lib/211-static-records.v3972.mjs; then
+            echo '211 static builder imports Functions provider'
+            exit 1
+          fi
       - name: Assemble, audit and synchronize release contracts
         run: |
           set -euo pipefail
@@ -69,8 +87,10 @@ jobs:
           if(index.scoreBands.reduce((sum,item)=>sum+item.admissionRecordCount,0)!==index.records.length) throw new Error('band coverage');
           if(fs.statSync(file).size>3500000) throw new Error('browser index too large');
           const release=fs.readFileSync('shared/resources/release/current-release.js','utf8');
-          if(!release.includes("display: 'v3.9.72.0'")) throw new Error('release display');
+          if(!release.includes("display: 'v3.9.72.1'")) throw new Error('release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
+          const compat=fs.readFileSync('functions/_lib/211-static-compat-response.js','utf8');
+          if(!compat.includes('scannedCount: 0')||!compat.includes('build-time-static-index')) throw new Error('scan-free compatibility contract');
           console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size},null,2));
           NODE
       - name: Commit generated data and release contracts
@@ -91,6 +111,9 @@ jobs:
             tools/audit-school-query-v3970.mjs \
             tools/browser-family-action-v3970.mjs \
             tools/audit-family-action-v3970.mjs \
+            tools/browser-all211-static-v3972.mjs \
+            tools/audit-211-static-v3972.mjs \
+            ln-rank/211-mainline.html \
             ln-rank/data/211-static/211-static-index.v3972_0.json \
             ln-rank/data/211-static/211-static-audit.v3972_0.json
           if git diff --cached --quiet; then
@@ -98,13 +121,13 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'assemble(academic-background): synchronize v3972.0 contracts'
+            git commit -m 'assemble(academic-background): synchronize v3972.1 contracts'
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
       - name: Upload assembly evidence
         uses: actions/upload-artifact@v4
         with:
-          name: academic-background-static-v3972-0
+          name: academic-background-static-v3972-1
           path: |
             /tmp/academic-background-static-assemble.out
             /tmp/academic-background-static-audit.out
