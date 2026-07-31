@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'tools/build-local-strength-static-v3971.mjs'
+      - 'tools/compact-local-strength-static-v3971.mjs'
       - 'functions/_lib/academic-background-provider.js'
       - 'functions/_lib/fenxi-normalizer.js'
       - 'functions/_lib/school-display-tags.js'
@@ -29,22 +30,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build deterministic static index
+      - name: Build and compact deterministic static index
         run: |
           set -euo pipefail
           node --experimental-default-type=module tools/build-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-build.out
+          node --experimental-default-type=module tools/compact-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-compact.out
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
-          const index=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
+          const indexPath='ln-rank/data/local-strength/local-strength-index.v3971_2.json';
+          const index=JSON.parse(fs.readFileSync(indexPath,'utf8'));
           const audit=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-audit.v3971_2.json','utf8'));
           if(index.version!=='local-strength-static-v3971_2') throw new Error('index version');
           if(!index.meta.completeEvaluation) throw new Error('coverage incomplete');
           if(index.meta.evaluatedRecordCount!==index.meta.localAdmissionRecordCount) throw new Error('evaluation mismatch');
           if(index.meta.duplicatePublicRecordCount!==0) throw new Error('duplicates');
           if(index.meta.unresolvedLocalRecordCount!==0) throw new Error('unresolved');
+          if(index.records.length!==index.meta.matchedRecordCount) throw new Error('record count mismatch');
+          if(fs.statSync(indexPath).size>800000) throw new Error('browser index too large');
           if(!audit.assertions.sortedDescending) throw new Error('sort');
           if(audit.assertions.liaoningUniversityOfScienceAndTechnologyMatched<1) throw new Error('辽宁科技大学 coverage');
-          console.log(JSON.stringify(index.meta,null,2));
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(indexPath).size},null,2));
           NODE
       - name: Upload generated static data
         uses: actions/upload-artifact@v4
@@ -54,5 +59,6 @@ jobs:
             ln-rank/data/local-strength/local-strength-index.v3971_2.json
             ln-rank/data/local-strength/local-strength-audit.v3971_2.json
             /tmp/local-strength-static-build.out
+            /tmp/local-strength-static-compact.out
           if-no-files-found: error
           retention-days: 7
