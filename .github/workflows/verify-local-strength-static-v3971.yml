@@ -98,8 +98,8 @@ jobs:
           if(health.ok===false) throw new Error(JSON.stringify(health));
           if(score.ok===false) throw new Error(JSON.stringify(score));
           if(school.ok===false) throw new Error(JSON.stringify(school));
-          const scoreCount=['upper','near','steady'].reduce((n,k)=>n+(score.groups?.[k]?.records?.length||score[k]?.records?.length||0),0);
-          const schoolCount=['upper','near','steady'].reduce((n,k)=>n+(school.groups?.[k]?.records?.length||school[k]?.records?.length||0),0);
+          const scoreCount=['upper','near','steady'].reduce((n,k)=>n+(score.bands?.[k]?.records?.length||0),0);
+          const schoolCount=['upper','near','steady'].reduce((n,k)=>n+(school.bands?.[k]?.records?.length||0),0);
           if(scoreCount<1) throw new Error('score query empty');
           if(schoolCount<1) throw new Error('school query empty');
           console.log(JSON.stringify({scoreCount,schoolCount,runtime:true,health:true},null,2));
