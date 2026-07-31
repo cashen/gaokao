@@ -6,7 +6,7 @@ const generatedPath = new URL('./.audit-academic-background-v3970.generated.mjs'
 let source = fs.readFileSync(sourcePath, 'utf8');
 source = source
   .replaceAll("../shared/governance/resource-execution-contract.v3969_0.js", "../shared/governance/resource-execution-contract.v3970_0.js")
-  .replaceAll("'v3.9.69.0'", "'v3.9.71.2'")
+  .replaceAll("'v3.9.69.0'", "'v3.9.72.0'")
   .replaceAll("'v3969_0'", "'v3970_0'")
   .replaceAll("'resource-execution-v3969_0'", "'resource-execution-v3970_0'");
 
@@ -30,12 +30,21 @@ assert.equal(localIndex.meta.completeEvaluation, true);
 assert.equal(localIndex.meta.evaluatedRecordCount, localIndex.meta.localAdmissionRecordCount);
 
 const all211Html = read('ln-rank/211-mainline.html');
-assert.match(all211Html, /data-background-scope="211"/);
-assert.match(all211Html, /academic-background-app\\.v3968_0\\.js/);
-assert.match(all211Html, /academic-background\\.v3968_0\\.css/);
-assert.match(all211Html, /release-presenter\\.v3968_0\\.js/);
-assert.match(all211Html, /2025.*2024/);
-assert.ok(!/211-mainline-app\\.v3951_0/.test(all211Html), '211 page still loads legacy runtime');`;
+assert.match(all211Html, /data-all211-runtime="loading"/);
+assert.match(all211Html, /all211-static-app\\.v3972_0\\.js/);
+assert.match(all211Html, /all211-static\\.v3972_0\\.css/);
+assert.match(all211Html, /release-presenter\\.v3972_0\\.js/);
+assert.ok(!all211Html.includes('/api/academic-background'), '211 page must not call the dynamic background API');
+const all211Runtime = read('ln-rank/js/academic-background/all211-static-app.v3972_0.js');
+assert.match(all211Runtime, /211-static-index\\.v3972_0\\.json/);
+assert.match(all211Runtime, /score2025/);
+assert.match(all211Runtime, /score2024/);
+assert.ok(!all211Runtime.includes('/api/academic-background'), '211 runtime must be static-only');
+const all211Index = JSON.parse(read('ln-rank/data/211-static/211-static-index.v3972_0.json'));
+assert.equal(all211Index.version, 'all-211-static-v3972_0');
+assert.equal(all211Index.meta.completeEvaluation, true);
+assert.equal(all211Index.meta.evaluatedRecordCount, all211Index.meta.admission211RecordCount);
+assert.equal(all211Index.scoreBands.length, 8);`;
 source = source.slice(0, pageBlockStart) + replacement + source.slice(pageBlockEnd);
 
 fs.writeFileSync(generatedPath, source);

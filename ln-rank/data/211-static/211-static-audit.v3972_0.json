@@ -1,0 +1,2424 @@
+{
+  "version": "all-211-static-v3972_0-audit",
+  "generatedAt": "2026-07-22T01:12:12.894855+00:00",
+  "source": {
+    "manifestSha256": "a63b08c1873561d6251a2753d156396958eb02a3b46409ff1885c76bd0069361",
+    "rankSha256": "1c1368d13c03927e17572c70a1a0372f544177378d6e656397bfe2bcf467326f",
+    "admissionDataSha256": "6fc525da6faeb36b20cbd314fa1942d4ce5922c95e6857a6c9c5937ec88d572c",
+    "schoolIdentity": {
+      "title": "中华人民共和国教育部",
+      "url": "https://www.moe.gov.cn/srcsite/A22/s7065/200512/t20051223_82762.html",
+      "asOfDate": "2026-06-17"
+    },
+    "disciplineEvidence": {
+      "sourceId": "MOE_DOUBLE_FIRST_CLASS_2022",
+      "title": "第二轮“双一流”建设高校及建设学科名单",
+      "publisher": "教育部、财政部、国家发展改革委",
+      "year": 2022,
+      "noticeUrl": "https://hudong.moe.gov.cn/srcsite/A22/s7065/202202/t20220211_598710.html",
+      "attachmentUrl": "https://hudong.moe.gov.cn/srcsite/A22/s7065/202202/W020220214318455516037.pdf",
+      "official": true,
+      "canSupportDisciplineEvidence": true,
+      "coverageMode": "reviewed-official-entries-v3972_0"
+    }
+  },
+  "meta": {
+    "audienceYear": 2027,
+    "dataYear": 2026,
+    "totalAdmissionRecordCount": 11628,
+    "all211SchoolCount": 115,
+    "admission211SchoolCount": 112,
+    "admission211RecordCount": 2494,
+    "evaluatedRecordCount": 2494,
+    "evidenceRecordCount": 275,
+    "noEvidenceRecordCount": 2219,
+    "unresolved211RecordCount": 0,
+    "duplicateAdmissionRecordCount": 0,
+    "scoreMin": 467,
+    "scoreMax": 696,
+    "bandCount": 8,
+    "bandCoveredRecordCount": 2494,
+    "completeEvaluation": true,
+    "boundary": "覆盖辽宁2026物理类全部已识别211院校投档专业。211身份与具体专业背景分开核验；证据不足的记录仍进入完整投档目录并明确标注。"
+  },
+  "scoreBands": [
+    {
+      "key": "band-1",
+      "label": "655分及以上",
+      "min": 655,
+      "max": 696,
+      "minRank": 54,
+      "maxRank": 2223,
+      "admissionRecordCount": 312,
+      "evidenceRecordCount": 73,
+      "noEvidenceRecordCount": 239,
+      "schoolCount": 41
+    },
+    {
+      "key": "band-2",
+      "label": "636—654分",
+      "min": 636,
+      "max": 654,
+      "minRank": 2224,
+      "maxRank": 5239,
+      "admissionRecordCount": 318,
+      "evidenceRecordCount": 58,
+      "noEvidenceRecordCount": 260,
+      "schoolCount": 55
+    },
+    {
+      "key": "band-3",
+      "label": "626—635分",
+      "min": 626,
+      "max": 635,
+      "minRank": 5240,
+      "maxRank": 7367,
+      "admissionRecordCount": 342,
+      "evidenceRecordCount": 44,
+      "noEvidenceRecordCount": 298,
+      "schoolCount": 59
+    },
+    {
+      "key": "band-4",
+      "label": "618—625分",
+      "min": 618,
+      "max": 625,
+      "minRank": 7368,
+      "maxRank": 9339,
+      "admissionRecordCount": 319,
+      "evidenceRecordCount": 18,
+      "noEvidenceRecordCount": 301,
+      "schoolCount": 64
+    },
+    {
+      "key": "band-5",
+      "label": "609—617分",
+      "min": 609,
+      "max": 617,
+      "minRank": 9340,
+      "maxRank": 11677,
+      "admissionRecordCount": 334,
+      "evidenceRecordCount": 23,
+      "noEvidenceRecordCount": 311,
+      "schoolCount": 67
+    },
+    {
+      "key": "band-6",
+      "label": "596—608分",
+      "min": 596,
+      "max": 608,
+      "minRank": 11678,
+      "maxRank": 15441,
+      "admissionRecordCount": 328,
+      "evidenceRecordCount": 37,
+      "noEvidenceRecordCount": 291,
+      "schoolCount": 66
+    },
+    {
+      "key": "band-7",
+      "label": "573—595分",
+      "min": 573,
+      "max": 595,
+      "minRank": 15442,
+      "maxRank": 23076,
+      "admissionRecordCount": 317,
+      "evidenceRecordCount": 19,
+      "noEvidenceRecordCount": 298,
+      "schoolCount": 60
+    },
+    {
+      "key": "band-8",
+      "label": "572分及以下",
+      "min": 467,
+      "max": 572,
+      "minRank": 23077,
+      "maxRank": 68750,
+      "admissionRecordCount": 224,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 221,
+      "schoolCount": 31
+    }
+  ],
+  "schoolStatusCounts": {
+    "partially-evidenced": 66,
+    "no-major-evidence": 46,
+    "no-admission-record": 3
+  },
+  "assertions": {
+    "all211RecordsEvaluated": true,
+    "noUnresolved211Records": true,
+    "noDuplicateAdmissionRecords": true,
+    "eightScoreBands": true,
+    "allRecordsCoveredByBands": true,
+    "sortedDescending": true,
+    "schoolIdentityCount": 115
+  },
+  "schools": [
+    {
+      "officialName": "吉林大学",
+      "province": "吉林",
+      "city": "长春",
+      "displayLocation": "吉林 · 长春",
+      "is985": true,
+      "admissionRecordCount": 91,
+      "evidenceRecordCount": 10,
+      "noEvidenceRecordCount": 81,
+      "scoreMin": 594,
+      "scoreMax": 662,
+      "directions": [
+        "材料科学与工程",
+        "化学",
+        "生物学",
+        "数学",
+        "物理学"
+      ],
+      "admissionNames": [
+        "吉林大学"
+      ],
+      "directionCount": 5,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "辽宁大学",
+      "province": "辽宁",
+      "city": "沈阳",
+      "displayLocation": "辽宁 · 沈阳",
+      "is985": false,
+      "admissionRecordCount": 74,
+      "evidenceRecordCount": 7,
+      "noEvidenceRecordCount": 67,
+      "scoreMin": 516,
+      "scoreMax": 607,
+      "directions": [
+        "应用经济学"
+      ],
+      "admissionNames": [
+        "辽宁大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "华北电力大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 61,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 57,
+      "scoreMin": 597,
+      "scoreMax": 662,
+      "directions": [
+        "电气工程"
+      ],
+      "admissionNames": [
+        "华北电力大学(保定)",
+        "华北电力大学(北京)"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "西南交通大学",
+      "province": "四川",
+      "city": "成都",
+      "displayLocation": "四川 · 成都",
+      "is985": false,
+      "admissionRecordCount": 55,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 52,
+      "scoreMin": 560,
+      "scoreMax": 636,
+      "directions": [
+        "交通运输工程"
+      ],
+      "admissionNames": [
+        "西南交通大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "大连理工大学",
+      "province": "辽宁",
+      "city": "大连",
+      "displayLocation": "辽宁 · 大连",
+      "is985": true,
+      "admissionRecordCount": 54,
+      "evidenceRecordCount": 9,
+      "noEvidenceRecordCount": 45,
+      "scoreMin": 597,
+      "scoreMax": 667,
+      "directions": [
+        "化学工程与技术",
+        "机械工程",
+        "力学"
+      ],
+      "admissionNames": [
+        "大连理工大学",
+        "大连理工大学(盘锦校区)"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "东北林业大学",
+      "province": "黑龙江",
+      "city": "哈尔滨",
+      "displayLocation": "黑龙江 · 哈尔滨",
+      "is985": false,
+      "admissionRecordCount": 54,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 51,
+      "scoreMin": 521,
+      "scoreMax": 612,
+      "directions": [
+        "林学"
+      ],
+      "admissionNames": [
+        "东北林业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "东北大学",
+      "province": "辽宁",
+      "city": "沈阳",
+      "displayLocation": "辽宁 · 沈阳",
+      "is985": true,
+      "admissionRecordCount": 51,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 48,
+      "scoreMin": 581,
+      "scoreMax": 651,
+      "directions": [
+        "控制科学与工程"
+      ],
+      "admissionNames": [
+        "东北大学",
+        "东北大学秦皇岛分校"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国石油大学（北京）",
+      "province": "北京",
+      "city": "昌平区",
+      "displayLocation": "北京 · 昌平区",
+      "is985": false,
+      "admissionRecordCount": 50,
+      "evidenceRecordCount": 13,
+      "noEvidenceRecordCount": 37,
+      "scoreMin": 566,
+      "scoreMax": 627,
+      "directions": [
+        "地质资源与地质工程",
+        "石油与天然气工程"
+      ],
+      "admissionNames": [
+        "中国石油大学(北京)",
+        "中国石油大学(北京)克拉玛依校区"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "太原理工大学",
+      "province": "山西",
+      "city": "太原",
+      "displayLocation": "山西 · 太原",
+      "is985": false,
+      "admissionRecordCount": 49,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 47,
+      "scoreMin": 577,
+      "scoreMax": 623,
+      "directions": [
+        "化学工程与技术"
+      ],
+      "admissionNames": [
+        "太原理工大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "西北农林科技大学",
+      "province": "陕西",
+      "city": "咸阳",
+      "displayLocation": "陕西 · 咸阳",
+      "is985": true,
+      "admissionRecordCount": 49,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 49,
+      "scoreMin": 575,
+      "scoreMax": 630,
+      "directions": [],
+      "admissionNames": [
+        "西北农林科技大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中国地质大学（北京）",
+      "province": "北京",
+      "city": "海淀区",
+      "displayLocation": "北京 · 海淀区",
+      "is985": false,
+      "admissionRecordCount": 43,
+      "evidenceRecordCount": 6,
+      "noEvidenceRecordCount": 37,
+      "scoreMin": 574,
+      "scoreMax": 626,
+      "directions": [
+        "地质资源与地质工程"
+      ],
+      "admissionNames": [
+        "中国地质大学(北京)"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京林业大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 39,
+      "evidenceRecordCount": 5,
+      "noEvidenceRecordCount": 34,
+      "scoreMin": 547,
+      "scoreMax": 622,
+      "directions": [
+        "风景园林学",
+        "林学"
+      ],
+      "admissionNames": [
+        "北京林业大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "云南大学",
+      "province": "云南",
+      "city": "昆明",
+      "displayLocation": "云南 · 昆明",
+      "is985": false,
+      "admissionRecordCount": 39,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 39,
+      "scoreMin": 556,
+      "scoreMax": 614,
+      "directions": [],
+      "admissionNames": [
+        "云南大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "四川农业大学",
+      "province": "四川",
+      "city": "雅安",
+      "displayLocation": "四川 · 雅安",
+      "is985": false,
+      "admissionRecordCount": 37,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 35,
+      "scoreMin": 467,
+      "scoreMax": 596,
+      "directions": [
+        "作物学"
+      ],
+      "admissionNames": [
+        "四川农业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "南京航空航天大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 36,
+      "evidenceRecordCount": 5,
+      "noEvidenceRecordCount": 31,
+      "scoreMin": 607,
+      "scoreMax": 657,
+      "directions": [
+        "控制科学与工程",
+        "力学"
+      ],
+      "admissionNames": [
+        "南京航空航天大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "南昌大学",
+      "province": "江西",
+      "city": "南昌",
+      "displayLocation": "江西 · 南昌",
+      "is985": false,
+      "admissionRecordCount": 35,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 32,
+      "scoreMin": 510,
+      "scoreMax": 620,
+      "directions": [
+        "材料科学与工程"
+      ],
+      "admissionNames": [
+        "南昌大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "东北农业大学",
+      "province": "黑龙江",
+      "city": "哈尔滨",
+      "displayLocation": "黑龙江 · 哈尔滨",
+      "is985": false,
+      "admissionRecordCount": 35,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 33,
+      "scoreMin": 499,
+      "scoreMax": 610,
+      "directions": [
+        "畜牧学"
+      ],
+      "admissionNames": [
+        "东北农业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "哈尔滨工程大学",
+      "province": "黑龙江",
+      "city": "哈尔滨",
+      "displayLocation": "黑龙江 · 哈尔滨",
+      "is985": false,
+      "admissionRecordCount": 35,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 33,
+      "scoreMin": 565,
+      "scoreMax": 652,
+      "directions": [
+        "船舶与海洋工程"
+      ],
+      "admissionNames": [
+        "哈尔滨工程大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "河海大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 35,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 35,
+      "scoreMin": 604,
+      "scoreMax": 638,
+      "directions": [],
+      "admissionNames": [
+        "河海大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中国农业大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 34,
+      "evidenceRecordCount": 9,
+      "noEvidenceRecordCount": 25,
+      "scoreMin": 595,
+      "scoreMax": 656,
+      "directions": [
+        "畜牧学",
+        "生物学",
+        "食品科学与工程",
+        "兽医学",
+        "植物保护",
+        "作物学"
+      ],
+      "admissionNames": [
+        "中国农业大学"
+      ],
+      "directionCount": 6,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国石油大学（华东）",
+      "province": "山东",
+      "city": "青岛",
+      "displayLocation": "山东 · 青岛",
+      "is985": false,
+      "admissionRecordCount": 34,
+      "evidenceRecordCount": 6,
+      "noEvidenceRecordCount": 28,
+      "scoreMin": 605,
+      "scoreMax": 625,
+      "directions": [
+        "地质资源与地质工程",
+        "石油与天然气工程"
+      ],
+      "admissionNames": [
+        "中国石油大学(华东)"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "合肥工业大学",
+      "province": "安徽",
+      "city": "合肥",
+      "displayLocation": "安徽 · 合肥",
+      "is985": false,
+      "admissionRecordCount": 33,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 33,
+      "scoreMin": 548,
+      "scoreMax": 629,
+      "directions": [],
+      "admissionNames": [
+        "合肥工业大学",
+        "合肥工业大学(宣城校区)"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "南京农业大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 31,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 28,
+      "scoreMin": 571,
+      "scoreMax": 617,
+      "directions": [
+        "作物学"
+      ],
+      "admissionNames": [
+        "南京农业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "石河子大学",
+      "province": "新疆维吾尔",
+      "city": "石河子",
+      "displayLocation": "新疆维吾尔 · 石河子",
+      "is985": false,
+      "admissionRecordCount": 30,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 30,
+      "scoreMin": 519,
+      "scoreMax": 578,
+      "directions": [],
+      "admissionNames": [
+        "石河子大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "延边大学",
+      "province": "吉林",
+      "city": "延边朝鲜族",
+      "displayLocation": "吉林 · 延边朝鲜族",
+      "is985": false,
+      "admissionRecordCount": 30,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 30,
+      "scoreMin": 524,
+      "scoreMax": 598,
+      "directions": [],
+      "admissionNames": [
+        "延边大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "兰州大学",
+      "province": "甘肃",
+      "city": "兰州",
+      "displayLocation": "甘肃 · 兰州",
+      "is985": true,
+      "admissionRecordCount": 29,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 29,
+      "scoreMin": 594,
+      "scoreMax": 639,
+      "directions": [],
+      "admissionNames": [
+        "兰州大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "武汉理工大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": false,
+      "admissionRecordCount": 29,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 29,
+      "scoreMin": 577,
+      "scoreMax": 634,
+      "directions": [],
+      "admissionNames": [
+        "武汉理工大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "江南大学",
+      "province": "江苏",
+      "city": "无锡",
+      "displayLocation": "江苏 · 无锡",
+      "is985": false,
+      "admissionRecordCount": 28,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 26,
+      "scoreMin": 579,
+      "scoreMax": 628,
+      "directions": [
+        "食品科学与工程"
+      ],
+      "admissionNames": [
+        "江南大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "大连海事大学",
+      "province": "辽宁",
+      "city": "大连",
+      "displayLocation": "辽宁 · 大连",
+      "is985": false,
+      "admissionRecordCount": 27,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 24,
+      "scoreMin": 592,
+      "scoreMax": 629,
+      "directions": [
+        "交通运输工程"
+      ],
+      "admissionNames": [
+        "大连海事大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "长安大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": false,
+      "admissionRecordCount": 27,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 27,
+      "scoreMin": 581,
+      "scoreMax": 623,
+      "directions": [],
+      "admissionNames": [
+        "长安大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中国地质大学（武汉）",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": false,
+      "admissionRecordCount": 27,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 27,
+      "scoreMin": 587,
+      "scoreMax": 624,
+      "directions": [],
+      "admissionNames": [
+        "中国地质大学(武汉)"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "四川大学",
+      "province": "四川",
+      "city": "成都",
+      "displayLocation": "四川 · 成都",
+      "is985": true,
+      "admissionRecordCount": 26,
+      "evidenceRecordCount": 8,
+      "noEvidenceRecordCount": 18,
+      "scoreMin": 619,
+      "scoreMax": 675,
+      "directions": [
+        "材料科学与工程",
+        "化学",
+        "基础医学",
+        "口腔医学",
+        "数学"
+      ],
+      "admissionNames": [
+        "四川大学"
+      ],
+      "directionCount": 5,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "山东大学",
+      "province": "山东",
+      "city": "济南",
+      "displayLocation": "山东 · 济南",
+      "is985": true,
+      "admissionRecordCount": 26,
+      "evidenceRecordCount": 6,
+      "noEvidenceRecordCount": 20,
+      "scoreMin": 596,
+      "scoreMax": 661,
+      "directions": [
+        "化学",
+        "临床医学",
+        "数学"
+      ],
+      "admissionNames": [
+        "山东大学",
+        "山东大学威海分校"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国矿业大学（北京）",
+      "province": "北京",
+      "city": "海淀区",
+      "displayLocation": "北京 · 海淀区",
+      "is985": false,
+      "admissionRecordCount": 26,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 25,
+      "scoreMin": 587,
+      "scoreMax": 627,
+      "directions": [
+        "安全科学与工程"
+      ],
+      "admissionNames": [
+        "中国矿业大学(北京)"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京化工大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 25,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 21,
+      "scoreMin": 591,
+      "scoreMax": 628,
+      "directions": [
+        "化学工程与技术"
+      ],
+      "admissionNames": [
+        "北京化工大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国海洋大学",
+      "province": "山东",
+      "city": "青岛",
+      "displayLocation": "山东 · 青岛",
+      "is985": true,
+      "admissionRecordCount": 25,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 23,
+      "scoreMin": 598,
+      "scoreMax": 634,
+      "directions": [
+        "海洋科学"
+      ],
+      "admissionNames": [
+        "中国海洋大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "武汉大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": true,
+      "admissionRecordCount": 25,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 25,
+      "scoreMin": 615,
+      "scoreMax": 677,
+      "directions": [],
+      "admissionNames": [
+        "武汉大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "新疆大学",
+      "province": "新疆维吾尔",
+      "city": "乌鲁木齐",
+      "displayLocation": "新疆维吾尔 · 乌鲁木齐",
+      "is985": false,
+      "admissionRecordCount": 25,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 25,
+      "scoreMin": 518,
+      "scoreMax": 589,
+      "directions": [],
+      "admissionNames": [
+        "新疆大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中南大学",
+      "province": "湖南",
+      "city": "长沙",
+      "displayLocation": "湖南 · 长沙",
+      "is985": true,
+      "admissionRecordCount": 25,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 25,
+      "scoreMin": 597,
+      "scoreMax": 665,
+      "directions": [],
+      "admissionNames": [
+        "中南大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "厦门大学",
+      "province": "福建",
+      "city": "厦门",
+      "displayLocation": "福建 · 厦门",
+      "is985": true,
+      "admissionRecordCount": 24,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 21,
+      "scoreMin": 606,
+      "scoreMax": 661,
+      "directions": [
+        "海洋科学",
+        "化学",
+        "统计学"
+      ],
+      "admissionNames": [
+        "厦门大学"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "西南财经大学",
+      "province": "四川",
+      "city": "成都",
+      "displayLocation": "四川 · 成都",
+      "is985": false,
+      "admissionRecordCount": 24,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 24,
+      "scoreMin": 588,
+      "scoreMax": 645,
+      "directions": [],
+      "admissionNames": [
+        "西南财经大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "海南大学",
+      "province": "海南",
+      "city": "海口",
+      "displayLocation": "海南 · 海口",
+      "is985": false,
+      "admissionRecordCount": 23,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 23,
+      "scoreMin": 541,
+      "scoreMax": 614,
+      "directions": [],
+      "admissionNames": [
+        "海南大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "湖南大学",
+      "province": "湖南",
+      "city": "长沙",
+      "displayLocation": "湖南 · 长沙",
+      "is985": true,
+      "admissionRecordCount": 23,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 23,
+      "scoreMin": 622,
+      "scoreMax": 650,
+      "directions": [],
+      "admissionNames": [
+        "湖南大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华中农业大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": false,
+      "admissionRecordCount": 23,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 23,
+      "scoreMin": 584,
+      "scoreMax": 620,
+      "directions": [],
+      "admissionNames": [
+        "华中农业大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "暨南大学",
+      "province": "广东",
+      "city": "广州",
+      "displayLocation": "广东 · 广州",
+      "is985": false,
+      "admissionRecordCount": 23,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 23,
+      "scoreMin": 561,
+      "scoreMax": 627,
+      "directions": [],
+      "admissionNames": [
+        "暨南大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华南理工大学",
+      "province": "广东",
+      "city": "广州",
+      "displayLocation": "广东 · 广州",
+      "is985": true,
+      "admissionRecordCount": 22,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 19,
+      "scoreMin": 627,
+      "scoreMax": 667,
+      "directions": [
+        "材料科学与工程",
+        "食品科学与工程"
+      ],
+      "admissionNames": [
+        "华南理工大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国矿业大学",
+      "province": "江苏",
+      "city": "徐州",
+      "displayLocation": "江苏 · 徐州",
+      "is985": false,
+      "admissionRecordCount": 22,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 21,
+      "scoreMin": 553,
+      "scoreMax": 626,
+      "directions": [
+        "安全科学与工程"
+      ],
+      "admissionNames": [
+        "中国矿业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "郑州大学",
+      "province": "河南",
+      "city": "郑州",
+      "displayLocation": "河南 · 郑州",
+      "is985": false,
+      "admissionRecordCount": 22,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 22,
+      "scoreMin": 555,
+      "scoreMax": 619,
+      "directions": [],
+      "admissionNames": [
+        "郑州大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "东华大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 21,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 17,
+      "scoreMin": 580,
+      "scoreMax": 626,
+      "directions": [
+        "材料科学与工程"
+      ],
+      "admissionNames": [
+        "东华大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "哈尔滨工业大学",
+      "province": "黑龙江",
+      "city": "哈尔滨",
+      "displayLocation": "黑龙江 · 哈尔滨",
+      "is985": true,
+      "admissionRecordCount": 20,
+      "evidenceRecordCount": 7,
+      "noEvidenceRecordCount": 13,
+      "scoreMin": 619,
+      "scoreMax": 686,
+      "directions": [
+        "材料科学与工程",
+        "机械工程",
+        "力学",
+        "土木工程"
+      ],
+      "admissionNames": [
+        "哈尔滨工业大学",
+        "哈尔滨工业大学(深圳)",
+        "哈尔滨工业大学(威海)"
+      ],
+      "directionCount": 4,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京交通大学",
+      "province": "北京",
+      "city": "海淀区",
+      "displayLocation": "北京 · 海淀区",
+      "is985": false,
+      "admissionRecordCount": 20,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 19,
+      "scoreMin": 567,
+      "scoreMax": 649,
+      "directions": [
+        "系统科学"
+      ],
+      "admissionNames": [
+        "北京交通大学",
+        "北京交通大学(威海校区)"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "湖南师范大学",
+      "province": "湖南",
+      "city": "长沙",
+      "displayLocation": "湖南 · 长沙",
+      "is985": false,
+      "admissionRecordCount": 20,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 20,
+      "scoreMin": 555,
+      "scoreMax": 618,
+      "directions": [],
+      "admissionNames": [
+        "湖南师范大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "西安交通大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": true,
+      "admissionRecordCount": 20,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 20,
+      "scoreMin": 618,
+      "scoreMax": 678,
+      "directions": [],
+      "admissionNames": [
+        "西安交通大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "南京大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": true,
+      "admissionRecordCount": 19,
+      "evidenceRecordCount": 9,
+      "noEvidenceRecordCount": 10,
+      "scoreMin": 651,
+      "scoreMax": 687,
+      "directions": [
+        "计算机科学与技术"
+      ],
+      "admissionNames": [
+        "南京大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "苏州大学",
+      "province": "江苏",
+      "city": "苏州",
+      "displayLocation": "江苏 · 苏州",
+      "is985": false,
+      "admissionRecordCount": 19,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 17,
+      "scoreMin": 617,
+      "scoreMax": 638,
+      "directions": [
+        "材料科学与工程"
+      ],
+      "admissionNames": [
+        "苏州大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京科技大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 18,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 626,
+      "scoreMax": 655,
+      "directions": [
+        "材料科学与工程"
+      ],
+      "admissionNames": [
+        "北京科技大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京中医药大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 18,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 592,
+      "scoreMax": 670,
+      "directions": [
+        "中药学"
+      ],
+      "admissionNames": [
+        "北京中医药大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中山大学",
+      "province": "广东",
+      "city": "广州",
+      "displayLocation": "广东 · 广州",
+      "is985": true,
+      "admissionRecordCount": 18,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 18,
+      "scoreMin": 638,
+      "scoreMax": 669,
+      "directions": [],
+      "admissionNames": [
+        "中山大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "北京邮电大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 17,
+      "evidenceRecordCount": 9,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 613,
+      "scoreMax": 665,
+      "directions": [
+        "计算机科学与技术",
+        "信息与通信工程"
+      ],
+      "admissionNames": [
+        "北京邮电大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "贵州大学",
+      "province": "贵州",
+      "city": "贵阳",
+      "displayLocation": "贵州 · 贵阳",
+      "is985": false,
+      "admissionRecordCount": 17,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 17,
+      "scoreMin": 544,
+      "scoreMax": 608,
+      "directions": [],
+      "admissionNames": [
+        "贵州大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华中科技大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": true,
+      "admissionRecordCount": 17,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 17,
+      "scoreMin": 629,
+      "scoreMax": 678,
+      "directions": [],
+      "admissionNames": [
+        "华中科技大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "青海大学",
+      "province": "青海",
+      "city": "西宁",
+      "displayLocation": "青海 · 西宁",
+      "is985": false,
+      "admissionRecordCount": 17,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 17,
+      "scoreMin": 508,
+      "scoreMax": 602,
+      "directions": [],
+      "admissionNames": [
+        "青海大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "上海交通大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": true,
+      "admissionRecordCount": 16,
+      "evidenceRecordCount": 11,
+      "noEvidenceRecordCount": 5,
+      "scoreMin": 623,
+      "scoreMax": 692,
+      "directions": [
+        "电子科学与技术",
+        "机械工程",
+        "计算机科学与技术",
+        "控制科学与工程",
+        "口腔医学",
+        "临床医学"
+      ],
+      "admissionNames": [
+        "上海交通大学",
+        "上海交通大学医学院"
+      ],
+      "directionCount": 6,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "华东理工大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 16,
+      "evidenceRecordCount": 5,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 611,
+      "scoreMax": 638,
+      "directions": [
+        "材料科学与工程",
+        "化学"
+      ],
+      "admissionNames": [
+        "华东理工大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "河北工业大学",
+      "province": "河北",
+      "city": "天津",
+      "displayLocation": "河北 · 天津",
+      "is985": false,
+      "admissionRecordCount": 16,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 15,
+      "scoreMin": 575,
+      "scoreMax": 629,
+      "directions": [
+        "电气工程"
+      ],
+      "admissionNames": [
+        "河北工业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "西南大学",
+      "province": "重庆",
+      "city": "重庆",
+      "displayLocation": "重庆",
+      "is985": false,
+      "admissionRecordCount": 16,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 16,
+      "scoreMin": 561,
+      "scoreMax": 622,
+      "directions": [],
+      "admissionNames": [
+        "西南大学",
+        "西南大学(荣昌校区)"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "对外经济贸易大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 7,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 602,
+      "scoreMax": 640,
+      "directions": [
+        "应用经济学"
+      ],
+      "admissionNames": [
+        "对外经济贸易大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "东北师范大学",
+      "province": "吉林",
+      "city": "长春",
+      "displayLocation": "吉林 · 长春",
+      "is985": false,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 5,
+      "noEvidenceRecordCount": 10,
+      "scoreMin": 531,
+      "scoreMax": 646,
+      "directions": [
+        "材料科学与工程",
+        "化学",
+        "教育学",
+        "统计学"
+      ],
+      "admissionNames": [
+        "东北师范大学"
+      ],
+      "directionCount": 4,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "复旦大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": true,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 659,
+      "scoreMax": 692,
+      "directions": [
+        "临床医学",
+        "数学",
+        "药学"
+      ],
+      "admissionNames": [
+        "复旦大学",
+        "复旦大学医学院"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "浙江大学",
+      "province": "浙江",
+      "city": "杭州",
+      "displayLocation": "浙江 · 杭州",
+      "is985": true,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 645,
+      "scoreMax": 691,
+      "directions": [
+        "电气工程",
+        "基础医学",
+        "临床医学"
+      ],
+      "admissionNames": [
+        "浙江大学",
+        "浙江大学医学院"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国传媒大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 12,
+      "scoreMin": 590,
+      "scoreMax": 643,
+      "directions": [
+        "新闻传播学"
+      ],
+      "admissionNames": [
+        "中国传媒大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京航空航天大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 13,
+      "scoreMin": 654,
+      "scoreMax": 683,
+      "directions": [
+        "材料科学与工程",
+        "力学"
+      ],
+      "admissionNames": [
+        "北京航空航天大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "电子科技大学",
+      "province": "四川",
+      "city": "成都",
+      "displayLocation": "四川 · 成都",
+      "is985": true,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 13,
+      "scoreMin": 635,
+      "scoreMax": 668,
+      "directions": [
+        "电子科学与技术",
+        "信息与通信工程"
+      ],
+      "admissionNames": [
+        "电子科技大学",
+        "电子科技大学(沙河校区)"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "西安电子科技大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": false,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 15,
+      "scoreMin": 619,
+      "scoreMax": 652,
+      "directions": [],
+      "admissionNames": [
+        "西安电子科技大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "西北大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": false,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 15,
+      "scoreMin": 578,
+      "scoreMax": 621,
+      "directions": [],
+      "admissionNames": [
+        "西北大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "西北工业大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": true,
+      "admissionRecordCount": 15,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 15,
+      "scoreMin": 637,
+      "scoreMax": 670,
+      "directions": [],
+      "admissionNames": [
+        "西北工业大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华东师范大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": true,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 12,
+      "scoreMin": 595,
+      "scoreMax": 659,
+      "directions": [
+        "统计学"
+      ],
+      "admissionNames": [
+        "华东师范大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "内蒙古大学",
+      "province": "内蒙古",
+      "city": "呼和浩特",
+      "displayLocation": "内蒙古 · 呼和浩特",
+      "is985": false,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 13,
+      "scoreMin": 551,
+      "scoreMax": 605,
+      "directions": [
+        "生物学"
+      ],
+      "admissionNames": [
+        "内蒙古大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 665,
+      "scoreMax": 693,
+      "directions": [],
+      "admissionNames": [
+        "北京大学",
+        "北京大学医学部"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "南京理工大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 610,
+      "scoreMax": 646,
+      "directions": [],
+      "admissionNames": [
+        "南京理工大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "同济大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": true,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 611,
+      "scoreMax": 677,
+      "directions": [],
+      "admissionNames": [
+        "同济大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中央民族大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 14,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 14,
+      "scoreMin": 587,
+      "scoreMax": 630,
+      "directions": [],
+      "admissionNames": [
+        "中央民族大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中央财经大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 13,
+      "evidenceRecordCount": 8,
+      "noEvidenceRecordCount": 5,
+      "scoreMin": 619,
+      "scoreMax": 662,
+      "directions": [
+        "应用经济学"
+      ],
+      "admissionNames": [
+        "中央财经大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国药科大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 13,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 574,
+      "scoreMax": 653,
+      "directions": [
+        "中药学"
+      ],
+      "admissionNames": [
+        "中国药科大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国人民大学",
+      "province": "北京",
+      "city": "海淀区",
+      "displayLocation": "北京 · 海淀区",
+      "is985": true,
+      "admissionRecordCount": 12,
+      "evidenceRecordCount": 8,
+      "noEvidenceRecordCount": 4,
+      "scoreMin": 644,
+      "scoreMax": 685,
+      "directions": [
+        "法学",
+        "统计学",
+        "应用经济学"
+      ],
+      "admissionNames": [
+        "中国人民大学",
+        "中国人民大学(苏州校区)"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "重庆大学",
+      "province": "重庆",
+      "city": "重庆",
+      "displayLocation": "重庆",
+      "is985": true,
+      "admissionRecordCount": 12,
+      "evidenceRecordCount": 6,
+      "noEvidenceRecordCount": 6,
+      "scoreMin": 598,
+      "scoreMax": 657,
+      "directions": [
+        "电气工程",
+        "机械工程",
+        "土木工程"
+      ],
+      "admissionNames": [
+        "重庆大学"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国政法大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 12,
+      "evidenceRecordCount": 5,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 596,
+      "scoreMax": 662,
+      "directions": [
+        "法学"
+      ],
+      "admissionNames": [
+        "中国政法大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "天津大学",
+      "province": "天津",
+      "city": "天津",
+      "displayLocation": "天津",
+      "is985": true,
+      "admissionRecordCount": 12,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 12,
+      "scoreMin": 632,
+      "scoreMax": 667,
+      "directions": [],
+      "admissionNames": [
+        "天津大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "上海财经大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 11,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 634,
+      "scoreMax": 656,
+      "directions": [
+        "应用经济学"
+      ],
+      "admissionNames": [
+        "上海财经大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "天津医科大学",
+      "province": "天津",
+      "city": "天津",
+      "displayLocation": "天津",
+      "is985": false,
+      "admissionRecordCount": 11,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 586,
+      "scoreMax": 644,
+      "directions": [
+        "临床医学"
+      ],
+      "admissionNames": [
+        "天津医科大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "广西大学",
+      "province": "广西壮族",
+      "city": "南宁",
+      "displayLocation": "广西壮族 · 南宁",
+      "is985": false,
+      "admissionRecordCount": 11,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 549,
+      "scoreMax": 613,
+      "directions": [],
+      "admissionNames": [
+        "广西大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "南京师范大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": false,
+      "admissionRecordCount": 11,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 11,
+      "scoreMin": 555,
+      "scoreMax": 623,
+      "directions": [],
+      "admissionNames": [
+        "南京师范大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "南开大学",
+      "province": "天津",
+      "city": "天津",
+      "displayLocation": "天津",
+      "is985": true,
+      "admissionRecordCount": 10,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 9,
+      "scoreMin": 637,
+      "scoreMax": 672,
+      "directions": [
+        "化学"
+      ],
+      "admissionNames": [
+        "南开大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京体育大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 9,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 500,
+      "scoreMax": 606,
+      "directions": [
+        "体育学"
+      ],
+      "admissionNames": [
+        "北京体育大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "福州大学",
+      "province": "福建",
+      "city": "福州",
+      "displayLocation": "福建 · 福州",
+      "is985": false,
+      "admissionRecordCount": 9,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 590,
+      "scoreMax": 615,
+      "directions": [
+        "化学"
+      ],
+      "admissionNames": [
+        "福州大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京理工大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 9,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 637,
+      "scoreMax": 680,
+      "directions": [
+        "物理学"
+      ],
+      "admissionNames": [
+        "北京理工大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "东南大学",
+      "province": "江苏",
+      "city": "南京",
+      "displayLocation": "江苏 · 南京",
+      "is985": true,
+      "admissionRecordCount": 8,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 4,
+      "scoreMin": 637,
+      "scoreMax": 675,
+      "directions": [
+        "电子科学与技术",
+        "计算机科学与技术",
+        "生物医学工程",
+        "信息与通信工程"
+      ],
+      "admissionNames": [
+        "东南大学"
+      ],
+      "directionCount": 4,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京工业大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 8,
+      "evidenceRecordCount": 1,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 581,
+      "scoreMax": 632,
+      "directions": [
+        "土木工程"
+      ],
+      "admissionNames": [
+        "北京工业大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "安徽大学",
+      "province": "安徽",
+      "city": "合肥",
+      "displayLocation": "安徽 · 合肥",
+      "is985": false,
+      "admissionRecordCount": 8,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 616,
+      "scoreMax": 626,
+      "directions": [],
+      "admissionNames": [
+        "安徽大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中南财经政法大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": false,
+      "admissionRecordCount": 8,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 8,
+      "scoreMin": 592,
+      "scoreMax": 629,
+      "directions": [],
+      "admissionNames": [
+        "中南财经政法大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "北京师范大学",
+      "province": "北京",
+      "city": "海淀区",
+      "displayLocation": "北京 · 海淀区",
+      "is985": true,
+      "admissionRecordCount": 7,
+      "evidenceRecordCount": 4,
+      "noEvidenceRecordCount": 3,
+      "scoreMin": 647,
+      "scoreMax": 671,
+      "directions": [
+        "环境科学与工程",
+        "教育学",
+        "数学"
+      ],
+      "admissionNames": [
+        "北京师范大学",
+        "北京师范大学(珠海校区)"
+      ],
+      "directionCount": 3,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "清华大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": true,
+      "admissionRecordCount": 7,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 680,
+      "scoreMax": 696,
+      "directions": [],
+      "admissionNames": [
+        "清华大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中国人民解放军国防科技大学",
+      "province": "湖南",
+      "city": "长沙",
+      "displayLocation": "湖南 · 长沙",
+      "is985": true,
+      "admissionRecordCount": 7,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 7,
+      "scoreMin": 647,
+      "scoreMax": 668,
+      "directions": [],
+      "admissionNames": [
+        "国防科技大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华南师范大学",
+      "province": "广东",
+      "city": "广州",
+      "displayLocation": "广东 · 广州",
+      "is985": false,
+      "admissionRecordCount": 6,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 6,
+      "scoreMin": 590,
+      "scoreMax": 618,
+      "directions": [],
+      "admissionNames": [
+        "华南师范大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "西藏大学",
+      "province": "西藏",
+      "city": "拉萨",
+      "displayLocation": "西藏 · 拉萨",
+      "is985": false,
+      "admissionRecordCount": 6,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 6,
+      "scoreMin": 481,
+      "scoreMax": 516,
+      "directions": [],
+      "admissionNames": [
+        "西藏大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "中国人民解放军海军军医大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 6,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 6,
+      "scoreMin": 593,
+      "scoreMax": 617,
+      "directions": [],
+      "admissionNames": [
+        "海军军医大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "上海外国语大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 5,
+      "evidenceRecordCount": 3,
+      "noEvidenceRecordCount": 2,
+      "scoreMin": 614,
+      "scoreMax": 641,
+      "directions": [
+        "外国语言文学"
+      ],
+      "admissionNames": [
+        "上海外国语大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "北京外国语大学",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 4,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 2,
+      "scoreMin": 594,
+      "scoreMax": 636,
+      "directions": [
+        "外国语言文学"
+      ],
+      "admissionNames": [
+        "北京外国语大学"
+      ],
+      "directionCount": 1,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "中国科学技术大学",
+      "province": "安徽",
+      "city": "合肥",
+      "displayLocation": "安徽 · 合肥",
+      "is985": true,
+      "admissionRecordCount": 4,
+      "evidenceRecordCount": 2,
+      "noEvidenceRecordCount": 2,
+      "scoreMin": 661,
+      "scoreMax": 680,
+      "directions": [
+        "计算机科学与技术",
+        "数学"
+      ],
+      "admissionNames": [
+        "中国科学技术大学"
+      ],
+      "directionCount": 2,
+      "status": "partially-evidenced"
+    },
+    {
+      "officialName": "宁夏大学",
+      "province": "宁夏回族",
+      "city": "银川",
+      "displayLocation": "宁夏回族 · 银川",
+      "is985": false,
+      "admissionRecordCount": 4,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 4,
+      "scoreMin": 540,
+      "scoreMax": 584,
+      "directions": [],
+      "admissionNames": [
+        "宁夏大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "华中师范大学",
+      "province": "湖北",
+      "city": "武汉",
+      "displayLocation": "湖北 · 武汉",
+      "is985": false,
+      "admissionRecordCount": 1,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 1,
+      "scoreMin": 619,
+      "scoreMax": 619,
+      "directions": [],
+      "admissionNames": [
+        "华中师范大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "上海大学",
+      "province": "上海",
+      "city": "上海",
+      "displayLocation": "上海",
+      "is985": false,
+      "admissionRecordCount": 1,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 1,
+      "scoreMin": 627,
+      "scoreMax": 627,
+      "directions": [],
+      "admissionNames": [
+        "上海大学"
+      ],
+      "directionCount": 0,
+      "status": "no-major-evidence"
+    },
+    {
+      "officialName": "陕西师范大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": false,
+      "admissionRecordCount": 0,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 0,
+      "scoreMin": null,
+      "scoreMax": null,
+      "directions": [],
+      "admissionNames": [],
+      "directionCount": 0,
+      "status": "no-admission-record"
+    },
+    {
+      "officialName": "中国人民解放军空军军医大学",
+      "province": "陕西",
+      "city": "西安",
+      "displayLocation": "陕西 · 西安",
+      "is985": false,
+      "admissionRecordCount": 0,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 0,
+      "scoreMin": null,
+      "scoreMax": null,
+      "directions": [],
+      "admissionNames": [],
+      "directionCount": 0,
+      "status": "no-admission-record"
+    },
+    {
+      "officialName": "中央音乐学院",
+      "province": "北京",
+      "city": "北京",
+      "displayLocation": "北京",
+      "is985": false,
+      "admissionRecordCount": 0,
+      "evidenceRecordCount": 0,
+      "noEvidenceRecordCount": 0,
+      "scoreMin": null,
+      "scoreMax": null,
+      "directions": [],
+      "admissionNames": [],
+      "directionCount": 0,
+      "status": "no-admission-record"
+    }
+  ]
+}

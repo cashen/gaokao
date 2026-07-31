@@ -16,7 +16,7 @@ def header_block(headers,path):
 
 current=text('shared/resources/release/current-release.js')
 for marker in [
- "display: 'v3.9.71.2'", "version: 'v3.9.71.2'", "assetVersion: 'v3970_0'", "assetReleaseVersion: 'v3.9.70.0'",
+ "display: 'v3.9.72.0'", "version: 'v3.9.72.0'", "assetVersion: 'v3970_0'", "assetReleaseVersion: 'v3.9.70.0'",
  "homeEntryVersion: 'home-industry-map-entry-v3970_1'", "resourceExecutionVersion: 'resource-execution-v3970_0'",
  "uiOrchestrationVersion: 'ui-orchestration-v3970_0'", "uiComponentExecutionVersion: 'ui-component-execution-v3970_0'",
  "familyActionVersion: 'family-action-v3970_0'", "schoolQueryVersion: 'school-query-contract-v3969_0'",
@@ -44,7 +44,7 @@ required=[
 for rel in required: require((ROOT/rel).exists(),f'missing required {rel}')
 
 home=text('index.html'); home_runtime=text('ln-rank/js/ux/family-home.v3970_0.js')
-for marker in ['data-release="v3.9.71.2"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核','data-home-industry-map-entry','href="/Public_company/"','全国上市公司产业落地图']:
+for marker in ['data-release="v3.9.72.0"','family-shell.v3970_0.css?v=3970_0','family-plan-entry.v3970_0.css?v=3970_0','family-home.v3970_0.js?v=3970_0','家庭方案与逐项复核','data-home-industry-map-entry','href="/Public_company/"','全国上市公司产业落地图']:
  require(marker in home,f'home missing {marker}')
 require(home.count('data-home-industry-map-entry')==1,'home industry map entry must have one owner')
 for forbidden in ['family-home.v3968_0.js','family-shell.v3965_0.js','data-release="v3.9.68.0"','v3.9.68.0']:
@@ -113,4 +113,4 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.71.2','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({'ok':True,'version':'v3.9.72.0','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
