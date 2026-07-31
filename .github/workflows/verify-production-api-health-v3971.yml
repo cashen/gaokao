@@ -1,93 +1,67 @@
-name: Verify production API health v3972.2
+name: Ops redeploy locked v3.9.72.2 main
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - ops/redeploy-v3972-2-main
+    paths:
+      - '.github/workflows/verify-production-api-health-v3971.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  production-api-health:
+  deploy-locked-main:
     runs-on: ubuntu-latest
-    timeout-minutes: 32
+    timeout-minutes: 35
+    env:
+      LOCKED_MAIN_SHA: 658740a613af447d1f313fa794f59708b3d1aed9
+      CF_PROJECT_NAME: gaokao-4y9
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 658740a613af447d1f313fa794f59708b3d1aed9
+          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify worker resource-budget source contracts
+      - name: Verify exact locked release source
         run: |
           set -euo pipefail
-          node --check functions/_lib/fenxi-fetcher.js
-          node --check functions/api/major-bands-health.js
-          node --check tools/verify-worker-budget-local-v3972.mjs
-          node --check tools/verify-production-v3971.mjs
-          grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
-          grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
-          grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
-          grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
-      - name: Verify local Wrangler concurrent resource journey
-        if: github.event_name == 'pull_request'
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$LOCKED_MAIN_SHA"
+          grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
+          grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
+      - name: Verify Cloudflare deployment credentials are configured
         run: |
           set -euo pipefail
-          npm install --no-save --no-package-lock wrangler@4.28.1
-          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-worker-budget-wrangler.log 2>&1 &
-          server=$!
-          trap 'kill $server' EXIT
+          test -n "${CLOUDFLARE_API_TOKEN:-}" || { echo 'missing CLOUDFLARE_API_TOKEN/CF_API_TOKEN'; exit 2; }
+          test -n "${CLOUDFLARE_ACCOUNT_ID:-}" || { echo 'missing CLOUDFLARE_ACCOUNT_ID/CF_ACCOUNT_ID'; exit 2; }
+      - name: Deploy exact main commit to Cloudflare Pages
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.28.1 pages deploy . \
+            --project-name="$CF_PROJECT_NAME" \
+            --branch=main \
+            --commit-hash="$LOCKED_MAIN_SHA" \
+            --commit-message='v3.9.72.2 locked main redeploy'
+      - name: Verify deployed release contract
+        run: |
+          set -euo pipefail
           ready=0
-          for attempt in $(seq 1 50); do
-            if curl -fsS 'http://127.0.0.1:8792/api/ln-rank-runtime-health' >/tmp/v3972-runtime.json; then ready=1; break; fi
-            sleep 1
+          for attempt in $(seq 1 30); do
+            token="${LOCKED_MAIN_SHA}-${attempt}-$(date +%s)"
+            pages="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/shared/resources/release/current-release.js?ops=${token}" || true)"
+            custom="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/shared/resources/release/current-release.js?ops=${token}" || true)"
+            if grep -q "display: 'v3.9.72.2'" <<<"$pages" && grep -q "display: 'v3.9.72.2'" <<<"$custom"; then
+              ready=1
+              break
+            fi
+            sleep 10
           done
-          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-worker-budget-wrangler.log; exit 1; fi
-          for cycle in $(seq 1 8); do
-            token="${cycle}-$(date +%s%N)"
-            curl -fsS "http://127.0.0.1:8792/api/major-bands-health?probe=1&budget=${token}" > "/tmp/v3972-health-${cycle}.json" &
-            p1=$!
-            curl -fsS "http://127.0.0.1:8792/api/major-bands?candidateScore=579&limit=16&budget=${token}" > "/tmp/v3972-score-${cycle}.json" &
-            p2=$!
-            curl -fsS --get 'http://127.0.0.1:8792/api/major-bands' \
-              --data-urlencode 'candidateScore=650' \
-              --data-urlencode 'schoolKeyword=东北大学' \
-              --data-urlencode 'limit=16' \
-              --data-urlencode "budget=${token}" > "/tmp/v3972-school-${cycle}.json" &
-            p3=$!
-            wait "$p1" "$p2" "$p3"
-            node tools/verify-worker-budget-local-v3972.mjs "$cycle"
-          done
-      - name: Verify stable production baseline before merge
-        if: github.event_name == 'pull_request'
-        env:
-          PAGES_BASE: https://gaokao-4y9.pages.dev
-          CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.71.2
-          PRODUCTION_VERIFY_ATTEMPTS: '15'
-          PRODUCTION_VERIFY_WAIT_MS: '10000'
-        run: node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
-      - name: Verify v3.9.72.2 production score school APIs and bounded health probe
-        if: github.event_name != 'pull_request'
-        env:
-          PAGES_BASE: https://gaokao-4y9.pages.dev
-          CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.72.2
-          PRODUCTION_VERIFY_ATTEMPTS: '30'
-          PRODUCTION_VERIFY_WAIT_MS: '10000'
-          PRODUCTION_STRESS_CYCLES: '40'
-          PRODUCTION_STRESS_WAIT_MS: '1000'
-        run: node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
-      - name: Upload production health evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3972-2-production-api-health
-          path: |
-            /tmp/v3972-production-health.out
-            /tmp/v3972-worker-budget-wrangler.log
-            /tmp/v3972-*.json
-          if-no-files-found: warn
-          retention-days: 7
+          test "$ready" -eq 1
