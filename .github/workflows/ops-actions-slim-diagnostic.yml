@@ -1,0 +1,25 @@
+name: Ops Actions ubuntu-slim diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/ops-actions-slim-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-probe:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Prove runner and step execution
+        run: |
+          set -euo pipefail
+          echo "runner-started"
+          uname -a
+          node --version || true
+          echo "runner-complete"
