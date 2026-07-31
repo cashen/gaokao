@@ -6,20 +6,23 @@ const read = file => fs.readFileSync(path.join(ROOT, file), 'utf8');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 
 const html = read('ln-rank/local-mainline.html');
-const app = read('ln-rank/js/local-strength/local-strength-app.v3971_0.js');
-const css = read('ln-rank/css/local-strength.v3971_0.css');
+const app = read('ln-rank/js/local-strength/local-strength-app.v3971_1.js');
+const css = read('ln-rank/css/local-strength.v3971_1.css');
 const api = read('functions/_lib/local-strength-api.js');
 const endpoint = read('functions/api/local-strength.js');
 const release = read('shared/resources/release/current-release.js');
-const presenter = read('shared/resources/release/release-presenter.v3971_0.js');
+const presenter = read('shared/resources/release/release-presenter.v3971_1.js');
 
 for (const required of [
   '/shared/ui/tokens/foundation.v3959_0.css',
   '/shared/ui/tokens/semantic.v3959_0.css',
   '/shared/ui/shell/family-shell.v3970_0.css',
-  '/ln-rank/css/local-strength.v3971_0.css',
-  '/ln-rank/js/local-strength/local-strength-app.v3971_0.js',
-  'data-ui-page="background"',
+  '/ln-rank/css/local-strength.v3971_1.css',
+  '/ln-rank/js/local-strength/local-strength-app.v3971_1.js',
+  'role="tablist"',
+  'role="tabpanel"',
+  '没有具体分数？按分数段浏览',
+  'data-filter-summary',
   '全部背景专业',
   '按分数位置看',
   '按学校查询'
@@ -27,8 +30,9 @@ for (const required of [
 
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 assert(new Set(ids).size === ids.length, 'local-mainline contains duplicate ids');
+assert(!html.includes('local-strength-app.v3971_0.js'), 'local page still loads old runtime');
+assert(!html.includes('local-strength.v3971_0.css'), 'local page still loads old styles');
 assert(!html.includes('academic-background-app.v3968_0.js'), 'local page still loads legacy runtime');
-assert(!html.includes('family-shell.v3965_0'), 'local page still loads legacy shell');
 
 for (const required of [
   'loadAllRecords',
@@ -42,32 +46,56 @@ for (const required of [
   'OUT_OF_SCOPE_CAMPUSES'
 ]) assert(api.includes(required), `local strength api missing ${required}`);
 assert(endpoint.includes('handleLocalStrengthRequest'), 'local strength endpoint is not wired');
-assert(app.includes("view: 'list_all'"), 'list_all is not the default complete directory');
-assert(app.includes('pageSizeForViewport'), 'responsive pagination missing');
-assert(app.includes('schoolStatus'), 'school empty-state contract missing');
-assert(css.includes('@media(max-width:767px)'), 'Android layout missing');
-assert(css.includes('@media(max-width:1023px)'), 'Pad layout missing');
-assert(css.includes('overflow-x:hidden'), 'horizontal overflow guard missing');
 
 for (const required of [
-  "display: 'v3.9.71.0'",
-  "localStrengthVersion: 'local-strength-v3971_0'",
-  "localStrengthApi: '/functions/api/local-strength.js'",
-  "localStrengthPage: '/ln-rank/local-mainline.html'",
-  "releasePresenter: '/shared/resources/release/release-presenter.v3971_0.js'"
+  "view: 'list_all'",
+  'scoreView:',
+  'schoolView:',
+  'listView:',
+  'commonFilters:',
+  'setResultsIdle',
+  'renderActiveFilters',
+  'bindTabsKeyboard',
+  'pageSizeForViewport',
+  'firstRecordIndex',
+  'schoolStatus'
+]) assert(app.includes(required), `human UI runtime missing ${required}`);
+assert(!app.includes("if (state.q) params.set('q', state.q)"), 'hidden global query state can still pollute other modes');
+
+for (const required of [
+  '.ls-chip-row{display:grid',
+  'grid-template-columns:repeat(2,minmax(0,1fr))',
+  '.ls-tab-label-short{display:inline}',
+  '.ls-pagination{display:grid;grid-template-columns:1fr auto 1fr',
+  '.ls-summary{order:4',
+  '@media(max-width:767px)',
+  '@media(max-width:1023px)',
+  'overflow-x:hidden'
+]) assert(css.includes(required), `responsive human UI styles missing ${required}`);
+assert(!css.includes('.ls-chip-row{display:flex'), 'score bands still use horizontal flex scrolling');
+
+for (const required of [
+  "display: 'v3.9.71.1'",
+  "localStrengthVersion: 'local-strength-v3971_1'",
+  "localStrengthRuntime: '/ln-rank/js/local-strength/local-strength-app.v3971_1.js'",
+  "localStrengthStyles: '/ln-rank/css/local-strength.v3971_1.css'",
+  "releasePresenter: '/shared/resources/release/release-presenter.v3971_1.js'"
 ]) assert(release.includes(required), `release contract missing ${required}`);
-assert(presenter.includes('current-release.js?v=3971_0'), 'release presenter query not synchronized');
+assert(presenter.includes('current-release.js?v=3971_1'), 'release presenter query not synchronized');
 
 console.log(JSON.stringify({
   ok: true,
   page: '/ln-rank/local-mainline.html',
-  release: 'v3.9.71.0',
+  release: 'v3.9.71.1',
   checks: {
     unifiedUi: true,
     fullRecordScan: true,
-    localAnd211Background: true,
-    coverageAudit: true,
+    modeIsolation: true,
+    scoreBandGrid: true,
+    idleContext: true,
+    filterDisclosure: true,
     responsivePagination: true,
+    resizeContinuity: true,
     uniqueIds: true
   }
 }, null, 2));
