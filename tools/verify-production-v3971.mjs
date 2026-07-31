@@ -1,6 +1,7 @@
 const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
 const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
 const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.2';
+const EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE = process.env.EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE || 'v3.9.71.2';
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
@@ -79,9 +80,11 @@ function assertBoundedHealth(health) {
 
 async function verifyStaticContracts(token) {
   const urls = {
+    pagesRelease: `${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}`,
     runtime: `${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}`,
     localPage: `${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}`,
     localIndex: `${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}`,
+    forbiddenLocalApi: `${PAGES_BASE}/api/local-strength?release-check=${token}`,
     all211Page: `${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}`,
     all211Index: `${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}`,
     compat211: `${PAGES_BASE}/api/academic-background?scope=211&mode=score&score=579&release-check=${token}`,
@@ -90,19 +93,27 @@ async function verifyStaticContracts(token) {
   };
   const entries = await Promise.all(Object.entries(urls).map(async ([key, url]) => [key, await request(url, key.endsWith('Page') ? 'text/html' : '*/*')]));
   const result = Object.fromEntries(entries);
-  for (const value of Object.values(result)) assert200(value);
+  for (const [key, value] of Object.entries(result)) {
+    if (key !== 'forbiddenLocalApi') assert200(value);
+  }
+  assertNoCloudflareResourceError(result.forbiddenLocalApi);
+  assert(result.forbiddenLocalApi.status === 404, `/api/local-strength returned HTTP ${result.forbiddenLocalApi.status}`);
+
+  assert(result.pagesRelease.text.includes(`display: '${EXPECTED_RELEASE}'`), 'Pages release contract mismatch');
+  assert(result.pagesRelease.text.includes("all211Architecture: 'build-time-static-index'"), 'Pages 211 architecture contract mismatch');
+  assert(result.pagesRelease.text.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'Pages LocalStrength owner mismatch');
 
   const runtime = parseJson(result.runtime);
   assert(runtime?.ok !== false, `runtime returned ok=false: ${result.runtime.text.slice(0, 1000)}`);
 
-  assert(result.localPage.text.includes(`data-release="${EXPECTED_RELEASE}"`), 'LocalStrength production page release mismatch');
+  assert(result.localPage.text.includes(`data-release="${EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE}"`), `LocalStrength page lineage is not ${EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE}`);
   assert(result.localPage.text.includes('local-strength-app.v3971_2.js?v=3971_2'), 'LocalStrength production runtime mismatch');
   assert(!result.localPage.text.includes('/api/local-strength'), 'LocalStrength page references forbidden API');
   const localIndex = parseJson(result.localIndex);
   assert(localIndex.version === EXPECTED_INDEX, `LocalStrength index version ${localIndex.version}`);
   assert(localIndex.meta?.completeEvaluation === true, 'LocalStrength coverage incomplete');
   assert(localIndex.meta?.matchedRecordCount === 243 && localIndex.records?.length === 243, `LocalStrength count ${localIndex.meta?.matchedRecordCount}/${localIndex.records?.length}`);
-  assert(localIndex.meta?.evaluatedRecordCount === localIndex.meta?.localAdmissionRecordCount, 'LocalStrength evaluation mismatch');
+  assert(localIndex.meta?.evaluatedRecordCount === localIndex.meta?.localAdmissionRecordCount, 'LocalStrength coverage mismatch');
   assert(Number(localIndex.meta?.duplicatePublicRecordCount) === 0 && Number(localIndex.meta?.unresolvedLocalRecordCount) === 0, 'LocalStrength integrity mismatch');
 
   assert(result.all211Page.text.includes(`data-release="${EXPECTED_RELEASE}"`), '211 page release mismatch');
@@ -124,9 +135,11 @@ async function verifyStaticContracts(token) {
   assert(result.customRelease.text.includes(`display: '${EXPECTED_RELEASE}'`), 'custom-domain release mismatch');
   return {
     release: EXPECTED_RELEASE,
+    localStrengthPageRelease: EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE,
     localStrengthRecords: localIndex.records.length,
     all211Records: all211.records.length,
-    all211Bands: all211.scoreBands.length
+    all211Bands: all211.scoreBands.length,
+    localStrengthApiStatus: result.forbiddenLocalApi.status
   };
 }
 
