@@ -3,14 +3,14 @@ import { LIAONING_PHYSICS_EXAM_CONFIG, SUPPORTED_LIAONING_PHYSICS_YEARS } from '
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 
 export const CURRENT_RELEASE = Object.freeze({
-  display: 'v3.9.72.1',
-  version: 'v3.9.72.1',
+  display: 'v3.9.72.2',
+  version: 'v3.9.72.2',
   asset: '3970_0',
   assetVersion: 'v3970_0',
   assetReleaseVersion: 'v3.9.70.0',
-  release: 'v3.9.72.1-all211-static-functions-decoupled',
-  releaseName: 'v3.9.72.1-all211-static-functions-decoupled',
-  label: 'all211-static-functions-decoupled',
+  release: 'v3.9.72.2-all211-static-worker-budget',
+  releaseName: 'v3.9.72.2-all211-static-worker-budget',
+  label: 'all211-static-worker-budget',
   homeEntryVersion: 'home-industry-map-entry-v3970_1',
   localStrengthVersion: 'local-strength-v3971_2',
   localStrengthDataVersion: 'local-strength-static-v3971_2',

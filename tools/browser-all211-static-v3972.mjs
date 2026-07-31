@@ -28,7 +28,7 @@ try {
 
     await page.goto(`${baseUrl}/ln-rank/211-mainline.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.dataset.all211Runtime === 'ready');
-    assert.equal(await page.getAttribute('body', 'data-release'), 'v3.9.72.1', `${testCase.name}: release`);
+    assert.equal(await page.getAttribute('body', 'data-release'), 'v3.9.72.2', `${testCase.name}: release`);
     assert.equal(await page.locator('#scoreBands [data-band]').count(), 8, `${testCase.name}: score bands`);
     assert.equal((await page.locator('#scoreBands [data-band]').first().innerText()).includes(index.scoreBands[0].label), true, `${testCase.name}: first band label`);
     assert.equal((await page.locator('#scoreBands [data-band]').last().innerText()).includes(index.scoreBands.at(-1).label), true, `${testCase.name}: last band label`);

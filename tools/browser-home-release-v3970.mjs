@@ -61,11 +61,11 @@ try {
       };
     });
 
-    assert.equal(state.bodyRelease, 'v3.9.72.1', `${device.name}: body release`);
-    assert.equal(state.htmlRelease, 'v3.9.72.1', `${device.name}: html release`);
-    assert.equal(state.visibleRelease, 'v3.9.72.1', `${device.name}: visible release`);
+    assert.equal(state.bodyRelease, 'v3.9.72.2', `${device.name}: body release`);
+    assert.equal(state.htmlRelease, 'v3.9.72.2', `${device.name}: html release`);
+    assert.equal(state.visibleRelease, 'v3.9.72.2', `${device.name}: visible release`);
     assert.equal(state.runtime?.version, 'family-home-runtime-v3970_0', `${device.name}: runtime`);
-    assert.equal(state.runtime?.release, 'v3.9.72.1', `${device.name}: runtime release`);
+    assert.equal(state.runtime?.release, 'v3.9.72.2', `${device.name}: runtime release`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3970_0\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.scripts.length, 1, `${device.name}: one bootstrap script`);
@@ -92,4 +92,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok: true, release: 'v3.9.72.1', runtime: 'family-home-runtime-v3970_0', devices: results }, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.72.2', runtime: 'family-home-runtime-v3970_0', devices: results }, null, 2));
