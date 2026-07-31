@@ -1,0 +1,93 @@
+name: Verify LocalStrength full coverage v3971
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/css/local-strength.v3971_0.css'
+      - 'ln-rank/js/local-strength/**'
+      - 'functions/api/local-strength.js'
+      - 'functions/_lib/local-strength-api.js'
+      - 'shared/resources/release/**'
+      - 'tools/audit-local-strength-v3971.mjs'
+      - 'tools/browser-local-strength-v3971.mjs'
+      - '.github/workflows/verify-local-strength-v3971.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/css/local-strength.v3971_0.css'
+      - 'ln-rank/js/local-strength/**'
+      - 'functions/api/local-strength.js'
+      - 'functions/_lib/local-strength-api.js'
+      - 'shared/resources/release/**'
+      - 'tools/audit-local-strength-v3971.mjs'
+      - 'tools/browser-local-strength-v3971.mjs'
+      - '.github/workflows/verify-local-strength-v3971.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  local-strength:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Protect forbidden paths and check syntax
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+            git diff --name-only "$base" HEAD | tee /tmp/local-strength-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/local-strength-files.txt; then exit 1; fi
+          fi
+          node --check functions/_lib/local-strength-api.js
+          node --check functions/api/local-strength.js
+          node --check ln-rank/js/local-strength/local-strength-app.v3971_0.js
+          node --check shared/resources/release/current-release.js
+          node --check shared/resources/release/release-presenter.v3971_0.js
+          node --check tools/audit-local-strength-v3971.mjs
+          node --check tools/browser-local-strength-v3971.mjs
+          node tools/audit-local-strength-v3971.mjs | tee /tmp/local-strength-audit.out
+
+      - name: Install Wrangler and Chromium
+        run: |
+          npm install --no-save --no-package-lock wrangler@4.28.1 playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify full API coverage and PC Pad Android journeys
+        run: |
+          set -euo pipefail
+          npx wrangler pages dev . --port 8788 --compatibility-date=2026-07-01 >/tmp/local-strength-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8788/api/local-strength?mode=meta' >/tmp/local-strength-meta.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/local-strength-wrangler.log; exit 1; fi
+          LOCAL_STRENGTH_BASE=http://127.0.0.1:8788 node tools/browser-local-strength-v3971.mjs | tee /tmp/local-strength-browser.out
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-strength-v3971-results
+          path: |
+            /tmp/local-strength-*.txt
+            /tmp/local-strength-*.out
+            /tmp/local-strength-*.log
+            /tmp/local-strength-meta.json
+          if-no-files-found: warn
+          retention-days: 5

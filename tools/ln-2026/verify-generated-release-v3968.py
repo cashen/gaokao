@@ -67,13 +67,22 @@ rank_module=(ROOT/'functions/_lib/ln-2026-physics-score-rank.js').read_text(enco
 for export in ('lookupLn2026PhysicsScore','lookupLn2026PhysicsRank','getLn2026PhysicsRows'):
     check(export in rank_module,f'2026 rank export {export}')
 
-for page,scope in [('ln-rank/local-mainline.html','liaoning'),('ln-rank/211-mainline.html','211')]:
-    text=(ROOT/page).read_text(encoding='utf-8')
-    check('academic-background-app.v3968_0.js?v=3968_0' in text,f'{page} unified background runtime')
-    check(f'data-background-scope="{scope}"' in text,f'{page} scope')
-    check('2025' in text and '2024' in text,f'{page} three-year history copy')
-    check('背景证据' in text and '来源年份' in text,f'{page} evidence year copy')
-    check('local-mainline-app.v3967_0.js' not in text and '211-mainline-app.v3951_0.js' not in text,f'{page} legacy runtime')
+local_page=(ROOT/'ln-rank/local-mainline.html').read_text(encoding='utf-8')
+local_runtime=(ROOT/'ln-rank/js/local-strength/local-strength-app.v3971_0.js').read_text(encoding='utf-8')
+check('local-strength-app.v3971_0.js?v=3971_0' in local_page,'ln-rank/local-mainline.html LocalStrength runtime')
+check('data-ui-page="background"' in local_page,'ln-rank/local-mainline.html background page identity')
+check('全部背景专业' in local_page and '按学校查询' in local_page and '按分数位置看' in local_page,'ln-rank/local-mainline.html full directory modes')
+check('背景证据' in local_page and '来源年份' in local_page,'ln-rank/local-mainline.html evidence year copy')
+check('/api/local-strength' in local_runtime,'LocalStrength API owner')
+check('score2025' in local_runtime and 'score2024' in local_runtime,'LocalStrength three-year history presentation')
+check('academic-background-app.v3968_0.js' not in local_page and 'local-mainline-app.v3967_0.js' not in local_page,'ln-rank/local-mainline.html legacy runtime')
+
+all211=(ROOT/'ln-rank/211-mainline.html').read_text(encoding='utf-8')
+check('academic-background-app.v3968_0.js?v=3968_0' in all211,'ln-rank/211-mainline.html unified background runtime')
+check('data-background-scope="211"' in all211,'ln-rank/211-mainline.html scope')
+check('2025' in all211 and '2024' in all211,'ln-rank/211-mainline.html three-year history copy')
+check('背景证据' in all211 and '来源年份' in all211,'ln-rank/211-mainline.html evidence year copy')
+check('211-mainline-app.v3951_0.js' not in all211,'ln-rank/211-mainline.html legacy runtime')
 
 if errors:
     print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr)
@@ -83,7 +92,7 @@ print(json.dumps({
     'records':count,
     'strictCompleteCount':analysis['strictCompleteCount'],
     'analysisVersion':analysis['version'],
-    'releasePresentation':'shared-current-release-v3968_0',
-    'academicBackgroundScopes':['liaoning','211'],
+    'releasePresentation':'shared-current-release-v3971_0',
+    'academicBackgroundScopes':['local-strength','211'],
     'zyRelations':zy.get('relations')
 },ensure_ascii=False))
