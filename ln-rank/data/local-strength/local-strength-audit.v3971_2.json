@@ -14,7 +14,7 @@
     "localAdmissionRecordCount": 1992,
     "evaluatedRecordCount": 1992,
     "matchedSchoolCount": 22,
-    "matchedRecordCount": 244,
+    "matchedRecordCount": 231,
     "noEvidenceSchoolCount": 40,
     "duplicatePublicRecordCount": 0,
     "unresolvedLocalRecordCount": 0,
@@ -309,31 +309,6 @@
       "status": "matched"
     },
     {
-      "officialName": "辽宁大学",
-      "admissionNames": [
-        "辽宁大学"
-      ],
-      "searchNames": [
-        "辽宁大学"
-      ],
-      "city": "沈阳市",
-      "province": "辽宁省",
-      "nature": "",
-      "recordCount2026": 74,
-      "evaluatedRecordCount": 74,
-      "matchedRecordCount": 11,
-      "noEvidenceCount": 63,
-      "directions": [
-        "法学与公共治理",
-        "经济金融与统计",
-        "应用经济学"
-      ],
-      "scoreMin": 516,
-      "scoreMax": 607,
-      "directionCount": 3,
-      "status": "matched"
-    },
-    {
       "officialName": "东北大学",
       "admissionNames": [
         "东北大学"
@@ -346,16 +321,15 @@
       "nature": "",
       "recordCount2026": 31,
       "evaluatedRecordCount": 31,
-      "matchedRecordCount": 10,
-      "noEvidenceCount": 21,
+      "matchedRecordCount": 9,
+      "noEvidenceCount": 22,
       "directions": [
         "计算机与软件信息",
-        "控制科学与工程",
         "自动化与智能控制"
       ],
       "scoreMin": 581,
       "scoreMax": 651,
-      "directionCount": 3,
+      "directionCount": 2,
       "status": "matched"
     },
     {
@@ -382,54 +356,27 @@
       "status": "matched"
     },
     {
-      "officialName": "大连理工大学",
+      "officialName": "辽宁大学",
       "admissionNames": [
-        "大连理工大学"
+        "辽宁大学"
       ],
       "searchNames": [
-        "大连理工大学"
+        "辽宁大学"
       ],
-      "city": "大连市",
+      "city": "沈阳市",
       "province": "辽宁省",
       "nature": "",
-      "recordCount2026": 41,
-      "evaluatedRecordCount": 41,
-      "matchedRecordCount": 8,
-      "noEvidenceCount": 33,
-      "directions": [
-        "化工过程与材料",
-        "机械工程",
-        "机械装备与智能制造",
-        "力学"
-      ],
-      "scoreMin": 617,
-      "scoreMax": 667,
-      "directionCount": 4,
-      "status": "matched"
-    },
-    {
-      "officialName": "大连海事大学",
-      "admissionNames": [
-        "大连海事大学"
-      ],
-      "searchNames": [
-        "大连海事大学"
-      ],
-      "city": "大连市",
-      "province": "辽宁省",
-      "nature": "",
-      "recordCount2026": 27,
-      "evaluatedRecordCount": 27,
+      "recordCount2026": 74,
+      "evaluatedRecordCount": 74,
       "matchedRecordCount": 7,
-      "noEvidenceCount": 20,
+      "noEvidenceCount": 67,
       "directions": [
-        "航运海事与交通运输",
-        "交通运输工程",
-        "信息通信与智能航运"
+        "法学与公共治理",
+        "经济金融与统计"
       ],
-      "scoreMin": 592,
-      "scoreMax": 629,
-      "directionCount": 3,
+      "scoreMin": 516,
+      "scoreMax": 607,
+      "directionCount": 2,
       "status": "matched"
     },
     {
@@ -502,6 +449,30 @@
       "status": "matched"
     },
     {
+      "officialName": "大连海事大学",
+      "admissionNames": [
+        "大连海事大学"
+      ],
+      "searchNames": [
+        "大连海事大学"
+      ],
+      "city": "大连市",
+      "province": "辽宁省",
+      "nature": "",
+      "recordCount2026": 27,
+      "evaluatedRecordCount": 27,
+      "matchedRecordCount": 5,
+      "noEvidenceCount": 22,
+      "directions": [
+        "航运海事与交通运输",
+        "信息通信与智能航运"
+      ],
+      "scoreMin": 592,
+      "scoreMax": 629,
+      "directionCount": 2,
+      "status": "matched"
+    },
+    {
       "officialName": "锦州医科大学",
       "admissionNames": [
         "锦州医科大学"
@@ -525,6 +496,30 @@
       "status": "matched"
     },
     {
+      "officialName": "大连理工大学",
+      "admissionNames": [
+        "大连理工大学"
+      ],
+      "searchNames": [
+        "大连理工大学"
+      ],
+      "city": "大连市",
+      "province": "辽宁省",
+      "nature": "",
+      "recordCount2026": 41,
+      "evaluatedRecordCount": 41,
+      "matchedRecordCount": 3,
+      "noEvidenceCount": 38,
+      "directions": [
+        "化工过程与材料",
+        "机械装备与智能制造"
+      ],
+      "scoreMin": 617,
+      "scoreMax": 667,
+      "directionCount": 2,
+      "status": "matched"
+    },
+    {
       "officialName": "大连理工大学（盘锦校区）",
       "admissionNames": [
         "大连理工大学(盘锦校区)"
@@ -538,15 +533,14 @@
       "nature": "",
       "recordCount2026": 13,
       "evaluatedRecordCount": 13,
-      "matchedRecordCount": 3,
-      "noEvidenceCount": 10,
+      "matchedRecordCount": 2,
+      "noEvidenceCount": 11,
       "directions": [
-        "化工过程与材料",
-        "化学工程与技术"
+        "化工过程与材料"
       ],
       "scoreMin": 597,
       "scoreMax": 624,
-      "directionCount": 2,
+      "directionCount": 1,
       "status": "matched"
     },
     {
