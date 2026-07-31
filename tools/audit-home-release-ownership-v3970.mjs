@@ -13,7 +13,7 @@ const active = JSON.parse(read('ln-rank/active-assets.json'));
 const meta = JSON.parse(read('ln-rank/release-meta.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.1');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.homeEntryVersion, 'home-industry-map-entry-v3970_1');
@@ -29,12 +29,12 @@ assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-r
 assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3968_0.js'));
 
 for (const marker of [
-  'data-release="v3.9.72.0"',
+  'data-release="v3.9.72.1"',
   'family-shell.v3970_0.css?v=3970_0',
   'family-plan-entry.v3970_0.css?v=3970_0',
   'family-home.v3970_0.js?v=3970_0',
   '家庭方案与逐项复核',
-  'data-current-release>v3.9.72.0',
+  'data-current-release>v3.9.72.1',
   'data-home-industry-map-entry',
   'href="/Public_company/"',
   '全国上市公司产业落地图'

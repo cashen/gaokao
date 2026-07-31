@@ -19,7 +19,7 @@ const componentCss = read('shared/ui/components/family-plan-entry.v3970_0.css');
 const adapter = read('ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js');
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.0');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.1');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
 assert.equal(CURRENT_RELEASE.familyActionVersion, 'family-action-v3970_0');
