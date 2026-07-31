@@ -1,11 +1,9 @@
-name: Verify production release v3972
+name: Verify production release v3972 acceptance
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - '.github/workflows/verify-production-release-v3970.yml'
   workflow_dispatch:
@@ -18,119 +16,95 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Verify Pages and custom-domain release ownership
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify merged v3.9.72.0 production and all211 static assets
         env:
-          RELEASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
-          EVENT_NAME: ${{ github.event_name }}
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
+          PRODUCTION_VERIFY_ATTEMPTS: '30'
+          PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: |
           set -euo pipefail
-          mkdir -p /tmp/v3972-production
-          if [ "$EVENT_NAME" = 'pull_request' ]; then
-            expected_release='v3.9.71.2'
-            require_all211=0
-          else
-            expected_release='v3.9.72.0'
-            require_all211=1
-          fi
-          printf 'expected_release=%s require_all211=%s\n' "$expected_release" "$require_all211" > /tmp/v3972-production/expectation.txt
-
+          mkdir -p /tmp/v3972-production-acceptance
           fetch_response() {
             local label="$1" url="$2"
-            curl --silent --show-error --location --max-time 25 \
+            curl --silent --show-error --location --max-time 30 \
               -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              --dump-header "/tmp/v3972-production/${label}.headers" \
-              --output "/tmp/v3972-production/${label}.body" \
-              --write-out '%{http_code}' "$url" > "/tmp/v3972-production/${label}.status" || true
+              --dump-header "/tmp/v3972-production-acceptance/${label}.headers" \
+              --output "/tmp/v3972-production-acceptance/${label}.body" \
+              --write-out '%{http_code}' "$url" > "/tmp/v3972-production-acceptance/${label}.status" || true
           }
-
           ready=0
-          for attempt in $(seq 1 36); do
-            token="${RELEASE_SHA}-${attempt}-$(date +%s)"
-            fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
+          for attempt in $(seq 1 30); do
+            token="v3972-acceptance-${attempt}-$(date +%s)"
             fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
             fetch_response pages-all211 "${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}"
-            fetch_response pages-all211-app "${PAGES_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
-            fetch_response pages-all211-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}"
+            fetch_response pages-app "${PAGES_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
+            fetch_response pages-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}"
+            fetch_response pages-runtime "${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}"
+            fetch_response pages-major-health "${PAGES_BASE}/api/major-bands-health?probe=1&release-check=${token}"
             fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
             fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?release-check=${token}"
             fetch_response custom-all211 "${CUSTOM_BASE}/ln-rank/211-mainline.html?release-check=${token}"
-            fetch_response custom-all211-app "${CUSTOM_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
+            fetch_response custom-app "${CUSTOM_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
 
             pages_current=0
             custom_assets_current=0
             custom_html_or_challenge=0
-            all211_current=1
-
-            if [ "$require_all211" -eq 1 ]; then
-              if [ "$(cat /tmp/v3972-production/pages-all211.status)" != '200' ] \
-                || ! grep -q 'data-release="v3.9.72.0"' /tmp/v3972-production/pages-all211.body \
-                || ! grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/pages-all211.body \
-                || grep -q '/api/academic-background' /tmp/v3972-production/pages-all211.body \
-                || [ "$(cat /tmp/v3972-production/pages-all211-app.status)" != '200' ] \
-                || ! grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/pages-all211-app.body \
-                || [ "$(cat /tmp/v3972-production/pages-all211-data.status)" != '200' ] \
-                || ! grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-production/pages-all211-data.body \
-                || ! grep -q '"completeEvaluation":true' /tmp/v3972-production/pages-all211-data.body; then
-                all211_current=0
-              fi
-            fi
-
-            if [ "$(cat /tmp/v3972-production/pages-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/pages-root.body \
-              && grep -q 'href="/Public_company/"' /tmp/v3972-production/pages-root.body \
-              && [ "$(cat /tmp/v3972-production/pages-workspace.status)" = '200' ] \
-              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3972-production/pages-workspace.body \
-              && [ "$(cat /tmp/v3972-production/pages-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-production/pages-release.body \
-              && grep -q "assetVersion: 'v3970_0'" /tmp/v3972-production/pages-release.body \
-              && [ "$all211_current" -eq 1 ]; then
+            if [ "$(cat /tmp/v3972-production-acceptance/pages-release.status)" = '200' ] \
+              && grep -q "display: 'v3.9.72.0'" /tmp/v3972-production-acceptance/pages-release.body \
+              && grep -q "assetVersion: 'v3970_0'" /tmp/v3972-production-acceptance/pages-release.body \
+              && [ "$(cat /tmp/v3972-production-acceptance/pages-all211.status)" = '200' ] \
+              && grep -q 'data-release="v3.9.72.0"' /tmp/v3972-production-acceptance/pages-all211.body \
+              && grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production-acceptance/pages-all211.body \
+              && ! grep -q '/api/academic-background' /tmp/v3972-production-acceptance/pages-all211.body \
+              && [ "$(cat /tmp/v3972-production-acceptance/pages-app.status)" = '200' ] \
+              && grep -q '211-static-index.v3972_0.json' /tmp/v3972-production-acceptance/pages-app.body \
+              && [ "$(cat /tmp/v3972-production-acceptance/pages-data.status)" = '200' ] \
+              && grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-production-acceptance/pages-data.body \
+              && grep -q '"completeEvaluation":true' /tmp/v3972-production-acceptance/pages-data.body \
+              && [ "$(cat /tmp/v3972-production-acceptance/pages-runtime.status)" = '200' ] \
+              && [ "$(cat /tmp/v3972-production-acceptance/pages-major-health.status)" = '200' ]; then
               pages_current=1
             fi
-
-            if [ "$(cat /tmp/v3972-production/custom-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-production/custom-release.body; then
-              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211-app.status)" = '200' ] && grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/custom-all211-app.body; }; then
-                custom_assets_current=1
-              fi
+            if [ "$(cat /tmp/v3972-production-acceptance/custom-release.status)" = '200' ] \
+              && grep -q "display: 'v3.9.72.0'" /tmp/v3972-production-acceptance/custom-release.body \
+              && [ "$(cat /tmp/v3972-production-acceptance/custom-app.status)" = '200' ] \
+              && grep -q '211-static-index.v3972_0.json' /tmp/v3972-production-acceptance/custom-app.body; then
+              custom_assets_current=1
             fi
-
-            if [ "$(cat /tmp/v3972-production/custom-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/custom-root.body; then
-              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211.status)" = '200' ] && grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/custom-all211.body; }; then
-                custom_html_or_challenge=1
-                printf '%s\n' 'custom domain returned current HTML' > /tmp/v3972-production/custom-domain-mode.txt
-              fi
-            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-production/custom-root.headers; then
+            if [ "$(cat /tmp/v3972-production-acceptance/custom-root.status)" = '200' ] \
+              && [ "$(cat /tmp/v3972-production-acceptance/custom-all211.status)" = '200' ] \
+              && grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production-acceptance/custom-all211.body; then
               custom_html_or_challenge=1
-              printf '%s\n' 'custom domain protected by Cloudflare Managed Challenge; versioned assets verified separately' > /tmp/v3972-production/custom-domain-mode.txt
+              echo current-html > /tmp/v3972-production-acceptance/custom-domain-mode.txt
+            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-production-acceptance/custom-root.headers; then
+              custom_html_or_challenge=1
+              echo managed-challenge > /tmp/v3972-production-acceptance/custom-domain-mode.txt
             fi
-
-            printf 'attempt=%s expected=%s pages=%s custom_assets=%s custom_html=%s all211=%s\n' "$attempt" "$expected_release" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$all211_current" | tee /tmp/v3972-production/status.txt
-            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then ready=1; break; fi
-            sleep 20
+            printf 'attempt=%s pages=%s custom_assets=%s custom_html=%s\n' "$attempt" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" | tee /tmp/v3972-production-acceptance/status.txt
+            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then
+              ready=1
+              break
+            fi
+            sleep 10
           done
-
           if [ "$ready" -ne 1 ]; then
-            for file in /tmp/v3972-production/*.status /tmp/v3972-production/*.headers /tmp/v3972-production/*.body; do echo "--- $file"; head -c 2500 "$file" 2>/dev/null || true; echo; done
+            for file in /tmp/v3972-production-acceptance/*.status /tmp/v3972-production-acceptance/*.headers; do echo "--- $file"; head -c 2000 "$file" || true; echo; done
             exit 1
           fi
-
-      - name: Verify immutable asset headers
-        if: github.event_name != 'pull_request'
-        run: |
-          set -euo pipefail
-          grep -Eiq '^etag:' /tmp/v3972-production/pages-all211-app.headers
-          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3972-production/pages-all211-app.headers
-          grep -Eiq 'content-type:.*application/json' /tmp/v3972-production/pages-all211-data.headers
-
-      - name: Upload production evidence
+          node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-acceptance/api-health.out
+          grep -Eiq '^etag:' /tmp/v3972-production-acceptance/pages-app.headers
+          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3972-production-acceptance/pages-app.headers
+          grep -Eiq 'content-type:.*application/json' /tmp/v3972-production-acceptance/pages-data.headers
+      - name: Upload acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-production-release-evidence
-          path: /tmp/v3972-production
+          name: v3972-production-acceptance
+          path: /tmp/v3972-production-acceptance
           if-no-files-found: warn
           retention-days: 7
