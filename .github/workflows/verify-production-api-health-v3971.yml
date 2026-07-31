@@ -25,6 +25,7 @@ jobs:
           set -euo pipefail
           node --check functions/_lib/fenxi-fetcher.js
           node --check functions/api/major-bands-health.js
+          node --check tools/verify-worker-budget-local-v3972.mjs
           node --check tools/verify-production-v3971.mjs
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
@@ -57,20 +58,7 @@ jobs:
               --data-urlencode "budget=${token}" > "/tmp/v3972-school-${cycle}.json" &
             p3=$!
             wait "$p1" "$p2" "$p3"
-            CYCLE="$cycle" node --input-type=module - <<'NODE'
-            import fs from 'node:fs';
-            const cycle=process.env.CYCLE;
-            const read=name=>JSON.parse(fs.readFileSync(`/tmp/v3972-${name}-${cycle}.json`,'utf8'));
-            const health=read('health');
-            const score=read('score');
-            const school=read('school');
-            if(health.ok===false||score.ok===false||school.ok===false) throw new Error(JSON.stringify({health,score,school}).slice(0,2000));
-            if(health.probe?.fullDatasetScan!==false||health.probe?.chunksRead>1||health.probe?.resourceBudget?.maxChunksRead!==1) throw new Error(`unbounded health probe ${JSON.stringify(health.probe)}`);
-            if(Number(health.probe?.rawScanned||0)>2000) throw new Error(`health probe scanned ${health.probe.rawScanned}`);
-            const count=data=>['upper','near','steady'].reduce((sum,key)=>sum+(data.bands?.[key]?.records?.length||0),0);
-            if(count(score)<1||count(school)<1) throw new Error(`empty query ${count(score)}/${count(school)}`);
-            console.log(JSON.stringify({cycle,chunksRead:health.probe.chunksRead,rawScanned:health.probe.rawScanned,scoreRecords:count(score),schoolRecords:count(school)}));
-            NODE
+            node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
       - name: Verify stable production baseline before merge
         if: github.event_name == 'pull_request'
@@ -89,6 +77,8 @@ jobs:
           EXPECTED_RELEASE: v3.9.72.2
           PRODUCTION_VERIFY_ATTEMPTS: '30'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
+          PRODUCTION_STRESS_CYCLES: '40'
+          PRODUCTION_STRESS_WAIT_MS: '1000'
         run: node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
       - name: Upload production health evidence
         if: always()
