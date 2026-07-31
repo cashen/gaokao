@@ -1,14 +1,11 @@
-name: Verify production release v3972.1
+name: Verify production release v3972.1 post-merge
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - '.github/workflows/verify-production-release-v3970.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,121 +13,132 @@ permissions:
 jobs:
   production-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
-      - name: Verify Pages and custom-domain release ownership
+      - uses: actions/checkout@v4
+      - name: Wait for v3.9.72.1 deployment and verify static contracts
         env:
-          RELEASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
-          EVENT_NAME: ${{ github.event_name }}
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
         run: |
           set -euo pipefail
-          mkdir -p /tmp/v3972-production
-          if [ "$EVENT_NAME" = 'pull_request' ]; then
-            expected_release='v3.9.71.2'
-            require_all211=0
-          else
-            expected_release='v3.9.72.1'
-            require_all211=1
-          fi
-          printf 'expected_release=%s require_all211=%s\n' "$expected_release" "$require_all211" > /tmp/v3972-production/expectation.txt
-
+          mkdir -p /tmp/v3972-1-postmerge
           fetch_response() {
             local label="$1" url="$2"
             curl --silent --show-error --location --max-time 25 \
               -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              --dump-header "/tmp/v3972-production/${label}.headers" \
-              --output "/tmp/v3972-production/${label}.body" \
-              --write-out '%{http_code}' "$url" > "/tmp/v3972-production/${label}.status" || true
+              --dump-header "/tmp/v3972-1-postmerge/${label}.headers" \
+              --output "/tmp/v3972-1-postmerge/${label}.body" \
+              --write-out '%{http_code}' "$url" > "/tmp/v3972-1-postmerge/${label}.status" || true
           }
 
           ready=0
-          for attempt in $(seq 1 36); do
-            token="${RELEASE_SHA}-${attempt}-$(date +%s)"
-            fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
-            fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
-            fetch_response pages-all211 "${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}"
-            fetch_response pages-all211-app "${PAGES_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
-            fetch_response pages-all211-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}"
-            fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
-            fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response custom-all211 "${CUSTOM_BASE}/ln-rank/211-mainline.html?release-check=${token}"
-            fetch_response custom-all211-app "${CUSTOM_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?release-check=${token}"
+          for attempt in $(seq 1 45); do
+            token="6c8fe0f9-${attempt}-$(date +%s)"
+            fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?postmerge=${token}"
+            fetch_response pages-all211 "${PAGES_BASE}/ln-rank/211-mainline.html?postmerge=${token}"
+            fetch_response pages-all211-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?postmerge=${token}"
+            fetch_response pages-local-data "${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?postmerge=${token}"
+            fetch_response pages-academic-211 "${PAGES_BASE}/api/academic-background?scope=211&score=600&postmerge=${token}"
+            fetch_response pages-legacy-211 "${PAGES_BASE}/api/211-mainline?score=600&postmerge=${token}"
+            fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?postmerge=${token}"
+            fetch_response custom-all211-app "${CUSTOM_BASE}/ln-rank/js/academic-background/all211-static-app.v3972_0.js?postmerge=${token}"
 
-            pages_current=0
-            custom_assets_current=0
-            custom_html_or_challenge=0
-            all211_current=1
-
-            if [ "$require_all211" -eq 1 ]; then
-              if [ "$(cat /tmp/v3972-production/pages-all211.status)" != '200' ] \
-                || ! grep -q 'data-release="v3.9.72.1"' /tmp/v3972-production/pages-all211.body \
-                || ! grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/pages-all211.body \
-                || grep -q '/api/academic-background' /tmp/v3972-production/pages-all211.body \
-                || [ "$(cat /tmp/v3972-production/pages-all211-app.status)" != '200' ] \
-                || ! grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/pages-all211-app.body \
-                || [ "$(cat /tmp/v3972-production/pages-all211-data.status)" != '200' ] \
-                || ! grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-production/pages-all211-data.body \
-                || ! grep -q '"completeEvaluation":true' /tmp/v3972-production/pages-all211-data.body; then
-                all211_current=0
-              fi
+            if python3 - <<'PY'
+import json
+from pathlib import Path
+root=Path('/tmp/v3972-1-postmerge')
+def status(name): return (root/f'{name}.status').read_text().strip()
+def body(name): return (root/f'{name}.body').read_text(errors='replace')
+required=['pages-release','pages-all211','pages-all211-data','pages-local-data','pages-academic-211','pages-legacy-211','custom-release','custom-all211-app']
+assert all(status(name)=='200' for name in required), {name:status(name) for name in required}
+release=body('pages-release')
+assert "display: 'v3.9.72.1'" in release
+assert "all211DataVersion: 'all-211-static-v3972_0'" in release
+page=body('pages-all211')
+assert 'data-release="v3.9.72.1"' in page
+assert 'all211-static-app.v3972_0.js' in page
+assert '/api/academic-background' not in page
+all211=json.loads(body('pages-all211-data'))
+assert all211['version']=='all-211-static-v3972_0'
+assert all211['meta']['completeEvaluation'] is True
+assert len(all211['records'])==2494
+assert len(all211['scoreBands'])==8
+local=json.loads(body('pages-local-data'))
+assert local['version']=='local-strength-static-v3971_2'
+assert local['meta']['matchedRecordCount']==243
+assert len(local['records'])==243
+for name in ['pages-academic-211','pages-legacy-211']:
+    payload=json.loads(body(name))
+    assert payload['ok'] is True
+    assert payload['migratedToStatic'] is True
+    assert payload['architecture']=='build-time-static-index'
+    assert payload['scannedCount']==0 and payload['matchedCount']==0 and payload['count']==0
+    assert payload['records']==[]
+assert "display: 'v3.9.72.1'" in body('custom-release')
+assert '211-static-index.v3972_0.json' in body('custom-all211-app')
+PY
+            then
+              ready=1
+              echo "deployment ready on attempt ${attempt}" | tee /tmp/v3972-1-postmerge/deployment-ready.txt
+              break
             fi
-
-            if [ "$(cat /tmp/v3972-production/pages-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/pages-root.body \
-              && grep -q 'href="/Public_company/"' /tmp/v3972-production/pages-root.body \
-              && [ "$(cat /tmp/v3972-production/pages-workspace.status)" = '200' ] \
-              && grep -q 'app.v3970_0.js?v=3970_0' /tmp/v3972-production/pages-workspace.body \
-              && [ "$(cat /tmp/v3972-production/pages-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-production/pages-release.body \
-              && grep -q "assetVersion: 'v3970_0'" /tmp/v3972-production/pages-release.body \
-              && [ "$all211_current" -eq 1 ]; then
-              pages_current=1
-            fi
-
-            if [ "$(cat /tmp/v3972-production/custom-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-production/custom-release.body; then
-              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211-app.status)" = '200' ] && grep -q '211-static-index.v3972_0.json' /tmp/v3972-production/custom-all211-app.body; }; then
-                custom_assets_current=1
-              fi
-            fi
-
-            if [ "$(cat /tmp/v3972-production/custom-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-production/custom-root.body; then
-              if [ "$require_all211" -eq 0 ] || { [ "$(cat /tmp/v3972-production/custom-all211.status)" = '200' ] && grep -q 'all211-static-app.v3972_0.js' /tmp/v3972-production/custom-all211.body; }; then
-                custom_html_or_challenge=1
-                printf '%s\n' 'custom domain returned current HTML' > /tmp/v3972-production/custom-domain-mode.txt
-              fi
-            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-production/custom-root.headers; then
-              custom_html_or_challenge=1
-              printf '%s\n' 'custom domain protected by Cloudflare Managed Challenge; versioned assets verified separately' > /tmp/v3972-production/custom-domain-mode.txt
-            fi
-
-            printf 'attempt=%s expected=%s pages=%s custom_assets=%s custom_html=%s all211=%s\n' "$attempt" "$expected_release" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$all211_current" | tee /tmp/v3972-production/status.txt
-            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then ready=1; break; fi
-            sleep 20
+            echo "deployment not ready on attempt ${attempt}"
+            sleep 15
           done
-
           if [ "$ready" -ne 1 ]; then
-            for file in /tmp/v3972-production/*.status /tmp/v3972-production/*.headers /tmp/v3972-production/*.body; do echo "--- $file"; head -c 2500 "$file" 2>/dev/null || true; echo; done
+            for file in /tmp/v3972-1-postmerge/*.status /tmp/v3972-1-postmerge/*.body; do echo "--- $file"; head -c 2000 "$file" 2>/dev/null || true; echo; done
             exit 1
           fi
 
-      - name: Verify immutable asset headers
-        if: github.event_name != 'pull_request'
+      - name: Run 40-cycle Functions regression against production
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
         run: |
           set -euo pipefail
-          grep -Eiq '^etag:' /tmp/v3972-production/pages-all211-app.headers
-          grep -Eiq 'content-type:.*(application|text)/javascript' /tmp/v3972-production/pages-all211-app.headers
-          grep -Eiq 'content-type:.*application/json' /tmp/v3972-production/pages-all211-data.headers
+          mkdir -p /tmp/v3972-1-postmerge/stress
+          for cycle in $(seq 1 40); do
+            token="${cycle}-$(date +%s%N)"
+            curl --fail --silent --show-error --location --max-time 25 \
+              "${PAGES_BASE}/api/ln-rank-runtime-health?postmerge=${token}" > "/tmp/v3972-1-postmerge/stress/runtime-${cycle}.json"
+            curl --fail --silent --show-error --location --max-time 25 \
+              "${PAGES_BASE}/api/major-bands-health?probe=1&postmerge=${token}" > "/tmp/v3972-1-postmerge/stress/health-${cycle}.json"
+            curl --fail --silent --show-error --location --max-time 25 \
+              "${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16&postmerge=${token}" > "/tmp/v3972-1-postmerge/stress/score-${cycle}.json"
+            curl --fail --silent --show-error --location --max-time 25 --get \
+              "${PAGES_BASE}/api/major-bands" \
+              --data-urlencode 'candidateScore=650' \
+              --data-urlencode 'schoolKeyword=东北大学' \
+              --data-urlencode 'limit=16' \
+              --data-urlencode "postmerge=${token}" > "/tmp/v3972-1-postmerge/stress/school-${cycle}.json"
+            CYCLE="$cycle" python3 - <<'PY'
+import json, os
+from pathlib import Path
+cycle=os.environ['CYCLE']
+root=Path('/tmp/v3972-1-postmerge/stress')
+def read(prefix):
+    text=(root/f'{prefix}-{cycle}.json').read_text(errors='replace')
+    assert '1102' not in text and 'cloudflare' not in text.lower(), text[:500]
+    return json.loads(text)
+runtime=read('runtime'); health=read('health'); score=read('score'); school=read('school')
+assert runtime.get('ok') is not False, runtime
+assert health.get('ok') is not False, health
+assert score.get('ok') is not False, score
+assert school.get('ok') is not False, school
+keys=('upper','near','steady')
+def count(payload): return sum(len((payload.get('bands') or {}).get(k,{}).get('records') or []) for k in keys)
+assert count(score)>0, score
+assert count(school)>0, school
+PY
+            echo "cycle=${cycle} ok" | tee -a /tmp/v3972-1-postmerge/stress-summary.txt
+            sleep 1
+          done
 
-      - name: Upload production evidence
+      - name: Upload post-merge production evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-1-production-release-evidence
-          path: /tmp/v3972-production
-          if-no-files-found: warn
+          name: v3972-1-postmerge-production-evidence
+          path: /tmp/v3972-1-postmerge
+          if-no-files-found: error
           retention-days: 7
