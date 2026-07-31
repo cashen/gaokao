@@ -1,6 +1,7 @@
 import { loadManifest } from '../_lib/ln-rank-manifest.js';
 import { streamFenxiChunkRecords } from '../_lib/fenxi-fetcher.js';
 import { normalizeRecord, rawScore, rawSchool } from '../_lib/fenxi-normalizer.js';
+import { buildLightweightMajorBandRecord, materializeMajorBandRecord } from '../_lib/major-bands-lightweight-record.js';
 import { makeBands } from '../_lib/band-engine.js';
 import { matchRegion } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
@@ -142,7 +143,8 @@ function enrichMajorCodeFields(record) {
 }
 
 function finalizeRecordForResponse(record) {
-  const item = enrichMajorCodeFields({ ...record });
+  const materialized = materializeMajorBandRecord(record);
+  const item = enrichMajorCodeFields(materialized);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -205,6 +207,7 @@ function rankLabel(context) {
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);
   const started = Date.now();
+  let failedChunk = '';
 
   try {
     const url = new URL(context.request.url);
@@ -261,6 +264,7 @@ export async function onRequest(context) {
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const hasKeywordSearch = hasKeywordFilters(keywordQuery);
+    const useLightweightRanking = !hasKeywordSearch && filters.region === 'all';
     const specialIntent = explicitSpecialProjectIntent(filters.majorKeyword);
     const manifest = await loadManifest(context.request, context.env || {});
     const allChunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
@@ -287,7 +291,6 @@ export async function onRequest(context) {
     let specialProjectHidden = 0;
     let specialProjectShown = 0;
     const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
-    let failedChunk = '';
 
     for (const chunk of chunks) {
       const file = chunkFile(chunk);
@@ -302,10 +305,12 @@ export async function onRequest(context) {
           if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
           rawCandidate += 1;
 
-          const record = { ...normalizeRecord(raw) };
+          const record = useLightweightRanking
+            ? buildLightweightMajorBandRecord(raw)
+            : { ...normalizeRecord(raw) };
           record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
           if (hasKeywordSearch) enrichMajorCodeFields(record);
-          Object.assign(record, enrichBottomLineFields(record));
+          if (filters.bottomLineMode !== 'all') Object.assign(record, enrichBottomLineFields(record));
           if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
           if (!matchRegion(record, filters.region)) continue;
           if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
@@ -324,7 +329,9 @@ export async function onRequest(context) {
           record.matchedTerms = match.matchedTerms || [];
           record.matchScore = match.score;
 
-          const bottomLineEligibility = getBottomLineEligibility(record, filters.bottomLineMode);
+          const bottomLineEligibility = filters.bottomLineMode === 'all'
+            ? { status: 'pass', reason: 'mode_does_not_exclude', record }
+            : getBottomLineEligibility(record, filters.bottomLineMode);
           if (bottomLineEligibility.status === 'fail') {
             bottomLineExcluded += 1;
             continue;
@@ -498,7 +505,8 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'score-prefilter-streamed-chunks-delayed-output-enrichment-canonical-staged-ranked-paged'
+        lightweightRanking: useLightweightRanking,
+        mode: 'score-prefilter-streamed-chunks-lightweight-ranking-delayed-full-normalization-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
