@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   production-api-health:
@@ -135,3 +136,18 @@ NODE
             /tmp/v3971-production-custom
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Report production verification to PR 91
+        if: always() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const icon = status === 'success' ? '✅' : '❌';
+            const body = `## ${icon} v3.9.71.2 合并后生产验证\n\n- 结果：**${status}**\n- 提交：\`${context.sha}\`\n- 验证：Pages 运行时健康、major-bands 健康、579 分查询、650 分东北大学查询、LocalStrength 静态页面与全量索引、自定义域名 JSON 或 Managed Challenge。\n- Actions：${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 91,
+              body
+            });
