@@ -3,6 +3,8 @@ const CONTROL_SELECTOR = 'select,input,textarea,[contenteditable="true"]';
 const ACTION_SELECTOR = 'a[href],button,[role="button"]';
 const SETTLE_MS = 700;
 const POINTER_MATCH_MS = 1600;
+const LEGACY_DISCLOSURE_ID = 'familyConditionsDetails';
+const DISCLOSURE_ID = 'familyConditionsDisclosure';
 
 const state = {
   sequence: 0,
@@ -11,7 +13,11 @@ const state = {
   pointerOrigin: null,
   pointerAt: 0,
   blockedNavigations: 0,
-  acceptedNavigations: 0
+  acceptedNavigations: 0,
+  disclosure: null,
+  scoreDisclosureOpen: false,
+  resultMode: 'score-bands',
+  internalDisclosureChange: false
 };
 
 function now() {
@@ -35,6 +41,49 @@ function setBodyState(mode = '') {
   if (mode) body.dataset.uiInteractionTransaction = mode;
   else delete body.dataset.uiInteractionTransaction;
   body.dataset.uiInteractionVersion = VERSION;
+}
+
+function setDisclosureOpen(open, reason) {
+  const disclosure = state.disclosure;
+  if (!(disclosure instanceof HTMLDetailsElement) || disclosure.open === Boolean(open)) return;
+  state.internalDisclosureChange = true;
+  disclosure.open = Boolean(open);
+  state.internalDisclosureChange = false;
+  disclosure.dataset.uiDisclosureReason = reason;
+}
+
+function syncDisclosureMode(mode, reason = 'workspace-state') {
+  state.resultMode = mode === 'school-all' ? 'school-all' : 'score-bands';
+  if (state.resultMode === 'school-all') setDisclosureOpen(true, reason);
+  else setDisclosureOpen(state.scoreDisclosureOpen, reason);
+}
+
+function installDisclosureOwnership() {
+  const legacyTarget = document.getElementById(LEGACY_DISCLOSURE_ID);
+  if (!(legacyTarget instanceof HTMLDetailsElement)) return;
+
+  legacyTarget.id = DISCLOSURE_ID;
+  legacyTarget.dataset.uiDisclosureOwner = VERSION;
+  state.disclosure = legacyTarget;
+  state.scoreDisclosureOpen = legacyTarget.open;
+
+  const compatibilityBridge = document.createElement('span');
+  compatibilityBridge.id = LEGACY_DISCLOSURE_ID;
+  compatibilityBridge.hidden = true;
+  compatibilityBridge.dataset.uiDisclosureCompatibility = VERSION;
+  legacyTarget.before(compatibilityBridge);
+
+  legacyTarget.addEventListener('toggle', () => {
+    if (state.internalDisclosureChange || state.resultMode === 'school-all') return;
+    state.scoreDisclosureOpen = legacyTarget.open;
+  });
+
+  document.addEventListener('gaokao:workspace-state', event => {
+    syncDisclosureMode(event.detail?.mode, 'workspace-state');
+  });
+  document.addEventListener('gaokao:result-mode-change', event => {
+    syncDisclosureMode(event.detail?.mode, 'result-mode-change');
+  });
 }
 
 function beginControlTransaction(control, reason) {
@@ -133,16 +182,22 @@ function bind() {
   });
 }
 
+installDisclosureOwnership();
 setBodyState('ready');
 bind();
 
 globalThis.__GAOKAO_INTERACTION_TRANSACTION__ = Object.freeze({
   version: VERSION,
+  disclosureId: DISCLOSURE_ID,
   getState: () => Object.freeze({
     sequence: state.sequence,
     settling: now() < state.settleUntil,
     activeControlId: state.activeControl?.id || '',
     blockedNavigations: state.blockedNavigations,
-    acceptedNavigations: state.acceptedNavigations
+    acceptedNavigations: state.acceptedNavigations,
+    disclosureOpen: Boolean(state.disclosure?.open),
+    scoreDisclosureOpen: state.scoreDisclosureOpen,
+    resultMode: state.resultMode,
+    disclosureOwner: state.disclosure?.dataset.uiDisclosureOwner || ''
   })
 });
