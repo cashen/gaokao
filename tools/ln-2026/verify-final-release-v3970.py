@@ -35,6 +35,10 @@ required=[
  'shared/ui/components/family-plan-entry.v3970_0.js','shared/ui/components/family-plan-entry.v3970_0.css',
  'ln-rank/js/app.v3970_0.js','ln-rank/js/app-runtime.v3970_0.js','ln-rank/js/selection-pool.v3970_0.js',
  'ln-rank/js/domain/family-decision-contract.v3970_0.js','ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js',
+ 'shared/ui/interaction/interaction-transaction.v3972_4.js',
+ 'ln-rank/js/app.v3972_4.js','ln-rank/js/app-runtime.v3972_4.js',
+ 'ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js',
+ 'tools/browser-interaction-transaction-v3972_4.mjs',
  'tools/audit-family-action-v3970.mjs','tools/audit-home-release-ownership-v3970.mjs','tools/audit-school-query-v3970.mjs',
  'tools/browser-family-action-v3970.mjs','tools/browser-home-release-v3970.mjs',
  'shared/resources/schools/school-query-contract.v3969_0.js','shared/resources/schools/school-query-engine.v3969_0.js',
@@ -54,7 +58,7 @@ for marker in ['release-presenter.v3970_0.js?v=3970_0','family-shell.v3970_0.js?
 require('MutationObserver' not in home_runtime,'home runtime must not self-observe DOM')
 
 headers=text('_headers')
-for page in ['/','/index.html']:
+for page in ['/','/index.html','/ln-rank/','/ln-rank/index.html']:
  block=header_block(headers,page)
  require(block,f'headers missing {page}')
  require('Cache-Control: no-cache, max-age=0, must-revalidate' in block,f'{page} must revalidate')
@@ -67,12 +71,44 @@ for asset in ['/shared/ui/shell/family-shell.v3970_0.js','/shared/ui/shell/famil
  require('immutable' in block,f'{asset} must be immutable')
 
 index=text('ln-rank/index.html'); selection=text('ln-rank/selection-pool.html')
-for marker in ['data-release="v3.9.70.0"','app.v3970_0.js?v=3970_0','data-ui-family-plan-results-footer','data-ui-family-plan-live','加入家庭方案']:
- require(marker in index,f'main asset shell missing {marker}')
+for marker in [
+ 'data-release="v3.9.70.0"',
+ 'interaction-transaction.v3972_4.js?v=3972_4',
+ 'app.v3972_4.js?v=3972_4',
+ 'data-ui-interaction-version="interaction-transaction-v3972_4"',
+ 'data-ui-family-plan-results-footer','data-ui-family-plan-live','加入家庭方案'
+]: require(marker in index,f'main asset shell missing {marker}')
+require('app.v3970_0.js?v=3970_0' not in index,'main still mounts previous immutable bootstrap')
+require(index.count('data-ui-navigation="auxiliary-background"')==2,'auxiliary navigation owner count mismatch')
 for marker in ['data-release="v3.9.70.0"','selection-pool.v3970_0.js?v=3970_0','生成家庭方案报告','知道链接的人可以查看']:
  require(marker in selection,f'selection asset shell missing {marker}')
 for forbidden in ['data-ui-mobile-action-mount','selectionPoolShell','poolResultStickyMount','已选 0 个 · 去整理','还没选专业 · 回到结果继续看']:
  require(forbidden not in index,f'old mobile action remains in main: {forbidden}')
+
+interaction=text('shared/ui/interaction/interaction-transaction.v3972_4.js')
+for marker in [
+ "const VERSION = 'interaction-transaction-v3972_4'",
+ "const DISCLOSURE_ID = 'familyConditionsDisclosure'",
+ "const LEGACY_DISCLOSURE_ID = 'familyConditionsDetails'",
+ 'native-control-tail-click-without-anchor-origin',
+ "document.addEventListener('gaokao:workspace-state'",
+ "document.addEventListener('gaokao:result-mode-change'"
+]: require(marker in interaction,f'interaction transaction missing {marker}')
+require('Android' not in interaction,'interaction transaction must not branch on Android')
+
+runtime=text('ln-rank/js/app-runtime.v3972_4.js')
+for marker in [
+ "const INTERACTION_VERSION = 'interaction-transaction-v3972_4'",
+ "version: 'resource-execution-v3972_4'",
+ "selection-workspace-orchestrator.v3972_4.js?v=3972_4",
+ "url.searchParams.set('interactionVersion', INTERACTION_VERSION)"
+]: require(marker in runtime,f'interaction runtime missing {marker}')
+workspace=text('ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js')
+for marker in [
+ "const VERSION = 'selection-workspace-orchestration-v3972_4'",
+ "selection-workspace-orchestrator.v3969_0.js?v=3969_0",
+ 'delegateVersion', 'disclosureOwner'
+]: require(marker in workspace,f'workspace wrapper missing {marker}')
 
 shell=text('shared/ui/shell/family-shell.v3970_0.js'); shell_css=text('shared/ui/shell/family-shell.v3970_0.css'); component_css=text('shared/ui/components/family-plan-entry.v3970_0.css')
 for forbidden in ['ensureMobileAction','ui-mobile-context-visible','data-ui-mobile-selection']:
@@ -88,8 +124,8 @@ for payload,name in [(active,'active'),(meta,'meta')]:
   require(payload.get(flag) is True,f'{name} flag missing {flag}')
  require(payload.get('familyHomeJs')=='js/ux/family-home.v3970_0.js',f'{name} home owner mismatch')
  require('../index.html' in payload.get('html',[]),f'{name} root home missing')
-for rel in ['js/ux/family-home.v3970_0.js','js/app.v3970_0.js','js/app-runtime.v3970_0.js','js/selection-pool.v3970_0.js','../shared/ui/components/family-plan-entry.v3970_0.js','js/domain/family-plan-copy-adapter.v3970_0.js']:
- require(rel in active.get('jsEntry',[]),f'active entry missing {rel}')
+for rel in ['js/ux/family-home.v3970_0.js','js/app.v3970_0.js','js/app-runtime.v3970_0.js','js/selection-pool.v3970_0.js','js/workspace/selection-workspace-orchestrator.v3969_0.js','../shared/ui/components/family-plan-entry.v3970_0.js','js/domain/family-plan-copy-adapter.v3970_0.js']:
+ require(rel in active.get('jsEntry',[]),f'base active entry missing {rel}')
 require('js/ux/family-home.v3968_0.js' not in active.get('jsEntry',[]),'old home remains active')
 for rel in ['../shared/ui/shell/family-shell.v3970_0.css','../shared/ui/components/family-plan-entry.v3970_0.css']:
  require(rel in active.get('cssEntry',[]),f'active css missing {rel}')
@@ -113,4 +149,18 @@ require(int(admission.get('schoolCount',0))>=900,'admission school count too sma
 
 if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
-print(json.dumps({'ok':True,'version':'v3.9.72.2','assetReleaseVersion':'v3.9.70.0','requiredFiles':len(required),'homeRuntime':'family-home-runtime-v3970_0','industryMap':'/Public_company/','homeHtmlCache':'revalidate','homeRuntimeCache':'immutable','admissionSchools':admission.get('schoolCount'),'admissionRecords':admission.get('admissionRecordCount')},ensure_ascii=False,indent=2))
+print(json.dumps({
+ 'ok':True,
+ 'version':'v3.9.72.2',
+ 'assetReleaseVersion':'v3.9.70.0',
+ 'requiredFiles':len(required),
+ 'homeRuntime':'family-home-runtime-v3970_0',
+ 'interactionRuntime':'resource-execution-v3972_4',
+ 'interactionTransaction':'interaction-transaction-v3972_4',
+ 'workspace':'selection-workspace-orchestration-v3972_4',
+ 'industryMap':'/Public_company/',
+ 'homeHtmlCache':'revalidate',
+ 'homeRuntimeCache':'immutable',
+ 'admissionSchools':admission.get('schoolCount'),
+ 'admissionRecords':admission.get('admissionRecordCount')
+},ensure_ascii=False,indent=2))
