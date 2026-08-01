@@ -1,24 +1,31 @@
-import { LN_RANK_INTERACTION_RUNTIME_CONTRACT } from '../../resources/release/interaction-runtime-contract.v3972_5.js?v=3972_5';
+import { SITE_RUNTIME_CONTRACT } from '../../resources/release/site-runtime-contract.v3972_5.js?v=3972_5';
 
 const VERSION = 'interaction-transaction-v3972_5';
+const GENERATION = SITE_RUNTIME_CONTRACT.generation;
 const CONTROL_SELECTOR = 'select,input,textarea,[contenteditable="true"]';
 const NAVIGATION_SELECTOR = '[data-ui-navigation][data-ui-navigation-target]';
 const LEGACY_DISCLOSURE_ID = 'familyConditionsDetails';
 const DISCLOSURE_ID = 'familyConditionsDisclosure';
-const QUARANTINE_MS = LN_RANK_INTERACTION_RUNTIME_CONTRACT.policies.nativeChooserQuarantineMs;
-const POINTER_ACTIVATION_MS = 2400;
+const MIN_TAIL_GUARD_MS = 900;
+const MAX_STABILIZE_MS = 4200;
+const POINTER_ACTIVATION_MS = 1800;
 const ACTIVE_SAFETY_MS = 30000;
+const REQUIRED_STABLE_FRAMES = Number(SITE_RUNTIME_CONTRACT.policies.nativeChooserRequiresStableFrames || 2);
+const GEOMETRY_EPSILON = 0.75;
 
 const state = {
   sequence: 0,
   phase: 'booting',
   phaseReason: 'booting',
   activeControl: null,
-  quarantineUntil: 0,
-  releaseTimer: 0,
+  transactionStartedAt: 0,
+  minReleaseAt: 0,
+  maxReleaseAt: 0,
+  stableFrames: 0,
+  lastLayoutSnapshot: null,
+  rafId: 0,
   safetyTimer: 0,
   pointerAction: null,
-  pointerAt: 0,
   lastPhysicalTarget: null,
   lastPhysicalAt: 0,
   blockedNavigations: 0,
@@ -26,7 +33,9 @@ const state = {
   disclosure: null,
   scoreDisclosureOpen: false,
   resultMode: 'score-bands',
-  internalDisclosureChange: false
+  internalDisclosureChange: false,
+  observer: null,
+  readyResolvers: []
 };
 
 function now() {
@@ -53,7 +62,9 @@ function navigationContainer(action) {
 }
 
 function emit(name, detail) {
-  document.dispatchEvent(new CustomEvent(name, { detail: Object.freeze({ version: VERSION, ...detail }) }));
+  document.dispatchEvent(new CustomEvent(name, {
+    detail: Object.freeze({ version: VERSION, generation: GENERATION, ...detail })
+  }));
 }
 
 function clearTimer(name) {
@@ -62,27 +73,37 @@ function clearTimer(name) {
   state[name] = 0;
 }
 
+function cancelFrame() {
+  if (!state.rafId) return;
+  globalThis.cancelAnimationFrame(state.rafId);
+  state.rafId = 0;
+}
+
 function setBodyState() {
   const body = document.body;
   if (!body) return;
   body.dataset.uiInteractionVersion = VERSION;
   body.dataset.uiInteractionTransaction = state.phase;
   body.dataset.uiNavigationOwner = VERSION;
+  body.dataset.siteRuntimeGeneration = GENERATION;
 }
 
 function setNavigationAvailability(enabled, reason) {
+  const containers = new Set();
   for (const action of navigationActions()) {
     action.dataset.uiNavigationOwner = VERSION;
     action.dataset.uiNavigationEnabled = String(Boolean(enabled));
     action.disabled = !enabled;
     action.setAttribute('aria-disabled', String(!enabled));
     const container = navigationContainer(action);
-    if (container) {
-      container.dataset.uiNavigationOwner = VERSION;
-      container.dataset.uiNavigationPhase = state.phase;
-      container.dataset.uiNavigationReason = reason;
-      if ('inert' in container) container.inert = !enabled;
-    }
+    if (container) containers.add(container);
+  }
+  for (const container of containers) {
+    container.dataset.uiNavigationOwner = VERSION;
+    container.dataset.uiNavigationPhase = state.phase;
+    container.dataset.uiNavigationReason = reason;
+    container.toggleAttribute('inert', !enabled);
+    if ('inert' in container) container.inert = !enabled;
   }
 }
 
@@ -95,51 +116,166 @@ function setPhase(phase, reason) {
     sequence: state.sequence,
     phase,
     reason,
-    controlId: state.activeControl?.id || ''
+    controlId: state.activeControl?.id || '',
+    stableFrames: state.stableFrames
+  });
+  if (phase === 'ready') {
+    const resolvers = state.readyResolvers.splice(0);
+    for (const resolve of resolvers) resolve(getPublicState());
+  }
+}
+
+function rounded(value) {
+  return Math.round(Number(value || 0) * 4) / 4;
+}
+
+function rectSnapshot(selector) {
+  const node = document.querySelector(selector);
+  if (!(node instanceof Element)) return null;
+  const rect = node.getBoundingClientRect();
+  return {
+    top: rounded(rect.top),
+    left: rounded(rect.left),
+    width: rounded(rect.width),
+    height: rounded(rect.height)
+  };
+}
+
+function layoutSnapshot() {
+  const viewport = globalThis.visualViewport;
+  const scrolling = document.scrollingElement || document.documentElement;
+  return {
+    scrollX: rounded(globalThis.scrollX),
+    scrollY: rounded(globalThis.scrollY),
+    scrollHeight: rounded(scrolling?.scrollHeight),
+    scrollWidth: rounded(scrolling?.scrollWidth),
+    viewportWidth: rounded(viewport?.width || globalThis.innerWidth),
+    viewportHeight: rounded(viewport?.height || globalThis.innerHeight),
+    viewportOffsetTop: rounded(viewport?.offsetTop || 0),
+    viewportOffsetLeft: rounded(viewport?.offsetLeft || 0),
+    viewportScale: rounded(viewport?.scale || 1),
+    disclosure: rectSnapshot(`#${DISCLOSURE_ID}`),
+    filterPanel: rectSnapshot('.ln-filter-panel'),
+    mobileDirtyBar: rectSnapshot('#mobileDirtyBar'),
+    resultsPanel: rectSnapshot('#resultsPanel'),
+    auxiliaryEntry: rectSnapshot('.aux-background-entry')
+  };
+}
+
+function nearlyEqual(a, b) {
+  if (a === b) return true;
+  if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) <= GEOMETRY_EPSILON;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) if (!nearlyEqual(a[key], b[key])) return false;
+  return true;
+}
+
+function stopObserver() {
+  state.observer?.disconnect?.();
+  state.observer = null;
+}
+
+function markLayoutUnstable(reason = 'layout-change') {
+  if (state.phase === 'ready' || state.phase === 'booting') return;
+  state.stableFrames = 0;
+  state.lastLayoutSnapshot = null;
+  state.phaseReason = reason;
+  scheduleStabilityFrame();
+}
+
+function startObserver() {
+  stopObserver();
+  const root = document.querySelector('.ln-page-shell') || document.body;
+  if (!root || !globalThis.MutationObserver) return;
+  state.observer = new MutationObserver(() => markLayoutUnstable('dom-mutation'));
+  state.observer.observe(root, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['hidden', 'open', 'class', 'style', 'aria-expanded', 'aria-busy']
   });
 }
 
-function releaseToReady(sequence, reason = 'quarantine-complete') {
+function releaseToReady(sequence, reason = 'layout-stable') {
   if (sequence !== state.sequence) return;
-  if (state.phase === 'native-chooser-quarantine' && now() < state.quarantineUntil) return;
-  clearTimer('releaseTimer');
+  cancelFrame();
   clearTimer('safetyTimer');
+  stopObserver();
   state.activeControl = null;
-  state.quarantineUntil = 0;
+  state.transactionStartedAt = 0;
+  state.minReleaseAt = 0;
+  state.maxReleaseAt = 0;
+  state.stableFrames = 0;
+  state.lastLayoutSnapshot = null;
   state.pointerAction = null;
-  state.pointerAt = 0;
   setPhase('ready', reason);
+}
+
+function stabilityFrame(sequence) {
+  state.rafId = 0;
+  if (sequence !== state.sequence || state.phase !== 'native-chooser-stabilizing') return;
+
+  const stamp = now();
+  const snapshot = layoutSnapshot();
+  if (state.lastLayoutSnapshot && nearlyEqual(snapshot, state.lastLayoutSnapshot)) state.stableFrames += 1;
+  else state.stableFrames = 0;
+  state.lastLayoutSnapshot = snapshot;
+
+  const minGuardComplete = stamp >= state.minReleaseAt;
+  const layoutStable = state.stableFrames >= REQUIRED_STABLE_FRAMES;
+  if (minGuardComplete && layoutStable) {
+    releaseToReady(sequence, 'lifecycle-and-layout-stable');
+    return;
+  }
+  if (stamp >= state.maxReleaseAt) {
+    releaseToReady(sequence, 'bounded-stability-release');
+    return;
+  }
+  scheduleStabilityFrame();
+}
+
+function scheduleStabilityFrame() {
+  if (state.rafId || state.phase !== 'native-chooser-stabilizing') return;
+  const sequence = state.sequence;
+  state.rafId = globalThis.requestAnimationFrame(() => stabilityFrame(sequence));
 }
 
 function enterNativeChooser(control, reason) {
   if (!isNativeChooser(control)) return;
-  clearTimer('releaseTimer');
+  cancelFrame();
   clearTimer('safetyTimer');
-  if (state.phase !== 'native-chooser-active' || state.activeControl !== control) state.sequence += 1;
+  stopObserver();
+  if (state.phase === 'ready' || state.activeControl !== control) state.sequence += 1;
   state.activeControl = control;
-  state.quarantineUntil = 0;
+  state.transactionStartedAt = now();
+  state.minReleaseAt = 0;
+  state.maxReleaseAt = 0;
+  state.stableFrames = 0;
+  state.lastLayoutSnapshot = null;
   state.pointerAction = null;
-  state.pointerAt = 0;
   setPhase('native-chooser-active', reason);
   const sequence = state.sequence;
   state.safetyTimer = globalThis.setTimeout(() => {
     if (sequence !== state.sequence || state.phase !== 'native-chooser-active') return;
-    beginQuarantine(control, 'native-chooser-safety-release');
+    beginStabilization(control, 'native-chooser-safety-close');
   }, ACTIVE_SAFETY_MS);
 }
 
-function beginQuarantine(control, reason) {
-  if (!isNativeChooser(control) && state.phase !== 'native-chooser-active') return;
-  clearTimer('releaseTimer');
+function beginStabilization(control, reason) {
+  if (!isNativeChooser(control) && state.phase === 'ready') return;
   clearTimer('safetyTimer');
-  if (state.phase !== 'native-chooser-active') state.sequence += 1;
+  if (state.phase === 'ready') state.sequence += 1;
   state.activeControl = isNativeChooser(control) ? control : state.activeControl;
-  state.quarantineUntil = now() + QUARANTINE_MS;
+  const stamp = now();
+  state.minReleaseAt = Math.max(state.minReleaseAt, stamp + MIN_TAIL_GUARD_MS);
+  state.maxReleaseAt = Math.max(state.maxReleaseAt, stamp + MAX_STABILIZE_MS);
+  state.stableFrames = 0;
+  state.lastLayoutSnapshot = null;
   state.pointerAction = null;
-  state.pointerAt = 0;
-  setPhase('native-chooser-quarantine', reason);
-  const sequence = state.sequence;
-  state.releaseTimer = globalThis.setTimeout(() => releaseToReady(sequence), QUARANTINE_MS + 40);
+  setPhase('native-chooser-stabilizing', reason);
+  startObserver();
+  scheduleStabilityFrame();
 }
 
 function blockNavigation(event, action, reason) {
@@ -172,12 +308,15 @@ function rememberPhysicalStart(event) {
   if (!action) return;
   if (state.phase !== 'ready' || action.disabled) {
     state.pointerAction = null;
-    state.pointerAt = 0;
     blockNavigation(event, action, `navigation-start-during-${state.phase}`);
     return;
   }
-  state.pointerAction = action;
-  state.pointerAt = stamp;
+  state.pointerAction = Object.freeze({
+    action,
+    at: stamp,
+    pointerId: Number(event.pointerId || 0),
+    eventType: event.type
+  });
 }
 
 function guardPhysicalEnd(event) {
@@ -197,9 +336,8 @@ function activateNavigation(event) {
   }
 
   const keyboardActivation = Number(event.detail || 0) === 0 && document.activeElement === action;
-  const pointerActivation = state.pointerAction === action && now() - state.pointerAt <= POINTER_ACTIVATION_MS;
+  const pointerActivation = state.pointerAction?.action === action && now() - state.pointerAction.at <= POINTER_ACTIVATION_MS;
   state.pointerAction = null;
-  state.pointerAt = 0;
 
   if (!keyboardActivation && !pointerActivation) {
     blockNavigation(event, action, 'navigation-without-owned-activation');
@@ -212,13 +350,25 @@ function activateNavigation(event) {
     return;
   }
 
+  let destination;
+  try {
+    destination = new URL(target, location.href);
+  } catch {
+    blockNavigation(event, action, 'navigation-target-invalid');
+    return;
+  }
+  if (destination.origin !== location.origin) {
+    blockNavigation(event, action, 'navigation-target-cross-origin');
+    return;
+  }
+
   state.acceptedNavigations += 1;
   emit('gaokao:navigation-accepted', {
     sequence: state.sequence,
-    target,
+    target: `${destination.pathname}${destination.search}${destination.hash}`,
     activation: keyboardActivation ? 'keyboard' : 'pointer'
   });
-  location.assign(target);
+  location.assign(destination.href);
 }
 
 function setDisclosureOpen(open, reason) {
@@ -256,8 +406,14 @@ function installDisclosureOwnership() {
     state.scoreDisclosureOpen = legacyTarget.open;
   });
 
-  document.addEventListener('gaokao:workspace-state', event => syncDisclosureMode(event.detail?.mode, 'workspace-state'));
-  document.addEventListener('gaokao:result-mode-change', event => syncDisclosureMode(event.detail?.mode, 'result-mode-change'));
+  document.addEventListener('gaokao:workspace-state', event => {
+    syncDisclosureMode(event.detail?.mode, 'workspace-state');
+    markLayoutUnstable(`workspace-${event.detail?.reason || 'state'}`);
+  });
+  document.addEventListener('gaokao:result-mode-change', event => {
+    syncDisclosureMode(event.detail?.mode, 'result-mode-change');
+    markLayoutUnstable('result-mode-change');
+  });
 }
 
 function bind() {
@@ -272,22 +428,52 @@ function bind() {
     const control = closestElement(event.target, CONTROL_SELECTOR);
     if (isNativeChooser(control)) enterNativeChooser(control, 'focusin');
   }, true);
-  document.addEventListener('focusout', event => {
+  document.addEventListener('input', event => {
     const control = closestElement(event.target, CONTROL_SELECTOR);
-    if (isNativeChooser(control) && state.activeControl === control) beginQuarantine(control, 'focusout');
+    if (isNativeChooser(control)) beginStabilization(control, 'input');
   }, true);
   document.addEventListener('change', event => {
     const control = closestElement(event.target, CONTROL_SELECTOR);
-    if (isNativeChooser(control)) beginQuarantine(control, 'change');
+    if (isNativeChooser(control)) beginStabilization(control, 'change');
+  }, true);
+  document.addEventListener('focusout', event => {
+    const control = closestElement(event.target, CONTROL_SELECTOR);
+    if (isNativeChooser(control) && state.activeControl === control) beginStabilization(control, 'focusout');
   }, true);
   document.addEventListener('click', activateNavigation, true);
 
+  globalThis.addEventListener('resize', () => markLayoutUnstable('window-resize'), true);
+  globalThis.addEventListener('scroll', () => markLayoutUnstable('window-scroll'), true);
+  globalThis.visualViewport?.addEventListener('resize', () => markLayoutUnstable('visual-viewport-resize'));
+  globalThis.visualViewport?.addEventListener('scroll', () => markLayoutUnstable('visual-viewport-scroll'));
+
   globalThis.addEventListener('pagehide', () => {
-    clearTimer('releaseTimer');
+    cancelFrame();
     clearTimer('safetyTimer');
+    stopObserver();
     state.activeControl = null;
-    state.quarantineUntil = 0;
     state.pointerAction = null;
+  });
+}
+
+function getPublicState() {
+  return Object.freeze({
+    sequence: state.sequence,
+    phase: state.phase,
+    phaseReason: state.phaseReason,
+    settling: state.phase !== 'ready',
+    activeControlId: state.activeControl?.id || '',
+    minGuardRemainingMs: Math.max(0, Math.ceil(state.minReleaseAt - now())),
+    stableFrames: state.stableFrames,
+    requiredStableFrames: REQUIRED_STABLE_FRAMES,
+    blockedNavigations: state.blockedNavigations,
+    acceptedNavigations: state.acceptedNavigations,
+    disclosureOpen: Boolean(state.disclosure?.open),
+    scoreDisclosureOpen: state.scoreDisclosureOpen,
+    resultMode: state.resultMode,
+    disclosureOwner: state.disclosure?.dataset.uiDisclosureOwner || '',
+    auxiliaryNavigationOwner: VERSION,
+    generation: GENERATION
   });
 }
 
@@ -297,21 +483,11 @@ setPhase('ready', 'initialized');
 
 globalThis.__GAOKAO_INTERACTION_TRANSACTION__ = Object.freeze({
   version: VERSION,
-  contractVersion: LN_RANK_INTERACTION_RUNTIME_CONTRACT.version,
+  generation: GENERATION,
+  contractVersion: SITE_RUNTIME_CONTRACT.version,
   disclosureId: DISCLOSURE_ID,
-  getState: () => Object.freeze({
-    sequence: state.sequence,
-    phase: state.phase,
-    phaseReason: state.phaseReason,
-    settling: state.phase !== 'ready',
-    activeControlId: state.activeControl?.id || '',
-    quarantineRemainingMs: Math.max(0, Math.ceil(state.quarantineUntil - now())),
-    blockedNavigations: state.blockedNavigations,
-    acceptedNavigations: state.acceptedNavigations,
-    disclosureOpen: Boolean(state.disclosure?.open),
-    scoreDisclosureOpen: state.scoreDisclosureOpen,
-    resultMode: state.resultMode,
-    disclosureOwner: state.disclosure?.dataset.uiDisclosureOwner || '',
-    auxiliaryNavigationOwner: VERSION
-  })
+  getState: getPublicState,
+  waitUntilReady: () => state.phase === 'ready'
+    ? Promise.resolve(getPublicState())
+    : new Promise(resolve => state.readyResolvers.push(resolve))
 });
