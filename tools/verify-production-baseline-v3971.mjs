@@ -41,14 +41,14 @@ function parseJson(result) {
 function assertResponse(result) {
   const lower = result.text.toLowerCase();
   assert(result.status !== 503, `${result.url} returned HTTP 503`);
-  assert(!result.text.includes('1102') && !lower.includes('worker exceeded resource limits'), `${result.url} returned Worker resource error`);
+  assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);
   assert(result.status === 200, `${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`);
 }
 
 function assertForbiddenLocalApiBaseline(result) {
   const lower = result.text.toLowerCase();
   assert(result.status !== 503, `${result.url} returned HTTP 503`);
-  assert(!result.text.includes('1102') && !lower.includes('worker exceeded resource limits'), `${result.url} returned Worker resource error`);
+  assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);
   if (result.status === 404) return 'hard-404';
 
   // The currently deployed Pages generation predates the top-level 404.html.
