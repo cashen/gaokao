@@ -1,7 +1,5 @@
-import { loadManifest } from '../_lib/ln-rank-manifest.js';
-import { streamFenxiChunkRecords } from '../_lib/fenxi-fetcher.js';
-import { normalizeRecord, rawScore, rawSchool } from '../_lib/fenxi-normalizer.js';
-import { buildLightweightMajorBandRecord, materializeMajorBandRecord } from '../_lib/major-bands-lightweight-record.js';
+import { loadMajorBandsStaticWindow, materializeMajorBandsStaticRecord } from '../_lib/major-bands-static-provider.js';
+import { rawSchool } from '../_lib/fenxi-normalizer.js';
 import { makeBands } from '../_lib/band-engine.js';
 import { matchRegion } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
@@ -9,16 +7,13 @@ import {
   normalizeBottomLineMode,
   getBottomLineEligibility,
   getBottomLineSortWeight,
-  bottomLineModeSummary,
-  enrichBottomLineFields
+  bottomLineModeSummary
 } from '../_lib/bottomline-policy.js';
 import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.js';
 import { matchMajorProject } from '../_lib/major-project-matcher.js';
 import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
-import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
-import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
 import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
 import { resolveAdmissionSchoolQuery } from '../_lib/school-query-provider.v3969.js';
 import { SCHOOL_QUERY_CONTRACT_VERSION, SCHOOL_QUERY_STATUSES, normalizeSchoolQueryIntent } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
@@ -88,17 +83,6 @@ function minMaxScore(bands) {
   };
 }
 
-function chunkFile(chunk) {
-  return chunk?.file || chunk?.path || '';
-}
-
-function chunkIntersectsScoreWindow(chunk, window) {
-  const min = Number(chunk?.minScore);
-  const max = Number(chunk?.maxScore);
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return true;
-  return max >= window.min && min <= window.max;
-}
-
 function normalizeSchoolName(value) {
   return clean(value, 120)
     .normalize('NFKC')
@@ -129,22 +113,8 @@ function explicitSpecialProjectIntent(value = '') {
   return /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(String(value || ''));
 }
 
-function enrichMajorCodeFields(record) {
-  if (!record.codes) record.codes = normalizeFenxiCodes(record);
-  if (!record.standardMajor) {
-    const mappedStandardMajor = mapStandardMajor({
-      majorName: record.major,
-      standardMajorCode: record.codes.standardMajorCode || (record.codes.rawFenxiMajorCodeLooksStandard ? record.codes.rawFenxiMajorCode : '')
-    });
-    record.standardMajor = mappedStandardMajor;
-    if (!record.codes.standardMajorCode && mappedStandardMajor?.code) record.codes.standardMajorCode = mappedStandardMajor.code;
-  }
-  return record;
-}
-
 function finalizeRecordForResponse(record) {
-  const materialized = materializeMajorBandRecord(record);
-  const item = enrichMajorCodeFields(materialized);
+  const item = materializeMajorBandsStaticRecord(record);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -207,7 +177,6 @@ function rankLabel(context) {
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);
   const started = Date.now();
-  let failedChunk = '';
 
   try {
     const url = new URL(context.request.url);
@@ -264,11 +233,10 @@ export async function onRequest(context) {
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const hasKeywordSearch = hasKeywordFilters(keywordQuery);
-    const useLightweightRanking = !hasKeywordSearch && filters.region === 'all';
     const specialIntent = explicitSpecialProjectIntent(filters.majorKeyword);
-    const manifest = await loadManifest(context.request, context.env || {});
-    const allChunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-    const chunks = allChunks.filter(chunk => chunkIntersectsScoreWindow(chunk, scoreWindow));
+    const staticWindow = await loadMajorBandsStaticWindow(context.request, scoreWindow);
+    const manifest = staticWindow.manifest;
+    const sourceRecords = staticWindow.records;
     const candidateRank = rankContextForScore(candidateScore);
     for (const key of ['upper', 'near', 'steady']) {
       const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' }));
@@ -292,96 +260,82 @@ export async function onRequest(context) {
     let specialProjectShown = 0;
     const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
 
-    for (const chunk of chunks) {
-      const file = chunkFile(chunk);
-      if (!file) continue;
-      try {
-        for await (const raw of streamFenxiChunkRecords(context.request, context.env || {}, file, {
-          scoreWindow,
-          onRawRecord: () => { rawTotal += 1; }
-        })) {
-          const score = rawScore(raw);
-          if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
-          if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
-          rawCandidate += 1;
+    for (const raw of sourceRecords) {
+      rawTotal += 1;
+      const score = Number(raw.score2026 ?? raw.score);
+      if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
+      if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
+      rawCandidate += 1;
 
-          const record = useLightweightRanking
-            ? buildLightweightMajorBandRecord(raw)
-            : { ...normalizeRecord(raw) };
-          record.rawText = hasKeywordSearch ? JSON.stringify(raw).slice(0, 900) : '';
-          if (hasKeywordSearch) enrichMajorCodeFields(record);
-          if (filters.bottomLineMode !== 'all') Object.assign(record, enrichBottomLineFields(record));
-          if (!record.school || !record.major || !Number.isFinite(record.score)) continue;
-          if (!matchRegion(record, filters.region)) continue;
-          if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
-          if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
+      const record = { ...raw };
+      if (!record.school || !record.major || !Number.isFinite(Number(record.score2026))) continue;
+      if (!matchRegion(record, filters.region)) continue;
+      if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
+      if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
 
-          const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
-          if (!match.matched) {
-            majorKeywordExcluded += 1;
-            continue;
-          }
-          record.matchBadges = match.badges;
-          record.matchLevel = match.matchLevel || '';
-          record.matchLabel = match.matchLabel || '';
-          record.matchReason = match.matchReason || match.reason || '';
-          record.matchedKeyword = match.matchedKeyword || '';
-          record.matchedTerms = match.matchedTerms || [];
-          record.matchScore = match.score;
+      const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
+      if (!match.matched) {
+        majorKeywordExcluded += 1;
+        continue;
+      }
+      record.matchBadges = match.badges;
+      record.matchLevel = match.matchLevel || '';
+      record.matchLabel = match.matchLabel || '';
+      record.matchReason = match.matchReason || match.reason || '';
+      record.matchedKeyword = match.matchedKeyword || '';
+      record.matchedTerms = match.matchedTerms || [];
+      record.matchScore = match.score;
 
-          const bottomLineEligibility = filters.bottomLineMode === 'all'
-            ? { status: 'pass', reason: 'mode_does_not_exclude', record }
-            : getBottomLineEligibility(record, filters.bottomLineMode);
-          if (bottomLineEligibility.status === 'fail') {
-            bottomLineExcluded += 1;
-            continue;
-          }
-          if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
+      const bottomLineEligibility = filters.bottomLineMode === 'all'
+        ? { status: 'pass', reason: 'mode_does_not_exclude', record }
+        : getBottomLineEligibility(record, filters.bottomLineMode);
+      if (bottomLineEligibility.status === 'fail') {
+        bottomLineExcluded += 1;
+        continue;
+      }
+      if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
 
-          const specialProject = detectSpecialProject(record);
-          const hideSpecial = specialProject.hasSpecialProject
-            && !specialIntent
-            && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
-          if (hideSpecial) {
-            specialProjectHidden += 1;
-            addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
-            continue;
-          }
-          if (specialProject.hasSpecialProject) {
-            specialProjectShown += 1;
-            Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
-            record.specialProjectExplicitIntent = specialIntent;
-          } else {
-            record.specialProject = specialProject;
-          }
+      const specialProject = record.specialProject?.hasSpecialProject != null
+        ? record.specialProject
+        : detectSpecialProject(record);
+      const hideSpecial = specialProject.hasSpecialProject
+        && !specialIntent
+        && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
+      if (hideSpecial) {
+        specialProjectHidden += 1;
+        addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
+        continue;
+      }
+      if (specialProject.hasSpecialProject) {
+        specialProjectShown += 1;
+        Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
+        record.specialProjectExplicitIntent = specialIntent;
+      } else {
+        record.specialProject = specialProject;
+      }
 
-          normalized += 1;
-          if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
-          if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
-          if (record.matchLevel === 'project') projectHitCount += 1;
-          if (record.matchLevel === 'industry') industryHitCount += 1;
+      normalized += 1;
+      if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
+      if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
+      if (record.matchLevel === 'project') projectHitCount += 1;
+      if (record.matchLevel === 'industry') industryHitCount += 1;
 
-          const added = pushRecord(grouped, record, {
-            candidateScore,
-            candidateRank,
-            rangePreset,
-            bottomLineEligibility
-          });
-          if (added) {
-            const band = resolveCanonicalPosition({
-              candidateScore,
-              candidateRank: candidateRank?.rankForGap,
-              recordScore: record.score2026 ?? record.score,
-              recordRank: record.rank2026 ?? record.rank,
-              rangePreset
-            }).bandKey;
-            grouped[band].scanned += 1;
-            if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
-          }
-        }
-      } catch (error) {
-        failedChunk = file;
-        throw error;
+      const added = pushRecord(grouped, record, {
+        candidateScore,
+        candidateRank,
+        rangePreset,
+        bottomLineEligibility
+      });
+      if (added) {
+        const band = resolveCanonicalPosition({
+          candidateScore,
+          candidateRank: candidateRank?.rankForGap,
+          recordScore: record.score2026 ?? record.score,
+          recordRank: record.rank2026 ?? record.rank,
+          rangePreset
+        }).bandKey;
+        grouped[band].scanned += 1;
+        if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
       }
     }
 
@@ -488,13 +442,15 @@ export async function onRequest(context) {
       source: {
         dataYear: 2026,
         manifestVersion: manifest.version || '',
-        totalRecords: manifest.totalRecords || rawTotal,
-        chunksTotal: allChunks.length,
-        chunksRead: chunks.length,
-        chunksSkipped: allChunks.length - chunks.length,
+        architecture: manifest.architecture,
+        totalRecords: manifest.recordCount || rawTotal,
+        chunksTotal: manifest.buckets?.length || 0,
+        chunksRead: staticWindow.buckets.length,
+        chunksSkipped: Math.max(0, Number(manifest.buckets?.length || 0) - staticWindow.buckets.length),
         rawScanned: rawTotal,
         rawCandidate,
         normalized,
+        staticIndexBytes: staticWindow.bytes,
         bottomLineExcluded,
         bottomLineUnresolved,
         majorKeywordExcluded,
@@ -505,8 +461,7 @@ export async function onRequest(context) {
         specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        lightweightRanking: useLightweightRanking,
-        mode: 'score-prefilter-streamed-chunks-lightweight-ranking-delayed-full-normalization-canonical-staged-ranked-paged'
+        mode: 'build-time-static-score-index-request-scoped-buckets-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
@@ -514,8 +469,8 @@ export async function onRequest(context) {
       ok: false,
       message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: `请检查 2026 ln-rank manifest、算法统一调度模块、年份配置和当前查询参数。${failedChunk ? `失败分片：${failedChunk}` : ''}`,
-      hint: '可先打开 /api/major-bands-health?probe=1 检查数据读取；活动数据路径是 /fenxi/data/ln-rank-2026/。'
+      engineerHint: '请检查 major-bands-static-v3972_2 构建期分数索引、算法统一调度模块和当前查询参数。',
+      hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；运行时专业查询使用构建期静态分数索引。'
     }, 500);
   }
 }
