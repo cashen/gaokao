@@ -55,12 +55,12 @@ jobs:
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
           if(manifest.version!=='major-bands-static-v3972_2') throw new Error('static version');
-          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array') throw new Error('static architecture');
+          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static architecture');
           if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('static count');
           if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static coverage');
           if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('static integrity');
           if(!Array.isArray(manifest.buckets)||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
-          if(audit.indexBytes>15000000) throw new Error(`static index budget ${audit.indexBytes}`);
+          if(audit.indexBytes>8500000) throw new Error(`static index budget ${audit.indexBytes}`);
           console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes},null,2));
           NODE
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
