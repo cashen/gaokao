@@ -1,0 +1,42 @@
+name: Patch exact Cloudflare 1102 detection
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/patch-major-bands-1102-detection.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+      - name: Replace false-positive substring detection
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('functions/api/major-bands.js')
+          source=path.read_text()
+          old="response.status === 503 || text.includes('1102') || lower.includes('worker exceeded resource limits')"
+          new="response.status === 503 || lower.includes('worker exceeded resource limits') || lower.includes('<title>error 1102') || lower.includes('error code: 1102')"
+          if old not in source:
+              if new in source:
+                  print('exact Cloudflare 1102 detection already patched')
+                  raise SystemExit(0)
+              raise SystemExit('expected old detection expression not found')
+          path.write_text(source.replace(old,new,1))
+          PY
+          git add functions/api/major-bands.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(worker): avoid false-positive 1102 payload matches'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
