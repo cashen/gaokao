@@ -33,7 +33,7 @@ jobs:
           node --check tools/verify-production-baseline-v3971.mjs
           test -f 404.html
           grep -q '页面不存在' 404.html
-          grep -q 'static-major-bands-v3972-2' 404.html
+          grep -q 'static-major-bands-atomic-v2' 404.html
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
@@ -120,7 +120,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             marker="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/404.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'static-major-bands-v3972-2' <<<"$marker"; then
+            if grep -q 'static-major-bands-atomic-v2' <<<"$marker"; then
               ready=1
               break
             fi
