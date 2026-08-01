@@ -1,20 +1,24 @@
-import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js?v=3971_2';
+import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js?v=3972_3';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const fmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString('zh-CN') : '—';
 const INDEX_URL = '/ln-rank/data/local-strength/local-strength-index.v3971_2.json?v=3971_2';
+const RANK_URL = '/fenxi/data/rank_2026_physics.json?v=3972_3';
+const SCORE_POSITION_VERSION = 'local-strength-score-position-v3972_3';
+const SCORE_POSITION_GROUPS = new Set(['near', 'upper', 'lower', 'band']);
 
 const state = {
   index: null,
+  rankMap: null,
   meta: null,
   schools: [],
   directions: [],
   scoreBands: [],
   records: [],
   view: 'list_all',
-  scoreView: { score: '', band: '' },
+  scoreView: { score: '', band: '', positionGroup: 'near' },
   schoolView: { school: '' },
   listView: { q: '', minScore: '', maxScore: '' },
   commonFilters: { direction: '', evidence: '', city: '', projectMode: 'all' },
@@ -37,12 +41,16 @@ function normalizeText(value) {
 function readUrl() {
   const params = new URLSearchParams(location.search);
   const legacyScore = params.get('score');
+  const legacyBand = params.get('band');
   const legacySchool = params.get('school');
   const legacyMajor = params.get('major');
-  state.view = params.get('view') || (legacyScore ? 'score' : legacySchool ? 'school' : 'list_all');
+  state.view = params.get('view') || (legacyScore || legacyBand ? 'score' : legacySchool ? 'school' : 'list_all');
   if (!['score', 'school', 'list_all'].includes(state.view)) state.view = 'list_all';
   state.scoreView.score = legacyScore || params.get('candidateScore') || '';
-  state.scoreView.band = params.get('band') || '';
+  state.scoreView.band = legacyBand || '';
+  const requestedGroup = params.get('group') || (state.scoreView.band ? 'band' : 'near');
+  state.scoreView.positionGroup = SCORE_POSITION_GROUPS.has(requestedGroup) ? requestedGroup : 'near';
+  if (state.scoreView.band) state.scoreView.positionGroup = 'band';
   state.schoolView.school = legacySchool || '';
   state.listView.q = params.get('q') || legacyMajor || '';
   state.listView.minScore = params.get('minScore') || '';
@@ -61,6 +69,7 @@ function writeUrl(replace = false) {
   if (state.view === 'score') {
     if (state.scoreView.score) params.set('score', state.scoreView.score);
     if (state.scoreView.band) params.set('band', state.scoreView.band);
+    if (state.scoreView.score && state.scoreView.positionGroup !== 'near') params.set('group', state.scoreView.positionGroup);
   } else if (state.view === 'school') {
     if (state.schoolView.school) params.set('school', state.schoolView.school);
   } else {
@@ -77,14 +86,19 @@ function writeUrl(replace = false) {
   history[replace ? 'replaceState' : 'pushState'](null, '', query ? `${location.pathname}?${query}` : location.pathname);
 }
 
-async function getStaticIndex() {
-  const response = await fetch(INDEX_URL, { headers: { accept: 'application/json' }, cache: 'force-cache' });
-  if (!response.ok) throw new Error(`静态目录读取失败（${response.status}）`);
-  const data = await response.json();
+async function getStaticResources() {
+  const [indexResponse, rankResponse] = await Promise.all([
+    fetch(INDEX_URL, { headers: { accept: 'application/json' }, cache: 'force-cache' }),
+    fetch(RANK_URL, { headers: { accept: 'application/json' }, cache: 'force-cache' })
+  ]);
+  if (!indexResponse.ok) throw new Error(`静态目录读取失败（${indexResponse.status}）`);
+  if (!rankResponse.ok) throw new Error(`2026位次表读取失败（${rankResponse.status}）`);
+  const [data, rankMap] = await Promise.all([indexResponse.json(), rankResponse.json()]);
   if (data.version !== 'local-strength-static-v3971_2') throw new Error('静态目录版本不匹配');
   if (!data.meta?.completeEvaluation) throw new Error('静态目录覆盖审计未完成');
   if (!Array.isArray(data.records) || data.records.length !== data.meta.matchedRecordCount) throw new Error('静态目录记录数不一致');
-  return data;
+  if (!rankMap || Number(rankMap['579']) !== 21051 || Number(rankMap['530']) !== 40119) throw new Error('2026位次表合同不匹配');
+  return { data, rankMap };
 }
 
 function setRuntime(status, message = '') {
@@ -93,7 +107,7 @@ function setRuntime(status, message = '') {
   if (!root) return;
   root.className = `ls-runtime is-${status}`;
   root.innerHTML = status === 'ready'
-    ? '<span class="ls-runtime-dot"></span><span>静态全量目录已准备</span>'
+    ? '<span class="ls-runtime-dot"></span><span>静态全量目录与位次表已准备</span>'
     : status === 'loading'
       ? '<span class="ls-runtime-dot"></span><span>正在读取静态背景目录…</span>'
       : `<span class="ls-runtime-dot"></span><span>${esc(message || '目录暂时没有读取成功')}</span>`;
@@ -106,7 +120,7 @@ function renderStats() {
   $('[data-stat-records]').textContent = fmt(meta.matchedRecordCount);
   $('[data-stat-range]').textContent = meta.scoreMin == null ? '—' : `${fmt(meta.scoreMin)}—${fmt(meta.scoreMax)}分`;
   $('[data-summary-compact]').innerHTML = `<b>${fmt(meta.localAdmissionSchoolCount)}</b>所省内院校 · <b>${fmt(meta.matchedSchoolCount)}</b>所有背景专业 · <b>${fmt(meta.matchedRecordCount)}</b>条记录`;
-  const coverageHtml = `已在构建阶段逐条检查 <b>${fmt(meta.localAdmissionRecordCount)}</b> 条省内2026物理类投档记录；公开目录收录 <b>${fmt(meta.matchedRecordCount)}</b> 条通过背景证据门禁的专业项目。页面查询和翻页只读取静态索引，不占用专业初选接口。`;
+  const coverageHtml = `已在构建阶段逐条检查 <b>${fmt(meta.localAdmissionRecordCount)}</b> 条省内2026物理类投档记录；公开目录收录 <b>${fmt(meta.matchedRecordCount)}</b> 条通过背景证据门禁的专业项目。页面查询、位次排序和翻页只读取静态资源，不占用专业初选接口。`;
   $('[data-coverage-note]').innerHTML = coverageHtml;
   $('[data-coverage-note-mobile]').innerHTML = coverageHtml;
 }
@@ -121,10 +135,28 @@ function activeScoreBand() {
   return state.scoreBands.find(item => score >= item.min && score <= item.max) || null;
 }
 
+function candidateRank() {
+  const score = Number(state.scoreView.score);
+  if (!Number.isFinite(score) || !state.rankMap) return null;
+  const rounded = Math.round(score);
+  const direct = Number(state.rankMap[String(rounded)]);
+  if (Number.isFinite(direct)) return direct;
+  const known = Object.keys(state.rankMap).map(Number).filter(Number.isFinite).sort((a, b) => Math.abs(a - rounded) - Math.abs(b - rounded));
+  return known.length ? Number(state.rankMap[String(known[0])]) : null;
+}
+
+function scoreBandMetrics(band) {
+  const records = state.records.filter(record => Number(record.score2026) >= band.min && Number(record.score2026) <= band.max);
+  return { records: records.length, schools: new Set(records.map(record => record.school)).size };
+}
+
 function renderOptions() {
   $('#schoolOptions').innerHTML = state.schools.map(item => `<option value="${esc(item.officialName)}"></option>`).join('');
   $('#directionFilter').innerHTML = '<option value="">全部背景方向</option>' + state.directions.map(item => `<option value="${esc(item.direction)}">${esc(item.direction)}（${fmt(item.count)}）</option>`).join('');
-  $('#scoreBandButtons').innerHTML = state.scoreBands.map(item => `<button type="button" class="ls-chip" data-score-band="${esc(item.key)}" aria-pressed="false">${esc(item.label)}</button>`).join('');
+  $('#scoreBandButtons').innerHTML = state.scoreBands.map(item => {
+    const metrics = scoreBandMetrics(item);
+    return `<button type="button" class="ls-chip" data-score-band="${esc(item.key)}" aria-pressed="false"><b>${esc(item.label)}</b><span>${fmt(metrics.records)}条 · ${fmt(metrics.schools)}校</span></button>`;
+  }).join('');
 }
 
 function commonFilterCount() {
@@ -159,6 +191,7 @@ function syncControls() {
   $('#minScoreFilter').value = state.listView.minScore;
   $('#maxScoreFilter').value = state.listView.maxScore;
   const band = activeScoreBand();
+  const rank = candidateRank();
   $$('#scoreBandButtons [data-score-band]').forEach(button => {
     const active = Boolean(band && button.dataset.scoreBand === band.key);
     button.classList.toggle('is-active', active);
@@ -167,7 +200,18 @@ function syncControls() {
   const disclosure = $('#scoreBandDisclosure');
   if (disclosure && !matchMedia('(max-width: 767px)').matches) disclosure.open = true;
   $('#scoreContext').hidden = !band;
-  $('#scoreContext').textContent = band ? `当前查看：${band.label}` : '';
+  $('#scoreContext').textContent = band
+    ? state.scoreView.score && rank
+      ? `${state.scoreView.score}分参考累计位次 ${fmt(rank)}；所在历史区间：${band.label}`
+      : `当前区间：${band.label}`
+    : '';
+  const positionGroups = $('#scorePositionGroups');
+  positionGroups.hidden = !(state.view === 'score' && state.scoreView.score && rank);
+  $$('#scorePositionGroups [data-position-group]').forEach(button => {
+    const active = button.dataset.positionGroup === state.scoreView.positionGroup;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
   $('#scoreError').hidden = !state.scoreValidationMessage;
   $('#scoreError').textContent = state.scoreValidationMessage;
   const canFilter = state.view === 'list_all' || state.hasLoadedResults;
@@ -226,26 +270,62 @@ function matchesQuery(record, query) {
   return normalizeText([record.school, record.major, record.city, record.displayLocation, record.background?.direction, record.background?.evidenceLabel, ...(record.schoolTags || []), ...(record.projectTags || [])].join(' ')).includes(q);
 }
 
-function filterRecords() {
+function matchesCommonFilters(record) {
+  if (state.commonFilters.direction && record.background?.direction !== state.commonFilters.direction) return false;
+  if (state.commonFilters.evidence && record.background?.evidenceLabel !== state.commonFilters.evidence) return false;
+  if (state.commonFilters.city && !normalizeText(`${record.displayLocation} ${record.city}`).includes(normalizeText(state.commonFilters.city))) return false;
+  if (state.commonFilters.projectMode === 'regular' && record.projectTags?.length) return false;
+  if (state.commonFilters.projectMode === 'special' && !record.projectTags?.length) return false;
+  return true;
+}
+
+function rankDistance(record, rank) {
+  const recordRank = Number(record.rank2026);
+  return Number.isFinite(recordRank) ? Math.abs(recordRank - rank) : Number.MAX_SAFE_INTEGER;
+}
+
+function scorePositionModel() {
   const band = activeScoreBand();
+  const score = Number(state.scoreView.score);
+  const rank = candidateRank();
+  const bandRecords = band ? state.records.filter(record => Number(record.score2026) >= band.min && Number(record.score2026) <= band.max) : [];
+  if (!Number.isFinite(score) || !Number.isFinite(rank)) {
+    return { band, candidateRank: null, group: 'band', records: bandRecords };
+  }
+  const ordered = [...state.records].sort((a, b) =>
+    rankDistance(a, rank) - rankDistance(b, rank)
+    || Math.abs(Number(a.score2026) - score) - Math.abs(Number(b.score2026) - score)
+    || Number(b.score2026) - Number(a.score2026)
+    || Number(a.rank2026) - Number(b.rank2026)
+    || String(a.school || '').localeCompare(String(b.school || ''), 'zh-CN')
+  );
+  const near = ordered.slice(0, 36);
+  // These are alternate views, not mutually exclusive buckets. Keep the
+  // closest records in upper/lower even when they also appear in “near”.
+  const upper = ordered.filter(record => Number(record.rank2026) < rank);
+  const lower = ordered.filter(record => Number(record.rank2026) > rank);
+  const groups = { near, upper, lower, band: bandRecords };
+  const group = SCORE_POSITION_GROUPS.has(state.scoreView.positionGroup) ? state.scoreView.positionGroup : 'near';
+  return { band, candidateRank: rank, group, records: groups[group], groupCounts: Object.fromEntries(Object.entries(groups).map(([key, value]) => [key, value.length])) };
+}
+
+function filterRecords() {
   const schoolStatus = state.view === 'school' ? resolveSchoolStatus(state.schoolView.school) : null;
   const schoolKey = schoolStatus ? normalizeText(schoolStatus.officialName) : '';
-  const minScore = state.view === 'score' ? band?.min : state.view === 'list_all' && state.listView.minScore ? Number(state.listView.minScore) : null;
-  const maxScore = state.view === 'score' ? band?.max : state.view === 'list_all' && state.listView.maxScore ? Number(state.listView.maxScore) : null;
   const q = state.view === 'list_all' ? state.listView.q : '';
-  const records = state.records.filter(record => {
+  const minScore = state.view === 'list_all' && state.listView.minScore ? Number(state.listView.minScore) : null;
+  const maxScore = state.view === 'list_all' && state.listView.maxScore ? Number(state.listView.maxScore) : null;
+  const scoreModel = state.view === 'score' ? scorePositionModel() : null;
+  const base = state.view === 'score' ? scoreModel.records : state.records;
+  const records = base.filter(record => {
     if (state.view === 'school' && (!schoolStatus || normalizeText(record.school) !== schoolKey)) return false;
     if (!matchesQuery(record, q)) return false;
-    if (state.commonFilters.direction && record.background?.direction !== state.commonFilters.direction) return false;
-    if (state.commonFilters.evidence && record.background?.evidenceLabel !== state.commonFilters.evidence) return false;
-    if (state.commonFilters.city && !normalizeText(`${record.displayLocation} ${record.city}`).includes(normalizeText(state.commonFilters.city))) return false;
+    if (!matchesCommonFilters(record)) return false;
     if (Number.isFinite(minScore) && Number(record.score2026) < minScore) return false;
     if (Number.isFinite(maxScore) && Number(record.score2026) > maxScore) return false;
-    if (state.commonFilters.projectMode === 'regular' && record.projectTags?.length) return false;
-    if (state.commonFilters.projectMode === 'special' && !record.projectTags?.length) return false;
     return true;
   });
-  return { records, schoolStatus };
+  return { records, schoolStatus, scoreModel };
 }
 
 function paginate(records) {
@@ -261,6 +341,7 @@ function emptyHtml(schoolStatus) {
     if (schoolStatus.recordCount2026 === 0) return `<div class="ls-empty"><h3>${esc(schoolStatus.officialName)}当前没有识别到物理类投档记录</h3><p>可能与招生科类、批次、年份或学校实体有关，不能据此判断该校不招生。</p></div>`;
   }
   if (state.view === 'school' && state.schoolView.school) return '<div class="ls-empty"><h3>没有识别到这所辽宁省内院校</h3><p>请从学校建议中选择正式名称，避免简称或校区名称歧义。</p></div>';
+  if (state.view === 'score' && state.scoreView.score) return '<div class="ls-empty"><h3>这个位置暂时没有通过背景证据门禁的专业</h3><p>可以切换“冲一冲”“稳一稳”或所在分数段。未显示不代表学校没有优势专业，也不代表录取概率为零。</p></div>';
   return '<div class="ls-empty"><h3>当前条件下没有背景专业记录</h3><p>可以放宽条件、清除筛选或换用学校正式名称。未显示不代表学校没有优势专业。</p></div>';
 }
 
@@ -298,16 +379,27 @@ function setResultsIdle(title, message) {
   syncControls();
 }
 
-function renderResultContext(page, schoolStatus) {
+function renderResultContext(page, schoolStatus, scoreModel) {
   let title = '全部背景专业';
   let desc = '按2026最低投档分从高到低排列。';
   if (state.view === 'school') {
     title = schoolStatus?.officialName || state.schoolView.school || '按学校查询';
     desc = schoolStatus ? `该校2026物理类投档专业 ${fmt(schoolStatus.recordCount2026)} 条，背景专业 ${fmt(schoolStatus.matchedRecordCount)} 条。` : '没有识别到准确学校。';
   } else if (state.view === 'score') {
-    const band = activeScoreBand();
-    title = band ? `${band.label}的省内背景专业` : '按分数位置查看';
-    desc = band ? `显示2026历史最低投档分位于${band.label}的记录。` : '输入分数或选择一个分数段。';
+    const band = scoreModel?.band || activeScoreBand();
+    const score = state.scoreView.score;
+    if (score && scoreModel?.candidateRank) {
+      const copy = {
+        near: [`${score}分附近｜${band?.label || '所在分数段'}的省内背景专业`, `按2026累计位次距离排序，先看与参考位次 ${fmt(scoreModel.candidateRank)} 最接近的公开背景专业。`],
+        upper: [`${score}分冲一冲的省内背景专业`, `最低投档位次比参考位次更靠前，按位次距离由近到远排列。`],
+        lower: [`${score}分稳一稳的省内背景专业`, `最低投档位次比参考位次更靠后，按位次距离由近到远排列。`],
+        band: [`${band?.label || `${score}分所在区间`}的省内背景专业`, `完整显示所在历史分数段内通过背景证据门禁的记录。`]
+      };
+      [title, desc] = copy[scoreModel.group] || copy.near;
+    } else {
+      title = band ? `${band.label}的省内背景专业` : '按分数位置查看';
+      desc = band ? `显示2026历史最低投档分位于${band.label}的记录。` : '输入分数或选择一个分数段。';
+    }
   }
   $('#resultsPanel').classList.remove('is-idle');
   $('#resultsTitle').textContent = title;
@@ -327,7 +419,7 @@ function loadResults({ scroll = false } = {}) {
   const filtered = filterRecords();
   const page = paginate(filtered.records);
   state.hasLoadedResults = true;
-  renderResultContext(page, filtered.schoolStatus);
+  renderResultContext(page, filtered.schoolStatus, filtered.scoreModel);
   $('#records').innerHTML = page.records.length ? page.records.map(recordHtml).join('') : emptyHtml(filtered.schoolStatus);
   renderPagination(page);
   syncControls();
@@ -374,14 +466,15 @@ function removeFilter(key) {
 function submitScore() {
   const value = $('#scoreInput').value.trim();
   const score = Number(value);
-  if (!Number.isFinite(score) || score < 344 || score > 750) {
-    state.scoreValidationMessage = '请输入344—750之间的参考分数。';
+  if (!Number.isInteger(score) || score < 344 || score > 750) {
+    state.scoreValidationMessage = '请输入344—750之间的整数参考分数。';
     syncControls();
     $('#scoreInput').focus();
     return;
   }
-  state.scoreView.score = value;
+  state.scoreView.score = String(score);
   state.scoreView.band = '';
+  state.scoreView.positionGroup = 'near';
   state.scoreValidationMessage = '';
   state.page = 1;
   writeUrl();
@@ -392,9 +485,20 @@ function submitScore() {
 function selectScoreBand(button) {
   state.scoreView.score = '';
   state.scoreView.band = button.dataset.scoreBand;
+  state.scoreView.positionGroup = 'band';
   state.scoreValidationMessage = '';
   state.page = 1;
-  if (matchMedia('(max-width: 767px)').matches) $('#scoreBandDisclosure').open = false;
+  writeUrl();
+  syncControls();
+  loadResults({ scroll: true });
+}
+
+function selectPositionGroup(button) {
+  if (!state.scoreView.score) return;
+  const group = button.dataset.positionGroup;
+  if (!SCORE_POSITION_GROUPS.has(group)) return;
+  state.scoreView.positionGroup = group;
+  state.page = 1;
   writeUrl();
   syncControls();
   loadResults({ scroll: true });
@@ -429,11 +533,18 @@ function bind() {
   $$('.ls-view-tab').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
   bindTabsKeyboard();
   $('#scoreSubmit').addEventListener('click', submitScore);
-  $('#scoreInput').addEventListener('input', () => { state.scoreValidationMessage = ''; state.scoreView.score = $('#scoreInput').value.trim(); state.scoreView.band = ''; syncControls(); });
+  $('#scoreInput').addEventListener('input', () => {
+    state.scoreValidationMessage = '';
+    state.scoreView.score = $('#scoreInput').value.trim();
+    state.scoreView.band = '';
+    state.scoreView.positionGroup = 'near';
+    syncControls();
+  });
   $('#scoreInput').addEventListener('keydown', event => { if (event.key === 'Enter') submitScore(); });
   $('#schoolSubmit').addEventListener('click', () => { state.schoolView.school = $('#schoolInput').value.trim(); state.page = 1; writeUrl(); loadResults({ scroll: true }); });
   $('#schoolInput').addEventListener('keydown', event => { if (event.key === 'Enter') $('#schoolSubmit').click(); });
   $('#scoreBandButtons').addEventListener('click', event => { const button = event.target.closest('[data-score-band]'); if (button) selectScoreBand(button); });
+  $('#scorePositionGroups').addEventListener('click', event => { const button = event.target.closest('[data-position-group]'); if (button) selectPositionGroup(button); });
   $('#querySubmit').addEventListener('click', applyCurrentFilters);
   $('#applyFilters').addEventListener('click', applyCurrentFilters);
   $('#resetFilters').addEventListener('click', resetFilters);
@@ -460,8 +571,9 @@ async function boot() {
   setRuntime('loading');
   bind();
   try {
-    const data = await getStaticIndex();
+    const { data, rankMap } = await getStaticResources();
     state.index = data;
+    state.rankMap = rankMap;
     state.meta = data.meta;
     state.schools = data.schools || [];
     state.directions = data.directions || [];
@@ -473,6 +585,7 @@ async function boot() {
     setRuntime('ready');
     loadResults();
     document.body.dataset.release = CURRENT_RELEASE.display;
+    document.body.dataset.localStrengthScorePosition = SCORE_POSITION_VERSION;
   } catch (error) {
     setRuntime('error', error.message);
     $('#resultsPanel').classList.remove('is-idle');

@@ -2,6 +2,7 @@ const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
 const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
 const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.2';
 const EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE = process.env.EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE || 'v3.9.71.2';
+const EXPECTED_LOCAL_STRENGTH_SCORE_POSITION = process.env.EXPECTED_LOCAL_STRENGTH_SCORE_POSITION || 'local-strength-score-position-v3972_3';
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
@@ -83,6 +84,9 @@ async function verifyStaticContracts(token) {
     pagesRelease: `${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}`,
     runtime: `${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}`,
     localPage: `${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}`,
+    localRuntime: `${PAGES_BASE}/ln-rank/js/local-strength/local-strength-app.v3971_2.js?release-check=${token}`,
+    localScorePositionStyles: `${PAGES_BASE}/ln-rank/css/local-strength-score-position.v3972_3.css?release-check=${token}`,
+    localRankMap: `${PAGES_BASE}/fenxi/data/rank_2026_physics.json?release-check=${token}`,
     localIndex: `${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}`,
     forbiddenLocalApi: `${PAGES_BASE}/api/local-strength?release-check=${token}`,
     all211Page: `${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}`,
@@ -107,8 +111,17 @@ async function verifyStaticContracts(token) {
   assert(runtime?.ok !== false, `runtime returned ok=false: ${result.runtime.text.slice(0, 1000)}`);
 
   assert(result.localPage.text.includes(`data-release="${EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE}"`), `LocalStrength page lineage is not ${EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE}`);
-  assert(result.localPage.text.includes('local-strength-app.v3971_2.js?v=3971_2'), 'LocalStrength production runtime mismatch');
+  assert(result.localPage.text.includes('data-local-strength-score-position="local-strength-score-position-v3972_3"'), 'LocalStrength score position page contract missing');
+  assert(result.localPage.text.includes('local-strength-app.v3971_2.js?v=3972_3'), 'LocalStrength cache-busted runtime mismatch');
+  assert(result.localPage.text.includes('local-strength-score-position.v3972_3.css?v=3972_3'), 'LocalStrength score position styles missing');
+  assert(result.localPage.text.includes('id="scorePositionGroups"'), 'LocalStrength position group controls missing');
   assert(!result.localPage.text.includes('/api/local-strength'), 'LocalStrength page references forbidden API');
+  assert(result.localRuntime.text.includes(`SCORE_POSITION_VERSION = '${EXPECTED_LOCAL_STRENGTH_SCORE_POSITION}'`), 'LocalStrength score position runtime mismatch');
+  assert(result.localRuntime.text.includes('/fenxi/data/rank_2026_physics.json?v=3972_3'), 'LocalStrength static rank lookup missing');
+  assert(result.localRuntime.text.includes('rankDistance(a, rank) - rankDistance(b, rank)'), 'LocalStrength rank-distance sort missing');
+  assert(result.localScorePositionStyles.text.includes('.ls-score-position-groups'), 'LocalStrength score position CSS contract missing');
+  const rankMap = parseJson(result.localRankMap);
+  assert(Number(rankMap?.['530']) === 40119 && Number(rankMap?.['579']) === 21051, 'LocalStrength score-rank lookup mismatch');
   const localIndex = parseJson(result.localIndex);
   assert(localIndex.version === EXPECTED_INDEX, `LocalStrength index version ${localIndex.version}`);
   assert(localIndex.meta?.completeEvaluation === true, 'LocalStrength coverage incomplete');
@@ -136,7 +149,10 @@ async function verifyStaticContracts(token) {
   return {
     release: EXPECTED_RELEASE,
     localStrengthPageRelease: EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE,
+    localStrengthScorePosition: EXPECTED_LOCAL_STRENGTH_SCORE_POSITION,
     localStrengthRecords: localIndex.records.length,
+    rank530: Number(rankMap['530']),
+    rank579: Number(rankMap['579']),
     all211Records: all211.records.length,
     all211Bands: all211.scoreBands.length,
     localStrengthApiStatus: result.forbiddenLocalApi.status

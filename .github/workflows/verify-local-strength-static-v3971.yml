@@ -7,6 +7,7 @@ on:
     paths:
       - 'ln-rank/local-mainline.html'
       - 'ln-rank/css/local-strength.v3971_2.css'
+      - 'ln-rank/css/local-strength-score-position.v3972_3.css'
       - 'ln-rank/js/local-strength/local-strength-app.v3971_2.js'
       - 'ln-rank/data/local-strength/**'
       - 'tools/build-local-strength-static-v3971.mjs'
@@ -20,6 +21,7 @@ on:
     paths:
       - 'ln-rank/local-mainline.html'
       - 'ln-rank/css/local-strength.v3971_2.css'
+      - 'ln-rank/css/local-strength-score-position.v3972_3.css'
       - 'ln-rank/js/local-strength/local-strength-app.v3971_2.js'
       - 'ln-rank/data/local-strength/**'
       - 'shared/resources/release/**'
@@ -55,6 +57,9 @@ jobs:
           fi
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
+          test -f ln-rank/css/local-strength-score-position.v3972_3.css
+          grep -q 'local-strength-score-position-v3972_3' ln-rank/local-mainline.html
+          grep -q '.ls-score-position-groups' ln-rank/css/local-strength-score-position.v3972_3.css
           node --check ln-rank/js/local-strength/local-strength-app.v3971_2.js
           node --check shared/resources/release/current-release.js
           node --check shared/resources/release/release-presenter.v3971_2.js
@@ -76,9 +81,10 @@ jobs:
           if(auditCount!==243) throw new Error(`audit immutable record count ${auditCount}`);
           console.log(JSON.stringify({version:index.version,records:index.records.length,auditCount,indexBytes:fs.statSync(indexPath).size},null,2));
           NODE
-          node tools/audit-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-audit.out
+          node tools/audit-local-strength-static-v3971.mjs 2>&1 | tee /tmp/local-strength-static-audit.out
       - name: Install browser and Wrangler
         run: |
+          set -euo pipefail
           npm install --no-save --no-package-lock playwright@1.55.0 wrangler@4.28.1
           npx playwright install --with-deps chromium
       - name: Verify seven viewport static journeys
@@ -88,7 +94,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          LOCAL_STRENGTH_BASE=http://127.0.0.1:8789 node tools/browser-local-strength-static-v3971.mjs | tee /tmp/local-strength-static-browser.out
+          LOCAL_STRENGTH_BASE=http://127.0.0.1:8789 node tools/browser-local-strength-static-v3971.mjs 2>&1 | tee /tmp/local-strength-static-browser.out
       - name: Verify existing Functions score and school queries remain healthy
         run: |
           set -euo pipefail
