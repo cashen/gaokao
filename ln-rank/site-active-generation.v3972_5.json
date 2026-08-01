@@ -1,0 +1,31 @@
+{
+  "releaseVersion": "v3.9.72.2",
+  "generation": "v3972_5",
+  "contractVersion": "site-runtime-coherence-v3972_5",
+  "scope": "whole-site-active-generation",
+  "entrypoints": {
+    "home": "/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5",
+    "familyShell": "/shared/ui/shell/family-shell.v3972_5.js?v=3972_5",
+    "familyPlanEntry": "/shared/ui/components/family-plan-entry.v3972_5.js?v=3972_5",
+    "selectionBootstrap": "/ln-rank/js/app.v3972_5.js?v=3972_5",
+    "selectionRuntime": "/ln-rank/js/app-runtime.v3972_5.js?v=3972_5",
+    "selectionWorkspace": "/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js?v=3972_5",
+    "interaction": "/shared/ui/interaction/interaction-transaction.v3972_5.js?v=3972_5",
+    "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3972_5.js?v=3972_5",
+    "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3972_5.js?v=3972_5"
+  },
+  "preservedBusinessResources": {
+    "localStrength": "local-strength-static-v3971_2",
+    "all211": "all-211-static-v3972_0",
+    "majorBands": "major-bands-static-v3972_2"
+  },
+  "legacyInventory": "/ln-rank/active-assets.json",
+  "legacyInventoryIsActiveOwner": false,
+  "policies": {
+    "oneActiveGeneration": true,
+    "stableDependenciesDeclared": true,
+    "nativeAuxiliaryHrefForbidden": true,
+    "explicitNavigationOwnerRequired": true,
+    "productionGraphMustMatchSourceGraph": true
+  }
+}
