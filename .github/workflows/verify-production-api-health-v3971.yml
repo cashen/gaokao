@@ -69,6 +69,8 @@ jobs:
           grep -q "SCORE_POSITION_VERSION = 'local-strength-score-position-v3972_3'" ln-rank/js/local-strength/local-strength-app.v3971_2.js
           grep -q '/fenxi/data/rank_2026_physics.json?v=3972_3' ln-rank/js/local-strength/local-strength-app.v3971_2.js
           grep -q 'rankDistance(a, rank) - rankDistance(b, rank)' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -Fq 'const lower = ordered.filter(record => Number(record.rank2026) > rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
           node --experimental-default-type=module - <<'NODE'
@@ -126,43 +128,17 @@ jobs:
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
-      - name: Resolve Cloudflare Preview credentials
-        if: github.event_name == 'pull_request'
-        env:
-          CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
-          CF_ACCOUNT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CF_ACCOUNT_FALLBACK: ${{ secrets.CF_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
-          account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
-          test -n "$token" || { echo 'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.'; exit 2; }
-          test -n "$account" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'; exit 2; }
-          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
-          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
-      - name: Deploy exact pull request head to Cloudflare Preview
+      - name: Resolve automatic Cloudflare branch Preview
         if: github.event_name == 'pull_request'
         env:
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
-          commit_message="$(git log -1 --pretty=%s)"
-          npx --yes wrangler@4.28.1 pages deploy . \
-            --project-name=gaokao \
-            --branch="$PR_BRANCH" \
-            --commit-hash="$PR_HEAD_SHA" \
-            --commit-message="$commit_message" 2>&1 | tee /tmp/v3972-preview-deploy.out
-          deployment_url="$(grep -Eo 'https://[a-z0-9-]+\.gaokao-4y9\.pages\.dev' /tmp/v3972-preview-deploy.out | tail -n 1 || true)"
-          if [ -z "$deployment_url" ]; then
-            slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28)"
-            test -n "$slug"
-            deployment_url="https://${slug}.gaokao-4y9.pages.dev"
-          fi
-          echo "PREVIEW_BASE=$deployment_url" >> "$GITHUB_ENV"
-          echo "Cloudflare Preview: $deployment_url"
+          slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28)"
+          test -n "$slug"
+          preview_base="https://${slug}.gaokao-4y9.pages.dev"
+          echo "PREVIEW_BASE=$preview_base" >> "$GITHUB_ENV"
+          echo "Cloudflare automatic branch Preview: $preview_base"
       - name: Verify Cloudflare Preview Worker and LocalStrength journey
         if: github.event_name == 'pull_request'
         env:
@@ -177,17 +153,24 @@ jobs:
           set -euo pipefail
           test -n "${PREVIEW_BASE:-}"
           ready=0
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 90); do
             page="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/local-mainline.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
             css="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/css/local-strength-score-position.v3972_3.css?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'local-strength-score-position-v3972_3' <<<"$page" && grep -q '.ls-score-position-groups' <<<"$css"; then ready=1; break; fi
+            runtime="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/js/local-strength/local-strength-app.v3971_2.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
+            if grep -q 'local-strength-score-position-v3972_3' <<<"$page" \
+              && grep -q '.ls-score-position-groups' <<<"$css" \
+              && grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' <<<"$runtime" \
+              && grep -Fq 'const lower = ordered.filter(record => Number(record.rank2026) > rank);' <<<"$runtime"; then
+              ready=1
+              break
+            fi
             sleep 10
           done
           test "$ready" -eq 1
           PAGES_BASE="$PREVIEW_BASE" CUSTOM_BASE="$PREVIEW_BASE" \
             node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-preview-worker-health.out
       - name: Verify currently deployed safe baseline before merge
-        if: github.event_name == 'pull_request'
+        if: ${{ always() && github.event_name == 'pull_request' }}
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
@@ -220,7 +203,6 @@ jobs:
           path: |
             /tmp/v3972-production-health.out
             /tmp/v3972-preview-worker-health.out
-            /tmp/v3972-preview-deploy.out
             /tmp/v3972-worker-budget-wrangler.log
             /tmp/v3972-*.json
             /tmp/v3972-*.html
