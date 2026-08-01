@@ -15,6 +15,28 @@ const VERSION = 'major-bands-static-v3972_2';
 const CANDIDATE_BUCKET_SIZE = 10;
 const DETAIL_BUCKET_SIZE = 5;
 
+const CANDIDATE_SCHEMA = Object.freeze([
+  'id', 'school', 'major', 'score2026', 'rank2026', 'rankStart2026', 'rankEnd2026', 'sameCount2026',
+  'lnArea', 'province', 'city', 'nature', 'natureRaw', 'natureType', 'schoolNature', 'feeType',
+  'isPublicSchool', 'isPrivateSchool', 'isSinoForeign', 'isHighFee', 'costRiskLevel', 'bottomLineTags',
+  'tuition', 'tuitionText', 'flags', 'schoolTags', 'remark', 'majorRemark', 'enrollRemark', 'projectType',
+  'planType', 'batch', 'cooperationType', 'majorCategory', 'majorFamily', 'majorGroup', 'majorTags',
+  'industryTag', 'schoolIndustry', 'majorIndustry', 'industryTags', 'rawText',
+  'rawFenxiMajorCode', 'standardMajorCode', 'rawFenxiMajorCodeLooksStandard',
+  'standardMajorName', 'standardMajorCategoryCode', 'standardMajorCategoryName',
+  'specialHas', 'specialKeys', 'specialLabels', 'specialPrimaryLabel', 'specialReviewPoints',
+  'schoolCode2026', 'majorCode2026', 'preferenceOrder', 'majorDirectionId', 'majorDirectionLabel'
+]);
+
+const DETAIL_SCHEMA = Object.freeze([
+  ...CANDIDATE_SCHEMA,
+  'dataYear', 'primaryYear', 'score2025', 'rank2025', 'score2024', 'rank2024',
+  'historyCompare', 'historyEvidence', 'rank2026Source', 'rank2025Source', 'rank2024Source',
+  'region', 'displayLocation', 'locationSource', 'locationConfidence', 'locationWarning', 'geoEntity',
+  'schoolCanonical', 'regionGroups', 'geoSourceMethod', 'geoSourceName', 'geoSourceUrl', 'geoSourceYear',
+  'geoMatchNote', 'schoolIdentifier', 'tuitionSourceYear', 'sourceType', 'sourceYear', 'historyYears'
+]);
+
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
@@ -70,9 +92,6 @@ function standardMajorFor(raw, normalized, codes) {
 }
 
 function compactCandidate(raw, normalized, codes, standardMajor, bottomLine, specialProject) {
-  const id = recordId(raw, normalized);
-  const flags = Array.isArray(normalized.flags) ? normalized.flags.slice(0, 6) : [];
-  const schoolTags = Array.isArray(raw.schoolTags) ? raw.schoolTags.slice(0, 10) : [];
   const rawText = [
     raw.remark,
     raw.majorRemark,
@@ -85,30 +104,19 @@ function compactCandidate(raw, normalized, codes, standardMajor, bottomLine, spe
     raw.schoolIndustry,
     raw.majorIndustry,
     raw.industryTags
-  ].flat().filter(Boolean).join(' ').slice(0, 900);
+  ].flat().filter(Boolean).join(' ').slice(0, 720);
   return {
-    id,
+    id: recordId(raw, normalized),
     school: normalized.school,
-    schoolName: normalized.school,
     major: normalized.major,
-    majorName: normalized.major,
-    score: normalized.score2026,
     score2026: normalized.score2026,
-    rank: normalized.rank2026,
     rank2026: normalized.rank2026,
     rankStart2026: normalized.rankStart2026,
     rankEnd2026: normalized.rankEnd2026,
     sameCount2026: normalized.sameCount2026,
-    score2025: normalized.score2025,
-    rank2025: normalized.rank2025,
-    score2024: normalized.score2024,
-    rank2024: normalized.rank2024,
     lnArea: normalized.lnArea,
-    region: normalized.region,
     province: normalized.province,
     city: normalized.city,
-    displayLocation: normalized.displayLocation,
-    schoolCanonical: normalized.schoolCanonical,
     nature: normalized.nature,
     natureRaw: normalized.natureRaw,
     natureType: text(raw.natureType),
@@ -122,8 +130,8 @@ function compactCandidate(raw, normalized, codes, standardMajor, bottomLine, spe
     bottomLineTags: bottomLine.bottomLineTags,
     tuition: normalized.tuition,
     tuitionText: text(raw.tuitionText),
-    flags,
-    schoolTags,
+    flags: Array.isArray(normalized.flags) ? normalized.flags.slice(0, 6) : [],
+    schoolTags: Array.isArray(raw.schoolTags) ? raw.schoolTags.slice(0, 10) : [],
     remark: text(raw.remark),
     majorRemark: text(raw.majorRemark),
     enrollRemark: text(raw.enrollRemark),
@@ -140,9 +148,17 @@ function compactCandidate(raw, normalized, codes, standardMajor, bottomLine, spe
     majorIndustry: text(raw.majorIndustry),
     industryTags: Array.isArray(raw.industryTags) ? raw.industryTags.slice(0, 10) : [],
     rawText,
-    codes,
-    standardMajor,
-    specialProject,
+    rawFenxiMajorCode: text(codes.rawFenxiMajorCode),
+    standardMajorCode: text(codes.standardMajorCode || standardMajor?.code),
+    rawFenxiMajorCodeLooksStandard: Boolean(codes.rawFenxiMajorCodeLooksStandard),
+    standardMajorName: text(standardMajor?.name),
+    standardMajorCategoryCode: text(standardMajor?.categoryCode),
+    standardMajorCategoryName: text(standardMajor?.categoryName),
+    specialHas: Boolean(specialProject.hasSpecialProject),
+    specialKeys: Array.isArray(specialProject.keys) ? specialProject.keys : [],
+    specialLabels: Array.isArray(specialProject.labels) ? specialProject.labels : [],
+    specialPrimaryLabel: text(specialProject.primaryLabel),
+    specialReviewPoints: Array.isArray(specialProject.reviewPoints) ? specialProject.reviewPoints : [],
     schoolCode2026: text(raw.schoolCode2026 || raw.schoolCode),
     majorCode2026: text(raw.majorCode2026 || raw.majorCode),
     preferenceOrder: number(raw.preferenceOrder),
@@ -151,23 +167,50 @@ function compactCandidate(raw, normalized, codes, standardMajor, bottomLine, spe
   };
 }
 
-function detailRecord(raw, normalized, codes, standardMajor, bottomLine, specialProject) {
+function detailRecord(raw, normalized, candidate) {
   return {
-    ...normalized,
-    id: recordId(raw, normalized),
-    codes,
-    standardMajor,
-    ...bottomLine,
-    specialProject
+    ...candidate,
+    dataYear: 2026,
+    primaryYear: 2026,
+    score2025: normalized.score2025,
+    rank2025: normalized.rank2025,
+    score2024: normalized.score2024,
+    rank2024: normalized.rank2024,
+    historyCompare: normalized.historyCompare,
+    historyEvidence: normalized.historyEvidence,
+    rank2026Source: normalized.rank2026Source,
+    rank2025Source: normalized.rank2025Source,
+    rank2024Source: normalized.rank2024Source,
+    region: normalized.region,
+    displayLocation: normalized.displayLocation,
+    locationSource: normalized.locationSource,
+    locationConfidence: normalized.locationConfidence,
+    locationWarning: normalized.locationWarning,
+    geoEntity: normalized.geoEntity,
+    schoolCanonical: normalized.schoolCanonical,
+    regionGroups: normalized.regionGroups,
+    geoSourceMethod: normalized.geoSourceMethod,
+    geoSourceName: normalized.geoSourceName,
+    geoSourceUrl: normalized.geoSourceUrl,
+    geoSourceYear: normalized.geoSourceYear,
+    geoMatchNote: normalized.geoMatchNote,
+    schoolIdentifier: normalized.schoolIdentifier,
+    tuitionSourceYear: normalized.tuitionSourceYear,
+    sourceType: text(raw.sourceType),
+    sourceYear: number(raw.sourceYear) || 2026,
+    historyYears: raw.historyYears || null
   };
 }
 
-function bucketFile(prefix, start, size) {
-  const end = start + size - 1;
-  return `${prefix}/score_${start}_${end}.json`;
+function rowFromRecord(record, schema) {
+  return schema.map(key => record[key] ?? null);
 }
 
-function writeBuckets(groups, prefix, size) {
+function bucketFile(prefix, start, size) {
+  return `${prefix}/score_${start}_${start + size - 1}.json`;
+}
+
+function writeBuckets(groups, prefix, size, schema) {
   const entries = [];
   for (const start of [...groups.keys()].sort((a, b) => b - a)) {
     const records = groups.get(start).sort((a, b) =>
@@ -179,7 +222,12 @@ function writeBuckets(groups, prefix, size) {
     );
     const relative = bucketFile(prefix, start, size);
     const file = path.join(OUTPUT_DIR, relative);
-    writeJson(file, { version: VERSION, minScore: start, maxScore: start + size - 1, records });
+    writeJson(file, {
+      version: VERSION,
+      minScore: start,
+      maxScore: start + size - 1,
+      rows: records.map(record => rowFromRecord(record, schema))
+    });
     entries.push({
       minScore: start,
       maxScore: start + size - 1,
@@ -204,8 +252,7 @@ fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 for (const chunk of sourceManifest.chunks || []) {
-  const file = sourcePath(chunk.file || chunk.path);
-  const payload = readJson(file);
+  const payload = readJson(sourcePath(chunk.file || chunk.path));
   for (const raw of payload.records || []) {
     const score = rawScore(raw);
     if (!Number.isFinite(score)) {
@@ -219,7 +266,7 @@ for (const chunk of sourceManifest.chunks || []) {
     const bottomLine = enrichBottomLineFields(normalized);
     const specialProject = detectSpecialProject(normalized);
     const candidate = compactCandidate(raw, normalized, codes, standardMajor, bottomLine, specialProject);
-    const detail = detailRecord(raw, normalized, codes, standardMajor, bottomLine, specialProject);
+    const detail = detailRecord(raw, normalized, candidate);
     if (!candidate.id || !candidate.school || !candidate.major || !Number.isFinite(candidate.score2026)) {
       unresolvedCount += 1;
       continue;
@@ -243,17 +290,20 @@ if (duplicateIdCount !== 0 || unresolvedCount !== 0) {
   throw new Error(`static major-bands integrity duplicate=${duplicateIdCount} unresolved=${unresolvedCount}`);
 }
 
-const candidateBuckets = writeBuckets(candidateGroups, 'candidates', CANDIDATE_BUCKET_SIZE);
-const detailBuckets = writeBuckets(detailGroups, 'details', DETAIL_BUCKET_SIZE);
+const candidateBuckets = writeBuckets(candidateGroups, 'candidates', CANDIDATE_BUCKET_SIZE, CANDIDATE_SCHEMA);
+const detailBuckets = writeBuckets(detailGroups, 'details', DETAIL_BUCKET_SIZE, DETAIL_SCHEMA);
 const manifest = {
   version: VERSION,
   architecture: 'build-time-static-score-index',
+  encoding: 'schema-row-array',
   sourceManifestVersion: sourceManifest.version,
   dataYear: 2026,
   audienceYear: 2027,
   recordCount: total,
   candidateBucketSize: CANDIDATE_BUCKET_SIZE,
   detailBucketSize: DETAIL_BUCKET_SIZE,
+  candidateSchema: CANDIDATE_SCHEMA,
+  detailSchema: DETAIL_SCHEMA,
   candidateBuckets,
   detailBuckets,
   integrity: {
@@ -266,6 +316,7 @@ const manifest = {
 writeJson(path.join(OUTPUT_DIR, 'manifest.json'), manifest);
 writeJson(path.join(OUTPUT_DIR, 'audit.json'), {
   version: VERSION,
+  encoding: manifest.encoding,
   recordCount: total,
   candidateBucketCount: candidateBuckets.length,
   detailBucketCount: detailBuckets.length,
