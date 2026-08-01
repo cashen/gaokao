@@ -37,14 +37,14 @@ jobs:
       - name: Capture parent and every intersecting bucket
         run: |
           set -euo pipefail
-          node --input-type=module <<'NODE'
+          node --input-type=module > /tmp/distributed-preview-diagnostic.jsonl <<'NODE'
           import fs from 'node:fs';
           const base=process.env.PREVIEW_BASE;
           const manifest=JSON.parse(fs.readFileSync('ln-rank/data/major-bands-static-v3972_2/manifest.json','utf8'));
           const min=556;
           const max=591;
           const buckets=manifest.buckets.filter(item=>Number(item.maxScore)>=min&&Number(item.minScore)<=max);
-          console.log(JSON.stringify({phase:'selected-buckets',count:buckets.length,buckets},null,2));
+          console.log(JSON.stringify({phase:'selected-buckets',count:buckets.length,buckets}));
 
           async function capture(label,url,headers={}){
             const response=await fetch(url,{headers:{accept:'application/json','cache-control':'no-cache',pragma:'no-cache',...headers}});
@@ -53,13 +53,11 @@ jobs:
               phase:'response',label,status:response.status,
               contentType:response.headers.get('content-type')||'',
               cfRay:response.headers.get('cf-ray')||'',
-              body:text.slice(0,4000)
-            },null,2));
-            return {response,text};
+              body:text.slice(0,12000)
+            }));
           }
 
           await capture('parent-579',`${base}/api/major-bands?candidateScore=579&limit=16&diagnostic=${Date.now()}`);
-
           for(const bucket of buckets){
             const url=new URL('/api/major-bands-bucket',base);
             url.searchParams.set('candidateScore','579');
@@ -75,3 +73,12 @@ jobs:
             await capture(`bucket-${bucket.minScore}-${bucket.maxScore}`,url,{'x-gaokao-major-bands-bucket':'major-bands-bucket-v3972_2'});
           }
           NODE
+          cat /tmp/distributed-preview-diagnostic.jsonl
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributed-preview-diagnostic
+          path: /tmp/distributed-preview-diagnostic.jsonl
+          if-no-files-found: error
+          retention-days: 3
