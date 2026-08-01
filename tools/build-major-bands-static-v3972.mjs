@@ -16,12 +16,10 @@ const BUCKET_SIZE = 10;
 
 const RECORD_SCHEMA = Object.freeze([
   'id', 'school', 'major', 'score2026', 'rank2026', 'rankStart2026', 'rankEnd2026', 'sameCount2026',
-  'score2025', 'rank2025', 'score2024', 'rank2024', 'historyCompare',
-  'lnArea', 'region', 'province', 'city', 'displayLocation', 'locationSource', 'locationConfidence',
-  'locationWarning', 'geoEntity', 'schoolCanonical', 'regionGroups', 'geoSourceMethod', 'geoSourceName',
-  'geoSourceUrl', 'geoSourceYear', 'geoMatchNote', 'schoolIdentifier',
+  'score2025', 'rank2025', 'score2024', 'rank2024',
+  'lnArea', 'province', 'city', 'displayLocation', 'schoolCanonical',
   'nature', 'natureRaw', 'natureType', 'schoolNature', 'feeType', 'isPublicSchool', 'isPrivateSchool',
-  'isSinoForeign', 'isHighFee', 'costRiskLevel', 'bottomLineTags', 'tuition', 'tuitionText', 'tuitionSourceYear',
+  'isSinoForeign', 'isHighFee', 'costRiskLevel', 'bottomLineTags', 'tuition', 'tuitionText',
   'flags', 'schoolTags', 'remark', 'majorRemark', 'enrollRemark', 'projectType', 'planType', 'batch',
   'cooperationType', 'majorCategory', 'majorFamily', 'majorGroup', 'majorTags', 'industryTag',
   'schoolIndustry', 'majorIndustry', 'industryTags', 'rawText',
@@ -99,7 +97,7 @@ function staticRecord(raw, normalized, codes, standardMajor, bottomLine, special
     raw.schoolIndustry,
     raw.majorIndustry,
     raw.industryTags
-  ].flat().filter(Boolean).join(' ').slice(0, 720);
+  ].flat().filter(Boolean).join(' ').slice(0, 420);
   return {
     id: recordId(raw, normalized),
     school: normalized.school,
@@ -113,24 +111,11 @@ function staticRecord(raw, normalized, codes, standardMajor, bottomLine, special
     rank2025: normalized.rank2025,
     score2024: normalized.score2024,
     rank2024: normalized.rank2024,
-    historyCompare: normalized.historyCompare,
     lnArea: normalized.lnArea,
-    region: normalized.region,
     province: normalized.province,
     city: normalized.city,
     displayLocation: normalized.displayLocation,
-    locationSource: normalized.locationSource,
-    locationConfidence: normalized.locationConfidence,
-    locationWarning: normalized.locationWarning,
-    geoEntity: normalized.geoEntity,
     schoolCanonical: normalized.schoolCanonical,
-    regionGroups: normalized.regionGroups,
-    geoSourceMethod: normalized.geoSourceMethod,
-    geoSourceName: normalized.geoSourceName,
-    geoSourceUrl: normalized.geoSourceUrl,
-    geoSourceYear: normalized.geoSourceYear,
-    geoMatchNote: normalized.geoMatchNote,
-    schoolIdentifier: normalized.schoolIdentifier,
     nature: normalized.nature,
     natureRaw: normalized.natureRaw,
     natureType: text(raw.natureType),
@@ -144,9 +129,8 @@ function staticRecord(raw, normalized, codes, standardMajor, bottomLine, special
     bottomLineTags: bottomLine.bottomLineTags,
     tuition: normalized.tuition,
     tuitionText: text(raw.tuitionText),
-    tuitionSourceYear: normalized.tuitionSourceYear,
     flags: Array.isArray(normalized.flags) ? normalized.flags.slice(0, 6) : [],
-    schoolTags: Array.isArray(raw.schoolTags) ? raw.schoolTags.slice(0, 10) : [],
+    schoolTags: Array.isArray(raw.schoolTags) ? raw.schoolTags.slice(0, 8) : [],
     remark: text(raw.remark),
     majorRemark: text(raw.majorRemark),
     enrollRemark: text(raw.enrollRemark),
@@ -157,11 +141,11 @@ function staticRecord(raw, normalized, codes, standardMajor, bottomLine, special
     majorCategory: text(raw.majorCategory),
     majorFamily: text(raw.majorFamily),
     majorGroup: text(raw.majorGroup),
-    majorTags: Array.isArray(raw.majorTags) ? raw.majorTags.slice(0, 10) : [],
+    majorTags: Array.isArray(raw.majorTags) ? raw.majorTags.slice(0, 8) : [],
     industryTag: text(raw.industryTag),
     schoolIndustry: text(raw.schoolIndustry),
     majorIndustry: text(raw.majorIndustry),
-    industryTags: Array.isArray(raw.industryTags) ? raw.industryTags.slice(0, 10) : [],
+    industryTags: Array.isArray(raw.industryTags) ? raw.industryTags.slice(0, 8) : [],
     rawText,
     rawFenxiMajorCode: text(codes.rawFenxiMajorCode),
     standardMajorCode: text(codes.standardMajorCode || standardMajor?.code),
@@ -188,10 +172,6 @@ function rowFromRecord(record) {
   return RECORD_SCHEMA.map(key => record[key] ?? null);
 }
 
-function bucketFile(start) {
-  return `score_${start}_${start + BUCKET_SIZE - 1}.json`;
-}
-
 function writeBuckets(groups) {
   const entries = [];
   for (const start of [...groups.keys()].sort((a, b) => b - a)) {
@@ -202,7 +182,7 @@ function writeBuckets(groups) {
       || String(a.major).localeCompare(String(b.major), 'zh-Hans-CN')
       || String(a.id).localeCompare(String(b.id), 'zh-Hans-CN')
     );
-    const relative = `buckets/${bucketFile(start)}`;
+    const relative = `buckets/score_${start}_${start + BUCKET_SIZE - 1}.json`;
     const file = path.join(OUTPUT_DIR, relative);
     writeJson(file, {
       version: VERSION,
@@ -271,7 +251,7 @@ const buckets = writeBuckets(groups);
 const manifest = {
   version: VERSION,
   architecture: 'build-time-static-score-index',
-  encoding: 'schema-row-array',
+  encoding: 'schema-row-array-atomic-v2',
   sourceManifestVersion: sourceManifest.version,
   dataYear: 2026,
   audienceYear: 2027,
