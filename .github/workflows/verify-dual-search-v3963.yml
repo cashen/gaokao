@@ -48,14 +48,16 @@ jobs:
 
       - name: Verify active immutable execution graph
         run: |
+          set -euo pipefail
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { UI_COMPONENT_REGISTRY } from './shared/ui/component-registry.v3970_0.js';
           const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
+          const html=fs.readFileSync('ln-rank/index.html','utf8');
           if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release');
-          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('cache');
+          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('base cache contract');
           if(UI_COMPONENT_REGISTRY.familyPlanEntry.domOwner!=='/shared/ui/components/family-plan-entry.v3970_0.js') throw new Error('family action owner');
           for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}
           for(const required of [
@@ -68,7 +70,23 @@ jobs:
             '../shared/resources/schools/school-query-contract.v3969_0.js',
             '../shared/resources/schools/school-query-engine.v3969_0.js'
           ]) if(!active.jsEntry.includes(required)) throw new Error(required);
-          console.log('immutable v3970 execution graph passed under site release v3.9.72.2');
+          for(const required of [
+            'shared/ui/interaction/interaction-transaction.v3972_4.js',
+            'ln-rank/js/app.v3972_4.js',
+            'ln-rank/js/app-runtime.v3972_4.js',
+            'ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js'
+          ]) if(!fs.existsSync(required)) throw new Error(`missing interaction generation ${required}`);
+          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_4.js?v=3972_4')) throw new Error('selection page does not mount interaction transaction');
+          if(!html.includes('/ln-rank/js/app.v3972_4.js?v=3972_4')) throw new Error('selection page does not mount v3972_4 bootstrap');
+          if(html.includes('/ln-rank/js/app.v3970_0.js?v=3970_0')) throw new Error('selection page still mounts old immutable bootstrap');
+          if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary navigation ownership');
+          const interaction=fs.readFileSync('shared/ui/interaction/interaction-transaction.v3972_4.js','utf8');
+          if(!interaction.includes("const DISCLOSURE_ID = 'familyConditionsDisclosure'")) throw new Error('disclosure ownership contract');
+          if(!interaction.includes('native-control-tail-click-without-anchor-origin')) throw new Error('tail click navigation contract');
+          const wrapper=fs.readFileSync('ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js','utf8');
+          if(!wrapper.includes("selection-workspace-orchestration-v3972_4")) throw new Error('workspace generation');
+          if(!wrapper.includes("selection-workspace-orchestrator.v3969_0.js?v=3969_0")) throw new Error('stable business delegate');
+          console.log('v3970 base graph and v3972_4 unified interaction generation passed under site release v3.9.72.2');
           NODE
 
       - name: Install Chromium journey runner
@@ -93,6 +111,15 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           V3969_ARTIFACT_DIR=/tmp/v3970-browser-main node tools/browser-resource-execution-v3970.mjs 2>&1 | tee /tmp/v3970-browser-main.out
+
+      - name: Verify unified region and global button transactions
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-interaction-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3972_INTERACTION_ARTIFACT_DIR=/tmp/v3972-interaction-browser node tools/browser-interaction-transaction-v3972_4.mjs 2>&1 | tee /tmp/v3972-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
@@ -119,5 +146,6 @@ jobs:
           name: v3970-family-action-diagnostics
           path: |
             /tmp/v3970-*
+            /tmp/v3972-interaction-*
           if-no-files-found: warn
           retention-days: 3

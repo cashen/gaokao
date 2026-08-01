@@ -17,6 +17,9 @@ const shellCss = read('shared/ui/shell/family-shell.v3970_0.css');
 const component = read('shared/ui/components/family-plan-entry.v3970_0.js');
 const componentCss = read('shared/ui/components/family-plan-entry.v3970_0.css');
 const adapter = read('ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js');
+const interaction = read('shared/ui/interaction/interaction-transaction.v3972_4.js');
+const runtime = read('ln-rank/js/app-runtime.v3972_4.js');
+const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js');
 const releaseContract = read('functions/_lib/release-contract.js');
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
@@ -49,10 +52,12 @@ assert.equal(ready.key, 'create-family-plan-report');
 for (const marker of [
   'data-ui-family-plan-results-footer',
   'data-ui-family-plan-live',
-  'app.v3970_0.js?v=3970_0',
+  'interaction-transaction.v3972_4.js?v=3972_4',
+  'app.v3972_4.js?v=3972_4',
   'family-shell.v3970_0.css?v=3970_0',
   'family-plan-entry.v3970_0.css?v=3970_0'
 ]) assert.ok(main.includes(marker), `main missing ${marker}`);
+assert.ok(!main.includes('app.v3970_0.js?v=3970_0'), 'main still mounts the previous immutable bootstrap');
 for (const marker of ['生成家庭方案报告', '知道链接的人可以查看', 'selection-pool.v3970_0.js?v=3970_0']) assert.ok(selection.includes(marker), `selection missing ${marker}`);
 
 for (const forbidden of [
@@ -73,9 +78,26 @@ for (const forbidden of ['position:fixed', 'position: fixed', 'position:sticky',
 }
 assert.ok(component.includes("window.addEventListener('gaokao:selection-change'"));
 assert.ok(!component.includes('MutationObserver'));
-assert.ok(adapter.includes("REPORT_COPY"));
-assert.ok(adapter.includes("FAMILY_PLAN_COPY"));
-assert.ok(adapter.includes("加入家庭方案"));
+assert.ok(adapter.includes('REPORT_COPY'));
+assert.ok(adapter.includes('FAMILY_PLAN_COPY'));
+assert.ok(adapter.includes('加入家庭方案'));
+
+for (const marker of [
+  "const VERSION = 'interaction-transaction-v3972_4'",
+  "const DISCLOSURE_ID = 'familyConditionsDisclosure'",
+  'native-control-tail-click-without-anchor-origin',
+  "document.addEventListener('gaokao:workspace-state'"
+]) assert.ok(interaction.includes(marker), `interaction contract missing ${marker}`);
+for (const marker of [
+  "const INTERACTION_VERSION = 'interaction-transaction-v3972_4'",
+  "resource-execution-v3972_4",
+  "selection-workspace-orchestrator.v3972_4.js?v=3972_4"
+]) assert.ok(runtime.includes(marker), `runtime patch missing ${marker}`);
+for (const marker of [
+  "selection-workspace-orchestration-v3972_4",
+  "selection-workspace-orchestrator.v3969_0.js?v=3969_0",
+  'delegateVersion'
+]) assert.ok(workspace.includes(marker), `workspace wrapper missing ${marker}`);
 
 assert.equal(active.version, 'v3.9.70.0');
 assert.equal(active.familyActionSingleOwnerContract, true);
@@ -87,8 +109,11 @@ for (const rel of [
   '../shared/ui/component-registry.v3970_0.js',
   '../shared/ui/contracts/copy-contract.v3970_0.js',
   'js/domain/family-decision-contract.v3970_0.js',
-  'js/domain/family-plan-copy-adapter.v3970_0.js'
-]) assert.ok(active.jsEntry.includes(rel), `active missing ${rel}`);
+  'js/domain/family-plan-copy-adapter.v3970_0.js',
+  'js/app.v3970_0.js',
+  'js/app-runtime.v3970_0.js',
+  'js/workspace/selection-workspace-orchestrator.v3969_0.js'
+]) assert.ok(active.jsEntry.includes(rel), `base active graph missing ${rel}`);
 for (const rel of ['../shared/ui/components/family-plan-entry.v3970_0.css', '../shared/ui/shell/family-shell.v3970_0.css']) assert.ok(active.cssEntry.includes(rel), `active css missing ${rel}`);
 
 for (const marker of [
@@ -106,6 +131,8 @@ console.log(JSON.stringify({
   assetRelease: CURRENT_RELEASE.assetReleaseVersion,
   component: UI_COMPONENT_REGISTRY.familyPlanEntry.id,
   variants: UI_COMPONENT_REGISTRY.familyPlanEntry.variants,
+  interaction: 'interaction-transaction-v3972_4',
+  workspace: 'selection-workspace-orchestration-v3972_4',
   fixedMobileAction: false,
   publicFeishuShare: true
 }, null, 2));
