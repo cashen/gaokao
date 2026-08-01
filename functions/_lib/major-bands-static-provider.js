@@ -1,4 +1,6 @@
+import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
+import { normalizeLocation } from './location-normalizer.js';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -33,6 +35,7 @@ export async function loadMajorBandsStaticManifest(request) {
   const manifest = await fetchStaticJson(request, MANIFEST_PATH);
   if (manifest?.version !== 'major-bands-static-v3972_2') throw new Error(`静态专业分数索引版本异常：${manifest?.version || 'unknown'}`);
   if (manifest?.architecture !== 'build-time-static-score-index') throw new Error('静态专业分数索引架构异常');
+  if (!String(manifest?.encoding || '').startsWith('schema-row-array')) throw new Error('静态专业分数索引编码异常');
   if (!manifest?.integrity?.completeEvaluation || Number(manifest?.recordCount) !== 11628) throw new Error('静态专业分数索引覆盖不完整');
   if (Number(manifest?.integrity?.duplicateRecordCount) !== 0 || Number(manifest?.integrity?.unresolvedRecordCount) !== 0) throw new Error('静态专业分数索引完整性异常');
   manifestCache = { time: Date.now(), data: manifest };
@@ -49,6 +52,7 @@ function decodeRow(row, schema) {
   record.majorName = record.major;
   record.score = record.score2026;
   record.rank = record.rank2026;
+  record.region = record.lnArea;
   record.codes = {
     rawFenxiMajorCode: record.rawFenxiMajorCode || '',
     standardMajorCode: record.standardMajorCode || '',
@@ -103,11 +107,35 @@ export async function loadMajorBandsStaticWindow(request, scoreWindow) {
 }
 
 export function materializeMajorBandsStaticRecord(record = {}) {
-  const historyEvidence = buildHistoricalScoreRankEvidence(record);
-  return {
+  const historyCompare = buildHistoryScore(record);
+  const location = normalizeLocation(record, record.school, record.major);
+  const expanded = {
     ...record,
     dataYear: 2026,
     primaryYear: 2026,
+    historyCompare,
+    lnArea: location.lnArea,
+    region: location.lnArea,
+    province: location.province,
+    city: location.city,
+    displayLocation: location.displayLocation,
+    locationSource: location.locationSource,
+    locationConfidence: location.locationConfidence,
+    locationWarning: location.locationWarning,
+    geoEntity: location.geoEntity || '',
+    schoolCanonical: location.schoolCanonical || record.schoolCanonical || '',
+    regionGroups: location.regionGroups || [],
+    geoSourceMethod: location.geoSourceMethod || '',
+    geoSourceName: location.geoSourceName || '',
+    geoSourceUrl: location.geoSourceUrl || '',
+    geoSourceYear: location.geoSourceYear || '',
+    geoMatchNote: location.geoMatchNote || '',
+    schoolIdentifier: location.schoolIdentifier || '',
+    tuitionSourceYear: record.tuition ? 2026 : null
+  };
+  const historyEvidence = buildHistoricalScoreRankEvidence(expanded);
+  return {
+    ...expanded,
     historyEvidence,
     rank2026Source: historyEvidence.years[2026].rankSource,
     rank2025Source: historyEvidence.years[2025].rankSource,
