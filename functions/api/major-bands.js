@@ -142,7 +142,7 @@ function mergeSpecialProjectStats(target, source) {
 
 function assertBucketResponse(response, text, bucketFile) {
   const lower = text.toLowerCase();
-  if (response.status === 503 || text.includes('1102') || lower.includes('worker exceeded resource limits')) {
+  if (response.status === 503 || lower.includes('worker exceeded resource limits') || lower.includes('<title>error 1102') || lower.includes('error code: 1102')) {
     throw new Error(`分数桶 Worker 资源超限：${bucketFile}，HTTP ${response.status}`);
   }
   if (!response.ok) throw new Error(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`);
