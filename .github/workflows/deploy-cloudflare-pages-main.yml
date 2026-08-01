@@ -36,6 +36,7 @@ jobs:
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
+          grep -q "localStrengthDataVersion: 'local-strength-static-v3971_2'" shared/resources/release/current-release.js
           grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
@@ -52,6 +53,14 @@ jobs:
           fi
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
+          test -f ln-rank/css/local-strength-score-position.v3972_3.css
+          grep -q 'data-release="v3.9.71.2"' ln-rank/local-mainline.html
+          grep -q 'data-local-strength-score-position="local-strength-score-position-v3972_3"' ln-rank/local-mainline.html
+          grep -q 'local-strength-app.v3971_2.js?v=3972_3' ln-rank/local-mainline.html
+          grep -q 'local-strength-score-position.v3972_3.css?v=3972_3' ln-rank/local-mainline.html
+          grep -q "SCORE_POSITION_VERSION = 'local-strength-score-position-v3972_3'" ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -q '/fenxi/data/rank_2026_physics.json?v=3972_3' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -q 'rankDistance(a, rank) - rankDistance(b, rank)' ln-rank/js/local-strength/local-strength-app.v3971_2.js
           for file in \
             functions/api/major-bands-health.js \
             functions/_lib/fenxi-fetcher.js \
@@ -59,6 +68,7 @@ jobs:
             functions/_lib/major-bands-bucket-engine.js \
             functions/api/major-bands-bucket.js \
             functions/api/major-bands.js \
+            ln-rank/js/local-strength/local-strength-app.v3971_2.js \
             tools/verify-production-v3971.mjs; do
             node --check "$file"
           done
@@ -67,6 +77,8 @@ jobs:
           const dir='ln-rank/data/major-bands-static-v3972_2';
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
+          const local=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
+          const ranks=JSON.parse(fs.readFileSync('fenxi/data/rank_2026_physics.json','utf8'));
           if(manifest.version!=='major-bands-static-v3972_2'||manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static major-bands contract');
           if(manifest.bucketSize!==5) throw new Error(`static major-bands bucket size ${manifest.bucketSize}`);
           if(manifest.recordCount!==11628||!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static major-bands coverage');
@@ -74,6 +86,9 @@ jobs:
           if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('static major-bands bucket coverage');
           if(audit.indexBytes>8500000) throw new Error(`static major-bands budget ${audit.indexBytes}`);
           if(Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('static major-bands single bucket budget');
+          if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243) throw new Error('LocalStrength immutable index');
+          if(!local.meta?.completeEvaluation||local.meta?.evaluatedRecordCount!==local.meta?.localAdmissionRecordCount) throw new Error('LocalStrength coverage');
+          if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
           NODE
       - name: Resolve and verify Cloudflare deployment credentials
         env:
@@ -105,6 +120,7 @@ jobs:
           CUSTOM_BASE: https://gaokao.powers.org.cn
           EXPECTED_RELEASE: v3.9.72.2
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '45'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
           PRODUCTION_STRESS_CYCLES: '40'
@@ -116,7 +132,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cloudflare-pages-v3972-2-production
+          name: cloudflare-pages-v3972-3-production
           path: /tmp/cloudflare-pages-production-verification.out
           if-no-files-found: warn
           retention-days: 7
