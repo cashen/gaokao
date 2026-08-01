@@ -1,0 +1,167 @@
+import { buildHistoryScore } from './history-score-engine.js';
+import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
+import { normalizeLocation } from './location-normalizer.js';
+
+const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
+const MANIFEST_TTL = 5 * 60 * 1000;
+let manifestCache = null;
+
+function fresh(item) {
+  return item && Date.now() - item.time < MANIFEST_TTL;
+}
+
+function origin(request) {
+  return new URL(request.url).origin;
+}
+
+async function fetchStaticJson(request, pathname) {
+  const url = `${origin(request)}${pathname}`;
+  const response = await fetch(url, {
+    headers: { accept: 'application/json' },
+    cf: { cacheTtl: 300, cacheEverything: false }
+  });
+  const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+  if (!response.ok) throw new Error(`静态专业分数索引读取失败：${pathname}，HTTP ${response.status}`);
+  if (contentType.includes('text/html')) throw new Error(`静态专业分数索引返回 HTML：${pathname}`);
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new Error(`静态专业分数索引 JSON 解析失败：${pathname}。${error?.message || String(error)}`);
+  }
+}
+
+export async function loadMajorBandsStaticManifest(request) {
+  if (fresh(manifestCache)) return manifestCache.data;
+  const manifest = await fetchStaticJson(request, MANIFEST_PATH);
+  if (manifest?.version !== 'major-bands-static-v3972_2') throw new Error(`静态专业分数索引版本异常：${manifest?.version || 'unknown'}`);
+  if (manifest?.architecture !== 'build-time-static-score-index') throw new Error('静态专业分数索引架构异常');
+  if (manifest?.encoding !== 'schema-row-array-atomic-v2') throw new Error(`静态专业分数索引编码异常：${manifest?.encoding || 'unknown'}`);
+  if (!manifest?.integrity?.completeEvaluation || Number(manifest?.recordCount) !== 11628) throw new Error('静态专业分数索引覆盖不完整');
+  if (Number(manifest?.integrity?.duplicateRecordCount) !== 0 || Number(manifest?.integrity?.unresolvedRecordCount) !== 0) throw new Error('静态专业分数索引完整性异常');
+  manifestCache = { time: Date.now(), data: manifest };
+  return manifest;
+}
+
+function decodeRow(row, schema) {
+  const record = {};
+  for (let index = 0; index < schema.length; index += 1) {
+    const value = row[index];
+    if (value !== null && value !== undefined) record[schema[index]] = value;
+  }
+  record.schoolName = record.school;
+  record.majorName = record.major;
+  record.score = record.score2026;
+  record.rank = record.rank2026;
+  record.region = record.lnArea;
+  record.codes = {
+    rawFenxiMajorCode: record.rawFenxiMajorCode || '',
+    standardMajorCode: record.standardMajorCode || '',
+    rawFenxiMajorCodeLooksStandard: Boolean(record.rawFenxiMajorCodeLooksStandard)
+  };
+  record.standardMajor = record.standardMajorCode || record.standardMajorName
+    ? {
+        code: record.standardMajorCode || '',
+        name: record.standardMajorName || '',
+        categoryCode: record.standardMajorCategoryCode || '',
+        categoryName: record.standardMajorCategoryName || ''
+      }
+    : null;
+  record.specialProject = {
+    hasSpecialProject: Boolean(record.specialHas),
+    keys: Array.isArray(record.specialKeys) ? record.specialKeys : [],
+    labels: Array.isArray(record.specialLabels) ? record.specialLabels : [],
+    primaryLabel: record.specialPrimaryLabel || '',
+    reviewPoints: Array.isArray(record.specialReviewPoints) ? record.specialReviewPoints : []
+  };
+  return record;
+}
+
+function intersects(bucket, scoreWindow) {
+  return Number(bucket?.maxScore) >= Number(scoreWindow.min)
+    && Number(bucket?.minScore) <= Number(scoreWindow.max);
+}
+
+export async function selectMajorBandsStaticBuckets(request, scoreWindow) {
+  const manifest = await loadMajorBandsStaticManifest(request);
+  const buckets = (manifest.buckets || []).filter(bucket => intersects(bucket, scoreWindow));
+  return { manifest, buckets };
+}
+
+/**
+ * Load exactly one manifest-approved five-point bucket. The caller cannot pass
+ * an arbitrary path or ask this function to combine buckets.
+ */
+export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindow) {
+  const manifest = await loadMajorBandsStaticManifest(request);
+  const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
+  if (!bucket) throw new Error(`静态专业分数桶不在发布清单中：${bucketFile || 'empty'}`);
+  if (!intersects(bucket, scoreWindow)) throw new Error(`静态专业分数桶超出当前查询窗口：${bucketFile}`);
+  const payload = await fetchStaticJson(request, bucket.file);
+  if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+    throw new Error(`静态专业分数桶合同异常：${bucket.file}`);
+  }
+  const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
+  const records = [];
+  for (const row of payload.rows) {
+    const record = decodeRow(row, schema);
+    const score = Number(record.score2026);
+    if (Number.isFinite(score) && score >= scoreWindow.min && score <= scoreWindow.max) records.push(record);
+  }
+  return {
+    manifest,
+    bucket,
+    records,
+    rowCount: payload.rows.length,
+    bytes: Number(bucket.bytes || 0)
+  };
+}
+
+/** Compatibility helper for local audits; production orchestration uses one bucket per Worker. */
+export async function loadMajorBandsStaticWindow(request, scoreWindow) {
+  const { manifest, buckets } = await selectMajorBandsStaticBuckets(request, scoreWindow);
+  const records = [];
+  let bytes = 0;
+  for (const bucket of buckets) {
+    const loaded = await loadMajorBandsStaticBucket(request, bucket.file, scoreWindow);
+    records.push(...loaded.records);
+    bytes += loaded.bytes;
+  }
+  return { manifest, records, buckets, bytes };
+}
+
+export function materializeMajorBandsStaticRecord(record = {}) {
+  const historyCompare = buildHistoryScore(record);
+  const location = normalizeLocation(record, record.school, record.major);
+  const expanded = {
+    ...record,
+    dataYear: 2026,
+    primaryYear: 2026,
+    historyCompare,
+    lnArea: location.lnArea,
+    region: location.lnArea,
+    province: location.province,
+    city: location.city,
+    displayLocation: location.displayLocation,
+    locationSource: location.locationSource,
+    locationConfidence: location.locationConfidence,
+    locationWarning: location.locationWarning,
+    geoEntity: location.geoEntity || '',
+    schoolCanonical: location.schoolCanonical || record.schoolCanonical || '',
+    regionGroups: location.regionGroups || [],
+    geoSourceMethod: location.geoSourceMethod || '',
+    geoSourceName: location.geoSourceName || '',
+    geoSourceUrl: location.geoSourceUrl || '',
+    geoSourceYear: location.geoSourceYear || '',
+    geoMatchNote: location.geoMatchNote || '',
+    schoolIdentifier: location.schoolIdentifier || '',
+    tuitionSourceYear: record.tuition ? 2026 : null
+  };
+  const historyEvidence = buildHistoricalScoreRankEvidence(expanded);
+  return {
+    ...expanded,
+    historyEvidence,
+    rank2026Source: historyEvidence.years[2026].rankSource,
+    rank2025Source: historyEvidence.years[2025].rankSource,
+    rank2024Source: historyEvidence.years[2024].rankSource
+  };
+}

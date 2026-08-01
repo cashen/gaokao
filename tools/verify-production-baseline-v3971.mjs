@@ -1,8 +1,9 @@
 const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
 const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
-const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.71.2';
+const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'auto';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
-const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 15);
+const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 8);
+const ALLOWED_RELEASES = new Set(['v3.9.71.2', 'v3.9.72.2']);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, accept = 'application/json') {
@@ -25,6 +26,10 @@ async function request(url, accept = 'application/json') {
   }
 }
 
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
 function parseJson(result) {
   try {
     return JSON.parse(result.text);
@@ -33,55 +38,128 @@ function parseJson(result) {
   }
 }
 
+function assertResponse(result) {
+  const lower = result.text.toLowerCase();
+  assert(result.status !== 503, `${result.url} returned HTTP 503`);
+  assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);
+  assert(result.status === 200, `${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`);
+}
+
+function assertForbiddenLocalApiBaseline(result) {
+  const lower = result.text.toLowerCase();
+  assert(result.status !== 503, `${result.url} returned HTTP 503`);
+  assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);
+  if (result.status === 404) return 'hard-404';
+
+  // The currently deployed Pages generation predates the top-level 404.html.
+  // Cloudflare therefore treats the project as an SPA and serves / for an
+  // unknown path. This is acceptable only as a pre-merge legacy baseline;
+  // the candidate and post-merge production must return a real HTTP 404.
+  assert(result.status === 200, `/api/local-strength unexpectedly returned HTTP ${result.status}`);
+  const contentType = String(result.headers['content-type'] || '').toLowerCase();
+  assert(contentType.includes('text/html'), `/api/local-strength soft fallback is not HTML: ${contentType || 'missing content-type'}`);
+  assert(lower.includes('<!doctype html') || lower.includes('<html'), '/api/local-strength soft fallback is not an HTML document');
+  for (const marker of ['"scannedcount"', '"matchedcount"', '"architecture"', '"records"']) {
+    assert(!lower.includes(marker), `/api/local-strength soft fallback contains API payload marker ${marker}`);
+  }
+  return 'legacy-spa-soft-404';
+}
+
 function recordCount(data) {
   return ['upper', 'near', 'steady'].reduce((sum, key) => sum + Number(data?.bands?.[key]?.records?.length || 0), 0);
 }
 
+function releaseFromSource(text) {
+  return text.match(/display:\s*'([^']+)'/)?.[1] || '';
+}
+
+function assertBoundedHealth(health) {
+  assert(health?.ok !== false, 'bounded health returned ok=false');
+  assert(health?.resourcePolicy?.fullDatasetProbeDisabled === true, 'bounded health permits full scan');
+  assert(health?.resourcePolicy?.largeChunkModuleCacheDisabled === true, 'bounded health permits large chunk module cache');
+  assert(health?.resourcePolicy?.maximumProbeChunks === 1, `maximumProbeChunks=${health?.resourcePolicy?.maximumProbeChunks}`);
+  assert(health?.probe?.mode === 'bounded-manifest-plus-one-chunk', `probe mode=${health?.probe?.mode}`);
+  assert(health?.probe?.fullDatasetScan === false, 'probe claims full dataset scan');
+  assert(Number(health?.probe?.chunksRead || 0) <= 1, `chunksRead=${health?.probe?.chunksRead}`);
+  assert(Number(health?.probe?.rawScanned || 0) <= 2000, `rawScanned=${health?.probe?.rawScanned}`);
+  assert(health?.probe?.resourceBudget?.maxChunksRead === 1, `maxChunksRead=${health?.probe?.resourceBudget?.maxChunksRead}`);
+  assert(health?.probe?.resourceBudget?.parsedChunkCache === false, 'parsed chunk cache enabled');
+}
+
 async function verifyOnce(token) {
-  const urls = {
-    runtime: `${PAGES_BASE}/api/ln-rank-runtime-health?release-check=${token}`,
-    health: `${PAGES_BASE}/api/major-bands-health?probe=1&release-check=${token}`,
-    score: `${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}`,
-    school: `${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=${encodeURIComponent('东北大学')}&limit=16&release-check=${token}`,
-    page: `${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}`,
-    index: `${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}`,
-    custom: `${CUSTOM_BASE}/api/major-bands?candidateScore=579&limit=16&release-check=${token}`
-  };
-  const [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult, customResult] = await Promise.all([
-    request(urls.runtime), request(urls.health), request(urls.score), request(urls.school),
-    request(urls.page, 'text/html'), request(urls.index), request(urls.custom)
-  ]);
-  for (const result of [runtimeResult, healthResult, scoreResult, schoolResult, pageResult, indexResult]) {
-    if (result.status !== 200) throw new Error(`${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`);
+  const releaseResult = await request(`${PAGES_BASE}/shared/resources/release/current-release.js?baseline=${token}`, '*/*');
+  assertResponse(releaseResult);
+  const deployedRelease = releaseFromSource(releaseResult.text);
+  assert(ALLOWED_RELEASES.has(deployedRelease), `unsupported deployed release ${deployedRelease || 'unknown'}`);
+  if (EXPECTED_RELEASE !== 'auto') {
+    assert(deployedRelease === EXPECTED_RELEASE, `production release ${deployedRelease} is not ${EXPECTED_RELEASE}`);
   }
-  const runtime = parseJson(runtimeResult);
-  const health = parseJson(healthResult);
-  const score = parseJson(scoreResult);
-  const school = parseJson(schoolResult);
-  const index = parseJson(indexResult);
-  if (runtime?.ok === false || health?.ok === false || score?.ok === false || school?.ok === false) throw new Error('production API returned ok=false');
-  if (recordCount(score) < 1 || recordCount(school) < 1) throw new Error('production query returned no records');
-  if (!pageResult.text.includes(`data-release="${EXPECTED_RELEASE}"`)) throw new Error(`production release is not ${EXPECTED_RELEASE}`);
-  if (pageResult.text.includes('/api/local-strength')) throw new Error('forbidden LocalStrength API reference');
-  if (index.version !== 'local-strength-static-v3971_2' || !index.meta?.completeEvaluation) throw new Error('LocalStrength index invalid');
-  if (index.meta.evaluatedRecordCount !== index.meta.localAdmissionRecordCount) throw new Error('LocalStrength coverage mismatch');
-  if (index.meta.duplicatePublicRecordCount !== 0 || index.meta.unresolvedLocalRecordCount !== 0) throw new Error('LocalStrength integrity mismatch');
-  if (!Array.isArray(index.records) || index.records.length !== index.meta.matchedRecordCount) throw new Error('LocalStrength count mismatch');
+
+  const customRelease = await request(`${CUSTOM_BASE}/shared/resources/release/current-release.js?baseline=${token}`, '*/*');
   let customDomain = '';
-  if (customResult.status === 200) {
-    const custom = parseJson(customResult);
-    if (custom?.ok === false || recordCount(custom) < 1) throw new Error('custom domain query invalid');
-    customDomain = 'json-200';
-  } else if (String(customResult.headers['cf-mitigated'] || '').toLowerCase() === 'challenge') {
+  if (customRelease.status === 200) {
+    const customVersion = releaseFromSource(customRelease.text);
+    assert(customVersion === deployedRelease, `custom-domain release ${customVersion} does not match ${deployedRelease}`);
+    customDomain = `release-${customVersion}`;
+  } else if (String(customRelease.headers['cf-mitigated'] || '').toLowerCase() === 'challenge') {
     customDomain = 'managed-challenge';
   } else {
-    throw new Error(`custom domain HTTP ${customResult.status}`);
+    throw new Error(`custom domain HTTP ${customRelease.status}`);
   }
+
+  const pageResult = await request(`${PAGES_BASE}/ln-rank/local-mainline.html?baseline=${token}`, 'text/html');
+  assertResponse(pageResult);
+  assert(pageResult.text.includes('data-release="v3.9.71.2"'), 'LocalStrength immutable page lineage mismatch');
+  assert(!pageResult.text.includes('/api/local-strength'), 'forbidden LocalStrength API reference');
+
+  const indexResult = await request(`${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?baseline=${token}`);
+  assertResponse(indexResult);
+  const index = parseJson(indexResult);
+  assert(index.version === 'local-strength-static-v3971_2' && index.meta?.completeEvaluation, 'LocalStrength index invalid');
+  assert(index.meta.evaluatedRecordCount === index.meta.localAdmissionRecordCount, 'LocalStrength coverage mismatch');
+  assert(index.meta.duplicatePublicRecordCount === 0 && index.meta.unresolvedLocalRecordCount === 0, 'LocalStrength integrity mismatch');
+  assert(Array.isArray(index.records) && index.records.length === 243 && index.meta.matchedRecordCount === 243, 'LocalStrength immutable count mismatch');
+
+  const forbiddenLocalApi = await request(`${PAGES_BASE}/api/local-strength`, '*/*');
+  const localStrengthApiState = assertForbiddenLocalApiBaseline(forbiddenLocalApi);
+
+  const runtimeResult = await request(`${PAGES_BASE}/api/ln-rank-runtime-health`);
+  assertResponse(runtimeResult);
+  const runtime = parseJson(runtimeResult);
+  assert(runtime?.ok !== false, 'runtime returned ok=false');
+
+  // Keep legacy production requests sequential and cacheable. The v3.9.71.2
+  // deep probe is intentionally excluded because it scans the full dataset.
+  const scoreResult = await request(`${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16`);
+  assertResponse(scoreResult);
+  const score = parseJson(scoreResult);
+  assert(score?.ok !== false && recordCount(score) > 0, 'production score query invalid');
+
+  const schoolResult = await request(`${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=${encodeURIComponent('东北大学')}&limit=16`);
+  assertResponse(schoolResult);
+  const school = parseJson(schoolResult);
+  assert(school?.ok !== false && recordCount(school) > 0, 'production school query invalid');
+
+  let boundedHealth = null;
+  if (deployedRelease === 'v3.9.72.2') {
+    const healthResult = await request(`${PAGES_BASE}/api/major-bands-health?probe=1&baseline=${token}`);
+    assertResponse(healthResult);
+    const health = parseJson(healthResult);
+    assertBoundedHealth(health);
+    boundedHealth = {
+      chunksRead: Number(health.probe?.chunksRead || 0),
+      rawScanned: Number(health.probe?.rawScanned || 0)
+    };
+  }
+
   return {
-    release: EXPECTED_RELEASE,
+    release: deployedRelease,
     scoreRecords: recordCount(score),
     schoolRecords: recordCount(school),
-    matchedRecords: index.meta.matchedRecordCount,
+    matchedRecords: index.records.length,
+    localStrengthApiState,
+    deepHealthProbeSkipped: deployedRelease === 'v3.9.71.2',
+    boundedHealth,
     customDomain
   };
 }
@@ -90,7 +168,7 @@ let lastError;
 for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
   try {
     const result = await verifyOnce(`baseline-${attempt}-${Date.now()}`);
-    console.log(JSON.stringify({ attempt, ...result }, null, 2));
+    console.log(JSON.stringify({ ok: true, phase: 'complete', attempt, ...result }, null, 2));
     process.exit(0);
   } catch (error) {
     lastError = error;
