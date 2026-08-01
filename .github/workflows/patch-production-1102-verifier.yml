@@ -26,23 +26,26 @@ jobs:
 
           production=Path('tools/verify-production-v3971.mjs')
           text=production.read_text()
-          old="assert(!result.text.includes('1102'), `${result.url} returned Cloudflare Error 1102`);"
-          new="assert(!lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Cloudflare Error 1102`);"
-          if old in text:
-              text=text.replace(old,new,1)
-          elif new not in text:
-              raise SystemExit('production verifier 1102 assertion not found')
+          text=text.replace(
+              "assert(!result.text.includes('1102'), `${result.url} returned Cloudflare Error 1102`);",
+              "assert(!lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Cloudflare Error 1102`);"
+          )
+          if "result.text.includes('1102')" in text:
+              raise SystemExit('production verifier still has substring 1102 detection')
+          if "<title>error 1102" not in text or "error code: 1102" not in text:
+              raise SystemExit('production verifier exact markers missing')
           production.write_text(text)
 
           baseline=Path('tools/verify-production-baseline-v3971.mjs')
           text=baseline.read_text()
-          old="assert(!result.text.includes('1102') && !lower.includes('worker exceeded resource limits'), `${result.url} returned Worker resource error`);"
-          new="assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);"
-          count=text.count(old)
-          if count:
-              text=text.replace(old,new)
-          elif new not in text:
-              raise SystemExit('baseline verifier 1102 assertions not found')
+          text=text.replace(
+              "assert(!result.text.includes('1102') && !lower.includes('worker exceeded resource limits'), `${result.url} returned Worker resource error`);",
+              "assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);"
+          )
+          if "result.text.includes('1102')" in text:
+              raise SystemExit('baseline verifier still has substring 1102 detection')
+          if "<title>error 1102" not in text or "error code: 1102" not in text:
+              raise SystemExit('baseline verifier exact markers missing')
           baseline.write_text(text)
 
           for name in [
@@ -53,20 +56,21 @@ jobs:
               text=path.read_text()
               text=text.replace('node tools/verify-production-v3971.mjs | tee', 'node tools/verify-production-v3971.mjs 2>&1 | tee')
               text=text.replace('node tools/verify-production-baseline-v3971.mjs | tee', 'node tools/verify-production-baseline-v3971.mjs 2>&1 | tee')
+              if 'node tools/verify-production-v3971.mjs | tee' in text or 'node tools/verify-production-baseline-v3971.mjs | tee' in text:
+                  raise SystemExit(f'{name} still omits stderr redirection')
               path.write_text(text)
           PY
           node --check tools/verify-production-v3971.mjs
           node --check tools/verify-production-baseline-v3971.mjs
-          grep -q "<title>error 1102" tools/verify-production-v3971.mjs
-          grep -q "error code: 1102" tools/verify-production-baseline-v3971.mjs
-          grep -q "2>&1 | tee" .github/workflows/verify-production-api-health-v3971.yml
-          grep -q "2>&1 | tee" .github/workflows/deploy-cloudflare-pages-main.yml
           git add \
             tools/verify-production-v3971.mjs \
             tools/verify-production-baseline-v3971.mjs \
             .github/workflows/verify-production-api-health-v3971.yml \
             .github/workflows/deploy-cloudflare-pages-main.yml
-          if git diff --cached --quiet; then exit 0; fi
+          if git diff --cached --quiet; then
+            echo 'verifier patch already current'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'fix(ci): distinguish Cloudflare 1102 pages from normal data'
