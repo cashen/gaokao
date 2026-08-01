@@ -167,7 +167,11 @@ try {
       for (const region of regionValues) {
         const beforeRequests = majorRequests.length;
         await page.dispatchEvent('#region', 'pointerdown', { pointerType: testCase.touch ? 'touch' : 'mouse', pointerId: 1, isPrimary: true, buttons: 1 });
-        await page.locator('#region').selectOption(region);
+        await page.locator('#region').evaluate((select, value) => {
+          select.value = value;
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }, region);
         await page.waitForTimeout(60);
         assert.equal(await page.locator('#region').inputValue(), region, `${testCase.name}: region state not committed`);
         assert.equal(majorRequests.length, beforeRequests, `${testCase.name}: region change queried before explicit submit`);
