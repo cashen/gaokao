@@ -8,33 +8,12 @@ const artifactDir = process.env.V3972_INTERACTION_ARTIFACT_DIR || '/tmp/v3972-in
 fs.mkdirSync(artifactDir, { recursive: true });
 
 const record = {
-  id: 'interaction|001',
-  school: '东北大学',
-  major: '自动化类',
-  schoolCode2026: '0141',
-  majorCode2026: '003',
-  score: 579,
-  rank: 21051,
-  score2026: 579,
-  rank2026: 21051,
-  rankStart2026: 20760,
-  rankEnd2026: 21051,
-  sameCount2026: 292,
-  scoreDelta2026: 0,
-  rankGap2026: 0,
-  statusKey: 'match',
-  statusLabel: '历史位次接近',
-  position: '主体讨论',
-  band: 'near',
-  bandKey: 'near',
-  schoolTierTags: ['985', '211'],
-  natureLabel: '公办',
-  province: '辽宁',
-  city: '沈阳',
-  lnArea: '沈阳',
-  regionGroups: ['ln', '辽宁省内', 'shenyang', '沈阳'],
-  displayLocation: '辽宁 · 沈阳',
-  projectLabel: '普通招生记录',
+  id: 'interaction|001', school: '东北大学', major: '自动化类', schoolCode2026: '0141', majorCode2026: '003',
+  score: 579, rank: 21051, score2026: 579, rank2026: 21051, rankStart2026: 20760, rankEnd2026: 21051,
+  sameCount2026: 292, scoreDelta2026: 0, rankGap2026: 0, statusKey: 'match', statusLabel: '历史位次接近',
+  position: '主体讨论', band: 'near', bandKey: 'near', schoolTierTags: ['985', '211'], natureLabel: '公办',
+  province: '辽宁', city: '沈阳', lnArea: '沈阳', regionGroups: ['ln', '辽宁省内', 'shenyang', '沈阳'],
+  displayLocation: '辽宁 · 沈阳', projectLabel: '普通招生记录',
   schoolEntity: { entityId: 'neu-main', entityType: 'official_school' },
   matchReason: '统一交互事务回归记录',
   canonicalPosition: { bandKey: 'near', classificationBasis: 'rank-primary-2026-position', positionDistance: 0 }
@@ -46,24 +25,15 @@ function scorePayload(url) {
   return {
     ok: true,
     meta: {
-      audienceYear: 2027,
-      activeDataYear: 2026,
-      candidateScore: 579,
-      candidateReferenceRank2026: 21051,
-      candidateReferenceRankStart2026: 20760,
-      candidateReferenceRankEnd2026: 21051,
-      candidateSameCount2026: 292,
+      audienceYear: 2027, activeDataYear: 2026, candidateScore: 579, candidateReferenceRank2026: 21051,
+      candidateReferenceRankStart2026: 20760, candidateReferenceRankEnd2026: 21051, candidateSameCount2026: 292,
       candidateRankLabel: '按2026年成绩分布，同分位置约为第20,760—21,051位',
       rangePreset: requestUrl.searchParams.get('rangePreset') || 'standard',
-      dataScope: '辽宁2026物理类专业投档最低分',
-      classificationMode: 'canonical_rank_primary_2026_position',
-      specialProjectMode: requestUrl.searchParams.get('specialProjectMode') || 'hide_eligibility_projects',
-      region
+      dataScope: '辽宁2026物理类专业投档最低分', classificationMode: 'canonical_rank_primary_2026_position',
+      specialProjectMode: requestUrl.searchParams.get('specialProjectMode') || 'hide_eligibility_projects', region
     },
-    keywordQuery: { rawKeywords: [] },
-    matchSummary: { exact: 0, related: 0, industry: 0, project: 0 },
-    source: { specialProjectHidden: 0, specialProjectShown: 0 },
-    counts: { upper: 0, near: 1, steady: 0, total: 1 },
+    keywordQuery: { rawKeywords: [] }, matchSummary: { exact: 0, related: 0, industry: 0, project: 0 },
+    source: { specialProjectHidden: 0, specialProjectShown: 0 }, counts: { upper: 0, near: 1, steady: 0, total: 1 },
     bands: {
       upper: { key: 'upper', title: '稍高目标', rankRangeText: '稍高目标', rangeText: '稍高目标', count: 0, records: [], pagination: { offset: 0, limit: 40, returned: 0, hasMore: false } },
       near: { key: 'near', title: '主要参考', rankRangeText: '主要参考', rangeText: '主要参考', count: 1, records: [record], pagination: { offset: 0, limit: 40, returned: 1, hasMore: false } },
@@ -75,18 +45,12 @@ function scorePayload(url) {
 const schoolPayload = {
   ok: true,
   meta: {
-    mode: 'school-all',
-    school: '东北大学',
-    schoolEntity: { entityId: 'neu-main', displayName: '东北大学' },
-    filteredTotal: 1,
-    candidateScore: 579,
-    dataBoundary: '统一交互事务回归',
-    keywordMode: 'any',
+    mode: 'school-all', school: '东北大学', schoolEntity: { entityId: 'neu-main', displayName: '东北大学' },
+    filteredTotal: 1, candidateScore: 579, dataBoundary: '统一交互事务回归', keywordMode: 'any',
     pagination: { hasMore: false, nextOffset: null }
   },
   summary: { minScore: 579, maxScore: 579, uniqueMajorCount: 1, regularCount: 1, specialCount: 0, nearestRecord: { major: '自动化类', rank2026: 21051 } },
-  keywordQuery: { rawKeywords: [] },
-  records: [record]
+  keywordQuery: { rawKeywords: [] }, records: [record]
 };
 
 const cases = [
@@ -104,7 +68,19 @@ async function waitForLength(items, expected, label) {
 }
 
 function updateAction(page, mobile) {
-  return page.locator(mobile ? '#mobileDirtyButton' : '#queryButton');
+  const primary = page.locator('#queryButton');
+  const mobileShortcut = page.locator('#mobileDirtyButton');
+  const resolve = async () => mobile && await mobileShortcut.isVisible() ? mobileShortcut : primary;
+  return {
+    async waitFor(options) { return (await resolve()).waitFor(options); },
+    async click(options) { return (await resolve()).click(options); },
+    async audit() {
+      const primaryVisible = await primary.isVisible();
+      const shortcutVisible = mobile ? await mobileShortcut.isVisible() : false;
+      assert.equal(primaryVisible, true, 'primary submit owner must remain visible');
+      return { primaryVisible, shortcutVisible };
+    }
+  };
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -112,11 +88,8 @@ const results = [];
 try {
   for (const testCase of cases) {
     const context = await browser.newContext({
-      viewport: { width: testCase.width, height: testCase.height },
-      hasTouch: Boolean(testCase.touch),
-      isMobile: Boolean(testCase.mobile),
-      userAgent: testCase.userAgent,
-      deviceScaleFactor: 1
+      viewport: { width: testCase.width, height: testCase.height }, hasTouch: Boolean(testCase.touch),
+      isMobile: Boolean(testCase.mobile), userAgent: testCase.userAgent, deviceScaleFactor: 1
     });
     const page = await context.newPage();
     const pageErrors = [];
@@ -204,6 +177,7 @@ try {
         assert.equal(blockedAfter, blockedBefore + 1, `${testCase.name}: tail navigation was not owned by transaction guard`);
 
         const action = updateAction(page, testCase.mobile);
+        const actionAudit = await action.audit();
         await action.waitFor({ state: 'visible', timeout: 5000 });
         await action.click();
         await waitForLength(majorRequests, beforeRequests + 1, `${testCase.name}: region update`);
@@ -212,6 +186,7 @@ try {
         assert.equal(requestUrl.searchParams.get('interactionVersion'), 'interaction-transaction-v3972_4');
         assert.equal(await conditions.evaluate(node => node.open), true, `${testCase.name}: query commit collapsed user disclosure`);
         assert.equal(pathname(page.url()), '/ln-rank/');
+        if (testCase.mobile && !actionAudit.shortcutVisible) assert.match(await page.locator('#queryButton').textContent(), /查看|更新|重新/);
       }
 
       const beforeRange = majorRequests.length;
@@ -259,10 +234,7 @@ try {
 
       const beforeNavigation = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        fixedQueryActions: [...document.querySelectorAll('#queryButton,#mobileDirtyButton')].filter(node => {
-          const position = getComputedStyle(node).position;
-          return position === 'fixed' || position === 'sticky';
-        }).length,
+        fixedQueryActions: [...document.querySelectorAll('#queryButton,#mobileDirtyButton')].filter(node => ['fixed','sticky'].includes(getComputedStyle(node).position)).length,
         interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState(),
         workspace: globalThis.__GAOKAO_SELECTION_WORKSPACE__.getState()
       }));
@@ -281,12 +253,9 @@ try {
       assert.equal(pathname(page.url()), '/ln-rank/local-mainline.html', `${testCase.name}: intentional auxiliary navigation was blocked`);
 
       results.push({
-        name: testCase.name,
-        majorRequests: majorRequests.length,
-        schoolRequests: schoolRequests.length,
+        name: testCase.name, majorRequests: majorRequests.length, schoolRequests: schoolRequests.length,
         blockedNavigations: beforeNavigation.interaction.blockedNavigations,
-        disclosureOpen: beforeNavigation.interaction.disclosureOpen,
-        overflow: beforeNavigation.overflow
+        disclosureOpen: beforeNavigation.interaction.disclosureOpen, overflow: beforeNavigation.overflow
       });
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
