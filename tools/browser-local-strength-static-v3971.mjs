@@ -84,6 +84,18 @@ try {
     assert(distances.every((value, index) => index === 0 || distances[index - 1] <= value), `${viewport.name}: exact score must be rank-distance ordered`);
     assert(distances[0] < Math.abs(Number(RANK['559']) - candidateRank), `${viewport.name}: exact 530 must not start from 559 band ceiling`);
 
+    const expectedUpperDistance = Math.min(...INDEX.records.filter(record => Number(record.rank2026) < candidateRank).map(record => candidateRank - Number(record.rank2026)));
+    const expectedLowerDistance = Math.min(...INDEX.records.filter(record => Number(record.rank2026) > candidateRank).map(record => Number(record.rank2026) - candidateRank));
+    await page.locator('#scorePositionGroups [data-position-group="upper"]').click();
+    await page.waitForFunction(() => document.querySelector('#resultsTitle')?.textContent?.includes('冲一冲'));
+    const upperRanks = (await page.locator('.ls-record .ls-position span:nth-child(2) b').allTextContents()).map(numeric);
+    assert(upperRanks.length > 0 && upperRanks.every(value => value < candidateRank), `${viewport.name}: upper side rank direction`);
+    assert(candidateRank - upperRanks[0] === expectedUpperDistance, `${viewport.name}: upper side must start from closest record`);
+    await page.locator('#scorePositionGroups [data-position-group="lower"]').click();
+    await page.waitForFunction(() => document.querySelector('#resultsTitle')?.textContent?.includes('稳一稳'));
+    const lowerRanks = (await page.locator('.ls-record .ls-position span:nth-child(2) b').allTextContents()).map(numeric);
+    assert(lowerRanks.length > 0 && lowerRanks.every(value => value > candidateRank), `${viewport.name}: lower side rank direction`);
+    assert(lowerRanks[0] - candidateRank === expectedLowerDistance, `${viewport.name}: lower side must start from closest record`);
     await page.locator('#scorePositionGroups [data-position-group="band"]').click();
     await page.waitForFunction(() => document.querySelector('#resultsTitle')?.textContent?.startsWith('530—559分'));
     assert((await page.locator('#resultsMeta').textContent()).includes('共 43 条'), `${viewport.name}: explicit 530-559 band total`);
