@@ -12,8 +12,9 @@
   <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3970_0.css?v=3970_0" />
   <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0" />
   <link rel="stylesheet" href="/ln-rank/css/local-strength.v3971_2.css?v=3971_2" />
+  <link rel="stylesheet" href="/ln-rank/css/local-strength-score-position.v3972_3.css?v=3972_3" />
 </head>
-<body class="ui-orchestrated ln-local-strength-page" data-ui-page="background" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.71.2" data-local-strength-runtime="loading">
+<body class="ui-orchestrated ln-local-strength-page" data-ui-page="background" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.71.2" data-local-strength-runtime="loading" data-local-strength-score-position="local-strength-score-position-v3972_3">
   <div data-ui-global-header-mount></div>
   <div data-ui-family-status-mount></div>
   <main class="ls-page" id="mainContent">
@@ -48,10 +49,16 @@
       </nav>
 
       <section id="scorePanel" class="ls-console" role="tabpanel" aria-labelledby="scoreTab" data-view-panel="score" hidden>
-        <div class="ls-console-row"><input id="scoreInput" type="text" inputmode="numeric" enterkeyhint="search" autocomplete="off" aria-describedby="scoreHelp scoreError" placeholder="输入参考分数，例如 579" /><button id="scoreSubmit" type="button" class="ui-button ui-button--primary">查看这个分数段</button></div>
-        <p id="scoreHelp" class="ls-console-help">按2026历史最低投档分定位分数段，不计算录取概率。</p>
+        <div class="ls-console-row"><input id="scoreInput" type="text" inputmode="numeric" enterkeyhint="search" autocomplete="off" aria-describedby="scoreHelp scoreError" placeholder="输入参考分数，例如 530" /><button id="scoreSubmit" type="button" class="ui-button ui-button--primary">按位次看附近专业</button></div>
+        <p id="scoreHelp" class="ls-console-help">输入具体分数时按2026累计位次距离排序；只有点击下方分数段时，才显示完整区间。均不计算录取概率。</p>
         <p id="scoreError" class="ls-inline-error" hidden></p>
         <p id="scoreContext" class="ls-score-context" hidden></p>
+        <div id="scorePositionGroups" class="ls-score-position-groups" role="group" aria-label="分数位置范围" hidden>
+          <button type="button" data-position-group="near" aria-pressed="true">附近</button>
+          <button type="button" data-position-group="upper" aria-pressed="false">冲一冲</button>
+          <button type="button" data-position-group="lower" aria-pressed="false">稳一稳</button>
+          <button type="button" data-position-group="band" aria-pressed="false">所在分数段</button>
+        </div>
         <details id="scoreBandDisclosure" class="ls-score-band-disclosure"><summary>没有具体分数？按分数段浏览</summary><div id="scoreBandButtons" class="ls-chip-row" aria-label="历史分数段"></div></details>
       </section>
 
@@ -89,6 +96,6 @@
   </main>
   <script type="module" src="/shared/resources/release/release-presenter.v3971_2.js?v=3971_2"></script>
   <script type="module" src="/shared/ui/shell/family-shell.v3970_0.js?v=3970_0"></script>
-  <script type="module" src="/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3971_2"></script>
+  <script type="module" src="/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3972_3"></script>
 </body>
 </html>
