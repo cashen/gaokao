@@ -95,9 +95,7 @@ const cases = [
   { name: 'android-390', width: 390, height: 844, touch: true, mobile: true, userAgent: 'Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36' }
 ];
 
-function pathname(url) {
-  return new URL(url).pathname;
-}
+const pathname = url => new URL(url).pathname;
 
 async function waitForRequestCount(requests, expected) {
   const started = Date.now();
@@ -161,7 +159,10 @@ try {
       await waitForRequestCount(majorRequests, 1);
       assert.equal(pathname(page.url()), '/ln-rank/');
 
-      await page.locator('#familyConditionsDetails').evaluate(node => { node.open = true; });
+      const conditions = page.locator('#familyConditionsDetails');
+      if (!(await conditions.evaluate(node => node.open))) await conditions.locator(':scope > summary').click();
+      await page.locator('#region').waitFor({ state: 'visible', timeout: 5000 });
+
       const regionValues = ['guangdong', 'beijing', 'shandong', 'ln'];
       for (const region of regionValues) {
         const beforeRequests = majorRequests.length;
@@ -188,7 +189,9 @@ try {
       }
 
       const beforeRange = majorRequests.length;
-      await page.locator('#scoreAdvancedOptions').evaluate(node => { node.open = true; });
+      const advanced = page.locator('#scoreAdvancedOptions');
+      if (!(await advanced.evaluate(node => node.open))) await advanced.locator(':scope > summary').click();
+      await page.locator('[data-preset="wide"]').waitFor({ state: 'visible', timeout: 5000 });
       await page.locator('[data-preset="wide"]').click();
       assert.equal(majorRequests.length, beforeRange, `${testCase.name}: range queried before submit`);
       await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
