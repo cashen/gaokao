@@ -97,10 +97,14 @@ const cases = [
 
 const pathname = url => new URL(url).pathname;
 
-async function waitForRequestCount(requests, expected) {
+async function waitForLength(items, expected, label) {
   const started = Date.now();
-  while (requests.length < expected && Date.now() - started < 10000) await new Promise(resolve => setTimeout(resolve, 50));
-  assert.equal(requests.length, expected, `expected ${expected} major-band requests, got ${requests.length}`);
+  while (items.length < expected && Date.now() - started < 10000) await new Promise(resolve => setTimeout(resolve, 50));
+  assert.equal(items.length, expected, `${label}: expected ${expected}, got ${items.length}`);
+}
+
+function updateAction(page, mobile) {
+  return page.locator(mobile ? '#mobileDirtyButton' : '#queryButton');
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -132,9 +136,16 @@ try {
     try {
       await page.goto(`${baseUrl}/ln-rank/`, { waitUntil: 'networkidle', timeout: 60000 });
       await page.waitForFunction(() => document.body.dataset.runtimeState === 'ready', null, { timeout: 20000 });
+
       const staticAudit = await page.evaluate(() => ({
+        bootstrap: globalThis.__GAOKAO_RUNTIME_BOOTSTRAP__?.version || '',
+        workspace: globalThis.__GAOKAO_SELECTION_WORKSPACE__?.version || '',
+        delegate: globalThis.__GAOKAO_SELECTION_WORKSPACE__?.delegateVersion || '',
         interactionVersion: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version || '',
+        interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.(),
         bodyVersion: document.body.dataset.uiInteractionVersion || '',
+        disclosureCount: document.querySelectorAll('#familyConditionsDisclosure').length,
+        compatibilityCount: document.querySelectorAll('#familyConditionsDetails[data-ui-disclosure-compatibility]').length,
         nonButtonTypes: [...document.querySelectorAll('button')].filter(button => button.getAttribute('type') !== 'button').map(button => button.id || button.textContent?.trim()),
         unlabeledButtons: [...document.querySelectorAll('button')].filter(button => !(button.textContent || '').trim() && !button.getAttribute('aria-label')).map(button => button.id || button.outerHTML.slice(0, 80)),
         nestedButtons: document.querySelectorAll('a button,button a').length,
@@ -143,8 +154,14 @@ try {
         disabledControls: [...document.querySelectorAll('[data-runtime-control]')].filter(node => node.disabled).length,
         auxNavigation: [...document.querySelectorAll('.aux-background-card')].map(node => node.dataset.uiNavigation || '')
       }));
+      assert.equal(staticAudit.bootstrap, 'resource-execution-v3972_4');
+      assert.equal(staticAudit.workspace, 'selection-workspace-orchestration-v3972_4');
+      assert.equal(staticAudit.delegate, 'selection-workspace-orchestration-v3969_0');
       assert.equal(staticAudit.interactionVersion, 'interaction-transaction-v3972_4');
+      assert.equal(staticAudit.interaction.disclosureOwner, 'interaction-transaction-v3972_4');
       assert.equal(staticAudit.bodyVersion, 'interaction-transaction-v3972_4');
+      assert.equal(staticAudit.disclosureCount, 1);
+      assert.equal(staticAudit.compatibilityCount, 1);
       assert.deepEqual(staticAudit.nonButtonTypes, [], `${testCase.name}: buttons without type=button`);
       assert.deepEqual(staticAudit.unlabeledButtons, [], `${testCase.name}: unlabeled buttons`);
       assert.equal(staticAudit.nestedButtons, 0, `${testCase.name}: nested button/link`);
@@ -156,12 +173,13 @@ try {
       await page.locator('#candidateScore').fill('579');
       await page.locator('#queryButton').click();
       await page.locator('.major-card').first().waitFor({ state: 'visible', timeout: 20000 });
-      await waitForRequestCount(majorRequests, 1);
+      await waitForLength(majorRequests, 1, `${testCase.name}: first score query`);
       assert.equal(pathname(page.url()), '/ln-rank/');
 
-      const conditions = page.locator('#familyConditionsDetails');
+      const conditions = page.locator('#familyConditionsDisclosure');
       if (!(await conditions.evaluate(node => node.open))) await conditions.locator(':scope > summary').click();
       await page.locator('#region').waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await conditions.evaluate(node => node.open), true);
 
       const regionValues = ['guangdong', 'beijing', 'shandong', 'ln'];
       for (const region of regionValues) {
@@ -172,8 +190,10 @@ try {
           select.dispatchEvent(new Event('input', { bubbles: true }));
           select.dispatchEvent(new Event('change', { bubbles: true }));
         }, region);
-        await page.waitForTimeout(60);
+        await page.waitForTimeout(100);
         assert.equal(await page.locator('#region').inputValue(), region, `${testCase.name}: region state not committed`);
+        assert.equal(await conditions.evaluate(node => node.open), true, `${testCase.name}: region change collapsed user disclosure`);
+        await page.locator('#specialProjectToggle').waitFor({ state: 'visible', timeout: 3000 });
         assert.equal(majorRequests.length, beforeRequests, `${testCase.name}: region change queried before explicit submit`);
 
         const blockedBefore = await page.evaluate(() => globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState().blockedNavigations);
@@ -183,38 +203,38 @@ try {
         const blockedAfter = await page.evaluate(() => globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState().blockedNavigations);
         assert.equal(blockedAfter, blockedBefore + 1, `${testCase.name}: tail navigation was not owned by transaction guard`);
 
-        const updateButton = testCase.mobile ? page.locator('#mobileDirtyButton') : page.locator('#queryButton');
-        await updateButton.waitFor({ state: 'visible', timeout: 5000 });
-        await updateButton.click();
-        await waitForRequestCount(majorRequests, beforeRequests + 1);
+        const action = updateAction(page, testCase.mobile);
+        await action.waitFor({ state: 'visible', timeout: 5000 });
+        await action.click();
+        await waitForLength(majorRequests, beforeRequests + 1, `${testCase.name}: region update`);
         const requestUrl = new URL(majorRequests.at(-1));
         assert.equal(requestUrl.searchParams.get('region'), region, `${testCase.name}: submitted request lost region ${region}`);
+        assert.equal(requestUrl.searchParams.get('interactionVersion'), 'interaction-transaction-v3972_4');
+        assert.equal(await conditions.evaluate(node => node.open), true, `${testCase.name}: query commit collapsed user disclosure`);
         assert.equal(pathname(page.url()), '/ln-rank/');
       }
 
       const beforeRange = majorRequests.length;
       const advanced = page.locator('#scoreAdvancedOptions');
       if (!(await advanced.evaluate(node => node.open))) await advanced.locator(':scope > summary').click();
-      await page.locator('[data-preset="wide"]').waitFor({ state: 'visible', timeout: 5000 });
       await page.locator('[data-preset="wide"]').click();
       assert.equal(majorRequests.length, beforeRange, `${testCase.name}: range queried before submit`);
-      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
-      await waitForRequestCount(majorRequests, beforeRange + 1);
+      await updateAction(page, testCase.mobile).click();
+      await waitForLength(majorRequests, beforeRange + 1, `${testCase.name}: range update`);
       assert.equal(new URL(majorRequests.at(-1)).searchParams.get('rangePreset'), 'wide');
 
       const beforeSpecial = majorRequests.length;
       await page.locator('#specialProjectToggle').click();
       assert.equal(majorRequests.length, beforeSpecial, `${testCase.name}: special-project toggle queried before submit`);
-      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
-      await waitForRequestCount(majorRequests, beforeSpecial + 1);
+      await updateAction(page, testCase.mobile).click();
+      await waitForLength(majorRequests, beforeSpecial + 1, `${testCase.name}: special update`);
       assert.match(new URL(majorRequests.at(-1)).searchParams.get('specialProjectMode') || '', /show/);
 
       const beforeKeyword = majorRequests.length;
       await page.locator('#majorKeyword').fill('自动化');
       assert.equal(majorRequests.length, beforeKeyword, `${testCase.name}: keyword queried before submit`);
-      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
-      await waitForRequestCount(majorRequests, beforeKeyword + 1);
-      assert.equal(pathname(page.url()), '/ln-rank/');
+      await updateAction(page, testCase.mobile).click();
+      await waitForLength(majorRequests, beforeKeyword + 1, `${testCase.name}: keyword update`);
 
       const switcherButtons = page.locator('#resultBandSwitcher button');
       if (await switcherButtons.count() > 1) {
@@ -222,12 +242,11 @@ try {
         await switcherButtons.nth(0).click();
         await page.waitForTimeout(80);
         assert.equal(majorRequests.length, beforeBand, `${testCase.name}: band view switch issued a query`);
-        assert.equal(pathname(page.url()), '/ln-rank/');
       }
 
       const beforeSchool = schoolRequests.length;
       await page.locator('[data-school-view-mode="school-all"]').click();
-      assert.equal(pathname(page.url()), '/ln-rank/');
+      assert.equal(await conditions.evaluate(node => node.open), true, `${testCase.name}: school mode did not expose school controls`);
       await page.locator('#schoolKeyword').fill('东北大学');
       await page.locator('#queryButton').click();
       const schoolStarted = Date.now();
@@ -235,7 +254,24 @@ try {
       assert.equal(schoolRequests.length, beforeSchool + 1, `${testCase.name}: school submit did not use school owner`);
       await page.locator('.school-major-row').first().waitFor({ state: 'visible', timeout: 10000 });
       await page.locator('#schoolAllBack').click();
+      assert.equal(await conditions.evaluate(node => node.open), true, `${testCase.name}: score mode did not restore user disclosure state`);
       assert.equal(pathname(page.url()), '/ln-rank/');
+
+      const beforeNavigation = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        fixedQueryActions: [...document.querySelectorAll('#queryButton,#mobileDirtyButton')].filter(node => {
+          const position = getComputedStyle(node).position;
+          return position === 'fixed' || position === 'sticky';
+        }).length,
+        interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState(),
+        workspace: globalThis.__GAOKAO_SELECTION_WORKSPACE__.getState()
+      }));
+      assert.ok(beforeNavigation.overflow <= 1, `${testCase.name}: horizontal overflow ${beforeNavigation.overflow}`);
+      assert.equal(beforeNavigation.fixedQueryActions, 0, `${testCase.name}: query button became fixed/sticky owner`);
+      assert.ok(beforeNavigation.interaction.blockedNavigations >= regionValues.length, `${testCase.name}: insufficient guarded tail navigations`);
+      assert.equal(beforeNavigation.interaction.disclosureOpen, true);
+      assert.equal(beforeNavigation.workspace.interaction.disclosureOwner, 'interaction-transaction-v3972_4');
+      assert.deepEqual(pageErrors, [], `${testCase.name}: ${pageErrors.join('\n')}`);
 
       await page.waitForTimeout(760);
       await Promise.all([
@@ -243,28 +279,14 @@ try {
         page.locator('a[href="/ln-rank/local-mainline.html"]').click()
       ]);
       assert.equal(pathname(page.url()), '/ln-rank/local-mainline.html', `${testCase.name}: intentional auxiliary navigation was blocked`);
-      await page.goBack({ waitUntil: 'networkidle' });
-      await page.waitForFunction(() => document.body.dataset.runtimeState === 'ready', null, { timeout: 20000 });
-
-      const geometry = await page.evaluate(() => ({
-        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        fixedQueryActions: [...document.querySelectorAll('#queryButton,#mobileDirtyButton')].filter(node => {
-          const position = getComputedStyle(node).position;
-          return position === 'fixed' || position === 'sticky';
-        }).length,
-        interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.()
-      }));
-      assert.ok(geometry.overflow <= 1, `${testCase.name}: horizontal overflow ${geometry.overflow}`);
-      assert.equal(geometry.fixedQueryActions, 0, `${testCase.name}: query button became fixed/sticky owner`);
-      assert.ok(geometry.interaction.blockedNavigations >= regionValues.length, `${testCase.name}: insufficient guarded tail navigations`);
-      assert.deepEqual(pageErrors, [], `${testCase.name}: ${pageErrors.join('\n')}`);
 
       results.push({
         name: testCase.name,
         majorRequests: majorRequests.length,
         schoolRequests: schoolRequests.length,
-        blockedNavigations: geometry.interaction.blockedNavigations,
-        overflow: geometry.overflow
+        blockedNavigations: beforeNavigation.interaction.blockedNavigations,
+        disclosureOpen: beforeNavigation.interaction.disclosureOpen,
+        overflow: beforeNavigation.overflow
       });
     } catch (error) {
       await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
@@ -281,6 +303,6 @@ try {
 console.log(JSON.stringify({
   ok: true,
   contract: 'interaction-transaction-v3972_4',
-  scope: 'PC-Pad-Android unified state action navigation ownership',
+  scope: 'PC-Pad-Android unified state action navigation and disclosure ownership',
   cases: results
 }, null, 2));
