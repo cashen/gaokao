@@ -24,30 +24,45 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/_lib/fenxi-fetcher.js
-          node --check functions/_lib/major-bands-lightweight-record.js
+          node --check functions/_lib/major-bands-static-provider.js
           node --check functions/api/major-bands.js
           node --check functions/api/major-bands-health.js
+          node --check tools/build-major-bands-static-v3972.mjs
           node --check tools/verify-worker-budget-local-v3972.mjs
           node --check tools/verify-production-v3971.mjs
           node --check tools/verify-production-baseline-v3971.mjs
           test -f 404.html
           grep -q '页面不存在' 404.html
-          grep -q 'lightweight-major-bands-v3972-2' 404.html
+          grep -q 'static-major-bands-v3972-2' 404.html
+          test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
+          test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
           grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
-          grep -q "streamFenxiChunkRecords" functions/_lib/fenxi-fetcher.js
-          grep -q "buildLightweightMajorBandRecord" functions/_lib/major-bands-lightweight-record.js
-          grep -q "materializeMajorBandRecord" functions/_lib/major-bands-lightweight-record.js
-          grep -q "streamFenxiChunkRecords" functions/api/major-bands.js
-          grep -q "buildLightweightMajorBandRecord" functions/api/major-bands.js
-          grep -q "materializeMajorBandRecord" functions/api/major-bands.js
-          if grep -q "fetchFenxiJson(request, env, file)" functions/api/major-bands.js; then
-            echo 'major-bands still materializes complete admission chunks'
+          grep -q "loadMajorBandsStaticWindow" functions/_lib/major-bands-static-provider.js
+          grep -q "materializeMajorBandsStaticRecord" functions/_lib/major-bands-static-provider.js
+          grep -q "loadMajorBandsStaticWindow" functions/api/major-bands.js
+          grep -q "materializeMajorBandsStaticRecord" functions/api/major-bands.js
+          grep -q "build-time-static-score-index-request-scoped-buckets" functions/api/major-bands.js
+          if grep -Eq "streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
+            echo 'major-bands still references runtime admission chunk scanning'
             exit 1
           fi
-          grep -q "score-prefilter-streamed-chunks-lightweight-ranking" functions/api/major-bands.js
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const dir='ln-rank/data/major-bands-static-v3972_2';
+          const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
+          const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
+          if(manifest.version!=='major-bands-static-v3972_2') throw new Error('static version');
+          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array') throw new Error('static architecture');
+          if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('static count');
+          if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static coverage');
+          if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('static integrity');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
+          if(audit.indexBytes>15000000) throw new Error(`static index budget ${audit.indexBytes}`);
+          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes},null,2));
+          NODE
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
           grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
           grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
@@ -105,7 +120,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             marker="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/404.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'lightweight-major-bands-v3972-2' <<<"$marker"; then
+            if grep -q 'static-major-bands-v3972-2' <<<"$marker"; then
               ready=1
               break
             fi
