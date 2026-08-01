@@ -14,13 +14,16 @@ permissions:
 jobs:
   production-api-health:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify worker resource-budget source contracts
+      - name: Verify worker resource-budget and LocalStrength source contracts
         run: |
           set -euo pipefail
           for file in \
@@ -30,6 +33,7 @@ jobs:
             functions/api/major-bands-bucket.js \
             functions/api/major-bands.js \
             functions/api/major-bands-health.js \
+            ln-rank/js/local-strength/local-strength-app.v3971_2.js \
             tools/build-major-bands-static-v3972.mjs \
             tools/verify-worker-budget-local-v3972.mjs \
             tools/verify-production-v3971.mjs \
@@ -58,11 +62,22 @@ jobs:
             echo 'major-bands still performs multi-bucket or raw admission scanning in one Worker'
             exit 1
           fi
+          test -f ln-rank/css/local-strength-score-position.v3972_3.css
+          grep -q 'data-local-strength-score-position="local-strength-score-position-v3972_3"' ln-rank/local-mainline.html
+          grep -q 'local-strength-app.v3971_2.js?v=3972_3' ln-rank/local-mainline.html
+          grep -q 'local-strength-score-position.v3972_3.css?v=3972_3' ln-rank/local-mainline.html
+          grep -q "SCORE_POSITION_VERSION = 'local-strength-score-position-v3972_3'" ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -q '/fenxi/data/rank_2026_physics.json?v=3972_3' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -q 'rankDistance(a, rank) - rankDistance(b, rank)' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           const dir='ln-rank/data/major-bands-static-v3972_2';
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
+          const local=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
+          const ranks=JSON.parse(fs.readFileSync('fenxi/data/rank_2026_physics.json','utf8'));
           if(manifest.version!=='major-bands-static-v3972_2') throw new Error('static version');
           if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static architecture');
           if(manifest.bucketSize!==5) throw new Error(`bucket size ${manifest.bucketSize}`);
@@ -72,9 +87,12 @@ jobs:
           if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
           if(audit.indexBytes>8500000) throw new Error(`static index budget ${audit.indexBytes}`);
           if(Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('single bucket budget');
-          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,maximumBucketBytes:Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))},null,2));
+          if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243) throw new Error('LocalStrength immutable index');
+          if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
+          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,maximumBucketBytes:Math.max(...manifest.buckets.map(item=>Number(item.bytes||0))),localStrengthRecords:local.records.length,rank530:ranks['530'],rank579:ranks['579']},null,2));
           NODE
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
+          grep -q "EXPECTED_LOCAL_STRENGTH_SCORE_POSITION" tools/verify-production-v3971.mjs
           grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
           grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
           grep -q "legacy-spa-soft-404" tools/verify-production-baseline-v3971.mjs
@@ -108,27 +126,66 @@ jobs:
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
-      - name: Verify Cloudflare preview Worker journey
+      - name: Resolve Cloudflare Preview credentials
         if: github.event_name == 'pull_request'
         env:
-          PREVIEW_BASE: https://hotfix-v3972-2-production-ga.gaokao-4y9.pages.dev
+          CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_FALLBACK: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
+          account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
+          test -n "$token" || { echo 'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.'; exit 2; }
+          test -n "$account" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'; exit 2; }
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+      - name: Deploy exact pull request head to Cloudflare Preview
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+          commit_message="$(git log -1 --pretty=%s)"
+          npx --yes wrangler@4.28.1 pages deploy . \
+            --project-name=gaokao \
+            --branch="$PR_BRANCH" \
+            --commit-hash="$PR_HEAD_SHA" \
+            --commit-message="$commit_message" 2>&1 | tee /tmp/v3972-preview-deploy.out
+          deployment_url="$(grep -Eo 'https://[a-z0-9-]+\.gaokao-4y9\.pages\.dev' /tmp/v3972-preview-deploy.out | tail -n 1 || true)"
+          if [ -z "$deployment_url" ]; then
+            slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28)"
+            test -n "$slug"
+            deployment_url="https://${slug}.gaokao-4y9.pages.dev"
+          fi
+          echo "PREVIEW_BASE=$deployment_url" >> "$GITHUB_ENV"
+          echo "Cloudflare Preview: $deployment_url"
+      - name: Verify Cloudflare Preview Worker and LocalStrength journey
+        if: github.event_name == 'pull_request'
+        env:
           EXPECTED_RELEASE: v3.9.72.2
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '1'
           PRODUCTION_VERIFY_WAIT_MS: '1000'
           PRODUCTION_STRESS_CYCLES: '8'
           PRODUCTION_STRESS_WAIT_MS: '500'
         run: |
           set -euo pipefail
+          test -n "${PREVIEW_BASE:-}"
           ready=0
           for attempt in $(seq 1 60); do
-            marker="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/404.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'distributed-major-bands-buckets-v3972-2' <<<"$marker"; then ready=1; break; fi
+            page="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/local-mainline.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
+            css="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/css/local-strength-score-position.v3972_3.css?candidate=${GITHUB_SHA}-${attempt}" || true)"
+            if grep -q 'local-strength-score-position-v3972_3' <<<"$page" && grep -q '.ls-score-position-groups' <<<"$css"; then ready=1; break; fi
             sleep 10
           done
           test "$ready" -eq 1
           PAGES_BASE="$PREVIEW_BASE" CUSTOM_BASE="$PREVIEW_BASE" \
-            node tools/verify-production-v3971.mjs | tee /tmp/v3972-preview-worker-health.out
+            node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-preview-worker-health.out
       - name: Verify currently deployed safe baseline before merge
         if: github.event_name == 'pull_request'
         env:
@@ -139,7 +196,7 @@ jobs:
           PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: |
           set -euo pipefail
-          node tools/verify-production-baseline-v3971.mjs | tee /tmp/v3972-production-health.out
+          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-production-health.out
       - name: Verify v3.9.72.2 production after main deployment
         if: github.event_name != 'pull_request'
         env:
@@ -147,21 +204,23 @@ jobs:
           CUSTOM_BASE: https://gaokao.powers.org.cn
           EXPECTED_RELEASE: v3.9.72.2
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '45'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
           PRODUCTION_STRESS_CYCLES: '40'
           PRODUCTION_STRESS_WAIT_MS: '1000'
         run: |
           set -euo pipefail
-          node tools/verify-production-v3971.mjs | tee /tmp/v3972-production-health.out
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-production-health.out
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-2-production-api-health
+          name: v3972-3-production-api-health
           path: |
             /tmp/v3972-production-health.out
             /tmp/v3972-preview-worker-health.out
+            /tmp/v3972-preview-deploy.out
             /tmp/v3972-worker-budget-wrangler.log
             /tmp/v3972-*.json
             /tmp/v3972-*.html
