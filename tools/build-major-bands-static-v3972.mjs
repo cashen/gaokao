@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_MANIFEST = path.join(ROOT, 'fenxi/data/ln-rank-2026/manifest.json');
 const OUTPUT_DIR = path.join(ROOT, 'ln-rank/data/major-bands-static-v3972_2');
 const VERSION = 'major-bands-static-v3972_2';
-const BUCKET_SIZE = 10;
+const BUCKET_SIZE = 5;
 
 const RECORD_SCHEMA = Object.freeze([
   'id', 'school', 'major', 'score2026', 'rank2026', 'rankStart2026', 'rankEnd2026', 'sameCount2026',
