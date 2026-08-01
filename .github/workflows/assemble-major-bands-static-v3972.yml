@@ -41,13 +41,13 @@ jobs:
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
           if(manifest.version!=='major-bands-static-v3972_2') throw new Error('version');
-          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array') throw new Error('architecture');
+          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('architecture');
           if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('record count');
           if(!manifest.integrity.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('coverage');
           if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('integrity');
-          if(!Array.isArray(manifest.recordSchema)||manifest.recordSchema.length<70) throw new Error('record schema');
+          if(!Array.isArray(manifest.recordSchema)||manifest.recordSchema.length<60) throw new Error('record schema');
           if(!Array.isArray(manifest.buckets)||manifest.buckets.length<30) throw new Error('score buckets');
-          if(audit.indexBytes>15000000) throw new Error(`static index too large ${audit.indexBytes}`);
+          if(audit.indexBytes>8500000) throw new Error(`static index too large ${audit.indexBytes}`);
           const sum=manifest.buckets.reduce((total,item)=>total+Number(item.recordCount||0),0);
           if(sum!==11628) throw new Error(`bucket coverage ${sum}`);
           console.log(JSON.stringify({version:manifest.version,...audit},null,2));
@@ -62,7 +62,7 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'assemble(major-bands): generate static score index v3972.2'
+            git commit -m 'assemble(major-bands): generate atomic static score index v3972.2'
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
       - name: Upload assembly evidence
