@@ -48,12 +48,14 @@ jobs:
 
       - name: Verify active immutable execution graph
         run: |
+          set -euo pipefail
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
           import { UI_COMPONENT_REGISTRY } from './shared/ui/component-registry.v3970_0.js';
           const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
+          const html=fs.readFileSync('ln-rank/index.html','utf8');
           if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release');
           if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('cache');
           if(UI_COMPONENT_REGISTRY.familyPlanEntry.domOwner!=='/shared/ui/components/family-plan-entry.v3970_0.js') throw new Error('family action owner');
@@ -68,7 +70,10 @@ jobs:
             '../shared/resources/schools/school-query-contract.v3969_0.js',
             '../shared/resources/schools/school-query-engine.v3969_0.js'
           ]) if(!active.jsEntry.includes(required)) throw new Error(required);
-          console.log('immutable v3970 execution graph passed under site release v3.9.72.2');
+          if(!fs.existsSync('shared/ui/interaction/interaction-transaction.v3972_4.js')) throw new Error('interaction transaction resource missing');
+          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_4.js?v=3972_4')) throw new Error('selection page does not mount interaction transaction');
+          if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary navigation ownership');
+          console.log('immutable v3970 execution graph and v3972_4 interaction transaction passed under site release v3.9.72.2');
           NODE
 
       - name: Install Chromium journey runner
@@ -93,6 +98,15 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           V3969_ARTIFACT_DIR=/tmp/v3970-browser-main node tools/browser-resource-execution-v3970.mjs 2>&1 | tee /tmp/v3970-browser-main.out
+
+      - name: Verify unified region and global button transactions
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-interaction-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3972_INTERACTION_ARTIFACT_DIR=/tmp/v3972-interaction-browser node tools/browser-interaction-transaction-v3972_4.mjs 2>&1 | tee /tmp/v3972-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
@@ -119,5 +133,6 @@ jobs:
           name: v3970-family-action-diagnostics
           path: |
             /tmp/v3970-*
+            /tmp/v3972-interaction-*
           if-no-files-found: warn
           retention-days: 3
