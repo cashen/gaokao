@@ -41,14 +41,15 @@ jobs:
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
           if(manifest.version!=='major-bands-static-v3972_2') throw new Error('version');
-          if(manifest.architecture!=='build-time-static-score-index') throw new Error('architecture');
+          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array') throw new Error('architecture');
           if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('record count');
           if(!manifest.integrity.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('coverage');
           if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('integrity');
-          if(!Array.isArray(manifest.candidateBuckets)||manifest.candidateBuckets.length<30) throw new Error('candidate buckets');
-          if(!Array.isArray(manifest.detailBuckets)||manifest.detailBuckets.length<60) throw new Error('detail buckets');
-          if(audit.candidateBytes>15000000) throw new Error(`candidate index too large ${audit.candidateBytes}`);
-          if(audit.detailBytes>35000000) throw new Error(`detail index too large ${audit.detailBytes}`);
+          if(!Array.isArray(manifest.recordSchema)||manifest.recordSchema.length<70) throw new Error('record schema');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<30) throw new Error('score buckets');
+          if(audit.indexBytes>15000000) throw new Error(`static index too large ${audit.indexBytes}`);
+          const sum=manifest.buckets.reduce((total,item)=>total+Number(item.recordCount||0),0);
+          if(sum!==11628) throw new Error(`bucket coverage ${sum}`);
           console.log(JSON.stringify({version:manifest.version,...audit},null,2));
           NODE
       - name: Commit generated static index
