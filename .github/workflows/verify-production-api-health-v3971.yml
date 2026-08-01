@@ -23,30 +23,39 @@ jobs:
       - name: Verify worker resource-budget source contracts
         run: |
           set -euo pipefail
-          node --check functions/_lib/fenxi-fetcher.js
-          node --check functions/_lib/major-bands-static-provider.js
-          node --check functions/api/major-bands.js
-          node --check functions/api/major-bands-health.js
-          node --check tools/build-major-bands-static-v3972.mjs
-          node --check tools/verify-worker-budget-local-v3972.mjs
-          node --check tools/verify-production-v3971.mjs
-          node --check tools/verify-production-baseline-v3971.mjs
+          for file in \
+            functions/_lib/fenxi-fetcher.js \
+            functions/_lib/major-bands-static-provider.js \
+            functions/_lib/major-bands-bucket-engine.js \
+            functions/api/major-bands-bucket.js \
+            functions/api/major-bands.js \
+            functions/api/major-bands-health.js \
+            tools/build-major-bands-static-v3972.mjs \
+            tools/verify-worker-budget-local-v3972.mjs \
+            tools/verify-production-v3971.mjs \
+            tools/verify-production-baseline-v3971.mjs; do
+            node --check "$file"
+          done
           test -f 404.html
           grep -q '页面不存在' 404.html
-          grep -q 'static-major-bands-atomic-v2' 404.html
+          grep -q 'distributed-major-bands-buckets-v3972-2' 404.html
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
           grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
-          grep -q "loadMajorBandsStaticWindow" functions/_lib/major-bands-static-provider.js
-          grep -q "materializeMajorBandsStaticRecord" functions/_lib/major-bands-static-provider.js
-          grep -q "loadMajorBandsStaticWindow" functions/api/major-bands.js
-          grep -q "materializeMajorBandsStaticRecord" functions/api/major-bands.js
-          grep -q "build-time-static-score-index-request-scoped-buckets" functions/api/major-bands.js
-          if grep -Eq "streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
-            echo 'major-bands still references runtime admission chunk scanning'
+          grep -q "selectMajorBandsStaticBuckets" functions/_lib/major-bands-static-provider.js
+          grep -q "loadMajorBandsStaticBucket" functions/_lib/major-bands-static-provider.js
+          grep -q "processMajorBandsStaticBucket" functions/_lib/major-bands-bucket-engine.js
+          grep -q "major-bands-bucket-v3972_2" functions/api/major-bands-bucket.js
+          grep -q "loadMajorBandsStaticBucket" functions/api/major-bands-bucket.js
+          grep -q "Math.min(240" functions/api/major-bands-bucket.js
+          grep -q "selectMajorBandsStaticBuckets" functions/api/major-bands.js
+          grep -q "/api/major-bands-bucket" functions/api/major-bands.js
+          grep -q "distributed-bucket-workers" functions/api/major-bands.js
+          if grep -Eq "loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
+            echo 'major-bands still performs multi-bucket or raw admission scanning in one Worker'
             exit 1
           fi
           node --experimental-default-type=module - <<'NODE'
@@ -56,12 +65,14 @@ jobs:
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
           if(manifest.version!=='major-bands-static-v3972_2') throw new Error('static version');
           if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static architecture');
+          if(manifest.bucketSize!==5) throw new Error(`bucket size ${manifest.bucketSize}`);
           if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('static count');
           if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static coverage');
           if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('static integrity');
-          if(!Array.isArray(manifest.buckets)||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
           if(audit.indexBytes>8500000) throw new Error(`static index budget ${audit.indexBytes}`);
-          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes},null,2));
+          if(Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('single bucket budget');
+          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,maximumBucketBytes:Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))},null,2));
           NODE
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
           grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
@@ -81,27 +92,19 @@ jobs:
             sleep 1
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3972-worker-budget-wrangler.log; exit 1; fi
-
           local_status="$(curl --silent --show-error -o /tmp/v3972-local-strength-absent.html -w '%{http_code}' 'http://127.0.0.1:8792/api/local-strength')"
           test "$local_status" = '404'
           grep -Eqi '<!doctype html|<html' /tmp/v3972-local-strength-absent.html
-          if grep -Eqi '"scannedCount"|"matchedCount"|"architecture"|"records"' /tmp/v3972-local-strength-absent.html; then
-            echo 'removed LocalStrength route returned an API payload'
-            exit 1
-          fi
-
+          if grep -Eqi '"scannedCount"|"matchedCount"|"architecture"|"records"' /tmp/v3972-local-strength-absent.html; then exit 1; fi
           for cycle in $(seq 1 8); do
             token="${cycle}-$(date +%s%N)"
-            curl -fsS "http://127.0.0.1:8792/api/major-bands-health?probe=1&budget=${token}" > "/tmp/v3972-health-${cycle}.json" &
-            p1=$!
-            curl -fsS "http://127.0.0.1:8792/api/major-bands?candidateScore=579&limit=16&budget=${token}" > "/tmp/v3972-score-${cycle}.json" &
-            p2=$!
+            curl -fsS "http://127.0.0.1:8792/api/major-bands-health?probe=1&budget=${token}" > "/tmp/v3972-health-${cycle}.json" & p1=$!
+            curl -fsS "http://127.0.0.1:8792/api/major-bands?candidateScore=579&limit=16&budget=${token}" > "/tmp/v3972-score-${cycle}.json" & p2=$!
             curl -fsS --get 'http://127.0.0.1:8792/api/major-bands' \
               --data-urlencode 'candidateScore=650' \
               --data-urlencode 'schoolKeyword=东北大学' \
               --data-urlencode 'limit=16' \
-              --data-urlencode "budget=${token}" > "/tmp/v3972-school-${cycle}.json" &
-            p3=$!
+              --data-urlencode "budget=${token}" > "/tmp/v3972-school-${cycle}.json" & p3=$!
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
@@ -120,10 +123,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             marker="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/404.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'static-major-bands-atomic-v2' <<<"$marker"; then
-              ready=1
-              break
-            fi
+            if grep -q 'distributed-major-bands-buckets-v3972-2' <<<"$marker"; then ready=1; break; fi
             sleep 10
           done
           test "$ready" -eq 1
