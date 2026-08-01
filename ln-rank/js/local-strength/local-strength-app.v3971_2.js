@@ -300,9 +300,10 @@ function scorePositionModel() {
     || String(a.school || '').localeCompare(String(b.school || ''), 'zh-CN')
   );
   const near = ordered.slice(0, 36);
-  const nearIds = new Set(near.map(record => record.id));
-  const upper = ordered.filter(record => Number(record.rank2026) < rank && !nearIds.has(record.id));
-  const lower = ordered.filter(record => Number(record.rank2026) > rank && !nearIds.has(record.id));
+  // These are alternate views, not mutually exclusive buckets. Keep the
+  // closest records in upper/lower even when they also appear in “near”.
+  const upper = ordered.filter(record => Number(record.rank2026) < rank);
+  const lower = ordered.filter(record => Number(record.rank2026) > rank);
   const groups = { near, upper, lower, band: bandRecords };
   const group = SCORE_POSITION_GROUPS.has(state.scoreView.positionGroup) ? state.scoreView.positionGroup : 'near';
   return { band, candidateRank: rank, group, records: groups[group], groupCounts: Object.fromEntries(Object.entries(groups).map(([key, value]) => [key, value.length])) };
