@@ -1,0 +1,279 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { chromium } from 'playwright';
+
+const baseUrl = process.env.V3972_INTERACTION_BASE || 'http://127.0.0.1:8765';
+const artifactDir = process.env.V3972_INTERACTION_ARTIFACT_DIR || '/tmp/v3972-interaction-browser';
+fs.mkdirSync(artifactDir, { recursive: true });
+
+const record = {
+  id: 'interaction|001',
+  school: '东北大学',
+  major: '自动化类',
+  schoolCode2026: '0141',
+  majorCode2026: '003',
+  score: 579,
+  rank: 21051,
+  score2026: 579,
+  rank2026: 21051,
+  rankStart2026: 20760,
+  rankEnd2026: 21051,
+  sameCount2026: 292,
+  scoreDelta2026: 0,
+  rankGap2026: 0,
+  statusKey: 'match',
+  statusLabel: '历史位次接近',
+  position: '主体讨论',
+  band: 'near',
+  bandKey: 'near',
+  schoolTierTags: ['985', '211'],
+  natureLabel: '公办',
+  province: '辽宁',
+  city: '沈阳',
+  lnArea: '沈阳',
+  regionGroups: ['ln', '辽宁省内', 'shenyang', '沈阳'],
+  displayLocation: '辽宁 · 沈阳',
+  projectLabel: '普通招生记录',
+  schoolEntity: { entityId: 'neu-main', entityType: 'official_school' },
+  matchReason: '统一交互事务回归记录',
+  canonicalPosition: { bandKey: 'near', classificationBasis: 'rank-primary-2026-position', positionDistance: 0 }
+};
+
+function scorePayload(url) {
+  const requestUrl = new URL(url);
+  const region = requestUrl.searchParams.get('region') || 'all';
+  return {
+    ok: true,
+    meta: {
+      audienceYear: 2027,
+      activeDataYear: 2026,
+      candidateScore: 579,
+      candidateReferenceRank2026: 21051,
+      candidateReferenceRankStart2026: 20760,
+      candidateReferenceRankEnd2026: 21051,
+      candidateSameCount2026: 292,
+      candidateRankLabel: '按2026年成绩分布，同分位置约为第20,760—21,051位',
+      rangePreset: requestUrl.searchParams.get('rangePreset') || 'standard',
+      dataScope: '辽宁2026物理类专业投档最低分',
+      classificationMode: 'canonical_rank_primary_2026_position',
+      specialProjectMode: requestUrl.searchParams.get('specialProjectMode') || 'hide_eligibility_projects',
+      region
+    },
+    keywordQuery: { rawKeywords: [] },
+    matchSummary: { exact: 0, related: 0, industry: 0, project: 0 },
+    source: { specialProjectHidden: 0, specialProjectShown: 0 },
+    counts: { upper: 0, near: 1, steady: 0, total: 1 },
+    bands: {
+      upper: { key: 'upper', title: '稍高目标', rankRangeText: '稍高目标', rangeText: '稍高目标', count: 0, records: [], pagination: { offset: 0, limit: 40, returned: 0, hasMore: false } },
+      near: { key: 'near', title: '主要参考', rankRangeText: '主要参考', rangeText: '主要参考', count: 1, records: [record], pagination: { offset: 0, limit: 40, returned: 1, hasMore: false } },
+      steady: { key: 'steady', title: '低分侧补充', rankRangeText: '低分侧补充', rangeText: '低分侧补充', count: 0, records: [], pagination: { offset: 0, limit: 40, returned: 0, hasMore: false } }
+    }
+  };
+}
+
+const schoolPayload = {
+  ok: true,
+  meta: {
+    mode: 'school-all',
+    school: '东北大学',
+    schoolEntity: { entityId: 'neu-main', displayName: '东北大学' },
+    filteredTotal: 1,
+    candidateScore: 579,
+    dataBoundary: '统一交互事务回归',
+    keywordMode: 'any',
+    pagination: { hasMore: false, nextOffset: null }
+  },
+  summary: { minScore: 579, maxScore: 579, uniqueMajorCount: 1, regularCount: 1, specialCount: 0, nearestRecord: { major: '自动化类', rank2026: 21051 } },
+  keywordQuery: { rawKeywords: [] },
+  records: [record]
+};
+
+const cases = [
+  { name: 'pc-1280', width: 1280, height: 800 },
+  { name: 'pad-820', width: 820, height: 1180, touch: true },
+  { name: 'android-390', width: 390, height: 844, touch: true, mobile: true, userAgent: 'Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36' }
+];
+
+function pathname(url) {
+  return new URL(url).pathname;
+}
+
+async function waitForRequestCount(requests, expected) {
+  const started = Date.now();
+  while (requests.length < expected && Date.now() - started < 10000) await new Promise(resolve => setTimeout(resolve, 50));
+  assert.equal(requests.length, expected, `expected ${expected} major-band requests, got ${requests.length}`);
+}
+
+const browser = await chromium.launch({ headless: true });
+const results = [];
+try {
+  for (const testCase of cases) {
+    const context = await browser.newContext({
+      viewport: { width: testCase.width, height: testCase.height },
+      hasTouch: Boolean(testCase.touch),
+      isMobile: Boolean(testCase.mobile),
+      userAgent: testCase.userAgent,
+      deviceScaleFactor: 1
+    });
+    const page = await context.newPage();
+    const pageErrors = [];
+    const majorRequests = [];
+    const schoolRequests = [];
+    page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
+    await page.route('**/api/major-bands**', route => {
+      majorRequests.push(route.request().url());
+      return route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify(scorePayload(route.request().url())) });
+    });
+    await page.route('**/api/school-majors**', route => {
+      schoolRequests.push(route.request().url());
+      return route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify(schoolPayload) });
+    });
+    await page.route('**/api/feishu-create-report', route => route.fulfill({ status: 200, contentType: 'application/json; charset=utf-8', body: JSON.stringify({ ok: true, url: 'https://example.invalid/mock' }) }));
+
+    try {
+      await page.goto(`${baseUrl}/ln-rank/`, { waitUntil: 'networkidle', timeout: 60000 });
+      await page.waitForFunction(() => document.body.dataset.runtimeState === 'ready', null, { timeout: 20000 });
+      const staticAudit = await page.evaluate(() => ({
+        interactionVersion: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.version || '',
+        bodyVersion: document.body.dataset.uiInteractionVersion || '',
+        nonButtonTypes: [...document.querySelectorAll('button')].filter(button => button.getAttribute('type') !== 'button').map(button => button.id || button.textContent?.trim()),
+        unlabeledButtons: [...document.querySelectorAll('button')].filter(button => !(button.textContent || '').trim() && !button.getAttribute('aria-label')).map(button => button.id || button.outerHTML.slice(0, 80)),
+        nestedButtons: document.querySelectorAll('a button,button a').length,
+        duplicateIds: [...document.querySelectorAll('[id]')].map(node => node.id).filter((id, index, all) => all.indexOf(id) !== index),
+        controls: document.querySelectorAll('[data-runtime-control]').length,
+        disabledControls: [...document.querySelectorAll('[data-runtime-control]')].filter(node => node.disabled).length,
+        auxNavigation: [...document.querySelectorAll('.aux-background-card')].map(node => node.dataset.uiNavigation || '')
+      }));
+      assert.equal(staticAudit.interactionVersion, 'interaction-transaction-v3972_4');
+      assert.equal(staticAudit.bodyVersion, 'interaction-transaction-v3972_4');
+      assert.deepEqual(staticAudit.nonButtonTypes, [], `${testCase.name}: buttons without type=button`);
+      assert.deepEqual(staticAudit.unlabeledButtons, [], `${testCase.name}: unlabeled buttons`);
+      assert.equal(staticAudit.nestedButtons, 0, `${testCase.name}: nested button/link`);
+      assert.deepEqual(staticAudit.duplicateIds, [], `${testCase.name}: duplicate ids`);
+      assert.ok(staticAudit.controls > 8, `${testCase.name}: runtime controls missing`);
+      assert.equal(staticAudit.disabledControls, 0, `${testCase.name}: runtime controls stayed disabled`);
+      assert.deepEqual(staticAudit.auxNavigation, ['auxiliary-background', 'auxiliary-background']);
+
+      await page.locator('#candidateScore').fill('579');
+      await page.locator('#queryButton').click();
+      await page.locator('.major-card').first().waitFor({ state: 'visible', timeout: 20000 });
+      await waitForRequestCount(majorRequests, 1);
+      assert.equal(pathname(page.url()), '/ln-rank/');
+
+      await page.locator('#familyConditionsDetails').evaluate(node => { node.open = true; });
+      const regionValues = ['guangdong', 'beijing', 'shandong', 'ln'];
+      for (const region of regionValues) {
+        const beforeRequests = majorRequests.length;
+        await page.dispatchEvent('#region', 'pointerdown', { pointerType: testCase.touch ? 'touch' : 'mouse', pointerId: 1, isPrimary: true, buttons: 1 });
+        await page.locator('#region').selectOption(region);
+        await page.waitForTimeout(60);
+        assert.equal(await page.locator('#region').inputValue(), region, `${testCase.name}: region state not committed`);
+        assert.equal(majorRequests.length, beforeRequests, `${testCase.name}: region change queried before explicit submit`);
+
+        const blockedBefore = await page.evaluate(() => globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState().blockedNavigations);
+        await page.evaluate(() => document.querySelector('a[href="/ln-rank/local-mainline.html"]').click());
+        await page.waitForTimeout(80);
+        assert.equal(pathname(page.url()), '/ln-rank/', `${testCase.name}: native region tail click escaped to background page`);
+        const blockedAfter = await page.evaluate(() => globalThis.__GAOKAO_INTERACTION_TRANSACTION__.getState().blockedNavigations);
+        assert.equal(blockedAfter, blockedBefore + 1, `${testCase.name}: tail navigation was not owned by transaction guard`);
+
+        const updateButton = testCase.mobile ? page.locator('#mobileDirtyButton') : page.locator('#queryButton');
+        await updateButton.waitFor({ state: 'visible', timeout: 5000 });
+        await updateButton.click();
+        await waitForRequestCount(majorRequests, beforeRequests + 1);
+        const requestUrl = new URL(majorRequests.at(-1));
+        assert.equal(requestUrl.searchParams.get('region'), region, `${testCase.name}: submitted request lost region ${region}`);
+        assert.equal(pathname(page.url()), '/ln-rank/');
+      }
+
+      const beforeRange = majorRequests.length;
+      await page.locator('#scoreAdvancedOptions').evaluate(node => { node.open = true; });
+      await page.locator('[data-preset="wide"]').click();
+      assert.equal(majorRequests.length, beforeRange, `${testCase.name}: range queried before submit`);
+      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
+      await waitForRequestCount(majorRequests, beforeRange + 1);
+      assert.equal(new URL(majorRequests.at(-1)).searchParams.get('rangePreset'), 'wide');
+
+      const beforeSpecial = majorRequests.length;
+      await page.locator('#specialProjectToggle').click();
+      assert.equal(majorRequests.length, beforeSpecial, `${testCase.name}: special-project toggle queried before submit`);
+      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
+      await waitForRequestCount(majorRequests, beforeSpecial + 1);
+      assert.match(new URL(majorRequests.at(-1)).searchParams.get('specialProjectMode') || '', /show/);
+
+      const beforeKeyword = majorRequests.length;
+      await page.locator('#majorKeyword').fill('自动化');
+      assert.equal(majorRequests.length, beforeKeyword, `${testCase.name}: keyword queried before submit`);
+      await page.locator(testCase.mobile ? '#mobileDirtyButton' : '#queryButton').click();
+      await waitForRequestCount(majorRequests, beforeKeyword + 1);
+      assert.equal(pathname(page.url()), '/ln-rank/');
+
+      const switcherButtons = page.locator('#resultBandSwitcher button');
+      if (await switcherButtons.count() > 1) {
+        const beforeBand = majorRequests.length;
+        await switcherButtons.nth(0).click();
+        await page.waitForTimeout(80);
+        assert.equal(majorRequests.length, beforeBand, `${testCase.name}: band view switch issued a query`);
+        assert.equal(pathname(page.url()), '/ln-rank/');
+      }
+
+      const beforeSchool = schoolRequests.length;
+      await page.locator('[data-school-view-mode="school-all"]').click();
+      assert.equal(pathname(page.url()), '/ln-rank/');
+      await page.locator('#schoolKeyword').fill('东北大学');
+      await page.locator('#queryButton').click();
+      const schoolStarted = Date.now();
+      while (schoolRequests.length === beforeSchool && Date.now() - schoolStarted < 10000) await page.waitForTimeout(50);
+      assert.equal(schoolRequests.length, beforeSchool + 1, `${testCase.name}: school submit did not use school owner`);
+      await page.locator('.school-major-row').first().waitFor({ state: 'visible', timeout: 10000 });
+      await page.locator('#schoolAllBack').click();
+      assert.equal(pathname(page.url()), '/ln-rank/');
+
+      await page.waitForTimeout(760);
+      await Promise.all([
+        page.waitForURL(url => url.pathname === '/ln-rank/local-mainline.html', { timeout: 10000 }),
+        page.locator('a[href="/ln-rank/local-mainline.html"]').click()
+      ]);
+      assert.equal(pathname(page.url()), '/ln-rank/local-mainline.html', `${testCase.name}: intentional auxiliary navigation was blocked`);
+      await page.goBack({ waitUntil: 'networkidle' });
+      await page.waitForFunction(() => document.body.dataset.runtimeState === 'ready', null, { timeout: 20000 });
+
+      const geometry = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        fixedQueryActions: [...document.querySelectorAll('#queryButton,#mobileDirtyButton')].filter(node => {
+          const position = getComputedStyle(node).position;
+          return position === 'fixed' || position === 'sticky';
+        }).length,
+        interaction: globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.()
+      }));
+      assert.ok(geometry.overflow <= 1, `${testCase.name}: horizontal overflow ${geometry.overflow}`);
+      assert.equal(geometry.fixedQueryActions, 0, `${testCase.name}: query button became fixed/sticky owner`);
+      assert.ok(geometry.interaction.blockedNavigations >= regionValues.length, `${testCase.name}: insufficient guarded tail navigations`);
+      assert.deepEqual(pageErrors, [], `${testCase.name}: ${pageErrors.join('\n')}`);
+
+      results.push({
+        name: testCase.name,
+        majorRequests: majorRequests.length,
+        schoolRequests: schoolRequests.length,
+        blockedNavigations: geometry.interaction.blockedNavigations,
+        overflow: geometry.overflow
+      });
+    } catch (error) {
+      await page.screenshot({ path: path.join(artifactDir, `${testCase.name}-failure.png`), fullPage: true }).catch(() => {});
+      fs.writeFileSync(path.join(artifactDir, `${testCase.name}-error.txt`), String(error?.stack || error));
+      throw error;
+    } finally {
+      await context.close();
+    }
+  }
+} finally {
+  await browser.close();
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  contract: 'interaction-transaction-v3972_4',
+  scope: 'PC-Pad-Android unified state action navigation ownership',
+  cases: results
+}, null, 2));
