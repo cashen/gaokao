@@ -41,7 +41,7 @@ function assert(condition, message) {
 function assertNoCloudflareResourceError(result) {
   const lower = result.text.toLowerCase();
   assert(result.status !== 503, `${result.url} returned HTTP 503; body=${result.text.slice(0, 500)}`);
-  assert(!result.text.includes('1102'), `${result.url} returned Cloudflare Error 1102`);
+  assert(!lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Cloudflare Error 1102`);
   assert(!lower.includes('worker exceeded resource limits'), `${result.url} exceeded Worker resource limits`);
 }
 
