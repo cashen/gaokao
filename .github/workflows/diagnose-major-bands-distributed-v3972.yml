@@ -1,0 +1,41 @@
+name: Diagnose distributed major-bands parent
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'functions/api/major-bands.js'
+      - 'functions/api/major-bands-bucket.js'
+      - 'functions/_lib/major-bands-*.js'
+      - '.github/workflows/diagnose-major-bands-distributed-v3972.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-parent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture exact parent response
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8794 --compatibility-date=2026-07-01 >/tmp/distributed-diagnostic-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8794/api/ln-rank-runtime-health' >/dev/null; then break; fi
+            sleep 1
+          done
+          status="$(curl --silent --show-error -o /tmp/distributed-parent.json -w '%{http_code}' 'http://127.0.0.1:8794/api/major-bands?candidateScore=579&limit=16')"
+          echo "HTTP_STATUS=$status"
+          cat /tmp/distributed-parent.json
+          echo
+          tail -n 120 /tmp/distributed-diagnostic-wrangler.log
+          test "$status" = '200'
