@@ -1,0 +1,105 @@
+# Unified Site Release Governance
+
+This skill is mandatory for every production change in `cashen/gaokao`, including routine bug fixes.
+
+## Core rule
+
+A user-visible fix is not a standalone patch generation. It must join the current **site runtime generation**.
+
+The site has one active generation at a time. For the current release it is `v3972_5`, while the public business release remains `v3.9.72.2`.
+
+## Active generation versus stable dependencies
+
+### Active generation
+
+These surfaces must all declare and load the same generation:
+
+- `shared/resources/release/current-release.js`
+- site runtime contract
+- runtime cache contract
+- resource execution contract
+- release presenter
+- root home runtime
+- shared family shell and family-plan entry
+- `/ln-rank/` HTML, bootstrap, runtime, workspace orchestration, interaction runtime and interaction CSS
+- `/ln-rank/selection-pool.html` bootstrap and runtime adapter
+- CI source gates
+- browser regression gates
+- production deployment verification
+
+No active surface may point to a previous generation.
+
+### Stable dependencies
+
+Existing algorithms, data contracts and mature business engines may remain on immutable historical filenames only when all of the following are true:
+
+1. They are explicitly listed in `stableDependencies` in the site runtime contract.
+2. They do not own page bootstrapping, navigation, disclosure state, cache state, release state or deployment state.
+3. Their interface is unchanged by the current release.
+4. Existing regression tests continue to cover them.
+5. They are not silently used as a second active runtime generation.
+
+Stable dependency reuse is not permission to create wrapper chains without ownership. Every adapter must declare its owner and purpose.
+
+## Forbidden release states
+
+A release must fail when any of these are detected:
+
+- HTML references a generation different from the current site runtime generation.
+- Bootstrap, runtime, workspace, interaction or CSS generations differ.
+- `CURRENT_RELEASE` names an owner that the live page does not load.
+- New HTML runs old JavaScript, or new JavaScript delegates navigation/disclosure/cache ownership to an old runtime.
+- CI still validates a retired generation.
+- Production verification checks a different asset graph from source verification.
+- Native navigation bypasses the declared interaction owner.
+- A feature creates a device-specific business state machine instead of using the shared interaction contract.
+- A version number is added only to one small module while the active site graph remains unchanged.
+- Historical immutable files are deleted merely to make the directory look clean.
+
+## Release procedure
+
+1. Read `main`, the working branch and the complete diff.
+2. Identify the current site runtime generation from `current-release.js` and the site runtime contract.
+3. Classify every touched runtime file as either active generation or stable dependency.
+4. Update the entire active generation graph atomically.
+5. Keep the public business release unchanged unless the task explicitly changes it.
+6. Add or update source-contract tests that compare HTML, release center, cache contract, execution contract and runtime globals.
+7. Add browser tests that replay real event sequences rather than only `element.click()`.
+8. Run preserved domain journeys, protected-path checks and syntax checks.
+9. Keep the PR Draft until all required checks pass.
+10. Mark Ready only after the head SHA is final.
+11. Merge with the exact expected head SHA.
+12. Verify `main`, GitHub Actions, Cloudflare Pages, custom-domain HTML, versioned assets, cache headers and live behavior.
+
+## Native chooser and navigation contract
+
+Native chooser lifecycle is a full transaction:
+
+- physical start
+- focus
+- input/change
+- blur or chooser close
+- workspace render
+- at least two stable animation frames
+- stable visual viewport, scroll geometry and document layout
+- tail-event quarantine completion
+
+During the transaction, auxiliary navigation must be removed from the browser's native navigation path. Use explicit buttons or equivalent action elements, `disabled`, `aria-disabled`, `inert` where supported, and `pointer-events: none`. Navigation is executed only by the interaction owner through explicit `location.assign` after a new owned activation.
+
+A fresh pointer event during quarantine does not authorize navigation.
+
+## Draft and committed query state
+
+Filter controls update draft state only. They must not issue a request. Existing results remain visible. A single explicit submit owner commits the draft. Layout-sensitive draft rendering must not restore native navigation or collapse user-owned disclosure state.
+
+## Protected boundaries
+
+Never modify:
+
+- `/fenxi/`
+- `functions/fenxi/`
+- `functions/_middleware.js`
+
+`functions/_lib/release-contract.js` must continue exporting both `LN_RANK_RELEASE_CONTRACT` and `RELEASE_CONTRACT`.
+
+Do not rebuild or replace LocalStrength static data, 211 static data, major-bands static buckets or the Worker bucket architecture for an interaction-only release.
