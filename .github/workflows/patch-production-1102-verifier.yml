@@ -1,0 +1,73 @@
+name: Patch exact production 1102 verifier
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/patch-production-1102-verifier.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verifiers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+      - name: Patch exact Cloudflare error detection and stderr evidence
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          production=Path('tools/verify-production-v3971.mjs')
+          text=production.read_text()
+          old="assert(!result.text.includes('1102'), `${result.url} returned Cloudflare Error 1102`);"
+          new="assert(!lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Cloudflare Error 1102`);"
+          if old in text:
+              text=text.replace(old,new,1)
+          elif new not in text:
+              raise SystemExit('production verifier 1102 assertion not found')
+          production.write_text(text)
+
+          baseline=Path('tools/verify-production-baseline-v3971.mjs')
+          text=baseline.read_text()
+          old="assert(!result.text.includes('1102') && !lower.includes('worker exceeded resource limits'), `${result.url} returned Worker resource error`);"
+          new="assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);"
+          count=text.count(old)
+          if count:
+              text=text.replace(old,new)
+          elif new not in text:
+              raise SystemExit('baseline verifier 1102 assertions not found')
+          baseline.write_text(text)
+
+          for name in [
+              '.github/workflows/verify-production-api-health-v3971.yml',
+              '.github/workflows/deploy-cloudflare-pages-main.yml'
+          ]:
+              path=Path(name)
+              text=path.read_text()
+              text=text.replace('node tools/verify-production-v3971.mjs | tee', 'node tools/verify-production-v3971.mjs 2>&1 | tee')
+              text=text.replace('node tools/verify-production-baseline-v3971.mjs | tee', 'node tools/verify-production-baseline-v3971.mjs 2>&1 | tee')
+              path.write_text(text)
+          PY
+          node --check tools/verify-production-v3971.mjs
+          node --check tools/verify-production-baseline-v3971.mjs
+          grep -q "<title>error 1102" tools/verify-production-v3971.mjs
+          grep -q "error code: 1102" tools/verify-production-baseline-v3971.mjs
+          grep -q "2>&1 | tee" .github/workflows/verify-production-api-health-v3971.yml
+          grep -q "2>&1 | tee" .github/workflows/deploy-cloudflare-pages-main.yml
+          git add \
+            tools/verify-production-v3971.mjs \
+            tools/verify-production-baseline-v3971.mjs \
+            .github/workflows/verify-production-api-health-v3971.yml \
+            .github/workflows/deploy-cloudflare-pages-main.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(ci): distinguish Cloudflare 1102 pages from normal data'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
