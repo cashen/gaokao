@@ -1,27 +1,26 @@
-import { loadMajorBandsStaticWindow, materializeMajorBandsStaticRecord } from '../_lib/major-bands-static-provider.js';
-import { rawSchool } from '../_lib/fenxi-normalizer.js';
+import {
+  selectMajorBandsStaticBuckets,
+  materializeMajorBandsStaticRecord
+} from '../_lib/major-bands-static-provider.js';
 import { makeBands } from '../_lib/band-engine.js';
-import { matchRegion } from '../_lib/major-filter.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   normalizeBottomLineMode,
-  getBottomLineEligibility,
   getBottomLineSortWeight,
   bottomLineModeSummary
 } from '../_lib/bottomline-policy.js';
 import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.js';
-import { matchMajorProject } from '../_lib/major-project-matcher.js';
-import { buildSearchIndex } from '../_lib/search-index-builder.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
 import { resolveAdmissionSchoolQuery } from '../_lib/school-query-provider.v3969.js';
-import { SCHOOL_QUERY_CONTRACT_VERSION, SCHOOL_QUERY_STATUSES, normalizeSchoolQueryIntent } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
-import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
 import {
-  resolveCanonicalPosition,
-  rankBandRangeText
-} from '../../shared/algorithms/position/canonical-position.v3963_0.js';
+  SCHOOL_QUERY_CONTRACT_VERSION,
+  SCHOOL_QUERY_STATUSES,
+  normalizeSchoolQueryIntent
+} from '../../shared/resources/schools/school-query-contract.v3969_0.js';
+import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
+import { rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
@@ -30,13 +29,11 @@ import {
 } from '../../shared/resources/schools/school-identity-center.js';
 import {
   normalizeSpecialProjectMode,
-  detectSpecialProject,
-  enrichSpecialProjectRecord,
-  shouldHideSpecialProject,
   createSpecialProjectStats,
-  addSpecialProjectStat,
   SPECIAL_PROJECT_COPY
 } from '../_lib/special-project-policy.js';
+
+const BUCKET_CONTRACT = 'major-bands-bucket-v3972_2';
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -67,14 +64,6 @@ function initGrouped(bands) {
   };
 }
 
-function hasKeywordFilters(keywordQuery = {}) {
-  return Boolean(keywordQuery?.hasMajorKeyword || keywordQuery?.hasProjectKeyword || keywordQuery?.hasIndustryKeyword);
-}
-
-function matchAllKeywordResult() {
-  return { matched: true, score: 0, badges: [], reason: '', matchLevel: '', matchLabel: '', matchReason: '', matchedKeyword: '', matchedTerms: [] };
-}
-
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return {
@@ -102,53 +91,6 @@ function exactSchoolNames(entity, schoolKeyword) {
   ].map(normalizeSchoolName).filter(Boolean));
 }
 
-function rawKeywordPass(raw, filters, acceptedSchoolNames) {
-  const schoolKeyword = clean(filters.schoolKeyword || '', 40);
-  if (!schoolKeyword) return true;
-  return Boolean(acceptedSchoolNames?.size)
-    && acceptedSchoolNames.has(normalizeSchoolName(rawSchool(raw)));
-}
-
-function explicitSpecialProjectIntent(value = '') {
-  return /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(String(value || ''));
-}
-
-function finalizeRecordForResponse(record) {
-  const item = materializeMajorBandsStaticRecord(record);
-  return { ...item, ...buildDisplayTags(item) };
-}
-
-function pushRecord(grouped, record, context) {
-  const canonicalPosition = resolveCanonicalPosition({
-    candidateScore: context.candidateScore,
-    candidateRank: context.candidateRank?.rankForGap,
-    recordScore: record.score2026 ?? record.score,
-    recordRank: record.rank2026 ?? record.rank,
-    rangePreset: context.rangePreset
-  });
-  if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return false;
-  const item = {
-    ...record,
-    band: canonicalPosition.bandKey,
-    bandKey: canonicalPosition.bandKey,
-    candidateScore: context.candidateScore,
-    candidateReferenceScore: context.candidateScore,
-    scoreDelta2026: canonicalPosition.scoreDelta,
-    scoreDelta: canonicalPosition.scoreDelta,
-    rankGap2026: canonicalPosition.rankGap,
-    rankGap: canonicalPosition.rankGap,
-    statusKey: canonicalPosition.statusKey,
-    statusLabel: canonicalPosition.statusLabel,
-    position: canonicalPosition.position,
-    canonicalPosition,
-    bottomLineEligibility: context.bottomLineEligibility.status,
-    bottomLineEligibilityReason: context.bottomLineEligibility.reason
-  };
-  grouped[canonicalPosition.bandKey].count += 1;
-  grouped[canonicalPosition.bandKey].candidates.push(item);
-  return true;
-}
-
 function rankContextForScore(score) {
   const row = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
   if (!row) return null;
@@ -159,7 +101,9 @@ function rankContextForScore(score) {
     score: Number(row.score ?? score),
     rankStart: Number.isFinite(rankStart) ? rankStart : null,
     rankEnd: Number.isFinite(rankEnd) ? rankEnd : null,
-    rankForGap: Number.isFinite(Number(row.rankForGap)) ? Number(row.rankForGap) : (Number.isFinite(rankEnd) ? rankEnd : null),
+    rankForGap: Number.isFinite(Number(row.rankForGap))
+      ? Number(row.rankForGap)
+      : (Number.isFinite(rankEnd) ? rankEnd : null),
     sameCount: Number.isFinite(sameCount) ? sameCount : null,
     emptyScore: Boolean(row.emptyScore)
   };
@@ -167,11 +111,81 @@ function rankContextForScore(score) {
 
 function rankLabel(context) {
   if (!context?.rankEnd) return '位次待核验';
-  if (context.emptyScore) return `2026 年该分数没有同分考生，历史参考位置约在第 ${context.rankEnd.toLocaleString('zh-CN')} 位附近`;
+  if (context.emptyScore) {
+    return `2026 年该分数没有同分考生，历史参考位置约在第 ${context.rankEnd.toLocaleString('zh-CN')} 位附近`;
+  }
   if (context.rankStart && context.rankStart !== context.rankEnd) {
     return `按 2026 年成绩分布，历史参考位置约为 ${context.rankStart.toLocaleString('zh-CN')}—${context.rankEnd.toLocaleString('zh-CN')} 位`;
   }
   return `按 2026 年成绩分布，历史参考位置约为第 ${context.rankEnd.toLocaleString('zh-CN')} 位`;
+}
+
+function finalizeRecordForResponse(record) {
+  const item = materializeMajorBandsStaticRecord(record);
+  return { ...item, ...buildDisplayTags(item) };
+}
+
+function mergeNumberStats(target, source, keys) {
+  for (const key of keys) target[key] += Number(source?.[key] || 0);
+}
+
+function mergeSpecialProjectStats(target, source) {
+  target.hidden += Number(source?.hidden || 0);
+  target.shown += Number(source?.shown || 0);
+  for (const key of ['upper', 'near', 'steady']) {
+    target.byBand[key] += Number(source?.byBand?.[key] || 0);
+  }
+  for (const [label, count] of Object.entries(source?.byLabel || {})) {
+    target.byLabel[label] = (target.byLabel[label] || 0) + Number(count || 0);
+  }
+}
+
+function assertBucketResponse(response, text, bucketFile) {
+  const lower = text.toLowerCase();
+  if (response.status === 503 || text.includes('1102') || lower.includes('worker exceeded resource limits')) {
+    throw new Error(`分数桶 Worker 资源超限：${bucketFile}，HTTP ${response.status}`);
+  }
+  if (!response.ok) throw new Error(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`);
+  if (lower.includes('<!doctype html') || lower.includes('<html')) {
+    throw new Error(`分数桶 Worker 返回 HTML：${bucketFile}`);
+  }
+}
+
+async function fetchBucketWorker(context, bucket, options) {
+  const endpoint = new URL('/api/major-bands-bucket', context.request.url);
+  endpoint.searchParams.set('candidateScore', String(options.candidateScore));
+  endpoint.searchParams.set('rangePreset', options.rangePreset);
+  endpoint.searchParams.set('bucketFile', bucket.file);
+  endpoint.searchParams.set('region', options.region);
+  endpoint.searchParams.set('majorKeyword', options.majorKeyword);
+  endpoint.searchParams.set('bottomLineMode', options.bottomLineMode);
+  endpoint.searchParams.set('specialProjectMode', options.specialProjectMode);
+  endpoint.searchParams.set('schoolFilter', options.schoolFilter ? '1' : '0');
+  endpoint.searchParams.set('maxCandidates', String(options.maxCandidates));
+  for (const name of options.acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
+  endpoint.searchParams.set('requestToken', options.requestToken);
+
+  const response = await fetch(endpoint.toString(), {
+    headers: {
+      accept: 'application/json',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
+      'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
+    },
+    cf: { cacheTtl: 0, cacheEverything: false }
+  });
+  const text = await response.text();
+  assertBucketResponse(response, text, bucket.file);
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`分数桶 Worker JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
+  }
+  if (!payload?.ok || payload?.contract !== BUCKET_CONTRACT || payload?.bucket?.file !== bucket.file) {
+    throw new Error(`分数桶 Worker 合同不匹配：${bucket.file}`);
+  }
+  return payload;
 }
 
 export async function onRequest(context) {
@@ -200,10 +214,9 @@ export async function onRequest(context) {
     if (!Number.isFinite(candidateScore) || candidateScore < 1 || candidateScore > 750) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
+
     const schoolEntity = filters.schoolEntityId ? getSchoolEntity(filters.schoolEntityId) : null;
-    if (filters.schoolEntityId && !schoolEntity) {
-      return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
-    }
+    if (filters.schoolEntityId && !schoolEntity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
     let acceptedSchoolNames = exactSchoolNames(schoolEntity, filters.schoolKeyword);
     let schoolQueryResult = null;
     if (!schoolEntity && filters.schoolKeyword) {
@@ -232,110 +245,70 @@ export async function onRequest(context) {
     const grouped = initGrouped(bandsMeta);
     const keywordQuery = buildKeywordQuery(filters.majorKeyword);
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
-    const hasKeywordSearch = hasKeywordFilters(keywordQuery);
-    const specialIntent = explicitSpecialProjectIntent(filters.majorKeyword);
-    const staticWindow = await loadMajorBandsStaticWindow(context.request, scoreWindow);
-    const manifest = staticWindow.manifest;
-    const sourceRecords = staticWindow.records;
     const candidateRank = rankContextForScore(candidateScore);
     for (const key of ['upper', 'near', 'steady']) {
-      const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' }));
+      const rankRangeText = rankBandRangeText(
+        candidateRank?.rankForGap,
+        key,
+        rangePreset,
+        getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' })
+      );
       if (rankRangeText) {
         grouped[key].rankRangeText = rankRangeText;
         grouped[key].rangeText = rankRangeText;
       }
     }
 
-    let rawTotal = 0;
-    let rawCandidate = 0;
-    let normalized = 0;
-    let bottomLineExcluded = 0;
-    let bottomLineUnresolved = 0;
-    let majorKeywordExcluded = 0;
-    let majorHitCount = 0;
-    let projectHitCount = 0;
-    let industryHitCount = 0;
+    const selected = await selectMajorBandsStaticBuckets(context.request, scoreWindow);
+    if (selected.buckets.length < 1 || selected.buckets.length > 12) throw new Error(`分布式分数桶数量异常：${selected.buckets.length}`);
+    const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
+    const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
+    const maxCandidates = Math.max(48, Math.min(240, pageOffset + pageLimit + 64));
+    const requestToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const bucketResults = await Promise.all(selected.buckets.map(bucket => fetchBucketWorker(context, bucket, {
+      candidateScore,
+      rangePreset,
+      region: filters.region,
+      majorKeyword: filters.majorKeyword,
+      bottomLineMode: filters.bottomLineMode,
+      specialProjectMode: filters.specialProjectMode,
+      schoolFilter,
+      acceptedSchoolNames: schoolNames,
+      maxCandidates,
+      requestToken
+    })));
+
+    const aggregate = {
+      rawScanned: 0,
+      rawCandidate: 0,
+      normalized: 0,
+      bottomLineExcluded: 0,
+      bottomLineUnresolved: 0,
+      majorKeywordExcluded: 0,
+      majorHitCount: 0,
+      projectHitCount: 0,
+      industryHitCount: 0,
+      specialProjectHidden: 0,
+      specialProjectShown: 0,
+      staticIndexBytes: 0
+    };
     const specialProjectStats = createSpecialProjectStats();
-    let specialProjectHidden = 0;
-    let specialProjectShown = 0;
     const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
+    const numericKeys = [
+      'rawScanned', 'rawCandidate', 'normalized', 'bottomLineExcluded', 'bottomLineUnresolved',
+      'majorKeywordExcluded', 'majorHitCount', 'projectHitCount', 'industryHitCount',
+      'specialProjectHidden', 'specialProjectShown'
+    ];
 
-    for (const raw of sourceRecords) {
-      rawTotal += 1;
-      const score = Number(raw.score2026 ?? raw.score);
-      if (!Number.isFinite(score) || score < scoreWindow.min || score > scoreWindow.max) continue;
-      if (!rawKeywordPass(raw, filters, acceptedSchoolNames)) continue;
-      rawCandidate += 1;
-
-      const record = { ...raw };
-      if (!record.school || !record.major || !Number.isFinite(Number(record.score2026))) continue;
-      if (!matchRegion(record, filters.region)) continue;
-      if (acceptedSchoolNames?.size && !acceptedSchoolNames.has(normalizeSchoolName(record.school))) continue;
-      if (filters.schoolKeyword && !acceptedSchoolNames?.size) continue;
-
-      const match = hasKeywordSearch ? matchMajorProject(buildSearchIndex([record])[0], keywordQuery) : matchAllKeywordResult();
-      if (!match.matched) {
-        majorKeywordExcluded += 1;
-        continue;
-      }
-      record.matchBadges = match.badges;
-      record.matchLevel = match.matchLevel || '';
-      record.matchLabel = match.matchLabel || '';
-      record.matchReason = match.matchReason || match.reason || '';
-      record.matchedKeyword = match.matchedKeyword || '';
-      record.matchedTerms = match.matchedTerms || [];
-      record.matchScore = match.score;
-
-      const bottomLineEligibility = filters.bottomLineMode === 'all'
-        ? { status: 'pass', reason: 'mode_does_not_exclude', record }
-        : getBottomLineEligibility(record, filters.bottomLineMode);
-      if (bottomLineEligibility.status === 'fail') {
-        bottomLineExcluded += 1;
-        continue;
-      }
-      if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
-
-      const specialProject = record.specialProject?.hasSpecialProject != null
-        ? record.specialProject
-        : detectSpecialProject(record);
-      const hideSpecial = specialProject.hasSpecialProject
-        && !specialIntent
-        && shouldHideSpecialProject({ ...record, specialProject }, filters.specialProjectMode);
-      if (hideSpecial) {
-        specialProjectHidden += 1;
-        addSpecialProjectStat(specialProjectStats, specialProject, 'unknown', 'hidden');
-        continue;
-      }
-      if (specialProject.hasSpecialProject) {
-        specialProjectShown += 1;
-        Object.assign(record, enrichSpecialProjectRecord({ ...record, specialProject }));
-        record.specialProjectExplicitIntent = specialIntent;
-      } else {
-        record.specialProject = specialProject;
-      }
-
-      normalized += 1;
-      if (record.matchLevel && Object.prototype.hasOwnProperty.call(matchSummary, record.matchLevel)) matchSummary[record.matchLevel] += 1;
-      if (record.matchLevel === 'exact' || record.matchLevel === 'related') majorHitCount += 1;
-      if (record.matchLevel === 'project') projectHitCount += 1;
-      if (record.matchLevel === 'industry') industryHitCount += 1;
-
-      const added = pushRecord(grouped, record, {
-        candidateScore,
-        candidateRank,
-        rangePreset,
-        bottomLineEligibility
-      });
-      if (added) {
-        const band = resolveCanonicalPosition({
-          candidateScore,
-          candidateRank: candidateRank?.rankForGap,
-          recordScore: record.score2026 ?? record.score,
-          recordRank: record.rank2026 ?? record.rank,
-          rangePreset
-        }).bandKey;
-        grouped[band].scanned += 1;
-        if (specialProject.hasSpecialProject) addSpecialProjectStat(specialProjectStats, specialProject, band, 'shown');
+    for (const result of bucketResults) {
+      mergeNumberStats(aggregate, result.stats, numericKeys);
+      aggregate.staticIndexBytes += Number(result.bucket?.bytes || 0);
+      mergeSpecialProjectStats(specialProjectStats, result.stats?.specialProjectStats);
+      mergeNumberStats(matchSummary, result.stats?.matchSummary, Object.keys(matchSummary));
+      for (const key of ['upper', 'near', 'steady']) {
+        grouped[key].count += Number(result.grouped?.[key]?.count || 0);
+        grouped[key].scanned += Number(result.grouped?.[key]?.count || 0);
+        grouped[key].candidates.push(...(result.grouped?.[key]?.candidates || []));
       }
     }
 
@@ -354,7 +327,7 @@ export async function onRequest(context) {
         ? []
         : diversified.slice(offset, offset + pageLimit).map(finalizeRecordForResponse);
       const returned = records.length;
-      const hasMore = offset + returned < diversified.length;
+      const hasMore = offset + returned < group.count;
       group.records = records;
       group.displayedCount = returned;
       group.truncated = hasMore;
@@ -369,22 +342,29 @@ export async function onRequest(context) {
       delete group.candidates;
     }
 
-    const counts = {
-      upper: grouped.upper.count,
-      near: grouped.near.count,
-      steady: grouped.steady.count
-    };
+    const counts = { upper: grouped.upper.count, near: grouped.near.count, steady: grouped.steady.count };
     counts.total = counts.upper + counts.near + counts.steady;
-    const filterConflicts = buildFilterConflicts({ keywordQuery, rawKeywordText: filters.majorKeyword || '', bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode });
-    const searchAdvices = buildSearchConflictAdvice({ keywordQuery, bottomLineMode: filters.bottomLineMode, specialProjectMode: filters.specialProjectMode, resultStats: { total: counts.total } });
-    if (bottomLineUnresolved) {
+    const filterConflicts = buildFilterConflicts({
+      keywordQuery,
+      rawKeywordText: filters.majorKeyword || '',
+      bottomLineMode: filters.bottomLineMode,
+      specialProjectMode: filters.specialProjectMode
+    });
+    const searchAdvices = buildSearchConflictAdvice({
+      keywordQuery,
+      bottomLineMode: filters.bottomLineMode,
+      specialProjectMode: filters.specialProjectMode,
+      resultStats: { total: counts.total }
+    });
+    if (aggregate.bottomLineUnresolved) {
       searchAdvices.unshift({
         level: 'warn',
-        message: `有 ${bottomLineUnresolved} 条记录的办学性质或费用尚未确认，已降低排序并标记待核验。`,
+        message: `有 ${aggregate.bottomLineUnresolved} 条记录的办学性质或费用尚未确认，已降低排序并标记待核验。`,
         explanation: '未知不等于公办普通，填报前需要核对当年招生计划和学费。'
       });
     }
-    if (specialIntent && specialProjectShown) {
+    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(filters.majorKeyword);
+    if (specialIntent && aggregate.specialProjectShown) {
       searchAdvices.unshift({
         level: 'warn',
         message: '已按你的明确关键词显示特殊项目。',
@@ -410,7 +390,9 @@ export async function onRequest(context) {
         algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
         rangePreset,
         schoolEntityId: schoolEntity?.entityId || '',
-        schoolMatchMode: schoolEntity ? 'exact-entity' : (schoolQueryResult?.status === SCHOOL_QUERY_STATUSES.RESOLVED ? 'unified-school-query' : 'all-schools'),
+        schoolMatchMode: schoolEntity
+          ? 'exact-entity'
+          : (schoolQueryResult?.status === SCHOOL_QUERY_STATUSES.RESOLVED ? 'unified-school-query' : 'all-schools'),
         schoolQueryContractVersion: SCHOOL_QUERY_CONTRACT_VERSION,
         schoolQueryIntent: filters.schoolQueryIntent,
         bottomLineMode: filters.bottomLineMode,
@@ -418,9 +400,11 @@ export async function onRequest(context) {
         specialProject: {
           mode: filters.specialProjectMode,
           explicitIntent: specialIntent,
-          hidden: specialProjectHidden,
-          shown: specialProjectShown,
-          copy: filters.specialProjectMode === 'show_eligibility_projects' || specialIntent ? SPECIAL_PROJECT_COPY.showLabel : SPECIAL_PROJECT_COPY.hideLabel
+          hidden: aggregate.specialProjectHidden,
+          shown: aggregate.specialProjectShown,
+          copy: filters.specialProjectMode === 'show_eligibility_projects' || specialIntent
+            ? SPECIAL_PROJECT_COPY.showLabel
+            : SPECIAL_PROJECT_COPY.hideLabel
         },
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁 2026 物理类专业投档最低分',
@@ -441,27 +425,29 @@ export async function onRequest(context) {
       counts,
       source: {
         dataYear: 2026,
-        manifestVersion: manifest.version || '',
-        architecture: manifest.architecture,
-        totalRecords: manifest.recordCount || rawTotal,
-        chunksTotal: manifest.buckets?.length || 0,
-        chunksRead: staticWindow.buckets.length,
-        chunksSkipped: Math.max(0, Number(manifest.buckets?.length || 0) - staticWindow.buckets.length),
-        rawScanned: rawTotal,
-        rawCandidate,
-        normalized,
-        staticIndexBytes: staticWindow.bytes,
-        bottomLineExcluded,
-        bottomLineUnresolved,
-        majorKeywordExcluded,
-        majorHitCount,
-        projectHitCount,
-        industryHitCount,
-        specialProjectHidden,
-        specialProjectShown,
+        manifestVersion: selected.manifest.version || '',
+        architecture: 'build-time-static-score-index-distributed-bucket-workers',
+        totalRecords: selected.manifest.recordCount || aggregate.rawScanned,
+        chunksTotal: selected.manifest.buckets?.length || 0,
+        chunksRead: selected.buckets.length,
+        chunksSkipped: Math.max(0, Number(selected.manifest.buckets?.length || 0) - selected.buckets.length),
+        rawScanned: aggregate.rawScanned,
+        rawCandidate: aggregate.rawCandidate,
+        normalized: aggregate.normalized,
+        staticIndexBytes: aggregate.staticIndexBytes,
+        bottomLineExcluded: aggregate.bottomLineExcluded,
+        bottomLineUnresolved: aggregate.bottomLineUnresolved,
+        majorKeywordExcluded: aggregate.majorKeywordExcluded,
+        majorHitCount: aggregate.majorHitCount,
+        projectHitCount: aggregate.projectHitCount,
+        industryHitCount: aggregate.industryHitCount,
+        specialProjectHidden: aggregate.specialProjectHidden,
+        specialProjectShown: aggregate.specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        mode: 'build-time-static-score-index-request-scoped-buckets-canonical-staged-ranked-paged'
+        bucketWorkerCount: bucketResults.length,
+        bucketWorkerCandidateLimit: maxCandidates,
+        mode: 'build-time-static-score-index-distributed-bucket-workers-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
@@ -469,8 +455,8 @@ export async function onRequest(context) {
       ok: false,
       message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 major-bands-static-v3972_2 构建期分数索引、算法统一调度模块和当前查询参数。',
-      hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；运行时专业查询使用构建期静态分数索引。'
+      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、单桶 Worker 合同和分布式查询编排。',
+      hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；专业查询不再运行时扫描原始投档分片。'
     }, 500);
   }
 }
