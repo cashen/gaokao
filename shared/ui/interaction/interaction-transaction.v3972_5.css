@@ -1,0 +1,32 @@
+/* v3972_5: one explicit owner for auxiliary navigation on the selection page. */
+.aux-background-card[data-ui-navigation-owner="interaction-transaction-v3972_5"] {
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.aux-background-card[data-ui-navigation-owner="interaction-transaction-v3972_5"]:focus-visible {
+  outline: 3px solid rgba(47, 125, 109, .24);
+  outline-offset: 2px;
+}
+
+.aux-background-entry[data-ui-navigation-phase="native-chooser-active"] .aux-background-card,
+.aux-background-entry[data-ui-navigation-phase="native-chooser-quarantine"] .aux-background-card,
+.aux-background-card[data-ui-navigation-enabled="false"] {
+  pointer-events: none;
+  cursor: default;
+}
+
+.aux-background-card[data-ui-navigation-enabled="false"] {
+  opacity: .82;
+  transform: none !important;
+}
+
+.aux-background-card[data-ui-navigation-enabled="false"] em::after {
+  content: " · 稍候";
+  font-weight: 700;
+}
