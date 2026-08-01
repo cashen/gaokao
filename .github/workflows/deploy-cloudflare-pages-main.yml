@@ -32,35 +32,48 @@ jobs:
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
           test -f 404.html
           grep -q '页面不存在' 404.html
-          grep -q 'static-major-bands-v3972-2' 404.html
+          grep -q 'distributed-major-bands-buckets-v3972-2' 404.html
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
           grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
-          grep -q "loadMajorBandsStaticWindow" functions/api/major-bands.js
-          grep -q "build-time-static-score-index-request-scoped-buckets" functions/api/major-bands.js
-          if grep -Eq "streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
-            echo 'major-bands still references runtime admission chunk scanning'
+          grep -q "selectMajorBandsStaticBuckets" functions/_lib/major-bands-static-provider.js
+          grep -q "loadMajorBandsStaticBucket" functions/_lib/major-bands-static-provider.js
+          grep -q "processMajorBandsStaticBucket" functions/_lib/major-bands-bucket-engine.js
+          grep -q "major-bands-bucket-v3972_2" functions/api/major-bands-bucket.js
+          grep -q "selectMajorBandsStaticBuckets" functions/api/major-bands.js
+          grep -q "/api/major-bands-bucket" functions/api/major-bands.js
+          grep -q "distributed-bucket-workers" functions/api/major-bands.js
+          if grep -Eq "loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
+            echo 'major-bands still performs multi-bucket or raw admission scanning in one Worker'
             exit 1
           fi
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
-          node --check functions/api/major-bands-health.js
-          node --check functions/_lib/fenxi-fetcher.js
-          node --check functions/_lib/major-bands-static-provider.js
-          node --check functions/api/major-bands.js
-          node --check tools/verify-production-v3971.mjs
+          for file in \
+            functions/api/major-bands-health.js \
+            functions/_lib/fenxi-fetcher.js \
+            functions/_lib/major-bands-static-provider.js \
+            functions/_lib/major-bands-bucket-engine.js \
+            functions/api/major-bands-bucket.js \
+            functions/api/major-bands.js \
+            tools/verify-production-v3971.mjs; do
+            node --check "$file"
+          done
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           const dir='ln-rank/data/major-bands-static-v3972_2';
           const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
-          if(manifest.version!=='major-bands-static-v3972_2'||manifest.architecture!=='build-time-static-score-index') throw new Error('static major-bands contract');
-          if(manifest.recordCount!==11628||!manifest.integrity?.completeEvaluation) throw new Error('static major-bands coverage');
+          if(manifest.version!=='major-bands-static-v3972_2'||manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static major-bands contract');
+          if(manifest.bucketSize!==5) throw new Error(`static major-bands bucket size ${manifest.bucketSize}`);
+          if(manifest.recordCount!==11628||!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static major-bands coverage');
           if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('static major-bands integrity');
-          if(audit.indexBytes>15000000) throw new Error(`static major-bands budget ${audit.indexBytes}`);
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('static major-bands bucket coverage');
+          if(audit.indexBytes>8500000) throw new Error(`static major-bands budget ${audit.indexBytes}`);
+          if(Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('static major-bands single bucket budget');
           NODE
       - name: Resolve and verify Cloudflare deployment credentials
         env:
@@ -98,7 +111,7 @@ jobs:
           PRODUCTION_STRESS_WAIT_MS: '1000'
         run: |
           set -euo pipefail
-          node tools/verify-production-v3971.mjs | tee /tmp/cloudflare-pages-production-verification.out
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/cloudflare-pages-production-verification.out
       - name: Upload deployment evidence
         if: always()
         uses: actions/upload-artifact@v4
