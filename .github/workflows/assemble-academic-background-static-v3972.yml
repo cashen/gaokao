@@ -85,7 +85,7 @@ jobs:
           if(index.scoreBands.reduce((sum,item)=>sum+item.admissionRecordCount,0)!==index.records.length) throw new Error('band coverage');
           if(fs.statSync(file).size>3500000) throw new Error('browser index too large');
           const release=fs.readFileSync('shared/resources/release/current-release.js','utf8');
-          if(!release.includes("display: 'v3.9.72.2'")) throw new Error('release display');
+          if(!release.includes("display: 'v3.9.72.5'")) throw new Error('release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
           const compat=fs.readFileSync('functions/_lib/211-static-compat-response.js','utf8');
           if(!compat.includes('scannedCount: 0')||!compat.includes('build-time-static-index')) throw new Error('scan-free compatibility contract');

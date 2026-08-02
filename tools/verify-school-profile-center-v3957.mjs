@@ -128,7 +128,7 @@ for (const meta of legacyMetadata) {
 }
 
 const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3972_5.json', 'utf8'));
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
 assert.equal(activeManifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(activeManifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);

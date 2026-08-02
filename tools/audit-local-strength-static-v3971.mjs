@@ -36,9 +36,9 @@ assert(styles.includes('.ls-chip-row{grid-template-columns:repeat(2'), 'android 
 assert(!/\.ls-chip-row[^}]*overflow-x\s*:\s*(auto|scroll)/.test(styles), 'score bands must not horizontally scroll');
 assert(scorePositionStyles.includes('.ls-score-position-groups'), 'score position styles');
 assert(scorePositionStyles.includes('grid-template-columns:repeat(2'), 'mobile position grid');
-assert(release.includes("display: 'v3.9.72.2'"), 'release display');
+assert(release.includes("display: 'v3.9.72.5'"), 'release display');
 assert(release.includes("assetVersion: 'v3972_5'"), 'active site generation');
-assert(release.includes("assetReleaseVersion: 'v3.9.72.2'"), 'active release lineage');
+assert(release.includes("assetReleaseVersion: 'v3.9.72.5'"), 'active release lineage');
 assert(release.includes("siteRuntimeGeneration: 'v3972_5'"), 'site runtime generation');
 assert(release.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'static data version');
 assert(release.includes("localStrengthArchitecture: 'build-time-static-index'"), 'static architecture');
@@ -63,7 +63,7 @@ assert(audit.assertions.sortedDescending, 'audit order');
 assert(fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size < 800000, 'browser index size');
 
 console.log(JSON.stringify({
-  release: 'v3.9.72.2',
+  release: 'v3.9.72.5',
   siteGeneration: 'v3972_5',
   pageLineage: 'v3.9.71.2',
   stablePackage: 'local-strength-static-v3971_2',

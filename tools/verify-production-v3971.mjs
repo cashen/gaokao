@@ -1,6 +1,6 @@
 const PAGES_BASE = process.env.PAGES_BASE || 'https://gaokao-4y9.pages.dev';
 const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
-const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.2';
+const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.5';
 const EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE = process.env.EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE || 'v3.9.71.2';
 const EXPECTED_LOCAL_STRENGTH_SCORE_POSITION = process.env.EXPECTED_LOCAL_STRENGTH_SCORE_POSITION || 'local-strength-score-position-v3972_3';
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';

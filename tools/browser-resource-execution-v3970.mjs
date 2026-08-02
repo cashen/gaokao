@@ -6,7 +6,7 @@ const generatedPath = new URL('./.browser-resource-execution-v3972_5.generated.m
 let source = fs.readFileSync(sourcePath, 'utf8');
 source = source
   .replaceAll("../shared/ui/component-registry.v3967_0.js", "../shared/ui/component-registry.v3970_0.js")
-  .replaceAll("v3.9.69.0", "v3.9.72.2")
+  .replaceAll("v3.9.69.0", "v3.9.72.5")
   .replaceAll("selection-workspace-orchestration-v3969_0", "selection-workspace-orchestration-v3972_5")
   .replaceAll("resource-execution-browser-v3967_0", "resource-execution-browser-v3972_5");
 fs.writeFileSync(generatedPath, source);

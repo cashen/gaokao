@@ -14,10 +14,10 @@ const stripQuery = value => String(value || '').split('?')[0].replace(/^\//, '')
 const generation = SITE_RUNTIME_CONTRACT.generation;
 const query = SITE_RUNTIME_CONTRACT.queryVersion;
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, generation);
 assert.equal(CURRENT_RELEASE.assetVersion, generation);
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
 assert.equal(CURRENT_RELEASE.runtimeCacheVersion, LN_RANK_RUNTIME_CACHE_CONTRACT.version);
 assert.equal(CURRENT_RELEASE.interactionVersion, 'interaction-transaction-v3972_5');
@@ -54,7 +54,7 @@ const pages = {
   familyPlan: read('ln-rank/selection-pool.html')
 };
 for (const [name, html] of Object.entries(pages)) {
-  assert.ok(html.includes('data-release="v3.9.72.2"'), `${name} release mismatch`);
+  assert.ok(html.includes('data-release="v3.9.72.5"'), `${name} release mismatch`);
   assert.ok(html.includes(`data-site-runtime-generation="${generation}"`), `${name} generation marker missing`);
   assert.ok(!html.includes('v3972_4'), `${name} still references retired interaction generation`);
 }

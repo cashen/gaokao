@@ -71,7 +71,7 @@ jobs:
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3972_5.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
-          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetVersion!=='v3972_5'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.2') throw new Error(JSON.stringify(CURRENT_RELEASE));
+          if(CURRENT_RELEASE.display!=='v3.9.72.5'||CURRENT_RELEASE.assetVersion!=='v3972_5'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.5') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation) throw new Error('site generation owner');
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query owner');

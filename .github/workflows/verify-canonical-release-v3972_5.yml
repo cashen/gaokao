@@ -1,0 +1,34 @@
+name: Verify canonical release v3972.5
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify one canonical current release and resource graph
+        run: |
+          set -euo pipefail
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
+          python3 tools/ln-2026/verify-final-release-v3970.py

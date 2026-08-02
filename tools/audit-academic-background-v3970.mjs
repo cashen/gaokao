@@ -6,7 +6,7 @@ const generatedPath = new URL('./.audit-academic-background-v3972_5.generated.mj
 let source = fs.readFileSync(sourcePath, 'utf8');
 source = source
   .replaceAll("../shared/governance/resource-execution-contract.v3969_0.js", "../shared/governance/resource-execution-contract.v3972_5.js")
-  .replaceAll("'v3.9.69.0'", "'v3.9.72.2'")
+  .replaceAll("'v3.9.69.0'", "'v3.9.72.5'")
   .replaceAll("'v3969_0'", "'v3972_5'")
   .replaceAll("'resource-execution-v3969_0'", "'resource-execution-v3972_5'");
 

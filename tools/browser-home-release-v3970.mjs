@@ -61,14 +61,14 @@ try {
       };
     });
 
-    assert.equal(state.bodyRelease, 'v3.9.72.2', `${device.name}: body release`);
-    assert.equal(state.htmlRelease, 'v3.9.72.2', `${device.name}: html release`);
+    assert.equal(state.bodyRelease, 'v3.9.72.5', `${device.name}: body release`);
+    assert.equal(state.htmlRelease, 'v3.9.72.5', `${device.name}: html release`);
     assert.equal(state.bodyGeneration, 'v3972_5', `${device.name}: body generation`);
     assert.equal(state.htmlGeneration, 'v3972_5', `${device.name}: html generation`);
-    assert.equal(state.visibleRelease, 'v3.9.72.2', `${device.name}: visible release`);
+    assert.equal(state.visibleRelease, 'v3.9.72.5', `${device.name}: visible release`);
     assert.equal(state.runtime?.version, 'family-home-runtime-v3972_5', `${device.name}: runtime`);
     assert.equal(state.runtime?.generation, 'v3972_5', `${device.name}: runtime generation`);
-    assert.equal(state.runtime?.release, 'v3.9.72.2', `${device.name}: runtime release`);
+    assert.equal(state.runtime?.release, 'v3.9.72.5', `${device.name}: runtime release`);
     assert.match(state.runtime?.shellOwner || '', /family-shell\.v3972_5\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
     assert.equal(state.shell?.version, 'family-shell-v3972_5', `${device.name}: shell owner`);
@@ -97,4 +97,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok: true, release: 'v3.9.72.2', generation: 'v3972_5', runtime: 'family-home-runtime-v3972_5', devices: results }, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.72.5', generation: 'v3972_5', runtime: 'family-home-runtime-v3972_5', devices: results }, null, 2));

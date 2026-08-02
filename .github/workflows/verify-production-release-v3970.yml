@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/v3972-5-production
-          expected_release='v3.9.72.2'
+          expected_release='v3.9.72.5'
           expected_generation='v3972_5'
 
           fetch_response() {
@@ -118,7 +118,7 @@ jobs:
             preserved_resources=1
 
             if [ "$(cat /tmp/v3972-5-production/pages-all211.status)" != '200' ] \
-              || ! grep -q 'data-release="v3.9.72.2"' /tmp/v3972-5-production/pages-all211.body \
+              || ! grep -q 'data-release="v3.9.72.5"' /tmp/v3972-5-production/pages-all211.body \
               || [ "$(cat /tmp/v3972-5-production/pages-all211-data.status)" != '200' ] \
               || ! grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-5-production/pages-all211-data.body \
               || [ "$(cat /tmp/v3972-5-production/pages-local.status)" != '200' ] \
@@ -152,14 +152,17 @@ jobs:
               && grep -q "display: '${expected_release}'" /tmp/v3972-5-production/pages-release.body \
               && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production/pages-release.body \
               && [ "$(cat /tmp/v3972-5-production/pages-contract.status)" = '200' ] \
-              && grep -q "generation: '${expected_generation}'" /tmp/v3972-5-production/pages-contract.body \
+              && grep -q 'CURRENT_RELEASE.siteRuntimeGeneration' /tmp/v3972-5-production/pages-contract.body \
+              && grep -q 'CURRENT_RELEASE.version' /tmp/v3972-5-production/pages-contract.body \
               && [ "$(cat /tmp/v3972-5-production/pages-manifest.status)" = '200' ] \
               && grep -q '"generation": "v3972_5"' /tmp/v3972-5-production/pages-manifest.body \
+              && grep -q '"releaseVersion": "v3.9.72.5"' /tmp/v3972-5-production/pages-manifest.body \
               && [ "$preserved_resources" -eq 1 ]; then
               pages_current=1
             fi
 
             if [ "$(cat /tmp/v3972-5-production/custom-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production/custom-release.body \
               && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production/custom-release.body \
               && [ "$(cat /tmp/v3972-5-production/custom-interaction.status)" = '200' ] \
               && grep -q 'interaction-transaction-v3972_5' /tmp/v3972-5-production/custom-interaction.body; then
@@ -167,10 +170,13 @@ jobs:
             fi
 
             if [ "$(cat /tmp/v3972-5-production/custom-root.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-root.body \
               && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production/custom-root.body \
               && [ "$(cat /tmp/v3972-5-production/custom-workspace.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-workspace.body \
               && grep -q 'app.v3972_5.js?v=3972_5' /tmp/v3972-5-production/custom-workspace.body \
               && [ "$(cat /tmp/v3972-5-production/custom-plan.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-plan.body \
               && grep -q 'selection-pool.v3972_5.js?v=3972_5' /tmp/v3972-5-production/custom-plan.body; then
               custom_html_or_challenge=1
               printf '%s\n' 'custom domain returned current HTML' > /tmp/v3972-5-production/custom-domain-mode.txt
