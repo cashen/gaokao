@@ -43,7 +43,6 @@ jobs:
           node tools/audit-site-runtime-generation-v3972_5.mjs 2>&1 | tee /tmp/v3972-5-site-runtime.out
           node tools/audit-family-action-v3970.mjs 2>&1 | tee /tmp/v3972-5-family-action.out
           node tools/audit-school-query-v3970.mjs 2>&1 | tee /tmp/v3972-5-school-query.out
-          node tools/build-derived-asset-trace-v3970.mjs 2>&1 | tee /tmp/v3972-5-derived.out
           node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3972-5-algorithm.out
           node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3972-5-report.out
           node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3972-5-css.out
