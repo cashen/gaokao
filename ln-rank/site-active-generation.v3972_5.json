@@ -9,7 +9,9 @@
     "uiRegistry": "/shared/ui/ui-resource-registry.v3972_5.js",
     "cssVersion": "css-resource-graph-v3972_5",
     "dataVersion": "data-resource-graph-v3972_5",
-    "decommissionPolicyVersion": "resource-decommission-v3972_5"
+    "decommissionPolicyVersion": "resource-decommission-v3972_5",
+    "productionVerificationVersion": "production-resource-graph-verification-v3972_5",
+    "productionVerificationOwner": "/shared/governance/production-resource-verification-contract.v3972_5.js"
   },
   "entrypoints": {
     "home": "/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5",
@@ -40,6 +42,7 @@
     "stablePageEntrypointsDeclared": true,
     "historicalAssetsCannotClaimActiveOwnership": true,
     "referenceProofRequiredBeforeRemoval": true,
+    "productionVerificationStatusRequired": true,
     "nativeAuxiliaryHrefForbidden": true,
     "explicitNavigationOwnerRequired": true,
     "productionGraphMustMatchSourceGraph": true
