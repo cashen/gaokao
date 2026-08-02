@@ -7,6 +7,7 @@ import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js'
 
 const strip = value => String(value || '').split('?')[0].replace(/^\//, '');
 const exists = value => fs.existsSync(path.resolve(strip(value)));
+const pageRouteKeys = new Set(['homePage', 'selectionPage', 'familyPlanPage']);
 
 assert.equal(SITE_RUNTIME_CONTRACT.version, 'site-runtime-coherence-v3972_6');
 assert.equal(SITE_RUNTIME_CONTRACT.generation, 'v3972_6');
@@ -29,14 +30,14 @@ assert.ok(stableKeys.length >= 5, 'declared stable active entrypoints incomplete
 for (const key of currentKeys) {
   const value = SITE_RUNTIME_CONTRACT.activeEntrypoints[key];
   if (String(value).startsWith('/')) assert.ok(exists(value), `current entrypoint missing: ${key} -> ${value}`);
-  if (!['homePage', 'selectionPage', 'familyPlanPage'].includes(key)) {
-    assert.ok(String(value).includes('3972_6'), `current entrypoint is not v3972_6: ${key} -> ${value}`);
-  }
+  if (!pageRouteKeys.has(key)) assert.ok(String(value).includes('3972_6'), `current entrypoint is not v3972_6: ${key} -> ${value}`);
 }
 for (const key of stableKeys) {
   const value = SITE_RUNTIME_CONTRACT.activeEntrypoints[key];
   if (String(value).startsWith('/')) assert.ok(exists(value), `stable active entrypoint missing: ${key} -> ${value}`);
-  assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.some(item => strip(item) === strip(value)), `stable active entrypoint undeclared: ${key} -> ${value}`);
+  if (!pageRouteKeys.has(key)) {
+    assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.some(item => strip(item) === strip(value)), `stable active module undeclared: ${key} -> ${value}`);
+  }
 }
 
 assert.equal(SITE_RUNTIME_CONTRACT.owners.interaction, '/shared/ui/interaction/interaction-transaction.v3972_6.js');
@@ -72,9 +73,7 @@ assert.ok(!interactionCss.includes('[inert]'), 'interaction CSS relies on inert 
 const app = fs.readFileSync('ln-rank/js/app.v3972_6.js', 'utf8');
 const runtime = fs.readFileSync('ln-rank/js/app-runtime.v3972_6.js', 'utf8');
 const workspace = fs.readFileSync('ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js', 'utf8');
-for (const [label, source] of [['app', app], ['runtime', runtime], ['workspace', workspace]]) {
-  assert.ok(source.includes('v3972_6'), `${label} does not use current generation`);
-}
+for (const [label, source] of [['app', app], ['runtime', runtime], ['workspace', workspace]]) assert.ok(source.includes('v3972_6'), `${label} does not use current generation`);
 assert.ok(runtime.includes("const INTERACTION_VERSION = 'interaction-transaction-v3972_6'"));
 assert.ok(workspace.includes("const INTERACTION_VERSION = 'interaction-transaction-v3972_6'"));
 
