@@ -1,4 +1,4 @@
-name: Verify unified family action v3970.0
+name: Verify unified site runtime v3972.5
 
 on:
   pull_request:
@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  family-action-runtime:
+  site-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 85
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,64 +29,53 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3970-runtime-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3970-runtime-files.txt; then exit 1; fi
+          git diff --name-only "$base" HEAD | tee /tmp/v3972-5-runtime-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-5-runtime-files.txt; then exit 1; fi
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           python3 -m py_compile tools/ln-2026/verify-final-release-v3970.py
+          grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
 
-      - name: Verify family action ownership and preserved domains
+      - name: Verify site generation and preserved domains
         run: |
           set -euo pipefail
-          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3970-release.out
-          node tools/audit-family-action-v3970.mjs 2>&1 | tee /tmp/v3970-family-action.out
-          node tools/audit-school-query-v3970.mjs 2>&1 | tee /tmp/v3970-school-query.out
-          node tools/build-derived-asset-trace-v3970.mjs 2>&1 | tee /tmp/v3970-derived.out
-          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3970-algorithm.out
-          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3970-report.out
-          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3970-css.out
-          node tools/audit-academic-background-v3970.mjs 2>&1 | tee /tmp/v3970-background.out
+          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-5-release.out
+          node tools/audit-site-runtime-generation-v3972_5.mjs 2>&1 | tee /tmp/v3972-5-site-runtime.out
+          node tools/audit-family-action-v3970.mjs 2>&1 | tee /tmp/v3972-5-family-action.out
+          node tools/audit-school-query-v3970.mjs 2>&1 | tee /tmp/v3972-5-school-query.out
+          node tools/build-derived-asset-trace-v3970.mjs 2>&1 | tee /tmp/v3972-5-derived.out
+          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3972-5-algorithm.out
+          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3972-5-report.out
+          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3972-5-css.out
+          node tools/audit-academic-background-v3970.mjs 2>&1 | tee /tmp/v3972-5-background.out
 
-      - name: Verify active immutable execution graph
+      - name: Verify one active site generation
         run: |
           set -euo pipefail
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3970_0.js';
-          import { UI_COMPONENT_REGISTRY } from './shared/ui/component-registry.v3970_0.js';
-          const active=JSON.parse(fs.readFileSync('ln-rank/active-assets.json','utf8'));
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3972_5.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3972_5.js';
+          import { RESOURCE_EXECUTION_VERSION } from './shared/governance/resource-execution-contract.v3972_5.js';
           const html=fs.readFileSync('ln-rank/index.html','utf8');
-          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetVersion!=='v3970_0'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release');
-          if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3970_0') throw new Error('base cache contract');
-          if(UI_COMPONENT_REGISTRY.familyPlanEntry.domOwner!=='/shared/ui/components/family-plan-entry.v3970_0.js') throw new Error('family action owner');
+          const home=fs.readFileSync('index.html','utf8');
+          const plan=fs.readFileSync('ln-rank/selection-pool.html','utf8');
+          if(CURRENT_RELEASE.display!=='v3.9.72.2') throw new Error('release');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!=='v3972_5'||CURRENT_RELEASE.assetVersion!=='v3972_5') throw new Error('site generation');
+          if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('execution contract');
+          if(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion!==SITE_RUNTIME_CONTRACT.generation) throw new Error('cache generation');
           for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}
-          for(const required of [
-            'js/app.v3970_0.js','js/app-runtime.v3970_0.js','js/selection-pool.v3970_0.js',
-            '../shared/resources/release/runtime-cache-contract.v3970_0.js',
-            '../shared/governance/resource-execution-contract.v3970_0.js',
-            '../shared/ui/component-registry.v3970_0.js',
-            '../shared/ui/components/family-plan-entry.v3970_0.js',
-            'js/domain/family-plan-copy-adapter.v3970_0.js',
-            '../shared/resources/schools/school-query-contract.v3969_0.js',
-            '../shared/resources/schools/school-query-engine.v3969_0.js'
-          ]) if(!active.jsEntry.includes(required)) throw new Error(required);
-          for(const required of [
-            'shared/ui/interaction/interaction-transaction.v3972_4.js',
-            'ln-rank/js/app.v3972_4.js',
-            'ln-rank/js/app-runtime.v3972_4.js',
-            'ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js'
-          ]) if(!fs.existsSync(required)) throw new Error(`missing interaction generation ${required}`);
-          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_4.js?v=3972_4')) throw new Error('selection page does not mount interaction transaction');
-          if(!html.includes('/ln-rank/js/app.v3972_4.js?v=3972_4')) throw new Error('selection page does not mount v3972_4 bootstrap');
-          if(html.includes('/ln-rank/js/app.v3970_0.js?v=3970_0')) throw new Error('selection page still mounts old immutable bootstrap');
-          if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary navigation ownership');
-          const interaction=fs.readFileSync('shared/ui/interaction/interaction-transaction.v3972_4.js','utf8');
-          if(!interaction.includes("const DISCLOSURE_ID = 'familyConditionsDisclosure'")) throw new Error('disclosure ownership contract');
-          if(!interaction.includes('native-control-tail-click-without-anchor-origin')) throw new Error('tail click navigation contract');
-          const wrapper=fs.readFileSync('ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js','utf8');
-          if(!wrapper.includes("selection-workspace-orchestration-v3972_4")) throw new Error('workspace generation');
-          if(!wrapper.includes("selection-workspace-orchestrator.v3969_0.js?v=3969_0")) throw new Error('stable business delegate');
-          console.log('v3970 base graph and v3972_4 unified interaction generation passed under site release v3.9.72.2');
+          for(const dependency of SITE_RUNTIME_CONTRACT.stableDependencies){const rel=dependency.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing stable dependency ${rel}`);}
+          for(const [name, source] of [['home',home],['selection',html],['plan',plan]]) {
+            if(!source.includes('data-site-runtime-generation="v3972_5"')) throw new Error(`${name} generation`);
+            if(source.includes('v3972_4')) throw new Error(`${name} retired generation`);
+          }
+          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_5.js?v=3972_5')) throw new Error('interaction mount');
+          if(!html.includes('/ln-rank/js/app.v3972_5.js?v=3972_5')) throw new Error('selection bootstrap');
+          if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary actions');
+          if(/<a[^>]+href="\/ln-rank\/(local|211)-mainline\.html"/.test(html)) throw new Error('native auxiliary navigation');
+          console.log('one active site generation v3972_5 passed under v3.9.72.2');
           NODE
 
       - name: Install Chromium journey runner
@@ -97,55 +86,54 @@ jobs:
       - name: Verify no-obstruction family action geometry
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3970-family-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-family-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3970_ARTIFACT_DIR=/tmp/v3970-browser-family node tools/browser-family-action-v3970.mjs 2>&1 | tee /tmp/v3970-browser-family.out
+          V3970_ARTIFACT_DIR=/tmp/v3972-5-browser-family node tools/browser-family-action-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-family.out
 
       - name: Verify preserved PC Pad Android main journey
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3970-main-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-main-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3969_ARTIFACT_DIR=/tmp/v3970-browser-main node tools/browser-resource-execution-v3970.mjs 2>&1 | tee /tmp/v3970-browser-main.out
+          V3969_ARTIFACT_DIR=/tmp/v3972-5-browser-main node tools/browser-resource-execution-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-main.out
 
-      - name: Verify unified region and global button transactions
+      - name: Verify full native chooser and navigation transaction
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-interaction-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-interaction-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3972_INTERACTION_ARTIFACT_DIR=/tmp/v3972-interaction-browser node tools/browser-interaction-transaction-v3972_4.mjs 2>&1 | tee /tmp/v3972-interaction-browser.out
+          V3972_INTERACTION_ARTIFACT_DIR=/tmp/v3972-5-interaction-browser node tools/browser-interaction-transaction-v3972_5.mjs 2>&1 | tee /tmp/v3972-5-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3970-school-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-school-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3969_ARTIFACT_DIR=/tmp/v3970-browser-school node tools/browser-school-query-v3970.mjs 2>&1 | tee /tmp/v3970-browser-school.out
+          V3969_ARTIFACT_DIR=/tmp/v3972-5-browser-school node tools/browser-school-query-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-school.out
 
-      - name: Verify preserved 211 background journeys
+      - name: Verify preserved 211 and LocalStrength journeys
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3970-background-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-background-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3968_ARTIFACT_DIR=/tmp/v3970-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3970-browser-background.out
+          V3968_ARTIFACT_DIR=/tmp/v3972-5-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3972-5-browser-background.out
 
       - name: Upload verification diagnostics
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3970-family-action-diagnostics
+          name: v3972-5-site-runtime-diagnostics
           path: |
-            /tmp/v3970-*
-            /tmp/v3972-interaction-*
+            /tmp/v3972-5-*
           if-no-files-found: warn
           retention-days: 3
