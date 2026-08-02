@@ -75,7 +75,7 @@ jobs:
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
           import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3972_5.js';
-          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.2') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.display!=='v3.9.72.5'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.5') throw new Error('release mismatch');
           if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation||SITE_RUNTIME_CONTRACT.generation!=='v3972_5') throw new Error('site generation mismatch');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
           if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue stable package mismatch');
@@ -91,7 +91,7 @@ jobs:
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue stable v159 package under site generation v3972_5 and release v3.9.72.2 passed');
+          console.log('Tongxue stable v159 package under site generation v3972_5 and release v3.9.72.5 passed');
           NODE
 
       - name: Verify school resolver and unified query contracts
