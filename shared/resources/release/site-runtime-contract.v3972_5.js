@@ -25,6 +25,18 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     familyPlanBootstrap: '/ln-rank/js/selection-pool.v3972_5.js?v=3972_5',
     familyPlanRuntime: '/ln-rank/js/selection-pool-runtime.v3972_5.js?v=3972_5'
   }),
+  stablePageEntrypoints: Object.freeze({
+    tongxuePage: '/tongxue/',
+    tongxueRuntime: '/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0',
+    localStrengthPage: '/ln-rank/local-mainline.html',
+    localStrengthRuntime: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3971_2',
+    localStrengthStyles: '/ln-rank/css/local-strength.v3971_2.css?v=3971_2',
+    localStrengthData: '/ln-rank/data/local-strength/local-strength-index.v3971_2.json',
+    all211Page: '/ln-rank/211-mainline.html',
+    all211Runtime: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js?v=3972_0',
+    all211Styles: '/ln-rank/css/all211-static.v3972_0.css?v=3972_0',
+    all211Data: '/ln-rank/data/211-static/211-static-index.v3972_0.json'
+  }),
   owners: Object.freeze({
     release: '/shared/resources/release/current-release.js',
     activeGeneration: '/shared/resources/release/site-runtime-contract.v3972_5.js',
@@ -39,7 +51,10 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     interaction: '/shared/ui/interaction/interaction-transaction.v3972_5.js',
     disclosure: '/shared/ui/interaction/interaction-transaction.v3972_5.js',
     auxiliaryNavigation: '/shared/ui/interaction/interaction-transaction.v3972_5.js',
-    familyPlanBootstrap: '/ln-rank/js/selection-pool.v3972_5.js'
+    familyPlanBootstrap: '/ln-rank/js/selection-pool.v3972_5.js',
+    tongxue: '/tongxue/app/tongxue-runtime-v159-r3968.js',
+    localStrength: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js',
+    all211: '/ln-rank/js/academic-background/all211-static-app.v3972_0.js'
   }),
   stableDependencies: Object.freeze([
     '/shared/resources/exam/liaoning-physics.js',
@@ -66,9 +81,24 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     '/ln-rank/js/feature/major-pool/index.v3967_0.js',
     '/ln-rank/js/workspace/result-commit.v3967_0.js',
     '/ln-rank/js/workspace/scroll-policy.v3961_0.js',
-    '/ln-rank/js/workspace/viewport-orchestrator.v3961_0.js'
+    '/ln-rank/js/workspace/viewport-orchestrator.v3961_0.js',
+    '/tongxue/app/tongxue-runtime-v159-r3968.js',
+    '/tongxue/app/tongxue-runtime-controller-v159.js',
+    '/tongxue/app/tongxue-runtime-search-view-v159.js',
+    '/tongxue/app/tongxue-runtime-result-view-v159.js',
+    '/tongxue/app/tongxue-runtime-utils-v159.js',
+    '/shared/resources/release/release-presenter.v3968_0.js',
+    '/ln-rank/js/local-strength/local-strength-app.v3971_2.js',
+    '/ln-rank/css/local-strength.v3971_2.css',
+    '/ln-rank/data/local-strength/local-strength-index.v3971_2.json',
+    '/shared/resources/release/release-presenter.v3971_2.js',
+    '/ln-rank/js/academic-background/all211-static-app.v3972_0.js',
+    '/ln-rank/css/all211-static.v3972_0.css',
+    '/ln-rank/data/211-static/211-static-index.v3972_0.json',
+    '/shared/resources/release/release-presenter.v3972_0.js'
   ]),
   preservedBusinessResources: Object.freeze({
+    tongxue: 'tongxue-runtime-v159-r3968',
     localStrength: 'local-strength-static-v3971_2',
     all211: 'all-211-static-v3972_0',
     majorBands: 'major-bands-static-v3972_2'
@@ -77,6 +107,7 @@ export const SITE_RUNTIME_CONTRACT = Object.freeze({
     oneActiveGeneration: true,
     activeEntrypointsMustMatchGeneration: true,
     stableDependenciesMustBeDeclared: true,
+    stablePageEntrypointsMustBeDeclared: true,
     stableDependenciesCannotOwnNavigation: true,
     stableDependenciesCannotOwnDisclosure: true,
     stableDependenciesCannotOwnReleaseState: true,
