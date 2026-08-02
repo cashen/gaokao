@@ -32,7 +32,7 @@ import {
   normalizeSchoolQueryIntent
 } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
 import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
-import { rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
+import { resolveCanonicalPosition, rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
@@ -134,8 +134,34 @@ function rankLabel(context) {
   return `按 2026 年成绩分布，历史参考位置约为第 ${context.rankEnd.toLocaleString('zh-CN')} 位`;
 }
 
-function finalizeRecordForResponse(record) {
-  const item = materializeMajorBandsStaticRecord(record);
+function finalizeRecordForResponse(record, context = {}) {
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: context.candidateScore,
+    candidateRank: context.candidateRank?.rankForGap,
+    recordScore: record.score2026 ?? record.score,
+    recordRank: record.rank2026 ?? record.rank,
+    rangePreset: context.rangePreset
+  });
+  const transferredBand = record.canonicalPosition?.bandKey || record.bandKey || record.band || '';
+  if (transferredBand && canonicalPosition.bandKey !== transferredBand) {
+    throw new Error(`分桶排序位置与父级重建不一致：${record.id || `${record.school}|${record.major}`}，${transferredBand}/${canonicalPosition.bandKey}`);
+  }
+  const source = {
+    ...record,
+    band: canonicalPosition.bandKey,
+    bandKey: canonicalPosition.bandKey,
+    candidateScore: context.candidateScore,
+    candidateReferenceScore: context.candidateScore,
+    scoreDelta2026: canonicalPosition.scoreDelta,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap2026: canonicalPosition.rankGap,
+    rankGap: canonicalPosition.rankGap,
+    statusKey: canonicalPosition.statusKey,
+    statusLabel: canonicalPosition.statusLabel,
+    position: canonicalPosition.position,
+    canonicalPosition
+  };
+  const item = materializeMajorBandsStaticRecord(source);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -392,7 +418,7 @@ export async function onRequest(context) {
       const records = requestedBand && requestedBand !== key
         ? []
         : diversified.slice(offset, offset + pageLimit).map(record => compactMajorBandsResponseRecord(
-          finalizeRecordForResponse(record)
+          finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
         ));
       const returned = records.length;
       const hasMore = offset + returned < group.count;

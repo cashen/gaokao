@@ -133,6 +133,16 @@ export function compactMajorBandsHistoryCompare(history = null) {
   ]);
 }
 
+function compactMajorBandsRankingPosition(position = null) {
+  if (!position || typeof position !== 'object') return position || null;
+  return pickMeaningful(position, [
+    'bandKey',
+    'positionDistance',
+    'evidenceStrength',
+    'classificationBasis'
+  ]);
+}
+
 export function compactMajorBandsCanonicalPosition(position = null) {
   if (!position || typeof position !== 'object') return position || null;
   return pickMeaningful(position, [
@@ -168,7 +178,7 @@ export function compactMajorBandsBucketCandidate(record = {}) {
   for (const [key, value] of Object.entries(record || {})) {
     if (BUCKET_DROP_FIELDS.has(key)) continue;
     if (key === 'canonicalPosition') {
-      candidate.canonicalPosition = compactMajorBandsCanonicalPosition(value);
+      candidate.canonicalPosition = compactMajorBandsRankingPosition(value);
       continue;
     }
     candidate[key] = value;
