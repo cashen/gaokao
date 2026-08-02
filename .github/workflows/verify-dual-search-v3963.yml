@@ -100,7 +100,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3972_6_ARTIFACT_DIR=/tmp/v3972-6-interaction-browser node tools/browser-native-chooser-activation-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-interaction-browser.out
+          V3972_6_ARTIFACT_DIR=/tmp/v3972-6-interaction-browser node tools/browser-native-chooser-activation-v3972_6-runner.mjs 2>&1 | tee /tmp/v3972-6-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
