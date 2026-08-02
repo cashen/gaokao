@@ -1,8 +1,8 @@
 export const MAJOR_BANDS_BUCKET_ORCHESTRATION = Object.freeze({
   version: 'major-bands-bounded-fanout-v3972_5',
-  maxConcurrency: 3,
+  maxConcurrency: 1,
   maxAttempts: 2,
-  baseDelayMs: 40
+  baseDelayMs: 80
 });
 
 const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);
