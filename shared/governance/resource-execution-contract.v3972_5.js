@@ -91,13 +91,16 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     owner: '/functions/api/major-bands.js',
     bucketOwner: '/functions/api/major-bands-bucket.js',
     orchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js',
+    transferOwner: '/functions/_lib/major-bands-bucket-transfer.v3972_5.js',
+    transferVersion: 'major-bands-bucket-candidate-compact-v3972_5',
     staticProvider: '/functions/_lib/major-bands-static-provider.js',
     schemaVersion: 'major-bands-bounded-fanout-v3972_5',
     allowedConsumers: ['ln-rank', 'production-verification'],
     allowedAdapters: [
       '/functions/api/major-bands-bucket.js',
       '/functions/_lib/major-bands-static-provider.js',
-      '/functions/_lib/major-bands-bucket-engine.js'
+      '/functions/_lib/major-bands-bucket-engine.js',
+      '/functions/_lib/major-bands-bucket-transfer.v3972_5.js'
     ],
     forbiddenLiterals: ['Promise.all(selected.buckets.map'],
     validationTools: [

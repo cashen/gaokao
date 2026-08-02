@@ -20,8 +20,11 @@ function assertBoundedOrchestration(data, label) {
     throw new Error(`${label} orchestration version=${source.bucketWorkerOrchestrationVersion || 'missing'}`);
   }
   const concurrency = Number(source.bucketWorkerConcurrency || 0);
-  if (concurrency < 1 || concurrency > 3) {
+  if (concurrency !== 1) {
     throw new Error(`${label} concurrency=${concurrency}`);
+  }
+  if (source.bucketCandidateTransferVersion !== 'major-bands-bucket-candidate-compact-v3972_5') {
+    throw new Error(`${label} transfer=${source.bucketCandidateTransferVersion || 'missing'}`);
   }
   if (Number(source.bucketWorkerMaxAttempts || 0) !== 2) {
     throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);

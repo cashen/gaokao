@@ -9,6 +9,10 @@ import {
   isRetryableBucketWorkerFailure,
   runMajorBandsBucketWorkers
 } from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
+import {
+  MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
+  assertCompactMajorBandsBucketCandidate
+} from '../_lib/major-bands-bucket-transfer.v3972_5.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   normalizeBottomLineMode,
@@ -219,8 +223,18 @@ async function fetchBucketWorker(context, bucket, options) {
   } catch (error) {
     throw new Error(`分数桶 Worker JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
   }
-  if (!payload?.ok || payload?.contract !== BUCKET_CONTRACT || payload?.bucket?.file !== bucket.file) {
+  if (
+    !payload?.ok
+    || payload?.contract !== BUCKET_CONTRACT
+    || payload?.candidateTransferVersion !== MAJOR_BANDS_BUCKET_TRANSFER_VERSION
+    || payload?.bucket?.file !== bucket.file
+  ) {
     throw new Error(`分数桶 Worker 合同不匹配：${bucket.file}`);
+  }
+  for (const key of ['upper', 'near', 'steady']) {
+    for (const candidate of payload.grouped?.[key]?.candidates || []) {
+      assertCompactMajorBandsBucketCandidate(candidate);
+    }
   }
   return payload;
 }
@@ -495,6 +509,7 @@ export async function onRequest(context) {
         bucketWorkerCount: bucketResults.length,
         bucketWorkerCandidateLimit: maxCandidates,
         bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
+        bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
         bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency,
         bucketWorkerRetries: bucketExecution.stats.retryCount,
         bucketWorkerMaxAttempts: bucketExecution.stats.maxAttempts,

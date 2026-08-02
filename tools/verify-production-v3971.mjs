@@ -4,6 +4,8 @@ const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'v3.9.72.5';
 const EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE = process.env.EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE || 'v3.9.71.2';
 const EXPECTED_LOCAL_STRENGTH_SCORE_POSITION = process.env.EXPECTED_LOCAL_STRENGTH_SCORE_POSITION || 'local-strength-score-position-v3972_3';
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';
+const EXPECTED_MAJOR_BANDS_ORCHESTRATION = 'major-bands-bounded-fanout-v3972_5';
+const EXPECTED_MAJOR_BANDS_TRANSFER = 'major-bands-bucket-candidate-compact-v3972_5';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
 const STRESS_CYCLES = Number(process.env.PRODUCTION_STRESS_CYCLES || 40);
@@ -79,6 +81,16 @@ function assertBoundedHealth(health) {
   assert(health?.probe?.resourceBudget?.parsedChunkCache === false, 'health probe parsed chunk cache enabled');
 }
 
+function assertMajorBandsExecution(data, label) {
+  const source = data?.source || {};
+  assert(source.bucketWorkerOrchestrationVersion === EXPECTED_MAJOR_BANDS_ORCHESTRATION, `${label} orchestration=${source.bucketWorkerOrchestrationVersion || 'missing'}`);
+  assert(source.bucketCandidateTransferVersion === EXPECTED_MAJOR_BANDS_TRANSFER, `${label} transfer=${source.bucketCandidateTransferVersion || 'missing'}`);
+  assert(Number(source.bucketWorkerConcurrency || 0) === 1, `${label} concurrency=${source.bucketWorkerConcurrency}`);
+  assert(Number(source.bucketWorkerMaxAttempts || 0) === 2, `${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
+  const retries = Number(source.bucketWorkerRetries || 0);
+  assert(Number.isInteger(retries) && retries >= 0, `${label} retries=${source.bucketWorkerRetries}`);
+}
+
 async function verifyStaticContracts(token) {
   const urls = {
     pagesRelease: `${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}`,
@@ -106,6 +118,8 @@ async function verifyStaticContracts(token) {
   assert(result.pagesRelease.text.includes(`display: '${EXPECTED_RELEASE}'`), 'Pages release contract mismatch');
   assert(result.pagesRelease.text.includes("all211Architecture: 'build-time-static-index'"), 'Pages 211 architecture contract mismatch');
   assert(result.pagesRelease.text.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'Pages LocalStrength owner mismatch');
+  assert(result.pagesRelease.text.includes(`majorBandsOrchestrationVersion: '${EXPECTED_MAJOR_BANDS_ORCHESTRATION}'`), 'Pages major-bands orchestration mismatch');
+  assert(result.pagesRelease.text.includes(`majorBandsBucketTransferVersion: '${EXPECTED_MAJOR_BANDS_TRANSFER}'`), 'Pages major-bands transfer mismatch');
 
   const runtime = parseJson(result.runtime);
   assert(runtime?.ok !== false, `runtime returned ok=false: ${result.runtime.text.slice(0, 1000)}`);
@@ -177,6 +191,8 @@ async function verifyConcurrentCycle(cycle) {
   assert(runtime?.ok !== false, `runtime ok=false cycle ${cycle}`);
   assertBoundedHealth(health);
   assert(score?.ok !== false && school?.ok !== false, `query ok=false cycle ${cycle}`);
+  assertMajorBandsExecution(score, `score cycle ${cycle}`);
+  assertMajorBandsExecution(school, `school cycle ${cycle}`);
   const scoreRecords = recordCount(score);
   const schoolRecords = recordCount(school);
   assert(scoreRecords > 0, `579 query empty cycle ${cycle}`);
@@ -186,7 +202,11 @@ async function verifyConcurrentCycle(cycle) {
     chunksRead: Number(health.probe?.chunksRead || 0),
     rawScanned: Number(health.probe?.rawScanned || 0),
     scoreRecords,
-    schoolRecords
+    schoolRecords,
+    scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
+    schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
+    scoreRetries: Number(score.source.bucketWorkerRetries || 0),
+    schoolRetries: Number(school.source.bucketWorkerRetries || 0)
   };
 }
 
@@ -222,6 +242,10 @@ console.log(JSON.stringify({
   maximumRawScanned: Math.max(...cycles.map(item => item.rawScanned)),
   minimumScoreRecords: Math.min(...cycles.map(item => item.scoreRecords)),
   minimumSchoolRecords: Math.min(...cycles.map(item => item.schoolRecords)),
+  maximumScoreConcurrency: Math.max(...cycles.map(item => item.scoreConcurrency)),
+  maximumSchoolConcurrency: Math.max(...cycles.map(item => item.schoolConcurrency)),
+  totalScoreRetries: cycles.reduce((sum, item) => sum + item.scoreRetries, 0),
+  totalSchoolRetries: cycles.reduce((sum, item) => sum + item.schoolRetries, 0),
   cloudflare1102Count: 0,
   http503Count: 0
 }, null, 2));

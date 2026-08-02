@@ -10,6 +10,7 @@ import { buildSearchIndex } from './search-index-builder.js';
 import { lookupScoreRank } from './rank-table-provider.js';
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
+import { compactMajorBandsBucketCandidate } from './major-bands-bucket-transfer.v3972_5.js';
 import {
   detectSpecialProject,
   enrichSpecialProjectRecord,
@@ -126,7 +127,7 @@ function rankBucketCandidates(candidates, maxCandidates, bottomLineMode) {
     sortMode: 'canonical-staged',
     diversify: false,
     getSoftPreferenceWeight: record => getBottomLineSortWeight(record, bottomLineMode)
-  }).slice(0, maxCandidates);
+  }).slice(0, maxCandidates).map(compactMajorBandsBucketCandidate);
 }
 
 export function processMajorBandsStaticBucket(records, options = {}) {
