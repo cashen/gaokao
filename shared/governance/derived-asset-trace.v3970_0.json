@@ -69,7 +69,7 @@
       "source": "shared/ui/shell/family-shell.v3970_0.js",
       "sourceSha256": "dd67cdcde4e47405d6a123e14757a737a37fe6572d9876d40659d860765f5542",
       "derived": "ln-rank/selection-pool.html",
-      "derivedSha256": "7ea82d406887a15b7a3a5bd650fd761582efda6a006adb41d3fb92d0d26f28ce",
+      "derivedSha256": "3253f8927bc5cdbe212d27108d1c94ae491838da0ca2bf190b5d9ad3fcf527d9",
       "reason": "selection page uses the shared shell without a fixed mobile action"
     },
     {
