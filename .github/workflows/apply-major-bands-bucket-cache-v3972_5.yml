@@ -27,6 +27,18 @@ jobs:
       - name: Apply and verify parent-owned internal bucket cache
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/apply-major-bands-bucket-cache-v3972_5.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              '    "assert.ok(bucketCache.includes(\'await cache.put(cacheKey, new Response(text\'));\n"\n'
+              '    "assert.ok(bucketCache.includes(\'MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS = 300\'));\n",',
+              '    "assert.ok(bucketCache.includes(\'await cache.put(cacheKey, new Response(text\'));\\n"\n'
+              '    "assert.ok(bucketCache.includes(\'MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS = 300\'));\\n",'
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
           python3 -m py_compile tools/apply-major-bands-bucket-cache-v3972_5.py
           python3 tools/apply-major-bands-bucket-cache-v3972_5.py
           node --check functions/_lib/major-bands-bucket-cache.v3972_5.js
