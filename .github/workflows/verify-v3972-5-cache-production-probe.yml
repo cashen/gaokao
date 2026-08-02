@@ -42,7 +42,7 @@ jobs:
             pages_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/ln-rank/?probe=${token}" || true)"
             custom_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/ln-rank/?probe=${token}" || true)"
             if grep -q "display: 'v3.9.72.5'" <<<"$pages_release" \
-              && grep -q "generation: 'v3972_5'" <<<"$pages_release" \
+              && grep -q "siteRuntimeGeneration: 'v3972_5'" <<<"$pages_release" \
               && grep -q "asset: '3972_5'" <<<"$pages_release" \
               && grep -q "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'" <<<"$pages_release" \
               && grep -q "display: 'v3.9.72.5'" <<<"$custom_release" \
