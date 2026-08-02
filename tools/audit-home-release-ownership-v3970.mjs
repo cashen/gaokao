@@ -13,9 +13,9 @@ const headers = read('_headers');
 const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_5.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3972_5');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_5');
 assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3972_5');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
@@ -30,13 +30,13 @@ assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-r
 assert.equal(SITE_RUNTIME_CONTRACT.generation, CURRENT_RELEASE.siteRuntimeGeneration);
 
 for (const marker of [
-  'data-release="v3.9.72.2"',
+  'data-release="v3.9.72.5"',
   'data-site-runtime-generation="v3972_5"',
   'family-shell.v3972_5.css?v=3972_5',
   'family-plan-entry.v3972_5.css?v=3972_5',
   'family-home.v3972_5.js?v=3972_5',
   '家庭方案与逐项复核',
-  'data-current-release>v3.9.72.2',
+  'data-current-release>v3.9.72.5',
   'data-home-industry-map-entry',
   'href="/Public_company/"',
   '全国上市公司产业落地图'

@@ -15,8 +15,8 @@ def header_block(headers,path):
 
 current=text('shared/resources/release/current-release.js')
 for marker in [
- "display: 'v3.9.72.2'", "version: 'v3.9.72.2'", "assetVersion: 'v3972_5'",
- "assetReleaseVersion: 'v3.9.72.2'", "siteRuntimeGeneration: 'v3972_5'",
+ "display: 'v3.9.72.5'", "version: 'v3.9.72.5'", "assetVersion: 'v3972_5'",
+ "assetReleaseVersion: 'v3.9.72.5'", "siteRuntimeGeneration: 'v3972_5'",
  "siteRuntimeContractVersion: 'site-runtime-coherence-v3972_5'",
  "resourceExecutionVersion: 'resource-execution-v3972_5'",
  "uiOrchestrationVersion: 'ui-orchestration-v3972_5'",
@@ -65,7 +65,7 @@ for rel in required: require((ROOT/rel).exists(),f'missing required {rel}')
 
 home=text('index.html')
 for marker in [
- 'data-release="v3.9.72.2"','data-site-runtime-generation="v3972_5"',
+ 'data-release="v3.9.72.5"','data-site-runtime-generation="v3972_5"',
  'family-shell.v3972_5.css?v=3972_5','family-plan-entry.v3972_5.css?v=3972_5',
  'family-home.v3972_5.js?v=3972_5','家庭方案与逐项复核','data-home-industry-map-entry',
  'href="/Public_company/"','全国上市公司产业落地图'
@@ -82,7 +82,7 @@ for page in ['/','/index.html','/ln-rank/','/ln-rank/index.html','/ln-rank/selec
 
 index=text('ln-rank/index.html'); selection=text('ln-rank/selection-pool.html')
 for marker in [
- 'data-release="v3.9.72.2"','data-site-runtime-generation="v3972_5"',
+ 'data-release="v3.9.72.5"','data-site-runtime-generation="v3972_5"',
  'interaction-transaction.v3972_5.css?v=3972_5','interaction-transaction.v3972_5.js?v=3972_5',
  'app.v3972_5.js?v=3972_5','data-ui-interaction-version="interaction-transaction-v3972_5"',
  'data-ui-family-plan-results-footer','data-ui-family-plan-live'
@@ -91,7 +91,7 @@ require('v3972_4' not in index,'main still mounts retired generation')
 require(index.count('data-ui-navigation="auxiliary-background"')==2,'auxiliary navigation owner count mismatch')
 require('href="/ln-rank/local-mainline.html"' not in index,'local background still uses native href')
 require('href="/ln-rank/211-mainline.html"' not in index,'211 background still uses native href')
-for marker in ['data-release="v3.9.72.2"','data-site-runtime-generation="v3972_5"','selection-pool.v3972_5.js?v=3972_5','生成家庭方案报告','知道链接的人可以查看']:
+for marker in ['data-release="v3.9.72.5"','data-site-runtime-generation="v3972_5"','selection-pool.v3972_5.js?v=3972_5','生成家庭方案报告','知道链接的人可以查看']:
  require(marker in selection,f'selection asset shell missing {marker}')
 
 interaction=text('shared/ui/interaction/interaction-transaction.v3972_5.js')
@@ -117,7 +117,7 @@ for marker in [
 ]: require(marker in workspace,f'workspace wrapper missing {marker}')
 
 manifest=json.loads(text('ln-rank/site-active-generation.v3972_5.json') or '{}')
-require(manifest.get('releaseVersion')=='v3.9.72.2','active manifest release mismatch')
+require(manifest.get('releaseVersion')=='v3.9.72.5','active manifest release mismatch')
 require(manifest.get('generation')=='v3972_5','active manifest generation mismatch')
 require(manifest.get('legacyInventoryIsActiveOwner') is False,'legacy inventory must not own active release')
 require(manifest.get('preservedBusinessResources',{}).get('localStrength')=='local-strength-static-v3971_2','local strength contract changed')
@@ -139,7 +139,7 @@ if errors:
  print('\n'.join('ERROR: '+error for error in errors),file=sys.stderr); sys.exit(1)
 print(json.dumps({
  'ok':True,
- 'version':'v3.9.72.2',
+ 'version':'v3.9.72.5',
  'siteRuntimeGeneration':'v3972_5',
  'homeRuntime':'family-home-runtime-v3972_5',
  'interactionRuntime':'resource-execution-v3972_5',

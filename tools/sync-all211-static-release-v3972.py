@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OLD = 'v3.9.72.1'
-NEW = 'v3.9.72.2'
+NEW = 'v3.9.72.5'
 
 DISPLAY_VERSION_FILES = [
     'tools/browser-school-query-v3970.mjs',
@@ -39,10 +39,10 @@ for relative in DISPLAY_VERSION_FILES:
 release = ROOT / 'shared/resources/release/current-release.js'
 text = release.read_text()
 replacements = [
-    ("  display: 'v3.9.72.1',", "  display: 'v3.9.72.2',", 'release display'),
-    ("  version: 'v3.9.72.1',", "  version: 'v3.9.72.2',", 'release version'),
-    ("  release: 'v3.9.72.1-all211-static-functions-decoupled',", "  release: 'v3.9.72.2-all211-static-worker-budget',", 'release id'),
-    ("  releaseName: 'v3.9.72.1-all211-static-functions-decoupled',", "  releaseName: 'v3.9.72.2-all211-static-worker-budget',", 'release name'),
+    ("  display: 'v3.9.72.1',", "  display: 'v3.9.72.5',", 'release display'),
+    ("  version: 'v3.9.72.1',", "  version: 'v3.9.72.5',", 'release version'),
+    ("  release: 'v3.9.72.1-all211-static-functions-decoupled',", "  release: 'v3.9.72.5-all211-static-worker-budget',", 'release id'),
+    ("  releaseName: 'v3.9.72.1-all211-static-functions-decoupled',", "  releaseName: 'v3.9.72.5-all211-static-worker-budget',", 'release name'),
     ("  label: 'all211-static-functions-decoupled',", "  label: 'all211-static-worker-budget',", 'release label'),
 ]
 for old, new, label in replacements:

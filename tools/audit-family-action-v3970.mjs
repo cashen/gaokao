@@ -22,8 +22,8 @@ const workspace = read('ln-rank/js/workspace/selection-workspace-orchestrator.v3
 const releaseContract = read('functions/_lib/release-contract.js');
 const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_5.json'));
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3972_5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_5');
 assert.equal(CURRENT_RELEASE.familyActionVersion, 'family-action-v3972_5');
@@ -101,7 +101,7 @@ for (const marker of [
   'navigationOwner'
 ]) assert.ok(workspace.includes(marker), `workspace wrapper missing ${marker}`);
 
-assert.equal(manifest.releaseVersion, 'v3.9.72.2');
+assert.equal(manifest.releaseVersion, 'v3.9.72.5');
 assert.equal(manifest.generation, 'v3972_5');
 assert.equal(manifest.legacyInventoryIsActiveOwner, false);
 assert.equal(manifest.policies.oneActiveGeneration, true);

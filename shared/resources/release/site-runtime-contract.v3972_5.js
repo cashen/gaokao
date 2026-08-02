@@ -1,8 +1,10 @@
+import { CURRENT_RELEASE } from './current-release.js?v=3972_5';
+
 export const SITE_RUNTIME_CONTRACT = Object.freeze({
   version: 'site-runtime-coherence-v3972_5',
-  generation: 'v3972_5',
-  queryVersion: '3972_5',
-  releaseVersion: 'v3.9.72.2',
+  generation: CURRENT_RELEASE.siteRuntimeGeneration,
+  queryVersion: CURRENT_RELEASE.asset,
+  releaseVersion: CURRENT_RELEASE.version,
   scope: 'whole-site-active-generation',
   activeEntrypoints: Object.freeze({
     releaseCenter: '/shared/resources/release/current-release.js?v=3972_5',

@@ -52,7 +52,7 @@ try {
       await page.goto(`${baseUrl}/ln-rank/`, { waitUntil: 'networkidle', timeout: 60000 });
       await page.locator('[data-ui-family-plan-header-mount] a').waitFor({ state: 'visible', timeout: 15000 });
       await page.locator('[data-ui-family-plan-results-footer] a').waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(await page.locator('body').getAttribute('data-release'), 'v3.9.72.2');
+      assert.equal(await page.locator('body').getAttribute('data-release'), 'v3.9.72.5');
       assert.match(await page.locator('[data-ui-family-plan-header-mount]').textContent(), /家庭方案\s*1/);
       assert.match(await page.locator('[data-ui-family-plan-results-footer]').textContent(), /查看家庭方案（1）/);
       assert.equal(await page.locator('[data-ui-mobile-nav], [data-ui-mobile-selection], [data-ui-mobile-action-mount]').count(), 0);
@@ -138,4 +138,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok: true, contract: 'family-action-browser-v3970_0', release: 'v3.9.72.2', cases: results }, null, 2));
+console.log(JSON.stringify({ ok: true, contract: 'family-action-browser-v3970_0', release: 'v3.9.72.5', cases: results }, null, 2));

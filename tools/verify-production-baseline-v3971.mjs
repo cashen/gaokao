@@ -4,7 +4,7 @@ const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'auto';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 8);
 const ALLOW_KNOWN_MAJOR_BANDS_DEGRADED = ['1', 'true', 'yes'].includes(String(process.env.ALLOW_KNOWN_MAJOR_BANDS_DEGRADED || '').toLowerCase());
-const ALLOWED_RELEASES = new Set(['v3.9.71.2', 'v3.9.72.2']);
+const ALLOWED_RELEASES = new Set(['v3.9.71.2', 'v3.9.72.5']);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, accept = 'application/json') {
@@ -163,7 +163,7 @@ async function verifyOnce(token) {
   const school = assessMajorBands(schoolResult, 'school');
 
   let boundedHealth = null;
-  if (deployedRelease === 'v3.9.72.2') {
+  if (deployedRelease === 'v3.9.72.5') {
     const healthResult = await request(`${PAGES_BASE}/api/major-bands-health?probe=1&baseline=${token}`);
     assertResponse(healthResult);
     const health = parseJson(healthResult);

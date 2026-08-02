@@ -3,15 +3,15 @@ import { LIAONING_PHYSICS_EXAM_CONFIG, SUPPORTED_LIAONING_PHYSICS_YEARS } from '
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 
 export const CURRENT_RELEASE = Object.freeze({
-  display: 'v3.9.72.2',
-  version: 'v3.9.72.2',
+  display: 'v3.9.72.5',
+  version: 'v3.9.72.5',
   asset: '3972_5',
   assetVersion: 'v3972_5',
-  assetReleaseVersion: 'v3.9.72.2',
+  assetReleaseVersion: 'v3.9.72.5',
   siteRuntimeGeneration: 'v3972_5',
   siteRuntimeContractVersion: 'site-runtime-coherence-v3972_5',
-  release: 'v3.9.72.2-all211-static-worker-budget',
-  releaseName: 'v3.9.72.2-all211-static-worker-budget',
+  release: 'v3.9.72.5-all211-static-worker-budget',
+  releaseName: 'v3.9.72.5-all211-static-worker-budget',
   label: 'all211-static-worker-budget',
   homeEntryVersion: 'family-home-runtime-v3972_5',
   localStrengthVersion: 'local-strength-v3971_2',

@@ -6,7 +6,7 @@ This skill is mandatory for every production change in `cashen/gaokao`, includin
 
 A user-visible fix is not a standalone patch generation. It must join the current **site runtime generation**.
 
-The site has one active generation at a time. For the current release it is `v3972_5`, while the public business release remains `v3.9.72.2`.
+The site has one canonical current release at a time. For this release the public version is `v3.9.72.5`, the runtime generation is `v3972_5`, and the asset query is `3972_5`; these are three encodings of the same release identity, not independent versions.
 
 ## Active generation versus stable dependencies
 
@@ -54,6 +54,7 @@ A release must fail when any of these are detected:
 - Native navigation bypasses the declared interaction owner.
 - A feature creates a device-specific business state machine instead of using the shared interaction contract.
 - A version number is added only to one small module while the active site graph remains unchanged.
+- The public release, runtime generation, asset query, HTML markers, release manifest or production verifier encode different current releases.
 - Historical immutable files are deleted merely to make the directory look clean.
 
 ## Release procedure
@@ -62,8 +63,9 @@ A release must fail when any of these are detected:
 2. Identify the current site runtime generation from `current-release.js` and the site runtime contract.
 3. Classify every touched runtime file as either active generation or stable dependency.
 4. Update the entire active generation graph atomically.
-5. Keep the public business release unchanged unless the task explicitly changes it.
+5. Derive the public version, runtime generation and asset query from one canonical release identity. Any active-generation change must advance the canonical release; never keep an older public version while publishing a newer active runtime.
 6. Add or update source-contract tests that compare HTML, release center, cache contract, execution contract and runtime globals.
+6.1. Run the canonical-release audit and fail on any non-historical reference to a retired public release. Stable dependency versions must remain explicitly classified and must never populate current-release fields.
 7. Add browser tests that replay real event sequences rather than only `element.click()`.
 8. Run preserved domain journeys, protected-path checks and syntax checks.
 9. Keep the PR Draft until all required checks pass.
