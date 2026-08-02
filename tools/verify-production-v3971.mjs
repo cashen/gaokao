@@ -8,6 +8,7 @@ const EXPECTED_MAJOR_BANDS_ORCHESTRATION = 'major-bands-bounded-fanout-v3972_5';
 const EXPECTED_MAJOR_BANDS_TRANSFER = 'major-bands-bucket-candidate-compact-v3972_5';
 const EXPECTED_MAJOR_BANDS_MATERIALIZATION = 'major-bands-materialized-v3972_5';
 const EXPECTED_MAJOR_BANDS_RESPONSE = 'major-bands-response-compact-v3972_5';
+const EXPECTED_MAJOR_BANDS_BUCKET_CACHE = 'major-bands-bucket-cache-v3972_5';
 const SCORE_RESPONSE_BUDGET_BYTES = 260000;
 const SCHOOL_RESPONSE_BUDGET_BYTES = 180000;
 const SCORE_TRANSFER_BUDGET_CHARS = 1200000;
@@ -95,6 +96,14 @@ function assertMajorBandsExecution(data, label) {
   assert(Number(source.bucketWorkerTransferChars || 0) > 0, `${label} transferChars=${source.bucketWorkerTransferChars}`);
   assert(Number(source.bucketWorkerConcurrency || 0) === 1, `${label} concurrency=${source.bucketWorkerConcurrency}`);
   assert(Number(source.bucketWorkerMaxAttempts || 0) === 3, `${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
+  assert(source.bucketWorkerCacheVersion === EXPECTED_MAJOR_BANDS_BUCKET_CACHE, `${label} cacheVersion=${source.bucketWorkerCacheVersion || 'missing'}`);
+  const cacheHits = Number(source.bucketWorkerCacheHits || 0);
+  const cacheMisses = Number(source.bucketWorkerCacheMisses || 0);
+  const cacheUnavailable = Number(source.bucketWorkerCacheUnavailable || 0);
+  const workerCount = Number(source.bucketWorkerCount || 0);
+  assert([cacheHits, cacheMisses, cacheUnavailable].every(Number.isInteger), `${label} invalid cache accounting`);
+  assert(cacheHits + cacheMisses + cacheUnavailable === workerCount, `${label} cache accounting=${cacheHits}/${cacheMisses}/${cacheUnavailable}/${workerCount}`);
+  assert(cacheUnavailable === 0, `${label} Cache API unavailable`);
   const retries = Number(source.bucketWorkerRetries || 0);
   assert(Number.isInteger(retries) && retries >= 0, `${label} retries=${source.bucketWorkerRetries}`);
 }
@@ -217,6 +226,12 @@ async function verifyConcurrentCycle(cycle) {
   assert(schoolRecords > 0, `东北大学 query empty cycle ${cycle}`);
   assert(scoreTransferChars > 0 && scoreTransferChars <= SCORE_TRANSFER_BUDGET_CHARS, `score transfer chars=${scoreTransferChars}`);
   assert(schoolTransferChars > 0 && schoolTransferChars <= SCHOOL_TRANSFER_BUDGET_CHARS, `school transfer chars=${schoolTransferChars}`);
+  const scoreCacheHits = Number(score.source.bucketWorkerCacheHits || 0);
+  const schoolCacheHits = Number(school.source.bucketWorkerCacheHits || 0);
+  if (cycle >= 2) {
+    assert(scoreCacheHits > 0, `score cache did not warm by cycle ${cycle}`);
+    assert(schoolCacheHits > 0, `school cache did not warm by cycle ${cycle}`);
+  }
   return {
     cycle,
     chunksRead: Number(health.probe?.chunksRead || 0),
@@ -230,7 +245,11 @@ async function verifyConcurrentCycle(cycle) {
     scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
     schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
     scoreRetries: Number(score.source.bucketWorkerRetries || 0),
-    schoolRetries: Number(school.source.bucketWorkerRetries || 0)
+    schoolRetries: Number(school.source.bucketWorkerRetries || 0),
+    scoreCacheHits,
+    schoolCacheHits,
+    scoreCacheMisses: Number(score.source.bucketWorkerCacheMisses || 0),
+    schoolCacheMisses: Number(school.source.bucketWorkerCacheMisses || 0)
   };
 }
 
@@ -274,6 +293,10 @@ console.log(JSON.stringify({
   maximumSchoolConcurrency: Math.max(...cycles.map(item => item.schoolConcurrency)),
   totalScoreRetries: cycles.reduce((sum, item) => sum + item.scoreRetries, 0),
   totalSchoolRetries: cycles.reduce((sum, item) => sum + item.schoolRetries, 0),
+  totalScoreCacheHits: cycles.reduce((sum, item) => sum + item.scoreCacheHits, 0),
+  totalSchoolCacheHits: cycles.reduce((sum, item) => sum + item.schoolCacheHits, 0),
+  maximumScoreCacheMisses: Math.max(...cycles.map(item => item.scoreCacheMisses)),
+  maximumSchoolCacheMisses: Math.max(...cycles.map(item => item.schoolCacheMisses)),
   cloudflare1102Count: 0,
   http503Count: 0
 }, null, 2));

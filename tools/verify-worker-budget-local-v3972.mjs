@@ -4,6 +4,7 @@ const cycle = String(process.argv[2] || '').trim();
 if (!cycle) throw new Error('cycle argument required');
 const SCORE_TRANSFER_BUDGET_CHARS = 1200000;
 const SCHOOL_TRANSFER_BUDGET_CHARS = 300000;
+const EXPECTED_BUCKET_CACHE = 'major-bands-bucket-cache-v3972_5';
 
 function read(name) {
   return JSON.parse(fs.readFileSync(`/tmp/v3972-${name}-${cycle}.json`, 'utf8'));
@@ -39,6 +40,19 @@ function assertBoundedOrchestration(data, label) {
   }
   if (Number(source.bucketWorkerMaxAttempts || 0) !== 3) {
     throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
+  }
+  if (source.bucketWorkerCacheVersion !== EXPECTED_BUCKET_CACHE) {
+    throw new Error(`${label} cacheVersion=${source.bucketWorkerCacheVersion || 'missing'}`);
+  }
+  const cacheHits = Number(source.bucketWorkerCacheHits || 0);
+  const cacheMisses = Number(source.bucketWorkerCacheMisses || 0);
+  const cacheUnavailable = Number(source.bucketWorkerCacheUnavailable || 0);
+  const workerCount = Number(source.bucketWorkerCount || 0);
+  if (![cacheHits, cacheMisses, cacheUnavailable].every(Number.isInteger)) {
+    throw new Error(`${label} invalid cache accounting`);
+  }
+  if (cacheHits + cacheMisses + cacheUnavailable !== workerCount) {
+    throw new Error(`${label} cache accounting=${cacheHits}/${cacheMisses}/${cacheUnavailable}/${workerCount}`);
   }
   const retries = Number(source.bucketWorkerRetries || 0);
   if (!Number.isInteger(retries) || retries < 0) {
@@ -107,5 +121,11 @@ console.log(JSON.stringify({
   scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
   schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
   scoreRetries: Number(score.source.bucketWorkerRetries || 0),
-  schoolRetries: Number(school.source.bucketWorkerRetries || 0)
+  schoolRetries: Number(school.source.bucketWorkerRetries || 0),
+  scoreCacheHits: Number(score.source.bucketWorkerCacheHits || 0),
+  scoreCacheMisses: Number(score.source.bucketWorkerCacheMisses || 0),
+  scoreCacheUnavailable: Number(score.source.bucketWorkerCacheUnavailable || 0),
+  schoolCacheHits: Number(school.source.bucketWorkerCacheHits || 0),
+  schoolCacheMisses: Number(school.source.bucketWorkerCacheMisses || 0),
+  schoolCacheUnavailable: Number(school.source.bucketWorkerCacheUnavailable || 0)
 }));

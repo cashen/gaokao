@@ -10,6 +10,12 @@ import {
   runMajorBandsBucketWorkers
 } from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
 import {
+  MAJOR_BANDS_BUCKET_CACHE_VERSION,
+  readMajorBandsBucketCache,
+  writeMajorBandsBucketCache,
+  deleteMajorBandsBucketCache
+} from '../_lib/major-bands-bucket-cache.v3972_5.js';
+import {
   MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
   MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
   assertCompactMajorBandsBucketCandidate,
@@ -211,6 +217,30 @@ function assertBucketResponse(response, text, bucketFile) {
   }
 }
 
+function parseBucketPayload(response, text, bucketFile) {
+  assertBucketResponse(response, text, bucketFile);
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`分数桶 Worker JSON 解析失败：${bucketFile}。${error?.message || String(error)}`);
+  }
+  if (
+    !payload?.ok
+    || payload?.contract !== BUCKET_CONTRACT
+    || payload?.candidateTransferVersion !== MAJOR_BANDS_BUCKET_TRANSFER_VERSION
+    || payload?.bucket?.file !== bucketFile
+  ) {
+    throw new Error(`分数桶 Worker 合同不匹配：${bucketFile}`);
+  }
+  for (const key of ['upper', 'near', 'steady']) {
+    for (const candidate of payload.grouped?.[key]?.candidates || []) {
+      assertCompactMajorBandsBucketCandidate(candidate);
+    }
+  }
+  return payload;
+}
+
 async function fetchBucketWorker(context, bucket, options) {
   const endpoint = new URL('/api/major-bands-bucket', context.request.url);
   endpoint.searchParams.set('candidateScore', String(options.candidateScore));
@@ -222,9 +252,22 @@ async function fetchBucketWorker(context, bucket, options) {
   endpoint.searchParams.set('specialProjectMode', options.specialProjectMode);
   endpoint.searchParams.set('schoolFilter', options.schoolFilter ? '1' : '0');
   endpoint.searchParams.set('maxCandidates', String(options.maxCandidates));
-  for (const name of options.acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
-  endpoint.searchParams.set('bucketAttempt', String(options.bucketAttempt || 1));
-  endpoint.searchParams.set('requestToken', `${options.requestToken}-${options.bucketAttempt || 1}`);
+  const acceptedSchoolNames = [...options.acceptedSchoolNames]
+    .sort((left, right) => String(left).localeCompare(String(right), 'zh-CN'));
+  for (const name of acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
+
+  const cached = await readMajorBandsBucketCache(endpoint);
+  if (cached.status === 'hit') {
+    try {
+      const payload = parseBucketPayload({ status: 200, ok: true }, cached.text, bucket.file);
+      payload.transportChars = cached.text.length;
+      payload.bucketCacheStatus = 'hit';
+      payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
+      return payload;
+    } catch {
+      await deleteMajorBandsBucketCache(cached.cacheKey);
+    }
+  }
 
   let response;
   try {
@@ -245,28 +288,14 @@ async function fetchBucketWorker(context, bucket, options) {
       cause: error
     });
   }
-  const text = await response.text();
-  assertBucketResponse(response, text, bucket.file);
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch (error) {
-    throw new Error(`分数桶 Worker JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
-  }
-  if (
-    !payload?.ok
-    || payload?.contract !== BUCKET_CONTRACT
-    || payload?.candidateTransferVersion !== MAJOR_BANDS_BUCKET_TRANSFER_VERSION
-    || payload?.bucket?.file !== bucket.file
-  ) {
-    throw new Error(`分数桶 Worker 合同不匹配：${bucket.file}`);
-  }
-  for (const key of ['upper', 'near', 'steady']) {
-    for (const candidate of payload.grouped?.[key]?.candidates || []) {
-      assertCompactMajorBandsBucketCandidate(candidate);
-    }
-  }
-  payload.transportChars = text.length;
+
+  const responseText = await response.text();
+  const payload = parseBucketPayload(response, responseText, bucket.file);
+  const cacheStatus = cached.status === 'unavailable' ? 'unavailable' : 'miss';
+  if (cacheStatus === 'miss') await writeMajorBandsBucketCache(cached.cacheKey, responseText);
+  payload.transportChars = responseText.length;
+  payload.bucketCacheStatus = cacheStatus;
+  payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
   return payload;
 }
 
@@ -346,10 +375,9 @@ export async function onRequest(context) {
     const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
     const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
     const maxCandidates = Math.max(48, Math.min(240, pageOffset + pageLimit + 64));
-    const requestToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const bucketExecution = await runMajorBandsBucketWorkers(
       selected.buckets,
-      (bucket, execution) => fetchBucketWorker(context, bucket, {
+      bucket => fetchBucketWorker(context, bucket, {
         candidateScore,
         rangePreset,
         region: filters.region,
@@ -358,9 +386,7 @@ export async function onRequest(context) {
         specialProjectMode: filters.specialProjectMode,
         schoolFilter,
         acceptedSchoolNames: schoolNames,
-        maxCandidates,
-        requestToken,
-        bucketAttempt: execution.attempt
+        maxCandidates
       }),
       {
         concurrency: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxConcurrency,
@@ -542,6 +568,10 @@ export async function onRequest(context) {
         bucketWorkerCount: bucketResults.length,
         bucketWorkerCandidateLimit: maxCandidates,
         bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
+        bucketWorkerCacheVersion: MAJOR_BANDS_BUCKET_CACHE_VERSION,
+        bucketWorkerCacheHits: bucketResults.filter(result => result.bucketCacheStatus === 'hit').length,
+        bucketWorkerCacheMisses: bucketResults.filter(result => result.bucketCacheStatus === 'miss').length,
+        bucketWorkerCacheUnavailable: bucketResults.filter(result => result.bucketCacheStatus === 'unavailable').length,
         bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
         responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
         bucketWorkerTransferChars: bucketResults.reduce((sum, result) => sum + Number(result.transportChars || 0), 0),

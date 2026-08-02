@@ -7,6 +7,11 @@ import {
 } from '../functions/_lib/major-bands-bucket-orchestrator.v3972_5.js';
 import { MAJOR_BANDS_MATERIALIZATION_VERSION } from '../functions/_lib/major-bands-static-provider.js';
 import {
+  MAJOR_BANDS_BUCKET_CACHE_VERSION,
+  MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS,
+  buildMajorBandsBucketCacheKey
+} from '../functions/_lib/major-bands-bucket-cache.v3972_5.js';
+import {
   MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
   MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
   compactMajorBandsBucketCandidate,
@@ -80,6 +85,23 @@ await assert.rejects(
   /resource limits/
 );
 assert.equal(exhaustedCalls, 3);
+
+const cacheEndpoint = new URL('https://example.test/api/major-bands-bucket');
+cacheEndpoint.searchParams.set('candidateScore', '579');
+cacheEndpoint.searchParams.set('bucketFile', '/ln-rank/data/major-bands-static-v3972_2/buckets/score_575_579.json');
+cacheEndpoint.searchParams.append('schoolName', '乙大学');
+cacheEndpoint.searchParams.append('schoolName', '甲大学');
+cacheEndpoint.searchParams.set('stress', 'ignored');
+cacheEndpoint.searchParams.set('requestToken', 'ignored');
+cacheEndpoint.searchParams.set('bucketAttempt', '3');
+const cacheKeyUrl = new URL(buildMajorBandsBucketCacheKey(cacheEndpoint).url);
+assert.equal(cacheKeyUrl.pathname, '/__gaokao-internal-cache/major-bands-bucket');
+assert.equal(cacheKeyUrl.searchParams.get('cacheVersion'), MAJOR_BANDS_BUCKET_CACHE_VERSION);
+assert.equal(cacheKeyUrl.searchParams.has('stress'), false);
+assert.equal(cacheKeyUrl.searchParams.has('requestToken'), false);
+assert.equal(cacheKeyUrl.searchParams.has('bucketAttempt'), false);
+assert.deepEqual(cacheKeyUrl.searchParams.getAll('schoolName'), ['甲大学', '乙大学']);
+assert.equal(MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS, 300);
 
 const tracedCandidate = {
   id: 'ln-2026-demo',
@@ -248,10 +270,23 @@ assert.equal(MAJOR_BANDS_MATERIALIZATION_VERSION, 'major-bands-materialized-v397
 const source = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 const bucketApi = fs.readFileSync('functions/api/major-bands-bucket.js', 'utf8');
 const bucketEngine = fs.readFileSync('functions/_lib/major-bands-bucket-engine.js', 'utf8');
+const bucketCache = fs.readFileSync('functions/_lib/major-bands-bucket-cache.v3972_5.js', 'utf8');
 const staticProvider = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
 const productionVerifier = fs.readFileSync('tools/verify-production-v3971.mjs', 'utf8');
 assert.ok(source.includes('major-bands-bucket-orchestrator.v3972_5.js'));
 assert.ok(source.includes('major-bands-bucket-transfer.v3972_5.js'));
+assert.ok(source.includes('major-bands-bucket-cache.v3972_5.js'));
+assert.ok(source.includes('readMajorBandsBucketCache(endpoint)'));
+assert.ok(source.includes('writeMajorBandsBucketCache(cached.cacheKey, responseText)'));
+assert.ok(source.indexOf('parseBucketPayload(response, responseText, bucket.file)') < source.indexOf('writeMajorBandsBucketCache(cached.cacheKey, responseText)'));
+assert.ok(!source.includes("endpoint.searchParams.set('requestToken'"));
+assert.ok(!source.includes("endpoint.searchParams.set('bucketAttempt'"));
+assert.ok(source.includes('bucketWorkerCacheHits:'));
+assert.ok(source.includes('bucketWorkerCacheMisses:'));
+assert.ok(source.includes('bucketWorkerCacheUnavailable:'));
+assert.ok(bucketCache.includes("['stress', 'requestToken', 'bucketAttempt'].includes(key)"));
+assert.ok(bucketCache.includes('await cache.put(cacheKey, new Response(text'));
+assert.ok(bucketCache.includes('MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS = 300'));
 assert.ok(/runMajorBandsBucketWorkers\s*\(\s*selected\.buckets/.test(source));
 assert.ok(!source.includes('Promise.all(selected.buckets.map'));
 assert.ok(source.includes('bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency'));
@@ -284,6 +319,8 @@ console.log(JSON.stringify({
   transferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
   responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
   materializationVersion: MAJOR_BANDS_MATERIALIZATION_VERSION,
+  bucketCacheVersion: MAJOR_BANDS_BUCKET_CACHE_VERSION,
+  bucketCacheTtlSeconds: MAJOR_BANDS_BUCKET_CACHE_TTL_SECONDS,
   workerCount: successful.stats.workerCount,
   peakConcurrency: successful.stats.peakConcurrency,
   retryCount: successful.stats.retryCount,

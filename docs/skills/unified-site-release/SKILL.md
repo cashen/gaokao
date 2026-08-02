@@ -107,6 +107,8 @@ A request must not fan out to every selected Worker with an unbounded `Promise.a
 - Recomputable ranking and execution traces must be removed from child-Worker transfer payloads and rebuilt only by the owning parent Worker.
 - A record may be materialized only once in a distributed request. Child Workers transfer an unmaterialized ranking frontier; the parent materializes only globally selected records after ranking and pagination.
 - Aggregate child-Worker transfer size requires an explicit sustained-load budget. Passing the browser response budget does not permit a multi-megabyte internal transfer.
+- Deterministic child-Worker results derived from immutable static packages require a versioned internal cache owned by the parent orchestrator. The key must include every business input and the cache version, while excluding telemetry and retry-attempt fields.
+- Only successfully parsed and contract-validated child results may enter the internal cache. HTTP errors, Cloudflare resource errors, invalid JSON and contract mismatches must never be cached.
 - Browser responses require an explicit transport owner and byte budget. Server-only profiles, repeated source metadata and ranking internals must not be serialized to the client.
 - When two top-level queries can run concurrently, the per-request child-Worker ceiling must be chosen from the combined production budget, not from an isolated request benchmark.
 - Preview and production verification must keep sustained concurrent cycles; reducing stress cycles to make a release green is forbidden.
