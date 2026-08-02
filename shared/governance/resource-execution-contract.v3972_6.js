@@ -29,7 +29,6 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     validationTools: [
       '/tools/audit-site-runtime-generation-v3972_6.mjs',
       '/tools/browser-native-chooser-activation-v3972_6.mjs',
-      '/tools/browser-interaction-transaction-v3972_6.mjs',
       '/.github/workflows/verify-native-chooser-activation-v3972_6.yml'
     ]
   }),
@@ -41,17 +40,25 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     forbiddenImports: [
       '/shared/ui/interaction/interaction-transaction.v3972_4.js',
       '/shared/ui/interaction/interaction-transaction.v3972_5.js',
+      '/shared/ui/shell/family-shell.v3972_5.js',
+      '/shared/ui/components/family-plan-entry.v3972_5.js',
+      '/ln-rank/js/ux/family-home.v3972_5.js',
       '/ln-rank/js/app.v3972_4.js',
       '/ln-rank/js/app.v3972_5.js',
       '/ln-rank/js/app-runtime.v3972_4.js',
       '/ln-rank/js/app-runtime.v3972_5.js',
       '/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_4.js',
-      '/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js'
+      '/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js',
+      '/ln-rank/js/selection-pool.v3972_5.js',
+      '/ln-rank/js/selection-pool-runtime.v3972_5.js'
     ],
     forbiddenLiterals: [
       'data-ui-interaction-version="interaction-transaction-v3972_5"',
       'app.v3972_5.js?v=3972_5',
-      'interaction-transaction.v3972_5.js?v=3972_5'
+      'interaction-transaction.v3972_5.js?v=3972_5',
+      'family-home.v3972_5.js?v=3972_5',
+      'family-shell.v3972_5.js?v=3972_5',
+      'selection-pool.v3972_5.js?v=3972_5'
     ],
     generatedArtifacts: ['/ln-rank/site-active-generation.v3972_6.json'],
     validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs']
@@ -76,8 +83,7 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     ],
     validationTools: [
       '/tools/audit-site-runtime-generation-v3972_6.mjs',
-      '/tools/browser-native-chooser-activation-v3972_6.mjs',
-      '/tools/browser-interaction-transaction-v3972_6.mjs'
+      '/tools/browser-native-chooser-activation-v3972_6.mjs'
     ]
   }),
   home: entry({
@@ -85,35 +91,37 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     owner: SITE_RUNTIME_CONTRACT.owners.home,
     shellOwner: SITE_RUNTIME_CONTRACT.owners.sharedShell,
     releaseOwner: SITE_RUNTIME_CONTRACT.owners.release,
-    schemaVersion: 'family-home-runtime-v3972_5',
-    classification: 'declared-stable-dependency',
-    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-home-release-v3970.mjs']
+    schemaVersion: 'family-home-runtime-v3972_6',
+    classification: 'current-generation',
+    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-home-release-v3972_6.mjs']
   }),
   uiComponents: entry({
     ...(PREVIOUS_RESOURCE_EXECUTION_REGISTRY.uiComponents || {}),
     owner: SITE_RUNTIME_CONTRACT.owners.sharedShell,
     familyPlanEntry: SITE_RUNTIME_CONTRACT.owners.familyPlanEntry,
     schemaVersion: 'ui-component-execution-v3972_6',
-    classification: 'mixed-current-and-declared-stable',
+    classification: 'current-generation-with-stable-css',
     allowedAdapters: [
       '/shared/ui/ui-registry.v3970_0.js',
       '/shared/ui/component-registry.v3970_0.js',
       '/shared/ui/contracts/action-contract.v3970_0.js',
       '/shared/ui/contracts/copy-contract.v3970_0.js',
       '/shared/ui/contracts/state-contract.v3970_0.js',
-      '/shared/ui/shell/family-shell.v3972_5.js',
-      '/shared/ui/components/family-plan-entry.v3972_5.js'
+      '/shared/ui/shell/family-shell.v3972_5.css',
+      '/shared/ui/components/family-plan-entry.v3972_5.css'
     ],
-    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-family-action-v3970.mjs']
+    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-family-action-v3972_6.mjs']
   }),
   majorBands: PREVIOUS_RESOURCE_EXECUTION_REGISTRY.majorBands,
   familyAction: entry({
     ...(PREVIOUS_RESOURCE_EXECUTION_REGISTRY.familyAction || {}),
     owner: SITE_RUNTIME_CONTRACT.owners.familyPlanEntry,
     shellOwner: SITE_RUNTIME_CONTRACT.owners.sharedShell,
-    schemaVersion: 'family-action-v3972_5',
-    classification: 'declared-stable-dependency',
-    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-family-action-v3970.mjs']
+    bootstrapOwner: SITE_RUNTIME_CONTRACT.owners.familyPlanBootstrap,
+    runtimeOwner: SITE_RUNTIME_CONTRACT.owners.familyPlanRuntime,
+    schemaVersion: 'family-action-v3972_6',
+    classification: 'current-generation',
+    validationTools: ['/tools/audit-site-runtime-generation-v3972_6.mjs', '/tools/browser-family-action-v3972_6.mjs']
   })
 });
 
