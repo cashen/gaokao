@@ -23,7 +23,21 @@ const TRANSFER_DROP_FIELDS = new Set([
 ]);
 
 const RESPONSE_DROP_FIELDS = new Set([
-  ...TRANSFER_DROP_FIELDS,
+  'rankingTrace',
+  'resultRankingTrace',
+  'rawText',
+  'schoolProfileSource',
+  'schoolProfileSourceUrl',
+  'schoolProfileAsOfDate',
+  'geoSourceMethod',
+  'geoSourceName',
+  'geoSourceUrl',
+  'geoSourceYear',
+  'geoMatchNote',
+  'rank2024Source',
+  'rank2025Source',
+  'rank2026Source',
+  'sourceType',
   'schoolProfile',
   'majorBandsMaterializationVersion',
   'regionGroups',
@@ -197,7 +211,7 @@ export function compactMajorBandsBucketCandidate(record = {}) {
 /**
  * The browser receives flattened display fields plus compact historical evidence.
  * Server-only school profiles, materialization markers and ranking internals stay
- * inside the execution graph.
+ * inside the execution graph. Rebuilt schoolProfileDisplayTags remain public.
  */
 export function compactMajorBandsResponseRecord(record = {}) {
   return compactRecord(record, RESPONSE_DROP_FIELDS, false);
