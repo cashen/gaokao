@@ -57,7 +57,6 @@ jobs:
           python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-5-home-release.out
           node tools/audit-site-runtime-generation-v3972_5.mjs | tee /tmp/v3972-5-site-generation.out
           node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3972-5-home-audit.out
-          node tools/build-derived-asset-trace-v3970.mjs | tee /tmp/v3972-5-home-trace.out
 
       - name: Install Chromium
         run: |
