@@ -1,5 +1,4 @@
 import {
-  MAJOR_BANDS_MATERIALIZATION_VERSION,
   selectMajorBandsStaticBuckets,
   materializeMajorBandsStaticRecord
 } from '../_lib/major-bands-static-provider.js';
@@ -136,9 +135,7 @@ function rankLabel(context) {
 }
 
 function finalizeRecordForResponse(record) {
-  const item = record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION
-    ? record
-    : materializeMajorBandsStaticRecord(record);
+  const item = materializeMajorBandsStaticRecord(record);
   return { ...item, ...buildDisplayTags(item) };
 }
 

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 
 const cycle = String(process.argv[2] || '').trim();
 if (!cycle) throw new Error('cycle argument required');
+const SCORE_TRANSFER_BUDGET_CHARS = 1200000;
+const SCHOOL_TRANSFER_BUDGET_CHARS = 300000;
 
 function read(name) {
   return JSON.parse(fs.readFileSync(`/tmp/v3972-${name}-${cycle}.json`, 'utf8'));
@@ -29,8 +31,11 @@ function assertBoundedOrchestration(data, label) {
   if (source.responseTransportVersion !== 'major-bands-response-compact-v3972_5') {
     throw new Error(`${label} response=${source.responseTransportVersion || 'missing'}`);
   }
-  if (Number(source.bucketWorkerTransferChars || 0) < 1) {
-    throw new Error(`${label} transferChars=${source.bucketWorkerTransferChars}`);
+  const transferChars = Number(source.bucketWorkerTransferChars || 0);
+  if (transferChars < 1) throw new Error(`${label} transferChars=${source.bucketWorkerTransferChars}`);
+  const transferBudget = label === 'score' ? SCORE_TRANSFER_BUDGET_CHARS : SCHOOL_TRANSFER_BUDGET_CHARS;
+  if (transferChars > transferBudget) {
+    throw new Error(`${label} transferChars=${transferChars} budget=${transferBudget}`);
   }
   if (Number(source.bucketWorkerMaxAttempts || 0) !== 2) {
     throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);

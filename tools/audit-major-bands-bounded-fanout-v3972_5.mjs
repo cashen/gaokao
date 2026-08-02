@@ -215,18 +215,15 @@ const compactCandidate = compactMajorBandsBucketCandidate(tracedCandidate);
 assertCompactMajorBandsBucketCandidate(compactCandidate);
 assert.equal(compactCandidate.school, tracedCandidate.school);
 assert.equal(compactCandidate.major, tracedCandidate.major);
-assert.equal(compactCandidate.majorBandsMaterializationVersion, MAJOR_BANDS_MATERIALIZATION_VERSION);
-assert.equal(compactCandidate.schoolProfile.standardSchoolName, '示例大学');
-assert.equal(compactCandidate.schoolProfile.largeUnusedProfileField, undefined);
-assert.equal(compactCandidate.historyEvidence.years['2024'].sourceMeta, undefined);
+assert.equal(compactCandidate.majorBandsMaterializationVersion, undefined);
+assert.equal(compactCandidate.schoolProfile, undefined);
+assert.equal(compactCandidate.historyEvidence, undefined);
+assert.equal(compactCandidate.historyCompare, undefined);
 assert.equal(compactCandidate.canonicalPosition.ignoredInternalField, undefined);
 assert.equal(compactCandidate.rankingTrace, undefined);
 assert.equal(compactCandidate.resultRankingTrace, undefined);
 
-const responseRecord = compactMajorBandsResponseRecord({
-  ...compactCandidate,
-  schoolProfileDisplayTags: ['公办', '辽宁 · 沈阳']
-});
+const responseRecord = compactMajorBandsResponseRecord(tracedCandidate);
 assert.equal(responseRecord.school, '示例大学');
 assert.equal(responseRecord.major, '示例专业');
 assert.deepEqual(responseRecord.schoolProfileDisplayTags, ['公办', '辽宁 · 沈阳']);
@@ -236,7 +233,7 @@ assert.equal(responseRecord.schoolName, undefined);
 assert.equal(responseRecord.majorName, undefined);
 assert.equal(responseRecord.historyEvidence.years['2025'].rankEnd, 21300);
 assert.ok(JSON.stringify(compactCandidate).length < JSON.stringify(tracedCandidate).length);
-assert.ok(JSON.stringify(responseRecord).length < JSON.stringify(compactCandidate).length);
+assert.ok(JSON.stringify(responseRecord).length < JSON.stringify(tracedCandidate).length);
 assert.equal(MAJOR_BANDS_BUCKET_TRANSFER_VERSION, 'major-bands-bucket-candidate-compact-v3972_5');
 assert.equal(MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION, 'major-bands-response-compact-v3972_5');
 assert.equal(MAJOR_BANDS_MATERIALIZATION_VERSION, 'major-bands-materialized-v3972_5');
@@ -255,20 +252,21 @@ assert.ok(source.includes('bucketWorkerRetries: bucketExecution.stats.retryCount
 assert.ok(source.includes('bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
 assert.ok(source.includes('responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION'));
 assert.ok(source.includes('compactMajorBandsResponseRecord'));
-assert.ok(source.includes("record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION"));
+assert.ok(source.includes('const item = materializeMajorBandsStaticRecord(record);'));
+assert.ok(!source.includes('record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION'));
 assert.ok(source.includes("'x-gaokao-response-transport'"));
 assert.ok(source.includes('isRetryableBucketWorkerFailure(error) ? 503 : 500'));
 assert.ok(bucketApi.includes('candidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
-assert.ok(bucketEngine.includes("import { materializeMajorBandsStaticRecord } from './major-bands-static-provider.js';"));
-assert.ok(bucketEngine.includes("import { buildDisplayTags } from './school-display-tags.js';"));
-assert.ok(bucketEngine.includes('const materialized = materializeMajorBandsStaticRecord(record);'));
-assert.ok(bucketEngine.includes('const displayTags = buildDisplayTags(materialized);'));
-assert.ok(bucketEngine.includes('...materialized'));
-assert.ok(bucketEngine.includes('...displayTags'));
+assert.ok(!bucketEngine.includes("import { materializeMajorBandsStaticRecord } from './major-bands-static-provider.js';"));
+assert.ok(!bucketEngine.includes("import { buildDisplayTags } from './school-display-tags.js';"));
+assert.ok(!bucketEngine.includes('materializeMajorBandsStaticRecord(record)'));
+assert.ok(bucketEngine.includes('...record'));
 assert.ok(bucketEngine.includes('.slice(0, maxCandidates).map(compactMajorBandsBucketCandidate)'));
 assert.ok(staticProvider.includes("if (record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION) return record;"));
 assert.ok(productionVerifier.includes('SCORE_RESPONSE_BUDGET_BYTES = 260000'));
 assert.ok(productionVerifier.includes('SCHOOL_RESPONSE_BUDGET_BYTES = 180000'));
+assert.ok(productionVerifier.includes('SCORE_TRANSFER_BUDGET_CHARS = 1200000'));
+assert.ok(productionVerifier.includes('SCHOOL_TRANSFER_BUDGET_CHARS = 300000'));
 
 console.log(JSON.stringify({
   ok: true,

@@ -10,6 +10,8 @@ const EXPECTED_MAJOR_BANDS_MATERIALIZATION = 'major-bands-materialized-v3972_5';
 const EXPECTED_MAJOR_BANDS_RESPONSE = 'major-bands-response-compact-v3972_5';
 const SCORE_RESPONSE_BUDGET_BYTES = 260000;
 const SCHOOL_RESPONSE_BUDGET_BYTES = 180000;
+const SCORE_TRANSFER_BUDGET_CHARS = 1200000;
+const SCHOOL_TRANSFER_BUDGET_CHARS = 300000;
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
 const STRESS_CYCLES = Number(process.env.PRODUCTION_STRESS_CYCLES || 40);
@@ -209,8 +211,12 @@ async function verifyConcurrentCycle(cycle) {
   assertMajorBandsExecution(school, `school cycle ${cycle}`);
   const scoreRecords = recordCount(score);
   const schoolRecords = recordCount(school);
+  const scoreTransferChars = Number(score.source.bucketWorkerTransferChars || 0);
+  const schoolTransferChars = Number(school.source.bucketWorkerTransferChars || 0);
   assert(scoreRecords > 0, `579 query empty cycle ${cycle}`);
   assert(schoolRecords > 0, `东北大学 query empty cycle ${cycle}`);
+  assert(scoreTransferChars > 0 && scoreTransferChars <= SCORE_TRANSFER_BUDGET_CHARS, `score transfer chars=${scoreTransferChars}`);
+  assert(schoolTransferChars > 0 && schoolTransferChars <= SCHOOL_TRANSFER_BUDGET_CHARS, `school transfer chars=${schoolTransferChars}`);
   return {
     cycle,
     chunksRead: Number(health.probe?.chunksRead || 0),
@@ -219,8 +225,8 @@ async function verifyConcurrentCycle(cycle) {
     schoolRecords,
     scoreBytes,
     schoolBytes,
-    scoreTransferChars: Number(score.source.bucketWorkerTransferChars || 0),
-    schoolTransferChars: Number(school.source.bucketWorkerTransferChars || 0),
+    scoreTransferChars,
+    schoolTransferChars,
     scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
     schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
     scoreRetries: Number(score.source.bucketWorkerRetries || 0),
