@@ -42,7 +42,7 @@ assert(release.includes("assetReleaseVersion: 'v3.9.72.2'"), 'active release lin
 assert(release.includes("siteRuntimeGeneration: 'v3972_5'"), 'site runtime generation');
 assert(release.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'static data version');
 assert(release.includes("localStrengthArchitecture: 'build-time-static-index'"), 'static architecture');
-assert(siteRuntime.includes("localStrengthRuntime: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3971_2'"), 'stable LocalStrength entrypoint declaration');
+assert(siteRuntime.includes("localStrengthRuntime: '/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3972_3'"), 'stable LocalStrength entrypoint declaration');
 assert(siteRuntime.includes("localStrength: 'local-strength-static-v3971_2'"), 'preserved LocalStrength package declaration');
 assert(index.version === 'local-strength-static-v3971_2', 'index version');
 assert(index.meta.completeEvaluation, 'complete evaluation');
