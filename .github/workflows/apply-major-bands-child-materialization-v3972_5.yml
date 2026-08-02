@@ -1,0 +1,47 @@
+name: Apply major-bands child materialization v3972.5
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/major-bands-bounded-fanout-v3972-5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply and verify child materialization ownership
+        run: |
+          set -euo pipefail
+          python3 tools/apply-major-bands-child-materialization-v3972_5.py
+          node --check functions/_lib/major-bands-bucket-engine.js
+          node --check functions/_lib/major-bands-bucket-transfer.v3972_5.js
+          node --check functions/api/major-bands.js
+          grep -q "materializeMajorBandsStaticRecord" functions/_lib/major-bands-bucket-engine.js
+          grep -q "buildDisplayTags" functions/_lib/major-bands-bucket-engine.js
+          node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+          git diff --name-only | tee /tmp/child-materialization-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/child-materialization-files.txt; then
+            echo 'protected path changed'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/major-bands-bucket-engine.js
+          git commit -m 'fix(major-bands): materialize records in child worker'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
