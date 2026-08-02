@@ -10,6 +10,7 @@ import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.js
 import { buildDisplayTags } from '../functions/_lib/school-display-tags.js';
 import { normalizeLocation } from '../functions/_lib/location-normalizer.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
 import { getSchoolEntity } from '../shared/resources/schools/school-identity-center.js';
 
 assert.equal(SCHOOL_PROFILE_SOURCE_META.version, 'v3957_0');
@@ -112,15 +113,26 @@ for (const source of [tagsAdapter, displayAdapter, locationAdapter]) {
 assert.ok(locationAdapter.includes('shared/resources/geo/china-region-catalog.js'));
 assert.ok(!tagsAdapter.includes("'大连理工大学':"));
 
-for (const file of ['ln-rank/release-meta.json','ln-rank/active-assets.json']) {
-  const meta = JSON.parse(fs.readFileSync(file, 'utf8'));
-  assert.equal(meta.version, CURRENT_RELEASE.assetReleaseVersion);
-  assert.equal(meta.assetVersion, CURRENT_RELEASE.assetVersion);
+const legacyMetadata = [
+  JSON.parse(fs.readFileSync('ln-rank/release-meta.json', 'utf8')),
+  JSON.parse(fs.readFileSync('ln-rank/active-assets.json', 'utf8'))
+];
+for (const meta of legacyMetadata) {
+  assert.equal(meta.version, 'v3.9.70.0');
+  assert.equal(meta.assetVersion, 'v3970_0');
   for (const key of [
     'sharedSchoolProfileContract','schoolProfileOfficial2026Contract','schoolProfileNatureContract',
     'schoolProfile985211Contract','schoolProfileDoubleNonContract','schoolProfileCampusInheritanceContract',
     'schoolProfileCardAlwaysVisibleContract','schoolProfileSelectionPoolContract','sharedSchoolIdentityOwnerContract'
-  ]) assert.equal(meta[key], true, `${file} missing ${key}`);
+  ]) assert.equal(meta[key], true, `legacy metadata missing ${key}`);
 }
+
+const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3972_5.json', 'utf8'));
+assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
+assert.equal(activeManifest.releaseVersion, CURRENT_RELEASE.display);
+assert.equal(activeManifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
+assert.equal(activeManifest.legacyInventoryIsActiveOwner, false);
+assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-contract.v3969_0.js'));
 
 console.log('SCHOOL_PROFILE_CENTER_V3958_OK');
