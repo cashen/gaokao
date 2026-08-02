@@ -18,13 +18,16 @@ jobs:
         run: |
           set -euo pipefail
           token="${GITHUB_SHA}-$(date +%s%N)"
+          browser_ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
           for base in 'https://gaokao-4y9.pages.dev' 'https://gaokao.powers.org.cn'; do
             label="$(printf '%s' "$base" | sed -E 's#https://##; s#[^a-zA-Z0-9]+#-#g')"
             release_file="/tmp/${label}-release.js"
-            page_file="/tmp/${label}-ln-rank.html"
+            bot_page_file="/tmp/${label}-bot-ln-rank.html"
+            browser_page_file="/tmp/${label}-browser-ln-rank.html"
             release_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$release_file" -w '%{http_code}' "${base}/shared/resources/release/current-release.js?diagnose=${token}")"
-            page_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose=${token}")"
-            echo "BASE=${base} releaseStatus=${release_status} pageStatus=${page_status} releaseBytes=$(wc -c < "$release_file") pageBytes=$(wc -c < "$page_file")"
+            bot_page_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$bot_page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose=${token}")"
+            browser_page_status="$(curl --silent --show-error --location --max-time 35 -A "$browser_ua" -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$browser_page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose-browser=${token}")"
+            echo "BASE=${base} releaseStatus=${release_status} botPageStatus=${bot_page_status} browserPageStatus=${browser_page_status} releaseBytes=$(wc -c < "$release_file") botPageBytes=$(wc -c < "$bot_page_file") browserPageBytes=$(wc -c < "$browser_page_file")"
             for pattern in \
               "display: 'v3.9.72.5'" \
               "display: 'v3.9.72.2'" \
@@ -33,13 +36,17 @@ jobs:
               "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'"; do
               if grep -Fq "$pattern" "$release_file"; then echo "release MATCH ${pattern}"; else echo "release MISS ${pattern}"; fi
             done
-            for pattern in \
-              'data-release="v3.9.72.5"' \
-              'data-release="v3.9.72.2"' \
-              'data-site-runtime-generation="v3972_5"'; do
-              if grep -Fq "$pattern" "$page_file"; then echo "page MATCH ${pattern}"; else echo "page MISS ${pattern}"; fi
+            for page_kind in bot browser; do
+              page_file="/tmp/${label}-${page_kind}-ln-rank.html"
+              for pattern in \
+                'data-release="v3.9.72.5"' \
+                'data-release="v3.9.72.2"' \
+                'data-site-runtime-generation="v3972_5"'; do
+                if grep -Fq "$pattern" "$page_file"; then echo "${page_kind}Page MATCH ${pattern}"; else echo "${page_kind}Page MISS ${pattern}"; fi
+              done
+              title="$(grep -Eio '<title>[^<]+'</title>' "$page_file" | head -1 || true)"
+              echo "${page_kind}Page title=${title:-missing}"
             done
-            grep -Eo "display: 'v[0-9.]+'|siteRuntimeGeneration: 'v[0-9_]+'|asset: '[0-9_]+'|data-release=\"v[0-9.]+\"|data-site-runtime-generation=\"v[0-9_]+\"" "$release_file" "$page_file" | head -40 || true
           done
 
       - name: Upload surface samples
@@ -47,6 +54,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: v3972-5-production-surface-samples
-          path: /tmp/*-release.js
+          path: |
+            /tmp/*-release.js
+            /tmp/*-ln-rank.html
           if-no-files-found: warn
           retention-days: 3
