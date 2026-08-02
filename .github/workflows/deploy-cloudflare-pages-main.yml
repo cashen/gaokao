@@ -35,7 +35,7 @@ jobs:
           grep -q 'distributed-major-bands-buckets-v3972-2' 404.html
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
-          grep -q "display: 'v3.9.72.2'" shared/resources/release/current-release.js
+          grep -q "display: 'v3.9.72.5'" shared/resources/release/current-release.js
           grep -q "localStrengthDataVersion: 'local-strength-static-v3971_2'" shared/resources/release/current-release.js
           grep -q "all211Architecture: 'build-time-static-index'" shared/resources/release/current-release.js
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
@@ -114,11 +114,11 @@ jobs:
             --branch=main \
             --commit-hash="$GITHUB_SHA" \
             --commit-message="$commit_message"
-      - name: Verify v3.9.72.2 production with 40 concurrent cycles
+      - name: Verify v3.9.72.5 production with 40 concurrent cycles
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.72.2
+          EXPECTED_RELEASE: v3.9.72.5
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '45'
