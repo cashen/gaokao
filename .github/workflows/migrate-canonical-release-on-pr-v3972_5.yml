@@ -1,0 +1,39 @@
+name: Migrate canonical release on PR v3972.5
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/canonical-release-v3972-5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply deterministic canonical release migration
+        run: |
+          set -euo pipefail
+          python3 tools/migrate-canonical-release-v3972_5.py
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
+          python3 tools/ln-2026/verify-final-release-v3970.py
+          if git grep -n 'v3.9.72.2' -- ':!docs/release-acceptance/**' ':!ln-rank/data/local-strength/**' ':!ln-rank/data/211-static/**'; then
+            echo 'retired public release remains outside historical or immutable package records'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'release: unify canonical version v3.9.72.5'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
