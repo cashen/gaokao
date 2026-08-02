@@ -381,8 +381,22 @@ function setDisclosureOpen(open, reason) {
 }
 
 function syncDisclosureMode(mode, reason = 'workspace-state') {
-  state.resultMode = mode === 'school-all' ? 'school-all' : 'score-bands';
-  if (state.resultMode === 'school-all') setDisclosureOpen(true, reason);
+  const nextMode = mode === 'school-all' ? 'school-all' : 'score-bands';
+  const previousMode = state.resultMode;
+  const disclosure = state.disclosure;
+
+  if (nextMode === previousMode) {
+    if (nextMode === 'score-bands' && disclosure instanceof HTMLDetailsElement && !state.internalDisclosureChange) {
+      state.scoreDisclosureOpen = disclosure.open;
+    }
+    return;
+  }
+
+  if (previousMode === 'score-bands' && disclosure instanceof HTMLDetailsElement) {
+    state.scoreDisclosureOpen = disclosure.open;
+  }
+  state.resultMode = nextMode;
+  if (nextMode === 'school-all') setDisclosureOpen(true, reason);
   else setDisclosureOpen(state.scoreDisclosureOpen, reason);
 }
 
