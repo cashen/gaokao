@@ -59,7 +59,9 @@ export async function onRequest(context) {
     }
 
     const scoreWindow = minMaxScore(makeBands(candidateScore, rangePreset));
-    const loaded = await loadMajorBandsStaticBucket(context.request, bucketFile, scoreWindow);
+    const loaded = await loadMajorBandsStaticBucket(context.request, bucketFile, scoreWindow, {
+      assets: context.env?.ASSETS
+    });
     const processed = processMajorBandsStaticBucket(loaded.records, {
       candidateScore,
       rangePreset,
@@ -77,6 +79,7 @@ export async function onRequest(context) {
       contract: CONTRACT,
       architecture: 'build-time-static-score-index-single-bucket-worker',
       version: loaded.manifest.version,
+      assetOwner: loaded.assetOwner,
       bucket: {
         file: loaded.bucket.file,
         minScore: loaded.bucket.minScore,
@@ -95,7 +98,7 @@ export async function onRequest(context) {
     return json({
       ok: false,
       message: error?.message || String(error),
-      engineerHint: '单桶 Worker 只能读取发布清单中的一个五分桶，不允许组合或全量扫描。'
+      engineerHint: '单桶 Worker 只能通过 Pages ASSETS 读取发布清单中的一个五分桶，不允许组合或全量扫描。'
     }, 500);
   }
 }
