@@ -11,6 +11,7 @@ import { buildDisplayTags } from '../functions/_lib/school-display-tags.js';
 import { normalizeLocation } from '../functions/_lib/location-normalizer.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
 import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
+import { SHARED_RESOURCE_REGISTRY, SHARED_RESOURCE_GRAPH_VERSION } from '../shared/resources/resource-registry.js';
 import { getSchoolEntity } from '../shared/resources/schools/school-identity-center.js';
 
 assert.equal(SCHOOL_PROFILE_SOURCE_META.version, 'v3957_0');
@@ -113,26 +114,27 @@ for (const source of [tagsAdapter, displayAdapter, locationAdapter]) {
 assert.ok(locationAdapter.includes('shared/resources/geo/china-region-catalog.js'));
 assert.ok(!tagsAdapter.includes("'大连理工大学':"));
 
-const legacyMetadata = [
-  JSON.parse(fs.readFileSync('ln-rank/release-meta.json', 'utf8')),
-  JSON.parse(fs.readFileSync('ln-rank/active-assets.json', 'utf8'))
-];
-for (const meta of legacyMetadata) {
-  assert.equal(meta.version, 'v3.9.70.0');
-  assert.equal(meta.assetVersion, 'v3970_0');
-  for (const key of [
-    'sharedSchoolProfileContract','schoolProfileOfficial2026Contract','schoolProfileNatureContract',
-    'schoolProfile985211Contract','schoolProfileDoubleNonContract','schoolProfileCampusInheritanceContract',
-    'schoolProfileCardAlwaysVisibleContract','schoolProfileSelectionPoolContract','sharedSchoolIdentityOwnerContract'
-  ]) assert.equal(meta[key], true, `legacy metadata missing ${key}`);
-}
-
-const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3972_5.json', 'utf8'));
 assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
+assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.profileModule, CURRENT_RELEASE.resourceOwners.schools);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.identityModule, CURRENT_RELEASE.resourceOwners.schoolIdentity);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.queryContract, CURRENT_RELEASE.resourceOwners.schoolQueryContract);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.queryEngine, CURRENT_RELEASE.resourceOwners.schoolQueryEngine);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.admissionDirectory, CURRENT_RELEASE.resourceOwners.schoolAdmissionDirectory);
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.profilePolicy, 'server-sync-official-2026');
+assert.equal(SHARED_RESOURCE_REGISTRY.schools.identityPolicy, 'shared-upstream-tongxue-compatibility-export');
+assert.ok(!fs.existsSync('ln-rank/release-meta.json'), 'retired release-meta.json remains');
+assert.ok(!fs.existsSync('ln-rank/active-assets.json'), 'retired active-assets.json remains');
+
+const activeManifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3972_5.json', 'utf8'));
 assert.equal(activeManifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(activeManifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
-assert.equal(activeManifest.legacyInventoryIsActiveOwner, false);
+assert.equal(activeManifest.resourceGraph.version, CURRENT_RELEASE.sharedResourceGraphVersion);
+assert.equal(activeManifest.resourceGraph.registry, CURRENT_RELEASE.resourceOwners.resourceRegistry);
+assert.equal(activeManifest.resourceGraph.uiRegistry, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.ok(!('legacyInventory' in activeManifest));
+assert.ok(!('legacyInventoryIsActiveOwner' in activeManifest));
 assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-contract.v3969_0.js'));
 
 console.log('SCHOOL_PROFILE_CENTER_V3958_OK');
