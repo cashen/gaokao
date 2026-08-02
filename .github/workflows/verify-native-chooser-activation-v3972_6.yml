@@ -35,6 +35,7 @@ jobs:
           fi
           node --check shared/ui/interaction/interaction-transaction.v3972_6.js
           node --check tools/browser-native-chooser-activation-v3972_6.mjs
+          node --check tools/browser-native-chooser-activation-v3972_6-runner.mjs
           node --check tools/browser-resource-execution-v3972_6.mjs
           node --check tools/browser-family-action-v3972_6.mjs
           node --check tools/browser-school-query-v3972_6.mjs
@@ -53,7 +54,7 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           V3972_6_ARTIFACT_DIR=/tmp/v3972-6-native-browser \
-            node tools/browser-native-chooser-activation-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-native-browser.out
+            node tools/browser-native-chooser-activation-v3972_6-runner.mjs 2>&1 | tee /tmp/v3972-6-native-browser.out
 
       - name: Verify preserved PC Pad Android main journey
         run: |
