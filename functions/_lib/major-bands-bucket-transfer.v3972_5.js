@@ -1,12 +1,13 @@
-import { MAJOR_BANDS_MATERIALIZATION_VERSION } from './major-bands-static-provider.js';
-
 export const MAJOR_BANDS_BUCKET_TRANSFER_VERSION = 'major-bands-bucket-candidate-compact-v3972_5';
 export const MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION = 'major-bands-response-compact-v3972_5';
 
-const TRANSFER_DROP_FIELDS = new Set([
+const BUCKET_DROP_FIELDS = new Set([
   'rankingTrace',
   'resultRankingTrace',
   'rawText',
+  'historyEvidence',
+  'historyCompare',
+  'schoolProfile',
   'schoolProfileDisplayTags',
   'schoolProfileSource',
   'schoolProfileSourceUrl',
@@ -19,6 +20,16 @@ const TRANSFER_DROP_FIELDS = new Set([
   'rank2024Source',
   'rank2025Source',
   'rank2026Source',
+  'majorBandsMaterializationVersion',
+  'regionGroups',
+  'locationSource',
+  'locationConfidence',
+  'locationWarning',
+  'geoEntity',
+  'schoolIdentifier',
+  'candidateReferenceScore',
+  'schoolName',
+  'majorName',
   'sourceType'
 ]);
 
@@ -140,42 +151,35 @@ export function compactMajorBandsCanonicalPosition(position = null) {
     'recordRank',
     'rankGap',
     'positionDistance',
-    'evidenceStrength'
+    'evidenceStrength',
+    'classificationBasis'
   ]);
 }
 
-export function compactMajorBandsSchoolProfile(profile = null) {
-  if (!profile || typeof profile !== 'object') return profile || null;
-  return pickMeaningful(profile, [
-    'school',
-    'standardSchoolName',
-    'parentSchoolName',
-    'schoolIdentifier',
-    'province',
-    'city',
-    'displayLocation',
-    'natureType',
-    'natureLabel',
-    'is985',
-    'is211',
-    'isNon985211',
-    'schoolTierTags',
-    'entityType',
-    'entityTypeLabel',
-    'regionGroups',
-    'sourceVersion',
-    'sourceAsOfDate',
-    'sourceName',
-    'sourceUrl',
-    'confidence',
-    'doubleNonDefinition'
-  ]);
+/**
+ * Child Workers own filtering and local ranking only. The transfer boundary
+ * carries the raw fields required to reproduce the final record plus the
+ * canonical ranking tuple. Expensive school profiles, geography expansion and
+ * three-year evidence are intentionally absent and are materialized once by
+ * the parent after global ranking and pagination.
+ */
+export function compactMajorBandsBucketCandidate(record = {}) {
+  const candidate = {};
+  for (const [key, value] of Object.entries(record || {})) {
+    if (BUCKET_DROP_FIELDS.has(key)) continue;
+    if (key === 'canonicalPosition') {
+      candidate.canonicalPosition = compactMajorBandsCanonicalPosition(value);
+      continue;
+    }
+    candidate[key] = value;
+  }
+  return candidate;
 }
 
-function compactRecord(record = {}, dropFields, keepSchoolProfile) {
+function compactResponseRecord(record = {}) {
   const compact = {};
   for (const [key, value] of Object.entries(record || {})) {
-    if (dropFields.has(key)) continue;
+    if (RESPONSE_DROP_FIELDS.has(key)) continue;
     if (key === 'historyEvidence') {
       compact.historyEvidence = compactMajorBandsHistoryEvidence(value);
       continue;
@@ -188,24 +192,9 @@ function compactRecord(record = {}, dropFields, keepSchoolProfile) {
       compact.canonicalPosition = compactMajorBandsCanonicalPosition(value);
       continue;
     }
-    if (key === 'schoolProfile') {
-      if (keepSchoolProfile) compact.schoolProfile = compactMajorBandsSchoolProfile(value);
-      continue;
-    }
     compact[key] = value;
   }
   return compact;
-}
-
-/**
- * A child Worker materializes school, location and history evidence exactly once.
- * Only the compact profile required by the parent display-tag owner crosses the
- * Worker boundary; ranking traces and repeated source metadata never do.
- */
-export function compactMajorBandsBucketCandidate(record = {}) {
-  const candidate = compactRecord(record, TRANSFER_DROP_FIELDS, true);
-  candidate.majorBandsMaterializationVersion = record.majorBandsMaterializationVersion || MAJOR_BANDS_MATERIALIZATION_VERSION;
-  return candidate;
 }
 
 /**
@@ -214,21 +203,30 @@ export function compactMajorBandsBucketCandidate(record = {}) {
  * inside the execution graph. Rebuilt schoolProfileDisplayTags remain public.
  */
 export function compactMajorBandsResponseRecord(record = {}) {
-  return compactRecord(record, RESPONSE_DROP_FIELDS, false);
+  return compactResponseRecord(record);
 }
 
 export function assertCompactMajorBandsBucketCandidate(record = {}) {
-  if (Object.prototype.hasOwnProperty.call(record, 'rankingTrace')) {
-    throw new Error('bucket candidate leaked rankingTrace');
+  for (const forbidden of [
+    'rankingTrace',
+    'resultRankingTrace',
+    'historyEvidence',
+    'historyCompare',
+    'schoolProfile',
+    'schoolProfileDisplayTags',
+    'majorBandsMaterializationVersion',
+    'rawText'
+  ]) {
+    if (Object.prototype.hasOwnProperty.call(record, forbidden)) {
+      throw new Error(`bucket ranking candidate leaked ${forbidden}`);
+    }
   }
-  if (Object.prototype.hasOwnProperty.call(record, 'resultRankingTrace')) {
-    throw new Error('bucket candidate leaked resultRankingTrace');
+  if (!record.school || !record.major) throw new Error('bucket ranking candidate missing school or major');
+  if (!Number.isFinite(Number(record.score2026 ?? record.score))) {
+    throw new Error('bucket ranking candidate missing score');
   }
-  if (record.majorBandsMaterializationVersion !== MAJOR_BANDS_MATERIALIZATION_VERSION) {
-    throw new Error(`bucket candidate materialization=${record.majorBandsMaterializationVersion || 'missing'}`);
-  }
-  if (!record.schoolProfile || typeof record.schoolProfile !== 'object') {
-    throw new Error('bucket candidate missing compact schoolProfile');
+  if (!record.canonicalPosition || typeof record.canonicalPosition !== 'object') {
+    throw new Error('bucket ranking candidate missing canonicalPosition');
   }
   return record;
 }
