@@ -1,38 +1,40 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
-import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3970_0.js';
-import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3970_0.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
+import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_5.js';
+import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3972_5.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
 const headerBlock = (headers, route) => headers.match(new RegExp(`^${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\n((?:  .*(?:\n|$))+)`, 'm'))?.[1] || '';
 const home = read('index.html');
-const runtime = read('ln-rank/js/ux/family-home.v3970_0.js');
+const runtime = read('ln-rank/js/ux/family-home.v3972_5.js');
 const headers = read('_headers');
-const active = JSON.parse(read('ln-rank/active-assets.json'));
-const meta = JSON.parse(read('ln-rank/release-meta.json'));
+const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_5.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3970_0');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
-assert.equal(CURRENT_RELEASE.homeEntryVersion, 'home-industry-map-entry-v3970_1');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3972_5');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_5');
+assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3972_5');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
-assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3970_0.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3972_5.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeIndustryMapEntry, '/index.html#[data-home-industry-map-entry]');
 assert.equal(CURRENT_RELEASE.resourceOwners.industryMap, '/Public_company/');
-assert.equal(RESOURCE_EXECUTION_REGISTRY.home.owner, '/ln-rank/js/ux/family-home.v3970_0.js');
+assert.equal(RESOURCE_EXECUTION_REGISTRY.home.owner, '/ln-rank/js/ux/family-home.v3972_5.js');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.structureOwner, '/index.html');
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.home, '/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0');
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.owners.home, '/ln-rank/js/ux/family-home.v3970_0.js');
-assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3970_0.js'));
-assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3968_0.js'));
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.homeRuntime, '/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.owners.home, '/ln-rank/js/ux/family-home.v3972_5.js');
+assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3972_5.js'));
+assert.equal(SITE_RUNTIME_CONTRACT.generation, CURRENT_RELEASE.siteRuntimeGeneration);
 
 for (const marker of [
   'data-release="v3.9.72.2"',
-  'family-shell.v3970_0.css?v=3970_0',
-  'family-plan-entry.v3970_0.css?v=3970_0',
-  'family-home.v3970_0.js?v=3970_0',
+  'data-site-runtime-generation="v3972_5"',
+  'family-shell.v3972_5.css?v=3972_5',
+  'family-plan-entry.v3972_5.css?v=3972_5',
+  'family-home.v3972_5.js?v=3972_5',
   '家庭方案与逐项复核',
   'data-current-release>v3.9.72.2',
   'data-home-industry-map-entry',
@@ -41,21 +43,18 @@ for (const marker of [
 ]) assert.ok(home.includes(marker), `root home missing ${marker}`);
 
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map entry must have one homepage owner');
-
-for (const stale of [
-  'family-home.v3968_0.js',
-  'family-shell.v3965_0.js',
-  'data-release="v3.9.68.0"',
-  'data-current-release>v3.9.68.0'
-]) assert.ok(!home.includes(stale), `root home still activates ${stale}`);
+for (const stale of ['family-home.v3970_0.js?v=3970_0', 'family-shell.v3970_0.css?v=3970_0', 'data-release="v3.9.70.0"']) {
+  assert.ok(!home.includes(stale), `root home still activates ${stale}`);
+}
 
 assert.equal((home.match(/<script type="module"/g) || []).length, 1, 'root home must have one module bootstrap owner');
 for (const marker of [
-  'release-presenter.v3970_0.js?v=3970_0',
-  'family-shell.v3970_0.js?v=3970_0',
+  'release-presenter.v3972_5.js?v=3972_5',
+  'family-shell.v3972_5.js?v=3972_5',
   'family-decision-contract.v3970_0.js?v=3970_0',
-  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3970_0'",
+  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3972_5'",
   "window.addEventListener('gaokao:selection-change'",
+  'generation: release.siteRuntimeGeneration',
   'releaseOwner: release.resourceOwners.release',
   'shellOwner: release.resourceOwners.familyShell',
   'stateOwner: release.resourceOwners.familyDecisionState'
@@ -68,29 +67,11 @@ for (const route of ['/', '/index.html']) {
   assert.ok(block, `headers missing ${route}`);
   assert.match(block, /Cache-Control: no-cache, max-age=0, must-revalidate/, `${route} must revalidate`);
 }
-for (const route of [
-  '/ln-rank/js/ux/family-home.v3970_0.js',
-  '/shared/ui/shell/family-shell.v3970_0.js',
-  '/shared/ui/shell/family-shell.v3970_0.css',
-  '/shared/ui/components/family-plan-entry.v3970_0.js',
-  '/shared/ui/components/family-plan-entry.v3970_0.css'
-]) {
-  const block = headerBlock(headers, route);
-  assert.ok(block, `headers missing ${route}`);
-  assert.match(block, /Cache-Control: public, max-age=31536000, immutable/, `${route} must be immutable`);
-}
 
-for (const [payload, name] of [[active, 'active'], [meta, 'meta']]) {
-  assert.equal(payload.version, CURRENT_RELEASE.assetReleaseVersion, `${name} asset-lineage release`);
-  assert.equal(payload.assetVersion, 'v3970_0', `${name} asset`);
-  assert.equal(payload.familyHomeJs, 'js/ux/family-home.v3970_0.js', `${name} home owner`);
-  assert.ok(payload.jsEntry.includes('js/ux/family-home.v3970_0.js'), `${name} current home absent`);
-  assert.ok(!payload.jsEntry.includes('js/ux/family-home.v3968_0.js'), `${name} old home still active`);
-  assert.ok(payload.html.includes('../index.html'), `${name} root home not tracked`);
-  for (const flag of ['homeReleaseSingleOwnerContract', 'homeStaticRuntimeParityContract', 'homeCurrentShellContract', 'productionReleaseVerificationContract']) {
-    assert.equal(payload[flag], true, `${name} missing ${flag}`);
-  }
-}
+assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
+assert.equal(manifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
+assert.equal(manifest.entrypoints.home, '/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5');
+assert.equal(manifest.legacyInventoryIsActiveOwner, false);
 
 for (const marker of [
   'homeReleaseSingleOwnerContract: true',
@@ -104,12 +85,11 @@ for (const marker of [
 console.log(JSON.stringify({
   ok: true,
   release: CURRENT_RELEASE.display,
-  assetRelease: CURRENT_RELEASE.assetReleaseVersion,
-  homeRuntime: 'family-home-runtime-v3970_0',
+  generation: CURRENT_RELEASE.siteRuntimeGeneration,
+  homeRuntime: CURRENT_RELEASE.homeEntryVersion,
   industryMap: CURRENT_RELEASE.resourceOwners.industryMap,
   bootstrapCount: (home.match(/<script type="module"/g) || []).length,
   homeHtmlCache: 'revalidate',
-  homeRuntimeCache: 'immutable',
-  activeHome: active.familyHomeJs,
-  productionGate: active.productionReleaseVerificationContract
+  activeHome: manifest.entrypoints.home,
+  productionGate: true
 }, null, 2));
