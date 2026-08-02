@@ -10,6 +10,7 @@
 - CSS 资源图：`css-resource-graph-v3972_5`
 - 数据资源图：`data-resource-graph-v3972_5`
 - 清理策略：`resource-decommission-v3972_5`
+- 生产资源验证：`production-resource-graph-verification-v3972_5`
 
 ## 唯一治理入口
 
@@ -20,6 +21,7 @@
 - 执行所有权：`shared/governance/resource-execution-contract.v3972_5.js`
 - 缓存所有权：`shared/resources/release/runtime-cache-contract.v3972_5.js`
 - 算法所有权：`shared/algorithms/algorithm-registry.js`
+- 生产验证合同：`shared/governance/production-resource-verification-contract.v3972_5.js`
 
 任何新资源必须先进入对应注册表，再被页面、Worker、报告或测试消费。页面或功能文件不得自行建立第二份当前资源清单。
 
@@ -80,7 +82,16 @@
 - 组件 DOM/CSS 所有者完整；
 - 已清理的旧活动元数据不能重新出现；
 - 自修改元数据工作流不能恢复；
-- 删除资源在 HTTP 层返回 404；
+- 删除资源在本地 HTTP 图中返回 404；
 - 保护目录未被修改。
 
-任何资源治理变更必须在 Draft 和 Ready 状态下对同一 SHA 完成完整检查，全部成功后才允许合并到 `main`。合并后继续核验 Pages 正式生产域名、正式发布合同和核心页面/API。
+`tools/verify-production-resource-graph-v3972_5.mjs` 和 `.github/workflows/verify-production-resource-graph-v3972_5.yml` 必须在 `main` push 后进一步验证：
+
+- Pages 正式生产域名返回当前发布中心、统一资源注册表、UI 注册表、活动清单和自测资源；
+- 正式自定义域名的版本化静态资源与 Pages 保持一致；
+- `active-assets.json` 和 `release-meta.json` 在 Pages 正式生产环境返回 HTTP 404；
+- 动态运行时健康接口继续匹配 `v3.9.72.5 / v3972_5`；
+- 验证结果写入 commit status `production/resource-graph-v3972.5`，使生产结论可被连接器和后续治理读取；
+- 正式域名 HTML 的 Cloudflare Managed Challenge 边界仍与静态资源发布合同分开处理。
+
+任何资源治理变更必须在 Draft 和 Ready 状态下对同一 SHA 完成完整检查，全部成功后才允许合并到 `main`。合并后必须等到生产资源 commit status 成功后，才能宣告发布闭环完成。
