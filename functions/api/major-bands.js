@@ -1,4 +1,5 @@
 import {
+  MAJOR_BANDS_MATERIALIZATION_VERSION,
   selectMajorBandsStaticBuckets,
   materializeMajorBandsStaticRecord
 } from '../_lib/major-bands-static-provider.js';
@@ -11,7 +12,9 @@ import {
 } from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
 import {
   MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
-  assertCompactMajorBandsBucketCandidate
+  MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+  assertCompactMajorBandsBucketCandidate,
+  compactMajorBandsResponseRecord
 } from '../_lib/major-bands-bucket-transfer.v3972_5.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
@@ -46,11 +49,13 @@ import {
 const BUCKET_CONTRACT = 'major-bands-bucket-v3972_2';
 
 function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), {
+  const body = JSON.stringify(payload);
+  return new Response(body, {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store'
+      'cache-control': 'no-store',
+      'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION
     }
   });
 }
@@ -131,7 +136,9 @@ function rankLabel(context) {
 }
 
 function finalizeRecordForResponse(record) {
-  const item = materializeMajorBandsStaticRecord(record);
+  const item = record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION
+    ? record
+    : materializeMajorBandsStaticRecord(record);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -236,6 +243,7 @@ async function fetchBucketWorker(context, bucket, options) {
       assertCompactMajorBandsBucketCandidate(candidate);
     }
   }
+  payload.transportChars = text.length;
   return payload;
 }
 
@@ -386,7 +394,9 @@ export async function onRequest(context) {
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
       const records = requestedBand && requestedBand !== key
         ? []
-        : diversified.slice(offset, offset + pageLimit).map(finalizeRecordForResponse);
+        : diversified.slice(offset, offset + pageLimit).map(record => compactMajorBandsResponseRecord(
+          finalizeRecordForResponse(record)
+        ));
       const returned = records.length;
       const hasMore = offset + returned < group.count;
       group.records = records;
@@ -510,6 +520,8 @@ export async function onRequest(context) {
         bucketWorkerCandidateLimit: maxCandidates,
         bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
         bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
+        responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+        bucketWorkerTransferChars: bucketResults.reduce((sum, result) => sum + Number(result.transportChars || 0), 0),
         bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency,
         bucketWorkerRetries: bucketExecution.stats.retryCount,
         bucketWorkerMaxAttempts: bucketExecution.stats.maxAttempts,

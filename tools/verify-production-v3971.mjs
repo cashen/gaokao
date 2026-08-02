@@ -6,6 +6,10 @@ const EXPECTED_LOCAL_STRENGTH_SCORE_POSITION = process.env.EXPECTED_LOCAL_STRENG
 const EXPECTED_INDEX = 'local-strength-static-v3971_2';
 const EXPECTED_MAJOR_BANDS_ORCHESTRATION = 'major-bands-bounded-fanout-v3972_5';
 const EXPECTED_MAJOR_BANDS_TRANSFER = 'major-bands-bucket-candidate-compact-v3972_5';
+const EXPECTED_MAJOR_BANDS_MATERIALIZATION = 'major-bands-materialized-v3972_5';
+const EXPECTED_MAJOR_BANDS_RESPONSE = 'major-bands-response-compact-v3972_5';
+const SCORE_RESPONSE_BUDGET_BYTES = 260000;
+const SCHOOL_RESPONSE_BUDGET_BYTES = 180000;
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 30);
 const STRESS_CYCLES = Number(process.env.PRODUCTION_STRESS_CYCLES || 40);
@@ -85,6 +89,8 @@ function assertMajorBandsExecution(data, label) {
   const source = data?.source || {};
   assert(source.bucketWorkerOrchestrationVersion === EXPECTED_MAJOR_BANDS_ORCHESTRATION, `${label} orchestration=${source.bucketWorkerOrchestrationVersion || 'missing'}`);
   assert(source.bucketCandidateTransferVersion === EXPECTED_MAJOR_BANDS_TRANSFER, `${label} transfer=${source.bucketCandidateTransferVersion || 'missing'}`);
+  assert(source.responseTransportVersion === EXPECTED_MAJOR_BANDS_RESPONSE, `${label} response=${source.responseTransportVersion || 'missing'}`);
+  assert(Number(source.bucketWorkerTransferChars || 0) > 0, `${label} transferChars=${source.bucketWorkerTransferChars}`);
   assert(Number(source.bucketWorkerConcurrency || 0) === 1, `${label} concurrency=${source.bucketWorkerConcurrency}`);
   assert(Number(source.bucketWorkerMaxAttempts || 0) === 2, `${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
   const retries = Number(source.bucketWorkerRetries || 0);
@@ -120,6 +126,8 @@ async function verifyStaticContracts(token) {
   assert(result.pagesRelease.text.includes("localStrengthDataVersion: 'local-strength-static-v3971_2'"), 'Pages LocalStrength owner mismatch');
   assert(result.pagesRelease.text.includes(`majorBandsOrchestrationVersion: '${EXPECTED_MAJOR_BANDS_ORCHESTRATION}'`), 'Pages major-bands orchestration mismatch');
   assert(result.pagesRelease.text.includes(`majorBandsBucketTransferVersion: '${EXPECTED_MAJOR_BANDS_TRANSFER}'`), 'Pages major-bands transfer mismatch');
+  assert(result.pagesRelease.text.includes(`majorBandsMaterializationVersion: '${EXPECTED_MAJOR_BANDS_MATERIALIZATION}'`), 'Pages major-bands materialization mismatch');
+  assert(result.pagesRelease.text.includes(`majorBandsResponseTransportVersion: '${EXPECTED_MAJOR_BANDS_RESPONSE}'`), 'Pages major-bands response transport mismatch');
 
   const runtime = parseJson(result.runtime);
   assert(runtime?.ok !== false, `runtime returned ok=false: ${result.runtime.text.slice(0, 1000)}`);
@@ -184,6 +192,12 @@ async function verifyConcurrentCycle(cycle) {
   const entries = await Promise.all(Object.entries(urls).map(async ([key, url]) => [key, await request(url)]));
   const result = Object.fromEntries(entries);
   for (const value of Object.values(result)) assert200(value);
+  const scoreBytes = Buffer.byteLength(result.score.text, 'utf8');
+  const schoolBytes = Buffer.byteLength(result.school.text, 'utf8');
+  assert(scoreBytes <= SCORE_RESPONSE_BUDGET_BYTES, `score response bytes=${scoreBytes}`);
+  assert(schoolBytes <= SCHOOL_RESPONSE_BUDGET_BYTES, `school response bytes=${schoolBytes}`);
+  assert(result.score.headers['x-gaokao-response-transport'] === EXPECTED_MAJOR_BANDS_RESPONSE, `score response header=${result.score.headers['x-gaokao-response-transport'] || 'missing'}`);
+  assert(result.school.headers['x-gaokao-response-transport'] === EXPECTED_MAJOR_BANDS_RESPONSE, `school response header=${result.school.headers['x-gaokao-response-transport'] || 'missing'}`);
   const runtime = parseJson(result.runtime);
   const health = parseJson(result.health);
   const score = parseJson(result.score);
@@ -203,6 +217,10 @@ async function verifyConcurrentCycle(cycle) {
     rawScanned: Number(health.probe?.rawScanned || 0),
     scoreRecords,
     schoolRecords,
+    scoreBytes,
+    schoolBytes,
+    scoreTransferChars: Number(score.source.bucketWorkerTransferChars || 0),
+    schoolTransferChars: Number(school.source.bucketWorkerTransferChars || 0),
     scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
     schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
     scoreRetries: Number(score.source.bucketWorkerRetries || 0),
@@ -242,6 +260,10 @@ console.log(JSON.stringify({
   maximumRawScanned: Math.max(...cycles.map(item => item.rawScanned)),
   minimumScoreRecords: Math.min(...cycles.map(item => item.scoreRecords)),
   minimumSchoolRecords: Math.min(...cycles.map(item => item.schoolRecords)),
+  maximumScoreResponseBytes: Math.max(...cycles.map(item => item.scoreBytes)),
+  maximumSchoolResponseBytes: Math.max(...cycles.map(item => item.schoolBytes)),
+  maximumScoreTransferChars: Math.max(...cycles.map(item => item.scoreTransferChars)),
+  maximumSchoolTransferChars: Math.max(...cycles.map(item => item.schoolTransferChars)),
   maximumScoreConcurrency: Math.max(...cycles.map(item => item.scoreConcurrency)),
   maximumSchoolConcurrency: Math.max(...cycles.map(item => item.schoolConcurrency)),
   totalScoreRetries: cycles.reduce((sum, item) => sum + item.scoreRetries, 0),

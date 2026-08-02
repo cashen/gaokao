@@ -104,6 +104,8 @@ A request must not fan out to every selected Worker with an unbounded `Promise.a
 - Contract, validation and data-integrity failures must fail immediately and must not be hidden by retries.
 - The response and production evidence must expose peak child-Worker concurrency and retry count.
 - Recomputable ranking and execution traces must be removed from child-Worker transfer payloads and rebuilt only by the owning parent Worker.
+- A record may be materialized only once in a distributed request. The parent must accept the child materialization marker instead of rebuilding school, geography and historical evidence.
+- Browser responses require an explicit transport owner and byte budget. Server-only profiles, repeated source metadata and ranking internals must not be serialized to the client.
 - When two top-level queries can run concurrently, the per-request child-Worker ceiling must be chosen from the combined production budget, not from an isolated request benchmark.
 - Preview and production verification must keep sustained concurrent cycles; reducing stress cycles to make a release green is forbidden.
 

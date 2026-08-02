@@ -26,6 +26,12 @@ function assertBoundedOrchestration(data, label) {
   if (source.bucketCandidateTransferVersion !== 'major-bands-bucket-candidate-compact-v3972_5') {
     throw new Error(`${label} transfer=${source.bucketCandidateTransferVersion || 'missing'}`);
   }
+  if (source.responseTransportVersion !== 'major-bands-response-compact-v3972_5') {
+    throw new Error(`${label} response=${source.responseTransportVersion || 'missing'}`);
+  }
+  if (Number(source.bucketWorkerTransferChars || 0) < 1) {
+    throw new Error(`${label} transferChars=${source.bucketWorkerTransferChars}`);
+  }
   if (Number(source.bucketWorkerMaxAttempts || 0) !== 2) {
     throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
   }
@@ -38,6 +44,10 @@ function assertBoundedOrchestration(data, label) {
 const health = read('health');
 const score = read('score');
 const school = read('school');
+const scoreBytes = fs.statSync(`/tmp/v3972-score-${cycle}.json`).size;
+const schoolBytes = fs.statSync(`/tmp/v3972-school-${cycle}.json`).size;
+if (scoreBytes > 260000) throw new Error(`score response bytes=${scoreBytes}`);
+if (schoolBytes > 180000) throw new Error(`school response bytes=${schoolBytes}`);
 
 if (health?.ok === false || score?.ok === false || school?.ok === false) {
   throw new Error(JSON.stringify({ health, score, school }).slice(0, 3000));
@@ -85,6 +95,10 @@ console.log(JSON.stringify({
   rawScanned: Number(health.probe?.rawScanned || 0),
   scoreRecords,
   schoolRecords,
+  scoreBytes,
+  schoolBytes,
+  scoreTransferChars: Number(score.source.bucketWorkerTransferChars),
+  schoolTransferChars: Number(school.source.bucketWorkerTransferChars),
   scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
   schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
   scoreRetries: Number(score.source.bucketWorkerRetries || 0),
