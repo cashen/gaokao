@@ -223,9 +223,13 @@ assert.equal(compactCandidate.canonicalPosition.ignoredInternalField, undefined)
 assert.equal(compactCandidate.rankingTrace, undefined);
 assert.equal(compactCandidate.resultRankingTrace, undefined);
 
-const responseRecord = compactMajorBandsResponseRecord(compactCandidate);
+const responseRecord = compactMajorBandsResponseRecord({
+  ...compactCandidate,
+  schoolProfileDisplayTags: ['公办', '辽宁 · 沈阳']
+});
 assert.equal(responseRecord.school, '示例大学');
 assert.equal(responseRecord.major, '示例专业');
+assert.deepEqual(responseRecord.schoolProfileDisplayTags, ['公办', '辽宁 · 沈阳']);
 assert.equal(responseRecord.schoolProfile, undefined);
 assert.equal(responseRecord.majorBandsMaterializationVersion, undefined);
 assert.equal(responseRecord.schoolName, undefined);
@@ -251,8 +255,8 @@ assert.ok(source.includes('bucketWorkerRetries: bucketExecution.stats.retryCount
 assert.ok(source.includes('bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
 assert.ok(source.includes('responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION'));
 assert.ok(source.includes('compactMajorBandsResponseRecord'));
-assert.ok(source.includes("item?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION"));
-assert.ok(source.includes("'x-gaokao-response-bytes'"));
+assert.ok(source.includes("record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION"));
+assert.ok(source.includes("'x-gaokao-response-transport'"));
 assert.ok(source.includes('isRetryableBucketWorkerFailure(error) ? 503 : 500'));
 assert.ok(bucketApi.includes('candidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
 assert.ok(bucketEngine.includes('.slice(0, maxCandidates).map(compactMajorBandsBucketCandidate)'));
