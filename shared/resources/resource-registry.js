@@ -1,65 +1,87 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3969_0';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3972_5';
+import {
+  UI_RESOURCE_REGISTRY_VERSION,
+  UI_ACTIVE_RESOURCE_REGISTRY,
+  UI_STABLE_RESOURCE_REGISTRY,
+  UI_COMPONENT_REGISTRY,
+  UI_CSS_RESOURCE_GRAPH
+} from '../ui/ui-resource-registry.v3972_5.js?v=3972_5';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
+export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;
+export const DATA_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.dataResourceGraphVersion;
+export const RESOURCE_DECOMMISSION_POLICY_VERSION = CURRENT_RELEASE.resourceDecommissionPolicyVersion;
 
 export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   release: Object.freeze({
     id: 'current-release',
-    module: '/shared/resources/release/current-release.js',
+    module: CURRENT_RELEASE.resourceOwners.release,
+    activeManifest: CURRENT_RELEASE.resourceOwners.siteActiveManifest,
     policy: 'single-source-release-contract',
-    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'feishu', 'self-check'])
+    consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'feishu', 'self-check', 'production-verification'])
+  }),
+  governance: Object.freeze({
+    id: 'whole-site-resource-graph',
+    version: SHARED_RESOURCE_GRAPH_VERSION,
+    module: CURRENT_RELEASE.resourceOwners.resourceRegistry,
+    executionContract: CURRENT_RELEASE.resourceOwners.resourceExecution,
+    uiRegistry: CURRENT_RELEASE.resourceOwners.uiResourceRegistry,
+    activeManifest: CURRENT_RELEASE.resourceOwners.siteActiveManifest,
+    decommissionPolicyVersion: RESOURCE_DECOMMISSION_POLICY_VERSION,
+    policy: 'active-owner-or-declared-stable-dependency-with-reference-proof-before-removal',
+    consumers: Object.freeze(['release-audit', 'css-audit', 'self-check', 'production-verification'])
   }),
   runtimeCache: Object.freeze({
     id: 'ln-rank-runtime-cache-coherence',
-    module: '/shared/resources/release/runtime-cache-contract.v3969_0.js',
+    module: CURRENT_RELEASE.resourceOwners.runtimeCache,
     policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
     consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
   }),
   exam: Object.freeze({
     id: 'liaoning-physics-exam',
-    module: '/shared/resources/exam/liaoning-physics.js',
+    module: CURRENT_RELEASE.resourceOwners.exam,
     supportedYears: Object.freeze([2024, 2025, 2026]),
     policy: 'single-source-three-year-static-module',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports'])
   }),
   rankTables: Object.freeze({
     id: 'liaoning-physics-rank-tables',
-    provider: '/functions/_lib/rank-table-provider.js',
-    examConfig: '/shared/resources/exam/liaoning-physics.js',
-    evidenceService: '/functions/_lib/historical-score-rank-evidence.js',
-    evidenceContract: '/shared/resources/exam/historical-score-rank-contract.js',
-    presenter: '/ln-rank/js/feature/major-pool/history-score-render.v3967_0.js',
-    cssOwner: '/ln-rank/css/history-evidence.v3967_0.css',
+    provider: CURRENT_RELEASE.resourceOwners.rankTables,
+    examConfig: CURRENT_RELEASE.resourceOwners.exam,
+    evidenceService: CURRENT_RELEASE.resourceOwners.historyScoreRankEvidence,
+    evidenceContract: CURRENT_RELEASE.resourceOwners.historyEvidenceContract,
+    presenter: CURRENT_RELEASE.resourceOwners.historyEvidencePresenter,
+    cssOwner: CURRENT_RELEASE.resourceOwners.historyEvidenceStyles,
     supportedYears: Object.freeze([2024, 2025, 2026]),
     comparisonPopulationPolicy: 'undergraduate-control-line-cumulative',
-    executionContract: '/shared/governance/resource-execution-contract.v3969_0.js',
+    executionContract: CURRENT_RELEASE.resourceOwners.resourceExecution,
     policy: 'single-provider-exclusive-consumption-derived-trace-and-evidence',
     consumers: Object.freeze(['functions-api', 'card-ai', 'reports', 'selection-pool', 'school-search', 'trend-analysis'])
   }),
   regions: Object.freeze({
     id: 'china-region-catalog',
-    module: '/shared/resources/geo/china-region-catalog.js',
+    module: CURRENT_RELEASE.resourceOwners.regions,
     policy: 'single-source-static-module',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'school-profile', 'legacy-geo-adapter'])
   }),
   reports: Object.freeze({
     id: 'feishu-report-contract',
-    module: '/shared/resources/reports/feishu-report-contract.v3966_0.js',
+    module: CURRENT_RELEASE.resourceOwners.reports,
     yearCaliberVersion: 'ln-physics-report-years-v3966_0',
-    frontend: '/ln-rank/js/feature/feishu/index.v3967_0.js',
-    historyEvidenceOwner: '/functions/_lib/historical-score-rank-evidence.js',
+    frontend: CURRENT_RELEASE.resourceOwners.reportFrontend,
+    historyEvidenceOwner: CURRENT_RELEASE.resourceOwners.historyScoreRankEvidence,
     policy: 'single-source-contract-client-year-caliber-evidence-and-operation-state',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'path-analysis', 'self-check'])
   }),
   schools: Object.freeze({
     id: 'school-resource-center',
     module: '/shared/resources/schools/school-resource-center.js',
-    identityModule: '/shared/resources/schools/school-identity-center.js',
-    profileModule: '/shared/resources/schools/school-profile-center.js',
-    queryContract: '/shared/resources/schools/school-query-contract.v3969_0.js',
-    queryEngine: '/shared/resources/schools/school-query-engine.v3969_0.js',
-    admissionDirectory: '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json',
-    queryProvider: '/functions/_lib/school-query-provider.v3969.js',
+    identityModule: CURRENT_RELEASE.resourceOwners.schoolIdentity,
+    profileModule: CURRENT_RELEASE.resourceOwners.schools,
+    queryContract: CURRENT_RELEASE.resourceOwners.schoolQueryContract,
+    queryEngine: CURRENT_RELEASE.resourceOwners.schoolQueryEngine,
+    admissionDirectory: CURRENT_RELEASE.resourceOwners.schoolAdmissionDirectory,
+    queryProvider: CURRENT_RELEASE.resourceOwners.schoolQueryProvider,
     buildKernel: '/tools/schools/school_resource_bundle.py',
     admissionDirectoryGenerator: '/tools/build-school-admission-directory-v3969.mjs',
     compactEntityPolicy: 'eager-small-static-module',
@@ -68,68 +90,102 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     identityPolicy: 'shared-upstream-tongxue-compatibility-export',
     queryPolicy: 'single-directory-single-identity-single-query-intent-and-admission-availability-owner',
     candidatePolicy: 'no-silent-truncation-record-count-tiebreak-only',
-    profileFields: Object.freeze(['officialName','campusEntity','province','city','nature','985','211','doubleNon']),
+    profileFields: Object.freeze(['officialName', 'campusEntity', 'province', 'city', 'nature', '985', '211', 'doubleNon']),
     consumers: Object.freeze(['ln-rank-cards', 'selection-pool', 'reports', 'tongxue', 'school-search', 'score-search', 'future-school-tools', 'academic-background'])
   }),
   majors: Object.freeze({
     id: 'major-catalog-2026',
-    resolverModule: '/shared/resources/majors/major-catalog-contract.js',
+    resolverModule: CURRENT_RELEASE.resourceOwners.majors,
     policy: 'single-resolver-derived-runtime-formats',
     canonicalCount: 883,
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'card-ai', 'reports', 'academic-background'])
   }),
   academicBackground: Object.freeze({
     id: 'academic-background-evidence-center',
-    contract: '/shared/resources/background/academic-background-contract.v3968_0.js',
-    sourceRegistry: '/shared/resources/background/academic-background-source-registry.v3968_0.js',
-    provider: '/functions/_lib/academic-background-provider.js',
-    service: '/functions/_lib/academic-background-api.js',
-    api: '/functions/api/academic-background.js',
-    matcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
-    browserRuntime: '/ln-rank/js/academic-background/academic-background-app.v3968_0.js',
-    cssOwner: '/ln-rank/css/academic-background.v3968_0.css',
+    contract: CURRENT_RELEASE.resourceOwners.academicBackgroundContract,
+    sourceRegistry: CURRENT_RELEASE.resourceOwners.academicBackgroundSources,
+    provider: CURRENT_RELEASE.resourceOwners.academicBackgroundProvider,
+    service: CURRENT_RELEASE.resourceOwners.academicBackgroundService,
+    api: CURRENT_RELEASE.resourceOwners.academicBackgroundApi,
+    matcher: CURRENT_RELEASE.resourceOwners.academicBackgroundMatcher,
+    browserRuntime: CURRENT_RELEASE.resourceOwners.academicBackgroundRuntime,
+    cssOwner: CURRENT_RELEASE.resourceOwners.academicBackgroundStyles,
     scopes: Object.freeze(['liaoning', '211']),
     admissionYears: Object.freeze([2026, 2025, 2024]),
-    legacyInputs: Object.freeze(['/functions/_lib/local-mainline-kb.js','/functions/_lib/211-mainline-kb.js']),
+    legacyInputs: Object.freeze(['/functions/_lib/local-mainline-kb.js', '/functions/_lib/211-mainline-kb.js']),
     policy: 'single-evidence-owner-single-provider-single-matcher-source-year-separated-from-admission-year',
     consumers: Object.freeze(['local-mainline', '211-mainline', 'functions-api', 'browser-regression', 'audits'])
   }),
+  localStrength: Object.freeze({
+    id: CURRENT_RELEASE.localStrengthDataVersion,
+    page: CURRENT_RELEASE.resourceOwners.localStrengthPage,
+    runtime: CURRENT_RELEASE.resourceOwners.localStrengthRuntime,
+    css: Object.freeze([
+      CURRENT_RELEASE.resourceOwners.localStrengthStyles,
+      UI_STABLE_RESOURCE_REGISTRY.localStrengthScorePositionCss
+    ]),
+    data: CURRENT_RELEASE.resourceOwners.localStrengthData,
+    audit: CURRENT_RELEASE.resourceOwners.localStrengthAudit,
+    architecture: CURRENT_RELEASE.localStrengthArchitecture,
+    policy: 'declared-stable-static-page-resource'
+  }),
+  all211: Object.freeze({
+    id: CURRENT_RELEASE.all211DataVersion,
+    page: CURRENT_RELEASE.resourceOwners.all211Page,
+    runtime: CURRENT_RELEASE.resourceOwners.all211Runtime,
+    css: CURRENT_RELEASE.resourceOwners.all211Styles,
+    data: CURRENT_RELEASE.resourceOwners.all211Data,
+    audit: CURRENT_RELEASE.resourceOwners.all211Audit,
+    architecture: CURRENT_RELEASE.all211Architecture,
+    policy: 'declared-stable-static-page-resource'
+  }),
+  majorBands: Object.freeze({
+    id: CURRENT_RELEASE.majorBandsVersion,
+    api: CURRENT_RELEASE.resourceOwners.majorBandsApi,
+    bucketApi: CURRENT_RELEASE.resourceOwners.majorBandsBucketApi,
+    orchestrator: CURRENT_RELEASE.resourceOwners.majorBandsOrchestrator,
+    cacheOwner: CURRENT_RELEASE.resourceOwners.majorBandsBucketCacheOwner,
+    cacheImplementation: CURRENT_RELEASE.resourceOwners.majorBandsBucketCache,
+    transferOwner: CURRENT_RELEASE.resourceOwners.majorBandsBucketTransfer,
+    materializationOwner: CURRENT_RELEASE.resourceOwners.majorBandsMaterializationOwner,
+    staticProvider: CURRENT_RELEASE.resourceOwners.majorBandsStaticProvider,
+    policy: 'single-parent-orchestration-cache-transfer-materialization-and-response-owner'
+  }),
   ui: Object.freeze({
     id: 'family-ui-orchestration',
-    registry: '/shared/ui/ui-registry.v3965_0.js',
-    componentRegistry: '/shared/ui/component-registry.v3967_0.js',
-    foundation: '/shared/ui/tokens/foundation.v3959_0.css',
-    semantic: '/shared/ui/tokens/semantic.v3959_0.css',
-    modeSwitch: '/shared/ui/components/mode-switch.v3963_0.css',
-    shellCss: '/shared/ui/shell/family-shell.v3965_0.css',
-    shellJs: '/shared/ui/shell/family-shell.v3965_0.js',
-    selectionQuickEntryMount: '/ln-rank/index.html#selectionPoolShell',
-    policy: 'single-ui-shell-plus-component-execution-css-isolation-and-geometry-contract',
-    consumers: Object.freeze(['home','ln-rank','selection-pool','ln2026','zy2026','tongxue','local-mainline','211-mainline'])
+    version: UI_RESOURCE_REGISTRY_VERSION,
+    registry: CURRENT_RELEASE.resourceOwners.uiResourceRegistry,
+    pageCatalogAdapter: CURRENT_RELEASE.resourceOwners.uiPageCatalogAdapter,
+    active: UI_ACTIVE_RESOURCE_REGISTRY,
+    stable: UI_STABLE_RESOURCE_REGISTRY,
+    components: UI_COMPONENT_REGISTRY,
+    cssGraph: UI_CSS_RESOURCE_GRAPH,
+    policy: 'single-current-ui-registry-explicit-active-and-stable-css-owners',
+    consumers: Object.freeze(['home', 'ln-rank', 'selection-pool', 'ln2026', 'zy2026', 'tongxue', 'local-mainline', '211-mainline'])
   }),
   algorithms: Object.freeze({
     id: 'algorithm-execution-center',
-    registry: '/shared/algorithms/algorithm-registry.js',
-    resultRanking: '/shared/algorithms/ranking/result-ranking.v3967_0.js',
-    schoolQuery: '/shared/resources/schools/school-query-engine.v3969_0.js',
-    trendInterpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
-    academicBackgroundMatcher: '/shared/algorithms/background/academic-background-matcher.v3968_0.js',
+    registry: CURRENT_RELEASE.resourceOwners.algorithms,
+    resultRanking: CURRENT_RELEASE.resourceOwners.resultRanking,
+    schoolQuery: CURRENT_RELEASE.resourceOwners.schoolQueryEngine,
+    trendInterpretation: CURRENT_RELEASE.resourceOwners.trendInterpretation,
+    academicBackgroundMatcher: CURRENT_RELEASE.resourceOwners.academicBackgroundMatcher,
     policy: 'single-algorithm-owner-with-intent-trace',
-    consumers: Object.freeze(['functions-api','browser-runtime','selection-pool','reports','ai-facts','academic-background'])
+    consumers: Object.freeze(['functions-api', 'browser-runtime', 'selection-pool', 'reports', 'ai-facts', 'academic-background'])
   }),
   trends: Object.freeze({
     id: 'liaoning-major-trend',
-    module: '/shared/resources/trends/liaoning-major-trend.v3967_0.js',
-    interpretation: '/shared/algorithms/trend/trend-interpretation.v3967_0.js',
+    module: CURRENT_RELEASE.resourceOwners.trendResource,
+    interpretation: CURRENT_RELEASE.resourceOwners.trendInterpretation,
     data: '/ln-rank/data/major-trend-2026.json',
     policy: 'single-resource-derived-artifact-with-source-trace',
-    consumers: Object.freeze(['trend-page','selection-pool','reports','ai-facts'])
+    consumers: Object.freeze(['trend-page', 'selection-pool', 'reports', 'ai-facts'])
   }),
   auxiliaryLiaoningKeySubjects: Object.freeze({
     id: 'liaoning-key-subjects-history-tool',
-    module: '/shared/resources/auxiliary/liaoning-key-subjects.v3967_0.js',
+    module: CURRENT_RELEASE.resourceOwners.liaoningKeySubjects,
     data: '/liaoning_key_subjects_phase2_tuition_data.js',
-    selectionAlgorithm: '/shared/algorithms/position/historical-rank-selection.v3967_0.js',
+    selectionAlgorithm: CURRENT_RELEASE.resourceOwners.historicalRankSelection,
     policy: 'independent-experience-shared-release-rank-and-algorithm-owners',
     consumers: Object.freeze(['just-for-liaoning'])
   }),
@@ -141,3 +197,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     consumers: Object.freeze(['cards', 'reports', 'review-checklist'])
   })
 });
+
+export function getSharedResource(id) {
+  return SHARED_RESOURCE_REGISTRY[id] || null;
+}
