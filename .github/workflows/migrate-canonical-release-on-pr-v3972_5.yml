@@ -51,6 +51,11 @@ jobs:
             echo 'retired public release remains outside historical or immutable package records'
             exit 1
           fi
+
+          mkdir -p docs/release-acceptance
+          git diff -- .github/workflows > docs/release-acceptance/v3972-5-canonical-workflow.patch
+          git checkout HEAD -- .github/workflows
+
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
