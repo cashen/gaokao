@@ -2,6 +2,8 @@ import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
 
+export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3972_5';
+
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
 let manifestCache = null;
@@ -141,6 +143,7 @@ export async function loadMajorBandsStaticWindow(request, scoreWindow, options =
 }
 
 export function materializeMajorBandsStaticRecord(record = {}) {
+  if (record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION) return record;
   const historyCompare = buildHistoryScore(record);
   const location = normalizeLocation(record, record.school, record.major);
   const expanded = {
@@ -170,6 +173,7 @@ export function materializeMajorBandsStaticRecord(record = {}) {
   const historyEvidence = buildHistoricalScoreRankEvidence(expanded);
   return {
     ...expanded,
+    majorBandsMaterializationVersion: MAJOR_BANDS_MATERIALIZATION_VERSION,
     historyEvidence,
     rank2026Source: historyEvidence.years[2026].rankSource,
     rank2025Source: historyEvidence.years[2025].rankSource,

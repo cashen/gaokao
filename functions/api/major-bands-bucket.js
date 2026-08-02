@@ -3,6 +3,7 @@ import { normalizeBottomLineMode } from '../_lib/bottomline-policy.js';
 import { normalizeSpecialProjectMode } from '../_lib/special-project-policy.js';
 import { loadMajorBandsStaticBucket } from '../_lib/major-bands-static-provider.js';
 import { processMajorBandsStaticBucket } from '../_lib/major-bands-bucket-engine.js';
+import { MAJOR_BANDS_BUCKET_TRANSFER_VERSION } from '../_lib/major-bands-bucket-transfer.v3972_5.js';
 
 const CONTRACT = 'major-bands-bucket-v3972_2';
 
@@ -77,6 +78,7 @@ export async function onRequest(context) {
     return json({
       ok: true,
       contract: CONTRACT,
+      candidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
       architecture: 'build-time-static-score-index-single-bucket-worker',
       version: loaded.manifest.version,
       assetOwner: loaded.assetOwner,

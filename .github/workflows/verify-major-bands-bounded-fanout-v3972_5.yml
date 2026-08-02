@@ -1,0 +1,188 @@
+name: Verify major-bands bounded fanout v3972.5
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'functions/api/major-bands.js'
+      - 'functions/api/major-bands-bucket.js'
+      - 'functions/_lib/major-bands-bucket-orchestrator.v3972_5.js'
+      - 'functions/_lib/major-bands-bucket-transfer.v3972_5.js'
+      - 'functions/_lib/major-bands-static-provider.js'
+      - 'functions/_lib/major-bands-bucket-engine.js'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/governance/resource-execution-contract.v3972_5.js'
+      - 'docs/skills/unified-site-release/SKILL.md'
+      - 'tools/audit-major-bands-bounded-fanout-v3972_5.mjs'
+      - 'tools/verify-worker-budget-local-v3972.mjs'
+      - 'tools/verify-production-v3971.mjs'
+      - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-fanout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify bounded orchestration and transport source contracts
+        run: |
+          set -euo pipefail
+          node --check functions/api/major-bands.js
+          node --check functions/api/major-bands-bucket.js
+          node --check functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          node --check functions/_lib/major-bands-bucket-transfer.v3972_5.js
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check tools/verify-worker-budget-local-v3972.mjs
+          node --check tools/verify-production-v3971.mjs
+          node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+
+          grep -q "majorBandsOrchestrationVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsRetryPolicyVersion: 'major-bands-transient-retry-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsBucketTransferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsMaterializationVersion: 'major-bands-materialized-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsMaterializationOwnerVersion: 'major-bands-parent-finalization-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsTransferBudgetVersion: 'major-bands-transfer-budget-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsResponseTransportVersion: 'major-bands-response-compact-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsOrchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js'" shared/resources/release/current-release.js
+          grep -q "majorBandsBucketTransfer: '/functions/_lib/major-bands-bucket-transfer.v3972_5.js'" shared/resources/release/current-release.js
+          grep -q "majorBandsMaterializationOwner: '/functions/api/major-bands.js'" shared/resources/release/current-release.js
+
+          grep -q "schemaVersion: 'major-bands-bounded-fanout-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transferRole: 'unmaterialized-global-ranking-frontier'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "materializationVersion: 'major-bands-materialized-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "materializationOwner: '/functions/api/major-bands.js'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "materializationStage: 'after-global-ranking-and-pagination'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "responseTransportVersion: 'major-bands-response-compact-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'scoreTransferBudgetChars: 1200000' shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'schoolTransferBudgetChars: 300000' shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'responseBudgetBytes: 260000' shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'transientRetryMaxAttempts: 3' shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transientRetryBackoffMs: '250,500'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transientRetryPolicyVersion: 'major-bands-transient-retry-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+
+          grep -q 'maxConcurrency: 1' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          grep -q 'maxAttempts: 3' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          grep -q 'baseDelayMs: 250' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          grep -Fq 'record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION' functions/_lib/major-bands-static-provider.js
+          grep -Fq 'resolveCanonicalPosition, rankBandRangeText' functions/api/major-bands.js
+          grep -Fq 'const item = materializeMajorBandsStaticRecord(source);' functions/api/major-bands.js
+          grep -Fq '分桶排序位置与父级重建不一致' functions/api/major-bands.js
+          grep -Fq 'finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })' functions/api/major-bands.js
+          grep -q 'compactMajorBandsResponseRecord' functions/api/major-bands.js
+          grep -q "'x-gaokao-response-transport'" functions/api/major-bands.js
+          if grep -Fq 'materializeMajorBandsStaticRecord' functions/_lib/major-bands-bucket-engine.js; then
+            echo 'child Worker materialization returned'
+            exit 1
+          fi
+          if grep -Fq 'buildDisplayTags' functions/_lib/major-bands-bucket-engine.js; then
+            echo 'child Worker display materialization returned'
+            exit 1
+          fi
+          if grep -Fq 'Promise.all(selected.buckets.map' functions/api/major-bands.js; then
+            echo 'unbounded bucket fanout returned'
+            exit 1
+          fi
+
+      - name: Verify 24 local concurrent cycles and byte budgets
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8793 --compatibility-date=2026-07-01 >/tmp/v3972-5-bounded-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8793/api/ln-rank-runtime-health' >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" -eq 1
+          for cycle in $(seq 1 24); do
+            token="bounded-${cycle}-$(date +%s%N)"
+            curl -fsS "http://127.0.0.1:8793/api/major-bands-health?probe=1&stress=${token}" > "/tmp/v3972-health-${cycle}.json" & p1=$!
+            curl -fsS "http://127.0.0.1:8793/api/major-bands?candidateScore=579&limit=16&stress=${token}" > "/tmp/v3972-score-${cycle}.json" & p2=$!
+            curl -fsS --get 'http://127.0.0.1:8793/api/major-bands' \
+              --data-urlencode 'candidateScore=650' \
+              --data-urlencode 'schoolKeyword=东北大学' \
+              --data-urlencode 'limit=16' \
+              --data-urlencode "stress=${token}" > "/tmp/v3972-school-${cycle}.json" & p3=$!
+            wait "$p1" "$p2" "$p3"
+            node tools/verify-worker-budget-local-v3972.mjs "$cycle"
+          done
+
+      - name: Resolve Cloudflare branch Preview
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28 | sed -E 's/-+$//')"
+          test -n "$slug"
+          echo "TARGET_BASE=https://${slug}.gaokao-4y9.pages.dev" >> "$GITHUB_ENV"
+
+      - name: Wait for ranking-frontier Preview
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 90); do
+            body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&limit=16&bounded=${GITHUB_SHA}-${attempt}" || true)"
+            if grep -q '"bucketWorkerOrchestrationVersion":"major-bands-bounded-fanout-v3972_5"' <<<"$body" \
+              && grep -q '"bucketCandidateTransferVersion":"major-bands-bucket-candidate-compact-v3972_5"' <<<"$body" \
+              && grep -q '"responseTransportVersion":"major-bands-response-compact-v3972_5"' <<<"$body" \
+              && grep -q '"bucketWorkerConcurrency":1' <<<"$body" \
+              && grep -q '"bucketWorkerMaxAttempts":3' <<<"$body"; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1
+
+      - name: Verify 40 Preview or production concurrent cycles
+        env:
+          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
+          PRODUCTION_VERIFY_ATTEMPTS: '3'
+          PRODUCTION_VERIFY_WAIT_MS: '5000'
+          PRODUCTION_STRESS_WAIT_MS: '500'
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            export PAGES_BASE="$TARGET_BASE"
+            export CUSTOM_BASE="$TARGET_BASE"
+          else
+            export PAGES_BASE='https://gaokao-4y9.pages.dev'
+            export CUSTOM_BASE='https://gaokao.powers.org.cn'
+          fi
+          export PRODUCTION_STRESS_CYCLES='40'
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-bounded-production.out
+
+      - name: Upload bounded-fanout evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3972-5-major-bands-bounded-fanout
+          path: |
+            /tmp/v3972-5-bounded-*.out
+            /tmp/v3972-5-bounded-wrangler.log
+            /tmp/v3972-*.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -87,6 +87,47 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     ],
     validationTools: ['/tools/audit-site-runtime-generation-v3972_5.mjs', '/tools/browser-family-action-v3970.mjs']
   }),
+  majorBands: entry({
+    owner: '/functions/api/major-bands.js',
+    bucketOwner: '/functions/api/major-bands-bucket.js',
+    orchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js',
+    transferOwner: '/functions/_lib/major-bands-bucket-transfer.v3972_5.js',
+    transferVersion: 'major-bands-bucket-candidate-compact-v3972_5',
+    transferRole: 'unmaterialized-global-ranking-frontier',
+    materializationVersion: 'major-bands-materialized-v3972_5',
+    materializationOwner: '/functions/api/major-bands.js',
+    materializationStage: 'after-global-ranking-and-pagination',
+    responseTransportVersion: 'major-bands-response-compact-v3972_5',
+    scoreTransferBudgetChars: 1200000,
+    schoolTransferBudgetChars: 300000,
+    responseBudgetBytes: 260000,
+    transientRetryMaxAttempts: 3,
+    transientRetryBackoffMs: '250,500',
+    transientRetryPolicyVersion: 'major-bands-transient-retry-v3972_5',
+    bucketCacheVersion: 'major-bands-bucket-cache-v3972_5',
+    bucketCacheOwner: '/functions/api/major-bands.js',
+    bucketCacheImplementation: '/functions/_lib/major-bands-bucket-cache.v3972_5.js',
+    bucketCacheTtlSeconds: 300,
+    bucketCacheKeyScope: 'all-business-inputs-plus-cache-version',
+    bucketCacheKeyExcludes: 'stress,requestToken,bucketAttempt',
+    bucketCacheSuccessOnly: true,
+    staticProvider: '/functions/_lib/major-bands-static-provider.js',
+    schemaVersion: 'major-bands-bounded-fanout-v3972_5',
+    allowedConsumers: ['ln-rank', 'production-verification'],
+    allowedAdapters: [
+      '/functions/api/major-bands-bucket.js',
+      '/functions/_lib/major-bands-static-provider.js',
+      '/functions/_lib/major-bands-bucket-engine.js',
+      '/functions/_lib/major-bands-bucket-cache.v3972_5.js',
+      '/functions/_lib/major-bands-bucket-transfer.v3972_5.js'
+    ],
+    forbiddenLiterals: ['Promise.all(selected.buckets.map'],
+    validationTools: [
+      '/tools/audit-major-bands-bounded-fanout-v3972_5.mjs',
+      '/tools/verify-production-v3971.mjs',
+      '/.github/workflows/verify-production-api-health-v3971.yml'
+    ]
+  }),
   familyAction: entry({
     ...(STABLE_RESOURCE_EXECUTION_REGISTRY.familyAction || {}),
     owner: SITE_RUNTIME_CONTRACT.owners.familyPlanEntry,

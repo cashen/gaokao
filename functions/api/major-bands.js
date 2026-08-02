@@ -3,6 +3,24 @@ import {
   materializeMajorBandsStaticRecord
 } from '../_lib/major-bands-static-provider.js';
 import { makeBands } from '../_lib/band-engine.js';
+import {
+  MAJOR_BANDS_BUCKET_ORCHESTRATION,
+  MajorBandsBucketWorkerError,
+  isRetryableBucketWorkerFailure,
+  runMajorBandsBucketWorkers
+} from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
+import {
+  MAJOR_BANDS_BUCKET_CACHE_VERSION,
+  readMajorBandsBucketCache,
+  writeMajorBandsBucketCache,
+  deleteMajorBandsBucketCache
+} from '../_lib/major-bands-bucket-cache.v3972_5.js';
+import {
+  MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
+  MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+  assertCompactMajorBandsBucketCandidate,
+  compactMajorBandsResponseRecord
+} from '../_lib/major-bands-bucket-transfer.v3972_5.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   normalizeBottomLineMode,
@@ -20,7 +38,7 @@ import {
   normalizeSchoolQueryIntent
 } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
 import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
-import { rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
+import { resolveCanonicalPosition, rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
@@ -36,11 +54,13 @@ import {
 const BUCKET_CONTRACT = 'major-bands-bucket-v3972_2';
 
 function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), {
+  const body = JSON.stringify(payload);
+  return new Response(body, {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store'
+      'cache-control': 'no-store',
+      'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION
     }
   });
 }
@@ -120,8 +140,34 @@ function rankLabel(context) {
   return `按 2026 年成绩分布，历史参考位置约为第 ${context.rankEnd.toLocaleString('zh-CN')} 位`;
 }
 
-function finalizeRecordForResponse(record) {
-  const item = materializeMajorBandsStaticRecord(record);
+function finalizeRecordForResponse(record, context = {}) {
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: context.candidateScore,
+    candidateRank: context.candidateRank?.rankForGap,
+    recordScore: record.score2026 ?? record.score,
+    recordRank: record.rank2026 ?? record.rank,
+    rangePreset: context.rangePreset
+  });
+  const transferredBand = record.canonicalPosition?.bandKey || record.bandKey || record.band || '';
+  if (transferredBand && canonicalPosition.bandKey !== transferredBand) {
+    throw new Error(`分桶排序位置与父级重建不一致：${record.id || `${record.school}|${record.major}`}，${transferredBand}/${canonicalPosition.bandKey}`);
+  }
+  const source = {
+    ...record,
+    band: canonicalPosition.bandKey,
+    bandKey: canonicalPosition.bandKey,
+    candidateScore: context.candidateScore,
+    candidateReferenceScore: context.candidateScore,
+    scoreDelta2026: canonicalPosition.scoreDelta,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap2026: canonicalPosition.rankGap,
+    rankGap: canonicalPosition.rankGap,
+    statusKey: canonicalPosition.statusKey,
+    statusLabel: canonicalPosition.statusLabel,
+    position: canonicalPosition.position,
+    canonicalPosition
+  };
+  const item = materializeMajorBandsStaticRecord(source);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -142,13 +188,57 @@ function mergeSpecialProjectStats(target, source) {
 
 function assertBucketResponse(response, text, bucketFile) {
   const lower = text.toLowerCase();
-  if (response.status === 503 || lower.includes('worker exceeded resource limits') || lower.includes('<title>error 1102') || lower.includes('error code: 1102')) {
-    throw new Error(`分数桶 Worker 资源超限：${bucketFile}，HTTP ${response.status}`);
+  const retryable = [429, 502, 503, 504].includes(response.status)
+    || lower.includes('worker exceeded resource limits')
+    || lower.includes('<title>error 1102')
+    || lower.includes('error code: 1102')
+    || lower.includes('http 503')
+    || lower.includes('temporarily unavailable');
+  if (retryable) {
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 瞬态失败：${bucketFile}，HTTP ${response.status}`, {
+      status: response.status,
+      retryable: true,
+      bucketFile
+    });
   }
-  if (!response.ok) throw new Error(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`);
+  if (!response.ok) {
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`, {
+      status: response.status,
+      retryable: false,
+      bucketFile
+    });
+  }
   if (lower.includes('<!doctype html') || lower.includes('<html')) {
-    throw new Error(`分数桶 Worker 返回 HTML：${bucketFile}`);
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 返回 HTML：${bucketFile}`, {
+      status: response.status,
+      retryable: false,
+      bucketFile
+    });
   }
+}
+
+function parseBucketPayload(response, text, bucketFile) {
+  assertBucketResponse(response, text, bucketFile);
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`分数桶 Worker JSON 解析失败：${bucketFile}。${error?.message || String(error)}`);
+  }
+  if (
+    !payload?.ok
+    || payload?.contract !== BUCKET_CONTRACT
+    || payload?.candidateTransferVersion !== MAJOR_BANDS_BUCKET_TRANSFER_VERSION
+    || payload?.bucket?.file !== bucketFile
+  ) {
+    throw new Error(`分数桶 Worker 合同不匹配：${bucketFile}`);
+  }
+  for (const key of ['upper', 'near', 'steady']) {
+    for (const candidate of payload.grouped?.[key]?.candidates || []) {
+      assertCompactMajorBandsBucketCandidate(candidate);
+    }
+  }
+  return payload;
 }
 
 async function fetchBucketWorker(context, bucket, options) {
@@ -162,29 +252,50 @@ async function fetchBucketWorker(context, bucket, options) {
   endpoint.searchParams.set('specialProjectMode', options.specialProjectMode);
   endpoint.searchParams.set('schoolFilter', options.schoolFilter ? '1' : '0');
   endpoint.searchParams.set('maxCandidates', String(options.maxCandidates));
-  for (const name of options.acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
-  endpoint.searchParams.set('requestToken', options.requestToken);
+  const acceptedSchoolNames = [...options.acceptedSchoolNames]
+    .sort((left, right) => String(left).localeCompare(String(right), 'zh-CN'));
+  for (const name of acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
 
-  const response = await fetch(endpoint.toString(), {
-    headers: {
-      accept: 'application/json',
-      'cache-control': 'no-cache',
-      pragma: 'no-cache',
-      'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
-    },
-    cf: { cacheTtl: 0, cacheEverything: false }
-  });
-  const text = await response.text();
-  assertBucketResponse(response, text, bucket.file);
-  let payload;
+  const cached = await readMajorBandsBucketCache(endpoint);
+  if (cached.status === 'hit') {
+    try {
+      const payload = parseBucketPayload({ status: 200, ok: true }, cached.text, bucket.file);
+      payload.transportChars = cached.text.length;
+      payload.bucketCacheStatus = 'hit';
+      payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
+      return payload;
+    } catch {
+      await deleteMajorBandsBucketCache(cached.cacheKey);
+    }
+  }
+
+  let response;
   try {
-    payload = JSON.parse(text);
+    response = await fetch(endpoint.toString(), {
+      headers: {
+        accept: 'application/json',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+        'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
+      },
+      cf: { cacheTtl: 0, cacheEverything: false }
+    });
   } catch (error) {
-    throw new Error(`分数桶 Worker JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 网络失败：${bucket.file}`, {
+      status: 0,
+      retryable: true,
+      bucketFile: bucket.file,
+      cause: error
+    });
   }
-  if (!payload?.ok || payload?.contract !== BUCKET_CONTRACT || payload?.bucket?.file !== bucket.file) {
-    throw new Error(`分数桶 Worker 合同不匹配：${bucket.file}`);
-  }
+
+  const responseText = await response.text();
+  const payload = parseBucketPayload(response, responseText, bucket.file);
+  const cacheStatus = cached.status === 'unavailable' ? 'unavailable' : 'miss';
+  if (cacheStatus === 'miss') await writeMajorBandsBucketCache(cached.cacheKey, responseText);
+  payload.transportChars = responseText.length;
+  payload.bucketCacheStatus = cacheStatus;
+  payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
   return payload;
 }
 
@@ -264,19 +375,26 @@ export async function onRequest(context) {
     const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
     const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
     const maxCandidates = Math.max(48, Math.min(240, pageOffset + pageLimit + 64));
-    const requestToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const bucketResults = await Promise.all(selected.buckets.map(bucket => fetchBucketWorker(context, bucket, {
-      candidateScore,
-      rangePreset,
-      region: filters.region,
-      majorKeyword: filters.majorKeyword,
-      bottomLineMode: filters.bottomLineMode,
-      specialProjectMode: filters.specialProjectMode,
-      schoolFilter,
-      acceptedSchoolNames: schoolNames,
-      maxCandidates,
-      requestToken
-    })));
+    const bucketExecution = await runMajorBandsBucketWorkers(
+      selected.buckets,
+      bucket => fetchBucketWorker(context, bucket, {
+        candidateScore,
+        rangePreset,
+        region: filters.region,
+        majorKeyword: filters.majorKeyword,
+        bottomLineMode: filters.bottomLineMode,
+        specialProjectMode: filters.specialProjectMode,
+        schoolFilter,
+        acceptedSchoolNames: schoolNames,
+        maxCandidates
+      }),
+      {
+        concurrency: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxConcurrency,
+        maxAttempts: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxAttempts,
+        baseDelayMs: MAJOR_BANDS_BUCKET_ORCHESTRATION.baseDelayMs
+      }
+    );
+    const bucketResults = bucketExecution.results;
 
     const aggregate = {
       rawScanned: 0,
@@ -325,7 +443,9 @@ export async function onRequest(context) {
       const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
       const records = requestedBand && requestedBand !== key
         ? []
-        : diversified.slice(offset, offset + pageLimit).map(finalizeRecordForResponse);
+        : diversified.slice(offset, offset + pageLimit).map(record => compactMajorBandsResponseRecord(
+          finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
+        ));
       const returned = records.length;
       const hasMore = offset + returned < group.count;
       group.records = records;
@@ -447,16 +567,31 @@ export async function onRequest(context) {
         specialProjectMode: filters.specialProjectMode,
         bucketWorkerCount: bucketResults.length,
         bucketWorkerCandidateLimit: maxCandidates,
+        bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
+        bucketWorkerCacheVersion: MAJOR_BANDS_BUCKET_CACHE_VERSION,
+        bucketWorkerCacheHits: bucketResults.filter(result => result.bucketCacheStatus === 'hit').length,
+        bucketWorkerCacheMisses: bucketResults.filter(result => result.bucketCacheStatus === 'miss').length,
+        bucketWorkerCacheUnavailable: bucketResults.filter(result => result.bucketCacheStatus === 'unavailable').length,
+        bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
+        responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+        bucketWorkerTransferChars: bucketResults.reduce((sum, result) => sum + Number(result.transportChars || 0), 0),
+        bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency,
+        bucketWorkerRetries: bucketExecution.stats.retryCount,
+        bucketWorkerMaxAttempts: bucketExecution.stats.maxAttempts,
         mode: 'build-time-static-score-index-distributed-bucket-workers-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
+    const retryable = isRetryableBucketWorkerFailure(error);
     return json({
       ok: false,
+      retryable,
       message: error?.message || String(error),
-      userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、单桶 Worker 合同和分布式查询编排。',
+      userMessage: retryable
+        ? '专业数据遇到短暂拥堵，系统已自动重试但仍未恢复。请稍后再试。'
+        : '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
+      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、有界子 Worker 编排和瞬态重试记录。',
       hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；专业查询不再运行时扫描原始投档分片。'
-    }, 500);
+    }, isRetryableBucketWorkerFailure(error) ? 503 : 500);
   }
 }
