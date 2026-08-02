@@ -8,6 +8,8 @@ import { buildKeywordQuery } from './keyword-query.js';
 import { matchMajorProject } from './major-project-matcher.js';
 import { buildSearchIndex } from './search-index-builder.js';
 import { lookupScoreRank } from './rank-table-provider.js';
+import { materializeMajorBandsStaticRecord } from './major-bands-static-provider.js';
+import { buildDisplayTags } from './school-display-tags.js';
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
 import { compactMajorBandsBucketCandidate } from './major-bands-bucket-transfer.v3972_5.js';
@@ -99,8 +101,15 @@ function pushCandidate(grouped, record, context) {
     rangePreset: context.rangePreset
   });
   if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return '';
+  // The child Worker owns expensive record materialization. It resolves
+  // historical evidence, geography and the canonical school profile once
+  // before the compact transfer boundary. The parent consumes the marker and
+  // compact schoolProfile instead of repeating those lookups.
+  const materialized = materializeMajorBandsStaticRecord(record);
+  const displayTags = buildDisplayTags(materialized);
   const item = {
-    ...record,
+    ...materialized,
+    ...displayTags,
     band: canonicalPosition.bandKey,
     bandKey: canonicalPosition.bandKey,
     candidateScore: context.candidateScore,
