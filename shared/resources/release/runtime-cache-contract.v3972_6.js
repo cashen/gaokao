@@ -4,21 +4,21 @@ const activeGenerationModules = Object.freeze([
   '/shared/resources/release/release-presenter.v3972_6.js',
   '/shared/resources/release/runtime-cache-contract.v3972_6.js',
   '/shared/governance/resource-execution-contract.v3972_6.js',
+  '/shared/ui/shell/family-shell.v3972_6.js',
+  '/shared/ui/components/family-plan-entry.v3972_6.js',
   '/shared/ui/interaction/interaction-transaction.v3972_6.js',
   '/shared/ui/interaction/interaction-transaction.v3972_6.css',
+  '/ln-rank/js/ux/family-home.v3972_6.js',
   '/ln-rank/js/app.v3972_6.js',
   '/ln-rank/js/app-runtime.v3972_6.js',
-  '/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js'
+  '/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js',
+  '/ln-rank/js/selection-pool.v3972_6.js',
+  '/ln-rank/js/selection-pool-runtime.v3972_6.js'
 ]);
 
 const declaredStableActiveModules = Object.freeze([
-  '/ln-rank/js/ux/family-home.v3972_5.js',
-  '/shared/ui/shell/family-shell.v3972_5.js',
   '/shared/ui/shell/family-shell.v3972_5.css',
-  '/shared/ui/components/family-plan-entry.v3972_5.js',
-  '/shared/ui/components/family-plan-entry.v3972_5.css',
-  '/ln-rank/js/selection-pool.v3972_5.js',
-  '/ln-rank/js/selection-pool-runtime.v3972_5.js'
+  '/shared/ui/components/family-plan-entry.v3972_5.css'
 ]);
 
 export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
@@ -33,6 +33,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     release: SITE_RUNTIME_CONTRACT.owners.release,
     execution: SITE_RUNTIME_CONTRACT.owners.execution,
     home: SITE_RUNTIME_CONTRACT.owners.home,
+    sharedShell: SITE_RUNTIME_CONTRACT.owners.sharedShell,
     bootstrap: SITE_RUNTIME_CONTRACT.owners.selectionBootstrap,
     searchRuntime: SITE_RUNTIME_CONTRACT.owners.selectionRuntime,
     searchState: SITE_RUNTIME_CONTRACT.owners.selectionWorkspace,
@@ -41,7 +42,8 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     disclosure: SITE_RUNTIME_CONTRACT.owners.disclosure,
     auxiliaryNavigation: SITE_RUNTIME_CONTRACT.owners.auxiliaryNavigation,
     familyAction: SITE_RUNTIME_CONTRACT.owners.familyPlanEntry,
-    familyPlanBootstrap: SITE_RUNTIME_CONTRACT.owners.familyPlanBootstrap
+    familyPlanBootstrap: SITE_RUNTIME_CONTRACT.owners.familyPlanBootstrap,
+    familyPlanRuntime: SITE_RUNTIME_CONTRACT.owners.familyPlanRuntime
   }),
   activeGenerationModules,
   declaredStableActiveModules,
@@ -54,6 +56,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     oneActiveGeneration: true,
     activeEntrypointsMustMatchGenerationOrDeclaredStableDependency: true,
     stableDependenciesMustBeDeclared: true,
+    currentInfrastructureCannotImportRetiredReleaseQuery: true,
     auxiliaryNavigationSingleOwner: true,
     nativeChooserActivationSingleOwner: true,
     nativeChooserPreActivationDomMutationForbidden: true,
