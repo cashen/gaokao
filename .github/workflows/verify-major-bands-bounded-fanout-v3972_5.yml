@@ -74,7 +74,10 @@ jobs:
 
           grep -q 'maxConcurrency: 1' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
           grep -Fq 'record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION' functions/_lib/major-bands-static-provider.js
-          grep -Fq 'const item = materializeMajorBandsStaticRecord(record);' functions/api/major-bands.js
+          grep -Fq 'resolveCanonicalPosition, rankBandRangeText' functions/api/major-bands.js
+          grep -Fq 'const item = materializeMajorBandsStaticRecord(source);' functions/api/major-bands.js
+          grep -Fq '分桶排序位置与父级重建不一致' functions/api/major-bands.js
+          grep -Fq 'finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })' functions/api/major-bands.js
           grep -q 'compactMajorBandsResponseRecord' functions/api/major-bands.js
           grep -q "'x-gaokao-response-transport'" functions/api/major-bands.js
           if grep -Fq 'materializeMajorBandsStaticRecord' functions/_lib/major-bands-bucket-engine.js; then
