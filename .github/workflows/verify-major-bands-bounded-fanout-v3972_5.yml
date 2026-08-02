@@ -8,6 +8,7 @@ on:
       - 'functions/api/major-bands.js'
       - 'functions/api/major-bands-bucket.js'
       - 'functions/_lib/major-bands-bucket-orchestrator.v3972_5.js'
+      - 'functions/_lib/major-bands-bucket-transfer.v3972_5.js'
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-bucket-engine.js'
       - 'shared/resources/release/current-release.js'
@@ -41,13 +42,20 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/api/major-bands.js
+          node --check functions/api/major-bands-bucket.js
           node --check functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          node --check functions/_lib/major-bands-bucket-transfer.v3972_5.js
           node --check tools/verify-worker-budget-local-v3972.mjs
+          node --check tools/verify-production-v3971.mjs
           node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
           grep -q "majorBandsOrchestrationVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsBucketTransferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsOrchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js'" shared/resources/release/current-release.js
+          grep -q "majorBandsBucketTransfer: '/functions/_lib/major-bands-bucket-transfer.v3972_5.js'" shared/resources/release/current-release.js
           grep -q "schemaVersion: 'major-bands-bounded-fanout-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'maxConcurrency: 1' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
           if grep -Fq 'Promise.all(selected.buckets.map' functions/api/major-bands.js; then
             echo 'unbounded bucket fanout returned'
             exit 1
@@ -90,14 +98,16 @@ jobs:
           test -n "$slug"
           echo "TARGET_BASE=https://${slug}.gaokao-4y9.pages.dev" >> "$GITHUB_ENV"
 
-      - name: Wait for bounded-fanout Preview
+      - name: Wait for serial compact-transfer Preview
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
           ready=0
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&limit=16&bounded=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q '"bucketWorkerOrchestrationVersion":"major-bands-bounded-fanout-v3972_5"' <<<"$body"; then
+            if grep -q '"bucketWorkerOrchestrationVersion":"major-bands-bounded-fanout-v3972_5"' <<<"$body" \
+              && grep -q '"bucketCandidateTransferVersion":"major-bands-bucket-candidate-compact-v3972_5"' <<<"$body" \
+              && grep -q '"bucketWorkerConcurrency":1' <<<"$body"; then
               ready=1
               break
             fi
@@ -105,7 +115,7 @@ jobs:
           done
           test "$ready" -eq 1
 
-      - name: Verify 24 Preview or 40 production concurrent cycles
+      - name: Verify 40 Preview or production concurrent cycles
         env:
           EXPECTED_RELEASE: v3.9.72.5
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
@@ -118,12 +128,11 @@ jobs:
           if [ "${{ github.event_name }}" = 'pull_request' ]; then
             export PAGES_BASE="$TARGET_BASE"
             export CUSTOM_BASE="$TARGET_BASE"
-            export PRODUCTION_STRESS_CYCLES='24'
           else
             export PAGES_BASE='https://gaokao-4y9.pages.dev'
             export CUSTOM_BASE='https://gaokao.powers.org.cn'
-            export PRODUCTION_STRESS_CYCLES='40'
           fi
+          export PRODUCTION_STRESS_CYCLES='40'
           node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-bounded-production.out
 
       - name: Upload bounded-fanout evidence
