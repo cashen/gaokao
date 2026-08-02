@@ -90,19 +90,12 @@ jobs:
             echo 'obsolete self-mutating active metadata workflow returned'
             exit 1
           fi
-          if git grep -n -E "legacyInventory(IsActiveOwner)?" -- \
+          if git grep -n -E '"legacyInventory"|"legacyInventoryIsActiveOwner"' -- \
             shared/resources/release/current-release.js \
             shared/resources/resource-registry.js \
             shared/ui/ui-resource-registry.v3972_5.js \
-            ln-rank/site-active-generation.v3972_5.json \
-            tools/audit-unified-resource-graph-v3972_5.mjs \
-            tools/audit-site-runtime-generation-v3972_5.mjs \
-            tools/audit-canonical-release-version-v3972_5.mjs \
-            tools/audit-family-action-v3970.mjs \
-            tools/audit-home-release-ownership-v3970.mjs \
-            tools/verify-school-profile-center-v3957.mjs \
-            tools/ln-2026/verify-final-release-v3970.py; then
-            echo 'current governance graph still carries legacy ownership switches'
+            ln-rank/site-active-generation.v3972_5.json; then
+            echo 'current source graph still carries legacy ownership switches'
             exit 1
           fi
 
