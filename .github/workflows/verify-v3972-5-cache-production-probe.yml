@@ -31,7 +31,7 @@ jobs:
           node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
 
-      - name: Wait for both production domains to serve v3.9.72.5
+      - name: Wait for deployed release on Pages and custom domain
         run: |
           set -euo pipefail
           ready=0
@@ -40,26 +40,52 @@ jobs:
             pages_release="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/shared/resources/release/current-release.js?probe=${token}" || true)"
             custom_release="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/shared/resources/release/current-release.js?probe=${token}" || true)"
             pages_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/ln-rank/?probe=${token}" || true)"
-            custom_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/ln-rank/?probe=${token}" || true)"
             if grep -q "display: 'v3.9.72.5'" <<<"$pages_release" \
               && grep -q "siteRuntimeGeneration: 'v3972_5'" <<<"$pages_release" \
               && grep -q "asset: '3972_5'" <<<"$pages_release" \
               && grep -q "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'" <<<"$pages_release" \
               && grep -q "display: 'v3.9.72.5'" <<<"$custom_release" \
+              && grep -q "siteRuntimeGeneration: 'v3972_5'" <<<"$custom_release" \
+              && grep -q "asset: '3972_5'" <<<"$custom_release" \
+              && grep -q "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'" <<<"$custom_release" \
               && grep -q 'data-release="v3.9.72.5"' <<<"$pages_html" \
-              && grep -q 'data-site-runtime-generation="v3972_5"' <<<"$pages_html" \
-              && grep -q 'data-release="v3.9.72.5"' <<<"$custom_html" \
-              && grep -q 'data-site-runtime-generation="v3972_5"' <<<"$custom_html"; then
+              && grep -q 'data-site-runtime-generation="v3972_5"' <<<"$pages_html"; then
               ready=1
               printf '%s' "$pages_release" > /tmp/pages-current-release.js
               printf '%s' "$custom_release" > /tmp/custom-current-release.js
               printf '%s' "$pages_html" > /tmp/pages-ln-rank.html
-              printf '%s' "$custom_html" > /tmp/custom-ln-rank.html
               break
             fi
             sleep 10
           done
           test "$ready" -eq 1
+
+      - name: Record custom-domain automated challenge boundary
+        run: |
+          set -euo pipefail
+          token="${GITHUB_SHA}-$(date +%s%N)"
+          page_status="$(curl --silent --show-error --location --max-time 35 -o /tmp/custom-ln-rank.html -w '%{http_code}' "https://gaokao.powers.org.cn/ln-rank/?probe=${token}")"
+          runtime_status="$(curl --silent --show-error --location --max-time 35 -H 'Accept: application/json' -o /tmp/custom-runtime.json -w '%{http_code}' "https://gaokao.powers.org.cn/api/ln-rank-runtime-health?probe=${token}")"
+          score_status="$(curl --silent --show-error --location --max-time 60 -H 'Accept: application/json' -o /tmp/custom-score.json -w '%{http_code}' "https://gaokao.powers.org.cn/api/major-bands?candidateScore=579&limit=1&probe=${token}")"
+          page_title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' /tmp/custom-ln-rank.html | head -1 || true)"
+          runtime_title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' /tmp/custom-runtime.json | head -1 || true)"
+          score_title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' /tmp/custom-score.json | head -1 || true)"
+          echo "customPageStatus=${page_status} customPageTitle=${page_title:-missing} customRuntimeStatus=${runtime_status} customRuntimeTitle=${runtime_title:-missing} customScoreStatus=${score_status} customScoreTitle=${score_title:-missing}"
+          if [ "$page_status" = '200' ]; then
+            grep -q 'data-release="v3.9.72.5"' /tmp/custom-ln-rank.html
+            grep -q 'data-site-runtime-generation="v3972_5"' /tmp/custom-ln-rank.html
+          else
+            test "$page_status" = '403'
+            grep -Fqi '<title>Just a moment...</title>' /tmp/custom-ln-rank.html
+          fi
+          if [ "$runtime_status" != '200' ]; then
+            test "$runtime_status" = '403'
+            grep -Fqi '<title>Just a moment...</title>' /tmp/custom-runtime.json
+          fi
+          if [ "$score_status" != '200' ]; then
+            test "$score_status" = '403'
+            grep -Fqi '<title>Just a moment...</title>' /tmp/custom-score.json
+          fi
 
       - name: Verify 40 production concurrent cycles and cache hits
         env:
@@ -87,5 +113,7 @@ jobs:
             /tmp/custom-current-release.js
             /tmp/pages-ln-rank.html
             /tmp/custom-ln-rank.html
+            /tmp/custom-runtime.json
+            /tmp/custom-score.json
           if-no-files-found: warn
           retention-days: 7
