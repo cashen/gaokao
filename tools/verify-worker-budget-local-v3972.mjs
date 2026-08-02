@@ -37,7 +37,7 @@ function assertBoundedOrchestration(data, label) {
   if (transferChars > transferBudget) {
     throw new Error(`${label} transferChars=${transferChars} budget=${transferBudget}`);
   }
-  if (Number(source.bucketWorkerMaxAttempts || 0) !== 2) {
+  if (Number(source.bucketWorkerMaxAttempts || 0) !== 3) {
     throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
   }
   const retries = Number(source.bucketWorkerRetries || 0);

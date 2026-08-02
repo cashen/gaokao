@@ -94,7 +94,7 @@ function assertMajorBandsExecution(data, label) {
   assert(source.responseTransportVersion === EXPECTED_MAJOR_BANDS_RESPONSE, `${label} response=${source.responseTransportVersion || 'missing'}`);
   assert(Number(source.bucketWorkerTransferChars || 0) > 0, `${label} transferChars=${source.bucketWorkerTransferChars}`);
   assert(Number(source.bucketWorkerConcurrency || 0) === 1, `${label} concurrency=${source.bucketWorkerConcurrency}`);
-  assert(Number(source.bucketWorkerMaxAttempts || 0) === 2, `${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
+  assert(Number(source.bucketWorkerMaxAttempts || 0) === 3, `${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
   const retries = Number(source.bucketWorkerRetries || 0);
   assert(Number.isInteger(retries) && retries >= 0, `${label} retries=${source.bucketWorkerRetries}`);
 }

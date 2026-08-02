@@ -101,6 +101,7 @@ A request must not fan out to every selected Worker with an unbounded `Promise.a
 
 - Static data packages remain immutable and are read through their declared provider.
 - Retry only transient transport or platform resource failures such as HTTP 429/502/503/504 and Cloudflare 1102 markers.
+- Transient retries must use bounded backoff. For the current major-bands owner the maximum is three total attempts with 250 ms and 500 ms delays; immediate repeated retries are forbidden.
 - Contract, validation and data-integrity failures must fail immediately and must not be hidden by retries.
 - The response and production evidence must expose peak child-Worker concurrency and retry count.
 - Recomputable ranking and execution traces must be removed from child-Worker transfer payloads and rebuilt only by the owning parent Worker.

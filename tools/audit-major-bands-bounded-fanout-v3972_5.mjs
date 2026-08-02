@@ -27,7 +27,7 @@ const successful = await runMajorBandsBucketWorkers(buckets, async (bucket, cont
   attempts.set(bucket.file, context.attempt);
   await new Promise(resolve => setTimeout(resolve, 8));
   active -= 1;
-  if (bucket.file === 'bucket-4' && context.attempt === 1) {
+  if (bucket.file === 'bucket-4' && context.attempt < 3) {
     throw new MajorBandsBucketWorkerError('temporary HTTP 503', {
       status: 503,
       retryable: true,
@@ -37,19 +37,21 @@ const successful = await runMajorBandsBucketWorkers(buckets, async (bucket, cont
   return bucket.file;
 }, {
   concurrency: 3,
-  maxAttempts: 2,
+  maxAttempts: 3,
   baseDelayMs: 1
 });
 
 assert.deepEqual(successful.results, buckets.map(bucket => bucket.file));
 assert.equal(successful.stats.version, MAJOR_BANDS_BUCKET_ORCHESTRATION.version);
 assert.equal(MAJOR_BANDS_BUCKET_ORCHESTRATION.maxConcurrency, 1);
+assert.equal(MAJOR_BANDS_BUCKET_ORCHESTRATION.maxAttempts, 3);
+assert.equal(MAJOR_BANDS_BUCKET_ORCHESTRATION.baseDelayMs, 250);
 assert.equal(successful.stats.concurrency, 1);
 assert.equal(successful.stats.peakConcurrency, 1);
 assert.equal(observedPeak, 1);
-assert.equal(successful.stats.retryCount, 1);
-assert.equal(calls, 11);
-assert.equal(attempts.get('bucket-4'), 2);
+assert.equal(successful.stats.retryCount, 2);
+assert.equal(calls, 12);
+assert.equal(attempts.get('bucket-4'), 3);
 
 let nonRetryableCalls = 0;
 await assert.rejects(
@@ -74,10 +76,10 @@ await assert.rejects(
       retryable: true,
       bucketFile: 'always-503'
     });
-  }, { maxAttempts: 2, baseDelayMs: 0 }),
+  }, { maxAttempts: 3, baseDelayMs: 0 }),
   /resource limits/
 );
-assert.equal(exhaustedCalls, 2);
+assert.equal(exhaustedCalls, 3);
 
 const tracedCandidate = {
   id: 'ln-2026-demo',

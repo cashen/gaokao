@@ -22,6 +22,7 @@ export const CURRENT_RELEASE = Object.freeze({
   all211Architecture: 'build-time-static-index',
   majorBandsVersion: 'major-bands-static-v3972_2',
   majorBandsOrchestrationVersion: 'major-bands-bounded-fanout-v3972_5',
+  majorBandsRetryPolicyVersion: 'major-bands-transient-retry-v3972_5',
   majorBandsBucketTransferVersion: 'major-bands-bucket-candidate-compact-v3972_5',
   majorBandsMaterializationVersion: 'major-bands-materialized-v3972_5',
   majorBandsMaterializationOwnerVersion: 'major-bands-parent-finalization-v3972_5',
