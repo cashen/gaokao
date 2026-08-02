@@ -67,6 +67,13 @@ function meaningful(value) {
   return value !== undefined && value !== null && value !== '';
 }
 
+function transferMeaningful(value) {
+  if (!meaningful(value)) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return true;
+}
+
 function pickMeaningful(source = {}, keys = []) {
   const out = {};
   for (const key of keys) {
@@ -171,7 +178,9 @@ export function compactMajorBandsCanonicalPosition(position = null) {
  * carries the raw fields required to reproduce the final record plus the
  * canonical ranking tuple. Expensive school profiles, geography expansion and
  * three-year evidence are intentionally absent and are materialized once by
- * the parent after global ranking and pagination.
+ * the parent after global ranking and pagination. Empty strings, empty arrays
+ * and empty objects are omitted because absence and emptiness are equivalent
+ * for this internal frontier; numeric zero and boolean false remain explicit.
  */
 export function compactMajorBandsBucketCandidate(record = {}) {
   const candidate = {};
@@ -181,6 +190,7 @@ export function compactMajorBandsBucketCandidate(record = {}) {
       candidate.canonicalPosition = compactMajorBandsRankingPosition(value);
       continue;
     }
+    if (!transferMeaningful(value)) continue;
     candidate[key] = value;
   }
   return candidate;
@@ -237,6 +247,9 @@ export function assertCompactMajorBandsBucketCandidate(record = {}) {
   }
   if (!record.canonicalPosition || typeof record.canonicalPosition !== 'object') {
     throw new Error('bucket ranking candidate missing canonicalPosition');
+  }
+  for (const [key, value] of Object.entries(record)) {
+    if (!transferMeaningful(value)) throw new Error(`bucket ranking candidate leaked empty field ${key}`);
   }
   return record;
 }
