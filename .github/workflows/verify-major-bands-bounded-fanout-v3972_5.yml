@@ -54,20 +54,37 @@ jobs:
           grep -q "majorBandsOrchestrationVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsBucketTransferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsMaterializationVersion: 'major-bands-materialized-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsMaterializationOwnerVersion: 'major-bands-parent-finalization-v3972_5'" shared/resources/release/current-release.js
+          grep -q "majorBandsTransferBudgetVersion: 'major-bands-transfer-budget-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsResponseTransportVersion: 'major-bands-response-compact-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsOrchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js'" shared/resources/release/current-release.js
           grep -q "majorBandsBucketTransfer: '/functions/_lib/major-bands-bucket-transfer.v3972_5.js'" shared/resources/release/current-release.js
+          grep -q "majorBandsMaterializationOwner: '/functions/api/major-bands.js'" shared/resources/release/current-release.js
 
           grep -q "schemaVersion: 'major-bands-bounded-fanout-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
           grep -q "transferVersion: 'major-bands-bucket-candidate-compact-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "transferRole: 'unmaterialized-global-ranking-frontier'" shared/governance/resource-execution-contract.v3972_5.js
           grep -q "materializationVersion: 'major-bands-materialized-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "materializationOwner: '/functions/api/major-bands.js'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q "materializationStage: 'after-global-ranking-and-pagination'" shared/governance/resource-execution-contract.v3972_5.js
           grep -q "responseTransportVersion: 'major-bands-response-compact-v3972_5'" shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'scoreTransferBudgetChars: 1200000' shared/governance/resource-execution-contract.v3972_5.js
+          grep -q 'schoolTransferBudgetChars: 300000' shared/governance/resource-execution-contract.v3972_5.js
           grep -q 'responseBudgetBytes: 260000' shared/governance/resource-execution-contract.v3972_5.js
 
           grep -q 'maxConcurrency: 1' functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
           grep -Fq 'record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION' functions/_lib/major-bands-static-provider.js
+          grep -Fq 'const item = materializeMajorBandsStaticRecord(record);' functions/api/major-bands.js
           grep -q 'compactMajorBandsResponseRecord' functions/api/major-bands.js
           grep -q "'x-gaokao-response-transport'" functions/api/major-bands.js
+          if grep -Fq 'materializeMajorBandsStaticRecord' functions/_lib/major-bands-bucket-engine.js; then
+            echo 'child Worker materialization returned'
+            exit 1
+          fi
+          if grep -Fq 'buildDisplayTags' functions/_lib/major-bands-bucket-engine.js; then
+            echo 'child Worker display materialization returned'
+            exit 1
+          fi
           if grep -Fq 'Promise.all(selected.buckets.map' functions/api/major-bands.js; then
             echo 'unbounded bucket fanout returned'
             exit 1
@@ -110,7 +127,7 @@ jobs:
           test -n "$slug"
           echo "TARGET_BASE=https://${slug}.gaokao-4y9.pages.dev" >> "$GITHUB_ENV"
 
-      - name: Wait for one-time materialization Preview
+      - name: Wait for ranking-frontier Preview
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
