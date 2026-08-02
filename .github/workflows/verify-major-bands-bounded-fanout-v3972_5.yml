@@ -14,6 +14,7 @@ on:
       - 'shared/governance/resource-execution-contract.v3972_5.js'
       - 'docs/skills/unified-site-release/SKILL.md'
       - 'tools/audit-major-bands-bounded-fanout-v3972_5.mjs'
+      - 'tools/verify-worker-budget-local-v3972.mjs'
       - 'tools/verify-production-v3971.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
   push:
@@ -41,6 +42,7 @@ jobs:
           set -euo pipefail
           node --check functions/api/major-bands.js
           node --check functions/_lib/major-bands-bucket-orchestrator.v3972_5.js
+          node --check tools/verify-worker-budget-local-v3972.mjs
           node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
           grep -q "majorBandsOrchestrationVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
@@ -76,16 +78,6 @@ jobs:
               --data-urlencode "stress=${token}" > "/tmp/v3972-school-${cycle}.json" & p3=$!
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
-            node --experimental-default-type=module - "$cycle" <<'NODE'
-            import fs from 'node:fs';
-            const cycle=process.argv[2];
-            for(const kind of ['score','school']){
-              const data=JSON.parse(fs.readFileSync(`/tmp/v3972-${kind}-${cycle}.json`,'utf8'));
-              if(data?.source?.bucketWorkerOrchestrationVersion!=='major-bands-bounded-fanout-v3972_5') throw new Error(`${kind} orchestration version`);
-              if(Number(data?.source?.bucketWorkerConcurrency||0)>3) throw new Error(`${kind} concurrency ${data?.source?.bucketWorkerConcurrency}`);
-              if(Number(data?.source?.bucketWorkerMaxAttempts||0)!==2) throw new Error(`${kind} attempts ${data?.source?.bucketWorkerMaxAttempts}`);
-            }
-            NODE
           done
 
       - name: Resolve Cloudflare branch Preview
