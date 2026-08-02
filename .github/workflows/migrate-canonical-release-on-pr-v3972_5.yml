@@ -25,6 +25,25 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/migrate-canonical-release-v3972_5.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('shared/resources/release/current-release.js')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              "const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;\nconst RELEASE_VERSION = 'v3.9.72.5';\nconst SITE_RUNTIME_GENERATION = 'v3972_5';\nconst ASSET_QUERY_VERSION = '3972_5';\n",
+              "const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;\n"
+          )
+          for before, after in {
+              '  display: RELEASE_VERSION,': "  display: 'v3.9.72.5',",
+              '  version: RELEASE_VERSION,': "  version: 'v3.9.72.5',",
+              '  asset: ASSET_QUERY_VERSION,': "  asset: '3972_5',",
+              '  assetVersion: SITE_RUNTIME_GENERATION,': "  assetVersion: 'v3972_5',",
+              '  assetReleaseVersion: RELEASE_VERSION,': "  assetReleaseVersion: 'v3.9.72.5',",
+              '  siteRuntimeGeneration: SITE_RUNTIME_GENERATION,': "  siteRuntimeGeneration: 'v3972_5',",
+          }.items():
+              text = text.replace(before, after, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
           node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
           node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
           python3 tools/ln-2026/verify-final-release-v3970.py
