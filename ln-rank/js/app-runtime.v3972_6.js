@@ -1,7 +1,7 @@
 import '../../shared/resources/release/release-presenter.v3972_6.js?v=3972_6';
 import './workspace/viewport-orchestrator.v3961_0.js?v=3961_0';
 import './domain/family-plan-copy-adapter.v3970_0.js?v=3970_0';
-import '../../shared/ui/shell/family-shell.v3972_5.js?v=3972_5';
+import '../../shared/ui/shell/family-shell.v3972_6.js?v=3972_6';
 import {
   LIAONING_PHYSICS_EXAM_CONFIG,
   isPublicBottomLineVisible
