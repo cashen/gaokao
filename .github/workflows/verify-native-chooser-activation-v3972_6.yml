@@ -1,0 +1,105 @@
+name: Verify native chooser activation v3972.6
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-chooser-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check protected paths and browser source syntax
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+            git diff --name-only "$base" HEAD | tee /tmp/v3972-6-native-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-6-native-files.txt; then exit 1; fi
+          fi
+          node --check shared/ui/interaction/interaction-transaction.v3972_6.js
+          node --check tools/browser-native-chooser-activation-v3972_6.mjs
+          node --check tools/browser-resource-execution-v3972_6.mjs
+          node --check tools/browser-family-action-v3972_6.mjs
+          node --check tools/browser-school-query-v3972_6.mjs
+
+      - name: Install Chromium journey runner
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify first-tap activation integrity and tail isolation
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-6-native-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3972_6_ARTIFACT_DIR=/tmp/v3972-6-native-browser \
+            node tools/browser-native-chooser-activation-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-native-browser.out
+
+      - name: Verify preserved PC Pad Android main journey
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-6-main-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3969_ARTIFACT_DIR=/tmp/v3972-6-browser-main \
+            node tools/browser-resource-execution-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-main.out
+
+      - name: Verify family action geometry
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-6-family-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3970_ARTIFACT_DIR=/tmp/v3972-6-browser-family \
+            node tools/browser-family-action-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-family.out
+
+      - name: Verify school ambiguity and mode switching
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-6-school-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3969_ARTIFACT_DIR=/tmp/v3972-6-browser-school \
+            node tools/browser-school-query-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-school.out
+
+      - name: Verify preserved 211 and LocalStrength journeys
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 >/tmp/v3972-6-background-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          V3968_ARTIFACT_DIR=/tmp/v3972-6-browser-background \
+            node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3972-6-browser-background.out
+
+      - name: Upload chooser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3972-6-native-chooser-browser
+          path: /tmp/v3972-6-*
+          if-no-files-found: warn
+          retention-days: 7
