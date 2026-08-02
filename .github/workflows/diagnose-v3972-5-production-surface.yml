@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Inspect live release and page markers
+      - name: Inspect live release, page and API markers
         run: |
           set -euo pipefail
           token="${GITHUB_SHA}-$(date +%s%N)"
@@ -24,10 +24,14 @@ jobs:
             release_file="/tmp/${label}-release.js"
             bot_page_file="/tmp/${label}-bot-ln-rank.html"
             browser_page_file="/tmp/${label}-browser-ln-rank.html"
+            runtime_file="/tmp/${label}-runtime.json"
+            score_file="/tmp/${label}-score.json"
             release_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$release_file" -w '%{http_code}' "${base}/shared/resources/release/current-release.js?diagnose=${token}")"
             bot_page_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$bot_page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose=${token}")"
             browser_page_status="$(curl --silent --show-error --location --max-time 35 -A "$browser_ua" -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$browser_page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose-browser=${token}")"
-            echo "BASE=${base} releaseStatus=${release_status} botPageStatus=${bot_page_status} browserPageStatus=${browser_page_status} releaseBytes=$(wc -c < "$release_file") botPageBytes=$(wc -c < "$bot_page_file") browserPageBytes=$(wc -c < "$browser_page_file")"
+            runtime_status="$(curl --silent --show-error --location --max-time 35 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$runtime_file" -w '%{http_code}' "${base}/api/ln-rank-runtime-health?diagnose=${token}")"
+            score_status="$(curl --silent --show-error --location --max-time 60 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$score_file" -w '%{http_code}' "${base}/api/major-bands?candidateScore=579&limit=1&diagnose=${token}")"
+            echo "BASE=${base} releaseStatus=${release_status} botPageStatus=${bot_page_status} browserPageStatus=${browser_page_status} runtimeStatus=${runtime_status} scoreStatus=${score_status} releaseBytes=$(wc -c < "$release_file") botPageBytes=$(wc -c < "$bot_page_file") browserPageBytes=$(wc -c < "$browser_page_file") runtimeBytes=$(wc -c < "$runtime_file") scoreBytes=$(wc -c < "$score_file")"
             for pattern in \
               "display: 'v3.9.72.5'" \
               "display: 'v3.9.72.2'" \
@@ -47,6 +51,12 @@ jobs:
               title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' "$page_file" | head -1 || true)"
               echo "${page_kind}Page title=${title:-missing}"
             done
+            if grep -Fq '"ok":true' "$runtime_file"; then echo 'runtime MATCH ok=true'; else echo 'runtime MISS ok=true'; fi
+            if grep -Fq '"ok":true' "$score_file"; then echo 'score MATCH ok=true'; else echo 'score MISS ok=true'; fi
+            if grep -Fq '"bucketWorkerCacheVersion":"major-bands-bucket-cache-v3972_5"' "$score_file"; then echo 'score MATCH cache version'; else echo 'score MISS cache version'; fi
+            runtime_title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' "$runtime_file" | head -1 || true)"
+            score_title="$(sed -n -E 's#.*<title>([^<]+)</title>.*#\1#Ip' "$score_file" | head -1 || true)"
+            echo "runtime title=${runtime_title:-json-or-missing} score title=${score_title:-json-or-missing}"
           done
 
       - name: Upload surface samples
@@ -57,5 +67,7 @@ jobs:
           path: |
             /tmp/*-release.js
             /tmp/*-ln-rank.html
+            /tmp/*-runtime.json
+            /tmp/*-score.json
           if-no-files-found: warn
           retention-days: 3
