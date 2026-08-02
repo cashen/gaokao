@@ -14,7 +14,13 @@
     "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3972_5.js?v=3972_5",
     "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3972_5.js?v=3972_5"
   },
+  "stablePageEntrypoints": {
+    "tongxue": "/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0",
+    "localStrength": "/ln-rank/js/local-strength/local-strength-app.v3971_2.js?v=3971_2",
+    "all211": "/ln-rank/js/academic-background/all211-static-app.v3972_0.js?v=3972_0"
+  },
   "preservedBusinessResources": {
+    "tongxue": "tongxue-runtime-v159-r3968",
     "localStrength": "local-strength-static-v3971_2",
     "all211": "all-211-static-v3972_0",
     "majorBands": "major-bands-static-v3972_2"
@@ -24,6 +30,7 @@
   "policies": {
     "oneActiveGeneration": true,
     "stableDependenciesDeclared": true,
+    "stablePageEntrypointsDeclared": true,
     "nativeAuxiliaryHrefForbidden": true,
     "explicitNavigationOwnerRequired": true,
     "productionGraphMustMatchSourceGraph": true
