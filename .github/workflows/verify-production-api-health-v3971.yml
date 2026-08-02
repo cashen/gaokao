@@ -143,7 +143,7 @@ jobs:
       - name: Verify Cloudflare Preview Worker and LocalStrength journey
         if: github.event_name == 'pull_request'
         env:
-          EXPECTED_RELEASE: v3.9.72.2
+          EXPECTED_RELEASE: v3.9.72.5
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '1'
@@ -181,12 +181,12 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-production-health.out
-      - name: Verify v3.9.72.2 production after main deployment
+      - name: Verify v3.9.72.5 production after main deployment
         if: github.event_name != 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.72.2
+          EXPECTED_RELEASE: v3.9.72.5
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '45'
