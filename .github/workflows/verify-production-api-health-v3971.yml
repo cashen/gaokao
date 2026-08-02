@@ -95,7 +95,8 @@ jobs:
           NODE
           grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
           grep -q "EXPECTED_LOCAL_STRENGTH_SCORE_POSITION" tools/verify-production-v3971.mjs
-          grep -q "Keep legacy production requests sequential and cacheable" tools/verify-production-baseline-v3971.mjs
+          grep -q "ALLOW_KNOWN_MAJOR_BANDS_DEGRADED" tools/verify-production-baseline-v3971.mjs
+          grep -q "known-pre-merge-degraded" tools/verify-production-baseline-v3971.mjs
           grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
           grep -q "legacy-spa-soft-404" tools/verify-production-baseline-v3971.mjs
       - name: Verify local Wrangler concurrent resource journey

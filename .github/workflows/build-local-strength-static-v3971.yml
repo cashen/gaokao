@@ -14,11 +14,12 @@ on:
       - 'tools/browser-local-strength-static-v3971.mjs'
       - 'functions/_lib/academic-background-provider.js'
       - 'shared/resources/release/current-release.js'
+      - 'shared/resources/release/site-runtime-contract.v3972_5.js'
       - '.github/workflows/build-local-strength-static-v3971.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   preserve-static-index:
@@ -32,14 +33,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Restore published immutable data from PR base
+      - name: Reject changes to published immutable data
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git checkout "$base" -- \
+          if ! git diff --quiet "$base" HEAD -- \
             ln-rank/data/local-strength/local-strength-index.v3971_2.json \
-            ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+            ln-rank/data/local-strength/local-strength-audit.v3971_2.json; then
+            echo 'LocalStrength v3971.2 is published immutable data. Create a new data generation instead of modifying it.'
+            git diff --stat "$base" HEAD -- \
+              ln-rank/data/local-strength/local-strength-index.v3971_2.json \
+              ln-rank/data/local-strength/local-strength-audit.v3971_2.json
+            exit 1
+          fi
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           const index=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
@@ -49,22 +56,7 @@ jobs:
           if(index.meta.duplicatePublicRecordCount!==0||index.meta.unresolvedLocalRecordCount!==0) throw new Error('integrity');
           console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json').size},null,2));
           NODE
-      - name: Commit immutable restoration when required
-        if: github.event_name == 'pull_request'
-        run: |
-          set -euo pipefail
-          git add \
-            ln-rank/data/local-strength/local-strength-index.v3971_2.json \
-            ln-rank/data/local-strength/local-strength-audit.v3971_2.json
-          if git diff --cached --quiet; then
-            echo 'published v3971.2 data already byte-identical to base'
-          else
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'restore(local-strength): preserve immutable v3971.2 data'
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi
-      - name: Verify immutable page runtime and data contract
+      - name: Verify stable page package under current site generation
         run: |
           set -euo pipefail
           node --check ln-rank/js/local-strength/local-strength-app.v3971_2.js

@@ -14,25 +14,35 @@ function origin(request) {
   return new URL(request.url).origin;
 }
 
-async function fetchStaticJson(request, pathname) {
+function hasPagesAssets(options = {}) {
+  return Boolean(options.assets && typeof options.assets.fetch === 'function');
+}
+
+async function fetchStaticJson(request, pathname, options = {}) {
   const url = `${origin(request)}${pathname}`;
-  const response = await fetch(url, {
-    headers: { accept: 'application/json' },
-    cf: { cacheTtl: 300, cacheEverything: false }
+  const assetRequest = new Request(url, {
+    method: 'GET',
+    headers: { accept: 'application/json' }
   });
+  const owner = hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback';
+  const response = hasPagesAssets(options)
+    ? await options.assets.fetch(assetRequest)
+    : await fetch(assetRequest, {
+      cf: { cacheTtl: 300, cacheEverything: false }
+    });
   const contentType = String(response.headers.get('content-type') || '').toLowerCase();
-  if (!response.ok) throw new Error(`静态专业分数索引读取失败：${pathname}，HTTP ${response.status}`);
-  if (contentType.includes('text/html')) throw new Error(`静态专业分数索引返回 HTML：${pathname}`);
+  if (!response.ok) throw new Error(`静态专业分数索引读取失败：${pathname}，HTTP ${response.status}，owner=${owner}`);
+  if (contentType.includes('text/html')) throw new Error(`静态专业分数索引返回 HTML：${pathname}，owner=${owner}`);
   try {
     return await response.json();
   } catch (error) {
-    throw new Error(`静态专业分数索引 JSON 解析失败：${pathname}。${error?.message || String(error)}`);
+    throw new Error(`静态专业分数索引 JSON 解析失败：${pathname}，owner=${owner}。${error?.message || String(error)}`);
   }
 }
 
-export async function loadMajorBandsStaticManifest(request) {
+export async function loadMajorBandsStaticManifest(request, options = {}) {
   if (fresh(manifestCache)) return manifestCache.data;
-  const manifest = await fetchStaticJson(request, MANIFEST_PATH);
+  const manifest = await fetchStaticJson(request, MANIFEST_PATH, options);
   if (manifest?.version !== 'major-bands-static-v3972_2') throw new Error(`静态专业分数索引版本异常：${manifest?.version || 'unknown'}`);
   if (manifest?.architecture !== 'build-time-static-score-index') throw new Error('静态专业分数索引架构异常');
   if (manifest?.encoding !== 'schema-row-array-atomic-v2') throw new Error(`静态专业分数索引编码异常：${manifest?.encoding || 'unknown'}`);
@@ -81,8 +91,8 @@ function intersects(bucket, scoreWindow) {
     && Number(bucket?.minScore) <= Number(scoreWindow.max);
 }
 
-export async function selectMajorBandsStaticBuckets(request, scoreWindow) {
-  const manifest = await loadMajorBandsStaticManifest(request);
+export async function selectMajorBandsStaticBuckets(request, scoreWindow, options = {}) {
+  const manifest = await loadMajorBandsStaticManifest(request, options);
   const buckets = (manifest.buckets || []).filter(bucket => intersects(bucket, scoreWindow));
   return { manifest, buckets };
 }
@@ -91,12 +101,12 @@ export async function selectMajorBandsStaticBuckets(request, scoreWindow) {
  * Load exactly one manifest-approved five-point bucket. The caller cannot pass
  * an arbitrary path or ask this function to combine buckets.
  */
-export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindow) {
-  const manifest = await loadMajorBandsStaticManifest(request);
+export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindow, options = {}) {
+  const manifest = await loadMajorBandsStaticManifest(request, options);
   const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
   if (!bucket) throw new Error(`静态专业分数桶不在发布清单中：${bucketFile || 'empty'}`);
   if (!intersects(bucket, scoreWindow)) throw new Error(`静态专业分数桶超出当前查询窗口：${bucketFile}`);
-  const payload = await fetchStaticJson(request, bucket.file);
+  const payload = await fetchStaticJson(request, bucket.file, options);
   if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
     throw new Error(`静态专业分数桶合同异常：${bucket.file}`);
   }
@@ -112,17 +122,18 @@ export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindo
     bucket,
     records,
     rowCount: payload.rows.length,
-    bytes: Number(bucket.bytes || 0)
+    bytes: Number(bucket.bytes || 0),
+    assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
   };
 }
 
 /** Compatibility helper for local audits; production orchestration uses one bucket per Worker. */
-export async function loadMajorBandsStaticWindow(request, scoreWindow) {
-  const { manifest, buckets } = await selectMajorBandsStaticBuckets(request, scoreWindow);
+export async function loadMajorBandsStaticWindow(request, scoreWindow, options = {}) {
+  const { manifest, buckets } = await selectMajorBandsStaticBuckets(request, scoreWindow, options);
   const records = [];
   let bytes = 0;
   for (const bucket of buckets) {
-    const loaded = await loadMajorBandsStaticBucket(request, bucket.file, scoreWindow);
+    const loaded = await loadMajorBandsStaticBucket(request, bucket.file, scoreWindow, options);
     records.push(...loaded.records);
     bytes += loaded.bytes;
   }

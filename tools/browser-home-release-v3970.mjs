@@ -4,7 +4,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.HOME_RELEASE_BASE_URL || 'http://127.0.0.1:8765';
-const artifactDir = process.env.V3970_HOME_ARTIFACT_DIR || '/tmp/v3970-home-browser';
+const artifactDir = process.env.V3970_HOME_ARTIFACT_DIR || '/tmp/v3972-5-home-browser';
 fs.mkdirSync(artifactDir, { recursive: true });
 
 const devices = [
@@ -35,16 +35,18 @@ try {
       }));
     });
     await page.goto(`${baseURL}/?home-release=${Date.now()}`, { waitUntil: 'networkidle' });
-    await page.waitForFunction(() => globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3970_0');
+    await page.waitForFunction(() => globalThis.__GAOKAO_HOME_RUNTIME__?.version === 'family-home-runtime-v3972_5');
 
     const state = await page.evaluate(() => {
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
       return {
         bodyRelease: document.body.dataset.release,
         htmlRelease: document.documentElement.dataset.release,
+        bodyGeneration: document.body.dataset.siteRuntimeGeneration,
+        htmlGeneration: document.documentElement.dataset.siteRuntimeGeneration,
         visibleRelease: document.querySelector('[data-current-release]')?.textContent?.trim(),
         runtime: globalThis.__GAOKAO_HOME_RUNTIME__,
-        shell: globalThis.__GAOKAO_UI__?.version || '',
+        shell: globalThis.__GAOKAO_UI__,
         scripts: [...document.scripts].map(node => node.src).filter(Boolean),
         styles: [...document.querySelectorAll('link[rel="stylesheet"]')].map(node => node.href),
         title: document.getElementById('homeTitle')?.textContent?.trim(),
@@ -55,24 +57,27 @@ try {
         industryHref: industryEntry?.getAttribute('href'),
         countdown: Number(document.getElementById('d2027')?.textContent || NaN),
         scrollWidth: document.documentElement.scrollWidth,
-        clientWidth: document.documentElement.clientWidth,
-        pageHeight: document.documentElement.scrollHeight,
-        viewportHeight: window.innerHeight
+        clientWidth: document.documentElement.clientWidth
       };
     });
 
     assert.equal(state.bodyRelease, 'v3.9.72.2', `${device.name}: body release`);
     assert.equal(state.htmlRelease, 'v3.9.72.2', `${device.name}: html release`);
+    assert.equal(state.bodyGeneration, 'v3972_5', `${device.name}: body generation`);
+    assert.equal(state.htmlGeneration, 'v3972_5', `${device.name}: html generation`);
     assert.equal(state.visibleRelease, 'v3.9.72.2', `${device.name}: visible release`);
-    assert.equal(state.runtime?.version, 'family-home-runtime-v3970_0', `${device.name}: runtime`);
+    assert.equal(state.runtime?.version, 'family-home-runtime-v3972_5', `${device.name}: runtime`);
+    assert.equal(state.runtime?.generation, 'v3972_5', `${device.name}: runtime generation`);
     assert.equal(state.runtime?.release, 'v3.9.72.2', `${device.name}: runtime release`);
-    assert.match(state.runtime?.shellOwner || '', /family-shell\.v3970_0\.js$/);
+    assert.match(state.runtime?.shellOwner || '', /family-shell\.v3972_5\.js$/);
     assert.match(state.runtime?.stateOwner || '', /family-decision-contract\.v3970_0\.js$/);
+    assert.equal(state.shell?.version, 'family-shell-v3972_5', `${device.name}: shell owner`);
+    assert.equal(state.shell?.generation, 'v3972_5', `${device.name}: shell generation`);
     assert.equal(state.scripts.length, 1, `${device.name}: one bootstrap script`);
-    assert.ok(state.scripts[0].includes('/ln-rank/js/ux/family-home.v3970_0.js?v=3970_0'), `${device.name}: current home script`);
-    assert.ok(state.scripts.every(src => !/family-home\.v3968_0|family-shell\.v3965_0/.test(src)), `${device.name}: stale script`);
-    assert.ok(state.styles.some(src => src.includes('/shared/ui/shell/family-shell.v3970_0.css?v=3970_0')), `${device.name}: current shell CSS`);
-    assert.ok(state.styles.some(src => src.includes('/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0')), `${device.name}: family entry CSS`);
+    assert.ok(state.scripts[0].includes('/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5'), `${device.name}: current home script`);
+    assert.ok(state.scripts.every(src => !/family-home\.v3970_0\.js\?v=3970_0/.test(src)), `${device.name}: stale active script`);
+    assert.ok(state.styles.some(src => src.includes('/shared/ui/shell/family-shell.v3972_5.css?v=3972_5')), `${device.name}: current shell CSS`);
+    assert.ok(state.styles.some(src => src.includes('/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5')), `${device.name}: family entry CSS`);
     assert.match(state.title || '', /家庭方案/);
     assert.equal(state.action, '继续检查家庭方案');
     assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
@@ -92,4 +97,4 @@ try {
   await browser.close();
 }
 
-console.log(JSON.stringify({ ok: true, release: 'v3.9.72.2', runtime: 'family-home-runtime-v3970_0', devices: results }, null, 2));
+console.log(JSON.stringify({ ok: true, release: 'v3.9.72.2', generation: 'v3972_5', runtime: 'family-home-runtime-v3972_5', devices: results }, null, 2));

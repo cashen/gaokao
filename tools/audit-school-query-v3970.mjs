@@ -5,8 +5,9 @@ import { createEntityAwareResolver } from '../shared/resources/schools/school-id
 import { resolveUnifiedSchoolQuery, acceptedAdmissionSchoolNames } from '../shared/resources/schools/school-query-engine.v3969_0.js';
 import { SCHOOL_QUERY_CONTRACT_VERSION, SCHOOL_QUERY_POLICY, SCHOOL_QUERY_STATUSES } from '../shared/resources/schools/school-query-contract.v3969_0.js';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
-import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3970_0.js';
-import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3970_0.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
+import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_5.js';
+import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3972_5.js';
 
 const json = rel => JSON.parse(fs.readFileSync(rel, 'utf8'));
 const directoryPayload = json('tongxue/data/school-search-index.20260617-v150.json');
@@ -15,10 +16,14 @@ const baseResolver = createSchoolNameResolver(extractSchoolRecords(directoryPayl
 const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.72.2');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.70.0');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.2');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_5');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, SITE_RUNTIME_CONTRACT.generation);
 assert.equal(CURRENT_RELEASE.schoolQueryVersion, SCHOOL_QUERY_CONTRACT_VERSION);
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3970_0');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3972_5');
+assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-contract.v3969_0.js'));
+assert.ok(SITE_RUNTIME_CONTRACT.stableDependencies.includes('/shared/resources/schools/school-query-engine.v3969_0.js'));
 assert.equal(RESOURCE_EXECUTION_REGISTRY.schoolQuery.owner, '/shared/resources/schools/school-query-contract.v3969_0.js');
 assert.equal(SCHOOL_QUERY_POLICY.noSilentTruncation, true);
 assert.equal(SCHOOL_QUERY_POLICY.requireInterpretationForRegionNameCollision, true);
@@ -44,4 +49,10 @@ assert.ok(shenyang.interpretations.find(row => row.intent === 'school-name')?.to
 for (const rel of ['functions/api/school-majors.js','functions/api/major-bands.js','functions/_lib/report-data-service-v3956.js']) {
   assert.ok(fs.readFileSync(rel, 'utf8').includes('school-query-provider.v3969.js'), `${rel} provider`);
 }
-console.log(JSON.stringify({ ok:true, release:CURRENT_RELEASE.display, assetRelease:CURRENT_RELEASE.assetReleaseVersion, schoolQuery:SCHOOL_QUERY_CONTRACT_VERSION, admissionSchools:admissionDirectory.schoolCount }, null, 2));
+console.log(JSON.stringify({
+  ok: true,
+  release: CURRENT_RELEASE.display,
+  siteGeneration: CURRENT_RELEASE.siteRuntimeGeneration,
+  schoolQuery: SCHOOL_QUERY_CONTRACT_VERSION,
+  admissionSchools: admissionDirectory.schoolCount
+}, null, 2));

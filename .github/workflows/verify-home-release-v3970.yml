@@ -1,19 +1,21 @@
-name: Verify root home release v3970
+name: Verify root home unified site generation
 
 on:
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'AGENTS.md'
+      - 'docs/skills/unified-site-release/**'
       - 'index.html'
-      - 'ln-rank/js/ux/family-home.v3970_0.js'
+      - 'ln-rank/js/ux/family-home.v3972_5.js'
+      - 'ln-rank/site-active-generation.v3972_5.json'
       - 'shared/resources/release/**'
       - 'shared/governance/**'
       - 'shared/ui/**'
-      - 'ln-rank/active-assets.json'
-      - 'ln-rank/release-meta.json'
       - 'functions/_lib/release-contract.js'
       - 'tools/audit-home-release-ownership-v3970.mjs'
+      - 'tools/audit-site-runtime-generation-v3972_5.mjs'
       - 'tools/browser-home-release-v3970.mjs'
       - 'tools/ln-2026/verify-final-release-v3970.py'
       - '_headers'
@@ -26,7 +28,7 @@ permissions:
 jobs:
   home-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,17 +46,17 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3970-home-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3970-home-files.txt; then exit 1; fi
+          git diff --name-only "$base" HEAD | tee /tmp/v3972-5-home-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-5-home-files.txt; then exit 1; fi
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           python3 -m py_compile tools/ln-2026/verify-final-release-v3970.py
 
-      - name: Verify homepage ownership and release contracts
+      - name: Verify homepage and site generation contracts
         run: |
           set -euo pipefail
-          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3970-home-release.out
-          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3970-home-audit.out
-          node tools/build-derived-asset-trace-v3970.mjs | tee /tmp/v3970-home-trace.out
+          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-5-home-release.out
+          node tools/audit-site-runtime-generation-v3972_5.mjs | tee /tmp/v3972-5-site-generation.out
+          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3972-5-home-audit.out
 
       - name: Install Chromium
         run: |
@@ -64,21 +66,21 @@ jobs:
       - name: Verify root home on phone pad and desktop
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3970-home-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-5-home-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3970_HOME_ARTIFACT_DIR=/tmp/v3970-home-browser node tools/browser-home-release-v3970.mjs | tee /tmp/v3970-home-browser.out
+          V3970_HOME_ARTIFACT_DIR=/tmp/v3972-5-home-browser node tools/browser-home-release-v3970.mjs | tee /tmp/v3972-5-home-browser.out
 
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3970-root-home-results
+          name: v3972-5-root-home-results
           path: |
-            /tmp/v3970-home-*.txt
-            /tmp/v3970-home-*.out
-            /tmp/v3970-home-*.log
-            /tmp/v3970-home-browser
+            /tmp/v3972-5-home-*.txt
+            /tmp/v3972-5-home-*.out
+            /tmp/v3972-5-home-*.log
+            /tmp/v3972-5-home-browser
           if-no-files-found: warn
           retention-days: 3

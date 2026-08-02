@@ -2,13 +2,13 @@ import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const sourcePath = new URL('./audit-academic-background-v3968.mjs', import.meta.url);
-const generatedPath = new URL('./.audit-academic-background-v3970.generated.mjs', import.meta.url);
+const generatedPath = new URL('./.audit-academic-background-v3972_5.generated.mjs', import.meta.url);
 let source = fs.readFileSync(sourcePath, 'utf8');
 source = source
-  .replaceAll("../shared/governance/resource-execution-contract.v3969_0.js", "../shared/governance/resource-execution-contract.v3970_0.js")
+  .replaceAll("../shared/governance/resource-execution-contract.v3969_0.js", "../shared/governance/resource-execution-contract.v3972_5.js")
   .replaceAll("'v3.9.69.0'", "'v3.9.72.2'")
-  .replaceAll("'v3969_0'", "'v3970_0'")
-  .replaceAll("'resource-execution-v3969_0'", "'resource-execution-v3970_0'");
+  .replaceAll("'v3969_0'", "'v3972_5'")
+  .replaceAll("'resource-execution-v3969_0'", "'resource-execution-v3972_5'");
 
 const pageBlockStart = source.indexOf("for (const [path, scope] of [\n  ['ln-rank/local-mainline.html', 'liaoning'],");
 const pageBlockEnd = source.indexOf("\n\nconst browser = read('ln-rank/js/academic-background/academic-background-app.v3968_0.js');", pageBlockStart);

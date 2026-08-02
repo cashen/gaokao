@@ -3,6 +3,7 @@ const CUSTOM_BASE = process.env.CUSTOM_BASE || 'https://gaokao.powers.org.cn';
 const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'auto';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 8);
+const ALLOW_KNOWN_MAJOR_BANDS_DEGRADED = ['1', 'true', 'yes'].includes(String(process.env.ALLOW_KNOWN_MAJOR_BANDS_DEGRADED || '').toLowerCase());
 const ALLOWED_RELEASES = new Set(['v3.9.71.2', 'v3.9.72.2']);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -86,6 +87,29 @@ function assertBoundedHealth(health) {
   assert(health?.probe?.resourceBudget?.parsedChunkCache === false, 'parsed chunk cache enabled');
 }
 
+function assessMajorBands(result, label) {
+  if (result.status === 200) {
+    const data = parseJson(result);
+    assert(data?.ok !== false && recordCount(data) > 0, `production ${label} query invalid`);
+    return { state: 'healthy', records: recordCount(data), status: result.status };
+  }
+
+  const lower = result.text.toLowerCase();
+  const knownFailure = [500, 503].includes(result.status)
+    && (
+      lower.includes('major-bands-static-v3972_2')
+      || lower.includes('分数桶 worker')
+      || lower.includes('worker exceeded resource limits')
+      || lower.includes('error code: 1102')
+      || lower.includes('静态专业分数索引读取失败')
+    );
+  assert(
+    ALLOW_KNOWN_MAJOR_BANDS_DEGRADED && knownFailure,
+    `${result.url} returned HTTP ${result.status}; body=${result.text.slice(0, 500)}`
+  );
+  return { state: 'known-pre-merge-degraded', records: 0, status: result.status };
+}
+
 async function verifyOnce(token) {
   const releaseResult = await request(`${PAGES_BASE}/shared/resources/release/current-release.js?baseline=${token}`, '*/*');
   assertResponse(releaseResult);
@@ -128,17 +152,15 @@ async function verifyOnce(token) {
   const runtime = parseJson(runtimeResult);
   assert(runtime?.ok !== false, 'runtime returned ok=false');
 
-  // Keep legacy production requests sequential and cacheable. The v3.9.71.2
-  // deep probe is intentionally excluded because it scans the full dataset.
+  // Keep currently deployed production requests sequential. A PR that repairs
+  // an already-degraded major-bands deployment may record only the exact known
+  // failure here; the candidate Preview and post-merge production must pass the
+  // complete healthy journey without this allowance.
   const scoreResult = await request(`${PAGES_BASE}/api/major-bands?candidateScore=579&limit=16`);
-  assertResponse(scoreResult);
-  const score = parseJson(scoreResult);
-  assert(score?.ok !== false && recordCount(score) > 0, 'production score query invalid');
+  const score = assessMajorBands(scoreResult, 'score');
 
   const schoolResult = await request(`${PAGES_BASE}/api/major-bands?candidateScore=650&schoolKeyword=${encodeURIComponent('东北大学')}&limit=16`);
-  assertResponse(schoolResult);
-  const school = parseJson(schoolResult);
-  assert(school?.ok !== false && recordCount(school) > 0, 'production school query invalid');
+  const school = assessMajorBands(schoolResult, 'school');
 
   let boundedHealth = null;
   if (deployedRelease === 'v3.9.72.2') {
@@ -154,8 +176,10 @@ async function verifyOnce(token) {
 
   return {
     release: deployedRelease,
-    scoreRecords: recordCount(score),
-    schoolRecords: recordCount(school),
+    scoreRecords: score.records,
+    schoolRecords: school.records,
+    majorBandsScoreState: score.state,
+    majorBandsSchoolState: school.state,
     matchedRecords: index.records.length,
     localStrengthApiState,
     deepHealthProbeSkipped: deployedRelease === 'v3.9.71.2',
