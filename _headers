@@ -469,3 +469,39 @@
   Cache-Control: public, max-age=31536000, immutable
 /ln-rank/js/ux/family-home.v3970_0.js
   Cache-Control: public, max-age=31536000, immutable
+
+# v3972_5 unified whole-site active generation
+/shared/resources/release/site-runtime-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/release-presenter.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/resources/release/runtime-cache-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/governance/resource-execution-contract.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/site-active-generation.v3972_5.json
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/shell/family-shell.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/components/family-plan-entry.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/shared/ui/interaction/interaction-transaction.v3972_5.css
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/ux/family-home.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/app-runtime.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
+/ln-rank/js/selection-pool-runtime.v3972_5.js
+  Cache-Control: public, max-age=31536000, immutable
