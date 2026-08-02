@@ -72,7 +72,7 @@ assert.equal(exhaustedCalls, 2);
 
 const source = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 assert.ok(source.includes("major-bands-bucket-orchestrator.v3972_5.js"));
-assert.ok(source.includes('runMajorBandsBucketWorkers(selected.buckets'));
+assert.ok(/runMajorBandsBucketWorkers\s*\(\s*selected\.buckets/.test(source));
 assert.ok(!source.includes('Promise.all(selected.buckets.map'));
 assert.ok(source.includes('bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency'));
 assert.ok(source.includes('bucketWorkerRetries: bucketExecution.stats.retryCount'));
