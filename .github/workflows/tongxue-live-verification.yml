@@ -74,11 +74,14 @@ jobs:
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.70.0') throw new Error('release mismatch');
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3972_5.js';
+          if(CURRENT_RELEASE.display!=='v3.9.72.2'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.2') throw new Error('release mismatch');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation||SITE_RUNTIME_CONTRACT.generation!=='v3972_5') throw new Error('site generation mismatch');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query mismatch');
-          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue wrapper mismatch');
+          if(CURRENT_RELEASE.tongxueRuntimeVersion!=='tongxue-runtime-v159-r3968') throw new Error('Tongxue stable package mismatch');
+          if(!SITE_RUNTIME_CONTRACT.stableDependencies.includes('/tongxue/app/tongxue-runtime-v159-r3968.js')) throw new Error('Tongxue runtime must be declared as a stable dependency');
           const html=fs.readFileSync('tongxue/index.html','utf8');
-          if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active wrapper missing');
+          if(!html.includes('tongxue-runtime-v159-r3968.js?v=3968_0')) throw new Error('active Tongxue wrapper missing');
           const wrapper=fs.readFileSync('tongxue/app/tongxue-runtime-v159-r3968.js','utf8');
           for(const marker of ['release-presenter.v3968_0.js?v=3968_0','tongxue-runtime-controller-v159.js?v=159']) if(!wrapper.includes(marker)) throw new Error(`wrapper marker ${marker}`);
           const controller=fs.readFileSync('tongxue/app/tongxue-runtime-controller-v159.js','utf8');
@@ -88,7 +91,7 @@ jobs:
             if(source.includes('MutationObserver')||source.includes('setInterval(')||source.includes('setTimeout(')) throw new Error(`delayed ownership ${rel}`);
           }
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
-          console.log('Tongxue v159 core + v3968 wrapper + v3969 query owner + v3.9.72.2 release passed');
+          console.log('Tongxue stable v159 package under site generation v3972_5 and release v3.9.72.2 passed');
           NODE
 
       - name: Verify school resolver and unified query contracts
@@ -154,7 +157,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tongxue-v159-v3970-live-results
+          name: tongxue-v159-v3972-5-live-results
           path: /tmp/tongxue-live-artifact
           if-no-files-found: warn
           retention-days: 3
