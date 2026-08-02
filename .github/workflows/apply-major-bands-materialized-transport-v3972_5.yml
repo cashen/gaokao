@@ -27,13 +27,14 @@ jobs:
       - name: Apply one-time materialization and compact response transport
         run: |
           set -euo pipefail
-          python3 tools/apply-major-bands-materialized-transport-v3972_5.py
+          python3 tools/apply-major-bands-materialized-transport-v3972_5_v2.py
 
           node --check functions/_lib/major-bands-static-provider.js
           node --check functions/_lib/major-bands-bucket-transfer.v3972_5.js
           node --check functions/_lib/major-bands-bucket-engine.js
           node --check functions/api/major-bands-bucket.js
           node --check functions/api/major-bands.js
+          node --check tools/verify-worker-budget-local-v3972.mjs
           node --check tools/verify-production-v3971.mjs
           node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
@@ -54,6 +55,7 @@ jobs:
             shared/resources/release/current-release.js \
             shared/governance/resource-execution-contract.v3972_5.js \
             docs/skills/unified-site-release/SKILL.md \
+            tools/verify-worker-budget-local-v3972.mjs \
             tools/verify-production-v3971.mjs
           git commit -m 'fix(major-bands): materialize once and compact response transport'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
