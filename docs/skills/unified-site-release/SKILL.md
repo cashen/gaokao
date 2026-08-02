@@ -94,6 +94,17 @@ A fresh pointer event during quarantine does not authorize navigation.
 
 Filter controls update draft state only. They must not issue a request. Existing results remain visible. A single explicit submit owner commits the draft. Layout-sensitive draft rendering must not restore native navigation or collapse user-owned disclosure state.
 
+
+## Distributed Worker orchestration contract
+
+A request must not fan out to every selected Worker with an unbounded `Promise.all`. Distributed reads require an explicit orchestration owner, a small concurrency ceiling, deterministic result ordering and a bounded retry policy for transient platform failures only.
+
+- Static data packages remain immutable and are read through their declared provider.
+- Retry only transient transport or platform resource failures such as HTTP 429/502/503/504 and Cloudflare 1102 markers.
+- Contract, validation and data-integrity failures must fail immediately and must not be hidden by retries.
+- The response and production evidence must expose peak child-Worker concurrency and retry count.
+- Preview and production verification must keep sustained concurrent cycles; reducing stress cycles to make a release green is forbidden.
+
 ## Protected boundaries
 
 Never modify:

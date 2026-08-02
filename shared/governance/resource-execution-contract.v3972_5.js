@@ -87,6 +87,25 @@ export const RESOURCE_EXECUTION_REGISTRY = Object.freeze({
     ],
     validationTools: ['/tools/audit-site-runtime-generation-v3972_5.mjs', '/tools/browser-family-action-v3970.mjs']
   }),
+  majorBands: entry({
+    owner: '/functions/api/major-bands.js',
+    bucketOwner: '/functions/api/major-bands-bucket.js',
+    orchestrator: '/functions/_lib/major-bands-bucket-orchestrator.v3972_5.js',
+    staticProvider: '/functions/_lib/major-bands-static-provider.js',
+    schemaVersion: 'major-bands-bounded-fanout-v3972_5',
+    allowedConsumers: ['ln-rank', 'production-verification'],
+    allowedAdapters: [
+      '/functions/api/major-bands-bucket.js',
+      '/functions/_lib/major-bands-static-provider.js',
+      '/functions/_lib/major-bands-bucket-engine.js'
+    ],
+    forbiddenLiterals: ['Promise.all(selected.buckets.map'],
+    validationTools: [
+      '/tools/audit-major-bands-bounded-fanout-v3972_5.mjs',
+      '/tools/verify-production-v3971.mjs',
+      '/.github/workflows/verify-production-api-health-v3971.yml'
+    ]
+  }),
   familyAction: entry({
     ...(STABLE_RESOURCE_EXECUTION_REGISTRY.familyAction || {}),
     owner: SITE_RUNTIME_CONTRACT.owners.familyPlanEntry,

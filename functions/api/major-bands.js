@@ -3,6 +3,12 @@ import {
   materializeMajorBandsStaticRecord
 } from '../_lib/major-bands-static-provider.js';
 import { makeBands } from '../_lib/band-engine.js';
+import {
+  MAJOR_BANDS_BUCKET_ORCHESTRATION,
+  MajorBandsBucketWorkerError,
+  isRetryableBucketWorkerFailure,
+  runMajorBandsBucketWorkers
+} from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   normalizeBottomLineMode,
@@ -142,12 +148,32 @@ function mergeSpecialProjectStats(target, source) {
 
 function assertBucketResponse(response, text, bucketFile) {
   const lower = text.toLowerCase();
-  if (response.status === 503 || lower.includes('worker exceeded resource limits') || lower.includes('<title>error 1102') || lower.includes('error code: 1102')) {
-    throw new Error(`分数桶 Worker 资源超限：${bucketFile}，HTTP ${response.status}`);
+  const retryable = [429, 502, 503, 504].includes(response.status)
+    || lower.includes('worker exceeded resource limits')
+    || lower.includes('<title>error 1102')
+    || lower.includes('error code: 1102')
+    || lower.includes('http 503')
+    || lower.includes('temporarily unavailable');
+  if (retryable) {
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 瞬态失败：${bucketFile}，HTTP ${response.status}`, {
+      status: response.status,
+      retryable: true,
+      bucketFile
+    });
   }
-  if (!response.ok) throw new Error(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`);
+  if (!response.ok) {
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`, {
+      status: response.status,
+      retryable: false,
+      bucketFile
+    });
+  }
   if (lower.includes('<!doctype html') || lower.includes('<html')) {
-    throw new Error(`分数桶 Worker 返回 HTML：${bucketFile}`);
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 返回 HTML：${bucketFile}`, {
+      status: response.status,
+      retryable: false,
+      bucketFile
+    });
   }
 }
 
@@ -163,17 +189,28 @@ async function fetchBucketWorker(context, bucket, options) {
   endpoint.searchParams.set('schoolFilter', options.schoolFilter ? '1' : '0');
   endpoint.searchParams.set('maxCandidates', String(options.maxCandidates));
   for (const name of options.acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
-  endpoint.searchParams.set('requestToken', options.requestToken);
+  endpoint.searchParams.set('bucketAttempt', String(options.bucketAttempt || 1));
+  endpoint.searchParams.set('requestToken', `${options.requestToken}-${options.bucketAttempt || 1}`);
 
-  const response = await fetch(endpoint.toString(), {
-    headers: {
-      accept: 'application/json',
-      'cache-control': 'no-cache',
-      pragma: 'no-cache',
-      'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
-    },
-    cf: { cacheTtl: 0, cacheEverything: false }
-  });
+  let response;
+  try {
+    response = await fetch(endpoint.toString(), {
+      headers: {
+        accept: 'application/json',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+        'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
+      },
+      cf: { cacheTtl: 0, cacheEverything: false }
+    });
+  } catch (error) {
+    throw new MajorBandsBucketWorkerError(`分数桶 Worker 网络失败：${bucket.file}`, {
+      status: 0,
+      retryable: true,
+      bucketFile: bucket.file,
+      cause: error
+    });
+  }
   const text = await response.text();
   assertBucketResponse(response, text, bucket.file);
   let payload;
@@ -265,18 +302,28 @@ export async function onRequest(context) {
     const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
     const maxCandidates = Math.max(48, Math.min(240, pageOffset + pageLimit + 64));
     const requestToken = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const bucketResults = await Promise.all(selected.buckets.map(bucket => fetchBucketWorker(context, bucket, {
-      candidateScore,
-      rangePreset,
-      region: filters.region,
-      majorKeyword: filters.majorKeyword,
-      bottomLineMode: filters.bottomLineMode,
-      specialProjectMode: filters.specialProjectMode,
-      schoolFilter,
-      acceptedSchoolNames: schoolNames,
-      maxCandidates,
-      requestToken
-    })));
+    const bucketExecution = await runMajorBandsBucketWorkers(
+      selected.buckets,
+      (bucket, execution) => fetchBucketWorker(context, bucket, {
+        candidateScore,
+        rangePreset,
+        region: filters.region,
+        majorKeyword: filters.majorKeyword,
+        bottomLineMode: filters.bottomLineMode,
+        specialProjectMode: filters.specialProjectMode,
+        schoolFilter,
+        acceptedSchoolNames: schoolNames,
+        maxCandidates,
+        requestToken,
+        bucketAttempt: execution.attempt
+      }),
+      {
+        concurrency: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxConcurrency,
+        maxAttempts: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxAttempts,
+        baseDelayMs: MAJOR_BANDS_BUCKET_ORCHESTRATION.baseDelayMs
+      }
+    );
+    const bucketResults = bucketExecution.results;
 
     const aggregate = {
       rawScanned: 0,
@@ -447,16 +494,24 @@ export async function onRequest(context) {
         specialProjectMode: filters.specialProjectMode,
         bucketWorkerCount: bucketResults.length,
         bucketWorkerCandidateLimit: maxCandidates,
+        bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
+        bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency,
+        bucketWorkerRetries: bucketExecution.stats.retryCount,
+        bucketWorkerMaxAttempts: bucketExecution.stats.maxAttempts,
         mode: 'build-time-static-score-index-distributed-bucket-workers-canonical-staged-ranked-paged'
       }
     });
   } catch (error) {
+    const retryable = isRetryableBucketWorkerFailure(error);
     return json({
       ok: false,
+      retryable,
       message: error?.message || String(error),
-      userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、单桶 Worker 合同和分布式查询编排。',
+      userMessage: retryable
+        ? '专业数据遇到短暂拥堵，系统已自动重试但仍未恢复。请稍后再试。'
+        : '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
+      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、有界子 Worker 编排和瞬态重试记录。',
       hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；专业查询不再运行时扫描原始投档分片。'
-    }, 500);
+    }, isRetryableBucketWorkerFailure(error) ? 503 : 500);
   }
 }
