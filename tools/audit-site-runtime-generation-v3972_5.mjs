@@ -6,6 +6,17 @@ import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js'
 import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_5.js';
 import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3972_5.js';
+import {
+  SHARED_RESOURCE_GRAPH_VERSION,
+  DATA_RESOURCE_GRAPH_VERSION,
+  RESOURCE_DECOMMISSION_POLICY_VERSION,
+  SHARED_RESOURCE_REGISTRY
+} from '../shared/resources/resource-registry.js';
+import {
+  UI_RESOURCE_REGISTRY_VERSION,
+  UI_CSS_RESOURCE_GRAPH_VERSION,
+  UI_ACTIVE_RESOURCE_REGISTRY
+} from '../shared/ui/ui-resource-registry.v3972_5.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -21,6 +32,16 @@ assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.resourceExecutionVersion, RESOURCE_EXECUTION_VERSION);
 assert.equal(CURRENT_RELEASE.runtimeCacheVersion, LN_RANK_RUNTIME_CACHE_CONTRACT.version);
 assert.equal(CURRENT_RELEASE.interactionVersion, 'interaction-transaction-v3972_5');
+assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.uiResourceRegistryVersion, UI_RESOURCE_REGISTRY_VERSION);
+assert.equal(CURRENT_RELEASE.cssResourceGraphVersion, UI_CSS_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.dataResourceGraphVersion, DATA_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.resourceDecommissionPolicyVersion, RESOURCE_DECOMMISSION_POLICY_VERSION);
+assert.equal(CURRENT_RELEASE.resourceOwners.resourceRegistry, '/shared/resources/resource-registry.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.uiResourceRegistry, '/shared/ui/ui-resource-registry.v3972_5.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.ui, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(CURRENT_RELEASE.resourceOwners.uiComponents, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(SHARED_RESOURCE_REGISTRY.ui.registry, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
 assert.equal(SITE_RUNTIME_CONTRACT.scope, 'whole-site-active-generation');
 assert.equal(SITE_RUNTIME_CONTRACT.preservedBusinessResources.localStrength, 'local-strength-static-v3971_2');
 assert.equal(SITE_RUNTIME_CONTRACT.preservedBusinessResources.all211, 'all-211-static-v3972_0');
@@ -39,6 +60,9 @@ for (const [name, url] of Object.entries(SITE_RUNTIME_CONTRACT.activeEntrypoints
 
 for (const dependency of SITE_RUNTIME_CONTRACT.stableDependencies) {
   assert.ok(exists(dependency.replace(/^\//, '')), `missing declared stable dependency ${dependency}`);
+}
+for (const resourcePath of Object.values(UI_ACTIVE_RESOURCE_REGISTRY)) {
+  assert.ok(exists(resourcePath.replace(/^\//, '')), `missing active UI registry resource ${resourcePath}`);
 }
 
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion, generation);
@@ -116,7 +140,15 @@ const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_5.json'))
 assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(manifest.generation, generation);
 assert.equal(manifest.contractVersion, SITE_RUNTIME_CONTRACT.version);
-assert.equal(manifest.legacyInventoryIsActiveOwner, false);
+assert.equal(manifest.resourceGraph.version, CURRENT_RELEASE.sharedResourceGraphVersion);
+assert.equal(manifest.resourceGraph.registry, CURRENT_RELEASE.resourceOwners.resourceRegistry);
+assert.equal(manifest.resourceGraph.uiRegistry, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(manifest.resourceGraph.cssVersion, CURRENT_RELEASE.cssResourceGraphVersion);
+assert.equal(manifest.resourceGraph.dataVersion, CURRENT_RELEASE.dataResourceGraphVersion);
+assert.equal(manifest.resourceGraph.decommissionPolicyVersion, CURRENT_RELEASE.resourceDecommissionPolicyVersion);
+assert.ok(!('legacyInventory' in manifest));
+assert.ok(!('legacyInventoryIsActiveOwner' in manifest));
+assert.ok(!exists('ln-rank/active-assets.json'), 'stale active-assets inventory still exists');
 
 const releaseContract = read('functions/_lib/release-contract.js');
 assert.ok(releaseContract.includes('export const LN_RANK_RELEASE_CONTRACT'));
@@ -127,6 +159,10 @@ console.log(JSON.stringify({
   release: CURRENT_RELEASE.display,
   generation,
   contract: SITE_RUNTIME_CONTRACT.version,
+  resourceGraph: CURRENT_RELEASE.sharedResourceGraphVersion,
+  uiRegistry: CURRENT_RELEASE.uiResourceRegistryVersion,
+  cssGraph: CURRENT_RELEASE.cssResourceGraphVersion,
+  dataGraph: CURRENT_RELEASE.dataResourceGraphVersion,
   activeEntrypoints: Object.keys(SITE_RUNTIME_CONTRACT.activeEntrypoints).length,
   stableDependencies: SITE_RUNTIME_CONTRACT.stableDependencies.length,
   auxiliaryNavigationOwner: SITE_RUNTIME_CONTRACT.owners.auxiliaryNavigation,

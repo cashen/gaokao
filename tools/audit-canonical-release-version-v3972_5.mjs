@@ -6,6 +6,15 @@ import { fileURLToPath } from 'node:url';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
 import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_5.js';
+import {
+  SHARED_RESOURCE_GRAPH_VERSION,
+  DATA_RESOURCE_GRAPH_VERSION,
+  RESOURCE_DECOMMISSION_POLICY_VERSION
+} from '../shared/resources/resource-registry.js';
+import {
+  UI_RESOURCE_REGISTRY_VERSION,
+  UI_CSS_RESOURCE_GRAPH_VERSION
+} from '../shared/ui/ui-resource-registry.v3972_5.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -57,6 +66,15 @@ assert.equal(SITE_RUNTIME_CONTRACT.generation, canonicalGeneration);
 assert.equal(SITE_RUNTIME_CONTRACT.queryVersion, canonicalQuery);
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.releaseVersion, canonicalRelease);
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion, canonicalGeneration);
+assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.uiResourceRegistryVersion, UI_RESOURCE_REGISTRY_VERSION);
+assert.equal(CURRENT_RELEASE.cssResourceGraphVersion, UI_CSS_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.dataResourceGraphVersion, DATA_RESOURCE_GRAPH_VERSION);
+assert.equal(CURRENT_RELEASE.resourceDecommissionPolicyVersion, RESOURCE_DECOMMISSION_POLICY_VERSION);
+assert.equal(CURRENT_RELEASE.resourceOwners.resourceRegistry, '/shared/resources/resource-registry.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.uiResourceRegistry, '/shared/ui/ui-resource-registry.v3972_5.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.ui, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(CURRENT_RELEASE.resourceOwners.uiComponents, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
 
 for (const rel of ['index.html', 'ln-rank/index.html', 'ln-rank/selection-pool.html', 'ln-rank/211-mainline.html']) {
   const html = read(rel);
@@ -67,6 +85,14 @@ for (const rel of ['index.html', 'ln-rank/index.html', 'ln-rank/selection-pool.h
 const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_5.json'));
 assert.equal(manifest.releaseVersion, canonicalRelease);
 assert.equal(manifest.generation, canonicalGeneration);
+assert.equal(manifest.resourceGraph.version, SHARED_RESOURCE_GRAPH_VERSION);
+assert.equal(manifest.resourceGraph.uiRegistry, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(manifest.resourceGraph.cssVersion, UI_CSS_RESOURCE_GRAPH_VERSION);
+assert.equal(manifest.resourceGraph.dataVersion, DATA_RESOURCE_GRAPH_VERSION);
+assert.equal(manifest.resourceGraph.decommissionPolicyVersion, RESOURCE_DECOMMISSION_POLICY_VERSION);
+assert.ok(!('legacyInventory' in manifest));
+assert.ok(!('legacyInventoryIsActiveOwner' in manifest));
+assert.ok(!fs.existsSync(path.join(ROOT, 'ln-rank/active-assets.json')), 'retired active-assets inventory remains');
 assert.equal(read('VERSION.txt').trim(), canonicalRelease);
 
 const skill = read('docs/skills/unified-site-release/SKILL.md');
@@ -90,6 +116,11 @@ console.log(JSON.stringify({
   canonicalRelease,
   canonicalGeneration,
   canonicalQuery,
+  resourceGraph: SHARED_RESOURCE_GRAPH_VERSION,
+  uiRegistry: UI_RESOURCE_REGISTRY_VERSION,
+  cssGraph: UI_CSS_RESOURCE_GRAPH_VERSION,
+  dataGraph: DATA_RESOURCE_GRAPH_VERSION,
   activeRetiredReferenceCount: retiredReferences.length,
+  removedLegacyInventory: true,
   preservedBusinessResources: stable
 }, null, 2));

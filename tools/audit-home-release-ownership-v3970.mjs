@@ -4,6 +4,7 @@ import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js'
 import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_5.js';
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_5.js';
 import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3972_5.js';
+import { SHARED_RESOURCE_GRAPH_VERSION } from '../shared/resources/resource-registry.js';
 
 const read = path => fs.readFileSync(path, 'utf8');
 const headerBlock = (headers, route) => headers.match(new RegExp(`^${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\n((?:  .*(?:\n|$))+)`, 'm'))?.[1] || '';
@@ -17,6 +18,7 @@ assert.equal(CURRENT_RELEASE.display, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3972_5');
 assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.5');
 assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_5');
+assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
 assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3972_5');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3972_5.js');
@@ -71,7 +73,13 @@ for (const route of ['/', '/index.html']) {
 assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(manifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
 assert.equal(manifest.entrypoints.home, '/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5');
-assert.equal(manifest.legacyInventoryIsActiveOwner, false);
+assert.equal(manifest.resourceGraph.version, SHARED_RESOURCE_GRAPH_VERSION);
+assert.equal(manifest.resourceGraph.registry, CURRENT_RELEASE.resourceOwners.resourceRegistry);
+assert.equal(manifest.resourceGraph.uiRegistry, CURRENT_RELEASE.resourceOwners.uiResourceRegistry);
+assert.equal(manifest.policies.historicalAssetsCannotClaimActiveOwnership, true);
+assert.ok(!('legacyInventory' in manifest));
+assert.ok(!('legacyInventoryIsActiveOwner' in manifest));
+assert.ok(!fs.existsSync('ln-rank/active-assets.json'));
 
 for (const marker of [
   'homeReleaseSingleOwnerContract: true',
@@ -86,6 +94,7 @@ console.log(JSON.stringify({
   ok: true,
   release: CURRENT_RELEASE.display,
   generation: CURRENT_RELEASE.siteRuntimeGeneration,
+  resourceGraph: SHARED_RESOURCE_GRAPH_VERSION,
   homeRuntime: CURRENT_RELEASE.homeEntryVersion,
   industryMap: CURRENT_RELEASE.resourceOwners.industryMap,
   bootstrapCount: (home.match(/<script type="module"/g) || []).length,

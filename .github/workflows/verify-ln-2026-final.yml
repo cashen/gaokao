@@ -45,7 +45,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-final-release.out
+          node tools/audit-unified-resource-graph-v3972_5.mjs | tee /tmp/v3972-resource-graph.out
           node tools/audit-site-runtime-generation-v3972_5.mjs | tee /tmp/v3972-site-runtime.out
+          node tools/audit-canonical-release-version-v3972_5.mjs | tee /tmp/v3972-canonical-release.out
           node tools/audit-family-action-v3970.mjs | tee /tmp/v3972-family-action.out
           node tools/audit-school-query-v3970.mjs | tee /tmp/v3972-school-query.out
           node tools/audit-algorithm-parity-v3967.mjs | tee /tmp/v3972-algorithm-parity.out
@@ -69,11 +71,20 @@ jobs:
           import { RESOURCE_EXECUTION_VERSION, RESOURCE_EXECUTION_REGISTRY } from './shared/governance/resource-execution-contract.v3972_5.js';
           import { ALGORITHM_CONTRACT } from './shared/algorithms/algorithm-registry.js';
           import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3972_5.js';
+          import { SHARED_RESOURCE_GRAPH_VERSION, SHARED_RESOURCE_REGISTRY } from './shared/resources/resource-registry.js';
+          import { UI_RESOURCE_REGISTRY_VERSION, UI_CSS_RESOURCE_GRAPH_VERSION } from './shared/ui/ui-resource-registry.v3972_5.js';
           import { lookupScoreRank, getRankTableRows, getRankPopulation, validateScoreRank } from './functions/_lib/rank-table-provider.js';
           import { buildHistoricalScoreRankEvidence } from './functions/_lib/historical-score-rank-evidence.js';
           if(CURRENT_RELEASE.display!=='v3.9.72.5'||CURRENT_RELEASE.assetVersion!=='v3972_5'||CURRENT_RELEASE.assetReleaseVersion!=='v3.9.72.5') throw new Error(JSON.stringify(CURRENT_RELEASE));
           if(CURRENT_RELEASE.siteRuntimeGeneration!==SITE_RUNTIME_CONTRACT.generation) throw new Error('site generation owner');
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('resource execution owner');
+          if(CURRENT_RELEASE.sharedResourceGraphVersion!==SHARED_RESOURCE_GRAPH_VERSION) throw new Error('resource graph owner');
+          if(CURRENT_RELEASE.uiResourceRegistryVersion!==UI_RESOURCE_REGISTRY_VERSION) throw new Error('UI registry owner');
+          if(CURRENT_RELEASE.cssResourceGraphVersion!==UI_CSS_RESOURCE_GRAPH_VERSION) throw new Error('CSS graph owner');
+          if(CURRENT_RELEASE.resourceOwners.ui!=='/shared/ui/ui-resource-registry.v3972_5.js') throw new Error('current UI owner');
+          if(CURRENT_RELEASE.resourceOwners.uiComponents!==CURRENT_RELEASE.resourceOwners.ui) throw new Error('current UI component owner');
+          if(SHARED_RESOURCE_REGISTRY.ui.registry!==CURRENT_RELEASE.resourceOwners.ui) throw new Error('shared UI graph owner');
+          if(fs.existsSync('ln-rank/active-assets.json')) throw new Error('stale active-assets inventory');
           if(CURRENT_RELEASE.schoolQueryVersion!=='school-query-contract-v3969_0') throw new Error('school query owner');
           if(CURRENT_RELEASE.resourceOwners.industryMap!=='/Public_company/') throw new Error('industry map owner');
           if(CURRENT_RELEASE.localStrengthDataVersion!=='local-strength-static-v3971_2') throw new Error('LocalStrength static owner');
@@ -100,7 +111,7 @@ jobs:
           if(!directory.schools.some(row=>row.officialName==='沈阳化工大学')) throw new Error('沈阳化工大学 missing');
           const all211=JSON.parse(fs.readFileSync('ln-rank/data/211-static/211-static-index.v3972_0.json','utf8'));
           if(!all211.meta.completeEvaluation||all211.records.length!==2494||all211.scoreBands.length!==8) throw new Error('211 static integrity');
-          console.log('v3972_5 site generation, worker resource budget and preserved static resources passed');
+          console.log('v3972_5 unified resource graph, worker budget and preserved static resources passed');
           NODE
           node tools/verify-school-profile-center-v3957.mjs
           node tools/verify-card-ai-2026-v3955.mjs
@@ -113,8 +124,10 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           paths=(
-            / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html
+            / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/self-check.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html
             /shared/resources/release/current-release.js
+            /shared/resources/resource-registry.js
+            /shared/ui/ui-resource-registry.v3972_5.js
             /shared/resources/release/site-runtime-contract.v3972_5.js
             /shared/resources/release/release-presenter.v3972_5.js
             /shared/resources/release/runtime-cache-contract.v3972_5.js
@@ -128,6 +141,7 @@ jobs:
             /ln-rank/js/app-runtime.v3972_5.js
             /ln-rank/js/selection-pool.v3972_5.js
             /ln-rank/js/selection-pool-runtime.v3972_5.js
+            /ln-rank/js/self-check.v3972_5.js
             /ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
             /ln-rank/js/academic-background/all211-static-app.v3972_0.js
             /ln-rank/css/all211-static.v3972_0.css
@@ -138,6 +152,8 @@ jobs:
             /shared/resources/schools/school-query-engine.v3969_0.js
           )
           for path in "${paths[@]}"; do curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null; done
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8765/ln-rank/active-assets.json)"
+          test "$status" = '404'
 
       - name: Upload failure diagnostics
         if: failure()
