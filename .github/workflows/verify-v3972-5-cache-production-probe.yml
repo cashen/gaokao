@@ -1,0 +1,91 @@
+name: Probe v3972.5 production cache deployment
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  production-probe:
+    if: github.event.pull_request.head.ref == 'verify/v3972-5-cache-production-20260802'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify source and canonical release
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/major-bands-bucket-cache.v3972_5.js
+          node --check functions/api/major-bands.js
+          node --check tools/verify-production-v3971.mjs
+          node --experimental-default-type=module tools/audit-major-bands-bounded-fanout-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+
+      - name: Wait for both production domains to serve v3.9.72.5
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 90); do
+            token="${GITHUB_SHA}-${attempt}-$(date +%s%N)"
+            pages_release="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/shared/resources/release/current-release.js?probe=${token}" || true)"
+            custom_release="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/shared/resources/release/current-release.js?probe=${token}" || true)"
+            pages_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao-4y9.pages.dev/ln-rank/?probe=${token}" || true)"
+            custom_html="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "https://gaokao.powers.org.cn/ln-rank/?probe=${token}" || true)"
+            if grep -q "display: 'v3.9.72.5'" <<<"$pages_release" \
+              && grep -q "generation: 'v3972_5'" <<<"$pages_release" \
+              && grep -q "asset: '3972_5'" <<<"$pages_release" \
+              && grep -q "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'" <<<"$pages_release" \
+              && grep -q "display: 'v3.9.72.5'" <<<"$custom_release" \
+              && grep -q 'data-release="v3.9.72.5"' <<<"$pages_html" \
+              && grep -q 'data-site-runtime-generation="v3972_5"' <<<"$pages_html" \
+              && grep -q 'data-release="v3.9.72.5"' <<<"$custom_html" \
+              && grep -q 'data-site-runtime-generation="v3972_5"' <<<"$custom_html"; then
+              ready=1
+              printf '%s' "$pages_release" > /tmp/pages-current-release.js
+              printf '%s' "$custom_release" > /tmp/custom-current-release.js
+              printf '%s' "$pages_html" > /tmp/pages-ln-rank.html
+              printf '%s' "$custom_html" > /tmp/custom-ln-rank.html
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1
+
+      - name: Verify 40 production concurrent cycles and cache hits
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
+          PRODUCTION_VERIFY_ATTEMPTS: '6'
+          PRODUCTION_VERIFY_WAIT_MS: '5000'
+          PRODUCTION_STRESS_CYCLES: '40'
+          PRODUCTION_STRESS_WAIT_MS: '500'
+        run: |
+          set -euo pipefail
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-cache-probe.out
+
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3972-5-production-cache-probe
+          path: |
+            /tmp/v3972-5-production-cache-probe.out
+            /tmp/pages-current-release.js
+            /tmp/custom-current-release.js
+            /tmp/pages-ln-rank.html
+            /tmp/custom-ln-rank.html
+          if-no-files-found: warn
+          retention-days: 7
