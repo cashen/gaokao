@@ -1,4 +1,4 @@
-name: Verify production release v3972.5
+name: Verify production release v3972.6
 
 on:
   push:
@@ -13,20 +13,19 @@ on:
       - 'index.html'
       - 'ln-rank/index.html'
       - 'ln-rank/selection-pool.html'
-      - 'ln-rank/site-active-generation.v3972_5.json'
-      - 'ln-rank/js/ux/family-home.v3972_5.js'
-      - 'ln-rank/js/app.v3972_5.js'
-      - 'ln-rank/js/app-runtime.v3972_5.js'
-      - 'ln-rank/js/selection-pool.v3972_5.js'
-      - 'ln-rank/js/selection-pool-runtime.v3972_5.js'
-      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js'
+      - 'ln-rank/site-active-generation.v3972_6.json'
+      - 'ln-rank/js/app.v3972_6.js'
+      - 'ln-rank/js/app-runtime.v3972_6.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js'
       - 'shared/resources/release/**'
+      - 'shared/resources/resource-registry.js'
       - 'shared/governance/**'
-      - 'shared/ui/shell/family-shell.v3972_5.*'
-      - 'shared/ui/components/family-plan-entry.v3972_5.*'
-      - 'shared/ui/interaction/interaction-transaction.v3972_5.*'
-      - 'tools/audit-site-runtime-generation-v3972_5.mjs'
-      - 'tools/browser-interaction-transaction-v3972_5.mjs'
+      - 'shared/ui/ui-resource-registry.v3972_6.js'
+      - 'shared/ui/interaction/interaction-transaction.v3972_6.*'
+      - 'tools/audit-site-runtime-generation-v3972_6.mjs'
+      - 'tools/audit-unified-resource-graph-v3972_6.mjs'
+      - 'tools/ln-2026/verify-final-release-v3972_6.py'
+      - 'tools/verify-production-resource-graph-v3972_6.mjs'
       - '_headers'
   workflow_dispatch:
 
@@ -36,7 +35,7 @@ permissions:
 jobs:
   source-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,167 +50,77 @@ jobs:
       - name: Verify production source graph
         run: |
           set -euo pipefail
-          node tools/audit-site-runtime-generation-v3972_5.mjs
-          python3 tools/ln-2026/verify-final-release-v3970.py
-          node --check shared/resources/release/site-runtime-contract.v3972_5.js
-          node --check shared/resources/release/runtime-cache-contract.v3972_5.js
-          node --check shared/governance/resource-execution-contract.v3972_5.js
-          node --check shared/ui/interaction/interaction-transaction.v3972_5.js
-          node --check ln-rank/js/app.v3972_5.js
-          node --check ln-rank/js/app-runtime.v3972_5.js
-          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3972_5.js
+          node tools/audit-canonical-release-version-v3972_6.mjs
+          node tools/audit-site-runtime-generation-v3972_6.mjs
+          node tools/audit-unified-resource-graph-v3972_6.mjs
+          node tools/audit-production-resource-verification-v3972_6.mjs
+          python3 tools/ln-2026/verify-final-release-v3972_6.py
+          node --check shared/resources/release/site-runtime-contract.v3972_6.js
+          node --check shared/resources/release/runtime-cache-contract.v3972_6.js
+          node --check shared/governance/resource-execution-contract.v3972_6.js
+          node --check shared/ui/interaction/interaction-transaction.v3972_6.js
+          node --check ln-rank/js/app.v3972_6.js
+          node --check ln-rank/js/app-runtime.v3972_6.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js
           node --check ln-rank/js/selection-pool.v3972_5.js
           node --check ln-rank/js/selection-pool-runtime.v3972_5.js
+
+      - name: Exercise production verifier against local graph
+        env:
+          PAGES_BASE: http://127.0.0.1:8796
+          CUSTOM_BASE: http://127.0.0.1:8796
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PRODUCTION_RESOURCE_ATTEMPTS: '1'
+          PRODUCTION_RESOURCE_WAIT_MS: '0'
+          VERIFY_RUNTIME_HEALTH: 'false'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3972-6-production-release-local.json
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8796 >/tmp/v3972-6-production-release-http.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          sleep 1
+          node tools/verify-production-resource-graph-v3972_6.mjs
 
   production-release:
     if: github.event_name != 'pull_request'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Verify Pages and custom-domain release ownership
         env:
           RELEASE_SHA: ${{ github.sha }}
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
+          PRODUCTION_RESOURCE_ATTEMPTS: '42'
+          PRODUCTION_RESOURCE_WAIT_MS: '20000'
+          VERIFY_RUNTIME_HEALTH: 'true'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3972-6-production-release.json
         run: |
           set -euo pipefail
-          mkdir -p /tmp/v3972-5-production
-          expected_release='v3.9.72.5'
-          expected_generation='v3972_5'
+          node tools/verify-production-resource-graph-v3972_6.mjs
 
-          fetch_response() {
-            local label="$1" url="$2"
-            curl --silent --show-error --location --max-time 25 \
-              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-              --dump-header "/tmp/v3972-5-production/${label}.headers" \
-              --output "/tmp/v3972-5-production/${label}.body" \
-              --write-out '%{http_code}' "$url" > "/tmp/v3972-5-production/${label}.status" || true
-          }
-
-          ready=0
-          for attempt in $(seq 1 42); do
-            token="${RELEASE_SHA}-${attempt}-$(date +%s)"
-            fetch_response pages-root "${PAGES_BASE}/?release-check=${token}"
-            fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response pages-contract "${PAGES_BASE}/shared/resources/release/site-runtime-contract.v3972_5.js?release-check=${token}"
-            fetch_response pages-manifest "${PAGES_BASE}/ln-rank/site-active-generation.v3972_5.json?release-check=${token}"
-            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?release-check=${token}"
-            fetch_response pages-interaction "${PAGES_BASE}/shared/ui/interaction/interaction-transaction.v3972_5.js?release-check=${token}"
-            fetch_response pages-runtime "${PAGES_BASE}/ln-rank/js/app-runtime.v3972_5.js?release-check=${token}"
-            fetch_response pages-home-runtime "${PAGES_BASE}/ln-rank/js/ux/family-home.v3972_5.js?release-check=${token}"
-            fetch_response pages-plan "${PAGES_BASE}/ln-rank/selection-pool.html?release-check=${token}"
-            fetch_response pages-plan-runtime "${PAGES_BASE}/ln-rank/js/selection-pool.v3972_5.js?release-check=${token}"
-            fetch_response pages-all211 "${PAGES_BASE}/ln-rank/211-mainline.html?release-check=${token}"
-            fetch_response pages-all211-data "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?release-check=${token}"
-            fetch_response pages-local "${PAGES_BASE}/ln-rank/local-mainline.html?release-check=${token}"
-            fetch_response pages-local-data "${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?release-check=${token}"
-            fetch_response custom-root "${CUSTOM_BASE}/?release-check=${token}"
-            fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?release-check=${token}"
-            fetch_response custom-workspace "${CUSTOM_BASE}/ln-rank/?release-check=${token}"
-            fetch_response custom-interaction "${CUSTOM_BASE}/shared/ui/interaction/interaction-transaction.v3972_5.js?release-check=${token}"
-            fetch_response custom-plan "${CUSTOM_BASE}/ln-rank/selection-pool.html?release-check=${token}"
-
-            pages_current=0
-            custom_assets_current=0
-            custom_html_or_challenge=0
-            preserved_resources=1
-
-            if [ "$(cat /tmp/v3972-5-production/pages-all211.status)" != '200' ] \
-              || ! grep -q 'data-release="v3.9.72.5"' /tmp/v3972-5-production/pages-all211.body \
-              || [ "$(cat /tmp/v3972-5-production/pages-all211-data.status)" != '200' ] \
-              || ! grep -q '"version":"all-211-static-v3972_0"' /tmp/v3972-5-production/pages-all211-data.body \
-              || [ "$(cat /tmp/v3972-5-production/pages-local.status)" != '200' ] \
-              || [ "$(cat /tmp/v3972-5-production/pages-local-data.status)" != '200' ] \
-              || ! grep -q 'local-strength-static-v3971_2' /tmp/v3972-5-production/pages-local-data.body; then
-              preserved_resources=0
-            fi
-
-            if [ "$(cat /tmp/v3972-5-production/pages-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/pages-root.body \
-              && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production/pages-root.body \
-              && grep -q 'family-home.v3972_5.js?v=3972_5' /tmp/v3972-5-production/pages-root.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-workspace.status)" = '200' ] \
-              && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production/pages-workspace.body \
-              && grep -q 'interaction-transaction.v3972_5.js?v=3972_5' /tmp/v3972-5-production/pages-workspace.body \
-              && grep -q 'app.v3972_5.js?v=3972_5' /tmp/v3972-5-production/pages-workspace.body \
-              && ! grep -q 'v3972_4' /tmp/v3972-5-production/pages-workspace.body \
-              && ! grep -Eq '<a[^>]+href="/ln-rank/(local|211)-mainline.html"' /tmp/v3972-5-production/pages-workspace.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-interaction.status)" = '200' ] \
-              && grep -q 'native-chooser-stabilizing' /tmp/v3972-5-production/pages-interaction.body \
-              && grep -q 'REQUIRED_STABLE_FRAMES' /tmp/v3972-5-production/pages-interaction.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-runtime.status)" = '200' ] \
-              && grep -q 'resource-execution-v3972_5' /tmp/v3972-5-production/pages-runtime.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-home-runtime.status)" = '200' ] \
-              && grep -q 'family-home-runtime-v3972_5' /tmp/v3972-5-production/pages-home-runtime.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-plan.status)" = '200' ] \
-              && grep -q 'selection-pool.v3972_5.js?v=3972_5' /tmp/v3972-5-production/pages-plan.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-plan-runtime.status)" = '200' ] \
-              && grep -q 'selection-runtime-v3972_5' /tmp/v3972-5-production/pages-plan-runtime.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production/pages-release.body \
-              && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production/pages-release.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-contract.status)" = '200' ] \
-              && grep -q 'CURRENT_RELEASE.siteRuntimeGeneration' /tmp/v3972-5-production/pages-contract.body \
-              && grep -q 'CURRENT_RELEASE.version' /tmp/v3972-5-production/pages-contract.body \
-              && [ "$(cat /tmp/v3972-5-production/pages-manifest.status)" = '200' ] \
-              && grep -q '"generation": "v3972_5"' /tmp/v3972-5-production/pages-manifest.body \
-              && grep -q '"releaseVersion": "v3.9.72.5"' /tmp/v3972-5-production/pages-manifest.body \
-              && [ "$preserved_resources" -eq 1 ]; then
-              pages_current=1
-            fi
-
-            if [ "$(cat /tmp/v3972-5-production/custom-release.status)" = '200' ] \
-              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production/custom-release.body \
-              && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production/custom-release.body \
-              && [ "$(cat /tmp/v3972-5-production/custom-interaction.status)" = '200' ] \
-              && grep -q 'interaction-transaction-v3972_5' /tmp/v3972-5-production/custom-interaction.body; then
-              custom_assets_current=1
-            fi
-
-            if [ "$(cat /tmp/v3972-5-production/custom-root.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-root.body \
-              && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production/custom-root.body \
-              && [ "$(cat /tmp/v3972-5-production/custom-workspace.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-workspace.body \
-              && grep -q 'app.v3972_5.js?v=3972_5' /tmp/v3972-5-production/custom-workspace.body \
-              && [ "$(cat /tmp/v3972-5-production/custom-plan.status)" = '200' ] \
-              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production/custom-plan.body \
-              && grep -q 'selection-pool.v3972_5.js?v=3972_5' /tmp/v3972-5-production/custom-plan.body; then
-              custom_html_or_challenge=1
-              printf '%s\n' 'custom domain returned current HTML' > /tmp/v3972-5-production/custom-domain-mode.txt
-            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-5-production/custom-root.headers; then
-              custom_html_or_challenge=1
-              printf '%s\n' 'custom domain protected by Cloudflare Managed Challenge; versioned assets verified separately' > /tmp/v3972-5-production/custom-domain-mode.txt
-            fi
-
-            printf 'attempt=%s expected=%s generation=%s pages=%s custom_assets=%s custom_html=%s preserved=%s\n' "$attempt" "$expected_release" "$expected_generation" "$pages_current" "$custom_assets_current" "$custom_html_or_challenge" "$preserved_resources" | tee /tmp/v3972-5-production/status.txt
-            if [ "$pages_current" -eq 1 ] && [ "$custom_assets_current" -eq 1 ] && [ "$custom_html_or_challenge" -eq 1 ]; then ready=1; break; fi
-            sleep 20
-          done
-
-          if [ "$ready" -ne 1 ]; then
-            for file in /tmp/v3972-5-production/*.status /tmp/v3972-5-production/*.headers /tmp/v3972-5-production/*.body; do echo "--- $file"; head -c 2500 "$file" 2>/dev/null || true; echo; done
-            exit 1
-          fi
-
-      - name: Verify active asset response headers
+      - name: Verify preserved static business resources
         run: |
           set -euo pipefail
-          for asset in pages-contract pages-interaction pages-runtime pages-home-runtime pages-plan-runtime; do
-            grep -Eiq '^etag:' "/tmp/v3972-5-production/${asset}.headers"
-            grep -Eiq 'content-type:.*(application|text)/javascript' "/tmp/v3972-5-production/${asset}.headers"
-            grep -Eiq '^cache-control:.*immutable' "/tmp/v3972-5-production/${asset}.headers"
-          done
-          grep -Eiq 'content-type:.*application/json' /tmp/v3972-5-production/pages-manifest.headers
-          grep -Eiq '^cache-control:.*immutable' /tmp/v3972-5-production/pages-manifest.headers
-          grep -Eiq '^cache-control:.*(no-cache|max-age=0)' /tmp/v3972-5-production/pages-workspace.headers
+          token="${GITHUB_SHA}-$(date +%s)"
+          curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/data/211-static/211-static-index.v3972_0.json?check=${token}" | grep -q 'all-211-static-v3972_0'
+          curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/data/local-strength/local-strength-index.v3971_2.json?check=${token}" | grep -q 'local-strength-static-v3971_2'
+          curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/js/selection-pool.v3972_5.js?check=${token}" | grep -q 'selection-runtime-v3972_5'
 
       - name: Upload production evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-5-production-release-evidence
-          path: /tmp/v3972-5-production
+          name: v3972-6-production-release-evidence
+          path: /tmp/v3972-6-production-release*
           if-no-files-found: warn
           retention-days: 7
