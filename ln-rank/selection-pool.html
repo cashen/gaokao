@@ -7,12 +7,12 @@
   <title>辽宁 2027 物理类家庭方案与复核报告</title>
   <link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0" />
   <link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3962_2" />
-  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3970_0.css?v=3970_0" />
-  <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3970_0.css?v=3970_0" />
+  <link rel="stylesheet" href="/shared/ui/shell/family-shell.v3972_5.css?v=3972_5" />
+  <link rel="stylesheet" href="/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5" />
   <link rel="stylesheet" href="/ln-rank/css/selection-pool.v3964_0.css?v=3964_0" />
   <link rel="stylesheet" href="/ln-rank/css/history-evidence.v3967_0.css?v=3967_0" />
 </head>
-<body class="ln-parent-guided-flow ln-selection-guided-flow ui-orchestrated" data-ui-page="selected" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.70.0" data-runtime-state="loading">
+<body class="ln-parent-guided-flow ln-selection-guided-flow ui-orchestrated" data-ui-page="selected" data-ui-brand="family" data-ui-density="workspace" data-release="v3.9.72.2" data-site-runtime-generation="v3972_5" data-runtime-state="loading">
   <div data-ui-global-header-mount></div>
   <div data-ui-family-status-mount></div>
   <main class="page ln-selection-page">
@@ -45,7 +45,7 @@
       <div id="selected-list" class="workspace-panel workspace-panel-list ln-selection-list-panel">
         <div class="workspace-head ln-selection-panel-head">
           <div><div class="ln-step-marker">家庭方案</div><h2 class="workspace-title">逐项检查愿意继续讨论的专业</h2><p class="workspace-desc">先让孩子确认是否愿意继续了解，不合适的可以移出。旧版保存且暂时无法对应到2026同口径记录的条目会单独标记，不进入当前正式报告。</p></div>
-          <div class="workspace-actions workspace-actions-list ln-selection-list-actions"><a class="workspace-button muted" href="/ln-rank/">返回继续添加</a><button id="sortByBand" class="workspace-button" data-selection-runtime-control disabled aria-disabled="true">按分段整理</button><button id="clearPool" class="workspace-button danger-muted" data-selection-runtime-control disabled aria-disabled="true">清空家庭方案</button></div>
+          <div class="workspace-actions workspace-actions-list ln-selection-list-actions"><a class="workspace-button muted" href="/ln-rank/">返回继续添加</a><button id="sortByBand" class="workspace-button" type="button" data-selection-runtime-control disabled aria-disabled="true">按分段整理</button><button id="clearPool" class="workspace-button danger-muted" type="button" data-selection-runtime-control disabled aria-disabled="true">清空家庭方案</button></div>
         </div>
         <div id="workspaceStats"></div>
         <section id="selectionFilterRelation" class="ln-selection-filter-relation" hidden></section>
@@ -60,13 +60,13 @@
           <div id="selectionActionHint"></div>
           <div id="directionExplorerReportMount" class="direction-explorer-report-mount"></div>
           <div class="workspace-actions ln-action-button-grid">
-            <button id="runAnalysis" class="workspace-button primary" data-selection-runtime-control disabled aria-disabled="true">检查当前家庭方案</button>
-            <button id="sendAnalyzedPool" class="workspace-button report-primary" data-selection-runtime-control disabled aria-disabled="true">生成家庭方案报告</button>
+            <button id="runAnalysis" class="workspace-button primary" type="button" data-selection-runtime-control disabled aria-disabled="true">检查当前家庭方案</button>
+            <button id="sendAnalyzedPool" class="workspace-button report-primary" type="button" data-selection-runtime-control disabled aria-disabled="true">生成家庭方案报告</button>
             <details class="family-secondary-actions">
               <summary>其他保存方式</summary>
               <div class="family-secondary-actions__body">
-                <button id="sendSelectionPool" class="workspace-button" data-selection-runtime-control disabled aria-disabled="true">不检查，直接生成报告</button>
-                <button id="copySelectionText" class="workspace-button muted" data-selection-runtime-control disabled aria-disabled="true">复制文字版</button>
+                <button id="sendSelectionPool" class="workspace-button" type="button" data-selection-runtime-control disabled aria-disabled="true">不检查，直接生成报告</button>
+                <button id="copySelectionText" class="workspace-button muted" type="button" data-selection-runtime-control disabled aria-disabled="true">复制文字版</button>
               </div>
             </details>
           </div>
@@ -81,9 +81,9 @@
       <div id="analysisResult"></div>
     </section>
 
-    <section class="data-note">当前报告主要依据辽宁2026年普通类本科批物理类专业投档记录，2025、2024只作严格同口径历史对照。输入的是模考或预估参考分数，不是2027年正式高考成绩；历史位次也不代表2027年实际位次。正式填报应重新确认2027年一分一段、招生计划、选科、体检、学费、校区和院校章程。<br>当前发布：<span data-current-release>v3.9.70.0</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
+    <section class="data-note">当前报告主要依据辽宁2026年普通类本科批物理类专业投档记录，2025、2024只作严格同口径历史对照。输入的是模考或预估参考分数，不是2027年正式高考成绩；历史位次也不代表2027年实际位次。正式填报应重新确认2027年一分一段、招生计划、选科、体检、学费、校区和院校章程。<br>当前发布：<span data-current-release>v3.9.72.2</span>｜数据口径：辽宁2026物理类专业投档｜资源、UI与算法：全站统一调度｜<a href="/ln2026.html">查看辽宁2026专业报考难度变化</a></section>
   </main>
   <div data-ui-family-plan-live class="ui-family-plan-live" aria-live="polite"></div>
-  <script type="module" src="/ln-rank/js/selection-pool.v3970_0.js?v=3970_0"></script>
+  <script type="module" src="/ln-rank/js/selection-pool.v3972_5.js?v=3972_5"></script>
 </body>
 </html>
