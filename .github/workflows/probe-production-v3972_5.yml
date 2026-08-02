@@ -1,0 +1,134 @@
+name: Probe production v3972.5
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  production-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify live canonical release and resource ownership
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          RELEASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3972-5-production-probe
+          expected_release='v3.9.72.5'
+          expected_generation='v3972_5'
+
+          fetch_response() {
+            local label="$1" url="$2"
+            curl --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              --dump-header "/tmp/v3972-5-production-probe/${label}.headers" \
+              --output "/tmp/v3972-5-production-probe/${label}.body" \
+              --write-out '%{http_code}' "$url" > "/tmp/v3972-5-production-probe/${label}.status" || true
+          }
+
+          ready=0
+          for attempt in $(seq 1 60); do
+            token="${RELEASE_SHA}-${attempt}-$(date +%s)"
+            fetch_response pages-release "${PAGES_BASE}/shared/resources/release/current-release.js?probe=${token}"
+            fetch_response pages-workspace "${PAGES_BASE}/ln-rank/?probe=${token}"
+            fetch_response pages-manifest "${PAGES_BASE}/ln-rank/site-active-generation.v3972_5.json?probe=${token}"
+            fetch_response pages-interaction "${PAGES_BASE}/shared/ui/interaction/interaction-transaction.v3972_5.js?probe=${token}"
+            fetch_response pages-runtime "${PAGES_BASE}/ln-rank/js/app-runtime.v3972_5.js?probe=${token}"
+            fetch_response pages-all211 "${PAGES_BASE}/ln-rank/data/211-static/211-static-index.v3972_0.json?probe=${token}"
+            fetch_response pages-local "${PAGES_BASE}/ln-rank/data/local-strength/local-strength-index.v3971_2.json?probe=${token}"
+            fetch_response custom-release "${CUSTOM_BASE}/shared/resources/release/current-release.js?probe=${token}"
+            fetch_response custom-workspace "${CUSTOM_BASE}/ln-rank/?probe=${token}"
+
+            pages_current=0
+            custom_current=0
+
+            if [ "$(cat /tmp/v3972-5-production-probe/pages-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production-probe/pages-release.body \
+              && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production-probe/pages-release.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-workspace.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production-probe/pages-workspace.body \
+              && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production-probe/pages-workspace.body \
+              && grep -q 'app.v3972_5.js?v=3972_5' /tmp/v3972-5-production-probe/pages-workspace.body \
+              && grep -q 'interaction-transaction.v3972_5.js?v=3972_5' /tmp/v3972-5-production-probe/pages-workspace.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-manifest.status)" = '200' ] \
+              && grep -q '"releaseVersion": "v3.9.72.5"' /tmp/v3972-5-production-probe/pages-manifest.body \
+              && grep -q '"generation": "v3972_5"' /tmp/v3972-5-production-probe/pages-manifest.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-interaction.status)" = '200' ] \
+              && grep -q 'interaction-transaction-v3972_5' /tmp/v3972-5-production-probe/pages-interaction.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-runtime.status)" = '200' ] \
+              && grep -q 'resource-execution-v3972_5' /tmp/v3972-5-production-probe/pages-runtime.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-all211.status)" = '200' ] \
+              && grep -q 'all-211-static-v3972_0' /tmp/v3972-5-production-probe/pages-all211.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/pages-local.status)" = '200' ] \
+              && grep -q 'local-strength-static-v3971_2' /tmp/v3972-5-production-probe/pages-local.body; then
+              pages_current=1
+            fi
+
+            if [ "$(cat /tmp/v3972-5-production-probe/custom-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production-probe/custom-release.body \
+              && grep -q "siteRuntimeGeneration: '${expected_generation}'" /tmp/v3972-5-production-probe/custom-release.body \
+              && [ "$(cat /tmp/v3972-5-production-probe/custom-workspace.status)" = '200' ] \
+              && grep -q "data-release=\"${expected_release}\"" /tmp/v3972-5-production-probe/custom-workspace.body \
+              && grep -q "data-site-runtime-generation=\"${expected_generation}\"" /tmp/v3972-5-production-probe/custom-workspace.body; then
+              custom_current=1
+            elif grep -Eiq '^cf-mitigated:[[:space:]]*challenge' /tmp/v3972-5-production-probe/custom-workspace.headers \
+              && [ "$(cat /tmp/v3972-5-production-probe/custom-release.status)" = '200' ] \
+              && grep -q "display: '${expected_release}'" /tmp/v3972-5-production-probe/custom-release.body; then
+              custom_current=1
+            fi
+
+            printf 'attempt=%s pages=%s custom=%s\n' "$attempt" "$pages_current" "$custom_current" | tee /tmp/v3972-5-production-probe/status.txt
+            if [ "$pages_current" -eq 1 ] && [ "$custom_current" -eq 1 ]; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            for file in /tmp/v3972-5-production-probe/*.status /tmp/v3972-5-production-probe/*.headers /tmp/v3972-5-production-probe/*.body; do
+              echo "--- $file"
+              head -c 2500 "$file" 2>/dev/null || true
+              echo
+            done
+            exit 1
+          fi
+
+      - name: Verify live Worker API and resource budget
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
+          EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
+          PRODUCTION_VERIFY_ATTEMPTS: '3'
+          PRODUCTION_VERIFY_WAIT_MS: '5000'
+          PRODUCTION_STRESS_CYCLES: '20'
+          PRODUCTION_STRESS_WAIT_MS: '500'
+        run: |
+          set -euo pipefail
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-probe/worker-health.out
+
+      - name: Upload production probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3972-5-production-probe
+          path: /tmp/v3972-5-production-probe
+          if-no-files-found: warn
+          retention-days: 7
