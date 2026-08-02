@@ -14,6 +14,24 @@ function count(data) {
   );
 }
 
+function assertBoundedOrchestration(data, label) {
+  const source = data?.source || {};
+  if (source.bucketWorkerOrchestrationVersion !== 'major-bands-bounded-fanout-v3972_5') {
+    throw new Error(`${label} orchestration version=${source.bucketWorkerOrchestrationVersion || 'missing'}`);
+  }
+  const concurrency = Number(source.bucketWorkerConcurrency || 0);
+  if (concurrency < 1 || concurrency > 3) {
+    throw new Error(`${label} concurrency=${concurrency}`);
+  }
+  if (Number(source.bucketWorkerMaxAttempts || 0) !== 2) {
+    throw new Error(`${label} maxAttempts=${source.bucketWorkerMaxAttempts}`);
+  }
+  const retries = Number(source.bucketWorkerRetries || 0);
+  if (!Number.isInteger(retries) || retries < 0) {
+    throw new Error(`${label} retries=${source.bucketWorkerRetries}`);
+  }
+}
+
 const health = read('health');
 const score = read('score');
 const school = read('school');
@@ -49,6 +67,9 @@ if (health?.probe?.resourceBudget?.parsedChunkCache !== false) {
   throw new Error('probe parsed chunk cache is enabled');
 }
 
+assertBoundedOrchestration(score, 'score');
+assertBoundedOrchestration(school, 'school');
+
 const scoreRecords = count(score);
 const schoolRecords = count(school);
 if (scoreRecords < 1 || schoolRecords < 1) {
@@ -60,5 +81,9 @@ console.log(JSON.stringify({
   chunksRead: Number(health.probe?.chunksRead || 0),
   rawScanned: Number(health.probe?.rawScanned || 0),
   scoreRecords,
-  schoolRecords
+  schoolRecords,
+  scoreConcurrency: Number(score.source.bucketWorkerConcurrency),
+  schoolConcurrency: Number(school.source.bucketWorkerConcurrency),
+  scoreRetries: Number(score.source.bucketWorkerRetries || 0),
+  schoolRetries: Number(school.source.bucketWorkerRetries || 0)
 }));
