@@ -259,6 +259,12 @@ assert.ok(source.includes("record?.majorBandsMaterializationVersion === MAJOR_BA
 assert.ok(source.includes("'x-gaokao-response-transport'"));
 assert.ok(source.includes('isRetryableBucketWorkerFailure(error) ? 503 : 500'));
 assert.ok(bucketApi.includes('candidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION'));
+assert.ok(bucketEngine.includes("import { materializeMajorBandsStaticRecord } from './major-bands-static-provider.js';"));
+assert.ok(bucketEngine.includes("import { buildDisplayTags } from './school-display-tags.js';"));
+assert.ok(bucketEngine.includes('const materialized = materializeMajorBandsStaticRecord(record);'));
+assert.ok(bucketEngine.includes('const displayTags = buildDisplayTags(materialized);'));
+assert.ok(bucketEngine.includes('...materialized'));
+assert.ok(bucketEngine.includes('...displayTags'));
 assert.ok(bucketEngine.includes('.slice(0, maxCandidates).map(compactMajorBandsBucketCandidate)'));
 assert.ok(staticProvider.includes("if (record?.majorBandsMaterializationVersion === MAJOR_BANDS_MATERIALIZATION_VERSION) return record;"));
 assert.ok(productionVerifier.includes('SCORE_RESPONSE_BUDGET_BYTES = 260000'));
