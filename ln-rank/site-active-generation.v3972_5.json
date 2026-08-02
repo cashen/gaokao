@@ -3,6 +3,14 @@
   "generation": "v3972_5",
   "contractVersion": "site-runtime-coherence-v3972_5",
   "scope": "whole-site-active-generation",
+  "resourceGraph": {
+    "version": "site-resource-graph-v3972_5",
+    "registry": "/shared/resources/resource-registry.js",
+    "uiRegistry": "/shared/ui/ui-resource-registry.v3972_5.js",
+    "cssVersion": "css-resource-graph-v3972_5",
+    "dataVersion": "data-resource-graph-v3972_5",
+    "decommissionPolicyVersion": "resource-decommission-v3972_5"
+  },
   "entrypoints": {
     "home": "/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5",
     "familyShell": "/shared/ui/shell/family-shell.v3972_5.js?v=3972_5",
@@ -25,12 +33,13 @@
     "all211": "all-211-static-v3972_0",
     "majorBands": "major-bands-static-v3972_2"
   },
-  "legacyInventory": "/ln-rank/active-assets.json",
-  "legacyInventoryIsActiveOwner": false,
   "policies": {
     "oneActiveGeneration": true,
+    "singleCurrentResourceRegistry": true,
     "stableDependenciesDeclared": true,
     "stablePageEntrypointsDeclared": true,
+    "historicalAssetsCannotClaimActiveOwnership": true,
+    "referenceProofRequiredBeforeRemoval": true,
     "nativeAuxiliaryHrefForbidden": true,
     "explicitNavigationOwnerRequired": true,
     "productionGraphMustMatchSourceGraph": true
