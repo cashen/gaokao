@@ -1,4 +1,4 @@
-name: Verify production API health v3972.5
+name: Verify production API health v3972.6
 
 on:
   push:
@@ -39,11 +39,12 @@ jobs:
             tools/verify-worker-budget-local-v3972.mjs \
             tools/verify-production-v3971.mjs \
             tools/verify-production-baseline-v3971.mjs \
-            tools/audit-canonical-release-version-v3972_5.mjs; do
+            tools/audit-canonical-release-version-v3972_6.mjs \
+            tools/audit-site-runtime-generation-v3972_6.mjs; do
             node --check "$file"
           done
-          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
-          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
+          node tools/audit-canonical-release-version-v3972_6.mjs
+          node tools/audit-site-runtime-generation-v3972_6.mjs
 
           test -f 404.html
           grep -q '页面不存在' 404.html
@@ -85,7 +86,7 @@ jobs:
           if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
           if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
           if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
-          console.log(JSON.stringify({release:'v3.9.72.5',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
+          console.log(JSON.stringify({release:'v3.9.72.6',siteGeneration:'v3972_6',workerGovernance:'v3972_5',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
           NODE
 
       - name: Verify local Wrangler concurrent resource journey
@@ -93,7 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --no-package-lock wrangler@4.28.1
-          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-5-worker-budget-wrangler.log 2>&1 &
+          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-6-worker-budget-wrangler.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           ready=0
@@ -101,7 +102,7 @@ jobs:
             if curl -fsS 'http://127.0.0.1:8792/api/ln-rank-runtime-health' >/tmp/v3972-runtime.json; then ready=1; break; fi
             sleep 1
           done
-          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-5-worker-budget-wrangler.log; exit 1; fi
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-6-worker-budget-wrangler.log; exit 1; fi
 
           local_status="$(curl --silent --show-error -o /tmp/v3972-local-strength-absent.html -w '%{http_code}' 'http://127.0.0.1:8792/api/local-strength')"
           test "$local_status" = '404'
@@ -133,10 +134,10 @@ jobs:
           echo "PREVIEW_BASE=$preview_base" >> "$GITHUB_ENV"
           echo "Cloudflare branch Preview: $preview_base"
 
-      - name: Verify v3.9.72.5 Cloudflare Preview and Worker journey
+      - name: Verify v3.9.72.6 Cloudflare Preview and Worker journey
         if: github.event_name == 'pull_request'
         env:
-          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_RELEASE: v3.9.72.6
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '1'
@@ -152,8 +153,8 @@ jobs:
             page="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/local-mainline.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
             css="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/css/local-strength-score-position.v3972_3.css?candidate=${GITHUB_SHA}-${attempt}" || true)"
             runtime="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/js/local-strength/local-strength-app.v3971_2.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q "display: 'v3.9.72.5'" <<<"$release" \
-              && grep -q "siteRuntimeGeneration: 'v3972_5'" <<<"$release" \
+            if grep -q "display: 'v3.9.72.6'" <<<"$release" \
+              && grep -q "siteRuntimeGeneration: 'v3972_6'" <<<"$release" \
               && grep -q 'local-strength-score-position-v3972_3' <<<"$page" \
               && grep -q '.ls-score-position-groups' <<<"$css" \
               && grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' <<<"$runtime" \
@@ -165,7 +166,7 @@ jobs:
           done
           test "$ready" -eq 1
           PAGES_BASE="$PREVIEW_BASE" CUSTOM_BASE="$PREVIEW_BASE" \
-            node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-preview-worker-health.out
+            node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-6-preview-worker-health.out
 
       - name: Verify currently deployed safe baseline before merge
         if: ${{ always() && github.event_name == 'pull_request' }}
@@ -177,14 +178,14 @@ jobs:
           PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: |
           set -euo pipefail
-          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-baseline.out
+          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-6-production-baseline.out
 
-      - name: Verify v3.9.72.5 production after main deployment
+      - name: Verify v3.9.72.6 production after main deployment
         if: github.event_name != 'pull_request'
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
-          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_RELEASE: v3.9.72.6
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '45'
@@ -193,16 +194,16 @@ jobs:
           PRODUCTION_STRESS_WAIT_MS: '1000'
         run: |
           set -euo pipefail
-          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-health.out
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-6-production-health.out
 
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-5-production-api-health
+          name: v3972-6-production-api-health
           path: |
-            /tmp/v3972-5-*.out
-            /tmp/v3972-5-worker-budget-wrangler.log
+            /tmp/v3972-6-*.out
+            /tmp/v3972-6-worker-budget-wrangler.log
             /tmp/v3972-*.json
             /tmp/v3972-*.html
           if-no-files-found: warn
