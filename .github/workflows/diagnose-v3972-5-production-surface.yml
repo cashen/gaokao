@@ -1,0 +1,52 @@
+name: Diagnose v3972.5 production surfaces
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-production:
+    if: github.event.pull_request.head.ref == 'verify/v3972-5-cache-production-20260802'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Inspect live release and page markers
+        run: |
+          set -euo pipefail
+          token="${GITHUB_SHA}-$(date +%s%N)"
+          for base in 'https://gaokao-4y9.pages.dev' 'https://gaokao.powers.org.cn'; do
+            label="$(printf '%s' "$base" | sed -E 's#https://##; s#[^a-zA-Z0-9]+#-#g')"
+            release_file="/tmp/${label}-release.js"
+            page_file="/tmp/${label}-ln-rank.html"
+            release_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$release_file" -w '%{http_code}' "${base}/shared/resources/release/current-release.js?diagnose=${token}")"
+            page_status="$(curl --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -o "$page_file" -w '%{http_code}' "${base}/ln-rank/?diagnose=${token}")"
+            echo "BASE=${base} releaseStatus=${release_status} pageStatus=${page_status} releaseBytes=$(wc -c < "$release_file") pageBytes=$(wc -c < "$page_file")"
+            for pattern in \
+              "display: 'v3.9.72.5'" \
+              "display: 'v3.9.72.2'" \
+              "siteRuntimeGeneration: 'v3972_5'" \
+              "asset: '3972_5'" \
+              "majorBandsBucketCacheVersion: 'major-bands-bucket-cache-v3972_5'"; do
+              if grep -Fq "$pattern" "$release_file"; then echo "release MATCH ${pattern}"; else echo "release MISS ${pattern}"; fi
+            done
+            for pattern in \
+              'data-release="v3.9.72.5"' \
+              'data-release="v3.9.72.2"' \
+              'data-site-runtime-generation="v3972_5"'; do
+              if grep -Fq "$pattern" "$page_file"; then echo "page MATCH ${pattern}"; else echo "page MISS ${pattern}"; fi
+            done
+            grep -Eo "display: 'v[0-9.]+'|siteRuntimeGeneration: 'v[0-9_]+'|asset: '[0-9_]+'|data-release=\"v[0-9.]+\"|data-site-runtime-generation=\"v[0-9_]+\"" "$release_file" "$page_file" | head -40 || true
+          done
+
+      - name: Upload surface samples
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3972-5-production-surface-samples
+          path: /tmp/*-release.js
+          if-no-files-found: warn
+          retention-days: 3
