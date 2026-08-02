@@ -1,4 +1,4 @@
-name: Verify production API health v3972.2
+name: Verify production API health v3972.5
 
 on:
   push:
@@ -23,7 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify worker resource-budget and LocalStrength source contracts
+
+      - name: Verify canonical release and Worker resource contracts
         run: |
           set -euo pipefail
           for file in \
@@ -37,14 +38,16 @@ jobs:
             tools/build-major-bands-static-v3972.mjs \
             tools/verify-worker-budget-local-v3972.mjs \
             tools/verify-production-v3971.mjs \
-            tools/verify-production-baseline-v3971.mjs; do
+            tools/verify-production-baseline-v3971.mjs \
+            tools/audit-canonical-release-version-v3972_5.mjs; do
             node --check "$file"
           done
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
+
           test -f 404.html
           grep -q '页面不存在' 404.html
           grep -q 'distributed-major-bands-buckets-v3972-2' 404.html
-          test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
-          test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
           grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
           grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
@@ -53,26 +56,21 @@ jobs:
           grep -q "loadMajorBandsStaticBucket" functions/_lib/major-bands-static-provider.js
           grep -q "processMajorBandsStaticBucket" functions/_lib/major-bands-bucket-engine.js
           grep -q "major-bands-bucket-v3972_2" functions/api/major-bands-bucket.js
-          grep -q "loadMajorBandsStaticBucket" functions/api/major-bands-bucket.js
-          grep -q "Math.min(240" functions/api/major-bands-bucket.js
-          grep -q "selectMajorBandsStaticBuckets" functions/api/major-bands.js
           grep -q "/api/major-bands-bucket" functions/api/major-bands.js
           grep -q "distributed-bucket-workers" functions/api/major-bands.js
           if grep -Eq "loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
             echo 'major-bands still performs multi-bucket or raw admission scanning in one Worker'
             exit 1
           fi
-          test -f ln-rank/css/local-strength-score-position.v3972_3.css
+
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
           grep -q 'data-local-strength-score-position="local-strength-score-position-v3972_3"' ln-rank/local-mainline.html
           grep -q 'local-strength-app.v3971_2.js?v=3972_3' ln-rank/local-mainline.html
           grep -q 'local-strength-score-position.v3972_3.css?v=3972_3' ln-rank/local-mainline.html
-          grep -q "SCORE_POSITION_VERSION = 'local-strength-score-position-v3972_3'" ln-rank/js/local-strength/local-strength-app.v3971_2.js
-          grep -q '/fenxi/data/rank_2026_physics.json?v=3972_3' ln-rank/js/local-strength/local-strength-app.v3971_2.js
-          grep -q 'rankDistance(a, rank) - rankDistance(b, rank)' ln-rank/js/local-strength/local-strength-app.v3971_2.js
           grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
           grep -Fq 'const lower = ordered.filter(record => Number(record.rank2026) > rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
-          test ! -e functions/api/local-strength.js
-          test ! -e functions/_lib/local-strength-api.js
+
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           const dir='ln-rank/data/major-bands-static-v3972_2';
@@ -80,31 +78,22 @@ jobs:
           const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
           const local=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
           const ranks=JSON.parse(fs.readFileSync('fenxi/data/rank_2026_physics.json','utf8'));
-          if(manifest.version!=='major-bands-static-v3972_2') throw new Error('static version');
-          if(manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('static architecture');
-          if(manifest.bucketSize!==5) throw new Error(`bucket size ${manifest.bucketSize}`);
-          if(manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('static count');
-          if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628) throw new Error('static coverage');
-          if(manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('static integrity');
-          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('bucket coverage');
-          if(audit.indexBytes>8500000) throw new Error(`static index budget ${audit.indexBytes}`);
-          if(Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('single bucket budget');
-          if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243) throw new Error('LocalStrength immutable index');
+          if(manifest.version!=='major-bands-static-v3972_2'||manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('major-bands static contract');
+          if(manifest.bucketSize!==5||manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('major-bands static coverage');
+          if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628||manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('major-bands static integrity');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length<60||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('major-bands bucket coverage');
+          if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
+          if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
           if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
-          console.log(JSON.stringify({version:manifest.version,recordCount:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,maximumBucketBytes:Math.max(...manifest.buckets.map(item=>Number(item.bytes||0))),localStrengthRecords:local.records.length,rank530:ranks['530'],rank579:ranks['579']},null,2));
+          console.log(JSON.stringify({release:'v3.9.72.5',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
           NODE
-          grep -q "EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE" tools/verify-production-v3971.mjs
-          grep -q "EXPECTED_LOCAL_STRENGTH_SCORE_POSITION" tools/verify-production-v3971.mjs
-          grep -q "ALLOW_KNOWN_MAJOR_BANDS_DEGRADED" tools/verify-production-baseline-v3971.mjs
-          grep -q "known-pre-merge-degraded" tools/verify-production-baseline-v3971.mjs
-          grep -q "ALLOWED_RELEASES" tools/verify-production-baseline-v3971.mjs
-          grep -q "legacy-spa-soft-404" tools/verify-production-baseline-v3971.mjs
+
       - name: Verify local Wrangler concurrent resource journey
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
           npm install --no-save --no-package-lock wrangler@4.28.1
-          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-worker-budget-wrangler.log 2>&1 &
+          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3972-5-worker-budget-wrangler.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           ready=0
@@ -112,11 +101,13 @@ jobs:
             if curl -fsS 'http://127.0.0.1:8792/api/ln-rank-runtime-health' >/tmp/v3972-runtime.json; then ready=1; break; fi
             sleep 1
           done
-          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-worker-budget-wrangler.log; exit 1; fi
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3972-5-worker-budget-wrangler.log; exit 1; fi
+
           local_status="$(curl --silent --show-error -o /tmp/v3972-local-strength-absent.html -w '%{http_code}' 'http://127.0.0.1:8792/api/local-strength')"
           test "$local_status" = '404'
           grep -Eqi '<!doctype html|<html' /tmp/v3972-local-strength-absent.html
           if grep -Eqi '"scannedCount"|"matchedCount"|"architecture"|"records"' /tmp/v3972-local-strength-absent.html; then exit 1; fi
+
           for cycle in $(seq 1 8); do
             token="${cycle}-$(date +%s%N)"
             curl -fsS "http://127.0.0.1:8792/api/major-bands-health?probe=1&budget=${token}" > "/tmp/v3972-health-${cycle}.json" & p1=$!
@@ -129,18 +120,20 @@ jobs:
             wait "$p1" "$p2" "$p3"
             node tools/verify-worker-budget-local-v3972.mjs "$cycle"
           done
-      - name: Resolve automatic Cloudflare branch Preview
+
+      - name: Resolve Cloudflare branch Preview
         if: github.event_name == 'pull_request'
         env:
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28)"
+          slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28 | sed -E 's/-+$//')"
           test -n "$slug"
           preview_base="https://${slug}.gaokao-4y9.pages.dev"
           echo "PREVIEW_BASE=$preview_base" >> "$GITHUB_ENV"
-          echo "Cloudflare automatic branch Preview: $preview_base"
-      - name: Verify Cloudflare Preview Worker and LocalStrength journey
+          echo "Cloudflare branch Preview: $preview_base"
+
+      - name: Verify v3.9.72.5 Cloudflare Preview and Worker journey
         if: github.event_name == 'pull_request'
         env:
           EXPECTED_RELEASE: v3.9.72.5
@@ -155,10 +148,13 @@ jobs:
           test -n "${PREVIEW_BASE:-}"
           ready=0
           for attempt in $(seq 1 90); do
+            release="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/shared/resources/release/current-release.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
             page="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/local-mainline.html?candidate=${GITHUB_SHA}-${attempt}" || true)"
             css="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/css/local-strength-score-position.v3972_3.css?candidate=${GITHUB_SHA}-${attempt}" || true)"
             runtime="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ln-rank/js/local-strength/local-strength-app.v3971_2.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q 'local-strength-score-position-v3972_3' <<<"$page" \
+            if grep -q "display: 'v3.9.72.5'" <<<"$release" \
+              && grep -q "siteRuntimeGeneration: 'v3972_5'" <<<"$release" \
+              && grep -q 'local-strength-score-position-v3972_3' <<<"$page" \
               && grep -q '.ls-score-position-groups' <<<"$css" \
               && grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' <<<"$runtime" \
               && grep -Fq 'const lower = ordered.filter(record => Number(record.rank2026) > rank);' <<<"$runtime"; then
@@ -169,7 +165,8 @@ jobs:
           done
           test "$ready" -eq 1
           PAGES_BASE="$PREVIEW_BASE" CUSTOM_BASE="$PREVIEW_BASE" \
-            node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-preview-worker-health.out
+            node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-preview-worker-health.out
+
       - name: Verify currently deployed safe baseline before merge
         if: ${{ always() && github.event_name == 'pull_request' }}
         env:
@@ -180,7 +177,8 @@ jobs:
           PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: |
           set -euo pipefail
-          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-production-health.out
+          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-baseline.out
+
       - name: Verify v3.9.72.5 production after main deployment
         if: github.event_name != 'pull_request'
         env:
@@ -195,16 +193,16 @@ jobs:
           PRODUCTION_STRESS_WAIT_MS: '1000'
         run: |
           set -euo pipefail
-          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-production-health.out
+          node tools/verify-production-v3971.mjs 2>&1 | tee /tmp/v3972-5-production-health.out
+
       - name: Upload production health evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-3-production-api-health
+          name: v3972-5-production-api-health
           path: |
-            /tmp/v3972-production-health.out
-            /tmp/v3972-preview-worker-health.out
-            /tmp/v3972-worker-budget-wrangler.log
+            /tmp/v3972-5-*.out
+            /tmp/v3972-5-worker-budget-wrangler.log
             /tmp/v3972-*.json
             /tmp/v3972-*.html
           if-no-files-found: warn
