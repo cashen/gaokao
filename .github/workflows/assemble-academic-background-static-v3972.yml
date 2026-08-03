@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
@@ -85,15 +85,18 @@ jobs:
           if(index.scoreBands.reduce((sum,item)=>sum+item.admissionRecordCount,0)!==index.records.length) throw new Error('band coverage');
           if(fs.statSync(file).size>3500000) throw new Error('browser index too large');
           const release=fs.readFileSync('shared/resources/release/current-release.js','utf8');
-          if(!release.includes("display: 'v3.9.72.5'")) throw new Error('release display');
+          if(!release.includes("display: 'v3.9.72.6'")) throw new Error('release display');
           if(!release.includes("all211DataVersion: 'all-211-static-v3972_0'")) throw new Error('release data owner');
+          const page=fs.readFileSync('ln-rank/211-mainline.html','utf8');
+          if(!page.includes('data-release="v3.9.72.6"')) throw new Error('211 public release');
+          if(!page.includes('all211-static-app.v3972_0.js?v=3972_0')) throw new Error('211 stable runtime');
           const compat=fs.readFileSync('functions/_lib/211-static-compat-response.js','utf8');
           if(!compat.includes('scannedCount: 0')||!compat.includes('build-time-static-index')) throw new Error('scan-free compatibility contract');
           const health=fs.readFileSync('functions/api/major-bands-health.js','utf8');
           const fetcher=fs.readFileSync('functions/_lib/fenxi-fetcher.js','utf8');
           if(!health.includes("maximumProbeChunks: 1")||!health.includes("fullDatasetScan: false")) throw new Error('bounded health probe contract');
           if(!fetcher.includes('Large admission chunks are deliberately request-scoped')) throw new Error('request-scoped chunk contract');
-          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size},null,2));
+          console.log(JSON.stringify({...index.meta,indexBytes:fs.statSync(file).size,release:'v3.9.72.6',package:index.version},null,2));
           NODE
       - name: Upload assembly evidence
         if: always()
