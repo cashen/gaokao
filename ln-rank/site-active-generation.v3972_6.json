@@ -18,18 +18,20 @@
     "releasePresenter": "/shared/resources/release/release-presenter.v3972_6.js?v=3972_6",
     "runtimeCache": "/shared/resources/release/runtime-cache-contract.v3972_6.js?v=3972_6",
     "resourceExecution": "/shared/governance/resource-execution-contract.v3972_6.js?v=3972_6",
+    "home": "/ln-rank/js/ux/family-home.v3972_6.js?v=3972_6",
+    "familyShell": "/shared/ui/shell/family-shell.v3972_6.js?v=3972_6",
+    "familyPlanEntry": "/shared/ui/components/family-plan-entry.v3972_6.js?v=3972_6",
     "selectionBootstrap": "/ln-rank/js/app.v3972_6.js?v=3972_6",
     "selectionRuntime": "/ln-rank/js/app-runtime.v3972_6.js?v=3972_6",
     "selectionWorkspace": "/ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js?v=3972_6",
     "interaction": "/shared/ui/interaction/interaction-transaction.v3972_6.js?v=3972_6",
-    "interactionStyles": "/shared/ui/interaction/interaction-transaction.v3972_6.css?v=3972_6"
+    "interactionStyles": "/shared/ui/interaction/interaction-transaction.v3972_6.css?v=3972_6",
+    "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3972_6.js?v=3972_6",
+    "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3972_6.js?v=3972_6"
   },
   "declaredStableActiveEntrypoints": {
-    "home": "/ln-rank/js/ux/family-home.v3972_5.js?v=3972_5",
-    "familyShell": "/shared/ui/shell/family-shell.v3972_5.js?v=3972_5",
-    "familyPlanEntry": "/shared/ui/components/family-plan-entry.v3972_5.js?v=3972_5",
-    "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3972_5.js?v=3972_5",
-    "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3972_5.js?v=3972_5"
+    "familyShellStyles": "/shared/ui/shell/family-shell.v3972_5.css?v=3972_5",
+    "familyPlanEntryStyles": "/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5"
   },
   "interactionContract": {
     "version": "interaction-transaction-v3972_6",
