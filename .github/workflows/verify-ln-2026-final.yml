@@ -94,7 +94,7 @@ jobs:
           if(CURRENT_RELEASE.majorBandsOrchestrationVersion!=='major-bands-bounded-fanout-v3972_5') throw new Error('major-bands worker governance');
           if(ALGORITHM_CONTRACT.version!=='algorithm-orchestration-v3969') throw new Error('algorithm owner');
           if(LN_RANK_RUNTIME_CACHE_CONTRACT.version!=='runtime-cache-coherence-v3972_6') throw new Error('cache owner');
-          if(RESOURCE_EXECUTION_REGISTRY.familyAction.owner!=='/shared/ui/components/family-plan-entry.v3972_5.js') throw new Error('family action stable owner');
+          if(RESOURCE_EXECUTION_REGISTRY.familyAction.owner!=='/shared/ui/components/family-plan-entry.v3972_6.js') throw new Error('family action current owner');
           if(RESOURCE_EXECUTION_REGISTRY.interaction.owner!=='/shared/ui/interaction/interaction-transaction.v3972_6.js') throw new Error('interaction owner');
           if(RESOURCE_EXECUTION_REGISTRY.interaction.nativeChooserActivationOwner!==RESOURCE_EXECUTION_REGISTRY.interaction.owner) throw new Error('native chooser activation owner');
           const healthSource=fs.readFileSync('functions/api/major-bands-health.js','utf8');
@@ -142,11 +142,13 @@ jobs:
             /ln-rank/js/app-runtime.v3972_6.js
             /ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js
             /ln-rank/js/self-check.v3972_6.js
-            /shared/ui/shell/family-shell.v3972_5.js
-            /shared/ui/components/family-plan-entry.v3972_5.js
-            /ln-rank/js/ux/family-home.v3972_5.js
-            /ln-rank/js/selection-pool.v3972_5.js
-            /ln-rank/js/selection-pool-runtime.v3972_5.js
+            /shared/ui/shell/family-shell.v3972_6.js
+            /shared/ui/shell/family-shell.v3972_5.css
+            /shared/ui/components/family-plan-entry.v3972_6.js
+            /shared/ui/components/family-plan-entry.v3972_5.css
+            /ln-rank/js/ux/family-home.v3972_6.js
+            /ln-rank/js/selection-pool.v3972_6.js
+            /ln-rank/js/selection-pool-runtime.v3972_6.js
             /ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
             /ln-rank/js/academic-background/all211-static-app.v3972_0.js
             /ln-rank/css/all211-static.v3972_0.css
