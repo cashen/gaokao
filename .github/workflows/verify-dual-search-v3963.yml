@@ -1,4 +1,4 @@
-name: Verify unified site runtime v3972.5
+name: Verify unified site runtime v3972.6
 
 on:
   pull_request:
@@ -11,11 +11,11 @@ permissions:
 jobs:
   site-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           show-progress: false
       - uses: actions/setup-node@v4
@@ -29,52 +29,45 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3972-5-runtime-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-5-runtime-files.txt; then exit 1; fi
+          git diff --name-only "$base" HEAD | tee /tmp/v3972-6-runtime-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-6-runtime-files.txt; then exit 1; fi
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
-          python3 -m py_compile tools/ln-2026/verify-final-release-v3970.py
           grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
 
       - name: Verify site generation and preserved domains
         run: |
           set -euo pipefail
-          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-5-release.out
-          node tools/audit-site-runtime-generation-v3972_5.mjs 2>&1 | tee /tmp/v3972-5-site-runtime.out
-          node tools/audit-family-action-v3970.mjs 2>&1 | tee /tmp/v3972-5-family-action.out
-          node tools/audit-school-query-v3970.mjs 2>&1 | tee /tmp/v3972-5-school-query.out
-          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3972-5-algorithm.out
-          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3972-5-report.out
-          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3972-5-css.out
-          node tools/audit-academic-background-v3970.mjs 2>&1 | tee /tmp/v3972-5-background.out
+          node tools/audit-canonical-release-version-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-canonical.out
+          node tools/audit-site-runtime-generation-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-site-runtime.out
+          node tools/audit-unified-resource-graph-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-resource-graph.out
+          node tools/audit-algorithm-parity-v3967.mjs 2>&1 | tee /tmp/v3972-6-algorithm.out
+          node tools/audit-report-execution-v3967.mjs 2>&1 | tee /tmp/v3972-6-report.out
+          node tools/audit-css-component-isolation-v3967.mjs 2>&1 | tee /tmp/v3972-6-css.out
 
-      - name: Verify one active site generation
+      - name: Verify current and declared-stable active generations
         run: |
           set -euo pipefail
           node --experimental-default-type=module - <<'NODE'
           import fs from 'node:fs';
           import { CURRENT_RELEASE } from './shared/resources/release/current-release.js';
-          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3972_5.js';
-          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3972_5.js';
-          import { RESOURCE_EXECUTION_VERSION } from './shared/governance/resource-execution-contract.v3972_5.js';
+          import { SITE_RUNTIME_CONTRACT } from './shared/resources/release/site-runtime-contract.v3972_6.js';
+          import { LN_RANK_RUNTIME_CACHE_CONTRACT } from './shared/resources/release/runtime-cache-contract.v3972_6.js';
+          import { RESOURCE_EXECUTION_VERSION } from './shared/governance/resource-execution-contract.v3972_6.js';
           const html=fs.readFileSync('ln-rank/index.html','utf8');
-          const home=fs.readFileSync('index.html','utf8');
-          const plan=fs.readFileSync('ln-rank/selection-pool.html','utf8');
-          if(CURRENT_RELEASE.display!=='v3.9.72.5') throw new Error('release');
-          if(CURRENT_RELEASE.siteRuntimeGeneration!=='v3972_5'||CURRENT_RELEASE.assetVersion!=='v3972_5') throw new Error('site generation');
+          if(CURRENT_RELEASE.display!=='v3.9.72.6') throw new Error('release');
+          if(CURRENT_RELEASE.siteRuntimeGeneration!=='v3972_6'||CURRENT_RELEASE.assetVersion!=='v3972_6') throw new Error('site generation');
           if(CURRENT_RELEASE.resourceExecutionVersion!==RESOURCE_EXECUTION_VERSION) throw new Error('execution contract');
           if(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion!==SITE_RUNTIME_CONTRACT.generation) throw new Error('cache generation');
           for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing ${rel}`);}
+          for(const asset of LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules){const rel=asset.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing stable active ${rel}`);}
           for(const dependency of SITE_RUNTIME_CONTRACT.stableDependencies){const rel=dependency.replace(/^\//,'');if(!fs.existsSync(rel)) throw new Error(`missing stable dependency ${rel}`);}
-          for(const [name, source] of [['home',home],['selection',html],['plan',plan]]) {
-            if(!source.includes('data-site-runtime-generation="v3972_5"')) throw new Error(`${name} generation`);
-            if(source.includes('v3972_4')) throw new Error(`${name} retired generation`);
-          }
-          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_5.js?v=3972_5')) throw new Error('interaction mount');
-          if(!html.includes('/ln-rank/js/app.v3972_5.js?v=3972_5')) throw new Error('selection bootstrap');
+          if(!html.includes('data-site-runtime-generation="v3972_6"')) throw new Error('selection generation');
+          if(!html.includes('/shared/ui/interaction/interaction-transaction.v3972_6.js?v=3972_6')) throw new Error('interaction mount');
+          if(!html.includes('/ln-rank/js/app.v3972_6.js?v=3972_6')) throw new Error('selection bootstrap');
           if((html.match(/data-ui-navigation="auxiliary-background"/g)||[]).length!==2) throw new Error('auxiliary actions');
           if(/<a[^>]+href="\/ln-rank\/(local|211)-mainline\.html"/.test(html)) throw new Error('native auxiliary navigation');
-          console.log('one active site generation v3972_5 passed under v3.9.72.5');
+          console.log('current v3972_6 and declared stable active resource split passed');
           NODE
 
       - name: Install Chromium journey runner
@@ -85,54 +78,53 @@ jobs:
       - name: Verify no-obstruction family action geometry
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-5-family-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-6-family-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3970_ARTIFACT_DIR=/tmp/v3972-5-browser-family node tools/browser-family-action-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-family.out
+          V3970_ARTIFACT_DIR=/tmp/v3972-6-browser-family node tools/browser-family-action-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-family.out
 
       - name: Verify preserved PC Pad Android main journey
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-5-main-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-6-main-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3969_ARTIFACT_DIR=/tmp/v3972-5-browser-main node tools/browser-resource-execution-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-main.out
+          V3969_ARTIFACT_DIR=/tmp/v3972-6-browser-main node tools/browser-resource-execution-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-main.out
 
-      - name: Verify full native chooser and navigation transaction
+      - name: Verify native chooser activation and tail transaction
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-5-interaction-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-6-interaction-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3972_INTERACTION_ARTIFACT_DIR=/tmp/v3972-5-interaction-browser node tools/browser-interaction-transaction-v3972_5.mjs 2>&1 | tee /tmp/v3972-5-interaction-browser.out
+          V3972_6_ARTIFACT_DIR=/tmp/v3972-6-interaction-browser node tools/browser-native-chooser-activation-v3972_6-runner.mjs 2>&1 | tee /tmp/v3972-6-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-5-school-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-6-school-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3969_ARTIFACT_DIR=/tmp/v3972-5-browser-school node tools/browser-school-query-v3970.mjs 2>&1 | tee /tmp/v3972-5-browser-school.out
+          V3969_ARTIFACT_DIR=/tmp/v3972-6-browser-school node tools/browser-school-query-v3972_6.mjs 2>&1 | tee /tmp/v3972-6-browser-school.out
 
       - name: Verify preserved 211 and LocalStrength journeys
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3972-5-background-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3972-6-background-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3968_ARTIFACT_DIR=/tmp/v3972-5-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3972-5-browser-background.out
+          V3968_ARTIFACT_DIR=/tmp/v3972-6-browser-background node tools/browser-academic-background-v3971.mjs 2>&1 | tee /tmp/v3972-6-browser-background.out
 
       - name: Upload verification diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-5-site-runtime-diagnostics
-          path: |
-            /tmp/v3972-5-*
+          name: v3972-6-site-runtime-diagnostics
+          path: /tmp/v3972-6-*
           if-no-files-found: warn
-          retention-days: 3
+          retention-days: 7

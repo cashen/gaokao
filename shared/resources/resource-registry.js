@@ -1,11 +1,12 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3972_5';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3972_6';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
+  UI_ACTIVE_RESOURCE_CLASSIFICATIONS,
   UI_STABLE_RESOURCE_REGISTRY,
   UI_COMPONENT_REGISTRY,
   UI_CSS_RESOURCE_GRAPH
-} from '../ui/ui-resource-registry.v3972_5.js?v=3972_5';
+} from '../ui/ui-resource-registry.v3972_6.js?v=3972_6';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;
@@ -28,7 +29,7 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     uiRegistry: CURRENT_RELEASE.resourceOwners.uiResourceRegistry,
     activeManifest: CURRENT_RELEASE.resourceOwners.siteActiveManifest,
     decommissionPolicyVersion: RESOURCE_DECOMMISSION_POLICY_VERSION,
-    policy: 'active-owner-or-declared-stable-dependency-with-reference-proof-before-removal',
+    policy: 'current-generation-or-declared-stable-dependency-with-reference-proof-before-removal',
     consumers: Object.freeze(['release-audit', 'css-audit', 'self-check', 'production-verification'])
   }),
   runtimeCache: Object.freeze({
@@ -36,6 +37,18 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     module: CURRENT_RELEASE.resourceOwners.runtimeCache,
     policy: 'single-entry-immutable-changed-interface-and-honest-failure-state',
     consumers: Object.freeze(['ln-rank-search', 'ln-rank-selection-pool', 'release-audit', 'browser-regression'])
+  }),
+  interaction: Object.freeze({
+    id: CURRENT_RELEASE.interactionVersion,
+    activationVersion: CURRENT_RELEASE.nativeChooserActivationVersion,
+    owner: CURRENT_RELEASE.resourceOwners.interactionRuntime,
+    cssOwner: CURRENT_RELEASE.resourceOwners.interactionStyles,
+    nativeChooserActivationOwner: CURRENT_RELEASE.resourceOwners.nativeChooserActivation,
+    physicalEventFamilyPolicy: 'pointer-or-touch-mouse-fallback-never-both',
+    preActivationPolicy: 'memory-only-no-dom-disabled-inert-or-pointer-events-mutation',
+    tailGuardPolicy: 'begin-after-input-change-focus-return-or-bounded-close-signal',
+    userAgentPolicy: 'no-browser-name-business-branch',
+    consumers: Object.freeze(['ln-rank-browser', 'workspace-orchestrator', 'browser-regression', 'production-verification'])
   }),
   exam: Object.freeze({
     id: 'liaoning-physics-exam',
@@ -61,7 +74,8 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   regions: Object.freeze({
     id: 'china-region-catalog',
     module: CURRENT_RELEASE.resourceOwners.regions,
-    policy: 'single-source-static-module',
+    interactionOwner: CURRENT_RELEASE.resourceOwners.nativeChooserActivation,
+    policy: 'single-source-static-module-browser-owned-native-control-activation',
     consumers: Object.freeze(['ln-rank-browser', 'functions-api', 'school-profile', 'legacy-geo-adapter'])
   }),
   reports: Object.freeze({
@@ -157,10 +171,11 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
     registry: CURRENT_RELEASE.resourceOwners.uiResourceRegistry,
     pageCatalogAdapter: CURRENT_RELEASE.resourceOwners.uiPageCatalogAdapter,
     active: UI_ACTIVE_RESOURCE_REGISTRY,
+    activeClassifications: UI_ACTIVE_RESOURCE_CLASSIFICATIONS,
     stable: UI_STABLE_RESOURCE_REGISTRY,
     components: UI_COMPONENT_REGISTRY,
     cssGraph: UI_CSS_RESOURCE_GRAPH,
-    policy: 'single-current-ui-registry-explicit-active-and-stable-css-owners',
+    policy: 'single-current-ui-registry-explicit-current-generation-and-declared-stable-css-owners',
     consumers: Object.freeze(['home', 'ln-rank', 'selection-pool', 'ln2026', 'zy2026', 'tongxue', 'local-mainline', '211-mainline'])
   }),
   algorithms: Object.freeze({

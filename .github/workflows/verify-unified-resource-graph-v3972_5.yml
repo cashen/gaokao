@@ -1,134 +1,22 @@
-name: Verify unified resource graph v3972.5
+name: Historical unified resource graph v3972.5
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize, ready_for_review]
-    paths:
-      - 'shared/resources/release/current-release.js'
-      - 'shared/resources/resource-registry.js'
-      - 'shared/ui/ui-resource-registry.v3972_5.js'
-      - 'shared/ui/**'
-      - 'shared/algorithms/**'
-      - 'shared/governance/**'
-      - 'ln-rank/site-active-generation.v3972_5.json'
-      - 'ln-rank/active-assets.json'
-      - 'ln-rank/release-meta.json'
-      - 'ln-rank/self-check.html'
-      - 'ln-rank/js/self-check.v3972_5.js'
-      - 'tools/audit-unified-resource-graph-v3972_5.mjs'
-      - 'tools/audit-site-runtime-generation-v3972_5.mjs'
-      - 'tools/audit-canonical-release-version-v3972_5.mjs'
-      - 'tools/audit-css-component-isolation-v3967.mjs'
-      - 'tools/audit-family-action-v3970.mjs'
-      - 'tools/audit-home-release-ownership-v3970.mjs'
-      - 'tools/verify-school-profile-center-v3957.mjs'
-      - 'tools/ln-2026/verify-final-release-v3970.py'
-      - '.github/workflows/verify-unified-resource-graph-v3972_5.yml'
-      - '.github/workflows/verify-ln-2026-final.yml'
-      - '.github/workflows/write-v3969-active-metadata.yml'
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  resource-graph:
+  historical-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Verify protected paths and source syntax
+      - name: Preserve historical v3972.5 evidence only
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = 'pull_request' ]; then
-            base='${{ github.event.pull_request.base.sha }}'
-            git diff --name-only "$base" HEAD | tee /tmp/v3972-resource-graph-files.txt
-            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-resource-graph-files.txt; then exit 1; fi
-          fi
-          node --check shared/resources/release/current-release.js
-          node --check shared/resources/resource-registry.js
-          node --check shared/ui/ui-resource-registry.v3972_5.js
-          node --check ln-rank/js/self-check.v3972_5.js
           node --check tools/audit-unified-resource-graph-v3972_5.mjs
-          node --check tools/audit-site-runtime-generation-v3972_5.mjs
-          node --check tools/audit-canonical-release-version-v3972_5.mjs
-          node --check tools/audit-css-component-isolation-v3967.mjs
-          python3 -m py_compile tools/ln-2026/verify-final-release-v3970.py
-
-      - name: Verify canonical owners and removal proof
-        run: |
-          set -euo pipefail
-          test ! -e ln-rank/active-assets.json
-          test ! -e ln-rank/release-meta.json
-          test ! -e .github/workflows/write-v3969-active-metadata.yml
-          node tools/audit-unified-resource-graph-v3972_5.mjs | tee /tmp/v3972-resource-graph.out
-          node tools/audit-site-runtime-generation-v3972_5.mjs | tee /tmp/v3972-site-runtime.out
-          node tools/audit-canonical-release-version-v3972_5.mjs | tee /tmp/v3972-canonical-release.out
-          node tools/audit-css-component-isolation-v3967.mjs | tee /tmp/v3972-css-graph.out
-          node tools/audit-family-action-v3970.mjs | tee /tmp/v3972-family-action.out
-          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3972-home-owner.out
-          node tools/verify-school-profile-center-v3957.mjs | tee /tmp/v3972-school-owner.out
-          python3 tools/ln-2026/verify-final-release-v3970.py | tee /tmp/v3972-final-release.out
-
-      - name: Reject active ownership resurrection
-        run: |
-          set -euo pipefail
-          if git grep -n -E "git add .*active-assets\.json|build-active-release-metadata-v3969\.mjs --write" -- .github/workflows; then
-            echo 'obsolete self-mutating active metadata workflow returned'
-            exit 1
-          fi
-          if git grep -n -E '"legacyInventory"|"legacyInventoryIsActiveOwner"' -- \
-            shared/resources/release/current-release.js \
-            shared/resources/resource-registry.js \
-            shared/ui/ui-resource-registry.v3972_5.js \
-            ln-rank/site-active-generation.v3972_5.json; then
-            echo 'current source graph still carries legacy ownership switches'
-            exit 1
-          fi
-
-      - name: Smoke-test canonical graph over HTTP
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8794 >/tmp/v3972-resource-http.log 2>&1 &
-          server=$!
-          trap 'kill $server' EXIT
-          sleep 1
-          for path in \
-            /shared/resources/release/current-release.js \
-            /shared/resources/resource-registry.js \
-            /shared/ui/ui-resource-registry.v3972_5.js \
-            /ln-rank/site-active-generation.v3972_5.json \
-            /ln-rank/self-check.html \
-            /ln-rank/js/self-check.v3972_5.js \
-            /ln-rank/ \
-            /ln-rank/selection-pool.html \
-            /ln-rank/local-mainline.html \
-            /ln-rank/211-mainline.html; do
-            curl --fail --silent --show-error "http://127.0.0.1:8794$path" >/dev/null
-          done
-          for retired in /ln-rank/active-assets.json /ln-rank/release-meta.json; do
-            status="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8794$retired")"
-            test "$status" = '404'
-          done
-
-      - name: Upload governance evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3972-5-unified-resource-graph
-          path: /tmp/v3972-*
-          if-no-files-found: warn
-          retention-days: 7
+          echo 'v3972.5 is immutable historical evidence; current automatic ownership moved to v3972.6.'

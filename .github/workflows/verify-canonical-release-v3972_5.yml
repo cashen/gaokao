@@ -1,4 +1,4 @@
-name: Verify canonical release v3972.5
+name: Verify canonical release v3972.6
 
 on:
   pull_request:
@@ -29,6 +29,7 @@ jobs:
       - name: Verify one canonical current release and resource graph
         run: |
           set -euo pipefail
-          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_5.mjs
-          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_5.mjs
-          python3 tools/ln-2026/verify-final-release-v3970.py
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3972_6.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3972_6.mjs
+          node --experimental-default-type=module tools/audit-unified-resource-graph-v3972_6.mjs
+          python3 tools/ln-2026/verify-final-release-v3972_6.py

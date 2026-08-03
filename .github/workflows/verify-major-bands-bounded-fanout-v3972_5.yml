@@ -157,7 +157,7 @@ jobs:
 
       - name: Verify 40 Preview or production concurrent cycles
         env:
-          EXPECTED_RELEASE: v3.9.72.5
+          EXPECTED_RELEASE: v3.9.72.6
           EXPECTED_LOCAL_STRENGTH_PAGE_RELEASE: v3.9.71.2
           EXPECTED_LOCAL_STRENGTH_SCORE_POSITION: local-strength-score-position-v3972_3
           PRODUCTION_VERIFY_ATTEMPTS: '3'
