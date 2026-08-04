@@ -114,9 +114,14 @@ export function processMajorBandsRankWindow(records, options = {}) {
   const specialProjectMode = clean(options.specialProjectMode || 'hide_eligibility_projects', 50);
   const schoolFilter = Boolean(options.schoolFilter);
   const acceptedSchoolNames = exactSchoolSet(options.acceptedSchoolNames);
-  const requestedBandInput = clean(options.requestedBand || '', 20);
+  const requestedBandInput = clean(
+    options.requestedBand || records?.majorBandsRequestedBand || '',
+    20
+  );
   const requestedBand = BAND_KEY_SET.has(requestedBandInput) ? requestedBandInput : '';
-  const mutateSourceRecords = Boolean(options.mutateSourceRecords);
+  const mutateSourceRecords = options.mutateSourceRecords === undefined
+    ? Boolean(records?.majorBandsMutateSourceRecords)
+    : Boolean(options.mutateSourceRecords);
   const keywordQuery = buildKeywordQuery(majorKeyword);
 
   if (!Number.isFinite(candidateRankValue) || candidateRankValue <= 0) {
