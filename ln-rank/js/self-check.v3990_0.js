@@ -15,7 +15,12 @@ import {
   UI_CSS_RESOURCE_GRAPH
 } from '../../shared/ui/ui-resource-registry.v3990_0.js?v=3990_0';
 import { ALGORITHM_CONTRACT, ALGORITHM_RESOURCE_REGISTRY } from '../../shared/algorithms/algorithm-registry.js?v=3969_0';
+import {
+  MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
+  createMajorBandsPaginationSnapshotGuard
+} from './feature/major-pool/pagination-snapshot-guard.v3990_0.js?v=3990_0';
 
+const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 const byId = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -39,6 +44,41 @@ async function probe(path) {
   return response;
 }
 
+function verifyPaginationSnapshotGuard() {
+  const guard = createMajorBandsPaginationSnapshotGuard({ maxEntries: 12 });
+  const initial = guard.rewrite(new URL('/api/major-bands?candidateScore=579&rangePreset=standard&region=all&limit=40', location.origin));
+  if (initial.url.searchParams.has('snapshot')) throw new Error('首屏请求携带了陈旧 snapshot');
+  const first = guard.inspect(initial.url, {
+    ok: true,
+    bands: {
+      upper: { pagination: { snapshot: 'self-upper-a' } },
+      near: { pagination: { snapshot: 'self-near-a' } },
+      steady: { pagination: { snapshot: 'self-steady-a' } }
+    }
+  });
+  if (!first.ok || guard.getState().size !== 3) throw new Error('首屏三组 snapshot 未被记录');
+  const next = guard.rewrite(new URL('/api/major-bands?candidateScore=579&rangePreset=standard&region=all&band=near&offset=40&limit=40', location.origin));
+  if (next.url.searchParams.get('snapshot') !== 'self-near-a') throw new Error('下一页未携带预期 snapshot');
+  const mismatch = guard.inspect(next.url, {
+    ok: true,
+    bands: { near: { pagination: { snapshot: 'self-near-b' } } }
+  });
+  if (mismatch.ok || mismatch.code !== 'pagination_snapshot_mismatch') throw new Error('不同 snapshot 未被拒绝');
+  for (let index = 0; index < 20; index += 1) {
+    guard.inspect(new URL(`/api/major-bands?candidateScore=${400 + index}&rangePreset=standard`, location.origin), {
+      ok: true,
+      bands: {
+        upper: { pagination: { snapshot: `self-u-${index}` } },
+        near: { pagination: { snapshot: `self-n-${index}` } },
+        steady: { pagination: { snapshot: `self-s-${index}` } }
+      }
+    });
+  }
+  const state = guard.getState();
+  if (!state.bounded || state.size > 12) throw new Error(`snapshot 保留超预算：${state.size}`);
+  return state;
+}
+
 function renderStaticState() {
   byId('versionBox').textContent = JSON.stringify({
     release: CURRENT_RELEASE.display,
@@ -51,6 +91,7 @@ function renderStaticState() {
     decommissionPolicy: RESOURCE_DECOMMISSION_POLICY_VERSION,
     interaction: CURRENT_RELEASE.interactionVersion,
     nativeChooserActivation: CURRENT_RELEASE.nativeChooserActivationVersion,
+    majorBandsPaginationSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
     algorithm: ALGORITHM_CONTRACT.version,
     stableBusinessResources: {
       tongxue: CURRENT_RELEASE.tongxueRuntimeVersion,
@@ -76,7 +117,8 @@ function renderStaticState() {
     ['major-bands 静态提供者', CURRENT_RELEASE.resourceOwners.majorBandsStaticProvider],
     ['major-bands 位次索引', CURRENT_RELEASE.resourceOwners.majorBandsRankIndex],
     ['major-bands 查询内核', CURRENT_RELEASE.resourceOwners.majorBandsOrchestrator],
-    ['major-bands 分页顺序', CURRENT_RELEASE.resourceOwners.majorBandsResultOrder]
+    ['major-bands 分页顺序', CURRENT_RELEASE.resourceOwners.majorBandsResultOrder],
+    ['major-bands 浏览器快照守卫', PAGINATION_SNAPSHOT_GUARD_PATH]
   ];
   byId('cases').innerHTML = dataChecks.map(([title, detail]) => card(title, 'pass', detail)).join('');
 
@@ -97,7 +139,8 @@ function renderStaticState() {
     ['原生地区选择器所有者', interaction.nativeChooserActivationOwner],
     ['选择器打开前策略', interaction.policies.preActivationDomMutationForbidden ? '纯内存记录，禁止同步 DOM 变更' : '未登记'],
     ['物理事件族策略', interaction.policies.singlePhysicalEventFamily ? '单事件族所有权' : '未登记'],
-    ['尾触摸策略', interaction.policies.tailGuardAfterOutcomeOnly ? '仅在选择结果或焦点返回后启动' : '未登记']
+    ['尾触摸策略', interaction.policies.tailGuardAfterOutcomeOnly ? '仅在选择结果或焦点返回后启动' : '未登记'],
+    ['分页快照守卫', `${MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION}，最多 12 项`]
   ];
   byId('uiChecks').innerHTML = uiChecks.map(([title, detail]) => card(title, 'pass', detail)).join('');
 }
@@ -120,7 +163,8 @@ async function runSelfCheck() {
       [CURRENT_RELEASE.cssResourceGraphVersion, UI_CSS_RESOURCE_GRAPH_VERSION, 'CSS 图版本'],
       [CURRENT_RELEASE.dataResourceGraphVersion, DATA_RESOURCE_GRAPH_VERSION, '数据图版本'],
       [CURRENT_RELEASE.interactionVersion, 'interaction-transaction-v3990_0', '交互版本'],
-      [CURRENT_RELEASE.nativeChooserActivationVersion, 'native-chooser-activation-integrity-v3990_0', '原生选择器激活版本']
+      [CURRENT_RELEASE.nativeChooserActivationVersion, 'native-chooser-activation-integrity-v3990_0', '原生选择器激活版本'],
+      [MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION, 'major-bands-pagination-snapshot-guard-v3990_0', '分页快照守卫版本']
     ];
     for (const [actual, expected, label] of identities) {
       if (actual !== expected) errors.push(`${label}不一致：${actual} / ${expected}`);
@@ -144,6 +188,8 @@ async function runSelfCheck() {
       if (!algorithmPath) errors.push(`算法所有者缺失：${name}`);
     }
 
+    verifyPaginationSnapshotGuard();
+
     const probes = [
       CURRENT_RELEASE.resourceOwners.release,
       CURRENT_RELEASE.resourceOwners.resourceRegistry,
@@ -154,7 +200,8 @@ async function runSelfCheck() {
       CURRENT_RELEASE.resourceOwners.interactionStyles,
       CURRENT_RELEASE.resourceOwners.schoolAdmissionDirectory,
       CURRENT_RELEASE.resourceOwners.localStrengthData,
-      CURRENT_RELEASE.resourceOwners.all211Data
+      CURRENT_RELEASE.resourceOwners.all211Data,
+      PAGINATION_SNAPSHOT_GUARD_PATH
     ];
     await Promise.all(probes.map(probe));
 
@@ -175,7 +222,7 @@ async function runSelfCheck() {
   } else {
     badge.className = 'status pass';
     badge.textContent = '全部通过';
-    byId('errors').textContent = '当前发布、统一资源图、UI/CSS、数据、算法和原生地区选择器激活合同均通过。';
+    byId('errors').textContent = '当前发布、统一资源图、UI/CSS、数据、算法、原生地区选择器激活和专业分页快照连续性合同均通过。';
   }
 }
 
