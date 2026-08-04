@@ -9,6 +9,7 @@ on:
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-rank-*.v3990_0.js'
       - 'functions/_lib/major-bands-query-execution-cache.v3990_0.js'
+      - 'functions/_lib/major-bands-all-bands-page-cache.v3990_0.js'
       - 'functions/_lib/major-bands-result-order.v3990_0.js'
       - 'functions/_lib/major-bands-response-transport.v3990_0.js'
       - 'shared/resources/release/current-release.js'
@@ -73,6 +74,7 @@ jobs:
           node --check functions/_lib/major-bands-rank-index.v3990_0.js
           node --check functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          node --check functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           node --check functions/_lib/major-bands-rank-query-kernel.v3990_0.js
           node --check functions/_lib/major-bands-result-order.v3990_0.js
           node --check functions/_lib/major-bands-response-transport.v3990_0.js
@@ -90,7 +92,11 @@ jobs:
           grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION" functions/api/major-bands.js
           grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
-          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
@@ -190,7 +196,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             body="$(curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
-            if grep -q 'major-bands-query-execution-cache-serialized-request-timer-v3990_0' <<<"$body" \
+            if grep -q 'major-bands-query-execution-cache-consecutive-isolated-v3990_0' <<<"$body" \
               && grep -q 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0' <<<"$body" \
               && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$body" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$body" \
@@ -274,7 +280,7 @@ jobs:
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-request-timer-v3990_0"' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-consecutive-isolated-v3990_0"' <<<"$body" \
               && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$body" \
               && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$body" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$body" \
