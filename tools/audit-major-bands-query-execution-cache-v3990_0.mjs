@@ -35,19 +35,13 @@ assert.equal(concurrent.filter(result => result.cacheStatus === 'miss').length, 
 assert.equal(concurrent.filter(result => result.cacheStatus === 'singleflight-hit').length, 49);
 assert.ok(concurrent.every(result => result.value.marker === 'singleflight'));
 
-const completedHit = await executeMajorBandsQueryOnce('same-query', async () => {
-  throw new Error('completed cache did not serve identical query');
+const repeated = await executeMajorBandsQueryOnce('same-query', async () => {
+  executions += 1;
+  return valueWithRecords(1001, 'recomputed-after-completion');
 });
-assert.equal(completedHit.cacheStatus, 'completed-hit');
-assert.equal(completedHit.value.marker, 'singleflight');
-
-let previousReleasedBeforeNext = false;
-await executeMajorBandsQueryOnce('next-query', async () => {
-  previousReleasedBeforeNext = majorBandsQueryExecutionCacheState().completed === 0;
-  return valueWithRecords(1200, 'next');
-});
-assert.equal(previousReleasedBeforeNext, true, 'previous completed query overlapped next execution');
-assert.deepEqual(majorBandsQueryExecutionCacheState().keys, ['next-query']);
+assert.equal(repeated.cacheStatus, 'miss');
+assert.equal(repeated.value.marker, 'recomputed-after-completion');
+assert.equal(executions, 2, 'completed query was retained across requests');
 
 clearMajorBandsQueryExecutionCacheForTest();
 let activeDistinct = 0;
@@ -66,36 +60,19 @@ assert.deepEqual(distinct.map(result => result.value.marker), [
   'distinct-3',
   'distinct-4'
 ]);
-const afterDistinct = majorBandsQueryExecutionCacheState();
-assert.equal(afterDistinct.inFlight, 0);
-assert.ok(afterDistinct.completed <= 1, 'concurrent distinct queries retained multiple heavy windows');
-assert.ok(afterDistinct.completedRecords <= afterDistinct.maxCompletedRecords);
-assert.equal(afterDistinct.crossRequestSemaphore, false);
-assert.equal(afterDistinct.retainOnlyWhenIsolated, true);
-if (afterDistinct.completed === 1) {
-  assert.ok(afterDistinct.keys[0].startsWith('distinct-'));
-}
 
-await executeMajorBandsQueryOnce('paged-query', async () => valueWithRecords(3500, 'paged'));
-const pagedHit = await executeMajorBandsQueryOnce('paged-query', async () => {
-  throw new Error('paged query was recomputed');
-});
-assert.equal(pagedHit.cacheStatus, 'completed-hit');
-assert.equal(pagedHit.value.marker, 'paged');
-
-await executeMajorBandsQueryOnce('replacement-query', async () => valueWithRecords(1200, 'replacement'));
-const bounded = majorBandsQueryExecutionCacheState();
-assert.equal(bounded.version, MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION);
-assert.ok(bounded.completed <= bounded.maxCompletedQueries);
-assert.ok(bounded.completedRecords <= bounded.maxCompletedRecords);
-assert.equal(bounded.completed, 1);
-assert.deepEqual(bounded.keys, ['replacement-query']);
-
-await executeMajorBandsQueryOnce('oversized-query', async () => valueWithRecords(7000, 'oversized'));
-const afterOversized = majorBandsQueryExecutionCacheState();
-assert.ok(!afterOversized.keys.includes('oversized-query'), 'oversized query entered completed cache');
-assert.equal(afterOversized.completed, 0, 'previous result overlapped oversized execution');
-assert.equal(afterOversized.inFlight, 0);
+const state = majorBandsQueryExecutionCacheState();
+assert.equal(state.version, MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION);
+assert.equal(state.inFlight, 0);
+assert.equal(state.completed, 0);
+assert.equal(state.completedRecords, 0);
+assert.equal(state.completedRetentionEnabled, false);
+assert.equal(state.maxCompletedQueries, 0);
+assert.equal(state.maxCompletedRecords, 0);
+assert.equal(state.completedTtlMs, 0);
+assert.equal(state.singleflightOnly, true);
+assert.equal(state.crossRequestSemaphore, false);
+assert.deepEqual(state.keys, []);
 
 console.log(JSON.stringify({
   ok: true,
@@ -105,8 +82,8 @@ console.log(JSON.stringify({
   singleflightHits: concurrent.filter(result => result.cacheStatus === 'singleflight-hit').length,
   distinctQueries: distinct.length,
   peakDistinct,
-  retainedAfterDistinct: afterDistinct.completed,
-  completed: afterOversized.completed,
-  completedRecords: afterOversized.completedRecords,
-  crossRequestSemaphore: afterOversized.crossRequestSemaphore
+  completedRetentionEnabled: state.completedRetentionEnabled,
+  completed: state.completed,
+  completedRecords: state.completedRecords,
+  crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
