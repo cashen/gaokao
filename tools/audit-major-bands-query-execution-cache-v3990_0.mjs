@@ -193,6 +193,12 @@ assert.equal(state.maxConcurrentExecutions, 2);
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const required of [
   `MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = '${ALL_BANDS_EXECUTION_MODE}'`,
+  'function compactRankedPage',
+  '|current-page:${pageOffset}:${pageLimit}',
+  '|full-snapshot',
+  'const firstPageOnly = retainFullBand && pageOffset === 0;',
+  "'compact-requested-band-current-page'",
+  '} else if (compactBand.pagination) {',
   'async function executeAllBandsSequentially',
   'for (const band of BAND_KEYS)',
   'requestForBand(context.request, sourceUrl, band)',
@@ -350,6 +356,7 @@ console.log(JSON.stringify({
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
+  requestedBandFirstPageRetentionMode: 'compact-requested-band-current-page',
   allBandsExecutionMode: ALL_BANDS_EXECUTION_MODE,
   allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
   allBandEquivalenceGate: true,

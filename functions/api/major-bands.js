@@ -174,6 +174,25 @@ function compactRankedSnapshot(records = []) {
   return { ordered, estimatedBytes };
 }
 
+function compactRankedPage(records = [], offset = 0, limit = 40) {
+  const list = Array.isArray(records) ? records : [];
+  const normalizedOffset = Math.max(0, Math.floor(Number(offset) || 0));
+  const normalizedLimit = Math.max(1, Math.floor(Number(limit) || 1));
+  const compact = compactRankedSnapshot(list.slice(normalizedOffset, normalizedOffset + normalizedLimit));
+  const nextOffset = normalizedOffset + compact.ordered.length;
+  const hasMore = nextOffset < list.length;
+  return {
+    ...compact,
+    pagination: {
+      offset: normalizedOffset,
+      limit: normalizedLimit,
+      returned: compact.ordered.length,
+      hasMore,
+      nextOffset: hasMore ? nextOffset : null
+    }
+  };
+}
+
 function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band, pageOffset, pageLimit }) {
   const identity = {
     version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
@@ -444,7 +463,7 @@ export async function onRequest(context) {
 
     const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
     const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
-    const executionIdentity = queryIdentity({
+    const executionBaseIdentity = queryIdentity({
       candidateScore,
       rangePreset,
       filters,
@@ -453,6 +472,9 @@ export async function onRequest(context) {
       pageOffset,
       pageLimit
     });
+    const executionIdentity = pageOffset === 0
+      ? `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`
+      : `${executionBaseIdentity}|full-snapshot`;
     const execution = await executeMajorBandsQueryOnce(executionIdentity, async () => {
       const candidateRank = rankContextForScore(candidateScore);
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
@@ -477,15 +499,24 @@ export async function onRequest(context) {
         const ordered = processed.grouped[key].ordered;
         const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
         const retainFullBand = requestedBand === key;
+        const firstPageOnly = retainFullBand && pageOffset === 0;
         const compact = retainFullBand
-          ? { ...compactRankedSnapshot(ordered), pagination: null }
+          ? (firstPageOnly
+              ? compactRankedPage(ordered, pageOffset, pageLimit)
+              : { ...compactRankedSnapshot(ordered), pagination: null })
           : { ordered: [], estimatedBytes: 0, pagination: null };
+        const snapshot = majorBandsSnapshotId(ordered, identity);
+        const pagination = compact.pagination
+          ? { ...compact.pagination, order: MAJOR_BANDS_RESULT_ORDER_VERSION, snapshot }
+          : null;
         compactGrouped[key] = {
           ordered: compact.ordered,
           count: ordered.length,
-          snapshot: majorBandsSnapshotId(ordered, identity),
-          retentionScope: retainFullBand ? 'full-requested-band' : 'hidden-band',
-          pagination: compact.pagination
+          snapshot,
+          retentionScope: retainFullBand
+            ? (firstPageOnly ? 'current-requested-band-page' : 'full-requested-band')
+            : 'hidden-band',
+          pagination
         };
         retainedRecordCount += compact.ordered.length;
         retainedEstimatedBytes += compact.estimatedBytes;
@@ -500,12 +531,14 @@ export async function onRequest(context) {
         keywordQuery: processed.keywordQuery,
         compactGrouped,
         cacheRetention: {
-          mode: 'compact-requested-band-snapshot',
+          mode: pageOffset === 0
+            ? 'compact-requested-band-current-page'
+            : 'compact-requested-band-snapshot',
           recordCount: retainedRecordCount,
           estimatedBytes: retainedEstimatedBytes,
           requestedBand,
-          pageOffset: null,
-          pageLimit: null
+          pageOffset: pageOffset === 0 ? pageOffset : null,
+          pageLimit: pageOffset === 0 ? pageLimit : null
         }
       };
     });
@@ -547,6 +580,12 @@ export async function onRequest(context) {
             order: MAJOR_BANDS_RESULT_ORDER_VERSION,
             snapshot: compactBand.snapshot
           }
+        };
+      } else if (compactBand.pagination) {
+        page = {
+          records: ordered,
+          count: compactBand.count,
+          pagination: compactBand.pagination
         };
       } else {
         page = paginateMajorBandsRecords(ordered, {

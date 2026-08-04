@@ -167,7 +167,18 @@ function validateResult(result) {
     }
   } else {
     const group = validatePaginationGroup(result, result.band);
-    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-snapshot', `${result.scenario}: requested-band retention mode`);
+    const firstPage = Number(group.pagination?.offset || 0) === 0;
+    const expectedRetentionMode = firstPage
+      ? 'compact-requested-band-current-page'
+      : 'compact-requested-band-snapshot';
+    assert.equal(result.payload?.source?.queryExecutionRetentionMode, expectedRetentionMode, `${result.scenario}: requested-band retention mode`);
+    if (firstPage) {
+      assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: first page retained full band`);
+      assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: first-page execution offset`);
+      assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: first-page execution limit`);
+    } else {
+      assert.equal(Number(result.payload?.source?.queryExecutionRetainedRecords || 0), Number(group.count || 0), `${result.scenario}: deep page did not retain full compact snapshot`);
+    }
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: requested-band bucket concurrency exceeded two`);
     assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
