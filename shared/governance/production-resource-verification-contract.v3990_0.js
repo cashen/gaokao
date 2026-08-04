@@ -29,6 +29,7 @@ export const PRODUCTION_RESOURCE_VERIFICATION_CONTRACT = Object.freeze({
     selectionBootstrap: '/ln-rank/js/app.v3990_0.js',
     selectionRuntime: '/ln-rank/js/app-runtime.v3990_0.js',
     selectionWorkspace: '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js',
+    majorBandsPaginationSnapshotGuard: '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js',
     selfCheck: '/ln-rank/self-check.html',
     selfCheckRuntime: '/ln-rank/js/self-check.v3990_0.js'
   }),
@@ -59,6 +60,10 @@ export const PRODUCTION_RESOURCE_VERIFICATION_CONTRACT = Object.freeze({
     majorBandsPaginationMustExhaustIds: true,
     majorBandsNextOffsetMustAdvance: true,
     majorBandsHighBoundaryMustReturnEmpty200: true,
-    majorBandsConcurrencyMustHaveZero1102AndZero5xx: true
+    majorBandsConcurrencyMustHaveZero1102AndZero5xx: true,
+    majorBandsPaginationSnapshotGuardMustReturn200: true,
+    majorBandsPaginationSnapshotGuardVersionMustMatch: true,
+    majorBandsPaginationSnapshotManifestMustMatch: true,
+    majorBandsPaginationSnapshotMismatchMustRejectBeforeMerge: true
   })
 });
