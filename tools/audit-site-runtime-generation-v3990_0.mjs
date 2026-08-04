@@ -149,12 +149,23 @@ assert.equal(manifest.interactionContract.version, CURRENT_RELEASE.interactionVe
 assert.equal(manifest.interactionContract.activationVersion, CURRENT_RELEASE.nativeChooserActivationVersion);
 assert.equal(manifest.interactionContract.preActivationDomMutation, 'forbidden');
 assert.equal(manifest.interactionContract.userAgentBranch, 'forbidden');
+assert.deepEqual(manifest.currentGenerationInternalModules, {
+  majorBandsPaginationSnapshotGuard: `${PAGINATION_SNAPSHOT_GUARD_PATH}?v=3990_0`
+});
+assert.ok(manifest.policies.currentInternalModulesDeclared);
+assert.ok(manifest.policies.majorBandsBrowserSnapshotGuardBounded);
+assert.ok(manifest.policies.majorBandsBrowserSnapshotMismatchRejectedBeforeMerge);
+assert.equal(
+  strip(manifest.currentGenerationInternalModules.majorBandsPaginationSnapshotGuard),
+  strip(PAGINATION_SNAPSHOT_GUARD_PATH)
+);
 
 console.log(JSON.stringify({
   ok: true,
   release: CURRENT_RELEASE.display,
   generation: SITE_RUNTIME_CONTRACT.generation,
   currentEntrypoints: currentKeys.length,
+  currentInternalModules: Object.keys(manifest.currentGenerationInternalModules).length,
   currentCacheModules: LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.length,
   stableActiveEntrypoints: stableKeys.length,
   stablePageResources: Object.keys(SITE_RUNTIME_CONTRACT.stablePageEntrypoints).length,
