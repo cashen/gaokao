@@ -1,0 +1,201 @@
+name: One-time rank cache contract sync v3990
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synchronize source and gate contracts
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          old = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0'
+          new = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0'
+
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          replaced = []
+          for name in filter(None, tracked):
+              path = Path(name)
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, IsADirectoryError):
+                  continue
+              if old in text:
+                  path.write_text(text.replace(old, new), encoding='utf-8')
+                  replaced.append(name)
+
+          verifier = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          text = verifier.read_text(encoding='utf-8')
+          query_version_line = f"const expectedQueryCacheVersion = '{new}';"
+          page_version_line = "const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0';"
+          if page_version_line not in text:
+              text = text.replace(query_version_line, query_version_line + '\n' + page_version_line)
+          execution_assert = "    assert.equal(result.payload?.source?.allBandsExecutionMode, expectedAllBandsExecutionMode, `${result.scenario}: sequential all-band execution mode`);"
+          page_assert = "    assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: final all-band page cache deployment`);"
+          if page_assert not in text:
+              text = text.replace(execution_assert, execution_assert + '\n' + page_assert)
+          verifier.write_text(text, encoding='utf-8')
+
+          audit = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          text = audit.read_text(encoding='utf-8')
+          page_import = """import {
+            MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+            clearMajorBandsAllBandsPageCacheForTest,
+            executeMajorBandsAllBandsPageOnce,
+            majorBandsAllBandsPageCacheState
+          } from '../functions/_lib/major-bands-all-bands-page-cache.v3990_0.js';
+          """
+          import_anchor = "import {\n  MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,"
+          if 'MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION' not in text:
+              text = text.replace(import_anchor, page_import + import_anchor)
+
+          page_test = """
+          clearMajorBandsAllBandsPageCacheForTest();
+          let allBandsPageExecutions = 0;
+          const allBandsPageConcurrent = await Promise.all(Array.from({ length: 20 }, () => executeMajorBandsAllBandsPageOnce('same-all-band-page', async () => {
+            allBandsPageExecutions += 1;
+            await delay(20);
+            return { ok: true, marker: 'all-band-page', bands: { upper: {}, near: {}, steady: {} } };
+          })));
+          assert.equal(allBandsPageExecutions, 1, 'identical all-band page requests executed more than once');
+          assert.equal(allBandsPageConcurrent.filter(result => result.cacheStatus === 'miss').length, 1);
+          assert.equal(allBandsPageConcurrent.filter(result => result.cacheStatus === 'page-singleflight-hit').length, 19);
+          const allBandsPageHit = await executeMajorBandsAllBandsPageOnce('same-all-band-page', async () => {
+            throw new Error('serialized final all-band page was not reused');
+          });
+          assert.equal(allBandsPageHit.cacheStatus, 'serialized-page-hit');
+          assert.equal(JSON.parse(allBandsPageHit.body).marker, 'all-band-page');
+          const allBandsPageState = majorBandsAllBandsPageCacheState();
+          assert.equal(allBandsPageState.version, MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION);
+          assert.equal(allBandsPageState.completed, 1);
+          assert.equal(allBandsPageState.maxCompletedPages, 1);
+          assert.equal(allBandsPageState.maxSerializedChars, 500_000);
+          assert.equal(allBandsPageState.completedTtlMs, 15_000);
+          assert.equal(allBandsPageState.serializedFinalPageOnly, true);
+          assert.equal(allBandsPageState.retainsDecodedBuckets, false);
+          assert.equal(allBandsPageState.retainsFullBandSnapshots, false);
+          clearMajorBandsAllBandsPageCacheForTest();
+
+          """
+          test_anchor = 'clearMajorBandsQueryExecutionCacheForTest();\nlet executions = 0;'
+          if 'let allBandsPageExecutions = 0;' not in text:
+              text = text.replace(test_anchor, page_test + test_anchor)
+
+          source_anchor = "const executionCacheSource = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');"
+          page_source_checks = """const allBandsPageCacheSource = fs.readFileSync('functions/_lib/major-bands-all-bands-page-cache.v3990_0.js', 'utf8');
+          for (const required of [
+            "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'",
+            'MAX_COMPLETED_PAGES = 1',
+            'MAX_SERIALIZED_CHARS = 500_000',
+            'COMPLETED_TTL_MS = 15_000',
+            'serializedFinalPageOnly: true',
+            'retainsDecodedBuckets: false',
+            'retainsFullBandSnapshots: false'
+          ]) assert.ok(allBandsPageCacheSource.includes(required), `bounded final all-band page cache missing ${required}`);
+
+          """
+          if 'const allBandsPageCacheSource =' not in text:
+              text = text.replace(source_anchor, page_source_checks + source_anchor)
+
+          required_anchor = "  'allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE',"
+          required_page = "  'allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION',"
+          if required_page not in text:
+              text = text.replace(required_anchor, required_anchor + '\n' + required_page)
+
+          verifier_required_anchor = "  `expectedAllBandsExecutionMode = '${ALL_BANDS_EXECUTION_MODE}'`,"
+          verifier_page_required = "  \"expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0'\","
+          if verifier_page_required not in text:
+              text = text.replace(verifier_required_anchor, verifier_required_anchor + '\n' + verifier_page_required)
+
+          output_anchor = '  allBandsExecutionMode: ALL_BANDS_EXECUTION_MODE,'
+          output_page = '  allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,'
+          if output_page not in text:
+              text = text.replace(output_anchor, output_anchor + '\n' + output_page)
+          audit.write_text(text, encoding='utf-8')
+
+          major_workflow = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
+          text = major_workflow.read_text(encoding='utf-8')
+          path_anchor = "      - 'functions/_lib/major-bands-query-execution-cache.v3990_0.js'"
+          page_path = "      - 'functions/_lib/major-bands-all-bands-page-cache.v3990_0.js'"
+          if page_path not in text:
+              text = text.replace(path_anchor, path_anchor + '\n' + page_path)
+          check_anchor = '          node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js'
+          page_check = '          node --check functions/_lib/major-bands-all-bands-page-cache.v3990_0.js'
+          if page_check not in text:
+              text = text.replace(check_anchor, check_anchor + '\n' + page_check)
+          grep_anchor = f"          grep -q \"MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = '{new}'\" functions/_lib/major-bands-query-execution-cache.v3990_0.js"
+          page_greps = """          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js"""
+          if 'MAX_COMPLETED_PAGES = 1' not in text:
+              text = text.replace(grep_anchor, grep_anchor + '\n' + page_greps)
+          major_workflow.write_text(text, encoding='utf-8')
+
+          production_workflow = Path('.github/workflows/verify-production-api-health-v3971.yml')
+          text = production_workflow.read_text(encoding='utf-8')
+          list_anchor = '            functions/_lib/major-bands-query-execution-cache.v3990_0.js \\'
+          list_page = '            functions/_lib/major-bands-all-bands-page-cache.v3990_0.js \\'
+          if list_page not in text:
+              text = text.replace(list_anchor, list_anchor + '\n' + list_page)
+          grep_anchor = f"          grep -q \"MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = '{new}'\" functions/_lib/major-bands-query-execution-cache.v3990_0.js"
+          page_greps = """          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js"""
+          if 'MAX_COMPLETED_PAGES = 1' not in text:
+              text = text.replace(grep_anchor, grep_anchor + '\n' + page_greps)
+          production_workflow.write_text(text, encoding='utf-8')
+
+          leftovers = []
+          for name in filter(None, tracked):
+              path = Path(name)
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, IsADirectoryError):
+                  continue
+              if old in text:
+                  leftovers.append(name)
+          if leftovers:
+              raise SystemExit(f'old query-cache version remains: {leftovers}')
+
+          print('global replacements:', replaced)
+          PY
+
+          node --check functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          node --check functions/api/major-bands.js
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          grep -RIl 'major-bands-query-execution-cache-serialized-request-timer-v3990_0' . --exclude-dir=.git && exit 1 || true
+
+      - name: Commit synchronized contracts and remove one-time workflow
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/zz-one-time-sync-rank-cache-contract-v3990.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'test(rank): synchronize final-page cache contracts'
+          git push origin HEAD:agent/rank-kernel-v3990_0
