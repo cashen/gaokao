@@ -17,12 +17,14 @@ const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-v3990_0';
 
 const sharedScenarios = Object.freeze([
+  Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
   Object.freeze({ name: 'standard-579-near', path: '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'standard-508-near', path: '/api/major-bands?candidateScore=508&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'wide-680-steady', path: '/api/major-bands?candidateScore=680&rangePreset=wide&band=steady&limit=37&offset=0', band: 'steady' }),
   Object.freeze({ name: 'safe-449-near', path: '/api/major-bands?candidateScore=449&rangePreset=safe&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'high-750-empty', path: '/api/major-bands?candidateScore=750&rangePreset=wide&band=near&limit=37&offset=0', band: 'near', empty: true })
 ]);
+const paginationScenarios = Object.freeze(sharedScenarios.filter(scenario => !scenario.allBands));
 
 const availableScoreCount = 365;
 const presets = Object.freeze(['standard', 'wide', 'safe']);
@@ -72,7 +74,8 @@ async function requestScenario(scenario, token) {
   } catch (error) {
     return {
       scenario: scenario.name,
-      band: scenario.band,
+      band: scenario.band || '',
+      allBands: Boolean(scenario.allBands),
       empty: Boolean(scenario.empty),
       distinctIdentity: Boolean(scenario.distinctIdentity),
       url,
@@ -93,7 +96,8 @@ async function requestScenario(scenario, token) {
   } catch {}
   return {
     scenario: scenario.name,
-    band: scenario.band,
+    band: scenario.band || '',
+    allBands: Boolean(scenario.allBands),
     empty: Boolean(scenario.empty),
     distinctIdentity: Boolean(scenario.distinctIdentity),
     url,
@@ -103,6 +107,18 @@ async function requestScenario(scenario, token) {
     payload,
     bodyPrefix: payload ? '' : text.slice(0, 240)
   };
+}
+
+function validatePaginationGroup(result, band) {
+  const group = result.payload?.bands?.[band];
+  assert.ok(group, `${result.scenario}: missing ${band} band`);
+  assert.ok(group.pagination?.snapshot, `${result.scenario}/${band}: missing snapshot`);
+  if (group.pagination?.hasMore) {
+    assert.ok(Number(group.pagination.nextOffset) > Number(group.pagination.offset), `${result.scenario}/${band}: nextOffset not strict`);
+  } else {
+    assert.equal(group.pagination?.nextOffset, null, `${result.scenario}/${band}: terminal nextOffset`);
+  }
+  return group;
 }
 
 function validateResult(result) {
@@ -115,18 +131,26 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
-  const group = result.payload?.bands?.[result.band];
-  assert.ok(group, `${result.scenario}: missing band`);
-  assert.ok(group.pagination?.snapshot, `${result.scenario}: missing snapshot`);
-  if (group.pagination?.hasMore) {
-    assert.ok(Number(group.pagination.nextOffset) > Number(group.pagination.offset), `${result.scenario}: nextOffset not strict`);
+
+  if (result.allBands) {
+    const pageSize = Number(result.payload?.meta?.pageSize || 0);
+    assert.ok(pageSize > 0, `${result.scenario}: invalid page size`);
+    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-current-page-per-band', `${result.scenario}: all-band retention mode`);
+    assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: all-band page offset`);
+    assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), pageSize, `${result.scenario}: all-band page limit`);
+    assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= pageSize * bands.length, `${result.scenario}: retained more than current pages`);
+    for (const band of bands) {
+      const group = validatePaginationGroup(result, band);
+      assert.ok((group.records || []).length <= pageSize, `${result.scenario}/${band}: page exceeds limit`);
+    }
   } else {
-    assert.equal(group.pagination?.nextOffset, null, `${result.scenario}: terminal nextOffset`);
-  }
-  if (result.empty) {
-    assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');
-    assert.equal(Number(result.payload.counts?.total || 0), 0);
-    assert.equal(Number(group.count || 0), 0);
+    const group = validatePaginationGroup(result, result.band);
+    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-snapshot', `${result.scenario}: requested-band retention mode`);
+    if (result.empty) {
+      assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');
+      assert.equal(Number(result.payload.counts?.total || 0), 0);
+      assert.equal(Number(group.count || 0), 0);
+    }
   }
 }
 
@@ -226,7 +250,7 @@ for (const mode of concurrencyModes) {
 }
 
 const pagination = [];
-for (const scenario of sharedScenarios) pagination.push(await exhaustPagination(scenario));
+for (const scenario of paginationScenarios) pagination.push(await exhaustPagination(scenario));
 totalRequests += pagination.reduce((sum, item) => sum + item.requests, 0);
 
 const allConcurrencyEvidence = concurrencyModes.flatMap(mode => concurrency[mode]);
@@ -234,6 +258,7 @@ const evidence = {
   version: 'major-bands-real-concurrency-v3990_0',
   queryExecutionCacheVersion: expectedQueryCacheVersion,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
+  allBandRetentionContract: 'compact-current-page-per-band',
   base,
   levels,
   waves,
