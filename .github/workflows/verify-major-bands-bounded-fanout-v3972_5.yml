@@ -23,6 +23,7 @@ on:
       - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js'
       - 'tools/audit-major-bands-rank-kernel-v3990_0.mjs'
       - 'tools/audit-major-bands-query-execution-cache-v3990_0.mjs'
+      - 'tools/audit-major-bands-request-band-scope-v3990_0.mjs'
       - 'tools/build-major-bands-rank-index-v3990_0.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_0.mjs'
       - 'tools/verify-production-pagination-snapshot-guard-v3990_0.mjs'
@@ -78,6 +79,7 @@ jobs:
           node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
           node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
           node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/audit-major-bands-request-band-scope-v3990_0.mjs
           node --check tools/build-major-bands-rank-index-v3990_0.mjs
           node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           node --check tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
@@ -93,6 +95,9 @@ jobs:
           grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "mode: 'requested-band-rank-window'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "mode: 'all-bands-union'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "major-bands-pagination-snapshot-guard-v3990_0" ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
           grep -q "majorBandsPaginationSnapshotGuard" ln-rank/site-active-generation.v3990_0.json
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|maxCandidates|selected\.buckets\.length > 12" functions/api/major-bands.js; then
@@ -106,6 +111,8 @@ jobs:
           node tools/build-major-bands-rank-index-v3990_0.mjs
           git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_0.js
           node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-request-band-scope-v3990_0.mjs \
+            | tee /tmp/major-bands-request-band-scope-v3990_0.json
           MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/major-bands-rank-kernel-v3990_0.json \
             node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_0.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3990_0.mjs
@@ -121,6 +128,7 @@ jobs:
           path: |
             /tmp/v3990-changed-files.txt
             /tmp/major-bands-rank-kernel-v3990_0.json
+            /tmp/major-bands-request-band-scope-v3990_0.json
           if-no-files-found: warn
           retention-days: 7
 
