@@ -1,0 +1,246 @@
+name: One-time lightweight page enrichment v3990
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-lightweight-page-enrichment-v3990.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch lightweight ranking candidates and current-page retention
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          temp = Path('.github/workflows/zz-one-time-lightweight-page-enrichment-v3990.yml')
+          old_memory = 'request-band-in-place-v3990_0'
+          new_memory = 'requested-band-lightweight-order-current-page-v3990_0'
+
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts or path == temp:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              if old_memory in text:
+                  path.write_text(text.replace(old_memory, new_memory), encoding='utf-8')
+
+          kernel_path = Path('functions/_lib/major-bands-rank-query-kernel.v3990_0.js')
+          kernel = kernel_path.read_text(encoding='utf-8')
+          helper_anchor = '''function matchAllKeywordResult() {\n  return {\n    matched: true,\n    score: 0,\n    badges: [],\n    reason: '',\n    matchLevel: '',\n    matchLabel: '',\n    matchReason: '',\n    matchedKeyword: '',\n    matchedTerms: []\n  };\n}\n'''
+          helper_patch = helper_anchor + '''\nfunction compactCanonicalPositionForRanking(position = {}) {\n  return {\n    bandKey: position.bandKey || '',\n    positionDistance: Number(position.positionDistance),\n    evidenceStrength: position.evidenceStrength || 'weak',\n    classificationBasis: position.classificationBasis || 'unresolved'\n  };\n}\n'''
+          assert helper_anchor in kernel
+          kernel = kernel.replace(helper_anchor, helper_patch, 1)
+          keyword_anchor = '''  const hasKeywordSearch = hasKeywordFilters(keywordQuery);\n  const specialIntent = explicitSpecialProjectIntent(majorKeyword);\n'''
+          keyword_patch = '''  const hasKeywordSearch = hasKeywordFilters(keywordQuery);\n  const deferResponseEnrichment = !hasKeywordSearch;\n  const specialIntent = explicitSpecialProjectIntent(majorKeyword);\n'''
+          assert keyword_anchor in kernel
+          kernel = kernel.replace(keyword_anchor, keyword_patch, 1)
+
+          old_block = '''    // Rank-bucket rows are request-owned unless they joined another query's\n    // pending asset read, in which case the loader shallow-cloned them. The API\n    // may therefore enrich them in place and avoid retaining a second complete\n    // record object graph while sorting and compacting the result.\n    const record = mutateSourceRecords ? source : { ...source };\n    Object.assign(record, {\n      band: canonicalPosition.bandKey,\n      bandKey: canonicalPosition.bandKey,\n      candidateScore,\n      candidateReferenceScore: candidateScore,\n      scoreDelta2026: canonicalPosition.scoreDelta,\n      scoreDelta: canonicalPosition.scoreDelta,\n      rankGap2026: canonicalPosition.rankGap,\n      rankGap: canonicalPosition.rankGap,\n      statusKey: canonicalPosition.statusKey,\n      statusLabel: canonicalPosition.statusLabel,\n      position: canonicalPosition.position,\n      canonicalPosition,\n      bottomLineEligibility: bottomLineEligibility.status,\n      bottomLineEligibilityReason: bottomLineEligibility.reason,\n      matchBadges: match.badges,\n      matchLevel: match.matchLevel || '',\n      matchLabel: match.matchLabel || '',\n      matchReason: match.matchReason || match.reason || '',\n      matchedKeyword: match.matchedKeyword || '',\n      matchedTerms: match.matchedTerms || [],\n      matchScore: match.score,\n      specialProject\n    });\n\n    if (specialProject.hasSpecialProject) {\n      specialProjectShown += 1;\n      Object.assign(record, enrichSpecialProjectRecord(record));\n      record.specialProjectExplicitIntent = specialIntent;\n      addSpecialProjectStat(specialProjectStats, specialProject, canonicalPosition.bandKey, 'shown');\n    }\n'''
+          new_block = '''    // Score-search ordering keeps only fields consumed by the comparator. Full\n    // canonical status, match arrays and special-project display fields are\n    // materialized after pagination for the current page only.\n    const record = mutateSourceRecords ? source : { ...source };\n    if (deferResponseEnrichment) {\n      Object.assign(record, {\n        band: canonicalPosition.bandKey,\n        bandKey: canonicalPosition.bandKey,\n        canonicalPosition: compactCanonicalPositionForRanking(canonicalPosition),\n        bottomLineEligibility: bottomLineEligibility.status,\n        bottomLineEligibilityReason: bottomLineEligibility.reason,\n        specialProject\n      });\n    } else {\n      Object.assign(record, {\n        band: canonicalPosition.bandKey,\n        bandKey: canonicalPosition.bandKey,\n        candidateScore,\n        candidateReferenceScore: candidateScore,\n        scoreDelta2026: canonicalPosition.scoreDelta,\n        scoreDelta: canonicalPosition.scoreDelta,\n        rankGap2026: canonicalPosition.rankGap,\n        rankGap: canonicalPosition.rankGap,\n        statusKey: canonicalPosition.statusKey,\n        statusLabel: canonicalPosition.statusLabel,\n        position: canonicalPosition.position,\n        canonicalPosition,\n        bottomLineEligibility: bottomLineEligibility.status,\n        bottomLineEligibilityReason: bottomLineEligibility.reason,\n        matchBadges: match.badges,\n        matchLevel: match.matchLevel || '',\n        matchLabel: match.matchLabel || '',\n        matchReason: match.matchReason || match.reason || '',\n        matchedKeyword: match.matchedKeyword || '',\n        matchedTerms: match.matchedTerms || [],\n        matchScore: match.score,\n        specialProject\n      });\n    }\n\n    if (specialProject.hasSpecialProject) {\n      specialProjectShown += 1;\n      if (!deferResponseEnrichment) {\n        Object.assign(record, enrichSpecialProjectRecord(record));\n        record.specialProjectExplicitIntent = specialIntent;\n      }\n      addSpecialProjectStat(specialProjectStats, specialProject, canonicalPosition.bandKey, 'shown');\n    }\n'''
+          assert old_block in kernel
+          kernel = kernel.replace(old_block, new_block, 1)
+          empty_stats_anchor = '''      memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,\n      requestedBand,\n'''
+          empty_stats_patch = '''      memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,\n      rankingCandidateMode: 'lightweight-order-current-page-v3990_0',\n      deferredResponseEnrichment: true,\n      responseEnrichedCandidates: 0,\n      requestedBand,\n'''
+          assert kernel.count(empty_stats_anchor) == 2
+          kernel = kernel.replace(empty_stats_anchor, empty_stats_patch, 1)
+          normal_stats_patch = '''      memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,\n      rankingCandidateMode: deferResponseEnrichment\n        ? 'lightweight-order-current-page-v3990_0'\n        : 'full-keyword-candidate-v3990_0',\n      deferredResponseEnrichment: deferResponseEnrichment,\n      responseEnrichedCandidates: deferResponseEnrichment ? 0 : normalized,\n      requestedBand,\n'''
+          kernel = kernel.replace(empty_stats_anchor, normal_stats_patch, 1)
+          kernel_path.write_text(kernel, encoding='utf-8')
+
+          api_path = Path('functions/api/major-bands.js')
+          api = api_path.read_text(encoding='utf-8')
+          special_import = '''import {\n  normalizeSpecialProjectMode,\n  SPECIAL_PROJECT_COPY\n} from '../_lib/special-project-policy.js';\n'''
+          special_import_patch = '''import {\n  detectSpecialProject,\n  enrichSpecialProjectRecord,\n  normalizeSpecialProjectMode,\n  SPECIAL_PROJECT_COPY\n} from '../_lib/special-project-policy.js';\n'''
+          assert special_import in api
+          api = api.replace(special_import, special_import_patch, 1)
+
+          finalize_old = '''function finalizeRecordForResponse(record, context = {}) {\n  const canonicalPosition = record.canonicalPosition;\n  if (!canonicalPosition || canonicalPosition.bandKey !== record.bandKey) {\n    throw new Error(`位次内核位置合同不一致：${record.id || `${record.school}|${record.major}`}`);\n  }\n  const item = materializeMajorBandsStaticRecord(record);\n  return { ...item, ...buildDisplayTags(item) };\n}\n'''
+          finalize_new = '''function finalizeRecordForResponse(record, context = {}) {\n  const canonicalPosition = resolveCanonicalPosition({\n    candidateScore: context.candidateScore,\n    candidateRank: context.candidateRank?.rankForGap,\n    recordScore: record.score2026 ?? record.score,\n    recordRank: record.rank2026 ?? record.rank,\n    rangePreset: context.rangePreset\n  });\n  if (!canonicalPosition || canonicalPosition.bandKey !== record.bandKey) {\n    throw new Error(`位次内核位置合同不一致：${record.id || `${record.school}|${record.major}`}`);\n  }\n  const specialProject = record.specialProject?.hasSpecialProject != null\n    ? record.specialProject\n    : detectSpecialProject(record);\n  const expanded = {\n    ...record,\n    band: canonicalPosition.bandKey,\n    bandKey: canonicalPosition.bandKey,\n    candidateScore: context.candidateScore,\n    candidateReferenceScore: context.candidateScore,\n    scoreDelta2026: canonicalPosition.scoreDelta,\n    scoreDelta: canonicalPosition.scoreDelta,\n    rankGap2026: canonicalPosition.rankGap,\n    rankGap: canonicalPosition.rankGap,\n    statusKey: canonicalPosition.statusKey,\n    statusLabel: canonicalPosition.statusLabel,\n    position: canonicalPosition.position,\n    canonicalPosition,\n    matchBadges: Array.isArray(record.matchBadges) ? record.matchBadges : [],\n    matchLevel: record.matchLevel || '',\n    matchLabel: record.matchLabel || '',\n    matchReason: record.matchReason || '',\n    matchedKeyword: record.matchedKeyword || '',\n    matchedTerms: Array.isArray(record.matchedTerms) ? record.matchedTerms : [],\n    matchScore: Number(record.matchScore || 0),\n    specialProject\n  };\n  if (specialProject.hasSpecialProject) {\n    Object.assign(expanded, enrichSpecialProjectRecord(expanded));\n    expanded.specialProjectExplicitIntent = Boolean(context.specialIntent);\n  }\n  const item = materializeMajorBandsStaticRecord(expanded);\n  return { ...item, ...buildDisplayTags(item) };\n}\n'''
+          assert finalize_old in api
+          api = api.replace(finalize_old, finalize_new, 1)
+
+          identity_old = '''    const executionIdentity = pageOffset === 0\n      ? `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`\n      : `${executionBaseIdentity}|full-snapshot`;\n'''
+          identity_new = '''    const executionIdentity = `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`;\n'''
+          assert identity_old in api
+          api = api.replace(identity_old, identity_new, 1)
+
+          compact_old = '''        const retainFullBand = requestedBand === key;\n        const firstPageOnly = retainFullBand && pageOffset === 0;\n        const compact = retainFullBand\n          ? (firstPageOnly\n              ? compactRankedPage(ordered, pageOffset, pageLimit)\n              : { ...compactRankedSnapshot(ordered), pagination: null })\n          : { ordered: [], estimatedBytes: 0, pagination: null };\n'''
+          compact_new = '''        const retainRequestedBand = requestedBand === key;\n        const compact = retainRequestedBand\n          ? compactRankedPage(ordered, pageOffset, pageLimit)\n          : { ordered: [], estimatedBytes: 0, pagination: null };\n'''
+          assert compact_old in api
+          api = api.replace(compact_old, compact_new, 1)
+          retention_scope_old = '''          retentionScope: retainFullBand\n            ? (firstPageOnly ? 'current-requested-band-page' : 'full-requested-band')\n            : 'hidden-band',\n'''
+          retention_scope_new = '''          retentionScope: retainRequestedBand\n            ? 'current-requested-band-page'\n            : 'hidden-band',\n'''
+          assert retention_scope_old in api
+          api = api.replace(retention_scope_old, retention_scope_new, 1)
+          cache_retention_old = '''        cacheRetention: {\n          mode: pageOffset === 0\n            ? 'compact-requested-band-current-page'\n            : 'compact-requested-band-snapshot',\n          recordCount: retainedRecordCount,\n          estimatedBytes: retainedEstimatedBytes,\n          requestedBand,\n          pageOffset: pageOffset === 0 ? pageOffset : null,\n          pageLimit: pageOffset === 0 ? pageLimit : null\n        }\n'''
+          cache_retention_new = '''        cacheRetention: {\n          mode: 'compact-requested-band-current-page',\n          recordCount: retainedRecordCount,\n          estimatedBytes: retainedEstimatedBytes,\n          requestedBand,\n          pageOffset,\n          pageLimit,\n          retainCompleted: false\n        }\n'''
+          assert cache_retention_old in api
+          api = api.replace(cache_retention_old, cache_retention_new, 1)
+
+          grouped_anchor = '''    const grouped = initGrouped(makeBands(candidateScore, rangePreset));\n'''
+          grouped_patch = '''    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(filters.majorKeyword);\n    const grouped = initGrouped(makeBands(candidateScore, rangePreset));\n'''
+          assert grouped_anchor in api
+          api = api.replace(grouped_anchor, grouped_patch, 1)
+          later_special = '''    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(filters.majorKeyword);\n'''
+          assert api.count(later_special) == 2
+          second = api.find(later_special, api.find(later_special) + 1)
+          api = api[:second] + api[second + len(later_special):]
+          finalize_call_old = '''        finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })\n'''
+          finalize_call_new = '''        finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset, specialIntent })\n'''
+          assert finalize_call_old in api
+          api = api.replace(finalize_call_old, finalize_call_new, 1)
+          source_anchor = '''        queryExecutionPageLimit: cacheRetention.pageLimit,\n'''
+          source_patch = '''        queryExecutionPageLimit: cacheRetention.pageLimit,\n        queryMemoryMode: aggregate.memoryMode,\n        rankingCandidateMode: aggregate.rankingCandidateMode,\n        deferredResponseEnrichment: aggregate.deferredResponseEnrichment,\n        responseEnrichedCandidates: aggregate.responseEnrichedCandidates,\n'''
+          assert source_anchor in api
+          api = api.replace(source_anchor, source_patch, 1)
+          api_path.write_text(api, encoding='utf-8')
+
+          verifier_path = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          verifier = verifier_path.read_text(encoding='utf-8')
+          cache_status_anchor = '''  assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);\n'''
+          cache_status_patch = cache_status_anchor + '''  assert.equal(result.payload?.source?.queryMemoryMode, expectedQueryMemoryMode, `${result.scenario}: query memory deployment`);\n  assert.equal(result.payload?.source?.rankingCandidateMode, 'lightweight-order-current-page-v3990_0', `${result.scenario}: lightweight ranking candidate`);\n  assert.equal(result.payload?.source?.deferredResponseEnrichment, true, `${result.scenario}: response enrichment was not deferred`);\n  assert.equal(Number(result.payload?.source?.responseEnrichedCandidates || 0), 0, `${result.scenario}: full candidates enriched before pagination`);\n'''
+          assert cache_status_anchor in verifier
+          verifier = verifier.replace(cache_status_anchor, cache_status_patch, 1)
+          retention_old = '''    const firstPage = Number(group.pagination?.offset || 0) === 0;\n    const expectedRetentionMode = firstPage\n      ? 'compact-requested-band-current-page'\n      : 'compact-requested-band-snapshot';\n    assert.equal(result.payload?.source?.queryExecutionRetentionMode, expectedRetentionMode, `${result.scenario}: requested-band retention mode`);\n    if (firstPage) {\n      assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: first page retained full band`);\n      assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: first-page execution offset`);\n      assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: first-page execution limit`);\n    } else {\n      assert.equal(Number(result.payload?.source?.queryExecutionRetainedRecords || 0), Number(group.count || 0), `${result.scenario}: deep page did not retain full compact snapshot`);\n    }\n'''
+          retention_new = '''    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-current-page', `${result.scenario}: requested-band retention mode`);\n    assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: request retained more than current page`);\n    assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), Number(group.pagination?.offset), `${result.scenario}: execution page offset`);\n    assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: execution page limit`);\n'''
+          assert retention_old in verifier
+          verifier = verifier.replace(retention_old, retention_new, 1)
+          verifier_path.write_text(verifier, encoding='utf-8')
+
+          cache_audit_path = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          cache_audit = cache_audit_path.read_text(encoding='utf-8')
+          for obsolete in [
+              "  '|full-snapshot',\n",
+              "  'const firstPageOnly = retainFullBand && pageOffset === 0;',\n",
+              "  '} else if (compactBand.pagination) {',\n"
+          ]:
+              cache_audit = cache_audit.replace(obsolete, '')
+          required_anchor = "  'function compactRankedPage',\n"
+          required_patch = required_anchor + "  'const retainRequestedBand = requestedBand === key;',\n  \"mode: 'compact-requested-band-current-page'\",\n  'retainCompleted: false',\n  'rankingCandidateMode: aggregate.rankingCandidateMode',\n"
+          assert required_anchor in cache_audit
+          cache_audit = cache_audit.replace(required_anchor, required_patch, 1)
+          cache_audit_path.write_text(cache_audit, encoding='utf-8')
+
+          kernel_audit_path = Path('tools/audit-major-bands-rank-kernel-v3990_0.mjs')
+          kernel_audit = kernel_audit_path.read_text(encoding='utf-8')
+          contract_anchor = "const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');\n"
+          contract_patch = '''const queryKernelSource = fs.readFileSync('functions/_lib/major-bands-rank-query-kernel.v3990_0.js', 'utf8');\nfor (const required of [\n  "MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'requested-band-lightweight-order-current-page-v3990_0'",\n  'compactCanonicalPositionForRanking',\n  'deferResponseEnrichment = !hasKeywordSearch',\n  "rankingCandidateMode: deferResponseEnrichment",\n  'responseEnrichedCandidates: deferResponseEnrichment ? 0 : normalized'\n]) assert.ok(queryKernelSource.includes(required), `lightweight current-page ranking contract missing ${required}`);\n\n''' + contract_anchor
+          assert contract_anchor in kernel_audit
+          kernel_audit = kernel_audit.replace(contract_anchor, contract_patch, 1)
+          kernel_audit_path.write_text(kernel_audit, encoding='utf-8')
+
+          for workflow_path in [
+              Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'),
+              Path('.github/workflows/verify-production-api-health-v3971.yml')
+          ]:
+              workflow = workflow_path.read_text(encoding='utf-8')
+              response_anchor = "              && grep -q '\"resultOrderVersion\":\"major-bands-result-order-ephemeral-v3990_0\"' <<<\"$body\" \\\n"
+              if response_anchor not in workflow:
+                  response_anchor = "              && grep -q '\"resultOrderVersion\":\"major-bands-result-order-ephemeral-v3990_0\"' <<<\"$api\" \\\n"
+                  response_patch = response_anchor + "              && grep -q '\"queryMemoryMode\":\"requested-band-lightweight-order-current-page-v3990_0\"' <<<\"$api\" \\\n"
+              else:
+                  response_patch = response_anchor + "              && grep -q '\"queryMemoryMode\":\"requested-band-lightweight-order-current-page-v3990_0\"' <<<\"$body\" \\\n"
+              assert response_anchor in workflow
+              workflow_path.write_text(workflow.replace(response_anchor, response_patch, 1), encoding='utf-8')
+
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts or path == temp:
+                  continue
+              try:
+                  assert old_memory not in path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  pass
+          PY
+
+          node --check functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          ruby -e "require 'yaml'; Dir['.github/workflows/*.{yml,yaml}'].each { |f| YAML.load_file(f, aliases: true) }"
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+
+      - name: Verify full local API and concurrency
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8798 --compatibility-date=2026-07-01 >/tmp/v3990-lightweight-page-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server || true' EXIT
+          ready=0
+          for attempt in $(seq 1 60); do
+            if curl -fsS 'http://127.0.0.1:8798/api/major-bands?candidateScore=508&rangePreset=standard&band=near&limit=37&offset=0' >/tmp/v3990-lightweight-ready.json; then
+              if grep -q 'requested-band-lightweight-order-current-page-v3990_0' /tmp/v3990-lightweight-ready.json; then ready=1; break; fi
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-lightweight-page-wrangler.log; exit 1; fi
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const payload = JSON.parse(fs.readFileSync('/tmp/v3990-lightweight-ready.json', 'utf8'));
+          if (payload.source?.rankingCandidateMode !== 'lightweight-order-current-page-v3990_0') throw new Error('lightweight mode absent');
+          if (payload.source?.deferredResponseEnrichment !== true) throw new Error('enrichment not deferred');
+          if (Number(payload.source?.responseEnrichedCandidates || 0) !== 0) throw new Error('full candidates enriched');
+          if (Number(payload.source?.queryExecutionRetainedRecords || 0) > 37) throw new Error('more than current page retained');
+          if (Number(payload.bands?.near?.count || 0) !== 1121) throw new Error('508 near count drift');
+          if ((payload.bands?.near?.records || []).length !== 37) throw new Error('508 near page size drift');
+          NODE
+          TARGET_BASE='http://127.0.0.1:8798' \
+          CONCURRENCY_LEVELS='1,5,10,25,50' \
+          CONCURRENCY_WAVES='2' \
+          COLD_HARD_LIMIT_MS='12000' \
+          P95_LIMIT_MS='7000' \
+          P99_LIMIT_MS='12000' \
+          HARD_LIMIT_MS='20000' \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE='/tmp/v3990-lightweight-page-local-concurrency.json' \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+
+      - name: Stage workflows and commit verified source
+        run: |
+          set -euo pipefail
+          mkdir -p tools/.workflow-contract-patches-v3990
+          mapfile -t workflows < <(git diff --name-only -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | grep -v 'zz-one-time-lightweight-page-enrichment-v3990.yml' || true)
+          test "${#workflows[@]}" -ge 1
+          for file in "${workflows[@]}"; do
+            cp "$file" "tools/.workflow-contract-patches-v3990/$(basename "$file")"
+          done
+          git checkout -- "${workflows[@]}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions tools shared ln-rank VERSION.txt docs index.html
+          git commit -m 'fix(rank): defer enrichment until current page'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-lightweight-page-enrichment
+          path: |
+            /tmp/v3990-lightweight-ready.json
+            /tmp/v3990-lightweight-page-local-concurrency.json
+            /tmp/v3990-lightweight-page-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
