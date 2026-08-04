@@ -18,6 +18,10 @@ import {
   executeMajorBandsQueryOnce
 } from '../_lib/major-bands-query-execution-cache.v3990_0.js';
 import {
+  MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+  executeMajorBandsAllBandsPageOnce
+} from '../_lib/major-bands-all-bands-page-cache.v3990_0.js';
+import {
   MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
   processMajorBandsRankWindow
 } from '../_lib/major-bands-rank-query-kernel.v3990_0.js';
@@ -170,25 +174,6 @@ function compactRankedSnapshot(records = []) {
   return { ordered, estimatedBytes };
 }
 
-function compactRankedPage(records = [], offset = 0, limit = 40) {
-  const list = Array.isArray(records) ? records : [];
-  const normalizedOffset = Math.max(0, Math.floor(Number(offset) || 0));
-  const normalizedLimit = Math.max(1, Math.floor(Number(limit) || 1));
-  const compact = compactRankedSnapshot(list.slice(normalizedOffset, normalizedOffset + normalizedLimit));
-  const nextOffset = normalizedOffset + compact.ordered.length;
-  const hasMore = nextOffset < list.length;
-  return {
-    ...compact,
-    pagination: {
-      offset: normalizedOffset,
-      limit: normalizedLimit,
-      returned: compact.ordered.length,
-      hasMore,
-      nextOffset: hasMore ? nextOffset : null
-    }
-  };
-}
-
 function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band, pageOffset, pageLimit }) {
   const identity = {
     version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
@@ -208,6 +193,17 @@ function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band
     };
   }
   return JSON.stringify(identity);
+}
+
+function allBandsPageIdentity(input) {
+  return JSON.stringify({
+    version: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+    candidateScore: input.candidateScore,
+    rangePreset: input.rangePreset,
+    filters: input.filters,
+    pageOffset: input.pageOffset,
+    pageLimit: input.pageLimit
+  });
 }
 
 function numericSum(payloads, path) {
@@ -246,118 +242,139 @@ function requestForBand(request, sourceUrl, band) {
   });
 }
 
-async function executeAllBandsSequentially(context, sourceUrl, input) {
-  const payloads = [];
-  for (const band of BAND_KEYS) {
-    const response = await onRequest({
-      ...context,
-      request: requestForBand(context.request, sourceUrl, band)
-    });
-    if (!response.ok) return response;
-    payloads.push(await response.json());
-  }
-
-  const byBand = Object.fromEntries(BAND_KEYS.map((band, index) => [band, payloads[index]]));
-  const bands = Object.fromEntries(BAND_KEYS.map(band => [band, byBand[band].bands[band]]));
-  const counts = Object.fromEntries(BAND_KEYS.map(band => [band, Number(bands[band]?.count || 0)]));
-  counts.total = BAND_KEYS.reduce((sum, band) => sum + counts[band], 0);
-
-  const keywordQuery = payloads[0].keywordQuery || {};
-  const matchSummary = mergeNumericTree(payloads.map(payload => payload.matchSummary));
-  const specialProjectStats = mergeNumericTree(payloads.map(payload => payload.source?.specialProjectStats));
-  const bottomLineUnresolved = numericSum(payloads, ['source', 'bottomLineUnresolved']);
-  const specialProjectShown = numericSum(payloads, ['source', 'specialProjectShown']);
-  const specialProjectHidden = numericSum(payloads, ['source', 'specialProjectHidden']);
-  const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(input.filters.majorKeyword);
-  const searchAdvices = buildSearchConflictAdvice({
-    keywordQuery,
-    bottomLineMode: input.filters.bottomLineMode,
-    specialProjectMode: input.filters.specialProjectMode,
-    resultStats: { total: counts.total }
-  });
-  if (bottomLineUnresolved) {
-    searchAdvices.unshift({
-      level: 'warn',
-      message: `有 ${bottomLineUnresolved} 条记录的办学性质或费用尚未确认，已降低排序并标记待核验。`,
-      explanation: '未知不等于公办普通，填报前需要核对当年招生计划和学费。'
-    });
-  }
-  if (specialIntent && specialProjectShown) {
-    searchAdvices.unshift({
-      level: 'warn',
-      message: '已按你的明确关键词显示特殊项目。',
-      explanation: '请逐条核验资格、批次、体检、服务年限和违约责任。'
-    });
-  }
-
-  const meta = {
-    ...payloads[0].meta,
-    pageBand: 'all',
-    elapsedMs: Date.now() - input.started,
-    specialProject: {
-      ...payloads[0].meta?.specialProject,
-      hidden: specialProjectHidden,
-      shown: specialProjectShown
+function allBandsResponse(execution) {
+  const cacheControl = execution.status === 200
+    ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120'
+    : 'no-store';
+  return new Response(execution.body, {
+    status: execution.status,
+    headers: {
+      ...execution.headers,
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': cacheControl,
+      'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+      'x-gaokao-query-kernel': MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+      'x-gaokao-all-bands-page-cache': execution.cacheStatus
     }
-  };
-  const rankWindows = meta.rankWindows;
-  const uniqueBuckets = selectMajorBandsRankBuckets(rankWindows);
-  const returnedRecords = BAND_KEYS.reduce((sum, band) => sum + (bands[band]?.records?.length || 0), 0);
-  const estimatedBytes = JSON.stringify(bands).length;
-  const source = {
-    ...payloads[0].source,
-    queryExecutionCacheStatus: 'sequential-band-orchestration',
-    queryExecutionJoinedInFlight: payloads.some(payload => Boolean(payload.source?.queryExecutionJoinedInFlight)),
-    queryExecutionRetentionMode: 'compact-current-page-per-band',
-    queryExecutionRetainedRecords: returnedRecords,
-    queryExecutionEstimatedBytes: estimatedBytes,
-    queryExecutionPageOffset: input.pageOffset,
-    queryExecutionPageLimit: input.pageLimit,
-    architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets',
-    chunksRead: uniqueBuckets.length,
-    chunksSkipped: MAJOR_BANDS_RANK_BUCKETS.length - uniqueBuckets.length,
-    rankBucketReadsTotal: numericSum(payloads, ['source', 'chunksRead']),
-    rawScanned: numericSum(payloads, ['source', 'rawScanned']),
-    canonicalCandidate: numericSum(payloads, ['source', 'canonicalCandidate']),
-    rawCandidate: numericSum(payloads, ['source', 'rawCandidate']),
-    normalized: numericSum(payloads, ['source', 'normalized']),
-    staticIndexBytes: numericSum(payloads, ['source', 'staticIndexBytes']),
-    bottomLineExcluded: numericSum(payloads, ['source', 'bottomLineExcluded']),
-    bottomLineUnresolved,
-    majorKeywordExcluded: numericSum(payloads, ['source', 'majorKeywordExcluded']),
-    majorHitCount: numericSum(payloads, ['source', 'majorHitCount']),
-    projectHitCount: numericSum(payloads, ['source', 'projectHitCount']),
-    industryHitCount: numericSum(payloads, ['source', 'industryHitCount']),
-    specialProjectHidden,
-    specialProjectShown,
-    specialProjectStats,
-    rankBucketCacheHits: numericSum(payloads, ['source', 'rankBucketCacheHits']),
-    rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
-    rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
-    rankBucketMaxConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketMaxConcurrency || 0))),
-    sortPasses: numericSum(payloads, ['source', 'sortPasses']),
-    allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE,
-    sequentialBandPasses: BAND_KEYS.length,
-    mode: 'single-worker-sequential-band-query-stable-snapshot-paged'
-  };
-
-  return json({
-    ok: true,
-    meta,
-    keywordQuery,
-    keywordWarnings: keywordQueryWarnings(keywordQuery),
-    filterConflicts: buildFilterConflicts({
-      keywordQuery,
-      rawKeywordText: input.filters.majorKeyword || '',
-      bottomLineMode: input.filters.bottomLineMode,
-      specialProjectMode: input.filters.specialProjectMode
-    }),
-    searchAdvices,
-    matchSummary,
-    bands,
-    counts,
-    source
   });
+}
+
+async function executeAllBandsSequentially(context, sourceUrl, input) {
+  const execution = await executeMajorBandsAllBandsPageOnce(allBandsPageIdentity(input), async () => {
+    const payloads = [];
+    for (const band of BAND_KEYS) {
+      const response = await onRequest({
+        ...context,
+        request: requestForBand(context.request, sourceUrl, band)
+      });
+      if (!response.ok) return response;
+      payloads.push(await response.json());
+    }
+
+    const byBand = Object.fromEntries(BAND_KEYS.map((band, index) => [band, payloads[index]]));
+    const bands = Object.fromEntries(BAND_KEYS.map(band => [band, byBand[band].bands[band]]));
+    const counts = Object.fromEntries(BAND_KEYS.map(band => [band, Number(bands[band]?.count || 0)]));
+    counts.total = BAND_KEYS.reduce((sum, band) => sum + counts[band], 0);
+
+    const keywordQuery = payloads[0].keywordQuery || {};
+    const matchSummary = mergeNumericTree(payloads.map(payload => payload.matchSummary));
+    const specialProjectStats = mergeNumericTree(payloads.map(payload => payload.source?.specialProjectStats));
+    const bottomLineUnresolved = numericSum(payloads, ['source', 'bottomLineUnresolved']);
+    const specialProjectShown = numericSum(payloads, ['source', 'specialProjectShown']);
+    const specialProjectHidden = numericSum(payloads, ['source', 'specialProjectHidden']);
+    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(input.filters.majorKeyword);
+    const searchAdvices = buildSearchConflictAdvice({
+      keywordQuery,
+      bottomLineMode: input.filters.bottomLineMode,
+      specialProjectMode: input.filters.specialProjectMode,
+      resultStats: { total: counts.total }
+    });
+    if (bottomLineUnresolved) {
+      searchAdvices.unshift({
+        level: 'warn',
+        message: `有 ${bottomLineUnresolved} 条记录的办学性质或费用尚未确认，已降低排序并标记待核验。`,
+        explanation: '未知不等于公办普通，填报前需要核对当年招生计划和学费。'
+      });
+    }
+    if (specialIntent && specialProjectShown) {
+      searchAdvices.unshift({
+        level: 'warn',
+        message: '已按你的明确关键词显示特殊项目。',
+        explanation: '请逐条核验资格、批次、体检、服务年限和违约责任。'
+      });
+    }
+
+    const meta = {
+      ...payloads[0].meta,
+      pageBand: 'all',
+      elapsedMs: Date.now() - input.started,
+      specialProject: {
+        ...payloads[0].meta?.specialProject,
+        hidden: specialProjectHidden,
+        shown: specialProjectShown
+      }
+    };
+    const rankWindows = meta.rankWindows;
+    const uniqueBuckets = selectMajorBandsRankBuckets(rankWindows);
+    const returnedRecords = BAND_KEYS.reduce((sum, band) => sum + (bands[band]?.records?.length || 0), 0);
+    const estimatedBytes = JSON.stringify(bands).length;
+    const source = {
+      ...payloads[0].source,
+      queryExecutionCacheStatus: 'sequential-band-orchestration',
+      queryExecutionJoinedInFlight: payloads.some(payload => Boolean(payload.source?.queryExecutionJoinedInFlight)),
+      queryExecutionRetentionMode: 'compact-current-page-per-band',
+      queryExecutionRetainedRecords: returnedRecords,
+      queryExecutionEstimatedBytes: estimatedBytes,
+      queryExecutionPageOffset: input.pageOffset,
+      queryExecutionPageLimit: input.pageLimit,
+      architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets',
+      chunksRead: uniqueBuckets.length,
+      chunksSkipped: MAJOR_BANDS_RANK_BUCKETS.length - uniqueBuckets.length,
+      rankBucketReadsTotal: numericSum(payloads, ['source', 'chunksRead']),
+      rawScanned: numericSum(payloads, ['source', 'rawScanned']),
+      canonicalCandidate: numericSum(payloads, ['source', 'canonicalCandidate']),
+      rawCandidate: numericSum(payloads, ['source', 'rawCandidate']),
+      normalized: numericSum(payloads, ['source', 'normalized']),
+      staticIndexBytes: numericSum(payloads, ['source', 'staticIndexBytes']),
+      bottomLineExcluded: numericSum(payloads, ['source', 'bottomLineExcluded']),
+      bottomLineUnresolved,
+      majorKeywordExcluded: numericSum(payloads, ['source', 'majorKeywordExcluded']),
+      majorHitCount: numericSum(payloads, ['source', 'majorHitCount']),
+      projectHitCount: numericSum(payloads, ['source', 'projectHitCount']),
+      industryHitCount: numericSum(payloads, ['source', 'industryHitCount']),
+      specialProjectHidden,
+      specialProjectShown,
+      specialProjectStats,
+      rankBucketCacheHits: numericSum(payloads, ['source', 'rankBucketCacheHits']),
+      rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
+      rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
+      rankBucketMaxConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketMaxConcurrency || 0))),
+      sortPasses: numericSum(payloads, ['source', 'sortPasses']),
+      allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE,
+      allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+      sequentialBandPasses: BAND_KEYS.length,
+      mode: 'single-worker-sequential-band-query-stable-snapshot-paged'
+    };
+
+    return {
+      ok: true,
+      meta,
+      keywordQuery,
+      keywordWarnings: keywordQueryWarnings(keywordQuery),
+      filterConflicts: buildFilterConflicts({
+        keywordQuery,
+        rawKeywordText: input.filters.majorKeyword || '',
+        bottomLineMode: input.filters.bottomLineMode,
+        specialProjectMode: input.filters.specialProjectMode
+      }),
+      searchAdvices,
+      matchSummary,
+      bands,
+      counts,
+      source
+    };
+  });
+  return allBandsResponse(execution);
 }
 
 export async function onRequest(context) {
