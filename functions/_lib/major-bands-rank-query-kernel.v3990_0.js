@@ -17,6 +17,7 @@ import {
 } from './special-project-policy.js';
 
 export const MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION = 'major-bands-rank-query-kernel-v3990_0';
+export const MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'stream-unfiltered-candidates-v3990_0';
 
 function clean(value, max = 120) {
   return String(value == null ? '' : value).trim().slice(0, max);
@@ -76,6 +77,7 @@ function emptyResult(candidateRank, keywordQuery) {
     keywordQuery,
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+      memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
       rankUnavailable: !Number.isFinite(Number(candidateRank?.rankForGap)),
       rawScanned: 0,
       canonicalCandidate: 0,
@@ -115,26 +117,6 @@ export function processMajorBandsRankWindow(records, options = {}) {
 
   const hasKeywordSearch = hasKeywordFilters(keywordQuery);
   const specialIntent = explicitSpecialProjectIntent(majorKeyword);
-  const canonicalCandidates = [];
-
-  for (const source of records || []) {
-    if (!source?.id || !source.school || !source.major) continue;
-    const canonicalPosition = resolveCanonicalPosition({
-      candidateScore,
-      candidateRank: candidateRankValue,
-      recordScore: source.score2026 ?? source.score,
-      recordRank: source.rank2026 ?? source.rank,
-      rangePreset
-    });
-    if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) continue;
-    if (schoolFilter && !acceptedSchoolNames.has(normalizeSchoolName(source.school))) continue;
-    if (!matchRegion(source, region)) continue;
-    canonicalCandidates.push({ source, canonicalPosition });
-  }
-
-  const searchIndex = hasKeywordSearch
-    ? buildSearchIndex(canonicalCandidates.map(item => item.source))
-    : null;
   const grouped = {
     upper: emptyGroup(),
     near: emptyGroup(),
@@ -143,6 +125,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
   const specialProjectStats = createSpecialProjectStats();
   const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
 
+  let canonicalCandidate = 0;
   let normalized = 0;
   let bottomLineExcluded = 0;
   let bottomLineUnresolved = 0;
@@ -153,14 +136,26 @@ export function processMajorBandsRankWindow(records, options = {}) {
   let specialProjectHidden = 0;
   let specialProjectShown = 0;
 
-  for (let index = 0; index < canonicalCandidates.length; index += 1) {
-    const { source, canonicalPosition } = canonicalCandidates[index];
-    const match = hasKeywordSearch
-      ? matchMajorProject(searchIndex[index], keywordQuery)
-      : matchAllKeywordResult();
+  function resolveCandidate(source) {
+    if (!source?.id || !source.school || !source.major) return null;
+    const canonicalPosition = resolveCanonicalPosition({
+      candidateScore,
+      candidateRank: candidateRankValue,
+      recordScore: source.score2026 ?? source.score,
+      recordRank: source.rank2026 ?? source.rank,
+      rangePreset
+    });
+    if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return null;
+    if (schoolFilter && !acceptedSchoolNames.has(normalizeSchoolName(source.school))) return null;
+    if (!matchRegion(source, region)) return null;
+    canonicalCandidate += 1;
+    return { source, canonicalPosition };
+  }
+
+  function commitCandidate(source, canonicalPosition, match) {
     if (!match.matched) {
       majorKeywordExcluded += 1;
-      continue;
+      return;
     }
 
     const bottomLineEligibility = bottomLineMode === 'all'
@@ -168,7 +163,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
       : getBottomLineEligibility(source, bottomLineMode);
     if (bottomLineEligibility.status === 'fail') {
       bottomLineExcluded += 1;
-      continue;
+      return;
     }
     if (bottomLineEligibility.status === 'unresolved') bottomLineUnresolved += 1;
 
@@ -181,7 +176,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
     if (hideSpecial) {
       specialProjectHidden += 1;
       addSpecialProjectStat(specialProjectStats, specialProject, canonicalPosition.bandKey, 'hidden');
-      continue;
+      return;
     }
 
     const record = {
@@ -227,6 +222,28 @@ export function processMajorBandsRankWindow(records, options = {}) {
     grouped[canonicalPosition.bandKey].ordered.push(record);
   }
 
+  if (hasKeywordSearch) {
+    const canonicalCandidates = [];
+    for (const source of records || []) {
+      const candidate = resolveCandidate(source);
+      if (candidate) canonicalCandidates.push(candidate);
+    }
+    const searchIndex = buildSearchIndex(canonicalCandidates.map(item => item.source));
+    for (let index = 0; index < canonicalCandidates.length; index += 1) {
+      const { source, canonicalPosition } = canonicalCandidates[index];
+      commitCandidate(source, canonicalPosition, matchMajorProject(searchIndex[index], keywordQuery));
+    }
+  } else {
+    // The dominant score-search path has no keyword query. Classify and commit
+    // each source record in one pass so a second canonical-candidate object graph
+    // never overlaps the raw bucket rows and enriched response records.
+    for (const source of records || []) {
+      const candidate = resolveCandidate(source);
+      if (!candidate) continue;
+      commitCandidate(candidate.source, candidate.canonicalPosition, matchAllKeywordResult());
+    }
+  }
+
   let sortPasses = 0;
   for (const key of ['upper', 'near', 'steady']) {
     const group = grouped[key];
@@ -247,10 +264,11 @@ export function processMajorBandsRankWindow(records, options = {}) {
     keywordQuery,
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+      memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
       rankUnavailable: false,
       rawScanned: Array.isArray(records) ? records.length : 0,
-      canonicalCandidate: canonicalCandidates.length,
-      rawCandidate: canonicalCandidates.length,
+      canonicalCandidate,
+      rawCandidate: canonicalCandidate,
       normalized,
       bottomLineExcluded,
       bottomLineUnresolved,
@@ -266,4 +284,3 @@ export function processMajorBandsRankWindow(records, options = {}) {
     }
   };
 }
-
