@@ -15,6 +15,7 @@ const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-v3990_0';
+const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
 
 const sharedScenarios = Object.freeze([
@@ -130,6 +131,12 @@ function validateResult(result) {
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
+  const queryCacheState = result.payload?.source?.queryExecutionCache || {};
+  assert.equal(queryCacheState.executionGateVersion, expectedExecutionGateVersion, `${result.scenario}: execution gate version`);
+  assert.equal(queryCacheState.crossRequestSemaphore, true, `${result.scenario}: execution gate disabled`);
+  assert.equal(queryCacheState.boundedDistinctExecutions, true, `${result.scenario}: distinct-query bound missing`);
+  assert.equal(Number(queryCacheState.maxConcurrentExecutions), 2, `${result.scenario}: execution gate width`);
+  assert.ok(Number(queryCacheState.activeExecutions || 0) <= 2, `${result.scenario}: observed too many active executions`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: request-band bucket loader`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
@@ -265,6 +272,8 @@ const allConcurrencyEvidence = concurrencyModes.flatMap(mode => concurrency[mode
 const evidence = {
   version: 'major-bands-real-concurrency-v3990_0',
   queryExecutionCacheVersion: expectedQueryCacheVersion,
+  executionGateVersion: expectedExecutionGateVersion,
+  maxConcurrentExecutions: 2,
   bucketLoaderVersion: expectedBucketLoaderVersion,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
   allBandRetentionContract: 'compact-current-page-per-band',
