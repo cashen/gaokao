@@ -1,4 +1,5 @@
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0';
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
@@ -38,11 +39,31 @@ function retentionStats(value) {
   };
 }
 
-function canRetain(value) {
+function serializeRetainedValue(value) {
+  const serialized = JSON.stringify(value);
+  return {
+    serialized,
+    serializedChars: serialized.length
+  };
+}
+
+function canRetain(value, serializedChars) {
   const stats = retentionStats(value);
   return COMPLETED_QUERY_RETENTION_ENABLED
     && stats.recordCount <= MAX_COMPLETED_RECORDS
-    && stats.estimatedBytes <= MAX_COMPLETED_ESTIMATED_BYTES;
+    && stats.estimatedBytes <= MAX_COMPLETED_ESTIMATED_BYTES
+    && serializedChars <= MAX_COMPLETED_ESTIMATED_BYTES;
+}
+
+function readCompletedValue(key, entry) {
+  try {
+    const value = JSON.parse(entry.serialized);
+    touch(entry);
+    return value;
+  } catch {
+    completed.delete(key);
+    return null;
+  }
 }
 
 export async function executeMajorBandsQueryOnce(identity, executor) {
@@ -53,12 +74,14 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
   pruneExpired();
   const cached = completed.get(key);
   if (cached) {
-    touch(cached);
-    return {
-      value: cached.value,
-      cacheStatus: 'compact-completed-hit',
-      joinedInFlight: false
-    };
+    const value = readCompletedValue(key, cached);
+    if (value) {
+      return {
+        value,
+        cacheStatus: 'serialized-compact-hit',
+        joinedInFlight: false
+      };
+    }
   }
 
   const pending = inFlight.get(key);
@@ -70,26 +93,29 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     };
   }
 
-  // Release the prior compact snapshot before constructing a different rank
-  // window. Only the requested band's compact reconstruction candidates may
-  // survive completion; decoded buckets and full ranking objects never do.
+  // Release the prior serialized snapshot before constructing a different rank
+  // window. Only a bounded JSON string survives completion; decoded buckets,
+  // ranking traces and compact candidate object graphs remain request-scoped.
   completed.clear();
   let promise;
   promise = Promise.resolve().then(async () => {
     const value = await executor();
     const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
-    if (isolatedExecution && canRetain(value)) {
-      const stats = retentionStats(value);
-      completed.clear();
-      const entry = {
-        value,
-        recordCount: stats.recordCount,
-        estimatedBytes: stats.estimatedBytes,
-        expiresAt: Date.now() + COMPLETED_TTL_MS,
-        lastAccess: 0
-      };
-      touch(entry);
-      completed.set(key, entry);
+    if (isolatedExecution && COMPLETED_QUERY_RETENTION_ENABLED) {
+      const retention = serializeRetainedValue(value);
+      if (canRetain(value, retention.serializedChars)) {
+        const stats = retentionStats(value);
+        completed.clear();
+        const entry = {
+          serialized: retention.serialized,
+          recordCount: stats.recordCount,
+          estimatedBytes: retention.serializedChars,
+          expiresAt: Date.now() + COMPLETED_TTL_MS,
+          lastAccess: 0
+        };
+        touch(entry);
+        completed.set(key, entry);
+      }
     }
     return value;
   });
@@ -109,6 +135,7 @@ export function majorBandsQueryExecutionCacheState() {
   pruneExpired();
   return Object.freeze({
     version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
+    mode: MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
     inFlight: inFlight.size,
     completed: completed.size,
     completedRecords: completedRecordCount(),
@@ -118,7 +145,7 @@ export function majorBandsQueryExecutionCacheState() {
     maxCompletedRecords: MAX_COMPLETED_RECORDS,
     maxCompletedEstimatedBytes: MAX_COMPLETED_ESTIMATED_BYTES,
     completedTtlMs: COMPLETED_TTL_MS,
-    compactSnapshotOnly: true,
+    serializedSnapshotOnly: true,
     crossRequestSemaphore: false,
     keys: Object.freeze([...completed.keys()])
   });
