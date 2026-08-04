@@ -4,6 +4,7 @@ import {
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
   MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
+  MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE,
   clearMajorBandsQueryExecutionCacheForTest,
   executeMajorBandsQueryOnce,
   majorBandsQueryExecutionCacheState
@@ -97,6 +98,10 @@ assert.ok(afterDistinct.completedEstimatedBytes <= afterDistinct.maxCompletedEst
 assert.equal(afterDistinct.crossRequestSemaphore, true);
 assert.equal(afterDistinct.boundedDistinctExecutions, true);
 assert.equal(afterDistinct.executionGateVersion, MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION);
+assert.equal(afterDistinct.executionGateMode, MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE);
+assert.equal(afterDistinct.requestOwnedTimerWait, true);
+assert.equal(afterDistinct.crossRequestResolverQueue, false);
+assert.equal(afterDistinct.executionSlotPollMs, 8);
 assert.equal(afterDistinct.maxConcurrentExecutions, 2);
 assert.equal(afterDistinct.peakActiveExecutions, 2);
 assert.ok(afterDistinct.peakQueuedExecutions >= 3);
@@ -129,9 +134,12 @@ assert.equal(state.maxCompletedRecords, 6000);
 assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
 assert.equal(state.completedTtlMs, 30_000);
 assert.equal(state.preflightBudgetBeforeSerialization, true);
-assert.equal(state.version, 'major-bands-query-execution-cache-serialized-v3990_0');
+assert.equal(state.version, 'major-bands-query-execution-cache-serialized-request-timer-v3990_0');
 assert.equal(state.executionGateVersion, 'major-bands-query-execution-gate-v3990_0');
+assert.equal(state.executionGateMode, 'request-owned-timer-polling');
 assert.equal(state.crossRequestSemaphore, true);
+assert.equal(state.requestOwnedTimerWait, true);
+assert.equal(state.crossRequestResolverQueue, false);
 assert.equal(state.maxConcurrentExecutions, 2);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
@@ -150,6 +158,18 @@ for (const forbidden of [
   "requestedBand || 'all'\n        }"
 ]) {
   assert.ok(!apiSource.includes(forbidden), `unbounded all-band retention path returned: ${forbidden}`);
+}
+
+const executionCacheSource = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
+for (const required of [
+  "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'",
+  'EXECUTION_SLOT_POLL_MS = 8',
+  'waitForOwnTimer',
+  'requestOwnedTimerWait: true',
+  'crossRequestResolverQueue: false'
+]) assert.ok(executionCacheSource.includes(required), `request-owned timer gate missing ${required}`);
+for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'executionWaiters.shift']) {
+  assert.ok(!executionCacheSource.includes(forbidden), `cross-request resolver queue returned: ${forbidden}`);
 }
 
 const snapshotGuard = createMajorBandsPaginationSnapshotGuard({ maxEntries: 12 });
@@ -225,6 +245,7 @@ console.log(JSON.stringify({
   version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   mode: MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
   executionGateVersion: MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
+  executionGateMode: MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE,
   concurrentCallers: concurrent.length,
   executions,
   singleflightHits: concurrent.filter(result => result.cacheStatus === 'singleflight-hit').length,
@@ -243,6 +264,8 @@ console.log(JSON.stringify({
   browserSnapshotEntries: snapshotGuard.getState().size,
   immutableV3963Restored: true,
   crossRequestSemaphore: state.crossRequestSemaphore,
+  requestOwnedTimerWait: state.requestOwnedTimerWait,
+  crossRequestResolverQueue: state.crossRequestResolverQueue,
   maxConcurrentExecutions: state.maxConcurrentExecutions,
   peakQueuedExecutions: state.peakQueuedExecutions
 }, null, 2));
