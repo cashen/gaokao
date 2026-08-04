@@ -14,6 +14,8 @@ import {
   createMajorBandsPaginationSnapshotGuard
 } from '../ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 
+const ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -144,20 +146,31 @@ assert.equal(state.maxConcurrentExecutions, 2);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const required of [
-  "band === 'all-bands-execution'",
-  'compactRankedPage(ordered, pageOffset, pageLimit)',
-  "'compact-current-page-per-band'",
-  "'current-page-only'",
-  'queryExecutionPageOffset',
-  'queryExecutionPageLimit'
+  `MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = '${ALL_BANDS_EXECUTION_MODE}'`,
+  'async function executeAllBandsSequentially',
+  'for (const band of BAND_KEYS)',
+  'requestForBand(context.request, sourceUrl, band)',
+  'request: requestForBand(context.request, sourceUrl, band)',
+  'return executeAllBandsSequentially(context, url',
+  "queryExecutionCacheStatus: 'sequential-band-orchestration'",
+  "queryExecutionRetentionMode: 'compact-current-page-per-band'",
+  'queryExecutionPageOffset: input.pageOffset',
+  'queryExecutionPageLimit: input.pageLimit',
+  'allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE',
+  'sequentialBandPasses: BAND_KEYS.length',
+  'rankBucketReadsTotal:',
+  "architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets'",
+  "mode: 'single-worker-sequential-band-query-stable-snapshot-paged'"
 ]) {
-  assert.ok(apiSource.includes(required), `missing bounded all-band retention contract: ${required}`);
+  assert.ok(apiSource.includes(required), `missing sequential all-band contract: ${required}`);
 }
 for (const forbidden of [
   'const retainRecords = !requestedBand || requestedBand === key',
-  "requestedBand || 'all'\n        }"
+  'const retainCurrentPage = !requestedBand',
+  'await fetch(',
+  "new URL('/api/major-bands-bucket'"
 ]) {
-  assert.ok(!apiSource.includes(forbidden), `unbounded all-band retention path returned: ${forbidden}`);
+  assert.ok(!apiSource.includes(forbidden), `unbounded or public self-fanout all-band path returned: ${forbidden}`);
 }
 
 const executionCacheSource = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
@@ -171,6 +184,19 @@ for (const required of [
 for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'executionWaiters.shift']) {
   assert.ok(!executionCacheSource.includes(forbidden), `cross-request resolver queue returned: ${forbidden}`);
 }
+
+const concurrencyVerifierSource = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
+for (const required of [
+  `expectedAllBandsExecutionMode = '${ALL_BANDS_EXECUTION_MODE}'`,
+  "['sequential-band-orchestration']",
+  'verifyAllBandPageEquivalence',
+  'all-band/${band}: count differs from requested-band page',
+  'all-band/${band}: snapshot differs from requested-band page',
+  'all-band/${band}: page IDs differ from requested-band page',
+  'all-band/${band}: nextOffset differs from requested-band page',
+  'allBandsExecutionMode: expectedAllBandsExecutionMode',
+  'sequentialBandPasses), 3'
+]) assert.ok(concurrencyVerifierSource.includes(required), `sequential all-band verifier missing ${required}`);
 
 const snapshotGuard = createMajorBandsPaginationSnapshotGuard({ maxEntries: 12 });
 const initialUrl = new URL('https://preview.invalid/api/major-bands?candidateScore=579&rangePreset=standard&region=all&limit=40&offset=0');
@@ -228,8 +254,8 @@ for (const required of [
   'majorBandsPaginationSnapshotGuard.rewrite(url)',
   'majorBandsPaginationSnapshotGuard.inspect(snapshotContext.url, payload)',
   '__GAOKAO_MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD__',
-  "status: 409",
-  "code: inspection.code"
+  'status: 409',
+  'code: inspection.code'
 ]) {
   assert.ok(appRuntimeSource.includes(required), `missing v3990 browser snapshot ownership: ${required}`);
 }
@@ -259,6 +285,8 @@ console.log(JSON.stringify({
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
+  allBandsExecutionMode: ALL_BANDS_EXECUTION_MODE,
+  allBandEquivalenceGate: true,
   browserSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
   browserSnapshotMismatchRejected: true,
   browserSnapshotEntries: snapshotGuard.getState().size,
