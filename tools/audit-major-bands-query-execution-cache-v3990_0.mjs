@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
+  MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
   clearMajorBandsQueryExecutionCacheForTest,
   executeMajorBandsQueryOnce,
   majorBandsQueryExecutionCacheState
@@ -73,7 +74,7 @@ let peakDistinct = 0;
 const distinct = await Promise.all(Array.from({ length: 5 }, (_, index) => executeMajorBandsQueryOnce(`distinct-${index}`, async () => {
   activeDistinct += 1;
   peakDistinct = Math.max(peakDistinct, activeDistinct);
-  await delay(15 + index);
+  await delay(25);
   activeDistinct -= 1;
   return compactValue(1000 + index, `distinct-${index}`);
 })));
@@ -84,12 +85,21 @@ assert.deepEqual(distinct.map(result => result.value.marker), [
   'distinct-3',
   'distinct-4'
 ]);
+assert.equal(peakDistinct, 2, 'distinct-query execution gate did not enforce two active executions');
+assert.equal(distinct.filter(result => result.waitedForExecutionSlot).length, 3, 'expected three distinct queries to wait for bounded execution slots');
 const afterDistinct = majorBandsQueryExecutionCacheState();
 assert.equal(afterDistinct.inFlight, 0);
+assert.equal(afterDistinct.activeExecutions, 0);
+assert.equal(afterDistinct.queuedExecutions, 0);
 assert.ok(afterDistinct.completed <= 1, 'distinct queries retained multiple snapshots');
 assert.ok(afterDistinct.completedRecords <= afterDistinct.maxCompletedRecords);
 assert.ok(afterDistinct.completedEstimatedBytes <= afterDistinct.maxCompletedEstimatedBytes);
-assert.equal(afterDistinct.crossRequestSemaphore, false);
+assert.equal(afterDistinct.crossRequestSemaphore, true);
+assert.equal(afterDistinct.boundedDistinctExecutions, true);
+assert.equal(afterDistinct.executionGateVersion, MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION);
+assert.equal(afterDistinct.maxConcurrentExecutions, 2);
+assert.equal(afterDistinct.peakActiveExecutions, 2);
+assert.ok(afterDistinct.peakQueuedExecutions >= 3);
 assert.equal(afterDistinct.serializedSnapshotOnly, true);
 assert.equal(afterDistinct.preflightBudgetBeforeSerialization, true);
 assert.equal(afterDistinct.mode, MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE);
@@ -120,6 +130,9 @@ assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
 assert.equal(state.completedTtlMs, 30_000);
 assert.equal(state.preflightBudgetBeforeSerialization, true);
 assert.equal(state.version, 'major-bands-query-execution-cache-serialized-v3990_0');
+assert.equal(state.executionGateVersion, 'major-bands-query-execution-gate-v3990_0');
+assert.equal(state.crossRequestSemaphore, true);
+assert.equal(state.maxConcurrentExecutions, 2);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const required of [
@@ -211,6 +224,7 @@ console.log(JSON.stringify({
   ok: true,
   version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   mode: MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
+  executionGateVersion: MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
   concurrentCallers: concurrent.length,
   executions,
   singleflightHits: concurrent.filter(result => result.cacheStatus === 'singleflight-hit').length,
@@ -218,6 +232,7 @@ console.log(JSON.stringify({
   mutationIsolation: secondCompletedHit.value.marker,
   distinctQueries: distinct.length,
   peakDistinct,
+  waitedDistinctQueries: distinct.filter(result => result.waitedForExecutionSlot).length,
   retainedAfterDistinct: afterDistinct.completed,
   completedRetentionEnabled: state.completedRetentionEnabled,
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
@@ -227,5 +242,7 @@ console.log(JSON.stringify({
   browserSnapshotMismatchRejected: true,
   browserSnapshotEntries: snapshotGuard.getState().size,
   immutableV3963Restored: true,
-  crossRequestSemaphore: state.crossRequestSemaphore
+  crossRequestSemaphore: state.crossRequestSemaphore,
+  maxConcurrentExecutions: state.maxConcurrentExecutions,
+  peakQueuedExecutions: state.peakQueuedExecutions
 }, null, 2));
