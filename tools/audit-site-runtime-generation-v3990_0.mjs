@@ -107,11 +107,27 @@ assert.ok(!interactionCss.includes('[inert]'), 'interaction CSS relies on inert 
 const app = fs.readFileSync('ln-rank/js/app.v3990_0.js', 'utf8');
 const runtime = fs.readFileSync('ln-rank/js/app-runtime.v3990_0.js', 'utf8');
 const workspace = fs.readFileSync('ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js', 'utf8');
-for (const [label, source] of [['app', app], ['runtime', runtime], ['workspace', workspace]]) {
+const paginationSnapshotGuard = fs.readFileSync('ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js', 'utf8');
+for (const [label, source] of [['app', app], ['runtime', runtime], ['workspace', workspace], ['paginationSnapshotGuard', paginationSnapshotGuard]]) {
   assert.ok(source.includes('v3990_0'), `${label} does not use current generation`);
 }
 assert.ok(runtime.includes("const INTERACTION_VERSION = 'interaction-transaction-v3990_0'"));
 assert.ok(workspace.includes("const INTERACTION_VERSION = 'interaction-transaction-v3990_0'"));
+for (const marker of [
+  'pagination-snapshot-guard.v3990_0.js?v=3990_0',
+  '__GAOKAO_MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD__',
+  'majorBandsPaginationSnapshotGuard.rewrite(url)',
+  'majorBandsPaginationSnapshotGuard.inspect(snapshotContext.url, payload)',
+  "owner: '/ln-rank/js/app-runtime.v3990_0.js'",
+  "implementation: '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js'"
+]) assert.ok(runtime.includes(marker), `selection runtime missing snapshot ownership: ${marker}`);
+for (const marker of [
+  "MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION = 'major-bands-pagination-snapshot-guard-v3990_0'",
+  'const maxEntries = Math.max(3, Math.floor(Number(options.maxEntries) || 12))',
+  "url.searchParams.set('snapshot', expectedSnapshot)",
+  "code: 'pagination_snapshot_mismatch'",
+  'bounded: snapshots.size <= maxEntries'
+]) assert.ok(paginationSnapshotGuard.includes(marker), `snapshot guard missing ${marker}`);
 
 const manifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3990_0.json', 'utf8'));
 assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
@@ -130,5 +146,7 @@ console.log(JSON.stringify({
   stableActiveEntrypoints: stableKeys.length,
   stablePageResources: Object.keys(SITE_RUNTIME_CONTRACT.stablePageEntrypoints).length,
   physicalEventOwnership: 'single-family',
-  preActivationDomMutation: 'forbidden'
+  preActivationDomMutation: 'forbidden',
+  paginationSnapshotGuard: 'major-bands-pagination-snapshot-guard-v3990_0',
+  paginationSnapshotOwner: 'selectionRuntime'
 }, null, 2));
