@@ -37,16 +37,20 @@ const completedHit = await executeMajorBandsQueryOnce('same-query', async () => 
 assert.equal(completedHit.cacheStatus, 'completed-hit');
 assert.equal(completedHit.value.marker, 'singleflight');
 
-await executeMajorBandsQueryOnce('query-b', async () => valueWithRecords(1200, 'b'));
+await executeMajorBandsQueryOnce('query-b', async () => valueWithRecords(3500, 'b'));
+const pagedHit = await executeMajorBandsQueryOnce('query-b', async () => {
+  throw new Error('paged query was recomputed');
+});
+assert.equal(pagedHit.cacheStatus, 'completed-hit');
 await executeMajorBandsQueryOnce('query-c', async () => valueWithRecords(1200, 'c'));
 const bounded = majorBandsQueryExecutionCacheState();
 assert.equal(bounded.version, MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION);
 assert.ok(bounded.completed <= bounded.maxCompletedQueries);
 assert.ok(bounded.completedRecords <= bounded.maxCompletedRecords);
-assert.equal(bounded.completed, 2);
-assert.ok(!bounded.keys.includes('same-query'), 'least-recently-used query was not evicted');
+assert.equal(bounded.completed, 1);
+assert.deepEqual(bounded.keys, ['query-c']);
 
-await executeMajorBandsQueryOnce('oversized-query', async () => valueWithRecords(3000, 'oversized'));
+await executeMajorBandsQueryOnce('oversized-query', async () => valueWithRecords(7000, 'oversized'));
 const afterOversized = majorBandsQueryExecutionCacheState();
 assert.ok(!afterOversized.keys.includes('oversized-query'), 'oversized query entered completed cache');
 assert.ok(afterOversized.completedRecords <= afterOversized.maxCompletedRecords);
