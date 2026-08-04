@@ -41,6 +41,14 @@ const completedHit = await executeMajorBandsQueryOnce('same-query', async () => 
 assert.equal(completedHit.cacheStatus, 'completed-hit');
 assert.equal(completedHit.value.marker, 'singleflight');
 
+let previousReleasedBeforeNext = false;
+await executeMajorBandsQueryOnce('next-query', async () => {
+  previousReleasedBeforeNext = majorBandsQueryExecutionCacheState().completed === 0;
+  return valueWithRecords(1200, 'next');
+});
+assert.equal(previousReleasedBeforeNext, true, 'previous completed query overlapped next execution');
+assert.deepEqual(majorBandsQueryExecutionCacheState().keys, ['next-query']);
+
 clearMajorBandsQueryExecutionCacheForTest();
 let activeDistinct = 0;
 let peakDistinct = 0;
@@ -51,7 +59,6 @@ const distinct = await Promise.all(Array.from({ length: 5 }, (_, index) => execu
   activeDistinct -= 1;
   return valueWithRecords(1000 + index, `distinct-${index}`);
 })));
-assert.equal(peakDistinct, 1, 'distinct heavy queries overlapped');
 assert.deepEqual(distinct.map(result => result.value.marker), [
   'distinct-0',
   'distinct-1',
@@ -59,6 +66,11 @@ assert.deepEqual(distinct.map(result => result.value.marker), [
   'distinct-3',
   'distinct-4'
 ]);
+const afterDistinct = majorBandsQueryExecutionCacheState();
+assert.equal(afterDistinct.inFlight, 0);
+assert.equal(afterDistinct.completed, 0, 'concurrent distinct queries retained a heavy completed window');
+assert.equal(afterDistinct.crossRequestSemaphore, false);
+assert.equal(afterDistinct.retainOnlyWhenIsolated, true);
 
 await executeMajorBandsQueryOnce('paged-query', async () => valueWithRecords(3500, 'paged'));
 const pagedHit = await executeMajorBandsQueryOnce('paged-query', async () => {
@@ -70,9 +82,6 @@ assert.equal(pagedHit.value.marker, 'paged');
 await executeMajorBandsQueryOnce('replacement-query', async () => valueWithRecords(1200, 'replacement'));
 const bounded = majorBandsQueryExecutionCacheState();
 assert.equal(bounded.version, MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION);
-assert.equal(bounded.maxActiveExecutions, 1);
-assert.equal(bounded.activeExecutions, 0);
-assert.equal(bounded.waitingExecutions, 0);
 assert.ok(bounded.completed <= bounded.maxCompletedQueries);
 assert.ok(bounded.completedRecords <= bounded.maxCompletedRecords);
 assert.equal(bounded.completed, 1);
@@ -82,8 +91,7 @@ await executeMajorBandsQueryOnce('oversized-query', async () => valueWithRecords
 const afterOversized = majorBandsQueryExecutionCacheState();
 assert.ok(!afterOversized.keys.includes('oversized-query'), 'oversized query entered completed cache');
 assert.equal(afterOversized.completed, 0, 'previous result overlapped oversized execution');
-assert.equal(afterOversized.activeExecutions, 0);
-assert.equal(afterOversized.waitingExecutions, 0);
+assert.equal(afterOversized.inFlight, 0);
 
 console.log(JSON.stringify({
   ok: true,
@@ -94,5 +102,6 @@ console.log(JSON.stringify({
   distinctQueries: distinct.length,
   peakDistinct,
   completed: afterOversized.completed,
-  completedRecords: afterOversized.completedRecords
+  completedRecords: afterOversized.completedRecords,
+  crossRequestSemaphore: afterOversized.crossRequestSemaphore
 }, null, 2));
