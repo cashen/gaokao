@@ -2,6 +2,7 @@ export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-exec
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
+const COMPLETED_QUERY_RETENTION_ENABLED = false;
 const COMPLETED_TTL_MS = 30_000;
 const inFlight = new Map();
 const completed = new Map();
@@ -9,13 +10,6 @@ let accessClock = 0;
 
 function touch(entry) {
   entry.lastAccess = ++accessClock;
-}
-
-function resultRecordCount(value) {
-  return ['upper', 'near', 'steady'].reduce(
-    (sum, key) => sum + Number(value?.processed?.grouped?.[key]?.count || 0),
-    0
-  );
 }
 
 function completedRecordCount() {
@@ -27,17 +21,6 @@ function completedRecordCount() {
 function pruneExpired(now = Date.now()) {
   for (const [key, entry] of completed) {
     if (entry.expiresAt <= now) completed.delete(key);
-  }
-}
-
-function evictCompleted() {
-  while (completed.size > MAX_COMPLETED_QUERIES || completedRecordCount() > MAX_COMPLETED_RECORDS) {
-    let victim = null;
-    for (const [key, entry] of completed) {
-      if (!victim || entry.lastAccess < victim.entry.lastAccess) victim = { key, entry };
-    }
-    if (!victim) return;
-    completed.delete(victim.key);
   }
 }
 
@@ -66,30 +49,11 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     };
   }
 
-  // Do not let a previous fully classified window overlap a different query.
-  // Cloudflare request contexts must never wait on a manually resolved global
-  // semaphore, so distinct queries run normally; completed retention is only
-  // allowed when this is the isolate's sole active query execution.
-  completed.clear();
-  let promise;
-  promise = Promise.resolve().then(async () => {
-    const value = await executor();
-    const recordCount = resultRecordCount(value);
-    const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
-    if (isolatedExecution && recordCount <= MAX_COMPLETED_RECORDS) {
-      completed.clear();
-      const entry = {
-        value,
-        recordCount,
-        expiresAt: Date.now() + COMPLETED_TTL_MS,
-        lastAccess: 0
-      };
-      touch(entry);
-      completed.set(key, entry);
-      evictCompleted();
-    }
-    return value;
-  });
+  // Only concurrent callers of the exact same query share work. Completed
+  // classified and ordered windows are deliberately not retained: clearing a
+  // global Map does not force edge GC before the next request, and overlapping
+  // generations can exceed the isolate memory budget.
+  const promise = Promise.resolve().then(executor);
   inFlight.set(key, promise);
   try {
     return {
@@ -109,10 +73,11 @@ export function majorBandsQueryExecutionCacheState() {
     inFlight: inFlight.size,
     completed: completed.size,
     completedRecords: completedRecordCount(),
-    maxCompletedQueries: MAX_COMPLETED_QUERIES,
-    maxCompletedRecords: MAX_COMPLETED_RECORDS,
-    completedTtlMs: COMPLETED_TTL_MS,
-    retainOnlyWhenIsolated: true,
+    completedRetentionEnabled: COMPLETED_QUERY_RETENTION_ENABLED,
+    maxCompletedQueries: COMPLETED_QUERY_RETENTION_ENABLED ? MAX_COMPLETED_QUERIES : 0,
+    maxCompletedRecords: COMPLETED_QUERY_RETENTION_ENABLED ? MAX_COMPLETED_RECORDS : 0,
+    completedTtlMs: COMPLETED_QUERY_RETENTION_ENABLED ? COMPLETED_TTL_MS : 0,
+    singleflightOnly: true,
     crossRequestSemaphore: false,
     keys: Object.freeze([...completed.keys()])
   });
