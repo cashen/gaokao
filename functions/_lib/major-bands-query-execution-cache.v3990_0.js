@@ -1,6 +1,6 @@
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0';
-export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-request-timer-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling';
 
 const MAX_COMPLETED_QUERIES = 1;
