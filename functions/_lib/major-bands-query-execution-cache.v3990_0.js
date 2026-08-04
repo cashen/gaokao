@@ -8,12 +8,12 @@ const MAX_COMPLETED_RECORDS = 6000;
 const MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000;
 const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
-const MAX_RECENT_IDENTITIES = 32;
 const MAX_CONCURRENT_EXECUTIONS = 2;
 const EXECUTION_SLOT_POLL_MS = 8;
 const inFlight = new Map();
 const completed = new Map();
-const recentIdentities = new Map();
+let lastIsolatedIdentity = '';
+let lastIsolatedIdentityExpiresAt = 0;
 let activeExecutions = 0;
 let queuedExecutions = 0;
 let peakActiveExecutions = 0;
@@ -40,16 +40,9 @@ function pruneExpired(now = Date.now()) {
   for (const [key, entry] of completed) {
     if (entry.expiresAt <= now) completed.delete(key);
   }
-  for (const [key, expiresAt] of recentIdentities) {
-    if (expiresAt <= now) recentIdentities.delete(key);
-  }
-}
-
-function trimRecentIdentities() {
-  while (recentIdentities.size > MAX_RECENT_IDENTITIES) {
-    const first = recentIdentities.keys().next().value;
-    if (first === undefined) break;
-    recentIdentities.delete(first);
+  if (lastIsolatedIdentityExpiresAt <= now) {
+    lastIsolatedIdentity = '';
+    lastIsolatedIdentityExpiresAt = 0;
   }
 }
 
@@ -63,7 +56,7 @@ function retentionStats(value) {
 function completedRetentionPolicy(value) {
   if (value?.cacheRetention?.retainCompleted === true) return 'immediate-opt-in';
   if (value?.cacheRetention?.retainCompleted === false) return 'disabled';
-  if (value?.cacheRetention?.mode === 'compact-requested-band-snapshot') return 'second-use';
+  if (value?.cacheRetention?.mode === 'compact-requested-band-snapshot') return 'consecutive-isolated-use';
   return 'disabled';
 }
 
@@ -71,15 +64,27 @@ function completedRetentionRequested(value) {
   return completedRetentionPolicy(value) !== 'disabled';
 }
 
-function shouldRetainCompleted(key, value, now = Date.now()) {
-  if (!completedRetentionRequested(value)) return false;
+function shouldRetainCompleted(key, value, execution = {}, now = Date.now()) {
   const policy = completedRetentionPolicy(value);
   if (policy === 'immediate-opt-in') return true;
-  const seenBefore = Number(recentIdentities.get(key) || 0) > now;
-  recentIdentities.delete(key);
-  recentIdentities.set(key, now + COMPLETED_TTL_MS);
-  trimRecentIdentities();
-  return seenBefore;
+  if (policy !== 'consecutive-isolated-use') {
+    lastIsolatedIdentity = '';
+    lastIsolatedIdentityExpiresAt = 0;
+    return false;
+  }
+
+  const isolatedStart = execution.isolatedStart === true;
+  const isolatedCompletion = execution.isolatedCompletion === true;
+  if (!isolatedStart || !isolatedCompletion) {
+    lastIsolatedIdentity = '';
+    lastIsolatedIdentityExpiresAt = 0;
+    return false;
+  }
+
+  const consecutive = lastIsolatedIdentity === key && lastIsolatedIdentityExpiresAt > now;
+  lastIsolatedIdentity = key;
+  lastIsolatedIdentityExpiresAt = now + COMPLETED_TTL_MS;
+  return consecutive;
 }
 
 function declaredRetentionWithinBudget(value) {
@@ -170,17 +175,18 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
   }
 
   completed.clear();
+  const isolatedStart = inFlight.size === 0;
   let waitedForExecutionSlot = false;
   let promise;
   promise = (async () => {
     waitedForExecutionSlot = await acquireExecutionSlot();
     try {
       const value = await executor();
-      const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
+      const isolatedCompletion = inFlight.size === 1 && inFlight.get(key) === promise;
       if (
-        isolatedExecution
-        && COMPLETED_QUERY_RETENTION_ENABLED
-        && shouldRetainCompleted(key, value)
+        COMPLETED_QUERY_RETENTION_ENABLED
+        && completedRetentionRequested(value)
+        && shouldRetainCompleted(key, value, { isolatedStart, isolatedCompletion })
         && declaredRetentionWithinBudget(value)
       ) {
         const retention = serializeRetainedValue(value);
@@ -235,9 +241,8 @@ export function majorBandsQueryExecutionCacheState() {
     completedEstimatedBytes: completedEstimatedBytes(),
     completedRetentionEnabled: COMPLETED_QUERY_RETENTION_ENABLED,
     explicitRetentionOptIn: true,
-    requestScopedSecondUseRetention: true,
-    recentExecutionIdentities: recentIdentities.size,
-    maxRecentIdentities: MAX_RECENT_IDENTITIES,
+    requestScopedConsecutiveIsolatedRetention: true,
+    lastIsolatedIdentityTracked: Boolean(lastIsolatedIdentity),
     maxCompletedQueries: MAX_COMPLETED_QUERIES,
     maxCompletedRecords: MAX_COMPLETED_RECORDS,
     maxCompletedEstimatedBytes: MAX_COMPLETED_ESTIMATED_BYTES,
@@ -255,7 +260,8 @@ export function majorBandsQueryExecutionCacheState() {
 export function clearMajorBandsQueryExecutionCacheForTest() {
   inFlight.clear();
   completed.clear();
-  recentIdentities.clear();
+  lastIsolatedIdentity = '';
+  lastIsolatedIdentityExpiresAt = 0;
   activeExecutions = 0;
   queuedExecutions = 0;
   peakActiveExecutions = 0;
