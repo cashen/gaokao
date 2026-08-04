@@ -17,7 +17,7 @@ import {
 } from './special-project-policy.js';
 
 export const MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION = 'major-bands-rank-query-kernel-v3990_0';
-export const MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0';
+export const MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'requested-band-lightweight-order-current-page-v3990_0';
 
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 const BAND_KEY_SET = new Set(BAND_KEYS);
@@ -62,6 +62,15 @@ function matchAllKeywordResult() {
   };
 }
 
+function compactCanonicalPositionForRanking(position = {}) {
+  return {
+    bandKey: position.bandKey || '',
+    positionDistance: Number(position.positionDistance),
+    evidenceStrength: position.evidenceStrength || 'weak',
+    classificationBasis: position.classificationBasis || 'unresolved'
+  };
+}
+
 function explicitSpecialProjectIntent(value = '') {
   return /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(String(value || ''));
 }
@@ -81,6 +90,9 @@ function emptyResult(candidateRank, keywordQuery, requestedBand = '') {
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
       memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
+      rankingCandidateMode: 'lightweight-order-current-page-v3990_0',
+      deferredResponseEnrichment: true,
+      responseEnrichedCandidates: 0,
       requestedBand,
       sourceRecordsMutated: false,
       rankUnavailable: !Number.isFinite(Number(candidateRank?.rankForGap)),
@@ -129,6 +141,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
   }
 
   const hasKeywordSearch = hasKeywordFilters(keywordQuery);
+  const deferResponseEnrichment = !hasKeywordSearch;
   const specialIntent = explicitSpecialProjectIntent(majorKeyword);
   const grouped = {
     upper: emptyGroup(),
@@ -193,40 +206,52 @@ export function processMajorBandsRankWindow(records, options = {}) {
       return;
     }
 
-    // Rank-bucket rows are request-owned unless they joined another query's
-    // pending asset read, in which case the loader shallow-cloned them. The API
-    // may therefore enrich them in place and avoid retaining a second complete
-    // record object graph while sorting and compacting the result.
+    // Score-search ordering keeps only fields consumed by the comparator. Full
+    // canonical status, match arrays and special-project display fields are
+    // materialized after pagination for the current page only.
     const record = mutateSourceRecords ? source : { ...source };
-    Object.assign(record, {
-      band: canonicalPosition.bandKey,
-      bandKey: canonicalPosition.bandKey,
-      candidateScore,
-      candidateReferenceScore: candidateScore,
-      scoreDelta2026: canonicalPosition.scoreDelta,
-      scoreDelta: canonicalPosition.scoreDelta,
-      rankGap2026: canonicalPosition.rankGap,
-      rankGap: canonicalPosition.rankGap,
-      statusKey: canonicalPosition.statusKey,
-      statusLabel: canonicalPosition.statusLabel,
-      position: canonicalPosition.position,
-      canonicalPosition,
-      bottomLineEligibility: bottomLineEligibility.status,
-      bottomLineEligibilityReason: bottomLineEligibility.reason,
-      matchBadges: match.badges,
-      matchLevel: match.matchLevel || '',
-      matchLabel: match.matchLabel || '',
-      matchReason: match.matchReason || match.reason || '',
-      matchedKeyword: match.matchedKeyword || '',
-      matchedTerms: match.matchedTerms || [],
-      matchScore: match.score,
-      specialProject
-    });
+    if (deferResponseEnrichment) {
+      Object.assign(record, {
+        band: canonicalPosition.bandKey,
+        bandKey: canonicalPosition.bandKey,
+        canonicalPosition: compactCanonicalPositionForRanking(canonicalPosition),
+        bottomLineEligibility: bottomLineEligibility.status,
+        bottomLineEligibilityReason: bottomLineEligibility.reason,
+        specialProject
+      });
+    } else {
+      Object.assign(record, {
+        band: canonicalPosition.bandKey,
+        bandKey: canonicalPosition.bandKey,
+        candidateScore,
+        candidateReferenceScore: candidateScore,
+        scoreDelta2026: canonicalPosition.scoreDelta,
+        scoreDelta: canonicalPosition.scoreDelta,
+        rankGap2026: canonicalPosition.rankGap,
+        rankGap: canonicalPosition.rankGap,
+        statusKey: canonicalPosition.statusKey,
+        statusLabel: canonicalPosition.statusLabel,
+        position: canonicalPosition.position,
+        canonicalPosition,
+        bottomLineEligibility: bottomLineEligibility.status,
+        bottomLineEligibilityReason: bottomLineEligibility.reason,
+        matchBadges: match.badges,
+        matchLevel: match.matchLevel || '',
+        matchLabel: match.matchLabel || '',
+        matchReason: match.matchReason || match.reason || '',
+        matchedKeyword: match.matchedKeyword || '',
+        matchedTerms: match.matchedTerms || [],
+        matchScore: match.score,
+        specialProject
+      });
+    }
 
     if (specialProject.hasSpecialProject) {
       specialProjectShown += 1;
-      Object.assign(record, enrichSpecialProjectRecord(record));
-      record.specialProjectExplicitIntent = specialIntent;
+      if (!deferResponseEnrichment) {
+        Object.assign(record, enrichSpecialProjectRecord(record));
+        record.specialProjectExplicitIntent = specialIntent;
+      }
       addSpecialProjectStat(specialProjectStats, specialProject, canonicalPosition.bandKey, 'shown');
     }
 
@@ -284,6 +309,11 @@ export function processMajorBandsRankWindow(records, options = {}) {
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
       memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
+      rankingCandidateMode: deferResponseEnrichment
+        ? 'lightweight-order-current-page-v3990_0'
+        : 'full-keyword-candidate-v3990_0',
+      deferredResponseEnrichment: deferResponseEnrichment,
+      responseEnrichedCandidates: deferResponseEnrichment ? 0 : normalized,
       requestedBand,
       sourceRecordsMutated: mutateSourceRecords,
       rankUnavailable: false,

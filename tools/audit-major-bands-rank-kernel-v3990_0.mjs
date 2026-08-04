@@ -312,6 +312,15 @@ for (const required of [
   'const ALL_BANDS_LOAD_CONCURRENCY = 1'
 ]) assert.ok(bucketLoaderSource.includes(required), `bounded rank-row loader missing ${required}`);
 
+const queryKernelSource = fs.readFileSync('functions/_lib/major-bands-rank-query-kernel.v3990_0.js', 'utf8');
+for (const required of [
+  "MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'requested-band-lightweight-order-current-page-v3990_0'",
+  'compactCanonicalPositionForRanking',
+  'deferResponseEnrichment = !hasKeywordSearch',
+  "rankingCandidateMode: deferResponseEnrichment",
+  'responseEnrichedCandidates: deferResponseEnrichment ? 0 : normalized'
+]) assert.ok(queryKernelSource.includes(required), `lightweight current-page ranking contract missing ${required}`);
+
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const forbidden of [
   'major-bands-bucket-orchestrator',

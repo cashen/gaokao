@@ -56,7 +56,8 @@ import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/sch
 import {
   normalizePositionPreset,
   rankWindowsForCandidate,
-  rankBandRangeText
+  rankBandRangeText,
+  resolveCanonicalPosition
 } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
@@ -64,6 +65,8 @@ import {
   entitySourceQuery
 } from '../../shared/resources/schools/school-identity-center.js';
 import {
+  detectSpecialProject,
+  enrichSpecialProjectRecord,
   normalizeSpecialProjectMode,
   SPECIAL_PROJECT_COPY
 } from '../_lib/special-project-policy.js';
@@ -157,11 +160,47 @@ function rankLabel(context) {
 }
 
 function finalizeRecordForResponse(record, context = {}) {
-  const canonicalPosition = record.canonicalPosition;
+  const canonicalPosition = resolveCanonicalPosition({
+    candidateScore: context.candidateScore,
+    candidateRank: context.candidateRank?.rankForGap,
+    recordScore: record.score2026 ?? record.score,
+    recordRank: record.rank2026 ?? record.rank,
+    rangePreset: context.rangePreset
+  });
   if (!canonicalPosition || canonicalPosition.bandKey !== record.bandKey) {
     throw new Error(`位次内核位置合同不一致：${record.id || `${record.school}|${record.major}`}`);
   }
-  const item = materializeMajorBandsStaticRecord(record);
+  const specialProject = record.specialProject?.hasSpecialProject != null
+    ? record.specialProject
+    : detectSpecialProject(record);
+  const expanded = {
+    ...record,
+    band: canonicalPosition.bandKey,
+    bandKey: canonicalPosition.bandKey,
+    candidateScore: context.candidateScore,
+    candidateReferenceScore: context.candidateScore,
+    scoreDelta2026: canonicalPosition.scoreDelta,
+    scoreDelta: canonicalPosition.scoreDelta,
+    rankGap2026: canonicalPosition.rankGap,
+    rankGap: canonicalPosition.rankGap,
+    statusKey: canonicalPosition.statusKey,
+    statusLabel: canonicalPosition.statusLabel,
+    position: canonicalPosition.position,
+    canonicalPosition,
+    matchBadges: Array.isArray(record.matchBadges) ? record.matchBadges : [],
+    matchLevel: record.matchLevel || '',
+    matchLabel: record.matchLabel || '',
+    matchReason: record.matchReason || '',
+    matchedKeyword: record.matchedKeyword || '',
+    matchedTerms: Array.isArray(record.matchedTerms) ? record.matchedTerms : [],
+    matchScore: Number(record.matchScore || 0),
+    specialProject
+  };
+  if (specialProject.hasSpecialProject) {
+    Object.assign(expanded, enrichSpecialProjectRecord(expanded));
+    expanded.specialProjectExplicitIntent = Boolean(context.specialIntent);
+  }
+  const item = materializeMajorBandsStaticRecord(expanded);
   return { ...item, ...buildDisplayTags(item) };
 }
 
@@ -482,9 +521,7 @@ export async function onRequest(context) {
       pageOffset,
       pageLimit
     });
-    const executionIdentity = pageOffset === 0
-      ? `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`
-      : `${executionBaseIdentity}|full-snapshot`;
+    const executionIdentity = `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`;
     const execution = await executeMajorBandsQueryOnce(executionIdentity, async () => {
       const candidateRank = rankContextForScore(candidateScore);
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
@@ -508,12 +545,9 @@ export async function onRequest(context) {
       for (const key of BAND_KEYS) {
         const ordered = processed.grouped[key].ordered;
         const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
-        const retainFullBand = requestedBand === key;
-        const firstPageOnly = retainFullBand && pageOffset === 0;
-        const compact = retainFullBand
-          ? (firstPageOnly
-              ? compactRankedPage(ordered, pageOffset, pageLimit)
-              : { ...compactRankedSnapshot(ordered), pagination: null })
+        const retainRequestedBand = requestedBand === key;
+        const compact = retainRequestedBand
+          ? compactRankedPage(ordered, pageOffset, pageLimit)
           : { ordered: [], estimatedBytes: 0, pagination: null };
         const snapshot = majorBandsSnapshotId(ordered, identity);
         const pagination = compact.pagination
@@ -523,8 +557,8 @@ export async function onRequest(context) {
           ordered: compact.ordered,
           count: ordered.length,
           snapshot,
-          retentionScope: retainFullBand
-            ? (firstPageOnly ? 'current-requested-band-page' : 'full-requested-band')
+          retentionScope: retainRequestedBand
+            ? 'current-requested-band-page'
             : 'hidden-band',
           pagination
         };
@@ -541,14 +575,13 @@ export async function onRequest(context) {
         keywordQuery: processed.keywordQuery,
         compactGrouped,
         cacheRetention: {
-          mode: pageOffset === 0
-            ? 'compact-requested-band-current-page'
-            : 'compact-requested-band-snapshot',
+          mode: 'compact-requested-band-current-page',
           recordCount: retainedRecordCount,
           estimatedBytes: retainedEstimatedBytes,
           requestedBand,
-          pageOffset: pageOffset === 0 ? pageOffset : null,
-          pageLimit: pageOffset === 0 ? pageLimit : null
+          pageOffset,
+          pageLimit,
+          retainCompleted: false
         }
       };
     });
@@ -564,6 +597,7 @@ export async function onRequest(context) {
       cacheRetention
     } = execution.value;
 
+    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(filters.majorKeyword);
     const grouped = initGrouped(makeBands(candidateScore, rangePreset));
     for (const key of BAND_KEYS) {
       const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, totalRank);
@@ -608,7 +642,7 @@ export async function onRequest(context) {
         throw new Error(`位次分页快照不一致：${key}`);
       }
       const records = page.records.map(record => compactMajorBandsResponseRecord(
-        finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
+        finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset, specialIntent })
       ));
       grouped[key].records = records;
       grouped[key].count = page.count;
@@ -646,7 +680,6 @@ export async function onRequest(context) {
         explanation: '未知不等于公办普通，填报前需要核对当年招生计划和学费。'
       });
     }
-    const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(filters.majorKeyword);
     if (specialIntent && aggregate.specialProjectShown) {
       searchAdvices.unshift({
         level: 'warn',
@@ -723,6 +756,10 @@ export async function onRequest(context) {
         queryExecutionEstimatedBytes: cacheRetention.estimatedBytes,
         queryExecutionPageOffset: cacheRetention.pageOffset,
         queryExecutionPageLimit: cacheRetention.pageLimit,
+        queryMemoryMode: aggregate.memoryMode,
+        rankingCandidateMode: aggregate.rankingCandidateMode,
+        deferredResponseEnrichment: aggregate.deferredResponseEnrichment,
+        responseEnrichedCandidates: aggregate.responseEnrichedCandidates,
         allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
         allBandsPageCacheReleaseMode: 'release-completed-on-requested-band-switch-v3990_0',
         allBandsPageCacheReleasedBeforeBandQuery,

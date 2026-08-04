@@ -20,7 +20,7 @@ const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';
-const expectedQueryMemoryMode = 'request-band-in-place-v3990_0';
+const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
@@ -138,6 +138,10 @@ function validateResult(result) {
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
+  assert.equal(result.payload?.source?.queryMemoryMode, expectedQueryMemoryMode, `${result.scenario}: query memory deployment`);
+  assert.equal(result.payload?.source?.rankingCandidateMode, 'lightweight-order-current-page-v3990_0', `${result.scenario}: lightweight ranking candidate`);
+  assert.equal(result.payload?.source?.deferredResponseEnrichment, true, `${result.scenario}: response enrichment was not deferred`);
+  assert.equal(Number(result.payload?.source?.responseEnrichedCandidates || 0), 0, `${result.scenario}: full candidates enriched before pagination`);
   assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: all-band page cache deployment`);
   assert.equal(result.payload?.source?.allBandsPageCacheReleaseMode, 'release-completed-on-requested-band-switch-v3990_0', `${result.scenario}: all-band page cache release mode`);
   const allowedCacheStatuses = result.allBands
@@ -177,18 +181,10 @@ function validateResult(result) {
     }
   } else {
     const group = validatePaginationGroup(result, result.band);
-    const firstPage = Number(group.pagination?.offset || 0) === 0;
-    const expectedRetentionMode = firstPage
-      ? 'compact-requested-band-current-page'
-      : 'compact-requested-band-snapshot';
-    assert.equal(result.payload?.source?.queryExecutionRetentionMode, expectedRetentionMode, `${result.scenario}: requested-band retention mode`);
-    if (firstPage) {
-      assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: first page retained full band`);
-      assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: first-page execution offset`);
-      assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: first-page execution limit`);
-    } else {
-      assert.equal(Number(result.payload?.source?.queryExecutionRetainedRecords || 0), Number(group.count || 0), `${result.scenario}: deep page did not retain full compact snapshot`);
-    }
+    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-current-page', `${result.scenario}: requested-band retention mode`);
+    assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: request retained more than current page`);
+    assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), Number(group.pagination?.offset), `${result.scenario}: execution page offset`);
+    assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: execution page limit`);
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: requested-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
