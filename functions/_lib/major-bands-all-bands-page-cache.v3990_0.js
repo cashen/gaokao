@@ -1,10 +1,11 @@
-export const MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0';
+export const MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0';
 
 const MAX_COMPLETED_PAGES = 1;
 const MAX_SERIALIZED_CHARS = 500_000;
 const COMPLETED_TTL_MS = 15_000;
 const inFlight = new Map();
 let completed = null;
+let releasedOnRequestedBandSwitch = 0;
 
 function responseHeaders(response) {
   return Object.fromEntries(response.headers.entries());
@@ -95,6 +96,13 @@ export async function executeMajorBandsAllBandsPageOnce(identity, executor) {
   }
 }
 
+export function releaseMajorBandsAllBandsCompletedPage() {
+  const released = Boolean(completed);
+  completed = null;
+  if (released) releasedOnRequestedBandSwitch += 1;
+  return released;
+}
+
 export function majorBandsAllBandsPageCacheState() {
   readCompleted(completed?.key || '');
   return Object.freeze({
@@ -106,6 +114,9 @@ export function majorBandsAllBandsPageCacheState() {
     maxSerializedChars: MAX_SERIALIZED_CHARS,
     completedTtlMs: COMPLETED_TTL_MS,
     serializedFinalPageOnly: true,
+    releaseOnRequestedBandSwitch: true,
+    releaseMode: 'release-completed-on-requested-band-switch-v3990_0',
+    releasedOnRequestedBandSwitch,
     retainsDecodedBuckets: false,
     retainsFullBandSnapshots: false
   });
@@ -114,4 +125,5 @@ export function majorBandsAllBandsPageCacheState() {
 export function clearMajorBandsAllBandsPageCacheForTest() {
   inFlight.clear();
   completed = null;
+  releasedOnRequestedBandSwitch = 0;
 }

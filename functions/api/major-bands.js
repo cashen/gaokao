@@ -20,7 +20,8 @@ import {
 } from '../_lib/major-bands-query-execution-cache.v3990_0.js';
 import {
   MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
-  executeMajorBandsAllBandsPageOnce
+  executeMajorBandsAllBandsPageOnce,
+  releaseMajorBandsAllBandsCompletedPage
 } from '../_lib/major-bands-all-bands-page-cache.v3990_0.js';
 import {
   MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
@@ -428,6 +429,10 @@ export async function onRequest(context) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
 
+    const allBandsPageCacheReleasedBeforeBandQuery = requestedBand
+      ? releaseMajorBandsAllBandsCompletedPage()
+      : false;
+
     if (!requestedBand) {
       return executeAllBandsSequentially(context, url, {
         candidateScore,
@@ -718,6 +723,9 @@ export async function onRequest(context) {
         queryExecutionEstimatedBytes: cacheRetention.estimatedBytes,
         queryExecutionPageOffset: cacheRetention.pageOffset,
         queryExecutionPageLimit: cacheRetention.pageLimit,
+        allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+        allBandsPageCacheReleaseMode: 'release-completed-on-requested-band-switch-v3990_0',
+        allBandsPageCacheReleasedBeforeBandQuery,
         bucketLoaderVersion: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         bucketCacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
         resultOrderVersion: MAJOR_BANDS_RESULT_ORDER_VERSION,

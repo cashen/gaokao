@@ -13,7 +13,8 @@ import {
   MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
   clearMajorBandsAllBandsPageCacheForTest,
   executeMajorBandsAllBandsPageOnce,
-  majorBandsAllBandsPageCacheState
+  majorBandsAllBandsPageCacheState,
+  releaseMajorBandsAllBandsCompletedPage
 } from '../functions/_lib/major-bands-all-bands-page-cache.v3990_0.js';
 import {
   MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
@@ -67,8 +68,15 @@ assert.equal(allBandsPageState.maxCompletedPages, 1);
 assert.equal(allBandsPageState.maxSerializedChars, 500_000);
 assert.equal(allBandsPageState.completedTtlMs, 15_000);
 assert.equal(allBandsPageState.serializedFinalPageOnly, true);
+assert.equal(allBandsPageState.releaseOnRequestedBandSwitch, true);
+assert.equal(allBandsPageState.releaseMode, 'release-completed-on-requested-band-switch-v3990_0');
 assert.equal(allBandsPageState.retainsDecodedBuckets, false);
 assert.equal(allBandsPageState.retainsFullBandSnapshots, false);
+assert.equal(releaseMajorBandsAllBandsCompletedPage(), true, 'completed all-band page was not released');
+const releasedAllBandsPageState = majorBandsAllBandsPageCacheState();
+assert.equal(releasedAllBandsPageState.completed, 0);
+assert.equal(releasedAllBandsPageState.releasedOnRequestedBandSwitch, 1);
+assert.equal(releaseMajorBandsAllBandsCompletedPage(), false, 'empty all-band page release should be false');
 clearMajorBandsAllBandsPageCacheForTest();
 
 clearMajorBandsQueryExecutionCacheForTest();
@@ -210,6 +218,8 @@ for (const required of [
   'queryExecutionPageLimit: input.pageLimit',
   'allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE',
   'allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION',
+  "allBandsPageCacheReleaseMode: 'release-completed-on-requested-band-switch-v3990_0'",
+  'releaseMajorBandsAllBandsCompletedPage()',
   'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
   'rankRowsSkipped: loadedStats.rankRowsSkipped',
 
@@ -232,11 +242,14 @@ for (const forbidden of [
 
 const allBandsPageCacheSource = fs.readFileSync('functions/_lib/major-bands-all-bands-page-cache.v3990_0.js', 'utf8');
 for (const required of [
-  "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'",
+  "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'",
   'MAX_COMPLETED_PAGES = 1',
   'MAX_SERIALIZED_CHARS = 500_000',
   'COMPLETED_TTL_MS = 15_000',
   'serializedFinalPageOnly: true',
+  'releaseOnRequestedBandSwitch: true',
+  "releaseMode: 'release-completed-on-requested-band-switch-v3990_0'",
+  'releaseMajorBandsAllBandsCompletedPage',
   'retainsDecodedBuckets: false',
   'retainsFullBandSnapshots: false'
 ]) assert.ok(allBandsPageCacheSource.includes(required), `bounded final all-band page cache missing ${required}`);
@@ -259,7 +272,7 @@ for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'execution
 const concurrencyVerifierSource = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
 for (const required of [
   `expectedAllBandsExecutionMode = '${ALL_BANDS_EXECUTION_MODE}'`,
-  "expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0'",
+  "expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'",
   "['sequential-band-orchestration']",
   'verifyAllBandPageEquivalence',
   'all-band/${band}: count differs from requested-band page',

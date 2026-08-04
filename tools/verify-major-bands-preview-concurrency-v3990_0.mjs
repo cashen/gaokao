@@ -15,7 +15,7 @@ const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-single-heavy-v3990_0';
-const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0';
+const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0';
 const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
@@ -138,6 +138,8 @@ function validateResult(result) {
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
+  assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: all-band page cache deployment`);
+  assert.equal(result.payload?.source?.allBandsPageCacheReleaseMode, 'release-completed-on-requested-band-switch-v3990_0', `${result.scenario}: all-band page cache release mode`);
   const allowedCacheStatuses = result.allBands
     ? ['sequential-band-orchestration']
     : ['miss', 'singleflight-hit', 'serialized-compact-hit'];
