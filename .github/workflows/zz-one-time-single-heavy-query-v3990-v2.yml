@@ -1,0 +1,180 @@
+name: One-time single-heavy rank execution v3990 v2
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply complete single-heavy execution contract
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          old = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0'
+          new = 'major-bands-query-execution-cache-single-heavy-v3990_0'
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+
+          ordinary_replacements = [
+              (old, new),
+              ('MAX_CONCURRENT_EXECUTIONS = 2', 'MAX_CONCURRENT_EXECUTIONS = 1'),
+              ('maxConcurrentExecutions: 2', 'maxConcurrentExecutions: 1'),
+              ('maxConcurrentExecutions, 2', 'maxConcurrentExecutions, 1'),
+              ('peakActiveExecutions, 2', 'peakActiveExecutions, 1'),
+              ('peakDistinct, 2', 'peakDistinct, 1'),
+              ('peakQueuedExecutions >= 3', 'peakQueuedExecutions >= 4'),
+              ("distinct.filter(result => result.waitedForExecutionSlot).length, 3", "distinct.filter(result => result.waitedForExecutionSlot).length, 4"),
+              ('two active executions', 'one active execution'),
+              ('three distinct queries to wait for bounded execution slots', 'four distinct queries to wait for the single heavy execution slot')
+          ]
+
+          changed = []
+          for name in filter(None, tracked):
+              if name.startswith('.github/workflows/'):
+                  continue
+              path = Path(name)
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, IsADirectoryError):
+                  continue
+              updated = text
+              for before, after in ordinary_replacements:
+                  updated = updated.replace(before, after)
+              if updated != text:
+                  path.write_text(updated, encoding='utf-8')
+                  changed.append(name)
+
+          verifier = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          text = verifier.read_text(encoding='utf-8')
+          loop_anchor = """for (const mode of concurrencyModes) {
+            for (const level of levels) {
+              const sampleCount = Math.max(20, level * waves);
+              const results = await runConcurrent(level, sampleCount, mode);
+          """
+          loop_replacement = """for (const mode of concurrencyModes) {
+            for (const level of levels) {
+              const sampleCount = Math.max(20, level * waves);
+              console.log(JSON.stringify({ phase: 'concurrency-start', mode, level, sampleCount }));
+              const results = await runConcurrent(level, sampleCount, mode);
+              const failedResults = results.filter(result => result.status !== 200 || result.cloudflare1102);
+              if (failedResults.length) {
+                console.error(JSON.stringify({
+                  phase: 'concurrency-failure',
+                  mode,
+                  level,
+                  failures: failedResults.map(result => ({
+                    scenario: result.scenario,
+                    status: result.status,
+                    elapsedMs: result.elapsedMs,
+                    cloudflare1102: result.cloudflare1102,
+                    error: result.error || result.bodyPrefix || ''
+                  }))
+                }, null, 2));
+              }
+          """
+          if loop_anchor in text:
+              text = text.replace(loop_anchor, loop_replacement, 1)
+          elif "phase: 'concurrency-start'" not in text:
+              raise SystemExit('verifier concurrency loop anchor not found')
+          verifier.write_text(text, encoding='utf-8')
+
+          patch_dir = Path('tools/.workflow-contract-patches-v3990')
+          patch_dir.mkdir(parents=True, exist_ok=True)
+          workflow_names = [
+              'verify-major-bands-bounded-fanout-v3972_5.yml',
+              'verify-production-api-health-v3971.yml',
+              'verify-production-resource-graph-v3972_6.yml'
+          ]
+          for name in workflow_names:
+              source = Path('.github/workflows') / name
+              workflow = source.read_text(encoding='utf-8')
+              for before, after in ordinary_replacements:
+                  workflow = workflow.replace(before, after)
+              (patch_dir / name).write_text(workflow, encoding='utf-8')
+
+          forbidden = [old, 'MAX_CONCURRENT_EXECUTIONS = 2', 'maxConcurrentExecutions: 2', 'maxConcurrentExecutions, 2', 'peakActiveExecutions, 2', 'peakDistinct, 2']
+          leftovers = []
+          for name in filter(None, tracked):
+              if name.startswith('.github/workflows/'):
+                  continue
+              path = Path(name)
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, IsADirectoryError):
+                  continue
+              hits = [token for token in forbidden if token in text]
+              if hits:
+                  leftovers.append((name, hits))
+          if leftovers:
+              raise SystemExit(f'old single-heavy contract remains outside staged workflows: {leftovers}')
+          for patch in patch_dir.iterdir():
+              text = patch.read_text(encoding='utf-8')
+              hits = [token for token in forbidden if token in text]
+              if hits:
+                  raise SystemExit(f'old single-heavy contract remains in {patch}: {hits}')
+          print('changed ordinary files:', changed)
+          PY
+
+          node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          for file in tools/.workflow-contract-patches-v3990/*.yml; do
+            ruby -e "require 'yaml'; YAML.parse_file(ARGV[0])" "$file"
+          done
+
+      - name: Verify complete local concurrency with one heavy slot
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8795 --compatibility-date=2026-07-01 >/tmp/v3990-single-heavy-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 60); do
+            body="$(curl -fsS 'http://127.0.0.1:8795/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
+            if grep -q 'major-bands-query-execution-cache-single-heavy-v3990_0' <<<"$body"; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" -eq 1
+          TARGET_BASE='http://127.0.0.1:8795' \
+          CONCURRENCY_LEVELS='1,5,10,25,50' \
+          CONCURRENCY_WAVES='2' \
+          COLD_HARD_LIMIT_MS='15000' \
+          P95_LIMIT_MS='8000' \
+          P99_LIMIT_MS='15000' \
+          HARD_LIMIT_MS='25000' \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE='/tmp/v3990-single-heavy-concurrency.json' \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+
+      - name: Commit ordinary files and staged workflow blobs
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/major-bands-query-execution-cache.v3990_0.js \
+            tools/audit-major-bands-query-execution-cache-v3990_0.mjs \
+            tools/audit-production-resource-verification-v3990_0.mjs \
+            tools/verify-major-bands-preview-concurrency-v3990_0.mjs \
+            tools/.workflow-contract-patches-v3990
+          git diff --cached --check
+          git commit -m 'perf(rank): serialize heavy query execution per isolate'
+          git push origin HEAD:agent/rank-kernel-v3990_0
