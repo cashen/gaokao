@@ -6,6 +6,7 @@ export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-ca
 const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
 const MAX_RETAINED_QUERY_BUCKETS = 12;
+const COMPLETED_BUCKET_RETENTION_ENABLED = false;
 const MAX_LOAD_CONCURRENCY = 4;
 const bucketCache = new Map();
 let accessClock = 0;
@@ -22,18 +23,6 @@ function completedCacheBytes() {
   return bytes;
 }
 
-function evictCompletedBuckets() {
-  while (bucketCache.size > MAX_CACHED_BUCKETS || completedCacheBytes() > MAX_CACHED_BYTES) {
-    let victim = null;
-    for (const [file, entry] of bucketCache) {
-      if (entry.pending) continue;
-      if (!victim || entry.lastAccess < victim.entry.lastAccess) victim = { file, entry };
-    }
-    if (!victim) return;
-    bucketCache.delete(victim.file);
-  }
-}
-
 function assertLoadedBucket(indexBucket, loaded) {
   if (loaded.bucket.file !== indexBucket.file) throw new Error(`位次桶路径不一致：${indexBucket.file}`);
   if (Number(loaded.rowCount) !== Number(indexBucket.recordCount)) {
@@ -44,14 +33,13 @@ function assertLoadedBucket(indexBucket, loaded) {
   }
 }
 
-async function readBucket(context, indexBucket, options = {}) {
+async function readBucket(context, indexBucket) {
   const existing = bucketCache.get(indexBucket.file);
   if (existing) {
     touch(existing);
     return { loaded: await existing.promise, cacheStatus: 'hit' };
   }
 
-  const retainCompleted = options.retainCompleted !== false;
   const entry = { pending: true, bytes: 0, lastAccess: 0, promise: null };
   touch(entry);
   entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
@@ -61,12 +49,12 @@ async function readBucket(context, indexBucket, options = {}) {
     entry.pending = false;
     entry.bytes = Number(loaded.bytes || 0);
     touch(entry);
-    if (retainCompleted) evictCompletedBuckets();
-    else bucketCache.delete(indexBucket.file);
     return loaded;
-  }).catch(error => {
+  }).finally(() => {
+    // Query-level singleflight and short-lived completed query retention now
+    // own reuse. Decoded buckets remain shared only while their asset read is
+    // pending, then are released before another rank window is constructed.
     bucketCache.delete(indexBucket.file);
-    throw error;
   });
   bucketCache.set(indexBucket.file, entry);
   return { loaded: await entry.promise, cacheStatus: 'miss' };
@@ -92,7 +80,6 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
     };
   }
 
-  const retainCompleted = buckets.length <= MAX_RETAINED_QUERY_BUCKETS;
   const results = new Array(buckets.length);
   let cursor = 0;
   let active = 0;
@@ -105,7 +92,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       active += 1;
       peakConcurrency = Math.max(peakConcurrency, active);
       try {
-        results[index] = await readBucket(context, buckets[index], { retainCompleted });
+        results[index] = await readBucket(context, buckets[index]);
       } finally {
         active -= 1;
       }
@@ -138,7 +125,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       staticIndexBytes,
       cacheHits,
       cacheMisses,
-      cacheRetention: retainCompleted ? 'bounded-completed' : 'singleflight-only',
+      cacheRetention: 'singleflight-only',
       peakConcurrency,
       maxConcurrency: MAX_LOAD_CONCURRENCY
     }
@@ -150,9 +137,10 @@ export function majorBandsRankBucketCacheState() {
     version: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
     size: bucketCache.size,
     completedBytes: completedCacheBytes(),
-    maxSize: MAX_CACHED_BUCKETS,
-    maxBytes: MAX_CACHED_BYTES,
-    maxRetainedQueryBuckets: MAX_RETAINED_QUERY_BUCKETS,
+    completedRetentionEnabled: COMPLETED_BUCKET_RETENTION_ENABLED,
+    maxSize: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_CACHED_BUCKETS : 0,
+    maxBytes: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_CACHED_BYTES : 0,
+    maxRetainedQueryBuckets: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_RETAINED_QUERY_BUCKETS : 0,
     files: Object.freeze([...bucketCache.keys()])
   });
 }
