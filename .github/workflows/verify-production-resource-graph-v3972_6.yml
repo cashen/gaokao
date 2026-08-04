@@ -159,10 +159,10 @@ jobs:
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
-              && grep -q '"executionGateVersion":"major-bands-query-execution-gate-v3990_0"' <<<"$body" \
-              && grep -q '"maxConcurrentExecutions":2' <<<"$body" \
-              && grep -q '"crossRequestSemaphore":true' <<<"$body" \
-              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-request-band-scope-v3990_0"' <<<"$body"; then
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-request-timer-v3990_0"' <<<"$body" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-request-band-scope-v3990_0"' <<<"$body" \
+              && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
+              && grep -q '"bucketWorkerCount":0' <<<"$body"; then
               ready=1
               break
             fi
