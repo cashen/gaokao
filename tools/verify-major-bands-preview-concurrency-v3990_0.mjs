@@ -15,6 +15,7 @@ const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-v3990_0';
+const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -122,12 +123,14 @@ function validatePaginationGroup(result, band) {
 }
 
 function validateResult(result) {
-  assert.equal(result.status, 200, `${result.scenario}: HTTP ${result.status} ${result.error || result.bodyPrefix || ''}`);
+  const responseDetail = result.error || result.payload?.message || result.bodyPrefix || '';
+  assert.equal(result.status, 200, `${result.scenario}: HTTP ${result.status} ${responseDetail}`);
   assert.equal(result.cloudflare1102, false, `${result.scenario}: Cloudflare 1102`);
   assert.ok(result.elapsedMs <= hardLimitMs, `${result.scenario}: hard latency ${result.elapsedMs.toFixed(1)}ms`);
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
+  assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: request-band bucket loader`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
@@ -146,10 +149,15 @@ function validateResult(result) {
   } else {
     const group = validatePaginationGroup(result, result.band);
     assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-snapshot', `${result.scenario}: requested-band retention mode`);
+    if (result.scenario === 'safe-449-near') {
+      assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: requested band must read exactly six buckets');
+      assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: scoped static bytes drift');
+    }
     if (result.empty) {
       assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');
       assert.equal(Number(result.payload.counts?.total || 0), 0);
       assert.equal(Number(group.count || 0), 0);
+      assert.equal(Number(result.payload?.source?.chunksRead), 0, `${result.scenario}: high boundary read buckets`);
     }
   }
 }
@@ -257,6 +265,7 @@ const allConcurrencyEvidence = concurrencyModes.flatMap(mode => concurrency[mode
 const evidence = {
   version: 'major-bands-real-concurrency-v3990_0',
   queryExecutionCacheVersion: expectedQueryCacheVersion,
+  bucketLoaderVersion: expectedBucketLoaderVersion,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
   allBandRetentionContract: 'compact-current-page-per-band',
   base,
