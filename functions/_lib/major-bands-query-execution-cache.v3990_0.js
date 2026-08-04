@@ -67,10 +67,14 @@ function completedRetentionPolicy(value) {
   return 'disabled';
 }
 
+function completedRetentionRequested(value) {
+  return completedRetentionPolicy(value) !== 'disabled';
+}
+
 function shouldRetainCompleted(key, value, now = Date.now()) {
+  if (!completedRetentionRequested(value)) return false;
   const policy = completedRetentionPolicy(value);
   if (policy === 'immediate-opt-in') return true;
-  if (policy !== 'second-use') return false;
   const seenBefore = Number(recentIdentities.get(key) || 0) > now;
   recentIdentities.delete(key);
   recentIdentities.set(key, now + COMPLETED_TTL_MS);
