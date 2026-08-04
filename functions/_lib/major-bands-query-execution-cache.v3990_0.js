@@ -1,13 +1,19 @@
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
 const MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000;
 const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
+const MAX_CONCURRENT_EXECUTIONS = 2;
 const inFlight = new Map();
 const completed = new Map();
+const executionWaiters = [];
+let activeExecutions = 0;
+let peakActiveExecutions = 0;
+let peakQueuedExecutions = 0;
 let accessClock = 0;
 
 function touch(entry) {
@@ -68,6 +74,27 @@ function readCompletedValue(key, entry) {
   }
 }
 
+function acquireExecutionSlot() {
+  if (activeExecutions < MAX_CONCURRENT_EXECUTIONS) {
+    activeExecutions += 1;
+    peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
+    return Promise.resolve(false);
+  }
+  return new Promise(resolve => {
+    executionWaiters.push(() => resolve(true));
+    peakQueuedExecutions = Math.max(peakQueuedExecutions, executionWaiters.length);
+  });
+}
+
+function releaseExecutionSlot() {
+  activeExecutions = Math.max(0, activeExecutions - 1);
+  const next = executionWaiters.shift();
+  if (!next) return;
+  activeExecutions += 1;
+  peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
+  next();
+}
+
 export async function executeMajorBandsQueryOnce(identity, executor) {
   const key = String(identity || '');
   if (!key) throw new Error('major-bands query execution identity required');
@@ -81,7 +108,8 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
       return {
         value,
         cacheStatus: 'serialized-compact-hit',
-        joinedInFlight: false
+        joinedInFlight: false,
+        waitedForExecutionSlot: false
       };
     }
   }
@@ -91,7 +119,8 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     return {
       value: await pending,
       cacheStatus: 'singleflight-hit',
-      joinedInFlight: true
+      joinedInFlight: true,
+      waitedForExecutionSlot: false
     };
   }
 
@@ -99,41 +128,48 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
   // window. Only a bounded JSON string survives completion; decoded buckets,
   // ranking traces and compact candidate object graphs remain request-scoped.
   completed.clear();
+  let waitedForExecutionSlot = false;
   let promise;
-  promise = Promise.resolve().then(async () => {
-    const value = await executor();
-    const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
-    // Check declared record/byte budgets before JSON.stringify. An over-budget
-    // all-band result must not create a second full representation merely to be
-    // rejected from completed retention.
-    if (
-      isolatedExecution
-      && COMPLETED_QUERY_RETENTION_ENABLED
-      && declaredRetentionWithinBudget(value)
-    ) {
-      const retention = serializeRetainedValue(value);
-      if (serializedRetentionWithinBudget(retention.serializedChars)) {
-        const stats = retentionStats(value);
-        completed.clear();
-        const entry = {
-          serialized: retention.serialized,
-          recordCount: stats.recordCount,
-          estimatedBytes: retention.serializedChars,
-          expiresAt: Date.now() + COMPLETED_TTL_MS,
-          lastAccess: 0
-        };
-        touch(entry);
-        completed.set(key, entry);
+  promise = (async () => {
+    waitedForExecutionSlot = await acquireExecutionSlot();
+    try {
+      const value = await executor();
+      const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
+      // Check declared record/byte budgets before JSON.stringify. An over-budget
+      // all-band result must not create a second full representation merely to be
+      // rejected from completed retention.
+      if (
+        isolatedExecution
+        && COMPLETED_QUERY_RETENTION_ENABLED
+        && declaredRetentionWithinBudget(value)
+      ) {
+        const retention = serializeRetainedValue(value);
+        if (serializedRetentionWithinBudget(retention.serializedChars)) {
+          const stats = retentionStats(value);
+          completed.clear();
+          const entry = {
+            serialized: retention.serialized,
+            recordCount: stats.recordCount,
+            estimatedBytes: retention.serializedChars,
+            expiresAt: Date.now() + COMPLETED_TTL_MS,
+            lastAccess: 0
+          };
+          touch(entry);
+          completed.set(key, entry);
+        }
       }
+      return value;
+    } finally {
+      releaseExecutionSlot();
     }
-    return value;
-  });
+  })();
   inFlight.set(key, promise);
   try {
     return {
       value: await promise,
       cacheStatus: 'miss',
-      joinedInFlight: false
+      joinedInFlight: false,
+      waitedForExecutionSlot
     };
   } finally {
     if (inFlight.get(key) === promise) inFlight.delete(key);
@@ -145,7 +181,13 @@ export function majorBandsQueryExecutionCacheState() {
   return Object.freeze({
     version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
     mode: MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
+    executionGateVersion: MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
     inFlight: inFlight.size,
+    activeExecutions,
+    queuedExecutions: executionWaiters.length,
+    peakActiveExecutions,
+    peakQueuedExecutions,
+    maxConcurrentExecutions: MAX_CONCURRENT_EXECUTIONS,
     completed: completed.size,
     completedRecords: completedRecordCount(),
     completedEstimatedBytes: completedEstimatedBytes(),
@@ -156,7 +198,8 @@ export function majorBandsQueryExecutionCacheState() {
     completedTtlMs: COMPLETED_TTL_MS,
     serializedSnapshotOnly: true,
     preflightBudgetBeforeSerialization: true,
-    crossRequestSemaphore: false,
+    crossRequestSemaphore: true,
+    boundedDistinctExecutions: true,
     keys: Object.freeze([...completed.keys()])
   });
 }
@@ -164,5 +207,9 @@ export function majorBandsQueryExecutionCacheState() {
 export function clearMajorBandsQueryExecutionCacheForTest() {
   inFlight.clear();
   completed.clear();
+  executionWaiters.splice(0, executionWaiters.length);
+  activeExecutions = 0;
+  peakActiveExecutions = 0;
+  peakQueuedExecutions = 0;
   accessClock = 0;
 }
