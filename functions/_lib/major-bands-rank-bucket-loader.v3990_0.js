@@ -131,6 +131,30 @@ function cloneLoadedForSharedQuery(loaded) {
   };
 }
 
+function attachRecordExecutionContext(records, scope) {
+  Object.defineProperties(records, {
+    majorBandsRequestedBand: {
+      value: scope.requestedBand || '',
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsMutateSourceRecords: {
+      value: true,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsRecordOwnership: {
+      value: MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    }
+  });
+  return records;
+}
+
 async function readBucket(context, indexBucket) {
   const existing = bucketCache.get(indexBucket.file);
   if (existing) {
@@ -170,7 +194,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
     : MAX_LOAD_CONCURRENCY;
   if (!buckets.length) {
     return {
-      records: [],
+      records: attachRecordExecutionContext([], scope),
       stats: {
         version: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         cacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
@@ -231,6 +255,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       cacheMisses += 1;
     }
   }
+  attachRecordExecutionContext(records, scope);
 
   return {
     records,
