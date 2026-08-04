@@ -7,9 +7,10 @@ import {
   executeMajorBandsQueryOnce,
   majorBandsQueryExecutionCacheState
 } from '../functions/_lib/major-bands-query-execution-cache.v3990_0.js';
-import { normalizeScoreBand } from '../ln-rank/js/domain/score-band-contract.v3963_1.js';
-import { state as clientState } from '../ln-rank/js/state/app-state.v3963_1.js?v=3963_1';
-import { fetchMajorBands as fetchClientMajorBands } from '../ln-rank/js/feature/major-pool/bands-api.v3963_0.js?v=3963_0';
+import {
+  MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
+  createMajorBandsPaginationSnapshotGuard
+} from '../ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -138,90 +139,73 @@ for (const forbidden of [
   assert.ok(!apiSource.includes(forbidden), `unbounded all-band retention path returned: ${forbidden}`);
 }
 
-const normalizedSnapshot = normalizeScoreBand({
-  key: 'near',
-  records: [{ id: 'first' }],
-  count: 2,
-  pagination: {
-    offset: 0,
-    limit: 1,
-    returned: 1,
-    hasMore: true,
-    nextOffset: 1,
-    order: 'major-bands-result-order-v3990_0',
-    snapshot: 'v3990_0-2-client-snapshot'
-  }
-}, { key: 'near', candidateScore: 579 });
-assert.equal(normalizedSnapshot.pagination.snapshot, 'v3990_0-2-client-snapshot', 'client normalizer dropped pagination snapshot');
-
-const bandsApiSource = fs.readFileSync('ln-rank/js/feature/major-pool/bands-api.v3963_0.js', 'utf8');
-for (const required of [
-  "params.set('snapshot', expectedSnapshot)",
-  'expectedBandSnapshot(page)',
-  'assertBandSnapshot(payload, band, expectedSnapshot)',
-  "error.code = 'pagination_snapshot_mismatch'",
-  'actualSnapshot === expectedSnapshot'
-]) {
-  assert.ok(bandsApiSource.includes(required), `missing client pagination snapshot contract: ${required}`);
-}
-
-const originalFetch = globalThis.fetch;
-const originalClientBands = clientState.bands.data;
-let requestedClientUrl = '';
-let clientPayload = {
+const snapshotGuard = createMajorBandsPaginationSnapshotGuard({ maxEntries: 12 });
+const initialUrl = new URL('https://preview.invalid/api/major-bands?candidateScore=579&rangePreset=standard&region=all&limit=40&offset=0');
+const initialRewrite = snapshotGuard.rewrite(initialUrl);
+assert.equal(initialRewrite.applies, true);
+assert.equal(initialRewrite.expectedSnapshot, '');
+assert.equal(initialRewrite.url.searchParams.has('snapshot'), false, 'initial page sent stale snapshot');
+const initialInspection = snapshotGuard.inspect(initialRewrite.url, {
   ok: true,
-  bands: { near: { pagination: { snapshot: 'client-snapshot-a' } } }
-};
-globalThis.fetch = async input => {
-  requestedClientUrl = input instanceof Request ? input.url : String(input || '');
-  return new Response(JSON.stringify(clientPayload), {
-    status: 200,
-    headers: { 'content-type': 'application/json; charset=utf-8' }
-  });
-};
-try {
-  clientState.bands.data = null;
-  await fetchClientMajorBands({
-    candidateScore: 579,
-    rangePreset: 'standard',
-    filters: {},
-    page: { limit: 40 }
-  });
-  assert.ok(!requestedClientUrl.includes('snapshot='), 'initial client request unexpectedly sent a stale snapshot');
+  bands: {
+    upper: { pagination: { snapshot: 'upper-snapshot-a' } },
+    near: { pagination: { snapshot: 'near-snapshot-a' } },
+    steady: { pagination: { snapshot: 'steady-snapshot-a' } }
+  }
+});
+assert.equal(initialInspection.ok, true);
+assert.equal(snapshotGuard.getState().size, 3, 'initial response did not retain all three compact snapshots');
 
-  clientState.bands.data = {
-    bands: {
-      near: { pagination: { snapshot: 'client-snapshot-a' } }
-    }
-  };
-  await fetchClientMajorBands({
-    candidateScore: 579,
-    rangePreset: 'standard',
-    filters: {},
-    page: { band: 'near', offset: 40, limit: 40 }
-  });
-  assert.ok(requestedClientUrl.includes('snapshot=client-snapshot-a'), 'next-page client request omitted expected snapshot');
+const nextUrl = new URL('https://preview.invalid/api/major-bands?candidateScore=579&rangePreset=standard&region=all&band=near&limit=40&offset=40');
+const nextRewrite = snapshotGuard.rewrite(nextUrl);
+assert.equal(nextRewrite.expectedSnapshot, 'near-snapshot-a');
+assert.equal(nextRewrite.url.searchParams.get('snapshot'), 'near-snapshot-a', 'next page omitted expected snapshot');
+const matchingInspection = snapshotGuard.inspect(nextRewrite.url, {
+  ok: true,
+  bands: { near: { pagination: { snapshot: 'near-snapshot-a' } } }
+});
+assert.equal(matchingInspection.ok, true, 'matching pagination snapshot was rejected');
+const mismatchingInspection = snapshotGuard.inspect(nextRewrite.url, {
+  ok: true,
+  bands: { near: { pagination: { snapshot: 'near-snapshot-b' } } }
+});
+assert.equal(mismatchingInspection.ok, false, 'different pagination snapshot was accepted');
+assert.equal(mismatchingInspection.code, 'pagination_snapshot_mismatch');
+assert.equal(mismatchingInspection.expectedSnapshot, 'near-snapshot-a');
+assert.equal(mismatchingInspection.actualSnapshot, 'near-snapshot-b');
 
-  clientPayload = {
+for (let index = 0; index < 20; index += 1) {
+  const url = new URL(`https://preview.invalid/api/major-bands?candidateScore=${400 + index}&rangePreset=standard&region=all`);
+  snapshotGuard.inspect(url, {
     ok: true,
-    bands: { near: { pagination: { snapshot: 'client-snapshot-b' } } }
-  };
-  await assert.rejects(
-    fetchClientMajorBands({
-      candidateScore: 579,
-      rangePreset: 'standard',
-      filters: {},
-      page: { band: 'near', offset: 80, limit: 40 }
-    }),
-    error => error?.code === 'pagination_snapshot_mismatch'
-      && error?.expectedSnapshot === 'client-snapshot-a'
-      && error?.actualSnapshot === 'client-snapshot-b',
-    'client accepted a different pagination snapshot before merge'
-  );
-} finally {
-  globalThis.fetch = originalFetch;
-  clientState.bands.data = originalClientBands;
+    bands: {
+      upper: { pagination: { snapshot: `upper-${index}` } },
+      near: { pagination: { snapshot: `near-${index}` } },
+      steady: { pagination: { snapshot: `steady-${index}` } }
+    }
+  });
 }
+assert.equal(snapshotGuard.getState().bounded, true);
+assert.ok(snapshotGuard.getState().size <= 12, 'browser snapshot guard exceeded bounded retention');
+assert.equal(snapshotGuard.getState().version, MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION);
+
+const appRuntimeSource = fs.readFileSync('ln-rank/js/app-runtime.v3990_0.js', 'utf8');
+for (const required of [
+  'pagination-snapshot-guard.v3990_0.js?v=3990_0',
+  'majorBandsPaginationSnapshotGuard.rewrite(url)',
+  'majorBandsPaginationSnapshotGuard.inspect(snapshotContext.url, payload)',
+  '__GAOKAO_MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD__',
+  "status: 409",
+  "code: inspection.code"
+]) {
+  assert.ok(appRuntimeSource.includes(required), `missing v3990 browser snapshot ownership: ${required}`);
+}
+
+const stableBandsApiSource = fs.readFileSync('ln-rank/js/feature/major-pool/bands-api.v3963_0.js', 'utf8');
+const stableScoreContractSource = fs.readFileSync('ln-rank/js/domain/score-band-contract.v3963_1.js', 'utf8');
+assert.ok(!stableBandsApiSource.includes('pagination_snapshot_mismatch'), 'immutable v3963 bands API was modified');
+assert.ok(!stableBandsApiSource.includes("params.set('snapshot'"), 'immutable v3963 bands API owns v3990 snapshot behavior');
+assert.ok(!stableScoreContractSource.includes("snapshot: String(source.snapshot"), 'immutable v3963 score contract was modified');
 
 console.log(JSON.stringify({
   ok: true,
@@ -239,7 +223,9 @@ console.log(JSON.stringify({
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
-  clientPaginationSnapshot: normalizedSnapshot.pagination.snapshot,
-  clientSnapshotMismatchRejected: true,
+  browserSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
+  browserSnapshotMismatchRejected: true,
+  browserSnapshotEntries: snapshotGuard.getState().size,
+  immutableV3963Restored: true,
   crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
