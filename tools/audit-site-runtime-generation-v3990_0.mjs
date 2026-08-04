@@ -9,6 +9,7 @@ const strip = value => String(value || '').split('?')[0].replace(/^\//, '');
 const exists = value => fs.existsSync(path.resolve(strip(value)));
 const pageRouteKeys = new Set(['homePage', 'selectionPage', 'familyPlanPage']);
 const stablePageRouteKeys = new Set(['tongxuePage', 'localStrengthPage', 'all211Page']);
+const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 
 assert.equal(SITE_RUNTIME_CONTRACT.version, 'site-runtime-coherence-v3990_0');
 assert.equal(SITE_RUNTIME_CONTRACT.generation, 'v3990_0');
@@ -18,6 +19,17 @@ assert.equal(SITE_RUNTIME_CONTRACT.generation, CURRENT_RELEASE.siteRuntimeGenera
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.version, 'runtime-cache-coherence-v3990_0');
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.assetVersion, SITE_RUNTIME_CONTRACT.generation);
 assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.siteRuntimeContractVersion, SITE_RUNTIME_CONTRACT.version);
+assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes(PAGINATION_SNAPSHOT_GUARD_PATH));
+assert.equal(
+  LN_RANK_RUNTIME_CACHE_CONTRACT.owners.majorBandsPaginationSnapshotGuard,
+  SITE_RUNTIME_CONTRACT.owners.selectionRuntime
+);
+assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.policies.majorBandsBrowserSnapshotGuardBounded);
+assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.policies.majorBandsBrowserSnapshotMismatchRejectedBeforeMerge);
+for (const modulePath of LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules) {
+  assert.ok(exists(modulePath), `runtime cache contract references missing current module: ${modulePath}`);
+  assert.ok(modulePath.includes('3990_0'), `runtime cache current module has stale generation: ${modulePath}`);
+}
 
 const currentKeys = Object.entries(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications)
   .filter(([, value]) => value === 'current-generation')
@@ -143,10 +155,12 @@ console.log(JSON.stringify({
   release: CURRENT_RELEASE.display,
   generation: SITE_RUNTIME_CONTRACT.generation,
   currentEntrypoints: currentKeys.length,
+  currentCacheModules: LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.length,
   stableActiveEntrypoints: stableKeys.length,
   stablePageResources: Object.keys(SITE_RUNTIME_CONTRACT.stablePageEntrypoints).length,
   physicalEventOwnership: 'single-family',
   preActivationDomMutation: 'forbidden',
   paginationSnapshotGuard: 'major-bands-pagination-snapshot-guard-v3990_0',
-  paginationSnapshotOwner: 'selectionRuntime'
+  paginationSnapshotOwner: 'selectionRuntime',
+  paginationSnapshotCachePolicy: 'bounded-and-reject-before-merge'
 }, null, 2));
