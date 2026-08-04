@@ -4,7 +4,9 @@ import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js'
 import { PRODUCTION_RESOURCE_VERIFICATION_CONTRACT as CONTRACT } from '../shared/governance/production-resource-verification-contract.v3990_0.js';
 
 const manifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v3990_0.json', 'utf8'));
-const exists = value => fs.existsSync(String(value).replace(/^\//, ''));
+const exists = value => fs.existsSync(String(value).split('?')[0].replace(/^\//, ''));
+const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
+const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PATH}?v=3990_0`;
 
 assert.equal(CONTRACT.version, 'production-resource-graph-verification-v3990_0');
 assert.equal(CONTRACT.statusContext, 'production/resource-graph-v3990.0');
@@ -19,6 +21,7 @@ assert.equal(CONTRACT.interactionVersion, CURRENT_RELEASE.interactionVersion);
 assert.equal(CONTRACT.nativeChooserActivationVersion, CURRENT_RELEASE.nativeChooserActivationVersion);
 assert.equal(CONTRACT.pagesBase, 'https://gaokao-4y9.pages.dev');
 assert.equal(CONTRACT.customBase, 'https://gaokao.powers.org.cn');
+assert.equal(CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard, PAGINATION_SNAPSHOT_GUARD_PATH);
 
 for (const value of Object.values(CONTRACT.requiredStaticResources)) {
   assert.ok(exists(value), `production verification references missing resource: ${value}`);
@@ -39,6 +42,13 @@ assert.equal(manifest.resourceGraph.productionVerificationOwner, '/shared/govern
 assert.equal(manifest.policies.productionVerificationStatusRequired, true);
 assert.equal(manifest.interactionContract.version, CONTRACT.interactionVersion);
 assert.equal(manifest.interactionContract.activationVersion, CONTRACT.nativeChooserActivationVersion);
+assert.equal(
+  manifest.currentGenerationInternalModules.majorBandsPaginationSnapshotGuard,
+  PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH
+);
+assert.equal(manifest.policies.currentInternalModulesDeclared, true);
+assert.equal(manifest.policies.majorBandsBrowserSnapshotGuardBounded, true);
+assert.equal(manifest.policies.majorBandsBrowserSnapshotMismatchRejectedBeforeMerge, true);
 
 const workflow = fs.readFileSync('.github/workflows/verify-production-resource-graph-v3972_6.yml', 'utf8');
 for (const marker of [
@@ -47,6 +57,10 @@ for (const marker of [
   'statuses: write',
   'production/resource-graph-v3990.0',
   'verify-production-resource-graph-v3990_0.mjs',
+  'verify-production-pagination-snapshot-guard-v3990_0.mjs',
+  'pagination-snapshot-guard.v3990_0.js',
+  'PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE',
+  'v3990-0-production-pagination-snapshot-guard.json',
   'PRODUCTION_RESOURCE_ATTEMPTS',
   'PRODUCTION_RESOURCE_WAIT_MS'
 ]) assert.ok(workflow.includes(marker), `production workflow missing ${marker}`);
@@ -67,6 +81,21 @@ for (const marker of [
   'rank_unavailable_empty'
 ]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);
 
+const snapshotVerifier = fs.readFileSync('tools/verify-production-pagination-snapshot-guard-v3990_0.mjs', 'utf8');
+for (const marker of [
+  'CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard',
+  'createMajorBandsPaginationSnapshotGuard',
+  'verifySourceStateMachine',
+  'pagination_snapshot_mismatch',
+  'currentGenerationInternalModules',
+  'majorBandsBrowserSnapshotGuardBounded',
+  'majorBandsBrowserSnapshotMismatchRejectedBeforeMerge',
+  'selection runtime snapshot owner',
+  'runtime cache snapshot registration',
+  'self-check snapshot coverage',
+  'source guard retention exceeded budget'
+]) assert.ok(snapshotVerifier.includes(marker), `pagination snapshot production verifier missing ${marker}`);
+
 console.log(JSON.stringify({
   ok: true,
   release: CONTRACT.releaseVersion,
@@ -74,5 +103,7 @@ console.log(JSON.stringify({
   verification: CONTRACT.version,
   statusContext: CONTRACT.statusContext,
   requiredStaticResources: Object.keys(CONTRACT.requiredStaticResources).length,
-  retiredResources: CONTRACT.retiredResources.length
+  retiredResources: CONTRACT.retiredResources.length,
+  paginationSnapshotGuard: CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard,
+  paginationSnapshotProductionGate: true
 }, null, 2));
