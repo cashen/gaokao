@@ -5,7 +5,7 @@ import {
   rankWindowsForCandidate
 } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 
-export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-v3990_0';
+export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
 
