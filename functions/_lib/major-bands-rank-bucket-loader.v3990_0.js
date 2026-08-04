@@ -3,7 +3,9 @@ import { loadMajorBandsStaticRankBucket } from './major-bands-static-provider.js
 export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 
-const MAX_CACHED_BUCKETS = 18;
+const MAX_CACHED_BUCKETS = 6;
+const MAX_CACHED_BYTES = 900_000;
+const MAX_RETAINED_QUERY_BUCKETS = 12;
 const MAX_LOAD_CONCURRENCY = 4;
 const bucketCache = new Map();
 let accessClock = 0;
@@ -12,8 +14,16 @@ function touch(entry) {
   entry.lastAccess = ++accessClock;
 }
 
+function completedCacheBytes() {
+  let bytes = 0;
+  for (const entry of bucketCache.values()) {
+    if (!entry.pending) bytes += Number(entry.bytes || 0);
+  }
+  return bytes;
+}
+
 function evictCompletedBuckets() {
-  while (bucketCache.size > MAX_CACHED_BUCKETS) {
+  while (bucketCache.size > MAX_CACHED_BUCKETS || completedCacheBytes() > MAX_CACHED_BYTES) {
     let victim = null;
     for (const [file, entry] of bucketCache) {
       if (entry.pending) continue;
@@ -34,22 +44,25 @@ function assertLoadedBucket(indexBucket, loaded) {
   }
 }
 
-async function readBucket(context, indexBucket) {
+async function readBucket(context, indexBucket, options = {}) {
   const existing = bucketCache.get(indexBucket.file);
   if (existing) {
     touch(existing);
     return { loaded: await existing.promise, cacheStatus: 'hit' };
   }
 
-  const entry = { pending: true, lastAccess: 0, promise: null };
+  const retainCompleted = options.retainCompleted !== false;
+  const entry = { pending: true, bytes: 0, lastAccess: 0, promise: null };
   touch(entry);
   entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
     assets: context.env?.ASSETS
   }).then(loaded => {
     assertLoadedBucket(indexBucket, loaded);
     entry.pending = false;
+    entry.bytes = Number(loaded.bytes || 0);
     touch(entry);
-    evictCompletedBuckets();
+    if (retainCompleted) evictCompletedBuckets();
+    else bucketCache.delete(indexBucket.file);
     return loaded;
   }).catch(error => {
     bucketCache.delete(indexBucket.file);
@@ -72,12 +85,14 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
         staticIndexBytes: 0,
         cacheHits: 0,
         cacheMisses: 0,
+        cacheRetention: 'none',
         peakConcurrency: 0,
         maxConcurrency: MAX_LOAD_CONCURRENCY
       }
     };
   }
 
+  const retainCompleted = buckets.length <= MAX_RETAINED_QUERY_BUCKETS;
   const results = new Array(buckets.length);
   let cursor = 0;
   let active = 0;
@@ -90,7 +105,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       active += 1;
       peakConcurrency = Math.max(peakConcurrency, active);
       try {
-        results[index] = await readBucket(context, buckets[index]);
+        results[index] = await readBucket(context, buckets[index], { retainCompleted });
       } finally {
         active -= 1;
       }
@@ -123,6 +138,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       staticIndexBytes,
       cacheHits,
       cacheMisses,
+      cacheRetention: retainCompleted ? 'bounded-completed' : 'singleflight-only',
       peakConcurrency,
       maxConcurrency: MAX_LOAD_CONCURRENCY
     }
@@ -133,7 +149,10 @@ export function majorBandsRankBucketCacheState() {
   return Object.freeze({
     version: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
     size: bucketCache.size,
+    completedBytes: completedCacheBytes(),
     maxSize: MAX_CACHED_BUCKETS,
+    maxBytes: MAX_CACHED_BYTES,
+    maxRetainedQueryBuckets: MAX_RETAINED_QUERY_BUCKETS,
     files: Object.freeze([...bucketCache.keys()])
   });
 }
@@ -142,4 +161,3 @@ export function clearMajorBandsRankBucketCacheForTest() {
   bucketCache.clear();
   accessClock = 0;
 }
-
