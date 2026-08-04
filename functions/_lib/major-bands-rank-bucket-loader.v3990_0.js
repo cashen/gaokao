@@ -8,6 +8,7 @@ import {
 export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
+export const MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0';
 
 const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
@@ -121,11 +122,24 @@ function assertLoadedBucket(indexBucket, loaded) {
   }
 }
 
+function cloneLoadedForSharedQuery(loaded) {
+  return {
+    ...loaded,
+    records: Array.isArray(loaded?.records)
+      ? loaded.records.map(record => ({ ...record }))
+      : []
+  };
+}
+
 async function readBucket(context, indexBucket) {
   const existing = bucketCache.get(indexBucket.file);
   if (existing) {
     touch(existing);
-    return { loaded: await existing.promise, cacheStatus: 'hit' };
+    const shared = await existing.promise;
+    // The first reader owns the decoded row objects and may safely transform
+    // them in place. A different query joining the pending asset read receives
+    // shallow-cloned rows so request-local enrichment cannot leak across queries.
+    return { loaded: cloneLoadedForSharedQuery(shared), cacheStatus: 'hit-cloned' };
   }
 
   const entry = { pending: true, bytes: 0, lastAccess: 0, promise: null };
@@ -145,7 +159,7 @@ async function readBucket(context, indexBucket) {
     bucketCache.delete(indexBucket.file);
   });
   bucketCache.set(indexBucket.file, entry);
-  return { loaded: await entry.promise, cacheStatus: 'miss' };
+  return { loaded: await entry.promise, cacheStatus: 'miss-owned' };
 }
 
 export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
@@ -160,6 +174,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       stats: {
         version: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         cacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+        recordOwnership: MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP,
         requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
         requestBandScopeMode: scope.mode,
         requestedBand: scope.requestedBand,
@@ -169,6 +184,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
         staticIndexBytes: 0,
         cacheHits: 0,
         cacheMisses: 0,
+        sharedRowsCloned: 0,
         cacheRetention: 'none',
         peakConcurrency: 0,
         maxConcurrency: loadConcurrency
@@ -203,12 +219,17 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
   const records = [];
   let cacheHits = 0;
   let cacheMisses = 0;
+  let sharedRowsCloned = 0;
   let staticIndexBytes = 0;
   for (const result of results) {
     records.push(...result.loaded.records);
     staticIndexBytes += Number(result.loaded.bytes || 0);
-    if (result.cacheStatus === 'hit') cacheHits += 1;
-    else cacheMisses += 1;
+    if (result.cacheStatus === 'hit-cloned') {
+      cacheHits += 1;
+      sharedRowsCloned += result.loaded.records.length;
+    } else {
+      cacheMisses += 1;
+    }
   }
 
   return {
@@ -216,6 +237,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
     stats: {
       version: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
       cacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+      recordOwnership: MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP,
       requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
       requestBandScopeMode: scope.mode,
       requestedBand: scope.requestedBand,
@@ -225,6 +247,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       staticIndexBytes,
       cacheHits,
       cacheMisses,
+      sharedRowsCloned,
       cacheRetention: 'singleflight-only',
       peakConcurrency,
       maxConcurrency: loadConcurrency
@@ -235,6 +258,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
 export function majorBandsRankBucketCacheState() {
   return Object.freeze({
     version: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+    recordOwnership: MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP,
     requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
     size: bucketCache.size,
     completedBytes: completedCacheBytes(),
