@@ -36,10 +36,6 @@ function assertGeneration() {
   if (CURRENT_RELEASE.resourceExecutionVersion !== RUNTIME_VERSION) {
     throw new Error(`resource execution mismatch: ${CURRENT_RELEASE.resourceExecutionVersion}`);
   }
-  if (SITE_RUNTIME_CONTRACT.owners.majorBandsPaginationSnapshotGuard
-    !== '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js') {
-    throw new Error('major-bands pagination snapshot guard ownership mismatch');
-  }
   const interactionState = globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.();
   if (interactionState?.preActivationDomMutationPolicy !== 'forbidden') {
     throw new Error('native chooser pre-activation DOM mutation policy missing');
@@ -52,6 +48,8 @@ function assertGeneration() {
 globalThis.__GAOKAO_MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD__ = Object.freeze({
   version: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
   generation: SITE_RUNTIME_CONTRACT.generation,
+  owner: '/ln-rank/js/app-runtime.v3990_0.js',
+  implementation: '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js',
   getState: () => majorBandsPaginationSnapshotGuard.getState()
 });
 
