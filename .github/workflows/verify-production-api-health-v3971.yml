@@ -94,7 +94,7 @@ jobs:
           grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
           grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
