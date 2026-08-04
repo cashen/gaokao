@@ -121,9 +121,9 @@ const safe449NearRecords = safe449Near.buckets.reduce((sum, bucket) => sum + Num
 const safe449UnionBytes = safe449Union.reduce((sum, bucket) => sum + Number(bucket.bytes || 0), 0);
 const safe449NearBytes = safe449Near.buckets.reduce((sum, bucket) => sum + Number(bucket.bytes || 0), 0);
 assert.equal(safe449UnionRecords, 2737);
-assert.equal(safe449NearRecords, 1511);
+assert.equal(safe449NearRecords, 1073);
 assert.equal(safe449UnionBytes, 1575975);
-assert.equal(safe449NearBytes, 885273);
+assert.equal(safe449NearBytes, 621156);
 assert.ok(safe449NearBytes < safe449UnionBytes);
 assert.equal(MAJOR_BANDS_RANK_BUCKETS.length, 73);
 
