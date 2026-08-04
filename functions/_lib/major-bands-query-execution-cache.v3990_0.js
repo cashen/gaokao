@@ -2,12 +2,9 @@ export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-exec
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
-const MAX_ACTIVE_EXECUTIONS = 1;
 const COMPLETED_TTL_MS = 30_000;
 const inFlight = new Map();
 const completed = new Map();
-const executionWaiters = [];
-let activeExecutions = 0;
 let accessClock = 0;
 
 function touch(entry) {
@@ -44,19 +41,6 @@ function evictCompleted() {
   }
 }
 
-async function acquireExecutionSlot() {
-  if (activeExecutions >= MAX_ACTIVE_EXECUTIONS) {
-    await new Promise(resolve => executionWaiters.push(resolve));
-  }
-  activeExecutions += 1;
-}
-
-function releaseExecutionSlot() {
-  activeExecutions = Math.max(0, activeExecutions - 1);
-  const next = executionWaiters.shift();
-  if (next) next();
-}
-
 export async function executeMajorBandsQueryOnce(identity, executor) {
   const key = String(identity || '');
   if (!key) throw new Error('major-bands query execution identity required');
@@ -82,32 +66,30 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     };
   }
 
-  const promise = (async () => {
-    await acquireExecutionSlot();
-    try {
-      // A completed query contains the fully classified and ordered window.
-      // Release it before constructing a different heavy window so the two
-      // generations never overlap inside the same edge isolate.
+  // Do not let a previous fully classified window overlap a different query.
+  // Cloudflare request contexts must never wait on a manually resolved global
+  // semaphore, so distinct queries run normally; completed retention is only
+  // allowed when this is the isolate's sole active query execution.
+  completed.clear();
+  let promise;
+  promise = Promise.resolve().then(async () => {
+    const value = await executor();
+    const recordCount = resultRecordCount(value);
+    const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
+    if (isolatedExecution && recordCount <= MAX_COMPLETED_RECORDS) {
       completed.clear();
-      const value = await executor();
-      const recordCount = resultRecordCount(value);
-      completed.clear();
-      if (recordCount <= MAX_COMPLETED_RECORDS) {
-        const entry = {
-          value,
-          recordCount,
-          expiresAt: Date.now() + COMPLETED_TTL_MS,
-          lastAccess: 0
-        };
-        touch(entry);
-        completed.set(key, entry);
-        evictCompleted();
-      }
-      return value;
-    } finally {
-      releaseExecutionSlot();
+      const entry = {
+        value,
+        recordCount,
+        expiresAt: Date.now() + COMPLETED_TTL_MS,
+        lastAccess: 0
+      };
+      touch(entry);
+      completed.set(key, entry);
+      evictCompleted();
     }
-  })();
+    return value;
+  });
   inFlight.set(key, promise);
   try {
     return {
@@ -125,14 +107,13 @@ export function majorBandsQueryExecutionCacheState() {
   return Object.freeze({
     version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
     inFlight: inFlight.size,
-    activeExecutions,
-    waitingExecutions: executionWaiters.length,
-    maxActiveExecutions: MAX_ACTIVE_EXECUTIONS,
     completed: completed.size,
     completedRecords: completedRecordCount(),
     maxCompletedQueries: MAX_COMPLETED_QUERIES,
     maxCompletedRecords: MAX_COMPLETED_RECORDS,
     completedTtlMs: COMPLETED_TTL_MS,
+    retainOnlyWhenIsolated: true,
+    crossRequestSemaphore: false,
     keys: Object.freeze([...completed.keys()])
   });
 }
@@ -140,7 +121,5 @@ export function majorBandsQueryExecutionCacheState() {
 export function clearMajorBandsQueryExecutionCacheForTest() {
   inFlight.clear();
   completed.clear();
-  executionWaiters.splice(0, executionWaiters.length);
-  activeExecutions = 0;
   accessClock = 0;
 }
