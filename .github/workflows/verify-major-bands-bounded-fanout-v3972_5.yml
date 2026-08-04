@@ -95,6 +95,7 @@ jobs:
           grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "mode: 'requested-band-rank-window'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "mode: 'all-bands-union'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
@@ -153,7 +154,9 @@ jobs:
           echo "$!" > /tmp/v3990-wrangler.pid
           ready=0
           for attempt in $(seq 1 60); do
-            if curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' | grep -q 'major-bands-query-execution-cache-serialized-v3990_0'; then
+            body="$(curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
+            if grep -q 'major-bands-query-execution-cache-serialized-v3990_0' <<<"$body" \
+              && grep -q 'major-bands-rank-bucket-loader-request-band-scope-v3990_0' <<<"$body"; then
               ready=1
               break
             fi
@@ -233,6 +236,7 @@ jobs:
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
               && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-v3990_0"' <<<"$body" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-request-band-scope-v3990_0"' <<<"$body" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
               && grep -q '"bucketWorkerCount":0' <<<"$body"; then
               ready=1
