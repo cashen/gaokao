@@ -7,6 +7,7 @@ import {
   executeMajorBandsQueryOnce,
   majorBandsQueryExecutionCacheState
 } from '../functions/_lib/major-bands-query-execution-cache.v3990_0.js';
+import { normalizeScoreBand } from '../ln-rank/js/domain/score-band-contract.v3963_1.js';
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -135,6 +136,33 @@ for (const forbidden of [
   assert.ok(!apiSource.includes(forbidden), `unbounded all-band retention path returned: ${forbidden}`);
 }
 
+const normalizedSnapshot = normalizeScoreBand({
+  key: 'near',
+  records: [{ id: 'first' }],
+  count: 2,
+  pagination: {
+    offset: 0,
+    limit: 1,
+    returned: 1,
+    hasMore: true,
+    nextOffset: 1,
+    order: 'major-bands-result-order-v3990_0',
+    snapshot: 'v3990_0-2-client-snapshot'
+  }
+}, { key: 'near', candidateScore: 579 });
+assert.equal(normalizedSnapshot.pagination.snapshot, 'v3990_0-2-client-snapshot', 'client normalizer dropped pagination snapshot');
+
+const bandsApiSource = fs.readFileSync('ln-rank/js/feature/major-pool/bands-api.v3963_0.js', 'utf8');
+for (const required of [
+  "params.set('snapshot', expectedSnapshot)",
+  'expectedBandSnapshot(page)',
+  'assertBandSnapshot(payload, band, expectedSnapshot)',
+  "error.code = 'pagination_snapshot_mismatch'",
+  'actualSnapshot === expectedSnapshot'
+]) {
+  assert.ok(bandsApiSource.includes(required), `missing client pagination snapshot contract: ${required}`);
+}
+
 console.log(JSON.stringify({
   ok: true,
   version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
@@ -151,5 +179,6 @@ console.log(JSON.stringify({
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
+  clientPaginationSnapshot: normalizedSnapshot.pagination.snapshot,
   crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
