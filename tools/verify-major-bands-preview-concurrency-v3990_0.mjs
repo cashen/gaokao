@@ -21,6 +21,7 @@ const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-
 const expectedQueryMemoryMode = 'request-band-in-place-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
+const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -31,7 +32,6 @@ const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'high-750-empty', path: '/api/major-bands?candidateScore=750&rangePreset=wide&band=near&limit=37&offset=0', band: 'near', empty: true })
 ]);
 const paginationScenarios = Object.freeze(sharedScenarios.filter(scenario => !scenario.allBands));
-
 const availableScoreCount = 365;
 const presets = Object.freeze(['standard', 'wide', 'safe']);
 const bands = Object.freeze(['upper', 'near', 'steady']);
@@ -136,7 +136,10 @@ function validateResult(result) {
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
-  assert.ok(['miss', 'singleflight-hit', 'serialized-compact-hit'].includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
+  const allowedCacheStatuses = result.allBands
+    ? ['sequential-band-orchestration']
+    : ['miss', 'singleflight-hit', 'serialized-compact-hit'];
+  assert.ok(allowedCacheStatuses.includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
   assert.equal(result.payload?.source?.resultOrderVersion, expectedResultOrderVersion, `${result.scenario}: ephemeral result order`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
@@ -146,11 +149,16 @@ function validateResult(result) {
   if (result.allBands) {
     const pageSize = Number(result.payload?.meta?.pageSize || 0);
     assert.ok(pageSize > 0, `${result.scenario}: invalid page size`);
+    assert.equal(result.payload?.source?.allBandsExecutionMode, expectedAllBandsExecutionMode, `${result.scenario}: sequential all-band execution mode`);
+    assert.equal(Number(result.payload?.source?.sequentialBandPasses), 3, `${result.scenario}: sequential band pass count`);
+    assert.equal(result.payload?.source?.architecture, 'single-worker-sequential-band-pages-over-immutable-static-buckets', `${result.scenario}: sequential architecture`);
+    assert.equal(result.payload?.source?.mode, 'single-worker-sequential-band-query-stable-snapshot-paged', `${result.scenario}: sequential mode`);
     assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-current-page-per-band', `${result.scenario}: all-band retention mode`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: all-band page offset`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), pageSize, `${result.scenario}: all-band page limit`);
     assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= pageSize * bands.length, `${result.scenario}: retained more than current pages`);
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: all-band bucket concurrency exceeded two`);
+    assert.ok(Number(result.payload?.source?.rankBucketReadsTotal || 0) >= Number(result.payload?.source?.chunksRead || 0), `${result.scenario}: sequential bucket-read telemetry`);
     for (const band of bands) {
       const group = validatePaginationGroup(result, band);
       assert.ok((group.records || []).length <= pageSize, `${result.scenario}/${band}: page exceeds limit`);
@@ -175,6 +183,41 @@ function validateResult(result) {
       assert.equal(Number(result.payload?.source?.chunksRead), 0, `${result.scenario}: high boundary read buckets`);
     }
   }
+}
+
+function recordIds(group) {
+  return (group?.records || []).map(record => record.id);
+}
+
+async function verifyAllBandPageEquivalence() {
+  const allScenario = sharedScenarios.find(scenario => scenario.allBands);
+  const allResult = await requestScenario(allScenario, `equivalence-all-${Date.now()}`);
+  validateResult(allResult);
+  const bandResults = {};
+  for (const band of bands) {
+    const path = `${allScenario.path}&band=${band}`;
+    const result = await requestScenario({
+      name: `equivalence-${band}`,
+      path,
+      band
+    }, `equivalence-${band}-${Date.now()}`);
+    validateResult(result);
+    bandResults[band] = result;
+    const allGroup = allResult.payload.bands[band];
+    const bandGroup = result.payload.bands[band];
+    assert.equal(allGroup.count, bandGroup.count, `all-band/${band}: count differs from requested-band page`);
+    assert.equal(allGroup.pagination.snapshot, bandGroup.pagination.snapshot, `all-band/${band}: snapshot differs from requested-band page`);
+    assert.deepEqual(recordIds(allGroup), recordIds(bandGroup), `all-band/${band}: page IDs differ from requested-band page`);
+    assert.equal(allGroup.pagination.nextOffset, bandGroup.pagination.nextOffset, `all-band/${band}: nextOffset differs from requested-band page`);
+  }
+  return {
+    mode: expectedAllBandsExecutionMode,
+    bands: Object.fromEntries(bands.map(band => [band, {
+      count: allResult.payload.bands[band].count,
+      returned: allResult.payload.bands[band].records.length,
+      snapshot: allResult.payload.bands[band].pagination.snapshot
+    }]))
+  };
 }
 
 async function runConcurrent(level, sampleCount, mode) {
@@ -236,6 +279,7 @@ async function exhaustPagination(scenario) {
   return { scenario: scenario.name, count, ids: seen.size, requests, snapshot };
 }
 
+const allBandEquivalence = await verifyAllBandPageEquivalence();
 const cold = [];
 for (let index = 0; index < sharedScenarios.length; index += 1) {
   const result = await requestScenario(sharedScenarios[index], `cold-${index}-${Date.now()}`);
@@ -252,7 +296,7 @@ for (let round = 0; round < 3; round += 1) {
 
 const concurrencyModes = ['shared-identities', 'distinct-identities'];
 const concurrency = Object.fromEntries(concurrencyModes.map(mode => [mode, []]));
-let totalRequests = cold.length + sharedScenarios.length * 3;
+let totalRequests = 4 + cold.length + sharedScenarios.length * 3;
 for (const mode of concurrencyModes) {
   for (const level of levels) {
     const sampleCount = Math.max(20, level * waves);
@@ -285,6 +329,8 @@ const evidence = {
   queryMemoryMode: expectedQueryMemoryMode,
   resultOrderVersion: expectedResultOrderVersion,
   rankingMemoryMode: expectedRankingMemoryMode,
+  allBandsExecutionMode: expectedAllBandsExecutionMode,
+  allBandEquivalence,
   requestedBandFastPath: 'target-band-only-in-place',
   maxConcurrentExecutions: 2,
   bucketLoaderVersion: expectedBucketLoaderVersion,
