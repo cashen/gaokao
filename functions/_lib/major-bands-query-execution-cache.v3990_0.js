@@ -47,6 +47,10 @@ function retentionStats(value) {
   };
 }
 
+function completedRetentionRequested(value) {
+  return value?.cacheRetention?.retainCompleted === true;
+}
+
 function declaredRetentionWithinBudget(value) {
   const stats = retentionStats(value);
   return stats.recordCount <= MAX_COMPLETED_RECORDS
@@ -137,9 +141,9 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     };
   }
 
-  // Release the prior serialized snapshot before constructing a different rank
-  // window. Only a bounded JSON string survives completion; decoded buckets,
-  // ranking traces and compact candidate object graphs remain request-scoped.
+  // Release any prior opt-in serialized snapshot before constructing a
+  // different rank window. Production API values remain request-scoped unless
+  // their cacheRetention contract explicitly sets retainCompleted=true.
   completed.clear();
   let waitedForExecutionSlot = false;
   let promise;
@@ -148,12 +152,13 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     try {
       const value = await executor();
       const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
-      // Check declared record/byte budgets before JSON.stringify. An over-budget
-      // all-band result must not create a second full representation merely to be
-      // rejected from completed retention.
+      // Check explicit opt-in and declared budgets before JSON.stringify. API
+      // query values omit the opt-in, so they never create a second complete
+      // representation after the response snapshot has been built.
       if (
         isolatedExecution
         && COMPLETED_QUERY_RETENTION_ENABLED
+        && completedRetentionRequested(value)
         && declaredRetentionWithinBudget(value)
       ) {
         const retention = serializeRetainedValue(value);
@@ -207,6 +212,7 @@ export function majorBandsQueryExecutionCacheState() {
     completedRecords: completedRecordCount(),
     completedEstimatedBytes: completedEstimatedBytes(),
     completedRetentionEnabled: COMPLETED_QUERY_RETENTION_ENABLED,
+    explicitRetentionOptIn: true,
     maxCompletedQueries: MAX_COMPLETED_QUERIES,
     maxCompletedRecords: MAX_COMPLETED_RECORDS,
     maxCompletedEstimatedBytes: MAX_COMPLETED_ESTIMATED_BYTES,
