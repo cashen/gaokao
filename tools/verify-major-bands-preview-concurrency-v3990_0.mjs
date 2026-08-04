@@ -14,7 +14,8 @@ const p95LimitMs = Math.max(1000, Number(process.env.P95_LIMIT_MS || 8000));
 const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000));
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
-const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0';
+const expectedQueryCacheVersion = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0';
+const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0';
 const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
@@ -150,6 +151,7 @@ function validateResult(result) {
     const pageSize = Number(result.payload?.meta?.pageSize || 0);
     assert.ok(pageSize > 0, `${result.scenario}: invalid page size`);
     assert.equal(result.payload?.source?.allBandsExecutionMode, expectedAllBandsExecutionMode, `${result.scenario}: sequential all-band execution mode`);
+    assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: final all-band page cache deployment`);
     assert.equal(Number(result.payload?.source?.sequentialBandPasses), 3, `${result.scenario}: sequential band pass count`);
     assert.equal(result.payload?.source?.architecture, 'single-worker-sequential-band-pages-over-immutable-static-buckets', `${result.scenario}: sequential architecture`);
     assert.equal(result.payload?.source?.mode, 'single-worker-sequential-band-query-stable-snapshot-paged', `${result.scenario}: sequential mode`);

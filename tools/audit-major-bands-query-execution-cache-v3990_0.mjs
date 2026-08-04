@@ -10,6 +10,12 @@ import {
   majorBandsQueryExecutionCacheState
 } from '../functions/_lib/major-bands-query-execution-cache.v3990_0.js';
 import {
+  MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+  clearMajorBandsAllBandsPageCacheForTest,
+  executeMajorBandsAllBandsPageOnce,
+  majorBandsAllBandsPageCacheState
+} from '../functions/_lib/major-bands-all-bands-page-cache.v3990_0.js';
+import {
   MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
   createMajorBandsPaginationSnapshotGuard
 } from '../ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
@@ -37,6 +43,33 @@ function compactValue(recordCount, marker, estimatedBytes = recordCount * 320) {
     }
   };
 }
+
+
+clearMajorBandsAllBandsPageCacheForTest();
+let allBandsPageExecutions = 0;
+const allBandsPageConcurrent = await Promise.all(Array.from({ length: 20 }, () => executeMajorBandsAllBandsPageOnce('same-all-band-page', async () => {
+  allBandsPageExecutions += 1;
+  await delay(20);
+  return { ok: true, marker: 'all-band-page', bands: { upper: {}, near: {}, steady: {} } };
+})));
+assert.equal(allBandsPageExecutions, 1, 'identical all-band page requests executed more than once');
+assert.equal(allBandsPageConcurrent.filter(result => result.cacheStatus === 'miss').length, 1);
+assert.equal(allBandsPageConcurrent.filter(result => result.cacheStatus === 'page-singleflight-hit').length, 19);
+const allBandsPageHit = await executeMajorBandsAllBandsPageOnce('same-all-band-page', async () => {
+  throw new Error('serialized final all-band page was not reused');
+});
+assert.equal(allBandsPageHit.cacheStatus, 'serialized-page-hit');
+assert.equal(JSON.parse(allBandsPageHit.body).marker, 'all-band-page');
+const allBandsPageState = majorBandsAllBandsPageCacheState();
+assert.equal(allBandsPageState.version, MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION);
+assert.equal(allBandsPageState.completed, 1);
+assert.equal(allBandsPageState.maxCompletedPages, 1);
+assert.equal(allBandsPageState.maxSerializedChars, 500_000);
+assert.equal(allBandsPageState.completedTtlMs, 15_000);
+assert.equal(allBandsPageState.serializedFinalPageOnly, true);
+assert.equal(allBandsPageState.retainsDecodedBuckets, false);
+assert.equal(allBandsPageState.retainsFullBandSnapshots, false);
+clearMajorBandsAllBandsPageCacheForTest();
 
 clearMajorBandsQueryExecutionCacheForTest();
 let executions = 0;
@@ -149,7 +182,7 @@ assert.equal(state.maxCompletedRecords, 6000);
 assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
 assert.equal(state.completedTtlMs, 30_000);
 assert.equal(state.preflightBudgetBeforeSerialization, true);
-assert.equal(state.version, 'major-bands-query-execution-cache-serialized-request-timer-v3990_0');
+assert.equal(state.version, 'major-bands-query-execution-cache-consecutive-isolated-v3990_0');
 assert.equal(state.executionGateVersion, 'major-bands-query-execution-gate-v3990_0');
 assert.equal(state.executionGateMode, 'request-owned-timer-polling');
 assert.equal(state.crossRequestSemaphore, true);
@@ -170,6 +203,7 @@ for (const required of [
   'queryExecutionPageOffset: input.pageOffset',
   'queryExecutionPageLimit: input.pageLimit',
   'allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE',
+  'allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION',
   'sequentialBandPasses: BAND_KEYS.length',
   'rankBucketReadsTotal:',
   "architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets'",
@@ -186,6 +220,17 @@ for (const forbidden of [
 ]) {
   assert.ok(!apiSource.includes(forbidden), `unbounded, retained-completed or public self-fanout API path returned: ${forbidden}`);
 }
+
+const allBandsPageCacheSource = fs.readFileSync('functions/_lib/major-bands-all-bands-page-cache.v3990_0.js', 'utf8');
+for (const required of [
+  "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'",
+  'MAX_COMPLETED_PAGES = 1',
+  'MAX_SERIALIZED_CHARS = 500_000',
+  'COMPLETED_TTL_MS = 15_000',
+  'serializedFinalPageOnly: true',
+  'retainsDecodedBuckets: false',
+  'retainsFullBandSnapshots: false'
+]) assert.ok(allBandsPageCacheSource.includes(required), `bounded final all-band page cache missing ${required}`);
 
 const executionCacheSource = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
 for (const required of [
@@ -205,6 +250,7 @@ for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'execution
 const concurrencyVerifierSource = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
 for (const required of [
   `expectedAllBandsExecutionMode = '${ALL_BANDS_EXECUTION_MODE}'`,
+  "expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0'",
   "['sequential-band-orchestration']",
   'verifyAllBandPageEquivalence',
   'all-band/${band}: count differs from requested-band page',
@@ -305,6 +351,7 @@ console.log(JSON.stringify({
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
   allBandsExecutionMode: ALL_BANDS_EXECUTION_MODE,
+  allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
   allBandEquivalenceGate: true,
   browserSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
   browserSnapshotMismatchRejected: true,
