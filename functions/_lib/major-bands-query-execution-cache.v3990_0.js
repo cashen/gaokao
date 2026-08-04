@@ -1,7 +1,7 @@
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-v3990_0';
 
-const MAX_COMPLETED_QUERIES = 2;
-const MAX_COMPLETED_RECORDS = 2500;
+const MAX_COMPLETED_QUERIES = 1;
+const MAX_COMPLETED_RECORDS = 6000;
 const COMPLETED_TTL_MS = 30_000;
 const inFlight = new Map();
 const completed = new Map();
