@@ -5,7 +5,7 @@ import {
   rankWindowsForCandidate
 } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 
-export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
+export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
 
@@ -14,6 +14,7 @@ const MAX_CACHED_BYTES = 900_000;
 const MAX_RETAINED_QUERY_BUCKETS = 12;
 const COMPLETED_BUCKET_RETENTION_ENABLED = false;
 const MAX_LOAD_CONCURRENCY = 4;
+const ALL_BANDS_LOAD_CONCURRENCY = 2;
 const REQUEST_BANDS = new Set(['upper', 'near', 'steady']);
 const bucketCache = new Map();
 let accessClock = 0;
@@ -150,6 +151,9 @@ async function readBucket(context, indexBucket) {
 export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
   const scope = scopeBucketsFromRequest(context, selectedBuckets);
   const buckets = Array.isArray(scope.buckets) ? scope.buckets : [];
+  const loadConcurrency = scope.mode === 'all-bands-union'
+    ? ALL_BANDS_LOAD_CONCURRENCY
+    : MAX_LOAD_CONCURRENCY;
   if (!buckets.length) {
     return {
       records: [],
@@ -167,7 +171,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
         cacheMisses: 0,
         cacheRetention: 'none',
         peakConcurrency: 0,
-        maxConcurrency: MAX_LOAD_CONCURRENCY
+        maxConcurrency: loadConcurrency
       }
     };
   }
@@ -192,7 +196,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
   }
 
   await Promise.all(Array.from(
-    { length: Math.min(MAX_LOAD_CONCURRENCY, buckets.length) },
+    { length: Math.min(loadConcurrency, buckets.length) },
     () => worker()
   ));
 
@@ -223,7 +227,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       cacheMisses,
       cacheRetention: 'singleflight-only',
       peakConcurrency,
-      maxConcurrency: MAX_LOAD_CONCURRENCY
+      maxConcurrency: loadConcurrency
     }
   };
 }
@@ -238,6 +242,8 @@ export function majorBandsRankBucketCacheState() {
     maxSize: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_CACHED_BUCKETS : 0,
     maxBytes: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_CACHED_BYTES : 0,
     maxRetainedQueryBuckets: COMPLETED_BUCKET_RETENTION_ENABLED ? MAX_RETAINED_QUERY_BUCKETS : 0,
+    requestBandMaxConcurrency: MAX_LOAD_CONCURRENCY,
+    allBandsMaxConcurrency: ALL_BANDS_LOAD_CONCURRENCY,
     files: Object.freeze([...bucketCache.keys()])
   });
 }
