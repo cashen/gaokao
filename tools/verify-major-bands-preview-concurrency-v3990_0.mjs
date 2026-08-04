@@ -19,6 +19,7 @@ const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990
 const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
+const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';
 const expectedQueryMemoryMode = 'request-band-in-place-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
@@ -142,6 +143,13 @@ function validateResult(result) {
     : ['miss', 'singleflight-hit', 'serialized-compact-hit'];
   assert.ok(allowedCacheStatuses.includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
+  assert.equal(result.payload?.source?.rankRowFilterVersion, expectedRankRowFilterVersion, `${result.scenario}: predecode rank-row filter`);
+  assert.ok(Number(result.payload?.source?.rankRawRowCount || 0) >= Number(result.payload?.source?.rankDecodedRowCount || 0), `${result.scenario}: decoded rows exceed raw rows`);
+  assert.equal(
+    Number(result.payload?.source?.rankRawRowCount || 0),
+    Number(result.payload?.source?.rankDecodedRowCount || 0) + Number(result.payload?.source?.rankRowsSkipped || 0),
+    `${result.scenario}: rank-row filter accounting`
+  );
   assert.equal(result.payload?.source?.resultOrderVersion, expectedResultOrderVersion, `${result.scenario}: ephemeral result order`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
@@ -159,7 +167,7 @@ function validateResult(result) {
     assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: all-band page offset`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), pageSize, `${result.scenario}: all-band page limit`);
     assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= pageSize * bands.length, `${result.scenario}: retained more than current pages`);
-    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: all-band bucket concurrency exceeded two`);
+    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: all-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.rankBucketReadsTotal || 0) >= Number(result.payload?.source?.chunksRead || 0), `${result.scenario}: sequential bucket-read telemetry`);
     for (const band of bands) {
       const group = validatePaginationGroup(result, band);
@@ -179,7 +187,7 @@ function validateResult(result) {
     } else {
       assert.equal(Number(result.payload?.source?.queryExecutionRetainedRecords || 0), Number(group.count || 0), `${result.scenario}: deep page did not retain full compact snapshot`);
     }
-    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: requested-band bucket concurrency exceeded two`);
+    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: requested-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
       assert.equal(Number(result.payload?.bands?.[hiddenBand]?.count || 0), 0, `${result.scenario}: hidden ${hiddenBand} band was classified`);
@@ -363,8 +371,9 @@ const evidence = {
   requestedBandFastPath: 'target-band-only-in-place',
   maxConcurrentExecutions: 1,
   bucketLoaderVersion: expectedBucketLoaderVersion,
-  allBandBucketMaxConcurrency: 2,
-  requestedBandBucketMaxConcurrency: 2,
+  rankRowFilterVersion: expectedRankRowFilterVersion,
+  allBandBucketMaxConcurrency: 1,
+  requestedBandBucketMaxConcurrency: 1,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
   allBandRetentionContract: 'compact-current-page-per-band',
   base,

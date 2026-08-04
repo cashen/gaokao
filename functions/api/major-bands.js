@@ -11,6 +11,7 @@ import {
 import {
   MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
   MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+  MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
   loadMajorBandsRankWindow
 } from '../_lib/major-bands-rank-bucket-loader.v3990_0.js';
 import {
@@ -366,6 +367,10 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       specialProjectStats,
       rankBucketCacheHits: numericSum(payloads, ['source', 'rankBucketCacheHits']),
       rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
+      rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+      rankRawRowCount: numericSum(payloads, ['source', 'rankRawRowCount']),
+      rankDecodedRowCount: numericSum(payloads, ['source', 'rankDecodedRowCount']),
+      rankRowsSkipped: numericSum(payloads, ['source', 'rankRowsSkipped']),
       rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
       rankBucketMaxConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketMaxConcurrency || 0))),
       sortPasses: numericSum(payloads, ['source', 'sortPasses']),
@@ -739,6 +744,10 @@ export async function onRequest(context) {
         specialProjectMode: filters.specialProjectMode,
         rankBucketCacheHits: loadedStats.cacheHits,
         rankBucketCacheMisses: loadedStats.cacheMisses,
+        rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+        rankRawRowCount: loadedStats.rawRowCount,
+        rankDecodedRowCount: loadedStats.decodedRowCount,
+        rankRowsSkipped: loadedStats.rankRowsSkipped,
         rankBucketConcurrency: loadedStats.peakConcurrency,
         rankBucketMaxConcurrency: loadedStats.maxConcurrency,
         sortPasses: aggregate.sortPasses,

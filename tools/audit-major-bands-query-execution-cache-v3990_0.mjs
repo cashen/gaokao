@@ -210,6 +210,9 @@ for (const required of [
   'queryExecutionPageLimit: input.pageLimit',
   'allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE',
   'allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION',
+  'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
+  'rankRowsSkipped: loadedStats.rankRowsSkipped',
+
   'sequentialBandPasses: BAND_KEYS.length',
   'rankBucketReadsTotal:',
   "architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets'",

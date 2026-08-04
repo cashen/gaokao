@@ -3,6 +3,7 @@ import { buildHistoricalScoreRankEvidence } from './historical-score-rank-eviden
 import { normalizeLocation } from './location-normalizer.js';
 
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';
+export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -134,6 +135,17 @@ export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindo
  * prefilter. The v3990 rank query kernel performs the authoritative canonical
  * rank classification after all selected buckets are decoded in one Worker.
  */
+
+export function majorBandsRankValueMatchesRange(rankLike, range = null) {
+  const minRank = Number(range?.minRank);
+  const maxRank = Number(range?.maxRank);
+  if (!Number.isFinite(minRank) || !Number.isFinite(maxRank)) return true;
+  const rank = Number(rankLike);
+  // Preserve missing/invalid rank rows for the canonical score fallback.
+  if (!Number.isFinite(rank) || rank <= 0) return true;
+  return rank >= minRank && rank <= maxRank;
+}
+
 export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {
   const manifest = await loadMajorBandsStaticManifest(request, options);
   const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
@@ -146,11 +158,25 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     throw new Error(`静态专业位次桶记录数异常：${bucket.file}`);
   }
   const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
+  const rankIndex = schema.indexOf('rank2026');
+  const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
+    ? Object.freeze({
+        minRank: Number(options.rankRange.minRank),
+        maxRank: Number(options.rankRange.maxRank)
+      })
+    : null;
+  const selectedRows = rankRange && rankIndex >= 0
+    ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))
+    : payload.rows;
   return {
     manifest,
     bucket,
-    records: payload.rows.map(row => decodeRow(row, schema)),
+    records: selectedRows.map(row => decodeRow(row, schema)),
     rowCount: payload.rows.length,
+    decodedRowCount: selectedRows.length,
+    rankRowsSkipped: payload.rows.length - selectedRows.length,
+    rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+    rankRange,
     bytes: Number(bucket.bytes || 0),
     assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
   };

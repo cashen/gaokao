@@ -9,6 +9,13 @@ import {
 } from '../functions/_lib/major-bands-rank-index.v3990_0.js';
 import { processMajorBandsRankWindow } from '../functions/_lib/major-bands-rank-query-kernel.v3990_0.js';
 import {
+  MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+  majorBandsRankValueMatchesRange
+} from '../functions/_lib/major-bands-static-provider.js';
+import {
+  scopeMajorBandsRankBucketsForRequest
+} from '../functions/_lib/major-bands-rank-bucket-loader.v3990_0.js';
+import {
   majorBandsSnapshotId,
   paginateMajorBandsRecords
 } from '../functions/_lib/major-bands-result-order.v3990_0.js';
@@ -152,6 +159,14 @@ const summary = {
   paginationBands: 0,
   paginationIds: 0,
   maxSelectedBuckets: 0,
+  rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+  rankRowFilterCases: 0,
+  rankRowFilterRawRows: 0,
+  rankRowFilterDecodedRows: 0,
+  rankRowFilterSkippedRows: 0,
+  rankRowFilterMaxRawRows: 0,
+  rankRowFilterMaxDecodedRows: 0,
+  rankRowFilterWorstCase: null,
   presetBucketCounts: Object.fromEntries(presets.map(preset => [preset, { min: Infinity, max: 0, queries: 0 }])),
   highBoundary: []
 };
@@ -184,6 +199,39 @@ for (let score = 344; score <= 750; score += 1) {
       if (truthByBand[position.bandKey]) truthByBand[position.bandKey].push(record);
     }
     const truth = setOf([...truthByBand.upper, ...truthByBand.near, ...truthByBand.steady]);
+    for (const band of ['upper', 'near', 'steady']) {
+      const scoped = scopeMajorBandsRankBucketsForRequest(query.selected, {
+        candidateScore: score,
+        rangePreset: preset,
+        band
+      });
+      const rawScopedRecords = selectedRecords(scoped.buckets);
+      const filteredRecords = rawScopedRecords.filter(record => (
+        majorBandsRankValueMatchesRange(record.rank2026, query.windows[band])
+      ));
+      assertEqualSets(
+        setOf(filteredRecords),
+        setOf(truthByBand[band]),
+        `${score}/${preset}/${band}: predecode rank-row filter truth`
+      );
+      summary.rankRowFilterCases += 1;
+      summary.rankRowFilterRawRows += rawScopedRecords.length;
+      summary.rankRowFilterDecodedRows += filteredRecords.length;
+      summary.rankRowFilterSkippedRows += rawScopedRecords.length - filteredRecords.length;
+      summary.rankRowFilterMaxRawRows = Math.max(summary.rankRowFilterMaxRawRows, rawScopedRecords.length);
+      summary.rankRowFilterMaxDecodedRows = Math.max(summary.rankRowFilterMaxDecodedRows, filteredRecords.length);
+      if (score === 358 && preset === 'safe' && band === 'upper') {
+        summary.rankRowFilterWorstCase = {
+          score,
+          preset,
+          band,
+          scopedBuckets: scoped.buckets.length,
+          rawRows: rawScopedRecords.length,
+          decodedRows: filteredRecords.length,
+          skippedRows: rawScopedRecords.length - filteredRecords.length
+        };
+      }
+    }
     const recalled = setOf(query.records.filter(record => {
       const band = canonical(record, score, query.candidateRank.rankForGap, preset).bandKey;
       return ['upper', 'near', 'steady'].includes(band);
@@ -248,6 +296,21 @@ for (const preset of presets) {
   assert.ok(Number.isFinite(bucketEvidence.min) && bucketEvidence.min > 0, `${preset}: minimum bucket count`);
   assert.ok(bucketEvidence.max >= bucketEvidence.min, `${preset}: maximum bucket count`);
 }
+
+const staticProviderSource = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
+for (const required of [
+  "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'",
+  "const rankIndex = schema.indexOf('rank2026')",
+  'payload.rows.filter(row => majorBandsRankValueMatchesRange',
+  'rankRowsSkipped: payload.rows.length - selectedRows.length'
+]) assert.ok(staticProviderSource.includes(required), `predecode rank-row filter missing ${required}`);
+const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
+for (const required of [
+  'function bucketReadKey',
+  'rankRange: scope.requestedRange',
+  'const MAX_LOAD_CONCURRENCY = 1',
+  'const ALL_BANDS_LOAD_CONCURRENCY = 1'
+]) assert.ok(bucketLoaderSource.includes(required), `bounded rank-row loader missing ${required}`);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const forbidden of [
