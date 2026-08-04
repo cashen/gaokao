@@ -71,8 +71,11 @@ jobs:
           grep -q "MAX_LOAD_CONCURRENCY = 4" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAX_CACHED_BYTES = 900_000" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "singleflight-only" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_QUERIES = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|distributed-bucket-workers|maxCandidates|selected\.buckets\.length > 12|loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
             echo 'retired self-fanout, candidate cap or raw scan returned'
             exit 1
@@ -103,7 +106,7 @@ jobs:
           if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
           if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
           if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
-          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
+          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-serialized-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
           NODE
 
       - name: Verify local Wrangler concurrent resource journey
@@ -170,7 +173,7 @@ jobs:
             if grep -q "display: 'v3.9.90.0'" <<<"$release" \
               && grep -q "siteRuntimeGeneration: 'v3990_0'" <<<"$release" \
               && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-v3990_0"' <<<"$api" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-v3990_0"' <<<"$api" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$api"; then
               ready=1
               break
