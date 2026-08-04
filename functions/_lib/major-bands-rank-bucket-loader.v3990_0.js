@@ -5,7 +5,7 @@ import {
   rankWindowsForCandidate
 } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 
-export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
+export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-two-lane-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
 
@@ -13,7 +13,7 @@ const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
 const MAX_RETAINED_QUERY_BUCKETS = 12;
 const COMPLETED_BUCKET_RETENTION_ENABLED = false;
-const MAX_LOAD_CONCURRENCY = 4;
+const MAX_LOAD_CONCURRENCY = 2;
 const ALL_BANDS_LOAD_CONCURRENCY = 2;
 const REQUEST_BANDS = new Set(['upper', 'near', 'steady']);
 const bucketCache = new Map();
