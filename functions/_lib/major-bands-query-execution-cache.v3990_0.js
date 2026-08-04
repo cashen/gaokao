@@ -1,6 +1,7 @@
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0';
-export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-request-timer-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling';
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
@@ -8,10 +9,11 @@ const MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000;
 const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
 const MAX_CONCURRENT_EXECUTIONS = 2;
+const EXECUTION_SLOT_POLL_MS = 8;
 const inFlight = new Map();
 const completed = new Map();
-const executionWaiters = [];
 let activeExecutions = 0;
+let queuedExecutions = 0;
 let peakActiveExecutions = 0;
 let peakQueuedExecutions = 0;
 let accessClock = 0;
@@ -74,25 +76,36 @@ function readCompletedValue(key, entry) {
   }
 }
 
-function acquireExecutionSlot() {
+function waitForOwnTimer(ms) {
+  return new Promise(resolve => globalThis.setTimeout(resolve, ms));
+}
+
+async function acquireExecutionSlot() {
   if (activeExecutions < MAX_CONCURRENT_EXECUTIONS) {
     activeExecutions += 1;
     peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
-    return Promise.resolve(false);
+    return false;
   }
-  return new Promise(resolve => {
-    executionWaiters.push(() => resolve(true));
-    peakQueuedExecutions = Math.max(peakQueuedExecutions, executionWaiters.length);
-  });
+
+  queuedExecutions += 1;
+  peakQueuedExecutions = Math.max(peakQueuedExecutions, queuedExecutions);
+  try {
+    // Each waiting request owns and resumes from its own timer. Do not keep a
+    // resolver created by one request and invoke it from another request's
+    // completion context; workerd rejects that cross-request handler transfer.
+    while (activeExecutions >= MAX_CONCURRENT_EXECUTIONS) {
+      await waitForOwnTimer(EXECUTION_SLOT_POLL_MS);
+    }
+    activeExecutions += 1;
+    peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
+    return true;
+  } finally {
+    queuedExecutions = Math.max(0, queuedExecutions - 1);
+  }
 }
 
 function releaseExecutionSlot() {
   activeExecutions = Math.max(0, activeExecutions - 1);
-  const next = executionWaiters.shift();
-  if (!next) return;
-  activeExecutions += 1;
-  peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
-  next();
 }
 
 export async function executeMajorBandsQueryOnce(identity, executor) {
@@ -182,9 +195,11 @@ export function majorBandsQueryExecutionCacheState() {
     version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
     mode: MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
     executionGateVersion: MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
+    executionGateMode: MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE,
+    executionSlotPollMs: EXECUTION_SLOT_POLL_MS,
     inFlight: inFlight.size,
     activeExecutions,
-    queuedExecutions: executionWaiters.length,
+    queuedExecutions,
     peakActiveExecutions,
     peakQueuedExecutions,
     maxConcurrentExecutions: MAX_CONCURRENT_EXECUTIONS,
@@ -200,6 +215,8 @@ export function majorBandsQueryExecutionCacheState() {
     preflightBudgetBeforeSerialization: true,
     crossRequestSemaphore: true,
     boundedDistinctExecutions: true,
+    requestOwnedTimerWait: true,
+    crossRequestResolverQueue: false,
     keys: Object.freeze([...completed.keys()])
   });
 }
@@ -207,8 +224,8 @@ export function majorBandsQueryExecutionCacheState() {
 export function clearMajorBandsQueryExecutionCacheForTest() {
   inFlight.clear();
   completed.clear();
-  executionWaiters.splice(0, executionWaiters.length);
   activeExecutions = 0;
+  queuedExecutions = 0;
   peakActiveExecutions = 0;
   peakQueuedExecutions = 0;
   accessClock = 0;
