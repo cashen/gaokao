@@ -34,6 +34,9 @@
     "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3990_0.js?v=3990_0",
     "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3990_0.js?v=3990_0"
   },
+  "currentGenerationInternalModules": {
+    "majorBandsPaginationSnapshotGuard": "/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js?v=3990_0"
+  },
   "declaredStableActiveEntrypoints": {
     "familyShellStyles": "/shared/ui/shell/family-shell.v3972_5.css?v=3972_5",
     "familyPlanEntryStyles": "/shared/ui/components/family-plan-entry.v3972_5.css?v=3972_5"
@@ -63,6 +66,7 @@
     "oneActiveGeneration": true,
     "singleCurrentResourceRegistry": true,
     "currentAndStableEntrypointsSeparated": true,
+    "currentInternalModulesDeclared": true,
     "stableDependenciesDeclared": true,
     "stablePageEntrypointsDeclared": true,
     "historicalAssetsCannotClaimActiveOwnership": true,
@@ -78,6 +82,8 @@
     "majorBandsRankTruthEqualsRecall": true,
     "majorBandsAllPresetsExecutable": true,
     "majorBandsStableSnapshotPagination": true,
+    "majorBandsBrowserSnapshotGuardBounded": true,
+    "majorBandsBrowserSnapshotMismatchRejectedBeforeMerge": true,
     "majorBandsStrictNextOffset": true,
     "majorBandsHighBoundaryReturnsEmpty200": true,
     "majorBandsPublicHttpSelfFanoutForbidden": true
