@@ -8,6 +8,7 @@ const exists = value => fs.existsSync(String(value).split('?')[0].replace(/^\//,
 const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PATH}?v=3990_0`;
 const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
+const EXECUTION_GATE_MODE = 'request-owned-timer-polling';
 const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
 
 assert.equal(CONTRACT.version, 'production-resource-graph-verification-v3990_0');
@@ -118,11 +119,20 @@ for (const marker of [
 const executionCache = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
 for (const marker of [
   `MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = '${EXECUTION_GATE_VERSION}'`,
+  `MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = '${EXECUTION_GATE_MODE}'`,
   'MAX_CONCURRENT_EXECUTIONS = 2',
+  'EXECUTION_SLOT_POLL_MS = 8',
+  'waitForOwnTimer',
   'crossRequestSemaphore: true',
   'boundedDistinctExecutions: true',
-  'executionWaiters'
+  'requestOwnedTimerWait: true',
+  'crossRequestResolverQueue: false'
 ]) assert.ok(executionCache.includes(marker), `bounded execution cache missing ${marker}`);
+for (const forbidden of [
+  'executionWaiters',
+  'executionWaiters.push',
+  'executionWaiters.shift'
+]) assert.ok(!executionCache.includes(forbidden), `cross-request resolver queue returned: ${forbidden}`);
 
 console.log(JSON.stringify({
   ok: true,
@@ -135,7 +145,10 @@ console.log(JSON.stringify({
   paginationSnapshotGuard: CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard,
   paginationSnapshotProductionGate: true,
   executionGateVersion: EXECUTION_GATE_VERSION,
+  executionGateMode: EXECUTION_GATE_MODE,
   maxConcurrentExecutions: 2,
+  requestOwnedTimerWait: true,
+  crossRequestResolverQueue: false,
   requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,
   boundedExecutionProductionGate: true
 }, null, 2));
