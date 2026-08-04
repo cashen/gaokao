@@ -48,23 +48,54 @@ jobs:
           if row_const not in text:
               text = text.replace(loader_const, loader_const + '\n' + row_const, 1)
 
-          concurrency_anchor = '  REQUEST_BAND_LOADER_VERSION,'
-          if '  RANK_ROW_FILTER_VERSION,' not in text:
-              text = text.replace(concurrency_anchor, concurrency_anchor + '\n  RANK_ROW_FILTER_VERSION,', 1)
+          concurrency_anchor = """  QUERY_MEMORY_MODE,
+            REQUEST_BAND_LOADER_VERSION,
+            RESULT_ORDER_VERSION,"""
+          concurrency_replacement = """  QUERY_MEMORY_MODE,
+            REQUEST_BAND_LOADER_VERSION,
+            RANK_ROW_FILTER_VERSION,
+            RESULT_ORDER_VERSION,"""
+          if concurrency_anchor in text:
+              text = text.replace(concurrency_anchor, concurrency_replacement, 1)
+          elif concurrency_replacement not in text:
+              raise SystemExit('concurrency row-filter version anchor missing')
 
-          telemetry_anchor = "  'queryExecutionCacheStatus',"
-          telemetry = """  'queryExecutionCacheStatus',
+          telemetry_anchor = """  'queryExecutionCacheStatus',
+            'source?.resultOrderVersion',"""
+          telemetry_replacement = """  'queryExecutionCacheStatus',
             'rankRowFilterVersion',
             'rankRawRowCount',
             'rankDecodedRowCount',
-            'rankRowsSkipped',"""
-          if "  'rankRowFilterVersion'," not in text:
-              text = text.replace(telemetry_anchor, telemetry, 1)
+            'rankRowsSkipped',
+            'source?.resultOrderVersion',"""
+          if telemetry_anchor in text:
+              text = text.replace(telemetry_anchor, telemetry_replacement, 1)
+          elif telemetry_replacement not in text:
+              raise SystemExit('concurrency row-filter telemetry anchor missing')
 
-          loader_marker = "  `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,"
-          row_marker = "  `MAJOR_BANDS_RANK_ROW_FILTER_VERSION = '${RANK_ROW_FILTER_VERSION}'`,"
-          if row_marker not in text:
-              text = text.replace(loader_marker, loader_marker + '\n' + row_marker, 1)
+          bucket_loader_anchor = "const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');"
+          static_checks = """const staticProvider = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
+          for (const marker of [
+            `MAJOR_BANDS_RANK_ROW_FILTER_VERSION = '${RANK_ROW_FILTER_VERSION}'`,
+            "const rankIndex = schema.indexOf('rank2026')",
+            'payload.rows.filter(row => majorBandsRankValueMatchesRange',
+            'rankRowsSkipped: payload.rows.length - selectedRows.length'
+          ]) assert.ok(staticProvider.includes(marker), `predecode rank-row provider missing ${marker}`);
+
+          const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');"""
+          if 'const staticProvider =' not in text:
+              text = text.replace(bucket_loader_anchor, static_checks, 1)
+
+          loader_marker_anchor = """  'ALL_BANDS_LOAD_CONCURRENCY = 1',
+            'cloneLoadedForSharedQuery',"""
+          loader_marker_replacement = """  'ALL_BANDS_LOAD_CONCURRENCY = 1',
+            'rankRange: scope.requestedRange',
+            'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
+            'cloneLoadedForSharedQuery',"""
+          if loader_marker_anchor in text:
+              text = text.replace(loader_marker_anchor, loader_marker_replacement, 1)
+          elif loader_marker_replacement not in text:
+              raise SystemExit('bucket loader row-filter marker anchor missing')
 
           output_anchor = '  requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,'
           output_row = '  rankRowFilterVersion: RANK_ROW_FILTER_VERSION,'
