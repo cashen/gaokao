@@ -22,443 +22,43 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Apply exact rank-row predecode filtering
+      - name: Reapply audited row-filter patch and validate contracts
         run: |
           set -euo pipefail
+          git show 03b8b3ea9f820a57c6717548ba22b41ef93f0a2b:.github/workflows/zz-one-time-rank-row-filter-v3990.yml > /tmp/v3990-original-row-filter.yml
+          ruby -ryaml -e '
+            doc = YAML.load_file(ARGV[0])
+            steps = doc.fetch("jobs").fetch("patch").fetch("steps")
+            step = steps.find { |item| item["name"] == "Apply exact rank-row predecode filtering" }
+            abort "original patch step missing" unless step && step["run"]
+            print step["run"]
+          ' /tmp/v3990-original-row-filter.yml > /tmp/v3990-original-row-filter-run.sh
+          awk '{ print } /^PY$/ { exit }' /tmp/v3990-original-row-filter-run.sh > /tmp/v3990-apply-row-filter.sh
+          grep -q "python3 - <<'PY'" /tmp/v3990-apply-row-filter.sh
+          tail -n 1 /tmp/v3990-apply-row-filter.sh | grep -qx 'PY'
+          bash /tmp/v3990-apply-row-filter.sh
+
           python3 - <<'PY'
           from pathlib import Path
 
-          provider = Path('functions/_lib/major-bands-static-provider.js')
-          text = provider.read_text(encoding='utf-8')
-          version_line = "export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';"
-          row_version_line = "export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';"
-          if row_version_line not in text:
-              text = text.replace(version_line, version_line + '\n' + row_version_line, 1)
-
-          helper = """
-          export function majorBandsRankValueMatchesRange(rankLike, range = null) {
-            const minRank = Number(range?.minRank);
-            const maxRank = Number(range?.maxRank);
-            if (!Number.isFinite(minRank) || !Number.isFinite(maxRank)) return true;
-            const rank = Number(rankLike);
-            // Preserve missing/invalid rank rows for the canonical score fallback.
-            if (!Number.isFinite(rank) || rank <= 0) return true;
-            return rank >= minRank && rank <= maxRank;
-          }
-
-          """
-          load_anchor = 'export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {'
-          if 'export function majorBandsRankValueMatchesRange' not in text:
-              text = text.replace(load_anchor, helper + load_anchor, 1)
-
-          old_block = """  const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
-            return {
-              manifest,
-              bucket,
-              records: payload.rows.map(row => decodeRow(row, schema)),
-              rowCount: payload.rows.length,
-              bytes: Number(bucket.bytes || 0),
-              assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
-            };
-          """
-          new_block = """  const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
-            const rankIndex = schema.indexOf('rank2026');
-            const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
-              ? Object.freeze({
-                  minRank: Number(options.rankRange.minRank),
-                  maxRank: Number(options.rankRange.maxRank)
-                })
-              : null;
-            const selectedRows = rankRange && rankIndex >= 0
-              ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))
-              : payload.rows;
-            return {
-              manifest,
-              bucket,
-              records: selectedRows.map(row => decodeRow(row, schema)),
-              rowCount: payload.rows.length,
-              decodedRowCount: selectedRows.length,
-              rankRowsSkipped: payload.rows.length - selectedRows.length,
-              rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-              rankRange,
-              bytes: Number(bucket.bytes || 0),
-              assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
-            };
-          """
-          if old_block in text:
-              text = text.replace(old_block, new_block, 1)
-          elif 'rankRowsSkipped: payload.rows.length - selectedRows.length' not in text:
-              raise SystemExit('static provider rank bucket return anchor not found')
-          provider.write_text(text, encoding='utf-8')
-
-          loader = Path('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js')
-          text = loader.read_text(encoding='utf-8')
-          old_import = "import { loadMajorBandsStaticRankBucket } from './major-bands-static-provider.js';"
-          new_import = """import {
-            MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-            loadMajorBandsStaticRankBucket
-          } from './major-bands-static-provider.js';"""
-          if old_import in text:
-              text = text.replace(old_import, new_import, 1)
-          elif 'MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in text:
-              raise SystemExit('loader static provider import anchor not found')
-          export_anchor = "export const MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0';"
-          export_line = 'export { MAJOR_BANDS_RANK_ROW_FILTER_VERSION };'
-          if export_line not in text:
-              text = text.replace(export_anchor, export_anchor + '\n' + export_line, 1)
-          text = text.replace('const MAX_LOAD_CONCURRENCY = 2;', 'const MAX_LOAD_CONCURRENCY = 1;', 1)
-          text = text.replace('const ALL_BANDS_LOAD_CONCURRENCY = 2;', 'const ALL_BANDS_LOAD_CONCURRENCY = 1;', 1)
-
-          key_helper = """
-          function bucketReadKey(indexBucket, scope = {}) {
-            const range = scope.requestedRange;
-            const suffix = range && Number.isFinite(Number(range.minRank)) && Number.isFinite(Number(range.maxRank))
-              ? `${Number(range.minRank)}:${Number(range.maxRank)}`
-              : 'all-ranks';
-            return `${indexBucket.file}|${suffix}`;
-          }
-
-          """
-          read_anchor = 'async function readBucket(context, indexBucket) {'
-          if 'function bucketReadKey' not in text:
-              text = text.replace(read_anchor, key_helper + 'async function readBucket(context, indexBucket, scope) {', 1)
-          else:
-              text = text.replace(read_anchor, 'async function readBucket(context, indexBucket, scope) {', 1)
-
-          old_read_start = """  const existing = bucketCache.get(indexBucket.file);
-            if (existing) {
-          """
-          new_read_start = """  const cacheKey = bucketReadKey(indexBucket, scope);
-            const existing = bucketCache.get(cacheKey);
-            if (existing) {
-          """
-          if old_read_start in text:
-              text = text.replace(old_read_start, new_read_start, 1)
-          elif 'const cacheKey = bucketReadKey(indexBucket, scope);' not in text:
-              raise SystemExit('loader read cache key anchor not found')
-
-          old_load = """  entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
-              assets: context.env?.ASSETS
-            }).then(loaded => {
-          """
-          new_load = """  entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
-              assets: context.env?.ASSETS,
-              rankRange: scope.requestedRange
-            }).then(loaded => {
-          """
-          if old_load in text:
-              text = text.replace(old_load, new_load, 1)
-          elif 'rankRange: scope.requestedRange' not in text:
-              raise SystemExit('loader provider options anchor not found')
-          text = text.replace('bucketCache.delete(indexBucket.file);', 'bucketCache.delete(cacheKey);', 1)
-          text = text.replace('bucketCache.set(indexBucket.file, entry);', 'bucketCache.set(cacheKey, entry);', 1)
-          text = text.replace('results[index] = await readBucket(context, buckets[index]);', 'results[index] = await readBucket(context, buckets[index], scope);', 1)
-
-          no_bucket_anchor = """        loadedRecordCount: 0,
-                  staticIndexBytes: 0,
-          """
-          no_bucket_replacement = """        loadedRecordCount: 0,
-                  decodedRowCount: 0,
-                  rawRowCount: 0,
-                  rankRowsSkipped: 0,
-                  rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-                  staticIndexBytes: 0,
-          """
-          if no_bucket_anchor in text:
-              text = text.replace(no_bucket_anchor, no_bucket_replacement, 1)
-          elif 'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in text:
-              raise SystemExit('loader empty stats anchor not found')
-
-          aggregate_anchor = """  let sharedRowsCloned = 0;
-            let staticIndexBytes = 0;
-          """
-          aggregate_replacement = """  let sharedRowsCloned = 0;
-            let staticIndexBytes = 0;
-            let rawRowCount = 0;
-            let decodedRowCount = 0;
-            let rankRowsSkipped = 0;
-          """
-          if aggregate_anchor in text:
-              text = text.replace(aggregate_anchor, aggregate_replacement, 1)
-          elif 'let rankRowsSkipped = 0;' not in text:
-              raise SystemExit('loader aggregate anchor not found')
-
-          loop_anchor = """    staticIndexBytes += Number(result.loaded.bytes || 0);
-              if (result.cacheStatus === 'hit-cloned') {
-          """
-          loop_replacement = """    staticIndexBytes += Number(result.loaded.bytes || 0);
-              rawRowCount += Number(result.loaded.rowCount || 0);
-              decodedRowCount += Number(result.loaded.decodedRowCount ?? result.loaded.records.length ?? 0);
-              rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);
-              if (result.cacheStatus === 'hit-cloned') {
-          """
-          if loop_anchor in text:
-              text = text.replace(loop_anchor, loop_replacement, 1)
-          elif 'rawRowCount += Number(result.loaded.rowCount || 0);' not in text:
-              raise SystemExit('loader aggregate loop anchor not found')
-
-          stats_anchor = """      loadedRecordCount: records.length,
-                staticIndexBytes,
-          """
-          stats_replacement = """      loadedRecordCount: records.length,
-                decodedRowCount,
-                rawRowCount,
-                rankRowsSkipped,
-                rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-                staticIndexBytes,
-          """
-          if stats_anchor in text:
-              text = text.replace(stats_anchor, stats_replacement, 1)
-          elif 'decodedRowCount,' not in text:
-              raise SystemExit('loader result stats anchor not found')
-
-          cache_state_anchor = """    requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
-              size: bucketCache.size,
-          """
-          cache_state_replacement = """    requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
-              rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-              size: bucketCache.size,
-          """
-          if cache_state_anchor in text:
-              text = text.replace(cache_state_anchor, cache_state_replacement, 1)
-          elif 'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in text:
-              raise SystemExit('loader cache state anchor not found')
-          loader.write_text(text, encoding='utf-8')
-
-          api = Path('functions/api/major-bands.js')
-          text = api.read_text(encoding='utf-8')
-          import_anchor = """  MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
-            MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
-            loadMajorBandsRankWindow
-          """
-          import_replacement = """  MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
-            MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
-            MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-            loadMajorBandsRankWindow
-          """
-          if import_anchor in text:
-              text = text.replace(import_anchor, import_replacement, 1)
-          elif 'MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in text:
-              raise SystemExit('API loader import anchor not found')
-
-          all_source_anchor = """      rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
-                rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
-          """
-          all_source_replacement = """      rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
-                rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-                rankRawRowCount: numericSum(payloads, ['source', 'rankRawRowCount']),
-                rankDecodedRowCount: numericSum(payloads, ['source', 'rankDecodedRowCount']),
-                rankRowsSkipped: numericSum(payloads, ['source', 'rankRowsSkipped']),
-                rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
-          """
-          if all_source_anchor in text:
-              text = text.replace(all_source_anchor, all_source_replacement, 1)
-          elif "rankRowsSkipped: numericSum(payloads, ['source', 'rankRowsSkipped'])" not in text:
-              raise SystemExit('API all-band source anchor not found')
-
-          source_anchor = """        rankBucketCacheMisses: loadedStats.cacheMisses,
-                  rankBucketConcurrency: loadedStats.peakConcurrency,
-          """
-          source_replacement = """        rankBucketCacheMisses: loadedStats.cacheMisses,
-                  rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-                  rankRawRowCount: loadedStats.rawRowCount,
-                  rankDecodedRowCount: loadedStats.decodedRowCount,
-                  rankRowsSkipped: loadedStats.rankRowsSkipped,
-                  rankBucketConcurrency: loadedStats.peakConcurrency,
-          """
-          if source_anchor in text:
-              text = text.replace(source_anchor, source_replacement, 1)
-          elif 'rankRowsSkipped: loadedStats.rankRowsSkipped' not in text:
-              raise SystemExit('API requested-band source anchor not found')
-          api.write_text(text, encoding='utf-8')
-
-          audit = Path('tools/audit-major-bands-rank-kernel-v3990_0.mjs')
-          text = audit.read_text(encoding='utf-8')
-          import_anchor = """import { processMajorBandsRankWindow } from '../functions/_lib/major-bands-rank-query-kernel.v3990_0.js';
-          """
-          import_addition = """import {
-            MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-            majorBandsRankValueMatchesRange
-          } from '../functions/_lib/major-bands-static-provider.js';
-          import {
-            scopeMajorBandsRankBucketsForRequest
-          } from '../functions/_lib/major-bands-rank-bucket-loader.v3990_0.js';
-          """
-          if 'majorBandsRankValueMatchesRange' not in text:
-              text = text.replace(import_anchor, import_anchor + import_addition, 1)
-
-          summary_anchor = """  maxSelectedBuckets: 0,
-            presetBucketCounts: Object.fromEntries(presets.map(preset => [preset, { min: Infinity, max: 0, queries: 0 }])),
-          """
-          summary_replacement = """  maxSelectedBuckets: 0,
-            rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-            rankRowFilterCases: 0,
-            rankRowFilterRawRows: 0,
-            rankRowFilterDecodedRows: 0,
-            rankRowFilterSkippedRows: 0,
-            rankRowFilterMaxRawRows: 0,
-            rankRowFilterMaxDecodedRows: 0,
-            rankRowFilterWorstCase: null,
-            presetBucketCounts: Object.fromEntries(presets.map(preset => [preset, { min: Infinity, max: 0, queries: 0 }])),
-          """
-          if summary_anchor in text:
-              text = text.replace(summary_anchor, summary_replacement, 1)
-          elif 'rankRowFilterCases: 0' not in text:
-              raise SystemExit('rank audit summary anchor not found')
-
-          truth_anchor = """    const truth = setOf([...truthByBand.upper, ...truthByBand.near, ...truthByBand.steady]);
-              const recalled = setOf(query.records.filter(record => {
-          """
-          row_filter_block = """    const truth = setOf([...truthByBand.upper, ...truthByBand.near, ...truthByBand.steady]);
-              for (const band of ['upper', 'near', 'steady']) {
-                const scoped = scopeMajorBandsRankBucketsForRequest(query.selected, {
-                  candidateScore: score,
-                  rangePreset: preset,
-                  band
-                });
-                const rawScopedRecords = selectedRecords(scoped.buckets);
-                const filteredRecords = rawScopedRecords.filter(record => (
-                  majorBandsRankValueMatchesRange(record.rank2026, query.windows[band])
-                ));
-                assertEqualSets(
-                  setOf(filteredRecords),
-                  setOf(truthByBand[band]),
-                  `${score}/${preset}/${band}: predecode rank-row filter truth`
-                );
-                summary.rankRowFilterCases += 1;
-                summary.rankRowFilterRawRows += rawScopedRecords.length;
-                summary.rankRowFilterDecodedRows += filteredRecords.length;
-                summary.rankRowFilterSkippedRows += rawScopedRecords.length - filteredRecords.length;
-                summary.rankRowFilterMaxRawRows = Math.max(summary.rankRowFilterMaxRawRows, rawScopedRecords.length);
-                summary.rankRowFilterMaxDecodedRows = Math.max(summary.rankRowFilterMaxDecodedRows, filteredRecords.length);
-                if (score === 358 && preset === 'safe' && band === 'upper') {
-                  summary.rankRowFilterWorstCase = {
-                    score,
-                    preset,
-                    band,
-                    scopedBuckets: scoped.buckets.length,
-                    rawRows: rawScopedRecords.length,
-                    decodedRows: filteredRecords.length,
-                    skippedRows: rawScopedRecords.length - filteredRecords.length
-                  };
-                }
-              }
-              const recalled = setOf(query.records.filter(record => {
-          """
-          if truth_anchor in text:
-              text = text.replace(truth_anchor, row_filter_block, 1)
-          elif 'predecode rank-row filter truth' not in text:
-              raise SystemExit('rank audit truth anchor not found')
-
-          final_anchor = """assert.equal(summary.kernelSetEqualQueries, summary.rankQueries);
-            assert.ok(summary.highBoundary.every(item => item.status === 200 && item.count === 0));
-          """
-          final_replacement = """assert.equal(summary.kernelSetEqualQueries, summary.rankQueries);
-            assert.equal(summary.rankRowFilterCases, summary.rankQueries * 3);
-            assert.equal(summary.rankRowFilterRawRows, summary.rankRowFilterDecodedRows + summary.rankRowFilterSkippedRows);
-            assert.ok(summary.rankRowFilterSkippedRows > 0);
-            assert.ok(summary.rankRowFilterWorstCase);
-            assert.ok(summary.rankRowFilterWorstCase.skippedRows > 0);
-            assert.ok(summary.highBoundary.every(item => item.status === 200 && item.count === 0));
-          """
-          if final_anchor in text:
-              text = text.replace(final_anchor, final_replacement, 1)
-          elif 'summary.rankRowFilterCases' not in text:
-              raise SystemExit('rank audit final assertions anchor not found')
-
-          source_anchor = """const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
-          """
-          source_checks = """const staticProviderSource = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
-          for (const required of [
-            "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'",
-            "const rankIndex = schema.indexOf('rank2026')",
-            'payload.rows.filter(row => majorBandsRankValueMatchesRange',
-            'rankRowsSkipped: payload.rows.length - selectedRows.length'
-          ]) assert.ok(staticProviderSource.includes(required), `predecode rank-row filter missing ${required}`);
-          const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
-          for (const required of [
-            'function bucketReadKey',
-            'rankRange: scope.requestedRange',
-            'const MAX_LOAD_CONCURRENCY = 1',
-            'const ALL_BANDS_LOAD_CONCURRENCY = 1'
-          ]) assert.ok(bucketLoaderSource.includes(required), `bounded rank-row loader missing ${required}`);
-
-          const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
-          """
-          if source_anchor in text:
-              text = text.replace(source_anchor, source_checks, 1)
-          elif 'const staticProviderSource =' not in text:
-              raise SystemExit('rank audit source check anchor not found')
-          audit.write_text(text, encoding='utf-8')
-
-          verifier = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
-          text = verifier.read_text(encoding='utf-8')
-          expected_anchor = "const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';"
-          expected_line = "const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';"
-          if expected_line not in text:
-              text = text.replace(expected_anchor, expected_anchor + '\n' + expected_line, 1)
-          validate_anchor = """  assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
-          """
-          validate_addition = """  assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
-            assert.equal(result.payload?.source?.rankRowFilterVersion, expectedRankRowFilterVersion, `${result.scenario}: predecode rank-row filter`);
-            assert.ok(Number(result.payload?.source?.rankRawRowCount || 0) >= Number(result.payload?.source?.rankDecodedRowCount || 0), `${result.scenario}: decoded rows exceed raw rows`);
-            assert.equal(
-              Number(result.payload?.source?.rankRawRowCount || 0),
-              Number(result.payload?.source?.rankDecodedRowCount || 0) + Number(result.payload?.source?.rankRowsSkipped || 0),
-              `${result.scenario}: rank-row filter accounting`
-            );
-          """
-          if validate_anchor in text:
-              text = text.replace(validate_anchor, validate_addition, 1)
-          elif 'predecode rank-row filter' not in text:
-              raise SystemExit('concurrency verifier loader validation anchor not found')
-          text = text.replace('<= 2, `${result.scenario}: all-band bucket concurrency exceeded two`', '<= 1, `${result.scenario}: all-band bucket concurrency exceeded one`')
-          text = text.replace('<= 2, `${result.scenario}: requested-band bucket concurrency exceeded two`', '<= 1, `${result.scenario}: requested-band bucket concurrency exceeded one`')
-          text = text.replace('  allBandBucketMaxConcurrency: 2,', '  allBandBucketMaxConcurrency: 1,')
-          text = text.replace('  requestedBandBucketMaxConcurrency: 2,', '  requestedBandBucketMaxConcurrency: 1,')
-          evidence_anchor = "  bucketLoaderVersion: expectedBucketLoaderVersion,"
-          evidence_addition = "  rankRowFilterVersion: expectedRankRowFilterVersion,"
-          if evidence_addition not in text:
-              text = text.replace(evidence_anchor, evidence_anchor + '\n' + evidence_addition, 1)
-          verifier.write_text(text, encoding='utf-8')
-
-          query_audit = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
-          text = query_audit.read_text(encoding='utf-8')
-          required_anchor = "  'allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION',"
-          additions = """  'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
-            'rankRowsSkipped: loadedStats.rankRowsSkipped',
-          """
-          if "'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION'" not in text:
-              text = text.replace(required_anchor, required_anchor + '\n' + additions, 1)
-          query_audit.write_text(text, encoding='utf-8')
-
           patch_dir = Path('tools/.workflow-contract-patches-v3990')
-          patch_dir.mkdir(parents=True, exist_ok=True)
-          names = [
+          expected = {
               'verify-major-bands-bounded-fanout-v3972_5.yml',
               'verify-production-api-health-v3971.yml',
               'verify-production-resource-graph-v3972_6.yml'
-          ]
-          for name in names:
-              source = Path('.github/workflows') / name
-              workflow = source.read_text(encoding='utf-8')
-              workflow = workflow.replace('MAX_LOAD_CONCURRENCY = 2', 'MAX_LOAD_CONCURRENCY = 1')
-              workflow = workflow.replace('ALL_BANDS_LOAD_CONCURRENCY = 2', 'ALL_BANDS_LOAD_CONCURRENCY = 1')
-              if name == 'verify-major-bands-bounded-fanout-v3972_5.yml':
-                  grep_anchor = "          grep -q \"MAX_CONCURRENT_EXECUTIONS = 1\" functions/_lib/major-bands-query-execution-cache.v3990_0.js"
-                  extra = """          grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
-          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js"""
-                  if 'MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in workflow:
-                      workflow = workflow.replace(grep_anchor, grep_anchor + '\n' + extra, 1)
-              if name == 'verify-production-api-health-v3971.yml':
-                  grep_anchor = "          grep -q \"MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-single-heavy-v3990_0'\" functions/_lib/major-bands-query-execution-cache.v3990_0.js"
-                  extra = """          grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
-          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js"""
-                  if 'MAJOR_BANDS_RANK_ROW_FILTER_VERSION' not in workflow:
-                      workflow = workflow.replace(grep_anchor, grep_anchor + '\n' + extra, 1)
-              (patch_dir / name).write_text(workflow, encoding='utf-8')
+          }
+          actual = {path.name for path in patch_dir.glob('*.yml')}
+          if actual != expected:
+              raise SystemExit(f'unexpected staged workflows: {sorted(actual)}')
+
+          for path in patch_dir.glob('*.yml'):
+              lines = path.read_text(encoding='utf-8').splitlines()
+              fixed = []
+              for line in lines:
+                  if line.startswith('grep -q "'):
+                      line = '          ' + line
+                  fixed.append(line)
+              path.write_text('\n'.join(fixed) + '\n', encoding='utf-8')
           PY
 
           node --check functions/_lib/major-bands-static-provider.js
@@ -473,6 +73,10 @@ jobs:
             node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_0.mjs
           for file in tools/.workflow-contract-patches-v3990/*.yml; do
             ruby -e "require 'yaml'; YAML.parse_file(ARGV[0])" "$file"
+            if grep -n '^grep -q ' "$file"; then
+              echo "unindented staged command remains: $file"
+              exit 1
+            fi
           done
 
       - name: Verify worst-case API and complete local concurrency
@@ -484,7 +88,10 @@ jobs:
           trap 'kill $server' EXIT
           ready=0
           for attempt in $(seq 1 60); do
-            if curl -fsS 'http://127.0.0.1:8796/api/major-bands?candidateScore=358&rangePreset=safe&band=upper&limit=37&offset=0' >/tmp/v3990-row-filter-worst.json; then ready=1; break; fi
+            if curl -fsS 'http://127.0.0.1:8796/api/major-bands?candidateScore=358&rangePreset=safe&band=upper&limit=37&offset=0' >/tmp/v3990-row-filter-worst.json; then
+              ready=1
+              break
+            fi
             sleep 1
           done
           test "$ready" -eq 1
