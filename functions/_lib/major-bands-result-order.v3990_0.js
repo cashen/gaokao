@@ -1,5 +1,8 @@
+import { STAGED_RANKING_VERSION } from '../../shared/algorithms/ranking/staged-ranking.v3960_0.js';
+
 export const MAJOR_BANDS_RESULT_ORDER_VERSION = 'major-bands-result-order-ephemeral-v3990_0';
 export const MAJOR_BANDS_RANKING_MEMORY_MODE = 'ephemeral-compact-tuples-v3990_0';
+export const MAJOR_BANDS_MINIMAL_RANKING_TRACE = Object.freeze({ version: STAGED_RANKING_VERSION });
 
 const MATCH_TIER = Object.freeze({ exact: 50, related: 40, project: 30, industry: 20, weak: 10, '': 0 });
 const EVIDENCE_TIER = Object.freeze({ strong: 30, medium: 20, weak: 10 });
@@ -42,6 +45,15 @@ function compareWithTuples(left, right, tuples) {
     || leftTuple[5].localeCompare(rightTuple[5], 'zh-Hans-CN');
 }
 
+function attachMinimalRankingTrace(record) {
+  Object.defineProperty(record, 'rankingTrace', {
+    value: MAJOR_BANDS_MINIMAL_RANKING_TRACE,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
+}
+
 function diversifyWithoutRecordCopies(records = [], options = {}) {
   const list = Array.isArray(records) ? records : [];
   const enabled = options.enabled !== false;
@@ -68,7 +80,10 @@ function diversifyWithoutRecordCopies(records = [], options = {}) {
 export function rankMajorBandsRecordsOnce(records = [], options = {}) {
   const ranked = Array.isArray(records) ? records : [];
   const tuples = new WeakMap();
-  for (const record of ranked) tuples.set(record, compactRankingTuple(record, options));
+  for (const record of ranked) {
+    tuples.set(record, compactRankingTuple(record, options));
+    attachMinimalRankingTrace(record);
+  }
   ranked.sort((left, right) => compareWithTuples(left, right, tuples));
   return diversifyWithoutRecordCopies(ranked, {
     enabled: options.diversify !== false,
