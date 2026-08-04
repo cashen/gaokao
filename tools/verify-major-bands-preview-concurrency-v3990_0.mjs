@@ -19,6 +19,8 @@ const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 const expectedQueryMemoryMode = 'request-band-in-place-v3990_0';
+const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
+const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -117,6 +119,7 @@ function validatePaginationGroup(result, band) {
   const group = result.payload?.bands?.[band];
   assert.ok(group, `${result.scenario}: missing ${band} band`);
   assert.ok(group.pagination?.snapshot, `${result.scenario}/${band}: missing snapshot`);
+  assert.equal(group.pagination?.order, expectedResultOrderVersion, `${result.scenario}/${band}: result order deployment`);
   if (group.pagination?.hasMore) {
     assert.ok(Number(group.pagination.nextOffset) > Number(group.pagination.offset), `${result.scenario}/${band}: nextOffset not strict`);
   } else {
@@ -135,6 +138,7 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
   assert.ok(['miss', 'singleflight-hit', 'serialized-compact-hit'].includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
+  assert.equal(result.payload?.source?.resultOrderVersion, expectedResultOrderVersion, `${result.scenario}: ephemeral result order`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
@@ -279,6 +283,8 @@ const evidence = {
   executionGateVersion: expectedExecutionGateVersion,
   executionGateMode: expectedExecutionGateMode,
   queryMemoryMode: expectedQueryMemoryMode,
+  resultOrderVersion: expectedResultOrderVersion,
+  rankingMemoryMode: expectedRankingMemoryMode,
   requestedBandFastPath: 'target-band-only-in-place',
   maxConcurrentExecutions: 2,
   bucketLoaderVersion: expectedBucketLoaderVersion,
