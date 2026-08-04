@@ -16,13 +16,29 @@ const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 250
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
 const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-v3990_0';
 
-const scenarios = Object.freeze([
+const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-near', path: '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'standard-508-near', path: '/api/major-bands?candidateScore=508&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'wide-680-steady', path: '/api/major-bands?candidateScore=680&rangePreset=wide&band=steady&limit=37&offset=0', band: 'steady' }),
   Object.freeze({ name: 'safe-449-near', path: '/api/major-bands?candidateScore=449&rangePreset=safe&band=near&limit=37&offset=0', band: 'near' }),
   Object.freeze({ name: 'high-750-empty', path: '/api/major-bands?candidateScore=750&rangePreset=wide&band=near&limit=37&offset=0', band: 'near', empty: true })
 ]);
+
+const availableScoreCount = 365;
+const presets = Object.freeze(['standard', 'wide', 'safe']);
+const bands = Object.freeze(['upper', 'near', 'steady']);
+
+function distinctScenario(ordinal) {
+  const score = 344 + ((ordinal * 7) % availableScoreCount);
+  const preset = presets[ordinal % presets.length];
+  const band = bands[Math.floor(ordinal / presets.length) % bands.length];
+  return Object.freeze({
+    name: `distinct-${ordinal}-${score}-${preset}-${band}`,
+    path: `/api/major-bands?candidateScore=${score}&rangePreset=${preset}&band=${band}&limit=37&offset=0`,
+    band,
+    distinctIdentity: true
+  });
+}
 
 function percentile(values, fraction) {
   const ordered = [...values].sort((left, right) => left - right);
@@ -54,7 +70,17 @@ async function requestScenario(scenario, token) {
     });
     text = await response.text();
   } catch (error) {
-    return { scenario: scenario.name, url, status: 0, elapsedMs: performance.now() - started, error: String(error?.message || error), cloudflare1102: false };
+    return {
+      scenario: scenario.name,
+      band: scenario.band,
+      empty: Boolean(scenario.empty),
+      distinctIdentity: Boolean(scenario.distinctIdentity),
+      url,
+      status: 0,
+      elapsedMs: performance.now() - started,
+      error: String(error?.message || error),
+      cloudflare1102: false
+    };
   }
   const elapsedMs = performance.now() - started;
   const lower = text.toLowerCase();
@@ -67,6 +93,9 @@ async function requestScenario(scenario, token) {
   } catch {}
   return {
     scenario: scenario.name,
+    band: scenario.band,
+    empty: Boolean(scenario.empty),
+    distinctIdentity: Boolean(scenario.distinctIdentity),
     url,
     status: response.status,
     elapsedMs,
@@ -86,8 +115,7 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
-  const scenario = scenarios.find(item => item.name === result.scenario);
-  const group = result.payload?.bands?.[scenario.band];
+  const group = result.payload?.bands?.[result.band];
   assert.ok(group, `${result.scenario}: missing band`);
   assert.ok(group.pagination?.snapshot, `${result.scenario}: missing snapshot`);
   if (group.pagination?.hasMore) {
@@ -95,27 +123,33 @@ function validateResult(result) {
   } else {
     assert.equal(group.pagination?.nextOffset, null, `${result.scenario}: terminal nextOffset`);
   }
-  if (scenario.empty) {
+  if (result.empty) {
     assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');
     assert.equal(Number(result.payload.counts?.total || 0), 0);
     assert.equal(Number(group.count || 0), 0);
   }
 }
 
-async function runConcurrent(level, sampleCount) {
+async function runConcurrent(level, sampleCount, mode) {
   const results = [];
   let launched = 0;
   while (launched < sampleCount) {
     const batchSize = Math.min(level, sampleCount - launched);
     const batch = Array.from({ length: batchSize }, (_, index) => {
       const ordinal = launched + index;
-      const scenario = scenarios[ordinal % scenarios.length];
-      return requestScenario(scenario, `v3990-${level}-${ordinal}-${Date.now()}`);
+      const scenario = mode === 'distinct-identities'
+        ? distinctScenario(ordinal)
+        : sharedScenarios[ordinal % sharedScenarios.length];
+      return requestScenario(scenario, `v3990-${mode}-${level}-${ordinal}-${Date.now()}`);
     });
     results.push(...await Promise.all(batch));
     launched += batchSize;
   }
   results.forEach(validateResult);
+  if (mode === 'distinct-identities') {
+    const identities = new Set(results.map(result => result.scenario));
+    assert.equal(identities.size, results.length, `concurrency ${level}: distinct query identities collapsed in test generator`);
+  }
   return results;
 }
 
@@ -156,44 +190,50 @@ async function exhaustPagination(scenario) {
 }
 
 const cold = [];
-for (let index = 0; index < scenarios.length; index += 1) {
-  const result = await requestScenario(scenarios[index], `cold-${index}-${Date.now()}`);
+for (let index = 0; index < sharedScenarios.length; index += 1) {
+  const result = await requestScenario(sharedScenarios[index], `cold-${index}-${Date.now()}`);
   validateResult(result);
   assert.ok(result.elapsedMs <= coldHardMs, `${result.scenario}: cold hard latency ${result.elapsedMs.toFixed(1)}ms`);
   cold.push(result.elapsedMs);
 }
 
 for (let round = 0; round < 3; round += 1) {
-  for (let index = 0; index < scenarios.length; index += 1) {
-    validateResult(await requestScenario(scenarios[index], `warm-${round}-${index}`));
+  for (let index = 0; index < sharedScenarios.length; index += 1) {
+    validateResult(await requestScenario(sharedScenarios[index], `warm-${round}-${index}`));
   }
 }
 
-const concurrency = [];
-let totalRequests = cold.length + scenarios.length * 3;
-for (const level of levels) {
-  const sampleCount = Math.max(20, level * waves);
-  const results = await runConcurrent(level, sampleCount);
-  const latencies = results.map(result => result.elapsedMs);
-  const latency = summary(latencies);
-  assert.ok(latency.p95Ms <= p95LimitMs, `concurrency ${level}: p95 ${latency.p95Ms}ms`);
-  assert.ok(latency.p99Ms <= p99LimitMs, `concurrency ${level}: p99 ${latency.p99Ms}ms`);
-  concurrency.push({
-    level,
-    latency,
-    status5xx: results.filter(result => result.status >= 500).length,
-    cloudflare1102: results.filter(result => result.cloudflare1102).length
-  });
-  totalRequests += results.length;
+const concurrencyModes = ['shared-identities', 'distinct-identities'];
+const concurrency = Object.fromEntries(concurrencyModes.map(mode => [mode, []]));
+let totalRequests = cold.length + sharedScenarios.length * 3;
+for (const mode of concurrencyModes) {
+  for (const level of levels) {
+    const sampleCount = Math.max(20, level * waves);
+    const results = await runConcurrent(level, sampleCount, mode);
+    const latencies = results.map(result => result.elapsedMs);
+    const latency = summary(latencies);
+    assert.ok(latency.p95Ms <= p95LimitMs, `${mode} concurrency ${level}: p95 ${latency.p95Ms}ms`);
+    assert.ok(latency.p99Ms <= p99LimitMs, `${mode} concurrency ${level}: p99 ${latency.p99Ms}ms`);
+    concurrency[mode].push({
+      level,
+      identities: new Set(results.map(result => result.scenario)).size,
+      latency,
+      status5xx: results.filter(result => result.status >= 500).length,
+      cloudflare1102: results.filter(result => result.cloudflare1102).length
+    });
+    totalRequests += results.length;
+  }
 }
 
 const pagination = [];
-for (const scenario of scenarios) pagination.push(await exhaustPagination(scenario));
+for (const scenario of sharedScenarios) pagination.push(await exhaustPagination(scenario));
 totalRequests += pagination.reduce((sum, item) => sum + item.requests, 0);
 
+const allConcurrencyEvidence = concurrencyModes.flatMap(mode => concurrency[mode]);
 const evidence = {
   version: 'major-bands-real-concurrency-v3990_0',
   queryExecutionCacheVersion: expectedQueryCacheVersion,
+  concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
   base,
   levels,
   waves,
@@ -202,10 +242,13 @@ const evidence = {
   concurrency,
   pagination,
   totalRequests,
-  status5xx: concurrency.reduce((sum, item) => sum + item.status5xx, 0),
-  cloudflare1102: concurrency.reduce((sum, item) => sum + item.cloudflare1102, 0)
+  status5xx: allConcurrencyEvidence.reduce((sum, item) => sum + item.status5xx, 0),
+  cloudflare1102: allConcurrencyEvidence.reduce((sum, item) => sum + item.cloudflare1102, 0)
 };
 assert.equal(evidence.status5xx, 0);
 assert.equal(evidence.cloudflare1102, 0);
+for (const item of concurrency['distinct-identities']) {
+  assert.equal(item.identities, Math.max(20, item.level * waves), `distinct concurrency ${item.level}: identity coverage`);
+}
 fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2));
 console.log(JSON.stringify(evidence, null, 2));
