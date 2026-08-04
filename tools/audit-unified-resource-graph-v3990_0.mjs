@@ -34,6 +34,7 @@ const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 const requirePaths = (label, values) => {
   for (const value of values) assert.ok(exists(value), `${label} references missing resource: ${value}`);
 };
+const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js?v=3990_0';
 
 assert.equal(CURRENT_RELEASE.display, 'v3.9.90.0');
 assert.equal(CURRENT_RELEASE.assetVersion, 'v3990_0');
@@ -180,7 +181,14 @@ assert.equal(manifest.resourceGraph.cssVersion, CURRENT_RELEASE.cssResourceGraph
 assert.equal(manifest.resourceGraph.dataVersion, CURRENT_RELEASE.dataResourceGraphVersion);
 assert.equal(manifest.resourceGraph.decommissionPolicyVersion, CURRENT_RELEASE.resourceDecommissionPolicyVersion);
 assert.equal(manifest.interactionContract.owner, CURRENT_RELEASE.resourceOwners.nativeChooserActivation);
+assert.deepEqual(manifest.currentGenerationInternalModules, {
+  majorBandsPaginationSnapshotGuard: PAGINATION_SNAPSHOT_GUARD_PATH
+});
+requirePaths('current internal module graph', Object.values(manifest.currentGenerationInternalModules));
 assert.ok(manifest.policies.currentAndStableEntrypointsSeparated);
+assert.ok(manifest.policies.currentInternalModulesDeclared);
+assert.ok(manifest.policies.majorBandsBrowserSnapshotGuardBounded);
+assert.ok(manifest.policies.majorBandsBrowserSnapshotMismatchRejectedBeforeMerge);
 assert.ok(manifest.policies.nativeChooserPreActivationDomMutationForbidden);
 assert.ok(manifest.policies.nativeChooserSinglePhysicalEventFamily);
 assert.ok(manifest.policies.nativeChooserTailGuardAfterOutcomeOnly);
@@ -195,9 +203,11 @@ console.log(JSON.stringify({
   cssGraph: UI_CSS_RESOURCE_GRAPH_VERSION,
   dataGraph: DATA_RESOURCE_GRAPH_VERSION,
   currentUiResources: Object.values(UI_ACTIVE_RESOURCE_CLASSIFICATIONS).filter(value => value === 'current-generation').length,
+  currentInternalModules: Object.keys(manifest.currentGenerationInternalModules).length,
   declaredStableActiveUiResources: Object.values(UI_ACTIVE_RESOURCE_CLASSIFICATIONS).filter(value => value === 'declared-stable-dependency').length,
   stableUiResources: Object.keys(UI_STABLE_RESOURCE_REGISTRY).length,
   components: Object.keys(UI_COMPONENT_REGISTRY).length,
   algorithms: Object.keys(ALGORITHM_RESOURCE_REGISTRY).length,
-  nativeChooserActivationOwner: CURRENT_RELEASE.resourceOwners.nativeChooserActivation
+  nativeChooserActivationOwner: CURRENT_RELEASE.resourceOwners.nativeChooserActivation,
+  majorBandsPaginationSnapshotGuard: manifest.currentGenerationInternalModules.majorBandsPaginationSnapshotGuard
 }, null, 2));
