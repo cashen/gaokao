@@ -14,6 +14,7 @@ const p95LimitMs = Math.max(1000, Number(process.env.P95_LIMIT_MS || 8000));
 const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000));
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
+const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-v3990_0';
 
 const scenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-near', path: '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),
@@ -81,7 +82,7 @@ function validateResult(result) {
   assert.ok(result.elapsedMs <= hardLimitMs, `${result.scenario}: hard latency ${result.elapsedMs.toFixed(1)}ms`);
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
-  assert.equal(result.payload?.source?.queryExecutionCacheVersion, 'major-bands-query-execution-cache-v3990_0', `${result.scenario}: query execution cache`);
+  assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
@@ -192,6 +193,7 @@ totalRequests += pagination.reduce((sum, item) => sum + item.requests, 0);
 
 const evidence = {
   version: 'major-bands-real-concurrency-v3990_0',
+  queryExecutionCacheVersion: expectedQueryCacheVersion,
   base,
   levels,
   waves,
