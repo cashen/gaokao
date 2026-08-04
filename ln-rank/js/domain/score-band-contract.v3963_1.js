@@ -96,7 +96,15 @@ function normalizePagination(raw = {}, records = []) {
   const nextOffset = hasMore && Number.isFinite(Number(source.nextOffset))
     ? Math.max(offset + returned, Math.floor(Number(source.nextOffset)))
     : null;
-  return { offset, limit, returned, hasMore, nextOffset, order: String(source.order || '') };
+  return {
+    offset,
+    limit,
+    returned,
+    hasMore,
+    nextOffset,
+    order: String(source.order || ''),
+    snapshot: String(source.snapshot || '')
+  };
 }
 
 export function normalizeScoreBand(rawBand = {}, context = {}) {
