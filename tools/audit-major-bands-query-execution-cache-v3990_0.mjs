@@ -86,13 +86,24 @@ assert.ok(afterDistinct.completedRecords <= afterDistinct.maxCompletedRecords);
 assert.ok(afterDistinct.completedEstimatedBytes <= afterDistinct.maxCompletedEstimatedBytes);
 assert.equal(afterDistinct.crossRequestSemaphore, false);
 assert.equal(afterDistinct.serializedSnapshotOnly, true);
+assert.equal(afterDistinct.preflightBudgetBeforeSerialization, true);
 assert.equal(afterDistinct.mode, MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE);
 
-await executeMajorBandsQueryOnce('oversized-record-query', async () => compactValue(7000, 'oversized-records', 900_000));
+const oversizedRecordValue = compactValue(7000, 'oversized-records', 900_000);
+oversizedRecordValue.toJSON = () => {
+  throw new Error('record-over-budget value was serialized before rejection');
+};
+const oversizedRecordResult = await executeMajorBandsQueryOnce('oversized-record-query', async () => oversizedRecordValue);
+assert.equal(oversizedRecordResult.value, oversizedRecordValue, 'executor value changed while record-over-budget retention was rejected');
 let state = majorBandsQueryExecutionCacheState();
 assert.equal(state.completed, 0, 'record-over-budget query entered completed cache');
 
-await executeMajorBandsQueryOnce('oversized-byte-query', async () => compactValue(1000, 'oversized-bytes', 2_100_000));
+const oversizedByteValue = compactValue(1000, 'oversized-bytes', 2_100_000);
+oversizedByteValue.toJSON = () => {
+  throw new Error('byte-over-budget value was serialized before rejection');
+};
+const oversizedByteResult = await executeMajorBandsQueryOnce('oversized-byte-query', async () => oversizedByteValue);
+assert.equal(oversizedByteResult.value, oversizedByteValue, 'executor value changed while byte-over-budget retention was rejected');
 state = majorBandsQueryExecutionCacheState();
 assert.equal(state.completed, 0, 'byte-over-budget query entered completed cache');
 assert.equal(state.completedRecords, 0);
@@ -102,6 +113,7 @@ assert.equal(state.maxCompletedQueries, 1);
 assert.equal(state.maxCompletedRecords, 6000);
 assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
 assert.equal(state.completedTtlMs, 30_000);
+assert.equal(state.preflightBudgetBeforeSerialization, true);
 assert.equal(state.version, 'major-bands-query-execution-cache-serialized-v3990_0');
 
 console.log(JSON.stringify({
@@ -118,5 +130,6 @@ console.log(JSON.stringify({
   retainedAfterDistinct: afterDistinct.completed,
   completedRetentionEnabled: state.completedRetentionEnabled,
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
+  preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
