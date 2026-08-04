@@ -68,12 +68,19 @@ jobs:
           grep -q "processMajorBandsRankWindow" functions/api/major-bands.js
           grep -q "publicHttpSelfFanout: false" functions/api/major-bands.js
           grep -q "bucketWorkerCount: 0" functions/api/major-bands.js
-          grep -q "MAX_LOAD_CONCURRENCY = 4" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAX_LOAD_CONCURRENCY = 2" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "ALL_BANDS_LOAD_CONCURRENCY = 2" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "cloneLoadedForSharedQuery" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "attachRecordExecutionContext" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "majorBandsMutateSourceRecords" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAX_CACHED_BYTES = 900_000" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "singleflight-only" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'stream-unfiltered-candidates-v3990_0'" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0'" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "records?.majorBandsRequestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "const record = mutateSourceRecords ? source : { ...source }" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "const sortKeys = requestedBand ? \[requestedBand\] : BAND_KEYS" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
@@ -118,7 +125,7 @@ jobs:
           if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
           if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
           if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
-          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryMemory:'stream-unfiltered-candidates-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-serialized-request-timer-v3990_0',bucketLoader:'major-bands-rank-bucket-loader-bounded-all-band-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
+          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryMemory:'request-band-in-place-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-serialized-request-timer-v3990_0',bucketLoader:'major-bands-rank-bucket-loader-bounded-all-band-v3990_0',recordOwnership:'miss-owned-hit-shallow-cloned-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
           NODE
 
       - name: Verify local Wrangler concurrent resource journey
@@ -187,6 +194,9 @@ jobs:
               && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
               && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-request-timer-v3990_0"' <<<"$api" \
               && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$api" \
+              && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$api" \
+              && grep -q '"sortPasses":1' <<<"$api" \
+              && grep -q '"rankBucketMaxConcurrency":2' <<<"$api" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$api"; then
               ready=1
               break
