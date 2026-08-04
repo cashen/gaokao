@@ -1,13 +1,20 @@
 import { loadMajorBandsStaticRankBucket } from './major-bands-static-provider.js';
+import { lookupScoreRank, getRankPopulation } from './rank-table-provider.js';
+import {
+  normalizePositionPreset,
+  rankWindowsForCandidate
+} from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 
 export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
+export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
 
 const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
 const MAX_RETAINED_QUERY_BUCKETS = 12;
 const COMPLETED_BUCKET_RETENTION_ENABLED = false;
 const MAX_LOAD_CONCURRENCY = 4;
+const REQUEST_BANDS = new Set(['upper', 'near', 'steady']);
 const bucketCache = new Map();
 let accessClock = 0;
 
@@ -21,6 +28,86 @@ function completedCacheBytes() {
     if (!entry.pending) bytes += Number(entry.bytes || 0);
   }
   return bytes;
+}
+
+function overlaps(bucket, range) {
+  return Number(bucket?.minRank) <= Number(range?.maxRank)
+    && Number(bucket?.maxRank) >= Number(range?.minRank);
+}
+
+function rankContextForRequestScore(candidateScore) {
+  const row = lookupScoreRank({
+    year: 2026,
+    region: 'ln',
+    subject: 'physics',
+    score: candidateScore
+  });
+  if (!row) return null;
+  const rankForGap = Number(row.rankForGap ?? row.rankEnd ?? row.cumulative);
+  return Number.isFinite(rankForGap) && rankForGap > 0 ? rankForGap : null;
+}
+
+export function scopeMajorBandsRankBucketsForRequest(selectedBuckets = [], input = {}) {
+  const buckets = Array.isArray(selectedBuckets) ? selectedBuckets : [];
+  const requestedBand = String(input.band || '').trim();
+  if (!REQUEST_BANDS.has(requestedBand)) {
+    return Object.freeze({
+      version: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
+      requestedBand: '',
+      mode: 'all-bands-union',
+      candidateBucketCount: buckets.length,
+      buckets
+    });
+  }
+
+  const candidateScore = Math.round(Number(input.candidateScore));
+  const candidateRank = rankContextForRequestScore(candidateScore);
+  const totalRank = getRankPopulation({
+    year: 2026,
+    region: 'ln',
+    subject: 'physics',
+    policy: 'table-total'
+  });
+  const rangePreset = normalizePositionPreset(input.rangePreset || 'standard');
+  const rankWindows = rankWindowsForCandidate(candidateRank, rangePreset, totalRank);
+  const requestedRange = rankWindows?.[requestedBand] || null;
+  const scoped = requestedRange
+    ? buckets.filter(bucket => overlaps(bucket, requestedRange))
+    : [];
+
+  return Object.freeze({
+    version: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
+    requestedBand,
+    mode: 'requested-band-rank-window',
+    candidateScore,
+    candidateRank,
+    rangePreset,
+    requestedRange,
+    candidateBucketCount: buckets.length,
+    buckets: scoped
+  });
+}
+
+function scopeBucketsFromRequest(context, selectedBuckets) {
+  let url;
+  try {
+    url = new URL(context?.request?.url || 'https://contract.local/api/major-bands');
+  } catch {
+    return scopeMajorBandsRankBucketsForRequest(selectedBuckets);
+  }
+  const scope = scopeMajorBandsRankBucketsForRequest(selectedBuckets, {
+    candidateScore: url.searchParams.get('candidateScore'),
+    rangePreset: url.searchParams.get('rangePreset'),
+    band: url.searchParams.get('band')
+  });
+
+  // selectMajorBandsRankBuckets returns a request-local mutable array. Narrow it
+  // in place so the API's chunksRead/chunksSkipped metadata remains truthful
+  // without retaining a second union array for the rest of the request.
+  if (Array.isArray(selectedBuckets) && scope.buckets !== selectedBuckets) {
+    selectedBuckets.splice(0, selectedBuckets.length, ...scope.buckets);
+  }
+  return scope;
 }
 
 function assertLoadedBucket(indexBucket, loaded) {
@@ -61,13 +148,18 @@ async function readBucket(context, indexBucket) {
 }
 
 export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
-  const buckets = Array.isArray(selectedBuckets) ? selectedBuckets : [];
+  const scope = scopeBucketsFromRequest(context, selectedBuckets);
+  const buckets = Array.isArray(scope.buckets) ? scope.buckets : [];
   if (!buckets.length) {
     return {
       records: [],
       stats: {
         version: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         cacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+        requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
+        requestBandScopeMode: scope.mode,
+        requestedBand: scope.requestedBand,
+        candidateBucketCount: scope.candidateBucketCount,
         selectedBucketCount: 0,
         loadedRecordCount: 0,
         staticIndexBytes: 0,
@@ -120,6 +212,10 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
     stats: {
       version: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
       cacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+      requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
+      requestBandScopeMode: scope.mode,
+      requestedBand: scope.requestedBand,
+      candidateBucketCount: scope.candidateBucketCount,
       selectedBucketCount: buckets.length,
       loadedRecordCount: records.length,
       staticIndexBytes,
@@ -135,6 +231,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
 export function majorBandsRankBucketCacheState() {
   return Object.freeze({
     version: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+    requestBandScopeVersion: MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION,
     size: bucketCache.size,
     completedBytes: completedCacheBytes(),
     completedRetentionEnabled: COMPLETED_BUCKET_RETENTION_ENABLED,
