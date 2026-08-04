@@ -14,7 +14,7 @@ const p95LimitMs = Math.max(1000, Number(process.env.P95_LIMIT_MS || 8000));
 const p99LimitMs = Math.max(p95LimitMs, Number(process.env.P99_LIMIT_MS || 15000));
 const hardLimitMs = Math.max(p99LimitMs, Number(process.env.HARD_LIMIT_MS || 25000));
 const evidencePath = process.env.MAJOR_BANDS_CONCURRENCY_EVIDENCE || '/tmp/major-bands-concurrency-v3990_0.json';
-const expectedQueryCacheVersion = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0';
+const expectedQueryCacheVersion = 'major-bands-query-execution-cache-single-heavy-v3990_0';
 const expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-v3990_0';
 const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
@@ -313,7 +313,23 @@ let totalRequests = 4 + cold.length + sharedScenarios.length * 3;
 for (const mode of concurrencyModes) {
   for (const level of levels) {
     const sampleCount = Math.max(20, level * waves);
+    console.log(JSON.stringify({ phase: 'concurrency-start', mode, level, sampleCount }));
     const results = await runConcurrent(level, sampleCount, mode);
+    const failedResults = results.filter(result => result.status !== 200 || result.cloudflare1102);
+    if (failedResults.length) {
+      console.error(JSON.stringify({
+        phase: 'concurrency-failure',
+        mode,
+        level,
+        failures: failedResults.map(result => ({
+          scenario: result.scenario,
+          status: result.status,
+          elapsedMs: result.elapsedMs,
+          cloudflare1102: result.cloudflare1102,
+          error: result.error || result.bodyPrefix || ''
+        }))
+      }, null, 2));
+    }
     const latencies = results.map(result => result.elapsedMs);
     const latency = summary(latencies);
     assert.ok(latency.p95Ms <= p95LimitMs, `${mode} concurrency ${level}: p95 ${latency.p95Ms}ms`);
@@ -345,7 +361,7 @@ const evidence = {
   allBandsExecutionMode: expectedAllBandsExecutionMode,
   allBandEquivalence,
   requestedBandFastPath: 'target-band-only-in-place',
-  maxConcurrentExecutions: 2,
+  maxConcurrentExecutions: 1,
   bucketLoaderVersion: expectedBucketLoaderVersion,
   allBandBucketMaxConcurrency: 2,
   requestedBandBucketMaxConcurrency: 2,

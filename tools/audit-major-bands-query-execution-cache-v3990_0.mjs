@@ -122,8 +122,8 @@ assert.deepEqual(distinct.map(result => result.value.marker), [
   'distinct-3',
   'distinct-4'
 ]);
-assert.equal(peakDistinct, 2, 'distinct-query execution gate did not enforce two active executions');
-assert.equal(distinct.filter(result => result.waitedForExecutionSlot).length, 3, 'expected three distinct queries to wait for bounded execution slots');
+assert.equal(peakDistinct, 1, 'distinct-query execution gate did not enforce one active execution');
+assert.equal(distinct.filter(result => result.waitedForExecutionSlot).length, 4, 'expected four distinct queries to wait for the single heavy execution slot');
 const afterDistinct = majorBandsQueryExecutionCacheState();
 assert.equal(afterDistinct.inFlight, 0);
 assert.equal(afterDistinct.activeExecutions, 0);
@@ -138,9 +138,9 @@ assert.equal(afterDistinct.executionGateMode, MAJOR_BANDS_QUERY_EXECUTION_GATE_M
 assert.equal(afterDistinct.requestOwnedTimerWait, true);
 assert.equal(afterDistinct.crossRequestResolverQueue, false);
 assert.equal(afterDistinct.executionSlotPollMs, 8);
-assert.equal(afterDistinct.maxConcurrentExecutions, 2);
-assert.equal(afterDistinct.peakActiveExecutions, 2);
-assert.ok(afterDistinct.peakQueuedExecutions >= 3);
+assert.equal(afterDistinct.maxConcurrentExecutions, 1);
+assert.equal(afterDistinct.peakActiveExecutions, 1);
+assert.ok(afterDistinct.peakQueuedExecutions >= 4);
 assert.equal(afterDistinct.serializedSnapshotOnly, true);
 assert.equal(afterDistinct.preflightBudgetBeforeSerialization, true);
 assert.equal(afterDistinct.explicitRetentionOptIn, true);
@@ -182,13 +182,13 @@ assert.equal(state.maxCompletedRecords, 6000);
 assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
 assert.equal(state.completedTtlMs, 30_000);
 assert.equal(state.preflightBudgetBeforeSerialization, true);
-assert.equal(state.version, 'major-bands-query-execution-cache-consecutive-isolated-v3990_0');
+assert.equal(state.version, 'major-bands-query-execution-cache-single-heavy-v3990_0');
 assert.equal(state.executionGateVersion, 'major-bands-query-execution-gate-v3990_0');
 assert.equal(state.executionGateMode, 'request-owned-timer-polling');
 assert.equal(state.crossRequestSemaphore, true);
 assert.equal(state.requestOwnedTimerWait, true);
 assert.equal(state.crossRequestResolverQueue, false);
-assert.equal(state.maxConcurrentExecutions, 2);
+assert.equal(state.maxConcurrentExecutions, 1);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const required of [

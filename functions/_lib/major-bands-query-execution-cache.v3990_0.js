@@ -1,4 +1,4 @@
-export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0';
+export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-single-heavy-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 export const MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling';
@@ -8,7 +8,7 @@ const MAX_COMPLETED_RECORDS = 6000;
 const MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000;
 const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
-const MAX_CONCURRENT_EXECUTIONS = 2;
+const MAX_CONCURRENT_EXECUTIONS = 1;
 const EXECUTION_SLOT_POLL_MS = 8;
 const inFlight = new Map();
 const completed = new Map();

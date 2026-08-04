@@ -7,7 +7,7 @@ const manifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v399
 const exists = value => fs.existsSync(String(value).split('?')[0].replace(/^\//, ''));
 const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PATH}?v=3990_0`;
-const QUERY_CACHE_VERSION = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0';
+const QUERY_CACHE_VERSION = 'major-bands-query-execution-cache-single-heavy-v3990_0';
 const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 const EXECUTION_GATE_MODE = 'request-owned-timer-polling';
 const QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0';
@@ -148,7 +148,7 @@ for (const marker of [
   `MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = '${QUERY_CACHE_VERSION}'`,
   `MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = '${EXECUTION_GATE_VERSION}'`,
   `MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = '${EXECUTION_GATE_MODE}'`,
-  'MAX_CONCURRENT_EXECUTIONS = 2',
+  'MAX_CONCURRENT_EXECUTIONS = 1',
   'EXECUTION_SLOT_POLL_MS = 8',
   'waitForOwnTimer',
   'crossRequestSemaphore: true',
@@ -220,7 +220,7 @@ console.log(JSON.stringify({
   queryMemoryMode: QUERY_MEMORY_MODE,
   resultOrderVersion: RESULT_ORDER_VERSION,
   rankingMemoryMode: RANKING_MEMORY_MODE,
-  maxConcurrentExecutions: 2,
+  maxConcurrentExecutions: 1,
   allBandBucketMaxConcurrency: 2,
   requestedBandBucketMaxConcurrency: 2,
   requestOwnedTimerWait: true,
