@@ -101,6 +101,9 @@ jobs:
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
+          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "EXECUTION_SLOT_POLL_MS = 8" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "requestOwnedTimerWait: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_0.js
@@ -124,8 +127,8 @@ jobs:
           grep -q "MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "MAX_LOAD_CONCURRENCY = 2" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          grep -q "ALL_BANDS_LOAD_CONCURRENCY = 2" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "cloneLoadedForSharedQuery" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "attachRecordExecutionContext" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "majorBandsMutateSourceRecords" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
