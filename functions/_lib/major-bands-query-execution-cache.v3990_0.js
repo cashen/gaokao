@@ -2,7 +2,8 @@ export const MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-exec
 
 const MAX_COMPLETED_QUERIES = 1;
 const MAX_COMPLETED_RECORDS = 6000;
-const COMPLETED_QUERY_RETENTION_ENABLED = false;
+const MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000;
+const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
 const inFlight = new Map();
 const completed = new Map();
@@ -18,10 +19,30 @@ function completedRecordCount() {
   return count;
 }
 
+function completedEstimatedBytes() {
+  let bytes = 0;
+  for (const entry of completed.values()) bytes += Number(entry.estimatedBytes || 0);
+  return bytes;
+}
+
 function pruneExpired(now = Date.now()) {
   for (const [key, entry] of completed) {
     if (entry.expiresAt <= now) completed.delete(key);
   }
+}
+
+function retentionStats(value) {
+  return {
+    recordCount: Math.max(0, Number(value?.cacheRetention?.recordCount || 0)),
+    estimatedBytes: Math.max(0, Number(value?.cacheRetention?.estimatedBytes || 0))
+  };
+}
+
+function canRetain(value) {
+  const stats = retentionStats(value);
+  return COMPLETED_QUERY_RETENTION_ENABLED
+    && stats.recordCount <= MAX_COMPLETED_RECORDS
+    && stats.estimatedBytes <= MAX_COMPLETED_ESTIMATED_BYTES;
 }
 
 export async function executeMajorBandsQueryOnce(identity, executor) {
@@ -35,7 +56,7 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     touch(cached);
     return {
       value: cached.value,
-      cacheStatus: 'completed-hit',
+      cacheStatus: 'compact-completed-hit',
       joinedInFlight: false
     };
   }
@@ -49,11 +70,29 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
     };
   }
 
-  // Only concurrent callers of the exact same query share work. Completed
-  // classified and ordered windows are deliberately not retained: clearing a
-  // global Map does not force edge GC before the next request, and overlapping
-  // generations can exceed the isolate memory budget.
-  const promise = Promise.resolve().then(executor);
+  // Release the prior compact snapshot before constructing a different rank
+  // window. Only the requested band's compact reconstruction candidates may
+  // survive completion; decoded buckets and full ranking objects never do.
+  completed.clear();
+  let promise;
+  promise = Promise.resolve().then(async () => {
+    const value = await executor();
+    const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
+    if (isolatedExecution && canRetain(value)) {
+      const stats = retentionStats(value);
+      completed.clear();
+      const entry = {
+        value,
+        recordCount: stats.recordCount,
+        estimatedBytes: stats.estimatedBytes,
+        expiresAt: Date.now() + COMPLETED_TTL_MS,
+        lastAccess: 0
+      };
+      touch(entry);
+      completed.set(key, entry);
+    }
+    return value;
+  });
   inFlight.set(key, promise);
   try {
     return {
@@ -73,11 +112,13 @@ export function majorBandsQueryExecutionCacheState() {
     inFlight: inFlight.size,
     completed: completed.size,
     completedRecords: completedRecordCount(),
+    completedEstimatedBytes: completedEstimatedBytes(),
     completedRetentionEnabled: COMPLETED_QUERY_RETENTION_ENABLED,
-    maxCompletedQueries: COMPLETED_QUERY_RETENTION_ENABLED ? MAX_COMPLETED_QUERIES : 0,
-    maxCompletedRecords: COMPLETED_QUERY_RETENTION_ENABLED ? MAX_COMPLETED_RECORDS : 0,
-    completedTtlMs: COMPLETED_QUERY_RETENTION_ENABLED ? COMPLETED_TTL_MS : 0,
-    singleflightOnly: true,
+    maxCompletedQueries: MAX_COMPLETED_QUERIES,
+    maxCompletedRecords: MAX_COMPLETED_RECORDS,
+    maxCompletedEstimatedBytes: MAX_COMPLETED_ESTIMATED_BYTES,
+    completedTtlMs: COMPLETED_TTL_MS,
+    compactSnapshotOnly: true,
     crossRequestSemaphore: false,
     keys: Object.freeze([...completed.keys()])
   });
