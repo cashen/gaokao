@@ -10,8 +10,9 @@ const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PAT
 const QUERY_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0';
 const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 const EXECUTION_GATE_MODE = 'request-owned-timer-polling';
-const QUERY_MEMORY_MODE = 'stream-unfiltered-candidates-v3990_0';
+const QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0';
 const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
+const RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0';
 
 assert.equal(CONTRACT.version, 'production-resource-graph-verification-v3990_0');
 assert.equal(CONTRACT.statusContext, 'production/resource-graph-v3990.0');
@@ -116,11 +117,15 @@ for (const marker of [
   QUERY_CACHE_VERSION,
   EXECUTION_GATE_VERSION,
   EXECUTION_GATE_MODE,
+  QUERY_MEMORY_MODE,
   REQUEST_BAND_LOADER_VERSION,
   'queryExecutionCacheVersion',
   'queryExecutionCacheStatus',
   'allBandBucketMaxConcurrency: 2',
-  'requestedBandBucketMaxConcurrency: 4',
+  'requestedBandBucketMaxConcurrency: 2',
+  "requestedBandFastPath: 'target-band-only-in-place'",
+  'requested-band performed more than one sort',
+  'hidden ${hiddenBand} band was classified',
   "result.scenario === 'safe-449-near'",
   "source?.chunksRead), 6",
   "source?.staticIndexBytes), 621156"
@@ -153,18 +158,29 @@ for (const forbidden of [
 const queryKernel = fs.readFileSync('functions/_lib/major-bands-rank-query-kernel.v3990_0.js', 'utf8');
 for (const marker of [
   `MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = '${QUERY_MEMORY_MODE}'`,
-  'The dominant score-search path has no keyword query',
+  'records?.majorBandsRequestedBand',
+  'records?.majorBandsMutateSourceRecords',
+  'requestedBand && canonicalPosition.bandKey !== requestedBand',
+  'const record = mutateSourceRecords ? source : { ...source }',
+  'const sortKeys = requestedBand ? [requestedBand] : BAND_KEYS',
+  'Requested-band pagination also rejects',
   'commitCandidate(candidate.source, candidate.canonicalPosition, matchAllKeywordResult())'
-]) assert.ok(queryKernel.includes(marker), `streaming query kernel missing ${marker}`);
+]) assert.ok(queryKernel.includes(marker), `requested-band in-place query kernel missing ${marker}`);
 
 const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
 for (const marker of [
   `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
-  'MAX_LOAD_CONCURRENCY = 4',
+  `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,
+  'MAX_LOAD_CONCURRENCY = 2',
   'ALL_BANDS_LOAD_CONCURRENCY = 2',
+  'cloneLoadedForSharedQuery',
+  "cacheStatus: 'hit-cloned'",
+  'attachRecordExecutionContext',
+  'majorBandsRequestedBand',
+  'majorBandsMutateSourceRecords',
   "scope.mode === 'all-bands-union'",
   'allBandsMaxConcurrency: ALL_BANDS_LOAD_CONCURRENCY'
-]) assert.ok(bucketLoader.includes(marker), `bounded all-band loader missing ${marker}`);
+]) assert.ok(bucketLoader.includes(marker), `request-owned bucket loader missing ${marker}`);
 
 console.log(JSON.stringify({
   ok: true,
@@ -182,10 +198,12 @@ console.log(JSON.stringify({
   queryMemoryMode: QUERY_MEMORY_MODE,
   maxConcurrentExecutions: 2,
   allBandBucketMaxConcurrency: 2,
-  requestedBandBucketMaxConcurrency: 4,
+  requestedBandBucketMaxConcurrency: 2,
   requestOwnedTimerWait: true,
   crossRequestResolverQueue: false,
   requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,
+  recordOwnership: RECORD_OWNERSHIP,
+  requestedBandFastPath: true,
   publishedApiContractOnly: true,
   boundedExecutionProductionGate: true
 }, null, 2));
