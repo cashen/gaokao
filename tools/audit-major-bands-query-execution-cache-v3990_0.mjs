@@ -32,7 +32,8 @@ function compactValue(recordCount, marker, estimatedBytes = recordCount * 320) {
       mode: 'compact-requested-band-snapshot',
       recordCount,
       estimatedBytes,
-      requestedBand: 'near'
+      requestedBand: 'near',
+      retainCompleted: true
     }
   };
 }
@@ -109,7 +110,18 @@ assert.equal(afterDistinct.peakActiveExecutions, 2);
 assert.ok(afterDistinct.peakQueuedExecutions >= 3);
 assert.equal(afterDistinct.serializedSnapshotOnly, true);
 assert.equal(afterDistinct.preflightBudgetBeforeSerialization, true);
+assert.equal(afterDistinct.explicitRetentionOptIn, true);
 assert.equal(afterDistinct.mode, MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE);
+
+const requestScopedValue = compactValue(1000, 'request-scoped', 500_000);
+requestScopedValue.cacheRetention.retainCompleted = false;
+requestScopedValue.toJSON = () => {
+  throw new Error('request-scoped API value was serialized after completion');
+};
+const requestScopedResult = await executeMajorBandsQueryOnce('request-scoped-query', async () => requestScopedValue);
+assert.equal(requestScopedResult.value, requestScopedValue);
+let state = majorBandsQueryExecutionCacheState();
+assert.equal(state.completed, 0, 'request-scoped API value entered completed cache');
 
 const oversizedRecordValue = compactValue(7000, 'oversized-records', 900_000);
 oversizedRecordValue.toJSON = () => {
@@ -117,7 +129,7 @@ oversizedRecordValue.toJSON = () => {
 };
 const oversizedRecordResult = await executeMajorBandsQueryOnce('oversized-record-query', async () => oversizedRecordValue);
 assert.equal(oversizedRecordResult.value, oversizedRecordValue, 'executor value changed while record-over-budget retention was rejected');
-let state = majorBandsQueryExecutionCacheState();
+state = majorBandsQueryExecutionCacheState();
 assert.equal(state.completed, 0, 'record-over-budget query entered completed cache');
 
 const oversizedByteValue = compactValue(1000, 'oversized-bytes', 2_100_000);
@@ -131,6 +143,7 @@ assert.equal(state.completed, 0, 'byte-over-budget query entered completed cache
 assert.equal(state.completedRecords, 0);
 assert.equal(state.completedEstimatedBytes, 0);
 assert.equal(state.completedRetentionEnabled, true);
+assert.equal(state.explicitRetentionOptIn, true);
 assert.equal(state.maxCompletedQueries, 1);
 assert.equal(state.maxCompletedRecords, 6000);
 assert.equal(state.maxCompletedEstimatedBytes, 2_000_000);
@@ -167,20 +180,24 @@ for (const required of [
 for (const forbidden of [
   'const retainRecords = !requestedBand || requestedBand === key',
   'const retainCurrentPage = !requestedBand',
+  'retainCompleted: true',
   'await fetch(',
   "new URL('/api/major-bands-bucket'"
 ]) {
-  assert.ok(!apiSource.includes(forbidden), `unbounded or public self-fanout all-band path returned: ${forbidden}`);
+  assert.ok(!apiSource.includes(forbidden), `unbounded, retained-completed or public self-fanout API path returned: ${forbidden}`);
 }
 
 const executionCacheSource = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
 for (const required of [
   "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'",
   'EXECUTION_SLOT_POLL_MS = 8',
+  'completedRetentionRequested',
+  "value?.cacheRetention?.retainCompleted === true",
+  'explicitRetentionOptIn: true',
   'waitForOwnTimer',
   'requestOwnedTimerWait: true',
   'crossRequestResolverQueue: false'
-]) assert.ok(executionCacheSource.includes(required), `request-owned timer gate missing ${required}`);
+]) assert.ok(executionCacheSource.includes(required), `request-owned timer or explicit retention gate missing ${required}`);
 for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'executionWaiters.shift']) {
   assert.ok(!executionCacheSource.includes(forbidden), `cross-request resolver queue returned: ${forbidden}`);
 }
@@ -282,6 +299,8 @@ console.log(JSON.stringify({
   waitedDistinctQueries: distinct.filter(result => result.waitedForExecutionSlot).length,
   retainedAfterDistinct: afterDistinct.completed,
   completedRetentionEnabled: state.completedRetentionEnabled,
+  explicitRetentionOptIn: state.explicitRetentionOptIn,
+  requestScopedRetentionRejected: true,
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
