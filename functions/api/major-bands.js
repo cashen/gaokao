@@ -14,6 +14,10 @@ import {
   loadMajorBandsRankWindow
 } from '../_lib/major-bands-rank-bucket-loader.v3990_0.js';
 import {
+  MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
+  executeMajorBandsQueryOnce
+} from '../_lib/major-bands-query-execution-cache.v3990_0.js';
+import {
   MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
   processMajorBandsRankWindow
 } from '../_lib/major-bands-rank-query-kernel.v3990_0.js';
@@ -219,24 +223,49 @@ export async function onRequest(context) {
       }
     }
 
-    const candidateRank = rankContextForScore(candidateScore);
-    const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
-    const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
-    const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
-    const loaded = await loadMajorBandsRankWindow(context, selectedBuckets);
     const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
     const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
-    const processed = processMajorBandsRankWindow(loaded.records, {
+    const executionIdentity = queryIdentity({
       candidateScore,
-      candidateRank,
       rangePreset,
-      region: filters.region,
-      majorKeyword: filters.majorKeyword,
-      bottomLineMode: filters.bottomLineMode,
-      specialProjectMode: filters.specialProjectMode,
-      schoolFilter,
-      acceptedSchoolNames: schoolNames
+      filters,
+      schoolNames,
+      band: 'all-bands-execution'
     });
+    const execution = await executeMajorBandsQueryOnce(executionIdentity, async () => {
+      const candidateRank = rankContextForScore(candidateScore);
+      const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
+      const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
+      const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
+      const loaded = await loadMajorBandsRankWindow(context, selectedBuckets);
+      const processed = processMajorBandsRankWindow(loaded.records, {
+        candidateScore,
+        candidateRank,
+        rangePreset,
+        region: filters.region,
+        majorKeyword: filters.majorKeyword,
+        bottomLineMode: filters.bottomLineMode,
+        specialProjectMode: filters.specialProjectMode,
+        schoolFilter,
+        acceptedSchoolNames: schoolNames
+      });
+      return {
+        candidateRank,
+        totalRank,
+        rankWindows,
+        selectedBuckets,
+        loadedStats: loaded.stats,
+        processed
+      };
+    });
+    const {
+      candidateRank,
+      totalRank,
+      rankWindows,
+      selectedBuckets,
+      loadedStats,
+      processed
+    } = execution.value;
 
     const grouped = initGrouped(makeBands(candidateScore, rangePreset));
     for (const key of ['upper', 'near', 'steady']) {
@@ -378,6 +407,9 @@ export async function onRequest(context) {
         manifestVersion: MAJOR_BANDS_RANK_INDEX_SOURCE,
         rankIndexVersion: MAJOR_BANDS_RANK_INDEX_VERSION,
         queryKernelVersion: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+        queryExecutionCacheVersion: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
+        queryExecutionCacheStatus: execution.cacheStatus,
+        queryExecutionJoinedInFlight: execution.joinedInFlight,
         bucketLoaderVersion: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         bucketCacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
         resultOrderVersion: MAJOR_BANDS_RESULT_ORDER_VERSION,
@@ -391,7 +423,7 @@ export async function onRequest(context) {
         canonicalCandidate: aggregate.canonicalCandidate,
         rawCandidate: aggregate.rawCandidate,
         normalized: aggregate.normalized,
-        staticIndexBytes: loaded.stats.staticIndexBytes,
+        staticIndexBytes: loadedStats.staticIndexBytes,
         bottomLineExcluded: aggregate.bottomLineExcluded,
         bottomLineUnresolved: aggregate.bottomLineUnresolved,
         majorKeywordExcluded: aggregate.majorKeywordExcluded,
@@ -402,10 +434,10 @@ export async function onRequest(context) {
         specialProjectShown: aggregate.specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        rankBucketCacheHits: loaded.stats.cacheHits,
-        rankBucketCacheMisses: loaded.stats.cacheMisses,
-        rankBucketConcurrency: loaded.stats.peakConcurrency,
-        rankBucketMaxConcurrency: loaded.stats.maxConcurrency,
+        rankBucketCacheHits: loadedStats.cacheHits,
+        rankBucketCacheMisses: loadedStats.cacheMisses,
+        rankBucketConcurrency: loadedStats.peakConcurrency,
+        rankBucketMaxConcurrency: loadedStats.maxConcurrency,
         sortPasses: aggregate.sortPasses,
         bucketWorkerCount: 0,
         bucketWorkerTransferChars: 0,
