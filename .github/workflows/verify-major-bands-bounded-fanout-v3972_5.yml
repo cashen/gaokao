@@ -8,6 +8,7 @@ on:
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-rank-*.v3990_0.js'
+      - 'functions/_lib/major-bands-query-execution-cache.v3990_0.js'
       - 'functions/_lib/major-bands-result-order.v3990_0.js'
       - 'functions/_lib/major-bands-response-transport.v3990_0.js'
       - 'shared/resources/release/current-release.js'
@@ -16,6 +17,7 @@ on:
       - 'shared/resources/resource-registry.js'
       - 'shared/governance/resource-execution-contract.v3990_0.js'
       - 'tools/audit-major-bands-rank-kernel-v3990_0.mjs'
+      - 'tools/audit-major-bands-query-execution-cache-v3990_0.mjs'
       - 'tools/build-major-bands-rank-index-v3990_0.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_0.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
@@ -63,10 +65,12 @@ jobs:
           node --check functions/_lib/major-bands-static-provider.js
           node --check functions/_lib/major-bands-rank-index.v3990_0.js
           node --check functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
           node --check functions/_lib/major-bands-rank-query-kernel.v3990_0.js
           node --check functions/_lib/major-bands-result-order.v3990_0.js
           node --check functions/_lib/major-bands-response-transport.v3990_0.js
           node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
           node --check tools/build-major-bands-rank-index-v3990_0.mjs
           node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           grep -q "majorBandsQueryKernelVersion: 'major-bands-rank-query-kernel-v3990_0'" shared/resources/release/current-release.js
@@ -74,6 +78,10 @@ jobs:
           grep -q "majorBandsStableWorkerVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
           grep -q "majorBandsRankTruthEqualsRecall: true" shared/resources/release/site-runtime-contract.v3990_0.js
           grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION" functions/api/major-bands.js
+          grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
+          grep -q "MAX_COMPLETED_QUERIES = 2" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_RECORDS = 2500" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|maxCandidates|selected\.buckets\.length > 12" functions/api/major-bands.js; then
             echo 'retired self-fanout or candidate cap returned'
             exit 1
@@ -84,6 +92,7 @@ jobs:
           set -euo pipefail
           node tools/build-major-bands-rank-index-v3990_0.mjs
           git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_0.js
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
           MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/major-bands-rank-kernel-v3990_0.json \
             node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_0.mjs
           node --experimental-default-type=module tools/audit-canonical-release-version-v3990_0.mjs
@@ -190,6 +199,7 @@ jobs:
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-v3990_0"' <<<"$body" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
               && grep -q '"bucketWorkerCount":0' <<<"$body"; then
               ready=1
