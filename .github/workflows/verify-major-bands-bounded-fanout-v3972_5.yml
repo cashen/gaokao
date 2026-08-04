@@ -16,10 +16,16 @@ on:
       - 'shared/resources/release/runtime-cache-contract.v3990_0.js'
       - 'shared/resources/resource-registry.js'
       - 'shared/governance/resource-execution-contract.v3990_0.js'
+      - 'shared/governance/production-resource-verification-contract.v3990_0.js'
+      - 'ln-rank/site-active-generation.v3990_0.json'
+      - 'ln-rank/js/app-runtime.v3990_0.js'
+      - 'ln-rank/js/self-check.v3990_0.js'
+      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js'
       - 'tools/audit-major-bands-rank-kernel-v3990_0.mjs'
       - 'tools/audit-major-bands-query-execution-cache-v3990_0.mjs'
       - 'tools/build-major-bands-rank-index-v3990_0.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_0.mjs'
+      - 'tools/verify-production-pagination-snapshot-guard-v3990_0.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
   push:
     branches: [main]
@@ -69,10 +75,12 @@ jobs:
           node --check functions/_lib/major-bands-rank-query-kernel.v3990_0.js
           node --check functions/_lib/major-bands-result-order.v3990_0.js
           node --check functions/_lib/major-bands-response-transport.v3990_0.js
+          node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
           node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
           node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
           node --check tools/build-major-bands-rank-index-v3990_0.mjs
           node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
           grep -q "majorBandsQueryKernelVersion: 'major-bands-rank-query-kernel-v3990_0'" shared/resources/release/current-release.js
           grep -q "majorBandsPaginationVersion: 'stable-full-id-snapshot-v3990_0'" shared/resources/release/current-release.js
           grep -q "majorBandsStableWorkerVersion: 'major-bands-bounded-fanout-v3972_5'" shared/resources/release/current-release.js
@@ -85,6 +93,8 @@ jobs:
           grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "major-bands-pagination-snapshot-guard-v3990_0" ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
+          grep -q "majorBandsPaginationSnapshotGuard" ln-rank/site-active-generation.v3990_0.json
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|maxCandidates|selected\.buckets\.length > 12" functions/api/major-bands.js; then
             echo 'retired self-fanout or candidate cap returned'
             exit 1
@@ -142,6 +152,17 @@ jobs:
             sleep 1
           done
           test "$ready" -eq 1
+      - name: Verify local pagination snapshot deployment contract
+        env:
+          PAGES_BASE: http://127.0.0.1:8793
+          CUSTOM_BASE: http://127.0.0.1:8793
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+          PRODUCTION_RESOURCE_ATTEMPTS: '1'
+          PRODUCTION_RESOURCE_WAIT_MS: '0'
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-local-pagination-snapshot-v3990_0.json
+        run: |
+          set -euo pipefail
+          node tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
       - name: Verify real local concurrency levels
         env:
           TARGET_BASE: http://127.0.0.1:8793
@@ -166,6 +187,7 @@ jobs:
           name: major-bands-local-concurrency-v3990-0
           path: |
             /tmp/major-bands-local-concurrency-v3990_0.json
+            /tmp/major-bands-local-pagination-snapshot-v3990_0.json
             /tmp/v3990-wrangler.log
           if-no-files-found: warn
           retention-days: 7
@@ -211,7 +233,18 @@ jobs:
             sleep 10
           done
           test "$ready" -eq 1
-      - name: Verify Preview or production real concurrency
+      - name: Verify Preview pagination snapshot deployment contract
+        env:
+          PAGES_BASE: ${{ env.TARGET_BASE }}
+          CUSTOM_BASE: ${{ env.TARGET_BASE }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+          PRODUCTION_RESOURCE_ATTEMPTS: '3'
+          PRODUCTION_RESOURCE_WAIT_MS: '5000'
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/major-bands-preview-pagination-snapshot-v3990_0.json
+        run: |
+          set -euo pipefail
+          node tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
+      - name: Verify Preview real concurrency
         env:
           CONCURRENCY_LEVELS: 1,5,10,25,50
           CONCURRENCY_WAVES: '2'
@@ -228,6 +261,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: major-bands-preview-concurrency-v3990-0
-          path: /tmp/major-bands-preview-concurrency-v3990_0.json
+          path: |
+            /tmp/major-bands-preview-concurrency-v3990_0.json
+            /tmp/major-bands-preview-pagination-snapshot-v3990_0.json
           if-no-files-found: warn
           retention-days: 7
