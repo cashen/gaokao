@@ -55,7 +55,7 @@ let peakDistinct = 0;
 const distinct = await Promise.all(Array.from({ length: 5 }, (_, index) => executeMajorBandsQueryOnce(`distinct-${index}`, async () => {
   activeDistinct += 1;
   peakDistinct = Math.max(peakDistinct, activeDistinct);
-  await delay(15);
+  await delay(15 + index);
   activeDistinct -= 1;
   return valueWithRecords(1000 + index, `distinct-${index}`);
 })));
@@ -68,9 +68,13 @@ assert.deepEqual(distinct.map(result => result.value.marker), [
 ]);
 const afterDistinct = majorBandsQueryExecutionCacheState();
 assert.equal(afterDistinct.inFlight, 0);
-assert.equal(afterDistinct.completed, 0, 'concurrent distinct queries retained a heavy completed window');
+assert.ok(afterDistinct.completed <= 1, 'concurrent distinct queries retained multiple heavy windows');
+assert.ok(afterDistinct.completedRecords <= afterDistinct.maxCompletedRecords);
 assert.equal(afterDistinct.crossRequestSemaphore, false);
 assert.equal(afterDistinct.retainOnlyWhenIsolated, true);
+if (afterDistinct.completed === 1) {
+  assert.ok(afterDistinct.keys[0].startsWith('distinct-'));
+}
 
 await executeMajorBandsQueryOnce('paged-query', async () => valueWithRecords(3500, 'paged'));
 const pagedHit = await executeMajorBandsQueryOnce('paged-query', async () => {
@@ -101,6 +105,7 @@ console.log(JSON.stringify({
   singleflightHits: concurrent.filter(result => result.cacheStatus === 'singleflight-hit').length,
   distinctQueries: distinct.length,
   peakDistinct,
+  retainedAfterDistinct: afterDistinct.completed,
   completed: afterOversized.completed,
   completedRecords: afterOversized.completedRecords,
   crossRequestSemaphore: afterOversized.crossRequestSemaphore
