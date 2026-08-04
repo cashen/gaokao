@@ -6,8 +6,9 @@ import {
   createMajorBandsPaginationSnapshotGuard
 } from '../ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 
-const pagesBase = String(process.env.PAGES_BASE || CONTRACT.pagesBase).replace(/\/$/, '');
-const customBase = String(process.env.CUSTOM_BASE || CONTRACT.customBase).replace(/\/$/, '');
+const targetBase = String(process.env.TARGET_BASE || '').replace(/\/$/, '');
+const pagesBase = String(process.env.PAGES_BASE || targetBase || CONTRACT.pagesBase).replace(/\/$/, '');
+const customBase = String(process.env.CUSTOM_BASE || process.env.PAGES_BASE || targetBase || CONTRACT.customBase).replace(/\/$/, '');
 const attempts = Math.max(1, Number(process.env.PRODUCTION_RESOURCE_ATTEMPTS || 42));
 const waitMs = Math.max(0, Number(process.env.PRODUCTION_RESOURCE_WAIT_MS || 20000));
 const evidencePath = process.env.PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE
