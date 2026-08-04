@@ -81,6 +81,7 @@ function validateResult(result) {
   assert.ok(result.elapsedMs <= hardLimitMs, `${result.scenario}: hard latency ${result.elapsedMs.toFixed(1)}ms`);
   assert.equal(result.payload?.ok, true, `${result.scenario}: API ok=false ${result.payload?.message || ''}`);
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
+  assert.equal(result.payload?.source?.queryExecutionCacheVersion, 'major-bands-query-execution-cache-v3990_0', `${result.scenario}: query execution cache`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
@@ -206,4 +207,3 @@ assert.equal(evidence.status5xx, 0);
 assert.equal(evidence.cloudflare1102, 0);
 fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2));
 console.log(JSON.stringify(evidence, null, 2));
-
