@@ -11,11 +11,16 @@ import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runti
 import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../../shared/resources/release/runtime-cache-contract.v3990_0.js?v=3990_0';
 import { ALGORITHM_CONTRACT } from '../../shared/algorithms/algorithm-registry.js?v=3969_0';
 import { state } from './state/app-state.v3963_1.js?v=3963_1';
+import {
+  MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
+  createMajorBandsPaginationSnapshotGuard
+} from './feature/major-pool/pagination-snapshot-guard.v3990_0.js?v=3990_0';
 
 const EXAM = LIAONING_PHYSICS_EXAM_CONFIG;
 const INTERACTION_VERSION = 'interaction-transaction-v3990_0';
 const RUNTIME_VERSION = 'resource-execution-v3990_0';
 const originalFetch = globalThis.fetch?.bind(globalThis);
+const majorBandsPaginationSnapshotGuard = createMajorBandsPaginationSnapshotGuard({ maxEntries: 12 });
 
 function assertGeneration() {
   const expected = SITE_RUNTIME_CONTRACT.generation;
@@ -31,6 +36,10 @@ function assertGeneration() {
   if (CURRENT_RELEASE.resourceExecutionVersion !== RUNTIME_VERSION) {
     throw new Error(`resource execution mismatch: ${CURRENT_RELEASE.resourceExecutionVersion}`);
   }
+  if (SITE_RUNTIME_CONTRACT.owners.majorBandsPaginationSnapshotGuard
+    !== '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js') {
+    throw new Error('major-bands pagination snapshot guard ownership mismatch');
+  }
   const interactionState = globalThis.__GAOKAO_INTERACTION_TRANSACTION__?.getState?.();
   if (interactionState?.preActivationDomMutationPolicy !== 'forbidden') {
     throw new Error('native chooser pre-activation DOM mutation policy missing');
@@ -39,6 +48,12 @@ function assertGeneration() {
     throw new Error('native chooser physical event family ownership mismatch');
   }
 }
+
+globalThis.__GAOKAO_MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD__ = Object.freeze({
+  version: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION,
+  generation: SITE_RUNTIME_CONTRACT.generation,
+  getState: () => majorBandsPaginationSnapshotGuard.getState()
+});
 
 globalThis.__GAOKAO_SHARED_RESOURCES__ = Object.freeze({
   ...(globalThis.__GAOKAO_SHARED_RESOURCES__ || {}),
@@ -51,7 +66,8 @@ globalThis.__GAOKAO_SHARED_RESOURCES__ = Object.freeze({
   academicBackground: CURRENT_RELEASE.academicBackgroundVersion,
   schoolQuery: CURRENT_RELEASE.schoolQueryVersion,
   familyAction: CURRENT_RELEASE.familyActionVersion,
-  interaction: INTERACTION_VERSION
+  interaction: INTERACTION_VERSION,
+  majorBandsPaginationSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION
 });
 
 function numericScore(input) {
@@ -60,11 +76,11 @@ function numericScore(input) {
 }
 
 function rewriteMajorBandsRequest(input, init) {
-  if (!originalFetch) return [input, init];
+  if (!originalFetch) return [input, init, null];
   const rawUrl = input instanceof Request ? input.url : String(input || '');
   let url;
-  try { url = new URL(rawUrl, location.href); } catch { return [input, init]; }
-  if (url.pathname !== '/api/major-bands') return [input, init];
+  try { url = new URL(rawUrl, location.href); } catch { return [input, init, null]; }
+  if (url.pathname !== '/api/major-bands') return [input, init, null];
   const score = Number(url.searchParams.get('candidateScore'));
   const visible = isPublicBottomLineVisible(score, EXAM);
   const selectedMode = String(url.searchParams.get('bottomLineMode') || state?.filters?.bottomLineMode || 'all');
@@ -82,14 +98,45 @@ function rewriteMajorBandsRequest(input, init) {
   url.searchParams.set('interactionVersion', INTERACTION_VERSION);
   if (!url.searchParams.get('schoolEntityId') && state?.filters?.schoolEntityId) url.searchParams.set('schoolEntityId', state.filters.schoolEntityId);
   if (!url.searchParams.get('schoolQueryIntent') && state?.filters?.schoolQueryIntent) url.searchParams.set('schoolQueryIntent', state.filters.schoolQueryIntent);
-  if (input instanceof Request) return [new Request(url.toString(), input), init];
-  return [url.toString(), init];
+  const snapshotContext = majorBandsPaginationSnapshotGuard.rewrite(url);
+  url = snapshotContext.url;
+  if (input instanceof Request) return [new Request(url.toString(), input), init, snapshotContext];
+  return [url.toString(), init, snapshotContext];
+}
+
+async function inspectMajorBandsResponse(response, snapshotContext) {
+  if (!snapshotContext?.applies || !response?.ok) return response;
+  let payload;
+  try {
+    payload = await response.clone().json();
+  } catch {
+    return response;
+  }
+  const inspection = majorBandsPaginationSnapshotGuard.inspect(snapshotContext.url, payload);
+  if (inspection.ok) return response;
+  const headers = new Headers(response.headers);
+  headers.set('content-type', 'application/json; charset=utf-8');
+  headers.set('cache-control', 'no-store');
+  headers.set('x-gaokao-pagination-snapshot-guard', MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION);
+  return new Response(JSON.stringify({
+    ok: false,
+    retryable: true,
+    code: inspection.code,
+    message: '专业分页快照已更新，请重新查询后继续查看。',
+    userMessage: '结果数据已经更新，请重新查询后继续查看。',
+    expectedSnapshot: inspection.expectedSnapshot,
+    actualSnapshot: inspection.actualSnapshot
+  }), {
+    status: 409,
+    headers
+  });
 }
 
 if (originalFetch) {
-  globalThis.fetch = function sharedResourceFetch(input, init) {
-    const [nextInput, nextInit] = rewriteMajorBandsRequest(input, init);
-    return originalFetch(nextInput, nextInit);
+  globalThis.fetch = async function sharedResourceFetch(input, init) {
+    const [nextInput, nextInit, snapshotContext] = rewriteMajorBandsRequest(input, init);
+    const response = await originalFetch(nextInput, nextInit);
+    return inspectMajorBandsResponse(response, snapshotContext);
   };
 }
 
@@ -107,6 +154,7 @@ function syncSharedBottomLine() {
   panel.dataset.schoolQueryResource = CURRENT_RELEASE.schoolQueryVersion;
   panel.dataset.familyActionResource = CURRENT_RELEASE.familyActionVersion;
   panel.dataset.interactionResource = INTERACTION_VERSION;
+  panel.dataset.majorBandsPaginationSnapshotGuard = MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION;
 }
 
 document.addEventListener('gaokao:workspace-state', syncSharedBottomLine);
@@ -137,7 +185,8 @@ export function startLnRankRuntime() {
       academicBackground: CURRENT_RELEASE.academicBackgroundVersion,
       schoolQuery: CURRENT_RELEASE.schoolQueryVersion,
       familyAction: CURRENT_RELEASE.familyActionVersion,
-      interaction: INTERACTION_VERSION
+      interaction: INTERACTION_VERSION,
+      majorBandsPaginationSnapshotGuard: MAJOR_BANDS_PAGINATION_SNAPSHOT_GUARD_VERSION
     });
   })();
   return startPromise;
