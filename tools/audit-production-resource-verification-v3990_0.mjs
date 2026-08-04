@@ -10,7 +10,8 @@ const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PAT
 const QUERY_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0';
 const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 const EXECUTION_GATE_MODE = 'request-owned-timer-polling';
-const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
+const QUERY_MEMORY_MODE = 'stream-unfiltered-candidates-v3990_0';
+const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 
 assert.equal(CONTRACT.version, 'production-resource-graph-verification-v3990_0');
 assert.equal(CONTRACT.statusContext, 'production/resource-graph-v3990.0');
@@ -118,6 +119,8 @@ for (const marker of [
   REQUEST_BAND_LOADER_VERSION,
   'queryExecutionCacheVersion',
   'queryExecutionCacheStatus',
+  'allBandBucketMaxConcurrency: 2',
+  'requestedBandBucketMaxConcurrency: 4',
   "result.scenario === 'safe-449-near'",
   "source?.chunksRead), 6",
   "source?.staticIndexBytes), 621156"
@@ -147,6 +150,22 @@ for (const forbidden of [
   'executionWaiters.shift'
 ]) assert.ok(!executionCache.includes(forbidden), `cross-request resolver queue returned: ${forbidden}`);
 
+const queryKernel = fs.readFileSync('functions/_lib/major-bands-rank-query-kernel.v3990_0.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = '${QUERY_MEMORY_MODE}'`,
+  'The dominant score-search path has no keyword query',
+  'commitCandidate(candidate.source, candidate.canonicalPosition, matchAllKeywordResult())'
+]) assert.ok(queryKernel.includes(marker), `streaming query kernel missing ${marker}`);
+
+const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
+  'MAX_LOAD_CONCURRENCY = 4',
+  'ALL_BANDS_LOAD_CONCURRENCY = 2',
+  "scope.mode === 'all-bands-union'",
+  'allBandsMaxConcurrency: ALL_BANDS_LOAD_CONCURRENCY'
+]) assert.ok(bucketLoader.includes(marker), `bounded all-band loader missing ${marker}`);
+
 console.log(JSON.stringify({
   ok: true,
   release: CONTRACT.releaseVersion,
@@ -160,7 +179,10 @@ console.log(JSON.stringify({
   queryExecutionCacheVersion: QUERY_CACHE_VERSION,
   executionGateVersion: EXECUTION_GATE_VERSION,
   executionGateMode: EXECUTION_GATE_MODE,
+  queryMemoryMode: QUERY_MEMORY_MODE,
   maxConcurrentExecutions: 2,
+  allBandBucketMaxConcurrency: 2,
+  requestedBandBucketMaxConcurrency: 4,
   requestOwnedTimerWait: true,
   crossRequestResolverQueue: false,
   requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,
