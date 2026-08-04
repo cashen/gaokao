@@ -32,6 +32,7 @@ jobs:
             functions/_lib/major-bands-static-provider.js \
             functions/_lib/major-bands-rank-index.v3990_0.js \
             functions/_lib/major-bands-rank-bucket-loader.v3990_0.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_0.js \
             functions/_lib/major-bands-rank-query-kernel.v3990_0.js \
             functions/_lib/major-bands-result-order.v3990_0.js \
             functions/_lib/major-bands-response-transport.v3990_0.js \
@@ -42,6 +43,7 @@ jobs:
             tools/build-major-bands-static-v3972.mjs \
             tools/build-major-bands-rank-index-v3990_0.mjs \
             tools/audit-major-bands-rank-kernel-v3990_0.mjs \
+            tools/audit-major-bands-query-execution-cache-v3990_0.mjs \
             tools/verify-major-bands-preview-concurrency-v3990_0.mjs \
             tools/verify-production-resource-graph-v3990_0.mjs \
             tools/verify-production-baseline-v3971.mjs \
@@ -49,6 +51,7 @@ jobs:
             tools/audit-site-runtime-generation-v3990_0.mjs; do
             node --check "$file"
           done
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
           node tools/audit-canonical-release-version-v3990_0.mjs
           node tools/audit-site-runtime-generation-v3990_0.mjs
 
@@ -61,12 +64,15 @@ jobs:
           grep -q "loadMajorBandsStaticRankBucket" functions/_lib/major-bands-static-provider.js
           grep -q "MAJOR_BANDS_RANK_INDEX_VERSION" functions/api/major-bands.js
           grep -q "loadMajorBandsRankWindow" functions/api/major-bands.js
+          grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
           grep -q "processMajorBandsRankWindow" functions/api/major-bands.js
           grep -q "publicHttpSelfFanout: false" functions/api/major-bands.js
           grep -q "bucketWorkerCount: 0" functions/api/major-bands.js
           grep -q "MAX_LOAD_CONCURRENCY = 4" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAX_CACHED_BYTES = 900_000" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "singleflight-only" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAX_COMPLETED_QUERIES = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|distributed-bucket-workers|maxCandidates|selected\.buckets\.length > 12|loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
             echo 'retired self-fanout, candidate cap or raw scan returned'
             exit 1
@@ -97,7 +103,7 @@ jobs:
           if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
           if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
           if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
-          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
+          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
           NODE
 
       - name: Verify local Wrangler concurrent resource journey
@@ -164,6 +170,7 @@ jobs:
             if grep -q "display: 'v3.9.90.0'" <<<"$release" \
               && grep -q "siteRuntimeGeneration: 'v3990_0'" <<<"$release" \
               && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-v3990_0"' <<<"$api" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$api"; then
               ready=1
               break
