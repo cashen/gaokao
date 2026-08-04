@@ -16,6 +16,7 @@ const activeGenerationModules = Object.freeze([
   '/ln-rank/js/ux/family-home.v3990_0.js',
   '/ln-rank/js/app.v3990_0.js',
   '/ln-rank/js/app-runtime.v3990_0.js',
+  '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js',
   '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js',
   '/ln-rank/js/selection-pool.v3990_0.js',
   '/ln-rank/js/selection-pool-runtime.v3990_0.js'
@@ -46,6 +47,7 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     sharedShell: SITE_RUNTIME_CONTRACT.owners.sharedShell,
     bootstrap: SITE_RUNTIME_CONTRACT.owners.selectionBootstrap,
     searchRuntime: SITE_RUNTIME_CONTRACT.owners.selectionRuntime,
+    majorBandsPaginationSnapshotGuard: SITE_RUNTIME_CONTRACT.owners.selectionRuntime,
     searchState: SITE_RUNTIME_CONTRACT.owners.selectionWorkspace,
     interaction: SITE_RUNTIME_CONTRACT.owners.interaction,
     nativeChooserActivation: SITE_RUNTIME_CONTRACT.owners.nativeChooserActivation,
@@ -76,6 +78,8 @@ export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
     protectedRuntimeUnchanged: true,
     majorBandsRankBucketCacheBounded: true,
     majorBandsSnapshotOrderStable: true,
+    majorBandsBrowserSnapshotGuardBounded: true,
+    majorBandsBrowserSnapshotMismatchRejectedBeforeMerge: true,
     majorBandsPublicHttpSelfFanoutForbidden: true
   })
 });
