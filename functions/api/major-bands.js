@@ -28,6 +28,7 @@ import {
 } from '../_lib/major-bands-result-order.v3990_0.js';
 import {
   MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+  compactMajorBandsBucketCandidate,
   compactMajorBandsResponseRecord
 } from '../_lib/major-bands-response-transport.v3990_0.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
@@ -155,6 +156,17 @@ function finalizeRecordForResponse(record, context = {}) {
   return { ...item, ...buildDisplayTags(item) };
 }
 
+function compactRankedSnapshot(records = []) {
+  const ordered = [];
+  let estimatedBytes = 2;
+  for (const record of Array.isArray(records) ? records : []) {
+    const compact = compactMajorBandsBucketCandidate(record);
+    ordered.push(compact);
+    estimatedBytes += JSON.stringify(compact).length + 1;
+  }
+  return { ordered, estimatedBytes };
+}
+
 function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band }) {
   return JSON.stringify({
     version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
@@ -230,7 +242,7 @@ export async function onRequest(context) {
       rangePreset,
       filters,
       schoolNames,
-      band: 'all-bands-execution'
+      band: requestedBand || 'all-bands-execution'
     });
     const execution = await executeMajorBandsQueryOnce(executionIdentity, async () => {
       const candidateRank = rankContextForScore(candidateScore);
@@ -249,13 +261,37 @@ export async function onRequest(context) {
         schoolFilter,
         acceptedSchoolNames: schoolNames
       });
+      const compactGrouped = {};
+      let retainedRecordCount = 0;
+      let retainedEstimatedBytes = 0;
+      for (const key of ['upper', 'near', 'steady']) {
+        const ordered = processed.grouped[key].ordered;
+        const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
+        const retainRecords = !requestedBand || requestedBand === key;
+        const compact = retainRecords ? compactRankedSnapshot(ordered) : { ordered: [], estimatedBytes: 0 };
+        compactGrouped[key] = {
+          ordered: compact.ordered,
+          count: ordered.length,
+          snapshot: majorBandsSnapshotId(ordered, identity)
+        };
+        retainedRecordCount += compact.ordered.length;
+        retainedEstimatedBytes += compact.estimatedBytes;
+      }
       return {
         candidateRank,
         totalRank,
         rankWindows,
         selectedBuckets,
         loadedStats: loaded.stats,
-        processed
+        aggregate: processed.stats,
+        keywordQuery: processed.keywordQuery,
+        compactGrouped,
+        cacheRetention: {
+          mode: 'compact-requested-band-snapshot',
+          recordCount: retainedRecordCount,
+          estimatedBytes: retainedEstimatedBytes,
+          requestedBand: requestedBand || 'all'
+        }
       };
     });
     const {
@@ -264,7 +300,10 @@ export async function onRequest(context) {
       rankWindows,
       selectedBuckets,
       loadedStats,
-      processed
+      aggregate,
+      keywordQuery,
+      compactGrouped,
+      cacheRetention
     } = execution.value;
 
     const grouped = initGrouped(makeBands(candidateScore, rangePreset));
@@ -275,13 +314,14 @@ export async function onRequest(context) {
         grouped[key].rangeText = rankRangeText;
       }
 
-      const ordered = processed.grouped[key].ordered;
+      const compactBand = compactGrouped[key];
+      const ordered = compactBand.ordered;
       const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
       const hiddenByBandRequest = Boolean(requestedBand && requestedBand !== key);
       const page = hiddenByBandRequest
         ? {
             records: [],
-            count: ordered.length,
+            count: compactBand.count,
             pagination: {
               offset: 0,
               limit: pageLimit,
@@ -289,7 +329,7 @@ export async function onRequest(context) {
               hasMore: false,
               nextOffset: null,
               order: MAJOR_BANDS_RESULT_ORDER_VERSION,
-              snapshot: majorBandsSnapshotId(ordered, identity)
+              snapshot: compactBand.snapshot
             }
           }
         : paginateMajorBandsRecords(ordered, {
@@ -297,6 +337,9 @@ export async function onRequest(context) {
             limit: pageLimit,
             queryIdentity: identity
           });
+      if (!hiddenByBandRequest && page.pagination.snapshot !== compactBand.snapshot) {
+        throw new Error(`位次分页快照不一致：${key}`);
+      }
       const records = page.records.map(record => compactMajorBandsResponseRecord(
         finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
       ));
@@ -308,8 +351,6 @@ export async function onRequest(context) {
       grouped[key].pagination = page.pagination;
     }
 
-    const aggregate = processed.stats;
-    const keywordQuery = processed.keywordQuery;
     const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const matchSummary = aggregate.matchSummary;
     const specialProjectStats = aggregate.specialProjectStats;
@@ -410,6 +451,9 @@ export async function onRequest(context) {
         queryExecutionCacheVersion: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
         queryExecutionCacheStatus: execution.cacheStatus,
         queryExecutionJoinedInFlight: execution.joinedInFlight,
+        queryExecutionRetentionMode: cacheRetention.mode,
+        queryExecutionRetainedRecords: cacheRetention.recordCount,
+        queryExecutionEstimatedBytes: cacheRetention.estimatedBytes,
         bucketLoaderVersion: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         bucketCacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
         resultOrderVersion: MAJOR_BANDS_RESULT_ORDER_VERSION,
