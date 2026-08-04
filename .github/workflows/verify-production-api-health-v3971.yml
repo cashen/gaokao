@@ -92,9 +92,9 @@ jobs:
           fi
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-consecutive-isolated-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
-grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
-grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
-grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 2" functions/_lib/major-bands-query-execution-cache.v3990_0.js
