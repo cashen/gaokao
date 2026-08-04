@@ -18,6 +18,7 @@ const expectedQueryCacheVersion = 'major-bands-query-execution-cache-serialized-
 const expectedExecutionGateVersion = 'major-bands-query-execution-gate-v3990_0';
 const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
+const expectedQueryMemoryMode = 'request-band-in-place-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -133,7 +134,7 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
   assert.ok(['miss', 'singleflight-hit', 'serialized-compact-hit'].includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
-  assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded all-band bucket loader`);
+  assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
@@ -154,6 +155,11 @@ function validateResult(result) {
     const group = validatePaginationGroup(result, result.band);
     assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-snapshot', `${result.scenario}: requested-band retention mode`);
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: requested-band bucket concurrency exceeded two`);
+    assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
+    for (const hiddenBand of bands.filter(band => band !== result.band)) {
+      assert.equal(Number(result.payload?.bands?.[hiddenBand]?.count || 0), 0, `${result.scenario}: hidden ${hiddenBand} band was classified`);
+      assert.equal((result.payload?.bands?.[hiddenBand]?.records || []).length, 0, `${result.scenario}: hidden ${hiddenBand} records leaked`);
+    }
     if (result.scenario === 'safe-449-near') {
       assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: requested band must read exactly six buckets');
       assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: scoped static bytes drift');
@@ -272,6 +278,8 @@ const evidence = {
   queryExecutionCacheVersion: expectedQueryCacheVersion,
   executionGateVersion: expectedExecutionGateVersion,
   executionGateMode: expectedExecutionGateMode,
+  queryMemoryMode: expectedQueryMemoryMode,
+  requestedBandFastPath: 'target-band-only-in-place',
   maxConcurrentExecutions: 2,
   bucketLoaderVersion: expectedBucketLoaderVersion,
   allBandBucketMaxConcurrency: 2,
