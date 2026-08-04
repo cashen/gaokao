@@ -90,11 +90,20 @@ jobs:
           grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION" functions/api/major-bands.js
           grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-serialized-request-timer-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 2" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "EXECUTION_SLOT_POLL_MS = 8" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "requestOwnedTimerWait: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "crossRequestSemaphore: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "boundedDistinctExecutions: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          if grep -q "executionWaiters" functions/_lib/major-bands-query-execution-cache.v3990_0.js; then
+            echo 'cross-request resolver queue returned'
+            exit 1
+          fi
           grep -q "MAX_COMPLETED_QUERIES = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
@@ -159,8 +168,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             body="$(curl -fsS 'http://127.0.0.1:8793/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' || true)"
-            if grep -q 'major-bands-query-execution-cache-serialized-v3990_0' <<<"$body" \
-              && grep -q 'major-bands-query-execution-gate-v3990_0' <<<"$body" \
+            if grep -q 'major-bands-query-execution-cache-serialized-request-timer-v3990_0' <<<"$body" \
               && grep -q 'major-bands-rank-bucket-loader-request-band-scope-v3990_0' <<<"$body"; then
               ready=1
               break
@@ -240,10 +248,7 @@ jobs:
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-v3990_0"' <<<"$body" \
-              && grep -q '"executionGateVersion":"major-bands-query-execution-gate-v3990_0"' <<<"$body" \
-              && grep -q '"maxConcurrentExecutions":2' <<<"$body" \
-              && grep -q '"crossRequestSemaphore":true' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-serialized-request-timer-v3990_0"' <<<"$body" \
               && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-request-band-scope-v3990_0"' <<<"$body" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
               && grep -q '"bucketWorkerCount":0' <<<"$body"; then
