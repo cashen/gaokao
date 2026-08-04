@@ -213,7 +213,8 @@ jobs:
               && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$api" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$api" \
               && grep -q '"sortPasses":1' <<<"$api" \
-              && grep -q '"rankBucketMaxConcurrency":2' <<<"$api" \
+              && grep -q '"rankRowFilterVersion":"major-bands-rank-row-filter-v3990_0"' <<<"$api" \
+              && grep -q '"rankBucketMaxConcurrency":1' <<<"$api" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$api"; then
               ready=1
               break
