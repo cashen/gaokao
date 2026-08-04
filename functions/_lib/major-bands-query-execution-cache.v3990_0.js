@@ -39,6 +39,12 @@ function retentionStats(value) {
   };
 }
 
+function declaredRetentionWithinBudget(value) {
+  const stats = retentionStats(value);
+  return stats.recordCount <= MAX_COMPLETED_RECORDS
+    && stats.estimatedBytes <= MAX_COMPLETED_ESTIMATED_BYTES;
+}
+
 function serializeRetainedValue(value) {
   const serialized = JSON.stringify(value);
   return {
@@ -47,12 +53,8 @@ function serializeRetainedValue(value) {
   };
 }
 
-function canRetain(value, serializedChars) {
-  const stats = retentionStats(value);
-  return COMPLETED_QUERY_RETENTION_ENABLED
-    && stats.recordCount <= MAX_COMPLETED_RECORDS
-    && stats.estimatedBytes <= MAX_COMPLETED_ESTIMATED_BYTES
-    && serializedChars <= MAX_COMPLETED_ESTIMATED_BYTES;
+function serializedRetentionWithinBudget(serializedChars) {
+  return serializedChars <= MAX_COMPLETED_ESTIMATED_BYTES;
 }
 
 function readCompletedValue(key, entry) {
@@ -101,9 +103,16 @@ export async function executeMajorBandsQueryOnce(identity, executor) {
   promise = Promise.resolve().then(async () => {
     const value = await executor();
     const isolatedExecution = inFlight.size === 1 && inFlight.get(key) === promise;
-    if (isolatedExecution && COMPLETED_QUERY_RETENTION_ENABLED) {
+    // Check declared record/byte budgets before JSON.stringify. An over-budget
+    // all-band result must not create a second full representation merely to be
+    // rejected from completed retention.
+    if (
+      isolatedExecution
+      && COMPLETED_QUERY_RETENTION_ENABLED
+      && declaredRetentionWithinBudget(value)
+    ) {
       const retention = serializeRetainedValue(value);
-      if (canRetain(value, retention.serializedChars)) {
+      if (serializedRetentionWithinBudget(retention.serializedChars)) {
         const stats = retentionStats(value);
         completed.clear();
         const entry = {
@@ -146,6 +155,7 @@ export function majorBandsQueryExecutionCacheState() {
     maxCompletedEstimatedBytes: MAX_COMPLETED_ESTIMATED_BYTES,
     completedTtlMs: COMPLETED_TTL_MS,
     serializedSnapshotOnly: true,
+    preflightBudgetBeforeSerialization: true,
     crossRequestSemaphore: false,
     keys: Object.freeze([...completed.keys()])
   });
