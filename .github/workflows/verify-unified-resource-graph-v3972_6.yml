@@ -1,4 +1,4 @@
-name: Verify unified resource graph v3972.6
+name: Verify unified resource graph v3990.0
 
 on:
   pull_request:
@@ -32,25 +32,25 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = 'pull_request' ]; then
             base='${{ github.event.pull_request.base.sha }}'
-            git diff --name-only "$base" HEAD | tee /tmp/v3972-6-resource-files.txt
-            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3972-6-resource-files.txt; then exit 1; fi
+            git diff --name-only "$base" HEAD | tee /tmp/v3990-0-resource-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-0-resource-files.txt; then exit 1; fi
           fi
           git diff --name-only '${{ github.event.pull_request.base.sha || github.event.before }}' HEAD -- '*.js' '*.mjs' 2>/dev/null | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           node --check shared/resources/release/current-release.js
-          node --check shared/resources/release/site-runtime-contract.v3972_6.js
-          node --check shared/resources/release/runtime-cache-contract.v3972_6.js
-          node --check shared/resources/release/release-presenter.v3972_6.js
+          node --check shared/resources/release/site-runtime-contract.v3990_0.js
+          node --check shared/resources/release/runtime-cache-contract.v3990_0.js
+          node --check shared/resources/release/release-presenter.v3990_0.js
           node --check shared/resources/resource-registry.js
-          node --check shared/ui/ui-resource-registry.v3972_6.js
-          node --check shared/ui/interaction/interaction-transaction.v3972_6.js
-          node --check shared/governance/resource-execution-contract.v3972_6.js
-          node --check ln-rank/js/app.v3972_6.js
-          node --check ln-rank/js/app-runtime.v3972_6.js
-          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js
-          node --check ln-rank/js/self-check.v3972_6.js
-          node --check tools/audit-canonical-release-version-v3972_6.mjs
-          node --check tools/audit-site-runtime-generation-v3972_6.mjs
-          node --check tools/audit-unified-resource-graph-v3972_6.mjs
+          node --check shared/ui/ui-resource-registry.v3990_0.js
+          node --check shared/ui/interaction/interaction-transaction.v3990_0.js
+          node --check shared/governance/resource-execution-contract.v3990_0.js
+          node --check ln-rank/js/app.v3990_0.js
+          node --check ln-rank/js/app-runtime.v3990_0.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js
+          node --check ln-rank/js/self-check.v3990_0.js
+          node --check tools/audit-canonical-release-version-v3990_0.mjs
+          node --check tools/audit-site-runtime-generation-v3990_0.mjs
+          node --check tools/audit-unified-resource-graph-v3990_0.mjs
           grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
 
@@ -60,49 +60,49 @@ jobs:
           test ! -e ln-rank/active-assets.json
           test ! -e ln-rank/release-meta.json
           test ! -e .github/workflows/write-v3969-active-metadata.yml
-          node tools/audit-canonical-release-version-v3972_6.mjs | tee /tmp/v3972-6-canonical.out
-          node tools/audit-site-runtime-generation-v3972_6.mjs | tee /tmp/v3972-6-runtime.out
-          node tools/audit-unified-resource-graph-v3972_6.mjs | tee /tmp/v3972-6-resource.out
+          node tools/audit-canonical-release-version-v3990_0.mjs | tee /tmp/v3990-0-canonical.out
+          node tools/audit-site-runtime-generation-v3990_0.mjs | tee /tmp/v3990-0-runtime.out
+          node tools/audit-unified-resource-graph-v3990_0.mjs | tee /tmp/v3990-0-resource.out
 
       - name: Reject device-specific fixes and pre-activation DOM coupling
         run: |
           set -euo pipefail
-          if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3972_6.js; then
+          if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_0.js; then
             echo 'device or browser name branch found in interaction owner'
             exit 1
           fi
           if grep -E 'setNavigationAvailability\(|action\.disabled\s*=|container\.inert\s*=|pointer-events:\s*none' \
-            shared/ui/interaction/interaction-transaction.v3972_6.js \
-            shared/ui/interaction/interaction-transaction.v3972_6.css; then
+            shared/ui/interaction/interaction-transaction.v3990_0.js \
+            shared/ui/interaction/interaction-transaction.v3990_0.css; then
             echo 'native chooser activation still mutates unrelated hit targets'
             exit 1
           fi
-          test "$(grep -c "document.addEventListener('pointerdown'" shared/ui/interaction/interaction-transaction.v3972_6.js)" -eq 1
-          grep -q 'if (HAS_POINTER_EVENTS)' shared/ui/interaction/interaction-transaction.v3972_6.js
-          grep -q 'state.activationTimer = globalThis.setTimeout' shared/ui/interaction/interaction-transaction.v3972_6.js
+          test "$(grep -c "document.addEventListener('pointerdown'" shared/ui/interaction/interaction-transaction.v3990_0.js)" -eq 1
+          grep -q 'if (HAS_POINTER_EVENTS)' shared/ui/interaction/interaction-transaction.v3990_0.js
+          grep -q 'state.activationTimer = globalThis.setTimeout' shared/ui/interaction/interaction-transaction.v3990_0.js
 
       - name: Smoke-test current graph over HTTP
         run: |
           set -euo pipefail
-          python3 -m http.server 8794 >/tmp/v3972-6-resource-http.log 2>&1 &
+          python3 -m http.server 8794 >/tmp/v3990-0-resource-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
           for path in \
             /shared/resources/release/current-release.js \
-            /shared/resources/release/site-runtime-contract.v3972_6.js \
-            /shared/resources/release/runtime-cache-contract.v3972_6.js \
+            /shared/resources/release/site-runtime-contract.v3990_0.js \
+            /shared/resources/release/runtime-cache-contract.v3990_0.js \
             /shared/resources/resource-registry.js \
-            /shared/ui/ui-resource-registry.v3972_6.js \
-            /shared/ui/interaction/interaction-transaction.v3972_6.js \
-            /shared/ui/interaction/interaction-transaction.v3972_6.css \
-            /shared/governance/resource-execution-contract.v3972_6.js \
-            /ln-rank/site-active-generation.v3972_6.json \
-            /ln-rank/js/app.v3972_6.js \
-            /ln-rank/js/app-runtime.v3972_6.js \
-            /ln-rank/js/workspace/selection-workspace-orchestrator.v3972_6.js \
+            /shared/ui/ui-resource-registry.v3990_0.js \
+            /shared/ui/interaction/interaction-transaction.v3990_0.js \
+            /shared/ui/interaction/interaction-transaction.v3990_0.css \
+            /shared/governance/resource-execution-contract.v3990_0.js \
+            /ln-rank/site-active-generation.v3990_0.json \
+            /ln-rank/js/app.v3990_0.js \
+            /ln-rank/js/app-runtime.v3990_0.js \
+            /ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js \
             /ln-rank/self-check.html \
-            /ln-rank/js/self-check.v3972_6.js \
+            /ln-rank/js/self-check.v3990_0.js \
             /ln-rank/; do
             curl --fail --silent --show-error "http://127.0.0.1:8794$path" >/dev/null
           done
@@ -115,7 +115,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3972-6-unified-resource-graph
-          path: /tmp/v3972-6-*
+          name: v3990-0-unified-resource-graph
+          path: /tmp/v3990-0-*
           if-no-files-found: warn
           retention-days: 7
+

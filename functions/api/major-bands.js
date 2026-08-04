@@ -1,33 +1,37 @@
-import {
-  selectMajorBandsStaticBuckets,
-  materializeMajorBandsStaticRecord
-} from '../_lib/major-bands-static-provider.js';
+import { materializeMajorBandsStaticRecord } from '../_lib/major-bands-static-provider.js';
 import { makeBands } from '../_lib/band-engine.js';
 import {
-  MAJOR_BANDS_BUCKET_ORCHESTRATION,
-  MajorBandsBucketWorkerError,
-  isRetryableBucketWorkerFailure,
-  runMajorBandsBucketWorkers
-} from '../_lib/major-bands-bucket-orchestrator.v3972_5.js';
+  MAJOR_BANDS_RANK_INDEX_VERSION,
+  MAJOR_BANDS_RANK_INDEX_SOURCE,
+  MAJOR_BANDS_RANK_INDEX_RECORD_COUNT,
+  MAJOR_BANDS_RANK_BUCKETS,
+  selectMajorBandsRankBuckets,
+  assertMajorBandsRankIndex
+} from '../_lib/major-bands-rank-index.v3990_0.js';
 import {
-  MAJOR_BANDS_BUCKET_CACHE_VERSION,
-  readMajorBandsBucketCache,
-  writeMajorBandsBucketCache,
-  deleteMajorBandsBucketCache
-} from '../_lib/major-bands-bucket-cache.v3972_5.js';
+  MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
+  MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+  loadMajorBandsRankWindow
+} from '../_lib/major-bands-rank-bucket-loader.v3990_0.js';
 import {
-  MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
+  MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+  processMajorBandsRankWindow
+} from '../_lib/major-bands-rank-query-kernel.v3990_0.js';
+import {
+  MAJOR_BANDS_RESULT_ORDER_VERSION,
+  majorBandsSnapshotId,
+  paginateMajorBandsRecords
+} from '../_lib/major-bands-result-order.v3990_0.js';
+import {
   MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
-  assertCompactMajorBandsBucketCandidate,
   compactMajorBandsResponseRecord
-} from '../_lib/major-bands-bucket-transfer.v3972_5.js';
+} from '../_lib/major-bands-response-transport.v3990_0.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   normalizeBottomLineMode,
-  getBottomLineSortWeight,
   bottomLineModeSummary
 } from '../_lib/bottomline-policy.js';
-import { buildKeywordQuery, keywordQueryWarnings } from '../_lib/keyword-query.js';
+import { keywordQueryWarnings } from '../_lib/keyword-query.js';
 import { buildSearchConflictAdvice } from '../_lib/search-conflict-advisor.js';
 import { buildFilterConflicts } from '../_lib/filter-conflict-contract.js';
 import { lookupScoreRank, getRankPopulation } from '../_lib/rank-table-provider.js';
@@ -38,8 +42,11 @@ import {
   normalizeSchoolQueryIntent
 } from '../../shared/resources/schools/school-query-contract.v3969_0.js';
 import { acceptedAdmissionSchoolNames } from '../../shared/resources/schools/school-query-engine.v3969_0.js';
-import { resolveCanonicalPosition, rankBandRangeText } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
-import { rankResultRecords } from '../../shared/algorithms/ranking/result-ranking.v3967_0.js';
+import {
+  normalizePositionPreset,
+  rankWindowsForCandidate,
+  rankBandRangeText
+} from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { ALGORITHM_ORCHESTRATION_VERSION } from '../../shared/algorithms/algorithm-registry.js';
 import {
   getSchoolEntity,
@@ -47,20 +54,23 @@ import {
 } from '../../shared/resources/schools/school-identity-center.js';
 import {
   normalizeSpecialProjectMode,
-  createSpecialProjectStats,
   SPECIAL_PROJECT_COPY
 } from '../_lib/special-project-policy.js';
 
-const BUCKET_CONTRACT = 'major-bands-bucket-v3972_2';
+assertMajorBandsRankIndex();
 
 function json(payload, status = 200) {
   const body = JSON.stringify(payload);
+  const cacheControl = status === 200
+    ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120'
+    : 'no-store';
   return new Response(body, {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store',
-      'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION
+      'cache-control': cacheControl,
+      'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+      'x-gaokao-query-kernel': MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION
     }
   });
 }
@@ -72,23 +82,15 @@ function clean(value, max = 50) {
 function pageNumber(value, fallback = 0) {
   const text = String(value ?? '').trim();
   if (!text) return fallback;
-  const n = Math.floor(Number(text));
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
+  const number = Math.floor(Number(text));
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
 }
 
 function initGrouped(bands) {
   return {
-    upper: { ...bands.upper, records: [], candidates: [], count: 0, scanned: 0, truncated: false },
-    near: { ...bands.near, records: [], candidates: [], count: 0, scanned: 0, truncated: false },
-    steady: { ...bands.steady, records: [], candidates: [], count: 0, scanned: 0, truncated: false }
-  };
-}
-
-function minMaxScore(bands) {
-  const all = [bands.upper, bands.near, bands.steady];
-  return {
-    min: Math.min(...all.map(band => band.minScore)),
-    max: Math.max(...all.map(band => band.maxScore))
+    upper: { ...bands.upper, records: [], count: 0, scanned: 0, truncated: false },
+    near: { ...bands.near, records: [], count: 0, scanned: 0, truncated: false },
+    steady: { ...bands.steady, records: [], count: 0, scanned: 0, truncated: false }
   };
 }
 
@@ -130,7 +132,7 @@ function rankContextForScore(score) {
 }
 
 function rankLabel(context) {
-  if (!context?.rankEnd) return '位次待核验';
+  if (!context?.rankEnd) return '2026 位次表无对应位置，本次返回空集合';
   if (context.emptyScore) {
     return `2026 年该分数没有同分考生，历史参考位置约在第 ${context.rankEnd.toLocaleString('zh-CN')} 位附近`;
   }
@@ -141,162 +143,26 @@ function rankLabel(context) {
 }
 
 function finalizeRecordForResponse(record, context = {}) {
-  const canonicalPosition = resolveCanonicalPosition({
-    candidateScore: context.candidateScore,
-    candidateRank: context.candidateRank?.rankForGap,
-    recordScore: record.score2026 ?? record.score,
-    recordRank: record.rank2026 ?? record.rank,
-    rangePreset: context.rangePreset
-  });
-  const transferredBand = record.canonicalPosition?.bandKey || record.bandKey || record.band || '';
-  if (transferredBand && canonicalPosition.bandKey !== transferredBand) {
-    throw new Error(`分桶排序位置与父级重建不一致：${record.id || `${record.school}|${record.major}`}，${transferredBand}/${canonicalPosition.bandKey}`);
+  const canonicalPosition = record.canonicalPosition;
+  if (!canonicalPosition || canonicalPosition.bandKey !== record.bandKey) {
+    throw new Error(`位次内核位置合同不一致：${record.id || `${record.school}|${record.major}`}`);
   }
-  const source = {
-    ...record,
-    band: canonicalPosition.bandKey,
-    bandKey: canonicalPosition.bandKey,
-    candidateScore: context.candidateScore,
-    candidateReferenceScore: context.candidateScore,
-    scoreDelta2026: canonicalPosition.scoreDelta,
-    scoreDelta: canonicalPosition.scoreDelta,
-    rankGap2026: canonicalPosition.rankGap,
-    rankGap: canonicalPosition.rankGap,
-    statusKey: canonicalPosition.statusKey,
-    statusLabel: canonicalPosition.statusLabel,
-    position: canonicalPosition.position,
-    canonicalPosition
-  };
-  const item = materializeMajorBandsStaticRecord(source);
+  const item = materializeMajorBandsStaticRecord(record);
   return { ...item, ...buildDisplayTags(item) };
 }
 
-function mergeNumberStats(target, source, keys) {
-  for (const key of keys) target[key] += Number(source?.[key] || 0);
-}
-
-function mergeSpecialProjectStats(target, source) {
-  target.hidden += Number(source?.hidden || 0);
-  target.shown += Number(source?.shown || 0);
-  for (const key of ['upper', 'near', 'steady']) {
-    target.byBand[key] += Number(source?.byBand?.[key] || 0);
-  }
-  for (const [label, count] of Object.entries(source?.byLabel || {})) {
-    target.byLabel[label] = (target.byLabel[label] || 0) + Number(count || 0);
-  }
-}
-
-function assertBucketResponse(response, text, bucketFile) {
-  const lower = text.toLowerCase();
-  const retryable = [429, 502, 503, 504].includes(response.status)
-    || lower.includes('worker exceeded resource limits')
-    || lower.includes('<title>error 1102')
-    || lower.includes('error code: 1102')
-    || lower.includes('http 503')
-    || lower.includes('temporarily unavailable');
-  if (retryable) {
-    throw new MajorBandsBucketWorkerError(`分数桶 Worker 瞬态失败：${bucketFile}，HTTP ${response.status}`, {
-      status: response.status,
-      retryable: true,
-      bucketFile
-    });
-  }
-  if (!response.ok) {
-    throw new MajorBandsBucketWorkerError(`分数桶 Worker 失败：${bucketFile}，HTTP ${response.status}，${text.slice(0, 300)}`, {
-      status: response.status,
-      retryable: false,
-      bucketFile
-    });
-  }
-  if (lower.includes('<!doctype html') || lower.includes('<html')) {
-    throw new MajorBandsBucketWorkerError(`分数桶 Worker 返回 HTML：${bucketFile}`, {
-      status: response.status,
-      retryable: false,
-      bucketFile
-    });
-  }
-}
-
-function parseBucketPayload(response, text, bucketFile) {
-  assertBucketResponse(response, text, bucketFile);
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch (error) {
-    throw new Error(`分数桶 Worker JSON 解析失败：${bucketFile}。${error?.message || String(error)}`);
-  }
-  if (
-    !payload?.ok
-    || payload?.contract !== BUCKET_CONTRACT
-    || payload?.candidateTransferVersion !== MAJOR_BANDS_BUCKET_TRANSFER_VERSION
-    || payload?.bucket?.file !== bucketFile
-  ) {
-    throw new Error(`分数桶 Worker 合同不匹配：${bucketFile}`);
-  }
-  for (const key of ['upper', 'near', 'steady']) {
-    for (const candidate of payload.grouped?.[key]?.candidates || []) {
-      assertCompactMajorBandsBucketCandidate(candidate);
-    }
-  }
-  return payload;
-}
-
-async function fetchBucketWorker(context, bucket, options) {
-  const endpoint = new URL('/api/major-bands-bucket', context.request.url);
-  endpoint.searchParams.set('candidateScore', String(options.candidateScore));
-  endpoint.searchParams.set('rangePreset', options.rangePreset);
-  endpoint.searchParams.set('bucketFile', bucket.file);
-  endpoint.searchParams.set('region', options.region);
-  endpoint.searchParams.set('majorKeyword', options.majorKeyword);
-  endpoint.searchParams.set('bottomLineMode', options.bottomLineMode);
-  endpoint.searchParams.set('specialProjectMode', options.specialProjectMode);
-  endpoint.searchParams.set('schoolFilter', options.schoolFilter ? '1' : '0');
-  endpoint.searchParams.set('maxCandidates', String(options.maxCandidates));
-  const acceptedSchoolNames = [...options.acceptedSchoolNames]
-    .sort((left, right) => String(left).localeCompare(String(right), 'zh-CN'));
-  for (const name of acceptedSchoolNames.slice(0, 32)) endpoint.searchParams.append('schoolName', name);
-
-  const cached = await readMajorBandsBucketCache(endpoint);
-  if (cached.status === 'hit') {
-    try {
-      const payload = parseBucketPayload({ status: 200, ok: true }, cached.text, bucket.file);
-      payload.transportChars = cached.text.length;
-      payload.bucketCacheStatus = 'hit';
-      payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
-      return payload;
-    } catch {
-      await deleteMajorBandsBucketCache(cached.cacheKey);
-    }
-  }
-
-  let response;
-  try {
-    response = await fetch(endpoint.toString(), {
-      headers: {
-        accept: 'application/json',
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-        'x-gaokao-major-bands-bucket': BUCKET_CONTRACT
-      },
-      cf: { cacheTtl: 0, cacheEverything: false }
-    });
-  } catch (error) {
-    throw new MajorBandsBucketWorkerError(`分数桶 Worker 网络失败：${bucket.file}`, {
-      status: 0,
-      retryable: true,
-      bucketFile: bucket.file,
-      cause: error
-    });
-  }
-
-  const responseText = await response.text();
-  const payload = parseBucketPayload(response, responseText, bucket.file);
-  const cacheStatus = cached.status === 'unavailable' ? 'unavailable' : 'miss';
-  if (cacheStatus === 'miss') await writeMajorBandsBucketCache(cached.cacheKey, responseText);
-  payload.transportChars = responseText.length;
-  payload.bucketCacheStatus = cacheStatus;
-  payload.bucketCacheVersion = MAJOR_BANDS_BUCKET_CACHE_VERSION;
-  return payload;
+function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band }) {
+  return JSON.stringify({
+    version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+    candidateScore,
+    rangePreset,
+    region: filters.region,
+    schoolNames: [...schoolNames].sort((left, right) => left.localeCompare(right, 'zh-CN')),
+    majorKeyword: filters.majorKeyword,
+    bottomLineMode: filters.bottomLineMode,
+    specialProjectMode: filters.specialProjectMode,
+    band
+  });
 }
 
 export async function onRequest(context) {
@@ -306,7 +172,7 @@ export async function onRequest(context) {
   try {
     const url = new URL(context.request.url);
     const candidateScore = Math.round(Number(url.searchParams.get('candidateScore') || 520));
-    const rangePreset = clean(url.searchParams.get('rangePreset') || 'standard', 20);
+    const rangePreset = normalizePositionPreset(clean(url.searchParams.get('rangePreset') || 'standard', 20));
     const filters = {
       region: clean(url.searchParams.get('region') || 'all', 30),
       schoolKeyword: clean(url.searchParams.get('schoolKeyword') || '', 40),
@@ -318,7 +184,7 @@ export async function onRequest(context) {
     };
     const requestedBandRaw = clean(url.searchParams.get('band') || '', 20);
     const requestedBand = ['upper', 'near', 'steady'].includes(requestedBandRaw) ? requestedBandRaw : '';
-    const configuredPageSize = Math.max(16, Math.min(80, Number(context.env?.MAJOR_BANDS_MAX_PER_BAND || 40)));
+    const configuredPageSize = Math.max(16, Math.min(80, pageNumber(context.env?.MAJOR_BANDS_MAX_PER_BAND, 40)));
     const pageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));
     const pageOffset = pageNumber(url.searchParams.get('offset'), 0);
 
@@ -327,7 +193,9 @@ export async function onRequest(context) {
     }
 
     const schoolEntity = filters.schoolEntityId ? getSchoolEntity(filters.schoolEntityId) : null;
-    if (filters.schoolEntityId && !schoolEntity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
+    if (filters.schoolEntityId && !schoolEntity) {
+      return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
+    }
     let acceptedSchoolNames = exactSchoolNames(schoolEntity, filters.schoolKeyword);
     let schoolQueryResult = null;
     if (!schoolEntity && filters.schoolKeyword) {
@@ -351,118 +219,76 @@ export async function onRequest(context) {
       }
     }
 
-    const bandsMeta = makeBands(candidateScore, rangePreset);
-    const scoreWindow = minMaxScore(bandsMeta);
-    const grouped = initGrouped(bandsMeta);
-    const keywordQuery = buildKeywordQuery(filters.majorKeyword);
-    const keywordWarnings = keywordQueryWarnings(keywordQuery);
     const candidateRank = rankContextForScore(candidateScore);
+    const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
+    const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
+    const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
+    const loaded = await loadMajorBandsRankWindow(context, selectedBuckets);
+    const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
+    const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
+    const processed = processMajorBandsRankWindow(loaded.records, {
+      candidateScore,
+      candidateRank,
+      rangePreset,
+      region: filters.region,
+      majorKeyword: filters.majorKeyword,
+      bottomLineMode: filters.bottomLineMode,
+      specialProjectMode: filters.specialProjectMode,
+      schoolFilter,
+      acceptedSchoolNames: schoolNames
+    });
+
+    const grouped = initGrouped(makeBands(candidateScore, rangePreset));
     for (const key of ['upper', 'near', 'steady']) {
-      const rankRangeText = rankBandRangeText(
-        candidateRank?.rankForGap,
-        key,
-        rangePreset,
-        getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' })
-      );
+      const rankRangeText = rankBandRangeText(candidateRank?.rankForGap, key, rangePreset, totalRank);
       if (rankRangeText) {
         grouped[key].rankRangeText = rankRangeText;
         grouped[key].rangeText = rankRangeText;
       }
+
+      const ordered = processed.grouped[key].ordered;
+      const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
+      const hiddenByBandRequest = Boolean(requestedBand && requestedBand !== key);
+      const page = hiddenByBandRequest
+        ? {
+            records: [],
+            count: ordered.length,
+            pagination: {
+              offset: 0,
+              limit: pageLimit,
+              returned: 0,
+              hasMore: false,
+              nextOffset: null,
+              order: MAJOR_BANDS_RESULT_ORDER_VERSION,
+              snapshot: majorBandsSnapshotId(ordered, identity)
+            }
+          }
+        : paginateMajorBandsRecords(ordered, {
+            offset: pageOffset,
+            limit: pageLimit,
+            queryIdentity: identity
+          });
+      const records = page.records.map(record => compactMajorBandsResponseRecord(
+        finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
+      ));
+      grouped[key].records = records;
+      grouped[key].count = page.count;
+      grouped[key].scanned = page.count;
+      grouped[key].displayedCount = records.length;
+      grouped[key].truncated = page.pagination.hasMore;
+      grouped[key].pagination = page.pagination;
     }
 
-    const selected = await selectMajorBandsStaticBuckets(context.request, scoreWindow);
-    if (selected.buckets.length < 1 || selected.buckets.length > 12) throw new Error(`分布式分数桶数量异常：${selected.buckets.length}`);
-    const schoolNames = acceptedSchoolNames ? [...acceptedSchoolNames] : [];
-    const schoolFilter = Boolean(filters.schoolKeyword || filters.schoolEntityId);
-    const maxCandidates = Math.max(48, Math.min(240, pageOffset + pageLimit + 64));
-    const bucketExecution = await runMajorBandsBucketWorkers(
-      selected.buckets,
-      bucket => fetchBucketWorker(context, bucket, {
-        candidateScore,
-        rangePreset,
-        region: filters.region,
-        majorKeyword: filters.majorKeyword,
-        bottomLineMode: filters.bottomLineMode,
-        specialProjectMode: filters.specialProjectMode,
-        schoolFilter,
-        acceptedSchoolNames: schoolNames,
-        maxCandidates
-      }),
-      {
-        concurrency: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxConcurrency,
-        maxAttempts: MAJOR_BANDS_BUCKET_ORCHESTRATION.maxAttempts,
-        baseDelayMs: MAJOR_BANDS_BUCKET_ORCHESTRATION.baseDelayMs
-      }
-    );
-    const bucketResults = bucketExecution.results;
-
-    const aggregate = {
-      rawScanned: 0,
-      rawCandidate: 0,
-      normalized: 0,
-      bottomLineExcluded: 0,
-      bottomLineUnresolved: 0,
-      majorKeywordExcluded: 0,
-      majorHitCount: 0,
-      projectHitCount: 0,
-      industryHitCount: 0,
-      specialProjectHidden: 0,
-      specialProjectShown: 0,
-      staticIndexBytes: 0
+    const aggregate = processed.stats;
+    const keywordQuery = processed.keywordQuery;
+    const keywordWarnings = keywordQueryWarnings(keywordQuery);
+    const matchSummary = aggregate.matchSummary;
+    const specialProjectStats = aggregate.specialProjectStats;
+    const counts = {
+      upper: grouped.upper.count,
+      near: grouped.near.count,
+      steady: grouped.steady.count
     };
-    const specialProjectStats = createSpecialProjectStats();
-    const matchSummary = { exact: 0, related: 0, industry: 0, project: 0, weak: 0 };
-    const numericKeys = [
-      'rawScanned', 'rawCandidate', 'normalized', 'bottomLineExcluded', 'bottomLineUnresolved',
-      'majorKeywordExcluded', 'majorHitCount', 'projectHitCount', 'industryHitCount',
-      'specialProjectHidden', 'specialProjectShown'
-    ];
-
-    for (const result of bucketResults) {
-      mergeNumberStats(aggregate, result.stats, numericKeys);
-      aggregate.staticIndexBytes += Number(result.bucket?.bytes || 0);
-      mergeSpecialProjectStats(specialProjectStats, result.stats?.specialProjectStats);
-      mergeNumberStats(matchSummary, result.stats?.matchSummary, Object.keys(matchSummary));
-      for (const key of ['upper', 'near', 'steady']) {
-        grouped[key].count += Number(result.grouped?.[key]?.count || 0);
-        grouped[key].scanned += Number(result.grouped?.[key]?.count || 0);
-        grouped[key].candidates.push(...(result.grouped?.[key]?.candidates || []));
-      }
-    }
-
-    for (const key of ['upper', 'near', 'steady']) {
-      const group = grouped[key];
-      const diversified = rankResultRecords(group.candidates, {
-        intent: 'score-search',
-        sortMode: 'canonical-staged',
-        diversify: !filters.schoolKeyword,
-        windowSize: 8,
-        maxPerSchool: 2,
-        getSoftPreferenceWeight: record => getBottomLineSortWeight(record, filters.bottomLineMode)
-      });
-      const offset = requestedBand && requestedBand !== key ? 0 : pageOffset;
-      const records = requestedBand && requestedBand !== key
-        ? []
-        : diversified.slice(offset, offset + pageLimit).map(record => compactMajorBandsResponseRecord(
-          finalizeRecordForResponse(record, { candidateScore, candidateRank, rangePreset })
-        ));
-      const returned = records.length;
-      const hasMore = offset + returned < group.count;
-      group.records = records;
-      group.displayedCount = returned;
-      group.truncated = hasMore;
-      group.pagination = {
-        offset,
-        limit: pageLimit,
-        returned,
-        hasMore,
-        nextOffset: hasMore ? offset + returned : null,
-        order: 'result-ranking-v3967_0'
-      };
-      delete group.candidates;
-    }
-
-    const counts = { upper: grouped.upper.count, near: grouped.near.count, steady: grouped.steady.count };
     counts.total = counts.upper + counts.near + counts.steady;
     const filterConflicts = buildFilterConflicts({
       keywordQuery,
@@ -506,7 +332,10 @@ export async function onRequest(context) {
         candidateSameCount2026: candidateRank?.sameCount ?? null,
         candidateRankEmptyScore: Boolean(candidateRank?.emptyScore),
         candidateRankLabel: rankLabel(candidateRank),
-        classificationMode: 'canonical_rank_primary_2026_position',
+        classificationMode: candidateRank
+          ? 'canonical_rank_primary_2026_position'
+          : 'rank_unavailable_empty',
+        emptyReason: candidateRank ? '' : 'candidate_rank_unavailable_for_2026_reference',
         algorithmOrchestrationVersion: ALGORITHM_ORCHESTRATION_VERSION,
         rangePreset,
         schoolEntityId: schoolEntity?.entityId || '',
@@ -529,11 +358,12 @@ export async function onRequest(context) {
         bottomLine: bottomLineModeSummary(filters.bottomLineMode),
         dataScope: '辽宁 2026 物理类专业投档最低分',
         dataBoundary: '面向 2027 备考家庭；输入为模考或预估参考分数，位次是 2026 历史参考位置，不是 2027 实际位次。',
-        bands: bandsMeta,
+        bands: makeBands(candidateScore, rangePreset),
+        rankWindows,
         maxPerBand: configuredPageSize,
         pageSize: pageLimit,
         pageBand: requestedBand || 'all',
-        paginationContract: 'canonical-staged-ranked-paged',
+        paginationContract: 'stable-full-id-snapshot-v3990_0',
         elapsedMs: Date.now() - started
       },
       keywordQuery,
@@ -545,16 +375,23 @@ export async function onRequest(context) {
       counts,
       source: {
         dataYear: 2026,
-        manifestVersion: selected.manifest.version || '',
-        architecture: 'build-time-static-score-index-distributed-bucket-workers',
-        totalRecords: selected.manifest.recordCount || aggregate.rawScanned,
-        chunksTotal: selected.manifest.buckets?.length || 0,
-        chunksRead: selected.buckets.length,
-        chunksSkipped: Math.max(0, Number(selected.manifest.buckets?.length || 0) - selected.buckets.length),
+        manifestVersion: MAJOR_BANDS_RANK_INDEX_SOURCE,
+        rankIndexVersion: MAJOR_BANDS_RANK_INDEX_VERSION,
+        queryKernelVersion: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
+        bucketLoaderVersion: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
+        bucketCacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+        resultOrderVersion: MAJOR_BANDS_RESULT_ORDER_VERSION,
+        responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
+        architecture: 'single-worker-rank-window-over-immutable-static-buckets',
+        totalRecords: MAJOR_BANDS_RANK_INDEX_RECORD_COUNT,
+        chunksTotal: MAJOR_BANDS_RANK_BUCKETS.length,
+        chunksRead: selectedBuckets.length,
+        chunksSkipped: MAJOR_BANDS_RANK_BUCKETS.length - selectedBuckets.length,
         rawScanned: aggregate.rawScanned,
+        canonicalCandidate: aggregate.canonicalCandidate,
         rawCandidate: aggregate.rawCandidate,
         normalized: aggregate.normalized,
-        staticIndexBytes: aggregate.staticIndexBytes,
+        staticIndexBytes: loaded.stats.staticIndexBytes,
         bottomLineExcluded: aggregate.bottomLineExcluded,
         bottomLineUnresolved: aggregate.bottomLineUnresolved,
         majorKeywordExcluded: aggregate.majorKeywordExcluded,
@@ -565,33 +402,27 @@ export async function onRequest(context) {
         specialProjectShown: aggregate.specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
-        bucketWorkerCount: bucketResults.length,
-        bucketWorkerCandidateLimit: maxCandidates,
-        bucketWorkerOrchestrationVersion: bucketExecution.stats.version,
-        bucketWorkerCacheVersion: MAJOR_BANDS_BUCKET_CACHE_VERSION,
-        bucketWorkerCacheHits: bucketResults.filter(result => result.bucketCacheStatus === 'hit').length,
-        bucketWorkerCacheMisses: bucketResults.filter(result => result.bucketCacheStatus === 'miss').length,
-        bucketWorkerCacheUnavailable: bucketResults.filter(result => result.bucketCacheStatus === 'unavailable').length,
-        bucketCandidateTransferVersion: MAJOR_BANDS_BUCKET_TRANSFER_VERSION,
-        responseTransportVersion: MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
-        bucketWorkerTransferChars: bucketResults.reduce((sum, result) => sum + Number(result.transportChars || 0), 0),
-        bucketWorkerConcurrency: bucketExecution.stats.peakConcurrency,
-        bucketWorkerRetries: bucketExecution.stats.retryCount,
-        bucketWorkerMaxAttempts: bucketExecution.stats.maxAttempts,
-        mode: 'build-time-static-score-index-distributed-bucket-workers-canonical-staged-ranked-paged'
+        rankBucketCacheHits: loaded.stats.cacheHits,
+        rankBucketCacheMisses: loaded.stats.cacheMisses,
+        rankBucketConcurrency: loaded.stats.peakConcurrency,
+        rankBucketMaxConcurrency: loaded.stats.maxConcurrency,
+        sortPasses: aggregate.sortPasses,
+        bucketWorkerCount: 0,
+        bucketWorkerTransferChars: 0,
+        bucketWorkerRetries: 0,
+        candidateLimit: null,
+        publicHttpSelfFanout: false,
+        mode: 'single-worker-canonical-rank-query-stable-snapshot-paged'
       }
     });
   } catch (error) {
-    const retryable = isRetryableBucketWorkerFailure(error);
     return json({
       ok: false,
-      retryable,
+      retryable: false,
       message: error?.message || String(error),
-      userMessage: retryable
-        ? '专业数据遇到短暂拥堵，系统已自动重试但仍未恢复。请稍后再试。'
-        : '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 major-bands-static-v3972_2 五分桶、有界子 Worker 编排和瞬态重试记录。',
-      hint: '可先打开 /api/major-bands-health?probe=1 检查底层数据健康；专业查询不再运行时扫描原始投档分片。'
-    }, isRetryableBucketWorkerFailure(error) ? 503 : 500);
+      userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
+      engineerHint: '请检查 major-bands-rank-query-kernel-v3990_0、位次索引与 Pages ASSETS 绑定；不得恢复公共 HTTP 自调用或候选截断。',
+      hint: '可打开 /api/major-bands-health?probe=1 检查不可变底层数据健康。'
+    }, 500);
   }
 }

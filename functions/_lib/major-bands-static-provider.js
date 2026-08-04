@@ -2,7 +2,7 @@ import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
 
-export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3972_5';
+export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -123,6 +123,33 @@ export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindo
     manifest,
     bucket,
     records,
+    rowCount: payload.rows.length,
+    bytes: Number(bucket.bytes || 0),
+    assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
+  };
+}
+
+/**
+ * Load one manifest-approved immutable bucket without applying the legacy score
+ * prefilter. The v3990 rank query kernel performs the authoritative canonical
+ * rank classification after all selected buckets are decoded in one Worker.
+ */
+export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {
+  const manifest = await loadMajorBandsStaticManifest(request, options);
+  const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
+  if (!bucket) throw new Error(`静态专业分数桶不在发布清单中：${bucketFile || 'empty'}`);
+  const payload = await fetchStaticJson(request, bucket.file, options);
+  if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+    throw new Error(`静态专业位次桶合同异常：${bucket.file}`);
+  }
+  if (payload.rows.length !== Number(bucket.recordCount || 0)) {
+    throw new Error(`静态专业位次桶记录数异常：${bucket.file}`);
+  }
+  const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
+  return {
+    manifest,
+    bucket,
+    records: payload.rows.map(row => decodeRow(row, schema)),
     rowCount: payload.rows.length,
     bytes: Number(bucket.bytes || 0),
     assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'

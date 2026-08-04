@@ -6,7 +6,7 @@ This skill is mandatory for every production change in `cashen/gaokao`, includin
 
 A user-visible fix is not a standalone patch generation. It must join the current **site runtime generation**.
 
-The site has one canonical current release at a time. For this release the public version is `v3.9.72.5`, the runtime generation is `v3972_5`, and the asset query is `3972_5`; these are three encodings of the same release identity, not independent versions.
+The site has one canonical current release at a time. For this release the public version is `v3.9.90.0`, the runtime generation is `v3990_0`, and the asset query is `3990_0`; these are three encodings of the same release identity, not independent versions.
 
 ## Active generation versus stable dependencies
 
@@ -86,7 +86,7 @@ Native chooser lifecycle is a full transaction:
 - stable visual viewport, scroll geometry and document layout
 - tail-event quarantine completion
 
-During the transaction, auxiliary navigation must be removed from the browser's native navigation path. Use explicit buttons or equivalent action elements, `disabled`, `aria-disabled`, `inert` where supported, and `pointer-events: none`. Navigation is executed only by the interaction owner through explicit `location.assign` after a new owned activation.
+The first physical event that may open a native chooser records memory state only. Before the browser's picker default action, do not synchronously mutate `body`, layout, `disabled`, `inert` or `pointer-events`. The activation transaction is committed after the current event stack; tail-event quarantine begins only after input/change, focus return, visibility return or a bounded close signal. Navigation is executed only by the interaction owner through explicit `location.assign` after a new owned activation.
 
 A fresh pointer event during quarantine does not authorize navigation.
 
@@ -95,7 +95,23 @@ A fresh pointer event during quarantine does not authorize navigation.
 Filter controls update draft state only. They must not issue a request. Existing results remain visible. A single explicit submit owner commits the draft. Layout-sensitive draft rendering must not restore native navigation or collapse user-owned disclosure state.
 
 
-## Distributed Worker orchestration contract
+## Major-bands rank query execution contract
+
+The current owner is `major-bands-rank-query-kernel-v3990_0`. The immutable data package remains `major-bands-static-v3972_2`; the previously verified `major-bands-bounded-fanout-v3972_5` Worker remains a declared stable rollback dependency and must not be deleted or rewritten.
+
+- The authoritative candidate window is the canonical 2026 rank window, not a score prefilter.
+- A build-time rank index may reference immutable score buckets, but it must not copy, rename or rebuild those buckets.
+- The parent Worker reads selected immutable assets through the Pages ASSETS binding. Public HTTP self-calls to `/api/major-bands-bucket` are forbidden in the active query path.
+- Full-dataset truth IDs and the rank-index recall IDs must be equal for every supported score and every preset.
+- Candidate frontiers must not be capped before global ordering. A count larger than one page must remain fully pageable.
+- Pagination uses one deterministic ordered ID snapshot. Exhausting pages must yield an ID union equal to `count`; every non-terminal `nextOffset` must be strictly greater than the current offset.
+- A score without a 2026 rank-table position returns HTTP 200 with an explicit empty result contract. It must not become a bucket-count 500.
+- Parsed bucket caching is bounded and isolate-local, with in-flight request coalescing. Cache size and bucket-read concurrency require fixed ceilings.
+- Cloudflare 1102 is evidence of an architectural resource failure, not a signal for an immediate retry storm. The active path does not retry public self-fanout.
+- Ranking performs one deterministic sort per non-empty band. School profiles and historical evidence are materialized only for the returned page.
+- Preview and production gates must exercise true concurrency levels 1, 5, 10, 25 and 50 after warm-up, report p50/p95/p99 plus a cold hard cap, and require zero 1102 and zero 5xx.
+
+## Declared stable distributed Worker contract
 
 A request must not fan out to every selected Worker with an unbounded `Promise.all`. Distributed reads require an explicit orchestration owner, a small concurrency ceiling, deterministic result ordering and a bounded retry policy for transient platform failures only.
 
@@ -123,4 +139,4 @@ Never modify:
 
 `functions/_lib/release-contract.js` must continue exporting both `LN_RANK_RELEASE_CONTRACT` and `RELEASE_CONTRACT`.
 
-Do not rebuild or replace LocalStrength static data, 211 static data, major-bands static buckets or the Worker bucket architecture for an interaction-only release.
+Do not rebuild or replace LocalStrength static data, 211 static data, major-bands static buckets or the stable Worker bucket package merely to align filenames with the current release.

@@ -1,0 +1,300 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { performance } from 'node:perf_hooks';
+import {
+  MAJOR_BANDS_RANK_BUCKETS,
+  MAJOR_BANDS_RANK_INDEX_RECORD_COUNT,
+  assertMajorBandsRankIndex,
+  selectMajorBandsRankBuckets
+} from '../functions/_lib/major-bands-rank-index.v3990_0.js';
+import { processMajorBandsRankWindow } from '../functions/_lib/major-bands-rank-query-kernel.v3990_0.js';
+import {
+  majorBandsSnapshotId,
+  paginateMajorBandsRecords
+} from '../functions/_lib/major-bands-result-order.v3990_0.js';
+import {
+  rankWindowsForCandidate,
+  resolveCanonicalPosition
+} from '../shared/algorithms/position/canonical-position.v3963_0.js';
+import {
+  LN_2026_PHYSICS_SCORE_RANK_META,
+  lookupLn2026PhysicsScore
+} from '../functions/_lib/ln-2026-physics-score-rank.js';
+
+const manifest = JSON.parse(fs.readFileSync('ln-rank/data/major-bands-static-v3972_2/manifest.json', 'utf8'));
+const schema = manifest.recordSchema;
+const buckets = new Map();
+const allRecords = [];
+
+function decodeRow(row) {
+  const record = {};
+  for (let index = 0; index < schema.length; index += 1) {
+    const value = row[index];
+    if (value !== null && value !== undefined) record[schema[index]] = value;
+  }
+  record.schoolName = record.school;
+  record.majorName = record.major;
+  record.score = record.score2026;
+  record.rank = record.rank2026;
+  record.region = record.lnArea;
+  record.codes = {
+    rawFenxiMajorCode: record.rawFenxiMajorCode || '',
+    standardMajorCode: record.standardMajorCode || '',
+    rawFenxiMajorCodeLooksStandard: Boolean(record.rawFenxiMajorCodeLooksStandard)
+  };
+  record.standardMajor = record.standardMajorCode || record.standardMajorName
+    ? {
+        code: record.standardMajorCode || '',
+        name: record.standardMajorName || '',
+        categoryCode: record.standardMajorCategoryCode || '',
+        categoryName: record.standardMajorCategoryName || ''
+      }
+    : null;
+  record.specialProject = {
+    hasSpecialProject: Boolean(record.specialHas),
+    keys: Array.isArray(record.specialKeys) ? record.specialKeys : [],
+    labels: Array.isArray(record.specialLabels) ? record.specialLabels : [],
+    primaryLabel: record.specialPrimaryLabel || '',
+    reviewPoints: Array.isArray(record.specialReviewPoints) ? record.specialReviewPoints : []
+  };
+  return record;
+}
+
+for (const bucket of manifest.buckets) {
+  const payload = JSON.parse(fs.readFileSync(bucket.file.replace(/^\//, ''), 'utf8'));
+  const records = payload.rows.map(decodeRow);
+  buckets.set(bucket.file, records);
+  allRecords.push(...records);
+}
+
+assertMajorBandsRankIndex();
+assert.equal(manifest.version, 'major-bands-static-v3972_2');
+assert.equal(manifest.recordCount, MAJOR_BANDS_RANK_INDEX_RECORD_COUNT);
+assert.equal(allRecords.length, MAJOR_BANDS_RANK_INDEX_RECORD_COUNT);
+assert.equal(new Set(allRecords.map(record => record.id)).size, allRecords.length);
+assert.equal(MAJOR_BANDS_RANK_BUCKETS.length, manifest.buckets.length);
+
+const manifestBuckets = new Map(manifest.buckets.map(bucket => [bucket.file, bucket]));
+for (const indexBucket of MAJOR_BANDS_RANK_BUCKETS) {
+  const manifestBucket = manifestBuckets.get(indexBucket.file);
+  assert.ok(manifestBucket, `${indexBucket.file}: absent from stable manifest`);
+  const records = buckets.get(indexBucket.file) || [];
+  const scores = records.map(record => Number(record.score2026));
+  const ranks = records.map(record => Number(record.rank2026));
+  assert.equal(records.length, Number(indexBucket.recordCount), `${indexBucket.file}: index recordCount`);
+  assert.equal(indexBucket.recordCount, Number(manifestBucket.recordCount), `${indexBucket.file}: manifest recordCount`);
+  assert.equal(indexBucket.bytes, Number(manifestBucket.bytes), `${indexBucket.file}: manifest bytes`);
+  assert.equal(indexBucket.sha256, manifestBucket.sha256, `${indexBucket.file}: manifest sha256`);
+  assert.equal(indexBucket.minScore, Math.min(...scores), `${indexBucket.file}: minScore`);
+  assert.equal(indexBucket.maxScore, Math.max(...scores), `${indexBucket.file}: maxScore`);
+  assert.equal(indexBucket.minRank, Math.min(...ranks), `${indexBucket.file}: minRank`);
+  assert.equal(indexBucket.maxRank, Math.max(...ranks), `${indexBucket.file}: maxRank`);
+}
+
+function setOf(records) {
+  return new Set(records.map(record => record.id));
+}
+
+function assertEqualSets(actual, expected, label) {
+  assert.equal(actual.size, expected.size, `${label}: size`);
+  for (const id of expected) assert.ok(actual.has(id), `${label}: missing ${id}`);
+  for (const id of actual) assert.ok(expected.has(id), `${label}: unexpected ${id}`);
+}
+
+function canonical(record, candidateScore, candidateRank, preset) {
+  return resolveCanonicalPosition({
+    candidateScore,
+    candidateRank,
+    recordScore: record.score2026,
+    recordRank: record.rank2026,
+    rangePreset: preset,
+    totalRank: LN_2026_PHYSICS_SCORE_RANK_META.totalAt150
+  });
+}
+
+function selectedRecords(selected) {
+  return selected.flatMap(bucket => buckets.get(bucket.file) || []);
+}
+
+function kernelFor(score, preset) {
+  const row = lookupLn2026PhysicsScore(score);
+  const candidateRank = row ? { rankForGap: row.rankForGap } : null;
+  const windows = rankWindowsForCandidate(
+    candidateRank?.rankForGap,
+    preset,
+    LN_2026_PHYSICS_SCORE_RANK_META.totalAt150
+  );
+  const selected = selectMajorBandsRankBuckets(windows);
+  const records = selectedRecords(selected);
+  const result = processMajorBandsRankWindow(records, {
+    candidateScore: score,
+    candidateRank,
+    rangePreset: preset,
+    region: 'all',
+    majorKeyword: '',
+    bottomLineMode: 'all',
+    specialProjectMode: 'show_eligibility_projects',
+    schoolFilter: false,
+    acceptedSchoolNames: []
+  });
+  return { row, candidateRank, windows, selected, records, result };
+}
+
+const presets = ['standard', 'wide', 'safe'];
+const summary = {
+  version: 'major-bands-full-recall-audit-v3990_0',
+  sourceRecords: allRecords.length,
+  queries: 0,
+  rankQueries: 0,
+  rankUnavailableQueries: 0,
+  truthSetEqualQueries: 0,
+  kernelSetEqualQueries: 0,
+  paginationBands: 0,
+  paginationIds: 0,
+  maxSelectedBuckets: 0,
+  presetBucketCounts: Object.fromEntries(presets.map(preset => [preset, { min: Infinity, max: 0, queries: 0 }])),
+  highBoundary: []
+};
+
+for (let score = 344; score <= 750; score += 1) {
+  for (const preset of presets) {
+    summary.queries += 1;
+    const query = kernelFor(score, preset);
+    if (!query.row) {
+      summary.rankUnavailableQueries += 1;
+      assert.ok(score > LN_2026_PHYSICS_SCORE_RANK_META.topScore, `${score}/${preset}: unexpected missing rank`);
+      assert.equal(query.selected.length, 0, `${score}/${preset}: high boundary selected buckets`);
+      assert.equal(query.result.stats.rankUnavailable, true, `${score}/${preset}: missing-rank contract`);
+      assert.equal(query.result.grouped.upper.count + query.result.grouped.near.count + query.result.grouped.steady.count, 0);
+      summary.highBoundary.push({ score, preset, status: 200, count: 0, bucketCount: 0 });
+      continue;
+    }
+
+    summary.rankQueries += 1;
+    summary.maxSelectedBuckets = Math.max(summary.maxSelectedBuckets, query.selected.length);
+    assert.ok(query.selected.length > 0, `${score}/${preset}: no executable rank buckets`);
+    const bucketEvidence = summary.presetBucketCounts[preset];
+    bucketEvidence.min = Math.min(bucketEvidence.min, query.selected.length);
+    bucketEvidence.max = Math.max(bucketEvidence.max, query.selected.length);
+    bucketEvidence.queries += 1;
+
+    const truthByBand = { upper: [], near: [], steady: [] };
+    for (const record of allRecords) {
+      const position = canonical(record, score, query.candidateRank.rankForGap, preset);
+      if (truthByBand[position.bandKey]) truthByBand[position.bandKey].push(record);
+    }
+    const truth = setOf([...truthByBand.upper, ...truthByBand.near, ...truthByBand.steady]);
+    const recalled = setOf(query.records.filter(record => {
+      const band = canonical(record, score, query.candidateRank.rankForGap, preset).bandKey;
+      return ['upper', 'near', 'steady'].includes(band);
+    }));
+    assertEqualSets(recalled, truth, `${score}/${preset}: truth vs rank buckets`);
+    summary.truthSetEqualQueries += 1;
+
+    const kernelUnion = setOf([
+      ...query.result.grouped.upper.ordered,
+      ...query.result.grouped.near.ordered,
+      ...query.result.grouped.steady.ordered
+    ]);
+    assertEqualSets(kernelUnion, truth, `${score}/${preset}: truth vs kernel`);
+    summary.kernelSetEqualQueries += 1;
+
+    for (const band of ['upper', 'near', 'steady']) {
+      const ordered = query.result.grouped[band].ordered;
+      const expected = setOf(truthByBand[band]);
+      assertEqualSets(setOf(ordered), expected, `${score}/${preset}/${band}: band truth`);
+      const seen = new Set();
+      const queryIdentity = `${score}|${preset}|${band}`;
+      const expectedSnapshot = majorBandsSnapshotId(ordered, queryIdentity);
+      let offset = 0;
+      let previousOffset = -1;
+      while (true) {
+        const page = paginateMajorBandsRecords(ordered, {
+          offset,
+          limit: 37,
+          queryIdentity
+        });
+        assert.equal(page.count, ordered.length);
+        assert.equal(page.pagination.snapshot, expectedSnapshot);
+        assert.ok(page.pagination.offset > previousOffset, `${score}/${preset}/${band}: offset did not move`);
+        for (const record of page.records) {
+          assert.ok(!seen.has(record.id), `${score}/${preset}/${band}: duplicate page ID ${record.id}`);
+          seen.add(record.id);
+        }
+        if (!page.pagination.hasMore) {
+          assert.equal(page.pagination.nextOffset, null);
+          break;
+        }
+        assert.ok(page.pagination.nextOffset > offset, `${score}/${preset}/${band}: nextOffset not strict`);
+        previousOffset = offset;
+        offset = page.pagination.nextOffset;
+      }
+      assertEqualSets(seen, expected, `${score}/${preset}/${band}: paged union`);
+      summary.paginationBands += 1;
+      summary.paginationIds += seen.size;
+    }
+  }
+}
+
+assert.equal(summary.queries, 407 * presets.length);
+assert.equal(summary.rankQueries, 365 * presets.length);
+assert.equal(summary.rankUnavailableQueries, 42 * presets.length);
+assert.equal(summary.truthSetEqualQueries, summary.rankQueries);
+assert.equal(summary.kernelSetEqualQueries, summary.rankQueries);
+assert.ok(summary.highBoundary.every(item => item.status === 200 && item.count === 0));
+for (const preset of presets) {
+  const bucketEvidence = summary.presetBucketCounts[preset];
+  assert.equal(bucketEvidence.queries, 365, `${preset}: executable query count`);
+  assert.ok(Number.isFinite(bucketEvidence.min) && bucketEvidence.min > 0, `${preset}: minimum bucket count`);
+  assert.ok(bucketEvidence.max >= bucketEvidence.min, `${preset}: maximum bucket count`);
+}
+
+const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+for (const forbidden of [
+  'major-bands-bucket-orchestrator',
+  'runMajorBandsBucketWorkers',
+  "new URL('/api/major-bands-bucket'",
+  'maxCandidates',
+  'selected.buckets.length > 12'
+]) {
+  assert.ok(!apiSource.includes(forbidden), `retired fanout path remains: ${forbidden}`);
+}
+for (const required of [
+  'rank_unavailable_empty',
+  'publicHttpSelfFanout: false',
+  'candidateLimit: null',
+  'stable-full-id-snapshot-v3990_0',
+  's-maxage=60'
+]) {
+  assert.ok(apiSource.includes(required), `missing v3990 contract: ${required}`);
+}
+
+const benchmarkCases = [
+  [579, 'standard'],
+  [508, 'standard'],
+  [680, 'wide'],
+  [449, 'safe']
+];
+const benchmark = [];
+for (const [score, preset] of benchmarkCases) {
+  kernelFor(score, preset);
+  kernelFor(score, preset);
+  const samples = [];
+  for (let index = 0; index < 9; index += 1) {
+    const started = performance.now();
+    const value = kernelFor(score, preset);
+    samples.push(performance.now() - started);
+    assert.ok(value.result.stats.rawScanned > 0);
+  }
+  const ordered = [...samples].sort((left, right) => left - right);
+  const median = ordered[Math.floor(ordered.length / 2)];
+  const p95 = ordered[Math.ceil(ordered.length * 0.95) - 1];
+  assert.ok(median < 180, `${score}/${preset}: median ${median.toFixed(1)}ms`);
+  assert.ok(p95 < 350, `${score}/${preset}: p95 ${p95.toFixed(1)}ms`);
+  benchmark.push({ score, preset, medianMs: Number(median.toFixed(2)), p95Ms: Number(p95.toFixed(2)) });
+}
+summary.benchmark = benchmark;
+
+const evidencePath = process.env.MAJOR_BANDS_RANK_AUDIT_EVIDENCE || '/tmp/major-bands-rank-kernel-v3990_0.json';
+fs.writeFileSync(evidencePath, JSON.stringify(summary, null, 2));
+console.log(JSON.stringify(summary, null, 2));
