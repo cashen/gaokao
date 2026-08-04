@@ -17,7 +17,10 @@ import {
 } from './special-project-policy.js';
 
 export const MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION = 'major-bands-rank-query-kernel-v3990_0';
-export const MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'stream-unfiltered-candidates-v3990_0';
+export const MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0';
+
+const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
+const BAND_KEY_SET = new Set(BAND_KEYS);
 
 function clean(value, max = 120) {
   return String(value == null ? '' : value).trim().slice(0, max);
@@ -67,7 +70,7 @@ function emptyGroup() {
   return { count: 0, ordered: [] };
 }
 
-function emptyResult(candidateRank, keywordQuery) {
+function emptyResult(candidateRank, keywordQuery, requestedBand = '') {
   return {
     grouped: {
       upper: emptyGroup(),
@@ -78,6 +81,8 @@ function emptyResult(candidateRank, keywordQuery) {
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
       memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
+      requestedBand,
+      sourceRecordsMutated: false,
       rankUnavailable: !Number.isFinite(Number(candidateRank?.rankForGap)),
       rawScanned: 0,
       canonicalCandidate: 0,
@@ -109,10 +114,13 @@ export function processMajorBandsRankWindow(records, options = {}) {
   const specialProjectMode = clean(options.specialProjectMode || 'hide_eligibility_projects', 50);
   const schoolFilter = Boolean(options.schoolFilter);
   const acceptedSchoolNames = exactSchoolSet(options.acceptedSchoolNames);
+  const requestedBandInput = clean(options.requestedBand || '', 20);
+  const requestedBand = BAND_KEY_SET.has(requestedBandInput) ? requestedBandInput : '';
+  const mutateSourceRecords = Boolean(options.mutateSourceRecords);
   const keywordQuery = buildKeywordQuery(majorKeyword);
 
   if (!Number.isFinite(candidateRankValue) || candidateRankValue <= 0) {
-    return emptyResult(candidateRank, keywordQuery);
+    return emptyResult(candidateRank, keywordQuery, requestedBand);
   }
 
   const hasKeywordSearch = hasKeywordFilters(keywordQuery);
@@ -145,7 +153,8 @@ export function processMajorBandsRankWindow(records, options = {}) {
       recordRank: source.rank2026 ?? source.rank,
       rangePreset
     });
-    if (!['upper', 'near', 'steady'].includes(canonicalPosition.bandKey)) return null;
+    if (!BAND_KEY_SET.has(canonicalPosition.bandKey)) return null;
+    if (requestedBand && canonicalPosition.bandKey !== requestedBand) return null;
     if (schoolFilter && !acceptedSchoolNames.has(normalizeSchoolName(source.school))) return null;
     if (!matchRegion(source, region)) return null;
     canonicalCandidate += 1;
@@ -179,8 +188,12 @@ export function processMajorBandsRankWindow(records, options = {}) {
       return;
     }
 
-    const record = {
-      ...source,
+    // Rank-bucket rows are request-owned unless they joined another query's
+    // pending asset read, in which case the loader shallow-cloned them. The API
+    // may therefore enrich them in place and avoid retaining a second complete
+    // record object graph while sorting and compacting the result.
+    const record = mutateSourceRecords ? source : { ...source };
+    Object.assign(record, {
       band: canonicalPosition.bandKey,
       bandKey: canonicalPosition.bandKey,
       candidateScore,
@@ -203,7 +216,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
       matchedTerms: match.matchedTerms || [],
       matchScore: match.score,
       specialProject
-    };
+    });
 
     if (specialProject.hasSpecialProject) {
       specialProjectShown += 1;
@@ -235,8 +248,8 @@ export function processMajorBandsRankWindow(records, options = {}) {
     }
   } else {
     // The dominant score-search path has no keyword query. Classify and commit
-    // each source record in one pass so a second canonical-candidate object graph
-    // never overlaps the raw bucket rows and enriched response records.
+    // each source record in one pass. Requested-band pagination also rejects
+    // adjacent-band rows before enrichment, sorting and snapshot construction.
     for (const source of records || []) {
       const candidate = resolveCandidate(source);
       if (!candidate) continue;
@@ -245,7 +258,8 @@ export function processMajorBandsRankWindow(records, options = {}) {
   }
 
   let sortPasses = 0;
-  for (const key of ['upper', 'near', 'steady']) {
+  const sortKeys = requestedBand ? [requestedBand] : BAND_KEYS;
+  for (const key of sortKeys) {
     const group = grouped[key];
     group.ordered = rankMajorBandsRecordsOnce(group.ordered, {
       intent: 'score-search',
@@ -265,6 +279,8 @@ export function processMajorBandsRankWindow(records, options = {}) {
     stats: {
       version: MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
       memoryMode: MAJOR_BANDS_RANK_QUERY_MEMORY_MODE,
+      requestedBand,
+      sourceRecordsMutated: mutateSourceRecords,
       rankUnavailable: false,
       rawScanned: Array.isArray(records) ? records.length : 0,
       canonicalCandidate,
