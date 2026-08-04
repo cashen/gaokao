@@ -8,6 +8,8 @@ import {
   majorBandsQueryExecutionCacheState
 } from '../functions/_lib/major-bands-query-execution-cache.v3990_0.js';
 import { normalizeScoreBand } from '../ln-rank/js/domain/score-band-contract.v3963_1.js';
+import { state as clientState } from '../ln-rank/js/state/app-state.v3963_1.js?v=3963_1';
+import { fetchMajorBands as fetchClientMajorBands } from '../ln-rank/js/feature/major-pool/bands-api.v3963_0.js?v=3963_0';
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -163,6 +165,64 @@ for (const required of [
   assert.ok(bandsApiSource.includes(required), `missing client pagination snapshot contract: ${required}`);
 }
 
+const originalFetch = globalThis.fetch;
+const originalClientBands = clientState.bands.data;
+let requestedClientUrl = '';
+let clientPayload = {
+  ok: true,
+  bands: { near: { pagination: { snapshot: 'client-snapshot-a' } } }
+};
+globalThis.fetch = async input => {
+  requestedClientUrl = input instanceof Request ? input.url : String(input || '');
+  return new Response(JSON.stringify(clientPayload), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8' }
+  });
+};
+try {
+  clientState.bands.data = null;
+  await fetchClientMajorBands({
+    candidateScore: 579,
+    rangePreset: 'standard',
+    filters: {},
+    page: { limit: 40 }
+  });
+  assert.ok(!requestedClientUrl.includes('snapshot='), 'initial client request unexpectedly sent a stale snapshot');
+
+  clientState.bands.data = {
+    bands: {
+      near: { pagination: { snapshot: 'client-snapshot-a' } }
+    }
+  };
+  await fetchClientMajorBands({
+    candidateScore: 579,
+    rangePreset: 'standard',
+    filters: {},
+    page: { band: 'near', offset: 40, limit: 40 }
+  });
+  assert.ok(requestedClientUrl.includes('snapshot=client-snapshot-a'), 'next-page client request omitted expected snapshot');
+
+  clientPayload = {
+    ok: true,
+    bands: { near: { pagination: { snapshot: 'client-snapshot-b' } } }
+  };
+  await assert.rejects(
+    fetchClientMajorBands({
+      candidateScore: 579,
+      rangePreset: 'standard',
+      filters: {},
+      page: { band: 'near', offset: 80, limit: 40 }
+    }),
+    error => error?.code === 'pagination_snapshot_mismatch'
+      && error?.expectedSnapshot === 'client-snapshot-a'
+      && error?.actualSnapshot === 'client-snapshot-b',
+    'client accepted a different pagination snapshot before merge'
+  );
+} finally {
+  globalThis.fetch = originalFetch;
+  clientState.bands.data = originalClientBands;
+}
+
 console.log(JSON.stringify({
   ok: true,
   version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
@@ -180,5 +240,6 @@ console.log(JSON.stringify({
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
   allBandRetentionMode: 'compact-current-page-per-band',
   clientPaginationSnapshot: normalizedSnapshot.pagination.snapshot,
+  clientSnapshotMismatchRejected: true,
   crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
