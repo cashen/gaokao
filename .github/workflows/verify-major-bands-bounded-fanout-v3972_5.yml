@@ -80,8 +80,8 @@ jobs:
           grep -q "majorBandsPublicHttpSelfFanoutForbidden: true" shared/resources/release/site-runtime-contract.v3990_0.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION" functions/api/major-bands.js
           grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
-          grep -q "MAX_COMPLETED_QUERIES = 2" functions/_lib/major-bands-query-execution-cache.v3990_0.js
-          grep -q "MAX_COMPLETED_RECORDS = 2500" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_QUERIES = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|maxCandidates|selected\.buckets\.length > 12" functions/api/major-bands.js; then
             echo 'retired self-fanout or candidate cap returned'
             exit 1
