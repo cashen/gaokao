@@ -1,0 +1,100 @@
+name: One-time production rank audit sync v3990
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Synchronize production resource audit
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              "'allBandBucketMaxConcurrency: 2'": "'allBandBucketMaxConcurrency: 1'",
+              "'requestedBandBucketMaxConcurrency: 2'": "'requestedBandBucketMaxConcurrency: 1'",
+              "'MAX_LOAD_CONCURRENCY = 2'": "'MAX_LOAD_CONCURRENCY = 1'",
+              "'ALL_BANDS_LOAD_CONCURRENCY = 2'": "'ALL_BANDS_LOAD_CONCURRENCY = 1'",
+              '  allBandBucketMaxConcurrency: 2,': '  allBandBucketMaxConcurrency: 1,',
+              '  requestedBandBucketMaxConcurrency: 2,': '  requestedBandBucketMaxConcurrency: 1,'
+          }
+          for before, after in replacements.items():
+              if before not in text and after not in text:
+                  raise SystemExit(f'missing production audit anchor: {before}')
+              text = text.replace(before, after)
+
+          loader_const = "const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';"
+          row_const = "const RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';"
+          if row_const not in text:
+              text = text.replace(loader_const, loader_const + '\n' + row_const, 1)
+
+          concurrency_anchor = '  REQUEST_BAND_LOADER_VERSION,'
+          if '  RANK_ROW_FILTER_VERSION,' not in text:
+              text = text.replace(concurrency_anchor, concurrency_anchor + '\n  RANK_ROW_FILTER_VERSION,', 1)
+
+          telemetry_anchor = "  'queryExecutionCacheStatus',"
+          telemetry = """  'queryExecutionCacheStatus',
+            'rankRowFilterVersion',
+            'rankRawRowCount',
+            'rankDecodedRowCount',
+            'rankRowsSkipped',"""
+          if "  'rankRowFilterVersion'," not in text:
+              text = text.replace(telemetry_anchor, telemetry, 1)
+
+          loader_marker = "  `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,"
+          row_marker = "  `MAJOR_BANDS_RANK_ROW_FILTER_VERSION = '${RANK_ROW_FILTER_VERSION}'`,"
+          if row_marker not in text:
+              text = text.replace(loader_marker, loader_marker + '\n' + row_marker, 1)
+
+          output_anchor = '  requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,'
+          output_row = '  rankRowFilterVersion: RANK_ROW_FILTER_VERSION,'
+          if output_row not in text:
+              text = text.replace(output_anchor, output_anchor + '\n' + output_row, 1)
+
+          forbidden = [
+              'allBandBucketMaxConcurrency: 2',
+              'requestedBandBucketMaxConcurrency: 2',
+              'MAX_LOAD_CONCURRENCY = 2',
+              'ALL_BANDS_LOAD_CONCURRENCY = 2'
+          ]
+          for value in forbidden:
+              if value in text:
+                  raise SystemExit(f'old production rank audit contract remains: {value}')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-canonical-release-version-v3990_0.mjs
+          node tools/audit-site-runtime-generation-v3990_0.mjs
+          node tools/audit-unified-resource-graph-v3990_0.mjs
+
+      - name: Commit synchronized audit
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/audit-production-resource-verification-v3990_0.mjs
+          git diff --cached --check
+          git commit -m 'test(rank): synchronize production row-filter audit'
+          git push origin HEAD:agent/rank-kernel-v3990_0
