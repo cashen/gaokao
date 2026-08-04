@@ -1,4 +1,4 @@
-export const MAJOR_BANDS_RESULT_ORDER_VERSION = 'major-bands-result-order-v3990_0';
+export const MAJOR_BANDS_RESULT_ORDER_VERSION = 'major-bands-result-order-ephemeral-v3990_0';
 export const MAJOR_BANDS_RANKING_MEMORY_MODE = 'ephemeral-compact-tuples-v3990_0';
 
 const MATCH_TIER = Object.freeze({ exact: 50, related: 40, project: 30, industry: 20, weak: 10, '': 0 });
