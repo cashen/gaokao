@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE,
@@ -116,6 +117,24 @@ assert.equal(state.completedTtlMs, 30_000);
 assert.equal(state.preflightBudgetBeforeSerialization, true);
 assert.equal(state.version, 'major-bands-query-execution-cache-serialized-v3990_0');
 
+const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+for (const required of [
+  "band === 'all-bands-execution'",
+  'compactRankedPage(ordered, pageOffset, pageLimit)',
+  "'compact-current-page-per-band'",
+  "'current-page-only'",
+  'queryExecutionPageOffset',
+  'queryExecutionPageLimit'
+]) {
+  assert.ok(apiSource.includes(required), `missing bounded all-band retention contract: ${required}`);
+}
+for (const forbidden of [
+  'const retainRecords = !requestedBand || requestedBand === key',
+  "requestedBand || 'all'\n        }"
+]) {
+  assert.ok(!apiSource.includes(forbidden), `unbounded all-band retention path returned: ${forbidden}`);
+}
+
 console.log(JSON.stringify({
   ok: true,
   version: MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
@@ -131,5 +150,6 @@ console.log(JSON.stringify({
   completedRetentionEnabled: state.completedRetentionEnabled,
   maxCompletedEstimatedBytes: state.maxCompletedEstimatedBytes,
   preflightBudgetBeforeSerialization: state.preflightBudgetBeforeSerialization,
+  allBandRetentionMode: 'compact-current-page-per-band',
   crossRequestSemaphore: state.crossRequestSemaphore
 }, null, 2));
