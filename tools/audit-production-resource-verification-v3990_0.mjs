@@ -7,6 +7,8 @@ const manifest = JSON.parse(fs.readFileSync('ln-rank/site-active-generation.v399
 const exists = value => fs.existsSync(String(value).split('?')[0].replace(/^\//, ''));
 const PAGINATION_SNAPSHOT_GUARD_PATH = '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 const PAGINATION_SNAPSHOT_GUARD_MANIFEST_PATH = `${PAGINATION_SNAPSHOT_GUARD_PATH}?v=3990_0`;
+const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
+const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-request-band-scope-v3990_0';
 
 assert.equal(CONTRACT.version, 'production-resource-graph-verification-v3990_0');
 assert.equal(CONTRACT.statusContext, 'production/resource-graph-v3990.0');
@@ -61,6 +63,11 @@ for (const marker of [
   'pagination-snapshot-guard.v3990_0.js',
   'PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE',
   'v3990-0-production-pagination-snapshot-guard.json',
+  'Wait for bounded rank-query production deployment',
+  EXECUTION_GATE_VERSION,
+  REQUEST_BAND_LOADER_VERSION,
+  '"maxConcurrentExecutions":2',
+  '"crossRequestSemaphore":true',
   'PRODUCTION_RESOURCE_ATTEMPTS',
   'PRODUCTION_RESOURCE_WAIT_MS'
 ]) assert.ok(workflow.includes(marker), `production workflow missing ${marker}`);
@@ -96,6 +103,27 @@ for (const marker of [
   'source guard retention exceeded budget'
 ]) assert.ok(snapshotVerifier.includes(marker), `pagination snapshot production verifier missing ${marker}`);
 
+const concurrencyVerifier = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
+for (const marker of [
+  EXECUTION_GATE_VERSION,
+  REQUEST_BAND_LOADER_VERSION,
+  'queryCacheState.crossRequestSemaphore',
+  'queryCacheState.boundedDistinctExecutions',
+  'queryCacheState.maxConcurrentExecutions',
+  "result.scenario === 'safe-449-near'",
+  "source?.chunksRead), 6",
+  "source?.staticIndexBytes), 621156"
+]) assert.ok(concurrencyVerifier.includes(marker), `production concurrency verifier missing ${marker}`);
+
+const executionCache = fs.readFileSync('functions/_lib/major-bands-query-execution-cache.v3990_0.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION = '${EXECUTION_GATE_VERSION}'`,
+  'MAX_CONCURRENT_EXECUTIONS = 2',
+  'crossRequestSemaphore: true',
+  'boundedDistinctExecutions: true',
+  'executionWaiters'
+]) assert.ok(executionCache.includes(marker), `bounded execution cache missing ${marker}`);
+
 console.log(JSON.stringify({
   ok: true,
   release: CONTRACT.releaseVersion,
@@ -105,5 +133,9 @@ console.log(JSON.stringify({
   requiredStaticResources: Object.keys(CONTRACT.requiredStaticResources).length,
   retiredResources: CONTRACT.retiredResources.length,
   paginationSnapshotGuard: CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard,
-  paginationSnapshotProductionGate: true
+  paginationSnapshotProductionGate: true,
+  executionGateVersion: EXECUTION_GATE_VERSION,
+  maxConcurrentExecutions: 2,
+  requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,
+  boundedExecutionProductionGate: true
 }, null, 2));
