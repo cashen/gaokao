@@ -153,7 +153,7 @@ function validateResult(result) {
   } else {
     const group = validatePaginationGroup(result, result.band);
     assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-snapshot', `${result.scenario}: requested-band retention mode`);
-    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 4, `${result.scenario}: requested-band bucket concurrency exceeded four`);
+    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 2, `${result.scenario}: requested-band bucket concurrency exceeded two`);
     if (result.scenario === 'safe-449-near') {
       assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: requested band must read exactly six buckets');
       assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: scoped static bytes drift');
@@ -275,7 +275,7 @@ const evidence = {
   maxConcurrentExecutions: 2,
   bucketLoaderVersion: expectedBucketLoaderVersion,
   allBandBucketMaxConcurrency: 2,
-  requestedBandBucketMaxConcurrency: 4,
+  requestedBandBucketMaxConcurrency: 2,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',
   allBandRetentionContract: 'compact-current-page-per-band',
   base,
