@@ -12,6 +12,7 @@ const EXECUTION_GATE_VERSION = 'major-bands-query-execution-gate-v3990_0';
 const EXECUTION_GATE_MODE = 'request-owned-timer-polling';
 const QUERY_MEMORY_MODE = 'request-band-in-place-v3990_0';
 const REQUEST_BAND_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
+const RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';
 const RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0';
 const RESULT_ORDER_VERSION = 'major-bands-result-order-ephemeral-v3990_0';
 const RANKING_MEMORY_MODE = 'ephemeral-compact-tuples-v3990_0';
@@ -122,14 +123,19 @@ for (const marker of [
   EXECUTION_GATE_MODE,
   QUERY_MEMORY_MODE,
   REQUEST_BAND_LOADER_VERSION,
+  RANK_ROW_FILTER_VERSION,
   RESULT_ORDER_VERSION,
   RANKING_MEMORY_MODE,
   'queryExecutionCacheVersion',
   'queryExecutionCacheStatus',
+  'rankRowFilterVersion',
+  'rankRawRowCount',
+  'rankDecodedRowCount',
+  'rankRowsSkipped',
   'source?.resultOrderVersion',
   'pagination?.order',
-  'allBandBucketMaxConcurrency: 2',
-  'requestedBandBucketMaxConcurrency: 2',
+  'allBandBucketMaxConcurrency: 1',
+  'requestedBandBucketMaxConcurrency: 1',
   "requestedBandFastPath: 'target-band-only-in-place'",
   'requested-band performed more than one sort',
   'hidden ${hiddenBand} band was classified',
@@ -174,12 +180,22 @@ for (const marker of [
   'commitCandidate(candidate.source, candidate.canonicalPosition, matchAllKeywordResult())'
 ]) assert.ok(queryKernel.includes(marker), `requested-band in-place query kernel missing ${marker}`);
 
+const staticProvider = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_RANK_ROW_FILTER_VERSION = '${RANK_ROW_FILTER_VERSION}'`,
+  "const rankIndex = schema.indexOf('rank2026')",
+  'payload.rows.filter(row => majorBandsRankValueMatchesRange',
+  'rankRowsSkipped: payload.rows.length - selectedRows.length'
+]) assert.ok(staticProvider.includes(marker), `predecode rank-row provider missing ${marker}`);
+
 const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
 for (const marker of [
   `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
   `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,
-  'MAX_LOAD_CONCURRENCY = 2',
-  'ALL_BANDS_LOAD_CONCURRENCY = 2',
+  'MAX_LOAD_CONCURRENCY = 1',
+  'ALL_BANDS_LOAD_CONCURRENCY = 1',
+  'rankRange: scope.requestedRange',
+  'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
   'cloneLoadedForSharedQuery',
   "cacheStatus: 'hit-cloned'",
   'attachRecordExecutionContext',
@@ -221,11 +237,12 @@ console.log(JSON.stringify({
   resultOrderVersion: RESULT_ORDER_VERSION,
   rankingMemoryMode: RANKING_MEMORY_MODE,
   maxConcurrentExecutions: 1,
-  allBandBucketMaxConcurrency: 2,
-  requestedBandBucketMaxConcurrency: 2,
+  allBandBucketMaxConcurrency: 1,
+  requestedBandBucketMaxConcurrency: 1,
   requestOwnedTimerWait: true,
   crossRequestResolverQueue: false,
   requestBandLoaderVersion: REQUEST_BAND_LOADER_VERSION,
+  rankRowFilterVersion: RANK_ROW_FILTER_VERSION,
   recordOwnership: RECORD_OWNERSHIP,
   requestedBandFastPath: true,
   publishedApiContractOnly: true,
