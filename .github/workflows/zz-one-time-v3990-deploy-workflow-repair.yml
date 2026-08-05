@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply v3990 deploy workflow repair
+      - name: Apply v3990 deploy audit repair
         run: python3 tools/zz_patch_v3990_deploy_workflow.py
       - name: Verify repaired deployment contracts
         run: |
@@ -37,11 +37,11 @@ jobs:
           grep -q "display: 'v3.9.90.0'" .github/workflows/deploy-cloudflare-pages-main.yml
           grep -q 'verify-production-resource-graph-v3990_0.mjs' .github/workflows/deploy-cloudflare-pages-main.yml
           grep -q 'cloudflare-pages-v3990-0-production' .github/workflows/deploy-cloudflare-pages-main.yml
-      - name: Commit verified repair
+      - name: Commit verified deploy audit
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/workflows/deploy-cloudflare-pages-main.yml tools/audit-production-resource-verification-v3990_0.mjs
-          git commit -m 'fix(release): align Cloudflare deploy workflow with v3990'
+          git add tools/audit-production-resource-verification-v3990_0.mjs
+          git commit -m 'test(release): govern v3990 Cloudflare deploy workflow'
           git push origin HEAD:agent/deploy-workflow-v3990_0
