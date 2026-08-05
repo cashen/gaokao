@@ -1,0 +1,187 @@
+name: One-time v3990 challenge-boundary verifier fix
+
+on:
+  push:
+    branches:
+      - agent/production-challenge-boundary-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-challenge-boundary-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/production-challenge-boundary-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Patch strict custom-domain challenge boundary
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, got {count}')
+              return text.replace(old, new, 1)
+
+          verifier_path = Path('tools/verify-production-resource-graph-v3990_0.mjs')
+          verifier = verifier_path.read_text(encoding='utf-8')
+          verifier = replace_once(
+              verifier,
+              "function require200(failures, label, response, markers = []) {",
+              "function isCloudflareManagedChallenge(response) {\n  const headers = response?.headers || {};\n  const body = String(response?.text || '').toLowerCase();\n  return Number(response?.status) === 403\n    && String(headers['cf-mitigated'] || '').toLowerCase() === 'challenge'\n    && String(headers.server || '').toLowerCase().includes('cloudflare')\n    && String(headers['content-type'] || '').toLowerCase().includes('text/html')\n    && (body.includes('<title>just a moment') || body.includes('challenges.cloudflare.com'));\n}\n\nfunction validateCustomChallengeBoundary(responses) {\n  const failures = [];\n  const challengedResources = [];\n  for (const key of ['activeManifest', 'selectionPage', 'selfCheck']) {\n    const response = responses[key];\n    if (Number(response?.status) !== 403) continue;\n    if (!isCloudflareManagedChallenge(response)) {\n      failures.push(`custom ${key} returned unrecognized HTTP 403`);\n      continue;\n    }\n    challengedResources.push(key);\n  }\n  return {\n    mode: challengedResources.length ? 'cloudflare-managed-challenge' : 'open',\n    challengedResources,\n    challengePolicyEnabled: CONTRACT.policies.customHtmlChallengeBoundarySeparate === true,\n    failures\n  };\n}\n\nfunction require200(failures, label, response, markers = []) {",
+              'challenge helpers'
+          )
+          old_run = """  const staticFailures = [
+    ...validatePages(pages),
+    ...validateStaticSet('custom', custom, { includeHtml: false })
+  ];
+  const [pagesMajorBands, customMajorBands] = verifyMajorBands && staticFailures.length === 0
+    ? await Promise.all([
+        verifyMajorBandsBase('pages', pagesBase, attempt),
+        verifyMajorBandsBase('custom', customBase, attempt)
+      ])
+    : [
+        { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} },
+        { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} }
+      ];
+  const failures = [
+    ...staticFailures,
+    ...pagesMajorBands.failures,
+    ...customMajorBands.failures
+  ];
+  return { ok: failures.length === 0, attempt, expected, pages, custom, pagesMajorBands, customMajorBands, failures };"""
+          new_run = """  const customStaticBoundary = validateCustomChallengeBoundary(custom);
+  const staticFailures = [
+    ...validatePages(pages),
+    ...validateStaticSet('custom', custom, { includeHtml: false }),
+    ...customStaticBoundary.failures
+  ];
+
+  let pagesMajorBands = { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} };
+  let customMajorBands = { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} };
+  let customDynamicBoundary = {
+    mode: verifyMajorBands ? 'static-graph-not-ready' : 'disabled',
+    status: null,
+    verified: false
+  };
+
+  if (verifyMajorBands && staticFailures.length === 0) {
+    pagesMajorBands = await verifyMajorBandsBase('pages', pagesBase, attempt);
+    const customHealthProbe = await request(customBase, CONTRACT.dynamicResources.majorBandsHealth, attempt);
+    if (isCloudflareManagedChallenge(customHealthProbe)) {
+      const boundaryCorroborated = customStaticBoundary.mode === 'cloudflare-managed-challenge'
+        && customStaticBoundary.challengePolicyEnabled;
+      customDynamicBoundary = {
+        mode: 'cloudflare-managed-challenge',
+        status: customHealthProbe.status,
+        cfMitigated: customHealthProbe.headers?.['cf-mitigated'] || '',
+        server: customHealthProbe.headers?.server || '',
+        contentType: customHealthProbe.headers?.['content-type'] || '',
+        verified: boundaryCorroborated
+      };
+      customMajorBands = boundaryCorroborated
+        ? {
+            failures: [],
+            skipped: true,
+            reason: 'custom-domain-cloudflare-managed-challenge',
+            health: customHealthProbe.status,
+            boundary: customHealthProbe.status,
+            pagination: {}
+          }
+        : {
+            failures: ['custom API challenge not corroborated by HTML challenge boundary'],
+            skipped: true,
+            reason: 'unverified-custom-domain-challenge',
+            health: customHealthProbe.status,
+            boundary: customHealthProbe.status,
+            pagination: {}
+          };
+    } else {
+      customDynamicBoundary = {
+        mode: 'direct-api-verification',
+        status: customHealthProbe.status,
+        verified: true
+      };
+      customMajorBands = await verifyMajorBandsBase('custom', customBase, attempt);
+    }
+  }
+
+  const failures = [
+    ...staticFailures,
+    ...pagesMajorBands.failures,
+    ...customMajorBands.failures
+  ];
+  const customBoundary = {
+    static: customStaticBoundary,
+    dynamic: customDynamicBoundary
+  };
+  return { ok: failures.length === 0, attempt, expected, pages, custom, customBoundary, pagesMajorBands, customMajorBands, failures };"""
+          verifier = replace_once(verifier, old_run, new_run, 'run attempt challenge boundary')
+          verifier = replace_once(
+              verifier,
+              "    majorBands: {\n      pages: finalResult.pagesMajorBands,\n      custom: finalResult.customMajorBands\n    },",
+              "    customBoundary: finalResult.customBoundary,\n    majorBands: {\n      pages: finalResult.pagesMajorBands,\n      custom: finalResult.customMajorBands\n    },",
+              'challenge evidence summary'
+          )
+          verifier_path.write_text(verifier, encoding='utf-8')
+
+          audit_path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+          audit = audit_path.read_text(encoding='utf-8')
+          audit = replace_once(
+              audit,
+              "  'rank_unavailable_empty'\n]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);",
+              "  'rank_unavailable_empty',\n  'isCloudflareManagedChallenge',\n  \"headers['cf-mitigated']\",\n  'customHtmlChallengeBoundarySeparate',\n  'custom API challenge not corroborated by HTML challenge boundary',\n  'custom-domain-cloudflare-managed-challenge',\n  \"pagesMajorBands = await verifyMajorBandsBase('pages'\"\n]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);",
+              'production audit challenge markers'
+          )
+          audit_path.write_text(audit, encoding='utf-8')
+          PY
+
+      - name: Verify source audit and live production boundary
+        run: |
+          set -euo pipefail
+          node --check tools/verify-production-resource-graph-v3990_0.mjs
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+          PAGES_BASE='https://gaokao-4y9.pages.dev' \
+          CUSTOM_BASE='https://gaokao.powers.org.cn' \
+          RELEASE_SHA='f366b34a10da05a3bf3e4c736231d7826ecfe67d' \
+          PRODUCTION_RESOURCE_ATTEMPTS='1' \
+          PRODUCTION_RESOURCE_WAIT_MS='0' \
+          VERIFY_MAJOR_BANDS='true' \
+          PRODUCTION_RESOURCE_EVIDENCE='/tmp/v3990-challenge-boundary-production.json' \
+            node tools/verify-production-resource-graph-v3990_0.mjs \
+            | tee /tmp/v3990-challenge-boundary-production.log
+
+      - name: Commit verified verifier correction
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/verify-production-resource-graph-v3990_0.mjs \
+            tools/audit-production-resource-verification-v3990_0.mjs
+          git commit -m 'fix(release): separate custom challenge from API truth checks'
+          git push origin HEAD:agent/production-challenge-boundary-v3990_0
+
+      - name: Upload verifier evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-challenge-boundary-verifier-evidence
+          path: |
+            /tmp/v3990-challenge-boundary-production.json
+            /tmp/v3990-challenge-boundary-production.log
+          if-no-files-found: warn
+          retention-days: 7
