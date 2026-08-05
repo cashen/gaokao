@@ -29,6 +29,7 @@ const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
 const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_0';
+const expectedAllBandsPageLimitCap = 16;
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -211,6 +212,12 @@ function validateResult(result) {
     assert.equal(result.payload?.source?.allBandsExecutionMode, expectedAllBandsExecutionMode, `${result.scenario}: sequential all-band execution mode`);
     assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: final all-band page cache deployment`);
     assert.equal(result.payload?.source?.allBandsSharedProjectionVersion, expectedAllBandsSharedProjectionVersion, `${result.scenario}: shared all-band projection deployment`);
+    assert.equal(Number(result.payload?.source?.allBandsPageLimitCap), expectedAllBandsPageLimitCap, `${result.scenario}: all-band page limit cap`);
+    assert.ok(Number(result.payload?.source?.allBandsRequestedPageLimit || 0) >= Number(result.payload?.source?.allBandsEffectivePageLimit || 0), `${result.scenario}: effective page limit exceeded requested limit`);
+    assert.equal(Number(result.payload?.source?.allBandsEffectivePageLimit), expectedAllBandsPageLimitCap, `${result.scenario}: all-band effective page limit`);
+    for (const band of bands) {
+      assert.equal(Number(result.payload?.bands?.[band]?.pagination?.limit), expectedAllBandsPageLimitCap, `${result.scenario}/${band}: bounded page limit`);
+    }
     assert.equal(Number(result.payload?.source?.allBandsPhysicalProjectionPasses), 1, `${result.scenario}: all-band physical projection passes`);
     assert.equal(Number(result.payload?.source?.allBandsSharedProjectionReuses), 2, `${result.scenario}: all-band projection reuse count`);
     assert.equal(Number(result.payload?.source?.allBandsFallbackPageRefetches), 0, `${result.scenario}: all-band fallback page refetch`);
@@ -267,8 +274,13 @@ async function verifyAllBandPageEquivalence() {
   const allResult = await requestScenario(allScenario, `equivalence-all-${Date.now()}`);
   validateResult(allResult);
   const bandResults = {};
+  const effectiveLimit = Number(allResult.payload?.source?.allBandsEffectivePageLimit || 0);
+  assert.equal(effectiveLimit, expectedAllBandsPageLimitCap, 'all-band equivalence effective limit');
   for (const band of bands) {
-    const path = `${allScenario.path}&band=${band}`;
+    const bandUrl = new URL(allScenario.path, 'https://contract.local');
+    bandUrl.searchParams.set('band', band);
+    bandUrl.searchParams.set('limit', String(effectiveLimit));
+    const path = `${bandUrl.pathname}?${bandUrl.searchParams}`;
     const result = await requestScenario({
       name: `equivalence-${band}`,
       path,

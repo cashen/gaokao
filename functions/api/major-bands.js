@@ -77,6 +77,7 @@ assertMajorBandsRankIndex();
 
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
 export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';
+export const MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
@@ -361,7 +362,8 @@ function allBandsPageIdentity(input) {
     rangePreset: input.rangePreset,
     filters: input.filters,
     pageOffset: input.pageOffset,
-    pageLimit: input.pageLimit
+    pageLimit: input.pageLimit,
+    requestedPageLimit: input.requestedPageLimit
   });
 }
 
@@ -390,9 +392,10 @@ function mergeNumericTree(values = []) {
   return result;
 }
 
-function requestForBand(request, sourceUrl, band) {
+function requestForBand(request, sourceUrl, band, pageLimit) {
   const bandUrl = new URL(sourceUrl);
   bandUrl.searchParams.set('band', band);
+  bandUrl.searchParams.set('limit', String(pageLimit));
   return new Request(bandUrl.toString(), {
     method: 'GET',
     headers: request.headers,
@@ -466,7 +469,7 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       const response = await onRequest({
         ...context,
         majorBandsAllBandsShared: allBandsShared,
-        request: requestForBand(context.request, sourceUrl, band)
+        request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
       });
       if (!response.ok) return response;
       payloads.push(await response.json());
@@ -549,6 +552,9 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
     const estimatedBytes = JSON.stringify(bands).length;
     const source = {
       ...payloads[0].source,
+      allBandsPageLimitCap: MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP,
+      allBandsRequestedPageLimit: input.requestedPageLimit,
+      allBandsEffectivePageLimit: input.pageLimit,
       queryExecutionCacheStatus: 'sequential-band-orchestration',
       queryExecutionJoinedInFlight: payloads.some(payload => Boolean(payload.source?.queryExecutionJoinedInFlight)),
       queryExecutionRetentionMode: 'compact-current-page-per-band',
@@ -875,7 +881,10 @@ export async function onRequest(context) {
     const requestedBandRaw = clean(url.searchParams.get('band') || '', 20);
     const requestedBand = BAND_KEYS.includes(requestedBandRaw) ? requestedBandRaw : '';
     const configuredPageSize = Math.max(16, Math.min(80, pageNumber(context.env?.MAJOR_BANDS_MAX_PER_BAND, 40)));
-    const pageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));
+    const requestedPageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));
+    const pageLimit = requestedBand
+      ? requestedPageLimit
+      : Math.min(MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP, requestedPageLimit);
     const pageOffset = pageNumber(url.searchParams.get('offset'), 0);
 
     if (!Number.isFinite(candidateScore) || candidateScore < 1 || candidateScore > 750) {
@@ -891,6 +900,7 @@ export async function onRequest(context) {
         candidateScore,
         rangePreset,
         filters,
+        requestedPageLimit,
         pageLimit,
         pageOffset,
         started

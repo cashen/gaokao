@@ -106,6 +106,10 @@ jobs:
           grep -q "options.rawRowStorage === 'serialized-json'" functions/_lib/major-bands-static-provider.js
           grep -q "rawRowStorage: 'serialized-json'" functions/api/major-bands.js
           grep -q "ordered.length = 0" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16" functions/api/major-bands.js
+          grep -q "requestForBand(context.request, sourceUrl, band, input.pageLimit)" functions/api/major-bands.js
+          grep -q "allBandsEffectivePageLimit" functions/api/major-bands.js
+          grep -q "expectedAllBandsPageLimitCap = 16" tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           grep -q "requestedBandRawRowStorage" tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           grep -q "rankBucketMaxConcurrency" tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           grep -q "result.allBands ? 3 : 1" tools/verify-major-bands-preview-concurrency-v3990_0.mjs
