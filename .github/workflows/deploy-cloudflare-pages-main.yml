@@ -109,7 +109,8 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REF" = 'refs/heads/main'
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
+          git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$GITHUB_SHA"
       - name: Wait for exact Cloudflare Git production deployment
         env:
           GITHUB_TOKEN: ${{ github.token }}
