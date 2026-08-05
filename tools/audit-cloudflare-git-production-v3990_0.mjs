@@ -22,11 +22,14 @@ for (const required of [
   'CLOUDFLARE_GIT_DEPLOYMENT_ATTEMPTS',
   'CLOUDFLARE_GIT_DEPLOYMENT_EVIDENCE',
   'cloudflare-pages-v3990-0-git-deployment.json',
+  'git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main',
+  'git rev-parse refs/remotes/origin/main',
   'verify-production-resource-graph-v3990_0.mjs',
   'verify-production-baseline-v3971.mjs'
 ]) assert.ok(workflow.includes(required), `Cloudflare Git workflow missing ${required}`);
 
 for (const forbidden of [
+  'git rev-parse origin/main',
   'secrets.CLOUDFLARE_API_TOKEN',
   'secrets.CF_API_TOKEN',
   'secrets.CLOUDFLARE_ACCOUNT_ID',
@@ -34,7 +37,7 @@ for (const forbidden of [
   'npx --yes wrangler',
   'cloudflare/wrangler-action',
   'Resolve and verify Cloudflare deployment credentials'
-]) assert.ok(!workflow.includes(forbidden), `Cloudflare Git workflow retains executable direct-upload contract: ${forbidden}`);
+]) assert.ok(!workflow.includes(forbidden), `Cloudflare Git workflow retains invalid or executable direct-upload contract: ${forbidden}`);
 
 for (const retiredSignature of [
   'wrangler@4.28.1 pages deploy .',
@@ -74,6 +77,7 @@ console.log(JSON.stringify({
   version: marker.version,
   deploymentMode: marker.deploymentMode,
   productionBranch: marker.productionBranch,
+  explicitRemoteMainFetchRequired: true,
   exactShaCheckRequired: true,
   immutableDeploymentRequired: true,
   productionArtifactEquivalenceRequired: true,
