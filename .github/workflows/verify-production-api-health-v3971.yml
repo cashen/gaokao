@@ -212,6 +212,7 @@ jobs:
               && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$api" \
               && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$api" \
               && grep -q '"queryMemoryMode":"requested-band-lightweight-order-current-page-v3990_0"' <<<"$api" \
+              && grep -q '"requestedBandOrderCacheVersion":"major-bands-requested-band-order-id-cache-v3990_0"' <<<"$api" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$api" \
               && grep -q '"sortPasses":1' <<<"$api" \
               && grep -q '"rankRowFilterVersion":"major-bands-rank-row-filter-v3990_0"' <<<"$api" \
