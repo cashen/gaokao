@@ -41,6 +41,7 @@ async function request(base, resourcePath, attempt) {
     return Object.freeze({
       url,
       status: response.status,
+      headers: Object.freeze(Object.fromEntries(response.headers.entries())),
       text: await response.text()
     });
   } catch (error) {
@@ -51,6 +52,16 @@ async function request(base, resourcePath, attempt) {
       error: String(error?.message || error)
     });
   }
+}
+
+function isCloudflareManagedChallenge(response) {
+  const headers = response?.headers || {};
+  const body = String(response?.text || '').toLowerCase();
+  return Number(response?.status) === 403
+    && String(headers['cf-mitigated'] || '').toLowerCase() === 'challenge'
+    && String(headers.server || '').toLowerCase().includes('cloudflare')
+    && String(headers['content-type'] || '').toLowerCase().includes('text/html')
+    && (body.includes('<title>just a moment') || body.includes('challenges.cloudflare.com'));
 }
 
 function verifySourceStateMachine() {
@@ -108,7 +119,7 @@ function validateResponse(failures, label, response, markers) {
   if (!includesAll(response.text, markers)) failures.push(`${label} content mismatch`);
 }
 
-async function verifyBase(label, base, attempt) {
+async function verifyBase(label, base, attempt, options = {}) {
   const [guard, manifest, runtime, runtimeCache, selfCheckRuntime] = await Promise.all([
     request(base, guardPath, attempt),
     request(base, manifestPath, attempt),
@@ -144,8 +155,29 @@ async function verifyBase(label, base, attempt) {
   ]);
 
   let parsedManifest = null;
+  let manifestBoundary = Object.freeze({
+    mode: 'open',
+    status: manifest.status,
+    verified: manifest.status === 200
+  });
   if (manifest.status !== 200) {
-    failures.push(`${label} active manifest HTTP ${manifest.status}${manifest.error ? `: ${manifest.error}` : ''}`);
+    const challengePolicyEnabled = CONTRACT.policies.customHtmlChallengeBoundarySeparate === true;
+    const strictChallenge = options.allowCloudflareChallenge === true
+      && challengePolicyEnabled
+      && isCloudflareManagedChallenge(manifest);
+    if (strictChallenge) {
+      manifestBoundary = Object.freeze({
+        mode: 'cloudflare-managed-challenge',
+        status: manifest.status,
+        cfMitigated: manifest.headers?.['cf-mitigated'] || '',
+        server: manifest.headers?.server || '',
+        contentType: manifest.headers?.['content-type'] || '',
+        challengePolicyEnabled,
+        verified: true
+      });
+    } else {
+      failures.push(`${label} active manifest HTTP ${manifest.status}${manifest.error ? `: ${manifest.error}` : ''}`);
+    }
   } else {
     try {
       parsedManifest = JSON.parse(manifest.text);
@@ -178,6 +210,7 @@ async function verifyBase(label, base, attempt) {
       selfCheckRuntime: selfCheckRuntime.status
     }),
     manifestGuardPath: parsedManifest?.currentGenerationInternalModules?.majorBandsPaginationSnapshotGuard || '',
+    manifestBoundary,
     failures: Object.freeze(failures)
   });
 }
@@ -187,7 +220,7 @@ let finalResult = null;
 for (let attempt = 1; attempt <= attempts; attempt += 1) {
   const [pages, custom] = await Promise.all([
     verifyBase('pages', pagesBase, attempt),
-    verifyBase('custom', customBase, attempt)
+    verifyBase('custom', customBase, attempt, { allowCloudflareChallenge: true })
   ]);
   const failures = [...pages.failures, ...custom.failures];
   finalResult = Object.freeze({

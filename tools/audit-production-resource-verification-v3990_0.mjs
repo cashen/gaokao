@@ -158,7 +158,13 @@ for (const marker of [
   'selection runtime snapshot owner',
   'runtime cache snapshot registration',
   'self-check snapshot coverage',
-  'source guard retention exceeded budget'
+  'source guard retention exceeded budget',
+  'isCloudflareManagedChallenge',
+  "headers['cf-mitigated']",
+  'customHtmlChallengeBoundarySeparate',
+  "mode: 'cloudflare-managed-challenge'",
+  'allowCloudflareChallenge: true',
+  'manifestBoundary'
 ]) assert.ok(snapshotVerifier.includes(marker), `pagination snapshot production verifier missing ${marker}`);
 
 const concurrencyVerifier = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
