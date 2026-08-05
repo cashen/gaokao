@@ -1,0 +1,11 @@
+{
+  "version": "cloudflare-pages-git-production-identity-v3990_0",
+  "release": "v3.9.90.0",
+  "generation": "v3990_0",
+  "project": "gaokao",
+  "productionBranch": "main",
+  "pagesBase": "https://gaokao-4y9.pages.dev",
+  "customBase": "https://gaokao.powers.org.cn",
+  "deploymentMode": "cloudflare-pages-git-integration",
+  "verification": "exact-github-sha-check-plus-immutable-preview-and-production-artifact-equivalence"
+}
