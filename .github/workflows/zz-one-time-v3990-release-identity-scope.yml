@@ -1,0 +1,90 @@
+name: One-time v3990 release identity scope
+
+on:
+  push:
+    branches:
+      - agent/pages-git-identity-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-release-identity-scope.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/pages-git-identity-v3990_0
+          fetch-depth: 2
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply production release identity scope audit
+        run: python3 tools/zz_patch_v3990_release_identity_scope.py
+      - name: Verify source contracts and local release journey
+        env:
+          PAGES_BASE: http://127.0.0.1:8796
+          CUSTOM_BASE: http://127.0.0.1:8796
+          RELEASE_SHA: ${{ github.sha }}
+          VERIFY_RUNTIME_HEALTH: 'true'
+          VERIFY_DEPLOYMENT_IDENTITY: 'false'
+          VERIFY_MAJOR_BANDS: 'true'
+          PRODUCTION_RESOURCE_ATTEMPTS: '1'
+          PRODUCTION_RESOURCE_WAIT_MS: '0'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-release-identity-local.json
+        run: |
+          set -euo pipefail
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8796 --compatibility-date=2026-07-01 >/tmp/v3990-release-identity-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl --fail --silent --show-error --max-time 5 \
+              'http://127.0.0.1:8796/api/ln-rank-runtime-health' >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" -eq 1
+          node tools/verify-production-resource-graph-v3990_0.mjs \
+            2>&1 | tee /tmp/v3990-release-identity-local.log
+      - name: Verify exact Preview identity remains enforced
+        env:
+          PAGES_BASE: https://agent-pages-git-identity-v39.gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://agent-pages-git-identity-v39.gaokao-4y9.pages.dev
+          RELEASE_SHA: ${{ github.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: agent/pages-git-identity-v3990_0
+          VERIFY_RUNTIME_HEALTH: 'true'
+          VERIFY_DEPLOYMENT_IDENTITY: 'true'
+          VERIFY_MAJOR_BANDS: 'false'
+          PRODUCTION_RESOURCE_ATTEMPTS: '45'
+          PRODUCTION_RESOURCE_WAIT_MS: '10000'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-release-identity-preview.json
+        run: |
+          set -euo pipefail
+          node tools/verify-production-resource-graph-v3990_0.mjs \
+            2>&1 | tee /tmp/v3990-release-identity-preview.log
+      - name: Commit verified release identity audit
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/audit-production-resource-verification-v3990_0.mjs
+          git commit -m 'test(release): govern production release identity scope'
+          git push origin HEAD:agent/pages-git-identity-v3990_0
+      - name: Upload release identity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-release-identity-scope
+          path: |
+            /tmp/v3990-release-identity-*.json
+            /tmp/v3990-release-identity-*.log
+            /tmp/v3990-release-identity-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
