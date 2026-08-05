@@ -21,6 +21,8 @@ const expectedExecutionGateMode = 'request-owned-timer-polling';
 const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0';
 const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';
 const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_0';
+const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-cache-v3990_0';
+const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
@@ -139,6 +141,10 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_0', `${result.scenario}: query kernel`);
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
   assert.equal(result.payload?.source?.queryMemoryMode, expectedQueryMemoryMode, `${result.scenario}: query memory deployment`);
+  assert.equal(result.payload?.source?.requestedBandOrderCacheVersion, expectedOrderIdCacheVersion, `${result.scenario}: ordered-ID cache deployment`);
+  assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsDecodedRows, false, `${result.scenario}: ordered-ID cache retained decoded rows`);
+  assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsEnrichedRecords, false, `${result.scenario}: ordered-ID cache retained enriched records`);
+  assert.equal(result.payload?.source?.pageIdFilterVersion, expectedPageIdFilterVersion, `${result.scenario}: page-ID predecode filter`);
   assert.equal(result.payload?.source?.rankingCandidateMode, 'lightweight-order-current-page-v3990_0', `${result.scenario}: lightweight ranking candidate`);
   assert.equal(result.payload?.source?.deferredResponseEnrichment, true, `${result.scenario}: response enrichment was not deferred`);
   assert.equal(Number(result.payload?.source?.responseEnrichedCandidates || 0), 0, `${result.scenario}: full candidates enriched before pagination`);
@@ -146,7 +152,7 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.allBandsPageCacheReleaseMode, 'release-completed-on-requested-band-switch-v3990_0', `${result.scenario}: all-band page cache release mode`);
   const allowedCacheStatuses = result.allBands
     ? ['sequential-band-orchestration']
-    : ['miss', 'singleflight-hit', 'serialized-compact-hit'];
+    : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];
   assert.ok(allowedCacheStatuses.includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
   assert.equal(result.payload?.source?.rankRowFilterVersion, expectedRankRowFilterVersion, `${result.scenario}: predecode rank-row filter`);
@@ -181,12 +187,16 @@ function validateResult(result) {
     }
   } else {
     const group = validatePaginationGroup(result, result.band);
-    assert.equal(result.payload?.source?.queryExecutionRetentionMode, 'compact-requested-band-current-page', `${result.scenario}: requested-band retention mode`);
+    assert.ok(['compact-requested-band-current-page', 'compact-requested-band-current-page-from-ordered-ids'].includes(result.payload?.source?.queryExecutionRetentionMode), `${result.scenario}: requested-band retention mode`);
     assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: request retained more than current page`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), Number(group.pagination?.offset), `${result.scenario}: execution page offset`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: execution page limit`);
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: requested-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
+    if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
+      assert.ok(Number(result.payload?.source?.rankDecodedRowCount || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID hit decoded more than current page`);
+      assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID page exceeded limit`);
+    }
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
       assert.equal(Number(result.payload?.bands?.[hiddenBand]?.count || 0), 0, `${result.scenario}: hidden ${hiddenBand} band was classified`);
       assert.equal((result.payload?.bands?.[hiddenBand]?.records || []).length, 0, `${result.scenario}: hidden ${hiddenBand} records leaked`);
@@ -370,6 +380,8 @@ const evidence = {
   maxConcurrentExecutions: 1,
   bucketLoaderVersion: expectedBucketLoaderVersion,
   rankRowFilterVersion: expectedRankRowFilterVersion,
+  orderedIdCacheVersion: expectedOrderIdCacheVersion,
+  pageIdFilterVersion: expectedPageIdFilterVersion,
   allBandBucketMaxConcurrency: 1,
   requestedBandBucketMaxConcurrency: 1,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',

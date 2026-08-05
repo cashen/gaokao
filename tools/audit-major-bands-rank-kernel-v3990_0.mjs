@@ -322,6 +322,14 @@ for (const required of [
 ]) assert.ok(queryKernelSource.includes(required), `lightweight current-page ranking contract missing ${required}`);
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+for (const required of [
+  "MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-cache-v3990_0'",
+  'executeRequestedBandOrderedPage',
+  'orderedIds: ordered.map(record => record.id)',
+  'allowedIds: new Set(pageIds)',
+  'requestedBandOrderCacheRetainsDecodedRows: false',
+  'requestedBandOrderCacheRetainsEnrichedRecords: false'
+]) assert.ok(apiSource.includes(required), `ordered-ID pagination contract missing ${required}`);
 for (const forbidden of [
   'major-bands-bucket-orchestrator',
   'runMajorBandsBucketWorkers',

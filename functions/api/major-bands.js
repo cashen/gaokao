@@ -39,6 +39,7 @@ import {
 } from '../_lib/major-bands-response-transport.v3990_0.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
+  getBottomLineEligibility,
   normalizeBottomLineMode,
   bottomLineModeSummary
 } from '../_lib/bottomline-policy.js';
@@ -75,6 +76,54 @@ assertMajorBandsRankIndex();
 
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-cache-v3990_0';
+const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
+const REQUESTED_BAND_ORDER_CACHE_MAX_IDS = 6000;
+const REQUESTED_BAND_ORDER_CACHE_MAX_CHARS = 500_000;
+let requestedBandOrderCache = null;
+
+function readRequestedBandOrderSnapshot(identity, now = Date.now()) {
+  if (!requestedBandOrderCache || requestedBandOrderCache.expiresAt <= now) {
+    requestedBandOrderCache = null;
+    return null;
+  }
+  if (requestedBandOrderCache.identity !== identity) return null;
+  try {
+    return JSON.parse(requestedBandOrderCache.serialized);
+  } catch {
+    requestedBandOrderCache = null;
+    return null;
+  }
+}
+
+function retainRequestedBandOrderSnapshot(identity, snapshot) {
+  const ids = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];
+  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS) return false;
+  const serialized = JSON.stringify(snapshot);
+  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS) return false;
+  requestedBandOrderCache = {
+    identity,
+    serialized,
+    expiresAt: Date.now() + REQUESTED_BAND_ORDER_CACHE_TTL_MS
+  };
+  return true;
+}
+
+function requestedBandOrderCacheState(identity = '') {
+  const snapshot = readRequestedBandOrderSnapshot(identity);
+  return {
+    version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
+    hit: Boolean(snapshot),
+    completed: requestedBandOrderCache ? 1 : 0,
+    ids: snapshot?.orderedIds?.length || 0,
+    maxIds: REQUESTED_BAND_ORDER_CACHE_MAX_IDS,
+    maxChars: REQUESTED_BAND_ORDER_CACHE_MAX_CHARS,
+    ttlMs: REQUESTED_BAND_ORDER_CACHE_TTL_MS,
+    serializedOrderIdsOnly: true,
+    retainsDecodedRows: false,
+    retainsEnrichedRecords: false
+  };
+}
 
 function json(payload, status = 200) {
   const body = JSON.stringify(payload);
@@ -441,6 +490,170 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
   return allBandsResponse(execution);
 }
 
+async function executeRequestedBandOrderedPage(context, input) {
+  const {
+    candidateScore, rangePreset, filters, schoolNames, schoolFilter, requestedBand,
+    pageOffset, pageLimit, executionBaseIdentity
+  } = input;
+  const orderIdentity = `${executionBaseIdentity}|ordered-id-snapshot`;
+  let retained = readRequestedBandOrderSnapshot(orderIdentity);
+  let heavyExecution = null;
+  let orderedRecords = null;
+  let loadedStats = null;
+  let selectedBuckets = null;
+  let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
+
+  if (!retained) {
+    heavyExecution = await executeMajorBandsQueryOnce(orderIdentity, async () => {
+      const candidateRank = rankContextForScore(candidateScore);
+      const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
+      const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
+      const selected = selectMajorBandsRankBuckets(rankWindows);
+      const loaded = await loadMajorBandsRankWindow(context, selected);
+      const processed = processMajorBandsRankWindow(loaded.records, {
+        candidateScore,
+        candidateRank,
+        rangePreset,
+        region: filters.region,
+        majorKeyword: '',
+        bottomLineMode: filters.bottomLineMode,
+        specialProjectMode: filters.specialProjectMode,
+        schoolFilter,
+        acceptedSchoolNames: schoolNames
+      });
+      const ordered = processed.grouped[requestedBand].ordered;
+      const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: requestedBand });
+      const orderSnapshot = {
+        version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
+        candidateRank,
+        totalRank,
+        rankWindows,
+        aggregate: processed.stats,
+        keywordQuery: processed.keywordQuery,
+        orderedIds: ordered.map(record => record.id),
+        snapshot: majorBandsSnapshotId(ordered, identity)
+      };
+      return {
+        retained: orderSnapshot,
+        orderedRecords: ordered,
+        loadedStats: loaded.stats,
+        selectedBuckets: selected
+      };
+    });
+    const built = heavyExecution.value;
+    retained = built.retained;
+    orderedRecords = built.orderedRecords;
+    loadedStats = built.loadedStats;
+    selectedBuckets = built.selectedBuckets;
+    retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    orderCacheStatus = heavyExecution.joinedInFlight ? 'ordered-id-singleflight-hit' : 'ordered-id-miss';
+  }
+
+  const orderedIds = Array.isArray(retained.orderedIds) ? retained.orderedIds : [];
+  const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
+  let pageRecords;
+  if (orderedRecords) {
+    pageRecords = orderedRecords.slice(pageOffset, pageOffset + pageLimit);
+  } else {
+    selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
+    const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
+    loadedStats = loaded.stats;
+    const byId = new Map(loaded.records.map(record => [record.id, record]));
+    pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
+    if (pageRecords.length !== pageIds.length) {
+      throw new Error(`位次有序 ID 页记录不完整：${pageRecords.length}/${pageIds.length}`);
+    }
+    for (const record of pageRecords) {
+      const canonicalPosition = resolveCanonicalPosition({
+        candidateScore,
+        candidateRank: retained.candidateRank?.rankForGap,
+        recordScore: record.score2026 ?? record.score,
+        recordRank: record.rank2026 ?? record.rank,
+        rangePreset
+      });
+      const bottomLineEligibility = filters.bottomLineMode === 'all'
+        ? { status: 'pass', reason: 'mode_does_not_exclude' }
+        : getBottomLineEligibility(record, filters.bottomLineMode);
+      Object.assign(record, {
+        band: requestedBand,
+        bandKey: requestedBand,
+        canonicalPosition: {
+          bandKey: canonicalPosition.bandKey,
+          positionDistance: canonicalPosition.positionDistance,
+          evidenceStrength: canonicalPosition.evidenceStrength,
+          classificationBasis: canonicalPosition.classificationBasis
+        },
+        bottomLineEligibility: bottomLineEligibility.status,
+        bottomLineEligibilityReason: bottomLineEligibility.reason,
+        specialProject: record.specialProject?.hasSpecialProject != null
+          ? record.specialProject
+          : detectSpecialProject(record)
+      });
+    }
+  }
+
+  const compactPage = pageRecords.map(record => compactMajorBandsBucketCandidate(record));
+  const nextOffset = pageOffset + compactPage.length;
+  const hasMore = nextOffset < orderedIds.length;
+  const compactGrouped = {};
+  for (const key of BAND_KEYS) {
+    const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
+    if (key === requestedBand) {
+      compactGrouped[key] = {
+        ordered: compactPage,
+        count: orderedIds.length,
+        snapshot: retained.snapshot,
+        retentionScope: 'current-requested-band-page-from-ordered-ids',
+        pagination: {
+          offset: pageOffset,
+          limit: pageLimit,
+          returned: compactPage.length,
+          hasMore,
+          nextOffset: hasMore ? nextOffset : null,
+          order: MAJOR_BANDS_RESULT_ORDER_VERSION,
+          snapshot: retained.snapshot
+        }
+      };
+    } else {
+      compactGrouped[key] = {
+        ordered: [],
+        count: 0,
+        snapshot: majorBandsSnapshotId([], identity),
+        retentionScope: 'hidden-band',
+        pagination: null
+      };
+    }
+  }
+  return {
+    value: {
+      candidateRank: retained.candidateRank,
+      totalRank: retained.totalRank,
+      rankWindows: retained.rankWindows,
+      selectedBuckets,
+      loadedStats,
+      aggregate: retained.aggregate,
+      keywordQuery: retained.keywordQuery,
+      compactGrouped,
+      cacheRetention: {
+        mode: 'compact-requested-band-current-page-from-ordered-ids',
+        recordCount: compactPage.length,
+        estimatedBytes: JSON.stringify(compactPage).length,
+        requestedBand,
+        pageOffset,
+        pageLimit,
+        retainCompleted: false
+      }
+    },
+    cacheStatus: heavyExecution?.cacheStatus || orderCacheStatus,
+    joinedInFlight: Boolean(heavyExecution?.joinedInFlight),
+    waitedForExecutionSlot: Boolean(heavyExecution?.waitedForExecutionSlot),
+    orderCacheStatus,
+    orderCacheIdCount: orderedIds.length,
+    pageDecodedRecordCount: pageRecords.length,
+    orderCacheState: requestedBandOrderCacheState(orderIdentity)
+  };
+}
+
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ ok: false, message: '只支持 GET 请求。' }, 405);
   const started = Date.now();
@@ -522,7 +735,12 @@ export async function onRequest(context) {
       pageLimit
     });
     const executionIdentity = `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`;
-    const execution = await executeMajorBandsQueryOnce(executionIdentity, async () => {
+    const execution = !filters.majorKeyword
+      ? await executeRequestedBandOrderedPage(context, {
+          candidateScore, rangePreset, filters, schoolNames, schoolFilter, requestedBand,
+          pageOffset, pageLimit, executionBaseIdentity
+        })
+      : await executeMajorBandsQueryOnce(executionIdentity, async () => {
       const candidateRank = rankContextForScore(candidateScore);
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
       const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
@@ -756,6 +974,12 @@ export async function onRequest(context) {
         queryExecutionEstimatedBytes: cacheRetention.estimatedBytes,
         queryExecutionPageOffset: cacheRetention.pageOffset,
         queryExecutionPageLimit: cacheRetention.pageLimit,
+        requestedBandOrderCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
+        requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',
+        requestedBandOrderIds: Number(execution.orderCacheIdCount || 0),
+        requestedBandPageDecodedRecords: Number(execution.pageDecodedRecordCount || cacheRetention.recordCount || 0),
+        requestedBandOrderCacheRetainsDecodedRows: false,
+        requestedBandOrderCacheRetainsEnrichedRecords: false,
         queryMemoryMode: aggregate.memoryMode,
         rankingCandidateMode: aggregate.rankingCandidateMode,
         deferredResponseEnrichment: aggregate.deferredResponseEnrichment,
@@ -793,6 +1017,9 @@ export async function onRequest(context) {
         rankRawRowCount: loadedStats.rawRowCount,
         rankDecodedRowCount: loadedStats.decodedRowCount,
         rankRowsSkipped: loadedStats.rankRowsSkipped,
+        pageIdRowsSkipped: loadedStats.pageIdRowsSkipped || 0,
+        pageIdFilterCount: loadedStats.pageIdFilterCount || 0,
+        pageIdFilterVersion: loadedStats.pageIdFilterVersion || 'major-bands-page-id-predecode-filter-v3990_0',
         rankBucketConcurrency: loadedStats.peakConcurrency,
         rankBucketMaxConcurrency: loadedStats.maxConcurrency,
         sortPasses: aggregate.sortPasses,

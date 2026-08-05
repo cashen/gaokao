@@ -159,15 +159,20 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
   }
   const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
   const rankIndex = schema.indexOf('rank2026');
+  const idIndex = schema.indexOf('id');
   const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
     ? Object.freeze({
         minRank: Number(options.rankRange.minRank),
         maxRank: Number(options.rankRange.maxRank)
       })
     : null;
-  const selectedRows = rankRange && rankIndex >= 0
+  const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
+  const rankFilteredRows = rankRange && rankIndex >= 0
     ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))
     : payload.rows;
+  const selectedRows = allowedIds && idIndex >= 0
+    ? rankFilteredRows.filter(row => allowedIds.has(String(row?.[idIndex] || '')))
+    : rankFilteredRows;
   return {
     manifest,
     bucket,
@@ -175,6 +180,9 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     rowCount: payload.rows.length,
     decodedRowCount: selectedRows.length,
     rankRowsSkipped: payload.rows.length - selectedRows.length,
+    pageIdRowsSkipped: rankFilteredRows.length - selectedRows.length,
+    pageIdFilterCount: allowedIds?.size || 0,
+    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
     rankRange,
     bytes: Number(bucket.bytes || 0),

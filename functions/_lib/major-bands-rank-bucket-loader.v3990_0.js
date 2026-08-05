@@ -160,16 +160,29 @@ function attachRecordExecutionContext(records, scope) {
 }
 
 
-function bucketReadKey(indexBucket, scope = {}) {
+function pageIdFingerprint(allowedIds) {
+  if (!(allowedIds instanceof Set) || !allowedIds.size) return 'all-ids';
+  let hash = 0x811c9dc5;
+  for (const id of [...allowedIds].sort()) {
+    const value = String(id || '');
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+  }
+  return `${allowedIds.size}:${hash.toString(16).padStart(8, '0')}`;
+}
+
+function bucketReadKey(indexBucket, scope = {}, options = {}) {
   const range = scope.requestedRange;
   const suffix = range && Number.isFinite(Number(range.minRank)) && Number.isFinite(Number(range.maxRank))
     ? `${Number(range.minRank)}:${Number(range.maxRank)}`
     : 'all-ranks';
-  return `${indexBucket.file}|${suffix}`;
+  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}`;
 }
 
-async function readBucket(context, indexBucket, scope) {
-  const cacheKey = bucketReadKey(indexBucket, scope);
+async function readBucket(context, indexBucket, scope, options = {}) {
+  const cacheKey = bucketReadKey(indexBucket, scope, options);
   const existing = bucketCache.get(cacheKey);
   if (existing) {
     touch(existing);
@@ -184,7 +197,8 @@ async function readBucket(context, indexBucket, scope) {
   touch(entry);
   entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
     assets: context.env?.ASSETS,
-    rankRange: scope.requestedRange
+    rankRange: scope.requestedRange,
+    allowedIds: options.allowedIds
   }).then(loaded => {
     assertLoadedBucket(indexBucket, loaded);
     entry.pending = false;
@@ -201,7 +215,7 @@ async function readBucket(context, indexBucket, scope) {
   return { loaded: await entry.promise, cacheStatus: 'miss-owned' };
 }
 
-export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
+export async function loadMajorBandsRankWindow(context, selectedBuckets = [], options = {}) {
   const scope = scopeBucketsFromRequest(context, selectedBuckets);
   const buckets = Array.isArray(scope.buckets) ? scope.buckets : [];
   const loadConcurrency = scope.mode === 'all-bands-union'
@@ -223,6 +237,9 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
         decodedRowCount: 0,
         rawRowCount: 0,
         rankRowsSkipped: 0,
+        pageIdRowsSkipped: 0,
+        pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
+        pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
         rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
         staticIndexBytes: 0,
         cacheHits: 0,
@@ -247,7 +264,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       active += 1;
       peakConcurrency = Math.max(peakConcurrency, active);
       try {
-        results[index] = await readBucket(context, buckets[index], scope);
+        results[index] = await readBucket(context, buckets[index], scope, options);
       } finally {
         active -= 1;
       }
@@ -267,12 +284,14 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
   let rawRowCount = 0;
   let decodedRowCount = 0;
   let rankRowsSkipped = 0;
+  let pageIdRowsSkipped = 0;
   for (const result of results) {
     records.push(...result.loaded.records);
     staticIndexBytes += Number(result.loaded.bytes || 0);
     rawRowCount += Number(result.loaded.rowCount || 0);
     decodedRowCount += Number(result.loaded.decodedRowCount ?? result.loaded.records.length ?? 0);
     rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);
+    pageIdRowsSkipped += Number(result.loaded.pageIdRowsSkipped || 0);
     if (result.cacheStatus === 'hit-cloned') {
       cacheHits += 1;
       sharedRowsCloned += result.loaded.records.length;
@@ -297,6 +316,9 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = []) {
       decodedRowCount,
       rawRowCount,
       rankRowsSkipped,
+      pageIdRowsSkipped,
+      pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
+      pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
       rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
       staticIndexBytes,
       cacheHits,
