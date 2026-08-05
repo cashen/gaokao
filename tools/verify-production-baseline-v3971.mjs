@@ -7,8 +7,9 @@ const ALLOW_KNOWN_MAJOR_BANDS_DEGRADED = ['1', 'true', 'yes'].includes(String(pr
 const LEGACY_PRODUCTION_RELEASE = ['v3', '9', '72', '2'].join('.');
 const PREVIOUS_PRODUCTION_RELEASE = 'v3.9.72.5';
 const CURRENT_PRODUCTION_RELEASE = 'v3.9.72.6';
-const ALLOWED_RELEASES = new Set(['v3.9.71.2', LEGACY_PRODUCTION_RELEASE, PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE]);
-const BOUNDED_HEALTH_RELEASES = new Set([PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE]);
+const CURRENT_V3990_RELEASE = 'v3.9.90.0';
+const ALLOWED_RELEASES = new Set(['v3.9.71.2', LEGACY_PRODUCTION_RELEASE, PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, CURRENT_V3990_RELEASE]);
+const BOUNDED_HEALTH_RELEASES = new Set([PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, CURRENT_V3990_RELEASE]);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, accept = 'application/json') {
@@ -41,6 +42,16 @@ function parseJson(result) {
   } catch (error) {
     throw new Error(`${result.url} JSON parse failed: ${error.message}; body=${result.text.slice(0, 500)}`);
   }
+}
+
+function isCloudflareManagedChallenge(result) {
+  const headers = result?.headers || {};
+  const body = String(result?.text || '').toLowerCase();
+  return Number(result?.status) === 403
+    && String(headers['cf-mitigated'] || '').toLowerCase() === 'challenge'
+    && String(headers.server || '').toLowerCase().includes('cloudflare')
+    && String(headers['content-type'] || '').toLowerCase().includes('text/html')
+    && (body.includes('<title>just a moment') || body.includes('challenges.cloudflare.com'));
 }
 
 function assertResponse(result) {
@@ -129,7 +140,7 @@ async function verifyOnce(token) {
     const customVersion = releaseFromSource(customRelease.text);
     assert(customVersion === deployedRelease, `custom-domain release ${customVersion} does not match ${deployedRelease}`);
     customDomain = `release-${customVersion}`;
-  } else if (String(customRelease.headers['cf-mitigated'] || '').toLowerCase() === 'challenge') {
+  } else if (isCloudflareManagedChallenge(customRelease)) {
     customDomain = 'managed-challenge';
   } else {
     throw new Error(`custom domain HTTP ${customRelease.status}`);

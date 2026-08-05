@@ -107,6 +107,16 @@ for (const marker of [
   "pagesMajorBands = await verifyMajorBandsBase('pages'"
 ]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);
 
+const baselineVerifier = fs.readFileSync('tools/verify-production-baseline-v3971.mjs', 'utf8');
+for (const marker of [
+  "CURRENT_V3990_RELEASE = 'v3.9.90.0'",
+  'ALLOWED_RELEASES',
+  'BOUNDED_HEALTH_RELEASES',
+  'isCloudflareManagedChallenge',
+  "headers['cf-mitigated']",
+  "customDomain = 'managed-challenge'"
+]) assert.ok(baselineVerifier.includes(marker), `production baseline verifier missing ${marker}`);
+
 const snapshotVerifier = fs.readFileSync('tools/verify-production-pagination-snapshot-guard-v3990_0.mjs', 'utf8');
 for (const marker of [
   'CONTRACT.requiredStaticResources.majorBandsPaginationSnapshotGuard',
