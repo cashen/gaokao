@@ -1,0 +1,46 @@
+name: One-time v3990 production dynamic diagnostic
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-production-dynamic-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-production-dynamic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f366b34a10da05a3bf3e4c736231d7826ecfe67d
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check current production resource graph and pagination once
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          RELEASE_SHA: f366b34a10da05a3bf3e4c736231d7826ecfe67d
+          PRODUCTION_RESOURCE_ATTEMPTS: '1'
+          PRODUCTION_RESOURCE_WAIT_MS: '0'
+          VERIFY_MAJOR_BANDS: 'true'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-production-dynamic-diagnostic.json
+        run: |
+          set -o pipefail
+          node tools/verify-production-resource-graph-v3990_0.mjs 2>&1 | tee /tmp/v3990-production-dynamic-diagnostic.log
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-production-dynamic-diagnostic
+          path: |
+            /tmp/v3990-production-dynamic-diagnostic.json
+            /tmp/v3990-production-dynamic-diagnostic.log
+          if-no-files-found: warn
+          retention-days: 3
