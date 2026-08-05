@@ -1,0 +1,106 @@
+name: One-time minimal order projection v3990 r2
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-minimal-order-projection-v3990-r2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reuse audited projection patch and correct telemetry scope
+        run: |
+          set -euo pipefail
+          ruby -ryaml - <<'RUBY'
+          workflow = YAML.load_file('.github/workflows/zz-one-time-minimal-order-projection-v3990.yml', aliases: true)
+          steps = workflow.fetch('jobs').fetch('patch-and-verify').fetch('steps')
+          patch = steps.find { |step| step['name'] == 'Patch minimal cold-order projection and workflow readiness' }
+          verify = steps.find { |step| step['name'] == 'Verify default projection and full local pressure' }
+          raise 'patch step missing' unless patch && patch['run']
+          raise 'verify step missing' unless verify && verify['run']
+          File.write('/tmp/v3990-minimal-projection-patch.sh', patch['run'])
+          File.write('/tmp/v3990-minimal-projection-verify.sh', verify['run'])
+          RUBY
+
+          bash /tmp/v3990-minimal-projection-patch.sh
+
+          python - <<'PY'
+          from pathlib import Path
+
+          api_path = Path('functions/api/major-bands.js')
+          api = api_path.read_text(encoding='utf-8')
+          return_anchor = '''    pageDecodedRecordCount: pageRecords.length,\n    orderCacheState: requestedBandOrderCacheState(orderIdentity)\n  };\n'''
+          return_patch = '''    pageDecodedRecordCount: pageRecords.length,\n    orderCacheState: requestedBandOrderCacheState(orderIdentity),\n    orderProjectionVersion: retained.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,\n    orderMinimalProjection: retained.orderMinimalProjection === true,\n    orderRawRowCount: Number(retained.orderRawRowCount || 0),\n    orderDecodedRowCount: Number(retained.orderDecodedRowCount || 0)\n  };\n'''
+          if api.count(return_anchor) != 1:
+              raise SystemExit(f'helper telemetry return anchor count={api.count(return_anchor)}')
+          api = api.replace(return_anchor, return_patch, 1)
+
+          bad_source = '''        requestedBandOrderProjectionVersion: execution.value?.orderProjectionVersion || retained?.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,\n        requestedBandOrderMinimalProjection: execution.value?.orderMinimalProjection ?? retained?.orderMinimalProjection ?? false,\n        requestedBandOrderBuildRawRows: Number(execution.value?.orderRawRowCount || retained?.orderRawRowCount || 0),\n        requestedBandOrderBuildDecodedRows: Number(execution.value?.orderDecodedRowCount || retained?.orderDecodedRowCount || 0),\n'''
+          good_source = '''        requestedBandOrderProjectionVersion: execution.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,\n        requestedBandOrderMinimalProjection: execution.orderMinimalProjection === true,\n        requestedBandOrderBuildRawRows: Number(execution.orderRawRowCount || 0),\n        requestedBandOrderBuildDecodedRows: Number(execution.orderDecodedRowCount || 0),\n'''
+          if api.count(bad_source) != 1:
+              raise SystemExit(f'bad source telemetry anchor count={api.count(bad_source)}')
+          api_path.write_text(api.replace(bad_source, good_source, 1), encoding='utf-8')
+
+          audit_path = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          audit = audit_path.read_text(encoding='utf-8')
+          bad_audit = "  'requestedBandOrderProjectionVersion: execution.value?.orderProjectionVersion',\n"
+          good_audit = "  'requestedBandOrderProjectionVersion: execution.orderProjectionVersion',\n  'orderProjectionVersion: retained.orderProjectionVersion',\n"
+          if audit.count(bad_audit) != 1:
+              raise SystemExit(f'projection audit anchor count={audit.count(bad_audit)}')
+          audit_path.write_text(audit.replace(bad_audit, good_audit, 1), encoding='utf-8')
+          PY
+
+          node --check functions/api/major-bands.js
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+          ruby -e "require 'yaml'; Dir['.github/workflows/*.{yml,yaml}'].each { |f| YAML.load_file(f, aliases: true) }"
+
+      - name: Verify default projection and full local pressure
+        run: |
+          set -euo pipefail
+          bash /tmp/v3990-minimal-projection-verify.sh
+
+      - name: Stage workflows and commit verified source
+        run: |
+          set -euo pipefail
+          mkdir -p tools/.workflow-contract-patches-v3990
+          mapfile -t workflows < <(git diff --name-only -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | grep -v 'zz-one-time-minimal-order-projection-v3990' || true)
+          test "${#workflows[@]}" -eq 3
+          for file in "${workflows[@]}"; do
+            cp "$file" "tools/.workflow-contract-patches-v3990/$(basename "$file")"
+          done
+          git checkout -- "${workflows[@]}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions tools
+          git commit -m 'fix(rank): project minimal rows before cold ordering'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-minimal-order-projection-r2
+          path: |
+            /tmp/v3990-minimal-projection-ready.json
+            /tmp/v3990-minimal-projection-local-concurrency.json
+            /tmp/v3990-minimal-projection-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
