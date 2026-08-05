@@ -4,9 +4,11 @@ const EXPECTED_RELEASE = process.env.EXPECTED_RELEASE || 'auto';
 const WAIT_MS = Number(process.env.PRODUCTION_VERIFY_WAIT_MS || 10000);
 const ATTEMPTS = Number(process.env.PRODUCTION_VERIFY_ATTEMPTS || 8);
 const ALLOW_KNOWN_MAJOR_BANDS_DEGRADED = ['1', 'true', 'yes'].includes(String(process.env.ALLOW_KNOWN_MAJOR_BANDS_DEGRADED || '').toLowerCase());
-const PREVIOUS_PRODUCTION_RELEASE = ['v3', '9', '72', '2'].join('.');
-const CURRENT_PRODUCTION_RELEASE = 'v3.9.72.5';
-const ALLOWED_RELEASES = new Set(['v3.9.71.2', PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE]);
+const LEGACY_PRODUCTION_RELEASE = ['v3', '9', '72', '2'].join('.');
+const PREVIOUS_PRODUCTION_RELEASE = 'v3.9.72.5';
+const CURRENT_PRODUCTION_RELEASE = 'v3.9.72.6';
+const ALLOWED_RELEASES = new Set(['v3.9.71.2', LEGACY_PRODUCTION_RELEASE, PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE]);
+const BOUNDED_HEALTH_RELEASES = new Set([PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE]);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, accept = 'application/json') {
@@ -165,7 +167,8 @@ async function verifyOnce(token) {
   const school = assessMajorBands(schoolResult, 'school');
 
   let boundedHealth = null;
-  if (deployedRelease === CURRENT_PRODUCTION_RELEASE) {
+  const boundedHealthExpected = BOUNDED_HEALTH_RELEASES.has(deployedRelease);
+  if (boundedHealthExpected) {
     const healthResult = await request(`${PAGES_BASE}/api/major-bands-health?probe=1&baseline=${token}`);
     assertResponse(healthResult);
     const health = parseJson(healthResult);
@@ -184,7 +187,7 @@ async function verifyOnce(token) {
     majorBandsSchoolState: school.state,
     matchedRecords: index.records.length,
     localStrengthApiState,
-    deepHealthProbeSkipped: deployedRelease !== CURRENT_PRODUCTION_RELEASE,
+    deepHealthProbeSkipped: !boundedHealthExpected,
     boundedHealth,
     customDomain
   };

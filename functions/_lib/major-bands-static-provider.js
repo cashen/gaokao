@@ -2,7 +2,9 @@ import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
 
-export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3972_5';
+export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';
+export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';
+export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_0';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -88,6 +90,86 @@ function decodeRow(row, schema) {
   return record;
 }
 
+export function decodeMajorBandsStaticRow(row, schema) {
+  const sourceRow = typeof row === 'string' ? JSON.parse(row) : row;
+  if (!Array.isArray(sourceRow)) throw new Error('静态专业原始行格式异常');
+  return decodeRow(sourceRow, schema);
+}
+
+const NO_SPECIAL_PROJECT_FOR_ORDER = Object.freeze({
+  hasSpecialProject: false,
+  keys: Object.freeze([]),
+  labels: Object.freeze([]),
+  primaryLabel: '',
+  reviewPoints: Object.freeze([])
+});
+
+export function buildMajorBandsRankOrderProjectionSchema(schema = []) {
+  const index = key => schema.indexOf(key);
+  return Object.freeze({
+    fullSchema: schema,
+    id: index('id'),
+    school: index('school'),
+    major: index('major'),
+    score2026: index('score2026'),
+    rank2026: index('rank2026'),
+    specialHas: index('specialHas'),
+    specialKeys: index('specialKeys'),
+    specialLabels: index('specialLabels'),
+    specialPrimaryLabel: index('specialPrimaryLabel'),
+    specialReviewPoints: index('specialReviewPoints')
+  });
+}
+
+export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}, options = {}) {
+  const value = key => Number.isInteger(projectionSchema[key]) && projectionSchema[key] >= 0
+    ? row[projectionSchema[key]]
+    : undefined;
+  const specialHas = Boolean(value('specialHas'));
+  const rawRowStorage = options.rawRowStorage === 'serialized-json'
+    ? 'serialized-json'
+    : 'array-reference';
+  const rawRowValue = rawRowStorage === 'serialized-json' ? JSON.stringify(row) : row;
+  const record = {
+    id: value('id'),
+    school: value('school'),
+    major: value('major'),
+    score2026: value('score2026'),
+    rank2026: value('rank2026'),
+    specialProject: NO_SPECIAL_PROJECT_FOR_ORDER
+  };
+  if (specialHas) {
+    record.specialProject = {
+      hasSpecialProject: true,
+      keys: Array.isArray(value('specialKeys')) ? value('specialKeys') : [],
+      labels: Array.isArray(value('specialLabels')) ? value('specialLabels') : [],
+      primaryLabel: value('specialPrimaryLabel') || '',
+      reviewPoints: Array.isArray(value('specialReviewPoints')) ? value('specialReviewPoints') : []
+    };
+  }
+  Object.defineProperties(record, {
+    majorBandsRawRow: {
+      value: rawRowValue,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsRawRowStorage: {
+      value: rawRowStorage,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsRawSchema: {
+      value: projectionSchema.fullSchema,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    }
+  });
+  return record;
+}
+
 function intersects(bucket, scoreWindow) {
   return Number(bucket?.maxScore) >= Number(scoreWindow.min)
     && Number(bucket?.minScore) <= Number(scoreWindow.max);
@@ -124,6 +206,82 @@ export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindo
     bucket,
     records,
     rowCount: payload.rows.length,
+    bytes: Number(bucket.bytes || 0),
+    assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
+  };
+}
+
+/**
+ * Load one manifest-approved immutable bucket without applying the legacy score
+ * prefilter. The v3990 rank query kernel performs the authoritative canonical
+ * rank classification after all selected buckets are decoded in one Worker.
+ */
+
+export function majorBandsRankValueMatchesRange(rankLike, range = null) {
+  const minRank = Number(range?.minRank);
+  const maxRank = Number(range?.maxRank);
+  if (!Number.isFinite(minRank) || !Number.isFinite(maxRank)) return true;
+  const rank = Number(rankLike);
+  // Preserve missing/invalid rank rows for the canonical score fallback.
+  if (!Number.isFinite(rank) || rank <= 0) return true;
+  return rank >= minRank && rank <= maxRank;
+}
+
+export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {
+  const manifest = await loadMajorBandsStaticManifest(request, options);
+  const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
+  if (!bucket) throw new Error(`静态专业分数桶不在发布清单中：${bucketFile || 'empty'}`);
+  const payload = await fetchStaticJson(request, bucket.file, options);
+  if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+    throw new Error(`静态专业位次桶合同异常：${bucket.file}`);
+  }
+  if (payload.rows.length !== Number(bucket.recordCount || 0)) {
+    throw new Error(`静态专业位次桶记录数异常：${bucket.file}`);
+  }
+  const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
+  const rankIndex = schema.indexOf('rank2026');
+  const idIndex = schema.indexOf('id');
+  const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
+    ? Object.freeze({
+        minRank: Number(options.rankRange.minRank),
+        maxRank: Number(options.rankRange.maxRank)
+      })
+    : null;
+  const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
+  const rankFilteredRows = rankRange && rankIndex >= 0
+    ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))
+    : payload.rows;
+  const selectedRows = allowedIds && idIndex >= 0
+    ? rankFilteredRows.filter(row => allowedIds.has(String(row?.[idIndex] || '')))
+    : rankFilteredRows;
+  const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    : 'full-record-v3990_0';
+  const projectionSchema = projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    ? buildMajorBandsRankOrderProjectionSchema(schema)
+    : null;
+  const records = projectionSchema
+    ? selectedRows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema, {
+        rawRowStorage: options.rawRowStorage
+      }))
+    : selectedRows.map(row => decodeRow(row, schema));
+  return {
+    manifest,
+    bucket,
+    records,
+    projectionVersion,
+    minimalProjection: projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+    rawRowStorage: projectionSchema
+      ? (options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference')
+      : 'full-record',
+    rowCount: payload.rows.length,
+    decodedRowCount: selectedRows.length,
+    rankRowsSkipped: payload.rows.length - selectedRows.length,
+    pageIdRowsSkipped: rankFilteredRows.length - selectedRows.length,
+    pageIdFilterCount: allowedIds?.size || 0,
+    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
+    rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+    rankRange,
     bytes: Number(bucket.bytes || 0),
     assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
   };

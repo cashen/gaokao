@@ -1,53 +1,53 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { CURRENT_RELEASE } from '../shared/resources/release/current-release.js';
-import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3972_6.js';
-import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3972_6.js';
-import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3972_6.js';
+import { SITE_RUNTIME_CONTRACT } from '../shared/resources/release/site-runtime-contract.v3990_0.js';
+import { LN_RANK_RUNTIME_CACHE_CONTRACT } from '../shared/resources/release/runtime-cache-contract.v3990_0.js';
+import { RESOURCE_EXECUTION_REGISTRY } from '../shared/governance/resource-execution-contract.v3990_0.js';
 import { SHARED_RESOURCE_GRAPH_VERSION } from '../shared/resources/resource-registry.js';
 
 const read = file => fs.readFileSync(file, 'utf8');
 const headerBlock = (headers, route) => headers.match(new RegExp(`^${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\n((?:  .*(?:\n|$))+)`, 'm'))?.[1] || '';
 const home = read('index.html');
-const runtime = read('ln-rank/js/ux/family-home.v3972_6.js');
+const runtime = read('ln-rank/js/ux/family-home.v3990_0.js');
 const headers = read('_headers');
-const manifest = JSON.parse(read('ln-rank/site-active-generation.v3972_6.json'));
+const manifest = JSON.parse(read('ln-rank/site-active-generation.v3990_0.json'));
 const releaseContract = read('functions/_lib/release-contract.js');
 
-assert.equal(CURRENT_RELEASE.display, 'v3.9.72.6');
-assert.equal(CURRENT_RELEASE.assetVersion, 'v3972_6');
-assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.72.6');
-assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3972_6');
+assert.equal(CURRENT_RELEASE.display, 'v3.9.90.0');
+assert.equal(CURRENT_RELEASE.assetVersion, 'v3990_0');
+assert.equal(CURRENT_RELEASE.assetReleaseVersion, 'v3.9.90.0');
+assert.equal(CURRENT_RELEASE.siteRuntimeGeneration, 'v3990_0');
 assert.equal(CURRENT_RELEASE.sharedResourceGraphVersion, SHARED_RESOURCE_GRAPH_VERSION);
-assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3972_6');
+assert.equal(CURRENT_RELEASE.homeEntryVersion, 'family-home-runtime-v3990_0');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeStructure, '/index.html');
-assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3972_6.js');
-assert.equal(CURRENT_RELEASE.resourceOwners.familyShell, '/shared/ui/shell/family-shell.v3972_6.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.homeRuntime, '/ln-rank/js/ux/family-home.v3990_0.js');
+assert.equal(CURRENT_RELEASE.resourceOwners.familyShell, '/shared/ui/shell/family-shell.v3990_0.js');
 assert.equal(CURRENT_RELEASE.resourceOwners.familyShellStyles, '/shared/ui/shell/family-shell.v3972_5.css');
 assert.equal(CURRENT_RELEASE.resourceOwners.homeIndustryMapEntry, '/index.html#[data-home-industry-map-entry]');
 assert.equal(CURRENT_RELEASE.resourceOwners.industryMap, '/Public_company/');
 
-assert.equal(RESOURCE_EXECUTION_REGISTRY.home.owner, '/ln-rank/js/ux/family-home.v3972_6.js');
+assert.equal(RESOURCE_EXECUTION_REGISTRY.home.owner, '/ln-rank/js/ux/family-home.v3990_0.js');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.structureOwner, '/index.html');
 assert.equal(RESOURCE_EXECUTION_REGISTRY.home.classification, 'current-generation');
-assert.equal(RESOURCE_EXECUTION_REGISTRY.home.schemaVersion, 'family-home-runtime-v3972_6');
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.homeRuntime, '/ln-rank/js/ux/family-home.v3972_6.js?v=3972_6');
-assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.owners.home, '/ln-rank/js/ux/family-home.v3972_6.js');
-assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3972_6.js'));
-assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules.includes('/ln-rank/js/ux/family-home.v3972_6.js'));
+assert.equal(RESOURCE_EXECUTION_REGISTRY.home.schemaVersion, 'family-home-runtime-v3990_0');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.entrypoints.homeRuntime, '/ln-rank/js/ux/family-home.v3990_0.js?v=3990_0');
+assert.equal(LN_RANK_RUNTIME_CACHE_CONTRACT.owners.home, '/ln-rank/js/ux/family-home.v3990_0.js');
+assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.activeGenerationModules.includes('/ln-rank/js/ux/family-home.v3990_0.js'));
+assert.ok(!LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules.includes('/ln-rank/js/ux/family-home.v3990_0.js'));
 assert.ok(LN_RANK_RUNTIME_CACHE_CONTRACT.declaredStableActiveModules.includes('/shared/ui/shell/family-shell.v3972_5.css'));
 assert.equal(SITE_RUNTIME_CONTRACT.generation, CURRENT_RELEASE.siteRuntimeGeneration);
 assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.homeRuntime, 'current-generation');
 assert.equal(SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.familyShellStyles, 'declared-stable-dependency');
 
 for (const marker of [
-  'data-release="v3.9.72.6"',
-  'data-site-runtime-generation="v3972_6"',
+  'data-release="v3.9.90.0"',
+  'data-site-runtime-generation="v3990_0"',
   'family-shell.v3972_5.css?v=3972_5',
   'family-plan-entry.v3972_5.css?v=3972_5',
-  'family-home.v3972_6.js?v=3972_6',
+  'family-home.v3990_0.js?v=3990_0',
   '家庭方案与逐项复核',
-  'data-current-release>v3.9.72.6',
+  'data-current-release>v3.9.90.0',
   'data-home-industry-map-entry',
   'href="/Public_company/"',
   '全国上市公司产业落地图'
@@ -64,10 +64,10 @@ for (const stale of [
 
 assert.equal((home.match(/<script type="module"/g) || []).length, 1, 'root home must have one module bootstrap owner');
 for (const marker of [
-  'release-presenter.v3972_6.js?v=3972_6',
-  'family-shell.v3972_6.js?v=3972_6',
+  'release-presenter.v3990_0.js?v=3990_0',
+  'family-shell.v3990_0.js?v=3990_0',
   'family-decision-contract.v3970_0.js?v=3970_0',
-  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3972_6'",
+  "HOME_RUNTIME_VERSION = 'family-home-runtime-v3990_0'",
   "window.addEventListener('gaokao:selection-change'",
   'generation: release.siteRuntimeGeneration',
   'releaseOwner: release.resourceOwners.release',
@@ -88,7 +88,7 @@ for (const route of ['/', '/index.html']) {
 
 assert.equal(manifest.releaseVersion, CURRENT_RELEASE.display);
 assert.equal(manifest.generation, CURRENT_RELEASE.siteRuntimeGeneration);
-assert.equal(manifest.currentGenerationEntrypoints.home, '/ln-rank/js/ux/family-home.v3972_6.js?v=3972_6');
+assert.equal(manifest.currentGenerationEntrypoints.home, '/ln-rank/js/ux/family-home.v3990_0.js?v=3990_0');
 assert.equal(manifest.declaredStableActiveEntrypoints.familyShellStyles, '/shared/ui/shell/family-shell.v3972_5.css?v=3972_5');
 assert.equal(manifest.resourceGraph.version, SHARED_RESOURCE_GRAPH_VERSION);
 assert.equal(manifest.resourceGraph.registry, CURRENT_RELEASE.resourceOwners.resourceRegistry);
@@ -122,3 +122,4 @@ console.log(JSON.stringify({
   activeHome: manifest.currentGenerationEntrypoints.home,
   productionGate: true
 }, null, 2));
+

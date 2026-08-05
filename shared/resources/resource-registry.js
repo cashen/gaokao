@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3972_6';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3990_0';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
@@ -6,7 +6,7 @@ import {
   UI_STABLE_RESOURCE_REGISTRY,
   UI_COMPONENT_REGISTRY,
   UI_CSS_RESOURCE_GRAPH
-} from '../ui/ui-resource-registry.v3972_6.js?v=3972_6';
+} from '../ui/ui-resource-registry.v3990_0.js?v=3990_0';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;
@@ -156,14 +156,22 @@ export const SHARED_RESOURCE_REGISTRY = Object.freeze({
   majorBands: Object.freeze({
     id: CURRENT_RELEASE.majorBandsVersion,
     api: CURRENT_RELEASE.resourceOwners.majorBandsApi,
-    bucketApi: CURRENT_RELEASE.resourceOwners.majorBandsBucketApi,
-    orchestrator: CURRENT_RELEASE.resourceOwners.majorBandsOrchestrator,
+    rankIndex: CURRENT_RELEASE.resourceOwners.majorBandsRankIndex,
+    rankIndexBuilder: CURRENT_RELEASE.resourceOwners.majorBandsRankIndexBuilder,
+    queryKernel: CURRENT_RELEASE.resourceOwners.majorBandsOrchestrator,
+    bucketLoader: CURRENT_RELEASE.resourceOwners.majorBandsRankBucketLoader,
+    resultOrder: CURRENT_RELEASE.resourceOwners.majorBandsResultOrder,
     cacheOwner: CURRENT_RELEASE.resourceOwners.majorBandsBucketCacheOwner,
     cacheImplementation: CURRENT_RELEASE.resourceOwners.majorBandsBucketCache,
-    transferOwner: CURRENT_RELEASE.resourceOwners.majorBandsBucketTransfer,
+    responseTransport: CURRENT_RELEASE.resourceOwners.majorBandsResponseTransport,
     materializationOwner: CURRENT_RELEASE.resourceOwners.majorBandsMaterializationOwner,
     staticProvider: CURRENT_RELEASE.resourceOwners.majorBandsStaticProvider,
-    policy: 'single-parent-orchestration-cache-transfer-materialization-and-response-owner'
+    stableBucketApi: CURRENT_RELEASE.resourceOwners.majorBandsBucketApi,
+    stableBucketWorker: CURRENT_RELEASE.resourceOwners.majorBandsStableBucketWorker,
+    dataArchitecture: 'immutable-score-buckets-with-derived-rank-window-index',
+    executionArchitecture: 'single-worker-no-public-http-self-fanout-no-candidate-cap',
+    paginationPolicy: 'stable-ordered-id-snapshot-strict-next-offset',
+    policy: 'rank-primary-zero-loss-single-worker-page-only-materialization'
   }),
   ui: Object.freeze({
     id: 'family-ui-orchestration',
