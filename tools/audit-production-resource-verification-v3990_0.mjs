@@ -85,6 +85,9 @@ for (const forbidden of [
   '"maxConcurrentExecutions":2',
   '"crossRequestSemaphore":true'
 ]) assert.ok(!workflow.includes(forbidden), `production workflow reads unpublished API field: ${forbidden}`);
+assert.equal((workflow.match(/VERIFY_DEPLOYMENT_IDENTITY: 'false'/g) || []).length, 1, 'local identity bypass must appear exactly once');
+assert.ok(workflow.includes("VERIFY_DEPLOYMENT_IDENTITY: 'true'"), 'production identity verification must be explicit');
+assert.ok(workflow.includes('EXPECTED_DEPLOYMENT_BRANCH: main'), 'production identity branch must be main');
 
 const deployWorkflow = fs.readFileSync('.github/workflows/deploy-cloudflare-pages-main.yml', 'utf8');
 for (const marker of [
@@ -114,6 +117,7 @@ for (const marker of [
   'RELEASE_SHA: ${{ github.sha }}',
   'cloudflare-pages-v3990-0-production'
 ]) assert.ok(deployWorkflow.includes(marker), `main deploy workflow missing ${marker}`);
+assert.ok(!deployWorkflow.includes("VERIFY_DEPLOYMENT_IDENTITY: 'false'"), 'main deploy workflow must not disable deployment identity');
 for (const forbidden of [
   'v3.9.72.5',
   'distributed-bucket-workers',
@@ -150,7 +154,9 @@ for (const marker of [
   'cloudflare-pages-runtime-environment',
   'EXPECTED_DEPLOYMENT_BRANCH',
   'pages deployment commit',
-  'deploymentIdentity: finalResult.deploymentIdentity'
+  'deploymentIdentity: finalResult.deploymentIdentity',
+  'VERIFY_DEPLOYMENT_IDENTITY',
+  'disabled-for-local-source-graph'
 ]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);
 
 const deploymentIdentityApi = fs.readFileSync('functions/api/pages-deployment-identity.js', 'utf8');

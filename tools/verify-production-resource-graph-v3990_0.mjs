@@ -8,6 +8,7 @@ const customBase = String(process.env.CUSTOM_BASE || CONTRACT.customBase).replac
 const attempts = Math.max(1, Number(process.env.PRODUCTION_RESOURCE_ATTEMPTS || 42));
 const waitMs = Math.max(0, Number(process.env.PRODUCTION_RESOURCE_WAIT_MS || 20000));
 const verifyRuntimeHealth = String(process.env.VERIFY_RUNTIME_HEALTH || 'true') !== 'false';
+const verifyDeploymentIdentity = String(process.env.VERIFY_DEPLOYMENT_IDENTITY || 'true') !== 'false';
 const verifyMajorBands = String(process.env.VERIFY_MAJOR_BANDS || 'true') !== 'false';
 const evidencePath = process.env.PRODUCTION_RESOURCE_EVIDENCE || '/tmp/v3990-0-production-resource-graph.json';
 const releaseSha = String(process.env.RELEASE_SHA || 'manual').trim().toLowerCase();
@@ -366,12 +367,31 @@ async function runAttempt(attempt) {
     verifyRuntimeHealth
       ? request(pagesBase, CONTRACT.dynamicResources.runtimeHealth, attempt)
       : Promise.resolve({ status: 200, text: `${expected.release} ${expected.generation}`, headers: {} }),
-    request(pagesBase, CONTRACT.dynamicResources.deploymentIdentity, attempt)
+    verifyDeploymentIdentity
+      ? request(pagesBase, CONTRACT.dynamicResources.deploymentIdentity, attempt)
+      : Promise.resolve({ status: 200, headers: {}, text: '' })
   ]);
   pages.retired = Object.fromEntries(retiredResponses);
   pages.runtimeHealth = runtimeHealth;
   pages.deploymentIdentity = deploymentIdentityResponse;
-  const deploymentIdentity = validatePagesDeploymentIdentity(deploymentIdentityResponse);
+  const deploymentIdentity = verifyDeploymentIdentity
+    ? validatePagesDeploymentIdentity(deploymentIdentityResponse)
+    : {
+        failures: [],
+        evidence: {
+          status: 'skipped',
+          version: 'pages-deployment-identity-v3990_0',
+          source: 'disabled-for-local-source-graph',
+          release: expected.release,
+          generation: expected.generation,
+          commitSha: '',
+          branch: '',
+          deploymentUrl: '',
+          expectedCommitSha: releaseSha,
+          expectedBranch: expectedDeploymentBranch,
+          verified: true
+        }
+      };
   const customStaticBoundary = validateCustomChallengeBoundary(custom);
   const staticFailures = [
     ...validatePages(pages),
