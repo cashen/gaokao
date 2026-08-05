@@ -11,7 +11,8 @@ const expectedApiMarker = '\"rankBucketMaxConcurrency\":1';
 const retiredApiMarker = '\"rankBucketMaxConcurrency\":2';
 
 assert.ok(bucketLoader.includes('MAX_LOAD_CONCURRENCY = 1'), 'requested-band bucket loader concurrency is not 1');
-assert.ok(api.includes('rankBucketMaxConcurrency: loaded.stats.maxConcurrency'), 'API no longer publishes rank bucket concurrency from loader stats');
+assert.ok(api.includes('rankBucketMaxConcurrency: loadedStats.maxConcurrency'), 'requested-band API no longer publishes loader max concurrency');
+assert.ok(api.includes('rankBucketMaxConcurrency: sharedLoadedStats ? Number(sharedLoadedStats.maxConcurrency || 0)'), 'all-band API no longer publishes shared loader max concurrency');
 assert.ok(concurrencyVerifier.includes('requestedBandBucketMaxConcurrency: 1'), 'concurrency verifier no longer requires requested-band concurrency 1');
 assert.ok(concurrencyVerifier.includes('allBandBucketMaxConcurrency: 1'), 'concurrency verifier no longer requires bounded all-band observed concurrency 1');
 assert.ok(concurrencyVerifier.includes('cloudflare1102'), 'concurrency verifier no longer detects Cloudflare 1102');
