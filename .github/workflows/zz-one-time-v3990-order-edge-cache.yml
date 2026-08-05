@@ -1,0 +1,243 @@
+name: One-time v3990 requested-band order edge cache
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-order-edge-cache.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply requested-band ordered-ID edge cache
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, got {count}')
+              return text.replace(old, new, 1)
+
+          api_path = Path('functions/api/major-bands.js')
+          api = api_path.read_text(encoding='utf-8')
+          api = replace_once(
+              api,
+              "export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';\nexport const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION",
+              "export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';\nexport const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0';\nconst REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;\nexport const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION",
+              'order edge constants'
+          )
+          api = replace_once(
+              api,
+              "function requestedBandOrderCacheState(identity = '') {",
+              "function requestedBandOrderEdgeCacheRequest(request) {\n  const url = new URL(request.url);\n  url.searchParams.delete('stress');\n  url.searchParams.delete('deploy');\n  url.searchParams.delete('offset');\n  url.searchParams.delete('limit');\n  url.searchParams.set('__orderEdgeCache', MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION);\n  url.searchParams.sort();\n  return new Request(url.toString(), { method: 'GET' });\n}\n\nasync function readRequestedBandOrderEdgeSnapshot(cache, request) {\n  try {\n    const response = await cache.match(request);\n    if (!response) return null;\n    const payload = await response.json();\n    const snapshot = payload?.snapshot;\n    const orderedIds = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];\n    if (payload?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION) return null;\n    if (snapshot?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION) return null;\n    if (!snapshot?.snapshot || orderedIds.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return null;\n    return snapshot;\n  } catch {\n    return null;\n  }\n}\n\nasync function writeRequestedBandOrderEdgeSnapshot(cache, request, snapshot) {\n  try {\n    const payload = {\n      version: MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION,\n      snapshot\n    };\n    const body = JSON.stringify(payload);\n    if (body.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY + 512) return false;\n    await cache.put(request, new Response(body, {\n      headers: {\n        'content-type': 'application/json; charset=utf-8',\n        'cache-control': `public, max-age=${REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS}`\n      }\n    }));\n    return true;\n  } catch {\n    return false;\n  }\n}\n\nfunction requestedBandOrderCacheState(identity = '') {",
+              'order edge helpers'
+          )
+          api = replace_once(
+              api,
+              "  let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);\n  let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';\n  let heavyExecution = null;",
+              "  const orderEdgeCache = allBandsShared ? null : allBandsEdgeCacheHandle();\n  const orderEdgeCacheRequest = orderEdgeCache ? requestedBandOrderEdgeCacheRequest(context.request) : null;\n  let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);\n  let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';\n  let orderEdgeCacheStatus = allBandsShared\n    ? 'shared-projection'\n    : (retained ? 'module-hit' : (orderEdgeCache ? 'miss' : 'unavailable'));\n  if (!retained && orderEdgeCache && orderEdgeCacheRequest) {\n    retained = await readRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest);\n    if (retained) {\n      retainRequestedBandOrderSnapshot(orderIdentity, retained);\n      orderCacheStatus = 'ordered-id-edge-hit';\n      orderEdgeCacheStatus = 'hit';\n    }\n  }\n  let heavyExecution = null;",
+              'order edge read path'
+          )
+          api = replace_once(
+              api,
+              "    retainRequestedBandOrderSnapshot(orderIdentity, retained);\n    orderCacheStatus = heavyExecution.joinedInFlight ? 'ordered-id-singleflight-hit' : 'ordered-id-miss';",
+              "    retainRequestedBandOrderSnapshot(orderIdentity, retained);\n    if (orderEdgeCache && orderEdgeCacheRequest) {\n      const stored = await writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained);\n      orderEdgeCacheStatus = stored ? 'stored' : 'write-failed';\n    }\n    orderCacheStatus = heavyExecution.joinedInFlight ? 'ordered-id-singleflight-hit' : 'ordered-id-miss';",
+              'order edge write path'
+          )
+          api = replace_once(
+              api,
+              "    orderCacheStatus,\n    orderCacheIdCount:",
+              "    orderCacheStatus,\n    orderEdgeCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION,\n    orderEdgeCacheStatus,\n    orderEdgeCacheCanonicalKey: true,\n    orderEdgeCacheTtlSeconds: REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS,\n    orderCacheIdCount:",
+              'order edge execution telemetry'
+          )
+          api = replace_once(
+              api,
+              "        requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',\n        requestedBandOrderPageSourceVersion:",
+              "        requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',\n        requestedBandOrderEdgeCacheVersion: execution.orderEdgeCacheVersion || MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION,\n        requestedBandOrderEdgeCacheStatus: execution.orderEdgeCacheStatus || 'keyword-bypass',\n        requestedBandOrderEdgeCacheCanonicalKey: execution.orderEdgeCacheCanonicalKey !== false,\n        requestedBandOrderEdgeCacheTtlSeconds: Number(execution.orderEdgeCacheTtlSeconds || REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS),\n        requestedBandOrderPageSourceVersion:",
+              'order edge response telemetry'
+          )
+          api_path.write_text(api, encoding='utf-8')
+
+          verifier_path = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          verifier = verifier_path.read_text(encoding='utf-8')
+          verifier = replace_once(
+              verifier,
+              "const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_0';",
+              "const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_0';\nconst expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0';",
+              'verifier order edge constant'
+          )
+          verifier = replace_once(
+              verifier,
+              "  assert.equal(result.payload?.source?.requestedBandOrderCacheVersion, expectedOrderIdCacheVersion, `${result.scenario}: ordered-ID cache deployment`);",
+              "  assert.equal(result.payload?.source?.requestedBandOrderCacheVersion, expectedOrderIdCacheVersion, `${result.scenario}: ordered-ID cache deployment`);\n  assert.equal(result.payload?.source?.requestedBandOrderEdgeCacheVersion, expectedOrderEdgeCacheVersion, `${result.scenario}: ordered-ID edge cache deployment`);\n  assert.equal(result.payload?.source?.requestedBandOrderEdgeCacheCanonicalKey, true, `${result.scenario}: ordered-ID edge cache key`);\n  assert.ok(['hit', 'miss', 'stored', 'module-hit', 'unavailable', 'write-failed', 'shared-projection', 'keyword-bypass'].includes(result.payload?.source?.requestedBandOrderEdgeCacheStatus), `${result.scenario}: invalid ordered-ID edge cache status`);",
+              'verifier order edge response contract'
+          )
+          verifier = replace_once(
+              verifier,
+              "  if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {",
+              "  if (!result.allBands && ['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {",
+              'edge hit page source assertion'
+          )
+          verifier = replace_once(
+              verifier,
+              "    : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];",
+              "    : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-edge-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];",
+              'allowed query statuses'
+          )
+          verifier = replace_once(
+              verifier,
+              "    if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {",
+              "    if (['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {",
+              'edge decoded rows assertion'
+          )
+          verifier = replace_once(
+              verifier,
+              "  let requests = 0;\n  while (requests < 240) {",
+              "  let requests = 0;\n  let orderEdgeHits = 0;\n  while (requests < 240) {",
+              'pagination edge hit counter'
+          )
+          verifier = replace_once(
+              verifier,
+              "    validateResult(result);\n    requests += 1;",
+              "    validateResult(result);\n    if (result.payload?.source?.requestedBandOrderEdgeCacheStatus === 'hit') orderEdgeHits += 1;\n    requests += 1;",
+              'pagination edge hit increment'
+          )
+          verifier = replace_once(
+              verifier,
+              "  return { scenario: scenario.name, count, ids: seen.size, requests, snapshot };",
+              "  return { scenario: scenario.name, count, ids: seen.size, requests, snapshot, orderEdgeHits };",
+              'pagination edge evidence'
+          )
+          verifier = replace_once(
+              verifier,
+              "for (const scenario of paginationScenarios) pagination.push(await exhaustPagination(scenario));\ntotalRequests += pagination.reduce",
+              "for (const scenario of paginationScenarios) pagination.push(await exhaustPagination(scenario));\nif (base.startsWith('https://')) {\n  const safePagination = pagination.find(item => item.scenario === 'safe-449-near');\n  assert.ok(Number(safePagination?.orderEdgeHits || 0) > 0, 'safe-449-near pagination did not use ordered-ID edge snapshot');\n}\ntotalRequests += pagination.reduce",
+              'preview edge pagination gate'
+          )
+          verifier_path.write_text(verifier, encoding='utf-8')
+
+          cache_audit_path = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          cache_audit = cache_audit_path.read_text(encoding='utf-8')
+          cache_audit = replace_once(
+              cache_audit,
+              "  \"cache.put(request, allBandsResponse(execution, 'stored'))\",",
+              "  \"cache.put(request, allBandsResponse(execution, 'stored'))\",\n  \"MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0'\",\n  \"url.searchParams.delete('offset')\",\n  \"writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained)\",",
+              'query audit order edge markers'
+          )
+          cache_audit_path.write_text(cache_audit, encoding='utf-8')
+
+          resource_audit_path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+          resource_audit = resource_audit_path.read_text(encoding='utf-8')
+          resource_audit = replace_once(
+              resource_audit,
+              "  \"cache.put(request, allBandsResponse(execution, 'stored'))\"",
+              "  \"cache.put(request, allBandsResponse(execution, 'stored'))\",\n  \"MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0'\",\n  \"url.searchParams.delete('offset')\",\n  \"writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained)\"",
+              'production order edge markers'
+          )
+          resource_audit_path.write_text(resource_audit, encoding='utf-8')
+
+          rank_workflow_path = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
+          rank_workflow = rank_workflow_path.read_text(encoding='utf-8')
+          rank_workflow = replace_once(
+              rank_workflow,
+              "          grep -q \"edgeCacheProbe.allBandsEdgeCacheStatus, 'hit'\" tools/verify-major-bands-preview-concurrency-v3990_0.mjs",
+              "          grep -q \"edgeCacheProbe.allBandsEdgeCacheStatus, 'hit'\" tools/verify-major-bands-preview-concurrency-v3990_0.mjs\n          grep -q \"MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0'\" functions/api/major-bands.js\n          grep -q \"REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180\" functions/api/major-bands.js\n          grep -q \"writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained)\" functions/api/major-bands.js\n          grep -q \"safe-449-near pagination did not use ordered-ID edge snapshot\" tools/verify-major-bands-preview-concurrency-v3990_0.mjs",
+              'rank workflow order edge gates'
+          )
+          rank_workflow_path.write_text(rank_workflow, encoding='utf-8')
+
+          prod_workflow_path = Path('.github/workflows/verify-production-api-health-v3971.yml')
+          prod_workflow = prod_workflow_path.read_text(encoding='utf-8')
+          prod_workflow = replace_once(
+              prod_workflow,
+              "          grep -q \"url.searchParams.delete('deploy')\" functions/api/major-bands.js",
+              "          grep -q \"url.searchParams.delete('deploy')\" functions/api/major-bands.js\n          grep -q \"MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0'\" functions/api/major-bands.js\n          grep -q \"REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180\" functions/api/major-bands.js\n          grep -q \"writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained)\" functions/api/major-bands.js",
+              'production workflow order edge gates'
+          )
+          prod_workflow_path.write_text(prod_workflow, encoding='utf-8')
+          PY
+
+      - name: Verify syntax, resource ownership and complete rank truth
+        run: |
+          set -euo pipefail
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-major-bands-request-band-scope-v3990_0.mjs
+          MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/v3990-order-edge-rank-audit.json \
+            node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_0.mjs
+
+      - name: Verify local Pages pressure and full pagination
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8799 --compatibility-date=2026-07-01 >/tmp/v3990-order-edge-wrangler.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 60); do
+            body="$(curl --fail --silent --show-error --max-time 20 'http://127.0.0.1:8799/api/major-bands?candidateScore=449&rangePreset=safe&band=near&limit=37' || true)"
+            if grep -q '"requestedBandOrderEdgeCacheVersion":"major-bands-requested-band-order-edge-cache-canonical-v3990_0"' <<<"$body"; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" -eq 1
+          TARGET_BASE=http://127.0.0.1:8799 \
+          CONCURRENCY_LEVELS=1,5,10,25,50 \
+          CONCURRENCY_WAVES=2 \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE=/tmp/v3990-order-edge-local-pressure.json \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          kill "$worker_pid" 2>/dev/null || true
+          wait "$worker_pid" 2>/dev/null || true
+          trap - EXIT
+
+      - name: Commit verified requested-band edge cache
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/zz-one-time-v3990-order-edge-cache.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/api/major-bands.js \
+            tools/verify-major-bands-preview-concurrency-v3990_0.mjs \
+            tools/audit-major-bands-query-execution-cache-v3990_0.mjs \
+            tools/audit-production-resource-verification-v3990_0.mjs \
+            .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
+            .github/workflows/verify-production-api-health-v3971.yml \
+            .github/workflows/zz-one-time-v3990-order-edge-cache.yml
+          git commit -m 'perf(rank): cache requested-band order snapshots at edge'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload requested-band edge evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-requested-band-order-edge-evidence
+          path: |
+            /tmp/v3990-order-edge-rank-audit.json
+            /tmp/v3990-order-edge-local-pressure.json
+            /tmp/v3990-order-edge-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
