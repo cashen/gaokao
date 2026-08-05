@@ -98,7 +98,13 @@ for (const marker of [
   'nativeChooserActivationVersion',
   'verifyMajorBandsPagination',
   'nextOffset did not strictly increase',
-  'rank_unavailable_empty'
+  'rank_unavailable_empty',
+  'isCloudflareManagedChallenge',
+  "headers['cf-mitigated']",
+  'customHtmlChallengeBoundarySeparate',
+  'custom API challenge not corroborated by HTML challenge boundary',
+  'custom-domain-cloudflare-managed-challenge',
+  "pagesMajorBands = await verifyMajorBandsBase('pages'"
 ]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);
 
 const snapshotVerifier = fs.readFileSync('tools/verify-production-pagination-snapshot-guard-v3990_0.mjs', 'utf8');

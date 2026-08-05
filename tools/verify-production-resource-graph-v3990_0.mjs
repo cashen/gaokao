@@ -53,6 +53,36 @@ async function request(base, resourcePath, attempt) {
   }
 }
 
+function isCloudflareManagedChallenge(response) {
+  const headers = response?.headers || {};
+  const body = String(response?.text || '').toLowerCase();
+  return Number(response?.status) === 403
+    && String(headers['cf-mitigated'] || '').toLowerCase() === 'challenge'
+    && String(headers.server || '').toLowerCase().includes('cloudflare')
+    && String(headers['content-type'] || '').toLowerCase().includes('text/html')
+    && (body.includes('<title>just a moment') || body.includes('challenges.cloudflare.com'));
+}
+
+function validateCustomChallengeBoundary(responses) {
+  const failures = [];
+  const challengedResources = [];
+  for (const key of ['activeManifest', 'selectionPage', 'selfCheck']) {
+    const response = responses[key];
+    if (Number(response?.status) !== 403) continue;
+    if (!isCloudflareManagedChallenge(response)) {
+      failures.push(`custom ${key} returned unrecognized HTTP 403`);
+      continue;
+    }
+    challengedResources.push(key);
+  }
+  return {
+    mode: challengedResources.length ? 'cloudflare-managed-challenge' : 'open',
+    challengedResources,
+    challengePolicyEnabled: CONTRACT.policies.customHtmlChallengeBoundarySeparate === true,
+    failures
+  };
+}
+
 function require200(failures, label, response, markers = []) {
   if (response.status !== 200 || !includesAll(response.text, markers)) {
     failures.push(`${label} mismatch (${response.status})`);
@@ -295,25 +325,72 @@ async function runAttempt(attempt) {
   ]);
   pages.retired = Object.fromEntries(retiredResponses);
   pages.runtimeHealth = runtimeHealth;
+  const customStaticBoundary = validateCustomChallengeBoundary(custom);
   const staticFailures = [
     ...validatePages(pages),
-    ...validateStaticSet('custom', custom, { includeHtml: false })
+    ...validateStaticSet('custom', custom, { includeHtml: false }),
+    ...customStaticBoundary.failures
   ];
-  const [pagesMajorBands, customMajorBands] = verifyMajorBands && staticFailures.length === 0
-    ? await Promise.all([
-        verifyMajorBandsBase('pages', pagesBase, attempt),
-        verifyMajorBandsBase('custom', customBase, attempt)
-      ])
-    : [
-        { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} },
-        { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} }
-      ];
+
+  let pagesMajorBands = { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} };
+  let customMajorBands = { failures: [], skipped: true, reason: verifyMajorBands ? 'static-graph-not-ready' : 'disabled', pagination: {} };
+  let customDynamicBoundary = {
+    mode: verifyMajorBands ? 'static-graph-not-ready' : 'disabled',
+    status: null,
+    verified: false
+  };
+
+  if (verifyMajorBands && staticFailures.length === 0) {
+    pagesMajorBands = await verifyMajorBandsBase('pages', pagesBase, attempt);
+    const customHealthProbe = await request(customBase, CONTRACT.dynamicResources.majorBandsHealth, attempt);
+    if (isCloudflareManagedChallenge(customHealthProbe)) {
+      const boundaryCorroborated = customStaticBoundary.mode === 'cloudflare-managed-challenge'
+        && customStaticBoundary.challengePolicyEnabled;
+      customDynamicBoundary = {
+        mode: 'cloudflare-managed-challenge',
+        status: customHealthProbe.status,
+        cfMitigated: customHealthProbe.headers?.['cf-mitigated'] || '',
+        server: customHealthProbe.headers?.server || '',
+        contentType: customHealthProbe.headers?.['content-type'] || '',
+        verified: boundaryCorroborated
+      };
+      customMajorBands = boundaryCorroborated
+        ? {
+            failures: [],
+            skipped: true,
+            reason: 'custom-domain-cloudflare-managed-challenge',
+            health: customHealthProbe.status,
+            boundary: customHealthProbe.status,
+            pagination: {}
+          }
+        : {
+            failures: ['custom API challenge not corroborated by HTML challenge boundary'],
+            skipped: true,
+            reason: 'unverified-custom-domain-challenge',
+            health: customHealthProbe.status,
+            boundary: customHealthProbe.status,
+            pagination: {}
+          };
+    } else {
+      customDynamicBoundary = {
+        mode: 'direct-api-verification',
+        status: customHealthProbe.status,
+        verified: true
+      };
+      customMajorBands = await verifyMajorBandsBase('custom', customBase, attempt);
+    }
+  }
+
   const failures = [
     ...staticFailures,
     ...pagesMajorBands.failures,
     ...customMajorBands.failures
   ];
-  return { ok: failures.length === 0, attempt, expected, pages, custom, pagesMajorBands, customMajorBands, failures };
+  const customBoundary = {
+    static: customStaticBoundary,
+    dynamic: customDynamicBoundary
+  };
+  return { ok: failures.length === 0, attempt, expected, pages, custom, customBoundary, pagesMajorBands, customMajorBands, failures };
 }
 
 let finalResult = null;
@@ -329,6 +406,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
       ['retired', Object.fromEntries(Object.entries(finalResult.pages.retired).map(([resourcePath, response]) => [resourcePath, response.status]))]
     ]),
     custom: Object.fromEntries(Object.entries(CONTRACT.requiredStaticResources).map(([key]) => [key, finalResult.custom[key]?.status])),
+    customBoundary: finalResult.customBoundary,
     majorBands: {
       pages: finalResult.pagesMajorBands,
       custom: finalResult.customMajorBands
