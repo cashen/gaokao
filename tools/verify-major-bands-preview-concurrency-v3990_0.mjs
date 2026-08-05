@@ -23,6 +23,7 @@ const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';
 const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_0';
 const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_0';
 const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_0';
+const expectedOrderProjectionVersion = 'major-bands-rank-order-minimal-projection-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
@@ -144,6 +145,9 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.requestedBandOrderCacheVersion, expectedOrderIdCacheVersion, `${result.scenario}: ordered-ID cache deployment`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsDecodedRows, false, `${result.scenario}: ordered-ID cache retained decoded rows`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsEnrichedRecords, false, `${result.scenario}: ordered-ID cache retained enriched records`);
+  assert.equal(result.payload?.source?.requestedBandOrderProjectionVersion, expectedOrderProjectionVersion, `${result.scenario}: minimal order projection deployment`);
+  assert.equal(result.payload?.source?.requestedBandOrderMinimalProjection, true, `${result.scenario}: default query did not use minimal projection`);
+  assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(result.payload?.meta?.pageSize || 80), `${result.scenario}: page decoded more than page size`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheBounded, true, `${result.scenario}: ordered-ID LRU exceeded budget`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0) <= 8, `${result.scenario}: ordered-ID LRU entries`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalIds || 0) <= 12000, `${result.scenario}: ordered-ID LRU total IDs`);
@@ -386,6 +390,7 @@ const evidence = {
   rankRowFilterVersion: expectedRankRowFilterVersion,
   orderedIdCacheVersion: expectedOrderIdCacheVersion,
   pageIdFilterVersion: expectedPageIdFilterVersion,
+  orderProjectionVersion: expectedOrderProjectionVersion,
   allBandBucketMaxConcurrency: 1,
   requestedBandBucketMaxConcurrency: 1,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',

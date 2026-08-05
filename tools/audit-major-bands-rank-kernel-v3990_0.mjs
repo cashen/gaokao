@@ -9,7 +9,10 @@ import {
 } from '../functions/_lib/major-bands-rank-index.v3990_0.js';
 import { processMajorBandsRankWindow } from '../functions/_lib/major-bands-rank-query-kernel.v3990_0.js';
 import {
+  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+  buildMajorBandsRankOrderProjectionSchema,
+  decodeMajorBandsRankOrderRow,
   majorBandsRankValueMatchesRange
 } from '../functions/_lib/major-bands-static-provider.js';
 import {
@@ -31,7 +34,9 @@ import {
 const manifest = JSON.parse(fs.readFileSync('ln-rank/data/major-bands-static-v3972_2/manifest.json', 'utf8'));
 const schema = manifest.recordSchema;
 const buckets = new Map();
+const projectedBuckets = new Map();
 const allRecords = [];
+const projectionSchema = buildMajorBandsRankOrderProjectionSchema(schema);
 
 function decodeRow(row) {
   const record = {};
@@ -70,7 +75,9 @@ function decodeRow(row) {
 for (const bucket of manifest.buckets) {
   const payload = JSON.parse(fs.readFileSync(bucket.file.replace(/^\//, ''), 'utf8'));
   const records = payload.rows.map(decodeRow);
+  const projectedRecords = payload.rows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema));
   buckets.set(bucket.file, records);
+  projectedBuckets.set(bucket.file, projectedRecords);
   allRecords.push(...records);
 }
 
@@ -123,6 +130,10 @@ function selectedRecords(selected) {
   return selected.flatMap(bucket => buckets.get(bucket.file) || []);
 }
 
+function selectedProjectedRecords(selected) {
+  return selected.flatMap(bucket => projectedBuckets.get(bucket.file) || []);
+}
+
 function kernelFor(score, preset) {
   const row = lookupLn2026PhysicsScore(score);
   const candidateRank = row ? { rankForGap: row.rankForGap } : null;
@@ -160,6 +171,8 @@ const summary = {
   paginationIds: 0,
   maxSelectedBuckets: 0,
   rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+  orderProjectionVersion: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+  orderProjectionCases: 0,
   rankRowFilterCases: 0,
   rankRowFilterRawRows: 0,
   rankRowFilterDecodedRows: 0,
@@ -209,6 +222,26 @@ for (let score = 344; score <= 750; score += 1) {
       const filteredRecords = rawScopedRecords.filter(record => (
         majorBandsRankValueMatchesRange(record.rank2026, query.windows[band])
       ));
+      const projectedFilteredRecords = selectedProjectedRecords(scoped.buckets).filter(record => (
+        majorBandsRankValueMatchesRange(record.rank2026, query.windows[band])
+      ));
+      const defaultOptions = {
+        candidateScore: score,
+        candidateRank: query.candidateRank,
+        rangePreset: preset,
+        region: 'all',
+        majorKeyword: '',
+        bottomLineMode: 'all',
+        specialProjectMode: 'hide_eligibility_projects',
+        schoolFilter: false,
+        acceptedSchoolNames: [],
+        requestedBand: band,
+        mutateSourceRecords: false
+      };
+      const fullOrder = processMajorBandsRankWindow(filteredRecords, defaultOptions).grouped[band].ordered.map(record => record.id);
+      const projectedOrder = processMajorBandsRankWindow(projectedFilteredRecords, defaultOptions).grouped[band].ordered.map(record => record.id);
+      assert.deepEqual(projectedOrder, fullOrder, `${score}/${preset}/${band}: minimal projection order`);
+      summary.orderProjectionCases += 1;
       assertEqualSets(
         setOf(filteredRecords),
         setOf(truthByBand[band]),
@@ -289,6 +322,7 @@ assert.equal(summary.rankQueries, 365 * presets.length);
 assert.equal(summary.rankUnavailableQueries, 42 * presets.length);
 assert.equal(summary.truthSetEqualQueries, summary.rankQueries);
 assert.equal(summary.kernelSetEqualQueries, summary.rankQueries);
+assert.equal(summary.orderProjectionCases, 365 * presets.length * 3);
 assert.ok(summary.highBoundary.every(item => item.status === 200 && item.count === 0));
 for (const preset of presets) {
   const bucketEvidence = summary.presetBucketCounts[preset];

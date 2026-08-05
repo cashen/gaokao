@@ -1,4 +1,5 @@
 import {
+  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
   loadMajorBandsStaticRankBucket
 } from './major-bands-static-provider.js';
@@ -12,7 +13,7 @@ export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-l
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_0';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_0';
 export const MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0';
-export { MAJOR_BANDS_RANK_ROW_FILTER_VERSION };
+export { MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION, MAJOR_BANDS_RANK_ROW_FILTER_VERSION };
 
 const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
@@ -178,7 +179,8 @@ function bucketReadKey(indexBucket, scope = {}, options = {}) {
   const suffix = range && Number.isFinite(Number(range.minRank)) && Number.isFinite(Number(range.maxRank))
     ? `${Number(range.minRank)}:${Number(range.maxRank)}`
     : 'all-ranks';
-  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}`;
+  const projection = options.projection || 'full-record-v3990_0';
+  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}`;
 }
 
 async function readBucket(context, indexBucket, scope, options = {}) {
@@ -198,7 +200,8 @@ async function readBucket(context, indexBucket, scope, options = {}) {
   entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
     assets: context.env?.ASSETS,
     rankRange: scope.requestedRange,
-    allowedIds: options.allowedIds
+    allowedIds: options.allowedIds,
+    projection: options.projection
   }).then(loaded => {
     assertLoadedBucket(indexBucket, loaded);
     entry.pending = false;
@@ -240,6 +243,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
         pageIdRowsSkipped: 0,
         pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
         pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
+        projectionVersion: options.projection || 'full-record-v3990_0',
+        minimalProjection: options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
         rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
         staticIndexBytes: 0,
         cacheHits: 0,
@@ -319,6 +324,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
       pageIdRowsSkipped,
       pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
       pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
+      projectionVersion: results[0]?.loaded?.projectionVersion || options.projection || 'full-record-v3990_0',
+      minimalProjection: results.every(result => result?.loaded?.minimalProjection === true),
       rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
       staticIndexBytes,
       cacheHits,

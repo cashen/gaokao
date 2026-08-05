@@ -11,6 +11,7 @@ import {
 import {
   MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
   MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
+  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
   loadMajorBandsRankWindow
 } from '../_lib/major-bands-rank-bucket-loader.v3990_0.js';
@@ -543,9 +544,12 @@ async function executeRequestedBandOrderedPage(context, input) {
     pageOffset, pageLimit, executionBaseIdentity
   } = input;
   const orderIdentity = `${executionBaseIdentity}|ordered-id-snapshot`;
+  const minimalOrderProjection = filters.region === 'all'
+    && !schoolFilter
+    && filters.bottomLineMode === 'all'
+    && filters.specialProjectMode === 'hide_eligibility_projects';
   let retained = readRequestedBandOrderSnapshot(orderIdentity);
   let heavyExecution = null;
-  let orderedRecords = null;
   let loadedStats = null;
   let selectedBuckets = null;
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
@@ -556,7 +560,9 @@ async function executeRequestedBandOrderedPage(context, input) {
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
       const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
       const selected = selectMajorBandsRankBuckets(rankWindows);
-      const loaded = await loadMajorBandsRankWindow(context, selected);
+      const loaded = await loadMajorBandsRankWindow(context, selected, {
+        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined
+      });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore,
         candidateRank,
@@ -577,19 +583,21 @@ async function executeRequestedBandOrderedPage(context, input) {
         rankWindows,
         aggregate: processed.stats,
         keywordQuery: processed.keywordQuery,
+        orderProjectionVersion: loaded.stats.projectionVersion,
+        orderMinimalProjection: loaded.stats.minimalProjection === true,
+        orderRawRowCount: loaded.stats.rawRowCount,
+        orderDecodedRowCount: loaded.stats.decodedRowCount,
         orderedIds: ordered.map(record => record.id),
         snapshot: majorBandsSnapshotId(ordered, identity)
       };
       return {
         retained: orderSnapshot,
-        orderedRecords: ordered,
         loadedStats: loaded.stats,
         selectedBuckets: selected
       };
     });
     const built = heavyExecution.value;
     retained = built.retained;
-    orderedRecords = built.orderedRecords;
     loadedStats = built.loadedStats;
     selectedBuckets = built.selectedBuckets;
     retainRequestedBandOrderSnapshot(orderIdentity, retained);
@@ -598,19 +606,15 @@ async function executeRequestedBandOrderedPage(context, input) {
 
   const orderedIds = Array.isArray(retained.orderedIds) ? retained.orderedIds : [];
   const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
-  let pageRecords;
-  if (orderedRecords) {
-    pageRecords = orderedRecords.slice(pageOffset, pageOffset + pageLimit);
-  } else {
-    selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
-    const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
-    loadedStats = loaded.stats;
-    const byId = new Map(loaded.records.map(record => [record.id, record]));
-    pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
-    if (pageRecords.length !== pageIds.length) {
-      throw new Error(`位次有序 ID 页记录不完整：${pageRecords.length}/${pageIds.length}`);
-    }
-    for (const record of pageRecords) {
+  selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
+  const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
+  loadedStats = pageLoaded.stats;
+  const byId = new Map(pageLoaded.records.map(record => [record.id, record]));
+  const pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
+  if (pageRecords.length !== pageIds.length) {
+    throw new Error(`位次有序 ID 页记录不完整：${pageRecords.length}/${pageIds.length}`);
+  }
+  for (const record of pageRecords) {
       const canonicalPosition = resolveCanonicalPosition({
         candidateScore,
         candidateRank: retained.candidateRank?.rankForGap,
@@ -636,7 +640,6 @@ async function executeRequestedBandOrderedPage(context, input) {
           ? record.specialProject
           : detectSpecialProject(record)
       });
-    }
   }
 
   const compactPage = pageRecords.map(record => compactMajorBandsBucketCandidate(record));
@@ -697,7 +700,11 @@ async function executeRequestedBandOrderedPage(context, input) {
     orderCacheStatus,
     orderCacheIdCount: orderedIds.length,
     pageDecodedRecordCount: pageRecords.length,
-    orderCacheState: requestedBandOrderCacheState(orderIdentity)
+    orderCacheState: requestedBandOrderCacheState(orderIdentity),
+    orderProjectionVersion: retained.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+    orderMinimalProjection: retained.orderMinimalProjection === true,
+    orderRawRowCount: Number(retained.orderRawRowCount || 0),
+    orderDecodedRowCount: Number(retained.orderDecodedRowCount || 0)
   };
 }
 
@@ -1025,6 +1032,10 @@ export async function onRequest(context) {
         requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',
         requestedBandOrderIds: Number(execution.orderCacheIdCount || 0),
         requestedBandPageDecodedRecords: Number(execution.pageDecodedRecordCount || cacheRetention.recordCount || 0),
+        requestedBandOrderProjectionVersion: execution.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+        requestedBandOrderMinimalProjection: execution.orderMinimalProjection === true,
+        requestedBandOrderBuildRawRows: Number(execution.orderRawRowCount || 0),
+        requestedBandOrderBuildDecodedRows: Number(execution.orderDecodedRowCount || 0),
         requestedBandOrderCacheRetainsDecodedRows: false,
         requestedBandOrderCacheRetainsEnrichedRecords: false,
         requestedBandOrderCacheEntries: Number(execution.orderCacheState?.entries || 0),

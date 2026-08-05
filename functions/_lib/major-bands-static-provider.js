@@ -4,6 +4,7 @@ import { normalizeLocation } from './location-normalizer.js';
 
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';
+export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_0';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -86,6 +87,56 @@ function decodeRow(row, schema) {
     primaryLabel: record.specialPrimaryLabel || '',
     reviewPoints: Array.isArray(record.specialReviewPoints) ? record.specialReviewPoints : []
   };
+  return record;
+}
+
+
+const NO_SPECIAL_PROJECT_FOR_ORDER = Object.freeze({
+  hasSpecialProject: false,
+  keys: Object.freeze([]),
+  labels: Object.freeze([]),
+  primaryLabel: '',
+  reviewPoints: Object.freeze([])
+});
+
+export function buildMajorBandsRankOrderProjectionSchema(schema = []) {
+  const index = key => schema.indexOf(key);
+  return Object.freeze({
+    id: index('id'),
+    school: index('school'),
+    major: index('major'),
+    score2026: index('score2026'),
+    rank2026: index('rank2026'),
+    specialHas: index('specialHas'),
+    specialKeys: index('specialKeys'),
+    specialLabels: index('specialLabels'),
+    specialPrimaryLabel: index('specialPrimaryLabel'),
+    specialReviewPoints: index('specialReviewPoints')
+  });
+}
+
+export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}) {
+  const value = key => Number.isInteger(projectionSchema[key]) && projectionSchema[key] >= 0
+    ? row[projectionSchema[key]]
+    : undefined;
+  const specialHas = Boolean(value('specialHas'));
+  const record = {
+    id: value('id'),
+    school: value('school'),
+    major: value('major'),
+    score2026: value('score2026'),
+    rank2026: value('rank2026'),
+    specialProject: NO_SPECIAL_PROJECT_FOR_ORDER
+  };
+  if (specialHas) {
+    record.specialProject = {
+      hasSpecialProject: true,
+      keys: Array.isArray(value('specialKeys')) ? value('specialKeys') : [],
+      labels: Array.isArray(value('specialLabels')) ? value('specialLabels') : [],
+      primaryLabel: value('specialPrimaryLabel') || '',
+      reviewPoints: Array.isArray(value('specialReviewPoints')) ? value('specialReviewPoints') : []
+    };
+  }
   return record;
 }
 
@@ -173,10 +224,21 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
   const selectedRows = allowedIds && idIndex >= 0
     ? rankFilteredRows.filter(row => allowedIds.has(String(row?.[idIndex] || '')))
     : rankFilteredRows;
+  const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    : 'full-record-v3990_0';
+  const projectionSchema = projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    ? buildMajorBandsRankOrderProjectionSchema(schema)
+    : null;
+  const records = projectionSchema
+    ? selectedRows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema))
+    : selectedRows.map(row => decodeRow(row, schema));
   return {
     manifest,
     bucket,
-    records: selectedRows.map(row => decodeRow(row, schema)),
+    records,
+    projectionVersion,
+    minimalProjection: projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
     rowCount: payload.rows.length,
     decodedRowCount: selectedRows.length,
     rankRowsSkipped: payload.rows.length - selectedRows.length,
