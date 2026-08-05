@@ -89,6 +89,21 @@ assert.equal((workflow.match(/VERIFY_DEPLOYMENT_IDENTITY: 'false'/g) || []).leng
 assert.ok(workflow.includes("VERIFY_DEPLOYMENT_IDENTITY: 'true'"), 'production identity verification must be explicit');
 assert.ok(workflow.includes('EXPECTED_DEPLOYMENT_BRANCH: main'), 'production identity branch must be main');
 
+const productionApiWorkflow = fs.readFileSync('.github/workflows/verify-production-api-health-v3971.yml', 'utf8');
+for (const marker of [
+  'ref: ${{ github.event.pull_request.head.sha || github.sha }}',
+  'CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}',
+  'EXPECTED_DEPLOYMENT_BRANCH: ${{ github.head_ref }}',
+  'candidate=${CANDIDATE_SHA}-${attempt}',
+  'RELEASE_SHA="$CANDIDATE_SHA"',
+  'EXPECTED_DEPLOYMENT_BRANCH="$EXPECTED_DEPLOYMENT_BRANCH"',
+  "VERIFY_DEPLOYMENT_IDENTITY='true'",
+  'EXPECTED_DEPLOYMENT_BRANCH: main',
+  "VERIFY_DEPLOYMENT_IDENTITY: 'true'"
+]) assert.ok(productionApiWorkflow.includes(marker), `production API workflow missing ${marker}`);
+assert.ok(!productionApiWorkflow.includes('candidate=${GITHUB_SHA}-${attempt}'), 'production API Preview still uses merge-ref cache identity');
+assert.ok(!productionApiWorkflow.includes('RELEASE_SHA="$GITHUB_SHA"'), 'production API Preview still verifies merge-ref SHA');
+
 const productionReleaseWorkflow = fs.readFileSync('.github/workflows/verify-production-release-v3970.yml', 'utf8');
 for (const marker of [
   'functions/api/pages-deployment-identity.js',

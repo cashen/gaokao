@@ -1,0 +1,296 @@
+name: Verify production API health v3990.0
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-api-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify canonical release and Worker resource contracts
+        run: |
+          set -euo pipefail
+          for file in \
+            functions/_lib/fenxi-fetcher.js \
+            functions/_lib/major-bands-static-provider.js \
+            functions/_lib/major-bands-rank-index.v3990_0.js \
+            functions/_lib/major-bands-rank-bucket-loader.v3990_0.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_0.js \
+            functions/_lib/major-bands-all-bands-page-cache.v3990_0.js \
+            functions/_lib/major-bands-rank-query-kernel.v3990_0.js \
+            functions/_lib/major-bands-result-order.v3990_0.js \
+            functions/_lib/major-bands-response-transport.v3990_0.js \
+            functions/api/major-bands-bucket.js \
+            functions/api/major-bands.js \
+            functions/api/major-bands-health.js \
+            ln-rank/js/local-strength/local-strength-app.v3971_2.js \
+            tools/build-major-bands-static-v3972.mjs \
+            tools/build-major-bands-rank-index-v3990_0.mjs \
+            tools/audit-major-bands-rank-kernel-v3990_0.mjs \
+            tools/audit-major-bands-query-execution-cache-v3990_0.mjs \
+            tools/verify-major-bands-preview-concurrency-v3990_0.mjs \
+            tools/verify-production-resource-graph-v3990_0.mjs \
+            tools/verify-production-baseline-v3971.mjs \
+            tools/audit-canonical-release-version-v3990_0.mjs \
+            tools/audit-site-runtime-generation-v3990_0.mjs; do
+            node --check "$file"
+          done
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-canonical-release-version-v3990_0.mjs
+          node tools/audit-site-runtime-generation-v3990_0.mjs
+
+          test -f 404.html
+          grep -q '页面不存在' 404.html
+          grep -q "maximumProbeChunks: 1" functions/api/major-bands-health.js
+          grep -q "fullDatasetScan: false" functions/api/major-bands-health.js
+          grep -q "bounded-manifest-plus-one-chunk" functions/api/major-bands-health.js
+          grep -q "Large admission chunks are deliberately request-scoped" functions/_lib/fenxi-fetcher.js
+          grep -q "loadMajorBandsStaticRankBucket" functions/_lib/major-bands-static-provider.js
+          grep -q "MAJOR_BANDS_RANK_INDEX_VERSION" functions/api/major-bands.js
+          grep -q "loadMajorBandsRankWindow" functions/api/major-bands.js
+          grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
+          grep -q "processMajorBandsRankWindow" functions/api/major-bands.js
+          grep -q "publicHttpSelfFanout: false" functions/api/major-bands.js
+          grep -q "bucketWorkerCount: 0" functions/api/major-bands.js
+          grep -q "MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-loader-bounded-all-band-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_0'" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "cloneLoadedForSharedQuery" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "attachRecordExecutionContext" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "majorBandsMutateSourceRecords" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAX_CACHED_BYTES = 900_000" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "singleflight-only" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_QUERY_MEMORY_MODE = 'requested-band-lightweight-order-current-page-v3990_0'" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "records?.majorBandsRequestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "const record = mutateSourceRecords ? source : { ...source }" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "const sortKeys = requestedBand ? \[requestedBand\] : BAND_KEYS" functions/_lib/major-bands-rank-query-kernel.v3990_0.js
+          grep -q "MAJOR_BANDS_RESULT_ORDER_VERSION = 'major-bands-result-order-ephemeral-v3990_0'" functions/_lib/major-bands-result-order.v3990_0.js
+          grep -q "MAJOR_BANDS_RANKING_MEMORY_MODE = 'ephemeral-compact-tuples-v3990_0'" functions/_lib/major-bands-result-order.v3990_0.js
+          grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_0.js
+          grep -q "diversifyWithoutRecordCopies" functions/_lib/major-bands-result-order.v3990_0.js
+          if grep -Eq "record\.rankingTrace =|deferred\.push\(\{ \.\.\.record|reasons: Object\.freeze" functions/_lib/major-bands-result-order.v3990_0.js; then
+            echo 'persistent ranking object graph returned'
+            exit 1
+          fi
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-single-heavy-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
+          grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16" functions/api/major-bands.js
+          grep -q "requestForBand(context.request, sourceUrl, band, input.pageLimit)" functions/api/major-bands.js
+          grep -q "allBandsEffectivePageLimit" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_0'" functions/api/major-bands.js
+          grep -q "url.searchParams.delete('stress')" functions/api/major-bands.js
+          grep -q "url.searchParams.delete('deploy')" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0'" functions/api/major-bands.js
+          grep -q "REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180" functions/api/major-bands.js
+          grep -q "writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained)" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0'" functions/api/major-bands.js
+          grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_MODE = 'serialized-compact-snapshot-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "requestOwnedTimerWait: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          if grep -q "executionWaiters" functions/_lib/major-bands-query-execution-cache.v3990_0.js; then
+            echo 'cross-request resolver queue returned'
+            exit 1
+          fi
+          grep -q "MAX_COMPLETED_QUERIES = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_RECORDS = 6000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "MAX_COMPLETED_ESTIMATED_BYTES = 2_000_000" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_0.js
+          if grep -Eq "runMajorBandsBucketWorkers|new URL\('/api/major-bands-bucket'|distributed-bucket-workers|maxCandidates|selected\.buckets\.length > 12|loadMajorBandsStaticWindow|streamFenxiChunkRecords|loadManifest|fetchFenxiJson" functions/api/major-bands.js; then
+            echo 'retired self-fanout, candidate cap or raw scan returned'
+            exit 1
+          fi
+
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
+          grep -q 'data-local-strength-score-position="local-strength-score-position-v3972_3"' ln-rank/local-mainline.html
+          grep -q 'local-strength-app.v3971_2.js?v=3972_3' ln-rank/local-mainline.html
+          grep -q 'local-strength-score-position.v3972_3.css?v=3972_3' ln-rank/local-mainline.html
+          grep -Fq 'const upper = ordered.filter(record => Number(record.rank2026) < rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+          grep -Fq 'const lower = ordered.filter(record => Number(record.rank2026) > rank);' ln-rank/js/local-strength/local-strength-app.v3971_2.js
+
+          node --experimental-default-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { MAJOR_BANDS_RANK_BUCKETS, assertMajorBandsRankIndex } from './functions/_lib/major-bands-rank-index.v3990_0.js';
+          const dir='ln-rank/data/major-bands-static-v3972_2';
+          const manifest=JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
+          const audit=JSON.parse(fs.readFileSync(`${dir}/audit.json`,'utf8'));
+          const local=JSON.parse(fs.readFileSync('ln-rank/data/local-strength/local-strength-index.v3971_2.json','utf8'));
+          const ranks=JSON.parse(fs.readFileSync('fenxi/data/rank_2026_physics.json','utf8'));
+          assertMajorBandsRankIndex();
+          if(manifest.version!=='major-bands-static-v3972_2'||manifest.architecture!=='build-time-static-score-index'||manifest.encoding!=='schema-row-array-atomic-v2') throw new Error('major-bands static contract');
+          if(manifest.bucketSize!==5||manifest.recordCount!==11628||audit.recordCount!==11628) throw new Error('major-bands static coverage');
+          if(!manifest.integrity?.completeEvaluation||manifest.integrity.evaluatedRecordCount!==11628||manifest.integrity.duplicateRecordCount!==0||manifest.integrity.unresolvedRecordCount!==0) throw new Error('major-bands static integrity');
+          if(!Array.isArray(manifest.buckets)||manifest.buckets.length!==73||manifest.buckets.reduce((sum,item)=>sum+Number(item.recordCount||0),0)!==11628) throw new Error('major-bands bucket coverage');
+          if(MAJOR_BANDS_RANK_BUCKETS.length!==manifest.buckets.length) throw new Error('rank index bucket coverage');
+          if(audit.indexBytes>8500000||Math.max(...manifest.buckets.map(item=>Number(item.bytes||0)))>800000) throw new Error('major-bands resource budget');
+          if(local.version!=='local-strength-static-v3971_2'||local.records?.length!==243||local.meta?.matchedRecordCount!==243||!local.meta?.completeEvaluation) throw new Error('LocalStrength immutable index');
+          if(Number(ranks['530'])!==40119||Number(ranks['579'])!==21051) throw new Error('LocalStrength score-rank contract');
+          console.log(JSON.stringify({release:'v3.9.90.0',siteGeneration:'v3990_0',queryKernel:'major-bands-rank-query-kernel-v3990_0',queryMemory:'requested-band-lightweight-order-current-page-v3990_0',queryExecutionCache:'major-bands-query-execution-cache-single-heavy-v3990_0',bucketLoader:'major-bands-rank-bucket-loader-bounded-all-band-v3990_0',recordOwnership:'miss-owned-hit-shallow-cloned-v3990_0',resultOrder:'major-bands-result-order-ephemeral-v3990_0',rankingMemory:'ephemeral-compact-tuples-v3990_0',majorBandsRecords:manifest.recordCount,bucketCount:manifest.buckets.length,indexBytes:audit.indexBytes,localStrengthRecords:local.records.length},null,2));
+          NODE
+
+      - name: Verify local Wrangler concurrent resource journey
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8792 --compatibility-date=2026-07-01 >/tmp/v3990-0-worker-budget-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8792/api/ln-rank-runtime-health' >/tmp/v3990-runtime.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-0-worker-budget-wrangler.log; exit 1; fi
+
+          local_status="$(curl --silent --show-error -o /tmp/v3990-local-strength-absent.html -w '%{http_code}' 'http://127.0.0.1:8792/api/local-strength')"
+          test "$local_status" = '404'
+          grep -Eqi '<!doctype html|<html' /tmp/v3990-local-strength-absent.html
+          if grep -Eqi '"scannedCount"|"matchedCount"|"architecture"|"records"' /tmp/v3990-local-strength-absent.html; then exit 1; fi
+
+          curl -fsS 'http://127.0.0.1:8792/api/major-bands-health?probe=1' > /tmp/v3990-health.json
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const health=JSON.parse(fs.readFileSync('/tmp/v3990-health.json','utf8'));
+          if(health?.ok===false) throw new Error('health ok=false');
+          if(health?.resourcePolicy?.fullDatasetProbeDisabled!==true) throw new Error('health full scan policy');
+          if(health?.resourcePolicy?.maximumProbeChunks!==1) throw new Error('health probe chunk budget');
+          if(health?.probe?.mode!=='bounded-manifest-plus-one-chunk'||health?.probe?.fullDatasetScan!==false) throw new Error('health probe mode');
+          NODE
+
+          TARGET_BASE='http://127.0.0.1:8792' \
+          CONCURRENCY_LEVELS='1,5,10' \
+          CONCURRENCY_WAVES='2' \
+          COLD_HARD_LIMIT_MS='15000' \
+          P95_LIMIT_MS='8000' \
+          P99_LIMIT_MS='15000' \
+          HARD_LIMIT_MS='25000' \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE='/tmp/v3990-0-local-concurrency.json' \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+
+      - name: Resolve Cloudflare branch Preview
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          slug="$(printf '%s' "$PR_BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-28 | sed -E 's/-+$//')"
+          test -n "$slug"
+          preview_base="https://${slug}.gaokao-4y9.pages.dev"
+          echo "PREVIEW_BASE=$preview_base" >> "$GITHUB_ENV"
+          echo "Cloudflare branch Preview: $preview_base"
+
+      - name: Verify v3.9.90.0 Cloudflare Preview and Worker journey
+        if: github.event_name == 'pull_request'
+        env:
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          test -n "${PREVIEW_BASE:-}"
+          test -n "${CANDIDATE_SHA:-}"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          ready=0
+          for attempt in $(seq 1 90); do
+            release="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/shared/resources/release/current-release.js?candidate=${CANDIDATE_SHA}-${attempt}" || true)"
+            api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&candidate=${CANDIDATE_SHA}-${attempt}" || true)"
+            all_api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&candidate=${CANDIDATE_SHA}-${attempt}" || true)"
+            if grep -q "display: 'v3.9.90.0'" <<<"$release" \
+              && grep -q "siteRuntimeGeneration: 'v3990_0'" <<<"$release" \
+              && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_0"' <<<"$api" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$api" \
+              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$api" \
+              && grep -q '"queryMemoryMode":"requested-band-lightweight-order-current-page-v3990_0"' <<<"$api" \
+              && grep -q '"requestedBandOrderCacheVersion":"major-bands-requested-band-order-id-lru-v3990_0"' <<<"$api" \
+              && grep -q '"requestedBandOrderProjectionVersion":"major-bands-rank-order-minimal-projection-v3990_0"' <<<"$api" \
+              && grep -q '"requestedBandOrderPageSourceVersion":"major-bands-order-page-raw-row-reuse-v3990_0"' <<<"$api" \
+              && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$api" \
+              && grep -q '"sortPasses":1' <<<"$api" \
+              && grep -q '"rankRowFilterVersion":"major-bands-rank-row-filter-v3990_0"' <<<"$api" \
+              && grep -q '"rankBucketMaxConcurrency":1' <<<"$api" \
+              && grep -q '"publicHttpSelfFanout":false' <<<"$api" \
+              && grep -q '"allBandsSharedProjectionVersion":"major-bands-all-bands-shared-projection-v3990_0"' <<<"$all_api" \
+              && grep -q '"allBandsPhysicalAssetPasses":1' <<<"$all_api"; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1
+          PAGES_BASE="$PREVIEW_BASE" \
+          CUSTOM_BASE="$PREVIEW_BASE" \
+          RELEASE_SHA="$CANDIDATE_SHA" \
+          EXPECTED_DEPLOYMENT_BRANCH="$EXPECTED_DEPLOYMENT_BRANCH" \
+          VERIFY_DEPLOYMENT_IDENTITY='true' \
+          PRODUCTION_RESOURCE_ATTEMPTS='1' \
+          PRODUCTION_RESOURCE_WAIT_MS='0' \
+          PRODUCTION_RESOURCE_EVIDENCE='/tmp/v3990-0-preview-resource-graph.json' \
+            node tools/verify-production-resource-graph-v3990_0.mjs 2>&1 | tee /tmp/v3990-0-preview-worker-health.out
+
+      - name: Verify currently deployed safe baseline before merge
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          EXPECTED_RELEASE: auto
+          PRODUCTION_VERIFY_ATTEMPTS: '8'
+          PRODUCTION_VERIFY_WAIT_MS: '10000'
+        run: |
+          set -euo pipefail
+          node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3990-0-production-baseline.out
+
+      - name: Verify v3.9.90.0 production after main deployment
+        if: github.event_name != 'pull_request'
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          RELEASE_SHA: ${{ github.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: main
+          VERIFY_DEPLOYMENT_IDENTITY: 'true'
+          PRODUCTION_RESOURCE_ATTEMPTS: '45'
+          PRODUCTION_RESOURCE_WAIT_MS: '10000'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-resource-graph.json
+        run: |
+          set -euo pipefail
+          node tools/verify-production-resource-graph-v3990_0.mjs 2>&1 | tee /tmp/v3990-0-production-health.out
+
+      - name: Upload production health evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-0-production-api-health
+          path: |
+            /tmp/v3990-0-*.out
+            /tmp/v3990-0-*.json
+            /tmp/v3990-0-worker-budget-wrangler.log
+            /tmp/v3990-*.json
+            /tmp/v3990-*.html
+          if-no-files-found: warn
+          retention-days: 7
