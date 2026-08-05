@@ -24,6 +24,7 @@ const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v
 const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_0';
 const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_0';
 const expectedOrderProjectionVersion = 'major-bands-rank-order-minimal-projection-v3990_0';
+const expectedOrderPageSourceVersion = 'major-bands-order-page-raw-row-reuse-v3990_0';
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
@@ -147,6 +148,16 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsEnrichedRecords, false, `${result.scenario}: ordered-ID cache retained enriched records`);
   assert.equal(result.payload?.source?.requestedBandOrderProjectionVersion, expectedOrderProjectionVersion, `${result.scenario}: minimal order projection deployment`);
   assert.equal(result.payload?.source?.requestedBandOrderMinimalProjection, true, `${result.scenario}: default query did not use minimal projection`);
+  assert.equal(result.payload?.source?.requestedBandOrderPageSourceVersion, expectedOrderPageSourceVersion, `${result.scenario}: order page source deployment`);
+  assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
+  assert.equal(result.payload?.source?.requestedBandOrderColdSecondAssetPass, false, `${result.scenario}: cold ordered query performed a second asset pass`);
+  assert.equal(result.payload?.source?.requestedBandRawRowReferenceNonEnumerable, true, `${result.scenario}: raw row reference contract`);
+  if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-miss') {
+    assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'raw-row-reuse', `${result.scenario}: cold order page did not reuse raw rows`);
+  }
+  if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
+    assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'page-id-refetch', `${result.scenario}: cached order page source`);
+  }
   assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(result.payload?.meta?.pageSize || 80), `${result.scenario}: page decoded more than page size`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheBounded, true, `${result.scenario}: ordered-ID LRU exceeded budget`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0) <= 8, `${result.scenario}: ordered-ID LRU entries`);
@@ -391,6 +402,7 @@ const evidence = {
   orderedIdCacheVersion: expectedOrderIdCacheVersion,
   pageIdFilterVersion: expectedPageIdFilterVersion,
   orderProjectionVersion: expectedOrderProjectionVersion,
+  orderPageSourceVersion: expectedOrderPageSourceVersion,
   allBandBucketMaxConcurrency: 1,
   requestedBandBucketMaxConcurrency: 1,
   concurrencyContract: 'shared-and-distinct-query-identities-v3990_0',

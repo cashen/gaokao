@@ -13,6 +13,7 @@ import {
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
   buildMajorBandsRankOrderProjectionSchema,
   decodeMajorBandsRankOrderRow,
+  decodeMajorBandsStaticRow,
   majorBandsRankValueMatchesRange
 } from '../functions/_lib/major-bands-static-provider.js';
 import {
@@ -76,6 +77,19 @@ for (const bucket of manifest.buckets) {
   const payload = JSON.parse(fs.readFileSync(bucket.file.replace(/^\//, ''), 'utf8'));
   const records = payload.rows.map(decodeRow);
   const projectedRecords = payload.rows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema));
+  if (projectedRecords.length) {
+    const projected = projectedRecords[0];
+    assert.equal(Object.prototype.propertyIsEnumerable.call(projected, 'majorBandsRawRow'), false, 'raw row reference enumerable');
+    assert.equal(Object.prototype.propertyIsEnumerable.call(projected, 'majorBandsRawSchema'), false, 'raw schema reference enumerable');
+    assert.ok(Array.isArray(projected.majorBandsRawRow), 'raw row reference absent');
+    assert.ok(Array.isArray(projected.majorBandsRawSchema), 'raw schema reference absent');
+    const restored = decodeMajorBandsStaticRow(projected.majorBandsRawRow, projected.majorBandsRawSchema);
+    assert.equal(restored.id, projected.id, 'raw row page decode id');
+    assert.equal(restored.school, projected.school, 'raw row page decode school');
+    const serialized = JSON.stringify(projected);
+    assert.ok(!serialized.includes('majorBandsRawRow'), 'raw row reference serialized');
+    assert.ok(!serialized.includes('majorBandsRawSchema'), 'raw schema reference serialized');
+  }
   buckets.set(bucket.file, records);
   projectedBuckets.set(bucket.file, projectedRecords);
   allRecords.push(...records);
@@ -363,6 +377,10 @@ for (const required of [
   'allowedIds: new Set(pageIds)',
   'requestedBandOrderCacheRetainsDecodedRows: false',
   'requestedBandOrderCacheRetainsEnrichedRecords: false',
+  "MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0'",
+  "orderPageSource: rawRowReuse ? 'raw-row-reuse' : 'full-record-reuse'",
+  "orderColdSecondAssetPass: orderCacheStatus === 'ordered-id-miss'",
+  'requestedBandRawRowReferenceNonEnumerable: execution.rawRowReferenceNonEnumerable === true',
   'const requestedBandOrderCache = new Map()',
   'REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES = 8',
   'REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS = 12_000',

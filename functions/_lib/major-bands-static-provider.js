@@ -90,6 +90,9 @@ function decodeRow(row, schema) {
   return record;
 }
 
+export function decodeMajorBandsStaticRow(row, schema) {
+  return decodeRow(row, schema);
+}
 
 const NO_SPECIAL_PROJECT_FOR_ORDER = Object.freeze({
   hasSpecialProject: false,
@@ -102,6 +105,7 @@ const NO_SPECIAL_PROJECT_FOR_ORDER = Object.freeze({
 export function buildMajorBandsRankOrderProjectionSchema(schema = []) {
   const index = key => schema.indexOf(key);
   return Object.freeze({
+    fullSchema: schema,
     id: index('id'),
     school: index('school'),
     major: index('major'),
@@ -137,6 +141,20 @@ export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}) {
       reviewPoints: Array.isArray(value('specialReviewPoints')) ? value('specialReviewPoints') : []
     };
   }
+  Object.defineProperties(record, {
+    majorBandsRawRow: {
+      value: row,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsRawSchema: {
+      value: projectionSchema.fullSchema,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    }
+  });
   return record;
 }
 

@@ -1,4 +1,4 @@
-import { materializeMajorBandsStaticRecord } from '../_lib/major-bands-static-provider.js';
+import { decodeMajorBandsStaticRow, materializeMajorBandsStaticRecord } from '../_lib/major-bands-static-provider.js';
 import { makeBands } from '../_lib/band-engine.js';
 import {
   MAJOR_BANDS_RANK_INDEX_VERSION,
@@ -78,6 +78,7 @@ assertMajorBandsRankIndex();
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
+export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY = 500_000;
@@ -552,6 +553,8 @@ async function executeRequestedBandOrderedPage(context, input) {
   let heavyExecution = null;
   let loadedStats = null;
   let selectedBuckets = null;
+  let pageRecords = null;
+  let orderPageSource = 'page-id-refetch';
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
 
   if (!retained) {
@@ -590,27 +593,48 @@ async function executeRequestedBandOrderedPage(context, input) {
         orderedIds: ordered.map(record => record.id),
         snapshot: majorBandsSnapshotId(ordered, identity)
       };
+      const rawRowReuse = loaded.stats.minimalProjection === true;
+      const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
+      const currentPageRecords = rawRowReuse
+        ? orderedPage.map(record => {
+            if (!Array.isArray(record.majorBandsRawRow) || !Array.isArray(record.majorBandsRawSchema)) {
+              throw new Error(`位次最小投影缺少原始行引用：${record.id || 'unknown'}`);
+            }
+            return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
+          })
+        : orderedPage;
       return {
         retained: orderSnapshot,
         loadedStats: loaded.stats,
-        selectedBuckets: selected
+        selectedBuckets: selected,
+        pageRecords: currentPageRecords,
+        pageOffset,
+        pageLimit,
+        orderPageSource: rawRowReuse ? 'raw-row-reuse' : 'full-record-reuse'
       };
     });
     const built = heavyExecution.value;
     retained = built.retained;
     loadedStats = built.loadedStats;
     selectedBuckets = built.selectedBuckets;
+    if (Number(built.pageOffset) === pageOffset && Number(built.pageLimit) === pageLimit) {
+      pageRecords = built.pageRecords;
+      orderPageSource = built.orderPageSource || 'raw-row-reuse';
+    }
     retainRequestedBandOrderSnapshot(orderIdentity, retained);
     orderCacheStatus = heavyExecution.joinedInFlight ? 'ordered-id-singleflight-hit' : 'ordered-id-miss';
   }
 
   const orderedIds = Array.isArray(retained.orderedIds) ? retained.orderedIds : [];
   const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
-  selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
-  const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
-  loadedStats = pageLoaded.stats;
-  const byId = new Map(pageLoaded.records.map(record => [record.id, record]));
-  const pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
+  if (!pageRecords) {
+    selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
+    const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
+    loadedStats = pageLoaded.stats;
+    const byId = new Map(pageLoaded.records.map(record => [record.id, record]));
+    pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
+    orderPageSource = 'page-id-refetch';
+  }
   if (pageRecords.length !== pageIds.length) {
     throw new Error(`位次有序 ID 页记录不完整：${pageRecords.length}/${pageIds.length}`);
   }
@@ -701,6 +725,10 @@ async function executeRequestedBandOrderedPage(context, input) {
     orderCacheIdCount: orderedIds.length,
     pageDecodedRecordCount: pageRecords.length,
     orderCacheState: requestedBandOrderCacheState(orderIdentity),
+    orderPageSourceVersion: MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
+    orderPageSource,
+    orderColdSecondAssetPass: orderCacheStatus === 'ordered-id-miss' && orderPageSource === 'page-id-refetch',
+    rawRowReferenceNonEnumerable: true,
     orderProjectionVersion: retained.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
     orderMinimalProjection: retained.orderMinimalProjection === true,
     orderRawRowCount: Number(retained.orderRawRowCount || 0),
@@ -1030,6 +1058,10 @@ export async function onRequest(context) {
         queryExecutionPageLimit: cacheRetention.pageLimit,
         requestedBandOrderCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
         requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',
+        requestedBandOrderPageSourceVersion: execution.orderPageSourceVersion || MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
+        requestedBandOrderPageSource: execution.orderPageSource || 'keyword-bypass',
+        requestedBandOrderColdSecondAssetPass: execution.orderColdSecondAssetPass === true,
+        requestedBandRawRowReferenceNonEnumerable: execution.rawRowReferenceNonEnumerable === true,
         requestedBandOrderIds: Number(execution.orderCacheIdCount || 0),
         requestedBandPageDecodedRecords: Number(execution.pageDecodedRecordCount || cacheRetention.recordCount || 0),
         requestedBandOrderProjectionVersion: execution.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
