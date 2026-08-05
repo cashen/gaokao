@@ -208,14 +208,19 @@ jobs:
 
       - name: Verify v3.9.90.0 Cloudflare Preview and Worker journey
         if: github.event_name == 'pull_request'
+        env:
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
           test -n "${PREVIEW_BASE:-}"
+          test -n "${CANDIDATE_SHA:-}"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           ready=0
           for attempt in $(seq 1 90); do
-            release="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/shared/resources/release/current-release.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
-            api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&candidate=${GITHUB_SHA}-${attempt}" || true)"
-            all_api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&candidate=${GITHUB_SHA}-${attempt}" || true)"
+            release="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/shared/resources/release/current-release.js?candidate=${CANDIDATE_SHA}-${attempt}" || true)"
+            api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&candidate=${CANDIDATE_SHA}-${attempt}" || true)"
+            all_api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&candidate=${CANDIDATE_SHA}-${attempt}" || true)"
             if grep -q "display: 'v3.9.90.0'" <<<"$release" \
               && grep -q "siteRuntimeGeneration: 'v3990_0'" <<<"$release" \
               && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
@@ -241,7 +246,9 @@ jobs:
           test "$ready" -eq 1
           PAGES_BASE="$PREVIEW_BASE" \
           CUSTOM_BASE="$PREVIEW_BASE" \
-          RELEASE_SHA="$GITHUB_SHA" \
+          RELEASE_SHA="$CANDIDATE_SHA" \
+          EXPECTED_DEPLOYMENT_BRANCH="$EXPECTED_DEPLOYMENT_BRANCH" \
+          VERIFY_DEPLOYMENT_IDENTITY='true' \
           PRODUCTION_RESOURCE_ATTEMPTS='1' \
           PRODUCTION_RESOURCE_WAIT_MS='0' \
           PRODUCTION_RESOURCE_EVIDENCE='/tmp/v3990-0-preview-resource-graph.json' \
@@ -265,6 +272,8 @@ jobs:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
           RELEASE_SHA: ${{ github.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: main
+          VERIFY_DEPLOYMENT_IDENTITY: 'true'
           PRODUCTION_RESOURCE_ATTEMPTS: '45'
           PRODUCTION_RESOURCE_WAIT_MS: '10000'
           PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-resource-graph.json
