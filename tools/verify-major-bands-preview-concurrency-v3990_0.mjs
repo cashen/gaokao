@@ -184,6 +184,15 @@ function validateResult(result) {
     : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];
   assert.ok(allowedCacheStatuses.includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
+  assert.equal(
+    Number(result.payload?.source?.rankBucketMaxConcurrency),
+    result.allBands ? 3 : 1,
+    `${result.scenario}: bucket asset-read concurrency contract`
+  );
+  assert.ok(
+    Number(result.payload?.source?.rankBucketConcurrency || 0) <= Number(result.payload?.source?.rankBucketMaxConcurrency || 0),
+    `${result.scenario}: bucket asset-read peak exceeded contract`
+  );
   assert.equal(result.payload?.source?.rankRowFilterVersion, expectedRankRowFilterVersion, `${result.scenario}: predecode rank-row filter`);
   assert.ok(Number(result.payload?.source?.rankRawRowCount || 0) >= Number(result.payload?.source?.rankDecodedRowCount || 0), `${result.scenario}: decoded rows exceed raw rows`);
   assert.equal(
@@ -215,7 +224,6 @@ function validateResult(result) {
     assert.equal(Number(result.payload?.source?.queryExecutionPageOffset), 0, `${result.scenario}: all-band page offset`);
     assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), pageSize, `${result.scenario}: all-band page limit`);
     assert.ok(Number(result.payload?.source?.queryExecutionRetainedRecords || 0) <= pageSize * bands.length, `${result.scenario}: retained more than current pages`);
-    assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: all-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.rankBucketReadsTotal || 0) >= Number(result.payload?.source?.chunksRead || 0), `${result.scenario}: sequential bucket-read telemetry`);
     for (const band of bands) {
       const group = validatePaginationGroup(result, band);

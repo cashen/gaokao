@@ -369,7 +369,7 @@ for (const required of [
   'function bucketReadKey',
   'rankRange: scope.requestedRange',
   'const MAX_LOAD_CONCURRENCY = 1',
-  'const ALL_BANDS_LOAD_CONCURRENCY = 1'
+  'const ALL_BANDS_LOAD_CONCURRENCY = 3'
 ]) assert.ok(bucketLoaderSource.includes(required), `bounded rank-row loader missing ${required}`);
 
 const queryKernelSource = fs.readFileSync('functions/_lib/major-bands-rank-query-kernel.v3990_0.js', 'utf8');
