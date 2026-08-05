@@ -209,6 +209,8 @@ for (const required of [
   'executeRequestedBandOrderedPage',
   'requestedBandOrderCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION',
   "mode: 'compact-requested-band-current-page-from-ordered-ids'",
+  'requestedBandOrderCacheEntries: Number(execution.orderCacheState?.entries || 0)',
+  'requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false',
   '|current-page:${pageOffset}:${pageLimit}',
   "'compact-requested-band-current-page'",
   'async function executeAllBandsSequentially',

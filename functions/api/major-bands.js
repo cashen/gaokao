@@ -76,49 +76,96 @@ assertMajorBandsRankIndex();
 
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
-export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-cache-v3990_0';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
-const REQUESTED_BAND_ORDER_CACHE_MAX_IDS = 6000;
-const REQUESTED_BAND_ORDER_CACHE_MAX_CHARS = 500_000;
-let requestedBandOrderCache = null;
+const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
+const REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY = 500_000;
+const REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES = 8;
+const REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS = 12_000;
+const REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS = 750_000;
+const requestedBandOrderCache = new Map();
+
+function pruneRequestedBandOrderCache(now = Date.now()) {
+  for (const [identity, entry] of requestedBandOrderCache) {
+    if (entry.expiresAt <= now) requestedBandOrderCache.delete(identity);
+  }
+}
+
+function requestedBandOrderCacheTotals() {
+  let ids = 0;
+  let chars = 0;
+  for (const entry of requestedBandOrderCache.values()) {
+    ids += Number(entry.idCount || 0);
+    chars += Number(entry.charCount || 0);
+  }
+  return { ids, chars };
+}
+
+function evictOldestRequestedBandOrderEntry() {
+  const oldestIdentity = requestedBandOrderCache.keys().next().value;
+  if (oldestIdentity !== undefined) requestedBandOrderCache.delete(oldestIdentity);
+}
 
 function readRequestedBandOrderSnapshot(identity, now = Date.now()) {
-  if (!requestedBandOrderCache || requestedBandOrderCache.expiresAt <= now) {
-    requestedBandOrderCache = null;
-    return null;
-  }
-  if (requestedBandOrderCache.identity !== identity) return null;
+  pruneRequestedBandOrderCache(now);
+  const entry = requestedBandOrderCache.get(identity);
+  if (!entry) return null;
   try {
-    return JSON.parse(requestedBandOrderCache.serialized);
+    const snapshot = JSON.parse(entry.serialized);
+    requestedBandOrderCache.delete(identity);
+    requestedBandOrderCache.set(identity, entry);
+    return snapshot;
   } catch {
-    requestedBandOrderCache = null;
+    requestedBandOrderCache.delete(identity);
     return null;
   }
 }
 
 function retainRequestedBandOrderSnapshot(identity, snapshot) {
   const ids = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];
-  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS) return false;
+  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return false;
   const serialized = JSON.stringify(snapshot);
-  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS) return false;
-  requestedBandOrderCache = {
-    identity,
+  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY) return false;
+  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS) return false;
+  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS) return false;
+
+  pruneRequestedBandOrderCache();
+  requestedBandOrderCache.delete(identity);
+  while (requestedBandOrderCache.size) {
+    const totals = requestedBandOrderCacheTotals();
+    const overEntries = requestedBandOrderCache.size >= REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES;
+    const overIds = totals.ids + ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS;
+    const overChars = totals.chars + serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS;
+    if (!overEntries && !overIds && !overChars) break;
+    evictOldestRequestedBandOrderEntry();
+  }
+  requestedBandOrderCache.set(identity, {
     serialized,
+    idCount: ids.length,
+    charCount: serialized.length,
     expiresAt: Date.now() + REQUESTED_BAND_ORDER_CACHE_TTL_MS
-  };
+  });
   return true;
 }
 
 function requestedBandOrderCacheState(identity = '') {
-  const snapshot = readRequestedBandOrderSnapshot(identity);
+  pruneRequestedBandOrderCache();
+  const totals = requestedBandOrderCacheTotals();
   return {
     version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
-    hit: Boolean(snapshot),
-    completed: requestedBandOrderCache ? 1 : 0,
-    ids: snapshot?.orderedIds?.length || 0,
-    maxIds: REQUESTED_BAND_ORDER_CACHE_MAX_IDS,
-    maxChars: REQUESTED_BAND_ORDER_CACHE_MAX_CHARS,
+    hit: requestedBandOrderCache.has(identity),
+    entries: requestedBandOrderCache.size,
+    totalIds: totals.ids,
+    totalChars: totals.chars,
+    maxEntries: REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES,
+    maxIdsPerEntry: REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY,
+    maxCharsPerEntry: REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY,
+    maxTotalIds: REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS,
+    maxTotalChars: REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS,
     ttlMs: REQUESTED_BAND_ORDER_CACHE_TTL_MS,
+    bounded: requestedBandOrderCache.size <= REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES
+      && totals.ids <= REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS
+      && totals.chars <= REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS,
     serializedOrderIdsOnly: true,
     retainsDecodedRows: false,
     retainsEnrichedRecords: false
@@ -980,6 +1027,13 @@ export async function onRequest(context) {
         requestedBandPageDecodedRecords: Number(execution.pageDecodedRecordCount || cacheRetention.recordCount || 0),
         requestedBandOrderCacheRetainsDecodedRows: false,
         requestedBandOrderCacheRetainsEnrichedRecords: false,
+        requestedBandOrderCacheEntries: Number(execution.orderCacheState?.entries || 0),
+        requestedBandOrderCacheTotalIds: Number(execution.orderCacheState?.totalIds || 0),
+        requestedBandOrderCacheTotalChars: Number(execution.orderCacheState?.totalChars || 0),
+        requestedBandOrderCacheMaxEntries: Number(execution.orderCacheState?.maxEntries || 8),
+        requestedBandOrderCacheMaxTotalIds: Number(execution.orderCacheState?.maxTotalIds || 12000),
+        requestedBandOrderCacheMaxTotalChars: Number(execution.orderCacheState?.maxTotalChars || 750000),
+        requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false,
         queryMemoryMode: aggregate.memoryMode,
         rankingCandidateMode: aggregate.rankingCandidateMode,
         deferredResponseEnrichment: aggregate.deferredResponseEnrichment,

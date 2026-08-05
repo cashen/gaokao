@@ -323,12 +323,18 @@ for (const required of [
 
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const required of [
-  "MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-cache-v3990_0'",
+  "MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0'",
   'executeRequestedBandOrderedPage',
   'orderedIds: ordered.map(record => record.id)',
   'allowedIds: new Set(pageIds)',
   'requestedBandOrderCacheRetainsDecodedRows: false',
-  'requestedBandOrderCacheRetainsEnrichedRecords: false'
+  'requestedBandOrderCacheRetainsEnrichedRecords: false',
+  'const requestedBandOrderCache = new Map()',
+  'REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES = 8',
+  'REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS = 12_000',
+  'REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS = 750_000',
+  'evictOldestRequestedBandOrderEntry',
+  'requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false'
 ]) assert.ok(apiSource.includes(required), `ordered-ID pagination contract missing ${required}`);
 for (const forbidden of [
   'major-bands-bucket-orchestrator',
