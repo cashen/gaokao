@@ -97,6 +97,9 @@ jobs:
           grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16" functions/api/major-bands.js
           grep -q "requestForBand(context.request, sourceUrl, band, input.pageLimit)" functions/api/major-bands.js
           grep -q "allBandsEffectivePageLimit" functions/api/major-bands.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_0'" functions/api/major-bands.js
+          grep -q "url.searchParams.delete('stress')" functions/api/major-bands.js
+          grep -q "url.searchParams.delete('deploy')" functions/api/major-bands.js
           grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0'" functions/api/major-bands.js
           grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js

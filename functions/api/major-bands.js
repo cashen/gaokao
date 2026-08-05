@@ -78,6 +78,8 @@ assertMajorBandsRankIndex();
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
 export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';
 export const MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16;
+export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_0';
+const ALL_BANDS_EDGE_CACHE_TTL_SECONDS = 60;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
@@ -404,7 +406,52 @@ function requestForBand(request, sourceUrl, band, pageLimit) {
   });
 }
 
-function allBandsResponse(execution) {
+function allBandsEdgeCacheHandle() {
+  const cache = globalThis.caches?.default;
+  return cache && typeof cache.match === 'function' && typeof cache.put === 'function' ? cache : null;
+}
+
+function allBandsEdgeCacheRequest(sourceUrl, input) {
+  const url = new URL(sourceUrl);
+  url.searchParams.delete('stress');
+  url.searchParams.delete('deploy');
+  url.searchParams.delete('band');
+  url.searchParams.set('limit', String(input.pageLimit));
+  url.searchParams.set('__requestedLimit', String(input.requestedPageLimit));
+  url.searchParams.set('__edgeCache', MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION);
+  url.searchParams.sort();
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+function responseWithAllBandsEdgeCacheStatus(response, status) {
+  const headers = new Headers(response.headers);
+  headers.set('x-gaokao-all-bands-edge-cache', status);
+  headers.set('x-gaokao-all-bands-edge-cache-version', MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+async function readAllBandsEdgeCache(cache, request) {
+  try {
+    return await cache.match(request);
+  } catch {
+    return null;
+  }
+}
+
+async function writeAllBandsEdgeCache(cache, request, execution) {
+  try {
+    await cache.put(request, allBandsResponse(execution, 'stored'));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function allBandsResponse(execution, edgeCacheStatus = 'unavailable') {
   const cacheControl = execution.status === 200
     ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120'
     : 'no-store';
@@ -416,12 +463,21 @@ function allBandsResponse(execution) {
       'cache-control': cacheControl,
       'x-gaokao-response-transport': MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
       'x-gaokao-query-kernel': MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
-      'x-gaokao-all-bands-page-cache': execution.cacheStatus
+      'x-gaokao-all-bands-page-cache': execution.cacheStatus,
+      'x-gaokao-all-bands-edge-cache': edgeCacheStatus,
+      'x-gaokao-all-bands-edge-cache-version': MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION
     }
   });
 }
 
 async function executeAllBandsSequentially(context, sourceUrl, input) {
+  const edgeCache = allBandsEdgeCacheHandle();
+  const edgeCacheRequest = edgeCache ? allBandsEdgeCacheRequest(sourceUrl, input) : null;
+  if (edgeCache && edgeCacheRequest) {
+    const cached = await readAllBandsEdgeCache(edgeCache, edgeCacheRequest);
+    if (cached) return responseWithAllBandsEdgeCacheStatus(cached, 'hit');
+  }
+
   const execution = await executeMajorBandsAllBandsPageOnce(allBandsPageIdentity(input), async () => {
     const sharedProjectionEligible = input.filters.region === 'all'
       && !input.filters.schoolKeyword
@@ -591,6 +647,9 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       sortPasses: sharedAggregate ? Number(sharedAggregate.sortPasses || 0) : numericSum(payloads, ['source', 'sortPasses']),
       allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE,
       allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+      allBandsEdgeCacheVersion: MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION,
+      allBandsEdgeCacheCanonicalKey: true,
+      allBandsEdgeCacheTtlSeconds: ALL_BANDS_EDGE_CACHE_TTL_SECONDS,
       allBandsSharedProjectionVersion: MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION,
       allBandsPhysicalProjectionPasses: allBandsShared ? sharedPhysicalProjectionPasses : 0,
       allBandsSharedProjectionReuses: allBandsShared ? Math.max(0, sharedBandUses - 1) : 0,
@@ -619,7 +678,12 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       source
     };
   });
-  return allBandsResponse(execution);
+  const response = allBandsResponse(execution, edgeCache ? 'miss' : 'unavailable');
+  if (edgeCache && edgeCacheRequest && execution.status === 200) {
+    const stored = await writeAllBandsEdgeCache(edgeCache, edgeCacheRequest, execution);
+    if (!stored) return responseWithAllBandsEdgeCacheStatus(response, 'write-failed');
+  }
+  return response;
 }
 
 async function executeRequestedBandOrderedPage(context, input) {

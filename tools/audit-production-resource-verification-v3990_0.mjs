@@ -192,7 +192,11 @@ const majorBandsApi = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 for (const marker of [
   'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
   'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
-  'allBandsEffectivePageLimit: input.pageLimit'
+  'allBandsEffectivePageLimit: input.pageLimit',
+  "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_0'",
+  "url.searchParams.delete('stress')",
+  "url.searchParams.delete('deploy')",
+  "cache.put(request, allBandsResponse(execution, 'stored'))"
 ]) assert.ok(majorBandsApi.includes(marker), `all-bands API page budget missing ${marker}`);
 
 const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');

@@ -30,6 +30,7 @@ const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
 const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_0';
 const expectedAllBandsPageLimitCap = 16;
+const expectedAllBandsEdgeCacheVersion = 'major-bands-all-bands-edge-cache-canonical-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -96,7 +97,8 @@ async function requestScenario(scenario, token) {
       status: 0,
       elapsedMs: performance.now() - started,
       error: String(error?.message || error),
-      cloudflare1102: false
+      cloudflare1102: false,
+      allBandsEdgeCacheStatus: ''
     };
   }
   const elapsedMs = performance.now() - started;
@@ -118,6 +120,8 @@ async function requestScenario(scenario, token) {
     status: response.status,
     elapsedMs,
     cloudflare1102,
+    allBandsEdgeCacheStatus: response.headers.get('x-gaokao-all-bands-edge-cache') || '',
+    allBandsEdgeCacheVersion: response.headers.get('x-gaokao-all-bands-edge-cache-version') || '',
     payload,
     bodyPrefix: payload ? '' : text.slice(0, 240)
   };
@@ -213,6 +217,10 @@ function validateResult(result) {
     assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: final all-band page cache deployment`);
     assert.equal(result.payload?.source?.allBandsSharedProjectionVersion, expectedAllBandsSharedProjectionVersion, `${result.scenario}: shared all-band projection deployment`);
     assert.equal(Number(result.payload?.source?.allBandsPageLimitCap), expectedAllBandsPageLimitCap, `${result.scenario}: all-band page limit cap`);
+    assert.equal(result.payload?.source?.allBandsEdgeCacheVersion, expectedAllBandsEdgeCacheVersion, `${result.scenario}: all-band edge cache deployment`);
+    assert.equal(result.payload?.source?.allBandsEdgeCacheCanonicalKey, true, `${result.scenario}: all-band cache key is not canonical`);
+    assert.equal(result.allBandsEdgeCacheVersion, expectedAllBandsEdgeCacheVersion, `${result.scenario}: all-band edge cache header version`);
+    assert.ok(['hit', 'miss', 'unavailable', 'write-failed'].includes(result.allBandsEdgeCacheStatus), `${result.scenario}: invalid all-band edge cache status ${result.allBandsEdgeCacheStatus}`);
     assert.ok(Number(result.payload?.source?.allBandsRequestedPageLimit || 0) >= Number(result.payload?.source?.allBandsEffectivePageLimit || 0), `${result.scenario}: effective page limit exceeded requested limit`);
     assert.equal(Number(result.payload?.source?.allBandsEffectivePageLimit), expectedAllBandsPageLimitCap, `${result.scenario}: all-band effective page limit`);
     for (const band of bands) {
@@ -273,6 +281,11 @@ async function verifyAllBandPageEquivalence() {
   const allScenario = sharedScenarios.find(scenario => scenario.allBands);
   const allResult = await requestScenario(allScenario, `equivalence-all-${Date.now()}`);
   validateResult(allResult);
+  const edgeCacheProbe = await requestScenario(allScenario, `equivalence-edge-hit-${Date.now()}`);
+  validateResult(edgeCacheProbe);
+  if (base.startsWith('https://')) {
+    assert.equal(edgeCacheProbe.allBandsEdgeCacheStatus, 'hit', 'all-band canonical edge cache did not serve semantic repeat');
+  }
   const bandResults = {};
   const effectiveLimit = Number(allResult.payload?.source?.allBandsEffectivePageLimit || 0);
   assert.equal(effectiveLimit, expectedAllBandsPageLimitCap, 'all-band equivalence effective limit');
@@ -297,6 +310,7 @@ async function verifyAllBandPageEquivalence() {
   }
   return {
     mode: expectedAllBandsExecutionMode,
+    edgeCacheStatus: edgeCacheProbe.allBandsEdgeCacheStatus,
     bands: Object.fromEntries(bands.map(band => [band, {
       count: allResult.payload.bands[band].count,
       returned: allResult.payload.bands[band].records.length,
