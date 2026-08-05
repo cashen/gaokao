@@ -1,0 +1,185 @@
+name: One-time ordered-ID LRU v3990
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-ordered-id-lru-v3990.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch bounded multi-identity ordered-ID LRU
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          old_version = 'major-bands-requested-band-order-id-cache-v3990_0'
+          new_version = 'major-bands-requested-band-order-id-lru-v3990_0'
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts:
+                  continue
+              if path.parent == Path('.github/workflows') and path.name.startswith('zz-one-time-'):
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              if old_version in text:
+                  path.write_text(text.replace(old_version, new_version), encoding='utf-8')
+
+          api_path = Path('functions/api/major-bands.js')
+          api = api_path.read_text(encoding='utf-8')
+          old_block = '''export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';\nconst REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_IDS = 6000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_CHARS = 500_000;\nlet requestedBandOrderCache = null;\n\nfunction readRequestedBandOrderSnapshot(identity, now = Date.now()) {\n  if (!requestedBandOrderCache || requestedBandOrderCache.expiresAt <= now) {\n    requestedBandOrderCache = null;\n    return null;\n  }\n  if (requestedBandOrderCache.identity !== identity) return null;\n  try {\n    return JSON.parse(requestedBandOrderCache.serialized);\n  } catch {\n    requestedBandOrderCache = null;\n    return null;\n  }\n}\n\nfunction retainRequestedBandOrderSnapshot(identity, snapshot) {\n  const ids = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];\n  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS) return false;\n  const serialized = JSON.stringify(snapshot);\n  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS) return false;\n  requestedBandOrderCache = {\n    identity,\n    serialized,\n    expiresAt: Date.now() + REQUESTED_BAND_ORDER_CACHE_TTL_MS\n  };\n  return true;\n}\n\nfunction requestedBandOrderCacheState(identity = '') {\n  const snapshot = readRequestedBandOrderSnapshot(identity);\n  return {\n    version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,\n    hit: Boolean(snapshot),\n    completed: requestedBandOrderCache ? 1 : 0,\n    ids: snapshot?.orderedIds?.length || 0,\n    maxIds: REQUESTED_BAND_ORDER_CACHE_MAX_IDS,\n    maxChars: REQUESTED_BAND_ORDER_CACHE_MAX_CHARS,\n    ttlMs: REQUESTED_BAND_ORDER_CACHE_TTL_MS,\n    serializedOrderIdsOnly: true,\n    retainsDecodedRows: false,\n    retainsEnrichedRecords: false\n  };\n}\n'''
+          new_block = '''export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';\nconst REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY = 500_000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES = 8;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS = 12_000;\nconst REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS = 750_000;\nconst requestedBandOrderCache = new Map();\n\nfunction pruneRequestedBandOrderCache(now = Date.now()) {\n  for (const [identity, entry] of requestedBandOrderCache) {\n    if (entry.expiresAt <= now) requestedBandOrderCache.delete(identity);\n  }\n}\n\nfunction requestedBandOrderCacheTotals() {\n  let ids = 0;\n  let chars = 0;\n  for (const entry of requestedBandOrderCache.values()) {\n    ids += Number(entry.idCount || 0);\n    chars += Number(entry.charCount || 0);\n  }\n  return { ids, chars };\n}\n\nfunction evictOldestRequestedBandOrderEntry() {\n  const oldestIdentity = requestedBandOrderCache.keys().next().value;\n  if (oldestIdentity !== undefined) requestedBandOrderCache.delete(oldestIdentity);\n}\n\nfunction readRequestedBandOrderSnapshot(identity, now = Date.now()) {\n  pruneRequestedBandOrderCache(now);\n  const entry = requestedBandOrderCache.get(identity);\n  if (!entry) return null;\n  try {\n    const snapshot = JSON.parse(entry.serialized);\n    requestedBandOrderCache.delete(identity);\n    requestedBandOrderCache.set(identity, entry);\n    return snapshot;\n  } catch {\n    requestedBandOrderCache.delete(identity);\n    return null;\n  }\n}\n\nfunction retainRequestedBandOrderSnapshot(identity, snapshot) {\n  const ids = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];\n  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return false;\n  const serialized = JSON.stringify(snapshot);\n  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY) return false;\n  if (ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS) return false;\n  if (serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS) return false;\n\n  pruneRequestedBandOrderCache();\n  requestedBandOrderCache.delete(identity);\n  while (requestedBandOrderCache.size) {\n    const totals = requestedBandOrderCacheTotals();\n    const overEntries = requestedBandOrderCache.size >= REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES;\n    const overIds = totals.ids + ids.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS;\n    const overChars = totals.chars + serialized.length > REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS;\n    if (!overEntries && !overIds && !overChars) break;\n    evictOldestRequestedBandOrderEntry();\n  }\n  requestedBandOrderCache.set(identity, {\n    serialized,\n    idCount: ids.length,\n    charCount: serialized.length,\n    expiresAt: Date.now() + REQUESTED_BAND_ORDER_CACHE_TTL_MS\n  });\n  return true;\n}\n\nfunction requestedBandOrderCacheState(identity = '') {\n  pruneRequestedBandOrderCache();\n  const totals = requestedBandOrderCacheTotals();\n  return {\n    version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,\n    hit: requestedBandOrderCache.has(identity),\n    entries: requestedBandOrderCache.size,\n    totalIds: totals.ids,\n    totalChars: totals.chars,\n    maxEntries: REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES,\n    maxIdsPerEntry: REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY,\n    maxCharsPerEntry: REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY,\n    maxTotalIds: REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS,\n    maxTotalChars: REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS,\n    ttlMs: REQUESTED_BAND_ORDER_CACHE_TTL_MS,\n    bounded: requestedBandOrderCache.size <= REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES\n      && totals.ids <= REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS\n      && totals.chars <= REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS,\n    serializedOrderIdsOnly: true,\n    retainsDecodedRows: false,\n    retainsEnrichedRecords: false\n  };\n}\n'''
+          if api.count(old_block) != 1:
+              raise SystemExit(f'ordered-ID cache block count={api.count(old_block)}')
+          api = api.replace(old_block, new_block, 1)
+
+          source_anchor = '''        requestedBandOrderCacheRetainsDecodedRows: false,\n        requestedBandOrderCacheRetainsEnrichedRecords: false,\n'''
+          source_patch = '''        requestedBandOrderCacheRetainsDecodedRows: false,\n        requestedBandOrderCacheRetainsEnrichedRecords: false,\n        requestedBandOrderCacheEntries: Number(execution.orderCacheState?.entries || 0),\n        requestedBandOrderCacheTotalIds: Number(execution.orderCacheState?.totalIds || 0),\n        requestedBandOrderCacheTotalChars: Number(execution.orderCacheState?.totalChars || 0),\n        requestedBandOrderCacheMaxEntries: Number(execution.orderCacheState?.maxEntries || 8),\n        requestedBandOrderCacheMaxTotalIds: Number(execution.orderCacheState?.maxTotalIds || 12000),\n        requestedBandOrderCacheMaxTotalChars: Number(execution.orderCacheState?.maxTotalChars || 750000),\n        requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false,\n'''
+          if api.count(source_anchor) != 1:
+              raise SystemExit(f'order cache source anchor count={api.count(source_anchor)}')
+          api_path.write_text(api.replace(source_anchor, source_patch, 1), encoding='utf-8')
+
+          verifier_path = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          verifier = verifier_path.read_text(encoding='utf-8')
+          check_anchor = '''  assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsEnrichedRecords, false, `${result.scenario}: ordered-ID cache retained enriched records`);\n'''
+          check_patch = check_anchor + '''  assert.equal(result.payload?.source?.requestedBandOrderCacheBounded, true, `${result.scenario}: ordered-ID LRU exceeded budget`);\n  assert.ok(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0) <= 8, `${result.scenario}: ordered-ID LRU entries`);\n  assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalIds || 0) <= 12000, `${result.scenario}: ordered-ID LRU total IDs`);\n  assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalChars || 0) <= 750000, `${result.scenario}: ordered-ID LRU total chars`);\n'''
+          if verifier.count(check_anchor) != 1:
+              raise SystemExit(f'verifier cache anchor count={verifier.count(check_anchor)}')
+          verifier_path.write_text(verifier.replace(check_anchor, check_patch, 1), encoding='utf-8')
+
+          rank_audit_path = Path('tools/audit-major-bands-rank-kernel-v3990_0.mjs')
+          rank_audit = rank_audit_path.read_text(encoding='utf-8')
+          contract_anchor = '''  'requestedBandOrderCacheRetainsEnrichedRecords: false'\n'''
+          contract_patch = '''  'requestedBandOrderCacheRetainsEnrichedRecords: false',\n  'const requestedBandOrderCache = new Map()',\n  'REQUESTED_BAND_ORDER_CACHE_MAX_ENTRIES = 8',\n  'REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_IDS = 12_000',\n  'REQUESTED_BAND_ORDER_CACHE_MAX_TOTAL_CHARS = 750_000',\n  'evictOldestRequestedBandOrderEntry',\n  'requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false'\n'''
+          if rank_audit.count(contract_anchor) != 1:
+              raise SystemExit(f'rank audit anchor count={rank_audit.count(contract_anchor)}')
+          rank_audit_path.write_text(rank_audit.replace(contract_anchor, contract_patch, 1), encoding='utf-8')
+
+          cache_audit_path = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          cache_audit = cache_audit_path.read_text(encoding='utf-8')
+          required_anchor = '''  "mode: 'compact-requested-band-current-page-from-ordered-ids'",\n'''
+          required_patch = required_anchor + '''  'requestedBandOrderCacheEntries: Number(execution.orderCacheState?.entries || 0)',\n  'requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false',\n'''
+          if cache_audit.count(required_anchor) != 1:
+              raise SystemExit(f'cache audit anchor count={cache_audit.count(required_anchor)}')
+          cache_audit_path.write_text(cache_audit.replace(required_anchor, required_patch, 1), encoding='utf-8')
+
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts:
+                  continue
+              if path.parent == Path('.github/workflows') and path.name.startswith('zz-one-time-'):
+                  continue
+              try:
+                  if old_version in path.read_text(encoding='utf-8'):
+                      raise SystemExit(f'old ordered-ID cache version remains in {path}')
+              except UnicodeDecodeError:
+                  pass
+          PY
+
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          ruby -e "require 'yaml'; Dir['.github/workflows/*.{yml,yaml}'].each { |f| YAML.load_file(f, aliases: true) }"
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+
+      - name: Verify cold rotation, LRU bounds and full local pressure
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8800 --compatibility-date=2026-07-01 >/tmp/v3990-ordered-id-lru-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server || true' EXIT
+          ready=0
+          for attempt in $(seq 1 60); do
+            status="$(curl -sS -o /tmp/v3990-ordered-id-lru-ready.json -w '%{http_code}' 'http://127.0.0.1:8800/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0' || true)"
+            if [ "$status" = '200' ] && grep -q 'major-bands-requested-band-order-id-lru-v3990_0' /tmp/v3990-ordered-id-lru-ready.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-ordered-id-lru-ready.json || true; cat /tmp/v3990-ordered-id-lru-wrangler.log; exit 1; fi
+
+          node --input-type=module - <<'NODE'
+          const base = 'http://127.0.0.1:8800';
+          const scenarios = [
+            '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0',
+            '/api/major-bands?candidateScore=579&rangePreset=standard&band=upper&limit=37&offset=0',
+            '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0',
+            '/api/major-bands?candidateScore=579&rangePreset=standard&band=steady&limit=37&offset=0',
+            '/api/major-bands?candidateScore=508&rangePreset=standard&band=near&limit=37&offset=0',
+            '/api/major-bands?candidateScore=680&rangePreset=wide&band=steady&limit=37&offset=0',
+            '/api/major-bands?candidateScore=449&rangePreset=safe&band=near&limit=37&offset=0',
+            '/api/major-bands?candidateScore=750&rangePreset=wide&band=near&limit=37&offset=0'
+          ];
+          for (let round = 0; round < 4; round += 1) {
+            for (let index = 0; index < scenarios.length; index += 1) {
+              const response = await fetch(`${base}${scenarios[index]}&rotation=${round}-${index}`);
+              const text = await response.text();
+              if (response.status !== 200) throw new Error(`rotation ${round}/${index}: HTTP ${response.status} ${text.slice(0, 200)}`);
+              const payload = JSON.parse(text);
+              const source = payload.source || {};
+              if (source.requestedBandOrderCacheVersion !== 'major-bands-requested-band-order-id-lru-v3990_0') throw new Error('LRU version mismatch');
+              if (source.requestedBandOrderCacheBounded !== true) throw new Error('LRU not bounded');
+              if (Number(source.requestedBandOrderCacheEntries || 0) > 8) throw new Error('LRU entry budget');
+              if (Number(source.requestedBandOrderCacheTotalIds || 0) > 12000) throw new Error('LRU ID budget');
+              if (Number(source.requestedBandOrderCacheTotalChars || 0) > 750000) throw new Error('LRU char budget');
+            }
+          }
+          NODE
+
+          TARGET_BASE='http://127.0.0.1:8800' \
+          CONCURRENCY_LEVELS='1,5,10,25,50' \
+          CONCURRENCY_WAVES='2' \
+          COLD_HARD_LIMIT_MS='12000' \
+          P95_LIMIT_MS='7000' \
+          P99_LIMIT_MS='12000' \
+          HARD_LIMIT_MS='20000' \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE='/tmp/v3990-ordered-id-lru-local-concurrency.json' \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+
+      - name: Stage workflows and commit verified source
+        run: |
+          set -euo pipefail
+          mkdir -p tools/.workflow-contract-patches-v3990
+          mapfile -t workflows < <(git diff --name-only -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | grep -v 'zz-one-time-ordered-id-lru-v3990.yml' || true)
+          test "${#workflows[@]}" -ge 1
+          for file in "${workflows[@]}"; do
+            cp "$file" "tools/.workflow-contract-patches-v3990/$(basename "$file")"
+          done
+          git checkout -- "${workflows[@]}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions tools shared ln-rank VERSION.txt docs index.html
+          git commit -m 'fix(rank): retain bounded ordered ID LRU'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-ordered-id-lru
+          path: |
+            /tmp/v3990-ordered-id-lru-ready.json
+            /tmp/v3990-ordered-id-lru-local-concurrency.json
+            /tmp/v3990-ordered-id-lru-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
