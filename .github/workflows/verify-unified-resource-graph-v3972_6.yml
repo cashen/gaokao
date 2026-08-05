@@ -87,7 +87,15 @@ jobs:
           python3 -m http.server 8794 >/tmp/v3990-0-resource-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
-          sleep 1
+          ready=0
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error 'http://127.0.0.1:8794/shared/resources/release/current-release.js' >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 0.2
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-0-resource-http.log; exit 1; fi
           for path in \
             /shared/resources/release/current-release.js \
             /shared/resources/release/site-runtime-contract.v3990_0.js \
