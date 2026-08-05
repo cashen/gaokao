@@ -26,6 +26,7 @@ on:
       - 'tools/verify-production-resource-graph-v3990_0.mjs'
       - 'tools/verify-production-pagination-snapshot-guard-v3990_0.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_0.mjs'
+      - 'functions/api/pages-deployment-identity.js'
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
       - 'functions/_lib/major-bands-rank-*.v3990_0.js'
@@ -65,6 +66,7 @@ jobs:
             if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-0-production-files.txt; then exit 1; fi
           fi
           node --check shared/governance/production-resource-verification-contract.v3990_0.js
+          node --check functions/api/pages-deployment-identity.js
           node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
           node --check functions/_lib/major-bands-result-order.v3990_0.js
           node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
@@ -89,6 +91,7 @@ jobs:
           PRODUCTION_RESOURCE_ATTEMPTS: '1'
           PRODUCTION_RESOURCE_WAIT_MS: '0'
           VERIFY_RUNTIME_HEALTH: 'false'
+          VERIFY_DEPLOYMENT_IDENTITY: 'false'
           VERIFY_MAJOR_BANDS: 'false'
           PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-local.json
           PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-0-production-pagination-snapshot-local.json
@@ -141,9 +144,11 @@ jobs:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
           RELEASE_SHA: ${{ github.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: main
           PRODUCTION_RESOURCE_ATTEMPTS: '42'
           PRODUCTION_RESOURCE_WAIT_MS: '20000'
           VERIFY_RUNTIME_HEALTH: 'true'
+          VERIFY_DEPLOYMENT_IDENTITY: 'true'
           PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-resource-graph.json
           PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-0-production-pagination-snapshot-guard.json
         run: |
