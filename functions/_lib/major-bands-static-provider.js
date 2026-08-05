@@ -91,7 +91,9 @@ function decodeRow(row, schema) {
 }
 
 export function decodeMajorBandsStaticRow(row, schema) {
-  return decodeRow(row, schema);
+  const sourceRow = typeof row === 'string' ? JSON.parse(row) : row;
+  if (!Array.isArray(sourceRow)) throw new Error('静态专业原始行格式异常');
+  return decodeRow(sourceRow, schema);
 }
 
 const NO_SPECIAL_PROJECT_FOR_ORDER = Object.freeze({
@@ -119,11 +121,15 @@ export function buildMajorBandsRankOrderProjectionSchema(schema = []) {
   });
 }
 
-export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}) {
+export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}, options = {}) {
   const value = key => Number.isInteger(projectionSchema[key]) && projectionSchema[key] >= 0
     ? row[projectionSchema[key]]
     : undefined;
   const specialHas = Boolean(value('specialHas'));
+  const rawRowStorage = options.rawRowStorage === 'serialized-json'
+    ? 'serialized-json'
+    : 'array-reference';
+  const rawRowValue = rawRowStorage === 'serialized-json' ? JSON.stringify(row) : row;
   const record = {
     id: value('id'),
     school: value('school'),
@@ -143,7 +149,13 @@ export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}) {
   }
   Object.defineProperties(record, {
     majorBandsRawRow: {
-      value: row,
+      value: rawRowValue,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    },
+    majorBandsRawRowStorage: {
+      value: rawRowStorage,
       enumerable: false,
       configurable: false,
       writable: false
@@ -249,7 +261,9 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     ? buildMajorBandsRankOrderProjectionSchema(schema)
     : null;
   const records = projectionSchema
-    ? selectedRows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema))
+    ? selectedRows.map(row => decodeMajorBandsRankOrderRow(row, projectionSchema, {
+        rawRowStorage: options.rawRowStorage
+      }))
     : selectedRows.map(row => decodeRow(row, schema));
   return {
     manifest,
@@ -257,6 +271,9 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     records,
     projectionVersion,
     minimalProjection: projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+    rawRowStorage: projectionSchema
+      ? (options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference')
+      : 'full-record',
     rowCount: payload.rows.length,
     decodedRowCount: selectedRows.length,
     rankRowsSkipped: payload.rows.length - selectedRows.length,

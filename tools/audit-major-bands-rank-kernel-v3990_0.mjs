@@ -89,6 +89,18 @@ for (const bucket of manifest.buckets) {
     const serialized = JSON.stringify(projected);
     assert.ok(!serialized.includes('majorBandsRawRow'), 'raw row reference serialized');
     assert.ok(!serialized.includes('majorBandsRawSchema'), 'raw schema reference serialized');
+    const serializedProjected = decodeMajorBandsRankOrderRow(payload.rows[0], projectionSchema, {
+      rawRowStorage: 'serialized-json'
+    });
+    assert.equal(typeof serializedProjected.majorBandsRawRow, 'string', 'serialized raw row absent');
+    assert.equal(serializedProjected.majorBandsRawRowStorage, 'serialized-json', 'serialized raw row storage');
+    assert.equal(Object.prototype.propertyIsEnumerable.call(serializedProjected, 'majorBandsRawRow'), false, 'serialized raw row enumerable');
+    const serializedRestored = decodeMajorBandsStaticRow(
+      serializedProjected.majorBandsRawRow,
+      serializedProjected.majorBandsRawSchema
+    );
+    assert.equal(serializedRestored.id, serializedProjected.id, 'serialized raw row page decode id');
+    assert.equal(serializedRestored.school, serializedProjected.school, 'serialized raw row page decode school');
   }
   buckets.set(bucket.file, records);
   projectedBuckets.set(bucket.file, projectedRecords);

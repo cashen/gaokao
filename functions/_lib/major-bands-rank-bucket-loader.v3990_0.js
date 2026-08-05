@@ -180,7 +180,8 @@ function bucketReadKey(indexBucket, scope = {}, options = {}) {
     ? `${Number(range.minRank)}:${Number(range.maxRank)}`
     : 'all-ranks';
   const projection = options.projection || 'full-record-v3990_0';
-  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}`;
+  const rawRowStorage = options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference';
+  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}`;
 }
 
 async function readBucket(context, indexBucket, scope, options = {}) {
@@ -201,7 +202,8 @@ async function readBucket(context, indexBucket, scope, options = {}) {
     assets: context.env?.ASSETS,
     rankRange: scope.requestedRange,
     allowedIds: options.allowedIds,
-    projection: options.projection
+    projection: options.projection,
+    rawRowStorage: options.rawRowStorage
   }).then(loaded => {
     assertLoadedBucket(indexBucket, loaded);
     entry.pending = false;
@@ -245,6 +247,9 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
         pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
         projectionVersion: options.projection || 'full-record-v3990_0',
         minimalProjection: options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+        rawRowStorage: options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+          ? (options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference')
+          : 'full-record',
         rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
         staticIndexBytes: 0,
         cacheHits: 0,
@@ -326,6 +331,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
       pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
       projectionVersion: results[0]?.loaded?.projectionVersion || options.projection || 'full-record-v3990_0',
       minimalProjection: results.every(result => result?.loaded?.minimalProjection === true),
+      rawRowStorage: results[0]?.loaded?.rawRowStorage || 'full-record',
       rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
       staticIndexBytes,
       cacheHits,

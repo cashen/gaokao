@@ -433,7 +433,8 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, input.rangePreset, totalRank);
       const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
       const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, {
-        projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+        projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+        rawRowStorage: 'serialized-json'
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore: input.candidateScore,
@@ -659,14 +660,17 @@ async function executeRequestedBandOrderedPage(context, input) {
     };
     const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
     pageRecords = orderedPage.map(record => {
-      if (!Array.isArray(record.majorBandsRawRow) || !Array.isArray(record.majorBandsRawSchema)) {
+      if (!(Array.isArray(record.majorBandsRawRow) || typeof record.majorBandsRawRow === 'string') || !Array.isArray(record.majorBandsRawSchema)) {
         throw new Error(`位次共享投影缺少原始行引用：${record.id || 'unknown'}`);
       }
       return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
     });
     loadedStats = allBandsShared.loadedStats;
     selectedBuckets = allBandsShared.selectedBuckets;
-    retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    // The all-band response consumes one shared projection synchronously.
+    // Do not duplicate three complete ordered-ID snapshots into module state,
+    // and release each heavy ordered array immediately after its page is decoded.
+    ordered.length = 0;
     orderCacheStatus = 'all-bands-shared-projection';
     orderPageSource = 'all-bands-shared-projection';
     allBandsShared.bandUses = Number(allBandsShared.bandUses || 0) + 1;
@@ -710,7 +714,7 @@ async function executeRequestedBandOrderedPage(context, input) {
       const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
       const currentPageRecords = rawRowReuse
         ? orderedPage.map(record => {
-            if (!Array.isArray(record.majorBandsRawRow) || !Array.isArray(record.majorBandsRawSchema)) {
+            if (!(Array.isArray(record.majorBandsRawRow) || typeof record.majorBandsRawRow === 'string') || !Array.isArray(record.majorBandsRawSchema)) {
               throw new Error(`位次最小投影缺少原始行引用：${record.id || 'unknown'}`);
             }
             return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
@@ -739,6 +743,7 @@ async function executeRequestedBandOrderedPage(context, input) {
   }
 
   const orderedIds = Array.isArray(retained.orderedIds) ? retained.orderedIds : [];
+  const orderedIdCount = orderedIds.length;
   const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
   if (!pageRecords) {
     selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
@@ -781,14 +786,14 @@ async function executeRequestedBandOrderedPage(context, input) {
 
   const compactPage = pageRecords.map(record => compactMajorBandsBucketCandidate(record));
   const nextOffset = pageOffset + compactPage.length;
-  const hasMore = nextOffset < orderedIds.length;
+  const hasMore = nextOffset < orderedIdCount;
   const compactGrouped = {};
   for (const key of BAND_KEYS) {
     const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: key });
     if (key === requestedBand) {
       compactGrouped[key] = {
         ordered: compactPage,
-        count: orderedIds.length,
+        count: orderedIdCount,
         snapshot: retained.snapshot,
         retentionScope: 'current-requested-band-page-from-ordered-ids',
         pagination: {
@@ -811,6 +816,7 @@ async function executeRequestedBandOrderedPage(context, input) {
       };
     }
   }
+  if (allBandsShared) orderedIds.length = 0;
   return {
     value: {
       candidateRank: retained.candidateRank,
@@ -835,7 +841,7 @@ async function executeRequestedBandOrderedPage(context, input) {
     joinedInFlight: Boolean(heavyExecution?.joinedInFlight),
     waitedForExecutionSlot: Boolean(heavyExecution?.waitedForExecutionSlot),
     orderCacheStatus,
-    orderCacheIdCount: orderedIds.length,
+    orderCacheIdCount: orderedIdCount,
     pageDecodedRecordCount: pageRecords.length,
     orderCacheState: requestedBandOrderCacheState(orderIdentity),
     orderPageSourceVersion: MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
@@ -1175,6 +1181,7 @@ export async function onRequest(context) {
         requestedBandOrderPageSource: execution.orderPageSource || 'keyword-bypass',
         requestedBandOrderColdSecondAssetPass: execution.orderColdSecondAssetPass === true,
         requestedBandRawRowReferenceNonEnumerable: execution.rawRowReferenceNonEnumerable === true,
+        requestedBandRawRowStorage: loadedStats.rawRowStorage || 'full-record',
         requestedBandOrderIds: Number(execution.orderCacheIdCount || 0),
         requestedBandPageDecodedRecords: Number(execution.pageDecodedRecordCount || cacheRetention.recordCount || 0),
         requestedBandOrderProjectionVersion: execution.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,

@@ -103,6 +103,10 @@ jobs:
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE = 'request-owned-timer-polling'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0'" functions/_lib/major-bands-static-provider.js
+          grep -q "options.rawRowStorage === 'serialized-json'" functions/_lib/major-bands-static-provider.js
+          grep -q "rawRowStorage: 'serialized-json'" functions/api/major-bands.js
+          grep -q "ordered.length = 0" functions/api/major-bands.js
+          grep -q "requestedBandRawRowStorage" tools/verify-major-bands-preview-concurrency-v3990_0.mjs
           grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "EXECUTION_SLOT_POLL_MS = 8" functions/_lib/major-bands-query-execution-cache.v3990_0.js

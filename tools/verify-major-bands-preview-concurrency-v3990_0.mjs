@@ -153,6 +153,15 @@ function validateResult(result) {
   assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch', 'all-bands-shared-projection'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
   assert.equal(result.payload?.source?.requestedBandOrderColdSecondAssetPass, false, `${result.scenario}: cold ordered query performed a second asset pass`);
   assert.equal(result.payload?.source?.requestedBandRawRowReferenceNonEnumerable, true, `${result.scenario}: raw row reference contract`);
+  assert.equal(
+    result.payload?.source?.requestedBandRawRowStorage,
+    result.payload?.source?.requestedBandOrderPageSource === 'all-bands-shared-projection'
+      ? 'serialized-json'
+      : result.payload?.source?.requestedBandOrderPageSource === 'raw-row-reuse'
+        ? 'array-reference'
+        : 'full-record',
+    `${result.scenario}: raw row storage ownership`
+  );
   if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-miss') {
     assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'raw-row-reuse', `${result.scenario}: cold order page did not reuse raw rows`);
   }
