@@ -1,0 +1,82 @@
+name: One-time v3990 sync all-bands concurrency gates
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-sync-allbands-concurrency-gates.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Synchronize all permanent workflow gates
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          old = 'ALL_BANDS_LOAD_CONCURRENCY = 1'
+          new = 'ALL_BANDS_LOAD_CONCURRENCY = 3'
+          changed = []
+          occurrences = 0
+          for root in (Path('.github/workflows'), Path('tools')):
+              for path in sorted(root.rglob('*')):
+                  if not path.is_file() or path.suffix not in {'.yml', '.yaml', '.mjs', '.js'}:
+                      continue
+                  text = path.read_text(encoding='utf-8')
+                  count = text.count(old)
+                  if not count:
+                      continue
+                  path.write_text(text.replace(old, new), encoding='utf-8')
+                  changed.append(str(path))
+                  occurrences += count
+          if occurrences < 3:
+              raise SystemExit(f'expected at least three stale permanent gates, found {occurrences}')
+          print({'occurrences': occurrences, 'changed': changed})
+          PY
+          grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          if grep -RFn "ALL_BANDS_LOAD_CONCURRENCY = 1" .github/workflows tools; then
+            echo 'stale all-bands concurrency gate remains'
+            exit 1
+          fi
+          grep -RFn "ALL_BANDS_LOAD_CONCURRENCY = 3" .github/workflows tools
+
+      - name: Verify synchronized source gates
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
+          node --check tools/audit-major-bands-rank-kernel-v3990_0.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-request-band-scope-v3990_0.mjs >/tmp/v3990-request-scope.json
+
+      - name: Commit synchronized permanent gates
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/zz-one-time-v3990-sync-allbands-concurrency-gates.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows tools .github/workflows/zz-one-time-v3990-sync-allbands-concurrency-gates.yml
+          git commit -m 'test(rank): synchronize all-bands concurrency gates'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload sync evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-synchronized-allbands-gates
+          path: /tmp/v3990-request-scope.json
+          if-no-files-found: warn
+          retention-days: 7
