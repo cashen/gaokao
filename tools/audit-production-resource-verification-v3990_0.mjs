@@ -38,6 +38,7 @@ for (const value of Object.values(CONTRACT.requiredStaticResources)) {
 for (const value of CONTRACT.retiredResources) {
   assert.ok(!exists(value), `retired resource remains in source: ${value}`);
 }
+assert.equal(CONTRACT.dynamicResources.deploymentIdentity, '/api/pages-deployment-identity');
 assert.equal(CONTRACT.dynamicResources.runtimeHealth, '/api/ln-rank-runtime-health');
 assert.ok(CONTRACT.dynamicResources.majorBandsHealth.includes('/api/major-bands-health'));
 assert.ok(CONTRACT.dynamicResources.majorBandsStandard.includes('rangePreset=standard'));
@@ -98,8 +99,15 @@ for (const marker of [
   'audit-canonical-release-version-v3990_0.mjs',
   'audit-production-resource-verification-v3990_0.mjs',
   'audit-site-runtime-generation-v3990_0.mjs',
+  'functions/api/pages-deployment-identity.js',
+  'Resolve Cloudflare deployment mode',
+  "echo 'mode=wrangler'",
+  "echo 'mode=git-integration'",
+  "steps.deployment-mode.outputs.mode == 'wrangler'",
+  "steps.deployment-mode.outputs.mode == 'git-integration'",
   'wrangler@4.28.1 pages deploy .',
   '--commit-hash="$GITHUB_SHA"',
+  'EXPECTED_DEPLOYMENT_BRANCH: main',
   'verify-production-resource-graph-v3990_0.mjs',
   'verify-production-baseline-v3971.mjs',
   'EXPECTED_RELEASE: v3.9.90.0',
@@ -112,7 +120,9 @@ for (const forbidden of [
   '/api/major-bands-bucket',
   'major-bands-bucket-v3972_2',
   'verify-production-v3971.mjs',
-  'cloudflare-pages-v3972-3-production'
+  'cloudflare-pages-v3972-3-production',
+  'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.',
+  'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'
 ]) assert.ok(!deployWorkflow.includes(forbidden), `main deploy workflow retains retired contract: ${forbidden}`);
 
 const verifier = fs.readFileSync('tools/verify-production-resource-graph-v3990_0.mjs', 'utf8');
@@ -134,8 +144,25 @@ for (const marker of [
   'customHtmlChallengeBoundarySeparate',
   'custom API challenge not corroborated by HTML challenge boundary',
   'custom-domain-cloudflare-managed-challenge',
-  "pagesMajorBands = await verifyMajorBandsBase('pages'"
+  "pagesMajorBands = await verifyMajorBandsBase('pages'",
+  'validatePagesDeploymentIdentity',
+  'pages-deployment-identity-v3990_0',
+  'cloudflare-pages-runtime-environment',
+  'EXPECTED_DEPLOYMENT_BRANCH',
+  'pages deployment commit',
+  'deploymentIdentity: finalResult.deploymentIdentity'
 ]) assert.ok(verifier.includes(marker), `production verifier missing ${marker}`);
+
+const deploymentIdentityApi = fs.readFileSync('functions/api/pages-deployment-identity.js', 'utf8');
+for (const marker of [
+  "PAGES_DEPLOYMENT_IDENTITY_VERSION = 'pages-deployment-identity-v3990_0'",
+  'CF_PAGES_COMMIT_SHA',
+  'CF_PAGES_BRANCH',
+  'CF_PAGES_URL',
+  "source: 'cloudflare-pages-runtime-environment'",
+  'identityAvailable ? 200 : 503',
+  "'cache-control': 'no-store'"
+]) assert.ok(deploymentIdentityApi.includes(marker), `Pages deployment identity API missing ${marker}`);
 
 const baselineVerifier = fs.readFileSync('tools/verify-production-baseline-v3971.mjs', 'utf8');
 for (const marker of [

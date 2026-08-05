@@ -10,7 +10,8 @@ const waitMs = Math.max(0, Number(process.env.PRODUCTION_RESOURCE_WAIT_MS || 200
 const verifyRuntimeHealth = String(process.env.VERIFY_RUNTIME_HEALTH || 'true') !== 'false';
 const verifyMajorBands = String(process.env.VERIFY_MAJOR_BANDS || 'true') !== 'false';
 const evidencePath = process.env.PRODUCTION_RESOURCE_EVIDENCE || '/tmp/v3990-0-production-resource-graph.json';
-const releaseSha = String(process.env.RELEASE_SHA || 'manual');
+const releaseSha = String(process.env.RELEASE_SHA || 'manual').trim().toLowerCase();
+const expectedDeploymentBranch = String(process.env.EXPECTED_DEPLOYMENT_BRANCH || '').trim();
 
 const expected = Object.freeze({
   release: CURRENT_RELEASE.display,
@@ -100,6 +101,49 @@ function parseApi(response, label, failures) {
     failures.push(`${label} invalid JSON: ${error.message}`);
     return null;
   }
+}
+
+function validatePagesDeploymentIdentity(response) {
+  const failures = [];
+  const payload = parseApi(response, 'pages deployment identity', failures);
+  const evidence = {
+    status: response.status,
+    version: '',
+    source: '',
+    release: '',
+    generation: '',
+    commitSha: '',
+    branch: '',
+    deploymentUrl: '',
+    expectedCommitSha: releaseSha,
+    expectedBranch: expectedDeploymentBranch,
+    verified: false
+  };
+  if (!payload) return { failures, evidence };
+
+  evidence.version = String(payload.version || '');
+  evidence.source = String(payload.source || '');
+  evidence.release = String(payload.release || '');
+  evidence.generation = String(payload.generation || '');
+  evidence.commitSha = String(payload.commitSha || '').trim().toLowerCase();
+  evidence.branch = String(payload.branch || '').trim();
+  evidence.deploymentUrl = String(payload.deploymentUrl || '').trim();
+
+  if (payload.ok !== true || payload.identityAvailable !== true) failures.push('pages deployment identity unavailable');
+  if (evidence.version !== 'pages-deployment-identity-v3990_0') failures.push('pages deployment identity version mismatch');
+  if (evidence.source !== 'cloudflare-pages-runtime-environment') failures.push('pages deployment identity source mismatch');
+  if (evidence.release !== expected.release) failures.push('pages deployment identity release mismatch');
+  if (evidence.generation !== expected.generation) failures.push('pages deployment identity generation mismatch');
+  if (!/^[0-9a-f]{40}$/.test(evidence.commitSha)) failures.push('pages deployment identity commit SHA invalid');
+  if (releaseSha !== 'manual' && evidence.commitSha !== releaseSha) {
+    failures.push(`pages deployment commit ${evidence.commitSha || 'missing'} != expected ${releaseSha}`);
+  }
+  if (expectedDeploymentBranch && evidence.branch !== expectedDeploymentBranch) {
+    failures.push(`pages deployment branch ${evidence.branch || 'missing'} != expected ${expectedDeploymentBranch}`);
+  }
+  if (!/^https:\/\//.test(evidence.deploymentUrl)) failures.push('pages deployment URL invalid');
+  evidence.verified = failures.length === 0;
+  return { failures, evidence };
 }
 
 async function verifyMajorBandsPagination(label, base, resourcePath, attempt) {
@@ -315,19 +359,23 @@ async function fetchStaticSet(base, attempt) {
 }
 
 async function runAttempt(attempt) {
-  const [pages, custom, retiredResponses, runtimeHealth] = await Promise.all([
+  const [pages, custom, retiredResponses, runtimeHealth, deploymentIdentityResponse] = await Promise.all([
     fetchStaticSet(pagesBase, attempt),
     fetchStaticSet(customBase, attempt),
     Promise.all(CONTRACT.retiredResources.map(async resourcePath => [resourcePath, await request(pagesBase, resourcePath, attempt)])),
     verifyRuntimeHealth
       ? request(pagesBase, CONTRACT.dynamicResources.runtimeHealth, attempt)
-      : Promise.resolve({ status: 200, text: `${expected.release} ${expected.generation}`, headers: {} })
+      : Promise.resolve({ status: 200, text: `${expected.release} ${expected.generation}`, headers: {} }),
+    request(pagesBase, CONTRACT.dynamicResources.deploymentIdentity, attempt)
   ]);
   pages.retired = Object.fromEntries(retiredResponses);
   pages.runtimeHealth = runtimeHealth;
+  pages.deploymentIdentity = deploymentIdentityResponse;
+  const deploymentIdentity = validatePagesDeploymentIdentity(deploymentIdentityResponse);
   const customStaticBoundary = validateCustomChallengeBoundary(custom);
   const staticFailures = [
     ...validatePages(pages),
+    ...deploymentIdentity.failures,
     ...validateStaticSet('custom', custom, { includeHtml: false }),
     ...customStaticBoundary.failures
   ];
@@ -390,7 +438,7 @@ async function runAttempt(attempt) {
     static: customStaticBoundary,
     dynamic: customDynamicBoundary
   };
-  return { ok: failures.length === 0, attempt, expected, pages, custom, customBoundary, pagesMajorBands, customMajorBands, failures };
+  return { ok: failures.length === 0, attempt, expected, pages, custom, deploymentIdentity: deploymentIdentity.evidence, customBoundary, pagesMajorBands, customMajorBands, failures };
 }
 
 let finalResult = null;
@@ -403,8 +451,10 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
     pages: Object.fromEntries([
       ...Object.entries(CONTRACT.requiredStaticResources).map(([key]) => [key, finalResult.pages[key]?.status]),
       ['runtimeHealth', finalResult.pages.runtimeHealth.status],
+      ['deploymentIdentity', finalResult.pages.deploymentIdentity.status],
       ['retired', Object.fromEntries(Object.entries(finalResult.pages.retired).map(([resourcePath, response]) => [resourcePath, response.status]))]
     ]),
+    deploymentIdentity: finalResult.deploymentIdentity,
     custom: Object.fromEntries(Object.entries(CONTRACT.requiredStaticResources).map(([key]) => [key, finalResult.custom[key]?.status])),
     customBoundary: finalResult.customBoundary,
     majorBands: {
