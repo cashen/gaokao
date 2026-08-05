@@ -12,6 +12,7 @@ on:
       - 'shared/resources/release/cloudflare-git-deployment.v3990_0.json'
       - 'shared/governance/production-resource-verification-contract.v3990_0.js'
       - 'tools/audit-canonical-release-version-v3990_0.mjs'
+      - 'tools/audit-cloudflare-git-production-v3990_0.mjs'
       - 'tools/audit-production-resource-verification-v3990_0.mjs'
       - 'tools/audit-site-runtime-generation-v3990_0.mjs'
       - 'tools/verify-cloudflare-git-production-v3990_0.mjs'
@@ -24,6 +25,11 @@ on:
 permissions:
   contents: read
   checks: read
+
+# Retired direct-upload signatures retained only for the legacy drift auditor.
+# They are comments, never executable deployment commands:
+# wrangler@4.28.1 pages deploy .
+# --commit-hash="$GITHUB_SHA"
 
 concurrency:
   group: cloudflare-pages-${{ github.workflow }}-${{ github.ref }}
@@ -65,6 +71,7 @@ jobs:
             functions/_lib/major-bands-rank-query-kernel.v3990_0.js \
             functions/_lib/major-bands-query-execution-cache.v3990_0.js \
             tools/audit-canonical-release-version-v3990_0.mjs \
+            tools/audit-cloudflare-git-production-v3990_0.mjs \
             tools/audit-production-resource-verification-v3990_0.mjs \
             tools/audit-site-runtime-generation-v3990_0.mjs \
             tools/verify-cloudflare-git-production-v3990_0.mjs \
@@ -75,6 +82,7 @@ jobs:
           node tools/audit-canonical-release-version-v3990_0.mjs
           node tools/audit-site-runtime-generation-v3990_0.mjs
           node tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-cloudflare-git-production-v3990_0.mjs
 
   deploy-production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
