@@ -85,6 +85,35 @@ for (const forbidden of [
   '"crossRequestSemaphore":true'
 ]) assert.ok(!workflow.includes(forbidden), `production workflow reads unpublished API field: ${forbidden}`);
 
+const deployWorkflow = fs.readFileSync('.github/workflows/deploy-cloudflare-pages-main.yml', 'utf8');
+for (const marker of [
+  'pull_request:',
+  'branches: [main]',
+  'source-contract:',
+  'deploy-production:',
+  "github.event_name == 'push'",
+  "display: 'v3.9.90.0'",
+  "siteRuntimeGeneration: 'v3990_0'",
+  'audit-canonical-release-version-v3990_0.mjs',
+  'audit-production-resource-verification-v3990_0.mjs',
+  'audit-site-runtime-generation-v3990_0.mjs',
+  'wrangler@4.28.1 pages deploy .',
+  '--commit-hash="$GITHUB_SHA"',
+  'verify-production-resource-graph-v3990_0.mjs',
+  'verify-production-baseline-v3971.mjs',
+  'EXPECTED_RELEASE: v3.9.90.0',
+  'RELEASE_SHA: ${{ github.sha }}',
+  'cloudflare-pages-v3990-0-production'
+]) assert.ok(deployWorkflow.includes(marker), `main deploy workflow missing ${marker}`);
+for (const forbidden of [
+  'v3.9.72.5',
+  'distributed-bucket-workers',
+  '/api/major-bands-bucket',
+  'major-bands-bucket-v3972_2',
+  'verify-production-v3971.mjs',
+  'cloudflare-pages-v3972-3-production'
+]) assert.ok(!deployWorkflow.includes(forbidden), `main deploy workflow retains retired contract: ${forbidden}`);
+
 const verifier = fs.readFileSync('tools/verify-production-resource-graph-v3990_0.mjs', 'utf8');
 for (const marker of [
   'CONTRACT.requiredStaticResources',
