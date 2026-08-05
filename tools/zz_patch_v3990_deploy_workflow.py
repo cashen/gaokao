@@ -1,0 +1,189 @@
+from pathlib import Path
+
+
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{label}: expected one anchor, got {count}")
+    return text.replace(old, new, 1)
+
+
+deploy_workflow = r'''name: Deploy main to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-cloudflare-pages-main.yml'
+      - 'shared/resources/release/current-release.js'
+      - 'shared/governance/production-resource-verification-contract.v3990_0.js'
+      - 'tools/audit-canonical-release-version-v3990_0.mjs'
+      - 'tools/audit-production-resource-verification-v3990_0.mjs'
+      - 'tools/audit-site-runtime-generation-v3990_0.mjs'
+      - 'tools/verify-production-resource-graph-v3990_0.mjs'
+      - 'tools/verify-production-baseline-v3971.mjs'
+      - 'functions/api/major-bands.js'
+      - 'functions/api/major-bands-health.js'
+      - 'functions/_lib/major-bands-*.js'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployable v3.9.90.0 source and production contracts
+        run: |
+          set -euo pipefail
+          expected_sha='${{ github.event.pull_request.head.sha || github.sha }}'
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+          test -f 404.html
+          grep -q '页面不存在' 404.html
+          grep -q "display: 'v3.9.90.0'" shared/resources/release/current-release.js
+          grep -q "siteRuntimeGeneration: 'v3990_0'" shared/resources/release/current-release.js
+          grep -q "sharedResourceGraphVersion: 'site-resource-graph-v3990_0'" shared/resources/release/current-release.js
+          test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
+          test -f ln-rank/data/major-bands-static-v3972_2/audit.json
+          test ! -e functions/api/local-strength.js
+          test ! -e functions/_lib/local-strength-api.js
+          for file in \
+            functions/api/major-bands.js \
+            functions/api/major-bands-health.js \
+            functions/_lib/major-bands-static-provider.js \
+            functions/_lib/major-bands-rank-bucket-loader.v3990_0.js \
+            functions/_lib/major-bands-rank-query-kernel.v3990_0.js \
+            functions/_lib/major-bands-query-execution-cache.v3990_0.js \
+            tools/audit-canonical-release-version-v3990_0.mjs \
+            tools/audit-production-resource-verification-v3990_0.mjs \
+            tools/audit-site-runtime-generation-v3990_0.mjs \
+            tools/verify-production-resource-graph-v3990_0.mjs \
+            tools/verify-production-baseline-v3971.mjs; do
+            node --check "$file"
+          done
+          node tools/audit-canonical-release-version-v3990_0.mjs
+          node tools/audit-site-runtime-generation-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs
+
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      CF_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'gaokao' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve and verify Cloudflare deployment credentials
+        env:
+          CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_PRIMARY: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_FALLBACK: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
+          account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
+          test -n "$token" || { echo 'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.'; exit 2; }
+          test -n "$account" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'; exit 2; }
+          test -n "${CF_PROJECT_NAME:-}" || { echo 'Missing Cloudflare Pages project name.'; exit 2; }
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+      - name: Deploy exact v3.9.90.0 main commit
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          commit_message="$(git log -1 --pretty=%s)"
+          npx --yes wrangler@4.28.1 pages deploy . \
+            --project-name="$CF_PROJECT_NAME" \
+            --branch=main \
+            --commit-hash="$GITHUB_SHA" \
+            --commit-message="$commit_message" \
+            2>&1 | tee /tmp/cloudflare-pages-v3990-0-deploy.out
+      - name: Verify exact v3.9.90.0 production deployment
+        env:
+          PAGES_BASE: https://gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://gaokao.powers.org.cn
+          RELEASE_SHA: ${{ github.sha }}
+          VERIFY_MAJOR_BANDS: 'true'
+          PRODUCTION_RESOURCE_ATTEMPTS: '45'
+          PRODUCTION_RESOURCE_WAIT_MS: '10000'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/cloudflare-pages-v3990-0-resource-graph.json
+          EXPECTED_RELEASE: v3.9.90.0
+        run: |
+          set -euo pipefail
+          node tools/verify-production-resource-graph-v3990_0.mjs \
+            2>&1 | tee /tmp/cloudflare-pages-v3990-0-production.out
+          PRODUCTION_VERIFY_ATTEMPTS='1' \
+          PRODUCTION_VERIFY_WAIT_MS='0' \
+            node tools/verify-production-baseline-v3971.mjs \
+              2>&1 | tee /tmp/cloudflare-pages-v3990-0-baseline.out
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-pages-v3990-0-production
+          path: |
+            /tmp/cloudflare-pages-v3990-0-*.out
+            /tmp/cloudflare-pages-v3990-0-*.json
+          if-no-files-found: warn
+          retention-days: 7
+'''
+
+Path('.github/workflows/deploy-cloudflare-pages-main.yml').write_text(deploy_workflow, encoding='utf-8')
+
+audit_path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+audit = audit_path.read_text(encoding='utf-8')
+anchor = "const verifier = fs.readFileSync('tools/verify-production-resource-graph-v3990_0.mjs', 'utf8');"
+block = r'''const deployWorkflow = fs.readFileSync('.github/workflows/deploy-cloudflare-pages-main.yml', 'utf8');
+for (const marker of [
+  'pull_request:',
+  'branches: [main]',
+  'source-contract:',
+  'deploy-production:',
+  "github.event_name == 'push'",
+  "display: 'v3.9.90.0'",
+  "siteRuntimeGeneration: 'v3990_0'",
+  'audit-canonical-release-version-v3990_0.mjs',
+  'audit-production-resource-verification-v3990_0.mjs',
+  'audit-site-runtime-generation-v3990_0.mjs',
+  'wrangler@4.28.1 pages deploy .',
+  '--commit-hash="$GITHUB_SHA"',
+  'verify-production-resource-graph-v3990_0.mjs',
+  'verify-production-baseline-v3971.mjs',
+  'EXPECTED_RELEASE: v3.9.90.0',
+  'RELEASE_SHA: ${{ github.sha }}',
+  'cloudflare-pages-v3990-0-production'
+]) assert.ok(deployWorkflow.includes(marker), `main deploy workflow missing ${marker}`);
+for (const forbidden of [
+  'v3.9.72.5',
+  'distributed-bucket-workers',
+  '/api/major-bands-bucket',
+  'major-bands-bucket-v3972_2',
+  'verify-production-v3971.mjs',
+  'cloudflare-pages-v3972-3-production'
+]) assert.ok(!deployWorkflow.includes(forbidden), `main deploy workflow retains retired contract: ${forbidden}`);
+
+const verifier = fs.readFileSync('tools/verify-production-resource-graph-v3990_0.mjs', 'utf8');'''
+audit = replace_once(audit, anchor, block, 'deploy workflow audit anchor')
+audit_path.write_text(audit, encoding='utf-8')
