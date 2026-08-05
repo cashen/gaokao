@@ -38,6 +38,7 @@ export const PRODUCTION_RESOURCE_VERIFICATION_CONTRACT = Object.freeze({
     '/ln-rank/release-meta.json'
   ]),
   dynamicResources: Object.freeze({
+    deploymentIdentity: '/api/pages-deployment-identity',
     runtimeHealth: '/api/ln-rank-runtime-health',
     majorBandsHealth: '/api/major-bands-health?probe=1',
     majorBandsStandard: '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0',
@@ -53,6 +54,10 @@ export const PRODUCTION_RESOURCE_VERIFICATION_CONTRACT = Object.freeze({
     interactionCssMustNotDisableHitTesting: true,
     retiredResourcesMustReturn404: true,
     runtimeHealthMustMatchGeneration: true,
+    pagesDeploymentIdentityMustReturn200: true,
+    pagesDeploymentIdentityMustMatchReleaseSha: true,
+    pagesDeploymentIdentityMustMatchExpectedBranch: true,
+    pagesGitIntegrationFallbackAllowedWithoutSecrets: true,
     commitStatusRequired: true,
     sourceAndProductionEvidenceRequired: true,
     customHtmlChallengeBoundarySeparate: true,
