@@ -89,6 +89,30 @@ assert.equal((workflow.match(/VERIFY_DEPLOYMENT_IDENTITY: 'false'/g) || []).leng
 assert.ok(workflow.includes("VERIFY_DEPLOYMENT_IDENTITY: 'true'"), 'production identity verification must be explicit');
 assert.ok(workflow.includes('EXPECTED_DEPLOYMENT_BRANCH: main'), 'production identity branch must be main');
 
+const productionReleaseWorkflow = fs.readFileSync('.github/workflows/verify-production-release-v3970.yml', 'utf8');
+for (const marker of [
+  'functions/api/pages-deployment-identity.js',
+  "VERIFY_DEPLOYMENT_IDENTITY: 'false'",
+  "VERIFY_DEPLOYMENT_IDENTITY: 'true'",
+  'EXPECTED_DEPLOYMENT_BRANCH: main',
+  'verify-production-resource-graph-v3990_0.mjs'
+]) assert.ok(productionReleaseWorkflow.includes(marker), `production release workflow missing ${marker}`);
+assert.equal(
+  (productionReleaseWorkflow.match(/VERIFY_DEPLOYMENT_IDENTITY: 'false'/g) || []).length,
+  1,
+  'production release local identity bypass must appear exactly once'
+);
+assert.ok(
+  productionReleaseWorkflow.indexOf("VERIFY_DEPLOYMENT_IDENTITY: 'false'")
+    < productionReleaseWorkflow.indexOf('production-release:'),
+  'production release identity bypass escaped local source job'
+);
+assert.ok(
+  productionReleaseWorkflow.indexOf("VERIFY_DEPLOYMENT_IDENTITY: 'true'")
+    > productionReleaseWorkflow.indexOf('production-release:'),
+  'production release production job does not force identity verification'
+);
+
 const deployWorkflow = fs.readFileSync('.github/workflows/deploy-cloudflare-pages-main.yml', 'utf8');
 for (const marker of [
   'pull_request:',
