@@ -1,0 +1,151 @@
+name: One-time v3990 all-bands page budget retry2
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-allbands-page-budget-retry2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply page budget and synchronize all source gates
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, got {count}')
+              return text.replace(old, new, 1)
+
+          api_path = Path('functions/api/major-bands.js')
+          api = api_path.read_text(encoding='utf-8')
+          api = replace_once(api, "export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';\nconst BAND_KEYS", "export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';\nexport const MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16;\nconst BAND_KEYS", 'page cap constant')
+          api = replace_once(api, "    pageOffset: input.pageOffset,\n    pageLimit: input.pageLimit", "    pageOffset: input.pageOffset,\n    pageLimit: input.pageLimit,\n    requestedPageLimit: input.requestedPageLimit", 'page cache identity')
+          api = replace_once(api, "function requestForBand(request, sourceUrl, band) {\n  const bandUrl = new URL(sourceUrl);\n  bandUrl.searchParams.set('band', band);", "function requestForBand(request, sourceUrl, band, pageLimit) {\n  const bandUrl = new URL(sourceUrl);\n  bandUrl.searchParams.set('band', band);\n  bandUrl.searchParams.set('limit', String(pageLimit));", 'internal page limit')
+          api = replace_once(api, "        request: requestForBand(context.request, sourceUrl, band)", "        request: requestForBand(context.request, sourceUrl, band, input.pageLimit)", 'internal call')
+          api = replace_once(api, "      ...payloads[0].source,\n      queryExecutionCacheStatus: 'sequential-band-orchestration',", "      ...payloads[0].source,\n      allBandsPageLimitCap: MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP,\n      allBandsRequestedPageLimit: input.requestedPageLimit,\n      allBandsEffectivePageLimit: input.pageLimit,\n      queryExecutionCacheStatus: 'sequential-band-orchestration',", 'telemetry')
+          api = replace_once(api, "    const configuredPageSize = Math.max(16, Math.min(80, pageNumber(context.env?.MAJOR_BANDS_MAX_PER_BAND, 40)));\n    const pageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));\n    const pageOffset = pageNumber(url.searchParams.get('offset'), 0);", "    const configuredPageSize = Math.max(16, Math.min(80, pageNumber(context.env?.MAJOR_BANDS_MAX_PER_BAND, 40)));\n    const requestedPageLimit = Math.max(16, Math.min(configuredPageSize, pageNumber(url.searchParams.get('limit'), 40)));\n    const pageLimit = requestedBand\n      ? requestedPageLimit\n      : Math.min(MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP, requestedPageLimit);\n    const pageOffset = pageNumber(url.searchParams.get('offset'), 0);", 'effective page limit')
+          api = replace_once(api, "        filters,\n        pageLimit,\n        pageOffset,\n        started", "        filters,\n        requestedPageLimit,\n        pageLimit,\n        pageOffset,\n        started", 'all-bands input')
+          api_path.write_text(api, encoding='utf-8')
+
+          verifier_path = Path('tools/verify-major-bands-preview-concurrency-v3990_0.mjs')
+          verifier = verifier_path.read_text(encoding='utf-8')
+          verifier = replace_once(verifier, "const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_0';", "const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_0';\nconst expectedAllBandsPageLimitCap = 16;", 'verifier cap')
+          verifier = replace_once(verifier, "    assert.equal(result.payload?.source?.allBandsSharedProjectionVersion, expectedAllBandsSharedProjectionVersion, `${result.scenario}: shared all-band projection deployment`);", "    assert.equal(result.payload?.source?.allBandsSharedProjectionVersion, expectedAllBandsSharedProjectionVersion, `${result.scenario}: shared all-band projection deployment`);\n    assert.equal(Number(result.payload?.source?.allBandsPageLimitCap), expectedAllBandsPageLimitCap, `${result.scenario}: all-band page limit cap`);\n    assert.ok(Number(result.payload?.source?.allBandsRequestedPageLimit || 0) >= Number(result.payload?.source?.allBandsEffectivePageLimit || 0), `${result.scenario}: effective page limit exceeded requested limit`);\n    assert.equal(Number(result.payload?.source?.allBandsEffectivePageLimit), expectedAllBandsPageLimitCap, `${result.scenario}: all-band effective page limit`);\n    for (const band of bands) {\n      assert.equal(Number(result.payload?.bands?.[band]?.pagination?.limit), expectedAllBandsPageLimitCap, `${result.scenario}/${band}: bounded page limit`);\n    }", 'response page contract')
+          verifier = replace_once(verifier, "  for (const band of bands) {\n    const path = `${allScenario.path}&band=${band}`;\n    const result = await requestScenario({", "  const effectiveLimit = Number(allResult.payload?.source?.allBandsEffectivePageLimit || 0);\n  assert.equal(effectiveLimit, expectedAllBandsPageLimitCap, 'all-band equivalence effective limit');\n  for (const band of bands) {\n    const bandUrl = new URL(allScenario.path, 'https://contract.local');\n    bandUrl.searchParams.set('band', band);\n    bandUrl.searchParams.set('limit', String(effectiveLimit));\n    const path = `${bandUrl.pathname}?${bandUrl.searchParams}`;\n    const result = await requestScenario({", 'effective equivalence')
+          verifier_path.write_text(verifier, encoding='utf-8')
+
+          cache_audit_path = Path('tools/audit-major-bands-query-execution-cache-v3990_0.mjs')
+          cache_audit = cache_audit_path.read_text(encoding='utf-8')
+          cache_audit = replace_once(cache_audit, "  'requestForBand(context.request, sourceUrl, band)',", "  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',", 'cache audit function call')
+          cache_audit = replace_once(cache_audit, "  'request: requestForBand(context.request, sourceUrl, band)',", "  'request: requestForBand(context.request, sourceUrl, band, input.pageLimit)',", 'cache audit request property')
+          cache_audit = replace_once(cache_audit, "  'queryExecutionPageLimit: input.pageLimit',", "  'queryExecutionPageLimit: input.pageLimit',\n  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',\n  'allBandsEffectivePageLimit: input.pageLimit',", 'cache audit page budget')
+          cache_audit_path.write_text(cache_audit, encoding='utf-8')
+
+          rank_workflow_path = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
+          rank_workflow = rank_workflow_path.read_text(encoding='utf-8')
+          rank_workflow = replace_once(rank_workflow, "          grep -q \"ordered.length = 0\" functions/api/major-bands.js\n          grep -q \"requestedBandRawRowStorage\"", "          grep -q \"ordered.length = 0\" functions/api/major-bands.js\n          grep -q \"MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16\" functions/api/major-bands.js\n          grep -q \"requestForBand(context.request, sourceUrl, band, input.pageLimit)\" functions/api/major-bands.js\n          grep -q \"allBandsEffectivePageLimit\" functions/api/major-bands.js\n          grep -q \"expectedAllBandsPageLimitCap = 16\" tools/verify-major-bands-preview-concurrency-v3990_0.mjs\n          grep -q \"requestedBandRawRowStorage\"", 'rank workflow gates')
+          rank_workflow_path.write_text(rank_workflow, encoding='utf-8')
+
+          prod_workflow_path = Path('.github/workflows/verify-production-api-health-v3971.yml')
+          prod_workflow = prod_workflow_path.read_text(encoding='utf-8')
+          prod_workflow = replace_once(prod_workflow, "          grep -q \"const ALL_BANDS_LOAD_CONCURRENCY = 3\" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js\n          grep -q \"MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION", "          grep -q \"const ALL_BANDS_LOAD_CONCURRENCY = 3\" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js\n          grep -q \"MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16\" functions/api/major-bands.js\n          grep -q \"requestForBand(context.request, sourceUrl, band, input.pageLimit)\" functions/api/major-bands.js\n          grep -q \"allBandsEffectivePageLimit\" functions/api/major-bands.js\n          grep -q \"MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION", 'production workflow gates')
+          prod_workflow_path.write_text(prod_workflow, encoding='utf-8')
+
+          resource_audit_path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+          resource_audit = resource_audit_path.read_text(encoding='utf-8')
+          resource_audit = replace_once(resource_audit, "  'ALL_BANDS_LOAD_CONCURRENCY = 3',\n  'rankRange: scope.requestedRange',", "  'ALL_BANDS_LOAD_CONCURRENCY = 3',\n  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',\n  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',\n  'allBandsEffectivePageLimit',\n  'rankRange: scope.requestedRange',", 'resource gates')
+          resource_audit_path.write_text(resource_audit, encoding='utf-8')
+          PY
+
+      - name: Verify syntax and complete rank truth contracts
+        run: |
+          set -euo pipefail
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-request-band-scope-v3990_0.mjs
+          MAJOR_BANDS_RANK_AUDIT_EVIDENCE=/tmp/v3990-page-budget-retry2-rank-audit.json \
+            node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_0.mjs
+
+      - name: Verify local Pages mixed pressure and effective-limit equivalence
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8797 --compatibility-date=2026-07-01 >/tmp/v3990-page-budget-retry2-wrangler.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 60); do
+            body="$(curl --fail --silent --show-error --max-time 20 'http://127.0.0.1:8797/api/major-bands?candidateScore=579&rangePreset=standard&limit=37' || true)"
+            if grep -q '"allBandsPageLimitCap":16' <<<"$body" \
+              && grep -q '"allBandsRequestedPageLimit":37' <<<"$body" \
+              && grep -q '"allBandsEffectivePageLimit":16' <<<"$body" \
+              && grep -q '"limit":16' <<<"$body"; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" -eq 1
+          TARGET_BASE=http://127.0.0.1:8797 \
+          CONCURRENCY_LEVELS=1,5,10,25,50 \
+          CONCURRENCY_WAVES=2 \
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE=/tmp/v3990-page-budget-retry2-local-pressure.json \
+            node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          kill "$worker_pid" 2>/dev/null || true
+          wait "$worker_pid" 2>/dev/null || true
+          trap - EXIT
+
+      - name: Commit verified page budget and remove staging workflows
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/zz-one-time-v3990-allbands-page-budget.yml
+          rm -f .github/workflows/zz-one-time-v3990-allbands-page-budget-retry.yml
+          rm -f .github/workflows/zz-one-time-v3990-allbands-page-budget-retry2.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/api/major-bands.js \
+            tools/verify-major-bands-preview-concurrency-v3990_0.mjs \
+            tools/audit-major-bands-query-execution-cache-v3990_0.mjs \
+            tools/audit-production-resource-verification-v3990_0.mjs \
+            .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
+            .github/workflows/verify-production-api-health-v3971.yml \
+            .github/workflows/zz-one-time-v3990-allbands-page-budget.yml \
+            .github/workflows/zz-one-time-v3990-allbands-page-budget-retry.yml \
+            .github/workflows/zz-one-time-v3990-allbands-page-budget-retry2.yml
+          git commit -m 'fix(rank): propagate bounded all-bands page limit'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload page-budget evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-allbands-page-budget-retry2-evidence
+          path: |
+            /tmp/v3990-page-budget-retry2-rank-audit.json
+            /tmp/v3990-page-budget-retry2-local-pressure.json
+            /tmp/v3990-page-budget-retry2-wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
