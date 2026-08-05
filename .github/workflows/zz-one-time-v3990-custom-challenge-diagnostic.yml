@@ -1,0 +1,43 @@
+name: One-time v3990 custom challenge diagnostic
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-custom-challenge-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-custom-challenge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Capture custom-domain challenge evidence
+        run: |
+          set -euo pipefail
+          for path in \
+            '/ln-rank/' \
+            '/api/major-bands-health?probe=1' \
+            '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0'; do
+            slug="$(printf '%s' "$path" | tr '/?&=' '_')"
+            curl --silent --show-error --location --max-time 35 \
+              -D "/tmp/${slug}.headers" \
+              -o "/tmp/${slug}.body" \
+              -w '%{http_code}\n' \
+              "https://gaokao.powers.org.cn${path}&challenge-diagnostic=${GITHUB_SHA}-$(date +%s%N)" \
+              | tee "/tmp/${slug}.status"
+            echo "=== $path ==="
+            cat "/tmp/${slug}.headers"
+            head -c 500 "/tmp/${slug}.body" || true
+            echo
+          done
+      - name: Upload challenge evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-custom-challenge-diagnostic
+          path: /tmp/*
+          retention-days: 3
