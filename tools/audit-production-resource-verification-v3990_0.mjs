@@ -89,6 +89,7 @@ const deployWorkflow = fs.readFileSync('.github/workflows/deploy-cloudflare-page
 for (const marker of [
   'pull_request:',
   'branches: [main]',
+  'types: [opened, synchronize, reopened, ready_for_review]',
   'source-contract:',
   'deploy-production:',
   "github.event_name == 'push'",
