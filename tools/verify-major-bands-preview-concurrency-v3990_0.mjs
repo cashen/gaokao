@@ -22,6 +22,7 @@ const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-
 const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_0';
 const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_0';
 const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_0';
+const expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0';
 const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_0';
 const expectedOrderProjectionVersion = 'major-bands-rank-order-minimal-projection-v3990_0';
 const expectedOrderPageSourceVersion = 'major-bands-order-page-raw-row-reuse-v3990_0';
@@ -150,6 +151,9 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.queryExecutionCacheVersion, expectedQueryCacheVersion, `${result.scenario}: query execution cache`);
   assert.equal(result.payload?.source?.queryMemoryMode, expectedQueryMemoryMode, `${result.scenario}: query memory deployment`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheVersion, expectedOrderIdCacheVersion, `${result.scenario}: ordered-ID cache deployment`);
+  assert.equal(result.payload?.source?.requestedBandOrderEdgeCacheVersion, expectedOrderEdgeCacheVersion, `${result.scenario}: ordered-ID edge cache deployment`);
+  assert.equal(result.payload?.source?.requestedBandOrderEdgeCacheCanonicalKey, true, `${result.scenario}: ordered-ID edge cache key`);
+  assert.ok(['hit', 'miss', 'stored', 'module-hit', 'unavailable', 'write-failed', 'shared-projection', 'keyword-bypass'].includes(result.payload?.source?.requestedBandOrderEdgeCacheStatus), `${result.scenario}: invalid ordered-ID edge cache status`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsDecodedRows, false, `${result.scenario}: ordered-ID cache retained decoded rows`);
   assert.equal(result.payload?.source?.requestedBandOrderCacheRetainsEnrichedRecords, false, `${result.scenario}: ordered-ID cache retained enriched records`);
   assert.equal(result.payload?.source?.requestedBandOrderProjectionVersion, expectedOrderProjectionVersion, `${result.scenario}: minimal order projection deployment`);
@@ -170,7 +174,7 @@ function validateResult(result) {
   if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-miss') {
     assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'raw-row-reuse', `${result.scenario}: cold order page did not reuse raw rows`);
   }
-  if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
+  if (!result.allBands && ['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {
     assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'page-id-refetch', `${result.scenario}: cached order page source`);
   }
   assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(result.payload?.meta?.pageSize || 80), `${result.scenario}: page decoded more than page size`);
@@ -186,7 +190,7 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.allBandsPageCacheReleaseMode, 'release-completed-on-requested-band-switch-v3990_0', `${result.scenario}: all-band page cache release mode`);
   const allowedCacheStatuses = result.allBands
     ? ['sequential-band-orchestration']
-    : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];
+    : ['miss', 'singleflight-hit', 'serialized-compact-hit', 'ordered-id-hit', 'ordered-id-edge-hit', 'ordered-id-miss', 'ordered-id-singleflight-hit'];
   assert.ok(allowedCacheStatuses.includes(result.payload?.source?.queryExecutionCacheStatus), `${result.scenario}: query execution cache status`);
   assert.equal(result.payload?.source?.bucketLoaderVersion, expectedBucketLoaderVersion, `${result.scenario}: bounded bucket loader`);
   assert.equal(
@@ -252,7 +256,7 @@ function validateResult(result) {
     assert.equal(Number(result.payload?.source?.queryExecutionPageLimit), Number(group.pagination?.limit), `${result.scenario}: execution page limit`);
     assert.ok(Number(result.payload?.source?.rankBucketMaxConcurrency || 0) <= 1, `${result.scenario}: requested-band bucket concurrency exceeded one`);
     assert.ok(Number(result.payload?.source?.sortPasses || 0) <= 1, `${result.scenario}: requested-band performed more than one sort`);
-    if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
+    if (['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {
       assert.ok(Number(result.payload?.source?.rankDecodedRowCount || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID hit decoded more than current page`);
       assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID page exceeded limit`);
     }
@@ -348,6 +352,7 @@ async function exhaustPagination(scenario) {
   let count = null;
   let snapshot = '';
   let requests = 0;
+  let orderEdgeHits = 0;
   while (requests < 240) {
     const url = new URL(scenario.path, 'https://contract.local');
     url.searchParams.set('offset', String(offset));
@@ -355,6 +360,7 @@ async function exhaustPagination(scenario) {
     const path = `${url.pathname}?${url.searchParams}`;
     const result = await requestScenario({ ...scenario, path }, `page-${scenario.name}-${offset}-${Date.now()}`);
     validateResult(result);
+    if (result.payload?.source?.requestedBandOrderEdgeCacheStatus === 'hit') orderEdgeHits += 1;
     requests += 1;
     const group = result.payload.bands[scenario.band];
     if (count == null) count = Number(group.count || 0);
@@ -375,7 +381,7 @@ async function exhaustPagination(scenario) {
     offset = nextOffset;
   }
   assert.equal(seen.size, count, `${scenario.name}: paged ID union ${seen.size} != ${count}`);
-  return { scenario: scenario.name, count, ids: seen.size, requests, snapshot };
+  return { scenario: scenario.name, count, ids: seen.size, requests, snapshot, orderEdgeHits };
 }
 
 const allBandEquivalence = await verifyAllBandPageEquivalence();
@@ -433,6 +439,10 @@ for (const mode of concurrencyModes) {
 
 const pagination = [];
 for (const scenario of paginationScenarios) pagination.push(await exhaustPagination(scenario));
+if (base.startsWith('https://')) {
+  const safePagination = pagination.find(item => item.scenario === 'safe-449-near');
+  assert.ok(Number(safePagination?.orderEdgeHits || 0) > 0, 'safe-449-near pagination did not use ordered-ID edge snapshot');
+}
 totalRequests += pagination.reduce((sum, item) => sum + item.requests, 0);
 
 const allConcurrencyEvidence = concurrencyModes.flatMap(mode => concurrency[mode]);

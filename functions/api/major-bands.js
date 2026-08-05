@@ -82,6 +82,8 @@ export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-e
 const ALL_BANDS_EDGE_CACHE_TTL_SECONDS = 60;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0';
+const REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
@@ -152,6 +154,50 @@ function retainRequestedBandOrderSnapshot(identity, snapshot) {
     expiresAt: Date.now() + REQUESTED_BAND_ORDER_CACHE_TTL_MS
   });
   return true;
+}
+
+function requestedBandOrderEdgeCacheRequest(request) {
+  const url = new URL(request.url);
+  url.searchParams.delete('stress');
+  url.searchParams.delete('deploy');
+  url.searchParams.delete('offset');
+  url.searchParams.delete('limit');
+  url.searchParams.set('__orderEdgeCache', MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION);
+  url.searchParams.sort();
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+async function readRequestedBandOrderEdgeSnapshot(cache, request) {
+  try {
+    const response = await cache.match(request);
+    if (!response) return null;
+    const payload = await response.json();
+    const snapshot = payload?.snapshot;
+    const orderedIds = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];
+    if (payload?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION) return null;
+    if (snapshot?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION) return null;
+    if (!snapshot?.snapshot || orderedIds.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return null;
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+async function writeRequestedBandOrderEdgeSnapshot(cache, request, snapshot) {
+  try {
+    const payload = { version: MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION, snapshot };
+    const body = JSON.stringify(payload);
+    if (body.length > REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY + 512) return false;
+    await cache.put(request, new Response(body, {
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'cache-control': `public, max-age=${REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS}`
+      }
+    }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function requestedBandOrderCacheState(identity = '') {
@@ -699,6 +745,8 @@ async function executeRequestedBandOrderedPage(context, input) {
     && !schoolFilter
     && filters.bottomLineMode === 'all'
     && filters.specialProjectMode === 'hide_eligibility_projects';
+  const orderEdgeCache = allBandsShared ? null : allBandsEdgeCacheHandle();
+  const orderEdgeCacheRequest = orderEdgeCache ? requestedBandOrderEdgeCacheRequest(context.request) : null;
   let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);
   let heavyExecution = null;
   let loadedStats = null;
@@ -706,6 +754,17 @@ async function executeRequestedBandOrderedPage(context, input) {
   let pageRecords = null;
   let orderPageSource = 'page-id-refetch';
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
+  let orderEdgeCacheStatus = allBandsShared
+    ? 'shared-projection'
+    : (retained ? 'module-hit' : (orderEdgeCache ? 'miss' : 'unavailable'));
+  if (!retained && orderEdgeCache && orderEdgeCacheRequest) {
+    retained = await readRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest);
+    if (retained) {
+      retainRequestedBandOrderSnapshot(orderIdentity, retained);
+      orderCacheStatus = 'ordered-id-edge-hit';
+      orderEdgeCacheStatus = 'hit';
+    }
+  }
 
   if (allBandsShared?.processed) {
     const ordered = allBandsShared.processed.grouped[requestedBand].ordered;
@@ -809,6 +868,10 @@ async function executeRequestedBandOrderedPage(context, input) {
       orderPageSource = built.orderPageSource || 'raw-row-reuse';
     }
     retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    if (orderEdgeCache && orderEdgeCacheRequest) {
+      const stored = await writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained);
+      orderEdgeCacheStatus = stored ? 'stored' : 'write-failed';
+    }
     orderCacheStatus = heavyExecution.joinedInFlight ? 'ordered-id-singleflight-hit' : 'ordered-id-miss';
   }
 
@@ -911,6 +974,10 @@ async function executeRequestedBandOrderedPage(context, input) {
     joinedInFlight: Boolean(heavyExecution?.joinedInFlight),
     waitedForExecutionSlot: Boolean(heavyExecution?.waitedForExecutionSlot),
     orderCacheStatus,
+    orderEdgeCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION,
+    orderEdgeCacheStatus,
+    orderEdgeCacheCanonicalKey: true,
+    orderEdgeCacheTtlSeconds: REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS,
     orderCacheIdCount: orderedIdCount,
     pageDecodedRecordCount: pageRecords.length,
     orderCacheState: requestedBandOrderCacheState(orderIdentity),
@@ -1251,6 +1318,10 @@ export async function onRequest(context) {
         queryExecutionPageLimit: cacheRetention.pageLimit,
         requestedBandOrderCacheVersion: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
         requestedBandOrderCacheStatus: execution.orderCacheStatus || 'keyword-bypass',
+        requestedBandOrderEdgeCacheVersion: execution.orderEdgeCacheVersion || MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION,
+        requestedBandOrderEdgeCacheStatus: execution.orderEdgeCacheStatus || 'keyword-bypass',
+        requestedBandOrderEdgeCacheCanonicalKey: execution.orderEdgeCacheCanonicalKey !== false,
+        requestedBandOrderEdgeCacheTtlSeconds: Number(execution.orderEdgeCacheTtlSeconds || REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS),
         requestedBandOrderPageSourceVersion: execution.orderPageSourceVersion || MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
         requestedBandOrderPageSource: execution.orderPageSource || 'keyword-bypass',
         requestedBandOrderColdSecondAssetPass: execution.orderColdSecondAssetPass === true,
