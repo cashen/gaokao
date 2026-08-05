@@ -188,15 +188,19 @@ for (const marker of [
   'rankRowsSkipped: payload.rows.length - selectedRows.length'
 ]) assert.ok(staticProvider.includes(marker), `predecode rank-row provider missing ${marker}`);
 
+const majorBandsApi = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+for (const marker of [
+  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
+  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
+  'allBandsEffectivePageLimit: input.pageLimit'
+]) assert.ok(majorBandsApi.includes(marker), `all-bands API page budget missing ${marker}`);
+
 const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
 for (const marker of [
   `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
   `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,
   'MAX_LOAD_CONCURRENCY = 1',
   'ALL_BANDS_LOAD_CONCURRENCY = 3',
-  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
-  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
-  'allBandsEffectivePageLimit',
   'rankRange: scope.requestedRange',
   'rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION',
   'cloneLoadedForSharedQuery',
