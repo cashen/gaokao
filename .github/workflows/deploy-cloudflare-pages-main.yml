@@ -15,6 +15,7 @@ on:
       - 'tools/audit-site-runtime-generation-v3990_0.mjs'
       - 'tools/verify-production-resource-graph-v3990_0.mjs'
       - 'tools/verify-production-baseline-v3971.mjs'
+      - 'functions/api/pages-deployment-identity.js'
       - 'functions/api/major-bands.js'
       - 'functions/api/major-bands-health.js'
       - 'functions/_lib/major-bands-*.js'
@@ -48,11 +49,14 @@ jobs:
           grep -q "display: 'v3.9.90.0'" shared/resources/release/current-release.js
           grep -q "siteRuntimeGeneration: 'v3990_0'" shared/resources/release/current-release.js
           grep -q "sharedResourceGraphVersion: 'site-resource-graph-v3990_0'" shared/resources/release/current-release.js
+          grep -q "deploymentIdentity: '/api/pages-deployment-identity'" shared/governance/production-resource-verification-contract.v3990_0.js
+          test -f functions/api/pages-deployment-identity.js
           test -f ln-rank/data/major-bands-static-v3972_2/manifest.json
           test -f ln-rank/data/major-bands-static-v3972_2/audit.json
           test ! -e functions/api/local-strength.js
           test ! -e functions/_lib/local-strength-api.js
           for file in \
+            functions/api/pages-deployment-identity.js \
             functions/api/major-bands.js \
             functions/api/major-bands-health.js \
             functions/_lib/major-bands-static-provider.js \
@@ -85,7 +89,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Resolve and verify Cloudflare deployment credentials
+      - name: Resolve Cloudflare deployment mode
+        id: deployment-mode
         env:
           CF_TOKEN_PRIMARY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_TOKEN_FALLBACK: ${{ secrets.CF_API_TOKEN }}
@@ -95,12 +100,20 @@ jobs:
           set -euo pipefail
           token="${CF_TOKEN_PRIMARY:-${CF_TOKEN_FALLBACK:-}}"
           account="${CF_ACCOUNT_PRIMARY:-${CF_ACCOUNT_FALLBACK:-}}"
-          test -n "$token" || { echo 'Missing CLOUDFLARE_API_TOKEN or CF_API_TOKEN repository secret.'; exit 2; }
-          test -n "$account" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID or CF_ACCOUNT_ID repository secret.'; exit 2; }
           test -n "${CF_PROJECT_NAME:-}" || { echo 'Missing Cloudflare Pages project name.'; exit 2; }
-          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
-          echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
-      - name: Deploy exact v3.9.90.0 main commit
+          if [ -n "$token" ] && [ -n "$account" ]; then
+            echo 'mode=wrangler' >> "$GITHUB_OUTPUT"
+            echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+            echo "CLOUDFLARE_ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+          elif [ -z "$token" ] && [ -z "$account" ]; then
+            echo 'mode=git-integration' >> "$GITHUB_OUTPUT"
+            echo 'Cloudflare credentials are absent; waiting for the repository Git integration.'
+          else
+            echo 'Cloudflare credentials are partially configured; token and account ID must be supplied together.'
+            exit 2
+          fi
+      - name: Deploy exact v3.9.90.0 main commit with Wrangler
+        if: steps.deployment-mode.outputs.mode == 'wrangler'
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -111,11 +124,19 @@ jobs:
             --commit-hash="$GITHUB_SHA" \
             --commit-message="$commit_message" \
             2>&1 | tee /tmp/cloudflare-pages-v3990-0-deploy.out
+      - name: Await repository Git integration
+        if: steps.deployment-mode.outputs.mode == 'git-integration'
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          printf 'deployment_mode=git-integration\nexpected_sha=%s\n' "$GITHUB_SHA" \
+            | tee /tmp/cloudflare-pages-v3990-0-deploy.out
       - name: Verify exact v3.9.90.0 production deployment
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
           CUSTOM_BASE: https://gaokao.powers.org.cn
           RELEASE_SHA: ${{ github.sha }}
+          EXPECTED_DEPLOYMENT_BRANCH: main
           VERIFY_MAJOR_BANDS: 'true'
           PRODUCTION_RESOURCE_ATTEMPTS: '45'
           PRODUCTION_RESOURCE_WAIT_MS: '10000'
