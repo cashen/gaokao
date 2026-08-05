@@ -28,6 +28,7 @@ const expectedOrderPageSourceVersion = 'major-bands-order-page-raw-row-reuse-v39
 const expectedResultOrderVersion = 'major-bands-result-order-ephemeral-v3990_0';
 const expectedRankingMemoryMode = 'ephemeral-compact-tuples-v3990_0';
 const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_0';
+const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_0';
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -149,13 +150,13 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.requestedBandOrderProjectionVersion, expectedOrderProjectionVersion, `${result.scenario}: minimal order projection deployment`);
   assert.equal(result.payload?.source?.requestedBandOrderMinimalProjection, true, `${result.scenario}: default query did not use minimal projection`);
   assert.equal(result.payload?.source?.requestedBandOrderPageSourceVersion, expectedOrderPageSourceVersion, `${result.scenario}: order page source deployment`);
-  assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
+  assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch', 'all-bands-shared-projection'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
   assert.equal(result.payload?.source?.requestedBandOrderColdSecondAssetPass, false, `${result.scenario}: cold ordered query performed a second asset pass`);
   assert.equal(result.payload?.source?.requestedBandRawRowReferenceNonEnumerable, true, `${result.scenario}: raw row reference contract`);
-  if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-miss') {
+  if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-miss') {
     assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'raw-row-reuse', `${result.scenario}: cold order page did not reuse raw rows`);
   }
-  if (result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
+  if (!result.allBands && result.payload?.source?.requestedBandOrderCacheStatus === 'ordered-id-hit') {
     assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'page-id-refetch', `${result.scenario}: cached order page source`);
   }
   assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(result.payload?.meta?.pageSize || 80), `${result.scenario}: page decoded more than page size`);
@@ -191,6 +192,13 @@ function validateResult(result) {
     assert.ok(pageSize > 0, `${result.scenario}: invalid page size`);
     assert.equal(result.payload?.source?.allBandsExecutionMode, expectedAllBandsExecutionMode, `${result.scenario}: sequential all-band execution mode`);
     assert.equal(result.payload?.source?.allBandsPageCacheVersion, expectedAllBandsPageCacheVersion, `${result.scenario}: final all-band page cache deployment`);
+    assert.equal(result.payload?.source?.allBandsSharedProjectionVersion, expectedAllBandsSharedProjectionVersion, `${result.scenario}: shared all-band projection deployment`);
+    assert.equal(Number(result.payload?.source?.allBandsPhysicalProjectionPasses), 1, `${result.scenario}: all-band physical projection passes`);
+    assert.equal(Number(result.payload?.source?.allBandsSharedProjectionReuses), 2, `${result.scenario}: all-band projection reuse count`);
+    assert.equal(Number(result.payload?.source?.allBandsFallbackPageRefetches), 0, `${result.scenario}: all-band fallback page refetch`);
+    assert.ok(Number(result.payload?.source?.allBandsPhysicalAssetPasses) <= 1, `${result.scenario}: all-band physical asset passes`);
+    assert.equal(result.payload?.source?.allBandsTransientProjectionReleased, true, `${result.scenario}: all-band transient projection retained`);
+    assert.equal(result.payload?.source?.requestedBandOrderPageSource, 'all-bands-shared-projection', `${result.scenario}: all-band page source`);
     assert.equal(Number(result.payload?.source?.sequentialBandPasses), 3, `${result.scenario}: sequential band pass count`);
     assert.equal(result.payload?.source?.architecture, 'single-worker-sequential-band-pages-over-immutable-static-buckets', `${result.scenario}: sequential architecture`);
     assert.equal(result.payload?.source?.mode, 'single-worker-sequential-band-query-stable-snapshot-paged', `${result.scenario}: sequential mode`);

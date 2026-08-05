@@ -95,6 +95,7 @@ jobs:
           grep -q "const MAX_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 1" functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
           grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0'" functions/api/major-bands.js
           grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
@@ -205,6 +206,7 @@ jobs:
           for attempt in $(seq 1 90); do
             release="$(curl --fail --silent --show-error --location --max-time 25 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/shared/resources/release/current-release.js?candidate=${GITHUB_SHA}-${attempt}" || true)"
             api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&candidate=${GITHUB_SHA}-${attempt}" || true)"
+            all_api="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&candidate=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q "display: 'v3.9.90.0'" <<<"$release" \
               && grep -q "siteRuntimeGeneration: 'v3990_0'" <<<"$release" \
               && grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$api" \
@@ -219,7 +221,9 @@ jobs:
               && grep -q '"sortPasses":1' <<<"$api" \
               && grep -q '"rankRowFilterVersion":"major-bands-rank-row-filter-v3990_0"' <<<"$api" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$api" \
-              && grep -q '"publicHttpSelfFanout":false' <<<"$api"; then
+              && grep -q '"publicHttpSelfFanout":false' <<<"$api" \
+              && grep -q '"allBandsSharedProjectionVersion":"major-bands-all-bands-shared-projection-v3990_0"' <<<"$all_api" \
+              && grep -q '"allBandsPhysicalAssetPasses":1' <<<"$all_api"; then
               ready=1
               break
             fi

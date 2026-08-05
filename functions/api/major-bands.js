@@ -76,6 +76,7 @@ import {
 assertMajorBandsRankIndex();
 
 export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
+export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
@@ -419,14 +420,73 @@ function allBandsResponse(execution) {
 
 async function executeAllBandsSequentially(context, sourceUrl, input) {
   const execution = await executeMajorBandsAllBandsPageOnce(allBandsPageIdentity(input), async () => {
+    const sharedProjectionEligible = input.filters.region === 'all'
+      && !input.filters.schoolKeyword
+      && !input.filters.schoolEntityId
+      && !input.filters.majorKeyword
+      && input.filters.bottomLineMode === 'all'
+      && input.filters.specialProjectMode === 'hide_eligibility_projects';
+    let allBandsShared = null;
+    if (sharedProjectionEligible) {
+      const candidateRank = rankContextForScore(input.candidateScore);
+      const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
+      const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, input.rangePreset, totalRank);
+      const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
+      const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, {
+        projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+      });
+      const processed = processMajorBandsRankWindow(loaded.records, {
+        candidateScore: input.candidateScore,
+        candidateRank,
+        rangePreset: input.rangePreset,
+        region: input.filters.region,
+        majorKeyword: '',
+        bottomLineMode: input.filters.bottomLineMode,
+        specialProjectMode: input.filters.specialProjectMode,
+        schoolFilter: false,
+        acceptedSchoolNames: []
+      });
+      allBandsShared = {
+        version: MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION,
+        candidateRank,
+        totalRank,
+        rankWindows,
+        selectedBuckets,
+        loadedStats: loaded.stats,
+        processed,
+        bandUses: 0,
+        physicalProjectionPasses: selectedBuckets.length ? 1 : 0,
+        fallbackPageRefetches: 0
+      };
+    }
+
     const payloads = [];
     for (const band of BAND_KEYS) {
       const response = await onRequest({
         ...context,
+        majorBandsAllBandsShared: allBandsShared,
         request: requestForBand(context.request, sourceUrl, band)
       });
       if (!response.ok) return response;
       payloads.push(await response.json());
+    }
+
+    const sharedAggregate = allBandsShared?.processed?.stats || null;
+    const sharedLoadedStats = allBandsShared?.loadedStats || null;
+    const sharedSelectedBucketCount = Array.isArray(allBandsShared?.selectedBuckets)
+      ? allBandsShared.selectedBuckets.length
+      : 0;
+    const sharedBandUses = Number(allBandsShared?.bandUses || 0);
+    const sharedPhysicalProjectionPasses = Number(allBandsShared?.physicalProjectionPasses || 0);
+    const sharedFallbackPageRefetches = Number(allBandsShared?.fallbackPageRefetches || 0);
+    let sharedTransientProjectionReleased = false;
+    if (allBandsShared) {
+      allBandsShared.processed = null;
+      allBandsShared.loadedStats = null;
+      allBandsShared.selectedBuckets = null;
+      sharedTransientProjectionReleased = allBandsShared.processed === null
+        && allBandsShared.loadedStats === null
+        && allBandsShared.selectedBuckets === null;
     }
 
     const byBand = Object.fromEntries(BAND_KEYS.map((band, index) => [band, payloads[index]]));
@@ -435,11 +495,21 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
     counts.total = BAND_KEYS.reduce((sum, band) => sum + counts[band], 0);
 
     const keywordQuery = payloads[0].keywordQuery || {};
-    const matchSummary = mergeNumericTree(payloads.map(payload => payload.matchSummary));
-    const specialProjectStats = mergeNumericTree(payloads.map(payload => payload.source?.specialProjectStats));
-    const bottomLineUnresolved = numericSum(payloads, ['source', 'bottomLineUnresolved']);
-    const specialProjectShown = numericSum(payloads, ['source', 'specialProjectShown']);
-    const specialProjectHidden = numericSum(payloads, ['source', 'specialProjectHidden']);
+    const matchSummary = sharedAggregate?.matchSummary
+      ? mergeNumericTree([sharedAggregate.matchSummary])
+      : mergeNumericTree(payloads.map(payload => payload.matchSummary));
+    const specialProjectStats = sharedAggregate?.specialProjectStats
+      ? mergeNumericTree([sharedAggregate.specialProjectStats])
+      : mergeNumericTree(payloads.map(payload => payload.source?.specialProjectStats));
+    const bottomLineUnresolved = sharedAggregate
+      ? Number(sharedAggregate.bottomLineUnresolved || 0)
+      : numericSum(payloads, ['source', 'bottomLineUnresolved']);
+    const specialProjectShown = sharedAggregate
+      ? Number(sharedAggregate.specialProjectShown || 0)
+      : numericSum(payloads, ['source', 'specialProjectShown']);
+    const specialProjectHidden = sharedAggregate
+      ? Number(sharedAggregate.specialProjectHidden || 0)
+      : numericSum(payloads, ['source', 'specialProjectHidden']);
     const specialIntent = /公费师范|优师|定向|专项|预科|民族班|公安|警察|司法|航海|轮机/.test(input.filters.majorKeyword);
     const searchAdvices = buildSearchConflictAdvice({
       keywordQuery,
@@ -488,32 +558,38 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       architecture: 'single-worker-sequential-band-pages-over-immutable-static-buckets',
       chunksRead: uniqueBuckets.length,
       chunksSkipped: MAJOR_BANDS_RANK_BUCKETS.length - uniqueBuckets.length,
-      rankBucketReadsTotal: numericSum(payloads, ['source', 'chunksRead']),
-      rawScanned: numericSum(payloads, ['source', 'rawScanned']),
-      canonicalCandidate: numericSum(payloads, ['source', 'canonicalCandidate']),
-      rawCandidate: numericSum(payloads, ['source', 'rawCandidate']),
-      normalized: numericSum(payloads, ['source', 'normalized']),
-      staticIndexBytes: numericSum(payloads, ['source', 'staticIndexBytes']),
-      bottomLineExcluded: numericSum(payloads, ['source', 'bottomLineExcluded']),
+      rankBucketReadsTotal: allBandsShared ? sharedSelectedBucketCount : numericSum(payloads, ['source', 'chunksRead']),
+      rawScanned: sharedAggregate ? Number(sharedAggregate.rawScanned || 0) : numericSum(payloads, ['source', 'rawScanned']),
+      canonicalCandidate: sharedAggregate ? Number(sharedAggregate.canonicalCandidate || 0) : numericSum(payloads, ['source', 'canonicalCandidate']),
+      rawCandidate: sharedAggregate ? Number(sharedAggregate.rawCandidate || 0) : numericSum(payloads, ['source', 'rawCandidate']),
+      normalized: sharedAggregate ? Number(sharedAggregate.normalized || 0) : numericSum(payloads, ['source', 'normalized']),
+      staticIndexBytes: sharedLoadedStats ? Number(sharedLoadedStats.staticIndexBytes || 0) : numericSum(payloads, ['source', 'staticIndexBytes']),
+      bottomLineExcluded: sharedAggregate ? Number(sharedAggregate.bottomLineExcluded || 0) : numericSum(payloads, ['source', 'bottomLineExcluded']),
       bottomLineUnresolved,
-      majorKeywordExcluded: numericSum(payloads, ['source', 'majorKeywordExcluded']),
-      majorHitCount: numericSum(payloads, ['source', 'majorHitCount']),
-      projectHitCount: numericSum(payloads, ['source', 'projectHitCount']),
-      industryHitCount: numericSum(payloads, ['source', 'industryHitCount']),
+      majorKeywordExcluded: sharedAggregate ? Number(sharedAggregate.majorKeywordExcluded || 0) : numericSum(payloads, ['source', 'majorKeywordExcluded']),
+      majorHitCount: sharedAggregate ? Number(sharedAggregate.majorHitCount || 0) : numericSum(payloads, ['source', 'majorHitCount']),
+      projectHitCount: sharedAggregate ? Number(sharedAggregate.projectHitCount || 0) : numericSum(payloads, ['source', 'projectHitCount']),
+      industryHitCount: sharedAggregate ? Number(sharedAggregate.industryHitCount || 0) : numericSum(payloads, ['source', 'industryHitCount']),
       specialProjectHidden,
       specialProjectShown,
       specialProjectStats,
-      rankBucketCacheHits: numericSum(payloads, ['source', 'rankBucketCacheHits']),
-      rankBucketCacheMisses: numericSum(payloads, ['source', 'rankBucketCacheMisses']),
+      rankBucketCacheHits: sharedLoadedStats ? Number(sharedLoadedStats.cacheHits || 0) : numericSum(payloads, ['source', 'rankBucketCacheHits']),
+      rankBucketCacheMisses: sharedLoadedStats ? Number(sharedLoadedStats.cacheMisses || 0) : numericSum(payloads, ['source', 'rankBucketCacheMisses']),
       rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
-      rankRawRowCount: numericSum(payloads, ['source', 'rankRawRowCount']),
-      rankDecodedRowCount: numericSum(payloads, ['source', 'rankDecodedRowCount']),
-      rankRowsSkipped: numericSum(payloads, ['source', 'rankRowsSkipped']),
-      rankBucketConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
-      rankBucketMaxConcurrency: Math.max(...payloads.map(payload => Number(payload.source?.rankBucketMaxConcurrency || 0))),
-      sortPasses: numericSum(payloads, ['source', 'sortPasses']),
+      rankRawRowCount: sharedLoadedStats ? Number(sharedLoadedStats.rawRowCount || 0) : numericSum(payloads, ['source', 'rankRawRowCount']),
+      rankDecodedRowCount: sharedLoadedStats ? Number(sharedLoadedStats.decodedRowCount || 0) : numericSum(payloads, ['source', 'rankDecodedRowCount']),
+      rankRowsSkipped: sharedLoadedStats ? Number(sharedLoadedStats.rankRowsSkipped || 0) : numericSum(payloads, ['source', 'rankRowsSkipped']),
+      rankBucketConcurrency: sharedLoadedStats ? Number(sharedLoadedStats.peakConcurrency || 0) : Math.max(...payloads.map(payload => Number(payload.source?.rankBucketConcurrency || 0))),
+      rankBucketMaxConcurrency: sharedLoadedStats ? Number(sharedLoadedStats.maxConcurrency || 0) : Math.max(...payloads.map(payload => Number(payload.source?.rankBucketMaxConcurrency || 0))),
+      sortPasses: sharedAggregate ? Number(sharedAggregate.sortPasses || 0) : numericSum(payloads, ['source', 'sortPasses']),
       allBandsExecutionMode: MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE,
       allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
+      allBandsSharedProjectionVersion: MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION,
+      allBandsPhysicalProjectionPasses: allBandsShared ? sharedPhysicalProjectionPasses : 0,
+      allBandsSharedProjectionReuses: allBandsShared ? Math.max(0, sharedBandUses - 1) : 0,
+      allBandsFallbackPageRefetches: allBandsShared ? sharedFallbackPageRefetches : BAND_KEYS.length,
+      allBandsPhysicalAssetPasses: allBandsShared ? sharedPhysicalProjectionPasses : BAND_KEYS.length,
+      allBandsTransientProjectionReleased: allBandsShared ? sharedTransientProjectionReleased : true,
       sequentialBandPasses: BAND_KEYS.length,
       mode: 'single-worker-sequential-band-query-stable-snapshot-paged'
     };
@@ -545,11 +621,14 @@ async function executeRequestedBandOrderedPage(context, input) {
     pageOffset, pageLimit, executionBaseIdentity
   } = input;
   const orderIdentity = `${executionBaseIdentity}|ordered-id-snapshot`;
+  const allBandsShared = context?.majorBandsAllBandsShared?.version === MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION
+    ? context.majorBandsAllBandsShared
+    : null;
   const minimalOrderProjection = filters.region === 'all'
     && !schoolFilter
     && filters.bottomLineMode === 'all'
     && filters.specialProjectMode === 'hide_eligibility_projects';
-  let retained = readRequestedBandOrderSnapshot(orderIdentity);
+  let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);
   let heavyExecution = null;
   let loadedStats = null;
   let selectedBuckets = null;
@@ -557,7 +636,41 @@ async function executeRequestedBandOrderedPage(context, input) {
   let orderPageSource = 'page-id-refetch';
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
 
-  if (!retained) {
+  if (allBandsShared?.processed) {
+    const ordered = allBandsShared.processed.grouped[requestedBand].ordered;
+    const identity = queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band: requestedBand });
+    retained = {
+      version: MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION,
+      candidateRank: allBandsShared.candidateRank,
+      totalRank: allBandsShared.totalRank,
+      rankWindows: allBandsShared.rankWindows,
+      aggregate: {
+        ...allBandsShared.processed.stats,
+        requestedBand,
+        sortPasses: ordered.length > 1 ? 1 : 0
+      },
+      keywordQuery: allBandsShared.processed.keywordQuery,
+      orderProjectionVersion: allBandsShared.loadedStats.projectionVersion,
+      orderMinimalProjection: allBandsShared.loadedStats.minimalProjection === true,
+      orderRawRowCount: allBandsShared.loadedStats.rawRowCount,
+      orderDecodedRowCount: allBandsShared.loadedStats.decodedRowCount,
+      orderedIds: ordered.map(record => record.id),
+      snapshot: majorBandsSnapshotId(ordered, identity)
+    };
+    const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
+    pageRecords = orderedPage.map(record => {
+      if (!Array.isArray(record.majorBandsRawRow) || !Array.isArray(record.majorBandsRawSchema)) {
+        throw new Error(`位次共享投影缺少原始行引用：${record.id || 'unknown'}`);
+      }
+      return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
+    });
+    loadedStats = allBandsShared.loadedStats;
+    selectedBuckets = allBandsShared.selectedBuckets;
+    retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    orderCacheStatus = 'all-bands-shared-projection';
+    orderPageSource = 'all-bands-shared-projection';
+    allBandsShared.bandUses = Number(allBandsShared.bandUses || 0) + 1;
+  } else if (!retained) {
     heavyExecution = await executeMajorBandsQueryOnce(orderIdentity, async () => {
       const candidateRank = rankContextForScore(candidateScore);
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });

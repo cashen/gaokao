@@ -94,6 +94,7 @@ jobs:
           grep -q "executeMajorBandsQueryOnce" functions/api/major-bands.js
           grep -q "MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION = 'major-bands-query-execution-cache-single-heavy-v3990_0'" functions/_lib/major-bands-query-execution-cache.v3990_0.js
           grep -q "MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
+          grep -q "MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0'" functions/api/major-bands.js
           grep -q "MAX_COMPLETED_PAGES = 1" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "MAX_SERIALIZED_CHARS = 500_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
           grep -q "COMPLETED_TTL_MS = 15_000" functions/_lib/major-bands-all-bands-page-cache.v3990_0.js
@@ -287,6 +288,7 @@ jobs:
           ready=0
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
+            all_body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
             if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
               && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_0"' <<<"$body" \
               && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$body" \
@@ -296,7 +298,9 @@ jobs:
               && grep -q '"rankRowFilterVersion":"major-bands-rank-row-filter-v3990_0"' <<<"$body" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$body" \
               && grep -q '"publicHttpSelfFanout":false' <<<"$body" \
-              && grep -q '"bucketWorkerCount":0' <<<"$body"; then
+              && grep -q '"bucketWorkerCount":0' <<<"$body" \
+              && grep -q '"allBandsSharedProjectionVersion":"major-bands-all-bands-shared-projection-v3990_0"' <<<"$all_body" \
+              && grep -q '"allBandsPhysicalAssetPasses":1' <<<"$all_body"; then
               ready=1
               break
             fi

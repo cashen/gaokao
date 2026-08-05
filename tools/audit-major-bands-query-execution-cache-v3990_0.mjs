@@ -22,6 +22,7 @@ import {
 } from '../ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js';
 
 const ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
+const ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -220,6 +221,17 @@ for (const required of [
   '|current-page:${pageOffset}:${pageLimit}',
   "'compact-requested-band-current-page'",
   'async function executeAllBandsSequentially',
+  `MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = '${ALL_BANDS_SHARED_PROJECTION_VERSION}'`,
+  'majorBandsAllBandsShared: allBandsShared',
+  'allBandsShared?.processed',
+  "orderCacheStatus = 'all-bands-shared-projection'",
+  "orderPageSource = 'all-bands-shared-projection'",
+  'allBandsPhysicalProjectionPasses:',
+  'allBandsSharedProjectionReuses:',
+  'allBandsFallbackPageRefetches:',
+  'allBandsPhysicalAssetPasses:',
+  'allBandsTransientProjectionReleased:',
+  'allBandsShared.processed = null',
   'for (const band of BAND_KEYS)',
   'requestForBand(context.request, sourceUrl, band)',
   'request: requestForBand(context.request, sourceUrl, band)',
@@ -284,7 +296,13 @@ for (const forbidden of ['executionWaiters', 'executionWaiters.push', 'execution
 const concurrencyVerifierSource = fs.readFileSync('tools/verify-major-bands-preview-concurrency-v3990_0.mjs', 'utf8');
 for (const required of [
   `expectedAllBandsExecutionMode = '${ALL_BANDS_EXECUTION_MODE}'`,
+  `expectedAllBandsSharedProjectionVersion = '${ALL_BANDS_SHARED_PROJECTION_VERSION}'`,
   "expectedAllBandsPageCacheVersion = 'major-bands-all-bands-page-cache-release-on-band-switch-v3990_0'",
+  'allBandsPhysicalProjectionPasses), 1',
+  'allBandsSharedProjectionReuses), 2',
+  'allBandsFallbackPageRefetches), 0',
+  'allBandsPhysicalAssetPasses) <= 1',
+  'allBandsTransientProjectionReleased, true',
   "['sequential-band-orchestration']",
   'verifyAllBandPageEquivalence',
   'all-band/${band}: count differs from requested-band page',
