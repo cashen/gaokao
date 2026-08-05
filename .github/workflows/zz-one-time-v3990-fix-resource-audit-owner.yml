@@ -1,0 +1,93 @@
+name: One-time v3990 production resource audit ownership fix
+
+on:
+  push:
+    branches:
+      - agent/rank-kernel-v3990_0
+    paths:
+      - '.github/workflows/zz-one-time-v3990-fix-resource-audit-owner.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/rank-kernel-v3990_0
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Correct API and bucket-loader audit ownership
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/audit-production-resource-verification-v3990_0.mjs')
+          text = path.read_text(encoding='utf-8')
+          old = """const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
+  `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,
+  'MAX_LOAD_CONCURRENCY = 1',
+  'ALL_BANDS_LOAD_CONCURRENCY = 3',
+  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
+  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
+  'allBandsEffectivePageLimit',
+  'rankRange: scope.requestedRange',"""
+          new = """const majorBandsApi = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+for (const marker of [
+  'MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16',
+  'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
+  'allBandsEffectivePageLimit: input.pageLimit'
+]) assert.ok(majorBandsApi.includes(marker), `all-bands API page budget missing ${marker}`);
+
+const bucketLoader = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_0.js', 'utf8');
+for (const marker of [
+  `MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = '${REQUEST_BAND_LOADER_VERSION}'`,
+  `MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = '${RECORD_OWNERSHIP}'`,
+  'MAX_LOAD_CONCURRENCY = 1',
+  'ALL_BANDS_LOAD_CONCURRENCY = 3',
+  'rankRange: scope.requestedRange',"""
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'production resource ownership anchor count={count}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Verify production and canonical source contracts
+        run: |
+          set -euo pipefail
+          node --check tools/audit-production-resource-verification-v3990_0.mjs
+          node tools/audit-production-resource-verification-v3990_0.mjs | tee /tmp/v3990-resource-audit-owner.json
+          node tools/audit-unified-resource-graph-v3990_0.mjs
+          node tools/audit-site-runtime-generation-v3990_0.mjs
+          node tools/audit-canonical-release-version-v3990_0.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+
+      - name: Commit verified audit correction
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/zz-one-time-v3990-fix-resource-audit-owner.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/audit-production-resource-verification-v3990_0.mjs \
+            .github/workflows/zz-one-time-v3990-fix-resource-audit-owner.yml
+          git commit -m 'test(rank): correct production resource audit ownership'
+          git push origin HEAD:agent/rank-kernel-v3990_0
+
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-production-resource-audit-owner
+          path: /tmp/v3990-resource-audit-owner.json
+          if-no-files-found: warn
+          retention-days: 7
