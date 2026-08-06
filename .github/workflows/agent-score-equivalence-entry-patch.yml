@@ -1,0 +1,138 @@
+name: Apply score equivalence entry patch
+
+on:
+  push:
+    branches:
+      - agent/score-equivalence-entry-v3990_0
+    paths:
+      - '.github/workflows/agent-score-equivalence-entry-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/score-equivalence-entry-v3990_0
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply contextual entry patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one anchor, found {count}')
+              file.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          home_industry = '''          <a class="link main" href="/Public_company/" data-home-industry-map-entry><em>产业落地观察</em><strong>全国上市公司产业落地图</strong><span>按省份、行业和上市板块查看企业分布，辅助理解产业聚集；不等于就业承诺，也不构成投资建议。</span></a>'''
+          home_entry = '''          <a class="link" href="/ln-rank/score-converter/" data-score-equivalence-entry="home"><em>历史位置对照</em><strong>这个分数放到往年是多少分</strong><span>输入2026年辽宁物理类分数，按同分最低位次查看2025、2024对应分数。只做历史位置对照，不代表录取结果。</span></a>'''
+          replace_once('index.html', home_industry, home_industry + '\n' + home_entry)
+
+          selection_help = '''          <small id="candidateScoreHelp" class="field-help">系统会换算为辽宁2026物理类历史位次，再按位次关系分组。</small>'''
+          selection_entry = '''          <small class="field-help"><a href="/ln-rank/score-converter/" data-score-equivalence-entry="selection">想看这个2026分数在2025、2024对应多少分？查看历年同位次</a></small>'''
+          replace_once('ln-rank/index.html', selection_help, selection_help + '\n' + selection_entry)
+
+          difficulty_intro = '''      <p class="panel-intro">分数段统一按从低到高排列：344—449分、450—499分，再逐级向上。这里按专业2026年最低投档分归组，不是给某个分数考生直接推荐专业；考生仍要结合自己的位次、选科、招生计划和家庭条件判断。</p>'''
+          difficulty_entry = '''      <p class="panel-intro" data-score-equivalence-guidance>跨年份不要直接比较裸分；需要先对齐考生位置时，<a href="/ln-rank/score-converter/" data-score-equivalence-entry="difficulty">查看历年同位次分数</a>。</p>'''
+          replace_once('ln2026.html', difficulty_intro, difficulty_intro + '\n' + difficulty_entry)
+
+          audit = Path('tools/audit-score-equivalence-v3990_0.mjs')
+          audit_text = audit.read_text(encoding='utf-8')
+          audit_anchor = "const app = read('ln-rank/js/score-converter/score-converter-app.v3990_0.js');"
+          entry_checks = '''const home = read('index.html');
+          const selection = read('ln-rank/index.html');
+          const difficulty = read('ln2026.html');
+          const entryCases = [
+            [home, 'home', '这个分数放到往年是多少分'],
+            [selection, 'selection', '想看这个2026分数在2025、2024对应多少分？查看历年同位次'],
+            [difficulty, 'difficulty', '跨年份不要直接比较裸分']
+          ];
+          for (const [document, placement, copy] of entryCases) {
+            const marker = `data-score-equivalence-entry="${placement}"`;
+            assert.equal(document.split(marker).length - 1, 1, `${placement} entry must be unique`);
+            assert.ok(document.includes('href="/ln-rank/score-converter/"'), `${placement} entry target missing`);
+            assert.ok(document.includes(copy), `${placement} entry copy missing`);
+          }
+          assert.ok(home.indexOf('data-home-industry-map-entry') < home.indexOf('data-score-equivalence-entry="home"'), 'home entry must follow industry map');
+          assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool.html"'), 'home entry must precede family plan');
+          assert.match(selection, /<div class="score-box">[\\s\\S]*data-score-equivalence-entry="selection"[\\s\\S]*<\\/div>/, 'selection entry must stay in score box');
+          assert.match(difficulty, /id="scoreBandPanel"[\\s\\S]*data-score-equivalence-entry="difficulty"[\\s\\S]*<\\/section>/, 'difficulty entry must stay in score-band context');
+          assert.ok(!home.includes('data-ui-route="score-equivalence"'), 'score converter must not become a global primary route');
+
+          '''
+          if audit_text.count(audit_anchor) != 1:
+              raise SystemExit('audit insertion anchor mismatch')
+          audit_text = audit_text.replace(audit_anchor, entry_checks + audit_anchor, 1)
+          protected_anchor = "  assert.ok(![\n    'functions/api/score-equivalence.js',"
+          protected_replacement = "  assert.ok(![\n    'index.html',\n    'ln-rank/index.html',\n    'ln2026.html',\n    'functions/api/score-equivalence.js',"
+          if audit_text.count(protected_anchor) != 1:
+              raise SystemExit('protected list anchor mismatch')
+          audit_text = audit_text.replace(protected_anchor, protected_replacement, 1)
+          output_anchor = '  interpolation: false,\n  protectedPathsUntouched: true'
+          output_replacement = '  navigationEntriesAudited: 3,\n  interpolation: false,\n  protectedPathsUntouched: true'
+          if audit_text.count(output_anchor) != 1:
+              raise SystemExit('audit output anchor mismatch')
+          audit.write_text(audit_text.replace(output_anchor, output_replacement, 1), encoding='utf-8')
+
+          workflow = Path('.github/workflows/verify-score-equivalence-v3990_0.yml')
+          workflow_text = workflow.read_text(encoding='utf-8')
+          path_anchor = "      - 'functions/api/score-equivalence.js'"
+          path_replacement = "      - 'index.html'\n      - 'ln-rank/index.html'\n      - 'ln2026.html'\n      - 'functions/api/score-equivalence.js'"
+          if workflow_text.count(path_anchor) != 2:
+              raise SystemExit('workflow path anchors mismatch')
+          workflow_text = workflow_text.replace(path_anchor, path_replacement)
+          env_anchor = '          API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600'
+          env_replacement = '''          API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600
+          HOME_URL: https://gaokao-4y9.pages.dev/
+          SELECTION_URL: https://gaokao-4y9.pages.dev/ln-rank/
+          DIFFICULTY_URL: https://gaokao-4y9.pages.dev/ln2026.html'''
+          if workflow_text.count(env_anchor) != 1:
+              raise SystemExit('workflow env anchor mismatch')
+          workflow_text = workflow_text.replace(env_anchor, env_replacement, 1)
+          curl_anchor = '            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"'
+          curl_replacement = '''            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"
+            home="$(curl -fsSL --max-time 20 "$HOME_URL" || true)"
+            selection="$(curl -fsSL --max-time 20 "$SELECTION_URL" || true)"
+            difficulty="$(curl -fsSL --max-time 20 "$DIFFICULTY_URL" || true)"'''
+          if workflow_text.count(curl_anchor) != 1:
+              raise SystemExit('workflow curl anchor mismatch')
+          workflow_text = workflow_text.replace(curl_anchor, curl_replacement, 1)
+          condition_anchor = '''            if grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \\'''
+          condition_replacement = '''            if grep -q 'data-score-equivalence-entry="home"' <<<"$home" \\
+              && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \\
+              && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \\
+              && grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \\'''
+          if workflow_text.count(condition_anchor) != 1:
+              raise SystemExit('workflow condition anchor mismatch')
+          workflow.write_text(workflow_text.replace(condition_anchor, condition_replacement, 1), encoding='utf-8')
+          PY
+
+          node --check tools/audit-score-equivalence-v3990_0.mjs
+          node --experimental-default-type=module tools/audit-score-equivalence-v3990_0.mjs
+          grep -q 'data-score-equivalence-entry="home"' index.html
+          grep -q 'data-score-equivalence-entry="selection"' ln-rank/index.html
+          grep -q 'data-score-equivalence-entry="difficulty"' ln2026.html
+
+      - name: Commit final patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/agent-score-equivalence-entry-patch.yml
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add index.html ln-rank/index.html ln2026.html tools/audit-score-equivalence-v3990_0.mjs .github/workflows/verify-score-equivalence-v3990_0.yml .github/workflows/agent-score-equivalence-entry-patch.yml
+          git commit -m '完善分数换算上下文入口'
+          git push origin HEAD:agent/score-equivalence-entry-v3990_0
