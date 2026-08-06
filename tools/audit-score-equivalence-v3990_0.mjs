@@ -135,6 +135,26 @@ for (const marker of [
   '官方表没有独立统计行时，不插值、不猜测'
 ]) assert.ok(html.includes(marker), `score converter page missing marker: ${marker}`);
 
+const home = read('index.html');
+const selection = read('ln-rank/index.html');
+const difficulty = read('ln2026.html');
+const entryCases = [
+  [home, 'home', '这个分数放到往年是多少分'],
+  [selection, 'selection', '想看这个2026分数在2025、2024对应多少分？查看历年同位次'],
+  [difficulty, 'difficulty', '跨年份不要直接比较裸分']
+];
+for (const [document, placement, copy] of entryCases) {
+  const marker = `data-score-equivalence-entry="${placement}"`;
+  assert.equal(document.split(marker).length - 1, 1, `${placement} entry must be unique`);
+  assert.ok(document.includes('href="/ln-rank/score-converter/"'), `${placement} entry target missing`);
+  assert.ok(document.includes(copy), `${placement} entry copy missing`);
+}
+assert.ok(home.indexOf('data-home-industry-map-entry') < home.indexOf('data-score-equivalence-entry="home"'), 'home entry must follow industry map');
+assert.ok(home.indexOf('data-score-equivalence-entry="home"') < home.indexOf('href="/ln-rank/selection-pool.html"'), 'home entry must precede family plan');
+assert.match(selection, /<div class="score-box">[\s\S]*data-score-equivalence-entry="selection"[\s\S]*<\/div>/, 'selection entry must stay in score box');
+assert.match(difficulty, /id="scoreBandPanel"[\s\S]*data-score-equivalence-entry="difficulty"[\s\S]*<\/section>/, 'difficulty entry must stay in score-band context');
+assert.ok(!home.includes('data-ui-route="score-equivalence"'), 'score converter must not become a global primary route');
+
 const app = read('ln-rank/js/score-converter/score-converter-app.v3990_0.js');
 for (const marker of [
   "const API_URL = '/api/score-equivalence'",
@@ -153,6 +173,9 @@ assert.ok(!/["'](?:probability|admissionProbability)["']\s*:/.test(endpoint), 'e
 
 for (const protectedPath of ['fenxi/', 'functions/fenxi/', 'functions/_middleware.js']) {
   assert.ok(![
+    'index.html',
+    'ln-rank/index.html',
+    'ln2026.html',
     'functions/api/score-equivalence.js',
     'ln-rank/score-converter/index.html',
     'ln-rank/css/score-converter.v3990_0.css',
@@ -174,6 +197,7 @@ console.log(JSON.stringify({
   fullPositiveCountRowsAudited: auditedScores,
   zeroCountRowsAudited: zeroCountRows,
   zeroCountInputsRejected: skippedZeroCountScores,
+  navigationEntriesAudited: 3,
   interpolation: false,
   protectedPathsUntouched: true
 }, null, 2));
