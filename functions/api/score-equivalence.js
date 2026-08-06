@@ -95,7 +95,7 @@ function buildResult(inputScore) {
     score: sourceLookupScore
   });
 
-  if (!anchorRow) {
+  if (!anchorRow || Number(anchorRow.sameCount) <= 0) {
     return error(422, 'score-not-in-official-table', '官方一分一段表没有该分数的独立统计行，本页不进行插值或猜测。', {
       score: inputScore,
       sourceYear: SOURCE_YEAR
