@@ -19,6 +19,7 @@ assert.deepEqual(SCORE_EQUIVALENCE_CONTRACT.targetYears, [2025, 2024]);
 assert.equal(SCORE_EQUIVALENCE_CONTRACT.comparisonRankField, 'rankEnd');
 assert.equal(SCORE_EQUIVALENCE_CONTRACT.interpolation, false);
 
+let zeroCountRows = 0;
 for (const year of [2024, 2025, 2026]) {
   const rows = getRankTableRows({ year, region: 'ln', subject: 'physics' });
   assert.ok(rows.length > 500, `${year} rank table unexpectedly short`);
@@ -26,12 +27,20 @@ for (const year of [2024, 2025, 2026]) {
   let lastRankEnd = 0;
   for (const row of rows) {
     assert.ok(row.score < lastScore, `${year} scores are not strictly descending at ${row.score}`);
-    assert.ok(row.rankEnd > lastRankEnd, `${year} rankEnd is not strictly increasing at ${row.score}`);
-    assert.equal(row.rankEnd - row.rankStart + 1, row.sameCount, `${year} same-score interval mismatch at ${row.score}`);
+    assert.ok(row.sameCount >= 0, `${year} sameCount is negative at ${row.score}`);
+    if (row.sameCount > 0) {
+      assert.ok(row.rankEnd > lastRankEnd, `${year} positive-count rankEnd is not strictly increasing at ${row.score}`);
+      assert.equal(row.rankEnd - row.rankStart + 1, row.sameCount, `${year} same-score interval mismatch at ${row.score}`);
+    } else {
+      zeroCountRows += 1;
+      assert.equal(row.rankEnd, lastRankEnd, `${year} zero-count row changed cumulative rank at ${row.score}`);
+      assert.equal(row.rankStart, row.rankEnd, `${year} zero-count row has a fabricated rank interval at ${row.score}`);
+    }
     lastScore = row.score;
     lastRankEnd = row.rankEnd;
   }
 }
+assert.ok(zeroCountRows > 0, 'zero-count continuity rows were not audited');
 
 const anchor600 = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score: 600 });
 assert.deepEqual(
@@ -50,17 +59,24 @@ assert.deepEqual(
 );
 
 let auditedScores = 0;
+let skippedZeroCountScores = 0;
 for (let score = 150; score <= 708; score += 1) {
   const source = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
   if (!source) continue;
+  if (source.sameCount <= 0) {
+    skippedZeroCountScores += 1;
+    continue;
+  }
   auditedScores += 1;
   for (const targetYear of [2025, 2024]) {
     const target = findEquivalentScoreByRank({ targetYear, region: 'ln', subject: 'physics', rank: source.rankEnd });
     assert.ok(target, `${score} has no ${targetYear} equivalent`);
+    assert.ok(target.sameCount > 0, `${score} -> ${targetYear} resolved to zero-count row`);
     assert.ok(source.rankEnd >= target.rankStart && source.rankEnd <= target.rankEnd, `${score} -> ${targetYear} does not contain anchor ${source.rankEnd}`);
   }
 }
-assert.ok(auditedScores > 500, 'full score audit did not cover enough official rows');
+assert.ok(auditedScores > 500, 'full score audit did not cover enough official positive-count rows');
+assert.ok(skippedZeroCountScores > 0, 'zero-count input rows were not isolated from conversion');
 
 async function request(path, method = 'GET') {
   return onRequest({ request: new Request(`https://example.test${path}`, { method }) });
@@ -95,6 +111,10 @@ const responseLow = await request('/api/score-equivalence?score=300');
 assert.equal(responseLow.status, 200);
 assert.equal((await responseLow.json()).controls.belowUndergraduate, true);
 
+const responseZeroCount = await request('/api/score-equivalence?score=151');
+assert.equal(responseZeroCount.status, 422);
+assert.equal((await responseZeroCount.json()).error.code, 'score-not-in-official-table');
+
 const responseTop = await request('/api/score-equivalence?score=710');
 assert.equal(responseTop.status, 200);
 const bodyTop = await responseTop.json();
@@ -124,6 +144,7 @@ for (const marker of [
 
 const endpoint = read('functions/api/score-equivalence.js');
 assert.ok(endpoint.includes("from '../_lib/rank-table-provider.js'"));
+assert.ok(endpoint.includes('Number(anchorRow.sameCount) <= 0'));
 assert.ok(!endpoint.includes('const ROWS='), 'endpoint duplicated rank table rows');
 assert.ok(!endpoint.includes('Math.random'), 'endpoint contains nondeterministic calculation');
 assert.ok(!endpoint.includes('录取概率'), 'endpoint must not manufacture admission probability');
@@ -148,7 +169,9 @@ console.log(JSON.stringify({
     equivalent2025: body600.equivalents[0].score,
     equivalent2024: body600.equivalents[1].score
   },
-  fullOfficialRowsAudited: auditedScores,
+  fullPositiveCountRowsAudited: auditedScores,
+  zeroCountRowsAudited: zeroCountRows,
+  zeroCountInputsRejected: skippedZeroCountScores,
   interpolation: false,
   protectedPathsUntouched: true
 }, null, 2));
