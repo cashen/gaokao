@@ -5,6 +5,9 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'index.html'
+      - 'ln-rank/index.html'
+      - 'ln2026.html'
       - 'functions/api/score-equivalence.js'
       - 'functions/_lib/rank-table-provider.js'
       - 'functions/_lib/ln-2024-physics-score-rank.js'
@@ -19,6 +22,9 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
+      - 'ln-rank/index.html'
+      - 'ln2026.html'
       - 'functions/api/score-equivalence.js'
       - 'functions/_lib/rank-table-provider.js'
       - 'functions/_lib/ln-2024-physics-score-rank.js'
@@ -61,17 +67,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Wait for Pages route and verify golden result
+      - name: Wait for Pages route and verify golden result and contextual entries
         env:
           PAGE_URL: https://gaokao-4y9.pages.dev/ln-rank/score-converter/
           API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600
+          HOME_URL: https://gaokao-4y9.pages.dev/
+          SELECTION_URL: https://gaokao-4y9.pages.dev/ln-rank/
+          DIFFICULTY_URL: https://gaokao-4y9.pages.dev/ln2026.html
         run: |
           set -euo pipefail
           ready=0
           for attempt in $(seq 1 40); do
             page="$(curl -fsSL --max-time 20 "$PAGE_URL" || true)"
             body="$(curl -fsSL --max-time 20 "$API_URL" || true)"
-            if grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \
+            home="$(curl -fsSL --max-time 20 "$HOME_URL" || true)"
+            selection="$(curl -fsSL --max-time 20 "$SELECTION_URL" || true)"
+            difficulty="$(curl -fsSL --max-time 20 "$DIFFICULTY_URL" || true)"
+            if grep -q 'data-score-equivalence-entry="home"' <<<"$home" \
+              && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \
+              && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \
+              && grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \
               && grep -q '"contractVersion":"score-equivalence-v3990_0"' <<<"$body" \
               && grep -q '"comparisonRank":14235' <<<"$body" \
               && grep -q '"year":2025,"score":598' <<<"$body" \
