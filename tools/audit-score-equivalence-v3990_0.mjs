@@ -94,6 +94,8 @@ assert.deepEqual(body600.equivalents.map(item => [item.year, item.score, item.ra
 ]);
 assert.ok(body600.equivalents.every(item => item.containsComparisonRank));
 assert.equal(body600.calculationPolicy.interpolation, false);
+assert.equal(Object.hasOwn(body600, 'probability'), false);
+assert.equal(Object.hasOwn(body600, 'admissionProbability'), false);
 
 const responseDecimal = await request('/api/score-equivalence?score=600.5');
 assert.equal(responseDecimal.status, 400);
@@ -147,7 +149,7 @@ assert.ok(endpoint.includes("from '../_lib/rank-table-provider.js'"));
 assert.ok(endpoint.includes('Number(anchorRow.sameCount) <= 0'));
 assert.ok(!endpoint.includes('const ROWS='), 'endpoint duplicated rank table rows');
 assert.ok(!endpoint.includes('Math.random'), 'endpoint contains nondeterministic calculation');
-assert.ok(!endpoint.includes('录取概率'), 'endpoint must not manufacture admission probability');
+assert.ok(!/["'](?:probability|admissionProbability)["']\s*:/.test(endpoint), 'endpoint must not expose an admission probability field');
 
 for (const protectedPath of ['fenxi/', 'functions/fenxi/', 'functions/_middleware.js']) {
   assert.ok(![
