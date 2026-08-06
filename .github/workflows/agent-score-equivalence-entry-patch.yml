@@ -86,38 +86,6 @@ jobs:
           if audit_text.count(output_anchor) != 1:
               raise SystemExit('audit output anchor mismatch')
           audit.write_text(audit_text.replace(output_anchor, output_replacement, 1), encoding='utf-8')
-
-          workflow = Path('.github/workflows/verify-score-equivalence-v3990_0.yml')
-          workflow_text = workflow.read_text(encoding='utf-8')
-          path_anchor = "      - 'functions/api/score-equivalence.js'"
-          path_replacement = "      - 'index.html'\n      - 'ln-rank/index.html'\n      - 'ln2026.html'\n      - 'functions/api/score-equivalence.js'"
-          if workflow_text.count(path_anchor) != 2:
-              raise SystemExit('workflow path anchors mismatch')
-          workflow_text = workflow_text.replace(path_anchor, path_replacement)
-          env_anchor = '          API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600'
-          env_replacement = '''          API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600
-          HOME_URL: https://gaokao-4y9.pages.dev/
-          SELECTION_URL: https://gaokao-4y9.pages.dev/ln-rank/
-          DIFFICULTY_URL: https://gaokao-4y9.pages.dev/ln2026.html'''
-          if workflow_text.count(env_anchor) != 1:
-              raise SystemExit('workflow env anchor mismatch')
-          workflow_text = workflow_text.replace(env_anchor, env_replacement, 1)
-          curl_anchor = '            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"'
-          curl_replacement = '''            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"
-            home="$(curl -fsSL --max-time 20 "$HOME_URL" || true)"
-            selection="$(curl -fsSL --max-time 20 "$SELECTION_URL" || true)"
-            difficulty="$(curl -fsSL --max-time 20 "$DIFFICULTY_URL" || true)"'''
-          if workflow_text.count(curl_anchor) != 1:
-              raise SystemExit('workflow curl anchor mismatch')
-          workflow_text = workflow_text.replace(curl_anchor, curl_replacement, 1)
-          condition_anchor = '''            if grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \\'''
-          condition_replacement = '''            if grep -q 'data-score-equivalence-entry="home"' <<<"$home" \\
-              && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \\
-              && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \\
-              && grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \\'''
-          if workflow_text.count(condition_anchor) != 1:
-              raise SystemExit('workflow condition anchor mismatch')
-          workflow.write_text(workflow_text.replace(condition_anchor, condition_replacement, 1), encoding='utf-8')
           PY
 
           node --check tools/audit-score-equivalence-v3990_0.mjs
@@ -133,6 +101,6 @@ jobs:
           rm .github/workflows/agent-score-equivalence-entry-patch.yml
           git config user.name cashen
           git config user.email 54cashen@gmail.com
-          git add index.html ln-rank/index.html ln2026.html tools/audit-score-equivalence-v3990_0.mjs .github/workflows/verify-score-equivalence-v3990_0.yml .github/workflows/agent-score-equivalence-entry-patch.yml
+          git add index.html ln-rank/index.html ln2026.html tools/audit-score-equivalence-v3990_0.mjs .github/workflows/agent-score-equivalence-entry-patch.yml
           git commit -m '完善分数换算上下文入口'
           git push origin HEAD:agent/score-equivalence-entry-v3990_0
