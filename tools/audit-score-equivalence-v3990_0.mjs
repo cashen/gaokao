@@ -1,0 +1,154 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {
+  findEquivalentScoreByRank,
+  getRankTableRows,
+  lookupScoreRank
+} from '../functions/_lib/rank-table-provider.js';
+import {
+  onRequest,
+  SCORE_EQUIVALENCE_CONTRACT
+} from '../functions/api/score-equivalence.js';
+
+const ROOT = new URL('../', import.meta.url);
+const read = relative => fs.readFileSync(new URL(relative, ROOT), 'utf8');
+
+assert.equal(SCORE_EQUIVALENCE_CONTRACT.version, 'score-equivalence-v3990_0');
+assert.equal(SCORE_EQUIVALENCE_CONTRACT.sourceYear, 2026);
+assert.deepEqual(SCORE_EQUIVALENCE_CONTRACT.targetYears, [2025, 2024]);
+assert.equal(SCORE_EQUIVALENCE_CONTRACT.comparisonRankField, 'rankEnd');
+assert.equal(SCORE_EQUIVALENCE_CONTRACT.interpolation, false);
+
+for (const year of [2024, 2025, 2026]) {
+  const rows = getRankTableRows({ year, region: 'ln', subject: 'physics' });
+  assert.ok(rows.length > 500, `${year} rank table unexpectedly short`);
+  let lastScore = Infinity;
+  let lastRankEnd = 0;
+  for (const row of rows) {
+    assert.ok(row.score < lastScore, `${year} scores are not strictly descending at ${row.score}`);
+    assert.ok(row.rankEnd > lastRankEnd, `${year} rankEnd is not strictly increasing at ${row.score}`);
+    assert.equal(row.rankEnd - row.rankStart + 1, row.sameCount, `${year} same-score interval mismatch at ${row.score}`);
+    lastScore = row.score;
+    lastRankEnd = row.rankEnd;
+  }
+}
+
+const anchor600 = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score: 600 });
+assert.deepEqual(
+  { score: anchor600.score, sameCount: anchor600.sameCount, rankStart: anchor600.rankStart, rankEnd: anchor600.rankEnd },
+  { score: 600, sameCount: 307, rankStart: 13929, rankEnd: 14235 }
+);
+const equivalent2025 = findEquivalentScoreByRank({ targetYear: 2025, region: 'ln', subject: 'physics', rank: anchor600.rankEnd });
+const equivalent2024 = findEquivalentScoreByRank({ targetYear: 2024, region: 'ln', subject: 'physics', rank: anchor600.rankEnd });
+assert.deepEqual(
+  { score: equivalent2025.score, sameCount: equivalent2025.sameCount, rankStart: equivalent2025.rankStart, rankEnd: equivalent2025.rankEnd },
+  { score: 598, sameCount: 320, rankStart: 13938, rankEnd: 14257 }
+);
+assert.deepEqual(
+  { score: equivalent2024.score, sameCount: equivalent2024.sameCount, rankStart: equivalent2024.rankStart, rankEnd: equivalent2024.rankEnd },
+  { score: 601, sameCount: 270, rankStart: 14083, rankEnd: 14352 }
+);
+
+let auditedScores = 0;
+for (let score = 150; score <= 708; score += 1) {
+  const source = lookupScoreRank({ year: 2026, region: 'ln', subject: 'physics', score });
+  if (!source) continue;
+  auditedScores += 1;
+  for (const targetYear of [2025, 2024]) {
+    const target = findEquivalentScoreByRank({ targetYear, region: 'ln', subject: 'physics', rank: source.rankEnd });
+    assert.ok(target, `${score} has no ${targetYear} equivalent`);
+    assert.ok(source.rankEnd >= target.rankStart && source.rankEnd <= target.rankEnd, `${score} -> ${targetYear} does not contain anchor ${source.rankEnd}`);
+  }
+}
+assert.ok(auditedScores > 500, 'full score audit did not cover enough official rows');
+
+async function request(path, method = 'GET') {
+  return onRequest({ request: new Request(`https://example.test${path}`, { method }) });
+}
+
+const response600 = await request('/api/score-equivalence?score=600');
+assert.equal(response600.status, 200);
+assert.match(response600.headers.get('cache-control') || '', /s-maxage=86400/);
+const body600 = await response600.json();
+assert.equal(body600.ok, true);
+assert.equal(body600.anchor.comparisonRank, 14235);
+assert.deepEqual(body600.equivalents.map(item => [item.year, item.score, item.rankStart, item.rankEnd]), [
+  [2025, 598, 13938, 14257],
+  [2024, 601, 14083, 14352]
+]);
+assert.ok(body600.equivalents.every(item => item.containsComparisonRank));
+assert.equal(body600.calculationPolicy.interpolation, false);
+
+const responseDecimal = await request('/api/score-equivalence?score=600.5');
+assert.equal(responseDecimal.status, 400);
+assert.equal((await responseDecimal.json()).error.code, 'score-must-be-integer');
+
+const responseMissing = await request('/api/score-equivalence');
+assert.equal(responseMissing.status, 400);
+assert.equal((await responseMissing.json()).error.code, 'score-required');
+
+const responseMethod = await request('/api/score-equivalence?score=600', 'POST');
+assert.equal(responseMethod.status, 405);
+assert.equal(responseMethod.headers.get('allow'), 'GET, HEAD');
+
+const responseLow = await request('/api/score-equivalence?score=300');
+assert.equal(responseLow.status, 200);
+assert.equal((await responseLow.json()).controls.belowUndergraduate, true);
+
+const responseTop = await request('/api/score-equivalence?score=710');
+assert.equal(responseTop.status, 200);
+const bodyTop = await responseTop.json();
+assert.equal(bodyTop.input.isMergedTopRange, true);
+assert.equal(bodyTop.input.sourceLookupScore, 708);
+
+const html = read('ln-rank/score-converter/index.html');
+for (const marker of [
+  'data-release="v3.9.90.0"',
+  'data-site-runtime-generation="v3990_0"',
+  'data-feature-version="score-equivalence-v3990_0"',
+  '/shared/ui/shell/family-shell.v3990_0.js?v=3990_0',
+  '/ln-rank/css/score-converter.v3990_0.css?v=3990_0',
+  '/ln-rank/js/score-converter/score-converter-app.v3990_0.js?v=3990_0',
+  '只做历史位置对照，不代表录取结果',
+  '官方表没有独立统计行时，不插值、不猜测'
+]) assert.ok(html.includes(marker), `score converter page missing marker: ${marker}`);
+
+const app = read('ln-rank/js/score-converter/score-converter-app.v3990_0.js');
+for (const marker of [
+  "const API_URL = '/api/score-equivalence'",
+  'FAMILY_DECISION_STORAGE.candidateScore',
+  'history.replaceState',
+  'AbortController',
+  "contract: 'score-equivalence-v3990_0'"
+]) assert.ok(app.includes(marker), `score converter app missing marker: ${marker}`);
+
+const endpoint = read('functions/api/score-equivalence.js');
+assert.ok(endpoint.includes("from '../_lib/rank-table-provider.js'"));
+assert.ok(!endpoint.includes('const ROWS='), 'endpoint duplicated rank table rows');
+assert.ok(!endpoint.includes('Math.random'), 'endpoint contains nondeterministic calculation');
+assert.ok(!endpoint.includes('录取概率'), 'endpoint must not manufacture admission probability');
+
+for (const protectedPath of ['fenxi/', 'functions/fenxi/', 'functions/_middleware.js']) {
+  assert.ok(![
+    'functions/api/score-equivalence.js',
+    'ln-rank/score-converter/index.html',
+    'ln-rank/css/score-converter.v3990_0.css',
+    'ln-rank/js/score-converter/score-converter-app.v3990_0.js',
+    'tools/audit-score-equivalence-v3990_0.mjs',
+    '.github/workflows/verify-score-equivalence-v3990_0.yml'
+  ].some(path => path === protectedPath || path.startsWith(protectedPath)), `protected path touched: ${protectedPath}`);
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  version: SCORE_EQUIVALENCE_CONTRACT.version,
+  goldenExample: {
+    input2026: 600,
+    comparisonRank: body600.anchor.comparisonRank,
+    equivalent2025: body600.equivalents[0].score,
+    equivalent2024: body600.equivalents[1].score
+  },
+  fullOfficialRowsAudited: auditedScores,
+  interpolation: false,
+  protectedPathsUntouched: true
+}, null, 2));

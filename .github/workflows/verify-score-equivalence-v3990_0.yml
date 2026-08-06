@@ -1,0 +1,85 @@
+name: Verify score equivalence v3990.0
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'functions/api/score-equivalence.js'
+      - 'functions/_lib/rank-table-provider.js'
+      - 'functions/_lib/ln-2024-physics-score-rank.js'
+      - 'functions/_lib/ln-2025-physics-score-rank.js'
+      - 'functions/_lib/ln-2026-physics-score-rank.js'
+      - 'shared/resources/exam/liaoning-physics.js'
+      - 'ln-rank/score-converter/**'
+      - 'ln-rank/css/score-converter.v3990_0.css'
+      - 'ln-rank/js/score-converter/**'
+      - 'tools/audit-score-equivalence-v3990_0.mjs'
+      - '.github/workflows/verify-score-equivalence-v3990_0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'functions/api/score-equivalence.js'
+      - 'functions/_lib/rank-table-provider.js'
+      - 'functions/_lib/ln-2024-physics-score-rank.js'
+      - 'functions/_lib/ln-2025-physics-score-rank.js'
+      - 'functions/_lib/ln-2026-physics-score-rank.js'
+      - 'shared/resources/exam/liaoning-physics.js'
+      - 'ln-rank/score-converter/**'
+      - 'ln-rank/css/score-converter.v3990_0.css'
+      - 'ln-rank/js/score-converter/**'
+      - 'tools/audit-score-equivalence-v3990_0.mjs'
+      - '.github/workflows/verify-score-equivalence-v3990_0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and full three-year rank contract
+        run: |
+          set -euo pipefail
+          node --check functions/api/score-equivalence.js
+          node --check ln-rank/js/score-converter/score-converter-app.v3990_0.js
+          node --check tools/audit-score-equivalence-v3990_0.mjs
+          node --experimental-default-type=module tools/audit-score-equivalence-v3990_0.mjs
+
+  production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Wait for Pages route and verify golden result
+        env:
+          PAGE_URL: https://gaokao-4y9.pages.dev/ln-rank/score-converter/
+          API_URL: https://gaokao-4y9.pages.dev/api/score-equivalence?score=600
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 40); do
+            page="$(curl -fsSL --max-time 20 "$PAGE_URL" || true)"
+            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"
+            if grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \
+              && grep -q '"contractVersion":"score-equivalence-v3990_0"' <<<"$body" \
+              && grep -q '"comparisonRank":14235' <<<"$body" \
+              && grep -q '"year":2025,"score":598' <<<"$body" \
+              && grep -q '"year":2024,"score":601' <<<"$body" \
+              && grep -q '"interpolation":false' <<<"$body"; then
+              ready=1
+              break
+            fi
+            sleep 15
+          done
+          test "$ready" = 1
