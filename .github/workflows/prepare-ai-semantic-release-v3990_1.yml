@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Build coherent v3.9.90.1 generation
         run: node tools/prepare-ai-semantic-release-v3990_1.mjs
+      - name: Bind major negation to the local spoken object
+        run: node tools/patch-ai-command-negation-v3990_1.mjs
       - name: Verify generated semantic source before commit
         shell: bash
         run: |
