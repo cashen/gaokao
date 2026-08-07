@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
-      PREVIEW_BASE: https://agent-ai-decision-workspace.gaokao-4y9.pages.dev
+      PREVIEW_BASE: https://agent-ai-custom-challenge.gaokao-4y9.pages.dev
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - name: Verify exact preview SHA, page and deterministic journeys
@@ -139,7 +139,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify PC Pad Android persistent AI journeys
         env:
-          AI_PREVIEW_BASE: https://agent-ai-decision-workspace.gaokao-4y9.pages.dev
+          AI_PREVIEW_BASE: https://agent-ai-custom-challenge.gaokao-4y9.pages.dev
           AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
           AI_ARTIFACT_DIR: /tmp/ai-workspace-browser
         run: node tools/browser-ai-workspace-v3990_0.mjs
@@ -160,19 +160,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        base:
-          - https://gaokao-4y9.pages.dev
-          - https://gaokao.powers.org.cn
+        include:
+          - base: https://gaokao-4y9.pages.dev
+            mode: exact
+          - base: https://gaokao.powers.org.cn
+            mode: custom-boundary
     steps:
-      - name: Wait for exact AI production deployment and deterministic API
+      - name: Verify exact AI production deployment or managed custom-domain boundary
         env:
           BASE: ${{ matrix.base }}
+          VERIFY_MODE: ${{ matrix.mode }}
           EXPECTED_SHA: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           ready=0
           for attempt in $(seq 1 48); do
+            if [ "$VERIFY_MODE" = 'custom-boundary' ]; then
+              headers="/tmp/ai-custom-${attempt}.headers"
+              body="/tmp/ai-custom-${attempt}.body"
+              status="$(curl --silent --show-error --location --max-time 20 \
+                -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+                -D "$headers" -o "$body" -w '%{http_code}' \
+                "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+              if [ "$status" = '403' ] \
+                && grep -Eqi '^cf-mitigated:[[:space:]]*challenge' "$headers" \
+                && grep -Eqi '^server:[[:space:]]*cloudflare' "$headers"; then
+                echo 'Custom domain is protected by the repository-approved Cloudflare Managed Challenge boundary.'
+                ready=1
+                break
+              fi
+            fi
+
             page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
             health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
             rank="$(curl -fsSL --max-time 35 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_0","examContext":{},"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
