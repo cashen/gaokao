@@ -7,9 +7,10 @@ on:
     paths:
       - 'ai/**'
       - 'shared/ai/**'
-      - 'shared/resources/geo/china-region-catalog.js'
+      - 'shared/resources/geo/china-region-catalog.v3990_1.js'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
+      - 'functions/_lib/major-filter.v3990_1.js'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
@@ -18,9 +19,10 @@ on:
     paths:
       - 'ai/**'
       - 'shared/ai/**'
-      - 'shared/resources/geo/china-region-catalog.js'
+      - 'shared/resources/geo/china-region-catalog.v3990_1.js'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
+      - 'functions/_lib/major-filter.v3990_1.js'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
@@ -29,6 +31,7 @@ on:
 permissions:
   contents: read
   checks: read
+  issues: read
 
 jobs:
   source-contract:
@@ -61,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f /tmp/ai-files.txt
-          if grep -E '^(ai/|shared/ai/|shared/resources/geo/china-region-catalog\.js$|functions/api/ai/|functions/_lib/ai/|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
+          if grep -E '^(ai/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_1\.js$|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_1\.js$|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
             echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
           else
             echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
@@ -99,13 +102,15 @@ jobs:
     if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     outputs:
       preview_base: ${{ steps.resolve-preview.outputs.preview_base }}
+      immutable_preview: ${{ steps.resolve-preview.outputs.immutable_preview }}
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
-      - name: Resolve immutable Cloudflare Preview for exact head SHA
+      - name: Resolve exact-SHA Cloudflare Check and branch Functions preview
         id: resolve-preview
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,47 +118,127 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          preview=''
+          branch_preview=''
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
           for attempt in $(seq 1 70); do
-            checks="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
             conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
             summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
-            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then exit 2; fi
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo "Cloudflare exact-SHA Check failed for ${EXPECTED_SHA}." >&2
+              exit 2
+            fi
             if [ "$conclusion" = success ]; then
-              preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
-              [ -n "$preview" ] && break
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              comments="$(curl -fsSL --max-time 20 \
+                -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+              cloudflare_body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+              if grep -q "$short_sha" <<<"$cloudflare_body"; then
+                branch_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$cloudflare_body" | tail -n1 || true)"
+              fi
+              if [ -n "$immutable_preview" ] && [ -n "$branch_preview" ]; then
+                break
+              fi
             fi
             sleep 8
           done
-          test -n "$preview"
-          echo "preview_base=$preview" >> "$GITHUB_OUTPUT"
-      - name: Verify exact preview SHA and semantic API
+          test -n "$immutable_preview"
+          test -n "$branch_preview"
+          if [ "$immutable_preview" = "$branch_preview" ]; then
+            echo 'Cloudflare branch preview was not resolved separately from immutable deployment URL.' >&2
+            exit 3
+          fi
+          echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
+          echo "Exact deployment: $immutable_preview"
+          echo "Functions branch preview: $branch_preview"
+      - name: Verify branch Preview serves exact head SHA and semantic API
         env:
           PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
         shell: bash
         run: |
           set -euo pipefail
-          health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}")"
-          grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health"
-          grep -q '"apiVersion":"ai-health-api-v3990_1"' <<<"$health"
-          grep -q '"semanticMode":"command-active-view-history-v3990_1"' <<<"$health"
-          page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}")"
+
+          request_get() {
+            local label="$1" url="$2" body status
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              -o "$body" -w '%{http_code}' "$url" || true)"
+            if [ "$status" != 200 ]; then
+              echo "${label} failed: HTTP ${status} ${url}" >&2
+              head -c 1200 "$body" >&2 || true
+              echo >&2
+              rm -f "$body"
+              return 1
+            fi
+            cat "$body"
+            rm -f "$body"
+          }
+
+          request_post() {
+            local label="$1" url="$2" payload="$3" body status
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 80 \
+              -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
+              -X POST -o "$body" -w '%{http_code}' "$url" --data "$payload" || true)"
+            if [ "$status" != 200 ]; then
+              echo "${label} failed: HTTP ${status} ${url}" >&2
+              head -c 1600 "$body" >&2 || true
+              echo >&2
+              rm -f "$body"
+              return 1
+            fi
+            cat "$body"
+            rm -f "$body"
+          }
+
+          health=''
+          ready=0
+          for attempt in $(seq 1 60); do
+            health="$(request_get health "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
+              && grep -q '"apiVersion":"ai-health-api-v3990_1"' <<<"$health" \
+              && grep -q '"semanticMode":"command-active-view-history-v3990_1"' <<<"$health"; then
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Branch Preview never exposed exact head ${EXPECTED_SHA}. Immutable deployment was ${IMMUTABLE_PREVIEW}." >&2
+            exit 4
+          fi
+
+          page="$(request_get ai-page "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}")"
           grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page"
           grep -q 'data-site-runtime-generation="v3990_1"' <<<"$page"
 
-          rank="$(curl -fsSL --max-time 50 -H 'Content-Type: application/json' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}')"
+          rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
+          rank="$(request_post rank "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
           grep -q '"rankEnd":14235' <<<"$rank"
 
-          province="$(curl -fsSL --max-time 50 -H 'Content-Type: application/json' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}')"
+          province_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}'
+          province="$(request_post province-major "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$province_payload")"
           grep -q '"regionKeys":\["province:安徽"\]' <<<"$province"
           grep -q '"majorKeywords":\["电气"\]' <<<"$province"
 
-          comparison="$(curl -fsSL --max-time 70 -H 'Content-Type: application/json' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}')"
+          comparison_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}'
+          comparison="$(request_post major-comparison "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$comparison_payload")"
           grep -q '"kind":"major"' <<<"$comparison"
           grep -q '"pendingEvidenceDimensions"' <<<"$comparison"
 
           if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
-            probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${PREVIEW_BASE}/api/ai/model-probe?candidate=${EXPECTED_SHA}")"
+            probe="$(request_post model-probe "${PREVIEW_BASE}/api/ai/model-probe?candidate=${EXPECTED_SHA}" '{}')"
             grep -q '"ok":true' <<<"$probe"
             grep -Eq '"model":"[^"]+"' <<<"$probe"
           fi
@@ -229,7 +314,7 @@ jobs:
               && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
               && grep -q '"rankEnd":14235' <<<"$rank"; then
               if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
-                probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/model-probe?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+                probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/model-probe?deploy=${EXPECTED_SHA}-${attempt}" --data '{}' || true)"
                 grep -q '"ok":true' <<<"$probe" || { sleep 10; continue; }
                 grep -Eq '"model":"[^"]+"' <<<"$probe" || { sleep 10; continue; }
               fi
