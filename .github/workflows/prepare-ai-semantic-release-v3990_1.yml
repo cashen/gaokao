@@ -29,6 +29,8 @@ jobs:
         run: node tools/patch-ai-family-persistence-v3990_1.mjs
       - name: Verify history restore through its executable UI path
         run: node tools/patch-ai-verifier-history-guard-v3990_1.mjs
+      - name: Extend strict site-runtime owner audit for v3990_1
+        run: node tools/patch-site-runtime-audit-v3990_1.mjs
       - name: Verify generated semantic source before commit
         shell: bash
         run: |
