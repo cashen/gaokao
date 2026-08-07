@@ -74,6 +74,49 @@ jobs:
       - name: Run deterministic workspace gates
         run: node tools/verify-ai-workspace-v3990_0.mjs
 
+  preview-smoke:
+    if: github.event_name == 'pull_request'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PREVIEW_BASE: https://agent-ai-decision-workspace.gaokao-4y9.pages.dev
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Verify exact preview SHA, page and deterministic journeys
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 60); do
+            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
+              && grep -q '"apiVersion":"ai-health-api-v3990_0"' <<<"$health"; then
+              ready=1
+              break
+            fi
+            sleep 8
+          done
+          test "$ready" -eq 1
+
+          page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" )"
+          grep -q 'data-ai-workspace="ai-workspace-v3990_0"' <<<"$page"
+          grep -q 'data-site-runtime-generation="v3990_0"' <<<"$page"
+
+          rank="$(curl -fsSL --max-time 35 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_0","examContext":{},"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}')"
+          grep -q '"rankEnd":14235' <<<"$rank"
+          grep -q '"source":"deterministic"' <<<"$rank"
+
+          soft="$(curl -fsSL --max-time 50 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_0","examContext":{},"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，计算机方向，东北优先"}')"
+          grep -q '"type":"soft_preference"' <<<"$soft"
+          grep -q '"includeKeys":\["all"\]' <<<"$soft"
+          grep -Eq '"total":[1-9][0-9]*' <<<"$soft"
+
+          hard="$(curl -fsSL --max-time 50 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_0","examContext":{},"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，只看辽宁，计算机方向"}')"
+          grep -q '"type":"hard_constraint"' <<<"$hard"
+          grep -q '"includeKeys":\["ln"\]' <<<"$hard"
+          grep -Eq '"total":[1-9][0-9]*' <<<"$hard"
+
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: source-contract
@@ -86,7 +129,7 @@ jobs:
           - https://gaokao-4y9.pages.dev
           - https://gaokao.powers.org.cn
     steps:
-      - name: Wait for AI page and deterministic API
+      - name: Wait for exact AI production deployment and deterministic API
         env:
           BASE: ${{ matrix.base }}
           EXPECTED_SHA: ${{ github.sha }}
@@ -102,6 +145,7 @@ jobs:
               && grep -q '"apiVersion":"ai-health-api-v3990_0"' <<<"$health" \
               && grep -q '"release":"v3.9.90.0"' <<<"$health" \
               && grep -q '"siteRuntimeGeneration":"v3990_0"' <<<"$health" \
+              && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
               && grep -q '"rankEnd":14235' <<<"$rank" \
               && grep -q '"source":"deterministic"' <<<"$rank"; then
               ready=1
