@@ -256,16 +256,13 @@ function compactSelectionSnapshotForServer(snapshot = null) {
   return {
     version: clean(snapshot.version, 80),
     items: (Array.isArray(snapshot.items) ? snapshot.items : []).slice(0, 112).map(item => ({
-      id: clean(item?.id, 220),
-      school: clean(item?.school, 120),
-      major: clean(item?.major, 180),
-      score2026: Number.isFinite(Number(item?.score2026)) ? Number(item.score2026) : null,
+      id: clean(item?.id, 180),
+      school: clean(item?.school, 80),
+      major: clean(item?.major, 120),
       rank2026: Number.isFinite(Number(item?.rank2026)) ? Number(item.rank2026) : null,
-      bandKey: clean(item?.bandKey, 40),
-      displayLocation: clean(item?.displayLocation, 80),
-      natureLabel: clean(item?.natureLabel, 60),
-      tuition: clean(item?.tuition, 80),
-      userNote: clean(item?.userNote, 240)
+      bandKey: clean(item?.bandKey, 24),
+      displayLocation: clean(item?.displayLocation, 60),
+      tuition: clean(item?.tuition, 60)
     }))
   };
 }
