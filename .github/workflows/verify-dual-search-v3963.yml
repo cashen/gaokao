@@ -106,7 +106,7 @@ jobs:
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3990_1_ARTIFACT_DIR=/tmp/v3990-1-interaction-browser node tools/browser-native-chooser-activation-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-interaction-browser.out
+          V3990_1_ARTIFACT_DIR=/tmp/v3990-1-interaction-browser node tools/browser-native-chooser-activation-v3990_1-runner.mjs 2>&1 | tee /tmp/v3990-1-interaction-browser.out
 
       - name: Verify preserved school ambiguity journey
         run: |
@@ -134,4 +134,3 @@ jobs:
           path: /tmp/v3990-1-*
           if-no-files-found: warn
           retention-days: 7
-
