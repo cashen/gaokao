@@ -11,9 +11,10 @@ function assert(condition,message){if(!condition)throw new Error(message);}
 async function waitForText(page,text,timeout=60000){await page.getByText(text,{exact:false}).first().waitFor({state:'visible',timeout});}
 async function checkGeometry(page,name){const g=await page.evaluate(()=>({width:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth}));assert(g.scrollWidth<=g.width+2,`${name}: document overflow ${g.scrollWidth}>${g.width}`);assert(g.bodyWidth<=g.width+2,`${name}: body overflow ${g.bodyWidth}>${g.width}`);}
 async function submit(page,text){const input=page.locator('#promptInput');await input.fill(text);await page.locator('#sendButton').click();}
-async function waitIdle(page){await page.locator('#sendButton').filter({hasText:'执行'}).waitFor({state:'visible',timeout:60000});}
-async function viewText(page){return (await page.locator('#activeViewChips').innerText()).replace(/\s+/g,' ');}
-async function assertView(page,parts,notParts=[]){const text=await viewText(page);for(const part of parts)assert(text.includes(part),`active view missing ${part}: ${text}`);for(const part of notParts)assert(!text.includes(part),`active view unexpectedly has ${part}: ${text}`);}
+async function waitIdle(page){await page.waitForFunction(()=>document.querySelector('#sendButton')?.textContent?.trim()==='执行',null,{timeout:60000});}
+async function viewChips(page){return (await page.locator('#activeViewChips .view-chip').allTextContents()).map(text=>text.replace(/\s+/g,' ').trim());}
+function chipMatches(chip,part){return /分$/.test(part)?chip.startsWith(`${part} ·`):chip===part;}
+async function assertView(page,parts,notParts=[]){const chips=await viewChips(page);for(const part of parts)assert(chips.some(chip=>chipMatches(chip,part)),`active view missing ${part}: ${chips.join(' | ')}`);for(const part of notParts)assert(!chips.some(chip=>chipMatches(chip,part)),`active view unexpectedly has ${part}: ${chips.join(' | ')}`);}
 async function resetWorkspace(page){page.once('dialog',dialog=>dialog.accept());await page.locator('#newWorkspace').click();await page.waitForTimeout(150);}
 
 async function verifyHumanSemanticJourney(page,name){
