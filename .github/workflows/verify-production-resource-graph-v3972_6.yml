@@ -24,6 +24,7 @@ on:
       - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_1.js'
       - 'tools/audit-production-resource-verification-v3990_1.mjs'
       - 'tools/verify-production-resource-graph-v3990_1.mjs'
+      - 'tools/verify-production-pagination-snapshot-guard-v3990_1.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
@@ -70,14 +71,12 @@ jobs:
           node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_1.js
           node --check tools/audit-production-resource-verification-v3990_1.mjs
           node --check tools/verify-production-resource-graph-v3990_1.mjs
+          node --check tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
           node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
 
           sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
             tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
-          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
           node --check /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
-          node --check tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
 
       - name: Verify production resource contract and canonical graph
         run: |
@@ -111,8 +110,7 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-production-http.log; exit 1; fi
           node tools/verify-production-resource-graph-v3990_1.mjs
-          node tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
-          rm -f tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
 
       - name: Upload source evidence
         if: always()
@@ -137,12 +135,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build current pagination verifier
-        run: |
-          set -euo pipefail
-          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
-          node --check tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+      - name: Verify current pagination verifier
+        run: node --check tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
 
       - name: Verify Pages and custom-domain production resource graph
         env:
@@ -157,8 +151,7 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-production-resource-graph-v3990_1.mjs
-          node tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
-          rm -f tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
 
       - name: Wait for bounded rank-query production deployment
         env:
