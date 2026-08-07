@@ -7,9 +7,10 @@ const ALLOW_KNOWN_MAJOR_BANDS_DEGRADED = ['1', 'true', 'yes'].includes(String(pr
 const LEGACY_PRODUCTION_RELEASE = ['v3', '9', '72', '2'].join('.');
 const PREVIOUS_PRODUCTION_RELEASE = 'v3.9.72.5';
 const CURRENT_PRODUCTION_RELEASE = 'v3.9.72.6';
-const CURRENT_V3990_RELEASE = 'v3.9.90.0';
-const ALLOWED_RELEASES = new Set(['v3.9.71.2', LEGACY_PRODUCTION_RELEASE, PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, CURRENT_V3990_RELEASE]);
-const BOUNDED_HEALTH_RELEASES = new Set([PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, CURRENT_V3990_RELEASE]);
+const PREVIOUS_V3990_RELEASE = 'v3.9.90.0';
+const CURRENT_V3990_RELEASE = 'v3.9.90.1';
+const ALLOWED_RELEASES = new Set(['v3.9.71.2', LEGACY_PRODUCTION_RELEASE, PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, PREVIOUS_V3990_RELEASE, CURRENT_V3990_RELEASE]);
+const BOUNDED_HEALTH_RELEASES = new Set([PREVIOUS_PRODUCTION_RELEASE, CURRENT_PRODUCTION_RELEASE, PREVIOUS_V3990_RELEASE, CURRENT_V3990_RELEASE]);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, accept = 'application/json') {
@@ -67,10 +68,10 @@ function assertForbiddenLocalApiBaseline(result) {
   assert(!lower.includes('worker exceeded resource limits') && !lower.includes('<title>error 1102') && !lower.includes('error code: 1102'), `${result.url} returned Worker resource error`);
   if (result.status === 404) return 'hard-404';
 
-  // The currently deployed Pages generation predates the top-level 404.html.
-  // Cloudflare therefore treats the project as an SPA and serves / for an
-  // unknown path. This is acceptable only as a pre-merge legacy baseline;
-  // the candidate and post-merge production must return a real HTTP 404.
+  // The currently deployed legacy Pages generation may predate the top-level
+  // 404.html and therefore soft-fallback unknown paths to HTML. This is accepted
+  // only as a pre-merge baseline; the candidate and post-merge production use
+  // the production resource verifier and must return a real HTTP 404.
   assert(result.status === 200, `/api/local-strength unexpectedly returned HTTP ${result.status}`);
   const contentType = String(result.headers['content-type'] || '').toLowerCase();
   assert(contentType.includes('text/html'), `/api/local-strength soft fallback is not HTML: ${contentType || 'missing content-type'}`);
