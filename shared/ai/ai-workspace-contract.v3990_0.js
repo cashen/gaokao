@@ -224,6 +224,52 @@ export function buildAiResultDelta(previous = null, next = null) {
   };
 }
 
+function compactLastResultForServer(result = null) {
+  if (!result || typeof result !== 'object') return null;
+  const candidates = result.candidates && typeof result.candidates === 'object'
+    ? {
+        counts: result.candidates.counts || {},
+        records: (Array.isArray(result.candidates.records) ? result.candidates.records : [])
+          .map(record => ({ id: clean(record?.id, 220) }))
+          .filter(record => record.id)
+          .slice(0, 50)
+      }
+    : null;
+  return {
+    identity: clean(result.identity, 800),
+    rank: result.rank?.rankEnd ? { rankEnd: Number(result.rank.rankEnd) } : null,
+    candidates,
+    execution: result.execution && typeof result.execution === 'object' ? {
+      score: Number.isFinite(Number(result.execution.score)) ? Number(result.execution.score) : null,
+      majorKeywords: uniqueStrings(result.execution.majorKeywords || [], 8),
+      bottomLineMode: clean(result.execution.bottomLineMode, 60),
+      region: result.execution.region && typeof result.execution.region === 'object' ? {
+        includeKeys: uniqueStrings(result.execution.region.includeKeys || [], 8),
+        excludeKeys: uniqueStrings(result.execution.region.excludeKeys || [], 8)
+      } : null
+    } : null
+  };
+}
+
+function compactSelectionSnapshotForServer(snapshot = null) {
+  if (!snapshot || typeof snapshot !== 'object') return null;
+  return {
+    version: clean(snapshot.version, 80),
+    items: (Array.isArray(snapshot.items) ? snapshot.items : []).slice(0, 112).map(item => ({
+      id: clean(item?.id, 220),
+      school: clean(item?.school, 120),
+      major: clean(item?.major, 180),
+      score2026: Number.isFinite(Number(item?.score2026)) ? Number(item.score2026) : null,
+      rank2026: Number.isFinite(Number(item?.rank2026)) ? Number(item.rank2026) : null,
+      bandKey: clean(item?.bandKey, 40),
+      displayLocation: clean(item?.displayLocation, 80),
+      natureLabel: clean(item?.natureLabel, 60),
+      tuition: clean(item?.tuition, 80),
+      userNote: clean(item?.userNote, 240)
+    }))
+  };
+}
+
 export function compactAiWorkspaceForServer(workspaceLike) {
   const workspace = createAiWorkspace(workspaceLike || {});
   return {
@@ -235,8 +281,8 @@ export function compactAiWorkspaceForServer(workspaceLike) {
     tasks: workspace.tasks.slice(0, 12).map(task => ({ id: task.id, parentTaskId: task.parentTaskId, kind: task.kind, type: task.type, status: task.status, title: task.title, intent: task.intent })),
     hardConstraints: workspace.hardConstraints,
     softPreferences: workspace.softPreferences,
-    selectionSnapshot: workspace.selectionSnapshot ? { version: workspace.selectionSnapshot.version, items: workspace.selectionSnapshot.items.slice(0, 112) } : null,
-    lastResult: workspace.lastResult,
-    pendingChecks: workspace.pendingChecks
+    selectionSnapshot: compactSelectionSnapshotForServer(workspace.selectionSnapshot),
+    lastResult: compactLastResultForServer(workspace.lastResult),
+    pendingChecks: workspace.pendingChecks.slice(0, 20).map(item => ({ key: clean(item?.key, 120), level: clean(item?.level, 40), text: clean(item?.text, 280) }))
   };
 }
