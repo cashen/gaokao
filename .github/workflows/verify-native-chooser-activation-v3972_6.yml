@@ -38,11 +38,13 @@ jobs:
           fi
           node --check shared/ui/interaction/interaction-transaction.v3990_1.js
           node --check tools/browser-native-chooser-activation-v3990_1.mjs
+          node --check tools/browser-native-chooser-activation-v3990_1-runner.mjs
           node --check tools/browser-resource-execution-v3990_1.mjs
           node --check tools/browser-family-action-v3990_1.mjs
           node --check tools/browser-school-query-v3990_1.mjs
           grep -q "interaction-transaction-v3990_1" shared/ui/interaction/interaction-transaction.v3990_1.js
-          grep -q "native-chooser-activation-integrity-v3990_1" shared/ui/interaction/interaction-transaction.v3990_1.js
+          grep -q "nativeChooserActivationVersion: 'native-chooser-activation-integrity-v3990_1'" shared/resources/release/current-release.js
+          grep -q "nativeChooserActivation: '/shared/ui/interaction/interaction-transaction.v3990_1.js'" shared/resources/release/site-runtime-contract.v3990_1.js
           if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_1.js; then exit 1; fi
 
       - name: Install Chromium journey runner
@@ -59,7 +61,7 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           V3990_1_ARTIFACT_DIR=/tmp/v3990-1-native-browser \
-            node tools/browser-native-chooser-activation-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-native-browser.out
+            node tools/browser-native-chooser-activation-v3990_1-runner.mjs 2>&1 | tee /tmp/v3990-1-native-browser.out
 
       - name: Verify preserved PC Pad Android main journey
         run: |
