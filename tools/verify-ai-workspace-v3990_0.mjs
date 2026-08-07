@@ -128,7 +128,8 @@ function testCompactPayloadBudget() {
   const bytes = Buffer.byteLength(JSON.stringify({ workspace: compact, input: '继续审查方案' }), 'utf8');
   assert.ok(bytes < 96 * 1024, `compact workspace payload must stay under 96KB, got ${bytes}`);
   assert.equal(compact.lastResult.candidates.records[0].school, undefined, 'previous full candidate record must not be resent');
-  assert.equal(compact.selectionSnapshot.items[0].userNote.length <= 240, true, 'selection notes must be bounded');
+  assert.equal(compact.selectionSnapshot.items[0].userNote, undefined, 'selection notes must stay local and never be sent to the AI turn API');
+  assert.equal(compact.selectionSnapshot.items[0].natureLabel, undefined, 'unused selection fields must stay local');
 }
 
 function testOfficialEvidenceBoundary() {
@@ -212,8 +213,8 @@ async function main() {
     contract: AI_WORKSPACE_CONTRACT_VERSION,
     checks: [
       'hard-soft-intent-boundary', 'branch-main-integrity', 'no-silent-shrink', 'result-delta', 'selection-review',
-      'compact-payload-under-96kb', 'official-evidence-host-whitelist', 'rank-600=14235', 'provider-fallback',
-      'turn-without-ai-binding', 'source-guards'
+      'compact-payload-under-96kb', 'selection-notes-stay-local', 'official-evidence-host-whitelist', 'rank-600=14235',
+      'provider-fallback', 'turn-without-ai-binding', 'source-guards'
     ]
   }, null, 2));
 }
