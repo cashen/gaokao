@@ -1,0 +1,112 @@
+name: Verify AI decision workspace v3990_0
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'ai/**'
+      - 'shared/ai/**'
+      - 'functions/api/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-ai-workspace-v3990_0.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+      - 'shared/ai/**'
+      - 'functions/api/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-ai-workspace-v3990_0.mjs'
+      - '.github/workflows/verify-ai-workspace-v3990_0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce protected paths on PR
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
+          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/ai-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/ai-files.txt; then
+            echo 'Protected path touched by AI workspace change.' >&2
+            exit 1
+          fi
+      - name: Verify current unified release identity remains coherent
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "display: 'v3.9.90.0'" shared/resources/release/current-release.js
+          grep -q "siteRuntimeGeneration: 'v3990_0'" shared/resources/release/current-release.js
+          grep -q "data-release=\"v3.9.90.0\"" ai/index.html
+          grep -q "data-site-runtime-generation=\"v3990_0\"" ai/index.html
+          grep -q "LN_RANK_RELEASE_CONTRACT" functions/_lib/release-contract.js
+          grep -q "RELEASE_CONTRACT" functions/_lib/release-contract.js
+      - name: Syntax check AI workspace runtime
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-contract.v3990_0.js
+          node --check functions/_lib/ai/provider-router.js
+          node --check functions/_lib/ai/intent-interpreter.js
+          node --check functions/_lib/ai/evidence-registry.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/selection-review.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/api/ai/turn.js
+          node --check functions/api/ai/health.js
+          node --check ai/app.v3990_0.js
+          node --check tools/verify-ai-workspace-v3990_0.mjs
+      - name: Run deterministic workspace gates
+        run: node tools/verify-ai-workspace-v3990_0.mjs
+
+  production-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        base:
+          - https://gaokao-4y9.pages.dev
+          - https://gaokao.powers.org.cn
+    steps:
+      - name: Wait for AI page and deterministic API
+        env:
+          BASE: ${{ matrix.base }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 48); do
+            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            rank="$(curl -fsSL --max-time 35 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_0","examContext":{},"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
+            if grep -q 'data-ai-workspace="ai-workspace-v3990_0"' <<<"$page" \
+              && grep -q '"apiVersion":"ai-health-api-v3990_0"' <<<"$health" \
+              && grep -q '"release":"v3.9.90.0"' <<<"$health" \
+              && grep -q '"siteRuntimeGeneration":"v3990_0"' <<<"$health" \
+              && grep -q '"rankEnd":14235' <<<"$rank" \
+              && grep -q '"source":"deterministic"' <<<"$rank"; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ready" -eq 1
