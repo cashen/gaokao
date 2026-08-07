@@ -2,10 +2,13 @@
 """Verify the v3.9.90.0 active release without fabricating stable business assets."""
 from pathlib import Path
 import json
+import os
 import re
 import sys
 
-ROOT = Path(__file__).resolve().parents[2]
+_SCRIPT_PATH = Path(__file__).resolve()
+ROOT = (_SCRIPT_PATH.parents[2] if len(_SCRIPT_PATH.parents) > 2
+        else Path(os.environ.get('GITHUB_WORKSPACE') or Path.cwd()).resolve())
 errors = []
 
 

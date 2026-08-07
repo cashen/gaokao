@@ -2,9 +2,9 @@ import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
 
-export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_0';
-export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_0';
-export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_0';
+export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_1';
+export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
+export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -256,7 +256,7 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     : rankFilteredRows;
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
-    : 'full-record-v3990_0';
+    : 'full-record-v3990_1';
   const projectionSchema = projectionVersion === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? buildMajorBandsRankOrderProjectionSchema(schema)
     : null;
@@ -279,7 +279,7 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     rankRowsSkipped: payload.rows.length - selectedRows.length,
     pageIdRowsSkipped: rankFilteredRows.length - selectedRows.length,
     pageIdFilterCount: allowedIds?.size || 0,
-    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_0',
+    pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_1',
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
     rankRange,
     bytes: Number(bucket.bytes || 0),

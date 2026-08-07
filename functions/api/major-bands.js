@@ -7,37 +7,37 @@ import {
   MAJOR_BANDS_RANK_BUCKETS,
   selectMajorBandsRankBuckets,
   assertMajorBandsRankIndex
-} from '../_lib/major-bands-rank-index.v3990_0.js';
+} from '../_lib/major-bands-rank-index.v3990_1.js';
 import {
   MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
   MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
   MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
   loadMajorBandsRankWindow
-} from '../_lib/major-bands-rank-bucket-loader.v3990_0.js';
+} from '../_lib/major-bands-rank-bucket-loader.v3990_1.js';
 import {
   MAJOR_BANDS_QUERY_EXECUTION_CACHE_VERSION,
   executeMajorBandsQueryOnce
-} from '../_lib/major-bands-query-execution-cache.v3990_0.js';
+} from '../_lib/major-bands-query-execution-cache.v3990_1.js';
 import {
   MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
   executeMajorBandsAllBandsPageOnce,
   releaseMajorBandsAllBandsCompletedPage
-} from '../_lib/major-bands-all-bands-page-cache.v3990_0.js';
+} from '../_lib/major-bands-all-bands-page-cache.v3990_1.js';
 import {
   MAJOR_BANDS_RANK_QUERY_KERNEL_VERSION,
   processMajorBandsRankWindow
-} from '../_lib/major-bands-rank-query-kernel.v3990_0.js';
+} from '../_lib/major-bands-rank-query-kernel.v3990_1.js';
 import {
   MAJOR_BANDS_RESULT_ORDER_VERSION,
   majorBandsSnapshotId,
   paginateMajorBandsRecords
-} from '../_lib/major-bands-result-order.v3990_0.js';
+} from '../_lib/major-bands-result-order.v3990_1.js';
 import {
   MAJOR_BANDS_RESPONSE_TRANSPORT_VERSION,
   compactMajorBandsBucketCandidate,
   compactMajorBandsResponseRecord
-} from '../_lib/major-bands-response-transport.v3990_0.js';
+} from '../_lib/major-bands-response-transport.v3990_1.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
 import {
   getBottomLineEligibility,
@@ -75,16 +75,16 @@ import {
 
 assertMajorBandsRankIndex();
 
-export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_0';
-export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_0';
+export const MAJOR_BANDS_ALL_BANDS_EXECUTION_MODE = 'sequential-internal-band-requests-v3990_1';
+export const MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION = 'major-bands-all-bands-shared-projection-v3990_1';
 export const MAJOR_BANDS_ALL_BANDS_PAGE_LIMIT_CAP = 16;
-export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_0';
+export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_1';
 const ALL_BANDS_EDGE_CACHE_TTL_SECONDS = 60;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
-export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_0';
-export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_0';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
 const REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;
-export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_0';
+export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_1';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_CHARS_PER_ENTRY = 500_000;
@@ -1293,7 +1293,7 @@ export async function onRequest(context) {
         maxPerBand: configuredPageSize,
         pageSize: pageLimit,
         pageBand: requestedBand,
-        paginationContract: 'stable-full-id-snapshot-v3990_0',
+        paginationContract: 'stable-full-id-snapshot-v3990_1',
         elapsedMs: Date.now() - started
       },
       keywordQuery,
@@ -1347,7 +1347,7 @@ export async function onRequest(context) {
         deferredResponseEnrichment: aggregate.deferredResponseEnrichment,
         responseEnrichedCandidates: aggregate.responseEnrichedCandidates,
         allBandsPageCacheVersion: MAJOR_BANDS_ALL_BANDS_PAGE_CACHE_VERSION,
-        allBandsPageCacheReleaseMode: 'release-completed-on-requested-band-switch-v3990_0',
+        allBandsPageCacheReleaseMode: 'release-completed-on-requested-band-switch-v3990_1',
         allBandsPageCacheReleasedBeforeBandQuery,
         bucketLoaderVersion: MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION,
         bucketCacheVersion: MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION,
@@ -1381,7 +1381,7 @@ export async function onRequest(context) {
         rankRowsSkipped: loadedStats.rankRowsSkipped,
         pageIdRowsSkipped: loadedStats.pageIdRowsSkipped || 0,
         pageIdFilterCount: loadedStats.pageIdFilterCount || 0,
-        pageIdFilterVersion: loadedStats.pageIdFilterVersion || 'major-bands-page-id-predecode-filter-v3990_0',
+        pageIdFilterVersion: loadedStats.pageIdFilterVersion || 'major-bands-page-id-predecode-filter-v3990_1',
         rankBucketConcurrency: loadedStats.peakConcurrency,
         rankBucketMaxConcurrency: loadedStats.maxConcurrency,
         sortPasses: aggregate.sortPasses,
@@ -1399,7 +1399,7 @@ export async function onRequest(context) {
       retryable: false,
       message: error?.message || String(error),
       userMessage: '专业数据暂时没有读取成功。可以稍后重试，或先切回全部院校再试。',
-      engineerHint: '请检查 major-bands-rank-query-kernel-v3990_0、位次索引与 Pages ASSETS 绑定；不得恢复公共 HTTP 自调用或候选截断。',
+      engineerHint: '请检查 major-bands-rank-query-kernel-v3990_1、位次索引与 Pages ASSETS 绑定；不得恢复公共 HTTP 自调用或候选截断。',
       hint: '可打开 /api/major-bands-health?probe=1 检查不可变底层数据健康。'
     }, 500);
   }

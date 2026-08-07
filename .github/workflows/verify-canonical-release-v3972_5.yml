@@ -1,4 +1,4 @@
-name: Verify canonical release v3990.0
+name: Verify canonical release v3990.1
 
 on:
   pull_request:
@@ -27,10 +27,20 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify one canonical current release and resource graph
+        shell: bash
         run: |
           set -euo pipefail
-          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_0.mjs
-          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_0.mjs
-          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_0.mjs
-          python3 tools/ln-2026/verify-final-release-v3990_0.py
+          node --experimental-default-type=module tools/audit-canonical-release-version-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-site-runtime-generation-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-unified-resource-graph-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_1.mjs
 
+          # Preserve the complete historical Python acceptance surface without
+          # creating a second maintained copy. Only current-generation identity
+          # markers are mapped; declared stable business-resource versions remain unchanged.
+          sed \
+            -e 's/v3\.9\.90\.0/v3.9.90.1/g' \
+            -e 's/v3990_0/v3990_1/g' \
+            -e 's/3990_0/3990_1/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_1.py
+          python3 /tmp/verify-final-release-v3990_1.py

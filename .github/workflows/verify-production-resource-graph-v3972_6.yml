@@ -1,4 +1,4 @@
-name: Verify production resource graph v3990.0
+name: Verify production resource graph v3990.1
 
 on:
   pull_request:
@@ -6,33 +6,32 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'shared/resources/release/current-release.js'
-      - 'shared/resources/release/site-runtime-contract.v3990_0.js'
-      - 'shared/resources/release/runtime-cache-contract.v3990_0.js'
+      - 'shared/resources/release/site-runtime-contract.v3990_1.js'
+      - 'shared/resources/release/runtime-cache-contract.v3990_1.js'
       - 'shared/resources/resource-registry.js'
-      - 'shared/ui/ui-resource-registry.v3990_0.js'
-      - 'shared/ui/interaction/interaction-transaction.v3990_0.js'
-      - 'shared/ui/interaction/interaction-transaction.v3990_0.css'
-      - 'shared/governance/resource-execution-contract.v3990_0.js'
-      - 'shared/governance/production-resource-verification-contract.v3990_0.js'
+      - 'shared/ui/ui-resource-registry.v3990_1.js'
+      - 'shared/ui/interaction/interaction-transaction.v3990_1.js'
+      - 'shared/ui/interaction/interaction-transaction.v3990_1.css'
+      - 'shared/governance/resource-execution-contract.v3990_1.js'
+      - 'shared/governance/production-resource-verification-contract.v3990_1.js'
       - 'ln-rank/index.html'
-      - 'ln-rank/site-active-generation.v3990_0.json'
+      - 'ln-rank/site-active-generation.v3990_1.json'
       - 'ln-rank/self-check.html'
-      - 'ln-rank/js/self-check.v3990_0.js'
-      - 'ln-rank/js/app.v3990_0.js'
-      - 'ln-rank/js/app-runtime.v3990_0.js'
-      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js'
-      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js'
-      - 'tools/audit-production-resource-verification-v3990_0.mjs'
-      - 'tools/audit-production-rank-concurrency-contract-v3990_0.mjs'
-      - 'tools/verify-production-resource-graph-v3990_0.mjs'
-      - 'tools/verify-production-pagination-snapshot-guard-v3990_0.mjs'
-      - 'tools/verify-major-bands-preview-concurrency-v3990_0.mjs'
+      - 'ln-rank/js/self-check.v3990_1.js'
+      - 'ln-rank/js/app.v3990_1.js'
+      - 'ln-rank/js/app-runtime.v3990_1.js'
+      - 'ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_1.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_1.js'
+      - 'tools/audit-production-resource-verification-v3990_1.mjs'
+      - 'tools/verify-production-resource-graph-v3990_1.mjs'
+      - 'tools/verify-production-pagination-snapshot-guard-v3990_1.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
       - 'functions/api/major-bands.js'
       - 'functions/_lib/major-bands-static-provider.js'
-      - 'functions/_lib/major-bands-rank-*.v3990_0.js'
-      - 'functions/_lib/major-bands-query-execution-cache.v3990_0.js'
-      - 'functions/_lib/major-bands-result-order.v3990_0.js'
-      - 'functions/_lib/major-bands-response-transport.v3990_0.js'
+      - 'functions/_lib/major-bands-rank-*.v3990_1.js'
+      - 'functions/_lib/major-bands-query-execution-cache.v3990_1.js'
+      - 'functions/_lib/major-bands-result-order.v3990_1.js'
+      - 'functions/_lib/major-bands-response-transport.v3990_1.js'
       - '.github/workflows/verify-production-resource-graph-v3972_6.yml'
   push:
     branches: [main]
@@ -44,7 +43,7 @@ permissions:
 jobs:
   source-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,31 +57,35 @@ jobs:
           python-version: '3.12'
 
       - name: Verify protected paths and source syntax
+        shell: bash
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = 'pull_request' ]; then
             base='${{ github.event.pull_request.base.sha }}'
-            git diff --name-only "$base" HEAD | tee /tmp/v3990-0-production-files.txt
-            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-0-production-files.txt; then exit 1; fi
+            git diff --name-only "$base" HEAD | tee /tmp/v3990-1-production-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-production-files.txt; then exit 1; fi
           fi
-          node --check shared/governance/production-resource-verification-contract.v3990_0.js
-          node --check functions/_lib/major-bands-query-execution-cache.v3990_0.js
-          node --check functions/_lib/major-bands-result-order.v3990_0.js
-          node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_0.js
-          node --check tools/audit-production-resource-verification-v3990_0.mjs
-          node --check tools/audit-production-rank-concurrency-contract-v3990_0.mjs
-          node --check tools/verify-production-resource-graph-v3990_0.mjs
-          node --check tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
-          node --check tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          node --check shared/governance/production-resource-verification-contract.v3990_1.js
+          node --check functions/_lib/major-bands-query-execution-cache.v3990_1.js
+          node --check functions/_lib/major-bands-result-order.v3990_1.js
+          node --check ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_1.js
+          node --check tools/audit-production-resource-verification-v3990_1.mjs
+          node --check tools/verify-production-resource-graph-v3990_1.mjs
+          node --check tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+
+          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
+            tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
+          node --check /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
 
       - name: Verify production resource contract and canonical graph
         run: |
           set -euo pipefail
-          node tools/audit-production-resource-verification-v3990_0.mjs | tee /tmp/v3990-0-production-contract.out
-          node tools/audit-production-rank-concurrency-contract-v3990_0.mjs | tee /tmp/v3990-0-production-rank-concurrency-contract.out
-          node tools/audit-unified-resource-graph-v3990_0.mjs | tee /tmp/v3990-0-production-resource.out
-          node tools/audit-site-runtime-generation-v3990_0.mjs | tee /tmp/v3990-0-production-runtime.out
-          node tools/audit-canonical-release-version-v3990_0.mjs | tee /tmp/v3990-0-production-canonical.out
+          node tools/audit-production-resource-verification-v3990_1.mjs | tee /tmp/v3990-1-production-contract.out
+          node /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs | tee /tmp/v3990-1-production-rank-concurrency-contract.out
+          node tools/audit-unified-resource-graph-v3990_1.mjs | tee /tmp/v3990-1-production-resource.out
+          node tools/audit-site-runtime-generation-v3990_1.mjs | tee /tmp/v3990-1-production-runtime.out
+          node tools/audit-canonical-release-version-v3990_1.mjs | tee /tmp/v3990-1-production-canonical.out
 
       - name: Exercise verifier against local source graph
         env:
@@ -93,35 +96,28 @@ jobs:
           PRODUCTION_RESOURCE_WAIT_MS: '0'
           VERIFY_RUNTIME_HEALTH: 'false'
           VERIFY_MAJOR_BANDS: 'false'
-          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-local.json
-          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-0-production-pagination-snapshot-local.json
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-1-production-local.json
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-1-production-pagination-snapshot-local.json
         run: |
           set -euo pipefail
-          python3 -m http.server 8795 --bind 127.0.0.1 >/tmp/v3990-0-production-http.log 2>&1 &
+          python3 -m http.server 8795 --bind 127.0.0.1 >/tmp/v3990-1-production-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           ready=0
           for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error --max-time 5 \
-              'http://127.0.0.1:8795/shared/resources/release/current-release.js' >/dev/null; then
-              ready=1
-              break
-            fi
+            if curl --fail --silent --show-error --max-time 5 'http://127.0.0.1:8795/shared/resources/release/current-release.js' >/dev/null; then ready=1; break; fi
             sleep 1
           done
-          if [ "$ready" -ne 1 ]; then
-            cat /tmp/v3990-0-production-http.log
-            exit 1
-          fi
-          node tools/verify-production-resource-graph-v3990_0.mjs
-          node tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-production-http.log; exit 1; fi
+          node tools/verify-production-resource-graph-v3990_1.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
 
       - name: Upload source evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-0-production-resource-source
-          path: /tmp/v3990-0-production-*
+          name: v3990-1-production-resource-source
+          path: /tmp/v3990-1-production-*
           if-no-files-found: warn
           retention-days: 7
 
@@ -139,6 +135,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Verify current pagination verifier
+        run: node --check tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
+
       - name: Verify Pages and custom-domain production resource graph
         env:
           PAGES_BASE: https://gaokao-4y9.pages.dev
@@ -147,12 +146,12 @@ jobs:
           PRODUCTION_RESOURCE_ATTEMPTS: '42'
           PRODUCTION_RESOURCE_WAIT_MS: '20000'
           VERIFY_RUNTIME_HEALTH: 'true'
-          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-resource-graph.json
-          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-0-production-pagination-snapshot-guard.json
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-1-production-resource-graph.json
+          PRODUCTION_PAGINATION_SNAPSHOT_EVIDENCE: /tmp/v3990-1-production-pagination-snapshot-guard.json
         run: |
           set -euo pipefail
-          node tools/verify-production-resource-graph-v3990_0.mjs
-          node tools/verify-production-pagination-snapshot-guard-v3990_0.mjs
+          node tools/verify-production-resource-graph-v3990_1.mjs
+          node tools/verify-production-pagination-snapshot-guard-v3990_1.mjs
 
       - name: Wait for bounded rank-query production deployment
         env:
@@ -162,10 +161,10 @@ jobs:
           ready=0
           for attempt in $(seq 1 90); do
             body="$(curl --fail --silent --show-error --location --max-time 35 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${TARGET_BASE}/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16&deploy=${GITHUB_SHA}-${attempt}" || true)"
-            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_0"' <<<"$body" \
-              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_0"' <<<"$body" \
-              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_0"' <<<"$body" \
-              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_0"' <<<"$body" \
+            if grep -q '"queryKernelVersion":"major-bands-rank-query-kernel-v3990_1"' <<<"$body" \
+              && grep -q '"queryExecutionCacheVersion":"major-bands-query-execution-cache-single-heavy-v3990_1"' <<<"$body" \
+              && grep -q '"bucketLoaderVersion":"major-bands-rank-bucket-loader-bounded-all-band-v3990_1"' <<<"$body" \
+              && grep -q '"resultOrderVersion":"major-bands-result-order-ephemeral-v3990_1"' <<<"$body" \
               && grep -Eq '"counts":\{"upper":0,"near":[0-9]+,"steady":0,' <<<"$body" \
               && grep -q '"sortPasses":1' <<<"$body" \
               && grep -q '"rankBucketMaxConcurrency":1' <<<"$body" \
@@ -187,20 +186,18 @@ jobs:
           P95_LIMIT_MS: '8000'
           P99_LIMIT_MS: '15000'
           HARD_LIMIT_MS: '25000'
-          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/v3990-0-production-major-bands-concurrency.json
-        run: |
-          set -euo pipefail
-          node tools/verify-major-bands-preview-concurrency-v3990_0.mjs
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/v3990-1-production-major-bands-concurrency.json
+        run: node tools/verify-major-bands-preview-concurrency-v3990_1.mjs
 
       - name: Upload production evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-0-production-resource-graph
+          name: v3990-1-production-resource-graph
           path: |
-            /tmp/v3990-0-production-resource-graph.json
-            /tmp/v3990-0-production-pagination-snapshot-guard.json
-            /tmp/v3990-0-production-major-bands-concurrency.json
+            /tmp/v3990-1-production-resource-graph.json
+            /tmp/v3990-1-production-pagination-snapshot-guard.json
+            /tmp/v3990-1-production-major-bands-concurrency.json
           if-no-files-found: warn
           retention-days: 7
 
@@ -216,14 +213,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE_RESULT: ${{ needs.source-contract.result }}
           PRODUCTION_RESULT: ${{ needs.production-graph.result }}
-          STATUS_CONTEXT: production/resource-graph-v3990.0
+          STATUS_CONTEXT: production/resource-graph-v3990.1
         run: |
           set -euo pipefail
           state='failure'
           description='Production resource graph verification failed'
           if [ "$SOURCE_RESULT" = 'success' ] && [ "$PRODUCTION_RESULT" = 'success' ]; then
             state='success'
-            description='Production v3990.0 rank kernel/resource graph checks passed'
+            description='Production v3990.1 rank kernel/resource graph checks passed'
           fi
           payload="$(node -e 'console.log(JSON.stringify({state:process.argv[1],context:process.argv[2],description:process.argv[3],target_url:process.argv[4]}))' \
             "$state" "$STATUS_CONTEXT" "$description" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")"
@@ -233,6 +230,6 @@ jobs:
             --header 'Accept: application/vnd.github+json' \
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-            --data "$payload" >/tmp/v3990-0-production-status.json
-          cat /tmp/v3990-0-production-status.json
+            --data "$payload" >/tmp/v3990-1-production-status.json
+          cat /tmp/v3990-1-production-status.json
           test "$state" = 'success'

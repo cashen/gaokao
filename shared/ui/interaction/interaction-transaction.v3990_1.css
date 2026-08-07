@@ -1,0 +1,33 @@
+/* v3990_1: native chooser activation integrity.
+   The browser-owned select activation path must remain free of synchronous
+   pointer-events, disabled and inert mutations. Tail navigation is guarded
+   in the capture-phase transaction owner after chooser outcome signals. */
+.aux-background-card[data-ui-navigation-owner="interaction-transaction-v3990_1"] {
+  width: 100%;
+  margin: 0;
+  border: 1px solid rgba(206, 221, 216, .9);
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.aux-background-card[data-ui-navigation-owner="interaction-transaction-v3990_1"]:focus-visible {
+  outline: 3px solid rgba(47, 125, 109, .24);
+  outline-offset: 2px;
+}
+
+/* Do not disable, inert or remove pointer events while a native chooser is
+   opening. The interaction owner blocks only unsafe navigation events. */
+body[data-ui-interaction-transaction="native-chooser-stabilizing"]
+.aux-background-card[data-ui-navigation-owner="interaction-transaction-v3990_1"] {
+  cursor: default;
+}
+
+#region {
+  touch-action: auto;
+}
+

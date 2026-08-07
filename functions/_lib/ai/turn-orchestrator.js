@@ -1,268 +1,52 @@
-import { buildAiResultDelta, AI_WORKSPACE_CONTRACT_VERSION } from '../../../shared/ai/ai-workspace-contract.v3990_0.js';
-import { interpretAiIntent, deterministicIntent } from './intent-interpreter.js';
+import { buildAiResultDelta, AI_WORKSPACE_CONTRACT_VERSION, activeViewLabel } from '../../../shared/ai/ai-workspace-contract.v3990_1.js';
+import { interpretAiCommand, deterministicCommand } from './command-interpreter.js';
 import { evidenceForIntent } from './evidence-registry.js';
-import { resolveRegionExecution, runMajorBandSearch, runRankLookup, runSchoolComparison, AI_TOOL_REGISTRY_VERSION } from './tool-registry.js';
+import { resolveRegionExecution, runMajorBandSearch, runRankLookup, runSchoolComparison, runMajorComparison, AI_TOOL_REGISTRY_VERSION } from './tool-registry.js';
 import { runSelectionReview } from './selection-review.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION = 'ai-turn-orchestrator-v3990_0';
+export const AI_TURN_ORCHESTRATOR_VERSION = 'ai-turn-orchestrator-v3990_1';
 
-function clean(value, max = 300) {
-  return String(value == null ? '' : value).trim().slice(0, max);
+function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
+function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(value=>clean(value,120)).filter(Boolean))].slice(0,max);}
+function validScore(value){const score=Math.round(Number(value));return Number.isFinite(score)&&score>=150&&score<=750?score:null;}
+function clone(value){return value==null?value:JSON.parse(JSON.stringify(value));}
+function baseView(workspace={}){const source=workspace?.activeView||{};return{target:source.target||'candidates',score:validScore(source.score??workspace?.examContext?.score),majorKeywords:unique(source.majorKeywords||[],8),regionKeys:unique(source.regionKeys||['all'],8).length?unique(source.regionKeys||['all'],8):['all'],schoolNames:unique(source.schoolNames||[],4),bottomLineMode:['all','public_first','public_regular_only','public_include_sino'].includes(source.bottomLineMode)?source.bottomLineMode:'all',combination:source.combination==='union'?'union':'replace',inherited:[],sourceText:''};}
+function regionLabel(keys=[]){const values=unique(keys,8);if(!values.length||values.includes('all'))return'全国';if(values.length===1&&values[0]==='outside')return'省外';return values.map(key=>key.startsWith('province:')?key.slice(9):key).join('、');}
+
+function resolveActiveView(command={},workspace={}){
+  const base=baseView(workspace);const next=clone(base);const inherited=[];const mutatesView=['search','refine'].includes(command.operation);if(!mutatesView)return{view:next,commitView:false,inherited};
+  if(validScore(command.score))next.score=validScore(command.score);else if(next.score)inherited.push(`分数 ${next.score}`);
+  if(Array.isArray(command.regionKeys)&&command.regionKeys.length)next.regionKeys=unique(command.regionKeys,8);else if(next.regionKeys?.length)inherited.push(`地区 ${regionLabel(next.regionKeys)}`);
+  if(command.clearMajor){next.majorKeywords=[];next.combination='replace';}
+  else if(Array.isArray(command.majorKeywords)&&command.majorKeywords.length){next.majorKeywords=command.combination==='union'?unique([...(base.majorKeywords||[]),...command.majorKeywords],8):unique(command.majorKeywords,8);next.combination=command.combination==='union'?'union':'replace';}
+  else if(next.majorKeywords?.length)inherited.push(`专业 ${next.majorKeywords.join(' / ')}`);
+  if(command.clearSchool)next.schoolNames=[];
+  else if(Array.isArray(command.schoolNames)&&command.schoolNames.length)next.schoolNames=unique(command.schoolNames,4);
+  else if(command.target!=='school'&&next.schoolNames?.length)next.schoolNames=[];
+  if(command.bottomLineMode)next.bottomLineMode=command.bottomLineMode;else if(next.bottomLineMode!=='all')inherited.push(`项目范围 ${next.bottomLineMode}`);
+  next.target=command.target==='school'?'school':'candidates';next.inherited=inherited;next.sourceText=clean(command.rawText,320);return{view:next,commitView:true,inherited};
 }
+function viewMatchesCommand(view={},command={}){if(command.majorKeywords?.length&&!command.majorKeywords.every(value=>(view.majorKeywords||[]).includes(value)))return false;if(command.regionKeys?.length&&!command.regionKeys.every(value=>(view.regionKeys||[]).includes(value)))return false;if(validScore(command.score)&&validScore(view.score)!==validScore(command.score))return false;return true;}
+function restoreView(command={},workspace={}){const history=Array.isArray(workspace?.viewHistory)?workspace.viewHistory:[];if(!history.length)return null;const text=String(command.rawText||'');if(/(上一批|上一个结果|刚才那批|刚才的结果)/.test(text)&&!(command.majorKeywords?.length||command.regionKeys?.length))return clone(history[0]);const matched=history.find(view=>viewMatchesCommand(view,command));return clone(matched||history[0]);}
+function selectionReviewRequested(input=''){return /(方案|选择池|自选|已选|选了些|选了一些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(String(input||''));}
+function rankSummary(rank){if(!rank?.ok)return'';if(rank.emptyScore)return`${rank.score}分在2026辽宁物理类表中没有同分考生，历史参考位置约到第${rank.rankEnd.toLocaleString('zh-CN')}位。`;if(rank.rankStart!==rank.rankEnd)return`${rank.score}分对应2026辽宁物理类历史参考位次约${rank.rankStart.toLocaleString('zh-CN')}—${rank.rankEnd.toLocaleString('zh-CN')}。`;return`${rank.score}分对应2026辽宁物理类历史参考位次约第${rank.rankEnd.toLocaleString('zh-CN')}位。`;}
+function candidateSummary(candidates,view){if(!candidates)return'';if(!candidates.ok)return candidates.message||'本轮候选查询没有成功完成。';const direction=view.majorKeywords.length?`“${view.majorKeywords.join(' / ')}”`:'不限专业';return`${view.score||''}分 · ${regionLabel(view.regionKeys)} · ${direction}：共召回 ${Number(candidates.counts?.total||0).toLocaleString('zh-CN')} 条历史参考记录；工作台只展示最多${candidates.previewLimit||48}条预览，完整分页仍由 ln-rank 位次内核负责。`;}
+function selectionReviewSummary(review){if(!review)return'';if(review.importRequired)return review.message;return`已按只读快照审查 ${review.total} 项：${review.counts.upper} 项稍高目标、${review.counts.near} 项主要参考、${review.counts.steady} 项低分侧补充，涉及 ${review.uniqueSchoolCount} 所学校。这里只判断结构与缺失字段，不预测录取。`;}
+function pendingChecksFor(result,regionExecution){const checks=[];if(regionExecution?.warning)checks.push({key:'region_scope',level:'warn',text:regionExecution.warning});for(const warning of result?.candidates?.warnings||[])checks.push({key:`candidate:${checks.length}`,level:'warn',text:clean(warning,280)});for(const finding of result?.selectionReview?.findings||[])if(['warn','review'].includes(finding.level))checks.push({key:`selection:${finding.key||checks.length}`,level:finding.level,text:clean(finding.text,280)});if(result?.comparison?.pendingEvidenceDimensions?.length)checks.push({key:'comparison-evidence',level:'review',text:`以下维度没有统一可比官方口径，本轮不作优劣结论：${result.comparison.pendingEvidenceDimensions.join('、')}。`});if(result?.candidates?.counts?.total>0||result?.selectionReview?.total>0)checks.push({key:'annual-plan',level:'required',text:'正式填报前逐条核验当年招生计划、专业代码、计划数、校区、学费、选科和体检要求。'});return checks.slice(0,12);}
+function comparisonText(comparison){if(!comparison?.ok)return comparison?.message||'当前对象不足以执行比较。';const lines=comparison.items.map(item=>`${item.label}：${Number(item.counts?.total||0).toLocaleString('zh-CN')}条历史参考，可见${item.reachableSchoolCount||0}所学校 / ${item.reachableMajorCount||0}个专业样本`).join('；');return`${lines}。这里只比较当前分数与当前范围下的确定性可达空间，不给学校或专业打总分。`;}
+function alternateMajor(current=[]){return current.includes('机械')?'电气':'机械';}
+function contextualActions({view,workspace,result}){const actions=[];const regionAll=!view.regionKeys?.length||view.regionKeys.includes('all');actions.push(regionAll?{id:'region-ln',label:'只看辽宁省内',prompt:'只看省内'}:{id:'region-all',label:'回到全国',prompt:'回到全国看看'});if(view.bottomLineMode==='all')actions.push({id:'public-regular',label:'只看公办普通',prompt:'只看公办普通项目'});else actions.push({id:'nature-all',label:'恢复全部项目性质',prompt:'学校性质不限，都可以看'});if(view.majorKeywords?.length)actions.push({id:'major-clear',label:'暂时不限专业',prompt:'先不限专业看看'});if((workspace?.viewHistory||[]).length)actions.push({id:'view-back',label:'回到上一批',prompt:'回到上一批'});if(view.majorKeywords?.length===1){const alt=alternateMajor(view.majorKeywords);actions.push({id:'major-union',label:`把${alt}也加进来`,prompt:`也看看${alt}`});}if(result?.candidates?.records?.length>=2)actions.push({id:'compare-schools',label:'选两所学校深入比较',prompt:'把前两所学校按当前分数能读到的专业空间比较一下'});actions.push({id:'open-ln-rank',label:'打开完整专业初选',href:'/ln-rank/'});if(workspace?.selectionSnapshot?.items?.length)actions.push({id:'review-selection',label:'审查当前家庭方案',prompt:'审查我当前的家庭方案'});else actions.push({id:'open-selection',label:'打开家庭方案',href:'/ln-rank/selection-pool.html'});return actions.slice(0,7);}
+function evidenceIntent(command,result){return{topic:result?.comparison?'candidate_search':command.operation==='verify'?'verification':['search','refine','restore'].includes(command.operation)?'candidate_search':'general_question',question:command.question||command.rawText||'',majorKeywords:command.majorKeywords||[]};}
+function buildBlocks({command,view,inherited,result,delta,workspace,regionExecution}){const blocks=[];blocks.push({type:'task_header',title:command.operation==='compare'?'比较当前选择':command.operation==='save'?'家庭底线已记录':'当前观察',subtitle:activeViewLabel(view),commandSource:command.source});blocks.push({type:'active_view',title:'现在看的范围',view:{score:view.score,regionLabel:regionLabel(view.regionKeys),regionKeys:view.regionKeys,majorKeywords:view.majorKeywords,schoolNames:view.schoolNames,bottomLineMode:view.bottomLineMode},inherited});if(command.operation==='save'&&command.persistence==='family'){const changes=command.familyChanges||{};const saved=[...(changes.majorExcludeKeywords||[]).map(value=>`不接受专业 ${value}`),...(changes.regionIncludeKeys||[]).map(value=>`长期地区范围 ${regionLabel([value])}`),...(changes.regionExcludeKeys||[]).map(value=>`排除地区 ${regionLabel([value])}`)];if(changes.bottomLineMode)saved.push(`学校性质/费用底线 ${changes.bottomLineMode}`);blocks.push({type:'family_constraint_saved',title:'已保存为家庭长期底线',text:saved.length?saved.join('；'):'已保存这条家庭长期底线。'});}if(inherited?.length)blocks.push({type:'inheritance',title:'本轮沿用了这些条件',text:`你这句话没有改动：${inherited.join('；')}。`});if(result.rank?.ok)blocks.push({type:'fact_summary',title:'当前位置',text:rankSummary(result.rank),level:'A',sourceUrl:result.rank.source?.sourceUrl||''});if(result.selectionReview)blocks.push({type:'selection_review',title:result.selectionReview.importRequired?'先导入当前家庭方案':'家庭方案结构审查',text:selectionReviewSummary(result.selectionReview),review:result.selectionReview,action:result.selectionReview.importRequired?'import_selection':''});if(result.candidates)blocks.push({type:'candidate_routes',title:'确定性候选执行结果',text:candidateSummary(result.candidates,view),counts:result.candidates.counts,records:(result.candidates.records||[]).slice(0,18),previewOnly:true});if(result.comparison)blocks.push({type:'comparison',title:result.comparison.kind==='major'?'专业可达空间比较':'学校可达空间比较',text:comparisonText(result.comparison),items:result.comparison.items||[],comparableDimensions:result.comparison.comparableDimensions||[],pendingEvidenceDimensions:result.comparison.pendingEvidenceDimensions||[]});if(delta?.changed)blocks.push({type:'delta',title:'和上一批相比',delta});if(regionExecution?.warning)blocks.push({type:'clarification',title:'本轮没有冒险缩水',text:regionExecution.warning});if(result.evidence?.length)blocks.push({type:'evidence',title:'可核验的官方入口',items:result.evidence});if(result.pendingChecks?.length)blocks.push({type:'pending_checks',title:'还没有完成的核验',items:result.pendingChecks});blocks.push({type:'action',title:'接下来可以直接这样做',actions:contextualActions({view,workspace,result})});return blocks;}
+function resultIdentity({view,command,selectionReview}){return[view.score||'',view.majorKeywords.join('/'),view.regionKeys.join(','),view.schoolNames.join('/'),view.bottomLineMode,command.operation,command.target,selectionReview?.snapshotVersion||''].join('|');}
+function validateConfirmedCommand(value,input,workspace){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace);return{...fallback,...value,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(0.8,Number(value.confidence||0.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}
 
-function unique(values, max = 16) {
-  return [...new Set((Array.isArray(values) ? values : []).map(value => clean(value, 120)).filter(Boolean))].slice(0, max);
-}
-
-function hardConstraint(workspace = {}, key) {
-  return (workspace?.hardConstraints || []).find(item => item?.key === key) || null;
-}
-
-function effectiveScore(intent, workspace) {
-  const score = Number(intent?.score ?? workspace?.examContext?.score);
-  return Number.isFinite(score) && score >= 150 && score <= 750 ? Math.round(score) : null;
-}
-
-function effectiveBottomLine(intent, workspace) {
-  if (intent?.bottomLineMode && intent.bottomLineMode !== 'all') return intent.bottomLineMode;
-  const value = hardConstraint(workspace, 'bottomLineMode')?.values?.[0];
-  return ['public_first', 'public_regular_only', 'public_include_sino'].includes(value) ? value : 'all';
-}
-
-function effectiveMajors(intent, workspace) {
-  if (Array.isArray(intent?.majorKeywords) && intent.majorKeywords.length) return unique(intent.majorKeywords, 8);
-  const hard = hardConstraint(workspace, 'major')?.values || [];
-  if (hard.length) return unique(hard, 8);
-  const main = (workspace?.tasks || []).find(task => task?.id === workspace?.mainTaskId);
-  return unique(main?.intent?.majorKeywords || [], 8);
-}
-
-function shouldQueryCandidates(intent, score) {
-  if (!score) return false;
-  if (['candidate_search', 'comparison'].includes(intent?.topic)) return true;
-  return ['hard_constraint', 'soft_preference', 'correction', 'branch', 'simulation', 'comparison'].includes(intent?.type);
-}
-
-function selectionReviewRequested(input = '') {
-  return /(方案|选择池|自选|已选|选了些|选了一些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(String(input || ''));
-}
-
-function pendingChecksFor(result, regionExecution) {
-  const checks = [];
-  if (regionExecution?.warning) checks.push({ key: 'region_scope', level: 'warn', text: regionExecution.warning });
-  for (const warning of result?.candidates?.warnings || []) checks.push({ key: `candidate:${checks.length}`, level: 'warn', text: clean(warning, 280) });
-  for (const finding of result?.selectionReview?.findings || []) {
-    if (finding.level === 'warn' || finding.level === 'review') checks.push({ key: `selection:${finding.key || checks.length}`, level: finding.level, text: clean(finding.text, 280) });
-  }
-  if (result?.candidates?.counts?.total > 0 || result?.selectionReview?.total > 0) {
-    checks.push({ key: 'annual-plan', level: 'required', text: '正式填报前逐条核验当年招生计划、专业代码、计划数、校区、学费、选科和体检要求。' });
-  }
-  return checks.slice(0, 12);
-}
-
-function rankSummary(rank) {
-  if (!rank?.ok) return '';
-  if (rank.emptyScore) return `${rank.score}分在2026辽宁物理类表中没有同分考生，历史参考位置约到第${rank.rankEnd.toLocaleString('zh-CN')}位。`;
-  if (rank.rankStart !== rank.rankEnd) return `${rank.score}分对应2026辽宁物理类历史参考位次约${rank.rankStart.toLocaleString('zh-CN')}—${rank.rankEnd.toLocaleString('zh-CN')}。`;
-  return `${rank.score}分对应2026辽宁物理类历史参考位次约第${rank.rankEnd.toLocaleString('zh-CN')}位。`;
-}
-
-function candidateSummary(candidates, majors, regionExecution) {
-  if (!candidates) return '';
-  if (!candidates.ok) return candidates.message || '本轮候选查询没有成功完成。';
-  const direction = majors.length ? `“${majors.join(' / ')}”` : '当前专业范围';
-  const regions = regionExecution?.includeKeys?.length && !regionExecution.includeKeys.includes('all')
-    ? `，执行地区：${regionExecution.includeKeys.join('、')}`
-    : '';
-  return `${direction}${regions}共召回 ${Number(candidates.counts?.total || 0).toLocaleString('zh-CN')} 条历史参考记录；当前工作台只展示最多${candidates.previewLimit || 48}条预览，完整分页仍由 ln-rank 位次内核负责。`;
-}
-
-function comparisonSummary(comparison) {
-  if (!comparison?.ok) return comparison?.message || '';
-  return comparison.items.map(item => `${item.school}：${Number(item.result?.counts?.total || 0).toLocaleString('zh-CN')}条历史参考记录`).join('；');
-}
-
-function selectionReviewSummary(review) {
-  if (!review) return '';
-  if (review.importRequired) return review.message;
-  return `已按只读快照审查 ${review.total} 项：${review.counts.upper} 项稍高目标、${review.counts.near} 项主要参考、${review.counts.steady} 项低分侧补充，涉及 ${review.uniqueSchoolCount} 所学校。这里只判断结构与缺失字段，不预测录取。`;
-}
-
-function buildBlocks({ intent, result, delta, provider, regionExecution }) {
-  const blocks = [];
-  blocks.push({
-    type: 'task_header',
-    title: intent.taskTitle || (intent.type === 'comparison' ? '比较任务' : '当前任务'),
-    subtitle: intent.reason || '本轮已完成意图识别。',
-    intentType: intent.type,
-    source: intent.source
-  });
-  if (result.rank?.ok) {
-    blocks.push({ type: 'fact_summary', title: '当前位置', text: rankSummary(result.rank), level: 'A', sourceUrl: result.rank.source?.sourceUrl || '' });
-  }
-  if (result.selectionReview) {
-    blocks.push({
-      type: 'selection_review',
-      title: result.selectionReview.importRequired ? '先导入当前家庭方案' : '家庭方案结构审查',
-      text: selectionReviewSummary(result.selectionReview),
-      review: result.selectionReview,
-      action: result.selectionReview.importRequired ? 'import_selection' : ''
-    });
-  }
-  if (result.candidates) {
-    blocks.push({
-      type: 'candidate_routes',
-      title: '确定性候选执行结果',
-      text: candidateSummary(result.candidates, result.execution.majorKeywords, regionExecution),
-      counts: result.candidates.counts,
-      records: (result.candidates.records || []).slice(0, 18),
-      previewOnly: true
-    });
-  }
-  if (result.comparison) {
-    blocks.push({ type: 'comparison', title: '学校比较', text: comparisonSummary(result.comparison), items: result.comparison.items || [] });
-  }
-  if (delta?.changed) {
-    blocks.push({ type: 'delta', title: '这次修改带来的变化', delta });
-  }
-  if (regionExecution?.warning) {
-    blocks.push({ type: 'clarification', title: '地区条件暂不自动缩水', text: regionExecution.warning, action: 'confirm_region_scope' });
-  }
-  if (Array.isArray(result.evidence) && result.evidence.length) {
-    blocks.push({ type: 'evidence', title: '可核验的官方入口', items: result.evidence });
-  }
-  if (result.pendingChecks?.length) {
-    blocks.push({ type: 'pending_checks', title: '还没有完成的核验', items: result.pendingChecks });
-  }
-  blocks.push({
-    type: 'action',
-    title: '可以继续',
-    actions: [
-      { id: 'continue', label: '继续问当前结果' },
-      { id: 'open-ln-rank', label: '打开完整专业初选', href: '/ln-rank/' },
-      { id: 'open-selection', label: '打开家庭方案', href: '/ln-rank/selection-pool.html' }
-    ]
-  });
-  return blocks;
-}
-
-function resultIdentity({ score, majors, regionExecution, intent, bottomLineMode, selectionReview }) {
-  return [score || '', majors.join('/'), (regionExecution?.includeKeys || []).join(','), (regionExecution?.excludeKeys || []).join(','), bottomLineMode, intent.type, intent.topic, selectionReview?.snapshotVersion || ''].join('|');
-}
-
-function validateConfirmedIntent(value, input, workspace) {
-  if (!value || typeof value !== 'object') return null;
-  const fallback = deterministicIntent(input, workspace);
-  return {
-    ...fallback,
-    ...value,
-    type: value.type || fallback.type,
-    question: clean(value.question || input, 1000),
-    rawText: clean(input, 1200),
-    requiresConfirmation: false,
-    confidence: Math.max(0.8, Number(value.confidence || 0.8)),
-    source: `${clean(value.source, 30) || 'confirmed'}-confirmed`
-  };
-}
-
-export async function orchestrateAiTurn(context, payload = {}) {
-  const input = clean(payload.input, 1200);
-  const workspace = payload.workspace && typeof payload.workspace === 'object' ? payload.workspace : {};
-  if (!input && !payload.confirmedIntent) {
-    return { ok: false, status: 400, message: '请输入当前想解决的问题。' };
-  }
-  if (workspace?.contractVersion && workspace.contractVersion !== AI_WORKSPACE_CONTRACT_VERSION) {
-    return { ok: false, status: 409, message: '工作区版本不一致，请刷新页面后继续。' };
-  }
-
-  let interpreted;
-  const confirmed = validateConfirmedIntent(payload.confirmedIntent, input || payload.confirmedIntent?.rawText || '', workspace);
-  if (confirmed) {
-    interpreted = { intent: confirmed, provider: { ok: false, provider: '', model: '', deterministicFallbackRequired: false, confirmed: true } };
-  } else {
-    interpreted = await interpretAiIntent(input, workspace, context.env || {});
-  }
-  const intent = interpreted.intent;
-  if (intent.requiresConfirmation && !confirmed) {
-    return {
-      ok: true,
-      pendingConfirmation: true,
-      intent,
-      provider: {
-        provider: interpreted.provider?.provider || '',
-        model: interpreted.provider?.model || '',
-        source: intent.source,
-        failures: interpreted.provider?.failures || []
-      },
-      blocks: [{ type: 'clarification', title: '这句话可能会缩小候选范围', text: intent.reason || '请先确认是否要把它作为硬约束执行。', action: 'confirm_intent' }],
-      orchestratorVersion: AI_TURN_ORCHESTRATOR_VERSION
-    };
-  }
-
-  const score = effectiveScore(intent, workspace);
-  const majors = effectiveMajors(intent, workspace);
-  const bottomLineMode = effectiveBottomLine(intent, workspace);
-  const regionExecution = resolveRegionExecution(intent.type === 'soft_preference' ? { ...intent, regionIncludeKeys: [], regionExcludeKeys: [] } : intent, workspace);
-  const result = {
-    identity: '',
-    partial: false,
-    rank: score ? runRankLookup(score) : null,
-    candidates: null,
-    comparison: null,
-    selectionReview: selectionReviewRequested(input) ? runSelectionReview(workspace?.selectionSnapshot || null) : null,
-    evidence: evidenceForIntent(intent),
-    pendingChecks: [],
-    execution: {
-      score,
-      majorKeywords: majors,
-      bottomLineMode,
-      region: regionExecution,
-      toolRegistryVersion: AI_TOOL_REGISTRY_VERSION
-    }
-  };
-
-  if (shouldQueryCandidates(intent, score)) {
-    if (intent.type === 'comparison' && intent.schoolNames?.length >= 2) {
-      result.comparison = await runSchoolComparison(context, { score, schoolNames: intent.schoolNames, majorKeywords: majors, bottomLineMode });
-      result.partial = !result.comparison.ok;
-    } else if (regionExecution.exact) {
-      result.candidates = await runMajorBandSearch(context, {
-        score,
-        majorKeywords: majors,
-        regionKeys: regionExecution.includeKeys,
-        bottomLineMode,
-        schoolKeyword: intent.schoolNames?.length === 1 ? intent.schoolNames[0] : ''
-      });
-      result.partial = !result.candidates.ok;
-    } else {
-      result.partial = true;
-    }
-  }
-
-  result.identity = resultIdentity({ score, majors, regionExecution, intent, bottomLineMode, selectionReview: result.selectionReview });
-  result.pendingChecks = pendingChecksFor(result, regionExecution);
-  const delta = buildAiResultDelta(workspace?.lastResult || null, result);
-  const blocks = buildBlocks({ intent, result, delta, provider: interpreted.provider, regionExecution });
-
-  return {
-    ok: true,
-    pendingConfirmation: false,
-    intent,
-    taskAction: intent.taskAction,
-    result,
-    delta,
-    blocks,
-    event: {
-      type: 'intent_committed',
-      payload: { intent, taskAction: intent.taskAction }
-    },
-    provider: {
-      provider: interpreted.provider?.provider || '',
-      model: interpreted.provider?.model || '',
-      source: intent.source,
-      latencyMs: interpreted.provider?.latencyMs || 0,
-      failures: interpreted.provider?.failures || []
-    },
-    orchestratorVersion: AI_TURN_ORCHESTRATOR_VERSION
-  };
+export async function orchestrateAiTurn(context,payload={}){
+  const input=clean(payload.input,1200);const workspace=payload.workspace&&typeof payload.workspace==='object'?payload.workspace:{};if(!input&&!payload.confirmedCommand)return{ok:false,status:400,message:'请输入当前想解决的问题。'};if(workspace?.contractVersion&&workspace.contractVersion!==AI_WORKSPACE_CONTRACT_VERSION)return{ok:false,status:409,message:'工作区版本已升级，请刷新页面后继续；旧状态会自动迁移。'};
+  let interpreted;const confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace);if(confirmed)interpreted={command:confirmed,provider:{ok:false,provider:'',model:'',deterministicFallbackRequired:false,confirmed:true}};else interpreted=await interpretAiCommand(input,workspace,context.env||{});const command=interpreted.command;if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话还可能有两种理解',text:command.reason||'请明确是一起看还是做比较。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
+  let resolved=resolveActiveView(command,workspace);if(command.operation==='restore'){const restored=restoreView(command,workspace);if(!restored)return{ok:true,pendingConfirmation:true,command:{...command,requiresConfirmation:true},blocks:[{type:'clarification',title:'还没有可恢复的上一批结果',text:'先执行一次候选探索，再使用“回到上一批/刚才的电气”等表达。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};resolved={view:{...baseView(workspace),...restored,inherited:[]},commitView:true,inherited:[]};}
+  const view=resolved.view;const regionExecution=resolveRegionExecution(view,workspace);const result={identity:'',partial:false,rank:view.score?runRankLookup(view.score):null,candidates:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],execution:{score:view.score,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION}};
+  if(['search','refine','restore'].includes(command.operation)&&view.score){if(regionExecution.exact){result.candidates=await runMajorBandSearch(context,{score:view.score,majorKeywords:view.majorKeywords,regionKeys:regionExecution.includeKeys,bottomLineMode:view.bottomLineMode,schoolKeyword:view.schoolNames?.length===1?view.schoolNames[0]:''});result.partial=!result.candidates.ok;}else result.partial=true;}
+  if(command.operation==='compare'){const comparisonScore=validScore(command.score)||view.score;if(command.target==='school'&&command.schoolNames?.length>=2)result.comparison=await runSchoolComparison(context,{score:comparisonScore,schoolNames:command.schoolNames,majorKeywords:view.majorKeywords,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});else if(command.target==='major'&&command.majorKeywords?.length>=2)result.comparison=await runMajorComparison(context,{score:comparisonScore,majorKeywords:command.majorKeywords,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});else if(/前两所|这两所|这两个学校/.test(input)){const schools=unique((workspace?.lastResult?.candidates?.records||[]).map(item=>item?.school),2);result.comparison=await runSchoolComparison(context,{score:comparisonScore,schoolNames:schools,majorKeywords:view.majorKeywords,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});}else result.comparison={ok:false,message:'当前没有两个可安全确定的比较对象；可以直接说“两所学校名怎么选”或“电气和机械怎么选”。'};result.partial=!result.comparison?.ok;}
+  result.evidence=evidenceForIntent(evidenceIntent(command,result));result.identity=resultIdentity({view,command,selectionReview:result.selectionReview});result.pendingChecks=pendingChecksFor(result,regionExecution);const delta=result.candidates?buildAiResultDelta(workspace?.lastResult||null,result):{changed:false,countChanges:{},addedPreviewIds:[],removedPreviewIds:[],unchangedPreviewCount:0};const blocks=buildBlocks({command,view,inherited:resolved.inherited,result,delta,workspace,regionExecution});const taskAction=command.operation==='branch'?'branch':command.operation==='save'&&command.persistence==='family'?'none':workspace?.mainTaskId?'update_main':'create_main';return{ok:true,pendingConfirmation:false,command,taskAction,resolvedView:view,commitView:resolved.commitView,result,delta,blocks,event:{type:'command_committed',payload:{command,taskAction,resolvedView:view,commitView:resolved.commitView}},provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,latencyMs:interpreted.provider?.latencyMs||0,failures:interpreted.provider?.failures||[]},orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 }

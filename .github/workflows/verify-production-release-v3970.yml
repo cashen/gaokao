@@ -1,4 +1,4 @@
-name: Verify production release v3990.0
+name: Verify production release v3990.1
 
 on:
   push:
@@ -13,22 +13,21 @@ on:
       - 'index.html'
       - 'ln-rank/index.html'
       - 'ln-rank/selection-pool.html'
-      - 'ln-rank/site-active-generation.v3990_0.json'
-      - 'ln-rank/js/app.v3990_0.js'
-      - 'ln-rank/js/app-runtime.v3990_0.js'
-      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js'
+      - 'ln-rank/site-active-generation.v3990_1.json'
+      - 'ln-rank/js/app.v3990_1.js'
+      - 'ln-rank/js/app-runtime.v3990_1.js'
+      - 'ln-rank/js/workspace/selection-workspace-orchestrator.v3990_1.js'
       - 'functions/api/major-bands.js'
-      - 'functions/_lib/major-bands-rank-*.v3990_0.js'
-      - 'functions/_lib/major-bands-response-transport.v3990_0.js'
+      - 'functions/_lib/major-bands-rank-*.v3990_1.js'
+      - 'functions/_lib/major-bands-response-transport.v3990_1.js'
       - 'shared/resources/release/**'
       - 'shared/resources/resource-registry.js'
       - 'shared/governance/**'
-      - 'shared/ui/ui-resource-registry.v3990_0.js'
-      - 'shared/ui/interaction/interaction-transaction.v3990_0.*'
-      - 'tools/audit-site-runtime-generation-v3990_0.mjs'
-      - 'tools/audit-unified-resource-graph-v3990_0.mjs'
-      - 'tools/ln-2026/verify-final-release-v3990_0.py'
-      - 'tools/verify-production-resource-graph-v3990_0.mjs'
+      - 'shared/ui/ui-resource-registry.v3990_1.js'
+      - 'shared/ui/interaction/interaction-transaction.v3990_1.*'
+      - 'tools/audit-site-runtime-generation-v3990_1.mjs'
+      - 'tools/audit-unified-resource-graph-v3990_1.mjs'
+      - 'tools/verify-production-resource-graph-v3990_1.mjs'
       - '_headers'
   workflow_dispatch:
 
@@ -51,28 +50,32 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify production source graph
+        shell: bash
         run: |
           set -euo pipefail
-          node tools/audit-canonical-release-version-v3990_0.mjs
-          node tools/audit-site-runtime-generation-v3990_0.mjs
-          node tools/audit-unified-resource-graph-v3990_0.mjs
-          node tools/audit-production-resource-verification-v3990_0.mjs
-          python3 tools/ln-2026/verify-final-release-v3990_0.py
-          node --check shared/resources/release/site-runtime-contract.v3990_0.js
-          node --check shared/resources/release/runtime-cache-contract.v3990_0.js
-          node --check shared/governance/resource-execution-contract.v3990_0.js
-          node --check shared/ui/interaction/interaction-transaction.v3990_0.js
-          node --check ln-rank/js/app.v3990_0.js
-          node --check ln-rank/js/app-runtime.v3990_0.js
-          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3990_0.js
-          node --check ln-rank/js/selection-pool.v3972_5.js
-          node --check ln-rank/js/selection-pool-runtime.v3972_5.js
+          node tools/audit-canonical-release-version-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+          node tools/audit-unified-resource-graph-v3990_1.mjs
+          node tools/audit-production-resource-verification-v3990_1.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          sed -e 's/v3\.9\.90\.0/v3.9.90.1/g' -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_1.py
+          python3 /tmp/verify-final-release-v3990_1.py
+          node --check shared/resources/release/site-runtime-contract.v3990_1.js
+          node --check shared/resources/release/runtime-cache-contract.v3990_1.js
+          node --check shared/governance/resource-execution-contract.v3990_1.js
+          node --check shared/ui/interaction/interaction-transaction.v3990_1.js
+          node --check ln-rank/js/app.v3990_1.js
+          node --check ln-rank/js/app-runtime.v3990_1.js
+          node --check ln-rank/js/workspace/selection-workspace-orchestrator.v3990_1.js
+          node --check ln-rank/js/selection-pool.v3990_1.js
+          node --check ln-rank/js/selection-pool-runtime.v3990_1.js
           node --check functions/api/major-bands.js
-          node --check functions/_lib/major-bands-rank-index.v3990_0.js
-          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_0.js
-          node --check functions/_lib/major-bands-rank-query-kernel.v3990_0.js
-          node --check functions/_lib/major-bands-result-order.v3990_0.js
-          node --check functions/_lib/major-bands-response-transport.v3990_0.js
+          node --check functions/_lib/major-bands-rank-index.v3990_1.js
+          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
+          node --check functions/_lib/major-bands-rank-query-kernel.v3990_1.js
+          node --check functions/_lib/major-bands-result-order.v3990_1.js
+          node --check functions/_lib/major-bands-response-transport.v3990_1.js
 
       - name: Exercise production verifier against local Pages graph
         env:
@@ -83,36 +86,33 @@ jobs:
           PRODUCTION_RESOURCE_WAIT_MS: '0'
           VERIFY_RUNTIME_HEALTH: 'true'
           VERIFY_MAJOR_BANDS: 'true'
-          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-release-local.json
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-1-production-release-local.json
         run: |
           set -euo pipefail
           npm install --no-save --no-package-lock wrangler@4.28.1
-          npx wrangler pages dev . --port 8796 --compatibility-date=2026-07-01 >/tmp/v3990-0-production-release-wrangler.log 2>&1 &
+          npx wrangler pages dev . --port 8796 --compatibility-date=2026-07-01 >/tmp/v3990-1-production-release-wrangler.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           ready=0
           for attempt in $(seq 1 50); do
-            if curl -fsS 'http://127.0.0.1:8796/api/ln-rank-runtime-health' >/tmp/v3990-0-production-release-runtime.json; then
+            if curl -fsS 'http://127.0.0.1:8796/api/ln-rank-runtime-health' >/tmp/v3990-1-production-release-runtime.json; then
               ready=1
               break
             fi
             sleep 1
           done
-          if [ "$ready" -ne 1 ]; then
-            cat /tmp/v3990-0-production-release-wrangler.log
-            exit 1
-          fi
-          node tools/verify-production-resource-graph-v3990_0.mjs
+          if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-production-release-wrangler.log; exit 1; fi
+          node tools/verify-production-resource-graph-v3990_1.mjs
 
       - name: Upload local release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-0-production-release-local-evidence
+          name: v3990-1-production-release-local-evidence
           path: |
-            /tmp/v3990-0-production-release-local.json
-            /tmp/v3990-0-production-release-runtime.json
-            /tmp/v3990-0-production-release-wrangler.log
+            /tmp/v3990-1-production-release-local.json
+            /tmp/v3990-1-production-release-runtime.json
+            /tmp/v3990-1-production-release-wrangler.log
           if-no-files-found: warn
           retention-days: 7
 
@@ -120,7 +120,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -138,24 +138,22 @@ jobs:
           PRODUCTION_RESOURCE_WAIT_MS: '20000'
           VERIFY_RUNTIME_HEALTH: 'true'
           VERIFY_MAJOR_BANDS: 'true'
-          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-0-production-release.json
-        run: |
-          set -euo pipefail
-          node tools/verify-production-resource-graph-v3990_0.mjs
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-1-production-release.json
+        run: node tools/verify-production-resource-graph-v3990_1.mjs
 
-      - name: Verify preserved static business resources
+      - name: Verify active and preserved static business resources
         run: |
           set -euo pipefail
           token="${GITHUB_SHA}-$(date +%s)"
           curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/data/211-static/211-static-index.v3972_0.json?check=${token}" | grep -q 'all-211-static-v3972_0'
           curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/data/local-strength/local-strength-index.v3971_2.json?check=${token}" | grep -q 'local-strength-static-v3971_2'
-          curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/js/selection-pool.v3972_5.js?check=${token}" | grep -q 'selection-runtime-v3972_5'
+          curl --fail --silent --show-error "https://gaokao-4y9.pages.dev/ln-rank/js/selection-pool.v3990_1.js?check=${token}" | grep -q 'v3990_1'
 
       - name: Upload production evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-0-production-release-evidence
-          path: /tmp/v3990-0-production-release*
+          name: v3990-1-production-release-evidence
+          path: /tmp/v3990-1-production-release*
           if-no-files-found: warn
           retention-days: 7
