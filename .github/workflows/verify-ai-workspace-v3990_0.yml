@@ -10,6 +10,7 @@ on:
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'tools/verify-ai-workspace-v3990_0.mjs'
+      - 'tools/browser-ai-workspace-v3990_0.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_0.yml'
   push:
     branches: [main]
@@ -19,6 +20,7 @@ on:
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'tools/verify-ai-workspace-v3990_0.mjs'
+      - 'tools/browser-ai-workspace-v3990_0.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_0.yml'
   workflow_dispatch:
 
@@ -71,6 +73,7 @@ jobs:
           node --check functions/api/ai/health.js
           node --check ai/app.v3990_0.js
           node --check tools/verify-ai-workspace-v3990_0.mjs
+          node --check tools/browser-ai-workspace-v3990_0.mjs
       - name: Run deterministic workspace gates
         run: node tools/verify-ai-workspace-v3990_0.mjs
 
@@ -116,6 +119,38 @@ jobs:
           grep -q '"type":"hard_constraint"' <<<"$hard"
           grep -q '"includeKeys":\["ln"\]' <<<"$hard"
           grep -Eq '"total":[1-9][0-9]*' <<<"$hard"
+
+  browser-preview:
+    if: github.event_name == 'pull_request'
+    needs: preview-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium journey runner
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify PC Pad Android persistent AI journeys
+        env:
+          AI_PREVIEW_BASE: https://agent-ai-decision-workspace.gaokao-4y9.pages.dev
+          AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          AI_ARTIFACT_DIR: /tmp/ai-workspace-browser
+        run: node tools/browser-ai-workspace-v3990_0.mjs
+      - name: Upload AI browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-workspace-browser-v3990_0
+          path: /tmp/ai-workspace-browser
+          if-no-files-found: warn
+          retention-days: 7
 
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
