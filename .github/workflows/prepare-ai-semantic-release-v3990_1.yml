@@ -1,0 +1,48 @@
+name: Prepare AI semantic v3990_1 release tree
+
+on:
+  push:
+    branches:
+      - agent/ai-semantic-active-view-v3990_1
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build coherent v3.9.90.1 generation
+        run: node tools/prepare-ai-semantic-release-v3990_1.mjs
+      - name: Verify generated semantic source before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-contract.v3990_1.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/major-bands-rank-query-kernel.v3990_1.js
+          node --check ai/app.v3990_1.js
+          node tools/verify-ai-workspace-v3990_1.mjs
+          if [ -f tools/audit-canonical-release-v3990_1.mjs ]; then node tools/audit-canonical-release-v3990_1.mjs; fi
+      - name: Commit generated release tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
+          git commit -m 'v3.9.90.1：接入 AI 活人语义与统一运行代'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
