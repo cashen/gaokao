@@ -75,9 +75,9 @@ jobs:
           sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
             tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
           sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
+            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
           node --check /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
-          node --check /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
+          node --check tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
 
       - name: Verify production resource contract and canonical graph
         run: |
@@ -111,7 +111,8 @@ jobs:
           done
           if [ "$ready" -ne 1 ]; then cat /tmp/v3990-1-production-http.log; exit 1; fi
           node tools/verify-production-resource-graph-v3990_1.mjs
-          node /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
+          node tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+          rm -f tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
 
       - name: Upload source evidence
         if: always()
@@ -140,8 +141,8 @@ jobs:
         run: |
           set -euo pipefail
           sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
-          node --check /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
+            tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+          node --check tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
 
       - name: Verify Pages and custom-domain production resource graph
         env:
@@ -156,7 +157,8 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verify-production-resource-graph-v3990_1.mjs
-          node /tmp/verify-production-pagination-snapshot-guard-v3990_1.mjs
+          node tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
+          rm -f tools/.verify-production-pagination-snapshot-guard-v3990_1.generated.mjs
 
       - name: Wait for bounded rank-query production deployment
         env:
