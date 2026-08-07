@@ -97,6 +97,40 @@ function testSelectionReview() {
   assert.ok(review.findings.some(item => item.key === 'missing-tuition'));
 }
 
+function testCompactPayloadBudget() {
+  const hugeText = '说明'.repeat(500);
+  const workspace = createAiWorkspace({
+    selectionSnapshot: {
+      version: 'stress',
+      items: Array.from({ length: 112 }, (_, index) => ({
+        id: `selection-${index}`,
+        school: `测试大学${index}`,
+        major: `计算机科学与技术${index}`,
+        score2026: 580,
+        rank2026: 20000 + index,
+        bandKey: index % 3 === 0 ? 'upper' : index % 3 === 1 ? 'near' : 'steady',
+        displayLocation: '沈阳',
+        natureLabel: '公办普通',
+        tuition: '5200元/年',
+        userNote: hugeText
+      }))
+    },
+    lastResult: {
+      identity: hugeText,
+      candidates: {
+        counts: { upper: 1000, near: 2000, steady: 3000, total: 6000 },
+        records: Array.from({ length: 48 }, (_, index) => ({ id: `candidate-${index}`, school: hugeText, major: hugeText, payload: hugeText }))
+      }
+    },
+    pendingChecks: Array.from({ length: 80 }, (_, index) => ({ key: `k${index}`, level: 'review', text: hugeText }))
+  });
+  const compact = compactAiWorkspaceForServer(workspace);
+  const bytes = Buffer.byteLength(JSON.stringify({ workspace: compact, input: '继续审查方案' }), 'utf8');
+  assert.ok(bytes < 96 * 1024, `compact workspace payload must stay under 96KB, got ${bytes}`);
+  assert.equal(compact.lastResult.candidates.records[0].school, undefined, 'previous full candidate record must not be resent');
+  assert.equal(compact.selectionSnapshot.items[0].userNote.length <= 240, true, 'selection notes must be bounded');
+}
+
 function testOfficialEvidenceBoundary() {
   const evidence = listOfficialAiEvidence();
   assert.ok(evidence.length >= 5);
@@ -161,9 +195,6 @@ function testSourceGuards() {
   assert.ok(html.includes('data-release="v3.9.90.0"'));
   assert.ok(html.includes('data-site-runtime-generation="v3990_0"'));
   assert.ok(html.includes('/ai/app.v3990_0.js?v=3990_0'));
-
-  const protectedPaths = ['fenxi/', 'functions/fenxi/', 'functions/_middleware.js'];
-  for (const protectedPath of protectedPaths) assert.ok(!protectedPath.startsWith('ai/'));
 }
 
 async function main() {
@@ -171,6 +202,7 @@ async function main() {
   testTaskGraphAndNoSilentShrink();
   testDelta();
   testSelectionReview();
+  testCompactPayloadBudget();
   testOfficialEvidenceBoundary();
   testRankTruthAndProviderFallback();
   await testTurnWithoutAiBinding();
@@ -180,7 +212,8 @@ async function main() {
     contract: AI_WORKSPACE_CONTRACT_VERSION,
     checks: [
       'hard-soft-intent-boundary', 'branch-main-integrity', 'no-silent-shrink', 'result-delta', 'selection-review',
-      'official-evidence-host-whitelist', 'rank-600=14235', 'provider-fallback', 'turn-without-ai-binding', 'source-guards'
+      'compact-payload-under-96kb', 'official-evidence-host-whitelist', 'rank-600=14235', 'provider-fallback',
+      'turn-without-ai-binding', 'source-guards'
     ]
   }, null, 2));
 }
