@@ -4,24 +4,11 @@ import { runAiProvider } from './provider-router.js';
 export const AI_INTENT_INTERPRETER_VERSION = 'ai-intent-interpreter-v3990_0';
 
 const REGION_PHRASES = Object.freeze([
-  ['东北三省', ['ln', 'jilin', 'heilongjiang']],
-  ['东北', ['ln', 'jilin', 'heilongjiang']],
-  ['辽宁省内', ['ln']],
-  ['辽宁', ['ln']],
-  ['沈阳', ['shenyang']],
-  ['大连', ['dalian']],
-  ['吉林', ['jilin']],
-  ['黑龙江', ['heilongjiang']],
-  ['北京', ['beijing']],
-  ['天津', ['tianjin']],
-  ['河北', ['hebei']],
-  ['山东', ['shandong']],
-  ['江浙沪', ['jiangzhehu']],
-  ['广东', ['guangdong']],
-  ['华中', ['huazhong']],
-  ['西南', ['southwest']],
-  ['西北', ['northwest']],
-  ['省外', ['outside']]
+  ['东北三省', ['ln', 'jilin', 'heilongjiang']], ['东北', ['ln', 'jilin', 'heilongjiang']],
+  ['辽宁省内', ['ln']], ['辽宁', ['ln']], ['沈阳', ['shenyang']], ['大连', ['dalian']],
+  ['吉林', ['jilin']], ['黑龙江', ['heilongjiang']], ['北京', ['beijing']], ['天津', ['tianjin']],
+  ['河北', ['hebei']], ['山东', ['shandong']], ['江浙沪', ['jiangzhehu']], ['广东', ['guangdong']],
+  ['华中', ['huazhong']], ['西南', ['southwest']], ['西北', ['northwest']], ['省外', ['outside']]
 ]);
 
 const MAJOR_TERMS = Object.freeze([
@@ -64,8 +51,8 @@ function majorTermsFromText(text) {
 }
 
 function schoolNamesFromText(text) {
-  const matches = String(text || '').match(/[\u4e00-\u9fa5]{2,22}(?:大学|学院)/g) || [];
-  return unique(matches.map(value => value.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|那|和|跟)/, '').trim()), 4);
+  const matches = String(text || '').match(/[\u4e00-\u9fa5]{2,16}?(?:大学|学院)/g) || [];
+  return unique(matches.map(value => value.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与)/, '').trim()), 4);
 }
 
 function regionMentions(text) {
@@ -114,6 +101,7 @@ function classifyFallback(text, workspace, extracted) {
 
 function topicFallback(text, type, extracted) {
   const source = String(text || '');
+  if (/(方案|选择池|自选|已选|选了些|选了一些|还缺什么)/.test(source)) return 'selection_review';
   if (type === 'comparison') return 'comparison';
   if (type === 'verification') return 'verification';
   if (/(位次|排名|多少名)/.test(source) && extracted.score) return 'rank';
@@ -170,10 +158,12 @@ function normalizeIntent(candidate, text, workspace, fallback) {
   if (!candidate || typeof candidate !== 'object') return fallback;
   const type = AI_INTENT_TYPES.includes(candidate.type) ? candidate.type : fallback.type;
   const score = Number(candidate.score);
+  const allowedTopics = ['rank', 'candidate_search', 'comparison', 'verification', 'selection_review', 'general_question'];
+  const topic = allowedTopics.includes(clean(candidate.topic, 80)) ? clean(candidate.topic, 80) : fallback.topic;
   const intent = {
     version: AI_INTENT_INTERPRETER_VERSION,
     type,
-    topic: clean(candidate.topic, 80) || fallback.topic,
+    topic,
     score: Number.isFinite(score) && score >= 150 && score <= 750 ? score : fallback.score,
     majorKeywords: unique(candidate.majorKeywords || fallback.majorKeywords, 8),
     regionIncludeKeys: unique(candidate.regionIncludeKeys || fallback.regionIncludeKeys, 8),
@@ -190,6 +180,7 @@ function normalizeIntent(candidate, text, workspace, fallback) {
     source: 'ai'
   };
   if (intent.type === 'question' && fallback.type !== 'question' && fallback.confidence >= 0.85) return fallback;
+  if (fallback.topic === 'selection_review') intent.topic = 'selection_review';
   if (intent.type === 'soft_preference') intent.regionExcludeKeys = [];
   if (intent.type === 'question') {
     intent.regionIncludeKeys = [];
@@ -205,19 +196,20 @@ function promptMessages(text, workspace, fallback) {
     examContext: workspace?.examContext || {},
     hardConstraints: workspace?.hardConstraints || [],
     softPreferences: workspace?.softPreferences || [],
-    mainTask: Array.isArray(workspace?.tasks) ? workspace.tasks.find(task => task?.id === workspace.mainTaskId) || null : null
+    mainTask: Array.isArray(workspace?.tasks) ? workspace.tasks.find(task => task?.id === workspace.mainTaskId) || null : null,
+    hasSelectionSnapshot: Boolean(workspace?.selectionSnapshot?.items?.length)
   };
   return [
     {
       role: 'system',
-      content: '你是高考决策工作台的意图解析器，不回答高考事实，不推荐学校，不生成链接，不计算录取概率。只把用户本轮表达解析成 JSON。必须区分：明确硬约束、软偏好、普通提问、纠正、旁支、假设模拟、比较、事实核验。普通提问绝不能修改已有筛选条件；“最好/优先/倾向”通常是软偏好；“不去/不要/排除/只看/不接受”通常是硬约束。用户突然问另一个专业时优先建立旁支或模拟，不覆盖主任务。只输出一个 JSON 对象。'
+      content: '你是高考决策工作台的意图解析器，不回答高考事实，不推荐学校，不生成链接，不计算录取概率。只把用户本轮表达解析成 JSON。必须区分：明确硬约束、软偏好、普通提问、纠正、旁支、假设模拟、比较、事实核验、已有家庭方案审查。普通提问绝不能修改已有筛选条件；“最好/优先/倾向”通常是软偏好；“不去/不要/排除/只看/不接受”通常是硬约束。用户突然问另一个专业时优先建立旁支或模拟，不覆盖主任务。只输出一个 JSON 对象。'
     },
     {
       role: 'user',
       content: JSON.stringify({
         schema: {
           type: AI_INTENT_TYPES,
-          topic: 'rank | candidate_search | comparison | verification | general_question',
+          topic: 'rank | candidate_search | comparison | verification | selection_review | general_question',
           score: '150-750 number or null',
           majorKeywords: 'string[]',
           regionIncludeKeys: 'only from ln,shenyang,dalian,ln-other,outside,beijing,tianjin,hebei,shandong,jilin,heilongjiang,jiangzhehu,guangdong,huazhong,southwest,northwest',
