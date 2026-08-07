@@ -1,4 +1,4 @@
-name: Prepare AI semantic v3990_1 release tree
+name: Finalize AI semantic local-state migration v3990_1
 
 on:
   push:
@@ -9,10 +9,10 @@ permissions:
   contents: write
 
 jobs:
-  prepare:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,49 +21,47 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build coherent v3.9.90.1 generation
-        run: node tools/prepare-ai-semantic-release-v3990_1.mjs
-      - name: Bind major negation to the local spoken object
-        run: node tools/patch-ai-command-negation-v3990_1.mjs
-      - name: Separate persistent family profile from active view
-        run: node tools/patch-ai-family-persistence-v3990_1.mjs
-      - name: Verify history restore through its executable UI path
-        run: node tools/patch-ai-verifier-history-guard-v3990_1.mjs
-      - name: Extend strict site-runtime owner audit for v3990_1
-        run: node tools/patch-site-runtime-audit-v3990_1.mjs
-      - name: Verify generated semantic source before commit
+      - name: Preserve the existing IndexedDB workspace across v3990_1
         shell: bash
         run: |
           set -euo pipefail
-          node --check shared/ai/ai-workspace-contract.v3990_1.js
-          node --check functions/_lib/ai/command-interpreter.js
-          node --check functions/_lib/ai/turn-orchestrator.js
-          node --check functions/_lib/ai/tool-registry.js
-          node --check functions/_lib/major-bands-rank-query-kernel.v3990_1.js
+          python - <<'PY'
+          from pathlib import Path
+          app_path = Path('ai/app.v3990_1.js')
+          app = app_path.read_text()
+          before = "// Keep the original IndexedDB name so existing v3990_1 workspaces migrate in-place.\nconst DB_NAME = 'gaokao-ai-workspace-v3990_1';"
+          after = "// Keep the original IndexedDB name so existing v3990_0 workspaces migrate in-place.\nconst DB_NAME = 'gaokao-ai-workspace-v3990_0';"
+          if before not in app:
+              raise SystemExit('AI local-state migration source changed; refusing blind patch')
+          app_path.write_text(app.replace(before, after, 1))
+
+          verify_path = Path('tools/verify-ai-workspace-v3990_1.mjs')
+          verify = verify_path.read_text()
+          marker = "function testSourceGuards(){const app=read('ai/app.v3990_1.js');"
+          replacement = marker + "assert.ok(app.includes(\"const DB_NAME = 'gaokao-ai-workspace-v3990_0'\"),'v3990_1 must migrate the existing AI IndexedDB workspace in place');"
+          if marker not in verify:
+              raise SystemExit('AI verifier source changed; refusing blind patch')
+          if 'must migrate the existing AI IndexedDB workspace in place' not in verify:
+              verify = verify.replace(marker, replacement, 1)
+          verify_path.write_text(verify)
+          PY
+      - name: Verify semantic runtime and release contracts
+        shell: bash
+        run: |
+          set -euo pipefail
           node --check ai/app.v3990_1.js
           node tools/verify-ai-workspace-v3990_1.mjs
           node tools/audit-canonical-release-version-v3990_1.mjs
           node tools/audit-site-runtime-generation-v3990_1.mjs
           node tools/audit-unified-resource-graph-v3990_1.mjs
-          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
-      - name: Keep workflow files connector-owned
+      - name: Commit only the local-state compatibility fix
         shell: bash
         run: |
           set -euo pipefail
-          git restore --source=HEAD -- .github/workflows
           git diff --quiet -- .github/workflows
-      - name: Commit generated release tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          git status --short
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
-          if ! git diff --cached --quiet -- .github/workflows; then
-            echo 'Generated commit must not mutate workflow files.' >&2
-            exit 2
-          fi
-          git commit -m 'v3.9.90.1：接入 AI 活人语义与统一运行代'
+          git add ai/app.v3990_1.js tools/verify-ai-workspace-v3990_1.mjs
+          git diff --cached --quiet && { echo 'Expected local-state compatibility changes are missing.' >&2; exit 1; }
+          git commit -m 'v3.9.90.1：保留 AI 工作区本地历史迁移'
           git push origin "HEAD:${GITHUB_REF_NAME}"
