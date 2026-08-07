@@ -26,11 +26,14 @@ on:
 
 permissions:
   contents: read
+  checks: read
 
 jobs:
   source-contract:
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    outputs:
+      runtime_changed: ${{ steps.change-scope.outputs.runtime_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +51,18 @@ jobs:
           if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/ai-files.txt; then
             echo 'Protected path touched by AI workspace change.' >&2
             exit 1
+          fi
+      - name: Detect AI runtime changes
+        id: change-scope
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /tmp/ai-files.txt
+          if grep -E '^(ai/|shared/ai/|functions/api/ai/|functions/_lib/ai/|tools/browser-ai-workspace-v3990_0\.mjs$)' /tmp/ai-files.txt; then
+            echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
           fi
       - name: Verify current unified release identity remains coherent
         shell: bash
@@ -78,31 +93,58 @@ jobs:
         run: node tools/verify-ai-workspace-v3990_0.mjs
 
   preview-smoke:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true'
     needs: source-contract
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    outputs:
+      preview_base: ${{ steps.resolve-preview.outputs.preview_base }}
     env:
-      PREVIEW_BASE: https://agent-ai-custom-challenge.gaokao-4y9.pages.dev
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - name: Verify exact preview SHA, page and deterministic journeys
+      - name: Resolve immutable Cloudflare Preview for exact head SHA
+        id: resolve-preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          ready=0
+          preview=''
           for attempt in $(seq 1 60); do
-            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
-            if grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -q '"apiVersion":"ai-health-api-v3990_0"' <<<"$health"; then
-              ready=1
-              break
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = 'failure' ] || [ "$conclusion" = 'cancelled' ]; then
+              echo "Cloudflare Preview failed for ${EXPECTED_SHA}." >&2
+              exit 2
+            fi
+            if [ "$conclusion" = 'success' ]; then
+              preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              if [ -n "$preview" ]; then
+                break
+              fi
             fi
             sleep 8
           done
-          test "$ready" -eq 1
+          test -n "$preview"
+          echo "preview_base=$preview" >> "$GITHUB_OUTPUT"
+          echo "Resolved exact Preview: $preview"
+      - name: Verify exact preview SHA, page and deterministic journeys
+        env:
+          PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}")"
+          grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health"
+          grep -q '"apiVersion":"ai-health-api-v3990_0"' <<<"$health"
 
-          page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" )"
+          page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}")"
           grep -q 'data-ai-workspace="ai-workspace-v3990_0"' <<<"$page"
           grep -q 'data-site-runtime-generation="v3990_0"' <<<"$page"
 
@@ -121,8 +163,8 @@ jobs:
           grep -Eq '"total":[1-9][0-9]*' <<<"$hard"
 
   browser-preview:
-    if: github.event_name == 'pull_request'
-    needs: preview-smoke
+    if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true' && needs.preview-smoke.result == 'success'
+    needs: [source-contract, preview-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -139,7 +181,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify PC Pad Android persistent AI journeys
         env:
-          AI_PREVIEW_BASE: https://agent-ai-custom-challenge.gaokao-4y9.pages.dev
+          AI_PREVIEW_BASE: ${{ needs.preview-smoke.outputs.preview_base }}
           AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
           AI_ARTIFACT_DIR: /tmp/ai-workspace-browser
         run: node tools/browser-ai-workspace-v3990_0.mjs
