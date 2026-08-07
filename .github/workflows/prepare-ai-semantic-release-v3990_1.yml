@@ -40,7 +40,16 @@ jobs:
           node --check functions/_lib/major-bands-rank-query-kernel.v3990_1.js
           node --check ai/app.v3990_1.js
           node tools/verify-ai-workspace-v3990_1.mjs
-          if [ -f tools/audit-canonical-release-v3990_1.mjs ]; then node tools/audit-canonical-release-v3990_1.mjs; fi
+          node tools/audit-canonical-release-version-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+          node tools/audit-unified-resource-graph-v3990_1.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
+      - name: Keep workflow files connector-owned
+        shell: bash
+        run: |
+          set -euo pipefail
+          git restore --source=HEAD -- .github/workflows
+          git diff --quiet -- .github/workflows
       - name: Commit generated release tree
         shell: bash
         run: |
@@ -50,5 +59,9 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
+          if ! git diff --cached --quiet -- .github/workflows; then
+            echo 'Generated commit must not mutate workflow files.' >&2
+            exit 2
+          fi
           git commit -m 'v3.9.90.1：接入 AI 活人语义与统一运行代'
           git push origin "HEAD:${GITHUB_REF_NAME}"
