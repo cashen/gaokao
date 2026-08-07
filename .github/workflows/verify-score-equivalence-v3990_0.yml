@@ -1,4 +1,4 @@
-name: Verify score equivalence v3990.0
+name: Verify score equivalence v3990.1
 
 on:
   pull_request:
@@ -15,9 +15,9 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_0.css'
+      - 'ln-rank/css/score-converter.v3990_1.css'
       - 'ln-rank/js/score-converter/**'
-      - 'tools/audit-score-equivalence-v3990_0.mjs'
+      - 'tools/audit-score-equivalence-v3990_1.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
   push:
     branches: [main]
@@ -32,9 +32,9 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_0.css'
+      - 'ln-rank/css/score-converter.v3990_1.css'
       - 'ln-rank/js/score-converter/**'
-      - 'tools/audit-score-equivalence-v3990_0.mjs'
+      - 'tools/audit-score-equivalence-v3990_1.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
   workflow_dispatch:
 
@@ -57,9 +57,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/api/score-equivalence.js
-          node --check ln-rank/js/score-converter/score-converter-app.v3990_0.js
-          node --check tools/audit-score-equivalence-v3990_0.mjs
-          node --experimental-default-type=module tools/audit-score-equivalence-v3990_0.mjs
+          node --check ln-rank/js/score-converter/score-converter-app.v3990_1.js
+          node --check tools/audit-score-equivalence-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-score-equivalence-v3990_1.mjs
 
   production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -78,16 +78,17 @@ jobs:
           set -euo pipefail
           ready=0
           for attempt in $(seq 1 40); do
-            page="$(curl -fsSL --max-time 20 "$PAGE_URL" || true)"
-            body="$(curl -fsSL --max-time 20 "$API_URL" || true)"
-            home="$(curl -fsSL --max-time 20 "$HOME_URL" || true)"
-            selection="$(curl -fsSL --max-time 20 "$SELECTION_URL" || true)"
-            difficulty="$(curl -fsSL --max-time 20 "$DIFFICULTY_URL" || true)"
+            token="${GITHUB_SHA}-${attempt}"
+            page="$(curl -fsSL --max-time 20 "${PAGE_URL}?deploy=${token}" || true)"
+            body="$(curl -fsSL --max-time 20 "${API_URL}&deploy=${token}" || true)"
+            home="$(curl -fsSL --max-time 20 "${HOME_URL}?deploy=${token}" || true)"
+            selection="$(curl -fsSL --max-time 20 "${SELECTION_URL}?deploy=${token}" || true)"
+            difficulty="$(curl -fsSL --max-time 20 "${DIFFICULTY_URL}?deploy=${token}" || true)"
             if grep -q 'data-score-equivalence-entry="home"' <<<"$home" \
               && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \
               && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \
-              && grep -q 'data-feature-version="score-equivalence-v3990_0"' <<<"$page" \
-              && grep -q '"contractVersion":"score-equivalence-v3990_0"' <<<"$body" \
+              && grep -q 'data-feature-version="score-equivalence-v3990_1"' <<<"$page" \
+              && grep -q '"contractVersion":"score-equivalence-v3990_1"' <<<"$body" \
               && grep -q '"comparisonRank":14235' <<<"$body" \
               && grep -q '"year":2025,"score":598' <<<"$body" \
               && grep -q '"year":2024,"score":601' <<<"$body" \
