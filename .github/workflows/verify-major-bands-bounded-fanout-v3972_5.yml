@@ -27,6 +27,7 @@ on:
       - 'tools/audit-major-bands-rank-kernel-v3990_1.mjs'
       - 'tools/build-major-bands-rank-index-v3990_1.mjs'
       - 'tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-paced-v3990_1.mjs'
       - '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml'
   push:
     branches: [main]
@@ -89,7 +90,8 @@ jobs:
             ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_1.js \
             tools/audit-major-bands-rank-kernel-v3990_1.mjs \
             tools/build-major-bands-rank-index-v3990_1.mjs \
-            tools/verify-major-bands-preview-concurrency-v3990_1.mjs; do
+            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \
+            tools/verify-major-bands-preview-concurrency-paced-v3990_1.mjs; do
             node --check "$file"
           done
           grep -q "majorBandsQueryKernelVersion: 'major-bands-rank-query-kernel-v3990_1'" shared/resources/release/current-release.js
@@ -306,7 +308,7 @@ jobs:
           sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' tools/verify-production-pagination-snapshot-guard-v3990_0.mjs > "$tmp"
           node "$tmp"
           rm -f "$tmp"
-      - name: Verify Preview real concurrency
+      - name: Verify Preview real concurrency and paced exhaustive pagination
         env:
           CONCURRENCY_LEVELS: 1,5,10,25,50
           CONCURRENCY_WAVES: '2'
@@ -314,8 +316,10 @@ jobs:
           P95_LIMIT_MS: '8000'
           P99_LIMIT_MS: '15000'
           HARD_LIMIT_MS: '25000'
+          POST_CONCURRENCY_RECOVERY_MS: '2000'
+          PAGINATION_PACE_MS: '120'
           MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/major-bands-preview-concurrency-v3990_1.json
-        run: node tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+        run: node tools/verify-major-bands-preview-concurrency-paced-v3990_1.mjs
       - name: Upload Preview concurrency evidence
         if: always()
         uses: actions/upload-artifact@v4
