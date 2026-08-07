@@ -47,11 +47,15 @@ async function verifyInterruptionLatestWins(page,name){
 }
 
 async function verifyModelEcho(page,name){
-  const config=(await page.locator('#modelConfig').innerText()).trim();assert(config&&!config.includes('读取模型配置'),`${name}: configured model echo missing`);
+  const config=(await page.locator('#modelConfig').innerText()).trim();
+  assert(config&&!config.includes('读取模型配置'),`${name}: configured model echo missing`);
+  assert(await page.locator('#probeModel').count()===1,`${name}: model probe control missing`);
   if(name!=='pc')return;
+  if(config.includes('未配置'))return;
   await page.locator('#probeModel').click();
   await page.waitForFunction(()=>{const text=document.querySelector('#modelProbeResult')?.textContent||'';return text.includes('本次实测：')||text.includes('实测失败：');},{timeout:45000});
-  const result=(await page.locator('#modelProbeResult').innerText()).trim();assert(result.includes('本次实测：')||result.includes('实测失败：'),`${name}: model probe gave no visible result`);
+  const result=(await page.locator('#modelProbeResult').innerText()).trim();
+  assert(result.includes('本次实测：'),`${name}: configured model probe failed: ${result}`);
 }
 
 async function verifyPersistenceAndSelection(page,name){
@@ -64,5 +68,5 @@ async function verifyPersistenceAndSelection(page,name){
 const browser=await chromium.launch({headless:true});
 try{
   for(const device of devices){const context=await browser.newContext({viewport:device.viewport,isMobile:Boolean(device.isMobile),hasTouch:Boolean(device.hasTouch),locale:'zh-CN'});const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(`pageerror:${error.message}`));page.on('console',message=>{if(message.type()==='error')errors.push(`console:${message.text()}`);});const target=`${BASE}/ai/?browser=${encodeURIComponent(EXPECTED_SHA||'preview')}-${device.name}`;const response=await page.goto(target,{waitUntil:'networkidle',timeout:60000});assert(response?.ok(),`${device.name}: /ai/ ${response?.status()}`);await waitForText(page,'工作台已就绪',30000);await checkGeometry(page,`${device.name}:initial`);await verifyModelEcho(page,device.name);if(device.name==='pc'){await verifyHumanSemanticJourney(page,device.name);await verifyInterruptionLatestWins(page,device.name);}else{await resetWorkspace(page);await submit(page,'580分，省内机械');await waitForText(page,'确定性候选执行结果');await waitIdle(page);await assertView(page,['580分','辽宁','机械']);await checkGeometry(page,`${device.name}:semantic-smoke`);}await verifyPersistenceAndSelection(page,device.name);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}.png`),fullPage:true});assert(errors.length===0,`${device.name}: browser errors ${errors.join(' | ')}`);await context.close();}
-  console.log(JSON.stringify({ok:true,base:BASE,expectedSha:EXPECTED_SHA,devices:devices.map(item=>item.name),checks:['colloquial-semantic-chain','contextual-menu','latest-write-wins-interruption','model-echo','model-probe-visible','indexeddb-persistence','selection-readonly','responsive-no-overflow']},null,2));
+  console.log(JSON.stringify({ok:true,base:BASE,expectedSha:EXPECTED_SHA,devices:devices.map(item=>item.name),checks:['colloquial-semantic-chain','contextual-menu','latest-write-wins-interruption','model-echo','configured-model-probe','indexeddb-persistence','selection-readonly','responsive-no-overflow']},null,2));
 }finally{await browser.close();}
