@@ -192,7 +192,9 @@ export function applyAiWorkspaceEvent(workspaceLike, eventLike = {}) {
     }
 
     const taskAction = clean(event.payload.taskAction, 30) || 'update_main';
-    if (!workspace.mainTaskId || taskAction === 'create_main') {
+    if (taskAction === 'none') {
+      // Family-profile-only commands persist constraints without manufacturing a candidate task.
+    } else if (!workspace.mainTaskId || taskAction === 'create_main') {
       const task = createTaskFromCommand(command, resolvedView, 'main');
       workspace.tasks.unshift(task);
       workspace.mainTaskId = task.id;

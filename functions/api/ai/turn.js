@@ -1,6 +1,6 @@
 import { orchestrateAiTurn } from '../../_lib/ai/turn-orchestrator.js';
 
-export const AI_TURN_API_VERSION = 'ai-turn-api-v3990_0';
+export const AI_TURN_API_VERSION = 'ai-turn-api-v3990_1';
 const MAX_BODY_BYTES = 128 * 1024;
 
 function json(payload, status = 200) {

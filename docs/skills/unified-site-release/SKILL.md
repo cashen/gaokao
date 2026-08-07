@@ -6,7 +6,7 @@ This skill is mandatory for every production change in `cashen/gaokao`, includin
 
 A user-visible fix is not a standalone patch generation. It must join the current **site runtime generation**.
 
-The site has one canonical current release at a time. For this release the public version is `v3.9.90.0`, the runtime generation is `v3990_0`, and the asset query is `3990_0`; these are three encodings of the same release identity, not independent versions.
+The site has one canonical current release at a time. For this release the public version is `v3.9.90.1`, the runtime generation is `v3990_1`, and the asset query is `3990_1`; these are three encodings of the same release identity, not independent versions.
 
 ## Active generation versus stable dependencies
 
@@ -97,7 +97,7 @@ Filter controls update draft state only. They must not issue a request. Existing
 
 ## Major-bands rank query execution contract
 
-The current owner is `major-bands-rank-query-kernel-v3990_0`. The immutable data package remains `major-bands-static-v3972_2`; the previously verified `major-bands-bounded-fanout-v3972_5` Worker remains a declared stable rollback dependency and must not be deleted or rewritten.
+The current owner is `major-bands-rank-query-kernel-v3990_1`. The immutable data package remains `major-bands-static-v3972_2`; the previously verified `major-bands-bounded-fanout-v3972_5` Worker remains a declared stable rollback dependency and must not be deleted or rewritten.
 
 - The authoritative candidate window is the canonical 2026 rank window, not a score prefilter.
 - A build-time rank index may reference immutable score buckets, but it must not copy, rename or rebuild those buckets.

@@ -1,4 +1,4 @@
-export const AI_SELECTION_REVIEW_VERSION = 'ai-selection-review-v3990_0';
+export const AI_SELECTION_REVIEW_VERSION = 'ai-selection-review-v3990_1';
 
 function clean(value, max = 180) {
   return String(value == null ? '' : value).trim().slice(0, max);
