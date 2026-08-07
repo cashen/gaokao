@@ -2,7 +2,7 @@ import { CURRENT_RELEASE } from '../resources/release/current-release.js?v=3990_
 
 export const PRODUCTION_RESOURCE_VERIFICATION_CONTRACT = Object.freeze({
   version: 'production-resource-graph-verification-v3990_1',
-  statusContext: 'production/resource-graph-v3990.0',
+  statusContext: 'production/resource-graph-v3990.1',
   releaseVersion: CURRENT_RELEASE.display,
   generation: CURRENT_RELEASE.siteRuntimeGeneration,
   queryVersion: CURRENT_RELEASE.asset,
