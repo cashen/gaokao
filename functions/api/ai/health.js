@@ -5,6 +5,10 @@ import { CURRENT_RELEASE } from '../../../shared/resources/release/current-relea
 
 export const AI_HEALTH_API_VERSION = 'ai-health-api-v3990_0';
 
+function clean(value, max = 500) {
+  return String(value == null ? '' : value).trim().slice(0, max);
+}
+
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
@@ -25,6 +29,11 @@ export async function onRequest(context) {
     apiVersion: AI_HEALTH_API_VERSION,
     release: CURRENT_RELEASE.display,
     siteRuntimeGeneration: CURRENT_RELEASE.siteRuntimeGeneration,
+    deployment: {
+      commitSha: clean(context.env?.CF_PAGES_COMMIT_SHA, 40),
+      branch: clean(context.env?.CF_PAGES_BRANCH, 160),
+      url: clean(context.env?.CF_PAGES_URL, 500)
+    },
     workspace: {
       scope: '辽宁2027备考家庭 / 2026物理类历史数据底座',
       deterministicFirst: true,
@@ -49,7 +58,7 @@ export async function onRequest(context) {
     },
     tools: {
       registryVersion: AI_TOOL_REGISTRY_VERSION,
-      enabled: ['rank_lookup', 'major_band_search', 'school_compare']
+      enabled: ['rank_lookup', 'major_band_search', 'school_compare', 'selection_review']
     }
   });
 }
