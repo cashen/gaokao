@@ -2,6 +2,7 @@ import { buildAiResultDelta, AI_WORKSPACE_CONTRACT_VERSION } from '../../../shar
 import { interpretAiIntent, deterministicIntent } from './intent-interpreter.js';
 import { evidenceForIntent } from './evidence-registry.js';
 import { resolveRegionExecution, runMajorBandSearch, runRankLookup, runSchoolComparison, AI_TOOL_REGISTRY_VERSION } from './tool-registry.js';
+import { runSelectionReview } from './selection-review.js';
 
 export const AI_TURN_ORCHESTRATOR_VERSION = 'ai-turn-orchestrator-v3990_0';
 
@@ -42,11 +43,18 @@ function shouldQueryCandidates(intent, score) {
   return ['hard_constraint', 'soft_preference', 'correction', 'branch', 'simulation', 'comparison'].includes(intent?.type);
 }
 
+function selectionReviewRequested(input = '') {
+  return /(方案|选择池|自选|已选|选了些|选了一些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(String(input || ''));
+}
+
 function pendingChecksFor(result, regionExecution) {
   const checks = [];
   if (regionExecution?.warning) checks.push({ key: 'region_scope', level: 'warn', text: regionExecution.warning });
   for (const warning of result?.candidates?.warnings || []) checks.push({ key: `candidate:${checks.length}`, level: 'warn', text: clean(warning, 280) });
-  if (result?.candidates?.counts?.total > 0) {
+  for (const finding of result?.selectionReview?.findings || []) {
+    if (finding.level === 'warn' || finding.level === 'review') checks.push({ key: `selection:${finding.key || checks.length}`, level: finding.level, text: clean(finding.text, 280) });
+  }
+  if (result?.candidates?.counts?.total > 0 || result?.selectionReview?.total > 0) {
     checks.push({ key: 'annual-plan', level: 'required', text: '正式填报前逐条核验当年招生计划、专业代码、计划数、校区、学费、选科和体检要求。' });
   }
   return checks.slice(0, 12);
@@ -74,6 +82,12 @@ function comparisonSummary(comparison) {
   return comparison.items.map(item => `${item.school}：${Number(item.result?.counts?.total || 0).toLocaleString('zh-CN')}条历史参考记录`).join('；');
 }
 
+function selectionReviewSummary(review) {
+  if (!review) return '';
+  if (review.importRequired) return review.message;
+  return `已按只读快照审查 ${review.total} 项：${review.counts.upper} 项稍高目标、${review.counts.near} 项主要参考、${review.counts.steady} 项低分侧补充，涉及 ${review.uniqueSchoolCount} 所学校。这里只判断结构与缺失字段，不预测录取。`;
+}
+
 function buildBlocks({ intent, result, delta, provider, regionExecution }) {
   const blocks = [];
   blocks.push({
@@ -85,6 +99,15 @@ function buildBlocks({ intent, result, delta, provider, regionExecution }) {
   });
   if (result.rank?.ok) {
     blocks.push({ type: 'fact_summary', title: '当前位置', text: rankSummary(result.rank), level: 'A', sourceUrl: result.rank.source?.sourceUrl || '' });
+  }
+  if (result.selectionReview) {
+    blocks.push({
+      type: 'selection_review',
+      title: result.selectionReview.importRequired ? '先导入当前家庭方案' : '家庭方案结构审查',
+      text: selectionReviewSummary(result.selectionReview),
+      review: result.selectionReview,
+      action: result.selectionReview.importRequired ? 'import_selection' : ''
+    });
   }
   if (result.candidates) {
     blocks.push({
@@ -123,8 +146,8 @@ function buildBlocks({ intent, result, delta, provider, regionExecution }) {
   return blocks;
 }
 
-function resultIdentity({ score, majors, regionExecution, intent, bottomLineMode }) {
-  return [score || '', majors.join('/'), (regionExecution?.includeKeys || []).join(','), (regionExecution?.excludeKeys || []).join(','), bottomLineMode, intent.type, intent.topic].join('|');
+function resultIdentity({ score, majors, regionExecution, intent, bottomLineMode, selectionReview }) {
+  return [score || '', majors.join('/'), (regionExecution?.includeKeys || []).join(','), (regionExecution?.excludeKeys || []).join(','), bottomLineMode, intent.type, intent.topic, selectionReview?.snapshotVersion || ''].join('|');
 }
 
 function validateConfirmedIntent(value, input, workspace) {
@@ -186,6 +209,7 @@ export async function orchestrateAiTurn(context, payload = {}) {
     rank: score ? runRankLookup(score) : null,
     candidates: null,
     comparison: null,
+    selectionReview: selectionReviewRequested(input) ? runSelectionReview(workspace?.selectionSnapshot || null) : null,
     evidence: evidenceForIntent(intent),
     pendingChecks: [],
     execution: {
@@ -215,7 +239,7 @@ export async function orchestrateAiTurn(context, payload = {}) {
     }
   }
 
-  result.identity = resultIdentity({ score, majors, regionExecution, intent, bottomLineMode });
+  result.identity = resultIdentity({ score, majors, regionExecution, intent, bottomLineMode, selectionReview: result.selectionReview });
   result.pendingChecks = pendingChecksFor(result, regionExecution);
   const delta = buildAiResultDelta(workspace?.lastResult || null, result);
   const blocks = buildBlocks({ intent, result, delta, provider: interpreted.provider, regionExecution });
