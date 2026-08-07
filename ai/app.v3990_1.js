@@ -6,8 +6,8 @@ import {
   AI_WORKSPACE_CONTRACT_VERSION
 } from '/shared/ai/ai-workspace-contract.v3990_1.js?v=3990_1';
 
-// Keep the original IndexedDB name so existing v3990_1 workspaces migrate in-place.
-const DB_NAME = 'gaokao-ai-workspace-v3990_1';
+// Keep the original IndexedDB name so existing v3990_0 workspaces migrate in-place.
+const DB_NAME = 'gaokao-ai-workspace-v3990_0';
 const STORE_NAME = 'workspace';
 const WORKSPACE_KEY = 'current';
 const SELECTION_POOL_KEY = 'lnRank.selectionPool.lnPhysics.2026.v3951';
