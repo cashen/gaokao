@@ -1,7 +1,8 @@
 export const DEFAULT_WORKERS_AI_MODEL = '@cf/zai-org/glm-4.7-flash';
 
 export const WORKERS_AI_MODEL_ALIASES = Object.freeze({
-  '@cf/meta/llama-3.1-8b-instruct': DEFAULT_WORKERS_AI_MODEL
+  '@cf/meta/llama-3.1-8b-instruct': DEFAULT_WORKERS_AI_MODEL,
+  'AI_MODEL': DEFAULT_WORKERS_AI_MODEL
 });
 
 function clean(value) {
