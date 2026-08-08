@@ -11,13 +11,18 @@ function json(payload,status=200){ return new Response(JSON.stringify(payload),{
 export async function onRequest(context) {
   if (context.request.method !== 'GET') return json({ok:false,message:'只支持 GET 请求。'},405);
   const provider = aiProviderConfig(context.env || {});
+  const primaryReady = provider.primary === 'workers-ai'
+    ? Boolean(provider.workersAiBound && provider.workersModelConfigured)
+    : provider.primary === 'openai-compatible'
+      ? Boolean(provider.externalConfigured)
+      : false;
   const evidence = listOfficialAiEvidence();
   return json({
     ok:true, apiVersion:AI_HEALTH_API_VERSION, release:CURRENT_RELEASE.display, siteRuntimeGeneration:CURRENT_RELEASE.siteRuntimeGeneration,
     deployment:{ commitSha:clean(context.env?.CF_PAGES_COMMIT_SHA,40), branch:clean(context.env?.CF_PAGES_BRANCH,160), url:clean(context.env?.CF_PAGES_URL,500) },
     workspace:{ scope:'辽宁2027备考家庭 / 2026物理类历史数据底座', deterministicFirst:true, modelMayChangeBusinessFacts:false, providerSwitchable:true, externalApiSupported:true, semanticMode:'command-active-view-history-v3990_1', interruptionMode:'client-latest-write-wins-v3990_1' },
     provider:{
-      routerVersion:provider.version, primary:provider.primary, fallback:provider.fallback,
+      routerVersion:provider.version, primary:provider.primary, fallback:provider.fallback, primaryReady,
       primaryModel:provider.primaryModel || '', fallbackModel:provider.fallbackModel || '',
       workersModel:provider.workersModel || '', workersModelRequested:provider.workersModelRequested || '', workersModelMigrated:Boolean(provider.workersModelMigrated), workersModelMigratedFrom:provider.workersModelMigratedFrom || '',
       externalModel:provider.externalModel || '',
