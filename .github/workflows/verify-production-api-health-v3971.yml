@@ -145,6 +145,15 @@ jobs:
           MAJOR_BANDS_CONCURRENCY_EVIDENCE='/tmp/v3990-1-local-concurrency.json' \
             node tools/verify-major-bands-preview-concurrency-v3990_1.mjs
 
+      - name: Capture current production Workers AI failure evidence
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        env:
+          AI_MODEL_PROBE_BASE: https://gaokao-4y9.pages.dev
+          AI_MODEL_PROBE_ATTEMPTS: '2'
+          AI_MODEL_PROBE_WAIT_MS: '5000'
+          AI_MODEL_PROBE_REQUIRED: 'false'
+        run: node tools/verify-live-ai-model-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-production-ai-model-diagnostic.out
+
       - name: Resolve exact-SHA Cloudflare branch Preview
         if: github.event_name == 'pull_request'
         env:
@@ -216,15 +225,6 @@ jobs:
           PRODUCTION_VERIFY_ATTEMPTS: '8'
           PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3990-1-production-baseline.out
-
-      - name: Capture current production Workers AI failure evidence
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        env:
-          AI_MODEL_PROBE_BASE: https://gaokao-4y9.pages.dev
-          AI_MODEL_PROBE_ATTEMPTS: '2'
-          AI_MODEL_PROBE_WAIT_MS: '5000'
-          AI_MODEL_PROBE_REQUIRED: 'false'
-        run: node tools/verify-live-ai-model-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-production-ai-model-diagnostic.out
 
       - name: Verify v3.9.90.1 production after main deployment
         if: github.event_name != 'pull_request'
