@@ -51,6 +51,7 @@ jobs:
             tools/build-major-bands-rank-index-v3990_1.mjs \
             tools/audit-major-bands-rank-kernel-v3990_1.mjs \
             tools/verify-major-bands-preview-concurrency-v3990_1.mjs \
+            tools/verify-live-ai-model-v3990_1.mjs \
             tools/verify-production-resource-graph-v3990_1.mjs \
             tools/verify-production-baseline-v3971.mjs \
             tools/audit-canonical-release-version-v3990_1.mjs \
@@ -216,6 +217,15 @@ jobs:
           PRODUCTION_VERIFY_WAIT_MS: '10000'
         run: node tools/verify-production-baseline-v3971.mjs 2>&1 | tee /tmp/v3990-1-production-baseline.out
 
+      - name: Capture current production Workers AI failure evidence
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        env:
+          AI_MODEL_PROBE_BASE: https://gaokao-4y9.pages.dev
+          AI_MODEL_PROBE_ATTEMPTS: '2'
+          AI_MODEL_PROBE_WAIT_MS: '5000'
+          AI_MODEL_PROBE_REQUIRED: 'false'
+        run: node tools/verify-live-ai-model-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-production-ai-model-diagnostic.out
+
       - name: Verify v3.9.90.1 production after main deployment
         if: github.event_name != 'pull_request'
         env:
@@ -226,6 +236,15 @@ jobs:
           PRODUCTION_RESOURCE_WAIT_MS: '10000'
           PRODUCTION_RESOURCE_EVIDENCE: /tmp/v3990-1-production-resource-graph.json
         run: node tools/verify-production-resource-graph-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-production-health.out
+
+      - name: Verify live Workers AI on production
+        if: github.event_name != 'pull_request'
+        env:
+          AI_MODEL_PROBE_BASE: https://gaokao-4y9.pages.dev
+          AI_MODEL_PROBE_ATTEMPTS: '12'
+          AI_MODEL_PROBE_WAIT_MS: '10000'
+          AI_MODEL_PROBE_REQUIRED: 'true'
+        run: node tools/verify-live-ai-model-v3990_1.mjs 2>&1 | tee /tmp/v3990-1-production-ai-model.out
 
       - name: Upload production health evidence
         if: always()
