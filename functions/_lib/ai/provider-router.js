@@ -1,3 +1,5 @@
+import { resolveWorkersAiModelAlias } from '../ai-model-resolver.js';
+
 export const AI_PROVIDER_ROUTER_VERSION = 'ai-provider-router-v3990_1';
 
 function clean(value, max = 240) { return String(value == null ? '' : value).trim().slice(0, max); }
@@ -17,16 +19,20 @@ function getWorkersAiText(result) {
   if (Array.isArray(result?.choices) && typeof result.choices[0]?.message?.content === 'string') return result.choices[0].message.content;
   return '';
 }
+function workersModelResolution(env = {}) {
+  return resolveWorkersAiModelAlias(clean(env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180));
+}
 
 async function callWorkersAi(env, messages, options = {}) {
-  const model = clean(env?.AI_WORKSPACE_MODEL || env?.AI_MODEL, 180);
-  if (!model) throw Object.assign(new Error('AI_WORKSPACE_MODEL/AI_MODEL 未配置，使用确定性解析。'), { code:'AI_MODEL_NOT_CONFIGURED' });
+  const resolved = workersModelResolution(env);
+  const model = resolved.model;
+  if (!resolved.requestedModel) throw Object.assign(new Error('AI_WORKSPACE_MODEL/AI_MODEL 未配置，使用确定性解析。'), { code:'AI_MODEL_NOT_CONFIGURED' });
   if (!env?.AI || typeof env.AI.run !== 'function') throw Object.assign(new Error('Cloudflare Workers AI binding 未配置。'), { code:'AI_BINDING_MISSING' });
   const started = Date.now();
   const result = await env.AI.run(model, { messages, temperature:0, max_tokens:Math.max(80,Math.min(1000,Number(options.maxTokens || 700))) });
   const text = getWorkersAiText(result);
   if (!text) throw new Error('Workers AI 返回空内容。');
-  return { ok:true, provider:'workers-ai', model, text, usage:result?.usage || null, latencyMs:Date.now()-started };
+  return { ok:true, provider:'workers-ai', model, requestedModel:resolved.requestedModel, modelMigrated:resolved.migrated, migratedFrom:resolved.migratedFrom, text, usage:result?.usage || null, latencyMs:Date.now()-started };
 }
 
 async function callOpenAiCompatible(env, messages, options = {}) {
@@ -55,7 +61,7 @@ async function callOne(provider, env, messages, options) {
   throw Object.assign(new Error(`不支持的 AI Provider：${provider}`), { code:'AI_PROVIDER_UNSUPPORTED' });
 }
 function modelForProvider(provider, env = {}) {
-  if (provider === 'workers-ai') return clean(env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180);
+  if (provider === 'workers-ai') return workersModelResolution(env).model;
   if (provider === 'openai-compatible') return clean(env?.AI_EXTERNAL_MODEL || env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180);
   return '';
 }
@@ -64,14 +70,16 @@ export function aiProviderConfig(env = {}) {
   const primary = providerName(env.AI_PROVIDER || 'workers-ai');
   const fallbackRaw = clean(env.AI_FALLBACK_PROVIDER,60);
   const fallback = fallbackRaw ? providerName(fallbackRaw) : '';
-  const workersModel = clean(env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180);
+  const workersResolved = workersModelResolution(env);
+  const workersModel = workersResolved.model;
   const externalModel = clean(env?.AI_EXTERNAL_MODEL || env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180);
   return {
     version:AI_PROVIDER_ROUTER_VERSION, primary, fallback,
     primaryModel:modelForProvider(primary,env), fallbackModel:fallback ? modelForProvider(fallback,env) : '',
-    workersModel, externalModel,
+    workersModel, workersModelRequested:workersResolved.requestedModel, workersModelMigrated:workersResolved.migrated, workersModelMigratedFrom:workersResolved.migratedFrom,
+    externalModel,
     workersAiBound:Boolean(env?.AI && typeof env.AI.run === 'function'),
-    workersModelConfigured:Boolean(workersModel),
+    workersModelConfigured:Boolean(workersResolved.requestedModel),
     externalConfigured:Boolean(clean(env?.AI_EXTERNAL_BASE_URL,500) && clean(env?.AI_EXTERNAL_API_KEY,20) && externalModel),
     timeoutMs:positiveInt(env?.AI_TIMEOUT_MS,18000,3000,45000)
   };

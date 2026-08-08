@@ -19,7 +19,8 @@ export async function onRequest(context) {
     provider:{
       routerVersion:provider.version, primary:provider.primary, fallback:provider.fallback,
       primaryModel:provider.primaryModel || '', fallbackModel:provider.fallbackModel || '',
-      workersModel:provider.workersModel || '', externalModel:provider.externalModel || '',
+      workersModel:provider.workersModel || '', workersModelRequested:provider.workersModelRequested || '', workersModelMigrated:Boolean(provider.workersModelMigrated), workersModelMigratedFrom:provider.workersModelMigratedFrom || '',
+      externalModel:provider.externalModel || '',
       workersAiBound:provider.workersAiBound, workersModelConfigured:provider.workersModelConfigured, externalConfigured:provider.externalConfigured, timeoutMs:provider.timeoutMs
     },
     evidence:{ registryVersion:AI_EVIDENCE_REGISTRY_VERSION, officialSourceCount:evidence.length, levels:['A','C','D'], policy:'A=官方事实；C=系统确定性推导；D=缺少可靠证据时明确待核验。' },
