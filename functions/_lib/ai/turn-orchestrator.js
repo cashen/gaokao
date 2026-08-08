@@ -14,7 +14,7 @@ function baseView(workspace={}){const source=workspace?.activeView||{};return{ta
 function regionLabel(keys=[]){const values=unique(keys,8);if(!values.length||values.includes('all'))return'全国';if(values.length===1&&values[0]==='outside')return'省外';return values.map(key=>key.startsWith('province:')?key.slice(9):key).join('、');}
 
 function resolveActiveView(command={},workspace={}){
-  const base=baseView(workspace);const next=clone(base);const inherited=[];const mutatesView=['search','refine'].includes(command.operation);if(!mutatesView)return{view:next,commitView:false,inherited};
+  const base=baseView(workspace);const next=clone(base);const inherited=[];const mutatesView=['search','refine'].includes(command.operation);if(!mutatesView){if(command.operation==='answer'&&command.target==='fact'&&validScore(command.score))next.score=validScore(command.score);return{view:next,commitView:false,inherited};}
   if(validScore(command.score))next.score=validScore(command.score);else if(next.score)inherited.push(`分数 ${next.score}`);
   if(Array.isArray(command.regionKeys)&&command.regionKeys.length)next.regionKeys=unique(command.regionKeys,8);else if(next.regionKeys?.length)inherited.push(`地区 ${regionLabel(next.regionKeys)}`);
   if(command.clearMajor){next.majorKeywords=[];next.combination='replace';}
