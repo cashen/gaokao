@@ -1,0 +1,55 @@
+name: Temporary stabilize AI adapter v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore in-worker deterministic adapter and remove self
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('functions/_lib/ai/tool-registry.js')
+          s=p.read_text()
+          old="import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';\nimport { onRequest as schoolMajorsOnRequest } from '../../api/school-majors.js';"
+          new="import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';\nimport { onRequest as majorBandsOnRequest } from '../../api/major-bands.js';\nimport { onRequest as schoolMajorsOnRequest } from '../../api/school-majors.js';"
+          if old not in s: raise SystemExit('tool-registry import anchor missing')
+          s=s.replace(old,new,1)
+          old="const request=requestForMajorBands(context,params);const response=await fetch(request);let payload=null;try{payload=await response.json();}catch{}"
+          new="const request=requestForMajorBands(context,params);const response=await majorBandsOnRequest({...context,request});let payload=null;try{payload=await response.json();}catch{}"
+          if old not in s: raise SystemExit('tool-registry execution anchor missing')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          p=Path('tools/verify-ai-workspace-v3990_1.mjs')
+          s=p.read_text()
+          old='function testAiMajorBandsResourceBoundary(){const source=read(\'functions/_lib/ai/tool-registry.js\');assert.equal(source.includes("onRequest as majorBandsOnRequest"),false);assert.ok(source.includes(\'const request=requestForMajorBands(context,params);const response=await fetch(request)\'));assert.ok(source.includes("new URL(\'/api/major-bands\',sourceUrl.origin)"));}'
+          new='function testAiMajorBandsResourceBoundary(){const source=read(\'functions/_lib/ai/tool-registry.js\'),majorBands=read(\'functions/api/major-bands.js\');assert.ok(source.includes("onRequest as majorBandsOnRequest"));assert.ok(source.includes("majorBandsOnRequest({...context,request})"));assert.ok(source.includes("new URL(\'/api/major-bands\',sourceUrl.origin)"));assert.equal(majorBands.includes("AI_TOOL_REGISTRY_VERSION"),false);}'
+          if old not in s: raise SystemExit('verify boundary anchor missing')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          node --check functions/_lib/ai/tool-registry.js
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git rm .github/workflows/agent-stabilize-ai-v3992-1.yml
+          git config user.name 'cashen'
+          git config user.email '54cashen@gmail.com'
+          git add functions/_lib/ai/tool-registry.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1：恢复稳定的AI确定性资源调用边界 v3992_1'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
