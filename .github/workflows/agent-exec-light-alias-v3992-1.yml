@@ -1,0 +1,30 @@
+name: Execute lightweight AI alias patch v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'chore: run AI alias asset patch via known workflow'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: python3 tools/tmp_alias_asset_patch_v3992_1.py
+      - run: node --check functions/_lib/ai/command-interpreter.js
+      - run: node --check functions/_lib/ai/turn-orchestrator.js
+      - run: node tools/verify-ai-workspace-v3990_1.mjs
+      - run: git diff --check
+      - run: |
+          git config user.name 'chatgpt-agent'
+          git config user.email 'actions@users.noreply.github.com'
+          git add functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1: isolate school alias catalog from Worker bundle'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
