@@ -1,0 +1,57 @@
+name: Temporary AI region union v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply single-pass region union and self-delete
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shared/resources/geo/china-region-catalog.v3990_1.js')
+          s=p.read_text()
+          old="  if (key === 'all') return true;\n  const lnArea = String(record.lnArea || record.region || '').trim();"
+          new="  if (key === 'all') return true;\n  if (key.startsWith('any:')) {\n    const members = key.slice(4).split('|').map(item => item.trim()).filter(Boolean);\n    if (!members.length || members.length > 4 || members.some(item => item.startsWith('any:'))) return false;\n    return members.some(item => matchRegionRule(record, item));\n  }\n  const lnArea = String(record.lnArea || record.region || '').trim();"
+          if old not in s: raise SystemExit('region matcher anchor missing')
+          p.write_text(s.replace(old,new,1))
+
+          p=Path('functions/_lib/ai/tool-registry.js')
+          s=p.read_text()
+          old="  const regions=normalizeRegionKeys(regionKeys),keyword=unique(majorKeywords,8).join('/'),executions=[];for(const region of regions.slice(0,4))executions.push(await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16}));\n  const merged=mergeCandidateExecutions(executions);if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;"
+          new="  const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');\n  const executions=[await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16})];\n  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;"
+          if old not in s: raise SystemExit('AI multi-region execution anchor missing')
+          p.write_text(s.replace(old,new,1))
+
+          p=Path('tools/verify-ai-workspace-v3990_1.mjs')
+          s=p.read_text()
+          old="  assert.equal(regionKeyLabel('shenyang'),'沈阳');assert.equal(regionKeyLabel('dalian'),'大连');\n  const shenyang={province:'辽宁省',city:'沈阳市',lnArea:'沈阳',regionGroups:['ln','辽宁省内','shenyang','沈阳','province:辽宁']};assert.equal(matchRegionRule(shenyang,'shenyang'),true);assert.equal(matchRegionRule(shenyang,'dalian'),false);"
+          new="  assert.equal(regionKeyLabel('shenyang'),'沈阳');assert.equal(regionKeyLabel('dalian'),'大连');\n  const shenyang={province:'辽宁省',city:'沈阳市',lnArea:'沈阳',regionGroups:['ln','辽宁省内','shenyang','沈阳','province:辽宁']};assert.equal(matchRegionRule(shenyang,'shenyang'),true);assert.equal(matchRegionRule(shenyang,'dalian'),false);\n  assert.equal(matchRegionRule({province:'新疆',city:'乌鲁木齐'},'any:province:新疆|province:西藏'),true);assert.equal(matchRegionRule({province:'西藏',city:'拉萨'},'any:province:新疆|province:西藏'),true);assert.equal(matchRegionRule({province:'山东',city:'济南'},'any:province:新疆|province:西藏'),false);"
+          if old not in s: raise SystemExit('geo unit-test anchor missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check shared/resources/geo/china-region-catalog.v3990_1.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git rm .github/workflows/agent-region-union-v3992-1.yml
+          git config user.name 'cashen'
+          git config user.email '54cashen@gmail.com'
+          git add shared/resources/geo/china-region-catalog.v3990_1.js functions/_lib/ai/tool-registry.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1：多地域候选改为单次真集查询 v3992_1'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
