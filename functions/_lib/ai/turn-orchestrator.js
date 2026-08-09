@@ -55,7 +55,7 @@ export async function orchestrateAiTurn(context,payload={}){
   if(!input&&!payload.confirmedCommand)return{ok:false,status:400,message:'直接说你现在想解决的问题即可。'};
   if(workspace?.contractVersion&&!OLD_CONTRACTS.has(workspace.contractVersion))return{ok:false,status:409,message:'AI工作区版本无法安全迁移，请刷新页面后继续；专业初选和家庭方案不会受影响。'};
   let interpreted;const confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace);
-  if(confirmed)interpreted={command:confirmed,provider:{ok:false,provider:'',model:'',confirmed:true}};else interpreted=await interpretAiCommand(input,workspace,context.env||{});
+  if(confirmed)interpreted={command:confirmed,provider:{ok:false,provider:'',model:'',confirmed:true}};else interpreted=await interpretAiCommand(input,workspace,context.env||{},context.request||null);
   const command=interpreted.command;
   if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话我不想替你猜',text:command.reason||'请再明确一点。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 

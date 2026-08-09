@@ -2,8 +2,7 @@
 import { runAiProvider } from './provider-router.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
-import { createSchoolNameResolver } from '../../../tongxue/data/school-name-resolver-v150.js';
-import { SCHOOL_PROFILE_ROWS } from '../../../shared/resources/schools/school-profile-data.20260617-v3957.js';
+import { createSchoolNameResolver, SCHOOL_NAME_DATA_URL } from '../../../tongxue/data/school-name-resolver-v150.js';
 import {
   AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
   validateAgentTask, taskExecutionPolicy
@@ -16,7 +15,6 @@ const MAJOR_TERMS=Object.freeze(['计算机','软件工程','软件','数据科�
 const GROUP_LABELS=Object.freeze({江浙沪:'jiangzhehu',华中:'huazhong',西南:'southwest',西北:'northwest'});
 const REGION_LABEL_BY_KEY=Object.freeze(Object.fromEntries(REGION_OPTIONS.map(item=>[item.key,item.label])));
 const CORE_DIMENSIONS=Object.freeze(['score','region','major','school','bottomLine']);
-const AI_SCHOOL_NAME_RESOLVER=createSchoolNameResolver(SCHOOL_PROFILE_ROWS.map(row=>({name:row[0],province:row[3],city:row[4],level:row[5]})));
 
 function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(value=>clean(value,120)).filter(Boolean))].slice(0,max);}
@@ -35,7 +33,8 @@ function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.neg
 function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>x.term),8);}
 function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim());return unique([...(resolvedSchoolNames||[]),...full],4);}
 function likelySchoolMentionTokens(text){const source=clean(text,360);if(!source||/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/.test(source))return[];const tokens=[];const possessive=source.match(/(?:^|[，,。！？!?；;\s])([^，,。！？!?；;\s的]{2,12})的(?:电气|自动化|机械|计算机|软件|电子|通信|材料|化工|冶金|土木|建筑|医学|法学|金融|会计|专业|强项|背景)/);if(possessive?.[1])tokens.push(possessive[1]);let reduced=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');for(const term of [...MAJOR_TERMS].sort((a,b)=>b.length-a.length))reduced=reduced.split(term).join(' ');reduced=reduced.replace(/(所有专业|全部专业|全校专业|招生专业|最低录取分|最低投档分|最低分|投档分|录取分|多少分|分数线|历史分数|历年分数|有证据的强项方向|强项方向|背景证据|学校背景|专业背景|强项|怎么样|如何|咋样|能不能上|能不能报|够不够|够吗|呢|吗|呀|啊|吧)/g,' ');reduced=reduced.replace(/^(那|再|还是|然后|顺便|看看|看下|看一下|帮我看|帮我查|我想看|想看|查下|查一下|请看|请查)+/,'').replace(/(的|呢|吗|呀|啊|吧)+$/g,'').replace(/[\s，,。！？!?；;：:]+/g,'').trim();if(reduced.length>=2&&reduced.length<=12)tokens.push(reduced);return unique(tokens,4);}
-export async function resolveAiSchoolMentions(text,resolver=AI_SCHOOL_NAME_RESOLVER){if(!resolver||typeof resolver.resolve!=='function')return[];const resolved=[];for(const query of likelySchoolMentionTokens(text)){try{const result=resolver.resolve(query,{limit:4}),exact=clean(result?.resolvedName,120);if(result?.status==='resolved'&&exact){resolved.push(exact);break;}const candidates=Array.isArray(result?.candidates)?result.candidates:[];if(candidates.length===1&&Number(candidates[0]?.score||0)>=.9){resolved.push(clean(candidates[0]?.officialName,120));break;}}catch{}}return unique(resolved,4);}
+async function loadAiSchoolResolver(request,env={}){const base=request?.url?new URL(request.url).origin:'https://example.invalid',url=new URL(SCHOOL_NAME_DATA_URL,base);let response=null;if(env?.ASSETS?.fetch)response=await env.ASSETS.fetch(new Request(url.toString(),{method:'GET'}));if(!response||!response.ok)response=await fetch(url.toString(),{method:'GET',cf:{cacheTtl:1800,cacheEverything:true}});if(!response.ok)throw new Error(`学校简称索引读取失败：${response.status}`);const payload=await response.json(),rows=Array.isArray(payload?.schools)?payload.schools.filter(row=>Array.isArray(row)&&row[3]==='本科'):[];if(rows.length<1000)throw new Error('学校简称索引不完整。');return createSchoolNameResolver(rows);}
+export async function resolveAiSchoolMentions(text,contextOrResolver={}){const queries=likelySchoolMentionTokens(text);if(!queries.length)return[];let resolver=contextOrResolver?.resolve?contextOrResolver:null;if(!resolver){try{resolver=await loadAiSchoolResolver(contextOrResolver?.request||null,contextOrResolver?.env||{});}catch{return[];}}if(typeof resolver?.resolve!=='function')return[];const resolved=[];for(const query of queries){try{const result=resolver.resolve(query,{limit:4}),exact=clean(result?.resolvedName,120);if(result?.status==='resolved'&&exact){resolved.push(exact);break;}const candidates=Array.isArray(result?.candidates)?result.candidates:[];if(candidates.length===1&&Number(candidates[0]?.score||0)>=.9){resolved.push(clean(candidates[0]?.officialName,120));break;}}catch{}}return unique(resolved,4);}
 
 function geographyFromText(text){
   const source=String(text||'');
@@ -196,8 +195,8 @@ function normalizeModelCommand(candidate,text,workspace,fallback){
 export function deterministicCommand(text,workspace={},resolvedSchoolNames=[]){return deterministicBase(text,workspace,resolvedSchoolNames);}
 
 export function shouldShortCircuitAiProvider(command={}){return Boolean(command?.taskLocked&&!command?.requiresConfirmation&&Number(command?.confidence||0)>=.9);}
-export async function interpretAiCommand(text,workspace={},env={}){
-  const resolvedSchoolNames=await resolveAiSchoolMentions(text);
+export async function interpretAiCommand(text,workspace={},env={},request=null){
+  const resolvedSchoolNames=await resolveAiSchoolMentions(text,{request,env});
   const fallback=deterministicBase(text,workspace,resolvedSchoolNames);
   if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
   if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
