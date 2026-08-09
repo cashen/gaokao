@@ -35,9 +35,22 @@ jobs:
           if anchor not in text: raise SystemExit('parent journey test anchor missing')
           p.write_text(text.replace(anchor,insert+anchor,1))
           PY
-          node --check functions/_lib/ai/command-interpreter.js
-          node --check tools/verify-ai-workspace-v3990_1.mjs
-          node tools/verify-ai-workspace-v3990_1.mjs
+          run_named() {
+            label="$1"; shift
+            set +e
+            output="$($@ 2>&1)"
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              printf '%s\n' "$output"
+              compact="$(printf '%s' "$output" | tail -c 1600 | tr '\n' ' ')"
+              echo "::error title=$label::$compact"
+              exit "$status"
+            fi
+          }
+          run_named check-command node --check functions/_lib/ai/command-interpreter.js
+          run_named check-static-test node --check tools/verify-ai-workspace-v3990_1.mjs
+          run_named static-advisory-gates node tools/verify-ai-workspace-v3990_1.mjs
       - name: Commit clean candidate
         shell: bash
         run: |
