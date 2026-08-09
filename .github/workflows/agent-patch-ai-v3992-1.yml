@@ -21,37 +21,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          set +e
-          patch_output="$(python .agent/patch-v3992-1.py 2>&1)"
-          patch_status=$?
-          set -e
-          if [ "$patch_status" -ne 0 ]; then
-            printf '%s\n' "$patch_output"
-            compact="$(printf '%s' "$patch_output" | tail -c 800 | tr '\n' ' ')"
-            echo "::error title=AI patch failed::$compact"
-            exit "$patch_status"
-          fi
-          node --check tongxue/data/school-name-resolver-v150.js
-          node --check functions/_lib/ai/command-interpreter.js
-          node --check functions/_lib/ai/agent-task-kernel.js
-          node --check functions/_lib/ai/tool-registry.js
-          node --check functions/_lib/ai/turn-orchestrator.js
-          node --check functions/_lib/ai/advisor-presentation.js
-          node --check ai/render.v3992_0.js
-          node --check ai/app.v3990_1.js
-          node --check ai/parent-starter.v3992_1.js
-          node --check tools/verify-ai-workspace-v3990_1.mjs
-          node --check tools/browser-ai-workspace-v3990_1.mjs
-          set +e
-          verify_output="$(node tools/verify-ai-workspace-v3990_1.mjs 2>&1)"
-          verify_status=$?
-          set -e
-          if [ "$verify_status" -ne 0 ]; then
-            printf '%s\n' "$verify_output"
-            compact="$(printf '%s' "$verify_output" | tail -c 1000 | tr '\n' ' ')"
-            echo "::error title=AI verify failed::$compact"
-            exit "$verify_status"
-          fi
+          run_named() {
+            label="$1"; shift
+            set +e
+            output="$($@ 2>&1)"
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              printf '%s\n' "$output"
+              compact="$(printf '%s' "$output" | tail -c 1200 | tr '\n' ' ')"
+              echo "::error title=$label::$compact"
+              exit "$status"
+            fi
+          }
+          run_named patch-python python .agent/patch-v3992-1.py
+          run_named check-school-alias node --check tongxue/data/school-name-resolver-v150.js
+          run_named check-command node --check functions/_lib/ai/command-interpreter.js
+          run_named check-kernel node --check functions/_lib/ai/agent-task-kernel.js
+          run_named check-tools node --check functions/_lib/ai/tool-registry.js
+          run_named check-orchestrator node --check functions/_lib/ai/turn-orchestrator.js
+          run_named check-presentation node --check functions/_lib/ai/advisor-presentation.js
+          run_named check-render node --check ai/render.v3992_0.js
+          run_named check-app node --check ai/app.v3990_1.js
+          run_named check-starter node --check ai/parent-starter.v3992_1.js
+          run_named check-static-test node --check tools/verify-ai-workspace-v3990_1.mjs
+          run_named check-browser-test node --check tools/browser-ai-workspace-v3990_1.mjs
+          run_named static-parent-gates node tools/verify-ai-workspace-v3990_1.mjs
       - name: Guard scope and commit clean candidate
         shell: bash
         run: |
