@@ -1,0 +1,49 @@
+name: Temporary parent browser journey correction
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[parent-journey-test-fixed]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Correct test semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/browser-ai-workspace-v3990_1.mjs')
+          text=p.read_text()
+          old="const basePrompts=new Map([[350,'350分，先看还有哪些真实可达的本科机会'],[440,'440分，辽宁省内先看能上的学校'],[500,'500分，辽宁省内先看学校和专业怎么平衡'],[580,'580分，省内机械看看'],[620,'620分，学校平台和专业质量怎么平衡'],[630,'630分，全国电气看看'],[650,'650分，不只看学校层次，优先比较专业质量和培养路径']]);"
+          new="const basePrompts=new Map([[350,'350分，全国先看还能研究哪些学校'],[440,'440分，辽宁省内先看能上的学校'],[500,'500分，辽宁省内先看能上的学校'],[580,'580分，省内机械看看'],[620,'620分，全国先看能上的学校'],[630,'630分，全国电气看看'],[650,'650分，全国先看能上的学校']]);"
+          if old not in text: raise SystemExit('basePrompts anchor missing')
+          text=text.replace(old,new,1)
+          old620="if(score===620){const q=await submitTurn(page,'愿意加预算，看看有没有985中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='985','620 platform target');assert(q.result.candidates?.platformUpgrade?.target==='985','620 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'985 preview must not claim complete');}"
+          new620="if(score===620){const advice=await submitTurn(page,'学校平台和专业质量怎么平衡');assert(Number(advice.resolvedView?.score)===620,'620 advisory lost score context');assert(advice.commitView===false,'620 advisory must not mutate candidate view');const q=await submitTurn(page,'愿意加预算，看看有没有985中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='985','620 platform target');assert(q.result.candidates?.platformUpgrade?.target==='985','620 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'985 preview must not claim complete');}if(score===650){const advice=await submitTurn(page,'不只看学校层次，优先比较专业质量和培养路径');assert(Number(advice.resolvedView?.score)===650,'650 advisory lost score context');assert(advice.commitView===false,'650 advisory must not mutate candidate view');}"
+          if old620 not in text: raise SystemExit('620 journey anchor missing')
+          text=text.replace(old620,new620,1)
+          p.write_text(text)
+          PY
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+      - name: Commit clean test correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'chatgpt-agent'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/agent-fix-parent-browser-journeys.yml
+          git add tools/browser-ai-workspace-v3990_1.mjs
+          git commit -m 'test: distinguish score-anchor search from advisor questions [parent-journey-test-fixed]'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
