@@ -9,7 +9,7 @@ if(!BASE)throw new Error('AI_PREVIEW_BASE is required');fs.mkdirSync(ARTIFACT_DI
 const devices=[{name:'pc',viewport:{width:1440,height:900}},{name:'pad',viewport:{width:1024,height:768}},{name:'android',viewport:{width:390,height:844},isMobile:true,hasTouch:true}];
 function assert(condition,message){if(!condition)throw new Error(message);}
 async function waitForText(page,text,timeout=30000){await page.getByText(text,{exact:false}).first().waitFor({state:'visible',timeout});}
-async function waitForHealthState(page,timeout=30000){await page.waitForFunction(()=>{const text=document.querySelector('#health')?.textContent||'';return text.includes('工作台已就绪')||text.includes('确定性业务可继续');},null,{timeout});}
+async function waitForHealthState(page,timeout=30000){await page.waitForFunction(()=>{const text=document.querySelector('#healthBar')?.textContent||'';return text.includes('工作台已就绪')||text.includes('确定性业务可继续');},null,{timeout});}
 async function checkGeometry(page,name){const g=await page.evaluate(()=>({width:window.innerWidth,scrollWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth}));assert(g.scrollWidth<=g.width+2,`${name}: document overflow ${g.scrollWidth}>${g.width}`);assert(g.bodyWidth<=g.width+2,`${name}: body overflow ${g.bodyWidth}>${g.width}`);}
 async function submit(page,text){const input=page.locator('#promptInput');await input.fill(text);await page.locator('#sendButton').click();}
 async function waitIdle(page,timeout=70000){await page.waitForFunction(()=>document.querySelector('#sendButton')?.textContent?.trim()==='执行',null,{timeout});}
