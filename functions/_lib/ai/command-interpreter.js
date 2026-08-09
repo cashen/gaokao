@@ -84,7 +84,7 @@ function explicitFamilyPersistence(text){return /(家庭底线|以后都|以后�
 function compareLanguage(text,majors=[]){const s=String(text||'');return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(s)||(majors.length>=2&&/还是/.test(s));}
 function unionLanguage(text){return /(都看看|一起看|都看|同时看|一块看|一起有哪些|都有哪些|也看看|也看一下|顺便看看|也加上|一起放进来)/.test(String(text||''));}
 function correctionLanguage(text){return /(不是.{0,18}是|改成|换成|刚才说错|纠正|只留|最后留)/.test(String(text||''));}
-function candidateLanguage(text){return /(候选|能报哪些|能上哪些|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(String(text||''));}
+function candidateLanguage(text){const source=String(text||'').replace(/(?:不|不能|别|不要)只看/g,'');return /(候选|能报哪些|能上哪些|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(source);}
 function infoQuestionLanguage(text){return /(怎么样|学什么|课程|就业|工作|前景|值不值|为什么|咋样|如何|干什么|以后做什么|适不适合)/.test(String(text||''));}
 function rankQuestionLanguage(text){return /(位次|排名|第几名|多少名|一分一段)/.test(String(text||''));}
 function restoreLanguage(text){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|刚才的|前面的)/.test(String(text||''));}
@@ -126,9 +126,11 @@ function deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,h
   return{operation,target,relation,persistence,combination};
 }
 
+function advisoryDiscussionLanguage(text){const s=String(text||'');const decisionObjects=/(学校平台|学校层次|专业质量|专业实力|培养路径|培养方式|本科就业|继续深造|读研|就业和深造|城市机会)/.test(s),tradeoff=/(怎么平衡|如何平衡|怎么取舍|如何取舍|优先比较|怎么选|怎么看|应该更看重|哪个更重要)/.test(s);return decisionObjects&&tradeoff;}
 function explicitTaskLock(source,agentTask,candidateLexical=false){
   if(['fact_rank_lookup','school_major_history','school_history','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;
   if(['candidate_discovery','candidate_refinement'].includes(agentTask)&&candidateLexical)return true;
+  if(agentTask==='general_advice'&&advisoryDiscussionLanguage(source))return true;
   return false;
 }
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
