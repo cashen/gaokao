@@ -1,11 +1,16 @@
+
 import { runAiProvider } from './provider-router.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
+import {
+  AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
+  validateAgentTask, taskExecutionPolicy
+} from './agent-task-kernel.js';
 
-export const AI_COMMAND_INTERPRETER_VERSION = 'ai-command-interpreter-v3991_0';
-export const AI_COMMAND_SCHEMA_VERSION = 'ai-semantic-patch-v3991_0';
+export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_0';
+export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_0';
 
-const MAJOR_TERMS=Object.freeze(['计算机','软件工程','软件','数据科学','人工智能','电子信息','电气','自动化','通信','机械','能源','石油','化工','材料','土木','建筑','医学','临床医学','口腔医学','药学','护理','法学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','动物医学','食品']);
+const MAJOR_TERMS=Object.freeze(['计算机','软件工程','软件','数据科学','人工智能','电子信息','电气','自动化','通信','机械','能源','石油','化工','材料','冶金','土木','建筑','医学','临床医学','口腔医学','药学','护理','法学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','动物医学','食品']);
 const GROUP_LABELS=Object.freeze({江浙沪:'jiangzhehu',华中:'huazhong',西南:'southwest',西北:'northwest'});
 const REGION_LABEL_BY_KEY=Object.freeze(Object.fromEntries(REGION_OPTIONS.map(item=>[item.key,item.label])));
 const CORE_DIMENSIONS=Object.freeze(['score','region','major','school','bottomLine']);
@@ -13,119 +18,170 @@ const CORE_DIMENSIONS=Object.freeze(['score','region','major','school','bottomLi
 function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(value=>clean(value,120)).filter(Boolean))].slice(0,max);}
 function parseJsonText(text){const source=clean(text,7000);if(!source)return null;const unfenced=source.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'').trim();try{return JSON.parse(unfenced);}catch{}const start=unfenced.indexOf('{'),end=unfenced.lastIndexOf('}');if(start>=0&&end>start){try{return JSON.parse(unfenced.slice(start,end+1));}catch{}}return null;}
-function scoreFromText(text){const match=String(text||'').match(/(?:^|[^\d])(\d{3})(?:\s*分)?(?:[^\d]|$)/);const score=Number(match?.[1]);return Number.isFinite(score)&&score>=150&&score<=750?score:null;}
+function scoreFromText(text){const m=String(text||'').match(/(?:^|[^\d])(\d{3})(?:\s*分)?(?:[^\d]|$)/),score=Number(m?.[1]);return Number.isFinite(score)&&score>=150&&score<=750?score:null;}
 function activeView(workspace={}){return workspace?.activeView&&typeof workspace.activeView==='object'?workspace.activeView:{};}
-function hasMeaningfulActiveView(workspace={}){const view=activeView(workspace);return Boolean(Number(view.score)||(view.majorKeywords||[]).length||(view.schoolNames||[]).length||((view.regionKeys||[]).length&&!view.regionKeys.includes('all'))||(view.bottomLineMode&&view.bottomLineMode!=='all'));}
+function hasMeaningfulActiveView(workspace={}){const v=activeView(workspace);return Boolean(Number(v.score)||(v.majorKeywords||[]).length||(v.schoolNames||[]).length||((v.regionKeys||[]).length&&!v.regionKeys.includes('all'))||(v.bottomLineMode&&v.bottomLineMode!=='all'));}
 
 function majorMentions(text){
-  const source=String(text||''),mentions=[];
-  for(const term of MAJOR_TERMS){let from=0;while(from<source.length){const index=source.indexOf(term,from);if(index<0)break;const before=source.slice(Math.max(0,index-10),index),after=source.slice(index+term.length,index+term.length+10);const negative=/(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|不是|不选).{0,3}$/.test(before)||/^(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|算了|不要了|不选)/.test(after);mentions.push({term,index,negative});from=index+term.length;}}
-  mentions.sort((a,b)=>a.index-b.index||b.term.length-a.term.length);
-  return mentions.filter((item,index,list)=>!list.some((other,otherIndex)=>otherIndex!==index&&other.index===item.index&&other.term.length>item.term.length&&other.term.includes(item.term)));
+  const source=String(text||''),out=[];
+  for(const term of MAJOR_TERMS){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const before=source.slice(Math.max(0,i-10),i),after=source.slice(i+term.length,i+term.length+10);const negative=/(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|不是|不选).{0,3}$/.test(before)||/^(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|算了|不要了|不选)/.test(after);out.push({term,index:i,negative});from=i+term.length;}}
+  out.sort((a,b)=>a.index-b.index||b.term.length-a.term.length);
+  return out.filter((item,index,list)=>!list.some((other,j)=>j!==index&&other.index===item.index&&other.term.length>item.term.length&&other.term.includes(item.term)));
 }
-function positiveMajors(text){return unique(majorMentions(text).filter(item=>!item.negative).map(item=>item.term),8);}
-function negativeMajors(text){return unique(majorMentions(text).filter(item=>item.negative).map(item=>item.term),8);}
-function schoolNamesFromText(text){const matches=String(text||'').match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[];return unique(matches.map(value=>value.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim()),4);}
+function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>x.term),8);}
+function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>x.term),8);}
+function schoolNamesFromText(text){const matches=String(text||'').match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[];return unique(matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim()),4);}
 
 function geographyFromText(text){
   const source=String(text||'');
-  if(/(全国|不限地区|地区不限|全国范围|回到全国|地区先放开)/.test(source))return{keys:['all'],explicit:true,label:'全国'};
-  if(/(沈阳市|沈阳)/.test(source))return{keys:['shenyang'],explicit:true,label:'沈阳'};
-  if(/(大连市|大连)/.test(source))return{keys:['dalian'],explicit:true,label:'大连'};
-  if(/(辽宁其他|辽宁其它|除沈阳大连外的辽宁)/.test(source))return{keys:['ln-other'],explicit:true,label:'辽宁其他'};
-  if(/(省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁)/.test(source))return{keys:['ln'],explicit:true,label:'辽宁省内'};
-  if(/省外/.test(source))return{keys:['outside'],explicit:true,label:'省外'};
-  for(const [label,key] of Object.entries(GROUP_LABELS))if(source.includes(label))return{keys:[key],explicit:true,label};
-  if(/东北三省|东北/.test(source))return{keys:['province:辽宁','province:吉林','province:黑龙江'],explicit:true,label:'东北三省'};
+  const regionSource=source.replace(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g,' ');
+  if(/(全国|不限地区|地区不限|全国范围|回到全国|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了))/.test(regionSource))return{keys:['all'],explicit:true,label:'全国'};
+  const isNegative=(at)=>{const before=regionSource.slice(Math.max(0,at-10),at);return /(不看|不要|不考虑|排除|别看|去掉|删掉|不留).{0,3}$/.test(before);};
+  const found=[];
+  const add=(token,key,label)=>{let from=0,seenNegative=false;while(from<regionSource.length){const i=regionSource.indexOf(token,from);if(i<0)break;if(isNegative(i))seenNegative=true;else found.push({key,label,index:i});from=i+token.length;}return seenNegative;};
+  const negativeCities=[add('沈阳市','shenyang','沈阳'),add('沈阳','shenyang','沈阳'),add('大连市','dalian','大连'),add('大连','dalian','大连')].some(Boolean);
+  if(/(辽宁其他|辽宁其它|除沈阳大连外的辽宁)/.test(regionSource))found.push({key:'ln-other',label:'辽宁其他',index:regionSource.search(/辽宁其他|辽宁其它|除沈阳大连外的辽宁/)});
+  if(/(省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁)/.test(regionSource))found.push({key:'ln',label:'辽宁省内',index:regionSource.search(/省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁/)});
+  if(/省外/.test(regionSource))found.push({key:'outside',label:'省外',index:regionSource.indexOf('省外')});
+  for(const [label,key] of Object.entries(GROUP_LABELS)){const i=regionSource.indexOf(label);if(i>=0&&!isNegative(i))found.push({key,label,index:i});}
+  if(/东北三省|东北/.test(regionSource)){const i=regionSource.search(/东北三省|东北/);if(!isNegative(i))found.push({key:'province:辽宁',label:'辽宁',index:i},{key:'province:吉林',label:'吉林',index:i},{key:'province:黑龙江',label:'黑龙江',index:i});}
   const ordered=[...PROVINCE_LEVEL_NAMES].sort((a,b)=>b.length-a.length);
-  for(const province of ordered){const aliases=[province,`${province}省`,`${province}市`];if(!aliases.some(token=>source.includes(token)))continue;const key=provinceRegionKey(province);if(key)return{keys:[key],explicit:true,label:province};}
+  for(const province of ordered){for(const alias of [`${province}省`,`${province}市`,province]){const i=regionSource.indexOf(alias);if(i<0||isNegative(i))continue;const key=provinceRegionKey(province);if(key)found.push({key,label:province,index:i});break;}}
+  const uniqueFound=[];for(const item of found.sort((a,b)=>a.index-b.index)){if(!uniqueFound.some(x=>x.key===item.key))uniqueFound.push(item);}
+  if(uniqueFound.length)return{keys:uniqueFound.map(x=>x.key),explicit:true,label:uniqueFound.map(x=>x.label).join('、')};
+  if(negativeCities)return{keys:['all'],explicit:true,label:'全国'};
   return{keys:[],explicit:false,label:''};
 }
-function regionLabel(keys=[]){const values=unique(keys,8);if(!values.length||values.includes('all'))return'全国';return values.map(key=>key.startsWith('province:')?key.slice(9):(REGION_LABEL_BY_KEY[key]||key)).join('、');}
+function regionLabel(keys=[]){const vals=unique(keys,8);if(!vals.length||vals.includes('all'))return'全国';return vals.map(k=>k.startsWith('province:')?k.slice(9):(REGION_LABEL_BY_KEY[k]||k)).join('、');}
+function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限)/.test(s))return'all';if(/(不接受|不要|排除|只看|只要).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/公办优先/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|公办含中外/.test(s))return'public_include_sino';return'';}
 
-function bottomLineFromText(text){const source=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限)/.test(source))return'all';if(/(不接受|不要|排除|只看|只要).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(source))return'public_regular_only';if(/公办优先/.test(source))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|公办含中外/.test(source))return'public_include_sino';return'';}
-function ordinalReference(text,workspace={}){const source=String(text||''),map={第一:0,第一个:0,第二:1,第二个:1,第三:2,第三个:2,第四:3,第四个:3,第五:4,第五个:4};let index=null;for(const [word,value] of Object.entries(map))if(source.includes(word)){index=value;break;}if(index==null&&/(刚才那个|前面那个|这个学校|这个专业)/.test(source))index=0;if(index==null)return null;const record=workspace?.lastResult?.candidates?.records?.[index];return record?{index,id:clean(record.id,220),school:clean(record.school||record.schoolName,80),major:clean(record.major||record.majorName,120)}:{index};}
+function priorFocus(workspace={}){return workspace?.agentContext?.focus||{};}
+function resolveReferenceMajors(source,positive,workspace){
+  if(positive.length)return positive;
+  if(/(这个专业|该专业|刚才这个专业|刚才的专业|这个方向|该方向|专业本身)/.test(source)){
+    const p=priorFocus(workspace);if(p.major)return[p.major];if((p.majors||[]).length)return[p.majors[0]];
+    const active=activeView(workspace);if((active.majorKeywords||[]).length===1)return[active.majorKeywords[0]];
+  }
+  if(/(这些专业|这几个专业|刚才这些专业|刚才那几个专业)/.test(source)){
+    const p=priorFocus(workspace);if((p.majors||[]).length)return unique(p.majors,6);
+    const active=activeView(workspace);if((active.majorKeywords||[]).length)return unique(active.majorKeywords,6);
+  }
+  return[];
+}
+function resolveReferenceSchools(source,schools,workspace){
+  if(schools.length)return schools;
+  if(/(这个学校|这所学校|该校|刚才这个学校|刚才那所学校)/.test(source)){
+    const p=priorFocus(workspace);if(p.school)return[p.school];if((p.schools||[]).length)return[p.schools[0]];
+    const active=activeView(workspace);if((active.schoolNames||[]).length===1)return[active.schoolNames[0]];
+  }
+  return[];
+}
+function ordinalReference(text,workspace={}){const source=String(text||''),map={第一:0,第一个:0,第二:1,第二个:1,第三:2,第三个:2,第四:3,第四个:3,第五:4,第五个:4};let index=null;for(const [word,value] of Object.entries(map))if(source.includes(word)){index=value;break;}if(index==null)return null;const record=workspace?.lastResult?.candidates?.records?.[index]||workspace?.lastResult?.history?.records?.[index];return record?{index,id:clean(record.id,220),school:clean(record.school||record.schoolName,80),major:clean(record.major||record.majorName,120)}:{index};}
 
 function explicitFamilyPersistence(text){return /(家庭底线|以后都|以后不|我们家不接受|孩子明确不接受|绝对不|肯定不|无论如何不|长期只考虑|预算上限|以后只看)/.test(String(text||''));}
-function compareLanguage(text,majors=[]){const source=String(text||'');return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看)/.test(source)||(majors.length>=2&&/还是/.test(source));}
+function compareLanguage(text,majors=[]){const s=String(text||'');return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(s)||(majors.length>=2&&/还是/.test(s));}
 function unionLanguage(text){return /(都看看|一起看|都看|同时看|一块看|一起有哪些|都有哪些|也看看|也看一下|顺便看看|也加上|一起放进来)/.test(String(text||''));}
 function correctionLanguage(text){return /(不是.{0,18}是|改成|换成|刚才说错|纠正|只留|最后留)/.test(String(text||''));}
-function candidateLanguage(text){return /(想看|看看|再看|换成|改看|有哪些|有什么|能上|能报|合适|候选|学校|范围|只看|先看|就看|来点|给我看|还是.{0,12}吧|呢[？?]?|缩到|收窄到|留在)/.test(String(text||''));}
+function candidateLanguage(text){return /(候选|能报哪些|能上哪些|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(String(text||''));}
 function infoQuestionLanguage(text){return /(怎么样|学什么|课程|就业|工作|前景|值不值|为什么|咋样|如何|干什么|以后做什么|适不适合)/.test(String(text||''));}
 function rankQuestionLanguage(text){return /(位次|排名|第几名|多少名|一分一段)/.test(String(text||''));}
 function restoreLanguage(text){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|刚才的|前面的)/.test(String(text||''));}
 function clearMajorLanguage(text){return /(不限专业|专业不限|先不看专业|先不限制专业|不限定专业|专业先放开|先看所有专业)/.test(String(text||''));}
 function clearSchoolLanguage(text){return /(不限学校|学校不限|先不限定学校|学校先放开)/.test(String(text||''));}
-function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开)/.test(String(text||''));}
+function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了)|(?:不看|不要|排除|去掉|删掉).{0,4}(沈阳|大连)(?:了)?$)/.test(String(text||''));}
 
 function inheritPatch(){return{score:{op:'inherit'},region:{op:'inherit',keys:[]},major:{op:'inherit',values:[]},school:{op:'inherit',values:[]},bottomLine:{op:'inherit',value:''}};}
-function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool}){
+function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion}){
   const patch=inheritPatch();
   if(score)patch.score={op:'set',value:score};
-  if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};
+  if(clearRegion&&!geo.explicit)patch.region={op:'clear',keys:['all']};
+  else if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};
   if(clearMajor)patch.major={op:'clear',values:[]};
   else if(negative.length&&positive.length&&correctionLanguage(source))patch.major={op:'set',values:positive};
   else if(negative.length&&!positive.length)patch.major={op:'remove',values:negative};
   else if(positive.length&&unionLanguage(source))patch.major={op:'add',values:positive};
   else if(positive.length)patch.major={op:'set',values:positive};
-  if(clearSchool)patch.school={op:'clear',values:[]};
-  else if(schools.length)patch.school={op:'set',values:schools};
+  if(clearSchool)patch.school={op:'clear',values:[]};else if(schools.length)patch.school={op:'set',values:schools};
   if(bottomLineMode)patch.bottomLine={op:'set',value:bottomLineMode};
   return patch;
 }
-function patchMutates(patch={}){return CORE_DIMENSIONS.some(key=>patch?.[key]?.op&&patch[key].op!=='inherit');}
+function patchMutates(patch={}){return CORE_DIMENSIONS.some(k=>patch?.[k]?.op&&patch[k].op!=='inherit');}
+
+function deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode}){
+  let operation='answer',target='general',relation='answer_only',persistence='turn_only',combination=unionLanguage(source)?'union':'replace';
+  if(agentTask==='candidate_discovery'){operation='search';target=schools.length?'school':'candidates';relation='new_view';persistence=explicitFamilyPersistence(source)?'family':'active_view';}
+  else if(agentTask==='candidate_refinement'){operation='refine';target=schools.length?'school':'candidates';relation='patch_view';persistence=explicitFamilyPersistence(source)?'family':'active_view';}
+  else if(agentTask==='fact_rank_lookup'){operation='answer';target='fact';}
+  else if(agentTask==='school_comparison'){operation='compare';target='school';relation='compare_objects';}
+  else if(agentTask==='major_comparison'){operation='compare';target='major';relation='compare_objects';}
+  else if(agentTask==='evidence_verification'){operation='verify';target=schools.length?'school':majors.length?'major':'fact';}
+  else if(agentTask==='restore_view'){operation='restore';target='view';relation='restore_view';persistence='active_view';}
+  else if(agentTask==='save_family'){operation='save';target='family';relation='save_persistent';persistence='family';}
+  else if(['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask)){operation='answer';target='school';}
+  else if(['major_background','background_discovery','background_fit_discovery'].includes(agentTask)){operation='answer';target='major';}
+  else if(agentTask==='plan_review'){operation='answer';target='context';}
+  if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled){operation='save';target='family';relation='save_persistent';persistence='workspace';}
+  return{operation,target,relation,persistence,combination};
+}
+
+function explicitTaskLock(source,agentTask,candidateLexical=false){
+  if(['fact_rank_lookup','school_major_history','school_history','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;
+  if(['candidate_discovery','candidate_refinement'].includes(agentTask)&&candidateLexical)return true;
+  return false;
+}
+function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
 function deterministicBase(text,workspace={}){
-  const source=clean(text,1200),score=scoreFromText(source),positive=positiveMajors(source),negative=negativeMajors(source),schools=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),reference=ordinalReference(source,workspace),hasCompare=compareLanguage(source,positive),hasUnion=unionLanguage(source),restore=restoreLanguage(source),infoQuestion=infoQuestionLanguage(source),rankQuestion=Boolean(score&&rankQuestionLanguage(source)&&!positive.length&&!schools.length&&!geo.explicit&&!hasCompare&&!hasUnion),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),verifyLanguage=/(章程|招生计划|学费|校区|体检|选科|官方|来源|核验|资格|培养方案)/.test(source),mentorProfile=deterministicMentorProfile(source);
-  let majors=positive;
-  const patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool});
-  const candidate=patchMutates(patch)||candidateLanguage(source);
-  let operation='answer',target='general',relation='answer_only',persistence='turn_only',combination=hasUnion?'union':'replace';
-  if(rankQuestion){operation='answer';target='fact';}
-  else if(restore){operation='restore';target='view';relation='restore_view';persistence='active_view';}
-  else if(hasCompare){operation='compare';relation='compare_objects';target=schools.length>=2?'school':positive.length>=2?'major':'context';majors=positive;}
-  else if(candidate){operation=hasMeaningfulActiveView(workspace)?'refine':'search';target=schools.length?'school':'candidates';relation=hasMeaningfulActiveView(workspace)?'patch_view':'new_view';persistence=explicitFamilyPersistence(source)?'family':'active_view';}
-  else if(verifyLanguage){operation='verify';target=schools.length?'school':positive.length?'major':'fact';}
-  else if(infoQuestion){operation='answer';target=reference?'context':positive.length?'major':schools.length?'school':'general';}
-  if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&(mentorProfile?.enabled))persistence='workspace';
-  if(explicitFamilyPersistence(source)&&(negative.length||bottomLineMode||geo.explicit)&&!candidate){operation='save';target='family';relation='save_persistent';persistence='family';}
-  const ambiguousPair=positive.length>=2&&!hasCompare&&!hasUnion&&!correctionLanguage(source);
-  const familyChanges=persistence==='family'?{regionIncludeKeys:geo.keys.filter(key=>key!=='all'),regionExcludeKeys:[],majorExcludeKeywords:negative,bottomLineMode:bottomLineMode||''}:{};
-  const requiresConfirmation=(operation==='compare'&&target==='context')||(operation==='restore'&&!(workspace?.viewHistory||[]).length)||ambiguousPair;
-  const recognized=restore||hasCompare||candidate||infoQuestion||rankQuestion||verifyLanguage||mentorProfile?.enabled||Boolean(reference);
+  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
+  let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);
+  if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
+  if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
+  const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),candidateIntent=candidateLexical||patchMutates(deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion})),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion});
+  let agentTask=deterministicAgentTask({text:source,schools,majors,regionKeys:geo.keys,score,workspace,candidateIntent,compareIntent:hasCompare,rankIntent});
+  if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled)agentTask='save_family';
+  const rawScoreUsage=explicitScoreUsage(source,workspace),scoreUsage=(['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)&&score)?'active':rawScoreUsage,taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(score&&majors.length&&!schools.length)),scoreUsageLocked=explicitScoreDirective(source)||Boolean(score&&['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)),executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode});
+  const previousFocus=priorFocus(workspace),needsSchool=['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask),needsMajor=['school_major_history','fit_assessment','major_background'].includes(agentTask);
+  const focus={school:schools[0]||(needsSchool?clean(previousFocus.school,120):''),major:majors[0]||(needsMajor?clean(previousFocus.major,160):''),schools:schools.length?schools:((agentTask==='school_comparison')?unique(previousFocus.schools||[],4):[]),majors:majors.length?majors:((agentTask==='major_comparison'||needsMajor)?unique(previousFocus.majors||[],6):[]),reference:reference||null,sourceText:source};
+  const ambiguous=(/这个专业|这所学校|这个学校/.test(source)&&!focus.school&&!focus.major)||((agentTask==='school_comparison')&&schools.length<2)||((agentTask==='major_comparison')&&majors.length<2);
+  const familyChanges=legacy.persistence==='family'?{regionIncludeKeys:geo.keys.filter(k=>k!=='all'),regionExcludeKeys:[],majorExcludeKeywords:negative,bottomLineMode:bottomLineMode||''}:{};
   return{
-    schemaVersion:AI_COMMAND_SCHEMA_VERSION,operation,target,relation,persistence,
-    score,majorKeywords:majors,regionKeys:geo.keys,regionLabel:geo.label,schoolNames:schools,bottomLineMode,combination,
-    clearMajor,clearSchool,reference,familyChanges,negativeMajorKeywords:negative,changeSet:patch,mentorProfile,
-    rawText:source,question:source,taskTitle:'',confidence:requiresConfirmation?0.62:recognized?0.93:0.56,requiresConfirmation,
-    reason:requiresConfirmation?'这句话存在多个可能的决策动作，需要先确认。':'按增量语义处理：只修改这句话明确提到的维度，其余条件继承当前范围。',source:'deterministic'
+    schemaVersion:AI_COMMAND_SCHEMA_VERSION,agentKernelVersion:AI_AGENT_KERNEL_VERSION,agentTask,taskLocked,scoreUsage,scoreUsageLocked,executionPolicy,focus,
+    ...legacy,score,majorKeywords:majors,regionKeys:geo.keys,regionLabel:geo.label,schoolNames:schools,bottomLineMode,
+    clearMajor,clearSchool,clearRegion,reference,familyChanges,negativeMajorKeywords:negative,changeSet:patch,mentorProfile,
+    rawText:source,question:source,taskTitle:'',confidence:ambiguous?.62:.93,requiresConfirmation:Boolean(ambiguous),
+    reason:ambiguous?'这句话里的“这个/那个”没有足够明确的上一轮焦点，我不想替你猜。':'',
+    source:'deterministic'
   };
 }
 
 function promptMessages(text,workspace,fallback){
-  const context={examContext:workspace?.examContext||{},activeView:workspace?.activeView||{},decisionStage:workspace?.decisionStage||'start',decisionProfile:workspace?.decisionProfile||{},conversationMemory:workspace?.conversationMemory||{},recentTurns:(workspace?.recentTurns||workspace?.turnHistory||[]).slice(-6),recentViews:(workspace?.viewHistory||[]).slice(0,5),hardConstraints:workspace?.hardConstraints||[],lastCandidates:(workspace?.lastResult?.candidates?.records||[]).slice(0,8)};
-  return[
-    {role:'system',content:`你是辽宁高考家庭连续决策顾问的语义解析器，不回答招生事实，不推荐学校，不生成录取概率。你的核心任务不是重建整套筛选，而是识别“这一句话只改变了什么”。未明确提到的维度必须 inherit；只有明确“加上/也看”才 add，明确“去掉/不要”才 remove，明确“不限”才 clear，明确“改成/只留”才 set。必须理解“580机械→省内→沈阳”是连续收窄：第二句只改地区，第三句仍只改地区。城市必须使用现有地域资源：沈阳=shenyang，大连=dalian，辽宁省内=ln。不要因为用户问了一个信息问题就清空学校、专业或地区。${mentorSystemGuide()}只输出 JSON。`},
-    {role:'user',content:JSON.stringify({schema:{operation:'search | refine | answer | compare | verify | restore | save',target:'candidates | school | major | region | view | fact | general | context',persistence:'active_view | family | turn_only | workspace',changeSet:{score:'{op: inherit|set, value?}',region:'{op: inherit|set|clear, keys?}',major:'{op: inherit|set|add|remove|clear, values?}',school:'{op: inherit|set|clear, values?}',bottomLine:'{op: inherit|set, value?}'},reference:'object|null',mentorProfile:mentorCommandSchema(),confidence:'0-1',requiresConfirmation:'boolean',reason:'<=100 Chinese chars'},existingContext:context,deterministicHints:fallback,userText:clean(text,1200)})}
-  ];
-}
-
-function normalizePatch(candidatePatch={},fallbackPatch={}){
-  const next=JSON.parse(JSON.stringify(fallbackPatch||inheritPatch()));
-  const allowedOps={score:new Set(['inherit','set']),region:new Set(['inherit','set','clear']),major:new Set(['inherit','set','add','remove','clear']),school:new Set(['inherit','set','clear']),bottomLine:new Set(['inherit','set'])};
-  for(const dim of CORE_DIMENSIONS){const candidate=candidatePatch?.[dim];if(!candidate||typeof candidate!=='object')continue;const op=clean(candidate.op,20);if(!allowedOps[dim].has(op))continue;next[dim]={...next[dim],op};if(dim==='score'&&op==='set'){const score=scoreFromText(String(candidate.value??''));if(score)next[dim].value=score;else next[dim]=fallbackPatch[dim];}if(dim==='region'&&['set','clear'].includes(op))next[dim].keys=unique(candidate.keys||[],8);if(['major','school'].includes(dim)&&['set','add','remove','clear'].includes(op))next[dim].values=unique(candidate.values||[],dim==='school'?4:8);if(dim==='bottomLine'&&op==='set'){const value=clean(candidate.value,40);if(['all','public_first','public_regular_only','public_include_sino'].includes(value))next[dim].value=value;else next[dim]=fallbackPatch[dim];}}
-  return next;
+  const focus=workspace?.agentContext?.focus||{},recent=(workspace?.recentTurns||workspace?.turnHistory||[]).slice(-6);
+  const system=[
+    '你是辽宁高考家庭顾问的“任务理解层”，不是招生事实生成器。',
+    `只允许 agentTask 取值：${AGENT_TASKS.join(' | ')}。`,
+    '你的职责是判断家长这一句话现在在做什么，并识别“这个专业/这所学校”等是否延续上一轮焦点。',
+    '事实边界：不得生成分数、位次、学校招生记录、录取概率、就业率、薪资、学费或招生计划；这些由确定性工具执行。',
+    '核心筛选 changeSet 永远由本地确定性解析器决定，你不能修改它。',
+    '记忆不等于执行：scoreUsage 可为 active / remembered / suspended / cleared。查学校专业历史时，已知分数通常 remembered；用户明确“别管我的分数”时 suspended；问“我这个分够吗”时 active。',
+    '同一候选探索任务才继承筛选条件；任务切换到学校/专业事实查询时，不相关旧筛选不得参与执行。',
+    mentorSystemGuide(),
+    `mentorProfile schema: ${JSON.stringify(mentorCommandSchema())}`,
+    '仅返回 JSON：{"agentTask":"...","scoreUsage":"...","requiresConfirmation":false,"reason":"","mentorProfile":{...}}。'
+  ].join('\n');
+  const user=JSON.stringify({text,known:{examContext:workspace?.examContext||{},activeView:workspace?.activeView||{},focus,recentTurns:recent},deterministicGuess:{agentTask:fallback.agentTask,scoreUsage:fallback.scoreUsage,focus:fallback.focus}});
+  return[{role:'system',content:system},{role:'user',content:user}];
 }
 
 function normalizeModelCommand(candidate,text,workspace,fallback){
   if(!candidate||typeof candidate!=='object')return fallback;
-  const operations=['search','refine','answer','compare','verify','restore','save'],targets=['candidates','school','major','region','view','fact','general','context'],persist=['active_view','family','turn_only','workspace'];
-  const command={...fallback,operation:operations.includes(clean(candidate.operation,40))?clean(candidate.operation,40):fallback.operation,target:targets.includes(clean(candidate.target,40))?clean(candidate.target,40):fallback.target,persistence:persist.includes(clean(candidate.persistence,30))?clean(candidate.persistence,30):fallback.persistence,reference:candidate.reference&&typeof candidate.reference==='object'?candidate.reference:fallback.reference,taskTitle:clean(candidate.taskTitle,100),confidence:Math.max(0,Math.min(1,Number(candidate.confidence??fallback.confidence))),requiresConfirmation:Boolean(candidate.requiresConfirmation),reason:clean(candidate.reason,300)||fallback.reason,rawText:clean(text,1200),question:clean(text,1200),source:'ai'};
-  // Core candidate facts are deterministic-first. A model may not invent a new filter dimension.
-  command.changeSet=fallback.changeSet;
-  command.score=fallback.score;command.regionKeys=fallback.regionKeys;command.regionLabel=fallback.regionLabel;command.majorKeywords=fallback.majorKeywords;command.schoolNames=fallback.schoolNames;command.bottomLineMode=fallback.bottomLineMode;command.clearMajor=fallback.clearMajor;command.clearSchool=fallback.clearSchool;command.negativeMajorKeywords=fallback.negativeMajorKeywords;command.familyChanges=fallback.familyChanges;command.combination=fallback.combination;
+  const proposedTask=validateAgentTask(candidate.agentTask,fallback.agentTask),agentTask=fallback.taskLocked?fallback.agentTask:proposedTask;
+  const proposedScoreUsage=['active','remembered','suspended','cleared'].includes(clean(candidate.scoreUsage,30))?clean(candidate.scoreUsage,30):fallback.scoreUsage,scoreUsage=fallback.scoreUsageLocked?fallback.scoreUsage:proposedScoreUsage;
+  const executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch:fallback.changeSet,schools:fallback.schoolNames,majors:fallback.majorKeywords,score:fallback.score,geo:{keys:fallback.regionKeys},hasCompare:agentTask.includes('comparison'),restore:agentTask==='restore_view',mentorProfile:fallback.mentorProfile,source:text,negative:fallback.negativeMajorKeywords,bottomLineMode:fallback.bottomLineMode});
+  const command={...fallback,...legacy,agentTask,scoreUsage,executionPolicy,source:'ai-assisted',confidence:Math.max(0,Math.min(1,Number(candidate.confidence??fallback.confidence))),requiresConfirmation:Boolean(candidate.requiresConfirmation),reason:clean(candidate.reason,300)||fallback.reason};
+  command.changeSet=fallback.changeSet;command.score=fallback.score;command.regionKeys=fallback.regionKeys;command.regionLabel=fallback.regionLabel;command.majorKeywords=fallback.majorKeywords;command.schoolNames=fallback.schoolNames;command.bottomLineMode=fallback.bottomLineMode;command.clearMajor=fallback.clearMajor;command.clearSchool=fallback.clearSchool;command.negativeMajorKeywords=fallback.negativeMajorKeywords;command.familyChanges=fallback.familyChanges;command.combination=fallback.combination;command.focus=fallback.focus;
   command.mentorProfile=normalizeMentorProfile(candidate.mentorProfile||{},fallback.mentorProfile||{},text);
-  if(fallback.confidence>=0.88){command.operation=fallback.operation;command.target=fallback.target;command.persistence=fallback.persistence;command.requiresConfirmation=fallback.requiresConfirmation;command.reference=fallback.reference;}
+  if(['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask)&&!command.focus.school){command.requiresConfirmation=true;command.reason='这轮需要明确一所学校，我没有足够可靠的上一轮学校焦点。';}
+  if(['school_major_history','fit_assessment','major_background'].includes(agentTask)&&!command.focus.major){command.requiresConfirmation=true;command.reason='这轮需要明确一个专业/方向，我没有足够可靠的上一轮专业焦点。';}
   return command;
 }
 
@@ -133,9 +189,8 @@ export function deterministicCommand(text,workspace={}){return deterministicBase
 
 export async function interpretAiCommand(text,workspace={},env={}){
   const fallback=deterministicBase(text,workspace);
-  // Pure rank lookup is fully deterministic and does not need a language-model round trip.
-  if(fallback.operation==='answer'&&fallback.target==='fact'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
-  const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:850,reasoningEffort:'low'});
+  if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
+  const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
   if(!provider.ok)return{command:fallback,provider};
   const parsed=parseJsonText(provider.text);
   return{command:normalizeModelCommand(parsed,text,workspace,fallback),provider};

@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f6f1" />
   <title>辽宁志愿家庭顾问</title>
-  <meta name="description" content="围绕一个家庭连续对话：分数、位次、地区、专业逐步收敛，事实由确定性数据执行，AI负责理解、连接和追问。" />
-  <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3991_0" />
+  <meta name="description" content="像和高报老师连续聊天：可以筛候选、查学校专业历史、暂时不看分数、再按自己的分数判断，招生事实始终由确定性数据执行。" />
+  <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3992_0" />
+  <link rel="stylesheet" href="/ai/agent.v3992_0.css?v=3992_0" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-family-decision-advisor-v3991_0">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_0">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
@@ -21,37 +22,37 @@
   <main class="advisor-shell">
     <section class="hero" aria-labelledby="pageTitle">
       <span class="eyebrow">辽宁 2027 备考家庭 · 2026 物理类历史数据底座</span>
-      <h1 id="pageTitle">像和一个高报老师说话一样，继续往下聊。</h1>
-      <p>不用重复前面的条件。你可以从“580机械”开始，再说“省内”“沈阳”“电气也看看”“普通家庭，更想本科就业”。系统只改你这句话真正改到的部分。</p>
+      <h1 id="pageTitle">像和一个高报老师说话一样，想到哪就继续问。</h1>
+      <p>不用学习筛选命令。你可以从“580机械”一路聊到“省内”“沈阳”，也可以突然问“沈阳工业自动化多少分”“辽宁科技大学这个专业呢”“先别管我的分数”“那按我580够吗”。系统会区分记住的信息和这一轮真正要执行的信息。</p>
     </section>
 
     <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
-      <div class="context-title"><span>当前讨论</span><strong id="currentContextTitle">当前探索</strong></div>
+      <div class="context-title"><span>当前候选范围</span><strong id="currentContextTitle">当前探索</strong></div>
       <div id="activeViewChips" class="view-chips"></div>
     </section>
 
-    <section id="conversationStream" class="conversation" aria-live="polite"></section>
+    <section id="conversationStream" class="conversation" aria-live="polite" aria-busy="false"></section>
 
     <section class="starter" id="starterPanel">
       <h2>从你现在最真实的问题开始</h2>
-      <p>不需要先填一堆表格。第一句话只要能说清一个方向就够了。</p>
+      <p>可以筛学校，也可以直接查一个学校、专业或省内背景方向。系统会自己判断当前任务。</p>
       <div class="starter-grid">
         <button type="button" data-prompt="580分，先看看机械">580分，先看看机械</button>
-        <button type="button" data-prompt="580分，先看看电气">580分，先看看电气</button>
-        <button type="button" data-prompt="普通家庭，更看重本科就业，先帮我看看方向">普通家庭，更看重本科就业</button>
+        <button type="button" data-prompt="沈阳工业大学自动化多少分">沈阳工业自动化多少分</button>
+        <button type="button" data-prompt="帮我找出省内值得研究的专业方向">省内有哪些值得研究的方向</button>
       </div>
     </section>
 
     <form id="promptForm" class="composer">
       <label for="promptInput">继续说就行</label>
       <div class="composer-row">
-        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：省内吧；再缩到沈阳；电气也看看；普通家庭，更想本科就业"></textarea>
+        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：辽宁科技大学这个专业呢；先别管我的分数；那按我580够吗；省内还有类似方向吗"></textarea>
         <div class="composer-buttons">
-          <button id="stopButton" class="quiet stop" type="button" hidden>停止</button>
+          <button id="stopButton" class="quiet stop" type="button" hidden>停止本轮</button>
           <button id="sendButton" class="primary" type="submit">发送</button>
         </div>
       </div>
-      <p class="composer-help">如果上一轮还在执行，直接改口再次发送即可；旧请求不会覆盖你最后一句话。</p>
+      <p class="composer-help">发送后会立刻显示处理状态。上一轮还在执行时也可以直接改口；最后一句优先，已有讨论不会被覆盖。</p>
     </form>
 
     <details class="support-panel" id="decisionContextDetails">
@@ -98,6 +99,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="/ai/app.v3990_1.js?v=3991_0"></script>
+  <script type="module" src="/ai/app.v3990_1.js?v=3992_0"></script>
 </body>
 </html>
