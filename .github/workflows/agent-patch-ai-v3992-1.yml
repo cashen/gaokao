@@ -1,4 +1,4 @@
-name: Temporary AI parent-journey patch v3992_1
+name: Temporary AI parent journey patch v3992_1
 on:
   push:
     branches:
@@ -7,7 +7,6 @@ permissions:
   contents: write
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[agent-patched-v3992-1]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -18,115 +17,36 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply root-cause repair and parent journey gates
+      - name: Apply audited parent-journey repair
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace(path, old, new, count=1):
-              p=Path(path); text=p.read_text()
-              if old not in text:
-                  raise SystemExit(f'patch anchor missing: {path}: {old[:100]!r}')
-              p.write_text(text.replace(old,new,count))
-
-          # Reuse the existing school alias truth source. No second AI alias dictionary.
-          replace('tongxue/data/school-name-resolver-v150.js',
-              'let defaultCatalogPromise=null;\n',
-              '''let defaultCatalogPromise=null;\n\nexport function explicitSchoolAliasesInText(text=''){\n const source=String(text||''),hits=[];\n for(const[alias,officialName]of Object.entries(EXPLICIT_ALIASES)){\n  let from=0;\n  while(from<source.length){const index=source.indexOf(alias,from);if(index<0)break;hits.push({alias,officialName,index});from=index+alias.length;}\n }\n hits.sort((a,b)=>a.index-b.index||b.alias.length-a.alias.length);\n const out=[];for(const hit of hits)if(!out.some(item=>item.officialName===hit.officialName))out.push(hit);\n return out;\n}\n''')
-
-          replace('functions/_lib/ai/command-interpreter.js',
-              "import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';\n",
-              "import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';\nimport { explicitSchoolAliasesInText } from '../../../tongxue/data/school-name-resolver-v150.js';\n")
-          replace('functions/_lib/ai/command-interpreter.js',
-              "function schoolNamesFromText(text){const matches=String(text||'').match(/[\\u4e00-\\u9fa5]{2,18}?(?:大学|学院)/g)||[];return unique(matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim()),4);}\n",
-              "function schoolNamesFromText(text){const source=String(text||''),aliases=explicitSchoolAliasesInText(source).map(item=>item.officialName),matches=source.match(/[\\u4e00-\\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim());return unique([...aliases,...full],4);}\n")
-          replace('functions/_lib/ai/command-interpreter.js',
-              "function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限)/.test(s))return'all';if(/(不接受|不要|排除|只看|只要).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/公办优先/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|公办含中外/.test(s))return'public_include_sino';return'';}\n",
-              "function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限)/.test(s))return'all';if(/(不接受|不要|排除).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/公办优先/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|(中外|高收费).{0,10}(也可以|可以|能接受|接受)|公办含中外|预算.{0,8}(上浮|增加).{0,10}(中外|高收费)/.test(s))return'public_include_sino';return'';}\n")
-          replace('functions/_lib/ai/command-interpreter.js',
-              "taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(score&&majors.length&&!schools.length)),",
-              "taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(bottomLineMode)||Boolean(score&&majors.length&&!schools.length)),")
-
-          # Human task routing: all-school history, natural school-major follow-up, and school selection after a major-background list.
-          replace('functions/_lib/ai/agent-task-kernel.js',
-              "function looksHistory(source){return /(多少分|最低分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}\n",
-              "function looksHistory(source){return /(多少分|最低分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}\nfunction looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次))/.test(source);}\n")
-          replace('functions/_lib/ai/agent-task-kernel.js',
-              "  if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';\n",
-              "  if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';\n  if(school&&looksAllSchoolMajorsHistory(source))return'school_history';\n")
-          replace('functions/_lib/ai/agent-task-kernel.js',
-              "  const ordinalObjectFollowup=/(第一|第二|第三|第四|第五|第一个|第二个|第三个|第四个|第五个).{0,10}(呢|怎么样|如何|咋样|看看)?[？?]?$/.test(source);\n",
-              "  const directSchoolMajorFollowup=Boolean(schools.length&&majors.length&&!score&&/(呢[？?]?$|怎么样[？?]?$|如何[？?]?$|咋样[？?]?$|看看[？?]?$|多少分|最低分|投档分|录取分)/.test(source)&&!/(候选|能报|能上|只看|只留|筛|收窄|缩到|按我|我这个分)/.test(source));\n  if(directSchoolMajorFollowup)return'school_major_history';\n  if(schools.length===1&&!majors.length&&priorTask==='major_background'&&focus.major&&!/(候选|能报|能上|比较|对比|强项|背景)/.test(source))return'school_major_history';\n  const ordinalObjectFollowup=/(第一|第二|第三|第四|第五|第一个|第二个|第三个|第四个|第五个).{0,10}(呢|怎么样|如何|咋样|看看)?[？?]?$/.test(source);\n")
-
-          # Null/empty candidate score must not be encoded as 0 in a school-history request.
-          replace('functions/_lib/ai/tool-registry.js',
-              "function schoolMajorsRequest(context,{school,majorKeyword='',candidateScore=null,limit=100}={}){\n  const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('limit',String(Math.max(20,Math.min(100,Number(limit||100)))));\n  if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(Number.isFinite(Number(candidateScore)))url.searchParams.set('candidateScore',String(Math.round(Number(candidateScore))));\n  url.searchParams.set('sort',Number.isFinite(Number(candidateScore))?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});\n}\n",
-              "export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}\nfunction schoolMajorsRequest(context,{school,majorKeyword='',candidateScore=null,limit=100}={}){\n  const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin),normalizedCandidateScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('limit',String(Math.max(20,Math.min(100,Number(limit||100)))));\n  if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedCandidateScore!==null)url.searchParams.set('candidateScore',String(normalizedCandidateScore));\n  url.searchParams.set('sort',normalizedCandidateScore!==null?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});\n}\n")
-
-          # All-major school history answers the whole API result and explains the range.
-          replace('functions/_lib/ai/advisor-presentation.js',
-              "function historySummary(history){if(!history?.ok)return history?.message||'学校专业历史没有读取成功。';const total=history.records?.length||0,major=history.majorKeyword?` · ${history.majorKeyword}`:'';return`我只查了 ${history.school}${major} 的辽宁2026物理类实际投档记录，共返回 ${total} 条；这轮没有拿你的个人分数过滤。`;}\n",
-              "function historySummary(history){if(!history?.ok)return history?.message||'学校专业历史没有读取成功。';const total=history.records?.length||0,major=history.majorKeyword?` · ${history.majorKeyword}`:'';if(!history.majorKeyword){const uniqueCount=Number(history.summary?.uniqueMajorCount||0),min=Number(history.summary?.minScore),max=Number(history.summary?.maxScore),range=[];if(Number.isFinite(min))range.push(`最低${min}分`);if(Number.isFinite(max))range.push(`最高${max}分`);return`${history.school}在辽宁2026物理类共返回 ${total} 条实际投档记录${uniqueCount?`，覆盖 ${uniqueCount} 个专业/项目`:''}${range.length?`；${range.join('，')}`:''}。下面按投档分从高到低列出全部记录；这轮不拿你的个人分数过滤。`;}return`我只查了 ${history.school}${major} 的辽宁2026物理类实际投档记录，共返回 ${total} 条；这轮没有拿你的个人分数过滤。`;}\n")
-          replace('functions/_lib/ai/advisor-presentation.js',
-              "  if(result.history)blocks.push({type:'history_records',title:`${result.history.school||focus.school} · 历史专业记录`,text:historySummary(result.history),records:(result.history.records||[]).slice(0,24),scoreUsed:false,dataYear:2026});\n",
-              "  if(result.history)blocks.push({type:'history_records',title:`${result.history.school||focus.school} · 历史专业记录`,text:historySummary(result.history),records:(result.history.records||[]).slice(0,100),allMajors:!result.history.majorKeyword,summary:result.history.summary||{},scoreUsed:false,dataYear:2026});\n")
-
-          # UI: all school records are accessible without a 100-card wall; background school counts become actionable objects and links.
-          replace('ai/render.v3992_0.js',
-              "function historyList(block){const list=node('div','history-list');for(const record of block.records||[]){const card=candidateCard(record,{...block,candidateScore:block.candidateScore||null,candidateRank:block.candidateRank||null});card.classList.add('history-item');list.append(card);}return list;}\n",
-              "function historyCards(records,block){const list=node('div','history-list');for(const record of records||[]){const card=candidateCard(record,{...block,candidateScore:block.candidateScore||null,candidateRank:block.candidateRank||null});card.classList.add('history-item');list.append(card);}return list;}\nfunction historyList(block){const records=block.records||[],wrap=node('div','history-records-wrap');wrap.append(historyCards(records.slice(0,20),block));if(records.length>20){const details=node('details','history-more');details.append(node('summary','',`展开其余 ${records.length-20} 条专业记录`),historyCards(records.slice(20),block));wrap.append(details);}return wrap;}\nfunction schoolAllHref(school){return `/ln-rank/?mode=school-all&school=${encodeURIComponent(String(school||''))}`;}\nfunction backgroundSchoolName(entry){return String(entry?.school||entry?.name||entry?.officialName||entry||'').trim();}\n")
-          start="function renderBackground(block,box){"
-          end="function renderBlock(block,onPrompt){"
-          p=Path('ai/render.v3992_0.js'); text=p.read_text(); a=text.index(start); b=text.index(end,a)
-          new_bg=r'''function renderBackground(block,box,onPrompt){const bg=block.background||{},items=bg.items||[];const grid=node('div','background-grid');for(const item of items.slice(0,16)){const card=node('article','background-item');if(item.record&&item.background){card.append(node('strong','',`${item.record.school} · ${item.record.major}`));const ref=[];if(item.record.score2026)ref.push(`${item.record.score2026}分`);if(item.record.rank2026)ref.push(`${numberText(item.record.rank2026)}位`);if(ref.length)card.append(node('span','',`2026参考 · ${ref.join(' · ')}`));card.append(node('small','',item.background.label||item.background.direction||'背景证据已通过门禁'));const a=node('a','background-school-link','查看该校全部专业');a.href=schoolAllHref(item.record.school);card.append(a);}else{const title=item.major||item.school||item.name||item.label||'背景方向';card.append(node('strong','',title));const bits=[];if(item.schoolCount)bits.push(`${item.schoolCount}所学校`);if(item.primaryCount)bits.push(`${item.primaryCount}个主背景`);if(item.direction)bits.push(item.direction);if(item.overview)bits.push(item.overview);if(bits.length)card.append(node('span','',bits.join(' · ')));const schools=Array.isArray(item.schools)?item.schools.map(backgroundSchoolName).filter(Boolean):[];if(schools.length){const details=node('details','background-schools'),summary=node('summary','',`展开 ${schools.length} 所学校`),links=node('div','background-school-actions');details.append(summary);for(const school of schools){const prompt=item.major||bg.major?`${school}${item.major||bg.major}多少分`:`${school}所有专业的最低录取分`;const button=promptButton(school,prompt,onPrompt,'background-school-prompt','继续在对话里查');const a=node('a','background-school-link','全部专业');a.href=schoolAllHref(school);links.append(button,a);}details.append(links);card.append(details);}else if(item.school){const a=node('a','background-school-link','查看该校全部专业');a.href=schoolAllHref(item.school);card.append(a);}}grid.append(card);}if(items.length)box.append(grid);}
-'''
-          p.write_text(text[:a]+new_bg+text[b:])
-          replace('ai/render.v3992_0.js',"if(type==='background_routes')renderBackground(block,box);","if(type==='background_routes')renderBackground(block,box,onPrompt);")
-
-          # Lightweight styling for actionable background objects and expandable all-major history.
-          p=Path('ai/agent.v3992_0.css'); css=p.read_text();
-          css += "\n/* v3992_1 human-object continuation */\n.history-more,.background-schools{margin-top:8px}.history-more>summary,.background-schools>summary{cursor:pointer;color:#49695a;font-weight:680}.background-school-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:8px}.background-school-prompt{min-height:34px}.background-school-link{display:inline-flex;align-items:center;min-height:32px;padding:5px 9px;border-radius:9px;border:1px solid #dce4de;color:#49695a;text-decoration:none;background:#f8faf8;font-size:12px}.background-school-link:hover{text-decoration:underline}\n"
-          p.write_text(css)
-
-          # Deterministic regression gates, including six parent score bands and budget-for-platform scenarios.
-          p=Path('tools/verify-ai-workspace-v3990_1.mjs'); text=p.read_text()
-          text=text.replace("import { runRankLookup,runBackgroundDiscovery,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';","import { runRankLookup,runBackgroundDiscovery,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';")
-          text=text.replace("import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';","import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';\nimport { explicitSchoolAliasesInText } from '../tongxue/data/school-name-resolver-v150.js';")
-          insert='''\nfunction testSchoolHistoryAliasAndBudgetJourneys(){\n  assert.equal(explicitSchoolAliasesInText('沈航的电气呢')[0]?.officialName,'沈阳航空航天大学');\n  assert.equal(explicitSchoolAliasesInText('辽科大的电气呢')[0]?.officialName,'辽宁科技大学');\n  assert.equal(normalizeOptionalCandidateScore(null),null);assert.equal(normalizeOptionalCandidateScore(''),null);assert.equal(normalizeOptionalCandidateScore(580),580);\n  const history=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}});\n  let c=cmd('沈航的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);\n  c=cmd('辽科大的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');\n  c=cmd('沈阳工业大学所有专业的最低录取分',history);assert.equal(c.agentTask,'school_history');assert.equal(c.focus.school,'沈阳工业大学');assert.equal(c.focus.major,'');assert.equal(c.executionPolicy.commitView,false);\n  const majorBg=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气']},agentContext:{currentTask:'major_background',focus:{major:'电气',majors:['电气']}}});\n  c=cmd('辽科大',majorBg);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');\n  for(const score of [350,440,500,580,630,650]){const w=createAiWorkspace({examContext:{score},activeView:{score,regionKeys:['ln'],majorKeywords:[]}});const q=cmd(`中外合作也可以，${score}分想看看多花点钱能不能扩大可选学校`,w);assert.equal(q.agentTask,'candidate_refinement',String(score));assert.equal(q.bottomLineMode,'public_include_sino',String(score));assert.equal(q.taskLocked,true,String(score));}\n}\n'''
-          marker='function testFactsSkillAndUi()'
-          text=text.replace(marker,insert+'\n'+marker)
-          text=text.replace('testPrivacyBudget();testFactsSkillAndUi();','testPrivacyBudget();testSchoolHistoryAliasAndBudgetJourneys();testFactsSkillAndUi();')
-          text=text.replace("'skill-attribution','rank-fact'","'skill-attribution','rank-fact','school-alias-focus','all-school-major-history','null-score-history','six-score-budget-scope'")
-          p.write_text(text)
-
-          # Browser exact-Preview journey: reproduce the user's failures and six score-band parent scenarios.
-          p=Path('tools/browser-ai-workspace-v3990_1.mjs'); text=p.read_text()
-          text=text.replace("if(requirements.rank)assert(data?.result?.rank?.ok===true,`${text}: rank not ok`);", "if(requirements.rank)assert(data?.result?.rank?.ok===true,`${text}: rank not ok`);if(requirements.history)assert(data?.result?.history?.ok===true,`${text}: history not ok ${bodySummary(data?.result?.history)}`);if(requirements.background)assert(data?.result?.background?.ok===true,`${text}: background not ok ${bodySummary(data?.result?.background)}`);")
-          browser_insert=r'''\nasync function schoolHistoryAliasJourney(page,name){\n  if(name!=='pc')return;await reset(page);\n  let data=await submitTurn(page,'580分，省内电气有哪些学校',{candidates:true});assert(data.command.agentTask==='candidate_discovery'||data.command.agentTask==='candidate_refinement','580 electric candidate task');\n  data=await submitTurn(page,'沈阳工业大学自动化多少分',{history:true});assert(data.command.agentTask==='school_major_history','industrial automation task');assert(data.result.history.school==='沈阳工业大学','industrial school');assert(!bodySummary(data).includes('参考分数格式不正确'),'null score leaked into school history');\n  data=await submitTurn(page,'沈阳工业大学所有专业的最低录取分',{history:true});assert(data.command.agentTask==='school_history','all-major school history task');assert(data.result.history.school==='沈阳工业大学','all-major school');assert((data.result.history.records||[]).length>10,'all-major result unexpectedly tiny');assert(Number.isFinite(Number(data.result.history.summary?.minScore)),'all-major min score missing');\n  data=await submitTurn(page,'沈航的电气呢',{history:true});assert(data.command.agentTask==='school_major_history','沈航 task');assert(data.result.history.school==='沈阳航空航天大学',`沈航 alias failed: ${bodySummary(data.result.history)}`);\n  data=await submitTurn(page,'辽科大的电气呢',{history:true});assert(data.result.history.school==='辽宁科技大学',`辽科大 alias failed: ${bodySummary(data.result.history)}`);\n  data=await submitTurn(page,'电气在辽宁哪些学校有背景证据',{background:true});assert(data.command.agentTask==='major_background','major background task');assert((data.result.background.items||[]).some(item=>Array.isArray(item.schools)&&item.schools.length),'background school objects missing');await page.locator('.background-schools').first().evaluate(el=>el.open=true);assert(await page.locator('.background-school-link').count()>0,'background school links missing');const href=await page.locator('.background-school-link').first().getAttribute('href');assert(href?.includes('/ln-rank/?mode=school-all&school='),`background school href invalid: ${href}`);\n  data=await submitTurn(page,'辽科大',{history:true});assert(data.result.history.school==='辽宁科技大学','school-only follow-up after major background lost focus');assert(data.result.history.majorKeyword?.includes('电气'),'major focus not inherited after background');\n}\n\nasync function sixScoreParentJourneys(page,name){\n  if(name!=='pc')return;const prompts=new Map([[350,'350分，省内还能报哪些学校'],[440,'440分，辽宁省内先看看能上哪些学校'],[500,'500分，省内电气有哪些学校'],[580,'580分，省内机械看看'],[630,'630分，省内能上哪些学校'],[650,'650分，全国电气看看']]);\n  for(const [score,prompt] of prompts){await reset(page);const first=await submitTurn(page,prompt,{candidates:true});assert(Number(first.resolvedView?.score)===score,`${score}: score drift`);assert(first.result?.candidates?.ok===true,`${score}: candidate tool failed`);if([440,500,580,630].includes(score)){const budget=await submitTurn(page,`中外合作也可以，${score}分想看看多花点钱能不能扩大可选学校`,{candidates:true});assert(budget.command.bottomLineMode==='public_include_sino',`${score}: sino scope not activated`);assert(budget.resolvedView?.bottomLineMode==='public_include_sino',`${score}: sino view not committed`);assert(!String(budget.result?.changeSummary||'').includes('一定'),`${score}: unsupported certainty leaked`);}}\n}\n'''
-          text=text.replace('async function selectionAndModel(page,name){',browser_insert+'\nasync function selectionAndModel(page,name){')
-          text=text.replace('await coreHumanJourney(page,device.name);await profilePersistence(page,device.name);', 'await coreHumanJourney(page,device.name);await schoolHistoryAliasJourney(page,device.name);await sixScoreParentJourneys(page,device.name);await profilePersistence(page,device.name);')
-          text=text.replace("'live-model-probe-pc']","'live-model-probe-pc','school-history-no-score-leak','all-school-majors','school-alias-focus','background-clickable-objects','six-score-parent-journeys','sino-budget-scope']")
-          p.write_text(text)
-          PY
-
+          python .agent/patch-v3992-1.py
           node --check tongxue/data/school-name-resolver-v150.js
           node --check functions/_lib/ai/command-interpreter.js
           node --check functions/_lib/ai/agent-task-kernel.js
           node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/_lib/ai/advisor-presentation.js
           node --check ai/render.v3992_0.js
+          node --check ai/app.v3990_1.js
+          node --check ai/parent-starter.v3992_1.js
           node --check tools/verify-ai-workspace-v3990_1.mjs
           node --check tools/browser-ai-workspace-v3990_1.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
-      - name: Commit clean candidate and remove temporary workflow
+      - name: Guard scope and commit clean candidate
         shell: bash
         run: |
           set -euo pipefail
+          changed="$(git diff --name-only)"
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$|ln-rank/data/|functions/_lib/rank-|functions/api/major-bands\.js$)'; then
+            echo 'protected path changed' >&2
+            exit 1
+          fi
           git config user.name 'chatgpt-agent'
           git config user.email 'actions@users.noreply.github.com'
-          git rm .github/workflows/agent-patch-ai-v3992-1.yml
-          git add ai/agent.v3992_0.css ai/render.v3992_0.js functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/advisor-presentation.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/tool-registry.js tongxue/data/school-name-resolver-v150.js tools/verify-ai-workspace-v3990_1.mjs tools/browser-ai-workspace-v3990_1.mjs
-          git commit -m 'v3.9.90.1：修复 AI 学校查询、别名焦点与家长旅程 v3992_1 [agent-patched-v3992-1]'
+          git rm .github/workflows/agent-patch-ai-v3992-1.yml .agent/patch-v3992-1.py
+          git add -A
+          git commit -m 'v3.9.90.1：修复学校查询并补齐真人家长旅程 v3992_1 [agent-patched-v3992-1]'
           git push origin HEAD:agent/ai-school-history-background-links-v3992_1
