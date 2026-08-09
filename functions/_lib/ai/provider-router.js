@@ -10,14 +10,56 @@ function providerName(value) {
   if (['workers-ai','workers_ai','cloudflare'].includes(normalized)) return 'workers-ai';
   return normalized || 'workers-ai';
 }
-function errorSummary(error) { return [error?.name,error?.message,error?.status,error?.code].filter(Boolean).join(' | ').slice(0,360); }
+function errorSummary(error) { return [error?.name,error?.message,error?.status,error?.code,error?.detail].filter(Boolean).join(' | ').slice(0,720); }
 function externalEndpoint(baseValue) { const base = clean(baseValue,500).replace(/\/+$/,''); if (!base) return ''; return /\/chat\/completions$/i.test(base) ? base : `${base}/chat/completions`; }
-function getWorkersAiText(result) {
-  if (typeof result?.response === 'string') return result.response;
-  if (typeof result?.text === 'string') return result.text;
-  if (typeof result?.result === 'string') return result.result;
-  if (Array.isArray(result?.choices) && typeof result.choices[0]?.message?.content === 'string') return result.choices[0].message.content;
+function collectWorkersAiText(value, depth = 0) {
+  if (typeof value === 'string') return value.trim();
+  if (!value || depth > 5) return '';
+  if (Array.isArray(value)) return value.map(item=>collectWorkersAiText(item,depth+1)).filter(Boolean).join('');
+  if (typeof value !== 'object') return '';
+  for (const key of ['response','text','output_text','content','message','choices','output','result']) {
+    const text = collectWorkersAiText(value[key],depth+1);
+    if (text) return text;
+  }
   return '';
+}
+export function extractWorkersAiText(result) {
+  const candidates = [
+    result?.response,
+    result?.choices?.[0]?.message?.content,
+    result?.choices?.[0]?.text,
+    result?.output_text,
+    result?.text,
+    result?.output,
+    result?.result,
+    result?.message?.content,
+    result
+  ];
+  for (const candidate of candidates) {
+    const text = collectWorkersAiText(candidate);
+    if (text) return text;
+  }
+  return '';
+}
+function valueType(value) {
+  if (Array.isArray(value)) return `array(${value.length})`;
+  if (value === null) return 'null';
+  return typeof value;
+}
+function safeKeys(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value).slice(0,20) : [];
+}
+function workersAiResultShape(result) {
+  const nested = result?.result && typeof result.result === 'object' ? result.result : null;
+  const choices = Array.isArray(result?.choices) ? result.choices : (Array.isArray(nested?.choices) ? nested.choices : []);
+  const firstChoice = choices[0] && typeof choices[0] === 'object' ? choices[0] : null;
+  const message = firstChoice?.message && typeof firstChoice.message === 'object' ? firstChoice.message : null;
+  return {
+    type:valueType(result), keys:safeKeys(result),
+    responseType:valueType(result?.response), resultType:valueType(result?.result), outputType:valueType(result?.output),
+    choicesType:valueType(Array.isArray(result?.choices) ? result.choices : nested?.choices),
+    firstChoiceKeys:safeKeys(firstChoice), messageKeys:safeKeys(message), contentType:valueType(message?.content)
+  };
 }
 function workersModelResolution(env = {}) {
   return resolveWorkersAiModelAlias(clean(env?.AI_WORKSPACE_MODEL || env?.AI_MODEL,180));
@@ -29,10 +71,22 @@ async function callWorkersAi(env, messages, options = {}) {
   if (!resolved.requestedModel) throw Object.assign(new Error('AI_WORKSPACE_MODEL/AI_MODEL 未配置，使用确定性解析。'), { code:'AI_MODEL_NOT_CONFIGURED' });
   if (!env?.AI || typeof env.AI.run !== 'function') throw Object.assign(new Error('Cloudflare Workers AI binding 未配置。'), { code:'AI_BINDING_MISSING' });
   const started = Date.now();
-  const result = await env.AI.run(model, { messages, temperature:0, max_tokens:Math.max(80,Math.min(1000,Number(options.maxTokens || 700))) });
-  const text = getWorkersAiText(result);
-  if (!text) throw new Error('Workers AI 返回空内容。');
-  return { ok:true, provider:'workers-ai', model, requestedModel:resolved.requestedModel, modelMigrated:resolved.migrated, migratedFrom:resolved.migratedFrom, text, usage:result?.usage || null, latencyMs:Date.now()-started };
+  const input = {
+    messages, temperature:0, stream:false,
+    max_completion_tokens:Math.max(80,Math.min(1000,Number(options.maxTokens || 700)))
+  };
+  const reasoningEffort = clean(options.reasoningEffort,20).toLowerCase();
+  if (['low','medium','high'].includes(reasoningEffort)) input.reasoning_effort=reasoningEffort;
+  const result = await env.AI.run(model,input);
+  const text = extractWorkersAiText(result);
+  if (!text) {
+    const error = Object.assign(new Error('Workers AI 返回空内容。'), {
+      code:'AI_WORKERS_EMPTY_RESPONSE',
+      detail:`result-shape=${JSON.stringify(workersAiResultShape(result))}`
+    });
+    throw error;
+  }
+  return { ok:true, provider:'workers-ai', model, requestedModel:resolved.requestedModel, modelMigrated:resolved.migrated, migratedFrom:resolved.migratedFrom, text, usage:result?.usage || result?.result?.usage || null, latencyMs:Date.now()-started };
 }
 
 async function callOpenAiCompatible(env, messages, options = {}) {

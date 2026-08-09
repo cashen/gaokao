@@ -11,7 +11,7 @@ export async function onRequest(context) {
   const result = await runAiProvider(context.env || {}, [
     { role:'system', content:'这是模型连接健康探针。只返回 JSON，不回答高考问题。' },
     { role:'user', content:'只输出 {"ok":true,"echo":"ai-model-probe"}' }
-  ], { maxTokens:100 });
+  ], { maxTokens:400, reasoningEffort:'low' });
   const expectedProvider = config.primary || '';
   const expectedModel = config.primaryModel || '';
   const actualProvider = result.provider || '';
