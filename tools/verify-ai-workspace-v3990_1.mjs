@@ -81,10 +81,9 @@ function testPrivacyBudget(){const huge='备注'.repeat(800),workspace=createAiW
 
 
 async function testParentHumanJourneysV3992_1(){
-  const fakeRequest=new Request('https://example.test/api/ai/turn');
-  const fakeResolver=async(_request,{query})=>{const map={沈航:'沈阳航空航天大学',辽科大:'辽宁科技大学'};const school=map[query]||'';return school?{status:'resolved',resolvedSchool:{officialName:school,school},candidates:[]}:{status:'not_found',candidates:[]};};
-  const shenyangAviation=await resolveAiSchoolMentions('沈航的电气呢',fakeRequest,fakeResolver);assert.deepEqual(shenyangAviation,['沈阳航空航天大学']);
-  const liaoningTech=await resolveAiSchoolMentions('辽科大的电气呢',fakeRequest,fakeResolver);assert.deepEqual(liaoningTech,['辽宁科技大学']);
+  const fakeResolver={resolve(query){const map={沈航:'沈阳航空航天大学',辽科大:'辽宁科技大学'},school=map[query]||'';return school?{status:'resolved',resolvedName:school,candidates:[]}:{status:'not_found',candidates:[]};}};
+  const shenyangAviation=await resolveAiSchoolMentions('沈航的电气呢',fakeResolver);assert.deepEqual(shenyangAviation,['沈阳航空航天大学']);
+  const liaoningTech=await resolveAiSchoolMentions('辽科大的电气呢',fakeResolver);assert.deepEqual(liaoningTech,['辽宁科技大学']);
   assert.equal(normalizeOptionalCandidateScore(null),null);assert.equal(normalizeOptionalCandidateScore(''),null);assert.equal(normalizeOptionalCandidateScore(580),580);
   const history=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}});
   let c=cmd('沈航的电气呢',history,shenyangAviation);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);
@@ -95,7 +94,7 @@ async function testParentHumanJourneysV3992_1(){
   for(const score of [350,440,500,580,620,630,650]){const scenarios=starterScenariosForScore(score);assert.ok(scenarios.length>=4,String(score));const w=createAiWorkspace({examContext:{score},activeView:{score,regionKeys:['all'],majorKeywords:[]}});if(score===440){let q=cmd('440分，中外合作也可以，预算可以上浮',w);assert.equal(q.bottomLineMode,'public_include_sino');q=cmd('440分，新疆、西藏也可以，优先公办',w);assert.ok(q.regionKeys.includes('province:新疆')&&q.regionKeys.includes('province:西藏'));assert.equal(q.bottomLineMode,'public_first');q=cmd('440分，民办也可以，看看能增加哪些选择',w);assert.equal(q.bottomLineMode,'all');}if(score===580){const q=cmd('580分，愿意加预算，看看有没有211中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'211');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===620){const q=cmd('620分，愿意加预算，看看有没有985中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'985');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===650)assert.equal(scenarios.some(x=>/加预算|中外/.test(x.label+x.prompt)),false,'650 starter should not nudge spending');}
 }
 
-function testAiSchoolResolverBoundary(){const source=read('functions/_lib/ai/command-interpreter.js'),stable=read('tongxue/data/school-name-resolver-v150.js');assert.ok(source.includes('resolveAdmissionSchoolQuery'));assert.ok(source.includes('resolveAiSchoolMentions'));assert.equal(stable.includes('explicitSchoolAliasesInText'),false);}
+function testAiSchoolResolverBoundary(){const source=read('functions/_lib/ai/command-interpreter.js'),stable=read('tongxue/data/school-name-resolver-v150.js');assert.ok(source.includes('createSchoolNameResolver'));assert.ok(source.includes('SCHOOL_PROFILE_ROWS'));assert.ok(source.includes('resolveAiSchoolMentions'));assert.equal(source.includes('school-query-provider.v3969'),false);assert.equal(stable.includes('explicitSchoolAliasesInText'),false);}
 
 function testAiMajorBandsResourceBoundary(){const source=read('functions/_lib/ai/tool-registry.js'),majorBands=read('functions/api/major-bands.js');assert.ok(source.includes("onRequest as majorBandsOnRequest"));assert.ok(source.includes("majorBandsOnRequest({...context,request})"));assert.ok(source.includes("new URL('/api/major-bands',sourceUrl.origin)"));assert.equal(majorBands.includes("AI_TOOL_REGISTRY_VERSION"),false);}
 
