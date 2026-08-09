@@ -6,7 +6,7 @@ import {
   createAiWorkspace,applyAiWorkspaceEvent,compactAiWorkspaceForServer,buildAiResultDelta,applyAiViewPatch,regionKeyLabel,
   AI_WORKSPACE_CONTRACT_VERSION,AI_ACTIVE_VIEW_VERSION,AI_AGENT_CONTEXT_VERSION
 } from '../shared/ai/ai-workspace-contract.v3992_0.js';
-import { deterministicCommand,interpretAiCommand } from '../functions/_lib/ai/command-interpreter.js';
+import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider } from '../functions/_lib/ai/command-interpreter.js';
 import { AI_AGENT_KERNEL_VERSION,explicitScoreUsage } from '../functions/_lib/ai/agent-task-kernel.js';
 import { deterministicMentorProfile,AI_MENTOR_PROFILE_VERSION,MENTOR_SKILLSET_ATTRIBUTION } from '../functions/_lib/ai/mentor-profile.js';
 import { runRankLookup,runBackgroundDiscovery,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
@@ -69,6 +69,8 @@ function testWorkspaceMigrationAndMemory(){
   const command=cmd('普通家庭，更看重本科就业，不想把读研当必选项',workspace);assert.equal(command.mentorProfile.version,AI_MENTOR_PROFILE_VERSION);workspace=applyAiWorkspaceEvent(workspace,{type:'command_committed',payload:{command,resolvedView:workspace.activeView,commitView:false,decisionStage:'school_focus',taskAction:'create_main',agentContext:{currentTask:'general_advice',focus:{school:'沈阳工业大学',major:'自动化'},contextUsage:{score:'remembered'}}}});assert.equal(workspace.examContext.score,580);assert.equal(workspace.agentContext.focus.major,'自动化');assert.ok(workspace.decisionProfile.explicit.priorities.includes('employment'));
 }
 
+async function testLockedCommandsSkipProvider(){let calls=0;const workspace=createAiWorkspace({examContext:{score:440},activeView:{score:440,regionKeys:['ln'],majorKeywords:[],schoolNames:[],bottomLineMode:'all'}});const deterministic=deterministicCommand('中外合作也可以，预算可以上浮',workspace);assert.equal(deterministic.agentTask,'candidate_refinement');assert.equal(deterministic.bottomLineMode,'public_include_sino');assert.equal(shouldShortCircuitAiProvider(deterministic),true);const result=await interpretAiCommand('中外合作也可以，预算可以上浮',workspace,{AI_PROVIDER:'workers-ai',AI_WORKSPACE_MODEL:DEFAULT_WORKERS_AI_MODEL,AI:{run:async()=>{calls++;throw new Error('locked deterministic command must not call model');}}});assert.equal(calls,0);assert.equal(result.command.agentTask,'candidate_refinement');assert.equal(result.provider.skipped,true);const history=deterministicCommand('沈航的电气呢',createAiWorkspace({examContext:{score:580},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}}));assert.equal(shouldShortCircuitAiProvider(history),true);}
+
 async function testModelCanCorrectTaskNotFacts(){
   let captured=null;const workspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:['机械']},agentContext:{currentTask:'candidate_refinement',focus:{}}});
   const result=await interpretAiCommand('我只是想查这个学校专业本身',workspace,{AI_PROVIDER:'workers-ai',AI_WORKSPACE_MODEL:DEFAULT_WORKERS_AI_MODEL,AI:{run:async(_model,input)=>{captured=input;return{response:JSON.stringify({agentTask:'general_advice',scoreUsage:'suspended',mentorProfile:{primaryGoal:'undecided',priorities:[]},confidence:.95,requiresConfirmation:false,changeSet:{score:{op:'set',value:720},region:{op:'set',keys:['province:北京']}}})};}}});
@@ -96,5 +98,5 @@ function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.o
 }
 
 assert.equal(AI_WORKSPACE_CONTRACT_VERSION,'ai-workspace-contract-v3992_0');assert.equal(AI_ACTIVE_VIEW_VERSION,'ai-active-view-v3992_0');assert.equal(AI_AGENT_KERNEL_VERSION,'ai-human-advisor-kernel-v3992_0');
-testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();testParentHumanJourneysV3992_1();testFactsSkillAndUi();
+testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();testParentHumanJourneysV3992_1();testFactsSkillAndUi();
 console.log(JSON.stringify({ok:true,version:'v3992_0',checks:['candidate-patch-journey','task-switch-memory-not-execution','school-major-history-followup-reference','score-suspend-reactivate','background-discovery','background-fit-discovery','focus-trace','workspace-v3991-migration','model-task-correction-with-fact-isolation','privacy-budget','loading-source','skill-attribution','rank-fact']},null,2));

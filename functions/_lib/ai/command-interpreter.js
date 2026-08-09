@@ -191,8 +191,10 @@ function normalizeModelCommand(candidate,text,workspace,fallback){
 
 export function deterministicCommand(text,workspace={}){return deterministicBase(text,workspace);}
 
+export function shouldShortCircuitAiProvider(command={}){return Boolean(command?.taskLocked&&!command?.requiresConfirmation&&Number(command?.confidence||0)>=.9);}
 export async function interpretAiCommand(text,workspace={},env={}){
   const fallback=deterministicBase(text,workspace);
+  if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
   if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
   const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
   if(!provider.ok)return{command:fallback,provider};
