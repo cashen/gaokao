@@ -62,12 +62,12 @@ function detectPrimaryGoal(source) {
 
 function detectPriorities(source) {
   const priorities = [];
-  if (/(分数|位次|能上|能报|可行|候选)/.test(source)) priorities.push('feasible_set');
+  if (/(分数|位次|能上|能报|可行集|候选)/.test(source)) priorities.push('feasible_set');
   if (/(就业|工作|岗位|职业|前景)/.test(source)) priorities.push('employment');
-  if (/(城市|地域|大城市|省内|省外|实习|校招)/.test(source)) priorities.push('city');
-  if (/(学校|院校|985|211|双一流|平台|保研)/.test(source)) priorities.push('school');
-  if (/(专业|兴趣|方向|学什么)/.test(source)) priorities.push('major');
-  if (/(学费|预算|经济|中外|民办|高收费|性价比)/.test(source)) priorities.push('cost');
+  if (/(城市优先|大城市|就业城市|地域机会|城市机会|实习|校招)/.test(source)) priorities.push('city');
+  if (/(学校优先|平台优先|学校层次|学校牌子|学历平台|985|211|双一流|保研)/.test(source)) priorities.push('school');
+  if (/(专业优先|兴趣优先|兴趣|喜欢.{0,6}(专业|方向)|专业匹配|专业方向最重要)/.test(source)) priorities.push('major');
+  if (/(学费|预算|经济压力|高收费|性价比)/.test(source)) priorities.push('cost');
   if (/(稳定|编制|体制|考公|铁饭碗)/.test(source)) priorities.push('stability');
   if (/(高薪|收入|薪资|工资|天花板)/.test(source)) priorities.push('income');
   if (/(学制|读研|考研|读博|尽快就业|本科就业)/.test(source)) priorities.push('study_duration');
@@ -80,7 +80,7 @@ function detectRiskQuestions(source) {
   if (/(收入|高薪|薪资|工资|天花板)/.test(source)) risks.push('income_ceiling');
   if (/(家庭资源|家里资源|背景|人脉|普通家庭|没资源|没背景|家里没矿)/.test(source)) risks.push('resource_dependency');
   if (/(AI|人工智能|替代|冲击|自动化影响)/i.test(source)) risks.push('ai_exposure');
-  if (/(城市|实习|校招|就业城市|地域机会)/.test(source)) risks.push('city_opportunity');
+  if (/(城市优先|大城市|实习|校招|就业城市|地域机会|城市机会)/.test(source)) risks.push('city_opportunity');
   if (/(考研|读研|读博|学制|深造|尽快就业)/.test(source)) risks.push('further_study_cost');
   return uniqueAllowed(risks, RISK_QUESTIONS, 6);
 }
