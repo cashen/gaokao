@@ -6,18 +6,17 @@ import {
   createAiWorkspace,applyAiWorkspaceEvent,compactAiWorkspaceForServer,buildAiResultDelta,applyAiViewPatch,regionKeyLabel,
   AI_WORKSPACE_CONTRACT_VERSION,AI_ACTIVE_VIEW_VERSION,AI_AGENT_CONTEXT_VERSION
 } from '../shared/ai/ai-workspace-contract.v3992_0.js';
-import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider } from '../functions/_lib/ai/command-interpreter.js';
+import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider,resolveAiSchoolMentions } from '../functions/_lib/ai/command-interpreter.js';
 import { AI_AGENT_KERNEL_VERSION,explicitScoreUsage } from '../functions/_lib/ai/agent-task-kernel.js';
 import { deterministicMentorProfile,AI_MENTOR_PROFILE_VERSION,MENTOR_SKILLSET_ATTRIBUTION } from '../functions/_lib/ai/mentor-profile.js';
 import { runRankLookup,runBackgroundDiscovery,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
 import { DEFAULT_WORKERS_AI_MODEL } from '../functions/_lib/ai-model-resolver.js';
 import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';
-import { explicitSchoolAliasesInText } from '../tongxue/data/school-name-resolver-v150.js';
 import { starterScenariosForScore } from '../ai/parent-starter.v3992_1.js';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
-const cmd=(text,workspace=createAiWorkspace())=>deterministicCommand(text,workspace);
+const cmd=(text,workspace=createAiWorkspace(),resolvedSchools=[])=>deterministicCommand(text,workspace,resolvedSchools);
 function apply(text,view,workspace=createAiWorkspace({activeView:view})){const command=cmd(text,workspace);return{command,view:applyAiViewPatch(view,command.changeSet,workspace.examContext)};}
 
 function testCandidatePatchJourney(){
@@ -81,18 +80,22 @@ async function testModelCanCorrectTaskNotFacts(){
 function testPrivacyBudget(){const huge='备注'.repeat(800),workspace=createAiWorkspace({agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'自动化'}},turnHistory:Array.from({length:80},(_,i)=>({userText:`第${i}轮 ${huge}`,assistantSummary:huge,changeSummary:huge,task:'general_advice',focus:{school:'测试大学'}})),selectionSnapshot:{items:[{id:'a',school:'测试大学',major:'机械',userNote:huge}]},lastResult:{history:{school:'测试大学',majorKeyword:'机械',records:[{id:'x',school:'测试大学',major:'机械',score2026:580,rank2026:20000,payload:huge}]}}});const compact=compactAiWorkspaceForServer(workspace),json=JSON.stringify({workspace:compact,input:'继续'});assert.ok(Buffer.byteLength(json,'utf8')<128*1024);assert.equal(json.includes('userNote'),false);assert.equal(json.includes('payload'),false);assert.ok(compact.recentTurns.length<=10);}
 
 
-function testParentHumanJourneysV3992_1(){
-  assert.equal(explicitSchoolAliasesInText('沈航的电气呢')[0]?.officialName,'沈阳航空航天大学');
-  assert.equal(explicitSchoolAliasesInText('辽科大的电气呢')[0]?.officialName,'辽宁科技大学');
+async function testParentHumanJourneysV3992_1(){
+  const fakeRequest=new Request('https://example.test/api/ai/turn');
+  const fakeResolver=async(_request,{query})=>{const map={沈航:'沈阳航空航天大学',辽科大:'辽宁科技大学'};const school=map[query]||'';return school?{status:'resolved',resolvedSchool:{officialName:school,school},candidates:[]}:{status:'not_found',candidates:[]};};
+  const shenyangAviation=await resolveAiSchoolMentions('沈航的电气呢',fakeRequest,fakeResolver);assert.deepEqual(shenyangAviation,['沈阳航空航天大学']);
+  const liaoningTech=await resolveAiSchoolMentions('辽科大的电气呢',fakeRequest,fakeResolver);assert.deepEqual(liaoningTech,['辽宁科技大学']);
   assert.equal(normalizeOptionalCandidateScore(null),null);assert.equal(normalizeOptionalCandidateScore(''),null);assert.equal(normalizeOptionalCandidateScore(580),580);
   const history=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}});
-  let c=cmd('沈航的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);
-  c=cmd('辽科大的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
+  let c=cmd('沈航的电气呢',history,shenyangAviation);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);
+  c=cmd('辽科大的电气呢',history,liaoningTech);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
   c=cmd('沈阳工业大学所有专业的最低录取分',history);assert.equal(c.agentTask,'school_history');assert.equal(c.focus.school,'沈阳工业大学');assert.equal(c.focus.major,'');assert.equal(c.executionPolicy.commitView,false);
-  const majorBg=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气']},agentContext:{currentTask:'major_background',focus:{major:'电气',majors:['电气']}}});c=cmd('辽科大',majorBg);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
+  const majorBg=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气']},agentContext:{currentTask:'major_background',focus:{major:'电气',majors:['电气']}}});c=cmd('辽科大',majorBg,liaoningTech);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
   let advice=cmd('不只看学校层次，优先比较专业质量和培养路径',createAiWorkspace({examContext:{score:650},activeView:{score:650,regionKeys:['all'],majorKeywords:[]}}));assert.equal(advice.agentTask,'general_advice');assert.equal(advice.taskLocked,true);assert.equal(advice.executionPolicy.commitView,false);advice=cmd('学校平台和专业质量怎么平衡',createAiWorkspace({examContext:{score:620},activeView:{score:620,regionKeys:['all'],majorKeywords:[]}}));assert.equal(advice.agentTask,'general_advice');assert.equal(advice.taskLocked,true);assert.equal(advice.executionPolicy.commitView,false);advice=cmd('不能只看学校平台，本科就业和读研怎么取舍',createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气']}}));assert.equal(advice.agentTask,'general_advice');assert.equal(advice.taskLocked,true);assert.equal(advice.executionPolicy.commitView,false);
   for(const score of [350,440,500,580,620,630,650]){const scenarios=starterScenariosForScore(score);assert.ok(scenarios.length>=4,String(score));const w=createAiWorkspace({examContext:{score},activeView:{score,regionKeys:['all'],majorKeywords:[]}});if(score===440){let q=cmd('440分，中外合作也可以，预算可以上浮',w);assert.equal(q.bottomLineMode,'public_include_sino');q=cmd('440分，新疆、西藏也可以，优先公办',w);assert.ok(q.regionKeys.includes('province:新疆')&&q.regionKeys.includes('province:西藏'));assert.equal(q.bottomLineMode,'public_first');q=cmd('440分，民办也可以，看看能增加哪些选择',w);assert.equal(q.bottomLineMode,'all');}if(score===580){const q=cmd('580分，愿意加预算，看看有没有211中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'211');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===620){const q=cmd('620分，愿意加预算，看看有没有985中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'985');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===650)assert.equal(scenarios.some(x=>/加预算|中外/.test(x.label+x.prompt)),false,'650 starter should not nudge spending');}
 }
+
+function testAiSchoolResolverBoundary(){const source=read('functions/_lib/ai/command-interpreter.js'),stable=read('tongxue/data/school-name-resolver-v150.js');assert.ok(source.includes('resolveAdmissionSchoolQuery'));assert.ok(source.includes('resolveAiSchoolMentions'));assert.equal(stable.includes('explicitSchoolAliasesInText'),false);}
 
 function testAiMajorBandsResourceBoundary(){const source=read('functions/_lib/ai/tool-registry.js'),majorBands=read('functions/api/major-bands.js');assert.ok(source.includes("onRequest as majorBandsOnRequest"));assert.ok(source.includes("majorBandsOnRequest({...context,request})"));assert.ok(source.includes("new URL('/api/major-bands',sourceUrl.origin)"));assert.equal(majorBands.includes("AI_TOOL_REGISTRY_VERSION"),false);}
 
@@ -101,5 +104,5 @@ function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.o
 }
 
 assert.equal(AI_WORKSPACE_CONTRACT_VERSION,'ai-workspace-contract-v3992_0');assert.equal(AI_ACTIVE_VIEW_VERSION,'ai-active-view-v3992_0');assert.equal(AI_AGENT_KERNEL_VERSION,'ai-human-advisor-kernel-v3992_0');
-testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();testParentHumanJourneysV3992_1();testAiMajorBandsResourceBoundary();testFactsSkillAndUi();
+testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();await testParentHumanJourneysV3992_1();testAiSchoolResolverBoundary();testAiMajorBandsResourceBoundary();testFactsSkillAndUi();
 console.log(JSON.stringify({ok:true,version:'v3992_0',checks:['candidate-patch-journey','task-switch-memory-not-execution','school-major-history-followup-reference','score-suspend-reactivate','background-discovery','background-fit-discovery','focus-trace','workspace-v3991-migration','model-task-correction-with-fact-isolation','privacy-budget','loading-source','skill-attribution','rank-fact']},null,2));

@@ -2,7 +2,7 @@
 import { runAiProvider } from './provider-router.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
-import { explicitSchoolAliasesInText } from '../../../tongxue/data/school-name-resolver-v150.js';
+import { resolveAdmissionSchoolQuery } from '../school-query-provider.v3969.js';
 import {
   AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
   validateAgentTask, taskExecutionPolicy
@@ -31,7 +31,9 @@ function majorMentions(text){
 }
 function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>x.term),8);}
 function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>x.term),8);}
-function schoolNamesFromText(text){const source=String(text||''),aliases=explicitSchoolAliasesInText(source).map(item=>item.officialName),matches=source.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim());return unique([...aliases,...full],4);}
+function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim());return unique([...(resolvedSchoolNames||[]),...full],4);}
+function likelySchoolMentionTokens(text){const source=clean(text,360);if(!source||/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/.test(source))return[];const tokens=[];const possessive=source.match(/(?:^|[，,。！？!?；;\s])([^，,。！？!?；;\s的]{2,12})的(?:电气|自动化|机械|计算机|软件|电子|通信|材料|化工|冶金|土木|建筑|医学|法学|金融|会计|专业|强项|背景)/);if(possessive?.[1])tokens.push(possessive[1]);let reduced=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');for(const term of [...MAJOR_TERMS].sort((a,b)=>b.length-a.length))reduced=reduced.split(term).join(' ');reduced=reduced.replace(/(所有专业|全部专业|全校专业|招生专业|最低录取分|最低投档分|最低分|投档分|录取分|多少分|分数线|历史分数|历年分数|有证据的强项方向|强项方向|背景证据|学校背景|专业背景|强项|怎么样|如何|咋样|能不能上|能不能报|够不够|够吗|呢|吗|呀|啊|吧)/g,' ');reduced=reduced.replace(/^(那|再|还是|然后|顺便|看看|看下|看一下|帮我看|帮我查|我想看|想看|查下|查一下|请看|请查)+/,'').replace(/(的|呢|吗|呀|啊|吧)+$/g,'').replace(/[\s，,。！？!?；;：:]+/g,'').trim();if(reduced.length>=2&&reduced.length<=12)tokens.push(reduced);return unique(tokens,4);}
+export async function resolveAiSchoolMentions(text,request,resolver=resolveAdmissionSchoolQuery){if(!request||typeof resolver!=='function')return[];const resolved=[];for(const query of likelySchoolMentionTokens(text)){try{const result=await resolver(request,{query,intent:'school',limit:4});const exact=clean(result?.resolvedSchool?.officialName||result?.resolvedSchool?.school,120);if(result?.status==='resolved'&&exact){resolved.push(exact);break;}const candidates=Array.isArray(result?.candidates)?result.candidates:[];if(candidates.length===1&&Number(candidates[0]?.score||0)>=.9){resolved.push(clean(candidates[0]?.officialName||candidates[0]?.school,120));break;}}catch{}}return unique(resolved,4);}
 
 function geographyFromText(text){
   const source=String(text||'');
@@ -135,8 +137,8 @@ function explicitTaskLock(source,agentTask,candidateLexical=false){
 }
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
-function deterministicBase(text,workspace={}){
-  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
+function deterministicBase(text,workspace={},resolvedSchoolNames=[]){
+  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source,resolvedSchoolNames),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
   let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
@@ -189,11 +191,12 @@ function normalizeModelCommand(candidate,text,workspace,fallback){
   return command;
 }
 
-export function deterministicCommand(text,workspace={}){return deterministicBase(text,workspace);}
+export function deterministicCommand(text,workspace={},resolvedSchoolNames=[]){return deterministicBase(text,workspace,resolvedSchoolNames);}
 
 export function shouldShortCircuitAiProvider(command={}){return Boolean(command?.taskLocked&&!command?.requiresConfirmation&&Number(command?.confidence||0)>=.9);}
-export async function interpretAiCommand(text,workspace={},env={}){
-  const fallback=deterministicBase(text,workspace);
+export async function interpretAiCommand(text,workspace={},env={},request=null){
+  const resolvedSchoolNames=await resolveAiSchoolMentions(text,request);
+  const fallback=deterministicBase(text,workspace,resolvedSchoolNames);
   if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
   if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
   const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
