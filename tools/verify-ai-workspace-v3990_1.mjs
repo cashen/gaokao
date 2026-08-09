@@ -55,6 +55,7 @@ function testExplicitContextPolicy(){
 function testGeoAndDelta(){
   assert.equal(regionKeyLabel('shenyang'),'沈阳');assert.equal(regionKeyLabel('dalian'),'大连');
   const shenyang={province:'辽宁省',city:'沈阳市',lnArea:'沈阳',regionGroups:['ln','辽宁省内','shenyang','沈阳','province:辽宁']};assert.equal(matchRegionRule(shenyang,'shenyang'),true);assert.equal(matchRegionRule(shenyang,'dalian'),false);
+  assert.equal(matchRegionRule({province:'新疆',city:'乌鲁木齐'},'any:province:新疆|province:西藏'),true);assert.equal(matchRegionRule({province:'西藏',city:'拉萨'},'any:province:新疆|province:西藏'),true);assert.equal(matchRegionRule({province:'山东',city:'济南'},'any:province:新疆|province:西藏'),false);
   const previous={candidates:{counts:{upper:6,near:9,steady:36,total:51},records:[{id:'a'},{id:'b'}]}},next={candidates:{counts:{upper:4,near:7,steady:20,total:31},records:[{id:'b'}]}};const delta=buildAiResultDelta(previous,next,{previousView:{score:580,regionKeys:['all'],majorKeywords:['机械']},nextView:{score:580,regionKeys:['ln'],majorKeywords:['机械']}});assert.ok(delta.scopeChanges.regionKeys);assert.equal(delta.scopeChanges.score,undefined);assert.equal(delta.scopeChanges.majorKeywords,undefined);
   const regionWorkspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:['机械']}});
   let regional=cmd('不看沈阳了，看大连',regionWorkspace);assert.deepEqual(regional.changeSet.region.keys,['dalian']);assert.equal(regional.changeSet.region.op,'set');

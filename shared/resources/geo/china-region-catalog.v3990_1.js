@@ -101,6 +101,11 @@ export function getRegionLabel(key) {
 export function matchRegionRule(record = {}, region = 'all') {
   const key = String(region || 'all').trim();
   if (key === 'all') return true;
+  if (key.startsWith('any:')) {
+    const members = key.slice(4).split('|').map(item => item.trim()).filter(Boolean);
+    if (!members.length || members.length > 4 || members.some(item => item.startsWith('any:'))) return false;
+    return members.some(item => matchRegionRule(record, item));
+  }
   const lnArea = String(record.lnArea || record.region || '').trim();
   const province = normalizeProvinceName(record.province);
   const city = normalizeCityName(record.city);

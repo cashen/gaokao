@@ -74,8 +74,9 @@ function mergeCandidateExecutions(executions=[]){
 function platformUpgradePreview(records=[],target=''){const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});return{target:tier,records:matches.slice(0,16),countInPreview:matches.length,previewOnly:true,complete:false,boundary:'只检查当前候选预览中的211/985中外或高收费记录；预览未发现不能推出完整集合没有。'};}
 export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
-  const regions=normalizeRegionKeys(regionKeys),keyword=unique(majorKeywords,8).join('/'),executions=[];for(const region of regions.slice(0,4))executions.push(await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16}));
-  const merged=mergeCandidateExecutions(executions);if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
+  const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
+  const executions=[await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16})];
+  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
