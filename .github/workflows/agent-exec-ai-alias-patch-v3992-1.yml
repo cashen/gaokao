@@ -1,0 +1,32 @@
+name: Execute AI alias product patch v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply and verify product patch
+        run: |
+          python3 tools/tmp_patch_ai_alias_v3992_1.py
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git diff --exit-code origin/main -- tongxue/data/school-name-resolver-v150.js
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add tongxue/data/school-name-resolver-v150.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1：AI简称只读复用统一学校查询真源 v3992_1'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
