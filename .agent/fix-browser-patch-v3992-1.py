@@ -4,4 +4,7 @@ text=p.read_text()
 count=text.count('\\nasync function')
 if count < 3:
     raise SystemExit(f'expected generated literal newline boundaries, found {count}')
-p.write_text(text.replace('\\nasync function','\nasync function'))
+text=text.replace('\\nasync function','\nasync function')
+text=text.replace('\\n\nasync function selectionAndModel','\nasync function selectionAndModel')
+text=text.replace('\\nasync function selectionAndModel','\nasync function selectionAndModel')
+p.write_text(text)
