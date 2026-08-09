@@ -1,0 +1,63 @@
+name: Temporary v3992 region parser patch
+
+on:
+  push:
+    branches:
+      - agent/ai-human-advisor-kernel-v3992_0
+    paths:
+      - .github/workflows/temporary-v3992-region-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-human-advisor-kernel-v3992_0
+      - name: Patch human region semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/command-interpreter.js')
+          s=p.read_text()
+          start=s.index('function geographyFromText(text){')
+          end=s.index('\nfunction regionLabel(', start)
+          new=r'''function geographyFromText(text){
+            const source=String(text||'');
+            const regionSource=source.replace(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g,' ');
+            if(/(全国|不限地区|地区不限|全国范围|回到全国|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了))/.test(regionSource))return{keys:['all'],explicit:true,label:'全国'};
+            const isNegative=(at)=>{const before=regionSource.slice(Math.max(0,at-10),at);return /(不看|不要|不考虑|排除|别看|去掉|删掉|不留).{0,3}$/.test(before);};
+            const found=[];
+            const add=(token,key,label)=>{let from=0,seenNegative=false;while(from<regionSource.length){const i=regionSource.indexOf(token,from);if(i<0)break;if(isNegative(i))seenNegative=true;else found.push({key,label,index:i});from=i+token.length;}return seenNegative;};
+            const negativeCities=[add('沈阳市','shenyang','沈阳'),add('沈阳','shenyang','沈阳'),add('大连市','dalian','大连'),add('大连','dalian','大连')].some(Boolean);
+            if(/(辽宁其他|辽宁其它|除沈阳大连外的辽宁)/.test(regionSource))found.push({key:'ln-other',label:'辽宁其他',index:regionSource.search(/辽宁其他|辽宁其它|除沈阳大连外的辽宁/)});
+            if(/(省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁)/.test(regionSource))found.push({key:'ln',label:'辽宁省内',index:regionSource.search(/省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁/)});
+            if(/省外/.test(regionSource))found.push({key:'outside',label:'省外',index:regionSource.indexOf('省外')});
+            for(const [label,key] of Object.entries(GROUP_LABELS)){const i=regionSource.indexOf(label);if(i>=0&&!isNegative(i))found.push({key,label,index:i});}
+            if(/东北三省|东北/.test(regionSource)){const i=regionSource.search(/东北三省|东北/);if(!isNegative(i))found.push({key:'province:辽宁',label:'辽宁',index:i},{key:'province:吉林',label:'吉林',index:i},{key:'province:黑龙江',label:'黑龙江',index:i});}
+            const ordered=[...PROVINCE_LEVEL_NAMES].sort((a,b)=>b.length-a.length);
+            for(const province of ordered){for(const alias of [`${province}省`,`${province}市`,province]){const i=regionSource.indexOf(alias);if(i<0||isNegative(i))continue;const key=provinceRegionKey(province);if(key)found.push({key,label:province,index:i});break;}}
+            const uniqueFound=[];for(const item of found.sort((a,b)=>a.index-b.index)){if(!uniqueFound.some(x=>x.key===item.key))uniqueFound.push(item);}
+            if(uniqueFound.length)return{keys:uniqueFound.map(x=>x.key),explicit:true,label:uniqueFound.map(x=>x.label).join('、')};
+            if(negativeCities)return{keys:['all'],explicit:true,label:'全国'};
+            return{keys:[],explicit:false,label:''};
+          }'''
+          s=s[:start]+new+s[end:]
+          s=s.replace("function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开)/.test(String(text||''));}","function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了)|(?:不看|不要|排除|去掉|删掉).{0,4}(沈阳|大连)(?:了)?$)/.test(String(text||''));}")
+          s=s.replace("function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool}){\n  const patch=inheritPatch();\n  if(score)patch.score={op:'set',value:score};\n  if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};", "function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion}){\n  const patch=inheritPatch();\n  if(score)patch.score={op:'set',value:score};\n  if(clearRegion&&!geo.explicit)patch.region={op:'clear',keys:['all']};\n  else if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};")
+          s=s.replace("clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),reference=ordinalReference(source,workspace);", "clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);")
+          s=s.replace("deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool})", "deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion})")
+          s=s.replace("clearMajor,clearSchool,clearRegion:clearRegionLanguage(source),reference", "clearMajor,clearSchool,clearRegion,reference")
+          p.write_text(s)
+          PY
+          node --check functions/_lib/ai/command-interpreter.js
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/ai/command-interpreter.js
+          git commit -m 'v3.9.90.1：统一地域自然语言语义 v3992_0'
+          git push origin HEAD:agent/ai-human-advisor-kernel-v3992_0
