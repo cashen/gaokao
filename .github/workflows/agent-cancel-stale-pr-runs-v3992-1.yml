@@ -1,0 +1,28 @@
+name: Cancel stale PR runs v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  actions: write
+  contents: read
+jobs:
+  cancel-stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for cleanup head then cancel older runs only
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 20
+          branch='agent/ai-school-history-background-links-v3992_1'
+          current="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${branch}" --jq '.object.sha')"
+          echo "Current branch head: ${current}"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs?branch=${branch}&per_page=100" --jq '.workflow_runs[] | select((.status=="queued" or .status=="in_progress") and .head_sha != "'"${current}"'" and .id != '"${GITHUB_RUN_ID}"') | .id' | while read -r id; do
+            [ -n "$id" ] || continue
+            echo "Cancelling stale run ${id}"
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/cancel" >/dev/null || true
+          done
