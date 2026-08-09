@@ -1,3 +1,4 @@
+// Score-driven prompts are parent conversation starters, not persistent family constraints.
 export const AI_PARENT_STARTER_VERSION='ai-parent-starter-v3992_1';
 function scoreValue(value){const n=Math.round(Number(value));return Number.isFinite(n)&&n>=150&&n<=750?n:null;}
 function item(label,prompt,reason=''){return{label,prompt,reason};}
