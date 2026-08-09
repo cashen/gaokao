@@ -1,0 +1,41 @@
+name: Temporary v3992 semantic test patch
+
+on:
+  push:
+    branches:
+      - agent/ai-human-advisor-kernel-v3992_0
+    paths:
+      - .github/workflows/temporary-v3992-test-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-human-advisor-kernel-v3992_0
+      - name: Add region semantic regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/verify-ai-workspace-v3990_1.mjs')
+          s=p.read_text()
+          needle="  const previous={candidates:{counts:{upper:6,near:9,steady:36,total:51},records:[{id:'a'},{id:'b'}]}},next={candidates:{counts:{upper:4,near:7,steady:20,total:31},records:[{id:'b'}]}};const delta=buildAiResultDelta(previous,next,{previousView:{score:580,regionKeys:['all'],majorKeywords:['机械']},nextView:{score:580,regionKeys:['ln'],majorKeywords:['机械']}});assert.ok(delta.scopeChanges.regionKeys);assert.equal(delta.scopeChanges.score,undefined);assert.equal(delta.scopeChanges.majorKeywords,undefined);"
+          addition="""  const regionWorkspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:['机械']}});\n  let regional=cmd('不看沈阳了，看大连',regionWorkspace);assert.deepEqual(regional.changeSet.region.keys,['dalian']);assert.equal(regional.changeSet.region.op,'set');\n  regional=cmd('沈阳和大连一起看',regionWorkspace);assert.equal(regional.changeSet.region.op,'set');assert.deepEqual(regional.changeSet.region.keys,['shenyang','dalian']);\n  regional=cmd('沈阳先不限制了',regionWorkspace);assert.equal(regional.changeSet.region.op,'clear');\n  const schoolNameRegion=cmd('辽宁科技大学自动化多少分',regionWorkspace);assert.equal(schoolNameRegion.agentTask,'school_major_history');assert.deepEqual(schoolNameRegion.regionKeys,[]);\n"""
+          if addition.strip() not in s:
+            if needle not in s: raise SystemExit('geo test insertion anchor not found')
+            s=s.replace(needle, needle+'\n'+addition)
+          p.write_text(s)
+          PY
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1：补齐地域人类语义回归 v3992_0'
+          git push origin HEAD:agent/ai-human-advisor-kernel-v3992_0
