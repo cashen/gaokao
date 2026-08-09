@@ -34,16 +34,22 @@ function schoolNamesFromText(text){const matches=String(text||'').match(/[\u4e00
 
 function geographyFromText(text){
   const source=String(text||'');
-  if(/(全国|不限地区|地区不限|全国范围|回到全国|地区先放开)/.test(source))return{keys:['all'],explicit:true,label:'全国'};
-  if(/(沈阳市|沈阳)/.test(source))return{keys:['shenyang'],explicit:true,label:'沈阳'};
-  if(/(大连市|大连)/.test(source))return{keys:['dalian'],explicit:true,label:'大连'};
-  if(/(辽宁其他|辽宁其它|除沈阳大连外的辽宁)/.test(source))return{keys:['ln-other'],explicit:true,label:'辽宁其他'};
-  if(/(省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁)/.test(source))return{keys:['ln'],explicit:true,label:'辽宁省内'};
-  if(/省外/.test(source))return{keys:['outside'],explicit:true,label:'省外'};
-  for(const [label,key] of Object.entries(GROUP_LABELS))if(source.includes(label))return{keys:[key],explicit:true,label};
-  if(/东北三省|东北/.test(source))return{keys:['province:辽宁','province:吉林','province:黑龙江'],explicit:true,label:'东北三省'};
+  const regionSource=source.replace(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g,' ');
+  if(/(全国|不限地区|地区不限|全国范围|回到全国|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了))/.test(regionSource))return{keys:['all'],explicit:true,label:'全国'};
+  const isNegative=(at)=>{const before=regionSource.slice(Math.max(0,at-10),at);return /(不看|不要|不考虑|排除|别看|去掉|删掉|不留).{0,3}$/.test(before);};
+  const found=[];
+  const add=(token,key,label)=>{let from=0,seenNegative=false;while(from<regionSource.length){const i=regionSource.indexOf(token,from);if(i<0)break;if(isNegative(i))seenNegative=true;else found.push({key,label,index:i});from=i+token.length;}return seenNegative;};
+  const negativeCities=[add('沈阳市','shenyang','沈阳'),add('沈阳','shenyang','沈阳'),add('大连市','dalian','大连'),add('大连','dalian','大连')].some(Boolean);
+  if(/(辽宁其他|辽宁其它|除沈阳大连外的辽宁)/.test(regionSource))found.push({key:'ln-other',label:'辽宁其他',index:regionSource.search(/辽宁其他|辽宁其它|除沈阳大连外的辽宁/)});
+  if(/(省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁)/.test(regionSource))found.push({key:'ln',label:'辽宁省内',index:regionSource.search(/省内|辽宁省内|只在辽宁|只看辽宁|辽宁本地|留辽宁/)});
+  if(/省外/.test(regionSource))found.push({key:'outside',label:'省外',index:regionSource.indexOf('省外')});
+  for(const [label,key] of Object.entries(GROUP_LABELS)){const i=regionSource.indexOf(label);if(i>=0&&!isNegative(i))found.push({key,label,index:i});}
+  if(/东北三省|东北/.test(regionSource)){const i=regionSource.search(/东北三省|东北/);if(!isNegative(i))found.push({key:'province:辽宁',label:'辽宁',index:i},{key:'province:吉林',label:'吉林',index:i},{key:'province:黑龙江',label:'黑龙江',index:i});}
   const ordered=[...PROVINCE_LEVEL_NAMES].sort((a,b)=>b.length-a.length);
-  for(const province of ordered){const aliases=[province,`${province}省`,`${province}市`];if(!aliases.some(t=>source.includes(t)))continue;const key=provinceRegionKey(province);if(key)return{keys:[key],explicit:true,label:province};}
+  for(const province of ordered){for(const alias of [`${province}省`,`${province}市`,province]){const i=regionSource.indexOf(alias);if(i<0||isNegative(i))continue;const key=provinceRegionKey(province);if(key)found.push({key,label:province,index:i});break;}}
+  const uniqueFound=[];for(const item of found.sort((a,b)=>a.index-b.index)){if(!uniqueFound.some(x=>x.key===item.key))uniqueFound.push(item);}
+  if(uniqueFound.length)return{keys:uniqueFound.map(x=>x.key),explicit:true,label:uniqueFound.map(x=>x.label).join('、')};
+  if(negativeCities)return{keys:['all'],explicit:true,label:'全国'};
   return{keys:[],explicit:false,label:''};
 }
 function regionLabel(keys=[]){const vals=unique(keys,8);if(!vals.length||vals.includes('all'))return'全国';return vals.map(k=>k.startsWith('province:')?k.slice(9):(REGION_LABEL_BY_KEY[k]||k)).join('、');}
@@ -82,13 +88,14 @@ function rankQuestionLanguage(text){return /(位次|排名|第几名|多少名|�
 function restoreLanguage(text){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|刚才的|前面的)/.test(String(text||''));}
 function clearMajorLanguage(text){return /(不限专业|专业不限|先不看专业|先不限制专业|不限定专业|专业先放开|先看所有专业)/.test(String(text||''));}
 function clearSchoolLanguage(text){return /(不限学校|学校不限|先不限定学校|学校先放开)/.test(String(text||''));}
-function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开)/.test(String(text||''));}
+function clearRegionLanguage(text){return /(不限地区|地区不限|回到全国|全国看看|地区先放开|(?:沈阳|大连|省内|辽宁).{0,8}(?:先)?(?:不限制|不限定|放开|不限了)|(?:不看|不要|排除|去掉|删掉).{0,4}(沈阳|大连)(?:了)?$)/.test(String(text||''));}
 
 function inheritPatch(){return{score:{op:'inherit'},region:{op:'inherit',keys:[]},major:{op:'inherit',values:[]},school:{op:'inherit',values:[]},bottomLine:{op:'inherit',value:''}};}
-function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool}){
+function deterministicPatch(source,{score,positive,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion}){
   const patch=inheritPatch();
   if(score)patch.score={op:'set',value:score};
-  if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};
+  if(clearRegion&&!geo.explicit)patch.region={op:'clear',keys:['all']};
+  else if(geo.explicit)patch.region=geo.keys.includes('all')?{op:'clear',keys:['all']}:{op:'set',keys:geo.keys};
   if(clearMajor)patch.major={op:'clear',values:[]};
   else if(negative.length&&positive.length&&correctionLanguage(source))patch.major={op:'set',values:positive};
   else if(negative.length&&!positive.length)patch.major={op:'remove',values:negative};
@@ -125,11 +132,11 @@ function explicitTaskLock(source,agentTask,candidateLexical=false){
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
 function deterministicBase(text,workspace={}){
-  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),reference=ordinalReference(source,workspace);
+  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
   let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
-  const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),candidateIntent=candidateLexical||patchMutates(deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool})),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool});
+  const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),candidateIntent=candidateLexical||patchMutates(deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion})),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion});
   let agentTask=deterministicAgentTask({text:source,schools,majors,regionKeys:geo.keys,score,workspace,candidateIntent,compareIntent:hasCompare,rankIntent});
   if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled)agentTask='save_family';
   const rawScoreUsage=explicitScoreUsage(source,workspace),scoreUsage=(['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)&&score)?'active':rawScoreUsage,taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(score&&majors.length&&!schools.length)),scoreUsageLocked=explicitScoreDirective(source)||Boolean(score&&['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)),executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode});
@@ -140,7 +147,7 @@ function deterministicBase(text,workspace={}){
   return{
     schemaVersion:AI_COMMAND_SCHEMA_VERSION,agentKernelVersion:AI_AGENT_KERNEL_VERSION,agentTask,taskLocked,scoreUsage,scoreUsageLocked,executionPolicy,focus,
     ...legacy,score,majorKeywords:majors,regionKeys:geo.keys,regionLabel:geo.label,schoolNames:schools,bottomLineMode,
-    clearMajor,clearSchool,clearRegion:clearRegionLanguage(source),reference,familyChanges,negativeMajorKeywords:negative,changeSet:patch,mentorProfile,
+    clearMajor,clearSchool,clearRegion,reference,familyChanges,negativeMajorKeywords:negative,changeSet:patch,mentorProfile,
     rawText:source,question:source,taskTitle:'',confidence:ambiguous?.62:.93,requiresConfirmation:Boolean(ambiguous),
     reason:ambiguous?'这句话里的“这个/那个”没有足够明确的上一轮焦点，我不想替你猜。':'',
     source:'deterministic'
