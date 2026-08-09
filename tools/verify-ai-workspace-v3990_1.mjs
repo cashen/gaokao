@@ -9,9 +9,11 @@ import {
 import { deterministicCommand,interpretAiCommand } from '../functions/_lib/ai/command-interpreter.js';
 import { AI_AGENT_KERNEL_VERSION,explicitScoreUsage } from '../functions/_lib/ai/agent-task-kernel.js';
 import { deterministicMentorProfile,AI_MENTOR_PROFILE_VERSION,MENTOR_SKILLSET_ATTRIBUTION } from '../functions/_lib/ai/mentor-profile.js';
-import { runRankLookup,runBackgroundDiscovery,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
+import { runRankLookup,runBackgroundDiscovery,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
 import { DEFAULT_WORKERS_AI_MODEL } from '../functions/_lib/ai-model-resolver.js';
 import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';
+import { explicitSchoolAliasesInText } from '../tongxue/data/school-name-resolver-v150.js';
+import { starterScenariosForScore } from '../ai/parent-starter.v3992_1.js';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
@@ -75,10 +77,23 @@ async function testModelCanCorrectTaskNotFacts(){
 
 function testPrivacyBudget(){const huge='备注'.repeat(800),workspace=createAiWorkspace({agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'自动化'}},turnHistory:Array.from({length:80},(_,i)=>({userText:`第${i}轮 ${huge}`,assistantSummary:huge,changeSummary:huge,task:'general_advice',focus:{school:'测试大学'}})),selectionSnapshot:{items:[{id:'a',school:'测试大学',major:'机械',userNote:huge}]},lastResult:{history:{school:'测试大学',majorKeyword:'机械',records:[{id:'x',school:'测试大学',major:'机械',score2026:580,rank2026:20000,payload:huge}]}}});const compact=compactAiWorkspaceForServer(workspace),json=JSON.stringify({workspace:compact,input:'继续'});assert.ok(Buffer.byteLength(json,'utf8')<128*1024);assert.equal(json.includes('userNote'),false);assert.equal(json.includes('payload'),false);assert.ok(compact.recentTurns.length<=10);}
 
+
+function testParentHumanJourneysV3992_1(){
+  assert.equal(explicitSchoolAliasesInText('沈航的电气呢')[0]?.officialName,'沈阳航空航天大学');
+  assert.equal(explicitSchoolAliasesInText('辽科大的电气呢')[0]?.officialName,'辽宁科技大学');
+  assert.equal(normalizeOptionalCandidateScore(null),null);assert.equal(normalizeOptionalCandidateScore(''),null);assert.equal(normalizeOptionalCandidateScore(580),580);
+  const history=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}});
+  let c=cmd('沈航的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);
+  c=cmd('辽科大的电气呢',history);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
+  c=cmd('沈阳工业大学所有专业的最低录取分',history);assert.equal(c.agentTask,'school_history');assert.equal(c.focus.school,'沈阳工业大学');assert.equal(c.focus.major,'');assert.equal(c.executionPolicy.commitView,false);
+  const majorBg=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气']},agentContext:{currentTask:'major_background',focus:{major:'电气',majors:['电气']}}});c=cmd('辽科大',majorBg);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'辽宁科技大学');assert.equal(c.focus.major,'电气');
+  for(const score of [350,440,500,580,620,630,650]){const scenarios=starterScenariosForScore(score);assert.ok(scenarios.length>=4,String(score));const w=createAiWorkspace({examContext:{score},activeView:{score,regionKeys:['all'],majorKeywords:[]}});if(score===440){let q=cmd('440分，中外合作也可以，预算可以上浮',w);assert.equal(q.bottomLineMode,'public_include_sino');q=cmd('440分，新疆、西藏也可以，优先公办',w);assert.ok(q.regionKeys.includes('province:新疆')&&q.regionKeys.includes('province:西藏'));assert.equal(q.bottomLineMode,'public_first');q=cmd('440分，民办也可以，看看能增加哪些选择',w);assert.equal(q.bottomLineMode,'all');}if(score===580){const q=cmd('580分，愿意加预算，看看有没有211中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'211');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===620){const q=cmd('620分，愿意加预算，看看有没有985中外或高收费项目值得研究',w);assert.equal(q.platformTarget,'985');assert.equal(q.bottomLineMode,'public_include_sino');}if(score===650)assert.equal(scenarios.some(x=>/加预算|中外/.test(x.label+x.prompt)),false,'650 starter should not nudge spending');}
+}
+
 function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.ok,true);assert.equal(rank.rankEnd,14235);const profile=deterministicMentorProfile('普通家庭，想稳定就业，不想读太久');assert.equal(profile.enabled,true);assert.equal(MENTOR_SKILLSET_ATTRIBUTION.repository,'cashen/zhangxuefeng-skillset');assert.equal(MENTOR_SKILLSET_ATTRIBUTION.commit,'9a3306d84ea38874bbdbb9e6e62079ba1409e97e');assert.equal(MENTOR_SKILLSET_ATTRIBUTION.knowledgeLicense,'CC BY 4.0');assert.equal(AI_TOOL_REGISTRY_VERSION,'ai-tool-registry-v3992_0');
   const html=read('ai/index.html'),app=read('ai/app.v3990_1.js'),render=read('ai/render.v3992_0.js'),css=read('ai/agent.v3992_0.css'),health=read('functions/api/ai/health.js');assert.ok(html.includes('ai-human-advisor-agent-v3992_0'));assert.ok(html.includes('想到哪就继续问'));assert.ok(app.includes('renderProcessingTurn'));assert.ok(app.includes('停止本轮'));assert.ok(render.includes('history_records'));assert.ok(render.includes('background_routes'));assert.ok(render.includes('已收到你的问题'));assert.ok(render.includes('不会用等待时间伪造百分比'));assert.ok(css.includes('.processing-card'));assert.ok(health.includes('human-advisor-agent-kernel-v3992_0'));assert.ok(health.includes("semanticMode:'command-active-view-history-v3990_1'"));assert.ok(!render.includes('`upper ·'));
 }
 
 assert.equal(AI_WORKSPACE_CONTRACT_VERSION,'ai-workspace-contract-v3992_0');assert.equal(AI_ACTIVE_VIEW_VERSION,'ai-active-view-v3992_0');assert.equal(AI_AGENT_KERNEL_VERSION,'ai-human-advisor-kernel-v3992_0');
-testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();testFactsSkillAndUi();
+testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();testParentHumanJourneysV3992_1();testFactsSkillAndUi();
 console.log(JSON.stringify({ok:true,version:'v3992_0',checks:['candidate-patch-journey','task-switch-memory-not-execution','school-major-history-followup-reference','score-suspend-reactivate','background-discovery','background-fit-discovery','focus-trace','workspace-v3991-migration','model-task-correction-with-fact-isolation','privacy-budget','loading-source','skill-attribution','rank-fact']},null,2));

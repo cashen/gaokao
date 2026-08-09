@@ -44,6 +44,7 @@ export function explicitScoreUsage(text='',workspace={}){
 }
 
 function looksHistory(source){return /(多少分|最低分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}
+function looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次))/.test(source);}
 function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}
 function looksCompare(source){return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(source);}
 function looksBackground(source){return /(强项|优势专业|专业优势|学科背景|专业背景|学校背景|有背景|底蕴|特色方向|本地强项|省内背景)/.test(source);}
@@ -59,12 +60,16 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(looksPlanReview(source))return'plan_review';
   if(looksRestore(source))return'restore_view';
   if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
+  if(school&&looksAllSchoolMajorsHistory(source))return'school_history';
   if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)&&/(省内|辽宁|方向|专业|这些|这批)/.test(source))return'background_fit_discovery';
   if(looksFit(source)&&(school||schools.length))return'fit_assessment';
   if(looksCompare(source)||compareIntent){
     if(schools.length>=2||(schools.length===1&&focus.school&&focus.school!==schools[0]))return'school_comparison';
     if(majors.length>=2||((focus.majors||[]).length>=2&&/(这几个专业|这些专业|刚才几个|它们)/.test(source)))return'major_comparison';
   }
+  const directSchoolMajorFollowup=Boolean(schools.length&&majors.length&&!score&&/(呢[？?]?$|怎么样[？?]?$|如何[？?]?$|咋样[？?]?$|看看[？?]?$|多少分|最低分|投档分|录取分)/.test(source)&&!/(候选|能报|能上|只看|只留|筛|收窄|缩到|按我|我这个分)/.test(source));
+  if(directSchoolMajorFollowup)return'school_major_history';
+  if(schools.length===1&&!majors.length&&priorTask==='major_background'&&focus.major&&!/(候选|能报|能上|比较|对比|强项|背景)/.test(source))return'school_major_history';
   const ordinalObjectFollowup=/(第一|第二|第三|第四|第五|第一个|第二个|第三个|第四个|第五个).{0,10}(呢|怎么样|如何|咋样|看看)?[？?]?$/.test(source);
   if(ordinalObjectFollowup&&!/(只看|只留|筛|保留|缩到|收窄)/.test(source)){
     if(schools.length&&majors.length)return'school_major_history';

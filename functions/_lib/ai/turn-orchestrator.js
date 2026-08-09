@@ -30,7 +30,7 @@ function viewMatchesCommand(view={},command={}){if(command.majorKeywords?.length
 function restoreView(command={},workspace={}){const history=Array.isArray(workspace?.viewHistory)?workspace.viewHistory:[];if(!history.length)return null;const text=String(command.rawText||'');if(/(上一批|上一个结果|刚才那批|刚才的结果|前面那批)/.test(text)&&!(command.majorKeywords?.length||command.regionKeys?.length))return clone(history[0]);const matched=history.find(v=>viewMatchesCommand(v,command));return clone(matched||history[0]);}
 function selectionReviewRequested(input=''){return /(方案|选择池|自选|已选|选了些|选了一些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(String(input||''));}
 function evidenceIntent(command,result){return{topic:result?.comparison?'candidate_search':command.agentTask==='evidence_verification'?'verification':CANDIDATE_TASKS.has(command.agentTask)?'candidate_search':'general_question',question:command.question||command.rawText||'',majorKeywords:command.majorKeywords||[]};}
-function resultIdentity({view,command,selectionReview}){return[command.agentTask,view.score||'',view.majorKeywords.join('/'),view.regionKeys.join(','),view.schoolNames.join('/'),view.bottomLineMode,command.focus?.school||'',command.focus?.major||'',selectionReview?.snapshotVersion||''].join('|');}
+function resultIdentity({view,command,selectionReview}){return[command.agentTask,view.score||'',view.majorKeywords.join('/'),view.regionKeys.join(','),view.schoolNames.join('/'),view.bottomLineMode,command.platformTarget||'',command.focus?.school||'',command.focus?.major||'',selectionReview?.snapshotVersion||''].join('|');}
 function validateConfirmedCommand(value,input,workspace){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace);return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:fallback.focus,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}
 function focusForTurn(command={},workspace={}){
   const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;
@@ -72,13 +72,13 @@ export async function orchestrateAiTurn(context,payload={}){
   else if(command.agentTask==='background_fit_discovery')changeText=`这轮把辽宁专业背景证据和你当前${score||''}分的可达窗口做交集预览，不把它包装成“最佳专业排名”。`;
   else changeText=`这轮切到“${agentTaskLabel(command.agentTask)}”；之前记住的家庭背景仍保留，但只让与当前任务有关的信息参与执行。`;
 
-  const result={identity:'',partial:false,rank:null,candidates:null,history:null,fit:null,background:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION}};
+  const result={identity:'',partial:false,rank:null,candidates:null,history:null,fit:null,background:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION}};
   try{
     switch(command.agentTask){
       case'candidate_discovery':
       case'candidate_refinement':
       case'restore_view':
-        if(view.score&&regionExecution.exact){result.rank=runRankLookup(view.score);result.candidates=await runMajorBandSearch(context,{score:view.score,majorKeywords:view.majorKeywords,regionKeys:regionExecution.includeKeys,bottomLineMode:view.bottomLineMode,schoolKeyword:view.schoolNames?.length===1?view.schoolNames[0]:''});result.partial=!result.candidates.ok;}else result.partial=true;
+        if(view.score&&regionExecution.exact){result.rank=runRankLookup(view.score);result.candidates=await runMajorBandSearch(context,{score:view.score,majorKeywords:view.majorKeywords,regionKeys:regionExecution.includeKeys,bottomLineMode:view.bottomLineMode,schoolKeyword:view.schoolNames?.length===1?view.schoolNames[0]:'',platformTarget:command.platformTarget||''});result.partial=!result.candidates.ok;}else result.partial=true;
         break;
       case'fact_rank_lookup':
         result.rank=runRankLookup(validScore(command.score)||score);result.partial=!result.rank.ok;break;

@@ -13,6 +13,17 @@ const EXPLICIT_ALIASES=Object.freeze({吉大:'吉林大学',大工:'大连理工
 const TYPE_REPLACEMENTS=[['航空航天大学','航大'],['科学技术大学','科大'],['工程技术大学','工大'],['科技大学','科大'],['工业大学','工大'],['理工大学','理工'],['师范大学','师大'],['医科大学','医大'],['中医药大学','中医药'],['财经大学','财大'],['交通大学','交大'],['农业大学','农大'],['林业大学','林大'],['外国语大学','外大'],['民族大学','民大'],['政法大学','政法'],['体育大学','体大']];
 let defaultCatalogPromise=null;
 
+export function explicitSchoolAliasesInText(text=''){
+ const source=String(text||''),hits=[];
+ for(const[alias,officialName]of Object.entries(EXPLICIT_ALIASES)){
+  let from=0;
+  while(from<source.length){const index=source.indexOf(alias,from);if(index<0)break;hits.push({alias,officialName,index});from=index+alias.length;}
+ }
+ hits.sort((a,b)=>a.index-b.index||b.alias.length-a.alias.length);
+ const out=[];for(const hit of hits)if(!out.some(item=>item.officialName===hit.officialName))out.push(hit);
+ return out;
+}
+
 export async function loadSchoolCatalog(url=SCHOOL_NAME_DATA_URL,fetchImpl=globalThis.fetch){
  if(url===SCHOOL_NAME_DATA_URL&&fetchImpl===globalThis.fetch){if(!defaultCatalogPromise)defaultCatalogPromise=loadCatalog(url,fetchImpl);return defaultCatalogPromise;}
  return loadCatalog(url,fetchImpl);

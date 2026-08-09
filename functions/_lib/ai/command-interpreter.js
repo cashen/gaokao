@@ -2,6 +2,7 @@
 import { runAiProvider } from './provider-router.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
+import { explicitSchoolAliasesInText } from '../../../tongxue/data/school-name-resolver-v150.js';
 import {
   AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
   validateAgentTask, taskExecutionPolicy
@@ -30,7 +31,7 @@ function majorMentions(text){
 }
 function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>x.term),8);}
 function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>x.term),8);}
-function schoolNamesFromText(text){const matches=String(text||'').match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[];return unique(matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim()),4);}
+function schoolNamesFromText(text){const source=String(text||''),aliases=explicitSchoolAliasesInText(source).map(item=>item.officialName),matches=source.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>v.replace(/^(比较|对比|看看|再看|想问|帮我看|帮我比较|把|那|和|跟|与|就|先|还是)/,'').trim());return unique([...aliases,...full],4);}
 
 function geographyFromText(text){
   const source=String(text||'');
@@ -53,7 +54,8 @@ function geographyFromText(text){
   return{keys:[],explicit:false,label:''};
 }
 function regionLabel(keys=[]){const vals=unique(keys,8);if(!vals.length||vals.includes('all'))return'全国';return vals.map(k=>k.startsWith('province:')?k.slice(9):(REGION_LABEL_BY_KEY[k]||k)).join('、');}
-function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限)/.test(s))return'all';if(/(不接受|不要|排除|只看|只要).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/公办优先/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|公办含中外/.test(s))return'public_include_sino';return'';}
+function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限|(民办).{0,8}(也可以|能接受|也接受|也能看|不排斥))/.test(s))return'all';if(/(不接受|不要|排除).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/(公办优先|优先公办|尽量公办|最好公办|能公办.{0,4}公办)/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|(中外|高收费).{0,10}(也可以|可以|能接受|接受)|公办含中外|预算.{0,8}(上浮|增加|多花|加钱).{0,12}(中外|高收费)|(?:多花点钱|加点预算|加预算).{0,12}(中外|高收费|换平台|211|985)/.test(s))return'public_include_sino';return'';}
+function platformTargetFromText(text){const s=String(text||'');if(/985/.test(s))return'985';if(/211/.test(s))return'211';return'';}
 
 function priorFocus(workspace={}){return workspace?.agentContext?.focus||{};}
 function resolveReferenceMajors(source,positive,workspace){
@@ -132,21 +134,21 @@ function explicitTaskLock(source,agentTask,candidateLexical=false){
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
 function deterministicBase(text,workspace={}){
-  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
+  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
   let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
-  const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),candidateIntent=candidateLexical||patchMutates(deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion})),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion});
+  const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),candidateIntent=candidateLexical||Boolean(platformTarget)||patchMutates(deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion})),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion});
   let agentTask=deterministicAgentTask({text:source,schools,majors,regionKeys:geo.keys,score,workspace,candidateIntent,compareIntent:hasCompare,rankIntent});
   if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled)agentTask='save_family';
-  const rawScoreUsage=explicitScoreUsage(source,workspace),scoreUsage=(['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)&&score)?'active':rawScoreUsage,taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(score&&majors.length&&!schools.length)),scoreUsageLocked=explicitScoreDirective(source)||Boolean(score&&['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)),executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode});
+  const rawScoreUsage=explicitScoreUsage(source,workspace),scoreUsage=(['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)&&score)?'active':rawScoreUsage,taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(bottomLineMode)||Boolean(platformTarget)||Boolean(score&&majors.length&&!schools.length)),scoreUsageLocked=explicitScoreDirective(source)||Boolean(score&&['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)),executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode});
   const previousFocus=priorFocus(workspace),needsSchool=['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask),needsMajor=['school_major_history','fit_assessment','major_background'].includes(agentTask);
   const focus={school:schools[0]||(needsSchool?clean(previousFocus.school,120):''),major:majors[0]||(needsMajor?clean(previousFocus.major,160):''),schools:schools.length?schools:((agentTask==='school_comparison')?unique(previousFocus.schools||[],4):[]),majors:majors.length?majors:((agentTask==='major_comparison'||needsMajor)?unique(previousFocus.majors||[],6):[]),reference:reference||null,sourceText:source};
   const ambiguous=(/这个专业|这所学校|这个学校/.test(source)&&!focus.school&&!focus.major)||((agentTask==='school_comparison')&&schools.length<2)||((agentTask==='major_comparison')&&majors.length<2);
   const familyChanges=legacy.persistence==='family'?{regionIncludeKeys:geo.keys.filter(k=>k!=='all'),regionExcludeKeys:[],majorExcludeKeywords:negative,bottomLineMode:bottomLineMode||''}:{};
   return{
     schemaVersion:AI_COMMAND_SCHEMA_VERSION,agentKernelVersion:AI_AGENT_KERNEL_VERSION,agentTask,taskLocked,scoreUsage,scoreUsageLocked,executionPolicy,focus,
-    ...legacy,score,majorKeywords:majors,regionKeys:geo.keys,regionLabel:geo.label,schoolNames:schools,bottomLineMode,
+    ...legacy,score,majorKeywords:majors,regionKeys:geo.keys,regionLabel:geo.label,schoolNames:schools,bottomLineMode,platformTarget,
     clearMajor,clearSchool,clearRegion,reference,familyChanges,negativeMajorKeywords:negative,changeSet:patch,mentorProfile,
     rawText:source,question:source,taskTitle:'',confidence:ambiguous?.62:.93,requiresConfirmation:Boolean(ambiguous),
     reason:ambiguous?'这句话里的“这个/那个”没有足够明确的上一轮焦点，我不想替你猜。':'',
@@ -178,7 +180,7 @@ function normalizeModelCommand(candidate,text,workspace,fallback){
   const proposedScoreUsage=['active','remembered','suspended','cleared'].includes(clean(candidate.scoreUsage,30))?clean(candidate.scoreUsage,30):fallback.scoreUsage,scoreUsage=fallback.scoreUsageLocked?fallback.scoreUsage:proposedScoreUsage;
   const executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch:fallback.changeSet,schools:fallback.schoolNames,majors:fallback.majorKeywords,score:fallback.score,geo:{keys:fallback.regionKeys},hasCompare:agentTask.includes('comparison'),restore:agentTask==='restore_view',mentorProfile:fallback.mentorProfile,source:text,negative:fallback.negativeMajorKeywords,bottomLineMode:fallback.bottomLineMode});
   const command={...fallback,...legacy,agentTask,scoreUsage,executionPolicy,source:'ai-assisted',confidence:Math.max(0,Math.min(1,Number(candidate.confidence??fallback.confidence))),requiresConfirmation:Boolean(candidate.requiresConfirmation),reason:clean(candidate.reason,300)||fallback.reason};
-  command.changeSet=fallback.changeSet;command.score=fallback.score;command.regionKeys=fallback.regionKeys;command.regionLabel=fallback.regionLabel;command.majorKeywords=fallback.majorKeywords;command.schoolNames=fallback.schoolNames;command.bottomLineMode=fallback.bottomLineMode;command.clearMajor=fallback.clearMajor;command.clearSchool=fallback.clearSchool;command.negativeMajorKeywords=fallback.negativeMajorKeywords;command.familyChanges=fallback.familyChanges;command.combination=fallback.combination;command.focus=fallback.focus;
+  command.changeSet=fallback.changeSet;command.score=fallback.score;command.regionKeys=fallback.regionKeys;command.regionLabel=fallback.regionLabel;command.majorKeywords=fallback.majorKeywords;command.schoolNames=fallback.schoolNames;command.bottomLineMode=fallback.bottomLineMode;command.platformTarget=fallback.platformTarget;command.clearMajor=fallback.clearMajor;command.clearSchool=fallback.clearSchool;command.negativeMajorKeywords=fallback.negativeMajorKeywords;command.familyChanges=fallback.familyChanges;command.combination=fallback.combination;command.focus=fallback.focus;
   command.mentorProfile=normalizeMentorProfile(candidate.mentorProfile||{},fallback.mentorProfile||{},text);
   if(['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask)&&!command.focus.school){command.requiresConfirmation=true;command.reason='这轮需要明确一所学校，我没有足够可靠的上一轮学校焦点。';}
   if(['school_major_history','fit_assessment','major_background'].includes(agentTask)&&!command.focus.major){command.requiresConfirmation=true;command.reason='这轮需要明确一个专业/方向，我没有足够可靠的上一轮专业焦点。';}

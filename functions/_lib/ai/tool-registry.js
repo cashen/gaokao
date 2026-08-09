@@ -71,16 +71,18 @@ function mergeCandidateExecutions(executions=[]){
   counts.total=counts.upper+counts.near+counts.steady;
   return{ok:successful.length>0,regionsQueried:successful.map(x=>x.region),counts,records:[...byId.values()].slice(0,48),previewOnly:true,previewLimit:48,warnings:warnings.slice(0,8),failures:executions.filter(x=>!x?.ok).map(x=>({status:x?.status||0,message:x?.message||'查询失败'})),source:successful[0]?.source||{},meta:successful[0]?.meta||null,adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
-export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword=''}={}){
+function platformUpgradePreview(records=[],target=''){const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});return{target:tier,records:matches.slice(0,16),countInPreview:matches.length,previewOnly:true,complete:false,boundary:'只检查当前候选预览中的211/985中外或高收费记录；预览未发现不能推出完整集合没有。'};}
+export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys),keyword=unique(majorKeywords,8).join('/'),executions=[];for(const region of regions.slice(0,4))executions.push(await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16}));
-  return mergeCandidateExecutions(executions);
+  const merged=mergeCandidateExecutions(executions);if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
 }
 
+export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
 function schoolMajorsRequest(context,{school,majorKeyword='',candidateScore=null,limit=100}={}){
-  const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('limit',String(Math.max(20,Math.min(100,Number(limit||100)))));
-  if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(Number.isFinite(Number(candidateScore)))url.searchParams.set('candidateScore',String(Math.round(Number(candidateScore))));
-  url.searchParams.set('sort',Number.isFinite(Number(candidateScore))?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
+  const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin),normalizedCandidateScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('limit',String(Math.max(20,Math.min(100,Number(limit||100)))));
+  if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedCandidateScore!==null)url.searchParams.set('candidateScore',String(normalizedCandidateScore));
+  url.searchParams.set('sort',normalizedCandidateScore!==null?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
 }
 async function schoolMajorsQuery(context,params){
   const response=await schoolMajorsOnRequest({...context,request:schoolMajorsRequest(context,params)});let payload=null;try{payload=await response.json();}catch{}
