@@ -45,7 +45,7 @@ async function latestWins(page,name){
 
 async function selectionAndModel(page,name){
   await page.evaluate(()=>localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951',JSON.stringify({items:[{id:'browser-1',school:'测试大学',major:'机械工程',rank2026:20000,bandKey:'near',displayLocation:'沈阳',tuition:'5200',userNote:'这段私有备注不能发给模型'}]})));
-  await page.locator('#decisionContextDetails').evaluate(el=>el.open=true);await page.locator('#importSelection').click();await page.getByText('已导入1项',{exact:false}).waitFor({state:'visible',timeout:10000});
+  await page.locator('#decisionContextDetails').evaluate(el=>el.open=true);await page.locator('#importSelection').click();await page.locator('#importStatus').filter({hasText:'已导入1项'}).waitFor({state:'visible',timeout:10000});
   if(name==='pc'){const config=(await page.locator('#modelConfig').innerText()).trim();assert(config&&!config.includes('读取'),`${name}: model config echo missing`);if(!config.includes('本地规则')&&!config.includes('未就绪')){await page.locator('#probeModel').click();await page.waitForFunction(()=>{const t=document.querySelector('#modelProbeResult')?.textContent||'';return t.includes('实测：')||t.includes('实测失败：');},null,{timeout:50000});const result=await page.locator('#modelProbeResult').innerText();assert(result.includes('实测：'),`${name}: model probe failed: ${result}`);}}
 }
 
