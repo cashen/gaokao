@@ -3,93 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f4f6f4" />
-  <title>辽宁物理类志愿决策工作台</title>
-  <meta name="description" content="从一个真实问题开始，持续调用确定性数据，允许随时改口、切换范围、比较、核验并保留家庭志愿决策过程。" />
-  <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3990_1" />
+  <meta name="theme-color" content="#f6f6f1" />
+  <title>辽宁志愿家庭顾问</title>
+  <meta name="description" content="围绕一个家庭连续对话：分数、位次、地区、专业逐步收敛，事实由确定性数据执行，AI负责理解、连接和追问。" />
+  <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3991_0" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-family-decision-advisor-v3991_0">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
-    <div class="top-actions">
-      <a href="/ln-rank/">完整专业初选</a>
+    <nav class="top-actions" aria-label="主要入口">
+      <a href="/ln-rank/">专业初选</a>
       <a href="/ln-rank/selection-pool.html">家庭方案</a>
-      <button id="exportWorkspace" type="button">导出工作区</button>
-    </div>
+      <button id="newWorkspace" type="button">新开一次讨论</button>
+    </nav>
   </header>
 
-  <main class="shell">
+  <main class="advisor-shell">
     <section class="hero" aria-labelledby="pageTitle">
-      <p class="eyebrow">辽宁 2027 备考家庭 · 2026 物理类历史数据底座</p>
-      <h1 id="pageTitle">像真人一样随时改口，结果仍然接得住</h1>
-      <p>可以说“电气”“机械呢”“省内机械”“那安徽呢”“回到刚才电气那批”。系统把长期家庭底线、当前观察范围和历史结果分开；新一句话只改变你真正说到的维度。</p>
-      <div class="scope-note"><strong>边界：</strong>不预测录取概率，不替家庭做最终决定；学校、专业、位次和官方规则只来自确定性资源或可核验官方入口。</div>
+      <span class="eyebrow">辽宁 2027 备考家庭 · 2026 物理类历史数据底座</span>
+      <h1 id="pageTitle">像和一个高报老师说话一样，继续往下聊。</h1>
+      <p>不用重复前面的条件。你可以从“580机械”开始，再说“省内”“沈阳”“电气也看看”“普通家庭，更想本科就业”。系统只改你这句话真正改到的部分。</p>
     </section>
 
-    <section class="workspace" aria-label="AI志愿决策工作区">
-      <aside class="rail task-rail">
-        <div class="rail-head"><div><span class="kicker">历史</span><h2>看过的方向</h2></div><button id="newWorkspace" class="quiet" type="button">新建</button></div>
-        <div id="taskList" class="task-list" aria-live="polite"></div>
-        <section class="import-box">
-          <h3>已有家庭方案</h3>
-          <p>只在你明确点击后读取当前浏览器里的 ln-rank 自选池快照，不会回写或删除原方案。</p>
-          <button id="importSelection" type="button">导入当前选择池</button>
-          <p id="importStatus" class="muted" aria-live="polite"></p>
-        </section>
-      </aside>
-
-      <section class="stage">
-        <div id="healthBar" class="health-bar" aria-live="polite">正在检查工作台能力…</div>
-        <section class="model-panel" aria-label="AI模型状态">
-          <div><span class="kicker">AI解析</span><strong id="modelConfig">读取模型配置…</strong><small id="modelProbeResult">只有点击测试时才会真实调用模型。</small></div>
-          <button id="probeModel" type="button">测试模型</button>
-        </section>
-        <section id="activeViewBar" class="active-view-bar" aria-live="polite" hidden>
-          <span class="kicker">当前观察</span>
-          <div id="activeViewChips" class="view-chips"></div>
-        </section>
-        <div id="resultStream" class="result-stream" aria-live="polite"></div>
-
-        <section class="starter" id="starterPanel">
-          <h2>直接说你脑子里现在冒出来的问题</h2>
-          <p>不用按菜单流程。你可以随时换专业、换地区、回到上一批、把两个方向一起看，或者真正做比较。</p>
-          <div class="starter-grid">
-            <button type="button" data-prompt="580分，先看看电气">580分先看电气</button>
-            <button type="button" data-prompt="我想看看省内机械">看看省内机械</button>
-            <button type="button" data-prompt="电气和机械都看看">两个方向一起看</button>
-            <button type="button" data-prompt="我已经选了一些专业，帮我看看方案还缺什么">检查已有方案</button>
-          </div>
-        </section>
-
-        <form id="promptForm" class="composer">
-          <label for="promptInput">随时说新问题、改口或插话</label>
-          <div class="composer-row">
-            <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：机械呢；那安徽呢；省内电气；还是回到刚才那批；电气和机械怎么选"></textarea>
-            <div class="composer-buttons">
-              <button id="stopButton" class="quiet stop" type="button" hidden>停止</button>
-              <button id="sendButton" class="primary" type="submit">执行</button>
-            </div>
-          </div>
-          <p class="composer-help">执行中也可以直接改口再次提交：上一轮会在浏览器端中止，只有最后一次表达允许写入工作区。</p>
-        </form>
-      </section>
-
-      <aside class="rail context-rail">
-        <section><span class="kicker">家庭长期</span><h2>真正底线</h2><div id="constraintList" class="constraint-list"></div></section>
-        <section><span class="kicker">待完成</span><h2>核验事项</h2><div id="pendingList" class="pending-list"></div></section>
-        <section><span class="kicker">证据</span><h2>官方入口</h2><div id="evidenceList" class="evidence-list"></div></section>
-      </aside>
+    <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
+      <div class="context-title"><span>当前讨论</span><strong id="currentContextTitle">当前探索</strong></div>
+      <div id="activeViewChips" class="view-chips"></div>
     </section>
+
+    <section id="conversationStream" class="conversation" aria-live="polite"></section>
+
+    <section class="starter" id="starterPanel">
+      <h2>从你现在最真实的问题开始</h2>
+      <p>不需要先填一堆表格。第一句话只要能说清一个方向就够了。</p>
+      <div class="starter-grid">
+        <button type="button" data-prompt="580分，先看看机械">580分，先看看机械</button>
+        <button type="button" data-prompt="580分，先看看电气">580分，先看看电气</button>
+        <button type="button" data-prompt="普通家庭，更看重本科就业，先帮我看看方向">普通家庭，更看重本科就业</button>
+      </div>
+    </section>
+
+    <form id="promptForm" class="composer">
+      <label for="promptInput">继续说就行</label>
+      <div class="composer-row">
+        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：省内吧；再缩到沈阳；电气也看看；普通家庭，更想本科就业"></textarea>
+        <div class="composer-buttons">
+          <button id="stopButton" class="quiet stop" type="button" hidden>停止</button>
+          <button id="sendButton" class="primary" type="submit">发送</button>
+        </div>
+      </div>
+      <p class="composer-help">如果上一轮还在执行，直接改口再次发送即可；旧请求不会覆盖你最后一句话。</p>
+    </form>
+
+    <details class="support-panel" id="decisionContextDetails">
+      <summary>家庭条件、待核验与系统状态</summary>
+      <div class="support-grid">
+        <section>
+          <h2>家庭长期条件</h2>
+          <div id="constraintList" class="support-list"></div>
+          <div class="selection-import">
+            <button id="importSelection" type="button">导入当前家庭方案</button>
+            <span id="importStatus" class="muted" aria-live="polite"></span>
+          </div>
+        </section>
+        <section>
+          <h2>还要核验</h2>
+          <div id="pendingList" class="support-list"></div>
+        </section>
+        <section>
+          <h2>官方依据</h2>
+          <div id="evidenceList" class="support-list"></div>
+        </section>
+        <section class="system-status">
+          <h2>系统状态</h2>
+          <div id="healthBar" class="health-bar" aria-live="polite">正在检查…</div>
+          <p id="modelConfig" class="muted">读取语义模型配置…</p>
+          <p id="modelProbeResult" class="muted">真实模型探针只在你主动测试时调用。</p>
+          <div class="system-actions">
+            <button id="probeModel" type="button">测试语义模型</button>
+            <button id="exportWorkspace" type="button">导出本次讨论</button>
+          </div>
+        </section>
+      </div>
+    </details>
   </main>
 
   <dialog id="confirmDialog">
     <form method="dialog" class="dialog-card">
-      <h2>还需要你明确一下</h2>
+      <h2>这句话我不想替你猜</h2>
       <p id="confirmText"></p>
-      <div class="dialog-actions"><button value="cancel" type="submit">先不执行</button><button id="confirmApply" value="default" class="primary" type="button">确认并执行</button></div>
+      <div class="dialog-actions">
+        <button value="cancel" type="submit">先不改</button>
+        <button id="confirmApply" value="default" class="primary" type="button">按这个理解继续</button>
+      </div>
     </form>
   </dialog>
 
-  <script type="module" src="/ai/app.v3990_1.js?v=3990_1-model-probe-1"></script>
+  <script type="module" src="/ai/app.v3990_1.js?v=3991_0"></script>
 </body>
 </html>
