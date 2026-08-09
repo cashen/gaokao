@@ -1,5 +1,6 @@
 
 import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';
+import { onRequest as majorBandsOnRequest } from '../../api/major-bands.js';
 import { onRequest as schoolMajorsOnRequest } from '../../api/school-majors.js';
 import {
   getAcademicBackgroundSchoolSummaries,getAcademicBackgroundMajorSummaries,
@@ -56,7 +57,7 @@ function requestForMajorBands(context,params={}){
   return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
 }
 async function executeMajorBandsOnce(context,params){
-  const request=requestForMajorBands(context,params);const response=await fetch(request);let payload=null;try{payload=await response.json();}catch{}
+  const request=requestForMajorBands(context,params);const response=await majorBandsOnRequest({...context,request});let payload=null;try{payload=await response.json();}catch{}
   if(!response.ok||!payload?.ok)return{ok:false,status:response.status,message:clean(payload?.message||'专业候选查询失败。',260),payload,region:params.region||'all'};
   const records=[];for(const key of ['upper','near','steady'])for(const record of payload?.bands?.[key]?.records||[])records.push({...record,bandKey:record.bandKey||key});
   return{ok:true,meta:payload.meta,counts:payload.counts,records,searchAdvices:payload.searchAdvices||[],filterConflicts:payload.filterConflicts||[],keywordWarnings:payload.keywordWarnings||[],source:payload.source||{},region:params.region||'all'};
