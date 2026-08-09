@@ -1,0 +1,50 @@
+name: Temporary advisory task-lock repair v3992_1
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[advisory-lock-fixed]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply human advisory invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/command-interpreter.js'); text=p.read_text()
+          old="function explicitTaskLock(source,agentTask,candidateLexical=false){\n  if(['fact_rank_lookup','school_major_history','school_history','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;\n  if(['candidate_discovery','candidate_refinement'].includes(agentTask)&&candidateLexical)return true;\n  return false;\n}\n"
+          new="function advisoryDiscussionLanguage(text){const s=String(text||'');const decisionObjects=/(学校平台|学校层次|专业质量|专业实力|培养路径|培养方式|本科就业|继续深造|读研|就业和深造|城市机会)/.test(s),tradeoff=/(怎么平衡|如何平衡|怎么取舍|如何取舍|优先比较|怎么选|怎么看|应该更看重|哪个更重要)/.test(s);return decisionObjects&&tradeoff;}\nfunction explicitTaskLock(source,agentTask,candidateLexical=false){\n  if(['fact_rank_lookup','school_major_history','school_history','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;\n  if(['candidate_discovery','candidate_refinement'].includes(agentTask)&&candidateLexical)return true;\n  if(agentTask==='general_advice'&&advisoryDiscussionLanguage(source))return true;\n  return false;\n}\n"
+          if old not in text: raise SystemExit('explicitTaskLock anchor missing')
+          p.write_text(text.replace(old,new,1))
+          p=Path('tools/verify-ai-workspace-v3990_1.mjs'); text=p.read_text()
+          anchor="  for(const score of [350,440,500,580,620,630,650]){"
+          insert="  let advice=cmd('不只看学校层次，优先比较专业质量和培养路径',createAiWorkspace({examContext:{score:650},activeView:{score:650,regionKeys:['all'],majorKeywords:[]}}));assert.equal(advice.agentTask,'general_advice');assert.equal(advice.taskLocked,true);assert.equal(advice.executionPolicy.commitView,false);advice=cmd('学校平台和专业质量怎么平衡',createAiWorkspace({examContext:{score:620},activeView:{score:620,regionKeys:['all'],majorKeywords:[]}}));assert.equal(advice.agentTask,'general_advice');assert.equal(advice.taskLocked,true);assert.equal(advice.executionPolicy.commitView,false);\n"
+          if anchor not in text: raise SystemExit('parent journey test anchor missing')
+          p.write_text(text.replace(anchor,insert+anchor,1))
+          PY
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+      - name: Commit clean candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'chatgpt-agent'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/agent-fix-advisory-task-lock-v3992-1.yml
+          git add functions/_lib/ai/command-interpreter.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'v3.9.90.1：锁定纯顾问讨论不改候选视图 v3992_1 [advisory-lock-fixed]'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
