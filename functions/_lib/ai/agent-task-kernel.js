@@ -1,0 +1,138 @@
+
+export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_0';
+
+export const AGENT_TASKS=Object.freeze([
+  'candidate_discovery','candidate_refinement','fact_rank_lookup',
+  'school_major_history','school_history','fit_assessment',
+  'school_comparison','major_comparison',
+  'background_discovery','background_fit_discovery','school_background','major_background',
+  'evidence_verification','plan_review','general_advice','restore_view','save_family'
+]);
+
+export const CONTEXT_STATES=Object.freeze(['active','remembered','suspended','cleared']);
+
+function clean(value,max=240){return String(value==null?'':value).trim().slice(0,max);}
+function unique(values,max=12){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}
+function has(text,re){return re.test(String(text||''));}
+
+export function agentFocusSeed(seed={},workspace={}){
+  const prior=workspace?.agentContext?.focus||{};
+  return {
+    school:clean(seed.school||prior.school,120),
+    major:clean(seed.major||prior.major,160),
+    schools:unique(seed.schools||prior.schools||[],4),
+    majors:unique(seed.majors||prior.majors||[],6),
+    sourceText:clean(seed.sourceText,360)
+  };
+}
+
+export function contextUsageSeed(seed={},workspace={}){
+  const rememberedScore=Number(workspace?.examContext?.score)||null;
+  return {
+    score:CONTEXT_STATES.includes(seed.score)?seed.score:(rememberedScore?'remembered':'cleared'),
+    region:CONTEXT_STATES.includes(seed.region)?seed.region:'remembered',
+    major:CONTEXT_STATES.includes(seed.major)?seed.major:'remembered',
+    school:CONTEXT_STATES.includes(seed.school)?seed.school:'remembered',
+    bottomLine:CONTEXT_STATES.includes(seed.bottomLine)?seed.bottomLine:'remembered'
+  };
+}
+
+export function explicitScoreUsage(text='',workspace={}){
+  const source=String(text||'');
+  if(has(source,/(不考虑|不用管|先别管|别管|不看|先不看|忽略).{0,8}(我的)?(分数|位次)|单看.{0,10}(学校|专业|方向)|只看.{0,8}(学校|专业)本身/))return'suspended';
+  if(has(source,/(按我|按我的|我这个|我的).{0,6}(分|位次)|我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/))return'active';
+  return workspace?.examContext?.score?'remembered':'cleared';
+}
+
+function looksHistory(source){
+  return /(多少分|最低分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);
+}
+function looksFit(source){
+  return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);
+}
+function looksCompare(source){return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(source);}
+function looksBackground(source){return /(强项|优势专业|专业优势|学科背景|专业背景|学校背景|有背景|底蕴|特色方向|本地强项|省内背景)/.test(source);}
+function looksWorth(source){return /(值得报|值得看|值得研究|优先研究|优先看|适合研究|方向推荐|推荐.{0,6}(专业|方向)|哪些.{0,8}(专业|方向).{0,8}(好|合适|值得))/.test(source);}
+function looksPlanReview(source){return /(方案|选择池|自选|已选|选了些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(source);}
+function looksVerify(source){return /(章程|招生计划|学费|校区|体检|选科|官方|来源|核验|资格|培养方案)/.test(source);}
+function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
+
+export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false}={}){
+  const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
+  const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
+  const shortFollowup=/(呢[？?]?$|这个专业|这些专业|该专业|这个学校|这所学校|该校|换成|再看|那.{0,12}呢)/.test(source);
+  if(looksPlanReview(source))return'plan_review';
+  if(looksRestore(source))return'restore_view';
+  if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
+  if(looksFit(source)&&(school||schools.length))return'fit_assessment';
+  if(looksCompare(source)||compareIntent){
+    if(schools.length>=2||(schools.length===1&&focus.school&&focus.school!==schools[0]))return'school_comparison';
+    if(majors.length>=2||((focus.majors||[]).length>=2&&/(这几个专业|这些专业|刚才几个|它们)/.test(source)))return'major_comparison';
+  }
+  if(looksBackground(source)||(looksWorth(source)&&/(省内|辽宁|专业|方向)/.test(source))){
+    if(school&&/(这所|这个学校|学校|大学|学院|该校).{0,12}(强项|优势|背景)|强项.{0,8}(专业|方向)/.test(source))return'school_background';
+    if(major&&/(哪些学校|哪个学校|省内.{0,8}(学校|高校)|学校.{0,8}(有背景|强)|哪里.{0,8}(强|有背景))/.test(source))return'major_background';
+    if(looksWorth(source)||/(省内|辽宁).{0,12}(专业|方向)/.test(source)){
+      return explicitScoreUsage(source,workspace)==='active'?'background_fit_discovery':'background_discovery';
+    }
+    return'background_discovery';
+  }
+  if(school&&major&&looksHistory(source))return'school_major_history';
+  if(school&&looksHistory(source))return'school_history';
+  // Human follow-ups keep the semantic task, not the old filter shape. Example:
+  // “沈阳工业自动化多少分” -> “辽宁科技大学这个专业呢”.
+  if(shortFollowup&&['school_major_history','school_history'].includes(priorTask)&&school){
+    if(major||focus.major)return'school_major_history';
+    return'school_history';
+  }
+  // “先别管我的分数，就看这个专业/学校本身” suspends score but continues
+  // the current research task instead of falling back to candidate filtering.
+  if(explicitScoreUsage(source,workspace)==='suspended'){
+    if(['school_major_history','school_history','school_background','major_background','background_discovery','school_comparison','major_comparison'].includes(priorTask))return priorTask;
+    if(school&&major)return'school_major_history';
+    if(school)return'school_history';
+  }
+  if(looksVerify(source))return'evidence_verification';
+  if(candidateIntent){
+    const hasActive=Boolean(workspace?.activeView?.score||(workspace?.activeView?.majorKeywords||[]).length||(workspace?.activeView?.schoolNames||[]).length||((workspace?.activeView?.regionKeys||[]).length&&!workspace.activeView.regionKeys.includes('all')));
+    return hasActive?'candidate_refinement':'candidate_discovery';
+  }
+  return'general_advice';
+}
+export function validateAgentTask(value,fallback='general_advice'){
+  const task=clean(value,60);
+  return AGENT_TASKS.includes(task)?task:fallback;
+}
+
+export function taskExecutionPolicy(task,scoreUsage='remembered'){
+  const score=CONTEXT_STATES.includes(scoreUsage)?scoreUsage:'remembered';
+  switch(task){
+    case'candidate_discovery':
+    case'candidate_refinement':
+      return{score:'active',region:'active',major:'active',school:'active',bottomLine:'active',commitView:true};
+    case'fit_assessment':
+      return{score:'active',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
+    case'background_fit_discovery':
+      return{score:'active',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
+    case'school_major_history':
+    case'school_history':
+    case'school_background':
+    case'major_background':
+    case'background_discovery':
+      return{score:score==='suspended'?'suspended':'remembered',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
+    case'fact_rank_lookup':
+      return{score:'active',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
+    default:
+      return{score,region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
+  }
+}
+
+export function agentTaskLabel(task){
+  return ({
+    candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',
+    school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',fit_assessment:'判断当前分数是否够得着',
+    school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',
+    background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',
+    evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'
+  })[task]||'继续讨论';
+}
