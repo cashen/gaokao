@@ -104,7 +104,8 @@ export function deterministicMentorProfile(text = '') {
   const familyResourceSensitivity = explicitResourceSensitivity(source);
   const studyDurationTolerance = explicitStudyDuration(source);
   const riskQuestions = detectRiskQuestions(source);
-  const enabled = Boolean(primaryGoal || priorities.length || riskQuestions.length || familyResourceSensitivity !== 'unspecified' || studyDurationTolerance !== 'unspecified');
+  const nonFeasiblePriorities = priorities.filter(value => value !== 'feasible_set');
+  const enabled = Boolean(primaryGoal || nonFeasiblePriorities.length || riskQuestions.length || familyResourceSensitivity !== 'unspecified' || studyDurationTolerance !== 'unspecified');
   return {
     version: AI_MENTOR_PROFILE_VERSION,
     enabled,
@@ -130,7 +131,8 @@ export function normalizeMentorProfile(candidate = {}, fallback = {}, text = '')
   const familyResourceSensitivity = resourceExplicit !== 'unspecified' ? resourceExplicit : 'unspecified';
   const studyDurationTolerance = studyExplicit !== 'unspecified' ? studyExplicit : 'unspecified';
   const mergedPriorities = priorities.length ? priorities : uniqueAllowed(base.priorities, PRIORITIES, 9);
-  const enabled = Boolean(primaryGoal !== 'undecided' || mergedPriorities.length || riskQuestions.length || familyResourceSensitivity !== 'unspecified' || studyDurationTolerance !== 'unspecified');
+  const nonFeasiblePriorities = mergedPriorities.filter(value => value !== 'feasible_set');
+  const enabled = Boolean(primaryGoal !== 'undecided' || nonFeasiblePriorities.length || riskQuestions.length || familyResourceSensitivity !== 'unspecified' || studyDurationTolerance !== 'unspecified');
   return {
     version: AI_MENTOR_PROFILE_VERSION,
     enabled,
