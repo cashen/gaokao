@@ -1,0 +1,73 @@
+name: Bootstrap AI advisor v3992 candidate
+
+on:
+  push:
+    branches:
+      - agent/ai-human-advisor-kernel-v3992_0
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-human-advisor-kernel-v3992_0
+          fetch-depth: 0
+      - name: Materialize candidate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d .bootstrap-v3992
+          cat .bootstrap-v3992/part* > /tmp/v3992payload.b64
+          echo '0fdd0b3773bb0af703f42f77532b86748d38e8e9c2f7129a7c020afe2cf4806b  /tmp/v3992payload.b64' | sha256sum -c -
+          base64 -d /tmp/v3992payload.b64 > /tmp/v3992payload.tgz
+          echo 'fb076bfbf66393353ac249e26218bbf4bbe321c114f4c5169af04c40036cc946  /tmp/v3992payload.tgz' | sha256sum -c -
+          tar -xzf /tmp/v3992payload.tgz -C .
+          rm -rf .bootstrap-v3992
+          rm -f .github/workflows/bootstrap-ai-v3992.yml
+      - name: Verify v3992 source before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check shared/ai/ai-workspace-model.v3992_0.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check ai/render.v3992_0.js
+          node --check ai/app.v3990_1.js
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git diff --check
+      - name: Guard protected boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          changed="$(git diff --cached --name-only)"
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -Eq '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+            echo 'Protected path changed.' >&2
+            exit 1
+          fi
+          if printf '%s\n' "$changed" | grep -Eq '^ln-rank/data/'; then
+            echo 'Admissions/background data must not be rewritten by this candidate.' >&2
+            exit 1
+          fi
+          test ! -e .bootstrap-v3992
+          test ! -e .github/workflows/bootstrap-ai-v3992.yml
+      - name: Commit clean candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'v3.9.90.1：重构 /ai Human Advisor Agent Kernel v3992_0'
+          git push origin HEAD:agent/ai-human-advisor-kernel-v3992_0
