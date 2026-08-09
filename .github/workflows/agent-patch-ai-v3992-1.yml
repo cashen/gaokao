@@ -35,6 +35,7 @@ jobs:
             fi
           }
           run_named patch-python python .agent/patch-v3992-1.py
+          run_named fix-parent-public-first python .agent/fix-parent-phrases-v3992-1.py
           run_named fix-browser-generated-newlines python .agent/fix-browser-patch-v3992-1.py
           run_named check-school-alias node --check tongxue/data/school-name-resolver-v150.js
           run_named check-command node --check functions/_lib/ai/command-interpreter.js
@@ -60,7 +61,7 @@ jobs:
           fi
           git config user.name 'chatgpt-agent'
           git config user.email 'actions@users.noreply.github.com'
-          git rm .github/workflows/agent-patch-ai-v3992-1.yml .agent/patch-v3992-1.py .agent/fix-browser-patch-v3992-1.py
+          git rm .github/workflows/agent-patch-ai-v3992-1.yml .agent/patch-v3992-1.py .agent/fix-browser-patch-v3992-1.py .agent/fix-parent-phrases-v3992-1.py
           git add -A
           git commit -m 'v3.9.90.1：修复学校查询并补齐真人家长旅程 v3992_1 [agent-patched-v3992-1]'
           git push origin HEAD:agent/ai-school-history-background-links-v3992_1
