@@ -72,7 +72,7 @@ export function resolveSchoolName(query,context){
   const code=normalizeInitialQuery(input);if(code.length<2)return result('not_found',input,null,[],'none');
   const exact=[...(context?.initialExactMap?.get(code)||[])];
   if(exact.length===1)return result('resolved',input,exact[0].officialName,[],'initial_exact',0.995);
-  if(exact.length>1)return result('ambiguous',input,null,exact.map(entry=>initialCandidate(entry,0.995,'initial_exact'),'initial_exact');
+  if(exact.length>1)return result('ambiguous',input,null,exact.map(entry=>initialCandidate(entry,0.995,'initial_exact')),'initial_exact');
   const initials=searchInitialSchoolNames(code,context,limit);if(initials.length)return result('ambiguous',input,null,initials,'initial_prefix');
   return result('not_found',input,null,[],'none');
  }
