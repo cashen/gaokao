@@ -1,0 +1,38 @@
+name: Patch AI Preview smoke temp
+
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+    paths:
+      - .github/workflows/patch-ai-preview-smoke-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - name: Replace one-stage Preview smoke with deterministic bridge verifier
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('.github/workflows/verify-ai-workspace-v3990_1.yml')
+          text = p.read_text()
+          start = text.index('      - name: Verify branch Preview serves exact head SHA and semantic API')
+          end = text.index('      - name: Upload Preview smoke evidence', start)
+          block = '''      - name: Verify branch Preview serves exact head SHA and semantic API\n        shell: bash\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: |\n          set -euo pipefail\n          node tools/verify-ai-preview-deployment-v3990_1.mjs\n          PREVIEW_URL=\"$PREVIEW_URL\" node tools/verify-ai-preview-tool-bridge-v3992_1.mjs | tee /tmp/ai-preview-tool-bridge.json\n          cp /tmp/ai-preview-tool-bridge.json /tmp/ai-preview-smoke.json\n\n'''
+          p.write_text(text[:start] + block + text[end:])
+          PY
+          git rm .github/workflows/patch-ai-preview-smoke-temp.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/verify-ai-workspace-v3990_1.yml
+          git commit -m 'test: execute AI Preview deterministic bridge smoke'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
