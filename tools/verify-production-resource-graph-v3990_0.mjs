@@ -5,6 +5,7 @@ import { PRODUCTION_RESOURCE_VERIFICATION_CONTRACT as CONTRACT } from '../shared
 
 const pagesBase = String(process.env.PAGES_BASE || CONTRACT.pagesBase).replace(/\/$/, '');
 const customBase = String(process.env.CUSTOM_BASE || CONTRACT.customBase).replace(/\/$/, '');
+const sameOriginSurface = pagesBase === customBase;
 const attempts = Math.max(1, Number(process.env.PRODUCTION_RESOURCE_ATTEMPTS || 42));
 const waitMs = Math.max(0, Number(process.env.PRODUCTION_RESOURCE_WAIT_MS || 20000));
 const verifyRuntimeHealth = String(process.env.VERIFY_RUNTIME_HEALTH || 'true') !== 'false';
@@ -342,42 +343,55 @@ async function runAttempt(attempt) {
 
   if (verifyMajorBands && staticFailures.length === 0) {
     pagesMajorBands = await verifyMajorBandsBase('pages', pagesBase, attempt);
-    const customHealthProbe = await request(customBase, CONTRACT.dynamicResources.majorBandsHealth, attempt);
-    if (isCloudflareManagedChallenge(customHealthProbe)) {
-      const boundaryCorroborated = customStaticBoundary.mode === 'cloudflare-managed-challenge'
-        && customStaticBoundary.challengePolicyEnabled;
+    if (sameOriginSurface) {
       customDynamicBoundary = {
-        mode: 'cloudflare-managed-challenge',
-        status: customHealthProbe.status,
-        cfMitigated: customHealthProbe.headers?.['cf-mitigated'] || '',
-        server: customHealthProbe.headers?.server || '',
-        contentType: customHealthProbe.headers?.['content-type'] || '',
-        verified: boundaryCorroborated
+        mode: 'same-origin-as-pages',
+        status: pagesMajorBands.health,
+        verified: pagesMajorBands.failures.length === 0
       };
-      customMajorBands = boundaryCorroborated
-        ? {
-            failures: [],
-            skipped: true,
-            reason: 'custom-domain-cloudflare-managed-challenge',
-            health: customHealthProbe.status,
-            boundary: customHealthProbe.status,
-            pagination: {}
-          }
-        : {
-            failures: ['custom API challenge not corroborated by HTML challenge boundary'],
-            skipped: true,
-            reason: 'unverified-custom-domain-challenge',
-            health: customHealthProbe.status,
-            boundary: customHealthProbe.status,
-            pagination: {}
-          };
+      customMajorBands = {
+        ...pagesMajorBands,
+        failures: [],
+        reusedFrom: 'pages-same-origin'
+      };
     } else {
-      customDynamicBoundary = {
-        mode: 'direct-api-verification',
-        status: customHealthProbe.status,
-        verified: true
-      };
-      customMajorBands = await verifyMajorBandsBase('custom', customBase, attempt);
+      const customHealthProbe = await request(customBase, CONTRACT.dynamicResources.majorBandsHealth, attempt);
+      if (isCloudflareManagedChallenge(customHealthProbe)) {
+        const boundaryCorroborated = customStaticBoundary.mode === 'cloudflare-managed-challenge'
+          && customStaticBoundary.challengePolicyEnabled;
+        customDynamicBoundary = {
+          mode: 'cloudflare-managed-challenge',
+          status: customHealthProbe.status,
+          cfMitigated: customHealthProbe.headers?.['cf-mitigated'] || '',
+          server: customHealthProbe.headers?.server || '',
+          contentType: customHealthProbe.headers?.['content-type'] || '',
+          verified: boundaryCorroborated
+        };
+        customMajorBands = boundaryCorroborated
+          ? {
+              failures: [],
+              skipped: true,
+              reason: 'custom-domain-cloudflare-managed-challenge',
+              health: customHealthProbe.status,
+              boundary: customHealthProbe.status,
+              pagination: {}
+            }
+          : {
+              failures: ['custom API challenge not corroborated by HTML challenge boundary'],
+              skipped: true,
+              reason: 'unverified-custom-domain-challenge',
+              health: customHealthProbe.status,
+              boundary: customHealthProbe.status,
+              pagination: {}
+            };
+      } else {
+        customDynamicBoundary = {
+          mode: 'direct-api-verification',
+          status: customHealthProbe.status,
+          verified: true
+        };
+        customMajorBands = await verifyMajorBandsBase('custom', customBase, attempt);
+      }
     }
   }
 

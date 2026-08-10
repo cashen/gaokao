@@ -19,21 +19,31 @@ const workspace = {
   selectionSnapshot: { version: 'ln-rank-selection-snapshot-v3992_0', items: [] }
 };
 
+const AI_BRIDGE_RECORD_FIELDS = Object.freeze(['id','school','major','score2026','rank2026','schoolCode2026','majorCode2026','displayLocation','city','province','projectLabel','bandKey','band','scoreDelta2026','rankGap2026','is985','is211','isSinoForeign','isHighFee','feeType','natureLabel','tuition']);
+function compactBridgeRecord(record = {}) {
+  const out = {};
+  for (const key of AI_BRIDGE_RECORD_FIELDS) {
+    const value = record?.[key];
+    if (value !== undefined && value !== null && value !== '') out[key] = value;
+  }
+  return out;
+}
 function compactMajorBands(payload = {}) {
   const band = key => ({
     count: Number(payload?.bands?.[key]?.count || 0),
-    records: Array.isArray(payload?.bands?.[key]?.records) ? payload.bands[key].records.slice(0, 24) : []
+    records: Array.isArray(payload?.bands?.[key]?.records) ? payload.bands[key].records.slice(0, 16).map(compactBridgeRecord) : []
   });
-  return {
-    ok: Boolean(payload.ok),
-    meta: payload.meta || {},
-    counts: payload.counts || {},
+  const compact = {
+    ok: Boolean(payload.ok), meta: payload.meta || {}, counts: payload.counts || {},
     bands: { upper: band('upper'), near: band('near'), steady: band('steady') },
     searchAdvices: Array.isArray(payload.searchAdvices) ? payload.searchAdvices.slice(0, 8) : [],
     filterConflicts: Array.isArray(payload.filterConflicts) ? payload.filterConflicts.slice(0, 8) : [],
     keywordWarnings: Array.isArray(payload.keywordWarnings) ? payload.keywordWarnings.slice(0, 8) : [],
     source: payload.source || {}
   };
+  const bytes = Buffer.byteLength(JSON.stringify(compact), 'utf8');
+  assert.ok(bytes <= 80 * 1024, `deterministic bridge payload exceeded 80KiB: ${bytes}`);
+  return compact;
 }
 
 async function postTurn(body) {

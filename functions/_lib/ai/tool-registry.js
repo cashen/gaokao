@@ -1,5 +1,4 @@
 import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';
-import { queryAiSchoolHistory, AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION } from './school-history-adapter.js';
 import {
   loadAiBackgroundSnapshot,
   backgroundDiscoveryFromSnapshot,
@@ -11,7 +10,7 @@ import {
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
-export const AI_SCHOOL_HISTORY_ADAPTER_VERSION=AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION;
+export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_2';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 export const AI_DETERMINISTIC_TOOL_BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v3992_1';
 
@@ -65,6 +64,10 @@ function requestForMajorBands(context,params={}){
 }
 function majorBandsToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function majorBandsClientToolRequest(request){const key=majorBandsToolKey(request);return{kind:'major_bands',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
+function requestForSchoolHistory(context,{school,majorKeyword='',candidateScore=null}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin),normalizedScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('offset','0');url.searchParams.set('limit','100');url.searchParams.set('sort',normalizedScore===null?'score-desc':'position-near');if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedScore!==null)url.searchParams.set('candidateScore',String(normalizedScore));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+function schoolHistoryToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
+function schoolHistoryClientToolRequest(request){const key=schoolHistoryToolKey(request);return{kind:'school_history',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
+function delegatedSchoolHistoryEntry(context,request){const key=schoolHistoryToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolHistoryClientToolRequest(request)};if(entry.kind!=='school_history'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传格式不完整。'};return{ok:true,status,payload};}
 function delegatedMajorBandsEntry(context,request){
   const key=majorBandsToolKey(request),entry=context?.aiDeterministicToolResults?.[key];
   if(!entry)return{ok:false,code:'client_tool_required',toolRequest:majorBandsClientToolRequest(request)};
@@ -109,14 +112,13 @@ function historyRecord(record={}){
 }
 export async function runSchoolMajorHistory(context,{school,majorKeyword=''}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
-  const payload=await queryAiSchoolHistory(context,{school,majorKeyword,candidateScore:null,limit:100});if(!payload.ok)return payload;
-  return{ok:true,school:payload.school||school,majorKeyword:clean(majorKeyword,160),records:(payload.records||[]).map(historyRecord),summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；本轮不使用考生分数筛选。'};
+  const request=requestForSchoolHistory(context,{school,majorKeyword,candidateScore:null}),delegated=delegatedSchoolHistoryEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'学校历史查询失败。',260)};
+  return{ok:true,school:payload?.meta?.school||school,majorKeyword:clean(majorKeyword,160),records:(payload.records||[]).map(historyRecord),summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；学校历史事实由公开 school-majors 确定性接口执行，本轮不使用考生分数筛选。'};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要已知参考分数才能判断当前可达性。'};
-  const payload=await queryAiSchoolHistory(context,{school,majorKeyword,candidateScore:numeric,limit:100});if(!payload.ok)return payload;
-  const records=(payload.records||[]).map(historyRecord),nearest=payload.summary?.nearestRecord||null;
-  return{ok:true,school:payload.school||school,majorKeyword:clean(majorKeyword,160),candidateScore:numeric,candidateRank:payload.meta?.candidateReferenceRank2026||null,records,nearest,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,boundary:'只比较2026辽宁物理类历史投档位置，不预测2027录取结果。'};
+  const request=requestForSchoolHistory(context,{school,majorKeyword,candidateScore:numeric}),delegated=delegatedSchoolHistoryEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'学校历史查询失败。',260)};const records=(payload.records||[]).map(historyRecord),nearest=payload.summary?.nearestRecord||null;
+  return{ok:true,school:payload?.meta?.school||school,majorKeyword:clean(majorKeyword,160),candidateScore:numeric,candidateRank:payload.meta?.candidateReferenceRank2026||null,records,nearest,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,boundary:'只比较2026辽宁物理类历史投档位置，不预测2027录取结果；事实查询在独立确定性 school-majors 请求中执行。'};
 }
 
 export async function runSchoolBackground(context,{school}={}){

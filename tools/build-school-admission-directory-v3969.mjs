@@ -42,14 +42,19 @@ const baseResolver = createSchoolNameResolver(schoolRows);
 const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
 const sourceFiles = [MANIFEST_PATH, DIRECTORY_PATH];
 const records = [];
+const recordChunkFile = new WeakMap();
 
 for (const chunk of manifest.chunks || []) {
-  const file = path.join(ROOT, 'fenxi', chunk.file || chunk.path || '');
+  const chunkFile = String(chunk.file || chunk.path || '').trim();
+  const file = path.join(ROOT, 'fenxi', chunkFile);
   if (!fs.existsSync(file)) throw new Error(`missing admission chunk: ${file}`);
   sourceFiles.push(file);
   const payload = readJson(file);
   const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.records) ? payload.records : []);
-  records.push(...rows);
+  for (const raw of rows) {
+    records.push(raw);
+    if (raw && typeof raw === 'object') recordChunkFile.set(raw, chunkFile);
+  }
 }
 
 const map = new Map();
@@ -75,7 +80,8 @@ for (const raw of records) {
     province: publicEntity?.province || metadata.province || '',
     city: publicEntity?.city || metadata.city || '',
     level: metadata.level || '',
-    recordCount2026: 0
+    recordCount2026: 0,
+    chunkFiles2026: new Set()
   };
   current.admissionNames.add(admissionName);
   current.searchNames.add(officialName);
@@ -83,6 +89,8 @@ for (const raw of records) {
   const codes = normalizeFenxiCodes(raw);
   const schoolCode = String(codes.schoolCode2026 || raw.schoolCode || raw.school_code || '').trim();
   if (schoolCode) current.schoolCodes.add(schoolCode);
+  const chunkFile = recordChunkFile.get(raw);
+  if (chunkFile) current.chunkFiles2026.add(chunkFile);
   current.recordCount2026 += 1;
   map.set(key, current);
 }
@@ -99,6 +107,7 @@ const schools = [...map.values()].map(row => ({
   city: row.city,
   level: row.level,
   recordCount2026: row.recordCount2026,
+  chunkFiles2026: sorted([...row.chunkFiles2026]),
   hasLiaoningPhysics2026Records: true
 })).sort((a, b) => a.officialName.localeCompare(b.officialName, 'zh-CN'));
 
@@ -123,6 +132,8 @@ const output = {
 if (output.schoolCount < 900) throw new Error(`admission school directory unexpectedly small: ${output.schoolCount}`);
 if (output.admissionRecordCount !== Number(manifest.totalRecords || records.length)) throw new Error('admission record count mismatch');
 if (!schools.some(row => row.officialName === '沈阳化工大学')) throw new Error('沈阳化工大学 missing from admission directory');
+const manifestChunkFiles = new Set((manifest.chunks || []).map(chunk => String(chunk.file || chunk.path || '').trim()).filter(Boolean));
+if (schools.some(row => !row.chunkFiles2026.length || row.chunkFiles2026.some(file => !manifestChunkFiles.has(file)))) throw new Error('admission school chunk locator invalid');
 
 fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(output, null, 2)}\n`);
 console.log(JSON.stringify({ ok: true, output: path.relative(ROOT, OUTPUT_PATH), schoolCount: output.schoolCount, admissionRecordCount: output.admissionRecordCount, sourceHash }, null, 2));

@@ -1,0 +1,36 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const tool=fs.readFileSync('functions/_lib/ai/tool-registry.js','utf8');
+const orchestrator=fs.readFileSync('functions/_lib/ai/turn-orchestrator.js','utf8');
+const app=fs.readFileSync('ai/app.v3990_1.js','utf8');
+assert.ok(!/import\s+\{[^}]*queryAiSchoolHistory[^}]*\}\s+from\s+['"]\.\/school-history-adapter\.js['"]/.test(tool),'AI base graph must not statically import school-history-adapter');
+assert.ok(tool.includes("kind:'school_history'"),'school history deterministic tool kind missing');
+assert.ok(tool.includes("new URL('/api/school-majors'"),'school history must reuse public deterministic school-majors endpoint');
+assert.ok(tool.includes("url.searchParams.set('schoolIntent','school')"),'school history exact-school intent missing');
+assert.ok(tool.includes('normalizedScore=normalizeOptionalCandidateScore(candidateScore)'),'school history must preserve null candidate score');
+assert.ok(tool.includes("normalizedScore===null?'score-desc':'position-near'"),'school history null score sort boundary missing');
+assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');
+assert.ok(orchestrator.includes('preserveResolvedFocus=false'),'confirmed-command focus preservation boundary missing');
+assert.ok(orchestrator.includes('deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0'),'deterministic continuation detection missing');
+assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');
+assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
+assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
+assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
+assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
+
+const manifest=JSON.parse(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json','utf8'));
+const directory=JSON.parse(fs.readFileSync('shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json','utf8'));
+const chunkFiles=new Set((manifest.chunks||[]).map(item=>item.file||item.path).filter(Boolean));
+for(const school of directory.schools||[]){assert.ok(Array.isArray(school.chunkFiles2026)&&school.chunkFiles2026.length>0,`chunk locator missing: ${school.officialName}`);for(const file of school.chunkFiles2026)assert.ok(chunkFiles.has(file),`unknown chunk locator ${file}: ${school.officialName}`);}
+const industrial=(directory.schools||[]).find(item=>item.officialName==='沈阳工业大学');
+const aviation=(directory.schools||[]).find(item=>item.officialName==='沈阳航空航天大学');
+const science=(directory.schools||[]).find(item=>item.officialName==='辽宁科技大学');
+assert.ok(industrial?.chunkFiles2026?.length&&aviation?.chunkFiles2026?.length&&science?.chunkFiles2026?.length,'journey school chunk locators missing');
+const provider=fs.readFileSync('functions/_lib/school-query-provider.v3969.js','utf8');
+const manifestLoader=fs.readFileSync('functions/_lib/ln-rank-manifest.js','utf8');
+const endpoint=fs.readFileSync('functions/api/school-majors.js','utf8');
+assert.ok(provider.includes('chunkFiles2026: Object.freeze'),'exact school provider must expose chunk locator');
+assert.ok(manifestLoader.includes('loadMatchingRecordsFromFiles'),'bounded manifest loader missing');
+assert.ok(endpoint.includes('chunkFiles2026.length')&&endpoint.includes('loadMatchingRecordsFromFiles'),'school-majors must use exact-school chunk locator');
+
+console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry']},null,2));
