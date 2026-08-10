@@ -64,6 +64,59 @@ async function resolveExactAdmissionSchool(context, school) {
   return { selection: matches[0], directory };
 }
 
+async function loadExactSchoolRecords(context, school) {
+  const needle = normalizeName(school);
+  if (!needle) return { selection: null, directory: null, manifest: null, records: [], scanned: 0, matchMode: 'empty' };
+
+  // The command interpreter already resolves school aliases through the single
+  // Tongxue resolver truth. For the common canonical-name path, scan the
+  // current admissions manifest directly and do not materialize the larger
+  // admission-directory object in the same AI turn. This keeps the AI Worker
+  // request lean while retaining the current manifest/chunks as the fact truth.
+  const direct = await loadMatchingRecords(
+    context.request,
+    context.env || {},
+    raw => normalizeName(rawSchool(raw)) === needle
+  );
+  if (direct.records.length) {
+    return {
+      selection: { officialName: clean(school, 120), admissionNames: [clean(school, 120)], searchNames: [clean(school, 120)] },
+      directory: null,
+      manifest: direct.manifest,
+      records: direct.records,
+      scanned: direct.scanned,
+      matchMode: 'canonical-direct'
+    };
+  }
+
+  // Rare fallback for cases where the canonical entity maps to a different
+  // admission display name/campus label. This still reuses the existing
+  // directory truth and never creates a second alias or admissions resource.
+  const exact = await resolveExactAdmissionSchool(context, school);
+  const selection = exact?.selection;
+  if (!selection) {
+    return { selection: null, directory: exact?.directory || null, manifest: direct.manifest, records: [], scanned: direct.scanned, matchMode: 'unresolved' };
+  }
+  const acceptedNames = new Set([
+    selection.officialName,
+    ...(selection.admissionNames || []),
+    ...(selection.searchNames || [])
+  ].map(normalizeName).filter(Boolean));
+  const fallback = await loadMatchingRecords(
+    context.request,
+    context.env || {},
+    raw => acceptedNames.has(normalizeName(rawSchool(raw)))
+  );
+  return {
+    selection,
+    directory: exact.directory,
+    manifest: fallback.manifest,
+    records: fallback.records,
+    scanned: direct.scanned + fallback.scanned,
+    matchMode: 'directory-fallback'
+  };
+}
+
 function majorTerms(keyword = '') {
   return [...new Set(clean(keyword, 180).split(/[\/、,，|]+/).map(item => normalizeName(item)).filter(Boolean))];
 }
@@ -136,25 +189,18 @@ function sortHistory(records = [], candidateScore = null) {
 }
 
 export async function queryAiSchoolHistory(context, { school, majorKeyword = '', candidateScore = null, limit = 100 } = {}) {
-  const exact = await resolveExactAdmissionSchool(context, school);
-  const selection = exact?.selection;
+  const loaded = await loadExactSchoolRecords(context, school);
+  const selection = loaded.selection;
   if (!selection) {
     return {
       ok: false,
       code: 'school_query_requires_choice',
-      message: '没有在辽宁2026招生学校目录中精确确认这所学校；请先用统一学校简称解析确认正式校名。'
+      message: '没有在辽宁2026招生事实资源中精确确认这所学校；请先用统一学校简称解析确认正式校名。'
     };
   }
-  const acceptedNames = new Set([
-    selection.officialName,
-    ...(selection.admissionNames || []),
-    ...(selection.searchNames || [])
-  ].map(normalizeName).filter(Boolean));
-  const { manifest, records: exactRaw, scanned } = await loadMatchingRecords(
-    context.request,
-    context.env || {},
-    raw => acceptedNames.has(normalizeName(rawSchool(raw)))
-  );
+  const exactRaw = loaded.records;
+  const manifest = loaded.manifest;
+  const scanned = loaded.scanned;
   if (!exactRaw.length) {
     return { ok: false, code: 'school_history_unavailable', message: '已经确认学校，但没有找到该校的2026辽宁物理类投档记录。' };
   }
@@ -195,8 +241,9 @@ export async function queryAiSchoolHistory(context, { school, majorKeyword = '',
       candidateReferenceRank2026: candidateRank?.rankForGap || null,
       schoolRecordTotal: exactRaw.length,
       filteredTotal: ranked.length,
-      admissionDirectoryVersion: exact.directory?.version || '',
-      admissionDirectorySourceHash: exact.directory?.sourceHash || '',
+      admissionDirectoryVersion: loaded.directory?.version || '',
+      admissionDirectorySourceHash: loaded.directory?.sourceHash || '',
+      matchMode: loaded.matchMode,
       adapterVersion: AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION
     },
     source: {
@@ -205,7 +252,7 @@ export async function queryAiSchoolHistory(context, { school, majorKeyword = '',
       totalRecords: Number(manifest?.totalRecords || scanned || 0),
       rawScanned: scanned,
       exactSchoolRecords: exactRaw.length,
-      mode: 'ai-exact-school-streaming-shared-manifest'
+      mode: loaded.matchMode === 'canonical-direct' ? 'ai-canonical-school-streaming-shared-manifest' : 'ai-directory-fallback-streaming-shared-manifest'
     }
   };
 }
