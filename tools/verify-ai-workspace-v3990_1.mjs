@@ -9,7 +9,7 @@ import {
 import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider,resolveAiSchoolMentions,selectAiSchoolResolverRows } from '../functions/_lib/ai/command-interpreter.js';
 import { AI_AGENT_KERNEL_VERSION,explicitScoreUsage } from '../functions/_lib/ai/agent-task-kernel.js';
 import { deterministicMentorProfile,AI_MENTOR_PROFILE_VERSION,MENTOR_SKILLSET_ATTRIBUTION } from '../functions/_lib/ai/mentor-profile.js';
-import { runRankLookup,runBackgroundDiscovery,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
+import { runRankLookup,normalizeOptionalCandidateScore,AI_TOOL_REGISTRY_VERSION } from '../functions/_lib/ai/tool-registry.js';
 import { DEFAULT_WORKERS_AI_MODEL } from '../functions/_lib/ai-model-resolver.js';
 import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';
 import { starterScenariosForScore } from '../ai/parent-starter.v3992_1.js';
@@ -44,7 +44,13 @@ function testBackgroundTasks(){
   const school=cmd('沈阳工业大学有哪些有背景的强项方向',workspace);assert.equal(school.agentTask,'school_background');assert.equal(school.focus.school,'沈阳工业大学');
   const majorWorkspace=createAiWorkspace({...workspace,agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'自动化'}}});
   const major=cmd('自动化在省内哪些学校有背景',majorWorkspace);assert.equal(major.agentTask,'major_background');assert.equal(major.focus.major,'自动化');
-  const bg=runBackgroundDiscovery({limit:12,regionKeys:['ln']});assert.equal(bg.ok,true);assert.ok(bg.items.length>0);assert.ok(bg.meta?.boundary);assert.ok(String(bg.boundary).includes('未显示'));
+  const registry=read('functions/_lib/ai/tool-registry.js'),adapter=read('functions/_lib/ai/background-resource-adapter.js');
+  assert.equal(registry.includes('academic-background-provider.js'),false,'AI base graph must not statically import academic background provider');
+  assert.equal(registry.includes('local-mainline-kb.js'),false,'AI base graph must not statically import local background KB');
+  assert.ok(registry.includes('loadAiBackgroundSnapshot'));
+  assert.ok(adapter.includes('/ln-rank/data/local-strength/local-strength-index.v3971_2.json'));
+  assert.ok(adapter.includes('context?.env?.ASSETS?.fetch'));
+  assert.equal(adapter.includes('local-mainline-kb.js'),false);
 }
 
 function testExplicitContextPolicy(){
@@ -61,7 +67,6 @@ function testGeoAndDelta(){
   regional=cmd('沈阳和大连一起看',regionWorkspace);assert.equal(regional.changeSet.region.op,'set');assert.deepEqual(regional.changeSet.region.keys,['shenyang','dalian']);
   regional=cmd('沈阳先不限制了',regionWorkspace);assert.equal(regional.changeSet.region.op,'clear');
   const schoolNameRegion=cmd('辽宁科技大学自动化多少分',regionWorkspace);assert.equal(schoolNameRegion.agentTask,'school_major_history');assert.deepEqual(schoolNameRegion.regionKeys,[]);
-
 }
 
 function testWorkspaceMigrationAndMemory(){
@@ -78,7 +83,6 @@ async function testModelCanCorrectTaskNotFacts(){
 }
 
 function testPrivacyBudget(){const huge='备注'.repeat(800),workspace=createAiWorkspace({agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'自动化'}},turnHistory:Array.from({length:80},(_,i)=>({userText:`第${i}轮 ${huge}`,assistantSummary:huge,changeSummary:huge,task:'general_advice',focus:{school:'测试大学'}})),selectionSnapshot:{items:[{id:'a',school:'测试大学',major:'机械',userNote:huge}]},lastResult:{history:{school:'测试大学',majorKeyword:'机械',records:[{id:'x',school:'测试大学',major:'机械',score2026:580,rank2026:20000,payload:huge}]}}});const compact=compactAiWorkspaceForServer(workspace),json=JSON.stringify({workspace:compact,input:'继续'});assert.ok(Buffer.byteLength(json,'utf8')<128*1024);assert.equal(json.includes('userNote'),false);assert.equal(json.includes('payload'),false);assert.ok(compact.recentTurns.length<=10);}
-
 
 async function testParentHumanJourneysV3992_1(){
   const fakeResolver={resolve(query){const map={沈航:'沈阳航空航天大学',辽科大:'辽宁科技大学'},school=map[query]||'';return school?{status:'resolved',resolvedName:school,candidates:[]}:{status:'not_found',candidates:[]};}};
@@ -97,11 +101,11 @@ async function testParentHumanJourneysV3992_1(){
 }
 
 function testAiSchoolResolverBoundary(){const source=read('functions/_lib/ai/command-interpreter.js'),stable=read('tongxue/data/school-name-resolver-v150.js');assert.ok(source.includes('createSchoolNameResolver'));assert.ok(source.includes('SCHOOL_NAME_DATA_URL'));assert.ok(source.includes('env?.ASSETS?.fetch'));assert.ok(source.includes("parts.level!=='本科'"));assert.ok(source.includes('resolveAiSchoolMentions'));assert.equal(source.includes('SCHOOL_PROFILE_ROWS'),false);assert.equal(source.includes('school-query-provider.v3969'),false);assert.equal(stable.includes('explicitSchoolAliasesInText'),false);}
-
 function testSchoolHistoryStreamingBoundary(){const api=read('functions/api/school-majors.js'),manifest=read('functions/_lib/ln-rank-manifest.js');assert.ok(api.includes('loadMatchingRecords'));assert.equal(api.includes('loadAllRecords(context.request'),false);assert.ok(api.indexOf('getAdmissionSchoolDirectoryMeta')<api.indexOf('loadMatchingRecords('),'school identity must resolve before rank chunks are scanned');assert.ok(manifest.includes('export async function loadMatchingRecords'));assert.ok(manifest.includes('for(const chunk of chunks)'));assert.ok(manifest.includes('env?.ASSETS?.fetch'));}
 function testCompactAliasResolverRows(){const noise=Array.from({length:600},(_,i)=>[`测试大学${i}`,'测试省','测试市','本科',[`csdx${i}`]]),rows=[...noise,['沈阳航空航天大学','辽宁省','沈阳市','本科',['syhkhtdx']],['辽宁科技大学','辽宁省','鞍山市','本科',['lnkjdx']],['辽宁石油化工大学','辽宁省','抚顺市','本科',['lnsyhgdx']]];const shen=selectAiSchoolResolverRows(rows,['沈航']);assert.ok(shen.length<=220);assert.ok(shen.some(row=>row[0]==='沈阳航空航天大学'));assert.ok(shen.length<rows.length);const liao=selectAiSchoolResolverRows(rows,['辽科大']);assert.ok(liao.some(row=>row[0]==='辽宁科技大学'));const petro=selectAiSchoolResolverRows(rows,['辽石化']);assert.ok(petro.some(row=>row[0]==='辽宁石油化工大学'));const source=read('functions/_lib/ai/command-interpreter.js');assert.ok(source.includes('createSchoolNameResolver(selected)'));assert.equal(source.includes('createSchoolNameResolver(rows);'),false,'AI must not build a 2952-school resolver');}
 function testExactSchoolQueryLightPath(){const api=read('functions/api/school-majors.js'),provider=read('functions/_lib/school-query-provider.v3969.js');assert.ok(api.includes('resolveExactAdmissionSchool'));assert.ok(api.indexOf('resolveExactAdmissionSchool')<api.indexOf('resolveAdmissionSchoolQuery(context.request'),'exact school path must precede fuzzy resolver');assert.ok(provider.includes('async function loadAdmissionDirectory'));assert.ok(provider.includes('export async function resolveExactAdmissionSchool'));const metaStart=provider.indexOf('export async function getAdmissionSchoolDirectoryMeta');const metaEnd=provider.indexOf('export function releaseSchoolQueryProviderCache');assert.ok(metaStart>=0&&metaEnd>metaStart);assert.equal(provider.slice(metaStart,metaEnd).includes('loadResources(request)'),false,'directory metadata must not build 2952-school resolver');}
-function testAiSchoolQueryCacheReleaseBoundary(){const registry=read('functions/_lib/ai/tool-registry.js'),provider=read('functions/_lib/school-query-provider.v3969.js');assert.ok(registry.includes("releaseSchoolQueryProviderCache"));assert.ok(registry.includes("finally{releaseSchoolQueryProviderCache();}"));assert.ok(provider.includes('export function releaseSchoolQueryProviderCache()'));assert.ok(provider.includes('clearSchoolQueryProviderCacheForTest()'));}
+function testAiSchoolHistoryAdapterBoundary(){const registry=read('functions/_lib/ai/tool-registry.js'),adapter=read('functions/_lib/ai/school-history-adapter.js');assert.equal(registry.includes('onRequest as schoolMajorsOnRequest'),false,'AI base graph must not statically carry public school-majors endpoint');assert.equal(registry.includes('school-query-provider.v3969'),false,'AI base graph must not statically carry full school resolver provider');assert.ok(registry.includes('queryAiSchoolHistory'));assert.ok(adapter.includes('loadMatchingRecords'));assert.ok(adapter.includes('liaoning-2026-admission-school-directory.v3969_0.json'));assert.ok(adapter.includes('context?.env?.ASSETS?.fetch'));assert.equal(adapter.includes('createSchoolNameResolver'),false,'AI history adapter must rely on upstream canonical school resolution instead of copying alias logic');}
+function testAiBackgroundAsyncBoundary(){const registry=read('functions/_lib/ai/tool-registry.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js');assert.equal(registry.includes('academic-background-provider.js'),false);assert.equal(registry.includes('local-mainline-kb.js'),false);assert.ok(orchestrator.includes('await runBackgroundDiscovery(context'));assert.ok(orchestrator.includes('await runSchoolBackground(context'));assert.ok(orchestrator.includes('await runMajorBackground(context'));}
 function testAiMajorBandsResourceBoundary(){const source=read('functions/_lib/ai/tool-registry.js'),majorBands=read('functions/api/major-bands.js');assert.ok(source.includes("onRequest as majorBandsOnRequest"));assert.ok(source.includes("majorBandsOnRequest({...context,request})"));assert.ok(source.includes("new URL('/api/major-bands',sourceUrl.origin)"));assert.equal(majorBands.includes("AI_TOOL_REGISTRY_VERSION"),false);}
 
 function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.ok,true);assert.equal(rank.rankEnd,14235);const profile=deterministicMentorProfile('普通家庭，想稳定就业，不想读太久');assert.equal(profile.enabled,true);assert.equal(MENTOR_SKILLSET_ATTRIBUTION.repository,'cashen/zhangxuefeng-skillset');assert.equal(MENTOR_SKILLSET_ATTRIBUTION.commit,'9a3306d84ea38874bbdbb9e6e62079ba1409e97e');assert.equal(MENTOR_SKILLSET_ATTRIBUTION.knowledgeLicense,'CC BY 4.0');assert.equal(AI_TOOL_REGISTRY_VERSION,'ai-tool-registry-v3992_0');
@@ -110,8 +114,5 @@ function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.o
 
 assert.equal(AI_WORKSPACE_CONTRACT_VERSION,'ai-workspace-contract-v3992_0');assert.equal(AI_ACTIVE_VIEW_VERSION,'ai-active-view-v3992_0');assert.equal(AI_AGENT_KERNEL_VERSION,'ai-human-advisor-kernel-v3992_0');
 testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();await testParentHumanJourneysV3992_1();testAiSchoolResolverBoundary();testSchoolHistoryStreamingBoundary();
-testCompactAliasResolverRows();
-testExactSchoolQueryLightPath();
-testAiSchoolQueryCacheReleaseBoundary();
-testAiMajorBandsResourceBoundary();testFactsSkillAndUi();
-console.log(JSON.stringify({ok:true,version:'v3992_0',checks:['candidate-patch-journey','task-switch-memory-not-execution','school-major-history-followup-reference','score-suspend-reactivate','background-discovery','background-fit-discovery','focus-trace','workspace-v3991-migration','model-task-correction-with-fact-isolation','privacy-budget','loading-source','skill-attribution','rank-fact']},null,2));
+testCompactAliasResolverRows();testExactSchoolQueryLightPath();testAiSchoolHistoryAdapterBoundary();testAiBackgroundAsyncBoundary();testAiMajorBandsResourceBoundary();testFactsSkillAndUi();
+console.log(JSON.stringify({ok:true,version:'v3992_0',checks:['candidate-patch-journey','task-switch-memory-not-execution','school-major-history-followup-reference','score-suspend-reactivate','background-discovery-lazy-static-resource','background-fit-discovery','ai-school-history-light-adapter','focus-trace','workspace-v3991-migration','model-task-correction-with-fact-isolation','privacy-budget','loading-source','skill-attribution','rank-fact']},null,2));
