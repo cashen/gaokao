@@ -1,0 +1,129 @@
+name: Verify major-bands Preview concurrency v3992_4
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'functions/_lib/major-bands-static-provider.js'
+      - 'functions/_lib/major-bands-rank-*.v3990_1.js'
+      - 'functions/api/major-bands.js'
+      - 'tools/verify-major-bands-rank-native-scan-v3990_1.mjs'
+      - 'tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
+      - '.github/workflows/verify-major-bands-preview-concurrency-v3992_4.yml'
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce protected paths and native-scan truth contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD | tee /tmp/major-bands-preview-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/major-bands-preview-files.txt; then
+            echo 'Protected path touched by concurrency fix.' >&2
+            exit 1
+          fi
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+  preview-concurrency:
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve exact-SHA Cloudflare branch Preview
+        id: resolve-preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch_preview=''
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 80); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo "Cloudflare exact-SHA Check failed for ${EXPECTED_SHA}." >&2
+              exit 2
+            fi
+            if [ "$conclusion" = success ]; then
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              comments="$(curl -fsSL --max-time 20 \
+                -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+              cloudflare_body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+              if grep -q "$short_sha" <<<"$cloudflare_body"; then
+                branch_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$cloudflare_body" | tail -n1 || true)"
+              fi
+              if [ -n "$immutable_preview" ] && [ -n "$branch_preview" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          test -n "$branch_preview"
+          test "$immutable_preview" != "$branch_preview"
+          echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
+          echo "Exact deployment: $immutable_preview"
+          echo "Functions branch preview: $branch_preview"
+      - name: Verify exact-SHA Preview rank-kernel concurrency budget
+        env:
+          TARGET_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          CONCURRENCY_LEVELS: 1,5,10,25,50
+          CONCURRENCY_WAVES: '2'
+          COLD_HARD_LIMIT_MS: '15000'
+          P95_LIMIT_MS: '8000'
+          P99_LIMIT_MS: '15000'
+          HARD_LIMIT_MS: '25000'
+          MAJOR_BANDS_CONCURRENCY_EVIDENCE: /tmp/v3990-1-preview-major-bands-concurrency.json
+        run: node tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+      - name: Upload Preview concurrency evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3990-1-preview-major-bands-concurrency
+          path: /tmp/v3990-1-preview-major-bands-concurrency.json
+          if-no-files-found: warn
+          retention-days: 7
