@@ -1,0 +1,27 @@
+name: Verify school-history stream boundary temp
+on:
+  push:
+    branches:
+      - agent/ai-workspace-request-budget-v3992_3
+    paths:
+      - functions/_lib/ln-rank-manifest.js
+      - tools/verify-ai-school-history-bridge-v3992_2.mjs
+      - .github/workflows/verify-school-history-stream-temp.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-workspace-request-budget-v3992_3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and streaming truth-set verification
+        run: |
+          node --check functions/_lib/ln-rank-manifest.js
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
