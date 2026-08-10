@@ -1,6 +1,8 @@
 const TTL = 5 * 60 * 1000;
 let manifestCache = null;
 const chunkCache = new Map();
+const RECORD_START = '{"schoolCode2026":';
+const SCHOOL_FIELD = '"school":';
 
 function fresh(entry) {
   return entry && Date.now() - entry.time < TTL;
@@ -45,6 +47,49 @@ function findRecordsArrayStart(text) {
   if (first >= 0 && text[first] === '[') return first;
   const match = /"records"\s*:\s*\[/.exec(text);
   return match ? match.index + match[0].lastIndexOf('[') : -1;
+}
+
+function countToken(text, token) {
+  let count = 0;
+  let offset = 0;
+  while (true) {
+    const index = text.indexOf(token, offset);
+    if (index < 0) break;
+    count += 1;
+    offset = index + token.length;
+  }
+  return count;
+}
+
+function exactSchoolRowsFromText(text, schoolNames, expectedRecordCount, predicate) {
+  const expected = Number(expectedRecordCount || 0);
+  if (!expected || countToken(text, RECORD_START) !== expected || countToken(text, SCHOOL_FIELD) !== expected) return null;
+  const arrayEnd = text.lastIndexOf(']}');
+  if (arrayEnd < 0) return null;
+
+  const starts = new Set();
+  for (const schoolName of [...new Set((Array.isArray(schoolNames) ? schoolNames : []).map(value => String(value || '').trim()).filter(Boolean))]) {
+    const marker = `${SCHOOL_FIELD}${JSON.stringify(schoolName)}`;
+    let offset = 0;
+    while (true) {
+      const index = text.indexOf(marker, offset);
+      if (index < 0) break;
+      const start = text.lastIndexOf(RECORD_START, index);
+      if (start < 0) return null;
+      starts.add(start);
+      offset = index + marker.length;
+    }
+  }
+
+  const records = [];
+  for (const start of [...starts].sort((a, b) => a - b)) {
+    const next = text.indexOf(RECORD_START, start + RECORD_START.length);
+    const end = next >= 0 ? next - 1 : arrayEnd;
+    if (end <= start) return null;
+    const raw = JSON.parse(text.slice(start, end));
+    if (predicate(raw)) records.push(raw);
+  }
+  return { records, scanned: expected, mode: 'exact-school-native-text-scan' };
 }
 
 async function streamMatchingRows(response, predicate) {
@@ -186,4 +231,25 @@ export async function loadMatchingRecordsFromFiles(request, env, files, predicat
     records.push(...result.records);
   }
   return { manifest, records, scanned, chunkFiles: requested };
+}
+
+export async function loadExactSchoolRecordsFromFiles(request, env, files, schoolNames, predicate) {
+  const manifest = await loadManifest(request, env);
+  const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+  const byFile = new Map(chunks.map(chunk => [chunk.file || chunk.path, chunk]));
+  const requested = [...new Set((Array.isArray(files) ? files : []).filter(file => byFile.has(file)))];
+  const records = [];
+  let scanned = 0;
+  const modes = [];
+  for (const file of requested) {
+    const chunk = byFile.get(file);
+    const response = await fetchAssetResponse(request, env, file);
+    const text = await response.text();
+    let result = exactSchoolRowsFromText(text, schoolNames, chunk?.recordCount, predicate);
+    if (!result) result = await streamMatchingRows(new Response(text, { headers: { 'content-type': 'application/json' } }), predicate);
+    scanned += result.scanned;
+    records.push(...result.records);
+    modes.push(result.mode);
+  }
+  return { manifest, records, scanned, chunkFiles: requested, modes };
 }
