@@ -1,17 +1,19 @@
-
 import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';
 import { onRequest as majorBandsOnRequest } from '../../api/major-bands.js';
-import { onRequest as schoolMajorsOnRequest } from '../../api/school-majors.js';
-import { releaseSchoolQueryProviderCache } from '../school-query-provider.v3969.js';
+import { queryAiSchoolHistory, AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION } from './school-history-adapter.js';
 import {
-  getAcademicBackgroundSchoolSummaries,getAcademicBackgroundMajorSummaries,
-  matchAcademicBackground,presentAcademicBackground,getAcademicBackgroundMeta
-} from '../academic-background-provider.js';
+  loadAiBackgroundSnapshot,
+  backgroundDiscoveryFromSnapshot,
+  schoolBackgroundFromSnapshot,
+  majorBackgroundFromSnapshot,
+  matchCandidateBackgrounds,
+  AI_BACKGROUND_RESOURCE_ADAPTER_VERSION
+} from './background-resource-adapter.js';
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
-export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-adapter-v3992_0';
-export const AI_BACKGROUND_ADAPTER_VERSION='ai-background-adapter-v3992_0';
+export const AI_SCHOOL_HISTORY_ADAPTER_VERSION=AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION;
+export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 
 export const AI_TOOL_REGISTRY=Object.freeze({
   rank_lookup:Object.freeze({name:'rank_lookup',deterministic:true,maxConcurrency:1}),
@@ -31,7 +33,9 @@ function unique(values,max=12){return [...new Set((Array.isArray(values)?values:
 function normalizeText(value){return clean(value,200).normalize('NFKC').toLowerCase().replace(/[（【\[]/g,'(').replace(/[）】\]]/g,')').replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g,'');}
 
 function normalizeRegionKeys(values=[]){
-  const source=unique(values,8);if(!source.length||source.includes('all'))return['all'];if(source.includes('outside'))return['outside'];
+  const source=unique(values,8);
+  if(!source.length||source.includes('all'))return['all'];
+  if(source.includes('outside'))return['outside'];
   return unique(source.map(key=>key==='ln'?'province:辽宁':key),4);
 }
 function constraintValues(workspace={},key){const item=(workspace?.hardConstraints||[]).find(entry=>entry?.key===key);return unique(item?.values||[],12);}
@@ -39,12 +43,14 @@ export function resolveRegionExecution(view={},workspace={}){
   const familyInclude=constraintValues(workspace,'regionInclude'),familyExclude=constraintValues(workspace,'regionExclude'),active=normalizeRegionKeys(view.regionKeys||[]);
   let include=active.length?active:(familyInclude.length?normalizeRegionKeys(familyInclude):['all']);const exclude=unique(familyExclude,12);
   if(include.includes('all')&&exclude.length)return{includeKeys:['all'],excludeKeys:exclude,exact:false,warning:'家庭存在长期排除地区，但当前观察范围是全国；为避免用不完整集合做减法，本轮不自动删除，待用户明确观察范围后再执行。'};
-  const remaining=include.filter(key=>!exclude.includes(key));if(!remaining.length)return{includeKeys:include,excludeKeys:exclude,exact:false,warning:'当前观察范围与家庭长期排除条件冲突，本轮不执行候选删除。'};
+  const remaining=include.filter(key=>!exclude.includes(key));
+  if(!remaining.length)return{includeKeys:include,excludeKeys:exclude,exact:false,warning:'当前观察范围与家庭长期排除条件冲突，本轮不执行候选删除。'};
   return{includeKeys:normalizeRegionKeys(remaining),excludeKeys:exclude,exact:true,warning:''};
 }
 
 export function runRankLookup(score){
-  const numeric=Math.round(Number(score));if(!Number.isFinite(numeric)||numeric<150||numeric>750)return{ok:false,code:'invalid_score',message:'参考分数需在150—750之间。'};
+  const numeric=Math.round(Number(score));
+  if(!Number.isFinite(numeric)||numeric<150||numeric>750)return{ok:false,code:'invalid_score',message:'参考分数需在150—750之间。'};
   const row=lookupScoreRank({year:2026,region:'ln',subject:'physics',score:numeric}),meta=getRankTableMeta({year:2026,region:'ln',subject:'physics'})||{};
   if(!row)return{ok:false,code:'rank_unavailable',score:numeric,message:'2026辽宁物理类成绩统计表没有可识别的对应位置。'};
   return{ok:true,score:numeric,rankStart:Number(row.rankStart),rankEnd:Number(row.rankEnd),rankForGap:Number(row.rankForGap),sameCount:Number(row.sameCount||0),emptyScore:Boolean(row.emptyScore),source:{level:'A',sourceName:'辽宁省2026年普通高校招生考试成绩统计表',sourceUrl:'https://jyt.ln.gov.cn/jyt/jyzx/jyyw/2026063014014729932/index.shtml',dataYear:2026,internalSourceSha256:clean(meta.sourceSha256,100)}};
@@ -65,14 +71,18 @@ async function executeMajorBandsOnce(context,params){
 }
 function mergeCandidateExecutions(executions=[]){
   const successful=executions.filter(x=>x?.ok),byId=new Map(),counts={upper:0,near:0,steady:0,total:0},warnings=[];
-  for(const execution of successful){counts.upper+=Number(execution.counts?.upper||0);counts.near+=Number(execution.counts?.near||0);counts.steady+=Number(execution.counts?.steady||0);
+  for(const execution of successful){
+    counts.upper+=Number(execution.counts?.upper||0);counts.near+=Number(execution.counts?.near||0);counts.steady+=Number(execution.counts?.steady||0);
     for(const record of execution.records||[]){const key=clean(record?.id,220)||`${record?.school||''}|${record?.major||''}`;if(key&&!byId.has(key))byId.set(key,record);}
     for(const advice of execution.searchAdvices||[]){const message=clean(advice?.message||advice,260);if(message&&!warnings.includes(message))warnings.push(message);}
   }
   counts.total=counts.upper+counts.near+counts.steady;
   return{ok:successful.length>0,regionsQueried:successful.map(x=>x.region),counts,records:[...byId.values()].slice(0,48),previewOnly:true,previewLimit:48,warnings:warnings.slice(0,8),failures:executions.filter(x=>!x?.ok).map(x=>({status:x?.status||0,message:x?.message||'查询失败'})),source:successful[0]?.source||{},meta:successful[0]?.meta||null,adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
-function platformUpgradePreview(records=[],target=''){const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});return{target:tier,records:matches.slice(0,16),countInPreview:matches.length,previewOnly:true,complete:false,boundary:'只检查当前候选预览中的211/985中外或高收费记录；预览未发现不能推出完整集合没有。'};}
+function platformUpgradePreview(records=[],target=''){
+  const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});
+  return{target:tier,records:matches.slice(0,16),countInPreview:matches.length,previewOnly:true,complete:false,boundary:'只检查当前候选预览中的211/985中外或高收费记录；预览未发现不能推出完整集合没有。'};
+}
 export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
@@ -81,71 +91,41 @@ export async function runMajorBandSearch(context,{score,majorKeywords=[],regionK
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
-function schoolMajorsRequest(context,{school,majorKeyword='',candidateScore=null,limit=100}={}){
-  const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin),normalizedCandidateScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('limit',String(Math.max(20,Math.min(100,Number(limit||100)))));
-  if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedCandidateScore!==null)url.searchParams.set('candidateScore',String(normalizedCandidateScore));
-  url.searchParams.set('sort',normalizedCandidateScore!==null?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
-}
-async function schoolMajorsQuery(context,params){
-  try{const response=await schoolMajorsOnRequest({...context,request:schoolMajorsRequest(context,params)});let payload=null;try{payload=await response.json();}catch{}
-    if(!response.ok||!payload?.ok)return{ok:false,status:response.status,code:payload?.code||'school_history_failed',message:clean(payload?.message||payload?.userMessage||'学校专业记录查询失败。',300),candidates:payload?.candidates||[]};
-    return payload;
-  }finally{releaseSchoolQueryProviderCache();}
-}
 function historyRecord(record={}){
   return{id:clean(record.id,220),school:clean(record.school||record.schoolName,100),major:clean(record.major||record.majorName,160),score2026:Number(record.score2026??record.score)||null,rank2026:Number(record.rank2026??record.rank)||null,schoolCode2026:clean(record.schoolCode2026,40),majorCode2026:clean(record.majorCode2026,40),projectLabel:clean(record.projectLabel,80),displayLocation:clean(record.displayLocation||record.city,80),bandKey:clean(record.bandKey,30),scoreDelta:Number.isFinite(Number(record.scoreDelta2026??record.scoreDelta))?Number(record.scoreDelta2026??record.scoreDelta):null,rankGap:Number.isFinite(Number(record.rankGap2026??record.rankGap))?Number(record.rankGap2026??record.rankGap):null};
 }
 export async function runSchoolMajorHistory(context,{school,majorKeyword=''}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
-  const payload=await schoolMajorsQuery(context,{school,majorKeyword,candidateScore:null,limit:100});if(!payload.ok)return payload;
-  const records=(payload.records||[]).map(historyRecord);
-  return{ok:true,school:payload.meta?.school||school,majorKeyword:clean(majorKeyword,160),records,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；本轮不使用考生分数筛选。'};
+  const payload=await queryAiSchoolHistory(context,{school,majorKeyword,candidateScore:null,limit:100});if(!payload.ok)return payload;
+  return{ok:true,school:payload.school||school,majorKeyword:clean(majorKeyword,160),records:(payload.records||[]).map(historyRecord),summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；本轮不使用考生分数筛选。'};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要已知参考分数才能判断当前可达性。'};
-  const payload=await schoolMajorsQuery(context,{school,majorKeyword,candidateScore:numeric,limit:100});if(!payload.ok)return payload;
+  const payload=await queryAiSchoolHistory(context,{school,majorKeyword,candidateScore:numeric,limit:100});if(!payload.ok)return payload;
   const records=(payload.records||[]).map(historyRecord),nearest=payload.summary?.nearestRecord||null;
-  return{ok:true,school:payload.meta?.school||school,majorKeyword:clean(majorKeyword,160),candidateScore:numeric,candidateRank:payload.meta?.candidateReferenceRank2026||null,records,nearest,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,boundary:'只比较2026辽宁物理类历史投档位置，不预测2027录取结果。'};
+  return{ok:true,school:payload.school||school,majorKeyword:clean(majorKeyword,160),candidateScore:numeric,candidateRank:payload.meta?.candidateReferenceRank2026||null,records,nearest,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,boundary:'只比较2026辽宁物理类历史投档位置，不预测2027录取结果。'};
 }
 
-function summaryScore(item={}){return Number(item.primaryCount||0)*5+Number(item.secondaryCount||0)*2+Number(item.schoolCount||0);}
-export function runSchoolBackground({school}={}){
+export async function runSchoolBackground(context,{school}={}){
   const needle=normalizeText(school);if(!needle)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
-  const items=getAcademicBackgroundSchoolSummaries('liaoning'),matches=items.filter(x=>normalizeText(x.school)===needle||normalizeText(x.school).includes(needle)||needle.includes(normalizeText(x.school)));
-  if(!matches.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景知识库没有足够证据把这所学校标成具体强项；未显示不代表学校没有优势。',school};
-  return{ok:true,school:matches[0].school,items:matches.slice(0,4),meta:getAcademicBackgroundMeta('liaoning'),adapterVersion:AI_BACKGROUND_ADAPTER_VERSION};
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=schoolBackgroundFromSnapshot(snapshot,school);
+  if(!resolved.items.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景静态证据资源没有足够证据把这所学校标成具体强项；未显示不代表学校没有优势。',school};
+  return{ok:true,school:clean(school,120),items:resolved.items.slice(0,4),meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'背景方向来自已发布静态证据资源；不改变当前招生事实，也不把未显示方向解释为弱项。'};
 }
-export function runMajorBackground({major}={}){
+export async function runMajorBackground(context,{major}={}){
   const needle=normalizeText(major);if(!needle)return{ok:false,code:'major_required',message:'需要先明确一个专业或方向。'};
-  const items=getAcademicBackgroundMajorSummaries('liaoning'),matches=items.filter(x=>normalizeText(x.major).includes(needle)||needle.includes(normalizeText(x.major))).sort((a,b)=>summaryScore(b)-summaryScore(a));
-  if(!matches.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景知识库没有足够证据把这个方向映射到具体学校；未显示不代表没有优势学校。',major};
-  return{ok:true,major,items:matches.slice(0,12),meta:getAcademicBackgroundMeta('liaoning'),adapterVersion:AI_BACKGROUND_ADAPTER_VERSION};
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=majorBackgroundFromSnapshot(snapshot,major);
+  if(!resolved.items.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景静态证据资源没有足够证据把这个方向映射到具体学校；未显示不代表没有优势学校。',major};
+  return{ok:true,major:clean(major,160),items:resolved.items.slice(0,12),meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'只展示已发布静态资源中通过背景证据门禁的方向；未显示不代表其他学校没有优势。'};
 }
-function backgroundRegionMatch(schoolSummary={},regionKeys=['ln']){
-  const keys=normalizeRegionKeys(regionKeys);if(keys.includes('all')||keys.includes('province:辽宁'))return true;
-  const city=String(schoolSummary.city||'');
-  if(keys.includes('shenyang'))return city.includes('沈阳');
-  if(keys.includes('dalian'))return city.includes('大连');
-  if(keys.includes('ln-other'))return Boolean(city)&&!city.includes('沈阳')&&!city.includes('大连');
-  return true;
-}
-export function runBackgroundDiscovery({limit=12,regionKeys=['ln']}={}){
-  const schoolSummaries=getAcademicBackgroundSchoolSummaries('liaoning'),schoolByName=new Map(schoolSummaries.map(x=>[normalizeText(x.school),x]));
-  const keys=normalizeRegionKeys(regionKeys),items=[];
-  for(const source of getAcademicBackgroundMajorSummaries('liaoning')){
-    const sourceSchools=Array.isArray(source.schools)?source.schools:[];
-    const filteredSchools=sourceSchools.filter(entry=>{const name=normalizeText(entry?.school||entry?.name);const summary=schoolByName.get(name);return summary?backgroundRegionMatch(summary,keys):keys.includes('all')||keys.includes('province:辽宁');});
-    if(sourceSchools.length&&filteredSchools.length===0)continue;
-    const item={...source,schools:sourceSchools.length?filteredSchools:sourceSchools,schoolCount:sourceSchools.length?filteredSchools.length:source.schoolCount,evidenceScore:summaryScore({...source,schoolCount:sourceSchools.length?filteredSchools.length:source.schoolCount})};
-    if(Number(item.schoolCount||0)>0)items.push(item);
-  }
-  items.sort((a,b)=>b.evidenceScore-a.evidenceScore||String(a.major).localeCompare(String(b.major),'zh-CN'));
-  return{ok:true,scope:'liaoning',regionKeys:keys,items:items.slice(0,Math.max(6,Math.min(20,Number(limit||12)))),totalWithEvidence:items.length,meta:getAcademicBackgroundMeta('liaoning'),adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这里只列当前地域内、背景证据门禁通过的方向；未显示不代表其他专业不值得报，也不直接等于就业优劣。'};
+export async function runBackgroundDiscovery(context,{limit=12,regionKeys=['ln']}={}){
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=backgroundDiscoveryFromSnapshot(snapshot,{limit,regionKeys:normalizeRegionKeys(regionKeys)});
+  return{ok:true,scope:'liaoning',regionKeys:normalizeRegionKeys(regionKeys),items:resolved.items,totalWithEvidence:resolved.totalWithEvidence,meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这里只列当前地域内、已发布背景静态资源中证据门禁通过的方向；未显示不代表其他专业不值得报，也不直接等于就业优劣。'};
 }
 export async function runBackgroundFitDiscovery(context,{score,bottomLineMode='all',regionKeys=['ln']}={}){
   const candidates=await runMajorBandSearch(context,{score,majorKeywords:[],regionKeys,bottomLineMode});if(!candidates.ok)return{ok:false,code:'candidate_search_failed',message:candidates.message||'当前分数候选没有读取成功。'};
-  const matched=[];for(const record of candidates.records||[]){const hit=matchAcademicBackground(record,'liaoning');if(!hit)continue;matched.push({record:historyRecord(record),background:presentAcademicBackground(hit)});}
-  return{ok:true,score:Number(score),regionKeys:normalizeRegionKeys(regionKeys),items:matched.slice(0,24),candidateCounts:candidates.counts,previewOnly:true,meta:getAcademicBackgroundMeta('liaoning'),adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这是当前分数与地域窗口的代表性预览和背景证据交集，不是全量“最佳专业”排名。'};
+  const snapshot=await loadAiBackgroundSnapshot(context),matched=matchCandidateBackgrounds(snapshot,candidates.records||[]);
+  return{ok:true,score:Number(score),regionKeys:normalizeRegionKeys(regionKeys),items:matched.items.slice(0,24).map(item=>({record:historyRecord(item.record),background:item.background})),candidateCounts:candidates.counts,previewOnly:true,meta:matched.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这是当前分数与地域窗口的代表性预览和已发布背景证据交集，不是全量“最佳专业”排名；候选事实仍来自当前确定性招生资源。'};
 }
 
 function uniqueField(records,field,max=80){return unique((records||[]).map(item=>item?.[field]).filter(Boolean),max);}
