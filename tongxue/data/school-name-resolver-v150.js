@@ -10,6 +10,7 @@ const GENERIC_SHORTCUTS=new Map([
 const REGION_ABBR=new Map(Object.entries({北京:'北',上海:'上',天津:'天',重庆:'重',河北:'冀',山西:'晋',辽宁:'辽',吉林:'吉',黑龙江:'黑',江苏:'苏',浙江:'浙',安徽:'皖',福建:'闽',江西:'赣',山东:'鲁',河南:'豫',湖北:'鄂',湖南:'湘',广东:'粤',广西:'桂',海南:'琼',四川:'川',贵州:'贵',云南:'云',陕西:'陕',甘肃:'甘',青海:'青',宁夏:'宁',新疆:'新',西藏:'藏',内蒙古:'蒙'}));
 const CITY_ABBR=new Map(Object.entries({沈阳:'沈',大连:'大',哈尔滨:'哈',长春:'长',南京:'南',苏州:'苏',杭州:'杭',宁波:'宁',合肥:'合',厦门:'厦',福州:'福',南昌:'南昌',济南:'济',青岛:'青',郑州:'郑',武汉:'武',长沙:'长',广州:'广',深圳:'深',成都:'成',昆明:'昆',西安:'西',兰州:'兰'}));
 const EXPLICIT_ALIASES=Object.freeze({吉大:'吉林大学',大工:'大连理工大学',大连理工:'大连理工大学',东财:'东北财经大学',辽科大:'辽宁科技大学',辽宁科大:'辽宁科技大学',辽大:'辽宁大学',辽石化:'辽宁石油化工大学',沈航:'沈阳航空航天大学',沈工大:'沈阳工业大学',沈建:'沈阳建筑大学',沈药:'沈阳药科大学',辽师:'辽宁师范大学',大医:'大连医科大学',大外:'大连外国语大学',北大:'北京大学',清华:'清华大学',人大:'中国人民大学',北航:'北京航空航天大学',北理工:'北京理工大学',北科大:'北京科技大学',北邮:'北京邮电大学',北化:'北京化工大学',北师大:'北京师范大学',北外:'北京外国语大学',中传:'中国传媒大学',央财:'中央财经大学',贸大:'对外经济贸易大学',对外经贸:'对外经济贸易大学',法大:'中国政法大学',上交:'上海交通大学',上财:'上海财经大学',华理:'华东理工大学',南大:'南京大学',南航:'南京航空航天大学',南理工:'南京理工大学',南邮:'南京邮电大学',浙大:'浙江大学',中科大:'中国科学技术大学',厦大:'厦门大学',武大:'武汉大学',华科:'华中科技大学',中南:'中南大学',中山:'中山大学',华工:'华南理工大学',川大:'四川大学',成电:'电子科技大学',电子科大:'电子科技大学',西财:'西南财经大学',西交:'西安交通大学',西工大:'西北工业大学',西电:'西安电子科技大学',兰大:'兰州大学',哈工大:'哈尔滨工业大学',哈工程:'哈尔滨工程大学',东师:'东北师范大学',深大:'深圳大学'});
+export function resolveExplicitSchoolAlias(value){const key=cleanOfficialName(value);return key?String(EXPLICIT_ALIASES[key]||''):'';}
 const TYPE_REPLACEMENTS=[['航空航天大学','航大'],['科学技术大学','科大'],['工程技术大学','工大'],['科技大学','科大'],['工业大学','工大'],['理工大学','理工'],['师范大学','师大'],['医科大学','医大'],['中医药大学','中医药'],['财经大学','财大'],['交通大学','交大'],['农业大学','农大'],['林业大学','林大'],['外国语大学','外大'],['民族大学','民大'],['政法大学','政法'],['体育大学','体大']];
 let defaultCatalogPromise=null;
 
@@ -71,7 +72,7 @@ export function resolveSchoolName(query,context){
   const code=normalizeInitialQuery(input);if(code.length<2)return result('not_found',input,null,[],'none');
   const exact=[...(context?.initialExactMap?.get(code)||[])];
   if(exact.length===1)return result('resolved',input,exact[0].officialName,[],'initial_exact',0.995);
-  if(exact.length>1)return result('ambiguous',input,null,exact.map(entry=>initialCandidate(entry,0.995,'initial_exact')),'initial_exact');
+  if(exact.length>1)return result('ambiguous',input,null,exact.map(entry=>initialCandidate(entry,0.995,'initial_exact'),'initial_exact');
   const initials=searchInitialSchoolNames(code,context,limit);if(initials.length)return result('ambiguous',input,null,initials,'initial_prefix');
   return result('not_found',input,null,[],'none');
  }
