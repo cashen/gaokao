@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const tool=fs.readFileSync('functions/_lib/ai/tool-registry.js','utf8');
+const orchestrator=fs.readFileSync('functions/_lib/ai/turn-orchestrator.js','utf8');
+const app=fs.readFileSync('ai/app.v3990_1.js','utf8');
+assert.ok(!/import\s+\{[^}]*queryAiSchoolHistory[^}]*\}\s+from\s+['"]\.\/school-history-adapter\.js['"]/.test(tool),'AI base graph must not statically import school-history-adapter');
+assert.ok(tool.includes("kind:'school_history'"),'school history deterministic tool kind missing');
+assert.ok(tool.includes("new URL('/api/school-majors'"),'school history must reuse public deterministic school-majors endpoint');
+assert.ok(tool.includes("url.searchParams.set('schoolIntent','school')"),'school history exact-school intent missing');
+assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');
+assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
+assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
+assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
+assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
+console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry']},null,2));

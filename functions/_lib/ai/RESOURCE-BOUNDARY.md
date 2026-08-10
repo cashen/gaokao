@@ -12,9 +12,9 @@ Ordinary score, region, major, budget and family-preference turns must therefore
 
 ## School history
 
-AI school-history queries use `school-history-adapter.js`, which reuses the existing Liaoning 2026 manifest/chunks, admission directory, rank table and canonical-position algorithm. The canonical-school path should scan the shared manifest directly; the shared admission directory is a fallback for admission display-name/campus mappings.
+AI school-history turns do not parse the Liaoning admissions chunks inside `/api/ai/turn`. `tool-registry.js` emits a `school_history` deterministic browser tool request to the existing `/api/school-majors` contract. The browser returns only a bounded fact projection to the AI turn. This keeps the public deterministic endpoint as the one admissions algorithm/resource truth while preventing its large runtime graph and chunk parsing from becoming resident in the AI Worker.
 
-Do not copy school aliases or admission algorithms into the AI layer. School alias resolution remains a single Tongxue resolver truth.
+Cloudflare Worker resource-limit responses (`1102`) are owner-action-required failures and are never retried as ordinary transient 503s.
 
 ## Facts and release identity
 
