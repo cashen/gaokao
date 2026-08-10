@@ -1,0 +1,55 @@
+name: Patch major-bands native rank scan temp
+on:
+  push:
+    branches:
+      - agent/postmerge-major-bands-concurrency-v3992_4
+    paths:
+      - .agent/patch-major-bands-rank-native-scan-v3992_4.py
+      - .github/workflows/patch-major-bands-rank-native-scan-temp.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/postmerge-major-bands-concurrency-v3992_4
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply native rank row scan patch
+        run: python .agent/patch-major-bands-rank-native-scan-v3992_4.py
+      - name: Verify source, truth set, and protected boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/audit-production-resource-verification-v3990_1.mjs
+          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' tools/audit-production-rank-concurrency-contract-v3990_0.mjs > /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
+          node /tmp/audit-production-rank-concurrency-contract-v3990_1.mjs
+          git diff --check
+          if git diff --name-only 5dec88139deed36a49900a064b0fa0d5be056067 HEAD -- fenxi functions/fenxi functions/_middleware.js | grep -q .; then
+            echo 'protected path changed' >&2
+            exit 1
+          fi
+      - name: Commit permanent changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs .github/workflows/verify-production-resource-graph-v3972_6.yml
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "perf: stream major-bands rank bucket rows"
+          git push origin HEAD:agent/postmerge-major-bands-concurrency-v3992_4
