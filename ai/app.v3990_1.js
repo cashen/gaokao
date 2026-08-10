@@ -1,5 +1,5 @@
 
-import {createAiWorkspace,applyAiWorkspaceEvent,compactAiWorkspaceForServer,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=3992_0';
+import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=3992_0';
 import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/ai/render.v3992_0.js?v=3992_0';
 import {starterScenariosForScore} from '/ai/parent-starter.v3992_1.js?v=3992_1';
 const DB_NAME='gaokao-ai-workspace-v3990_0',STORE_NAME='workspace',WORKSPACE_KEY='current',SELECTION_POOL_KEY='lnRank.selectionPool.lnPhysics.2026.v3951';
@@ -38,7 +38,7 @@ async function executeTurn(input,confirmedCommand=null){
   try{
     let continuationCommand=confirmedCommand;const deterministicToolResults={};let data=null;
     for(let hop=0;hop<5;hop+=1){
-      const response=await fetch('/api/ai/turn',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({workspace:compactAiWorkspaceForServer(workspace),input:text,confirmedCommand:continuationCommand,deterministicToolResults}),signal:controller.signal});data=await response.json();
+      const response=await fetch('/api/ai/turn',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify(buildAiTurnRequestPayload(workspace,{input:text,confirmedCommand:continuationCommand,deterministicToolResults})),signal:controller.signal});data=await response.json();
       if(sequence!==activeTurnSequence)return;
       if(!response.ok||!data?.ok)throw new Error(data?.message||'本轮没有完成');
       if(data.pendingConfirmation){clearProcessingTimer();render();pendingCommand=data.command;pendingInput=text;els.confirmText.textContent=data.command?.reason||'请再明确一下你的意思。';els.confirmDialog.showModal();return;}
