@@ -84,6 +84,8 @@ const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_1';
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
 const REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;
+export const MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-canonical-v3990_1';
+const REQUESTED_BAND_RESPONSE_EDGE_CACHE_TTL_SECONDS = 60;
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_1';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
@@ -455,6 +457,51 @@ function requestForBand(request, sourceUrl, band, pageLimit) {
 function allBandsEdgeCacheHandle() {
   const cache = globalThis.caches?.default;
   return cache && typeof cache.match === 'function' && typeof cache.put === 'function' ? cache : null;
+}
+
+function requestedBandResponseEdgeCacheRequest(sourceUrl) {
+  const url = new URL(sourceUrl);
+  url.searchParams.delete('stress');
+  url.searchParams.delete('deploy');
+  url.searchParams.set('__requestedBandResponseEdgeCache', MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION);
+  url.searchParams.sort();
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+function responseWithRequestedBandResponseEdgeCacheStatus(response, status) {
+  const headers = new Headers(response.headers);
+  headers.set('x-gaokao-requested-band-response-edge-cache', status);
+  headers.set('x-gaokao-requested-band-response-edge-cache-version', MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+async function readRequestedBandResponseEdgeCache(cache, request) {
+  try {
+    return await cache.match(request);
+  } catch {
+    return null;
+  }
+}
+
+async function writeRequestedBandResponseEdgeCache(cache, request, response) {
+  if (response.status !== 200) return false;
+  try {
+    const cached = responseWithRequestedBandResponseEdgeCacheStatus(response.clone(), 'stored');
+    const headers = new Headers(cached.headers);
+    headers.set('cache-control', `public, max-age=0, s-maxage=${REQUESTED_BAND_RESPONSE_EDGE_CACHE_TTL_SECONDS}, stale-while-revalidate=120`);
+    await cache.put(request, new Response(cached.body, {
+      status: cached.status,
+      statusText: cached.statusText,
+      headers
+    }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function allBandsEdgeCacheRequest(sourceUrl, input) {
@@ -1022,6 +1069,18 @@ export async function onRequest(context) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
 
+    const requestedBandResponseEdgeCache = requestedBand ? allBandsEdgeCacheHandle() : null;
+    const requestedBandResponseCacheKey = requestedBandResponseEdgeCache
+      ? requestedBandResponseEdgeCacheRequest(url)
+      : null;
+    if (requestedBandResponseEdgeCache && requestedBandResponseCacheKey) {
+      const cached = await readRequestedBandResponseEdgeCache(
+        requestedBandResponseEdgeCache,
+        requestedBandResponseCacheKey
+      );
+      if (cached) return responseWithRequestedBandResponseEdgeCacheStatus(cached, 'hit');
+    }
+
     const allBandsPageCacheReleasedBeforeBandQuery = requestedBand
       ? releaseMajorBandsAllBandsCompletedPage()
       : false;
@@ -1248,7 +1307,7 @@ export async function onRequest(context) {
       });
     }
 
-    return json({
+    const response = json({
       ok: true,
       meta: {
         audienceYear: 2027,
@@ -1393,6 +1452,15 @@ export async function onRequest(context) {
         mode: 'single-worker-canonical-rank-query-stable-snapshot-paged'
       }
     });
+    if (requestedBandResponseEdgeCache && requestedBandResponseCacheKey) {
+      const stored = await writeRequestedBandResponseEdgeCache(
+        requestedBandResponseEdgeCache,
+        requestedBandResponseCacheKey,
+        response
+      );
+      return responseWithRequestedBandResponseEdgeCacheStatus(response, stored ? 'stored' : 'write-failed');
+    }
+    return responseWithRequestedBandResponseEdgeCacheStatus(response, 'unavailable');
   } catch (error) {
     return json({
       ok: false,
