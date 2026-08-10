@@ -17,4 +17,20 @@ assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
+
+const manifest=JSON.parse(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json','utf8'));
+const directory=JSON.parse(fs.readFileSync('shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json','utf8'));
+const chunkFiles=new Set((manifest.chunks||[]).map(item=>item.file||item.path).filter(Boolean));
+for(const school of directory.schools||[]){assert.ok(Array.isArray(school.chunkFiles2026)&&school.chunkFiles2026.length>0,`chunk locator missing: ${school.officialName}`);for(const file of school.chunkFiles2026)assert.ok(chunkFiles.has(file),`unknown chunk locator ${file}: ${school.officialName}`);}
+const industrial=(directory.schools||[]).find(item=>item.officialName==='沈阳工业大学');
+const aviation=(directory.schools||[]).find(item=>item.officialName==='沈阳航空航天大学');
+const science=(directory.schools||[]).find(item=>item.officialName==='辽宁科技大学');
+assert.ok(industrial?.chunkFiles2026?.length&&aviation?.chunkFiles2026?.length&&science?.chunkFiles2026?.length,'journey school chunk locators missing');
+const provider=fs.readFileSync('functions/_lib/school-query-provider.v3969.js','utf8');
+const manifestLoader=fs.readFileSync('functions/_lib/ln-rank-manifest.js','utf8');
+const endpoint=fs.readFileSync('functions/api/school-majors.js','utf8');
+assert.ok(provider.includes('chunkFiles2026: Object.freeze'),'exact school provider must expose chunk locator');
+assert.ok(manifestLoader.includes('loadMatchingRecordsFromFiles'),'bounded manifest loader missing');
+assert.ok(endpoint.includes('chunkFiles2026.length')&&endpoint.includes('loadMatchingRecordsFromFiles'),'school-majors must use exact-school chunk locator');
+
 console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry']},null,2));

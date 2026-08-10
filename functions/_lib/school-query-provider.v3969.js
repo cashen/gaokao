@@ -104,7 +104,8 @@ export async function resolveExactAdmissionSchool(request, school) {
     entityType: item.entityType || 'official_school',
     province: item.province || '',
     city: item.city || '',
-    recordCount2026: Number(item.recordCount2026 || 0)
+    recordCount2026: Number(item.recordCount2026 || 0),
+    chunkFiles2026: Object.freeze(Array.isArray(item.chunkFiles2026) ? item.chunkFiles2026.filter(Boolean) : [])
   });
 }
 
