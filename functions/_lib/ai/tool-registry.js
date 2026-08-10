@@ -13,6 +13,7 @@ export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
 export const AI_SCHOOL_HISTORY_ADAPTER_VERSION=AI_SCHOOL_HISTORY_RESOURCE_ADAPTER_VERSION;
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
+export const AI_DETERMINISTIC_TOOL_BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v3992_1';
 
 export const AI_TOOL_REGISTRY=Object.freeze({
   rank_lookup:Object.freeze({name:'rank_lookup',deterministic:true,maxConcurrency:1}),
@@ -60,17 +61,23 @@ function requestForMajorBands(context,params={}){
   url.searchParams.set('candidateScore',String(params.score));url.searchParams.set('rangePreset',params.rangePreset||'standard');url.searchParams.set('region',params.region||'all');
   if(params.majorKeyword)url.searchParams.set('majorKeyword',params.majorKeyword);if(params.schoolKeyword)url.searchParams.set('schoolKeyword',params.schoolKeyword);
   url.searchParams.set('bottomLineMode',params.bottomLineMode||'all');url.searchParams.set('specialProjectMode','hide_eligibility_projects');url.searchParams.set('limit',String(Math.max(16,Math.min(24,Number(params.limit||16)))));
-  return new Request(url.toString(),{method:'GET',headers:{accept:'application/json','x-ai-deterministic-subrequest':'major-bands'}});
+  return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
+}
+function majorBandsToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
+function majorBandsClientToolRequest(request){const key=majorBandsToolKey(request);return{kind:'major_bands',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
+function delegatedMajorBandsEntry(context,request){
+  const key=majorBandsToolKey(request),entry=context?.aiDeterministicToolResults?.[key];
+  if(!entry)return{ok:false,code:'client_tool_required',toolRequest:majorBandsClientToolRequest(request)};
+  if(entry.kind!=='major_bands'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'候选事实回传与本轮请求不匹配。'};
+  const status=Number(entry.status),payload=entry.payload;
+  if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'候选事实回传格式不完整。'};
+  return{ok:true,status,payload};
 }
 async function executeMajorBandsOnce(context,params){
-  const request=requestForMajorBands(context,params);
-  // Keep the deterministic rank kernel behind its canonical HTTP contract so
-  // the AI Worker does not statically instantiate the entire major-bands
-  // module graph in the same isolate. This is delegation, not a second
-  // admissions algorithm: /api/major-bands remains the single execution truth.
-  const response=await fetch(request);
-  let payload=null;try{payload=await response.json();}catch{}
-  if(!response.ok||!payload?.ok)return{ok:false,status:response.status,message:clean(payload?.message||'专业候选查询失败。',260),payload,region:params.region||'all'};
+  const request=requestForMajorBands(context,params),delegated=delegatedMajorBandsEntry(context,request);
+  if(!delegated.ok)return{...delegated,region:params.region||'all'};
+  const {status,payload}=delegated;
+  if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'专业候选查询失败。',260),payload,region:params.region||'all'};
   const records=[];for(const key of ['upper','near','steady'])for(const record of payload?.bands?.[key]?.records||[])records.push({...record,bandKey:record.bandKey||key});
   return{ok:true,meta:payload.meta,counts:payload.counts,records,searchAdvices:payload.searchAdvices||[],filterConflicts:payload.filterConflicts||[],keywordWarnings:payload.keywordWarnings||[],source:payload.source||{},region:params.region||'all'};
 }
@@ -91,8 +98,9 @@ function platformUpgradePreview(records=[],target=''){
 export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
-  const executions=[await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16})];
-  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
+  const execution=await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16});
+  if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;
+  const merged=mergeCandidateExecutions([execution]);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
@@ -128,7 +136,7 @@ export async function runBackgroundDiscovery(context,{limit=12,regionKeys=['ln']
   return{ok:true,scope:'liaoning',regionKeys:normalizeRegionKeys(regionKeys),items:resolved.items,totalWithEvidence:resolved.totalWithEvidence,meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这里只列当前地域内、已发布背景静态资源中证据门禁通过的方向；未显示不代表其他专业不值得报，也不直接等于就业优劣。'};
 }
 export async function runBackgroundFitDiscovery(context,{score,bottomLineMode='all',regionKeys=['ln']}={}){
-  const candidates=await runMajorBandSearch(context,{score,majorKeywords:[],regionKeys,bottomLineMode});if(!candidates.ok)return{ok:false,code:'candidate_search_failed',message:candidates.message||'当前分数候选没有读取成功。'};
+  const candidates=await runMajorBandSearch(context,{score,majorKeywords:[],regionKeys,bottomLineMode});if(candidates?.code==='client_tool_required'||candidates?.code==='client_tool_invalid')return candidates;if(!candidates.ok)return{ok:false,code:'candidate_search_failed',message:candidates.message||'当前分数候选没有读取成功。'};
   const snapshot=await loadAiBackgroundSnapshot(context),matched=matchCandidateBackgrounds(snapshot,candidates.records||[]);
   return{ok:true,score:Number(score),regionKeys:normalizeRegionKeys(regionKeys),items:matched.items.slice(0,24).map(item=>({record:historyRecord(item.record),background:item.background})),candidateCounts:candidates.counts,previewOnly:true,meta:matched.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这是当前分数与地域窗口的代表性预览和已发布背景证据交集，不是全量“最佳专业”排名；候选事实仍来自当前确定性招生资源。'};
 }
@@ -137,11 +145,11 @@ function uniqueField(records,field,max=80){return unique((records||[]).map(item=
 function comparisonItem(label,result,objectType){const records=result?.records||[];return{label,objectType,ok:Boolean(result?.ok),counts:result?.counts||{upper:0,near:0,steady:0,total:0},reachableSchoolCount:uniqueField(records,'school',200).length,reachableMajorCount:uniqueField(records,'major',200).length,sampleSchools:uniqueField(records,'school',8),sampleMajors:uniqueField(records,'major',8),records:records.slice(0,8),note:'只比较当前分数、当前范围内的确定性可达空间；培养方案、就业、推免等没有统一官方口径时不作优劣结论。'};}
 export async function runSchoolComparison(context,{score,schoolNames=[],majorKeywords=[],regionKeys=['all'],bottomLineMode='all'}={}){
   const schools=unique(schoolNames,3);if(schools.length<2)return{ok:false,code:'comparison_requires_two_schools',message:'至少需要两所明确学校才能执行学校比较。'};const items=[];
-  for(const school of schools){const result=await runMajorBandSearch(context,{score,majorKeywords,regionKeys,bottomLineMode,schoolKeyword:school});items.push(comparisonItem(school,result,'school'));}
+  for(const school of schools){const result=await runMajorBandSearch(context,{score,majorKeywords,regionKeys,bottomLineMode,schoolKeyword:school});if(result?.code==='client_tool_required'||result?.code==='client_tool_invalid')return result;items.push(comparisonItem(school,result,'school'));}
   return{ok:items.some(x=>x.ok),kind:'school',items,deterministic:true,comparableDimensions:['当前位次可达记录','稍高/接近/更稳结构','可见专业样本'],pendingEvidenceDimensions:['培养方案','就业口径','推免政策','校区与具体学费'],adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
 export async function runMajorComparison(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all'}={}){
   const majors=unique(majorKeywords,3);if(majors.length<2)return{ok:false,code:'comparison_requires_two_majors',message:'至少需要两个明确专业方向才能执行专业比较。'};const items=[];
-  for(const major of majors){const result=await runMajorBandSearch(context,{score,majorKeywords:[major],regionKeys,bottomLineMode});items.push(comparisonItem(major,result,'major'));}
+  for(const major of majors){const result=await runMajorBandSearch(context,{score,majorKeywords:[major],regionKeys,bottomLineMode});if(result?.code==='client_tool_required'||result?.code==='client_tool_invalid')return result;items.push(comparisonItem(major,result,'major'));}
   return{ok:items.some(x=>x.ok),kind:'major',items,deterministic:true,comparableDimensions:['当前位次可达记录','候选学校覆盖','稍高/接近/更稳结构'],pendingEvidenceDimensions:['课程体系','培养方案','就业路径的学校级证据'],adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
