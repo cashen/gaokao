@@ -1,0 +1,57 @@
+name: Patch AI continuation focus temp
+
+on:
+  push:
+    branches:
+      - agent/ai-worker-resource-boundary-v3992_2
+    paths:
+      - .github/workflows/patch-ai-continuation-focus-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-worker-resource-boundary-v3992_2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserve resolved focus across deterministic continuation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/turn-orchestrator.js')
+          text=p.read_text()
+          old="function validateConfirmedCommand(value,input,workspace){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace);return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:fallback.focus,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}"
+          new="function validateConfirmedCommand(value,input,workspace,preserveResolvedFocus=false){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace),stableFocus=preserveResolvedFocus&&value.focus&&typeof value.focus==='object'?clone(value.focus):fallback.focus;return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:stableFocus,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}"
+          if text.count(old)!=1: raise SystemExit('validateConfirmedCommand anchor changed')
+          text=text.replace(old,new)
+          old_call="let interpreted;const confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace);"
+          new_call="let interpreted;const deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0,confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace,deterministicContinuation);"
+          if text.count(old_call)!=1: raise SystemExit('confirmed command call anchor changed')
+          p.write_text(text.replace(old_call,new_call))
+
+          v=Path('tools/verify-ai-school-history-bridge-v3992_2.mjs')
+          vt=v.read_text()
+          anchor="assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');"
+          extra=anchor+"\nassert.ok(orchestrator.includes('preserveResolvedFocus=false'),'confirmed-command focus preservation boundary missing');\nassert.ok(orchestrator.includes('deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0'),'deterministic continuation detection missing');\nassert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');"
+          if vt.count(anchor)!=1: raise SystemExit('bridge verifier continuation anchor changed')
+          v.write_text(vt.replace(anchor,extra))
+          PY
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git rm .github/workflows/patch-ai-continuation-focus-temp.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ai/turn-orchestrator.js tools/verify-ai-school-history-bridge-v3992_2.mjs
+          git commit -m 'fix: preserve resolved focus across deterministic hops'
+          git push origin HEAD:agent/ai-worker-resource-boundary-v3992_2
