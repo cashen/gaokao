@@ -1,0 +1,55 @@
+name: Patch AI comparison routing temp
+
+on:
+  push:
+    branches:
+      - agent/ai-school-history-background-links-v3992_1
+    paths:
+      - .github/workflows/patch-ai-comparison-routing-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-school-history-background-links-v3992_1
+          fetch-depth: 0
+      - name: Apply deterministic comparison routing and unit test
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          orchestrator = Path('functions/_lib/ai/turn-orchestrator.js')
+          text = orchestrator.read_text()
+          old = """  const command=interpreted.command;\n  if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话我不想替你猜',text:command.reason||'请再明确一点。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};\n"""
+          new = """  const command=interpreted.command;\n  const explicitCompare=/(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(input);\n  if(explicitCompare&&command.schoolNames?.length>=2){command.agentTask='school_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}\n  else if(explicitCompare&&command.majorKeywords?.length>=2){command.agentTask='major_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}\n  if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话我不想替你猜',text:command.reason||'请再明确一点。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};\n"""
+          if old not in text:
+              raise SystemExit('orchestrator comparison insertion anchor not found')
+          orchestrator.write_text(text.replace(old, new, 1))
+
+          verify = Path('tools/verify-ai-workspace-v3990_1.mjs')
+          text = verify.read_text()
+          marker = "function testAiSchoolResolverBoundary(){"
+          test = """function testDeterministicComparisonRouting(){const workspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['all'],majorKeywords:[]}});const major=cmd('电气和机械怎么选',workspace);assert.ok(major.majorKeywords.includes('电气')&&major.majorKeywords.includes('机械'));}\n"""
+          if test not in text:
+              if marker not in text:
+                  raise SystemExit('verify comparison test insertion anchor not found')
+              text = text.replace(marker, test + marker, 1)
+          call_anchor = "testCompactAliasResolverRows();testExactSchoolQueryLightPath();"
+          if "testDeterministicComparisonRouting();" not in text.split("console.log",1)[0].split("testParentHumanJourneysV3992_1();",1)[-1]:
+              if call_anchor not in text:
+                  raise SystemExit('verify comparison test call anchor not found')
+              text = text.replace(call_anchor, "testDeterministicComparisonRouting();" + call_anchor, 1)
+          verify.write_text(text)
+          PY
+          git rm .github/workflows/patch-ai-comparison-routing-temp.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ai/turn-orchestrator.js tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m 'fix: lock explicit AI comparisons deterministically'
+          git push origin HEAD:agent/ai-school-history-background-links-v3992_1
