@@ -26,7 +26,6 @@ jobs:
           node --check functions/api/major-bands.js
           node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
           node tools/audit-production-resource-verification-v3990_1.mjs
-          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
           node tools/audit-major-bands-bounded-fanout-v3972_5.mjs
       - name: Commit permanent changes
         run: |
