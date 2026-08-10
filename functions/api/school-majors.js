@@ -21,6 +21,7 @@ import {
 } from '../../shared/resources/schools/school-identity-center.js';
 import {
   resolveAdmissionSchoolQuery,
+  resolveExactAdmissionSchool,
   getAdmissionSchoolDirectoryMeta
 } from '../_lib/school-query-provider.v3969.js';
 import {
@@ -193,18 +194,26 @@ export async function onRequest(context) {
         entityType: entity.entityType
       };
     } else {
-      queryResult = await resolveAdmissionSchoolQuery(context.request, {
-        query: schoolInput,
-        intent: schoolIntent,
-        offset: candidateOffset,
-        limit: candidateLimit
-      });
-      if (queryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED || !queryResult.resolvedSchool) {
-        const status = queryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409;
-        return json(unresolvedPayload(queryResult, directoryMeta), status);
+      const exactSelection = schoolIntent === 'school'
+        ? await resolveExactAdmissionSchool(context.request, schoolInput)
+        : null;
+      if (exactSelection) {
+        selection = exactSelection;
+        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
+      } else {
+        queryResult = await resolveAdmissionSchoolQuery(context.request, {
+          query: schoolInput,
+          intent: schoolIntent,
+          offset: candidateOffset,
+          limit: candidateLimit
+        });
+        if (queryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED || !queryResult.resolvedSchool) {
+          const status = queryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409;
+          return json(unresolvedPayload(queryResult, directoryMeta), status);
+        }
+        selection = queryResult.resolvedSchool;
+        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
       }
-      selection = queryResult.resolvedSchool;
-      entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
     }
 
     const acceptedNames = acceptedNamesForSelection(selection, entity);
