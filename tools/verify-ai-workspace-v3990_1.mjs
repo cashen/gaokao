@@ -84,6 +84,8 @@ async function testParentHumanJourneysV3992_1(){
   const fakeResolver={resolve(query){const map={沈航:'沈阳航空航天大学',辽科大:'辽宁科技大学'},school=map[query]||'';return school?{status:'resolved',resolvedName:school,candidates:[]}:{status:'not_found',candidates:[]};}};
   const shenyangAviation=await resolveAiSchoolMentions('沈航的电气呢',fakeResolver);assert.deepEqual(shenyangAviation,['沈阳航空航天大学']);
   const liaoningTech=await resolveAiSchoolMentions('辽科大的电气呢',fakeResolver);assert.deepEqual(liaoningTech,['辽宁科技大学']);
+  const directAlias=await resolveAiSchoolMentions('那辽科大呢',fakeResolver);assert.deepEqual(directAlias,['辽宁科技大学']);
+  let accidentalResolverCalls=0;const guardResolver={resolve(){accidentalResolverCalls++;return{status:'not_found',candidates:[]};}};for(const ordinary of ['440分，辽宁省内先看能上的学校','省内','公办优先','本科就业怎么选','预算可以上浮看看中外'])assert.deepEqual(await resolveAiSchoolMentions(ordinary,guardResolver),[],ordinary);assert.equal(accidentalResolverCalls,0,'ordinary parent decision language must not load school resolver');
   assert.equal(normalizeOptionalCandidateScore(null),null);assert.equal(normalizeOptionalCandidateScore(''),null);assert.equal(normalizeOptionalCandidateScore(580),580);
   const history=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['ln'],majorKeywords:['电气'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'电气'}}});
   let c=cmd('沈航的电气呢',history,shenyangAviation);assert.equal(c.agentTask,'school_major_history');assert.equal(c.focus.school,'沈阳航空航天大学');assert.equal(c.focus.major,'电气');assert.equal(c.scoreUsage,'remembered');assert.equal(c.executionPolicy.commitView,false);
