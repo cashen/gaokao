@@ -1,0 +1,38 @@
+name: Patch requested-band response edge cache temp
+on:
+  push:
+    branches:
+      - agent/major-bands-requested-response-edge-cache-v3990_1
+    paths:
+      - .agent/patch-requested-band-response-edge-cache-v3990_1.py
+      - .github/workflows/patch-requested-band-response-edge-cache-temp.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/major-bands-requested-response-edge-cache-v3990_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply requested-band final-response edge cache patch
+        run: python .agent/patch-requested-band-response-edge-cache-v3990_1.py
+      - name: Verify source syntax and permanent contracts
+        run: |
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          node tools/audit-production-resource-verification-v3990_1.mjs
+          node tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          node tools/audit-major-bands-bounded-fanout-v3972_5.mjs
+      - name: Commit permanent changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "perf: cache canonical requested-band responses at edge"
+          git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
