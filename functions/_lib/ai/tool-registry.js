@@ -2,6 +2,7 @@
 import { lookupScoreRank, getRankTableMeta } from '../rank-table-provider.js';
 import { onRequest as majorBandsOnRequest } from '../../api/major-bands.js';
 import { onRequest as schoolMajorsOnRequest } from '../../api/school-majors.js';
+import { releaseSchoolQueryProviderCache } from '../school-query-provider.v3969.js';
 import {
   getAcademicBackgroundSchoolSummaries,getAcademicBackgroundMajorSummaries,
   matchAcademicBackground,presentAcademicBackground,getAcademicBackgroundMeta
@@ -86,9 +87,10 @@ function schoolMajorsRequest(context,{school,majorKeyword='',candidateScore=null
   url.searchParams.set('sort',normalizedCandidateScore!==null?'position-near':'score-desc');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
 }
 async function schoolMajorsQuery(context,params){
-  const response=await schoolMajorsOnRequest({...context,request:schoolMajorsRequest(context,params)});let payload=null;try{payload=await response.json();}catch{}
-  if(!response.ok||!payload?.ok)return{ok:false,status:response.status,code:payload?.code||'school_history_failed',message:clean(payload?.message||payload?.userMessage||'学校专业记录查询失败。',300),candidates:payload?.candidates||[]};
-  return payload;
+  try{const response=await schoolMajorsOnRequest({...context,request:schoolMajorsRequest(context,params)});let payload=null;try{payload=await response.json();}catch{}
+    if(!response.ok||!payload?.ok)return{ok:false,status:response.status,code:payload?.code||'school_history_failed',message:clean(payload?.message||payload?.userMessage||'学校专业记录查询失败。',300),candidates:payload?.candidates||[]};
+    return payload;
+  }finally{releaseSchoolQueryProviderCache();}
 }
 function historyRecord(record={}){
   return{id:clean(record.id,220),school:clean(record.school||record.schoolName,100),major:clean(record.major||record.majorName,160),score2026:Number(record.score2026??record.score)||null,rank2026:Number(record.rank2026??record.rank)||null,schoolCode2026:clean(record.schoolCode2026,40),majorCode2026:clean(record.majorCode2026,40),projectLabel:clean(record.projectLabel,80),displayLocation:clean(record.displayLocation||record.city,80),bandKey:clean(record.bandKey,30),scoreDelta:Number.isFinite(Number(record.scoreDelta2026??record.scoreDelta))?Number(record.scoreDelta2026??record.scoreDelta):null,rankGap:Number.isFinite(Number(record.rankGap2026??record.rankGap))?Number(record.rankGap2026??record.rankGap):null};

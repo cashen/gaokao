@@ -89,6 +89,10 @@ export async function getAdmissionSchoolDirectoryMeta(request) {
   });
 }
 
-export function clearSchoolQueryProviderCacheForTest() {
+export function releaseSchoolQueryProviderCache() {
   cacheByOrigin.clear();
+}
+
+export function clearSchoolQueryProviderCacheForTest() {
+  releaseSchoolQueryProviderCache();
 }
