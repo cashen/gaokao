@@ -1,0 +1,39 @@
+name: Patch exact-school native scan temp
+on:
+  push:
+    branches:
+      - agent/ai-workspace-request-budget-v3992_3
+    paths:
+      - .agent/patch-exact-school-native-scan-v3992_3.py
+      - .github/workflows/patch-exact-school-native-scan-temp.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-workspace-request-budget-v3992_3
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply endpoint and verifier patch
+        run: python .agent/patch-exact-school-native-scan-v3992_3.py
+      - name: Verify native scan and workspace contracts
+        run: |
+          node --check functions/_lib/ln-rank-manifest.js
+          node --check functions/api/school-majors.js
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+      - name: Commit permanent changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/api/school-majors.js tools/verify-ai-school-history-bridge-v3992_2.mjs tools/verify-ai-workspace-v3990_1.mjs
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "perf: route exact-school history through native text scan"
+          git push origin HEAD:agent/ai-workspace-request-budget-v3992_3
