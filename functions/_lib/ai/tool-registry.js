@@ -55,11 +55,12 @@ export function runRankLookup(score){
   return{ok:true,score:numeric,rankStart:Number(row.rankStart),rankEnd:Number(row.rankEnd),rankForGap:Number(row.rankForGap),sameCount:Number(row.sameCount||0),emptyScore:Boolean(row.emptyScore),source:{level:'A',sourceName:'辽宁省2026年普通高校招生考试成绩统计表',sourceUrl:'https://jyt.ln.gov.cn/jyt/jyzx/jyyw/2026063014014729932/index.shtml',dataYear:2026,internalSourceSha256:clean(meta.sourceSha256,100)}};
 }
 
-function requestForMajorBands(context,params={}){
+const AI_MAJOR_BAND_KEYS=Object.freeze(['upper','near','steady']);
+function requestForMajorBands(context,params={},band=''){
   const sourceUrl=new URL(context.request.url),url=new URL('/api/major-bands',sourceUrl.origin);
   url.searchParams.set('candidateScore',String(params.score));url.searchParams.set('rangePreset',params.rangePreset||'standard');url.searchParams.set('region',params.region||'all');
   if(params.majorKeyword)url.searchParams.set('majorKeyword',params.majorKeyword);if(params.schoolKeyword)url.searchParams.set('schoolKeyword',params.schoolKeyword);
-  url.searchParams.set('bottomLineMode',params.bottomLineMode||'all');url.searchParams.set('specialProjectMode','hide_eligibility_projects');url.searchParams.set('limit',String(Math.max(16,Math.min(24,Number(params.limit||16)))));
+  url.searchParams.set('bottomLineMode',params.bottomLineMode||'all');url.searchParams.set('specialProjectMode','hide_eligibility_projects');url.searchParams.set('limit',String(Math.max(16,Math.min(24,Number(params.limit||16)))));if(band)url.searchParams.set('band',band);
   return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
 }
 function majorBandsToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
@@ -76,13 +77,15 @@ function delegatedMajorBandsEntry(context,request){
   if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'候选事实回传格式不完整。'};
   return{ok:true,status,payload};
 }
-async function executeMajorBandsOnce(context,params){
-  const request=requestForMajorBands(context,params),delegated=delegatedMajorBandsEntry(context,request);
-  if(!delegated.ok)return{...delegated,region:params.region||'all'};
+async function executeMajorBandsOnce(context,params,band=''){
+  const request=requestForMajorBands(context,params,band),delegated=delegatedMajorBandsEntry(context,request);
+  if(!delegated.ok)return{...delegated,region:params.region||'all',band};
   const {status,payload}=delegated;
-  if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'专业候选查询失败。',260),payload,region:params.region||'all'};
-  const records=[];for(const key of ['upper','near','steady'])for(const record of payload?.bands?.[key]?.records||[])records.push({...record,bandKey:record.bandKey||key});
-  return{ok:true,meta:payload.meta,counts:payload.counts,records,searchAdvices:payload.searchAdvices||[],filterConflicts:payload.filterConflicts||[],keywordWarnings:payload.keywordWarnings||[],source:payload.source||{},region:params.region||'all'};
+  if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'专业候选查询失败。',260),payload,region:params.region||'all',band};
+  const records=[],counts={upper:0,near:0,steady:0,total:0},bands=band?[band]:AI_MAJOR_BAND_KEYS;
+  for(const key of bands){const item=payload?.bands?.[key]||{};counts[key]=Number(item.count||0);for(const record of item.records||[])records.push({...record,bandKey:record.bandKey||key});}
+  counts.total=AI_MAJOR_BAND_KEYS.reduce((sum,key)=>sum+Number(counts[key]||0),0);
+  return{ok:true,meta:payload.meta,counts,records,searchAdvices:payload.searchAdvices||[],filterConflicts:payload.filterConflicts||[],keywordWarnings:payload.keywordWarnings||[],source:payload.source||{},region:params.region||'all',band};
 }
 function mergeCandidateExecutions(executions=[]){
   const successful=executions.filter(x=>x?.ok),byId=new Map(),counts={upper:0,near:0,steady:0,total:0},warnings=[];
@@ -92,7 +95,7 @@ function mergeCandidateExecutions(executions=[]){
     for(const advice of execution.searchAdvices||[]){const message=clean(advice?.message||advice,260);if(message&&!warnings.includes(message))warnings.push(message);}
   }
   counts.total=counts.upper+counts.near+counts.steady;
-  return{ok:successful.length>0,regionsQueried:successful.map(x=>x.region),counts,records:[...byId.values()].slice(0,48),previewOnly:true,previewLimit:48,warnings:warnings.slice(0,8),failures:executions.filter(x=>!x?.ok).map(x=>({status:x?.status||0,message:x?.message||'查询失败'})),source:successful[0]?.source||{},meta:successful[0]?.meta||null,adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
+  return{ok:successful.length>0,regionsQueried:[...new Set(successful.map(x=>x.region))],counts,records:[...byId.values()].slice(0,48),previewOnly:true,previewLimit:48,warnings:warnings.slice(0,8),failures:executions.filter(x=>!x?.ok).map(x=>({status:x?.status||0,message:x?.message||'查询失败'})),source:successful[0]?.source||{},meta:successful[0]?.meta||null,adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
 function platformUpgradePreview(records=[],target=''){
   const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});
@@ -101,9 +104,9 @@ function platformUpgradePreview(records=[],target=''){
 export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
-  const execution=await executeMajorBandsOnce(context,{score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16});
-  if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;
-  const merged=mergeCandidateExecutions([execution]);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
+  const params={score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16},executions=[];
+  for(const band of AI_MAJOR_BAND_KEYS){const execution=await executeMajorBandsOnce(context,params,band);if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;executions.push(execution);}
+  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
