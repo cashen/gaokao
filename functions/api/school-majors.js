@@ -1,4 +1,4 @@
-import { loadMatchingRecords, loadMatchingRecordsFromFiles } from '../_lib/ln-rank-manifest.js';
+import { loadMatchingRecords, loadExactSchoolRecordsFromFiles } from '../_lib/ln-rank-manifest.js';
 import { normalizeRecord, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
@@ -218,9 +218,15 @@ export async function onRequest(context) {
 
     const acceptedNames = acceptedNamesForSelection(selection, entity);
     const chunkFiles2026 = Array.isArray(selection?.chunkFiles2026) ? selection.chunkFiles2026 : [];
-    const exactLoad = chunkFiles2026.length
-      ? await loadMatchingRecordsFromFiles(context.request, context.env || {}, chunkFiles2026, raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))))
-      : await loadMatchingRecords(context.request, context.env || {}, raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))));
+    const exactSchoolNames2026 = [...new Set([
+      ...(Array.isArray(selection?.admissionNames) ? selection.admissionNames : []),
+      selection?.admissionName,
+      selection?.officialName
+    ].map(value => String(value || '').trim()).filter(Boolean))];
+    const matchExactSchool = raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw)));
+    const exactLoad = chunkFiles2026.length && exactSchoolNames2026.length
+      ? await loadExactSchoolRecordsFromFiles(context.request, context.env || {}, chunkFiles2026, exactSchoolNames2026, matchExactSchool)
+      : await loadMatchingRecords(context.request, context.env || {}, matchExactSchool);
     const { manifest, records: exactRaw, scanned: rawScanned } = exactLoad;
     if (!exactRaw.length) {
       const fallback = queryResult || await resolveAdmissionSchoolQuery(context.request, {
@@ -342,7 +348,8 @@ export async function onRequest(context) {
         rawScanned,
         exactSchoolRecords: exactRaw.length,
         mode: chunkFiles2026.length ? 'unified-school-query-exact-admission-chunks' : 'unified-school-query-exact-admission-names',
-        chunkFiles2026
+        chunkFiles2026,
+        chunkReadModes: Array.isArray(exactLoad.modes) ? exactLoad.modes : []
       }
     });
   } catch (error) {
