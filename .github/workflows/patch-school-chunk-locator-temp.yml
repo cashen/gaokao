@@ -1,0 +1,150 @@
+name: Patch school chunk locator temp
+
+on:
+  push:
+    branches:
+      - agent/ai-worker-resource-boundary-v3992_2
+    paths:
+      - .github/workflows/patch-school-chunk-locator-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ai-worker-resource-boundary-v3992_2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Add admission-directory chunk locator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('tools/build-school-admission-directory-v3969.mjs')
+          t=p.read_text()
+          t=t.replace("const records = [];", "const records = [];\nconst recordChunkFile = new WeakMap();")
+          old="""for (const chunk of manifest.chunks || []) {
+  const file = path.join(ROOT, 'fenxi', chunk.file || chunk.path || '');
+  if (!fs.existsSync(file)) throw new Error(`missing admission chunk: ${file}`);
+  sourceFiles.push(file);
+  const payload = readJson(file);
+  const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.records) ? payload.records : []);
+  records.push(...rows);
+}"""
+          new="""for (const chunk of manifest.chunks || []) {
+  const chunkFile = String(chunk.file || chunk.path || '').trim();
+  const file = path.join(ROOT, 'fenxi', chunkFile);
+  if (!fs.existsSync(file)) throw new Error(`missing admission chunk: ${file}`);
+  sourceFiles.push(file);
+  const payload = readJson(file);
+  const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.records) ? payload.records : []);
+  for (const raw of rows) {
+    records.push(raw);
+    if (raw && typeof raw === 'object') recordChunkFile.set(raw, chunkFile);
+  }
+}"""
+          if old not in t: raise SystemExit('builder chunk loop anchor changed')
+          t=t.replace(old,new)
+          t=t.replace("recordCount2026: 0\n  };", "recordCount2026: 0,\n    chunkFiles2026: new Set()\n  };")
+          anchor="""  if (schoolCode) current.schoolCodes.add(schoolCode);
+  current.recordCount2026 += 1;"""
+          repl="""  if (schoolCode) current.schoolCodes.add(schoolCode);
+  const chunkFile = recordChunkFile.get(raw);
+  if (chunkFile) current.chunkFiles2026.add(chunkFile);
+  current.recordCount2026 += 1;"""
+          if anchor not in t: raise SystemExit('builder school code anchor changed')
+          t=t.replace(anchor,repl)
+          t=t.replace("recordCount2026: row.recordCount2026,\n  hasLiaoningPhysics2026Records: true", "recordCount2026: row.recordCount2026,\n  chunkFiles2026: sorted([...row.chunkFiles2026]),\n  hasLiaoningPhysics2026Records: true")
+          assert_anchor="if (!schools.some(row => row.officialName === '沈阳化工大学')) throw new Error('沈阳化工大学 missing from admission directory');"
+          assert_repl=assert_anchor+"\nconst manifestChunkFiles = new Set((manifest.chunks || []).map(chunk => String(chunk.file || chunk.path || '').trim()).filter(Boolean));\nif (schools.some(row => !row.chunkFiles2026.length || row.chunkFiles2026.some(file => !manifestChunkFiles.has(file)))) throw new Error('admission school chunk locator invalid');"
+          if assert_anchor not in t: raise SystemExit('builder assertion anchor changed')
+          p.write_text(t.replace(assert_anchor,assert_repl))
+
+          p=Path('functions/_lib/school-query-provider.v3969.js')
+          t=p.read_text()
+          old="""    city: item.city || '',
+    recordCount2026: Number(item.recordCount2026 || 0)
+  });"""
+          new="""    city: item.city || '',
+    recordCount2026: Number(item.recordCount2026 || 0),
+    chunkFiles2026: Object.freeze(Array.isArray(item.chunkFiles2026) ? item.chunkFiles2026.filter(Boolean) : [])
+  });"""
+          if old not in t: raise SystemExit('exact school selection anchor changed')
+          p.write_text(t.replace(old,new))
+
+          p=Path('functions/_lib/ln-rank-manifest.js')
+          t=p.read_text()
+          addition="""
+export async function loadMatchingRecordsFromFiles(request,env,files,predicate){const manifest=await loadManifest(request,env);const allowed=new Set((Array.isArray(manifest.chunks)?manifest.chunks:[]).map(c=>c.file||c.path).filter(Boolean)),requested=[...new Set((Array.isArray(files)?files:[]).filter(file=>allowed.has(file)))],records=[];let scanned=0;for(const file of requested){const data=await fetchJsonStreaming(request,env,file),rows=Array.isArray(data)?data:(Array.isArray(data.records)?data.records:[]);scanned+=rows.length;for(const raw of rows)if(predicate(raw))records.push(raw)}return{manifest,records,scanned,chunkFiles:requested}}
+"""
+          if 'loadMatchingRecordsFromFiles' not in t: t=t.rstrip()+addition
+          p.write_text(t)
+
+          p=Path('functions/api/school-majors.js')
+          t=p.read_text()
+          old="import { loadMatchingRecords } from '../_lib/ln-rank-manifest.js';"
+          new="import { loadMatchingRecords, loadMatchingRecordsFromFiles } from '../_lib/ln-rank-manifest.js';"
+          if old not in t: raise SystemExit('school majors manifest import anchor changed')
+          t=t.replace(old,new)
+          old="""    const acceptedNames = acceptedNamesForSelection(selection, entity);
+    const { manifest, records: exactRaw, scanned: rawScanned } = await loadMatchingRecords(
+      context.request,
+      context.env || {},
+      raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw)))
+    );"""
+          new="""    const acceptedNames = acceptedNamesForSelection(selection, entity);
+    const chunkFiles2026 = Array.isArray(selection?.chunkFiles2026) ? selection.chunkFiles2026 : [];
+    const exactLoad = chunkFiles2026.length
+      ? await loadMatchingRecordsFromFiles(context.request, context.env || {}, chunkFiles2026, raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))))
+      : await loadMatchingRecords(context.request, context.env || {}, raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))));
+    const { manifest, records: exactRaw, scanned: rawScanned } = exactLoad;"""
+          if old not in t: raise SystemExit('school majors exact loader anchor changed')
+          t=t.replace(old,new)
+          t=t.replace("mode: 'unified-school-query-exact-admission-names'", "mode: chunkFiles2026.length ? 'unified-school-query-exact-admission-chunks' : 'unified-school-query-exact-admission-names',\n        chunkFiles2026")
+          p.write_text(t)
+
+          v=Path('tools/verify-ai-school-history-bridge-v3992_2.mjs')
+          t=v.read_text()
+          insert="""
+const manifest=JSON.parse(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json','utf8'));
+const directory=JSON.parse(fs.readFileSync('shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json','utf8'));
+const chunkFiles=new Set((manifest.chunks||[]).map(item=>item.file||item.path).filter(Boolean));
+for(const school of directory.schools||[]){assert.ok(Array.isArray(school.chunkFiles2026)&&school.chunkFiles2026.length>0,`chunk locator missing: ${school.officialName}`);for(const file of school.chunkFiles2026)assert.ok(chunkFiles.has(file),`unknown chunk locator ${file}: ${school.officialName}`);}
+const industrial=(directory.schools||[]).find(item=>item.officialName==='沈阳工业大学');
+const aviation=(directory.schools||[]).find(item=>item.officialName==='沈阳航空航天大学');
+const science=(directory.schools||[]).find(item=>item.officialName==='辽宁科技大学');
+assert.ok(industrial?.chunkFiles2026?.length&&aviation?.chunkFiles2026?.length&&science?.chunkFiles2026?.length,'journey school chunk locators missing');
+const provider=fs.readFileSync('functions/_lib/school-query-provider.v3969.js','utf8');
+const manifestLoader=fs.readFileSync('functions/_lib/ln-rank-manifest.js','utf8');
+const endpoint=fs.readFileSync('functions/api/school-majors.js','utf8');
+assert.ok(provider.includes('chunkFiles2026: Object.freeze'),'exact school provider must expose chunk locator');
+assert.ok(manifestLoader.includes('loadMatchingRecordsFromFiles'),'bounded manifest loader missing');
+assert.ok(endpoint.includes('chunkFiles2026.length')&&endpoint.includes('loadMatchingRecordsFromFiles'),'school-majors must use exact-school chunk locator');
+"""
+          marker="console.log(JSON.stringify({ok:true,checks:"
+          if marker not in t: raise SystemExit('school history verifier end marker changed')
+          t=t.replace(marker,insert+"\n"+marker)
+          p.write_text(t)
+          PY
+          node tools/build-school-admission-directory-v3969.mjs
+          node --check functions/_lib/ln-rank-manifest.js
+          node --check functions/_lib/school-query-provider.v3969.js
+          node --check functions/api/school-majors.js
+          node --check tools/build-school-admission-directory-v3969.mjs
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git rm .github/workflows/patch-school-chunk-locator-temp.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/build-school-admission-directory-v3969.mjs shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json functions/_lib/school-query-provider.v3969.js functions/_lib/ln-rank-manifest.js functions/api/school-majors.js tools/verify-ai-school-history-bridge-v3992_2.mjs
+          git commit -m 'perf: index exact school admission chunks'
+          git push origin HEAD:agent/ai-worker-resource-boundary-v3992_2
