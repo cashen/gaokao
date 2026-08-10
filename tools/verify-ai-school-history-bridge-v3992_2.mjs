@@ -7,6 +7,8 @@ assert.ok(!/import\s+\{[^}]*queryAiSchoolHistory[^}]*\}\s+from\s+['"]\.\/school-
 assert.ok(tool.includes("kind:'school_history'"),'school history deterministic tool kind missing');
 assert.ok(tool.includes("new URL('/api/school-majors'"),'school history must reuse public deterministic school-majors endpoint');
 assert.ok(tool.includes("url.searchParams.set('schoolIntent','school')"),'school history exact-school intent missing');
+assert.ok(tool.includes('normalizedScore=normalizeOptionalCandidateScore(candidateScore)'),'school history must preserve null candidate score');
+assert.ok(tool.includes("normalizedScore===null?'score-desc':'position-near'"),'school history null score sort boundary missing');
 assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
