@@ -1,4 +1,4 @@
-# corrected stale source-contract assertion
+# corrected stale source-contract assertion; force-clean self-modifying temp scripts
 name: Patch AI school history bridge temp
 
 on:
@@ -34,7 +34,7 @@ jobs:
           node --check tools/verify-ai-workspace-v3990_1.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
-          git rm .github/workflows/patch-ai-school-history-bridge-temp.yml .agent/patch-ai-school-history-bridge.py .agent/fix-and-run-school-history-bridge.py
+          git rm -f .github/workflows/patch-ai-school-history-bridge-temp.yml .agent/patch-ai-school-history-bridge.py .agent/fix-and-run-school-history-bridge.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js ai/app.v3990_1.js functions/_lib/ai/RESOURCE-BOUNDARY.md tools/verify-ai-school-history-bridge-v3992_2.mjs tools/verify-ai-workspace-v3990_1.mjs
