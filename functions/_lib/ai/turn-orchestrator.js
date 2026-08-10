@@ -32,6 +32,7 @@ function effectiveScore(command,workspace,view){const explicit=validScore(comman
 function agentContextForTurn(command,workspace,focus){return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};}
 function pendingDeterministicTool(result={}){for(const value of [result.candidates,result.background,result.comparison])if(value?.code==='client_tool_required'||value?.code==='client_tool_invalid')return value;return null;}
 function providerSummary(interpreted={},command={}){return{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,latencyMs:interpreted.provider?.latencyMs||0,failures:interpreted.provider?.failures||[]};}
+function pendingComparisonPlan(command={}){if(command.agentTask==='major_comparison')return{kind:'major',pendingEvidenceDimensions:['课程体系','培养方案','就业路径的学校级证据'],status:'awaiting_deterministic_candidate_facts'};if(command.agentTask==='school_comparison')return{kind:'school',pendingEvidenceDimensions:['培养方案','就业口径','推免政策','校区与具体学费'],status:'awaiting_deterministic_candidate_facts'};return null;}
 
 export async function orchestrateAiTurn(context,payload={}){
   const input=clean(payload.input,1200),workspace=payload.workspace&&typeof payload.workspace==='object'?payload.workspace:{};
@@ -92,7 +93,7 @@ export async function orchestrateAiTurn(context,payload={}){
 
   const pendingTool=pendingDeterministicTool(result);
   if(pendingTool?.code==='client_tool_invalid')return{ok:false,status:400,message:pendingTool.message||'确定性候选事实回传无法验证。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
-  if(pendingTool?.code==='client_tool_required')return{ok:true,pendingConfirmation:false,pendingDeterministicTool:true,command,resolvedView:view,commitView:resolved.commitView,toolRequest:pendingTool.toolRequest,agentContext,provider:providerSummary(interpreted,command),orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
+  if(pendingTool?.code==='client_tool_required')return{ok:true,pendingConfirmation:false,pendingDeterministicTool:true,command,resolvedView:view,commitView:resolved.commitView,toolRequest:pendingTool.toolRequest,comparisonPlan:pendingComparisonPlan(command),agentContext,provider:providerSummary(interpreted,command),orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 
   result.decisionStage=decisionStageFor({command,view,result,changes});
   result.evidence=evidenceForIntent(evidenceIntent(command,result));
