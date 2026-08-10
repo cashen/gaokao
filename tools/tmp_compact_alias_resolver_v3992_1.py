@@ -9,14 +9,20 @@ p.write_text(s.replace(old,new,1))
 
 p=Path('tools/verify-ai-workspace-v3990_1.mjs')
 s=p.read_text()
-# extend existing command-interpreter import if present
-s=s.replace("resolveAiSchoolMentions,", "resolveAiSchoolMentions,selectAiSchoolResolverRows,", 1) if "resolveAiSchoolMentions," in s and "selectAiSchoolResolverRows" not in s else s
+if 'selectAiSchoolResolverRows' not in s.split('\n',20)[0:20].__str__():
+    old_import="import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider,resolveAiSchoolMentions } from '../functions/_lib/ai/command-interpreter.js';"
+    new_import="import { deterministicCommand,interpretAiCommand,shouldShortCircuitAiProvider,resolveAiSchoolMentions,selectAiSchoolResolverRows } from '../functions/_lib/ai/command-interpreter.js';"
+    if old_import not in s: raise SystemExit('command interpreter import anchor missing')
+    s=s.replace(old_import,new_import,1)
+s=s.replace("assert.ok(source.includes(\"row[3]==='本科'\"));","assert.ok(source.includes(\"parts.level!=='本科'\"));",1)
 needle="function testExactSchoolQueryLightPath(){"
 idx=s.find(needle)
 if idx<0: raise SystemExit('test insertion anchor missing')
-newtest="function testCompactAliasResolverRows(){const noise=Array.from({length:600},(_,i)=>[`测试大学${i}`,'测试省','测试市','本科',[`csdx${i}`]]),rows=[...noise,['沈阳航空航天大学','辽宁省','沈阳市','本科',['syhkhtdx']],['辽宁科技大学','辽宁省','鞍山市','本科',['lnkjdx']],['辽宁石油化工大学','辽宁省','抚顺市','本科',['lnsyhgdx']]];const shen=selectAiSchoolResolverRows(rows,['沈航']);assert.ok(shen.length<=220);assert.ok(shen.some(row=>row[0]==='沈阳航空航天大学'));assert.ok(shen.length<rows.length);const liao=selectAiSchoolResolverRows(rows,['辽科大']);assert.ok(liao.some(row=>row[0]==='辽宁科技大学'));const petro=selectAiSchoolResolverRows(rows,['辽石化']);assert.ok(petro.some(row=>row[0]==='辽宁石油化工大学'));const source=read('functions/_lib/ai/command-interpreter.js');assert.ok(source.includes('createSchoolNameResolver(selected)'));assert.equal(source.includes('createSchoolNameResolver(rows);'),false,'AI must not build a 2952-school resolver');}\n"
-s=s[:idx]+newtest+s[idx:]
+if 'function testCompactAliasResolverRows()' not in s:
+    newtest="function testCompactAliasResolverRows(){const noise=Array.from({length:600},(_,i)=>[`测试大学${i}`,'测试省','测试市','本科',[`csdx${i}`]]),rows=[...noise,['沈阳航空航天大学','辽宁省','沈阳市','本科',['syhkhtdx']],['辽宁科技大学','辽宁省','鞍山市','本科',['lnkjdx']],['辽宁石油化工大学','辽宁省','抚顺市','本科',['lnsyhgdx']]];const shen=selectAiSchoolResolverRows(rows,['沈航']);assert.ok(shen.length<=220);assert.ok(shen.some(row=>row[0]==='沈阳航空航天大学'));assert.ok(shen.length<rows.length);const liao=selectAiSchoolResolverRows(rows,['辽科大']);assert.ok(liao.some(row=>row[0]==='辽宁科技大学'));const petro=selectAiSchoolResolverRows(rows,['辽石化']);assert.ok(petro.some(row=>row[0]==='辽宁石油化工大学'));const source=read('functions/_lib/ai/command-interpreter.js');assert.ok(source.includes('createSchoolNameResolver(selected)'));assert.equal(source.includes('createSchoolNameResolver(rows);'),false,'AI must not build a 2952-school resolver');}\n"
+    s=s[:idx]+newtest+s[idx:]
 call="testExactSchoolQueryLightPath();"
-if call not in s: raise SystemExit('test call anchor missing')
-s=s.replace(call,"testCompactAliasResolverRows();\n"+call,1)
+if 'testCompactAliasResolverRows();' not in s:
+    if call not in s: raise SystemExit('test call anchor missing')
+    s=s.replace(call,"testCompactAliasResolverRows();\n"+call,1)
 p.write_text(s)
