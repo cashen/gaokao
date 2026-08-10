@@ -21,6 +21,12 @@ assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
+assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000'),'school-history session cache TTL missing');
+assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_MAX_ENTRIES=4'),'school-history session cache entry cap missing');
+assert.ok(app.includes('schoolHistorySessionCache.get(tool.url)'),'school-history session cache must key by exact tool URL');
+assert.ok(app.includes('const cached=readSchoolHistorySessionCache(tool);if(cached)return cached'),'school-history cache read must happen before network fetch');
+assert.ok(app.includes('putSchoolHistorySessionCache(tool,entry);return entry'),'successful bounded school-history fact must enter session cache');
+
 
 const manifest=JSON.parse(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json','utf8'));
 const directory=JSON.parse(fs.readFileSync('shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json','utf8'));
@@ -80,4 +86,4 @@ try{
   globalThis.fetch=originalFetch;
 }
 
-console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry','record-stream-no-response-json','stream-truth-set-equal','exact-school-native-text-scan-truth-set-equal'],streamedSchools:['沈阳工业大学','沈阳航空航天大学','辽宁科技大学'],sourceRecords:manifest.totalRecords},null,2));
+console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry','record-stream-no-response-json','stream-truth-set-equal','exact-school-native-text-scan-truth-set-equal','bounded-school-history-session-cache'],streamedSchools:['沈阳工业大学','沈阳航空航天大学','辽宁科技大学'],sourceRecords:manifest.totalRecords},null,2));
