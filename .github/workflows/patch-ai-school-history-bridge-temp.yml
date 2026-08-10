@@ -25,15 +25,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python .agent/patch-ai-school-history-bridge.py
+          python .agent/fix-and-run-school-history-bridge.py
           node --check functions/_lib/ai/tool-registry.js
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check ai/app.v3990_1.js
           node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node --check tools/verify-ai-workspace-v3990_1.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
-          git rm .github/workflows/patch-ai-school-history-bridge-temp.yml .agent/patch-ai-school-history-bridge.py
+          node tools/verify-ai-workspace-v3990_1.mjs
+          git rm .github/workflows/patch-ai-school-history-bridge-temp.yml .agent/patch-ai-school-history-bridge.py .agent/fix-and-run-school-history-bridge.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js ai/app.v3990_1.js functions/_lib/ai/RESOURCE-BOUNDARY.md tools/verify-ai-school-history-bridge-v3992_2.mjs .github/workflows/verify-ai-workspace-v3990_1.yml
+          git add functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js ai/app.v3990_1.js functions/_lib/ai/RESOURCE-BOUNDARY.md tools/verify-ai-school-history-bridge-v3992_2.mjs tools/verify-ai-workspace-v3990_1.mjs
           git commit -m 'fix: isolate school history from AI Worker resources'
           git push origin HEAD:agent/ai-worker-resource-boundary-v3992_2
