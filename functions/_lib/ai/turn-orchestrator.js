@@ -42,6 +42,9 @@ export async function orchestrateAiTurn(context,payload={}){
   let interpreted;const confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace);
   if(confirmed)interpreted={command:confirmed,provider:{ok:false,provider:'',model:'',confirmed:true}};else interpreted=await interpretAiCommand(input,workspace,context.env||{},context.request||null);
   const command=interpreted.command;
+  const explicitCompare=/(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(input);
+  if(explicitCompare&&command.schoolNames?.length>=2){command.agentTask='school_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}
+  else if(explicitCompare&&command.majorKeywords?.length>=2){command.agentTask='major_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}
   if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话我不想替你猜',text:command.reason||'请再明确一点。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 
   let resolved=resolveActiveView(command,workspace);
