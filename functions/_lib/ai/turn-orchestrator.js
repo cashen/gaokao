@@ -1,4 +1,3 @@
-
 import {buildAiResultDelta,AI_WORKSPACE_CONTRACT_VERSION,applyAiViewPatch} from '../../../shared/ai/ai-workspace-contract.v3992_0.js';
 import {interpretAiCommand,deterministicCommand} from './command-interpreter.js';
 import {evidenceForIntent} from './evidence-registry.js';
@@ -21,34 +20,16 @@ function validScore(value){const score=Math.round(Number(value));return Number.i
 function clone(value){return value==null?value:JSON.parse(JSON.stringify(value));}
 function baseView(workspace={}){const source=workspace?.activeView||{};return{target:source.target||'candidates',score:validScore(source.score??workspace?.examContext?.score),majorKeywords:unique(source.majorKeywords||[],8),regionKeys:unique(source.regionKeys||['all'],8).length?unique(source.regionKeys||['all'],8):['all'],schoolNames:unique(source.schoolNames||[],4),bottomLineMode:['all','public_first','public_regular_only','public_include_sino'].includes(source.bottomLineMode)?source.bottomLineMode:'all',combination:source.combination==='union'?'union':'replace',sourceText:''};}
 function fallbackPatch(command={}){return{score:validScore(command.score)?{op:'set',value:validScore(command.score)}:{op:'inherit'},region:command.regionKeys?.length?{op:command.regionKeys.includes('all')?'clear':'set',keys:command.regionKeys}:{op:'inherit',keys:[]},major:command.clearMajor?{op:'clear',values:[]}:command.majorKeywords?.length?{op:command.combination==='union'?'add':'set',values:command.majorKeywords}:{op:'inherit',values:[]},school:command.clearSchool?{op:'clear',values:[]}:command.schoolNames?.length?{op:'set',values:command.schoolNames}:{op:'inherit',values:[]},bottomLine:command.bottomLineMode?{op:'set',value:command.bottomLineMode}:{op:'inherit',value:''}};}
-function resolveActiveView(command={},workspace={}){
-  const base=baseView(workspace),patch=command.changeSet&&typeof command.changeSet==='object'?command.changeSet:fallbackPatch(command),mutates=CANDIDATE_TASKS.has(command.agentTask);
-  if(!mutates)return{view:clone(base),commitView:false,patch,previousView:base};
-  const next=applyAiViewPatch(base,patch,workspace?.examContext||{});next.sourceText=clean(command.rawText,320);return{view:next,commitView:true,patch,previousView:base};
-}
+function resolveActiveView(command={},workspace={}){const base=baseView(workspace),patch=command.changeSet&&typeof command.changeSet==='object'?command.changeSet:fallbackPatch(command),mutates=CANDIDATE_TASKS.has(command.agentTask);if(!mutates)return{view:clone(base),commitView:false,patch,previousView:base};const next=applyAiViewPatch(base,patch,workspace?.examContext||{});next.sourceText=clean(command.rawText,320);return{view:next,commitView:true,patch,previousView:base};}
 function viewMatchesCommand(view={},command={}){if(command.majorKeywords?.length&&!command.majorKeywords.every(v=>(view.majorKeywords||[]).includes(v)))return false;if(command.regionKeys?.length&&!command.regionKeys.every(v=>(view.regionKeys||[]).includes(v)))return false;if(validScore(command.score)&&validScore(view.score)!==validScore(command.score))return false;return true;}
 function restoreView(command={},workspace={}){const history=Array.isArray(workspace?.viewHistory)?workspace.viewHistory:[];if(!history.length)return null;const text=String(command.rawText||'');if(/(上一批|上一个结果|刚才那批|刚才的结果|前面那批)/.test(text)&&!(command.majorKeywords?.length||command.regionKeys?.length))return clone(history[0]);const matched=history.find(v=>viewMatchesCommand(v,command));return clone(matched||history[0]);}
 function selectionReviewRequested(input=''){return /(方案|选择池|自选|已选|选了些|选了一些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(String(input||''));}
 function evidenceIntent(command,result){return{topic:result?.comparison?'candidate_search':command.agentTask==='evidence_verification'?'verification':CANDIDATE_TASKS.has(command.agentTask)?'candidate_search':'general_question',question:command.question||command.rawText||'',majorKeywords:command.majorKeywords||[]};}
 function resultIdentity({view,command,selectionReview}){return[command.agentTask,view.score||'',view.majorKeywords.join('/'),view.regionKeys.join(','),view.schoolNames.join('/'),view.bottomLineMode,command.platformTarget||'',command.focus?.school||'',command.focus?.major||'',selectionReview?.snapshotVersion||''].join('|');}
 function validateConfirmedCommand(value,input,workspace){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace);return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:fallback.focus,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}
-function focusForTurn(command={},workspace={}){
-  const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;
-  const school=seed.school||((['school_major_history','school_history','fit_assessment','school_background'].includes(task))?prior.school:'');
-  const major=seed.major||((['school_major_history','fit_assessment','major_background'].includes(task))?prior.major:'');
-  const schools=seed.schools?.length?seed.schools:((task==='school_comparison')?prior.schools:[]);
-  const majors=seed.majors?.length?seed.majors:((task==='major_comparison')?prior.majors:[]);
-  return agentFocusSeed({school,major,schools,majors,sourceText:command.rawText},workspace);
-}
-function effectiveScore(command,workspace,view){
-  const explicit=validScore(command.score),remembered=validScore(workspace?.examContext?.score)||validScore(view?.score);
-  if(command.scoreUsage==='suspended'||command.scoreUsage==='cleared')return null;
-  if(command.scoreUsage==='active')return explicit||remembered;
-  return explicit||remembered;
-}
-function agentContextForTurn(command,workspace,focus){
-  return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};
-}
+function focusForTurn(command={},workspace={}){const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;const school=seed.school||((['school_major_history','school_history','fit_assessment','school_background'].includes(task))?prior.school:'');const major=seed.major||((['school_major_history','fit_assessment','major_background'].includes(task))?prior.major:'');const schools=seed.schools?.length?seed.schools:((task==='school_comparison')?prior.schools:[]);const majors=seed.majors?.length?seed.majors:((task==='major_comparison')?prior.majors:[]);return agentFocusSeed({school,major,schools,majors,sourceText:command.rawText},workspace);}
+function effectiveScore(command,workspace,view){const explicit=validScore(command.score),remembered=validScore(workspace?.examContext?.score)||validScore(view?.score);if(command.scoreUsage==='suspended'||command.scoreUsage==='cleared')return null;if(command.scoreUsage==='active')return explicit||remembered;return explicit||remembered;}
+function agentContextForTurn(command,workspace,focus){return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};}
 
 export async function orchestrateAiTurn(context,payload={}){
   const input=clean(payload.input,1200),workspace=payload.workspace&&typeof payload.workspace==='object'?payload.workspace:{};
@@ -89,13 +70,13 @@ export async function orchestrateAiTurn(context,payload={}){
       case'fit_assessment':
         result.fit=await runFitAssessment(context,{school:focus.school,majorKeyword:focus.major,score});result.partial=!result.fit.ok;break;
       case'background_discovery':
-        result.background=runBackgroundDiscovery({limit:12,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln'])});result.partial=!result.background.ok;break;
+        result.background=await runBackgroundDiscovery(context,{limit:12,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln'])});result.partial=!result.background.ok;break;
       case'background_fit_discovery':
         result.background=await runBackgroundFitDiscovery(context,{score,bottomLineMode:view.bottomLineMode,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln'])});result.partial=!result.background.ok;break;
       case'school_background':
-        result.background=runSchoolBackground({school:focus.school});result.partial=!result.background.ok;break;
+        result.background=await runSchoolBackground(context,{school:focus.school});result.partial=!result.background.ok;break;
       case'major_background':
-        result.background=runMajorBackground({major:focus.major});result.partial=!result.background.ok;break;
+        result.background=await runMajorBackground(context,{major:focus.major});result.partial=!result.background.ok;break;
       case'school_comparison':{
         const schools=unique(command.schoolNames?.length?command.schoolNames:focus.schools,3);result.comparison=await runSchoolComparison(context,{score:score||view.score,schoolNames:schools,majorKeywords:view.majorKeywords,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});result.partial=!result.comparison?.ok;break;}
       case'major_comparison':{
