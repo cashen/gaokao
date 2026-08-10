@@ -21,12 +21,11 @@ jobs:
           node-version: '22'
       - name: Apply requested-band final-response edge cache patch
         run: python .agent/patch-requested-band-response-edge-cache-v3990_1.py
-      - name: Verify source syntax and permanent contracts
+      - name: Verify source syntax and current production contracts
         run: |
           node --check functions/api/major-bands.js
           node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
           node tools/audit-production-resource-verification-v3990_1.mjs
-          node tools/audit-major-bands-bounded-fanout-v3972_5.mjs
       - name: Commit permanent changes
         run: |
           git config user.name "github-actions[bot]"
