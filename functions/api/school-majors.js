@@ -1,4 +1,4 @@
-import { loadAllRecords } from '../_lib/ln-rank-manifest.js';
+import { loadMatchingRecords } from '../_lib/ln-rank-manifest.js';
 import { normalizeRecord, rawSchool } from '../_lib/fenxi-normalizer.js';
 import { normalizeFenxiCodes } from '../_lib/fenxi-code-normalizer.js';
 import { mapStandardMajor } from '../_lib/standard-major-mapper.js';
@@ -21,6 +21,7 @@ import {
 } from '../../shared/resources/schools/school-identity-center.js';
 import {
   resolveAdmissionSchoolQuery,
+  resolveExactAdmissionSchool,
   getAdmissionSchoolDirectoryMeta
 } from '../_lib/school-query-provider.v3969.js';
 import {
@@ -176,10 +177,7 @@ export async function onRequest(context) {
     const candidateLimit = Math.max(8, Math.min(500, pageNumber(url.searchParams.get('candidateLimit'), 200)));
     const schoolIntent = normalizeSchoolQueryIntent(url.searchParams.get('schoolIntent') || 'auto');
 
-    const [{ manifest, records: rawRecords }, directoryMeta] = await Promise.all([
-      loadAllRecords(context.request, context.env || {}),
-      getAdmissionSchoolDirectoryMeta(context.request)
-    ]);
+    const directoryMeta = await getAdmissionSchoolDirectoryMeta(context.request);
 
     let entity = entityId ? getSchoolEntity(entityId) : null;
     if (entityId && !entity) return json({ ok: false, message: '学校实体不存在，请重新选择学校。' }, 400);
@@ -196,22 +194,34 @@ export async function onRequest(context) {
         entityType: entity.entityType
       };
     } else {
-      queryResult = await resolveAdmissionSchoolQuery(context.request, {
-        query: schoolInput,
-        intent: schoolIntent,
-        offset: candidateOffset,
-        limit: candidateLimit
-      });
-      if (queryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED || !queryResult.resolvedSchool) {
-        const status = queryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409;
-        return json(unresolvedPayload(queryResult, directoryMeta), status);
+      const exactSelection = schoolIntent === 'school'
+        ? await resolveExactAdmissionSchool(context.request, schoolInput)
+        : null;
+      if (exactSelection) {
+        selection = exactSelection;
+        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
+      } else {
+        queryResult = await resolveAdmissionSchoolQuery(context.request, {
+          query: schoolInput,
+          intent: schoolIntent,
+          offset: candidateOffset,
+          limit: candidateLimit
+        });
+        if (queryResult.status !== SCHOOL_QUERY_STATUSES.RESOLVED || !queryResult.resolvedSchool) {
+          const status = queryResult.status === SCHOOL_QUERY_STATUSES.NOT_FOUND ? 404 : 409;
+          return json(unresolvedPayload(queryResult, directoryMeta), status);
+        }
+        selection = queryResult.resolvedSchool;
+        entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
       }
-      selection = queryResult.resolvedSchool;
-      entity = selection.entityId ? getSchoolEntity(selection.entityId) : null;
     }
 
     const acceptedNames = acceptedNamesForSelection(selection, entity);
-    const exactRaw = rawRecords.filter(raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw))));
+    const { manifest, records: exactRaw, scanned: rawScanned } = await loadMatchingRecords(
+      context.request,
+      context.env || {},
+      raw => acceptedNames.has(normalizeUnifiedSchoolName(rawSchool(raw)))
+    );
     if (!exactRaw.length) {
       const fallback = queryResult || await resolveAdmissionSchoolQuery(context.request, {
         query: schoolInput || selection.officialName,
@@ -328,8 +338,8 @@ export async function onRequest(context) {
       source: {
         dataYear: 2026,
         manifestVersion: manifest.version || '',
-        totalRecords: manifest.totalRecords || rawRecords.length,
-        rawScanned: rawRecords.length,
+        totalRecords: manifest.totalRecords || rawScanned,
+        rawScanned,
         exactSchoolRecords: exactRaw.length,
         mode: 'unified-school-query-exact-admission-names'
       }

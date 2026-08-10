@@ -12,6 +12,7 @@ import { SCHOOL_QUERY_POLICY } from '../../shared/resources/schools/school-query
 
 const CACHE_TTL = 5 * 60 * 1000;
 const cacheByOrigin = new Map();
+const admissionDirectoryCacheByOrigin = new Map();
 
 function baseUrl(request) {
   const url = new URL(request.url);
@@ -27,17 +28,26 @@ async function fetchJson(request, pathname) {
   return response.json();
 }
 
+async function loadAdmissionDirectory(request) {
+  const origin = baseUrl(request);
+  const cached = admissionDirectoryCacheByOrigin.get(origin);
+  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.value;
+  const admissionDirectory = await fetchJson(request, '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json');
+  if (admissionDirectory?.contractVersion !== 'school-query-contract-v3969_0') {
+    throw new Error('school admission directory contract mismatch');
+  }
+  admissionDirectoryCacheByOrigin.set(origin, { time: Date.now(), value: admissionDirectory });
+  return admissionDirectory;
+}
+
 async function loadResources(request) {
   const origin = baseUrl(request);
   const cached = cacheByOrigin.get(origin);
   if (cached && Date.now() - cached.time < CACHE_TTL) return cached.value;
   const [directoryPayload, admissionDirectory] = await Promise.all([
     fetchJson(request, '/tongxue/data/school-search-index.20260617-v150.json'),
-    fetchJson(request, '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json')
+    loadAdmissionDirectory(request)
   ]);
-  if (admissionDirectory?.contractVersion !== 'school-query-contract-v3969_0') {
-    throw new Error('school admission directory contract mismatch');
-  }
   const records = extractSchoolRecords(directoryPayload);
   const baseResolver = createSchoolNameResolver(records);
   const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
@@ -75,9 +85,31 @@ export async function resolveAdmissionSchoolFilter(request, options = {}) {
   });
 }
 
+export async function resolveExactAdmissionSchool(request, school) {
+  const needle = normalizeUnifiedSchoolName(school);
+  if (!needle) return null;
+  const directory = await loadAdmissionDirectory(request);
+  const matches = (Array.isArray(directory?.schools) ? directory.schools : []).filter(item => {
+    const names = [item?.officialName, ...(Array.isArray(item?.admissionNames) ? item.admissionNames : []), ...(Array.isArray(item?.searchNames) ? item.searchNames : [])];
+    return names.some(name => normalizeUnifiedSchoolName(name) === needle);
+  });
+  if (matches.length !== 1) return null;
+  const item = matches[0];
+  const admissionNames = Array.isArray(item.admissionNames) ? item.admissionNames.filter(Boolean) : [];
+  return Object.freeze({
+    officialName: item.officialName || admissionNames[0] || school,
+    admissionName: admissionNames[0] || item.officialName || school,
+    admissionNames,
+    entityId: item.entityId || '',
+    entityType: item.entityType || 'official_school',
+    province: item.province || '',
+    city: item.city || '',
+    recordCount2026: Number(item.recordCount2026 || 0)
+  });
+}
+
 export async function getAdmissionSchoolDirectoryMeta(request) {
-  const resources = await loadResources(request);
-  const directory = resources.admissionDirectory;
+  const directory = await loadAdmissionDirectory(request);
   return Object.freeze({
     version: directory.version,
     contractVersion: directory.contractVersion,
@@ -89,6 +121,11 @@ export async function getAdmissionSchoolDirectoryMeta(request) {
   });
 }
 
-export function clearSchoolQueryProviderCacheForTest() {
+export function releaseSchoolQueryProviderCache() {
   cacheByOrigin.clear();
+  admissionDirectoryCacheByOrigin.clear();
+}
+
+export function clearSchoolQueryProviderCacheForTest() {
+  releaseSchoolQueryProviderCache();
 }

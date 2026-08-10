@@ -36,11 +36,12 @@
     <section class="starter" id="starterPanel">
       <h2>从你现在最真实的问题开始</h2>
       <p>可以筛学校，也可以直接查一个学校、专业或省内背景方向。系统会自己判断当前任务。</p>
-      <div class="starter-grid">
-        <button type="button" data-prompt="580分，先看看机械">580分，先看看机械</button>
-        <button type="button" data-prompt="沈阳工业大学自动化多少分">沈阳工业自动化多少分</button>
-        <button type="button" data-prompt="帮我找出省内值得研究的专业方向">省内有哪些值得研究的方向</button>
+      <div class="starter-score">
+        <label for="starterScore">先告诉我孩子大概多少分</label>
+        <div class="starter-score-row"><input id="starterScore" type="number" inputmode="numeric" min="150" max="750" placeholder="例如 580" /><button id="starterScoreApply" type="button">看看这个分数先该想什么</button></div>
+        <p class="muted">这只是当前讨论坐标，不会自动替你决定地区、专业、民办或中外。</p>
       </div>
+      <div id="starterScenarios" class="starter-grid" aria-live="polite"></div>
     </section>
 
     <form id="promptForm" class="composer">
