@@ -44,6 +44,7 @@ jobs:
           done
           python ../diag/tools/.agent-integrate-major-perf-v3990_1.py
           python ../diag/tools/.agent-integrate-major-perf-fix-v3990_1.py
+          python ../diag/tools/.agent-integrate-major-perf-idfirst-fix-v3990_1.py
           git diff --check
       - name: Verify native scan region truth and full rank kernel
         working-directory: src
