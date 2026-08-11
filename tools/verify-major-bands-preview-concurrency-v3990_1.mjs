@@ -35,6 +35,10 @@ const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-pr
 const expectedAllBandsPageLimitCap = 16;
 const expectedAllBandsEdgeCacheVersion = 'major-bands-all-bands-edge-cache-canonical-v3990_1';
 
+const apiSourceForScoreHintContract = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+assert.equal((apiSourceForScoreHintContract.match(/orderedScores: orderedPageScores\(ordered\)/g) || []).length, 2, 'cold and shared ordered snapshots must both persist aligned scores');
+assert.ok((apiSourceForScoreHintContract.match(/pageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION/g) || []).length >= 2, 'cold and shared ordered snapshots must both carry score-hint version');
+
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
   Object.freeze({ name: 'standard-579-near', path: '/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=37&offset=0', band: 'near' }),

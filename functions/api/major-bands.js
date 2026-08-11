@@ -938,6 +938,8 @@ async function executeRequestedBandOrderedPage(context, input) {
         orderRawRowCount: loaded.stats.rawRowCount,
         orderDecodedRowCount: loaded.stats.decodedRowCount,
         orderedIds: ordered.map(record => record.id),
+        orderedScores: orderedPageScores(ordered),
+        pageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
         snapshot: majorBandsSnapshotId(ordered, identity)
       };
       const rawRowReuse = loaded.stats.minimalProjection === true;
