@@ -1,0 +1,66 @@
+name: Temporary major-bands nonbusiness cache key qualification
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-major-cache-nonbusiness-key-v3990-1.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-500-diagnostic-646b
+          path: diag
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 0
+          path: src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply cache identity fix
+        working-directory: src
+        run: |
+          set -euo pipefail
+          python ../diag/tools/.agent-major-cache-nonbusiness-key-v3990_1.py
+          git diff --check
+          node --check functions/api/major-bands.js
+          node --check tools/audit-production-resource-verification-v3990_1.mjs
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+      - name: Verify cache and production source contracts
+        working-directory: src
+        run: |
+          set -euo pipefail
+          tmp=tools/.audit-major-bands-query-execution-cache-v3990_1.generated.mjs
+          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' tools/audit-major-bands-query-execution-cache-v3990_0.mjs > "$tmp"
+          node "$tmp"
+          rm -f "$tmp"
+          node tools/audit-production-resource-verification-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/verify-major-bands-predecode-region-v3990_1.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const source=fs.readFileSync('functions/api/major-bands.js','utf8');
+          const helper=source.indexOf('function stripMajorBandsNonBusinessCacheParams');
+          if(helper<0) throw new Error('canonicalizer missing');
+          for(const key of ["'stress'","'deploy'","'candidate'","'production-resource-check'"]) if(!source.includes(key)) throw new Error(`missing ${key}`);
+          const calls=(source.match(/stripMajorBandsNonBusinessCacheParams\(url\);/g)||[]).length;
+          if(calls!==3) throw new Error(`expected 3 cache-key canonicalizer calls, got ${calls}`);
+          console.log(JSON.stringify({ok:true,calls,params:4}));
+          NODE
+      - name: Commit qualified formal files
+        working-directory: src
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add functions/api/major-bands.js tools/audit-production-resource-verification-v3990_1.mjs tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          git commit -m 'fix: canonicalize nonbusiness major-bands cache params'
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
