@@ -1,0 +1,53 @@
+name: Temporary query cache audit schema upgrade
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-upgrade-query-cache-audit-v3990-0.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-500-diagnostic-646b
+          path: diag
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 0
+          path: src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Upgrade query cache audit source
+        working-directory: src
+        run: |
+          set -euo pipefail
+          python ../diag/tools/.agent-upgrade-query-cache-audit-v3990_0.py
+          git diff --check
+          node --check tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+      - name: Verify generated v3990.1 cache and production contracts
+        working-directory: src
+        run: |
+          set -euo pipefail
+          tmp=tools/.audit-major-bands-query-execution-cache-v3990_1.generated.mjs
+          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' tools/audit-major-bands-query-execution-cache-v3990_0.mjs > "$tmp"
+          node --check "$tmp"
+          node "$tmp"
+          rm -f "$tmp"
+          node tools/audit-production-resource-verification-v3990_1.mjs
+      - name: Commit qualified audit source to PR branch
+        working-directory: src
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add tools/audit-major-bands-query-execution-cache-v3990_0.mjs
+          git commit -m 'test: audit score-hint requested-band cache schema'
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
