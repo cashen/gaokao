@@ -32,12 +32,13 @@ jobs:
           python tools/.agent-aiplus-official-year-guard-v3990_2.py
           python tools/.agent-aiplus-major-residue-guard-v3990_2.py
           python tools/.agent-aiplus-resolver-details-v3990_2.py
+          python tools/.agent-aiplus-resolved-school-official-v3990_2.py
       - name: Audit removed frontend ownership
         shell: bash
         run: |
           set -euo pipefail
           test ! -e ai
-          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!tools/.agent-migrate-ai-frontend-to-aiplus-v3990_2.py' ':!tools/.agent-aiplus-dialog-noise-fix-v3990_2.py' ':!tools/.agent-aiplus-school-major-disambiguation-v3990_2.py' ':!tools/.agent-aiplus-official-year-guard-v3990_2.py' ':!tools/.agent-aiplus-major-residue-guard-v3990_2.py' ':!tools/.agent-aiplus-resolver-details-v3990_2.py' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'; then
+          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!tools/.agent-migrate-ai-frontend-to-aiplus-v3990_2.py' ':!tools/.agent-aiplus-dialog-noise-fix-v3990_2.py' ':!tools/.agent-aiplus-school-major-disambiguation-v3990_2.py' ':!tools/.agent-aiplus-official-year-guard-v3990_2.py' ':!tools/.agent-aiplus-major-residue-guard-v3990_2.py' ':!tools/.agent-aiplus-resolver-details-v3990_2.py' ':!tools/.agent-aiplus-resolved-school-official-v3990_2.py' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'; then
             echo 'stale /ai frontend reference found' >&2
             exit 1
           fi
@@ -62,6 +63,6 @@ jobs:
           set -euo pipefail
           git config user.name 'cashen'
           git config user.email '54cashen@gmail.com'
-          git add -A ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!tools/.agent-migrate-ai-frontend-to-aiplus-v3990_2.py' ':!tools/.agent-aiplus-dialog-noise-fix-v3990_2.py' ':!tools/.agent-aiplus-school-major-disambiguation-v3990_2.py' ':!tools/.agent-aiplus-official-year-guard-v3990_2.py' ':!tools/.agent-aiplus-major-residue-guard-v3990_2.py' ':!tools/.agent-aiplus-resolver-details-v3990_2.py' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'
+          git add -A ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!tools/.agent-migrate-ai-frontend-to-aiplus-v3990_2.py' ':!tools/.agent-aiplus-dialog-noise-fix-v3990_2.py' ':!tools/.agent-aiplus-school-major-disambiguation-v3990_2.py' ':!tools/.agent-aiplus-official-year-guard-v3990_2.py' ':!tools/.agent-aiplus-major-residue-guard-v3990_2.py' ':!tools/.agent-aiplus-resolver-details-v3990_2.py' ':!tools/.agent-aiplus-resolved-school-official-v3990_2.py' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'
           git commit -m 'refactor: consolidate AI frontend and harden human dialogue routing'
           git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
