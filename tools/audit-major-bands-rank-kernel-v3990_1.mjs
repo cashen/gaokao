@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import './verify-major-bands-rank-native-scan-v3990_1.mjs';
 import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import {
