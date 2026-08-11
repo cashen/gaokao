@@ -35,7 +35,7 @@ const homeFixture=`<!doctype html><html><body>
 <a href="/sch/schoolInfo--schId-124,categoryId-1167668,mindex-4.dhtml">录取规则</a>
 <a href="/sch/schoolInfo--schId-124,categoryId-1167668,mindex-6.dhtml">食宿条件</a>
 </nav>
-<div>学校信息更新时间：2026-05-28 16:54</div><p>这是学校官方介绍正文。</p>
+<div>学校信息更新时间：2026-05-28 16:54</div><p>这是学校官方介绍正文，用于模拟阳光高考院校页面的可读正文。正式运行时不会使用这里的测试文本。</p>
 </body></html>`;
 const nav=extractOfficialSchoolNavigation(homeFixture,'124');
 assert.ok(nav.some(item=>item.text==='学校简介'));
@@ -57,7 +57,7 @@ const searchUrl='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%
 fakeResponses.set(searchUrl,searchFixture);
 fakeResponses.set(searchMatch.href,homeFixture);
 const livingUrl=nav.find(item=>item.text==='食宿条件').href;
-fakeResponses.set(livingUrl,'<html><body><div>学校信息更新时间：2026-05-28 16:54</div><h1>食宿条件</h1><p>学生住宿安排以学校当年公布信息为准。</p></body></html>');
+fakeResponses.set(livingUrl,'<html><body><div>学校信息更新时间：2026-05-28 16:54</div><h1>食宿条件</h1><p>学生住宿安排以学校当年公布信息为准。这里继续补充测试页面结构，模拟官方院校信息页面通常包含的导航、说明和正文长度，目的是验证适配器不会把异常短的错误页当成学校证据。测试文本不进入正式运行，也不代表任何学校事实。</p><p>正式 AI Plus 只读取阳光高考实时返回的公开页面，并把官方来源链接、资料更新时间和检索边界一起交给回答层。</p></body></html>');
 const fakeFetch=async url=>{const key=String(url);const body=fakeResponses.get(key);return{ok:Boolean(body),status:body?200:404,text:async()=>body||'not found'};};
 const evidence=await loadOfficialSchoolEvidence({school:'辽宁石油化工大学',question:'宿舍怎么样',fetchImpl:fakeFetch});
 assert.equal(evidence.ok,true);
