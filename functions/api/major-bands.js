@@ -615,28 +615,29 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
   }
 
   const execution = await executeMajorBandsAllBandsPageOnce(allBandsPageIdentity(input), async () => {
-    const sharedProjectionEligible = input.filters.region === 'all'
-      && !input.filters.schoolKeyword
-      && !input.filters.schoolEntityId
-      && !input.filters.majorKeyword
-      && input.filters.bottomLineMode === 'all'
-      && input.filters.specialProjectMode === 'hide_eligibility_projects';
+    const sharedProjectionEligible = !input.filters.schoolKeyword
+      && !input.filters.schoolEntityId;
     let allBandsShared = null;
     if (sharedProjectionEligible) {
       const candidateRank = rankContextForScore(input.candidateScore);
       const totalRank = getRankPopulation({ year: 2026, region: 'ln', subject: 'physics', policy: 'table-total' });
       const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, input.rangePreset, totalRank);
       const selectedBuckets = selectMajorBandsRankBuckets(rankWindows);
+      const sharedProjectionUsesMinimalRows = input.filters.region === 'all'
+        && !input.filters.majorKeyword
+        && input.filters.bottomLineMode === 'all'
+        && input.filters.specialProjectMode === 'hide_eligibility_projects';
       const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, {
-        projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
-        rawRowStorage: 'serialized-json'
+        projection: sharedProjectionUsesMinimalRows ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
+        rawRowStorage: sharedProjectionUsesMinimalRows ? 'serialized-json' : undefined,
+        predecodeRegion: input.filters.region
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore: input.candidateScore,
         candidateRank,
         rangePreset: input.rangePreset,
         region: input.filters.region,
-        majorKeyword: '',
+        majorKeyword: input.filters.majorKeyword,
         bottomLineMode: input.filters.bottomLineMode,
         specialProjectMode: input.filters.specialProjectMode,
         schoolFilter: false,
@@ -887,20 +888,25 @@ async function executeRequestedBandOrderedPage(context, input) {
       snapshot: majorBandsSnapshotId(ordered, identity)
     };
     const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
-    pageRecords = orderedPage.map(record => {
-      if (!(Array.isArray(record.majorBandsRawRow) || typeof record.majorBandsRawRow === 'string') || !Array.isArray(record.majorBandsRawSchema)) {
-        throw new Error(`位次共享投影缺少原始行引用：${record.id || 'unknown'}`);
-      }
-      return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
-    });
+    const sharedProjectionUsesRawRows = allBandsShared.loadedStats.minimalProjection === true;
+    pageRecords = sharedProjectionUsesRawRows
+      ? orderedPage.map(record => {
+          if (!(Array.isArray(record.majorBandsRawRow) || typeof record.majorBandsRawRow === 'string') || !Array.isArray(record.majorBandsRawSchema)) {
+            throw new Error(`位次共享投影缺少原始行引用：${record.id || 'unknown'}`);
+          }
+          return decodeMajorBandsStaticRow(record.majorBandsRawRow, record.majorBandsRawSchema);
+        })
+      : orderedPage;
     loadedStats = allBandsShared.loadedStats;
     selectedBuckets = allBandsShared.selectedBuckets;
     // The all-band response consumes one shared projection synchronously.
     // Do not duplicate three complete ordered-ID snapshots into module state,
     // and release each heavy ordered array immediately after its page is decoded.
     ordered.length = 0;
-    orderCacheStatus = 'all-bands-shared-projection';
-    orderPageSource = 'all-bands-shared-projection';
+    orderCacheStatus = sharedProjectionUsesRawRows
+      ? 'all-bands-shared-projection'
+      : 'all-bands-shared-full-record';
+    orderPageSource = orderCacheStatus;
     allBandsShared.bandUses = Number(allBandsShared.bandUses || 0) + 1;
   } else if (!retained) {
     heavyExecution = await executeMajorBandsQueryOnce(orderIdentity, async () => {
@@ -1211,7 +1217,11 @@ export async function onRequest(context) {
       pageLimit
     });
     const executionIdentity = `${executionBaseIdentity}|current-page:${pageOffset}:${pageLimit}`;
-    const execution = !filters.majorKeyword
+    const canReuseAllBandsShared = Boolean(
+      context?.majorBandsAllBandsShared?.version === MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION
+      && context?.majorBandsAllBandsShared?.processed
+    );
+    const execution = (!filters.majorKeyword || canReuseAllBandsShared)
       ? await executeRequestedBandOrderedPage(context, {
           candidateScore, rangePreset, filters, schoolNames, schoolFilter, requestedBand,
           pageOffset, pageLimit, executionBaseIdentity
