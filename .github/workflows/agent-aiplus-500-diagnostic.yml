@@ -1,11 +1,11 @@
-name: Temporary allocation-free page ID scan test
+name: Temporary cold ordered score hints test
 
 on:
   push:
     branches: [agent/aiplus-500-diagnostic-646b]
     paths:
       - '.github/workflows/agent-aiplus-500-diagnostic.yml'
-      - 'tools/.agent-allocation-free-page-id-scan.py'
+      - 'tools/.agent-cold-order-score-hints.py'
 
 permissions:
   contents: write
@@ -22,28 +22,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Fetch diagnostic patcher
+      - name: Apply cold ordered score hints
         shell: bash
         run: |
           set -euo pipefail
-          git show origin/agent/aiplus-500-diagnostic-646b:tools/.agent-allocation-free-page-id-scan.py > /tmp/patch.py
+          git show origin/agent/aiplus-500-diagnostic-646b:tools/.agent-cold-order-score-hints.py > /tmp/patch.py
           python /tmp/patch.py
           git diff --check
-      - name: Verify native truth and full rank kernel
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+      - name: Verify source truth
         shell: bash
         run: |
           set -euo pipefail
-          node --check functions/_lib/major-bands-static-provider.js
-          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           node tools/verify-major-bands-predecode-region-v3990_1.mjs
           node tools/audit-major-bands-rank-kernel-v3990_1.mjs
-      - name: Commit tested scanner change to PR branch
+      - name: Commit tested cold snapshot fix to PR branch
         shell: bash
         run: |
           set -euo pipefail
           git config user.name cashen
           git config user.email 54cashen@gmail.com
-          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs
-          git commit -m 'perf: avoid row text allocation for non-page IDs'
+          git add functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          git commit -m 'fix: persist score hints in cold ordered snapshots'
           git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
