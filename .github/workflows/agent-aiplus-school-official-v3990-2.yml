@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r8
+name: Temporary AI Plus school official integration v3990_2 r9
 
 on:
   push:
@@ -60,6 +60,12 @@ jobs:
           new_history_routes="  if(school&&explicitMajors.length&&looksHistory(source))return'school_major_history';\n  if(school&&looksHistory(source))return'school_history';"
           if text.count(old_history_routes)!=1: raise SystemExit(f'history route anchor count={text.count(old_history_routes)}')
           path.write_text(text.replace(old_history_routes,new_history_routes,1))
+          orchestrator=Path('functions/_lib/ai/turn-orchestrator.js')
+          o=orchestrator.read_text()
+          old_pending='result.history,result.officialSchool,result.fit'
+          new_pending='result.history,result.fit,result.officialSchool'
+          if o.count(old_pending)!=1: raise SystemExit(f'pending-tool order count={o.count(old_pending)}')
+          orchestrator.write_text(o.replace(old_pending,new_pending,1))
           PY
           git diff --check
           node --check functions/_lib/ai/school-official-source.js
