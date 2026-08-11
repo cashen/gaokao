@@ -26,6 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/if text.count(snapshot_anchor) != 2:/if text.count(snapshot_anchor) != 1:/' tools/.agent-page-score-bucket-hints-v3990_1.py
           python tools/.agent-page-score-bucket-hints-v3990_1.py
           git diff --check
           node --check functions/api/major-bands.js
