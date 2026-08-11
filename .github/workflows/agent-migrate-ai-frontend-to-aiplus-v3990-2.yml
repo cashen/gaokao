@@ -22,13 +22,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Migrate AI frontend and fix school-history routing
+      - name: Migrate frontend and harden human dialogue routing
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import shutil
+          import re, shutil
 
           ai=Path('ai'); plus=Path('aiplus')
           assert ai.is_dir()
@@ -37,13 +37,7 @@ jobs:
               if src.name!='index.html': shutil.copy2(src,plus/src.name)
           shutil.rmtree(ai)
 
-          targets=[
-            Path('aiplus/index.html'),Path('aiplus/app.v3990_1.js'),
-            Path('shared/resources/release/current-release.js'),Path('shared/resources/release/site-runtime-contract.v3990_1.js'),
-            Path('ln-rank/site-active-generation.v3990_1.json'),
-            Path('tools/verify-ai-workspace-v3990_0.mjs'),Path('tools/verify-ai-workspace-v3990_1.mjs'),
-            Path('tools/verify-aiplus-school-official-v3990_2.mjs'),Path('tools/verify-ai-school-history-bridge-v3992_2.mjs'),
-            Path('tools/browser-ai-workspace-v3990_0.mjs'),Path('tools/browser-ai-workspace-v3990_1.mjs')]
+          targets=[Path('aiplus/index.html'),Path('aiplus/app.v3990_1.js'),Path('shared/resources/release/current-release.js'),Path('shared/resources/release/site-runtime-contract.v3990_1.js'),Path('ln-rank/site-active-generation.v3990_1.json'),Path('tools/verify-ai-workspace-v3990_0.mjs'),Path('tools/verify-ai-workspace-v3990_1.mjs'),Path('tools/verify-aiplus-school-official-v3990_2.mjs'),Path('tools/verify-ai-school-history-bridge-v3992_2.mjs'),Path('tools/browser-ai-workspace-v3990_0.mjs'),Path('tools/browser-ai-workspace-v3990_1.mjs')]
           reps=[("'/ai/","'/aiplus/"),('"/ai/','"/aiplus/'),('../ai/','../aiplus/'),('ai/index.html','aiplus/index.html'),('ai/app.v3990_0.js','aiplus/app.v3990_0.js'),('ai/app.v3990_1.js','aiplus/app.v3990_1.js'),('ai/workspace.v3990_0.css','aiplus/workspace.v3990_0.css'),('ai/workspace.v3990_1.css','aiplus/workspace.v3990_1.css'),('ai/agent.v3992_0.css','aiplus/agent.v3992_0.css'),('ai/render.v3991_0.js','aiplus/render.v3991_0.js'),('ai/render.v3992_0.js','aiplus/render.v3992_0.js'),('ai/parent-starter.v3992_1.js','aiplus/parent-starter.v3992_1.js'),('}/ai/','}/aiplus/'),('/ai/?candidate=','/aiplus/?candidate=')]
           for p in targets:
               if not p.exists(): continue
@@ -53,38 +47,97 @@ jobs:
                   t=t.replace("assert.ok(html.includes('ai-human-advisor-agent-v3992_0'));assert.ok(html.includes('想到哪就继续问'));","assert.ok(html.includes('data-ai-advisor-generation=\"ai-human-advisor-agent-v3992_0\"'));assert.ok(html.includes('data-ai-plus=\"school-official-qa\"'));assert.ok(html.includes('先把学校看懂，再讨论孩子要不要去。'));")
               if t!=old:p.write_text(t)
 
-          ci=Path('functions/_lib/ai/command-interpreter.js')
-          t=ci.read_text()
-          t=t.replace("'电气','自动化','通信'","'电气','自动化','测控技术与仪器','测控','通信'",1)
-          old="const directLike=directSource.includes(reduced)&&directSource.length<=10;if(reduced.length>=2&&reduced.length<=6&&!decisionNoise&&directLike)tokens.push(reduced);"
-          new="const directLike=directSource.includes(reduced)&&directSource.length<=10,regionPrefixedSchoolLike=/^(?:沈阳|大连|辽宁)[\\u4e00-\\u9fa5]{2,6}$/.test(reduced);if(reduced.length>=2&&reduced.length<=8&&directLike&&(!decisionNoise||regionPrefixedSchoolLike))tokens.push(reduced);"
-          assert old in t
-          ci.write_text(t.replace(old,new,1))
+          ci=Path('functions/_lib/ai/command-interpreter.js'); t=ci.read_text()
+          old="const MAJOR_TERMS=Object.freeze(['计算机','软件工程','软件','数据科学','人工智能','电子信息','电气','自动化','通信','机械','能源','石油','化工','材料','冶金','土木','建筑','医学','临床医学','口腔医学','药学','护理','法学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','动物医学','食品']);"
+          new="const MAJOR_TERMS=Object.freeze(['测控技术与仪器','计算机科学与技术','软件工程','计算机','计科','软工','软件','数据科学','人工智能','电子信息','电气','自动化','测控','通信','机械','能源','石油','化工','材料','冶金','土木','建筑','医学','临床医学','口腔医学','药学','护理','法学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','动物医学','食品']);\nconst MAJOR_ALIASES=Object.freeze({测控:'测控技术与仪器',计科:'计算机科学与技术',软工:'软件工程'});\nfunction normalizeMajorTerm(value){return MAJOR_ALIASES[value]||value;}"
+          assert old in t; t=t.replace(old,new,1)
+          t=t.replace("function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>x.term),8);}","function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>normalizeMajorTerm(x.term)),8);}",1)
+          t=t.replace("function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>x.term),8);}","function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>normalizeMajorTerm(x.term)),8);}",1)
 
-          vf=Path('tools/verify-ai-workspace-v3990_1.mjs')
-          t=vf.read_text()
-          anchor="function testTaskSwitchAndReference(){"
-          test="""async function testSchoolAliasHistoryRouting(){\n  const queries=[];const resolver={resolve(query){queries.push(query);return query==='沈阳工业'?{status:'resolved',resolvedName:'沈阳工业大学'}:{status:'unresolved',candidates:[]};}};\n  const workspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:[]}});\n  const one=await resolveAiSchoolMentions('沈阳工业 测控多少分',resolver);assert.deepEqual(one,['沈阳工业大学']);assert.ok(queries.includes('沈阳工业'));const first=cmd('沈阳工业 测控多少分',workspace,one);assert.equal(first.agentTask,'school_major_history');assert.equal(first.focus.school,'沈阳工业大学');assert.equal(first.focus.major,'测控');assert.equal(first.executionPolicy.commitView,false);\n  queries.length=0;const all=await resolveAiSchoolMentions('沈阳工业 所有专业最低分',resolver);assert.deepEqual(all,['沈阳工业大学']);const second=cmd('沈阳工业 所有专业最低分',workspace,all);assert.equal(second.agentTask,'school_history');assert.equal(second.focus.school,'沈阳工业大学');assert.equal(second.executionPolicy.commitView,false);\n}\n\n"""
-          assert anchor in t
-          t=t.replace(anchor,test+anchor,1)
-          call="testCandidatePatchJourney();testTaskSwitchAndReference();"
-          assert call in t
-          t=t.replace(call,"testCandidatePatchJourney();await testSchoolAliasHistoryRouting();testTaskSwitchAndReference();",1)
-          vf.write_text(t)
+          start=t.index('function likelySchoolMentionTokens(text){'); end=t.index('function resolverRowParts',start)
+          assert start>=0 and end>start
+          school_helpers=r'''function cleanSchoolAliasCandidate(value){let token=clean(value,40).replace(/(?:^|[，,。！？!?；;：:\s])+/g,'').replace(/^(?:那|再|还是|然后|顺便|等等|等下|算了|先|换成|换|改成|改看|看看|看下|看一下|帮我看|帮我查|我想看|我想查|我想问|想看|想查|想问|我想知道|想知道|查下|查一下|问下|问一下|请看|请查)+/,'').replace(/(?:的|呢|吗|呀|啊|吧)+$/g,'').trim();return token;}
+function likelySchoolMentionTokens(text){const source=clean(text,360);if(!source||/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/.test(source))return[];const tokens=[],regionOnly=new Set(['沈阳','大连','辽宁','辽宁省','省内','省外','全国','东北','西北','西南','华中']);const boundaries=[...MAJOR_TERMS,'所有专业','全部专业','全校专业','招生专业','最低录取分','最低投档分','最低分','投档分','录取分','多少分','分数线','位次','排名','去年','往年','历年','学校简介','学校介绍','什么学校','怎么样','如何','咋样','宿舍','住宿','食堂','食宿','章程','录取规则','学费','校区','能不能上','能不能报','够不够','能上吗','能报吗'].sort((a,b)=>b.length-a.length);for(const term of boundaries){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const prefix=source.slice(0,i),clauses=prefix.split(/[，,。！？!?；;：:]/).map(v=>v.trim()).filter(Boolean);let candidate=clauses.at(-1)||'';candidate=candidate.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');candidate=cleanSchoolAliasCandidate(candidate);if(candidate.length>=2&&candidate.length<=10&&!regionOnly.has(candidate)&&!/^(?:我|孩子|家长|学校|专业|分数|位次|去年|往年|历年)/.test(candidate))tokens.push(candidate);from=i+term.length;}}
+  const possessive=source.match(/(?:^|[，,。！？!?；;\s])([^，,。！？!?；;\s的]{2,12})的(?:电气|自动化|测控|机械|计算机|软件|电子|通信|材料|化工|冶金|土木|建筑|医学|法学|金融|会计|专业|强项|背景)/);if(possessive?.[1])tokens.push(cleanSchoolAliasCandidate(possessive[1]));let reduced=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');for(const term of boundaries)reduced=reduced.split(term).join(' ');reduced=cleanSchoolAliasCandidate(reduced.replace(/[\s，,。！？!?；;：:]+/g,''));if(reduced.length>=2&&reduced.length<=10&&!regionOnly.has(reduced)&&!/(?:候选|能上|能报|预算|就业|读研|考研|平台|层次|机会|取舍|平衡|志愿|方案|分数|位次|城市|老师|家长|孩子|咨询|建议|为什么|比较|对比)/.test(reduced))tokens.push(reduced);return unique(tokens.filter(Boolean),4);}
+function inferSchoolHistoryMajor(source){if(!/(多少分|最低(?:录取|投档)?分|录取分|投档分|分数线|位次|排名|去年|往年|历年|202[3456])/.test(source)||/(所有|全部|全校|招生).{0,6}专业/.test(source))return'';let value=String(source||'');for(const name of value.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[])value=value.replace(name,' ');for(const alias of likelySchoolMentionTokens(source))value=value.replace(alias,' ');value=value.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');value=value.replace(/(最低录取分|最低投档分|最低分|投档分|录取分|多少分|分数线|位次|排名|去年|往年|历年|202[3456]|这个学校|这所学校|那个学校|那所学校|该校|刚才这个学校|刚才那所学校|我不是问|不是问|我问|问一下|问下|看看|看下|的|呢|吗|呀|啊|吧)/g,' ');value=value.replace(/[\s，,。！？!?；;：:]+/g,'').trim();if(!value||value.length<2||value.length>24||/(能不能上|能不能报|够不够|学校|所有专业|全部专业|全校专业|招生专业)/.test(value))return'';return normalizeMajorTerm(value);}
+'''
+          t=t[:start]+school_helpers+t[end:]
 
+          old="const found=[];\n  const add=(token,key,label)=>{let from=0,seenNegative=false;while(from<regionSource.length){const i=regionSource.indexOf(token,from);if(i<0)break;if(isNegative(i))seenNegative=true;else found.push({key,label,index:i});from=i+token.length;}return seenNegative;};"
+          new="const found=[];\n  const startsSchoolName=(token,at)=>/^(?:工业|理工|建筑|化工|农业|药科|医科|医学|师范|科技|石油|工程|航空|航天|财经|交通|海事|海洋|外国语|民族|林业|电力|工大|理工|医大|师大|科大|航大)/.test(regionSource.slice(at+token.length,at+token.length+8));\n  const add=(token,key,label)=>{let from=0,seenNegative=false;while(from<regionSource.length){const i=regionSource.indexOf(token,from);if(i<0)break;if(startsSchoolName(token,i)){from=i+token.length;continue;}if(isNegative(i))seenNegative=true;else found.push({key,label,index:i});from=i+token.length;}return seenNegative;};"
+          assert old in t; t=t.replace(old,new,1)
+          t=t.replace("for(const [label,key] of Object.entries(GROUP_LABELS)){const i=regionSource.indexOf(label);if(i>=0&&!isNegative(i))found.push({key,label,index:i});}","for(const [label,key] of Object.entries(GROUP_LABELS)){const i=regionSource.indexOf(label);if(i>=0&&!isNegative(i)&&!startsSchoolName(label,i))found.push({key,label,index:i});}",1)
+          t=t.replace("if(/东北三省|东北/.test(regionSource)){const i=regionSource.search(/东北三省|东北/);if(!isNegative(i))found.push({key:'province:辽宁',label:'辽宁',index:i},{key:'province:吉林',label:'吉林',index:i},{key:'province:黑龙江',label:'黑龙江',index:i});}","if(/东北三省|东北/.test(regionSource)){const i=regionSource.search(/东北三省|东北/);const token=regionSource.startsWith('东北三省',i)?'东北三省':'东北';if(!isNegative(i)&&!startsSchoolName(token,i))found.push({key:'province:辽宁',label:'辽宁',index:i},{key:'province:吉林',label:'吉林',index:i},{key:'province:黑龙江',label:'黑龙江',index:i});}",1)
+          old="if(i<0||isNegative(i))continue;const key=provinceRegionKey(province);"
+          new="if(i<0||isNegative(i)||startsSchoolName(alias,i))continue;const key=provinceRegionKey(province);"
+          assert old in t; t=t.replace(old,new,1)
+          t=t.replace("function candidateLanguage(text){const source=String(text||'').replace(/(?:不|不能|别|不要)只看/g,'');return /(候选|能报哪些|能上哪些|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(source);}","function candidateLanguage(text){const source=String(text||'').replace(/(?:不|不能|别|不要)只看/g,'');return /(候选|能报(?:哪些|什么|哪)|能上(?:哪些|什么|哪)|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(source);}",1)
+          old="let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);"
+          new="let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);if(schools.length&&!majors.length){const inferredMajor=inferSchoolHistoryMajor(source);if(inferredMajor)majors=[inferredMajor];}"
+          assert old in t; t=t.replace(old,new,1)
+          ci.write_text(t)
+
+          ak=Path('functions/_lib/ai/agent-task-kernel.js'); t=ak.read_text()
+          old="export function explicitScoreUsage(text='',workspace={}){\n  const source=String(text||'');\n  if(has(source,/(不考虑|不用管|先别管|别管|不看|先不看|忽略).{0,8}(我的)?(分数|位次)|单看.{0,10}(学校|专业|方向)|只看.{0,8}(学校|专业)本身/))return'suspended';\n  if(has(source,/(按我|按我的|我这个|我的).{0,6}(分|位次)|我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\\s*\\d{3}\\s*分?.{0,6}(够|能上|能报|现实)|按\\d{3}分/))return'active';\n  return workspace?.examContext?.score?'remembered':'cleared';\n}"
+          new="export function explicitScoreUsage(text='',workspace={}){\n  const source=String(text||'');\n  if(has(source,/(?:不是|不想|先不|别|不要).{0,4}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗)/))return workspace?.examContext?.score?'remembered':'cleared';\n  if(has(source,/(不考虑|不用管|先别管|别管|不看|先不看|忽略|不问|先不问).{0,8}(我的)?(分数|位次)|单看.{0,10}(学校|专业|方向)|只看.{0,8}(学校|专业)本身/))return'suspended';\n  if(has(source,/(按我|按我的|我这个|我的).{0,6}(分|位次)|我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\\s*\\d{3}\\s*分?.{0,6}(够|能上|能报|现实)|按\\d{3}分/))return'active';\n  return workspace?.examContext?.score?'remembered':'cleared';\n}"
+          assert old in t; t=t.replace(old,new,1)
+          t=t.replace("function looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次))/.test(source);}","function looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次)|(所有|全部|全校).{0,4}专业(?:都)?(?:多少)?分)/.test(source);}\nfunction looksAllSchoolMajorsFollowup(source){return /(所有|全部|全校).{0,4}(专业|招生专业)(?:都)?(?:呢|怎么样|看看)?[？?]?$/.test(source);}\nfunction looksHistoryCorrection(source){return /(?:不是|不想|先不|别|不要).{0,5}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗).{0,18}(去年|往年|历年|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次)/.test(source);}",1)
+          old="const officialSchoolOnly=Boolean(school&&looksOfficialSchoolInfo(source)&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&((schools.length&&explicitMajors.length===0)||(!schools.length&&priorTask==='school_official_qa')));"
+          new="const officialSchoolOnly=Boolean(school&&looksOfficialSchoolInfo(source)&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_official_qa','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));"
+          assert old in t; t=t.replace(old,new,1)
+          old="if(school&&looksAllSchoolMajorsHistory(source))return'school_history';"
+          new="if(school&&(looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';\n  if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';"
+          assert old in t; t=t.replace(old,new,1)
+          ak.write_text(t)
+
+          human=Path('tools/verify-aiplus-human-dialog-v3990_2.mjs')
+          human.write_text(r'''import assert from 'node:assert/strict';
+import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
+import {deterministicCommand,resolveAiSchoolMentions} from '../functions/_lib/ai/command-interpreter.js';
+const aliases=new Map([['沈阳工业','沈阳工业大学'],['沈工大','沈阳工业大学'],['辽石化','辽宁石油化工大学'],['辽科大','辽宁科技大学'],['沈航','沈阳航空航天大学'],['大连理工','大连理工大学'],['东北石油','东北石油大学'],['西北工业','西北工业大学'],['大连海事','大连海事大学']]);
+const resolver={resolve(q){const name=aliases.get(q);return name?{status:'resolved',resolvedName:name}:{status:'unresolved',candidates:[]};}};
+async function command(text,workspace=createAiWorkspace()){const schools=await resolveAiSchoolMentions(text,resolver);return deterministicCommand(text,workspace,schools);}
+function expect(cmd,{task,school,major,commit=false,scoreUsage}){assert.equal(cmd.agentTask,task,`${cmd.rawText}: task`);if(school)assert.equal(cmd.focus.school,school,`${cmd.rawText}: school`);if(major)assert.equal(cmd.focus.major,major,`${cmd.rawText}: major`);assert.equal(cmd.executionPolicy.commitView,commit,`${cmd.rawText}: commitView`);if(scoreUsage)assert.equal(cmd.scoreUsage,scoreUsage,`${cmd.rawText}: scoreUsage`);}
+const candidate=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:[]}});
+expect(await command('沈阳工业 测控多少分',candidate),{task:'school_major_history',school:'沈阳工业大学',major:'测控技术与仪器'});
+expect(await command('沈阳工业所有专业最低分',candidate),{task:'school_history',school:'沈阳工业大学'});
+expect(await command('沈工大 自动化去年最低分',candidate),{task:'school_major_history',school:'沈阳工业大学',major:'自动化'});
+expect(await command('辽石化 化工最低分',candidate),{task:'school_major_history',school:'辽宁石油化工大学',major:'化工'});
+expect(await command('辽科大所有专业分数线',candidate),{task:'school_history',school:'辽宁科技大学'});
+expect(await command('东北石油 石油工程多少分',candidate),{task:'school_major_history',school:'东北石油大学',major:'石油工程'});
+expect(await command('西北工业 自动化多少分',candidate),{task:'school_major_history',school:'西北工业大学',major:'自动化'});
+expect(await command('大连海事 轮机工程多少分',candidate),{task:'school_major_history',school:'大连海事大学',major:'轮机工程'});
+expect(await command('沈航怎么样',candidate),{task:'school_official_qa',school:'沈阳航空航天大学'});
+expect(await command('大连理工宿舍怎么样',candidate),{task:'school_official_qa',school:'大连理工大学'});
+expect(await command('东北大学材料最低分',candidate),{task:'school_major_history',school:'东北大学',major:'材料'});
+const regional=await command('580分沈阳能报什么',createAiWorkspace());assert.ok(['candidate_discovery','candidate_refinement'].includes(regional.agentTask));assert.deepEqual(regional.regionKeys,['shenyang']);assert.equal(regional.schoolNames.length,0);
+const historyFocus=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:[]},agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'测控技术与仪器',majors:['测控技术与仪器']}}});
+expect(await command('自动化呢',historyFocus),{task:'school_major_history',school:'沈阳工业大学',major:'自动化'});
+expect(await command('所有专业呢',historyFocus),{task:'school_history',school:'沈阳工业大学'});
+expect(await command('这个学校宿舍呢',historyFocus),{task:'school_official_qa',school:'沈阳工业大学'});
+expect(await command('算了，先别管分数，沈航宿舍怎么样',historyFocus),{task:'school_official_qa',school:'沈阳航空航天大学',scoreUsage:'suspended'});
+expect(await command('等下，换辽石化，化工最低分',historyFocus),{task:'school_major_history',school:'辽宁石油化工大学',major:'化工'});
+const fitFocus=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['all'],majorKeywords:[]},agentContext:{currentTask:'fit_assessment',focus:{school:'沈阳工业大学'}}});
+expect(await command('我不是问能不能上，我问去年最低分',fitFocus),{task:'school_history',school:'沈阳工业大学',scoreUsage:'remembered'});
+expect(await command('不看测控了，所有专业最低分',historyFocus),{task:'school_history',school:'沈阳工业大学'});
+const interrupted=await command('先不问学校了，580分沈阳能报什么',historyFocus);assert.ok(['candidate_discovery','candidate_refinement'].includes(interrupted.agentTask));assert.deepEqual(interrupted.regionKeys,['shenyang']);
+console.log(JSON.stringify({ok:true,version:'aiplus-human-dialog-v3990_2',scenarios:18},null,2));
+''')
           assert not Path('ai').exists()
           PY
           if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'; then exit 1; fi
           git diff --check
-      - name: Verify migrated runtime and regressions
+      - name: Verify migrated runtime and human dialogue matrix
         shell: bash
         run: |
           set -euo pipefail
           node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/agent-task-kernel.js
           node --check aiplus/app.v3990_1.js
           node tools/verify-aiplus-school-official-v3990_2.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
       - name: Commit tested product changes
         shell: bash
         run: |
@@ -92,5 +145,5 @@ jobs:
           git config user.name 'cashen'
           git config user.email '54cashen@gmail.com'
           git add -A ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'
-          git commit -m 'refactor: consolidate AI frontend under aiplus'
+          git commit -m 'refactor: consolidate AI frontend and harden human dialogue routing'
           git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
