@@ -795,7 +795,8 @@ async function executeRequestedBandOrderedPage(context, input) {
     && filters.specialProjectMode === 'hide_eligibility_projects';
   const orderEdgeCache = allBandsShared ? null : allBandsEdgeCacheHandle();
   const orderEdgeCacheRequest = orderEdgeCache ? requestedBandOrderEdgeCacheRequest(context.request) : null;
-  let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);
+  const moduleOrderCacheEnabled = !orderEdgeCache;
+  let retained = allBandsShared ? null : (moduleOrderCacheEnabled ? readRequestedBandOrderSnapshot(orderIdentity) : null);
   let heavyExecution = null;
   let loadedStats = null;
   let selectedBuckets = null;
@@ -808,7 +809,7 @@ async function executeRequestedBandOrderedPage(context, input) {
   if (!retained && orderEdgeCache && orderEdgeCacheRequest) {
     retained = await readRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest);
     if (retained) {
-      retainRequestedBandOrderSnapshot(orderIdentity, retained);
+      if (moduleOrderCacheEnabled) retainRequestedBandOrderSnapshot(orderIdentity, retained);
       orderCacheStatus = 'ordered-id-edge-hit';
       orderEdgeCacheStatus = 'hit';
     }
@@ -916,7 +917,7 @@ async function executeRequestedBandOrderedPage(context, input) {
       pageRecords = built.pageRecords;
       orderPageSource = built.orderPageSource || 'raw-row-reuse';
     }
-    retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    if (moduleOrderCacheEnabled) retainRequestedBandOrderSnapshot(orderIdentity, retained);
     if (orderEdgeCache && orderEdgeCacheRequest) {
       const stored = await writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained);
       orderEdgeCacheStatus = stored ? 'stored' : 'write-failed';
@@ -1030,6 +1031,7 @@ async function executeRequestedBandOrderedPage(context, input) {
     orderCacheIdCount: orderedIdCount,
     pageDecodedRecordCount: pageRecords.length,
     orderCacheState: requestedBandOrderCacheState(orderIdentity),
+    orderModuleCacheEnabled: moduleOrderCacheEnabled,
     orderPageSourceVersion: MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
     orderPageSource,
     orderColdSecondAssetPass: orderCacheStatus === 'ordered-id-miss' && orderPageSource === 'page-id-refetch',
@@ -1405,6 +1407,7 @@ export async function onRequest(context) {
         requestedBandOrderCacheMaxTotalIds: Number(execution.orderCacheState?.maxTotalIds || 12000),
         requestedBandOrderCacheMaxTotalChars: Number(execution.orderCacheState?.maxTotalChars || 750000),
         requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false,
+        requestedBandOrderModuleCacheEnabled: execution.orderModuleCacheEnabled !== false,
         queryMemoryMode: aggregate.memoryMode,
         rankingCandidateMode: aggregate.rankingCandidateMode,
         deferredResponseEnrichment: aggregate.deferredResponseEnrichment,

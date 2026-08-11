@@ -185,6 +185,10 @@ function validateResult(result) {
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0) <= 8, `${result.scenario}: ordered-ID LRU entries`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalIds || 0) <= 12000, `${result.scenario}: ordered-ID LRU total IDs`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalChars || 0) <= 750000, `${result.scenario}: ordered-ID LRU total chars`);
+  if (!result.allBands && !['unavailable', 'keyword-bypass', 'shared-projection'].includes(result.payload?.source?.requestedBandOrderEdgeCacheStatus)) {
+    assert.equal(result.payload?.source?.requestedBandOrderModuleCacheEnabled, false, `${result.scenario}: Edge mode retained module ordered-ID cache`);
+    assert.equal(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0), 0, `${result.scenario}: Edge mode module ordered-ID entries`);
+  }
   assert.equal(result.payload?.source?.pageIdFilterVersion, expectedPageIdFilterVersion, `${result.scenario}: page-ID predecode filter`);
   assert.equal(result.payload?.source?.rankingCandidateMode, 'lightweight-order-current-page-v3990_1', `${result.scenario}: lightweight ranking candidate`);
   assert.equal(result.payload?.source?.deferredResponseEnrichment, true, `${result.scenario}: response enrichment was not deferred`);
