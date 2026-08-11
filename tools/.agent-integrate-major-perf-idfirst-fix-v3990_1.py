@@ -14,3 +14,11 @@ old="""const rankStage=provider.indexOf('majorBandsRankValueMatchesRange(scalarV
 new="""const idStage=provider.indexOf(\"allowedIds.has(String(scalarValues.get(idIndex) || ''))\",scanStart);\nconst rankStage=provider.indexOf('majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)',scanStart);\nconst regionStage=provider.indexOf('const regionMatch = matchRegionRule',scanStart);\nconst parseStage=provider.indexOf('const row = JSON.parse(rowText);',scanStart);\nassert.ok(scanStart>=0&&idStage>scanStart&&rankStage>idStage&&regionStage>rankStage&&parseStage>regionStage,'native page scan must be ID -> rank -> region -> full parse; cold scan skips ID stage');\n"""
 if old not in s: raise SystemExit('region verifier order anchor missing')
 p.write_text(s.replace(old,new,1))
+
+# PR #135's source audit pinned the old full-row rank expression. The native\n# scanner now reads rank from a scalar before JSON.parse, which is the intended\n# stronger memory contract; keep that exact scalar expression under audit.
+p=Path('tools/audit-major-bands-rank-kernel-v3990_1.mjs')
+s=p.read_text()
+old="  'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',"
+new="  'majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)',"
+if old not in s: raise SystemExit('native audit scalar anchor missing')
+p.write_text(s.replace(old,new,1))
