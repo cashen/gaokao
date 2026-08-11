@@ -1,0 +1,59 @@
+name: Apply PR137 raw-row verifier contract
+
+on:
+  push:
+    branches:
+      - agent/migrate-ai-frontend-to-aiplus-v3990_2
+    paths:
+      - .github/workflows/apply-pr137-raw-row-verifier-contract.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update explicit-band raw-row ownership contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/verify-major-bands-preview-concurrency-v3990_1.mjs')
+          s = p.read_text(encoding='utf-8')
+          old = """      ? 'serialized-json'
+      : result.payload?.source?.requestedBandOrderPageSource === 'raw-row-reuse'
+        ? 'serialized-json'
+        : 'full-record',"""
+          new = """      ? 'serialized-json'
+      : result.payload?.source?.requestedBandOrderPageSource === 'raw-row-reuse'
+        ? 'array-reference'
+        : 'full-record',"""
+          assert s.count(old) == 1, f'raw-row ownership anchor count={s.count(old)}'
+          s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          PY
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          grep -Fq "requestedBandOrderPageSource === 'all-bands-shared-projection'" tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          grep -A4 -F "requestedBandOrderPageSource === 'all-bands-shared-projection'" tools/verify-major-bands-preview-concurrency-v3990_1.mjs | grep -Fq "? 'serialized-json'"
+          grep -A2 -F "requestedBandOrderPageSource === 'raw-row-reuse'" tools/verify-major-bands-preview-concurrency-v3990_1.mjs | grep -Fq "? 'array-reference'"
+          node tools/verify-major-bands-refinement-projection-v3990_1.mjs
+          git diff --check
+      - name: Commit verifier contract and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-pr137-raw-row-verifier-contract.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/verify-major-bands-preview-concurrency-v3990_1.mjs .github/workflows/apply-pr137-raw-row-verifier-contract.yml
+          git commit -m "test: enforce request-local raw-row ownership"
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
