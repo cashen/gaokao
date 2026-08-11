@@ -1,0 +1,224 @@
+name: Temporary page-id native prefilter v3990_1
+
+on:
+  push:
+    branches:
+      - agent/major-bands-requested-response-edge-cache-v3990_1
+    paths:
+      - .github/workflows/agent-page-id-native-prefilter-v3990-1.yml
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/major-bands-requested-response-edge-cache-v3990_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Add scalar page-ID prefilter before full row parse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          provider = Path('functions/_lib/major-bands-static-provider.js')
+          text = provider.read_text()
+          version_marker = "export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1';"
+          version_add = version_marker + "\nexport const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_1';"
+          if text.count(version_marker) != 1:
+              raise SystemExit(f'version marker count={text.count(version_marker)}')
+          text = text.replace(version_marker, version_add, 1)
+
+          scan_marker = "export function scanMajorBandsStaticRankRowsText(text, options = {}) {"
+          helper = r'''function readTopLevelArrayScalars(rowText, indexes = []) {
+  const source = String(rowText || '');
+  const wanted = new Set(indexes.filter(index => Number.isInteger(index) && index >= 0));
+  const values = new Map();
+  if (!wanted.size || source[0] !== '[') return values;
+  const maxIndex = Math.max(...wanted);
+  let valueIndex = 0;
+  let valueStart = 1;
+  let nestedDepth = 0;
+  let inString = false;
+  let escaped = false;
+
+  const capture = end => {
+    if (wanted.has(valueIndex)) {
+      const raw = source.slice(valueStart, end).trim();
+      values.set(valueIndex, raw ? JSON.parse(raw) : undefined);
+    }
+  };
+
+  for (let cursor = 1; cursor < source.length; cursor += 1) {
+    const char = source[cursor];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '[' || char === '{') {
+      nestedDepth += 1;
+      continue;
+    }
+    if (char === ']' || char === '}') {
+      if (char === ']' && nestedDepth === 0) {
+        capture(cursor);
+        break;
+      }
+      nestedDepth -= 1;
+      if (nestedDepth < 0) throw new Error('静态专业位次桶标量预筛容器深度异常');
+      continue;
+    }
+    if (char === ',' && nestedDepth === 0) {
+      capture(cursor);
+      if (valueIndex >= maxIndex) break;
+      valueIndex += 1;
+      valueStart = cursor + 1;
+    }
+  }
+  return values;
+}
+
+'''
+          if text.count(scan_marker) != 1:
+              raise SystemExit(f'scan marker count={text.count(scan_marker)}')
+          text = text.replace(scan_marker, helper + scan_marker, 1)
+
+          declarations = """  let rowCount = 0;
+  let rankMatchedCount = 0;
+  let cursor = rowsStart + 1;"""
+          declarations_new = """  let rowCount = 0;
+  let rankMatchedCount = 0;
+  let fullRowParseCount = 0;
+  let pageIdScalarPrefilterCount = 0;
+  let cursor = rowsStart + 1;"""
+          if text.count(declarations) != 1:
+              raise SystemExit(f'declaration anchor count={text.count(declarations)}')
+          text = text.replace(declarations, declarations_new, 1)
+
+          old_parse = """    const row = JSON.parse(source.slice(start, cursor));
+    if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+    rowCount += 1;
+    const rankMatch = rankRange && rankIndex >= 0
+      ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
+      : true;
+    if (!rankMatch) continue;
+    rankMatchedCount += 1;
+    if (allowedIds && idIndex >= 0 && !allowedIds.has(String(row?.[idIndex] || ''))) continue;
+    rows.push(row);"""
+          new_parse = """    const rowText = source.slice(start, cursor);
+    rowCount += 1;
+    if (allowedIds && idIndex >= 0) {
+      const scalarValues = readTopLevelArrayScalars(rowText, [idIndex, rankIndex]);
+      pageIdScalarPrefilterCount += 1;
+      const rankMatch = rankRange && rankIndex >= 0
+        ? majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)
+        : true;
+      if (!rankMatch) continue;
+      rankMatchedCount += 1;
+      if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
+      const row = JSON.parse(rowText);
+      fullRowParseCount += 1;
+      if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+      rows.push(row);
+      continue;
+    }
+
+    const row = JSON.parse(rowText);
+    fullRowParseCount += 1;
+    if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+    const rankMatch = rankRange && rankIndex >= 0
+      ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
+      : true;
+    if (!rankMatch) continue;
+    rankMatchedCount += 1;
+    rows.push(row);"""
+          if text.count(old_parse) != 1:
+              raise SystemExit(f'parse anchor count={text.count(old_parse)}')
+          text = text.replace(old_parse, new_parse, 1)
+
+          return_marker = """    rowCount,
+    rankMatchedCount,
+    mode: 'native-row-text-scan',
+    scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION"""
+          return_new = """    rowCount,
+    rankMatchedCount,
+    fullRowParseCount,
+    pageIdScalarPrefilterCount,
+    pageIdPrefilterVersion: MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
+    mode: 'native-row-text-scan',
+    scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION"""
+          if text.count(return_marker) != 1:
+              raise SystemExit(f'return anchor count={text.count(return_marker)}')
+          provider.write_text(text.replace(return_marker, return_new, 1))
+
+          verifier = Path('tools/verify-major-bands-rank-native-scan-v3990_1.mjs')
+          v = verifier.read_text()
+          import_marker = "  MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,"
+          import_new = "  MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,\n  MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,"
+          if v.count(import_marker) != 1:
+              raise SystemExit(f'import anchor count={v.count(import_marker)}')
+          v = v.replace(import_marker, import_new, 1)
+          assert_marker = "assert.equal(MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION, 'major-bands-rank-row-native-scan-v3990_1');"
+          assert_new = assert_marker + "\nassert.equal(MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION, 'major-bands-page-id-native-prefilter-v3990_1');"
+          if v.count(assert_marker) != 1:
+              raise SystemExit(f'version assert anchor count={v.count(assert_marker)}')
+          v = v.replace(assert_marker, assert_new, 1)
+          totals_marker = "let allowedScanned = 0;"
+          totals_new = totals_marker + "\nlet allowedFullRowParses = 0;\nlet allowedScalarPrefilters = 0;"
+          if v.count(totals_marker) != 1:
+              raise SystemExit(f'totals anchor count={v.count(totals_marker)}')
+          v = v.replace(totals_marker, totals_new, 1)
+          selective_marker = """  assert.equal(selective.rankMatchedCount, rankTruth.length, `${bucket.file}: rank truth count`);
+  assert.deepEqual(selective.rows, allowedRowsTruth, `${bucket.file}: rank/id truth mismatch`);"""
+          selective_new = selective_marker + """
+  assert.equal(selective.pageIdPrefilterVersion, MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION, `${bucket.file}: page-ID prefilter version`);
+  assert.equal(selective.pageIdScalarPrefilterCount, payload.rows.length, `${bucket.file}: scalar prefilter count`);
+  assert.equal(selective.fullRowParseCount, allowedRowsTruth.length, `${bucket.file}: full row parse count`);"""
+          if v.count(selective_marker) != 1:
+              raise SystemExit(f'selective anchor count={v.count(selective_marker)}')
+          v = v.replace(selective_marker, selective_new, 1)
+          accumulate_marker = "  allowedScanned += selective.rows.length;"
+          accumulate_new = accumulate_marker + "\n  allowedFullRowParses += selective.fullRowParseCount;\n  allowedScalarPrefilters += selective.pageIdScalarPrefilterCount;"
+          if v.count(accumulate_marker) != 1:
+              raise SystemExit(f'accumulate anchor count={v.count(accumulate_marker)}')
+          v = v.replace(accumulate_marker, accumulate_new, 1)
+          final_assert_marker = "assert.equal(allowedScanned, allowedTruth, 'selective allowed-ID truth total');"
+          final_assert_new = final_assert_marker + "\nassert.equal(allowedFullRowParses, allowedTruth, 'allowed-ID full row parse total');\nassert.equal(allowedScalarPrefilters, Number(manifest.recordCount), 'allowed-ID scalar prefilter total');"
+          if v.count(final_assert_marker) != 1:
+              raise SystemExit(f'final assert anchor count={v.count(final_assert_marker)}')
+          v = v.replace(final_assert_marker, final_assert_new, 1)
+          output_marker = "  selectiveTruthEqual: true,\n  wholeBucketResponseJsonRequired: false"
+          output_new = "  selectiveTruthEqual: true,\n  pageIdScalarPrefilterVersion: MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,\n  pageIdFullRowParses: allowedFullRowParses,\n  pageIdScalarPrefilters: allowedScalarPrefilters,\n  fullRowParseOnlyForAllowedIds: true,\n  wholeBucketResponseJsonRequired: false"
+          if v.count(output_marker) != 1:
+              raise SystemExit(f'output anchor count={v.count(output_marker)}')
+          verifier.write_text(v.replace(output_marker, output_new, 1))
+          PY
+          git diff --check
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_1.mjs >/tmp/major-bands-audit.log
+          tail -n 40 /tmp/major-bands-audit.log
+          git diff -- functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+      - name: Commit tested page-ID prefilter
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          git commit -m "perf: prefilter page IDs before full row parse"
+          git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
