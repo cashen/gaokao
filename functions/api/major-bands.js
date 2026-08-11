@@ -833,9 +833,7 @@ async function executeRequestedBandOrderedPage(context, input) {
   const allBandsShared = context?.majorBandsAllBandsShared?.version === MAJOR_BANDS_ALL_BANDS_SHARED_PROJECTION_VERSION
     ? context.majorBandsAllBandsShared
     : null;
-  const minimalOrderProjection = filters.region === 'all'
-    && !schoolFilter
-    && filters.bottomLineMode === 'all'
+  const minimalOrderProjection = !schoolFilter
     && filters.specialProjectMode === 'hide_eligibility_projects';
   const orderEdgeCache = allBandsShared ? null : allBandsEdgeCacheHandle();
   const orderEdgeCacheRequest = orderEdgeCache ? requestedBandOrderEdgeCacheRequest(context.request) : null;

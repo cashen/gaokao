@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import './verify-major-bands-rank-native-scan-v3990_1.mjs';
 import './verify-major-bands-predecode-region-v3990_1.mjs';
+import './verify-major-bands-refinement-projection-v3990_1.mjs';
 import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import {
