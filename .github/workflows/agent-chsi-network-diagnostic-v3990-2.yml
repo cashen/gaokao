@@ -1,4 +1,4 @@
-name: Temporary CHSI Cloudflare runtime diagnostic v3990_2
+name: Temporary CHSI Reader transport diagnostic v3990_2
 
 on:
   push:
@@ -15,17 +15,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Probe branch Preview official-school endpoint
+      - name: Probe Jina Reader against CHSI public pages
         shell: bash
         run: |
           set -euo pipefail
-          base='https://agent-aiplus-school-official.gaokao-4y9.pages.dev'
-          for attempt in $(seq 1 20); do
-            code=$(curl -sS -o /tmp/aiplus-official.json -w '%{http_code}' --max-time 20 "$base/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D" || true)
-            echo "attempt=$attempt status=$code bytes=$(wc -c </tmp/aiplus-official.json 2>/dev/null || echo 0)"
-            head -c 1200 /tmp/aiplus-official.json 2>/dev/null || true
+          targets=(
+            'https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
+            'https://gaokao.chsi.com.cn/sch/schoolInfo--schId-124,categoryId-1167668,mindex-1.dhtml'
+            'https://gaokao.chsi.com.cn/sch/schoolInfo--schId-179,categoryId-88121,mindex-4.dhtml'
+          )
+          ok=0
+          for target in "${targets[@]}"; do
+            url="https://r.jina.ai/$target"
+            echo "--- target=$target"
+            code=$(curl -sS -L -o /tmp/reader-body -D /tmp/reader-head --max-time 30 -w '%{http_code}' -H 'Accept: text/plain' "$url" || true)
+            bytes=$(wc -c </tmp/reader-body 2>/dev/null || echo 0)
+            echo "status=$code bytes=$bytes"
+            head -c 1200 /tmp/reader-body 2>/dev/null || true
             echo
-            if [ "$code" = 200 ]; then exit 0; fi
-            sleep 2
+            if [ "$code" = 200 ] && grep -q '阳光高考' /tmp/reader-body; then ok=$((ok+1)); fi
           done
-          exit 1
+          echo "reader_successes=$ok"
+          [ "$ok" -ge 2 ]
