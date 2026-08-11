@@ -1,4 +1,4 @@
-name: Temporary CHSI URL discovery diagnostic v3990_2
+name: Temporary CHSI rendered HTML diagnostic v3990_2
 
 on:
   push:
@@ -15,26 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Discover CHSI schoolInfo URLs through public search pages
+      - name: Inspect rendered search HTML for school entity identifiers
         shell: bash
         run: |
           set -euo pipefail
+          target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
+          code=$(curl -sS -L -o /tmp/search-html.json --max-time 40 -w '%{http_code}' \
+            -H 'Accept: application/json' -H 'X-Respond-With: html' -H 'X-Timeout: 20' -H 'X-No-Cache: true' \
+            "https://r.jina.ai/$target" || true)
+          echo "status=$code bytes=$(wc -c </tmp/search-html.json 2>/dev/null || echo 0)"
           python - <<'PY'
-          import subprocess,urllib.parse,re
-          schools=['辽宁石油化工大学','东北石油大学','辽宁科技大学']
-          for school in schools:
-              q=f'site:gaokao.chsi.com.cn/sch/schoolInfo {school}'
-              bing='https://www.bing.com/search?q='+urllib.parse.quote(q)
-              reader='https://r.jina.ai/'+bing
-              p=subprocess.run(['curl','-sS','-L','--max-time','35','-H','Accept: text/plain',reader],capture_output=True,text=True)
-              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
-              if p.returncode: print(p.stderr[:300]); continue
-              text=p.stdout
-              urls=[]
-              for m in re.finditer(r'https://gaokao\.chsi\.com\.cn/sch/schoolInfo[^\s\)\]<>"\']+',text):
-                  u=m.group(0).replace('&amp;','&').rstrip('.,;')
-                  if u not in urls: urls.append(u)
-              print('CHSI_URLS=',urls[:20])
-              for line in text.splitlines():
-                  if school in line or ('gaokao.chsi.com.cn/sch/schoolInfo' in line): print('LINE',line[:1600])
+          import json,re
+          raw=open('/tmp/search-html.json').read()
+          data=json.loads(raw).get('data',{})
+          html=str(data.get('html') or data.get('content') or '')
+          print('source=',data.get('url'),'title=',data.get('title'),'html_bytes=',len(html))
+          school='辽宁石油化工大学'
+          positions=[m.start() for m in re.finditer(school,html)]
+          print('school_occurrences=',len(positions))
+          for at in positions[:6]: print('\nCONTEXT\n',html[max(0,at-3000):at+5000])
+          for pattern in [r'schId[^\d]{0,12}(\d+)',r'categoryId[^\d]{0,12}(\d+)',r'common/xh/(\d+)',r'schoolInfo--schId-[^\s"\']+']:
+              print('\nPATTERN',pattern,list(dict.fromkeys(re.findall(pattern,html)))[:80])
           PY
+          [ "$code" = 200 ]
