@@ -1,0 +1,96 @@
+name: Apply PR137 whole bucket JSON fastpath
+
+on:
+  push:
+    branches:
+      - agent/migrate-ai-frontend-to-aiplus-v3990_2
+    paths:
+      - .github/workflows/apply-pr137-whole-bucket-json-fastpath.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Use native JSON parse for fully covered requested-band buckets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('functions/_lib/major-bands-static-provider.js')
+          s = p.read_text(encoding='utf-8')
+          start_marker = "  const text = await response.text();\n  const scan = scanMajorBandsStaticRankRowsText(text, {"
+          end_marker = "  const selectedRows = scan.rows;"
+          start = s.index(start_marker)
+          end = s.index(end_marker, start) + len(end_marker)
+          replacement = """  const text = await response.text();
+          const wholeBucketJsonParseEligible = Boolean(
+            rankRange
+            && predecodeRegion === 'all'
+            && !allowedIds
+            && Number(bucket.minRank) >= Number(rankRange.minRank)
+            && Number(bucket.maxRank) <= Number(rankRange.maxRank)
+          );
+          let scan;
+          if (wholeBucketJsonParseEligible) {
+            let payload;
+            try {
+              payload = JSON.parse(text);
+            } catch (error) {
+              throw new Error(`静态专业位次桶整桶 JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
+            }
+            if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+              throw new Error(`静态专业位次桶整桶合同异常：${bucket.file}`);
+            }
+            if (payload.rows.length !== Number(bucket.recordCount || 0)) {
+              throw new Error(`静态专业位次桶整桶记录数异常：${bucket.file}，${payload.rows.length}/${bucket.recordCount}`);
+            }
+            scan = {
+              version: manifest.version,
+              rows: payload.rows,
+              rowCount: payload.rows.length,
+              rankMatchedCount: payload.rows.length,
+              regionMatchedCount: payload.rows.length,
+              scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
+              mode: 'native-whole-bucket-json-parse'
+            };
+          } else {
+            scan = scanMajorBandsStaticRankRowsText(text, {
+              expectedVersion: manifest.version,
+              expectedRecordCount: Number(bucket.recordCount || 0),
+              rankIndex,
+              idIndex,
+              lnAreaIndex,
+              provinceIndex,
+              cityIndex,
+              predecodeRegion,
+              rankRange,
+              allowedIds
+            });
+          }
+          const selectedRows = scan.rows;"""
+          p.write_text(s[:start] + replacement + s[end:], encoding='utf-8')
+          PY
+          node --check functions/_lib/major-bands-static-provider.js
+          node tools/verify-major-bands-predecode-region-v3990_1.mjs
+          git diff --check
+      - name: Commit fastpath and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-pr137-whole-bucket-json-fastpath.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/major-bands-static-provider.js .github/workflows/apply-pr137-whole-bucket-json-fastpath.yml
+          git commit -m "perf: parse fully covered rank buckets natively"
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
