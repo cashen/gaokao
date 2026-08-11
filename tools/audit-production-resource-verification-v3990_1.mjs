@@ -194,7 +194,10 @@ containsAll(majorBandsApi, [
   'requestedBandOrderPageScoreHints',
   'requestedBandResponseEdgeCacheRequest',
   'context?.majorBandsInternalBandRequest !== true',
-  'predecodeRegion: filters.region'
+  'predecodeRegion: filters.region',
+  'MAJOR_BANDS_NON_BUSINESS_CACHE_PARAMS',
+  "'production-resource-check'",
+  'stripMajorBandsNonBusinessCacheParams(url)'
 ], 'major-bands API');
 
 const staticProvider = read('functions/_lib/major-bands-static-provider.js');

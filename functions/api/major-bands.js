@@ -159,10 +159,21 @@ function retainRequestedBandOrderSnapshot(identity, snapshot) {
   return true;
 }
 
+const MAJOR_BANDS_NON_BUSINESS_CACHE_PARAMS = Object.freeze([
+  'stress',
+  'deploy',
+  'candidate',
+  'production-resource-check'
+]);
+
+function stripMajorBandsNonBusinessCacheParams(url) {
+  for (const key of MAJOR_BANDS_NON_BUSINESS_CACHE_PARAMS) url.searchParams.delete(key);
+  return url;
+}
+
 function requestedBandOrderEdgeCacheRequest(request) {
   const url = new URL(request.url);
-  url.searchParams.delete('stress');
-  url.searchParams.delete('deploy');
+  stripMajorBandsNonBusinessCacheParams(url);
   url.searchParams.delete('offset');
   url.searchParams.delete('limit');
   url.searchParams.set('__orderEdgeCache', MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION);
@@ -495,8 +506,7 @@ function allBandsEdgeCacheHandle() {
 
 function requestedBandResponseEdgeCacheRequest(sourceUrl) {
   const url = new URL(sourceUrl);
-  url.searchParams.delete('stress');
-  url.searchParams.delete('deploy');
+  stripMajorBandsNonBusinessCacheParams(url);
   url.searchParams.set('__requestedBandResponseEdgeCache', MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION);
   url.searchParams.sort();
   return new Request(url.toString(), { method: 'GET' });
@@ -540,8 +550,7 @@ async function writeRequestedBandResponseEdgeCache(cache, request, response) {
 
 function allBandsEdgeCacheRequest(sourceUrl, input) {
   const url = new URL(sourceUrl);
-  url.searchParams.delete('stress');
-  url.searchParams.delete('deploy');
+  stripMajorBandsNonBusinessCacheParams(url);
   url.searchParams.delete('band');
   url.searchParams.set('limit', String(input.pageLimit));
   url.searchParams.set('__requestedLimit', String(input.requestedPageLimit));
