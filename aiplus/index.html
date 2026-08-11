@@ -4,27 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f6f1" />
-  <title>辽宁志愿家庭顾问</title>
-  <meta name="description" content="像和高报老师连续聊天：可以筛候选、查学校专业历史、暂时不看分数、再按自己的分数判断，招生事实始终由确定性数据执行。" />
+  <title>AI Plus · 问学校｜辽宁高考家庭工具</title>
+  <meta name="description" content="家长直接问学校：AI Plus 从阳光高考公开院校库核对学校基础属性；章程、录取规则、食宿等详情只有可靠定位到官方页面时才归纳，招生分数与位次继续由确定性数据执行。" />
   <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3992_0" />
   <link rel="stylesheet" href="/ai/agent.v3992_0.css?v=3992_0" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_0">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_0" data-ai-plus="school-official-qa">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
+      <a href="/ai/">家庭顾问</a>
       <a href="/ln-rank/">专业初选</a>
       <a href="/ln-rank/selection-pool.html">家庭方案</a>
-      <a href="/aiplus/">AI Plus · 问学校</a>
       <button id="newWorkspace" type="button">新开一次讨论</button>
     </nav>
   </header>
 
   <main class="advisor-shell">
     <section class="hero" aria-labelledby="pageTitle">
-      <span class="eyebrow">辽宁 2027 备考家庭 · 2026 物理类历史数据底座</span>
-      <h1 id="pageTitle">像和一个高报老师说话一样，想到哪就继续问。</h1>
-      <p>不用学习筛选命令。你可以从“580机械”一路聊到“省内”“沈阳”，也可以突然问“沈阳工业自动化多少分”“辽宁科技大学这个专业呢”“先别管我的分数”“那按我580够吗”。系统会区分记住的信息和这一轮真正要执行的信息。</p>
+      <span class="eyebrow">AI Plus · 学校官方信息问答</span>
+      <h1 id="pageTitle">先把学校看懂，再讨论孩子要不要去。</h1>
+      <p>问“这是什么学校”时，AI Plus 会先核对阳光高考公开院校库里的学校名称、院校代码、所在地、主管部门、办学层次等基础事实。章程、录取规则、食宿等详情，只有本轮可靠定位到对应官方页面时才归纳；没有取得的内容会明确告诉你，不让 AI 补猜。分数、位次、专业投档仍由站内确定性数据负责。</p>
     </section>
 
     <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
@@ -35,30 +35,30 @@
     <section id="conversationStream" class="conversation" aria-live="polite" aria-busy="false"></section>
 
     <section class="starter" id="starterPanel">
-      <h2>从你现在最真实的问题开始</h2>
-      <p>可以筛学校，也可以直接查一个学校、专业或省内背景方向。系统会自己判断当前任务。</p>
+      <h2>先问一所学校</h2>
+      <p>直接写完整校名即可。你也可以输入分数，后面随时切回“我这个分够不够”；学校官方信息与孩子的分数判断不会混成一套数据。</p>
       <div class="starter-score">
-        <label for="starterScore">先告诉我孩子大概多少分</label>
-        <div class="starter-score-row"><input id="starterScore" type="number" inputmode="numeric" min="150" max="750" placeholder="例如 580" /><button id="starterScoreApply" type="button">看看这个分数先该想什么</button></div>
-        <p class="muted">这只是当前讨论坐标，不会自动替你决定地区、专业、民办或中外。</p>
+        <label for="starterScore">孩子大概分数（可选）</label>
+        <div class="starter-score-row"><input id="starterScore" type="number" inputmode="numeric" min="150" max="750" placeholder="例如 580" /><button id="starterScoreApply" type="button">按这个分数给我入口</button></div>
+        <p class="muted">不填也可以先看学校本身；只有你明确问“我这个分能不能上”时才会重新激活分数判断。</p>
       </div>
       <div id="starterScenarios" class="starter-grid" aria-live="polite"></div>
     </section>
 
     <form id="promptForm" class="composer">
-      <label for="promptInput">继续说就行</label>
+      <label for="promptInput">直接问学校</label>
       <div class="composer-row">
-        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：辽宁科技大学这个专业呢；先别管我的分数；那按我580够吗；省内还有类似方向吗"></textarea>
+        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：辽宁石油化工大学是什么学校？它归谁管？宿舍条件有官方信息吗？"></textarea>
         <div class="composer-buttons">
           <button id="stopButton" class="quiet stop" type="button" hidden>停止本轮</button>
           <button id="sendButton" class="primary" type="submit">发送</button>
         </div>
       </div>
-      <p class="composer-help">发送后会立刻显示处理状态。上一轮还在执行时也可以直接改口；最后一句优先，已有讨论不会被覆盖。</p>
+      <p class="composer-help">回答会标明阳光高考原始来源。若某项详情页没有可靠取得，会直接显示“本轮官方详情未取得”，而不是由模型补写。</p>
     </form>
 
     <details class="support-panel" id="decisionContextDetails">
-      <summary>家庭条件、待核验与系统状态</summary>
+      <summary>家庭条件、待核验与官方依据</summary>
       <div class="support-grid">
         <section>
           <h2>家庭长期条件</h2>
@@ -80,7 +80,7 @@
           <h2>系统状态</h2>
           <div id="healthBar" class="health-bar" aria-live="polite">正在检查…</div>
           <p id="modelConfig" class="muted">读取语义模型配置…</p>
-          <p id="modelProbeResult" class="muted">真实模型探针只在你主动测试时调用。</p>
+          <p id="modelProbeResult" class="muted">模型只负责理解和归纳已取得的官方材料。</p>
           <div class="system-actions">
             <button id="probeModel" type="button">测试语义模型</button>
             <button id="exportWorkspace" type="button">导出本次讨论</button>
