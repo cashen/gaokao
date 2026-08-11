@@ -1,0 +1,29 @@
+name: Temporary exact Preview resource graph bb7d
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-exact-preview-resource-graph-bb7d.yml']
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: bb7d6a2e1493a01467516bd03f1f6d138dea3338
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run exact Preview resource graph once
+        env:
+          PAGES_BASE: https://agent-migrate-ai-frontend-to.gaokao-4y9.pages.dev
+          CUSTOM_BASE: https://agent-migrate-ai-frontend-to.gaokao-4y9.pages.dev
+          RELEASE_SHA: bb7d6a2e1493a01467516bd03f1f6d138dea3338
+          PRODUCTION_RESOURCE_ATTEMPTS: '1'
+          PRODUCTION_RESOURCE_WAIT_MS: '0'
+          PRODUCTION_RESOURCE_EVIDENCE: /tmp/bb7d-resource.json
+        run: |
+          set -o pipefail
+          node tools/verify-production-resource-graph-v3990_1.mjs 2>&1 | tee /tmp/bb7d-resource.log
