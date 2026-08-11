@@ -1,0 +1,51 @@
+name: Temporary production major cache audit upgrade
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-upgrade-production-major-cache-audit-v3990-1.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-500-diagnostic-646b
+          path: diag
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 0
+          path: src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Upgrade production audit contract
+        working-directory: src
+        run: |
+          set -euo pipefail
+          python ../diag/tools/.agent-upgrade-production-major-cache-audit-v3990_1.py
+          git diff --check
+          node --check tools/audit-production-resource-verification-v3990_1.mjs
+      - name: Verify production resource source contracts
+        working-directory: src
+        run: |
+          set -euo pipefail
+          node tools/audit-production-resource-verification-v3990_1.mjs
+          node tools/audit-unified-resource-graph-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+          node tools/audit-canonical-release-version-v3990_1.mjs
+      - name: Commit qualified audit to PR branch
+        working-directory: src
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add tools/audit-production-resource-verification-v3990_1.mjs
+          git commit -m 'test: audit score-hint and native major-bands cache contracts'
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
