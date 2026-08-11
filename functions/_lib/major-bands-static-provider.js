@@ -499,7 +499,38 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     : null;
   const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
   const text = await response.text();
-  const scan = scanMajorBandsStaticRankRowsText(text, {
+const wholeBucketJsonParseEligible = Boolean(
+  rankRange
+  && predecodeRegion === 'all'
+  && !allowedIds
+  && Number(bucket.minRank) >= Number(rankRange.minRank)
+  && Number(bucket.maxRank) <= Number(rankRange.maxRank)
+);
+let scan;
+if (wholeBucketJsonParseEligible) {
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`静态专业位次桶整桶 JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
+  }
+  if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+    throw new Error(`静态专业位次桶整桶合同异常：${bucket.file}`);
+  }
+  if (payload.rows.length !== Number(bucket.recordCount || 0)) {
+    throw new Error(`静态专业位次桶整桶记录数异常：${bucket.file}，${payload.rows.length}/${bucket.recordCount}`);
+  }
+  scan = {
+    version: manifest.version,
+    rows: payload.rows,
+    rowCount: payload.rows.length,
+    rankMatchedCount: payload.rows.length,
+    regionMatchedCount: payload.rows.length,
+    scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
+    mode: 'native-whole-bucket-json-parse'
+  };
+} else {
+  scan = scanMajorBandsStaticRankRowsText(text, {
     expectedVersion: manifest.version,
     expectedRecordCount: Number(bucket.recordCount || 0),
     rankIndex,
@@ -511,7 +542,8 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     rankRange,
     allowedIds
   });
-  const selectedRows = scan.rows;
+}
+const selectedRows = scan.rows;
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     : 'full-record-v3990_1';
