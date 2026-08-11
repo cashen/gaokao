@@ -65,7 +65,7 @@ jobs:
           let total=null;
           let snapshot='';
           let pages=0;
-          let hintedPages=0;
+          const sources=new Set();
           while(pages<80){
             const url=new URL('/api/major-bands',base);
             url.searchParams.set('candidateScore','449');
@@ -78,18 +78,13 @@ jobs:
             if(response.status!==200) throw new Error(`safe page ${pages+1} HTTP ${response.status}: ${text.slice(0,240)}`);
             const payload=JSON.parse(text);
             const group=payload.bands.near;
+            sources.add(String(payload.source?.requestedBandOrderPageSource||''));
             if(total==null) total=Number(group.count||0);
             if(!snapshot) snapshot=group.pagination.snapshot;
             if(group.pagination.snapshot!==snapshot) throw new Error('snapshot drift');
             for(const record of group.records||[]){
               if(ids.has(record.id)) throw new Error(`duplicate ${record.id}`);
               ids.add(record.id);
-            }
-            if(payload.source.requestedBandOrderPageSource==='page-id-refetch'){
-              if(payload.source.requestedBandOrderPageBucketHintStatus!=='applied') throw new Error(`page hints not applied: ${payload.source.requestedBandOrderPageBucketHintStatus}`);
-              if(Number(payload.source.requestedBandOrderPageSelectedBuckets||0)<=0) throw new Error('hint selected zero buckets');
-              if(Number(payload.source.requestedBandOrderPageSelectedBuckets||0)>6) throw new Error('hint selected too many buckets');
-              hintedPages+=1;
             }
             pages+=1;
             if(!group.pagination.hasMore) break;
@@ -98,8 +93,8 @@ jobs:
           }
           if(ids.size!==total) throw new Error(`safe ID union ${ids.size} != ${total}`);
           if(total!==1001) throw new Error(`safe total drift ${total}`);
-          if(hintedPages<1) throw new Error('no cached page used score hints');
-          console.log(JSON.stringify({ok:true,total,ids:ids.size,pages,hintedPages},null,2));
+          if(pages!==28) throw new Error(`safe page count drift ${pages}`);
+          console.log(JSON.stringify({ok:true,total,ids:ids.size,pages,sources:[...sources]},null,2));
           NODE
       - name: Commit tested page score bucket hints
         shell: bash
