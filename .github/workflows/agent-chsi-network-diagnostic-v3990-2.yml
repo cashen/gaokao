@@ -1,4 +1,4 @@
-name: Temporary CHSI rendered-card diagnostic v3990_2
+name: Temporary CHSI URL discovery diagnostic v3990_2
 
 on:
   push:
@@ -15,45 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Append target school card DOM before Reader extraction
+      - name: Discover CHSI schoolInfo URLs through public search pages
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY' >/tmp/reader-request.json
-          import json
-          target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
-          script=r'''(() => {
-            const needle='辽宁石油化工大学';
-            const nodes=[...document.querySelectorAll('body *')].filter(el=>el.children.length===0 && (el.textContent||'').trim()===needle);
-            const dump=document.createElement('pre'); dump.id='aiplus-card-dump';
-            const rows=[];
-            for(const node of nodes.slice(0,5)){
-              let el=node;
-              for(let i=0;i<6&&el;i++,el=el.parentElement){
-                rows.push(`LEVEL=${i}\n${el.outerHTML}`);
-                const attrs=[...el.attributes||[]].map(a=>`${a.name}=${a.value}`).join('|');
-                rows.push(`ATTRS=${attrs}`);
-              }
-            }
-            dump.textContent=rows.join('\n---\n'); document.body.prepend(dump);
-          })();'''
-          print(json.dumps({'url':target,'injectPageScript':[script],'respondWith':'html','timeout':25,'noCache':True},ensure_ascii=False))
-          PY
-          code=$(curl -sS -L -o /tmp/reader-card.json --max-time 45 -w '%{http_code}' -X POST \
-            -H 'Content-Type: application/json' -H 'Accept: application/json' \
-            --data-binary @/tmp/reader-request.json https://r.jina.ai/ || true)
-          echo "status=$code bytes=$(wc -c </tmp/reader-card.json 2>/dev/null || echo 0)"
           python - <<'PY'
-          import json,re
-          raw=open('/tmp/reader-card.json').read(); print(raw[:500] if not raw.startswith('{') else '')
-          try: data=json.loads(raw).get('data',{})
-          except Exception as e: print('JSON_ERROR',e); raise
-          html=str(data.get('html') or data.get('content') or '')
-          print('source=',data.get('url'),'title=',data.get('title'),'html_bytes=',len(html))
-          at=html.find('aiplus-card-dump')
-          if at<0: at=html.find('辽宁石油化工大学')
-          print(html[max(0,at-500):at+12000])
-          for pattern in [r'schId[^\d]{0,8}(\d+)',r'categoryId[^\d]{0,8}(\d+)',r'common/xh/(\d+)']:
-              print(pattern, list(dict.fromkeys(re.findall(pattern,html)))[:30])
+          import subprocess,urllib.parse,re
+          schools=['辽宁石油化工大学','东北石油大学','辽宁科技大学']
+          for school in schools:
+              q=f'site:gaokao.chsi.com.cn/sch/schoolInfo {school}'
+              bing='https://www.bing.com/search?q='+urllib.parse.quote(q)
+              reader='https://r.jina.ai/'+bing
+              p=subprocess.run(['curl','-sS','-L','--max-time','35','-H','Accept: text/plain',reader],capture_output=True,text=True)
+              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
+              if p.returncode: print(p.stderr[:300]); continue
+              text=p.stdout
+              urls=[]
+              for m in re.finditer(r'https://gaokao\.chsi\.com\.cn/sch/schoolInfo[^\s\)\]<>"\']+',text):
+                  u=m.group(0).replace('&amp;','&').rstrip('.,;')
+                  if u not in urls: urls.append(u)
+              print('CHSI_URLS=',urls[:20])
+              for line in text.splitlines():
+                  if school in line or ('gaokao.chsi.com.cn/sch/schoolInfo' in line): print('LINE',line[:1600])
           PY
-          [ "$code" = 200 ]
