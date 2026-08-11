@@ -1,4 +1,4 @@
-name: Temporary CHSI Google locator diagnostic v3990_2
+name: Temporary CHSI cross-province card diagnostic v3990_2
 
 on:
   push:
@@ -15,23 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Resolve CHSI detail URLs from Google domain-limited search
+      - name: Inspect Reader cards for cross-province schools
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import subprocess,urllib.parse,re
-          for school in ['辽宁石油化工大学','东北石油大学','辽宁科技大学']:
-              q=f'site:gaokao.chsi.com.cn/sch/schoolInfo {school}'
-              target='https://www.google.com/search?hl=zh-CN&num=10&q='+urllib.parse.quote(q)
+          import subprocess,urllib.parse
+          for school in ['东北石油大学','辽宁科技大学']:
+              target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc='+urllib.parse.quote(school)+'&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
               p=subprocess.run(['curl','-sS','-L','--max-time','35','-H','Accept: text/plain','https://r.jina.ai/'+target],capture_output=True,text=True)
+              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
               text=p.stdout
-              print('\n---',school,'exit',p.returncode,'bytes',len(text))
-              urls=[]
-              for m in re.finditer(r'https://gaokao\.chsi\.com\.cn/sch/schoolInfo[^\s\)\]<>"\']+',text):
-                  u=m.group(0).rstrip('.,;')
-                  if u not in urls: urls.append(u)
-              print('URLS=',urls[:20])
-              for line in text.splitlines():
-                  if school in line or 'gaokao.chsi.com.cn/sch/schoolInfo' in line: print('LINE',line[:1800])
+              for line_no,line in enumerate(text.splitlines(),1):
+                  if school in line or 'common/xh/' in line or '主管部门' in line or '满意度' in line:
+                      print(f'{line_no}: {line[:1600]}')
+              print('HEAD')
+              print('\n'.join(text.splitlines()[:80]))
           PY
