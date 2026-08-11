@@ -6,7 +6,7 @@ export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v39
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1';
 export const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_1';
-export const MAJOR_BANDS_PAGE_ID_DIRECT_LOOKUP_VERSION = 'major-bands-page-id-direct-row-lookup-v3990_1';
+export const MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_1';
 export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
@@ -294,51 +294,6 @@ function readTopLevelArrayScalars(rowText, indexes = []) {
   return values;
 }
 
-function findTopLevelArrayEnd(source, start) {
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let cursor = start; cursor < source.length; cursor += 1) {
-    const char = source[cursor];
-    if (inString) {
-      if (escaped) escaped = false;
-      else if (char === '\\') escaped = true;
-      else if (char === '"') inString = false;
-      continue;
-    }
-    if (char === '"') {
-      inString = true;
-      continue;
-    }
-    if (char === '[' || char === '{') depth += 1;
-    else if (char === ']' || char === '}') {
-      depth -= 1;
-      if (depth === 0) return cursor + 1;
-      if (depth < 0) throw new Error('静态专业位次桶直接定位 row 容器深度异常');
-    }
-  }
-  throw new Error('静态专业位次桶直接定位 row 未完整结束');
-}
-
-function findMajorBandsStaticRowTextById(source, rowsStart, id) {
-  const canonicalId = String(id || '');
-  if (!canonicalId) return '';
-  const pattern = `[${JSON.stringify(canonicalId)},`;
-  let from = rowsStart + 1;
-  while (from < source.length) {
-    const start = source.indexOf(pattern, from);
-    if (start < 0) return '';
-    let previous = start - 1;
-    while (previous > rowsStart && /\s/.test(source[previous])) previous -= 1;
-    if (source[previous] === '[' || source[previous] === ',') {
-      const end = findTopLevelArrayEnd(source, start);
-      return source.slice(start, end);
-    }
-    from = start + pattern.length;
-  }
-  return '';
-}
-
 export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   const source = String(text || '');
   const rowsStart = findStaticRowsArrayStart(source);
@@ -365,42 +320,6 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   let pageIdScalarPrefilterCount = 0;
   let pageIdDirectLookupCount = 0;
   let pageIdDirectLookupHits = 0;
-
-  if (allowedIds && idIndex === 0) {
-    rowCount = expectedRecordCount;
-    for (const id of allowedIds) {
-      pageIdDirectLookupCount += 1;
-      const rowText = findMajorBandsStaticRowTextById(source, rowsStart, id);
-      if (!rowText) continue;
-      const row = JSON.parse(rowText);
-      fullRowParseCount += 1;
-      if (!Array.isArray(row)) throw new Error('静态专业位次桶直接定位 row 解析后不是数组');
-      if (String(row?.[idIndex] || '') !== String(id)) throw new Error('静态专业位次桶直接定位 ID 不一致');
-      const rankMatch = rankRange && rankIndex >= 0
-        ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
-        : true;
-      if (!rankMatch) continue;
-      rankMatchedCount += 1;
-      pageIdDirectLookupHits += 1;
-      rows.push(row);
-    }
-    const suffix = source.slice(source.lastIndexOf(']') + 1).trim();
-    if (!suffix.endsWith('}')) throw new Error('静态专业位次桶外层 JSON 未完整结束');
-    return {
-      version,
-      rows,
-      rowCount,
-      rankMatchedCount,
-      rankMatchedCountMode: 'selected-page-ids-only',
-      fullRowParseCount,
-      pageIdScalarPrefilterCount,
-      pageIdDirectLookupCount,
-      pageIdDirectLookupHits,
-      pageIdPrefilterVersion: MAJOR_BANDS_PAGE_ID_DIRECT_LOOKUP_VERSION,
-      mode: 'native-page-id-direct-row-lookup',
-      scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION
-    };
-  }
 
   let cursor = rowsStart + 1;
   let ended = false;
@@ -448,17 +367,17 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     const rowText = source.slice(start, cursor);
     rowCount += 1;
     if (allowedIds && idIndex >= 0) {
-      const scalarValues = readTopLevelArrayScalars(rowText, [idIndex, rankIndex]);
+      const scalarValues = readTopLevelArrayScalars(rowText, [idIndex]);
       pageIdScalarPrefilterCount += 1;
-      const rankMatch = rankRange && rankIndex >= 0
-        ? majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)
-        : true;
-      if (!rankMatch) continue;
-      rankMatchedCount += 1;
       if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
       const row = JSON.parse(rowText);
       fullRowParseCount += 1;
       if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+      const rankMatch = rankRange && rankIndex >= 0
+        ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
+        : true;
+      if (!rankMatch) continue;
+      rankMatchedCount += 1;
       rows.push(row);
       continue;
     }
@@ -489,8 +408,10 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     pageIdScalarPrefilterCount,
     pageIdDirectLookupCount,
     pageIdDirectLookupHits,
-    pageIdPrefilterVersion: MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
-    mode: 'native-row-text-scan',
+    pageIdPrefilterVersion: allowedIds && idIndex >= 0
+      ? MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION
+      : MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
+    mode: allowedIds && idIndex >= 0 ? 'native-page-id-id-first-prefilter' : 'native-row-text-scan',
     scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION
   };
 }

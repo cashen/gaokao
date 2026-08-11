@@ -364,7 +364,8 @@ for (const required of [
   "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'",
   'scanMajorBandsStaticRankRowsText',
   'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',
-  "mode: 'native-row-text-scan'"
+  "MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_1'",
+  "'native-page-id-id-first-prefilter' : 'native-row-text-scan'"
 ]) assert.ok(staticProviderSource.includes(required), `predecode native rank-row filter missing ${required}`);
 const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_1.js', 'utf8');
 for (const required of [
