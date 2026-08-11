@@ -47,27 +47,20 @@ jobs:
             "mode: 'native-row-text-scan'"
           ]) assert.ok(staticProviderSource.includes(required), `predecode native rank-row filter missing ${required}`);'''
           if text.count(old) != 1:
-              raise SystemExit('static provider audit block not found exactly once')
+              raise SystemExit(f'static provider audit block count={text.count(old)}')
           audit.write_text(text.replace(old, new, 1))
 
           workflow = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
           yml = workflow.read_text()
-          check_anchor = '''            tools/build-major-bands-rank-index-v3990_1.mjs \\
-            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \\'''
-          check_replacement = '''            tools/build-major-bands-rank-index-v3990_1.mjs \\
-            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \\
-            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \\'''
-          run_anchor = '''          node tools/build-major-bands-rank-index-v3990_1.mjs
-          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js'''
-          run_replacement = '''          node tools/build-major-bands-rank-index-v3990_1.mjs
-          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs
-          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js'''
-          if yml.count(check_anchor) != 1:
-              raise SystemExit(f'workflow syntax-list anchor count={yml.count(check_anchor)}')
+          syntax_anchor = '            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \\\\n'
+          syntax_insert = '            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \\\\n' + syntax_anchor
+          run_anchor = '          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js\n'
+          run_insert = '          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs\n' + run_anchor
+          if yml.count(syntax_anchor) != 1:
+              raise SystemExit(f'workflow syntax anchor count={yml.count(syntax_anchor)}')
           if yml.count(run_anchor) != 1:
               raise SystemExit(f'workflow run anchor count={yml.count(run_anchor)}')
-          yml = yml.replace(check_anchor, check_replacement, 1).replace(run_anchor, run_replacement, 1)
-          workflow.write_text(yml)
+          workflow.write_text(yml.replace(syntax_anchor, syntax_insert, 1).replace(run_anchor, run_insert, 1))
           PY
           git diff --check
           node --check functions/_lib/major-bands-static-provider.js
