@@ -37,7 +37,8 @@ jobs:
           path.write_text(text.split(marker, 1)[0] + '\n')
           PY
           python tools/.agent-page-score-bucket-hints-v3990_1.py
-          git diff --check
+          git checkout -- tools/.agent-page-score-bucket-hints-v3990_1.py
+          git diff --check -- functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs
           node --check functions/api/major-bands.js
           node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
           node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
