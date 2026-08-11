@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r12
+name: Temporary AI Plus school official integration v3990_2 r13
 
 on:
   push:
@@ -72,8 +72,7 @@ jobs:
           old_put='putSchoolHistorySessionCache(tool,entry);putSchoolOfficialSessionCache(tool,entry);return entry;';new_put="if(tool.kind==='school_history'){putSchoolHistorySessionCache(tool,entry);return entry;}if(tool.kind==='school_official'){putSchoolOfficialSessionCache(tool,entry);return entry;}return entry;"
           if a.count(old_put)!=1: raise SystemExit(f'cache-write bridge count={a.count(old_put)}')
           a=a.replace(old_put,new_put,1)
-          old_compact="updatedAt:String(data.updatedAt||'').slice(0,80),evidenceText:String(data.evidenceText||'').slice(0,12000)"
-          new_compact="updatedAt:String(data.updatedAt||'').slice(0,80),coverage:String(data.coverage||'').slice(0,80),detailAvailable:data.detailAvailable===true,evidenceText:String(data.evidenceText||'').slice(0,12000)"
+          old_compact="updatedAt:String(data.updatedAt||'').slice(0,80),evidenceText:String(data.evidenceText||'').slice(0,12000)";new_compact="updatedAt:String(data.updatedAt||'').slice(0,80),coverage:String(data.coverage||'').slice(0,80),detailAvailable:data.detailAvailable===true,evidenceText:String(data.evidenceText||'').slice(0,12000)"
           if a.count(old_compact)!=1: raise SystemExit(f'compact official payload count={a.count(old_compact)}')
           app.write_text(a.replace(old_compact,new_compact,1))
 
@@ -109,15 +108,14 @@ jobs:
           if(!/辽宁/.test(profile.evidenceText)||!/辽宁省教育厅/.test(profile.evidenceText)||!/本科/.test(profile.evidenceText))throw new Error(`profile card facts missing: ${profile.evidenceText}`);
           if(profile.transportVersion!==AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION)throw new Error(`profile transport drift ${profile.transportVersion}`);
           for(const source of profile.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('profile non-CHSI source');}
-          console.log(JSON.stringify({profile:true,school:profile.school,schoolCode:profile.schoolCode,coverage:profile.coverage,evidence:profile.evidenceText,sources:profile.sources},null,2));
-
+          console.log(JSON.stringify({profile:true,school:profile.school,schoolCode:profile.schoolCode,coverage:profile.coverage,evidence:profile.evidenceText},null,2));
           const detail=await loadOfficialSchoolEvidence({school:'东北石油大学',question:'录取规则怎么写'});
           if(!detail?.ok)throw new Error(`detail fallback failed: ${detail?.code||''} ${detail?.message||''}`);
-          if(detail.school!=='东北石油大学')throw new Error(`detail entity drift ${detail.school}`);
+          if(detail.school!=='东北石油大学'||detail.schoolCode!=='10220')throw new Error(`detail entity drift ${detail.school}/${detail.schoolCode}`);
           if(detail.detailAvailable!==false||detail.coverage!=='official_search_card_only')throw new Error(`detail must be explicit unavailable: ${detail.coverage}/${detail.detailAvailable}`);
           if(!/未可靠定位/.test(detail.evidenceText)||!/不得补猜/.test(detail.evidenceText))throw new Error(`detail boundary missing: ${detail.evidenceText}`);
           for(const source of detail.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('detail non-CHSI source');}
-          console.log(JSON.stringify({detailFallback:true,school:detail.school,schoolCode:detail.schoolCode,coverage:detail.coverage,evidence:detail.evidenceText,sources:detail.sources},null,2));
+          console.log(JSON.stringify({detailFallback:true,school:detail.school,schoolCode:detail.schoolCode,coverage:detail.coverage,evidence:detail.evidenceText},null,2));
           NODE
       - name: Commit tested AI Plus runtime
         shell: bash
