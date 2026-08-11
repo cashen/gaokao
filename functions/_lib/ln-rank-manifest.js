@@ -49,47 +49,38 @@ function findRecordsArrayStart(text) {
   return match ? match.index + match[0].lastIndexOf('[') : -1;
 }
 
-function countToken(text, token) {
-  let count = 0;
-  let offset = 0;
-  while (true) {
-    const index = text.indexOf(token, offset);
-    if (index < 0) break;
-    count += 1;
-    offset = index + token.length;
-  }
-  return count;
-}
-
 function exactSchoolRowsFromText(text, schoolNames, expectedRecordCount, predicate) {
   const expected = Number(expectedRecordCount || 0);
-  if (!expected || countToken(text, RECORD_START) !== expected || countToken(text, SCHOOL_FIELD) !== expected) return null;
+  if (!expected) return null;
   const arrayEnd = text.lastIndexOf(']}');
   if (arrayEnd < 0) return null;
 
-  const starts = new Set();
-  for (const schoolName of [...new Set((Array.isArray(schoolNames) ? schoolNames : []).map(value => String(value || '').trim()).filter(Boolean))]) {
-    const marker = `${SCHOOL_FIELD}${JSON.stringify(schoolName)}`;
-    let offset = 0;
-    while (true) {
-      const index = text.indexOf(marker, offset);
-      if (index < 0) break;
-      const start = text.lastIndexOf(RECORD_START, index);
-      if (start < 0) return null;
-      starts.add(start);
-      offset = index + marker.length;
-    }
-  }
+  const markers = [...new Set((Array.isArray(schoolNames) ? schoolNames : [])
+    .map(value => String(value || '').trim())
+    .filter(Boolean))]
+    .map(schoolName => `${SCHOOL_FIELD}${JSON.stringify(schoolName)}`);
+  if (!markers.length) return null;
 
   const records = [];
-  for (const start of [...starts].sort((a, b) => a - b)) {
+  let scanned = 0;
+  let start = text.indexOf(RECORD_START);
+  while (start >= 0) {
     const next = text.indexOf(RECORD_START, start + RECORD_START.length);
     const end = next >= 0 ? next - 1 : arrayEnd;
     if (end <= start) return null;
-    const raw = JSON.parse(text.slice(start, end));
-    if (predicate(raw)) records.push(raw);
+    const recordText = text.slice(start, end);
+    const schoolField = recordText.indexOf(SCHOOL_FIELD);
+    if (schoolField < 0 || recordText.indexOf(SCHOOL_FIELD, schoolField + SCHOOL_FIELD.length) >= 0) return null;
+    scanned += 1;
+    if (markers.some(marker => recordText.includes(marker))) {
+      const raw = JSON.parse(recordText);
+      if (predicate(raw)) records.push(raw);
+    }
+    if (next < 0) break;
+    start = next;
   }
-  return { records, scanned: expected, mode: 'exact-school-native-text-scan' };
+  if (scanned !== expected) return null;
+  return { records, scanned, mode: 'exact-school-native-text-scan' };
 }
 
 async function streamMatchingRows(response, predicate) {
