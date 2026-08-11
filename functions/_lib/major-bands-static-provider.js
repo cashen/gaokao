@@ -5,6 +5,7 @@ import { normalizeLocation } from './location-normalizer.js';
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1';
+export const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_1';
 export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
@@ -238,6 +239,60 @@ function findStaticRowsArrayStart(text) {
   return match ? match.index + match[0].lastIndexOf('[') : -1;
 }
 
+function readTopLevelArrayScalars(rowText, indexes = []) {
+  const source = String(rowText || '');
+  const wanted = new Set(indexes.filter(index => Number.isInteger(index) && index >= 0));
+  const values = new Map();
+  if (!wanted.size || source[0] !== '[') return values;
+  const maxIndex = Math.max(...wanted);
+  let valueIndex = 0;
+  let valueStart = 1;
+  let nestedDepth = 0;
+  let inString = false;
+  let escaped = false;
+
+  const capture = end => {
+    if (wanted.has(valueIndex)) {
+      const raw = source.slice(valueStart, end).trim();
+      values.set(valueIndex, raw ? JSON.parse(raw) : undefined);
+    }
+  };
+
+  for (let cursor = 1; cursor < source.length; cursor += 1) {
+    const char = source[cursor];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '[' || char === '{') {
+      nestedDepth += 1;
+      continue;
+    }
+    if (char === ']' || char === '}') {
+      if (char === ']' && nestedDepth === 0) {
+        capture(cursor);
+        break;
+      }
+      nestedDepth -= 1;
+      if (nestedDepth < 0) throw new Error('静态专业位次桶标量预筛容器深度异常');
+      continue;
+    }
+    if (char === ',' && nestedDepth === 0) {
+      capture(cursor);
+      if (valueIndex >= maxIndex) break;
+      valueIndex += 1;
+      valueStart = cursor + 1;
+    }
+  }
+  return values;
+}
+
 export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   const source = String(text || '');
   const rowsStart = findStaticRowsArrayStart(source);
@@ -259,6 +314,8 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   const rows = [];
   let rowCount = 0;
   let rankMatchedCount = 0;
+  let fullRowParseCount = 0;
+  let pageIdScalarPrefilterCount = 0;
   let cursor = rowsStart + 1;
   let ended = false;
 
@@ -302,15 +359,32 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     }
     if (depth !== 0 || inString) throw new Error('静态专业位次桶 row 未完整结束');
 
-    const row = JSON.parse(source.slice(start, cursor));
-    if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+    const rowText = source.slice(start, cursor);
     rowCount += 1;
+    if (allowedIds && idIndex >= 0) {
+      const scalarValues = readTopLevelArrayScalars(rowText, [idIndex, rankIndex]);
+      pageIdScalarPrefilterCount += 1;
+      const rankMatch = rankRange && rankIndex >= 0
+        ? majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)
+        : true;
+      if (!rankMatch) continue;
+      rankMatchedCount += 1;
+      if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
+      const row = JSON.parse(rowText);
+      fullRowParseCount += 1;
+      if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+      rows.push(row);
+      continue;
+    }
+
+    const row = JSON.parse(rowText);
+    fullRowParseCount += 1;
+    if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
     const rankMatch = rankRange && rankIndex >= 0
       ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
       : true;
     if (!rankMatch) continue;
     rankMatchedCount += 1;
-    if (allowedIds && idIndex >= 0 && !allowedIds.has(String(row?.[idIndex] || ''))) continue;
     rows.push(row);
   }
 
@@ -326,6 +400,9 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     rows,
     rowCount,
     rankMatchedCount,
+    fullRowParseCount,
+    pageIdScalarPrefilterCount,
+    pageIdPrefilterVersion: MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
     mode: 'native-row-text-scan',
     scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION
   };
