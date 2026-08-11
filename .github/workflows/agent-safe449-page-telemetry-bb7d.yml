@@ -1,0 +1,33 @@
+name: Temporary safe449 page telemetry bb7d
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-safe449-page-telemetry-bb7d.yml']
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Trace safe449 near pages
+        env:
+          BASE: https://agent-migrate-ai-frontend-to.gaokao-4y9.pages.dev
+        run: |
+          node --input-type=module <<'NODE'
+          const base=process.env.BASE;
+          let offset=0;
+          for(let page=0; page<35; page++){
+            const url=`${base}/api/major-bands?candidateScore=449&rangePreset=safe&band=near&offset=${offset}&limit=37&telemetry=bb7d-${Date.now()}-${page}`;
+            const r=await fetch(url,{headers:{'cache-control':'no-cache','pragma':'no-cache'}});
+            const t=await r.text();
+            if(r.status!==200){console.log(JSON.stringify({page,offset,status:r.status,body:t.slice(0,500)}));process.exit(1)}
+            const p=JSON.parse(t),g=p.bands?.near||{},pg=g.pagination||{},s=p.source||{};
+            console.log(JSON.stringify({page,offset,status:r.status,returned:(g.records||[]).length,count:g.count,next:pg.nextOffset,hasMore:pg.hasMore,cache:s.requestedBandOrderCacheStatus,edge:s.requestedBandOrderEdgeCacheStatus,pageSource:s.requestedBandOrderPageSource,scoreHintVersion:s.requestedBandOrderPageScoreHintVersion,hintStatus:s.requestedBandOrderPageBucketHintStatus,hintCandidates:s.requestedBandOrderPageBucketHintCandidates,hintBuckets:s.requestedBandOrderPageBucketHints,selectedBuckets:s.requestedBandOrderPageSelectedBuckets,scoreHints:s.requestedBandOrderPageScoreHints,chunksRead:s.chunksRead,staticBytes:s.staticIndexBytes,rawRows:s.rankRawRowCount,decodedRows:s.rankDecodedRowCount,rankSkipped:s.rankRowsSkipped,pageIdSkipped:s.pageIdRowsSkipped,responseEdge:s.requestedBandResponseEdgeCacheStatus}));
+            if(!pg.hasMore) break;
+            offset=Number(pg.nextOffset);
+          }
+          NODE
