@@ -1,4 +1,4 @@
-name: Temporary CHSI cross-province card diagnostic v3990_2
+name: Temporary CHSI Reader retry hardening v3990_2
 
 on:
   push:
@@ -8,27 +8,55 @@ on:
       - .github/workflows/agent-chsi-network-diagnostic-v3990-2.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  harden:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Inspect Reader cards for cross-province schools
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-school-official-qa-v3990_2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Remove duplicate Edge cache and retry incomplete search once
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import subprocess,urllib.parse
-          for school in ['东北石油大学','辽宁科技大学']:
-              target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc='+urllib.parse.quote(school)+'&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
-              p=subprocess.run(['curl','-sS','-L','--max-time','35','-H','Accept: text/plain','https://r.jina.ai/'+target],capture_output=True,text=True)
-              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
-              text=p.stdout
-              for line_no,line in enumerate(text.splitlines(),1):
-                  if school in line or 'common/xh/' in line or '主管部门' in line or '满意度' in line:
-                      print(f'{line_no}: {line[:1600]}')
-              print('HEAD')
-              print('\n'.join(text.splitlines()[:80]))
+          from pathlib import Path
+          path=Path('functions/_lib/ai/school-official-source.js')
+          text=path.read_text()
+          old="async function fetchOfficialHtml(url,fetchImpl=fetch){const target=new URL(url,AI_SCHOOL_OFFICIAL_ORIGIN);if(target.origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('官方来源域名不在允许范围。');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),28000);try{const response=await fetchImpl(readerUrlForOfficial(target),{method:'GET',headers:{accept:'text/plain','x-timeout':'18'},signal:controller.signal,cf:{cacheEverything:true,cacheTtl:900}});"
+          new="async function fetchOfficialHtml(url,fetchImpl=fetch,options={}){const target=new URL(url,AI_SCHOOL_OFFICIAL_ORIGIN);if(target.origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('官方来源域名不在允许范围。');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),28000);try{const headers={accept:'text/plain','x-timeout':'18'};if(options.noCache)headers['x-no-cache']='true';const response=await fetchImpl(readerUrlForOfficial(target),{method:'GET',headers,signal:controller.signal});"
+          if text.count(old)!=1: raise SystemExit(f'fetchOfficialHtml anchor count={text.count(old)}')
+          text=text.replace(old,new,1)
+          old2="const requestedSchool=clean(school,120);if(!requestedSchool)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};const topic=schoolOfficialTopic(question),topicLabel=schoolOfficialTopicLabel(topic),search=await fetchOfficialHtml(searchUrlForSchool(requestedSchool),fetchImpl),match=extractOfficialSchoolSearchMatch(search.text,requestedSchool);if(!match)return{ok:false,code:'official_school_not_found',message:`阳光高考院校库暂未可靠匹配“${requestedSchool}”。`};"
+          new2="const requestedSchool=clean(school,120);if(!requestedSchool)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};const topic=schoolOfficialTopic(question),topicLabel=schoolOfficialTopicLabel(topic),searchUrl=searchUrlForSchool(requestedSchool);let search=await fetchOfficialHtml(searchUrl,fetchImpl),match=extractOfficialSchoolSearchMatch(search.text,requestedSchool);if(!match){search=await fetchOfficialHtml(searchUrl,fetchImpl,{noCache:true});match=extractOfficialSchoolSearchMatch(search.text,requestedSchool);}if(!match)return{ok:false,code:'official_school_not_found',message:`阳光高考院校库暂未可靠匹配“${requestedSchool}”。`};"
+          if text.count(old2)!=1: raise SystemExit(f'search retry anchor count={text.count(old2)}')
+          path.write_text(text.replace(old2,new2,1))
           PY
+          git diff --check -- functions/_lib/ai/school-official-source.js
+          node --check functions/_lib/ai/school-official-source.js
+          node --input-type=module - <<'NODE'
+          import {loadOfficialSchoolEvidence} from './functions/_lib/ai/school-official-source.js';
+          for(const [school,question,code] of [['辽宁石油化工大学','这所学校怎么样','10148'],['东北石油大学','录取规则怎么写','10220']]){
+            const result=await loadOfficialSchoolEvidence({school,question});
+            if(!result?.ok)throw new Error(`${school}: ${result?.code||''} ${result?.message||''}`);
+            if(result.school!==school||result.schoolCode!==code)throw new Error(`${school}: entity drift ${result.school}/${result.schoolCode}`);
+            if(!result.sources?.every(source=>new URL(source.sourceUrl).origin==='https://gaokao.chsi.com.cn'))throw new Error(`${school}: evidence origin drift`);
+            console.log(JSON.stringify({school,schoolCode:result.schoolCode,coverage:result.coverage,detailAvailable:result.detailAvailable,evidence:result.evidenceText},null,2));
+          }
+          NODE
+      - name: Commit tested Reader hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/_lib/ai/school-official-source.js
+          git commit -m "fix: retry incomplete CHSI school-card reads"
+          git push origin HEAD:agent/aiplus-school-official-qa-v3990_2
