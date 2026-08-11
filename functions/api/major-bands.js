@@ -858,7 +858,8 @@ async function executeRequestedBandOrderedPage(context, input) {
       const rankWindows = rankWindowsForCandidate(candidateRank?.rankForGap, rangePreset, totalRank);
       const selected = selectMajorBandsRankBuckets(rankWindows);
       const loaded = await loadMajorBandsRankWindow(context, selected, {
-        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined
+        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
+        rawRowStorage: minimalOrderProjection ? 'serialized-json' : undefined
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore,
