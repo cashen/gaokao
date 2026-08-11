@@ -499,15 +499,9 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     : null;
   const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
   const text = await response.text();
-const wholeBucketJsonParseEligible = Boolean(
-  rankRange
-  && predecodeRegion === 'all'
-  && !allowedIds
-  && Number(bucket.minRank) >= Number(rankRange.minRank)
-  && Number(bucket.maxRank) <= Number(rankRange.maxRank)
-);
+const nativeWholeBucketJsonEligible = !allowedIds;
 let scan;
-if (wholeBucketJsonParseEligible) {
+if (nativeWholeBucketJsonEligible) {
   let payload;
   try {
     payload = JSON.parse(text);
@@ -520,14 +514,27 @@ if (wholeBucketJsonParseEligible) {
   if (payload.rows.length !== Number(bucket.recordCount || 0)) {
     throw new Error(`静态专业位次桶整桶记录数异常：${bucket.file}，${payload.rows.length}/${bucket.recordCount}`);
   }
+  const rows = [];
+  let rankMatchedCount = 0;
+  let regionMatchedCount = 0;
+  for (const row of payload.rows) {
+    const rankMatch = rankRange && rankIndex >= 0
+      ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
+      : true;
+    if (!rankMatch) continue;
+    rankMatchedCount += 1;
+    if (!majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;
+    regionMatchedCount += 1;
+    rows.push(row);
+  }
   scan = {
     version: manifest.version,
-    rows: payload.rows,
+    rows,
     rowCount: payload.rows.length,
-    rankMatchedCount: payload.rows.length,
-    regionMatchedCount: payload.rows.length,
+    rankMatchedCount,
+    regionMatchedCount,
     scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
-    mode: 'native-whole-bucket-json-parse'
+    mode: 'native-whole-bucket-json-filter'
   };
 } else {
   scan = scanMajorBandsStaticRankRowsText(text, {
