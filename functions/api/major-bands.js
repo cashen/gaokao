@@ -903,10 +903,12 @@ async function executeRequestedBandOrderedPage(context, input) {
     // Do not duplicate three complete ordered-ID snapshots into module state,
     // and release each heavy ordered array immediately after its page is decoded.
     ordered.length = 0;
-    orderCacheStatus = sharedProjectionUsesRawRows
-      ? 'all-bands-shared-projection'
-      : 'all-bands-shared-full-record';
-    orderPageSource = orderCacheStatus;
+    orderCacheStatus = 'all-bands-shared-projection';
+    orderPageSource = 'all-bands-shared-projection';
+    if (!sharedProjectionUsesRawRows) {
+      orderCacheStatus = 'all-bands-shared-full-record';
+      orderPageSource = 'all-bands-shared-full-record';
+    }
     allBandsShared.bandUses = Number(allBandsShared.bandUses || 0) + 1;
   } else if (!retained) {
     heavyExecution = await executeMajorBandsQueryOnce(orderIdentity, async () => {
