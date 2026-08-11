@@ -360,10 +360,11 @@ for (const preset of presets) {
 const staticProviderSource = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
 for (const required of [
   "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1'",
-  "const rankIndex = schema.indexOf('rank2026')",
-  'payload.rows.filter(row => majorBandsRankValueMatchesRange',
-  'rankRowsSkipped: payload.rows.length - selectedRows.length'
-]) assert.ok(staticProviderSource.includes(required), `predecode rank-row filter missing ${required}`);
+  "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'",
+  'scanMajorBandsStaticRankRowsText',
+  'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',
+  "mode: 'native-row-text-scan'"
+]) assert.ok(staticProviderSource.includes(required), `predecode native rank-row filter missing ${required}`);
 const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_1.js', 'utf8');
 for (const required of [
   'function bucketReadKey',
