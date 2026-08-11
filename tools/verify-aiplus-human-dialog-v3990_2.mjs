@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createAiWorkspace } from '../shared/ai/ai-workspace-contract.v3992_0.js';
-import { deterministicCommand, resolveAiSchoolMentions } from '../functions/_lib/ai/command-interpreter.js';
+import { deterministicCommand, resolveAiSchoolMentionsDetailed } from '../functions/_lib/ai/command-interpreter.js';
 
 const aliases = new Map([
   ['沈阳工业', '沈阳工业大学'],
@@ -24,8 +24,8 @@ const resolver = {
 };
 
 async function command(text, workspace = createAiWorkspace()) {
-  const schools = await resolveAiSchoolMentions(text, resolver);
-  return deterministicCommand(text, workspace, schools);
+  const resolved = await resolveAiSchoolMentionsDetailed(text, resolver);
+  return deterministicCommand(text, workspace, resolved.schoolNames, resolved.matchedAliases);
 }
 
 function expect(commandResult, { task, school, major, commit = false, scoreUsage }) {
@@ -50,6 +50,8 @@ expect(await command('辽科大所有专业分数线', candidate), { task: 'scho
 expect(await command('东北石油 石油工程多少分', candidate), { task: 'school_major_history', school: '东北石油大学', major: '石油工程' });
 expect(await command('西北工业 自动化多少分', candidate), { task: 'school_major_history', school: '西北工业大学', major: '自动化' });
 expect(await command('大连海事 轮机工程多少分', candidate), { task: 'school_major_history', school: '大连海事大学', major: '轮机工程' });
+expect(await command('辽石化 储能科学与工程多少分', candidate), { task: 'school_major_history', school: '辽宁石油化工大学', major: '储能科学与工程' });
+expect(await command('沈工大 智能制造工程最低分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '智能制造工程' });
 expect(await command('沈航怎么样', candidate), { task: 'school_official_qa', school: '沈阳航空航天大学' });
 expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_official_qa', school: '大连理工大学' });
 expect(await command('东北大学材料最低分', candidate), { task: 'school_major_history', school: '东北大学', major: '材料' });
@@ -87,4 +89,4 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 18 }, null, 2));
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 20 }, null, 2));
