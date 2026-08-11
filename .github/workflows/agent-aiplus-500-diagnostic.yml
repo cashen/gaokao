@@ -1,4 +1,4 @@
-name: Temporary major-bands predecode region test
+name: Temporary allocation-free page ID scan test
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply predecode region filter and audit contract
+      - name: Apply allocation-free ID-first scan
         shell: bash
         run: |
           set -euo pipefail
@@ -32,54 +32,177 @@ jobs:
             p.write_text(s.replace(old,new,1))
 
           p='functions/_lib/major-bands-static-provider.js'
-          rep(p,"import { normalizeLocation } from './location-normalizer.js';","import { normalizeLocation } from './location-normalizer.js';\nimport { matchRegionRule } from '../../shared/resources/geo/china-region-catalog.v3990_1.js';",'region import')
-          rep(p,"export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';","export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';\nexport const MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1';",'region version')
-          s=Path(p).read_text(); a="export function majorBandsRankValueMatchesRange(rankLike, range = null) {"; b="""export function majorBandsStaticRowMatchesRegion(row = [], schema = [], region = 'all') {\n  const key = String(region || 'all').trim();\n  if (!key || key === 'all') return true;\n  const index = name => schema.indexOf(name);\n  const value = indexValue => indexValue >= 0 ? row?.[indexValue] : undefined;\n  return matchRegionRule({\n    lnArea: value(index('lnArea')),\n    province: value(index('province')),\n    city: value(index('city'))\n  }, key);\n}\n\n"""+a
-          if a not in s: raise SystemExit('missing helper anchor')
-          Path(p).write_text(s.replace(a,b,1))
-          old="""  const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;\n  const rankFilteredRows = rankRange && rankIndex >= 0\n    ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))\n    : payload.rows;\n  const selectedRows = allowedIds && idIndex >= 0\n    ? rankFilteredRows.filter(row => allowedIds.has(String(row?.[idIndex] || '')))\n    : rankFilteredRows;\n"""
-          new="""  const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;\n  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';\n  const selectedRows = [];\n  let rankFilteredRowCount = 0;\n  let regionFilteredRowCount = 0;\n  for (const row of payload.rows) {\n    if (rankRange && rankIndex >= 0 && !majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)) continue;\n    rankFilteredRowCount += 1;\n    if (predecodeRegion !== 'all' && !majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;\n    regionFilteredRowCount += 1;\n    if (allowedIds && idIndex >= 0 && !allowedIds.has(String(row?.[idIndex] || ''))) continue;\n    selectedRows.push(row);\n  }\n"""
-          rep(p,old,new,'row selection')
-          rep(p,"""    rankRowsSkipped: payload.rows.length - selectedRows.length,\n    pageIdRowsSkipped: rankFilteredRows.length - selectedRows.length,\n    pageIdFilterCount: allowedIds?.size || 0,\n""","""    rankRowsSkipped: payload.rows.length - selectedRows.length,\n    rankOnlyRowsSkipped: payload.rows.length - rankFilteredRowCount,\n    regionRowsSkipped: rankFilteredRowCount - regionFilteredRowCount,\n    predecodeRegion,\n    predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,\n    pageIdRowsSkipped: regionFilteredRowCount - selectedRows.length,\n    pageIdFilterCount: allowedIds?.size || 0,\n""",'provider stats')
+          rep(p,
+          """    const start = cursor;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (; cursor < source.length; cursor += 1) {
+      const char = source[cursor];
+""",
+          """    const start = cursor;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    let primaryIdCaptured = false;
+    let primaryIdValue;
+    for (; cursor < source.length; cursor += 1) {
+      const char = source[cursor];
+""", 'primary ID state')
 
-          p='functions/_lib/major-bands-rank-bucket-loader.v3990_1.js'
-          rep(p,"""  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,\n  MAJOR_BANDS_RANK_ROW_FILTER_VERSION,\n""","""  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,\n  MAJOR_BANDS_RANK_ROW_FILTER_VERSION,\n  MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,\n""",'loader import')
-          rep(p,"export { MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION, MAJOR_BANDS_RANK_ROW_FILTER_VERSION };","export { MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION, MAJOR_BANDS_RANK_ROW_FILTER_VERSION, MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION };",'loader export')
-          rep(p,"""  const rawRowStorage = options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference';\n  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}`;\n""","""  const rawRowStorage = options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference';\n  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';\n  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}|region:${predecodeRegion}`;\n""",'cache key')
-          rep(p,"""    allowedIds: options.allowedIds,\n    projection: options.projection,\n""","""    allowedIds: options.allowedIds,\n    predecodeRegion: options.predecodeRegion,\n    projection: options.projection,\n""",'pass option')
-          rep(p,"""        rankRowsSkipped: 0,\n        pageIdRowsSkipped: 0,\n""","""        rankRowsSkipped: 0,\n        rankOnlyRowsSkipped: 0,\n        regionRowsSkipped: 0,\n        predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',\n        predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,\n        pageIdRowsSkipped: 0,\n""",'empty stats')
-          rep(p,"""  let rankRowsSkipped = 0;\n  let pageIdRowsSkipped = 0;\n""","""  let rankRowsSkipped = 0;\n  let rankOnlyRowsSkipped = 0;\n  let regionRowsSkipped = 0;\n  let pageIdRowsSkipped = 0;\n""",'counters')
-          rep(p,"""    rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);\n    pageIdRowsSkipped += Number(result.loaded.pageIdRowsSkipped || 0);\n""","""    rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);\n    rankOnlyRowsSkipped += Number(result.loaded.rankOnlyRowsSkipped || 0);\n    regionRowsSkipped += Number(result.loaded.regionRowsSkipped || 0);\n    pageIdRowsSkipped += Number(result.loaded.pageIdRowsSkipped || 0);\n""",'aggregate')
-          rep(p,"""      rankRowsSkipped,\n      pageIdRowsSkipped,\n""","""      rankRowsSkipped,\n      rankOnlyRowsSkipped,\n      regionRowsSkipped,\n      predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',\n      predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,\n      pageIdRowsSkipped,\n""",'output stats')
+          rep(p,
+          """      if (char === '[' || char === '{') depth += 1;
+      else if (char === ']' || char === '}') {
+""",
+          """      if (char === ',' && depth === 1 && allowedIds && idIndex === 0 && !primaryIdCaptured) {
+        const rawId = source.slice(start + 1, cursor).trim();
+        primaryIdValue = rawId ? JSON.parse(rawId) : undefined;
+        primaryIdCaptured = true;
+      }
+      if (char === '[' || char === '{') depth += 1;
+      else if (char === ']' || char === '}') {
+""", 'capture ID during boundary traversal')
 
-          p='functions/api/major-bands.js'
-          rep(p,"""      const loaded = await loadMajorBandsRankWindow(context, selected, {\n        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined\n      });\n""","""      const loaded = await loadMajorBandsRankWindow(context, selected, {\n        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,\n        predecodeRegion: filters.region\n      });\n""",'api region')
+          rep(p,
+          """    if (depth !== 0 || inString) throw new Error('静态专业位次桶 row 未完整结束');
 
-          Path('tools/verify-major-bands-predecode-region-v3990_1.mjs').write_text("""import assert from 'node:assert/strict';\nimport fs from 'node:fs';\nimport { majorBandsStaticRowMatchesRegion, MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION } from '../functions/_lib/major-bands-static-provider.js';\nimport { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';\nconst manifest=JSON.parse(fs.readFileSync('ln-rank/data/major-bands-static-v3972_2/manifest.json','utf8'));\nconst schema=manifest.recordSchema;\nconst idx=Object.fromEntries(['lnArea','province','city'].map(key=>[key,schema.indexOf(key)]));\nconst regions=['all','ln','outside','shenyang','dalian','ln-other','northwest','province:新疆','province:西藏','any:province:新疆|province:西藏','any:province:安徽|province:江苏'];\nlet total=0, west=0;\nfor(const bucket of manifest.buckets){\n  const payload=JSON.parse(fs.readFileSync(bucket.file.replace(/^\\//,''),'utf8'));\n  for(const row of payload.rows){\n    total+=1;\n    const tiny={lnArea:row[idx.lnArea],province:row[idx.province],city:row[idx.city]};\n    for(const region of regions){\n      assert.equal(majorBandsStaticRowMatchesRegion(row,schema,region),matchRegionRule(tiny,region),`${bucket.file} ${region}`);\n    }\n    if(majorBandsStaticRowMatchesRegion(row,schema,'any:province:新疆|province:西藏')) west+=1;\n  }\n}\nassert.equal(total,11628);\nassert.ok(west>0&&west<total/5,`west reduction ${west}/${total}`);\nassert.equal(MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,'major-bands-predecode-region-filter-v3990_1');\nconst api=fs.readFileSync('functions/api/major-bands.js','utf8');\nconst loader=fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_1.js','utf8');\nassert.ok(api.includes('predecodeRegion: filters.region'));\nassert.ok(loader.includes('predecodeRegion: options.predecodeRegion'));\nconsole.log(JSON.stringify({ok:true,version:MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,total,west,regions:regions.length},null,2));\n""")
+    const rowText = source.slice(start, cursor);
+    rowCount += 1;
+    const scalarIndexes = [];
+    if (allowedIds && idIndex >= 0) scalarIndexes.push(idIndex);
+    if (rankRange && rankIndex >= 0) scalarIndexes.push(rankIndex);
+    if (regionPredecodeEnabled) scalarIndexes.push(...regionScalarIndexes);
+    const scalarValues = scalarIndexes.length
+      ? readTopLevelArrayScalars(rowText, scalarIndexes)
+      : new Map();
 
-          p='tools/audit-major-bands-rank-kernel-v3990_1.mjs'
-          rep(p,"  'payload.rows.filter(row => majorBandsRankValueMatchesRange',","  'for (const row of payload.rows) {',\n  'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',\n  'majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)',\n  'selectedRows.push(row)',\n  \"MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1'\",",'audit implementation shape')
-          anchor="const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_1.js', 'utf8');"
-          ordered="""const rankFilterOrder = [\n  staticProviderSource.indexOf('majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)'),\n  staticProviderSource.indexOf(\"predecodeRegion !== 'all' && !majorBandsStaticRowMatchesRegion\"),\n  staticProviderSource.indexOf(\"allowedIds && idIndex >= 0 && !allowedIds.has\"),\n  staticProviderSource.indexOf('selectedRows.push(row)')\n];\nassert.ok(rankFilterOrder.every(index => index >= 0), 'predecode filter stages missing');\nassert.ok(rankFilterOrder.every((value, index) => index === 0 || value > rankFilterOrder[index - 1]), 'predecode filter stage order must be rank -> region -> page-id -> select');\n\n"""+anchor
-          s=Path(p).read_text()
-          if anchor not in s: raise SystemExit('missing audit order anchor')
-          Path(p).write_text(s.replace(anchor,ordered,1))
+    // Cached-page refetch is ID-first: rows outside the current page stop here
+    // before rank/region checks or full JSON.parse. Cold queries have no ID set
+    // and therefore start with rank -> region before full parse.
+    if (allowedIds && idIndex >= 0) {
+      pageIdScalarPrefilterCount += 1;
+      if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
+    }
+""",
+          """    if (depth !== 0 || inString) throw new Error('静态专业位次桶 row 未完整结束');
+
+    rowCount += 1;
+    if (allowedIds && idIndex === 0) {
+      pageIdScalarPrefilterCount += 1;
+      pageIdPrimaryTraversalCount += 1;
+      if (!primaryIdCaptured) throw new Error('静态专业位次桶主遍历未捕获第 0 列 ID');
+      if (!allowedIds.has(String(primaryIdValue || ''))) {
+        pageIdRowTextAvoidedCount += 1;
+        continue;
+      }
+    }
+
+    const rowText = source.slice(start, cursor);
+    pageIdRowTextAllocationCount += 1;
+    const scalarIndexes = [];
+    if (allowedIds && idIndex >= 0 && idIndex !== 0) scalarIndexes.push(idIndex);
+    if (rankRange && rankIndex >= 0) scalarIndexes.push(rankIndex);
+    if (regionPredecodeEnabled) scalarIndexes.push(...regionScalarIndexes);
+    const scalarValues = scalarIndexes.length
+      ? readTopLevelArrayScalars(rowText, scalarIndexes)
+      : new Map();
+    if (allowedIds && idIndex === 0) scalarValues.set(idIndex, primaryIdValue);
+
+    // Cached-page refetch is ID-first: schema index 0 is captured during the
+    // primary boundary traversal, so non-page rows never allocate rowText.
+    // Fallback schemas retain the scalar prefilter after rowText creation.
+    if (allowedIds && idIndex > 0) {
+      pageIdScalarPrefilterCount += 1;
+      if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
+    }
+""", 'allocation-free ID gate')
+
+          rep(p,
+          """  let pageIdScalarPrefilterCount = 0;
+  let pageIdDirectLookupCount = 0;
+""",
+          """  let pageIdScalarPrefilterCount = 0;
+  let pageIdPrimaryTraversalCount = 0;
+  let pageIdRowTextAllocationCount = 0;
+  let pageIdRowTextAvoidedCount = 0;
+  let pageIdDirectLookupCount = 0;
+""", 'allocation counters')
+
+          rep(p,
+          """    pageIdScalarPrefilterCount,
+    pageIdDirectLookupCount,
+""",
+          """    pageIdScalarPrefilterCount,
+    pageIdPrimaryTraversalCount,
+    pageIdRowTextAllocationCount,
+    pageIdRowTextAvoidedCount,
+    pageIdDirectLookupCount,
+""", 'return allocation counters')
+
+          p='tools/verify-major-bands-rank-native-scan-v3990_1.mjs'
+          rep(p,
+          """let allowedFullRowParses = 0;
+let allowedScalarPrefilters = 0;
+""",
+          """let allowedFullRowParses = 0;
+let allowedScalarPrefilters = 0;
+let allowedPrimaryTraversalScans = 0;
+let allowedRowTextAllocations = 0;
+let avoidedRowTextAllocations = 0;
+""", 'verifier counters')
+          rep(p,
+          """  assert.equal(selective.pageIdScalarPrefilterCount, payload.rows.length, `${bucket.file}: ID-first scan count`);
+  assert.equal(selective.pageIdDirectLookupCount, 0, `${bucket.file}: direct lookup disabled`);
+""",
+          """  assert.equal(selective.pageIdScalarPrefilterCount, payload.rows.length, `${bucket.file}: ID-first scan count`);
+  assert.equal(selective.pageIdPrimaryTraversalCount, payload.rows.length, `${bucket.file}: primary traversal ID scan count`);
+  assert.equal(selective.pageIdRowTextAllocationCount, allowedRowsTruth.length, `${bucket.file}: rowText allocations only for page IDs`);
+  assert.equal(selective.pageIdRowTextAvoidedCount, payload.rows.length - allowedRowsTruth.length, `${bucket.file}: avoided non-page rowText allocations`);
+  assert.equal(selective.pageIdDirectLookupCount, 0, `${bucket.file}: direct lookup disabled`);
+""", 'verifier per bucket')
+          rep(p,
+          """  allowedFullRowParses += selective.fullRowParseCount;
+  allowedScalarPrefilters += selective.pageIdScalarPrefilterCount;
+""",
+          """  allowedFullRowParses += selective.fullRowParseCount;
+  allowedScalarPrefilters += selective.pageIdScalarPrefilterCount;
+  allowedPrimaryTraversalScans += selective.pageIdPrimaryTraversalCount;
+  allowedRowTextAllocations += selective.pageIdRowTextAllocationCount;
+  avoidedRowTextAllocations += selective.pageIdRowTextAvoidedCount;
+""", 'verifier aggregate')
+          rep(p,
+          """assert.equal(allowedScalarPrefilters, Number(manifest.recordCount), 'allowed-ID ID-first scan total');
+""",
+          """assert.equal(allowedScalarPrefilters, Number(manifest.recordCount), 'allowed-ID ID-first scan total');
+assert.equal(allowedPrimaryTraversalScans, Number(manifest.recordCount), 'primary traversal ID scan total');
+assert.equal(allowedRowTextAllocations, allowedTruth, 'rowText allocation only for allowed IDs');
+assert.equal(avoidedRowTextAllocations, Number(manifest.recordCount) - allowedTruth, 'non-page rowText allocations avoided');
+""", 'verifier aggregate assertions')
+          rep(p,
+          """  pageIdIdFirstScans: allowedScalarPrefilters,
+  directLookupDisabled: true,
+""",
+          """  pageIdIdFirstScans: allowedScalarPrefilters,
+  pageIdPrimaryTraversalScans: allowedPrimaryTraversalScans,
+  pageIdRowTextAllocations: allowedRowTextAllocations,
+  pageIdRowTextAvoided: avoidedRowTextAllocations,
+  directLookupDisabled: true,
+""", 'verifier output')
           PY
           git diff --check
-      - name: Verify region truth and rank kernel
+      - name: Verify native truth and full rank kernel
         run: |
           set -euo pipefail
           node --check functions/_lib/major-bands-static-provider.js
-          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
-          node --check functions/api/major-bands.js
-          node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           node tools/verify-major-bands-predecode-region-v3990_1.mjs
           node tools/audit-major-bands-rank-kernel-v3990_1.mjs
-      - name: Commit tested product change to PR branch
+      - name: Commit tested scanner change to PR branch
         run: |
           set -euo pipefail
           git config user.name cashen
           git config user.email 54cashen@gmail.com
-          git add functions/_lib/major-bands-static-provider.js functions/_lib/major-bands-rank-bucket-loader.v3990_1.js functions/api/major-bands.js tools/audit-major-bands-rank-kernel-v3990_1.mjs tools/verify-major-bands-predecode-region-v3990_1.mjs
-          git commit -m 'perf: prefilter major bands by region before decode'
+          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          git commit -m 'perf: avoid row text allocation for non-page IDs'
           git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
