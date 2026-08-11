@@ -21,58 +21,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Integrate native rank-row scan and semantic audit
+      - name: Wire native-scan verifier into source audit
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin e34d1001160f27c2e431b4743e304ceefb72d38f
-          git show e34d1001160f27c2e431b4743e304ceefb72d38f:functions/_lib/major-bands-static-provider.js > functions/_lib/major-bands-static-provider.js
-          git show e34d1001160f27c2e431b4743e304ceefb72d38f:tools/verify-major-bands-rank-native-scan-v3990_1.mjs > tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           python - <<'PY'
           from pathlib import Path
-
-          audit = Path('tools/audit-major-bands-rank-kernel-v3990_1.mjs')
-          text = audit.read_text()
-          old = '''for (const required of [
-            "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1'",
-            "const rankIndex = schema.indexOf('rank2026')",
-            'payload.rows.filter(row => majorBandsRankValueMatchesRange',
-            'rankRowsSkipped: payload.rows.length - selectedRows.length'
-          ]) assert.ok(staticProviderSource.includes(required), `predecode rank-row filter missing ${required}`);'''
-          new = '''for (const required of [
-            "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1'",
-            "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'",
-            'scanMajorBandsStaticRankRowsText',
-            'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',
-            "mode: 'native-row-text-scan'"
-          ]) assert.ok(staticProviderSource.includes(required), `predecode native rank-row filter missing ${required}`);'''
-          if text.count(old) != 1:
-              raise SystemExit(f'static provider audit block count={text.count(old)}')
-          audit.write_text(text.replace(old, new, 1))
-
-          workflow = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
-          yml = workflow.read_text()
-          syntax_anchor = '            tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
-          syntax_insert = '            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \\\n' + syntax_anchor
-          run_anchor = '          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js'
-          run_insert = '          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs\n' + run_anchor
-          if yml.count(syntax_anchor) != 1:
-              raise SystemExit(f'workflow syntax anchor count={yml.count(syntax_anchor)}')
-          if yml.count(run_anchor) != 1:
-              raise SystemExit(f'workflow run anchor count={yml.count(run_anchor)}')
-          workflow.write_text(yml.replace(syntax_anchor, syntax_insert, 1).replace(run_anchor, run_insert, 1))
+          path = Path('tools/audit-major-bands-rank-kernel-v3990_1.mjs')
+          text = path.read_text()
+          marker = "import assert from 'node:assert/strict';\n"
+          addition = "import './verify-major-bands-rank-native-scan-v3990_1.mjs';\n"
+          if text.count(marker) != 1:
+              raise SystemExit(f'audit import marker count={text.count(marker)}')
+          if addition not in text:
+              text = text.replace(marker, marker + addition, 1)
+          path.write_text(text)
           PY
           git diff --check
-          node --check functions/_lib/major-bands-static-provider.js
-          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
-          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs
-          git diff -- functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs tools/audit-major-bands-rank-kernel-v3990_1.mjs .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml
-      - name: Commit source integration
+          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_1.mjs >/tmp/native-audit.log
+          grep -q '"fullTruthEqual": true' /tmp/native-audit.log
+          grep -q '"selectiveTruthEqual": true' /tmp/native-audit.log
+          git diff -- tools/audit-major-bands-rank-kernel-v3990_1.mjs
+      - name: Commit audit wiring
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-rank-native-scan-v3990_1.mjs tools/audit-major-bands-rank-kernel-v3990_1.mjs
-          git commit -m "perf: reduce major-bands cold rank-row object peak"
+          git add tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          git commit -m "test: gate native rank-row scan truth in source audit"
           git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
