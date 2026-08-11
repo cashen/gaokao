@@ -1,4 +1,4 @@
-name: Temporary CHSI rendered HTML diagnostic v3990_2
+name: Temporary CHSI charter HTML diagnostic v3990_2
 
 on:
   push:
@@ -15,26 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Inspect rendered search HTML for school entity identifiers
+      - name: Inspect charter index raw/rendered HTML
         shell: bash
         run: |
           set -euo pipefail
-          target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
-          code=$(curl -sS -L -o /tmp/search-html.json --max-time 40 -w '%{http_code}' \
-            -H 'Accept: application/json' -H 'X-Respond-With: html' -H 'X-Timeout: 20' -H 'X-No-Cache: true' \
-            "https://r.jina.ai/$target" || true)
-          echo "status=$code bytes=$(wc -c </tmp/search-html.json 2>/dev/null || echo 0)"
           python - <<'PY'
-          import json,re
-          raw=open('/tmp/search-html.json').read()
-          data=json.loads(raw).get('data',{})
-          html=str(data.get('html') or data.get('content') or '')
-          print('source=',data.get('url'),'title=',data.get('title'),'html_bytes=',len(html))
-          school='辽宁石油化工大学'
-          positions=[m.start() for m in re.finditer(school,html)]
-          print('school_occurrences=',len(positions))
-          for at in positions[:6]: print('\nCONTEXT\n',html[max(0,at-3000):at+5000])
-          for pattern in [r'schId[^\d]{0,12}(\d+)',r'categoryId[^\d]{0,12}(\d+)',r'common/xh/(\d+)',r'schoolInfo--schId-[^\s"\']+']:
-              print('\nPATTERN',pattern,list(dict.fromkeys(re.findall(pattern,html)))[:80])
+          import subprocess,urllib.parse,json,re
+          for school in ['辽宁石油化工大学','东北石油大学','辽宁科技大学']:
+              target='https://gaokao.chsi.com.cn/zsgs/zhangcheng/listVerifedZszc.do?method=index&yxmc='+urllib.parse.quote(school)
+              p=subprocess.run(['curl','-sS','-L','--max-time','35','-H','Accept: application/json','-H','X-Respond-With: html','-H','X-No-Cache: true','https://r.jina.ai/'+target],capture_output=True,text=True)
+              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
+              if p.returncode: print(p.stderr[:300]); continue
+              try: data=json.loads(p.stdout).get('data',{})
+              except Exception as e: print('json_error',e,p.stdout[:500]); continue
+              html=str(data.get('html') or data.get('content') or '')
+              print('source=',data.get('url'),'title=',data.get('title'),'html_bytes=',len(html))
+              for pattern in [r'schId[-=](\d+)',r'infoId[-=](\d+)',r'listVerifedZszc[^"\'<>\s]+',r'20(?:25|26)[^<]{0,80}招生章程']:
+                  print('PATTERN',pattern,list(dict.fromkeys(re.findall(pattern,html)))[:40])
+              at=html.find(school)
+              if at>=0: print('CONTEXT',html[max(0,at-2500):at+7000])
           PY
-          [ "$code" = 200 ]
