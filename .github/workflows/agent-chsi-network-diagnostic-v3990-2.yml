@@ -1,4 +1,4 @@
-name: Temporary CHSI Reader link-summary diagnostic v3990_2
+name: Temporary CHSI charter-entity diagnostic v3990_2
 
 on:
   push:
@@ -15,36 +15,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Inspect Reader JSON links for school search
+      - name: Resolve school IDs from official charter index
         shell: bash
         run: |
           set -euo pipefail
-          target='https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
-          code=$(curl -sS -L -o /tmp/reader.json --max-time 30 -w '%{http_code}' \
-            -H 'Accept: application/json' -H 'X-With-Links-Summary: all' -H 'X-Retain-Images: none' \
-            "https://r.jina.ai/$target" || true)
-          echo "status=$code bytes=$(wc -c </tmp/reader.json 2>/dev/null || echo 0)"
           python - <<'PY'
-          import json
-          p=json.load(open('/tmp/reader.json'))
-          print('top_keys=',sorted(p.keys()) if isinstance(p,dict) else type(p).__name__)
-          data=p.get('data',p) if isinstance(p,dict) else {}
-          if isinstance(data,dict):
-              print('data_keys=',sorted(data.keys()))
-              print('url=',data.get('url'))
-              print('title=',data.get('title'))
-              links=data.get('links') or data.get('linksSummary') or []
-              print('links_type=',type(links).__name__,'count=',len(links) if hasattr(links,'__len__') else '?')
-              if isinstance(links,dict): items=list(links.items())
-              elif isinstance(links,list): items=[(i,x) for i,x in enumerate(links)]
-              else: items=[]
-              for key,item in items:
-                  s=json.dumps(item,ensure_ascii=False) if not isinstance(item,str) else item
-                  if '辽宁石油化工大学' in s or 'schoolInfo' in s or 'schId' in s or '10148' in s:
-                      print('MATCH',key,s[:1500])
-              content=str(data.get('content',''))
-              for line in content.splitlines():
-                  if '辽宁石油化工大学' in line or '10148' in line:
-                      print('CONTENT',line[:1500])
+          import urllib.parse,subprocess,json,re
+          schools=['辽宁石油化工大学','东北石油大学','辽宁科技大学']
+          for school in schools:
+              target='https://gaokao.chsi.com.cn/zsgs/zhangcheng/listVerifedZszc.do?method=index&yxmc='+urllib.parse.quote(school)
+              reader='https://r.jina.ai/'+target
+              p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','-H','X-With-Links-Summary: all',reader],capture_output=True,text=True)
+              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
+              if p.returncode: print(p.stderr[:500]); continue
+              data=json.loads(p.stdout).get('data',{})
+              print('source=',data.get('url'),'title=',data.get('title'))
+              blob=json.dumps(data.get('links',[]),ensure_ascii=False)+'\n'+str(data.get('content',''))
+              matches=[]
+              for m in re.finditer(r'https://gaokao\.chsi\.com\.cn/zsgs/zhangcheng/[^\s\)"\\]+',blob):
+                  u=m.group(0)
+                  if 'schId-' in u or 'schId=' in u:
+                      matches.append(u)
+              for u in list(dict.fromkeys(matches))[:12]: print('CHARTER',u)
+              ids=re.findall(r'schId[-=](\d+)',blob)
+              print('SCH_IDS=',list(dict.fromkeys(ids))[:20])
+              for line in str(data.get('content','')).splitlines():
+                  if school in line or '招生章程' in line and ('2026' in line or '2025' in line): print('CONTENT',line[:1200])
           PY
-          [ "$code" = 200 ]
