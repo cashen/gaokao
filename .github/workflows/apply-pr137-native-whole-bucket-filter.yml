@@ -1,0 +1,110 @@
+name: Apply PR137 native whole bucket filter
+
+on:
+  push:
+    branches:
+      - agent/migrate-ai-frontend-to-aiplus-v3990_2
+    paths:
+      - .github/workflows/apply-pr137-native-whole-bucket-filter.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Replace non-page row text scans with native JSON filtering
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          provider = Path('functions/_lib/major-bands-static-provider.js')
+          s = provider.read_text(encoding='utf-8')
+          start_marker = "const wholeBucketJsonParseEligible = Boolean(\n"
+          end_marker = "const selectedRows = scan.rows;"
+          start = s.index(start_marker)
+          end = s.index(end_marker, start) + len(end_marker)
+          replacement = """const nativeWholeBucketJsonEligible = !allowedIds;
+          let scan;
+          if (nativeWholeBucketJsonEligible) {
+            let payload;
+            try {
+              payload = JSON.parse(text);
+            } catch (error) {
+              throw new Error(`静态专业位次桶整桶 JSON 解析失败：${bucket.file}。${error?.message || String(error)}`);
+            }
+            if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
+              throw new Error(`静态专业位次桶整桶合同异常：${bucket.file}`);
+            }
+            if (payload.rows.length !== Number(bucket.recordCount || 0)) {
+              throw new Error(`静态专业位次桶整桶记录数异常：${bucket.file}，${payload.rows.length}/${bucket.recordCount}`);
+            }
+            const rows = [];
+            let rankMatchedCount = 0;
+            let regionMatchedCount = 0;
+            for (const row of payload.rows) {
+              const rankMatch = rankRange && rankIndex >= 0
+                ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
+                : true;
+              if (!rankMatch) continue;
+              rankMatchedCount += 1;
+              if (!majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;
+              regionMatchedCount += 1;
+              rows.push(row);
+            }
+            scan = {
+              version: manifest.version,
+              rows,
+              rowCount: payload.rows.length,
+              rankMatchedCount,
+              regionMatchedCount,
+              scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
+              mode: 'native-whole-bucket-json-filter'
+            };
+          } else {
+            scan = scanMajorBandsStaticRankRowsText(text, {
+              expectedVersion: manifest.version,
+              expectedRecordCount: Number(bucket.recordCount || 0),
+              rankIndex,
+              idIndex,
+              lnAreaIndex,
+              provinceIndex,
+              cityIndex,
+              predecodeRegion,
+              rankRange,
+              allowedIds
+            });
+          }
+          const selectedRows = scan.rows;"""
+          provider.write_text(s[:start] + replacement + s[end:], encoding='utf-8')
+
+          verifier = Path('tools/verify-major-bands-predecode-region-v3990_1.mjs')
+          v = verifier.read_text(encoding='utf-8')
+          anchor = "assert.ok(provider.includes(\"MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'\"));"
+          addition = anchor + "\nassert.ok(provider.includes('const nativeWholeBucketJsonEligible = !allowedIds;'),'cold non-page buckets must use native whole-bucket JSON');\nassert.ok(provider.includes(\"mode: 'native-whole-bucket-json-filter'\"),'native whole-bucket filter mode missing');\nassert.ok(provider.includes('majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)'),'native whole-bucket path must reuse canonical region matcher');"
+          assert v.count(anchor) == 1, 'predecode verifier anchor mismatch'
+          verifier.write_text(v.replace(anchor, addition), encoding='utf-8')
+          PY
+          node --check functions/_lib/major-bands-static-provider.js
+          node tools/verify-major-bands-predecode-region-v3990_1.mjs
+          node tools/audit-major-bands-request-band-scope-v3990_0.mjs
+          git diff --check
+      - name: Commit business fix and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-pr137-native-whole-bucket-filter.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/major-bands-static-provider.js tools/verify-major-bands-predecode-region-v3990_1.mjs .github/workflows/apply-pr137-native-whole-bucket-filter.yml
+          git commit -m "perf: filter cold rank buckets after native JSON parse"
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
