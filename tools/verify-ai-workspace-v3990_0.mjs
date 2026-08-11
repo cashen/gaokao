@@ -181,7 +181,7 @@ async function testTurnWithoutAiBinding() {
 }
 
 function testSourceGuards() {
-  const app = read('ai/app.v3990_0.js');
+  const app = read('aiplus/app.v3990_0.js');
   assert.ok(app.includes("const SELECTION_POOL_KEY = 'lnRank.selectionPool.lnPhysics.2026.v3951'"));
   assert.equal(new RegExp(`localStorage\\.setItem\\(\\s*SELECTION_POOL_KEY`).test(app), false, 'AI must never write ln-rank selection pool automatically');
 
@@ -192,10 +192,10 @@ function testSourceGuards() {
   assert.ok(toolRegistry.includes("import { onRequest as majorBandsOnRequest } from '../../api/major-bands.js'"), 'AI must reuse major-bands function owner directly');
   assert.equal(toolRegistry.includes("fetch('/api/major-bands"), false, 'AI must not HTTP self-call major-bands');
 
-  const html = read('ai/index.html');
+  const html = read('aiplus/index.html');
   assert.ok(html.includes('data-release="v3.9.90.0"'));
   assert.ok(html.includes('data-site-runtime-generation="v3990_0"'));
-  assert.ok(html.includes('/ai/app.v3990_0.js?v=3990_0'));
+  assert.ok(html.includes('/aiplus/app.v3990_0.js?v=3990_0'));
 }
 
 async function main() {

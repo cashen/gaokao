@@ -6,7 +6,7 @@ import { rawSchool } from '../functions/_lib/fenxi-normalizer.js';
 
 const tool=fs.readFileSync('functions/_lib/ai/tool-registry.js','utf8');
 const orchestrator=fs.readFileSync('functions/_lib/ai/turn-orchestrator.js','utf8');
-const app=fs.readFileSync('ai/app.v3990_1.js','utf8');
+const app=fs.readFileSync('aiplus/app.v3990_1.js','utf8');
 assert.ok(!/import\s+\{[^}]*queryAiSchoolHistory[^}]*\}\s+from\s+['"]\.\/school-history-adapter\.js['"]/.test(tool),'AI base graph must not statically import school-history-adapter');
 assert.ok(tool.includes("kind:'school_history'"),'school history deterministic tool kind missing');
 assert.ok(tool.includes("new URL('/api/school-majors'"),'school history must reuse public deterministic school-majors endpoint');

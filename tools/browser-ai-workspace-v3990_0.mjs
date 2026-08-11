@@ -86,7 +86,7 @@ try {
     page.on('pageerror', error => errors.push(`pageerror:${error.message}`));
     page.on('console', message => { if (message.type() === 'error') errors.push(`console:${message.text()}`); });
 
-    const target = `${BASE}/ai/?browser=${encodeURIComponent(EXPECTED_SHA || 'preview')}-${device.name}`;
+    const target = `${BASE}/aiplus/?browser=${encodeURIComponent(EXPECTED_SHA || 'preview')}-${device.name}`;
     const response = await page.goto(target, { waitUntil: 'networkidle', timeout: 60000 });
     assert(response?.ok(), `${device.name}: /ai/ returned ${response?.status()}`);
     await waitForResult(page, '工作台已就绪', 30000);
