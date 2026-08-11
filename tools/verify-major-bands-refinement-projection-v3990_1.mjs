@@ -127,6 +127,8 @@ for (const score of scores) {
 const apiSource = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 assert.ok(apiSource.includes("const minimalOrderProjection = !schoolFilter\n    && filters.specialProjectMode === 'hide_eligibility_projects';"), 'requested-band refinement must keep lightweight projection');
 assert.ok(!apiSource.includes("minimalOrderProjection = filters.region === 'all'"), 'region refinement regressed to full-record ordering');
+assert.ok(apiSource.includes("rawRowStorage: minimalOrderProjection ? 'array-reference' : undefined"), 'explicit-band projection must reuse request-local raw-row references');
+assert.ok(!apiSource.includes("rawRowStorage: minimalOrderProjection ? 'serialized-json' : undefined"), 'explicit-band projection must not stringify every candidate raw row');
 console.log(JSON.stringify({
   version: 'major-bands-refinement-projection-v3990_1',
   checkedRows,
