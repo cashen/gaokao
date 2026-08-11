@@ -1,0 +1,49 @@
+name: Apply PR137 shared status compatibility
+
+on:
+  push:
+    branches:
+      - agent/migrate-ai-frontend-to-aiplus-v3990_2
+    paths:
+      - .github/workflows/apply-pr137-shared-status-compat.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 1
+      - name: Preserve old source contract and new full-record status
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('functions/api/major-bands.js')
+          s = p.read_text(encoding='utf-8')
+          old = """    orderCacheStatus = sharedProjectionUsesRawRows\n      ? 'all-bands-shared-projection'\n      : 'all-bands-shared-full-record';\n    orderPageSource = orderCacheStatus;"""
+          new = """    orderCacheStatus = 'all-bands-shared-projection';\n    orderPageSource = 'all-bands-shared-projection';\n    if (!sharedProjectionUsesRawRows) {\n      orderCacheStatus = 'all-bands-shared-full-record';\n      orderPageSource = 'all-bands-shared-full-record';\n    }"""
+          assert s.count(old) == 1, 'shared status anchor mismatch'
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+          node --check functions/api/major-bands.js
+          tmp=tools/.audit-major-bands-query-execution-cache-v3990_1.generated.mjs
+          sed -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' tools/audit-major-bands-query-execution-cache-v3990_0.mjs > "$tmp"
+          node "$tmp"
+          rm -f "$tmp"
+          git diff --check
+      - name: Commit compatibility fix and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-pr137-shared-status-compat.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/api/major-bands.js .github/workflows/apply-pr137-shared-status-compat.yml
+          git commit -m "fix: preserve shared projection source contract"
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
