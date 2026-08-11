@@ -81,6 +81,8 @@ command=deterministicCommand('辽宁石油化工大学2026招生章程要注意�
 assert.equal(command.agentTask,'school_official_qa');
 command=deterministicCommand('辽宁石油化工大学最低录取分多少',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'school_history');
+command=deterministicCommand('辽宁石油化工大学自动化最低录取分',workspace,['辽宁石油化工大学']);
+assert.equal(command.agentTask,'school_major_history');
 command=deterministicCommand('我580分能上辽宁石油化工大学吗',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'fit_assessment');
 command=deterministicCommand('那宿舍呢',workspace,[]);
