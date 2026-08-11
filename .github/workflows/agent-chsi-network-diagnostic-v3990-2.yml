@@ -1,4 +1,4 @@
-name: Temporary CHSI school-code diagnostic v3990_2
+name: Temporary CHSI desktop URL diagnostic v3990_2
 
 on:
   push:
@@ -15,27 +15,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Compare internal ID and national school code routes
+      - name: Test school-code detail URL variants
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import subprocess,json
           targets=[
-            ('internal-124','https://gaokao.chsi.com.cn/wap/sch/schinfomain/124'),
-            ('code-10148','https://gaokao.chsi.com.cn/wap/sch/schinfomain/10148'),
-            ('desktop-code-10148','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-1167668,mindex-1.dhtml')
+            ('bare','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148.dhtml'),
+            ('mindex-1','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,mindex-1.dhtml'),
+            ('mindex-4','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,mindex-4.dhtml'),
+            ('mindex-6','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,mindex-6.dhtml'),
+            ('category-0-m1','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-0,mindex-1.dhtml'),
+            ('known-category-m1','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-1167668,mindex-1.dhtml'),
+            ('known-category-m4','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-1167668,mindex-4.dhtml'),
+            ('known-category-m6','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-1167668,mindex-6.dhtml')
           ]
           for label,target in targets:
               p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','https://r.jina.ai/'+target],capture_output=True,text=True)
               print('\n---',label,'exit',p.returncode,'bytes',len(p.stdout))
-              if p.returncode: print(p.stderr[:500]); continue
+              if p.returncode: print(p.stderr[:300]); continue
               try: data=json.loads(p.stdout).get('data',{})
-              except Exception as e: print('json_error',e,p.stdout[:1000]); continue
+              except Exception as e: print('json_error',e,p.stdout[:500]); continue
               content=str(data.get('content',''))
               print('source=',data.get('url'),'title=',data.get('title'),'http=',data.get('httpStatus'))
-              for needle in ['辽宁石油化工大学','10148','院校不存在','暂无']:
-                  if needle in content: print('HAS',needle)
+              print('school=', '辽宁石油化工大学' in content,'intro=', '新中国第一所石油工业学校' in content,'rule=', '录取规则' in content,'living=', ('食宿条件' in content or '住宿' in content))
               for line in content.splitlines():
-                  if '辽宁石油化工大学' in line or '10148' in line: print('CONTENT',line[:1000])
+                  if any(k in line for k in ['辽宁石油化工大学','新中国第一所石油工业学校','录取规则','食宿条件']):
+                      print('CONTENT',line[:900])
+                      break
           PY
