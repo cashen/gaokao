@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r4
+name: Temporary AI Plus school official integration v3990_2 r5
 
 on:
   push:
@@ -36,6 +36,17 @@ jobs:
           python tools/.agent-aiplus-school-official-v3990_2.py
           git checkout -- tools/.agent-aiplus-school-official-v3990_2.py
           sed -i 's/text.length<200/text.length<80/' functions/_lib/ai/school-official-source.js
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('functions/_lib/ai/agent-task-kernel.js')
+          text=path.read_text()
+          official="  if(school&&!major&&looksOfficialSchoolInfo(source)&&!looksHistory(source)&&!looksFit(source)&&!looksBackground(source))return'school_official_qa';"
+          direct="  if(directSchoolMajorFollowup)return'school_major_history';"
+          old=direct+'\n'+official
+          new=official+'\n'+direct
+          if text.count(old)!=1: raise SystemExit(f'official/direct routing block count={text.count(old)}')
+          path.write_text(text.replace(old,new,1))
+          PY
           git diff --check
           node --check functions/_lib/ai/school-official-source.js
           node --check functions/api/ai/school-official.js
