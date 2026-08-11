@@ -1,4 +1,4 @@
-name: Temporary AI Plus full-sequence diagnostic
+name: Temporary AI Plus browser network diagnostic
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,27 +19,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Reproduce browser request sequence before 620 advisory
-        env:
-          PREVIEW_BASE: https://agent-migrate-ai-frontend-to.gaokao-4y9.pages.dev
-          EXPECTED_SHA: 646b1fed7cc4ecbb5a6bee4149de46ebb70674a3
+      - name: Instrument browser network failures
         run: |
-          node --input-type=module <<'NODE'
-          import {createAiWorkspace,buildAiTurnRequestPayload,applyAiWorkspaceEvent} from './shared/ai/ai-workspace-contract.v3992_0.js';
-          const base=process.env.PREVIEW_BASE, expected=process.env.EXPECTED_SHA;
-          const fields=['id','school','major','score2026','rank2026','schoolCode2026','majorCode2026','displayLocation','city','province','projectLabel','bandKey','band','scoreDelta2026','rankGap2026','is985','is211','isSinoForeign','isHighFee','feeType','natureLabel','tuition'];
-          const compactRecord=r=>Object.fromEntries(fields.filter(k=>r?.[k]!==undefined&&r?.[k]!==null&&r?.[k]!=='').map(k=>[k,r[k]]));
-          const compactMajorBands=d=>{const band=k=>({count:Number(d?.bands?.[k]?.count||0),records:Array.isArray(d?.bands?.[k]?.records)?d.bands[k].records.slice(0,16).map(compactRecord):[]});return{ok:Boolean(d?.ok),meta:d?.meta||{},counts:d?.counts||{},bands:{upper:band('upper'),near:band('near'),steady:band('steady')},searchAdvices:Array.isArray(d?.searchAdvices)?d.searchAdvices.slice(0,8):[],filterConflicts:Array.isArray(d?.filterConflicts)?d.filterConflicts.slice(0,8):[],keywordWarnings:Array.isArray(d?.keywordWarnings)?d.keywordWarnings.slice(0,8):[],source:d?.source||{}}};
-          const taskIdForResult=(w,a)=>a==='branch'?w.tasks[0]?.id||w.mainTaskId:w.mainTaskId;
-          async function health(label){const r=await fetch(`${base}/api/ai/health?fullSeq=${label}-${Date.now()}`,{headers:{'cache-control':'no-cache'}}),t=await r.text();console.log('HEALTH',label,r.status,r.headers.get('cf-ray'));if(!t.includes(expected))throw new Error('wrong SHA');}
-          async function execute(input,w){const tools={};let confirmed=null;for(let hop=0;hop<5;hop++){const body=buildAiTurnRequestPayload(w,{input,confirmedCommand:confirmed,deterministicToolResults:tools}),ts=Date.now(),r=await fetch(`${base}/api/ai/turn?fullSeq=${encodeURIComponent(input)}-${hop}-${Date.now()}`,{method:'POST',headers:{'content-type':'application/json','accept':'application/json','cache-control':'no-cache'},body:JSON.stringify(body)}),t=await r.text();let d;try{d=JSON.parse(t)}catch{}console.log('TURN',input,'hop',hop,r.status,Date.now()-ts,'ms',r.headers.get('cf-ray'),'bytes',Buffer.byteLength(JSON.stringify(body)),'task',d?.command?.agentTask||'','pending',d?.pendingDeterministicTool,'err',d?.error||d?.message||'');if(!r.ok||!d?.ok)throw new Error(`TURN FAIL ${input}: ${r.status} ${t.slice(0,900)}`);if(d.pendingDeterministicTool){const tool=d.toolRequest,tt=Date.now(),tr=await fetch(new URL(tool.url,base),{headers:{accept:'application/json','cache-control':'no-cache'},cache:'no-store'}),raw=await tr.text();let p;try{p=JSON.parse(raw)}catch{}console.log('TOOL',input,tool.kind,tr.status,Date.now()-tt,'ms',tr.headers.get('cf-ray'),p?.error_code||p?.error_name||p?.message||'');if(!tr.ok||!p?.ok)throw new Error(`TOOL FAIL ${input}: ${tr.status} ${raw.slice(0,900)}`);if(tool.kind!=='major_bands')throw new Error(`unexpected tool ${tool.kind}`);tools[tool.key]={kind:'major_bands',key:tool.key,url:tool.url,status:tr.status,payload:compactMajorBands(p)};confirmed=d.command;continue;}w=applyAiWorkspaceEvent(w,d.event);const turn=d.turnRecord||{userText:input,assistantSummary:(d.blocks||[]).map(x=>x.text).filter(Boolean).join(' '),changeSummary:d.result?.changeSummary||'',blocks:d.blocks||[],command:d.command,stage:d.result?.decisionStage||'start',task:d.command?.agentTask||'',focus:d.command?.focus||{}};w=applyAiWorkspaceEvent(w,{type:'result_committed',payload:{taskId:taskIdForResult(w,d.taskAction),result:d.result,turn}});return w;}throw new Error(`too many hops ${input}`);}
-          await health('start');
-          let w=createAiWorkspace();w=await execute('350分，全国先看还能研究哪些学校',w);await health('350');
-          w=createAiWorkspace();w=await execute('440分，辽宁省内先看能上的学校',w);w=await execute('民办也可以，看看能增加哪些选择',w);w=await execute('中外合作也可以，预算可以上浮',w);w=await execute('新疆、西藏也可以，优先公办',w);await health('440-followups');
-          w=createAiWorkspace();w=await execute('500分，辽宁省内先看能上的学校',w);await health('500');
-          w=createAiWorkspace();w=await execute('580分，省内机械看看',w);w=await execute('愿意加预算，看看有没有211中外或高收费项目值得研究',w);await health('580-upgrade');
-          w=createAiWorkspace();w=await execute('620分，全国先看能上的学校',w);await health('620');
-          const advisory='学校平台和专业质量怎么平衡',payload=buildAiTurnRequestPayload(w,{input:advisory});console.log('ADVISORY_PAYLOAD_BYTES',Buffer.byteLength(JSON.stringify(payload)));
-          for(let i=1;i<=10;i++){const ts=Date.now(),r=await fetch(`${base}/api/ai/turn?fullSeqAdvice=${i}-${Date.now()}`,{method:'POST',headers:{'content-type':'application/json','accept':'application/json','cache-control':'no-cache'},body:JSON.stringify(payload)}),t=await r.text();console.log('ADVISORY',i,r.status,Date.now()-ts,'ms',r.headers.get('cf-ray'),t.slice(0,500));if(!r.ok)throw new Error(`advisory ${i} failed ${r.status} ${t.slice(0,900)}`);}
-          await health('end');
-          NODE
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/browser-ai-workspace-v3990_1.mjs')
+          s=p.read_text()
+          old="page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('console',m=>{"
+          new="page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('response',async r=>{if(r.status()>=500){let body='';try{body=(await r.text()).slice(0,2000);}catch{}let post='';try{post=r.request().postData()||'';}catch{}console.error('DIAG_HTTP_FAILURE',JSON.stringify({status:r.status(),url:r.url(),cfRay:r.headers()['cf-ray']||'',post:post.slice(0,1600),body}));}});page.on('console',m=>{"
+          if old not in s: raise SystemExit('browser instrumentation anchor missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run full browser journey with endpoint diagnostics
+        env:
+          AI_PREVIEW_BASE: https://agent-migrate-ai-frontend-to.gaokao-4y9.pages.dev
+          AI_EXPECTED_SHA: 646b1fed7cc4ecbb5a6bee4149de46ebb70674a3
+          AI_ARTIFACT_DIR: /tmp/aiplus-network-diag
+        run: node tools/browser-ai-workspace-v3990_1.mjs
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiplus-network-diag
+          path: /tmp/aiplus-network-diag
+          if-no-files-found: warn
+          retention-days: 3
