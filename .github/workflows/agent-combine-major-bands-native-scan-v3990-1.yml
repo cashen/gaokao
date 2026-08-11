@@ -52,9 +52,9 @@ jobs:
 
           workflow = Path('.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml')
           yml = workflow.read_text()
-          syntax_anchor = '            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \\\\n'
-          syntax_insert = '            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \\\\n' + syntax_anchor
-          run_anchor = '          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js\n'
+          syntax_anchor = '            tools/verify-major-bands-preview-concurrency-v3990_1.mjs'
+          syntax_insert = '            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \\\n' + syntax_anchor
+          run_anchor = '          git diff --exit-code -- functions/_lib/major-bands-rank-index.v3990_1.js'
           run_insert = '          node --experimental-default-type=module tools/verify-major-bands-rank-native-scan-v3990_1.mjs\n' + run_anchor
           if yml.count(syntax_anchor) != 1:
               raise SystemExit(f'workflow syntax anchor count={yml.count(syntax_anchor)}')
