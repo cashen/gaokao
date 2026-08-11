@@ -35,7 +35,6 @@ jobs:
           assert ai.is_dir(), 'ai directory missing before migration'
           plus.mkdir(exist_ok=True)
 
-          # Preserve every historical/static AI asset, but keep the AI Plus index as the only page entry.
           for src in ai.iterdir():
               if src.name == 'index.html':
                   continue
@@ -53,6 +52,7 @@ jobs:
               Path('ln-rank/site-active-generation.v3990_1.json'),
               Path('tools/verify-ai-workspace-v3990_0.mjs'),
               Path('tools/verify-ai-workspace-v3990_1.mjs'),
+              Path('tools/verify-aiplus-school-official-v3990_2.mjs'),
               Path('tools/browser-ai-workspace-v3990_0.mjs'),
               Path('tools/browser-ai-workspace-v3990_1.mjs'),
               Path('.github/workflows/verify-ai-workspace-v3990_1.yml'),
@@ -97,8 +97,8 @@ jobs:
           assert "from '/aiplus/parent-starter.v3992_1.js" in app
           PY
 
-          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml'; then
-            echo 'Found stale frontend /ai/ reference after migration.' >&2
+          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml'; then
+            echo 'Found stale frontend ai/ reference after migration.' >&2
             exit 1
           fi
           test ! -e ai
