@@ -87,6 +87,12 @@ jobs:
               if path == Path('.github/workflows/verify-ai-workspace-v3990_1.yml'):
                   text = text.replace("      - 'ai/**'\n", '')
                   text = text.replace("^(ai/|aiplus/|", "^(aiplus/|")
+              if path == Path('tools/verify-ai-workspace-v3990_1.mjs'):
+                  old_ui = "assert.ok(html.includes('ai-human-advisor-agent-v3992_0'));assert.ok(html.includes('想到哪就继续问'));"
+                  new_ui = "assert.ok(html.includes('data-ai-advisor-generation=\"ai-human-advisor-agent-v3992_0\"'));assert.ok(html.includes('data-ai-plus=\"school-official-qa\"'));assert.ok(html.includes('先把学校看懂，再讨论孩子要不要去。'));"
+                  if old_ui not in text:
+                      raise SystemExit('AI workspace UI assertion anchor missing')
+                  text = text.replace(old_ui, new_ui, 1)
               if text != original:
                   path.write_text(text)
 
