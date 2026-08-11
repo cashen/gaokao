@@ -1,0 +1,100 @@
+name: Temporary page score bucket hints v3990_1
+
+on:
+  push:
+    branches:
+      - agent/major-bands-requested-response-edge-cache-v3990_1
+    paths:
+      - .github/workflows/agent-page-score-bucket-hints-v3990-1.yml
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/major-bands-requested-response-edge-cache-v3990_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch and verify page score bucket hints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/.agent-page-score-bucket-hints-v3990_1.py
+          git diff --check
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          node --experimental-default-type=module tools/audit-major-bands-rank-kernel-v3990_1.mjs >/tmp/major-bands-audit.log
+          tail -n 40 /tmp/major-bands-audit.log
+      - name: Verify zero-delay safe pagination locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8795 --compatibility-date=2026-07-01 >/tmp/page-score-hints-wrangler.log 2>&1 &
+          server=$!
+          trap 'kill $server 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 50); do
+            if curl -fsS 'http://127.0.0.1:8795/api/ln-rank-runtime-health' >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/page-score-hints-wrangler.log; exit 1; fi
+          node --input-type=module - <<'NODE'
+          const base='http://127.0.0.1:8795';
+          const ids=new Set();
+          let offset=0;
+          let total=null;
+          let snapshot='';
+          let pages=0;
+          let hintedPages=0;
+          while(pages<80){
+            const url=new URL('/api/major-bands',base);
+            url.searchParams.set('candidateScore','449');
+            url.searchParams.set('rangePreset','safe');
+            url.searchParams.set('band','near');
+            url.searchParams.set('limit','37');
+            url.searchParams.set('offset',String(offset));
+            const response=await fetch(url);
+            const text=await response.text();
+            if(response.status!==200) throw new Error(`safe page ${pages+1} HTTP ${response.status}: ${text.slice(0,240)}`);
+            const payload=JSON.parse(text);
+            const group=payload.bands.near;
+            if(total==null) total=Number(group.count||0);
+            if(!snapshot) snapshot=group.pagination.snapshot;
+            if(group.pagination.snapshot!==snapshot) throw new Error('snapshot drift');
+            for(const record of group.records||[]){
+              if(ids.has(record.id)) throw new Error(`duplicate ${record.id}`);
+              ids.add(record.id);
+            }
+            if(payload.source.requestedBandOrderPageSource==='page-id-refetch'){
+              if(payload.source.requestedBandOrderPageBucketHintStatus!=='applied') throw new Error(`page hints not applied: ${payload.source.requestedBandOrderPageBucketHintStatus}`);
+              if(Number(payload.source.requestedBandOrderPageSelectedBuckets||0)<=0) throw new Error('hint selected zero buckets');
+              if(Number(payload.source.requestedBandOrderPageSelectedBuckets||0)>6) throw new Error('hint selected too many buckets');
+              hintedPages+=1;
+            }
+            pages+=1;
+            if(!group.pagination.hasMore) break;
+            if(Number(group.pagination.nextOffset)<=offset) throw new Error('nextOffset not strict');
+            offset=Number(group.pagination.nextOffset);
+          }
+          if(ids.size!==total) throw new Error(`safe ID union ${ids.size} != ${total}`);
+          if(total!==1001) throw new Error(`safe total drift ${total}`);
+          if(hintedPages<1) throw new Error('no cached page used score hints');
+          console.log(JSON.stringify({ok:true,total,ids:ids.size,pages,hintedPages},null,2));
+          NODE
+      - name: Commit tested page score bucket hints
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          git commit -m "perf: narrow paged refetches by ordered score hints"
+          git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
