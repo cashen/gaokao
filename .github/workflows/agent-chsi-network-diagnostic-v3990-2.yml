@@ -1,4 +1,4 @@
-name: Temporary CHSI frontend-resource diagnostic v3990_2
+name: Temporary CHSI school-code diagnostic v3990_2
 
 on:
   push:
@@ -15,26 +15,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Inspect Reader external resources and API hints
+      - name: Compare internal ID and national school code routes
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import subprocess,json
           targets=[
-            'https://gaokao.chsi.com.cn/sch/search--ss-on,option-qg,searchType-1,start-0.dhtml',
-            'https://gaokao.chsi.com.cn/wap/sch/schinfomain/124'
+            ('internal-124','https://gaokao.chsi.com.cn/wap/sch/schinfomain/124'),
+            ('code-10148','https://gaokao.chsi.com.cn/wap/sch/schinfomain/10148'),
+            ('desktop-code-10148','https://gaokao.chsi.com.cn/sch/schoolInfo--schId-10148,categoryId-1167668,mindex-1.dhtml')
           ]
-          for target in targets:
-              p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','-H','X-With-Links-Summary: all','https://r.jina.ai/'+target],capture_output=True,text=True)
-              print('\n--- target',target,'exit',p.returncode,'bytes',len(p.stdout))
+          for label,target in targets:
+              p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','https://r.jina.ai/'+target],capture_output=True,text=True)
+              print('\n---',label,'exit',p.returncode,'bytes',len(p.stdout))
               if p.returncode: print(p.stderr[:500]); continue
-              data=json.loads(p.stdout).get('data',{})
-              print('url=',data.get('url'),'title=',data.get('title'))
-              ext=data.get('external')
-              print('external_type=',type(ext).__name__)
-              print(json.dumps(ext,ensure_ascii=False)[:12000])
-              blob=json.dumps(data,ensure_ascii=False)
-              for needle in ['api/','schId','yxmc','school','axios','ajax','10148']:
-                  if needle in blob: print('HAS',needle)
+              try: data=json.loads(p.stdout).get('data',{})
+              except Exception as e: print('json_error',e,p.stdout[:1000]); continue
+              content=str(data.get('content',''))
+              print('source=',data.get('url'),'title=',data.get('title'),'http=',data.get('httpStatus'))
+              for needle in ['辽宁石油化工大学','10148','院校不存在','暂无']:
+                  if needle in content: print('HAS',needle)
+              for line in content.splitlines():
+                  if '辽宁石油化工大学' in line or '10148' in line: print('CONTENT',line[:1000])
           PY
