@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r3
+name: Temporary AI Plus school official integration v3990_2 r4
 
 on:
   push:
@@ -35,6 +35,7 @@ jobs:
           PY
           python tools/.agent-aiplus-school-official-v3990_2.py
           git checkout -- tools/.agent-aiplus-school-official-v3990_2.py
+          sed -i 's/text.length<200/text.length<80/' functions/_lib/ai/school-official-source.js
           git diff --check
           node --check functions/_lib/ai/school-official-source.js
           node --check functions/api/ai/school-official.js
