@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r5
+name: Temporary AI Plus school official integration v3990_2 r6
 
 on:
   push:
@@ -40,10 +40,12 @@ jobs:
           from pathlib import Path
           path=Path('functions/_lib/ai/agent-task-kernel.js')
           text=path.read_text()
-          official="  if(school&&!major&&looksOfficialSchoolInfo(source)&&!looksHistory(source)&&!looksFit(source)&&!looksBackground(source))return'school_official_qa';"
-          direct="  if(directSchoolMajorFollowup)return'school_major_history';"
-          old=direct+'\n'+official
-          new=official+'\n'+direct
+          anchor="  const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';"
+          replacement=anchor+"\n  const explicitMajors=majors.filter(item=>item&&!schools.some(name=>String(name||'').includes(String(item||''))));\n  const officialSchoolOnly=Boolean(school&&looksOfficialSchoolInfo(source)&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|投档分|录取分|分数线|位次|排名|去年|往年|历年)/.test(source)&&((schools.length&&explicitMajors.length===0)||(!schools.length&&priorTask==='school_official_qa')));"
+          if text.count(anchor)!=1: raise SystemExit(f'school/major anchor count={text.count(anchor)}')
+          text=text.replace(anchor,replacement,1)
+          old="  if(directSchoolMajorFollowup)return'school_major_history';\n  if(school&&!major&&looksOfficialSchoolInfo(source)&&!looksHistory(source)&&!looksFit(source)&&!looksBackground(source))return'school_official_qa';"
+          new="  if(officialSchoolOnly)return'school_official_qa';\n  if(directSchoolMajorFollowup&&explicitMajors.length)return'school_major_history';"
           if text.count(old)!=1: raise SystemExit(f'official/direct routing block count={text.count(old)}')
           path.write_text(text.replace(old,new,1))
           PY
