@@ -177,7 +177,7 @@ function validateResult(result) {
     result.payload?.source?.requestedBandOrderPageSource === 'all-bands-shared-projection'
       ? 'serialized-json'
       : result.payload?.source?.requestedBandOrderPageSource === 'raw-row-reuse'
-        ? 'serialized-json'
+        ? 'array-reference'
         : 'full-record',
     `${result.scenario}: raw row storage ownership`
   );
