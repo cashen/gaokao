@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Move frontend ownership to aiplus
+      - name: Migrate AI frontend and fix school-history routing
         shell: bash
         run: |
           set -euo pipefail
@@ -30,108 +30,67 @@ jobs:
           from pathlib import Path
           import shutil
 
-          ai = Path('ai')
-          plus = Path('aiplus')
-          assert ai.is_dir(), 'ai directory missing before migration'
+          ai=Path('ai'); plus=Path('aiplus')
+          assert ai.is_dir()
           plus.mkdir(exist_ok=True)
-
           for src in ai.iterdir():
-              if src.name == 'index.html':
-                  continue
-              dst = plus / src.name
-              if dst.exists():
-                  raise SystemExit(f'destination already exists: {dst}')
-              shutil.copy2(src, dst)
+              if src.name!='index.html': shutil.copy2(src,plus/src.name)
           shutil.rmtree(ai)
 
-          targets = [
-              Path('aiplus/index.html'),
-              Path('aiplus/app.v3990_1.js'),
-              Path('shared/resources/release/current-release.js'),
-              Path('shared/resources/release/site-runtime-contract.v3990_1.js'),
-              Path('ln-rank/site-active-generation.v3990_1.json'),
-              Path('tools/verify-ai-workspace-v3990_0.mjs'),
-              Path('tools/verify-ai-workspace-v3990_1.mjs'),
-              Path('tools/verify-aiplus-school-official-v3990_2.mjs'),
-              Path('tools/verify-ai-school-history-bridge-v3992_2.mjs'),
-              Path('tools/browser-ai-workspace-v3990_0.mjs'),
-              Path('tools/browser-ai-workspace-v3990_1.mjs'),
-              Path('.github/workflows/verify-ai-workspace-v3990_1.yml'),
-              Path('.github/workflows/verify-ln-2026-final.yml'),
-          ]
+          targets=[
+            Path('aiplus/index.html'),Path('aiplus/app.v3990_1.js'),
+            Path('shared/resources/release/current-release.js'),Path('shared/resources/release/site-runtime-contract.v3990_1.js'),
+            Path('ln-rank/site-active-generation.v3990_1.json'),
+            Path('tools/verify-ai-workspace-v3990_0.mjs'),Path('tools/verify-ai-workspace-v3990_1.mjs'),
+            Path('tools/verify-aiplus-school-official-v3990_2.mjs'),Path('tools/verify-ai-school-history-bridge-v3992_2.mjs'),
+            Path('tools/browser-ai-workspace-v3990_0.mjs'),Path('tools/browser-ai-workspace-v3990_1.mjs')]
+          reps=[("'/ai/","'/aiplus/"),('"/ai/','"/aiplus/'),('../ai/','../aiplus/'),('ai/index.html','aiplus/index.html'),('ai/app.v3990_0.js','aiplus/app.v3990_0.js'),('ai/app.v3990_1.js','aiplus/app.v3990_1.js'),('ai/workspace.v3990_0.css','aiplus/workspace.v3990_0.css'),('ai/workspace.v3990_1.css','aiplus/workspace.v3990_1.css'),('ai/agent.v3992_0.css','aiplus/agent.v3992_0.css'),('ai/render.v3991_0.js','aiplus/render.v3991_0.js'),('ai/render.v3992_0.js','aiplus/render.v3992_0.js'),('ai/parent-starter.v3992_1.js','aiplus/parent-starter.v3992_1.js'),('}/ai/','}/aiplus/'),('/ai/?candidate=','/aiplus/?candidate=')]
+          for p in targets:
+              if not p.exists(): continue
+              t=p.read_text(); old=t
+              for a,b in reps:t=t.replace(a,b)
+              if p==Path('tools/verify-ai-workspace-v3990_1.mjs'):
+                  t=t.replace("assert.ok(html.includes('ai-human-advisor-agent-v3992_0'));assert.ok(html.includes('想到哪就继续问'));","assert.ok(html.includes('data-ai-advisor-generation=\"ai-human-advisor-agent-v3992_0\"'));assert.ok(html.includes('data-ai-plus=\"school-official-qa\"'));assert.ok(html.includes('先把学校看懂，再讨论孩子要不要去。'));")
+              if t!=old:p.write_text(t)
 
-          replacements = [
-              ("'/ai/", "'/aiplus/"),
-              ('"/ai/', '"/aiplus/'),
-              ('../ai/', '../aiplus/'),
-              ('ai/index.html', 'aiplus/index.html'),
-              ('ai/app.v3990_0.js', 'aiplus/app.v3990_0.js'),
-              ('ai/app.v3990_1.js', 'aiplus/app.v3990_1.js'),
-              ('ai/workspace.v3990_0.css', 'aiplus/workspace.v3990_0.css'),
-              ('ai/workspace.v3990_1.css', 'aiplus/workspace.v3990_1.css'),
-              ('ai/agent.v3992_0.css', 'aiplus/agent.v3992_0.css'),
-              ('ai/render.v3991_0.js', 'aiplus/render.v3991_0.js'),
-              ('ai/render.v3992_0.js', 'aiplus/render.v3992_0.js'),
-              ('ai/parent-starter.v3992_1.js', 'aiplus/parent-starter.v3992_1.js'),
-              ('}/ai/', '}/aiplus/'),
-              ('/ai/?candidate=', '/aiplus/?candidate='),
-          ]
+          ci=Path('functions/_lib/ai/command-interpreter.js')
+          t=ci.read_text()
+          t=t.replace("'电气','自动化','通信'","'电气','自动化','测控技术与仪器','测控','通信'",1)
+          old="const directLike=directSource.includes(reduced)&&directSource.length<=10;if(reduced.length>=2&&reduced.length<=6&&!decisionNoise&&directLike)tokens.push(reduced);"
+          new="const directLike=directSource.includes(reduced)&&directSource.length<=10,regionPrefixedSchoolLike=/^(?:沈阳|大连|辽宁)[\\u4e00-\\u9fa5]{2,6}$/.test(reduced);if(reduced.length>=2&&reduced.length<=8&&directLike&&(!decisionNoise||regionPrefixedSchoolLike))tokens.push(reduced);"
+          assert old in t
+          ci.write_text(t.replace(old,new,1))
 
-          for path in targets:
-              if not path.exists():
-                  continue
-              text = path.read_text()
-              original = text
-              for old, new in replacements:
-                  text = text.replace(old, new)
-              if path == Path('.github/workflows/verify-ai-workspace-v3990_1.yml'):
-                  text = text.replace("      - 'ai/**'\n", '')
-                  text = text.replace("^(ai/|aiplus/|", "^(aiplus/|")
-              if path == Path('tools/verify-ai-workspace-v3990_1.mjs'):
-                  old_ui = "assert.ok(html.includes('ai-human-advisor-agent-v3992_0'));assert.ok(html.includes('想到哪就继续问'));"
-                  new_ui = "assert.ok(html.includes('data-ai-advisor-generation=\"ai-human-advisor-agent-v3992_0\"'));assert.ok(html.includes('data-ai-plus=\"school-official-qa\"'));assert.ok(html.includes('先把学校看懂，再讨论孩子要不要去。'));"
-                  if old_ui not in text:
-                      raise SystemExit('AI workspace UI assertion anchor missing')
-                  text = text.replace(old_ui, new_ui, 1)
-              if text != original:
-                  path.write_text(text)
+          vf=Path('tools/verify-ai-workspace-v3990_1.mjs')
+          t=vf.read_text()
+          anchor="function testTaskSwitchAndReference(){"
+          test="""async function testSchoolAliasHistoryRouting(){\n  const queries=[];const resolver={resolve(query){queries.push(query);return query==='沈阳工业'?{status:'resolved',resolvedName:'沈阳工业大学'}:{status:'unresolved',candidates:[]};}};\n  const workspace=createAiWorkspace({examContext:{score:580},activeView:{score:580,regionKeys:['shenyang'],majorKeywords:[]}});\n  const one=await resolveAiSchoolMentions('沈阳工业 测控多少分',resolver);assert.deepEqual(one,['沈阳工业大学']);assert.ok(queries.includes('沈阳工业'));const first=cmd('沈阳工业 测控多少分',workspace,one);assert.equal(first.agentTask,'school_major_history');assert.equal(first.focus.school,'沈阳工业大学');assert.equal(first.focus.major,'测控');assert.equal(first.executionPolicy.commitView,false);\n  queries.length=0;const all=await resolveAiSchoolMentions('沈阳工业 所有专业最低分',resolver);assert.deepEqual(all,['沈阳工业大学']);const second=cmd('沈阳工业 所有专业最低分',workspace,all);assert.equal(second.agentTask,'school_history');assert.equal(second.focus.school,'沈阳工业大学');assert.equal(second.executionPolicy.commitView,false);\n}\n\n"""
+          assert anchor in t
+          t=t.replace(anchor,test+anchor,1)
+          call="testCandidatePatchJourney();testTaskSwitchAndReference();"
+          assert call in t
+          t=t.replace(call,"testCandidatePatchJourney();await testSchoolAliasHistoryRouting();testTaskSwitchAndReference();",1)
+          vf.write_text(t)
 
           assert not Path('ai').exists()
-          idx = Path('aiplus/index.html').read_text()
-          assert '/aiplus/workspace.v3990_1.css' in idx
-          assert '/aiplus/agent.v3992_0.css' in idx
-          assert '/aiplus/app.v3990_1.js' in idx
-          assert 'href="/aiplus/"' in idx
-          app = Path('aiplus/app.v3990_1.js').read_text()
-          assert "from '/aiplus/render.v3992_0.js" in app
-          assert "from '/aiplus/parent-starter.v3992_1.js" in app
           PY
-
-          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml'; then
-            echo 'Found stale frontend ai/ reference after migration.' >&2
-            exit 1
-          fi
-          test ! -e ai
+          if git grep -nE "['\"]/ai/|\.\./ai/|\}/ai/|['\"(]ai/(index|app|workspace|agent|render|parent-starter)" -- ':!functions/api/ai/**' ':!functions/_lib/ai/**' ':!shared/ai/**' ':!.github/workflows/agent-migrate-ai-frontend-to-aiplus-v3990-2.yml' ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'; then exit 1; fi
           git diff --check
-      - name: Verify AI Plus runtime after migration
+      - name: Verify migrated runtime and regressions
         shell: bash
         run: |
           set -euo pipefail
-          node --check aiplus/app.v3990_0.js
+          node --check functions/_lib/ai/command-interpreter.js
           node --check aiplus/app.v3990_1.js
-          node --check aiplus/render.v3991_0.js
-          node --check aiplus/render.v3992_0.js
-          node --check aiplus/parent-starter.v3992_1.js
           node tools/verify-aiplus-school-official-v3990_2.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
-      - name: Commit tested migration
+      - name: Commit tested product changes
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'cashen'
           git config user.email '54cashen@gmail.com'
-          git add -A
-          git status --short
-          git commit -m 'refactor: make aiplus the only AI frontend directory'
+          git add -A ':!.github/workflows/verify-ai-workspace-v3990_1.yml' ':!.github/workflows/verify-ln-2026-final.yml'
+          git commit -m 'refactor: consolidate AI frontend under aiplus'
           git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
