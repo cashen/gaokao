@@ -1,0 +1,83 @@
+name: Temporary AI Plus school official integration v3990_2
+
+on:
+  push:
+    branches:
+      - agent/aiplus-school-official-qa-v3990_2
+    paths:
+      - .github/workflows/agent-aiplus-school-official-v3990-2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-school-official-qa-v3990_2
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch AI Plus into the existing advisor runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/.agent-aiplus-school-official-v3990_2.py
+          git diff --check
+          node --check functions/_lib/ai/school-official-source.js
+          node --check functions/api/ai/school-official.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check ai/app.v3990_1.js
+          node --check ai/render.v3992_0.js
+          node --check tools/verify-aiplus-school-official-v3990_2.mjs
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+      - name: Run existing AI workspace and AI Plus truth gates
+        run: node tools/verify-ai-workspace-v3990_1.mjs
+      - name: Verify real Sunshine Gaokao outbound source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE'
+          import {loadOfficialSchoolEvidence,AI_SCHOOL_OFFICIAL_ORIGIN} from './functions/_lib/ai/school-official-source.js';
+          const cases=[
+            ['辽宁石油化工大学','这所学校是什么定位'],
+            ['东北石油大学','录取规则怎么写']
+          ];
+          for(const [school,question] of cases){
+            const result=await loadOfficialSchoolEvidence({school,question});
+            if(!result?.ok)throw new Error(`${school}: ${result?.code||''} ${result?.message||'official source failed'}`);
+            if(result.school!==school)throw new Error(`${school}: resolved as ${result.school}`);
+            if(!result.schId)throw new Error(`${school}: schId missing`);
+            if(String(result.evidenceText||'').length<200)throw new Error(`${school}: evidence too short`);
+            for(const source of result.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error(`${school}: non-official origin`);}
+            console.log(JSON.stringify({school,schId:result.schId,topic:result.topic,updatedAt:result.updatedAt,bytes:new TextEncoder().encode(result.evidenceText).byteLength,sources:result.sources.map(x=>x.sourceUrl)},null,2));
+          }
+          NODE
+      - name: Commit tested AI Plus runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            aiplus/index.html \
+            ai/index.html ai/app.v3990_1.js ai/render.v3992_0.js \
+            functions/api/ai/school-official.js \
+            functions/_lib/ai/school-official-source.js \
+            functions/_lib/ai/agent-task-kernel.js \
+            functions/_lib/ai/command-interpreter.js \
+            functions/_lib/ai/tool-registry.js \
+            functions/_lib/ai/turn-orchestrator.js \
+            functions/_lib/ai/advisor-presentation.js \
+            tools/verify-aiplus-school-official-v3990_2.mjs \
+            tools/verify-ai-workspace-v3990_1.mjs
+          git commit -m "feat: add AI Plus school official Q&A"
+          git push origin HEAD:agent/aiplus-school-official-qa-v3990_2
