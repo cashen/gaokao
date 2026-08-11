@@ -24,26 +24,16 @@ jobs:
           from pathlib import Path
           path = Path('functions/api/major-bands.js')
           text = path.read_text()
-          old_call = """      const response = await onRequest({
-                ...context,
-                majorBandsAllBandsShared: allBandsShared,
-                request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
-              });"""
-          new_call = """      const response = await onRequest({
-                ...context,
-                majorBandsInternalBandRequest: true,
-                majorBandsAllBandsShared: allBandsShared,
-                request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
-              });"""
-          old_cache = "    const requestedBandResponseEdgeCache = requestedBand ? allBandsEdgeCacheHandle() : null;"
-          new_cache = """    const requestedBandResponseEdgeCache = requestedBand && context?.majorBandsInternalBandRequest !== true
-              ? allBandsEdgeCacheHandle()
-              : null;"""
-          if old_call not in text:
-              raise SystemExit('internal all-band onRequest block not found')
-          if old_cache not in text:
-              raise SystemExit('requested-band response cache declaration not found')
-          text = text.replace(old_call, new_call, 1).replace(old_cache, new_cache, 1)
+          shared_marker = "        majorBandsAllBandsShared: allBandsShared,"
+          shared_replacement = "        majorBandsInternalBandRequest: true,\n        majorBandsAllBandsShared: allBandsShared,"
+          cache_marker = "    const requestedBandResponseEdgeCache = requestedBand ? allBandsEdgeCacheHandle() : null;"
+          cache_replacement = "    const requestedBandResponseEdgeCache = requestedBand && context?.majorBandsInternalBandRequest !== true\n      ? allBandsEdgeCacheHandle()\n      : null;"
+          if text.count(shared_marker) != 1:
+              raise SystemExit(f'internal all-band marker count={text.count(shared_marker)}')
+          if text.count(cache_marker) != 1:
+              raise SystemExit(f'requested-band response cache marker count={text.count(cache_marker)}')
+          text = text.replace(shared_marker, shared_replacement, 1)
+          text = text.replace(cache_marker, cache_replacement, 1)
           path.write_text(text)
           PY
           git diff --check
