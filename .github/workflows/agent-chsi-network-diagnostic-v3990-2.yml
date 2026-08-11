@@ -1,4 +1,4 @@
-name: Temporary CHSI URL locator diagnostic v3990_2
+name: Temporary CHSI URL locator diagnostic v3990_2 r2
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Resolve CHSI detail URLs from domain-limited public search
+      - name: Decode domain-limited search result links
         shell: bash
         run: |
           set -euo pipefail
@@ -25,13 +25,22 @@ jobs:
               q=f'site:gaokao.chsi.com.cn/sch/schoolInfo {school}'
               url='https://html.duckduckgo.com/html/?q='+urllib.parse.quote(q)
               p=subprocess.run(['curl','-sS','-L','--max-time','25','-A','Mozilla/5.0','-H','Accept-Language: zh-CN,zh;q=0.9',url],capture_output=True,text=True)
-              print('\n--- direct',school,'exit',p.returncode,'bytes',len(p.stdout))
               text=html.unescape(p.stdout)
-              urls=[]
-              for candidate in re.findall(r'(?:uddg=)?(https?%3A%2F%2Fgaokao\.chsi\.com\.cn%2Fsch%2FschoolInfo[^&"<>\s]+|https://gaokao\.chsi\.com\.cn/sch/schoolInfo[^"<>\s]+)',text,re.I):
-                  u=urllib.parse.unquote(candidate)
-                  if u not in urls: urls.append(u)
-              print('URLS',urls[:20])
-              for line in text.splitlines():
-                  if school in line or 'gaokao.chsi.com.cn/sch/schoolInfo' in line: print('LINE',re.sub('<[^>]+>',' ',line)[:1800])
+              print('\n---',school,'exit',p.returncode,'bytes',len(text))
+              anchors=re.findall(r'<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>(.*?)</a>',text,re.I|re.S)
+              print('result_anchors=',len(anchors))
+              resolved=[]
+              for href,title_html in anchors[:15]:
+                  title=re.sub(r'<[^>]+>',' ',title_html); title=re.sub(r'\s+',' ',title).strip()
+                  raw=html.unescape(href)
+                  absolute=urllib.parse.urljoin('https://duckduckgo.com',raw)
+                  parsed=urllib.parse.urlparse(absolute)
+                  qs=urllib.parse.parse_qs(parsed.query)
+                  dest=qs.get('uddg',[''])[0] if 'uddg' in qs else absolute
+                  dest=urllib.parse.unquote(dest)
+                  print('RESULT',title,'=>',dest[:1500])
+                  if dest.startswith('https://gaokao.chsi.com.cn/sch/schoolInfo') and school in title:
+                      resolved.append(dest)
+              print('MATCHES=',resolved)
+              if not resolved: print('NO_MATCH')
           PY
