@@ -10,7 +10,6 @@ const COMPLETED_QUERY_RETENTION_ENABLED = true;
 const COMPLETED_TTL_MS = 30_000;
 const MAX_CONCURRENT_EXECUTIONS = 1;
 const EXECUTION_SLOT_POLL_MS = 8;
-const EXECUTION_SLOT_POLL_JITTER_MS = 8;
 const inFlight = new Map();
 const completed = new Map();
 let lastIsolatedIdentity = '';
@@ -19,7 +18,6 @@ let activeExecutions = 0;
 let queuedExecutions = 0;
 let peakActiveExecutions = 0;
 let peakQueuedExecutions = 0;
-let nextWaitSequence = 0;
 let accessClock = 0;
 
 function touch(entry) {
@@ -122,11 +120,6 @@ function waitForOwnTimer(ms) {
   return new Promise(resolve => globalThis.setTimeout(resolve, ms));
 }
 
-function nextExecutionSlotPollMs() {
-  const sequence = nextWaitSequence++;
-  return EXECUTION_SLOT_POLL_MS + (sequence % (EXECUTION_SLOT_POLL_JITTER_MS + 1));
-}
-
 async function acquireExecutionSlot() {
   if (activeExecutions < MAX_CONCURRENT_EXECUTIONS) {
     activeExecutions += 1;
@@ -136,10 +129,9 @@ async function acquireExecutionSlot() {
 
   queuedExecutions += 1;
   peakQueuedExecutions = Math.max(peakQueuedExecutions, queuedExecutions);
-  const pollMs = nextExecutionSlotPollMs();
   try {
     while (activeExecutions >= MAX_CONCURRENT_EXECUTIONS) {
-      await waitForOwnTimer(pollMs);
+      await waitForOwnTimer(EXECUTION_SLOT_POLL_MS);
     }
     activeExecutions += 1;
     peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
@@ -238,7 +230,6 @@ export function majorBandsQueryExecutionCacheState() {
     executionGateVersion: MAJOR_BANDS_QUERY_EXECUTION_GATE_VERSION,
     executionGateMode: MAJOR_BANDS_QUERY_EXECUTION_GATE_MODE,
     executionSlotPollMs: EXECUTION_SLOT_POLL_MS,
-    executionSlotPollJitterMs: EXECUTION_SLOT_POLL_JITTER_MS,
     inFlight: inFlight.size,
     activeExecutions,
     queuedExecutions,
@@ -261,9 +252,6 @@ export function majorBandsQueryExecutionCacheState() {
     crossRequestSemaphore: true,
     boundedDistinctExecutions: true,
     requestOwnedTimerWait: true,
-    staggeredPollingJitter: true,
-    adaptivePollingBackoff: false,
-    fairTicketQueue: false,
     crossRequestResolverQueue: false,
     keys: Object.freeze([...completed.keys()])
   });
@@ -278,6 +266,5 @@ export function clearMajorBandsQueryExecutionCacheForTest() {
   queuedExecutions = 0;
   peakActiveExecutions = 0;
   peakQueuedExecutions = 0;
-  nextWaitSequence = 0;
   accessClock = 0;
 }
