@@ -1,4 +1,4 @@
-name: Temporary CHSI charter-entity diagnostic v3990_2
+name: Temporary CHSI frontend-resource diagnostic v3990_2
 
 on:
   push:
@@ -15,30 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Resolve school IDs from official charter index
+      - name: Inspect Reader external resources and API hints
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import urllib.parse,subprocess,json,re
-          schools=['辽宁石油化工大学','东北石油大学','辽宁科技大学']
-          for school in schools:
-              target='https://gaokao.chsi.com.cn/zsgs/zhangcheng/listVerifedZszc.do?method=index&yxmc='+urllib.parse.quote(school)
-              reader='https://r.jina.ai/'+target
-              p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','-H','X-With-Links-Summary: all',reader],capture_output=True,text=True)
-              print('\n---',school,'exit=',p.returncode,'bytes=',len(p.stdout))
+          import subprocess,json
+          targets=[
+            'https://gaokao.chsi.com.cn/sch/search--ss-on,option-qg,searchType-1,start-0.dhtml',
+            'https://gaokao.chsi.com.cn/wap/sch/schinfomain/124'
+          ]
+          for target in targets:
+              p=subprocess.run(['curl','-sS','-L','--max-time','30','-H','Accept: application/json','-H','X-With-Links-Summary: all','https://r.jina.ai/'+target],capture_output=True,text=True)
+              print('\n--- target',target,'exit',p.returncode,'bytes',len(p.stdout))
               if p.returncode: print(p.stderr[:500]); continue
               data=json.loads(p.stdout).get('data',{})
-              print('source=',data.get('url'),'title=',data.get('title'))
-              blob=json.dumps(data.get('links',[]),ensure_ascii=False)+'\n'+str(data.get('content',''))
-              matches=[]
-              for m in re.finditer(r'https://gaokao\.chsi\.com\.cn/zsgs/zhangcheng/[^\s\)"\\]+',blob):
-                  u=m.group(0)
-                  if 'schId-' in u or 'schId=' in u:
-                      matches.append(u)
-              for u in list(dict.fromkeys(matches))[:12]: print('CHARTER',u)
-              ids=re.findall(r'schId[-=](\d+)',blob)
-              print('SCH_IDS=',list(dict.fromkeys(ids))[:20])
-              for line in str(data.get('content','')).splitlines():
-                  if school in line or '招生章程' in line and ('2026' in line or '2025' in line): print('CONTENT',line[:1200])
+              print('url=',data.get('url'),'title=',data.get('title'))
+              ext=data.get('external')
+              print('external_type=',type(ext).__name__)
+              print(json.dumps(ext,ensure_ascii=False)[:12000])
+              blob=json.dumps(data,ensure_ascii=False)
+              for needle in ['api/','schId','yxmc','school','axios','ajax','10148']:
+                  if needle in blob: print('HAS',needle)
           PY
