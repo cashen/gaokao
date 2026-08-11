@@ -70,6 +70,11 @@ old = "const pageLoaded = await loadMajorBandsRankWindow(context, selectedBucket
 new = "const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds), predecodeRegion: filters.region });"
 if old not in s: raise SystemExit('missing page refetch anchor')
 s = s.replace(old, new, 1)
+# Surface canonical region predecode evidence in the requested-band response.
+old = """        rankDecodedRowCount: loadedStats.decodedRowCount,\n        rankRowsSkipped: loadedStats.rankRowsSkipped,\n        pageIdRowsSkipped: loadedStats.pageIdRowsSkipped || 0,\n"""
+new = """        rankDecodedRowCount: loadedStats.decodedRowCount,\n        rankRowsSkipped: loadedStats.rankRowsSkipped,\n        rankOnlyRowsSkipped: loadedStats.rankOnlyRowsSkipped || 0,\n        regionRowsSkipped: loadedStats.regionRowsSkipped || 0,\n        predecodeRegion: loadedStats.predecodeRegion || filters.region || 'all',\n        predecodeRegionFilterVersion: loadedStats.predecodeRegionFilterVersion || 'major-bands-predecode-region-filter-v3990_1',\n        pageIdRowsSkipped: loadedStats.pageIdRowsSkipped || 0,\n"""
+if old not in s: raise SystemExit('missing requested source telemetry anchor')
+s = s.replace(old, new, 1)
 p.write_text(s)
 
 # Native verifier remains from #135; make the region verifier a permanent part of the rank audit.
