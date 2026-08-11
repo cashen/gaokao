@@ -5,6 +5,9 @@ import { matchRegionRule } from '../../shared/resources/geo/china-region-catalog
 
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
+export const MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1';
+export const MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION = 'major-bands-page-id-native-prefilter-v3990_1';
+export const MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_1';
 export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';
 export const MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1';
 
@@ -24,7 +27,7 @@ function hasPagesAssets(options = {}) {
   return Boolean(options.assets && typeof options.assets.fetch === 'function');
 }
 
-async function fetchStaticJson(request, pathname, options = {}) {
+async function fetchStaticResponse(request, pathname, options = {}) {
   const url = `${origin(request)}${pathname}`;
   const assetRequest = new Request(url, {
     method: 'GET',
@@ -39,6 +42,11 @@ async function fetchStaticJson(request, pathname, options = {}) {
   const contentType = String(response.headers.get('content-type') || '').toLowerCase();
   if (!response.ok) throw new Error(`静态专业分数索引读取失败：${pathname}，HTTP ${response.status}，owner=${owner}`);
   if (contentType.includes('text/html')) throw new Error(`静态专业分数索引返回 HTML：${pathname}，owner=${owner}`);
+  return { response, owner };
+}
+
+async function fetchStaticJson(request, pathname, options = {}) {
+  const { response, owner } = await fetchStaticResponse(request, pathname, options);
   try {
     return await response.json();
   } catch (error) {
@@ -241,20 +249,223 @@ export function majorBandsRankValueMatchesRange(rankLike, range = null) {
   return rank >= minRank && rank <= maxRank;
 }
 
+function findStaticRowsArrayStart(text) {
+  const match = /"rows"\s*:\s*\[/.exec(String(text || ''));
+  return match ? match.index + match[0].lastIndexOf('[') : -1;
+}
+
+function readTopLevelArrayScalars(rowText, indexes = []) {
+  const source = String(rowText || '');
+  const wanted = new Set(indexes.filter(index => Number.isInteger(index) && index >= 0));
+  const values = new Map();
+  if (!wanted.size || source[0] !== '[') return values;
+  const maxIndex = Math.max(...wanted);
+  let valueIndex = 0;
+  let valueStart = 1;
+  let nestedDepth = 0;
+  let inString = false;
+  let escaped = false;
+
+  const capture = end => {
+    if (wanted.has(valueIndex)) {
+      const raw = source.slice(valueStart, end).trim();
+      values.set(valueIndex, raw ? JSON.parse(raw) : undefined);
+    }
+  };
+
+  for (let cursor = 1; cursor < source.length; cursor += 1) {
+    const char = source[cursor];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '[' || char === '{') {
+      nestedDepth += 1;
+      continue;
+    }
+    if (char === ']' || char === '}') {
+      if (char === ']' && nestedDepth === 0) {
+        capture(cursor);
+        break;
+      }
+      nestedDepth -= 1;
+      if (nestedDepth < 0) throw new Error('静态专业位次桶标量预筛容器深度异常');
+      continue;
+    }
+    if (char === ',' && nestedDepth === 0) {
+      capture(cursor);
+      if (valueIndex >= maxIndex) break;
+      valueIndex += 1;
+      valueStart = cursor + 1;
+    }
+  }
+  return values;
+}
+
+export function scanMajorBandsStaticRankRowsText(text, options = {}) {
+  const source = String(text || '');
+  const rowsStart = findStaticRowsArrayStart(source);
+  if (rowsStart < 0) throw new Error('静态专业位次桶 rows 数组不存在');
+  const prefix = source.slice(0, rowsStart);
+  const versionMatch = /"version"\s*:\s*"([^"]+)"/.exec(prefix);
+  const version = versionMatch?.[1] || '';
+  const expectedVersion = String(options.expectedVersion || '');
+  if (expectedVersion && version !== expectedVersion) {
+    throw new Error(`静态专业位次桶版本异常：${version || 'unknown'}`);
+  }
+
+  const rankIndex = Number.isInteger(options.rankIndex) ? options.rankIndex : -1;
+  const idIndex = Number.isInteger(options.idIndex) ? options.idIndex : -1;
+  const lnAreaIndex = Number.isInteger(options.lnAreaIndex) ? options.lnAreaIndex : -1;
+  const provinceIndex = Number.isInteger(options.provinceIndex) ? options.provinceIndex : -1;
+  const cityIndex = Number.isInteger(options.cityIndex) ? options.cityIndex : -1;
+  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
+  const regionScalarIndexes = [lnAreaIndex, provinceIndex, cityIndex].filter(index => index >= 0);
+  const regionPredecodeEnabled = predecodeRegion !== 'all' && regionScalarIndexes.length > 0;
+  const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
+    ? Object.freeze({ minRank: Number(options.rankRange.minRank), maxRank: Number(options.rankRange.maxRank) })
+    : null;
+  const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
+  const rows = [];
+  const expectedRecordCount = Math.max(0, Number(options.expectedRecordCount || 0));
+  let rowCount = 0;
+  let rankMatchedCount = 0;
+  let regionMatchedCount = 0;
+  let regionScalarPrefilterCount = 0;
+  let fullRowParseCount = 0;
+  let pageIdScalarPrefilterCount = 0;
+  let pageIdDirectLookupCount = 0;
+  let pageIdDirectLookupHits = 0;
+
+  let cursor = rowsStart + 1;
+  let ended = false;
+
+  while (cursor < source.length) {
+    while (cursor < source.length && (/\s/.test(source[cursor]) || source[cursor] === ',')) cursor += 1;
+    if (cursor >= source.length) break;
+    if (source[cursor] === ']') {
+      cursor += 1;
+      ended = true;
+      break;
+    }
+    if (source[cursor] !== '[') {
+      throw new Error(`静态专业位次桶 row 必须是数组：${JSON.stringify(source[cursor])}`);
+    }
+
+    const start = cursor;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (; cursor < source.length; cursor += 1) {
+      const char = source[cursor];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (char === '\\') escaped = true;
+        else if (char === '"') inString = false;
+        continue;
+      }
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+      if (char === '[' || char === '{') depth += 1;
+      else if (char === ']' || char === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          cursor += 1;
+          break;
+        }
+        if (depth < 0) throw new Error('静态专业位次桶 row 容器深度异常');
+      }
+    }
+    if (depth !== 0 || inString) throw new Error('静态专业位次桶 row 未完整结束');
+
+    const rowText = source.slice(start, cursor);
+    rowCount += 1;
+    const scalarIndexes = [];
+    if (allowedIds && idIndex >= 0) scalarIndexes.push(idIndex);
+    if (rankRange && rankIndex >= 0) scalarIndexes.push(rankIndex);
+    if (regionPredecodeEnabled) scalarIndexes.push(...regionScalarIndexes);
+    const scalarValues = scalarIndexes.length
+      ? readTopLevelArrayScalars(rowText, scalarIndexes)
+      : new Map();
+
+    // Cached-page refetch is ID-first: rows outside the current page stop here
+    // before rank/region checks or full JSON.parse. Cold queries have no ID set
+    // and therefore start with rank -> region before full parse.
+    if (allowedIds && idIndex >= 0) {
+      pageIdScalarPrefilterCount += 1;
+      if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
+    }
+
+    const rankMatch = rankRange && rankIndex >= 0
+      ? majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)
+      : true;
+    if (!rankMatch) continue;
+    rankMatchedCount += 1;
+
+    if (regionPredecodeEnabled) {
+      regionScalarPrefilterCount += 1;
+      const regionMatch = matchRegionRule({
+        lnArea: scalarValues.get(lnAreaIndex),
+        province: scalarValues.get(provinceIndex),
+        city: scalarValues.get(cityIndex)
+      }, predecodeRegion);
+      if (!regionMatch) continue;
+    }
+    regionMatchedCount += 1;
+
+    const row = JSON.parse(rowText);
+    fullRowParseCount += 1;
+    if (!Array.isArray(row)) throw new Error('静态专业位次桶 row 解析后不是数组');
+    rows.push(row);
+  }
+
+  if (!ended) throw new Error('静态专业位次桶 rows 数组未完整结束');
+  if (expectedRecordCount && rowCount !== expectedRecordCount) {
+    throw new Error(`静态专业位次桶记录数异常：${rowCount}/${expectedRecordCount}`);
+  }
+  const suffix = source.slice(cursor).trim();
+  if (!suffix.endsWith('}')) throw new Error('静态专业位次桶外层 JSON 未完整结束');
+  return {
+    version,
+    rows,
+    rowCount,
+    rankMatchedCount,
+    regionMatchedCount,
+    regionScalarPrefilterCount,
+    predecodeRegion,
+    predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
+    fullRowParseCount,
+    pageIdScalarPrefilterCount,
+    pageIdDirectLookupCount,
+    pageIdDirectLookupHits,
+    pageIdPrefilterVersion: allowedIds && idIndex >= 0
+      ? MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION
+      : MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
+    mode: allowedIds && idIndex >= 0 ? 'native-page-id-id-first-prefilter' : 'native-row-text-scan',
+    scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION
+  };
+}
+
 export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {
   const manifest = await loadMajorBandsStaticManifest(request, options);
   const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
   if (!bucket) throw new Error(`静态专业分数桶不在发布清单中：${bucketFile || 'empty'}`);
-  const payload = await fetchStaticJson(request, bucket.file, options);
-  if (payload?.version !== manifest.version || !Array.isArray(payload?.rows)) {
-    throw new Error(`静态专业位次桶合同异常：${bucket.file}`);
-  }
-  if (payload.rows.length !== Number(bucket.recordCount || 0)) {
-    throw new Error(`静态专业位次桶记录数异常：${bucket.file}`);
-  }
+  const { response, owner } = await fetchStaticResponse(request, bucket.file, options);
   const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : [];
   const rankIndex = schema.indexOf('rank2026');
   const idIndex = schema.indexOf('id');
+  const lnAreaIndex = schema.indexOf('lnArea');
+  const provinceIndex = schema.indexOf('province');
+  const cityIndex = schema.indexOf('city');
+  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
   const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
     ? Object.freeze({
         minRank: Number(options.rankRange.minRank),
@@ -262,18 +473,20 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
       })
     : null;
   const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
-  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
-  const selectedRows = [];
-  let rankFilteredRowCount = 0;
-  let regionFilteredRowCount = 0;
-  for (const row of payload.rows) {
-    if (rankRange && rankIndex >= 0 && !majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)) continue;
-    rankFilteredRowCount += 1;
-    if (predecodeRegion !== 'all' && !majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;
-    regionFilteredRowCount += 1;
-    if (allowedIds && idIndex >= 0 && !allowedIds.has(String(row?.[idIndex] || ''))) continue;
-    selectedRows.push(row);
-  }
+  const text = await response.text();
+  const scan = scanMajorBandsStaticRankRowsText(text, {
+    expectedVersion: manifest.version,
+    expectedRecordCount: Number(bucket.recordCount || 0),
+    rankIndex,
+    idIndex,
+    lnAreaIndex,
+    provinceIndex,
+    cityIndex,
+    predecodeRegion,
+    rankRange,
+    allowedIds
+  });
+  const selectedRows = scan.rows;
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     : 'full-record-v3990_1';
@@ -294,20 +507,22 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     rawRowStorage: projectionSchema
       ? (options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference')
       : 'full-record',
-    rowCount: payload.rows.length,
+    rowCount: scan.rowCount,
     decodedRowCount: selectedRows.length,
-    rankRowsSkipped: payload.rows.length - selectedRows.length,
-    rankOnlyRowsSkipped: payload.rows.length - rankFilteredRowCount,
-    regionRowsSkipped: rankFilteredRowCount - regionFilteredRowCount,
+    rankRowsSkipped: scan.rowCount - selectedRows.length,
+    rankOnlyRowsSkipped: scan.rowCount - scan.rankMatchedCount,
+    regionRowsSkipped: scan.rankMatchedCount - scan.regionMatchedCount,
     predecodeRegion,
     predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
-    pageIdRowsSkipped: regionFilteredRowCount - selectedRows.length,
+    pageIdRowsSkipped: scan.regionMatchedCount - selectedRows.length,
     pageIdFilterCount: allowedIds?.size || 0,
     pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_1',
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+    rowScanVersion: scan.scanVersion,
+    rowScanMode: scan.mode,
     rankRange,
     bytes: Number(bucket.bytes || 0),
-    assetOwner: hasPagesAssets(options) ? 'pages-assets-binding' : 'same-origin-fallback'
+    assetOwner: owner
   };
 }
 

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import './verify-major-bands-rank-native-scan-v3990_1.mjs';
+import './verify-major-bands-predecode-region-v3990_1.mjs';
 import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import {
@@ -360,23 +362,12 @@ for (const preset of presets) {
 const staticProviderSource = fs.readFileSync('functions/_lib/major-bands-static-provider.js', 'utf8');
 for (const required of [
   "MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1'",
-  "const rankIndex = schema.indexOf('rank2026')",
-  'for (const row of payload.rows) {',
-  'majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)',
-  'majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)',
-  'selectedRows.push(row)',
-  "MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1'",
-  'rankRowsSkipped: payload.rows.length - selectedRows.length'
-]) assert.ok(staticProviderSource.includes(required), `predecode rank-row filter missing ${required}`);
-const rankFilterOrder = [
-  staticProviderSource.indexOf('majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)'),
-  staticProviderSource.indexOf("predecodeRegion !== 'all' && !majorBandsStaticRowMatchesRegion"),
-  staticProviderSource.indexOf("allowedIds && idIndex >= 0 && !allowedIds.has"),
-  staticProviderSource.indexOf('selectedRows.push(row)')
-];
-assert.ok(rankFilterOrder.every(index => index >= 0), 'predecode filter stages missing');
-assert.ok(rankFilterOrder.every((value, index) => index === 0 || value > rankFilterOrder[index - 1]), 'predecode filter stage order must be rank -> region -> page-id -> select');
-
+  "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'",
+  'scanMajorBandsStaticRankRowsText',
+  'majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)',
+  "MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION = 'major-bands-page-id-id-first-prefilter-v3990_1'",
+  "'native-page-id-id-first-prefilter' : 'native-row-text-scan'"
+]) assert.ok(staticProviderSource.includes(required), `predecode native rank-row filter missing ${required}`);
 const bucketLoaderSource = fs.readFileSync('functions/_lib/major-bands-rank-bucket-loader.v3990_1.js', 'utf8');
 for (const required of [
   'function bucketReadKey',

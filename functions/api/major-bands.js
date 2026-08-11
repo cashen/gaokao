@@ -82,8 +82,11 @@ export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-e
 const ALL_BANDS_EDGE_CACHE_TTL_SECONDS = 60;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_1';
-export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION = 'major-bands-requested-band-page-score-hints-v3990_1';
 const REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;
+export const MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_1';
+const REQUESTED_BAND_RESPONSE_EDGE_CACHE_TTL_SECONDS = 60;
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_1';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
 const REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY = 6000;
@@ -163,6 +166,7 @@ function requestedBandOrderEdgeCacheRequest(request) {
   url.searchParams.delete('offset');
   url.searchParams.delete('limit');
   url.searchParams.set('__orderEdgeCache', MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION);
+  url.searchParams.set('__pageScoreHints', MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION);
   url.searchParams.sort();
   return new Request(url.toString(), { method: 'GET' });
 }
@@ -174,9 +178,12 @@ async function readRequestedBandOrderEdgeSnapshot(cache, request) {
     const payload = await response.json();
     const snapshot = payload?.snapshot;
     const orderedIds = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];
+    const orderedScores = Array.isArray(snapshot?.orderedScores) ? snapshot.orderedScores : [];
     if (payload?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION) return null;
     if (snapshot?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION) return null;
+    if (snapshot?.pageScoreHintVersion !== MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION) return null;
     if (!snapshot?.snapshot || orderedIds.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return null;
+    if (orderedScores.length !== orderedIds.length || orderedScores.some(score => !Number.isFinite(Number(score)))) return null;
     return snapshot;
   } catch {
     return null;
@@ -198,6 +205,35 @@ async function writeRequestedBandOrderEdgeSnapshot(cache, request, snapshot) {
   } catch {
     return false;
   }
+}
+
+function orderedPageScores(records = []) {
+  return (Array.isArray(records) ? records : []).map(record => {
+    const score = Number(record?.score2026 ?? record?.score);
+    return Number.isFinite(score) ? score : null;
+  });
+}
+
+function selectRequestedBandPageBucketsByScoreHints(selectedBuckets = [], pageScores = [], pageIdCount = 0) {
+  const buckets = Array.isArray(selectedBuckets) ? selectedBuckets : [];
+  const scores = Array.isArray(pageScores) ? pageScores.map(Number) : [];
+  if (!pageIdCount) {
+    return { status: 'empty-page', buckets: [], candidateCount: buckets.length, hintedCount: 0, scoreCount: 0 };
+  }
+  if (scores.length !== pageIdCount || scores.some(score => !Number.isFinite(score))) {
+    return { status: 'fallback-invalid-hints', buckets, candidateCount: buckets.length, hintedCount: buckets.length, scoreCount: scores.length };
+  }
+  const uniqueScores = [...new Set(scores)];
+  const hinted = buckets.filter(bucket => uniqueScores.some(score => (
+    score >= Number(bucket?.minScore) && score <= Number(bucket?.maxScore)
+  )));
+  const covered = uniqueScores.every(score => hinted.some(bucket => (
+    score >= Number(bucket?.minScore) && score <= Number(bucket?.maxScore)
+  )));
+  if (!covered || !hinted.length) {
+    return { status: 'fallback-uncovered-score', buckets, candidateCount: buckets.length, hintedCount: buckets.length, scoreCount: scores.length };
+  }
+  return { status: 'applied', buckets: hinted, candidateCount: buckets.length, hintedCount: hinted.length, scoreCount: scores.length };
 }
 
 function requestedBandOrderCacheState(identity = '') {
@@ -457,6 +493,51 @@ function allBandsEdgeCacheHandle() {
   return cache && typeof cache.match === 'function' && typeof cache.put === 'function' ? cache : null;
 }
 
+function requestedBandResponseEdgeCacheRequest(sourceUrl) {
+  const url = new URL(sourceUrl);
+  url.searchParams.delete('stress');
+  url.searchParams.delete('deploy');
+  url.searchParams.set('__requestedBandResponseEdgeCache', MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION);
+  url.searchParams.sort();
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+function responseWithRequestedBandResponseEdgeCacheStatus(response, status) {
+  const headers = new Headers(response.headers);
+  headers.set('x-gaokao-requested-band-response-edge-cache', status);
+  headers.set('x-gaokao-requested-band-response-edge-cache-version', MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+async function readRequestedBandResponseEdgeCache(cache, request) {
+  try {
+    return await cache.match(request);
+  } catch {
+    return null;
+  }
+}
+
+async function writeRequestedBandResponseEdgeCache(cache, request, response) {
+  if (response.status !== 200) return false;
+  try {
+    const cached = responseWithRequestedBandResponseEdgeCacheStatus(response.clone(), 'stored');
+    const headers = new Headers(cached.headers);
+    headers.set('cache-control', `public, max-age=0, s-maxage=${REQUESTED_BAND_RESPONSE_EDGE_CACHE_TTL_SECONDS}, stale-while-revalidate=120`);
+    await cache.put(request, new Response(cached.body, {
+      status: cached.status,
+      statusText: cached.statusText,
+      headers
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function allBandsEdgeCacheRequest(sourceUrl, input) {
   const url = new URL(sourceUrl);
   url.searchParams.delete('stress');
@@ -570,6 +651,7 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
     for (const band of BAND_KEYS) {
       const response = await onRequest({
         ...context,
+        majorBandsInternalBandRequest: true,
         majorBandsAllBandsShared: allBandsShared,
         request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
       });
@@ -747,12 +829,18 @@ async function executeRequestedBandOrderedPage(context, input) {
     && filters.specialProjectMode === 'hide_eligibility_projects';
   const orderEdgeCache = allBandsShared ? null : allBandsEdgeCacheHandle();
   const orderEdgeCacheRequest = orderEdgeCache ? requestedBandOrderEdgeCacheRequest(context.request) : null;
-  let retained = allBandsShared ? null : readRequestedBandOrderSnapshot(orderIdentity);
+  const moduleOrderCacheEnabled = !orderEdgeCache;
+  let retained = allBandsShared ? null : (moduleOrderCacheEnabled ? readRequestedBandOrderSnapshot(orderIdentity) : null);
   let heavyExecution = null;
   let loadedStats = null;
   let selectedBuckets = null;
   let pageRecords = null;
   let orderPageSource = 'page-id-refetch';
+  let orderPageBucketHintStatus = allBandsShared ? 'shared-projection' : 'not-needed';
+  let orderPageBucketHintCandidateCount = 0;
+  let orderPageBucketHintedCount = 0;
+  let orderPageBucketSelectedCount = 0;
+  let orderPageScoreHintCount = 0;
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
   let orderEdgeCacheStatus = allBandsShared
     ? 'shared-projection'
@@ -760,7 +848,7 @@ async function executeRequestedBandOrderedPage(context, input) {
   if (!retained && orderEdgeCache && orderEdgeCacheRequest) {
     retained = await readRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest);
     if (retained) {
-      retainRequestedBandOrderSnapshot(orderIdentity, retained);
+      if (moduleOrderCacheEnabled) retainRequestedBandOrderSnapshot(orderIdentity, retained);
       orderCacheStatus = 'ordered-id-edge-hit';
       orderEdgeCacheStatus = 'hit';
     }
@@ -785,6 +873,8 @@ async function executeRequestedBandOrderedPage(context, input) {
       orderRawRowCount: allBandsShared.loadedStats.rawRowCount,
       orderDecodedRowCount: allBandsShared.loadedStats.decodedRowCount,
       orderedIds: ordered.map(record => record.id),
+      orderedScores: orderedPageScores(ordered),
+      pageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
       snapshot: majorBandsSnapshotId(ordered, identity)
     };
     const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
@@ -811,6 +901,7 @@ async function executeRequestedBandOrderedPage(context, input) {
       const selected = selectMajorBandsRankBuckets(rankWindows);
       const loaded = await loadMajorBandsRankWindow(context, selected, {
         projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
+        rawRowStorage: minimalOrderProjection ? 'serialized-json' : undefined,
         predecodeRegion: filters.region
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
@@ -868,7 +959,7 @@ async function executeRequestedBandOrderedPage(context, input) {
       pageRecords = built.pageRecords;
       orderPageSource = built.orderPageSource || 'raw-row-reuse';
     }
-    retainRequestedBandOrderSnapshot(orderIdentity, retained);
+    if (moduleOrderCacheEnabled) retainRequestedBandOrderSnapshot(orderIdentity, retained);
     if (orderEdgeCache && orderEdgeCacheRequest) {
       const stored = await writeRequestedBandOrderEdgeSnapshot(orderEdgeCache, orderEdgeCacheRequest, retained);
       orderEdgeCacheStatus = stored ? 'stored' : 'write-failed';
@@ -881,7 +972,17 @@ async function executeRequestedBandOrderedPage(context, input) {
   const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
   if (!pageRecords) {
     selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
-    const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
+    const pageScores = Array.isArray(retained.orderedScores)
+      ? retained.orderedScores.slice(pageOffset, pageOffset + pageLimit)
+      : [];
+    const pageBucketHints = selectRequestedBandPageBucketsByScoreHints(selectedBuckets, pageScores, pageIds.length);
+    orderPageBucketHintStatus = pageBucketHints.status;
+    orderPageBucketHintCandidateCount = pageBucketHints.candidateCount;
+    orderPageBucketHintedCount = pageBucketHints.hintedCount;
+    orderPageScoreHintCount = pageBucketHints.scoreCount;
+    selectedBuckets = pageBucketHints.buckets;
+    const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds), predecodeRegion: filters.region });
+    orderPageBucketSelectedCount = selectedBuckets.length;
     loadedStats = pageLoaded.stats;
     const byId = new Map(pageLoaded.records.map(record => [record.id, record]));
     pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
@@ -982,8 +1083,15 @@ async function executeRequestedBandOrderedPage(context, input) {
     orderCacheIdCount: orderedIdCount,
     pageDecodedRecordCount: pageRecords.length,
     orderCacheState: requestedBandOrderCacheState(orderIdentity),
+    orderModuleCacheEnabled: moduleOrderCacheEnabled,
     orderPageSourceVersion: MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
     orderPageSource,
+    orderPageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
+    orderPageBucketHintStatus,
+    orderPageBucketHintCandidateCount,
+    orderPageBucketHintedCount,
+    orderPageBucketSelectedCount,
+    orderPageScoreHintCount,
     orderColdSecondAssetPass: orderCacheStatus === 'ordered-id-miss' && orderPageSource === 'page-id-refetch',
     rawRowReferenceNonEnumerable: true,
     orderProjectionVersion: retained.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
@@ -1021,6 +1129,20 @@ export async function onRequest(context) {
 
     if (!Number.isFinite(candidateScore) || candidateScore < 1 || candidateScore > 750) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
+    }
+
+    const requestedBandResponseEdgeCache = requestedBand && context?.majorBandsInternalBandRequest !== true
+      ? allBandsEdgeCacheHandle()
+      : null;
+    const requestedBandResponseCacheKey = requestedBandResponseEdgeCache
+      ? requestedBandResponseEdgeCacheRequest(url)
+      : null;
+    if (requestedBandResponseEdgeCache && requestedBandResponseCacheKey) {
+      const cached = await readRequestedBandResponseEdgeCache(
+        requestedBandResponseEdgeCache,
+        requestedBandResponseCacheKey
+      );
+      if (cached) return responseWithRequestedBandResponseEdgeCacheStatus(cached, 'hit');
     }
 
     const allBandsPageCacheReleasedBeforeBandQuery = requestedBand
@@ -1249,7 +1371,7 @@ export async function onRequest(context) {
       });
     }
 
-    return json({
+    const response = json({
       ok: true,
       meta: {
         audienceYear: 2027,
@@ -1325,6 +1447,12 @@ export async function onRequest(context) {
         requestedBandOrderEdgeCacheTtlSeconds: Number(execution.orderEdgeCacheTtlSeconds || REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS),
         requestedBandOrderPageSourceVersion: execution.orderPageSourceVersion || MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
         requestedBandOrderPageSource: execution.orderPageSource || 'keyword-bypass',
+        requestedBandOrderPageScoreHintVersion: execution.orderPageScoreHintVersion || MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
+        requestedBandOrderPageBucketHintStatus: execution.orderPageBucketHintStatus || 'keyword-bypass',
+        requestedBandOrderPageBucketHintCandidates: Number(execution.orderPageBucketHintCandidateCount || 0),
+        requestedBandOrderPageBucketHints: Number(execution.orderPageBucketHintedCount || 0),
+        requestedBandOrderPageSelectedBuckets: Number(execution.orderPageBucketSelectedCount || 0),
+        requestedBandOrderPageScoreHints: Number(execution.orderPageScoreHintCount || 0),
         requestedBandOrderColdSecondAssetPass: execution.orderColdSecondAssetPass === true,
         requestedBandRawRowReferenceNonEnumerable: execution.rawRowReferenceNonEnumerable === true,
         requestedBandRawRowStorage: loadedStats.rawRowStorage || 'full-record',
@@ -1343,6 +1471,7 @@ export async function onRequest(context) {
         requestedBandOrderCacheMaxTotalIds: Number(execution.orderCacheState?.maxTotalIds || 12000),
         requestedBandOrderCacheMaxTotalChars: Number(execution.orderCacheState?.maxTotalChars || 750000),
         requestedBandOrderCacheBounded: execution.orderCacheState?.bounded !== false,
+        requestedBandOrderModuleCacheEnabled: execution.orderModuleCacheEnabled !== false,
         queryMemoryMode: aggregate.memoryMode,
         rankingCandidateMode: aggregate.rankingCandidateMode,
         deferredResponseEnrichment: aggregate.deferredResponseEnrichment,
@@ -1380,6 +1509,10 @@ export async function onRequest(context) {
         rankRawRowCount: loadedStats.rawRowCount,
         rankDecodedRowCount: loadedStats.decodedRowCount,
         rankRowsSkipped: loadedStats.rankRowsSkipped,
+        rankOnlyRowsSkipped: loadedStats.rankOnlyRowsSkipped || 0,
+        regionRowsSkipped: loadedStats.regionRowsSkipped || 0,
+        predecodeRegion: loadedStats.predecodeRegion || filters.region || 'all',
+        predecodeRegionFilterVersion: loadedStats.predecodeRegionFilterVersion || 'major-bands-predecode-region-filter-v3990_1',
         pageIdRowsSkipped: loadedStats.pageIdRowsSkipped || 0,
         pageIdFilterCount: loadedStats.pageIdFilterCount || 0,
         pageIdFilterVersion: loadedStats.pageIdFilterVersion || 'major-bands-page-id-predecode-filter-v3990_1',
@@ -1394,6 +1527,15 @@ export async function onRequest(context) {
         mode: 'single-worker-canonical-rank-query-stable-snapshot-paged'
       }
     });
+    if (requestedBandResponseEdgeCache && requestedBandResponseCacheKey) {
+      const stored = await writeRequestedBandResponseEdgeCache(
+        requestedBandResponseEdgeCache,
+        requestedBandResponseCacheKey,
+        response
+      );
+      return responseWithRequestedBandResponseEdgeCacheStatus(response, stored ? 'stored' : 'write-failed');
+    }
+    return responseWithRequestedBandResponseEdgeCacheStatus(response, 'unavailable');
   } catch (error) {
     return json({
       ok: false,
