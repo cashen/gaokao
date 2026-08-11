@@ -26,7 +26,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sed -i 's/if text.count(snapshot_anchor) != 2:/if text.count(snapshot_anchor) != 1:/' tools/.agent-page-score-bucket-hints-v3990_1.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tools/.agent-page-score-bucket-hints-v3990_1.py')
+          text = path.read_text()
+          text = text.replace('if text.count(snapshot_anchor) != 2:', 'if text.count(snapshot_anchor) != 1:', 1)
+          marker = "\naudit = Path('tools/audit-major-bands-rank-kernel-v3990_1.mjs')"
+          if marker not in text:
+              raise SystemExit('temporary audit patch marker missing')
+          path.write_text(text.split(marker, 1)[0] + '\n')
+          PY
           python tools/.agent-page-score-bucket-hints-v3990_1.py
           git diff --check
           node --check functions/api/major-bands.js
@@ -96,6 +105,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          git add functions/api/major-bands.js tools/verify-major-bands-preview-concurrency-v3990_1.mjs
           git commit -m "perf: narrow paged refetches by ordered score hints"
           git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
