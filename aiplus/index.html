@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f6f1" />
+  <title>AI Plus · 问学校｜辽宁高考家庭工具</title>
+  <meta name="description" content="家长直接问学校：AI Plus 从阳光高考官方页面检索学校简介、招生章程、录取规则、食宿和联系方式，招生分数与位次继续由确定性数据执行。" />
+  <link rel="stylesheet" href="/ai/workspace.v3990_1.css?v=3992_0" />
+  <link rel="stylesheet" href="/ai/agent.v3992_0.css?v=3992_0" />
+</head>
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_0" data-ai-plus="school-official-qa">
+  <header class="topbar">
+    <a class="brand" href="/">辽宁高考家庭工具</a>
+    <nav class="top-actions" aria-label="主要入口">
+      <a href="/ai/">家庭顾问</a>
+      <a href="/ln-rank/">专业初选</a>
+      <a href="/ln-rank/selection-pool.html">家庭方案</a>
+      <button id="newWorkspace" type="button">新开一次讨论</button>
+    </nav>
+  </header>
+
+  <main class="advisor-shell">
+    <section class="hero" aria-labelledby="pageTitle">
+      <span class="eyebrow">AI Plus · 学校官方信息问答</span>
+      <h1 id="pageTitle">别再读一整页学校宣传稿，直接问你真正关心的。</h1>
+      <p>可以问“这学校是什么定位”“宿舍怎么样”“招生章程有什么要注意”“录取规则怎么写”。AI Plus 只在阳光高考已检索到的官方页面上归纳；没有抓到的事实不补猜。分数、位次、专业投档仍由站内确定性数据负责。</p>
+    </section>
+
+    <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
+      <div class="context-title"><span>当前候选范围</span><strong id="currentContextTitle">当前探索</strong></div>
+      <div id="activeViewChips" class="view-chips"></div>
+    </section>
+
+    <section id="conversationStream" class="conversation" aria-live="polite" aria-busy="false"></section>
+
+    <section class="starter" id="starterPanel">
+      <h2>先问一所学校</h2>
+      <p>你可以直接写完整校名，也可以先输入分数，后面随时切回“我这个分够不够”。学校事实和你的分数不会被混在一起。</p>
+      <div class="starter-score">
+        <label for="starterScore">孩子大概分数（可选）</label>
+        <div class="starter-score-row"><input id="starterScore" type="number" inputmode="numeric" min="150" max="750" placeholder="例如 580" /><button id="starterScoreApply" type="button">记住这个讨论坐标</button></div>
+        <p class="muted">不填也可以先看学校本身；只有你明确问“我这个分能不能上”时才会重新激活分数判断。</p>
+      </div>
+      <div id="starterScenarios" class="starter-grid" aria-live="polite"></div>
+    </section>
+
+    <form id="promptForm" class="composer">
+      <label for="promptInput">直接问学校</label>
+      <div class="composer-row">
+        <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：辽宁石油化工大学到底是什么定位？宿舍怎么样？2026招生章程要注意什么？"></textarea>
+        <div class="composer-buttons">
+          <button id="stopButton" class="quiet stop" type="button" hidden>停止本轮</button>
+          <button id="sendButton" class="primary" type="submit">发送</button>
+        </div>
+      </div>
+      <p class="composer-help">回答会显示本轮使用的阳光高考来源和资料更新时间。官方页面暂不可读时，本轮直接停止，不用 AI 补写。</p>
+    </form>
+
+    <details class="support-panel" id="decisionContextDetails">
+      <summary>家庭条件、待核验与官方依据</summary>
+      <div class="support-grid">
+        <section>
+          <h2>家庭长期条件</h2>
+          <div id="constraintList" class="support-list"></div>
+          <div class="selection-import">
+            <button id="importSelection" type="button">导入当前家庭方案</button>
+            <span id="importStatus" class="muted" aria-live="polite"></span>
+          </div>
+        </section>
+        <section>
+          <h2>还要核验</h2>
+          <div id="pendingList" class="support-list"></div>
+        </section>
+        <section>
+          <h2>官方依据</h2>
+          <div id="evidenceList" class="support-list"></div>
+        </section>
+        <section class="system-status">
+          <h2>系统状态</h2>
+          <div id="healthBar" class="health-bar" aria-live="polite">正在检查…</div>
+          <p id="modelConfig" class="muted">读取语义模型配置…</p>
+          <p id="modelProbeResult" class="muted">模型只负责理解和归纳已取得的官方材料。</p>
+          <div class="system-actions">
+            <button id="probeModel" type="button">测试语义模型</button>
+            <button id="exportWorkspace" type="button">导出本次讨论</button>
+          </div>
+        </section>
+      </div>
+    </details>
+  </main>
+
+  <dialog id="confirmDialog">
+    <form method="dialog" class="dialog-card">
+      <h2>这句话我不想替你猜</h2>
+      <p id="confirmText"></p>
+      <div class="dialog-actions">
+        <button value="cancel" type="submit">先不改</button>
+        <button id="confirmApply" value="default" class="primary" type="button">按这个理解继续</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/ai/app.v3990_1.js?v=3992_0"></script>
+</body>
+</html>
