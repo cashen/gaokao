@@ -26,7 +26,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/.agent-aiplus-school-official-v3990_2.py')
+          lines=path.read_text().splitlines()
+          lines=[line for line in lines if not (line.startswith('(\"  if([\'fact_rank_lookup\'') and 'agentTask))return true;' in line)]
+          path.write_text('\n'.join(lines)+'\n')
+          PY
           python tools/.agent-aiplus-school-official-v3990_2.py
+          git checkout -- tools/.agent-aiplus-school-official-v3990_2.py
           git diff --check
           node --check functions/_lib/ai/school-official-source.js
           node --check functions/api/ai/school-official.js
