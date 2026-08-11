@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r7
+name: Temporary AI Plus school official integration v3990_2 r8
 
 on:
   push:
@@ -44,6 +44,10 @@ jobs:
           new_history="function looksHistory(source){return /(多少分|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}"
           if text.count(old_history)!=1: raise SystemExit(f'looksHistory anchor count={text.count(old_history)}')
           text=text.replace(old_history,new_history,1)
+          old_fit="function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}"
+          new_fit="function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\\s*\\d{3}\\s*分?.{0,6}(够|能上|能报|现实)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}"
+          if text.count(old_fit)!=1: raise SystemExit(f'looksFit anchor count={text.count(old_fit)}')
+          text=text.replace(old_fit,new_fit,1)
           anchor="  const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';"
           replacement=anchor+"\n  const explicitMajors=majors.filter(item=>item&&!schools.some(name=>String(name||'').includes(String(item||''))));\n  const officialSchoolOnly=Boolean(school&&looksOfficialSchoolInfo(source)&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&((schools.length&&explicitMajors.length===0)||(!schools.length&&priorTask==='school_official_qa')));"
           if text.count(anchor)!=1: raise SystemExit(f'school/major anchor count={text.count(anchor)}')
