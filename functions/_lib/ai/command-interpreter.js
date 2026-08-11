@@ -127,7 +127,7 @@ function deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,h
   else if(agentTask==='evidence_verification'){operation='verify';target=schools.length?'school':majors.length?'major':'fact';}
   else if(agentTask==='restore_view'){operation='restore';target='view';relation='restore_view';persistence='active_view';}
   else if(agentTask==='save_family'){operation='save';target='family';relation='save_persistent';persistence='family';}
-  else if(['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask)){operation='answer';target='school';}
+  else if(['school_major_history','school_history','school_official_qa','fit_assessment','school_background'].includes(agentTask)){operation='answer';target='school';}
   else if(['major_background','background_discovery','background_fit_discovery'].includes(agentTask)){operation='answer';target='major';}
   else if(agentTask==='plan_review'){operation='answer';target='context';}
   if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled){operation='save';target='family';relation='save_persistent';persistence='workspace';}
@@ -136,7 +136,7 @@ function deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,h
 
 function advisoryDiscussionLanguage(text){const s=String(text||'');const decisionObjects=/(学校平台|学校层次|专业质量|专业实力|培养路径|培养方式|本科就业|继续深造|读研|就业和深造|城市机会)/.test(s),tradeoff=/(怎么平衡|如何平衡|怎么取舍|如何取舍|优先比较|怎么选|怎么看|应该更看重|哪个更重要)/.test(s);return decisionObjects&&tradeoff;}
 function explicitTaskLock(source,agentTask,candidateLexical=false){
-  if(['fact_rank_lookup','school_major_history','school_history','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;
+  if(['fact_rank_lookup','school_major_history','school_history','school_official_qa','fit_assessment','school_comparison','major_comparison','background_discovery','background_fit_discovery','school_background','major_background','evidence_verification','restore_view','plan_review','save_family'].includes(agentTask))return true;
   if(['candidate_discovery','candidate_refinement'].includes(agentTask)&&candidateLexical)return true;
   if(agentTask==='general_advice'&&advisoryDiscussionLanguage(source))return true;
   return false;
@@ -152,7 +152,7 @@ function deterministicBase(text,workspace={},resolvedSchoolNames=[]){
   let agentTask=deterministicAgentTask({text:source,schools,majors,regionKeys:geo.keys,score,workspace,candidateIntent,compareIntent:hasCompare,rankIntent});
   if(explicitFamilyPersistence(source)&&!patchMutates(patch)&&mentorProfile?.enabled)agentTask='save_family';
   const rawScoreUsage=explicitScoreUsage(source,workspace),scoreUsage=(['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)&&score)?'active':rawScoreUsage,taskLocked=explicitTaskLock(source,agentTask,candidateLexical||Boolean(bottomLineMode)||Boolean(platformTarget)||Boolean(score&&majors.length&&!schools.length)),scoreUsageLocked=explicitScoreDirective(source)||Boolean(score&&['candidate_discovery','candidate_refinement','fit_assessment','background_fit_discovery','fact_rank_lookup'].includes(agentTask)),executionPolicy=taskExecutionPolicy(agentTask,scoreUsage),legacy=deriveLegacyShape(agentTask,{workspace,patch,schools,majors,score,geo,hasCompare,restore,mentorProfile,source,negative,bottomLineMode});
-  const previousFocus=priorFocus(workspace),needsSchool=['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask),needsMajor=['school_major_history','fit_assessment','major_background'].includes(agentTask);
+  const previousFocus=priorFocus(workspace),needsSchool=['school_major_history','school_history','school_official_qa','fit_assessment','school_background'].includes(agentTask),needsMajor=['school_major_history','fit_assessment','major_background'].includes(agentTask);
   const focus={school:schools[0]||(needsSchool?clean(previousFocus.school,120):''),major:majors[0]||(needsMajor?clean(previousFocus.major,160):''),schools:schools.length?schools:((agentTask==='school_comparison')?unique(previousFocus.schools||[],4):[]),majors:majors.length?majors:((agentTask==='major_comparison'||needsMajor)?unique(previousFocus.majors||[],6):[]),reference:reference||null,sourceText:source};
   const ambiguous=(/这个专业|这所学校|这个学校/.test(source)&&!focus.school&&!focus.major)||((agentTask==='school_comparison')&&schools.length<2)||((agentTask==='major_comparison')&&majors.length<2);
   const familyChanges=legacy.persistence==='family'?{regionIncludeKeys:geo.keys.filter(k=>k!=='all'),regionExcludeKeys:[],majorExcludeKeywords:negative,bottomLineMode:bottomLineMode||''}:{};
@@ -192,7 +192,7 @@ function normalizeModelCommand(candidate,text,workspace,fallback){
   const command={...fallback,...legacy,agentTask,scoreUsage,executionPolicy,source:'ai-assisted',confidence:Math.max(0,Math.min(1,Number(candidate.confidence??fallback.confidence))),requiresConfirmation:Boolean(candidate.requiresConfirmation),reason:clean(candidate.reason,300)||fallback.reason};
   command.changeSet=fallback.changeSet;command.score=fallback.score;command.regionKeys=fallback.regionKeys;command.regionLabel=fallback.regionLabel;command.majorKeywords=fallback.majorKeywords;command.schoolNames=fallback.schoolNames;command.bottomLineMode=fallback.bottomLineMode;command.platformTarget=fallback.platformTarget;command.clearMajor=fallback.clearMajor;command.clearSchool=fallback.clearSchool;command.negativeMajorKeywords=fallback.negativeMajorKeywords;command.familyChanges=fallback.familyChanges;command.combination=fallback.combination;command.focus=fallback.focus;
   command.mentorProfile=normalizeMentorProfile(candidate.mentorProfile||{},fallback.mentorProfile||{},text);
-  if(['school_major_history','school_history','fit_assessment','school_background'].includes(agentTask)&&!command.focus.school){command.requiresConfirmation=true;command.reason='这轮需要明确一所学校，我没有足够可靠的上一轮学校焦点。';}
+  if(['school_major_history','school_history','school_official_qa','fit_assessment','school_background'].includes(agentTask)&&!command.focus.school){command.requiresConfirmation=true;command.reason='这轮需要明确一所学校，我没有足够可靠的上一轮学校焦点。';}
   if(['school_major_history','fit_assessment','major_background'].includes(agentTask)&&!command.focus.major){command.requiresConfirmation=true;command.reason='这轮需要明确一个专业/方向，我没有足够可靠的上一轮专业焦点。';}
   return command;
 }
