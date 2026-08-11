@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r11
+name: Temporary AI Plus school official integration v3990_2 r12
 
 on:
   push:
@@ -61,22 +61,26 @@ jobs:
           path.write_text(text.replace(old_history_routes,new_history_routes,1))
 
           orchestrator=Path('functions/_lib/ai/turn-orchestrator.js')
-          o=orchestrator.read_text()
-          old_pending='result.history,result.officialSchool,result.fit'
-          new_pending='result.history,result.fit,result.officialSchool'
+          o=orchestrator.read_text();old_pending='result.history,result.officialSchool,result.fit';new_pending='result.history,result.fit,result.officialSchool'
           if o.count(old_pending)!=1: raise SystemExit(f'pending-tool order count={o.count(old_pending)}')
           orchestrator.write_text(o.replace(old_pending,new_pending,1))
 
           app=Path('ai/app.v3990_1.js')
-          a=app.read_text()
-          old_read='const cached=readSchoolHistorySessionCache(tool)||readSchoolOfficialSessionCache(tool);if(cached)return cached;'
-          new_read='const cached=readSchoolHistorySessionCache(tool);if(cached)return cached;const officialCached=readSchoolOfficialSessionCache(tool);if(officialCached)return officialCached;'
+          a=app.read_text();old_read='const cached=readSchoolHistorySessionCache(tool)||readSchoolOfficialSessionCache(tool);if(cached)return cached;';new_read='const cached=readSchoolHistorySessionCache(tool);if(cached)return cached;const officialCached=readSchoolOfficialSessionCache(tool);if(officialCached)return officialCached;'
           if a.count(old_read)!=1: raise SystemExit(f'cache-read bridge count={a.count(old_read)}')
           a=a.replace(old_read,new_read,1)
-          old_put='putSchoolHistorySessionCache(tool,entry);putSchoolOfficialSessionCache(tool,entry);return entry;'
-          new_put="if(tool.kind==='school_history'){putSchoolHistorySessionCache(tool,entry);return entry;}if(tool.kind==='school_official'){putSchoolOfficialSessionCache(tool,entry);return entry;}return entry;"
+          old_put='putSchoolHistorySessionCache(tool,entry);putSchoolOfficialSessionCache(tool,entry);return entry;';new_put="if(tool.kind==='school_history'){putSchoolHistorySessionCache(tool,entry);return entry;}if(tool.kind==='school_official'){putSchoolOfficialSessionCache(tool,entry);return entry;}return entry;"
           if a.count(old_put)!=1: raise SystemExit(f'cache-write bridge count={a.count(old_put)}')
-          app.write_text(a.replace(old_put,new_put,1))
+          a=a.replace(old_put,new_put,1)
+          old_compact="updatedAt:String(data.updatedAt||'').slice(0,80),evidenceText:String(data.evidenceText||'').slice(0,12000)"
+          new_compact="updatedAt:String(data.updatedAt||'').slice(0,80),coverage:String(data.coverage||'').slice(0,80),detailAvailable:data.detailAvailable===true,evidenceText:String(data.evidenceText||'').slice(0,12000)"
+          if a.count(old_compact)!=1: raise SystemExit(f'compact official payload count={a.count(old_compact)}')
+          app.write_text(a.replace(old_compact,new_compact,1))
+
+          registry=Path('functions/_lib/ai/tool-registry.js')
+          r=registry.read_text();old_registry="updatedAt:clean(payload.updatedAt,80),evidenceText:clean(payload.evidenceText,16000)";new_registry="updatedAt:clean(payload.updatedAt,80),coverage:clean(payload.coverage,80),detailAvailable:payload.detailAvailable===true,evidenceText:clean(payload.evidenceText,16000)"
+          if r.count(old_registry)!=1: raise SystemExit(f'official registry payload count={r.count(old_registry)}')
+          registry.write_text(r.replace(old_registry,new_registry,1))
           PY
           git diff --check
           node --check functions/_lib/ai/school-official-source.js
@@ -92,23 +96,28 @@ jobs:
           node --check tools/verify-ai-workspace-v3990_1.mjs
       - name: Run existing AI workspace and AI Plus truth gates
         run: node tools/verify-ai-workspace-v3990_1.mjs
-      - name: Verify real Sunshine Gaokao Reader transport
+      - name: Verify real Sunshine Gaokao school-card baseline
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module - <<'NODE'
           import {loadOfficialSchoolEvidence,AI_SCHOOL_OFFICIAL_ORIGIN,AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION} from './functions/_lib/ai/school-official-source.js';
-          const cases=[['辽宁石油化工大学','这所学校是什么定位'],['东北石油大学','录取规则怎么写']];
-          for(const [school,question] of cases){
-            const result=await loadOfficialSchoolEvidence({school,question});
-            if(!result?.ok)throw new Error(`${school}: ${result?.code||''} ${result?.message||'official source failed'}`);
-            if(result.school!==school)throw new Error(`${school}: resolved as ${result.school}`);
-            if(!result.schId)throw new Error(`${school}: schId missing`);
-            if(result.transportVersion!==AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION)throw new Error(`${school}: transport drift ${result.transportVersion}`);
-            if(String(result.evidenceText||'').length<200)throw new Error(`${school}: evidence too short`);
-            for(const source of result.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error(`${school}: non-CHSI evidence source`);}
-            console.log(JSON.stringify({school,schId:result.schId,topic:result.topic,updatedAt:result.updatedAt,transportVersion:result.transportVersion,bytes:new TextEncoder().encode(result.evidenceText).byteLength,sources:result.sources.map(x=>x.sourceUrl)},null,2));
-          }
+          const profile=await loadOfficialSchoolEvidence({school:'辽宁石油化工大学',question:'这所学校是什么定位'});
+          if(!profile?.ok)throw new Error(`profile failed: ${profile?.code||''} ${profile?.message||''}`);
+          if(profile.school!=='辽宁石油化工大学'||profile.schoolCode!=='10148')throw new Error(`profile entity drift ${JSON.stringify({school:profile.school,schoolCode:profile.schoolCode})}`);
+          if(profile.coverage!=='official_search_card'||profile.detailAvailable!==false)throw new Error(`profile coverage drift ${profile.coverage}/${profile.detailAvailable}`);
+          if(!/辽宁/.test(profile.evidenceText)||!/辽宁省教育厅/.test(profile.evidenceText)||!/本科/.test(profile.evidenceText))throw new Error(`profile card facts missing: ${profile.evidenceText}`);
+          if(profile.transportVersion!==AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION)throw new Error(`profile transport drift ${profile.transportVersion}`);
+          for(const source of profile.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('profile non-CHSI source');}
+          console.log(JSON.stringify({profile:true,school:profile.school,schoolCode:profile.schoolCode,coverage:profile.coverage,evidence:profile.evidenceText,sources:profile.sources},null,2));
+
+          const detail=await loadOfficialSchoolEvidence({school:'东北石油大学',question:'录取规则怎么写'});
+          if(!detail?.ok)throw new Error(`detail fallback failed: ${detail?.code||''} ${detail?.message||''}`);
+          if(detail.school!=='东北石油大学')throw new Error(`detail entity drift ${detail.school}`);
+          if(detail.detailAvailable!==false||detail.coverage!=='official_search_card_only')throw new Error(`detail must be explicit unavailable: ${detail.coverage}/${detail.detailAvailable}`);
+          if(!/未可靠定位/.test(detail.evidenceText)||!/不得补猜/.test(detail.evidenceText))throw new Error(`detail boundary missing: ${detail.evidenceText}`);
+          for(const source of detail.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error('detail non-CHSI source');}
+          console.log(JSON.stringify({detailFallback:true,school:detail.school,schoolCode:detail.schoolCode,coverage:detail.coverage,evidence:detail.evidenceText,sources:detail.sources},null,2));
           NODE
       - name: Commit tested AI Plus runtime
         shell: bash
