@@ -1,10 +1,12 @@
 import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
+import { matchRegionRule } from '../../shared/resources/geo/china-region-catalog.v3990_1.js';
 
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
 export const MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION = 'major-bands-rank-order-minimal-projection-v3990_1';
+export const MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1';
 
 const MANIFEST_PATH = '/ln-rank/data/major-bands-static-v3972_2/manifest.json';
 const MANIFEST_TTL = 5 * 60 * 1000;
@@ -217,6 +219,18 @@ export async function loadMajorBandsStaticBucket(request, bucketFile, scoreWindo
  * rank classification after all selected buckets are decoded in one Worker.
  */
 
+export function majorBandsStaticRowMatchesRegion(row = [], schema = [], region = 'all') {
+  const key = String(region || 'all').trim();
+  if (!key || key === 'all') return true;
+  const index = name => schema.indexOf(name);
+  const value = indexValue => indexValue >= 0 ? row?.[indexValue] : undefined;
+  return matchRegionRule({
+    lnArea: value(index('lnArea')),
+    province: value(index('province')),
+    city: value(index('city'))
+  }, key);
+}
+
 export function majorBandsRankValueMatchesRange(rankLike, range = null) {
   const minRank = Number(range?.minRank);
   const maxRank = Number(range?.maxRank);
@@ -248,12 +262,18 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
       })
     : null;
   const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
-  const rankFilteredRows = rankRange && rankIndex >= 0
-    ? payload.rows.filter(row => majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange))
-    : payload.rows;
-  const selectedRows = allowedIds && idIndex >= 0
-    ? rankFilteredRows.filter(row => allowedIds.has(String(row?.[idIndex] || '')))
-    : rankFilteredRows;
+  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
+  const selectedRows = [];
+  let rankFilteredRowCount = 0;
+  let regionFilteredRowCount = 0;
+  for (const row of payload.rows) {
+    if (rankRange && rankIndex >= 0 && !majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)) continue;
+    rankFilteredRowCount += 1;
+    if (predecodeRegion !== 'all' && !majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;
+    regionFilteredRowCount += 1;
+    if (allowedIds && idIndex >= 0 && !allowedIds.has(String(row?.[idIndex] || ''))) continue;
+    selectedRows.push(row);
+  }
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     : 'full-record-v3990_1';
@@ -277,7 +297,11 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
     rowCount: payload.rows.length,
     decodedRowCount: selectedRows.length,
     rankRowsSkipped: payload.rows.length - selectedRows.length,
-    pageIdRowsSkipped: rankFilteredRows.length - selectedRows.length,
+    rankOnlyRowsSkipped: payload.rows.length - rankFilteredRowCount,
+    regionRowsSkipped: rankFilteredRowCount - regionFilteredRowCount,
+    predecodeRegion,
+    predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
+    pageIdRowsSkipped: regionFilteredRowCount - selectedRows.length,
     pageIdFilterCount: allowedIds?.size || 0,
     pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_1',
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,

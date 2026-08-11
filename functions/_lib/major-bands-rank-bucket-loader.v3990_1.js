@@ -1,6 +1,7 @@
 import {
   MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
   MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
+  MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
   loadMajorBandsStaticRankBucket
 } from './major-bands-static-provider.js';
 import { lookupScoreRank, getRankPopulation } from './rank-table-provider.js';
@@ -13,7 +14,7 @@ export const MAJOR_BANDS_RANK_BUCKET_LOADER_VERSION = 'major-bands-rank-bucket-l
 export const MAJOR_BANDS_RANK_BUCKET_CACHE_VERSION = 'major-bands-rank-bucket-cache-v3990_1';
 export const MAJOR_BANDS_REQUEST_BAND_SCOPE_VERSION = 'major-bands-request-band-scope-v3990_1';
 export const MAJOR_BANDS_RANK_BUCKET_RECORD_OWNERSHIP = 'miss-owned-hit-shallow-cloned-v3990_1';
-export { MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION, MAJOR_BANDS_RANK_ROW_FILTER_VERSION };
+export { MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION, MAJOR_BANDS_RANK_ROW_FILTER_VERSION, MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION };
 
 const MAX_CACHED_BUCKETS = 6;
 const MAX_CACHED_BYTES = 900_000;
@@ -181,7 +182,8 @@ function bucketReadKey(indexBucket, scope = {}, options = {}) {
     : 'all-ranks';
   const projection = options.projection || 'full-record-v3990_1';
   const rawRowStorage = options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference';
-  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}`;
+  const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
+  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}|region:${predecodeRegion}`;
 }
 
 async function readBucket(context, indexBucket, scope, options = {}) {
@@ -202,6 +204,7 @@ async function readBucket(context, indexBucket, scope, options = {}) {
     assets: context.env?.ASSETS,
     rankRange: scope.requestedRange,
     allowedIds: options.allowedIds,
+    predecodeRegion: options.predecodeRegion,
     projection: options.projection,
     rawRowStorage: options.rawRowStorage
   }).then(loaded => {
@@ -242,6 +245,10 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
         decodedRowCount: 0,
         rawRowCount: 0,
         rankRowsSkipped: 0,
+        rankOnlyRowsSkipped: 0,
+        regionRowsSkipped: 0,
+        predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',
+        predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
         pageIdRowsSkipped: 0,
         pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
         pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_1',
@@ -294,6 +301,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
   let rawRowCount = 0;
   let decodedRowCount = 0;
   let rankRowsSkipped = 0;
+  let rankOnlyRowsSkipped = 0;
+  let regionRowsSkipped = 0;
   let pageIdRowsSkipped = 0;
   for (const result of results) {
     records.push(...result.loaded.records);
@@ -301,6 +310,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
     rawRowCount += Number(result.loaded.rowCount || 0);
     decodedRowCount += Number(result.loaded.decodedRowCount ?? result.loaded.records.length ?? 0);
     rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);
+    rankOnlyRowsSkipped += Number(result.loaded.rankOnlyRowsSkipped || 0);
+    regionRowsSkipped += Number(result.loaded.regionRowsSkipped || 0);
     pageIdRowsSkipped += Number(result.loaded.pageIdRowsSkipped || 0);
     if (result.cacheStatus === 'hit-cloned') {
       cacheHits += 1;
@@ -326,6 +337,10 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
       decodedRowCount,
       rawRowCount,
       rankRowsSkipped,
+      rankOnlyRowsSkipped,
+      regionRowsSkipped,
+      predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',
+      predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
       pageIdRowsSkipped,
       pageIdFilterCount: options.allowedIds instanceof Set ? options.allowedIds.size : 0,
       pageIdFilterVersion: 'major-bands-page-id-predecode-filter-v3990_1',
