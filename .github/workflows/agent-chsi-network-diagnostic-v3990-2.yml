@@ -1,4 +1,4 @@
-name: Temporary CHSI public fetch diagnostic v3990_2
+name: Temporary CHSI Cloudflare runtime diagnostic v3990_2
 
 on:
   push:
@@ -15,36 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Compare public CHSI routes and request headers
+      - name: Probe branch Preview official-school endpoint
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import urllib.parse
-          school='辽宁石油化工大学'
-          print('ENCODED='+urllib.parse.quote(school))
-          PY
-          urls=(
-            'https://gaokao.chsi.com.cn/sch/search.do?searchType=1&yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&zymc=&sySsdm=&ssdm=&yxls=&yxlx=&xlcc=&bxlx='
-            'https://gaokao.chsi.com.cn/sch/search--ss-on,option-qg,searchType-1,start-0.dhtml?yxmc=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6'
-            'https://gaokao.chsi.com.cn/sch/schoolInfo--schId-124,categoryId-1167668,mindex-1.dhtml'
-            'https://gaokao.chsi.com.cn/sch/schoolInfo--schId-179,categoryId-88121,mindex-4.dhtml'
-          )
-          for url in "${urls[@]}"; do
-            echo "--- $url"
-            for profile in minimal chrome chrome_referer; do
-              args=(-L -sS -o /tmp/chsi-body -D /tmp/chsi-head --max-time 12 -w '%{http_code} %{size_download} %{url_effective}')
-              if [ "$profile" = chrome ] || [ "$profile" = chrome_referer ]; then
-                args+=(-H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: zh-CN,zh;q=0.9,en;q=0.7' -H 'Cache-Control: no-cache')
-              fi
-              if [ "$profile" = chrome_referer ]; then args+=(-H 'Referer: https://gaokao.chsi.com.cn/sch/'); fi
-              printf '%s: ' "$profile"
-              curl "${args[@]}" "$url" || true
-              printf ' content-type='
-              grep -i '^content-type:' /tmp/chsi-head | tail -1 | tr -d '\r' | cut -d: -f2- | xargs || true
-              printf ' title='
-              grep -Eio '<title>[^<]{0,120}</title>' /tmp/chsi-body | head -1 | sed -E 's/<\/?title>//g' || true
-              echo
-            done
+          base='https://agent-aiplus-school-official.gaokao-4y9.pages.dev'
+          for attempt in $(seq 1 20); do
+            code=$(curl -sS -o /tmp/aiplus-official.json -w '%{http_code}' --max-time 20 "$base/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D" || true)
+            echo "attempt=$attempt status=$code bytes=$(wc -c </tmp/aiplus-official.json 2>/dev/null || echo 0)"
+            head -c 1200 /tmp/aiplus-official.json 2>/dev/null || true
+            echo
+            if [ "$code" = 200 ]; then exit 0; fi
+            sleep 2
           done
+          exit 1
