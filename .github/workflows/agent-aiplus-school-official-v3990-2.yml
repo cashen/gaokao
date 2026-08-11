@@ -1,4 +1,4 @@
-name: Temporary AI Plus school official integration v3990_2 r10
+name: Temporary AI Plus school official integration v3990_2 r11
 
 on:
   push:
@@ -35,7 +35,6 @@ jobs:
           PY
           python tools/.agent-aiplus-school-official-v3990_2.py
           git checkout -- tools/.agent-aiplus-school-official-v3990_2.py
-          sed -i 's/text.length<200/text.length<80/' functions/_lib/ai/school-official-source.js
           python - <<'PY'
           from pathlib import Path
           path=Path('functions/_lib/ai/agent-task-kernel.js')
@@ -93,21 +92,22 @@ jobs:
           node --check tools/verify-ai-workspace-v3990_1.mjs
       - name: Run existing AI workspace and AI Plus truth gates
         run: node tools/verify-ai-workspace-v3990_1.mjs
-      - name: Verify real Sunshine Gaokao outbound source
+      - name: Verify real Sunshine Gaokao Reader transport
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module - <<'NODE'
-          import {loadOfficialSchoolEvidence,AI_SCHOOL_OFFICIAL_ORIGIN} from './functions/_lib/ai/school-official-source.js';
+          import {loadOfficialSchoolEvidence,AI_SCHOOL_OFFICIAL_ORIGIN,AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION} from './functions/_lib/ai/school-official-source.js';
           const cases=[['辽宁石油化工大学','这所学校是什么定位'],['东北石油大学','录取规则怎么写']];
           for(const [school,question] of cases){
             const result=await loadOfficialSchoolEvidence({school,question});
             if(!result?.ok)throw new Error(`${school}: ${result?.code||''} ${result?.message||'official source failed'}`);
             if(result.school!==school)throw new Error(`${school}: resolved as ${result.school}`);
             if(!result.schId)throw new Error(`${school}: schId missing`);
+            if(result.transportVersion!==AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION)throw new Error(`${school}: transport drift ${result.transportVersion}`);
             if(String(result.evidenceText||'').length<200)throw new Error(`${school}: evidence too short`);
-            for(const source of result.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error(`${school}: non-official origin`);}
-            console.log(JSON.stringify({school,schId:result.schId,topic:result.topic,updatedAt:result.updatedAt,bytes:new TextEncoder().encode(result.evidenceText).byteLength,sources:result.sources.map(x=>x.sourceUrl)},null,2));
+            for(const source of result.sources||[]){if(new URL(source.sourceUrl).origin!==AI_SCHOOL_OFFICIAL_ORIGIN)throw new Error(`${school}: non-CHSI evidence source`);}
+            console.log(JSON.stringify({school,schId:result.schId,topic:result.topic,updatedAt:result.updatedAt,transportVersion:result.transportVersion,bytes:new TextEncoder().encode(result.evidenceText).byteLength,sources:result.sources.map(x=>x.sourceUrl)},null,2));
           }
           NODE
       - name: Commit tested AI Plus runtime
