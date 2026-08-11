@@ -1,0 +1,113 @@
+name: Temporary integrated major-bands performance qualification
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-integrate-major-perf-v3990-1.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-500-diagnostic-646b
+          path: diag
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 0
+          path: src
+      - uses: actions/checkout@v4
+        with:
+          ref: 009ea3fa02f8b3acc0939ad0a1a7abbc830e8b90
+          path: perf
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Integrate proven performance files and region predecode
+        working-directory: src
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            functions/_lib/major-bands-static-provider.js \
+            functions/api/major-bands.js \
+            tools/audit-major-bands-rank-kernel-v3990_1.mjs \
+            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \
+            tools/verify-major-bands-rank-native-scan-v3990_1.mjs; do
+            cp "../perf/$file" "$file"
+          done
+          python ../diag/tools/.agent-integrate-major-perf-v3990_1.py
+          git diff --check
+      - name: Verify native scan region truth and full rank kernel
+        working-directory: src
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check functions/api/major-bands.js
+          node --check tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node --check tools/verify-major-bands-predecode-region-v3990_1.mjs
+          node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          node --check tools/verify-major-bands-preview-concurrency-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/verify-major-bands-predecode-region-v3990_1.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
+      - name: Start local Pages Worker
+        working-directory: src
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.28.1
+          npx wrangler pages dev . --port 8798 --compatibility-date=2026-07-01 >/tmp/integrated-major-perf-wrangler.log 2>&1 &
+          echo "$!" >/tmp/integrated-major-perf-wrangler.pid
+          for attempt in $(seq 1 60); do
+            if curl -fsS --max-time 10 'http://127.0.0.1:8798/api/major-bands?candidateScore=579&rangePreset=standard&band=near&limit=16' >/tmp/ready.json 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/integrated-major-perf-wrangler.log
+          exit 1
+      - name: Verify worst safe pagination and regional cold query locally
+        working-directory: src
+        env:
+          TARGET_BASE: http://127.0.0.1:8798
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base=process.env.TARGET_BASE;
+          async function get(url){const r=await fetch(url);const t=await r.text();assert.equal(r.status,200,`${r.status} ${t.slice(0,300)}`);return JSON.parse(t)}
+          async function exhaust(label,url){let offset=0,seen=new Set(),snapshot='',declared=null,pages=0;while(true){const join=url+(url.includes('?')?'&':'?')+`offset=${offset}&limit=37&stress=${Date.now()}-${pages}`;const p=await get(join);const band=p.meta?.pageBand||'near';const g=p.bands?.[band];assert.ok(g,`${label} band missing`);const pg=g.pagination||{};if(declared===null)declared=Number(g.count||0);else assert.equal(Number(g.count||0),declared,`${label} count drift`);if(!snapshot)snapshot=String(pg.snapshot||'');else assert.equal(String(pg.snapshot||''),snapshot,`${label} snapshot drift`);for(const row of g.records||[]){assert.ok(!seen.has(row.id),`${label} duplicate ${row.id}`);seen.add(row.id)}pages++;if(!pg.hasMore){assert.equal(pg.nextOffset,null,`${label} final offset`);break}assert.ok(Number(pg.nextOffset)>offset,`${label} offset not increasing`);offset=Number(pg.nextOffset);assert.ok(pages<100,`${label} runaway`)}assert.equal(seen.size,declared,`${label} exhausted truth`);return {label,pages,total:seen.size}}
+          const safe=await exhaust('safe-449-near',`${base}/api/major-bands?candidateScore=449&rangePreset=safe&band=near`);
+          const regional=await get(`${base}/api/major-bands?candidateScore=440&rangePreset=standard&region=${encodeURIComponent('any:province:新疆|province:西藏')}&bottomLineMode=public_first&band=near&limit=37&stress=regional-cold`);
+          assert.equal(regional.ok,true,'regional query not ok');
+          assert.equal(regional.source?.predecodeRegion,'any:province:新疆|province:西藏');
+          assert.ok(Number(regional.source?.regionRowsSkipped||0)>0,'regional predecode did not skip rows');
+          console.log(JSON.stringify({ok:true,safe,regional:{count:regional.bands?.near?.count,regionRowsSkipped:regional.source?.regionRowsSkipped,decoded:regional.source?.rankDecodedRowCount}},null,2));
+          NODE
+      - name: Stop local Pages Worker
+        if: always()
+        run: |
+          if [ -f /tmp/integrated-major-perf-wrangler.pid ]; then kill "$(cat /tmp/integrated-major-perf-wrangler.pid)" || true; fi
+      - name: Commit qualified formal files to PR branch
+        working-directory: src
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add \
+            functions/_lib/major-bands-static-provider.js \
+            functions/api/major-bands.js \
+            tools/audit-major-bands-rank-kernel-v3990_1.mjs \
+            tools/verify-major-bands-preview-concurrency-v3990_1.mjs \
+            tools/verify-major-bands-rank-native-scan-v3990_1.mjs \
+            tools/verify-major-bands-predecode-region-v3990_1.mjs
+          git commit -m 'perf: combine native rank scan with regional prefilter'
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
