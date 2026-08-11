@@ -1,0 +1,58 @@
+name: Temporary requested-band response cache isolation v3990_1
+
+on:
+  push:
+    branches:
+      - agent/major-bands-requested-response-edge-cache-v3990_1
+    paths:
+      - .github/workflows/agent-fix-requested-band-response-cache-isolation-v3990-1.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/major-bands-requested-response-edge-cache-v3990_1
+      - name: Isolate internal all-band subrequests from requested-band response cache
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('functions/api/major-bands.js')
+          text = path.read_text()
+          old_call = """      const response = await onRequest({
+                ...context,
+                majorBandsAllBandsShared: allBandsShared,
+                request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
+              });"""
+          new_call = """      const response = await onRequest({
+                ...context,
+                majorBandsInternalBandRequest: true,
+                majorBandsAllBandsShared: allBandsShared,
+                request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
+              });"""
+          old_cache = "    const requestedBandResponseEdgeCache = requestedBand ? allBandsEdgeCacheHandle() : null;"
+          new_cache = """    const requestedBandResponseEdgeCache = requestedBand && context?.majorBandsInternalBandRequest !== true
+              ? allBandsEdgeCacheHandle()
+              : null;"""
+          if old_call not in text:
+              raise SystemExit('internal all-band onRequest block not found')
+          if old_cache not in text:
+              raise SystemExit('requested-band response cache declaration not found')
+          text = text.replace(old_call, new_call, 1).replace(old_cache, new_cache, 1)
+          path.write_text(text)
+          PY
+          git diff --check
+          git diff -- functions/api/major-bands.js
+      - name: Commit product fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/api/major-bands.js
+          git commit -m "fix: isolate requested-band response cache from internal orchestration"
+          git push origin HEAD:agent/major-bands-requested-response-edge-cache-v3990_1
