@@ -1,3 +1,4 @@
+import './verify-aiplus-school-official-cache-v3990_2.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
