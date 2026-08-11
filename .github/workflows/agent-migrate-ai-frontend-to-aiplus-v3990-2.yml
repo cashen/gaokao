@@ -53,6 +53,7 @@ jobs:
               Path('tools/verify-ai-workspace-v3990_0.mjs'),
               Path('tools/verify-ai-workspace-v3990_1.mjs'),
               Path('tools/verify-aiplus-school-official-v3990_2.mjs'),
+              Path('tools/verify-ai-school-history-bridge-v3992_2.mjs'),
               Path('tools/browser-ai-workspace-v3990_0.mjs'),
               Path('tools/browser-ai-workspace-v3990_1.mjs'),
               Path('.github/workflows/verify-ai-workspace-v3990_1.yml'),
@@ -64,9 +65,12 @@ jobs:
               ('"/ai/', '"/aiplus/'),
               ('../ai/', '../aiplus/'),
               ('ai/index.html', 'aiplus/index.html'),
+              ('ai/app.v3990_0.js', 'aiplus/app.v3990_0.js'),
               ('ai/app.v3990_1.js', 'aiplus/app.v3990_1.js'),
+              ('ai/workspace.v3990_0.css', 'aiplus/workspace.v3990_0.css'),
               ('ai/workspace.v3990_1.css', 'aiplus/workspace.v3990_1.css'),
               ('ai/agent.v3992_0.css', 'aiplus/agent.v3992_0.css'),
+              ('ai/render.v3991_0.js', 'aiplus/render.v3991_0.js'),
               ('ai/render.v3992_0.js', 'aiplus/render.v3992_0.js'),
               ('ai/parent-starter.v3992_1.js', 'aiplus/parent-starter.v3992_1.js'),
               ('}/ai/', '}/aiplus/'),
@@ -107,11 +111,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --check aiplus/app.v3990_0.js
           node --check aiplus/app.v3990_1.js
+          node --check aiplus/render.v3991_0.js
           node --check aiplus/render.v3992_0.js
           node --check aiplus/parent-starter.v3992_1.js
           node tools/verify-aiplus-school-official-v3990_2.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
       - name: Commit tested migration
         shell: bash
         run: |
