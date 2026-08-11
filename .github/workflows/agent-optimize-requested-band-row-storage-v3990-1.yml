@@ -28,33 +28,20 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-
           api = Path('functions/api/major-bands.js')
           text = api.read_text()
-          old = """      const loaded = await loadMajorBandsRankWindow(context, selected, {
-        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined
-      });"""
-          new = """      const loaded = await loadMajorBandsRankWindow(context, selected, {
-        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
-        rawRowStorage: minimalOrderProjection ? 'serialized-json' : undefined
-      });"""
-          if text.count(old) != 1:
-              raise SystemExit(f'cold requested-band load anchor count={text.count(old)}')
-          api.write_text(text.replace(old, new, 1))
-
+          marker = "        projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined"
+          replacement = marker + ",\n        rawRowStorage: minimalOrderProjection ? 'serialized-json' : undefined"
+          if text.count(marker) != 1:
+              raise SystemExit(f'cold requested-band projection anchor count={text.count(marker)}')
+          api.write_text(text.replace(marker, replacement, 1))
           verify = Path('tools/verify-major-bands-preview-concurrency-v3990_1.mjs')
           v = verify.read_text()
-          old_storage = """    result.payload?.source?.requestedBandOrderPageSource === 'all-bands-shared-projection'
-      ? 'serialized-json'
-      : result.payload?.source?.requestedBandOrderPageSource === 'raw-row-reuse'
-        ? 'array-reference'
-        : 'full-record',"""
-          new_storage = """    ['all-bands-shared-projection', 'raw-row-reuse'].includes(result.payload?.source?.requestedBandOrderPageSource)
-      ? 'serialized-json'
-      : 'full-record',"""
-          if v.count(old_storage) != 1:
-              raise SystemExit(f'verifier raw storage anchor count={v.count(old_storage)}')
-          verify.write_text(v.replace(old_storage, new_storage, 1))
+          marker2 = "        ? 'array-reference'"
+          replacement2 = "        ? 'serialized-json'"
+          if v.count(marker2) != 1:
+              raise SystemExit(f'verifier raw storage anchor count={v.count(marker2)}')
+          verify.write_text(v.replace(marker2, replacement2, 1))
           PY
           git diff --check
           node --check functions/api/major-bands.js
