@@ -22,8 +22,9 @@ const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-
 const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_1';
 const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_1';
 const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_1';
-const expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
-const expectedRequestedBandResponseEdgeCacheVersion = 'major-bands-requested-band-response-edge-cache-canonical-v3990_1';
+const expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_1';
+const expectedPageScoreHintVersion = 'major-bands-requested-band-page-score-hints-v3990_1';
+const expectedRequestedBandResponseEdgeCacheVersion = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_1';
 const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_1';
 const expectedOrderProjectionVersion = 'major-bands-rank-order-minimal-projection-v3990_1';
 const expectedOrderPageSourceVersion = 'major-bands-order-page-raw-row-reuse-v3990_1';
@@ -163,6 +164,8 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.requestedBandOrderMinimalProjection, true, `${result.scenario}: default query did not use minimal projection`);
   assert.equal(result.payload?.source?.requestedBandOrderPageSourceVersion, expectedOrderPageSourceVersion, `${result.scenario}: order page source deployment`);
   assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch', 'all-bands-shared-projection'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
+  assert.equal(result.payload?.source?.requestedBandOrderPageScoreHintVersion, expectedPageScoreHintVersion, `${result.scenario}: page score hint deployment`);
+  assert.ok(['not-needed', 'shared-projection', 'applied', 'empty-page', 'fallback-invalid-hints', 'fallback-uncovered-score', 'keyword-bypass'].includes(result.payload?.source?.requestedBandOrderPageBucketHintStatus), `${result.scenario}: invalid page bucket hint status`);
   assert.equal(result.payload?.source?.requestedBandOrderColdSecondAssetPass, false, `${result.scenario}: cold ordered query performed a second asset pass`);
   assert.equal(result.payload?.source?.requestedBandRawRowReferenceNonEnumerable, true, `${result.scenario}: raw row reference contract`);
   assert.equal(
@@ -271,14 +274,25 @@ function validateResult(result) {
     if (['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {
       assert.ok(Number(result.payload?.source?.rankDecodedRowCount || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID hit decoded more than current page`);
       assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID page exceeded limit`);
+      if (Number(group.pagination?.returned || 0) > 0) {
+        assert.equal(result.payload?.source?.requestedBandOrderPageBucketHintStatus, 'applied', `${result.scenario}: cached page score hints not applied`);
+        assert.equal(Number(result.payload?.source?.requestedBandOrderPageScoreHints || 0), Number(group.pagination?.returned || 0), `${result.scenario}: page score hint count`);
+        assert.ok(Number(result.payload?.source?.requestedBandOrderPageSelectedBuckets || 0) > 0, `${result.scenario}: page score hint selected no buckets`);
+        assert.ok(Number(result.payload?.source?.requestedBandOrderPageSelectedBuckets || 0) <= Number(result.payload?.source?.requestedBandOrderPageBucketHintCandidates || 0), `${result.scenario}: page score hint expanded buckets`);
+      }
     }
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
       assert.equal(Number(result.payload?.bands?.[hiddenBand]?.count || 0), 0, `${result.scenario}: hidden ${hiddenBand} band was classified`);
       assert.equal((result.payload?.bands?.[hiddenBand]?.records || []).length, 0, `${result.scenario}: hidden ${hiddenBand} records leaked`);
     }
     if (result.scenario === 'safe-449-near') {
-      assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: requested band must read exactly six buckets');
-      assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: scoped static bytes drift');
+      if (result.payload?.source?.requestedBandOrderPageSource === 'page-id-refetch') {
+        assert.ok(Number(result.payload?.source?.chunksRead) >= 1 && Number(result.payload?.source?.chunksRead) <= 6, 'safe-449-near: page hint bucket scope');
+        assert.ok(Number(result.payload?.source?.staticIndexBytes) > 0 && Number(result.payload?.source?.staticIndexBytes) <= 621156, 'safe-449-near: page hint static bytes');
+      } else {
+        assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: cold requested band must read exactly six buckets');
+        assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: cold scoped static bytes drift');
+      }
     }
     if (result.empty) {
       assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');

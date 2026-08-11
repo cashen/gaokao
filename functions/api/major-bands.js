@@ -82,9 +82,10 @@ export const MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-e
 const ALL_BANDS_EDGE_CACHE_TTL_SECONDS = 60;
 const BAND_KEYS = Object.freeze(['upper', 'near', 'steady']);
 export const MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION = 'major-bands-requested-band-order-id-lru-v3990_1';
-export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION = 'major-bands-requested-band-page-score-hints-v3990_1';
 const REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS = 180;
-export const MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-canonical-v3990_1';
+export const MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_1';
 const REQUESTED_BAND_RESPONSE_EDGE_CACHE_TTL_SECONDS = 60;
 export const MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION = 'major-bands-order-page-raw-row-reuse-v3990_1';
 const REQUESTED_BAND_ORDER_CACHE_TTL_MS = 30_000;
@@ -165,6 +166,7 @@ function requestedBandOrderEdgeCacheRequest(request) {
   url.searchParams.delete('offset');
   url.searchParams.delete('limit');
   url.searchParams.set('__orderEdgeCache', MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION);
+  url.searchParams.set('__pageScoreHints', MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION);
   url.searchParams.sort();
   return new Request(url.toString(), { method: 'GET' });
 }
@@ -176,9 +178,12 @@ async function readRequestedBandOrderEdgeSnapshot(cache, request) {
     const payload = await response.json();
     const snapshot = payload?.snapshot;
     const orderedIds = Array.isArray(snapshot?.orderedIds) ? snapshot.orderedIds : [];
+    const orderedScores = Array.isArray(snapshot?.orderedScores) ? snapshot.orderedScores : [];
     if (payload?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION) return null;
     if (snapshot?.version !== MAJOR_BANDS_REQUESTED_BAND_ORDER_CACHE_VERSION) return null;
+    if (snapshot?.pageScoreHintVersion !== MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION) return null;
     if (!snapshot?.snapshot || orderedIds.length > REQUESTED_BAND_ORDER_CACHE_MAX_IDS_PER_ENTRY) return null;
+    if (orderedScores.length !== orderedIds.length || orderedScores.some(score => !Number.isFinite(Number(score)))) return null;
     return snapshot;
   } catch {
     return null;
@@ -200,6 +205,35 @@ async function writeRequestedBandOrderEdgeSnapshot(cache, request, snapshot) {
   } catch {
     return false;
   }
+}
+
+function orderedPageScores(records = []) {
+  return (Array.isArray(records) ? records : []).map(record => {
+    const score = Number(record?.score2026 ?? record?.score);
+    return Number.isFinite(score) ? score : null;
+  });
+}
+
+function selectRequestedBandPageBucketsByScoreHints(selectedBuckets = [], pageScores = [], pageIdCount = 0) {
+  const buckets = Array.isArray(selectedBuckets) ? selectedBuckets : [];
+  const scores = Array.isArray(pageScores) ? pageScores.map(Number) : [];
+  if (!pageIdCount) {
+    return { status: 'empty-page', buckets: [], candidateCount: buckets.length, hintedCount: 0, scoreCount: 0 };
+  }
+  if (scores.length !== pageIdCount || scores.some(score => !Number.isFinite(score))) {
+    return { status: 'fallback-invalid-hints', buckets, candidateCount: buckets.length, hintedCount: buckets.length, scoreCount: scores.length };
+  }
+  const uniqueScores = [...new Set(scores)];
+  const hinted = buckets.filter(bucket => uniqueScores.some(score => (
+    score >= Number(bucket?.minScore) && score <= Number(bucket?.maxScore)
+  )));
+  const covered = uniqueScores.every(score => hinted.some(bucket => (
+    score >= Number(bucket?.minScore) && score <= Number(bucket?.maxScore)
+  )));
+  if (!covered || !hinted.length) {
+    return { status: 'fallback-uncovered-score', buckets, candidateCount: buckets.length, hintedCount: buckets.length, scoreCount: scores.length };
+  }
+  return { status: 'applied', buckets: hinted, candidateCount: buckets.length, hintedCount: hinted.length, scoreCount: scores.length };
 }
 
 function requestedBandOrderCacheState(identity = '') {
@@ -802,6 +836,11 @@ async function executeRequestedBandOrderedPage(context, input) {
   let selectedBuckets = null;
   let pageRecords = null;
   let orderPageSource = 'page-id-refetch';
+  let orderPageBucketHintStatus = allBandsShared ? 'shared-projection' : 'not-needed';
+  let orderPageBucketHintCandidateCount = 0;
+  let orderPageBucketHintedCount = 0;
+  let orderPageBucketSelectedCount = 0;
+  let orderPageScoreHintCount = 0;
   let orderCacheStatus = retained ? 'ordered-id-hit' : 'ordered-id-miss';
   let orderEdgeCacheStatus = allBandsShared
     ? 'shared-projection'
@@ -834,6 +873,8 @@ async function executeRequestedBandOrderedPage(context, input) {
       orderRawRowCount: allBandsShared.loadedStats.rawRowCount,
       orderDecodedRowCount: allBandsShared.loadedStats.decodedRowCount,
       orderedIds: ordered.map(record => record.id),
+      orderedScores: orderedPageScores(ordered),
+      pageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
       snapshot: majorBandsSnapshotId(ordered, identity)
     };
     const orderedPage = ordered.slice(pageOffset, pageOffset + pageLimit);
@@ -930,7 +971,17 @@ async function executeRequestedBandOrderedPage(context, input) {
   const pageIds = orderedIds.slice(pageOffset, pageOffset + pageLimit);
   if (!pageRecords) {
     selectedBuckets = selectMajorBandsRankBuckets(retained.rankWindows);
+    const pageScores = Array.isArray(retained.orderedScores)
+      ? retained.orderedScores.slice(pageOffset, pageOffset + pageLimit)
+      : [];
+    const pageBucketHints = selectRequestedBandPageBucketsByScoreHints(selectedBuckets, pageScores, pageIds.length);
+    orderPageBucketHintStatus = pageBucketHints.status;
+    orderPageBucketHintCandidateCount = pageBucketHints.candidateCount;
+    orderPageBucketHintedCount = pageBucketHints.hintedCount;
+    orderPageScoreHintCount = pageBucketHints.scoreCount;
+    selectedBuckets = pageBucketHints.buckets;
     const pageLoaded = await loadMajorBandsRankWindow(context, selectedBuckets, { allowedIds: new Set(pageIds) });
+    orderPageBucketSelectedCount = selectedBuckets.length;
     loadedStats = pageLoaded.stats;
     const byId = new Map(pageLoaded.records.map(record => [record.id, record]));
     pageRecords = pageIds.map(id => byId.get(id)).filter(Boolean);
@@ -1034,6 +1085,12 @@ async function executeRequestedBandOrderedPage(context, input) {
     orderModuleCacheEnabled: moduleOrderCacheEnabled,
     orderPageSourceVersion: MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
     orderPageSource,
+    orderPageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
+    orderPageBucketHintStatus,
+    orderPageBucketHintCandidateCount,
+    orderPageBucketHintedCount,
+    orderPageBucketSelectedCount,
+    orderPageScoreHintCount,
     orderColdSecondAssetPass: orderCacheStatus === 'ordered-id-miss' && orderPageSource === 'page-id-refetch',
     rawRowReferenceNonEnumerable: true,
     orderProjectionVersion: retained.orderProjectionVersion || MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
@@ -1389,6 +1446,12 @@ export async function onRequest(context) {
         requestedBandOrderEdgeCacheTtlSeconds: Number(execution.orderEdgeCacheTtlSeconds || REQUESTED_BAND_ORDER_EDGE_CACHE_TTL_SECONDS),
         requestedBandOrderPageSourceVersion: execution.orderPageSourceVersion || MAJOR_BANDS_ORDER_PAGE_SOURCE_VERSION,
         requestedBandOrderPageSource: execution.orderPageSource || 'keyword-bypass',
+        requestedBandOrderPageScoreHintVersion: execution.orderPageScoreHintVersion || MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION,
+        requestedBandOrderPageBucketHintStatus: execution.orderPageBucketHintStatus || 'keyword-bypass',
+        requestedBandOrderPageBucketHintCandidates: Number(execution.orderPageBucketHintCandidateCount || 0),
+        requestedBandOrderPageBucketHints: Number(execution.orderPageBucketHintedCount || 0),
+        requestedBandOrderPageSelectedBuckets: Number(execution.orderPageBucketSelectedCount || 0),
+        requestedBandOrderPageScoreHints: Number(execution.orderPageScoreHintCount || 0),
         requestedBandOrderColdSecondAssetPass: execution.orderColdSecondAssetPass === true,
         requestedBandRawRowReferenceNonEnumerable: execution.rawRowReferenceNonEnumerable === true,
         requestedBandRawRowStorage: loadedStats.rawRowStorage || 'full-record',
