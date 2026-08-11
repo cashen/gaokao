@@ -19,8 +19,6 @@ let activeExecutions = 0;
 let queuedExecutions = 0;
 let peakActiveExecutions = 0;
 let peakQueuedExecutions = 0;
-let nextExecutionTicket = 0;
-let servingExecutionTicket = 0;
 let accessClock = 0;
 
 function touch(entry) {
@@ -123,31 +121,22 @@ function waitForOwnTimer(ms) {
   return new Promise(resolve => globalThis.setTimeout(resolve, ms));
 }
 
-function executionSlotPollDelay(ticket) {
-  const distance = Math.max(0, Number(ticket) - servingExecutionTicket);
-  return Math.min(
-    EXECUTION_SLOT_MAX_POLL_MS,
-    EXECUTION_SLOT_POLL_MS * Math.max(1, distance + 1)
-  );
-}
-
 async function acquireExecutionSlot() {
-  const ticket = nextExecutionTicket++;
-  if (activeExecutions < MAX_CONCURRENT_EXECUTIONS && ticket === servingExecutionTicket) {
+  if (activeExecutions < MAX_CONCURRENT_EXECUTIONS) {
     activeExecutions += 1;
-    servingExecutionTicket += 1;
     peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
     return false;
   }
 
   queuedExecutions += 1;
   peakQueuedExecutions = Math.max(peakQueuedExecutions, queuedExecutions);
+  let pollMs = EXECUTION_SLOT_POLL_MS;
   try {
-    while (activeExecutions >= MAX_CONCURRENT_EXECUTIONS || ticket !== servingExecutionTicket) {
-      await waitForOwnTimer(executionSlotPollDelay(ticket));
+    while (activeExecutions >= MAX_CONCURRENT_EXECUTIONS) {
+      await waitForOwnTimer(pollMs);
+      pollMs = Math.min(EXECUTION_SLOT_MAX_POLL_MS, pollMs * 2);
     }
     activeExecutions += 1;
-    servingExecutionTicket += 1;
     peakActiveExecutions = Math.max(peakActiveExecutions, activeExecutions);
     return true;
   } finally {
@@ -157,14 +146,6 @@ async function acquireExecutionSlot() {
 
 function releaseExecutionSlot() {
   activeExecutions = Math.max(0, activeExecutions - 1);
-  if (
-    activeExecutions === 0
-    && queuedExecutions === 0
-    && servingExecutionTicket === nextExecutionTicket
-  ) {
-    nextExecutionTicket = 0;
-    servingExecutionTicket = 0;
-  }
 }
 
 export async function executeMajorBandsQueryOnce(identity, executor) {
@@ -258,8 +239,6 @@ export function majorBandsQueryExecutionCacheState() {
     queuedExecutions,
     peakActiveExecutions,
     peakQueuedExecutions,
-    nextExecutionTicket,
-    servingExecutionTicket,
     maxConcurrentExecutions: MAX_CONCURRENT_EXECUTIONS,
     completed: completed.size,
     completedRecords: completedRecordCount(),
@@ -277,8 +256,8 @@ export function majorBandsQueryExecutionCacheState() {
     crossRequestSemaphore: true,
     boundedDistinctExecutions: true,
     requestOwnedTimerWait: true,
-    fairTicketQueue: true,
     adaptivePollingBackoff: true,
+    fairTicketQueue: false,
     crossRequestResolverQueue: false,
     keys: Object.freeze([...completed.keys()])
   });
@@ -293,7 +272,5 @@ export function clearMajorBandsQueryExecutionCacheForTest() {
   queuedExecutions = 0;
   peakActiveExecutions = 0;
   peakQueuedExecutions = 0;
-  nextExecutionTicket = 0;
-  servingExecutionTicket = 0;
   accessClock = 0;
 }
