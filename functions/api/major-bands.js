@@ -617,6 +617,7 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
     for (const band of BAND_KEYS) {
       const response = await onRequest({
         ...context,
+        majorBandsInternalBandRequest: true,
         majorBandsAllBandsShared: allBandsShared,
         request: requestForBand(context.request, sourceUrl, band, input.pageLimit)
       });
@@ -1069,7 +1070,9 @@ export async function onRequest(context) {
       return json({ ok: false, message: '参考分数格式不正确。' }, 400);
     }
 
-    const requestedBandResponseEdgeCache = requestedBand ? allBandsEdgeCacheHandle() : null;
+    const requestedBandResponseEdgeCache = requestedBand && context?.majorBandsInternalBandRequest !== true
+      ? allBandsEdgeCacheHandle()
+      : null;
     const requestedBandResponseCacheKey = requestedBandResponseEdgeCache
       ? requestedBandResponseEdgeCacheRequest(url)
       : null;
