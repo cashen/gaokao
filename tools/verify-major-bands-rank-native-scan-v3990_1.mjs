@@ -25,6 +25,9 @@ let allowedTruth = 0;
 let allowedScanned = 0;
 let allowedFullRowParses = 0;
 let allowedScalarPrefilters = 0;
+let allowedPrimaryTraversalScans = 0;
+let allowedRowTextAllocations = 0;
+let avoidedRowTextAllocations = 0;
 
 for (const bucket of manifest.buckets || []) {
   const path = `.${bucket.file}`;
@@ -60,6 +63,9 @@ for (const bucket of manifest.buckets || []) {
   assert.equal(selective.mode, 'native-page-id-id-first-prefilter', `${bucket.file}: ID-first mode`);
   assert.equal(selective.pageIdPrefilterVersion, MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION, `${bucket.file}: ID-first version`);
   assert.equal(selective.pageIdScalarPrefilterCount, payload.rows.length, `${bucket.file}: ID-first scan count`);
+  assert.equal(selective.pageIdPrimaryTraversalCount, payload.rows.length, `${bucket.file}: primary traversal ID scan count`);
+  assert.equal(selective.pageIdRowTextAllocationCount, allowedRowsTruth.length, `${bucket.file}: rowText allocations only for page IDs`);
+  assert.equal(selective.pageIdRowTextAvoidedCount, payload.rows.length - allowedRowsTruth.length, `${bucket.file}: avoided non-page rowText allocations`);
   assert.equal(selective.pageIdDirectLookupCount, 0, `${bucket.file}: direct lookup disabled`);
   assert.equal(selective.pageIdDirectLookupHits, 0, `${bucket.file}: direct lookup hits disabled`);
   assert.equal(selective.fullRowParseCount, allowedRowsTruth.length, `${bucket.file}: full row parse count`);
@@ -69,6 +75,9 @@ for (const bucket of manifest.buckets || []) {
   allowedScanned += selective.rows.length;
   allowedFullRowParses += selective.fullRowParseCount;
   allowedScalarPrefilters += selective.pageIdScalarPrefilterCount;
+  allowedPrimaryTraversalScans += selective.pageIdPrimaryTraversalCount;
+  allowedRowTextAllocations += selective.pageIdRowTextAllocationCount;
+  avoidedRowTextAllocations += selective.pageIdRowTextAvoidedCount;
 }
 
 assert.equal(total, Number(manifest.recordCount), 'full manifest record total');
@@ -76,6 +85,9 @@ assert.equal(selectiveScanned, selectiveTruth, 'selective rank truth total');
 assert.equal(allowedScanned, allowedTruth, 'selective allowed-ID truth total');
 assert.equal(allowedFullRowParses, allowedTruth, 'allowed-ID full row parse total');
 assert.equal(allowedScalarPrefilters, Number(manifest.recordCount), 'allowed-ID ID-first scan total');
+assert.equal(allowedPrimaryTraversalScans, Number(manifest.recordCount), 'primary traversal ID scan total');
+assert.equal(allowedRowTextAllocations, allowedTruth, 'rowText allocation only for allowed IDs');
+assert.equal(avoidedRowTextAllocations, Number(manifest.recordCount) - allowedTruth, 'non-page rowText allocations avoided');
 assert.throws(() => scanMajorBandsStaticRankRowsText('{"version":"major-bands-static-v3972_2","rows":[]}', {
   expectedVersion: manifest.version,
   expectedRecordCount: 1,
@@ -94,6 +106,9 @@ console.log(JSON.stringify({
   pageIdIdFirstPrefilterVersion: MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION,
   pageIdFullRowParses: allowedFullRowParses,
   pageIdIdFirstScans: allowedScalarPrefilters,
+  pageIdPrimaryTraversalScans: allowedPrimaryTraversalScans,
+  pageIdRowTextAllocations: allowedRowTextAllocations,
+  pageIdRowTextAvoided: avoidedRowTextAllocations,
   directLookupDisabled: true,
   fullRowParseOnlyForAllowedIds: true,
   wholeBucketResponseJsonRequired: false

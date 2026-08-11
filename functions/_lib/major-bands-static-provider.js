@@ -340,6 +340,9 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   let regionScalarPrefilterCount = 0;
   let fullRowParseCount = 0;
   let pageIdScalarPrefilterCount = 0;
+  let pageIdPrimaryTraversalCount = 0;
+  let pageIdRowTextAllocationCount = 0;
+  let pageIdRowTextAvoidedCount = 0;
   let pageIdDirectLookupCount = 0;
   let pageIdDirectLookupHits = 0;
 
@@ -362,6 +365,8 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     let depth = 0;
     let inString = false;
     let escaped = false;
+    let primaryIdCaptured = false;
+    let primaryIdValue;
     for (; cursor < source.length; cursor += 1) {
       const char = source[cursor];
       if (inString) {
@@ -373,6 +378,11 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
       if (char === '"') {
         inString = true;
         continue;
+      }
+      if (char === ',' && depth === 1 && allowedIds && idIndex === 0 && !primaryIdCaptured) {
+        const rawId = source.slice(start + 1, cursor).trim();
+        primaryIdValue = rawId ? JSON.parse(rawId) : undefined;
+        primaryIdCaptured = true;
       }
       if (char === '[' || char === '{') depth += 1;
       else if (char === ']' || char === '}') {
@@ -386,20 +396,32 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     }
     if (depth !== 0 || inString) throw new Error('静态专业位次桶 row 未完整结束');
 
-    const rowText = source.slice(start, cursor);
     rowCount += 1;
+    if (allowedIds && idIndex === 0) {
+      pageIdScalarPrefilterCount += 1;
+      pageIdPrimaryTraversalCount += 1;
+      if (!primaryIdCaptured) throw new Error('静态专业位次桶主遍历未捕获第 0 列 ID');
+      if (!allowedIds.has(String(primaryIdValue || ''))) {
+        pageIdRowTextAvoidedCount += 1;
+        continue;
+      }
+    }
+
+    const rowText = source.slice(start, cursor);
+    pageIdRowTextAllocationCount += 1;
     const scalarIndexes = [];
-    if (allowedIds && idIndex >= 0) scalarIndexes.push(idIndex);
+    if (allowedIds && idIndex >= 0 && idIndex !== 0) scalarIndexes.push(idIndex);
     if (rankRange && rankIndex >= 0) scalarIndexes.push(rankIndex);
     if (regionPredecodeEnabled) scalarIndexes.push(...regionScalarIndexes);
     const scalarValues = scalarIndexes.length
       ? readTopLevelArrayScalars(rowText, scalarIndexes)
       : new Map();
+    if (allowedIds && idIndex === 0) scalarValues.set(idIndex, primaryIdValue);
 
-    // Cached-page refetch is ID-first: rows outside the current page stop here
-    // before rank/region checks or full JSON.parse. Cold queries have no ID set
-    // and therefore start with rank -> region before full parse.
-    if (allowedIds && idIndex >= 0) {
+    // Cached-page refetch is ID-first: schema index 0 is captured during the
+    // primary boundary traversal, so non-page rows never allocate rowText.
+    // Fallback schemas retain the scalar prefilter after rowText creation.
+    if (allowedIds && idIndex > 0) {
       pageIdScalarPrefilterCount += 1;
       if (!allowedIds.has(String(scalarValues.get(idIndex) || ''))) continue;
     }
@@ -444,6 +466,9 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
     predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
     fullRowParseCount,
     pageIdScalarPrefilterCount,
+    pageIdPrimaryTraversalCount,
+    pageIdRowTextAllocationCount,
+    pageIdRowTextAvoidedCount,
     pageIdDirectLookupCount,
     pageIdDirectLookupHits,
     pageIdPrefilterVersion: allowedIds && idIndex >= 0
