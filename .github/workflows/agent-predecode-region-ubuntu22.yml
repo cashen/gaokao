@@ -1,0 +1,52 @@
+name: Temporary predecode region Ubuntu22 verification
+
+on:
+  push:
+    branches: [agent/aiplus-500-diagnostic-646b]
+    paths: ['.github/workflows/agent-predecode-region-ubuntu22.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-500-diagnostic-646b
+          path: diag
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-ai-frontend-to-aiplus-v3990_2
+          fetch-depth: 0
+          path: src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply verified patch
+        working-directory: src
+        run: |
+          set -euo pipefail
+          python ../diag/tools/.agent-predecode-region-v3990_1.py
+          git diff --check
+      - name: Verify full truth and rank kernel
+        working-directory: src
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/major-bands-static-provider.js
+          node --check functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
+          node --check functions/api/major-bands.js
+          node --check tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          node tools/verify-major-bands-predecode-region-v3990_1.mjs
+          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
+      - name: Commit tested formal files
+        working-directory: src
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add functions/_lib/major-bands-static-provider.js functions/_lib/major-bands-rank-bucket-loader.v3990_1.js functions/api/major-bands.js tools/audit-major-bands-rank-kernel-v3990_1.mjs tools/verify-major-bands-predecode-region-v3990_1.mjs
+          git commit -m 'perf: prefilter major bands by region before decode'
+          git push origin HEAD:agent/migrate-ai-frontend-to-aiplus-v3990_2
