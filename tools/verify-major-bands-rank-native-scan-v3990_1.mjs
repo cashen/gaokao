@@ -13,6 +13,7 @@ const schema = Array.isArray(manifest.recordSchema) ? manifest.recordSchema : []
 const rankIndex = schema.indexOf('rank2026');
 const idIndex = schema.indexOf('id');
 assert.ok(rankIndex >= 0 && idIndex >= 0, 'rank/id schema indexes missing');
+assert.equal(idIndex, 0, 'canonical id must remain schema index 0 for allocation-free page prefilter');
 assert.equal(MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION, 'major-bands-rank-row-native-scan-v3990_1');
 assert.equal(MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION, 'major-bands-page-id-native-prefilter-v3990_1');
 assert.equal(MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION, 'major-bands-page-id-id-first-prefilter-v3990_1');
