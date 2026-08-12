@@ -11,7 +11,7 @@ import {scopeChanges,changeSummary,decisionStageFor,pendingChecksFor,comparisonT
 import {agentFocusSeed,taskExecutionPolicy,agentTaskLabel} from './agent-task-kernel.js';
 import {runAiProvider} from './provider-router.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_0';
+export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_4';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
 const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0',AI_WORKSPACE_CONTRACT_VERSION]);
@@ -29,7 +29,7 @@ function selectionReviewRequested(input=''){return /(方案|选择池|自选|已
 function evidenceIntent(command,result){return{topic:result?.comparison?'candidate_search':command.agentTask==='evidence_verification'?'verification':(CANDIDATE_TASKS.has(command.agentTask)||command.agentTask==='major_region_history')?'candidate_search':'general_question',question:command.question||command.rawText||'',majorKeywords:command.majorKeywords||[]};}
 function resultIdentity({view,command,selectionReview}){return[command.agentTask,view.score||'',view.majorKeywords.join('/'),view.regionKeys.join(','),view.schoolNames.join('/'),view.bottomLineMode,command.platformTarget||'',command.focus?.school||'',command.focus?.major||'',selectionReview?.snapshotVersion||''].join('|');}
 function validateConfirmedCommand(value,input,workspace,preserveResolvedFocus=false){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace),stableFocus=preserveResolvedFocus&&value.focus&&typeof value.focus==='object'?clone(value.focus):fallback.focus;return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:stableFocus,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}
-function focusForTurn(command={},workspace={}){const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;const school=seed.school||((['school_major_history','school_history','school_official_qa','fit_assessment','school_background'].includes(task))?prior.school:'');const major=seed.major||((['school_major_history','major_region_history','fit_assessment','major_background'].includes(task))?prior.major:'');const schools=seed.schools?.length?seed.schools:((task==='school_comparison')?prior.schools:[]);const majors=seed.majors?.length?seed.majors:((task==='major_comparison')?prior.majors:[]);return agentFocusSeed({school,major,schools,majors,sourceText:command.rawText},workspace);}
+function focusForTurn(command={},workspace={}){const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;const school=seed.school||((['school_major_history','school_history','school_research','school_official_qa','fit_assessment','school_background'].includes(task))?prior.school:'');const major=seed.major||((['school_major_history','major_region_history','fit_assessment','major_background'].includes(task))?prior.major:'');const schools=seed.schools?.length?seed.schools:((task==='school_comparison')?prior.schools:[]);const majors=seed.majors?.length?seed.majors:((task==='major_comparison')?prior.majors:[]);return agentFocusSeed({school,major,schools,majors,sourceText:command.rawText},workspace);}
 function effectiveScore(command,workspace,view){const explicit=validScore(command.score),remembered=validScore(workspace?.examContext?.score)||validScore(view?.score);if(command.scoreUsage==='suspended'||command.scoreUsage==='cleared')return null;if(command.scoreUsage==='active')return explicit||remembered;return explicit||remembered;}
 function agentContextForTurn(command,workspace,focus){return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};}
 function pendingDeterministicTool(result={}){for(const value of [result.candidates,result.history,result.majorHistory,result.fit,result.officialSchool,result.background,result.comparison])if(value?.code==='client_tool_required'||value?.code==='client_tool_invalid')return value;return null;}
@@ -61,13 +61,14 @@ export async function orchestrateAiTurn(context,payload={}){
   else if(command.agentTask==='fact_rank_lookup')changeText=`这次只回答${validScore(command.score)||score}分对应的参考位次，不改变你正在看的候选条件。`;
   else if(command.agentTask==='school_major_history')changeText=`这轮切到“学校 × 专业历史查询”：${focus.school} · ${focus.major}。${score?'我仍记得你的分数，但这轮不拿它过滤历史记录。':''}`;
   else if(command.agentTask==='school_history')changeText=`这轮只看${focus.school}在辽宁物理类的实际招生专业记录${score?'；你的分数仍记着，但不参与筛选':''}。`;
+  else if(command.agentTask==='school_research')changeText=`我先直接回答${focus.school}是什么学校，再补有证据的专业背景和2026辽宁投档事实；这轮不会修改你的候选筛选。`;
   else if(command.agentTask==='school_official_qa')changeText=`这轮只查${focus.school}的阳光高考官方资料${score?'；你的分数仍记着，但不参与学校介绍和章程归纳':''}。`;
   else if(command.agentTask==='fit_assessment')changeText=`现在把你记住的${score||'当前'}分重新激活，只判断${focus.school}${focus.major?` · ${focus.major}`:''}和你当前位置的历史关系。`;
   else if(command.agentTask==='background_discovery')changeText='这轮不是按分数筛学校，而是先从辽宁高校背景证据里找值得继续研究的专业方向。';
   else if(command.agentTask==='background_fit_discovery')changeText=`这轮把辽宁专业背景证据和你当前${score||''}分的可达窗口做交集预览，不把它包装成“最佳专业排名”。`;
   else changeText=`这轮切到“${agentTaskLabel(command.agentTask)}”；之前记住的家庭背景仍保留，但只让与当前任务有关的信息参与执行。`;
 
-  const result={identity:'',partial:false,rank:null,candidates:null,history:null,majorHistory:null,fit:null,background:null,officialSchool:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION}};
+  const result={identity:'',partial:false,rank:null,candidates:null,history:null,majorHistory:null,fit:null,background:null,officialSchool:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION,plan:command.agentTask==='school_research'?{mode:'multi_tool_research',stateMutation:false,steps:['official_profile','school_background','admission_history']}:{mode:'single_task',stateMutation:resolved.commitView===true,steps:[command.agentTask]}}};
   try{
     switch(command.agentTask){
       case'candidate_discovery':
@@ -83,6 +84,12 @@ export async function orchestrateAiTurn(context,payload={}){
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:(focus.majors?.length?focus.majors.join('/'):(focus.major||''))});result.partial=!result.history.ok;break;
       case'school_history':
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok;break;
+      case'school_research':
+        result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});
+        result.background=await runSchoolBackground(executionContext,{school:focus.school});
+        if(result.officialSchool?.ok)result.officialSchool=await summarizeOfficialSchool(context,result.officialSchool,command.question||command.rawText||'');
+        result.partial=![result.officialSchool,result.history,result.background].some(item=>item?.ok);break;
       case'school_official_qa':
         result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});if(result.officialSchool?.ok)result.officialSchool=await summarizeOfficialSchool(context,result.officialSchool,command.question||command.rawText||'');result.partial=!result.officialSchool?.ok;break;
       case'fit_assessment':

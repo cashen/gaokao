@@ -93,7 +93,7 @@ await assert.rejects(()=>loadOfficialSchoolEvidence({school:'辽宁石油化工�
 
 const workspace=createAiWorkspace({examContext:{score:580},agentContext:{currentTask:'school_official_qa',focus:{school:'辽宁石油化工大学'}}});
 let command=deterministicCommand('辽宁石油化工大学怎么样',workspace,['辽宁石油化工大学']);
-assert.equal(command.agentTask,'school_official_qa');
+assert.equal(command.agentTask,'school_research');
 assert.equal(command.focus.school,'辽宁石油化工大学');
 assert.equal(command.executionPolicy.commitView,false);
 command=deterministicCommand('辽宁石油化工大学宿舍怎么样',workspace,['辽宁石油化工大学']);

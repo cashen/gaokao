@@ -58,8 +58,20 @@ expect(await command('西北工业 自动化多少分', candidate), { task: 'sch
 expect(await command('大连海事 轮机工程多少分', candidate), { task: 'school_major_history', school: '大连海事大学', major: '轮机工程' });
 expect(await command('辽石化 储能科学与工程多少分', candidate), { task: 'school_major_history', school: '辽宁石油化工大学', major: '储能科学与工程' });
 expect(await command('沈工大 智能制造工程最低分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '智能制造工程' });
-expect(await command('沈航怎么样', candidate), { task: 'school_official_qa', school: '沈阳航空航天大学' });
+expect(await command('介绍下辽宁科技大学', candidate), { task: 'school_research', school: '辽宁科技大学' });
+expect(await command('介绍一下辽宁科技大学', candidate), { task: 'school_research', school: '辽宁科技大学' });
+expect(await command('讲讲辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
+expect(await command('说说辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
+expect(await command('了解一下辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
+expect(await command('沈航怎么样', candidate), { task: 'school_research', school: '沈阳航空航天大学' });
 expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_official_qa', school: '大连理工大学' });
+for (const prompt of ['只看辽宁科技大学','筛选辽宁科技大学','保留辽宁科技大学','换成辽宁科技大学','改成辽宁科技大学','收窄到辽宁科技大学']) {
+  const explicitSchoolFilter=await command(prompt, candidate);
+  assert.ok(['candidate_discovery','candidate_refinement'].includes(explicitSchoolFilter.agentTask), prompt);
+  assert.equal(explicitSchoolFilter.executionPolicy.commitView,true,prompt);
+  assert.deepEqual(explicitSchoolFilter.schoolNames,['辽宁科技大学'],prompt);
+  assert.deepEqual(explicitSchoolFilter.changeSet.school,{op:'set',values:['辽宁科技大学']},prompt);
+}
 expect(await command('东北大学材料最低分', candidate), { task: 'school_major_history', school: '东北大学', major: '材料' });
 
 // 真正的地域候选问题仍必须是候选搜索，不能被学校简称规则反噬。
@@ -95,4 +107,4 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 25 }, null, 2));
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 31 }, null, 2));
