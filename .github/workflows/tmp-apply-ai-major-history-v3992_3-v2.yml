@@ -1,0 +1,65 @@
+name: temporary apply AIPLuS major region history v2
+
+on:
+  push:
+    branches:
+      - agent/aiplus-major-region-history-v3990_1
+    paths:
+      - tools/tmp_apply_ai_major_history_v3992_3_v2.py
+      - .github/workflows/tmp-apply-ai-major-history-v3992_3-v2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-major-region-history-v3990_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply permanent code patches with tightened anchors
+        run: python3 tools/tmp_apply_ai_major_history_v3992_3_v2.py
+      - name: Build derived canonical major history index
+        run: node tools/build-ai-major-history-index-v3990_1.mjs
+      - name: Syntax and deterministic end-to-end verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/api/ai/major-history.js
+          node --check aiplus/app.v3990_1.js
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          node --check tools/build-ai-major-history-index-v3990_1.mjs
+          node --check tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs | tee /tmp/major-region-history-v3992_3.json
+      - name: Verify protected paths untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+            echo 'protected path changed' >&2
+            exit 1
+          fi
+      - name: Commit generated permanent feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js functions/_lib/ai/advisor-presentation.js functions/api/ai/major-history.js aiplus/app.v3990_1.js tools/browser-ai-workspace-v3990_1.mjs tools/build-ai-major-history-index-v3990_1.mjs tools/verify-ai-major-region-history-v3992_3.mjs .github/workflows/verify-ai-workspace-v3990_1.yml ln-rank/data/ai-major-history-v3990_1
+          git commit -m 'feat: answer major region score-history questions'
+          git push origin HEAD:agent/aiplus-major-region-history-v3990_1
