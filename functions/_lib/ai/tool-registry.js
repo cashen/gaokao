@@ -12,6 +12,7 @@ import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from '../platfo
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
 export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_2';
+export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_2';
 export const AI_DETERMINISTIC_TOOL_BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v3992_1';
@@ -20,6 +21,7 @@ export const AI_TOOL_REGISTRY=Object.freeze({
   rank_lookup:Object.freeze({name:'rank_lookup',deterministic:true,maxConcurrency:1}),
   major_band_search:Object.freeze({name:'major_band_search',deterministic:true,maxConcurrency:1}),
   school_major_history:Object.freeze({name:'school_major_history',deterministic:true,maxConcurrency:1}),
+  major_region_history:Object.freeze({name:'major_region_history',deterministic:true,maxConcurrency:1}),
   school_official_info:Object.freeze({name:'school_official_info',deterministic:true,maxConcurrency:1}),
   fit_assessment:Object.freeze({name:'fit_assessment',deterministic:true,maxConcurrency:1}),
   school_background:Object.freeze({name:'school_background',deterministic:true,maxConcurrency:1}),
@@ -69,13 +71,17 @@ function requestForMajorBands(context,params={},band=''){
 function majorBandsToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function majorBandsClientToolRequest(request){const key=majorBandsToolKey(request);return{kind:'major_bands',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function requestForSchoolHistory(context,{school,majorKeyword='',candidateScore=null}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/school-majors',sourceUrl.origin),normalizedScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('schoolIntent','school');url.searchParams.set('offset','0');url.searchParams.set('limit','100');url.searchParams.set('sort',normalizedScore===null?'score-desc':'position-near');if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedScore!==null)url.searchParams.set('candidateScore',String(normalizedScore));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all']}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('offset','0');url.searchParams.set('limit','100');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
 function schoolHistoryToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
+function majorHistoryToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function requestForSchoolOfficial(context,{school,question=''}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/school-official',sourceUrl.origin);url.searchParams.set('school',clean(school,120));if(question)url.searchParams.set('question',clean(question,600));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
 function schoolOfficialToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function schoolOfficialClientToolRequest(request){const key=schoolOfficialToolKey(request);return{kind:'school_official',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function delegatedSchoolOfficialEntry(context,request){const key=schoolOfficialToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolOfficialClientToolRequest(request)};if(entry.kind!=='school_official'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校官方信息回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校官方信息回传格式不完整。'};return{ok:true,status,payload};}
 function schoolHistoryClientToolRequest(request){const key=schoolHistoryToolKey(request);return{kind:'school_history',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
+function majorHistoryClientToolRequest(request){const key=majorHistoryToolKey(request);return{kind:'major_history',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function delegatedSchoolHistoryEntry(context,request){const key=schoolHistoryToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolHistoryClientToolRequest(request)};if(entry.kind!=='school_history'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传格式不完整。'};return{ok:true,status,payload};}
+function delegatedMajorHistoryEntry(context,request){const key=majorHistoryToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:majorHistoryClientToolRequest(request)};if(entry.kind!=='major_history'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'专业地区历史事实回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'专业地区历史事实回传格式不完整。'};return{ok:true,status,payload};}
 function delegatedMajorBandsEntry(context,request){
   const key=majorBandsToolKey(request),entry=context?.aiDeterministicToolResults?.[key];
   if(!entry)return{ok:false,code:'client_tool_required',toolRequest:majorBandsClientToolRequest(request)};
@@ -124,6 +130,13 @@ export async function runSchoolOfficialInfo(context,{school,question=''}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
   const request=requestForSchoolOfficial(context,{school,question}),delegated=delegatedSchoolOfficialEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,code:payload?.code||'official_source_failed',message:clean(payload?.message||'学校官方信息读取失败。',260)};
   return{ok:true,school:clean(payload.school||school,120),schId:clean(payload.schId,40),topic:clean(payload.topic,40),topicLabel:clean(payload.topicLabel,80),updatedAt:clean(payload.updatedAt,80),coverage:clean(payload.coverage,80),detailAvailable:payload.detailAvailable===true,evidenceText:clean(payload.evidenceText,16000),sources:Array.isArray(payload.sources)?payload.sources.slice(0,4).map(item=>({sourceName:clean(item?.sourceName,120),sourceUrl:clean(item?.sourceUrl,900),scope:clean(item?.scope,160),updatedAt:clean(item?.updatedAt,80)})):[],fetchedAt:clean(payload.fetchedAt,80),boundary:clean(payload.boundary,360),adapterVersion:AI_SCHOOL_OFFICIAL_ADAPTER_VERSION};
+}
+
+function majorHistoryRecord(record={}){return{...historyRecord(record),score2025:Number.isFinite(Number(record.score2025))?Number(record.score2025):null,rank2025:Number.isFinite(Number(record.rank2025))?Number(record.rank2025):null,score2024:Number.isFinite(Number(record.score2024))?Number(record.score2024):null,rank2024:Number.isFinite(Number(record.rank2024))?Number(record.rank2024):null,province:clean(record.province,80),city:clean(record.city,80),standardMajorName:clean(record.standardMajorName,160),standardMajorCode:clean(record.standardMajorCode,40)};}
+export async function runMajorRegionHistory(context,{majorKeyword='',regionKeys=['all']}={}){
+  if(!majorKeyword)return{ok:false,code:'major_required',message:'需要先明确一个专业方向。'};
+  const request=requestForMajorRegionHistory(context,{majorKeyword,regionKeys}),delegated=delegatedMajorHistoryEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'专业地区历史查询失败。',260)};
+  return{ok:true,majorKeyword:clean(payload.major||majorKeyword,160),region:clean(payload.region,220),matchedMajors:unique(payload.matchedMajors||[],8),records:(payload.records||[]).map(majorHistoryRecord),summary:payload.summary||{},total:Number(payload.total||0),complete:payload.complete===true,source:payload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:clean(payload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。'};
 }
 
 export async function runSchoolMajorHistory(context,{school,majorKeyword=''}={}){
