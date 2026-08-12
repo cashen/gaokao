@@ -4,7 +4,9 @@ import {
   buildMajorBandsRankOrderProjectionSchema,
   decodeMajorBandsRankOrderRow,
   decodeMajorBandsStaticRow,
-  majorBandsStaticRowMatchesPlatformUpgrade
+  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+  majorBandsStaticRowMatchesPlatformUpgrade,
+  shouldUseMajorBandsNativeWholeBucketJson
 } from '../functions/_lib/major-bands-static-provider.js';
 import { buildDisplayTags } from '../functions/_lib/school-display-tags.js';
 import {
@@ -46,6 +48,14 @@ assert.equal(normalizePlatformTarget('985'), '985');
 assert.equal(normalizePlatformTarget('211'), '211');
 assert.equal(normalizePlatformTarget('双一流'), '');
 
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({
+  projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+  rawRowStorage: 'array-reference',
+  rankRange: { minRank: 100, maxRank: 200 },
+  bucketRankBounds: { minRank: 80, maxRank: 180 },
+  platformTarget: '985'
+}), true, 'platformTarget must preserve native whole-bucket decode on a partial rank bucket');
+
 const cases = [];
 for (const score of [580, 620]) {
   const rank = lookupLn2026PhysicsScore(score);
@@ -85,6 +95,9 @@ const api = fs.readFileSync('functions/api/major-bands.js', 'utf8');
 const tools = fs.readFileSync('functions/_lib/ai/tool-registry.js', 'utf8');
 assert.ok(api.includes("platformTarget: normalizePlatformTarget(url.searchParams.get('platformTarget') || '')"), 'major-bands must parse platformTarget');
 assert.ok(api.includes('platformTarget: filters.platformTarget'), 'platformTarget must enter query identity/kernel calls');
+assert.ok(api.includes('predecodeRegion: input.filters.region,\n        platformTarget: input.filters.platformTarget'), 'all-bands platformTarget must be pushed into static rank loading');
+assert.ok(api.includes('predecodeRegion: filters.region,\n        platformTarget: filters.platformTarget'), 'requested-band platformTarget must be pushed into static rank loading');
+assert.ok(api.includes('specialProjectMode: input.filters.specialProjectMode,\n        platformTarget: input.filters.platformTarget,\n        schoolFilter: false'), 'all-bands shared kernel must retain platformTarget truth');
 assert.ok(tools.includes("url.searchParams.set('platformTarget',params.platformTarget)"), 'AI bridge must delegate platformTarget');
 assert.ok(tools.includes('matchesPlatformUpgradeRecord(record,tier)'), 'AI preview must share platform policy');
 const state = platformUpgradePolicyState();

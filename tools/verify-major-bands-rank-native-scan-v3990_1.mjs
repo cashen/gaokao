@@ -4,8 +4,11 @@ import {
   MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
   MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION,
   MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION,
+  MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+  MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION,
   majorBandsRankValueMatchesRange,
-  scanMajorBandsStaticRankRowsText
+  scanMajorBandsStaticRankRowsText,
+  shouldUseMajorBandsNativeWholeBucketJson
 } from '../functions/_lib/major-bands-static-provider.js';
 
 const manifest = JSON.parse(fs.readFileSync('ln-rank/data/major-bands-static-v3972_2/manifest.json', 'utf8'));
@@ -17,6 +20,22 @@ assert.equal(idIndex, 0, 'canonical id must remain schema index 0 for allocation
 assert.equal(MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION, 'major-bands-rank-row-native-scan-v3990_1');
 assert.equal(MAJOR_BANDS_PAGE_ID_NATIVE_PREFILTER_VERSION, 'major-bands-page-id-native-prefilter-v3990_1');
 assert.equal(MAJOR_BANDS_PAGE_ID_ID_FIRST_PREFILTER_VERSION, 'major-bands-page-id-id-first-prefilter-v3990_1');
+
+assert.equal(MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION, 'major-bands-rank-bucket-hybrid-decode-v3990_1');
+const partialRange = Object.freeze({ minRank: 100, maxRank: 200 });
+const coveredBounds = Object.freeze({ minRank: 120, maxRank: 180 });
+const boundaryBounds = Object.freeze({ minRank: 80, maxRank: 180 });
+const minimalArray = Object.freeze({
+  projection: MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION,
+  rawRowStorage: 'array-reference',
+  rankRange: partialRange
+});
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ ...minimalArray, bucketRankBounds: coveredBounds }), true, 'fully covered requested-band bucket must stay native');
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ ...minimalArray, bucketRankBounds: boundaryBounds }), false, 'partial requested-band boundary bucket must use rank scanner');
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ ...minimalArray, bucketRankBounds: boundaryBounds, rawRowStorage: 'serialized-json' }), true, 'all-band serialized projection must stay native');
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ ...minimalArray, bucketRankBounds: boundaryBounds, platformTarget: '985' }), true, 'platform upgrade must stay native');
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ ...minimalArray, bucketRankBounds: boundaryBounds, allowedIds: new Set(['x']) }), false, 'page-ID path must remain scanner-owned');
+assert.equal(shouldUseMajorBandsNativeWholeBucketJson({ rankRange: partialRange, bucketRankBounds: boundaryBounds }), true, 'full-record path must stay native');
 
 const selectiveRange = Object.freeze({ minRank: 25000, maxRank: 65000 });
 let total = 0;

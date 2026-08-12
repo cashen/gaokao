@@ -15,6 +15,9 @@ permissions:
 
 jobs:
   production-api-health:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
     runs-on: ubuntu-latest
     timeout-minutes: 65
     env:

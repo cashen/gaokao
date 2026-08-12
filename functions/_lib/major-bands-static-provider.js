@@ -280,6 +280,29 @@ export function majorBandsRankValueMatchesRange(rankLike, range = null) {
   return rank >= minRank && rank <= maxRank;
 }
 
+export const MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION = 'major-bands-rank-bucket-hybrid-decode-v3990_1';
+
+export function shouldUseMajorBandsNativeWholeBucketJson(options = {}) {
+  if (options.allowedIds instanceof Set) return false;
+  const minimalArrayProjection = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
+    && options.rawRowStorage !== 'serialized-json';
+  if (!minimalArrayProjection) return true;
+  if (normalizePlatformTarget(options.platformTarget || '')) return true;
+
+  const minRank = Number(options.rankRange?.minRank);
+  const maxRank = Number(options.rankRange?.maxRank);
+  const bucketMinRank = Number(options.bucketRankBounds?.minRank);
+  const bucketMaxRank = Number(options.bucketRankBounds?.maxRank);
+  const hasRankRange = Number.isFinite(minRank) && Number.isFinite(maxRank);
+  const hasBucketBounds = Number.isFinite(bucketMinRank) && Number.isFinite(bucketMaxRank);
+  if (!hasRankRange || !hasBucketBounds) return true;
+
+  // Requested-band minimal projections only scan text for rank-boundary buckets.
+  // Fully covered buckets stay on V8 native JSON.parse; all-bands/full-record and
+  // platform-upgrade paths also stay native to preserve their proven CPU budget.
+  return minRank <= bucketMinRank && maxRank >= bucketMaxRank;
+}
+
 function findStaticRowsArrayStart(text) {
   const match = /"rows"\s*:\s*\[/.exec(String(text || ''));
   return match ? match.index + match[0].lastIndexOf('[') : -1;
@@ -546,8 +569,13 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
       })
     : null;
   const allowedIds = options.allowedIds instanceof Set ? options.allowedIds : null;
-  const text = await response.text();
-const nativeWholeBucketJsonEligible = !allowedIds;
+  let text = await response.text();
+const nativeWholeBucketJsonEligible = shouldUseMajorBandsNativeWholeBucketJson({
+  ...options,
+  allowedIds,
+  rankRange,
+  platformTarget
+});
 let scan;
 if (nativeWholeBucketJsonEligible) {
   let payload;
@@ -578,16 +606,23 @@ if (nativeWholeBucketJsonEligible) {
     platformMatchedCount += 1;
     rows.push(row);
   }
+  const nativeRowCount = payload.rows.length;
   scan = {
     version: manifest.version,
     rows,
-    rowCount: payload.rows.length,
+    rowCount: nativeRowCount,
     rankMatchedCount,
     regionMatchedCount,
     platformMatchedCount,
     scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
     mode: 'native-whole-bucket-json-filter'
   };
+  // Drop the outer whole-bucket row array as soon as filtering is complete.
+  // Selected row arrays remain referenced by `rows`; unmatched rows become
+  // collectible before projection decoding and response construction.
+  payload.rows.length = 0;
+  payload = null;
+  text = '';
 } else {
   scan = scanMajorBandsStaticRankRowsText(text, {
     expectedVersion: manifest.version,
@@ -641,6 +676,8 @@ const selectedRows = scan.rows;
     rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
     rowScanVersion: scan.scanVersion,
     rowScanMode: scan.mode,
+    rankBucketDecodePolicyVersion: MAJOR_BANDS_RANK_BUCKET_DECODE_POLICY_VERSION,
+    rankBucketNativeWholeJson: nativeWholeBucketJsonEligible,
     rankRange,
     bytes: Number(bucket.bytes || 0),
     assetOwner: owner
