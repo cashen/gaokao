@@ -27,9 +27,11 @@ async function checkHealth(){try{const response=await fetch('/api/ai/health',{he
 async function probeModel(){els.probeModel.disabled=true;els.probeModel.textContent='测试中…';els.modelProbeResult.textContent='正在发起一次最小真实模型调用…';try{const response=await fetch('/api/ai/model-probe',{method:'POST',headers:{accept:'application/json','content-type':'application/json'},body:'{}'}),data=await response.json(),actual=data.actual||{};if(!response.ok||!data.ok)throw new Error(data.note||data.failures?.[0]?.error||'模型探针失败');els.modelProbeResult.textContent=`实测：${actual.provider} · ${actual.model} · ${actual.latencyMs}ms${actual.fallbackUsed?' · 使用备用模型':''}`;}catch(error){els.modelProbeResult.textContent=`实测失败：${String(error?.message||error)}。确定性查询仍可继续。`;}finally{els.probeModel.disabled=false;els.probeModel.textContent='测试语义模型';}}
 function setRunning(running){els.stop.hidden=!running;els.stop.textContent='停止本轮';els.send.textContent=running?'改口并发送':'发送';els.send.disabled=false;}
 function clearProcessingTimer(){if(processingTimer){clearInterval(processingTimer);processingTimer=null;}}
-function stopActiveTurn(reason=''){activeTurnSequence+=1;if(activeTurnController)activeTurnController.abort();activeTurnController=null;clearProcessingTimer();setRunning(false);render();if(reason)els.conversation.append(node('div','error-inline',reason));}
+function captureViewportIntent(){const root=document.documentElement,maxScroll=Math.max(0,root.scrollHeight-window.innerHeight),scrollY=window.scrollY;return{scrollY,stickToBottom:maxScroll-scrollY<=120};}
+function restoreViewportIntent(intent){if(!intent)return;const root=document.documentElement,maxScroll=Math.max(0,root.scrollHeight-window.innerHeight),target=intent.stickToBottom?maxScroll:Math.min(intent.scrollY,maxScroll);if(Math.abs(window.scrollY-target)>1)window.scrollTo({top:target,behavior:'auto'});}
+function stopActiveTurn(reason=''){const viewport=captureViewportIntent();activeTurnSequence+=1;if(activeTurnController)activeTurnController.abort();activeTurnController=null;clearProcessingTimer();setRunning(false);render();restoreViewportIntent(viewport);if(reason)els.conversation.append(node('div','error-inline',reason));}
 function taskIdForResult(taskAction){return taskAction==='branch'?workspace.tasks[0]?.id||workspace.mainTaskId:workspace.mainTaskId;}
-function scrollToPending(){const pending=els.conversation.querySelector('[data-processing="true"]');if(pending)pending.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function scrollToPending(viewport){restoreViewportIntent(viewport);}
 const AI_BRIDGE_RECORD_FIELDS=Object.freeze(['id','school','major','score2026','rank2026','score2025','rank2025','score2024','rank2024','schoolCode2026','majorCode2026','displayLocation','city','province','projectLabel','bandKey','band','scoreDelta2026','rankGap2026','is985','is211','isSinoForeign','isHighFee','feeType','natureLabel','tuition']);
 function compactMajorBandsBridgeRecord(record={}){const out={};for(const key of AI_BRIDGE_RECORD_FIELDS){const value=record?.[key];if(value!==undefined&&value!==null&&value!=='')out[key]=value;}return out;}
 function compactMajorBandsToolPayload(data={}){const band=key=>({count:Number(data?.bands?.[key]?.count||0),records:Array.isArray(data?.bands?.[key]?.records)?data.bands[key].records.slice(0,16).map(compactMajorBandsBridgeRecord):[]});return{ok:Boolean(data.ok),meta:data.meta||{},counts:data.counts||{},bands:{upper:band('upper'),near:band('near'),steady:band('steady')},searchAdvices:Array.isArray(data.searchAdvices)?data.searchAdvices.slice(0,8):[],filterConflicts:Array.isArray(data.filterConflicts)?data.filterConflicts.slice(0,8):[],keywordWarnings:Array.isArray(data.keywordWarnings)?data.keywordWarnings.slice(0,8):[],source:data.source||{}};}
@@ -58,11 +60,11 @@ async function executeDeterministicTool(tool,controller){const spec=deterministi
 async function executeTurn(input,confirmedCommand=null){
   const text=String(input||'').trim();if(!text&&!confirmedCommand)return;
   if(activeTurnController){activeTurnController.abort();clearProcessingTimer();}
-  const sequence=++activeTurnSequence,controller=new AbortController();activeTurnController=controller;setRunning(true);
-  render();
-  const processing=renderProcessingTurn(els.conversation,text,activeViewLabel(workspace.activeView));const started=Date.now();
+  const viewport=captureViewportIntent(),sequence=++activeTurnSequence,controller=new AbortController();activeTurnController=controller;setRunning(true);
+  render();restoreViewportIntent(viewport);
+  const processing=renderProcessingTurn(els.conversation,text,activeViewLabel(workspace.activeView));restoreViewportIntent(viewport);const started=Date.now();
   processingTimer=setInterval(()=>{if(sequence!==activeTurnSequence)return;const elapsed=Date.now()-started;updateProcessingTurn(processing,{elapsedMs:elapsed,slow:elapsed>=2500});},1000);
-  requestAnimationFrame(scrollToPending);
+  requestAnimationFrame(()=>scrollToPending(viewport));
   try{
     let continuationCommand=confirmedCommand;const deterministicToolResults={};let data=null;
     for(let hop=0;hop<5;hop+=1){
@@ -74,7 +76,7 @@ async function executeTurn(input,confirmedCommand=null){
       workspace=applyAiWorkspaceEvent(workspace,data.event);
       const turn=data.turnRecord||{userText:text,assistantSummary:(data.blocks||[]).map(item=>item.text).filter(Boolean).join(' '),changeSummary:data.result?.changeSummary||'',blocks:data.blocks||[],command:data.command,stage:data.result?.decisionStage||'start',task:data.command?.agentTask||'',focus:data.command?.focus||{}};
       workspace=applyAiWorkspaceEvent(workspace,{type:'result_committed',payload:{taskId:taskIdForResult(data.taskAction),result:data.result,turn}});
-      await saveWorkspace();if(sequence!==activeTurnSequence)return;clearProcessingTimer();render();els.input.value='';requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}));return;
+      await saveWorkspace();if(sequence!==activeTurnSequence)return;clearProcessingTimer();render();restoreViewportIntent(viewport);els.input.value='';requestAnimationFrame(()=>restoreViewportIntent(viewport));return;
     }
     throw new Error('确定性事实工具链超过安全步数，本轮没有提交。');
   }catch(error){
