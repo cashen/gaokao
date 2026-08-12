@@ -9,6 +9,7 @@ const aliases = new Map([
   ['辽科大', '辽宁科技大学'],
   ['沈航', '沈阳航空航天大学'],
   ['大连理工', '大连理工大学'],
+  ['大连交通', '大连交通大学'],
   ['东北石油', '东北石油大学'],
   ['西北工业', '西北工业大学'],
   ['大连海事', '大连海事大学'],
@@ -44,6 +45,11 @@ const candidate = createAiWorkspace({
 // 常见首次提问：学校简称、任意专业、所有专业、官方信息。
 expect(await command('沈阳工业 测控多少分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '测控技术与仪器' });
 expect(await command('沈阳工业所有专业最低分', candidate), { task: 'school_history', school: '沈阳工业大学' });
+expect(await command('大连交通 都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
+expect(await command('我问你大连交通大概都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
+expect(await command('大连交通专业都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
+expect(await command('大连交通分都多少', candidate), { task: 'school_history', school: '大连交通大学' });
+expect(await command('大连交通 自动化都多少分', candidate), { task: 'school_major_history', school: '大连交通大学', major: '自动化' });
 expect(await command('沈工大 自动化去年最低分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '自动化' });
 expect(await command('辽石化 化工最低分', candidate), { task: 'school_major_history', school: '辽宁石油化工大学', major: '化工' });
 expect(await command('辽科大所有专业分数线', candidate), { task: 'school_history', school: '辽宁科技大学' });
@@ -89,4 +95,4 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 20 }, null, 2));
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 25 }, null, 2));

@@ -105,6 +105,14 @@ jobs:
           grep -q "const ALL_BANDS_LOAD_CONCURRENCY = 3" functions/_lib/major-bands-rank-bucket-loader.v3990_1.js
           grep -q "MAX_CONCURRENT_EXECUTIONS = 1" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "crossRequestResolverQueue: false" functions/_lib/major-bands-query-execution-cache.v3990_1.js
+          grep -q "wrangler@4.121.0" .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml
+          for workflow in \
+            .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
+            .github/workflows/verify-production-api-health-v3971.yml \
+            .github/workflows/verify-ai-workspace-v3990_1.yml; do
+            grep -Fq 'group: v3990-1-cloudflare-preview-' "$workflow"
+            grep -q 'queue: max' "$workflow"
+          done
           grep -q "serializedSnapshotOnly: true" functions/_lib/major-bands-query-execution-cache.v3990_1.js
           grep -q "requestedBand && canonicalPosition.bandKey !== requestedBand" functions/_lib/major-bands-rank-query-kernel.v3990_1.js
           grep -q "const tuples = new WeakMap()" functions/_lib/major-bands-result-order.v3990_1.js
@@ -170,7 +178,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --no-save --no-package-lock wrangler@4.28.1
+          npm install --no-save --no-package-lock wrangler@4.121.0
           npx wrangler pages dev . --port 8793 --compatibility-date=2026-07-01 >/tmp/v3990-1-wrangler.log 2>&1 &
           echo "$!" > /tmp/v3990-1-wrangler.pid
           ready=0
@@ -230,6 +238,9 @@ jobs:
           retention-days: 7
 
   preview-real-concurrency:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
     if: github.event_name == 'pull_request'
     needs: source-rank-audit
     runs-on: ubuntu-latest

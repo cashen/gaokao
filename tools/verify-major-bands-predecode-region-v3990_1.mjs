@@ -33,7 +33,9 @@ const regionStage=provider.indexOf('const regionMatch = matchRegionRule',scanSta
 const parseStage=provider.indexOf('const row = JSON.parse(rowText);',scanStart);
 assert.ok(scanStart>=0&&idStage>scanStart&&rankStage>idStage&&regionStage>rankStage&&parseStage>regionStage,'native page scan must be ID -> rank -> region -> full parse; cold scan skips ID stage');
 assert.ok(provider.includes("MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'"));
-assert.ok(provider.includes('const nativeWholeBucketJsonEligible = !allowedIds;'),'cold non-page buckets must use native whole-bucket JSON');
+assert.ok(provider.includes('shouldUseMajorBandsNativeWholeBucketJson({'),'hybrid rank-bucket decode policy must own native/scanner choice');
+assert.ok(loader.includes('bucketRankBounds: {'),'rank loader must pass immutable rank-index bucket bounds');
 assert.ok(provider.includes("mode: 'native-whole-bucket-json-filter'"),'native whole-bucket filter mode missing');
 assert.ok(provider.includes('majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)'),'native whole-bucket path must reuse canonical region matcher');
+assert.ok(provider.includes('partial requested-band boundary bucket') || provider.includes('rank-boundary buckets'),'hybrid boundary-scan contract missing');
 console.log(JSON.stringify({ok:true,version:MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,total,west,regions:regions.length},null,2));

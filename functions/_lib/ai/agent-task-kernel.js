@@ -44,9 +44,10 @@ export function explicitScoreUsage(text='',workspace={}){
   return workspace?.examContext?.score?'remembered':'cleared';
 }
 
-function looksHistory(source){return /(多少分|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}
+function looksHistory(source){return /(多少分|几分|什么分|分都多少|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}
 function looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次)|(所有|全部|全校).{0,4}专业(?:都)?(?:多少)?分)/.test(source);}
 function looksAllSchoolMajorsFollowup(source){return /(所有|全部|全校).{0,4}(专业|招生专业)(?:都)?(?:呢|怎么样|看看)?[？?]?$/.test(source);}
+function looksImplicitAllSchoolMajorsHistory(source){return /(?:(?:专业|各专业|分数)?(?:都|大概都|大约都|分别|各自).{0,6}(?:多少分|几分|什么分|分数(?:是多少|多少)?)|(?:分|分数).{0,3}都多少)/.test(source);}
 function looksHistoryCorrection(source){return /(?:不是|不想|先不|别|不要).{0,5}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗).{0,18}(去年|往年|历年|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次)/.test(source);}
 function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}
 function looksCompare(source){return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(source);}
@@ -68,7 +69,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(looksPlanReview(source))return'plan_review';
   if(looksRestore(source))return'restore_view';
   if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
-  if(school&&(looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';
+  if(school&&((explicitMajors.length===0&&looksImplicitAllSchoolMajorsHistory(source))||looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';
   if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';
   if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)&&/(省内|辽宁|方向|专业|这些|这批)/.test(source))return'background_fit_discovery';
   if(looksFit(source)&&(school||schools.length))return'fit_assessment';

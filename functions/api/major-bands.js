@@ -440,7 +440,6 @@ function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band
     majorKeyword: filters.majorKeyword,
     bottomLineMode: filters.bottomLineMode,
     specialProjectMode: filters.specialProjectMode,
-        platformTarget: filters.platformTarget,
     platformTarget: filters.platformTarget,
     band
   };
@@ -633,7 +632,8 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
       const loaded = await loadMajorBandsRankWindow(context, selectedBuckets, {
         projection: sharedProjectionUsesMinimalRows ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
         rawRowStorage: sharedProjectionUsesMinimalRows ? 'serialized-json' : undefined,
-        predecodeRegion: input.filters.region
+        predecodeRegion: input.filters.region,
+        platformTarget: input.filters.platformTarget
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore: input.candidateScore,
@@ -643,6 +643,7 @@ async function executeAllBandsSequentially(context, sourceUrl, input) {
         majorKeyword: input.filters.majorKeyword,
         bottomLineMode: input.filters.bottomLineMode,
         specialProjectMode: input.filters.specialProjectMode,
+        platformTarget: input.filters.platformTarget,
         schoolFilter: false,
         acceptedSchoolNames: []
       });
@@ -920,7 +921,8 @@ async function executeRequestedBandOrderedPage(context, input) {
       const loaded = await loadMajorBandsRankWindow(context, selected, {
         projection: minimalOrderProjection ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION : undefined,
         rawRowStorage: minimalOrderProjection ? 'array-reference' : undefined,
-        predecodeRegion: filters.region
+        predecodeRegion: filters.region,
+        platformTarget: filters.platformTarget
       });
       const processed = processMajorBandsRankWindow(loaded.records, {
         candidateScore,

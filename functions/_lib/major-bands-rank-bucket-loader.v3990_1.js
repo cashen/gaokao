@@ -204,6 +204,10 @@ async function readBucket(context, indexBucket, scope, options = {}) {
   entry.promise = loadMajorBandsStaticRankBucket(context.request, indexBucket.file, {
     assets: context.env?.ASSETS,
     rankRange: scope.requestedRange,
+    bucketRankBounds: {
+      minRank: Number(indexBucket.minRank),
+      maxRank: Number(indexBucket.maxRank)
+    },
     allowedIds: options.allowedIds,
     predecodeRegion: options.predecodeRegion,
     platformTarget: options.platformTarget,

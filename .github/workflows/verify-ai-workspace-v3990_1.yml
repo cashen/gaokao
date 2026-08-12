@@ -85,6 +85,9 @@ jobs:
           grep -q 'data-site-runtime-generation="v3990_1"' aiplus/index.html
           grep -q 'data-ai-plus="school-official-qa"' aiplus/index.html
           test ! -e ai
+          grep -q '^/ai /aiplus/ 301$' _redirects
+          grep -q '^/ai/ /aiplus/ 301$' _redirects
+          grep -q '^/ai/\* /aiplus/ 301$' _redirects
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
       - name: Syntax check AI semantic runtime
@@ -115,6 +118,9 @@ jobs:
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
 
   preview-smoke:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
     if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true'
     needs: source-contract
     runs-on: ubuntu-latest
@@ -245,13 +251,16 @@ jobs:
           grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page"
           grep -q 'data-site-runtime-generation="v3990_1"' <<<"$page"
           grep -q 'data-ai-plus="school-official-qa"' <<<"$page"
-          legacy_body="$(mktemp)"
-          legacy_status="$(curl --silent --show-error --location --max-time 30 -H 'Cache-Control: no-cache' -o "$legacy_body" -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
-          if [ "$legacy_status" = 200 ] && grep -q 'data-ai-workspace="ai-workspace-v3990_1"' "$legacy_body"; then
-            echo 'Legacy /ai/ frontend is still serving the AI workspace.' >&2
+          legacy_headers="$(mktemp)"
+          legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
+          legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
+          if ! [[ "$legacy_status" =~ ^30[1278]$ ]] || [[ "$legacy_location" != *"/aiplus/"* ]]; then
+            echo "Legacy /ai/ must redirect to /aiplus/: HTTP ${legacy_status}, location=${legacy_location}" >&2
+            cat "$legacy_headers" >&2 || true
+            rm -f "$legacy_headers"
             exit 5
           fi
-          rm -f "$legacy_body"
+          rm -f "$legacy_headers"
 
           official="$(request_get school-official "${PREVIEW_BASE}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
           grep -q '"ok":true' <<<"$official"
@@ -289,6 +298,9 @@ jobs:
           fi
 
   browser-preview:
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
     if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true' && needs.preview-smoke.result == 'success'
     needs: [source-contract, preview-smoke]
     runs-on: ubuntu-latest
@@ -360,8 +372,11 @@ jobs:
               && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
               && grep -q '"rankEnd":14235' <<<"$rank"; then
               if [ "$VERIFY_MODE" = exact ]; then
-                legacy_status="$(curl --silent --output /tmp/ai-legacy.body --write-out '%{http_code}' --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
-                if [ "$legacy_status" = 200 ] && grep -q 'data-ai-workspace="ai-workspace-v3990_1"' /tmp/ai-legacy.body; then sleep 10; continue; fi
+                legacy_headers="$(mktemp)"
+                legacy_status="$(curl --silent --show-error --max-time 20 -D "$legacy_headers" -o /dev/null --write-out '%{http_code}' -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+                legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
+                rm -f "$legacy_headers"
+                if ! [[ "$legacy_status" =~ ^30[1278]$ ]] || [[ "$legacy_location" != *"/aiplus/"* ]]; then sleep 10; continue; fi
               fi
               if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
                 probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/model-probe?deploy=${EXPECTED_SHA}-${attempt}" --data '{}' || true)"
