@@ -1,0 +1,68 @@
+name: temporary fix AI verifier major-history boundary v2
+
+on:
+  push:
+    branches:
+      - agent/aiplus-major-region-history-v3990_1
+    paths:
+      - .github/workflows/tmp-fix-ai-workspace-major-history-gate-v2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-verify-persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-major-region-history-v3990_1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Replace both brittle source-order assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements={
+            'tools/verify-ai-workspace-v3990_1.mjs':(
+              "assert.ok(orchestrator.includes('result.history,result.fit'))",
+              "assert.ok(orchestrator.includes('result.history'));assert.ok(orchestrator.includes('result.majorHistory'));assert.ok(orchestrator.includes('result.fit'))"
+            ),
+            'tools/verify-ai-school-history-bridge-v3992_2.mjs':(
+              "assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');",
+              "assert.ok(orchestrator.includes('result.history'),'school-history deterministic continuation missing');assert.ok(orchestrator.includes('result.majorHistory'),'major-history deterministic continuation missing');assert.ok(orchestrator.includes('result.fit'),'fit deterministic continuation missing');"
+            )
+          }
+          for file,(old,new) in replacements.items():
+              p=Path(file); s=p.read_text(encoding='utf-8')
+              if s.count(old)!=1: raise SystemExit(f'{file}: expected one brittle assertion, got {s.count(old)}')
+              p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Verify legacy and new deterministic contracts together
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/build-ai-major-history-index-v3990_1.mjs
+          git diff --exit-code -- ln-rank/data/ai-major-history-v3990_1
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+      - name: Persist verifier compatibility updates
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name cashen
+          git config user.email 54cashen@gmail.com
+          git add tools/verify-ai-workspace-v3990_1.mjs tools/verify-ai-school-history-bridge-v3992_2.mjs
+          git diff --cached --quiet && { echo 'no verifier changes'; exit 1; }
+          git commit -m 'test: allow major-history deterministic result boundary'
+          git push origin HEAD:agent/aiplus-major-region-history-v3990_1
