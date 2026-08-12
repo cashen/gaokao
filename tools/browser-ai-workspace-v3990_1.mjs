@@ -16,7 +16,24 @@ function responseMatchesInput(response,text){if(!response.url().includes('/api/a
 async function waitForFinalTurnResponse(page,text,timeout=90000){return page.waitForResponse(async response=>{if(!responseMatchesInput(response,text))return false;try{const data=await response.json();return data?.pendingDeterministicTool!==true;}catch{return true;}},{timeout});}
 async function waitIdle(page,timeout=90000){await page.waitForFunction(()=>document.querySelector('#sendButton')?.textContent?.trim()==='发送',null,{timeout});}
 async function submitTurn(page,text,requirements={}){const responsePromise=waitForFinalTurnResponse(page,text,requirements.timeout||90000);await page.locator('#promptInput').fill(text);await page.locator('#sendButton').click();const response=await responsePromise;let data=null;try{data=await response.json();}catch{data={parseError:true};}assert(response.status()===200,`${text}: HTTP ${response.status()} ${bodySummary(data)}`);assert(data?.ok===true,`${text}: payload not ok ${bodySummary(data)}`);assert(data?.pendingConfirmation!==true,`${text}: unexpected confirmation ${bodySummary(data?.command)}`);if(requirements.candidates)assert(data?.result?.candidates?.ok===true,`${text}: candidates not ok ${bodySummary(data?.result?.candidates)}`);if(requirements.rank)assert(data?.result?.rank?.ok===true,`${text}: rank not ok`);if(requirements.history)assert(data?.result?.history?.ok===true,`${text}: history not ok ${bodySummary(data?.result?.history)}`);if(requirements.majorHistory)assert(data?.result?.majorHistory?.ok===true,`${text}: major history not ok ${bodySummary(data?.result?.majorHistory)}`);if(requirements.background)assert(data?.result?.background?.ok===true,`${text}: background not ok ${bodySummary(data?.result?.background)}`);await waitIdle(page);return data;}
-async function viewText(page){return (await page.locator('#activeViewChips').innerText()).replace(/\s+/g,' ').trim();}\n\nasync function viewportStabilityJourney(page,name){\n  if(name!=='pc')return;\n  await reset(page);\n  await page.evaluate(()=>{\n    window.__aiPlusScrollTrace=[];\n    const nativeScrollTo=window.scrollTo.bind(window);\n    window.scrollTo=(...args)=>{window.__aiPlusScrollTrace.push({kind:'window',args});return nativeScrollTo(...args);};\n    const nativeScrollIntoView=Element.prototype.scrollIntoView;\n    Element.prototype.scrollIntoView=function(...args){window.__aiPlusScrollTrace.push({kind:'element',args});return nativeScrollIntoView.apply(this,args);};\n  });\n  await submitTurn(page,'辽科大怎么样',{timeout:150000});\n  const trace=await page.evaluate(()=>window.__aiPlusScrollTrace||[]);\n  assert(!trace.some(item=>JSON.stringify(item).includes('smooth')),`${name}: AIPLuS result path must not use smooth scrolling: ${JSON.stringify(trace)}`);\n  assert(!trace.some(item=>item.kind==='element'),`${name}: AIPLuS result path must not call scrollIntoView: ${JSON.stringify(trace)}`);\n  assert(await page.locator('.processing-dot').count()===0,`${name}: processing state still mounts AI pulse marker`);\n}
+async function viewText(page){return (await page.locator('#activeViewChips').innerText()).replace(/\s+/g,' ').trim();}
+
+async function viewportStabilityJourney(page,name){
+  if(name!=='pc')return;
+  await reset(page);
+  await page.evaluate(()=>{
+    window.__aiPlusScrollTrace=[];
+    const nativeScrollTo=window.scrollTo.bind(window);
+    window.scrollTo=(...args)=>{window.__aiPlusScrollTrace.push({kind:'window',args});return nativeScrollTo(...args);};
+    const nativeScrollIntoView=Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView=function(...args){window.__aiPlusScrollTrace.push({kind:'element',args});return nativeScrollIntoView.apply(this,args);};
+  });
+  await submitTurn(page,'辽科大怎么样',{timeout:150000});
+  const trace=await page.evaluate(()=>window.__aiPlusScrollTrace||[]);
+  assert(!trace.some(item=>JSON.stringify(item).includes('smooth')),`${name}: AIPLuS result path must not use smooth scrolling: ${JSON.stringify(trace)}`);
+  assert(!trace.some(item=>item.kind==='element'),`${name}: AIPLuS result path must not call scrollIntoView: ${JSON.stringify(trace)}`);
+  assert(await page.locator('.processing-dot').count()===0,`${name}: processing state still mounts AI pulse marker`);
+}
 async function assertView(page,parts,notParts=[]){const t=await viewText(page);for(const p of parts)assert(t.includes(p),`view missing ${p}: ${t}`);for(const p of notParts)assert(!t.includes(p),`view unexpectedly has ${p}: ${t}`);}
 async function turnCount(page){return page.locator('#conversationStream .turn').count();}
 async function openNewWorkspace(page,selector='#newWorkspace'){
