@@ -37,7 +37,7 @@ function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.nega
 function isSchoolStemMajorMention(source,term,index){
   if(!SCHOOL_STEM_MAJOR_TERMS.has(term))return false;
   const before=source.slice(0,index),clauses=before.split(/[，,。！？!?；;：:]/).map(value=>value.trim()).filter(Boolean);
-  let prefix=clauses.at(-1)||'';prefix=prefix.replace(/(?:^|[^\d])\d{3}\\s*分?/g,' ');
+  let prefix=clauses.at(-1)||'';prefix=prefix.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');
   prefix=String(prefix).replace(/^(?:(?:帮我只看|介绍一下|介绍介绍|了解一下|认识一下|我想知道|帮我比较|帮我筛|帮我看|帮我查|我想看|我想查|我想问|介绍下|介绍|讲一下|讲下|讲讲|说一下|说下|说说|聊一下|聊聊|了解下|了解|看看|看下|看一下|想知道|想看|想查|想问|查下|查一下|问下|问一下|请看|请查|比较|对比|然后|顺便|先|再|那|把|和|跟|与|就))+/,'').trim();
   const after=source.slice(index+term.length);
   return /^[\u4e00-\u9fa5]{2,10}$/.test(prefix)&&/^(?:$|的|学校|校园|环境|氛围|怎么样|如何|咋样|呢|吗|[，,。！？!?；;：:])/.test(after);
