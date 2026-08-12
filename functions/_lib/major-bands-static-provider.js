@@ -2,6 +2,7 @@ import { buildHistoryScore } from './history-score-engine.js';
 import { buildHistoricalScoreRankEvidence } from './historical-score-rank-evidence.js';
 import { normalizeLocation } from './location-normalizer.js';
 import { matchRegionRule } from '../../shared/resources/geo/china-region-catalog.v3990_1.js';
+import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from './platform-upgrade-policy.js';
 
 export const MAJOR_BANDS_MATERIALIZATION_VERSION = 'major-bands-materialized-v3990_1';
 export const MAJOR_BANDS_RANK_ROW_FILTER_VERSION = 'major-bands-rank-row-filter-v3990_1';
@@ -131,6 +132,8 @@ export function buildMajorBandsRankOrderProjectionSchema(schema = []) {
     natureType: index('natureType'),
     schoolNature: index('schoolNature'),
     feeType: index('feeType'),
+    isSinoForeign: index('isSinoForeign'),
+    isHighFee: index('isHighFee'),
     tuition: index('tuition'),
     tuitionText: index('tuitionText'),
     flags: index('flags'),
@@ -167,6 +170,8 @@ export function decodeMajorBandsRankOrderRow(row = [], projectionSchema = {}, op
     natureType: value('natureType'),
     schoolNature: value('schoolNature'),
     feeType: value('feeType'),
+    isSinoForeign: Boolean(value('isSinoForeign')),
+    isHighFee: Boolean(value('isHighFee')),
     tuition: value('tuition'),
     tuitionText: value('tuitionText'),
     flags: value('flags'),
@@ -505,6 +510,22 @@ export function scanMajorBandsStaticRankRowsText(text, options = {}) {
   };
 }
 
+export function majorBandsStaticRowMatchesPlatformUpgrade(row = [], schema = [], target = '') {
+  const normalized = normalizePlatformTarget(target);
+  if (!normalized) return true;
+  const index = name => schema.indexOf(name);
+  const value = name => {
+    const position = index(name);
+    return position >= 0 ? row?.[position] : undefined;
+  };
+  return matchesPlatformUpgradeRecord({
+    school: value('school'),
+    feeType: value('feeType'),
+    isSinoForeign: Boolean(value('isSinoForeign')),
+    isHighFee: Boolean(value('isHighFee'))
+  }, normalized);
+}
+
 export async function loadMajorBandsStaticRankBucket(request, bucketFile, options = {}) {
   const manifest = await loadMajorBandsStaticManifest(request, options);
   const bucket = (manifest.buckets || []).find(item => item.file === bucketFile);
@@ -516,6 +537,7 @@ export async function loadMajorBandsStaticRankBucket(request, bucketFile, option
   const lnAreaIndex = schema.indexOf('lnArea');
   const provinceIndex = schema.indexOf('province');
   const cityIndex = schema.indexOf('city');
+  const platformTarget = normalizePlatformTarget(options.platformTarget || '');
   const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
   const rankRange = options.rankRange && Number.isFinite(Number(options.rankRange.minRank)) && Number.isFinite(Number(options.rankRange.maxRank))
     ? Object.freeze({
@@ -543,6 +565,7 @@ if (nativeWholeBucketJsonEligible) {
   const rows = [];
   let rankMatchedCount = 0;
   let regionMatchedCount = 0;
+  let platformMatchedCount = 0;
   for (const row of payload.rows) {
     const rankMatch = rankRange && rankIndex >= 0
       ? majorBandsRankValueMatchesRange(row?.[rankIndex], rankRange)
@@ -551,6 +574,8 @@ if (nativeWholeBucketJsonEligible) {
     rankMatchedCount += 1;
     if (!majorBandsStaticRowMatchesRegion(row, schema, predecodeRegion)) continue;
     regionMatchedCount += 1;
+    if (!majorBandsStaticRowMatchesPlatformUpgrade(row, schema, platformTarget)) continue;
+    platformMatchedCount += 1;
     rows.push(row);
   }
   scan = {
@@ -559,6 +584,7 @@ if (nativeWholeBucketJsonEligible) {
     rowCount: payload.rows.length,
     rankMatchedCount,
     regionMatchedCount,
+    platformMatchedCount,
     scanVersion: MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION,
     mode: 'native-whole-bucket-json-filter'
   };
@@ -577,6 +603,9 @@ if (nativeWholeBucketJsonEligible) {
   });
 }
 const selectedRows = scan.rows;
+  const platformMatchedCount = Number.isFinite(Number(scan.platformMatchedCount))
+    ? Number(scan.platformMatchedCount)
+    : Number(scan.regionMatchedCount || 0);
   const projectionVersion = options.projection === MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     ? MAJOR_BANDS_RANK_ORDER_PROJECTION_VERSION
     : 'full-record-v3990_1';
@@ -602,6 +631,8 @@ const selectedRows = scan.rows;
     rankRowsSkipped: scan.rowCount - selectedRows.length,
     rankOnlyRowsSkipped: scan.rowCount - scan.rankMatchedCount,
     regionRowsSkipped: scan.rankMatchedCount - scan.regionMatchedCount,
+    platformRowsSkipped: scan.regionMatchedCount - platformMatchedCount,
+    platformTarget,
     predecodeRegion,
     predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
     pageIdRowsSkipped: scan.regionMatchedCount - selectedRows.length,

@@ -183,7 +183,8 @@ function bucketReadKey(indexBucket, scope = {}, options = {}) {
   const projection = options.projection || 'full-record-v3990_1';
   const rawRowStorage = options.rawRowStorage === 'serialized-json' ? 'serialized-json' : 'array-reference';
   const predecodeRegion = String(options.predecodeRegion || 'all').trim() || 'all';
-  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}|region:${predecodeRegion}`;
+  const platformTarget = String(options.platformTarget || '').trim() || 'all';
+  return `${indexBucket.file}|${suffix}|${pageIdFingerprint(options.allowedIds)}|${projection}|${rawRowStorage}|region:${predecodeRegion}|platform:${platformTarget}`;
 }
 
 async function readBucket(context, indexBucket, scope, options = {}) {
@@ -205,6 +206,7 @@ async function readBucket(context, indexBucket, scope, options = {}) {
     rankRange: scope.requestedRange,
     allowedIds: options.allowedIds,
     predecodeRegion: options.predecodeRegion,
+    platformTarget: options.platformTarget,
     projection: options.projection,
     rawRowStorage: options.rawRowStorage
   }).then(loaded => {
@@ -247,6 +249,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
         rankRowsSkipped: 0,
         rankOnlyRowsSkipped: 0,
         regionRowsSkipped: 0,
+        platformRowsSkipped: 0,
+        platformTarget: String(options.platformTarget || '').trim(),
         predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',
         predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
         pageIdRowsSkipped: 0,
@@ -303,6 +307,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
   let rankRowsSkipped = 0;
   let rankOnlyRowsSkipped = 0;
   let regionRowsSkipped = 0;
+  let platformRowsSkipped = 0;
   let pageIdRowsSkipped = 0;
   for (const result of results) {
     records.push(...result.loaded.records);
@@ -312,6 +317,7 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
     rankRowsSkipped += Number(result.loaded.rankRowsSkipped || 0);
     rankOnlyRowsSkipped += Number(result.loaded.rankOnlyRowsSkipped || 0);
     regionRowsSkipped += Number(result.loaded.regionRowsSkipped || 0);
+    platformRowsSkipped += Number(result.loaded.platformRowsSkipped || 0);
     pageIdRowsSkipped += Number(result.loaded.pageIdRowsSkipped || 0);
     if (result.cacheStatus === 'hit-cloned') {
       cacheHits += 1;
@@ -339,6 +345,8 @@ export async function loadMajorBandsRankWindow(context, selectedBuckets = [], op
       rankRowsSkipped,
       rankOnlyRowsSkipped,
       regionRowsSkipped,
+      platformRowsSkipped,
+      platformTarget: String(options.platformTarget || '').trim(),
       predecodeRegion: String(options.predecodeRegion || 'all').trim() || 'all',
       predecodeRegionFilterVersion: MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION,
       pageIdRowsSkipped,

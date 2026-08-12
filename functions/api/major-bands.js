@@ -39,6 +39,7 @@ import {
   compactMajorBandsResponseRecord
 } from '../_lib/major-bands-response-transport.v3990_1.js';
 import { buildDisplayTags } from '../_lib/school-display-tags.js';
+import { normalizePlatformTarget } from '../_lib/platform-upgrade-policy.js';
 import {
   getBottomLineEligibility,
   normalizeBottomLineMode,
@@ -439,6 +440,8 @@ function queryIdentity({ candidateScore, rangePreset, filters, schoolNames, band
     majorKeyword: filters.majorKeyword,
     bottomLineMode: filters.bottomLineMode,
     specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
+    platformTarget: filters.platformTarget,
     band
   };
   if (band === 'all-bands-execution') {
@@ -927,6 +930,7 @@ async function executeRequestedBandOrderedPage(context, input) {
         majorKeyword: '',
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
         schoolFilter,
         acceptedSchoolNames: schoolNames
       });
@@ -1133,7 +1137,8 @@ export async function onRequest(context) {
       schoolQueryIntent: normalizeSchoolQueryIntent(url.searchParams.get('schoolQueryIntent') || 'auto'),
       majorKeyword: clean(url.searchParams.get('majorKeyword') || url.searchParams.get('majorName') || url.searchParams.get('keyword') || '', 160),
       bottomLineMode: normalizeBottomLineMode(url.searchParams.get('bottomLineMode') || 'all'),
-      specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects')
+      specialProjectMode: normalizeSpecialProjectMode(url.searchParams.get('specialProjectMode') || 'hide_eligibility_projects'),
+      platformTarget: normalizePlatformTarget(url.searchParams.get('platformTarget') || '')
     };
     const requestedBandRaw = clean(url.searchParams.get('band') || '', 20);
     const requestedBand = BAND_KEYS.includes(requestedBandRaw) ? requestedBandRaw : '';
@@ -1240,6 +1245,7 @@ export async function onRequest(context) {
         majorKeyword: filters.majorKeyword,
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
         schoolFilter,
         acceptedSchoolNames: schoolNames
       });
@@ -1375,6 +1381,7 @@ export async function onRequest(context) {
       keywordQuery,
       bottomLineMode: filters.bottomLineMode,
       specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
       resultStats: { total: counts.total }
     });
     if (aggregate.bottomLineUnresolved) {
@@ -1420,6 +1427,7 @@ export async function onRequest(context) {
         schoolQueryIntent: filters.schoolQueryIntent,
         bottomLineMode: filters.bottomLineMode,
         specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
         specialProject: {
           mode: filters.specialProjectMode,
           explicitIntent: specialIntent,
@@ -1524,6 +1532,7 @@ export async function onRequest(context) {
         specialProjectShown: aggregate.specialProjectShown,
         specialProjectStats,
         specialProjectMode: filters.specialProjectMode,
+        platformTarget: filters.platformTarget,
         rankBucketCacheHits: loadedStats.cacheHits,
         rankBucketCacheMisses: loadedStats.cacheMisses,
         rankRowFilterVersion: MAJOR_BANDS_RANK_ROW_FILTER_VERSION,
