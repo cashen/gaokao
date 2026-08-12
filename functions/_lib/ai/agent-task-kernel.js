@@ -2,7 +2,7 @@ export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_0';
 
 export const AGENT_TASKS=Object.freeze([
   'candidate_discovery','candidate_refinement','fact_rank_lookup',
-  'school_major_history','school_history','school_official_qa','fit_assessment',
+  'school_major_history','school_history','major_region_history','school_official_qa','fit_assessment',
   'school_comparison','major_comparison',
   'background_discovery','background_fit_discovery','school_background','major_background',
   'evidence_verification','plan_review','general_advice','restore_view','save_family'
@@ -92,6 +92,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
     if(looksWorth(source)||/(省内|辽宁).{0,12}(专业|方向)/.test(source))return explicitScoreUsage(source,workspace)==='active'?'background_fit_discovery':'background_discovery';
     return'background_discovery';
   }
+  if(!school&&explicitMajors.length&&looksHistory(source)&&!looksFit(source))return'major_region_history';
   if(school&&explicitMajors.length&&looksHistory(source))return'school_major_history';
   if(school&&looksHistory(source))return'school_history';
   if(shortFollowup&&['school_major_history','school_history'].includes(priorTask)&&school){if(major||focus.major)return'school_major_history';return'school_history';}
@@ -113,6 +114,7 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
   const score=CONTEXT_STATES.includes(scoreUsage)?scoreUsage:'remembered';
   switch(task){
     case'candidate_discovery':case'candidate_refinement':return{score:'active',region:'active',major:'active',school:'active',bottomLine:'active',commitView:true};
+    case'major_region_history':return{score:'suspended',region:'active',major:'active',school:'remembered',bottomLine:'remembered',commitView:true};
     case'fit_assessment':return{score:'active',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'background_fit_discovery':return{score:'active',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'school_major_history':case'school_history':case'school_official_qa':case'school_background':case'major_background':case'background_discovery':return{score:score==='suspended'?'suspended':'remembered',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
@@ -121,4 +123,4 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
   }
 }
 
-export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',school_official_qa:'查询学校官方信息',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
+export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',school_official_qa:'查询学校官方信息',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
