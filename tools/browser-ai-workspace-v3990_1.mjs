@@ -107,7 +107,7 @@ async function schoolResearchAndHistoryJourney(page,name){
   assert(switchedStream.includes('介绍下辽宁科技大学')&&!switchedStream.includes('大连交通 都多少分'),`History switch leaked discussion state: ${switchedStream.slice(0,1200)}`);
   assert(!(await page.locator('#activeViewBar').isVisible()),'school research session unexpectedly restored candidate filters');
   await historySearch.fill('大连交通');
-  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('大连交通')&&!t.includes('辽宁科技大学');},null,{timeout:10000});
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length>=1&&t.includes('大连交通')&&!t.includes('辽宁科技大学');},null,{timeout:10000});
   historyText=(await page.locator('#historyList').innerText()).replace(/\s+/g,' ');
   assert(historyText.includes('大连交通')&&!historyText.includes('辽宁科技大学'),`History second search leaked sessions: ${historyText}`);
   await page.locator('#historyList .history-item .history-open-item').first().click();
@@ -129,11 +129,28 @@ async function schoolResearchAndHistoryJourney(page,name){
   await page.waitForFunction(()=>{const t=document.querySelector('#conversationStream')?.textContent||'';return t.includes('介绍下辽宁科技大学')&&!document.querySelector('#activeViewBar')?.offsetParent;},null,{timeout:10000});
   assert(!(await page.locator('#activeViewBar').isVisible()),'candidate state leaked into school research discussion');
   await historySearch.fill('大连交通');
-  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('只看辽宁科技大学')&&!t.includes('学校研究');},null,{timeout:10000});
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length>=1&&t.includes('只看辽宁科技大学')&&!t.includes('学校研究');},null,{timeout:10000});
   await page.locator('#historyList .history-item .history-open-item').first().click();
   await page.waitForFunction(()=>{const t=document.querySelector('#activeViewChips')?.textContent||'';return t.includes('580分')&&t.includes('机械')&&t.includes('辽宁科技大学');},null,{timeout:10000});
   await assertView(page,['580分','机械','辽宁科技大学']);
   await historySearch.fill('');
+}
+
+async function singleSchoolPromptJourney(page,name){
+  await reset(page);
+  const data=await submitTurn(page,'大连交通 都多少分',{history:true});
+  assert(data.command.agentTask==='school_history',`${name}: single-school history task drift`);
+  const prompts=(await page.locator('.question-button strong').allTextContents()).map(text=>text.trim());
+  assert(prompts.includes('学校简介'),`${name}: school profile follow-up missing`);
+  assert(prompts.includes('学校环境'),`${name}: school environment follow-up missing`);
+  await checkGeometry(page,`${name}:single-school-prompts`);
+  if(name!=='pc')return;
+  const experience=await submitTurn(page,'学校环境呢',{timeout:120000});
+  assert(experience.command.agentTask==='school_experience',`school experience task drift: ${experience.command.agentTask}`);
+  assert(experience.result?.experience?.ok===true,`school experience unavailable: ${bodySummary(experience.result?.experience)}`);
+  assert((experience.result.experience.mode==='summary')||(experience.result.experience.reviews||[]).length<=4,'school experience fallback must be summary or at most four reviews');
+  const stream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');
+  assert(stream.includes('用户生成内容')&&stream.includes('不能代表所有学生'),'school experience boundary missing');
 }
 
 async function responsiveHistoryDrawerJourney(page,name){
@@ -164,6 +181,6 @@ async function selectionAndModel(page,name){
 
 const browser=await chromium.launch({headless:true});
 try{
-  for(const device of devices){const context=await browser.newContext({viewport:device.viewport,isMobile:Boolean(device.isMobile),hasTouch:Boolean(device.hasTouch),locale:'zh-CN'});const page=await context.newPage();const errors=[];page.__expectedSyntheticMajorBands503Count=0;page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('console',m=>{if(m.type()!=='error')return;const text=m.text();if(page.__expectedSyntheticMajorBands503Count>0&&/Failed to load resource:.*status of 503/.test(text)){page.__expectedSyntheticMajorBands503Count-=1;return;}errors.push(`console:${text}`);});try{const response=await page.goto(`${BASE}/aiplus/?browser=${encodeURIComponent(EXPECTED_SHA||'preview')}-${device.name}`,{waitUntil:'networkidle',timeout:60000});assert(response?.ok(),`${device.name}: /aiplus HTTP ${response?.status()}`);await waitForHealth(page);assert(await page.locator('#decisionContextDetails').evaluate(el=>!el.open),`${device.name}: engineering/support panel should default collapsed`);await coreHumanJourney(page,device.name);await profilePersistence(page,device.name);await responsiveHistoryDrawerJourney(page,device.name);await transientMajorBandsRecovery(page,device.name);await parentEntryUiJourney(page,device.name);await schoolResearchAndHistoryJourney(page,device.name);await schoolHistoryAliasJourney(page,device.name);await majorRegionHistoryJourney(page,device.name);await scoreBandParentJourneys(page,device.name);await latestWins(page,device.name);await selectionAndModel(page,device.name);await checkGeometry(page,`${device.name}:final`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}.png`),fullPage:true});assert(errors.length===0,`${device.name}: browser errors ${errors.join(' | ')}`);}catch(error){fs.writeFileSync(path.join(ARTIFACT_DIR,`${device.name}-failure.txt`),`${error.stack||error}\n${errors.join('\n')}`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}-failure.png`),fullPage:true}).catch(()=>{});throw error;}finally{await context.close();}}
+  for(const device of devices){const context=await browser.newContext({viewport:device.viewport,isMobile:Boolean(device.isMobile),hasTouch:Boolean(device.hasTouch),locale:'zh-CN'});const page=await context.newPage();const errors=[];page.__expectedSyntheticMajorBands503Count=0;page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('console',m=>{if(m.type()!=='error')return;const text=m.text();if(page.__expectedSyntheticMajorBands503Count>0&&/Failed to load resource:.*status of 503/.test(text)){page.__expectedSyntheticMajorBands503Count-=1;return;}errors.push(`console:${text}`);});try{const response=await page.goto(`${BASE}/aiplus/?browser=${encodeURIComponent(EXPECTED_SHA||'preview')}-${device.name}`,{waitUntil:'networkidle',timeout:60000});assert(response?.ok(),`${device.name}: /aiplus HTTP ${response?.status()}`);await waitForHealth(page);assert(await page.locator('#decisionContextDetails').evaluate(el=>!el.open),`${device.name}: engineering/support panel should default collapsed`);await coreHumanJourney(page,device.name);await profilePersistence(page,device.name);await responsiveHistoryDrawerJourney(page,device.name);await transientMajorBandsRecovery(page,device.name);await parentEntryUiJourney(page,device.name);await singleSchoolPromptJourney(page,device.name);await schoolResearchAndHistoryJourney(page,device.name);await schoolHistoryAliasJourney(page,device.name);await majorRegionHistoryJourney(page,device.name);await scoreBandParentJourneys(page,device.name);await latestWins(page,device.name);await selectionAndModel(page,device.name);await checkGeometry(page,`${device.name}:final`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}.png`),fullPage:true});assert(errors.length===0,`${device.name}: browser errors ${errors.join(' | ')}`);}catch(error){fs.writeFileSync(path.join(ARTIFACT_DIR,`${device.name}-failure.txt`),`${error.stack||error}\n${errors.join('\n')}`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}-failure.png`),fullPage:true}).catch(()=>{});throw error;}finally{await context.close();}}
   console.log(JSON.stringify({ok:true,base:BASE,expectedSha:EXPECTED_SHA,devices:devices.map(d=>d.name),checks:['aiplus-school-entry-contract','continuous-turn-history','580-mechanical-liaoning-shenyang','unmentioned-dimensions-inherit','causal-change-copy','candidate-score-rank-year-gap','no-raw-band-key','dynamic-next-questions','decision-profile-persistence','support-panel-collapsed','human-school-shorthand-history','colloquial-school-all-major-history','school-research-answer-first','browser-history-multi-session','history-search-switch-isolation','history-drawer-close-pad-android','composer-viewport-pad-android','explicit-school-filter-normalization','latest-write-wins','selection-readonly','responsive-no-overflow','live-model-probe-pc']},null,2));
 }finally{await browser.close();}

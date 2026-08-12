@@ -5,19 +5,24 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {
   AI_SCHOOL_OFFICIAL_ORIGIN,AI_SCHOOL_OFFICIAL_READER_ORIGIN,AI_SCHOOL_OFFICIAL_SOURCE_VERSION,AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION,
-  schoolOfficialTopic,schoolOfficialTopicLabel,htmlToOfficialPlainText,extractOfficialSchoolSearchMatch,extractOfficialSchoolNavigation,
+  schoolOfficialTopic,schoolOfficialTopicLabel,htmlToOfficialPlainText,extractOfficialEvidenceExcerpt,buildOfficialDeterministicSummary,extractOfficialSchoolSearchMatch,extractOfficialSchoolNavigation,
   extractLatestCharterLink,loadOfficialSchoolEvidence
 } from '../functions/_lib/ai/school-official-source.js';
 import {deterministicCommand} from '../functions/_lib/ai/command-interpreter.js';
+import {AI_SCHOOL_PROFILE_SUPPLEMENT_VERSION,AI_BAIDU_BAIKE_ORIGIN,AI_BAIDU_BAIKE_CARD_API,extractBaiduBaikeCard,extractBaiduBaikeProfile,loadSchoolProfileSupplement} from '../functions/_lib/ai/school-profile-supplement-source.js';
 import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
+import {runSchoolExperience} from '../functions/_lib/ai/tool-registry.js';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>fs.readFileSync(path.join(ROOT,relative),'utf8');
 
-assert.equal(AI_SCHOOL_OFFICIAL_SOURCE_VERSION,'ai-school-official-source-v3990_2');
+assert.equal(AI_SCHOOL_OFFICIAL_SOURCE_VERSION,'ai-school-official-source-v3990_3');
 assert.equal(AI_SCHOOL_OFFICIAL_ORIGIN,'https://gaokao.chsi.com.cn');
 assert.equal(AI_SCHOOL_OFFICIAL_READER_ORIGIN,'https://r.jina.ai');
 assert.equal(AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION,'chsi-only-reader-v3990_2');
+assert.equal(AI_SCHOOL_PROFILE_SUPPLEMENT_VERSION,'ai-school-profile-supplement-v3990_1');
+assert.equal(AI_BAIDU_BAIKE_ORIGIN,'https://baike.baidu.com');
+assert.equal(AI_BAIDU_BAIKE_CARD_API,'https://baike.baidu.com/api/openapi/BaikeLemmaCardApi');
 assert.equal(schoolOfficialTopic('宿舍和食堂怎么样'),'living');
 assert.equal(schoolOfficialTopic('2026招生章程要注意什么'),'charter');
 assert.equal(schoolOfficialTopic('录取时有没有专业级差'),'admission_rule');
@@ -47,6 +52,51 @@ assert.ok(nav.some(item=>item.text==='录取规则'));
 assert.ok(nav.some(item=>item.text==='食宿条件'));
 assert.match(htmlToOfficialPlainText(homeFixture),/学校官方介绍正文/);
 assert.doesNotMatch(htmlToOfficialPlainText('<script>bad()</script><p>保留</p>'),/bad\(\)/);
+const introFixture=`<nav>首页 院校库 专业库</nav><h1>学校简介</h1><p>测试大学始建于1950年，是一所以工科为主、工理经管文法艺等学科协调发展的本科院校。</p><p>学校坚持人才培养中心地位，现有多个本科专业和教学单位。</p><footer>学籍查询 学历查询 Copyright © 2003-2026</footer>`;
+const introExcerpt=extractOfficialEvidenceExcerpt(introFixture,'测试大学','profile');
+assert.match(introExcerpt,/始建于1950年/);
+assert.match(introExcerpt,/人才培养中心地位/);
+assert.doesNotMatch(introExcerpt,/学籍查询|Copyright/);
+const detailFallback=buildOfficialDeterministicSummary({school:'测试大学',topic:'profile',topicLabel:'学校简介',coverage:'official_detail',evidenceText:introFixture});
+assert.match(detailFallback,/根据阳光高考“学校简介”公开正文/);
+assert.match(detailFallback,/始建于1950年/);
+const cardFallback=buildOfficialDeterministicSummary({school:'辽宁科技大学',topic:'profile',topicLabel:'学校简介',coverage:'official_search_card',facts:{schoolCode:'10146',location:'辽宁',supervisor:'辽宁省教育厅',level:'本科',satisfaction:'4.2'}});
+assert.match(cardFallback,/院校代码为10146/);
+assert.match(cardFallback,/不是“学校简介”正文/);
+assert.match(cardFallback,/不能据此补写学校沿革/);
+const unavailableFallback=buildOfficialDeterministicSummary({school:'辽宁科技大学',topic:'profile',topicLabel:'学校简介',coverage:'official_source_unavailable',evidenceText:'本轮没有取得可验证的阳光高考官方资料，因此不生成学校事实结论。'});
+assert.match(unavailableFallback,/没有取得可验证的阳光高考“学校简介”正文/);
+assert.doesNotMatch(unavailableFallback,/根据阳光高考“学校简介”公开正文/);
+
+const baikeFixture=`Title: 测试大学_百度百科\n\nURL Source: https://baike.baidu.com/item/%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6\n\nMarkdown Content:\n概述\n测试大学创建于1950年，是一所以工科为主、多学科协调发展的本科院校。学校形成了长期服务区域产业发展的办学传统。现有在校生20000人。\n## 历史沿革\n后续内容不进入概述。`;
+const baikeProfile=extractBaiduBaikeProfile(baikeFixture,'测试大学');
+assert.equal(baikeProfile.ok,true);
+assert.match(baikeProfile.answer,/非官方补充/);
+assert.match(baikeProfile.answer,/创建于1950年/);
+assert.doesNotMatch(baikeProfile.answer,/在校生20000人/);
+assert.equal(new URL(baikeProfile.source.sourceUrl).origin,AI_BAIDU_BAIKE_ORIGIN);
+assert.match(baikeProfile.boundary,/不是学校官方来源/);
+assert.equal(extractBaiduBaikeProfile(baikeFixture,'另一所大学').ok,false);
+const baikeCard=extractBaiduBaikeCard({title:'测试大学',abstract:'测试大学创建于1950年，是一所以工科为主、多学科协调发展的本科院校。现有在校生20000人。',totalUrl:'http://baike.baidu.com/item/测试大学/100'},'测试大学');
+assert.equal(baikeCard.ok,true);
+assert.match(baikeCard.answer,/创建于1950年/);
+assert.doesNotMatch(baikeCard.answer,/在校生20000人/);
+assert.equal(baikeCard.source.sourceUrl,'https://baike.baidu.com/item/%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6/100');
+let baikeFetches=0;const baikeLoaded=await loadSchoolProfileSupplement({school:'测试大学',fetchImpl:async url=>{baikeFetches++;return{ok:true,status:200,headers:new Headers(),text:async()=>JSON.stringify({title:'测试大学',abstract:'测试大学创建于1950年，是一所以工科为主、多学科协调发展的本科院校。',totalUrl:'http://baike.baidu.com/item/测试大学/100'})};}});
+assert.equal(baikeLoaded.ok,true);
+assert.equal(baikeFetches,1);
+const experienceKey='/api/tongxue-summary?school=%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6&page=1';
+const experienceContext=payload=>({request:new Request('https://example.test/api/ai/turn'),aiDeterministicToolResults:{[experienceKey]:{kind:'school_experience',key:experienceKey,url:experienceKey,status:200,payload}}});
+const summaryExperience=await runSchoolExperience(experienceContext({ok:true,mode:'ai_summary',school:'测试大学',summary:'校园氛围摘要',reviews:[{content:'不应展示'}],source:{url:'https://srgaoxiao.com/school/test'}}),{school:'测试大学'});
+assert.equal(summaryExperience.mode,'summary');
+assert.equal(summaryExperience.summary,'校园氛围摘要');
+assert.deepEqual(summaryExperience.reviews,[]);
+const recentExperience=await runSchoolExperience(experienceContext({ok:true,mode:'recent_reviews',school:'测试大学',reviews:Array.from({length:6},(_,index)=>({id:String(index),content:`留言${index}`,createdAt:`2026-08-${12-index}`})),source:{url:'https://srgaoxiao.com/school/test'}}),{school:'测试大学'});
+assert.equal(recentExperience.mode,'recent_reviews');
+assert.equal(recentExperience.reviews.length,4);
+assert.deepEqual(recentExperience.reviews.map(item=>item.content),['留言0','留言1','留言2','留言3']);
+assert.match(recentExperience.boundary,/用户生成内容/);
+
 
 const markdownFixture=`Title: 辽宁石油化工大学_院校信息库_阳光高考\n\nURL Source: https://gaokao.chsi.com.cn/sch/schoolInfo--schId-124,categoryId-1167668,mindex-1.dhtml\n\nMarkdown Content:\n[学校简介](https://gaokao.chsi.com.cn/sch/schoolInfo--schId-124,categoryId-1167668,mindex-1.dhtml) [录取规则](https://gaokao.chsi.com.cn/sch/schoolInfo--schId-124,categoryId-1167668,mindex-4.dhtml)`;
 const markdownNav=extractOfficialSchoolNavigation(markdownFixture,'124');
@@ -98,6 +148,8 @@ assert.equal(command.focus.school,'辽宁石油化工大学');
 assert.equal(command.executionPolicy.commitView,false);
 command=deterministicCommand('辽宁石油化工大学宿舍怎么样',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'school_official_qa');
+command=deterministicCommand('辽宁石油化工大学学校环境怎么样',workspace,['辽宁石油化工大学']);
+assert.equal(command.agentTask,'school_experience');
 command=deterministicCommand('辽宁石油化工大学2026招生章程要注意什么',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'school_official_qa');
 command=deterministicCommand('辽宁石油化工大学最低录取分多少',workspace,['辽宁石油化工大学']);
@@ -125,7 +177,20 @@ const app=read('aiplus/app.v3990_1.js');
 assert.match(app,/school_official/);
 const registry=read('functions/_lib/ai/tool-registry.js');
 assert.match(registry,/school_official_info/);
+assert.match(registry,/school_experience/);
+assert.match(registry,/\/api\/tongxue-summary/);
+assert.match(registry,/\.slice\(0,4\)/);
 const orchestrator=read('functions/_lib/ai/turn-orchestrator.js');
 assert.match(orchestrator,/school_official_qa/);
+assert.match(orchestrator,/official\.detailAvailable&&evidence/);
+assert.match(orchestrator,/official\.deterministicSummary/);
+assert.match(orchestrator,/buildOfficialDeterministicSummary/);
+assert.match(orchestrator,/loadSchoolProfileSupplement/);
+assert.match(orchestrator,/runSchoolExperience/);
+const presentation=read('functions/_lib/ai/advisor-presentation.js');
+assert.match(presentation,/学校简介/);
+assert.match(presentation,/学校环境/);
+assert.match(presentation,/school_profile_supplement/);
+assert.match(presentation,/school_experience/);
 
 console.log(JSON.stringify({ok:true,version:AI_SCHOOL_OFFICIAL_SOURCE_VERSION,transportVersion:AI_SCHOOL_OFFICIAL_TRANSPORT_VERSION,schoolMatch:searchMatch,topic:evidence.topic,task:'school_official_qa',officialOrigin:AI_SCHOOL_OFFICIAL_ORIGIN,readerOrigin:AI_SCHOOL_OFFICIAL_READER_ORIGIN},null,2));
