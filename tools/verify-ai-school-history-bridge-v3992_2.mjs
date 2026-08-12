@@ -13,7 +13,7 @@ assert.ok(tool.includes("new URL('/api/school-majors'"),'school history must reu
 assert.ok(tool.includes("url.searchParams.set('schoolIntent','school')"),'school history exact-school intent missing');
 assert.ok(tool.includes('normalizedScore=normalizeOptionalCandidateScore(candidateScore)'),'school history must preserve null candidate score');
 assert.ok(tool.includes("normalizedScore===null?'score-desc':'position-near'"),'school history null score sort boundary missing');
-assert.ok(orchestrator.includes('result.history,result.fit'),'history/fit deterministic continuation missing');
+assert.ok(orchestrator.includes('result.history'),'school-history deterministic continuation missing');assert.ok(orchestrator.includes('result.majorHistory'),'major-history deterministic continuation missing');assert.ok(orchestrator.includes('result.fit'),'fit deterministic continuation missing');
 assert.ok(orchestrator.includes('preserveResolvedFocus=false'),'confirmed-command focus preservation boundary missing');
 assert.ok(orchestrator.includes('deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0'),'deterministic continuation detection missing');
 assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');
