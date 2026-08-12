@@ -5,7 +5,6 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'ai/**'
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'shared/resources/geo/china-region-catalog.v3990_1.js'
@@ -14,12 +13,13 @@ on:
       - 'functions/_lib/major-filter.v3990_1.js'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
   push:
     branches: [main]
     paths:
-      - 'ai/**'
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'shared/resources/geo/china-region-catalog.v3990_1.js'
@@ -28,6 +28,8 @@ on:
       - 'functions/_lib/major-filter.v3990_1.js'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
+      - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
+      - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
   workflow_dispatch:
@@ -68,7 +70,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f /tmp/ai-files.txt
-          if grep -E '^(ai/|aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_1\.js$|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_1\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
+          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_1\.js$|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_1\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/verify-aiplus-school-official-cache-v3990_2\.mjs$|tools/verify-aiplus-human-dialog-v3990_2\.mjs$|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
             echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
           else
             echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
@@ -79,9 +81,10 @@ jobs:
           set -euo pipefail
           grep -q "display: 'v3.9.90.1'" shared/resources/release/current-release.js
           grep -q "siteRuntimeGeneration: 'v3990_1'" shared/resources/release/current-release.js
-          grep -q 'data-release="v3.9.90.1"' ai/index.html
-          grep -q 'data-site-runtime-generation="v3990_1"' ai/index.html
+          grep -q 'data-release="v3.9.90.1"' aiplus/index.html
+          grep -q 'data-site-runtime-generation="v3990_1"' aiplus/index.html
           grep -q 'data-ai-plus="school-official-qa"' aiplus/index.html
+          test ! -e ai
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
       - name: Syntax check AI semantic runtime
@@ -99,12 +102,17 @@ jobs:
           node --check functions/api/ai/health.js
           node --check functions/api/ai/model-probe.js
           node --check functions/api/ai/school-official.js
-          node --check ai/app.v3990_1.js
+          node --check aiplus/app.v3990_1.js
           node --check tools/verify-ai-workspace-v3990_1.mjs
           node --check tools/verify-aiplus-school-official-v3990_2.mjs
+          node --check tools/verify-aiplus-school-official-cache-v3990_2.mjs
+          node --check tools/verify-aiplus-human-dialog-v3990_2.mjs
           node --check tools/browser-ai-workspace-v3990_1.mjs
       - name: Run deterministic semantic workspace gates
-        run: node tools/verify-ai-workspace-v3990_1.mjs
+        run: |
+          set -euo pipefail
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
 
   preview-smoke:
     if: github.event_name == 'pull_request' && needs.source-contract.outputs.runtime_changed == 'true'
@@ -233,19 +241,32 @@ jobs:
             exit 4
           fi
 
-          page="$(request_get ai-page "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}")"
+          page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
           grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page"
           grep -q 'data-site-runtime-generation="v3990_1"' <<<"$page"
-          plus_page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
-          grep -q 'data-ai-plus="school-official-qa"' <<<"$plus_page"
+          grep -q 'data-ai-plus="school-official-qa"' <<<"$page"
+          legacy_body="$(mktemp)"
+          legacy_status="$(curl --silent --show-error --location --max-time 30 -H 'Cache-Control: no-cache' -o "$legacy_body" -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
+          if [ "$legacy_status" = 200 ] && grep -q 'data-ai-workspace="ai-workspace-v3990_1"' "$legacy_body"; then
+            echo 'Legacy /ai/ frontend is still serving the AI workspace.' >&2
+            exit 5
+          fi
+          rm -f "$legacy_body"
 
           official="$(request_get school-official "${PREVIEW_BASE}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
           grep -q '"ok":true' <<<"$official"
           grep -q '"school":"辽宁石油化工大学"' <<<"$official"
-          grep -q '"schoolCode":"10148"' <<<"$official"
-          grep -q '"coverage":"official_search_card"' <<<"$official"
-          grep -q '"detailAvailable":false' <<<"$official"
-          grep -q 'https://gaokao.chsi.com.cn/' <<<"$official"
+          if grep -q '"sourceAvailable":false' <<<"$official"; then
+            grep -q '"coverage":"official_source_unavailable"' <<<"$official"
+            grep -q '"detailAvailable":false' <<<"$official"
+            grep -q '本轮没有取得可验证的阳光高考官方资料' <<<"$official"
+            grep -q '不让模型补写' <<<"$official"
+          else
+            grep -q '"sourceAvailable":true' <<<"$official"
+            grep -q '"schoolCode":"10148"' <<<"$official"
+            grep -q '"coverage":"official_search_card"' <<<"$official"
+            grep -q 'https://gaokao.chsi.com.cn/' <<<"$official"
+          fi
 
           rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
           rank="$(request_post rank "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
@@ -328,15 +349,20 @@ jobs:
               status="$(curl --silent --show-error --location --max-time 20 -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
               if [ "$status" = 403 ] && grep -Eqi '^cf-mitigated:[[:space:]]*challenge' "$headers" && grep -Eqi '^server:[[:space:]]*cloudflare' "$headers"; then ready=1; break; fi
             fi
-            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/aiplus/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
             health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
             rank="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
             if grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page" \
+              && grep -q 'data-ai-plus="school-official-qa"' <<<"$page" \
               && grep -q '"apiVersion":"ai-health-api-v3990_1"' <<<"$health" \
               && grep -q '"release":"v3.9.90.1"' <<<"$health" \
               && grep -q '"siteRuntimeGeneration":"v3990_1"' <<<"$health" \
               && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
               && grep -q '"rankEnd":14235' <<<"$rank"; then
+              if [ "$VERIFY_MODE" = exact ]; then
+                legacy_status="$(curl --silent --output /tmp/ai-legacy.body --write-out '%{http_code}' --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
+                if [ "$legacy_status" = 200 ] && grep -q 'data-ai-workspace="ai-workspace-v3990_1"' /tmp/ai-legacy.body; then sleep 10; continue; fi
+              fi
               if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
                 probe="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/model-probe?deploy=${EXPECTED_SHA}-${attempt}" --data '{}' || true)"
                 grep -q '"ok":true' <<<"$probe" || { sleep 10; continue; }

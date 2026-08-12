@@ -33,9 +33,9 @@
     "interactionStyles": "/shared/ui/interaction/interaction-transaction.v3990_1.css?v=3990_1",
     "familyPlanBootstrap": "/ln-rank/js/selection-pool.v3990_1.js?v=3990_1",
     "familyPlanRuntime": "/ln-rank/js/selection-pool-runtime.v3990_1.js?v=3990_1",
-    "aiPage": "/ai/",
-    "aiRuntime": "/ai/app.v3990_1.js?v=3990_1",
-    "aiStyles": "/ai/workspace.v3990_1.css?v=3990_1",
+    "aiPage": "/aiplus/",
+    "aiRuntime": "/aiplus/app.v3990_1.js?v=3990_1",
+    "aiStyles": "/aiplus/workspace.v3990_1.css?v=3990_1",
     "aiWorkspaceContract": "/shared/ai/ai-workspace-contract.v3990_1.js?v=3990_1",
     "majorBandsFilter": "/functions/_lib/major-filter.v3990_1.js",
     "majorBandsRegionCatalog": "/shared/resources/geo/china-region-catalog.v3990_1.js"

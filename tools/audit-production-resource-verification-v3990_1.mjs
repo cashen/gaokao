@@ -186,8 +186,36 @@ containsAll(majorBandsApi, [
   'requestForBand(context.request, sourceUrl, band, input.pageLimit)',
   'allBandsEffectivePageLimit: input.pageLimit',
   "MAJOR_BANDS_ALL_BANDS_EDGE_CACHE_VERSION = 'major-bands-all-bands-edge-cache-canonical-v3990_1'",
-  "MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1'"
+  "MAJOR_BANDS_REQUESTED_BAND_ORDER_EDGE_CACHE_VERSION = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_1'",
+  "MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION = 'major-bands-requested-band-page-score-hints-v3990_1'",
+  "MAJOR_BANDS_REQUESTED_BAND_RESPONSE_EDGE_CACHE_VERSION = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_1'",
+  'selectRequestedBandPageBucketsByScoreHints',
+  'requestedBandOrderPageBucketHintStatus',
+  'requestedBandOrderPageScoreHints',
+  'requestedBandResponseEdgeCacheRequest',
+  'context?.majorBandsInternalBandRequest !== true',
+  'predecodeRegion: filters.region',
+  'MAJOR_BANDS_NON_BUSINESS_CACHE_PARAMS',
+  "'production-resource-check'",
+  'stripMajorBandsNonBusinessCacheParams(url)'
 ], 'major-bands API');
+
+const staticProvider = read('functions/_lib/major-bands-static-provider.js');
+containsAll(staticProvider, [
+  "MAJOR_BANDS_RANK_ROW_NATIVE_SCAN_VERSION = 'major-bands-rank-row-native-scan-v3990_1'",
+  "MAJOR_BANDS_PREDECODE_REGION_FILTER_VERSION = 'major-bands-predecode-region-filter-v3990_1'",
+  'readTopLevelArrayScalars',
+  'allowedIds.has(String(scalarValues.get(idIndex)',
+  'majorBandsRankValueMatchesRange(scalarValues.get(rankIndex), rankRange)',
+  'const regionMatch = matchRegionRule',
+  'const row = JSON.parse(rowText)'
+], 'major-bands native static provider');
+
+containsAll(bucketLoader, [
+  'predecodeRegion: options.predecodeRegion',
+  'predecodeRegionFilterVersion',
+  'regionRowsSkipped'
+], 'rank bucket regional predecode');
 
 console.log(JSON.stringify({
   ok: true,

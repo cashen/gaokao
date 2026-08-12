@@ -22,7 +22,9 @@ const expectedBucketLoaderVersion = 'major-bands-rank-bucket-loader-bounded-all-
 const expectedRankRowFilterVersion = 'major-bands-rank-row-filter-v3990_1';
 const expectedQueryMemoryMode = 'requested-band-lightweight-order-current-page-v3990_1';
 const expectedOrderIdCacheVersion = 'major-bands-requested-band-order-id-lru-v3990_1';
-const expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-canonical-v3990_1';
+const expectedOrderEdgeCacheVersion = 'major-bands-requested-band-order-edge-cache-score-hints-v3990_1';
+const expectedPageScoreHintVersion = 'major-bands-requested-band-page-score-hints-v3990_1';
+const expectedRequestedBandResponseEdgeCacheVersion = 'major-bands-requested-band-response-edge-cache-score-hints-v3990_1';
 const expectedPageIdFilterVersion = 'major-bands-page-id-predecode-filter-v3990_1';
 const expectedOrderProjectionVersion = 'major-bands-rank-order-minimal-projection-v3990_1';
 const expectedOrderPageSourceVersion = 'major-bands-order-page-raw-row-reuse-v3990_1';
@@ -32,6 +34,10 @@ const expectedAllBandsExecutionMode = 'sequential-internal-band-requests-v3990_1
 const expectedAllBandsSharedProjectionVersion = 'major-bands-all-bands-shared-projection-v3990_1';
 const expectedAllBandsPageLimitCap = 16;
 const expectedAllBandsEdgeCacheVersion = 'major-bands-all-bands-edge-cache-canonical-v3990_1';
+
+const apiSourceForScoreHintContract = fs.readFileSync('functions/api/major-bands.js', 'utf8');
+assert.equal((apiSourceForScoreHintContract.match(/orderedScores: orderedPageScores\(ordered\)/g) || []).length, 2, 'cold and shared ordered snapshots must both persist aligned scores');
+assert.ok((apiSourceForScoreHintContract.match(/pageScoreHintVersion: MAJOR_BANDS_REQUESTED_BAND_PAGE_SCORE_HINT_VERSION/g) || []).length >= 2, 'cold and shared ordered snapshots must both carry score-hint version');
 
 const sharedScenarios = Object.freeze([
   Object.freeze({ name: 'standard-579-all', path: '/api/major-bands?candidateScore=579&rangePreset=standard&limit=37&offset=0', allBands: true }),
@@ -123,6 +129,8 @@ async function requestScenario(scenario, token) {
     cloudflare1102,
     allBandsEdgeCacheStatus: response.headers.get('x-gaokao-all-bands-edge-cache') || '',
     allBandsEdgeCacheVersion: response.headers.get('x-gaokao-all-bands-edge-cache-version') || '',
+    requestedBandResponseEdgeCacheStatus: response.headers.get('x-gaokao-requested-band-response-edge-cache') || '',
+    requestedBandResponseEdgeCacheVersion: response.headers.get('x-gaokao-requested-band-response-edge-cache-version') || '',
     payload,
     bodyPrefix: payload ? '' : text.slice(0, 240)
   };
@@ -160,6 +168,8 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.requestedBandOrderMinimalProjection, true, `${result.scenario}: default query did not use minimal projection`);
   assert.equal(result.payload?.source?.requestedBandOrderPageSourceVersion, expectedOrderPageSourceVersion, `${result.scenario}: order page source deployment`);
   assert.ok(['raw-row-reuse', 'full-record-reuse', 'page-id-refetch', 'all-bands-shared-projection'].includes(result.payload?.source?.requestedBandOrderPageSource), `${result.scenario}: invalid order page source`);
+  assert.equal(result.payload?.source?.requestedBandOrderPageScoreHintVersion, expectedPageScoreHintVersion, `${result.scenario}: page score hint deployment`);
+  assert.ok(['not-needed', 'shared-projection', 'applied', 'empty-page', 'fallback-invalid-hints', 'fallback-uncovered-score', 'keyword-bypass'].includes(result.payload?.source?.requestedBandOrderPageBucketHintStatus), `${result.scenario}: invalid page bucket hint status`);
   assert.equal(result.payload?.source?.requestedBandOrderColdSecondAssetPass, false, `${result.scenario}: cold ordered query performed a second asset pass`);
   assert.equal(result.payload?.source?.requestedBandRawRowReferenceNonEnumerable, true, `${result.scenario}: raw row reference contract`);
   assert.equal(
@@ -182,6 +192,10 @@ function validateResult(result) {
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0) <= 8, `${result.scenario}: ordered-ID LRU entries`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalIds || 0) <= 12000, `${result.scenario}: ordered-ID LRU total IDs`);
   assert.ok(Number(result.payload?.source?.requestedBandOrderCacheTotalChars || 0) <= 750000, `${result.scenario}: ordered-ID LRU total chars`);
+  if (!result.allBands && !['unavailable', 'keyword-bypass', 'shared-projection'].includes(result.payload?.source?.requestedBandOrderEdgeCacheStatus)) {
+    assert.equal(result.payload?.source?.requestedBandOrderModuleCacheEnabled, false, `${result.scenario}: Edge mode retained module ordered-ID cache`);
+    assert.equal(Number(result.payload?.source?.requestedBandOrderCacheEntries || 0), 0, `${result.scenario}: Edge mode module ordered-ID entries`);
+  }
   assert.equal(result.payload?.source?.pageIdFilterVersion, expectedPageIdFilterVersion, `${result.scenario}: page-ID predecode filter`);
   assert.equal(result.payload?.source?.rankingCandidateMode, 'lightweight-order-current-page-v3990_1', `${result.scenario}: lightweight ranking candidate`);
   assert.equal(result.payload?.source?.deferredResponseEnrichment, true, `${result.scenario}: response enrichment was not deferred`);
@@ -213,6 +227,11 @@ function validateResult(result) {
   assert.equal(result.payload?.source?.publicHttpSelfFanout, false, `${result.scenario}: self fanout`);
   assert.equal(result.payload?.source?.bucketWorkerCount, 0, `${result.scenario}: bucket worker count`);
   assert.equal(result.payload?.source?.bucketWorkerTransferChars, 0, `${result.scenario}: bucket transfer`);
+
+  if (!result.allBands) {
+    assert.equal(result.requestedBandResponseEdgeCacheVersion, expectedRequestedBandResponseEdgeCacheVersion, `${result.scenario}: requested-band response edge cache version`);
+    assert.ok(['hit', 'stored', 'write-failed', 'unavailable'].includes(result.requestedBandResponseEdgeCacheStatus), `${result.scenario}: requested-band response edge cache status`);
+  }
 
   if (result.allBands) {
     const pageSize = Number(result.payload?.meta?.pageSize || 0);
@@ -259,14 +278,25 @@ function validateResult(result) {
     if (['ordered-id-hit', 'ordered-id-edge-hit'].includes(result.payload?.source?.requestedBandOrderCacheStatus)) {
       assert.ok(Number(result.payload?.source?.rankDecodedRowCount || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID hit decoded more than current page`);
       assert.ok(Number(result.payload?.source?.requestedBandPageDecodedRecords || 0) <= Number(group.pagination?.limit || 0), `${result.scenario}: ordered-ID page exceeded limit`);
+      if (Number(group.pagination?.returned || 0) > 0) {
+        assert.equal(result.payload?.source?.requestedBandOrderPageBucketHintStatus, 'applied', `${result.scenario}: cached page score hints not applied`);
+        assert.equal(Number(result.payload?.source?.requestedBandOrderPageScoreHints || 0), Number(group.pagination?.returned || 0), `${result.scenario}: page score hint count`);
+        assert.ok(Number(result.payload?.source?.requestedBandOrderPageSelectedBuckets || 0) > 0, `${result.scenario}: page score hint selected no buckets`);
+        assert.ok(Number(result.payload?.source?.requestedBandOrderPageSelectedBuckets || 0) <= Number(result.payload?.source?.requestedBandOrderPageBucketHintCandidates || 0), `${result.scenario}: page score hint expanded buckets`);
+      }
     }
     for (const hiddenBand of bands.filter(band => band !== result.band)) {
       assert.equal(Number(result.payload?.bands?.[hiddenBand]?.count || 0), 0, `${result.scenario}: hidden ${hiddenBand} band was classified`);
       assert.equal((result.payload?.bands?.[hiddenBand]?.records || []).length, 0, `${result.scenario}: hidden ${hiddenBand} records leaked`);
     }
     if (result.scenario === 'safe-449-near') {
-      assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: requested band must read exactly six buckets');
-      assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: scoped static bytes drift');
+      if (result.payload?.source?.requestedBandOrderPageSource === 'page-id-refetch') {
+        assert.ok(Number(result.payload?.source?.chunksRead) >= 1 && Number(result.payload?.source?.chunksRead) <= 6, 'safe-449-near: page hint bucket scope');
+        assert.ok(Number(result.payload?.source?.staticIndexBytes) > 0 && Number(result.payload?.source?.staticIndexBytes) <= 621156, 'safe-449-near: page hint static bytes');
+      } else {
+        assert.equal(Number(result.payload?.source?.chunksRead), 6, 'safe-449-near: cold requested band must read exactly six buckets');
+        assert.equal(Number(result.payload?.source?.staticIndexBytes), 621156, 'safe-449-near: cold scoped static bytes drift');
+      }
     }
     if (result.empty) {
       assert.equal(result.payload.meta?.classificationMode, 'rank_unavailable_empty');
@@ -431,7 +461,9 @@ for (const mode of concurrencyModes) {
       identities: new Set(results.map(result => result.scenario)).size,
       latency,
       status5xx: results.filter(result => result.status >= 500).length,
-      cloudflare1102: results.filter(result => result.cloudflare1102).length
+      cloudflare1102: results.filter(result => result.cloudflare1102).length,
+      responseEdgeHits: results.filter(result => result.requestedBandResponseEdgeCacheStatus === 'hit').length,
+      responseEdgeStores: results.filter(result => result.requestedBandResponseEdgeCacheStatus === 'stored').length
     });
     totalRequests += results.length;
   }
@@ -440,6 +472,10 @@ for (const mode of concurrencyModes) {
 const pagination = [];
 for (const scenario of paginationScenarios) pagination.push(await exhaustPagination(scenario));
 if (base.startsWith('https://')) {
+  const responseEdgeHits = concurrencyModes
+    .flatMap(mode => concurrency[mode])
+    .reduce((sum, item) => sum + Number(item.responseEdgeHits || 0), 0);
+  assert.ok(responseEdgeHits > 0, 'requested-band production response edge cache did not record any hit');
   const safePagination = pagination.find(item => item.scenario === 'safe-449-near');
   assert.ok(Number(safePagination?.orderEdgeHits || 0) > 0, 'safe-449-near pagination did not use ordered-ID edge snapshot');
 }

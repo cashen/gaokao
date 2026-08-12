@@ -1,3 +1,4 @@
+import './verify-aiplus-school-official-cache-v3990_2.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -120,7 +121,7 @@ assert.match(endpoint,/loadOfficialSchoolEvidence/);
 const plusPage=read('aiplus/index.html');
 assert.match(plusPage,/data-ai-plus="school-official-qa"/);
 assert.match(plusPage,/阳光高考/);
-const app=read('ai/app.v3990_1.js');
+const app=read('aiplus/app.v3990_1.js');
 assert.match(app,/school_official/);
 const registry=read('functions/_lib/ai/tool-registry.js');
 assert.match(registry,/school_official_info/);

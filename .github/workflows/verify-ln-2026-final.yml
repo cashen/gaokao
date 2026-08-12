@@ -137,7 +137,7 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           paths=(
-            / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/self-check.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html /ai/
+            / /Public_company/ /ln-rank/ /ln-rank/selection-pool.html /ln-rank/local-mainline.html /ln-rank/211-mainline.html /ln-rank/self-check.html /ln2026.html /zy2026/ /tongxue/ /just_for_liaoning.html /aiplus/
             /shared/resources/release/current-release.js
             /shared/resources/resource-registry.js
             /shared/ui/ui-resource-registry.v3990_1.js
@@ -166,8 +166,8 @@ jobs:
             /ln-rank/js/selection-pool.v3990_1.js
             /ln-rank/js/selection-pool-runtime.v3990_1.js
             /shared/ai/ai-workspace-contract.v3990_1.js
-            /ai/app.v3990_1.js
-            /ai/workspace.v3990_1.css
+            /aiplus/app.v3990_1.js
+            /aiplus/workspace.v3990_1.css
             /ln-rank/js/domain/family-plan-copy-adapter.v3970_0.js
             /ln-rank/js/academic-background/all211-static-app.v3972_0.js
             /ln-rank/css/all211-static.v3972_0.css
@@ -178,7 +178,7 @@ jobs:
             /shared/resources/schools/school-query-engine.v3969_0.js
           )
           for path in "${paths[@]}"; do curl --fail --silent --show-error "http://127.0.0.1:8765$path" >/dev/null; done
-          for retired in /ln-rank/active-assets.json /ln-rank/release-meta.json; do
+          for retired in /ln-rank/active-assets.json /ln-rank/release-meta.json /ai/; do
             status="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8765$retired")"
             test "$status" = '404'
           done

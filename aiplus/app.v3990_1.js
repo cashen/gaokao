@@ -1,7 +1,7 @@
 
 import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=3992_0';
-import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/ai/render.v3992_0.js?v=3992_0';
-import {starterScenariosForScore} from '/ai/parent-starter.v3992_1.js?v=3992_1';
+import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=3992_0';
+import {starterScenariosForScore} from '/aiplus/parent-starter.v3992_1.js?v=3992_1';
 const AI_PLUS_SCHOOL_MODE=document.body?.dataset?.aiPlus==='school-official-qa';
 const AI_PLUS_SCHOOL_STARTERS=Object.freeze([{label:'先把学校看懂',prompt:'辽宁石油化工大学到底是什么定位？',reason:'只读官方资料，不拿分数替代学校判断。'},{label:'看2026招生章程',prompt:'辽宁石油化工大学2026招生章程要注意什么？',reason:'规则以官方页面为准。'},{label:'看宿舍和食宿',prompt:'辽宁石油化工大学宿舍和食宿条件怎么样？',reason:'官方页面没写的就不补猜。'},{label:'看另一所学校',prompt:'东北石油大学录取规则和学校定位怎么样？',reason:'继续从阳光高考取证。'}]);
 const DB_NAME='gaokao-ai-workspace-v3990_0',STORE_NAME='workspace',WORKSPACE_KEY='current',SELECTION_POOL_KEY='lnRank.selectionPool.lnPhysics.2026.v3951';

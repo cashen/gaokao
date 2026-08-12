@@ -8,6 +8,7 @@ import { matchMajorProject } from './major-project-matcher.js';
 import { buildSearchIndex } from './search-index-builder.js';
 import { resolveCanonicalPosition } from '../../shared/algorithms/position/canonical-position.v3963_0.js';
 import { rankMajorBandsRecordsOnce } from './major-bands-result-order.v3990_1.js';
+import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from './platform-upgrade-policy.js';
 import {
   detectSpecialProject,
   enrichSpecialProjectRecord,
@@ -102,6 +103,8 @@ function emptyResult(candidateRank, keywordQuery, requestedBand = '') {
       normalized: 0,
       bottomLineExcluded: 0,
       bottomLineUnresolved: 0,
+      platformTarget: '',
+      platformTargetExcluded: 0,
       majorKeywordExcluded: 0,
       majorHitCount: 0,
       projectHitCount: 0,
@@ -123,6 +126,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
   const region = clean(options.region || 'all', 30);
   const majorKeyword = clean(options.majorKeyword || '', 160);
   const bottomLineMode = clean(options.bottomLineMode || 'all', 40);
+  const platformTarget = normalizePlatformTarget(options.platformTarget || '');
   const specialProjectMode = clean(options.specialProjectMode || 'hide_eligibility_projects', 50);
   const schoolFilter = Boolean(options.schoolFilter);
   const acceptedSchoolNames = exactSchoolSet(options.acceptedSchoolNames);
@@ -155,6 +159,7 @@ export function processMajorBandsRankWindow(records, options = {}) {
   let normalized = 0;
   let bottomLineExcluded = 0;
   let bottomLineUnresolved = 0;
+  let platformTargetExcluded = 0;
   let majorKeywordExcluded = 0;
   let majorHitCount = 0;
   let projectHitCount = 0;
@@ -175,6 +180,10 @@ export function processMajorBandsRankWindow(records, options = {}) {
     if (requestedBand && canonicalPosition.bandKey !== requestedBand) return null;
     if (schoolFilter && !acceptedSchoolNames.has(normalizeSchoolName(source.school))) return null;
     if (!matchRegion(source, region)) return null;
+    if (platformTarget && !matchesPlatformUpgradeRecord(source, platformTarget)) {
+      platformTargetExcluded += 1;
+      return null;
+    }
     canonicalCandidate += 1;
     return { source, canonicalPosition };
   }
@@ -323,6 +332,8 @@ export function processMajorBandsRankWindow(records, options = {}) {
       normalized,
       bottomLineExcluded,
       bottomLineUnresolved,
+      platformTarget,
+      platformTargetExcluded,
       majorKeywordExcluded,
       majorHitCount,
       projectHitCount,

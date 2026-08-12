@@ -7,6 +7,7 @@ import {
   matchCandidateBackgrounds,
   AI_BACKGROUND_RESOURCE_ADAPTER_VERSION
 } from './background-resource-adapter.js';
+import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from '../platform-upgrade-policy.js';
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
@@ -61,7 +62,7 @@ const AI_MAJOR_BAND_KEYS=Object.freeze(['upper','near','steady']);
 function requestForMajorBands(context,params={},band=''){
   const sourceUrl=new URL(context.request.url),url=new URL('/api/major-bands',sourceUrl.origin);
   url.searchParams.set('candidateScore',String(params.score));url.searchParams.set('rangePreset',params.rangePreset||'standard');url.searchParams.set('region',params.region||'all');
-  if(params.majorKeyword)url.searchParams.set('majorKeyword',params.majorKeyword);if(params.schoolKeyword)url.searchParams.set('schoolKeyword',params.schoolKeyword);
+  if(params.majorKeyword)url.searchParams.set('majorKeyword',params.majorKeyword);if(params.schoolKeyword)url.searchParams.set('schoolKeyword',params.schoolKeyword);if(params.platformTarget)url.searchParams.set('platformTarget',params.platformTarget);
   url.searchParams.set('bottomLineMode',params.bottomLineMode||'all');url.searchParams.set('specialProjectMode','hide_eligibility_projects');url.searchParams.set('limit',String(Math.max(16,Math.min(24,Number(params.limit||16)))));if(band)url.searchParams.set('band',band);
   return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});
 }
@@ -104,15 +105,15 @@ function mergeCandidateExecutions(executions=[]){
   return{ok:successful.length>0,regionsQueried:[...new Set(successful.map(x=>x.region))],counts,records:[...byId.values()].slice(0,48),previewOnly:true,previewLimit:48,warnings:warnings.slice(0,8),failures:executions.filter(x=>!x?.ok).map(x=>({status:x?.status||0,message:x?.message||'查询失败'})),source:successful[0]?.source||{},meta:successful[0]?.meta||null,adapterVersion:AI_MAJOR_BANDS_ADAPTER_VERSION};
 }
 function platformUpgradePreview(records=[],target=''){
-  const tier=clean(target,12),matches=(records||[]).filter(record=>{const tierMatch=tier==='985'?record?.is985===true:(tier==='211'?record?.is211===true:false),budgetProject=record?.isSinoForeign===true||record?.isHighFee===true||['sino_foreign','high_fee'].includes(record?.feeType);return tierMatch&&budgetProject;});
+  const tier=normalizePlatformTarget(target),matches=(records||[]).filter(record=>matchesPlatformUpgradeRecord(record,tier));
   return{target:tier,records:matches.slice(0,16),countInPreview:matches.length,previewOnly:true,complete:false,boundary:'只检查当前候选预览中的211/985中外或高收费记录；预览未发现不能推出完整集合没有。'};
 }
 export async function runMajorBandSearch(context,{score,majorKeywords=[],regionKeys=['all'],bottomLineMode='all',schoolKeyword='',platformTarget=''}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
-  const params={score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,limit:16},executions=[];
+  const normalizedPlatformTarget=normalizePlatformTarget(platformTarget),params={score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,platformTarget:normalizedPlatformTarget,limit:16},executions=[];
   for(const band of AI_MAJOR_BAND_KEYS){const execution=await executeMajorBandsOnce(context,params,band);if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;executions.push(execution);}
-  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(platformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,platformTarget);return merged;
+  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(normalizedPlatformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,normalizedPlatformTarget);return merged;
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
