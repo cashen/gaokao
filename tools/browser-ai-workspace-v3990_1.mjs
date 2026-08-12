@@ -15,11 +15,20 @@ async function checkGeometry(page,label){const g=await page.evaluate(()=>({inner
 function responseMatchesInput(response,text){if(!response.url().includes('/api/ai/turn')||response.request().method()!=='POST')return false;try{return response.request().postDataJSON()?.input===text;}catch{return false;}}
 async function waitForFinalTurnResponse(page,text,timeout=90000){return page.waitForResponse(async response=>{if(!responseMatchesInput(response,text))return false;try{const data=await response.json();return data?.pendingDeterministicTool!==true;}catch{return true;}},{timeout});}
 async function waitIdle(page,timeout=90000){await page.waitForFunction(()=>document.querySelector('#sendButton')?.textContent?.trim()==='发送',null,{timeout});}
-async function submitTurn(page,text,requirements={}){const responsePromise=waitForFinalTurnResponse(page,text);await page.locator('#promptInput').fill(text);await page.locator('#sendButton').click();const response=await responsePromise;let data=null;try{data=await response.json();}catch{data={parseError:true};}assert(response.status()===200,`${text}: HTTP ${response.status()} ${bodySummary(data)}`);assert(data?.ok===true,`${text}: payload not ok ${bodySummary(data)}`);assert(data?.pendingConfirmation!==true,`${text}: unexpected confirmation ${bodySummary(data?.command)}`);if(requirements.candidates)assert(data?.result?.candidates?.ok===true,`${text}: candidates not ok ${bodySummary(data?.result?.candidates)}`);if(requirements.rank)assert(data?.result?.rank?.ok===true,`${text}: rank not ok`);if(requirements.history)assert(data?.result?.history?.ok===true,`${text}: history not ok ${bodySummary(data?.result?.history)}`);if(requirements.majorHistory)assert(data?.result?.majorHistory?.ok===true,`${text}: major history not ok ${bodySummary(data?.result?.majorHistory)}`);if(requirements.background)assert(data?.result?.background?.ok===true,`${text}: background not ok ${bodySummary(data?.result?.background)}`);await waitIdle(page);return data;}
+async function submitTurn(page,text,requirements={}){const responsePromise=waitForFinalTurnResponse(page,text,requirements.timeout||90000);await page.locator('#promptInput').fill(text);await page.locator('#sendButton').click();const response=await responsePromise;let data=null;try{data=await response.json();}catch{data={parseError:true};}assert(response.status()===200,`${text}: HTTP ${response.status()} ${bodySummary(data)}`);assert(data?.ok===true,`${text}: payload not ok ${bodySummary(data)}`);assert(data?.pendingConfirmation!==true,`${text}: unexpected confirmation ${bodySummary(data?.command)}`);if(requirements.candidates)assert(data?.result?.candidates?.ok===true,`${text}: candidates not ok ${bodySummary(data?.result?.candidates)}`);if(requirements.rank)assert(data?.result?.rank?.ok===true,`${text}: rank not ok`);if(requirements.history)assert(data?.result?.history?.ok===true,`${text}: history not ok ${bodySummary(data?.result?.history)}`);if(requirements.majorHistory)assert(data?.result?.majorHistory?.ok===true,`${text}: major history not ok ${bodySummary(data?.result?.majorHistory)}`);if(requirements.background)assert(data?.result?.background?.ok===true,`${text}: background not ok ${bodySummary(data?.result?.background)}`);await waitIdle(page);return data;}
 async function viewText(page){return (await page.locator('#activeViewChips').innerText()).replace(/\s+/g,' ').trim();}
 async function assertView(page,parts,notParts=[]){const t=await viewText(page);for(const p of parts)assert(t.includes(p),`view missing ${p}: ${t}`);for(const p of notParts)assert(!t.includes(p),`view unexpectedly has ${p}: ${t}`);}
-async function reset(page){page.once('dialog',d=>d.accept());await page.locator('#newWorkspace').click();await page.waitForTimeout(200);}
 async function turnCount(page){return page.locator('#conversationStream .turn').count();}
+async function openNewWorkspace(page,selector='#newWorkspace'){
+  const hadTurns=(await turnCount(page))>0;
+  let dialogSeen=false;
+  if(hadTurns)page.once('dialog',async dialog=>{dialogSeen=true;await dialog.accept();});
+  await page.locator(selector).click();
+  await page.waitForTimeout(300);
+  assert((await turnCount(page))===0,`${selector}: new discussion did not clear current conversation`);
+  if(hadTurns)assert(dialogSeen,`${selector}: expected new-discussion confirmation did not appear`);
+}
+async function reset(page){await openNewWorkspace(page);}
 async function transientMajorBandsRecovery(page,name){
   if(name!=='pc')return;
   await reset(page);let injected=false;page.__expectedSyntheticMajorBands503Count=0;
@@ -54,7 +63,10 @@ async function parentEntryUiJourney(page,name){
   if(name!=='pc')return;
   await reset(page);
   assert(await page.locator('body[data-ai-plus="school-official-qa"]').count()===1,'AI Plus body contract missing');
-  assert((await page.locator('label[for="promptInput"]').innerText()).includes('直接问学校'),'AI Plus prompt label missing');
+  const promptLabel=(await page.locator('label[for="promptInput"]').innerText()).replace(/\s+/g,' ').trim();
+  assert(promptLabel==='问学校、专业、分数或怎么选',`AI Plus prompt label drift: ${promptLabel}`);
+  const promptPlaceholder=String(await page.locator('#promptInput').getAttribute('placeholder')||'');
+  assert(promptPlaceholder.includes('介绍下辽宁科技大学'),'AI Plus natural-language school placeholder missing');
   const score=page.locator('#starterScore'),apply=page.locator('#starterScoreApply');
   const assertSchoolStarters=async label=>{const text=(await page.locator('#starterScenarios').innerText()).replace(/\s+/g,' ');for(const expected of ['先把学校看懂','2026招生章程','宿舍','另一所学校'])assert(text.includes(expected),`${label}: AI Plus starter missing ${expected}: ${text}`);assert(!/(民办也可以|愿意加预算看中外|211中外|985中外|新疆西藏)/.test(text),`${label}: generic score starter leaked into AI Plus entry: ${text}`);};
   await assertSchoolStarters('initial');
@@ -62,6 +74,87 @@ async function parentEntryUiJourney(page,name){
 }
 async function schoolHistoryAliasJourney(page,name){if(name!=='pc')return;await reset(page);let data=await submitTurn(page,'580分，省内电气有哪些学校',{candidates:true});assert(data.result?.candidates?.ok===true,'580 electric candidate');data=await submitTurn(page,'沈阳工业 测控多少分',{history:true});assert(data.command.agentTask==='school_major_history','沈阳工业 测控 task');assert(data.result.history.school==='沈阳工业大学','沈阳工业 shorthand school');assert(String(data.result.history.majorKeyword||'').includes('测控'),'沈阳工业 测控 major');data=await submitTurn(page,'沈阳工业 所有专业最低分',{history:true});assert(data.command.agentTask==='school_history','沈阳工业 all-major task');assert(data.result.history.school==='沈阳工业大学','沈阳工业 all-major school');assert((data.result.history.records||[]).length>10,'沈阳工业 all-major records unexpectedly tiny');data=await submitTurn(page,'大连交通 都多少分',{history:true});assert(data.command.agentTask==='school_history','大连交通 colloquial all-major task');assert(data.result.history.school==='大连交通大学','大连交通 colloquial school');assert((data.result.history.records||[]).length>10,'大连交通 colloquial all-major records unexpectedly tiny');data=await submitTurn(page,'沈阳工业大学自动化多少分',{history:true});assert(data.command.agentTask==='school_major_history','industrial automation task');assert(data.result.history.school==='沈阳工业大学','industrial school');assert(!bodySummary(data).includes('参考分数格式不正确'),'null score leaked into school history');data=await submitTurn(page,'沈阳工业大学所有专业的最低录取分',{history:true});assert(data.command.agentTask==='school_history','all-major history task');assert((data.result.history.records||[]).length>10,'all-major records unexpectedly tiny');assert(Number.isFinite(Number(data.result.history.summary?.minScore)),'all-major min score missing');data=await submitTurn(page,'沈航的电气呢',{history:true});assert(data.result.history.school==='沈阳航空航天大学',`沈航 alias failed: ${bodySummary(data.result.history)}`);data=await submitTurn(page,'辽科大的电气呢',{history:true});assert(data.result.history.school==='辽宁科技大学',`辽科大 alias failed: ${bodySummary(data.result.history)}`);data=await submitTurn(page,'电气在辽宁哪些学校有背景证据',{background:true});assert(data.command.agentTask==='major_background','major background task');assert((data.result.background.items||[]).some(item=>Array.isArray(item.schools)&&item.schools.length),'background school objects missing');await page.locator('.background-schools').first().evaluate(el=>el.open=true);assert(await page.locator('.background-school-link').count()>0,'background school links missing');const href=await page.locator('.background-school-link').first().getAttribute('href');assert(href?.includes('/ln-rank/?mode=school-all&school='),`background link invalid ${href}`);data=await submitTurn(page,'辽科大',{history:true});assert(data.result.history.school==='辽宁科技大学','school continuation lost');assert(data.result.history.majorKeyword?.includes('电气'),'major focus lost after background');}
 async function majorRegionHistoryJourney(page,name){if(name!=='pc')return;await reset(page);const data=await submitTurn(page,'测控专业 省内都多少分',{majorHistory:true});assert(data.command.agentTask==='major_region_history',`major history task drift: ${data.command.agentTask}`);assert(data.resolvedView?.majorKeywords?.includes('测控技术与仪器'),'major history view major missing');assert(data.resolvedView?.regionKeys?.some(key=>key==='ln'||key==='province:辽宁'),'major history view region missing');assert((data.result.majorHistory.records||[]).length>0,'major history records missing');assert((data.result.majorHistory.records||[]).every(item=>item.province==='辽宁'),'major history leaked outside Liaoning');const stream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');assert(stream.includes('测控技术与仪器'),'major history major not rendered');assert(/最低\d+分/.test(stream)&&/最高\d+分/.test(stream),`major history score range not rendered: ${stream.slice(-1500)}`);assert(stream.includes('2026参考'),'major history record cards missing');}
+
+async function schoolResearchAndHistoryJourney(page,name){
+  if(name!=='pc')return;
+  await reset(page);
+  const data=await submitTurn(page,'介绍下辽宁科技大学',{timeout:150000});
+  assert(data.command.agentTask==='school_research',`school research task drift: ${data.command.agentTask}`);
+  assert(data.commitView===false||data.command?.executionPolicy?.commitView===false,'school research must not mutate active candidate view');
+  assert(data.result?.execution?.plan?.mode==='multi_tool_research',`research plan missing: ${bodySummary(data.result?.execution?.plan)}`);
+  assert(data.result?.officialSchool?.ok===true,`official school research missing: ${bodySummary(data.result?.officialSchool)}`);
+  assert(data.result?.history?.ok===true,`school research history missing: ${bodySummary(data.result?.history)}`);
+  const stream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');
+  assert(stream.includes('辽宁科技大学'),'school research answer missing school name');
+  assert(stream.includes('先给结论'),'answer-first research card missing');
+  assert(stream.includes('2026辽宁物理类投档'),'research hard-fact snapshot missing');
+  assert(!stream.includes('学校 不限学校 → 介绍下辽宁科技大学'),'legacy mutation copy leaked');
+  await page.waitForFunction(()=>document.querySelectorAll('#historyList .history-item').length>=1,null,{timeout:10000});
+  const firstCount=await page.locator('#historyList .history-item').count();
+  assert(firstCount>=1,'history did not persist current conversation');
+  await openNewWorkspace(page,'#newWorkspaceSide');
+  await submitTurn(page,'大连交通 都多少分',{history:true});
+  await page.waitForFunction(()=>document.querySelectorAll('#historyList .history-item').length>=2,null,{timeout:10000});
+  assert(await page.locator('#historyList .history-item').count()>=2,'new discussion did not preserve prior History');
+  const historySearch=page.locator('#historySearch');
+  await historySearch.fill('辽宁科技大学');
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('学校研究')&&t.includes('辽宁科技大学')&&!t.includes('大连交通');},null,{timeout:10000});
+  let historyText=(await page.locator('#historyList').innerText()).replace(/\s+/g,' ');
+  assert(historyText.includes('辽宁科技大学')&&!historyText.includes('大连交通'),`History school search leaked sessions: ${historyText}`);
+  await page.locator('#historyList .history-item .history-open-item').first().click();
+  await page.waitForFunction(()=>{const t=document.querySelector('#conversationStream')?.textContent||'';return t.includes('介绍下辽宁科技大学')&&!t.includes('大连交通 都多少分');},null,{timeout:10000});
+  let switchedStream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');
+  assert(switchedStream.includes('介绍下辽宁科技大学')&&!switchedStream.includes('大连交通 都多少分'),`History switch leaked discussion state: ${switchedStream.slice(0,1200)}`);
+  assert(!(await page.locator('#activeViewBar').isVisible()),'school research session unexpectedly restored candidate filters');
+  await historySearch.fill('大连交通');
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('大连交通')&&!t.includes('辽宁科技大学');},null,{timeout:10000});
+  historyText=(await page.locator('#historyList').innerText()).replace(/\s+/g,' ');
+  assert(historyText.includes('大连交通')&&!historyText.includes('辽宁科技大学'),`History second search leaked sessions: ${historyText}`);
+  await page.locator('#historyList .history-item .history-open-item').first().click();
+  await page.waitForFunction(()=>{const t=document.querySelector('#conversationStream')?.textContent||'';return t.includes('大连交通 都多少分')&&!t.includes('介绍下辽宁科技大学');},null,{timeout:10000});
+  switchedStream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');
+  assert(switchedStream.includes('大连交通 都多少分')&&!switchedStream.includes('介绍下辽宁科技大学'),`History second switch leaked discussion state: ${switchedStream.slice(0,1200)}`);
+  await historySearch.fill('');
+  await submitTurn(page,'580分省内机械看看',{candidates:true});
+  const filtered=await submitTurn(page,'只看辽宁科技大学',{timeout:150000});
+  assert(['candidate_discovery','candidate_refinement'].includes(filtered.command?.agentTask),`explicit school filter task drift: ${filtered.command?.agentTask}`);
+  assert(filtered.command?.executionPolicy?.commitView===true&&filtered.commitView===true,'explicit school filter must commit active view');
+  assert(JSON.stringify(filtered.command?.schoolNames)===JSON.stringify(['辽宁科技大学']),'explicit school entity must exclude filter verb');
+  assert(JSON.stringify(filtered.command?.changeSet?.school)===JSON.stringify({op:'set',values:['辽宁科技大学']}),'explicit school filter patch drift');
+  assert(JSON.stringify(filtered.resolvedView?.schoolNames)===JSON.stringify(['辽宁科技大学']),'explicit school filter did not reach active view');
+  await assertView(page,['辽宁科技大学']);
+  await historySearch.fill('介绍下辽宁科技大学');
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('学校研究')&&t.includes('辽宁科技大学')&&!t.includes('只看辽宁科技大学');},null,{timeout:10000});
+  await page.locator('#historyList .history-item .history-open-item').first().click();
+  await page.waitForFunction(()=>{const t=document.querySelector('#conversationStream')?.textContent||'';return t.includes('介绍下辽宁科技大学')&&!document.querySelector('#activeViewBar')?.offsetParent;},null,{timeout:10000});
+  assert(!(await page.locator('#activeViewBar').isVisible()),'candidate state leaked into school research discussion');
+  await historySearch.fill('大连交通');
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('只看辽宁科技大学')&&!t.includes('学校研究');},null,{timeout:10000});
+  await page.locator('#historyList .history-item .history-open-item').first().click();
+  await page.waitForFunction(()=>{const t=document.querySelector('#activeViewChips')?.textContent||'';return t.includes('580分')&&t.includes('机械')&&t.includes('辽宁科技大学');},null,{timeout:10000});
+  await assertView(page,['580分','机械','辽宁科技大学']);
+  await historySearch.fill('');
+}
+
+async function responsiveHistoryDrawerJourney(page,name){
+  const panel=page.locator('#historyPanel'),close=page.locator('#historyClose');
+  if(name==='pc'){assert(await panel.isVisible(),'pc: History sidebar should stay visible');assert(!(await close.isVisible()),'pc: drawer close button should not displace sidebar');return;}
+  await reset(page);
+  assert(!(await page.locator('body').evaluate(el=>el.classList.contains('history-open'))),`${name}: History drawer should start closed`);
+  await page.locator('#historyToggle').click();
+  await page.waitForFunction(()=>document.body.classList.contains('history-open'),null,{timeout:10000});
+  await page.waitForTimeout(250);
+  assert(await close.isVisible(),`${name}: History drawer has no visible close control`);
+  const drawer=await page.evaluate(()=>{const p=document.querySelector('#historyPanel')?.getBoundingClientRect();return{inner:innerWidth,left:p?.left,right:p?.right,width:p?.width};});
+  assert(drawer.left>=-2&&drawer.right<=drawer.inner+2&&drawer.width<=drawer.inner+2,`${name}: History drawer escapes viewport ${JSON.stringify(drawer)}`);
+  await close.click();
+  await page.waitForFunction(()=>!document.body.classList.contains('history-open'),null,{timeout:10000});
+  await page.locator('#promptInput').click();
+  const composer=await page.evaluate(()=>{const r=document.querySelector('.composer')?.getBoundingClientRect(),v=window.visualViewport;return{top:r?.top,bottom:r?.bottom,width:r?.width,inner:innerWidth,height:v?.height||innerHeight};});
+  assert(composer.top>=-2&&composer.bottom<=composer.height+2&&composer.width<=composer.inner+2,`${name}: composer escapes visual viewport ${JSON.stringify(composer)}`);
+  await checkGeometry(page,`${name}:history-drawer`);
+}
+
 async function scoreBandParentJourneys(page,name){if(name!=='pc')return;const basePrompts=new Map([[350,'350分，全国先看还能研究哪些学校'],[440,'440分，辽宁省内先看能上的学校'],[500,'500分，辽宁省内先看能上的学校'],[580,'580分，省内机械看看'],[620,'620分，全国先看能上的学校'],[630,'630分，全国电气看看'],[650,'650分，全国先看能上的学校']]);for(const [score,prompt] of basePrompts){await reset(page);const first=await submitTurn(page,prompt,{candidates:true});assert(Number(first.resolvedView?.score)===score,`${score}: score drift`);assert(first.result?.candidates?.ok===true,`${score}: candidate failed`);if(score===440){let q=await submitTurn(page,'民办也可以，看看能增加哪些选择',{candidates:true});assert(q.resolvedView?.bottomLineMode==='all','440 private broaden');q=await submitTurn(page,'中外合作也可以，预算可以上浮',{candidates:true});assert(q.resolvedView?.bottomLineMode==='public_include_sino','440 sino');q=await submitTurn(page,'新疆、西藏也可以，优先公办',{candidates:true});assert(q.resolvedView?.regionKeys?.includes('province:新疆')&&q.resolvedView?.regionKeys?.includes('province:西藏'),'440 far-region');}if(score===580){const q=await submitTurn(page,'愿意加预算，看看有没有211中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='211','580 platform target');assert(q.result.candidates?.platformUpgrade?.target==='211','580 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'211 preview must not claim complete');}if(score===620){const advice=await submitTurn(page,'学校平台和专业质量怎么平衡');assert(Number(advice.resolvedView?.score)===620,'620 advisory lost score context');assert(advice.commitView===false,'620 advisory must not mutate candidate view');const q=await submitTurn(page,'愿意加预算，看看有没有985中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='985','620 platform target');assert(q.result.candidates?.platformUpgrade?.target==='985','620 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'985 preview must not claim complete');}if(score===650){const advice=await submitTurn(page,'不只看学校层次，优先比较专业质量和培养路径');assert(Number(advice.resolvedView?.score)===650,'650 advisory lost score context');assert(advice.commitView===false,'650 advisory must not mutate candidate view');}}}
 async function selectionAndModel(page,name){
   await page.evaluate(()=>localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951',JSON.stringify({items:[{id:'browser-1',school:'测试大学',major:'机械工程',rank2026:20000,bandKey:'near',displayLocation:'沈阳',tuition:'5200',userNote:'这段私有备注不能发给模型'}]})));
@@ -71,6 +164,6 @@ async function selectionAndModel(page,name){
 
 const browser=await chromium.launch({headless:true});
 try{
-  for(const device of devices){const context=await browser.newContext({viewport:device.viewport,isMobile:Boolean(device.isMobile),hasTouch:Boolean(device.hasTouch),locale:'zh-CN'});const page=await context.newPage();const errors=[];page.__expectedSyntheticMajorBands503Count=0;page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('console',m=>{if(m.type()!=='error')return;const text=m.text();if(page.__expectedSyntheticMajorBands503Count>0&&/Failed to load resource:.*status of 503/.test(text)){page.__expectedSyntheticMajorBands503Count-=1;return;}errors.push(`console:${text}`);});try{const response=await page.goto(`${BASE}/aiplus/?browser=${encodeURIComponent(EXPECTED_SHA||'preview')}-${device.name}`,{waitUntil:'networkidle',timeout:60000});assert(response?.ok(),`${device.name}: /aiplus HTTP ${response?.status()}`);await waitForHealth(page);assert(await page.locator('#decisionContextDetails').evaluate(el=>!el.open),`${device.name}: engineering/support panel should default collapsed`);await coreHumanJourney(page,device.name);await profilePersistence(page,device.name);await transientMajorBandsRecovery(page,device.name);await parentEntryUiJourney(page,device.name);await schoolHistoryAliasJourney(page,device.name);await majorRegionHistoryJourney(page,device.name);await scoreBandParentJourneys(page,device.name);await latestWins(page,device.name);await selectionAndModel(page,device.name);await checkGeometry(page,`${device.name}:final`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}.png`),fullPage:true});assert(errors.length===0,`${device.name}: browser errors ${errors.join(' | ')}`);}catch(error){fs.writeFileSync(path.join(ARTIFACT_DIR,`${device.name}-failure.txt`),`${error.stack||error}\n${errors.join('\n')}`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}-failure.png`),fullPage:true}).catch(()=>{});throw error;}finally{await context.close();}}
-  console.log(JSON.stringify({ok:true,base:BASE,expectedSha:EXPECTED_SHA,devices:devices.map(d=>d.name),checks:['aiplus-school-entry-contract','continuous-turn-history','580-mechanical-liaoning-shenyang','unmentioned-dimensions-inherit','causal-change-copy','candidate-score-rank-year-gap','no-raw-band-key','dynamic-next-questions','decision-profile-persistence','support-panel-collapsed','human-school-shorthand-history','colloquial-school-all-major-history','latest-write-wins','selection-readonly','responsive-no-overflow','live-model-probe-pc']},null,2));
+  for(const device of devices){const context=await browser.newContext({viewport:device.viewport,isMobile:Boolean(device.isMobile),hasTouch:Boolean(device.hasTouch),locale:'zh-CN'});const page=await context.newPage();const errors=[];page.__expectedSyntheticMajorBands503Count=0;page.on('pageerror',e=>errors.push(`pageerror:${e.message}`));page.on('console',m=>{if(m.type()!=='error')return;const text=m.text();if(page.__expectedSyntheticMajorBands503Count>0&&/Failed to load resource:.*status of 503/.test(text)){page.__expectedSyntheticMajorBands503Count-=1;return;}errors.push(`console:${text}`);});try{const response=await page.goto(`${BASE}/aiplus/?browser=${encodeURIComponent(EXPECTED_SHA||'preview')}-${device.name}`,{waitUntil:'networkidle',timeout:60000});assert(response?.ok(),`${device.name}: /aiplus HTTP ${response?.status()}`);await waitForHealth(page);assert(await page.locator('#decisionContextDetails').evaluate(el=>!el.open),`${device.name}: engineering/support panel should default collapsed`);await coreHumanJourney(page,device.name);await profilePersistence(page,device.name);await responsiveHistoryDrawerJourney(page,device.name);await transientMajorBandsRecovery(page,device.name);await parentEntryUiJourney(page,device.name);await schoolResearchAndHistoryJourney(page,device.name);await schoolHistoryAliasJourney(page,device.name);await majorRegionHistoryJourney(page,device.name);await scoreBandParentJourneys(page,device.name);await latestWins(page,device.name);await selectionAndModel(page,device.name);await checkGeometry(page,`${device.name}:final`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}.png`),fullPage:true});assert(errors.length===0,`${device.name}: browser errors ${errors.join(' | ')}`);}catch(error){fs.writeFileSync(path.join(ARTIFACT_DIR,`${device.name}-failure.txt`),`${error.stack||error}\n${errors.join('\n')}`);await page.screenshot({path:path.join(ARTIFACT_DIR,`${device.name}-failure.png`),fullPage:true}).catch(()=>{});throw error;}finally{await context.close();}}
+  console.log(JSON.stringify({ok:true,base:BASE,expectedSha:EXPECTED_SHA,devices:devices.map(d=>d.name),checks:['aiplus-school-entry-contract','continuous-turn-history','580-mechanical-liaoning-shenyang','unmentioned-dimensions-inherit','causal-change-copy','candidate-score-rank-year-gap','no-raw-band-key','dynamic-next-questions','decision-profile-persistence','support-panel-collapsed','human-school-shorthand-history','colloquial-school-all-major-history','school-research-answer-first','browser-history-multi-session','history-search-switch-isolation','history-drawer-close-pad-android','composer-viewport-pad-android','explicit-school-filter-normalization','latest-write-wins','selection-readonly','responsive-no-overflow','live-model-probe-pc']},null,2));
 }finally{await browser.close();}
