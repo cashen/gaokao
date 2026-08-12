@@ -1,6 +1,11 @@
 const TTL = 5 * 60 * 1000;
 let manifestCache = null;
 const chunkCache = new Map();
+const EXACT_SCHOOL_CACHE_TTL_MS = 45 * 1000;
+const EXACT_SCHOOL_CACHE_MAX_ENTRIES = 8;
+const EXACT_SCHOOL_CACHE_MAX_RECORDS = 800;
+const exactSchoolCache = new Map();
+let exactSchoolCacheRecordCount = 0;
 const RECORD_START = '{"schoolCode2026":';
 const SCHOOL_FIELD = '"school":';
 
@@ -40,6 +45,85 @@ async function fetchAssetResponse(request, env, path) {
 
 function rowsFromJson(data) {
   return Array.isArray(data) ? data : (Array.isArray(data?.records) ? data.records : []);
+}
+
+function exactSchoolCacheKey(files = [], schoolNames = []) {
+  const fileKey = [...new Set((Array.isArray(files) ? files : []).map(value => String(value || '').trim()).filter(Boolean))].sort().join('|');
+  const schoolKey = [...new Set((Array.isArray(schoolNames) ? schoolNames : []).map(value => String(value || '').trim()).filter(Boolean))].sort().join('|');
+  return `${fileKey}::${schoolKey}`;
+}
+
+function removeExactSchoolCacheEntry(key) {
+  const entry = exactSchoolCache.get(key);
+  if (!entry) return;
+  exactSchoolCache.delete(key);
+  exactSchoolCacheRecordCount = Math.max(0, exactSchoolCacheRecordCount - Number(entry.recordCount || 0));
+}
+
+function pruneExactSchoolCache(now = Date.now()) {
+  for (const [key, entry] of exactSchoolCache) {
+    if (now - Number(entry.time || 0) >= EXACT_SCHOOL_CACHE_TTL_MS) removeExactSchoolCacheEntry(key);
+  }
+}
+
+function readExactSchoolCache(key) {
+  pruneExactSchoolCache();
+  const entry = exactSchoolCache.get(key);
+  if (!entry) return null;
+  exactSchoolCache.delete(key);
+  exactSchoolCache.set(key, entry);
+  return {
+    records: entry.records.map(record => ({ ...record })),
+    scanned: entry.scanned,
+    chunkFiles: [...entry.chunkFiles],
+    modes: [...entry.modes],
+    cacheStatus: 'hit'
+  };
+}
+
+function putExactSchoolCache(key, result) {
+  const records = Array.isArray(result?.records) ? result.records : [];
+  if (!key || !records.length || records.length > EXACT_SCHOOL_CACHE_MAX_RECORDS) return false;
+  pruneExactSchoolCache();
+  removeExactSchoolCacheEntry(key);
+  while (
+    exactSchoolCache.size >= EXACT_SCHOOL_CACHE_MAX_ENTRIES
+    || exactSchoolCacheRecordCount + records.length > EXACT_SCHOOL_CACHE_MAX_RECORDS
+  ) {
+    const oldest = exactSchoolCache.keys().next().value;
+    if (oldest === undefined) break;
+    removeExactSchoolCacheEntry(oldest);
+  }
+  if (exactSchoolCacheRecordCount + records.length > EXACT_SCHOOL_CACHE_MAX_RECORDS) return false;
+  const entry = {
+    time: Date.now(),
+    records: records.map(record => ({ ...record })),
+    scanned: Number(result.scanned || 0),
+    chunkFiles: Object.freeze([...(result.chunkFiles || [])]),
+    modes: Object.freeze([...(result.modes || [])]),
+    recordCount: records.length
+  };
+  exactSchoolCache.set(key, entry);
+  exactSchoolCacheRecordCount += records.length;
+  return true;
+}
+
+export function exactSchoolRecordCacheState() {
+  pruneExactSchoolCache();
+  return Object.freeze({
+    ttlMs: EXACT_SCHOOL_CACHE_TTL_MS,
+    maxEntries: EXACT_SCHOOL_CACHE_MAX_ENTRIES,
+    maxRecords: EXACT_SCHOOL_CACHE_MAX_RECORDS,
+    entries: exactSchoolCache.size,
+    records: exactSchoolCacheRecordCount,
+    bounded: exactSchoolCache.size <= EXACT_SCHOOL_CACHE_MAX_ENTRIES
+      && exactSchoolCacheRecordCount <= EXACT_SCHOOL_CACHE_MAX_RECORDS
+  });
+}
+
+export function clearExactSchoolRecordCacheForTest() {
+  exactSchoolCache.clear();
+  exactSchoolCacheRecordCount = 0;
 }
 
 function findRecordsArrayStart(text) {
@@ -229,6 +313,9 @@ export async function loadExactSchoolRecordsFromFiles(request, env, files, schoo
   const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
   const byFile = new Map(chunks.map(chunk => [chunk.file || chunk.path, chunk]));
   const requested = [...new Set((Array.isArray(files) ? files : []).filter(file => byFile.has(file)))];
+  const cacheKey = exactSchoolCacheKey(requested, schoolNames);
+  const cached = readExactSchoolCache(cacheKey);
+  if (cached) return { manifest, ...cached };
   const records = [];
   let scanned = 0;
   const modes = [];
@@ -242,5 +329,7 @@ export async function loadExactSchoolRecordsFromFiles(request, env, files, schoo
     records.push(...result.records);
     modes.push(result.mode);
   }
-  return { manifest, records, scanned, chunkFiles: requested, modes };
+  const result = { records, scanned, chunkFiles: requested, modes, cacheStatus: 'miss' };
+  putExactSchoolCache(cacheKey, result);
+  return { manifest, ...result };
 }
