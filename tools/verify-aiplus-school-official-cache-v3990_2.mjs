@@ -10,6 +10,7 @@ assert.ok(source.includes("globalThis.caches?.default||null"));
 assert.ok(source.includes("key.searchParams.set('topic',schoolOfficialTopic(question))"));
 assert.ok(source.includes("x-ai-school-official-cache"));
 assert.ok(source.includes('payload?.sourceAvailable!==false'));
+assert.ok(source.includes('payload?.sourceVersion===AI_SCHOOL_OFFICIAL_SOURCE_VERSION'));
 assert.ok(source.includes('sourceAvailable:false'));
 assert.ok(source.includes("coverage:'official_source_unavailable'"));
 assert.ok(source.includes("'miss-unavailable'"));

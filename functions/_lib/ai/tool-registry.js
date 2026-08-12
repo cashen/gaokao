@@ -15,6 +15,7 @@ export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge
 export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_2';
+export const AI_SCHOOL_EXPERIENCE_ADAPTER_VERSION='ai-school-experience-browser-bridge-v3990_1';
 export const AI_DETERMINISTIC_TOOL_BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v3992_1';
 
 export const AI_TOOL_REGISTRY=Object.freeze({
@@ -23,6 +24,7 @@ export const AI_TOOL_REGISTRY=Object.freeze({
   school_major_history:Object.freeze({name:'school_major_history',deterministic:true,maxConcurrency:1}),
   major_region_history:Object.freeze({name:'major_region_history',deterministic:true,maxConcurrency:1}),
   school_official_info:Object.freeze({name:'school_official_info',deterministic:true,maxConcurrency:1}),
+  school_experience:Object.freeze({name:'school_experience',deterministic:true,maxConcurrency:1}),
   fit_assessment:Object.freeze({name:'fit_assessment',deterministic:true,maxConcurrency:1}),
   school_background:Object.freeze({name:'school_background',deterministic:true,maxConcurrency:1}),
   major_background:Object.freeze({name:'major_background',deterministic:true,maxConcurrency:1}),
@@ -78,6 +80,10 @@ function requestForSchoolOfficial(context,{school,question=''}={}){const sourceU
 function schoolOfficialToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function schoolOfficialClientToolRequest(request){const key=schoolOfficialToolKey(request);return{kind:'school_official',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function delegatedSchoolOfficialEntry(context,request){const key=schoolOfficialToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolOfficialClientToolRequest(request)};if(entry.kind!=='school_official'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校官方信息回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校官方信息回传格式不完整。'};return{ok:true,status,payload};}
+function requestForSchoolExperience(context,{school}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/tongxue-summary',sourceUrl.origin);url.searchParams.set('school',clean(school,120));url.searchParams.set('page','1');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+function schoolExperienceToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
+function schoolExperienceClientToolRequest(request){const key=schoolExperienceToolKey(request);return{kind:'school_experience',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
+function delegatedSchoolExperienceEntry(context,request){const key=schoolExperienceToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolExperienceClientToolRequest(request)};if(entry.kind!=='school_experience'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校体验信息回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校体验信息回传格式不完整。'};return{ok:true,status,payload};}
 function schoolHistoryClientToolRequest(request){const key=schoolHistoryToolKey(request);return{kind:'school_history',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function majorHistoryClientToolRequest(request){const key=majorHistoryToolKey(request);return{kind:'major_history',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function delegatedSchoolHistoryEntry(context,request){const key=schoolHistoryToolKey(request),entry=context?.aiDeterministicToolResults?.[key];if(!entry)return{ok:false,code:'client_tool_required',toolRequest:schoolHistoryClientToolRequest(request)};if(entry.kind!=='school_history'||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传与本轮请求不匹配。'};const status=Number(entry.status),payload=entry.payload;if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'学校历史事实回传格式不完整。'};return{ok:true,status,payload};}
@@ -130,6 +136,13 @@ export async function runSchoolOfficialInfo(context,{school,question=''}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
   const request=requestForSchoolOfficial(context,{school,question}),delegated=delegatedSchoolOfficialEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,code:payload?.code||'official_source_failed',message:clean(payload?.message||'学校官方信息读取失败。',260)};
   return{ok:true,school:clean(payload.school||school,120),schId:clean(payload.schId,40),topic:clean(payload.topic,40),topicLabel:clean(payload.topicLabel,80),updatedAt:clean(payload.updatedAt,80),coverage:clean(payload.coverage,80),detailAvailable:payload.detailAvailable===true,evidenceText:clean(payload.evidenceText,16000),sources:Array.isArray(payload.sources)?payload.sources.slice(0,4).map(item=>({sourceName:clean(item?.sourceName,120),sourceUrl:clean(item?.sourceUrl,900),scope:clean(item?.scope,160),updatedAt:clean(item?.updatedAt,80)})):[],fetchedAt:clean(payload.fetchedAt,80),boundary:clean(payload.boundary,360),adapterVersion:AI_SCHOOL_OFFICIAL_ADAPTER_VERSION};
+}
+
+export async function runSchoolExperience(context,{school}={}){
+  if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
+  const request=requestForSchoolExperience(context,{school}),delegated=delegatedSchoolExperienceEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,code:payload?.error||'school_experience_unavailable',message:clean(payload?.message||'同学体验信息暂不可用。',260)};
+  const mode=payload.mode==='ai_summary'?'summary':payload.mode==='recent_reviews'?'recent_reviews':'no_content',reviews=mode==='recent_reviews'?(payload.reviews||[]).slice(0,4).map(item=>({id:clean(item?.id,100),content:clean(item?.content||item?.text,1200),createdAt:clean(item?.createdAt||item?.created_at||item?.time,80),author:clean(item?.author||item?.nickname||'匿名同学',80)})).filter(item=>item.content):[];
+  return{ok:mode==='summary'?Boolean(clean(payload.summary,4000)):reviews.length>0,school:clean(payload.school||school,120),mode,summary:mode==='summary'?clean(payload.summary,4000):'',reviews,source:{sourceName:'同学体验 · srgaoxiao.com',sourceUrl:clean(payload?.source?.url,900),scope:mode==='summary'?'来源站学校体验摘要':'来源站按时间排序的最近4条留言'},fetchedAt:clean(payload.fetchedAt,80),adapterVersion:AI_SCHOOL_EXPERIENCE_ADAPTER_VERSION,boundary:'同学体验属于用户生成内容，不等于学校官方事实，也不能代表所有学生。优先展示来源站已有摘要；没有摘要时仅展示最近4条留言，不由模型扩写。'};
 }
 
 function majorHistoryRecord(record={}){return{...historyRecord(record),score2025:Number.isFinite(Number(record.score2025))?Number(record.score2025):null,rank2025:Number.isFinite(Number(record.rank2025))?Number(record.rank2025):null,score2024:Number.isFinite(Number(record.score2024))?Number(record.score2024):null,rank2024:Number.isFinite(Number(record.rank2024))?Number(record.rank2024):null,province:clean(record.province,80),city:clean(record.city,80),standardMajorName:clean(record.standardMajorName,160),standardMajorCode:clean(record.standardMajorCode,40)};}
