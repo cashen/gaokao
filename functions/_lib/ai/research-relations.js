@@ -1,7 +1,7 @@
 // AIPLuS research relationship contract.
 // Product-level vocabulary and bidirectional school/major exploration actions
 // live here so presentation, routing, and tests share one source of truth.
-export const AI_RESEARCH_RELATION_CONTRACT_VERSION='ai-research-relation-contract-v3992_7';
+export const AI_RESEARCH_RELATION_CONTRACT_VERSION='ai-research-relation-contract-v3992_8';
 
 export const RESEARCH_RELATION_LABELS=Object.freeze({
   schoolEnvironment:'学校环境',
@@ -36,6 +36,7 @@ export function researchRelationActions({task='',school='',major='',score=null,b
     m?action('history-major-background',RESEARCH_RELATION_LABELS.schoolMajorBackground,`${s}${m}有专业背景吗`,'从历史分数反向查看专业底子。'):action('history-school-background',RESEARCH_RELATION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'从全专业分数反向查看专业底子。')
   ];
   if(task==='school_experience')return[
+    action('experience-official-living','核验官方食宿',`${s}官方食宿条件`,'把同学体验与官方页面明确区分，核验页面公开的硬信息。'),
     action('experience-background',RESEARCH_RELATION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'从学校环境转到专业选择。'),
     action('experience-history',RESEARCH_RELATION_LABELS.schoolMajorHistory,`${s}所有专业的最低录取分`,'把体验和投档事实交叉查看。'),
     action('experience-profile',RESEARCH_RELATION_LABELS.schoolProfile,`介绍下${s}`,'回到学校整体定位。')
