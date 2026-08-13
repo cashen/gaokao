@@ -8,7 +8,7 @@ export async function runBoundedBatch(items,worker,{concurrency=3}={}){
 }
 
 export function deterministicToolBatchConcurrency(items=[],fallback=3){
-  const source=Array.isArray(items)?items:[],safeFallback=Math.max(1,Math.min(4,Math.round(Number(fallback)||3));
+  const source=Array.isArray(items)?items:[],safeFallback=Math.max(1,Math.min(4,Math.round(Number(fallback)||3)));
   return source.some(item=>item?.kind==='major_bands')?1:safeFallback;
 }
 
