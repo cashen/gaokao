@@ -76,7 +76,7 @@ const followupWorkspace = createAiWorkspace({
 });
 const followup = deterministicCommand('去掉中外', followupWorkspace);
 assert(followup.agentTask === 'major_region_history', `project-scope follow-up left history task: ${followup.agentTask}`);
-assert(followup.bottomLineMode === 'public_regular_only', `project-scope follow-up did not set regular-public mode: ${followup.bottomLineMode}`);
+assert(followup.bottomLineMode === 'exclude_sino', `project-scope follow-up did not set exclude-sino mode: ${followup.bottomLineMode}`);
 
 const remembered = createAiWorkspace({ examContext: { score: 600 }, activeView: { target: 'candidates', score: 600, majorKeywords: [], regionKeys: ['all'], schoolNames: [], bottomLineMode: 'all', combination: 'replace' } });
 const rememberedCommand = deterministicCommand(input, remembered);
