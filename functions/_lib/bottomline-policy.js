@@ -22,6 +22,10 @@ export const BOTTOMLINE_MODES = {
     label: '只看公办普通',
     help: '只保留已确认的公办普通收费项目；办学性质或费用未知的记录进入待确认，不冒充普通收费。'
   },
+  exclude_sino: {
+    label: '排除中外/高收费',
+    help: '只移除中外合作和高收费项目，保留其他办学性质，避免把“取消中外”误解成“只看公办”。'
+  },
   public_include_sino: {
     label: '公办含中外/高收费',
     help: '只保留已确认的公办学校项目，允许中外合作或高收费专业；费用和培养模式仍需核验。'
@@ -95,6 +99,11 @@ export function getBottomLineEligibility(record = {}, mode = 'all') {
   const m = normalizeBottomLineMode(mode);
   const b = record.schoolNature && record.feeType ? record : { ...record, ...enrichBottomLineFields(record) };
   if (m === 'all' || m === 'public_first') return { status: 'pass', reason: 'mode_does_not_exclude', record: b };
+  if (m === 'exclude_sino') {
+    return ['sino_foreign', 'high_fee'].includes(b.feeType)
+      ? { status: 'fail', reason: 'sino_or_high_fee_excluded', record: b }
+      : { status: 'pass', reason: 'sino_or_high_fee_only_filter', record: b };
+  }
   if (m === 'public_regular_only') {
     if (b.schoolNature === 'private' || b.feeType === 'sino_foreign' || b.feeType === 'high_fee') {
       return { status: 'fail', reason: 'not_confirmed_public_regular', record: b };
