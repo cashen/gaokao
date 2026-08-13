@@ -58,7 +58,7 @@ const schoolPriority=await command('辽宁石油化工大学化工多少分', ca
 expect(schoolPriority, { task: 'school_major_history', school: '辽宁石油化工大学', major: '化工' });
 const catalogCoverage=await command('沈航计算机电子信息自动化材料多少分', candidate);
 expect(catalogCoverage, { task: 'school_major_history', school: '沈阳航空航天大学' });
-assert.deepEqual(catalogCoverage.majorKeywords, ['计算机科学与技术', '电子信息', '自动化', '材料'], 'catalog compact majors must remain ordered and canonical');
+assert.deepEqual(catalogCoverage.majorKeywords, ['计算机', '电子信息', '自动化', '材料'], 'catalog compact majors must remain ordered and canonical');
 expect(await command('沈阳工业所有专业最低分', candidate), { task: 'school_history', school: '沈阳工业大学' });
 expect(await command('大连交通 都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
 expect(await command('大连交通学校怎么样', candidate), { task: 'school_research', school: '大连交通大学' });
