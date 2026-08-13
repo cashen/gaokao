@@ -13,7 +13,7 @@ import {runAiProvider} from './provider-router.js';
 import {buildOfficialDeterministicSummary} from './school-official-source.js';
 import {loadSchoolProfileSupplement} from './school-profile-supplement-source.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_4';
+export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_9';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
 const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0',AI_WORKSPACE_CONTRACT_VERSION]);
