@@ -100,7 +100,7 @@ function geographyFromText(text){
   return{keys:[],explicit:false,label:''};
 }
 function regionLabel(keys=[]){const vals=unique(keys,8);if(!vals.length||vals.includes('all'))return'全国';return vals.map(k=>k.startsWith('province:')?k.slice(9):(REGION_LABEL_BY_KEY[k]||k)).join('、');}
-function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限|(民办).{0,8}(也可以|能接受|也接受|也能看|不排斥))/.test(s))return'all';if(/(不接受|不要|排除|取消|去掉|不看).{0,8}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(s))return'public_regular_only';if(/(公办优先|优先公办|尽量公办|最好公办|能公办.{0,4}公办)/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|(中外|高收费).{0,10}(也可以|可以|能接受|接受)|公办含中外|预算.{0,8}(上浮|增加|多花|加钱).{0,12}(中外|高收费)|(?:多花点钱|加点预算|加预算).{0,12}(中外|高收费|换平台|211|985)/.test(s))return'public_include_sino';return'';}
+function bottomLineFromText(text){const s=String(text||'');if(/(回到全部性质|学校性质不限|性质不限|都可以看|项目性质不限|(民办).{0,8}(也可以|能接受|也接受|也能看|不排斥))/.test(s))return'all';if(/只看公办普通|只要公办普通|(?:不接受|不要|排除|取消|去掉|不看).{0,8}民办/.test(s))return'public_regular_only';if(/(?:不接受|不要|排除|取消|去掉|不看).{0,8}(中外|高收费)/.test(s))return'exclude_sino';if(/(公办优先|优先公办|尽量公办|最好公办|能公办.{0,4}公办)/.test(s))return'public_first';if(/(接受|可以).{0,8}(中外|高收费)|(中外|高收费).{0,10}(也可以|可以|能接受|接受)|公办含中外|预算.{0,8}(上浮|增加|多花|加钱).{0,12}(中外|高收费)|(?:多花点钱|加点预算|加预算).{0,12}(中外|高收费|换平台|211|985)/.test(s))return'public_include_sino';return'';}
 function platformTargetFromText(text){const s=String(text||'');if(/985/.test(s))return'985';if(/211/.test(s))return'211';return'';}
 
 function priorFocus(workspace={}){return workspace?.agentContext?.focus||{};}
