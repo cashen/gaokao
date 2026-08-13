@@ -112,3 +112,11 @@ body{background:var(--bg);color:var(--ink)}
   .result-card .history-list .history-item .candidate-head{grid-template-columns:minmax(0,1fr);width:100%}
   .result-card .history-list .history-item .candidate-reference{max-width:100%}
 }
+
+/* v3992_8: related-major confirmation stays optional and readable on every terminal */
+.major-suggestions{display:grid;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#dce5df)}
+.major-suggestions-title{font-size:13px;color:#53645a}
+.major-suggestion{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 10px;border:1px solid #e0e7e1;border-radius:10px;background:#f8faf8}
+.major-suggestion>span{min-width:0;overflow-wrap:anywhere;line-height:1.5;color:#3f5148}
+.major-suggestion-button{flex:0 0 auto;min-height:36px;padding:7px 10px;border:1px solid #cbded1;border-radius:9px;background:#fff;color:#35684e;cursor:pointer}
+@media(max-width:560px){.major-suggestion{align-items:stretch;flex-direction:column}.major-suggestion-button{width:100%}}
