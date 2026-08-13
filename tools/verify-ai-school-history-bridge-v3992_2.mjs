@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import { loadMatchingRecordsFromFiles, loadExactSchoolRecordsFromFiles, clearExactSchoolRecordCacheForTest, exactSchoolRecordCacheState } from '../functions/_lib/ln-rank-manifest.js';
 import { rawSchool } from '../functions/_lib/fenxi-normalizer.js';
+import { runSchoolMajorHistory } from '../functions/_lib/ai/tool-registry.js';
 
 const tool=fs.readFileSync('functions/_lib/ai/tool-registry.js','utf8');
 const orchestrator=fs.readFileSync('functions/_lib/ai/turn-orchestrator.js','utf8');
@@ -64,6 +65,22 @@ assert.ok(manifestLoader.includes('EXACT_SCHOOL_CACHE_MAX_ENTRIES = 8'),'exact-s
 assert.ok(manifestLoader.includes('EXACT_SCHOOL_CACHE_MAX_RECORDS = 800'),'exact-school server cache record cap missing');
 assert.ok(endpoint.includes('chunkFiles2026.length')&&endpoint.includes('loadExactSchoolRecordsFromFiles'),'school-majors must use exact-school native chunk loader');
 
+async function verifyPartialSchoolHistoryBatch(){
+  const context={request:new Request('https://preview.example/api/ai/turn'),aiDeterministicToolResults:{}};
+  const first=await runSchoolMajorHistory(context,{school:'测试大学',majorKeywords:['机械','电气']});
+  assert.equal(first.code,'client_tool_required','batch must request first deterministic fact');
+  const successPayload={ok:true,meta:{school:'测试大学'},records:[{id:'mechanical-1',school:'测试大学',major:'机械工程',score2026:500,rank2026:30000}],summary:{total:1,schoolCount:1,minScore:500,maxScore:500},source:{dataYear:2026}};
+  context.aiDeterministicToolResults[first.toolRequest.key]={kind:'school_history',key:first.toolRequest.key,url:first.toolRequest.url,status:200,payload:successPayload};
+  const second=await runSchoolMajorHistory(context,{school:'测试大学',majorKeywords:['机械','电气']});
+  assert.equal(second.code,'client_tool_required','batch must continue to the next major after first success');
+  context.aiDeterministicToolResults[second.toolRequest.key]={kind:'school_history',key:second.toolRequest.key,url:second.toolRequest.url,status:503,payload:{ok:false,code:'timeout',message:'电气查询暂时失败'}};
+  const result=await runSchoolMajorHistory(context,{school:'测试大学',majorKeywords:['机械','电气']});
+  assert.equal(result.ok,true,'partial batch must remain usable');
+  assert.equal(result.partial,true,'partial batch flag missing');
+  assert.equal(result.records.length,1,'successful major records must survive failed sibling query');
+  assert.deepEqual(result.queryResults.map(item=>item.status),['success','failed'],'per-major status order drift');
+  assert.equal(result.queryResults[1].errorCode,'timeout','failure provenance lost');
+}
 function chunkRows(file){const data=JSON.parse(fs.readFileSync(`fenxi/${file}`,'utf8'));return Array.isArray(data)?data:(Array.isArray(data.records)?data.records:[]);}
 const expectedIndustrial=industrial.chunkFiles2026.flatMap(chunkRows).filter(raw=>String(rawSchool(raw)||'').trim()==='沈阳工业大学');
 const expectedScanned=industrial.chunkFiles2026.reduce((sum,file)=>sum+chunkRows(file).length,0);
@@ -119,4 +136,5 @@ const allFiles=[...chunkFiles];
   globalThis.fetch=originalFetch;
 }
 
+await verifyPartialSchoolHistoryBatch();
 console.log(JSON.stringify({ok:true,checks:['no-static-school-history-adapter','reuse-public-school-majors','history-fit-continuation','48k-school-history-bridge-budget','1102-no-retry','record-stream-no-response-json','stream-truth-set-equal','exact-school-native-text-scan-truth-set-equal','bounded-exact-school-server-cache','bounded-school-history-session-cache'],streamedSchools:['沈阳工业大学','沈阳航空航天大学','辽宁科技大学'],sourceRecords:manifest.totalRecords},null,2));
