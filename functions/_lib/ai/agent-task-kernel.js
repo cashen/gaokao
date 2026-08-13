@@ -105,7 +105,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   }
   if(looksBackground(source)||(looksWorth(source)&&/(省内|辽宁|专业|方向)/.test(source))){
     if(major&&/(哪些学校|哪个学校|省内.{0,8}(学校|高校)|学校.{0,8}(有背景|强)|哪里.{0,8}(强|有背景))/.test(source))return'major_background';
-    if(schools.length&&/(这所|这个学校|学校|大学|学院|该校).{0,12}(强项|优势|背景)|强项.{0,8}(专业|方向)|有哪些.{0,8}(强项|优势)/.test(source))return'school_background';
+    if(schools.length&&(/(这所|这个学校|学校|大学|学院|该校).{0,16}(强项|优势|背景|专业底子|更有底子|哪个专业|哪些专业)|强项.{0,8}(专业|方向)|有哪些.{0,8}(强项|优势|专业底子)|哪个专业.{0,6}(最好|最强|有底子)/.test(source)))return'school_background';
     if(looksWorth(source)||/(省内|辽宁).{0,12}(专业|方向)/.test(source))return explicitScoreUsage(source,workspace)==='active'?'background_fit_discovery':'background_discovery';
     return'background_discovery';
   }
