@@ -28,7 +28,8 @@ assert.ok(orchestrator.includes('deterministicContinuation=Object.keys(execution
 assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
-assert.ok(app.includes('majorSuggestions:Array.isArray(data.majorSuggestions)'), 'related-major suggestions must survive the browser bridge');
+assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'related-major suggestions must use the shared browser bridge');
+assert.ok(factBridge.includes('majorSuggestions:Array.isArray(data.majorSuggestions)'), 'related-major suggestions must survive the shared bridge contract');
 assert.ok(app.includes('AI_FACT_BRIDGE_CONTRACT_VERSION'), 'shared fact bridge version missing');
 assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'shared school-history bridge contract missing');
 assert.ok(app.includes('queryResults'), 'per-query batch status must survive the browser bridge');
