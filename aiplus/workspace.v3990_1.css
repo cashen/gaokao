@@ -120,3 +120,4 @@ body{background:var(--bg);color:var(--ink)}
 .major-suggestion>span{min-width:0;overflow-wrap:anywhere;line-height:1.5;color:#3f5148}
 .major-suggestion-button{flex:0 0 auto;min-height:36px;padding:7px 10px;border:1px solid #cbded1;border-radius:9px;background:#fff;color:#35684e;cursor:pointer}
 @media(max-width:560px){.major-suggestion{align-items:stretch;flex-direction:column}.major-suggestion-button{width:100%}}
+.aiplus-product-footer{width:min(100% - 28px,960px);margin:0 auto;padding:12px 0 24px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.5;text-align:center}.aiplus-product-footer{overflow-wrap:anywhere}@media (max-width:720px){.aiplus-product-footer{width:calc(100% - 28px);padding:10px 0 calc(18px + env(safe-area-inset-bottom));font-size:10px}}
