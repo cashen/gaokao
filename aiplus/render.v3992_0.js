@@ -7,7 +7,7 @@ const GOAL_LABELS=Object.freeze({employment_stability:'就业稳定',income_upsi
 export function node(tag,className='',text=''){const el=document.createElement(tag);if(className)el.className=className;if(text!==''&&text!=null)el.textContent=String(text);return el;}
 export function safeHref(value){const text=String(value||'').trim();if(text.startsWith('/'))return text;try{const url=new URL(text);return url.protocol==='https:'?url.toString():'';}catch{return'';}}
 function numberText(value){const n=Number(value);return Number.isFinite(n)?n.toLocaleString('zh-CN'):'';}
-function bottomLineText(value){return({all:'全部项目',public_first:'公办优先',public_regular_only:'公办普通',public_include_sino:'公办含中外合作'})[value]||'全部项目';}
+function bottomLineText(value){return({all:'全部项目',public_first:'公办优先',public_regular_only:'公办普通',exclude_sino:'排除中外/高收费',public_include_sino:'公办含中外合作'})[value]||'全部项目';}
 function regionText(values=[]){const list=Array.isArray(values)?values:[];if(!list.length||list.includes('all'))return'全国';return list.map(regionKeyLabel).join('、');}
 function bandLabel(value){return BAND_LABELS[String(value||'')]||'历史参考';}
 function scoreGapText(recordScore,candidateScore){const record=Number(recordScore),candidate=Number(candidateScore);if(!Number.isFinite(record)||!Number.isFinite(candidate))return'';const gap=record-candidate;if(gap===0)return'与当前同分';return gap>0?`比当前高${Math.abs(gap)}分`:`比当前低${Math.abs(gap)}分`;}
