@@ -9,7 +9,7 @@ assert.match(html,/data-ai-plus-assets="aiplus-assets-v002_1"/);
 assert.match(html,/AIPLuS 产品版 · v0\.02/);
 assert.match(html,/width=device-width, initial-scale=1\.0, viewport-fit=cover/);
 const entryAssets=[...html.matchAll(/(?:href|src)="([^"]+\?v=[^"]+)"/g)].map(match=>match[1]);
-const geometryAsset='/aiplus/geometry.v002.css?v=002_2';
+const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_1';
 assert.ok(entryAssets.includes(geometryAsset),'AIPLuS geometry cache owner is not mounted');
 const coreEntryAssets=entryAssets.filter(value=>value!==geometryAsset);
 assert.ok(coreEntryAssets.length>=4,'active AIPLuS core assets were not found');
