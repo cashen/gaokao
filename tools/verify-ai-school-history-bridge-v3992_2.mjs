@@ -21,6 +21,7 @@ assert.ok(orchestrator.includes('deterministicContinuation=Object.keys(execution
 assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
+assert.ok(app.includes('majorSuggestions:Array.isArray(data.majorSuggestions)'), 'related-major suggestions must survive the browser bridge');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
 assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000'),'school-history session cache TTL missing');
