@@ -1,4 +1,4 @@
-export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_4';
+export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5';
 
 export const AGENT_TASKS=Object.freeze([
   'candidate_discovery','candidate_refinement','fact_rank_lookup',
@@ -57,7 +57,7 @@ function looksPlanReview(source){return /(方案|选择池|自选|已选|选了�
 function looksVerify(source){return /(章程|招生计划|学费|校区|体检|选科|官方|来源|核验|资格|培养方案)/.test(source);}
 function looksSpecificOfficialTopic(source){return /(招生章程|章程|录取规则|调档|退档|专业级差|志愿级差|转专业|宿舍|住宿|食堂|食宿|寝室|学费|收费|费用|联系方式|联系办法|招生电话|学校官网|招生网址|奖学金|助学金|奖助|院系设置|专业介绍|答考生问|毕业生就业|体检要求|校区|主管部门|办学性质)/.test(source);}
 function looksBroadSchoolResearch(source){const value=String(source||'');if(looksSpecificOfficialTopic(value))return false;return /(介绍(?:下|一下)?|介绍介绍|讲讲|讲一下|讲下|说说|说一下|说下|聊聊|聊一下|了解(?:下|一下)?|认识一下|什么学校|什么来头|学校定位|办学定位|整体怎么样|总体怎么样|大概怎么样|值不值得了解|帮我看看.{0,8}(大学|学院)|(大学|学院).{0,2}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样|什么定位)|这个学校.{0,6}(怎么样|如何|咋样|什么定位)|该校.{0,6}(怎么样|如何|咋样|什么定位))/.test(value);}
-function looksSchoolExperience(source){return /(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验)/.test(String(source||''));}
+function looksSchoolExperience(source){return /(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验|宿舍|住宿|食堂|食宿|寝室|公寓)/.test(String(source||''));}
 function looksOfficialSchoolInfo(source){return /(学校简介|院校简介|学校介绍|什么学校|学校定位|办学性质|主管部门|校区|宿舍|住宿|食堂|食宿|奖学金|助学金|奖助|联系方式|联系办法|招生电话|学校官网|招生网址|招生章程|录取规则|调档|退档|专业级差|志愿级差|转专业|学费|收费|院系设置|专业介绍|答考生问|毕业生就业|体检要求|(大学|学院).{0,4}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样)|这个学校.{0,6}(怎么样|如何|咋样)|该校.{0,6}(怎么样|如何|咋样))/.test(source);}
 function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
 
@@ -76,7 +76,8 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   const sourceBareSchool=source.replace(/[\s，,。！？!?；;：:]/g,'').replace(/(学校|大学|学院)$/,'');
   const resolvedBareSchool=String(school||'').replace(/(学校|大学|学院)$/,'');
   const bareResolvedSchool=Boolean(schools.length===1&&(!strippedSchoolReference||sourceBareSchool===resolvedBareSchool)&&['candidate_discovery','candidate_refinement','major_region_history','school_history','school_major_history','school_background','school_research','school_official_qa','school_experience','fit_assessment'].includes(priorTask));
-  const experienceOnly=Boolean(school&&looksSchoolExperience(source)&&!looksFit(source)&&!looksHistory(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
+  const explicitOfficialRequest=/(官方|阳光高考|招生章程|官网|官方资料|官方页面).{0,16}(宿舍|住宿|食堂|食宿|寝室|公寓)|(宿舍|住宿|食堂|食宿|寝室|公寓).{0,16}(官方|阳光高考|招生章程|官网|官方资料|官方页面)/.test(source);
+  const experienceOnly=Boolean(school&&looksSchoolExperience(source)&&!explicitOfficialRequest&&!looksFit(source)&&!looksHistory(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const broadSchoolResearch=Boolean(school&&(looksBroadSchoolResearch(source)||resolvedSchoolGeneralQuestion||bareResolvedSchool)&&!experienceOnly&&!looksFit(source)&&!looksBackground(source)&&!looksHistory(source)&&!looksSpecificOfficialTopic(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const officialSchoolOnly=Boolean(school&&(looksOfficialSchoolInfo(source)||resolvedSchoolGeneralQuestion)&&!broadSchoolResearch&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const shortFollowup=/(呢[？?]?$|这个专业|这些专业|该专业|这个学校|这所学校|该校|换成|再看|那.{0,12}呢)/.test(source);

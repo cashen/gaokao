@@ -107,7 +107,8 @@ const schoolExperienceContinuation = createAiWorkspace({
 expect(await command('沈阳师范', schoolExperienceContinuation), { task: 'school_research', school: '沈阳师范大学' });
 expect(await command('沈航学校环境怎么样', candidate), { task: 'school_experience', school: '沈阳航空航天大学' });
 expect(await command('辽宁科技大学人文关怀怎么样', candidate), { task: 'school_experience', school: '辽宁科技大学' });
-expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_official_qa', school: '大连理工大学' });
+expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_experience', school: '大连理工大学' });
+expect(await command('大连理工官方食宿条件', candidate), { task: 'school_official_qa', school: '大连理工大学' });
 for (const prompt of ['只看辽宁科技大学','筛选辽宁科技大学','保留辽宁科技大学','换成辽宁科技大学','改成辽宁科技大学','收窄到辽宁科技大学']) {
   const explicitSchoolFilter=await command(prompt, candidate);
   assert.ok(['candidate_discovery','candidate_refinement'].includes(explicitSchoolFilter.agentTask), prompt);
@@ -134,11 +135,11 @@ const historyFocus = createAiWorkspace({
 });
 expect(await command('自动化呢', historyFocus), { task: 'school_major_history', school: '沈阳工业大学', major: '自动化' });
 expect(await command('所有专业呢', historyFocus), { task: 'school_history', school: '沈阳工业大学' });
-expect(await command('这个学校宿舍呢', historyFocus), { task: 'school_official_qa', school: '沈阳工业大学' });
+expect(await command('这个学校宿舍呢', historyFocus), { task: 'school_experience', school: '沈阳工业大学' });
 expect(await command('学校环境呢', historyFocus), { task: 'school_experience', school: '沈阳工业大学' });
 
 // 中途打断/纠正：新指令必须覆盖旧焦点，旧地域/旧专业不能抢执行权。
-expect(await command('算了，先别管分数，沈航宿舍怎么样', historyFocus), { task: 'school_official_qa', school: '沈阳航空航天大学', scoreUsage: 'suspended' });
+expect(await command('算了，先别管分数，沈航宿舍怎么样', historyFocus), { task: 'school_experience', school: '沈阳航空航天大学', scoreUsage: 'suspended' });
 expect(await command('等下，换辽石化，化工最低分', historyFocus), { task: 'school_major_history', school: '辽宁石油化工大学', major: '化工' });
 const fitFocus = createAiWorkspace({
   examContext: { score: 580 },
