@@ -48,6 +48,9 @@ const candidate = createAiWorkspace({
 expect(await command('沈阳工业 测控多少分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '测控技术与仪器' });
 expect(await command('沈阳工业所有专业最低分', candidate), { task: 'school_history', school: '沈阳工业大学' });
 expect(await command('大连交通 都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
+expect(await command('大连交通学校怎么样', candidate), { task: 'school_research', school: '大连交通大学' });
+expect(await command('大连交通学校怎么样 给我介绍下', candidate), { task: 'school_research', school: '大连交通大学' });
+expect(await command('沈阳师范学校怎么样', candidate), { task: 'school_research', school: '沈阳师范大学' });
 expect(await command('我问你大连交通大概都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
 expect(await command('大连交通专业都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
 expect(await command('大连交通分都多少', candidate), { task: 'school_history', school: '大连交通大学' });
