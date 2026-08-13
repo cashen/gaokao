@@ -13,7 +13,7 @@ import {runAiProvider} from './provider-router.js';
 import {buildOfficialDeterministicSummary} from './school-official-source.js';
 import {loadSchoolProfileSupplement} from './school-profile-supplement-source.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_4';
+export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_9';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
 const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0',AI_WORKSPACE_CONTRACT_VERSION]);
@@ -84,9 +84,9 @@ export async function orchestrateAiTurn(context,payload={}){
       case'major_region_history':
         result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok;break;
       case'school_major_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_research':
         result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});

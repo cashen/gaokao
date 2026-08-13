@@ -76,3 +76,38 @@ function shrinkWorkspaceToBudget(out,maxBytes){const reducers=[
 ];for(const reduce of reducers){if(jsonBytes(out)<=maxBytes)break;reduce();}return out;}
 export function compactAiWorkspaceForServer(workspaceLike,options={}){const workspace=createAiWorkspace(workspaceLike||{}),input=cleanText(options?.input,1200),includeSelectionDetails=options?.includeSelectionDetails===true||selectionReviewInput(input),maxBytes=clampWorkspaceBudget(options?.maxBytes);const out={contractVersion:workspace.contractVersion,id:workspace.id,version:workspace.version,examContext:workspace.examContext,mainTaskId:workspace.mainTaskId,tasks:workspace.tasks.slice(0,6).map(compactTaskForServer),hardConstraints:workspace.hardConstraints.slice(0,24).map(compactConstraintForServer),softPreferences:workspace.softPreferences.slice(0,24).map(compactConstraintForServer),decisionProfile:compactDecisionProfileForServer(workspace.decisionProfile),decisionStage:workspace.decisionStage,conversationMemory:compactConversationMemoryForServer(workspace.conversationMemory),agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),contextUsage:workspace.agentContext?.contextUsage||{}},activeView:viewSeed(workspace.activeView,workspace.examContext),viewHistory:workspace.viewHistory.slice(0,6).map(view=>({id:view.id,score:view.score,majorKeywords:view.majorKeywords,regionKeys:view.regionKeys,schoolNames:view.schoolNames,bottomLineMode:view.bottomLineMode,target:view.target,combination:view.combination,updatedAt:view.updatedAt})),recentTurns:workspace.turnHistory.slice(-6).map(compactTurnForServer),selectionSnapshot:compactSelectionSnapshotForTurn(workspace.selectionSnapshot,includeSelectionDetails),lastResult:compactLastResultForServer(workspace.lastResult),pendingChecks:workspace.pendingChecks.slice(0,12).map(item=>({key:cleanText(item?.key,100),level:cleanText(item?.level,30),text:cleanText(item?.text,200)}))};return shrinkWorkspaceToBudget(out,maxBytes);}
 export function buildAiTurnRequestPayload(workspaceLike,options={}){const input=cleanText(options?.input,1200),confirmedCommand=options?.confirmedCommand&&typeof options.confirmedCommand==='object'?options.confirmedCommand:null,deterministicToolResults=options?.deterministicToolResults&&typeof options.deterministicToolResults==='object'?options.deterministicToolResults:{},envelope={input,confirmedCommand,deterministicToolResults},reserved=jsonBytes(envelope)+2048,workspaceBudget=Math.max(AI_SERVER_WORKSPACE_MIN_BUDGET_BYTES,AI_TURN_CLIENT_BODY_BUDGET_BYTES-reserved);let payload={workspace:compactAiWorkspaceForServer(workspaceLike,{input,maxBytes:workspaceBudget}),...envelope},bytes=jsonBytes(payload);if(bytes>AI_TURN_CLIENT_BODY_BUDGET_BYTES){const tighter=Math.max(AI_SERVER_WORKSPACE_MIN_BUDGET_BYTES,workspaceBudget-(bytes-AI_TURN_CLIENT_BODY_BUDGET_BYTES)-2048);payload={workspace:compactAiWorkspaceForServer(workspaceLike,{input,maxBytes:tighter}),...envelope};bytes=jsonBytes(payload);}if(bytes>AI_TURN_CLIENT_BODY_BUDGET_BYTES)throw new Error('本轮事实桥接超过客户端请求安全预算，请缩小本轮事实范围后继续。');return payload;}
+
+/*
+ * AIPLuS fact bridge contract v3992_9.
+ * This is the only browser/server boundary for deterministic fact records.
+ */
+export const AI_FACT_BRIDGE_CONTRACT_VERSION='ai-fact-bridge-v3992_9';
+export const AI_FACT_RECORD_FIELDS=Object.freeze(['id','school','major','score2026','rank2026','score2025','rank2025','score2024','rank2024','schoolCode2026','majorCode2026','displayLocation','city','province','projectLabel','bandKey','band','scoreDelta2026','rankGap2026','is985','is211','isSinoForeign','isHighFee','feeType','natureLabel','tuition','matchLevel','matchLabel','matchReason','matchedKeyword','queryMajor','queryIndex','queryStatus','queryErrorCode','queryErrorMessage']);
+export function compactAiFactRecord(record={}){
+  const out={};
+  for(const key of AI_FACT_RECORD_FIELDS){
+    const value=record?.[key];
+    if(value!==undefined&&value!==null&&value!=='')out[key]=value;
+  }
+  return out;
+}
+export function compactSchoolHistoryFactPayload(data={}){
+  const summary=data?.summary||{},source=data?.source||{};
+  return{
+    ok:Boolean(data.ok),
+    code:String(data.code||'').slice(0,80),
+    message:String(data.message||'').slice(0,300),
+    partial:Boolean(data.partial),
+    major:String(data.major||'').slice(0,160),
+    majorKeyword:String(data.majorKeyword||'').slice(0,160),
+    majorKeywords:Array.isArray(data.majorKeywords)?data.majorKeywords.slice(0,8).map(value=>String(value||'').slice(0,160)):[],
+    total:Number(data.total||0),
+    summary:{...summary,total:Number(summary.total||data.total||0),schoolCount:Number(summary.schoolCount||0),minScore:Number.isFinite(Number(summary.minScore))?Number(summary.minScore):null,maxScore:Number.isFinite(Number(summary.maxScore))?Number(summary.maxScore):null},
+    records:Array.isArray(data.records)?data.records.slice(0,100).map(compactAiFactRecord):[],
+    majorSuggestions:Array.isArray(data.majorSuggestions)?data.majorSuggestions.slice(0,6).map(item=>({major:String(item?.major||'').slice(0,160),prompt:String(item?.prompt||'').slice(0,240),reason:String(item?.reason||'').slice(0,240)})):[],
+    queryResults:Array.isArray(data.queryResults)?data.queryResults.slice(0,8).map(item=>({query:String(item?.query||'').slice(0,160),index:Number(item?.index||0),status:String(item?.status||'').slice(0,24),recordCount:Number(item?.recordCount||0),errorCode:String(item?.errorCode||'').slice(0,80),errorMessage:String(item?.errorMessage||'').slice(0,240)})):[],
+    meta:data.meta||{},
+    source:{dataYear:Number(source.dataYear||2026),manifestVersion:source.manifestVersion||'',totalRecords:Number(source.totalRecords||0),rawScanned:Number(source.rawScanned||0),exactSchoolRecords:Number(source.exactSchoolRecords||0),mode:source.mode||''},
+    bridgeVersion:AI_FACT_BRIDGE_CONTRACT_VERSION
+  };
+}
