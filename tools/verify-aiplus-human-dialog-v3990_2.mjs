@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createAiWorkspace } from '../shared/ai/ai-workspace-contract.v3992_0.js';
 import { deterministicCommand, resolveAiSchoolMentionsDetailed } from '../functions/_lib/ai/command-interpreter.js';
 import { RESEARCH_RELATION_LABELS, researchRelationActions } from '../functions/_lib/ai/research-relations.js';
+import { AI_FACT_BRIDGE_CONTRACT_VERSION, AI_FACT_RECORD_FIELDS } from '../shared/ai/ai-workspace-contract.v3992_0.js';
 
 const aliases = new Map([
   ['沈阳工业', '沈阳工业大学'],
@@ -53,6 +54,11 @@ assert.deepEqual(multiMajor.majorKeywords, ['机械', '电气', '测控技术与
 const compactMultiMajor=await command('沈阳航空航天大学机械测控与材料多少分', candidate);
 expect(compactMultiMajor, { task: 'school_major_history', school: '沈阳航空航天大学' });
 assert.deepEqual(compactMultiMajor.majorKeywords, ['机械', '测控技术与仪器', '材料'], 'compact multi-major query must segment major aliases');
+const schoolPriority=await command('辽宁石油化工大学化工多少分', candidate);
+expect(schoolPriority, { task: 'school_major_history', school: '辽宁石油化工大学', major: '化工' });
+const catalogCoverage=await command('沈航计算机电子信息自动化材料多少分', candidate);
+expect(catalogCoverage, { task: 'school_major_history', school: '沈阳航空航天大学' });
+assert.deepEqual(catalogCoverage.majorKeywords, ['计算机科学与技术', '电子信息', '自动化', '材料'], 'catalog compact majors must remain ordered and canonical');
 expect(await command('沈阳工业所有专业最低分', candidate), { task: 'school_history', school: '沈阳工业大学' });
 expect(await command('大连交通 都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
 expect(await command('大连交通学校怎么样', candidate), { task: 'school_research', school: '大连交通大学' });
@@ -145,4 +151,6 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 40 }, null, 2));
+assert.equal(AI_FACT_BRIDGE_CONTRACT_VERSION, 'ai-fact-bridge-v3992_9');
+for (const field of ['queryMajor','queryIndex','queryStatus','queryErrorCode','queryErrorMessage']) assert.ok(AI_FACT_RECORD_FIELDS.includes(field), `fact bridge field missing: ${field}`);
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3992_9', scenarios: 44 }, null, 2));
