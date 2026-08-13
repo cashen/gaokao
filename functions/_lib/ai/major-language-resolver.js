@@ -6,12 +6,13 @@ const ALIASES={"飞行器环境与生命保障工程":"飞行器环境与生命�
 export const AI_MAJOR_LANGUAGE_RESOLVER_VERSION='ai-major-language-resolver-v3992_1';
 export const MAJOR_LANGUAGE_ALIASES=Object.freeze(ALIASES);
 export const MAJOR_LANGUAGE_TERMS=Object.freeze(Object.keys(ALIASES).sort((a,b)=>b.length-a.length));
+const BROAD_MAJOR_TERMS=Object.freeze(['机械','计算机','电子信息','电气','自动化','通信','能源','石油','化工','材料','冶金','土木','建筑','医学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','食品']);
 
 export function normalizeMajorLanguage(value){
   const key=String(value||'').normalize('NFKC').replace(/[（）()【】\s·・]/g,'').replace(/专业$/,'').trim();
   if(!key)return'';
-  // Very short words such as “机械/电气/计算机” are intentionally kept
-  // broad; the history API can match all corresponding admission names.
-  if(key.length<=3&&!['计科','软工'].includes(key))return key;
+  // Broad words intentionally remain broad; every other catalog alias is
+  // normalized when it maps safely to one canonical undergraduate major.
+  if(BROAD_MAJOR_TERMS.includes(key))return key;
   return MAJOR_LANGUAGE_ALIASES[key]||key;
 }
