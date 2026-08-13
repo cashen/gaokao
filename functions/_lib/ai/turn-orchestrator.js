@@ -84,9 +84,9 @@ export async function orchestrateAiTurn(context,payload={}){
       case'major_region_history':
         result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok;break;
       case'school_major_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_research':
         result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});
