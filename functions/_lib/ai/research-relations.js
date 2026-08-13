@@ -40,7 +40,7 @@ export function researchRelationActions({task='',school='',major='',score=null,b
     action('experience-history',RESEARCH_RELATION_LABELS.schoolMajorHistory,`${s}所有专业的最低录取分`,'把体验和投档事实交叉查看。'),
     action('experience-profile',RESEARCH_RELATION_LABELS.schoolProfile,`介绍下${s}`,'回到学校整体定位。')
   ];
-  if(task==='major_region_history')return[
+  if(task==='major_background')return[\n    action('major-background-history',RESEARCH_RELATION_LABELS.majorHistory,`辽宁\${m}在各学校多少分`,'从专业背景回到全省专业历史分数。'),\n    action('major-background-schools',RESEARCH_RELATION_LABELS.majorRegionBackground,`\${m}在辽宁哪些学校有背景证据`,'在同一专业主线上横向寻找学校。'),\n    action('major-background-school',RESEARCH_RELATION_LABELS.schoolProfile,`介绍下辽宁\${m}相关学校`,'从专业主线进入学校关系节点。')\n  ];\n  if(task==='background_discovery'||task==='background_fit_discovery')return[\n    m?action('discovery-major-history',RESEARCH_RELATION_LABELS.majorHistory,`辽宁\${m}在各学校多少分`):action('discovery-major-history','先看专业历史','辽宁电气在各学校多少分','从背景候选回到专业事实。'),\n    m?action('discovery-major-schools',RESEARCH_RELATION_LABELS.majorRegionBackground,`\${m}在辽宁哪些学校有背景证据`):action('discovery-major-schools','按专业找学校','电气在辽宁哪些学校有背景证据','从背景候选横向寻找学校。'),\n    action('discovery-school-research','点进一所学校继续研究','介绍下辽宁相关学校','从背景候选回到学校关系节点。')\n  ];\n  if(task==='major_region_history')return[
     action('major-region-background',RESEARCH_RELATION_LABELS.majorRegionBackground,`${m}在辽宁哪些学校有背景证据`,'从专业历史分数横向寻找学校。'),
     scoreText?action('major-region-fit',RESEARCH_RELATION_LABELS.schoolFit,`按我${scoreText}分，辽宁${m}有哪些学校更现实`,'把家庭分数放回专业横向比较。'):action('major-region-set-score','带上我的分数判断',`我580分，辽宁${m}哪些学校更现实`,'只有明确需要可达判断时才激活个人分数。'),
     action('major-region-school','点进一所学校继续研究',`介绍下辽宁${m}相关学校`,'从专业主线回到学校主线。')
