@@ -8,8 +8,8 @@ import {
   validateAgentTask, taskExecutionPolicy
 } from './agent-task-kernel.js';
 
-export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_4';
-export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_4';
+export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_9';
+export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_9';
 
 const MAJOR_TERMS=Object.freeze([...new Set([...MAJOR_LANGUAGE_TERMS,...BROAD_MAJOR_TERMS])]);
 function normalizeMajorTerm(value){return normalizeMajorLanguage(value);}
@@ -25,10 +25,11 @@ function scoreFromText(text){const m=String(text||'').match(/(?:^|[^\d])(\d{3})(
 function activeView(workspace={}){return workspace?.activeView&&typeof workspace.activeView==='object'?workspace.activeView:{};}
 function hasMeaningfulActiveView(workspace={}){const v=activeView(workspace);return Boolean(Number(v.score)||(v.majorKeywords||[]).length||(v.schoolNames||[]).length||((v.regionKeys||[]).length&&!v.regionKeys.includes('all'))||(v.bottomLineMode&&v.bottomLineMode!=='all'));}
 
+function majorTermPriority(term){return BROAD_MAJOR_TERMS.includes(term)?1:2;}
 function majorMentions(text){
   const source=String(text||''),out=[];
   for(const term of MAJOR_TERMS){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const before=source.slice(Math.max(0,i-10),i),after=source.slice(i+term.length,i+term.length+10);const negative=/(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|不是|不选).{0,3}$/.test(before)||/^(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|算了|不要了|不选)/.test(after);out.push({term,index:i,negative});from=i+term.length;}}
-  out.sort((a,b)=>a.index-b.index||b.term.length-a.term.length);
+  out.sort((a,b)=>a.index-b.index||majorTermPriority(b.term)-majorTermPriority(a.term)||b.term.length-a.term.length);
   return out.filter((item,index,list)=>!list.some((other,j)=>j!==index&&other.term.length>item.term.length&&other.index<=item.index&&other.index+other.term.length>=item.index+item.term.length));
 }
 function schoolMentionSpans(text,schoolNames=[],matchedAliases=[]){
