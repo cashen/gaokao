@@ -8,7 +8,7 @@ export const MAJOR_LANGUAGE_ALIASES=Object.freeze(ALIASES);
 export const MAJOR_LANGUAGE_TERMS=Object.freeze(Object.keys(ALIASES).sort((a,b)=>b.length-a.length));
 
 export function normalizeMajorLanguage(value){
-  const key=String(value||'').normalize('NFKC').replace(/[（）()【】[\\]\\s·・]/g,'').replace(/专业$/,'').trim();
+  const key=String(value||'').normalize('NFKC').replace(/[（）()【】\s·・]/g,'').replace(/专业$/,'').trim();
   if(!key)return'';
   // Very short words such as “机械/电气/计算机” are intentionally kept
   // broad; the history API can match all corresponding admission names.
