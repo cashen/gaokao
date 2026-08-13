@@ -8,6 +8,7 @@ on:
       - 'aiplus/**'
       - 'tools/verify-aiplus-ui-geometry-v002.mjs'
       - 'tools/browser-aiplus-ui-geometry-v002.mjs'
+      - 'tools/verify-aiplus-conversation-scroll-v002.mjs'
       - '.github/workflows/verify-aiplus-ui-geometry-v002.yml'
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - 'aiplus/**'
       - 'tools/verify-aiplus-ui-geometry-v002.mjs'
       - 'tools/browser-aiplus-ui-geometry-v002.mjs'
+      - 'tools/verify-aiplus-conversation-scroll-v002.mjs'
       - '.github/workflows/verify-aiplus-ui-geometry-v002.yml'
   workflow_dispatch:
 
@@ -48,7 +50,9 @@ jobs:
           set -euo pipefail
           node --check tools/verify-aiplus-ui-geometry-v002.mjs
           node --check tools/browser-aiplus-ui-geometry-v002.mjs
+          node --check tools/verify-aiplus-conversation-scroll-v002.mjs
           node tools/verify-aiplus-ui-geometry-v002.mjs
+          node tools/verify-aiplus-conversation-scroll-v002.mjs
 
   geometry-browser:
     needs: geometry-source
