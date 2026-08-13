@@ -54,7 +54,7 @@ function likelySchoolMentionTokens(text){
     if(!/[\u4e00-\u9fa5]{2,}/.test(candidate)||genericRe.test(candidate))return;
     tokens.push(candidate);
   };
-  const topicRe=/(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验|学校简介|学校介绍|学校定位|办学定位|什么学校|什么来头|最低录取分|最低投档分|最低分|投档分|录取分|专业都多少分|各专业多少分|分都多少|大概都多少分|大约都多少分|都多少分|多少分|分数线|位次|排名|去年|往年|历年|能不能上|能不能报|够不够|能上吗|能报吗|怎么样|如何|咋样|呢|吗|呀|啊|吧)/g;
+  const topicRe=/(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验|学校简介|学校介绍|学校定位|办学定位|什么学校|什么来头|最低录取分|最低投档分|所有专业|全部专业|全校专业|招生专业|最低分|投档分|录取分|专业都多少分|各专业多少分|分都多少|大概都多少分|大约都多少分|都多少分|多少分|分数线|位次|排名|去年|往年|历年|能不能上|能不能报|够不够|能上吗|能报吗|怎么样|如何|咋样|呢|吗|呀|啊|吧)/g;
   const segments=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ').split(/[，,。！？!?；;：:]/).map(value=>value.trim()).filter(Boolean);
   for(const segment of segments){
     const candidate=stripSchoolEntityLeadingAction(segment,60);
