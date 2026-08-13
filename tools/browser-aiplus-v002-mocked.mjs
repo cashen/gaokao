@@ -45,7 +45,7 @@ function schoolHistoryPayload(url){
   const majors=query?(MAJOR_VARIANTS[query]||[query,`${query}（实验班）`,`${query}（专项）`,`${query}（校企合作）`]):ALL_MAJORS;
   const records=majors.map((major,index)=>({
     id:`${school}-${query||'all'}-${index}`,school,major,score2026:626-index*5-(query?0:Math.floor(index/4)),rank2026:11200+index*1370,
-    schoolCode2026:'S001',majorCode2026:`M${String(index+1).padStart(3,'0')}`,displayLocation:'辽宁省沈阳市',
+    schoolCode2026:'S001',majorCode2026:`${query?`Q${Object.keys(MAJOR_VARIANTS).indexOf(query)+1}`:'A'}M${String(index+1).padStart(3,'0')}`,displayLocation:'辽宁省沈阳市',
     projectLabel:index===3&&query==='电气'?'中外合作/高收费':'',matchLevel:'exact',matchLabel:'名称命中',matchedKeyword:query
   }));
   const scores=records.map(item=>item.score2026),nearest=records.reduce((best,item)=>!best||Math.abs(item.score2026-candidate)<Math.abs(best.score2026-candidate)?item:best,null);
@@ -139,7 +139,7 @@ async function multiMajorJourney(page,state,name){
   const requests=state.schoolRequests.slice(requestStart);assert(requests.length===5,`${name}: expected five fact requests, got ${requests.length}`);assert(state.maxSchoolActive>1&&state.maxSchoolActive<=3,`${name}: browser fact concurrency drift ${state.maxSchoolActive}`);
   const statusRows=await page.locator('.query-status-row').count();assert(statusRows===5,`${name}: per-major statuses missing (${statusRows})`);
   const firstTurn=page.locator('#conversationStream .turn[data-turn-id]').first();await firstTurn.evaluate(el=>window.__stableFirstTurn=el);
-  const history=firstTurn.locator('.history-records-wrap');assert(await history.count()===1,`${name}: history records missing`);assert(await history.locator('.history-item').count()===10,`${name}: collapsed history should mount ten rows`);assert(await history.locator('.history-more').count()===1,`${name}: lazy history control missing`);
+  const history=firstTurn.locator('.history-records-wrap');assert(await history.count()===1,`${name}: history records missing`);const collapsedRows=await history.locator('.history-item').count();assert(collapsedRows===10,`${name}: collapsed history should mount ten rows, got ${collapsedRows}`);assert(await history.locator('.history-more').count()===1,`${name}: lazy history control missing`);
   const card=history.locator('.history-item').first(),cardMetrics=await card.evaluate(el=>{const school=el.querySelector('.candidate-school'),major=el.querySelector('.candidate-major'),r=el.getBoundingClientRect(),sr=school.getBoundingClientRect(),mr=major.getBoundingClientRect();return{display:getComputedStyle(el).display,width:r.width,scroll:el.scrollWidth,schoolWidth:sr.width,schoolHeight:sr.height,majorWidth:mr.width,majorHeight:mr.height,writing:getComputedStyle(school).writingMode};});
   assert(cardMetrics.display==='block'&&cardMetrics.scroll<=cardMetrics.width+2,`${name}: history card inherited sidebar grid ${JSON.stringify(cardMetrics)}`);assert(cardMetrics.writing==='horizontal-tb'&&cardMetrics.schoolWidth>100&&cardMetrics.schoolHeight<80,`${name}: school name collapsed vertically ${JSON.stringify(cardMetrics)}`);
   const specializedBorder=await firstTurn.locator('.result-card.history').evaluate(el=>getComputedStyle(el).borderLeftWidth);assert(specializedBorder==='0px',`${name}: legacy colored AI bar remains (${specializedBorder})`);
