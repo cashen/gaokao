@@ -32,6 +32,7 @@ async function viewportStabilityJourney(page,name){
   const trace=await page.evaluate(()=>window.__aiPlusScrollTrace||[]);
   assert(!trace.some(item=>JSON.stringify(item).includes('smooth')),`${name}: AIPLuS result path must not use smooth scrolling: ${JSON.stringify(trace)}`);
   assert(!trace.some(item=>item.kind==='element'),`${name}: AIPLuS result path must not call scrollIntoView: ${JSON.stringify(trace)}`);
+  assert(trace.length<=1,`${name}: one answer transaction may restore viewport at most once: ${JSON.stringify(trace)}`);
   assert(await page.locator('.processing-dot').count()===0,`${name}: processing state still mounts AI pulse marker`);
 }
 async function assertView(page,parts,notParts=[]){const t=await viewText(page);for(const p of parts)assert(t.includes(p),`view missing ${p}: ${t}`);for(const p of notParts)assert(!t.includes(p),`view unexpectedly has ${p}: ${t}`);}
@@ -80,6 +81,7 @@ async function parentEntryUiJourney(page,name){
   if(name!=='pc')return;
   await reset(page);
   assert(await page.locator('body[data-ai-plus="school-official-qa"]').count()===1,'AI Plus body contract missing');
+  const assetVersion=await page.locator('body').getAttribute('data-ai-plus-assets');assert(assetVersion==='aiplus-assets-v3992_9',`AIPLuS asset version drift: ${assetVersion}`);const assetHrefs=await page.locator('link[rel="stylesheet"],script[type="module"]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href')||node.getAttribute('src')||''));assert(assetHrefs.every(href=>href.includes('3992_9')||href.includes('3992_1')||href.includes('3992_4')||href.includes('3992_0')),`stale AIPLuS asset query remains: ${JSON.stringify(assetHrefs)}`);
   const footer=page.locator('.aiplus-product-footer');assert(await footer.isVisible(),'AIPLuS v0.01 footer is not visible');assert((await footer.innerText()).includes('v0.01'),'AIPLuS v0.01 footer text missing');const footerLayout=await footer.evaluate(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return{position:style.position,width:rect.width,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};});assert(footerLayout.position==='static',`AIPLuS v0.01 footer must not be fixed over the composer: ${JSON.stringify(footerLayout)}`);assert(footerLayout.width<=footerLayout.viewport+2&&footerLayout.scrollWidth<=footerLayout.viewport+2,`AIPLuS v0.01 footer overflows viewport: ${JSON.stringify(footerLayout)}`);
   const promptLabel=(await page.locator('label[for="promptInput"]').innerText()).replace(/\s+/g,' ').trim();
   assert(promptLabel==='问学校、专业、分数或怎么选',`AI Plus prompt label drift: ${promptLabel}`);
