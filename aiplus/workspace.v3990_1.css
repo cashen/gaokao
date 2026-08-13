@@ -99,3 +99,16 @@ body{background:var(--bg);color:var(--ink)}
   .composer-buttons .primary{width:100%;min-height:48px}.composer-help{font-size:11px}
 }
 @media(min-width:761px) and (max-width:1040px){.composer-row{max-width:none}}
+
+/* v3992_8: result cards share the history-item class with the desktop drawer.
+   Keep the two layouts isolated so narrow screens never squeeze a major name into one character per line. */
+.result-card .history-list .history-item{display:block;grid-template-columns:none;min-width:0;width:100%;box-sizing:border-box}
+.result-card .history-list .history-item .candidate-head{min-width:0}
+.result-card .history-list .history-item .candidate-school,.result-card .history-list .history-item .candidate-major,.result-card .history-list .history-item .candidate-location{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.conversation{min-width:0}
+@media(max-width:760px){
+  .conversation{padding-bottom:clamp(104px,18vh,168px);scroll-padding-bottom:clamp(104px,18vh,168px)}
+  .result-card .history-list .history-item{padding:11px 12px}
+  .result-card .history-list .history-item .candidate-head{grid-template-columns:minmax(0,1fr);width:100%}
+  .result-card .history-list .history-item .candidate-reference{max-width:100%}
+}
