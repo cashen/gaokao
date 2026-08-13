@@ -1,6 +1,7 @@
 
 import {activeViewLabel,regionKeyLabel} from '../../../shared/ai/ai-workspace-contract.v3992_0.js';
 import {mentorFrameForCommand} from './mentor-profile.js';
+import {researchRelationActions} from './research-relations.js';
 
 function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}
@@ -32,11 +33,10 @@ function effectiveProfile(workspace={},command={}){const explicit=clone(workspac
 function candidateSchools(result={}){return unique((result?.candidates?.records||[]).map(item=>item?.school).filter(Boolean),8);}
 function alternateMajor(majors=[]){if(majors.includes('机械'))return['电气','自动化'];if(majors.includes('电气'))return['机械','自动化'];if(majors.includes('自动化'))return['电气','机械'];return['电气','机械'];}
 function nextQuestions({command,stage,view,result,workspace,focus}){const actions=[],task=command.agentTask,total=Number(result?.candidates?.counts?.total||0),profile=effectiveProfile(workspace,command),regions=view.regionKeys||['all'],majors=view.majorKeywords||[],schools=candidateSchools(result),add=(id,label,prompt,reason='')=>{if(actions.length<3&&!actions.some(x=>x.id===id))actions.push({id,label,prompt,reason});};
-  if(task==='school_research'){add('research-environment','学校环境',`${focus.school}学校环境和人文关怀怎么样`,'从同学体验摘要或最近4条留言继续看。');add('research-background','看强项方向',`${focus.school}有哪些有证据的强项方向`,'继续看学校真正有证据的专业背景。');add('research-history','看2026各专业分数',`${focus.school}所有专业的最低录取分`,'把学校画像和投档事实分开看。');return actions;}
+  const relationActions=researchRelationActions({task,school:focus.school,major:focus.major,score:workspace?.examContext?.score,backgroundMajor:result?.background?.items?.[0]?.major||result?.background?.items?.[0]?.majorName||''});
+  if(relationActions.length){relationActions.forEach(item=>add(item.id,item.label,item.prompt,item.reason));return actions;}
   if(task==='school_official_qa'){add('official-charter','看招生章程',`${focus.school}2026招生章程要注意什么`,'继续只看官方资料。');add('official-living','看宿舍和食宿',`${focus.school}宿舍和食宿条件怎么样`,'不拿宣传语替代官方页面。');if(workspace?.examContext?.score)add('official-fit','回到我的分数',`那按我${workspace.examContext.score}分，${focus.school}够得着吗`,'这一步才重新激活分数判断。');else add('official-history','看辽宁投档历史',`${focus.school}所有专业的最低录取分`,'把学校介绍和投档事实分开。');return actions;}
   if(task==='major_region_history'){if(workspace?.examContext?.score)add('candidate-fit','再按我的分数看可达性',`按我${workspace.examContext.score}分，${regionLabel(view.regionKeys)}${view.majorKeywords?.[0]||focus.major}有哪些学校够得着`,'历史分数已经看清，再把个人位置放回来。');else add('set-score','带上我的分数判断','我580分，这些学校哪些更现实','只有做可达判断时才需要个人分数。');add('major-bg','看省内专业背景',`${view.majorKeywords?.[0]||focus.major}在辽宁哪些学校有背景证据`,'从分数事实切到学校背景。');return actions;}
-  if(task==='school_history'||task==='school_major_history'){add('school-profile','学校简介',`介绍下${focus.school}`,'先了解学校定位，官方正文不可用时才看标明非官方的百科补充。');add('school-environment','学校环境',`${focus.school}学校环境和人文关怀怎么样`,'看同学体验摘要；没有摘要时只列最近4条留言。');if(workspace?.examContext?.score)add('fit','按我的分数判断一下',`那按我${workspace.examContext.score}分，${focus.school}${focus.major?focus.major:''}够得着吗`,'现在才把你的分数重新激活。');return actions;}
-  if(task==='school_experience'){add('school-profile','学校简介',`介绍下${focus.school}`,'回到官方优先的学校概况。');add('school-history','看2026各专业分数',`${focus.school}所有专业的最低录取分`,'把同学体验和投档事实分开看。');return actions;}
   if(task==='fit_assessment'){add('school-profile','学校简介',`介绍下${focus.school}`,'补齐学校定位。');add('school-environment','学校环境',`${focus.school}学校环境和人文关怀怎么样`,'看同学体验，不把留言当官方事实。');add('history','先只看专业本身',`先别管我的分数，只看${focus.school}${focus.major?focus.major:''}历史分数和位次`,'把个人可达判断和学校事实分开。');return actions;}
   if(task==='background_discovery'||task==='background_fit_discovery'){if(workspace?.examContext?.score&&task==='background_discovery')add('fit-bg','和我的分数做交集',`按我${workspace.examContext.score}分，省内这些有背景的方向哪些够得着`,'再把家庭坐标放回来。');add('employment','按本科就业继续收敛','普通家庭，本科就业优先，帮我从这些方向里继续看风险','Skill只影响追问和风险，不制造就业事实。');return actions;}
   if(result?.candidates?.ok&&total===0){if(majors.length)add('relax-major','保留地区，先不限专业','专业先不限，其他条件不变','只放开一个条件。');if(!regions.includes('all'))add('relax-region','保留专业，放回辽宁省内','地区先回辽宁省内，其他条件不变','只放开地区。');return actions;}
