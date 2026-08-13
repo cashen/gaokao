@@ -51,7 +51,7 @@ function looksImplicitAllSchoolMajorsHistory(source){return /(?:(?:专业|各专
 function looksHistoryCorrection(source){return /(?:不是|不想|先不|别|不要).{0,5}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗).{0,18}(去年|往年|历年|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次)/.test(source);}
 function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}
 function looksCompare(source){return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(source);}
-function looksBackground(source){return /(强项|优势专业|专业优势|学科背景|专业背景|学校背景|有背景|底蕴|特色方向|本地强项|省内背景)/.test(source);}
+function looksBackground(source){return /(强项|优势专业|专业优势|学科背景|专业背景|学校背景|有背景|专业底子|更有底子|拿得出手|底蕴|特色方向|本地强项|省内背景)/.test(source);}
 function looksWorth(source){return /(值得报|值得看|值得研究|优先研究|优先看|适合研究|方向推荐|推荐.{0,6}(专业|方向)|哪些.{0,8}(专业|方向).{0,8}(好|合适|值得))/.test(source);}
 function looksPlanReview(source){return /(方案|选择池|自选|已选|选了些|检查.{0,6}(方案|专业)|看看.{0,6}(方案|已选)|还缺什么)/.test(source);}
 function looksVerify(source){return /(章程|招生计划|学费|校区|体检|选科|官方|来源|核验|资格|培养方案)/.test(source);}
