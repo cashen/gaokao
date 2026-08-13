@@ -14,6 +14,12 @@ assert.ok(tool.includes("url.searchParams.set('schoolIntent','school')"),'school
 assert.ok(tool.includes('normalizedScore=normalizeOptionalCandidateScore(candidateScore)'),'school history must preserve null candidate score');
 assert.ok(tool.includes("normalizedScore===null?'score-desc':'position-near'"),'school history null score sort boundary missing');
 assert.ok(tool.includes('majorKeywords=[]'),'school history adapter must accept multiple major keywords');
+assert.ok(tool.includes('queryResults.push'),'school history batch must preserve per-query status');
+assert.ok(tool.includes('partial,allFailed'),'school history batch must distinguish partial and all-failed states');
+assert.ok(tool.includes('AI_FACT_BRIDGE_CONTRACT_VERSION'),'server tool registry must use shared fact bridge version');
+const factBridge=fs.readFileSync('shared/ai/ai-workspace-contract.v3992_0.js','utf8');
+assert.ok(factBridge.includes("AI_FACT_BRIDGE_CONTRACT_VERSION='ai-fact-bridge-v3992_9'"),'shared fact bridge version drift');
+assert.ok(factBridge.includes('queryErrorMessage'),'shared fact bridge error provenance missing');
 assert.ok(orchestrator.includes('majorKeywords:focus.majors'),'orchestrator must pass multiple major keywords without joining them into one query');
 assert.ok(orchestrator.includes('result.history'),'school-history deterministic continuation missing');assert.ok(orchestrator.includes('result.majorHistory'),'major-history deterministic continuation missing');assert.ok(orchestrator.includes('result.fit'),'fit deterministic continuation missing');
 assert.ok(orchestrator.includes('preserveResolvedFocus=false'),'confirmed-command focus preservation boundary missing');
