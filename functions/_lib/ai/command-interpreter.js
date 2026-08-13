@@ -31,14 +31,42 @@ function majorMentions(text){
   out.sort((a,b)=>a.index-b.index||b.term.length-a.term.length);
   return out.filter((item,index,list)=>!list.some((other,j)=>j!==index&&other.index===item.index&&other.term.length>item.term.length&&other.term.includes(item.term)));
 }
-function positiveMajors(text){return unique(majorMentions(text).filter(x=>!x.negative).map(x=>normalizeMajorTerm(x.term)),8);}
-function negativeMajors(text){return unique(majorMentions(text).filter(x=>x.negative).map(x=>normalizeMajorTerm(x.term)),8);}
+function schoolMentionSpans(text,schoolNames=[],matchedAliases=[]){
+  const source=String(text||''),names=unique([...(schoolNames||[]),...(matchedAliases||[])],16).sort((a,b)=>b.length-a.length),spans=[];
+  for(const name of names){let from=0;while(name&&from<source.length){const index=source.indexOf(name,from);if(index<0)break;spans.push({start:index,end:index+name.length});from=index+Math.max(1,name.length);}}
+  return spans;
+}
+function majorMentionOverlapsSchool(text,mention,schoolNames=[],matchedAliases=[]){return schoolMentionSpans(text,schoolNames,matchedAliases).some(span=>mention.index>=span.start&&mention.index<span.end);}
+function positiveMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>!item.negative&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
+function negativeMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>item.negative&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
 const SCHOOL_ENTITY_LEADING_ACTION=/^(?:(?:帮我只看|筛选一下|介绍一下|介绍介绍|了解一下|认识一下|我想知道|帮我比较|帮我筛|帮我看|帮我查|我想看|我想查|我想问|只看|仅看|筛选|筛一下|只留|保留|换成|改成|收窄到|收窄|缩到|留在|介绍下|介绍|讲一下|讲下|讲讲|说一下|说下|说说|聊一下|聊聊|了解下|了解|看看|看下|看一下|我问你|问你|想知道|想看|想查|想问|查下|查一下|问下|问一下|请看|请查|比较|对比|改看|换|然后|顺便|等等|等下|算了|还是|先|再|那|把|和|跟|与|就))+/;
 function stripSchoolEntityLeadingAction(value,max=120){return clean(value,max).replace(SCHOOL_ENTITY_LEADING_ACTION,'').trim();}
 function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120));return unique([...(resolvedSchoolNames||[]),...full],4);}
 function cleanSchoolAliasCandidate(value){let result=stripSchoolEntityLeadingAction(value,40).replace(/[\s，,。！？!?；;：:]+/g,'').trim();result=result.replace(/(?:的|呢|吗|呀|啊|吧|都|大概|大约|一般|分别|各自)+$/g,'').trim();return result;}
-function likelySchoolMentionTokens(text){const source=clean(text,360);if(!source||/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/.test(source))return[];const tokens=[],regionOnly=new Set(['沈阳','大连','辽宁','辽宁省','省内','省外','全国','东北','西北','西南','华中']);const boundaries=[...MAJOR_TERMS,'所有专业','全部专业','全校专业','招生专业','专业都多少分','各专业多少分','分都多少','都多少分','大概都多少分','大约都多少分','最低录取分','最低投档分','最低分','投档分','录取分','多少分','分数线','位次','排名','去年','往年','历年','学校简介','学校介绍','介绍一下','介绍下','讲讲','说说','聊聊','了解一下','什么学校','什么来头','学校定位','怎么样','如何','咋样','宿舍','住宿','食堂','食宿','章程','录取规则','学费','校区','能不能上','能不能报','够不够','能上吗','能报吗'].sort((a,b)=>b.length-a.length);for(const term of boundaries){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const prefix=source.slice(0,i),clauses=prefix.split(/[，,。！？!?；;：:]/).map(v=>v.trim()).filter(Boolean);let candidate=clauses.at(-1)||'';candidate=candidate.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');candidate=cleanSchoolAliasCandidate(candidate);if(candidate.length>=2&&candidate.length<=10&&!regionOnly.has(candidate)&&!/^(?:我|孩子|家长|学校|专业|分数|位次|去年|往年|历年)/.test(candidate)&&!/(?:公办|民办|中外|高收费|本科|就业|预算|候选|志愿|方案|平台|专业质量|培养)/.test(candidate))tokens.push(candidate);from=i+term.length;}}
-  const possessive=source.match(/(?:^|[，,。！？!?；;\s])([^，,。！？!?；;\s的]{2,12})的(?:电气|自动化|测控|机械|计算机|软件|电子|通信|材料|化工|冶金|土木|建筑|医学|法学|金融|会计|专业|强项|背景)/);if(possessive?.[1])tokens.push(cleanSchoolAliasCandidate(possessive[1]));let reduced=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');for(const term of boundaries)reduced=reduced.split(term).join(' ');reduced=cleanSchoolAliasCandidate(reduced);if(reduced.length>=2&&reduced.length<=10&&!regionOnly.has(reduced)&&!/(?:候选|能上|能报|预算|就业|工作|读研|考研|平台|层次|机会|选择|取舍|平衡|志愿|方案|分数|位次|城市|老师|家长|孩子|咨询|建议|为什么|比较|对比|公办|民办|中外|高收费|本科|学校|专业)/.test(reduced))tokens.push(reduced);return unique(tokens.filter(Boolean),4);}
+function likelySchoolMentionTokens(text){
+  const source=clean(text,360);
+  if(!source||/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/.test(source))return[];
+  const tokens=[],regionOnly=new Set(['沈阳','大连','辽宁','辽宁省','省内','省外','全国','东北','西北','西南','华中']);
+  const genericRe=/(?:候选|能上|能报|筛选|志愿|方案|预算|就业|工作|读研|考研|平台|选择|取舍|平衡|咨询|建议|家长|孩子|学校|专业|公办|民办|中外|高收费|本科|分数|位次|城市)/;
+  const pushCandidate=value=>{
+    let candidate=cleanSchoolAliasCandidate(value,60);
+    if(!candidate||candidate.length<2||candidate.length>20||regionOnly.has(candidate))return;
+    if(!/[\u4e00-\u9fa5]{2,}/.test(candidate)||genericRe.test(candidate))return;
+    tokens.push(candidate);
+  };
+  const topicRe=/(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验|学校简介|学校介绍|学校定位|办学定位|什么学校|什么来头|最低录取分|最低投档分|所有专业|全部专业|全校专业|招生专业|最低分|投档分|录取分|专业都多少分|各专业多少分|分都多少|大概都多少分|大约都多少分|都多少分|多少分|分数线|位次|排名|去年|往年|历年|能不能上|能不能报|够不够|能上吗|能报吗|怎么样|如何|咋样|呢|吗|呀|啊|吧)/g;
+  const segments=source.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ').split(/[，,。！？!?；;：:]/).map(value=>value.trim()).filter(Boolean);
+  for(const segment of segments){
+    const candidate=stripSchoolEntityLeadingAction(segment,60);
+    if(!candidate)continue;
+    let foundTopic=false;
+    for(const match of candidate.matchAll(topicRe)){foundTopic=true;pushCandidate(candidate.slice(0,match.index));}
+    const possessive=candidate.match(/^([\u4e00-\u9fa5]{2,20})的(?:电气|自动化|测控|机械|计算机|软件|电子|通信|材料|化工|冶金|土木|建筑|医学|法学|金融|会计|专业|强项|背景)/);
+    if(possessive?.[1])pushCandidate(possessive[1]);
+    if(!foundTopic)pushCandidate(candidate);
+  }
+  return unique(tokens,8);
+}
 function inferSchoolHistoryMajor(source,matchedAliases=[],resolvedSchoolNames=[]){const historyFact=/(多少分|最低(?:录取|投档)?分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)||(/202[3456]/.test(source)&&!/(招生章程|章程|录取规则|宿舍|住宿|食堂|食宿|学费|收费|校区|主管部门|学校简介|学校介绍)/.test(source));if(!historyFact||/(所有|全部|全校|招生).{0,6}专业/.test(source))return'';let value=String(source||'');const removals=unique([...(matchedAliases||[]),...(resolvedSchoolNames||[]),...(resolvedSchoolNames||[]).map(name=>String(name||'').replace(/(?:大学|学院)$/,''))],12).sort((a,b)=>b.length-a.length);for(const token of removals)if(token)value=value.split(token).join(' ');for(const name of value.match(/[\u4e00-\u9fa5]{2,18}?(?:大学|学院)/g)||[])value=value.replace(name,' ');value=value.replace(/(?:^|[^\d])\d{3}\s*分?/g,' ');value=value.replace(/(最低录取分|最低投档分|最低分|投档分|录取分|专业都多少分|各专业多少分|大概都多少分|大约都多少分|都多少分|分都多少|多少分|几分|什么分|分数线|位次|排名|去年|往年|历年|202[3456]|这个学校|这所学校|那个学校|那所学校|该校|刚才这个学校|刚才那所学校|我不是问|不是问|我问|问一下|问下|看看|看下|等一下|等下|等等|算了|然后|顺便|换成|换|改成|改看|再看|再|先|大概|大约|一般|分别|各自|都|多少|几名|最低|录取|投档|分数|的|呢|吗|呀|啊|吧)/g,' ');value=value.replace(/[\s，,。！？!?；;：:]+/g,'').trim();if(!value||value.length<2||value.length>24||/(能不能上|能不能报|够不够|学校|所有专业|全部专业|全校专业|招生专业|^(?:多少|几分|几名|最低|录取|投档|分数|位次|排名)$)/.test(value))return'';return normalizeMajorTerm(value);}
 function resolverRowParts(row){return Array.isArray(row)?{name:clean(row[0],120),province:clean(row[1],40),city:clean(row[2],40),level:clean(row[3],20),initials:Array.isArray(row[4])?row[4].map(v=>clean(v,40).toLowerCase()):[]}:{name:clean(row?.name,120),province:clean(row?.province,40),city:clean(row?.city,40),level:clean(row?.level,20),initials:Array.isArray(row?.initialCodes)?row.initialCodes.map(v=>clean(v,40).toLowerCase()):[]};}
 export function selectAiSchoolResolverRows(rows=[],queries=[],limit=220){const qs=unique(queries,4).map(q=>clean(q,20)).filter(Boolean),cap=Math.max(40,Math.min(320,Number(limit)||220));if(!qs.length)return[];const ranked=[];for(let index=0;index<(rows||[]).length;index++){const row=rows[index],parts=resolverRowParts(row);if(!parts.name||parts.level!=='本科')continue;let best=0;for(const query of qs){if(/^[a-z0-9]+$/i.test(query)){const code=query.toLowerCase(),exact=parts.initials.includes(code),prefix=parts.initials.some(item=>item.startsWith(code));best=Math.max(best,exact?220:(prefix?140:0));continue;}const chars=[...new Set([...query].filter(ch=>/[\u4e00-\u9fa5]/.test(ch)))];if(!chars.length)continue;const hay=`${parts.name}|${parts.province}|${parts.city}`,hits=chars.reduce((n,ch)=>n+(hay.includes(ch)?1:0),0),coverage=hits/chars.length,prefix=[parts.name,parts.province,parts.city].some(value=>value.startsWith(query[0])),literal=parts.name.includes(query);const score=coverage*100+hits*6+(prefix?18:0)+(literal?120:0);best=Math.max(best,score);}if(best>0)ranked.push({row,score:best,index});}ranked.sort((a,b)=>b.score-a.score||a.index-b.index);return ranked.slice(0,cap).map(item=>item.row);}
@@ -156,7 +184,7 @@ function explicitTaskLock(source,agentTask,candidateLexical=false){
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
 function deterministicBase(text,workspace={},resolvedSchoolNames=[],resolvedSchoolAliases=[]){
-  const source=clean(text,1200),score=scoreFromText(source),positive0=positiveMajors(source),negative=negativeMajors(source),schools0=schoolNamesFromText(source,resolvedSchoolNames),geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
+  const source=clean(text,1200),score=scoreFromText(source),schoolNamesFromInput=schoolNamesFromText(source,resolvedSchoolNames),positive0=positiveMajors(source,schoolNamesFromInput,resolvedSchoolAliases),negative=negativeMajors(source,schoolNamesFromInput,resolvedSchoolAliases),schools0=schoolNamesFromInput,geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
   let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);if(schools.length){const inferredMajor=inferSchoolHistoryMajor(source,resolvedSchoolAliases,schools);if(inferredMajor)majors=[inferredMajor];}
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];

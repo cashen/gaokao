@@ -8,6 +8,8 @@ const aliases = new Map([
   ['辽石化', '辽宁石油化工大学'],
   ['辽科大', '辽宁科技大学'],
   ['沈航', '沈阳航空航天大学'],
+  ['辽宁师范', '辽宁师范大学'],
+  ['沈阳师范', '沈阳师范大学'],
   ['大连理工', '大连理工大学'],
   ['大连交通', '大连交通大学'],
   ['东北石油', '东北石油大学'],
@@ -64,6 +66,8 @@ expect(await command('讲讲辽科大', candidate), { task: 'school_research', s
 expect(await command('说说辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
 expect(await command('了解一下辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
 expect(await command('沈航怎么样', candidate), { task: 'school_research', school: '沈阳航空航天大学' });
+expect(await command('介绍下沈阳师范', candidate), { task: 'school_research', school: '沈阳师范大学' });
+expect(await command('介绍下辽宁师范的学校环境', candidate), { task: 'school_experience', school: '辽宁师范大学' });
 expect(await command('沈航学校环境怎么样', candidate), { task: 'school_experience', school: '沈阳航空航天大学' });
 expect(await command('辽宁科技大学人文关怀怎么样', candidate), { task: 'school_experience', school: '辽宁科技大学' });
 expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_official_qa', school: '大连理工大学' });
