@@ -33,6 +33,11 @@ for (const [spokenInput, expectedMajor] of spokenMajorCases) {
   assert(spokenCommand.majorKeywords?.includes(expectedMajor), `spoken major was not canonicalized: ${spokenInput} -> ${JSON.stringify(spokenCommand.majorKeywords)}`);
   assert(spokenCommand.regionKeys?.some(key => key === 'ln' || key === 'province:辽宁'), `spoken region was not parsed: ${spokenInput}`);
 }
+const multiInput = '省内机械电气测控都多少分';
+const multiWorkspace = createAiWorkspace();
+const multiCommand = deterministicCommand(multiInput, multiWorkspace);
+assert(multiCommand.agentTask === 'major_region_history', `multi-major query task drifted: ${multiCommand.agentTask}`);
+assert(JSON.stringify(multiCommand.majorKeywords) === JSON.stringify(['机械', '电气', '测控技术与仪器']), `multi-major parsing drifted: ${JSON.stringify(multiCommand.majorKeywords)}`);
 const command = deterministicCommand(input, workspace);
 assert(command.agentTask === 'major_region_history', `expected major_region_history, got ${command.agentTask}`);
 assert(command.taskLocked === true, 'major region history must be task-locked');
@@ -40,6 +45,24 @@ assert(command.majorKeywords?.includes('测控技术与仪器'), `major alias no
 assert(command.regionKeys?.some(key => key === 'ln' || key === 'province:辽宁'), `liaoning region not parsed: ${JSON.stringify(command.regionKeys)}`);
 
 const context = { request: new Request('https://example.test/api/ai/turn', { method: 'POST' }), env: { ASSETS: assets } };
+const multiFirst = await orchestrateAiTurn(context, { input: multiInput, workspace: multiWorkspace, confirmedCommand: multiCommand });
+assert(multiFirst.pendingDeterministicTool === true, 'multi-major history must request deterministic facts');
+assert(multiFirst.toolRequests?.length === 3, `multi-major history expected three requests, got ${multiFirst.toolRequests?.length}`);
+const multiEntries = {};
+for (const tool of multiFirst.toolRequests) {
+  const request = new Request(new URL(tool.url, 'https://example.test').toString(), { headers: { accept: 'application/json' } });
+  const response = await majorHistoryGet({ request, env: { ASSETS: assets } });
+  const fact = await response.json();
+  assert(response.ok && fact.ok, `multi-major fact failed: ${tool.url} -> ${JSON.stringify(fact)}`);
+  multiEntries[tool.key] = { kind: 'major_history', key: tool.key, url: tool.url, status: response.status, payload: fact };
+}
+const multiSecond = await orchestrateAiTurn(context, { input: multiInput, workspace: multiWorkspace, confirmedCommand: multiCommand, deterministicToolResults: multiEntries });
+assert(multiSecond.ok === true && multiSecond.pendingDeterministicTool === false, 'multi-major continuation did not complete');
+assert(multiSecond.result?.majorHistory?.queryResults?.length === 3, 'multi-major query statuses missing');
+assert(multiSecond.result.majorHistory.queryResults.every(item => item.status === 'success'), 'multi-major query contains unexpected failure');
+assert(multiSecond.result.majorHistory.records.length > 0, 'multi-major result has no records');
+assert(multiSecond.result.majorHistory.records.every((item, index, list) => index === 0 || Number(list[index - 1].score2026) >= Number(item.score2026)), 'multi-major result is not sorted high to low');
+assert(/3项查询均已完成/.test(multiSecond.blocks?.[0]?.text || ''), `multi-major completion is not explicit: ${multiSecond.blocks?.[0]?.text || ''}`);
 const first = await orchestrateAiTurn(context, { input, workspace, confirmedCommand: command });
 assert(first.ok === true && first.pendingDeterministicTool === true, 'first turn must request deterministic major-history facts');
 assert(first.toolRequest?.kind === 'major_history', `unexpected tool kind ${first.toolRequest?.kind}`);

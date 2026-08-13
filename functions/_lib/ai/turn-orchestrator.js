@@ -12,17 +12,19 @@ import {agentFocusSeed,taskExecutionPolicy,agentTaskLabel} from './agent-task-ke
 import {runAiProvider} from './provider-router.js';
 import {buildOfficialDeterministicSummary} from './school-official-source.js';
 import {loadSchoolProfileSupplement} from './school-profile-supplement-source.js';
+import {buildIntentContract,intentTopic} from './intent-contract.js';
+import {normalizeProjectScope,ANSWER_STATUSES,EXPERIENCE_TOPIC_LABELS} from '../../../shared/ai/aiplus-product-contract.v002.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_10';
+export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v0.02';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
-const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0',AI_WORKSPACE_CONTRACT_VERSION]);
+const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0','ai-workspace-contract-v3992_0',AI_WORKSPACE_CONTRACT_VERSION]);
 
 function clean(value,max=300){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}
 function validScore(value){const score=Math.round(Number(value));return Number.isFinite(score)&&score>=150&&score<=750?score:null;}
 function clone(value){return value==null?value:JSON.parse(JSON.stringify(value));}
-function baseView(workspace={}){const source=workspace?.activeView||{};return{target:source.target||'candidates',score:validScore(source.score??workspace?.examContext?.score),majorKeywords:unique(source.majorKeywords||[],8),regionKeys:unique(source.regionKeys||['all'],8).length?unique(source.regionKeys||['all'],8):['all'],schoolNames:unique(source.schoolNames||[],4),bottomLineMode:['all','public_first','public_regular_only','exclude_sino','public_include_sino'].includes(source.bottomLineMode)?source.bottomLineMode:'all',combination:source.combination==='union'?'union':'replace',sourceText:''};}
+function baseView(workspace={}){const source=workspace?.activeView||{};return{target:source.target||'candidates',score:validScore(source.score??workspace?.examContext?.score),majorKeywords:unique(source.majorKeywords||[],8),regionKeys:unique(source.regionKeys||['all'],8).length?unique(source.regionKeys||['all'],8):['all'],schoolNames:unique(source.schoolNames||[],4),bottomLineMode:normalizeProjectScope(source.bottomLineMode),combination:source.combination==='union'?'union':'replace',sourceText:''};}
 function fallbackPatch(command={}){return{score:validScore(command.score)?{op:'set',value:validScore(command.score)}:{op:'inherit'},region:command.regionKeys?.length?{op:command.regionKeys.includes('all')?'clear':'set',keys:command.regionKeys}:{op:'inherit',keys:[]},major:command.clearMajor?{op:'clear',values:[]}:command.majorKeywords?.length?{op:command.combination==='union'?'add':'set',values:command.majorKeywords}:{op:'inherit',values:[]},school:command.clearSchool?{op:'clear',values:[]}:command.schoolNames?.length?{op:'set',values:command.schoolNames}:{op:'inherit',values:[]},bottomLine:command.bottomLineMode?{op:'set',value:command.bottomLineMode}:{op:'inherit',value:''}};}
 function resolveActiveView(command={},workspace={}){const base=baseView(workspace),patch=command.changeSet&&typeof command.changeSet==='object'?command.changeSet:fallbackPatch(command),mutates=VIEW_MUTATING_TASKS.has(command.agentTask);if(!mutates)return{view:clone(base),commitView:false,patch,previousView:base};const next=applyAiViewPatch(base,patch,workspace?.examContext||{});next.sourceText=clean(command.rawText,320);return{view:next,commitView:true,patch,previousView:base};}
 function viewMatchesCommand(view={},command={}){if(command.majorKeywords?.length&&!command.majorKeywords.every(v=>(view.majorKeywords||[]).includes(v)))return false;if(command.regionKeys?.length&&!command.regionKeys.every(v=>(view.regionKeys||[]).includes(v)))return false;if(validScore(command.score)&&validScore(view.score)!==validScore(command.score))return false;return true;}
@@ -34,13 +36,13 @@ function validateConfirmedCommand(value,input,workspace,preserveResolvedFocus=fa
 function focusForTurn(command={},workspace={}){const prior=workspace?.agentContext?.focus||{},seed=command.focus||{},task=command.agentTask;const school=seed.school||((['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(task))?prior.school:'');const major=seed.major||((['school_major_history','major_region_history','fit_assessment','major_background'].includes(task))?prior.major:'');const schools=seed.schools?.length?seed.schools:((task==='school_comparison')?prior.schools:[]);const majors=seed.majors?.length?seed.majors:((task==='major_comparison')?prior.majors:[]);return agentFocusSeed({school,major,schools,majors,sourceText:command.rawText},workspace);}
 function effectiveScore(command,workspace,view){const explicit=validScore(command.score),remembered=validScore(workspace?.examContext?.score)||validScore(view?.score);if(command.scoreUsage==='suspended'||command.scoreUsage==='cleared')return null;if(command.scoreUsage==='active')return explicit||remembered;return explicit||remembered;}
 function agentContextForTurn(command,workspace,focus){return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};}
-function pendingDeterministicTool(result={}){for(const value of [result.candidates,result.history,result.majorHistory,result.fit,result.officialSchool,result.experience,result.background,result.comparison])if(value?.code==='client_tool_required'||value?.code==='client_tool_invalid')return value;return null;}
+function pendingDeterministicTool(result={}){const requests=[],seen=new Set();for(const value of [result.candidates,result.history,result.majorHistory,result.fit,result.officialSchool,result.experience,result.background,result.comparison]){if(value?.code==='client_tool_invalid')return value;if(value?.code!=='client_tool_required')continue;for(const request of value.toolRequests||[value.toolRequest]){if(!request?.key||seen.has(request.key))continue;seen.add(request.key);requests.push(request);}}return requests.length?{code:'client_tool_required',toolRequest:requests[0],toolRequests:requests,requestCount:requests.length}:null;}
 function providerSummary(interpreted={},command={}){return{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,latencyMs:interpreted.provider?.latencyMs||0,failures:interpreted.provider?.failures||[]};}
-function isLivingQuestion(text=''){return /(宿舍|住宿|食堂|食宿|寝室|公寓)/.test(String(text||''));}
 function officialFallbackAnswer(official={}){const deterministic=clean(official.deterministicSummary,2200)||clean(buildOfficialDeterministicSummary({school:official.school,topic:official.topic,topicLabel:official.topicLabel,coverage:official.coverage,facts:official.facts||{},evidenceText:official.evidenceText||''}),2200);if(deterministic)return deterministic;const school=clean(official.school,120),topic=clean(official.topicLabel,80)||'学校官方信息',updated=clean(official.updatedAt,80);return `已定位到阳光高考的${school}${topic}官方页面${updated?`（资料更新时间：${updated}）`:''}，但没有取得可安全引用的正文段落。为保证准确，本轮不补写页面未返回的学校事实。`;}
 async function summarizeOfficialSchool(context,official={},question=''){if(!official?.ok)return official;const fallback=officialFallbackAnswer(official),evidence=clean(official.evidenceText,9000);let provider={ok:false,provider:'',model:'',latencyMs:0,failures:[]};if(official.detailAvailable&&evidence){provider=await runAiProvider(context?.env||{},[{role:'system',content:'你是高考学校官方资料归纳器。只能依据用户提供的阳光高考原文回答，不能使用常识补充，不能制造学校排名、就业率、薪资、录取概率、学费或招生事实。原文没有的信息必须明确说“本次官方材料未提供”。回答面向家长，先直接回答问题，再说明边界；不要长段复制原文。'},{role:'user',content:JSON.stringify({school:official.school,question:clean(question,600),topic:official.topicLabel,updatedAt:official.updatedAt,evidence})}],{maxTokens:700,reasoningEffort:'low'});}
   const answer=provider?.ok?clean(provider.text,2200):fallback;const sources=(official.sources||[]).map(item=>({...item}));return{...official,evidenceText:undefined,answer,answerMode:provider?.ok?'official-evidence-ai-summary':'official-source-navigation-fallback',answerProvider:{provider:provider?.provider||'',model:provider?.model||'',latencyMs:Number(provider?.latencyMs||0),fallbackUsed:Boolean(provider?.fallbackUsed)},sources};}
 function pendingComparisonPlan(command={}){if(command.agentTask==='major_comparison')return{kind:'major',pendingEvidenceDimensions:['课程体系','培养方案','就业路径的学校级证据'],status:'awaiting_deterministic_candidate_facts'};if(command.agentTask==='school_comparison')return{kind:'school',pendingEvidenceDimensions:['培养方案','就业口径','推免政策','校区与具体学费'],status:'awaiting_deterministic_candidate_facts'};return null;}
+async function isolatedResult(code,run){try{return await run();}catch(error){return{ok:false,code:`${code}_failed`,message:clean(error?.message||error,260)};}}
 
 export async function orchestrateAiTurn(context,payload={}){
   const input=clean(payload.input,1200),workspace=payload.workspace&&typeof payload.workspace==='object'?payload.workspace:{};
@@ -53,6 +55,7 @@ export async function orchestrateAiTurn(context,payload={}){
   const explicitCompare=/(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(input);
   if(explicitCompare&&command.schoolNames?.length>=2){command.agentTask='school_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}
   else if(explicitCompare&&command.majorKeywords?.length>=2){command.agentTask='major_comparison';command.taskLocked=true;command.executionPolicy=taskExecutionPolicy(command.agentTask,command.scoreUsage);}
+  command.intent=buildIntentContract(command,workspace);
   if(command.requiresConfirmation&&!confirmed)return{ok:true,pendingConfirmation:true,command,provider:{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,failures:interpreted.provider?.failures||[]},blocks:[{type:'clarification',title:'这句话我不想替你猜',text:command.reason||'请再明确一点。'}],orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 
   let resolved=resolveActiveView(command,workspace);
@@ -60,19 +63,19 @@ export async function orchestrateAiTurn(context,payload={}){
   const view=resolved.view,focus=focusForTurn(command,workspace),agentContext=agentContextForTurn(command,workspace,focus),score=effectiveScore(command,workspace,view),changes=scopeChanges(resolved.previousView,view),regionExecution=resolveRegionExecution(view,workspace);
   let changeText='';
   if(CANDIDATE_TASKS.has(command.agentTask))changeText=changeSummary(resolved.previousView,view,command);
-  else if(command.agentTask==='major_region_history')changeText=`${changeSummary(resolved.previousView,view,command)} 同时直接查${view.majorKeywords.join(' / ')||focus.major}在当前地区的2026物理类实际投档分数；这轮不需要先给个人分数。`;
+  else if(command.agentTask==='major_region_history')changeText=`${changeSummary(resolved.previousView,view,command)} 同时直接查${(focus.majors?.length?focus.majors:view.majorKeywords).join(' / ')||focus.major}在当前地区的2026物理类实际投档分数；这轮不需要先给个人分数。`;
   else if(command.agentTask==='fact_rank_lookup')changeText=`这次只回答${validScore(command.score)||score}分对应的参考位次，不改变你正在看的候选条件。`;
   else if(command.agentTask==='school_major_history')changeText=`这轮切到“学校 × 专业历史查询”：${focus.school} · ${(focus.majors?.length?focus.majors:[focus.major]).filter(Boolean).join('、')}。${score?'我仍记得你的分数，但这轮不拿它过滤历史记录。':''}`;
   else if(command.agentTask==='school_history')changeText=`这轮只看${focus.school}在辽宁物理类的实际招生专业记录${score?'；你的分数仍记着，但不参与筛选':''}。`;
   else if(command.agentTask==='school_research')changeText=`我先直接回答${focus.school}是什么学校，再补有证据的专业背景和2026辽宁投档事实；这轮不会修改你的候选筛选。`;
   else if(command.agentTask==='school_official_qa')changeText=`这轮只查${focus.school}的阳光高考官方资料${score?'；你的分数仍记着，但不参与学校介绍和章程归纳':''}。`;
-  else if(command.agentTask==='school_experience')changeText=isLivingQuestion(command.rawText||input)?`这轮从“同学”已有学校体验内容里看${focus.school}的住宿、食堂与食宿体验；它是同学体验，不会冒充学校官方结论。`:`这轮从“同学”已有学校体验内容里看${focus.school}的校园环境与人文关怀；它是同学体验，不会冒充学校官方结论。`;
+  else if(command.agentTask==='school_experience'){const topic=intentTopic(command),label=EXPERIENCE_TOPIC_LABELS[topic]||'学校与同学体验';changeText=`这轮从“同学”已有学校体验内容里只看${focus.school}与“${label}”直接相关的内容；它是同学体验，不会冒充学校官方结论，也不会拿无关留言代替回答。`;}
   else if(command.agentTask==='fit_assessment')changeText=`现在把你记住的${score||'当前'}分重新激活，只判断${focus.school}${focus.major?` · ${focus.major}`:''}和你当前位置的历史关系。`;
   else if(command.agentTask==='background_discovery')changeText='这轮不是按分数筛学校，而是先从辽宁高校背景证据里找值得继续研究的专业方向。';
   else if(command.agentTask==='background_fit_discovery')changeText=`这轮把辽宁专业背景证据和你当前${score||''}分的可达窗口做交集预览，不把它包装成“最佳专业排名”。`;
   else changeText=`这轮切到“${agentTaskLabel(command.agentTask)}”；之前记住的家庭背景仍保留，但只让与当前任务有关的信息参与执行。`;
 
-  const result={identity:'',partial:false,rank:null,candidates:null,history:null,majorHistory:null,fit:null,background:null,officialSchool:null,profileSupplement:null,experience:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION,plan:command.agentTask==='school_research'?{mode:'multi_tool_research',stateMutation:false,steps:['official_profile','baidu_baike_profile_fallback','school_background','admission_history']}:{mode:'single_task',stateMutation:resolved.commitView===true,steps:[command.agentTask]}}};
+  const result={identity:'',partial:false,answerStatus:'needs_fact',rank:null,candidates:null,history:null,majorHistory:null,fit:null,background:null,officialSchool:null,profileSupplement:null,experience:null,comparison:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,intent:command.intent,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION,plan:command.agentTask==='school_research'?{mode:'multi_tool_research',stateMutation:false,steps:['official_profile','moe_directory_baseline','school_background','admission_history']}:{mode:'single_task',stateMutation:resolved.commitView===true,steps:[command.agentTask]}}};
   try{
     switch(command.agentTask){
       case'candidate_discovery':
@@ -83,22 +86,22 @@ export async function orchestrateAiTurn(context,payload={}){
       case'fact_rank_lookup':
         result.rank=runRankLookup(validScore(command.score)||score);result.partial=!result.rank.ok;break;
       case'major_region_history':
-        result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok;break;
+        result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',majorKeywords:focus.majors?.length?focus.majors:(view.majorKeywords||[]),regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok||result.majorHistory.partial===true||result.majorHistory.allFailed===true;break;
       case'school_major_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||''],bottomLineMode:command.bottomLineMode||view.bottomLineMode});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:'',bottomLineMode:command.bottomLineMode||view.bottomLineMode});result.partial=!result.history.ok||result.history.partial===true||result.history.allFailed===true;break;
       case'school_research':
-        result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});
-        result.background=await runSchoolBackground(executionContext,{school:focus.school});
-        if(result.officialSchool?.ok)result.officialSchool=await summarizeOfficialSchool(context,result.officialSchool,command.question||command.rawText||'');
-        if(result.officialSchool?.ok&&!result.officialSchool.detailAvailable)result.profileSupplement=await loadSchoolProfileSupplement({school:focus.school});
-        result.partial=![result.officialSchool,result.profileSupplement,result.history,result.background].some(item=>item?.ok);break;
+        result.officialSchool=await isolatedResult('official_profile',()=>runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''}));
+        if(result.officialSchool?.ok)result.officialSchool=await isolatedResult('official_summary',()=>summarizeOfficialSchool(context,result.officialSchool,command.question||command.rawText||''));
+        if(!result.officialSchool?.ok||!result.officialSchool.detailAvailable)result.profileSupplement=await isolatedResult('directory_profile',()=>loadSchoolProfileSupplement({school:focus.school}));
+        result.history=await isolatedResult('admission_history',()=>runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''}));
+        result.background=await isolatedResult('school_background',()=>runSchoolBackground(executionContext,{school:focus.school}));
+        result.partial=![result.officialSchool,result.profileSupplement].some(item=>item?.ok)||[result.history,result.background].some(item=>String(item?.code||'').endsWith('_failed'));break;
       case'school_official_qa':
         result.officialSchool=await runSchoolOfficialInfo(executionContext,{school:focus.school,question:command.question||command.rawText||''});if(result.officialSchool?.ok)result.officialSchool=await summarizeOfficialSchool(context,result.officialSchool,command.question||command.rawText||'');result.partial=!result.officialSchool?.ok;break;
       case'school_experience':
-        result.experience=await runSchoolExperience(executionContext,{school:focus.school});result.partial=!result.experience?.ok;break;
+        result.experience=await runSchoolExperience(executionContext,{school:focus.school,topic:intentTopic(command)});result.partial=!result.experience?.ok;break;
       case'fit_assessment':
         result.fit=await runFitAssessment(executionContext,{school:focus.school,majorKeyword:focus.major,score});result.partial=!result.fit.ok;break;
       case'background_discovery':
@@ -121,7 +124,7 @@ export async function orchestrateAiTurn(context,payload={}){
 
   const pendingTool=pendingDeterministicTool(result);
   if(pendingTool?.code==='client_tool_invalid')return{ok:false,status:400,message:pendingTool.message||'确定性候选事实回传无法验证。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
-  if(pendingTool?.code==='client_tool_required')return{ok:true,pendingConfirmation:false,pendingDeterministicTool:true,command,resolvedView:view,commitView:resolved.commitView,toolRequest:pendingTool.toolRequest,comparisonPlan:pendingComparisonPlan(command),agentContext,provider:providerSummary(interpreted,command),orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
+  if(pendingTool?.code==='client_tool_required')return{ok:true,pendingConfirmation:false,pendingDeterministicTool:true,command,resolvedView:view,commitView:resolved.commitView,toolRequest:pendingTool.toolRequest,toolRequests:pendingTool.toolRequests,toolRequestCount:pendingTool.requestCount,comparisonPlan:pendingComparisonPlan(command),agentContext,provider:providerSummary(interpreted,command),orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 
   result.decisionStage=decisionStageFor({command,view,result,changes});
   result.evidence=evidenceForIntent(evidenceIntent(command,result));
@@ -130,7 +133,8 @@ export async function orchestrateAiTurn(context,payload={}){
   result.pendingChecks=pendingChecksFor(result,regionExecution);
   const delta=result.candidates?buildAiResultDelta(workspace?.lastResult||null,result,{previousView:resolved.previousView,nextView:view}):{changed:Boolean(changes.length),countChanges:{},scopeChanges:{},addedPreviewIds:[],removedPreviewIds:[],unchangedPreviewCount:0};
   const blocks=buildBlocks({command,view,result,delta,workspace,regionExecution,changeText,stage:result.decisionStage,focus,agentContext});
-  const assistantSummary=[changeText,result.comparison?comparisonText(result.comparison):''].filter(Boolean).join(' ');
+  const primaryBlock=blocks.find(block=>block?.type==='assistant_message'),validStatuses=new Set(ANSWER_STATUSES);if(!primaryBlock?.text||!validStatuses.has(primaryBlock.answerStatus)||!validStatuses.has(result.answerStatus))return{ok:false,status:500,message:'AIPLuS 主答案合同没有收敛，本轮未提交。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
+  const assistantSummary=clean(primaryBlock.text,1200);
   const taskAction=VIEW_MUTATING_TASKS.has(command.agentTask)?(workspace?.mainTaskId?'update_main':'create_main'):(command.agentTask==='save_family'?'none':(workspace?.mainTaskId?'branch':'create_main'));
   return{ok:true,pendingConfirmation:false,pendingDeterministicTool:false,command,taskAction,resolvedView:view,commitView:resolved.commitView,result,delta,blocks,agentContext,event:{type:'command_committed',payload:{command,taskAction,resolvedView:view,commitView:resolved.commitView,decisionStage:result.decisionStage,agentContext}},provider:providerSummary(interpreted,command),turnRecord:{userText:input,assistantSummary,changeSummary:changeText,blocks,command,stage:result.decisionStage,task:command.agentTask,focus},orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 }

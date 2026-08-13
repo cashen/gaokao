@@ -46,13 +46,39 @@ function recordIds(result={}){const records=Array.isArray(result?.candidates?.re
 function comparableView(view={}){return{score:normalizedScore(view.score),regionKeys:uniqueStrings(view.regionKeys||['all'],8),majorKeywords:uniqueStrings(view.majorKeywords||[],8),schoolNames:uniqueStrings(view.schoolNames||[],4),bottomLineMode:cleanText(view.bottomLineMode,40)||'all'};}
 function dimensionDiff(previousView={},nextView={}){const before=comparableView(previousView),after=comparableView(nextView),changes={};for(const key of ['score','regionKeys','majorKeywords','schoolNames','bottomLineMode'])if(JSON.stringify(before[key])!==JSON.stringify(after[key]))changes[key]={before:before[key],after:after[key]};return changes;}
 export function buildAiResultDelta(previous=null,next=null,context={}){const prevIds=recordIds(previous||{}),nextIds=recordIds(next||{}),added=[...nextIds].filter(value=>!prevIds.has(value)),removed=[...prevIds].filter(value=>!nextIds.has(value)),previousCounts=previous?.candidates?.counts||{},nextCounts=next?.candidates?.counts||{},countChanges={};for(const key of ['upper','near','steady','total']){const before=Number(previousCounts?.[key]||0),after=Number(nextCounts?.[key]||0);if(before!==after)countChanges[key]={before,after,delta:after-before};}const scopeChanges=dimensionDiff(context.previousView||{},context.nextView||{});return{version:AI_RESULT_DELTA_VERSION,addedPreviewIds:added.slice(0,50),removedPreviewIds:removed.slice(0,50),unchangedPreviewCount:[...nextIds].filter(value=>prevIds.has(value)).length,countChanges,scopeChanges,changed:Boolean(added.length||removed.length||Object.keys(countChanges).length||Object.keys(scopeChanges).length)};}
-function compactLastResultForServer(result=null){if(!result||typeof result!=='object')return null;const candidates=result.candidates&&typeof result.candidates==='object'?{counts:result.candidates.counts||{},records:(Array.isArray(result.candidates.records)?result.candidates.records:[]).map(record=>({id:cleanText(record?.id,220),school:cleanText(record?.school||record?.schoolName,80),major:cleanText(record?.major||record?.majorName,120),score2026:Number.isFinite(Number(record?.score2026??record?.score))?Number(record.score2026??record.score):null,rank2026:normalizedRank(record?.rank2026??record?.rank),bandKey:cleanText(record?.bandKey||record?.band,30),displayLocation:cleanText(record?.displayLocation||record?.city,80)})).filter(record=>record.id||record.school||record.major).slice(0,24)}:null;const history=result.history&&typeof result.history==='object'?{school:cleanText(result.history.school,100),majorKeyword:cleanText(result.history.majorKeyword,140),records:(result.history.records||[]).slice(0,16).map(record=>({id:cleanText(record?.id,220),school:cleanText(record?.school,100),major:cleanText(record?.major,160),score2026:Number(record?.score2026)||null,rank2026:normalizedRank(record?.rank2026)}))}:null;return{identity:cleanText(result.identity,800),rank:result.rank?.rankEnd?{rankEnd:Number(result.rank.rankEnd)}:null,candidates,history,decisionStage:cleanText(result.decisionStage,50),execution:result.execution&&typeof result.execution==='object'?{agentTask:cleanText(result.execution.agentTask,80),scoreUsage:cleanText(result.execution.scoreUsage,30),score:normalizedScore(result.execution.score),focus:result.execution.focus,majorKeywords:uniqueStrings(result.execution.majorKeywords||[],8),bottomLineMode:cleanText(result.execution.bottomLineMode,60),region:result.execution.region&&typeof result.execution.region==='object'?{includeKeys:uniqueStrings(result.execution.region.includeKeys||[],8),excludeKeys:uniqueStrings(result.execution.region.excludeKeys||[],8)}:null}:null};}
+function compactLastResultForServer(result=null){
+  if(!result||typeof result!=='object')return null;
+  const compactRecord=record=>({
+    id:cleanText(record?.id,220),school:cleanText(record?.school||record?.schoolName,100),major:cleanText(record?.major||record?.majorName,160),
+    score2026:Number.isFinite(Number(record?.score2026??record?.score))?Number(record.score2026??record.score):null,
+    rank2026:normalizedRank(record?.rank2026??record?.rank),bandKey:cleanText(record?.bandKey||record?.band,30),displayLocation:cleanText(record?.displayLocation||record?.city,80),
+    queryMajor:cleanText(record?.queryMajor,160),queryIndex:Number.isFinite(Number(record?.queryIndex))?Number(record.queryIndex):null,queryStatus:cleanText(record?.queryStatus,24)
+  });
+  const candidates=result.candidates&&typeof result.candidates==='object'?{
+    counts:result.candidates.counts||{},records:(Array.isArray(result.candidates.records)?result.candidates.records:[]).map(compactRecord).filter(record=>record.id||record.school||record.major).slice(0,24)
+  }:null;
+  const history=result.history&&typeof result.history==='object'?{
+    school:cleanText(result.history.school,100),majorKeyword:cleanText(result.history.majorKeyword,140),majorKeywords:uniqueStrings(result.history.majorKeywords||[],8),
+    partial:result.history.partial===true,allFailed:result.history.allFailed===true,
+    queryResults:(result.history.queryResults||[]).slice(0,8).map(item=>({query:cleanText(item?.query,160),index:Number(item?.index||0),status:cleanText(item?.status,24),recordCount:Number(item?.recordCount||0),errorCode:cleanText(item?.errorCode,80),errorMessage:cleanText(item?.errorMessage,200)})),
+    records:(result.history.records||[]).slice(0,24).map(compactRecord)
+  }:null;
+  const majorHistory=result.majorHistory&&typeof result.majorHistory==='object'?{
+    majorKeyword:cleanText(result.majorHistory.majorKeyword,160),majorKeywords:uniqueStrings(result.majorHistory.majorKeywords||[],8),bottomLineMode:cleanText(result.majorHistory.bottomLineMode,40),partial:result.majorHistory.partial===true,allFailed:result.majorHistory.allFailed===true,
+    queryResults:(result.majorHistory.queryResults||[]).slice(0,8).map(item=>({query:cleanText(item?.query,160),index:Number(item?.index||0),status:cleanText(item?.status,24),recordCount:Number(item?.recordCount||0),errorCode:cleanText(item?.errorCode,80),errorMessage:cleanText(item?.errorMessage,200)})),summary:result.majorHistory.summary||{},records:(result.majorHistory.records||[]).slice(0,24).map(compactRecord)
+  }:null;
+  return{
+    identity:cleanText(result.identity,800),partial:result.partial===true,rank:result.rank?.rankEnd?{rankEnd:Number(result.rank.rankEnd)}:null,candidates,history,majorHistory,
+    decisionStage:cleanText(result.decisionStage,50),
+    execution:result.execution&&typeof result.execution==='object'?{agentTask:cleanText(result.execution.agentTask,80),scoreUsage:cleanText(result.execution.scoreUsage,30),score:normalizedScore(result.execution.score),focus:result.execution.focus,majorKeywords:uniqueStrings(result.execution.majorKeywords||[],8),bottomLineMode:cleanText(result.execution.bottomLineMode,60),region:result.execution.region&&typeof result.execution.region==='object'?{includeKeys:uniqueStrings(result.execution.region.includeKeys||[],8),excludeKeys:uniqueStrings(result.execution.region.excludeKeys||[],8)}:null}:null
+  };
+}
 function compactSelectionSnapshotForServer(snapshot=null){if(!snapshot||typeof snapshot!=='object')return null;return{version:cleanText(snapshot.version,80),items:(Array.isArray(snapshot.items)?snapshot.items:[]).slice(0,WORKSPACE_LIMITS.selections).map(item=>({id:cleanText(item?.id,180),school:cleanText(item?.school,80),major:cleanText(item?.major,120),rank2026:normalizedRank(item?.rank2026),bandKey:cleanText(item?.bandKey,24),displayLocation:cleanText(item?.displayLocation,60),tuition:cleanText(item?.tuition,60)}))};}
 export const AI_TURN_CLIENT_BODY_BUDGET_BYTES=112*1024;
 const AI_SERVER_WORKSPACE_DEFAULT_BUDGET_BYTES=88*1024;
 const AI_SERVER_WORKSPACE_MIN_BUDGET_BYTES=4*1024;
 function jsonBytes(value){return new TextEncoder().encode(JSON.stringify(value)).byteLength;}
-function compactFocusForServer(focus={}){return{school:cleanText(focus?.school,80),major:cleanText(focus?.major,100),schools:uniqueStrings(focus?.schools||[],4),majors:uniqueStrings(focus?.majors||[],6)};}
+function compactFocusForServer(focus={}){return{school:cleanText(focus?.school,80),major:cleanText(focus?.major,100),schools:uniqueStrings(focus?.schools||[],4),majors:uniqueStrings(focus?.majors||[],8)};}
 function compactConstraintForServer(item={}){return{key:cleanText(item?.key,60),values:uniqueStrings(item?.values||[],12),label:cleanText(item?.label,60)};}
 function compactTaskForServer(task={}){return{id:cleanText(task?.id,120),parentTaskId:cleanText(task?.parentTaskId,120),kind:cleanText(task?.kind,30),type:cleanText(task?.type,60),status:cleanText(task?.status,30),title:cleanText(task?.title,100)};}
 function compactTurnForServer(turn={}){return{userText:cleanText(turn?.userText,300),assistantSummary:cleanText(turn?.assistantSummary,360),changeSummary:cleanText(turn?.changeSummary,240),task:cleanText(turn?.task,80),focus:compactFocusForServer(turn?.focus||{}),stage:cleanText(turn?.stage,50),viewLabel:cleanText(turn?.viewLabel,160),at:turn?.at||''};}
@@ -78,10 +104,10 @@ export function compactAiWorkspaceForServer(workspaceLike,options={}){const work
 export function buildAiTurnRequestPayload(workspaceLike,options={}){const input=cleanText(options?.input,1200),confirmedCommand=options?.confirmedCommand&&typeof options.confirmedCommand==='object'?options.confirmedCommand:null,deterministicToolResults=options?.deterministicToolResults&&typeof options.deterministicToolResults==='object'?options.deterministicToolResults:{},envelope={input,confirmedCommand,deterministicToolResults},reserved=jsonBytes(envelope)+2048,workspaceBudget=Math.max(AI_SERVER_WORKSPACE_MIN_BUDGET_BYTES,AI_TURN_CLIENT_BODY_BUDGET_BYTES-reserved);let payload={workspace:compactAiWorkspaceForServer(workspaceLike,{input,maxBytes:workspaceBudget}),...envelope},bytes=jsonBytes(payload);if(bytes>AI_TURN_CLIENT_BODY_BUDGET_BYTES){const tighter=Math.max(AI_SERVER_WORKSPACE_MIN_BUDGET_BYTES,workspaceBudget-(bytes-AI_TURN_CLIENT_BODY_BUDGET_BYTES)-2048);payload={workspace:compactAiWorkspaceForServer(workspaceLike,{input,maxBytes:tighter}),...envelope};bytes=jsonBytes(payload);}if(bytes>AI_TURN_CLIENT_BODY_BUDGET_BYTES)throw new Error('本轮事实桥接超过客户端请求安全预算，请缩小本轮事实范围后继续。');return payload;}
 
 /*
- * AIPLuS fact bridge contract v3992_9.
+ * AIPLuS fact bridge contract v3992_10.
  * This is the only browser/server boundary for deterministic fact records.
  */
-export const AI_FACT_BRIDGE_CONTRACT_VERSION='ai-fact-bridge-v3992_9';
+export const AI_FACT_BRIDGE_CONTRACT_VERSION='ai-fact-bridge-v3992_10';
 export const AI_FACT_RECORD_FIELDS=Object.freeze(['id','school','major','score2026','rank2026','score2025','rank2025','score2024','rank2024','schoolCode2026','majorCode2026','displayLocation','city','province','projectLabel','bandKey','band','scoreDelta2026','rankGap2026','is985','is211','isSinoForeign','isHighFee','feeType','natureLabel','tuition','matchLevel','matchLabel','matchReason','matchedKeyword','queryMajor','queryIndex','queryStatus','queryErrorCode','queryErrorMessage']);
 export function compactAiFactRecord(record={}){
   const out={};
@@ -103,7 +129,7 @@ export function compactSchoolHistoryFactPayload(data={}){
     majorKeywords:Array.isArray(data.majorKeywords)?data.majorKeywords.slice(0,8).map(value=>String(value||'').slice(0,160)):[],
     total:Number(data.total||0),
     summary:{...summary,total:Number(summary.total||data.total||0),schoolCount:Number(summary.schoolCount||0),minScore:Number.isFinite(Number(summary.minScore))?Number(summary.minScore):null,maxScore:Number.isFinite(Number(summary.maxScore))?Number(summary.maxScore):null},
-    records:Array.isArray(data.records)?data.records.slice(0,100).map(compactAiFactRecord):[],
+    records:Array.isArray(data.records)?data.records.slice(0,120).map(compactAiFactRecord):[],
     majorSuggestions:Array.isArray(data.majorSuggestions)?data.majorSuggestions.slice(0,6).map(item=>({major:String(item?.major||'').slice(0,160),prompt:String(item?.prompt||'').slice(0,240),reason:String(item?.reason||'').slice(0,240)})):[],
     queryResults:Array.isArray(data.queryResults)?data.queryResults.slice(0,8).map(item=>({query:String(item?.query||'').slice(0,160),index:Number(item?.index||0),status:String(item?.status||'').slice(0,24),recordCount:Number(item?.recordCount||0),errorCode:String(item?.errorCode||'').slice(0,80),errorMessage:String(item?.errorMessage||'').slice(0,240)})):[],
     meta:data.meta||{},

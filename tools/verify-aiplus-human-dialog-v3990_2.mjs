@@ -17,6 +17,7 @@ const aliases = new Map([
   ['东北石油', '东北石油大学'],
   ['西北工业', '西北工业大学'],
   ['大连海事', '大连海事大学'],
+  ['辽宁交专', '辽宁省交通高等专科学校'],
 ]);
 
 const resolver = {
@@ -83,15 +84,21 @@ expect(await command('说说辽科大', candidate), { task: 'school_research', s
 expect(await command('了解一下辽科大', candidate), { task: 'school_research', school: '辽宁科技大学' });
 expect(await command('沈航怎么样', candidate), { task: 'school_research', school: '沈阳航空航天大学' });
 expect(await command('介绍下沈阳师范', candidate), { task: 'school_research', school: '沈阳师范大学' });
+expect(await command('介绍下辽宁交专', candidate), { task: 'school_research', school: '辽宁省交通高等专科学校' });
+expect(await command('辽宁省交通高等专科学校怎么样', candidate), { task: 'school_research', school: '辽宁省交通高等专科学校' });
 expect(await command('介绍下辽宁师范的学校环境', candidate), { task: 'school_experience', school: '辽宁师范大学' });
 expect(await command('辽宁科技大学哪些专业更有底子', candidate), { task: 'school_background', school: '辽宁科技大学' });
 expect(await command('辽宁科技大学哪个专业最好', candidate), { task: 'school_background', school: '辽宁科技大学' });
-assert.equal(RESEARCH_RELATION_LABELS.schoolMajorBackground, '看学校哪些专业更有底子');
-assert.deepEqual(researchRelationActions({ task: 'school_history', school: '辽宁科技大学' }).map(item => item.label), ['学校简介', '学校环境', '看学校哪些专业更有底子']);
-assert.deepEqual(researchRelationActions({ task: 'school_background', school: '辽宁科技大学', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业最低分', '学校环境', '看证据依据']);
-assert.deepEqual(researchRelationActions({ task: 'major_background', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业最低分', '看辽宁其他学校', '学校简介']);
+assert.equal(RESEARCH_RELATION_LABELS.schoolMajorBackground, '看哪些专业更有积累');
+assert.deepEqual(researchRelationActions({ task: 'school_history', school: '辽宁科技大学' }).map(item => item.label), ['看哪些专业更有积累', '回到学校整体介绍', '看校园环境与同学体验']);
+assert.deepEqual(researchRelationActions({ task: 'school_background', school: '辽宁科技大学', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业分数', '看校园环境与同学体验', '看证据依据']);
+assert.deepEqual(researchRelationActions({ task: 'major_background', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业分数', '看辽宁其他学校'], '没有具体结果学校时不得生成无法执行的占位按钮');
+assert.deepEqual(researchRelationActions({ task: 'major_background', major: '电气工程及其自动化', result: { background: { items: [{ schools: [{ school: '沈阳工业大学' }] }] } } }).map(item => item.label), ['看这个专业分数', '看辽宁其他学校', '继续看沈阳工业大学']);
 expect(await command('省内机械电子所有学校分数从高到低', candidate), { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
 expect(await command('省内电气工程及自动化专业所有的分数', candidate), { task: 'major_region_history', major: '电气工程及其自动化', commit: true, scoreUsage: 'suspended' });
+const regionalMultiMajor = await command('省内机械电气测控都多少分', candidate);
+expect(regionalMultiMajor, { task: 'major_region_history', major: '机械', commit: true, scoreUsage: 'suspended' });
+assert.deepEqual(regionalMultiMajor.majorKeywords, ['机械', '电气', '测控技术与仪器'], 'regional spoken batch must preserve every requested major');
 const majorHistoryFollowup = createAiWorkspace({
   activeView: { score: null, regionKeys: ['ln'], majorKeywords: ['机械电子工程'], schoolNames: [], bottomLineMode: 'all' },
   agentContext: { currentTask: 'major_region_history', focus: { major: '机械电子工程' } },
@@ -99,6 +106,14 @@ const majorHistoryFollowup = createAiWorkspace({
 const excludeSino = await command('去掉中外', majorHistoryFollowup);
 expect(excludeSino, { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
 assert.equal(excludeSino.bottomLineMode, 'exclude_sino', '取消中外 should only exclude Sino/high-fee projects');
+const schoolHistoryScope = createAiWorkspace({
+  activeView: { score: null, regionKeys: ['ln'], majorKeywords: [], schoolNames: ['沈阳航空航天大学'], bottomLineMode: 'all' },
+  agentContext: { currentTask: 'school_history', focus: { school: '沈阳航空航天大学' } },
+  lastResult: { history: { school: '沈阳航空航天大学', majorKeywords: [] } },
+});
+const schoolExcludeSino = await command('去掉中外', schoolHistoryScope);
+expect(schoolExcludeSino, { task: 'school_history', school: '沈阳航空航天大学' });
+assert.equal(schoolExcludeSino.bottomLineMode, 'exclude_sino', 'school history scope correction must retain the school task');
 const schoolExperienceContinuation = createAiWorkspace({
   examContext: { score: 580 },
   activeView: { score: 580, regionKeys: ['ln'], majorKeywords: [], schoolNames: ['辽宁师范大学'] },
@@ -152,6 +167,6 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-assert.equal(AI_FACT_BRIDGE_CONTRACT_VERSION, 'ai-fact-bridge-v3992_9');
+assert.equal(AI_FACT_BRIDGE_CONTRACT_VERSION, 'ai-fact-bridge-v3992_10');
 for (const field of ['queryMajor','queryIndex','queryStatus','queryErrorCode','queryErrorMessage']) assert.ok(AI_FACT_RECORD_FIELDS.includes(field), `fact bridge field missing: ${field}`);
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3992_9', scenarios: 44 }, null, 2));
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3992_9', scenarios: 48 }, null, 2));

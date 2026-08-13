@@ -1,0 +1,35 @@
+import {taskHasUsableFact,taskSpec} from './task-spec-registry.js';
+
+export const AI_ANSWER_COMPOSER_VERSION='ai-answer-composer-v0.02';
+
+function clean(value,max=2200){return String(value==null?'':value).trim().slice(0,max);}
+function number(value){const n=Number(value);return Number.isFinite(n)?n:null;}
+function rangeText(summary={}){const min=number(summary.minScore),max=number(summary.maxScore);return min!==null&&max!==null?`，最低${min}分、最高${max}分`:'';}
+function firstReviewText(experience={}){const first=experience.reviews?.[0]?.content;return first?`目前命中的同学留言提到：${clean(first,260)}`:'';}
+
+function frameworkAnswer(command={},focus={}){
+  const text=clean(command.rawText||command.question,1200),subject=focus.major||command.majorKeywords?.[0]||(/机械/.test(text)?'机械类方向':/电气/.test(text)?'电气类方向':/计算机|计科|软工/.test(text)?'计算机类方向':'这个选择');
+  if(command.agentTask==='save_family')return{status:'answered',text:'已经把你这次明确说出的家庭目标和偏好记为长期条件。以后查询会保留它们，但不会把一次临时问学校或地区自动改成家庭底线。'};
+  if(command.agentTask==='evidence_verification')return{status:'needs_clarification',text:'可以核验，但还需要一个具体对象：请说清学校、专业或要核验的原话。没有具体事实对象时，我不会生成一个看似有依据的结论。'};
+  return{status:'answered',text:`从家长决策角度，先别急着给${subject}贴“好或不好”的标签。应依次看本科阶段实际学习内容、具体学校是否有可核验的专业积累、你的分数能落到哪些招生专业，以及家庭是否接受成本和继续深造；本轮没有取得具体学校事实的部分，我不会替学校补写。`};
+}
+
+export function composePrimaryAnswer({command={},result={},focus={},view={},changeText=''}={}){
+  const task=command.agentTask||'general_advice';
+  if(task==='school_research'&&result.officialSchool?.ok&&result.officialSchool?.detailAvailable)return{status:'answered',text:clean(result.officialSchool.answer||result.officialSchool.message||changeText)};
+  if(task==='school_research'&&result.profileSupplement?.ok)return{status:'answered',text:clean(result.profileSupplement.answer||changeText)};
+  if(result.officialSchool?.ok)return{status:'answered',text:clean(result.officialSchool.answer||result.officialSchool.message||changeText)};
+  if(result.profileSupplement?.ok)return{status:'answered',text:clean(result.profileSupplement.answer||changeText)};
+  if(result.experience){if(result.experience.ok)return{status:'answered',text:clean(result.experience.summary||firstReviewText(result.experience)||`已取得${result.experience.school||focus.school}与本轮话题相关的同学体验。`)};return{status:'unsupported',text:clean(result.experience.message||'当前体验资料没有直接回答本轮问题，因此不展示无关留言。')};}
+  if(result.majorHistory){if(result.majorHistory.ok&&!result.majorHistory.allFailed){const total=Number(result.majorHistory.total||result.majorHistory.records?.length||0),schools=Number(result.majorHistory.summary?.schoolCount||0),majors=result.majorHistory.majorKeywords?.length?result.majorHistory.majorKeywords:[result.majorHistory.majorKeyword||focus.major||view.majorKeywords?.[0]||'这个专业'],statuses=result.majorHistory.queryResults||[],successful=statuses.filter(item=>item?.status==='success').length,failed=statuses.filter(item=>item?.status==='failed').length,completion=result.majorHistory.partial?`本轮部分完成：${successful}项成功、${failed}项失败；下面先保留成功结果，失败项可单独重试。`:`本轮${statuses.length>1?`${successful}项查询均已完成；`:''}`;return{status:'answered',text:`${completion}查到${majors.join('、')}在当前地区的2026物理类实际投档记录共${total}条，覆盖${schools}所学校${rangeText(result.majorHistory.summary)}；下面按投档分从高到低列出。`};}return{status:'unsupported',text:clean(result.majorHistory.message||'本轮没有取得可用的专业历史记录。')};}
+  if(result.history){if(result.history.ok&&!result.history.allFailed){const total=Number(result.history.total||result.history.records?.length||0),queries=result.history.majorKeywords?.length?`你问的${result.history.majorKeywords.join('、')}`:'全校招生专业',statuses=result.history.queryResults||[],successful=statuses.filter(item=>item?.status==='success').length,failed=statuses.filter(item=>item?.status==='failed').length,completion=result.history.partial?`本轮部分完成：${successful}项成功、${failed}项失败；下面先保留成功结果，失败项可单独重试。`:`本轮${statuses.length>1?`${successful}项查询均已完成；`:''}`,scope=result.history.bottomLineMode==='exclude_sino'?'已排除中外合作/高收费记录':'默认包含普通项目与中外合作/高收费项目';return{status:'answered',text:`${completion}已查到${result.history.school||focus.school}的${queries}，共${total}条2026辽宁物理类实际投档记录${rangeText(result.history.summary)}；${scope}，没有使用你的个人分数过滤。`};}return{status:'unsupported',text:clean(result.history.message||'本轮没有取得可用的学校专业记录。')};}
+  if(result.candidates){if(result.candidates.ok){const counts=result.candidates.counts||{};return{status:'answered',text:`当前条件共形成${Number(counts.total||0)}条历史参考，其中稍高${Number(counts.upper||0)}条、接近${Number(counts.near||0)}条、更稳${Number(counts.steady||0)}条；这些是历史位置，不是录取概率。`};}return{status:'unsupported',text:clean(result.candidates.message||'当前条件没有形成可用候选结果。')};}
+  if(result.rank){return result.rank.ok?{status:'answered',text:result.rank.rankStart!==result.rank.rankEnd?`${result.rank.score}分对应2026辽宁物理类参考位次约${result.rank.rankStart.toLocaleString('zh-CN')}—${result.rank.rankEnd.toLocaleString('zh-CN')}。`:`${result.rank.score}分对应2026辽宁物理类参考位次约第${result.rank.rankEnd.toLocaleString('zh-CN')}位。`}:{status:'unsupported',text:clean(result.rank.message||'没有取得对应位次。')};}
+  if(result.fit){return result.fit.ok?{status:'answered',text:clean(result.fit.summary||result.fit.message||`已按当前分数核对${focus.school}${focus.major?`的${focus.major}`:''}历史位置，详细记录见下方。`)}:{status:result.fit.code==='score_required'?'needs_clarification':'unsupported',text:clean(result.fit.message||'当前无法形成分数适配判断。')};}
+  if(result.background){return result.background.ok?{status:'answered',text:clean(result.background.summary||result.background.message||`已找到${focus.school||focus.major||'当前方向'}可核验的专业背景证据，具体学校或专业见下方。`)}:{status:'unsupported',text:clean(result.background.message||'当前没有取得可用的专业背景证据。')};}
+  if(result.comparison){if(result.comparison.ok)return{status:'answered',text:`已按同一分数、地区和项目范围横向比较${result.comparison.items?.map(item=>item.label).filter(Boolean).join('、')||'这些对象'}；下面只比较确定性可达空间，不替你宣布“谁最好”。`};return{status:result.comparison.code==='score_required_for_reachability'?'needs_clarification':'unsupported',text:clean(result.comparison.message||'本轮没有形成可用比较。')};}
+  if(result.selectionReview)return{status:'answered',text:clean(result.selectionReview.summary||'已检查当前家庭方案结构，缺口和重复项见下方。')};
+  if(taskSpec(task).frameworkAnswer)return frameworkAnswer(command,focus);
+  if(taskHasUsableFact(task,result))return{status:'answered',text:clean(changeText||'本轮事实已经取得，详细结果见下方。')};
+  return{status:'unsupported',text:clean(result.toolError?.message||changeText||'本轮没有形成可验证的主答案，已有讨论和条件都没有被修改。')};
+}
