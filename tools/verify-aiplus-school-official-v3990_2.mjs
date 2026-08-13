@@ -147,6 +147,8 @@ assert.equal(command.agentTask,'school_research');
 assert.equal(command.focus.school,'辽宁石油化工大学');
 assert.equal(command.executionPolicy.commitView,false);
 command=deterministicCommand('辽宁石油化工大学宿舍怎么样',workspace,['辽宁石油化工大学']);
+assert.equal(command.agentTask,'school_experience');
+command=deterministicCommand('辽宁石油化工大学官方食宿条件',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'school_official_qa');
 command=deterministicCommand('辽宁石油化工大学学校环境怎么样',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'school_experience');
@@ -159,7 +161,7 @@ assert.equal(command.agentTask,'school_major_history');
 command=deterministicCommand('我580分能上辽宁石油化工大学吗',workspace,['辽宁石油化工大学']);
 assert.equal(command.agentTask,'fit_assessment');
 command=deterministicCommand('那宿舍呢',workspace,[]);
-assert.equal(command.agentTask,'school_official_qa');
+assert.equal(command.agentTask,'school_experience');
 assert.equal(command.focus.school,'辽宁石油化工大学');
 
 const sourceCode=read('functions/_lib/ai/school-official-source.js');
