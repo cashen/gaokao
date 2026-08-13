@@ -32,7 +32,7 @@ assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'related-major sugges
 assert.ok(factBridge.includes('majorSuggestions:Array.isArray(data.majorSuggestions)'), 'related-major suggestions must survive the shared bridge contract');
 assert.ok(app.includes('AI_FACT_BRIDGE_CONTRACT_VERSION'), 'shared fact bridge version missing');
 assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'shared school-history bridge contract missing');
-assert.ok(app.includes('queryResults'), 'per-query batch status must survive the browser bridge');
+assert.ok(factBridge.includes('queryResults:Array.isArray(data.queryResults)'), 'per-query batch status must survive the shared browser bridge');
 assert.ok(app.includes('beginViewportTransaction'), 'viewport transaction owner missing');
 assert.ok(!app.includes('restoreViewportIntent'), 'legacy multi-owner viewport restore remains');
 assert.ok(app.includes("v=3992_9"), 'AIPLuS asset cache version not refreshed');
