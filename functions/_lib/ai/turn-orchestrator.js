@@ -82,7 +82,7 @@ export async function orchestrateAiTurn(context,payload={}){
       case'fact_rank_lookup':
         result.rank=runRankLookup(validScore(command.score)||score);result.partial=!result.rank.ok;break;
       case'major_region_history':
-        result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all'])});result.partial=!result.majorHistory.ok;break;
+        result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok;break;
       case'school_major_history':
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:(focus.majors?.length?focus.majors.join('/'):(focus.major||''))});result.partial=!result.history.ok;break;
       case'school_history':
