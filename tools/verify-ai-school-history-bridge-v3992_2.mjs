@@ -22,6 +22,12 @@ assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must surviv
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/school-majors?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
 assert.ok(app.includes('majorSuggestions:Array.isArray(data.majorSuggestions)'), 'related-major suggestions must survive the browser bridge');
+assert.ok(app.includes('AI_FACT_BRIDGE_CONTRACT_VERSION'), 'shared fact bridge version missing');
+assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'shared school-history bridge contract missing');
+assert.ok(app.includes('queryResults'), 'per-query batch status must survive the browser bridge');
+assert.ok(app.includes('beginViewportTransaction'), 'viewport transaction owner missing');
+assert.ok(!app.includes('restoreViewportIntent'), 'legacy multi-owner viewport restore remains');
+assert.ok(app.includes("v=3992_9"), 'AIPLuS asset cache version not refreshed');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
 assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000'),'school-history session cache TTL missing');
