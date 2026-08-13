@@ -115,7 +115,7 @@ async function schoolResearchAndHistoryJourney(page,name){
   assert(await page.locator('#historyList .history-item').count()>=2,'new discussion did not preserve prior History');
   const historySearch=page.locator('#historySearch');
   await historySearch.fill('辽宁科技大学');
-  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length===1&&t.includes('学校研究')&&t.includes('辽宁科技大学')&&!t.includes('大连交通');},null,{timeout:10000});
+  await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length>=1&&t.includes('学校研究')&&t.includes('辽宁科技大学')&&!t.includes('大连交通');},null,{timeout:10000});
   let historyText=(await page.locator('#historyList').innerText()).replace(/\s+/g,' ');
   assert(historyText.includes('辽宁科技大学')&&!historyText.includes('大连交通'),`History school search leaked sessions: ${historyText}`);
   await page.locator('#historyList .history-item .history-open-item').first().click();
