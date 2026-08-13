@@ -71,6 +71,21 @@ expect(await command('了解一下辽科大', candidate), { task: 'school_resear
 expect(await command('沈航怎么样', candidate), { task: 'school_research', school: '沈阳航空航天大学' });
 expect(await command('介绍下沈阳师范', candidate), { task: 'school_research', school: '沈阳师范大学' });
 expect(await command('介绍下辽宁师范的学校环境', candidate), { task: 'school_experience', school: '辽宁师范大学' });
+expect(await command('省内机械电子所有学校分数从高到低', candidate), { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
+expect(await command('省内电气工程及自动化专业所有的分数', candidate), { task: 'major_region_history', major: '电气工程及其自动化', commit: true, scoreUsage: 'suspended' });
+const majorHistoryFollowup = createAiWorkspace({
+  activeView: { score: null, regionKeys: ['ln'], majorKeywords: ['机械电子工程'], schoolNames: [], bottomLineMode: 'all' },
+  agentContext: { currentTask: 'major_region_history', focus: { major: '机械电子工程' } },
+});
+const excludeSino = await command('去掉中外', majorHistoryFollowup);
+expect(excludeSino, { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
+assert.equal(excludeSino.bottomLineMode, 'exclude_sino', '取消中外 should only exclude Sino/high-fee projects');
+const schoolExperienceContinuation = createAiWorkspace({
+  examContext: { score: 580 },
+  activeView: { score: 580, regionKeys: ['ln'], majorKeywords: [], schoolNames: ['辽宁师范大学'] },
+  agentContext: { currentTask: 'school_experience', focus: { school: '辽宁师范大学' } },
+});
+expect(await command('沈阳师范', schoolExperienceContinuation), { task: 'school_research', school: '沈阳师范大学' });
 expect(await command('沈航学校环境怎么样', candidate), { task: 'school_experience', school: '沈阳航空航天大学' });
 expect(await command('辽宁科技大学人文关怀怎么样', candidate), { task: 'school_experience', school: '辽宁科技大学' });
 expect(await command('大连理工宿舍怎么样', candidate), { task: 'school_official_qa', school: '大连理工大学' });
@@ -117,4 +132,4 @@ const interrupted = await command('先不问学校了，580分沈阳能报什么
 assert.ok(['candidate_discovery', 'candidate_refinement'].includes(interrupted.agentTask));
 assert.deepEqual(interrupted.regionKeys, ['shenyang']);
 
-console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 34 }, null, 2));
+console.log(JSON.stringify({ ok: true, version: 'aiplus-human-dialog-v3990_2', scenarios: 40 }, null, 2));
