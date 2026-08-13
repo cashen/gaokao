@@ -13,7 +13,7 @@ import {runAiProvider} from './provider-router.js';
 import {buildOfficialDeterministicSummary} from './school-official-source.js';
 import {loadSchoolProfileSupplement} from './school-profile-supplement-source.js';
 
-export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_9';
+export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v3992_10';
 const CANDIDATE_TASKS=new Set(['candidate_discovery','candidate_refinement']);
 const VIEW_MUTATING_TASKS=new Set([...CANDIDATE_TASKS,'major_region_history']);
 const OLD_CONTRACTS=new Set(['ai-workspace-contract-v3990_1','ai-workspace-contract-v3991_0',AI_WORKSPACE_CONTRACT_VERSION]);
@@ -36,6 +36,7 @@ function effectiveScore(command,workspace,view){const explicit=validScore(comman
 function agentContextForTurn(command,workspace,focus){return{version:'ai-agent-context-v3992_0',currentTask:command.agentTask,previousTask:workspace?.agentContext?.currentTask||'',focus,contextUsage:{...taskExecutionPolicy(command.agentTask,command.scoreUsage)},updatedAt:new Date().toISOString()};}
 function pendingDeterministicTool(result={}){for(const value of [result.candidates,result.history,result.majorHistory,result.fit,result.officialSchool,result.experience,result.background,result.comparison])if(value?.code==='client_tool_required'||value?.code==='client_tool_invalid')return value;return null;}
 function providerSummary(interpreted={},command={}){return{provider:interpreted.provider?.provider||'',model:interpreted.provider?.model||'',source:command.source,latencyMs:interpreted.provider?.latencyMs||0,failures:interpreted.provider?.failures||[]};}
+function isLivingQuestion(text=''){return /(宿舍|住宿|食堂|食宿|寝室|公寓)/.test(String(text||''));}
 function officialFallbackAnswer(official={}){const deterministic=clean(official.deterministicSummary,2200)||clean(buildOfficialDeterministicSummary({school:official.school,topic:official.topic,topicLabel:official.topicLabel,coverage:official.coverage,facts:official.facts||{},evidenceText:official.evidenceText||''}),2200);if(deterministic)return deterministic;const school=clean(official.school,120),topic=clean(official.topicLabel,80)||'学校官方信息',updated=clean(official.updatedAt,80);return `已定位到阳光高考的${school}${topic}官方页面${updated?`（资料更新时间：${updated}）`:''}，但没有取得可安全引用的正文段落。为保证准确，本轮不补写页面未返回的学校事实。`;}
 async function summarizeOfficialSchool(context,official={},question=''){if(!official?.ok)return official;const fallback=officialFallbackAnswer(official),evidence=clean(official.evidenceText,9000);let provider={ok:false,provider:'',model:'',latencyMs:0,failures:[]};if(official.detailAvailable&&evidence){provider=await runAiProvider(context?.env||{},[{role:'system',content:'你是高考学校官方资料归纳器。只能依据用户提供的阳光高考原文回答，不能使用常识补充，不能制造学校排名、就业率、薪资、录取概率、学费或招生事实。原文没有的信息必须明确说“本次官方材料未提供”。回答面向家长，先直接回答问题，再说明边界；不要长段复制原文。'},{role:'user',content:JSON.stringify({school:official.school,question:clean(question,600),topic:official.topicLabel,updatedAt:official.updatedAt,evidence})}],{maxTokens:700,reasoningEffort:'low'});}
   const answer=provider?.ok?clean(provider.text,2200):fallback;const sources=(official.sources||[]).map(item=>({...item}));return{...official,evidenceText:undefined,answer,answerMode:provider?.ok?'official-evidence-ai-summary':'official-source-navigation-fallback',answerProvider:{provider:provider?.provider||'',model:provider?.model||'',latencyMs:Number(provider?.latencyMs||0),fallbackUsed:Boolean(provider?.fallbackUsed)},sources};}
@@ -65,7 +66,7 @@ export async function orchestrateAiTurn(context,payload={}){
   else if(command.agentTask==='school_history')changeText=`这轮只看${focus.school}在辽宁物理类的实际招生专业记录${score?'；你的分数仍记着，但不参与筛选':''}。`;
   else if(command.agentTask==='school_research')changeText=`我先直接回答${focus.school}是什么学校，再补有证据的专业背景和2026辽宁投档事实；这轮不会修改你的候选筛选。`;
   else if(command.agentTask==='school_official_qa')changeText=`这轮只查${focus.school}的阳光高考官方资料${score?'；你的分数仍记着，但不参与学校介绍和章程归纳':''}。`;
-  else if(command.agentTask==='school_experience')changeText=`这轮从“同学”已有学校体验内容里看${focus.school}的校园环境与人文关怀；它是同学体验，不会冒充学校官方结论。`;
+  else if(command.agentTask==='school_experience')changeText=isLivingQuestion(command.rawText||input)?`这轮从“同学”已有学校体验内容里看${focus.school}的住宿、食堂与食宿体验；它是同学体验，不会冒充学校官方结论。`:`这轮从“同学”已有学校体验内容里看${focus.school}的校园环境与人文关怀；它是同学体验，不会冒充学校官方结论。`;
   else if(command.agentTask==='fit_assessment')changeText=`现在把你记住的${score||'当前'}分重新激活，只判断${focus.school}${focus.major?` · ${focus.major}`:''}和你当前位置的历史关系。`;
   else if(command.agentTask==='background_discovery')changeText='这轮不是按分数筛学校，而是先从辽宁高校背景证据里找值得继续研究的专业方向。';
   else if(command.agentTask==='background_fit_discovery')changeText=`这轮把辽宁专业背景证据和你当前${score||''}分的可达窗口做交集预览，不把它包装成“最佳专业排名”。`;
