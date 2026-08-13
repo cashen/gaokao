@@ -1,0 +1,140 @@
+name: Temporary AIPLuS scroll contract builder
+on:
+  push:
+    branches: [agent/aiplus-v002-conversation-scroll-contract]
+    paths: ['.github/workflows/tmp-aiplus-scroll-contract-builder.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-v002-conversation-scroll-contract
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply unified conversation scroll contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=1):
+              p=Path(path); text=p.read_text()
+              actual=text.count(old)
+              if actual != count:
+                  raise SystemExit(f'{path}: expected {count} occurrences, found {actual}: {old[:100]!r}')
+              p.write_text(text.replace(old,new,count))
+
+          module = r'''export const AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION='aiplus-conversation-scroll-v0.02';
+          export const COMPLETED_TURN_SAFE_GAP_PX=16;
+          function finite(value,fallback=0){const number=Number(value);return Number.isFinite(number)?number:fallback;}
+          function clamp(value,min,max){return Math.min(Math.max(value,min),max);}
+          export function completedTurnScrollTarget({scrollY=0,anchorTop=0,topbarBottom=0,maxScroll=0,safeGap=COMPLETED_TURN_SAFE_GAP_PX}={}){
+            const current=Math.max(0,finite(scrollY)),anchor=finite(anchorTop),bar=Math.max(0,finite(topbarBottom)),gap=clamp(finite(safeGap,COMPLETED_TURN_SAFE_GAP_PX),8,32),limit=Math.max(0,finite(maxScroll));
+            return clamp(current+anchor-(bar+gap),0,limit);
+          }
+          export function shouldBlurComposerOnCompletion({activeIsComposer=false,coarsePointer=false,maxTouchPoints=0}={}){
+            return Boolean(activeIsComposer&&(coarsePointer||finite(maxTouchPoints)>0));
+          }
+          '''.replace('          ','')
+          Path('aiplus/conversation-scroll.v002.js').write_text(module)
+
+          app='aiplus/app.v3990_1.js'
+          replace(app,
+              "import {runBoundedBatch,uniqueToolRequests,deterministicToolBatchConcurrency} from '/aiplus/turn-runtime.v002.js?v=002_1';\n",
+              "import {runBoundedBatch,uniqueToolRequests,deterministicToolBatchConcurrency} from '/aiplus/turn-runtime.v002.js?v=002_1';\nimport {AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,completedTurnScrollTarget,shouldBlurComposerOnCompletion} from '/aiplus/conversation-scroll.v002.js?v=002_1';\n")
+          replace(app,
+              "const $=selector=>document.querySelector(selector),els={conversation:$('#conversationStream'),starter:$('#starterPanel'),starterScore:$('#starterScore'),starterScoreApply:$('#starterScoreApply'),starterScenarios:$('#starterScenarios'),activeViewBar:$('#activeViewBar'),activeViewChips:$('#activeViewChips'),currentContextTitle:$('#currentContextTitle'),form:$('#promptForm'),input:$('#promptInput'),send:$('#sendButton'),stop:$('#stopButton'),newAnswerNotice:$('#newAnswerNotice'),newWorkspace:$('#newWorkspace'),newWorkspaceSide:$('#newWorkspaceSide'),historyPanel:$('#historyPanel'),historyList:$('#historyList'),historySearch:$('#historySearch'),historyToggle:$('#historyToggle'),historyClose:$('#historyClose'),historyBackdrop:$('#historyBackdrop'),constraintList:$('#constraintList'),pendingList:$('#pendingList'),evidenceList:$('#evidenceList'),importSelection:$('#importSelection'),importStatus:$('#importStatus'),health:$('#healthBar'),modelConfig:$('#modelConfig'),modelProbeResult:$('#modelProbeResult'),probeModel:$('#probeModel'),exportWorkspace:$('#exportWorkspace'),confirmDialog:$('#confirmDialog'),confirmText:$('#confirmText'),confirmApply:$('#confirmApply')};\n",
+              "const $=selector=>document.querySelector(selector),els={conversation:$('#conversationStream'),starter:$('#starterPanel'),starterScore:$('#starterScore'),starterScoreApply:$('#starterScoreApply'),starterScenarios:$('#starterScenarios'),activeViewBar:$('#activeViewBar'),activeViewChips:$('#activeViewChips'),currentContextTitle:$('#currentContextTitle'),form:$('#promptForm'),input:$('#promptInput'),send:$('#sendButton'),stop:$('#stopButton'),newAnswerNotice:$('#newAnswerNotice'),newWorkspace:$('#newWorkspace'),newWorkspaceSide:$('#newWorkspaceSide'),historyPanel:$('#historyPanel'),historyList:$('#historyList'),historySearch:$('#historySearch'),historyToggle:$('#historyToggle'),historyClose:$('#historyClose'),historyBackdrop:$('#historyBackdrop'),constraintList:$('#constraintList'),pendingList:$('#pendingList'),evidenceList:$('#evidenceList'),importSelection:$('#importSelection'),importStatus:$('#importStatus'),health:$('#healthBar'),modelConfig:$('#modelConfig'),modelProbeResult:$('#modelProbeResult'),probeModel:$('#probeModel'),exportWorkspace:$('#exportWorkspace'),confirmDialog:$('#confirmDialog'),confirmText:$('#confirmText'),confirmApply:$('#confirmApply')};\ndocument.body.dataset.conversationScrollContract=AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION;\n")
+          restore="function restoreViewportTransaction(transaction){if(!transaction||transaction.restored)return;transaction.restored=true;const intent=transaction.intent;if(!intent)return;const root=document.documentElement,maxScroll=Math.max(0,root.scrollHeight-window.innerHeight),target=Math.min(intent.scrollY,maxScroll);if(Math.abs(window.scrollY-target)>1)window.scrollTo({top:target,behavior:'auto'});}\n"
+          completion=restore+r'''function nextConversationPaint(){return new Promise(resolve=>requestAnimationFrame(()=>resolve()));}
+          async function settleConversationCompletionLayout(blurred){let previous=window.visualViewport?.height||window.innerHeight,stable=0,frames=0;do{await nextConversationPaint();const current=window.visualViewport?.height||window.innerHeight;stable=Math.abs(current-previous)<1?stable+1:0;previous=current;frames+=1;}while(blurred&&stable<2&&frames<20);}
+          function completedTurnNode(turnId){if(!turnId||!els.conversation)return null;for(const item of els.conversation.querySelectorAll(':scope > .turn[data-turn-id]'))if(item.dataset.turnId===turnId)return item;return null;}
+          async function alignCompletedTurnToQuestion(turnId,sequence){const coarsePointer=Boolean(window.matchMedia?.('(pointer: coarse)')?.matches),activeIsComposer=document.activeElement===els.input,blurred=shouldBlurComposerOnCompletion({activeIsComposer,coarsePointer,maxTouchPoints:navigator.maxTouchPoints});els.input.value='';if(blurred)els.input.blur();await settleConversationCompletionLayout(blurred);if(sequence!==activeTurnSequence)return;const turn=completedTurnNode(turnId),anchor=turn?.querySelector('.user-bubble')||turn?.querySelector('.user-line')||turn;if(!anchor)return;const root=document.documentElement,topbar=document.querySelector('.topbar'),topbarBottom=Math.max(0,topbar?.getBoundingClientRect?.().bottom||0),maxScroll=Math.max(0,root.scrollHeight-window.innerHeight),target=completedTurnScrollTarget({scrollY:window.scrollY,anchorTop:anchor.getBoundingClientRect().top,topbarBottom,maxScroll});if(Math.abs(window.scrollY-target)>1)window.scrollTo({top:target,behavior:'auto'});if(els.newAnswerNotice)els.newAnswerNotice.hidden=true;}
+          '''.replace('          ','')
+          replace(app,restore,completion)
+          replace(app,
+              "      await saveWorkspace();if(sequence!==activeTurnSequence)return;clearProcessingTimer();render();restoreViewportTransaction(viewport);updateNewAnswerNotice();els.input.value='';return;\n",
+              "      await saveWorkspace();if(sequence!==activeTurnSequence)return;clearProcessingTimer();render();const committedTurnId=String((workspace.turnHistory||[]).at(-1)?.id||turn?.id||'');await alignCompletedTurnToQuestion(committedTurnId,sequence);return;\n")
+
+          html='aiplus/index.html'
+          replace(html,'data-ai-plus-assets="aiplus-assets-v002_1">','data-ai-plus-assets="aiplus-assets-v002_1" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">')
+          replace(html,'/aiplus/app.v3990_1.js?v=002_1','/aiplus/app.v3990_1.js?v=002_1&scroll=002_1')
+
+          test='tools/browser-aiplus-v002-mocked.mjs'
+          old_submit=r'''async function submit(page,state,text,{inspectLoading=false}={}){
+            const beforeTurnId=await latestTurnId(page),finalBefore=state.turnResponses.length;
+            await page.locator('#promptInput').fill(text);await page.locator('#sendButton').click();
+            if(inspectLoading){await page.locator('.processing-card').waitFor({state:'visible',timeout:5000});const loading=await page.locator('.processing-card').evaluate(el=>{const style=getComputedStyle(el),pseudo=getComputedStyle(el,'::before');return{left:style.borderLeftColor,top:style.borderTopColor,leftWidth:style.borderLeftWidth,pseudo:pseudo.content};});assert(loading.left===loading.top&&loading.leftWidth==='1px',`loading card has decorative AI bar: ${JSON.stringify(loading)}`);assert(await page.locator('.processing-dot').count()===0,'loading mounts an AI pulse dot');}
+            return waitTurn(page,beforeTurnId,state,finalBefore);
+          }'''.replace('          ','')
+          new_submit=r'''async function assertCompletedTurnViewport(page,label='turn'){
+            const state=await page.evaluate(()=>{const turns=document.querySelectorAll('#conversationStream .turn[data-turn-id]'),turn=turns[turns.length-1],bubble=turn?.querySelector('.user-bubble'),bar=document.querySelector('.topbar')?.getBoundingClientRect(),root=document.documentElement,safe=(bar?.bottom||0)+16,max=Math.max(0,root.scrollHeight-innerHeight),coarse=Boolean(matchMedia?.('(pointer: coarse)')?.matches)||Number(navigator.maxTouchPoints||0)>0;return{bubbleTop:bubble?.getBoundingClientRect().top??null,safe,y:scrollY,max,input:document.querySelector('#promptInput')?.value??null,inputActive:document.activeElement===document.querySelector('#promptInput'),contract:document.body.dataset.conversationScrollContract||'',coarse};});
+            assert(state.contract==='aiplus-conversation-scroll-v0.02',`${label}: scroll contract identity missing ${JSON.stringify(state)}`);assert(state.input==='',`${label}: successful answer did not clear composer ${JSON.stringify(state)}`);if(state.coarse)assert(!state.inputActive,`${label}: touch completion kept composer focused ${JSON.stringify(state)}`);assert(state.bubbleTop!==null,`${label}: completed user bubble missing`);const aligned=Math.abs(state.bubbleTop-state.safe)<=3,topClamp=state.y<=2&&state.bubbleTop<=state.safe+3,bottomClamp=Math.abs(state.y-state.max)<=2&&state.bubbleTop>=state.safe-3;assert(aligned||topClamp||bottomClamp,`${label}: completed turn not anchored to question ${JSON.stringify(state)}`);return state;
+          }
+          async function submit(page,state,text,{inspectLoading=false}={}){
+            const beforeTurnId=await latestTurnId(page),finalBefore=state.turnResponses.length;
+            await page.locator('#promptInput').fill(text);await page.locator('#sendButton').click();
+            await page.locator('.processing-card').waitFor({state:'visible',timeout:5000});assert(await page.locator('#promptInput').inputValue()===text,'composer must retain submitted text while answer is running');
+            if(inspectLoading){const loading=await page.locator('.processing-card').evaluate(el=>{const style=getComputedStyle(el),pseudo=getComputedStyle(el,'::before');return{left:style.borderLeftColor,top:style.borderTopColor,leftWidth:style.borderLeftWidth,pseudo:pseudo.content};});assert(loading.left===loading.top&&loading.leftWidth==='1px',`loading card has decorative AI bar: ${JSON.stringify(loading)}`);assert(await page.locator('.processing-dot').count()===0,'loading mounts an AI pulse dot');}
+            const result=await waitTurn(page,beforeTurnId,state,finalBefore);await assertCompletedTurnViewport(page,'submit');return result;
+          }'''.replace('          ','')
+          replace(test,old_submit,new_submit)
+          old_retry="const stability=await page.evaluate(expected=>({same:document.querySelector('#conversationStream .turn[data-turn-id]')===window.__stableFirstTurn,y:scrollY,trace:window.__scrollTrace,notice:!document.querySelector('#newAnswerNotice')?.hidden}),y);assert(stability.same,'existing answer card was rerendered after a new turn');assert(Math.abs(stability.y-y)<=2,`viewport jumped after answer ${JSON.stringify(stability)}`);assert(!stability.trace.some(item=>item.kind==='element'||JSON.stringify(item.args).includes('smooth')),`smooth/element scrolling leaked ${JSON.stringify(stability.trace)}`);assert(stability.trace.filter(item=>item.kind==='window').length<=1,`multiple viewport owners ${JSON.stringify(stability.trace)}`);assert(stability.notice,'new-answer notice should replace forced scrolling');"
+          new_retry="const stability=await page.evaluate(()=>({same:document.querySelector('#conversationStream .turn[data-turn-id]')===window.__stableFirstTurn,trace:window.__scrollTrace,notice:!document.querySelector('#newAnswerNotice')?.hidden}));assert(stability.same,'existing answer card was rerendered after a new turn');assert(!stability.trace.some(item=>item.kind==='element'||JSON.stringify(item.args).includes('smooth')),`smooth/element scrolling leaked ${JSON.stringify(stability.trace)}`);assert(stability.trace.filter(item=>item.kind==='window').length<=1,`multiple viewport owners ${JSON.stringify(stability.trace)}`);assert(!stability.notice,'successful completion should anchor the question instead of showing a new-answer notice');await assertCompletedTurnViewport(page,'failed-only retry');"
+          replace(test,old_retry,new_retry)
+          replace(test,"'single-viewport-transaction','new-answer-notice'","'single-viewport-transaction','completed-turn-question-anchor','composer-retained-while-running','composer-cleared-on-success','touch-composer-blur-boundary'")
+
+          verifier = r'''import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const source=fs.readFileSync('aiplus/conversation-scroll.v002.js','utf8');
+          const mod=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+          assert.equal(mod.AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,'aiplus-conversation-scroll-v0.02');
+          assert.equal(mod.completedTurnScrollTarget({scrollY:120,anchorTop:500,topbarBottom:58,maxScroll:3000}),546);
+          assert.equal(mod.completedTurnScrollTarget({scrollY:0,anchorTop:20,topbarBottom:58,maxScroll:3000}),0);
+          assert.equal(mod.completedTurnScrollTarget({scrollY:2500,anchorTop:700,topbarBottom:58,maxScroll:2800}),2800);
+          assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePointer:true,maxTouchPoints:0}),true);
+          assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePointer:false,maxTouchPoints:2}),true);
+          assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:true,coarsePointer:false,maxTouchPoints:0}),false);
+          assert.equal(mod.shouldBlurComposerOnCompletion({activeIsComposer:false,coarsePointer:true,maxTouchPoints:5}),false);
+          const app=fs.readFileSync('aiplus/app.v3990_1.js','utf8'),html=fs.readFileSync('aiplus/index.html','utf8'),render=fs.readFileSync('aiplus/render.v3992_0.js','utf8');
+          assert.ok(app.includes("from '/aiplus/conversation-scroll.v002.js?v=002_1'"),'scroll policy module not imported by the single app owner');
+          assert.ok(app.includes('await alignCompletedTurnToQuestion(committedTurnId,sequence)'),'successful completion does not use the unified anchor path');
+          assert.ok(app.includes("els.input.value=''"),'successful completion does not clear the composer');
+          assert.ok(app.includes('shouldBlurComposerOnCompletion'),'touch keyboard boundary missing');
+          assert.ok(!app.includes("render();restoreViewportTransaction(viewport);updateNewAnswerNotice();els.input.value='';return"),'legacy successful restore/notice path still active');
+          assert.ok(!app.includes('scrollIntoView('),'a second element scroll owner is forbidden');
+          assert.ok(html.includes('data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02"'),'HTML scroll contract identity missing');
+          assert.ok(html.includes('/aiplus/app.v3990_1.js?v=002_1&scroll=002_1'),'app cache key does not own the scroll subtransaction');
+          assert.ok(render.includes("const user=node('div','user-line');user.append(node('div','user-bubble',turn.userText||''))"),'stable completed-turn question anchor missing');
+          console.log(JSON.stringify({ok:true,contract:mod.AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,checks:['single-scroll-owner-policy','success-question-anchor','running-composer-retention','success-composer-clear','touch-keyboard-blur','failure-stop-retain','topbar-safe-offset','clamped-scroll-target']},null,2));
+          '''.replace('          ','')
+          Path('tools/verify-aiplus-conversation-scroll-v002.mjs').write_text(verifier)
+
+          workflow='.github/workflows/verify-aiplus-ui-geometry-v002.yml'
+          replace(workflow,"      - 'tools/browser-aiplus-ui-geometry-v002.mjs'\n      - '.github/workflows/verify-aiplus-ui-geometry-v002.yml'", "      - 'tools/browser-aiplus-ui-geometry-v002.mjs'\n      - 'tools/verify-aiplus-conversation-scroll-v002.mjs'\n      - '.github/workflows/verify-aiplus-ui-geometry-v002.yml'",2)
+          replace(workflow,"          node --check tools/browser-aiplus-ui-geometry-v002.mjs\n          node tools/verify-aiplus-ui-geometry-v002.mjs", "          node --check tools/browser-aiplus-ui-geometry-v002.mjs\n          node --check tools/verify-aiplus-conversation-scroll-v002.mjs\n          node tools/verify-aiplus-ui-geometry-v002.mjs\n          node tools/verify-aiplus-conversation-scroll-v002.mjs")
+
+          Path('.github/workflows/tmp-aiplus-scroll-contract-builder.yml').unlink()
+          PY
+          node --check aiplus/app.v3990_1.js
+          node --check aiplus/conversation-scroll.v002.js
+          node --check tools/browser-aiplus-v002-mocked.mjs
+          node --check tools/verify-aiplus-conversation-scroll-v002.mjs
+          node tools/verify-aiplus-conversation-scroll-v002.mjs
+          git diff --check
+      - name: Commit candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'cashen'
+          git config user.email '54cashen@gmail.com'
+          git add -A
+          git diff --cached --name-only
+          git commit -m 'feat(aiplus): unify completed-turn scroll contract'
+          git push origin HEAD:agent/aiplus-v002-conversation-scroll-contract
