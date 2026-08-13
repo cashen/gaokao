@@ -44,7 +44,7 @@ export function explicitScoreUsage(text='',workspace={}){
   return workspace?.examContext?.score?'remembered':'cleared';
 }
 
-function looksHistory(source){return /(多少分|几分|什么分|分都多少|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线)/.test(source);}
+function looksHistory(source){return /(多少分|几分|什么分|分都多少|所有(?:的)?分数|全部(?:的)?分数|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线|(?:所有|全部|各校|各学校).{0,18}(?:分数|多少分|录取|投档|位次)|(?:从高到低|从高到底|降序|最高到最低))/.test(source);}
 function looksAllSchoolMajorsHistory(source){return /((所有|全部|全校|该校|这所学校).{0,10}(专业|招生专业).{0,14}(最低|投档|录取|多少分|分数|位次)|(所有|全部|全校).{0,10}(专业|招生专业).*(多少分|最低分|投档分|录取分|分数线|位次)|(所有|全部|全校).{0,4}专业(?:都)?(?:多少)?分)/.test(source);}
 function looksAllSchoolMajorsFollowup(source){return /(所有|全部|全校).{0,4}(专业|招生专业)(?:都)?(?:呢|怎么样|看看)?[？?]?$/.test(source);}
 function looksImplicitAllSchoolMajorsHistory(source){return /(?:(?:专业|各专业|分数)?(?:都|大概都|大约都|分别|各自).{0,6}(?:多少分|几分|什么分|分数(?:是多少|多少)?)|(?:分|分数).{0,3}都多少)/.test(source);}
@@ -61,14 +61,21 @@ function looksSchoolExperience(source){return /(学校环境|校园环境|校园
 function looksOfficialSchoolInfo(source){return /(学校简介|院校简介|学校介绍|什么学校|学校定位|办学性质|主管部门|校区|宿舍|住宿|食堂|食宿|奖学金|助学金|奖助|联系方式|联系办法|招生电话|学校官网|招生网址|招生章程|录取规则|调档|退档|专业级差|志愿级差|转专业|学费|收费|院系设置|专业介绍|答考生问|毕业生就业|体检要求|(大学|学院).{0,4}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样)|这个学校.{0,6}(怎么样|如何|咋样)|该校.{0,6}(怎么样|如何|咋样))/.test(source);}
 function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
 
-export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false}={}){
+export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode=''}={}){
   const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
+  const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
+    Boolean(bottomLineMode)||looksHistory(source)||
+    (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||
+    /^(继续|再看|展开|还有|全部|都列|往下看)/.test(source)
+  );
   const resolvedSchoolGeneralQuestion=Boolean(schools.length&&/(怎么样|如何|咋样)[？?]?$/.test(source));
   const strippedSchoolReference=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source).replace(/[\s，,。！？!?；;：:]/g,'');
-  const bareResolvedSchool=Boolean(schools.length===1&&!strippedSchoolReference&&['candidate_discovery','candidate_refinement','school_history','school_major_history','school_background','school_research','school_official_qa'].includes(priorTask));
+  const sourceBareSchool=source.replace(/[\s，,。！？!?；;：:]/g,'').replace(/(学校|大学|学院)$/,'');
+  const resolvedBareSchool=String(school||'').replace(/(学校|大学|学院)$/,'');
+  const bareResolvedSchool=Boolean(schools.length===1&&(!strippedSchoolReference||sourceBareSchool===resolvedBareSchool)&&['candidate_discovery','candidate_refinement','major_region_history','school_history','school_major_history','school_background','school_research','school_official_qa','school_experience','fit_assessment'].includes(priorTask));
   const experienceOnly=Boolean(school&&looksSchoolExperience(source)&&!looksFit(source)&&!looksHistory(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const broadSchoolResearch=Boolean(school&&(looksBroadSchoolResearch(source)||resolvedSchoolGeneralQuestion||bareResolvedSchool)&&!experienceOnly&&!looksFit(source)&&!looksBackground(source)&&!looksHistory(source)&&!looksSpecificOfficialTopic(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const officialSchoolOnly=Boolean(school&&(looksOfficialSchoolInfo(source)||resolvedSchoolGeneralQuestion)&&!broadSchoolResearch&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
@@ -76,6 +83,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(looksPlanReview(source))return'plan_review';
   if(looksRestore(source))return'restore_view';
   if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
+  if(majorHistoryFollowup)return'major_region_history';
   if(school&&((explicitMajors.length===0&&looksImplicitAllSchoolMajorsHistory(source))||looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';
   if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';
   if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)&&/(省内|辽宁|方向|专业|这些|这批)/.test(source))return'background_fit_discovery';

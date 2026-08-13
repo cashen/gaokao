@@ -1,4 +1,5 @@
 import { matchRegionRule } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
+import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_1';
 export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
@@ -57,7 +58,7 @@ function resolveMajorKeys(manifest, query) {
   return keys.filter(key => { const candidate = norm(key); return candidate.includes(normalized) || normalized.includes(candidate); }).slice(0, 8);
 }
 function rowRecord(row, ix) {
-  return {
+  const record = {
     id: clean(row[ix.id], 220), school: clean(row[ix.school], 120), major: clean(row[ix.major], 180),
     score2026: Number(row[ix.score2026]), rank2026: Number.isFinite(Number(row[ix.rank2026])) ? Number(row[ix.rank2026]) : null,
     score2025: Number.isFinite(Number(row[ix.score2025])) ? Number(row[ix.score2025]) : null, rank2025: Number.isFinite(Number(row[ix.rank2025])) ? Number(row[ix.rank2025]) : null,
@@ -66,6 +67,7 @@ function rowRecord(row, ix) {
     standardMajorCode: clean(row[ix.standardMajorCode], 40), standardMajorName: clean(row[ix.standardMajorName], 160),
     schoolCode2026: clean(row[ix.schoolCode2026], 40), majorCode2026: clean(row[ix.majorCode2026], 40)
   };
+  return { ...record, ...enrichBottomLineFields(record) };
 }
 function regionMatch(record, region) {
   const key = clean(region, 220) || 'all';
@@ -85,11 +87,11 @@ function json(payload, status = 200) { return new Response(JSON.stringify(payloa
 
 export async function onRequestGet(context) {
   try {
-    const url = new URL(context.request.url), major = clean(url.searchParams.get('major'), 180), region = clean(url.searchParams.get('region'), 220) || 'all';
+    const url = new URL(context.request.url), major = clean(url.searchParams.get('major'), 180), region = clean(url.searchParams.get('region'), 220) || 'all', bottomLineMode = clean(url.searchParams.get('bottomLineMode'), 40) || 'all';
     const offset = Math.max(0, int(url.searchParams.get('offset'), 0)), limit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!major) return json({ ok: false, code: 'major_required', message: '需要先明确一个专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context), majorKeys = resolveMajorKeys(manifest, major);
-    if (!majorKeys.length) return json({ ok: true, major, region, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
+    if (!majorKeys.length) return json({ ok: true, major, region, bottomLineMode, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
     const records = [], loaded = new Map();
     for (const key of majorKeys) {
       const descriptor = manifest.majors[key];
@@ -99,17 +101,17 @@ export async function onRequestGet(context) {
       const ix = indexes(shard.rowSchema || manifest.rowSchema || []);
       for (const row of shard.majors?.[key] || []) {
         const record = rowRecord(row, ix);
-        if (regionMatch(record, region)) records.push(record);
+        if (regionMatch(record, region) && passBottomLineMode(record, bottomLineMode)) records.push(record);
       }
     }
     records.sort((a,b) => Number(b.score2026) - Number(a.score2026) || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER) || a.school.localeCompare(b.school, 'zh-Hans-CN') || a.major.localeCompare(b.major, 'zh-Hans-CN') || a.id.localeCompare(b.id, 'zh-Hans-CN'));
     const total = records.length, page = records.slice(offset, offset + limit), stats = summary(records);
     return json({
-      ok: true, major, region, matchedMajors: majorKeys, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
+      ok: true, major, region, bottomLineMode, matchedMajors: majorKeys, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
       records: page, summary: stats, complete: offset === 0 && page.length === total, dataYear: 2026, audienceYear: 2027,
       source: { level: 'B', sourceName: '辽宁2026物理类专业投档静态真值索引', sourceVersion: manifest.source?.version || '', sourceRecordCount: Number(manifest.source?.recordCount || 0), derivedIndex: true, sameTruthSet: manifest.integrity?.sameTruthSet === true },
       apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION,
-      boundary: '这里列的是2026辽宁物理类实际投档记录，并附已有的2025/2024参考字段；它不是2027录取承诺，正式填报仍要核对当年招生计划。'
+      boundary: '这里列的是2026辽宁物理类实际投档记录；默认包含普通项目和中外/高收费项目，若明确排除则按项目性质过滤。它不是2027录取承诺，正式填报仍要核对当年招生计划。'
     });
   } catch (error) {
     return json({ ok: false, code: 'major_history_failed', message: clean(error?.message || error, 320), apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 500);

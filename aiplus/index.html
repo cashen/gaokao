@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#f6f6f1" />
   <title>AIPLuS 家庭顾问｜辽宁高考家庭工具</title>
   <meta name="description" content="AIPLuS 家庭顾问：先理解你要解决的任务，再调用学校官方资料、招生分数和专业背景等确定性工具。先给答案，只有明确筛选时才修改候选条件。" />
-  <link rel="stylesheet" href="/aiplus/workspace.v3990_1.css?v=3992_5" />
-  <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=3992_5" />
+  <link rel="stylesheet" href="/aiplus/workspace.v3990_1.css?v=3992_6" />
+  <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=3992_6" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_5" data-ai-plus="school-official-qa">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3990_1" data-ai-advisor-generation="ai-human-advisor-agent-v3992_6" data-ai-plus="school-official-qa">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
-      <button id="historyToggle" class="history-toggle" type="button">History</button>
+      <button id="historyToggle" class="history-toggle" type="button">讨论记录</button>
       <a href="/aiplus/" aria-current="page">家庭顾问</a>
       <a href="/ln-rank/">专业初选</a>
       <a href="/ln-rank/selection-pool.html">家庭方案</a>
@@ -24,22 +24,22 @@
   <div class="advisor-layout">
     <aside id="historyPanel" class="history-panel" aria-label="历史讨论">
       <div class="history-head">
-        <div><strong>History</strong><span>本浏览器最近讨论</span></div>
+        <div><strong>最近讨论</strong><span>本设备保存的讨论</span></div>
         <button id="historyClose" type="button" aria-label="关闭历史">×</button>
       </div>
-      <button id="newWorkspaceSide" class="history-new" type="button">＋ 新开一次讨论</button>
+      <button id="newWorkspaceSide" class="history-new" type="button">＋ 新建一次讨论</button>
       <label class="history-search-label" for="historySearch">搜索讨论</label>
       <input id="historySearch" class="history-search" type="search" placeholder="学校、专业或问题" autocomplete="off" />
       <div id="historyList" class="history-list" aria-live="polite"></div>
-      <p class="history-local-note">History 只保存在当前浏览器，不会改动专业初选或家庭方案。</p>
+      <p class="history-local-note">讨论记录只保存在本设备，不会改动专业初选或家庭方案。</p>
     </aside>
     <button id="historyBackdrop" class="history-backdrop" type="button" aria-label="关闭历史"></button>
 
     <main class="advisor-shell">
       <section class="hero compact-hero" aria-labelledby="pageTitle">
         <span class="eyebrow">AIPLuS · 辽宁高考家庭顾问</span>
-        <h1 id="pageTitle">直接问，我负责把任务做完。</h1>
-        <p>先回答，再给依据。学校名、专业名只是问题对象；只有你明确说“只看、筛选、换成、保留”时，才会改变候选范围。</p>
+        <h1 id="pageTitle">把学校、专业和分数问题问清楚</h1>
+        <p>先给你能用的结论，再展开依据。只有你明确要求筛选，候选范围才会改变。</p>
       </section>
 
       <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
@@ -52,7 +52,7 @@
       <section class="starter" id="starterPanel">
         <div class="starter-copy">
           <h2>先说你真正想解决的问题</h2>
-          <p>可以直接问“介绍下辽宁科技大学”“测控专业省内都多少分”“我580分能不能上沈工大”，不用学习标准问法。</p>
+          <p>可以直接问“省内机械电子所有学校分数从高到低”“介绍下辽宁师范大学”“我580分能不能上沈工大”，不用学习标准问法。</p>
         </div>
         <div class="starter-score">
           <label for="starterScore">孩子大概分数 <span>可选</span></label>
@@ -118,6 +118,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="/aiplus/app.v3990_1.js?v=3992_5"></script>
+  <script type="module" src="/aiplus/app.v3990_1.js?v=3992_6"></script>
 </body>
 </html>
