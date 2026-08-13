@@ -12,7 +12,11 @@ Ordinary score, region, major, budget and family-preference turns must therefore
 
 ## School history
 
-AI school-history turns do not parse the Liaoning admissions chunks inside `/api/ai/turn`. `tool-registry.js` emits a `school_history` deterministic browser tool request to the existing `/api/school-majors` contract. The browser returns only a bounded fact projection to the AI turn. This keeps the public deterministic endpoint as the one admissions algorithm/resource truth while preventing its large runtime graph and chunk parsing from becoming resident in the AI Worker.
+AI school-history turns do not parse the Liaoning admissions rank chunks inside `/api/ai/turn`, and they do not send the browser through the rich public `/api/school-majors` graph. `tool-registry.js` emits a `school_history` deterministic browser request to `/api/ai/school-history`; that endpoint reads one exact-school entry from `/data/zy2026/school-index.json` and one preaggregated `school-XX.json` shard. The derived school shards are built from the same 11,628 canonical 2026 records. The release gate compares record identities and counts for all 956 schools in the 2026 admission directory, so the lighter execution path is not a second admissions truth set.
+
+The browser returns at most 120 compact records, which covers the current maximum of 117 records for one school and remains below the 48 KiB bridge budget. Index and shard promise caches are bounded and coalesce concurrent multi-major requests for the same school.
+
+Major filtering still uses the shared 883-major catalog mapper and keyword confidence policy. The lighter path changes storage access, not the meaning of “机械”“电气”“材料”等专业方向。
 
 Cloudflare Worker resource-limit responses (`1102`) are owner-action-required failures and are never retried as ordinary transient 503s.
 
@@ -20,7 +24,7 @@ Cloudflare Worker resource-limit responses (`1102`) are owner-action-required fa
 
 Admissions scores, ranks, historical records, school/major facts and candidate bands remain deterministic resources. AI may interpret language and explain decisions, but must not rewrite those facts or invent a parallel admission probability model.
 
-Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`.
+Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. AIPLuS browser assets still advance as one cache transaction; this revision uses `v002_1` while the visible product version remains `v0.02`.
 
 ## Release hygiene
 

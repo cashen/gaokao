@@ -1,0 +1,30 @@
+/* AIPLuS v0.02 product-owned answer, history and viewport surfaces. */
+.answer-surface{width:100%;max-width:860px;border:1px solid #dbe2dd;border-radius:18px;background:#fff;box-shadow:0 7px 22px rgba(35,55,44,.045);overflow:hidden}
+.answer-surface .assistant-lead{max-width:none;padding:17px 20px 15px;background:#fff}
+.answer-surface .assistant-lead p{font-size:17px;line-height:1.72;color:#25342d;font-weight:540}
+.answer-surface .assistant-lead[data-answer-status="needs_clarification"]{background:#fffaf0}
+.answer-surface .assistant-lead[data-answer-status="unsupported"]{background:#faf9f6}
+.answer-surface .result-card{margin:0;padding:16px 20px;border:0;border-top:1px solid #e6ebe7;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+.answer-surface .result-card.fact,.answer-surface .result-card.history,.answer-surface .result-card.background,.answer-surface .result-card.fit{border-left:0}
+.answer-surface .result-card h3{margin-bottom:8px;font-size:17px;letter-spacing:0}
+.answer-surface .result-card+.result-card{margin-top:0}
+.answer-surface .details-card{margin:0;padding:12px 20px;border-top:1px solid #e6ebe7;background:#fbfcfa}
+.answer-surface .turn-understanding{margin:0;padding:11px 20px;border-top:1px solid #e6ebe7;color:#5f7067;background:#f7f9f7}
+.answer-surface .result-card:has(.question-list){background:#fbfcfa}
+.turn-window-control{width:100%;min-height:42px;border:1px solid #dce4de;border-radius:12px;background:#fff;color:#536a5e;cursor:pointer}
+.turn-window-control:focus-visible,.question-button:focus-visible,.major-suggestion-button:focus-visible,.history-new:focus-visible,.history-open-item:focus-visible,.composer button:focus-visible{outline:3px solid rgba(47,104,79,.24);outline-offset:2px}
+.history-lazy-mount:empty{display:none}
+.new-answer-notice{position:fixed;z-index:30;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);min-height:42px;padding:8px 14px;border:1px solid #cbd8cf;border-radius:999px;background:#fff;color:#315a46;box-shadow:0 8px 24px rgba(28,48,37,.14);cursor:pointer}
+.candidate-item,.candidate-head,.candidate-school,.candidate-major{min-width:0}
+.candidate-school,.candidate-major{overflow-wrap:break-word;word-break:normal;writing-mode:horizontal-tb}
+.candidate-query-match{margin-top:5px;color:#697970;font-size:12px;line-height:1.45}
+@media(max-width:760px){
+  .answer-surface{border-radius:14px}.answer-surface .assistant-lead{padding:15px 14px 13px}.answer-surface .assistant-lead p{font-size:15px;line-height:1.72}
+  .answer-surface .result-card{padding:14px}.answer-surface .result-card h3{font-size:16px}
+  .answer-surface .details-card,.answer-surface .turn-understanding{padding:10px 14px}.answer-surface .turn-understanding{display:block}.answer-surface .turn-understanding strong{display:block;margin-bottom:2px}
+  .result-card .history-list .history-item .candidate-head{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+  .result-card .history-list .history-item .candidate-school{font-size:15px;line-height:1.5}
+  .result-card .history-list .history-item .candidate-major{font-size:14px;line-height:1.55;color:#47574f}
+  .result-card .history-list .history-item .candidate-location{font-size:12px;line-height:1.4}
+  .new-answer-notice{bottom:calc(112px + env(safe-area-inset-bottom));max-width:calc(100vw - 28px)}
+}

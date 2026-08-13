@@ -1,4 +1,6 @@
-export const AI_SCHOOL_PROFILE_SUPPLEMENT_VERSION='ai-school-profile-supplement-v3990_1';
+import {resolveSchoolProfile,SCHOOL_PROFILE_SOURCE_META} from '../../../shared/resources/schools/school-profile-center.js';
+
+export const AI_SCHOOL_PROFILE_SUPPLEMENT_VERSION='ai-school-profile-supplement-v0.02';
 export const AI_BAIDU_BAIKE_ORIGIN='https://baike.baidu.com';
 export const AI_BAIDU_BAIKE_READER_ORIGIN='https://r.jina.ai';
 export const AI_BAIDU_BAIKE_CARD_API='https://baike.baidu.com/api/openapi/BaikeLemmaCardApi';
@@ -19,6 +21,12 @@ function stripMarkdown(value=''){return clean(value,12000).replace(/!\[[^\]]*\]\
 function safeSentence(sentence=''){const value=clean(sentence,600);if(!value||value.length<18)return false;if(/(截至|现有|目前|在校生|教职工|专任教师|占地|建筑面积|图书|院士|博士点|硕士点|国家级|省级|排名|就业率|升学率|学费|收费|党委书记|校长)/.test(value))return false;if(/(百科星图|参考资料|词条图册|概述图|播报|编辑|收藏|分享)/.test(value))return false;return true;}
 function safeBaikeUrl(value=''){let url;try{url=new URL(clean(value,900).replace(/^http:/,'https:'));}catch{return'';}return url.protocol==='https:'&&url.hostname==='baike.baidu.com'?url.toString():'';}
 function answerFromExcerpt(excerpt=''){const sentences=stripMarkdown(excerpt).split(/(?<=[。！？；])/).map(item=>item.trim()).filter(safeSentence).slice(0,4);return sentences.length?{answer:`百度百科词条可作为非官方补充：${sentences.join('')}`,excerpt:sentences.join('')}:null;}
+
+export function directorySchoolProfileSupplement(school=''){
+  const name=clean(school,120),profile=resolveSchoolProfile(name);if(!profile)return{ok:false,code:'school_directory_not_found',school:name};
+  const location=clean(profile.displayLocation,100),level=clean(profile.educationLevel,40),nature=clean(profile.natureLabel,40),department=clean(profile.competentDepartment,120),kind=[nature&&nature!=='性质待核验'?nature:'',level].filter(Boolean).join(''),identity=kind?`是一所${location?`位于${location}的`:''}${kind}高校`:'已列入全国普通高校名单',tier=profile.is985?'985、211':profile.is211?'211':'未标记为985/211',remark=clean(profile.officialRemark,140);
+  return{ok:true,school:name,mode:'moe_directory_baseline',answer:`根据教育部全国普通高等学校名单，${name}${identity}${department?`，主管部门为${department}`:''}；统一学校层次名单中${tier}${remark?`。名单备注：${remark}`:''}。这先回答学校身份和基本定位，专业积累、辽宁投档分数及生活体验请看下方分开的证据。`,source:{sourceName:profile.sourceName||'教育部全国普通高等学校名单',sourceUrl:profile.sourceUrl||SCHOOL_PROFILE_SOURCE_META.source.schoolListPageUrl,scope:`只确认学校身份、所在地、办学层次、性质、主管部门及985/211硬标签；名单日期 ${profile.sourceAsOfDate||SCHOOL_PROFILE_SOURCE_META.asOfDate}`},boundary:'教育部高校名单只能确认学校身份和少量硬字段，不能据此推出专业强弱、校园环境、就业质量或录取概率；这些问题必须分别使用对应证据。',profile:{standardSchoolName:profile.standardSchoolName||name,schoolIdentifier:profile.schoolIdentifier||'',location,nature,level,department,is985:Boolean(profile.is985),is211:Boolean(profile.is211),entityTypeLabel:profile.entityTypeLabel||''},version:AI_SCHOOL_PROFILE_SUPPLEMENT_VERSION};
+}
 
 export function extractBaiduBaikeCard(payload={},school=''){
   if(!payload||typeof payload!=='object')return{ok:false,code:'baike_card_invalid'};const title=clean(payload.title||payload.lemmaTitle||payload.key,180),sourceUrl=safeBaikeUrl(payload.totalUrl||payload.url||payload.wapUrl);
@@ -50,6 +58,7 @@ async function fetchSchoolProfileSupplement(name,fetchImpl){
 export async function loadSchoolProfileSupplement({school,fetchImpl=fetch}={}){
   const name=clean(school,120);if(!name)return{ok:false,code:'school_required'};const key=normalize(name),cached=CACHE.get(key);
   if(cached&&cached.expiresAt>Date.now()){CACHE.delete(key);CACHE.set(key,cached);return cached.payload;}if(cached)CACHE.delete(key);
+  const directory=directorySchoolProfileSupplement(name);if(directory.ok){CACHE.set(key,{payload:directory,expiresAt:Date.now()+CACHE_TTL_MS});while(CACHE.size>CACHE_LIMIT)CACHE.delete(CACHE.keys().next().value);return directory;}
   if(INFLIGHT.has(key))return INFLIGHT.get(key);
   const pending=fetchSchoolProfileSupplement(name,fetchImpl).then(payload=>{if(payload?.ok){CACHE.set(key,{payload,expiresAt:Date.now()+CACHE_TTL_MS});while(CACHE.size>CACHE_LIMIT)CACHE.delete(CACHE.keys().next().value);}return payload;}).finally(()=>INFLIGHT.delete(key));INFLIGHT.set(key,pending);return pending;
 }

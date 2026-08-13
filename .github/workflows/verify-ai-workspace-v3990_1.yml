@@ -8,6 +8,8 @@ on:
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'shared/resources/geo/china-region-catalog.v3990_1.js'
+      - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
+      - 'data/zy2026/**'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'functions/_lib/major-filter.v3990_1.js'
@@ -15,6 +17,10 @@ on:
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
       - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
       - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
+      - 'tools/verify-aiplus-v002-contract.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/browser-aiplus-v002-mocked.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
   push:
@@ -23,6 +29,8 @@ on:
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'shared/resources/geo/china-region-catalog.v3990_1.js'
+      - 'shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json'
+      - 'data/zy2026/**'
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'functions/_lib/major-filter.v3990_1.js'
@@ -30,6 +38,10 @@ on:
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
       - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
       - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+      - 'tools/verify-ai-school-history-bridge-v3992_2.mjs'
+      - 'tools/verify-aiplus-v002-contract.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/browser-aiplus-v002-mocked.mjs'
       - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-workspace-v3990_1.yml'
   workflow_dispatch:
@@ -70,7 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f /tmp/ai-files.txt
-          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_1\.js$|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_1\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/verify-aiplus-school-official-cache-v3990_2\.mjs$|tools/verify-aiplus-human-dialog-v3990_2\.mjs$|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
+          if grep -E '^(aiplus/|shared/ai/|shared/resources/geo/china-region-catalog\.v3990_1\.js$|shared/resources/schools/liaoning-2026-admission-school-directory\.v3969_0\.json$|data/zy2026/|functions/api/ai/|functions/_lib/ai/|functions/_lib/major-filter\.v3990_1\.js$|tools/verify-aiplus-school-official-v3990_2\.mjs$|tools/verify-aiplus-school-official-cache-v3990_2\.mjs$|tools/verify-aiplus-human-dialog-v3990_2\.mjs$|tools/verify-ai-school-history-bridge-v3992_2\.mjs$|tools/verify-aiplus-v002-contract\.mjs$|tools/audit-aiplus-v002-ui\.mjs$|tools/browser-aiplus-v002-mocked\.mjs$|tools/browser-ai-workspace-v3990_1\.mjs$)' /tmp/ai-files.txt; then
             echo 'runtime_changed=true' >> "$GITHUB_OUTPUT"
           else
             echo 'runtime_changed=false' >> "$GITHUB_OUTPUT"
@@ -83,7 +95,9 @@ jobs:
           grep -q "siteRuntimeGeneration: 'v3990_1'" shared/resources/release/current-release.js
           grep -q 'data-release="v3.9.90.1"' aiplus/index.html
           grep -q 'data-site-runtime-generation="v3990_1"' aiplus/index.html
-          grep -q 'data-ai-plus="school-official-qa"' aiplus/index.html
+          grep -q 'data-ai-plus="family-advisor"' aiplus/index.html
+          grep -q 'data-ai-plus-assets="aiplus-assets-v002_1"' aiplus/index.html
+          grep -q 'AIPLuS 产品版 · v0.02' aiplus/index.html
           test ! -e ai
           grep -q '^/ai /aiplus/ 301$' _redirects
           grep -q '^/ai/ /aiplus/ 301$' _redirects
@@ -94,28 +108,49 @@ jobs:
         run: |
           set -euo pipefail
           node --check shared/ai/ai-workspace-contract.v3990_1.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check shared/ai/aiplus-product-contract.v002.js
           node --check functions/_lib/ai/provider-router.js
           node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/major-language-resolver.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
           node --check functions/_lib/ai/evidence-registry.js
           node --check functions/_lib/ai/tool-registry.js
           node --check functions/_lib/ai/selection-review.js
           node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
           node --check functions/_lib/ai/school-official-source.js
+          node --check functions/_lib/ai/school-profile-supplement-source.js
+          node --check functions/_lib/ai/school-history-fact-contract.js
+          node --check functions/_lib/ai/school-history-fact-source.js
           node --check functions/api/ai/turn.js
           node --check functions/api/ai/health.js
           node --check functions/api/ai/model-probe.js
           node --check functions/api/ai/school-official.js
+          node --check functions/api/ai/school-history.js
           node --check aiplus/app.v3990_1.js
+          node --check aiplus/render.v3992_0.js
+          node --check aiplus/turn-runtime.v002.js
           node --check tools/verify-ai-workspace-v3990_1.mjs
           node --check tools/verify-aiplus-school-official-v3990_2.mjs
           node --check tools/verify-aiplus-school-official-cache-v3990_2.mjs
           node --check tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+          node --check tools/verify-aiplus-v002-contract.mjs
+          node --check tools/audit-aiplus-v002-ui.mjs
+          node --check tools/browser-aiplus-v002-mocked.mjs
           node --check tools/browser-ai-workspace-v3990_1.mjs
       - name: Run deterministic semantic workspace gates
         run: |
           set -euo pipefail
           node tools/verify-ai-workspace-v3990_1.mjs
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/audit-aiplus-v002-ui.mjs
 
   preview-smoke:
     concurrency:
@@ -128,6 +163,7 @@ jobs:
     outputs:
       preview_base: ${{ steps.resolve-preview.outputs.preview_base }}
       immutable_preview: ${{ steps.resolve-preview.outputs.immutable_preview }}
+      branch_preview: ${{ steps.resolve-preview.outputs.branch_preview }}
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -185,13 +221,15 @@ jobs:
             exit 3
           fi
           echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
-          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "branch_preview=$branch_preview" >> "$GITHUB_OUTPUT"
           echo "Exact deployment: $immutable_preview"
           echo "Functions branch preview: $branch_preview"
-      - name: Verify branch Preview serves exact head SHA and semantic API
+      - name: Verify exact deployment and branch Functions preview
         env:
           PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
           IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
+          BRANCH_PREVIEW: ${{ steps.resolve-preview.outputs.branch_preview }}
         shell: bash
         run: |
           set -euo pipefail
@@ -230,13 +268,33 @@ jobs:
             rm -f "$body"
           }
 
+          require_text() {
+            local label="$1" needle="$2" payload="$3"
+            if ! grep -Fq "$needle" <<<"$payload"; then
+              echo "${label} missing expected text: ${needle}" >&2
+              head -c 1600 <<<"$payload" >&2 || true
+              echo >&2
+              return 1
+            fi
+          }
+
+          require_json() {
+            local label="$1" expression="$2" payload="$3"
+            if ! jq -e "$expression" >/dev/null <<<"$payload"; then
+              echo "${label} failed JSON contract: ${expression}" >&2
+              head -c 2000 <<<"$payload" >&2 || true
+              echo >&2
+              return 1
+            fi
+          }
+
           health=''
           ready=0
           for attempt in $(seq 1 60); do
-            health="$(request_get health "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
-            if grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -q '"apiVersion":"ai-health-api-v3990_1"' <<<"$health" \
-              && grep -q '"semanticMode":"command-active-view-history-v3990_1"' <<<"$health"; then
+            health="$(request_get branch-health "${BRANCH_PREVIEW}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -Fq "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
+              && grep -Fq '"apiVersion":"ai-health-api-v0.02"' <<<"$health" \
+              && grep -Fq '"semanticMode":"intent-task-spec-v0.02"' <<<"$health"; then
               ready=1
               break
             fi
@@ -247,10 +305,15 @@ jobs:
             exit 4
           fi
 
+          health="$(request_get immutable-health "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-immutable")"
+          require_text immutable-health "\"commitSha\":\"${EXPECTED_SHA}\"" "$health"
+          require_text immutable-health '"apiVersion":"ai-health-api-v0.02"' "$health"
+          require_text immutable-health '"semanticMode":"intent-task-spec-v0.02"' "$health"
+
           page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
-          grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page"
-          grep -q 'data-site-runtime-generation="v3990_1"' <<<"$page"
-          grep -q 'data-ai-plus="school-official-qa"' <<<"$page"
+          require_text aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$page"
+          require_text aiplus-page 'data-site-runtime-generation="v3990_1"' "$page"
+          require_text aiplus-page 'data-ai-plus="family-advisor"' "$page"
           legacy_headers="$(mktemp)"
           legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
           legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
@@ -263,37 +326,46 @@ jobs:
           rm -f "$legacy_headers"
 
           official="$(request_get school-official "${PREVIEW_BASE}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
-          grep -q '"ok":true' <<<"$official"
-          grep -q '"school":"辽宁石油化工大学"' <<<"$official"
-          if grep -q '"sourceAvailable":false' <<<"$official"; then
-            grep -q '"coverage":"official_source_unavailable"' <<<"$official"
-            grep -q '"detailAvailable":false' <<<"$official"
-            grep -q '本轮没有取得可验证的阳光高考官方资料' <<<"$official"
-            grep -q '不让模型补写' <<<"$official"
+          require_text school-official '"ok":true' "$official"
+          require_text school-official '"school":"辽宁石油化工大学"' "$official"
+          if grep -Fq '"sourceAvailable":false' <<<"$official"; then
+            require_text school-official '"coverage":"official_source_unavailable"' "$official"
+            require_text school-official '"detailAvailable":false' "$official"
+            require_text school-official '本轮没有取得可验证的阳光高考官方资料' "$official"
+            require_text school-official '不让模型补写' "$official"
           else
-            grep -q '"sourceAvailable":true' <<<"$official"
-            grep -q '"schoolCode":"10148"' <<<"$official"
-            grep -q '"coverage":"official_search_card"' <<<"$official"
-            grep -q 'https://gaokao.chsi.com.cn/' <<<"$official"
+            require_text school-official '"sourceAvailable":true' "$official"
+            require_text school-official '"schoolCode":"10148"' "$official"
+            require_text school-official '"coverage":"official_search_card"' "$official"
+            require_text school-official 'https://gaokao.chsi.com.cn/' "$official"
           fi
 
-          rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
+          industrial_history="$(request_get school-history-industrial "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-industrial '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and .meta.filteredTotal == 65 and (.records | length) == 65 and .source.mode == "ai-school-history-preaggregated-school-shard" and .source.sameTruthSet == true' "$industrial_history"
+
+          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A9%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-aviation-mechanical '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8 and ([.records[].major] | all(length > 0))' "$aviation_mechanical"
+
+          largest_history="$(request_get school-history-largest "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          require_json school-history-largest '.ok == true and .complete == true and .meta.school == "沈阳农业大学" and .meta.schoolRecordTotal == 117 and (.records | length) == 117 and .meta.pagination.hasMore == false' "$largest_history"
+
+          rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
           rank="$(request_post rank "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
-          grep -q '"rankEnd":14235' <<<"$rank"
+          require_text rank '"rankEnd":14235' "$rank"
 
-          province_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}'
+          province_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}'
           province="$(request_post province-major "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$province_payload")"
-          grep -q '"regionKeys":\["province:安徽"\]' <<<"$province"
-          grep -q '"majorKeywords":\["电气"\]' <<<"$province"
+          require_text province-major '"regionKeys":["province:安徽"]' "$province"
+          require_text province-major '"majorKeywords":["电气"]' "$province"
 
-          comparison_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}'
+          comparison_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}'
           comparison="$(request_post major-comparison "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$comparison_payload")"
-          grep -q '"kind":"major"' <<<"$comparison"
-          grep -q '"pendingEvidenceDimensions"' <<<"$comparison"
+          require_text major-comparison '"kind":"major"' "$comparison"
+          require_text major-comparison '"pendingEvidenceDimensions"' "$comparison"
 
           if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
             probe="$(request_post model-probe "${PREVIEW_BASE}/api/ai/model-probe?candidate=${EXPECTED_SHA}" '{}')"
-            grep -q '"ok":true' <<<"$probe"
+            require_text model-probe '"ok":true' "$probe"
             grep -Eq '"model":"[^"]+"' <<<"$probe"
           fi
 
@@ -323,12 +395,16 @@ jobs:
           AI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
           AI_ARTIFACT_DIR: /tmp/ai-workspace-browser-v3990_1
         run: node tools/browser-ai-workspace-v3990_1.mjs
+      - name: Verify AIPLuS v0.02 mocked parent journeys on four viewports
+        run: node tools/browser-aiplus-v002-mocked.mjs
       - name: Upload AI browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ai-workspace-browser-v3990_1
-          path: /tmp/ai-workspace-browser-v3990_1
+          path: |
+            /tmp/ai-workspace-browser-v3990_1
+            /tmp/aiplus-v002-browser
           if-no-files-found: warn
           retention-days: 7
 
@@ -363,14 +439,16 @@ jobs:
             fi
             page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/aiplus/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
             health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${BASE}/api/ai/health?deploy=${EXPECTED_SHA}-${attempt}" || true)"
-            rank="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3990_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
-            if grep -q 'data-ai-workspace="ai-workspace-v3990_1"' <<<"$page" \
-              && grep -q 'data-ai-plus="school-official-qa"' <<<"$page" \
-              && grep -q '"apiVersion":"ai-health-api-v3990_1"' <<<"$health" \
+            rank="$(curl -fsSL --max-time 45 -H 'Content-Type: application/json' -X POST "${BASE}/api/ai/turn?deploy=${EXPECTED_SHA}-${attempt}" --data '{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}' || true)"
+            school_history="$(curl -fsSL --max-time 45 -H 'Cache-Control: no-cache' "${BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&deploy=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -q 'data-ai-workspace="ai-workspace-v3992_1"' <<<"$page" \
+              && grep -q 'data-ai-plus="family-advisor"' <<<"$page" \
+              && grep -q '"apiVersion":"ai-health-api-v0.02"' <<<"$health" \
               && grep -q '"release":"v3.9.90.1"' <<<"$health" \
               && grep -q '"siteRuntimeGeneration":"v3990_1"' <<<"$health" \
               && grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -q '"rankEnd":14235' <<<"$rank"; then
+              && grep -q '"rankEnd":14235' <<<"$rank" \
+              && jq -e '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and (.records | length) == 65 and .source.sameTruthSet == true' >/dev/null <<<"$school_history"; then
               if [ "$VERIFY_MODE" = exact ]; then
                 legacy_headers="$(mktemp)"
                 legacy_status="$(curl --silent --show-error --max-time 20 -D "$legacy_headers" -o /dev/null --write-out '%{http_code}' -H 'Cache-Control: no-cache' "${BASE}/ai/?deploy=${EXPECTED_SHA}-${attempt}" || true)"
