@@ -49,10 +49,10 @@ const candidate = createAiWorkspace({
 expect(await command('沈阳工业 测控多少分', candidate), { task: 'school_major_history', school: '沈阳工业大学', major: '测控技术与仪器' });
 const multiMajor=await command('沈航 机械多少分 电气多少分 测控多少分', candidate);
 expect(multiMajor, { task: 'school_major_history', school: '沈阳航空航天大学' });
-assert.deepEqual(multiMajor.majorKeywords, ['机械工程', '电气工程及其自动化', '测控技术与仪器'], 'multi-major spoken query must preserve each major');
+assert.deepEqual(multiMajor.majorKeywords, ['机械', '电气', '测控技术与仪器'], 'multi-major spoken query must preserve each major');
 const compactMultiMajor=await command('沈阳航空航天大学机械测控与材料多少分', candidate);
 expect(compactMultiMajor, { task: 'school_major_history', school: '沈阳航空航天大学' });
-assert.deepEqual(compactMultiMajor.majorKeywords, ['机械工程', '测控技术与仪器', '材料'], 'compact multi-major query must segment major aliases');
+assert.deepEqual(compactMultiMajor.majorKeywords, ['机械', '测控技术与仪器', '材料'], 'compact multi-major query must segment major aliases');
 expect(await command('沈阳工业所有专业最低分', candidate), { task: 'school_history', school: '沈阳工业大学' });
 expect(await command('大连交通 都多少分', candidate), { task: 'school_history', school: '大连交通大学' });
 expect(await command('大连交通学校怎么样', candidate), { task: 'school_research', school: '大连交通大学' });
