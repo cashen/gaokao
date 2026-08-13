@@ -8,10 +8,11 @@ import {
   AI_BACKGROUND_RESOURCE_ADAPTER_VERSION
 } from './background-resource-adapter.js';
 import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from '../platform-upgrade-policy.js';
+import { AI_FACT_BRIDGE_CONTRACT_VERSION } from '../../../shared/ai/ai-workspace-contract.v3992_0.js';
 
-export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_0';
+export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v3992_9';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
-export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_2';
+export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_9';
 export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_2';
@@ -170,17 +171,26 @@ export async function runSchoolMajorHistory(context,{school,majorKeyword='',majo
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
   const requested=unique([...(Array.isArray(majorKeywords)?majorKeywords:[]),majorKeyword].map(value=>clean(value,160)).filter(Boolean),8);
   const queries=requested.length?requested:[''];
-  const responses=[];
-  for(const query of queries){
-    const request=requestForSchoolHistory(context,{school,majorKeyword:query,candidateScore:null}),delegated=delegatedSchoolHistoryEntry(context,request);
+  const responses=[],queryResults=[];
+  for(let index=0;index<queries.length;index+=1){
+    const query=queries[index],request=requestForSchoolHistory(context,{school,majorKeyword:query,candidateScore:null}),delegated=delegatedSchoolHistoryEntry(context,request);
     if(!delegated.ok)return delegated;
-    const{status,payload}=delegated;
-    if(status<200||status>=300||!payload?.ok)return{ok:false,status,message:clean(payload?.message||'学校历史查询失败。',260)};
-    responses.push({query,payload});
+    const{status,payload}=delegated,success=status>=200&&status<300&&payload?.ok===true;
+    if(!success){
+      queryResults.push({query,index,status:'failed',recordCount:0,errorCode:clean(payload?.code,80)||`http_${status||0}`,errorMessage:clean(payload?.message||'本专业查询暂时失败。',240)});
+      continue;
+    }
+    const queryRecords=(payload.records||[]).map(record=>({...historyRecord(record),queryMajor:query,queryIndex:index,queryStatus:'success'}));
+    responses.push({query,payload,records:queryRecords});
+    queryResults.push({query,index,status:'success',recordCount:queryRecords.length,errorCode:'',errorMessage:''});
   }
-  const records=responses.flatMap(({query,payload})=>(payload.records||[]).map(record=>({...historyRecord(record),queryMajor:query})));
-  const summary=requested.length>1?{...responses[0].payload.summary,uniqueMajorCount:new Set(records.map(record=>record.major).filter(Boolean)).size}:responses[0].payload.summary||{};
-  return{ok:true,school:responses[0].payload?.meta?.school||school,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,records,majorSuggestions:majorSuggestionsFor(records,responses[0].payload?.meta?.school||school),summary,meta:responses[0].payload?.meta||{},source:responses[0].payload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；学校历史事实由公开 school-majors 确定性接口执行，本轮不使用考生分数筛选。'};
+  const first=responses[0],records=responses.flatMap(item=>item.records),successfulCount=responses.length,partial=successfulCount>0&&successfulCount<queries.length,allFailed=successfulCount===0;
+  const firstPayload=first?.payload||{};
+  const schoolName=firstPayload?.meta?.school||school;
+  const summary=successfulCount?(
+    requested.length>1?{...(firstPayload.summary||{}),uniqueMajorCount:new Set(records.map(record=>record.major).filter(Boolean)).size}:firstPayload.summary||{}
+  ):({total:0,schoolCount:0,minScore:null,maxScore:null});
+  return{ok:true,partial,allFailed,school:schoolName,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,records,queryResults,total:records.length,majorSuggestions:majorSuggestionsFor(records,schoolName),summary,meta:firstPayload?.meta||{},source:firstPayload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,bridgeVersion:AI_FACT_BRIDGE_CONTRACT_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；学校历史事实由公开 school-majors 确定性接口执行，本轮不使用考生分数过滤。',message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':''};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要已知参考分数才能判断当前可达性。'};
