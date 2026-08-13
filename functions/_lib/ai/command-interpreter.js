@@ -1,6 +1,6 @@
 
 import { runAiProvider } from './provider-router.js';
-import { MAJOR_LANGUAGE_TERMS, normalizeMajorLanguage } from './major-language-resolver.js';
+import { BROAD_MAJOR_TERMS, MAJOR_LANGUAGE_TERMS, normalizeMajorLanguage } from './major-language-resolver.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
 import {
@@ -11,7 +11,7 @@ import {
 export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_4';
 export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_4';
 
-const MAJOR_TERMS=MAJOR_LANGUAGE_TERMS;
+const MAJOR_TERMS=Object.freeze([...new Set([...MAJOR_LANGUAGE_TERMS,...BROAD_MAJOR_TERMS])]);
 function normalizeMajorTerm(value){return normalizeMajorLanguage(value);}
 const GROUP_LABELS=Object.freeze({江浙沪:'jiangzhehu',华中:'huazhong',西南:'southwest',西北:'northwest'});
 const REGION_LABEL_BY_KEY=Object.freeze(Object.fromEntries(REGION_OPTIONS.map(item=>[item.key,item.label])));
