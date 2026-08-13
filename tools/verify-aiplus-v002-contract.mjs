@@ -5,13 +5,15 @@ import {orchestrateAiTurn} from '../functions/_lib/ai/turn-orchestrator.js';
 import {runSchoolMajorHistory,runMajorRegionHistory,runSchoolComparison,runMajorComparison,runSchoolExperience,listRegisteredAiTools} from '../functions/_lib/ai/tool-registry.js';
 import {nextActionsForTurn} from '../functions/_lib/ai/next-action-engine.js';
 import {composePrimaryAnswer} from '../functions/_lib/ai/answer-composer.js';
-import {runBoundedBatch} from '../aiplus/turn-runtime.v002.js';
+import {runBoundedBatch,deterministicToolBatchConcurrency} from '../aiplus/turn-runtime.v002.js';
 import {STANDARD_MAJOR_CATALOG_2026_FULL} from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
 import {MAJOR_LANGUAGE_TERMS,normalizeMajorLanguage} from '../functions/_lib/ai/major-language-resolver.js';
 
 const request=new Request('https://example.test/api/ai/turn',{method:'POST'});
 const context=results=>({request,env:{},aiDeterministicToolResults:results||{}});
 const prompts=['机械','电气','测控','材料','自动化'];
+assert.equal(deterministicToolBatchConcurrency([{kind:'major_bands'},{kind:'major_bands'}],3),1,'resource-heavy candidate bands must execute serially');
+assert.equal(deterministicToolBatchConcurrency([{kind:'school_history'},{kind:'school_history'}],3),3,'independent school-history queries should retain bounded concurrency');
 
 const majorLanguageTerms=new Set(MAJOR_LANGUAGE_TERMS);
 assert.equal(STANDARD_MAJOR_CATALOG_2026_FULL.length,883,'2026 official major catalog cardinality drift');
