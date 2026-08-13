@@ -160,6 +160,7 @@ async function singleSchoolPromptJourney(page,name){
   const prompts=(await page.locator('.question-button strong').allTextContents()).map(text=>text.trim());
   assert(prompts.includes('学校简介'),`${name}: school profile follow-up missing`);
   assert(prompts.includes('学校环境'),`${name}: school environment follow-up missing`);
+  assert(prompts.includes('看学校哪些专业更有底子'),`${name}: school major-background follow-up missing`);
   await checkGeometry(page,`${name}:single-school-prompts`);
   if(name!=='pc')return;
   const experience=await submitTurn(page,'学校环境呢',{timeout:120000});
