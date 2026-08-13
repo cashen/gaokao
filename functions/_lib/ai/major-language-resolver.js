@@ -6,7 +6,7 @@ const ALIASES={"飞行器环境与生命保障工程":"飞行器环境与生命�
 export const AI_MAJOR_LANGUAGE_RESOLVER_VERSION='ai-major-language-resolver-v3992_1';
 const SPOKEN_ALIAS_OVERRIDES=Object.freeze({测控:'测控技术与仪器'});
 export const MAJOR_LANGUAGE_ALIASES=Object.freeze({...ALIASES,...SPOKEN_ALIAS_OVERRIDES});
-export const MAJOR_LANGUAGE_TERMS=Object.freeze(Object.keys(ALIASES).sort((a,b)=>b.length-a.length));
+export const MAJOR_LANGUAGE_TERMS=Object.freeze(Object.keys(MAJOR_LANGUAGE_ALIASES).sort((a,b)=>b.length-a.length));
 const BROAD_MAJOR_TERMS=Object.freeze(['机械','计算机','电子信息','电气','自动化','通信','能源','石油','化工','材料','冶金','土木','建筑','医学','师范','数学','物理','化学','生物','会计','金融','经济','工商管理','新闻','中文','外语','英语','农学','食品']);
 
 export function normalizeMajorLanguage(value){
@@ -14,6 +14,7 @@ export function normalizeMajorLanguage(value){
   if(!key)return'';
   // Broad words intentionally remain broad; every other catalog alias is
   // normalized when it maps safely to one canonical undergraduate major.
+  if(SPOKEN_ALIAS_OVERRIDES[key])return SPOKEN_ALIAS_OVERRIDES[key];
   if(BROAD_MAJOR_TERMS.includes(key))return key;
-  return SPOKEN_ALIAS_OVERRIDES[key]||MAJOR_LANGUAGE_ALIASES[key]||key;
+  return MAJOR_LANGUAGE_ALIASES[key]||key;
 }
