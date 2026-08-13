@@ -61,7 +61,7 @@ export async function orchestrateAiTurn(context,payload={}){
   if(CANDIDATE_TASKS.has(command.agentTask))changeText=changeSummary(resolved.previousView,view,command);
   else if(command.agentTask==='major_region_history')changeText=`${changeSummary(resolved.previousView,view,command)} 同时直接查${view.majorKeywords.join(' / ')||focus.major}在当前地区的2026物理类实际投档分数；这轮不需要先给个人分数。`;
   else if(command.agentTask==='fact_rank_lookup')changeText=`这次只回答${validScore(command.score)||score}分对应的参考位次，不改变你正在看的候选条件。`;
-  else if(command.agentTask==='school_major_history')changeText=`这轮切到“学校 × 专业历史查询”：${focus.school} · ${focus.major}。${score?'我仍记得你的分数，但这轮不拿它过滤历史记录。':''}`;
+  else if(command.agentTask==='school_major_history')changeText=`这轮切到“学校 × 专业历史查询”：${focus.school} · ${(focus.majors?.length?focus.majors:[focus.major]).filter(Boolean).join('、')}。${score?'我仍记得你的分数，但这轮不拿它过滤历史记录。':''}`;
   else if(command.agentTask==='school_history')changeText=`这轮只看${focus.school}在辽宁物理类的实际招生专业记录${score?'；你的分数仍记着，但不参与筛选':''}。`;
   else if(command.agentTask==='school_research')changeText=`我先直接回答${focus.school}是什么学校，再补有证据的专业背景和2026辽宁投档事实；这轮不会修改你的候选筛选。`;
   else if(command.agentTask==='school_official_qa')changeText=`这轮只查${focus.school}的阳光高考官方资料${score?'；你的分数仍记着，但不参与学校介绍和章程归纳':''}。`;
@@ -84,7 +84,7 @@ export async function orchestrateAiTurn(context,payload={}){
       case'major_region_history':
         result.majorHistory=await runMajorRegionHistory(executionContext,{majorKeyword:focus.major||(view.majorKeywords||[])[0]||'',regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok;break;
       case'school_major_history':
-        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:(focus.majors?.length?focus.majors.join('/'):(focus.major||''))});result.partial=!result.history.ok;break;
+        result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeywords:focus.majors?.length?focus.majors:[focus.major||'']});result.partial=!result.history.ok;break;
       case'school_history':
         result.history=await runSchoolMajorHistory(executionContext,{school:focus.school,majorKeyword:''});result.partial=!result.history.ok;break;
       case'school_research':

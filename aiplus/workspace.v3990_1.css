@@ -99,3 +99,24 @@ body{background:var(--bg);color:var(--ink)}
   .composer-buttons .primary{width:100%;min-height:48px}.composer-help{font-size:11px}
 }
 @media(min-width:761px) and (max-width:1040px){.composer-row{max-width:none}}
+
+/* v3992_8: result cards share the history-item class with the desktop drawer.
+   Keep the two layouts isolated so narrow screens never squeeze a major name into one character per line. */
+.result-card .history-list .history-item{display:block;grid-template-columns:none;min-width:0;width:100%;box-sizing:border-box}
+.result-card .history-list .history-item .candidate-head{min-width:0}
+.result-card .history-list .history-item .candidate-school,.result-card .history-list .history-item .candidate-major,.result-card .history-list .history-item .candidate-location{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.conversation{min-width:0}
+@media(max-width:760px){
+  .conversation{padding-bottom:clamp(104px,18vh,168px);scroll-padding-bottom:clamp(104px,18vh,168px)}
+  .result-card .history-list .history-item{padding:11px 12px}
+  .result-card .history-list .history-item .candidate-head{grid-template-columns:minmax(0,1fr);width:100%}
+  .result-card .history-list .history-item .candidate-reference{max-width:100%}
+}
+
+/* v3992_8: related-major confirmation stays optional and readable on every terminal */
+.major-suggestions{display:grid;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#dce5df)}
+.major-suggestions-title{font-size:13px;color:#53645a}
+.major-suggestion{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 10px;border:1px solid #e0e7e1;border-radius:10px;background:#f8faf8}
+.major-suggestion>span{min-width:0;overflow-wrap:anywhere;line-height:1.5;color:#3f5148}
+.major-suggestion-button{flex:0 0 auto;min-height:36px;padding:7px 10px;border:1px solid #cbded1;border-radius:9px;background:#fff;color:#35684e;cursor:pointer}
+@media(max-width:560px){.major-suggestion{align-items:stretch;flex-direction:column}.major-suggestion-button{width:100%}}

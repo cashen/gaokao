@@ -1,6 +1,6 @@
 
 import { runAiProvider } from './provider-router.js';
-import { MAJOR_LANGUAGE_TERMS, normalizeMajorLanguage } from './major-language-resolver.js';
+import { BROAD_MAJOR_TERMS, MAJOR_LANGUAGE_TERMS, normalizeMajorLanguage } from './major-language-resolver.js';
 import { deterministicMentorProfile, mentorCommandSchema, mentorSystemGuide, normalizeMentorProfile } from './mentor-profile.js';
 import { PROVINCE_LEVEL_NAMES, REGION_OPTIONS, REGION_GROUPS, provinceRegionKey } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
 import {
@@ -11,7 +11,7 @@ import {
 export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_4';
 export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_4';
 
-const MAJOR_TERMS=MAJOR_LANGUAGE_TERMS;
+const MAJOR_TERMS=Object.freeze([...new Set([...MAJOR_LANGUAGE_TERMS,...BROAD_MAJOR_TERMS])]);
 function normalizeMajorTerm(value){return normalizeMajorLanguage(value);}
 const GROUP_LABELS=Object.freeze({江浙沪:'jiangzhehu',华中:'huazhong',西南:'southwest',西北:'northwest'});
 const REGION_LABEL_BY_KEY=Object.freeze(Object.fromEntries(REGION_OPTIONS.map(item=>[item.key,item.label])));
@@ -185,7 +185,7 @@ function explicitScoreDirective(source){return /(不考虑|不用管|先别管|�
 
 function deterministicBase(text,workspace={},resolvedSchoolNames=[],resolvedSchoolAliases=[]){
   const source=clean(text,1200),score=scoreFromText(source),schoolNamesFromInput=schoolNamesFromText(source,resolvedSchoolNames),positive0=positiveMajors(source,schoolNamesFromInput,resolvedSchoolAliases),negative=negativeMajors(source,schoolNamesFromInput,resolvedSchoolAliases),schools0=schoolNamesFromInput,geo=geographyFromText(source),bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace);
-  let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);if(schools.length){const inferredMajor=inferSchoolHistoryMajor(source,resolvedSchoolAliases,schools);if(inferredMajor)majors=[inferredMajor];}
+  let majors=resolveReferenceMajors(source,positive0,workspace),schools=resolveReferenceSchools(source,schools0,workspace);if(schools.length&&!majors.length){const inferredMajor=inferSchoolHistoryMajor(source,resolvedSchoolAliases,schools);if(inferredMajor)majors=[inferredMajor];}
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
   const mentorProfile=deterministicMentorProfile(source),hasCompare=compareLanguage(source,majors),restore=restoreLanguage(source),rankIntent=Boolean(score&&rankQuestionLanguage(source)&&!schools0.length&&!positive0.length),candidateLexical=candidateLanguage(source),patch=deterministicPatch(source,{score,positive:majors,negative,schools,geo,bottomLineMode,clearMajor,clearSchool,clearRegion}),schoolKnowledge=Boolean(schools.length&&schoolKnowledgeLanguage(source)),candidateFollowup=candidateFacetFollowup(source,workspace,{majors,schools,geo,clearMajor,clearSchool,clearRegion}),candidateIntent=!schoolKnowledge&&(candidateLexical||Boolean(platformTarget)||Boolean(bottomLineMode)||Boolean(score)||candidateFollowup);
