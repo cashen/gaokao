@@ -7,6 +7,11 @@ export async function runBoundedBatch(items,worker,{concurrency=3}={}){
   return results;
 }
 
+export function deterministicToolBatchConcurrency(items=[],fallback=3){
+  const source=Array.isArray(items)?items:[],safeFallback=Math.max(1,Math.min(4,Math.round(Number(fallback)||3));
+  return source.some(item=>item?.kind==='major_bands')?1:safeFallback;
+}
+
 export function uniqueToolRequests(items=[],max=24){
   const out=[],seen=new Set();
   for(const item of items||[]){const key=String(item?.key||'');if(!key||seen.has(key))continue;seen.add(key);out.push(item);if(out.length>=max)break;}
