@@ -134,7 +134,17 @@ export async function runMajorBandSearch(context,{score,majorKeywords=[],regionK
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
 function historyRecord(record={}){
-  return{id:clean(record.id,220),school:clean(record.school||record.schoolName,100),major:clean(record.major||record.majorName,160),score2026:Number(record.score2026??record.score)||null,rank2026:Number(record.rank2026??record.rank)||null,schoolCode2026:clean(record.schoolCode2026,40),majorCode2026:clean(record.majorCode2026,40),projectLabel:clean(record.projectLabel,80),displayLocation:clean(record.displayLocation||record.city,80),bandKey:clean(record.bandKey,30),scoreDelta:Number.isFinite(Number(record.scoreDelta2026??record.scoreDelta))?Number(record.scoreDelta2026??record.scoreDelta):null,rankGap:Number.isFinite(Number(record.rankGap2026??record.rankGap))?Number(record.rankGap2026??record.rankGap):null};
+  return{id:clean(record.id,220),school:clean(record.school||record.schoolName,100),major:clean(record.major||record.majorName,160),score2026:Number(record.score2026??record.score)||null,rank2026:Number(record.rank2026??record.rank)||null,schoolCode2026:clean(record.schoolCode2026,40),majorCode2026:clean(record.majorCode2026,40),projectLabel:clean(record.projectLabel,80),displayLocation:clean(record.displayLocation||record.city,80),bandKey:clean(record.bandKey,30),scoreDelta:Number.isFinite(Number(record.scoreDelta2026??record.scoreDelta))?Number(record.scoreDelta2026??record.scoreDelta):null,rankGap:Number.isFinite(Number(record.rankGap2026??record.rankGap))?Number(record.rankGap2026??record.rankGap):null,matchLevel:clean(record.matchLevel,30),matchLabel:clean(record.matchLabel,40),matchReason:clean(record.matchReason,220),matchedKeyword:clean(record.matchedKeyword,120)};
+}
+function majorSuggestionsFor(records=[],school=''){
+  const suggestions=[],seen=new Set();
+  for(const record of records){
+    const query=clean(record.queryMajor,80),major=clean(record.major,160);
+    if(!query||!major||major===query||query.length>6||record.matchLevel!=='exact'||seen.has(major))continue;
+    seen.add(major);suggestions.push({major,prompt:`${school}${major}多少分`,reason:`你问的是“${query}”，这个学校还有名称更具体的同类专业；要不要把它单独拿出来看？`});
+    if(suggestions.length>=3)break;
+  }
+  return suggestions;
 }
 export async function runSchoolOfficialInfo(context,{school,question=''}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
@@ -170,7 +180,7 @@ export async function runSchoolMajorHistory(context,{school,majorKeyword='',majo
   }
   const records=responses.flatMap(({query,payload})=>(payload.records||[]).map(record=>({...historyRecord(record),queryMajor:query})));
   const summary=requested.length>1?{...responses[0].payload.summary,uniqueMajorCount:new Set(records.map(record=>record.major).filter(Boolean)).size}:responses[0].payload.summary||{};
-  return{ok:true,school:responses[0].payload?.meta?.school||school,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,records,summary,meta:responses[0].payload?.meta||{},source:responses[0].payload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；学校历史事实由公开 school-majors 确定性接口执行，本轮不使用考生分数筛选。'};
+  return{ok:true,school:responses[0].payload?.meta?.school||school,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,records,majorSuggestions:majorSuggestionsFor(records,responses[0].payload?.meta?.school||school),summary,meta:responses[0].payload?.meta||{},source:responses[0].payload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:'只展示辽宁2026物理类实际投档记录；学校历史事实由公开 school-majors 确定性接口执行，本轮不使用考生分数筛选。'};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要已知参考分数才能判断当前可达性。'};
