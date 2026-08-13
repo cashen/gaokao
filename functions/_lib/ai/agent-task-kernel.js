@@ -65,15 +65,17 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
+  const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
     (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||
     /^(继续|再看|展开|还有|全部|都列|往下看)/.test(source)
   );
-  const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
   const resolvedSchoolGeneralQuestion=Boolean(schools.length&&/(怎么样|如何|咋样)[？?]?$/.test(source));
   const strippedSchoolReference=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source).replace(/[\s，,。！？!?；;：:]/g,'');
-  const bareResolvedSchool=Boolean(schools.length===1&&!strippedSchoolReference&&['candidate_discovery','candidate_refinement','major_region_history','school_history','school_major_history','school_background','school_research','school_official_qa','school_experience','fit_assessment'].includes(priorTask));
+  const sourceBareSchool=source.replace(/[\s，,。！？!?；;：:]/g,'').replace(/(学校|大学|学院)$/,'');
+  const resolvedBareSchool=String(school||'').replace(/(学校|大学|学院)$/,'');
+  const bareResolvedSchool=Boolean(schools.length===1&&(!strippedSchoolReference||sourceBareSchool===resolvedBareSchool)&&['candidate_discovery','candidate_refinement','major_region_history','school_history','school_major_history','school_background','school_research','school_official_qa','school_experience','fit_assessment'].includes(priorTask));
   const experienceOnly=Boolean(school&&looksSchoolExperience(source)&&!looksFit(source)&&!looksHistory(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const broadSchoolResearch=Boolean(school&&(looksBroadSchoolResearch(source)||resolvedSchoolGeneralQuestion||bareResolvedSchool)&&!experienceOnly&&!looksFit(source)&&!looksBackground(source)&&!looksHistory(source)&&!looksSpecificOfficialTopic(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','school_experience','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
   const officialSchoolOnly=Boolean(school&&(looksOfficialSchoolInfo(source)||resolvedSchoolGeneralQuestion)&&!broadSchoolResearch&&!looksFit(source)&&!looksBackground(source)&&!/(多少分|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次|排名|去年|往年|历年)/.test(source)&&explicitMajors.length===0&&(schools.length||['school_major_history','school_history','school_research','school_official_qa','fit_assessment','school_background'].includes(priorTask)||/(这个学校|这所学校|那个学校|那所学校|该校)/.test(source)));
