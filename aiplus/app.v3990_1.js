@@ -1,6 +1,6 @@
 
 import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=3992_0';
-import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=3992_0';
+import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=3992_6';
 import {starterScenariosForScore} from '/aiplus/parent-starter.v3992_1.js?v=3992_1';
 import {loadCurrentWorkspace,saveCurrentWorkspace,listWorkspaceHistory,loadWorkspaceSession,deleteWorkspaceSession,workspaceHistoryMeta} from '/aiplus/history-store.v3992_4.js?v=3992_4';
 const AI_PLUS_SCHOOL_MODE=document.body?.dataset?.aiPlus==='school-official-qa';
