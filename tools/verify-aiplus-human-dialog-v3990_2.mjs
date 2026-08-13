@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createAiWorkspace } from '../shared/ai/ai-workspace-contract.v3992_0.js';
 import { deterministicCommand, resolveAiSchoolMentionsDetailed } from '../functions/_lib/ai/command-interpreter.js';
+import { RESEARCH_RELATION_LABELS, researchRelationActions } from '../functions/_lib/ai/research-relations.js';
 
 const aliases = new Map([
   ['沈阳工业', '沈阳工业大学'],
@@ -73,6 +74,10 @@ expect(await command('介绍下沈阳师范', candidate), { task: 'school_resear
 expect(await command('介绍下辽宁师范的学校环境', candidate), { task: 'school_experience', school: '辽宁师范大学' });
 expect(await command('辽宁科技大学哪些专业更有底子', candidate), { task: 'school_background', school: '辽宁科技大学' });
 expect(await command('辽宁科技大学哪个专业最好', candidate), { task: 'school_background', school: '辽宁科技大学' });
+assert.equal(RESEARCH_RELATION_LABELS.schoolMajorBackground, '看学校哪些专业更有底子');
+assert.deepEqual(researchRelationActions({ task: 'school_history', school: '辽宁科技大学' }).map(item => item.label), ['学校简介', '学校环境', '看学校哪些专业更有底子']);
+assert.deepEqual(researchRelationActions({ task: 'school_background', school: '辽宁科技大学', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业最低分', '学校环境', '看证据依据']);
+assert.deepEqual(researchRelationActions({ task: 'major_background', major: '电气工程及其自动化' }).map(item => item.label), ['看这个专业最低分', '看辽宁其他学校', '学校简介']);
 expect(await command('省内机械电子所有学校分数从高到低', candidate), { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
 expect(await command('省内电气工程及自动化专业所有的分数', candidate), { task: 'major_region_history', major: '电气工程及其自动化', commit: true, scoreUsage: 'suspended' });
 const majorHistoryFollowup = createAiWorkspace({
