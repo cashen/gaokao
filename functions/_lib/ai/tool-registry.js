@@ -126,7 +126,8 @@ export async function runMajorBandSearch(context,{score,majorKeywords=[],regionK
   const normalizedPlatformTarget=normalizePlatformTarget(platformTarget),params={score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,platformTarget:normalizedPlatformTarget,limit:16},executions=[];
   // A nationwide query with a short spoken major family (for example “电气” or “机械”) can scan a large rank window. The parent needs a useful first pass, not three repeated scans; keep the main reference band for broad wording and retain all bands for explicit major names.
   const broadSpokenMajor=keyword.split('/').some(item=>item.length>0&&item.length<=2);
-  const requestedBands=broadSpokenMajor?['near']:AI_MAJOR_BAND_KEYS;
+  const localLiaoningQuery=executionRegion==='ln'||executionRegion==='province:辽宁';
+  const requestedBands=broadSpokenMajor&&!localLiaoningQuery?['near']:AI_MAJOR_BAND_KEYS;
   for(const band of AI_MAJOR_BAND_KEYS){if(!requestedBands.includes(band))continue;const execution=await executeMajorBandsOnce(context,params,band);if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;executions.push(execution);}
   const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;merged.requestedBands=requestedBands;if(broadSpokenMajor)merged.warnings=[`“${keyword}”属于宽泛专业说法，首轮先展示主要参考分档，避免一次查询过重。`,...(merged.warnings||[])].slice(0,8);if(normalizedPlatformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,normalizedPlatformTarget);return merged;
 }
