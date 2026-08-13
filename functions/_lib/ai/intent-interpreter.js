@@ -72,7 +72,8 @@ function regionMentions(text) {
 
 function bottomLineFromText(text) {
   const source = String(text || '');
-  if (/(不接受|不要|排除).{0,5}(中外|高收费|民办)|只看公办普通|只要公办普通/.test(source)) return 'public_regular_only';
+  if (/只看公办普通|只要公办普通|(?:不接受|不要|排除|取消|去掉|不看).{0,5}民办/.test(source)) return 'public_regular_only';
+  if (/(?:不接受|不要|排除|取消|去掉|不看).{0,5}(中外|高收费)/.test(source)) return 'exclude_sino';
   if (/公办优先/.test(source)) return 'public_first';
   if (/(接受|可以).{0,5}(中外|高收费)|公办含中外/.test(source)) return 'public_include_sino';
   return 'all';
