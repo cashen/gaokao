@@ -38,7 +38,7 @@ assert.match(render,/node\('div','turn-understanding'\)/);
 assert.doesNotMatch(render,/node\('details','turn-understanding'\)/);
 assert.match(product,/\.answer-surface \.turn-understanding\{margin:0;padding:11px 20px/);
 
-assert.match(app,/runBoundedBatch\(tools,[^\n]+concurrency:DETERMINISTIC_BATCH_CONCURRENCY/);
+assert.match(app,/runBoundedBatch\(tools,[^\n]+concurrency:deterministicToolBatchConcurrency\(tools,DETERMINISTIC_BATCH_CONCURRENCY\)/);
 assert.match(app,/DETERMINISTIC_BATCH_CONCURRENCY=3,MAX_ORCHESTRATION_ROUNDS=4/);
 assert.match(app,/function beginViewportTransaction/);
 assert.match(app,/function restoreViewportTransaction/);
