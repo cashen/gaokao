@@ -71,6 +71,8 @@ expect(await command('了解一下辽科大', candidate), { task: 'school_resear
 expect(await command('沈航怎么样', candidate), { task: 'school_research', school: '沈阳航空航天大学' });
 expect(await command('介绍下沈阳师范', candidate), { task: 'school_research', school: '沈阳师范大学' });
 expect(await command('介绍下辽宁师范的学校环境', candidate), { task: 'school_experience', school: '辽宁师范大学' });
+expect(await command('辽宁科技大学哪些专业更有底子', candidate), { task: 'school_background', school: '辽宁科技大学' });
+expect(await command('辽宁科技大学哪个专业最好', candidate), { task: 'school_background', school: '辽宁科技大学' });
 expect(await command('省内机械电子所有学校分数从高到低', candidate), { task: 'major_region_history', major: '机械电子工程', commit: true, scoreUsage: 'suspended' });
 expect(await command('省内电气工程及自动化专业所有的分数', candidate), { task: 'major_region_history', major: '电气工程及其自动化', commit: true, scoreUsage: 'suspended' });
 const majorHistoryFollowup = createAiWorkspace({
