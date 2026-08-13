@@ -124,8 +124,11 @@ export async function runMajorBandSearch(context,{score,majorKeywords=[],regionK
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要参考分数后才能执行候选查询。'};
   const regions=normalizeRegionKeys(regionKeys).slice(0,4),keyword=unique(majorKeywords,8).join('/'),executionRegion=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');
   const normalizedPlatformTarget=normalizePlatformTarget(platformTarget),params={score:numeric,rangePreset:'standard',region:executionRegion,majorKeyword:keyword,schoolKeyword,bottomLineMode,platformTarget:normalizedPlatformTarget,limit:16},executions=[];
-  for(const band of AI_MAJOR_BAND_KEYS){const execution=await executeMajorBandsOnce(context,params,band);if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;executions.push(execution);}
-  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;if(normalizedPlatformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,normalizedPlatformTarget);return merged;
+  // A nationwide query with a short spoken major family (for example “电气” or “机械”) can scan a large rank window. The parent needs a useful first pass, not three repeated scans; keep the main reference band for broad wording and retain all bands for explicit major names.
+  const broadSpokenMajor=keyword.split('/').some(item=>item.length>0&&item.length<=2);
+  const requestedBands=broadSpokenMajor&&executionRegion==='all'?['near']:AI_MAJOR_BAND_KEYS;
+  for(const band of requestedBands){const execution=await executeMajorBandsOnce(context,params,band);if(execution?.code==='client_tool_required'||execution?.code==='client_tool_invalid')return execution;executions.push(execution);}
+  const merged=mergeCandidateExecutions(executions);merged.regionsRequested=regions;merged.requestedBands=requestedBands;if(broadSpokenMajor&&executionRegion==='all')merged.warnings=[`“${keyword}”属于宽泛专业说法，全国范围先展示主要参考分档，避免一次查询过重。`,...(merged.warnings||[])].slice(0,8);if(normalizedPlatformTarget)merged.platformUpgrade=platformUpgradePreview(merged.records,normalizedPlatformTarget);return merged;
 }
 
 export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}
