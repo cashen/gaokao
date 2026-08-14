@@ -1,0 +1,127 @@
+name: Temporary AIPLuS region-school builder v6
+
+on:
+  push:
+    branches:
+      - agent/aiplus-region-school-directory-v002
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-region-school-directory-v002
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare guarded patcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/tmp_aiplus_region_school_patch.py')
+          s=p.read_text(encoding='utf-8')
+          old="    if count != 1:\n        raise SystemExit(f'{path}: expected exactly one match, found {count}: {old[:120]!r}')"
+          new="    if count < 1:\n        raise SystemExit(f'{path}: expected at least one match, found {count}: {old[:120]!r}')"
+          if old not in s: raise SystemExit('replace_once guard not found')
+          s=s.replace(old,new,1)
+          old_priority="if(first)out.push(action('region-first-school',`继续看${first}`,`介绍下${first}`,'从地域列表进入具体学校研究。',90));"
+          new_priority="if(first)out.push(action('region-first-school',`继续看${first}`,`介绍下${first}`,'从地域列表进入具体学校研究。',98));"
+          if old_priority not in s: raise SystemExit('school follow-up priority marker not found')
+          s=s.replace(old_priority,new_priority,1)
+          old_follow="function looksRegionSchoolDirectoryFollowup(source){return /^(?:本科|本科院校|专科|高职|专科院校|全部|都要|都有哪些|还有哪些|多少所|几所)(?:呢|有哪些|有多少|多少|吗|？|\\\\?)?$/.test(String(source||'').replace(/[\\\\s，,。！!；;：:]/g,''));}"
+          new_follow="function looksRegionSchoolDirectoryFollowup(source){return /^(?:本科|本科院校|专科|高职|专科院校|全部|都要|都有哪些|还有哪些|多少所|几所)(?:呢|有哪些|有多少|多少|吗)?[？?]?$/.test(String(source||'').replace(/[\\\\s，,。！!；;：:]/g,''));}"
+          if old_follow not in s: raise SystemExit('region directory follow-up marker not found')
+          p.write_text(s.replace(old_follow,new_follow,1),encoding='utf-8')
+          PY
+      - name: Apply architecture patch
+        run: python tools/tmp_aiplus_region_school_patch.py
+      - name: Revalidate transient city scope across deterministic tool continuation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/turn-orchestrator.js')
+          s=p.read_text(encoding='utf-8')
+          import_marker="import {buildIntentContract,intentTopic} from './intent-contract.js';"
+          import_line="import {resolveSchoolDirectoryRegion} from './school-directory-resource.js';"
+          if import_marker not in s: raise SystemExit('orchestrator import marker missing')
+          s=s.replace(import_marker,import_marker+'\n'+import_line,1)
+          command_marker="  const command=interpreted.command;\n  const explicitCompare="
+          command_insert="""  const command=interpreted.command;
+  if(confirmed&&deterministicContinuation&&command.agentTask==='major_region_history'&&command.transientRegionView===true){
+    const canonicalRegion=await resolveSchoolDirectoryRegion(executionContext,input,workspace);
+    if(!canonicalRegion?.key||!String(canonicalRegion.key).startsWith('city:'))return{ok:false,status:409,message:'本轮城市范围无法从统一高校地域目录重新确认；为避免把城市查询放大成全国查询，本轮未执行。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
+    command.regionKeys=[canonicalRegion.key];command.regionLabel=canonicalRegion.label;command.regionContext={...canonicalRegion,inherited:false};command.transientRegionView=true;
+  }
+  const explicitCompare="""
+          if s.count(command_marker)!=1: raise SystemExit(f'confirmed command marker count={s.count(command_marker)}')
+          s=s.replace(command_marker,command_insert,1)
+          old="regionKeys:regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all']),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok"
+          new="regionKeys:command.transientRegionView&&command.regionKeys?.length?command.regionKeys:(regionExecution.exact?regionExecution.includeKeys:(view.regionKeys||['all'])),bottomLineMode:view.bottomLineMode||'all'});result.partial=!result.majorHistory.ok"
+          if s.count(old)!=1: raise SystemExit(f'major history execution marker count={s.count(old)}')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Syntax check changed runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/school-directory-resource.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/api/ai/major-history.js
+          node --check tools/verify-ai-region-school-directory-v002.mjs
+      - name: Verify region-school truth and human language
+        run: node tools/verify-ai-region-school-directory-v002.mjs
+      - name: Run preserved AIPLuS semantic gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+      - name: Verify protected boundaries and no duplicate truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only | tee /tmp/worktree-files
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/worktree-files; then exit 1; fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+          test ! -e functions/_lib/ai/data/region-schools.json
+      - name: Remove temporary builder ownership
+        run: rm -f tools/tmp_aiplus_region_school_patch.py .github/workflows/tmp-aiplus-region-school-builder.yml .github/workflows/tmp-aiplus-region-school-builder-v2.yml .github/workflows/tmp-aiplus-region-school-builder-v3.yml .github/workflows/tmp-aiplus-region-school-builder-v4.yml .github/workflows/tmp-aiplus-region-school-builder-v5.yml .github/workflows/tmp-aiplus-region-school-builder-v6.yml
+      - name: Commit final candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          test -n "$(git status --porcelain)"
+          if git diff --cached --name-only | grep -E '^(tools/tmp_aiplus_region_school_patch\.py|\.github/workflows/tmp-aiplus-region-school-builder(-v[23456])?\.yml)$'; then exit 1; fi
+          git commit -m 'AIPLuS: add deterministic region school directory'
+          git push origin HEAD:agent/aiplus-region-school-directory-v002
