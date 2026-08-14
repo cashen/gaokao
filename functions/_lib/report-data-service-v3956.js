@@ -1,4 +1,4 @@
-import { loadAllRecords } from './ln-rank-manifest.js';
+import { selectMajorBandsStaticBuckets, loadMajorBandsStaticBucket } from './major-bands-static-provider.js';
 import { normalizeRecord, rawScore, rawSchool } from './fenxi-normalizer.js';
 import { makeBands } from './band-engine.js';
 import { matchRegion } from './major-filter.js';
@@ -82,6 +82,21 @@ export function normalizeReportParams(input = {}) {
 function minMaxScore(bands) {
   const all = [bands.upper, bands.near, bands.steady];
   return { min: Math.min(...all.map(item => item.minScore)), max: Math.max(...all.map(item => item.maxScore)) };
+}
+
+async function loadBoundedReportRecords(request, env, scoreWindow) {
+  const options = { assets: env?.ASSETS };
+  const { manifest, buckets } = await selectMajorBandsStaticBuckets(request, scoreWindow, options);
+  const records = [];
+  const bucketFiles = [];
+  let decodedRows = 0;
+  for (const bucket of buckets) {
+    const loaded = await loadMajorBandsStaticBucket(request, bucket.file, scoreWindow, options);
+    decodedRows += Number(loaded.rowCount || 0);
+    bucketFiles.push(bucket.file);
+    records.push(...loaded.records);
+  }
+  return { manifest, records, decodedRows, bucketFiles };
 }
 
 function normalizeCodesAndMajor(record, raw = record) {
@@ -197,8 +212,9 @@ function directReportData(input, params, bandsMeta) {
 }
 
 async function rebuildCanonicalReportData(request, env, input, params, bandsMeta) {
-  const { manifest, records: rawRecords } = await loadAllRecords(request, env || {});
   const scoreWindow = minMaxScore(bandsMeta);
+  const boundedLoad = await loadBoundedReportRecords(request, env || {}, scoreWindow);
+  const { manifest, records: rawRecords } = boundedLoad;
   const grouped = initGrouped(bandsMeta);
   const keywordQuery = buildKeywordQuery(params.filters.majorKeyword);
   const filters = { ...params.filters, keywordQuery };
@@ -258,8 +274,10 @@ async function rebuildCanonicalReportData(request, env, input, params, bandsMeta
   counts.total = counts.upper + counts.near + counts.steady;
   const selectedRecords = grouped[params.activeBand].records.slice(0, params.maxRecords);
   if (!selectedRecords.length) throw new Error('当前筛选条件下没有可生成的专业结果。');
-  return baseReportOutput(params, bandsMeta, selectedRecords, counts, 'canonical-server-rebuild-2026', {
+  return baseReportOutput(params, bandsMeta, selectedRecords, counts, 'bounded-major-bands-server-rebuild-2026', {
     manifest,
+    runtimeBuckets: boundedLoad.bucketFiles,
+    runtimeDecodedRows: boundedLoad.decodedRows,
     bands: grouped,
     selectedBand: { ...grouped[params.activeBand], records: selectedRecords, count: selectedRecords.length },
     bottomLineExcluded,

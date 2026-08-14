@@ -1,6 +1,5 @@
 const TTL = 5 * 60 * 1000;
 let manifestCache = null;
-const chunkCache = new Map();
 const EXACT_SCHOOL_CACHE_TTL_MS = 45 * 1000;
 const EXACT_SCHOOL_CACHE_MAX_ENTRIES = 8;
 const EXACT_SCHOOL_CACHE_MAX_RECORDS = 800;
@@ -260,21 +259,6 @@ export async function loadManifest(request, env) {
   if (Number(data.dataYear) !== 2026) throw new Error('ln-rank active manifest is not 2026');
   manifestCache = { time: Date.now(), data };
   return data;
-}
-
-export async function loadAllRecords(request, env) {
-  const manifest = await loadManifest(request, env);
-  const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-  const lists = await Promise.all(chunks.map(async chunk => {
-    const file = chunk.file || chunk.path;
-    if (!file) return [];
-    if (fresh(chunkCache.get(file))) return chunkCache.get(file).data;
-    const data = await fetchJson(request, file);
-    const records = rowsFromJson(data);
-    chunkCache.set(file, { time: Date.now(), data: records });
-    return records;
-  }));
-  return { manifest, records: lists.flat() };
 }
 
 export async function loadMatchingRecords(request, env, predicate) {
