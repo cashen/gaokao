@@ -1,4 +1,4 @@
-import { matchRegionRule } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
+import { matchRegionRule, normalizeCityName } from '../../../shared/resources/geo/china-region-catalog.v3990_1.js';
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_1';
@@ -72,6 +72,7 @@ function rowRecord(row, ix) {
 function regionMatch(record, region) {
   const key = clean(region, 220) || 'all';
   if (key === 'all') return true;
+  if (key.startsWith('city:')) return normalizeCityName(record.city) === normalizeCityName(key.slice(5));
   return matchRegionRule(record, key);
 }
 function summary(records = []) {

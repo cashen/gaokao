@@ -10,6 +10,16 @@ The ordinary AI route must not statically import `academic-background-provider.j
 
 Ordinary score, region, major, budget and family-preference turns must therefore be able to execute without materializing the background snapshot.
 
+## School directory by region
+
+AIPLuS region-school questions (for example “沈阳有哪些大学”“辽宁有多少大学”“深圳有哪些本科”) read the existing canonical school-location resource `/tongxue/data/school-search-index.20260617-v150.json` through `school-directory-resource.js`. This adapter does not copy the 2,900+ school rows into a second database and does not use the language model to generate school names or counts.
+
+School-existence truth and Liaoning-admission truth are deliberately separate. A region directory count must be computed from the complete school-location directory; it must not be reduced to schools that happen to have Liaoning 2026 physics admission records. When the user continues into a major or score question, the existing admission/history owners perform that next query and state their narrower admissions boundary.
+
+City names are resolved from the cities actually present in the canonical directory rather than a growing hard-coded city regex list. Knowledge-only region queries do not mutate the candidate active view. Generic-city major-history queries may use a transient `city:*` execution scope, but that scope is not persisted as a candidate filter unless the active candidate engine has an explicit supported region contract.
+
+The directory payload cache is isolate-local, promise-coalesced and time-bounded. It is an execution cache over the canonical asset, not a second truth source.
+
 ## School history
 
 AI school-history turns do not parse the Liaoning admissions rank chunks inside `/api/ai/turn`, and they do not send the browser through the rich public `/api/school-majors` graph. `tool-registry.js` emits a `school_history` deterministic browser request to `/api/ai/school-history`; that endpoint reads one exact-school entry from `/data/zy2026/school-index.json` and one preaggregated `school-XX.json` shard. The derived school shards are built from the same 11,628 canonical 2026 records. The release gate compares record identities and counts for all 956 schools in the 2026 admission directory, so the lighter execution path is not a second admissions truth set.

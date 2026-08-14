@@ -8,6 +8,7 @@ import {
   AI_BACKGROUND_RESOURCE_ADAPTER_VERSION
 } from './background-resource-adapter.js';
 import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from '../platform-upgrade-policy.js';
+import { querySchoolDirectory } from './school-directory-resource.js';
 import { AI_FACT_BRIDGE_CONTRACT_VERSION } from '../../../shared/ai/ai-workspace-contract.v3992_0.js';
 import {
   EXPERIENCE_TOPIC_KEYWORDS,EXPERIENCE_TOPIC_LABELS,normalizeExperienceTopic,normalizeProjectScope
@@ -27,6 +28,7 @@ export const AI_TOOL_REGISTRY=Object.freeze({
   major_band_search:Object.freeze({name:'major_band_search',deterministic:true,maxConcurrency:1}),
   school_major_history:Object.freeze({name:'school_major_history',deterministic:true,maxConcurrency:1}),
   major_region_history:Object.freeze({name:'major_region_history',deterministic:true,maxConcurrency:1}),
+  region_school_directory:Object.freeze({name:'region_school_directory',deterministic:true,maxConcurrency:1}),
   school_official_info:Object.freeze({name:'school_official_info',deterministic:true,maxConcurrency:1}),
   school_experience:Object.freeze({name:'school_experience',deterministic:true,maxConcurrency:1}),
   fit_assessment:Object.freeze({name:'fit_assessment',deterministic:true,maxConcurrency:1}),
@@ -190,6 +192,8 @@ export async function runMajorRegionHistory(context,{majorKeyword='',majorKeywor
   const successfulCount=responses.length,partial=successfulCount>0&&successfulCount<requested.length,allFailed=successfulCount===0,records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.school||'').localeCompare(String(b.school||''),'zh-CN')),scores=records.map(item=>Number(item.score2026)).filter(Number.isFinite),firstPayload=responses[0]?.payload||{},total=records.length,schoolCount=new Set(records.map(item=>item.school).filter(Boolean)).size;
   return{ok:true,partial,allFailed,majorKeyword:requested.length===1?clean(firstPayload.major||requested[0],160):'',majorKeywords:requested,region:clean(firstPayload.region,220),bottomLineMode:clean(firstPayload.bottomLineMode||bottomLineMode,40)||'all',matchedMajors:unique(responses.flatMap(item=>item.payload?.matchedMajors||[]),24),records,queryResults,summary:{total,schoolCount,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null},total,complete:!partial&&!allFailed&&responses.every(item=>item.payload?.complete===true),source:firstPayload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:clean(firstPayload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。',message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':''};
 }
+
+export async function runRegionSchoolDirectory(context,{region={},level='all'}={}){return querySchoolDirectory(context,{region,level});}
 
 export async function runSchoolMajorHistory(context,{school,majorKeyword='',majorKeywords=[],bottomLineMode='all'}={}){
   if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
