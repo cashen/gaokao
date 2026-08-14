@@ -13,7 +13,11 @@ const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_1';
 assert.ok(entryAssets.includes(geometryAsset),'AIPLuS geometry cache owner is not mounted');
 const coreEntryAssets=entryAssets.filter(value=>value!==geometryAsset);
 assert.ok(coreEntryAssets.length>=4,'active AIPLuS core assets were not found');
-assert.ok(coreEntryAssets.every(value=>value.endsWith('?v=002_1')),`mixed core entry cache transaction: ${coreEntryAssets.join(', ')}`);
+const coreEntryUrls=coreEntryAssets.map(value=>new URL(value,'https://aiplus.local'));
+assert.ok(coreEntryUrls.every(url=>url.searchParams.get('v')==='002_1'),`mixed core entry version transaction: ${coreEntryAssets.join(', ')}`);
+assert.ok(coreEntryUrls.every(url=>url.searchParams.get('scroll')==='002_1'),`mixed conversation scroll cache transaction: ${coreEntryAssets.join(', ')}`);
+assert.ok(coreEntryUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='scroll')),`unexpected core entry cache key: ${coreEntryAssets.join(', ')}`);
+assert.equal(new Set(coreEntryUrls.map(url=>url.search)).size,1,`core entry cache transaction must be atomic: ${coreEntryAssets.join(', ')}`);
 assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
 const moduleAssets=[...app.matchAll(/from '([^']+\?v=[^']+)'/g)].map(match=>match[1]);
 assert.ok(moduleAssets.length>=5,'AIPLuS module graph is unexpectedly small');
@@ -76,4 +80,4 @@ assert.match(workflow,/echo "preview_base=\$immutable_preview"/);
 assert.match(workflow,/require_text immutable-health/);
 assert.doesNotMatch(workflow,/data-ai-plus="school-official-qa"|"apiVersion":"ai-health-api-v3990_1"|"semanticMode":"command-active-view-history-v3990_1"/);
 
-console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','additive-geometry-cache-owner','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','additive-geometry-cache-owner','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
