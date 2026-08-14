@@ -1,3 +1,4 @@
+# rerun after locator-agnostic AI bridge shard verification
 name: Temporary ln-rank Worker vNext builder
 
 on:
