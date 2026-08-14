@@ -1,0 +1,68 @@
+name: Temporary ln-rank Worker vNext builder
+
+on:
+  push:
+    branches:
+      - agent/ln-rank-worker-resource-vnext
+    paths:
+      - .github/workflows/tmp-ln-rank-worker-vnext-builder.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/ln-rank-worker-resource-vnext
+          fetch-depth: 0
+      - name: Build bounded runtime projection and patch owners
+        run: python3 tools/tmp_ln_rank_worker_vnext_builder.py
+      - name: Validate generated JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/school-record-runtime-provider.vnext.js
+          node --check functions/api/school-majors.js
+          node --check functions/_lib/report-data-service-v3956.js
+          node --check functions/_lib/ln-rank-manifest.js
+          node --check tools/audit-worker-resource-architecture-vnext.mjs
+          node --check tools/verify-school-runtime-projection-vnext.mjs
+      - name: Verify school projection truth and Worker architecture
+        run: |
+          node tools/verify-school-runtime-projection-vnext.mjs
+          node tools/audit-worker-resource-architecture-vnext.mjs
+      - name: Run dependent deterministic regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/audit-major-bands-rank-kernel-v3990_1.mjs
+          node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-school-history-bridge-v3992_2.mjs
+      - name: Check protected boundaries and final diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --name-only HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+            echo 'protected boundary changed' >&2
+            exit 1
+          fi
+          node - <<'NODE'
+          const fs=require('fs');
+          const s=fs.readFileSync('functions/_lib/release-contract.js','utf8');
+          if(!s.includes('LN_RANK_RELEASE_CONTRACT')||!s.includes('RELEASE_CONTRACT')) throw new Error('release contract dual export lost');
+          NODE
+      - name: Commit clean candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py
+          git add data/zy2026/school-index.json data/zy2026/chunks functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js tools/audit-worker-resource-architecture-vnext.mjs tools/verify-school-runtime-projection-vnext.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(ln-rank): bound Worker admission resource ownership'
+          git push origin HEAD:agent/ln-rank-worker-resource-vnext
