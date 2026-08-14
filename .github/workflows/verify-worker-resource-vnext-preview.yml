@@ -73,7 +73,7 @@ jobs:
                 -H 'Cache-Control: no-cache' \
                 -H 'Pragma: no-cache' \
                 "${candidate}/api/ai/health?vnextSha=${EXPECTED_SHA}&attempt=${attempt}" || true)"
-              got_sha="$(jq -r '.commitSha // empty' <<<"$body" 2>/dev/null || true)"
+              got_sha="$(jq -r '.deployment.commitSha // empty' <<<"$body" 2>/dev/null || true)"
               if [ "$got_sha" = "$EXPECTED_SHA" ]; then
                 preview_base="$candidate"
                 break
