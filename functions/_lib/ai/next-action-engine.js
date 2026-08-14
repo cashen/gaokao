@@ -22,6 +22,7 @@ function resultSchool(result={}){
 
 function candidates({task,school,major,score,topic,result}={}){
   const s=clean(school),m=clean(major),scoreText=Number.isFinite(Number(score))?String(Number(score)):'',nextSchool=resultSchool(result);
+  if(task==='region_school_directory'){const directory=result?.regionSchools||{},region=clean(directory?.region?.label)||'当前地区',level=directory?.level||'all',first=clean(directory?.records?.[0]?.school||directory?.records?.[0]?.officialName),key=clean(directory?.region?.key),out=[];if(level==='all')out.push(action('region-undergraduate','只看本科',`${region}有哪些本科院校`,'把学校层次单独收窄，不改变候选筛选。',100));else out.push(action('region-all-schools','看全部高校',`${region}有哪些大学`,'回到本科和专科的完整地域目录。',100));out.push(action('region-major-history','看一个专业的学校和分数',`${region}电气工程及其自动化有哪些学校，2026都多少分`,'从学校目录进入确定性专业投档事实。',94));if(first)out.push(action('region-first-school',`继续看${first}`,`介绍下${first}`,'从地域列表进入具体学校研究。',98));if(scoreText&&(key==='ln'||key==='shenyang'||key==='dalian'||key.startsWith('province:')))out.unshift(action('region-score-fit','按我的分数看可达性',`按我${scoreText}分，只看${region}有哪些学校更现实`,'这一步才把地区写入候选筛选。',105));return out;}
   if(task==='school_research')return[
     action('research-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'查看学校专业积累和证据范围。',95),
     action('research-history',NEXT_ACTION_LABELS.schoolMajorHistory,`${s}所有专业的最低录取分`,'把学校画像与实际投档记录交叉看。',90),
