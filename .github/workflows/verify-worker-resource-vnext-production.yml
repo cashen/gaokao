@@ -23,7 +23,10 @@ jobs:
     timeout-minutes: 22
     env:
       EXPECTED_SHA: ${{ github.sha }}
-      TARGET_BASE: https://gaokao.powers.org.cn
+      # The Pages production domain is the canonical Functions deployment owner.
+      # The custom domain may intentionally return a Cloudflare Managed Challenge;
+      # that boundary is verified separately by production-api-health.
+      TARGET_BASE: https://gaokao-4y9.pages.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
