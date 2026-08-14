@@ -102,9 +102,16 @@ function validateSchool(result) {
 
 function validateMajorBands(result) {
   validateBase(result);
-  assert.equal(result.payload?.source?.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_1', `${result.label}: major-bands query kernel`);
-  assert.equal(result.payload?.source?.fullDatasetScan, false, `${result.label}: major-bands fullDatasetScan must be false`);
-  assert.ok(Number(result.payload?.source?.selectedBucketCount || result.payload?.source?.chunkCount || 0) < 30, `${result.label}: major-bands bucket fanout unexpectedly large`);
+  const source = result.payload?.source || {};
+  assert.equal(source.queryKernelVersion, 'major-bands-rank-query-kernel-v3990_1', `${result.label}: major-bands query kernel`);
+  assert.equal(source.architecture, 'single-worker-rank-window-over-immutable-static-buckets', `${result.label}: major-bands architecture`);
+  assert.equal(Number(source.totalRecords), 11628, `${result.label}: major-bands truth count`);
+  assert.equal(source.publicHttpSelfFanout, false, `${result.label}: public HTTP self-fanout must remain disabled`);
+  assert.equal(Number(source.bucketWorkerCount || 0), 0, `${result.label}: bucket sub-workers must remain disabled`);
+  const chunksRead = Number(source.chunksRead || 0);
+  const chunksTotal = Number(source.chunksTotal || 0);
+  assert.ok(chunksRead > 0 && chunksTotal > 0 && chunksRead < chunksTotal, `${result.label}: bounded bucket selection ${chunksRead}/${chunksTotal}`);
+  assert.ok(chunksRead < 30, `${result.label}: major-bands bucket fanout unexpectedly large: ${chunksRead}`);
 }
 
 function validateAiSchoolHistory(result) {
