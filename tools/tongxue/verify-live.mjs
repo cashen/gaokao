@@ -22,14 +22,25 @@ const functionResults = [];
 for (const school of summarySchools) {
   const row = await invokeFunction(school, 1);
   functionResults.push(row);
-  const passed = row.status === 200
+  const summaryPassed = row.status === 200
     && row.ok
     && row.mode === 'ai_summary'
     && row.version === 'v1.3.0'
     && row.summaryLength >= 40
     && row.reviewCount === 0
     && row.serverTiming.includes('total;dur=');
-  if (!passed) failures.push(`AI 摘要模式失败：${school} -> ${JSON.stringify(row)}`);
+  const reviewsPassed = row.status === 200
+    && row.ok
+    && row.mode === 'recent_reviews'
+    && row.version === 'v1.3.0'
+    && row.summaryLength === 0
+    && row.reviewCount >= 1
+    && row.reviewCount <= 6
+    && row.reviews.every(isValidReview)
+    && isNewestFirst(row.reviews)
+    && Number(row.pagination?.total || 0) >= row.reviewCount
+    && row.serverTiming.includes('total;dur=');
+  if (!summaryPassed && !reviewsPassed) failures.push(`公开内容模式失败：${school} -> ${JSON.stringify(row)}`);
 }
 
 for (const school of reviewFallbackSchools) {
