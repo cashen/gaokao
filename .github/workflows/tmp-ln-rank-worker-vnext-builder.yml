@@ -1,4 +1,4 @@
-# rerun with compact AI uid and semantic public parity
+# rerun after runtime projection cache verifier migration
 name: Temporary ln-rank Worker vNext builder
 
 on:
