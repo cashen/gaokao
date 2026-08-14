@@ -31,5 +31,10 @@ assert.equal(endpoint.includes('loadMatchingRecords('),false,'school-majors must
 if old not in s:
     raise SystemExit('legacy school-majors bridge assertion block not found')
 s=s.replace(old,new,1)
+old_path="assert.deepEqual(requests.map(item=>item.pathname),['/data/zy2026/school-index.json','/data/zy2026/chunks/school-06.json'],'cold query must read one index and one school shard only');"
+new_path="assert.equal(requests.length,2,'cold query must read exactly one index and one school shard');\n  assert.equal(requests[0]?.pathname,'/data/zy2026/school-index.json','cold query must read school index first');\n  assert.match(requests[1]?.pathname,/^\\/data\\/zy2026\\/chunks\\/school-\\d{2}\\.json$/,'cold query must read exactly one bounded school runtime shard');"
+if old_path not in s:
+    raise SystemExit('hard-coded school shard assertion not found')
+s=s.replace(old_path,new_path,1)
 p.write_text(s,encoding='utf-8')
 print('updated AI school-history bridge verifier for bounded school runtime projection')
