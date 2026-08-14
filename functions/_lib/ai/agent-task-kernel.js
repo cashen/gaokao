@@ -1,3 +1,5 @@
+import {looksRegionSchoolDirectoryLanguage,looksRegionSchoolDirectoryFollowup} from './region-school-language.js';
+
 export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5';
 
 export const AGENT_TASKS=Object.freeze([
@@ -60,8 +62,6 @@ function looksBroadSchoolResearch(source){const value=String(source||'');if(look
 function looksSchoolExperience(source){return /(学校环境|校园环境|校园氛围|学习氛围|人文关怀|管理人性|管理严格|老师负责|辅导员|同学评价|学生评价|学生口碑|真实体验|同学体验|在校体验|宿舍|住宿|食堂|食宿|寝室|公寓)/.test(String(source||''));}
 function looksOfficialSchoolInfo(source){return /(学校简介|院校简介|学校介绍|什么学校|学校定位|办学性质|主管部门|校区|宿舍|住宿|食堂|食宿|奖学金|助学金|奖助|联系方式|联系办法|招生电话|学校官网|招生网址|招生章程|录取规则|调档|退档|专业级差|志愿级差|转专业|学费|收费|院系设置|专业介绍|答考生问|毕业生就业|体检要求|(大学|学院|专科学校).{0,4}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样)|这个学校.{0,6}(怎么样|如何|咋样)|该校.{0,6}(怎么样|如何|咋样))/.test(source);}
 function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
-function looksRegionSchoolDirectory(source){return /(?:(?:有哪些|有那些|有什么|有啥|有多少|多少所|几所).{0,8}(?:大学|高校|院校|学校|本科(?:院校|大学)?|专科(?:院校|学校)?|高职(?:院校)?)|(?:大学|高校|院校|学校)(?:名单|数量|总数|一共多少所|共有多少所|有多少所|几所))/.test(String(source||''));}
-function looksRegionSchoolDirectoryFollowup(source){return /^(?:本科|本科院校|专科|高职|专科院校|全部|都要|都有哪些|还有哪些|多少所|几所)(?:呢|有哪些|有多少|多少|吗)?[？?]?$/.test(String(source||'').replace(/[\s，,。！!；;：:]/g,''));}
 function looksMajorRegionSchoolList(source){return /(?:哪些|那些|什么|啥|有什么|有啥|有哪些).{0,6}(?:学校|大学|高校|院校)|(?:学校|大学|高校|院校).{0,6}(?:有这个专业|有该专业|有吗)/.test(String(source||''));}
 
 export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode=''}={}){
@@ -88,8 +88,8 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(looksRestore(source))return'restore_view';
   if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
   const hasRegionScope=Array.isArray(regionKeys)&&regionKeys.length>0&&!regionKeys.includes('all');
-  if(!score&&!school&&!explicitMajors.length&&hasRegionScope&&(looksRegionSchoolDirectory(source)||(priorTask==='region_school_directory'&&looksRegionSchoolDirectoryFollowup(source))))return'region_school_directory';
-  if(!score&&!school&&explicitMajors.length&&hasRegionScope&&!looksFit(source)&&(looksHistory(source)||looksMajorRegionSchoolList(source)||priorTask==='region_school_directory'))return'major_region_history';
+  if(!score&&!schools.length&&!explicitMajors.length&&hasRegionScope&&(looksRegionSchoolDirectoryLanguage(source)||(priorTask==='region_school_directory'&&looksRegionSchoolDirectoryFollowup(source))))return'region_school_directory';
+  if(!score&&!schools.length&&explicitMajors.length&&hasRegionScope&&!looksFit(source)&&!looksBackground(source)&&(looksHistory(source)||looksMajorRegionSchoolList(source)||priorTask==='region_school_directory'))return'major_region_history';
   if(majorHistoryFollowup)return'major_region_history';
   if(bottomLineMode&&school&&['school_major_history','school_history'].includes(priorTask))return priorTask;
   if(school&&((explicitMajors.length===0&&looksImplicitAllSchoolMajorsHistory(source))||looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';

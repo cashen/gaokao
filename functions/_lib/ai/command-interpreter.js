@@ -7,6 +7,7 @@ import {
   AI_AGENT_KERNEL_VERSION, AGENT_TASKS, deterministicAgentTask, explicitScoreUsage,
   validateAgentTask, taskExecutionPolicy
 } from './agent-task-kernel.js';
+import {looksRegionSchoolDirectoryLanguage,regionSchoolLevelFromText} from './region-school-language.js';
 
 export const AI_COMMAND_INTERPRETER_VERSION='ai-command-interpreter-v3992_9';
 export const AI_COMMAND_SCHEMA_VERSION='ai-semantic-agent-plan-v3992_9';
@@ -155,8 +156,6 @@ function explicitFamilyPersistence(text){return /(家庭底线|以后都|以后�
 function compareLanguage(text,majors=[]){const s=String(text||'');return /(怎么选|哪个好|哪个更|比较|对比|差别|区别|优劣|取舍|横着看|谁更)/.test(s)||(majors.length>=2&&/还是/.test(s));}
 function unionLanguage(text){return /(都看看|一起看|都看|同时看|一块看|一起有哪些|都有哪些|也看看|也看一下|顺便看看|也加上|一起放进来)/.test(String(text||''));}
 function correctionLanguage(text){return /(不是.{0,18}是|改成|换成|刚才说错|纠正|只留|最后留)/.test(String(text||''));}
-function regionSchoolDirectoryLanguage(text){const source=String(text||'');return /(?:(?:有哪些|有那些|有什么|有啥|有多少|多少所|几所).{0,8}(?:大学|高校|院校|学校|本科(?:院校|大学)?|专科(?:院校|学校)?|高职(?:院校)?)|(?:大学|高校|院校|学校)(?:名单|数量|总数|一共多少所|共有多少所|有多少所|几所))/.test(source);}
-function schoolLevelFromText(text){const source=String(text||'');if(/本科|本科院校|本科大学/.test(source))return'本科';if(/专科|高职|专科学校|高职院校/.test(source))return'专科';return'all';}
 function candidateLanguage(text){const source=String(text||'').replace(/(?:不|不能|别|不要)只看/g,'');return /(候选|筛选|筛一下|帮我筛|能报(?:哪些|什么|哪)|能上(?:哪些|什么|哪)|有哪些学校|有什么学校|先看看.{0,10}(机械|电气|自动化|专业)|只看|只留|保留|换成|改成|缩到|收窄到|留在|省内$|沈阳$|大连$)/.test(source);}
 function schoolKnowledgeLanguage(text){return /(介绍(?:下|一下)?|介绍介绍|讲讲|讲一下|讲下|说说|说一下|说下|聊聊|了解(?:下|一下)?|认识一下|什么学校|什么来头|学校定位|办学定位|整体怎么样|总体怎么样|大概怎么样|这所学校|这个学校|该校)/.test(String(text||''));}
 function candidateFacetFollowup(text,workspace,{majors=[],schools=[],geo={},clearMajor=false,clearSchool=false,clearRegion=false}={}){const prior=workspace?.agentContext?.currentTask||'';if(!['candidate_discovery','candidate_refinement'].includes(prior))return false;if(schools.length)return false;if(majors.length||geo?.keys?.length||clearMajor||clearSchool||clearRegion)return true;return /^(专业不限|不限专业|地区放开|不限地区)$/.test(String(text||'').trim());}
@@ -212,7 +211,7 @@ function explicitTaskLock(source,agentTask,candidateLexical=false){
 function explicitScoreDirective(source){return /(不考虑|不用管|先别管|别管|忽略).{0,8}(我的)?(分数|位次)|按我|按我的|我这个|我的.{0,6}(分|位次)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/.test(String(source||''));}
 
 function deterministicBase(text,workspace={},resolvedSchoolNames=[],resolvedSchoolAliases=[],resolvedRegion=null){
-  const source=clean(text,1200),retryContext=retryContextForText(source,workspace),score=scoreFromText(source),directoryQuestion=regionSchoolDirectoryLanguage(source),schoolNamesFromInput=directoryQuestion&&!resolvedSchoolNames.length?[]:schoolNamesFromText(source,resolvedSchoolNames),positive0=positiveMajors(source,schoolNamesFromInput,resolvedSchoolAliases),negative=negativeMajors(source,schoolNamesFromInput,resolvedSchoolAliases),schools0=schoolNamesFromInput,geoFallback=geographyFromText(source),geo=resolvedRegion?.keys?.length?resolvedRegion:geoFallback,bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace),schoolLevel=schoolLevelFromText(source);
+  const source=clean(text,1200),retryContext=retryContextForText(source,workspace),score=scoreFromText(source),directoryQuestion=looksRegionSchoolDirectoryLanguage(source),schoolNamesFromInput=directoryQuestion&&!resolvedSchoolNames.length?[]:schoolNamesFromText(source,resolvedSchoolNames),positive0=positiveMajors(source,schoolNamesFromInput,resolvedSchoolAliases),negative=negativeMajors(source,schoolNamesFromInput,resolvedSchoolAliases),schools0=schoolNamesFromInput,geoFallback=geographyFromText(source),geo=resolvedRegion?.keys?.length?resolvedRegion:geoFallback,bottomLineMode=bottomLineFromText(source),platformTarget=platformTargetFromText(source),clearMajor=clearMajorLanguage(source),clearSchool=clearSchoolLanguage(source),clearRegion=clearRegionLanguage(source),reference=ordinalReference(source,workspace),schoolLevel=regionSchoolLevelFromText(source);
   let majors=retryContext?.majors?.length?retryContext.majors:resolveReferenceMajors(source,positive0,workspace),schools=retryContext?.schools?.length?retryContext.schools:resolveReferenceSchools(source,schools0,workspace);if(schools.length&&!majors.length&&!retryContext){const inferredMajor=inferSchoolHistoryMajor(source,resolvedSchoolAliases,schools);if(inferredMajor)majors=[inferredMajor];}
   if(reference?.school&&!schools.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))schools=[reference.school];
   if(reference?.major&&!majors.length&&/(第[一二三四五]|第一个|第二个|第三个|第四个|第五个)/.test(source))majors=[reference.major];
@@ -271,9 +270,10 @@ export function deterministicCommand(text,workspace={},resolvedSchoolNames=[],re
 
 export function shouldShortCircuitAiProvider(command={}){return Boolean(command?.taskLocked&&!command?.requiresConfirmation&&Number(command?.confidence||0)>=.9);}
 export async function interpretAiCommand(text,workspace={},env={},request=null){
-  const resolvedSchool=await resolveAiSchoolMentionsDetailed(text,{request,env}),resolvedSchoolNames=resolvedSchool.schoolNames;
+  const directoryQuestion=looksRegionSchoolDirectoryLanguage(text);
   let resolvedRegion=null;
-  if(!resolvedSchoolNames.length&&(regionSchoolDirectoryLanguage(text)||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory')){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+  if(directoryQuestion||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory'){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+  const resolvedSchool=directoryQuestion&&resolvedRegion?.key?{schoolNames:[],matchedAliases:[]}:await resolveAiSchoolMentionsDetailed(text,{request,env}),resolvedSchoolNames=resolvedSchool.schoolNames;
   const fallback=deterministicBase(text,workspace,resolvedSchoolNames,resolvedSchool.matchedAliases,resolvedRegion);
   if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
   if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
