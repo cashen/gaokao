@@ -3,6 +3,8 @@ const SOURCE_PAGE_ORIGIN = 'https://srgaoxiao.com';
 const API_HOSTS = ['https://eo.srgaoxiao.com', 'https://srgaoxiao.com'];
 const TOTAL_REQUEST_BUDGET_MS = 8_000;
 const PER_REQUEST_TIMEOUT_MS = 5_000;
+const SUMMARY_REQUEST_TIMEOUT_MS = 2_000;
+const REVIEW_FALLBACK_RESERVE_MS = 2_500;
 const MAX_RESPONSE_BYTES = 2_000_000;
 const REVIEW_PAGE_SIZE = 6;
 const MAX_REVIEW_PAGE = 50;
@@ -88,46 +90,60 @@ async function fetchExperienceFromHost({ host, schoolInput, reviewPage, deadline
   const canonicalName = schoolMeta.name || schoolInput;
   const source = { name:'srgaoxiao.com', url:buildSourcePageUrl(detail, canonicalName) };
 
-  const summaryResult = await timedFetchJson('ai-summary', `${host}/api/schools/${encodeURIComponent(String(schoolId))}/ai-summary`, host, deadline, timings);
+  const summaryDeadline = deadline - REVIEW_FALLBACK_RESERVE_MS;
+  const summaryResult = await timedFetchJson(
+    'ai-summary',
+    `${host}/api/schools/${encodeURIComponent(String(schoolId))}/ai-summary`,
+    host,
+    summaryDeadline,
+    timings,
+    SUMMARY_REQUEST_TIMEOUT_MS
+  );
   diagnostics.push(toDiagnostic('ai-summary', host, summaryResult, { schoolId }));
-  if (!summaryResult.ok || !isObject(summaryResult.data)) return { kind:'unavailable', stage:'ai-summary', host, schoolMeta, source };
 
-  const summaryPayload = unwrapData(summaryResult.data);
-  const summary = pickSummary(summaryPayload);
-  if (summary) return {
-    kind:'success', mode:'ai_summary', school:canonicalName, summary, reviews:[], reviewPagination:null,
-    schoolMeta, source, transportType:'AI 摘要'
-  };
-  if (!hasKnownSummaryField(summaryPayload)) return { kind:'unavailable', stage:'ai-summary-shape', host, schoolMeta, source };
+  let summaryKnownEmpty = false;
+  if (summaryResult.ok && isObject(summaryResult.data)) {
+    const summaryPayload = unwrapData(summaryResult.data);
+    const summary = pickSummary(summaryPayload);
+    if (summary) return {
+      kind:'success', mode:'ai_summary', school:canonicalName, summary, reviews:[], reviewPagination:null,
+      schoolMeta, source, transportType:'AI 摘要'
+    };
+    summaryKnownEmpty = hasKnownSummaryField(summaryPayload);
+  }
 
   const reviewUrl = `${host}/api/reviews/school/${encodeURIComponent(String(schoolId))}?sort=time&page=${reviewPage}&pageSize=${REVIEW_PAGE_SIZE}`;
   const reviewResult = await timedFetchJson('recent-reviews', reviewUrl, host, deadline, timings);
   diagnostics.push(toDiagnostic('recent-reviews', host, reviewResult, { schoolId, page:reviewPage, pageSize:REVIEW_PAGE_SIZE }));
-  if (!reviewResult.ok || !isObject(reviewResult.data)) return { kind:'unavailable', stage:'recent-reviews', host, schoolMeta, source };
+  if (!reviewResult.ok || !isObject(reviewResult.data)) return {
+    kind:'unavailable', stage:'recent-reviews', host, schoolMeta, source,
+    summaryUnavailable:!summaryKnownEmpty
+  };
 
   const normalized = normalizeReviewPage(reviewResult.data, schoolMeta);
   if (normalized.reviews.length) return {
     kind:'success', mode:'recent_reviews', school:canonicalName, summary:null,
     reviews:normalized.reviews, reviewPagination:normalized.pagination, schoolMeta, source, transportType:'近期评论'
   };
+  if (!summaryKnownEmpty) return { kind:'unavailable', stage:'ai-summary', host, schoolMeta, source };
   return {
     kind:'success', mode:'no_content', school:canonicalName, summary:null,
     reviews:[], reviewPagination:normalized.pagination, schoolMeta, source, transportType:'内容状态'
   };
 }
 
-async function timedFetchJson(stage, url, refererOrigin, deadline, timings) {
+async function timedFetchJson(stage, url, refererOrigin, deadline, timings, requestTimeoutMs = PER_REQUEST_TIMEOUT_MS) {
   const started = Date.now();
-  const result = await fetchJson(url, refererOrigin, deadline);
+  const result = await fetchJson(url, refererOrigin, deadline, requestTimeoutMs);
   timings.push({ name:stage, duration:Date.now() - started });
   return result;
 }
 
-async function fetchJson(url, refererOrigin, deadline) {
+async function fetchJson(url, refererOrigin, deadline, requestTimeoutMs = PER_REQUEST_TIMEOUT_MS) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) return { ok:false, status:0, contentType:'', length:0, parseError:'total_timeout', data:null };
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(PER_REQUEST_TIMEOUT_MS, remaining)));
+  const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(requestTimeoutMs, remaining)));
   try {
     const response = await fetch(url, {
       signal:controller.signal,
@@ -149,13 +165,19 @@ async function fetchJson(url, refererOrigin, deadline) {
 function buildUnavailableFailure(attempt, schoolInput, diagnostics) {
   const schoolMeta = attempt?.schoolMeta || null;
   const reviewFailure = attempt?.stage === 'recent-reviews';
+  const summaryUnavailable = Boolean(attempt?.summaryUnavailable);
+  const message = reviewFailure
+    ? (summaryUnavailable
+      ? '学校已找到，但来源站 AI 摘要和近期评论接口本次都未能提供可验证内容。'
+      : '学校已找到且 AI 摘要为空，但来源站近期评论接口本次没有返回有效 JSON。')
+    : (schoolMeta ? '学校详情已找到，但来源站 AI 摘要接口本次没有返回有效 JSON。' : '来源站学校接口暂时没有返回有效 JSON。');
   return {
     status:502,
     payload:{
       ok:false,
       mode:reviewFailure ? 'reviews_unavailable' : 'source_unavailable',
       error:reviewFailure ? 'reviews_api_unavailable' : (schoolMeta ? 'summary_api_unavailable' : 'source_api_unavailable'),
-      message:reviewFailure ? '学校已找到且 AI 摘要为空，但来源站近期评论接口本次没有返回有效 JSON。' : (schoolMeta ? '学校详情已找到，但来源站 AI 摘要接口本次没有返回有效 JSON。' : '来源站学校接口暂时没有返回有效 JSON。'),
+      message,
       school:schoolMeta?.name || schoolInput,
       schoolMeta,
       source:attempt?.source,
