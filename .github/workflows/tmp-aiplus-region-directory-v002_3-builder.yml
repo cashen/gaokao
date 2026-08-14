@@ -1,4 +1,4 @@
-# trigger: 2026-08-15-v9
+# trigger: 2026-08-15-v10
 name: tmp AIPLuS region directory v002_3 builder
 
 on:
@@ -16,6 +16,7 @@ on:
       - 'tools/tmp_aiplus_region_directory_v002_3_fix6.py'
       - 'tools/tmp_aiplus_region_directory_v002_3_fix7.py'
       - 'tools/tmp_aiplus_region_directory_v002_3_fix8.py'
+      - 'tools/tmp_aiplus_region_directory_v002_3_fix9.py'
 
 permissions:
   contents: write
@@ -43,6 +44,7 @@ jobs:
           python3 tools/tmp_aiplus_region_directory_v002_3_fix6.py
           python3 tools/tmp_aiplus_region_directory_v002_3_fix7.py
           python3 tools/tmp_aiplus_region_directory_v002_3_fix8.py
+          python3 tools/tmp_aiplus_region_directory_v002_3_fix9.py
       - name: Syntax and deterministic contracts
         shell: bash
         run: |
@@ -96,7 +98,8 @@ jobs:
             aiplus/index.html \
             tools/audit-aiplus-v002-ui.mjs \
             tools/browser-ai-workspace-v3990_1.mjs \
-            tools/verify-ai-region-school-directory-v002.mjs
+            tools/verify-ai-region-school-directory-v002.mjs \
+            tools/verify-ai-school-history-bridge-v3992_2.mjs
           git diff --cached --check
           git commit -m 'AIPLuS: unify region directory semantics and list UI'
           git push origin HEAD:agent/aiplus-region-directory-semantics-ui-v002_3
