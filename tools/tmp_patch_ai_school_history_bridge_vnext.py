@@ -1,5 +1,24 @@
 from pathlib import Path
 
+# Keep public /api/school-majors record identity stable across the AI fact bridge.
+fact=Path('functions/_lib/ai/school-history-fact-source.js')
+fsrc=fact.read_text(encoding='utf-8')
+old_id="""  const record = {
+    id: clean(raw?.uid, 220),
+    school: clean(raw?.school || schoolInfo.name, 120),
+    major,
+"""
+new_id="""  const school = clean(raw?.school || schoolInfo.name, 120);
+  const record = {
+    id: `${school}-${major}-${score2026}-${rank2026}`,
+    school,
+    major,
+"""
+if old_id not in fsrc:
+    raise SystemExit('AI school-history record id block not found')
+fsrc=fsrc.replace(old_id,new_id,1)
+fact.write_text(fsrc,encoding='utf-8')
+
 p=Path('tools/verify-ai-school-history-bridge-v3992_2.mjs')
 s=p.read_text(encoding='utf-8')
 s=s.replace("import { loadMatchingRecordsFromFiles, loadExactSchoolRecordsFromFiles, clearExactSchoolRecordCacheForTest, exactSchoolRecordCacheState } from '../functions/_lib/ln-rank-manifest.js';\n",'')
@@ -42,4 +61,4 @@ if old_concurrent not in s:
     raise SystemExit('hard-coded concurrent school shard assertion not found')
 s=s.replace(old_concurrent,new_concurrent,1)
 p.write_text(s,encoding='utf-8')
-print('updated AI school-history bridge verifier for bounded school runtime projection')
+print('updated AI school-history fact identity and verifier for bounded school runtime projection')
