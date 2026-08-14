@@ -2,9 +2,11 @@ name: Verify architecture handoff v3990.1
 
 on:
   pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,6 +20,7 @@ jobs:
       - name: Checkout exact commit
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Set up Node
