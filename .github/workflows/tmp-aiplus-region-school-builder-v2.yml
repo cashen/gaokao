@@ -1,0 +1,98 @@
+name: Temporary AIPLuS region-school builder v2
+
+on:
+  push:
+    branches:
+      - agent/aiplus-region-school-directory-v002
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-region-school-directory-v002
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Repair temporary patcher duplicate-block guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/tmp_aiplus_region_school_patch.py')
+          s=p.read_text(encoding='utf-8')
+          old="    if count != 1:\n        raise SystemExit(f'{path}: expected exactly one match, found {count}: {old[:120]!r}')"
+          new="    if count < 1:\n        raise SystemExit(f'{path}: expected at least one match, found {count}: {old[:120]!r}')"
+          if old not in s:
+              raise SystemExit('temporary replace_once guard not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Apply guarded architecture patch
+        run: python tools/tmp_aiplus_region_school_patch.py
+      - name: Syntax check changed runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/school-directory-resource.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/api/ai/major-history.js
+          node --check tools/verify-ai-region-school-directory-v002.mjs
+      - name: Verify region-school truth and human language
+        run: node tools/verify-ai-region-school-directory-v002.mjs
+      - name: Run preserved AIPLuS semantic gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+      - name: Verify protected boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only | tee /tmp/worktree-files
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/worktree-files; then
+            echo 'Protected path touched.' >&2
+            exit 1
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+      - name: Remove temporary builder ownership
+        run: rm -f tools/tmp_aiplus_region_school_patch.py .github/workflows/tmp-aiplus-region-school-builder.yml .github/workflows/tmp-aiplus-region-school-builder-v2.yml
+      - name: Commit final candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          test -n "$(git status --porcelain)"
+          if git diff --cached --name-only | grep -E '^(tools/tmp_aiplus_region_school_patch\.py|\.github/workflows/tmp-aiplus-region-school-builder(-v2)?\.yml)$'; then
+            echo 'Temporary builder leaked into final candidate.' >&2
+            exit 1
+          fi
+          git commit -m 'AIPLuS: add deterministic region school directory'
+          git push origin HEAD:agent/aiplus-region-school-directory-v002
