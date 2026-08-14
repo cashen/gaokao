@@ -1,4 +1,4 @@
-# rerun after preserving public school-history record identity
+# rerun with compact AI uid and semantic public parity
 name: Temporary ln-rank Worker vNext builder
 
 on:
@@ -50,7 +50,6 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/_lib/school-record-runtime-provider.vnext.js
-          node --check functions/_lib/ai/school-history-fact-source.js
           node --check functions/api/school-majors.js
           node --check functions/_lib/report-data-service-v3956.js
           node --check functions/_lib/ln-rank-manifest.js
@@ -103,7 +102,7 @@ jobs:
           set -euo pipefail
           git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py tools/tmp_patch_major_runtime_source.py tools/tmp_write_worker_vnext_endpoint_verifier.py tools/tmp_patch_ai_school_history_bridge_vnext.py
           git add data/zy2026/school-index.json data/zy2026/major-index.json data/zy2026/chunks \
-            functions/_lib/school-record-runtime-provider.vnext.js functions/_lib/ai/school-history-fact-source.js functions/api/school-majors.js \
+            functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js \
             functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js \
             functions/_lib/fenxi-manifest.js functions/_lib/background-position-engine.js \
             functions/api/major-window.js functions/api/school-geo-audit.js functions/api/fenxi-catalog.js \
