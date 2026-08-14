@@ -42,6 +42,8 @@ jobs:
         run: python3 tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py
       - name: Write current vNext endpoint verifier
         run: python3 tools/tmp_write_worker_vnext_endpoint_verifier.py
+      - name: Migrate AIPLuS bridge verifier to bounded runtime owner
+        run: python3 tools/tmp_patch_ai_school_history_bridge_vnext.py
       - name: Validate generated JavaScript
         shell: bash
         run: |
@@ -59,6 +61,7 @@ jobs:
           node --check tools/verify-school-runtime-projection-vnext.mjs
           node --check tools/verify-major-runtime-projection-vnext.mjs
           node --check tools/verify-school-majors-runtime-vnext.mjs
+          node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
       - name: Verify projection truth, endpoint and Worker architecture
         shell: bash
         run: |
@@ -96,14 +99,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py tools/tmp_patch_major_runtime_source.py tools/tmp_write_worker_vnext_endpoint_verifier.py
+          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py tools/tmp_patch_major_runtime_source.py tools/tmp_write_worker_vnext_endpoint_verifier.py tools/tmp_patch_ai_school_history_bridge_vnext.py
           git add data/zy2026/school-index.json data/zy2026/major-index.json data/zy2026/chunks \
             functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js \
             functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js \
             functions/_lib/fenxi-manifest.js functions/_lib/background-position-engine.js \
             functions/api/major-window.js functions/api/school-geo-audit.js functions/api/fenxi-catalog.js \
             tools/audit-worker-resource-architecture-vnext.mjs tools/verify-school-runtime-projection-vnext.mjs \
-            tools/verify-major-runtime-projection-vnext.mjs tools/verify-school-majors-runtime-vnext.mjs
+            tools/verify-major-runtime-projection-vnext.mjs tools/verify-school-majors-runtime-vnext.mjs \
+            tools/verify-ai-school-history-bridge-v3992_2.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(ln-rank): bound Worker admission resource ownership'
