@@ -1,0 +1,84 @@
+name: tmp AIPLuS region directory v002_3 builder
+
+on:
+  push:
+    branches:
+      - agent/aiplus-region-directory-semantics-ui-v002_3
+    paths:
+      - '.github/workflows/tmp-aiplus-region-directory-v002_3-builder.yml'
+      - 'tools/tmp_aiplus_region_directory_v002_3_patch.py'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-region-directory-semantics-ui-v002_3
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply structural patch
+        run: python3 tools/tmp_aiplus_region_directory_v002_3_patch.py
+      - name: Syntax and deterministic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/region-school-language.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/school-directory-resource.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check aiplus/render.v3992_0.js
+          node --check aiplus/app.v3990_1.js
+          node tools/verify-ai-region-school-directory-v002.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+      - name: Protected-boundary and diff audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only HEAD | tee /tmp/changed.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/changed.txt; then
+            echo 'protected path touched' >&2
+            exit 1
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+          test ! -e functions/_lib/ai/data/region-schools.json
+          grep -q "type:'region_school_directory'" functions/_lib/ai/advisor-presentation.js
+          ! grep -q "scope:'region_school_directory'" functions/_lib/ai/advisor-presentation.js
+      - name: Commit verified product candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            functions/_lib/ai/region-school-language.js \
+            functions/_lib/ai/command-interpreter.js \
+            functions/_lib/ai/agent-task-kernel.js \
+            functions/_lib/ai/school-directory-resource.js \
+            functions/_lib/ai/advisor-presentation.js \
+            functions/_lib/ai/next-action-engine.js \
+            aiplus/render.v3992_0.js \
+            aiplus/workspace.v3990_1.css \
+            aiplus/app.v3990_1.js \
+            aiplus/index.html \
+            tools/audit-aiplus-v002-ui.mjs \
+            tools/browser-ai-workspace-v3990_1.mjs \
+            tools/verify-ai-region-school-directory-v002.mjs
+          git diff --cached --check
+          git commit -m 'AIPLuS: unify region directory semantics and list UI'
+          git push origin HEAD:agent/aiplus-region-directory-semantics-ui-v002_3
