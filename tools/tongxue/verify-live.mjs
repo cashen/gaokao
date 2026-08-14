@@ -22,14 +22,25 @@ const functionResults = [];
 for (const school of summarySchools) {
   const row = await invokeFunction(school, 1);
   functionResults.push(row);
-  const passed = row.status === 200
+  const summaryPassed = row.status === 200
     && row.ok
     && row.mode === 'ai_summary'
     && row.version === 'v1.3.0'
     && row.summaryLength >= 40
     && row.reviewCount === 0
     && row.serverTiming.includes('total;dur=');
-  if (!passed) failures.push(`AI 摘要模式失败：${school} -> ${JSON.stringify(row)}`);
+  const reviewsPassed = row.status === 200
+    && row.ok
+    && row.mode === 'recent_reviews'
+    && row.version === 'v1.3.0'
+    && row.summaryLength === 0
+    && row.reviewCount >= 1
+    && row.reviewCount <= 6
+    && row.reviews.every(isValidReview)
+    && isNewestFirst(row.reviews)
+    && Number(row.pagination?.total || 0) >= row.reviewCount
+    && row.serverTiming.includes('total;dur=');
+  if (!summaryPassed && !reviewsPassed) failures.push(`公开内容模式失败：${school} -> ${JSON.stringify(row)}`);
 }
 
 for (const school of reviewFallbackSchools) {
@@ -67,6 +78,8 @@ if (!mockResults.noContentPassed) failures.push(`无摘要且无评论状态失�
 if (!mockResults.sanitizationPassed) failures.push(`评论清洗/XSS 测试失败：${JSON.stringify(mockResults.sanitization)}`);
 if (!mockResults.summaryRequestCountPassed) failures.push(`摘要请求数异常：${JSON.stringify(mockResults.summaryRequestCount)}`);
 if (!mockResults.reviewRequestCountPassed) failures.push(`评论回退请求数异常：${JSON.stringify(mockResults.reviewRequestCount)}`);
+if (!mockResults.summaryFailureReviewFallbackPassed) failures.push(`摘要故障未降级到真实评论：${JSON.stringify(mockResults.summaryFailureReviewFallback)}`);
+if (!mockResults.summaryFailureEmptyReviewsPassed) failures.push(`摘要故障下错误宣称无内容：${JSON.stringify(mockResults.summaryFailureEmptyReviews)}`);
 if (!mockResults.fallbackPassed) failures.push(`备用域回退失败：${JSON.stringify(mockResults.fallback)}`);
 if (!mockResults.edgeCachePassed) failures.push(`边缘缓存测试失败：${JSON.stringify(mockResults.edgeCache)}`);
 
@@ -233,6 +246,30 @@ async function runMockCases() {
   fetchCount = 0;
   globalThis.fetch = async (input) => {
     fetchCount += 1;
+    const pathname = decodeURIComponent(new URL(typeof input === 'string' ? input : input.url).pathname);
+    if (/\/api\/schools\/测试摘要故障评论大学$/.test(pathname)) return jsonResponse({ id:906, name:'测试摘要故障评论大学', slug:'测试摘要故障评论大学', review_count:1 });
+    if (/\/api\/schools\/906\/ai-summary$/.test(pathname)) return new Response('upstream unavailable', { status:503, headers:{ 'content-type':'text/plain' } });
+    if (/\/api\/reviews\/school\/906$/.test(pathname)) return jsonResponse({ total:1, page:1, pageSize:6, totalPages:1, data:[{ id:6, content:'摘要接口故障时仍应返回这条真实评论。', display_name:'匿名同学', is_anonymous:1, created_at:'2026-07-19 12:30:00' }] });
+    return jsonResponse({}, 404);
+  };
+  cases.summaryFailureReviewFallback = await invokeFunction('测试摘要故障评论大学', 1, { refresh:true });
+  cases.summaryFailureReviewFallback.fetchCount = fetchCount;
+
+  fetchCount = 0;
+  globalThis.fetch = async (input) => {
+    fetchCount += 1;
+    const pathname = decodeURIComponent(new URL(typeof input === 'string' ? input : input.url).pathname);
+    if (/\/api\/schools\/测试摘要故障空评论大学$/.test(pathname)) return jsonResponse({ id:907, name:'测试摘要故障空评论大学', slug:'测试摘要故障空评论大学', review_count:0 });
+    if (/\/api\/schools\/907\/ai-summary$/.test(pathname)) return new Response('upstream unavailable', { status:503, headers:{ 'content-type':'text/plain' } });
+    if (/\/api\/reviews\/school\/907$/.test(pathname)) return jsonResponse({ total:0, page:1, pageSize:6, totalPages:0, data:[] });
+    return jsonResponse({}, 404);
+  };
+  cases.summaryFailureEmptyReviews = await invokeFunction('测试摘要故障空评论大学', 1, { refresh:true });
+  cases.summaryFailureEmptyReviews.fetchCount = fetchCount;
+
+  fetchCount = 0;
+  globalThis.fetch = async (input) => {
+    fetchCount += 1;
     const url = new URL(typeof input === 'string' ? input : input.url);
     const pathname = decodeURIComponent(url.pathname);
     if (url.hostname === 'eo.srgaoxiao.com') return new Response('temporary unavailable', { status:503, headers:{ 'content-type':'text/plain' } });
@@ -264,6 +301,8 @@ async function runMockCases() {
     sanitizationPassed: cases.sanitization.status === 200 && cases.sanitization.ok && cases.sanitization.mode === 'recent_reviews' && cases.sanitization.reviewCount === 1 && sanitizedReview.content === '真实评论内容' && sanitizedReview.authorLabel === '匿名用户' && sanitizedReview.campus === '主校区' && !sanitizedReview.content.includes('<script>') && Number(sanitizedReview.rating?.overall) >= 0 && Number(sanitizedReview.rating?.overall) <= 5,
     summaryRequestCountPassed: cases.summaryRequestCount.ok && cases.summaryRequestCount.mode === 'ai_summary' && cases.summaryRequestCount.fetchCount === 2,
     reviewRequestCountPassed: cases.reviewRequestCount.ok && cases.reviewRequestCount.mode === 'recent_reviews' && cases.reviewRequestCount.fetchCount === 3,
+    summaryFailureReviewFallbackPassed: cases.summaryFailureReviewFallback.status === 200 && cases.summaryFailureReviewFallback.ok && cases.summaryFailureReviewFallback.mode === 'recent_reviews' && cases.summaryFailureReviewFallback.reviewCount === 1 && cases.summaryFailureReviewFallback.fetchCount === 3,
+    summaryFailureEmptyReviewsPassed: cases.summaryFailureEmptyReviews.status === 502 && !cases.summaryFailureEmptyReviews.ok && cases.summaryFailureEmptyReviews.mode === 'source_unavailable' && cases.summaryFailureEmptyReviews.error === 'summary_api_unavailable' && cases.summaryFailureEmptyReviews.reviewCount === 0 && cases.summaryFailureEmptyReviews.fetchCount === 6,
     fallbackPassed: cases.fallback.ok && cases.fallback.mode === 'ai_summary' && cases.fallback.fetchCount === 3,
     edgeCachePassed: cacheFirst.ok && cacheFirst.cacheStatus === 'MISS' && cacheSecond.ok && cacheSecond.cacheStatus === 'HIT' && fetchCount === 2 && memoryCache.size() === 1
   };
