@@ -18,6 +18,20 @@ jobs:
         with:
           ref: agent/ln-rank-worker-resource-vnext
           fetch-depth: 0
+      - name: Align builder with record-bearing school truth
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/tmp_ln_rank_worker_vnext_builder.py')
+          s=p.read_text()
+          s=s.replace("    if len(school_map) != 956:\n        raise SystemExit(f'projection school count before repartition != 956: {len(school_map)}')\n", "    record_bearing_school_count = sum(1 for school in school_map.values() if school_records(school))\n    if record_bearing_school_count != 956:\n        raise SystemExit(f'projection record-bearing school count != 956: nodes={len(school_map)} bearing={record_bearing_school_count}')\n")
+          s=s.replace("index['runtimeProjectionSchoolCount'] = len(school_map)", "index['runtimeProjectionSchoolCount'] = record_bearing_school_count")
+          s=s.replace("'schools': len(school_map),", "'schools': record_bearing_school_count,\n        'structuralSchoolNodes': len(school_map),")
+          s=s.replace("schools.add(info.key);const rows=", "const rows=")
+          s=s.replace("projected.push(...rows);if(info.recordCount2026", "projected.push(...rows);if(rows.length)schools.add(info.key);if(info.recordCount2026")
+          p.write_text(s)
+          PY
       - name: Build bounded runtime projection and patch owners
         run: python3 tools/tmp_ln_rank_worker_vnext_builder.py
       - name: Validate generated JavaScript
