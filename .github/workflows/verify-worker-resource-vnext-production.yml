@@ -41,7 +41,7 @@ jobs:
               -H 'Cache-Control: no-cache' \
               -H 'Pragma: no-cache' \
               "${TARGET_BASE}/api/ai/health?vnextProductionSha=${EXPECTED_SHA}&attempt=${attempt}" || true)"
-            got_sha="$(jq -r '.commitSha // empty' <<<"$body" 2>/dev/null || true)"
+            got_sha="$(jq -r '.deployment.commitSha // empty' <<<"$body" 2>/dev/null || true)"
             if [ "$got_sha" = "$EXPECTED_SHA" ]; then
               echo "Production Functions proved exact main SHA ${EXPECTED_SHA}."
               exit 0
