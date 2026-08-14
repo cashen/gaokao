@@ -18,7 +18,7 @@ jobs:
         with:
           ref: agent/ln-rank-worker-resource-vnext
           fetch-depth: 0
-      - name: Align builder with record-bearing school truth
+      - name: Align builder with current school projection shape
         shell: bash
         run: |
           python3 - <<'PY'
@@ -26,7 +26,9 @@ jobs:
           p=Path('tools/tmp_ln_rank_worker_vnext_builder.py')
           s=p.read_text()
           s=s.replace("    if len(school_map) != 956:\n        raise SystemExit(f'projection school count before repartition != 956: {len(school_map)}')\n", "    record_bearing_school_count = sum(1 for school in school_map.values() if school_records(school))\n    if record_bearing_school_count != 956:\n        raise SystemExit(f'projection record-bearing school count != 956: nodes={len(school_map)} bearing={record_bearing_school_count}')\n")
+          s=s.replace("    schools_index = index.get('schools') or {}\n    for key, item in schools_index.items():\n        actual_key = item.get('key') or key\n", "    schools_index = index.get('schools') or []\n    school_index_items = list(schools_index.values()) if isinstance(schools_index, dict) else list(schools_index)\n    for item in school_index_items:\n        actual_key = item.get('key') or item.get('name')\n", 1)
           s=s.replace("index['runtimeProjectionSchoolCount'] = len(school_map)", "index['runtimeProjectionSchoolCount'] = record_bearing_school_count")
+          s=s.replace("    for key, item in schools_index.items():\n        actual_key = item.get('key') or key\n", "    for item in school_index_items:\n        actual_key = item.get('key') or item.get('name')\n", 1)
           s=s.replace("'schools': len(school_map),", "'schools': record_bearing_school_count,\n        'structuralSchoolNodes': len(school_map),")
           s=s.replace("schools.add(info.key);const rows=", "const rows=")
           s=s.replace("projected.push(...rows);if(info.recordCount2026", "projected.push(...rows);if(rows.length)schools.add(info.key);if(info.recordCount2026")
