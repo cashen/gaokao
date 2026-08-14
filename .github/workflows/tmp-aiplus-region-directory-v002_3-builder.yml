@@ -1,4 +1,4 @@
-# trigger: 2026-08-15
+# trigger: 2026-08-15-v2
 name: tmp AIPLuS region directory v002_3 builder
 
 on:
@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/tmp-aiplus-region-directory-v002_3-builder.yml'
       - 'tools/tmp_aiplus_region_directory_v002_3_patch.py'
+      - 'tools/tmp_aiplus_region_directory_v002_3_fix1.py'
 
 permissions:
   contents: write
@@ -25,7 +26,9 @@ jobs:
         with:
           node-version: '22'
       - name: Apply structural patch
-        run: python3 tools/tmp_aiplus_region_directory_v002_3_patch.py
+        run: |
+          python3 tools/tmp_aiplus_region_directory_v002_3_patch.py
+          python3 tools/tmp_aiplus_region_directory_v002_3_fix1.py
       - name: Syntax and deterministic contracts
         shell: bash
         run: |
