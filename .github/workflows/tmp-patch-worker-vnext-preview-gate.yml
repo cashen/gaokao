@@ -31,11 +31,14 @@ jobs:
               raise SystemExit('browser-preview marker missing')
           if 'Verify Worker vNext Preview resource stress' in s:
               raise SystemExit('Worker vNext Preview stress gate already present')
-          block='''\n      - name: Verify Worker vNext Preview resource stress\n        env:\n          TARGET_BASE: ${{ steps.resolve-preview.outputs.preview_base }}\n          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}\n          WORKER_VNEXT_PREVIEW_EVIDENCE: /tmp/worker-resource-vnext-preview.json\n          CONCURRENCY_LEVELS: 1,5,10,25,50\n        run: node tools/verify-worker-resource-vnext-preview.mjs\n      - name: Upload Worker vNext Preview stress evidence\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: worker-resource-vnext-preview\n          path: /tmp/worker-resource-vnext-preview.json\n          if-no-files-found: warn\n          retention-days: 7\n'''
+          target_expr='$'+'{{ steps.resolve-preview.outputs.preview_base }}'
+          sha_expr='$'+'{{ github.event.pull_request.head.sha }}'
+          block=f'''\n      - name: Verify Worker vNext Preview resource stress\n        env:\n          TARGET_BASE: {target_expr}\n          EXPECTED_SHA: {sha_expr}\n          WORKER_VNEXT_PREVIEW_EVIDENCE: /tmp/worker-resource-vnext-preview.json\n        run: node tools/verify-worker-resource-vnext-preview.mjs\n      - name: Upload Worker vNext Preview stress evidence\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: worker-resource-vnext-preview\n          path: /tmp/worker-resource-vnext-preview.json\n          if-no-files-found: warn\n          retention-days: 7\n'''
           p.write_text(s.replace(marker,block+marker,1))
           PY
           node --check tools/verify-worker-resource-vnext-preview.mjs
           grep -F 'Verify Worker vNext Preview resource stress' .github/workflows/verify-ai-workspace-v3990_1.yml
+          grep -F 'TARGET_BASE: ${{ steps.resolve-preview.outputs.preview_base }}' .github/workflows/verify-ai-workspace-v3990_1.yml
           git diff --check
       - name: Commit clean Preview gate
         shell: bash
