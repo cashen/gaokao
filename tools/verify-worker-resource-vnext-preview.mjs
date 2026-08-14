@@ -121,12 +121,33 @@ function validateAiSchoolHistory(result) {
   assert.equal(result.payload?.source?.mode, 'ai-school-history-preaggregated-school-shard', `${result.label}: AI school history source mode`);
 }
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 async function healthGate() {
-  const health = await getJson('/api/ai/health', 'health');
-  validateBase(health);
-  const commitSha = String(health.payload?.deployment?.commitSha || '').trim();
-  if (expectedSha) assert.equal(commitSha, expectedSha, `Preview SHA drift: ${commitSha} != ${expectedSha}`);
-  return { commitSha, branch: health.payload?.deployment?.branch || '', url: health.payload?.deployment?.url || '' };
+  let consecutive = 0;
+  let last = null;
+  for (let attempt = 1; attempt <= 30; attempt += 1) {
+    const health = await getJson('/api/ai/health', `health-${attempt}`);
+    last = health;
+    if (health.status === 200 && health.payload?.ok === true) {
+      const commitSha = String(health.payload?.deployment?.commitSha || '').trim();
+      if (!expectedSha || commitSha === expectedSha) {
+        consecutive += 1;
+        if (consecutive >= 3) {
+          return { commitSha, branch: health.payload?.deployment?.branch || '', url: health.payload?.deployment?.url || '', stableChecks: consecutive, attempts: attempt };
+        }
+      } else {
+        consecutive = 0;
+      }
+    } else {
+      consecutive = 0;
+    }
+    if (attempt < 30) await delay(2000);
+  }
+  validateBase(last || { status: 0, label: 'health-stability', payload: null, cloudflare1102: false, elapsedMs: 0 });
+  const commitSha = String(last?.payload?.deployment?.commitSha || '').trim();
+  assert.equal(commitSha, expectedSha, `Preview SHA failed to stabilize: ${commitSha} != ${expectedSha}`);
+  throw new Error(`Preview SHA ${expectedSha} did not remain stable for 3 consecutive health probes.`);
 }
 
 async function schoolWave(level) {
