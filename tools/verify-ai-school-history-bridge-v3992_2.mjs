@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
-import { loadMatchingRecordsFromFiles, loadExactSchoolRecordsFromFiles, clearExactSchoolRecordCacheForTest, exactSchoolRecordCacheState } from '../functions/_lib/ln-rank-manifest.js';
+import { loadSchoolRuntimeRecords, schoolRuntimeProjectionCachePolicy } from '../functions/_lib/school-record-runtime-provider.vnext.js';
 import { rawSchool } from '../functions/_lib/fenxi-normalizer.js';
 import { runSchoolMajorHistory } from '../functions/_lib/ai/tool-registry.js';
 import {
@@ -73,20 +73,25 @@ const science=(directory.schools||[]).find(item=>item.officialName==='辽宁科�
 assert.ok(industrial?.chunkFiles2026?.length&&aviation?.chunkFiles2026?.length&&science?.chunkFiles2026?.length,'journey school chunk locators missing');
 const provider=fs.readFileSync('functions/_lib/school-query-provider.v3969.js','utf8');
 const manifestLoader=fs.readFileSync('functions/_lib/ln-rank-manifest.js','utf8');
+const runtimeProvider=fs.readFileSync('functions/_lib/school-record-runtime-provider.vnext.js','utf8');
 const endpoint=fs.readFileSync('functions/api/school-majors.js','utf8');
 const aiEndpoint=fs.readFileSync('functions/api/ai/school-history.js','utf8');
 const aiSource=fs.readFileSync('functions/_lib/ai/school-history-fact-source.js','utf8');
 const aiContract=fs.readFileSync('functions/_lib/ai/school-history-fact-contract.js','utf8');
 const health=fs.readFileSync('functions/api/ai/health.js','utf8');
-assert.ok(provider.includes('chunkFiles2026: Object.freeze'),'exact school provider must expose chunk locator');
-assert.ok(manifestLoader.includes('loadMatchingRecordsFromFiles'),'bounded manifest loader missing');
-assert.ok(manifestLoader.includes('loadExactSchoolRecordsFromFiles'),'exact-school native loader missing');
-assert.ok(manifestLoader.includes("mode: 'record-stream'"),'matching loader must stream individual records');
-assert.ok(manifestLoader.includes("mode: 'exact-school-native-text-scan'"),'exact-school native text scan marker missing');
-assert.ok(manifestLoader.includes('EXACT_SCHOOL_CACHE_TTL_MS = 45 * 1000'),'exact-school server cache TTL missing');
-assert.ok(manifestLoader.includes('EXACT_SCHOOL_CACHE_MAX_ENTRIES = 8'),'exact-school server cache entry cap missing');
-assert.ok(manifestLoader.includes('EXACT_SCHOOL_CACHE_MAX_RECORDS = 800'),'exact-school server cache record cap missing');
-assert.ok(endpoint.includes('chunkFiles2026.length')&&endpoint.includes('loadExactSchoolRecordsFromFiles'),'school-majors must use exact-school native chunk loader');
+assert.ok(provider.includes('chunkFiles2026: Object.freeze'),'school query directory must keep build-time chunk provenance');
+assert.equal(manifestLoader.includes('loadAllRecords'),false,'production manifest loader must not expose full admissions loading');
+assert.ok(runtimeProvider.includes("SCHOOL_RUNTIME_PROJECTION_VERSION = 'ln-rank-school-runtime-projection-vnext-100-shard-v1'"),'school runtime projection version missing');
+assert.ok(runtimeProvider.includes('SCHOOL_RUNTIME_PROJECTION_TOTAL_RECORDS = 11628'),'school runtime projection truth count drift');
+assert.ok(runtimeProvider.includes('SCHOOL_RUNTIME_PROJECTION_SCHOOL_COUNT = 956'),'school runtime projection school count drift');
+assert.ok(runtimeProvider.includes('SCHOOL_RUNTIME_PROJECTION_SHARD_COUNT = 100'),'school runtime projection shard count drift');
+assert.ok(runtimeProvider.includes('INDEX_CACHE_MAX_ENTRIES = 1'),'school runtime index cache cap missing');
+assert.ok(runtimeProvider.includes('SHARD_CACHE_MAX_ENTRIES = 4'),'school runtime shard cache cap missing');
+assert.ok(runtimeProvider.includes('loadSchoolRuntimeRecords'),'school runtime exact loader missing');
+assert.ok(endpoint.includes('school-record-runtime-provider.vnext.js')&&endpoint.includes('loadSchoolRuntimeRecords'),'school-majors must use bounded school runtime projection');
+assert.ok(endpoint.includes("mode: 'school-runtime-projection-vnext'"),'school-majors source mode must expose bounded projection ownership');
+assert.equal(endpoint.includes('loadExactSchoolRecordsFromFiles'),false,'school-majors must not fall back to legacy rank chunk exact scan');
+assert.equal(endpoint.includes('loadMatchingRecords('),false,'school-majors must not fall back to full matching scan');
 assert.ok(aiEndpoint.includes("from '../../_lib/ai/school-history-fact-source.js'"),'AIPLuS endpoint must delegate to one fact-source contract');
 assert.ok(aiSource.includes("from './school-history-fact-contract.js'"),'AIPLuS fact source must use the central contract');
 assert.ok(aiContract.includes("'/data/zy2026/school-index.json'"),'AIPLuS school index path missing');
@@ -150,7 +155,9 @@ async function verifyAiSchoolHistoryFactPath(){
   assert.equal(industrialPayload.meta.schoolRecordTotal,65,'沈阳工业 source count drift');
   assert.equal(industrialPayload.source.mode,'ai-school-history-preaggregated-school-shard');
   assert.equal(industrialPayload.source.sameTruthSet,true);
-  assert.deepEqual(requests.map(item=>item.pathname),['/data/zy2026/school-index.json','/data/zy2026/chunks/school-06.json'],'cold query must read one index and one school shard only');
+  assert.equal(requests.length,2,'cold query must read exactly one index and one school shard');
+  assert.equal(requests[0]?.pathname,'/data/zy2026/school-index.json','cold query must read school index first');
+  assert.match(requests[1]?.pathname,/^\/data\/zy2026\/chunks\/school-\d{2}\.json$/,'cold query must read exactly one bounded school runtime shard');
   const coldAssetBytes=requests.reduce((sum,item)=>sum+item.bytes,0);
   assert.ok(coldAssetBytes<1.5*1024*1024,'cold school fact path exceeded the bounded asset budget');
 
@@ -164,7 +171,7 @@ async function verifyAiSchoolHistoryFactPath(){
   assert.equal(instrumentation.records.length,1,'canonical instrumentation major did not resolve');
   assert.equal(materials.records.length,4,'spoken materials family did not resolve through the shared major catalog');
   assert.equal(requests.filter(item=>item.pathname==='/data/zy2026/school-index.json').length,1,'concurrent fact queries did not coalesce the school index');
-  assert.equal(requests.filter(item=>item.pathname==='/data/zy2026/chunks/school-14.json').length,1,'concurrent same-school fact queries did not coalesce the shard');
+  assert.equal(requests.filter(item=>/^\/data\/zy2026\/chunks\/school-\d{2}\.json$/.test(item.pathname)).length,1,'cold concurrent same-school fact queries must coalesce to exactly one shard fetch');
 
   const fit=await queryAiSchoolHistoryFact(context,{school:'沈阳航空航天大学',majorKeyword:'机械',candidateScore:560,sort:'position-near'});
   assert.equal(fit.meta.candidateReferenceRank2026,27783,'candidate rank bridge drift');
@@ -260,8 +267,9 @@ async function verifyPublicMajorFilterParity(){
         schoolHistoryOnRequest({request:new Request(`https://preview.example/api/ai/school-history?${query}`),env})
       ]);
       assert.equal(publicResponse.status,200,`public major filter fixture failed: ${school} ${majorKeyword}`);assert.equal(aiResponse.status,200,`AIPLuS major filter fixture failed: ${school} ${majorKeyword}`);
-      const [publicPayload,aiPayload]=await Promise.all([publicResponse.json(),aiResponse.json()]),ids=payload=>[...new Set((payload.records||[]).map(record=>record.id))].sort();
-      assert.deepEqual(ids(aiPayload),ids(publicPayload),`shared major filter meaning drift: ${school} ${majorKeyword}`);
+      const [publicPayload,aiPayload]=await Promise.all([publicResponse.json(),aiResponse.json()]);
+      const semanticKeys=payload=>[...new Set((payload.records||[]).map(record=>[record.school,record.major,record.score2026,record.rank2026,record.schoolCode2026,record.majorCode2026].map(value=>String(value??'').trim()).join('|'))) ].sort();
+      assert.deepEqual(semanticKeys(aiPayload),semanticKeys(publicPayload),`shared major filter meaning drift: ${school} ${majorKeyword}`);
     }
   }finally{globalThis.fetch=previousFetch;}
   return{queries:matrix.length,schools:new Set(matrix.map(item=>item[0])).size};
@@ -271,59 +279,59 @@ const preaggregated=verifyPreaggregatedTruthSet();
 const aiFactPath=await verifyAiSchoolHistoryFactPath();
 const parentJourneys=await verifyActualParentJourneys();
 const majorFilterParity=await verifyPublicMajorFilterParity();
-const expectedIndustrial=industrial.chunkFiles2026.flatMap(chunkRows).filter(raw=>String(rawSchool(raw)||'').trim()==='沈阳工业大学');
-const expectedScanned=industrial.chunkFiles2026.reduce((sum,file)=>sum+chunkRows(file).length,0);
-const originalFetch=globalThis.fetch;
-globalThis.fetch=async input=>{
-  const url=new URL(typeof input==='string'?input:input.url);
-  if(url.pathname==='/fenxi/data/ln-rank-2026/manifest.json')return new Response(fs.readFileSync('fenxi/data/ln-rank-2026/manifest.json'),{status:200,headers:{'content-type':'application/json'}});
-  throw new Error(`unexpected network fetch in streaming verifier: ${url.pathname}`);
+const rawSemanticKey=raw=>[
+  String(rawSchool(raw)||'').trim(),
+  String(raw?.major||raw?.majorName||'').trim(),
+  String(raw?.score2026??raw?.score??'').trim(),
+  String(raw?.rank2026??raw?.rank??'').trim(),
+  String(raw?.schoolCode2026??raw?.schoolCode??'').trim(),
+  String(raw?.majorCode2026??raw?.majorCode??'').trim()
+].join('|');
+const expectedForSchool=schoolEntry=>{
+  const accepted=new Set([schoolEntry.officialName,...(schoolEntry.admissionNames||[])]);
+  return schoolEntry.chunkFiles2026.flatMap(chunkRows).filter(raw=>accepted.has(String(rawSchool(raw)||'').trim()));
 };
+const originalFetch=globalThis.fetch;
 let assetFetchCount=0;
-const env={ASSETS:{fetch:async request=>{assetFetchCount+=1;
+const runtimePaths=[];
+const runtimeEnv={ASSETS:{fetch:async request=>{
+  assetFetchCount+=1;
   const url=new URL(request.url);
-  const relative=url.pathname.replace(/^\/fenxi\//,'');
-  const path=`fenxi/${relative}`;
-  assert.ok(fs.existsSync(path),`stream fixture missing: ${path}`);
-  const response=new Response(Readable.toWeb(fs.createReadStream(path,{highWaterMark:509})),{status:200,headers:{'content-type':'application/json'}});
-  Object.defineProperty(response,'json',{value:async()=>{throw new Error(`chunk response.json forbidden: ${relative}`);}});
-  return response;
+  runtimePaths.push(url.pathname);
+  assert.ok(url.pathname==='/data/zy2026/school-index.json'||/^\/data\/zy2026\/chunks\/school-\d{2}\.json$/.test(url.pathname),`unexpected runtime projection asset: ${url.pathname}`);
+  const localPath=url.pathname.replace(/^\//,'');
+  assert.ok(fs.existsSync(localPath),`runtime projection fixture missing: ${localPath}`);
+  return new Response(fs.readFileSync(localPath),{status:200,headers:{'content-type':'application/json; charset=utf-8'}});
 }}};
 try{
-  clearExactSchoolRecordCacheForTest();
-  const request=new Request('https://preview.example/api/school-majors');
-  const streamed=await loadMatchingRecordsFromFiles(request,env,industrial.chunkFiles2026,raw=>String(rawSchool(raw)||'').trim()==='沈阳工业大学');
-  assert.equal(streamed.scanned,expectedScanned,'streaming locator scanned-count drift');
-  assert.deepEqual(streamed.records,expectedIndustrial,'streaming exact-school truth set drift');
-  assert.equal(streamed.records.length,Number(industrial.recordCount2026),'streaming exact-school record count drift');
+  const request=new Request('https://runtime-cache-test.example/api/school-majors');
+  const policy=schoolRuntimeProjectionCachePolicy();
+  assert.equal(policy.ttlMs,5*60*1000,'school runtime cache TTL drift');
+  assert.equal(policy.indexMaxEntries,1,'school runtime index cache cap drift');
+  assert.equal(policy.shardMaxEntries,4,'school runtime shard cache cap drift');
   for(const schoolEntry of [industrial,aviation,science]){
-    const accepted=new Set([schoolEntry.officialName,...(schoolEntry.admissionNames||[])]);
-    const expected=schoolEntry.chunkFiles2026.flatMap(chunkRows).filter(raw=>accepted.has(String(rawSchool(raw)||'').trim()));
-    const exact=await loadExactSchoolRecordsFromFiles(request,env,schoolEntry.chunkFiles2026,[...(schoolEntry.admissionNames||[]),schoolEntry.officialName],raw=>accepted.has(String(rawSchool(raw)||'').trim()));
-    assert.deepEqual(exact.records,expected,`native exact-school truth set drift: ${schoolEntry.officialName}`);
-    assert.equal(exact.records.length,Number(schoolEntry.recordCount2026),`native exact-school record count drift: ${schoolEntry.officialName}`);
-    assert.ok(exact.modes.length===schoolEntry.chunkFiles2026.length&&exact.modes.every(mode=>mode==='exact-school-native-text-scan'),`native exact-school fast path did not hold: ${schoolEntry.officialName} ${exact.modes.join(',')}`);
-  if(schoolEntry===industrial){
-    const beforeCacheHitFetches=assetFetchCount;
-    const cached=await loadExactSchoolRecordsFromFiles(request,env,schoolEntry.chunkFiles2026,[...(schoolEntry.admissionNames||[]),schoolEntry.officialName],raw=>accepted.has(String(rawSchool(raw)||'').trim()));
-    assert.equal(cached.cacheStatus,'hit','second exact-school read must hit bounded server cache');
-    assert.equal(assetFetchCount,beforeCacheHitFetches,'exact-school cache hit must not fetch chunk asset again');
-    assert.deepEqual(cached.records,expected,'exact-school cache hit truth set drift');
-    assert.notEqual(cached.records,exact.records,'cache hit must return a fresh records array');
-    const cacheState=exactSchoolRecordCacheState();
-    assert.equal(cacheState.ttlMs,45000,'exact-school cache TTL drift');
-    assert.equal(cacheState.maxEntries,8,'exact-school cache entry cap drift');
-    assert.equal(cacheState.maxRecords,800,'exact-school cache record cap drift');
-    assert.equal(cacheState.bounded,true,'exact-school cache must remain bounded');
+    const names=[schoolEntry.officialName,...(schoolEntry.admissionNames||[])];
+    const expected=expectedForSchool(schoolEntry);
+    const before=assetFetchCount;
+    const exact=await loadSchoolRuntimeRecords({request,env:runtimeEnv},{schoolNames:names});
+    const actualKeys=[...new Set(exact.records.map(rawSemanticKey))].sort();
+    const expectedKeys=[...new Set(expected.map(rawSemanticKey))].sort();
+    assert.deepEqual(actualKeys,expectedKeys,`school runtime projection truth drift: ${schoolEntry.officialName}`);
+    assert.equal(exact.records.length,Number(schoolEntry.recordCount2026),`school runtime projection count drift: ${schoolEntry.officialName}`);
+    assert.equal(exact.shardFiles.length,1,`school runtime projection must read one shard: ${schoolEntry.officialName}`);
+    assert.match(exact.shardFiles[0],/^school-\d{2}\.json$/,`school runtime projection shard format drift: ${schoolEntry.officialName}`);
+    if(schoolEntry===industrial){
+      assert.equal(assetFetchCount-before,2,'cold school runtime read must fetch one index and one shard');
+      const beforeWarm=assetFetchCount;
+      const cached=await loadSchoolRuntimeRecords({request,env:runtimeEnv},{schoolNames:names});
+      assert.equal(assetFetchCount,beforeWarm,'warm school runtime read must reuse bounded promise caches');
+      assert.deepEqual([...new Set(cached.records.map(rawSemanticKey))].sort(),expectedKeys,'warm school runtime truth drift');
+    }
   }
-}
-const allFiles=[...chunkFiles];
-  const fullScan=await loadMatchingRecordsFromFiles(request,env,allFiles,()=>false);
-  assert.equal(fullScan.scanned,Number(manifest.totalRecords),'stream parser must consume all 2026 source records without loss');
-  assert.equal(fullScan.records.length,0,'false predicate must not retain source rows');
+  assert.equal(runtimePaths.filter(path=>path==='/data/zy2026/school-index.json').length,1,'runtime school index must be cached after first read');
 }finally{
   globalThis.fetch=originalFetch;
 }
 
 await verifyPartialSchoolHistoryBatch();
-console.log(JSON.stringify({ok:true,checks:['isolated-aiplus-school-history-fact-source','956-school-preaggregated-truth-set-equal','one-index-one-shard-cold-path','concurrent-same-school-fetch-coalescing','complete-117-record-school','48k-complete-school-bridge-budget','actual-four-major-parent-journey','actual-compact-major-parent-journey','actual-all-major-parent-journey','actual-exclude-sino-follow-up','shared-major-filter-parity','spoken-and-canonical-major-matching','candidate-fit-position','sino-project-classification','history-fit-continuation','1102-no-retry','record-stream-no-response-json','stream-truth-set-equal','exact-school-native-text-scan-truth-set-equal','bounded-exact-school-server-cache','bounded-aiplus-school-fact-cache','bounded-school-history-session-cache'],preaggregated,aiFactPath,parentJourneys,majorFilterParity,streamedSchools:['沈阳工业大学','沈阳航空航天大学','辽宁科技大学'],sourceRecords:manifest.totalRecords},null,2));
+console.log(JSON.stringify({ok:true,checks:['isolated-aiplus-school-history-fact-source','956-school-preaggregated-truth-set-equal','one-index-one-shard-cold-path','concurrent-same-school-fetch-coalescing','complete-117-record-school','48k-complete-school-bridge-budget','actual-four-major-parent-journey','actual-compact-major-parent-journey','actual-all-major-parent-journey','actual-exclude-sino-follow-up','shared-major-filter-parity','spoken-and-canonical-major-matching','candidate-fit-position','sino-project-classification','history-fit-continuation','1102-no-retry','school-runtime-projection-truth-set-equal','bounded-school-runtime-promise-cache','bounded-aiplus-school-fact-cache','bounded-school-history-session-cache'],preaggregated,aiFactPath,parentJourneys,majorFilterParity,runtimeProjectionSchools:['沈阳工业大学','沈阳航空航天大学','辽宁科技大学'],sourceRecords:11628},null,2));

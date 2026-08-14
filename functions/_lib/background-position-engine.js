@@ -1,5 +1,5 @@
-import { loadAllRecords, loadManifest } from './ln-rank-manifest.js';
-import { fetchFenxiJson } from './fenxi-fetcher.js';
+import { selectMajorBandsStaticBuckets, loadMajorBandsStaticBucket } from './major-bands-static-provider.js';
+import { loadSchoolRuntimeRecords, loadMajorRuntimeRecords } from './school-record-runtime-provider.vnext.js';
 import { normalizeRecord, rawScore, rawSchool, rawMajor } from './fenxi-normalizer.js';
 import { buildDisplayTags } from './school-display-tags.js';
 import { lookupScoreRank } from './rank-table-provider.js';
@@ -177,92 +177,29 @@ function rawTextPass(raw, filters = {}) {
 }
 
 export async function loadBackgroundMatchedRecords(request, env, filters = {}, config = {}) {
-  const out = [];
-  const max = Math.max(20, Math.min(500, Number(filters.max || 180)));
-  const hasScoreWindow = Number.isFinite(Number(filters.maxScore)) || Number.isFinite(Number(filters.minScore));
-  let manifest = null;
-  let rawTotal = 0;
-  let windowCandidateCount = 0;
-  let normalizedCount = 0;
-  let matchedBeforeLimit = 0;
-  let failedChunk = '';
-  let chunksRead = 0;
-  let chunksSkipped = 0;
-
-  const handleRaw = raw => {
-    rawTotal += 1;
-    if (hasScoreWindow && !inScoreWindowRaw(raw, filters)) return;
-    if (!rawTextPass(raw, filters)) return;
-    windowCandidateCount += 1;
-
-    const record = normalizeRecord(raw);
-    if (!record.school || !record.major || !Number.isFinite(Number(record.score2026 ?? record.score))) return;
-    normalizedCount += 1;
-    record.rawText = JSON.stringify(raw).slice(0, 1600);
-
-    const hit = config.matchRecord(record, raw);
-    if (!hit) return;
-    if (!levelPass(hit.level, filters.level || 'all')) return;
-    if (!publicPass(record, filters.natureMode || 'all')) return;
-
-    matchedBeforeLimit += 1;
-    if (out.length < max) out.push(shapeBackgroundRecord(record, hit, filters, config));
+  const out=[]; const max=Math.max(20,Math.min(500,Number(filters.max||180)));
+  const hasScoreWindow=Number.isFinite(Number(filters.maxScore))||Number.isFinite(Number(filters.minScore));
+  let manifest=null,rawTotal=0,windowCandidateCount=0,normalizedCount=0,matchedBeforeLimit=0,failedChunk='',chunksRead=0,chunksSkipped=0,runtimeMode='';
+  const handleRaw=raw=>{
+    rawTotal+=1; if(hasScoreWindow&&!inScoreWindowRaw(raw,filters))return; if(!rawTextPass(raw,filters))return; windowCandidateCount+=1;
+    const record=normalizeRecord(raw); if(!record.school||!record.major||!Number.isFinite(Number(record.score2026??record.score)))return; normalizedCount+=1; record.rawText=JSON.stringify(raw).slice(0,1600);
+    const hit=config.matchRecord(record,raw); if(!hit||!levelPass(hit.level,filters.level||'all')||!publicPass(record,filters.natureMode||'all'))return;
+    matchedBeforeLimit+=1; if(out.length<max)out.push(shapeBackgroundRecord(record,hit,filters,config));
   };
-
-  if (hasScoreWindow) {
-    manifest = await loadManifest(request, env || {});
-    const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-    for (const chunk of chunks) {
-      if (!chunkIntersectsWindow(chunk, filters)) {
-        chunksSkipped += 1;
-        continue;
-      }
-      const file = chunkFile(chunk);
-      if (!file) continue;
-      chunksRead += 1;
-      let rawRecords = [];
-      try {
-        rawRecords = await loadChunkRecords(request, env || {}, file);
-      } catch (error) {
-        failedChunk = file;
-        throw error;
-      }
-      for (const raw of rawRecords) handleRaw(raw);
-    }
-  } else {
-    const loaded = await loadAllRecords(request, env || {});
-    manifest = loaded.manifest;
-    chunksRead = Array.isArray(manifest?.chunks) ? manifest.chunks.length : 0;
-    for (const raw of loaded.records || []) handleRaw(raw);
-  }
-
-  const candidate = Number(filters.candidateScore);
-  const rawKey = config.rawKey || 'backgroundRaw';
-  out.sort((a, b) => {
-    if (Number.isFinite(candidate)) {
-      const da = Math.abs(Number(a.score2026 || 0) - candidate);
-      const db = Math.abs(Number(b.score2026 || 0) - candidate);
-      if (da !== db) return da - db;
-    }
-    return levelWeightByRaw(b, rawKey) - levelWeightByRaw(a, rawKey)
-      || Number(b.score2026 || 0) - Number(a.score2026 || 0)
-      || rankSort(a.rank2026) - rankSort(b.rank2026);
-  });
-
-  return {
-    records: out,
-    scannedCount: rawTotal,
-    rawScanned: rawTotal,
-    windowCandidateCount,
-    normalizedCount,
-    matchedCount: matchedBeforeLimit,
-    dataReadOk: true,
-    failedChunk,
-    manifest,
-    chunksRead,
-    chunksSkipped,
-    positionContext: buildCandidatePositionContext(filters.candidateScore)
-  };
+  try{
+    if(hasScoreWindow){
+      const min=Number.isFinite(Number(filters.minScore))?Number(filters.minScore):0,maxScore=Number.isFinite(Number(filters.maxScore))?Number(filters.maxScore):750;
+      const scoreWindow={min,max:maxScore}; const options={assets:env?.ASSETS}; const selected=await selectMajorBandsStaticBuckets(request,scoreWindow,options); manifest=selected.manifest;
+      for(const bucket of selected.buckets||[]){const loaded=await loadMajorBandsStaticBucket(request,bucket.file,scoreWindow,options);chunksRead+=1;for(const raw of loaded.records||[])handleRaw(raw);} runtimeMode='bounded-score-buckets';
+    }else if(clean(filters.school||'',80)){
+      const loaded=await loadSchoolRuntimeRecords({request,env:env||{}},{schoolNames:[filters.school]});manifest=loaded.manifest;chunksRead=loaded.shardFiles?.length||0;for(const raw of loaded.records||[])handleRaw(raw);runtimeMode='bounded-school-projection';
+    }else if(clean(filters.major||'',80)){
+      const loaded=await loadMajorRuntimeRecords({request,env:env||{}},{majorNames:[filters.major]});manifest=loaded.manifest;chunksRead=loaded.shardFiles?.length||0;for(const raw of loaded.records||[])handleRaw(raw);runtimeMode='bounded-major-projection';
+    }else runtimeMode='no-unbounded-query';
+  }catch(error){failedChunk=error?.message||String(error);throw error;}
+  const candidate=Number(filters.candidateScore),rawKey=config.rawKey||'backgroundRaw';
+  out.sort((a,b)=>{if(Number.isFinite(candidate)){const da=Math.abs(Number(a.score2026||0)-candidate),db=Math.abs(Number(b.score2026||0)-candidate);if(da!==db)return da-db;}return levelWeightByRaw(b,rawKey)-levelWeightByRaw(a,rawKey)||Number(b.score2026||0)-Number(a.score2026||0)||rankSort(a.rank2026)-rankSort(b.rank2026);});
+  return{records:out,scannedCount:rawTotal,rawScanned:rawTotal,windowCandidateCount,normalizedCount,matchedCount:matchedBeforeLimit,dataReadOk:true,failedChunk,manifest,chunksRead,chunksSkipped,runtimeMode,positionContext:buildCandidatePositionContext(filters.candidateScore)};
 }
 
 export function sortByPositionDistance(records, score, rawKey = 'backgroundRaw') {
