@@ -70,7 +70,6 @@ jobs:
           node tools/audit-major-bands-rank-kernel-v3990_1.mjs
           node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
           node tools/audit-academic-background-v3970.mjs
-          node tools/audit-academic-background-v3968.mjs
           node tools/audit-resource-execution-v3968.mjs
           node tools/audit-school-all-mode-v3962.mjs
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
