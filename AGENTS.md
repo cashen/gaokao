@@ -1,6 +1,12 @@
 # Repository operating rules
 
-Before changing production runtime, release, UI ownership, cache behavior, navigation, page entrypoints or deployment checks, read and follow:
+At the **start of every engineering session**, before planning, debugging, code review, refactoring, performance work, UI work, architecture work, release work or incident repair, read and follow:
+
+- `docs/skills/eastern-philosophy/SKILL.md`
+
+The Eastern Philosophy skill is the mandatory first engineering skill for this repository. Apply its `益 → ownership → 损 → proof → re-audit` startup protocol before proposing or applying a change.
+
+Before changing production runtime, release, UI ownership, cache behavior, navigation, page entrypoints or deployment checks, continue by reading and following:
 
 - `docs/skills/unified-site-release/SKILL.md`
 
