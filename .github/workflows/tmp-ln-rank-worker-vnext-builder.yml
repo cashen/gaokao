@@ -36,8 +36,8 @@ jobs:
           PY
       - name: Build bounded school runtime projection and primary owners
         run: python3 tools/tmp_ln_rank_worker_vnext_builder.py
-      - name: Migrate remaining full-load consumers and major projection
-        run: python3 tools/tmp_ln_rank_worker_vnext_consumer_fix.py
+      - name: Build canonical major runtime projection and migrate remaining consumers
+        run: python3 tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py
       - name: Validate generated JavaScript
         shell: bash
         run: |
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py
+          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py tools/tmp_ln_rank_worker_vnext_consumer_fix_v2.py
           git add data/zy2026/school-index.json data/zy2026/major-index.json data/zy2026/chunks \
             functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js \
             functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js \
