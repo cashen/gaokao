@@ -117,8 +117,9 @@ function validateAiSchoolHistory(result) {
 async function healthGate() {
   const health = await getJson('/api/ai/health', 'health');
   validateBase(health);
-  if (expectedSha) assert.equal(health.payload?.commitSha, expectedSha, `Preview SHA drift: ${health.payload?.commitSha} != ${expectedSha}`);
-  return { commitSha: health.payload?.commitSha || '' };
+  const commitSha = String(health.payload?.deployment?.commitSha || '').trim();
+  if (expectedSha) assert.equal(commitSha, expectedSha, `Preview SHA drift: ${commitSha} != ${expectedSha}`);
+  return { commitSha, branch: health.payload?.deployment?.branch || '', url: health.payload?.deployment?.url || '' };
 }
 
 async function schoolWave(level) {
