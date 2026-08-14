@@ -1,4 +1,4 @@
-# trigger: 2026-08-15-v2
+# trigger: 2026-08-15-v3
 name: tmp AIPLuS region directory v002_3 builder
 
 on:
@@ -9,6 +9,7 @@ on:
       - '.github/workflows/tmp-aiplus-region-directory-v002_3-builder.yml'
       - 'tools/tmp_aiplus_region_directory_v002_3_patch.py'
       - 'tools/tmp_aiplus_region_directory_v002_3_fix1.py'
+      - 'tools/tmp_aiplus_region_directory_v002_3_fix2.py'
 
 permissions:
   contents: write
@@ -29,6 +30,7 @@ jobs:
         run: |
           python3 tools/tmp_aiplus_region_directory_v002_3_patch.py
           python3 tools/tmp_aiplus_region_directory_v002_3_fix1.py
+          python3 tools/tmp_aiplus_region_directory_v002_3_fix2.py
       - name: Syntax and deterministic contracts
         shell: bash
         run: |
