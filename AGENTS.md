@@ -12,6 +12,8 @@ Before changing production runtime, release, UI ownership, cache behavior, navig
 
 The unified site release skill is mandatory for routine fixes as well as feature releases.
 
+After the required skills, read `docs/architecture/START-HERE.md` before changing code. It is the repository handoff/navigation map: it points to the canonical machine contracts and known compatibility boundaries, but it never overrides those contracts.
+
 Do not create an isolated active module generation. The active site generation must be coherent across the release center, runtime contracts, page entrypoints, shared shell, CI and production verification.
 
 Protected paths remain:
