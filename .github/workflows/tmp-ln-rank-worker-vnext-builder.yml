@@ -34,8 +34,10 @@ jobs:
           s=s.replace("projected.push(...rows);if(info.recordCount2026", "projected.push(...rows);if(rows.length)schools.add(info.key);if(info.recordCount2026")
           p.write_text(s)
           PY
-      - name: Build bounded runtime projection and patch owners
+      - name: Build bounded school runtime projection and primary owners
         run: python3 tools/tmp_ln_rank_worker_vnext_builder.py
+      - name: Migrate remaining full-load consumers and major projection
+        run: python3 tools/tmp_ln_rank_worker_vnext_consumer_fix.py
       - name: Validate generated JavaScript
         shell: bash
         run: |
@@ -44,11 +46,20 @@ jobs:
           node --check functions/api/school-majors.js
           node --check functions/_lib/report-data-service-v3956.js
           node --check functions/_lib/ln-rank-manifest.js
+          node --check functions/_lib/fenxi-manifest.js
+          node --check functions/_lib/background-position-engine.js
+          node --check functions/api/major-window.js
+          node --check functions/api/school-geo-audit.js
+          node --check functions/api/fenxi-catalog.js
           node --check tools/audit-worker-resource-architecture-vnext.mjs
           node --check tools/verify-school-runtime-projection-vnext.mjs
-      - name: Verify school projection truth and Worker architecture
+          node --check tools/verify-major-runtime-projection-vnext.mjs
+      - name: Verify projection truth and Worker architecture
+        shell: bash
         run: |
+          set -euo pipefail
           node tools/verify-school-runtime-projection-vnext.mjs
+          node tools/verify-major-runtime-projection-vnext.mjs
           node tools/audit-worker-resource-architecture-vnext.mjs
       - name: Run dependent deterministic regressions
         shell: bash
@@ -56,6 +67,10 @@ jobs:
           set -euo pipefail
           node tools/audit-major-bands-rank-kernel-v3990_1.mjs
           node tools/verify-major-bands-rank-native-scan-v3990_1.mjs
+          node tools/audit-academic-background-v3970.mjs
+          node tools/audit-academic-background-v3968.mjs
+          node tools/audit-resource-execution-v3968.mjs
+          node tools/audit-school-all-mode-v3962.mjs
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
       - name: Check protected boundaries and final diff
@@ -71,13 +86,21 @@ jobs:
           const fs=require('fs');
           const s=fs.readFileSync('functions/_lib/release-contract.js','utf8');
           if(!s.includes('LN_RANK_RELEASE_CONTRACT')||!s.includes('RELEASE_CONTRACT')) throw new Error('release contract dual export lost');
+          const manifest=fs.readFileSync('functions/_lib/fenxi-manifest.js','utf8');
+          if(manifest.includes('loadAllRecords')||manifest.includes('Promise.all')) throw new Error('fenxi full loader survived');
           NODE
       - name: Commit clean candidate
         shell: bash
         run: |
           set -euo pipefail
-          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py
-          git add data/zy2026/school-index.json data/zy2026/chunks functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js tools/audit-worker-resource-architecture-vnext.mjs tools/verify-school-runtime-projection-vnext.mjs
+          git rm .github/workflows/tmp-ln-rank-worker-vnext-builder.yml tools/tmp_ln_rank_worker_vnext_builder.py tools/tmp_ln_rank_worker_vnext_consumer_fix.py
+          git add data/zy2026/school-index.json data/zy2026/major-index.json data/zy2026/chunks \
+            functions/_lib/school-record-runtime-provider.vnext.js functions/api/school-majors.js \
+            functions/_lib/report-data-service-v3956.js functions/_lib/ln-rank-manifest.js \
+            functions/_lib/fenxi-manifest.js functions/_lib/background-position-engine.js \
+            functions/api/major-window.js functions/api/school-geo-audit.js functions/api/fenxi-catalog.js \
+            tools/audit-worker-resource-architecture-vnext.mjs tools/verify-school-runtime-projection-vnext.mjs \
+            tools/verify-major-runtime-projection-vnext.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(ln-rank): bound Worker admission resource ownership'
