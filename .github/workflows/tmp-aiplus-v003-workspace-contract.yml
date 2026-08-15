@@ -1,0 +1,58 @@
+name: tmp AIPLuS v0.03 workspace contract patch
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-workspace-contract.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch canonical workspace server compaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('shared/ai/ai-workspace-contract.v3992_0.js')
+          s=p.read_text()
+          old="nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch"
+          new="nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,semanticFrameSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch"
+          if s.count(old)!=1:
+            raise SystemExit(f'import anchor count={s.count(old)}')
+          s=s.replace(old,new)
+          old="export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch};"
+          new="export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch,semanticFrameSeed};"
+          if s.count(old)!=1:
+            raise SystemExit(f'export anchor count={s.count(old)}')
+          s=s.replace(old,new)
+          old="agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),contextUsage:workspace.agentContext?.contextUsage||{}},"
+          new="agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),semanticFrame:semanticFrameSeed(workspace.agentContext?.semanticFrame),contextUsage:workspace.agentContext?.contextUsage||{}},"
+          if s.count(old)!=1:
+            raise SystemExit(f'compact anchor count={s.count(old)}')
+          s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          git diff --check
+      - name: Commit contract patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shared/ai/ai-workspace-contract.v3992_0.js
+          git commit -m 'AIPLuS：贯通工作区家长决策语义到服务端'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
