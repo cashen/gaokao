@@ -29,7 +29,7 @@ function hasMeaningfulActiveView(workspace={}){const v=activeView(workspace);ret
 function majorTermPriority(term){return BROAD_MAJOR_TERMS.includes(term)?1:2;}
 function majorMentions(text){
   const source=String(text||''),out=[];
-  for(const term of MAJOR_TERMS){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const before=source.slice(Math.max(0,i-10),i),after=source.slice(i+term.length,i+term.length+10);const negative=/(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|不是|不选).{0,3}$/.test(before)||/^(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|算了|不要了|不选)/.test(after);out.push({term,index:i,negative});from=i+term.length;}}
+  for(const term of MAJOR_TERMS){let from=0;while(from<source.length){const i=source.indexOf(term,from);if(i<0)break;const before=source.slice(Math.max(0,i-10),i),after=source.slice(i+term.length,i+term.length+10);const negative=/(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|不是|不选)[^，,。！？!?；;：:\n]{0,3}$/.test(before)||/^(不看|不要|不考虑|排除|不接受|别看|去掉|删掉|算了|不要了|不选)/.test(after);const irrelevant=['数学','物理','化学','生物','英语'].includes(term)&&/^(?:成绩|基础)?(?:不错|挺好|较好|很好|强|优势|一般|较弱|不好|不太好|弱)/.test(after);out.push({term,index:i,negative,irrelevant});from=i+term.length;}}
   out.sort((a,b)=>a.index-b.index||majorTermPriority(b.term)-majorTermPriority(a.term)||b.term.length-a.term.length);
   return out.filter((item,index,list)=>!list.some((other,j)=>j!==index&&other.term.length>item.term.length&&other.index<=item.index&&other.index+other.term.length>=item.index+item.term.length));
 }
@@ -39,8 +39,8 @@ function schoolMentionSpans(text,schoolNames=[],matchedAliases=[]){
   return spans;
 }
 function majorMentionOverlapsSchool(text,mention,schoolNames=[],matchedAliases=[]){const mentionEnd=mention.index+String(mention.term||'').length;return schoolMentionSpans(text,schoolNames,matchedAliases).some(span=>mention.index<span.end&&mentionEnd>span.start);}
-function positiveMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>!item.negative&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
-function negativeMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>item.negative&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
+function positiveMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>!item.negative&&!item.irrelevant&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
+function negativeMajors(text,schoolNames=[],matchedAliases=[]){return unique(majorMentions(text).filter(item=>item.negative&&!item.irrelevant&&!majorMentionOverlapsSchool(text,item,schoolNames,matchedAliases)).map(item=>normalizeMajorTerm(item.term)),8);}
 const SCHOOL_ENTITY_LEADING_ACTION=/^(?:(?:帮我只看|筛选一下|介绍一下|介绍介绍|了解一下|认识一下|我想知道|帮我比较|帮我筛|帮我看|帮我查|我想看|我想查|我想问|只看|仅看|筛选|筛一下|只留|保留|换成|改成|收窄到|收窄|缩到|留在|介绍下|介绍|讲一下|讲下|讲讲|说一下|说下|说说|聊一下|聊聊|了解下|了解|看看|看下|看一下|我问你|问你|想知道|想看|想查|想问|查下|查一下|问下|问一下|请看|请查|比较|对比|改看|换|然后|顺便|等等|等下|算了|还是|先|再|那|把|和|跟|与|就))+/;
 function stripSchoolEntityLeadingAction(value,max=120){return clean(value,max).replace(SCHOOL_ENTITY_LEADING_ACTION,'').trim();}
 function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\u4e00-\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120));return unique([...(resolvedSchoolNames||[]),...full],4);}

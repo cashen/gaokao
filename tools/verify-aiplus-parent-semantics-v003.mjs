@@ -73,6 +73,16 @@ assert.deepEqual(refFrame.schools,pairFrame.schools,'ordinal reference must not 
 const refPlan=buildEvidencePlan({agentTask:'decision_research',scoreUsage:'remembered',semanticFrame:refFrame},followWorkspace,followWorkspace.activeView);assert.equal(refPlan.scoreUsed,false);assert.deepEqual(refPlan.steps[0].params.schools,['大连交通大学']);assert.deepEqual(refPlan.steps[0].params.majors,['自动化']);
 const refScoreFrame=buildParentSemanticFrame('第二个568分现实吗',{schools:['大连交通大学'],majors:['自动化'],score:568,workspace:followWorkspace});const refScorePlan=buildEvidencePlan({agentTask:'decision_research',scoreUsage:'remembered',semanticFrame:refScoreFrame},followWorkspace,followWorkspace.activeView);assert.equal(refScorePlan.scoreUsed,true);assert.equal(kinds(refScorePlan)[0],'admissions_compare');assert.equal(refScorePlan.steps[0].params.pairs.length,1);assert.deepEqual(refScorePlan.steps[0].params.schools,['大连交通大学']);
 
+const subjectContextCases=[
+  ['孩子数学不错，但不喜欢编程，也不接受倒班，电气和自动化怎么选',['电气','自动化']],
+  ['孩子物理很好，机械和电气怎么选',['机械','电气']],
+  ['孩子化学一般，材料和化工怎么选',['材料','化工']],
+  ['数学和自动化怎么选',['数学','自动化']],
+  ['物理和电气怎么选',['物理','电气']],
+  ['化学和材料怎么选',['化学','材料']]
+];
+for(const [text,expected] of subjectContextCases){const value=deterministicCommand(text,base,[],[]);assert.deepEqual(value.majorKeywords.slice(0,expected.length),expected,`subject-major context: ${text}`);}
+
 const student=studentSignalsFromText('孩子数学不错，但是不喜欢编程，不接受倒班，可以出差，动手能力挺好');
 assert.ok(student.some(item=>item.dimension==='math_strength'&&item.value==='strong'));assert.ok(student.some(item=>item.dimension==='programming_affinity'&&item.value==='avoid'));assert.ok(!student.some(item=>item.dimension==='programming_affinity'&&item.value==='accept'));assert.ok(student.some(item=>item.dimension==='shift_work'&&item.value==='avoid'));assert.ok(student.some(item=>item.dimension==='travel'&&item.value==='accept'));assert.ok(!student.some(item=>item.dimension==='travel'&&item.value==='avoid'));assert.ok(student.some(item=>item.dimension==='hands_on'&&item.value==='strong'));
 const mentorFrame=buildParentSemanticFrame('以后工作稳定一些，电气和自动化怎么选',{majors:['电气工程及其自动化','自动化'],score:568,mentorProfile:{source:'ai-assisted',primaryGoal:'employment_stability',priorities:['employment'],riskQuestions:['employment_certainty']},workspace:base});assert.equal(mentorFrame.source,'deterministic+controlled-ai');assert.ok(mentorFrame.preferenceSignals.some(item=>item.dimension==='employment'));assert.ok(mentorFrame.currentEvidenceNeeds.includes('employment'));
