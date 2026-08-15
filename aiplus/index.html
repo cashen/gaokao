@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f6f1" />
   <title>AIPLuS 家庭顾问｜辽宁高考家庭工具</title>
-  <meta name="description" content="AIPLuS 家庭顾问：先理解你要解决的任务，再调用学校官方资料、招生分数和专业背景等确定性工具。先给答案，只有明确筛选时才修改候选条件。" />
+  <meta name="description" content="AIPLuS 家庭顾问：理解家长自然语言中的分数、学校、专业、家庭偏好和取舍目标，再用确定性招生事实与可核验官方证据回答。只有明确筛选时才修改候选条件。" />
   <link rel="stylesheet" href="/aiplus/workspace.v3990_1.css?v=002_3&scroll=002_1" />
   <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=002_3&scroll=002_1" />
   <link rel="stylesheet" href="/aiplus/product.v002.css?v=002_3&scroll=002_1" />
   <link rel="stylesheet" href="/aiplus/geometry.v002.css?v=002_2&core=002_3" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_3" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_3" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
@@ -55,7 +55,7 @@
       <section class="starter" id="starterPanel">
         <div class="starter-copy">
           <h2>先说你真正想解决的问题</h2>
-          <p>可以直接问“省内机械电子所有学校分数从高到低”“介绍下辽宁师范大学”“我580分能不能上沈工大”，不用学习标准问法。</p>
+          <p>可以直接说“普通家庭、不太想考研，电气和自动化怎么选”“省内机械电子所有学校分数从高到低”“沈工大电气和大连交通自动化怎么取舍”，不用学习标准问法。</p>
         </div>
         <div class="starter-score">
           <label for="starterScore">孩子大概分数 <span>可选</span></label>
@@ -67,13 +67,13 @@
       <form id="promptForm" class="composer">
         <label for="promptInput">问学校、专业、分数或怎么选</label>
         <div class="composer-row">
-          <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：介绍下辽宁科技大学，它强在哪？2026省内都多少分？"></textarea>
+          <textarea id="promptInput" rows="2" maxlength="1200" placeholder="例如：孩子568分，普通家庭，不太想考研，更看重就业，电气、自动化、机械怎么选？"></textarea>
           <div class="composer-buttons">
             <button id="stopButton" class="quiet stop" type="button" hidden>停止本轮</button>
             <button id="sendButton" class="primary" type="submit">发送</button>
           </div>
         </div>
-        <p class="composer-help">学校官方资料优先核对阳光高考；招生分数走站内确定性数据。模型负责理解、归纳和组织答案，不用模型补猜事实。</p>
+        <p class="composer-help">招生分数走站内确定性数据；复杂取舍先拆成有界证据计划。学校官方资料优先核对阳光高考，需要培养、就业或升学材料时只读取可验证官方页面。模型负责理解和归纳，不用模型补猜事实。</p>
       </form>
 
       <details class="support-panel" id="decisionContextDetails">
@@ -110,7 +110,7 @@
     </main>
   </div>
 
-  <footer class="aiplus-product-footer" aria-label="AIPLuS 产品版本">AIPLuS 产品版 · v0.02</footer>
+  <footer class="aiplus-product-footer" aria-label="AIPLuS 产品版本">AIPLuS 产品版 · v0.03</footer>
 
   <dialog id="confirmDialog">
     <form method="dialog" class="dialog-card">
