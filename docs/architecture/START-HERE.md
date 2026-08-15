@@ -39,14 +39,24 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 
 ### AIPLuS product and fact boundaries
 
-- `shared/ai/aiplus-product-contract.v002.js` — product/source policy vocabulary.
+- `shared/ai/aiplus-product-contract.v003.js` — current product/source policy vocabulary. The older v0.02 file remains a stable compatibility dependency for unchanged helpers; it is not the current product identity.
 - `functions/_lib/ai/intent-contract.js` — task → action/object/source contract.
+- `functions/_lib/ai/parent-semantic-frame.js` — **parent decision meaning owner** for composite questions. It records what is being compared, explicit career targets, hard/soft preferences and evidence needs; it never owns score/region/school/major mutations.
+- `functions/_lib/ai/evidence-plan.js` — **bounded decision research planner**. It may schedule at most three evidence steps and does not create another orchestrator.
+- `functions/_lib/ai/claim-evidence.js` — **claim provenance contract**. Model-facing facts must retain source/year/scope and time-sensitive quantitative claims fail closed without a year.
+- `functions/_lib/ai/official-web-evidence.js` — the only general official-web discovery/reader gateway. Search results are discovery only; claims must come from actually read CHSI, `.gov.cn` or `.edu.cn` pages.
+- `functions/_lib/ai/decision-research-runtime.js` — executes the bounded plan through existing deterministic and official-source owners.
+- `functions/_lib/ai/turn-orchestrator.js` — the **single turn execution owner**. Atomic task routing remains in the existing deterministic task kernel; only the orchestrator can promote a multi-object/multi-goal turn into `decision_research`.
 - `functions/_lib/ai/RESOURCE-BOUNDARY.md` — deterministic fact/resource boundary.
 - `aiplus/index.html` — browser entrypoint.
 - `aiplus/app.v3990_1.js` — current browser orchestration entry module.
-- `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning.
+- `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its v0.02 identifier remains stable because v0.03 reuses the same browser fact bridge rather than inventing another one.
 
-Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts or a parallel admissions probability model.
+Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts or a parallel admissions probability model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
+
+### AIPLuS v0.03 version boundary
+
+The visible AIPLuS product semantics are `v0.03`, while the stable browser advisor shell remains `ai-human-advisor-agent-v0.02` and the current browser core asset transaction remains `aiplus-assets-v002_3`. This is intentional: v0.03 changes server-side parent-decision semantics/evidence orchestration but does not create or rename a browser runtime generation merely for version cleanliness. `aiplus/index.html` exposes both identities separately.
 
 ## 3. Known ownership boundaries that must not be guessed away
 
@@ -65,7 +75,7 @@ This is a **declared transitive ownership debt**, not permission to copy, rename
 
 ### Legacy intent interpreter
 
-`functions/_lib/ai/intent-interpreter.js` remains in the repository, but the architecture audit verifies that current production roots do not import it. Do not reactivate it as a second intent owner. Current AIPLuS intent/task behavior is governed by the current command/orchestration/product contracts and their tests.
+`functions/_lib/ai/intent-interpreter.js` remains in the repository, but the architecture audit verifies that current production roots do not import it. Do not reactivate it as a second intent owner. Current AIPLuS atomic intent/task behavior is governed by the current command/task contracts; v0.03 parent-decision composition is owned by the turn orchestrator and must not fork that atomic parser.
 
 ### Cloudflare production verifier compatibility
 
@@ -95,7 +105,7 @@ This owns exact-main Cloudflare Git production verification. The Pages productio
 
 - `.github/workflows/verify-ai-workspace-v3990_1.yml`
 
-It verifies source contracts, exact Preview behavior, browser journeys and production-facing AIPLuS contracts.
+It verifies source contracts, exact Preview behavior, browser journeys and production-facing AIPLuS contracts. A narrow v0.03 parent-decision verifier may supplement this workflow, but it must not replace or weaken the existing AI workspace gate.
 
 ### Worker resource vNext
 
