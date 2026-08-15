@@ -24,6 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/tmp_aiplus_v003_canonical_continuation.py
+          python tools/tmp_aiplus_v003_school_boundary.py
           python tools/tmp_aiplus_v003_confirmed_hint.py
           python tools/tmp_aiplus_v003_protocol_test.py
       - name: Verify canonical continuation and preserved AI behavior
