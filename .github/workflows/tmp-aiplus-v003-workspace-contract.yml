@@ -27,6 +27,21 @@ jobs:
           python tools/tmp_aiplus_v003_school_boundary.py
           python tools/tmp_aiplus_v003_confirmed_hint.py
           python tools/tmp_aiplus_v003_protocol_test.py
+      - name: Diagnose first decision phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'EOF'
+          import {createAiWorkspace} from './shared/ai/ai-workspace-contract.v3992_0.js';
+          import {orchestrateAiTurn} from './functions/_lib/ai/turn-orchestrator.js';
+          const base=createAiWorkspace({examContext:{score:568},activeView:{score:568,regionKeys:['all'],majorKeywords:[],schoolNames:[],bottomLineMode:'all'}});
+          const resolverSchools=[{officialName:'沈阳工业大学',province:'辽宁',city:'沈阳'},{officialName:'大连交通大学',province:'辽宁',city:'大连'},...Array.from({length:58},(_,i)=>({officialName:`测试占位大学${i+1}`,province:'辽宁',city:'沈阳'}))];
+          const emptyBackground={version:'local-strength-static-v3971_2',records:[],schools:[],meta:{dataYear:2026},academicBackgroundMeta:{boundary:'test empty background'}};
+          const ASSETS={fetch:async input=>{const pathname=new URL(input.url).pathname;if(pathname==='/ln-rank/data/local-strength/local-strength-audit.v3971_2.json')return new Response(JSON.stringify({schools:resolverSchools}),{status:200});if(pathname==='/ln-rank/data/local-strength/local-strength-index.v3971_2.json')return new Response(JSON.stringify(emptyBackground),{status:200});return new Response('{}',{status:404});}};
+          const input='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研';
+          const turn=await orchestrateAiTurn({request:new Request('https://example.test/api/ai/turn'),env:{ASSETS}},{input,workspace:base});
+          console.log(JSON.stringify({ok:turn.ok,pending:turn.pendingDeterministicTool,task:turn.command?.agentTask,schools:turn.command?.schoolNames,majors:turn.command?.majorKeywords,toolRequests:turn.toolRequests,resultKeys:Object.keys(turn.result||{}),decisionResearch:turn.result?.decisionResearch,toolError:turn.result?.toolError,answerStatus:turn.result?.answerStatus},null,2));
+          EOF
       - name: Verify canonical continuation and preserved AI behavior
         shell: bash
         run: |
