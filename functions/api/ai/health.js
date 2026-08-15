@@ -8,10 +8,10 @@ import { AI_CLAIM_EVIDENCE_VERSION } from '../../_lib/ai/claim-evidence.js';
 import { AI_OFFICIAL_WEB_EVIDENCE_VERSION } from '../../_lib/ai/official-web-evidence.js';
 import { AI_DECISION_RESEARCH_RUNTIME_VERSION } from '../../_lib/ai/decision-research-runtime.js';
 import { CURRENT_RELEASE } from '../../../shared/resources/release/current-release.js';
-import {AIPLUS_PRODUCT_VERSION,AIPLUS_PRODUCT_CONTRACT_VERSION} from '../../../shared/ai/aiplus-product-contract.v003.js';
+import {AIPLUS_PRODUCT_VERSION,AIPLUS_PRODUCT_CONTRACT_VERSION} from '../../../shared/ai/aiplus-product-contract.v002.js';
 import {AI_SCHOOL_HISTORY_FACT_CONTRACT} from '../../_lib/ai/school-history-fact-contract.js';
 
-export const AI_HEALTH_API_VERSION='ai-health-api-v0.03';
+export const AI_HEALTH_API_VERSION='ai-health-api-v0.02';
 function clean(value,max=500){return String(value==null?'':value).trim().slice(0,max);}
 function json(payload,status=200){return new Response(JSON.stringify(payload),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});}
 export async function onRequest(context){
