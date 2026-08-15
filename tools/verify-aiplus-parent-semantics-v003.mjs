@@ -19,6 +19,7 @@ for(const scenario of AIPLUS_PARENT_QUERY_CATALOG_V003){
   if(scenario.task&&scenario.task!=='decision_research')assert.equal(command.agentTask,scenario.task,`${scenario.id}: atomic task must remain stable`);
   if(scenario.taskOneOf)assert.ok(scenario.taskOneOf.includes(command.agentTask),`${scenario.id}: ${command.agentTask}`);
   if(scenario.majors?.length)assert.deepEqual(command.majorKeywords.slice(0,scenario.majors.length),scenario.majors,`${scenario.id}: majors`);
+  if(scenario.scoreUsage)assert.equal(command.scoreUsage,scenario.scoreUsage,`${scenario.id}: score usage`);
   if(scenario.task==='decision_research'){
     assert.notEqual(command.agentTask,'decision_research',`${scenario.id}: composite decision must not replace the atomic task kernel`);
     const semanticFrame=frameFor(command,scenario.text);assert.ok(semanticFrame.signature,`${scenario.id}: semantic frame`);assert.ok(semanticFrame.compositeDecision,`${scenario.id}: composite decision`);
@@ -27,6 +28,7 @@ for(const scenario of AIPLUS_PARENT_QUERY_CATALOG_V003){
     for(const career of scenario.careers||[])assert.ok(semanticFrame.careerTargets.includes(career),`${scenario.id}: career ${career}`);
     if(scenario.softSignal){const [dimension,value]=scenario.softSignal;assert.ok(semanticFrame.preferenceSignals.some(item=>item.dimension===dimension&&item.value===value&&item.strength==='soft'),`${scenario.id}: soft signal`);}
     if(scenario.hardSignal){const [dimension,value]=scenario.hardSignal;assert.ok(semanticFrame.preferenceSignals.some(item=>item.dimension===dimension&&item.value===value&&item.strength==='hard'),`${scenario.id}: hard signal`);}
+    if(scenario.scoreUsage==='suspended'){assert.equal(semanticFrame.score,null,`${scenario.id}: frame score must be suspended`);assert.ok(!semanticFrame.evidenceNeeds.includes('admissions'),`${scenario.id}: admissions evidence must be suspended`);assert.equal(plan.scoreUsed,false,`${scenario.id}: plan score must be suspended`);assert.ok(!plan.steps.some(item=>item.kind==='admissions_compare'||item.kind==='admissions_context'),`${scenario.id}: no admissions step while score is suspended`);}
   }
 }
 
