@@ -187,7 +187,7 @@ async function verifyAiSchoolHistoryFactPath(){
   const state=aiSchoolHistoryFactCacheState();
   assert.equal(state.ttlMs,5*60*1000,'AIPLuS fact cache TTL drift');
   assert.equal(state.indexMaxEntries,1,'AIPLuS index cache cap drift');
-  assert.equal(state.shardMaxEntries,4,'AIPLuS fact cache cap drift');
+  assert.equal(state.shardMaxEntries,4,'AIPLuS shard cache cap drift');
   assert.equal(state.bounded,true,'AIPLuS fact caches must remain bounded');
   return{coldAssetBytes,largestSchoolRecords:largest.records.length};
 }
