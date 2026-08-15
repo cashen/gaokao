@@ -16,13 +16,13 @@ const base=createAiWorkspace({examContext:{score:568},activeView:{score:568,regi
 function frameFor(command,text,workspace=base){return buildParentSemanticFrame(text,{schools:command.schoolNames,majors:command.majorKeywords,regionKeys:command.regionKeys,score:command.score||workspace?.examContext?.score,mentorProfile:command.mentorProfile,workspace});}
 for(const scenario of AIPLUS_PARENT_QUERY_CATALOG_V003){
   const command=deterministicCommand(scenario.text,base,scenario.schools||[],scenario.aliases||[]);
-  if(scenario.task)assert.equal(command.agentTask,scenario.task,scenario.id);
+  if(scenario.task&&scenario.task!=='decision_research')assert.equal(command.agentTask,scenario.task,`${scenario.id}: atomic task must remain stable`);
   if(scenario.taskOneOf)assert.ok(scenario.taskOneOf.includes(command.agentTask),`${scenario.id}: ${command.agentTask}`);
   if(scenario.majors?.length)assert.deepEqual(command.majorKeywords.slice(0,scenario.majors.length),scenario.majors,`${scenario.id}: majors`);
-  if(command.agentTask==='decision_research'){
-    assert.equal(command.executionPolicy.commitView,false,`${scenario.id}: decision research must not mutate candidate view`);
+  if(scenario.task==='decision_research'){
+    assert.notEqual(command.agentTask,'decision_research',`${scenario.id}: composite decision must not replace the atomic task kernel`);
     const semanticFrame=frameFor(command,scenario.text);assert.ok(semanticFrame.signature,`${scenario.id}: semantic frame`);assert.ok(semanticFrame.compositeDecision,`${scenario.id}: composite decision`);
-    const plan=buildEvidencePlan({...command,semanticFrame},base,base.activeView);assert.ok(plan.steps.length<=3,`${scenario.id}: bounded evidence steps`);assert.equal(plan.maxSteps,3);
+    const plan=buildEvidencePlan({...command,agentTask:'decision_research',semanticFrame},base,base.activeView);assert.ok(plan.steps.length<=3,`${scenario.id}: bounded evidence steps`);assert.equal(plan.maxSteps,3);
     for(const need of scenario.needs||[])assert.ok(semanticFrame.evidenceNeeds.includes(need),`${scenario.id}: evidence need ${need}`);
     for(const career of scenario.careers||[])assert.ok(semanticFrame.careerTargets.includes(career),`${scenario.id}: career ${career}`);
     if(scenario.softSignal){const [dimension,value]=scenario.softSignal;assert.ok(semanticFrame.preferenceSignals.some(item=>item.dimension===dimension&&item.value===value&&item.strength==='soft'),`${scenario.id}: soft signal`);}
@@ -31,13 +31,13 @@ for(const scenario of AIPLUS_PARENT_QUERY_CATALOG_V003){
 }
 
 const pair=deterministicCommand('沈工大电气和大连交通自动化怎么选，考虑就业和考研',base,['沈阳工业大学','大连交通大学'],['沈工大','大连交通']);
-assert.equal(pair.agentTask,'decision_research');
+assert.equal(pair.agentTask,'school_comparison','atomic comparison owner must stay unchanged');
 const pairFrame=frameFor(pair,'沈工大电气和大连交通自动化怎么选，考虑就业和考研');
 assert.deepEqual(pairFrame.pairs.map(item=>[item.school,item.major]),[['沈阳工业大学','电气工程及其自动化'],['大连交通大学','自动化']]);
-const pairPlan=buildEvidencePlan({...pair,semanticFrame:pairFrame},base,base.activeView);assert.deepEqual(pairPlan.steps.map(item=>item.kind),['admissions_compare','background_evidence','official_web_evidence']);
+const pairPlan=buildEvidencePlan({...pair,agentTask:'decision_research',semanticFrame:pairFrame},base,base.activeView);assert.deepEqual(pairPlan.steps.map(item=>item.kind),['admissions_compare','background_evidence','official_web_evidence']);
 
 const followWorkspace=createAiWorkspace({examContext:{score:568},activeView:base.activeView,agentContext:{currentTask:'decision_research',semanticFrame:pairFrame,focus:{schools:pair.schoolNames,majors:pair.majorKeywords}}});
-const follow=deterministicCommand('那如果我愿意读研呢',followWorkspace,[],[]);assert.equal(follow.agentTask,'decision_research');
+const follow=deterministicCommand('那如果我愿意读研呢',followWorkspace,[],[]);
 const followFrame=buildParentSemanticFrame('那如果我愿意读研呢',{schools:follow.schoolNames,majors:follow.majorKeywords,regionKeys:follow.regionKeys,score:follow.score,mentorProfile:follow.mentorProfile,workspace:followWorkspace});
 assert.deepEqual(followFrame.schools,pairFrame.schools,'decision follow-up keeps prior school objects');assert.deepEqual(followFrame.majors,pairFrame.majors,'decision follow-up keeps prior major objects');assert.ok(followFrame.preferenceSignals.some(item=>item.dimension==='study_duration'&&item.value==='long_ok'));assert.deepEqual(followFrame.careerTargets,pairFrame.careerTargets,'decision follow-up keeps prior explicit career context');
 
@@ -50,5 +50,7 @@ const mockedWeb=await runOfficialWebEvidence({env:{JINA_API_KEY:'test'}},{school
 
 const request=new Request('https://example.test/api/ai/turn',{method:'POST'}),ctx={request,env:{}};
 const turn=await orchestrateAiTurn(ctx,{input:'沈工大电气和大连交通自动化怎么选，考虑就业和考研',workspace:base,confirmedCommand:pair});assert.equal(turn.ok,true);assert.equal(turn.pendingDeterministicTool,true);assert.equal(turn.commitView,false);assert.equal(turn.command.agentTask,'decision_research');assert.ok(turn.command.semanticFrame?.signature);assert.deepEqual(turn.command.semanticFrame.pairs,pairFrame.pairs);assert.equal(turn.toolRequests.length,2,'pair decision should request only two exact school-major history facts before further evidence');assert.ok(turn.toolRequests.every(item=>item.kind==='school_history'));assert.equal(turn.comparisonPlan?.kind,'decision');
+
+const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:followWorkspace,confirmedCommand:follow});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.ok(followTurn.command.semanticFrame.preferenceSignals.some(item=>item.dimension==='study_duration'&&item.value==='long_ok'));
 
 console.log(JSON.stringify({ok:true,version:'aiplus-parent-semantics-v0.03',scenarios:AIPLUS_PARENT_QUERY_CATALOG_V003.length,product:AIPLUS_PRODUCT_VERSION},null,2));
