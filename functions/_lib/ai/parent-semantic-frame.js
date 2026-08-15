@@ -3,8 +3,6 @@ export const PARENT_SEMANTIC_FRAME_VERSION='parent-semantic-frame-v0.03';
 const CAREER_TARGETS=Object.freeze(['central_soe','state_owned','public_service','teacher','manufacturing','it','research','healthcare']);
 const EVIDENCE_NEEDS=Object.freeze(['admissions','background','curriculum','employment','postgraduate','cost','city','official_policy','experience']);
 const SPEECH_ACTS=Object.freeze(['lookup','compare','decide','explore','verify']);
-const HARD_RE=/(必须|只接受|只能|绝不|一定要|不能接受|不考虑|排除|不要|不出省)/;
-const SOFT_RE=/(最好|优先|更看重|倾向|可以|都行|其次|不用特别|差一点可以|无所谓|尽量)/;
 
 function clean(value,max=240){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}
@@ -39,21 +37,18 @@ function evidenceNeedsFromText(text='',{schools=[],majors=[],score=null}={}){
 }
 
 function preferenceSignals(text='',mentorProfile={}){
-  const s=String(text||''),signals=[],push=(dimension,value,excerpt='')=>{
-    const around=excerpt||s,strength=HARD_RE.test(around)?'hard':SOFT_RE.test(around)?'soft':'concern';
-    signals.push({dimension,value,strength,source:'explicit_text'});
-  };
-  if(/(学校牌子不用特别高|学校差一点可以|学校层次可以让|学校无所谓)/.test(s))push('school_platform','flexible');
-  else if(/(学校优先|平台优先|学校层次|学校牌子|学历平台|985|211|双一流)/.test(s))push('school_platform','important');
-  if(/(专业别太虚|专业必须|专业优先|专业实力|专业质量|专业更重要)/.test(s))push('major_quality','important');
-  if(/(最好在辽宁|尽量省内|省内优先)/.test(s))push('region','liaoning_preferred');
-  if(/(绝不出省|只在辽宁|只能省内|不考虑省外)/.test(s))push('region','liaoning_only');
-  if(/(省内外都行|东北都行|地域都行)/.test(s))push('region','flexible');
-  if(/(普通家庭|家里没资源|没背景|没人脉|预算有限|经济压力)/.test(s))push('family_resources','resource_sensitive');
-  if(/(不想考研|不考虑读研|本科就就业|尽快就业|不想读太久)/.test(s))push('study_duration','prefer_short');
-  if(/(愿意读研|可以读研|接受读研|能接受深造|愿意深造)/.test(s))push('study_duration','long_ok');
-  if(/(就业优先|更看重就业|工作稳定|就业稳定|稳定第一)/.test(s))push('employment','important');
-  if(/(高薪|收入上限|挣钱|工资高|薪资高)/.test(s))push('income','important');
+  const s=String(text||''),signals=[],push=(dimension,value,strength='concern')=>signals.push({dimension,value,strength,source:'explicit_text'});
+  if(/(学校牌子不用特别高|学校差一点可以|学校层次可以让|学校无所谓)/.test(s))push('school_platform','flexible','soft');
+  else if(/(学校优先|平台优先|学校层次|学校牌子|学历平台|985|211|双一流)/.test(s))push('school_platform','important',/(必须.{0,4}(学校|平台)|学校.{0,4}必须)/.test(s)?'hard':'soft');
+  if(/(专业别太虚|专业必须|专业优先|专业实力|专业质量|专业更重要)/.test(s))push('major_quality','important',/(专业必须|必须.{0,4}专业)/.test(s)?'hard':'soft');
+  if(/(最好在辽宁|尽量省内|省内优先)/.test(s))push('region','liaoning_preferred','soft');
+  if(/(绝不出省|只在辽宁|只能省内|不考虑省外)/.test(s))push('region','liaoning_only','hard');
+  if(/(省内外都行|东北都行|地域都行)/.test(s))push('region','flexible','soft');
+  if(/(普通家庭|家里没资源|没背景|没人脉|预算有限|经济压力)/.test(s))push('family_resources','resource_sensitive','concern');
+  if(/(不想考研|不考虑读研|本科就就业|尽快就业|不想读太久)/.test(s))push('study_duration','prefer_short',/(绝不.{0,4}(考研|读研)|一定不.{0,4}(考研|读研))/.test(s)?'hard':'soft');
+  if(/(愿意读研|可以读研|接受读研|能接受深造|愿意深造)/.test(s))push('study_duration','long_ok','soft');
+  if(/(就业优先|更看重就业|工作稳定|就业稳定|稳定第一)/.test(s))push('employment','important',/(就业必须|稳定第一|必须.{0,4}稳定)/.test(s)?'hard':'soft');
+  if(/(高薪|收入上限|挣钱|工资高|薪资高)/.test(s))push('income','important','soft');
   if(mentorProfile?.primaryGoal&&mentorProfile.primaryGoal!=='undecided'&&!signals.some(x=>x.dimension==='primary_goal'))signals.push({dimension:'primary_goal',value:mentorProfile.primaryGoal,strength:'soft',source:'mentor_profile'});
   return signals.slice(0,12);
 }
@@ -97,8 +92,8 @@ function signatureFor(frame={}){
 }
 
 export function buildParentSemanticFrame(text='',options={}){
-  const s=clean(text,1200),workspace=options.workspace||{},prior=workspace?.agentContext?.semanticFrame||{},schools=unique(options.schools||[],4),majors=unique(options.majors||[],8),regionKeys=unique(options.regionKeys||[],8),score=Number.isFinite(Number(options.score))?Number(options.score):null,mentorProfile=options.mentorProfile||{},priorTask=workspace?.agentContext?.currentTask||'';
-  const explicitCareers=careerTargetsFromText(s),careers=explicitCareers.length?explicitCareers:(priorTask==='decision_research'?allowed(prior.careerTargets||[],CAREER_TARGETS,8):[]),explicitPreferences=preferenceSignals(s,mentorProfile),preferences=explicitPreferences.length?explicitPreferences:(priorTask==='decision_research'?Array.isArray(prior.preferenceSignals)?prior.preferenceSignals.slice(0,12):[]:[]),explicitNeeds=evidenceNeedsFromText(s,{schools,majors,score}),needs=allowed([...(priorTask==='decision_research'&&/(那|如果|再看|继续)/.test(s)?prior.evidenceNeeds||[]:[]),...explicitNeeds],EVIDENCE_NEEDS,9);
+  const s=clean(text,1200),workspace=options.workspace||{},prior=workspace?.agentContext?.semanticFrame||{},priorTask=workspace?.agentContext?.currentTask||'',explicitSchools=unique(options.schools||[],4),explicitMajors=unique(options.majors||[],8),schools=explicitSchools.length?explicitSchools:(priorTask==='decision_research'?unique(prior.schools||[],4):[]),majors=explicitMajors.length?explicitMajors:(priorTask==='decision_research'?unique(prior.majors||[],8):[]),explicitRegions=unique(options.regionKeys||[],8),regionKeys=explicitRegions.length?explicitRegions:(priorTask==='decision_research'?unique(prior.regionKeys||[],8):[]),optionScore=Number(options.score),workspaceScore=Number(workspace?.examContext?.score),priorScore=Number(prior.score),score=Number.isFinite(optionScore)&&optionScore>0?optionScore:Number.isFinite(workspaceScore)&&workspaceScore>0?workspaceScore:Number.isFinite(priorScore)&&priorScore>0?priorScore:null,mentorProfile=options.mentorProfile||{};
+  const explicitCareers=careerTargetsFromText(s),careers=explicitCareers.length?explicitCareers:(priorTask==='decision_research'?allowed(prior.careerTargets||[],CAREER_TARGETS,8):[]),explicitPreferences=preferenceSignals(s,mentorProfile),preferences=explicitPreferences.length?[...(priorTask==='decision_research'?(prior.preferenceSignals||[]).filter(old=>!explicitPreferences.some(now=>now.dimension===old.dimension)):[]),...explicitPreferences].slice(0,12):(priorTask==='decision_research'?Array.isArray(prior.preferenceSignals)?prior.preferenceSignals.slice(0,12):[]:[]),explicitNeeds=evidenceNeedsFromText(s,{schools,majors,score}),needs=allowed([...(priorTask==='decision_research'?prior.evidenceNeeds||[]:[]),...explicitNeeds],EVIDENCE_NEEDS,9);
   const frame={version:PARENT_SEMANTIC_FRAME_VERSION,speechAct:speechAct(s,{schools,majors}),schools,majors,regionKeys,score,pairs:pairObjects(schools,majors),careerTargets:careers,preferenceSignals:preferences,evidenceNeeds:needs,compositeDecision:isParentDecisionLanguage(s,{schoolCount:schools.length,majorCount:majors.length,priorTask}),source:'deterministic',rawText:s};
   frame.signature=signatureFor(frame);return frame;
 }
