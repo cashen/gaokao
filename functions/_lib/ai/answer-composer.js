@@ -1,11 +1,26 @@
 import {taskHasUsableFact,taskSpec} from './task-spec-registry.js';
 
-export const AI_ANSWER_COMPOSER_VERSION='ai-answer-composer-v0.02';
+export const AI_ANSWER_COMPOSER_VERSION='ai-answer-composer-v0.03';
 
 function clean(value,max=2200){return String(value==null?'':value).trim().slice(0,max);}
 function number(value){const n=Number(value);return Number.isFinite(n)?n:null;}
 function rangeText(summary={}){const min=number(summary.minScore),max=number(summary.maxScore);return min!==null&&max!==null?`，最低${min}分、最高${max}分`:'';}
 function firstReviewText(experience={}){const first=experience.reviews?.[0]?.content;return first?`目前命中的同学留言提到：${clean(first,260)}`:'';}
+const DECISION_SIGNAL_LABELS=Object.freeze({
+  'employment:important':'就业优先','income:important':'收入上限重要','study_duration:prefer_short':'更偏本科就业','study_duration:long_ok':'可以接受读研','family_resources:resource_sensitive':'家庭预算/资源敏感','school_platform:flexible':'学校牌子可让步','school_platform:important':'学校平台重要','major_quality:important':'专业质量重要','region:liaoning_preferred':'辽宁优先','region:liaoning_only':'不出辽宁','region:flexible':'可以出省','career_path:public_service':'考公/体制路径'
+});
+const STUDENT_SIGNAL_LABELS=Object.freeze({'math_strength:strong':'数学基础较好','physics_strength:strong':'物理基础较好','chemistry_strength:weak':'化学相对弱','programming_affinity:avoid':'不喜欢编程','programming_affinity:accept':'能接受编程','factory_environment:avoid':'不想进工厂/生产一线','shift_work:avoid':'不接受倒班','field_site:avoid':'不想长期现场/工地','travel:avoid':'不接受出差','travel:accept':'可以接受出差','hands_on:strong':'动手/实践能力较好'});
+const CAREER_LABELS=Object.freeze({central_soe:'央企方向',state_owned:'国企方向',public_service:'考公/体制',teacher:'教师',manufacturing:'制造业',it:'IT/软件',research:'科研',healthcare:'医疗'});
+const CHANGE_LABELS=Object.freeze({score:'分数参与方式',study_duration:'是否接受读研',employment:'就业优先级',income:'收入偏好',region:'地区范围',school_platform:'学校平台偏好',major_quality:'专业质量偏好',family_resources:'家庭资源/预算',career:'职业目标',programming_affinity:'编程接受度',factory_environment:'工厂环境接受度',shift_work:'倒班接受度',field_site:'现场/工地接受度',travel:'出差接受度',hands_on:'实践偏好'});
+function decisionFrameLead(research={}){
+  const frame=research.frame||{},plan=research.plan||{},parts=[],comparisonPairs=Array.isArray(frame.comparisonPairs)&&frame.comparisonPairs.length?frame.comparisonPairs:(frame.pairs||[]),objects=comparisonPairs.slice(0,3).map(item=>item?.label||[item?.school,item?.major].filter(Boolean).join(' · ')).filter(Boolean);
+  if(objects.length)parts.push(`比较${objects.join(' vs ')}`);else if(frame.schools?.length)parts.push(`研究${frame.schools.slice(0,3).join('、')}`);else if(frame.majors?.length)parts.push(`比较${frame.majors.slice(0,3).join('、')}`);
+  const preferences=[];for(const item of frame.preferenceSignals||[]){const label=DECISION_SIGNAL_LABELS[`${item?.dimension}:${item?.value}`];if(label&&!preferences.includes(label))preferences.push(label);}for(const target of frame.careerTargets||[]){const label=CAREER_LABELS[target];if(label&&!preferences.includes(label))preferences.push(label);}if(preferences.length)parts.push(`你更看重${preferences.slice(0,4).join('、')}`);
+  const student=[];for(const item of frame.studentSignals||[]){const label=STUDENT_SIGNAL_LABELS[`${item?.dimension}:${item?.value}`];if(label&&!student.includes(label))student.push(label);}if(student.length)parts.push(`孩子明确说出的现实条件是${student.slice(0,4).join('、')}`);
+  if(frame.reference&&frame.pairs?.length===1){const selected=frame.pairs[0]?.label||[frame.pairs[0]?.school,frame.pairs[0]?.major].filter(Boolean).join(' · ');if(selected)parts.push(`这轮只追问${selected}`);}if(frame.counterfactual?.active&&frame.counterfactual.changedDimensions?.length)parts.push(`这轮只改${frame.counterfactual.changedDimensions.map(key=>CHANGE_LABELS[key]||key).join('、')}，其余条件沿用`);
+  if(plan.scoreUsed)parts.push('本轮明确使用当前分数核对现实性');else if(plan.rememberedScoreAvailable)parts.push('分数仍记着，但这轮没有把它偷偷拿来做招生比较');
+  return parts.length?`我先按这些条件理解：${parts.join('；')}。`:'';
+}
 
 function frameworkAnswer(command={},focus={}){
   const text=clean(command.rawText||command.question,1200),subject=focus.major||command.majorKeywords?.[0]||(/机械/.test(text)?'机械类方向':/电气/.test(text)?'电气类方向':/计算机|计科|软工/.test(text)?'计算机类方向':'这个选择');
@@ -28,6 +43,7 @@ export function composePrimaryAnswer({command={},result={},focus={},view={},chan
   if(result.rank){return result.rank.ok?{status:'answered',text:result.rank.rankStart!==result.rank.rankEnd?`${result.rank.score}分对应2026辽宁物理类参考位次约${result.rank.rankStart.toLocaleString('zh-CN')}—${result.rank.rankEnd.toLocaleString('zh-CN')}。`:`${result.rank.score}分对应2026辽宁物理类参考位次约第${result.rank.rankEnd.toLocaleString('zh-CN')}位。`}:{status:'unsupported',text:clean(result.rank.message||'没有取得对应位次。')};}
   if(result.fit){return result.fit.ok?{status:'answered',text:clean(result.fit.summary||result.fit.message||`已按当前分数核对${focus.school}${focus.major?`的${focus.major}`:''}历史位置，详细记录见下方。`)}:{status:result.fit.code==='score_required'?'needs_clarification':'unsupported',text:clean(result.fit.message||'当前无法形成分数适配判断。')};}
   if(result.background){return result.background.ok?{status:'answered',text:clean(result.background.summary||result.background.message||`已找到${focus.school||focus.major||'当前方向'}可核验的专业背景证据，具体学校或专业见下方。`)}:{status:'unsupported',text:clean(result.background.message||'当前没有取得可用的专业背景证据。')};}
+  if(result.decisionResearch){if(result.decisionResearch.ok){const lead=decisionFrameLead(result.decisionResearch),answer=clean(result.decisionResearch.answer||'这轮已经按你的家庭目标拆开比较；没有证据的就业、升学或成本部分不会补猜。');return{status:'answered',text:clean(`${lead}${lead&&answer?' ':''}${answer}`,2200)};}return{status:result.decisionResearch.code==='client_tool_required'?'needs_fact':'unsupported',text:clean(result.decisionResearch.message||'这轮家庭决策还缺关键事实，已有候选条件没有被修改。')};}
   if(result.comparison){if(result.comparison.ok)return{status:'answered',text:`已按同一分数、地区和项目范围横向比较${result.comparison.items?.map(item=>item.label).filter(Boolean).join('、')||'这些对象'}；下面只比较确定性可达空间，不替你宣布“谁最好”。`};return{status:result.comparison.code==='score_required_for_reachability'?'needs_clarification':'unsupported',text:clean(result.comparison.message||'本轮没有形成可用比较。')};}
   if(result.selectionReview)return{status:'answered',text:clean(result.selectionReview.summary||'已检查当前家庭方案结构，缺口和重复项见下方。')};
   if(taskSpec(task).frameworkAnswer)return frameworkAnswer(command,focus);

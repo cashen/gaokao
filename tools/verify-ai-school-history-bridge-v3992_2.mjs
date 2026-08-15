@@ -39,9 +39,11 @@ assert.ok(factBridge.includes('data.records.slice(0,120)'),'school history bridg
 assert.ok(factBridge.includes('queryErrorMessage'),'shared fact bridge error provenance missing');
 assert.ok(orchestrator.includes('majorKeywords:focus.majors'),'orchestrator must pass multiple major keywords without joining them into one query');
 assert.ok(orchestrator.includes('result.history'),'school-history deterministic continuation missing');assert.ok(orchestrator.includes('result.majorHistory'),'major-history deterministic continuation missing');assert.ok(orchestrator.includes('result.fit'),'fit deterministic continuation missing');
-assert.ok(orchestrator.includes('preserveResolvedFocus=false'),'confirmed-command focus preservation boundary missing');
+assert.ok(orchestrator.includes('deterministicResolvedCommand'),'confirmed-command must re-resolve canonical semantics on the server');
 assert.ok(orchestrator.includes('deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0'),'deterministic continuation detection missing');
-assert.ok(orchestrator.includes('focus:stableFocus'),'resolved focus must survive deterministic continuation');
+assert.ok(orchestrator.includes('confirmed=await validateConfirmedCommand'),'confirmed-command canonical resolver must be awaited');
+assert.ok(orchestrator.includes('return{...fallback,semanticFrame:null'),'confirmed-command must keep the server fallback as semantic truth');
+assert.equal(orchestrator.includes('...fallback,...value'),false,'confirmed-command must not overwrite server canonical semantics with client fields');
 assert.ok(app.includes("tool.kind==='school_history'&&tool.url.startsWith('/api/ai/school-history?')"),'browser school-history tool contract missing');
 assert.ok(app.includes('budget:48*1024'),'school-history bridge byte budget missing');
 assert.ok(app.includes('compactSchoolHistoryFactPayload'), 'related-major suggestions must use the shared browser bridge');
@@ -52,8 +54,8 @@ assert.ok(factBridge.includes('queryResults:Array.isArray(data.queryResults)'), 
 assert.ok(app.includes('beginViewportTransaction'), 'viewport transaction owner missing');
 assert.ok(!app.includes('restoreViewportIntent'), 'legacy multi-owner viewport restore remains');
 const html=fs.readFileSync('aiplus/index.html','utf8');
-assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_3"'), 'AIPLuS asset cache version not refreshed');
-assert.ok(html.includes('/aiplus/app.v3990_1.js?v=002_3'), 'AIPLuS app cache key not refreshed');
+assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_4"'), 'AIPLuS asset cache version not refreshed');
+assert.ok(html.includes('/aiplus/app.v3990_1.js?v=002_4'), 'AIPLuS app cache key not refreshed');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
 assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000'),'school-history session cache TTL missing');
