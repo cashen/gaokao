@@ -1,0 +1,127 @@
+name: tmp AIPLuS v0.03 canonical fix
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-canonical-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply canonical workspace and entity ownership fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          def one(s,old,new,label):
+              n=s.count(old)
+              if n!=1: raise SystemExit(f'{label}: expected 1 anchor, got {n}')
+              return s.replace(old,new)
+
+          p=Path('shared/ai/ai-workspace-contract.v3992_0.js');s=p.read_text()
+          s=one(s,'nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch','nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,semanticFrameSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch','workspace import')
+          s=one(s,'export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch};','export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch,semanticFrameSeed};','workspace export')
+          s=one(s,'agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),contextUsage:workspace.agentContext?.contextUsage||{}},','agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),semanticFrame:semanticFrameSeed(workspace.agentContext?.semanticFrame),contextUsage:workspace.agentContext?.contextUsage||{}},','workspace compact')
+          p.write_text(s)
+
+          p=Path('functions/_lib/ai/command-interpreter.js');s=p.read_text()
+          old="function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120));return unique([...(resolvedSchoolNames||[]),...full],4);}"
+          new="function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),resolved=unique(resolvedSchoolNames||[],4),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>{let candidate=stripSchoolEntityLeadingAction(v,120);const parts=candidate.split(/(?:和|跟|与|、|以及)/),tail=parts[parts.length-1]||'';if(parts.length>1&&/[\\u4e00-\\u9fa5]{2,30}(?:高等专科学校|专科学校|大学|学院)$/.test(tail))candidate=tail;return candidate;}).filter(candidate=>candidate&&!resolved.some(name=>candidate!==name&&candidate.endsWith(name)));return unique([...resolved,...full],4);}"
+          s=one(s,old,new,'school entity boundary')
+          old="""export async function interpretAiCommand(text,workspace={},env={},request=null){
+            const directoryQuestion=looksRegionSchoolDirectoryLanguage(text);
+            let resolvedRegion=null;
+            if(directoryQuestion||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory'){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+            const resolvedSchool=directoryQuestion&&resolvedRegion?.key?{schoolNames:[],matchedAliases:[]}:await resolveAiSchoolMentionsDetailed(text,{request,env}),resolvedSchoolNames=resolvedSchool.schoolNames;
+            const fallback=deterministicBase(text,workspace,resolvedSchoolNames,resolvedSchool.matchedAliases,resolvedRegion);
+            if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
+            if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
+            const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
+            if(!provider.ok)return{command:fallback,provider};
+            const parsed=parseJsonText(provider.text);
+            return{command:normalizeModelCommand(parsed,text,workspace,fallback),provider};
+          }"""
+          new="""export async function deterministicResolvedCommand(text,workspace={},env={},request=null){
+            const directoryQuestion=looksRegionSchoolDirectoryLanguage(text);
+            let resolvedRegion=null;
+            if(directoryQuestion||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory'){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+            const resolvedSchool=directoryQuestion&&resolvedRegion?.key?{schoolNames:[],matchedAliases:[]}:await resolveAiSchoolMentionsDetailed(text,{request,env});
+            return deterministicBase(text,workspace,resolvedSchool.schoolNames,resolvedSchool.matchedAliases,resolvedRegion);
+          }
+          export async function interpretAiCommand(text,workspace={},env={},request=null){
+            const fallback=await deterministicResolvedCommand(text,workspace,env,request);
+            if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
+            if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
+            const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
+            if(!provider.ok)return{command:fallback,provider};
+            const parsed=parseJsonText(provider.text);
+            return{command:normalizeModelCommand(parsed,text,workspace,fallback),provider};
+          }"""
+          s=one(s,old,new,'resolved interpreter')
+          p.write_text(s)
+
+          p=Path('functions/_lib/ai/turn-orchestrator.js');s=p.read_text()
+          s=one(s,"import {interpretAiCommand,deterministicCommand} from './command-interpreter.js';","import {interpretAiCommand,deterministicCommand,deterministicResolvedCommand} from './command-interpreter.js';",'orchestrator import')
+          old="function validateConfirmedCommand(value,input,workspace,preserveResolvedFocus=false){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace),stableFocus=preserveResolvedFocus&&value.focus&&typeof value.focus==='object'?clone(value.focus):fallback.focus;return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:stableFocus,semanticFrame:null,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}"
+          new="async function validateConfirmedCommand(value,input,workspace,env={},request=null){if(!value||typeof value!=='object')return null;const fallback=await deterministicResolvedCommand(input,workspace,env,request);return{...fallback,semanticFrame:null,rawText:clean(input,1200),question:clean(input,1200),source:`${clean(fallback.source,30)||'deterministic'}-confirmed`};}"
+          s=one(s,old,new,'confirmed validator')
+          old="let interpreted;const deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0,confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace,deterministicContinuation);"
+          new="let interpreted;const deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0,confirmed=await validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace,context.env||{},context.request||null);"
+          s=one(s,old,new,'confirmed invocation')
+          p.write_text(s)
+
+          p=Path('tools/verify-aiplus-parent-semantics-v003.mjs');s=p.read_text()
+          s=one(s,"import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';","import {createAiWorkspace,compactAiWorkspaceForServer} from '../shared/ai/ai-workspace-contract.v3992_0.js';",'verifier import')
+          start=s.index("const request=new Request('https://example.test/api/ai/turn'")
+          end=s.index("\n\nconsole.log(",start)
+          block=r"""const request=new Request('https://example.test/api/ai/turn',{method:'POST'});
+          const resolverSchools=[{officialName:'沈阳工业大学',province:'辽宁',city:'沈阳'},{officialName:'大连交通大学',province:'辽宁',city:'大连'},...Array.from({length:58},(_,index)=>({officialName:`测试占位大学${index+1}`,province:'辽宁',city:'沈阳'}))];
+          const emptyBackground={version:'local-strength-static-v3971_2',records:[],schools:[],meta:{dataYear:2026},academicBackgroundMeta:{boundary:'test empty background'}};
+          const testAssets={fetch:async input=>{const pathname=new URL(input.url).pathname;if(pathname==='/ln-rank/data/local-strength/local-strength-audit.v3971_2.json')return new Response(JSON.stringify({schools:resolverSchools}),{status:200,headers:{'content-type':'application/json'}});if(pathname==='/ln-rank/data/local-strength/local-strength-index.v3971_2.json')return new Response(JSON.stringify(emptyBackground),{status:200,headers:{'content-type':'application/json'}});return new Response('{}',{status:404,headers:{'content-type':'application/json'}});}};
+          const ctx={request,env:{ASSETS:testAssets}};
+          const fullPairText='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研';
+          const turn=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base});assert.equal(turn.ok,true);assert.equal(turn.pendingDeterministicTool,true);assert.equal(turn.commitView,false);assert.equal(turn.command.agentTask,'decision_research');assert.deepEqual(turn.command.schoolNames,['沈阳工业大学','大连交通大学']);assert.deepEqual(turn.command.majorKeywords,['电气','自动化']);assert.ok(turn.command.semanticFrame?.signature);assert.equal(turn.result?.decisionResearch?.plan?.scoreUsed,false,'remembered score must not silently execute in orchestrator');assert.ok(turn.toolRequests.length>=1&&turn.toolRequests.length<=4);assert.ok(turn.toolRequests.every(item=>item.kind==='school_official'),'no-score composite decision should request current official evidence, not admissions history');
+          const completedOfficialResults={};for(const item of turn.toolRequests){completedOfficialResults[item.key]={kind:item.kind,key:item.key,url:item.url,status:200,payload:{ok:false,code:'test_no_official_text',school:new URL(item.url,'https://example.test').searchParams.get('school')||'',message:'test evidence unavailable'}};}
+          const continued=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base,confirmedCommand:turn.command,deterministicToolResults:completedOfficialResults});assert.equal(continued.ok,true);assert.equal(continued.pendingDeterministicTool,false);assert.equal(continued.command.agentTask,'decision_research');assert.deepEqual(continued.command.schoolNames,['沈阳工业大学','大连交通大学'],'tool continuation must re-resolve canonical schools server-side');assert.deepEqual(continued.command.majorKeywords,['电气','自动化'],'tool continuation must re-resolve canonical majors server-side');assert.equal(continued.commitView,false);assert.equal(continued.result?.decisionResearch?.plan?.scoreUsed,false);
+          const explicitTurn=await orchestrateAiTurn(ctx,{input:`568分，${fullPairText}`,workspace:base});assert.equal(explicitTurn.ok,true);assert.equal(explicitTurn.pendingDeterministicTool,true);assert.equal(explicitTurn.command.agentTask,'decision_research');assert.equal(explicitTurn.result?.decisionResearch?.plan?.scoreUsed,true);assert.equal(explicitTurn.toolRequests.length,2);assert.ok(explicitTurn.toolRequests.every(item=>item.kind==='school_history'),'explicit score pair must first request exact school-major admissions facts');
+          const persistedFollowWorkspace=compactAiWorkspaceForServer(followWorkspace,{input:'那如果我愿意读研呢'});assert.ok(persistedFollowWorkspace.agentContext?.semanticFrame?.comparisonPairs?.length===2,'server compaction must preserve bounded decision semantic frame');
+          const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:persistedFollowWorkspace});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.equal(followTurn.command.semanticFrame.counterfactual.active,true);assert.equal(followTurn.result?.decisionResearch?.plan?.scoreUsed,false);
+          const refTurn=await orchestrateAiTurn(ctx,{input:'第二个就业呢',workspace:persistedFollowWorkspace});assert.equal(refTurn.ok,true);assert.equal(refTurn.command.agentTask,'decision_research');assert.equal(refTurn.command.semanticFrame.reference.index,1);assert.deepEqual(refTurn.command.semanticFrame.pairs.map(item=>item.school),['大连交通大学']);assert.ok(refTurn.toolRequests.every(item=>item.kind==='school_official'));assert.equal(refTurn.toolRequests.length,1,'reference follow-up must only research the selected school/pair');"""
+          s=s[:start]+block+s[end:]
+          p.write_text(s)
+          PY
+      - name: Verify canonical continuation and preserved behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          git diff --check
+      - name: Commit verified product fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shared/ai/ai-workspace-contract.v3992_0.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js tools/verify-aiplus-parent-semantics-v003.mjs
+          git commit -m 'AIPLuS：统一复合决策的服务端语义真相'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
