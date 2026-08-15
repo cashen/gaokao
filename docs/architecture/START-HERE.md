@@ -39,10 +39,11 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 
 ### AIPLuS product and fact boundaries
 
-- `shared/ai/aiplus-product-contract.v003.js` — current product/source policy vocabulary. The older v0.02 file remains a stable compatibility dependency for unchanged helpers; it is not the current product identity.
-- `functions/_lib/ai/intent-contract.js` — task → action/object/source contract.
-- `functions/_lib/ai/parent-semantic-frame.js` — **parent decision meaning owner** for composite questions. It records what is being compared, explicit career targets, hard/soft preferences and evidence needs; it never owns score/region/school/major mutations.
-- `functions/_lib/ai/evidence-plan.js` — **bounded decision research planner**. It may schedule at most three evidence steps and does not create another orchestrator.
+- `shared/ai/aiplus-product-contract.v002.js` — **current AIPLuS product/source policy owner**. The visible product shell remains `v0.02`.
+- `shared/ai/aiplus-product-contract.v003.js` — compatibility import surface used only by the decision-semantic branch; it re-exports v0.02 and is not a second product policy or product-version owner.
+- `functions/_lib/ai/intent-contract.js` — task → action/object/source contract. It knows the `decision_research` task but continues to reference the single v0.02 product/source policy.
+- `functions/_lib/ai/parent-semantic-frame.js` — **parent decision meaning owner** for composite questions. It records what is being compared, explicit career targets, hard/soft preferences, score-use semantics and evidence needs; it never owns score/region/school/major mutations.
+- `functions/_lib/ai/evidence-plan.js` — **bounded decision research planner**. It may schedule at most three evidence steps, obeys `scoreUsage`, and does not create another orchestrator.
 - `functions/_lib/ai/claim-evidence.js` — **claim provenance contract**. Model-facing facts must retain source/year/scope and time-sensitive quantitative claims fail closed without a year.
 - `functions/_lib/ai/official-web-evidence.js` — the only general official-web discovery/reader gateway. Search results are discovery only; claims must come from actually read CHSI, `.gov.cn` or `.edu.cn` pages.
 - `functions/_lib/ai/decision-research-runtime.js` — executes the bounded plan through existing deterministic and official-source owners.
@@ -50,13 +51,15 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 - `functions/_lib/ai/RESOURCE-BOUNDARY.md` — deterministic fact/resource boundary.
 - `aiplus/index.html` — browser entrypoint.
 - `aiplus/app.v3990_1.js` — current browser orchestration entry module.
-- `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its v0.02 identifier remains stable because v0.03 reuses the same browser fact bridge rather than inventing another one.
+- `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
 
 Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts or a parallel admissions probability model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
 
-### AIPLuS v0.03 version boundary
+### AIPLuS decision v0.03 version boundary
 
-The visible AIPLuS product semantics are `v0.03`, while the stable browser advisor shell remains `ai-human-advisor-agent-v0.02` and the current browser core asset transaction remains `aiplus-assets-v002_3`. This is intentional: v0.03 changes server-side parent-decision semantics/evidence orchestration but does not create or rename a browser runtime generation merely for version cleanliness. `aiplus/index.html` exposes both identities separately.
+The **visible AIPLuS product remains `v0.02`**. The stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the current browser core asset transaction remains `aiplus-assets-v002_3`, and the health API keeps its compatible `ai-health-api-v0.02` identity.
+
+Parent Decision Intelligence is a narrower server-side capability generation: `aiplus-parent-decision-v0.03`. It advances parent semantic framing, bounded evidence planning, claim provenance and official-web evidence orchestration without copying or renaming the stable browser runtime. `aiplus/index.html` exposes product/advisor/decision identities separately so a maintainer does not infer a full product/runtime generation change from the decision feature version.
 
 ## 3. Known ownership boundaries that must not be guessed away
 
@@ -75,7 +78,7 @@ This is a **declared transitive ownership debt**, not permission to copy, rename
 
 ### Legacy intent interpreter
 
-`functions/_lib/ai/intent-interpreter.js` remains in the repository, but the architecture audit verifies that current production roots do not import it. Do not reactivate it as a second intent owner. Current AIPLuS atomic intent/task behavior is governed by the current command/task contracts; v0.03 parent-decision composition is owned by the turn orchestrator and must not fork that atomic parser.
+`functions/_lib/ai/intent-interpreter.js` remains in the repository, but the architecture audit verifies that current production roots do not import it. Do not reactivate it as a second intent owner. Current AIPLuS atomic intent/task behavior is governed by the current command/task contracts; parent-decision composition is owned by the turn orchestrator and must not fork that atomic parser.
 
 ### Cloudflare production verifier compatibility
 
@@ -103,9 +106,8 @@ This owns exact-main Cloudflare Git production verification. The Pages productio
 
 ### AIPLuS / AI product verification
 
-- `.github/workflows/verify-ai-workspace-v3990_1.yml`
-
-It verifies source contracts, exact Preview behavior, browser journeys and production-facing AIPLuS contracts. A narrow v0.03 parent-decision verifier may supplement this workflow, but it must not replace or weaken the existing AI workspace gate.
+- `.github/workflows/verify-ai-workspace-v3990_1.yml` — existing product/browser/atomic-AI regression owner.
+- `.github/workflows/verify-aiplus-parent-decision-v003.yml` — narrow decision-semantic supplement. It must run the old regressions in addition to the v0.03 semantic/provenance contract and exact-Preview decision journey; it does not replace the existing AI workspace gate.
 
 ### Worker resource vNext
 
