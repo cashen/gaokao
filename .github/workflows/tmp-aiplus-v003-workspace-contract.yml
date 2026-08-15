@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Patch canonical workspace server compaction
+      - name: Patch canonical workspace and school entity boundaries
         shell: bash
         run: |
           set -euo pipefail
@@ -39,24 +39,25 @@ jobs:
           new="agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),semanticFrame:semanticFrameSeed(workspace.agentContext?.semanticFrame),contextUsage:workspace.agentContext?.contextUsage||{}},"
           if s.count(old)!=1: raise SystemExit(f'compact anchor count={s.count(old)}')
           p.write_text(s.replace(old,new))
+
+          c=Path('functions/_lib/ai/command-interpreter.js')
+          t=c.read_text()
+          old="function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120));return unique([...(resolvedSchoolNames||[]),...full],4);}"
+          new="function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),resolved=unique(resolvedSchoolNames||[],4),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120)).filter(candidate=>candidate&&!resolved.some(name=>candidate!==name&&candidate.endsWith(name)));return unique([...resolved,...full],4);}"
+          if t.count(old)!=1: raise SystemExit(f'schoolNamesFromText anchor count={t.count(old)}')
+          c.write_text(t.replace(old,new))
           PY
           node --check shared/ai/ai-workspace-contract.v3992_0.js
-      - name: Diagnose composite decision phase
+          node --check functions/_lib/ai/command-interpreter.js
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          git diff --check
+      - name: Commit verified fixes
         shell: bash
         run: |
           set -euo pipefail
-          node --input-type=module <<'EOF'
-          import {createAiWorkspace} from './shared/ai/ai-workspace-contract.v3992_0.js';
-          import {deterministicCommand} from './functions/_lib/ai/command-interpreter.js';
-          import {orchestrateAiTurn} from './functions/_lib/ai/turn-orchestrator.js';
-          const base=createAiWorkspace({examContext:{score:568},activeView:{score:568,regionKeys:['all'],majorKeywords:[],schoolNames:[],bottomLineMode:'all'}});
-          const input='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研';
-          const command=deterministicCommand(input,base,['沈阳工业大学','大连交通大学']);
-          const turn=await orchestrateAiTurn({request:new Request('https://example.test/api/ai/turn'),env:{}},{input,workspace:base,confirmedCommand:command});
-          console.log(JSON.stringify({atomic:{task:command.agentTask,schools:command.schoolNames,majors:command.majorKeywords,score:command.score,scoreUsage:command.scoreUsage},turn:{ok:turn.ok,pendingDeterministicTool:turn.pendingDeterministicTool,toolRequestCount:turn.toolRequestCount,toolRequests:turn.toolRequests,task:turn.command?.agentTask,frame:turn.command?.semanticFrame,plan:turn.result?.decisionResearch?.plan,decisionOk:turn.result?.decisionResearch?.ok,decisionCode:turn.result?.decisionResearch?.code,partial:turn.result?.decisionResearch?.partial,answerStatus:turn.result?.answerStatus}},null,2));
-          EOF
-          node tools/verify-aiplus-parent-semantics-v003.mjs || true
-          git diff --check
-      - name: Stop before commit
-        shell: bash
-        run: exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shared/ai/ai-workspace-contract.v3992_0.js functions/_lib/ai/command-interpreter.js
+          git commit -m 'AIPLuS：贯通决策语义并消除幽灵学校实体'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
