@@ -1,0 +1,202 @@
+name: Verify AIPLuS parent decision v0.03
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'aiplus/index.html'
+      - 'functions/_lib/ai/**'
+      - 'functions/api/ai/**'
+      - 'shared/ai/aiplus-product-contract.v003.js'
+      - 'tools/verify-aiplus-parent-semantics-v003.mjs'
+      - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
+      - 'docs/architecture/START-HERE.md'
+      - '.github/workflows/verify-aiplus-parent-decision-v003.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'aiplus/index.html'
+      - 'functions/_lib/ai/**'
+      - 'functions/api/ai/**'
+      - 'shared/ai/aiplus-product-contract.v003.js'
+      - 'tools/verify-aiplus-parent-semantics-v003.mjs'
+      - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
+      - 'docs/architecture/START-HERE.md'
+      - '.github/workflows/verify-aiplus-parent-decision-v003.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce protected and ownership boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            git fetch origin "${GITHUB_BASE_REF}" --depth=1 || true
+            git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" | tee /tmp/aiplus-v003-files.txt
+            if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/aiplus-v003-files.txt; then
+              echo 'Protected path touched by AIPLuS v0.03.' >&2
+              exit 1
+            fi
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q "AIPLUS_PRODUCT_VERSION='v0.03'" shared/ai/aiplus-product-contract.v003.js
+          grep -q 'AIPLuS 产品版 · v0.03' aiplus/index.html
+          grep -q 'data-ai-advisor-generation="ai-human-advisor-agent-v0.02"' aiplus/index.html
+          grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' aiplus/index.html
+          grep -q 'data-ai-plus-assets="aiplus-assets-v002_3"' aiplus/index.html
+          grep -q "AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5'" functions/_lib/ai/agent-task-kernel.js
+          grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
+          grep -q 'searchResultIsSource:false' functions/_lib/ai/official-web-evidence.js
+          grep -q 'webFallbackCount<2' functions/_lib/ai/decision-research-runtime.js
+          test ! -e functions/_lib/ai/data/parent-decision.json
+          test ! -e functions/_lib/ai/data/official-web-cache.json
+      - name: Syntax check v0.03 graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check shared/ai/aiplus-product-contract.v003.js
+          node --check functions/_lib/ai/parent-semantic-frame.js
+          node --check functions/_lib/ai/evidence-plan.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/official-web-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/api/ai/health.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          node --check tools/fixtures/aiplus-parent-query-catalog-v003.mjs
+      - name: Verify new and preserved AIPLuS contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+          node tools/audit-site-runtime-generation-v3990_1.mjs
+
+  preview-contract:
+    if: github.event_name == 'pull_request'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Resolve exact-SHA Cloudflare Preview
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          immutable=''
+          branch=''
+          short="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then exit 2; fi
+            if [ "$conclusion" = success ]; then
+              mapfile -t urls < <(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | awk '!seen[$0]++')
+              immutable="${urls[0]:-}"
+              if [ "${#urls[@]}" -ge 2 ]; then branch="${urls[1]}"; fi
+              if [ -z "$branch" ] || [ "$branch" = "$immutable" ]; then
+                comments="$(curl -fsSL --max-time 20 \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+                body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+                if grep -q "$short" <<<"$body"; then branch="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | tail -n1 || true)"; fi
+              fi
+              if [ -n "$immutable" ] && [ -n "$branch" ] && [ "$immutable" != "$branch" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable"
+          test -n "$branch"
+          test "$immutable" != "$branch"
+          echo "immutable=$immutable" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+      - name: Verify v0.03 health on exact Preview
+        env:
+          PREVIEW_BASE: ${{ steps.preview.outputs.branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          health="$(curl -fsSL --max-time 60 -H 'Cache-Control: no-cache' "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}")"
+          jq -e --arg sha "$EXPECTED_SHA" '.ok==true and .deployment.commitSha==$sha and .workspace.productVersion=="v0.03" and .workspace.decisionSemanticMode=="bounded-evidence-plan-v0.03" and .workspace.agentKernelVersion=="ai-human-advisor-kernel-v3992_5" and .evidence.searchResultIsFact==false' <<<"$health" >/dev/null
+          html="$(curl -fsSL --max-time 60 -H 'Cache-Control: no-cache' "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
+          grep -q 'AIPLuS 产品版 · v0.03' <<<"$html"
+          grep -q 'data-ai-advisor-generation="ai-human-advisor-agent-v0.02"' <<<"$html"
+          grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' <<<"$html"
+      - name: Run school-major parent decision through Preview tool bridge
+        env:
+          PREVIEW_BASE: ${{ steps.preview.outputs.branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          input='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研'
+          workspace="$(jq -nc '{contractVersion:"ai-workspace-contract-v3992_1",examContext:{score:568},activeView:{score:568,regionKeys:["all"],majorKeywords:[],schoolNames:[],bottomLineMode:"all"},viewHistory:[],tasks:[],hardConstraints:[],softPreferences:[],turnHistory:[]}')"
+          results='{}'
+          confirmed='null'
+          final=''
+          for round in 1 2 3 4; do
+            payload="$(jq -nc --arg input "$input" --argjson workspace "$workspace" --argjson confirmed "$confirmed" --argjson results "$results" '{input:$input,workspace:$workspace,deterministicToolResults:$results}+if $confirmed==null then {} else {confirmedCommand:$confirmed} end')"
+            body="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 100 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST -o "$body" -w '%{http_code}' "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}&decision_round=${round}" --data "$payload" || true)"
+            if [ "$status" != 200 ]; then echo "decision round ${round} HTTP ${status}" >&2; cat "$body" >&2; rm -f "$body"; exit 1; fi
+            response="$(cat "$body")"; rm -f "$body"
+            jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .command.semanticFrame.compositeDecision==true and .command.semanticFrame.pairs|length==2' <<<"$response" >/dev/null
+            if [ "$(jq -r '.pendingDeterministicTool // false' <<<"$response")" != true ]; then final="$response"; break; fi
+            count="$(jq -r '.toolRequestCount // (.toolRequests|length) // 0' <<<"$response")"
+            test "$count" -ge 1
+            test "$count" -le 6
+            confirmed="$(jq -c '.command' <<<"$response")"
+            while IFS= read -r request; do
+              key="$(jq -r '.key' <<<"$request")"
+              kind="$(jq -r '.kind' <<<"$request")"
+              url="$(jq -r '.url' <<<"$request")"
+              test -n "$key"; test -n "$kind"; test -n "$url"
+              tool_body="$(mktemp)"
+              tool_status="$(curl --silent --show-error --location --max-time 100 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o "$tool_body" -w '%{http_code}' "${PREVIEW_BASE}${url}&candidate=${EXPECTED_SHA}" || true)"
+              tool_payload="$(cat "$tool_body")"; rm -f "$tool_body"
+              if ! jq -e . >/dev/null 2>&1 <<<"$tool_payload"; then tool_payload='{"ok":false,"code":"preview_non_json","message":"Preview tool returned non-JSON."}'; fi
+              entry="$(jq -nc --arg kind "$kind" --arg key "$key" --arg url "$url" --argjson status "${tool_status:-0}" --argjson payload "$tool_payload" '{kind:$kind,key:$key,url:$url,status:$status,payload:$payload}')"
+              results="$(jq -c --arg key "$key" --argjson entry "$entry" '. + {($key):$entry}' <<<"$results")"
+            done < <(jq -c '.toolRequests[]' <<<"$response")
+          done
+          test -n "$final"
+          jq -e '.pendingDeterministicTool==false and .command.agentTask=="decision_research" and .commitView==false and .resolvedView.score==568 and .resolvedView.regionKeys==["all"] and (.resolvedView.schoolNames|length)==0 and (.resolvedView.majorKeywords|length)==0 and .result.decisionResearch.ok==true and .result.decisionResearch.plan.maxSteps==3 and (.result.decisionResearch.claims|length)>=2 and (.blocks[]|select(.type=="assistant_message")|.text|length)>20' <<<"$final" >/dev/null
