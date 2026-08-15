@@ -1,0 +1,32 @@
+name: tmp v003 bridge contract patch
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths: ['.github/workflows/tmp-v003-bridge-contract-patch.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python tools/tmp_v003_bridge_contract_patch.py
+      - run: node --check tools/verify-ai-school-history-bridge-v3992_2.mjs
+      - run: node tools/verify-aiplus-parent-semantics-v003.mjs
+      - run: node tools/verify-ai-workspace-v3990_1.mjs
+      - run: node tools/verify-ai-major-region-history-v3992_3.mjs
+      - run: node tools/verify-aiplus-region-school-directory-v002.mjs
+      - run: node tools/audit-architecture-handoff-v3990_1.mjs
+      - run: git diff --check
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/verify-ai-school-history-bridge-v3992_2.mjs
+          git commit -m 'test：按服务端重解析校验确定性 continuation'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
