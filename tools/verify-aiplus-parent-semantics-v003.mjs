@@ -7,6 +7,7 @@ import {buildEvidencePlan} from '../functions/_lib/ai/evidence-plan.js';
 import {createEvidenceClaim,claimsFromOfficialText,validateClaimSet} from '../functions/_lib/ai/claim-evidence.js';
 import {OFFICIAL_WEB_EVIDENCE_TESTING,runOfficialWebEvidence,runMajorKnowledgeEvidence} from '../functions/_lib/ai/official-web-evidence.js';
 import {orchestrateAiTurn} from '../functions/_lib/ai/turn-orchestrator.js';
+import {composePrimaryAnswer} from '../functions/_lib/ai/answer-composer.js';
 import {AIPLUS_PARENT_QUERY_CATALOG_V003} from './fixtures/aiplus-parent-query-catalog-v003.mjs';
 
 assert.equal(AIPLUS_PRODUCT_VERSION,'v0.02');
@@ -43,10 +44,11 @@ const pairText='沈工大电气和大连交通自动化怎么选，考虑就业�
 const pair=deterministicCommand(pairText,base,['沈阳工业大学','大连交通大学'],['沈工大','大连交通']);
 assert.equal(pair.agentTask,'school_comparison','atomic comparison owner remains unchanged');
 const pairFrame=frameFor(pair,pairText);
-assert.deepEqual(pairFrame.pairs.map(item=>[item.school,item.major]),[['沈阳工业大学','电气工程及其自动化'],['大连交通大学','自动化']]);
+assert.deepEqual(pairFrame.pairs.map(item=>[item.school,item.major]),[['沈阳工业大学',pair.majorKeywords[0]],['大连交通大学',pair.majorKeywords[1]]],'composite pair must reuse atomic major semantics rather than re-canonicalize them');
 const pairPlan=buildEvidencePlan({...pair,agentTask:'decision_research',semanticFrame:pairFrame},base,base.activeView);
 assert.deepEqual(kinds(pairPlan),['background_evidence','official_web_evidence'],'remembered score must not silently become a decision dimension');
 assert.equal(pairPlan.scoreUsed,false);assert.equal(pairPlan.rememberedScoreAvailable,true);
+const answerFirst=composePrimaryAnswer({command:{agentTask:'decision_research'},result:{decisionResearch:{ok:true,frame:pairFrame,plan:pairPlan,answer:'证据不足的部分不会补猜。'}},focus:{},view:base.activeView});assert.equal(answerFirst.status,'answered');assert.match(answerFirst.text,/我先按这些条件理解/);assert.match(answerFirst.text,/分数仍记着/);assert.match(answerFirst.text,/沈阳工业大学/);assert.match(answerFirst.text,/大连交通大学/);
 
 const scoredText='568分，沈工大电气和大连交通自动化怎么选，考虑就业';
 const scored=deterministicCommand(scoredText,base,['沈阳工业大学','大连交通大学'],['沈工大','大连交通']);
