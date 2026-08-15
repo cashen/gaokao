@@ -87,7 +87,7 @@ async function parentEntryUiJourney(page,name){
   const promptLabel=(await page.locator('label[for="promptInput"]').innerText()).replace(/\s+/g,' ').trim();
   assert(promptLabel==='问学校、专业、分数或怎么选',`AI Plus prompt label drift: ${promptLabel}`);
   const promptPlaceholder=String(await page.locator('#promptInput').getAttribute('placeholder')||'');
-  assert(promptPlaceholder.includes('介绍下辽宁科技大学'),'AI Plus natural-language school placeholder missing');
+  assert(promptPlaceholder.includes('568分')&&promptPlaceholder.includes('普通家庭')&&promptPlaceholder.includes('怎么选'),'AI Plus parent decision placeholder missing');
   const score=page.locator('#starterScore'),apply=page.locator('#starterScoreApply');
   const assertSchoolStarters=async label=>{const text=(await page.locator('#starterScenarios').innerText()).replace(/\s+/g,' ');for(const expected of ['先把学校看懂','2026招生章程','宿舍','另一所学校'])assert(text.includes(expected),`${label}: AI Plus starter missing ${expected}: ${text}`);assert(!/(民办也可以|愿意加预算看中外|211中外|985中外|新疆西藏)/.test(text),`${label}: generic score starter leaked into AI Plus entry: ${text}`);};
   await assertSchoolStarters('initial');
