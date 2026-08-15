@@ -1,6 +1,6 @@
 import {taskHasUsableFact,taskSpec} from './task-spec-registry.js';
 
-export const AI_ANSWER_COMPOSER_VERSION='ai-answer-composer-v0.02';
+export const AI_ANSWER_COMPOSER_VERSION='ai-answer-composer-v0.03';
 
 function clean(value,max=2200){return String(value==null?'':value).trim().slice(0,max);}
 function number(value){const n=Number(value);return Number.isFinite(n)?n:null;}
@@ -28,6 +28,7 @@ export function composePrimaryAnswer({command={},result={},focus={},view={},chan
   if(result.rank){return result.rank.ok?{status:'answered',text:result.rank.rankStart!==result.rank.rankEnd?`${result.rank.score}分对应2026辽宁物理类参考位次约${result.rank.rankStart.toLocaleString('zh-CN')}—${result.rank.rankEnd.toLocaleString('zh-CN')}。`:`${result.rank.score}分对应2026辽宁物理类参考位次约第${result.rank.rankEnd.toLocaleString('zh-CN')}位。`}:{status:'unsupported',text:clean(result.rank.message||'没有取得对应位次。')};}
   if(result.fit){return result.fit.ok?{status:'answered',text:clean(result.fit.summary||result.fit.message||`已按当前分数核对${focus.school}${focus.major?`的${focus.major}`:''}历史位置，详细记录见下方。`)}:{status:result.fit.code==='score_required'?'needs_clarification':'unsupported',text:clean(result.fit.message||'当前无法形成分数适配判断。')};}
   if(result.background){return result.background.ok?{status:'answered',text:clean(result.background.summary||result.background.message||`已找到${focus.school||focus.major||'当前方向'}可核验的专业背景证据，具体学校或专业见下方。`)}:{status:'unsupported',text:clean(result.background.message||'当前没有取得可用的专业背景证据。')};}
+  if(result.decisionResearch){if(result.decisionResearch.ok)return{status:'answered',text:clean(result.decisionResearch.answer||'这轮已经按你的家庭目标拆开比较；没有证据的就业、升学或成本部分不会补猜。')};return{status:result.decisionResearch.code==='client_tool_required'?'needs_fact':'unsupported',text:clean(result.decisionResearch.message||'这轮家庭决策还缺关键事实，已有候选条件没有被修改。')};}
   if(result.comparison){if(result.comparison.ok)return{status:'answered',text:`已按同一分数、地区和项目范围横向比较${result.comparison.items?.map(item=>item.label).filter(Boolean).join('、')||'这些对象'}；下面只比较确定性可达空间，不替你宣布“谁最好”。`};return{status:result.comparison.code==='score_required_for_reachability'?'needs_clarification':'unsupported',text:clean(result.comparison.message||'本轮没有形成可用比较。')};}
   if(result.selectionReview)return{status:'answered',text:clean(result.selectionReview.summary||'已检查当前家庭方案结构，缺口和重复项见下方。')};
   if(taskSpec(task).frameworkAnswer)return frameworkAnswer(command,focus);
