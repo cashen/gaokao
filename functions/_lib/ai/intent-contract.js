@@ -1,6 +1,6 @@
 import {
   AIPLUS_PRODUCT_CONTRACT_VERSION,experienceTopicFromText,normalizeExperienceTopic
-} from '../../../shared/ai/aiplus-product-contract.v003.js';
+} from '../../../shared/ai/aiplus-product-contract.v002.js';
 
 export const AI_INTENT_CONTRACT_VERSION='ai-intent-contract-v0.03';
 
