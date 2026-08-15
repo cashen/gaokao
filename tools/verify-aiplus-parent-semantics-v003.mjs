@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
-import {AIPLUS_PRODUCT_VERSION,AIPLUS_PRODUCT_CONTRACT_VERSION} from '../shared/ai/aiplus-product-contract.v003.js';
+import {AIPLUS_PRODUCT_VERSION,AIPLUS_PRODUCT_CONTRACT_VERSION} from '../shared/ai/aiplus-product-contract.v002.js';
 import {deterministicCommand} from '../functions/_lib/ai/command-interpreter.js';
 import {buildParentSemanticFrame} from '../functions/_lib/ai/parent-semantic-frame.js';
 import {buildEvidencePlan} from '../functions/_lib/ai/evidence-plan.js';
@@ -9,8 +9,8 @@ import {OFFICIAL_WEB_EVIDENCE_TESTING,runOfficialWebEvidence} from '../functions
 import {orchestrateAiTurn} from '../functions/_lib/ai/turn-orchestrator.js';
 import {AIPLUS_PARENT_QUERY_CATALOG_V003} from './fixtures/aiplus-parent-query-catalog-v003.mjs';
 
-assert.equal(AIPLUS_PRODUCT_VERSION,'v0.03');
-assert.equal(AIPLUS_PRODUCT_CONTRACT_VERSION,'aiplus-product-contract-v0.03');
+assert.equal(AIPLUS_PRODUCT_VERSION,'v0.02');
+assert.equal(AIPLUS_PRODUCT_CONTRACT_VERSION,'aiplus-product-contract-v0.02');
 
 const base=createAiWorkspace({examContext:{score:568},activeView:{score:568,regionKeys:['all'],majorKeywords:[],schoolNames:[],bottomLineMode:'all'}});
 function frameFor(command,text,workspace=base){return buildParentSemanticFrame(text,{schools:command.schoolNames,majors:command.majorKeywords,regionKeys:command.regionKeys,score:command.score||workspace?.examContext?.score,mentorProfile:command.mentorProfile,workspace});}
@@ -56,4 +56,4 @@ const turn=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base,confir
 
 const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:followWorkspace,confirmedCommand:follow});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.ok(followTurn.command.semanticFrame.preferenceSignals.some(item=>item.dimension==='study_duration'&&item.value==='long_ok'));
 
-console.log(JSON.stringify({ok:true,version:'aiplus-parent-semantics-v0.03',scenarios:AIPLUS_PARENT_QUERY_CATALOG_V003.length,product:AIPLUS_PRODUCT_VERSION},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-parent-semantics-v0.03',scenarios:AIPLUS_PARENT_QUERY_CATALOG_V003.length,product:AIPLUS_PRODUCT_VERSION,decisionSemantic:'v0.03'},null,2));
