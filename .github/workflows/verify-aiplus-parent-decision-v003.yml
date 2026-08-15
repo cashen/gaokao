@@ -68,8 +68,13 @@ jobs:
           grep -q 'data-ai-plus-assets="aiplus-assets-v002_3"' aiplus/index.html
           grep -q "AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5'" functions/_lib/ai/agent-task-kernel.js
           grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
+          grep -q 'rememberedScoreAvailable' functions/_lib/ai/evidence-plan.js
+          grep -q "'school_major'" functions/_lib/ai/claim-evidence.js
+          grep -q "'major_national'" functions/_lib/ai/claim-evidence.js
           grep -q 'searchResultIsSource:false' functions/_lib/ai/official-web-evidence.js
+          grep -q 'runMajorKnowledgeEvidence' functions/_lib/ai/official-web-evidence.js
           grep -q 'webFallbackCount<2' functions/_lib/ai/decision-research-runtime.js
+          grep -q 'factScopeSafe' functions/_lib/ai/decision-research-runtime.js
           test ! -e functions/_lib/ai/data/parent-decision.json
           test ! -e functions/_lib/ai/data/official-web-cache.json
       - name: Syntax check v0.03 graph
@@ -107,7 +112,7 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 24
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -167,7 +172,7 @@ jobs:
           grep -q '决策语义 v0.03' <<<"$html"
           grep -q 'data-ai-advisor-generation="ai-human-advisor-agent-v0.02"' <<<"$html"
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' <<<"$html"
-      - name: Run school-major parent decision through Preview tool bridge
+      - name: Verify remembered score does not silently execute admissions
         env:
           PREVIEW_BASE: ${{ steps.preview.outputs.branch }}
         shell: bash
@@ -184,11 +189,12 @@ jobs:
             status="$(curl --silent --show-error --location --max-time 100 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST -o "$body" -w '%{http_code}' "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}&decision_round=${round}" --data "$payload" || true)"
             if [ "$status" != 200 ]; then echo "decision round ${round} HTTP ${status}" >&2; cat "$body" >&2; rm -f "$body"; exit 1; fi
             response="$(cat "$body")"; rm -f "$body"
-            jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .command.semanticFrame.compositeDecision==true and ((.command.semanticFrame.pairs|length)==2)' <<<"$response" >/dev/null
+            jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .command.semanticFrame.compositeDecision==true and ((.command.semanticFrame.pairs|length)==2) and .result.decisionResearch.plan.scoreUsed==false and .result.decisionResearch.plan.rememberedScoreAvailable==true' <<<"$response" >/dev/null
             if [ "$(jq -r '.pendingDeterministicTool // false' <<<"$response")" != true ]; then final="$response"; break; fi
             count="$(jq -r '.toolRequestCount // (.toolRequests|length) // 0' <<<"$response")"
             test "$count" -ge 1
-            test "$count" -le 6
+            test "$count" -le 4
+            jq -e '[.toolRequests[]?.kind] | all(. == "school_official")' <<<"$response" >/dev/null
             confirmed="$(jq -c '.command' <<<"$response")"
             while IFS= read -r request; do
               key="$(jq -r '.key' <<<"$request")"
@@ -196,7 +202,8 @@ jobs:
               url="$(jq -r '.url' <<<"$request")"
               test -n "$key"; test -n "$kind"; test -n "$url"
               tool_body="$(mktemp)"
-              tool_status="$(curl --silent --show-error --location --max-time 100 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o "$tool_body" -w '%{http_code}' "${PREVIEW_BASE}${url}&candidate=${EXPECTED_SHA}" || true)"
+              separator='?'; [[ "$url" == *'?'* ]] && separator='&'
+              tool_status="$(curl --silent --show-error --location --max-time 100 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o "$tool_body" -w '%{http_code}' "${PREVIEW_BASE}${url}${separator}candidate=${EXPECTED_SHA}" || true)"
               tool_payload="$(cat "$tool_body")"; rm -f "$tool_body"
               if ! jq -e . >/dev/null 2>&1 <<<"$tool_payload"; then tool_payload='{"ok":false,"code":"preview_non_json","message":"Preview tool returned non-JSON."}'; fi
               entry="$(jq -nc --arg kind "$kind" --arg key "$key" --arg url "$url" --arg status "${tool_status:-0}" --argjson payload "$tool_payload" '{kind:$kind,key:$key,url:$url,status:($status|tonumber),payload:$payload}')"
@@ -204,4 +211,18 @@ jobs:
             done < <(jq -c '.toolRequests[]' <<<"$response")
           done
           test -n "$final"
-          jq -e '.pendingDeterministicTool==false and .command.agentTask=="decision_research" and .commitView==false and .resolvedView.score==568 and .resolvedView.regionKeys==["all"] and ((.resolvedView.schoolNames|length)==0) and ((.resolvedView.majorKeywords|length)==0) and .result.decisionResearch.ok==true and .result.decisionResearch.plan.maxSteps==3 and ((.result.decisionResearch.claims|length)>=2) and ((.blocks[]|select(.type=="assistant_message")|.text|length)>20)' <<<"$final" >/dev/null
+          jq -e '.pendingDeterministicTool==false and .command.agentTask=="decision_research" and .commitView==false and .resolvedView.score==568 and .resolvedView.regionKeys==["all"] and ((.resolvedView.schoolNames|length)==0) and ((.resolvedView.majorKeywords|length)==0) and .result.decisionResearch.ok==true and .result.decisionResearch.plan.maxSteps==3 and .result.decisionResearch.plan.scoreUsed==false and ([.result.decisionResearch.claims[]?.dimension] | index("admissions") | not) and ((.blocks[]|select(.type=="assistant_message")|.text|length)>20)' <<<"$final" >/dev/null
+      - name: Verify explicit score activates exact admissions evidence
+        env:
+          PREVIEW_BASE: ${{ steps.preview.outputs.branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          input='568分，沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研'
+          workspace="$(jq -nc '{contractVersion:"ai-workspace-contract-v3992_1",examContext:{score:568},activeView:{score:568,regionKeys:["all"],majorKeywords:[],schoolNames:[],bottomLineMode:"all"},viewHistory:[],tasks:[],hardConstraints:[],softPreferences:[],turnHistory:[]}')"
+          payload="$(jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}')"
+          body="$(mktemp)"
+          status="$(curl --silent --show-error --location --max-time 100 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST -o "$body" -w '%{http_code}' "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}&explicit_score=1" --data "$payload" || true)"
+          if [ "$status" != 200 ]; then echo "explicit-score HTTP ${status}" >&2; cat "$body" >&2; rm -f "$body"; exit 1; fi
+          response="$(cat "$body")"; rm -f "$body"
+          jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .result.decisionResearch.plan.scoreUsed==true and .pendingDeterministicTool==true and (.toolRequestCount==2) and ((.toolRequests|length)==2) and ([.toolRequests[].kind] | all(. == "school_history"))' <<<"$response" >/dev/null
