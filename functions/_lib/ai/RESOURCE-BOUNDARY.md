@@ -91,7 +91,7 @@ Cloudflare Worker resource-limit responses (`1102`) are owner-action-required fa
 
 Admissions scores, ranks, historical records, school/major facts and candidate bands remain deterministic resources. AI may interpret language and explain decisions, but must not rewrite those facts or invent a parallel admission probability model.
 
-Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. The visible AIPLuS product remains `v0.02`, the stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the health API remains backward-compatible as `ai-health-api-v0.02`, and the current core asset transaction remains `aiplus-assets-v002_3`. Parent Decision Intelligence v0.03 advances only the server-side decision/evidence capability generation without copying or renaming those unchanged browser runtime assets.
+Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. The visible AIPLuS product remains `v0.02`, the stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the health API remains backward-compatible as `ai-health-api-v0.02`, and the current core asset transaction remains `aiplus-assets-v002_4`. Parent Decision Intelligence v0.03 advances only the server-side decision/evidence capability generation without copying or renaming those unchanged browser runtime assets.
 
 ## Release hygiene
 

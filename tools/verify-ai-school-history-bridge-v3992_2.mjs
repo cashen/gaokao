@@ -52,8 +52,8 @@ assert.ok(factBridge.includes('queryResults:Array.isArray(data.queryResults)'), 
 assert.ok(app.includes('beginViewportTransaction'), 'viewport transaction owner missing');
 assert.ok(!app.includes('restoreViewportIntent'), 'legacy multi-owner viewport restore remains');
 const html=fs.readFileSync('aiplus/index.html','utf8');
-assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_3"'), 'AIPLuS asset cache version not refreshed');
-assert.ok(html.includes('/aiplus/app.v3990_1.js?v=002_3'), 'AIPLuS app cache key not refreshed');
+assert.ok(html.includes('data-ai-plus-assets="aiplus-assets-v002_4"'), 'AIPLuS asset cache version not refreshed');
+assert.ok(html.includes('/aiplus/app.v3990_1.js?v=002_4'), 'AIPLuS app cache key not refreshed');
 assert.ok(app.includes('Number(payload?.error_code)===1102'),'1102 detection missing');
 assert.ok(app.includes('!error?.workerResourceLimit'),'1102 no-retry guard missing');
 assert.ok(app.includes('SCHOOL_HISTORY_SESSION_CACHE_TTL_MS=5*60*1000'),'school-history session cache TTL missing');

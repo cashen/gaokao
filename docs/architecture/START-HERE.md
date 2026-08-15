@@ -57,7 +57,7 @@ Models may interpret language and explain evidence; they do not own admissions s
 
 ### AIPLuS decision v0.03 version boundary
 
-The **visible AIPLuS product remains `v0.02`**. The stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the current browser core asset transaction remains `aiplus-assets-v002_3`, and the health API keeps its compatible `ai-health-api-v0.02` identity.
+The **visible AIPLuS product remains `v0.02`**. The stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the current browser core asset transaction remains `aiplus-assets-v002_4`, and the health API keeps its compatible `ai-health-api-v0.02` identity.
 
 Parent Decision Intelligence is a narrower server-side capability generation: `aiplus-parent-decision-v0.03`. It advances parent semantic framing, bounded evidence planning, typed claim provenance and official-web evidence orchestration without copying or renaming the stable browser runtime. `aiplus/index.html` exposes product/advisor/decision identities separately so a maintainer does not infer a full product/runtime generation change from the decision feature version.
 

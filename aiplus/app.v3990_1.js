@@ -1,10 +1,10 @@
 
-import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel,AI_FACT_BRIDGE_CONTRACT_VERSION,compactAiFactRecord,compactSchoolHistoryFactPayload} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_3';
-import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=002_3';
-import {starterScenariosForScore} from '/aiplus/parent-starter.v3992_1.js?v=002_3';
-import {loadCurrentWorkspace,saveCurrentWorkspace,listWorkspaceHistory,loadWorkspaceSession,deleteWorkspaceSession,workspaceHistoryMeta} from '/aiplus/history-store.v3992_4.js?v=002_3';
-import {runBoundedBatch,uniqueToolRequests,deterministicToolBatchConcurrency} from '/aiplus/turn-runtime.v002.js?v=002_3';
-import {AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,completedTurnScrollTarget,shouldBlurComposerOnCompletion} from '/aiplus/conversation-scroll.v002.js?v=002_3';
+import {createAiWorkspace,applyAiWorkspaceEvent,buildAiTurnRequestPayload,AI_WORKSPACE_CONTRACT_VERSION,activeViewLabel,AI_FACT_BRIDGE_CONTRACT_VERSION,compactAiFactRecord,compactSchoolHistoryFactPayload} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4';
+import {node,renderAdvisor,renderProcessingTurn,updateProcessingTurn} from '/aiplus/render.v3992_0.js?v=002_4';
+import {starterScenariosForScore} from '/aiplus/parent-starter.v3992_1.js?v=002_4';
+import {loadCurrentWorkspace,saveCurrentWorkspace,listWorkspaceHistory,loadWorkspaceSession,deleteWorkspaceSession,workspaceHistoryMeta} from '/aiplus/history-store.v3992_4.js?v=002_4';
+import {runBoundedBatch,uniqueToolRequests,deterministicToolBatchConcurrency} from '/aiplus/turn-runtime.v002.js?v=002_4';
+import {AIPLUS_CONVERSATION_SCROLL_CONTRACT_VERSION,completedTurnScrollTarget,shouldBlurComposerOnCompletion} from '/aiplus/conversation-scroll.v002.js?v=002_4';
 const AI_PLUS_SCHOOL_MODE=['family-advisor','school-official-qa'].includes(document.body?.dataset?.aiPlus);
 const AI_PLUS_SCHOOL_STARTERS=Object.freeze([{label:'先把学校看懂',prompt:'辽宁石油化工大学到底是什么定位？',reason:'只读官方资料，不拿分数替代学校判断。'},{label:'看2026招生章程',prompt:'辽宁石油化工大学2026招生章程要注意什么？',reason:'规则以官方页面为准。'},{label:'看宿舍与食宿体验',prompt:'辽宁石油化工大学宿舍和食宿条件怎么样？',reason:'先看同学体验；需要硬信息时再单独核验官方页面。'},{label:'看另一所学校',prompt:'东北石油大学录取规则和学校定位怎么样？',reason:'继续从阳光高考取证。'}]);
 const SELECTION_POOL_KEY='lnRank.selectionPool.lnPhysics.2026.v3951';
