@@ -1,0 +1,98 @@
+name: tmp AIPLuS v0.03 builder
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-builder.yml'
+      - 'tools/tmp_aiplus_v003_patch.py'
+      - 'tools/tmp_aiplus_v003_post_patch.py'
+      - 'functions/_lib/ai/parent-semantic-frame.js'
+      - 'functions/_lib/ai/evidence-plan.js'
+      - 'functions/_lib/ai/claim-evidence.js'
+      - 'functions/_lib/ai/official-web-evidence.js'
+      - 'functions/_lib/ai/decision-research-runtime.js'
+      - 'shared/ai/aiplus-product-contract.v003.js'
+      - 'tools/verify-aiplus-parent-semantics-v003.mjs'
+      - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply v0.03 architecture patch
+        run: |
+          set -euo pipefail
+          python tools/tmp_aiplus_v003_patch.py
+          python tools/tmp_aiplus_v003_post_patch.py
+      - name: Syntax check changed runtime
+        run: |
+          set -euo pipefail
+          node --check shared/ai/aiplus-product-contract.v003.js
+          node --check functions/_lib/ai/parent-semantic-frame.js
+          node --check functions/_lib/ai/evidence-plan.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/official-web-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/intent-contract.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          node --check tools/fixtures/aiplus-parent-query-catalog-v003.mjs
+      - name: Run v0.03 and preserved AIPLuS gates
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+      - name: Audit ownership and protected boundaries
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || true
+          git diff --name-only origin/main...HEAD | tee /tmp/preexisting.txt
+          test ! -e ai
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q "AIPLUS_PRODUCT_VERSION='v0.03'" shared/ai/aiplus-product-contract.v003.js
+          grep -q 'AIPLuS 产品版 · v0.03' aiplus/index.html
+          grep -q 'aiplus-assets-v002_3' aiplus/index.html
+          ! git diff --name-only origin/main...HEAD | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'
+          ! grep -R "aiplus-product-contract.v002.js" functions/_lib/ai/intent-contract.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js
+          grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
+          grep -q 'searchResultIsSource:false' functions/_lib/ai/official-web-evidence.js
+      - name: Commit verified product candidate
+        env:
+          BRANCH: agent/aiplus-parent-decision-v003
+        run: |
+          set -euo pipefail
+          rm -f tools/tmp_aiplus_v003_patch.py tools/tmp_aiplus_v003_post_patch.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No candidate changes to commit.'
+            exit 0
+          fi
+          git commit -m 'AIPLuS v0.03: parent decision intelligence and evidence grounding'
+          git push origin "HEAD:${BRANCH}"
