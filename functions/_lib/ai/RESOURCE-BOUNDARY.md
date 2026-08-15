@@ -10,13 +10,13 @@ The ordinary AI route must not statically import `academic-background-provider.j
 
 Ordinary score, region, major, budget and family-preference turns must therefore be able to execute without materializing the background snapshot.
 
-## Parent decision research
+## Parent decision research v0.03
 
-AIPLuS v0.03 does not replace the existing atomic intent/task kernel. Existing candidate, school, major, history, comparison and region tasks keep their deterministic routing contracts. The single `turn-orchestrator.js` may promote a genuinely composite parent question into `decision_research` after the atomic command is parsed.
+Parent Decision Intelligence v0.03 does not replace the existing AIPLuS v0.02 product shell or atomic intent/task kernel. Existing candidate, school, major, history, comparison and region tasks keep their deterministic routing contracts. The single `turn-orchestrator.js` may promote a genuinely composite parent question into `decision_research` after the atomic command is parsed.
 
-`parent-semantic-frame.js` describes the decision context: explicit schools/majors, career targets, evidence needs, and hard/soft/concern preference signals. It is not allowed to mutate score, region, school, major, project scope or the candidate active view. `decision_research` always remains a non-committing knowledge/reasoning turn.
+`parent-semantic-frame.js` describes the decision context: explicit schools/majors, career targets, evidence needs, hard/soft/concern preference signals and whether remembered score is active for the current research. It is not allowed to mutate score, region, school, major, project scope or the candidate active view. `decision_research` always remains a non-committing knowledge/reasoning turn.
 
-`evidence-plan.js` is a bounded plan, not a second orchestrator. It may schedule at most three evidence steps. `decision-research-runtime.js` executes those steps by reusing existing deterministic admissions/history/background owners and the existing school-official bridge. The decision runtime must not create a parallel admissions probability model, ranking table, school background database or browser fact bridge.
+`evidence-plan.js` is a bounded plan, not a second orchestrator. It may schedule at most three evidence steps and must obey `scoreUsage`; a suspended/cleared score must not create an admissions-comparison step. `decision-research-runtime.js` executes those steps by reusing existing deterministic admissions/history/background owners and the existing school-official bridge. The decision runtime must not create a parallel admissions probability model, ranking table, school background database or browser fact bridge.
 
 For school-level official evidence, one decision turn may examine at most two schools and at most two official decision dimensions. External official-web fallback is additionally capped at two missing evidence slots per turn.
 
@@ -25,20 +25,24 @@ For school-level official evidence, one decision turn may examine at most two sc
 `official-web-evidence.js` is the only general official-web discovery/reader gateway for AIPLuS decision research.
 
 - Existing 阳光高考/CHSI school official retrieval remains first-line school evidence.
-- Optional Jina Search is enabled only when `JINA_API_KEY` or `AI_WEB_SEARCH_API_KEY` is configured.
+- Optional Jina Search is enabled only when `JINA_API_KEY` or `AI_WEB_SEARCH_API_KEY` is configured. Do not describe it as always available when no key is configured.
 - Search is discovery only. Search-result snippets and summaries must never become facts or claims.
 - A claim may be created only after the gateway reads the original HTTPS page and the original URL is `gaokao.chsi.com.cn`, a `.gov.cn` domain or a `.edu.cn` domain.
 - The read page must also match the requested school identity.
 - One external fallback call reads at most one candidate official page. A decision turn starts at most two such fallbacks.
-- Missing, blocked, ambiguous or unconfigured web evidence fails closed and must not be replaced by model knowledge.
+- Missing, blocked, ambiguous or unconfigured web evidence fails closed and must not be replaced by model knowledge or by scraping an ungoverned search-result page.
 
-The search/reader transport is replaceable infrastructure; the original publisher URL remains the evidence source.
+The search/reader transport is replaceable infrastructure; the original publisher URL remains the evidence source. If a future canonical school resource gains a verified official-site URL, this gateway should consume that URL before search rather than create another school-domain registry.
 
 ## Claim / evidence provenance
 
 `claim-evidence.js` is the model-facing fact provenance contract. Accepted claims retain subject, dimension, value, year when relevant, scope, publisher/source URL and a stable claim ID.
 
 Time-sensitive quantitative claims such as employment rate,升学/推免 rate or salary numbers require an explicit year; otherwise the claim is rejected. Model synthesis receives only accepted claims plus the parent semantic frame. A factual sentence must bind to accepted claim IDs. Sentences without claim IDs are limited to value/tradeoff reasoning and may not smuggle in new admissions, employment,升学, curriculum, cost or salary facts. Failed claim validation falls back to deterministic wording.
+
+## Product-policy compatibility surface
+
+`shared/ai/aiplus-product-contract.v002.js` remains the single product/source-policy owner. The small `aiplus-product-contract.v003.js` surface, where still imported by the decision branch, only re-exports v0.02 and must never acquire independent values or policy logic. It exists as a compatibility import surface, not as a second product truth.
 
 ## School directory by region
 
@@ -64,7 +68,7 @@ Cloudflare Worker resource-limit responses (`1102`) are owner-action-required fa
 
 Admissions scores, ranks, historical records, school/major facts and candidate bands remain deterministic resources. AI may interpret language and explain decisions, but must not rewrite those facts or invent a parallel admission probability model.
 
-Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. The current stable browser advisor shell remains `ai-human-advisor-agent-v0.02` and its current core asset transaction remains `aiplus-assets-v002_3`. AIPLuS v0.03 advances the product decision/evidence semantics without copying or renaming those unchanged browser runtime assets.
+Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. The visible AIPLuS product remains `v0.02`, the stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the health API remains backward-compatible as `ai-health-api-v0.02`, and the current core asset transaction remains `aiplus-assets-v002_3`. Parent Decision Intelligence v0.03 advances only the server-side decision/evidence capability generation without copying or renaming those unchanged browser runtime assets.
 
 ## Release hygiene
 
