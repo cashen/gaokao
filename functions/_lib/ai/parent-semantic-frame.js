@@ -83,8 +83,8 @@ function explicitDimensionCount(text=''){
 export function isParentDecisionLanguage(text='',{schoolCount=0,majorCount=0,priorTask=''}={}){
   const s=String(text||''),decision=/(怎么选|如何选|到底选|怎么取舍|如何取舍|哪个更适合|哪个更合适|帮我一起看|综合看|综合比较|应该选|更值得)/.test(s),changedPreference=/(愿意读研|不想考研|就业优先|学校优先|专业优先|普通家庭|央企|国企|高薪|稳定|成本|城市优先|如果|那如果|改成|不考虑)/.test(s);
   if(priorTask==='decision_research'&&changedPreference)return true;
-  const objectCount=Number(schoolCount||0)+Number(majorCount||0);if(!objectCount)return false;
-  return Boolean(decision&&(objectCount>=2||explicitDimensionCount(s)>=2));
+  const schools=Number(schoolCount||0),majors=Number(majorCount||0),pairDecision=schools>=2&&majors>=2,decisionDimensions=explicitDimensionCount(s);if(!(schools+majors))return false;
+  return Boolean(decision&&(pairDecision||decisionDimensions>=1));
 }
 
 function signatureFor(frame={}){
