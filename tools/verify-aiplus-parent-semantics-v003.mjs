@@ -30,9 +30,10 @@ for(const scenario of AIPLUS_PARENT_QUERY_CATALOG_V003){
   }
 }
 
-const pair=deterministicCommand('沈工大电气和大连交通自动化怎么选，考虑就业和考研',base,['沈阳工业大学','大连交通大学'],['沈工大','大连交通']);
+const pairText='沈工大电气和大连交通自动化怎么选，考虑就业和考研';
+const pair=deterministicCommand(pairText,base,['沈阳工业大学','大连交通大学'],['沈工大','大连交通']);
 assert.equal(pair.agentTask,'school_comparison','atomic comparison owner must stay unchanged');
-const pairFrame=frameFor(pair,'沈工大电气和大连交通自动化怎么选，考虑就业和考研');
+const pairFrame=frameFor(pair,pairText);
 assert.deepEqual(pairFrame.pairs.map(item=>[item.school,item.major]),[['沈阳工业大学','电气工程及其自动化'],['大连交通大学','自动化']]);
 const pairPlan=buildEvidencePlan({...pair,agentTask:'decision_research',semanticFrame:pairFrame},base,base.activeView);assert.deepEqual(pairPlan.steps.map(item=>item.kind),['admissions_compare','background_evidence','official_web_evidence']);
 
@@ -49,7 +50,9 @@ const unconfigured=await runOfficialWebEvidence({env:{}},{school:'测试大学',
 const mockedWeb=await runOfficialWebEvidence({env:{JINA_API_KEY:'test'}},{school:'测试大学',major:'电气工程及其自动化',needs:['employment']},async url=>{const value=String(url);if(value.startsWith('https://s.jina.ai/'))return new Response('搜索摘要说就业很好，但摘要不是事实。\nhttps://xxu.edu.cn/reports/employment-2025.pdf',{status:200});if(value.startsWith('https://r.jina.ai/'))return new Response('Title: 测试大学2025届毕业生就业质量报告\nURL Source: https://xxu.edu.cn/reports/employment-2025.pdf\nMarkdown Content:\n测试大学2025届毕业生就业工作坚持分类指导。2025届毕业生主要去向和就业服务安排以本报告为准。',{status:200});throw new Error(value);});assert.equal(mockedWeb.ok,true);assert.equal(mockedWeb.searchResultIsSource,false);assert.equal(mockedWeb.checkedPageCount,1);assert.ok(mockedWeb.claims.length>0);assert.equal(mockedWeb.claims[0].source.sourceUrl,'https://xxu.edu.cn/reports/employment-2025.pdf');assert.doesNotMatch(mockedWeb.claims[0].value,/搜索摘要说就业很好/);
 
 const request=new Request('https://example.test/api/ai/turn',{method:'POST'}),ctx={request,env:{}};
-const turn=await orchestrateAiTurn(ctx,{input:'沈工大电气和大连交通自动化怎么选，考虑就业和考研',workspace:base,confirmedCommand:pair});assert.equal(turn.ok,true);assert.equal(turn.pendingDeterministicTool,true);assert.equal(turn.commitView,false);assert.equal(turn.command.agentTask,'decision_research');assert.ok(turn.command.semanticFrame?.signature);assert.deepEqual(turn.command.semanticFrame.pairs,pairFrame.pairs);assert.equal(turn.toolRequests.length,2,'pair decision should request only two exact school-major history facts before further evidence');assert.ok(turn.toolRequests.every(item=>item.kind==='school_history'));assert.equal(turn.comparisonPlan?.kind,'decision');
+const fullPairText='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研';
+const fullPair=deterministicCommand(fullPairText,base,['沈阳工业大学','大连交通大学']);
+const turn=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base,confirmedCommand:fullPair});assert.equal(turn.ok,true);assert.equal(turn.pendingDeterministicTool,true);assert.equal(turn.commitView,false);assert.equal(turn.command.agentTask,'decision_research');assert.ok(turn.command.semanticFrame?.signature);assert.deepEqual(turn.command.semanticFrame.pairs.map(item=>[item.school,item.major]),pairFrame.pairs.map(item=>[item.school,item.major]));assert.equal(turn.toolRequests.length,2,'pair decision should request only two exact school-major history facts before further evidence');assert.ok(turn.toolRequests.every(item=>item.kind==='school_history'));assert.equal(turn.comparisonPlan?.kind,'decision');
 
 const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:followWorkspace,confirmedCommand:follow});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.ok(followTurn.command.semanticFrame.preferenceSignals.some(item=>item.dimension==='study_duration'&&item.value==='long_ok'));
 
