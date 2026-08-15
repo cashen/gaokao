@@ -1,0 +1,125 @@
+name: tmp AIPLuS v0.03 finalize bridge
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-finalize-bridge.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply canonical workspace and continuation owners
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def once(text, old, new, label):
+              count=text.count(old)
+              if count!=1:
+                  raise SystemExit(f'{label}: expected 1 anchor, found {count}')
+              return text.replace(old,new)
+
+          p=Path('shared/ai/ai-workspace-contract.v3992_0.js')
+          s=p.read_text()
+          s=once(s,
+            'nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch',
+            'nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,semanticFrameSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch',
+            'workspace import')
+          s=once(s,
+            'export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch};',
+            'export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch,semanticFrameSeed};',
+            'workspace export')
+          s=once(s,
+            'agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),contextUsage:workspace.agentContext?.contextUsage||{}},',
+            'agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),semanticFrame:semanticFrameSeed(workspace.agentContext?.semanticFrame),contextUsage:workspace.agentContext?.contextUsage||{}},',
+            'workspace compaction')
+          p.write_text(s)
+
+          p=Path('functions/_lib/ai/command-interpreter.js')
+          s=p.read_text()
+          s=once(s,
+            "function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>stripSchoolEntityLeadingAction(v,120));return unique([...(resolvedSchoolNames||[]),...full],4);}",
+            "function schoolNamesFromText(text,resolvedSchoolNames=[]){const source=String(text||''),resolved=unique(resolvedSchoolNames||[],4),matches=source.match(/[\\u4e00-\\u9fa5]{2,30}?(?:高等专科学校|专科学校|大学|学院)/g)||[],full=matches.map(v=>{let candidate=stripSchoolEntityLeadingAction(v,120);const parts=candidate.split(/(?:和|跟|与|、|以及)/),tail=parts[parts.length-1]||'';if(parts.length>1&&/[\\u4e00-\\u9fa5]{2,30}(?:高等专科学校|专科学校|大学|学院)$/.test(tail))candidate=tail;return candidate;}).filter(candidate=>candidate&&!resolved.some(name=>candidate!==name&&candidate.endsWith(name)));return unique([...resolved,...full],4);}",
+            'school entity boundary')
+          old="""export async function interpretAiCommand(text,workspace={},env={},request=null){
+            const directoryQuestion=looksRegionSchoolDirectoryLanguage(text);
+            let resolvedRegion=null;
+            if(directoryQuestion||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory'){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+            const resolvedSchool=directoryQuestion&&resolvedRegion?.key?{schoolNames:[],matchedAliases:[]}:await resolveAiSchoolMentionsDetailed(text,{request,env}),resolvedSchoolNames=resolvedSchool.schoolNames;
+            const fallback=deterministicBase(text,workspace,resolvedSchoolNames,resolvedSchool.matchedAliases,resolvedRegion);
+            if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
+            if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
+            const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
+            if(!provider.ok)return{command:fallback,provider};
+            const parsed=parseJsonText(provider.text);
+            return{command:normalizeModelCommand(parsed,text,workspace,fallback),provider};
+          }""".replace('            ','')
+          new="""export async function deterministicResolvedCommand(text,workspace={},env={},request=null){
+            const directoryQuestion=looksRegionSchoolDirectoryLanguage(text);
+            let resolvedRegion=null;
+            if(directoryQuestion||positiveMajors(text).length||workspace?.agentContext?.currentTask==='region_school_directory'){try{const resource=await import('./school-directory-resource.js');resolvedRegion=await resource.resolveSchoolDirectoryRegion({request,env},text,workspace);}catch{resolvedRegion=null;}}
+            const resolvedSchool=directoryQuestion&&resolvedRegion?.key?{schoolNames:[],matchedAliases:[]}:await resolveAiSchoolMentionsDetailed(text,{request,env});
+            return deterministicBase(text,workspace,resolvedSchool.schoolNames,resolvedSchool.matchedAliases,resolvedRegion);
+          }
+          export async function interpretAiCommand(text,workspace={},env={},request=null){
+            const fallback=await deterministicResolvedCommand(text,workspace,env,request);
+            if(shouldShortCircuitAiProvider(fallback))return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[],skipped:true,skipReason:'high-confidence-task-locked'}};
+            if(fallback.agentTask==='fact_rank_lookup'&&fallback.score&&!fallback.mentorProfile?.enabled)return{command:fallback,provider:{ok:false,provider:'deterministic',model:'',latencyMs:0,failures:[]}};
+            const provider=await runAiProvider(env,promptMessages(text,workspace,fallback),{maxTokens:650,reasoningEffort:'low'});
+            if(!provider.ok)return{command:fallback,provider};
+            const parsed=parseJsonText(provider.text);
+            return{command:normalizeModelCommand(parsed,text,workspace,fallback),provider};
+          }""".replace('          ','')
+          s=once(s,old,new,'resolved command owner')
+          p.write_text(s)
+
+          p=Path('functions/_lib/ai/turn-orchestrator.js')
+          s=p.read_text()
+          s=once(s,"import {interpretAiCommand,deterministicCommand} from './command-interpreter.js';","import {interpretAiCommand,deterministicCommand,deterministicResolvedCommand} from './command-interpreter.js';",'orchestrator import')
+          s=once(s,
+            "function validateConfirmedCommand(value,input,workspace,preserveResolvedFocus=false){if(!value||typeof value!=='object')return null;const fallback=deterministicCommand(input,workspace),stableFocus=preserveResolvedFocus&&value.focus&&typeof value.focus==='object'?clone(value.focus):fallback.focus;return{...fallback,...value,changeSet:fallback.changeSet,score:fallback.score,regionKeys:fallback.regionKeys,majorKeywords:fallback.majorKeywords,schoolNames:fallback.schoolNames,bottomLineMode:fallback.bottomLineMode,focus:stableFocus,semanticFrame:null,rawText:clean(input,1200),question:clean(input,1200),requiresConfirmation:false,confidence:Math.max(.8,Number(value.confidence||.8)),source:`${clean(value.source,30)||'confirmed'}-confirmed`};}",
+            "async function validateConfirmedCommand(value,input,workspace,env={},request=null){if(!value||typeof value!=='object')return null;const fallback=await deterministicResolvedCommand(input,workspace,env,request);return{...fallback,semanticFrame:null,rawText:clean(input,1200),question:clean(input,1200),source:`${clean(fallback.source,30)||'deterministic'}-confirmed`};}",
+            'confirmed command validation')
+          s=once(s,
+            "let interpreted;const deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0,confirmed=validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace,deterministicContinuation);",
+            "let interpreted;const deterministicContinuation=Object.keys(executionContext.aiDeterministicToolResults).length>0,confirmed=await validateConfirmedCommand(payload.confirmedCommand,input||payload.confirmedCommand?.rawText||'',workspace,context.env||{},context.request||null);",
+            'confirmed invocation')
+          p.write_text(s)
+          PY
+          python tools/tmp_aiplus_v003_protocol_test.py
+      - name: Verify v0.03 source and old dialog contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+          git diff --check
+      - name: Commit verified product fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shared/ai/ai-workspace-contract.v3992_0.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js tools/verify-aiplus-parent-semantics-v003.mjs
+          git commit -m 'AIPLuS：贯通家长决策语义的两阶段事实桥'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
