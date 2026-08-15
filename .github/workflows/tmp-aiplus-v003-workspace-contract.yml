@@ -19,8 +19,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply canonical continuation patch
-        run: python tools/tmp_aiplus_v003_canonical_continuation.py
+      - name: Apply canonical continuation patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/tmp_aiplus_v003_canonical_continuation.py
+          python tools/tmp_aiplus_v003_confirmed_hint.py
       - name: Verify canonical continuation and preserved AI behavior
         shell: bash
         run: |
