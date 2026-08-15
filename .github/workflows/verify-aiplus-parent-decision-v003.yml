@@ -179,7 +179,7 @@ jobs:
             status="$(curl --silent --show-error --location --max-time 100 -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -X POST -o "$body" -w '%{http_code}' "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}&decision_round=${round}" --data "$payload" || true)"
             if [ "$status" != 200 ]; then echo "decision round ${round} HTTP ${status}" >&2; cat "$body" >&2; rm -f "$body"; exit 1; fi
             response="$(cat "$body")"; rm -f "$body"
-            jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .command.semanticFrame.compositeDecision==true and .command.semanticFrame.pairs|length==2' <<<"$response" >/dev/null
+            jq -e '.ok==true and .command.agentTask=="decision_research" and .commitView==false and .command.semanticFrame.compositeDecision==true and ((.command.semanticFrame.pairs|length)==2)' <<<"$response" >/dev/null
             if [ "$(jq -r '.pendingDeterministicTool // false' <<<"$response")" != true ]; then final="$response"; break; fi
             count="$(jq -r '.toolRequestCount // (.toolRequests|length) // 0' <<<"$response")"
             test "$count" -ge 1
@@ -194,9 +194,9 @@ jobs:
               tool_status="$(curl --silent --show-error --location --max-time 100 -H 'Accept: application/json' -H 'Cache-Control: no-cache' -o "$tool_body" -w '%{http_code}' "${PREVIEW_BASE}${url}&candidate=${EXPECTED_SHA}" || true)"
               tool_payload="$(cat "$tool_body")"; rm -f "$tool_body"
               if ! jq -e . >/dev/null 2>&1 <<<"$tool_payload"; then tool_payload='{"ok":false,"code":"preview_non_json","message":"Preview tool returned non-JSON."}'; fi
-              entry="$(jq -nc --arg kind "$kind" --arg key "$key" --arg url "$url" --argjson status "${tool_status:-0}" --argjson payload "$tool_payload" '{kind:$kind,key:$key,url:$url,status:$status,payload:$payload}')"
+              entry="$(jq -nc --arg kind "$kind" --arg key "$key" --arg url "$url" --arg status "${tool_status:-0}" --argjson payload "$tool_payload" '{kind:$kind,key:$key,url:$url,status:($status|tonumber),payload:$payload}')"
               results="$(jq -c --arg key "$key" --argjson entry "$entry" '. + {($key):$entry}' <<<"$results")"
             done < <(jq -c '.toolRequests[]' <<<"$response")
           done
           test -n "$final"
-          jq -e '.pendingDeterministicTool==false and .command.agentTask=="decision_research" and .commitView==false and .resolvedView.score==568 and .resolvedView.regionKeys==["all"] and (.resolvedView.schoolNames|length)==0 and (.resolvedView.majorKeywords|length)==0 and .result.decisionResearch.ok==true and .result.decisionResearch.plan.maxSteps==3 and (.result.decisionResearch.claims|length)>=2 and (.blocks[]|select(.type=="assistant_message")|.text|length)>20' <<<"$final" >/dev/null
+          jq -e '.pendingDeterministicTool==false and .command.agentTask=="decision_research" and .commitView==false and .resolvedView.score==568 and .resolvedView.regionKeys==["all"] and ((.resolvedView.schoolNames|length)==0) and ((.resolvedView.majorKeywords|length)==0) and .result.decisionResearch.ok==true and .result.decisionResearch.plan.maxSteps==3 and ((.result.decisionResearch.claims|length)>=2) and ((.blocks[]|select(.type=="assistant_message")|.text|length)>20)' <<<"$final" >/dev/null
