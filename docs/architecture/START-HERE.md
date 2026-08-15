@@ -42,24 +42,35 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 - `shared/ai/aiplus-product-contract.v002.js` — **current AIPLuS product/source policy owner**. The visible product shell remains `v0.02`.
 - `shared/ai/aiplus-product-contract.v003.js` — compatibility import surface used only by the decision-semantic branch; it re-exports v0.02 and is not a second product policy or product-version owner.
 - `functions/_lib/ai/intent-contract.js` — task → action/object/source contract. It knows the `decision_research` task but continues to reference the single v0.02 product/source policy.
-- `functions/_lib/ai/parent-semantic-frame.js` — **parent decision meaning owner** for composite questions. It records what is being compared, explicit career targets, hard/soft preferences, score-use semantics and evidence needs; it never owns score/region/school/major mutations.
-- `functions/_lib/ai/evidence-plan.js` — **bounded decision research planner**. It may schedule at most three evidence steps, obeys `scoreUsage`, and does not create another orchestrator.
-- `functions/_lib/ai/claim-evidence.js` — **claim provenance contract**. Model-facing facts must retain source/year/scope and time-sensitive quantitative claims fail closed without a year.
-- `functions/_lib/ai/official-web-evidence.js` — the only general official-web discovery/reader gateway. Search results are discovery only; claims must come from actually read CHSI, `.gov.cn` or `.edu.cn` pages.
-- `functions/_lib/ai/decision-research-runtime.js` — executes the bounded plan through existing deterministic and official-source owners.
+- `functions/_lib/ai/parent-semantic-frame.js` — **parent decision meaning owner** for composite questions. It owns school-major comparison geometry, explicit career goals, hard/soft/concern preferences, explicit student learning/work-environment signals, ordinal references such as “第二个/后者”, counterfactual changes such as “那如果愿意读研呢”, and the split between accumulated versus current evidence needs. It never owns score/region/school/major mutations and must not infer personality or ability beyond explicit user statements.
+- `functions/_lib/ai/evidence-plan.js` — **bounded decision research planner**. It may schedule at most three evidence steps. Remembered score is context only: admissions execution requires the current turn to activate score/reachability evidence. Reference follow-ups narrow execution to the selected pair while semantic memory keeps the full comparison set.
+- `functions/_lib/ai/claim-evidence.js` — **typed claim provenance contract**. Claims retain `subjectType`, `subjectId`, dimension/metric/value/unit, year/cohort, optional sample/denominator/geography, `sourceScope`, `documentScope`, source URL/title and stable claim ID. School-wide evidence cannot be narrowed into a school-major claim merely because the user asked about a major; time-sensitive quantitative facts fail closed without a year.
+- `functions/_lib/ai/official-web-evidence.js` — the only general official-web discovery/reader gateway. Search results are discovery only. School evidence may use actually read exact CHSI hosts (`gaokao.chsi.com.cn`, `xz.chsi.com.cn`, `yz.chsi.com.cn`) plus verified `.gov.cn` / `.edu.cn` pages. Major-only knowledge uses the exact CHSI hosts and may create only `major_national` claims, never a specific-school outcome.
+- `functions/_lib/ai/decision-research-runtime.js` — executes the bounded plan through existing deterministic and official-source owners. It is also the final model-summary scope gate: a model factual sentence must bind to compatible claim IDs, and invalid subject/source scope falls back to deterministic wording.
 - `functions/_lib/ai/turn-orchestrator.js` — the **single turn execution owner**. Atomic task routing remains in the existing deterministic task kernel; only the orchestrator can promote a multi-object/multi-goal turn into `decision_research`.
-- `functions/_lib/ai/RESOURCE-BOUNDARY.md` — deterministic fact/resource boundary.
+- `functions/_lib/ai/RESOURCE-BOUNDARY.md` — detailed deterministic/resource/claim boundary for AIPLuS.
 - `aiplus/index.html` — browser entrypoint.
 - `aiplus/app.v3990_1.js` — current browser orchestration entry module.
 - `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
 
-Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts or a parallel admissions probability model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
+Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts, source scope, or a parallel admissions probability/recommendation-score model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
 
 ### AIPLuS decision v0.03 version boundary
 
 The **visible AIPLuS product remains `v0.02`**. The stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the current browser core asset transaction remains `aiplus-assets-v002_3`, and the health API keeps its compatible `ai-health-api-v0.02` identity.
 
-Parent Decision Intelligence is a narrower server-side capability generation: `aiplus-parent-decision-v0.03`. It advances parent semantic framing, bounded evidence planning, claim provenance and official-web evidence orchestration without copying or renaming the stable browser runtime. `aiplus/index.html` exposes product/advisor/decision identities separately so a maintainer does not infer a full product/runtime generation change from the decision feature version.
+Parent Decision Intelligence is a narrower server-side capability generation: `aiplus-parent-decision-v0.03`. It advances parent semantic framing, bounded evidence planning, typed claim provenance and official-web evidence orchestration without copying or renaming the stable browser runtime. `aiplus/index.html` exposes product/advisor/decision identities separately so a maintainer does not infer a full product/runtime generation change from the decision feature version.
+
+The key semantic execution invariant is: **remembered context is not execution authority**. For example, a workspace may remember `568` while the parent asks only “沈工大电气和大连交通自动化怎么选，考虑就业和考研”; that turn may preserve 568 as context but must not execute admissions facts until the parent explicitly asks about score/位次/现实性. Conversely, “568分，……怎么选” activates the existing exact admissions owners. “先别管分数” suspends admissions both semantically and operationally.
+
+For pair/reference semantics:
+
+- N schools × one major → one pair per school;
+- one school × N majors → one pair per major;
+- equal N:N explicit objects → aligned pairs;
+- mismatched multi-school × multi-major does not invent a cartesian product;
+- an ordinal follow-up selects one member of the prior `comparisonPairs` for execution but does not destroy the full comparison set;
+- a counterfactual follow-up changes only explicitly changed decision dimensions and preserves other decision objects/constraints.
 
 ## 3. Known ownership boundaries that must not be guessed away
 
@@ -107,7 +118,7 @@ This owns exact-main Cloudflare Git production verification. The Pages productio
 ### AIPLuS / AI product verification
 
 - `.github/workflows/verify-ai-workspace-v3990_1.yml` — existing product/browser/atomic-AI regression owner.
-- `.github/workflows/verify-aiplus-parent-decision-v003.yml` — narrow decision-semantic supplement. It must run the old regressions in addition to the v0.03 semantic/provenance contract and exact-Preview decision journey; it does not replace the existing AI workspace gate.
+- `.github/workflows/verify-aiplus-parent-decision-v003.yml` — narrow decision-semantic supplement. It must run the old regressions plus the v0.03 semantic/provenance invariants and exact-Preview journeys. Its Preview contract proves both sides of the score boundary: remembered score does not silently execute admissions; an explicit current score does execute the existing exact admissions bridge. It does not replace the existing AI workspace gate.
 
 ### Worker resource vNext
 
