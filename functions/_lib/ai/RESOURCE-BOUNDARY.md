@@ -10,6 +10,36 @@ The ordinary AI route must not statically import `academic-background-provider.j
 
 Ordinary score, region, major, budget and family-preference turns must therefore be able to execute without materializing the background snapshot.
 
+## Parent decision research
+
+AIPLuS v0.03 does not replace the existing atomic intent/task kernel. Existing candidate, school, major, history, comparison and region tasks keep their deterministic routing contracts. The single `turn-orchestrator.js` may promote a genuinely composite parent question into `decision_research` after the atomic command is parsed.
+
+`parent-semantic-frame.js` describes the decision context: explicit schools/majors, career targets, evidence needs, and hard/soft/concern preference signals. It is not allowed to mutate score, region, school, major, project scope or the candidate active view. `decision_research` always remains a non-committing knowledge/reasoning turn.
+
+`evidence-plan.js` is a bounded plan, not a second orchestrator. It may schedule at most three evidence steps. `decision-research-runtime.js` executes those steps by reusing existing deterministic admissions/history/background owners and the existing school-official bridge. The decision runtime must not create a parallel admissions probability model, ranking table, school background database or browser fact bridge.
+
+For school-level official evidence, one decision turn may examine at most two schools and at most two official decision dimensions. External official-web fallback is additionally capped at two missing evidence slots per turn.
+
+## Official web evidence
+
+`official-web-evidence.js` is the only general official-web discovery/reader gateway for AIPLuS decision research.
+
+- Existing 阳光高考/CHSI school official retrieval remains first-line school evidence.
+- Optional Jina Search is enabled only when `JINA_API_KEY` or `AI_WEB_SEARCH_API_KEY` is configured.
+- Search is discovery only. Search-result snippets and summaries must never become facts or claims.
+- A claim may be created only after the gateway reads the original HTTPS page and the original URL is `gaokao.chsi.com.cn`, a `.gov.cn` domain or a `.edu.cn` domain.
+- The read page must also match the requested school identity.
+- One external fallback call reads at most one candidate official page. A decision turn starts at most two such fallbacks.
+- Missing, blocked, ambiguous or unconfigured web evidence fails closed and must not be replaced by model knowledge.
+
+The search/reader transport is replaceable infrastructure; the original publisher URL remains the evidence source.
+
+## Claim / evidence provenance
+
+`claim-evidence.js` is the model-facing fact provenance contract. Accepted claims retain subject, dimension, value, year when relevant, scope, publisher/source URL and a stable claim ID.
+
+Time-sensitive quantitative claims such as employment rate,升学/推免 rate or salary numbers require an explicit year; otherwise the claim is rejected. Model synthesis receives only accepted claims plus the parent semantic frame. A factual sentence must bind to accepted claim IDs. Sentences without claim IDs are limited to value/tradeoff reasoning and may not smuggle in new admissions, employment,升学, curriculum, cost or salary facts. Failed claim validation falls back to deterministic wording.
+
 ## School directory by region
 
 AIPLuS region-school questions (for example “沈阳有哪些大学”“辽宁有多少大学”“深圳有哪些本科”) read the existing canonical school-location resource `/tongxue/data/school-search-index.20260617-v150.json` through `school-directory-resource.js`. This adapter does not copy the 2,900+ school rows into a second database and does not use the language model to generate school names or counts.
@@ -34,7 +64,7 @@ Cloudflare Worker resource-limit responses (`1102`) are owner-action-required fa
 
 Admissions scores, ranks, historical records, school/major facts and candidate bands remain deterministic resources. AI may interpret language and explain decisions, but must not rewrite those facts or invent a parallel admission probability model.
 
-Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. AIPLuS browser assets still advance as one cache transaction; this revision uses `v002_1` while the visible product version remains `v0.02`.
+Resource-boundary maintenance alone does not require changing the site release identity `v3.9.90.1` / `v3990_1`. The current stable browser advisor shell remains `ai-human-advisor-agent-v0.02` and its current core asset transaction remains `aiplus-assets-v002_3`. AIPLuS v0.03 advances the product decision/evidence semantics without copying or renaming those unchanged browser runtime assets.
 
 ## Release hygiene
 
