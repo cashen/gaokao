@@ -96,7 +96,7 @@ jobs:
           grep -q 'data-release="v3.9.90.1"' aiplus/index.html
           grep -q 'data-site-runtime-generation="v3990_1"' aiplus/index.html
           grep -q 'data-ai-plus="family-advisor"' aiplus/index.html
-          grep -q 'data-ai-plus-assets="aiplus-assets-v002_3"' aiplus/index.html
+          grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
           grep -q 'AIPLuS 产品版 · v0.02' aiplus/index.html
           test ! -e ai
           grep -q '^/ai /aiplus/ 301$' _redirects
