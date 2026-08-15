@@ -1,0 +1,44 @@
+name: tmp AIPLuS v0.03 workflow blobs
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-workflow-blobs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  blobs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+      - name: Create transformed workflow blobs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['.github/workflows/verify-ai-workspace-v3990_1.yml','.github/workflows/verify-aiplus-parent-decision-v003.yml']:
+            p=Path(name); text=p.read_text()
+            if '002_3' not in text: raise SystemExit(f'{name}: missing current 002_3 marker')
+            p.write_text(text.replace('002_3','002_4'))
+          PY
+          for file in .github/workflows/verify-ai-workspace-v3990_1.yml .github/workflows/verify-aiplus-parent-decision-v003.yml; do
+            payload="$(jq -Rs '{content:.,encoding:"utf-8"}' < "$file")"
+            response="$(curl -fsSL -X POST \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/git/blobs" \
+              --data "$payload")"
+            sha="$(jq -r '.sha' <<<"$response")"
+            test -n "$sha"; test "$sha" != null
+            echo "WORKFLOW_BLOB ${file} ${sha}"
+          done
