@@ -13,7 +13,7 @@ function mergeByDimension(prior=[],current=[]){const now=new Set((current||[]).m
 
 export function careerTargetsFromText(text=''){
   const s=String(text||''),out=[];
-  if(/(央企|中央企业|国家电网|中石油|中石化|三桶油)/.test(s))out.push('central_soe');
+  if(/(央企|央国企|中央企业|国家电网|中石油|中石化|三桶油)/.test(s))out.push('central_soe');
   if(/(国企|国有企业|央国企)/.test(s))out.push('state_owned');
   if(/(考公|公务员|事业编|编制|体制内)/.test(s))out.push('public_service');
   if(/(教师|当老师|师范就业)/.test(s))out.push('teacher');
