@@ -19,12 +19,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply canonical continuation patches
+      - name: Apply canonical continuation and protocol-test patches
         shell: bash
         run: |
           set -euo pipefail
           python tools/tmp_aiplus_v003_canonical_continuation.py
           python tools/tmp_aiplus_v003_confirmed_hint.py
+          python tools/tmp_aiplus_v003_protocol_test.py
       - name: Verify canonical continuation and preserved AI behavior
         shell: bash
         run: |
@@ -32,6 +33,7 @@ jobs:
           node --check shared/ai/ai-workspace-contract.v3992_0.js
           node --check functions/_lib/ai/command-interpreter.js
           node --check functions/_lib/ai/turn-orchestrator.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
           node tools/verify-aiplus-parent-semantics-v003.mjs
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
           node tools/verify-ai-workspace-v3990_1.mjs
@@ -42,6 +44,6 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add shared/ai/ai-workspace-contract.v3992_0.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js
+          git add shared/ai/ai-workspace-contract.v3992_0.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/turn-orchestrator.js tools/verify-aiplus-parent-semantics-v003.mjs
           git commit -m 'AIPLuS：统一 confirmed continuation 的服务端实体真相'
           git push origin HEAD:agent/aiplus-parent-decision-v003
