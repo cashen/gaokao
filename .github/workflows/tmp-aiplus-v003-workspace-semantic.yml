@@ -1,0 +1,93 @@
+name: tmp AIPLuS v0.03 workspace semantic patch
+
+on:
+  push:
+    branches: [agent/aiplus-parent-decision-v003]
+    paths:
+      - '.github/workflows/tmp-aiplus-v003-workspace-semantic.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-parent-decision-v003
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extend canonical workspace and advance core cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          model=Path('shared/ai/ai-workspace-model.v3992_0.js')
+          s=model.read_text()
+          old="export function agentContextSeed(seed={},examContext={}){return{version:AI_AGENT_CONTEXT_VERSION,currentTask:cleanText(seed.currentTask,80),previousTask:cleanText(seed.previousTask,80),focus:focusSeed(seed.focus||{}),contextUsage:contextUsageSeed(seed.contextUsage||{},examContext),updatedAt:seed.updatedAt||nowIso()};}"
+          helper="""function semanticPairSeed(item={}){const school=cleanText(item?.school,120),major=cleanText(item?.major,160);if(!school&&!major)return null;return{school,major,label:cleanText(item?.label,300)||[school,major].filter(Boolean).join(' · ') };}\nfunction semanticSignalSeed(item={}){const dimension=cleanText(item?.dimension,60),value=cleanText(item?.value,120);if(!dimension||!value)return null;return{dimension,value,strength:cleanText(item?.strength,30),polarity:cleanText(item?.polarity,30),source:cleanText(item?.source,40)};}\nfunction semanticConstraintSeed(item={}){const dimension=cleanText(item?.dimension,60),value=cleanText(item?.value,120);if(!dimension||!value)return null;return{dimension,operator:cleanText(item?.operator,30),value,strength:cleanText(item?.strength,30),polarity:cleanText(item?.polarity,30),scope:cleanText(item?.scope,40),source:cleanText(item?.source,40)};}\nexport function semanticFrameSeed(seed={}){if(!seed||typeof seed!=='object')return null;const pairs=(Array.isArray(seed.pairs)?seed.pairs:[]).slice(0,3).map(semanticPairSeed).filter(Boolean),comparisonPairs=(Array.isArray(seed.comparisonPairs)?seed.comparisonPairs:[]).slice(0,3).map(semanticPairSeed).filter(Boolean),reference=seed.reference&&typeof seed.reference==='object'?{kind:cleanText(seed.reference.kind,30),index:Number.isInteger(Number(seed.reference.index))?Math.max(0,Math.min(2,Number(seed.reference.index))):null,word:cleanText(seed.reference.word,30)}:null,counterfactual=seed.counterfactual&&typeof seed.counterfactual==='object'?{active:seed.counterfactual.active===true,changedDimensions:uniqueStrings(seed.counterfactual.changedDimensions||[],12),source:cleanText(seed.counterfactual.source,40)}:{active:false,changedDimensions:[],source:''};const frame={version:cleanText(seed.version,80),speechAct:cleanText(seed.speechAct,30),schools:uniqueStrings(seed.schools||[],4),majors:uniqueStrings(seed.majors||[],8),regionKeys:uniqueStrings(seed.regionKeys||[],8),score:normalizedScore(seed.score),pairs,comparisonPairs,reference,careerTargets:uniqueStrings(seed.careerTargets||[],8),preferenceSignals:(Array.isArray(seed.preferenceSignals)?seed.preferenceSignals:[]).slice(0,16).map(semanticSignalSeed).filter(Boolean),studentSignals:(Array.isArray(seed.studentSignals)?seed.studentSignals:[]).slice(0,10).map(semanticSignalSeed).filter(Boolean),constraints:(Array.isArray(seed.constraints)?seed.constraints:[]).slice(0,18).map(semanticConstraintSeed).filter(Boolean),evidenceNeeds:uniqueStrings(seed.evidenceNeeds||[],9),currentEvidenceNeeds:uniqueStrings(seed.currentEvidenceNeeds||[],9),compositeDecision:seed.compositeDecision===true,counterfactual,source:cleanText(seed.source,60),signature:cleanText(seed.signature,1200)};return frame.version||frame.schools.length||frame.majors.length||frame.comparisonPairs.length?frame:null;}\nexport function agentContextSeed(seed={},examContext={}){return{version:AI_AGENT_CONTEXT_VERSION,currentTask:cleanText(seed.currentTask,80),previousTask:cleanText(seed.previousTask,80),focus:focusSeed(seed.focus||{}),semanticFrame:semanticFrameSeed(seed.semanticFrame),contextUsage:contextUsageSeed(seed.contextUsage||{},examContext),updatedAt:seed.updatedAt||nowIso()};}"""
+          if s.count(old)!=1: raise SystemExit(f'agentContextSeed anchor count={s.count(old)}')
+          model.write_text(s.replace(old,helper))
+
+          contract=Path('shared/ai/ai-workspace-contract.v3992_0.js')
+          s=contract.read_text()
+          old="nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch"
+          new="nowIso,makeId,cloneValue,cleanText,uniqueStrings,normalizedScore,normalizedRank,viewSeed,turnSeed,agentContextSeed,semanticFrameSeed,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch"
+          if s.count(old)!=1: raise SystemExit('workspace import anchor mismatch')
+          s=s.replace(old,new)
+          old="export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch};"
+          new="export {AI_WORKSPACE_CONTRACT_VERSION,AI_EVENT_CONTRACT_VERSION,AI_RESULT_DELTA_VERSION,AI_ACTIVE_VIEW_VERSION,AI_DECISION_PROFILE_VERSION,AI_CONVERSATION_MEMORY_VERSION,AI_TURN_HISTORY_VERSION,AI_AGENT_CONTEXT_VERSION,createAiWorkspace,activeViewLabel,regionKeyLabel,applyAiViewPatch,semanticFrameSeed};"
+          if s.count(old)!=1: raise SystemExit('workspace export anchor mismatch')
+          s=s.replace(old,new)
+          old="agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),contextUsage:workspace.agentContext?.contextUsage||{}},"
+          new="agentContext:{version:cleanText(workspace.agentContext?.version,80),currentTask:cleanText(workspace.agentContext?.currentTask,80),previousTask:cleanText(workspace.agentContext?.previousTask,80),focus:compactFocusForServer(workspace.agentContext?.focus||{}),semanticFrame:semanticFrameSeed(workspace.agentContext?.semanticFrame),contextUsage:workspace.agentContext?.contextUsage||{}},"
+          if s.count(old)!=1: raise SystemExit('server compact agentContext anchor mismatch')
+          contract.write_text(s.replace(old,new))
+
+          # Atomic AIPLuS core cache transaction. Geometry keeps its own v002_2 generation, but points at core 002_4.
+          current_files=[
+            'aiplus/index.html','aiplus/app.v3990_1.js','tools/audit-aiplus-v002-ui.mjs','tools/verify-aiplus-conversation-scroll-v002.mjs',
+            'tools/browser-ai-workspace-v3990_1.mjs','tools/verify-ai-school-history-bridge-v3992_2.mjs','tools/browser-aiplus-v002-mocked.mjs',
+            '.github/workflows/verify-ai-workspace-v3990_1.yml','.github/workflows/verify-aiplus-parent-decision-v003.yml',
+            'functions/_lib/ai/RESOURCE-BOUNDARY.md','docs/architecture/START-HERE.md'
+          ]
+          for name in current_files:
+            p=Path(name)
+            text=p.read_text()
+            if '002_3' in text:
+              p.write_text(text.replace('002_3','002_4'))
+
+          # Add persistence + server-compaction invariants to the narrow decision verifier.
+          verifier=Path('tools/verify-aiplus-parent-semantics-v003.mjs')
+          t=verifier.read_text()
+          t=t.replace("import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';","import {createAiWorkspace,compactAiWorkspaceForServer,buildAiTurnRequestPayload,AI_TURN_CLIENT_BODY_BUDGET_BYTES} from '../shared/ai/ai-workspace-contract.v3992_0.js';")
+          anchor="const follow=deterministicCommand('那如果我愿意读研呢',followWorkspace,[],[]);"
+          addition="""const persistedFollowWorkspace=createAiWorkspace(JSON.parse(JSON.stringify(followWorkspace)));\nassert.deepEqual(persistedFollowWorkspace.agentContext.semanticFrame?.comparisonPairs,pairFrame.comparisonPairs,'canonical workspace must persist bounded parent semantic frame');\nconst compactFollowWorkspace=compactAiWorkspaceForServer(persistedFollowWorkspace,{input:'那如果我愿意读研呢'});\nassert.deepEqual(compactFollowWorkspace.agentContext.semanticFrame?.comparisonPairs,pairFrame.comparisonPairs,'browser/server compaction must preserve comparison pairs');\nassert.ok(JSON.stringify(buildAiTurnRequestPayload(persistedFollowWorkspace,{input:'那如果我愿意读研呢'})).length<AI_TURN_CLIENT_BODY_BUDGET_BYTES,'decision semantic frame must stay inside client body budget');\nconst follow=deterministicCommand('那如果我愿意读研呢',persistedFollowWorkspace,[],[]);"""
+          if t.count(anchor)!=1: raise SystemExit('follow workspace verifier anchor mismatch')
+          t=t.replace(anchor,addition)
+          t=t.replace("workspace:followWorkspace,confirmedCommand:follow","workspace:persistedFollowWorkspace,confirmedCommand:follow")
+          verifier.write_text(t)
+          PY
+
+          # Refuse a mixed cache graph or accidental unclassified 002_3 current reference.
+          echo 'Remaining 002_3 references after transaction:'
+          grep -R -n --exclude-dir=.git '002_3' aiplus shared/ai tools .github/workflows functions/_lib/ai docs/architecture || true
+          node --check shared/ai/ai-workspace-model.v3992_0.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check aiplus/app.v3990_1.js
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+          git diff --check
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shared/ai/ai-workspace-model.v3992_0.js shared/ai/ai-workspace-contract.v3992_0.js aiplus/index.html aiplus/app.v3990_1.js tools/audit-aiplus-v002-ui.mjs tools/verify-aiplus-conversation-scroll-v002.mjs tools/browser-ai-workspace-v3990_1.mjs tools/verify-ai-school-history-bridge-v3992_2.mjs tools/browser-aiplus-v002-mocked.mjs .github/workflows/verify-ai-workspace-v3990_1.yml .github/workflows/verify-aiplus-parent-decision-v003.yml functions/_lib/ai/RESOURCE-BOUNDARY.md docs/architecture/START-HERE.md tools/verify-aiplus-parent-semantics-v003.mjs
+          git commit -m 'AIPLuS：让家长决策语义由统一工作区持久化'
+          git push origin HEAD:agent/aiplus-parent-decision-v003
