@@ -1,0 +1,208 @@
+name: AIPLuS human result delivery builder
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply bounded pagination and human delivery contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one exact match, got {count}')
+              return text.replace(old, new, 1)
+
+          # 1) Keep pagination inside the existing major_region_history deterministic owner.
+          path='functions/_lib/ai/tool-registry.js'
+          text=read(path)
+          text=replace_once(text,
+              "export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';",
+              "export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_4';",
+              'major history adapter version')
+          old_request="function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all'}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset','0');url.searchParams.set('limit','120');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}" 
+          new_request="""const AI_MAJOR_HISTORY_PAGE_LIMIT=120;
+const AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY=4;
+function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all',offset=0}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset',String(Math.max(0,Math.floor(Number(offset)||0))));url.searchParams.set('limit',String(AI_MAJOR_HISTORY_PAGE_LIMIT));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+function majorHistoryPagePlan(payload={}){const total=Math.max(0,Math.floor(Number(payload.total)||0)),limit=Math.max(1,Math.min(AI_MAJOR_HISTORY_PAGE_LIMIT,Math.floor(Number(payload.limit)||AI_MAJOR_HISTORY_PAGE_LIMIT))),offsets=[];for(let offset=0;offset<Math.max(total,1)&&offsets.length<AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY;offset+=limit)offsets.push(offset);return{total,limit,offsets,capped:total>limit*AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY};}"""
+          text=replace_once(text,old_request,new_request,'major history request pagination')
+          pattern=r"export async function runMajorRegionHistory\(context,\{majorKeyword='',majorKeywords=\[\],regionKeys=\['all'\],bottomLineMode='all'\}=\{\}\)\{.*?\n\}\n\nexport async function runRegionSchoolDirectory"
+          new_run="""export async function runMajorRegionHistory(context,{majorKeyword='',majorKeywords=[],regionKeys=['all'],bottomLineMode='all'}={}){
+  const requested=unique([...(Array.isArray(majorKeywords)?majorKeywords:[]),majorKeyword].map(value=>clean(value,160)).filter(Boolean),8);
+  if(!requested.length)return{ok:false,code:'major_required',message:'需要先明确一个专业方向。'};
+  const responses=[],queryResults=[],required=[];
+  for(let index=0;index<requested.length;index+=1){
+    const query=requested[index],firstRequest=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset:0}),firstDelegated=delegatedMajorHistoryEntry(context,firstRequest);
+    if(!firstDelegated.ok){if(firstDelegated.code==='client_tool_required'){required.push(firstDelegated.toolRequest);continue;}return firstDelegated;}
+    const firstStatus=Number(firstDelegated.status),firstPayload=firstDelegated.payload,firstSuccess=firstStatus>=200&&firstStatus<300&&firstPayload?.ok===true;
+    if(!firstSuccess){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:0,complete:false,errorCode:clean(firstPayload?.code,80)||`http_${firstStatus||0}`,errorMessage:clean(firstPayload?.message||'本专业查询暂时失败。',240)});continue;}
+    const plan=majorHistoryPagePlan(firstPayload),pagePayloads=[firstPayload];let pageFailed=null,missingPage=false;
+    for(const offset of plan.offsets.slice(1)){
+      const request=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset}),delegated=delegatedMajorHistoryEntry(context,request);
+      if(!delegated.ok){if(delegated.code==='client_tool_required'){required.push(delegated.toolRequest);missingPage=true;continue;}return delegated;}
+      const status=Number(delegated.status),payload=delegated.payload,success=status>=200&&status<300&&payload?.ok===true;
+      if(!success){pageFailed={status,payload};break;}
+      pagePayloads.push(payload);
+    }
+    if(missingPage)continue;
+    if(pageFailed){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:plan.total,complete:false,errorCode:clean(pageFailed.payload?.code,80)||`http_${pageFailed.status||0}`,errorMessage:clean(pageFailed.payload?.message||'本专业后续分页暂时失败。',240)});continue;}
+    const records=pagePayloads.flatMap(payload=>(payload.records||[]).map(record=>({...majorHistoryRecord(record),queryMajor:query,queryIndex:index,queryStatus:'success'}))),complete=!plan.capped&&records.length>=plan.total;
+    responses.push({query,payload:firstPayload,records,complete,availableCount:plan.total});
+    queryResults.push({query,index,status:'success',recordCount:records.length,availableCount:plan.total,complete,errorCode:'',errorMessage:complete?'':`当前安全读取上限为${AI_MAJOR_HISTORY_PAGE_LIMIT*AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY}条，本专业仍有后续记录未展开。`});
+  }
+  if(required.length)return batchToolRequired(required);
+  const successfulCount=responses.length,partial=successfulCount>0&&successfulCount<requested.length,allFailed=successfulCount===0,records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.school||'').localeCompare(String(b.school||''),'zh-CN')),scores=records.map(item=>Number(item.score2026)).filter(Number.isFinite),firstPayload=responses[0]?.payload||{},total=records.length,schoolCount=new Set(records.map(item=>item.school).filter(Boolean)).size,complete=!partial&&!allFailed&&responses.every(item=>item.complete===true),incompleteQueries=queryResults.filter(item=>item.status==='success'&&item.complete===false).map(item=>item.query);
+  const baseBoundary=clean(firstPayload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。',deliveryBoundary=incompleteQueries.length?` ${incompleteQueries.join('、')}的记录数量超过单轮有界读取上限，当前结果不是完整清单；不会把未读取部分静默算作不存在。`:'';
+  return{ok:true,partial,allFailed,majorKeyword:requested.length===1?clean(firstPayload.major||requested[0],160):'',majorKeywords:requested,region:clean(firstPayload.region,220),bottomLineMode:clean(firstPayload.bottomLineMode||bottomLineMode,40)||'all',matchedMajors:unique(responses.flatMap(item=>item.payload?.matchedMajors||[]),24),records,queryResults,summary:{total,schoolCount,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null},total,complete,hasMore:!complete&&incompleteQueries.length>0,source:firstPayload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:`${baseBoundary}${deliveryBoundary}`.trim(),message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':incompleteQueries.length?'本轮已取得有界结果，但仍有专业存在未读取的后续记录。':''};
+}
+
+export async function runRegionSchoolDirectory"""
+          text2,count=re.subn(pattern,new_run,text,count=1,flags=re.S)
+          if count!=1: raise SystemExit(f'runMajorRegionHistory replacement count={count}')
+          write(path,text2)
+
+          # 2) Primary answer must distinguish a full truth set from a bounded partial page.
+          path='functions/_lib/ai/answer-composer.js'
+          text=read(path)
+          pattern=r"  if\(result\.majorHistory\)\{.*?\n  if\(result\.history\)\{"
+          replacement="""  if(result.majorHistory){if(result.majorHistory.ok&&!result.majorHistory.allFailed){const total=Number(result.majorHistory.total||result.majorHistory.records?.length||0),schools=Number(result.majorHistory.summary?.schoolCount||0),majors=result.majorHistory.majorKeywords?.length?result.majorHistory.majorKeywords:[result.majorHistory.majorKeyword||focus.major||view.majorKeywords?.[0]||'这个专业'],statuses=result.majorHistory.queryResults||[],successful=statuses.filter(item=>item?.status==='success').length,failed=statuses.filter(item=>item?.status==='failed').length,completion=result.majorHistory.partial?`本轮部分完成：${successful}项成功、${failed}项失败；下面先保留成功结果，失败项可单独重试。`:`本轮${statuses.length>1?`${successful}项查询均已完成；`:''}`,coverage=result.majorHistory.complete===true?'分页已经完整耗尽。':'当前仍有后续记录未安全读取，下面只能视为已取得部分，不能当完整清单。';return{status:'answered',text:`${completion}查到${majors.join('、')}在当前地区的2026物理类实际投档记录，当前安全取得${total}条，覆盖${schools}所学校${rangeText(result.majorHistory.summary)}；${coverage}下面按投档分从高到低列出。`};}return{status:'unsupported',text:clean(result.majorHistory.message||'本轮没有取得可用的专业历史记录。')};}
+  if(result.history){"""
+          text2,count=re.subn(pattern,replacement,text,count=1,flags=re.S)
+          if count!=1: raise SystemExit(f'answer composer major history replacement count={count}')
+          write(path,text2)
+
+          # 3) Presentation: single-major can expose the bounded full set; multi-major stays scan-friendly and says when it is a preview.
+          path='functions/_lib/ai/advisor-presentation.js'
+          text=read(path)
+          pattern=r"function majorRegionHistorySummary\(history,view\)\{.*?\n\}\nfunction platformUpgradeSummary"
+          replacement="""function majorRegionHistoryPresentationLimit(history={}){return (history.majorKeywords?.length||1)>1?160:480;}
+function majorRegionHistorySummary(history,view){if(!history?.ok)return history?.message||'专业地区历史没有读取成功。';if(history.allFailed)return history.message||'本轮各专业查询都暂时没有完成。';const total=Number(history.total||history.records?.length||0),schools=Number(history.summary?.schoolCount||0),min=Number(history.summary?.minScore),max=Number(history.summary?.maxScore),range=[],majors=history.majorKeywords?.length?history.majorKeywords.join('、'):(history.majorKeyword||view.majorKeywords?.[0]||'这个专业'),limit=majorRegionHistoryPresentationLimit(history),shown=Math.min(total,limit),hidden=Math.max(0,total-shown);if(Number.isFinite(min))range.push(`最低${min}分`);if(Number.isFinite(max))range.push(`最高${max}分`);const scope=view.bottomLineMode==='public_regular_only'?'，已排除中外/高收费项目':view.bottomLineMode==='exclude_sino'?'，已排除中外/高收费项目':view.bottomLineMode==='public_include_sino'?'，包含公办中外/高收费项目':'，默认包含普通项目与中外/高收费项目',partial=history.partial?'其中部分专业暂时失败，下面已单独标出；':'',coverage=history.complete===true?'查询分页已经完整耗尽':'当前仍有后续记录未安全读取，因此不能把下面内容当完整清单',delivery=hidden?`为了避免一次把页面铺成几百行，当前横向总览先展示投档分最高的 ${shown} 条；其余 ${hidden} 条建议按下方具体专业继续查看。`:`下面按2026投档分从高到低列出${history.complete===true?'全部已取得':'当前已取得'}记录。`;return`${majors}在${regionLabel(view.regionKeys)}的辽宁2026物理类实际投档记录当前安全取得 ${total} 条${schools?`，涉及 ${schools} 所学校`:''}${range.length?`；${range.join('，')}`:''}${scope}。${partial}${coverage}。${delivery}这轮不拿你的个人分数过滤。`;
+}
+function platformUpgradeSummary"""
+          text2,count=re.subn(pattern,replacement,text,count=1,flags=re.S)
+          if count!=1: raise SystemExit(f'advisor major summary replacement count={count}')
+          old="records:(result.majorHistory.records||[]).slice(0,100),queryResults:"
+          new="records:(result.majorHistory.records||[]).slice(0,majorRegionHistoryPresentationLimit(result.majorHistory)),queryResults:"
+          text2=replace_once(text2,old,new,'advisor major presentation cap')
+          write(path,text2)
+
+          # 4) Multi-major result should offer human drill-down instead of collapsing all follow-ups onto only the first major.
+          path='functions/_lib/ai/next-action-engine.js'
+          text=read(path)
+          pattern=r"  if\(task==='major_region_history'\)return\[.*?\n  \]\.filter\(Boolean\);"
+          replacement="""  if(task==='major_region_history'){
+    const queried=[...new Set((result?.majorHistory?.majorKeywords||[]).map(clean).filter(Boolean))];
+    if(queried.length>1)return queried.slice(0,3).map((item,index)=>action(`major-region-focus-${index}`,`单独看${item}`,`${item}单独看，分数从高到低，其他范围不变`,'横向总览之后按一个专业钻取完整学校清单。',100-index));
+    return[
+      action('major-region-background',NEXT_ACTION_LABELS.majorRegionBackground,`${m}在辽宁哪些学校有背景证据`,'从分数横向转到专业积累。',96),
+      scoreText?action('major-region-fit',NEXT_ACTION_LABELS.schoolFit,`按我${scoreText}分，辽宁${m}有哪些学校更现实`,'只有这一步重新激活家庭分数。',92):action('major-region-set-score','带上分数判断',`我580分，辽宁${m}哪些学校更现实`,'做可达判断时再使用个人分数。',92),
+      nextSchool?action('major-region-school',`继续看${nextSchool}`,`介绍下${nextSchool}`,'从专业主线进入一所具体学校。',65):null
+    ].filter(Boolean);
+  }"""
+          text2,count=re.subn(pattern,replacement,text,count=1,flags=re.S)
+          if count!=1: raise SystemExit(f'next action major history replacement count={count}')
+          write(path,text2)
+
+          # 5) Strengthen the permanent verifier with full-pagination and visible-delivery invariants.
+          path='tools/verify-ai-major-region-history-v3992_3.mjs'
+          text=read(path)
+          text=replace_once(text,
+              "import { onRequestGet as majorHistoryGet } from '../functions/api/ai/major-history.js';",
+              "import { onRequestGet as majorHistoryGet } from '../functions/api/ai/major-history.js';\nimport { runMajorRegionHistory } from '../functions/_lib/ai/tool-registry.js';",
+              'verifier tool import')
+          marker="const input = '测控专业 省内都多少分';"
+          insertion=r'''const majorManifest=JSON.parse(fs.readFileSync(path.join(ROOT,'ln-rank/data/ai-major-history-v3990_1/manifest.json'),'utf8'));
+const largestMajor=Object.entries(majorManifest.majors||{}).map(([major,item])=>({major,count:Number(item?.count||0)})).sort((a,b)=>b.count-a.count)[0];
+assert(largestMajor?.count<=480,`bounded pagination budget no longer covers the largest canonical major: ${JSON.stringify(largestMajor)}`);
+
+async function exhaustMajorHistory({majorKeyword,regionKeys=['all'],bottomLineMode='all'}){
+  const bridgeContext={request:new Request('https://example.test/api/ai/turn',{method:'POST'}),env:{ASSETS:assets},aiDeterministicToolResults:{}};
+  for(let round=0;round<5;round+=1){
+    const result=await runMajorRegionHistory(bridgeContext,{majorKeyword,regionKeys,bottomLineMode});
+    if(result?.code!=='client_tool_required')return{result,entries:bridgeContext.aiDeterministicToolResults,rounds:round+1};
+    const requests=result.toolRequests||[result.toolRequest].filter(Boolean);
+    for(const tool of requests){
+      const request=new Request(new URL(tool.url,'https://example.test').toString(),{headers:{accept:'application/json'}}),response=await majorHistoryGet({request,env:{ASSETS:assets}}),payload=await response.json();
+      bridgeContext.aiDeterministicToolResults[tool.key]={kind:'major_history',key:tool.key,url:tool.url,status:response.status,payload};
+    }
+  }
+  throw new Error('major history pagination did not converge inside the bounded bridge rounds');
+}
+
+const globalElectric=await exhaustMajorHistory({majorKeyword:'电气工程及其自动化',regionKeys:['all']});
+assert(globalElectric.result?.ok===true,'global electric history did not complete');
+assert(globalElectric.result.complete===true,'global electric history must exhaust all available pages');
+assert(globalElectric.result.total===283,`global electric truth count drifted: ${globalElectric.result.total}`);
+assert(globalElectric.result.records.length===283,'global electric records were truncated after pagination');
+assert(globalElectric.result.queryResults?.[0]?.recordCount===283,'query delivery count must equal the fully loaded truth set');
+assert(globalElectric.result.queryResults?.[0]?.availableCount===283,'query source count must remain visible');
+assert(Object.keys(globalElectric.entries).length===3,`283 records should use exactly three deterministic pages, got ${Object.keys(globalElectric.entries).length}`);
+assert(Object.keys(globalElectric.entries).some(key=>key.includes('offset=120'))&&Object.keys(globalElectric.entries).some(key=>key.includes('offset=240')),'major history continuation offsets missing');
+
+'''
+          text=replace_once(text,marker,insertion+marker,'verifier pagination insertion')
+          old="assert(/3项查询均已完成/.test(multiSecond.blocks?.[0]?.text || ''), `multi-major completion is not explicit: ${multiSecond.blocks?.[0]?.text || ''}`);"
+          new=old+"\nconst multiNext=(multiSecond.blocks||[]).find(block=>block.type==='next_questions');\nassert(multiNext?.items?.length===3&&multiNext.items.every(item=>/^单独看/.test(item.label||'')),`multi-major follow-up did not offer per-major drill-down: ${JSON.stringify(multiNext?.items||[])}`);"
+          text=replace_once(text,old,new,'verifier multi-major next actions')
+          marker="const first = await orchestrateAiTurn(context, { input, workspace, confirmedCommand: command });"
+          insertion=r'''const globalInput='电气工程及其自动化所有学校分数从高到低';
+const globalWorkspace=createAiWorkspace(),globalCommand=deterministicCommand(globalInput,globalWorkspace),globalEntries={};
+let globalTurn=null;
+for(let round=0;round<5;round+=1){
+  globalTurn=await orchestrateAiTurn(context,{input:globalInput,workspace:globalWorkspace,confirmedCommand:globalCommand,deterministicToolResults:globalEntries});
+  if(!globalTurn.pendingDeterministicTool)break;
+  for(const tool of globalTurn.toolRequests||[globalTurn.toolRequest]){
+    const request=new Request(new URL(tool.url,'https://example.test').toString(),{headers:{accept:'application/json'}}),response=await majorHistoryGet({request,env:{ASSETS:assets}}),fact=await response.json();
+    globalEntries[tool.key]={kind:'major_history',key:tool.key,url:tool.url,status:response.status,payload:fact};
+  }
+}
+assert(globalTurn?.ok===true&&globalTurn.pendingDeterministicTool===false,'global electric orchestrated turn did not converge');
+assert(globalTurn.result?.majorHistory?.total===283&&globalTurn.result.majorHistory.complete===true,'orchestrated global electric result lost full pagination');
+const globalHistoryBlock=(globalTurn.blocks||[]).find(block=>block.type==='history_records');
+assert(globalHistoryBlock?.records?.length===283,'complete single-major history must not be silently presentation-truncated');
+assert(/分页已经完整耗尽/.test(globalTurn.blocks?.[0]?.text||''),`primary answer did not expose pagination completeness: ${globalTurn.blocks?.[0]?.text||''}`);
+
+'''
+          text=replace_once(text,marker,insertion+marker,'verifier global presentation insertion')
+          write(path,text)
+
+          # The builder must not survive the candidate head.
+          Path('.github/workflows/aiplus-human-result-delivery-builder.yml').unlink()
+          PY
+      - name: Commit the candidate patch and remove builder
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ai/tool-registry.js functions/_lib/ai/answer-composer.js functions/_lib/ai/advisor-presentation.js functions/_lib/ai/next-action-engine.js tools/verify-ai-major-region-history-v3992_3.mjs .github/workflows/aiplus-human-result-delivery-builder.yml
+          git diff --cached --check
+          git commit -m 'AIPLuS: close major history result-delivery gap'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
