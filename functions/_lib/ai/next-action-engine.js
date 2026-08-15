@@ -1,4 +1,4 @@
-export const AI_NEXT_ACTION_ENGINE_VERSION='ai-next-action-engine-v0.02';
+export const AI_NEXT_ACTION_ENGINE_VERSION='ai-next-action-engine-v0.03';
 
 export const NEXT_ACTION_LABELS=Object.freeze({
   schoolEnvironment:'看校园环境与同学体验',schoolMajorBackground:'看哪些专业更有积累',schoolMajorHistory:'看全校专业分数',
@@ -22,6 +22,15 @@ function resultSchool(result={}){
 
 function candidates({task,school,major,score,topic,result}={}){
   const s=clean(school),m=clean(major),scoreText=Number.isFinite(Number(score))?String(Number(score)):'',nextSchool=resultSchool(result);
+  if(task==='decision_research'){
+    const frame=result?.decisionResearch?.frame||{},signals=frame.preferenceSignals||[],schools=frame.schools||[],majors=frame.majors||[],career=(frame.careerTargets||[]).length>0,out=[];
+    if(signals.some(item=>item.dimension==='study_duration'&&item.value==='prefer_short'))out.push(action('decision-study-long','如果愿意读研再看','那如果我愿意读研呢','只改变培养周期偏好，不改当前候选筛选。',105));
+    else out.push(action('decision-study-short','按本科就业再看','更希望本科直接就业，不把读研当必选项','把培养周期这个取舍说清楚。',105));
+    if(career)out.push(action('decision-career-proof','只核验职业路径证据','把刚才涉及就业、央企国企或职业路径的部分，只按具体学校官方证据再核验','职业目标是比较维度，不让模型把目标写成事实。',100));
+    if(!schools.length&&scoreText&&majors.length)out.push(action('decision-to-schools','收敛到具体学校',`按我${scoreText}分，把${majors.slice(0,3).join('、')}各自能落到的学校先收敛出来，再继续比较`,'就业、培养和升学最终要落到具体学校。',95));
+    else if(schools.length>=2)out.push(action('decision-only-facts','只看证据差异',`把${schools.slice(0,2).join('和')}刚才有证据和没证据的部分分开列给我`,'把事实差异和价值取舍再分开。',90));
+    return out;
+  }
   if(task==='region_school_directory'){const directory=result?.regionSchools||{},region=clean(directory?.region?.label)||'当前地区',level=directory?.level||'all',key=clean(directory?.region?.key),out=[];if(level==='all')out.push(action('region-undergraduate','只看本科',`${region}有哪些本科院校`,'把学校层次单独收窄，不改变候选筛选。',100));else out.push(action('region-all-schools','看全部高校',`${region}有哪些大学`,'回到本科和专科的完整地域目录。',100));out.push(action('region-major-history','按专业看学校和分数',`${region}电气工程及其自动化有哪些学校，2026都多少分`,'从学校目录进入确定性专业投档事实。',94));if(scoreText&&(key==='ln'||key==='shenyang'||key==='dalian'||key.startsWith('province:')))out.unshift(action('region-score-fit','按我的分数看可达性',`按我${scoreText}分，只看${region}有哪些学校更现实`,'这一步才把地区写入候选筛选。',105));return out;}
   if(task==='school_research')return[
     action('research-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'查看学校专业积累和证据范围。',95),
@@ -70,7 +79,7 @@ function candidates({task,school,major,score,topic,result}={}){
 
 export function nextActionsForTurn({task='',school='',major='',score=null,backgroundMajor='',topic='general',result={},workspace={}}={}){
   const seen=visitedPrompts(workspace),out=[],ids=new Set(),items=candidates({task,school,major:major||backgroundMajor,score,topic,result});
-  if(result?.partial)items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',110));
+  if(result?.partial&&task!=='decision_research')items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',110));
   for(const item of items.sort((a,b)=>b.priority-a.priority)){
     if(!item?.prompt||ids.has(item.id)||seen.has(normalizedPrompt(item.prompt)))continue;
     ids.add(item.id);out.push({id:item.id,label:item.label,prompt:item.prompt,reason:item.reason});if(out.length>=3)break;
