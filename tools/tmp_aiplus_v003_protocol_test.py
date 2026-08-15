@@ -2,6 +2,11 @@ from pathlib import Path
 
 p = Path('tools/verify-aiplus-parent-semantics-v003.mjs')
 s = p.read_text()
+import_old="import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';"
+import_new="import {createAiWorkspace,compactAiWorkspaceForServer} from '../shared/ai/ai-workspace-contract.v3992_0.js';"
+if s.count(import_old)!=1:
+    raise SystemExit(f'workspace verifier import count={s.count(import_old)}')
+s=s.replace(import_old,import_new)
 old = """const request=new Request('https://example.test/api/ai/turn',{method:'POST'}),ctx={request,env:{}};
 const fullPairText='沈阳工业大学电气和大连交通大学自动化怎么选，考虑就业和考研';
 const fullPair=deterministicCommand(fullPairText,base,['沈阳工业大学','大连交通大学']);
@@ -24,6 +29,7 @@ const turn=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base});asse
 const completedOfficialResults={};for(const item of turn.toolRequests){completedOfficialResults[item.key]={kind:item.kind,key:item.key,url:item.url,status:200,payload:{ok:false,code:'test_no_official_text',school:new URL(item.url,'https://example.test').searchParams.get('school')||'',message:'test evidence unavailable'}};}
 const continued=await orchestrateAiTurn(ctx,{input:fullPairText,workspace:base,confirmedCommand:turn.command,deterministicToolResults:completedOfficialResults});assert.equal(continued.ok,true);assert.equal(continued.pendingDeterministicTool,false);assert.equal(continued.command.agentTask,'decision_research');assert.deepEqual(continued.command.schoolNames,['沈阳工业大学','大连交通大学'],'tool continuation must re-resolve canonical schools server-side');assert.deepEqual(continued.command.majorKeywords,['电气','自动化'],'tool continuation must re-resolve canonical majors server-side');assert.equal(continued.commitView,false);assert.equal(continued.result?.decisionResearch?.plan?.scoreUsed,false);
 const explicitTurn=await orchestrateAiTurn(ctx,{input:`568分，${fullPairText}`,workspace:base});assert.equal(explicitTurn.ok,true);assert.equal(explicitTurn.pendingDeterministicTool,true);assert.equal(explicitTurn.command.agentTask,'decision_research');assert.equal(buildEvidencePlan(explicitTurn.command,base,base.activeView).scoreUsed,true);assert.equal(explicitTurn.toolRequests.length,2);assert.ok(explicitTurn.toolRequests.every(item=>item.kind==='school_history'),'explicit score pair must first request exact school-major admissions facts');
+const persistedFollowWorkspace=compactAiWorkspaceForServer(followWorkspace,{input:'那如果我愿意读研呢'});assert.equal(persistedFollowWorkspace.agentContext?.semanticFrame?.comparisonPairs?.length,2,'server compaction must preserve bounded decision semantic frame');
 const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:persistedFollowWorkspace});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.equal(followTurn.command.semanticFrame.counterfactual.active,true);assert.equal(buildEvidencePlan(followTurn.command,persistedFollowWorkspace,persistedFollowWorkspace.activeView).scoreUsed,false);
 const refTurn=await orchestrateAiTurn(ctx,{input:'第二个就业呢',workspace:persistedFollowWorkspace});assert.equal(refTurn.ok,true);assert.equal(refTurn.command.agentTask,'decision_research');assert.equal(refTurn.command.semanticFrame.reference.index,1);assert.deepEqual(refTurn.command.semanticFrame.pairs.map(item=>item.school),['大连交通大学']);assert.ok(refTurn.toolRequests.every(item=>item.kind==='school_official'));assert.equal(refTurn.toolRequests.length,1,'reference follow-up must only research the selected school/pair');
 """
