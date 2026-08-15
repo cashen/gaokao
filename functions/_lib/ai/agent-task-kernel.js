@@ -1,12 +1,11 @@
 import {looksRegionSchoolDirectoryLanguage,looksRegionSchoolDirectoryFollowup} from './region-school-language.js';
-import {isParentDecisionLanguage} from './parent-semantic-frame.js';
 
-export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6';
+export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5';
 
 export const AGENT_TASKS=Object.freeze([
   'candidate_discovery','candidate_refinement','fact_rank_lookup',
   'school_major_history','school_history','major_region_history','region_school_directory','school_research','school_official_qa','school_experience','fit_assessment',
-  'school_comparison','major_comparison','decision_research',
+  'school_comparison','major_comparison',
   'background_discovery','background_fit_discovery','school_background','major_background',
   'evidence_verification','plan_review','general_advice','restore_view','save_family'
 ]);
@@ -96,7 +95,6 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(school&&((explicitMajors.length===0&&looksImplicitAllSchoolMajorsHistory(source))||looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';
   if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';
   if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)&&/(省内|辽宁|方向|专业|这些|这批)/.test(source))return'background_fit_discovery';
-  if(isParentDecisionLanguage(source,{schoolCount:schools.length,majorCount:explicitMajors.length,priorTask}))return'decision_research';
   if(looksFit(source)&&(school||schools.length))return'fit_assessment';
   if(looksCompare(source)||compareIntent){
     if(schools.length>=2||(schools.length===1&&focus.school&&focus.school!==schools[0]))return'school_comparison';
@@ -124,7 +122,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(school&&looksHistory(source))return'school_history';
   if(shortFollowup&&['school_major_history','school_history'].includes(priorTask)&&school){if(major||focus.major)return'school_major_history';return'school_history';}
   if(explicitScoreUsage(source,workspace)==='suspended'){
-    if(['school_major_history','school_history','school_research','school_official_qa','school_experience','school_background','major_background','background_discovery','school_comparison','major_comparison','decision_research'].includes(priorTask))return priorTask;
+    if(['school_major_history','school_history','school_research','school_official_qa','school_experience','school_background','major_background','background_discovery','school_comparison','major_comparison'].includes(priorTask))return priorTask;
     if(school&&major)return'school_major_history';
     if(school)return'school_history';
   }
@@ -143,7 +141,6 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
     case'candidate_discovery':case'candidate_refinement':return{score:'active',region:'active',major:'active',school:'active',bottomLine:'active',commitView:true};
     case'major_region_history':return{score:'suspended',region:'active',major:'active',school:'remembered',bottomLine:'remembered',commitView:true};
     case'region_school_directory':return{score:score==='suspended'?'suspended':'remembered',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
-    case'decision_research':return{score:score==='suspended'?'suspended':score==='cleared'?'cleared':'active',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'fit_assessment':return{score:'active',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'background_fit_discovery':return{score:'active',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'school_major_history':case'school_history':case'school_research':case'school_official_qa':case'school_experience':case'school_background':case'major_background':case'background_discovery':return{score:score==='suspended'?'suspended':'remembered',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
@@ -152,4 +149,4 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
   }
 }
 
-export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',decision_research:'做家庭决策研究',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
+export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
