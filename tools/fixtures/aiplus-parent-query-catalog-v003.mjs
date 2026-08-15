@@ -17,5 +17,5 @@ export const AIPLUS_PARENT_QUERY_CATALOG_V003=Object.freeze([
   {id:'cost-study',text:'普通家庭，预算有限，不想考研，机械和电气怎么选',schools:[],majors:['机械','电气'],task:'decision_research',needs:['cost','postgraduate']},
   {id:'score-suspended-decision',text:'先别管分数，电气和机械怎么选，我更看重就业',schools:[],majors:['电气','机械'],task:'decision_research',needs:['employment'],scoreUsage:'suspended'},
   {id:'curriculum-employment',text:'沈工大电气和沈航自动化怎么选，我想看实际学什么和本科就业',schools:['沈阳工业大学','沈阳航空航天大学'],aliases:['沈工大','沈航'],majors:['电气','自动化'],task:'decision_research',needs:['curriculum','employment']},
-  {id:'public-service',text:'法学和汉语言怎么选，我主要考虑以后考公和稳定',schools:[],majors:['法学','汉语言文学'],task:'decision_research',careers:['public_service']}
+  {id:'public-service',text:'法学和汉语言怎么选，我主要考虑以后考公和稳定',schools:[],majors:['法学','汉语言'],task:'decision_research',careers:['public_service']}
 ]);
