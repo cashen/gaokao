@@ -7,6 +7,7 @@ const SPEECH_ACTS=Object.freeze(['lookup','compare','decide','explore','verify']
 function clean(value,max=240){return String(value==null?'':value).trim().slice(0,max);}
 function unique(values,max=16){return [...new Set((Array.isArray(values)?values:[]).map(v=>clean(v,120)).filter(Boolean))].slice(0,max);}
 function allowed(values,set,max=16){const ok=new Set(set);return unique(values,max).filter(v=>ok.has(v));}
+function scoreSuppressed(text=''){return /(不考虑|不用管|先别管|别管|不看|先不看|忽略|先忽略).{0,8}(我的)?(分数|位次)/.test(String(text||''));}
 
 export function careerTargetsFromText(text=''){
   const s=String(text||''),out=[];
@@ -22,8 +23,8 @@ export function careerTargetsFromText(text=''){
 }
 
 function evidenceNeedsFromText(text='',{schools=[],majors=[],score=null}={}){
-  const s=String(text||''),out=[];
-  if(score||/(分数|位次|能上|能报|够不够|现实)/.test(s))out.push('admissions');
+  const s=String(text||''),out=[],suspendScore=scoreSuppressed(s);
+  if(!suspendScore&&(score||/(分数|位次|能上|能报|够不够|现实)/.test(s)))out.push('admissions');
   if(/(强项|优势|背景|底子|学科实力|专业实力|专业别太虚)/.test(s))out.push('background');
   if(/(学什么|课程|培养方案|培养内容|实验|实习|专业内容|专业到底)/.test(s))out.push('curriculum');
   if(/(就业|工作|岗位|央企|国企|校招|毕业去向|本科就业|稳定)/.test(s))out.push('employment');
@@ -32,7 +33,7 @@ function evidenceNeedsFromText(text='',{schools=[],majors=[],score=null}={}){
   if(/(城市|地域机会|实习机会|留在|离家|太远|距离)/.test(s))out.push('city');
   if(/(章程|转专业|调剂|体检|选科|录取规则|校区)/.test(s))out.push('official_policy');
   if(/(宿舍|食堂|环境|管理|同学评价|校园生活)/.test(s))out.push('experience');
-  if(!out.length&&(schools.length||majors.length))out.push('admissions','background');
+  if(!out.length&&(schools.length||majors.length))out.push('background');
   return allowed(out,EVIDENCE_NEEDS,9);
 }
 
@@ -92,8 +93,8 @@ function signatureFor(frame={}){
 }
 
 export function buildParentSemanticFrame(text='',options={}){
-  const s=clean(text,1200),workspace=options.workspace||{},prior=workspace?.agentContext?.semanticFrame||{},priorTask=workspace?.agentContext?.currentTask||'',explicitSchools=unique(options.schools||[],4),explicitMajors=unique(options.majors||[],8),schools=explicitSchools.length?explicitSchools:(priorTask==='decision_research'?unique(prior.schools||[],4):[]),majors=explicitMajors.length?explicitMajors:(priorTask==='decision_research'?unique(prior.majors||[],8):[]),explicitRegions=unique(options.regionKeys||[],8),regionKeys=explicitRegions.length?explicitRegions:(priorTask==='decision_research'?unique(prior.regionKeys||[],8):[]),optionScore=Number(options.score),workspaceScore=Number(workspace?.examContext?.score),priorScore=Number(prior.score),score=Number.isFinite(optionScore)&&optionScore>0?optionScore:Number.isFinite(workspaceScore)&&workspaceScore>0?workspaceScore:Number.isFinite(priorScore)&&priorScore>0?priorScore:null,mentorProfile=options.mentorProfile||{};
-  const explicitCareers=careerTargetsFromText(s),careers=explicitCareers.length?explicitCareers:(priorTask==='decision_research'?allowed(prior.careerTargets||[],CAREER_TARGETS,8):[]),explicitPreferences=preferenceSignals(s,mentorProfile),preferences=explicitPreferences.length?[...(priorTask==='decision_research'?(prior.preferenceSignals||[]).filter(old=>!explicitPreferences.some(now=>now.dimension===old.dimension)):[]),...explicitPreferences].slice(0,12):(priorTask==='decision_research'?Array.isArray(prior.preferenceSignals)?prior.preferenceSignals.slice(0,12):[]:[]),explicitNeeds=evidenceNeedsFromText(s,{schools,majors,score}),needs=allowed([...(priorTask==='decision_research'?prior.evidenceNeeds||[]:[]),...explicitNeeds],EVIDENCE_NEEDS,9);
+  const s=clean(text,1200),workspace=options.workspace||{},prior=workspace?.agentContext?.semanticFrame||{},priorTask=workspace?.agentContext?.currentTask||'',explicitSchools=unique(options.schools||[],4),explicitMajors=unique(options.majors||[],8),schools=explicitSchools.length?explicitSchools:(priorTask==='decision_research'?unique(prior.schools||[],4):[]),majors=explicitMajors.length?explicitMajors:(priorTask==='decision_research'?unique(prior.majors||[],8):[]),explicitRegions=unique(options.regionKeys||[],8),regionKeys=explicitRegions.length?explicitRegions:(priorTask==='decision_research'?unique(prior.regionKeys||[],8):[]),optionScore=Number(options.score),workspaceScore=Number(workspace?.examContext?.score),priorScore=Number(prior.score),rememberedScore=Number.isFinite(optionScore)&&optionScore>0?optionScore:Number.isFinite(workspaceScore)&&workspaceScore>0?workspaceScore:Number.isFinite(priorScore)&&priorScore>0?priorScore:null,score=scoreSuppressed(s)?null:rememberedScore,mentorProfile=options.mentorProfile||{};
+  const explicitCareers=careerTargetsFromText(s),careers=explicitCareers.length?explicitCareers:(priorTask==='decision_research'?allowed(prior.careerTargets||[],CAREER_TARGETS,8):[]),explicitPreferences=preferenceSignals(s,mentorProfile),preferences=explicitPreferences.length?[...(priorTask==='decision_research'?(prior.preferenceSignals||[]).filter(old=>!explicitPreferences.some(now=>now.dimension===old.dimension)):[]),...explicitPreferences].slice(0,12):(priorTask==='decision_research'?Array.isArray(prior.preferenceSignals)?prior.preferenceSignals.slice(0,12):[]:[]),explicitNeeds=evidenceNeedsFromText(s,{schools,majors,score}),priorNeeds=priorTask==='decision_research'?(prior.evidenceNeeds||[]).filter(need=>!(scoreSuppressed(s)&&need==='admissions')):[],needs=allowed([...priorNeeds,...explicitNeeds],EVIDENCE_NEEDS,9);
   const frame={version:PARENT_SEMANTIC_FRAME_VERSION,speechAct:speechAct(s,{schools,majors}),schools,majors,regionKeys,score,pairs:pairObjects(schools,majors),careerTargets:careers,preferenceSignals:preferences,evidenceNeeds:needs,compositeDecision:isParentDecisionLanguage(s,{schoolCount:schools.length,majorCount:majors.length,priorTask}),source:'deterministic',rawText:s};
   frame.signature=signatureFor(frame);return frame;
 }
