@@ -1,8 +1,16 @@
-export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.01';
+export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.02';
 
 const SCORE_MIN=150;
 const SCORE_MAX=750;
 const ALL_SCHOOL_MAJOR_SCOPE_RE=/(?:所有|全部|全校|该校|这所学校|各个|各|每个|每一)(?:的)?(?:招生)?专业/;
+const SCHOOL_TOPIC_PATTERNS=Object.freeze([
+  Object.freeze({kind:'all_school_majors',re:ALL_SCHOOL_MAJOR_SCOPE_RE}),
+  Object.freeze({kind:'school_background',re:/(?:哪个|哪些|什么|啥)(?:的)?专业.{0,10}(?:更有积累|有积累|最强|最好|有底子|更有底子|有背景|更强|优势)|(?:强项|优势|特色)(?:专业|方向)|(?:专业|学科)(?:优势|背景|底子|积累)|专业底蕴|有背景的专业/}),
+  Object.freeze({kind:'school_experience',re:/(?:学校|校园)(?:环境|氛围)|学习氛围|人文关怀|管理(?:人性|严格)|老师负责|辅导员|同学(?:评价|体验)|学生(?:评价|口碑)|真实体验|在校体验|宿舍|住宿|食堂|食宿|寝室|公寓/}),
+  Object.freeze({kind:'school_official',re:/(?:官方|阳光高考|招生章程|官网|官方资料|官方页面)|办学性质|主管部门|校区|学费|收费|奖学金|助学金|联系方式|招生电话|录取规则|转专业|体检要求/}),
+  Object.freeze({kind:'school_history',re:/(?:最低录取分|最低投档分|最低分|投档分|录取分|分数线|位次|排名|去年|往年|历年|所有专业|全部专业|全校专业|招生专业|专业都多少分|各专业多少分|分都多少|大概都多少分|大约都多少分|都多少分|多少分)/}),
+  Object.freeze({kind:'school_research',re:/(?:学校简介|学校介绍|学校定位|办学定位|什么学校|什么来头|整体怎么样|总体怎么样|大概怎么样|怎么样|如何|咋样)/})
+]);
 
 function text(value){return String(value==null?'':value).normalize('NFKC').trim();}
 function validScore(value){const n=Math.round(Number(value));return Number.isFinite(n)&&n>=SCORE_MIN&&n<=SCORE_MAX?n:null;}
@@ -45,4 +53,14 @@ export function collectionScopeFromText(value=''){
   return{kind:'none',explicit:false,index:-1,token:''};
 }
 
-export const HUMAN_QUERY_FRAME_TESTING=Object.freeze({SCORE_MIN,SCORE_MAX,ALL_SCHOOL_MAJOR_SCOPE_RE});
+export function schoolTopicBoundaryFromText(value=''){
+  const source=text(value);let best=null;
+  for(const item of SCHOOL_TOPIC_PATTERNS){
+    const match=item.re.exec(source);if(!match)continue;
+    const candidate={kind:item.kind,explicit:true,index:match.index,token:match[0]};
+    if(!best||candidate.index<best.index||(candidate.index===best.index&&candidate.token.length>best.token.length))best=candidate;
+  }
+  return best||{kind:'none',explicit:false,index:-1,token:''};
+}
+
+export const HUMAN_QUERY_FRAME_TESTING=Object.freeze({SCORE_MIN,SCORE_MAX,ALL_SCHOOL_MAJOR_SCOPE_RE,SCHOOL_TOPIC_PATTERNS});
