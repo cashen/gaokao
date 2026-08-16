@@ -6,6 +6,7 @@ import {buildDecisionBook} from '../shared/ai/decision-book.v003.js';
 import {deterministicMentorProfile} from '../functions/_lib/ai/mentor-profile.js';
 import {reflectDecisionTurn} from '../functions/_lib/ai/decision-reflection.js';
 import {nextActionsForTurn} from '../functions/_lib/ai/next-action-engine.js';
+import {runSelectionReview} from '../functions/_lib/ai/selection-review.js';
 
 let assertions=0;
 function eq(actual,expected,message){assert.deepEqual(actual,expected,message);assertions+=1;}
@@ -111,6 +112,21 @@ eq(topicNext.mainTaskId,'','new topic starts a fresh task thread inside the same
 const compact=compactAiWorkspaceForServer(workspace,{input:'继续比较'});
 ok(compact.decisionProfile.explicit.studentSignals.some(item=>item.dimension==='shift_work'),'server bridge must retain explicit student signals');
 ok(compact.decisions.some(item=>item.kind==='major_direction'&&item.status==='keep'),'server bridge must retain typed confirmed decisions');
+
+// FDW-10: the existing selection-review owner audits structure plus explicit family conflicts.
+const planItems=[
+  {id:'p1',school:'沈阳工业大学',major:'电气工程及其自动化',bandKey:'near',rank2026:24500,displayLocation:'辽宁 · 沈阳',tuition:'5200'},
+  {id:'p2',school:'沈阳工业大学',major:'电气工程及其自动化',bandKey:'near',rank2026:24500,displayLocation:'辽宁 · 沈阳',tuition:'5200'},
+  {id:'p3',school:'大连交通大学',major:'自动化',bandKey:'steady',rank2026:27000,displayLocation:'辽宁 · 大连',tuition:'5200'}
+];
+const auditWorkspace=createAiWorkspace({hardConstraints:[{key:'majorExclude',values:['自动化'],label:'明确排除自动化'}],decisions:[{kind:'school_major',status:'reject',subject:{school:'沈阳工业大学',major:'电气工程及其自动化'},reason:'用户明确排除'}]});
+const planAudit=runSelectionReview({version:'fdw-test',items:planItems},auditWorkspace);
+eq(planAudit.ok,true,'plan review must remain deterministic and usable');
+ok(planAudit.findings.some(item=>item.key==='duplicate-school-major'),'plan review must detect duplicate school-major rows');
+ok(planAudit.findings.some(item=>item.key==='family-major-exclude-conflict'&&item.blocking===true),'plan review must surface explicit family major conflicts');
+ok(planAudit.findings.some(item=>item.key==='rejected-school-major-conflict'&&item.blocking===true),'plan review must surface explicitly rejected school-major conflicts');
+ok(planAudit.blockingCount>=2,'blocking plan conflicts must be counted for Decision Progress');
+no(String(planAudit.boundary).includes('录取概率'),'plan audit boundary must not claim an admission probability');
 
 // FDW-06/07/08/09 source-level UI contracts.
 const html=fs.readFileSync(new URL('../aiplus/index.html',import.meta.url),'utf8');

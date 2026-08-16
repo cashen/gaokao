@@ -94,7 +94,7 @@ export async function orchestrateAiTurn(context,payload={}){
   else if(command.agentTask==='background_fit_discovery')changeText=`这轮把辽宁专业背景证据和你当前${score||''}分的可达窗口做交集预览，不把它包装成“最佳专业排名”。`;
   else changeText=`这轮切到“${agentTaskLabel(command.agentTask)}”；之前记住的家庭背景仍保留，但只让与当前任务有关的信息参与执行。`;
 
-  const result={identity:'',partial:false,answerStatus:'needs_fact',rank:null,candidates:null,history:null,majorHistory:null,regionSchools:null,fit:null,background:null,officialSchool:null,profileSupplement:null,experience:null,knowledge:null,comparison:null,decisionResearch:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,intent:command.intent,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION,plan:command.agentTask==='school_research'?{mode:'multi_tool_research',stateMutation:false,steps:['official_profile','moe_directory_baseline','school_background','admission_history']}:command.agentTask==='decision_research'?{mode:'bounded_decision_research',stateMutation:false,...buildEvidencePlan(command,workspace,view)}:{mode:'single_task',stateMutation:resolved.commitView===true,steps:[command.agentTask]}}};
+  const result={identity:'',partial:false,answerStatus:'needs_fact',rank:null,candidates:null,history:null,majorHistory:null,regionSchools:null,fit:null,background:null,officialSchool:null,profileSupplement:null,experience:null,knowledge:null,comparison:null,decisionResearch:null,selectionReview:selectionReviewRequested(input)?runSelectionReview(workspace?.selectionSnapshot||null,workspace):null,evidence:[],pendingChecks:[],decisionStage:'start',changeSummary:changeText,execution:{agentTask:command.agentTask,intent:command.intent,scoreUsage:command.scoreUsage,score:score||null,focus,majorKeywords:view.majorKeywords,bottomLineMode:view.bottomLineMode,platformTarget:command.platformTarget||'',region:regionExecution,toolRegistryVersion:AI_TOOL_REGISTRY_VERSION,plan:command.agentTask==='school_research'?{mode:'multi_tool_research',stateMutation:false,steps:['official_profile','moe_directory_baseline','school_background','admission_history']}:command.agentTask==='decision_research'?{mode:'bounded_decision_research',stateMutation:false,...buildEvidencePlan(command,workspace,view)}:{mode:'single_task',stateMutation:resolved.commitView===true,steps:[command.agentTask]}}};
   try{
     switch(command.agentTask){
       case'candidate_discovery':
@@ -142,7 +142,7 @@ export async function orchestrateAiTurn(context,payload={}){
       case'major_comparison':{
         const majors=unique(command.majorKeywords?.length?command.majorKeywords:focus.majors,3);result.comparison=await runMajorComparison(executionContext,{score:score||view.score,majorKeywords:majors,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});result.partial=!result.comparison?.ok;break;}
       case'plan_review':
-        if(!result.selectionReview)result.selectionReview=runSelectionReview(workspace?.selectionSnapshot||null);break;
+        if(!result.selectionReview)result.selectionReview=runSelectionReview(workspace?.selectionSnapshot||null,workspace);break;
       default:break;
     }
   }catch(error){result.partial=true;result.toolError={message:clean(error?.message||error,320)};}
