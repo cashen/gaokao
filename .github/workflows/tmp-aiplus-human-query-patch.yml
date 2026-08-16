@@ -6,6 +6,10 @@ on:
     paths:
       - '.github/workflows/tmp-aiplus-human-query-patch.yml'
       - 'tools/tmp-aiplus-human-query-patch.mjs'
+      - 'tools/tmp-aiplus-human-topic-patch.mjs'
+      - 'functions/_lib/ai/human-query-frame.js'
+      - 'tools/verify-aiplus-routing-grid-v001.mjs'
+      - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
 
 permissions:
   contents: write
@@ -23,7 +27,9 @@ jobs:
         with:
           node-version: '22'
       - name: Apply semantic routing patch
-        run: node tools/tmp-aiplus-human-query-patch.mjs
+        run: |
+          node tools/tmp-aiplus-human-query-patch.mjs
+          node tools/tmp-aiplus-human-topic-patch.mjs
       - name: Verify patched graph
         shell: bash
         run: |
@@ -35,6 +41,7 @@ jobs:
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/api/ai/major-history.js
           node tools/verify-aiplus-routing-grid-v001.mjs
+          node tools/verify-aiplus-school-topic-grid-v001.mjs
           node tools/verify-aiplus-human-intent-matrix-v001.mjs
           node tools/verify-aiplus-aek-v001.mjs
           node tools/verify-aiplus-aek-journeys-v001.mjs
@@ -47,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           git status --short
-          git add functions/_lib/ai/human-query-frame.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js functions/api/ai/major-history.js tools/verify-aiplus-aek-v001.mjs tools/verify-aiplus-routing-grid-v001.mjs .github/workflows/verify-aiplus-parent-decision-v003.yml
+          git add functions/_lib/ai/human-query-frame.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js functions/api/ai/major-history.js tools/verify-aiplus-aek-v001.mjs tools/verify-aiplus-routing-grid-v001.mjs tools/verify-aiplus-school-topic-grid-v001.mjs .github/workflows/verify-aiplus-parent-decision-v003.yml
           if git diff --cached --quiet; then
             echo 'No patch changes to commit.'
             exit 0
