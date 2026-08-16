@@ -7,6 +7,12 @@ export const NEXT_ACTION_LABELS=Object.freeze({
   schoolProfile:'回到学校整体介绍',schoolFit:'按我的分数判断',officialLiving:'核验官方食宿硬信息'
 });
 
+const ATOMIC_RESEARCH_TASKS=new Set([
+  'region_school_directory',
+  'school_research','school_official_qa','school_experience','school_background','school_history','school_major_history',
+  'major_background','major_region_history','background_discovery','background_fit_discovery'
+]);
+
 function clean(value){return String(value||'').trim();}
 function normalizedPrompt(value){return clean(value).replace(/[\s，。！？、,.!?]/g,'');}
 function visitedPrompts(workspace={}){return new Set((workspace.turnHistory||[]).slice(-24).map(turn=>normalizedPrompt(turn?.userText)).filter(Boolean));}
@@ -79,9 +85,15 @@ function candidates({task,school,major,score,topic,result}={}){
   return[];
 }
 
+function allowGlobalProgress(task='',result={}){
+  if(result?.partial&&task!=='decision_research')return false;
+  return !ATOMIC_RESEARCH_TASKS.has(task);
+}
+
 export function nextActionsForTurn({task='',school='',major='',score=null,backgroundMajor='',topic='general',result={},workspace={}}={}){
-  const seen=visitedPrompts(workspace),out=[],ids=new Set(),resolvedMajor=major||backgroundMajor,progress=result?.decisionReflection?.progress||deriveDecisionProgress(workspace),items=candidates({task,school,major:resolvedMajor,score,topic,result}),progressItem=progressionAction(progress,{task,school,major:resolvedMajor,score,result});if(progressItem)items.unshift(progressItem);
-  if(result?.partial&&task!=='decision_research')items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',110));
+  const seen=visitedPrompts(workspace),out=[],ids=new Set(),resolvedMajor=major||backgroundMajor,progress=result?.decisionReflection?.progress||deriveDecisionProgress(workspace),items=candidates({task,school,major:resolvedMajor,score,topic,result});
+  if(allowGlobalProgress(task,result)){const progressItem=progressionAction(progress,{task,school,major:resolvedMajor,score,result});if(progressItem)items.unshift(progressItem);}
+  if(result?.partial&&task!=='decision_research')items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',200));
   for(const item of items.sort((a,b)=>b.priority-a.priority)){
     if(!item?.prompt||ids.has(item.id)||seen.has(normalizedPrompt(item.prompt)))continue;
     ids.add(item.id);out.push({id:item.id,label:item.label,prompt:item.prompt,reason:item.reason,primary:out.length===0,decisionStage:progress.recommendedStage});if(out.length>=3)break;
