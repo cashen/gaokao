@@ -31,7 +31,7 @@ Do not create a second knowledge chatbot, workspace, renderer, admissions truth 
 
 ## Work package ledger
 
-Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and the package-specific deterministic verification are complete; it does not remove the whole-program merge gate.
+Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and the package-specific deterministic verification are complete **and no later system-scale QA has found an unresolved defect that contradicts the package outcome**. If QA finds such a defect, reopen the owning package instead of leaving an optimistic `DONE` marker.
 
 | Work package | Status | Required outcome |
 |---|---|---|
@@ -43,7 +43,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and th
 | AEK-05 | DONE | Authority registry mapping domain/jurisdiction to approved authoritative sources; no generic web-search ownership fork |
 | AEK-06 | DONE | T0-T4 freshness/temperature policy; current cycle/school/dynamic facts cannot be silently satisfied by stale canonical cache |
 | AEK-07 | DONE | Unified knowledge resolution/evidence flow reusing the current orchestrator and official/deterministic bridge owners |
-| AEK-08 | DONE | Exact/alias/near/source-specific/unknown resolution; non-canonical terms fail closed instead of being fabricated |
+| AEK-08 | IN_PROGRESS | Exact/alias/near/source-specific/unknown resolution; non-canonical and cross-level/common labels must fail closed instead of being fabricated or over-resolved |
 | AEK-09 | DONE | Answer-First human presentation: plain definition -> type/importance -> practical impact -> confusion/relations -> current evidence -> sources |
 | AEK-10 | DONE | Coverage/unknown mining counters and maintainability handoff; high-frequency unknowns become reviewed candidates, never automatic canonical truth |
 | AEK-QA | IN_PROGRESS | Multi-turn semantic/source/freshness/fail-closed/browser/full-regression proof; final Draft/Preview/Ready/merge/prod closure |
@@ -62,6 +62,7 @@ These are examples of classes, not a one-off regex checklist.
 8. Official live source unavailable: stable concept may be explained from canonical evidence, but current eligibility/deadline/school implementation must fail closed.
 9. Pure knowledge questions do not commit candidate view or silently activate remembered score.
 10. Existing AIPLuS school research, school official, school/major history, major-region, candidate, parent-decision and browser journeys stay green.
+11. Common/cross-level education labels such as `电子信息是什么` must not silently select a graduate professional-degree category when ordinary human language does not specify the education level.
 
 ## Source strategy decision
 
@@ -74,18 +75,20 @@ Use a hybrid model:
 
 ## Current implementation checkpoint
 
-- AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters passed the package-level deterministic verifier set before this checkpoint commit.
-- **AEK-03 is DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source. Cross-system same-name entities fail closed and require disambiguation.
-- **AEK-QA remains IN_PROGRESS. This branch is not mergeable by program policy.** The next gate is the expanded 80+ human knowledge journey suite, full formal Draft checks, exact-head Preview/live proof, then same-head Ready checks.
+- AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters all exist on the branch and the package-level deterministic verifier currently passes.
+- **AEK-03 remains DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source.
+- Expanded AEK-QA found a routing defect for `位次是什么意思`; that defect was repaired in the knowledge-language owner rather than patched in the orchestrator.
+- Expanded AEK-QA then found an unresolved ambiguity defect for `电子信息是什么`: the current resolver over-resolves a common/cross-level label instead of failing closed. Because that contradicts the AEK-08 outcome, **AEK-08 has been reopened to IN_PROGRESS**.
+- **This branch is not mergeable.** The next gate is to close the reopened AEK-08 ambiguity class, rerun the full 100+ human journey suite, then complete Draft checks, exact-head Preview/live proof, same-head Ready checks, exact-SHA merge and production closure.
 
 ## Current session progress
 
-- Re-read latest `main` and confirmed program start base SHA `a9cc98d3601008f5337b2b9a0b030f070ffeccfb`.
-- Confirmed there were no open PRs at program start.
-- Read `AGENTS.md`, Eastern Philosophy skill, Unified Site Release skill and `docs/architecture/START-HERE.md`.
-- Created program branch `agent/aiplus-authoritative-education-knowledge`.
-- Added `docs/skills/aiplus-authoritative-education-knowledge/SKILL.md`.
-- Next: register the skill in startup/handoff docs, create the long-lived Draft PR, audit current semantic/evidence owners, then implement AEK-01 onward on this same branch.
+- Re-read latest `main`, PR #164, current head and repository startup/release skills after a network interruption.
+- Confirmed PR #164 remains Draft and unmerged; work continues on `agent/aiplus-authoritative-education-knowledge`.
+- Removed the completed temporary AEK canonical builder workflow so it cannot become a second release/test owner.
+- Wired AEK package verification, 100+ human journeys and exact-head Preview knowledge probes into the formal AIPLuS parent-decision workflow.
+- Current package-level verifier passes taxonomy/canonical/graduate/vocational/authority/relation/unknown/live-evidence checks.
+- Current system-scale AEK-QA is intentionally red on the first unresolved acceptance defect; do not bypass or weaken the assertion.
 
 ## Handoff instruction
 
@@ -96,4 +99,5 @@ If a future conversation is asked to continue this work:
 3. read `AGENTS.md`, Eastern Philosophy, Unified Site Release (if applicable), AEK skill, `START-HERE.md`, and this file from the AEK head;
 4. inspect the current head SHA/checks/diff;
 5. continue the first non-DONE work package;
-6. never merge just because a single AEK package is green.
+6. reopen any previously `DONE` package if later QA proves its required outcome is not actually satisfied;
+7. never merge just because a single AEK package is green.
