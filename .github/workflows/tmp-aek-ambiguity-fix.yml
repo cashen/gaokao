@@ -1,0 +1,90 @@
+name: tmp AEK ambiguity owner fix
+
+on:
+  push:
+    branches:
+      - agent/aiplus-authoritative-education-knowledge
+    paths:
+      - '.github/workflows/tmp-aek-ambiguity-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-self-delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-authoritative-education-knowledge
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Confirm canonical collision evidence before editing
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {resolveCatalogEntity} from './functions/_lib/kb/catalog-accessor.js';
+          import {resolveGraduateCatalogEntity} from './functions/_lib/kb/graduate-catalog-2022.js';
+          const undergrad = resolveCatalogEntity('电子信息类',{allowContains:false});
+          const graduate = resolveGraduateCatalogEntity('电子信息');
+          assert.equal(undergrad?.kind,'category','2026 undergraduate catalog must own 电子信息类 as a category');
+          assert.equal(graduate?.status,'resolved');
+          assert.equal(graduate?.item?.code,'0854');
+          assert.equal(graduate?.item?.kind,'professional_degree_category');
+          console.log(JSON.stringify({undergrad:{kind:undergrad.kind,name:undergrad.item?.name,code:undergrad.item?.code},graduate:{name:graduate.item.name,code:graduate.item.code,kind:graduate.item.kind}},null,2));
+          NODE
+      - name: Patch the single canonical resolver and system-scale journey proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          center = Path('functions/_lib/ai/education-knowledge-center.js')
+          source = center.read_text()
+          old = """function graduateResolutionEntities(resolution){if(!resolution)return[];if(resolution.status==='resolved')return[graduateCatalogEntity(resolution.item)];if(resolution.status==='ambiguous')return(resolution.candidates||[]).map(graduateCatalogEntity);return[];}\nfunction ambiguousResolution(matchType,candidates=[]){return{matchType,ambiguous:true,confidence:0,candidates:candidates.map(entity=>({entity,source:authority(entity.sourceKey)}))};}\n\nexport function resolveCanonicalEducationEntity(value=''){\n  const raw=clean(value,180),key=norm(raw);if(!key)return null;\n  const known=BY_NAME.get(key);if(known)return{matchType:'canonical_exact',confidence:100,entity:{...known},source:authority(known.sourceKey)};\n  const undergraduate=findCatalogMajorExact(raw),graduate=resolveGraduateCatalogEntity(raw),graduateEntities=graduateResolutionEntities(graduate);\n  if(undergraduate&&graduateEntities.length)return ambiguousResolution('cross_system_ambiguous',[catalogMajorEntity(undergraduate),...graduateEntities]);\n  if(graduateEntities.length>1)return ambiguousResolution('graduate_name_ambiguous',graduateEntities);\n  if(undergraduate){const entity=catalogMajorEntity(undergraduate);return{matchType:'undergraduate_major_exact',confidence:100,entity,source:authority(entity.sourceKey)};}\n  if(graduateEntities.length===1){const entity=graduateEntities[0];return{matchType:graduate?.matchType||'graduate_exact',confidence:100,entity,source:authority(entity.sourceKey)};}\n  const category=resolveCatalogEntity(raw,{allowContains:false});if(category?.kind==='category'){const entity=catalogCategoryEntity(category.item);return{matchType:'undergraduate_category_exact',confidence:96,entity,source:authority(entity.sourceKey)};}\n  return null;\n}\n"""
+          new = """function graduateResolutionEntities(resolution){if(!resolution)return[];if(resolution.status==='resolved')return[graduateCatalogEntity(resolution.item)];if(resolution.status==='ambiguous')return(resolution.candidates||[]).map(graduateCatalogEntity);return[];}\nfunction ambiguousResolution(matchType,candidates=[]){return{matchType,ambiguous:true,confidence:0,candidates:candidates.map(entity=>({entity,source:authority(entity.sourceKey)}))};}\nfunction undergraduateOrdinarySurfaceEntities(value=''){\n  const raw=clean(value,180);if(!raw)return[];\n  const variants=unique([raw,`${raw}类`,raw.endsWith('学')?`${raw}类`:`${raw}学`,raw.endsWith('学')?'':`${raw}学类`],6),out=[];\n  for(const variant of variants){\n    if(!variant)continue;\n    const resolved=resolveCatalogEntity(variant,{allowContains:false});let entity=null;\n    if(resolved?.kind==='major')entity=catalogMajorEntity(resolved.item);\n    else if(resolved?.kind==='category')entity=catalogCategoryEntity(resolved.item);\n    if(entity&&!out.some(item=>item.id===entity.id))out.push(entity);\n  }\n  return out;\n}\n\nexport function resolveCanonicalEducationEntity(value=''){\n  const raw=clean(value,180),key=norm(raw);if(!key)return null;\n  const known=BY_NAME.get(key);if(known)return{matchType:'canonical_exact',confidence:100,entity:{...known},source:authority(known.sourceKey)};\n  const undergraduate=findCatalogMajorExact(raw),graduate=resolveGraduateCatalogEntity(raw),graduateEntities=graduateResolutionEntities(graduate);\n  if(undergraduate&&graduateEntities.length)return ambiguousResolution('cross_system_ambiguous',[catalogMajorEntity(undergraduate),...graduateEntities]);\n  if(graduateEntities.length>1)return ambiguousResolution('graduate_name_ambiguous',graduateEntities);\n  if(graduate?.status==='resolved'&&graduate?.matchType==='name_exact'&&graduateEntities.length===1){const undergraduateSurfaces=undergraduateOrdinarySurfaceEntities(raw);if(undergraduateSurfaces.length)return ambiguousResolution('cross_system_surface_ambiguous',[...undergraduateSurfaces,...graduateEntities]);}\n  if(undergraduate){const entity=catalogMajorEntity(undergraduate);return{matchType:'undergraduate_major_exact',confidence:100,entity,source:authority(entity.sourceKey)};}\n  if(graduateEntities.length===1){const entity=graduateEntities[0];return{matchType:graduate?.matchType||'graduate_exact',confidence:100,entity,source:authority(entity.sourceKey)};}\n  const category=resolveCatalogEntity(raw,{allowContains:false});if(category?.kind==='category'){const entity=catalogCategoryEntity(category.item);return{matchType:'undergraduate_category_exact',confidence:96,entity,source:authority(entity.sourceKey)};}\n  return null;\n}\n"""
+          if source.count(old) != 1:
+              raise SystemExit(f'canonical resolver anchor count={source.count(old)}')
+          center.write_text(source.replace(old,new,1))
+
+          journeys = Path('tools/verify-aiplus-aek-journeys-v001.mjs')
+          source = journeys.read_text()
+          old_prompts = """  '智能制造是什么意思','材料加工是什么意思','储能是什么','低空经济是什么意思','职业和专业有什么区别','材料成型及控制工程是什么','临床医学是什么','自动化和控制科学与工程有什么区别',\n"""
+          new_prompts = """  '智能制造是什么意思','材料加工是什么意思','储能是什么','低空经济是什么意思','职业和专业有什么区别','材料成型及控制工程是什么','临床医学是什么','自动化和控制科学与工程有什么区别',\n  '电子信息是什么','机械是什么','金融是什么','会计是什么','建筑是什么',\n"""
+          if source.count(old_prompts) != 1:
+              raise SystemExit(f'journey prompt anchor count={source.count(old_prompts)}')
+          source = source.replace(old_prompts,new_prompts,1)
+          old_assert = """const professionalDegree=resolveEducationKnowledgeQuestion('电子信息是什么');\nassert.equal(professionalDegree.ok,false,'same/common education labels must not be guessed when the query lacks enough level context');\nconst clinical=resolveEducationKnowledgeQuestion('临床医学是什么');\n"""
+          new_assert = """const commonCrossLevelLabels=['电子信息','机械','金融','会计','建筑'];\nfor(const label of commonCrossLevelLabels){const result=resolveEducationKnowledgeQuestion(`${label}是什么`);assert.equal(result.ok,false,`${label}: common education label must not be guessed without level context`);assert.equal(result.resolutionClass,'ambiguous',`${label}: must expose ambiguity rather than unknown/fabricated identity`);}\nconst professionalDegreeByCode=resolveEducationKnowledgeQuestion('0854是什么');\nassert.equal(professionalDegreeByCode.ok,true,'explicit graduate catalog code is sufficient identity context');assert.equal(professionalDegreeByCode.entities[0].type,'graduate_professional_degree_category');assert.equal(professionalDegreeByCode.entities[0].officialCode,'0854');\nconst undergraduateCategory=resolveEducationKnowledgeQuestion('电子信息类是什么');\nassert.equal(undergraduateCategory.ok,true,'explicit undergraduate category label must remain resolvable');assert.equal(undergraduateCategory.entities[0].type,'undergraduate_major_category');\nconst ambiguousRuntime=await runEducationKnowledge({env:{}},{question:'电子信息是什么'});\nassert.equal(ambiguousRuntime.answerStatus,'needs_clarification');assert.equal(ambiguousRuntime.canonical,null);assert.doesNotMatch(ambiguousRuntime.answer,/电子信息专业主要|该专业主要学习/);\nconst clinical=resolveEducationKnowledgeQuestion('临床医学是什么');\n"""
+          if source.count(old_assert) != 1:
+              raise SystemExit(f'journey assertion anchor count={source.count(old_assert)}')
+          journeys.write_text(source.replace(old_assert,new_assert,1))
+          PY
+      - name: Prove ambiguity class and preserved AEK contracts before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/education-knowledge-center.js
+          node --check tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+      - name: Commit fix and remove temporary builder
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aek-ambiguity-fix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ai/education-knowledge-center.js tools/verify-aiplus-aek-journeys-v001.mjs
+          git diff --cached --check
+          git commit -m 'AEK-08: fail closed on common cross-level education labels'
+          git push origin HEAD:agent/aiplus-authoritative-education-knowledge
