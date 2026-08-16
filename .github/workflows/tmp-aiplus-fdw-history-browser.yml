@@ -1,0 +1,45 @@
+name: tmp AIPLuS FDW history browser
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-history-browser.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Open secondary History disclosure before search
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/browser-ai-workspace-v3990_1.mjs')
+          text=path.read_text()
+          old="  const historySearch=page.locator('#historySearch');\n  await historySearch.fill('辽宁科技大学');"
+          new="  await page.locator('.decision-history-card').evaluate(el=>el.open=true);\n  const historySearch=page.locator('#historySearch');\n  await historySearch.fill('辽宁科技大学');"
+          if text.count(old)!=1:
+              raise SystemExit(f'expected one History search target, got {text.count(old)}')
+          path.write_text(text.replace(old,new,1))
+          PY
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          grep -q "decision-history-card').evaluate(el=>el.open=true)" tools/browser-ai-workspace-v3990_1.mjs
+      - name: Commit verifier migration and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aiplus-fdw-history-browser.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/browser-ai-workspace-v3990_1.mjs
+          git commit -m 'test(aiplus): open secondary History before browser search'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
