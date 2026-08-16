@@ -33,6 +33,16 @@ jobs:
           PY
           python -m py_compile tools/tmp-aiplus-fdw-browser-cache.py
           python tools/tmp-aiplus-fdw-browser-cache.py
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/verify-aiplus-family-decision-workbench-v003.mjs')
+          text=path.read_text()
+          old="ok(css.includes('@media(max-width:959px)'),'Pad/mobile presentation must be responsive');"
+          new="ok(css.includes('@media(max-width:1100px)'),'1024px Pad must use the shared decision drawer contract');"
+          if text.count(old) != 1:
+              raise SystemExit('missing old Pad breakpoint verifier')
+          path.write_text(text.replace(old,new,1))
+          PY
       - name: Verify source and preserved AIPLuS contracts
         shell: bash
         run: |
@@ -56,4 +66,4 @@ jobs:
           git add aiplus/index.html aiplus/app.v3990_1.js aiplus/render.v3992_0.js aiplus/workspace.v3990_1.css shared/ai/ai-workspace-contract.v3992_0.js tools/audit-aiplus-v002-ui.mjs tools/browser-ai-workspace-v3990_1.mjs tools/verify-aiplus-family-decision-workbench-v003.mjs
           git commit -m 'feat(aiplus): close family workbench browser transaction'
           git push origin HEAD:agent/aiplus-family-decision-workbench
-# rerun: literal replacement strings bypass Python replacement escape parsing
+# rerun: exact 1100px Pad drawer boundary is part of the FDW contract
