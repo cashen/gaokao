@@ -88,6 +88,8 @@ jobs:
           grep -q 'async function openNewTopic(page)' tools/browser-ai-workspace-v3990_1.mjs
           grep -q 'async function openNewFamilyProfile(page)' tools/browser-ai-workspace-v3990_1.mjs
           grep -q "decision-history-card').evaluate(el=>el.open=true)" tools/browser-ai-workspace-v3990_1.mjs
+          grep -q "historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;})" tools/browser-ai-workspace-v3990_1.mjs
+          grep -q "if(name!=='pc'){" tools/browser-ai-workspace-v3990_1.mjs
           ! grep -q 'openNewWorkspace' tools/browser-ai-workspace-v3990_1.mjs
       - name: Syntax check FDW graph
         shell: bash
