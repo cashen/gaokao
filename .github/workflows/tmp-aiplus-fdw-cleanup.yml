@@ -1,0 +1,36 @@
+name: tmp AIPLuS FDW cleanup
+
+on:
+  push:
+    branches:
+      - agent/aiplus-family-decision-workbench
+    paths:
+      - '.github/workflows/tmp-aiplus-fdw-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Remove every construction artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f \
+            tools/tmp-aiplus-fdw-builder.mjs \
+            tools/tmp-aiplus-fdw-fix1.mjs \
+            .github/workflows/tmp-aiplus-fdw-builder.yml \
+            .github/workflows/tmp-aiplus-fdw-fix1.yml \
+            .github/workflows/tmp-aiplus-fdw-fix2.yml \
+            .github/workflows/tmp-aiplus-fdw-cleanup.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m 'chore: remove AIPLuS FDW construction artifacts'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
