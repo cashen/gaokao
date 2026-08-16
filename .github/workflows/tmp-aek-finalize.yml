@@ -1,0 +1,144 @@
+name: tmp-aek-finalize
+on:
+  push:
+    branches:
+      - agent/aiplus-authoritative-education-knowledge
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-authoritative-education-knowledge
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Consolidate AEK source routing and comparison semantics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/education-knowledge-center.js')
+          s=p.read_text()
+          def rep(old,new,label):
+              global s
+              n=s.count(old)
+              if n!=1: raise SystemExit(f'{label}: expected 1 match, got {n}')
+              s=s.replace(old,new)
+          rep("export const AI_EDUCATION_KNOWLEDGE_CENTER_VERSION='ai-education-knowledge-center-v0.01';","export const AI_EDUCATION_KNOWLEDGE_CENTER_VERSION='ai-education-knowledge-center-v0.02';",'center version')
+          rep("  physical_exam_guidance:Object.freeze({key:'physical_exam_guidance',issuer:'教育行政等主管部门公开政策',sourceClass:'national_admissions_policy',authorityLevel:'A0',title:'普通高等学校招生体检工作指导意见',sourceUrl:'https://gaokao.chsi.com.cn/gkxx/zcdh/200702/20070228/754576.html',jurisdiction:'全国',temperature:'T1'}),","  physical_exam_guidance:Object.freeze({key:'physical_exam_guidance',issuer:'教育部、卫生部、中国残疾人联合会',sourceClass:'national_admissions_policy',authorityLevel:'A0',title:'普通高等学校招生体检工作指导意见',sourceUrl:'https://www.moe.gov.cn/jyb_xxgk/gk_gbgg/moe_0/moe_9/moe_34/tnull_40.html',jurisdiction:'全国',temperature:'T1'}),",'physical source')
+          rep("  engineering_accreditation:Object.freeze({key:'engineering_accreditation',issuer:'教育部 / 中国工程教育专业认证协会',sourceClass:'professional_accreditation_authority',authorityLevel:'A0',title:'工程教育认证通过专业名单与认证信息',sourceUrl:'https://www.ceeaa.org.cn/',jurisdiction:'全国',temperature:'T2'}),","  engineering_accreditation:Object.freeze({key:'engineering_accreditation',issuer:'教育部',sourceClass:'professional_accreditation_authority',authorityLevel:'A0',title:'教育部关于工程教育专业认证有关情况的公开信息',sourceUrl:'https://www.moe.gov.cn/s78/A08/tongzhi/202512/t20251222_1424176.html',publishedAt:'2025-12-22',jurisdiction:'全国',temperature:'T2'}),\n  double_first_class_2022:Object.freeze({key:'double_first_class_2022',issuer:'教育部、财政部、国家发展改革委',sourceClass:'national_education_authority',authorityLevel:'A0',title:'第二轮“双一流”建设高校及建设学科名单',sourceUrl:'https://www.moe.gov.cn/srcsite/A22/s7065/202202/t20220211_598710.html',publishedAt:'2022-02-11',jurisdiction:'全国',temperature:'T1'}),\n  liaoning_admissions_2026:Object.freeze({key:'liaoning_admissions_2026',issuer:'辽宁省招生考试相关主管部门（阳光高考发布）',sourceClass:'provincial_admissions_authority',authorityLevel:'A0',title:'2026年辽宁省普通高等学校招生简章',sourceUrl:'https://gaokao.chsi.com.cn/gkxx/zc/ss/202603/20260304/2293449167.html',publishedAt:'2026-03-04',effectiveYear:2026,jurisdiction:'辽宁',temperature:'T2'}),\n  moe_vocational_setting_2026:Object.freeze({key:'moe_vocational_setting_2026',issuer:'教育部',sourceClass:'national_vocational_authority',authorityLevel:'A0',title:'关于做好2026年职业教育拟招生专业设置管理工作的通知',sourceUrl:'https://www.moe.gov.cn/srcsite/A07/moe_953/202604/t20260422_1434454.html',publishedAt:'2026-04-22',effectiveYear:2026,jurisdiction:'全国',temperature:'T2'}),",'authority sources')
+          rep("c('institution:双一流','双一流',['世界一流大学和一流学科建设','双一流建设'],'institution_label','institution_identity','T2','现行国家高等教育重点建设体系相关称谓；具体建设高校和建设学科以最新官方名单为准。',{sourceKey:'moe_general',liveRequired:true,confusions:['985工程高校','211工程高校','国家级一流本科专业建设点']})","c('institution:双一流','双一流',['世界一流大学和一流学科建设','双一流建设'],'institution_label','institution_identity','T2','现行国家高等教育重点建设体系相关称谓；具体建设高校和建设学科以最新官方名单为准。',{sourceKey:'double_first_class_2022',liveRequired:true,confusions:['985工程高校','211工程高校','国家级一流本科专业建设点']})",'double first class source')
+          rep("c('structure:职业本科','职业本科',['本科层次职业教育'],'education_entity_type','vocational_education','T1','本科层次职业教育的一种办学和人才培养类型，专业设置使用职业教育专业目录体系，不能直接套用普通本科专业目录。',{sourceKey:'moe_general',confusions:['普通本科','高职专科']})","c('structure:职业本科','职业本科',['本科层次职业教育'],'education_entity_type','vocational_education','T1','本科层次职业教育的一种办学和人才培养类型，专业设置使用职业教育专业目录体系，不能直接套用普通本科专业目录。',{sourceKey:'moe_vocational_setting_2026',confusions:['普通本科','高职专科']})",'vocational bachelor source')
+          rep("c('structure:高职专科','高职专科',['高等职业专科','高职'],'education_entity_type','vocational_education','T1','高等职业教育专科层次，专业设置与普通本科使用不同的目录体系。',{sourceKey:'moe_general',confusions:['职业本科','普通本科']})","c('structure:高职专科','高职专科',['高等职业专科','高职'],'education_entity_type','vocational_education','T1','高等职业教育专科层次，专业设置与普通本科使用不同的目录体系。',{sourceKey:'moe_vocational_setting_2026',confusions:['职业本科','普通本科']})",'vocational college source')
+          old="""function splitComparisonTerms(question=''){
+            const stripped=stripKnowledgeQuestionFrame(question).replace(/(?:有什么|有啥|的)?(?:区别|差别)(?:是什么)?$/,'').trim();
+            return unique(stripped.split(/(?:和|与|跟|、|\\/| vs | VS )/).map(value=>value.replace(/^(?:比较|对比)/,'').trim()).filter(Boolean),4);
+          }"""
+          new="""function splitComparisonTerms(question=''){
+            const stripped=stripKnowledgeQuestionFrame(question).replace(/(?:有什么|有啥|的)?(?:区别|差别)(?:是什么)?$/,'').trim();
+            const cleaned=stripped.replace(/^(?:比较|对比)/,'').trim();
+            let parts=[];
+            if(/[和跟、]/.test(cleaned)||/\\s(?:vs|VS)\\s/.test(cleaned))parts=cleaned.split(/(?:和|跟|、|\\/|\\s+(?:vs|VS)\\s+)/);
+            else if(cleaned.includes('与'))parts=cleaned.split('与');
+            else parts=[cleaned];
+            return unique(parts.map(value=>value.trim()).filter(Boolean),4);
+          }"""
+          rep(old,new,'comparison parser')
+          p.write_text(s)
+          PY
+      - name: Add permanent AEK verification workflow
+        run: |
+          cat > .github/workflows/verify-aiplus-aek-v001.yml <<'EOF'
+          name: Verify AIPLuS authoritative education knowledge
+          on:
+            pull_request:
+              paths:
+                - 'functions/_lib/ai/**'
+                - 'functions/_lib/kb/**'
+                - 'shared/resources/majors/**'
+                - 'tools/verify-aiplus-aek-v001.mjs'
+                - 'tools/verify-aiplus-human-dialog-v3990_2.mjs'
+                - 'docs/skills/aiplus-authoritative-education-knowledge/SKILL.md'
+                - 'docs/architecture/AIPLUS-AEK-STATUS.md'
+                - '.github/workflows/verify-aiplus-aek-v001.yml'
+            push:
+              branches: [main]
+          permissions:
+            contents: read
+          jobs:
+            verify:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: '22'
+                - name: Syntax-check AEK canonical owners
+                  run: |
+                    node --check functions/_lib/ai/knowledge-language.js
+                    node --check functions/_lib/ai/education-knowledge-center.js
+                    node --check functions/_lib/ai/education-knowledge-runtime.js
+                    node --check functions/_lib/ai/official-web-evidence.js
+                    node --check functions/_lib/ai/agent-task-kernel.js
+                    node --check functions/_lib/ai/turn-orchestrator.js
+                    node --check functions/_lib/ai/answer-composer.js
+                    node --check functions/_lib/ai/advisor-presentation.js
+                - name: Verify AEK semantic, source and freshness contract
+                  run: node tools/verify-aiplus-aek-v001.mjs
+                - name: Preserve AIPLuS human dialog semantics
+                  run: node tools/verify-aiplus-human-dialog-v3990_2.mjs
+                - name: Preserve parent semantic ownership
+                  run: node tools/verify-aiplus-parent-semantics-v003.mjs
+                - name: Preserve AIPLuS workspace source contract
+                  run: node tools/verify-ai-workspace-v3990_1.mjs
+                - name: Preserve school official evidence contract
+                  run: node tools/verify-aiplus-school-official-v3990_2.mjs
+                - name: Preserve major-region history truth delivery
+                  run: node tools/verify-ai-major-region-history-v3992_3.mjs
+                - name: Preserve AIPLuS product contract
+                  run: node tools/verify-aiplus-v002-contract.mjs
+          EOF
+      - name: Run AEK package verification before committing
+        run: |
+          node --check functions/_lib/ai/knowledge-language.js
+          node --check functions/_lib/ai/education-knowledge-center.js
+          node --check functions/_lib/ai/education-knowledge-runtime.js
+          node --check functions/_lib/ai/official-web-evidence.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-school-official-v3990_2.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+      - name: Mark package implementation complete but keep final QA open
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('docs/architecture/AIPLUS-AEK-STATUS.md')
+          s=p.read_text()
+          for key in [f'AEK-{i:02d}' for i in range(11)]:
+              s=s.replace(f'| {key} | TODO |',f'| {key} | DONE |').replace(f'| {key} | IN_PROGRESS |',f'| {key} | DONE |')
+          s=s.replace('| AEK-QA | TODO |','| AEK-QA | IN_PROGRESS |')
+          marker='## Current session progress\n'
+          note='''## Current implementation checkpoint\n\n- AEK-00 through AEK-10 are implemented and passed the package-level deterministic verifier set in the consolidation builder before commit.\n- **AEK-QA remains IN_PROGRESS. This branch is still not mergeable by program policy.** Final QA requires exact-head Draft checks, exact-head Cloudflare Preview, live/multi-turn product proof, same-head Ready validation, then expected-head merge and post-merge production closure.\n- Permanent gate: `.github/workflows/verify-aiplus-aek-v001.yml`.\n\n'''
+          if '## Current implementation checkpoint' not in s:
+              s=s.replace(marker,note+marker)
+          p.write_text(s)
+          PY
+      - name: Remove temporary finalizer and commit
+        run: |
+          rm -f .github/workflows/tmp-aek-finalize.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "AEK: consolidate knowledge architecture and QA gate"
+          git push origin HEAD:agent/aiplus-authoritative-education-knowledge
