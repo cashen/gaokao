@@ -1,0 +1,50 @@
+name: tmp AIPLuS FDW builder
+
+on:
+  push:
+    branches:
+      - agent/aiplus-family-decision-workbench
+    paths:
+      - '.github/workflows/tmp-aiplus-fdw-builder.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Apply family decision workbench patch
+        run: node tools/tmp-aiplus-fdw-builder.mjs
+      - name: Syntax check changed JavaScript
+        run: |
+          set -euo pipefail
+          node --check shared/ai/ai-workspace-model.v3992_0.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check shared/ai/decision-progress.v003.js
+          node --check shared/ai/decision-book.v003.js
+          node --check functions/_lib/ai/mentor-profile.js
+          node --check functions/_lib/ai/decision-reflection.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/next-action-engine.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check aiplus/render.v3992_0.js
+          node --check aiplus/app.v3990_1.js
+      - name: Commit generated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add shared/ai functions/_lib/ai aiplus
+          if git diff --cached --quiet; then
+            echo 'No generated changes'
+            exit 1
+          fi
+          git commit -m 'feat(aiplus): build family decision workbench core'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
