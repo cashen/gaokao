@@ -1,0 +1,52 @@
+name: tmp AIPLuS FDW starter isolation
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-starter-isolation.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Return starter default ownership to workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('aiplus/app.v3990_1.js')
+          text=path.read_text()
+          old="function renderStarterScenarios(scoreValue=els.starterScore?.value||workspace?.examContext?.score){if(!els.starterScenarios)return;els.starterScenarios.replaceChildren();const score=Math.round(Number(scoreValue));if(els.starterScore&&Number.isFinite(score)&&score>=150&&score<=750)els.starterScore.value=String(score);const items=AI_PLUS_SCHOOL_MODE?AI_PLUS_SCHOOL_STARTERS:starterScenariosForScore(score);"
+          new="function renderStarterScenarios(scoreValue){if(!els.starterScenarios)return;const explicitInput=arguments.length>0,sourceValue=explicitInput?scoreValue:workspace?.examContext?.score;els.starterScenarios.replaceChildren();const score=Math.round(Number(sourceValue)),validScore=Number.isFinite(score)&&score>=150&&score<=750;if(els.starterScore){if(validScore)els.starterScore.value=String(score);else if(!explicitInput)els.starterScore.value='';}const items=AI_PLUS_SCHOOL_MODE?AI_PLUS_SCHOOL_STARTERS:starterScenariosForScore(validScore?score:null);"
+          count=text.count(old)
+          if count!=1:
+              raise SystemExit(f'expected one starter owner target, got {count}')
+          path.write_text(text.replace(old,new,1))
+          PY
+      - name: Prove source regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check aiplus/app.v3990_1.js
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+      - name: Commit verified fix and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aiplus-fdw-starter-isolation.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add aiplus/app.v3990_1.js
+          git commit -m 'fix(aiplus): isolate starter score between family profiles'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
