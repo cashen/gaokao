@@ -38,7 +38,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and th
 | AEK-00 | DONE | Skill, architecture contract, durable handoff/status owner, startup registration, long-lived Draft PR |
 | AEK-01 | IN_PROGRESS | First-class `knowledge_explain` task; definition, current-rule and eligibility question semantics; old school/score/candidate context cannot hijack a new concept object |
 | AEK-02 | DONE | Structured taxonomy for higher education, majors/disciplines, vocational education, admissions, policies, training, credentials, occupations/industry concepts |
-| AEK-03 | DONE | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
+| AEK-03 | IN_PROGRESS | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
 | AEK-04 | DONE | Concept relation graph: is-a, parent/child, different-from, often-confused-with, related-to, historical-name/source-specific relations |
 | AEK-05 | DONE | Authority registry mapping domain/jurisdiction to approved authoritative sources; no generic web-search ownership fork |
 | AEK-06 | DONE | T0-T4 freshness/temperature policy; current cycle/school/dynamic facts cannot be silently satisfied by stale canonical cache |
@@ -77,14 +77,15 @@ Use a hybrid model:
 ## Current implementation checkpoint
 
 - AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters all exist on the branch and the package-level deterministic verifier currently passes.
-- **AEK-03 remains DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source.
+- **AEK-03 is reopened by system-scale QA**: the existing 2026 undergraduate catalog still remains the 883-major canonical source, the full 2022 graduate directory remains versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories), and vocational current identity remains delegated to the Ministry of Education dynamic catalog. The reopened defect is canonical alias completeness for a real human policy label, not a new catalog owner.
 - Expanded AEK-QA found a routing defect for `位次是什么意思`; that defect was repaired in the knowledge-language owner rather than patched in the orchestrator.
 - Expanded AEK-QA then found the `电子信息是什么` ambiguity defect and reopened AEK-08. The root cause was confirmed in the canonical resolver: exact graduate-name resolution considered exact undergraduate majors but not ordinary labels that collide with a canonical undergraduate major/category surface.
 - The AEK-08 implementation performs that collision check inside the single `education-knowledge-center.js` owner by reusing the existing 2026 undergraduate catalog resolver. It does not add a second catalog, phrase-specific exception table or parallel parser. Plain common labels such as `电子信息`/`机械`/`金融`/`会计`/`建筑` fail closed when catalog-backed level identity is ambiguous, while `0854` and `电子信息类` remain explicitly resolvable.
 - Exact-head Cloudflare Preview at head `3ac5d6699e4478a13f78053d56a6b711c1d8b956` proved the AEK-08 runtime behavior: `电子信息是什么` entered `knowledge_explain`, returned `needs_clarification`, `resolutionClass=ambiguous`, `canonical=null`, and did not fabricate a graduate identity. The same Preview also proved canonical undergraduate resolution, compound-name fail-closed behavior and the remembered-school context firewall.
 - That same real Preview exposed a separate system-scale defect: first-turn `今年辽宁高校专项有什么要求` fell through to `general_advice`, so the existing live-evidence gate was never reached. This contradicts AEK-01's first-class knowledge-task outcome, so **AEK-01 is reopened** rather than leaving an optimistic DONE marker.
 - Root cause is in the singular knowledge-language boundary: it previously required a definition-form question before considering a known education-policy hint. The implementation now treats direct rule/eligibility forms as first-class knowledge questions and strips current/rule question framing before canonical subject resolution. The new deterministic matrix covers年度要求、资格、谁能报、报名截止、报名/申请和现行规定等 classes instead of hard-coding one sentence.
-- **AEK-01 and AEK-08 remain IN_PROGRESS until the current normal PR-owned Draft workflow and exact-head Preview prove the combined behavior on one candidate head.** Prior exact Preview proof is evidence, but not a substitute for the final current head.
+- Formal source QA on head `b34afad0c4dfcb644ffb3c70a59404803a1f5b9c` proved the rule/eligibility entry itself was active, then exposed a separate canonical metadata gap: `辽宁省高校专项谁能报` stripped correctly to `辽宁省高校专项`, but that ordinary label was absent from the `special:辽宁省高校专项` aliases. AEK-03 is therefore reopened. The repair adds the curated natural alias inside the existing canonical concept; it deliberately does **not** introduce a generic “drop 计划/省” heuristic or a second alias table.
+- **AEK-01, AEK-03 and AEK-08 remain IN_PROGRESS until the current normal PR-owned Draft workflow and exact-head Preview prove the combined behavior on one candidate head.** Prior exact Preview proof is evidence, but not a substitute for the final current head.
 - **This branch is not mergeable.** Any new system-scale counterexample reopens its owning package rather than weakening an assertion.
 
 ## Current session progress
@@ -96,7 +97,7 @@ Use a hybrid model:
 - Repaired the cross-level ambiguity class in the canonical knowledge resolver and expanded deterministic journeys to cover multiple ordinary labels plus explicit code/category disambiguation.
 - Hardened the exact-head Preview gate without weakening it: it now reads the canonical health deployment SHA, tolerates only bounded Functions edge-readiness lag on the same immutable Preview URL, and reports compact real-journey diagnostics.
 - Formal source-contract is green on the latest pre-rule-fix candidate lineage. Exact Preview boundaries are also proven exact-SHA; real POST diagnostics isolated the remaining current-rule routing defect instead of guessing.
-- Repaired the current-rule/eligibility semantic entry in `knowledge-language.js` and expanded first-turn policy journey coverage. The next evidence must come from the normal PR-owned workflow on the current head.
+- Repaired the current-rule/eligibility semantic entry in `knowledge-language.js`, expanded first-turn and remembered-context policy journey coverage, and preserved the >=1/3 multi-turn quality gate. Formal source QA then found the canonical alias gap for `辽宁省高校专项`; the canonical concept now owns that natural alias. The next evidence must come from the normal PR-owned workflow on the resulting head.
 
 ## Handoff instruction
 

@@ -53,7 +53,7 @@ const CONCEPTS=Object.freeze([
   c('score:位次','位次',['排名','高考位次'],'score_concept','score_rank','T2','考生高考成绩在相应省份、类别和统计口径中的位置。跨年份比较时通常比只看分数更有信息，但仍要结合计划和政策变化。',{sourceKey:'chsi_gaokao_policy',liveRequired:true}),
 
   c('special:高校专项','高校专项计划',['高校专项','教育部高校专项计划'],'policy_concept','special_admissions','T2','面向符合条件的农村地区学生实施的专项招生安排之一；具体实施地区、资格、流程和录取要求必须按当年教育部和省级官方政策核验。',{sourceKey:'liaoning_special_2026',jurisdiction:'辽宁',liveRequired:true,confusions:['辽宁省高校专项计划','地方专项计划']}),
-  c('special:辽宁省高校专项','辽宁省高校专项计划',['辽宁高校专项','辽宁省专项计划'],'policy_concept','special_admissions','T2','辽宁省重点高校面向符合辽宁当年规定条件的农村学生实施的专项招生计划；它与“教育部高校专项计划”是两个不同计划。',{sourceKey:'liaoning_special_2026',jurisdiction:'辽宁',liveRequired:true,practicalImpact:'是否能报取决于当年辽宁公布的实施区域、户籍、学籍和报名资格；不能只看分数。',confusions:['高校专项计划']}),
+  c('special:辽宁省高校专项','辽宁省高校专项计划',['辽宁省高校专项','辽宁高校专项','辽宁省专项计划'],'policy_concept','special_admissions','T2','辽宁省重点高校面向符合辽宁当年规定条件的农村学生实施的专项招生计划；它与“教育部高校专项计划”是两个不同计划。',{sourceKey:'liaoning_special_2026',jurisdiction:'辽宁',liveRequired:true,practicalImpact:'是否能报取决于当年辽宁公布的实施区域、户籍、学籍和报名资格；不能只看分数。',confusions:['高校专项计划']}),
   c('special:国家专项','国家专项计划',['国家专项'],'policy_concept','special_admissions','T2','国家层面的专项招生类型之一，是否在某省实施、资格范围和志愿安排必须以当年省级及国家官方文件为准。',{sourceKey:'chsi_gaokao_policy',liveRequired:true,confusions:['地方专项计划','高校专项计划']}),
   c('special:地方专项','地方专项计划',['地方专项'],'policy_concept','special_admissions','T2','由省级招生政策具体组织的专项招生类型，招生对象、学校范围和资格条件具有地区与年度差异。',{sourceKey:'chsi_gaokao_policy',liveRequired:true,confusions:['国家专项计划','高校专项计划']}),
   c('special:强基','强基计划',['强基'],'policy_concept','special_admissions','T2','国家基础学科拔尖创新人才选拔培养相关招生类型；招生高校、专业、报名与考核方式按当年教育部和高校官方简章执行。',{sourceKey:'chsi_gaokao_policy',liveRequired:true}),
