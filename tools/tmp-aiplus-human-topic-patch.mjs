@@ -36,11 +36,15 @@ patchFile('functions/_lib/ai/command-interpreter.js',[
 patchFile('functions/_lib/ai/agent-task-kernel.js',[
   [
     "import {collectionScopeFromText,isScoreWindow,scoreConstraintFromText} from './human-query-frame.js';",
-    "import {collectionScopeFromText,isScoreWindow,scoreConstraintFromText,schoolTopicBoundaryFromText} from './human-query-frame.js';"
+    "import {collectionScopeFromText,isScoreWindow,scoreConstraintFromText,majorTopicBoundaryFromText,schoolTopicBoundaryFromText} from './human-query-frame.js';"
   ],
   [
     "  const scoreConstraint=scoreConstraintFromText(source);\n  if(looksEducationKnowledgeQuestion",
-    "  const scoreConstraint=scoreConstraintFromText(source),schoolTopic=schoolTopicBoundaryFromText(source);\n  if(looksEducationKnowledgeQuestion"
+    "  const scoreConstraint=scoreConstraintFromText(source),schoolTopic=schoolTopicBoundaryFromText(source),majorTopic=majorTopicBoundaryFromText(source);\n  if(looksEducationKnowledgeQuestion"
+  ],
+  [
+    "  const hasRegionScope=Array.isArray(regionKeys)&&regionKeys.length>0&&!regionKeys.includes('all');\n  if(!schools.length&&explicitMajors.length&&hasRegionScope&&isScoreWindow(scoreConstraint)&&!looksFit(source)&&!looksBackground(source))return'major_region_history';",
+    "  const hasRegionScope=Array.isArray(regionKeys)&&regionKeys.length>0&&!regionKeys.includes('all');\n  if(!schools.length&&explicitMajors.length&&majorTopic.kind==='major_background'&&!looksFit(source))return'major_background';\n  if(!schools.length&&explicitMajors.length&&hasRegionScope&&isScoreWindow(scoreConstraint)&&!looksFit(source)&&majorTopic.kind!=='major_background')return'major_region_history';"
   ],
   [
     "  if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';\n  if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)",
@@ -48,4 +52,4 @@ patchFile('functions/_lib/ai/agent-task-kernel.js',[
   ]
 ]);
 
-console.log('school semantic topic patch applied to entity and task owners');
+console.log('shared school/major semantic topic slots applied to entity and task owners');
