@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { deterministicCommand } from '../functions/_lib/ai/command-interpreter.js';
 import { orchestrateAiTurn } from '../functions/_lib/ai/turn-orchestrator.js';
 import { onRequestGet as majorHistoryGet } from '../functions/api/ai/major-history.js';
+import { runMajorRegionHistory } from '../functions/_lib/ai/tool-registry.js';
 import { createAiWorkspace } from '../shared/ai/ai-workspace-contract.v3992_0.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,7 +45,58 @@ assert(command.taskLocked === true, 'major region history must be task-locked');
 assert(command.majorKeywords?.includes('测控技术与仪器'), `major alias not normalized: ${JSON.stringify(command.majorKeywords)}`);
 assert(command.regionKeys?.some(key => key === 'ln' || key === 'province:辽宁'), `liaoning region not parsed: ${JSON.stringify(command.regionKeys)}`);
 
+async function resolveMajorHistoryThroughBridge({majorKeyword,regionKeys=['all'],bottomLineMode='all'}) {
+  const bridgeContext = { request: new Request('https://example.test/api/ai/turn', { method: 'POST' }), env: { ASSETS: assets }, aiDeterministicToolResults: {} };
+  for (let round = 0; round < 4; round += 1) {
+    const result = await runMajorRegionHistory(bridgeContext, { majorKeyword, regionKeys, bottomLineMode });
+    if (result?.code !== 'client_tool_required') return { result, entries: bridgeContext.aiDeterministicToolResults, rounds: round + 1 };
+    const requests = result.toolRequests?.length ? result.toolRequests : [result.toolRequest].filter(Boolean);
+    for (const tool of requests) {
+      const request = new Request(new URL(tool.url, 'https://example.test').toString(), { headers: { accept: 'application/json' } });
+      const response = await majorHistoryGet({ request, env: { ASSETS: assets } });
+      const payload = await response.json();
+      assert(response.ok && payload.ok, `bridge page failed: ${tool.url} -> ${JSON.stringify(payload)}`);
+      bridgeContext.aiDeterministicToolResults[tool.key] = { kind: 'major_history', key: tool.key, url: tool.url, status: response.status, payload };
+    }
+  }
+  throw new Error('major history bridge did not converge inside the browser orchestration budget');
+}
+
+const globalElectricBridge = await resolveMajorHistoryThroughBridge({ majorKeyword: '电气工程及其自动化', regionKeys: ['all'] });
+assert(globalElectricBridge.result?.ok === true, 'global electric history bridge did not complete');
+assert(globalElectricBridge.result.complete === true, 'global electric history must exhaust all pages');
+assert(globalElectricBridge.result.total === 283, `global electric truth count drifted: ${globalElectricBridge.result.total}`);
+assert(globalElectricBridge.result.records.length === 283, 'global electric records were truncated after pagination');
+assert(globalElectricBridge.result.queryResults?.[0]?.recordCount === 283, 'query delivered count must equal loaded truth set');
+assert(globalElectricBridge.result.queryResults?.[0]?.availableCount === 283, 'query source total must remain visible');
+assert(Object.keys(globalElectricBridge.entries).length === 3, `283 records should use exactly three deterministic pages, got ${Object.keys(globalElectricBridge.entries).length}`);
+assert(Object.keys(globalElectricBridge.entries).some(key => key.includes('offset=100')) && Object.keys(globalElectricBridge.entries).some(key => key.includes('offset=200')), 'continuation offsets 100/200 are missing');
+
 const context = { request: new Request('https://example.test/api/ai/turn', { method: 'POST' }), env: { ASSETS: assets } };
+const globalInput = '电气工程及其自动化所有学校分数从高到低';
+const globalWorkspace = createAiWorkspace();
+const globalCommand = deterministicCommand(globalInput, globalWorkspace);
+assert(globalCommand.agentTask === 'major_region_history', `global electric query task drifted: ${globalCommand.agentTask}`);
+const globalEntries = {};
+let globalTurn = null;
+for (let round = 0; round < 4; round += 1) {
+  globalTurn = await orchestrateAiTurn(context, { input: globalInput, workspace: globalWorkspace, confirmedCommand: globalCommand, deterministicToolResults: globalEntries });
+  if (!globalTurn.pendingDeterministicTool) break;
+  const requests = globalTurn.toolRequests?.length ? globalTurn.toolRequests : [globalTurn.toolRequest].filter(Boolean);
+  for (const tool of requests) {
+    const request = new Request(new URL(tool.url, 'https://example.test').toString(), { headers: { accept: 'application/json' } });
+    const response = await majorHistoryGet({ request, env: { ASSETS: assets } });
+    const fact = await response.json();
+    assert(response.ok && fact.ok, `global electric fact failed: ${tool.url} -> ${JSON.stringify(fact)}`);
+    globalEntries[tool.key] = { kind: 'major_history', key: tool.key, url: tool.url, status: response.status, payload: fact };
+  }
+}
+assert(globalTurn?.ok === true && globalTurn.pendingDeterministicTool === false, 'global electric orchestrated turn did not converge');
+assert(globalTurn.result?.majorHistory?.total === 283 && globalTurn.result.majorHistory.complete === true, 'orchestrated global electric result lost pagination completeness');
+const globalHistoryBlock = (globalTurn.blocks || []).find(block => block.type === 'history_records');
+assert(globalHistoryBlock?.records?.length === 283, `global electric presentation silently truncated records: ${globalHistoryBlock?.records?.length}`);
+assert(/分页已经完整耗尽/.test(globalHistoryBlock?.text || ''), `presentation did not state pagination completeness: ${globalHistoryBlock?.text || ''}`);
+
 const multiFirst = await orchestrateAiTurn(context, { input: multiInput, workspace: multiWorkspace, confirmedCommand: multiCommand });
 assert(multiFirst.pendingDeterministicTool === true, 'multi-major history must request deterministic facts');
 assert(multiFirst.toolRequests?.length === 3, `multi-major history expected three requests, got ${multiFirst.toolRequests?.length}`);
