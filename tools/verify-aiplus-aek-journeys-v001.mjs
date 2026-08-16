@@ -27,6 +27,12 @@ assert.ok(plainKnowledgePrompts.length>=60,'single-turn coverage should be broad
 let singleTurnCount=0;
 for(const prompt of plainKnowledgePrompts){const cmd=await command(prompt);assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: must enter knowledge owner`);assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: must not mutate candidate view`);singleTurnCount++;}
 
+const directRulePrompts=[
+  '今年辽宁高校专项有什么要求','2026辽宁省高校专项需要什么条件','辽宁省高校专项谁能报','高校专项报名截止什么时候',
+  '强基计划今年有什么要求','国家专项计划现在怎么规定','地方专项怎么报名','综合评价招生需要什么条件'
+];
+for(const prompt of directRulePrompts){const cmd=await command(prompt);assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: direct policy/rule question must enter knowledge owner`);assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: direct policy/rule question must not mutate candidate view`);singleTurnCount++;}
+
 const rememberedSchoolWorkspace=createAiWorkspace({
   examContext:{score:580},
   activeView:{score:580,regionKeys:['ln'],majorKeywords:['机械'],schoolNames:['沈阳工业大学'],bottomLineMode:'all'},
@@ -77,6 +83,10 @@ const professionalDegreeByCode=resolveEducationKnowledgeQuestion('0854是什么'
 assert.equal(professionalDegreeByCode.ok,true,'explicit graduate catalog code is sufficient identity context');assert.equal(professionalDegreeByCode.entities[0].type,'graduate_professional_degree_category');assert.equal(professionalDegreeByCode.entities[0].officialCode,'0854');
 const undergraduateCategory=resolveEducationKnowledgeQuestion('电子信息类是什么');
 assert.equal(undergraduateCategory.ok,true,'explicit undergraduate category label must remain resolvable');assert.equal(undergraduateCategory.entities[0].type,'undergraduate_major_category');
+const currentRule=resolveEducationKnowledgeQuestion('今年辽宁高校专项有什么要求');
+assert.equal(currentRule.ok,true,'direct current-cycle policy question must preserve its canonical subject');assert.equal(currentRule.kind,'current_rule');assert.equal(currentRule.entities[0].id,'special:辽宁省高校专项');assert.equal(currentRule.requiresLive,true);
+const directEligibility=resolveEducationKnowledgeQuestion('辽宁省高校专项谁能报');
+assert.equal(directEligibility.ok,true,'direct eligibility question must preserve its canonical subject');assert.equal(directEligibility.kind,'eligibility');assert.equal(directEligibility.entities[0].id,'special:辽宁省高校专项');assert.equal(directEligibility.requiresLive,true);
 const ambiguousRuntime=await runEducationKnowledge({env:{}},{question:'电子信息是什么'});
 assert.equal(ambiguousRuntime.answerStatus,'needs_clarification');assert.equal(ambiguousRuntime.canonical,null);assert.doesNotMatch(ambiguousRuntime.answer,/电子信息专业主要|该专业主要学习/);
 const clinical=resolveEducationKnowledgeQuestion('临床医学是什么');
@@ -96,4 +106,4 @@ assert.equal(coverage.vocationalCurrentIdentityLiveRequired,true);
 assert.equal(coverage.vocationalLatestKnownEnrollmentStartYear,2027);
 assert.equal(resolveCanonicalEducationEntity('临床医学')?.ambiguous,true);
 
-console.log(JSON.stringify({ok:true,version:'aiplus-aek-human-journeys-v0.01',singleTurnCount,multiTurnCount,total:singleTurnCount+multiTurnCount,multiTurnRatio:multiTurnCount/(singleTurnCount+multiTurnCount),coverage:{undergraduate:coverage.undergraduateMajorCount,graduate:coverage.graduateEntryCount,vocationalMode:coverage.vocationalCatalogMode}},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-aek-human-journeys-v0.02',singleTurnCount,multiTurnCount,total:singleTurnCount+multiTurnCount,multiTurnRatio:multiTurnCount/(singleTurnCount+multiTurnCount),coverage:{undergraduate:coverage.undergraduateMajorCount,graduate:coverage.graduateEntryCount,vocationalMode:coverage.vocationalCatalogMode}},null,2));
