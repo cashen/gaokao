@@ -1,0 +1,34 @@
+name: tmp AIPLuS FDW fix2
+
+on:
+  push:
+    branches:
+      - agent/aiplus-family-decision-workbench
+    paths:
+      - '.github/workflows/tmp-aiplus-fdw-fix2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - run: node tools/tmp-aiplus-fdw-fix1.mjs
+      - run: |
+          node --check functions/_lib/ai/parent-semantic-frame.js
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+      - name: Commit verified fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/ai/parent-semantic-frame.js aiplus/index.html
+          git commit -m 'fix(aiplus): preserve explicit programming language and official-source copy'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
