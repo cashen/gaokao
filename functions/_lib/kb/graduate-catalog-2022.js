@@ -33,7 +33,7 @@ const BY_NAME=new Map();
 for(const item of GRADUATE_CATALOG_2022){
   const list=BY_NAME.get(item.name)||[];
   list.push(item);
-  BY_NAME.set(item.name,Object.freeze(list));
+  BY_NAME.set(item.name,list);
 }
 
 export function resolveGraduateCatalogEntity(value='',{kind=''}={}){

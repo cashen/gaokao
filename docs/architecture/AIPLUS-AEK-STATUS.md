@@ -38,7 +38,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and th
 | AEK-00 | DONE | Skill, architecture contract, durable handoff/status owner, startup registration, long-lived Draft PR |
 | AEK-01 | DONE | First-class `knowledge_explain` task; concept-question semantics; old school/score/candidate context cannot hijack a new concept object |
 | AEK-02 | DONE | Structured taxonomy for higher education, majors/disciplines, vocational education, admissions, policies, training, credentials, occupations/industry concepts |
-| AEK-03 | IN_PROGRESS | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
+| AEK-03 | DONE | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
 | AEK-04 | DONE | Concept relation graph: is-a, parent/child, different-from, often-confused-with, related-to, historical-name/source-specific relations |
 | AEK-05 | DONE | Authority registry mapping domain/jurisdiction to approved authoritative sources; no generic web-search ownership fork |
 | AEK-06 | DONE | T0-T4 freshness/temperature policy; current cycle/school/dynamic facts cannot be silently satisfied by stale canonical cache |
@@ -75,8 +75,8 @@ Use a hybrid model:
 ## Current implementation checkpoint
 
 - AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters passed the package-level deterministic verifier set before this checkpoint commit.
-- **AEK-03 remains IN_PROGRESS**: the existing 2026 undergraduate catalog is complete and reused (883 majors), but graduate/vocational canonical coverage still requires final proof before the program can close.
-- **AEK-QA remains IN_PROGRESS. This branch is not mergeable by program policy.**
+- **AEK-03 is DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source. Cross-system same-name entities fail closed and require disambiguation.
+- **AEK-QA remains IN_PROGRESS. This branch is not mergeable by program policy.** The next gate is the expanded 80+ human knowledge journey suite, full formal Draft checks, exact-head Preview/live proof, then same-head Ready checks.
 
 ## Current session progress
 
