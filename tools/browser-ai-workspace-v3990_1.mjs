@@ -220,9 +220,20 @@ async function responsiveHistoryDrawerJourney(page,name){
 async function scoreBandParentJourneys(page,name){if(name!=='pc')return;const basePrompts=new Map([[350,'350分，全国先看还能研究哪些学校'],[440,'440分，辽宁省内先看能上的学校'],[500,'500分，辽宁省内先看能上的学校'],[580,'580分，省内机械看看'],[620,'620分，全国先看能上的学校'],[630,'630分，全国电气看看'],[650,'650分，全国先看能上的学校']]);for(const [score,prompt] of basePrompts){await reset(page);const first=await submitTurn(page,prompt,{candidates:true});assert(Number(first.resolvedView?.score)===score,`${score}: score drift`);assert(first.result?.candidates?.ok===true,`${score}: candidate failed`);if(score===440){let q=await submitTurn(page,'民办也可以，看看能增加哪些选择',{candidates:true});assert(q.resolvedView?.bottomLineMode==='all','440 private broaden');q=await submitTurn(page,'中外合作也可以，预算可以上浮',{candidates:true});assert(q.resolvedView?.bottomLineMode==='public_include_sino','440 sino');q=await submitTurn(page,'新疆、西藏也可以，优先公办',{candidates:true});assert(q.resolvedView?.regionKeys?.includes('province:新疆')&&q.resolvedView?.regionKeys?.includes('province:西藏'),'440 far-region');}if(score===580){const q=await submitTurn(page,'愿意加预算，看看有没有211中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='211','580 platform target');assert(q.result.candidates?.platformUpgrade?.target==='211','580 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'211 preview must not claim complete');}if(score===620){const advice=await submitTurn(page,'学校平台和专业质量怎么平衡');assert(Number(advice.resolvedView?.score)===620,'620 advisory lost score context');assert(advice.commitView===false,'620 advisory must not mutate candidate view');const q=await submitTurn(page,'愿意加预算，看看有没有985中外或高收费项目值得研究',{candidates:true});assert(q.command.platformTarget==='985','620 platform target');assert(q.result.candidates?.platformUpgrade?.target==='985','620 platform preview');assert(q.result.candidates.platformUpgrade.complete===false,'985 preview must not claim complete');}if(score===650){const advice=await submitTurn(page,'不只看学校层次，优先比较专业质量和培养路径');assert(Number(advice.resolvedView?.score)===650,'650 advisory lost score context');assert(advice.commitView===false,'650 advisory must not mutate candidate view');}}}
 async function selectionAndModel(page,name){
   await page.evaluate(()=>localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951',JSON.stringify({items:[{id:'browser-1',school:'测试大学',major:'机械工程',rank2026:20000,bandKey:'near',displayLocation:'沈阳',tuition:'5200',userNote:'这段私有备注不能发给模型'}]})));
-  await page.locator('.decision-support-card').evaluate(el=>el.open=true);await page.locator('#importSelection').click();await page.locator('#importStatus').filter({hasText:'已导入1项'}).waitFor({state:'visible',timeout:10000});
+  if(name!=='pc'){
+    await page.locator('#historyToggle').click();
+    await page.waitForFunction(()=>document.body.classList.contains('history-open'),null,{timeout:5000});
+  }
+  await page.locator('.decision-support-card').evaluate(el=>el.open=true);
+  await page.locator('#historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  await page.locator('#importSelection').click();
+  await page.locator('#importStatus').filter({hasText:'已导入1项'}).waitFor({state:'visible',timeout:10000});
   assert(await page.locator('#healthBar,#modelConfig,#modelProbeResult,#probeModel').count()===0,`${name}: engineering/model controls leaked into parent UI`);
   const progress=(await page.locator('#decisionProgressList').innerText()).replace(/\s+/g,' ');assert(progress.includes('志愿方案'),`${name}: imported plan missing from decision progress`);
+  if(name!=='pc'){
+    await page.locator('#historyClose').click();
+    await page.waitForFunction(()=>!document.body.classList.contains('history-open'),null,{timeout:5000});
+  }
 }
 
 const browser=await chromium.launch({headless:true});
