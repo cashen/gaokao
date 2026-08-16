@@ -1,0 +1,79 @@
+name: tmp AIPLuS FDW next action contract
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-next-action-contract.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Upgrade permanent verifier contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path=Path('tools/verify-ai-workspace-v3990_1.mjs')
+          text=path.read_text()
+          old="assert.ok(html.includes('把学校、专业和分数问题问清楚'));assert.ok(html.includes('先给你能用的结论，再展开依据。'));"
+          new="assert.ok(html.includes('把孩子的选择一步一步定下来'));assert.ok(html.includes('只记住你明确表达过的取舍'));assert.ok(html.includes('id=\"decisionProgressList\"'));assert.ok(!html.includes('id=\"healthBar\"'));assert.ok(!html.includes('id=\"probeModel\"'));"
+          if text.count(old)!=1:
+              raise SystemExit('legacy hero verifier target not unique')
+          path.write_text(text.replace(old,new,1))
+
+          path=Path('tools/verify-aiplus-family-decision-workbench-v003.mjs')
+          text=path.read_text()
+          marker="eq(actions.filter(item=>item.primary===true).length,1,'exactly one strong primary next action is required');"
+          if text.count(marker)!=1:
+              raise SystemExit('FDW next-action marker not unique')
+          extra="""
+
+// Global decision progress must not hijack an explicitly scoped atomic research node.
+const localSchoolActions=nextActionsForTurn({task:'school_history',school:'沈阳工业大学',score:580,result:{history:{ok:true,records:[]}},workspace:createAiWorkspace({examContext:{score:580}})});
+eq(localSchoolActions.map(item=>item.label),['看哪些专业更有积累','回到学校整体介绍','看校园环境与同学体验'],'school-history followups remain owned by the local research task');
+no(localSchoolActions.some(item=>String(item.id||'').startsWith('progress-')),'global progress must not displace local school research');
+
+// A partial non-composite query must repair the current evidence gap before advancing the journey.
+const partialActions=nextActionsForTurn({task:'candidate_refinement',score:578,result:{partial:true,candidates:{ok:true,counts:{total:8}}},workspace:createAiWorkspace({examContext:{score:578}})});
+eq(partialActions[0]?.id,'retry-failed','partial result must make retry the primary next action');
+eq(partialActions[0]?.primary,true,'partial retry must be the one strong CTA');
+no(partialActions.some(item=>String(item.id||'').startsWith('progress-')),'partial evidence cannot be skipped by a global progress CTA');
+
+// Current matching rank evidence can advance the pure progress projection before the browser commits it; stale rank evidence cannot.
+const matchingRankProgress=deriveDecisionProgress(createAiWorkspace({examContext:{score:600},lastResult:{rank:{ok:true,score:600,rankEnd:14235}}}));
+eq(matchingRankProgress.stages[0].state,'ready','matching current rank evidence should satisfy score-position projection');
+const staleRankProgress=deriveDecisionProgress(createAiWorkspace({examContext:{score:600},lastResult:{rank:{ok:true,score:599,rankEnd:15000}}}));
+eq(staleRankProgress.stages[0].state,'exploring','rank evidence for another score must never be reused');
+"""
+          path.write_text(text.replace(marker,marker+extra,1))
+          PY
+      - name: Prove upgraded contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/verify-ai-workspace-v3990_1.mjs
+          node --check tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+      - name: Commit permanent verifier upgrades and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aiplus-fdw-next-action-contract.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/verify-ai-workspace-v3990_1.mjs tools/verify-aiplus-family-decision-workbench-v003.mjs
+          git commit -m 'test(aiplus): lock family decision next-action ownership'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
