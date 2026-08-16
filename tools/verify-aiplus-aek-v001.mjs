@@ -1,3 +1,4 @@
+import './verify-aiplus-human-intent-matrix-v001.mjs';
 import assert from 'node:assert/strict';
 import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
 import {deterministicCommand,resolveAiSchoolMentionsDetailed} from '../functions/_lib/ai/command-interpreter.js';
