@@ -11,6 +11,7 @@ on:
       - 'shared/ai/decision-progress.v003.js'
       - 'shared/ai/decision-book.v003.js'
       - 'functions/_lib/ai/mentor-profile.js'
+      - 'functions/_lib/ai/parent-semantic-frame.js'
       - 'functions/_lib/ai/decision-reflection.js'
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
@@ -27,6 +28,7 @@ on:
       - 'shared/ai/decision-progress.v003.js'
       - 'shared/ai/decision-book.v003.js'
       - 'functions/_lib/ai/mentor-profile.js'
+      - 'functions/_lib/ai/parent-semantic-frame.js'
       - 'functions/_lib/ai/decision-reflection.js'
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
@@ -64,6 +66,7 @@ jobs:
               exit 1
             fi
           fi
+          test -z "$(find . -type f \( -name 'tmp-aiplus-fdw-*' -o -name 'tmp_aiplus_fdw_*' \) -print -quit)"
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q "AI_DECISION_PROGRESS_VERSION='ai-decision-progress-v0.03'" shared/ai/decision-progress.v003.js
@@ -85,6 +88,7 @@ jobs:
           node --check shared/ai/decision-progress.v003.js
           node --check shared/ai/decision-book.v003.js
           node --check functions/_lib/ai/mentor-profile.js
+          node --check functions/_lib/ai/parent-semantic-frame.js
           node --check functions/_lib/ai/decision-reflection.js
           node --check functions/_lib/ai/next-action-engine.js
           node --check functions/_lib/ai/advisor-presentation.js
