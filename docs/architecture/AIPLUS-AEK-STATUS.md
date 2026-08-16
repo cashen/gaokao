@@ -42,7 +42,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`.
 | Work package | Status | Required outcome |
 |---|---|---|
 | AEK-00 | DONE | Skill, architecture contract, durable handoff/status owner, startup registration |
-| AEK-01 | **IN_PROGRESS** | First-class `knowledge_explain` task and robust human-language entry; old school/major/score/candidate context cannot hijack a new concept object |
+| AEK-01 | **DONE** | First-class `knowledge_explain` task and robust human-language entry; old school/major/score/candidate context cannot hijack a new concept object |
 | AEK-02 | DONE | Structured education/admissions taxonomy |
 | AEK-03 | DONE | Canonical/versioned entity index with aliases, codes/types and provenance |
 | AEK-04 | DONE | Concept relation graph |
@@ -52,7 +52,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`.
 | AEK-08 | DONE | Exact/alias/near/source-specific/unknown resolution; ambiguity fails closed |
 | AEK-09 | DONE | Answer-First knowledge presentation |
 | AEK-10 | DONE | Coverage/unknown governance and maintainability handoff |
-| AEK-QA | **IN_PROGRESS** | Matrix-driven human semantic/source/freshness/context/execution/exact-Preview/full-regression proof on the current remediation candidate |
+| AEK-QA | **DONE** | Matrix-driven human semantic/source/freshness/context/execution/exact-Preview/full-regression proof completed; later counterexamples must reopen this row |
 
 ### Why AEK-01 / AEK-QA were reopened after PR #164
 
@@ -62,7 +62,7 @@ PR #164 passed its pre-merge gates and was released, but production use then pro
 2. `介绍下高校专项计划` could be hijacked by remembered school context and answer the previous school.
 3. `什么是特控线` could be hijacked by remembered major context and answer the previous major.
 
-These are not missing AEK data. They demonstrated that **human language -> semantic slots -> task routing** was too fragmented and relied on multiple overlapping regex owners. Therefore AEK-01 and AEK-QA were reopened; PR #165 must close the class, not the three phrases.
+These were not missing AEK data. They demonstrated that **human language -> semantic slots -> task routing** was too fragmented and relied on multiple overlapping regex owners. PR #165 reopened AEK-01 / AEK-QA and fixed the class through shared semantic slots plus permanent combinatorial matrices rather than phrase-specific patches.
 
 ## Post-merge remediation architecture (PR #165)
 
@@ -108,9 +108,9 @@ Permanent matrix owners:
 
 They are explicitly orchestrated by the existing formal workflow `.github/workflows/verify-aiplus-parent-decision-v003.yml`; they are not imported into the AEK package verifier, avoiding duplicate test ownership.
 
-### Latest pre-formal-gate matrix evidence
+### Matrix evidence
 
-A temporary self-deleting construction runner was used only to apply exact changes and run the same permanent verifiers before committing canonical owners. It is **not** a release proof and does not replace formal PR checks, but it established the following regression baseline:
+The permanent verifiers established and the formal Draft gate re-ran the following regression baseline:
 
 - routing combinatorial grid: **38,081 assertions**, including **5,184 score-window routing combinations**;
 - school-topic grid: **4,024 assertions**;
@@ -118,12 +118,12 @@ A temporary self-deleting construction runner was used only to apply exact chang
 - AEK human-language grid: **19,575 route assertions**;
 - AEK journeys: **129** (81 single-turn + 48 multi-turn; 883 canonical undergraduate majors + existing aliases covered);
 - human-dialog regression: **48 scenarios**;
-- legacy major-region full-pagination regression passed, including the 283-record global electrical truth set and full pagination exhaustion;
-- architecture handoff regression passed.
+- legacy major-region full-pagination regression, including the 283-record global electrical truth set and full pagination exhaustion;
+- architecture handoff and existing AIPLuS workspace/UI/runtime/browser regressions.
 
-The temporary runner also found defects that the user had not reported, including all-major school history phrasing, compact school-alias/topic collisions, school-background routing, major-background vs major-history priority, and a `null -> 0` score-window execution bug. Each was fixed at the owning semantic layer; no assertion was weakened.
+The matrix development sequence also found defects that the user had not reported, including all-major school history phrasing, compact school-alias/topic collisions, school-background routing, major-background vs major-history priority, and a `null -> 0` score-window execution bug. Each was fixed at the owning semantic layer; no assertion was weakened.
 
-All temporary patch/workflow/diagnostic files are forbidden from the final PR diff and the formal parent-decision source-contract asserts their absence.
+All temporary patch/workflow/diagnostic files are absent from the final PR diff. The formal parent-decision source-contract also asserts the known temporary construction artifacts are absent.
 
 ## Mandatory acceptance classes
 
@@ -142,21 +142,17 @@ These are **classes**, not a one-off phrase checklist.
 11. Current-cycle policy facts require current authoritative evidence or explicit fail-closed behavior.
 12. Exact-head Preview must prove deployed behavior, not only source-level interpretation.
 
-## Formal PR #165 proof gates
+## Formal PR #165 proof
 
-The current formal parent-decision workflow now permanently runs:
+On clean Draft candidate `3f46711bb34c2fc28bde9ddfb55a0bd28b5235f3`:
 
-- AEK package verifier;
-- AEK journeys;
-- AEK human-language matrix;
-- routing combinatorial grid;
-- school-topic grid;
-- major-topic grid;
-- product human-intent matrix;
-- major-region full-pagination regression;
-- parent semantics, human-dialog, v0.02 contract, workspace, school-official, UI, architecture and runtime audits.
+- all **12/12 PR workflows completed successfully**;
+- parent-decision source-contract passed the permanent matrices and preserved AIPLuS regressions;
+- exact-head immutable Cloudflare Preview passed human semantic/API journeys;
+- production API health, major-region, resource graph, canonical/LN/runtime, native chooser, architecture handoff and Worker Preview all passed;
+- AI workspace/browser passed source, exact Preview, PC/Pad/Android human-semantic journeys and four-viewport mocked-parent journeys.
 
-Exact-head immutable Preview additionally verifies real `/api/ai/turn` and `/api/ai/major-history` behavior for:
+Exact-head Preview explicitly proved real `/api/ai/turn` and `/api/ai/major-history` behavior for:
 
 - canonical major explanation;
 - cross-level ambiguity fail-closed;
@@ -173,20 +169,17 @@ Exact-head immutable Preview additionally verifies real `/api/ai/turn` and `/api
 
 PR #164 release closure is complete and its production counterexamples are the reason for PR #165.
 
-A one-shot CI stale-run canceller was used after the matrix development sequence generated many obsolete PR runs. It was scoped only to PR #165 branch pull-request runs, cancelled the obsolete queue, and was removed immediately. It is not part of the product or final diff. The clean candidate after this checkpoint must now prove itself through normal repository workflows; no stale-run evidence is reused.
+A one-shot CI stale-run canceller was used after the matrix development sequence generated many obsolete PR runs. It was scoped only to PR #165 branch pull-request runs, cancelled the obsolete queue, and was removed immediately. It is not part of the product or final diff. No stale-run result is used as release evidence.
 
-PR #165 is **Draft**. AEK-01 and AEK-QA remain `IN_PROGRESS` until the current clean candidate (with no temporary files) passes:
+AEK-01 and AEK-QA are now `DONE` because the clean implementation candidate completed the formal Draft + exact-head proof above. **This ledger closure commit changes the PR SHA**, so it must itself receive a fresh complete Draft proof before the SHA can be frozen. After that:
 
-1. formal Draft source/full-regression matrices;
-2. exact-head immutable Cloudflare Preview human-semantic/API checks;
-3. all other PR workflows;
-4. ledger closure commit, followed by a fresh full Draft proof of that new final SHA;
-5. Ready transition without changing the final SHA;
-6. second-round Ready checks on the same SHA;
-7. `expected_head_sha` merge;
-8. main/push workflows/Cloudflare Production/live production journeys.
+1. freeze the final head SHA;
+2. mark Ready without changing the SHA;
+3. complete second-round Ready checks on that same SHA;
+4. `expected_head_sha` merge;
+5. verify main/push workflows/Cloudflare Production/live production journeys.
 
-Do not mark AEK-01/AEK-QA `DONE` from the temporary runner evidence alone.
+Any new system/production counterexample reopens the owning package; do not preserve `DONE` by weakening a matrix.
 
 ## Handoff instruction
 
