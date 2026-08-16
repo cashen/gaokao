@@ -32,3 +32,4 @@ jobs:
           git add functions/_lib/ai/parent-semantic-frame.js aiplus/index.html
           git commit -m 'fix(aiplus): preserve explicit programming language and official-source copy'
           git push origin HEAD:agent/aiplus-family-decision-workbench
+# rerun: corrected canonical programming-acceptance regex
