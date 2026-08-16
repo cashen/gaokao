@@ -1,5 +1,6 @@
 import {looksRegionSchoolDirectoryLanguage,looksRegionSchoolDirectoryFollowup} from './region-school-language.js';
 import {looksEducationKnowledgeQuestion} from './knowledge-language.js';
+import {collectionScopeFromText,isScoreWindow,scoreConstraintFromText,majorTopicBoundaryFromText,schoolTopicBoundaryFromText} from './human-query-frame.js';
 
 export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6';
 
@@ -49,8 +50,8 @@ export function explicitScoreUsage(text='',workspace={}){
 }
 
 function looksHistory(source){return /(多少分|几分|什么分|分都多少|所有(?:的)?分数|全部(?:的)?分数|最低分|最低录取分|最低投档分|录取分|投档分|位次|排名|去年|往年|历年|历史|202[3456]|分数线|(?:所有|全部|各校|各学校).{0,18}(?:分数|多少分|录取|投档|位次)|(?:从高到低|从高到底|降序|最高到最低))/.test(source);}
-function looksAllSchoolMajorsHistory(source){return /((?:所有|全部|全校|该校|这所学校|各个|各|每个|每一).{0,10}(?:专业|招生专业).{0,14}(?:最低|投档|录取|多少分|分数|位次)|(?:所有|全部|全校|各个|各|每个|每一).{0,10}(?:专业|招生专业).*(?:多少分|最低分|投档分|录取分|分数线|位次)|(?:所有|全部|全校|各个|各|每个|每一).{0,4}专业(?:都|分别|各自)?(?:多少)?分)/.test(source);}
-function looksAllSchoolMajorsFollowup(source){return /(?:所有|全部|全校|各个|各|每个|每一).{0,4}(?:专业|招生专业)(?:都|分别|各自)?(?:呢|怎么样|看看)?[？?]?$/.test(source);}
+function looksAllSchoolMajorsHistory(source){return collectionScopeFromText(source).kind==='all_school_majors'&&looksHistory(source);}
+function looksAllSchoolMajorsFollowup(source){return collectionScopeFromText(source).kind==='all_school_majors'&&!looksHistory(source);}
 function looksImplicitAllSchoolMajorsHistory(source){return /(?:(?:专业|各专业|分数)?(?:都|大概都|大约都|分别|各自).{0,6}(?:多少分|几分|什么分|分数(?:是多少|多少)?)|(?:分|分数).{0,3}都多少)/.test(source);}
 function looksHistoryCorrection(source){return /(?:不是|不想|先不|别|不要).{0,5}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗).{0,18}(去年|往年|历年|最低分|最低录取分|最低投档分|录取分|投档分|分数线|位次)/.test(source);}
 function looksFit(source){return /(我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按我.{0,8}(分|位次)|这个分.{0,6}(能上|能报|够吗)|够得着)/.test(source);}
@@ -72,6 +73,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
+  const scoreConstraint=scoreConstraintFromText(source),schoolTopic=schoolTopicBoundaryFromText(source),majorTopic=majorTopicBoundaryFromText(source);
   if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors})||looksKnowledgeFollowup(source,priorTask))return'knowledge_explain';
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
@@ -92,12 +94,15 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   if(looksRestore(source))return'restore_view';
   if(rankIntent&&score&&!schools.length&&!majors.length)return'fact_rank_lookup';
   const hasRegionScope=Array.isArray(regionKeys)&&regionKeys.length>0&&!regionKeys.includes('all');
+  if(!schools.length&&explicitMajors.length&&majorTopic.kind==='major_background'&&!looksFit(source))return'major_background';
+  if(!schools.length&&explicitMajors.length&&hasRegionScope&&isScoreWindow(scoreConstraint)&&!looksFit(source)&&majorTopic.kind!=='major_background')return'major_region_history';
   if(!score&&!schools.length&&!explicitMajors.length&&hasRegionScope&&(looksRegionSchoolDirectoryLanguage(source)||(priorTask==='region_school_directory'&&looksRegionSchoolDirectoryFollowup(source))))return'region_school_directory';
   if(!score&&!schools.length&&explicitMajors.length&&hasRegionScope&&!looksFit(source)&&!looksBackground(source)&&(looksHistory(source)||looksMajorRegionSchoolList(source)||priorTask==='region_school_directory'))return'major_region_history';
   if(majorHistoryFollowup)return'major_region_history';
   if(bottomLineMode&&school&&['school_major_history','school_history'].includes(priorTask))return priorTask;
   if(school&&((explicitMajors.length===0&&looksImplicitAllSchoolMajorsHistory(source))||looksAllSchoolMajorsHistory(source)||(looksAllSchoolMajorsFollowup(source)&&['school_major_history','school_history'].includes(priorTask))))return'school_history';
   if(school&&looksHistoryCorrection(source))return explicitMajors.length?'school_major_history':'school_history';
+  if(schools.length&&schoolTopic.kind==='school_background'&&!looksFit(source))return'school_background';
   if((looksBackground(source)||/有背景/.test(source))&&looksFit(source)&&/(省内|辽宁|方向|专业|这些|这批)/.test(source))return'background_fit_discovery';
   if(looksFit(source)&&(school||schools.length))return'fit_assessment';
   if(looksCompare(source)||compareIntent){

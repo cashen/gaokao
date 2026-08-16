@@ -13,6 +13,7 @@ const shardCache = new Map();
 function clean(value, max = 220) { return String(value == null ? '' : value).trim().slice(0, max); }
 function norm(value) { return clean(value, 220).normalize('NFKC').toLowerCase().replace(/[\s·•,，。；;：:'"“”‘’!！?？_—\-（）()【】\[\]]+/g, ''); }
 function int(value, fallback = 0) { const n = Math.floor(Number(value)); return Number.isFinite(n) ? n : fallback; }
+function scoreBound(value) { if (value === null || value === undefined || String(value).trim() === '') return null; const n = Math.round(Number(value)); return Number.isFinite(n) && n >= 150 && n <= 750 ? n : null; }
 function indexes(schema = []) { return Object.fromEntries(schema.map((key, index) => [key, index])); }
 function fresh(entry, ttl) { return entry && Date.now() - entry.time < ttl; }
 function assetRequest(request, pathname) { const url = new URL(pathname, new URL(request.url).origin); return new Request(url.toString(), { method: 'GET', headers: { accept: 'application/json' } }); }
@@ -89,10 +90,13 @@ function json(payload, status = 200) { return new Response(JSON.stringify(payloa
 export async function onRequestGet(context) {
   try {
     const url = new URL(context.request.url), major = clean(url.searchParams.get('major'), 180), region = clean(url.searchParams.get('region'), 220) || 'all', bottomLineMode = clean(url.searchParams.get('bottomLineMode'), 40) || 'all';
+    const rawMinScore = scoreBound(url.searchParams.get('minScore')), rawMaxScore = scoreBound(url.searchParams.get('maxScore'));
+    const minScore = rawMinScore !== null && rawMaxScore !== null ? Math.min(rawMinScore, rawMaxScore) : rawMinScore, maxScore = rawMinScore !== null && rawMaxScore !== null ? Math.max(rawMinScore, rawMaxScore) : rawMaxScore;
+    const scoreRange = { kind: minScore !== null && maxScore !== null ? 'range' : minScore !== null ? 'min' : maxScore !== null ? 'max' : 'none', min: minScore, max: maxScore };
     const offset = Math.max(0, int(url.searchParams.get('offset'), 0)), limit = Math.max(1, Math.min(120, int(url.searchParams.get('limit'), 100)));
     if (!major) return json({ ok: false, code: 'major_required', message: '需要先明确一个专业方向。', apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 400);
     const manifest = await loadManifest(context), majorKeys = resolveMajorKeys(manifest, major);
-    if (!majorKeys.length) return json({ ok: true, major, region, bottomLineMode, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
+    if (!majorKeys.length) return json({ ok: true, major, region, bottomLineMode, scoreRange, matchedMajors: [], total: 0, records: [], summary: { total: 0, schoolCount: 0, minScore: null, maxScore: null }, complete: true, dataYear: 2026, apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION, boundary: '这是2026辽宁物理类实际投档数据的专业历史查询；未命中不等于该专业全国不存在。' });
     const records = [], loaded = new Map();
     for (const key of majorKeys) {
       const descriptor = manifest.majors[key];
@@ -102,17 +106,17 @@ export async function onRequestGet(context) {
       const ix = indexes(shard.rowSchema || manifest.rowSchema || []);
       for (const row of shard.majors?.[key] || []) {
         const record = rowRecord(row, ix);
-        if (regionMatch(record, region) && passBottomLineMode(record, bottomLineMode)) records.push(record);
+        if (regionMatch(record, region) && passBottomLineMode(record, bottomLineMode) && (minScore === null || Number(record.score2026) >= minScore) && (maxScore === null || Number(record.score2026) <= maxScore)) records.push(record);
       }
     }
     records.sort((a,b) => Number(b.score2026) - Number(a.score2026) || Number(a.rank2026 ?? Number.MAX_SAFE_INTEGER) - Number(b.rank2026 ?? Number.MAX_SAFE_INTEGER) || a.school.localeCompare(b.school, 'zh-Hans-CN') || a.major.localeCompare(b.major, 'zh-Hans-CN') || a.id.localeCompare(b.id, 'zh-Hans-CN'));
     const total = records.length, page = records.slice(offset, offset + limit), stats = summary(records);
     return json({
-      ok: true, major, region, bottomLineMode, matchedMajors: majorKeys, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
+      ok: true, major, region, bottomLineMode, scoreRange, matchedMajors: majorKeys, total, offset, limit, nextOffset: offset + page.length < total ? offset + page.length : null,
       records: page, summary: stats, complete: offset === 0 && page.length === total, dataYear: 2026, audienceYear: 2027,
       source: { level: 'B', sourceName: '辽宁2026物理类专业投档静态真值索引', sourceVersion: manifest.source?.version || '', sourceRecordCount: Number(manifest.source?.recordCount || 0), derivedIndex: true, sameTruthSet: manifest.integrity?.sameTruthSet === true },
       apiVersion: AI_MAJOR_HISTORY_API_VERSION, indexVersion: AI_MAJOR_HISTORY_INDEX_VERSION,
-      boundary: '这里列的是2026辽宁物理类实际投档记录；默认包含普通项目和中外/高收费项目，若明确排除则按项目性质过滤。它不是2027录取承诺，正式填报仍要核对当年招生计划。'
+      boundary: `这里列的是2026辽宁物理类实际投档记录${scoreRange.kind!=='none'?`，并按${minScore!==null?`${minScore}分以上`:''}${minScore!==null&&maxScore!==null?'且':''}${maxScore!==null?`${maxScore}分以下`:''}过滤`:''}；默认包含普通项目和中外/高收费项目，若明确排除则按项目性质过滤。它不是2027录取承诺，正式填报仍要核对当年招生计划。`
     });
   } catch (error) {
     return json({ ok: false, code: 'major_history_failed', message: clean(error?.message || error, 320), apiVersion: AI_MAJOR_HISTORY_API_VERSION }, 500);
