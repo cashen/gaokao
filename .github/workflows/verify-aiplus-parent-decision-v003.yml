@@ -14,6 +14,12 @@ on:
       - 'tools/verify-aiplus-parent-semantics-v003.mjs'
       - 'tools/verify-aiplus-aek-v001.mjs'
       - 'tools/verify-aiplus-aek-journeys-v001.mjs'
+      - 'tools/verify-aiplus-aek-human-language-v001.mjs'
+      - 'tools/verify-aiplus-human-intent-matrix-v001.mjs'
+      - 'tools/verify-aiplus-routing-grid-v001.mjs'
+      - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
+      - 'tools/verify-aiplus-major-topic-grid-v001.mjs'
+      - 'tools/verify-ai-major-region-history-v3992_3.mjs'
       - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
       - 'docs/architecture/START-HERE.md'
       - 'docs/architecture/AIPLUS-AEK-STATUS.md'
@@ -31,6 +37,12 @@ on:
       - 'tools/verify-aiplus-parent-semantics-v003.mjs'
       - 'tools/verify-aiplus-aek-v001.mjs'
       - 'tools/verify-aiplus-aek-journeys-v001.mjs'
+      - 'tools/verify-aiplus-aek-human-language-v001.mjs'
+      - 'tools/verify-aiplus-human-intent-matrix-v001.mjs'
+      - 'tools/verify-aiplus-routing-grid-v001.mjs'
+      - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
+      - 'tools/verify-aiplus-major-topic-grid-v001.mjs'
+      - 'tools/verify-ai-major-region-history-v3992_3.mjs'
       - 'tools/fixtures/aiplus-parent-query-catalog-v003.mjs'
       - 'docs/architecture/START-HERE.md'
       - 'docs/architecture/AIPLUS-AEK-STATUS.md'
@@ -46,7 +58,7 @@ permissions:
 jobs:
   source-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,6 +89,7 @@ jobs:
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' aiplus/index.html
           grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
           grep -q "AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6'" functions/_lib/ai/agent-task-kernel.js
+          grep -q "AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.03'" functions/_lib/ai/human-query-frame.js
           grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
           grep -q 'rememberedScoreAvailable' functions/_lib/ai/evidence-plan.js
           grep -q "'school_major'" functions/_lib/ai/claim-evidence.js
@@ -92,12 +105,18 @@ jobs:
           test ! -e .github/workflows/tmp-aek-canonical-complete.yml
           test ! -e tools/tmp-aek-fix-graduate-index.mjs
           test ! -e tools/tmp-aek-canonical-complete.mjs
-      - name: Syntax check v0.03 + AEK graph
+          test ! -e .github/workflows/tmp-aiplus-human-query-patch.yml
+          test ! -e tools/tmp-aiplus-human-query-patch.mjs
+          test ! -e tools/tmp-aiplus-human-topic-patch.mjs
+          test ! -e tools/tmp-aiplus-score-window-fix.mjs
+          test ! -e tools/tmp-aiplus-routing-diagnostic.mjs
+      - name: Syntax check v0.03 + AEK + human query graph
         shell: bash
         run: |
           set -euo pipefail
           node --check shared/ai/aiplus-product-contract.v003.js
           node --check functions/_lib/ai/parent-semantic-frame.js
+          node --check functions/_lib/ai/human-query-frame.js
           node --check functions/_lib/ai/evidence-plan.js
           node --check functions/_lib/ai/claim-evidence.js
           node --check functions/_lib/ai/official-web-evidence.js
@@ -114,16 +133,29 @@ jobs:
           node --check functions/_lib/ai/next-action-engine.js
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/api/ai/health.js
+          node --check functions/api/ai/major-history.js
           node --check tools/verify-aiplus-parent-semantics-v003.mjs
           node --check tools/verify-aiplus-aek-v001.mjs
           node --check tools/verify-aiplus-aek-journeys-v001.mjs
+          node --check tools/verify-aiplus-aek-human-language-v001.mjs
+          node --check tools/verify-aiplus-human-intent-matrix-v001.mjs
+          node --check tools/verify-aiplus-routing-grid-v001.mjs
+          node --check tools/verify-aiplus-school-topic-grid-v001.mjs
+          node --check tools/verify-aiplus-major-topic-grid-v001.mjs
+          node --check tools/verify-ai-major-region-history-v3992_3.mjs
           node --check tools/fixtures/aiplus-parent-query-catalog-v003.mjs
-      - name: Verify AEK and preserved AIPLuS contracts
+      - name: Verify AEK, human routing matrices and preserved AIPLuS contracts
         shell: bash
         run: |
           set -euo pipefail
           node tools/verify-aiplus-aek-v001.mjs
           node tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/verify-aiplus-aek-human-language-v001.mjs
+          node tools/verify-aiplus-routing-grid-v001.mjs
+          node tools/verify-aiplus-school-topic-grid-v001.mjs
+          node tools/verify-aiplus-major-topic-grid-v001.mjs
+          node tools/verify-aiplus-human-intent-matrix-v001.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
           node tools/verify-aiplus-parent-semantics-v003.mjs
           node tools/verify-aiplus-human-dialog-v3990_2.mjs
           node tools/verify-aiplus-v002-contract.mjs
@@ -208,7 +240,7 @@ jobs:
           if(health?.workspace?.agentKernelVersion!=='ai-human-advisor-kernel-v3992_6') throw new Error(`Unexpected agent kernel: ${health?.workspace?.agentKernelVersion}`);
           if(health?.evidence?.searchResultIsFact!==false) throw new Error('Search-result-is-fact boundary regressed');
           NODE
-      - name: Verify AEK exact-SHA knowledge journeys
+      - name: Verify exact-SHA human semantic journeys
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
         shell: bash
@@ -224,12 +256,26 @@ jobs:
               -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&aek_qa=$(date +%s%N)" \
               --data-binary @/tmp/aek-payload.json -o "$output"
             jq -e '.ok==true and .pendingConfirmation==false and .pendingDeterministicTool==false' "$output" >/dev/null
-            printf 'AEK Preview: %s -> ' "$input"
-            jq -c '{task:.command.agentTask,scoreUsage:.command.scoreUsage,schoolNames:.command.schoolNames,commitView,knowledge:{ok:.result.knowledge.ok,answerStatus:.result.knowledge.answerStatus,resolutionClass:.result.knowledge.resolutionClass,canonicalId:.result.knowledge.canonical.id,officialCode:.result.knowledge.canonical.officialCode,liveRequired:.result.knowledge.liveRequired,liveVerified:.result.knowledge.liveVerified,boundary:.result.knowledge.boundary},assistant:([.blocks[]?|select(.type=="assistant_message")][0].text // "")}' "$output"
+            printf 'Preview answer: %s -> ' "$input"
+            jq -c '{task:.command.agentTask,scoreUsage:.command.scoreUsage,schoolNames:.command.schoolNames,scoreConstraint:.command.scoreConstraint,commitView,knowledge:{ok:.result.knowledge.ok,answerStatus:.result.knowledge.answerStatus,resolutionClass:.result.knowledge.resolutionClass,canonicalId:.result.knowledge.canonical.id,officialCode:.result.knowledge.canonical.officialCode,liveRequired:.result.knowledge.liveRequired,liveVerified:.result.knowledge.liveVerified,boundary:.result.knowledge.boundary},assistant:([.blocks[]?|select(.type=="assistant_message")][0].text // "")}' "$output"
+          }
+          post_route() {
+            local input="$1"
+            local workspace="$2"
+            local output="$3"
+            jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}' > /tmp/route-payload.json
+            curl -fsSL --retry 3 --retry-delay 3 --max-time 120 \
+              -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
+              -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&route_qa=$(date +%s%N)" \
+              --data-binary @/tmp/route-payload.json -o "$output"
+            jq -e '.ok==true and .pendingConfirmation==false' "$output" >/dev/null
+            printf 'Preview route: %s -> ' "$input"
+            jq -c '{task:.command.agentTask,score:.command.score,scoreUsage:.command.scoreUsage,scoreConstraint:.command.scoreConstraint,majorKeywords:.command.majorKeywords,regionKeys:.command.regionKeys,pendingDeterministicTool,toolRequest:{kind:.toolRequest.kind,url:.toolRequest.url}}' "$output"
           }
 
           empty_workspace='{}'
-          remembered_school_workspace="$(jq -nc '{examContext:{score:580},activeView:{score:580,regionKeys:["ln"],majorKeywords:["机械"],schoolNames:["沈阳工业大学"],bottomLineMode:"all"},agentContext:{currentTask:"school_research",focus:{school:"沈阳工业大学",schools:["沈阳工业大学"],sourceText:"沈阳工业大学怎么样"}}}')"
+          remembered_school_workspace="$(jq -nc '{examContext:{score:580},activeView:{score:580,regionKeys:["ln"],majorKeywords:["机械"],schoolNames:["沈阳化工大学"],bottomLineMode:"all"},agentContext:{currentTask:"school_research",focus:{school:"沈阳化工大学",schools:["沈阳化工大学"],sourceText:"沈阳化工大学怎么样"}}}')"
+          remembered_major_workspace="$(jq -nc '{examContext:{score:580},activeView:{score:580,regionKeys:["ln"],majorKeywords:["测控技术与仪器"],schoolNames:[],bottomLineMode:"all"},agentContext:{currentTask:"major_region_history",focus:{major:"测控技术与仪器",majors:["测控技术与仪器"],sourceText:"测控技术与仪器多少分"}}}')"
 
           post_turn '材料成型及控制工程是什么' "$empty_workspace" /tmp/aek-major.json
           jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.ok==true and .result.knowledge.answerStatus=="answered" and .result.knowledge.canonical.officialCode=="080203" and .result.knowledge.liveRequired==false and ((([.blocks[]|select(.type=="assistant_message")][0].text // "")|length)>20)' /tmp/aek-major.json >/dev/null
@@ -242,6 +288,23 @@ jobs:
 
           post_turn '辽宁省高校专项计划是什么意思' "$remembered_school_workspace" /tmp/aek-firewall.json
           jq -e '.command.agentTask=="knowledge_explain" and .command.scoreUsage=="remembered" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="special:辽宁省高校专项" and .result.knowledge.answerStatus=="answered"' /tmp/aek-firewall.json >/dev/null
+
+          post_turn '介绍下高校专项计划' "$remembered_school_workspace" /tmp/aek-human-special.json
+          jq -e '.command.agentTask=="knowledge_explain" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="special:高校专项" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("沈阳化工大学")) == false)' /tmp/aek-human-special.json >/dev/null
+
+          post_turn '什么是特控线' "$remembered_major_workspace" /tmp/aek-human-cutoff.json
+          jq -e '.command.agentTask=="knowledge_explain" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="score:特控线" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("测控技术与仪器")) == false)' /tmp/aek-human-cutoff.json >/dev/null
+
+          post_turn '介绍下电气工程及自动化 专业' "$empty_workspace" /tmp/aek-human-major.json
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.canonical.officialCode=="080601" and ((([.blocks[]|select(.type=="assistant_message")][0].text // "")|length)>20)' /tmp/aek-human-major.json >/dev/null
+
+          post_route '500-600 省内所有会计专业' "$empty_workspace" /tmp/score-window-route.json
+          jq -e '.command.agentTask=="major_region_history" and .command.score==null and .command.scoreConstraint.kind=="range" and .command.scoreConstraint.min==500 and .command.scoreConstraint.max==600 and .command.scoreUsage=="suspended" and .pendingDeterministicTool==true and .toolRequest.kind=="major_history" and (.toolRequest.url|contains("minScore=500")) and (.toolRequest.url|contains("maxScore=600"))' /tmp/score-window-route.json >/dev/null
+
+          curl -fsSL --retry 3 --retry-delay 2 --max-time 60 -H 'Cache-Control: no-cache' \
+            "${PREVIEW_URL}/api/ai/major-history?major=%E4%BC%9A%E8%AE%A1&region=ln&minScore=500&maxScore=600&offset=0&limit=100&candidate=${EXPECTED_SHA}" \
+            -o /tmp/score-window-api.json
+          jq -e '.ok==true and .scoreRange.kind=="range" and .scoreRange.min==500 and .scoreRange.max==600 and ([.records[]?.score2026|select(.<500 or .>600)]|length)==0 and ((.summary.minScore==null) or (.summary.minScore>=500)) and ((.summary.maxScore==null) or (.summary.maxScore<=600))' /tmp/score-window-api.json >/dev/null
 
           post_turn '今年辽宁高校专项有什么要求' "$empty_workspace" /tmp/aek-current.json
           jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.liveRequired==true and ((.result.knowledge.liveVerified==true and ([.result.knowledge.sources[]?.sourceUrl|select(type=="string")|contains("jyt.ln.gov.cn")]|any)) or (.result.knowledge.liveVerified==false and .result.knowledge.answerStatus=="needs_fact" and (.result.knowledge.boundary|contains("fail-closed"))))' /tmp/aek-current.json >/dev/null
