@@ -1,0 +1,92 @@
+import assert from 'node:assert/strict';
+import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
+import {deterministicCommand,resolveAiSchoolMentionsDetailed} from '../functions/_lib/ai/command-interpreter.js';
+import {resolveEducationKnowledgeQuestion,resolveCanonicalEducationEntity,knowledgeCoverageSnapshot} from '../functions/_lib/ai/education-knowledge-center.js';
+import {runEducationKnowledge} from '../functions/_lib/ai/education-knowledge-runtime.js';
+
+const aliases=new Map([
+  ['沈工大','沈阳工业大学'],['沈阳工业','沈阳工业大学'],['沈航','沈阳航空航天大学'],['辽科大','辽宁科技大学'],['大连交通','大连交通大学']
+]);
+const resolver={resolve(query){const name=aliases.get(query);return name?{status:'resolved',resolvedName:name}:{status:'unresolved',candidates:[]};}};
+async function command(text,workspace=createAiWorkspace()){const resolved=await resolveAiSchoolMentionsDetailed(text,resolver);return deterministicCommand(text,workspace,resolved.schoolNames,resolved.matchedAliases);}
+function assertKnowledge(cmd,label,{explicitSchool='',scoreUsage}={}){assert.equal(cmd.agentTask,'knowledge_explain',`${label}: task`);assert.equal(cmd.executionPolicy.commitView,false,`${label}: knowledge must not commit candidate view`);if(explicitSchool)assert.deepEqual(cmd.schoolNames,[explicitSchool],`${label}: explicit school reconnect`);else assert.deepEqual(cmd.schoolNames,[],`${label}: remembered school must not leak into current knowledge object`);if(scoreUsage)assert.equal(cmd.scoreUsage,scoreUsage,`${label}: score context`);}
+
+const plainKnowledgePrompts=[
+  '高校专项是什么','辽宁省高校专项计划是什么意思','国家专项计划是干什么的','地方专项是什么意思','强基计划是什么','综合评价招生是什么意思',
+  '公费师范生是什么意思','优师计划是什么','农村订单定向医学生是什么','特控线是什么意思','本科线是什么意思','投档线是什么意思','专业最低分是什么意思','位次是什么意思',
+  '投档是什么意思','录取是什么意思','退档是什么意思','滑档是什么意思','专业调剂是什么','征集志愿是什么','平行志愿是什么意思','招生计划是什么意思',
+  '985是什么意思','211是什么意思','双一流是什么意思','国家一流本科专业是什么意思','工程教育认证是什么','学科评估是什么意思','硕士点是什么意思','博士点是什么意思',
+  '本科专业是什么意思','专业类是什么意思','一级学科是什么意思','专业学位是什么','学硕是什么意思','专硕是什么意思','职业本科是什么意思','高职专科是什么意思',
+  '大类招生是什么','专业分流是什么意思','转专业是什么意思','培养方案是什么','推免是什么意思','保研是什么意思','中外合作办学是什么','国际班是什么意思',
+  '选科要求是什么意思','物化是什么意思','物化生是什么意思','色弱报专业是什么意思','色盲限报怎么理解','单色识别是什么意思','国家助学贷款是什么','工业控制是什么意思',
+  '智能制造是什么意思','材料加工是什么意思','储能是什么','低空经济是什么意思','职业和专业有什么区别','材料成型及控制工程是什么','临床医学是什么','自动化和控制科学与工程有什么区别',
+  '本科专业与一级学科有什么区别','985、211和双一流有什么区别','投档和录取有什么区别','退档和滑档有什么区别','转专业和专业分流有什么区别','一流本科专业和工程教育认证有什么区别'
+];
+assert.ok(plainKnowledgePrompts.length>=60,'single-turn coverage should be broad, not a tiny phrase fixture');
+let singleTurnCount=0;
+for(const prompt of plainKnowledgePrompts){const cmd=await command(prompt);assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: must enter knowledge owner`);assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: must not mutate candidate view`);singleTurnCount++;}
+
+const rememberedSchoolWorkspace=createAiWorkspace({
+  examContext:{score:580},
+  activeView:{score:580,regionKeys:['ln'],majorKeywords:['机械'],schoolNames:['沈阳工业大学'],bottomLineMode:'all'},
+  agentContext:{currentTask:'school_research',focus:{school:'沈阳工业大学',schools:['沈阳工业大学'],sourceText:'沈阳工业大学怎么样'}}
+});
+const contextSwitchPrompts=[
+  '高校专项是什么','辽宁省高校专项是什么意思','强基计划是什么','双一流是什么意思','一级学科是什么','职业本科是什么','工程教育认证是什么','投档是什么意思','退档是什么意思','选科要求是什么','中外合作办学是什么','材料成型及控制工程是什么'
+];
+let multiTurnCount=0;
+for(const prompt of contextSwitchPrompts){assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->knowledge ${prompt}`,{scoreUsage:'remembered'});multiTurnCount++;}
+
+const knowledgeWorkspace=createAiWorkspace({
+  examContext:{score:580},
+  activeView:{score:580,regionKeys:['ln'],majorKeywords:['机械'],schoolNames:[],bottomLineMode:'all'},
+  agentContext:{currentTask:'knowledge_explain',focus:{school:'',major:'',schools:[],majors:[],sourceText:'辽宁省高校专项计划是什么意思'}}
+});
+const anaphoraPrompts=[
+  '这个谁能报','这个怎么报','这个今年还有吗','这个资格怎么判断','这个看户籍吗','这个看学籍吗','我家在岫岩，这个能报吗','那这个今年要求是什么','它现在怎么申请','刚才那个计划谁能报','这个政策截止什么时候','这个计划需要什么条件'
+];
+for(const prompt of anaphoraPrompts){assertKnowledge(await command(prompt,knowledgeWorkspace),`knowledge follow-up ${prompt}`);multiTurnCount++;}
+
+const explicitSchoolFollowups=[
+  ['沈工大有这个专项吗','沈阳工业大学'],['沈阳工业有这个专项吗','沈阳工业大学'],['沈航有这个专项吗','沈阳航空航天大学'],['辽科大有这个专项吗','辽宁科技大学'],['大连交通有这个专项吗','大连交通大学']
+];
+for(const [prompt,school] of explicitSchoolFollowups){assertKnowledge(await command(prompt,knowledgeWorkspace),`knowledge->school ${prompt}`,{explicitSchool:school});multiTurnCount++;}
+
+const scoreFollowups=['我580分符合这个条件吗','我570分符合这个条件吗','我600分符合这个资格吗','我550分符合这个计划条件吗','我620分符合这个要求吗','我590分符合这个资格吗'];
+for(const prompt of scoreFollowups){assertKnowledge(await command(prompt,knowledgeWorkspace),`knowledge->score ${prompt}`,{scoreUsage:'active'});multiTurnCount++;}
+
+const candidateWorkspace=createAiWorkspace({
+  examContext:{score:580},
+  activeView:{score:580,regionKeys:['shenyang'],majorKeywords:['机械'],schoolNames:['辽宁科技大学'],bottomLineMode:'exclude_sino'},
+  agentContext:{currentTask:'candidate_refinement',focus:{school:'辽宁科技大学',major:'机械',sourceText:'580分机械只看沈阳去掉中外'}}
+});
+for(const prompt of ['专业类是什么意思','双一流是什么意思','工业控制是什么','材料加工与工业控制是什么意思','自动化和控制科学与工程有什么区别']){const cmd=await command(prompt,candidateWorkspace);assertKnowledge(cmd,`candidate->knowledge ${prompt}`,{scoreUsage:'remembered'});assert.equal(cmd.executionPolicy.commitView,false);multiTurnCount++;}
+
+assert.ok(multiTurnCount>=40,'at least forty multi-turn journeys must guard context ownership');
+assert.ok(singleTurnCount+multiTurnCount>=100,'AEK journey suite must remain system-scale');
+assert.ok(multiTurnCount/(singleTurnCount+multiTurnCount)>=1/3,'at least one third of journeys must be multi-turn');
+
+const exactUndergrad=resolveEducationKnowledgeQuestion('材料成型及控制工程是什么');
+assert.equal(exactUndergrad.ok,true);assert.equal(exactUndergrad.entities[0].type,'undergraduate_major');assert.equal(exactUndergrad.entities[0].officialCode,'080203');
+const exactGraduate=resolveEducationKnowledgeQuestion('控制科学与工程是什么');
+assert.equal(exactGraduate.ok,true);assert.equal(exactGraduate.entities[0].type,'graduate_first_level_discipline');assert.equal(exactGraduate.entities[0].officialCode,'0811');
+const professionalDegree=resolveEducationKnowledgeQuestion('电子信息是什么');
+assert.equal(professionalDegree.ok,false,'same/common education labels must not be guessed when the query lacks enough level context');
+const clinical=resolveEducationKnowledgeQuestion('临床医学是什么');
+assert.equal(clinical.ok,false);assert.equal(clinical.resolutionClass,'ambiguous');
+const compound=await runEducationKnowledge({env:{}},{question:'材料加工与工业控制是什么意思'});
+assert.equal(compound.answerStatus,'needs_clarification');assert.doesNotMatch(compound.answer,/该专业主要学习|材料加工与工业控制专业主要/);
+const stableMajor=await runEducationKnowledge({env:{}},{question:'材料成型及控制工程是什么'});
+assert.equal(stableMajor.answerStatus,'answered');assert.equal(stableMajor.canonical?.officialCode,'080203');
+
+const coverage=knowledgeCoverageSnapshot();
+assert.equal(coverage.undergraduateMajorCount,883);
+assert.equal(coverage.graduateEntryCount,184);
+assert.equal(coverage.graduateFirstLevelCount,117);
+assert.equal(coverage.graduateProfessionalDegreeCount,67);
+assert.equal(coverage.vocationalCatalogMode,'delegated_authoritative_canonical_index');
+assert.equal(coverage.vocationalCurrentIdentityLiveRequired,true);
+assert.equal(coverage.vocationalLatestKnownEnrollmentStartYear,2027);
+assert.equal(resolveCanonicalEducationEntity('临床医学')?.ambiguous,true);
+
+console.log(JSON.stringify({ok:true,version:'aiplus-aek-human-journeys-v0.01',singleTurnCount,multiTurnCount,total:singleTurnCount+multiTurnCount,multiTurnRatio:multiTurnCount/(singleTurnCount+multiTurnCount),coverage:{undergraduate:coverage.undergraduateMajorCount,graduate:coverage.graduateEntryCount,vocationalMode:coverage.vocationalCatalogMode}},null,2));
