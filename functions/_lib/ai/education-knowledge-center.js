@@ -1,7 +1,7 @@
 import {findCatalogMajorExact,resolveCatalogEntity,getCatalogStats} from '../kb/catalog-accessor.js';
 import {knowledgeQuestionKind,stripKnowledgeQuestionFrame} from './knowledge-language.js';
 
-export const AI_EDUCATION_KNOWLEDGE_CENTER_VERSION='ai-education-knowledge-center-v0.01';
+export const AI_EDUCATION_KNOWLEDGE_CENTER_VERSION='ai-education-knowledge-center-v0.02';
 
 export const KNOWLEDGE_TEMPERATURES=Object.freeze({
   T0:'stable',T1:'versioned_canonical',T2:'cycle_bound',T3:'school_bound',T4:'dynamic'
@@ -18,10 +18,13 @@ export const EDUCATION_AUTHORITY_REGISTRY=Object.freeze({
   moe_graduate_2022:Object.freeze({key:'moe_graduate_2022',issuer:'国务院学位委员会、教育部',sourceClass:'national_education_authority',authorityLevel:'A0',title:'《研究生教育学科专业目录（2022年）》',sourceUrl:'https://www.moe.gov.cn/srcsite/A22/moe_833/202209/t20220914_660828.html',publishedAt:'2022-09-14',effectiveFrom:'2023',jurisdiction:'全国',temperature:'T1'}),
   chsi_gaokao_policy:Object.freeze({key:'chsi_gaokao_policy',issuer:'教育部学生服务与素质发展中心（阳光高考）',sourceClass:'national_admissions_platform',authorityLevel:'A1',title:'阳光高考政策与报考公开信息',sourceUrl:'https://gaokao.chsi.com.cn/gkxx/',jurisdiction:'全国',temperature:'T2'}),
   liaoning_special_2026:Object.freeze({key:'liaoning_special_2026',issuer:'辽宁省教育厅',sourceClass:'provincial_education_authority',authorityLevel:'A0',title:'2026年我省继续实施高校招生专项计划',sourceUrl:'https://jyt.ln.gov.cn/jyt/gk/gsgg/2026041315573560394/index.shtml',publishedAt:'2026-04-13',effectiveYear:2026,jurisdiction:'辽宁',temperature:'T2'}),
-  physical_exam_guidance:Object.freeze({key:'physical_exam_guidance',issuer:'教育行政等主管部门公开政策',sourceClass:'national_admissions_policy',authorityLevel:'A0',title:'普通高等学校招生体检工作指导意见',sourceUrl:'https://gaokao.chsi.com.cn/gkxx/zcdh/200702/20070228/754576.html',jurisdiction:'全国',temperature:'T1'}),
+  physical_exam_guidance:Object.freeze({key:'physical_exam_guidance',issuer:'教育部、卫生部、中国残疾人联合会',sourceClass:'national_admissions_policy',authorityLevel:'A0',title:'普通高等学校招生体检工作指导意见',sourceUrl:'https://www.moe.gov.cn/jyb_xxgk/gk_gbgg/moe_0/moe_9/moe_34/tnull_40.html',jurisdiction:'全国',temperature:'T1'}),
   sino_foreign_registry:Object.freeze({key:'sino_foreign_registry',issuer:'教育部中外合作办学监管工作信息平台',sourceClass:'national_dynamic_registry',authorityLevel:'A0',title:'中外合作办学监管工作信息平台',sourceUrl:'https://www.crs.jsj.edu.cn/',jurisdiction:'全国',temperature:'T4'}),
   occupation_2022:Object.freeze({key:'occupation_2022',issuer:'人力资源社会保障部等',sourceClass:'national_occupation_authority',authorityLevel:'A0',title:'《中华人民共和国职业分类大典（2022年版）》',sourceUrl:'https://www.mohrss.gov.cn/wap/xw/rsxw/202207/t20220714_457800.html',publishedAt:'2022-07-14',jurisdiction:'全国',temperature:'T1'}),
-  engineering_accreditation:Object.freeze({key:'engineering_accreditation',issuer:'教育部 / 中国工程教育专业认证协会',sourceClass:'professional_accreditation_authority',authorityLevel:'A0',title:'工程教育认证通过专业名单与认证信息',sourceUrl:'https://www.ceeaa.org.cn/',jurisdiction:'全国',temperature:'T2'}),
+  engineering_accreditation:Object.freeze({key:'engineering_accreditation',issuer:'教育部',sourceClass:'professional_accreditation_authority',authorityLevel:'A0',title:'教育部关于工程教育专业认证有关情况的公开信息',sourceUrl:'https://www.moe.gov.cn/s78/A08/tongzhi/202512/t20251222_1424176.html',publishedAt:'2025-12-22',jurisdiction:'全国',temperature:'T2'}),
+  double_first_class_2022:Object.freeze({key:'double_first_class_2022',issuer:'教育部、财政部、国家发展改革委',sourceClass:'national_education_authority',authorityLevel:'A0',title:'第二轮“双一流”建设高校及建设学科名单',sourceUrl:'https://www.moe.gov.cn/srcsite/A22/s7065/202202/t20220211_598710.html',publishedAt:'2022-02-11',jurisdiction:'全国',temperature:'T1'}),
+  liaoning_admissions_2026:Object.freeze({key:'liaoning_admissions_2026',issuer:'辽宁省招生考试相关主管部门（阳光高考发布）',sourceClass:'provincial_admissions_authority',authorityLevel:'A0',title:'2026年辽宁省普通高等学校招生简章',sourceUrl:'https://gaokao.chsi.com.cn/gkxx/zc/ss/202603/20260304/2293449167.html',publishedAt:'2026-03-04',effectiveYear:2026,jurisdiction:'辽宁',temperature:'T2'}),
+  moe_vocational_setting_2026:Object.freeze({key:'moe_vocational_setting_2026',issuer:'教育部',sourceClass:'national_vocational_authority',authorityLevel:'A0',title:'关于做好2026年职业教育拟招生专业设置管理工作的通知',sourceUrl:'https://hudong.moe.gov.cn/srcsite/A07/moe_737/s3876_qt/202601/t20260105_1425685.html',publishedAt:'2025-12-01',effectiveYear:2026,jurisdiction:'全国',temperature:'T2'}),
   moe_general:Object.freeze({key:'moe_general',issuer:'教育部',sourceClass:'national_education_authority',authorityLevel:'A0',title:'教育部政府公开信息',sourceUrl:'https://www.moe.gov.cn/',jurisdiction:'全国',temperature:'T2'})
 });
 
@@ -59,7 +62,7 @@ const CONCEPTS=Object.freeze([
 
   c('institution:985','985工程高校',['985','985大学'],'institution_label','institution_identity','T0','“985工程”是历史上的国家重点建设工程称谓。今天判断学校当前建设身份应优先使用现行官方名单和“双一流”等当前制度，而不是把历史标签当成全部专业实力。',{sourceKey:'moe_general',confusions:['211工程高校','双一流']}),
   c('institution:211','211工程高校',['211','211大学'],'institution_label','institution_identity','T0','“211工程”是历史上的国家重点建设工程称谓。它可以描述学校历史身份，但不能据此推出某个专业当前一定强。',{sourceKey:'moe_general',confusions:['985工程高校','双一流']}),
-  c('institution:双一流','双一流',['世界一流大学和一流学科建设','双一流建设'],'institution_label','institution_identity','T2','现行国家高等教育重点建设体系相关称谓；具体建设高校和建设学科以最新官方名单为准。',{sourceKey:'moe_general',liveRequired:true,confusions:['985工程高校','211工程高校','国家级一流本科专业建设点']}),
+  c('institution:双一流','双一流',['世界一流大学和一流学科建设','双一流建设'],'institution_label','institution_identity','T2','现行国家高等教育重点建设体系相关称谓；具体建设高校和建设学科以最新官方名单为准。',{sourceKey:'double_first_class_2022',liveRequired:true,confusions:['985工程高校','211工程高校','国家级一流本科专业建设点']}),
   c('quality:一流本科专业','国家级一流本科专业建设点',['国家一流本科专业','一流本科专业'],'quality_label','quality_label','T2','面向本科专业建设的官方建设项目/名单标签，评价对象是具体本科专业建设，不等同于学校整体层次或研究生学科排名。',{sourceKey:'moe_general',liveRequired:true,confusions:['双一流','工程教育认证']}),
   c('quality:工程认证','工程教育专业认证',['工程教育认证','工程认证'],'quality_label','quality_label','T2','针对具体工程类专业培养质量与相关标准开展的专业认证，认证对象是专业而不是整所学校；是否通过及有效状态应查官方认证名单。',{sourceKey:'engineering_accreditation',liveRequired:true,confusions:['国家级一流本科专业建设点']}),
   c('quality:学科评估','学科评估',['教育部学科评估'],'quality_label','quality_label','T2','面向学科建设的评价活动，评价对象和口径不同于本科专业建设标签；使用结果时必须保留轮次和学科口径。',{sourceKey:'moe_general',liveRequired:true,confusions:['国家级一流本科专业建设点','双一流']}),
@@ -72,8 +75,8 @@ const CONCEPTS=Object.freeze([
   c('structure:专业学位','专业学位类别',['专业学位','专硕类别'],'education_entity_type','graduate_discipline','T1','研究生教育学科专业目录中的专业学位类别，与一级学科共同构成研究生教育的重要分类，但培养定位和代码体系不同。',{sourceKey:'moe_graduate_2022',confusions:['一级学科','学术学位']}),
   c('structure:学硕','学术学位硕士',['学硕'],'education_entity_type','postgraduate_path','T1','以学术学位体系培养的硕士研究生路径，具体招生专业、考试科目和培养要求由招生单位及当年研招政策确定。',{sourceKey:'moe_graduate_2022',confusions:['专业学位硕士']}),
   c('structure:专硕','专业学位硕士',['专硕'],'education_entity_type','postgraduate_path','T1','以专业学位体系培养的硕士研究生路径；专业学位类别在研究生教育目录中有独立代码和名称。',{sourceKey:'moe_graduate_2022',confusions:['学术学位硕士']}),
-  c('structure:职业本科','职业本科',['本科层次职业教育'],'education_entity_type','vocational_education','T1','本科层次职业教育的一种办学和人才培养类型，专业设置使用职业教育专业目录体系，不能直接套用普通本科专业目录。',{sourceKey:'moe_general',confusions:['普通本科','高职专科']}),
-  c('structure:高职专科','高职专科',['高等职业专科','高职'],'education_entity_type','vocational_education','T1','高等职业教育专科层次，专业设置与普通本科使用不同的目录体系。',{sourceKey:'moe_general',confusions:['职业本科','普通本科']}),
+  c('structure:职业本科','职业本科',['本科层次职业教育'],'education_entity_type','vocational_education','T1','本科层次职业教育的一种办学和人才培养类型，专业设置使用职业教育专业目录体系，不能直接套用普通本科专业目录。',{sourceKey:'moe_vocational_setting_2026',confusions:['普通本科','高职专科']}),
+  c('structure:高职专科','高职专科',['高等职业专科','高职'],'education_entity_type','vocational_education','T1','高等职业教育专科层次，专业设置与普通本科使用不同的目录体系。',{sourceKey:'moe_vocational_setting_2026',confusions:['职业本科','普通本科']}),
 
   c('training:大类招生','大类招生',['按大类招生'],'training_concept','training_process','T3','高校按一个专业类或招生大类录取后，再按学校培养方案在后续阶段进行专业分流的培养组织方式；具体包含专业、分流时间和规则必须查目标学校。',{sourceKey:'moe_general',liveRequired:true,confusions:['专业分流','转专业']}),
   c('training:专业分流','专业分流',['大类分流'],'training_concept','training_process','T3','大类招生或相关培养模式中，学生在校内按学校规则进入具体专业/方向的过程；它不是通常意义上的“转专业”。',{sourceKey:'moe_general',liveRequired:true,confusions:['转专业','大类招生']}),
@@ -138,7 +141,12 @@ export function resolveCanonicalEducationEntity(value=''){
 
 function splitComparisonTerms(question=''){
   const stripped=stripKnowledgeQuestionFrame(question).replace(/(?:有什么|有啥|的)?(?:区别|差别)(?:是什么)?$/,'').trim();
-  return unique(stripped.split(/(?:和|与|跟|、|\/| vs | VS )/).map(value=>value.replace(/^(?:比较|对比)/,'').trim()).filter(Boolean),4);
+  const cleaned=stripped.replace(/^(?:比较|对比)/,'').trim();
+  let parts=[];
+  if(/[和跟、]/.test(cleaned)||/\s(?:vs|VS)\s/.test(cleaned))parts=cleaned.split(/(?:和|跟|、|\/|\s+(?:vs|VS)\s+)/);
+  else if(cleaned.includes('与'))parts=cleaned.split('与');
+  else parts=[cleaned];
+  return unique(parts.map(value=>value.trim()).filter(Boolean),4);
 }
 
 function nearbyEntities(subject=''){

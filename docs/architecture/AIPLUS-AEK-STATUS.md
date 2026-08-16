@@ -35,18 +35,18 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and th
 
 | Work package | Status | Required outcome |
 |---|---|---|
-| AEK-00 | IN_PROGRESS | Skill, architecture contract, durable handoff/status owner, startup registration, long-lived Draft PR |
-| AEK-01 | TODO | First-class `knowledge_explain` task; concept-question semantics; old school/score/candidate context cannot hijack a new concept object |
-| AEK-02 | TODO | Structured taxonomy for higher education, majors/disciplines, vocational education, admissions, policies, training, credentials, occupations/industry concepts |
-| AEK-03 | TODO | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
-| AEK-04 | TODO | Concept relation graph: is-a, parent/child, different-from, often-confused-with, related-to, historical-name/source-specific relations |
-| AEK-05 | TODO | Authority registry mapping domain/jurisdiction to approved authoritative sources; no generic web-search ownership fork |
-| AEK-06 | TODO | T0-T4 freshness/temperature policy; current cycle/school/dynamic facts cannot be silently satisfied by stale canonical cache |
-| AEK-07 | TODO | Unified knowledge resolution/evidence flow reusing the current orchestrator and official/deterministic bridge owners |
-| AEK-08 | TODO | Exact/alias/near/source-specific/unknown resolution; non-canonical terms fail closed instead of being fabricated |
-| AEK-09 | TODO | Answer-First human presentation: plain definition -> type/importance -> practical impact -> confusion/relations -> current evidence -> sources |
-| AEK-10 | TODO | Coverage/unknown mining counters and maintainability handoff; high-frequency unknowns become reviewed candidates, never automatic canonical truth |
-| AEK-QA | TODO | Multi-turn semantic/source/freshness/fail-closed/browser/full-regression proof; final Draft/Preview/Ready/merge/prod closure |
+| AEK-00 | DONE | Skill, architecture contract, durable handoff/status owner, startup registration, long-lived Draft PR |
+| AEK-01 | DONE | First-class `knowledge_explain` task; concept-question semantics; old school/score/candidate context cannot hijack a new concept object |
+| AEK-02 | DONE | Structured taxonomy for higher education, majors/disciplines, vocational education, admissions, policies, training, credentials, occupations/industry concepts |
+| AEK-03 | IN_PROGRESS | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
+| AEK-04 | DONE | Concept relation graph: is-a, parent/child, different-from, often-confused-with, related-to, historical-name/source-specific relations |
+| AEK-05 | DONE | Authority registry mapping domain/jurisdiction to approved authoritative sources; no generic web-search ownership fork |
+| AEK-06 | DONE | T0-T4 freshness/temperature policy; current cycle/school/dynamic facts cannot be silently satisfied by stale canonical cache |
+| AEK-07 | DONE | Unified knowledge resolution/evidence flow reusing the current orchestrator and official/deterministic bridge owners |
+| AEK-08 | DONE | Exact/alias/near/source-specific/unknown resolution; non-canonical terms fail closed instead of being fabricated |
+| AEK-09 | DONE | Answer-First human presentation: plain definition -> type/importance -> practical impact -> confusion/relations -> current evidence -> sources |
+| AEK-10 | DONE | Coverage/unknown mining counters and maintainability handoff; high-frequency unknowns become reviewed candidates, never automatic canonical truth |
+| AEK-QA | IN_PROGRESS | Multi-turn semantic/source/freshness/fail-closed/browser/full-regression proof; final Draft/Preview/Ready/merge/prod closure |
 
 ## Mandatory acceptance journeys
 
@@ -71,6 +71,12 @@ Use a hybrid model:
 - current admissions-cycle, provincial, school-specific and dynamic status -> authoritative live evidence (with bounded caching only when freshness allows);
 - no durable free-form encyclopedia prose as business truth;
 - unknown is a valid result.
+
+## Current implementation checkpoint
+
+- AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters passed the package-level deterministic verifier set before this checkpoint commit.
+- **AEK-03 remains IN_PROGRESS**: the existing 2026 undergraduate catalog is complete and reused (883 majors), but graduate/vocational canonical coverage still requires final proof before the program can close.
+- **AEK-QA remains IN_PROGRESS. This branch is not mergeable by program policy.**
 
 ## Current session progress
 
