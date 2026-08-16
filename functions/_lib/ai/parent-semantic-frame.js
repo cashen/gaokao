@@ -30,7 +30,7 @@ export function studentSignalsFromText(text=''){
   if(/物理.{0,4}(不错|挺好|较好|很好|强|优势)|物理基础.{0,4}(好|强)/.test(s))push('physics_strength','strong');
   if(/化学.{0,4}(一般|较弱|不好|不太好|弱)/.test(s))push('chemistry_strength','weak','negative');
   if(/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s))push('programming_affinity','avoid','negative');
-  if(!/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s)&&/(喜欢|愿意|能接受).{0,4}(编程|写代码|代码)/.test(s))push('programming_affinity','accept');
+  if(!/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s)&&(/(喜欢|愿意|能接受|可以接受).{0,4}(编程|写代码|代码)/.test(s)||/(编程|写代码|代码).{0,4}(可以接受|能接受|愿意|喜欢)/.test(s)))push('programming_affinity','accept');
   if(/(不想|不愿意|不接受|排斥).{0,6}(进工厂|工厂环境|生产一线)/.test(s))push('factory_environment','avoid','negative');
   if(/(不想|不愿意|不接受|排斥).{0,5}(倒班|夜班)/.test(s))push('shift_work','avoid','negative');
   if(/(不想|不愿意|不接受|排斥).{0,6}(工地|施工现场|长期现场)/.test(s))push('field_site','avoid','negative');
