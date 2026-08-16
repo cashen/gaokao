@@ -2,8 +2,10 @@ name: tmp AIPLuS FDW selection browser
 
 on:
   push:
-    branches: [agent/aiplus-family-decision-workbench]
-    paths: ['.github/workflows/tmp-aiplus-fdw-selection-browser.yml']
+    branches:
+      - agent/aiplus-family-decision-workbench
+    paths:
+      - '.github/workflows/tmp-aiplus-fdw-selection-browser.yml'
 
 permissions:
   contents: write
@@ -17,50 +19,16 @@ jobs:
         with:
           ref: agent/aiplus-family-decision-workbench
           fetch-depth: 0
-      - name: Model real selection import disclosure and scrolling
-        shell: bash
+      - name: Apply checked browser patcher
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          path=Path('tools/browser-ai-workspace-v3990_1.mjs')
-          text=path.read_text()
-          old="""async function selectionAndModel(page,name){
-  await page.evaluate(()=>localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951',JSON.stringify({items:[{id:'browser-1',school:'测试大学',major:'机械工程',rank2026:20000,bandKey:'near',displayLocation:'沈阳',tuition:'5200',userNote:'这段私有备注不能发给模型'}]})));
-  await page.locator('.decision-support-card').evaluate(el=>el.open=true);await page.locator('#importSelection').click();await page.locator('#importStatus').filter({hasText:'已导入1项'}).waitFor({state:'visible',timeout:10000});
-  assert(await page.locator('#healthBar,#modelConfig,#modelProbeResult,#probeModel').count()===0,`${name}: engineering/model controls leaked into parent UI`);
-  const progress=(await page.locator('#decisionProgressList').innerText()).replace(/\\s+/g,' ');assert(progress.includes('志愿方案'),`${name}: imported plan missing from decision progress`);
-}
-"""
-          new="""async function selectionAndModel(page,name){
-  await page.evaluate(()=>localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951',JSON.stringify({items:[{id:'browser-1',school:'测试大学',major:'机械工程',rank2026:20000,bandKey:'near',displayLocation:'沈阳',tuition:'5200',userNote:'这段私有备注不能发给模型'}]})));
-  if(name!=='pc'){
-    await page.locator('#historyToggle').click();
-    await page.waitForFunction(()=>document.body.classList.contains('history-open'),null,{timeout:5000});
-  }
-  await page.locator('.decision-support-card').evaluate(el=>el.open=true);
-  await page.locator('#historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;});
-  await page.locator('#importSelection').click();
-  await page.locator('#importStatus').filter({hasText:'已导入1项'}).waitFor({state:'visible',timeout:10000});
-  assert(await page.locator('#healthBar,#modelConfig,#modelProbeResult,#probeModel').count()===0,`${name}: engineering/model controls leaked into parent UI`);
-  const progress=(await page.locator('#decisionProgressList').innerText()).replace(/\\s+/g,' ');assert(progress.includes('志愿方案'),`${name}: imported plan missing from decision progress`);
-  if(name!=='pc'){
-    await page.locator('#historyClose').click();
-    await page.waitForFunction(()=>!document.body.classList.contains('history-open'),null,{timeout:5000});
-  }
-}
-"""
-          if text.count(old)!=1:
-              raise SystemExit(f'expected one selectionAndModel target, got {text.count(old)}')
-          path.write_text(text.replace(old,new,1))
-          PY
+          node --check tools/tmp-aiplus-fdw-selection-browser.mjs
+          node tools/tmp-aiplus-fdw-selection-browser.mjs
           node --check tools/browser-ai-workspace-v3990_1.mjs
-          grep -q "historyPanel').evaluate(el=>{el.scrollTop=el.scrollHeight;})" tools/browser-ai-workspace-v3990_1.mjs
-      - name: Commit verifier migration and self-clean
+      - name: Commit verifier migration and remove construction files
         shell: bash
         run: |
           set -euo pipefail
-          git rm .github/workflows/tmp-aiplus-fdw-selection-browser.yml
+          git rm .github/workflows/tmp-aiplus-fdw-selection-browser.yml tools/tmp-aiplus-fdw-selection-browser.mjs
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add tools/browser-ai-workspace-v3990_1.mjs
