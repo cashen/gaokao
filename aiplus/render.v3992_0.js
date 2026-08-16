@@ -1,5 +1,5 @@
 
-import {activeViewLabel,regionKeyLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_1';
+import {activeViewLabel,regionKeyLabel} from '/shared/ai/ai-workspace-contract.v3992_0.js?v=002_1&fdw=003_0';
 import {buildDecisionBook} from '/shared/ai/decision-book.v003.js?v=003_0';
 const BAND_LABELS=Object.freeze({upper:'稍高参考',near:'接近参考',steady:'更稳参考',outside:'窗口外'});
 const STAGE_LABELS=Object.freeze({start:'继续讨论',feasible_set:'建立可行范围',expand_directions:'横向看方向',narrow_region:'逐步缩地区',school_focus:'开始看学校',compare:'做比较',verify:'核验事实',plan_review:'检查家庭方案',history_lookup:'查学校专业历史',background_discovery:'看学校/专业背景',fit_assessment:'判断当前位置',school_official:'学校研究',school_experience:'学校环境与同学体验'});

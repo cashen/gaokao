@@ -105,6 +105,8 @@ eq(topicNext.decisionProfile.explicit.studentSignals,topicSource.decisionProfile
 eq(topicNext.decisions,topicSource.decisions,'new topic keeps confirmed decisions');
 eq(topicNext.activeView.majorKeywords,[],'new topic clears temporary major focus');
 eq(topicNext.activeView.schoolNames,[],'new topic clears temporary school focus');
+eq(topicNext.activeView.regionKeys,['all'],'new topic clears temporary region view');
+eq(topicNext.activeView.bottomLineMode,'all','new topic clears temporary project-scope view');
 eq(topicNext.agentContext.focus.school,'','new topic clears current school focus');
 eq(topicNext.mainTaskId,'','new topic starts a fresh task thread inside the same family');
 
@@ -137,6 +139,8 @@ ok(html.includes('把孩子的选择一步一步定下来'),'hero must describe 
 ok(html.includes('id="decisionProgressList"'),'PC/drawer UI must expose decision progress');
 ok(html.includes('id="decisionBookContent"'),'Decision Book must be rendered from the canonical workspace');
 ok(html.includes('id="mobileDecisionStrip"'),'mobile must expose the same decision state through a compact entry');
+ok(html.includes('data-ai-family-decision="aiplus-family-decision-v0.03"'),'FDW capability identity must be visible');
+ok(html.includes('fdw=003_0'),'FDW entry assets must carry the cache subtransaction');
 ok(html.includes('新建另一份家庭档案'),'UI must distinguish another family profile from a new topic');
 no(html.includes('id="probeModel"'),'ordinary parent UI must not expose model probing');
 no(html.includes('id="healthBar"'),'ordinary parent UI must not expose healthy-system engineering status');
@@ -147,7 +151,7 @@ ok(app.includes("type:'topic_started'"),'new topic must reuse the same family wo
 ok(app.includes('startNewFamilyProfile'),'separate-family creation must remain explicit');
 ok(render.includes('next-primary'),'renderer must distinguish the primary next action');
 ok(render.includes('next-alternative'),'renderer must weaken alternatives rather than render three equal CTAs');
-ok(css.includes('@media(max-width:959px)'),'Pad/mobile presentation must be responsive');
+ok(css.includes('@media(max-width:1100px)'),'1024px Pad must use the shared decision drawer contract');
 ok(css.includes('@media(max-width:719px)'),'mobile disclosure must be explicit');
 no(css.includes('scrollIntoView'),'workbench UI must not introduce a second scroll owner');
 
