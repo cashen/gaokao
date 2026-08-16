@@ -13,6 +13,7 @@ on:
       - 'functions/_lib/ai/mentor-profile.js'
       - 'functions/_lib/ai/parent-semantic-frame.js'
       - 'functions/_lib/ai/decision-reflection.js'
+      - 'functions/_lib/ai/selection-review.js'
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
       - 'functions/_lib/ai/turn-orchestrator.js'
@@ -30,6 +31,7 @@ on:
       - 'functions/_lib/ai/mentor-profile.js'
       - 'functions/_lib/ai/parent-semantic-frame.js'
       - 'functions/_lib/ai/decision-reflection.js'
+      - 'functions/_lib/ai/selection-review.js'
       - 'functions/_lib/ai/next-action-engine.js'
       - 'functions/_lib/ai/advisor-presentation.js'
       - 'functions/_lib/ai/turn-orchestrator.js'
@@ -72,6 +74,7 @@ jobs:
           grep -q "AI_DECISION_PROGRESS_VERSION='ai-decision-progress-v0.03'" shared/ai/decision-progress.v003.js
           grep -q "AI_DECISION_BOOK_VERSION='ai-decision-book-v0.03'" shared/ai/decision-book.v003.js
           grep -q "AI_DECISION_REFLECTION_VERSION='ai-decision-reflection-v0.03'" functions/_lib/ai/decision-reflection.js
+          grep -q "AI_SELECTION_REVIEW_VERSION = 'ai-selection-review-v3990_2'" functions/_lib/ai/selection-review.js
           grep -q 'mutatesWorkspace:false' functions/_lib/ai/decision-reflection.js
           grep -q 'autoExecutesTools:false' functions/_lib/ai/decision-reflection.js
           grep -q 'id="decisionProgressList"' aiplus/index.html
@@ -90,6 +93,7 @@ jobs:
           node --check functions/_lib/ai/mentor-profile.js
           node --check functions/_lib/ai/parent-semantic-frame.js
           node --check functions/_lib/ai/decision-reflection.js
+          node --check functions/_lib/ai/selection-review.js
           node --check functions/_lib/ai/next-action-engine.js
           node --check functions/_lib/ai/advisor-presentation.js
           node --check functions/_lib/ai/turn-orchestrator.js
