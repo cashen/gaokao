@@ -26,12 +26,11 @@ jobs:
           git fetch origin main --depth=1
           python - <<'RUNPY'
           from pathlib import Path
-          import textwrap
           source=Path('.github/workflows/verify-ai-major-region-history-v3992_3.yml').read_text(encoding='utf-8')
           marker="          python - <<'PY'\n"
           start=source.index(marker)+len(marker)
           end=source.index("\n          PY",start)
-          code=textwrap.dedent(source[start:end])
+          code='\n'.join(line[10:] if line.startswith('          ') else line for line in source[start:end].splitlines())
           compile(code,'staged-aiplus-result-delivery.py','exec')
           exec(code,{'__name__':'__main__'})
           RUNPY
