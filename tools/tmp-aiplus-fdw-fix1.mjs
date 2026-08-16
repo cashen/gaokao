@@ -11,7 +11,7 @@ function patch(path,needle,replacement){
 patch(
   'functions/_lib/ai/parent-semantic-frame.js',
   "if(!/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s)&&/(喜欢|愿意|能接受).{0,4}(编程|写代码|代码)/.test(s))push('programming_affinity','accept');",
-  "if(!/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s)&&(/(喜欢|愿意|能接受|可以接受).{0,4}(编程|写代码|代码)/.test(s)||(编程|写代码|代码).{0,4}(可以接受|能接受|愿意|喜欢)/.test(s)))push('programming_affinity','accept');"
+  "if(!/(不喜欢|不想|讨厌|排斥).{0,4}(编程|写代码|代码)/.test(s)&&(/(喜欢|愿意|能接受|可以接受).{0,4}(编程|写代码|代码)/.test(s)||/(编程|写代码|代码).{0,4}(可以接受|能接受|愿意|喜欢)/.test(s)))push('programming_affinity','accept');"
 );
 
 patch(
