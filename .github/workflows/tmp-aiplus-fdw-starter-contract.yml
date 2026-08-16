@@ -1,0 +1,55 @@
+name: tmp AIPLuS FDW starter contract
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-starter-contract.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Add permanent starter ownership assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/verify-aiplus-family-decision-workbench-v003.mjs')
+          text=path.read_text()
+          marker="ok(app.includes('startNewFamilyProfile'),'separate-family creation must remain explicit');"
+          if text.count(marker)!=1:
+              raise SystemExit('starter contract insertion marker not unique')
+          addition="""
+          no(app.includes("scoreValue=els.starterScore?.value||workspace?.examContext?.score"),'DOM starter input must never own the default score for a new family profile');
+          ok(app.includes("sourceValue=explicitInput?scoreValue:workspace?.examContext?.score"),'starter default score must come from the canonical workspace unless the user explicitly applies an input');
+          ok(app.includes("else if(!explicitInput)els.starterScore.value=''"),'a new scoreless family profile must clear any stale score input from the previous family');
+          """.strip()
+          path.write_text(text.replace(marker,marker+'\n'+addition,1))
+          PY
+      - name: Prove permanent FDW contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+      - name: Commit contract and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aiplus-fdw-starter-contract.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/verify-aiplus-family-decision-workbench-v003.mjs
+          git commit -m 'test(aiplus): lock family starter score isolation'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
