@@ -61,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           git status --short
-          git add functions/_lib/ai/human-query-frame.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js functions/api/ai/major-history.js tools/verify-aiplus-aek-v001.mjs tools/verify-aiplus-routing-grid-v001.mjs tools/verify-aiplus-school-topic-grid-v001.mjs tools/verify-aiplus-major-topic-grid-v001.mjs .github/workflows/verify-aiplus-parent-decision-v003.yml
+          git add functions/_lib/ai/human-query-frame.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/tool-registry.js functions/_lib/ai/turn-orchestrator.js functions/api/ai/major-history.js tools/verify-aiplus-aek-v001.mjs tools/verify-aiplus-routing-grid-v001.mjs tools/verify-aiplus-school-topic-grid-v001.mjs tools/verify-aiplus-major-topic-grid-v001.mjs
           if git diff --cached --quiet; then
             echo 'No patch changes to commit.'
             exit 0
