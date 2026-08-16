@@ -16,13 +16,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply and verify AEK checkpoint
-        run: node tools/tmp-aek-finalize.mjs
-      - name: Commit verified checkpoint
+      - name: Apply and verify AEK non-workflow checkpoint
+        run: node tools/tmp-aek-source-checkpoint.mjs
+      - name: Commit verified non-workflow checkpoint
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
+          git add functions/_lib/ai/education-knowledge-center.js functions/_lib/ai/education-knowledge-runtime.js tools/verify-ai-workspace-v3990_1.mjs docs/architecture/AIPLUS-AEK-STATUS.md
           git diff --cached --quiet && exit 0
-          git commit -m "AEK: consolidate knowledge architecture and QA gate"
+          git commit -m "AEK: consolidate verified knowledge source checkpoint"
           git push origin HEAD:agent/aiplus-authoritative-education-knowledge
