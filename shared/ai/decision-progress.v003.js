@@ -29,9 +29,14 @@ function selectionCount(workspace={}){const snapshot=workspace?.selectionSnapsho
 function explicitTradeoffDimensions(workspace={}){const explicit=workspace?.decisionProfile?.explicit||{},dimensions=[];if(clean(explicit.primaryGoal,60)&&explicit.primaryGoal!=='undecided')dimensions.push('primary_goal');if(list(explicit.priorities).length)dimensions.push('priorities');if(explicit.familyResourceSensitivity==='resource_sensitive')dimensions.push('family_resources');if(['prefer_short','long_ok'].includes(explicit.studyDurationTolerance))dimensions.push('study_duration');if(list(explicit.careerTargets).length)dimensions.push('career_targets');if(list(explicit.studentSignals).length)dimensions.push('student_signals');if(list(workspace.hardConstraints).length)dimensions.push('hard_constraints');if(list(workspace.softPreferences).length)dimensions.push('soft_preferences');return unique(dimensions,12);}
 function auditState(workspace={}){const last=workspace.lastResult||{},hasReview=Boolean(last.selectionReview)||list(workspace.turnHistory||workspace.recentTurns).some(turn=>clean(turn?.task,80)==='plan_review');if(!hasReview)return{state:'not_started',blockingCount:0};const review=last.selectionReview||{},findings=list(review.findings);const blocking=findings.filter(item=>item?.blocking===true||['block','error','critical'].includes(clean(item?.level,20))).length;return{state:blocking?'exploring':'reviewed',blockingCount:blocking};}
 function stage(key,state,summary='',missing=[]){return{key,label:FAMILY_DECISION_STAGE_LABELS[key],state,summary:clean(summary,240),missing:unique(missing,8)};}
+function scoreRankPosition(workspace={}){
+  const rankResult=workspace?.lastResult?.rank||{},contextScore=validScore(workspace?.examContext?.score),resultScore=validScore(rankResult?.score),score=contextScore||resultScore;
+  const contextRank=validRank(workspace?.examContext?.rank),resultRank=score&&resultScore===score?validRank(rankResult?.rankEnd??rankResult?.rankForGap):null;
+  return{score,rank:contextRank||resultRank};
+}
 
 export function deriveDecisionProgress(workspace={}){
-  const score=validScore(workspace?.examContext?.score),rank=validRank(workspace?.examContext?.rank),majors=frameMajors(workspace),pairs=framePairs(workspace),tradeoffs=explicitTradeoffDimensions(workspace),planCount=selectionCount(workspace),audit=auditState(workspace),rows=[];
+  const {score,rank}=scoreRankPosition(workspace),majors=frameMajors(workspace),pairs=framePairs(workspace),tradeoffs=explicitTradeoffDimensions(workspace),planCount=selectionCount(workspace),audit=auditState(workspace),rows=[];
 
   rows.push(stage('score_position',score&&rank?'ready':score?'exploring':'not_started',score&&rank?`${score}分 · 约${rank.toLocaleString('zh-CN')}位`:score?`${score}分，位次还待确认`:'还没有稳定的分数位置',score&&!rank?['位次']:!score?['分数/位次']:[]));
 
