@@ -17,7 +17,7 @@ import {
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v0.02';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
 export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_9';
-export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';
+export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_4';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
 export const AI_SCHOOL_OFFICIAL_ADAPTER_VERSION='ai-school-official-browser-bridge-v3990_2';
 export const AI_SCHOOL_EXPERIENCE_ADAPTER_VERSION='ai-school-experience-browser-bridge-v0.02';
@@ -83,7 +83,11 @@ function requestForMajorBands(context,params={},band=''){
 function majorBandsToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function majorBandsClientToolRequest(request){const key=majorBandsToolKey(request);return{kind:'major_bands',key,url:key,method:'GET',headers:{accept:'application/json'},bridgeVersion:AI_DETERMINISTIC_TOOL_BRIDGE_VERSION};}
 function requestForSchoolHistory(context,{school,majorKeyword='',candidateScore=null}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/school-history',sourceUrl.origin),normalizedScore=normalizeOptionalCandidateScore(candidateScore);url.searchParams.set('school',clean(school,120));url.searchParams.set('offset','0');url.searchParams.set('limit','120');url.searchParams.set('sort',normalizedScore===null?'score-desc':'position-near');if(majorKeyword)url.searchParams.set('majorKeyword',clean(majorKeyword,160));if(normalizedScore!==null)url.searchParams.set('candidateScore',String(normalizedScore));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
-function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all'}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset','0');url.searchParams.set('limit','120');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+const AI_MAJOR_HISTORY_PAGE_LIMIT=100;
+const AI_MAJOR_HISTORY_MAX_RECORDS_PER_TURN=800;
+const AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY=6;
+function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all',offset=0}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset',String(Math.max(0,Math.floor(Number(offset)||0))));url.searchParams.set('limit',String(AI_MAJOR_HISTORY_PAGE_LIMIT));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
+function majorHistoryPagePlan(payload={},requestedCount=1){const total=Math.max(0,Math.floor(Number(payload.total)||0)),count=Math.max(1,Math.floor(Number(requestedCount)||1)),maxPages=Math.max(1,Math.min(AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY,Math.floor(AI_MAJOR_HISTORY_MAX_RECORDS_PER_TURN/(count*AI_MAJOR_HISTORY_PAGE_LIMIT)))),offsets=[];for(let offset=0;offset<Math.max(total,1)&&offsets.length<maxPages;offset+=AI_MAJOR_HISTORY_PAGE_LIMIT)offsets.push(offset);return{total,limit:AI_MAJOR_HISTORY_PAGE_LIMIT,maxPages,offsets,capped:total>maxPages*AI_MAJOR_HISTORY_PAGE_LIMIT};}
 function schoolHistoryToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function majorHistoryToolKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
 function requestForSchoolOfficial(context,{school,question=''}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/school-official',sourceUrl.origin);url.searchParams.set('school',clean(school,120));if(question)url.searchParams.set('question',clean(question,600));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
@@ -181,16 +185,28 @@ export async function runMajorRegionHistory(context,{majorKeyword='',majorKeywor
   if(!requested.length)return{ok:false,code:'major_required',message:'需要先明确一个专业方向。'};
   const responses=[],queryResults=[],required=[];
   for(let index=0;index<requested.length;index+=1){
-    const query=requested[index],request=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode}),delegated=delegatedMajorHistoryEntry(context,request);
-    if(!delegated.ok){if(delegated.code==='client_tool_required'){required.push(delegated.toolRequest);continue;}return delegated;}
-    const{status,payload}=delegated,success=status>=200&&status<300&&payload?.ok===true;
-    if(!success){queryResults.push({query,index,status:'failed',recordCount:0,errorCode:clean(payload?.code,80)||`http_${status||0}`,errorMessage:clean(payload?.message||'本专业查询暂时失败。',240)});continue;}
-    const records=(payload.records||[]).map(record=>({...majorHistoryRecord(record),queryMajor:query,queryIndex:index,queryStatus:'success'}));
-    responses.push({query,payload,records});queryResults.push({query,index,status:'success',recordCount:Number(payload.total||records.length),errorCode:'',errorMessage:''});
+    const query=requested[index],firstRequest=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset:0}),firstDelegated=delegatedMajorHistoryEntry(context,firstRequest);
+    if(!firstDelegated.ok){if(firstDelegated.code==='client_tool_required'){required.push(firstDelegated.toolRequest);continue;}return firstDelegated;}
+    const firstStatus=Number(firstDelegated.status),firstPayload=firstDelegated.payload,firstSuccess=firstStatus>=200&&firstStatus<300&&firstPayload?.ok===true;
+    if(!firstSuccess){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:0,complete:false,errorCode:clean(firstPayload?.code,80)||`http_${firstStatus||0}`,errorMessage:clean(firstPayload?.message||'本专业查询暂时失败。',240)});continue;}
+    const plan=majorHistoryPagePlan(firstPayload,requested.length),pagePayloads=[firstPayload];let pageFailed=null,missingPage=false;
+    for(const offset of plan.offsets.slice(1)){
+      const request=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset}),delegated=delegatedMajorHistoryEntry(context,request);
+      if(!delegated.ok){if(delegated.code==='client_tool_required'){required.push(delegated.toolRequest);missingPage=true;continue;}return delegated;}
+      const status=Number(delegated.status),payload=delegated.payload,success=status>=200&&status<300&&payload?.ok===true;
+      if(!success){pageFailed={status,payload};break;}
+      pagePayloads.push(payload);
+    }
+    if(missingPage)continue;
+    if(pageFailed){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:plan.total,complete:false,errorCode:clean(pageFailed.payload?.code,80)||`http_${pageFailed.status||0}`,errorMessage:clean(pageFailed.payload?.message||'本专业后续分页暂时失败。',240)});continue;}
+    const records=pagePayloads.flatMap(payload=>(payload.records||[]).map(record=>({...majorHistoryRecord(record),queryMajor:query,queryIndex:index,queryStatus:'success'}))),complete=!plan.capped&&records.length===plan.total;
+    responses.push({query,payload:firstPayload,records,complete,availableCount:plan.total});
+    queryResults.push({query,index,status:'success',recordCount:records.length,availableCount:plan.total,complete,errorCode:'',errorMessage:complete?'':`当前单轮传输预算最多读取${plan.maxPages*AI_MAJOR_HISTORY_PAGE_LIMIT}条，本专业仍有后续记录未展开。`});
   }
   if(required.length)return batchToolRequired(required);
-  const successfulCount=responses.length,partial=successfulCount>0&&successfulCount<requested.length,allFailed=successfulCount===0,records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.school||'').localeCompare(String(b.school||''),'zh-CN')),scores=records.map(item=>Number(item.score2026)).filter(Number.isFinite),firstPayload=responses[0]?.payload||{},total=records.length,schoolCount=new Set(records.map(item=>item.school).filter(Boolean)).size;
-  return{ok:true,partial,allFailed,majorKeyword:requested.length===1?clean(firstPayload.major||requested[0],160):'',majorKeywords:requested,region:clean(firstPayload.region,220),bottomLineMode:clean(firstPayload.bottomLineMode||bottomLineMode,40)||'all',matchedMajors:unique(responses.flatMap(item=>item.payload?.matchedMajors||[]),24),records,queryResults,summary:{total,schoolCount,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null},total,complete:!partial&&!allFailed&&responses.every(item=>item.payload?.complete===true),source:firstPayload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:clean(firstPayload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。',message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':''};
+  const successfulCount=responses.length,partial=successfulCount>0&&successfulCount<requested.length,allFailed=successfulCount===0,records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.school||'').localeCompare(String(b.school||''),'zh-CN')),scores=records.map(item=>Number(item.score2026)).filter(Number.isFinite),firstPayload=responses[0]?.payload||{},total=records.length,schoolCount=new Set(records.map(item=>item.school).filter(Boolean)).size,complete=!partial&&!allFailed&&responses.every(item=>item.complete===true),incompleteQueries=queryResults.filter(item=>item.status==='success'&&item.complete===false).map(item=>item.query);
+  const baseBoundary=clean(firstPayload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。',deliveryBoundary=incompleteQueries.length?` ${incompleteQueries.join('、')}超过本轮有界传输预算，当前结果不是完整清单；未读取部分不会被静默算作不存在。`:'';
+  return{ok:true,partial,allFailed,majorKeyword:requested.length===1?clean(firstPayload.major||requested[0],160):'',majorKeywords:requested,region:clean(firstPayload.region,220),bottomLineMode:clean(firstPayload.bottomLineMode||bottomLineMode,40)||'all',matchedMajors:unique(responses.flatMap(item=>item.payload?.matchedMajors||[]),24),records,queryResults,summary:{total,schoolCount,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null},total,complete,hasMore:incompleteQueries.length>0,source:firstPayload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:`${baseBoundary}${deliveryBoundary}`.trim(),message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':incompleteQueries.length?'本轮已取得有界结果，但仍有专业存在未读取的后续记录。':''};
 }
 
 export async function runRegionSchoolDirectory(context,{region={},level='all'}={}){return querySchoolDirectory(context,{region,level});}

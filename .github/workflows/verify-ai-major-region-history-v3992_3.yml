@@ -6,179 +6,168 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'aiplus/**'
+      - 'functions/api/ai/major-history.js'
       - 'functions/_lib/ai/**'
+      - 'ln-rank/data/ai-major-history-v3990_1/**'
+      - 'tools/build-ai-major-history-index-v3990_1.mjs'
       - 'tools/verify-ai-major-region-history-v3992_3.mjs'
+      - 'tools/browser-ai-workspace-v3990_1.mjs'
       - '.github/workflows/verify-ai-major-region-history-v3992_3.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'aiplus/**'
+      - 'functions/api/ai/major-history.js'
+      - 'functions/_lib/ai/**'
+      - 'ln-rank/data/ai-major-history-v3990_1/**'
+      - 'tools/build-ai-major-history-index-v3990_1.mjs'
+      - 'tools/verify-ai-major-region-history-v3992_3.mjs'
+      - 'tools/browser-ai-workspace-v3990_1.mjs'
+      - '.github/workflows/verify-ai-major-region-history-v3992_3.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  checks: read
+  issues: read
 
 jobs:
-  apply-candidate:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  source-truth:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply bounded pagination to canonical owner
+      - name: Enforce protected paths and no temporary construction files
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main --depth=1
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          def read(path): return Path(path).read_text(encoding='utf-8')
-          def write(path,text): Path(path).write_text(text,encoding='utf-8')
-          def once(text,old,new,label):
-              n=text.count(old)
-              if n!=1: raise SystemExit(f'{label}: expected 1 match, got {n}')
-              return text.replace(old,new,1)
-
-          # Existing deterministic owner: align page size with browser bridge's existing 100-row fact contract.
-          p='functions/_lib/ai/tool-registry.js'; t=read(p)
-          t=once(t,"export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_3';","export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_4';",'adapter version')
-          old="function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all'}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset','0');url.searchParams.set('limit','120');return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}" 
-          new="""const AI_MAJOR_HISTORY_PAGE_LIMIT=100;
-const AI_MAJOR_HISTORY_MAX_RECORDS_PER_TURN=800;
-const AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY=6;
-function requestForMajorRegionHistory(context,{majorKeyword='',regionKeys=['all'],bottomLineMode='all',offset=0}={}){const sourceUrl=new URL(context.request.url),url=new URL('/api/ai/major-history',sourceUrl.origin),regions=normalizeRegionKeys(regionKeys).slice(0,4),region=regions.length>1?`any:${regions.join('|')}`:(regions[0]||'all');url.searchParams.set('major',clean(majorKeyword,160));url.searchParams.set('region',region);url.searchParams.set('bottomLineMode',normalizeProjectScope(bottomLineMode));url.searchParams.set('offset',String(Math.max(0,Math.floor(Number(offset)||0))));url.searchParams.set('limit',String(AI_MAJOR_HISTORY_PAGE_LIMIT));return new Request(url.toString(),{method:'GET',headers:{accept:'application/json'}});}
-function majorHistoryPagePlan(payload={},requestedCount=1){const total=Math.max(0,Math.floor(Number(payload.total)||0)),count=Math.max(1,Math.floor(Number(requestedCount)||1)),maxPages=Math.max(1,Math.min(AI_MAJOR_HISTORY_MAX_PAGES_PER_QUERY,Math.floor(AI_MAJOR_HISTORY_MAX_RECORDS_PER_TURN/(count*AI_MAJOR_HISTORY_PAGE_LIMIT)))),offsets=[];for(let offset=0;offset<Math.max(total,1)&&offsets.length<maxPages;offset+=AI_MAJOR_HISTORY_PAGE_LIMIT)offsets.push(offset);return{total,limit:AI_MAJOR_HISTORY_PAGE_LIMIT,maxPages,offsets,capped:total>maxPages*AI_MAJOR_HISTORY_PAGE_LIMIT};}"""
-          t=once(t,old,new,'major history request')
-          pattern=r"export async function runMajorRegionHistory\(context,\{majorKeyword='',majorKeywords=\[\],regionKeys=\['all'\],bottomLineMode='all'\}=\{\}\)\{.*?\n\}\n\nexport async function runRegionSchoolDirectory"
-          replacement="""export async function runMajorRegionHistory(context,{majorKeyword='',majorKeywords=[],regionKeys=['all'],bottomLineMode='all'}={}){
-  const requested=unique([...(Array.isArray(majorKeywords)?majorKeywords:[]),majorKeyword].map(value=>clean(value,160)).filter(Boolean),8);
-  if(!requested.length)return{ok:false,code:'major_required',message:'需要先明确一个专业方向。'};
-  const responses=[],queryResults=[],required=[];
-  for(let index=0;index<requested.length;index+=1){
-    const query=requested[index],firstRequest=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset:0}),firstDelegated=delegatedMajorHistoryEntry(context,firstRequest);
-    if(!firstDelegated.ok){if(firstDelegated.code==='client_tool_required'){required.push(firstDelegated.toolRequest);continue;}return firstDelegated;}
-    const firstStatus=Number(firstDelegated.status),firstPayload=firstDelegated.payload,firstSuccess=firstStatus>=200&&firstStatus<300&&firstPayload?.ok===true;
-    if(!firstSuccess){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:0,complete:false,errorCode:clean(firstPayload?.code,80)||`http_${firstStatus||0}`,errorMessage:clean(firstPayload?.message||'本专业查询暂时失败。',240)});continue;}
-    const plan=majorHistoryPagePlan(firstPayload,requested.length),pagePayloads=[firstPayload];let pageFailed=null,missingPage=false;
-    for(const offset of plan.offsets.slice(1)){
-      const request=requestForMajorRegionHistory(context,{majorKeyword:query,regionKeys,bottomLineMode,offset}),delegated=delegatedMajorHistoryEntry(context,request);
-      if(!delegated.ok){if(delegated.code==='client_tool_required'){required.push(delegated.toolRequest);missingPage=true;continue;}return delegated;}
-      const status=Number(delegated.status),payload=delegated.payload,success=status>=200&&status<300&&payload?.ok===true;
-      if(!success){pageFailed={status,payload};break;}
-      pagePayloads.push(payload);
-    }
-    if(missingPage)continue;
-    if(pageFailed){queryResults.push({query,index,status:'failed',recordCount:0,availableCount:plan.total,complete:false,errorCode:clean(pageFailed.payload?.code,80)||`http_${pageFailed.status||0}`,errorMessage:clean(pageFailed.payload?.message||'本专业后续分页暂时失败。',240)});continue;}
-    const records=pagePayloads.flatMap(payload=>(payload.records||[]).map(record=>({...majorHistoryRecord(record),queryMajor:query,queryIndex:index,queryStatus:'success'}))),complete=!plan.capped&&records.length===plan.total;
-    responses.push({query,payload:firstPayload,records,complete,availableCount:plan.total});
-    queryResults.push({query,index,status:'success',recordCount:records.length,availableCount:plan.total,complete,errorCode:'',errorMessage:complete?'':`当前单轮传输预算最多读取${plan.maxPages*AI_MAJOR_HISTORY_PAGE_LIMIT}条，本专业仍有后续记录未展开。`});
-  }
-  if(required.length)return batchToolRequired(required);
-  const successfulCount=responses.length,partial=successfulCount>0&&successfulCount<requested.length,allFailed=successfulCount===0,records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.school||'').localeCompare(String(b.school||''),'zh-CN')),scores=records.map(item=>Number(item.score2026)).filter(Number.isFinite),firstPayload=responses[0]?.payload||{},total=records.length,schoolCount=new Set(records.map(item=>item.school).filter(Boolean)).size,complete=!partial&&!allFailed&&responses.every(item=>item.complete===true),incompleteQueries=queryResults.filter(item=>item.status==='success'&&item.complete===false).map(item=>item.query);
-  const baseBoundary=clean(firstPayload.boundary,360)||'只展示2026辽宁物理类实际投档记录，不使用考生个人分数过滤。',deliveryBoundary=incompleteQueries.length?` ${incompleteQueries.join('、')}超过本轮有界传输预算，当前结果不是完整清单；未读取部分不会被静默算作不存在。`:'';
-  return{ok:true,partial,allFailed,majorKeyword:requested.length===1?clean(firstPayload.major||requested[0],160):'',majorKeywords:requested,region:clean(firstPayload.region,220),bottomLineMode:clean(firstPayload.bottomLineMode||bottomLineMode,40)||'all',matchedMajors:unique(responses.flatMap(item=>item.payload?.matchedMajors||[]),24),records,queryResults,summary:{total,schoolCount,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null},total,complete,hasMore:incompleteQueries.length>0,source:firstPayload.source||{},adapterVersion:AI_MAJOR_HISTORY_ADAPTER_VERSION,scoreUsed:false,boundary:`${baseBoundary}${deliveryBoundary}`.trim(),message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':incompleteQueries.length?'本轮已取得有界结果，但仍有专业存在未读取的后续记录。':''};
-}
-
-export async function runRegionSchoolDirectory"""
-          t,n=re.subn(pattern,replacement,t,count=1,flags=re.S)
-          if n!=1: raise SystemExit(f'runMajorRegionHistory replacement count={n}')
-          write(p,t)
-
-          # Presentation never calls a truncated preview "all". Single-major lists remain lazy-rendered by the existing browser owner.
-          p='functions/_lib/ai/advisor-presentation.js'; t=read(p)
-          pattern=r"function majorRegionHistorySummary\(history,view\)\{.*?\n\}\nfunction platformUpgradeSummary"
-          replacement="""function majorRegionHistoryPresentationLimit(history={}){return (history.majorKeywords?.length||1)>1?160:300;}
-function majorRegionHistorySummary(history,view){if(!history?.ok)return history?.message||'专业地区历史没有读取成功。';if(history.allFailed)return history.message||'本轮各专业查询都暂时没有完成。';const total=Number(history.total||history.records?.length||0),schools=Number(history.summary?.schoolCount||0),min=Number(history.summary?.minScore),max=Number(history.summary?.maxScore),range=[],majors=history.majorKeywords?.length?history.majorKeywords.join('、'):(history.majorKeyword||view.majorKeywords?.[0]||'这个专业'),limit=majorRegionHistoryPresentationLimit(history),shown=Math.min(total,limit),hidden=Math.max(0,total-shown);if(Number.isFinite(min))range.push(`最低${min}分`);if(Number.isFinite(max))range.push(`最高${max}分`);const scope=view.bottomLineMode==='public_regular_only'?'，已排除中外/高收费项目':view.bottomLineMode==='exclude_sino'?'，已排除中外/高收费项目':view.bottomLineMode==='public_include_sino'?'，包含公办中外/高收费项目':'，默认包含普通项目与中外/高收费项目',partial=history.partial?'其中部分专业暂时失败，下面已单独标出；':'',coverage=history.complete===true?'查询分页已经完整耗尽':'当前仍有后续记录未安全读取，因此不能把下面内容当完整清单',delivery=hidden?`为了避免一次把页面铺成几百行，当前总览先展示投档分最高的 ${shown} 条；其余 ${hidden} 条仍计入已取得结果，可继续按专业、地区或学校收窄。`:`下面按2026投档分从高到低列出${history.complete===true?'全部已取得':'当前已取得'}记录。`;return`${majors}在${regionLabel(view.regionKeys)}的辽宁2026物理类实际投档记录当前安全取得 ${total} 条${schools?`，涉及 ${schools} 所学校`:''}${range.length?`；${range.join('，')}`:''}${scope}。${partial}${coverage}。${delivery}这轮不拿你的个人分数过滤。`;
-}
-function platformUpgradeSummary"""
-          t,n=re.subn(pattern,replacement,t,count=1,flags=re.S)
-          if n!=1: raise SystemExit(f'majorRegionHistorySummary replacement count={n}')
-          t=once(t,"records:(result.majorHistory.records||[]).slice(0,100),queryResults:","records:(result.majorHistory.records||[]).slice(0,majorRegionHistoryPresentationLimit(result.majorHistory)),queryResults:",'presentation cap')
-          write(p,t)
-
-          # Permanent verifier: prove the real >100-record case exhausts pagination and reaches presentation intact.
-          p='tools/verify-ai-major-region-history-v3992_3.mjs'; t=read(p)
-          t=once(t,"import { onRequestGet as majorHistoryGet } from '../functions/api/ai/major-history.js';","import { onRequestGet as majorHistoryGet } from '../functions/api/ai/major-history.js';\nimport { runMajorRegionHistory } from '../functions/_lib/ai/tool-registry.js';",'verifier import')
-          marker="const context = { request: new Request('https://example.test/api/ai/turn', { method: 'POST' }), env: { ASSETS: assets } };"
-          insertion=r'''async function resolveMajorHistoryThroughBridge({majorKeyword,regionKeys=['all'],bottomLineMode='all'}) {
-  const bridgeContext = { request: new Request('https://example.test/api/ai/turn', { method: 'POST' }), env: { ASSETS: assets }, aiDeterministicToolResults: {} };
-  for (let round = 0; round < 4; round += 1) {
-    const result = await runMajorRegionHistory(bridgeContext, { majorKeyword, regionKeys, bottomLineMode });
-    if (result?.code !== 'client_tool_required') return { result, entries: bridgeContext.aiDeterministicToolResults, rounds: round + 1 };
-    const requests = result.toolRequests?.length ? result.toolRequests : [result.toolRequest].filter(Boolean);
-    for (const tool of requests) {
-      const request = new Request(new URL(tool.url, 'https://example.test').toString(), { headers: { accept: 'application/json' } });
-      const response = await majorHistoryGet({ request, env: { ASSETS: assets } });
-      const payload = await response.json();
-      assert(response.ok && payload.ok, `bridge page failed: ${tool.url} -> ${JSON.stringify(payload)}`);
-      bridgeContext.aiDeterministicToolResults[tool.key] = { kind: 'major_history', key: tool.key, url: tool.url, status: response.status, payload };
-    }
-  }
-  throw new Error('major history bridge did not converge inside the browser orchestration budget');
-}
-
-const globalElectricBridge = await resolveMajorHistoryThroughBridge({ majorKeyword: '电气工程及其自动化', regionKeys: ['all'] });
-assert(globalElectricBridge.result?.ok === true, 'global electric history bridge did not complete');
-assert(globalElectricBridge.result.complete === true, 'global electric history must exhaust all pages');
-assert(globalElectricBridge.result.total === 283, `global electric truth count drifted: ${globalElectricBridge.result.total}`);
-assert(globalElectricBridge.result.records.length === 283, 'global electric records were truncated after pagination');
-assert(globalElectricBridge.result.queryResults?.[0]?.recordCount === 283, 'query delivered count must equal loaded truth set');
-assert(globalElectricBridge.result.queryResults?.[0]?.availableCount === 283, 'query source total must remain visible');
-assert(Object.keys(globalElectricBridge.entries).length === 3, `283 records should use exactly three deterministic pages, got ${Object.keys(globalElectricBridge.entries).length}`);
-assert(Object.keys(globalElectricBridge.entries).some(key => key.includes('offset=100')) && Object.keys(globalElectricBridge.entries).some(key => key.includes('offset=200')), 'continuation offsets 100/200 are missing');
-
-'''
-          t=once(t,marker,insertion+marker,'bridge verifier insertion')
-          marker2="const multiFirst = await orchestrateAiTurn(context, { input: multiInput, workspace: multiWorkspace, confirmedCommand: multiCommand });"
-          insertion2=r'''const globalInput = '电气工程及其自动化所有学校分数从高到低';
-const globalWorkspace = createAiWorkspace();
-const globalCommand = deterministicCommand(globalInput, globalWorkspace);
-assert(globalCommand.agentTask === 'major_region_history', `global electric query task drifted: ${globalCommand.agentTask}`);
-const globalEntries = {};
-let globalTurn = null;
-for (let round = 0; round < 4; round += 1) {
-  globalTurn = await orchestrateAiTurn(context, { input: globalInput, workspace: globalWorkspace, confirmedCommand: globalCommand, deterministicToolResults: globalEntries });
-  if (!globalTurn.pendingDeterministicTool) break;
-  const requests = globalTurn.toolRequests?.length ? globalTurn.toolRequests : [globalTurn.toolRequest].filter(Boolean);
-  for (const tool of requests) {
-    const request = new Request(new URL(tool.url, 'https://example.test').toString(), { headers: { accept: 'application/json' } });
-    const response = await majorHistoryGet({ request, env: { ASSETS: assets } });
-    const fact = await response.json();
-    assert(response.ok && fact.ok, `global electric fact failed: ${tool.url} -> ${JSON.stringify(fact)}`);
-    globalEntries[tool.key] = { kind: 'major_history', key: tool.key, url: tool.url, status: response.status, payload: fact };
-  }
-}
-assert(globalTurn?.ok === true && globalTurn.pendingDeterministicTool === false, 'global electric orchestrated turn did not converge');
-assert(globalTurn.result?.majorHistory?.total === 283 && globalTurn.result.majorHistory.complete === true, 'orchestrated global electric result lost pagination completeness');
-const globalHistoryBlock = (globalTurn.blocks || []).find(block => block.type === 'history_records');
-assert(globalHistoryBlock?.records?.length === 283, `global electric presentation silently truncated records: ${globalHistoryBlock?.records?.length}`);
-assert(/分页已经完整耗尽/.test(globalHistoryBlock?.text || ''), `presentation did not state pagination completeness: ${globalHistoryBlock?.text || ''}`);
-
-'''
-          t=once(t,marker2,insertion2+marker2,'presentation verifier insertion')
-          write(p,t)
-
-          # Restore the permanent gate and remove all temporary construction workflows before committing the candidate.
-          import subprocess
-          permanent=subprocess.check_output(['git','show','origin/main:.github/workflows/verify-ai-major-region-history-v3992_3.yml'],text=True)
-          write('.github/workflows/verify-ai-major-region-history-v3992_3.yml',permanent)
-          tmp=Path('.github/workflows/aiplus-human-result-delivery-builder.yml')
-          if tmp.exists(): tmp.unlink()
-          PY
+          base='${{ github.event.pull_request.base.sha }}'
+          git diff --name-only "$base" HEAD | tee /tmp/major-history-changed-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/major-history-changed-files.txt; then
+            echo 'protected path changed' >&2
+            exit 1
+          fi
+          if grep -E '(^|/)(tmp[-_]|.*tmp[-_]).*(major|history)|^\.github/workflows/tmp-' /tmp/major-history-changed-files.txt; then
+            echo 'temporary construction file leaked into candidate diff' >&2
+            exit 1
+          fi
+      - name: Verify syntax and canonical derived-index truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check functions/api/ai/major-history.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/command-interpreter.js
           node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/_lib/ai/advisor-presentation.js
+          node --check aiplus/app.v3990_1.js
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          node --check tools/build-ai-major-history-index-v3990_1.mjs
           node --check tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/build-ai-major-history-index-v3990_1.mjs
+          git diff --exit-code -- ln-rank/data/ai-major-history-v3990_1
           node tools/verify-ai-major-region-history-v3992_3.mjs
-          git diff --check
-      - name: Commit clean candidate
+
+  exact-deployment-smoke:
+    needs: source-truth
+    concurrency:
+      group: v3990-1-cloudflare-preview-${{ github.event.pull_request.head.sha || github.sha }}
+      queue: max
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Resolve exact deployment target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add functions/_lib/ai/tool-registry.js functions/_lib/ai/advisor-presentation.js tools/verify-ai-major-region-history-v3992_3.mjs .github/workflows/verify-ai-major-region-history-v3992_3.yml .github/workflows/aiplus-human-result-delivery-builder.yml
-          git diff --cached --check
-          git commit -m 'AIPLuS: close major history result-delivery gap'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          if [ "${{ github.event_name }}" = 'push' ]; then
+            echo 'TARGET_BASE=https://gaokao-4y9.pages.dev' >> "$GITHUB_ENV"
+            exit 0
+          fi
+          short_sha="${EXPECTED_SHA:0:7}"
+          target=''
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo 'Cloudflare Pages exact-SHA check failed.' >&2
+              exit 2
+            fi
+            if [ "$conclusion" = success ]; then
+              mapfile -t urls < <(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | awk '!seen[$0]++')
+              if [ "${#urls[@]}" -ge 2 ]; then target="${urls[1]}"; fi
+              if [ -z "$target" ]; then
+                comments="$(curl -fsSL --max-time 20 \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+                body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+                if grep -q "$short_sha" <<<"$body"; then
+                  target="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | tail -n1 || true)"
+                fi
+              fi
+              [ -n "$target" ] && break
+            fi
+            sleep 8
+          done
+          test -n "$target"
+          echo "TARGET_BASE=$target" >> "$GITHUB_ENV"
+          echo "Exact Functions target: $target"
+      - name: Wait for exact SHA and verify the user's real question dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 72); do
+            health="$(curl --fail --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+              "${TARGET_BASE}/api/ai/health?majorHistory=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -q "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health"; then
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          test "$ready" -eq 1
+          curl --fail --silent --show-error --location --max-time 45 \
+            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+            --get "${TARGET_BASE}/api/ai/major-history" \
+            --data-urlencode 'major=测控技术与仪器' \
+            --data-urlencode 'region=ln' \
+            --data-urlencode 'offset=0' \
+            --data-urlencode 'limit=100' > /tmp/major-history-live.json
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const data=JSON.parse(fs.readFileSync('/tmp/major-history-live.json','utf8'));
+          if(data?.ok!==true) throw new Error(`live major history not ok: ${JSON.stringify(data)}`);
+          if(data?.apiVersion!=='ai-major-region-history-api-v3990_1') throw new Error(`api version drift: ${data?.apiVersion}`);
+          if(data?.indexVersion!=='ai-major-history-index-v3990_1') throw new Error(`index version drift: ${data?.indexVersion}`);
+          if(Number(data?.source?.sourceRecordCount)!==11628||data?.source?.sameTruthSet!==true) throw new Error('source truth contract drift');
+          if(Number(data?.total)!==14||Number(data?.summary?.schoolCount)!==11) throw new Error(`measurement count drift: ${JSON.stringify(data?.summary)}`);
+          if(Number(data?.summary?.minScore)!==467||Number(data?.summary?.maxScore)!==594) throw new Error(`measurement score range drift: ${JSON.stringify(data?.summary)}`);
+          if(data?.complete!==true||!Array.isArray(data?.records)||data.records.length!==14) throw new Error('measurement result must be complete');
+          if(data.records.some(item=>item?.province!=='辽宁')) throw new Error('region leakage outside Liaoning');
+          if(!data.records.some(item=>item?.school==='辽宁大学'&&Number(item?.score2026)===594)) throw new Error('expected Liaoning University top row missing');
+          if(!data.records.some(item=>item?.school==='沈阳工业大学'&&Number(item?.score2026)===563)) throw new Error('expected Shenyang University of Technology row missing');
+          console.log(JSON.stringify({ok:true,total:data.total,schoolCount:data.summary.schoolCount,minScore:data.summary.minScore,maxScore:data.summary.maxScore},null,2));
+          NODE
