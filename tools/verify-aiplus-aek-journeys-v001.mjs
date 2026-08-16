@@ -43,6 +43,7 @@ const contextSwitchPrompts=[
 ];
 let multiTurnCount=0;
 for(const prompt of contextSwitchPrompts){assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->knowledge ${prompt}`,{scoreUsage:'remembered'});multiTurnCount++;}
+for(const prompt of directRulePrompts){assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->current-policy ${prompt}`,{scoreUsage:'remembered'});multiTurnCount++;}
 
 const knowledgeWorkspace=createAiWorkspace({
   examContext:{score:580},
