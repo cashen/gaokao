@@ -82,10 +82,12 @@ jobs:
           grep -q 'id="decisionProgressList"' aiplus/index.html
           grep -q 'id="decisionBookContent"' aiplus/index.html
           grep -q 'id="mobileDecisionStrip"' aiplus/index.html
+          grep -q 'class="decision-history-card"' aiplus/index.html
           ! grep -q 'id="probeModel"' aiplus/index.html
           ! grep -q 'id="healthBar"' aiplus/index.html
           grep -q 'async function openNewTopic(page)' tools/browser-ai-workspace-v3990_1.mjs
           grep -q 'async function openNewFamilyProfile(page)' tools/browser-ai-workspace-v3990_1.mjs
+          grep -q "decision-history-card').evaluate(el=>el.open=true)" tools/browser-ai-workspace-v3990_1.mjs
           ! grep -q 'openNewWorkspace' tools/browser-ai-workspace-v3990_1.mjs
       - name: Syntax check FDW graph
         shell: bash
