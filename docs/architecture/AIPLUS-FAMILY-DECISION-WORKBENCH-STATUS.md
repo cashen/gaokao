@@ -12,7 +12,7 @@ This file is the durable cross-session owner for the AIPLuS **家庭决策工作
 - Existing public/site release remains `v3.9.90.1 / v3990_1`.
 - Existing visible AIPLuS product/browser compatibility identity remains `v0.02 / aiplus-assets-v002_4`.
 - Family Decision Workbench is an additive AIPLuS capability/cache subtransaction: `aiplus-family-decision-v0.03 / fdw=003_0`. It does **not** create a second site release owner or pretend the whole site advanced generation.
-- All construction workflows/patchers named `tmp-aiplus-fdw-*` were removed before the formal Draft candidate. Permanent FDW CI asserts they are absent.
+- All construction workflows/patchers named `tmp-aiplus-fdw-*` are forbidden from a formal Draft candidate. Permanent FDW CI asserts they are absent.
 
 ## Product mission
 
@@ -65,7 +65,8 @@ New mechanisms remain projections or bounded helpers, not second truth/state own
 - PC/Pad/Android share one business state model; responsive UI differs only in presentation/disclosure;
 - no new scroll owner, observer chain or `scrollIntoView` patch compensates for layout ownership;
 - `新话题` preserves the family profile/constraints/decisions/history evidence but clears temporary school/major/region/project-scope query focus;
-- `新建另一份家庭档案` alone creates an independent workspace.
+- `新建另一份家庭档案` alone creates an independent workspace;
+- starter-score defaults are owned by the current workspace, never by stale DOM input left from another family profile; only an explicit user apply action may use the input value.
 
 ## User-visible decision journey
 
@@ -138,26 +139,31 @@ Do not render three equal-weight next-step buttons when one task is structurally
 
 Permanent source owner: `tools/verify-aiplus-family-decision-workbench-v003.mjs`.
 
-Verified during construction before this checkpoint:
+Verified during construction and clean-head proof cycles:
 
 - old workspace migration preserves workspace id, score/rank, turn history and selection snapshot;
 - legacy free-text decisions migrate to safe pending notes;
 - explicit `普通家庭 / 本科就业优先 / 不太想考研 / 不接受倒班 / 编程可以接受` persist without erasing unrelated conditions;
-- canonical `parent-semantic-frame.js` now supports both `能接受编程` and `编程可以接受` word orders;
+- canonical `parent-semantic-frame.js` supports both `能接受编程` and `编程可以接受` word orders;
 - typed decisions do not mutate candidate active view;
 - Decision Progress has exactly six deterministic stages and is not persisted;
 - Decision Book is a pure projection and is not persisted;
 - reflection is bounded, non-mutating and cannot auto-execute tools;
 - next action has exactly one primary action and at most two alternatives;
+- atomic school/major research owns its local follow-up; global Progress cannot preempt local research or a partial-result retry;
+- matching current-turn rank evidence may advance the pure progress projection immediately, while rank evidence for another score cannot be reused;
 - `topic_started` preserves family truth while clearing temporary query focus/scope;
 - server compaction retains explicit student signals and typed decisions;
 - normal parent HTML has no health/model/probe controls;
-- existing `selection-review.js` now audits duplicate school-major rows, explicit hard major/region conflicts, explicitly rejected school-major pairs and budget-sensitive missing tuition without inventing admission probability;
+- existing `selection-review.js` audits duplicate school-major rows, explicit hard major/region conflicts, explicitly rejected school-major pairs and budget-sensitive missing tuition without inventing admission probability;
 - live `turn-orchestrator.js` passes the current workspace into that existing plan-review owner;
-- existing AIPLuS v0.02 UI audit, v0.02 product contract and human-dialog regression remained green after the additive FDW cache transaction;
-- browser source gate was updated to remove dependencies on the retired engineering UI, use family starters, distinguish new topic vs new family profile and exercise PC/1024 Pad/Android through the existing browser owner.
+- existing AIPLuS v0.02 UI audit, v0.02 product contract, human-dialog and legacy workspace regression remain preserved after the additive FDW cache transaction;
+- browser source gate no longer depends on retired engineering UI, uses family starters, distinguishes new topic vs new family profile and exercises PC/1024 Pad/Android through the existing browser owner;
+- exact Preview on head `a121651f11fc9b786a25286358f293d8640d78f2` had all formal source/architecture/release/API/geometry gates green and exposed one final browser counterexample: a newly created independent family workspace had no score, but `#starterScore` retained the previous family's DOM value, causing 580-score starter cards to leak across family profiles;
+- that counterexample was fixed by returning starter default ownership to `workspace.examContext.score`; the DOM field is read only when the user explicitly applies it, and a scoreless new family clears the stale input;
+- the fix passed `audit-aiplus-v002-ui`, `verify-aiplus-family-decision-workbench-v003` and legacy `verify-ai-workspace-v3990_1`; the permanent FDW verifier now forbids the old DOM-first default expression and requires the workspace-owned default/clear behavior.
 
-This evidence is **not yet the final Draft proof**. The package rows below stay `IN_PROGRESS` until the clean no-temp exact head completes the formal PR workflows and exact-head Preview/browser gates.
+This evidence is **not yet the final Draft proof**. The package rows below stay `IN_PROGRESS` until the current clean no-temp exact head completes the formal PR workflows and exact-head Preview/browser gates after the starter-isolation correction.
 
 ## Work package ledger
 
@@ -174,7 +180,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `REOPENED`.
 | FDW-06 | **IN_PROGRESS** | PC decision rail + History demotion + parent-facing copy implemented; exact Preview browser proof pending |
 | FDW-07 | **IN_PROGRESS** | Pad/mobile drawer using same view model implemented; exact Preview 1024 Pad/Android proof pending |
 | FDW-08 | **IN_PROGRESS** | Engineering UI removed from normal parent surface; exact Preview proof pending |
-| FDW-09 | **IN_PROGRESS** | `新话题` separated from `新建另一份家庭档案`; source/browser gate updated; exact Preview proof pending |
+| FDW-09 | **IN_PROGRESS** | `新话题` separated from `新建另一份家庭档案`; cross-family starter score isolation added; exact Preview proof pending |
 | FDW-10 | **IN_PROGRESS** | Existing selection review extended with family-aware blocking gaps; source-tested; exact Preview/plan-import proof pending |
 | FDW-QA | TODO | Full clean-head Draft + exact Preview + PC/Pad/Android + old semantic/history/AEK/selection/release proof |
 
@@ -191,7 +197,7 @@ A package is not `DONE` merely because implementation exists. Later counterexamp
 7. `我578现实吗` -> only this explicit current turn activates score/reachability evidence; remembered score alone never does.
 8. import a non-empty family selection -> plan stage becomes in progress; system must not claim completion.
 9. `帮我最后检查` -> existing plan review exposes structural duplicates/gaps/constraint conflicts/evidence gaps without invented admission probability.
-10. start a new topic -> family profile/confirmed decisions survive while temporary school/major/region/project-scope focus resets; create another family profile -> separate workspace.
+10. start a new topic -> family profile/confirmed decisions survive while temporary school/major/region/project-scope focus resets; create another family profile -> separate workspace with no inherited starter score/UI state.
 
 ## UI/viewport acceptance
 
@@ -201,6 +207,7 @@ A package is not `DONE` merely because implementation exists. Later counterexamp
 - no horizontal overflow at representative Android widths;
 - PC/Pad/mobile use one Decision Progress/Book projection;
 - 1024px Pad uses the decision drawer contract;
+- new independent family profile must not inherit previous family's starter score through DOM state;
 - updating progress/profile/rail must not steal the conversation scroll anchor;
 - completion keeps the existing conversation viewport transaction/scroll contract; no second scroll owner.
 
