@@ -7,6 +7,7 @@ export const NEXT_ACTION_LABELS=Object.freeze({
   schoolProfile:'回到学校整体介绍',schoolFit:'按我的分数判断',officialLiving:'核验官方食宿硬信息'
 });
 
+// Atomic research owns completion/follow-up for its current evidence node. Global journey progress may guide broader decisions, but must never preempt local research or a partial-result retry.
 const ATOMIC_RESEARCH_TASKS=new Set([
   'region_school_directory',
   'school_research','school_official_qa','school_experience','school_background','school_history','school_major_history',
