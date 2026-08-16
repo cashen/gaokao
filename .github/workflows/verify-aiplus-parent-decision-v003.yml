@@ -179,9 +179,21 @@ jobs:
         run: |
           set -euo pipefail
           echo "Checking ${PREVIEW_URL} for ${EXPECTED_SHA}"
-          curl -fsSL --retry 4 --retry-delay 4 "${PREVIEW_URL}/api/ai/health" | tee /tmp/aiplus-health.json
-          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));const actual=String(p.deployment?.commitSha||p.commitSha||p.commit||'');if(actual!=='${EXPECTED_SHA}')throw new Error('preview SHA mismatch: '+actual);"
-          curl -fsSL --retry 4 --retry-delay 4 "${PREVIEW_URL}/aiplus/" -o /tmp/aiplus.html
+          ready=''
+          for attempt in $(seq 1 36); do
+            if curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${PREVIEW_URL}/api/ai/health?candidate=${EXPECTED_SHA}&readiness=${attempt}" -o /tmp/aiplus-health.json; then
+              actual="$(node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));process.stdout.write(String(p.deployment?.commitSha||p.commitSha||p.commit||''));")"
+              if [ "$actual" != "$EXPECTED_SHA" ]; then
+                echo "Immutable Preview returned unexpected deployment SHA: ${actual}" >&2
+                exit 1
+              fi
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          test "$ready" = 1
+          curl -fsSL --retry 10 --retry-all-errors --retry-delay 3 --max-time 30 -H 'Cache-Control: no-cache' "${PREVIEW_URL}/aiplus/" -o /tmp/aiplus.html
           grep -q 'AIPLuS 产品版 · v0.02' /tmp/aiplus.html
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' /tmp/aiplus.html
           node tools/verify-production-api-health-v3971.mjs "${PREVIEW_URL}"
