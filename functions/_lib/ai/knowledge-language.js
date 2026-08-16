@@ -1,6 +1,6 @@
 import {BROAD_MAJOR_TERMS,MAJOR_LANGUAGE_TERMS,normalizeMajorLanguage} from './major-language-resolver.js';
 
-export const AI_KNOWLEDGE_LANGUAGE_VERSION='ai-education-knowledge-language-v0.04';
+export const AI_KNOWLEDGE_LANGUAGE_VERSION='ai-education-knowledge-language-v0.05';
 
 const POLITE_PREFIX='(?:(?:你好|请问|请|麻烦|帮我|给我|我想知道|想知道|想问|问下|问一下)[，,：:\\s]*)?';
 const DEFINITION_RE=/(是什么(?:意思)?|什么意思|啥意思|指什么|怎么理解|怎么回事|解释(?:下|一下)?|介绍(?:下|一下)?.{0,12}(?:意思|概念|是什么)|讲讲.{0,18}(?:是什么|概念|区别)?|说说.{0,18}(?:是什么|概念|区别)?|属于什么|算什么|是干什么的?|是干嘛的?|有什么(?:区别|差别)|区别是什么|差别是什么|怎么区分)/;
@@ -27,12 +27,23 @@ export function looksEducationKnowledgeQuestion(value='',{schools=[],majors=[]}=
   if(!source||(!definitionQuestion&&!ruleQuestion&&!introductionQuestion))return false;
   const explicitSchools=Array.isArray(schools)?schools.filter(Boolean):[];
   const explicitMajors=Array.isArray(majors)?majors.filter(Boolean):[];
-  if(explicitSchools.length&&SCHOOL_IDENTITY_RE.test(source)&&!KNOWLEDGE_HINT_RE.test(source))return false;
-  if(KNOWLEDGE_HINT_RE.test(source))return true;
-  if(explicitMajors.length&&introductionQuestion&&!SCORE_OR_REACHABILITY_RE.test(source))return true;
-  if(explicitMajors.length&&!SCORE_OR_REACHABILITY_RE.test(source))return true;
+  const hasKnowledgeHint=KNOWLEDGE_HINT_RE.test(source);
+
+  // Explicit school identity/introduction remains owned by school_research.
+  // A knowledge hint in the same turn (e.g. "沈工大的高校专项是什么") explicitly reconnects school + knowledge and is allowed through AEK.
+  if(explicitSchools.length&&!hasKnowledgeHint&&(SCHOOL_IDENTITY_RE.test(source)||introductionQuestion))return false;
+  if(hasKnowledgeHint)return true;
+
+  // Explicitly recognized majors are first-class AEK objects for definition/introduction language,
+  // but score/reachability execution keeps its existing admissions owner.
+  if(explicitMajors.length&&(definitionQuestion||introductionQuestion)&&!SCORE_OR_REACHABILITY_RE.test(source))return true;
+
+  // Definition/introduction syntax itself is sufficient to enter AEK when the current turn does not explicitly name a school.
+  // Canonical/ambiguous/unknown is decided by the AEK resolver, not by a second keyword whitelist here.
+  if(!explicitSchools.length&&(definitionQuestion||introductionQuestion))return true;
+
   if(ruleQuestion)return/(?:专业|学科|职业|招生|志愿|录取|培养|学位|学历|高校|教育|政策|计划).{0,24}(?:要求|条件|资格|报名|申请|规定|截止|谁能报|谁可以报)|(?:要求|条件|资格).{0,12}(?:专业|学科|职业|政策|计划|志愿)/.test(source);
-  return /(?:专业|学科|职业|招生|志愿|录取|培养|学位|学历|高校|教育).{0,18}(?:是什么|什么意思|区别|怎么理解)|(?:是什么|什么意思).{0,12}(?:专业|学科|职业|政策|计划|志愿)/.test(source);
+  return false;
 }
 
 export function knowledgeQuestionKind(value=''){
