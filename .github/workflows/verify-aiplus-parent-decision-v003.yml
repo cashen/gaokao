@@ -233,10 +233,10 @@ jobs:
           jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.ok==true and .result.knowledge.answerStatus=="answered" and .result.knowledge.canonical.officialCode=="080203" and .result.knowledge.liveRequired==false and ((([.blocks[]|select(.type=="assistant_message")][0].text // "")|length)>20)' /tmp/aek-major.json >/dev/null
 
           post_turn '电子信息是什么' "$empty_workspace" /tmp/aek-cross-level.json
-          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="ambiguous" and .result.knowledge.canonical==null and (((([.blocks[]|select(.type=="assistant_message")][0].text // "")|test("电子信息专业主要|该专业主要学习")))|not))' /tmp/aek-cross-level.json >/dev/null
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="ambiguous" and .result.knowledge.canonical==null and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("电子信息专业主要|该专业主要学习")) == false)' /tmp/aek-cross-level.json >/dev/null
 
           post_turn '材料加工与工业控制是什么' "$empty_workspace" /tmp/aek-unknown.json
-          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="source_specific_or_compound" and .result.knowledge.canonical==null and (((([.blocks[]|select(.type=="assistant_message")][0].text // "")|test("材料加工与工业控制专业主要|该专业主要学习")))|not))' /tmp/aek-unknown.json >/dev/null
+          jq -e '.command.agentTask=="knowledge_explain" and .commitView==false and .result.knowledge.answerStatus=="needs_clarification" and .result.knowledge.resolutionClass=="source_specific_or_compound" and .result.knowledge.canonical==null and ((([.blocks[]|select(.type=="assistant_message")][0].text // "") | test("材料加工与工业控制专业主要|该专业主要学习")) == false)' /tmp/aek-unknown.json >/dev/null
 
           post_turn '辽宁省高校专项计划是什么意思' "$remembered_school_workspace" /tmp/aek-firewall.json
           jq -e '.command.agentTask=="knowledge_explain" and .command.scoreUsage=="remembered" and (.command.schoolNames|length)==0 and .commitView==false and .result.knowledge.canonical.id=="special:辽宁省高校专项" and .result.knowledge.answerStatus=="answered"' /tmp/aek-firewall.json >/dev/null
