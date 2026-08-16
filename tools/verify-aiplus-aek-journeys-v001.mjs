@@ -3,6 +3,8 @@ import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
 import {deterministicCommand,resolveAiSchoolMentionsDetailed} from '../functions/_lib/ai/command-interpreter.js';
 import {resolveEducationKnowledgeQuestion,resolveCanonicalEducationEntity,knowledgeCoverageSnapshot} from '../functions/_lib/ai/education-knowledge-center.js';
 import {runEducationKnowledge} from '../functions/_lib/ai/education-knowledge-runtime.js';
+import {STANDARD_MAJOR_CATALOG_2026_FULL} from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
+import {MAJOR_LANGUAGE_ALIASES} from '../functions/_lib/ai/major-language-resolver.js';
 
 const aliases=new Map([
   ['沈工大','沈阳工业大学'],['沈阳工业','沈阳工业大学'],['沈航','沈阳航空航天大学'],['辽科大','辽宁科技大学'],['大连交通','大连交通大学']
@@ -33,6 +35,27 @@ const directRulePrompts=[
 ];
 for(const prompt of directRulePrompts){const cmd=await command(prompt);assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: direct policy/rule question must enter knowledge owner`);assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: direct policy/rule question must not mutate candidate view`);singleTurnCount++;}
 
+assert.equal(STANDARD_MAJOR_CATALOG_2026_FULL.length,883,'canonical undergraduate major catalog cardinality drift');
+let catalogIntroductionCount=0;
+for(const item of STANDARD_MAJOR_CATALOG_2026_FULL){
+  const prompt=`介绍下${item.name}专业`,cmd=await command(prompt);
+  assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: every canonical undergraduate major introduction must enter knowledge owner`);
+  assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: pure major introduction must not mutate candidate view`);
+  catalogIntroductionCount++;
+}
+let aliasIntroductionCount=0;
+for(const [alias,canonical] of Object.entries(MAJOR_LANGUAGE_ALIASES)){
+  if(!alias||alias===canonical)continue;
+  const prompt=`介绍下${alias}专业`,cmd=await command(prompt);
+  assert.equal(cmd.agentTask,'knowledge_explain',`${prompt}: every existing major alias must enter knowledge owner`);
+  assert.equal(cmd.executionPolicy.commitView,false,`${prompt}: alias introduction must not mutate candidate view`);
+  aliasIntroductionCount++;
+}
+assert.ok(aliasIntroductionCount>20,'major alias introduction coverage unexpectedly small');
+for(const prompt of ['介绍下电气工程及自动化 专业','讲讲电气工程及自动化专业','说说电气工程及其自动化专业','聊聊电气工程及自动化专业','了解一下电气工程及自动化专业','电气工程及自动化专业介绍一下']){
+  const cmd=await command(prompt);assertKnowledge(cmd,`natural major introduction ${prompt}`);
+}
+
 const rememberedSchoolWorkspace=createAiWorkspace({
   examContext:{score:580},
   activeView:{score:580,regionKeys:['ln'],majorKeywords:['机械'],schoolNames:['沈阳工业大学'],bottomLineMode:'all'},
@@ -44,6 +67,10 @@ const contextSwitchPrompts=[
 let multiTurnCount=0;
 for(const prompt of contextSwitchPrompts){assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->knowledge ${prompt}`,{scoreUsage:'remembered'});multiTurnCount++;}
 for(const prompt of directRulePrompts){assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->current-policy ${prompt}`,{scoreUsage:'remembered'});multiTurnCount++;}
+for(const item of STANDARD_MAJOR_CATALOG_2026_FULL){
+  const prompt=`介绍下${item.name}专业`;
+  assertKnowledge(await command(prompt,rememberedSchoolWorkspace),`school->major-introduction ${prompt}`,{scoreUsage:'remembered'});
+}
 
 const knowledgeWorkspace=createAiWorkspace({
   examContext:{score:580},
@@ -76,10 +103,17 @@ assert.ok(multiTurnCount/(singleTurnCount+multiTurnCount)>=1/3,'at least one thi
 
 const exactUndergrad=resolveEducationKnowledgeQuestion('材料成型及控制工程是什么');
 assert.equal(exactUndergrad.ok,true);assert.equal(exactUndergrad.entities[0].type,'undergraduate_major');assert.equal(exactUndergrad.entities[0].officialCode,'080203');
+const electricalAliasIntro=resolveEducationKnowledgeQuestion('介绍下电气工程及自动化 专业');
+assert.equal(electricalAliasIntro.ok,true,'spoken/legacy major alias introduction must resolve through the shared major language owner');
+assert.equal(electricalAliasIntro.entities[0].type,'undergraduate_major');assert.equal(electricalAliasIntro.entities[0].officialCode,'080601');
+const electricalAliasRuntime=await runEducationKnowledge({env:{}},{question:'介绍下电气工程及自动化 专业'});
+assert.equal(electricalAliasRuntime.answerStatus,'answered');assert.equal(electricalAliasRuntime.canonical?.officialCode,'080601');
 const exactGraduate=resolveEducationKnowledgeQuestion('控制科学与工程是什么');
 assert.equal(exactGraduate.ok,true);assert.equal(exactGraduate.entities[0].type,'graduate_first_level_discipline');assert.equal(exactGraduate.entities[0].officialCode,'0811');
 const commonCrossLevelLabels=['电子信息','机械','金融','会计','建筑'];
 for(const label of commonCrossLevelLabels){const result=resolveEducationKnowledgeQuestion(`${label}是什么`);assert.equal(result.ok,false,`${label}: common education label must not be guessed without level context`);assert.equal(result.resolutionClass,'ambiguous',`${label}: must expose ambiguity rather than unknown/fabricated identity`);}
+const introducedCrossLevel=resolveEducationKnowledgeQuestion('介绍下电子信息专业');
+assert.equal(introducedCrossLevel.ok,false,'introduction wording must not weaken cross-level ambiguity');assert.equal(introducedCrossLevel.resolutionClass,'ambiguous');
 const professionalDegreeByCode=resolveEducationKnowledgeQuestion('0854是什么');
 assert.equal(professionalDegreeByCode.ok,true,'explicit graduate catalog code is sufficient identity context');assert.equal(professionalDegreeByCode.entities[0].type,'graduate_professional_degree_category');assert.equal(professionalDegreeByCode.entities[0].officialCode,'0854');
 const undergraduateCategory=resolveEducationKnowledgeQuestion('电子信息类是什么');
@@ -107,4 +141,4 @@ assert.equal(coverage.vocationalCurrentIdentityLiveRequired,true);
 assert.equal(coverage.vocationalLatestKnownEnrollmentStartYear,2027);
 assert.equal(resolveCanonicalEducationEntity('临床医学')?.ambiguous,true);
 
-console.log(JSON.stringify({ok:true,version:'aiplus-aek-human-journeys-v0.02',singleTurnCount,multiTurnCount,total:singleTurnCount+multiTurnCount,multiTurnRatio:multiTurnCount/(singleTurnCount+multiTurnCount),coverage:{undergraduate:coverage.undergraduateMajorCount,graduate:coverage.graduateEntryCount,vocationalMode:coverage.vocationalCatalogMode}},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-aek-human-journeys-v0.03',singleTurnCount,multiTurnCount,total:singleTurnCount+multiTurnCount,multiTurnRatio:multiTurnCount/(singleTurnCount+multiTurnCount),catalogIntroductionCount,aliasIntroductionCount,coverage:{undergraduate:coverage.undergraduateMajorCount,graduate:coverage.graduateEntryCount,vocationalMode:coverage.vocationalCatalogMode}},null,2));
