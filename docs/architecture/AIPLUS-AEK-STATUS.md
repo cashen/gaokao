@@ -62,7 +62,8 @@ These are examples of classes, not a one-off regex checklist.
 8. Official live source unavailable: stable concept may be explained from canonical evidence, but current eligibility/deadline/school implementation must fail closed.
 9. Pure knowledge questions do not commit candidate view or silently activate remembered score.
 10. Existing AIPLuS school research, school official, school/major history, major-region, candidate, parent-decision and browser journeys stay green.
-11. Common/cross-level education labels such as `电子信息是什么` must not silently select a graduate professional-degree category when ordinary human language does not specify the education level.
+11. Common/cross-level education labels such as `电子信息是什么` must not silently select a graduate professional-degree category when ordinary human language does not specify the education level. The same rule applies to other catalog-backed broad labels when an ordinary label can map to a different undergraduate major/category surface.
+12. Explicit disambiguation must remain available: an exact graduate catalog code such as `0854` may resolve directly, while an explicit undergraduate category label such as `电子信息类` must resolve to that undergraduate category.
 
 ## Source strategy decision
 
@@ -78,17 +79,21 @@ Use a hybrid model:
 - AEK semantic ownership, taxonomy, relations, authority/freshness routing, unified retrieval, ambiguity handling, Answer-First delivery and coverage counters all exist on the branch and the package-level deterministic verifier currently passes.
 - **AEK-03 remains DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source.
 - Expanded AEK-QA found a routing defect for `位次是什么意思`; that defect was repaired in the knowledge-language owner rather than patched in the orchestrator.
-- Expanded AEK-QA then found an unresolved ambiguity defect for `电子信息是什么`: the current resolver over-resolves a common/cross-level label instead of failing closed. Because that contradicts the AEK-08 outcome, **AEK-08 has been reopened to IN_PROGRESS**.
-- **This branch is not mergeable.** The next gate is to close the reopened AEK-08 ambiguity class, rerun the full 100+ human journey suite, then complete Draft checks, exact-head Preview/live proof, same-head Ready checks, exact-SHA merge and production closure.
+- Expanded AEK-QA then found the `电子信息是什么` ambiguity defect and reopened AEK-08. The root cause was confirmed in the canonical resolver: exact graduate-name resolution considered exact undergraduate majors but not ordinary labels that collide with a canonical undergraduate major/category surface.
+- The AEK-08 implementation now performs that collision check inside the single `education-knowledge-center.js` owner by reusing the existing 2026 undergraduate catalog resolver. It does not add a second catalog, phrase-specific exception table or parallel parser. Plain common labels such as `电子信息`/`机械`/`金融`/`会计`/`建筑` fail closed when catalog-backed level identity is ambiguous, while `0854` and `电子信息类` remain explicitly resolvable.
+- A self-deleting implementation gate confirmed before editing that `电子信息类` is a 2026 undergraduate category and `电子信息` is graduate professional-degree category `0854`; after editing it passed syntax, AEK package verification, the expanded 100+ human journey suite, parent semantics, human-dialog and architecture handoff. The temporary workflow removed itself in the same implementation commit and is absent from the candidate tree.
+- **AEK-08 remains IN_PROGRESS until the normal PR-owned Draft workflow and exact-head Preview prove the same behavior.** Local/package proof is not enough to close the package.
+- **This branch is not mergeable.** The next gate is formal PR Draft validation on the connector-authored head, followed by exact-head Preview/live proof; any new system-scale counterexample reopens its owning package rather than weakening the assertion.
 
 ## Current session progress
 
-- Re-read latest `main`, PR #164, current head and repository startup/release skills after a network interruption.
+- Re-read latest `main`, PR #164, current head and repository startup/release skills after a network interruption; `main` remained `a9cc98d3601008f5337b2b9a0b030f070ffeccfb`.
 - Confirmed PR #164 remains Draft and unmerged; work continues on `agent/aiplus-authoritative-education-knowledge`.
 - Removed the completed temporary AEK canonical builder workflow so it cannot become a second release/test owner.
 - Wired AEK package verification, 100+ human journeys and exact-head Preview knowledge probes into the formal AIPLuS parent-decision workflow.
-- Current package-level verifier passes taxonomy/canonical/graduate/vocational/authority/relation/unknown/live-evidence checks.
-- Current system-scale AEK-QA is intentionally red on the first unresolved acceptance defect; do not bypass or weaken the assertion.
+- Formal QA reproduced the AEK-08 failure on `电子信息是什么` rather than relying on the status ledger.
+- Repaired the ambiguity class in the canonical knowledge resolver and expanded deterministic journeys to cover multiple ordinary cross-level labels plus explicit code/category disambiguation.
+- The implementation gate passed all selected AEK and preserved semantic regressions before creating the repair commit; the next evidence must come from the normal PR workflow on this status-update head.
 
 ## Handoff instruction
 
