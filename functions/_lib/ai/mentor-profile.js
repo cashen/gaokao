@@ -1,3 +1,4 @@
+import {careerTargetsFromText,studentSignalsFromText} from './parent-semantic-frame.js';
 export const AI_MENTOR_PROFILE_VERSION = 'ai-mentor-profile-v3991_0';
 
 export const MENTOR_SKILLSET_ATTRIBUTION = Object.freeze({
@@ -25,8 +26,10 @@ function persistableFromText(source){
   const priorities=detectPriorities(source).filter(value=>value!=='feasible_set');
   const familyResourceSensitivity=explicitResourceSensitivity(source);
   const studyDurationTolerance=explicitStudyDuration(source);
-  const hasExplicit=/((更|最|主要|优先|第一|看重|倾向|希望).{0,8}(就业|城市|学校|专业|稳定|收入|学费|成本)|普通家庭|没资源|没背景|不想读太久|本科就就业|本科就业|愿意读研|接受长学制|考公|编制|铁饭碗)/.test(source);
-  return hasExplicit?{primaryGoal,priorities,familyResourceSensitivity,studyDurationTolerance}:{primaryGoal:'undecided',priorities:[],familyResourceSensitivity:'unspecified',studyDurationTolerance:'unspecified'};
+  const careerTargets=careerTargetsFromText(source);
+  const studentSignals=studentSignalsFromText(source);
+  const hasExplicit=/((更|最|主要|优先|第一|看重|倾向|希望).{0,8}(就业|城市|学校|专业|稳定|收入|学费|成本)|普通家庭|没资源|没背景|不想读太久|本科就就业|本科就业|愿意读研|接受长学制|考公|编制|铁饭碗)/.test(source)||careerTargets.length>0||studentSignals.length>0;
+  return hasExplicit?{primaryGoal,priorities,familyResourceSensitivity,studyDurationTolerance,careerTargets,studentSignals}:{primaryGoal:'undecided',priorities:[],familyResourceSensitivity:'unspecified',studyDurationTolerance:'unspecified',careerTargets:[],studentSignals:[]};
 }
 
 export function deterministicMentorProfile(text=''){

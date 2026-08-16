@@ -19,6 +19,7 @@ import {buildEvidencePlan} from './evidence-plan.js';
 import {claimToEvidence} from './claim-evidence.js';
 import {runDecisionResearch} from './decision-research-runtime.js';
 import {runEducationKnowledge} from './education-knowledge-runtime.js';
+import {reflectDecisionTurn} from './decision-reflection.js';
 import {normalizeProjectScope,ANSWER_STATUSES,EXPERIENCE_TOPIC_LABELS} from '../../../shared/ai/aiplus-product-contract.v003.js';
 
 export const AI_TURN_ORCHESTRATOR_VERSION='ai-turn-orchestrator-v0.04';
@@ -157,6 +158,7 @@ export async function orchestrateAiTurn(context,payload={}){
   if(result.officialSchool?.sources?.length)for(const source of result.officialSchool.sources)result.evidence.push({level:'A',sourceName:source.sourceName||'阳光高考',sourceUrl:source.sourceUrl||'',scope:source.scope||result.officialSchool.topicLabel||'学校官方信息',updatedAt:source.updatedAt||result.officialSchool.updatedAt||''});
   result.identity=resultIdentity({view,command,selectionReview:result.selectionReview});
   result.pendingChecks=pendingChecksFor(result,regionExecution);
+  result.decisionReflection=reflectDecisionTurn({workspace:{...workspace,activeView:view},command,result});
   const delta=result.candidates?buildAiResultDelta(workspace?.lastResult||null,result,{previousView:resolved.previousView,nextView:view}):{changed:Boolean(changes.length),countChanges:{},scopeChanges:{},addedPreviewIds:[],removedPreviewIds:[],unchangedPreviewCount:0};
   const blocks=buildBlocks({command,view,result,delta,workspace,regionExecution,changeText,stage:result.decisionStage,focus,agentContext});
   const primaryBlock=blocks.find(block=>block?.type==='assistant_message'),validStatuses=new Set(ANSWER_STATUSES);if(!primaryBlock?.text||!validStatuses.has(primaryBlock.answerStatus)||!validStatuses.has(result.answerStatus))return{ok:false,status:500,message:'AIPLuS 主答案合同没有收敛，本轮未提交。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
