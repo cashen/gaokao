@@ -173,6 +173,8 @@ Exact-head immutable Preview additionally verifies real `/api/ai/turn` and `/api
 
 PR #164 release closure is complete and its production counterexamples are the reason for PR #165.
 
+A one-shot CI stale-run canceller was used after the matrix development sequence generated many obsolete PR runs. It was scoped only to PR #165 branch pull-request runs, cancelled the obsolete queue, and was removed immediately. It is not part of the product or final diff. The clean candidate after this checkpoint must now prove itself through normal repository workflows; no stale-run evidence is reused.
+
 PR #165 is **Draft**. AEK-01 and AEK-QA remain `IN_PROGRESS` until the current clean candidate (with no temporary files) passes:
 
 1. formal Draft source/full-regression matrices;
