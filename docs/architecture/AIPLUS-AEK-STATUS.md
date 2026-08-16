@@ -36,7 +36,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` means implementation and th
 | Work package | Status | Required outcome |
 |---|---|---|
 | AEK-00 | DONE | Skill, architecture contract, durable handoff/status owner, startup registration, long-lived Draft PR |
-| AEK-01 | DONE | First-class `knowledge_explain` task; concept-question semantics; old school/score/candidate context cannot hijack a new concept object |
+| AEK-01 | IN_PROGRESS | First-class `knowledge_explain` task; definition, current-rule and eligibility question semantics; old school/score/candidate context cannot hijack a new concept object |
 | AEK-02 | DONE | Structured taxonomy for higher education, majors/disciplines, vocational education, admissions, policies, training, credentials, occupations/industry concepts |
 | AEK-03 | DONE | Canonical/versioned entity index with aliases, codes/types, provenance and effective metadata; no generated-article truth store |
 | AEK-04 | DONE | Concept relation graph: is-a, parent/child, different-from, often-confused-with, related-to, historical-name/source-specific relations |
@@ -58,7 +58,7 @@ These are examples of classes, not a one-off regex checklist.
 4. `材料成型及控制工程是什么` resolves as a canonical undergraduate major.
 5. `自动化和控制科学与工程有什么区别` must distinguish undergraduate-major vs graduate-discipline semantics.
 6. `材料加工与工业控制是什么` must not be silently invented as an official major; use exact/alias/near/source-specific/unknown resolution.
-7. `今年辽宁高校专项有什么要求` requires current-cycle Liaoning authority evidence and must not substitute a prior-cycle rule.
+7. `今年辽宁高校专项有什么要求` requires current-cycle Liaoning authority evidence and must not substitute a prior-cycle rule. Direct first-turn variants such as `谁能报`、`需要什么条件`、`怎么报名`、`报名截止什么时候` must enter the same knowledge owner rather than fall through to general advice.
 8. Official live source unavailable: stable concept may be explained from canonical evidence, but current eligibility/deadline/school implementation must fail closed.
 9. Pure knowledge questions do not commit candidate view or silently activate remembered score.
 10. Existing AIPLuS school research, school official, school/major history, major-region, candidate, parent-decision and browser journeys stay green.
@@ -80,20 +80,23 @@ Use a hybrid model:
 - **AEK-03 remains DONE**: the existing 2026 undergraduate catalog is reused as the 883-major canonical source; the full 2022 graduate directory is versioned locally (184 four-digit entities: 117 first-level disciplines + 67 professional-degree categories); vocational current identity is delegated to the Ministry of Education dynamic catalog instead of copying a stale 1349+ shadow truth source.
 - Expanded AEK-QA found a routing defect for `位次是什么意思`; that defect was repaired in the knowledge-language owner rather than patched in the orchestrator.
 - Expanded AEK-QA then found the `电子信息是什么` ambiguity defect and reopened AEK-08. The root cause was confirmed in the canonical resolver: exact graduate-name resolution considered exact undergraduate majors but not ordinary labels that collide with a canonical undergraduate major/category surface.
-- The AEK-08 implementation now performs that collision check inside the single `education-knowledge-center.js` owner by reusing the existing 2026 undergraduate catalog resolver. It does not add a second catalog, phrase-specific exception table or parallel parser. Plain common labels such as `电子信息`/`机械`/`金融`/`会计`/`建筑` fail closed when catalog-backed level identity is ambiguous, while `0854` and `电子信息类` remain explicitly resolvable.
-- A self-deleting implementation gate confirmed before editing that `电子信息类` is a 2026 undergraduate category and `电子信息` is graduate professional-degree category `0854`; after editing it passed syntax, AEK package verification, the expanded 100+ human journey suite, parent semantics, human-dialog and architecture handoff. The temporary workflow removed itself in the same implementation commit and is absent from the candidate tree.
-- **AEK-08 remains IN_PROGRESS until the normal PR-owned Draft workflow and exact-head Preview prove the same behavior.** Local/package proof is not enough to close the package.
-- **This branch is not mergeable.** The next gate is formal PR Draft validation on the connector-authored head, followed by exact-head Preview/live proof; any new system-scale counterexample reopens its owning package rather than weakening the assertion.
+- The AEK-08 implementation performs that collision check inside the single `education-knowledge-center.js` owner by reusing the existing 2026 undergraduate catalog resolver. It does not add a second catalog, phrase-specific exception table or parallel parser. Plain common labels such as `电子信息`/`机械`/`金融`/`会计`/`建筑` fail closed when catalog-backed level identity is ambiguous, while `0854` and `电子信息类` remain explicitly resolvable.
+- Exact-head Cloudflare Preview at head `3ac5d6699e4478a13f78053d56a6b711c1d8b956` proved the AEK-08 runtime behavior: `电子信息是什么` entered `knowledge_explain`, returned `needs_clarification`, `resolutionClass=ambiguous`, `canonical=null`, and did not fabricate a graduate identity. The same Preview also proved canonical undergraduate resolution, compound-name fail-closed behavior and the remembered-school context firewall.
+- That same real Preview exposed a separate system-scale defect: first-turn `今年辽宁高校专项有什么要求` fell through to `general_advice`, so the existing live-evidence gate was never reached. This contradicts AEK-01's first-class knowledge-task outcome, so **AEK-01 is reopened** rather than leaving an optimistic DONE marker.
+- Root cause is in the singular knowledge-language boundary: it previously required a definition-form question before considering a known education-policy hint. The implementation now treats direct rule/eligibility forms as first-class knowledge questions and strips current/rule question framing before canonical subject resolution. The new deterministic matrix covers年度要求、资格、谁能报、报名截止、报名/申请和现行规定等 classes instead of hard-coding one sentence.
+- **AEK-01 and AEK-08 remain IN_PROGRESS until the current normal PR-owned Draft workflow and exact-head Preview prove the combined behavior on one candidate head.** Prior exact Preview proof is evidence, but not a substitute for the final current head.
+- **This branch is not mergeable.** Any new system-scale counterexample reopens its owning package rather than weakening an assertion.
 
 ## Current session progress
 
-- Re-read latest `main`, PR #164, current head and repository startup/release skills after a network interruption; `main` remained `a9cc98d3601008f5337b2b9a0b030f070ffeccfb`.
+- Re-read latest `main`, PR #164, current head and repository startup/release skills after a network interruption; `main` remained `a9cc98d3601008f5337b2b9a0b030f070ffeccfb` at that checkpoint.
 - Confirmed PR #164 remains Draft and unmerged; work continues on `agent/aiplus-authoritative-education-knowledge`.
 - Removed the completed temporary AEK canonical builder workflow so it cannot become a second release/test owner.
 - Wired AEK package verification, 100+ human journeys and exact-head Preview knowledge probes into the formal AIPLuS parent-decision workflow.
-- Formal QA reproduced the AEK-08 failure on `电子信息是什么` rather than relying on the status ledger.
-- Repaired the ambiguity class in the canonical knowledge resolver and expanded deterministic journeys to cover multiple ordinary cross-level labels plus explicit code/category disambiguation.
-- The implementation gate passed all selected AEK and preserved semantic regressions before creating the repair commit; the next evidence must come from the normal PR workflow on this status-update head.
+- Repaired the cross-level ambiguity class in the canonical knowledge resolver and expanded deterministic journeys to cover multiple ordinary labels plus explicit code/category disambiguation.
+- Hardened the exact-head Preview gate without weakening it: it now reads the canonical health deployment SHA, tolerates only bounded Functions edge-readiness lag on the same immutable Preview URL, and reports compact real-journey diagnostics.
+- Formal source-contract is green on the latest pre-rule-fix candidate lineage. Exact Preview boundaries are also proven exact-SHA; real POST diagnostics isolated the remaining current-rule routing defect instead of guessing.
+- Repaired the current-rule/eligibility semantic entry in `knowledge-language.js` and expanded first-turn policy journey coverage. The next evidence must come from the normal PR-owned workflow on the current head.
 
 ## Handoff instruction
 
