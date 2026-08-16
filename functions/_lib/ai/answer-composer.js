@@ -31,6 +31,7 @@ function frameworkAnswer(command={},focus={}){
 
 export function composePrimaryAnswer({command={},result={},focus={},view={},changeText=''}={}){
   const task=command.agentTask||'general_advice';
+  if(result.knowledge){const status=['answered','needs_fact','needs_clarification','unsupported'].includes(result.knowledge.answerStatus)?result.knowledge.answerStatus:(result.knowledge.ok?'answered':'unsupported');return{status,text:clean(result.knowledge.answer||result.knowledge.message||changeText||'本轮没有形成可验证的教育知识解释。')};}
   if(task==='school_research'&&result.officialSchool?.ok&&result.officialSchool?.detailAvailable)return{status:'answered',text:clean(result.officialSchool.answer||result.officialSchool.message||changeText)};
   if(task==='school_research'&&result.profileSupplement?.ok)return{status:'answered',text:clean(result.profileSupplement.answer||changeText)};
   if(result.officialSchool?.ok)return{status:'answered',text:clean(result.officialSchool.answer||result.officialSchool.message||changeText)};

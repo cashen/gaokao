@@ -43,6 +43,7 @@ export function explicitScoreUsage(text='',workspace={}){
   const source=String(text||'');
   if(has(source,/(?:不是|不想|先不|别|不要).{0,4}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗)/))return workspace?.examContext?.score?'remembered':'cleared';
   if(has(source,/(不考虑|不用管|先别管|别管|不看|先不看|忽略|不问|先不问).{0,8}(我的)?(分数|位次)|单看.{0,10}(学校|专业|方向)|只看.{0,8}(学校|专业)本身/))return'suspended';
+  if(has(source,/我\s*\d{3}\s*分?.{0,8}(符合|资格|条件)/))return'active';
   if(has(source,/(按我|按我的|我这个|我的).{0,6}(分|位次)|我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/))return'active';
   return workspace?.examContext?.score?'remembered':'cleared';
 }
@@ -64,13 +65,14 @@ function looksSchoolExperience(source){return /(学校环境|校园环境|校园
 function looksOfficialSchoolInfo(source){return /(学校简介|院校简介|学校介绍|什么学校|学校定位|办学性质|主管部门|校区|宿舍|住宿|食堂|食宿|奖学金|助学金|奖助|联系方式|联系办法|招生电话|学校官网|招生网址|招生章程|录取规则|调档|退档|专业级差|志愿级差|转专业|学费|收费|院系设置|专业介绍|答考生问|毕业生就业|体检要求|(大学|学院|专科学校).{0,4}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样)|这个学校.{0,6}(怎么样|如何|咋样)|该校.{0,6}(怎么样|如何|咋样))/.test(source);}
 function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
 function looksMajorRegionSchoolList(source){return /(?:哪些|那些|什么|啥|有什么|有啥|有哪些).{0,6}(?:学校|大学|高校|院校)|(?:学校|大学|高校|院校).{0,6}(?:有这个专业|有该专业|有吗)/.test(String(source||''));}
+function looksKnowledgeFollowup(source,priorTask=''){return priorTask==='knowledge_explain'&&/(这个|它|刚才(?:那个|说的)|这个政策|这个计划|这个专业|这个概念|那这个|那它|我家|户籍|学籍|能报吗|可以报吗|谁能报|怎么报|符合|资格|条件|今年|现在|沈工大|这所学校).{0,20}/.test(String(source||''));}
 
 export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode=''}={}){
   const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
-  if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors}))return'knowledge_explain';
+  if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors})||looksKnowledgeFollowup(source,priorTask))return'knowledge_explain';
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
     (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||
