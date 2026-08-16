@@ -20,6 +20,7 @@ const plainKnowledgePrompts=[
   '大类招生是什么','专业分流是什么意思','转专业是什么意思','培养方案是什么','推免是什么意思','保研是什么意思','中外合作办学是什么','国际班是什么意思',
   '选科要求是什么意思','物化是什么意思','物化生是什么意思','色弱报专业是什么意思','色盲限报怎么理解','单色识别是什么意思','国家助学贷款是什么','工业控制是什么意思',
   '智能制造是什么意思','材料加工是什么意思','储能是什么','低空经济是什么意思','职业和专业有什么区别','材料成型及控制工程是什么','临床医学是什么','自动化和控制科学与工程有什么区别',
+  '电子信息是什么','机械是什么','金融是什么','会计是什么','建筑是什么',
   '本科专业与一级学科有什么区别','985、211和双一流有什么区别','投档和录取有什么区别','退档和滑档有什么区别','转专业和专业分流有什么区别','一流本科专业和工程教育认证有什么区别'
 ];
 assert.ok(plainKnowledgePrompts.length>=60,'single-turn coverage should be broad, not a tiny phrase fixture');
@@ -70,8 +71,14 @@ const exactUndergrad=resolveEducationKnowledgeQuestion('材料成型及控制工
 assert.equal(exactUndergrad.ok,true);assert.equal(exactUndergrad.entities[0].type,'undergraduate_major');assert.equal(exactUndergrad.entities[0].officialCode,'080203');
 const exactGraduate=resolveEducationKnowledgeQuestion('控制科学与工程是什么');
 assert.equal(exactGraduate.ok,true);assert.equal(exactGraduate.entities[0].type,'graduate_first_level_discipline');assert.equal(exactGraduate.entities[0].officialCode,'0811');
-const professionalDegree=resolveEducationKnowledgeQuestion('电子信息是什么');
-assert.equal(professionalDegree.ok,false,'same/common education labels must not be guessed when the query lacks enough level context');
+const commonCrossLevelLabels=['电子信息','机械','金融','会计','建筑'];
+for(const label of commonCrossLevelLabels){const result=resolveEducationKnowledgeQuestion(`${label}是什么`);assert.equal(result.ok,false,`${label}: common education label must not be guessed without level context`);assert.equal(result.resolutionClass,'ambiguous',`${label}: must expose ambiguity rather than unknown/fabricated identity`);}
+const professionalDegreeByCode=resolveEducationKnowledgeQuestion('0854是什么');
+assert.equal(professionalDegreeByCode.ok,true,'explicit graduate catalog code is sufficient identity context');assert.equal(professionalDegreeByCode.entities[0].type,'graduate_professional_degree_category');assert.equal(professionalDegreeByCode.entities[0].officialCode,'0854');
+const undergraduateCategory=resolveEducationKnowledgeQuestion('电子信息类是什么');
+assert.equal(undergraduateCategory.ok,true,'explicit undergraduate category label must remain resolvable');assert.equal(undergraduateCategory.entities[0].type,'undergraduate_major_category');
+const ambiguousRuntime=await runEducationKnowledge({env:{}},{question:'电子信息是什么'});
+assert.equal(ambiguousRuntime.answerStatus,'needs_clarification');assert.equal(ambiguousRuntime.canonical,null);assert.doesNotMatch(ambiguousRuntime.answer,/电子信息专业主要|该专业主要学习/);
 const clinical=resolveEducationKnowledgeQuestion('临床医学是什么');
 assert.equal(clinical.ok,false);assert.equal(clinical.resolutionClass,'ambiguous');
 const compound=await runEducationKnowledge({env:{}},{question:'材料加工与工业控制是什么意思'});

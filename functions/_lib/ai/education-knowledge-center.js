@@ -131,6 +131,18 @@ function catalogCategoryEntity(category){return{id:`undergraduate-category:${cat
 function graduateCatalogEntity(item){const professional=item.kind==='professional_degree_category';return{id:`graduate:${item.code}`,name:item.name,aliases:[],type:professional?'graduate_professional_degree_category':'graduate_first_level_discipline',taxonomy:'graduate_discipline',temperature:'T1',officialCode:item.code,categoryCode:item.categoryCode||'',categoryName:item.categoryName||'',mastersOnly:Boolean(item.mastersOnly),definition:professional?`${item.name}是《研究生教育学科专业目录（2022年）》中的专业学位类别，代码${item.code}${item.mastersOnly?'，目录标记为仅可授硕士专业学位':''}；它与同名本科专业或一级学科不是同一教育实体。`:`${item.name}是《研究生教育学科专业目录（2022年）》中的一级学科，代码${item.code}；它属于研究生教育学科体系，不能与同名本科专业简单等同。`,sourceKey:'moe_graduate_2022',practicalImpact:professional?'判断具体硕士/博士招生仍需看招生单位当年专业目录与简章。':'判断本科阶段学什么，应看本科专业和学校培养方案；判断硕博培养与学科平台，再看一级学科。',confusions:[],relations:[],jurisdiction:'全国',liveRequired:false};}
 function graduateResolutionEntities(resolution){if(!resolution)return[];if(resolution.status==='resolved')return[graduateCatalogEntity(resolution.item)];if(resolution.status==='ambiguous')return(resolution.candidates||[]).map(graduateCatalogEntity);return[];}
 function ambiguousResolution(matchType,candidates=[]){return{matchType,ambiguous:true,confidence:0,candidates:candidates.map(entity=>({entity,source:authority(entity.sourceKey)}))};}
+function undergraduateOrdinarySurfaceEntities(value=''){
+  const raw=clean(value,180);if(!raw)return[];
+  const variants=unique([raw,`${raw}类`,raw.endsWith('学')?`${raw}类`:`${raw}学`,raw.endsWith('学')?'':`${raw}学类`],6),out=[];
+  for(const variant of variants){
+    if(!variant)continue;
+    const resolved=resolveCatalogEntity(variant,{allowContains:false});let entity=null;
+    if(resolved?.kind==='major')entity=catalogMajorEntity(resolved.item);
+    else if(resolved?.kind==='category')entity=catalogCategoryEntity(resolved.item);
+    if(entity&&!out.some(item=>item.id===entity.id))out.push(entity);
+  }
+  return out;
+}
 
 export function resolveCanonicalEducationEntity(value=''){
   const raw=clean(value,180),key=norm(raw);if(!key)return null;
@@ -138,6 +150,7 @@ export function resolveCanonicalEducationEntity(value=''){
   const undergraduate=findCatalogMajorExact(raw),graduate=resolveGraduateCatalogEntity(raw),graduateEntities=graduateResolutionEntities(graduate);
   if(undergraduate&&graduateEntities.length)return ambiguousResolution('cross_system_ambiguous',[catalogMajorEntity(undergraduate),...graduateEntities]);
   if(graduateEntities.length>1)return ambiguousResolution('graduate_name_ambiguous',graduateEntities);
+  if(graduate?.status==='resolved'&&graduate?.matchType==='name_exact'&&graduateEntities.length===1){const undergraduateSurfaces=undergraduateOrdinarySurfaceEntities(raw);if(undergraduateSurfaces.length)return ambiguousResolution('cross_system_surface_ambiguous',[...undergraduateSurfaces,...graduateEntities]);}
   if(undergraduate){const entity=catalogMajorEntity(undergraduate);return{matchType:'undergraduate_major_exact',confidence:100,entity,source:authority(entity.sourceKey)};}
   if(graduateEntities.length===1){const entity=graduateEntities[0];return{matchType:graduate?.matchType||'graduate_exact',confidence:100,entity,source:authority(entity.sourceKey)};}
   const category=resolveCatalogEntity(raw,{allowContains:false});if(category?.kind==='category'){const entity=catalogCategoryEntity(category.item);return{matchType:'undergraduate_category_exact',confidence:96,entity,source:authority(entity.sourceKey)};}
