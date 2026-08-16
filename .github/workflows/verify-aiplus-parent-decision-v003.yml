@@ -196,7 +196,18 @@ jobs:
           curl -fsSL --retry 10 --retry-all-errors --retry-delay 3 --max-time 30 -H 'Cache-Control: no-cache' "${PREVIEW_URL}/aiplus/" -o /tmp/aiplus.html
           grep -q 'AIPLuS 产品版 · v0.02' /tmp/aiplus.html
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' /tmp/aiplus.html
-          node tools/verify-production-api-health-v3971.mjs "${PREVIEW_URL}"
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const health=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));
+          const expected=process.env.EXPECTED_SHA;
+          if(health?.ok!==true) throw new Error('Preview AI health ok=false');
+          if(health?.apiVersion!=='ai-health-api-v0.02') throw new Error(`Unexpected health apiVersion: ${health?.apiVersion}`);
+          if(health?.deployment?.commitSha!==expected) throw new Error(`Preview deployment SHA mismatch: ${health?.deployment?.commitSha}`);
+          if(health?.workspace?.productVersion!=='v0.02') throw new Error(`Unexpected AIPLuS product version: ${health?.workspace?.productVersion}`);
+          if(health?.workspace?.decisionSemanticMode!=='bounded-evidence-plan-v0.03') throw new Error(`Unexpected decision semantic mode: ${health?.workspace?.decisionSemanticMode}`);
+          if(health?.workspace?.agentKernelVersion!=='ai-human-advisor-kernel-v3992_6') throw new Error(`Unexpected agent kernel: ${health?.workspace?.agentKernelVersion}`);
+          if(health?.evidence?.searchResultIsFact!==false) throw new Error('Search-result-is-fact boundary regressed');
+          NODE
       - name: Verify AEK exact-SHA knowledge journeys
         env:
           PREVIEW_URL: ${{ steps.preview.outputs.url }}
