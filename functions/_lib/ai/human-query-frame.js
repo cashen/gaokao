@@ -1,4 +1,4 @@
-export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.02';
+export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.03';
 
 const SCORE_MIN=150;
 const SCORE_MAX=750;
@@ -11,10 +11,16 @@ const SCHOOL_TOPIC_PATTERNS=Object.freeze([
   Object.freeze({kind:'school_history',re:/(?:最低录取分|最低投档分|最低分|投档分|录取分|分数线|位次|排名|去年|往年|历年|所有专业|全部专业|全校专业|招生专业|专业都多少分|各专业多少分|分都多少|大概都多少分|大约都多少分|都多少分|多少分)/}),
   Object.freeze({kind:'school_research',re:/(?:学校简介|学校介绍|学校定位|办学定位|什么学校|什么来头|整体怎么样|总体怎么样|大概怎么样|怎么样|如何|咋样)/})
 ]);
+const MAJOR_TOPIC_PATTERNS=Object.freeze([
+  Object.freeze({kind:'major_background',re:/(?:哪些|哪个|什么|啥)(?:学校|大学|高校|院校).{0,12}(?:有积累|更有积累|有背景|更有背景|有底子|底子好|更强|最强|有优势|优势大|更有优势)|(?:这个|该|这种)?专业.{0,10}(?:哪些|哪个|什么|啥)(?:学校|大学|高校|院校).{0,10}(?:强|有积累|有背景|有底子|有优势)|(?:在|于)?(?:辽宁|辽宁省|省内|沈阳|大连).{0,8}(?:哪里|哪些学校|哪个学校).{0,10}(?:强|有积累|有背景|有底子|有优势)|(?:哪里|哪儿).{0,8}(?:强|有积累|有背景|有底子|有优势)|(?:专业|方向).{0,8}(?:学校背景|院校背景|学校积累|院校积累)/}),
+  Object.freeze({kind:'major_history',re:/(?:多少分|最低分|最低录取分|最低投档分|投档分|录取分|分数线|位次|排名|去年|往年|历年|从高到低|从高到底|最高到最低)/}),
+  Object.freeze({kind:'major_school_list',re:/(?:哪些|哪个|什么|啥)(?:学校|大学|高校|院校)(?:有|开|招)(?:这个|该)?专业|(?:这个|该)?专业.{0,8}(?:哪些|哪个|什么|啥)(?:学校|大学|高校|院校)(?:有|开|招)?/})
+]);
 
 function text(value){return String(value==null?'':value).normalize('NFKC').trim();}
 function validScore(value){const n=Math.round(Number(value));return Number.isFinite(n)&&n>=SCORE_MIN&&n<=SCORE_MAX?n:null;}
 function normalizedRange(a,b){const left=validScore(a),right=validScore(b);if(left===null||right===null)return null;return left<=right?{min:left,max:right}:{min:right,max:left};}
+function firstTopic(source,patterns){let best=null;for(const item of patterns){const match=item.re.exec(source);if(!match)continue;const candidate={kind:item.kind,explicit:true,index:match.index,token:match[0]};if(!best||candidate.index<best.index||(candidate.index===best.index&&candidate.token.length>best.token.length))best=candidate;}return best||{kind:'none',explicit:false,index:-1,token:''};}
 
 export function scoreConstraintFromText(value=''){
   const source=text(value);
@@ -53,14 +59,7 @@ export function collectionScopeFromText(value=''){
   return{kind:'none',explicit:false,index:-1,token:''};
 }
 
-export function schoolTopicBoundaryFromText(value=''){
-  const source=text(value);let best=null;
-  for(const item of SCHOOL_TOPIC_PATTERNS){
-    const match=item.re.exec(source);if(!match)continue;
-    const candidate={kind:item.kind,explicit:true,index:match.index,token:match[0]};
-    if(!best||candidate.index<best.index||(candidate.index===best.index&&candidate.token.length>best.token.length))best=candidate;
-  }
-  return best||{kind:'none',explicit:false,index:-1,token:''};
-}
+export function schoolTopicBoundaryFromText(value=''){return firstTopic(text(value),SCHOOL_TOPIC_PATTERNS);}
+export function majorTopicBoundaryFromText(value=''){return firstTopic(text(value),MAJOR_TOPIC_PATTERNS);}
 
-export const HUMAN_QUERY_FRAME_TESTING=Object.freeze({SCORE_MIN,SCORE_MAX,ALL_SCHOOL_MAJOR_SCOPE_RE,SCHOOL_TOPIC_PATTERNS});
+export const HUMAN_QUERY_FRAME_TESTING=Object.freeze({SCORE_MIN,SCORE_MAX,ALL_SCHOOL_MAJOR_SCOPE_RE,SCHOOL_TOPIC_PATTERNS,MAJOR_TOPIC_PATTERNS});
