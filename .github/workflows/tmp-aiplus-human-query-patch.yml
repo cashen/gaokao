@@ -7,6 +7,7 @@ on:
       - '.github/workflows/tmp-aiplus-human-query-patch.yml'
       - 'tools/tmp-aiplus-human-query-patch.mjs'
       - 'tools/tmp-aiplus-human-topic-patch.mjs'
+      - 'tools/tmp-aiplus-routing-diagnostic.mjs'
       - 'functions/_lib/ai/human-query-frame.js'
       - 'tools/verify-aiplus-routing-grid-v001.mjs'
       - 'tools/verify-aiplus-school-topic-grid-v001.mjs'
@@ -30,6 +31,8 @@ jobs:
         run: |
           node tools/tmp-aiplus-human-query-patch.mjs
           node tools/tmp-aiplus-human-topic-patch.mjs
+      - name: Diagnose first school-topic route
+        run: node tools/tmp-aiplus-routing-diagnostic.mjs
       - name: Verify patched graph
         shell: bash
         run: |
