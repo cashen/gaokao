@@ -97,6 +97,24 @@ const actions=nextActionsForTurn({task:'decision_research',score:578,result:{dec
 ok(actions.length>=1&&actions.length<=3,'next action count must remain bounded');
 eq(actions.filter(item=>item.primary===true).length,1,'exactly one strong primary next action is required');
 
+// Global decision progress must not hijack an explicitly scoped atomic research node.
+const localSchoolActions=nextActionsForTurn({task:'school_history',school:'沈阳工业大学',score:580,result:{history:{ok:true,records:[]}},workspace:createAiWorkspace({examContext:{score:580}})});
+eq(localSchoolActions.map(item=>item.label),['看哪些专业更有积累','回到学校整体介绍','看校园环境与同学体验'],'school-history followups remain owned by the local research task');
+no(localSchoolActions.some(item=>String(item.id||'').startsWith('progress-')),'global progress must not displace local school research');
+
+// A partial non-composite query must repair the current evidence gap before advancing the journey.
+const partialActions=nextActionsForTurn({task:'candidate_refinement',score:578,result:{partial:true,candidates:{ok:true,counts:{total:8}}},workspace:createAiWorkspace({examContext:{score:578}})});
+eq(partialActions[0]?.id,'retry-failed','partial result must make retry the primary next action');
+eq(partialActions[0]?.primary,true,'partial retry must be the one strong CTA');
+no(partialActions.some(item=>String(item.id||'').startsWith('progress-')),'partial evidence cannot be skipped by a global progress CTA');
+
+// Current matching rank evidence can advance the pure progress projection before the browser commits it; stale rank evidence cannot.
+const matchingRankProgress=deriveDecisionProgress(createAiWorkspace({examContext:{score:600},lastResult:{rank:{ok:true,score:600,rankEnd:14235}}}));
+eq(matchingRankProgress.stages[0].state,'ready','matching current rank evidence should satisfy score-position projection');
+const staleRankProgress=deriveDecisionProgress(createAiWorkspace({examContext:{score:600},lastResult:{rank:{ok:true,score:599,rankEnd:15000}}}));
+eq(staleRankProgress.stages[0].state,'exploring','rank evidence for another score must never be reused');
+
+
 // topic_started preserves family truth/decisions but clears current topical school/major focus.
 const topicSource=createAiWorkspace({...workspace,mainTaskId:'task-current',activeView:{...workspace.activeView,score:578,regionKeys:['province:辽宁'],majorKeywords:['电气工程及其自动化'],schoolNames:['沈阳工业大学']},agentContext:{currentTask:'school_research',focus:{school:'沈阳工业大学',major:'电气工程及其自动化'}}});
 const topicNext=applyAiWorkspaceEvent(topicSource,{type:'topic_started',payload:{}});
