@@ -167,6 +167,9 @@ no(html.includes('测试语义模型'),'ordinary parent UI must not expose model
 no(app.includes('/api/ai/model-probe'),'browser runtime must not keep a parent-visible model probe call');
 ok(app.includes("type:'topic_started'"),'new topic must reuse the same family workspace');
 ok(app.includes('startNewFamilyProfile'),'separate-family creation must remain explicit');
+no(app.includes("scoreValue=els.starterScore?.value||workspace?.examContext?.score"),'DOM starter input must never own the default score for a new family profile');
+ok(app.includes("sourceValue=explicitInput?scoreValue:workspace?.examContext?.score"),'starter default score must come from the canonical workspace unless the user explicitly applies an input');
+ok(app.includes("else if(!explicitInput)els.starterScore.value=''"),'a new scoreless family profile must clear any stale score input from the previous family');
 ok(render.includes('next-primary'),'renderer must distinguish the primary next action');
 ok(render.includes('next-alternative'),'renderer must weaken alternatives rather than render three equal CTAs');
 ok(css.includes('@media(max-width:1100px)'),'1024px Pad must use the shared decision drawer contract');
