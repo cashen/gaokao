@@ -21,6 +21,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/tmp-aiplus-fdw-browser-cache.py')
+          text=path.read_text()
+          old="re.subn(pattern, replacement, text, count=1, flags=re.S)"
+          count=text.count(old)
+          if count != 4:
+              raise SystemExit(f'expected 4 regex replacement calls, got {count}')
+          path.write_text(text.replace(old,"re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.S)"))
+          PY
           python -m py_compile tools/tmp-aiplus-fdw-browser-cache.py
           python tools/tmp-aiplus-fdw-browser-cache.py
       - name: Verify source and preserved AIPLuS contracts
@@ -46,3 +56,4 @@ jobs:
           git add aiplus/index.html aiplus/app.v3990_1.js aiplus/render.v3992_0.js aiplus/workspace.v3990_1.css shared/ai/ai-workspace-contract.v3992_0.js tools/audit-aiplus-v002-ui.mjs tools/browser-ai-workspace-v3990_1.mjs tools/verify-aiplus-family-decision-workbench-v003.mjs
           git commit -m 'feat(aiplus): close family workbench browser transaction'
           git push origin HEAD:agent/aiplus-family-decision-workbench
+# rerun: literal replacement strings bypass Python replacement escape parsing
