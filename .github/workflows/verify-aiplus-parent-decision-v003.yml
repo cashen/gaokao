@@ -224,6 +224,8 @@ jobs:
               -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&aek_qa=$(date +%s%N)" \
               --data-binary @/tmp/aek-payload.json -o "$output"
             jq -e '.ok==true and .pendingConfirmation==false and .pendingDeterministicTool==false' "$output" >/dev/null
+            printf 'AEK Preview: %s -> ' "$input"
+            jq -c '{task:.command.agentTask,scoreUsage:.command.scoreUsage,schoolNames:.command.schoolNames,commitView,knowledge:{ok:.result.knowledge.ok,answerStatus:.result.knowledge.answerStatus,resolutionClass:.result.knowledge.resolutionClass,canonicalId:.result.knowledge.canonical.id,officialCode:.result.knowledge.canonical.officialCode,liveRequired:.result.knowledge.liveRequired,liveVerified:.result.knowledge.liveVerified,boundary:.result.knowledge.boundary},assistant:([.blocks[]?|select(.type=="assistant_message")][0].text // "")}' "$output"
           }
 
           empty_workspace='{}'
