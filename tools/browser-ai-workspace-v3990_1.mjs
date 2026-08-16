@@ -133,10 +133,10 @@ async function schoolResearchAndHistoryJourney(page,name){
   await page.waitForFunction(()=>document.querySelectorAll('#historyList .history-item').length>=1,null,{timeout:10000});
   const firstCount=await page.locator('#historyList .history-item').count();
   assert(firstCount>=1,'history did not persist current conversation');
-  await openNewWorkspace(page,'#newWorkspaceSide');
+  await openNewFamilyProfile(page);
   await submitTurn(page,'大连交通 都多少分',{history:true});
   await page.waitForFunction(()=>document.querySelectorAll('#historyList .history-item').length>=2,null,{timeout:10000});
-  assert(await page.locator('#historyList .history-item').count()>=2,'new discussion did not preserve prior History');
+  assert(await page.locator('#historyList .history-item').count()>=2,'new family profile did not preserve prior History');
   const historySearch=page.locator('#historySearch');
   await historySearch.fill('辽宁科技大学');
   await page.waitForFunction(()=>{const items=document.querySelectorAll('#historyList .history-item'),t=document.querySelector('#historyList')?.textContent||'';return items.length>=1&&t.includes('学校研究')&&t.includes('辽宁科技大学')&&!t.includes('大连交通');},null,{timeout:10000});
