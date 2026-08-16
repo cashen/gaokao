@@ -1,13 +1,14 @@
 import {looksRegionSchoolDirectoryLanguage,looksRegionSchoolDirectoryFollowup} from './region-school-language.js';
+import {looksEducationKnowledgeQuestion} from './knowledge-language.js';
 
-export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5';
+export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6';
 
 export const AGENT_TASKS=Object.freeze([
   'candidate_discovery','candidate_refinement','fact_rank_lookup',
   'school_major_history','school_history','major_region_history','region_school_directory','school_research','school_official_qa','school_experience','fit_assessment',
   'school_comparison','major_comparison',
   'background_discovery','background_fit_discovery','school_background','major_background',
-  'evidence_verification','plan_review','general_advice','restore_view','save_family'
+  'knowledge_explain','evidence_verification','plan_review','general_advice','restore_view','save_family'
 ]);
 
 export const CONTEXT_STATES=Object.freeze(['active','remembered','suspended','cleared']);
@@ -69,6 +70,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
+  if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors}))return'knowledge_explain';
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
     (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||
@@ -143,10 +145,11 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
     case'region_school_directory':return{score:score==='suspended'?'suspended':'remembered',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'fit_assessment':return{score:'active',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'background_fit_discovery':return{score:'active',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
+    case'knowledge_explain':return{score:score==='active'?'active':'remembered',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'school_major_history':case'school_history':case'school_research':case'school_official_qa':case'school_experience':case'school_background':case'major_background':case'background_discovery':return{score:score==='suspended'?'suspended':'remembered',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'fact_rank_lookup':return{score:'active',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     default:return{score,region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
   }
 }
 
-export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
+export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',knowledge_explain:'解释教育/招生知识',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
