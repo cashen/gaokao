@@ -1,0 +1,48 @@
+name: tmp AIPLuS FDW browser cache2
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-browser-cache2.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Check and apply FDW browser/cache patcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/tmp-aiplus-fdw-browser-cache.py
+          python tools/tmp-aiplus-fdw-browser-cache.py
+      - name: Verify source and preserved AIPLuS contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check aiplus/app.v3990_1.js
+          node --check aiplus/render.v3992_0.js
+          node --check shared/ai/ai-workspace-contract.v3992_0.js
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          node --check tools/audit-aiplus-v002-ui.mjs
+          node --check tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+      - name: Commit verified browser/cache transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add aiplus/index.html aiplus/app.v3990_1.js aiplus/render.v3992_0.js aiplus/workspace.v3990_1.css shared/ai/ai-workspace-contract.v3992_0.js tools/audit-aiplus-v002-ui.mjs tools/browser-ai-workspace-v3990_1.mjs tools/verify-aiplus-family-decision-workbench-v003.mjs
+          git commit -m 'feat(aiplus): close family workbench browser transaction'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
