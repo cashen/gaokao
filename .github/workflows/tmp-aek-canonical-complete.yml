@@ -17,13 +17,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fix graduate duplicate-name index
+        run: node tools/tmp-aek-fix-graduate-index.mjs
       - name: Integrate and verify full canonical catalogs
         run: node tools/tmp-aek-canonical-complete.mjs
       - name: Commit verified AEK-03 integration
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add functions/_lib/ai/education-knowledge-center.js functions/_lib/ai/education-knowledge-runtime.js tools/verify-aiplus-aek-v001.mjs docs/architecture/AIPLUS-AEK-STATUS.md tools/tmp-aek-canonical-complete.mjs
+          git add functions/_lib/kb/graduate-catalog-2022.js functions/_lib/ai/education-knowledge-center.js functions/_lib/ai/education-knowledge-runtime.js tools/verify-aiplus-aek-v001.mjs docs/architecture/AIPLUS-AEK-STATUS.md tools/tmp-aek-fix-graduate-index.mjs tools/tmp-aek-canonical-complete.mjs
           git diff --cached --quiet && exit 0
           git commit -m "AEK-03: complete canonical education catalog governance [skip aek-canonical-builder]"
           git push origin HEAD:agent/aiplus-authoritative-education-knowledge
