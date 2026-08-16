@@ -19,6 +19,15 @@ export function getCatalogStats() {
   };
 }
 
+export function resolveCatalogEntity(value = '', options = {}) {
+  return RESOLVER.resolve(value, options);
+}
+
+export function findCatalogMajorExact(value = '') {
+  const resolved = RESOLVER.resolve(value, { allowContains: false });
+  return resolved?.kind === 'major' ? resolved.item : null;
+}
+
 export function findCatalogMajorByNameOrCode(value = '') {
   const resolved = RESOLVER.resolve(value);
   return resolved?.kind === 'major' ? resolved.item : null;

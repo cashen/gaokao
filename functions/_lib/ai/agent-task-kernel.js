@@ -1,13 +1,14 @@
 import {looksRegionSchoolDirectoryLanguage,looksRegionSchoolDirectoryFollowup} from './region-school-language.js';
+import {looksEducationKnowledgeQuestion} from './knowledge-language.js';
 
-export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_5';
+export const AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6';
 
 export const AGENT_TASKS=Object.freeze([
   'candidate_discovery','candidate_refinement','fact_rank_lookup',
   'school_major_history','school_history','major_region_history','region_school_directory','school_research','school_official_qa','school_experience','fit_assessment',
   'school_comparison','major_comparison',
   'background_discovery','background_fit_discovery','school_background','major_background',
-  'evidence_verification','plan_review','general_advice','restore_view','save_family'
+  'knowledge_explain','evidence_verification','plan_review','general_advice','restore_view','save_family'
 ]);
 
 export const CONTEXT_STATES=Object.freeze(['active','remembered','suspended','cleared']);
@@ -42,6 +43,7 @@ export function explicitScoreUsage(text='',workspace={}){
   const source=String(text||'');
   if(has(source,/(?:不是|不想|先不|别|不要).{0,4}问.{0,8}(能不能上|能不能报|够不够|能上吗|能报吗|够吗)/))return workspace?.examContext?.score?'remembered':'cleared';
   if(has(source,/(不考虑|不用管|先别管|别管|不看|先不看|忽略|不问|先不问).{0,8}(我的)?(分数|位次)|单看.{0,10}(学校|专业|方向)|只看.{0,8}(学校|专业)本身/))return'suspended';
+  if(has(source,/我\s*\d{3}\s*分?.{0,8}(符合|资格|条件)/))return'active';
   if(has(source,/(按我|按我的|我这个|我的).{0,6}(分|位次)|我.{0,8}(够不够|能不能上|能不能报|能上吗|能报吗|够吗|现实吗)|我\s*\d{3}\s*分?.{0,6}(够|能上|能报|现实)|按\d{3}分/))return'active';
   return workspace?.examContext?.score?'remembered':'cleared';
 }
@@ -63,12 +65,14 @@ function looksSchoolExperience(source){return /(学校环境|校园环境|校园
 function looksOfficialSchoolInfo(source){return /(学校简介|院校简介|学校介绍|什么学校|学校定位|办学性质|主管部门|校区|宿舍|住宿|食堂|食宿|奖学金|助学金|奖助|联系方式|联系办法|招生电话|学校官网|招生网址|招生章程|录取规则|调档|退档|专业级差|志愿级差|转专业|学费|收费|院系设置|专业介绍|答考生问|毕业生就业|体检要求|(大学|学院|专科学校).{0,4}(怎么样|如何|咋样)[？?]?$|这所学校.{0,6}(怎么样|如何|咋样)|这个学校.{0,6}(怎么样|如何|咋样)|该校.{0,6}(怎么样|如何|咋样))/.test(source);}
 function looksRestore(source){return /(回到|恢复|上一批|上一个结果|刚才那批|之前那批|前面的)/.test(source);}
 function looksMajorRegionSchoolList(source){return /(?:哪些|那些|什么|啥|有什么|有啥|有哪些).{0,6}(?:学校|大学|高校|院校)|(?:学校|大学|高校|院校).{0,6}(?:有这个专业|有该专业|有吗)/.test(String(source||''));}
+function looksKnowledgeFollowup(source,priorTask=''){return priorTask==='knowledge_explain'&&/(这个|它|刚才(?:那个|说的)|这个政策|这个计划|这个专业|这个概念|那这个|那它|我家|户籍|学籍|能报吗|可以报吗|谁能报|怎么报|符合|资格|条件|今年|现在|沈工大|这所学校).{0,20}/.test(String(source||''));}
 
 export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode=''}={}){
   const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
+  if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors})||looksKnowledgeFollowup(source,priorTask))return'knowledge_explain';
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
     (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||
@@ -143,10 +147,11 @@ export function taskExecutionPolicy(task,scoreUsage='remembered'){
     case'region_school_directory':return{score:score==='suspended'?'suspended':'remembered',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'fit_assessment':return{score:'active',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'background_fit_discovery':return{score:'active',region:'active',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
+    case'knowledge_explain':return{score:score==='active'?'active':'remembered',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     case'school_major_history':case'school_history':case'school_research':case'school_official_qa':case'school_experience':case'school_background':case'major_background':case'background_discovery':return{score:score==='suspended'?'suspended':'remembered',region:'remembered',major:'active',school:'active',bottomLine:'remembered',commitView:false};
     case'fact_rank_lookup':return{score:'active',region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
     default:return{score,region:'remembered',major:'remembered',school:'remembered',bottomLine:'remembered',commitView:false};
   }
 }
 
-export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}
+export function agentTaskLabel(task){return({candidate_discovery:'建立可行范围',candidate_refinement:'继续收窄候选',fact_rank_lookup:'查询分数位次',school_major_history:'查询学校专业历史',school_history:'查询学校招生历史',major_region_history:'查询专业地区历史分数',region_school_directory:'查询地区高校目录',school_research:'研究这所学校',school_official_qa:'查询学校官方信息',school_experience:'查看学校环境与同学体验',fit_assessment:'判断当前分数是否够得着',school_comparison:'比较学校',major_comparison:'比较专业',background_discovery:'发现省内背景方向',background_fit_discovery:'找有背景且当前可达的方向',school_background:'看学校强项背景',major_background:'看专业对应学校背景',knowledge_explain:'解释教育/招生知识',evidence_verification:'核验招生事实',plan_review:'检查家庭方案',general_advice:'继续高报讨论',restore_view:'恢复前一批',save_family:'保存家庭长期条件'})[task]||'继续讨论';}

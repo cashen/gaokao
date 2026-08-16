@@ -14,6 +14,13 @@ The unified site release skill is mandatory for routine fixes as well as feature
 
 After the required skills, read `docs/architecture/START-HERE.md` before changing code. It is the repository handoff/navigation map: it points to the canonical machine contracts and known compatibility boundaries, but it never overrides those contracts.
 
+For AIPLuS education/admissions knowledge explanation, policy concepts, professional/discipline concepts, authoritative-source routing, knowledge freshness, ambiguity handling or knowledge coverage work, also read and follow:
+
+- `docs/skills/aiplus-authoritative-education-knowledge/SKILL.md`
+- `docs/architecture/AIPLUS-AEK-STATUS.md`
+
+The AEK program is a single release line covering `AEK-00` through `AEK-10` plus `AEK-QA`. Do not merge its program branch after only one work package is complete; the durable status file owns cross-session continuation and the all-packages merge gate.
+
 Do not create an isolated active module generation. The active site generation must be coherent across the release center, runtime contracts, page entrypoints, shared shell, CI and production verification.
 
 Protected paths remain:
