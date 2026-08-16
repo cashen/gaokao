@@ -180,7 +180,7 @@ jobs:
           set -euo pipefail
           echo "Checking ${PREVIEW_URL} for ${EXPECTED_SHA}"
           curl -fsSL --retry 4 --retry-delay 4 "${PREVIEW_URL}/api/ai/health" | tee /tmp/aiplus-health.json
-          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));if(String(p.commitSha||p.commit||'')!=='${EXPECTED_SHA}')throw new Error('preview SHA mismatch');"
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/aiplus-health.json','utf8'));const actual=String(p.deployment?.commitSha||p.commitSha||p.commit||'');if(actual!=='${EXPECTED_SHA}')throw new Error('preview SHA mismatch: '+actual);"
           curl -fsSL --retry 4 --retry-delay 4 "${PREVIEW_URL}/aiplus/" -o /tmp/aiplus.html
           grep -q 'AIPLuS 产品版 · v0.02' /tmp/aiplus.html
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' /tmp/aiplus.html
