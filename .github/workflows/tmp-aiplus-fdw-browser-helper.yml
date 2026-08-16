@@ -1,0 +1,47 @@
+name: tmp AIPLuS FDW browser helper
+
+on:
+  push:
+    branches: [agent/aiplus-family-decision-workbench]
+    paths: ['.github/workflows/tmp-aiplus-fdw-browser-helper.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-family-decision-workbench
+          fetch-depth: 0
+      - name: Replace final retired browser helper reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tools/browser-ai-workspace-v3990_1.mjs')
+          text=path.read_text()
+          old="await openNewWorkspace(page,'#newWorkspaceSide');"
+          new="await openNewFamilyProfile(page);"
+          if text.count(old)!=1:
+              raise SystemExit(f'expected one retired helper reference, got {text.count(old)}')
+          text=text.replace(old,new,1)
+          text=text.replace("'new discussion did not preserve prior History'","'new family profile did not preserve prior History'",1)
+          path.write_text(text)
+          PY
+          node --check tools/browser-ai-workspace-v3990_1.mjs
+          ! grep -q 'openNewWorkspace' tools/browser-ai-workspace-v3990_1.mjs
+      - name: Commit migrated browser verifier and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-aiplus-fdw-browser-helper.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/browser-ai-workspace-v3990_1.mjs
+          git commit -m 'test(aiplus): finish family workspace browser helper migration'
+          git push origin HEAD:agent/aiplus-family-decision-workbench
