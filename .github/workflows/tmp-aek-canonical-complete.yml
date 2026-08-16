@@ -1,0 +1,29 @@
+name: tmp-aek-canonical-complete
+on:
+  push:
+    branches:
+      - agent/aiplus-authoritative-education-knowledge
+permissions:
+  contents: write
+jobs:
+  integrate:
+    if: ${{ !contains(github.event.head_commit.message, '[skip aek-canonical-builder]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/aiplus-authoritative-education-knowledge
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Integrate and verify full canonical catalogs
+        run: node tools/tmp-aek-canonical-complete.mjs
+      - name: Commit verified AEK-03 integration
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/ai/education-knowledge-center.js functions/_lib/ai/education-knowledge-runtime.js tools/verify-aiplus-aek-v001.mjs docs/architecture/AIPLUS-AEK-STATUS.md tools/tmp-aek-canonical-complete.mjs
+          git diff --cached --quiet && exit 0
+          git commit -m "AEK-03: complete canonical education catalog governance [skip aek-canonical-builder]"
+          git push origin HEAD:agent/aiplus-authoritative-education-knowledge
