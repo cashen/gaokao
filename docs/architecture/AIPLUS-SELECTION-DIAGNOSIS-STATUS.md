@@ -5,10 +5,10 @@
 - 开发分支：`agent/aiplus-selection-diagnosis-v005`
 - Draft PR：`#170` — `AIPLuS：打通自选、排序与诊断工作台 v0.05`
 - base：开始本线时的 `main` 为 `44a2426ec0244811cf7e41f045a0a624910988d0`；继续工作时必须重新查询最新 `main`，不能假定仍未变化。
-- Cloudflare Pages Git integration 已能为本分支 exact head 正常构建 immutable Preview。
-- 当前 GitHub-hosted Actions runner 存在仓库账户级外部阻塞：job annotation 明确报告 recent account payments failed / spending limit needs to be increased，job 在 checkout 前即未启动。
-- **在 GitHub Actions runner 恢复、完整 Draft gates 实际执行并通过以前，PR #170 不得转 Ready、不得 merge。** Billing 红灯不能当成代码失败，也不能当成可以绕过的验证。
-- runner 恢复后的闭环仍必须是：重新跑完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA 第二轮 → `expected_head_sha` merge → main/Production closure。
+- Cloudflare Pages Git integration 能为本分支 exact head 正常构建 immutable Preview。
+- 2026-08-17 本线曾遇到 GitHub-hosted Actions 账户付款 / spending-limit 阻塞，job 在 checkout 前未启动；随后 runner 已恢复并重新开始实际执行 Draft gates。这个历史外部阻塞既不能解释成代码失败，也不能作为绕过验证的理由。
+- **PR #170 只有在恢复后的完整 Draft gates、exact-head Preview PC/Pad/Android、同 SHA Ready 第二轮全部真实通过后才允许 merge。**
+- 闭环固定为：完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA 第二轮 → `expected_head_sha` merge → main/Production closure。
 
 ## 目标
 
@@ -74,7 +74,6 @@ v0.05 能提供的确定性诊断包括：
 - PC：自选工作台位于“我的决策”侧栏，可见当前顺序、诊断和排序建议；
 - Pad/Android：沿用同一个业务状态，只有响应式布局变化，没有设备专用业务分支；
 - 回答中的候选卡只有在能从 workspace 找回真实记录时才增加“加入自选”。无法绑定事实时 fail-closed，不从文案猜一条新志愿。
-- Selection Workbench CSS/JS 使用独立 capability `v005_0`，同时参加现有 Family Decision Workbench `fdw=003_0` cache transaction；成熟 UI audit 必须把它识别为显式 additive owner，未知第四类 entry asset 仍不得混入 core transaction。
 
 ## 发布门禁
 
