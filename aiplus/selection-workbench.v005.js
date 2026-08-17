@@ -1,13 +1,13 @@
 import {
   addPoolItem,
-  buildPathAnalysis,
   getPoolItems,
   itemId,
   majorFamily,
   movePoolItem,
   removePoolItem,
   savePoolItems
-} from '/ln-rank/js/feature/selection-pool/index.v3967_0.js?v=3967_0';
+} from '/ln-rank/js/feature/selection-pool/store.v3967_0.js?v=3967_0';
+import { buildPathAnalysis } from '/ln-rank/js/feature/selection-pool/analysis.v3967_0.js?v=3967_0';
 import { loadCurrentWorkspace } from '/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0';
 
 export const AIPLUS_SELECTION_WORKBENCH_VERSION = 'aiplus-selection-workbench-v0.05';
@@ -155,9 +155,13 @@ export function buildSelectionDiagnostics(items = [], workspace = {}) {
   const push = (key, title, level, summary, detail = '') => cards.push({ key, title, level, summary, detail });
 
   const inversions = orderInversions(list);
-  push('order', '顺序诊断', inversions ? 'medium' : 'low',
+  push(
+    'order',
+    '顺序诊断',
+    inversions ? 'medium' : 'low',
     inversions ? `当前有 ${inversions} 处前后层级倒置，建议先看“建议讨论顺序”。` : '当前顺序没有明显的冲稳保层级倒置。',
-    '这里检查的是讨论顺序，不替代正式志愿表的最终人工排序。');
+    '这里检查的是讨论顺序，不替代正式志愿表的最终人工排序。'
+  );
 
   const [topSchool, topSchoolCount] = topCount(list, item => item.school);
   if (list.length >= 5 && topSchoolCount >= Math.ceil(list.length * 0.5)) {
@@ -177,15 +181,23 @@ export function buildSelectionDiagnostics(items = [], workspace = {}) {
   const explicit = workspace?.decisionProfile?.explicit || {};
   const resourceSensitive = explicit.familyResourceSensitivity === 'resource_sensitive' || (explicit.priorities || []).includes('cost');
   const highCost = list.filter(item => item.isHighFee || item.isSinoForeign || item.isPrivateSchool || clean(item.costRiskLevel, 20) === 'high');
-  push('cost', '家庭成本', resourceSensitive && highCost.length ? 'high' : highCost.length ? 'medium' : 'low',
+  push(
+    'cost',
+    '家庭成本',
+    resourceSensitive && highCost.length ? 'high' : highCost.length ? 'medium' : 'low',
     highCost.length ? `当前有 ${highCost.length} 项属于中外合作、高收费、民办或高成本风险，需要逐项确认家庭是否接受。` : '当前未识别出明确的高收费/中外/民办成本风险项。',
-    resourceSensitive ? '家庭已表达成本敏感，因此高成本项会被提高警示级别。' : '未记录明确成本底线时，只提示事实，不替家庭删除。');
+    resourceSensitive ? '家庭已表达成本敏感，因此高成本项会被提高警示级别。' : '未记录明确成本底线时，只提示事实，不替家庭删除。'
+  );
 
   const employmentFirst = explicit.primaryGoal === 'employment_stability' || (explicit.priorities || []).includes('employment') || (explicit.careerTargets || []).length;
   const evidenceReady = list.filter(item => pathEvidenceScore(item) >= 3).length;
-  push('employment_path', '就业/升学路径证据', employmentFirst && evidenceReady < Math.ceil(list.length * 0.6) ? 'medium' : 'low',
+  push(
+    'employment_path',
+    '就业/升学路径证据',
+    employmentFirst && evidenceReady < Math.ceil(list.length * 0.6) ? 'medium' : 'low',
     list.length ? `${evidenceReady}/${list.length} 项已有较完整的专业链、本地强链、专业理解或历史证据可继续做路径判断。` : '尚无自选项，无法做就业/升学路径诊断。',
-    '这是“证据覆盖度”而不是就业率排名；没有可靠事实时不会用名人观点或模型记忆替代。');
+    '这是“证据覆盖度”而不是就业率排名；没有可靠事实时不会用名人观点或模型记忆替代。'
+  );
 
   const unresolved = Number(base?.stats?.unresolvedCount || 0);
   push('evidence', '证据完整度', unresolved ? 'medium' : 'low', unresolved ? `${unresolved} 项仍有办学性质、费用、历史对应或位置证据待确认。` : '当前自选项的基础位置与性质证据未见明显缺口。');
@@ -193,17 +205,21 @@ export function buildSelectionDiagnostics(items = [], workspace = {}) {
   return { version: AIPLUS_SELECTION_WORKBENCH_VERSION, base, cards };
 }
 
-function compactRecord(record = {}) {
-  const score = finite(record.score2026 ?? record.score);
-  const r = rank(record.rank2026 ?? record.rank);
+function compactCurrentCandidate(record = {}) {
+  const score2026 = finite(record.score2026);
+  if (score2026 == null) return null;
+  const school = clean(record.school || record.schoolName, 120);
+  const major = clean(record.major || record.majorName, 180);
+  if (!school || !major) return null;
+  const rank2026 = rank(record.rank2026);
   return {
     ...record,
-    school: clean(record.school || record.schoolName, 120),
-    major: clean(record.major || record.majorName, 180),
-    score2026: score,
-    rank2026: r,
-    score,
-    rank: r,
+    school,
+    major,
+    score2026,
+    rank2026,
+    score: score2026,
+    rank: rank2026,
     displayLocation: clean(record.displayLocation || record.city || record.province, 80),
     bandKey: clean(record.bandKey || record.band, 30),
     dataYear: 2026,
@@ -211,30 +227,21 @@ function compactRecord(record = {}) {
   };
 }
 
-function collectRecordsFromValue(value, out, depth = 0) {
-  if (depth > 4 || out.length >= 400 || value == null) return;
-  if (Array.isArray(value)) {
-    for (const item of value.slice(0, 160)) collectRecordsFromValue(item, out, depth + 1);
-    return;
-  }
-  if (typeof value !== 'object') return;
-  const school = clean(value.school || value.schoolName, 120);
-  const major = clean(value.major || value.majorName, 180);
-  const score = finite(value.score2026 ?? value.score);
-  if (school && major && score != null) out.push(compactRecord(value));
-  for (const key of ['records', 'candidates', 'history', 'majorHistory', 'majorRegionHistory', 'blocks', 'result', 'lastResult', 'toolResults']) {
-    if (value[key] != null) collectRecordsFromValue(value[key], out, depth + 1);
+function appendCandidateRecords(result, out) {
+  const records = Array.isArray(result?.candidates?.records) ? result.candidates.records : [];
+  for (const record of records.slice(0, 160)) {
+    const compact = compactCurrentCandidate(record);
+    if (compact) out.push(compact);
   }
 }
 
-function workspaceRecords(workspace = {}) {
+function workspaceCandidateRecords(workspace = {}) {
   const out = [];
-  collectRecordsFromValue(workspace.lastResult, out);
-  for (const task of (workspace.tasks || []).slice(0, 12)) collectRecordsFromValue(task?.result, out);
-  for (const turn of (workspace.turnHistory || []).slice(-24)) collectRecordsFromValue(turn?.blocks, out);
+  appendCandidateRecords(workspace.lastResult, out);
+  for (const task of (workspace.tasks || []).slice(0, 12)) appendCandidateRecords(task?.result, out);
   const seen = new Set();
   return out.filter(record => {
-    const key = `${record.school}|${record.major}|${record.score2026}|${record.rank2026 ?? ''}`;
+    const key = `${record.id || ''}|${record.school}|${record.major}|${record.score2026}|${record.rank2026 ?? ''}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -249,9 +256,13 @@ function recordFromCard(card, records) {
   const scoreMatch = reference.match(/(\d{3})\s*分/);
   const rankMatch = reference.match(/([\d,]+)\s*位/);
   const score = scoreMatch ? Number(scoreMatch[1]) : null;
-  const r = rankMatch ? Number(rankMatch[1].replace(/,/g, '')) : null;
-  const matches = records.filter(record => record.school === school && record.major === major);
-  return matches.find(record => (score == null || record.score2026 === score) && (r == null || record.rank2026 === r)) || matches[0] || null;
+  const cardRank = rankMatch ? Number(rankMatch[1].replace(/,/g, '')) : null;
+  if (score == null && cardRank == null) return null;
+  const exact = records.filter(record => record.school === school
+    && record.major === major
+    && (score == null || record.score2026 === score)
+    && (cardRank == null || record.rank2026 === cardRank));
+  return exact.length === 1 ? exact[0] : null;
 }
 
 function severityLabel(level) {
@@ -262,7 +273,14 @@ function bandLabel(item) {
   return BAND_TEXT[normalizedBand(item)] || '待确认';
 }
 
-function renderPoolItem(item, index, total, refresh) {
+let panel = null;
+let statusNode = null;
+let observer = null;
+let renderSequence = 0;
+let currentLens = 'position';
+let actionStatus = '';
+
+function renderPoolItem(item, index, total) {
   const row = node('article', 'selection-workbench-item');
   const order = node('span', 'selection-workbench-order', String(index + 1));
   const main = node('div', 'selection-workbench-item-main');
@@ -273,22 +291,27 @@ function renderPoolItem(item, index, total, refresh) {
   meta.push(bandLabel(item));
   main.append(node('span', '', meta.join(' · ')));
   const actions = node('div', 'selection-workbench-item-actions');
-  const up = node('button', '', '↑'); up.type = 'button'; up.disabled = index === 0; up.title = '上移';
-  const down = node('button', '', '↓'); down.type = 'button'; down.disabled = index === total - 1; down.title = '下移';
-  const remove = node('button', 'is-remove', '移除'); remove.type = 'button';
-  up.addEventListener('click', () => { movePoolItem(item.id, 'up'); refresh(); });
-  down.addEventListener('click', () => { movePoolItem(item.id, 'down'); refresh(); });
-  remove.addEventListener('click', () => { if (confirm(`从自选移除“${item.school} · ${item.major}”？`)) { removePoolItem(item.id); refresh(); } });
+  const up = node('button', '', '↑');
+  up.type = 'button';
+  up.disabled = index === 0;
+  up.title = '上移';
+  const down = node('button', '', '↓');
+  down.type = 'button';
+  down.disabled = index === total - 1;
+  down.title = '下移';
+  const remove = node('button', 'is-remove', '移除');
+  remove.type = 'button';
+  up.addEventListener('click', () => movePoolItem(item.id, 'up'));
+  down.addEventListener('click', () => movePoolItem(item.id, 'down'));
+  remove.addEventListener('click', () => {
+    if (!confirm(`从自选移除“${item.school} · ${item.major}”？`)) return;
+    actionStatus = '已从自选移除；学校和专业讨论仍保留在家庭顾问里。';
+    removePoolItem(item.id);
+  });
   actions.append(up, down, remove);
   row.append(order, main, actions);
   return row;
 }
-
-let panel = null;
-let statusNode = null;
-let observer = null;
-let renderSequence = 0;
-let currentLens = 'position';
 
 function ensurePanel() {
   if (panel?.isConnected) return panel;
@@ -315,32 +338,42 @@ async function renderWorkbench() {
 
   const head = node('div', 'selection-workbench-head');
   const titleWrap = node('div');
-  const title = node('h2', '', '我的自选'); title.id = 'selectionWorkbenchTitle';
+  const title = node('h2', '', '我的自选');
+  title.id = 'selectionWorkbenchTitle';
   titleWrap.append(title, node('span', '', items.length ? `${items.length} 个学校×专业` : '把真正愿意读的项目留下来'));
-  const planLink = node('a', 'selection-workbench-plan-link', '打开家庭方案'); planLink.href = '/ln-rank/selection-pool.html';
+  const planLink = node('a', 'selection-workbench-plan-link', '打开家庭方案');
+  planLink.href = '/ln-rank/selection-pool.html';
   head.append(titleWrap, planLink);
   root.append(head);
 
-  statusNode = node('p', 'selection-workbench-status', items.length ? 'AIPLuS 与专业初选共用同一个自选池，不复制第二份收藏。' : '在回答中的真实 2026 学校×专业卡片上点“加入自选”。');
+  const defaultStatus = items.length ? 'AIPLuS 与专业初选共用同一个自选池，不复制第二份收藏。' : '在回答中的真实 2026 学校×专业卡片上点“加入自选”。';
+  statusNode = node('p', 'selection-workbench-status', actionStatus || defaultStatus);
   statusNode.setAttribute('aria-live', 'polite');
   root.append(statusNode);
+  actionStatus = '';
 
   if (items.length) {
     const list = node('div', 'selection-workbench-list');
-    items.slice(0, 12).forEach((item, index) => list.append(renderPoolItem(item, index, items.length, renderWorkbench)));
-    if (items.length > 12) list.append(node('a', 'selection-workbench-more', `其余 ${items.length - 12} 项在家庭方案中管理 →`));
-    if (items.length > 12) list.lastElementChild.href = '/ln-rank/selection-pool.html';
+    items.slice(0, 12).forEach((item, index) => list.append(renderPoolItem(item, index, items.length)));
+    if (items.length > 12) {
+      const more = node('a', 'selection-workbench-more', `其余 ${items.length - 12} 项在家庭方案中管理 →`);
+      more.href = '/ln-rank/selection-pool.html';
+      list.append(more);
+    }
     root.append(list);
   }
 
   const diagnosisBox = node('details', 'selection-diagnosis');
   diagnosisBox.open = Boolean(items.length);
-  const summary = node('summary', '', `自选诊断 · ${diagnosis.base?.summary || '等待加入自选'}`);
-  diagnosisBox.append(summary);
+  diagnosisBox.append(node('summary', '', `自选诊断 · ${diagnosis.base?.summary || '等待加入自选'}`));
   const grid = node('div', 'selection-diagnosis-grid');
   for (const card of diagnosis.cards) {
     const item = node('article', `selection-diagnosis-card is-${card.level}`);
-    item.append(node('div', 'selection-diagnosis-card-head', card.title), node('span', 'selection-diagnosis-level', severityLabel(card.level)), node('p', '', card.summary));
+    item.append(
+      node('div', 'selection-diagnosis-card-head', card.title),
+      node('span', 'selection-diagnosis-level', severityLabel(card.level)),
+      node('p', '', card.summary)
+    );
     if (card.detail) item.append(node('p', 'selection-diagnosis-detail', card.detail));
     grid.append(item);
   }
@@ -356,12 +389,15 @@ async function renderWorkbench() {
   root.append(diagnosisBox);
 
   const sorting = node('details', 'selection-sorter');
-  const sortingSummary = node('summary', '', '建议讨论顺序');
-  sorting.append(sortingSummary);
+  sorting.append(node('summary', '', '建议讨论顺序'));
   const controls = node('div', 'selection-sorter-controls');
-  const select = node('select'); select.setAttribute('aria-label', '自选排序视角');
+  const select = node('select');
+  select.setAttribute('aria-label', '自选排序视角');
   for (const lens of LENSES) {
-    const option = node('option', '', lens.label); option.value = lens.key; option.selected = lens.key === currentLens; select.append(option);
+    const option = node('option', '', lens.label);
+    option.value = lens.key;
+    option.selected = lens.key === currentLens;
+    select.append(option);
   }
   const preview = node('ol', 'selection-sort-preview');
   const mountPreview = () => {
@@ -370,18 +406,26 @@ async function renderWorkbench() {
     proposeSelectionOrder(items, currentLens).slice(0, 10).forEach(item => preview.append(node('li', '', `${item.school} · ${item.major} · ${bandLabel(item)}`)));
   };
   select.addEventListener('change', mountPreview);
-  const apply = node('button', 'selection-sort-apply', '采用这个讨论顺序'); apply.type = 'button'; apply.disabled = items.length < 2;
+  const apply = node('button', 'selection-sort-apply', '采用这个讨论顺序');
+  apply.type = 'button';
+  apply.disabled = items.length < 2;
   apply.addEventListener('click', () => {
     if (!confirm('只调整“我的自选”讨论顺序，不会替你提交正式志愿。采用这个顺序吗？')) return;
+    actionStatus = `已采用“${LENSES.find(item => item.key === currentLens)?.label || '录取位置'}”讨论顺序；正式志愿顺序仍由你决定。`;
     savePoolItems(proposeSelectionOrder(getPoolItems(), currentLens));
-    renderWorkbench();
   });
   controls.append(select, apply);
-  sorting.append(controls, node('p', 'selection-sort-note', '四种视角都先保持稍高→主要参考→低分侧层级，只在同层内调整。锁定项目保持原位置。就业视角按已有路径证据完整度排序，不冒充就业率排名。'), preview);
+  sorting.append(
+    controls,
+    node('p', 'selection-sort-note', '四种视角都先保持稍高→主要参考→低分侧层级，只在同层内调整。锁定项目保持原位置。就业视角按已有路径证据完整度排序，不冒充就业率排名。'),
+    preview
+  );
   mountPreview();
   root.append(sorting);
 
-  const ask = node('button', 'selection-diagnosis-ask', '让家庭顾问继续解释这份自选'); ask.type = 'button'; ask.disabled = !items.length;
+  const ask = node('button', 'selection-diagnosis-ask', '让家庭顾问继续解释这份自选');
+  ask.type = 'button';
+  ask.disabled = !items.length;
   ask.addEventListener('click', () => {
     document.querySelector('#importSelection')?.click();
     const input = document.querySelector('#promptInput');
@@ -392,28 +436,37 @@ async function renderWorkbench() {
   root.append(ask);
 }
 
+function updateCandidateButton(button, selected) {
+  button.textContent = selected ? '✓ 已自选' : '＋ 加入自选';
+  button.disabled = selected;
+  button.setAttribute('aria-pressed', String(selected));
+}
+
 async function decorateCandidateCards() {
   const workspace = await loadCurrentWorkspace().catch(() => null) || {};
-  const records = workspaceRecords(workspace);
-  if (!records.length) return;
-  const pool = getPoolItems();
-  const poolIds = new Set(pool.map(item => item.id));
+  const records = workspaceCandidateRecords(workspace);
+  const poolIds = new Set(getPoolItems().map(item => item.id));
   for (const card of document.querySelectorAll('.candidate-item')) {
-    if (card.querySelector('.selection-add-button')) continue;
+    const existing = card.querySelector('.selection-add-button');
     const record = recordFromCard(card, records);
-    if (!record || finite(record.score2026) == null) continue;
+    if (!record) {
+      existing?.remove();
+      continue;
+    }
     const id = itemId(record);
-    const button = node('button', 'selection-add-button', poolIds.has(id) ? '✓ 已自选' : '＋ 加入自选');
+    const selected = poolIds.has(id);
+    if (existing) {
+      updateCandidateButton(existing, selected);
+      continue;
+    }
+    const button = node('button', 'selection-add-button');
     button.type = 'button';
-    button.disabled = poolIds.has(id);
-    button.setAttribute('aria-pressed', String(poolIds.has(id)));
+    updateCandidateButton(button, selected);
     button.addEventListener('click', () => {
       const result = addPoolItem(record);
-      if (result.ok) {
-        button.textContent = '✓ 已自选'; button.disabled = true; button.setAttribute('aria-pressed', 'true');
-      }
-      if (statusNode) statusNode.textContent = result.message || (result.ok ? '已加入自选。' : '暂时无法加入自选。');
-      renderWorkbench();
+      actionStatus = result.message || (result.ok ? '已加入自选。' : '暂时无法加入自选。');
+      updateCandidateButton(button, result.ok || getPoolItems().some(item => item.id === id));
+      renderWorkbench().catch(() => {});
     });
     const head = card.querySelector('.candidate-head') || card;
     head.append(button);
@@ -428,7 +481,9 @@ async function refreshAll() {
 function startObserver() {
   const conversation = document.querySelector('#conversationStream');
   if (!conversation || observer) return;
-  observer = new MutationObserver(() => { decorateCandidateCards().catch(() => {}); });
+  observer = new MutationObserver(() => {
+    decorateCandidateCards().catch(() => {});
+  });
   observer.observe(conversation, { childList: true, subtree: true });
 }
 
@@ -437,7 +492,9 @@ export async function mountSelectionWorkbench() {
   await refreshAll();
   startObserver();
   window.addEventListener('lnrank-selection-pool-updated', refreshAll);
-  window.addEventListener('storage', event => { if (event.key === 'lnRank.selectionPool.lnPhysics.2026.v3951') refreshAll(); });
+  window.addEventListener('storage', event => {
+    if (event.key === 'lnRank.selectionPool.lnPhysics.2026.v3951') refreshAll();
+  });
 }
 
 mountSelectionWorkbench().catch(error => {
