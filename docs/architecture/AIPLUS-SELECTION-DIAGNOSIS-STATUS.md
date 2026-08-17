@@ -8,7 +8,7 @@
 - Cloudflare Pages Git integration 能为本分支 exact head 正常构建 immutable Preview。
 - 2026-08-17 本线曾遇到 GitHub-hosted Actions 账户付款 / spending-limit 阻塞，job 在 checkout 前未启动；随后 runner 已恢复并重新开始实际执行 Draft gates。这个历史外部阻塞既不能解释成代码失败，也不能作为绕过验证的理由。
 - **PR #170 只有在恢复后的完整 Draft gates、exact-head Preview PC/Pad/Android、同 SHA Ready 第二轮全部真实通过后才允许 merge。**
-- 闭环固定为：完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA 第二轮 → `expected_head_sha` merge → main/Production closure。
+- 闭环固定为：完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA第二轮 → `expected_head_sha` merge → main/Production closure。
 
 ## 目标
 
@@ -83,8 +83,9 @@ v0.05 能提供的确定性诊断包括：
 
 ## UI / 多端
 
-- PC：自选工作台位于“我的决策”侧栏，可见当前顺序、诊断和排序建议；
-- Pad/Android：沿用同一个业务状态，只有响应式布局变化，没有设备专用业务分支；
+- PC：自选工作台位于“我的决策”侧栏，可见当前顺序、诊断和排序建议。
+- **左侧决策栏是窄容器，不等于 PC 宽布局。** Selection Workbench 的内部布局由自身约 260px 容器约束：诊断卡保持单列；学校×专业文本不与操作按钮争同一横向行；排序控件纵向堆叠。禁止仅因为 viewport 是桌面宽屏就把侧栏内部切回双列/横排，避免 1600×699 等低高度宽屏下出现卡片被压扁、文字比例失衡的“变形”视觉回归。
+- Pad/Android：沿用同一个业务状态，只有响应式布局变化，没有设备专用业务分支。
 - 回答中的候选卡只有在能从 workspace 找回真实记录时才增加“加入自选”。无法绑定事实时 fail-closed，不从文案猜一条新志愿。
 
 ## 发布门禁
@@ -98,6 +99,7 @@ v0.05 能提供的确定性诊断包括：
 - source ownership / no second storage；
 - workspace read 不得 stale-write / 覆盖新家庭条件；
 - current/session 原子写必须先完成，history pruning 不得重新进入家庭档案关键路径；
+- 左侧窄容器不得恢复双列诊断、横排排序控件或按钮挤压学校×专业文本；
 - 现有 AIPLuS workspace / parent-decision / AEK 回归；
 - PC / Pad / Android 自选、排序、诊断和候选加入；
 - 真实 2026 正例可以加入；历史通用分数、分数/位次不匹配、重复歧义记录均不得出现加入入口；
