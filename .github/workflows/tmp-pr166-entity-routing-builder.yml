@@ -62,6 +62,22 @@ jobs:
           s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
 
+          p=Path('functions/_lib/ai/agent-task-kernel.js')
+          s=p.read_text(encoding='utf-8')
+          old="const scoped=Boolean((view.majorKeywords||[]).length||(view.schoolNames||[]).length||((view.regionKeys||[]).length&&!view.regionKeys.includes('all'))||(view.bottomLineMode&&view.bottomLineMode!=='all'));"
+          new="const scoped=Boolean(Number(view.score)||(view.majorKeywords||[]).length||(view.schoolNames||[]).length||((view.regionKeys||[]).length&&!view.regionKeys.includes('all'))||(view.bottomLineMode&&view.bottomLineMode!=='all'));"
+          assert s.count(old)==1
+          s=s.replace(old,new,1)
+          old="if(workspace?.examContext?.score)return candidateTaskForCompactEntity(workspace);"
+          new="if(workspace?.examContext?.score||candidateTaskForCompactEntity(workspace)==='candidate_refinement')return candidateTaskForCompactEntity(workspace);"
+          assert s.count(old)==1
+          s=s.replace(old,new,1)
+          old="if(workspace?.examContext?.score||['candidate_discovery','candidate_refinement'].includes(priorTask))return candidateTaskForCompactEntity(workspace);"
+          new="if(workspace?.examContext?.score||['candidate_discovery','candidate_refinement'].includes(priorTask)||candidateTaskForCompactEntity(workspace)==='candidate_refinement')return candidateTaskForCompactEntity(workspace);"
+          assert s.count(old)==2
+          s=s.replace(old,new,2)
+          p.write_text(s,encoding='utf-8')
+
           p=Path('tools/verify-aiplus-routing-grid-v001.mjs')
           s=p.read_text(encoding='utf-8')
           replacements=[
