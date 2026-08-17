@@ -51,6 +51,7 @@ function candidates({task,school,major,score,topic,result}={}){
     action('background-environment',NEXT_ACTION_LABELS.schoolEnvironment,`${s}学校环境和人文关怀怎么样`,'再看真实生活体验。',80),
     action('background-evidence',NEXT_ACTION_LABELS.schoolEvidence,`${s}${m||''}的专业背景依据是什么`,'区分学校级、学院级和专业级证据。',75)
   ];
+  if(task==='school_major_history'&&result?.history?.directionRedirect?.admissionMajors?.length)return result.history.directionRedirect.admissionMajors.slice(0,3).map((major,index)=>action(`direction-major-history-${index}`,`查${major}分数`,`${s}${major}多少分`,`“${result.history.directionRedirect.direction}”是背景方向；这里改查实际招生专业。`,110-index));
   if(task==='school_history'||task==='school_major_history')return[
     m?action('history-major-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}${m}有专业背景吗`,'从分数反向检查专业积累。',96):action('history-school-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'从全校分数进入专业积累。',96),
     action('history-school-profile',NEXT_ACTION_LABELS.schoolProfile,`介绍下${s}`,'补齐学校整体定位。',85),
