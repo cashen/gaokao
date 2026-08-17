@@ -22,6 +22,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Repair temporary patch ordering
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/tmp-aiplus-background-direction-contract.py')
+          t=p.read_text(encoding='utf-8')
+          line='text=text.replace("min=Number(history.summary?.minScore),max=Number(history.summary?.maxScore)","min=validScore(history.summary?.minScore),max=validScore(history.summary?.maxScore)")\n'
+          anchor="text=replace_once(text,old_hist,new_hist,'history summary direction')\n"
+          if t.count(line)!=1 or t.count(anchor)!=1:
+              raise SystemExit('temporary patch ordering anchors changed')
+          t=t.replace(line,'').replace(anchor,anchor+line)
+          p.write_text(t,encoding='utf-8')
+          PY
       - name: Apply canonical contract patch
         run: python3 tools/tmp-aiplus-background-direction-contract.py
       - name: Inspect diff
