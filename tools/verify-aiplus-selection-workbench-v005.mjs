@@ -6,6 +6,7 @@ function assert(condition, message) { if (!condition) throw new Error(message); 
 const html = read('aiplus/index.html');
 const js = read('aiplus/selection-workbench.v005.js');
 const css = read('aiplus/selection-workbench.v005.css');
+const historyStore = read('aiplus/history-store.v3992_4.js');
 const status = read('docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md');
 const selectionJsAsset = '/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0';
 const selectionCssAsset = '/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0';
@@ -26,6 +27,19 @@ assert(js.includes('savePoolItems(proposeSelectionOrder'), 'suggested ordering m
 assert(!js.includes('localStorage.setItem'), 'selection workbench must not create/write a second localStorage truth');
 assert(!js.includes('aiplusFavorites'), 'must not introduce an AIPLuS-only favorites store');
 assert(!js.includes('张雪峰'), 'named-person opinion must not become a hidden diagnosis owner');
+
+assert(historyStore.includes('async function ensureCurrentSession(value)'), 'history owner must keep guarded legacy session migration');
+const loadCurrentStart = historyStore.indexOf('export async function loadCurrentWorkspace()');
+const saveCurrentStart = historyStore.indexOf('export async function saveCurrentWorkspace');
+assert(loadCurrentStart >= 0 && saveCurrentStart > loadCurrentStart, 'history workspace read/write owner boundaries missing');
+const loadCurrentBody = historyStore.slice(loadCurrentStart, saveCurrentStart);
+assert(!loadCurrentBody.includes('saveCurrentWorkspace('), 'loadCurrentWorkspace must never rewrite current workspace from a stale read');
+assert(loadCurrentBody.includes('ensureCurrentSession(value)'), 'loadCurrentWorkspace may only perform guarded missing-session migration');
+const migrationStart = historyStore.indexOf('async function ensureCurrentSession(value)');
+const migrationBody = historyStore.slice(migrationStart, loadCurrentStart);
+assert(migrationBody.includes('store.get(CURRENT_KEY)'), 'session migration must re-read canonical current before writing');
+assert(migrationBody.includes('current.id!==value.id'), 'session migration must abort when the current family workspace changed');
+assert(!migrationBody.includes('store.put(clone(current),CURRENT_KEY)'), 'session migration must never write canonical current');
 
 assert(js.includes('function appendCandidateRecords'), 'candidate binding must use the existing candidates result owner');
 assert(js.includes('Array.isArray(result?.candidates?.records)'), 'historical result collections must not be promoted into current selections');
@@ -51,6 +65,7 @@ assert(css.includes('@media(max-width:560px)'), 'Android/mobile responsive bound
 
 assert(status.includes('唯一自选 truth'), 'architecture handoff must name the canonical selection truth');
 assert(status.includes('不是就业率排名'), 'architecture handoff must preserve employment-evidence boundary');
+assert(status.includes('读操作不得变成 stale writer'), 'architecture handoff must preserve non-clobbering workspace read ownership');
 assert(status.includes('Draft → exact-head Preview → Ready'), 'release handoff must preserve formal release gate');
 
 console.log('AIPLuS selection workbench v0.05 source contract: PASS');
