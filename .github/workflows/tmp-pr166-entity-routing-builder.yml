@@ -36,6 +36,28 @@ jobs:
       - name: Apply compact entity routing remediation
         working-directory: target
         run: python ../builder/tools/tmp_pr166_entity_routing_builder.py
+      - name: Preserve score-window ownership
+        working-directory: target
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('functions/_lib/ai/command-interpreter.js')
+          s=p.read_text(encoding='utf-8')
+          old="const point=scoreConstraint?.kind==='point';\n  const short=source.length<=64;"
+          new="const point=scoreConstraint?.kind==='point',noScoreConstraint=scoreConstraint?.kind==='none';\n  const short=source.length<=64;"
+          assert s.count(old)==1
+          s=s.replace(old,new,1)
+          for old,new in [
+            ("if(!point&&!schools.length&&majors.length===1&&geo?.explicit&&source.length<=40)","if(noScoreConstraint&&!schools.length&&majors.length===1&&geo?.explicit&&source.length<=40)"),
+            ("if(!point&&!schools.length&&!majors.length&&geo?.explicit&&source.length<=20)","if(noScoreConstraint&&!schools.length&&!majors.length&&geo?.explicit&&source.length<=20)"),
+            ("if(!point&&!geo?.explicit&&schools.length===1&&majors.length===1&&!residue)","if(noScoreConstraint&&!geo?.explicit&&schools.length===1&&majors.length===1&&!residue)"),
+            ("if(!point&&!geo?.explicit&&schools.length===1&&!majors.length&&!residue)","if(noScoreConstraint&&!geo?.explicit&&schools.length===1&&!majors.length&&!residue)"),
+            ("if(!point&&!geo?.explicit&&!schools.length&&majors.length===1&&!residue)","if(noScoreConstraint&&!geo?.explicit&&!schools.length&&majors.length===1&&!residue)"),
+          ]:
+            assert s.count(old)==1, old
+            s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Run focused routing and workspace proofs before any PR commit
         working-directory: target
         run: |
