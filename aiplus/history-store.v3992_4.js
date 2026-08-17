@@ -4,6 +4,8 @@ const CURRENT_KEY='current';
 const SESSION_PREFIX='session:';
 const MAX_SESSIONS=30;
 
+let prunePromise=null;
+
 function openDb(){
   return new Promise((resolve,reject)=>{
     const request=indexedDB.open(DB_NAME,1);
@@ -32,6 +34,11 @@ async function pruneSessions(){
   const stale=rows.slice(MAX_SESSIONS);if(!stale.length)return;
   const db=await openDb();try{await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite'),store=tx.objectStore(STORE_NAME);for(const row of stale)store.delete(row.key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}finally{db.close();}
 }
+function schedulePruneSessions(){
+  if(prunePromise)return prunePromise;
+  prunePromise=pruneSessions().catch(()=>{}).finally(()=>{prunePromise=null;});
+  return prunePromise;
+}
 export async function loadCurrentWorkspace(){
   const db=await openDb();let value=null;
   try{value=await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readonly'),request=tx.objectStore(STORE_NAME).get(CURRENT_KEY);request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error);});}
@@ -44,7 +51,7 @@ export async function saveCurrentWorkspace(workspace,{prune=true}={}){
   const snapshot=clone(workspace),db=await openDb();
   try{await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite'),store=tx.objectStore(STORE_NAME);store.put(snapshot,CURRENT_KEY);store.put(snapshot,`${SESSION_PREFIX}${workspace.id}`);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
   finally{db.close();}
-  if(prune)await pruneSessions();
+  if(prune)schedulePruneSessions();
 }
 export async function listWorkspaceHistory(query=''){
   const needle=clean(query,120).toLowerCase(),rows=await allSessionRows();
