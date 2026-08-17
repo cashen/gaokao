@@ -59,14 +59,32 @@ jobs:
           node tools/audit-aiplus-v002-ui.mjs
           node tools/audit-architecture-handoff-v3990_1.mjs
       - name: Protected boundaries
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          git fetch origin "${GITHUB_BASE_REF}" --depth=1
-          git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            test -n "$GITHUB_BASE_REF"
+            git fetch origin "$GITHUB_BASE_REF" --depth=1
+            git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js
+          elif [ "$GITHUB_EVENT_NAME" = push ]; then
+            before="$PUSH_BEFORE"
+            if [ -z "$before" ] || [[ "$before" =~ ^0+$ ]]; then
+              before="$(git rev-parse HEAD^1)"
+            fi
+            git cat-file -e "${before}^{commit}"
+            test "$(git rev-parse HEAD)" = "$PUSH_SHA"
+            git diff --exit-code "${before}..HEAD" -- fenxi functions/fenxi functions/_middleware.js
+          else
+            echo "Unsupported Feedback Log verification event: ${GITHUB_EVENT_NAME}" >&2
+            exit 2
+          fi
           grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
 
   browser-combined:
+    if: github.event_name == 'pull_request'
     needs: source-contract
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -121,4 +139,47 @@ jobs:
       - name: Verify feedback Log on exact Preview PC Pad Android
         env:
           PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          FEEDBACK_LIVE_MODE: preview
+        run: node tools/browser-aiplus-feedback-log-preview-v004.mjs
+
+  browser-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EXPECTED_SHA: ${{ github.sha }}
+      FEEDBACK_LIVE_BASE: https://gaokao-4y9.pages.dev
+      FEEDBACK_LIVE_MODE: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Wait for exact main Production identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for attempt in $(seq 1 70); do
+            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${FEEDBACK_LIVE_BASE}/aiplus/?feedback-production=${EXPECTED_SHA}-${attempt}" || true)"
+            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${FEEDBACK_LIVE_BASE}/api/ai/health?feedback-production=${EXPECTED_SHA}-${attempt}" || true)"
+            if grep -Fq 'data-ai-feedback-log="aiplus-feedback-log-v0.04"' <<<"$page" \
+              && grep -Fq 'data-ai-family-decision="aiplus-family-decision-v0.03"' <<<"$page" \
+              && grep -Fq "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
+              && grep -Fq '"release":"v3.9.90.1"' <<<"$health"; then
+              ready=1
+              break
+            fi
+            sleep 8
+          done
+          test "$ready" -eq 1
+      - name: Verify feedback Log on Production PC Pad Android
         run: node tools/browser-aiplus-feedback-log-preview-v004.mjs
