@@ -1,6 +1,5 @@
 name: tmp PR166 entity routing builder
 
-# trigger: validated compact-entity builder
 on:
   push:
     branches:
@@ -14,20 +13,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout PR166 target
+        uses: actions/checkout@v4
         with:
           ref: agent/aiplus-family-decision-workbench
           fetch-depth: 0
+          path: target
+      - name: Checkout isolated builder
+        uses: actions/checkout@v4
+        with:
+          ref: agent/tmp-pr166-entity-routing-builder
+          fetch-depth: 1
+          path: builder
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Guard exact PR166 head
+        working-directory: target
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "67c9f9a355f1f603b361205b3b0de4a9aa9e2612"
       - name: Apply compact entity routing remediation
-        run: python tools/tmp_pr166_entity_routing_builder.py
+        working-directory: target
+        run: python ../builder/tools/tmp_pr166_entity_routing_builder.py
       - name: Run focused routing and workspace proofs before any PR commit
+        working-directory: target
         run: |
           set -euo pipefail
           node --check functions/_lib/ai/command-interpreter.js
@@ -42,6 +52,7 @@ jobs:
           node tools/audit-architecture-handoff-v3990_1.mjs
           git diff --check
       - name: Commit exactly one tested PR166 remediation
+        working-directory: target
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
