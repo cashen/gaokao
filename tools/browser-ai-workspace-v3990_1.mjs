@@ -37,6 +37,7 @@ async function viewportStabilityJourney(page,name){
 }
 async function assertView(page,parts,notParts=[]){const t=await viewText(page);for(const p of parts)assert(t.includes(p),`view missing ${p}: ${t}`);for(const p of notParts)assert(!t.includes(p),`view unexpectedly has ${p}: ${t}`);}
 async function turnCount(page){return page.locator('#conversationStream .turn').count();}
+async function currentWorkspaceId(page){return page.evaluate(()=>new Promise(resolve=>{const request=indexedDB.open('gaokao-ai-workspace-v3990_0',1);request.onerror=()=>resolve('');request.onsuccess=()=>{const db=request.result;if(!db.objectStoreNames.contains('workspace')){db.close();resolve('');return;}const tx=db.transaction('workspace','readonly'),get=tx.objectStore('workspace').get('current');get.onsuccess=()=>{const id=String(get.result?.id||'');db.close();resolve(id);};get.onerror=()=>{db.close();resolve('');};};}));}
 async function openNewTopic(page){
   const hadTurns=(await turnCount(page))>0;let dialogSeen=false;
   if(hadTurns)page.once('dialog',async dialog=>{dialogSeen=true;await dialog.accept();});
@@ -45,10 +46,14 @@ async function openNewTopic(page){
   if(hadTurns)assert(dialogSeen,'new topic confirmation missing');
 }
 async function openNewFamilyProfile(page){
-  const hadTurns=(await turnCount(page))>0;let dialogSeen=false;
+  const hadTurns=(await turnCount(page))>0,previousId=await currentWorkspaceId(page);let dialogSeen=false;
+  assert(previousId,'current family workspace id missing before reset');
   if(hadTurns)page.once('dialog',async dialog=>{dialogSeen=true;await dialog.accept();});
-  await page.locator('#newFamilyProfile').evaluate(el=>el.click());await page.waitForTimeout(300);
-  assert((await turnCount(page))===0,'new family profile did not start an independent conversation');
+  await page.locator('#newFamilyProfile').evaluate(el=>el.click());
+  const deadline=Date.now()+15000;let nextId='';
+  while(Date.now()<deadline){if((await turnCount(page))===0){nextId=await currentWorkspaceId(page);if(nextId&&nextId!==previousId)break;}await page.waitForTimeout(50);}
+  assert((await turnCount(page))===0,'new family profile did not clear the prior conversation');
+  assert(nextId&&nextId!==previousId,`new family profile did not commit an independent workspace: ${previousId} -> ${nextId||'(missing)'}`);
   if(hadTurns)assert(dialogSeen,'new family profile confirmation missing');
 }
 async function reset(page){await openNewFamilyProfile(page);}
