@@ -2,22 +2,30 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const read=file=>fs.readFileSync(file,'utf8');
-const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_1.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_1.css'),agent=read('aiplus/agent.v3992_0.css'),feedbackLog=read('aiplus/feedback-log.v004.js'),feedbackUi=read('aiplus/feedback-log-ui.v004.js'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
+const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_1.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_1.css'),agent=read('aiplus/agent.v3992_0.css'),feedbackLog=read('aiplus/feedback-log.v004.js'),feedbackUi=read('aiplus/feedback-log-ui.v004.js'),selectionWorkbench=read('aiplus/selection-workbench.v005.js'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
 
 assert.match(html,/data-ai-plus="family-advisor"/);
 assert.match(html,/data-ai-plus-assets="aiplus-assets-v002_4"/);
 assert.match(html,/data-ai-family-decision="aiplus-family-decision-v0\.03"/);
 assert.match(html,/data-ai-feedback-log="aiplus-feedback-log-v0\.04"/);
+assert.match(html,/data-ai-selection-workbench="aiplus-selection-workbench-v0\.05"/);
 assert.match(html,/AIPLuS 产品版 · v0\.02/);
 assert.match(html,/width=device-width, initial-scale=1\.0, viewport-fit=cover/);
 const entryAssets=[...html.matchAll(/(?:href|src)="([^"]+\?v=[^"]+)"/g)].map(match=>match[1]);
 const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0';
 const feedbackCssAsset='/aiplus/feedback-log.v004.css?v=004_0';
 const feedbackUiAsset='/aiplus/feedback-log-ui.v004.js?v=004_0';
+const selectionCssAsset='/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0';
+const selectionJsAsset='/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0';
 assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
 assert.equal(entryAssets.filter(value=>value===feedbackCssAsset).length,1,'AIPLuS feedback Log CSS must have one additive entry owner');
 assert.equal(entryAssets.filter(value=>value===feedbackUiAsset).length,1,'AIPLuS feedback Log UI must have one additive entry owner');
-const additiveAssets=new Set([geometryAsset,feedbackCssAsset,feedbackUiAsset]);
+assert.equal(entryAssets.filter(value=>value===selectionCssAsset).length,1,'AIPLuS selection workbench CSS must have one additive entry owner');
+assert.equal(entryAssets.filter(value=>value===selectionJsAsset).length,1,'AIPLuS selection workbench JS must have one additive entry owner');
+const selectionUrls=[selectionCssAsset,selectionJsAsset].map(value=>new URL(value,'https://aiplus.local'));
+assert.ok(selectionUrls.every(url=>url.searchParams.get('v')==='005_0'&&url.searchParams.get('fdw')==='003_0'),`selection workbench cache ownership drift: ${selectionUrls.map(url=>url.href).join(', ')}`);
+assert.ok(selectionUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='fdw')),`unexpected selection workbench cache key: ${selectionUrls.map(url=>url.href).join(', ')}`);
+const additiveAssets=new Set([geometryAsset,feedbackCssAsset,feedbackUiAsset,selectionCssAsset,selectionJsAsset]);
 const coreEntryAssets=entryAssets.filter(value=>!additiveAssets.has(value));
 assert.ok(coreEntryAssets.length>=4,'active AIPLuS core assets were not found');
 const coreEntryUrls=coreEntryAssets.map(value=>new URL(value,'https://aiplus.local'));
@@ -35,6 +43,10 @@ assert.doesNotMatch(feedbackUi,/fetch\(|api\.github\.com|\/api\/ai\/turn|Mutatio
 assert.match(feedbackLog,/MAX_EVENTS=40/);
 assert.match(html,/id="feedbackLogToggle"/);
 assert.match(html,/id="feedbackLogIncludeTurn"/);
+assert.match(selectionWorkbench,/from '\/ln-rank\/js\/feature\/selection-pool\/store\.v3967_0\.js\?v=3967_0'/);
+assert.match(selectionWorkbench,/from '\/ln-rank\/js\/feature\/selection-pool\/analysis\.v3967_0\.js\?v=3967_0'/);
+assert.doesNotMatch(selectionWorkbench,/localStorage\.setItem|aiplusFavorites/);
+assert.match(selectionWorkbench,/return exact\.length === 1 \? exact\[0\] : null/);
 
 assert.match(product,/\.answer-surface\{[^}]*overflow:hidden/);
 assert.match(product,/\.answer-surface \.result-card\.fact,[^{]+\{border-left:0\}/);
@@ -101,4 +113,4 @@ assert.match(workflow,/echo "preview_base=\$immutable_preview"/);
 assert.match(workflow,/require_text immutable-health/);
 assert.doesNotMatch(workflow,/data-ai-plus="school-official-qa"|"apiVersion":"ai-health-api-v3990_1"|"semanticMode":"command-active-view-history-v3990_1"/);
 
-console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','fdw-cache-subtransaction','additive-geometry-cache-owner','additive-feedback-log-owner','feedback-log-local-only','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','fdw-cache-subtransaction','additive-geometry-cache-owner','additive-feedback-log-owner','additive-selection-workbench-owner','feedback-log-local-only','selection-workbench-single-pool-owner','selection-workbench-exact-record-binding','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
