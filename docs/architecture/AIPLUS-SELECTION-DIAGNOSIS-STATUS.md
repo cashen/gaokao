@@ -8,7 +8,8 @@
 - PR #170 exact immutable Cloudflare Preview：`https://772011c3.gaokao-4y9.pages.dev`。
 - Draft 与 Ready 均在同一个 frozen head 上完成 14/14 workflows success；merge 后 main / Cloudflare Production / PC / Pad / Android browser closure 已完成。
 - 2026-08-17 Production Selection Workbench browser 第一次在部署刚切换后的挂载等待阶段出现 30 秒 timeout；同一个 main SHA、没有代码变化的原生 rerun 随后成功。这个证据不能证明产品 runtime 有可重复 bug，但暴露了 production readiness gate 只证明 HTML/API identity、没有同时证明当前 Selection Workbench JS/CSS 资产已经在 Pages 域稳定可读的窄竞态。
-- 2026-08-18 post-merge re-audit 使用维护分支 `agent/aiplus-production-asset-readiness-v005` 收紧**现有 release verification owner**：浏览器 Production gate 启动前必须同时证明页面 + API + 当前 Selection Workbench JS/CSS 资产一致。该维护不新增产品 retry、bootstrap owner、缓存 owner、Selection Pool owner，也不改变 AIPLuS 产品/runtime release identity。
+- 2026-08-18 PR `#171` 已把该风险收口到**现有 release verification owner**：浏览器 Production gate 启动前必须同时证明页面 + API + 当前 Selection Workbench JS/CSS 资产一致；merge commit 为 `e0c4bc2de36659df40187a210526d226ed331b12`。该维护没有新增产品 retry、bootstrap owner、缓存 owner、Selection Pool owner，也没有改变 AIPLuS 产品/runtime release identity。
+- Selection Workbench Production verification 还必须把同一 source + browser 结果发布为 durable commit status：`production/aiplus-selection-workbench-v0.05`。这个 status 只是现有 verifier 的可观测输出，不重跑、不复制验证逻辑；只有 source-contract 与 browser-production 同时 success 才能发布 success。
 - 后续继续工作必须重新查询最新 `main` / open PR / checks；本文件中的 SHA 只用于说明这条能力的历史发布证据，不是未来会话的实时 source of truth。
 
 ## 目标
@@ -101,6 +102,14 @@ Selection Workbench 的 live browser gate 不应承担“碰运气等 edge cutov
 
 只有这五项同时成立，才进入真实 PC / Pad / Android browser journey。这样 readiness owner 负责等待部署图一致，产品 runtime 不增加第二套 bootstrap/retry，浏览器失败则更接近真实产品问题，而不是可预先识别的 asset cutover 半完成状态。
 
+### Durable Production status
+
+Production 的“已验证”不能只存在某个隐式 Actions run 里。相同 workflow 在 main push 完成后发布唯一可观测状态：
+
+`production/aiplus-selection-workbench-v0.05`
+
+它的状态 owner 仍然是现有 `source-contract` + `browser-production`：publisher 不重新访问生产、不重新跑浏览器、不另建 verifier；只有两个既有 owner 都 success 才发布 success，否则发布 failure。status 的 target URL 必须指向产生该判断的 exact push workflow run，使 main SHA 自己携带可追溯的 Production closure 证据。
+
 ## 发布门禁
 
 本能力作为 AIPLuS additive capability 发布，但必须继续遵守统一发布闭环：
@@ -119,4 +128,5 @@ Selection Workbench 的 live browser gate 不应承担“碰运气等 edge cutov
 - exact-head Cloudflare Preview；
 - main Production exact SHA；
 - Production live browser 前必须证明**页面 + API + 当前 Selection Workbench JS/CSS 资产**处于同一个可执行图；
+- main SHA 必须得到 `production/aiplus-selection-workbench-v0.05` durable status，且 success 只能来自同一 workflow 的 source + Production browser success；
 - protected paths 不变。
