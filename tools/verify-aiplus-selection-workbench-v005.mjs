@@ -13,7 +13,8 @@ assert(html.includes('/aiplus/selection-workbench.v005.js?v=005_0'), 'selection 
 assert(html.includes('/aiplus/selection-workbench.v005.css?v=005_0'), 'selection workbench CSS not loaded');
 assert(html.includes('自选诊断 v0.05'), 'selection workbench footer identity missing');
 
-assert(js.includes("from '/ln-rank/js/feature/selection-pool/index.v3967_0.js?v=3967_0'"), 'must reuse canonical LN selection-pool owner');
+assert(js.includes("from '/ln-rank/js/feature/selection-pool/store.v3967_0.js?v=3967_0'"), 'must reuse canonical LN selection-pool store owner directly');
+assert(js.includes("from '/ln-rank/js/feature/selection-pool/analysis.v3967_0.js?v=3967_0'"), 'must reuse canonical LN selection diagnosis owner directly');
 assert(js.includes("from '/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0'"), 'must read current AIPLuS workspace through existing history owner');
 assert(js.includes('buildPathAnalysis'), 'must reuse existing path-analysis diagnosis owner');
 assert(js.includes('addPoolItem'), 'AIPLuS must be able to add a real school-major record to canonical selection pool');
@@ -23,6 +24,14 @@ assert(js.includes('savePoolItems(proposeSelectionOrder'), 'suggested ordering m
 assert(!js.includes('localStorage.setItem'), 'selection workbench must not create/write a second localStorage truth');
 assert(!js.includes('aiplusFavorites'), 'must not introduce an AIPLuS-only favorites store');
 assert(!js.includes('张雪峰'), 'named-person opinion must not become a hidden diagnosis owner');
+
+assert(js.includes('function appendCandidateRecords'), 'candidate binding must use the existing candidates result owner');
+assert(js.includes('Array.isArray(result?.candidates?.records)'), 'historical result collections must not be promoted into current selections');
+assert(js.includes('const score2026 = finite(record.score2026)'), 'candidate binding must require explicit 2026 score evidence');
+assert(js.includes('if (score == null && cardRank == null) return null'), 'candidate card must carry a score/rank anchor');
+assert(js.includes('return exact.length === 1 ? exact[0] : null'), 'candidate card must resolve to exactly one current record');
+assert(!js.includes('|| matches[0]'), 'ambiguous school-major matches must fail closed');
+assert(!js.includes("['records', 'candidates', 'history'"), 'history collections must not be traversed as current selection candidates');
 
 for (const label of ['录取位置', '就业路径证据', '家庭成本', '学校平台']) {
   assert(js.includes(label), `missing sorting lens: ${label}`);
