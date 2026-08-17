@@ -1,0 +1,124 @@
+name: Verify AIPLuS feedback Log v0.04
+
+on:
+  pull_request:
+    branches:
+      - main
+      - agent/aiplus-family-decision-workbench
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-aiplus-feedback-log-v004.mjs'
+      - 'tools/browser-aiplus-feedback-log-v004.mjs'
+      - 'tools/browser-aiplus-feedback-log-preview-v004.mjs'
+      - 'tools/audit-aiplus-v002-ui.mjs'
+      - 'tools/audit-architecture-handoff-v3990_1.mjs'
+      - 'docs/architecture/START-HERE.md'
+      - 'docs/architecture/AIPLUS-FEEDBACK-LOG-STATUS.md'
+      - '.github/workflows/verify-aiplus-feedback-log-v004.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax and feedback ownership
+        run: |
+          set -euo pipefail
+          node --check shared/ai/aiplus-feedback-bundle.v004.js
+          node --check aiplus/feedback-log.v004.js
+          node --check aiplus/feedback-log-ui.v004.js
+          node --check tools/verify-aiplus-feedback-log-v004.mjs
+          node --check tools/browser-aiplus-feedback-log-v004.mjs
+          node --check tools/browser-aiplus-feedback-log-preview-v004.mjs
+          node tools/verify-aiplus-feedback-log-v004.mjs
+      - name: Preserve PR166 family workbench contracts
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-family-decision-workbench-v003.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-aek-journeys-v001.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+      - name: Protected boundaries
+        run: |
+          set -euo pipefail
+          git fetch origin "${GITHUB_BASE_REF}" --depth=1
+          git diff --exit-code "origin/${GITHUB_BASE_REF}"...HEAD -- fenxi functions/fenxi functions/_middleware.js
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
+
+  browser-combined:
+    needs: source-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify feedback Log PC Pad Android
+        run: node tools/browser-aiplus-feedback-log-v004.mjs
+      - name: Re-run existing family workbench mocked browser regression
+        run: node tools/browser-aiplus-v002-mocked.mjs
+      - name: Resolve exact-head Cloudflare Preview
+        id: resolve-preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          immutable_preview=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 70); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo "Cloudflare exact-head Check failed for ${EXPECTED_SHA}." >&2
+              exit 2
+            fi
+            if [ "$conclusion" = success ]; then
+              grep -q "$short_sha" <<<"$summary"
+              immutable_preview="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | head -n1 || true)"
+              if [ -n "$immutable_preview" ]; then break; fi
+            fi
+            sleep 8
+          done
+          test -n "$immutable_preview"
+          echo "preview_base=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "Exact feedback Preview: $immutable_preview"
+      - name: Verify feedback Log on exact Preview PC Pad Android
+        env:
+          PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+        run: node tools/browser-aiplus-feedback-log-preview-v004.mjs

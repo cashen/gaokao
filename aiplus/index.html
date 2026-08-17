@@ -10,8 +10,9 @@
   <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=002_4&scroll=002_1&fdw=003_0" />
   <link rel="stylesheet" href="/aiplus/product.v002.css?v=002_4&scroll=002_1&fdw=003_0" />
   <link rel="stylesheet" href="/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/feedback-log.v004.css?v=004_0" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-decision-generation="aiplus-parent-decision-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_4" data-ai-family-decision="aiplus-family-decision-v0.03" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-decision-generation="aiplus-parent-decision-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_4" data-ai-family-decision="aiplus-family-decision-v0.03" data-ai-feedback-log="aiplus-feedback-log-v0.04" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
@@ -53,6 +54,7 @@
           <button id="exportWorkspace" class="quiet" type="button">导出这份家庭决策</button>
         </div>
       </details>
+      <button id="feedbackLogToggle" class="feedback-log-toggle" type="button">问题反馈 / Log <span>本地生成，不自动上传</span></button>
       <details class="decision-history-card">
         <summary>其他家庭档案</summary>
         <button id="newFamilyProfile" class="history-new secondary-family" type="button">＋ 新建另一份家庭档案</button>
@@ -109,6 +111,17 @@
 
   <footer class="aiplus-product-footer" aria-label="AIPLuS 产品版本">AIPLuS 产品版 · v0.02 · 决策语义 v0.03</footer>
 
+  <dialog id="feedbackLogDialog" class="feedback-log-dialog">
+    <form method="dialog" class="dialog-card feedback-log-card">
+      <div class="feedback-log-title"><div><h2>问题反馈 / Log</h2><p>把现象写下来后复制给 ChatGPT。默认不上传，也不附带完整家庭对话。</p></div><button value="close" type="submit" aria-label="关闭问题反馈">×</button></div>
+      <label class="feedback-log-note" for="feedbackLogNote">你遇到了什么问题<textarea id="feedbackLogNote" rows="3" maxlength="500" placeholder="例如：手机上问完学校分数后页面突然跳了一下。"></textarea></label>
+      <label class="feedback-log-option"><input id="feedbackLogIncludeTurn" type="checkbox" /> 我同意附带当前这一轮问题与可见回答</label>
+      <textarea id="feedbackLogPreview" class="feedback-log-preview" readonly rows="14" aria-label="反馈日志预览"></textarea>
+      <div class="feedback-log-actions"><button id="feedbackLogClear" type="button">清空本地日志</button><button id="feedbackLogCopy" class="primary" type="button">复制给 ChatGPT</button></div>
+      <p id="feedbackLogStatus" class="feedback-log-status" aria-live="polite"></p>
+    </form>
+  </dialog>
+
   <dialog id="confirmDialog">
     <form method="dialog" class="dialog-card">
       <h2>这句话我不想替你猜</h2>
@@ -121,5 +134,6 @@
   </dialog>
 
   <script type="module" src="/aiplus/app.v3990_1.js?v=002_4&scroll=002_1&fdw=003_0"></script>
+  <script type="module" src="/aiplus/feedback-log-ui.v004.js?v=004_0"></script>
 </body>
 </html>

@@ -47,6 +47,27 @@ if (knownWorkspaceTransitiveGap) {
   assert.ok(handoff.includes('KNOWN-GAP:AIPLUS-WORKSPACE-TRANSITIVE'), 'workspace transitive generation gap must stay explicit until a canonical release reconciles it');
 }
 
+const feedbackStatusPath = 'docs/architecture/AIPLUS-FEEDBACK-LOG-STATUS.md';
+assert.ok(exists(feedbackStatusPath), 'Feedback Log durable architecture handoff missing');
+const feedbackStatus = read(feedbackStatusPath);
+for (const marker of ['PR #166 remains authoritative', 'PR #168 owns only', 'Default bundle excludes current question and answer', 'both PR #166 and PR #168 must be complete']) {
+  assert.ok(feedbackStatus.includes(marker), `Feedback Log handoff missing invariant: ${marker}`);
+}
+for (const relative of ['shared/ai/aiplus-feedback-bundle.v004.js','aiplus/feedback-log.v004.js','aiplus/feedback-log-ui.v004.js','aiplus/feedback-log.v004.css']) {
+  assert.ok(exists(relative), `Feedback Log capability resource missing: ${relative}`);
+}
+assert.ok(html.includes('data-ai-feedback-log="aiplus-feedback-log-v0.04"'), 'Feedback Log capability identity missing');
+const feedbackLog = read('aiplus/feedback-log.v004.js');
+const feedbackUi = read('aiplus/feedback-log-ui.v004.js');
+for (const source of [feedbackLog, feedbackUi]) {
+  assert.ok(!source.includes('/api/ai/turn'), 'Feedback Log must not become a second turn execution owner');
+  assert.ok(!source.includes('api.github.com'), 'Feedback Log must not create remote GitHub telemetry ownership');
+  assert.ok(!source.includes('fetch('), 'Feedback Log must remain local-only');
+  assert.ok(!source.includes('MutationObserver') && !source.includes('setInterval('), 'Feedback Log must not add observer/polling ownership');
+}
+assert.ok(!exists('shared/ai/aiplus-decision-workspace.v004.js'), 'PR #168 must not restore a second Decision Progress owner');
+assert.ok(!exists('aiplus/decision-workspace-ui.v004.js'), 'PR #168 must not restore a second Decision UI owner');
+
 function productionFiles(directory) {
   const absolute = path.join(root, directory);
   if (!fs.existsSync(absolute)) return [];
@@ -78,6 +99,7 @@ assert.ok(!releaseSource.includes('ln-rank/VERSION.txt'), 'canonical release mus
 const workflowPaths = Object.freeze({
   production: '.github/workflows/deploy-cloudflare-pages-main.yml',
   ai: '.github/workflows/verify-ai-workspace-v3990_1.yml',
+  aiFeedbackLog: '.github/workflows/verify-aiplus-feedback-log-v004.yml',
   workerPreview: '.github/workflows/verify-worker-resource-vnext-preview.yml',
   workerProduction: '.github/workflows/verify-worker-resource-vnext-production.yml',
   finalRegression: '.github/workflows/verify-ln-2026-final.yml'
@@ -105,6 +127,8 @@ console.log(JSON.stringify({
   knownWorkspaceTransitiveGap,
   legacyIntentRuntimeCallers,
   workflowOwners: workflowPaths,
+  feedbackLogCapability: 'aiplus-feedback-log-v0.04',
+  feedbackLogHandoff: feedbackStatusPath,
   canonicalReleaseOwner: CURRENT_RELEASE.resourceOwners.release,
   protectedReleaseAliasPreserved: true
 }, null, 2));
