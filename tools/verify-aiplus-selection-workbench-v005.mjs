@@ -7,10 +7,12 @@ const html = read('aiplus/index.html');
 const js = read('aiplus/selection-workbench.v005.js');
 const css = read('aiplus/selection-workbench.v005.css');
 const status = read('docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md');
+const selectionJsAsset = '/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0';
+const selectionCssAsset = '/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0';
 
 assert(html.includes('data-ai-selection-workbench="aiplus-selection-workbench-v0.05"'), 'AIPLuS selection workbench identity missing');
-assert(html.includes('/aiplus/selection-workbench.v005.js?v=005_0'), 'selection workbench JS not loaded');
-assert(html.includes('/aiplus/selection-workbench.v005.css?v=005_0'), 'selection workbench CSS not loaded');
+assert(html.split(selectionJsAsset).length - 1 === 1, 'selection workbench JS must have one additive entry owner');
+assert(html.split(selectionCssAsset).length - 1 === 1, 'selection workbench CSS must have one additive entry owner');
 assert(html.includes('自选诊断 v0.05'), 'selection workbench footer identity missing');
 
 assert(js.includes("from '/ln-rank/js/feature/selection-pool/store.v3967_0.js?v=3967_0'"), 'must reuse canonical LN selection-pool store owner directly');
