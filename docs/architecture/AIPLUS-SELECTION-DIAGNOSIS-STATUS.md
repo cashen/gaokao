@@ -1,5 +1,15 @@
 # AIPLuS 自选、排序与诊断 v0.05
 
+## 当前开发 / 发布状态
+
+- 开发分支：`agent/aiplus-selection-diagnosis-v005`
+- Draft PR：`#170` — `AIPLuS：打通自选、排序与诊断工作台 v0.05`
+- base：开始本线时的 `main` 为 `44a2426ec0244811cf7e41f045a0a624910988d0`；继续工作时必须重新查询最新 `main`，不能假定仍未变化。
+- Cloudflare Pages Git integration 已能为本分支 exact head 正常构建 immutable Preview。
+- 当前 GitHub-hosted Actions runner 存在仓库账户级外部阻塞：job annotation 明确报告 recent account payments failed / spending limit needs to be increased，job 在 checkout 前即未启动。
+- **在 GitHub Actions runner 恢复、完整 Draft gates 实际执行并通过以前，PR #170 不得转 Ready、不得 merge。** Billing 红灯不能当成代码失败，也不能当成可以绕过的验证。
+- runner 恢复后的闭环仍必须是：重新跑完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA 第二轮 → `expected_head_sha` merge → main/Production closure。
+
 ## 目标
 
 AIPLuS 对话负责发现和解释，家庭工作台负责沉淀家庭条件，**唯一自选 truth** 继续由现有 `ln-rank` Selection Pool 持有。AIPLuS 不建立第二份收藏、自选、排序或志愿状态。
@@ -14,7 +24,9 @@ AIPLuS 对话负责发现和解释，家庭工作台负责沉淀家庭条件，*
 
 ## 加入自选合同
 
-- 只有能绑定到当前 AIPLuS workspace 已保存回答中的真实 2026 学校×专业记录，才显示“加入自选”。
+- 只有能绑定到当前 AIPLuS workspace 已保存 `candidates.records` 中的真实 2026 学校×专业记录，才显示“加入自选”。
+- 记录必须显式携带 `score2026`；历史查询中的通用 `score` 不得被提升成 2026 自选事实。
+- 候选卡必须带分数/位次锚点，并且对学校、专业、分数/位次只能精确匹配到**唯一一条**当前候选记录；错分、错位次、重复歧义记录全部 fail-closed，不使用 first-match fallback。
 - 单独学校名或单独专业方向不是正式自选条目；它们仍然是讨论焦点。
 - 写入必须调用现有 `addPoolItem()`；去重、上限、ID、归一化继续由 Selection Pool owner 决定。
 - AIPLuS 不新增 localStorage key，不复制 Selection Pool。
@@ -62,6 +74,7 @@ v0.05 能提供的确定性诊断包括：
 - PC：自选工作台位于“我的决策”侧栏，可见当前顺序、诊断和排序建议；
 - Pad/Android：沿用同一个业务状态，只有响应式布局变化，没有设备专用业务分支；
 - 回答中的候选卡只有在能从 workspace 找回真实记录时才增加“加入自选”。无法绑定事实时 fail-closed，不从文案猜一条新志愿。
+- Selection Workbench CSS/JS 使用独立 capability `v005_0`，同时参加现有 Family Decision Workbench `fdw=003_0` cache transaction；成熟 UI audit 必须把它识别为显式 additive owner，未知第四类 entry asset 仍不得混入 core transaction。
 
 ## 发布门禁
 
@@ -74,6 +87,7 @@ v0.05 能提供的确定性诊断包括：
 - source ownership / no second storage；
 - 现有 AIPLuS workspace / parent-decision / AEK 回归；
 - PC / Pad / Android 自选、排序、诊断和候选加入；
+- 真实 2026 正例可以加入；历史通用分数、分数/位次不匹配、重复歧义记录均不得出现加入入口；
 - exact-head Cloudflare Preview；
 - main Production exact SHA；
 - protected paths 不变。
