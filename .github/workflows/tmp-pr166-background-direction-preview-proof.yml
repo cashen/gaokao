@@ -1,0 +1,34 @@
+name: tmp PR166 background direction exact Preview proof
+
+on:
+  push:
+    branches:
+      - agent/tmp-pr166-background-direction-preview-proof
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Guard source parent and exact Preview deployment
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor f29da1e9a7464137389101417f38e0b869bba305 HEAD
+          body="$(curl -fsSL --max-time 30 -H 'Cache-Control: no-cache' https://73644295.gaokao-4y9.pages.dev/aiplus/)"
+          grep -Fq 'data-ai-plus="family-advisor"' <<<"$body"
+      - name: Install Chromium journey runner
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify reported background direction journey on exact Preview
+        run: node tools/tmp_pr166_background_direction_preview_proof.mjs
