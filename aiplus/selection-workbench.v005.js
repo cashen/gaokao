@@ -276,6 +276,7 @@ function bandLabel(item) {
 let panel = null;
 let statusNode = null;
 let observer = null;
+let candidateDecorationScheduled = false;
 let renderSequence = 0;
 let currentLens = 'position';
 let actionStatus = '';
@@ -436,9 +437,11 @@ async function renderWorkbench() {
 }
 
 function updateCandidateButton(button, selected) {
-  button.textContent = selected ? '✓ 已自选' : '＋ 加入自选';
-  button.disabled = selected;
-  button.setAttribute('aria-pressed', String(selected));
+  const text = selected ? '✓ 已自选' : '＋ 加入自选';
+  const pressed = String(selected);
+  if (button.textContent !== text) button.textContent = text;
+  if (button.disabled !== selected) button.disabled = selected;
+  if (button.getAttribute('aria-pressed') !== pressed) button.setAttribute('aria-pressed', pressed);
 }
 
 async function decorateCandidateCards() {
@@ -477,11 +480,26 @@ async function refreshAll() {
   await decorateCandidateCards();
 }
 
+function nodeContainsCandidate(nodeValue) {
+  if (!(nodeValue instanceof Element)) return false;
+  return nodeValue.matches('.candidate-item') || Boolean(nodeValue.querySelector('.candidate-item'));
+}
+
+function scheduleCandidateDecoration() {
+  if (candidateDecorationScheduled) return;
+  candidateDecorationScheduled = true;
+  queueMicrotask(() => {
+    candidateDecorationScheduled = false;
+    decorateCandidateCards().catch(() => {});
+  });
+}
+
 function startObserver() {
   const conversation = document.querySelector('#conversationStream');
   if (!conversation || observer) return;
-  observer = new MutationObserver(() => {
-    decorateCandidateCards().catch(() => {});
+  observer = new MutationObserver(mutations => {
+    const addedCandidate = mutations.some(mutation => [...mutation.addedNodes].some(nodeContainsCandidate));
+    if (addedCandidate) scheduleCandidateDecoration();
   });
   observer.observe(conversation, { childList: true, subtree: true });
 }
