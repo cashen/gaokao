@@ -1,0 +1,26 @@
+name: tmp PR166 compact entity exact Preview proof
+
+on:
+  push:
+    branches:
+      - agent/tmp-pr166-compact-preview-proof
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Guard source parent and exact Preview deployment
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 36619de7e5e74baac5303d644f0f581f57269174 HEAD
+          curl -fsSL --max-time 20 https://751d2dea.gaokao-4y9.pages.dev/aiplus/ >/dev/null
+      - name: Verify compact entity routing through real Preview API
+        run: node tools/tmp_pr166_compact_preview_proof.mjs
