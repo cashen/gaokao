@@ -2,17 +2,23 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const read=file=>fs.readFileSync(file,'utf8');
-const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_1.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_1.css'),agent=read('aiplus/agent.v3992_0.css'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
+const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_1.js'),render=read('aiplus/render.v3992_0.js'),product=read('aiplus/product.v002.css'),geometry=read('aiplus/geometry.v002.css'),workspace=read('aiplus/workspace.v3990_1.css'),agent=read('aiplus/agent.v3992_0.css'),feedbackLog=read('aiplus/feedback-log.v004.js'),feedbackUi=read('aiplus/feedback-log-ui.v004.js'),presentation=read('functions/_lib/ai/advisor-presentation.js'),orchestrator=read('functions/_lib/ai/turn-orchestrator.js'),profileSource=read('functions/_lib/ai/school-profile-supplement-source.js'),workflow=read('.github/workflows/verify-ai-workspace-v3990_1.yml');
 
 assert.match(html,/data-ai-plus="family-advisor"/);
 assert.match(html,/data-ai-plus-assets="aiplus-assets-v002_4"/);
 assert.match(html,/data-ai-family-decision="aiplus-family-decision-v0\.03"/);
+assert.match(html,/data-ai-feedback-log="aiplus-feedback-log-v0\.04"/);
 assert.match(html,/AIPLuS 产品版 · v0\.02/);
 assert.match(html,/width=device-width, initial-scale=1\.0, viewport-fit=cover/);
 const entryAssets=[...html.matchAll(/(?:href|src)="([^"]+\?v=[^"]+)"/g)].map(match=>match[1]);
 const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0';
-assert.ok(entryAssets.includes(geometryAsset),'AIPLuS geometry cache owner is not mounted');
-const coreEntryAssets=entryAssets.filter(value=>value!==geometryAsset);
+const feedbackCssAsset='/aiplus/feedback-log.v004.css?v=004_0';
+const feedbackUiAsset='/aiplus/feedback-log-ui.v004.js?v=004_0';
+assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
+assert.equal(entryAssets.filter(value=>value===feedbackCssAsset).length,1,'AIPLuS feedback Log CSS must have one additive entry owner');
+assert.equal(entryAssets.filter(value=>value===feedbackUiAsset).length,1,'AIPLuS feedback Log UI must have one additive entry owner');
+const additiveAssets=new Set([geometryAsset,feedbackCssAsset,feedbackUiAsset]);
+const coreEntryAssets=entryAssets.filter(value=>!additiveAssets.has(value));
 assert.ok(coreEntryAssets.length>=4,'active AIPLuS core assets were not found');
 const coreEntryUrls=coreEntryAssets.map(value=>new URL(value,'https://aiplus.local'));
 assert.ok(coreEntryUrls.every(url=>url.searchParams.get('v')==='002_4'),`mixed core entry version transaction: ${coreEntryAssets.join(', ')}`);
@@ -20,11 +26,15 @@ assert.ok(coreEntryUrls.every(url=>url.searchParams.get('scroll')==='002_1'),`mi
 assert.ok(coreEntryUrls.every(url=>url.searchParams.get('fdw')==='003_0'),`mixed FDW cache transaction: ${coreEntryAssets.join(', ')}`);
 assert.ok(coreEntryUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='scroll'||key==='fdw')),`unexpected core entry cache key: ${coreEntryAssets.join(', ')}`);
 assert.equal(new Set(coreEntryUrls.map(url=>url.search)).size,1,`core entry cache transaction must be atomic: ${coreEntryAssets.join(', ')}`);
-assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
 const moduleAssets=[...app.matchAll(/from '([^']+\?v=[^']+)'/g)].map(match=>match[1]);
 assert.ok(moduleAssets.length>=5,'AIPLuS module graph is unexpectedly small');
 const moduleUrls=moduleAssets.map(value=>new URL(value,'https://aiplus.local'));
 assert.ok(moduleUrls.every(url=>url.searchParams.get('v')==='002_4'&&url.searchParams.get('fdw')==='003_0'),`mixed module/FDW cache transaction: ${moduleAssets.join(', ')}`);
+assert.doesNotMatch(feedbackLog,/fetch\(|api\.github\.com|\/api\/ai\/turn/);
+assert.doesNotMatch(feedbackUi,/fetch\(|api\.github\.com|\/api\/ai\/turn|MutationObserver|setInterval\(/);
+assert.match(feedbackLog,/MAX_EVENTS=40/);
+assert.match(html,/id="feedbackLogToggle"/);
+assert.match(html,/id="feedbackLogIncludeTurn"/);
 
 assert.match(product,/\.answer-surface\{[^}]*overflow:hidden/);
 assert.match(product,/\.answer-surface \.result-card\.fact,[^{]+\{border-left:0\}/);
@@ -91,4 +101,4 @@ assert.match(workflow,/echo "preview_base=\$immutable_preview"/);
 assert.match(workflow,/require_text immutable-health/);
 assert.doesNotMatch(workflow,/data-ai-plus="school-official-qa"|"apiVersion":"ai-health-api-v3990_1"|"semanticMode":"command-active-view-history-v3990_1"/);
 
-console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','additive-geometry-cache-owner','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
+console.log(JSON.stringify({ok:true,version:'aiplus-v0.02-ui-audit',checks:['core-resource-transaction','conversation-scroll-cache-subtransaction','fdw-cache-subtransaction','additive-geometry-cache-owner','additive-feedback-log-owner','feedback-log-local-only','viewport-meta','product-footer','single-answer-surface','visible-scope-causality','no-colored-processing-bar','horizontal-mobile-cards','related-major-width-contract','batch-status-width-contract','lazy-history-records','keyed-turn-dom','twelve-turn-window','bounded-browser-batch','single-viewport-owner','new-answer-notice','drawer-viewport-boundary','keyboard-focus','school-directory-baseline','school-research-branch-isolation','nonduplicated-primary-answer','preview-production-contract-sync']},null,2));
