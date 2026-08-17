@@ -320,9 +320,8 @@ function ensurePanel() {
   panel = node('section', 'decision-rail-section selection-workbench');
   panel.id = 'selectionWorkbench';
   panel.setAttribute('aria-labelledby', 'selectionWorkbenchTitle');
-  const progress = history.querySelector('#decisionProgressList')?.closest('.decision-rail-section');
-  const before = progress?.nextElementSibling || history.querySelector('.decision-book-card');
-  history.insertBefore(panel, before || null);
+  const historyArchive = history.querySelector('.decision-history-card');
+  history.insertBefore(panel, historyArchive || null);
   return panel;
 }
 
