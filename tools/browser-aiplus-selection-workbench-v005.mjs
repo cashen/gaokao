@@ -41,7 +41,6 @@ async function installLocalRoutes(page) {
   if (LIVE) return;
   await page.route(`${LOCAL_ORIGIN}/**`, async route => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/blank') return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!doctype html><title>seed</title>' });
     if (url.pathname === '/favicon.ico') return route.fulfill({ status: 204, body: '' });
     const file = staticFile(url.pathname);
     if (file) return route.fulfill({ status: 200, contentType: mime(file), body: fs.readFileSync(file) });
@@ -62,7 +61,9 @@ const AMBIGUOUS_RECORDS = [
 const HISTORY_ONLY = { id: 'history-only', school: '己大学', major: '电气工程及其自动化', score: 568, rank: 24800, year: 2025 };
 
 async function seed(page) {
-  await page.goto(`${BASE}${LIVE ? '/aiplus/' : '/blank'}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const seedUrl = `${BASE}/__aiplus-selection-seed__`;
+  await page.route(seedUrl, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!doctype html><title>selection seed</title>' }));
+  await page.goto(seedUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.evaluate(async ({ pool, addRecord, ambiguousRecords, historyOnly }) => {
     localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951', JSON.stringify(pool));
     const { createAiWorkspace } = await import('/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4&fdw=003_0');
@@ -101,7 +102,7 @@ async function seed(page) {
       };
     });
   }, { pool: SEED_POOL, addRecord: ADD_RECORD, ambiguousRecords: AMBIGUOUS_RECORDS, historyOnly: HISTORY_ONLY });
-  if (LIVE) await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.unroute(seedUrl);
 }
 
 async function openDecision(page, device) {
