@@ -109,4 +109,36 @@ for(const prompt of ['580分省内会计专业','580分 辽宁 电气专业','�
   assertions+=3;
 }
 
+
+// 5) 真人连续操作的“裸实体 / 极短追问”矩阵：实体识别成功后，task 不能掉回无意义的 general_advice，
+//    也不能把学校裸实体偷偷变成候选筛选。高置信短输入必须 taskLocked，避免 provider 覆盖确定性路由。
+const compactEmpty=createAiWorkspace();
+const compactScore=await command('650分',compactEmpty);assert.equal(compactScore.agentTask,'fact_rank_lookup','bare score -> rank/context');assert.equal(compactScore.scoreUsage,'active');assert.equal(compactScore.taskLocked,true);assert.equal(compactScore.entityTurn?.kind,'score');assertions+=4;
+const compactMajorEmpty=await command('电气',compactEmpty);assert.equal(compactMajorEmpty.agentTask,'general_advice','bare major without score records direction only');assert.equal(compactMajorEmpty.focus.major,normalizeMajorLanguage('电气'));assert.equal(compactMajorEmpty.taskLocked,true);assertions+=3;
+const compactRegionEmpty=await command('沈阳',compactEmpty);assert.equal(compactRegionEmpty.agentTask,'region_school_directory','bare region without score opens bounded school directory');assert.equal(compactRegionEmpty.taskLocked,true);assertions+=2;
+const compactSchoolEmpty=await command('沈工大',compactEmpty);assert.equal(compactSchoolEmpty.agentTask,'school_research','bare school opens school research, never implicit candidate filter');assert.equal(compactSchoolEmpty.focus.school,'沈阳工业大学');assert.equal(compactSchoolEmpty.executionPolicy.commitView,false);assert.equal(compactSchoolEmpty.taskLocked,true);assertions+=4;
+const compactPair=await command('沈工大 电气',compactEmpty);assert.equal(compactPair.agentTask,'school_major_history','bare school-major pair drills into deterministic school-major facts');assert.equal(compactPair.focus.school,'沈阳工业大学');assert.equal(compactPair.focus.major,normalizeMajorLanguage('电气'));assert.equal(compactPair.taskLocked,true);assertions+=4;
+const compactScoreMajor=await command('650分 电气',compactEmpty);assert.equal(compactScoreMajor.agentTask,'candidate_discovery','score-major compact scope starts candidates');assert.equal(compactScoreMajor.scoreUsage,'active');assert.equal(compactScoreMajor.taskLocked,true);assertions+=3;
+const compactScoreRegion=await command('650分 沈阳',compactEmpty);assert.equal(compactScoreRegion.agentTask,'candidate_discovery','score-region compact scope starts candidates');assert.ok((compactScoreRegion.regionKeys||[]).includes('shenyang'));assert.equal(compactScoreRegion.taskLocked,true);assertions+=3;
+const compactScoreSchool=await command('650分 沈工大',compactEmpty);assert.equal(compactScoreSchool.agentTask,'school_history','score-school compact input must not silently mutate candidate school filter');assert.equal(compactScoreSchool.executionPolicy.commitView,false);assert.equal(compactScoreSchool.taskLocked,true);assertions+=3;
+const compactScoreSchoolMajor=await command('650分 沈工大 电气',compactEmpty);assert.equal(compactScoreSchoolMajor.agentTask,'fit_assessment','score-school-major compact input is explicit reachability context');assert.equal(compactScoreSchoolMajor.scoreUsage,'active');assert.equal(compactScoreSchoolMajor.taskLocked,true);assertions+=3;
+const compactRegionMajor=await command('辽宁 电气',compactEmpty);assert.equal(compactRegionMajor.agentTask,'major_region_history','region-major without personal score is a historical truth query');assert.equal(compactRegionMajor.scoreUsage,'suspended');assert.equal(compactRegionMajor.taskLocked,true);assertions+=3;
+
+const afterScore=createAiWorkspace({examContext:{score:652,rank:2589},agentContext:{currentTask:'fact_rank_lookup',focus:{}}});
+const majorAfterScore=await command('电气',afterScore);assert.equal(majorAfterScore.agentTask,'candidate_discovery','score -> major starts first candidate scope');assert.equal(majorAfterScore.taskLocked,true);assertions+=2;
+const regionAfterScore=await command('沈阳',afterScore);assert.equal(regionAfterScore.agentTask,'candidate_discovery','score -> region starts first candidate scope');assert.equal(regionAfterScore.taskLocked,true);assertions+=2;
+const schoolAfterScore=await command('沈工大',afterScore);assert.equal(schoolAfterScore.agentTask,'school_research','score memory does not make bare school an implicit filter');assert.equal(schoolAfterScore.executionPolicy.commitView,false);assertions+=2;
+
+const candidateCompact=createAiWorkspace({examContext:{score:652,rank:2589},activeView:{score:652,regionKeys:['ln'],majorKeywords:['电气工程及其自动化'],schoolNames:[],bottomLineMode:'all'},agentContext:{currentTask:'candidate_discovery',focus:{major:'电气工程及其自动化',majors:['电气工程及其自动化']}}});
+const regionRefine=await command('沈阳',candidateCompact);assert.equal(regionRefine.agentTask,'candidate_refinement');assert.ok((regionRefine.changeSet.region?.keys||[]).includes('shenyang'));assert.equal(regionRefine.taskLocked,true);assertions+=3;
+const schoolFromCandidate=await command('沈工大',candidateCompact);assert.equal(schoolFromCandidate.agentTask,'school_research','bare school must switch object, not mutate candidate schoolNames');assert.equal(schoolFromCandidate.executionPolicy.commitView,false);assertions+=2;
+
+const schoolCompact=createAiWorkspace({examContext:{score:652,rank:2589},agentContext:{currentTask:'school_research',focus:{school:'沈阳工业大学',schools:['沈阳工业大学']}}});
+const majorDrill=await command('电气',schoolCompact);assert.equal(majorDrill.agentTask,'school_major_history','school -> bare major drills into that school-major');assert.equal(majorDrill.focus.school,'沈阳工业大学');assert.equal(majorDrill.focus.major,normalizeMajorLanguage('电气'));assertions+=3;
+const scoreKeepsSchool=await command('650分',schoolCompact);assert.equal(scoreKeepsSchool.agentTask,'fact_rank_lookup');assert.equal(scoreKeepsSchool.focus.school,'沈阳工业大学','bare score must not erase current school focus');assertions+=2;
+
+const majorCompact=createAiWorkspace({examContext:{score:652,rank:2589},agentContext:{currentTask:'major_region_history',focus:{major:'电气工程及其自动化',majors:['电气工程及其自动化']}}});
+const schoolDrill=await command('沈工大',majorCompact);assert.equal(schoolDrill.agentTask,'school_major_history','major history -> bare school drills into that pair');assert.equal(schoolDrill.focus.school,'沈阳工业大学');assert.equal(schoolDrill.focus.major,'电气工程及其自动化');assertions+=3;
+const regionDrill=await command('沈阳',majorCompact);assert.equal(regionDrill.agentTask,'major_region_history','major history -> bare region keeps major truth owner');assert.equal(regionDrill.focus.major,'电气工程及其自动化');assert.ok((regionDrill.regionKeys||[]).includes('shenyang'));assertions+=3;
+
 console.log(JSON.stringify({ok:true,version:'aiplus-routing-grid-v0.01',assertions,rangeRouteCount,dimensions:{schoolAliases:7,schoolScopes:schoolScopes.length,historySuffixes:historySuffixes.length,rangeForms:rangeForms.length,regions:regionForms.length,majorAliases:majorAliases.length,rangeScopeTemplates:scopeTemplates.length,orders:orderTemplates.length,contexts:contexts.length}},null,2));

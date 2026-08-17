@@ -68,13 +68,44 @@ function looksRestore(source){return /(回到|恢复|上一批|上一个结果|�
 function looksMajorRegionSchoolList(source){return /(?:哪些|那些|什么|啥|有什么|有啥|有哪些).{0,6}(?:学校|大学|高校|院校)|(?:学校|大学|高校|院校).{0,6}(?:有这个专业|有该专业|有吗)/.test(String(source||''));}
 function looksKnowledgeFollowup(source,priorTask=''){return priorTask==='knowledge_explain'&&/(这个|它|刚才(?:那个|说的)|这个政策|这个计划|这个专业|这个概念|那这个|那它|我家|户籍|学籍|能报吗|可以报吗|谁能报|怎么报|符合|资格|条件|今年|现在|沈工大|这所学校).{0,20}/.test(String(source||''));}
 
-export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode=''}={}){
+
+function candidateTaskForCompactEntity(workspace={}){
+  const prior=clean(workspace?.agentContext?.currentTask,60),view=workspace?.activeView||{};
+  const scoped=Boolean((view.majorKeywords||[]).length||(view.schoolNames||[]).length||((view.regionKeys||[]).length&&!view.regionKeys.includes('all'))||(view.bottomLineMode&&view.bottomLineMode!=='all'));
+  return ['candidate_discovery','candidate_refinement'].includes(prior)||scoped?'candidate_refinement':'candidate_discovery';
+}
+
+export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=[],score=null,workspace={},candidateIntent=false,compareIntent=false,rankIntent=false,bottomLineMode='',entityTurn={}}={}){
   const source=String(text||''),focus=workspace?.agentContext?.focus||{},priorTask=workspace?.agentContext?.currentTask||'';
   const school=schools[0]||focus.school||'',major=majors[0]||focus.major||'';
   const sourceWithoutSchoolNames=schools.reduce((value,name)=>value.split(String(name||'')).join(' '),source);
   const explicitMajors=majors.filter(item=>item&&(!schools.some(name=>String(name||'').includes(String(item||'')))||sourceWithoutSchoolNames.includes(String(item||''))));
   const scoreConstraint=scoreConstraintFromText(source),schoolTopic=schoolTopicBoundaryFromText(source),majorTopic=majorTopicBoundaryFromText(source);
   if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors})||looksKnowledgeFollowup(source,priorTask))return'knowledge_explain';
+  const entityKind=clean(entityTurn?.kind,30);
+  if(entityKind==='score')return'fact_rank_lookup';
+  if(entityKind==='score_school_major')return'fit_assessment';
+  if(entityKind==='score_school')return'school_history';
+  if(entityKind==='candidate_scope')return candidateTaskForCompactEntity(workspace);
+  if(entityKind==='school_major')return'school_major_history';
+  if(entityKind==='school'){
+    if(focus.major&&['major_region_history','major_background'].includes(priorTask))return'school_major_history';
+    return'school_research';
+  }
+  if(entityKind==='major'){
+    if(focus.school&&['school_research','school_history','school_major_history','school_background','school_official_qa','school_experience','fit_assessment'].includes(priorTask))return'school_major_history';
+    if(workspace?.examContext?.score||candidateTaskForCompactEntity(workspace)==='candidate_refinement')return candidateTaskForCompactEntity(workspace);
+    return'general_advice';
+  }
+  if(entityKind==='region_major'){
+    if(workspace?.examContext?.score||['candidate_discovery','candidate_refinement'].includes(priorTask)||candidateTaskForCompactEntity(workspace)==='candidate_refinement')return candidateTaskForCompactEntity(workspace);
+    return'major_region_history';
+  }
+  if(entityKind==='region'){
+    if(priorTask==='major_region_history'&&focus.major)return'major_region_history';
+    if(workspace?.examContext?.score||['candidate_discovery','candidate_refinement'].includes(priorTask)||candidateTaskForCompactEntity(workspace)==='candidate_refinement')return candidateTaskForCompactEntity(workspace);
+    return'region_school_directory';
+  }
   const majorHistoryFollowup=priorTask==='major_region_history'&&!school&&(
     Boolean(bottomLineMode)||looksHistory(source)||
     (explicitMajors.length>0&&/(换成|改成|换个|另一个|再看|改看|纠正)/.test(source))||

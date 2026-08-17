@@ -19,6 +19,7 @@ export function applyAiWorkspaceEvent(workspaceLike,eventLike={}){
   const workspace=createAiWorkspace(workspaceLike||{}),event={version:AI_EVENT_CONTRACT_VERSION,id:cleanText(eventLike.id,120)||makeId('event'),type:cleanText(eventLike.type,80),at:eventLike.at||nowIso(),payload:eventLike.payload&&typeof eventLike.payload==='object'?cloneValue(eventLike.payload):{}};
   if(event.type==='command_committed'){
     const command=event.payload.command||{},resolvedView=event.payload.resolvedView?viewSeed(event.payload.resolvedView,workspace.examContext):workspace.activeView;
+    const explicitPersonalScore=normalizedScore(command.score);if(explicitPersonalScore&&command.scoreUsage==='active'&&command.scoreConstraint?.kind==='point')workspace.examContext.score=explicitPersonalScore;
     if(event.payload.commitView!==false&&normalizedScore(resolvedView.score))workspace.examContext.score=normalizedScore(resolvedView.score);
     applyFamilyChanges(workspace,command);mergeDecisionProfile(workspace,command);
     if(event.payload.agentContext)workspace.agentContext=agentContextSeed(event.payload.agentContext,workspace.examContext);
@@ -30,7 +31,7 @@ export function applyAiWorkspaceEvent(workspaceLike,eventLike={}){
   }
   if(event.type==='view_restored'){const restored=viewSeed(event.payload.view||{},workspace.examContext);pushViewHistory(workspace,workspace.activeView);workspace.activeView={...restored,id:makeId('view'),updatedAt:nowIso()};if(restored.score)workspace.examContext.score=restored.score;}
   if(event.type==='result_committed'){
-    const result=event.payload.result&&typeof event.payload.result==='object'?cloneValue(event.payload.result):null,rawTurn=event.payload.turn||{},factOnly=rawTurn?.command?.agentTask==='fact_rank_lookup'||(rawTurn?.command?.operation==='answer'&&rawTurn?.command?.target==='fact');
+    const result=event.payload.result&&typeof event.payload.result==='object'?cloneValue(event.payload.result):null,rawTurn=event.payload.turn||{},personalRankLookup=rawTurn?.command?.agentTask==='fact_rank_lookup'&&rawTurn?.command?.scoreUsage==='active',factOnly=(rawTurn?.command?.agentTask==='fact_rank_lookup'||(rawTurn?.command?.operation==='answer'&&rawTurn?.command?.target==='fact'))&&!personalRankLookup;
     workspace.lastResult=result;workspace.lastTurn=rawTurn&&typeof rawTurn==='object'?cloneValue(rawTurn):workspace.lastTurn;
     if(result?.rank?.rankEnd&&!factOnly)workspace.examContext.rank=Number(result.rank.rankEnd);
     if(DECISION_STAGES.has(cleanText(result?.decisionStage,50)))workspace.decisionStage=cleanText(result.decisionStage,50);

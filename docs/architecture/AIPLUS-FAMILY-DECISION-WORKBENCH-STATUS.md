@@ -165,6 +165,12 @@ Verified during construction and clean-head proof cycles:
 
 This evidence is **not yet the final Draft proof**. The package rows below stay `IN_PROGRESS` until the current clean no-temp exact head completes the formal PR workflows and exact-head Preview/browser gates after the starter-isolation correction.
 
+### 2026-08-17 · compact entity routing counterexample reopened
+
+User feedback Log exposed a systemic routing gap rather than a Log/UI defect: short human turns such as `650分`, `电气`, `沈阳`, `沈工大` can successfully identify an entity while the execution task remains `general_advice`; presentation then previously defaulted that task to the misleading internal stage `feasible_set`. The same class can affect score / region / major / school transitions across multi-turn decision journeys.
+
+Release is blocked until the existing canonical route chain proves all of the following on one clean head: compact score/region/major/school/school-major routing, context-aware drill-down, provider non-override for high-confidence compact entity turns, explicit personal-score persistence independent of candidate-view mutation, and `general_advice -> start` rather than fake `feasible_set`. The permanent routing grid is the owner of these assertions; no phrase-specific UI patch is allowed.
+
 ## Work package ledger
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `REOPENED`.

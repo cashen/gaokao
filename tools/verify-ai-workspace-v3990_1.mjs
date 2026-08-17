@@ -15,7 +15,7 @@ import { runRankLookup,runMajorBandSearch,normalizeOptionalCandidateScore,AI_TOO
 import { DEFAULT_WORKERS_AI_MODEL } from '../functions/_lib/ai-model-resolver.js';
 import { matchRegionRule } from '../shared/resources/geo/china-region-catalog.v3990_1.js';
 import { starterScenariosForScore } from '../aiplus/parent-starter.v3992_1.js';
-import { buildBlocks } from '../functions/_lib/ai/advisor-presentation.js';
+import { buildBlocks,decisionStageFor } from '../functions/_lib/ai/advisor-presentation.js';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
@@ -85,6 +85,19 @@ async function testModelCanCorrectTaskNotFacts(){
   assert.equal(result.command.agentTask,'general_advice');assert.equal(result.command.scoreUsage,'suspended');assert.equal(result.command.changeSet.score.op,'inherit');assert.equal(result.command.changeSet.region.op,'inherit');assert.ok(captured.messages[0].content.includes('事实边界'));
 }
 
+
+function testCompactEntityContextPersistence(){
+  let workspace=createAiWorkspace();
+  const scoreCommand=cmd('650分',workspace);assert.equal(scoreCommand.agentTask,'fact_rank_lookup');assert.equal(scoreCommand.scoreUsage,'active');assert.equal(scoreCommand.taskLocked,true);
+  workspace=applyAiWorkspaceEvent(workspace,{type:'command_committed',payload:{command:scoreCommand,resolvedView:workspace.activeView,commitView:false,decisionStage:'verify',taskAction:'create_main'}});
+  assert.equal(workspace.examContext.score,650,'explicit personal score belongs to examContext even when candidate view is not committed');assert.deepEqual(workspace.activeView.schoolNames,[]);
+  workspace=applyAiWorkspaceEvent(workspace,{type:'result_committed',payload:{result:{rank:{ok:true,score:650,rankEnd:2867}},turn:{userText:'650分',task:'fact_rank_lookup',command:scoreCommand,focus:scoreCommand.focus}}});
+  assert.equal(workspace.examContext.rank,2867,'active bare-score rank may update personal examContext');
+  const factWorkspace=createAiWorkspace(),factCommand=cmd('640分位次',factWorkspace);assert.equal(factCommand.agentTask,'fact_rank_lookup');assert.notEqual(factCommand.scoreUsage,'active','arbitrary score-rank fact query must not become personal score context');
+  const afterFact=applyAiWorkspaceEvent(factWorkspace,{type:'command_committed',payload:{command:factCommand,resolvedView:factWorkspace.activeView,commitView:false,decisionStage:'verify',taskAction:'create_main'}});assert.equal(afterFact.examContext.score,null,'fact lookup for another score must not overwrite personal context');
+  const stage=decisionStageFor({command:{agentTask:'general_advice'},view:{score:null,regionKeys:['all'],majorKeywords:[],schoolNames:[],bottomLineMode:'all'},result:{},changes:[]});assert.equal(stage,'start','general_advice must never masquerade as feasible_set');
+}
+
 function testPrivacyBudget(){
   const huge='家庭条件'.repeat(800),selectionItems=Array.from({length:112},(_,i)=>({id:`id-${i}-${huge}`,school:`测试大学${i}${'校'.repeat(30)}`,major:`机械工程与智能制造${i}${'专业'.repeat(28)}`,rank2026:18000+i,bandKey:i%3===0?'upper':i%3===1?'near':'steady',displayLocation:`辽宁省沈阳市${'地点'.repeat(20)}`,tuition:`每年${5000+i}元${'说明'.repeat(18)}`,userNote:huge})),tasks=Array.from({length:24},(_,i)=>({id:`task-${i}`,kind:i?'branch':'main',type:'candidate_refinement',status:'complete',title:`任务${i}${huge}`,command:{agentTask:'candidate_refinement',rawText:huge,question:huge,reason:huge,focus:{school:`测试大学${i}`,major:huge},mentorProfile:{persistable:{primaryGoal:'employment_stability',priorities:['employment','cost']},analysis:huge},changeSet:{major:{op:'set',values:[huge]}}}}));
   const workspace=createAiWorkspace({tasks,mainTaskId:'task-0',agentContext:{currentTask:'candidate_refinement',focus:{school:'沈阳工业大学',major:'自动化'}},turnHistory:Array.from({length:80},(_,i)=>({userText:`第${i}轮 ${huge}`,assistantSummary:huge,changeSummary:huge,task:'general_advice',focus:{school:'测试大学',major:huge}})),selectionSnapshot:{version:'ln-rank-selection-snapshot-v3992_0',items:selectionItems},lastResult:{candidates:{counts:{upper:30,near:40,steady:42,total:112},records:selectionItems},history:{school:'测试大学',majorKeyword:'机械',records:selectionItems},execution:{agentTask:'candidate_refinement',score:580,majorKeywords:['机械'],region:{includeKeys:['ln'],excludeKeys:[]}}},hardConstraints:Array.from({length:40},(_,i)=>({key:`hard-${i}`,values:[huge],label:huge,sourceText:huge})),softPreferences:Array.from({length:40},(_,i)=>({key:`soft-${i}`,values:[huge],label:huge,sourceText:huge}))});
@@ -142,7 +155,7 @@ function testFactsSkillAndUi(){const rank=runRankLookup(600);assert.equal(rank.o
 }
 
 assert.equal(AI_WORKSPACE_CONTRACT_VERSION,'ai-workspace-contract-v3992_1');assert.equal(AI_ACTIVE_VIEW_VERSION,'ai-active-view-v3992_0');assert.equal(AI_AGENT_KERNEL_VERSION,'ai-human-advisor-kernel-v3992_6');
-testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();await testAiRequestedBandBridge();await testParentHumanJourneysV3992_1();testAiSchoolResolverBoundary();testSchoolHistoryStreamingBoundary();
+testCandidatePatchJourney();testTaskSwitchAndReference();testBackgroundTasks();testExplicitContextPolicy();testGeoAndDelta();testWorkspaceMigrationAndMemory();testCompactEntityContextPersistence();await testLockedCommandsSkipProvider();await testModelCanCorrectTaskNotFacts();testPrivacyBudget();await testAiRequestedBandBridge();await testParentHumanJourneysV3992_1();testAiSchoolResolverBoundary();testSchoolHistoryStreamingBoundary();
 testDeterministicComparisonRouting();testSingleSchoolFollowupPrompts();testCompactAliasResolverRows();testExactSchoolQueryLightPath();testAiSchoolHistoryAdapterBoundary();testAiBackgroundAsyncBoundary();testAiMajorBandsResourceBoundary();testFactsSkillAndUi();
 const historyStore=read('aiplus/history-store.v3992_4.js');
 assert.match(historyStore,/SESSION_PREFIX='session:'/);
