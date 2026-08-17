@@ -29,7 +29,10 @@ Selection Workbench 可以读取现有家庭 workspace，但**读操作不得变
 - `loadCurrentWorkspace()` 只能读取 canonical `current`；不得把刚读到的快照再次写回 `current`。
 - 兼容旧数据时允许补缺失的 `session:<id>`，但写入前必须重新读取 canonical `current`，确认 family workspace id 仍相同；只能补缺失 session，不能覆盖更新后的 current。
 - 只有 `saveCurrentWorkspace()` 等明确写 owner 才能提交新的 current/session 状态。
-- 这个边界保护家庭已确认条件、对话历史和 Decision Workspace，避免只读消费者晚到的旧快照覆盖主应用刚保存的新事实。
+- `saveCurrentWorkspace()` 必须等待 canonical `current` 与对应 `session:<id>` 在同一个 IndexedDB 写事务中完成；这是家庭档案的关键持久化路径。
+- 最多 30 份历史的 pruning 仍由同一个 `history-store` owner 维护，但它是**事务后的维护工作**：使用单实例 / single-flight 调度去重，不阻塞“新建家庭档案”的核心保存和 UI 事务，也不允许每次保存形成无界清理 fan-out。
+- `listWorkspaceHistory()` 继续最多向 UI 返回 30 份历史；后台 pruning 只是物理存储维护，不建立第二套历史状态。
+- 这些边界共同保护家庭已确认条件、对话历史和 Decision Workspace：既避免只读消费者晚到的旧快照覆盖主应用刚保存的新事实，也避免历史维护拖慢用户的核心家庭档案事务。
 
 ## 加入自选合同
 
@@ -94,6 +97,7 @@ v0.05 能提供的确定性诊断包括：
 
 - source ownership / no second storage；
 - workspace read 不得 stale-write / 覆盖新家庭条件；
+- current/session 原子写必须先完成，history pruning 不得重新进入家庭档案关键路径；
 - 现有 AIPLuS workspace / parent-decision / AEK 回归；
 - PC / Pad / Android 自选、排序、诊断和候选加入；
 - 真实 2026 正例可以加入；历史通用分数、分数/位次不匹配、重复歧义记录均不得出现加入入口；
