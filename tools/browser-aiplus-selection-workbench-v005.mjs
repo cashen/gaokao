@@ -201,6 +201,25 @@ try {
     });
     assert((await add.textContent()).includes('已自选'), `${device.name}: add action did not settle to selected state`);
 
+    const observerChurn = await page.evaluate(async () => {
+      const button = document.querySelector('.candidate-item[data-selection-test="valid"] .selection-add-button');
+      if (!button) return -1;
+      let childListMutations = 0;
+      const testObserver = new MutationObserver(records => {
+        childListMutations += records.filter(record => record.type === 'childList').length;
+      });
+      testObserver.observe(button, { childList: true, subtree: true });
+      const unrelated = document.createElement('div');
+      unrelated.className = 'selection-observer-unrelated';
+      unrelated.textContent = 'unrelated conversation mutation';
+      document.querySelector('#conversationStream').append(unrelated);
+      await new Promise(resolve => setTimeout(resolve, 250));
+      testObserver.disconnect();
+      unrelated.remove();
+      return childListMutations;
+    });
+    assert(observerChurn === 0, `${device.name}: unrelated conversation mutations caused selection-button rewrite churn (${observerChurn})`);
+
     await openDecision(page, device);
     const sorter = page.locator('.selection-sorter');
     await sorter.locator('summary').click();
