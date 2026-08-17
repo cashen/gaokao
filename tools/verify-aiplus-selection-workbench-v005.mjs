@@ -40,6 +40,15 @@ const migrationBody = historyStore.slice(migrationStart, loadCurrentStart);
 assert(migrationBody.includes('store.get(CURRENT_KEY)'), 'session migration must re-read canonical current before writing');
 assert(migrationBody.includes('current.id!==value.id'), 'session migration must abort when the current family workspace changed');
 assert(!migrationBody.includes('store.put(clone(current),CURRENT_KEY)'), 'session migration must never write canonical current');
+assert(historyStore.includes('let prunePromise=null'), 'history pruning must have one single-flight owner');
+assert(historyStore.includes('function schedulePruneSessions()'), 'history owner must schedule bounded pruning outside the critical save transaction');
+assert(historyStore.includes('if(prunePromise)return prunePromise'), 'history pruning must dedupe concurrent maintenance work');
+const listHistoryStart = historyStore.indexOf('export async function listWorkspaceHistory');
+const saveCurrentBody = historyStore.slice(saveCurrentStart, listHistoryStart);
+assert(saveCurrentBody.includes('store.put(snapshot,CURRENT_KEY)'), 'saveCurrentWorkspace must atomically persist canonical current');
+assert(saveCurrentBody.includes('store.put(snapshot,`${SESSION_PREFIX}${workspace.id}`)'), 'saveCurrentWorkspace must atomically persist the matching session');
+assert(saveCurrentBody.includes('if(prune)schedulePruneSessions();'), 'history pruning must start only after the canonical current/session transaction completes');
+assert(!saveCurrentBody.includes('await pruneSessions()'), 'history pruning must not block the family profile critical save path');
 
 assert(js.includes('function appendCandidateRecords'), 'candidate binding must use the existing candidates result owner');
 assert(js.includes('Array.isArray(result?.candidates?.records)'), 'historical result collections must not be promoted into current selections');
