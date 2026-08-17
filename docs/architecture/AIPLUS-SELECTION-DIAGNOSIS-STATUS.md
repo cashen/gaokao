@@ -2,13 +2,14 @@
 
 ## 当前开发 / 发布状态
 
-- 开发分支：`agent/aiplus-selection-diagnosis-v005`
-- Draft PR：`#170` — `AIPLuS：打通自选、排序与诊断工作台 v0.05`
-- base：开始本线时的 `main` 为 `44a2426ec0244811cf7e41f045a0a624910988d0`；继续工作时必须重新查询最新 `main`，不能假定仍未变化。
-- Cloudflare Pages Git integration 能为本分支 exact head 正常构建 immutable Preview。
-- 2026-08-17 本线曾遇到 GitHub-hosted Actions 账户付款 / spending-limit 阻塞，job 在 checkout 前未启动；随后 runner 已恢复并重新开始实际执行 Draft gates。这个历史外部阻塞既不能解释成代码失败，也不能作为绕过验证的理由。
-- **PR #170 只有在恢复后的完整 Draft gates、exact-head Preview PC/Pad/Android、同 SHA Ready 第二轮全部真实通过后才允许 merge。**
-- 闭环固定为：完整 Draft → exact-head Preview PC/Pad/Android → freeze SHA → Ready 同 SHA第二轮 → `expected_head_sha` merge → main/Production closure。
+- v0.05 已通过 PR `#170` 发布到 `main`，不再处于 Draft 开发态。
+- PR #170 frozen head：`f899e16cc6037261ead4ed61d9ddc766f1f8c45d`。
+- PR #170 merge / main commit：`6c9c4d6df9109a8b713a519839f6bd23a33c5482`。
+- PR #170 exact immutable Cloudflare Preview：`https://772011c3.gaokao-4y9.pages.dev`。
+- Draft 与 Ready 均在同一个 frozen head 上完成 14/14 workflows success；merge 后 main / Cloudflare Production / PC / Pad / Android browser closure 已完成。
+- 2026-08-17 Production Selection Workbench browser 第一次在部署刚切换后的挂载等待阶段出现 30 秒 timeout；同一个 main SHA、没有代码变化的原生 rerun 随后成功。这个证据不能证明产品 runtime 有可重复 bug，但暴露了 production readiness gate 只证明 HTML/API identity、没有同时证明当前 Selection Workbench JS/CSS 资产已经在 Pages 域稳定可读的窄竞态。
+- 2026-08-18 post-merge re-audit 使用维护分支 `agent/aiplus-production-asset-readiness-v005` 收紧**现有 release verification owner**：浏览器 Production gate 启动前必须同时证明页面 + API + 当前 Selection Workbench JS/CSS 资产一致。该维护不新增产品 retry、bootstrap owner、缓存 owner、Selection Pool owner，也不改变 AIPLuS 产品/runtime release identity。
+- 后续继续工作必须重新查询最新 `main` / open PR / checks；本文件中的 SHA 只用于说明这条能力的历史发布证据，不是未来会话的实时 source of truth。
 
 ## 目标
 
@@ -88,6 +89,18 @@ v0.05 能提供的确定性诊断包括：
 - Pad/Android：沿用同一个业务状态，只有响应式布局变化，没有设备专用业务分支。
 - 回答中的候选卡只有在能从 workspace 找回真实记录时才增加“加入自选”。无法绑定事实时 fail-closed，不从文案猜一条新志愿。
 
+## Production asset coherence 合同
+
+Selection Workbench 的 live browser gate 不应承担“碰运气等 edge cutover 完成”的职责，也不应通过产品内 retry 掩盖部署传播。现有 `.github/workflows/verify-aiplus-selection-workbench-v005.yml` 是该能力的 Production verification owner，浏览器测试启动前必须在**同一个 bounded readiness loop** 中证明：
+
+1. Pages Production `/aiplus/` 已返回当前 `data-ai-selection-workbench="aiplus-selection-workbench-v0.05"` marker；
+2. 同一 HTML 明确引用当前 `selection-workbench.v005.js?v=005_0&fdw=003_0` 和 `selection-workbench.v005.css?v=005_0&fdw=003_0`；
+3. `/api/ai/health` 的 `commitSha` 等于本次 `main` push SHA，release 仍为 `v3.9.90.1`；
+4. HTML 引用的当前 Selection Workbench JS 可以从 Pages Production 读取，并包含 `AIPLUS_SELECTION_WORKBENCH_VERSION = 'aiplus-selection-workbench-v0.05'` 与 `mountSelectionWorkbench`；
+5. HTML 引用的当前 Selection Workbench CSS 可以从 Pages Production 读取，并包含窄栏单列诊断布局合同。
+
+只有这五项同时成立，才进入真实 PC / Pad / Android browser journey。这样 readiness owner 负责等待部署图一致，产品 runtime 不增加第二套 bootstrap/retry，浏览器失败则更接近真实产品问题，而不是可预先识别的 asset cutover 半完成状态。
+
 ## 发布门禁
 
 本能力作为 AIPLuS additive capability 发布，但必须继续遵守统一发布闭环：
@@ -105,4 +118,5 @@ v0.05 能提供的确定性诊断包括：
 - 真实 2026 正例可以加入；历史通用分数、分数/位次不匹配、重复歧义记录均不得出现加入入口；
 - exact-head Cloudflare Preview；
 - main Production exact SHA；
+- Production live browser 前必须证明**页面 + API + 当前 Selection Workbench JS/CSS 资产**处于同一个可执行图；
 - protected paths 不变。

@@ -141,17 +141,28 @@ jobs:
           set -euo pipefail
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Wait for exact main Production identity
+      - name: Wait for coherent exact-main Production graph
         shell: bash
         run: |
           set -euo pipefail
           ready=0
+          selection_js_path='/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0'
+          selection_css_path='/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0'
           for attempt in $(seq 1 70); do
-            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}/aiplus/?selection-production=${EXPECTED_SHA}-${attempt}" || true)"
-            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}/api/ai/health?selection-production=${EXPECTED_SHA}-${attempt}" || true)"
+            cache_bust="selection-production=${EXPECTED_SHA}-${attempt}"
+            page="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}/aiplus/?${cache_bust}" || true)"
+            health="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}/api/ai/health?${cache_bust}" || true)"
+            selection_js="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}${selection_js_path}&${cache_bust}" || true)"
+            selection_css="$(curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "${AIPLUS_SELECTION_BASE}${selection_css_path}&${cache_bust}" || true)"
             if grep -Fq 'data-ai-selection-workbench="aiplus-selection-workbench-v0.05"' <<<"$page" \
+              && grep -Fq "src=\"${selection_js_path}\"" <<<"$page" \
+              && grep -Fq "href=\"${selection_css_path}\"" <<<"$page" \
               && grep -Fq "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -Fq '"release":"v3.9.90.1"' <<<"$health"; then
+              && grep -Fq '"release":"v3.9.90.1"' <<<"$health" \
+              && grep -Fq "AIPLUS_SELECTION_WORKBENCH_VERSION = 'aiplus-selection-workbench-v0.05'" <<<"$selection_js" \
+              && grep -Fq 'mountSelectionWorkbench' <<<"$selection_js" \
+              && grep -Fq '.selection-workbench{display:grid' <<<"$selection_css" \
+              && grep -Fq '.selection-diagnosis-grid{display:grid;grid-template-columns:1fr' <<<"$selection_css"; then
               ready=1
               break
             fi
