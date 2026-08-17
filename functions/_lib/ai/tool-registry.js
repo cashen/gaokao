@@ -3,6 +3,7 @@ import {
   loadAiBackgroundSnapshot,
   backgroundDiscoveryFromSnapshot,
   schoolBackgroundFromSnapshot,
+  schoolBackgroundDirectionFromSnapshot,
   majorBackgroundFromSnapshot,
   matchCandidateBackgrounds,
   AI_BACKGROUND_RESOURCE_ADAPTER_VERSION
@@ -233,10 +234,17 @@ export async function runSchoolMajorHistory(context,{school,majorKeyword='',majo
   const first=responses[0],records=mergeHistoryRecords(responses.flatMap(item=>item.records)).sort((a,b)=>Number(b.score2026||0)-Number(a.score2026||0)||Number(a.rank2026||Infinity)-Number(b.rank2026||Infinity)||String(a.major||'').localeCompare(String(b.major||''),'zh-CN')),successfulCount=responses.length,partial=successfulCount>0&&successfulCount<queries.length,allFailed=successfulCount===0;
   const firstPayload=first?.payload||{};
   const schoolName=firstPayload?.meta?.school||school;
-  const scores=records.map(record=>Number(record.score2026)).filter(Number.isFinite),summary=successfulCount?(
-    requested.length>1||projectScope==='exclude_sino'?{total:records.length,schoolCount:records.length?1:0,uniqueMajorCount:new Set(records.map(record=>record.major).filter(Boolean)).size,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null}:firstPayload.summary||{}
-  ):({total:0,schoolCount:0,minScore:null,maxScore:null});
-  return{ok:true,partial,allFailed,school:schoolName,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,bottomLineMode:projectScope,records,queryResults,total:records.length,majorSuggestions:majorSuggestionsFor(records,schoolName),summary,meta:firstPayload?.meta||{},source:firstPayload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,bridgeVersion:AI_FACT_BRIDGE_CONTRACT_VERSION,scoreUsed:false,boundary:`只展示辽宁2026物理类实际投档记录；学校历史事实由同源的按校预聚合分片读取，本轮不使用考生分数过滤${projectScope==='exclude_sino'?'，并已排除中外合作/高收费记录':''}。`,message:allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':''};
+  const scores=records.map(record=>Number(record.score2026)).filter(Number.isFinite),sourceSummary=firstPayload.summary&&typeof firstPayload.summary==='object'?firstPayload.summary:{},summary=successfulCount?{...sourceSummary,total:records.length,schoolCount:records.length?1:0,uniqueMajorCount:new Set(records.map(record=>record.major).filter(Boolean)).size,minScore:scores.length?Math.min(...scores):null,maxScore:scores.length?Math.max(...scores):null}:({total:0,schoolCount:0,uniqueMajorCount:0,minScore:null,maxScore:null});
+  let directionRedirect=null;
+  if(requested.length===1&&records.length===0&&successfulCount>0){
+    try{
+      const snapshot=await loadAiBackgroundSnapshot(context),match=schoolBackgroundDirectionFromSnapshot(snapshot,schoolName,requested[0]);
+      if(match)directionRedirect={kind:'background_direction',direction:clean(match.direction,160),admissionMajors:unique(match.admissionMajors||[],16),queryable:false};
+    }catch{}
+  }
+  const majorSuggestions=directionRedirect?(directionRedirect.admissionMajors||[]).slice(0,3).map(major=>({major,prompt:`${schoolName}${major}多少分`,reason:`“${directionRedirect.direction}”是学校背景方向，不是招生专业名；请从该方向下的实际招生专业继续查。`})):majorSuggestionsFor(records,schoolName);
+  const directionMessage=directionRedirect?`“${directionRedirect.direction}”是${schoolName}背景证据中的专业方向/专业群，不是当前招生专业名，不能直接用这个方向名查询招生分数。可继续查：${(directionRedirect.admissionMajors||[]).slice(0,8).join('、')||'该方向下的实际招生专业'}。`:'';
+  return{ok:true,partial,allFailed,school:schoolName,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,bottomLineMode:projectScope,records,queryResults,total:records.length,directionRedirect,majorSuggestions,summary,meta:firstPayload?.meta||{},source:firstPayload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,bridgeVersion:AI_FACT_BRIDGE_CONTRACT_VERSION,scoreUsed:false,boundary:`只展示辽宁2026物理类实际投档记录；学校历史事实由同源的按校预聚合分片读取，本轮不使用考生分数过滤${projectScope==='exclude_sino'?'，并已排除中外合作/高收费记录':''}${directionRedirect?'；背景方向名称不等于招生专业名称':''}。`,message:directionMessage||(allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':'')};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
   const numeric=Math.round(Number(score));if(!Number.isFinite(numeric))return{ok:false,code:'score_required',message:'需要已知参考分数才能判断当前可达性。'};

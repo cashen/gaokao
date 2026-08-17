@@ -6,22 +6,25 @@ const html=read('aiplus/index.html'),app=read('aiplus/app.v3990_1.js'),render=re
 
 assert.match(html,/data-ai-plus="family-advisor"/);
 assert.match(html,/data-ai-plus-assets="aiplus-assets-v002_4"/);
+assert.match(html,/data-ai-family-decision="aiplus-family-decision-v0\.03"/);
 assert.match(html,/AIPLuS 产品版 · v0\.02/);
 assert.match(html,/width=device-width, initial-scale=1\.0, viewport-fit=cover/);
 const entryAssets=[...html.matchAll(/(?:href|src)="([^"]+\?v=[^"]+)"/g)].map(match=>match[1]);
-const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_4';
+const geometryAsset='/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0';
 assert.ok(entryAssets.includes(geometryAsset),'AIPLuS geometry cache owner is not mounted');
 const coreEntryAssets=entryAssets.filter(value=>value!==geometryAsset);
 assert.ok(coreEntryAssets.length>=4,'active AIPLuS core assets were not found');
 const coreEntryUrls=coreEntryAssets.map(value=>new URL(value,'https://aiplus.local'));
 assert.ok(coreEntryUrls.every(url=>url.searchParams.get('v')==='002_4'),`mixed core entry version transaction: ${coreEntryAssets.join(', ')}`);
 assert.ok(coreEntryUrls.every(url=>url.searchParams.get('scroll')==='002_1'),`mixed conversation scroll cache transaction: ${coreEntryAssets.join(', ')}`);
-assert.ok(coreEntryUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='scroll')),`unexpected core entry cache key: ${coreEntryAssets.join(', ')}`);
+assert.ok(coreEntryUrls.every(url=>url.searchParams.get('fdw')==='003_0'),`mixed FDW cache transaction: ${coreEntryAssets.join(', ')}`);
+assert.ok(coreEntryUrls.every(url=>[...url.searchParams.keys()].every(key=>key==='v'||key==='scroll'||key==='fdw')),`unexpected core entry cache key: ${coreEntryAssets.join(', ')}`);
 assert.equal(new Set(coreEntryUrls.map(url=>url.search)).size,1,`core entry cache transaction must be atomic: ${coreEntryAssets.join(', ')}`);
 assert.equal(entryAssets.filter(value=>value===geometryAsset).length,1,'AIPLuS geometry contract must have one entry owner');
 const moduleAssets=[...app.matchAll(/from '([^']+\?v=[^']+)'/g)].map(match=>match[1]);
 assert.ok(moduleAssets.length>=5,'AIPLuS module graph is unexpectedly small');
-assert.ok(moduleAssets.every(value=>value.endsWith('?v=002_4')),`mixed module cache transaction: ${moduleAssets.join(', ')}`);
+const moduleUrls=moduleAssets.map(value=>new URL(value,'https://aiplus.local'));
+assert.ok(moduleUrls.every(url=>url.searchParams.get('v')==='002_4'&&url.searchParams.get('fdw')==='003_0'),`mixed module/FDW cache transaction: ${moduleAssets.join(', ')}`);
 
 assert.match(product,/\.answer-surface\{[^}]*overflow:hidden/);
 assert.match(product,/\.answer-surface \.result-card\.fact,[^{]+\{border-left:0\}/);
@@ -57,6 +60,9 @@ assert.doesNotMatch(render,/container\.replaceChildren\([^)]*renderTurn/);
 assert.match(render,/lead\.dataset\.answerStatus/);
 assert.match(render,/query-status-row/);
 assert.match(render,/你是不是在找/);
+assert.match(render,/专业方向 \/ 专业群（不是招生专业名）/);
+assert.match(render,/schoolMajors\[0\]/);
+assert.doesNotMatch(render,/const major=item\.major\|\|bg\.major/,'background direction must not be reused as a score-query major');
 assert.match(render,/node\('div','turn-understanding'\)/);
 assert.doesNotMatch(render,/node\('details','turn-understanding'\)/);
 assert.match(product,/\.answer-surface \.turn-understanding\{margin:0;padding:11px 20px/);

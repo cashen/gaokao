@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {createAiWorkspace} from '../shared/ai/ai-workspace-contract.v3992_0.js';
 import {deterministicCommand,resolveAiSchoolMentionsDetailed} from '../functions/_lib/ai/command-interpreter.js';
 import {resolveCanonicalEducationEntity,resolveEducationKnowledgeQuestion,knowledgeCoverageSnapshot,EDUCATION_AUTHORITY_REGISTRY} from '../functions/_lib/ai/education-knowledge-center.js';
@@ -6,6 +7,9 @@ import {runEducationKnowledge,EDUCATION_KNOWLEDGE_RUNTIME_TESTING} from '../func
 import {resolveGraduateCatalogEntity,graduateCatalogStats,GRADUATE_CATALOG_2022_META} from '../functions/_lib/kb/graduate-catalog-2022.js';
 import {vocationalCatalogGovernanceSnapshot,VOCATIONAL_CATALOG_GOVERNANCE} from '../functions/_lib/kb/vocational-catalog-governance.js';
 import {runEducationKnowledgeEvidence,OFFICIAL_WEB_EVIDENCE_TESTING} from '../functions/_lib/ai/official-web-evidence.js';
+import {schoolBackgroundFromSnapshot,schoolBackgroundDirectionFromSnapshot} from '../functions/_lib/ai/background-resource-adapter.js';
+import {nextActionsForTurn} from '../functions/_lib/ai/next-action-engine.js';
+import {composePrimaryAnswer} from '../functions/_lib/ai/answer-composer.js';
 
 const aliases=new Map([['沈工大','沈阳工业大学'],['沈阳工业','沈阳工业大学'],['辽科大','辽宁科技大学'],['沈航','沈阳航空航天大学']]);
 const resolver={resolve(query){const name=aliases.get(query);return name?{status:'resolved',resolvedName:name}:{status:'unresolved',candidates:[]};}};
@@ -141,5 +145,32 @@ assert.equal(policyDefinition.ok,true);
 assert.equal(policyDefinition.entities[0].id,'special:辽宁省高校专项');
 assert.equal(policyDefinition.entities[0].temperature,'T2');
 assert.ok(policyDefinition.entities[0].confusions.includes('高校专项计划'));
+
+
+const backgroundSnapshot=JSON.parse(fs.readFileSync(new URL('../ln-rank/data/local-strength/local-strength-index.v3971_2.json',import.meta.url),'utf8'));
+const syitBackground=schoolBackgroundFromSnapshot(backgroundSnapshot,'沈阳工业大学');
+const motorDirection=syitBackground.items.find(item=>item.direction==='电机电器与装备制造');
+assert.ok(motorDirection,'沈阳工业大学 background direction must remain available');
+assert.equal(motorDirection.entityKind,'background_direction');
+assert.equal(motorDirection.historyQueryable,false,'background direction itself must never be a score-query key');
+assert.ok(motorDirection.admissionMajors.includes('电气工程及其自动化'));
+assert.ok(motorDirection.admissionMajors.includes('自动化'));
+assert.ok(motorDirection.admissionMajors.includes('机械设计制造及其自动化'));
+assert.ok(motorDirection.admissionMajors.includes('测控技术与仪器'));
+assert.ok(motorDirection.schools.every(item=>Array.isArray(item.admissionMajors)),'each school must retain its own queryable majors');
+const exactDirection=schoolBackgroundDirectionFromSnapshot(backgroundSnapshot,'沈阳工业大学','电机电器与装备制造');
+assert.equal(exactDirection?.historyQueryable,false);
+assert.equal(schoolBackgroundDirectionFromSnapshot(backgroundSnapshot,'沈阳工业大学','电气工程及其自动化'),null,'real major and background direction must stay distinct');
+const backgroundActions=nextActionsForTurn({task:'school_background',school:'沈阳工业大学',backgroundMajor:motorDirection.admissionMajors[0],result:{background:{ok:true,items:[motorDirection]}},workspace:createAiWorkspace()});
+assert.ok(backgroundActions.some(item=>item.prompt.includes('电气工程及其自动化')&&item.prompt.includes('多少分')),'school background must offer a real admissions-major score action');
+assert.ok(backgroundActions.every(item=>!item.prompt.includes('电机电器与装备制造多少分')),'direction label must never become a score action');
+const directionHistory={ok:true,allFailed:false,school:'沈阳工业大学',majorKeyword:'电机电器与装备制造',majorKeywords:['电机电器与装备制造'],records:[],total:0,summary:{total:0,minScore:null,maxScore:null},directionRedirect:{kind:'background_direction',direction:'电机电器与装备制造',admissionMajors:motorDirection.admissionMajors,queryable:false}};
+const directionAnswer=composePrimaryAnswer({command:{agentTask:'school_major_history'},result:{history:directionHistory},focus:{school:'沈阳工业大学'}});
+assert.match(directionAnswer.text,/不是当前招生专业名|不是招生专业名/);
+assert.match(directionAnswer.text,/电气工程及其自动化/);
+assert.doesNotMatch(directionAnswer.text,/最低0分|最高0分|0分专业/,'direction correction must not repeat fake-zero wording');
+const emptyHistory={ok:true,allFailed:false,school:'测试大学',majorKeyword:'不存在专业',majorKeywords:['不存在专业'],records:[],total:0,summary:{total:0,minScore:null,maxScore:null},queryResults:[{query:'不存在专业',status:'success',recordCount:0}]};
+const emptyAnswer=composePrimaryAnswer({command:{agentTask:'school_major_history'},result:{history:emptyHistory},focus:{school:'测试大学'}});
+assert.doesNotMatch(emptyAnswer.text,/最低0分|最高0分/,'nullable score summary must never be rendered as zero');
 
 console.log(JSON.stringify({ok:true,version:'aiplus-aek-verifier-v0.02',coverage,checks:{contextFirewall:true,followups:true,canonicalMajor:true,fullGraduateCatalog:true,crossSystemAmbiguity:true,vocationalDelegatedCanonical:true,compoundFailClosed:true,authorityRouting:true,liveEvidenceGate:true}},null,2));

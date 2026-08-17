@@ -1,5 +1,5 @@
 export const AI_BACKGROUND_STATIC_RESOURCE = '/ln-rank/data/local-strength/local-strength-index.v3971_2.json';
-export const AI_BACKGROUND_RESOURCE_ADAPTER_VERSION = 'ai-background-resource-adapter-v3992_1';
+export const AI_BACKGROUND_RESOURCE_ADAPTER_VERSION = 'ai-background-resource-adapter-v3992_2';
 
 function clean(value, max = 220) {
   return String(value == null ? '' : value).trim().slice(0, max);
@@ -62,6 +62,10 @@ function directionOf(record = {}) {
   return clean(record?.background?.direction || record?.background?.label || record?.standardMajor?.name || record?.major, 160);
 }
 
+function admissionMajorOf(record = {}) {
+  return clean(record?.standardMajor?.name || record?.major, 160);
+}
+
 function schoolMetaMap(snapshot = {}) {
   return new Map((snapshot.schools || []).map(item => [normalizeText(item?.officialName), item]));
 }
@@ -98,8 +102,12 @@ function groupDirections(records = []) {
     let item = byDirection.get(direction);
     if (!item) {
       item = {
+        // Compatibility display alias only. Queryability is explicit below; never use this as a history-query key.
         major: direction,
         direction,
+        entityKind: 'background_direction',
+        historyQueryable: false,
+        admissionMajors: new Map(),
         schools: new Map(),
         primaryCount: 0,
         secondaryCount: 0,
@@ -108,15 +116,26 @@ function groupDirections(records = []) {
       };
       byDirection.set(direction, item);
     }
+    const admissionMajor = admissionMajorOf(record);
+    if (admissionMajor) item.admissionMajors.set(normalizeText(admissionMajor), admissionMajor);
     const school = clean(record?.school, 120);
-    if (school) item.schools.set(normalizeText(school), { school, city: clean(record?.city || record?.displayLocation, 80) });
+    if (school) {
+      const schoolKey = normalizeText(school);
+      let schoolItem = item.schools.get(schoolKey);
+      if (!schoolItem) {
+        schoolItem = { school, city: clean(record?.city || record?.displayLocation, 80), admissionMajors: new Map() };
+        item.schools.set(schoolKey, schoolItem);
+      }
+      if (admissionMajor) schoolItem.admissionMajors.set(normalizeText(admissionMajor), admissionMajor);
+    }
     if (evidenceLevel(record) === 'primary') item.primaryCount += 1;
     else item.secondaryCount += 1;
     item.recordCount += 1;
   }
   return [...byDirection.values()].map(item => ({
     ...item,
-    schools: [...item.schools.values()],
+    admissionMajors: [...item.admissionMajors.values()],
+    schools: [...item.schools.values()].map(school => ({ ...school, admissionMajors: [...school.admissionMajors.values()] })),
     schoolCount: item.schools.size,
     evidenceScore: item.primaryCount * 5 + item.secondaryCount * 2 + item.schools.size
   }));
@@ -129,7 +148,7 @@ export function backgroundDiscoveryFromSnapshot(snapshot, { limit = 12, regionKe
     return regionAllows(meta, regionKeys);
   });
   const items = groupDirections(scoped)
-    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.major).localeCompare(String(b.major), 'zh-CN'));
+    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.direction).localeCompare(String(b.direction), 'zh-CN'));
   return {
     items: items.slice(0, Math.max(6, Math.min(20, Number(limit || 12)))),
     totalWithEvidence: items.length,
@@ -144,6 +163,12 @@ export function schoolBackgroundFromSnapshot(snapshot, school) {
   return { items, meta: sourceMeta(snapshot) };
 }
 
+export function schoolBackgroundDirectionFromSnapshot(snapshot, school, direction) {
+  const needle = normalizeText(direction);
+  if (!needle) return null;
+  return schoolBackgroundFromSnapshot(snapshot, school).items.find(item => normalizeText(item?.direction) === needle) || null;
+}
+
 export function majorBackgroundFromSnapshot(snapshot, major) {
   const needle = normalizeText(major);
   const records = (snapshot.records || []).filter(record => {
@@ -152,7 +177,7 @@ export function majorBackgroundFromSnapshot(snapshot, major) {
     return needle && (majorText.includes(needle) || direction.includes(needle) || needle.includes(direction));
   });
   const items = groupDirections(records)
-    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.major).localeCompare(String(b.major), 'zh-CN'));
+    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.direction).localeCompare(String(b.direction), 'zh-CN'));
   return { items, meta: sourceMeta(snapshot) };
 }
 

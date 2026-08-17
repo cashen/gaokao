@@ -6,42 +6,69 @@
   <meta name="theme-color" content="#f6f6f1" />
   <title>AIPLuS 家庭顾问｜辽宁高考家庭工具</title>
   <meta name="description" content="AIPLuS 家庭顾问：理解家长自然语言中的分数、学校、专业、家庭偏好和取舍目标，再用确定性招生事实与可核验官方证据回答。只有明确筛选时才修改候选条件。" />
-  <link rel="stylesheet" href="/aiplus/workspace.v3990_1.css?v=002_4&scroll=002_1" />
-  <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=002_4&scroll=002_1" />
-  <link rel="stylesheet" href="/aiplus/product.v002.css?v=002_4&scroll=002_1" />
-  <link rel="stylesheet" href="/aiplus/geometry.v002.css?v=002_2&core=002_4" />
+  <link rel="stylesheet" href="/aiplus/workspace.v3990_1.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/agent.v3992_0.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/product.v002.css?v=002_4&scroll=002_1&fdw=003_0" />
+  <link rel="stylesheet" href="/aiplus/geometry.v002.css?v=002_2&core=002_4&fdw=003_0" />
 </head>
-<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-decision-generation="aiplus-parent-decision-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_4" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
+<body data-release="v3.9.90.1" data-site-runtime-generation="v3990_1" data-ai-workspace="ai-workspace-v3992_1" data-ai-advisor-generation="ai-human-advisor-agent-v0.02" data-ai-decision-generation="aiplus-parent-decision-v0.03" data-ai-plus="family-advisor" data-ai-plus-assets="aiplus-assets-v002_4" data-ai-family-decision="aiplus-family-decision-v0.03" data-conversation-scroll-contract="aiplus-conversation-scroll-v0.02">
   <header class="topbar">
     <a class="brand" href="/">辽宁高考家庭工具</a>
     <nav class="top-actions" aria-label="主要入口">
-      <button id="historyToggle" class="history-toggle" type="button">讨论记录</button>
+      <button id="historyToggle" class="history-toggle" type="button">我的决策</button>
       <a href="/aiplus/" aria-current="page">家庭顾问</a>
       <a href="/ln-rank/">专业初选</a>
       <a href="/ln-rank/selection-pool.html">家庭方案</a>
-      <button id="newWorkspace" type="button">新开讨论</button>
+      <button id="newWorkspace" type="button">新话题</button>
     </nav>
   </header>
 
   <div class="advisor-layout">
-    <aside id="historyPanel" class="history-panel" aria-label="历史讨论">
-      <div class="history-head">
-        <div><strong>最近讨论</strong><span>本设备保存的讨论</span></div>
-        <button id="historyClose" type="button" aria-label="关闭历史">×</button>
+    <aside id="historyPanel" class="history-panel decision-panel" aria-label="我的决策">
+      <div class="history-head decision-panel-head">
+        <div><strong>我的决策</strong><span>孩子情况、进度和当前结论</span></div>
+        <button id="historyClose" type="button" aria-label="关闭我的决策">×</button>
       </div>
-      <button id="newWorkspaceSide" class="history-new" type="button">＋ 新建一次讨论</button>
-      <label class="history-search-label" for="historySearch">搜索讨论</label>
-      <input id="historySearch" class="history-search" type="search" placeholder="学校、专业或问题" autocomplete="off" />
-      <div id="historyList" class="history-list" aria-live="polite"></div>
-      <p class="history-local-note">讨论记录只保存在本设备，不会改动专业初选或家庭方案。</p>
+      <button id="newWorkspaceSide" class="history-new" type="button">＋ 开始新话题</button>
+      <section class="decision-rail-section" aria-labelledby="childDecisionTitle">
+        <h2 id="childDecisionTitle">孩子现在</h2>
+        <strong id="decisionChildSummary" class="decision-child-summary">分数位置还没确认</strong>
+        <div id="decisionProfileSummary" class="decision-profile-summary"></div>
+      </section>
+      <section class="decision-rail-section" aria-labelledby="decisionProgressTitle">
+        <h2 id="decisionProgressTitle">决策进度</h2>
+        <div id="decisionProgressList" class="decision-progress-list"></div>
+      </section>
+      <details class="decision-book-card" id="decisionBookDetails">
+        <summary>家庭决策书 <span>随讨论自动整理</span></summary>
+        <div id="decisionBookContent" class="decision-book-content"></div>
+      </details>
+      <details class="decision-support-card">
+        <summary>已确认条件与依据</summary>
+        <div class="decision-support-body">
+          <section><h2>已确认条件</h2><div id="constraintList" class="support-list"></div></section>
+          <section><h2>还要核实</h2><div id="pendingList" class="support-list"></div></section>
+          <section><h2>本轮依据</h2><div id="evidenceList" class="support-list"></div></section>
+          <div class="selection-import"><button id="importSelection" type="button">导入当前家庭方案</button><span id="importStatus" class="muted" aria-live="polite"></span></div>
+          <button id="exportWorkspace" class="quiet" type="button">导出这份家庭决策</button>
+        </div>
+      </details>
+      <details class="decision-history-card">
+        <summary>其他家庭档案</summary>
+        <button id="newFamilyProfile" class="history-new secondary-family" type="button">＋ 新建另一份家庭档案</button>
+        <label class="history-search-label" for="historySearch">搜索历史档案</label>
+        <input id="historySearch" class="history-search" type="search" placeholder="学校、专业或问题" autocomplete="off" />
+        <div id="historyList" class="history-list" aria-live="polite"></div>
+        <p class="history-local-note">家庭档案只保存在本设备，不会改动专业初选或家庭方案。</p>
+      </details>
     </aside>
     <button id="historyBackdrop" class="history-backdrop" type="button" aria-label="关闭历史"></button>
 
     <main class="advisor-shell">
       <section class="hero compact-hero" aria-labelledby="pageTitle">
         <span class="eyebrow">AIPLuS · 辽宁高考家庭顾问</span>
-        <h1 id="pageTitle">把学校、专业和分数问题问清楚</h1>
-        <p>先给你能用的结论，再展开依据。只有你明确要求筛选，候选范围才会改变。</p>
+        <h1 id="pageTitle">把孩子的选择一步一步定下来</h1>
+        <p>分数、专业、学校、就业、读研和家庭条件都可以直接说。只记住你明确表达过的取舍，没有确认的不会替你做主。</p>
       </section>
 
       <section id="activeViewBar" class="current-context" aria-live="polite" hidden>
@@ -49,13 +76,14 @@
         <div id="activeViewChips" class="view-chips"></div>
       </section>
 
+      <button id="mobileDecisionStrip" class="mobile-decision-strip" type="button"><strong>我的决策</strong><span>查看当前进度</span></button>
       <section id="conversationStream" class="conversation" aria-live="polite" aria-busy="false"></section>
       <button id="newAnswerNotice" class="new-answer-notice" type="button" hidden>新回答在下方</button>
 
       <section class="starter" id="starterPanel">
         <div class="starter-copy">
-          <h2>先说你真正想解决的问题</h2>
-          <p>可以直接说“普通家庭、不太想考研，电气和自动化怎么选”“省内机械电子所有学校分数从高到低”“沈工大电气和大连交通自动化怎么取舍”，不用学习标准问法。</p>
+          <h2>先说孩子现在最真实的情况</h2>
+          <p>例如“578分，普通家庭，本科就业优先，不太想读研，现在不知道电气、自动化还是机械更适合”。不知道从哪开始也没关系，我会告诉你下一步最值得解决什么。</p>
         </div>
         <div class="starter-score">
           <label for="starterScore">孩子大概分数 <span>可选</span></label>
@@ -73,40 +101,9 @@
             <button id="sendButton" class="primary" type="submit">发送</button>
           </div>
         </div>
-        <p class="composer-help">招生分数走站内确定性数据；复杂取舍先拆成有界证据计划。学校官方资料优先核对阳光高考，需要培养、就业或升学材料时只读取可验证官方页面。模型负责理解和归纳，不用模型补猜事实。</p>
+        <p class="composer-help">招生分数来自站内确定性数据；学校官方资料优先核对阳光高考等可验证官方来源，学校、专业和政策事实拿不到可靠依据就明确告诉你。</p>
       </form>
 
-      <details class="support-panel" id="decisionContextDetails">
-        <summary>记忆与依据 <span>需要时再展开</span></summary>
-        <div class="support-grid">
-          <section>
-            <h2>我记得的家庭条件</h2>
-            <div id="constraintList" class="support-list"></div>
-            <div class="selection-import">
-              <button id="importSelection" type="button">导入当前家庭方案</button>
-              <span id="importStatus" class="muted" aria-live="polite"></span>
-            </div>
-          </section>
-          <section>
-            <h2>还要核验</h2>
-            <div id="pendingList" class="support-list"></div>
-          </section>
-          <section>
-            <h2>本轮依据</h2>
-            <div id="evidenceList" class="support-list"></div>
-          </section>
-          <section class="system-status">
-            <h2>系统状态</h2>
-            <div id="healthBar" class="health-bar" aria-live="polite">正在检查…</div>
-            <p id="modelConfig" class="muted">读取语义模型配置…</p>
-            <p id="modelProbeResult" class="muted">模型只负责理解和归纳已取得的资料。</p>
-            <div class="system-actions">
-              <button id="probeModel" type="button">测试语义模型</button>
-              <button id="exportWorkspace" type="button">导出本次讨论</button>
-            </div>
-          </section>
-        </div>
-      </details>
     </main>
   </div>
 
@@ -123,6 +120,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="/aiplus/app.v3990_1.js?v=002_4&scroll=002_1"></script>
+  <script type="module" src="/aiplus/app.v3990_1.js?v=002_4&scroll=002_1&fdw=003_0"></script>
 </body>
 </html>

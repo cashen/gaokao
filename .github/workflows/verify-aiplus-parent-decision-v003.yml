@@ -251,7 +251,7 @@ jobs:
             local workspace="$2"
             local output="$3"
             jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}' > /tmp/aek-payload.json
-            curl -fsSL --retry 3 --retry-delay 3 --max-time 120 \
+            curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 --max-time 120 \
               -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
               -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&aek_qa=$(date +%s%N)" \
               --data-binary @/tmp/aek-payload.json -o "$output"
@@ -264,7 +264,7 @@ jobs:
             local workspace="$2"
             local output="$3"
             jq -nc --arg input "$input" --argjson workspace "$workspace" '{input:$input,workspace:$workspace,deterministicToolResults:{}}' > /tmp/route-payload.json
-            curl -fsSL --retry 3 --retry-delay 3 --max-time 120 \
+            curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 --max-time 120 \
               -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' \
               -X POST "${PREVIEW_URL}/api/ai/turn?candidate=${EXPECTED_SHA}&route_qa=$(date +%s%N)" \
               --data-binary @/tmp/route-payload.json -o "$output"
@@ -301,7 +301,7 @@ jobs:
           post_route '500-600 省内所有会计专业' "$empty_workspace" /tmp/score-window-route.json
           jq -e '.command.agentTask=="major_region_history" and .command.score==null and .command.scoreConstraint.kind=="range" and .command.scoreConstraint.min==500 and .command.scoreConstraint.max==600 and .command.scoreUsage=="suspended" and .pendingDeterministicTool==true and .toolRequest.kind=="major_history" and (.toolRequest.url|contains("minScore=500")) and (.toolRequest.url|contains("maxScore=600"))' /tmp/score-window-route.json >/dev/null
 
-          curl -fsSL --retry 3 --retry-delay 2 --max-time 60 -H 'Cache-Control: no-cache' \
+          curl -fsSL --retry 3 --retry-all-errors --retry-delay 2 --max-time 60 -H 'Cache-Control: no-cache' \
             "${PREVIEW_URL}/api/ai/major-history?major=%E4%BC%9A%E8%AE%A1&region=ln&minScore=500&maxScore=600&offset=0&limit=100&candidate=${EXPECTED_SHA}" \
             -o /tmp/score-window-api.json
           jq -e '.ok==true and .scoreRange.kind=="range" and .scoreRange.min==500 and .scoreRange.max==600 and ([.records[]?.score2026|select(.<500 or .>600)]|length)==0 and ((.summary.minScore==null) or (.summary.minScore>=500)) and ((.summary.maxScore==null) or (.summary.maxScore<=600))' /tmp/score-window-api.json >/dev/null

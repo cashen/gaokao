@@ -1,3 +1,4 @@
+import {deriveDecisionProgress} from '../../../shared/ai/decision-progress.v003.js';
 export const AI_NEXT_ACTION_ENGINE_VERSION='ai-next-action-engine-v0.03';
 
 export const NEXT_ACTION_LABELS=Object.freeze({
@@ -5,6 +6,13 @@ export const NEXT_ACTION_LABELS=Object.freeze({
   majorHistory:'看这个专业分数',majorRegionBackground:'看辽宁其他学校',schoolEvidence:'看证据依据',
   schoolProfile:'回到学校整体介绍',schoolFit:'按我的分数判断',officialLiving:'核验官方食宿硬信息'
 });
+
+// Atomic research owns completion/follow-up for its current evidence node. Global journey progress may guide broader decisions, but must never preempt local research or a partial-result retry.
+const ATOMIC_RESEARCH_TASKS=new Set([
+  'region_school_directory',
+  'school_research','school_official_qa','school_experience','school_background','school_history','school_major_history',
+  'major_background','major_region_history','background_discovery','background_fit_discovery'
+]);
 
 function clean(value){return String(value||'').trim();}
 function normalizedPrompt(value){return clean(value).replace(/[\s，。！？、,.!?]/g,'');}
@@ -20,6 +28,7 @@ function resultSchool(result={}){
   return'';
 }
 
+function progressionAction(progress={},context={}){const stage=progress.recommendedStage,majors=progress.majors||[],pairs=progress.pairs||[],score=Number(context.score),s=Number.isFinite(score)&&score>=150&&score<=750?String(Math.round(score)):'',major=context.major||majors[0]||'';if(stage==='score_position')return s?action('progress-score','先确认分数位置',`按我${s}分，先确认辽宁物理类位次，再继续做专业和学校选择`,'先把孩子的位置坐标稳定下来。',130):null;if(stage==='major_direction'){const names=majors.slice(0,3);return action('progress-major','先把专业方向收敛',names.length>=2?`把${names.join('、')}按本科就业、培养路径和我家的条件横着比较`:'普通家庭，本科就业优先，先帮我收敛几个值得继续研究的专业方向','专业方向没收敛时，过早堆学校会增加判断负担。',125);}if(stage==='school_major'){if(major&&s)return action('progress-school-major','落到现实学校',`按我${s}分，辽宁${major}有哪些学校更现实`,'把专业方向落到真实招生学校与位置。',125);if(major)return action('progress-school-major','落到现实学校',`辽宁${major}在各学校2026都多少分`,'先建立学校×专业的现实坐标。',125);if(pairs.length)return action('progress-school-major','继续研究具体组合',`继续比较${pairs.slice(0,2).map(item=>item.label).join('和')}`,'从方向进入具体学校×专业。',125);return null;}if(stage==='family_tradeoff')return action('progress-tradeoff','把家庭取舍说清楚','把我目前明确的就业、读研、地域、预算和工作环境条件整理一下，告诉我还缺哪个关键取舍','学校和专业最终要服从家庭真实边界。',122);if(stage==='plan')return action('progress-plan','开始形成家庭方案','把目前重点考虑的学校和专业整理成一版家庭方案，我再继续取舍','研究结果需要进入可检查的方案，而不是停在聊天记录里。',120);if(stage==='audit')return action('progress-audit','做最后检查','帮我最后检查当前家庭方案，还缺什么、哪里重复、哪里和家庭条件冲突','最终检查只做结构与证据审计，不制造录取概率。',120);return null;}
 function candidates({task,school,major,score,topic,result}={}){
   const s=clean(school),m=clean(major),scoreText=Number.isFinite(Number(score))?String(Number(score)):'',nextSchool=resultSchool(result);
   if(task==='decision_research'){
@@ -42,6 +51,7 @@ function candidates({task,school,major,score,topic,result}={}){
     action('background-environment',NEXT_ACTION_LABELS.schoolEnvironment,`${s}学校环境和人文关怀怎么样`,'再看真实生活体验。',80),
     action('background-evidence',NEXT_ACTION_LABELS.schoolEvidence,`${s}${m||''}的专业背景依据是什么`,'区分学校级、学院级和专业级证据。',75)
   ];
+  if(task==='school_major_history'&&result?.history?.directionRedirect?.admissionMajors?.length)return result.history.directionRedirect.admissionMajors.slice(0,3).map((major,index)=>action(`direction-major-history-${index}`,`查${major}分数`,`${s}${major}多少分`,`“${result.history.directionRedirect.direction}”是背景方向；这里改查实际招生专业。`,110-index));
   if(task==='school_history'||task==='school_major_history')return[
     m?action('history-major-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}${m}有专业背景吗`,'从分数反向检查专业积累。',96):action('history-school-background',NEXT_ACTION_LABELS.schoolMajorBackground,`${s}哪些专业更有底子`,'从全校分数进入专业积累。',96),
     action('history-school-profile',NEXT_ACTION_LABELS.schoolProfile,`介绍下${s}`,'补齐学校整体定位。',85),
@@ -77,12 +87,18 @@ function candidates({task,school,major,score,topic,result}={}){
   return[];
 }
 
+function allowGlobalProgress(task='',result={}){
+  if(result?.partial&&task!=='decision_research')return false;
+  return !ATOMIC_RESEARCH_TASKS.has(task);
+}
+
 export function nextActionsForTurn({task='',school='',major='',score=null,backgroundMajor='',topic='general',result={},workspace={}}={}){
-  const seen=visitedPrompts(workspace),out=[],ids=new Set(),items=candidates({task,school,major:major||backgroundMajor,score,topic,result});
-  if(result?.partial&&task!=='decision_research')items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',110));
+  const seen=visitedPrompts(workspace),out=[],ids=new Set(),resolvedMajor=major||backgroundMajor,progress=result?.decisionReflection?.progress||deriveDecisionProgress(workspace),items=candidates({task,school,major:resolvedMajor,score,topic,result});
+  if(allowGlobalProgress(task,result)){const progressItem=progressionAction(progress,{task,school,major:resolvedMajor,score,result});if(progressItem)items.unshift(progressItem);}
+  if(result?.partial&&task!=='decision_research')items.unshift(action('retry-failed','重试没有完成的部分','只重试刚才失败的查询','保留已成功结果，只补失败项。',200));
   for(const item of items.sort((a,b)=>b.priority-a.priority)){
     if(!item?.prompt||ids.has(item.id)||seen.has(normalizedPrompt(item.prompt)))continue;
-    ids.add(item.id);out.push({id:item.id,label:item.label,prompt:item.prompt,reason:item.reason});if(out.length>=3)break;
+    ids.add(item.id);out.push({id:item.id,label:item.label,prompt:item.prompt,reason:item.reason,primary:out.length===0,decisionStage:progress.recommendedStage});if(out.length>=3)break;
   }
   return out;
 }

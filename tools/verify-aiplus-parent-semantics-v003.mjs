@@ -8,6 +8,7 @@ import {createEvidenceClaim,claimsFromOfficialText,validateClaimSet} from '../fu
 import {OFFICIAL_WEB_EVIDENCE_TESTING,runOfficialWebEvidence,runMajorKnowledgeEvidence} from '../functions/_lib/ai/official-web-evidence.js';
 import {orchestrateAiTurn} from '../functions/_lib/ai/turn-orchestrator.js';
 import {composePrimaryAnswer} from '../functions/_lib/ai/answer-composer.js';
+import {buildBlocks} from '../functions/_lib/ai/advisor-presentation.js';
 import {AIPLUS_PARENT_QUERY_CATALOG_V003} from './fixtures/aiplus-parent-query-catalog-v003.mjs';
 
 assert.equal(AIPLUS_PRODUCT_VERSION,'v0.02');
@@ -116,5 +117,13 @@ const explicitTurn=await orchestrateAiTurn(ctx,{input:`568分，${fullPairText}`
 const persistedFollowWorkspace=compactAiWorkspaceForServer(followWorkspace,{input:'那如果我愿意读研呢'});assert.equal(persistedFollowWorkspace.agentContext?.semanticFrame?.comparisonPairs?.length,2,'server compaction must preserve bounded decision semantic frame');
 const followTurn=await orchestrateAiTurn(ctx,{input:'那如果我愿意读研呢',workspace:persistedFollowWorkspace});assert.equal(followTurn.ok,true);assert.equal(followTurn.command.agentTask,'decision_research');assert.equal(followTurn.commitView,false);assert.deepEqual(followTurn.command.semanticFrame.schools,pairFrame.schools);assert.equal(followTurn.command.semanticFrame.counterfactual.active,true);assert.equal(buildEvidencePlan(followTurn.command,persistedFollowWorkspace,persistedFollowWorkspace.activeView).scoreUsed,false);
 const refTurn=await orchestrateAiTurn(ctx,{input:'第二个就业呢',workspace:persistedFollowWorkspace});assert.equal(refTurn.ok,true);assert.equal(refTurn.command.agentTask,'decision_research');assert.equal(refTurn.command.semanticFrame.reference.index,1);assert.deepEqual(refTurn.command.semanticFrame.pairs.map(item=>item.school),['大连交通大学']);assert.ok(refTurn.toolRequests.every(item=>item.kind==='school_official'));assert.equal(refTurn.toolRequests.length,1,'reference follow-up must only research the selected school/pair');
+
+
+const directionPresentationHistory={ok:true,allFailed:false,school:'沈阳工业大学',majorKeyword:'电机电器与装备制造',majorKeywords:['电机电器与装备制造'],records:[],total:0,summary:{total:0,minScore:null,maxScore:null},directionRedirect:{kind:'background_direction',direction:'电机电器与装备制造',admissionMajors:['电气工程及其自动化','自动化'],queryable:false}};
+const directionPresentationBlocks=buildBlocks({command:{agentTask:'school_major_history'},view:base.activeView,result:{history:directionPresentationHistory},workspace:base,changeText:'',stage:'history_lookup',focus:{school:'沈阳工业大学',major:'电机电器与装备制造'}});
+const directionPresentationText=JSON.stringify(directionPresentationBlocks);
+assert.match(directionPresentationText,/不是招生专业名|不是当前招生专业名/,'full presentation must correct the background-direction premise');
+assert.match(directionPresentationText,/电气工程及其自动化/,'full presentation must offer a real admissions major');
+assert.doesNotMatch(directionPresentationText,/最低0分|最高0分|0分专业/,'full presentation must not repeat fake-zero wording');
 
 console.log(JSON.stringify({ok:true,version:'aiplus-parent-semantics-v0.03',catalogScenarios:AIPLUS_PARENT_QUERY_CATALOG_V003.length,generatedSemanticCases:matrixCount,product:AIPLUS_PRODUCT_VERSION,decisionSemantic:'v0.03',claimScope:'typed'},null,2));
