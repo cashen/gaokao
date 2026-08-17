@@ -52,6 +52,7 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 - `aiplus/index.html` — browser entrypoint.
 - `aiplus/app.v3990_1.js` — current browser orchestration entry module.
 - `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
+- `aiplus/selection-workbench.v005.js` — **AIPLuS 自选/排序/诊断 UI 编排适配层**。它直接复用 `ln-rank` Selection Pool 和既有 `buildPathAnalysis()`，不会建立第二份自选、排序或招生事实；详细边界见 `docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md`。
 
 Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts, source scope, or a parallel admissions probability/recommendation-score model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
 
@@ -119,6 +120,7 @@ This owns exact-main Cloudflare Git production verification. The Pages productio
 
 - `.github/workflows/verify-ai-workspace-v3990_1.yml` — existing product/browser/atomic-AI regression owner.
 - `.github/workflows/verify-aiplus-parent-decision-v003.yml` — narrow decision-semantic supplement. It must run the old regressions plus the v0.03 semantic/provenance invariants and exact-Preview journeys. Its Preview contract proves both sides of the score boundary: remembered score does not silently execute admissions; an explicit current score does execute the existing exact admissions bridge. It does not replace the existing AI workspace gate.
+- `.github/workflows/verify-aiplus-selection-workbench-v005.yml` — additive AIPLuS selection workbench gate. It verifies reuse of the canonical Selection Pool, no second storage truth, PC/Pad/Android add/sort/diagnosis journeys, exact-head Preview and exact-main Production.
 
 ### Worker resource vNext
 
