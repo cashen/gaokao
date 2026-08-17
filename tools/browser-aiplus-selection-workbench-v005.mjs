@@ -183,7 +183,10 @@ try {
     });
     assert((await add.textContent()).includes('已自选'), `${device.name}: add action did not settle to selected state`);
 
-    const select = page.locator('.selection-sorter select');
+    const sorter = page.locator('.selection-sorter');
+    await sorter.locator('summary').click();
+    const select = sorter.locator('select');
+    await select.waitFor({ state: 'visible' });
     await select.selectOption('cost');
     const previewText = await page.locator('.selection-sort-preview').innerText();
     assert(previewText.indexOf('乙大学') >= 0 && previewText.indexOf('甲大学') >= 0, `${device.name}: cost-order preview incomplete`);
