@@ -1,5 +1,6 @@
 name: tmp PR166 entity routing builder
 
+# trigger: validated compact-entity builder
 on:
   push:
     branches:
