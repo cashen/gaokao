@@ -69,7 +69,7 @@ jobs:
       - name: Commit only tested product changes
         run: |
           set -euo pipefail
-          git rm .github/workflows/tmp-aiplus-background-direction-contract.yml tools/tmp-aiplus-background-direction-contract.py
+          git rm -f .github/workflows/tmp-aiplus-background-direction-contract.yml tools/tmp-aiplus-background-direction-contract.py
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
