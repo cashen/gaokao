@@ -1,0 +1,69 @@
+name: Temporary AIPLuS background direction final proof
+
+on:
+  push:
+    branches:
+      - agent/tmp-aiplus-background-direction-finalize
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/tmp-aiplus-background-direction-finalize
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply final canonical patch
+        run: python3 tools/tmp-aiplus-background-direction-finalize.py
+      - name: Inspect diff and forbidden copy
+        run: |
+          set -euo pipefail
+          git diff --check
+          git status --short
+          ! grep -Fq '0分专业' functions/_lib/ai/tool-registry.js
+          ! grep -Fq '0分专业' functions/_lib/ai/answer-composer.js
+          ! grep -Fq '最低0分/最高0分' functions/_lib/ai/advisor-presentation.js
+          grep -Fq -- '--retry 3 --retry-all-errors --retry-delay 3 --max-time 120' .github/workflows/verify-aiplus-parent-decision-v003.yml
+          grep -Fq -- '--retry 3 --retry-all-errors --retry-delay 2 --max-time 60' .github/workflows/verify-aiplus-parent-decision-v003.yml
+      - name: Syntax check modified graph
+        run: |
+          set -euo pipefail
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/answer-composer.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check tools/verify-aiplus-aek-v001.mjs
+          node --check tools/verify-aiplus-parent-semantics-v003.mjs
+      - name: Run permanent focused gates
+        run: |
+          set -euo pipefail
+          node tools/verify-aiplus-aek-v001.mjs
+          node tools/verify-aiplus-parent-semantics-v003.mjs
+          node tools/verify-aiplus-routing-grid-v001.mjs
+          node tools/verify-aiplus-human-intent-matrix-v001.mjs
+          node tools/verify-aiplus-school-topic-grid-v001.mjs
+          node tools/verify-aiplus-major-topic-grid-v001.mjs
+          node tools/verify-ai-major-region-history-v3992_3.mjs
+          node tools/verify-aiplus-human-dialog-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-ai-workspace-v3990_1.mjs
+          node tools/audit-aiplus-v002-ui.mjs
+          node tools/audit-architecture-handoff-v3990_1.mjs
+      - name: Commit only tested changes
+        run: |
+          set -euo pipefail
+          git rm -f .github/workflows/tmp-aiplus-background-direction-finalize.yml tools/tmp-aiplus-background-direction-finalize.py
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/verify-aiplus-parent-decision-v003.yml functions/_lib/ai/tool-registry.js functions/_lib/ai/answer-composer.js functions/_lib/ai/advisor-presentation.js tools/verify-aiplus-aek-v001.mjs tools/verify-aiplus-parent-semantics-v003.mjs
+          git commit -m 'Harden AIPLuS direction correction and Preview readiness [skip ci]'
+          git push origin HEAD:agent/tmp-aiplus-background-direction-finalize
