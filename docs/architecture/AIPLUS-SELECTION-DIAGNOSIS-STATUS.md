@@ -22,6 +22,15 @@ AIPLuS 对话负责发现和解释，家庭工作台负责沉淀家庭条件，*
 
 `aiplus/selection-workbench.v005.js` 是 UI/编排适配层，不拥有招生事实，也不拥有第二套自选数据。
 
+## Workspace 读写合同
+
+Selection Workbench 可以读取现有家庭 workspace，但**读操作不得变成 stale writer**。
+
+- `loadCurrentWorkspace()` 只能读取 canonical `current`；不得把刚读到的快照再次写回 `current`。
+- 兼容旧数据时允许补缺失的 `session:<id>`，但写入前必须重新读取 canonical `current`，确认 family workspace id 仍相同；只能补缺失 session，不能覆盖更新后的 current。
+- 只有 `saveCurrentWorkspace()` 等明确写 owner 才能提交新的 current/session 状态。
+- 这个边界保护家庭已确认条件、对话历史和 Decision Workspace，避免只读消费者晚到的旧快照覆盖主应用刚保存的新事实。
+
 ## 加入自选合同
 
 - 只有能绑定到当前 AIPLuS workspace 已保存 `candidates.records` 中的真实 2026 学校×专业记录，才显示“加入自选”。
@@ -84,6 +93,7 @@ v0.05 能提供的确定性诊断包括：
 正式检查至少覆盖：
 
 - source ownership / no second storage；
+- workspace read 不得 stale-write / 覆盖新家庭条件；
 - 现有 AIPLuS workspace / parent-decision / AEK 回归；
 - PC / Pad / Android 自选、排序、诊断和候选加入；
 - 真实 2026 正例可以加入；历史通用分数、分数/位次不匹配、重复歧义记录均不得出现加入入口；
