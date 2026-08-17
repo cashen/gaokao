@@ -168,7 +168,7 @@ const directionHistory={ok:true,allFailed:false,school:'沈阳工业大学',majo
 const directionAnswer=composePrimaryAnswer({command:{agentTask:'school_major_history'},result:{history:directionHistory},focus:{school:'沈阳工业大学'}});
 assert.match(directionAnswer.text,/不是当前招生专业名|不是招生专业名/);
 assert.match(directionAnswer.text,/电气工程及其自动化/);
-assert.doesNotMatch(directionAnswer.text,/最低0分|最高0分|0分专业.*实际投档/);
+assert.doesNotMatch(directionAnswer.text,/最低0分|最高0分|0分专业/,'direction correction must not repeat fake-zero wording');
 const emptyHistory={ok:true,allFailed:false,school:'测试大学',majorKeyword:'不存在专业',majorKeywords:['不存在专业'],records:[],total:0,summary:{total:0,minScore:null,maxScore:null},queryResults:[{query:'不存在专业',status:'success',recordCount:0}]};
 const emptyAnswer=composePrimaryAnswer({command:{agentTask:'school_major_history'},result:{history:emptyHistory},focus:{school:'测试大学'}});
 assert.doesNotMatch(emptyAnswer.text,/最低0分|最高0分/,'nullable score summary must never be rendered as zero');

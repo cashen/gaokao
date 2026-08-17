@@ -243,7 +243,7 @@ export async function runSchoolMajorHistory(context,{school,majorKeyword='',majo
     }catch{}
   }
   const majorSuggestions=directionRedirect?(directionRedirect.admissionMajors||[]).slice(0,3).map(major=>({major,prompt:`${schoolName}${major}多少分`,reason:`“${directionRedirect.direction}”是学校背景方向，不是招生专业名；请从该方向下的实际招生专业继续查。`})):majorSuggestionsFor(records,schoolName);
-  const directionMessage=directionRedirect?`“${directionRedirect.direction}”是${schoolName}背景证据中的专业方向/专业群，不是当前招生专业名；没有把它解释成“0分专业”。可继续查：${(directionRedirect.admissionMajors||[]).slice(0,8).join('、')||'该方向下的实际招生专业'}。`:'';
+  const directionMessage=directionRedirect?`“${directionRedirect.direction}”是${schoolName}背景证据中的专业方向/专业群，不是当前招生专业名，不能直接用这个方向名查询招生分数。可继续查：${(directionRedirect.admissionMajors||[]).slice(0,8).join('、')||'该方向下的实际招生专业'}。`:'';
   return{ok:true,partial,allFailed,school:schoolName,majorKeyword:requested.length>1?'':clean(requested[0]||'',160),majorKeywords:requested,bottomLineMode:projectScope,records,queryResults,total:records.length,directionRedirect,majorSuggestions,summary,meta:firstPayload?.meta||{},source:firstPayload?.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,bridgeVersion:AI_FACT_BRIDGE_CONTRACT_VERSION,scoreUsed:false,boundary:`只展示辽宁2026物理类实际投档记录；学校历史事实由同源的按校预聚合分片读取，本轮不使用考生分数过滤${projectScope==='exclude_sino'?'，并已排除中外合作/高收费记录':''}${directionRedirect?'；背景方向名称不等于招生专业名称':''}。`,message:directionMessage||(allFailed?'本轮各专业查询都暂时没有完成；请优先重试标记为失败的专业。':partial?'部分专业已完成，失败专业已单独标出。':'')};
 }
 export async function runFitAssessment(context,{school,majorKeyword='',score}={}){
