@@ -55,10 +55,15 @@ const SEED_POOL = [
   { id: 'seed|丙大学|机械电子工程', dataYear: 2026, primaryYear: 2026, school: '丙大学', major: '机械电子工程', score2026: 580, rank2026: 20696, bandKey: 'near', isPublicSchool: true, userOrder: 3 }
 ];
 const ADD_RECORD = { id: 'seed|丁大学|测控技术与仪器', dataYear: 2026, primaryYear: 2026, school: '丁大学', major: '测控技术与仪器', score2026: 575, rank2026: 22400, bandKey: 'steady', isPublicSchool: true, displayLocation: '沈阳' };
+const AMBIGUOUS_RECORDS = [
+  { id: 'ambiguous-a', dataYear: 2026, primaryYear: 2026, school: '戊大学', major: '自动化', score2026: 570, rank2026: 24000, bandKey: 'steady', isPublicSchool: true },
+  { id: 'ambiguous-b', dataYear: 2026, primaryYear: 2026, school: '戊大学', major: '自动化', score2026: 570, rank2026: 24000, bandKey: 'steady', isPublicSchool: true }
+];
+const HISTORY_ONLY = { id: 'history-only', school: '己大学', major: '电气工程及其自动化', score: 568, rank: 24800, year: 2025 };
 
 async function seed(page) {
   await page.goto(`${BASE}${LIVE ? '/aiplus/' : '/blank'}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.evaluate(async ({ pool, addRecord }) => {
+  await page.evaluate(async ({ pool, addRecord, ambiguousRecords, historyOnly }) => {
     localStorage.setItem('lnRank.selectionPool.lnPhysics.2026.v3951', JSON.stringify(pool));
     const { createAiWorkspace } = await import('/shared/ai/ai-workspace-contract.v3992_0.js?v=002_4&fdw=003_0');
     const ws = createAiWorkspace();
@@ -76,7 +81,11 @@ async function seed(page) {
         studyDurationTolerance: 'prefer_short'
       }
     };
-    ws.lastResult = { candidates: { records: [addRecord], counts: { upper: 0, near: 0, steady: 1, total: 1 } }, decisionStage: 'feasible_set' };
+    ws.lastResult = {
+      candidates: { records: [addRecord, ...ambiguousRecords], counts: { upper: 0, near: 0, steady: 3, total: 3 } },
+      history: { records: [historyOnly] },
+      decisionStage: 'feasible_set'
+    };
     await new Promise((resolve, reject) => {
       const request = indexedDB.open('gaokao-ai-workspace-v3990_0', 1);
       request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('workspace')) request.result.createObjectStore('workspace'); };
@@ -91,7 +100,7 @@ async function seed(page) {
         tx.onerror = () => reject(tx.error);
       };
     });
-  }, { pool: SEED_POOL, addRecord: ADD_RECORD });
+  }, { pool: SEED_POOL, addRecord: ADD_RECORD, ambiguousRecords: AMBIGUOUS_RECORDS, historyOnly: HISTORY_ONLY });
   if (LIVE) await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
 }
 
@@ -103,19 +112,31 @@ async function openDecision(page, device) {
   await page.locator('#selectionWorkbench').waitFor({ state: 'visible' });
 }
 
-async function appendCandidateCard(page) {
-  await page.evaluate(record => {
-    const item = document.createElement('article'); item.className = 'candidate-item';
+async function appendCandidateCard(page, record, marker) {
+  await page.evaluate(({ record, marker }) => {
+    const item = document.createElement('article');
+    item.className = 'candidate-item';
+    item.dataset.selectionTest = marker;
     const head = document.createElement('div'); head.className = 'candidate-head';
     const school = document.createElement('div'); school.className = 'candidate-school'; school.textContent = record.school;
     const major = document.createElement('div'); major.className = 'candidate-major'; major.textContent = record.major;
-    const location = document.createElement('div'); location.className = 'candidate-location'; location.textContent = record.displayLocation;
+    const location = document.createElement('div'); location.className = 'candidate-location'; location.textContent = record.displayLocation || '';
     head.append(school, major, location); item.append(head);
     const ref = document.createElement('div'); ref.className = 'candidate-reference';
-    const main = document.createElement('span'); main.className = 'reference-main'; main.textContent = `2026参考 · ${record.score2026}分 · ${record.rank2026.toLocaleString('zh-CN')}位`;
+    const main = document.createElement('span'); main.className = 'reference-main';
+    const score = record.score2026 ?? record.score;
+    const rank = record.rank2026 ?? record.rank;
+    main.textContent = `2026参考 · ${score}分 · ${Number(rank).toLocaleString('zh-CN')}位`;
     ref.append(main); item.append(ref);
     document.querySelector('#conversationStream').append(item);
-  }, ADD_RECORD);
+  }, { record, marker });
+}
+
+async function assertNoSelectionAction(page, marker, message) {
+  const card = page.locator(`.candidate-item[data-selection-test="${marker}"]`);
+  await card.waitFor({ state: 'visible' });
+  await page.waitForTimeout(100);
+  assert(await card.locator('.selection-add-button').count() === 0, message);
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -140,8 +161,17 @@ try {
     assert(panelText.includes('就业/升学路径证据'), `${device.name}: path-evidence diagnosis missing`);
     assert(panelText.includes('不是就业率排名'), `${device.name}: employment evidence boundary missing`);
 
-    await appendCandidateCard(page);
-    const add = page.locator('.candidate-item .selection-add-button');
+    await appendCandidateCard(page, { ...ADD_RECORD, score2026: 574, rank2026: 22500 }, 'mismatch');
+    await assertNoSelectionAction(page, 'mismatch', `${device.name}: mismatched score/rank must not fall back to another current record`);
+
+    await appendCandidateCard(page, HISTORY_ONLY, 'history-only');
+    await assertNoSelectionAction(page, 'history-only', `${device.name}: historical generic score record must not be promoted into 2026 selection`);
+
+    await appendCandidateCard(page, AMBIGUOUS_RECORDS[0], 'ambiguous');
+    await assertNoSelectionAction(page, 'ambiguous', `${device.name}: ambiguous duplicate current records must fail closed`);
+
+    await appendCandidateCard(page, ADD_RECORD, 'valid');
+    const add = page.locator('.candidate-item[data-selection-test="valid"] .selection-add-button');
     await add.waitFor({ state: 'visible' });
     assert((await add.textContent()).includes('加入自选'), `${device.name}: add-selection action missing`);
     await add.click();
