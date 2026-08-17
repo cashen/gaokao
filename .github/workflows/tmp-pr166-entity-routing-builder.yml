@@ -36,7 +36,7 @@ jobs:
       - name: Apply compact entity routing remediation
         working-directory: target
         run: python ../builder/tools/tmp_pr166_entity_routing_builder.py
-      - name: Preserve score-window ownership
+      - name: Preserve score-window ownership and broad major aliases
         working-directory: target
         run: |
           python - <<'PY'
@@ -54,6 +54,18 @@ jobs:
             ("if(!point&&!geo?.explicit&&schools.length===1&&!majors.length&&!residue)","if(noScoreConstraint&&!geo?.explicit&&schools.length===1&&!majors.length&&!residue)"),
             ("if(!point&&!geo?.explicit&&!schools.length&&majors.length===1&&!residue)","if(noScoreConstraint&&!geo?.explicit&&!schools.length&&majors.length===1&&!residue)"),
           ]:
+            assert s.count(old)==1, old
+            s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('tools/verify-aiplus-routing-grid-v001.mjs')
+          s=p.read_text(encoding='utf-8')
+          replacements=[
+            ("assert.equal(compactMajorEmpty.focus.major,'电气工程及其自动化');","assert.equal(compactMajorEmpty.focus.major,normalizeMajorLanguage('电气'));") ,
+            ("assert.equal(compactPair.focus.major,'电气工程及其自动化');","assert.equal(compactPair.focus.major,normalizeMajorLanguage('电气'));") ,
+            ("assert.equal(majorDrill.focus.major,'电气工程及其自动化');","assert.equal(majorDrill.focus.major,normalizeMajorLanguage('电气'));") ,
+          ]
+          for old,new in replacements:
             assert s.count(old)==1, old
             s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
