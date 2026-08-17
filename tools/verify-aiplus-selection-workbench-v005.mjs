@@ -7,6 +7,7 @@ const html = read('aiplus/index.html');
 const js = read('aiplus/selection-workbench.v005.js');
 const css = read('aiplus/selection-workbench.v005.css');
 const historyStore = read('aiplus/history-store.v3992_4.js');
+const workflow = read('.github/workflows/verify-aiplus-selection-workbench-v005.yml');
 const status = read('docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md');
 const selectionJsAsset = '/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0';
 const selectionCssAsset = '/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0';
@@ -75,9 +76,18 @@ assert(css.includes('.selection-workbench-item-actions{grid-column:2;'), 'select
 assert(css.includes('.selection-sorter-controls{display:flex;flex-direction:column;'), 'selection sorter controls must stack in the narrow decision rail');
 assert(css.includes('@media(max-width:560px)'), 'Android/mobile responsive boundary missing');
 
+assert(workflow.includes('Wait for coherent exact-main Production graph'), 'production gate must wait for a coherent AIPLuS feature graph, not only HTML/API identity');
+assert(workflow.includes("selection_js_path='/aiplus/selection-workbench.v005.js?v=005_0&fdw=003_0'"), 'production readiness must fetch the exact selection JS asset referenced by HTML');
+assert(workflow.includes("selection_css_path='/aiplus/selection-workbench.v005.css?v=005_0&fdw=003_0'"), 'production readiness must fetch the exact selection CSS asset referenced by HTML');
+assert(workflow.includes('src=\\"${selection_js_path}\\"'), 'production readiness must bind the live HTML to the exact selection JS asset path');
+assert(workflow.includes('href=\\"${selection_css_path}\\"'), 'production readiness must bind the live HTML to the exact selection CSS asset path');
+assert(workflow.includes("AIPLUS_SELECTION_WORKBENCH_VERSION = 'aiplus-selection-workbench-v0.05'"), 'production readiness must verify the selection JS runtime identity before browser execution');
+assert(workflow.includes(".selection-diagnosis-grid{display:grid;grid-template-columns:1fr"), 'production readiness must verify the selection CSS layout contract before browser execution');
+
 assert(status.includes('唯一自选 truth'), 'architecture handoff must name the canonical selection truth');
 assert(status.includes('不是就业率排名'), 'architecture handoff must preserve employment-evidence boundary');
 assert(status.includes('读操作不得变成 stale writer'), 'architecture handoff must preserve non-clobbering workspace read ownership');
 assert(status.includes('Draft → exact-head Preview → Ready'), 'release handoff must preserve formal release gate');
+assert(status.includes('页面 + API + 当前 Selection Workbench JS/CSS 资产'), 'architecture handoff must record the production asset-readiness contract');
 
 console.log('AIPLuS selection workbench v0.05 source contract: PASS');
