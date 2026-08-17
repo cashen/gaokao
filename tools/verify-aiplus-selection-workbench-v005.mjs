@@ -69,7 +69,10 @@ assert(js.includes('只调整“我的自选”讨论顺序，不会替你提交
 assert(js.includes("document.querySelector('#importSelection')?.click()"), 'deep family-advisor diagnosis must reuse existing read-only selection snapshot bridge');
 
 assert(css.includes('.selection-workbench'), 'selection workbench styles missing');
-assert(css.includes('@media(max-width:960px)'), 'Pad responsive boundary missing');
+assert(css.includes('.selection-diagnosis-grid{display:grid;grid-template-columns:1fr;'), 'narrow decision rail diagnosis must stay single-column');
+assert(css.includes('.selection-workbench-item{display:grid;grid-template-columns:24px minmax(0,1fr);'), 'selection item content must keep a readable narrow-rail column');
+assert(css.includes('.selection-workbench-item-actions{grid-column:2;'), 'selection item actions must move below content instead of squeezing school-major text');
+assert(css.includes('.selection-sorter-controls{display:flex;flex-direction:column;'), 'selection sorter controls must stack in the narrow decision rail');
 assert(css.includes('@media(max-width:560px)'), 'Android/mobile responsive boundary missing');
 
 assert(status.includes('唯一自选 truth'), 'architecture handoff must name the canonical selection truth');
