@@ -45,6 +45,10 @@ try{
   assert.equal((direction.result.history.records||[]).length,0,'direction itself must not become fake admissions records');
   assert.ok((direction.result.history.directionRedirect?.admissionMajors||[]).includes('电气工程及其自动化'));
   const directionJson=JSON.stringify(direction);
+  if(directionJson.includes('最低0分')||directionJson.includes('最高0分')){
+    console.log('ZERO_SCORE_LEAK_DIAGNOSTIC');
+    console.log(JSON.stringify({history:direction.result?.history,blocks:direction.blocks,nextActions:direction.nextActions,assistant:direction.assistantMessage,decisionBook:direction.decisionBook,workspace:direction.workspace},null,2));
+  }
   assert.ok(!directionJson.includes('最低0分')&&!directionJson.includes('最高0分'),'null score summary leaked as zero in API response');
   const directionTurn=page.locator('#conversationStream .turn').last();
   const directionText=(await directionTurn.innerText()).replace(/\s+/g,' ');
