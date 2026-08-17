@@ -105,15 +105,30 @@ async function seed(page) {
 }
 
 async function openDecision(page, device) {
-  if (device.name !== 'pc') {
+  if (device.name !== 'pc' && !await page.evaluate(() => document.body.classList.contains('history-open'))) {
     await page.locator('#historyToggle').click();
     await page.waitForFunction(() => document.body.classList.contains('history-open'));
   }
   await page.locator('#selectionWorkbench').waitFor({ state: 'visible' });
 }
 
+async function closeDecisionForMain(page, device) {
+  if (device.name === 'pc') return;
+  await page.locator('#historyClose').click();
+  await page.waitForFunction(() => !document.body.classList.contains('history-open'));
+}
+
 async function appendCandidateCard(page, record, marker) {
   await page.evaluate(({ record, marker }) => {
+    const turn = document.createElement('article');
+    turn.className = 'turn';
+    turn.dataset.selectionSyntheticTurn = marker;
+    const assistant = document.createElement('div');
+    assistant.className = 'assistant-turn answer-surface';
+    const card = document.createElement('section');
+    card.className = 'result-card';
+    const list = document.createElement('div');
+    list.className = 'candidate-list';
     const item = document.createElement('article');
     item.className = 'candidate-item';
     item.dataset.selectionTest = marker;
@@ -125,10 +140,11 @@ async function appendCandidateCard(page, record, marker) {
     const ref = document.createElement('div'); ref.className = 'candidate-reference';
     const main = document.createElement('span'); main.className = 'reference-main';
     const score = record.score2026 ?? record.score;
-    const rank = record.rank2026 ?? record.rank;
-    main.textContent = `2026参考 · ${score}分 · ${Number(rank).toLocaleString('zh-CN')}位`;
+    const recordRank = record.rank2026 ?? record.rank;
+    main.textContent = `2026参考 · ${score}分 · ${Number(recordRank).toLocaleString('zh-CN')}位`;
     ref.append(main); item.append(ref);
-    document.querySelector('#conversationStream').append(item);
+    list.append(item); card.append(list); assistant.append(card); turn.append(assistant);
+    document.querySelector('#conversationStream').append(turn);
   }, { record, marker });
 }
 
@@ -170,6 +186,7 @@ try {
     await appendCandidateCard(page, AMBIGUOUS_RECORDS[0], 'ambiguous');
     await assertNoSelectionAction(page, 'ambiguous', `${device.name}: ambiguous duplicate current records must fail closed`);
 
+    await closeDecisionForMain(page, device);
     await appendCandidateCard(page, ADD_RECORD, 'valid');
     const add = page.locator('.candidate-item[data-selection-test="valid"] .selection-add-button');
     await add.waitFor({ state: 'visible' });
@@ -183,6 +200,7 @@ try {
     });
     assert((await add.textContent()).includes('已自选'), `${device.name}: add action did not settle to selected state`);
 
+    await openDecision(page, device);
     const sorter = page.locator('.selection-sorter');
     await sorter.locator('summary').click();
     const select = sorter.locator('select');
