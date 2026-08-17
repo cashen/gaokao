@@ -36,7 +36,7 @@ jobs:
       - name: Apply compact entity routing remediation
         working-directory: target
         run: python ../builder/tools/tmp_pr166_entity_routing_builder.py
-      - name: Preserve score-window ownership and broad major aliases
+      - name: Preserve semantic-owner boundaries
         working-directory: target
         run: |
           python - <<'PY'
@@ -56,6 +56,10 @@ jobs:
           ]:
             assert s.count(old)==1, old
             s=s.replace(old,new,1)
+          old="|方案|为什么|是什么|什么是)/.test(source);"
+          new="|方案|为什么|是什么|什么是|哪些|哪个|什么|啥|哪里|哪儿|积累|底子|特色|推荐|值得|就业|前景|课程|学什么)/.test(source);"
+          assert s.count(old)==1
+          s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
 
           p=Path('tools/verify-aiplus-routing-grid-v001.mjs')
