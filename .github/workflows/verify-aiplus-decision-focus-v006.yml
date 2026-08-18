@@ -161,7 +161,7 @@ jobs:
           for attempt in $(seq 1 60); do
             html="$(curl -fsSL --max-time 20 "$base/aiplus/" || true)"
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$base/api/ai/health" || true)"
-            sha="$(jq -r '.commitSha // empty' <<<"$health" 2>/dev/null || true)"
+            sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             app="$(curl -fsSL --max-time 20 "$base/aiplus/app.v3990_1.js?v=002_4&scroll=002_1&fdw=003_0&focus=006_0" || true)"
             render="$(curl -fsSL --max-time 20 "$base/aiplus/render.v3992_0.js?v=002_4&fdw=003_0&focus=006_0" || true)"
             book="$(curl -fsSL --max-time 20 "$base/shared/ai/decision-book.v003.js?v=003_1&focus=006_0" || true)"
