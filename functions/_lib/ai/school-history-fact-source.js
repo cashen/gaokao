@@ -200,7 +200,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
     : (candidateScore === null ? 'score-desc' : 'position-near');
   const offset = boundedInteger(options.offset, 0, 0, 10000);
   const limit = boundedInteger(options.limit, AI_SCHOOL_HISTORY_MAX_RECORDS, 20, AI_SCHOOL_HISTORY_MAX_RECORDS);
-  const selection = await resolveExactAdmissionSchool(context.request, schoolInput);
+  const selection = await resolveExactAdmissionSchool(context, schoolInput);
   if (!selection) {
     return {
       ok: false,
@@ -216,7 +216,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
   ].map(value => clean(value, 160)).filter(Boolean))];
   const [runtime, directoryMeta] = await Promise.all([
     loadSchoolRuntimeRecords(context, { schoolNames: exactSchoolNames2026 }),
-    getAdmissionSchoolDirectoryMeta(context.request)
+    getAdmissionSchoolDirectoryMeta(context)
   ]);
   const schoolInfo = Array.isArray(runtime?.matchedSchools) ? runtime.matchedSchools[0] : null;
   if (!schoolInfo || !Array.isArray(runtime.records) || !runtime.records.length) {
