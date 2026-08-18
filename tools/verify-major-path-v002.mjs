@@ -8,6 +8,7 @@ import { createMajorRelationshipGraphResolver, MAJOR_RELATIONSHIP_GRAPH_META } f
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function unique(values) { return new Set(values).size === values.length; }
+function majorClassCode(major = {}) { return String(major.code || '').replace(/[^0-9]/g, '').slice(0, 4); }
 function semanticSnapshot(result = {}) {
   return JSON.stringify({
     kind: result.kind || '',
@@ -22,6 +23,8 @@ function semanticSnapshot(result = {}) {
 }
 
 assert(MAJOR_CATALOG_2026_META.total === 883, `undergraduate source meta must remain 883, got ${MAJOR_CATALOG_2026_META.total}`);
+assert(MAJOR_CATALOG_2026_META.majorClassCount === 92, `undergraduate source major-class meta must remain 92, got ${MAJOR_CATALOG_2026_META.majorClassCount}`);
+assert(MAJOR_CATALOG_2026_META.disciplineCount === 13, `undergraduate source discipline meta must remain 13, got ${MAJOR_CATALOG_2026_META.disciplineCount}`);
 assert(MAJOR_CATALOG_2026.length === 883, `undergraduate runtime count must remain 883, got ${MAJOR_CATALOG_2026.length}`);
 assert(unique(MAJOR_CATALOG_2026.map(item => item.code)), 'undergraduate codes must be unique');
 assert(GRADUATE_CATALOG_2022_META.count === 184, `graduate catalog count drift: ${GRADUATE_CATALOG_2022_META.count}`);
@@ -29,6 +32,7 @@ assert(GRADUATE_CATALOG_2022.length === 184, 'graduate catalog runtime count dri
 assert(unique(GRADUATE_CATALOG_2022.map(item => item.code)), 'graduate four-digit codes must be unique');
 assert(Object.values(GRADUATE_CATALOG_SOURCES).every(source => /^https:\/\/www\.moe\.gov\.cn\//.test(source.url)), 'graduate sources must stay on official MOE host');
 assert(UNDERGRAD_GRADUATE_PATHWAY_META.boundary.includes('一一对应表'), 'cross-level no-one-to-one boundary missing');
+assert(MAJOR_RELATIONSHIP_GRAPH_META.identityPolicy.includes('catalog-code-not-display-label'), 'relationship identity must use catalog code instead of label');
 assert(MAJOR_RELATIONSHIP_GRAPH_META.undergraduateBoundary.includes('2026本科专业目录'), 'relationship graph must derive from canonical undergraduate catalog');
 assert(MAJOR_RELATIONSHIP_GRAPH_META.graduateBoundary.includes('二级学科') && MAJOR_RELATIONSHIP_GRAPH_META.graduateBoundary.includes('自主设置'), 'graduate second-level boundary must be explicit');
 assert(MAJOR_RELATIONSHIP_GRAPH_META.neighborBoundary.includes('不代表课程相同'), 'neighbor boundary must forbid course-equivalence inference');
@@ -53,27 +57,32 @@ assert(curated + explicitNoCrosswalk === 883, 'every undergraduate major must ha
 const REL = createMajorRelationshipGraphResolver(MAJOR_CATALOG_2026);
 const stats = REL.stats();
 assert(stats.majors === 883, `relationship graph must consume all 883 majors, got ${stats.majors}`);
-assert(stats.majorClasses === 92, `relationship graph must preserve all 92 major classes, got ${stats.majorClasses}`);
-assert(stats.disciplines === 13, `relationship graph must preserve all 13 undergraduate disciplines, got ${stats.disciplines}`);
+assert(stats.majorClasses === 92, `relationship graph must preserve all 92 major-class code identities, got ${stats.majorClasses}`);
+assert(stats.disciplines === 13, `relationship graph must preserve all 13 undergraduate discipline code identities, got ${stats.disciplines}`);
 assert(stats.version === 'major-relationship-graph-v002', 'relationship graph version drift');
 
 const classCounts = new Map();
-for (const major of MAJOR_CATALOG_2026) classCounts.set(major.majorClass, (classCounts.get(major.majorClass) || 0) + 1);
-assert(classCounts.size === 92, 'canonical class count drift');
+for (const major of MAJOR_CATALOG_2026) {
+  const code = majorClassCode(major);
+  assert(code.length === 4, `undergraduate major missing four-digit class identity ${major.code}`);
+  classCounts.set(code, (classCounts.get(code) || 0) + 1);
+}
+assert(classCounts.size === 92, `canonical class-code count drift: ${classCounts.size}`);
 let siblingEdges = 0;
 let crossEdges = 0;
 for (const major of MAJOR_CATALOG_2026) {
   const graph = REL.buildMajorGraph(major, { crossLimit: 20 });
+  const classCode = majorClassCode(major);
   assert(graph?.focus?.code === major.code, `graph lost focus ${major.code}`);
   assert(graph.hierarchy.major.code === major.code, `hierarchy lost major ${major.code}`);
-  assert(graph.hierarchy.majorClass.name === major.majorClass, `hierarchy class drift ${major.code}`);
-  assert(graph.hierarchy.discipline.name === major.discipline, `hierarchy discipline drift ${major.code}`);
-  const expectedSiblings = (classCounts.get(major.majorClass) || 1) - 1;
+  assert(graph.hierarchy.majorClass.code === classCode, `hierarchy class-code drift ${major.code}: ${graph.hierarchy.majorClass.code}/${classCode}`);
+  assert(graph.hierarchy.discipline.name === major.discipline, `hierarchy discipline display drift ${major.code}`);
+  const expectedSiblings = (classCounts.get(classCode) || 1) - 1;
   assert(graph.siblings.length === expectedSiblings, `sibling completeness drift ${major.code}: ${graph.siblings.length}/${expectedSiblings}`);
   assert(graph.siblingRelations.length === expectedSiblings, `sibling relation completeness drift ${major.code}`);
   for (const relation of graph.siblingRelations) {
     assert(relation.source.code === major.code, `sibling source drift ${major.code}`);
-    assert(relation.target.majorClass === major.majorClass, `sibling escaped class ${major.code}->${relation.target.code}`);
+    assert(majorClassCode(relation.target) === classCode, `sibling escaped class-code ${major.code}->${relation.target.code}`);
     assert(relation.sameClass === true, `sibling relation must be same class ${major.code}->${relation.target.code}`);
     assert(relation.relationTypes.includes('same_undergraduate_major_class'), `sibling relation type missing ${major.code}->${relation.target.code}`);
     assert(MAJOR_CATALOG_2026.some(item => item.code === relation.target.code), `sibling points outside canonical catalog ${relation.target.code}`);
@@ -81,6 +90,7 @@ for (const major of MAJOR_CATALOG_2026) {
   }
   for (const relation of graph.crossNeighbors) {
     assert(relation.sameClass === false, `cross neighbor duplicated same-class edge ${major.code}->${relation.target.code}`);
+    assert(majorClassCode(relation.target) !== classCode, `cross neighbor shares canonical class code ${major.code}->${relation.target.code}`);
     assert(relation.sharedRouteCount > 0, `cross neighbor lacks graduate-path evidence ${major.code}->${relation.target.code}`);
     assert(relation.relationTypes.some(type => type === 'shared_academic_navigation' || type === 'shared_professional_navigation'), `cross relation lacks route type ${major.code}->${relation.target.code}`);
     assert(MAJOR_CATALOG_2026.some(item => item.code === relation.target.code), `cross relation points outside canonical catalog ${relation.target.code}`);
@@ -91,12 +101,13 @@ assert(siblingEdges > 0, 'relationship graph must expose real same-class edges')
 assert(crossEdges > 0, 'relationship graph must expose evidence-backed cross-class edges');
 
 let classMajorTotal = 0;
-for (const className of classCounts.keys()) {
-  const graph = REL.buildClassGraph(className);
-  assert(graph, `class graph missing ${className}`);
-  assert(graph.majors.length === classCounts.get(className), `class graph count drift ${className}`);
-  assert(graph.majors.every(item => item.majorClass === className), `class graph leaked another class ${className}`);
-  for (const route of graph.commonGraduateRoutes) assert(graduateCodes.has(route.code), `class graph ${className} emitted non-canonical graduate route ${route.code}`);
+for (const [classCode, expectedCount] of classCounts) {
+  const graph = REL.buildClassGraph(classCode);
+  assert(graph, `class graph missing code ${classCode}`);
+  assert(graph.majorClass.code === classCode, `class graph identity drift ${classCode}`);
+  assert(graph.majors.length === expectedCount, `class graph count drift ${classCode}: ${graph.majors.length}/${expectedCount}`);
+  assert(graph.majors.every(item => majorClassCode(item) === classCode), `class graph leaked another class code ${classCode}`);
+  for (const route of graph.commonGraduateRoutes) assert(graduateCodes.has(route.code), `class graph ${classCode} emitted non-canonical graduate route ${route.code}`);
   classMajorTotal += graph.majors.length;
 }
 assert(classMajorTotal === 883, `all class graphs must cover 883 majors, got ${classMajorTotal}`);
@@ -113,6 +124,7 @@ assert(csAi && csAi.sameClass === false && csAi.sharedRouteCount >= 2, '计算�
 const csGraph = REL.buildMajorGraph(cs, { crossLimit: 20 });
 assert(csGraph.crossNeighbors.some(item => item.target.code === ai.code), '计算机科学与技术 graph should surface evidence-backed 人工智能 cross-class neighbor');
 const computerClass = REL.buildClassGraph('计算机类');
+assert(computerClass?.majorClass.code === '0809', '计算机类 class graph must resolve to canonical code 0809');
 assert(computerClass?.majors.some(item => item.name === '计算机科学与技术'), '计算机类 graph lost 计算机科学与技术');
 assert(computerClass?.majors.some(item => item.name === '软件工程'), '计算机类 graph lost 软件工程');
 
