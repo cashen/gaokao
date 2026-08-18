@@ -12,6 +12,7 @@ export const AI_SCHOOL_HISTORY_FACT_CONTRACT = Object.freeze({
   sourceIndexPath: AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH,
   sourceChunkPrefix: AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX,
   sourceTotalRecords: AI_SCHOOL_HISTORY_SOURCE_TOTAL_RECORDS,
-  sourcePolicy: 'same-11628-record-truth-set-preaggregated-by-school',
-  cachePolicy: 'bounded-deployment-scoped-index-and-four-shard-promise-cache'
+  sourcePolicy: 'same-11628-record-truth-set-via-canonical-school-runtime-provider',
+  runtimeOwner: 'school-record-runtime-provider.vnext.js',
+  cachePolicy: 'canonical-school-runtime-provider-bounded-index-and-four-shard-promise-cache'
 });
