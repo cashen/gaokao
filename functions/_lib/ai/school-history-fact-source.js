@@ -4,6 +4,10 @@ import { buildSearchIndex } from '../search-index-builder.js';
 import { mapStandardMajor } from '../standard-major-mapper.js';
 import { lookupLn2026PhysicsScore } from '../ln-2026-physics-score-rank.js';
 import {
+  getAdmissionSchoolDirectoryMeta,
+  resolveExactAdmissionSchool
+} from '../school-query-provider.v3969.js';
+import {
   clearSchoolRuntimeProjectionCacheForTest,
   loadSchoolRuntimeRecords,
   SCHOOL_RUNTIME_PROJECTION_VERSION,
@@ -196,9 +200,26 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
     : (candidateScore === null ? 'score-desc' : 'position-near');
   const offset = boundedInteger(options.offset, 0, 0, 10000);
   const limit = boundedInteger(options.limit, AI_SCHOOL_HISTORY_MAX_RECORDS, 20, AI_SCHOOL_HISTORY_MAX_RECORDS);
-  const runtime = await loadSchoolRuntimeRecords(context, { schoolNames: [schoolInput] });
+  const selection = await resolveExactAdmissionSchool(context.request, schoolInput);
+  if (!selection) {
+    return {
+      ok: false,
+      code: 'school_not_available',
+      message: '已经识别到学校问题，但当前辽宁2026物理类投档学校目录没有这所学校的记录。',
+      status: 404
+    };
+  }
+  const exactSchoolNames2026 = [...new Set([
+    ...(Array.isArray(selection.admissionNames) ? selection.admissionNames : []),
+    selection.admissionName,
+    selection.officialName
+  ].map(value => clean(value, 160)).filter(Boolean))];
+  const [runtime, directoryMeta] = await Promise.all([
+    loadSchoolRuntimeRecords(context, { schoolNames: exactSchoolNames2026 }),
+    getAdmissionSchoolDirectoryMeta(context.request)
+  ]);
   const schoolInfo = Array.isArray(runtime?.matchedSchools) ? runtime.matchedSchools[0] : null;
-  if (!schoolInfo) {
+  if (!schoolInfo || !Array.isArray(runtime.records) || !runtime.records.length) {
     return {
       ok: false,
       code: 'school_not_available',
@@ -207,7 +228,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
     };
   }
   const index = runtime.manifest || {};
-  const rawRecords = Array.isArray(runtime.records) ? runtime.records : [];
+  const rawRecords = runtime.records;
   const candidateRank = candidateRankForScore(candidateScore);
   const keywordQuery = buildKeywordQuery(majorKeyword);
   const matched = [];
@@ -243,7 +264,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       rankYear: 2026,
       candidateScore,
       candidateReferenceRank2026: candidateRank,
-      school: schoolInfo.name,
+      school: selection.officialName || schoolInfo.name,
       schoolQuery: schoolInput,
       schoolRecordTotal: rawRecords.length,
       filteredTotal: rankedAll.length,
@@ -253,8 +274,8 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       keywordMode: 'any',
       keywordTerms: keywordQuery.rawKeywords,
       schoolQueryContractVersion: AI_SCHOOL_HISTORY_QUERY_CONTRACT_VERSION,
-      admissionDirectoryVersion: index.version || '',
-      admissionDirectorySourceHash: '',
+      admissionDirectoryVersion: directoryMeta.version || '',
+      admissionDirectorySourceHash: directoryMeta.sourceHash || '',
       pagination: {
         offset,
         limit,
@@ -274,6 +295,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       rawScanned: Number(runtime.rawScanned || rawRecords.length),
       exactSchoolRecords: rawRecords.length,
       mode: 'ai-school-history-preaggregated-school-shard',
+      identityOwner: 'school-query-provider.v3969',
       runtimeOwner: 'school-runtime-projection-vnext',
       projectionVersion: runtime.projectionVersion || SCHOOL_RUNTIME_PROJECTION_VERSION,
       indexPath: AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH,
