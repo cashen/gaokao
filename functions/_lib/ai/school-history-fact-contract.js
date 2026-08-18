@@ -13,5 +13,5 @@ export const AI_SCHOOL_HISTORY_FACT_CONTRACT = Object.freeze({
   sourceChunkPrefix: AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX,
   sourceTotalRecords: AI_SCHOOL_HISTORY_SOURCE_TOTAL_RECORDS,
   sourcePolicy: 'same-11628-record-truth-set-preaggregated-by-school',
-  cachePolicy: 'bounded-index-and-four-shard-promise-cache'
+  cachePolicy: 'bounded-deployment-scoped-index-and-four-shard-promise-cache'
 });
