@@ -7,6 +7,17 @@ import { createMajorSearchIntentResolver, MAJOR_SEARCH_INTENT_META } from '../sh
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function unique(values) { return new Set(values).size === values.length; }
+function semanticSnapshot(result = {}) {
+  return JSON.stringify({
+    kind: result.kind || '',
+    matchType: result.matchType || '',
+    semanticType: result.semanticType || '',
+    code: result.major?.code || '',
+    name: result.major?.name || '',
+    total: result.total || 0,
+    candidates: (result.allCandidates || result.candidates || []).map(item => `${item.code}:${item.name}`)
+  });
+}
 
 assert(MAJOR_CATALOG_2026_META.total === 883, `undergraduate source meta must remain 883, got ${MAJOR_CATALOG_2026_META.total}`);
 assert(MAJOR_CATALOG_2026.length === 883, `undergraduate runtime count must remain 883, got ${MAJOR_CATALOG_2026.length}`);
@@ -62,10 +73,10 @@ assert(MAJOR_SEARCH_INTENT_META.boundary.includes('不得静默升级'), 'search
 
 function assertAmbiguous(query, requiredCodes = []) {
   const result = SEARCH.resolve(query, { limit: 8 });
-  assert(result.kind === 'ambiguous', `${query} must disambiguate, got ${result.kind}`);
-  assert(result.total > 1, `${query} ambiguity must have multiple candidates`);
+  assert(result.kind === 'ambiguous', `${query} must disambiguate; actual=${semanticSnapshot(result)}`);
+  assert(result.total > 1, `${query} ambiguity must have multiple candidates; actual=${semanticSnapshot(result)}`);
   const allCodes = (result.allCandidates || []).map(item => item.code);
-  for (const code of requiredCodes) assert(allCodes.includes(code), `${query} missing candidate ${code}`);
+  for (const code of requiredCodes) assert(allCodes.includes(code), `${query} missing candidate ${code}; actual=${semanticSnapshot(result)}`);
   for (const code of allCodes) assert(MAJOR_CATALOG_2026.some(item => item.code === code), `${query} emitted non-canonical candidate ${code}`);
   return result;
 }
@@ -84,15 +95,15 @@ assertAmbiguous('软件', ['080902','080919T','081013T']);
 assertAmbiguous('口腔', ['100301K','101006']);
 
 const jike = SEARCH.resolve('计科');
-assert(jike.kind === 'direct' && jike.major?.code === '080901', '计科 must resolve to 080901');
-assert(jike.matchType === 'alias_exact' && jike.explanation.includes('家长常用简称'), '计科 must explain alias recognition');
+assert(jike.kind === 'direct' && jike.major?.code === '080901', `计科 must resolve to 080901; actual=${semanticSnapshot(jike)}`);
+assert(jike.matchType === 'alias_exact' && jike.explanation.includes('家长常用简称'), `计科 must explain alias recognition; actual=${semanticSnapshot(jike)}`);
 const dianli = SEARCH.resolve('电力');
-assert(dianli.kind === 'direct' && dianli.major?.code === '080601', '电力 must resolve to 080601 when no competing official major name exists');
-assert(dianli.explanation.includes('家长常用简称'), '电力 must preserve alias recognition explanation');
+assert(dianli.kind === 'direct' && dianli.major?.code === '080601', `电力 must resolve to 080601 when no competing official major name exists; actual=${semanticSnapshot(dianli)}`);
+assert(dianli.explanation.includes('家长常用简称'), `电力 must preserve alias recognition explanation; actual=${semanticSnapshot(dianli)}`);
 const exact = SEARCH.resolve('工程管理');
-assert(exact.kind === 'direct' && exact.matchType === 'official_name' && exact.major?.code === '120103', 'official major name must remain direct');
+assert(exact.kind === 'direct' && exact.matchType === 'official_name' && exact.major?.code === '120103', `official major name must remain direct; actual=${semanticSnapshot(exact)}`);
 const byCode = SEARCH.resolve('120103');
-assert(byCode.kind === 'direct' && byCode.matchType === 'code' && byCode.major?.name === '工程管理', 'official code must remain direct');
+assert(byCode.kind === 'direct' && byCode.matchType === 'code' && byCode.major?.name === '工程管理', `official code must remain direct; actual=${semanticSnapshot(byCode)}`);
 
 const html = fs.readFileSync('major-path/index.html','utf8');
 const app = fs.readFileSync('major-path/app.v001.js','utf8');
