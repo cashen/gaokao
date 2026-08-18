@@ -57,6 +57,15 @@ try {
     const jike = await page.locator('#result').innerText();
     assert(jike.includes('搜索识别说明') && jike.includes('家长常用简称'),`${device.name}: live alias recognition context missing`);
 
+    await page.locator('#majorInput').fill('测控');
+    await page.locator('#searchForm .btn').click();
+    await page.waitForSelector('[data-disambiguation-query="测控"]',{timeout:10000});
+    const cekong = await page.locator('#result').innerText();
+    assert(cekong.includes('测控技术与仪器') && cekong.includes('智能测控工程'),`${device.name}: live 测控 disambiguation incomplete`);
+    assert(await page.locator('[data-result-major]').count() === 0,`${device.name}: live 测控 silently chose a major`);
+    await page.locator('#result [data-major-code="080301"]').click();
+    await page.waitForSelector('[data-result-major="080301"]',{timeout:10000});
+
     await page.locator('#majorInput').fill('临床医学');
     await page.locator('#searchForm .btn').click();
     await page.waitForSelector('[data-result-major="100201K"]',{timeout:10000});
