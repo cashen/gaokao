@@ -1,4 +1,5 @@
 import {deriveDecisionProgress,FAMILY_DECISION_STAGE_LABELS} from './decision-progress.v003.js';
+import {deriveDecisionFocus} from './decision-focus.v006.js';
 
 export const AI_DECISION_BOOK_VERSION='ai-decision-book-v0.03';
 
@@ -23,17 +24,18 @@ function evidenceSummary(workspace={}){const evidence=list(workspace.evidence),v
 function selectionPairs(workspace={},fallback=[]){const out=[];for(const item of list(workspace?.selectionSnapshot?.items)){const school=clean(item?.school,100),major=clean(item?.major,140);if(school&&major)out.push({school,major,label:`${school} · ${major}`});}if(out.length)return out.slice(0,16);return list(fallback).slice(0,12);}
 
 export function buildDecisionBook(workspace={}){
-  const progress=deriveDecisionProgress(workspace),profile=explicitProfileLines(workspace),decisions=decisionGroups(workspace),score=Math.round(Number(workspace?.examContext?.score)),rank=numberText(workspace?.examContext?.rank),position=[];if(Number.isFinite(score)&&score>=150&&score<=750)position.push(`${score}分`);if(rank)position.push(`约${rank}位`);const gaps=unresolved(workspace),pairs=selectionPairs(workspace,progress.pairs),next=progress.stages.find(item=>item.key===progress.recommendedStage),evidence=evidenceSummary(workspace);
+  const progress=deriveDecisionProgress(workspace),focus=deriveDecisionFocus(workspace),profile=explicitProfileLines(workspace),decisions=decisionGroups(workspace),score=Math.round(Number(workspace?.examContext?.score)),rank=numberText(workspace?.examContext?.rank),position=[];if(Number.isFinite(score)&&score>=150&&score<=750)position.push(`${score}分`);if(rank)position.push(`约${rank}位`);const gaps=unresolved(workspace),pairs=selectionPairs(workspace,progress.pairs),next=progress.stages.find(item=>item.key===progress.recommendedStage),evidence=evidenceSummary(workspace);
   return{
     version:AI_DECISION_BOOK_VERSION,
     position:{title:'孩子现在的位置',summary:position.join(' · ')||'分数位置还没确认'},
     profile:{title:'家庭真正看重什么',items:profile},
     directions:{title:'当前方向',keep:decisions.keep.filter(item=>item.kind==='major_direction'),reject:decisions.reject.filter(item=>item.kind==='major_direction'),pending:decisions.pending.filter(item=>item.kind==='major_direction'),exploring:progress.majors.slice(0,8)},
     schoolMajors:{title:'重点学校×专业',items:pairs},
+    focus,
     decisions,
     unresolved:{title:'还没解决',items:gaps},
-    evidence:{title:'依据完整度',...evidence},
-    next:{stage:progress.recommendedStage,label:FAMILY_DECISION_STAGE_LABELS[progress.recommendedStage]||'继续决策',summary:next?.summary||''},
+    evidence:{title:'依据完整度',...evidence,decisionClaimCount:focus.evidenceClaimCount},
+    next:{stage:progress.recommendedStage,label:focus.primaryGap?.label||FAMILY_DECISION_STAGE_LABELS[progress.recommendedStage]||'继续决策',summary:focus.primaryGap?.reason||next?.summary||'',prompt:focus.primaryGap?.prompt||''},
     progress
   };
 }
