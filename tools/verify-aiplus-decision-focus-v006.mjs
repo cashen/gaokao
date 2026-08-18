@@ -75,6 +75,13 @@ eq(noAdmissionFocus.pairs[0].dimensions.find(item=>item.key==='admissions').stat
 eq(noAdmissionFocus.currentEvidenceNeeds,['employment'],'the current turn keeps authority over the focus gap set');
 eq(noAdmissionFocus.primaryGap,null,'once the current employment need is directly answered, historical admissions/postgraduate context must not invent a new primary gap');
 
+// A previously confirmed family tradeoff must reopen when a new decision-changing blocker appears.
+let confirmedTradeoffWorkspace=baseWorkspace();
+confirmedTradeoffWorkspace=applyAiWorkspaceEvent(confirmedTradeoffWorkspace,{type:'decision_saved',payload:{kind:'family_tradeoff',status:'keep',subject:{label:'家庭取舍'},reason:'家庭已经确认过上一轮取舍'}});
+const confirmedTradeoffProgress=deriveDecisionProgress(confirmedTradeoffWorkspace),confirmedTradeoffStage=confirmedTradeoffProgress.stages.find(item=>item.key==='family_tradeoff');
+ok(confirmedTradeoffStage.blockers.some(item=>item.dimension==='study_duration'),'new study-duration blocker remains visible after an earlier family-tradeoff confirmation');
+eq(confirmedTradeoffStage.state,'exploring','a new decision-changing blocker must reopen a previously confirmed family-tradeoff stage');
+
 // Hard family conflicts outrank research, but the projection never removes the option itself.
 workspace=baseWorkspace({studyDurationTolerance:'prefer_short',majorExclude:true});
 focus=deriveDecisionFocus(workspace);
