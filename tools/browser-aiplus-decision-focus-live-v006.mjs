@@ -48,8 +48,23 @@ async function openDecisionBook(page){
     else if(await page.locator('#historyToggle').isVisible().catch(()=>false))await page.locator('#historyToggle').click();
   }
   await panel.waitFor({state:'visible',timeout:8000});
-  const details=page.locator('#decisionBookDetails');
-  if(!await details.evaluate(element=>element.open))await details.locator('summary').click();
+  const details=page.locator('#decisionBookDetails'),summary=details.locator('summary');
+  if(!await details.evaluate(element=>element.open)){
+    await panel.evaluate(element=>{
+      const target=element.querySelector('#decisionBookDetails > summary');
+      if(!target)return;
+      const panelRect=element.getBoundingClientRect(),targetRect=target.getBoundingClientRect();
+      element.scrollTop+=targetRect.top-panelRect.top-Math.max(24,Math.floor(element.clientHeight*.22));
+    });
+    await page.waitForTimeout(80);
+    await summary.click({timeout:8000});
+  }
+  await panel.evaluate(element=>{
+    const target=element.querySelector('.decision-focus-action');
+    if(!target)return;
+    const panelRect=element.getBoundingClientRect(),targetRect=target.getBoundingClientRect();
+    element.scrollTop+=targetRect.top-panelRect.top-Math.max(24,Math.floor(element.clientHeight*.28));
+  });
   await page.locator('.decision-focus-action').first().waitFor({state:'visible',timeout:8000});
 }
 
@@ -79,7 +94,8 @@ async function verifyDevice(browser,device){
   assert(state.panelOverflow<=1,`${device.name}: panel overflow ${state.panelOverflow}`);
   assert(!state.columns.includes(' '),`${device.name}: narrow rail must remain single-column ${state.columns}`);
 
-  await page.locator('.decision-focus-card').first().locator('.decision-focus-action',{hasText:'还要核实'}).click();
+  const pending=page.locator('.decision-focus-card').first().locator('.decision-focus-action',{hasText:'还要核实'});
+  await pending.click({timeout:8000});
   await page.waitForFunction(()=>document.querySelector('.decision-focus-card .decision-focus-action[aria-pressed="true"]')?.textContent?.includes('还要核实'),null,{timeout:8000});
   const saved=await page.evaluate(async()=>{
     const {loadCurrentWorkspace}=await import('/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0');
