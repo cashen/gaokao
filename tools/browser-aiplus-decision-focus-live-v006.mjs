@@ -94,18 +94,28 @@ async function verifyDevice(browser,device){
   assert(state.panelOverflow<=1,`${device.name}: panel overflow ${state.panelOverflow}`);
   assert(!state.columns.includes(' '),`${device.name}: narrow rail must remain single-column ${state.columns}`);
 
+  await page.evaluate(()=>{
+    window.__decisionFocusSaveEvent=null;
+    document.addEventListener('aiplus:decision-save',event=>{window.__decisionFocusSaveEvent=event.detail||null;},{once:true});
+  });
   const pending=page.locator('.decision-focus-card').first().locator('.decision-focus-action',{hasText:'还要核实'});
   await pending.click({timeout:8000});
-  await page.waitForFunction(()=>document.querySelector('.decision-focus-card .decision-focus-action[aria-pressed="true"]')?.textContent?.includes('还要核实'),null,{timeout:8000});
+  await page.waitForFunction(()=>window.__decisionFocusSaveEvent?.kind==='school_major'&&window.__decisionFocusSaveEvent?.status==='pending',null,{timeout:3000});
+  await page.waitForFunction(async()=>{
+    const {loadCurrentWorkspace}=await import('/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0');
+    const ws=await loadCurrentWorkspace();
+    return ws?.decisions?.some(item=>item?.kind==='school_major'&&item?.status==='pending'&&item?.subject?.school==='沈阳工业大学');
+  },null,{timeout:8000});
   const saved=await page.evaluate(async()=>{
     const {loadCurrentWorkspace}=await import('/aiplus/history-store.v3992_4.js?v=002_4&fdw=003_0');
     const ws=await loadCurrentWorkspace();
     return ws?.decisions?.find(item=>item?.kind==='school_major'&&item?.subject?.school==='沈阳工业大学')||null;
   });
   assert(saved?.status==='pending',`${device.name}: canonical decision_saved path did not persist pending status ${JSON.stringify(saved)}`);
+  await page.waitForFunction(()=>document.querySelector('.decision-focus-card .decision-focus-action[aria-pressed="true"]')?.textContent?.includes('还要核实'),null,{timeout:3000}).catch(()=>{throw new Error(`${device.name}: decision persisted as pending but the visible Decision Book did not reflect the canonical workspace state`);});
   assert(!errors.length,`${device.name}: page errors ${errors.join('\n')}`);
   await context.close();
-  return{device:device.name,...state,savedStatus:saved.status};
+  return{device:device.name,...state,savedStatus:saved.status,eventStatus:'pending',visualStatus:'pending'};
 }
 
 const browser=await chromium.launch({headless:true}),evidence=[];
