@@ -48,12 +48,20 @@ for (const marker of [
   'family-home.v3990_1.js?v=3990_1',
   '家庭方案与逐项复核',
   'data-current-release>v3.9.90.1',
+  'data-home-major-path-entry',
+  'href="/major-path/"',
+  '专业升学地图',
   'data-home-industry-map-entry',
   'href="/Public_company/"',
   '全国上市公司产业落地图'
 ]) assert.ok(home.includes(marker), `root home missing ${marker}`);
 
+assert.equal((home.match(/data-home-major-path-entry/g) || []).length, 1, 'major path entry must have one homepage owner');
 assert.equal((home.match(/data-home-industry-map-entry/g) || []).length, 1, 'industry map entry must have one homepage owner');
+const majorPathIndex = home.indexOf('data-home-major-path-entry');
+const scoreEquivalenceIndex = home.indexOf('data-score-equivalence-entry="home"');
+const industryIndex = home.indexOf('data-home-industry-map-entry');
+assert.ok(majorPathIndex > 0 && majorPathIndex < scoreEquivalenceIndex && scoreEquivalenceIndex < industryIndex, 'homepage support links must keep major path before score history and industry map');
 for (const stale of [
   'family-home.v3970_0.js?v=3970_0',
   'family-home.v3972_5.js?v=3972_5',
@@ -116,10 +124,10 @@ console.log(JSON.stringify({
   homeRuntime: CURRENT_RELEASE.homeEntryVersion,
   homeClassification: SITE_RUNTIME_CONTRACT.activeEntrypointClassifications.homeRuntime,
   stableShellCss: CURRENT_RELEASE.resourceOwners.familyShellStyles,
+  majorPath: '/major-path/',
   industryMap: CURRENT_RELEASE.resourceOwners.industryMap,
   bootstrapCount: (home.match(/<script type="module"/g) || []).length,
   homeHtmlCache: 'revalidate',
   activeHome: manifest.currentGenerationEntrypoints.home,
   productionGate: true
 }, null, 2));
-
