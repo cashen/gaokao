@@ -16,7 +16,10 @@ assert(GRADUATE_CATALOG_2022.some(item => item.code === '1201' && item.name === 
 assert(GRADUATE_CATALOG_2022.some(item => item.code === '1256' && item.name === '工程管理' && item.kind === 'professional_degree'), 'missing graduate 1256');
 assert(GRADUATE_CATALOG_2022.some(item => item.code === '1405' && item.name === '智能科学与技术'), 'missing current cross-discipline 1405');
 assert(Object.values(GRADUATE_CATALOG_SOURCES).every(source => /^https:\/\/www\.moe\.gov\.cn\//.test(source.url)), 'graduate sources must stay on official MOE host');
-assert(UNDERGRAD_GRADUATE_PATHWAY_META.boundary.includes('不存在国家统一一一对应表'), 'cross-level no-one-to-one boundary missing');
+assert(
+  UNDERGRAD_GRADUATE_PATHWAY_META.boundary.includes('教育部未发布') && UNDERGRAD_GRADUATE_PATHWAY_META.boundary.includes('一一对应表'),
+  'cross-level no-one-to-one boundary missing'
+);
 
 const graduateCodes = new Set(GRADUATE_CATALOG_2022.map(item => item.code));
 let curated = 0;
