@@ -1,6 +1,8 @@
 import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
+import { ADMISSION_MAJOR_ALIAS_2026 } from '../ln-rank/kb/major-understanding/admission-major-alias.generated.js?v=3949_0';
 import { resolveMajorUnderstanding } from '../ln-rank/js/knowledge/major-understanding-resolver.js?v=3949_0';
 import { buildUndergradGraduatePathway, UNDERGRAD_GRADUATE_PATHWAY_META } from '../shared/resources/majors/undergrad-graduate-pathway.v001.js?v=001_0';
+import { createMajorSearchIntentResolver, MAJOR_SEARCH_INTENT_META } from '../shared/resources/majors/major-search-intent.v001.js?v=001_0';
 import { GRADUATE_CATALOG_SOURCES } from '../shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0';
 
 const UNDERGRAD_SOURCE = Object.freeze({
@@ -8,6 +10,7 @@ const UNDERGRAD_SOURCE = Object.freeze({
   title: '普通高等学校本科专业目录（2026年）',
   url: 'https://www.moe.gov.cn/srcsite/A08/moe_1034/s3882/202604/t20260427_1434931.html'
 });
+const SEARCH = createMajorSearchIntentResolver(MAJOR_CATALOG_2026, ADMISSION_MAJOR_ALIAS_2026);
 
 const els = {
   form: document.querySelector('#searchForm'),
@@ -17,10 +20,6 @@ const els = {
   disciplineChips: document.querySelector('#disciplineChips'),
   classBrowser: document.querySelector('#classBrowser')
 };
-
-function clean(value = '') {
-  return String(value).normalize('NFKC').replace(/\s+/g, '').toLowerCase();
-}
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -33,46 +32,31 @@ function classCode(major = {}) {
   return raw.length >= 4 ? raw.slice(0, 4) : '';
 }
 
-function searchMajors(query, limit = 10) {
-  const key = clean(query);
-  if (!key) return [];
-  return MAJOR_CATALOG_2026
-    .map(item => {
-      const name = clean(item.name);
-      const code = clean(item.code);
-      const aliases = (item.aliases || []).map(clean);
-      let score = 0;
-      if (code === key || name === key) score = 100;
-      else if (name.startsWith(key) || code.startsWith(key)) score = 80;
-      else if (aliases.includes(key)) score = 75;
-      else if (name.includes(key) || aliases.some(alias => alias.includes(key))) score = 55;
-      return { item, score };
-    })
-    .filter(row => row.score > 0)
-    .sort((a, b) => b.score - a.score || a.item.name.length - b.item.name.length || a.item.code.localeCompare(b.item.code))
-    .slice(0, limit)
-    .map(row => row.item);
-}
-
-function findMajor(query) {
-  const matches = searchMajors(query, 20);
-  const key = clean(query);
-  return matches.find(item => clean(item.name) === key || clean(item.code) === key || (item.aliases || []).some(alias => clean(alias) === key)) || matches[0] || null;
+function suggestionItem(item, index = 0) {
+  return `<button type="button" class="suggestion${index === 0 ? ' active' : ''}" role="option" data-major-code="${escapeHtml(item.code)}">
+    <span class="suggestion-main"><span class="suggestion-name">${escapeHtml(item.name)}</span><span class="suggestion-meta">${escapeHtml(item.discipline)} · ${escapeHtml(item.majorClass)}</span></span>
+    <span class="suggestion-type">${escapeHtml(item.code)}</span>
+  </button>`;
 }
 
 function renderSuggestions(query) {
-  const matches = searchMajors(query);
-  if (!clean(query)) {
+  const intent = SEARCH.resolve(query, { limit: 8 });
+  if (intent.kind === 'empty') {
     els.suggestions.hidden = true;
     els.suggestions.innerHTML = '';
     return;
   }
   els.suggestions.hidden = false;
-  els.suggestions.innerHTML = matches.length ? matches.map((item, index) => `
-    <button type="button" class="suggestion${index === 0 ? ' active' : ''}" role="option" data-major-code="${escapeHtml(item.code)}">
-      <span class="suggestion-main"><span class="suggestion-name">${escapeHtml(item.name)}</span><span class="suggestion-meta">${escapeHtml(item.discipline)} · ${escapeHtml(item.majorClass)}</span></span>
-      <span class="suggestion-type">${escapeHtml(item.code)}</span>
-    </button>`).join('') : '<div class="suggestion" aria-disabled="true"><span class="suggestion-main"><span class="suggestion-name">没有找到规范本科专业</span><span class="suggestion-meta">可尝试输入教育部本科专业全名或专业代码</span></span></div>';
+  if (intent.kind === 'none') {
+    els.suggestions.innerHTML = '<div class="suggestion-context"><strong>暂时没认出这是哪个本科专业</strong><span>可以输入正式专业名、六位专业代码，或家长常用简称，例如“机械”“电气”“计科”“测控”。</span></div>';
+    return;
+  }
+  if (intent.kind === 'direct') {
+    els.suggestions.innerHTML = `${intent.explanation ? `<div class="suggestion-context"><strong>已按家长常用说法识别</strong><span>${escapeHtml(intent.explanation)}</span></div>` : ''}${suggestionItem(intent.major, 0)}`;
+    return;
+  }
+  const more = intent.total > intent.candidates.length ? `还有 ${intent.total - intent.candidates.length} 个同类候选；提交后可以展开全部。` : '先选一个正式本科专业，再看它的读研方向。';
+  els.suggestions.innerHTML = `<div class="suggestion-context"><strong>你可能在找下面这些专业</strong><span>${escapeHtml(intent.explanation)} ${escapeHtml(more)}</span></div>${intent.candidates.map(suggestionItem).join('')}`;
 }
 
 function degreeItem(item, professional = false) {
@@ -124,15 +108,34 @@ function renderMajor(major) {
   els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function renderDisambiguation(intent, { expanded = false } = {}) {
+  const candidates = expanded ? intent.allCandidates : intent.candidates;
+  const countText = intent.total > candidates.length ? `先展示最接近的 ${candidates.length} 个，共 ${intent.total} 个候选。` : `共 ${intent.total} 个候选。`;
+  els.result.innerHTML = `<section class="result-shell disambiguation-shell" data-disambiguation-query="${escapeHtml(intent.query)}">
+    <header class="result-head"><div><p class="eyebrow">先确认你说的是哪个正式专业</p><h2>你说的“${escapeHtml(intent.query)}”，可能是这些</h2></div>${intent.label ? `<span class="code-badge">${escapeHtml(intent.label)}</span>` : ''}</header>
+    <section class="answer-first"><strong>为什么不直接替你选一个</strong><p>${escapeHtml(intent.explanation)}</p></section>
+    <p class="disambiguation-count">${escapeHtml(countText)}</p>
+    <div class="disambiguation-grid">${candidates.map(item => `<button type="button" class="disambiguation-card" data-major-code="${escapeHtml(item.code)}"><span class="disambiguation-name">${escapeHtml(item.name)}</span><span class="disambiguation-meta">${escapeHtml(item.code)} · ${escapeHtml(item.majorClass)}</span></button>`).join('')}</div>
+    ${!expanded && intent.total > candidates.length ? `<div class="load-more-wrap"><button type="button" class="load-more" data-expand-disambiguation="${escapeHtml(intent.query)}">展开全部 ${intent.total} 个</button></div>` : ''}
+    <div class="relation-note"><strong>这里做的是语义消歧：</strong>家长简称、专业类简称和关键词只用来找候选，不会静默改成某一个正式本科专业。你点中具体专业后，页面才进入本科→研究生路径。</div>
+  </section>`;
+  els.suggestions.hidden = true;
+  els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function submitQuery(query) {
-  const major = findMajor(query);
-  if (!major) {
-    els.result.innerHTML = '<section class="result-shell"><div class="answer-first"><strong>没有匹配到规范本科专业</strong><p>请尝试输入教育部本科专业全名或六位本科专业代码。专业类名称与学校自设方向不会被强行当成一个本科专业。</p></div></section>';
+  const intent = SEARCH.resolve(query, { limit: 8 });
+  if (intent.kind === 'direct') {
+    els.input.value = intent.major.name;
+    els.suggestions.hidden = true;
+    renderMajor(intent.major);
     return;
   }
-  els.input.value = major.name;
-  els.suggestions.hidden = true;
-  renderMajor(major);
+  if (intent.kind === 'ambiguous') {
+    renderDisambiguation(intent);
+    return;
+  }
+  els.result.innerHTML = '<section class="result-shell"><div class="answer-first"><strong>没有匹配到规范本科专业</strong><p>请尝试输入教育部本科专业全名、六位本科专业代码，或家长常用简称。模糊说法只会进入候选消歧，不会被强行当成一个具体专业。</p></div></section>';
 }
 
 function renderBrowse() {
@@ -172,13 +175,9 @@ function renderBrowse() {
 els.input.addEventListener('input', () => renderSuggestions(els.input.value));
 els.input.addEventListener('keydown', event => {
   if (event.key === 'Escape') els.suggestions.hidden = true;
-  if (event.key === 'Enter' && !els.suggestions.hidden) {
-    const first = els.suggestions.querySelector('[data-major-code]');
-    if (first) {
-      event.preventDefault();
-      const major = MAJOR_CATALOG_2026.find(item => item.code === first.dataset.majorCode);
-      if (major) { els.input.value = major.name; els.suggestions.hidden = true; renderMajor(major); }
-    }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    submitQuery(els.input.value);
   }
 });
 els.suggestions.addEventListener('click', event => {
@@ -186,6 +185,19 @@ els.suggestions.addEventListener('click', event => {
   if (!button) return;
   const major = MAJOR_CATALOG_2026.find(item => item.code === button.dataset.majorCode);
   if (major) { els.input.value = major.name; els.suggestions.hidden = true; renderMajor(major); }
+});
+els.result.addEventListener('click', event => {
+  const majorButton = event.target.closest('[data-major-code]');
+  if (majorButton) {
+    const major = MAJOR_CATALOG_2026.find(item => item.code === majorButton.dataset.majorCode);
+    if (major) { els.input.value = major.name; renderMajor(major); }
+    return;
+  }
+  const expand = event.target.closest('[data-expand-disambiguation]');
+  if (expand) {
+    const intent = SEARCH.resolve(expand.dataset.expandDisambiguation, { limit: 100 });
+    if (intent.kind === 'ambiguous') renderDisambiguation(intent, { expanded: true });
+  }
 });
 els.form.addEventListener('submit', event => { event.preventDefault(); submitQuery(els.input.value); });
 for (const button of document.querySelectorAll('[data-major-example]')) button.addEventListener('click', () => submitQuery(button.dataset.majorExample));
@@ -198,5 +210,6 @@ if (initial) submitQuery(initial);
 window.__MAJOR_PATH_META__ = Object.freeze({
   version: 'major-path-v0.01',
   undergraduateCount: MAJOR_CATALOG_2026.length,
-  relationVersion: UNDERGRAD_GRADUATE_PATHWAY_META.version
+  relationVersion: UNDERGRAD_GRADUATE_PATHWAY_META.version,
+  searchVersion: MAJOR_SEARCH_INTENT_META.version
 });
