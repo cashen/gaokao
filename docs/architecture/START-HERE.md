@@ -52,6 +52,7 @@ The 2026 admissions fact set remains deterministic. Runtime projections, bounded
 - `aiplus/index.html` — browser entrypoint.
 - `aiplus/app.v3990_1.js` — current browser orchestration entry module.
 - `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
+- `shared/ai/decision-focus.v006_1.js` — **AIPLuS 决策聚焦纯投影 owner**。它只把现有 workspace、确定性学校×专业记录和 typed claims 组织成 pair evidence matrix 与 decision gaps；不会联网、持久化、创建推荐分/录取概率或第二份 shortlist。详细边界见 `docs/architecture/AIPLUS-DECISION-FOCUS-STATUS.md`。
 - `aiplus/selection-workbench.v005.js` — **AIPLuS 自选/排序/诊断 UI 编排适配层**。它直接复用 `ln-rank` Selection Pool 和既有 `buildPathAnalysis()`，不会建立第二份自选、排序或招生事实；详细边界见 `docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md`。
 
 Models may interpret language and explain evidence; they do not own admissions scores, ranks, school/major facts, source scope, or a parallel admissions probability/recommendation-score model. `decision_research` is knowledge/reasoning only and must never commit the candidate active view.
@@ -61,6 +62,8 @@ Models may interpret language and explain evidence; they do not own admissions s
 The **visible AIPLuS product remains `v0.02`**. The stable browser advisor shell remains `ai-human-advisor-agent-v0.02`, the current browser core asset transaction remains `aiplus-assets-v002_4`, and the health API keeps its compatible `ai-health-api-v0.02` identity.
 
 Parent Decision Intelligence is a narrower server-side capability generation: `aiplus-parent-decision-v0.03`. It advances parent semantic framing, bounded evidence planning, typed claim provenance and official-web evidence orchestration without copying or renaming the stable browser runtime. `aiplus/index.html` exposes product/advisor/decision identities separately so a maintainer does not infer a full product/runtime generation change from the decision feature version.
+
+Decision Focus is a narrower additive decision projection/cache capability: `aiplus-decision-focus-v0.06`. It does not change the site release, browser workspace identity or AIPLuS visible product version. The current `focus=006_0` cache subtransaction advances only the affected AIPLuS app → render → Decision Book/Progress/Focus graph.
 
 The key semantic execution invariant is: **remembered context is not execution authority**. For example, a workspace may remember `568` while the parent asks only “沈工大电气和大连交通自动化怎么选，考虑就业和考研”; that turn may preserve 568 as context but must not execute admissions facts until the parent explicitly asks about score/位次/现实性. Conversely, “568分，……怎么选” activates the existing exact admissions owners. “先别管分数” suspends admissions both semantically and operationally.
 
@@ -120,6 +123,7 @@ This owns exact-main Cloudflare Git production verification. The Pages productio
 
 - `.github/workflows/verify-ai-workspace-v3990_1.yml` — existing product/browser/atomic-AI regression owner.
 - `.github/workflows/verify-aiplus-parent-decision-v003.yml` — narrow decision-semantic supplement. It must run the old regressions plus the v0.03 semantic/provenance invariants and exact-Preview journeys. Its Preview contract proves both sides of the score boundary: remembered score does not silently execute admissions; an explicit current score does execute the existing exact admissions bridge. It does not replace the existing AI workspace gate.
+- `.github/workflows/verify-aiplus-decision-focus-v006.yml` — additive Decision Focus gate. It verifies the single pure projection owner, typed evidence scope, next-best-question priority, progress blockers, canonical `decision_saved` persistence, PC/Pad/Android rendering, exact-head Preview and exact-main Production. It does not replace Family Decision or parent-decision gates.
 - `.github/workflows/verify-aiplus-selection-workbench-v005.yml` — additive AIPLuS selection workbench gate. It verifies reuse of the canonical Selection Pool, no second storage truth, PC/Pad/Android add/sort/diagnosis journeys, exact-head Preview and exact-main Production.
 
 ### Worker resource vNext

@@ -4,6 +4,16 @@ import { buildSearchIndex } from '../search-index-builder.js';
 import { mapStandardMajor } from '../standard-major-mapper.js';
 import { lookupLn2026PhysicsScore } from '../ln-2026-physics-score-rank.js';
 import {
+  getAdmissionSchoolDirectoryMeta,
+  resolveExactAdmissionSchool
+} from '../school-query-provider.v3969.js';
+import {
+  clearSchoolRuntimeProjectionCacheForTest,
+  loadSchoolRuntimeRecords,
+  SCHOOL_RUNTIME_PROJECTION_VERSION,
+  schoolRuntimeProjectionCacheState
+} from '../school-record-runtime-provider.vnext.js';
+import {
   canonicalBandOrder,
   resolveCanonicalPosition
 } from '../../../shared/algorithms/position/canonical-position.v3963_0.js';
@@ -21,11 +31,8 @@ export {
   AI_SCHOOL_HISTORY_MAX_RECORDS,
   AI_SCHOOL_HISTORY_QUERY_CONTRACT_VERSION
 };
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const INDEX_CACHE_MAX_ENTRIES = 1;
-const SHARD_CACHE_MAX_ENTRIES = 4;
-const indexCache = new Map();
-const shardCache = new Map();
+
+// Cache ownership is canonical in school-record-runtime-provider.vnext.js; its verified invariant remains SHARD_CACHE_MAX_ENTRIES = 4.
 
 function clean(value, max = 160) {
   return String(value == null ? '' : value).trim().slice(0, max);
@@ -36,15 +43,6 @@ function number(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function normalizeSchoolName(value) {
-  return clean(value, 160)
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[（【\[]/g, '(')
-    .replace(/[）】\]]/g, ')')
-    .replace(/[\s·•・,，。；;：:'"“”‘’!！?？_—-]+/g, '');
-}
-
 function normalizeMajorName(value) {
   return clean(value, 220).normalize('NFKC').toLowerCase().replace(/[\s·•・]+/g, '');
 }
@@ -53,80 +51,6 @@ function boundedInteger(value, fallback, min, max) {
   const parsed = Math.floor(Number(value));
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(min, Math.min(max, parsed));
-}
-
-async function fetchAssetJson(context, pathname) {
-  const url = new URL(pathname, context.request.url);
-  const request = new Request(url.toString(), { method: 'GET', headers: { accept: 'application/json' } });
-  const response = context.env?.ASSETS?.fetch
-    ? await context.env.ASSETS.fetch(request)
-    : await fetch(request);
-  if (!response.ok) throw new Error(`AIPLuS 学校历史事实资源读取失败：${pathname}（HTTP ${response.status}）`);
-  return response.json();
-}
-
-function cacheRead(map, key) {
-  const entry = map.get(key);
-  if (!entry) return null;
-  if (entry.expiresAt <= Date.now()) {
-    map.delete(key);
-    return null;
-  }
-  map.delete(key);
-  map.set(key, entry);
-  return entry.promise;
-}
-
-function cacheWrite(map, key, loader, maxEntries) {
-  const current = cacheRead(map, key);
-  if (current) return current;
-  let guarded;
-  guarded = Promise.resolve()
-    .then(loader)
-    .catch(error => {
-      if (map.get(key)?.promise === guarded) map.delete(key);
-      throw error;
-    });
-  map.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, promise: guarded });
-  while (map.size > maxEntries) map.delete(map.keys().next().value);
-  return guarded;
-}
-
-function loadSchoolIndex(context) {
-  const key = `${new URL(context.request.url).origin}${AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH}`;
-  return cacheWrite(indexCache, key, () => fetchAssetJson(context, AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH), INDEX_CACHE_MAX_ENTRIES);
-}
-
-function loadSchoolShard(context, chunk) {
-  if (!/^school-\d{2}\.json$/.test(chunk)) throw new Error('AIPLuS 学校历史事实分片标识无效。');
-  const pathname = `${AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX}${chunk}`;
-  const key = `${new URL(context.request.url).origin}${pathname}`;
-  return cacheWrite(shardCache, key, () => fetchAssetJson(context, pathname), SHARD_CACHE_MAX_ENTRIES);
-}
-
-function findExactSchool(index, school) {
-  const needle = normalizeSchoolName(school);
-  if (!needle) return null;
-  for (const item of Object.values(index?.schools || {})) {
-    if (normalizeSchoolName(item?.name) === needle) return item;
-  }
-  return null;
-}
-
-function flattenSchoolRecords(shard, schoolInfo) {
-  const school = shard?.schools?.[schoolInfo.key];
-  if (!school) return [];
-  const records = [];
-  const seen = new Set();
-  for (const relation of school.relations || []) {
-    for (const raw of relation.records2026 || []) {
-      const id = clean(raw?.uid, 220) || `${raw?.schoolCode || ''}|${raw?.majorCode || ''}|${raw?.score || ''}|${raw?.rank || ''}`;
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-      records.push(raw);
-    }
-  }
-  return records;
 }
 
 function projectFields(raw = {}) {
@@ -276,9 +200,8 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
     : (candidateScore === null ? 'score-desc' : 'position-near');
   const offset = boundedInteger(options.offset, 0, 0, 10000);
   const limit = boundedInteger(options.limit, AI_SCHOOL_HISTORY_MAX_RECORDS, 20, AI_SCHOOL_HISTORY_MAX_RECORDS);
-  const index = await loadSchoolIndex(context);
-  const schoolInfo = findExactSchool(index, schoolInput);
-  if (!schoolInfo) {
+  const selection = await resolveExactAdmissionSchool(context, schoolInput);
+  if (!selection) {
     return {
       ok: false,
       code: 'school_not_available',
@@ -286,8 +209,26 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       status: 404
     };
   }
-  const shard = await loadSchoolShard(context, clean(schoolInfo.chunk, 40));
-  const rawRecords = flattenSchoolRecords(shard, schoolInfo);
+  const exactSchoolNames2026 = [...new Set([
+    ...(Array.isArray(selection.admissionNames) ? selection.admissionNames : []),
+    selection.admissionName,
+    selection.officialName
+  ].map(value => clean(value, 160)).filter(Boolean))];
+  const [runtime, directoryMeta] = await Promise.all([
+    loadSchoolRuntimeRecords(context, { schoolNames: exactSchoolNames2026 }),
+    getAdmissionSchoolDirectoryMeta(context)
+  ]);
+  const schoolInfo = Array.isArray(runtime?.matchedSchools) ? runtime.matchedSchools[0] : null;
+  if (!schoolInfo || !Array.isArray(runtime.records) || !runtime.records.length) {
+    return {
+      ok: false,
+      code: 'school_not_available',
+      message: '已经识别到学校问题，但当前辽宁2026物理类投档学校目录没有这所学校的记录。',
+      status: 404
+    };
+  }
+  const index = runtime.manifest || {};
+  const rawRecords = runtime.records;
   const candidateRank = candidateRankForScore(candidateScore);
   const keywordQuery = buildKeywordQuery(majorKeyword);
   const matched = [];
@@ -311,6 +252,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
   const rankedAll = sortRecords(matched, sort);
   const records = rankedAll.slice(offset, offset + limit).map(outputRecord);
   const hasMore = offset + records.length < rankedAll.length;
+  const shardFiles = Array.isArray(runtime.shardFiles) ? runtime.shardFiles : [];
   return {
     ok: true,
     complete: !hasMore,
@@ -322,7 +264,7 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       rankYear: 2026,
       candidateScore,
       candidateReferenceRank2026: candidateRank,
-      school: schoolInfo.name,
+      school: selection.officialName || schoolInfo.name,
       schoolQuery: schoolInput,
       schoolRecordTotal: rawRecords.length,
       filteredTotal: rankedAll.length,
@@ -332,8 +274,8 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       keywordMode: 'any',
       keywordTerms: keywordQuery.rawKeywords,
       schoolQueryContractVersion: AI_SCHOOL_HISTORY_QUERY_CONTRACT_VERSION,
-      admissionDirectoryVersion: index.version || '',
-      admissionDirectorySourceHash: '',
+      admissionDirectoryVersion: directoryMeta.version || '',
+      admissionDirectorySourceHash: directoryMeta.sourceHash || '',
       pagination: {
         offset,
         limit,
@@ -350,11 +292,15 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
       dataYear: 2026,
       manifestVersion: index.version || '',
       totalRecords: AI_SCHOOL_HISTORY_SOURCE_TOTAL_RECORDS,
-      rawScanned: rawRecords.length,
+      rawScanned: Number(runtime.rawScanned || rawRecords.length),
       exactSchoolRecords: rawRecords.length,
       mode: 'ai-school-history-preaggregated-school-shard',
+      identityOwner: 'school-query-provider.v3969',
+      runtimeOwner: 'school-runtime-projection-vnext',
+      projectionVersion: runtime.projectionVersion || SCHOOL_RUNTIME_PROJECTION_VERSION,
       indexPath: AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH,
-      chunkPath: `${AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX}${schoolInfo.chunk}`,
+      chunkPath: shardFiles.length === 1 ? `${AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX}${shardFiles[0]}` : '',
+      shardCount: shardFiles.length,
       sourceVersion: AI_SCHOOL_HISTORY_FACT_SOURCE_VERSION,
       sameTruthSet: true
     }
@@ -362,17 +308,14 @@ export async function queryAiSchoolHistoryFact(context, options = {}) {
 }
 
 export function clearAiSchoolHistoryFactCacheForTest() {
-  indexCache.clear();
-  shardCache.clear();
+  clearSchoolRuntimeProjectionCacheForTest();
 }
 
 export function aiSchoolHistoryFactCacheState() {
+  const state = schoolRuntimeProjectionCacheState();
   return {
-    ttlMs: CACHE_TTL_MS,
-    indexEntries: indexCache.size,
-    indexMaxEntries: INDEX_CACHE_MAX_ENTRIES,
-    shardEntries: shardCache.size,
-    shardMaxEntries: SHARD_CACHE_MAX_ENTRIES,
-    bounded: indexCache.size <= INDEX_CACHE_MAX_ENTRIES && shardCache.size <= SHARD_CACHE_MAX_ENTRIES
+    ...state,
+    owner: 'school-runtime-projection-vnext',
+    sharedWithSchoolRuntime: true
   };
 }

@@ -47,11 +47,8 @@ jobs:
           grep -q "nativeChooserActivation: '/shared/ui/interaction/interaction-transaction.v3990_1.js'" shared/resources/release/site-runtime-contract.v3990_1.js
           if grep -E 'navigator\.userAgent|Alook|Aluc|MiuiBrowser|HuaweiBrowser' shared/ui/interaction/interaction-transaction.v3990_1.js; then exit 1; fi
 
-      - name: Install Chromium journey runner
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
 
       - name: Verify first-tap activation integrity and tail isolation
         run: |

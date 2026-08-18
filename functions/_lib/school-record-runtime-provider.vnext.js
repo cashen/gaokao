@@ -82,7 +82,7 @@ export async function loadSchoolRuntimeRecords(context, options = {}) {
     throw new Error('学校运行时投影覆盖合同异常');
   }
   const matches = Object.values(index?.schools || {}).filter(item => schoolNamesOf(item).some(name => needles.has(name)));
-  if (!matches.length) return { manifest: index, records: [], rawScanned: 0, shardFiles: [], modes: [], cacheStatus: 'miss', elapsedMs: Date.now() - started };
+  if (!matches.length) return { manifest: index, matchedSchools: [], records: [], rawScanned: 0, shardFiles: [], modes: [], cacheStatus: 'miss', elapsedMs: Date.now() - started };
   const shardFiles = [...new Set(matches.map(item => item.chunk).filter(Boolean))];
   if (shardFiles.length > 2) throw new Error(`学校运行时投影分片范围异常：${shardFiles.length}`);
   const shardByFile = new Map();
@@ -99,6 +99,7 @@ export async function loadSchoolRuntimeRecords(context, options = {}) {
   }
   return {
     manifest: index,
+    matchedSchools: matches,
     records,
     rawScanned: records.length,
     shardFiles,
@@ -163,6 +164,22 @@ export async function loadMajorRuntimeRecords(context, options = {}) {
     }
   }
   return { manifest:index, records, rawScanned:records.length, shardFiles, modes:['major-runtime-projection'], cacheStatus:'bounded-projection', elapsedMs:Date.now()-started, projectionVersion:MAJOR_RUNTIME_PROJECTION_VERSION };
+}
+
+export function clearSchoolRuntimeProjectionCacheForTest() {
+  indexCache.clear();
+  shardCache.clear();
+}
+
+export function schoolRuntimeProjectionCacheState() {
+  return Object.freeze({
+    ttlMs: CACHE_TTL_MS,
+    indexEntries: indexCache.size,
+    indexMaxEntries: INDEX_CACHE_MAX_ENTRIES,
+    shardEntries: shardCache.size,
+    shardMaxEntries: SHARD_CACHE_MAX_ENTRIES,
+    bounded: indexCache.size <= INDEX_CACHE_MAX_ENTRIES && shardCache.size <= SHARD_CACHE_MAX_ENTRIES
+  });
 }
 
 export function schoolRuntimeProjectionCachePolicy() {

@@ -13,6 +13,7 @@ on:
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'functions/_lib/major-filter.v3990_1.js'
+      - '.github/scripts/install-playwright-chromium.sh'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
       - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
@@ -34,6 +35,7 @@ on:
       - 'functions/api/ai/**'
       - 'functions/_lib/ai/**'
       - 'functions/_lib/major-filter.v3990_1.js'
+      - '.github/scripts/install-playwright-chromium.sh'
       - 'tools/verify-ai-workspace-v3990_1.mjs'
       - 'tools/verify-aiplus-school-official-v3990_2.mjs'
       - 'tools/verify-aiplus-school-official-cache-v3990_2.mjs'
@@ -91,6 +93,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          bash -n .github/scripts/install-playwright-chromium.sh
           grep -q "display: 'v3.9.90.1'" shared/resources/release/current-release.js
           grep -q "siteRuntimeGeneration: 'v3990_1'" shared/resources/release/current-release.js
           grep -q 'data-release="v3.9.90.1"' aiplus/index.html
@@ -168,7 +171,7 @@ jobs:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
-      - name: Resolve exact-SHA Cloudflare Check and branch Functions preview
+      - name: Resolve exact-SHA Cloudflare Check and coherent branch Functions preview
         id: resolve-preview
         env:
           GH_TOKEN: ${{ github.token }}
@@ -217,15 +220,15 @@ jobs:
           test -n "$immutable_preview"
           test -n "$branch_preview"
           if [ "$immutable_preview" = "$branch_preview" ]; then
-            echo 'Cloudflare branch preview was not resolved separately from immutable deployment URL.' >&2
+            echo 'Cloudflare branch Functions preview was not resolved separately from immutable static deployment.' >&2
             exit 3
           fi
           echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
-          echo "preview_base=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
           echo "branch_preview=$branch_preview" >> "$GITHUB_OUTPUT"
-          echo "Exact deployment: $immutable_preview"
-          echo "Functions branch preview: $branch_preview"
-      - name: Verify exact deployment and branch Functions preview
+          echo "Exact static deployment: $immutable_preview"
+          echo "Exact-head branch Functions preview: $branch_preview"
+      - name: Verify coherent exact deployment graph
         env:
           PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
           IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
@@ -292,23 +295,29 @@ jobs:
           ready=0
           for attempt in $(seq 1 60); do
             health="$(request_get branch-health "${BRANCH_PREVIEW}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}" || true)"
-            if grep -Fq "\"commitSha\":\"${EXPECTED_SHA}\"" <<<"$health" \
-              && grep -Fq '"apiVersion":"ai-health-api-v0.02"' <<<"$health" \
-              && grep -Fq '"semanticMode":"intent-task-spec-v0.02"' <<<"$health"; then
+            if jq -e --arg sha "$EXPECTED_SHA" '.ok == true and .deployment.commitSha == $sha and .apiVersion == "ai-health-api-v0.02" and .workspace.semanticMode == "intent-task-spec-v0.02"' >/dev/null <<<"$health"; then
               ready=1
               break
             fi
             sleep 5
           done
           if [ "$ready" -ne 1 ]; then
-            echo "Branch Preview never exposed exact head ${EXPECTED_SHA}. Immutable deployment was ${IMMUTABLE_PREVIEW}." >&2
+            echo "Branch Functions Preview never exposed exact head ${EXPECTED_SHA}. Immutable static deployment was ${IMMUTABLE_PREVIEW}." >&2
             exit 4
           fi
 
-          health="$(request_get immutable-health "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-immutable")"
-          require_text immutable-health "\"commitSha\":\"${EXPECTED_SHA}\"" "$health"
-          require_text immutable-health '"apiVersion":"ai-health-api-v0.02"' "$health"
-          require_text immutable-health '"semanticMode":"intent-task-spec-v0.02"' "$health"
+          immutable_page="$(request_get immutable-aiplus-page "${IMMUTABLE_PREVIEW}/aiplus/?candidate=${EXPECTED_SHA}-static")"
+          require_text immutable-aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$immutable_page"
+          require_text immutable-aiplus-page 'data-site-runtime-generation="v3990_1"' "$immutable_page"
+          require_text immutable-aiplus-page 'data-ai-plus="family-advisor"' "$immutable_page"
+          immutable_index="$(request_get immutable-school-index "${IMMUTABLE_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-static")"
+          branch_index="$(request_get branch-school-index "${BRANCH_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-branch")"
+          immutable_index_hash="$(printf '%s' "$immutable_index" | sha256sum | awk '{print $1}')"
+          branch_index_hash="$(printf '%s' "$branch_index" | sha256sum | awk '{print $1}')"
+          if [ "$immutable_index_hash" != "$branch_index_hash" ]; then
+            echo "Branch static asset graph differs from exact immutable deployment: ${branch_index_hash} != ${immutable_index_hash}" >&2
+            exit 5
+          fi
 
           page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
           require_text aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$page"
@@ -321,7 +330,7 @@ jobs:
             echo "Legacy /ai/ must redirect to /aiplus/: HTTP ${legacy_status}, location=${legacy_location}" >&2
             cat "$legacy_headers" >&2 || true
             rm -f "$legacy_headers"
-            exit 5
+            exit 6
           fi
           rm -f "$legacy_headers"
 
@@ -343,7 +352,9 @@ jobs:
           industrial_history="$(request_get school-history-industrial "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-industrial '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and .meta.filteredTotal == 65 and (.records | length) == 65 and .source.mode == "ai-school-history-preaggregated-school-shard" and .source.sameTruthSet == true' "$industrial_history"
 
-          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A9%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          aviation_school="$(jq -rn --arg value '沈阳航空航天大学' '$value|@uri')"
+          mechanical_keyword="$(jq -rn --arg value '机械' '$value|@uri')"
+          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=${aviation_school}&majorKeyword=${mechanical_keyword}&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-aviation-mechanical '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8 and ([.records[].major] | all(length > 0))' "$aviation_mechanical"
 
           largest_history="$(request_get school-history-largest "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
@@ -384,11 +395,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install Chromium journey runner
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
       - name: Verify PC Pad Android human semantic journeys
         env:
           AI_PREVIEW_BASE: ${{ needs.preview-smoke.outputs.preview_base }}
