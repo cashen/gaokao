@@ -41,7 +41,9 @@ try {
     );
 
     const state = await page.evaluate(() => {
+      const majorPathEntry = document.querySelector('[data-home-major-path-entry]');
       const industryEntry = document.querySelector('[data-home-industry-map-entry]');
+      const supportLinks = [...document.querySelectorAll('.grid .link')];
       return {
         bodyRelease: document.body.dataset.release,
         htmlRelease: document.documentElement.dataset.release,
@@ -55,9 +57,15 @@ try {
         title: document.getElementById('homeTitle')?.textContent?.trim(),
         action: document.querySelector('#homePrimaryAction span')?.textContent?.trim(),
         actionHref: document.getElementById('homePrimaryAction')?.getAttribute('href'),
+        majorPathEntryCount: document.querySelectorAll('[data-home-major-path-entry]').length,
+        majorPathTitle: majorPathEntry?.querySelector('strong')?.textContent?.trim(),
+        majorPathHref: majorPathEntry?.getAttribute('href'),
+        majorPathOrder: supportLinks.indexOf(majorPathEntry),
+        scoreOrder: supportLinks.indexOf(document.querySelector('[data-score-equivalence-entry="home"]')),
         industryEntryCount: document.querySelectorAll('[data-home-industry-map-entry]').length,
         industryTitle: industryEntry?.querySelector('strong')?.textContent?.trim(),
         industryHref: industryEntry?.getAttribute('href'),
+        industryOrder: supportLinks.indexOf(industryEntry),
         countdown: Number(document.getElementById('d2027')?.textContent || NaN),
         scrollWidth: document.documentElement.scrollWidth,
         clientWidth: document.documentElement.clientWidth
@@ -85,6 +93,12 @@ try {
     assert.match(state.title || '', /家庭方案/);
     assert.equal(state.action, '继续检查家庭方案');
     assert.equal(state.actionHref, '/ln-rank/selection-pool.html#family-review');
+    assert.equal(state.majorPathEntryCount, 1, `${device.name}: one major path entry`);
+    assert.equal(state.majorPathTitle, '专业升学地图', `${device.name}: major path title`);
+    assert.equal(state.majorPathHref, '/major-path/', `${device.name}: major path route`);
+    assert.equal(state.majorPathOrder, 1, `${device.name}: major path follows primary major selection`);
+    assert.equal(state.scoreOrder, 2, `${device.name}: score history follows major path`);
+    assert.ok(state.industryOrder > state.scoreOrder, `${device.name}: industry map follows core professional understanding links`);
     assert.equal(state.industryEntryCount, 1, `${device.name}: one industry map entry`);
     assert.equal(state.industryTitle, '全国上市公司产业落地图', `${device.name}: industry map title`);
     assert.equal(state.industryHref, '/Public_company/', `${device.name}: industry map route`);
@@ -94,7 +108,16 @@ try {
 
     const screenshot = path.join(artifactDir, `${device.name}.png`);
     await page.screenshot({ path: screenshot, fullPage: true });
-    results.push({ device: device.name, ...state, screenshot });
+
+    await Promise.all([
+      page.waitForURL(url => url.pathname === '/major-path/' || url.pathname === '/major-path/index.html'),
+      page.locator('[data-home-major-path-entry]').click()
+    ]);
+    await page.waitForSelector('[data-major-path-version="major-path-v0.01"]');
+    assert.match(await page.title(), /专业升学地图/, `${device.name}: destination title`);
+    assert.equal(errors.length, 0, `${device.name}: destination ${errors.join(' | ')}`);
+
+    results.push({ device: device.name, ...state, screenshot, majorPathDestination: new URL(page.url()).pathname });
     await context.close();
   }
 } finally {
@@ -110,4 +133,3 @@ console.log(JSON.stringify({
   stableCss: ['family-shell.v3972_5.css', 'family-plan-entry.v3972_5.css'],
   devices: results
 }, null, 2));
-
