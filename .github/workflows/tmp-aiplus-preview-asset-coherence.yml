@@ -1,4 +1,4 @@
-name: TEMP AIPLuS preview asset coherence diagnostic
+name: TEMP finalize AIPLuS decision focus candidate
 
 on:
   pull_request:
@@ -8,123 +8,163 @@ on:
       - '.github/workflows/tmp-aiplus-preview-asset-coherence.yml'
 
 permissions:
-  contents: read
-  checks: read
-  issues: read
+  contents: write
 
 jobs:
-  diagnose:
+  finalize:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      GH_REPOSITORY: ${{ github.repository }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Resolve Cloudflare deployment URLs
-        id: cf
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply bounded ownership fixes
         shell: bash
         run: |
           set -euo pipefail
-          immutable=''
-          branch=''
-          short_sha="${EXPECTED_SHA:0:7}"
-          for attempt in $(seq 1 80); do
-            checks="$(curl -fsSL --max-time 20 \
-              -H 'Accept: application/vnd.github+json' \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H 'X-GitHub-Api-Version: 2022-11-28' \
-              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
-            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
-            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
-            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
-              echo "Cloudflare Pages failed for ${EXPECTED_SHA}" >&2
-              exit 2
-            fi
-            if [ "$conclusion" = success ]; then
-              mapfile -t urls < <(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | awk '!seen[$0]++')
-              immutable="${urls[0]:-}"
-              branch="${urls[1]:-}"
-              if [ -z "$branch" ] || [ "$branch" = "$immutable" ]; then
-                comments="$(curl -fsSL --max-time 20 \
-                  -H 'Accept: application/vnd.github+json' \
-                  -H "Authorization: Bearer ${GH_TOKEN}" \
-                  -H 'X-GitHub-Api-Version: 2022-11-28' \
-                  "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
-                body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
-                if grep -q "$short_sha" <<<"$body"; then
-                  branch="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | tail -n1 || true)"
-                fi
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly one match, got {count}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'shared/ai/decision-progress.v003.js',
+              "tradeoffState=tradeoffBlockers.length&&!tradeoffConfirmed?'exploring':tradeoffBase",
+              "tradeoffState=tradeoffBlockers.length?'exploring':tradeoffBase"
+          )
+
+          marker = "// Hard family conflicts outrank research, but the projection never removes the option itself.\n"
+          regression = """// A previously confirmed family tradeoff must reopen when a new decision-changing blocker appears.\nlet confirmedTradeoffWorkspace=baseWorkspace();\nconfirmedTradeoffWorkspace=applyAiWorkspaceEvent(confirmedTradeoffWorkspace,{type:'decision_saved',payload:{kind:'family_tradeoff',status:'keep',subject:{label:'家庭取舍'},reason:'家庭已经确认过上一轮取舍'}});\nconst confirmedTradeoffProgress=deriveDecisionProgress(confirmedTradeoffWorkspace),confirmedTradeoffStage=confirmedTradeoffProgress.stages.find(item=>item.key==='family_tradeoff');\nok(confirmedTradeoffStage.blockers.some(item=>item.dimension==='study_duration'),'new study-duration blocker remains visible after an earlier family-tradeoff confirmation');\neq(confirmedTradeoffStage.state,'exploring','a new decision-changing blocker must reopen a previously confirmed family-tradeoff stage');\n\n"""
+          replace_once('tools/verify-aiplus-decision-focus-v006.mjs', marker, regression + marker)
+
+          workflow = Path('.github/workflows/verify-ai-workspace-v3990_1.yml')
+          text = workflow.read_text()
+          old = """      - name: Resolve exact-SHA Cloudflare deployment
+"""
+          new = """      - name: Resolve exact-SHA Cloudflare Check and coherent branch Functions preview
+"""
+          if text.count(old) != 1: raise SystemExit('preview step name drifted')
+          text = text.replace(old, new, 1)
+
+          old = """              if [ -n \"$immutable_preview\" ]; then
+                break
               fi
-              [ -n "$immutable" ] && break
             fi
-            sleep 6
+            sleep 8
           done
-          test -n "$immutable"
-          echo "immutable=$immutable" >> "$GITHUB_OUTPUT"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "Exact deployment: $immutable"
-          echo "Branch alias: ${branch:-unresolved}"
-      - name: Compare repository, public asset, and Functions asset view
-        env:
-          IMMUTABLE: ${{ steps.cf.outputs.immutable }}
-          BRANCH: ${{ steps.cf.outputs.branch }}
+          test -n \"$immutable_preview\"
+          echo \"immutable_preview=$immutable_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"preview_base=$immutable_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"branch_preview=$branch_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"Exact deployment: $immutable_preview\"
+          if [ -n \"$branch_preview\" ]; then echo \"Branch alias (diagnostic only): $branch_preview\"; fi
+"""
+          new = """              if [ -n \"$immutable_preview\" ] && [ -n \"$branch_preview\" ]; then
+                break
+              fi
+            fi
+            sleep 8
+          done
+          test -n \"$immutable_preview\"
+          test -n \"$branch_preview\"
+          if [ \"$immutable_preview\" = \"$branch_preview\" ]; then
+            echo 'Cloudflare branch Functions preview was not resolved separately from immutable static deployment.' >&2
+            exit 3
+          fi
+          echo \"immutable_preview=$immutable_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"preview_base=$branch_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"branch_preview=$branch_preview\" >> \"$GITHUB_OUTPUT\"
+          echo \"Exact static deployment: $immutable_preview\"
+          echo \"Exact-head branch Functions preview: $branch_preview\"
+"""
+          if text.count(old) != 1: raise SystemExit('preview resolution block drifted')
+          text = text.replace(old, new, 1)
+
+          old = """        env:
+          PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
+        shell: bash
+"""
+          new = """        env:
+          PREVIEW_BASE: ${{ steps.resolve-preview.outputs.preview_base }}
+          IMMUTABLE_PREVIEW: ${{ steps.resolve-preview.outputs.immutable_preview }}
+          BRANCH_PREVIEW: ${{ steps.resolve-preview.outputs.branch_preview }}
+        shell: bash
+"""
+          if text.count(old) != 1: raise SystemExit('preview env block drifted')
+          text = text.replace(old, new, 1)
+
+          old = """          health=\"$(request_get immutable-health \"${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-immutable\")\"
+          require_text immutable-health \"\\\"commitSha\\\":\\\"${EXPECTED_SHA}\\\"\" \"$health\"
+          require_text immutable-health '\"apiVersion\":\"ai-health-api-v0.02\"' \"$health\"
+          require_text immutable-health '\"semanticMode\":\"intent-task-spec-v0.02\"' \"$health\"
+
+          page=\"$(request_get aiplus-page \"${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}\")\"
+"""
+          new = """          health=''
+          ready=0
+          for attempt in $(seq 1 60); do
+            health=\"$(request_get branch-health \"${BRANCH_PREVIEW}/api/ai/health?candidate=${EXPECTED_SHA}-${attempt}\" || true)\"
+            if jq -e --arg sha \"$EXPECTED_SHA\" '.ok == true and .deployment.commitSha == $sha and .apiVersion == \"ai-health-api-v0.02\" and .workspace.semanticMode == \"intent-task-spec-v0.02\"' >/dev/null <<<\"$health\"; then
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          if [ \"$ready\" -ne 1 ]; then
+            echo \"Branch Functions Preview never exposed exact head ${EXPECTED_SHA}. Immutable static deployment was ${IMMUTABLE_PREVIEW}.\" >&2
+            exit 4
+          fi
+
+          immutable_page=\"$(request_get immutable-aiplus-page \"${IMMUTABLE_PREVIEW}/aiplus/?candidate=${EXPECTED_SHA}-static\")\"
+          require_text immutable-aiplus-page 'data-ai-workspace=\"ai-workspace-v3992_1\"' \"$immutable_page\"
+          require_text immutable-aiplus-page 'data-site-runtime-generation=\"v3990_1\"' \"$immutable_page\"
+          require_text immutable-aiplus-page 'data-ai-plus=\"family-advisor\"' \"$immutable_page\"
+          immutable_index=\"$(request_get immutable-school-index \"${IMMUTABLE_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-static\")\"
+          branch_index=\"$(request_get branch-school-index \"${BRANCH_PREVIEW}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}-branch\")\"
+          immutable_index_hash=\"$(printf '%s' \"$immutable_index\" | sha256sum | awk '{print $1}')\"
+          branch_index_hash=\"$(printf '%s' \"$branch_index\" | sha256sum | awk '{print $1}')\"
+          if [ \"$immutable_index_hash\" != \"$branch_index_hash\" ]; then
+            echo \"Branch static asset graph differs from exact immutable deployment: ${branch_index_hash} != ${immutable_index_hash}\" >&2
+            exit 5
+          fi
+
+          page=\"$(request_get aiplus-page \"${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}\")\"
+"""
+          if text.count(old) != 1: raise SystemExit('immutable health block drifted')
+          text = text.replace(old, new, 1)
+          workflow.write_text(text)
+          PY
+
+          node --check shared/ai/decision-progress.v003.js
+          node --check tools/verify-aiplus-decision-focus-v006.mjs
+          node tools/verify-aiplus-decision-focus-v006.mjs
+          grep -Fq 'preview_base=$branch_preview' .github/workflows/verify-ai-workspace-v3990_1.yml
+          grep -Fq '.deployment.commitSha == $sha' .github/workflows/verify-ai-workspace-v3990_1.yml
+          git rm .github/workflows/tmp-aiplus-preview-asset-coherence.yml
+      - name: Commit final candidate atomically
         shell: bash
         run: |
           set -euo pipefail
-          repo='data/zy2026/school-index.json'
-          repo_hash="$(sha256sum "$repo" | awk '{print $1}')"
-          repo_count="$(jq '.schools | length' "$repo")"
-          repo_aviation="$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' "$repo")"
-          echo "repo hash=$repo_hash schools=$repo_count aviation=$repo_aviation"
-          test "$repo_aviation" = 1
-
-          public_status="$(curl --silent --show-error --location --max-time 40 \
-            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-            -o /tmp/immutable-index.json -w '%{http_code}' \
-            "${IMMUTABLE}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}" || true)"
-          echo "immutable public index HTTP $public_status"
-          if [ "$public_status" = 200 ]; then
-            public_hash="$(sha256sum /tmp/immutable-index.json | awk '{print $1}')"
-            public_count="$(jq '.schools | length' /tmp/immutable-index.json 2>/dev/null || echo invalid)"
-            public_aviation="$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' /tmp/immutable-index.json 2>/dev/null || echo invalid)"
-            echo "immutable public hash=$public_hash schools=$public_count aviation=$public_aviation"
-          else
-            public_hash=''
-            public_count=''
-            public_aviation=''
-            head -c 800 /tmp/immutable-index.json || true
-            echo
-          fi
-
-          health="$(curl -fsSL --max-time 30 -H 'Cache-Control: no-cache' "${IMMUTABLE}/api/ai/health?candidate=${EXPECTED_SHA}-diag")"
-          echo "immutable health commit=$(jq -r '.commitSha // empty' <<<"$health")"
-
-          api_body=/tmp/immutable-history.json
-          api_status="$(curl --silent --show-error --location --max-time 40 \
-            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
-            -o "$api_body" -w '%{http_code}' \
-            "${IMMUTABLE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}" || true)"
-          echo "immutable history HTTP $api_status body=$(head -c 500 "$api_body" | tr '\n' ' ')"
-
-          if [ -n "$BRANCH" ] && [ "$BRANCH" != "$IMMUTABLE" ]; then
-            branch_health_status="$(curl --silent --show-error --location --max-time 30 -o /tmp/branch-health.json -w '%{http_code}' "${BRANCH}/api/ai/health?candidate=${EXPECTED_SHA}-diag" || true)"
-            echo "branch health HTTP $branch_health_status commit=$(jq -r '.commitSha // empty' /tmp/branch-health.json 2>/dev/null || true)"
-            branch_index_status="$(curl --silent --show-error --location --max-time 40 -o /tmp/branch-index.json -w '%{http_code}' "${BRANCH}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}" || true)"
-            if [ "$branch_index_status" = 200 ]; then
-              echo "branch public hash=$(sha256sum /tmp/branch-index.json | awk '{print $1}') schools=$(jq '.schools | length' /tmp/branch-index.json) aviation=$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' /tmp/branch-index.json)"
-            else
-              echo "branch public index HTTP $branch_index_status"
-            fi
-          fi
-
-          test "$public_status" = 200
-          test "$public_hash" = "$repo_hash"
-          test "$public_count" = "$repo_count"
-          test "$public_aviation" = 1
-          test "$(jq -r '.commitSha // empty' <<<"$health")" = "$EXPECTED_SHA"
-          test "$api_status" = 200
-          jq -e '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8' "$api_body" >/dev/null
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git diff --check
+          git status --short
+          git add shared/ai/decision-progress.v003.js tools/verify-aiplus-decision-focus-v006.mjs .github/workflows/verify-ai-workspace-v3990_1.yml
+          git diff --cached --name-only | grep -Fx 'shared/ai/decision-progress.v003.js'
+          git diff --cached --name-only | grep -Fx 'tools/verify-aiplus-decision-focus-v006.mjs'
+          git diff --cached --name-only | grep -Fx '.github/workflows/verify-ai-workspace-v3990_1.yml'
+          git diff --cached --name-only | grep -Fx '.github/workflows/tmp-aiplus-preview-asset-coherence.yml'
+          git commit -m 'fix(aiplus): restore coherent preview ownership'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
