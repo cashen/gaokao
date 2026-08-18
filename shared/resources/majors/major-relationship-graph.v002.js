@@ -3,6 +3,7 @@ import { buildUndergradGraduatePathway } from './undergrad-graduate-pathway.v001
 export const MAJOR_RELATIONSHIP_GRAPH_META = Object.freeze({
   version: 'major-relationship-graph-v002',
   policy: 'derive-from-canonical-undergraduate-hierarchy-and-existing-graduate-navigation',
+  identityPolicy: 'undergraduate-discipline-and-major-class-identity-use-catalog-code-not-display-label',
   undergraduateBoundary: '本科关系只从教育部2026本科专业目录中的门类、专业类和具体专业层级推导，不复制第二份专业目录。',
   graduateBoundary: '研究生国家目录统一到学科门类、一级学科和专业学位类别；二级学科与专业领域由学位授予单位按有关规定在授权权限内自主设置与调整，因此本资源不得伪造全国统一二级学科树。',
   neighborBoundary: '相邻选择只表示同专业类或共享当前已验证的研究生升学导航方向，不代表课程相同、培养方案等价、就业等价或可无条件互相替代。'
@@ -28,6 +29,14 @@ function disciplineCode(major = {}) {
   if (explicit) return explicit;
   const raw = digits(major.code);
   return raw.length >= 2 ? raw.slice(0, 2) : '';
+}
+
+function classIdentity(major = {}) {
+  return classCode(major) || `name:${clean(major.majorClass || major.categoryName)}`;
+}
+
+function disciplineIdentity(major = {}) {
+  return disciplineCode(major) || `name:${clean(major.discipline)}`;
 }
 
 function routeRecords(pathway = {}) {
@@ -84,11 +93,15 @@ export function createMajorRelationshipGraphResolver(rows = []) {
   const byCode = new Map(majors.map(item => [item.code, item]));
   const byClass = new Map();
   const byDiscipline = new Map();
+  const classCodeByName = new Map();
   for (const major of majors) {
-    if (!byClass.has(major.majorClass)) byClass.set(major.majorClass, []);
-    byClass.get(major.majorClass).push(major);
-    if (!byDiscipline.has(major.discipline)) byDiscipline.set(major.discipline, []);
-    byDiscipline.get(major.discipline).push(major);
+    const classKey = classIdentity(major);
+    const disciplineKey = disciplineIdentity(major);
+    if (!byClass.has(classKey)) byClass.set(classKey, []);
+    byClass.get(classKey).push(major);
+    if (!byDiscipline.has(disciplineKey)) byDiscipline.set(disciplineKey, []);
+    byDiscipline.get(disciplineKey).push(major);
+    if (major.majorClass && !classCodeByName.has(major.majorClass)) classCodeByName.set(major.majorClass, classKey);
   }
   for (const [key, items] of byClass) byClass.set(key, sortMajors(items));
   for (const [key, items] of byDiscipline) byDiscipline.set(key, sortMajors(items));
@@ -115,14 +128,14 @@ export function createMajorRelationshipGraphResolver(rows = []) {
     const a = resolveMajor(source);
     const b = resolveMajor(target);
     if (!a || !b || a.code === b.code) return null;
-    const sameClass = a.majorClass === b.majorClass;
+    const sameClass = classIdentity(a) === classIdentity(b);
     const shared = sharedRoutes(pathwayByCode.get(a.code), pathwayByCode.get(b.code));
     if (!sameClass && sharedCount(shared) === 0) return null;
     return Object.freeze({
       source: a,
       target: b,
       sameClass,
-      sameDiscipline: a.discipline === b.discipline,
+      sameDiscipline: disciplineIdentity(a) === disciplineIdentity(b),
       shared,
       sharedRouteCount: sharedCount(shared),
       relationTypes: Object.freeze([
@@ -139,7 +152,7 @@ export function createMajorRelationshipGraphResolver(rows = []) {
     const major = resolveMajor(input);
     if (!major) return null;
     const pathway = pathwayByCode.get(major.code);
-    const siblings = (byClass.get(major.majorClass) || []).filter(item => item.code !== major.code);
+    const siblings = (byClass.get(classIdentity(major)) || []).filter(item => item.code !== major.code);
     const siblingRelations = siblings.map(item => relationship(major, item)).filter(Boolean);
 
     const candidateCodes = new Set();
@@ -171,9 +184,10 @@ export function createMajorRelationshipGraphResolver(rows = []) {
     });
   }
 
-  function buildClassGraph(className = '') {
-    const name = clean(className);
-    const items = byClass.get(name) || [];
+  function buildClassGraph(classNameOrCode = '') {
+    const raw = clean(classNameOrCode);
+    const classKey = byClass.has(raw) ? raw : classCodeByName.get(raw);
+    const items = classKey ? (byClass.get(classKey) || []) : [];
     if (!items.length) return null;
     const first = items[0];
     const routeMap = new Map();
@@ -188,7 +202,7 @@ export function createMajorRelationshipGraphResolver(rows = []) {
     return Object.freeze({
       version: MAJOR_RELATIONSHIP_GRAPH_META.version,
       discipline: Object.freeze({ code: first.disciplineCode, name: first.discipline }),
-      majorClass: Object.freeze({ code: first.majorClassCode, name }),
+      majorClass: Object.freeze({ code: first.majorClassCode, name: first.majorClass }),
       majors: Object.freeze(items),
       commonGraduateRoutes: Object.freeze(routes.map(item => Object.freeze({ ...item, coverage: `${item.count}/${items.length}` }))),
       boundaries: MAJOR_RELATIONSHIP_GRAPH_META
@@ -199,7 +213,7 @@ export function createMajorRelationshipGraphResolver(rows = []) {
     const resolved = unique((candidates || []).map(item => clean(item?.code || item))).map(code => byCode.get(code)).filter(Boolean);
     const groups = new Map();
     for (const major of resolved) {
-      const key = `${major.discipline}|${major.majorClass}`;
+      const key = `${disciplineIdentity(major)}|${classIdentity(major)}`;
       if (!groups.has(key)) groups.set(key, { discipline: major.discipline, disciplineCode: major.disciplineCode, majorClass: major.majorClass, majorClassCode: major.majorClassCode, majors: [] });
       groups.get(key).majors.push(major);
     }
