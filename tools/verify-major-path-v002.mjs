@@ -155,7 +155,7 @@ assert(html.includes('/major-path/major-path-graph.v002.css?v=002_0'), 'v0.02 gr
 assert(!html.includes('/major-path/app.v001.js?v=001_0'), 'retired v0.01 app must not remain active');
 assert(app.includes('createMajorRelationshipGraphResolver'), 'page must use relationship graph owner');
 assert(app.includes('renderDirectorySvg') && app.includes('renderNeighborSvg') && app.includes('renderClassSvg') && app.includes('renderCandidateSvg'), 'all graph search perspectives must be implemented');
-assert(app.includes('研究生国家目录没有全国统一列出二级学科'), 'runtime must explain graduate second-level boundary in parent language');
+assert(app.includes('二级学科与专业领域由学位授予单位') && app.includes('自主设置与调整'), 'runtime must explain graduate second-level boundary in parent language');
 assert(app.includes('data-major-relationship-graph'), 'specific-major graph mount missing');
 assert(app.includes('data-class-relationship-graph'), 'major-class graph mount missing');
 assert(app.includes('graph-viewport'), 'graph viewport owner missing');
