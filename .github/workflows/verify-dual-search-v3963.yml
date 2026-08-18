@@ -37,6 +37,7 @@ jobs:
             if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-runtime-files.txt; then exit 1; fi
             git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
           fi
+          bash -n .github/scripts/install-playwright-chromium.sh
           grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
           grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
 
@@ -76,10 +77,8 @@ jobs:
           console.log('current v3990_1 and declared stable active resource split passed');
           NODE
 
-      - name: Install Chromium journey runner
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium journey runner
+        run: bash .github/scripts/install-playwright-chromium.sh
 
       - name: Verify no-obstruction family action geometry
         run: |
