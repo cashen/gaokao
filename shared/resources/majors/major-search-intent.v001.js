@@ -76,6 +76,11 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
     return majors.filter(item => key(item.name).includes(queryKey));
   }
 
+  function isStrongLexicalMatch(major, queryKey) {
+    const nameKey = key(major?.name);
+    return Boolean(queryKey && (nameKey.startsWith(queryKey) || nameKey.endsWith(queryKey)));
+  }
+
   function exactAliasEvidence(queryKey) {
     const rows = aliasByKey.get(queryKey) || [];
     const targetCodes = unique(rows.flatMap(item => item.targetCodes || []));
@@ -139,10 +144,12 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
 
     if (explicitAlias.majors.length === 1) {
       const target = explicitAlias.majors[0];
-      const officialCompetitors = officialNameMatches(queryKey).filter(item => item.code !== target.code);
-      if (officialCompetitors.length) {
-        const all = sortCandidates([target, ...officialCompetitors], queryKey, explicitAliasTargets);
-        return ambiguity(raw, 'broad_alias', '', `“${raw}”虽然是现有别名库中的常用说法，但当前本科目录还有其他正式专业名称也包含这个词。为避免把家长的模糊理解强行收窄，请先确认具体专业。`, all, limit);
+      const officialMatches = officialNameMatches(queryKey).filter(item => item.code !== target.code);
+      const targetUsesTermLexically = key(target.name).includes(queryKey);
+      const hasStrongOfficialCompetitor = officialMatches.some(item => isStrongLexicalMatch(item, queryKey));
+      if ((targetUsesTermLexically || hasStrongOfficialCompetitor) && officialMatches.length) {
+        const all = sortCandidates([target, ...officialMatches], queryKey, explicitAliasTargets);
+        return ambiguity(raw, 'broad_alias', '', `“${raw}”虽然是现有别名库中的常用说法，但当前本科目录还有其他正式专业名称也把它作为完整专业词使用。为避免把家长的模糊理解强行收窄，请先确认具体专业。`, all, limit);
       }
       return Object.freeze({
         kind: 'direct', query: raw, matchType: 'alias_exact', major: target,
