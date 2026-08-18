@@ -8,6 +8,7 @@ on:
       - 'major-path/**'
       - 'shared/resources/graduate/**'
       - 'shared/resources/majors/undergrad-graduate-pathway.v001.js'
+      - 'shared/resources/majors/major-search-intent.v001.js'
       - 'shared/resources/majors/major-catalog-contract.js'
       - 'ln-rank/kb/major-understanding/**'
       - 'ln-rank/js/knowledge/major-understanding-resolver.js'
@@ -22,6 +23,7 @@ on:
       - 'major-path/**'
       - 'shared/resources/graduate/**'
       - 'shared/resources/majors/undergrad-graduate-pathway.v001.js'
+      - 'shared/resources/majors/major-search-intent.v001.js'
       - 'shared/resources/majors/major-catalog-contract.js'
       - 'ln-rank/kb/major-understanding/**'
       - 'ln-rank/js/knowledge/major-understanding-resolver.js'
@@ -51,6 +53,7 @@ jobs:
           set -euo pipefail
           node --check shared/resources/graduate/graduate-catalog-2022.v001.js
           node --check shared/resources/majors/undergrad-graduate-pathway.v001.js
+          node --check shared/resources/majors/major-search-intent.v001.js
           node --check major-path/app.v001.js
           node --check tools/verify-major-path-v001.mjs
           node --check tools/browser-major-path-v001.mjs
@@ -58,6 +61,7 @@ jobs:
           test "$(find shared/resources/graduate -maxdepth 1 -type f -name 'graduate-catalog-2022*.js' | wc -l | tr -d ' ')" = "1"
           grep -q 'major-path-v0.01' major-path/index.html
           grep -q 'navigation-not-official-one-to-one-crosswalk' shared/resources/majors/undergrad-graduate-pathway.v001.js
+          grep -q 'exact-official-direct-vague-parent-language-disambiguate-before-selection' shared/resources/majors/major-search-intent.v001.js
           ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app.v001.js
       - name: Full undergraduate and graduate catalog audit
         run: node tools/verify-major-path-v001.mjs
@@ -132,8 +136,10 @@ jobs:
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v001.js?v=001_0" || true)"
+            search="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-search-intent.v001.js?v=001_0" || true)"
+            relation="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/undergrad-graduate-pathway.v001.js?v=001_0" || true)"
             catalog="$(curl -fsSL --max-time 20 "$BASE/shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'buildUndergradGraduatePathway' <<<"$app" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then exit 0; fi
+            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorSearchIntentResolver' <<<"$app" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then exit 0; fi
             sleep 8
           done
           echo "Major-path Preview asset graph never reached exact head $EXPECTED_SHA" >&2
@@ -148,7 +154,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       EXPECTED_SHA: ${{ github.sha }}
       MAJOR_PATH_LIVE_BASE: https://gaokao-4y9.pages.dev
@@ -171,9 +177,10 @@ jobs:
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$base/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
             app="$(curl -fsSL --max-time 20 "$base/major-path/app.v001.js?v=001_0" || true)"
+            search="$(curl -fsSL --max-time 20 "$base/shared/resources/majors/major-search-intent.v001.js?v=001_0" || true)"
             relation="$(curl -fsSL --max-time 20 "$base/shared/resources/majors/undergrad-graduate-pathway.v001.js?v=001_0" || true)"
             catalog="$(curl -fsSL --max-time 20 "$base/shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'buildUndergradGraduatePathway' <<<"$app" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then
+            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorSearchIntentResolver' <<<"$app" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then
               echo "Coherent major-path asset graph reached exact main $EXPECTED_SHA"
               exit 0
             fi
