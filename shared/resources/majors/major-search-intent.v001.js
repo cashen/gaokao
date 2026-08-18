@@ -12,8 +12,9 @@ function key(value = '') {
 
 function parentKey(value = '') {
   return key(value)
-    .replace(/^(想学|想读|学|读)/, '')
+    .replace(/^(我想了解|想了解|了解一下|介绍一下|介绍下|讲讲|说说|看看|想学|想读|学|读)/, '')
     .replace(/(这个)?(专业|方向|相关专业)$/, '')
+    .replace(/(怎么样|是干嘛的|干什么的|是啥|是什么|学什么|就业怎么样)$/, '')
     .trim();
 }
 
@@ -137,9 +138,12 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
 
     if (candidateCodes.length === 1) {
       const major = evidence.candidates[0];
+      const viaAlias = aliasMajors.length > 0;
       return Object.freeze({
-        kind: 'direct', query: raw, matchType: aliasMajors.length ? 'alias_exact' : 'keyword_single', major,
-        explanation: aliasMajors.length ? `“${raw}”是家长常用简称，这里按现有本科专业别名库识别为“${major.name}”。` : '',
+        kind: 'direct', query: raw, matchType: viaAlias ? 'alias_exact' : 'keyword_single', major,
+        explanation: viaAlias
+          ? `“${raw}”是家长常用简称，这里按现有本科专业别名库识别为“${major.name}”。`
+          : `“${raw}”不是完整的正式专业名；当前本科目录中只有“${major.name}”与这个关键词形成唯一明确候选，因此先按它展示。`,
         candidates: Object.freeze([major])
       });
     }
