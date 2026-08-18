@@ -1,0 +1,131 @@
+name: TEMP AIPLuS preview asset coherence diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+    paths:
+      - '.github/workflows/tmp-aiplus-preview-asset-coherence.yml'
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve Cloudflare deployment URLs
+        id: cf
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          immutable=''
+          branch=''
+          short_sha="${EXPECTED_SHA:0:7}"
+          for attempt in $(seq 1 80); do
+            checks="$(curl -fsSL --max-time 20 \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GH_REPOSITORY}/commits/${EXPECTED_SHA}/check-runs?per_page=100" || true)"
+            conclusion="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].conclusion // empty' <<<"$checks" 2>/dev/null || true)"
+            summary="$(jq -r '[.check_runs[]? | select(.name == "Cloudflare Pages")][0].output.summary // empty' <<<"$checks" 2>/dev/null || true)"
+            if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ]; then
+              echo "Cloudflare Pages failed for ${EXPECTED_SHA}" >&2
+              exit 2
+            fi
+            if [ "$conclusion" = success ]; then
+              mapfile -t urls < <(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$summary" | awk '!seen[$0]++')
+              immutable="${urls[0]:-}"
+              branch="${urls[1]:-}"
+              if [ -z "$branch" ] || [ "$branch" = "$immutable" ]; then
+                comments="$(curl -fsSL --max-time 20 \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "https://api.github.com/repos/${GH_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" || true)"
+                body="$(jq -r '[.[]? | select(.user.login == "cloudflare-workers-and-pages[bot]")][-1].body // empty' <<<"$comments" 2>/dev/null || true)"
+                if grep -q "$short_sha" <<<"$body"; then
+                  branch="$(grep -Eo 'https://[A-Za-z0-9-]+\.gaokao-4y9\.pages\.dev' <<<"$body" | tail -n1 || true)"
+                fi
+              fi
+              [ -n "$immutable" ] && break
+            fi
+            sleep 6
+          done
+          test -n "$immutable"
+          echo "immutable=$immutable" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "Exact deployment: $immutable"
+          echo "Branch alias: ${branch:-unresolved}"
+      - name: Compare repository, public asset, and Functions asset view
+        env:
+          IMMUTABLE: ${{ steps.cf.outputs.immutable }}
+          BRANCH: ${{ steps.cf.outputs.branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo='data/zy2026/school-index.json'
+          repo_hash="$(sha256sum "$repo" | awk '{print $1}')"
+          repo_count="$(jq '.schools | length' "$repo")"
+          repo_aviation="$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' "$repo")"
+          echo "repo hash=$repo_hash schools=$repo_count aviation=$repo_aviation"
+          test "$repo_count" = 956
+          test "$repo_aviation" = 1
+
+          public_status="$(curl --silent --show-error --location --max-time 40 \
+            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+            -o /tmp/immutable-index.json -w '%{http_code}' \
+            "${IMMUTABLE}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}" || true)"
+          echo "immutable public index HTTP $public_status"
+          if [ "$public_status" = 200 ]; then
+            public_hash="$(sha256sum /tmp/immutable-index.json | awk '{print $1}')"
+            public_count="$(jq '.schools | length' /tmp/immutable-index.json 2>/dev/null || echo invalid)"
+            public_aviation="$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' /tmp/immutable-index.json 2>/dev/null || echo invalid)"
+            echo "immutable public hash=$public_hash schools=$public_count aviation=$public_aviation"
+          else
+            public_hash=''
+            public_count=''
+            public_aviation=''
+            head -c 800 /tmp/immutable-index.json || true
+            echo
+          fi
+
+          health="$(curl -fsSL --max-time 30 -H 'Cache-Control: no-cache' "${IMMUTABLE}/api/ai/health?candidate=${EXPECTED_SHA}-diag")"
+          echo "immutable health commit=$(jq -r '.commitSha // empty' <<<"$health")"
+
+          api_body=/tmp/immutable-history.json
+          api_status="$(curl --silent --show-error --location --max-time 40 \
+            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+            -o "$api_body" -w '%{http_code}' \
+            "${IMMUTABLE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}" || true)"
+          echo "immutable history HTTP $api_status body=$(head -c 500 "$api_body" | tr '\n' ' ')"
+
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "$IMMUTABLE" ]; then
+            branch_health_status="$(curl --silent --show-error --location --max-time 30 -o /tmp/branch-health.json -w '%{http_code}' "${BRANCH}/api/ai/health?candidate=${EXPECTED_SHA}-diag" || true)"
+            echo "branch health HTTP $branch_health_status commit=$(jq -r '.commitSha // empty' /tmp/branch-health.json 2>/dev/null || true)"
+            branch_index_status="$(curl --silent --show-error --location --max-time 40 -o /tmp/branch-index.json -w '%{http_code}' "${BRANCH}/data/zy2026/school-index.json?candidate=${EXPECTED_SHA}" || true)"
+            if [ "$branch_index_status" = 200 ]; then
+              echo "branch public hash=$(sha256sum /tmp/branch-index.json | awk '{print $1}') schools=$(jq '.schools | length' /tmp/branch-index.json) aviation=$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' /tmp/branch-index.json)"
+            else
+              echo "branch public index HTTP $branch_index_status"
+            fi
+          fi
+
+          test "$public_status" = 200
+          test "$public_hash" = "$repo_hash"
+          test "$public_count" = 956
+          test "$public_aviation" = 1
+          test "$(jq -r '.commitSha // empty' <<<"$health")" = "$EXPECTED_SHA"
+          test "$api_status" = 200
+          jq -e '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8' "$api_body" >/dev/null
