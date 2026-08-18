@@ -65,7 +65,7 @@ async function fetchJson(source, pathname) {
   return response.json();
 }
 
-function loadAdmissionDirectory(source) {
+async function loadAdmissionDirectory(source) {
   const key = cacheKey(source);
   return loadCached(admissionDirectoryCacheByOrigin, key, async () => {
     const admissionDirectory = await fetchJson(source, '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json');
@@ -76,7 +76,7 @@ function loadAdmissionDirectory(source) {
   });
 }
 
-function loadResources(source) {
+async function loadResources(source) {
   const key = cacheKey(source);
   return loadCached(cacheByOrigin, key, async () => {
     const [directoryPayload, admissionDirectory] = await Promise.all([
