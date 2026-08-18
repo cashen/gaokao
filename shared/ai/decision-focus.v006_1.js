@@ -74,9 +74,9 @@ function collectRecords(workspace={},currentResult=null){
 
 function claimMatch(claim={},pair={},dimension=''){
   if(clean(claim?.dimension,80)!==dimension)return null;
-  const type=clean(claim?.subjectType,40),subject=normalize(claim?.subject),subjectId=clean(claim?.subjectId,220),school=normalize(pair.school),major=normalize(pair.major),exactId=`${pair.school}|${pair.major}`;
+  const type=clean(claim?.subjectType,40),subject=normalize(claim?.subject),subjectId=clean(claim?.subjectId,220),school=normalize(pair.school),major=normalize(pair.major),exactId=`${pair.school}|${pair.major}`,exactSubject=normalize(`${pair.school}${pair.major}`);
   if(type==='school_major'){
-    const exact=normalize(subjectId)===normalize(exactId)||(subject.includes(school)&&subject.includes(major));
+    const exact=subjectId?normalize(subjectId)===normalize(exactId):subject===exactSubject;
     return exact?{rank:3,state:'verified',scope:'school_major'}:null;
   }
   if(type==='school'&&subject===school)return{rank:2,state:'reference',scope:'school'};
@@ -203,7 +203,7 @@ export function deriveDecisionFocus(workspace={},options={}){
     return{...pair,decisionStatus:clean(matchingDecision(workspace,pair)?.status,20)||'undecided',dimensions};
   });
   const important=accumulatedNeeds(workspace),turn=currentNeeds(workspace),gaps=buildGaps(matrix,workspace,important,turn),primaryGap=gaps[0]||null;
-  return{version:AI_DECISION_FOCUS_VERSION,pairs:matrix,dimensions:dims,primaryGap,gaps,currentEvidenceNeeds:[...turn],importantEvidenceNeeds:[...important],evidenceClaimCount:claims.length,deterministicRecordCount:records.length,boundary:'只把现有 workspace、确定性招生记录和带 subject/source scope 的证据重新组织成决策视图；当前轮明确证据需求优先于历史家庭上下文；专业排除冲突只在同一规范化专业身份时命中，不靠字符串包含扩大排除范围；不生成综合评分、录取概率或新的招生事实。'};
+  return{version:AI_DECISION_FOCUS_VERSION,pairs:matrix,dimensions:dims,primaryGap,gaps,currentEvidenceNeeds:[...turn],importantEvidenceNeeds:[...important],evidenceClaimCount:claims.length,deterministicRecordCount:records.length,boundary:'只把现有 workspace、确定性招生记录和带 subject/source scope 的证据重新组织成决策视图；当前轮明确证据需求优先于历史家庭上下文；学校×专业 claim 只能按精确 subjectId 或完整规范化 subject 绑定；专业排除冲突只在同一规范化专业身份时命中，不靠字符串包含扩大范围；不生成综合评分、录取概率或新的招生事实。'};
 }
 
 export function decisionFocusGapAction(focus={}){
