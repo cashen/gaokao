@@ -1,6 +1,6 @@
 # 专业升学地图 v0.01 · durable status
 
-本文件是 `/major-path/` 独立页面、研究生国家目录 owner 与本科→研究生升学导航关系 owner 的跨会话状态账本。
+本文件是 `/major-path/` 独立页面、研究生国家目录 owner、本科→研究生升学导航关系 owner，以及家长语义搜索 owner 的跨会话状态账本。
 
 ## Product job
 
@@ -10,12 +10,16 @@
 2. 研究生阶段的 **一级学科（学术学位）**；
 3. 研究生阶段的 **专业学位类别**，以及仅在国家现行材料明确点名时展示的专业领域。
 
+页面还承担一个现实入口：家长通常只记得“机械”“电气”“材料”“计算机”“计科”“测控”等模糊说法。搜索必须先把这些说法翻译成规范本科目录候选，再由用户确认；不能静默替家长选择某个专业。
+
 页面不把本科专业和硕士专业伪装成一一对应，也不生成录取概率、考研成功率、学校推荐或就业预测。
 
 ## Canonical owners
 
 - 本科专业目录：继续复用现有 `ln-rank/kb/major-understanding/major-catalog-2026.generated.js`，883 个本科专业；不复制第二份本科目录。
+- 本科招生别名：继续复用 `ln-rank/kb/major-understanding/admission-major-alias.generated.js`；不在页面手写第二套简称表。
 - 本科专业解释：继续复用 `ln-rank/js/knowledge/major-understanding-resolver.js`；没有可靠解释时只展示国家目录身份，不补写未经验证的课程/就业事实。
+- 家长语义搜索：`shared/resources/majors/major-search-intent.v001.js`。它只负责“输入说法 → 规范候选/消歧状态”，不拥有专业事实。
 - 研究生国家目录：`shared/resources/graduate/graduate-catalog-2022.v001.js`。
 - 本科→研究生导航关系：`shared/resources/majors/undergrad-graduate-pathway.v001.js`。
 - 页面：`major-path/index.html` + `major-path/app.v001.js` + `major-path/major-path.v001.css`。
@@ -39,11 +43,22 @@
 
 任何后续维护都不得为了提高表面覆盖率，把“相关”升级成“官方对应”。
 
+搜索同样有独立事实边界：
+
+- 正式本科专业名/六位代码：可直接进入专业页；
+- 唯一且已有证据的简称或关键词，例如 `计科`、`测控`：允许进入唯一候选，但结果页必须保留“搜索识别说明”；
+- 专业类简称或多义家长说法，例如 `机械`、`电气`、`材料`、`计算机`：必须进入候选消歧，不能因为别名库里存在一个默认 target 就静默选择；
+- `机械类` 等正式专业类名称：明确告诉用户这是专业类而不是具体本科专业；
+- `想了解机械怎么样` 等轻量家长句式只做确定性去壳，不调用生成式模型猜专业。
+
 ## UI contract
 
 沿用 `tongxue` 的一致视觉策略：白底、深蓝主色、青绿色反馈、居中搜索、圆角卡片、低噪音信息层级。
 
-- 搜索支持本科专业全名、代码和现有别名；
+- 搜索支持本科专业全名、代码、现有别名、专业类简称和有限的家长自然说法；
+- 输入阶段即显示“你可能在找下面这些专业”，每个候选同时显示正式名称、六位代码与专业类；
+- 多义查询提交后仍停留在显式消歧页，可展开全部候选；用户点中正式专业后才进入本科→研究生路径；
+- 唯一模糊候选进入结果页时保留识别说明，不让“系统怎么理解的”消失；
 - 首页不制造“热门专业”榜，改为按教育部本科门类 → 专业类浏览；
 - 结果固定按“本科身份 → 学术学位 → 专业学位 → 条件提醒 → 权威来源”阅读；
 - PC/Pad/Android 复用同一 DOM 和业务状态，仅响应式布局变化；
@@ -51,9 +66,9 @@
 
 ## Verification
 
-- `tools/verify-major-path-v001.mjs`：883 本科专业全量状态、184 个研究生国家目录实体、代码唯一性、所有关系必须指向 canonical 研究生目录、代表案例与 source/UI contract。
-- `tools/browser-major-path-v001.mjs`：本地 PC / Pad / Android / Android compact。
-- `tools/browser-major-path-live-v001.mjs`：exact-head Preview 与 exact-main Production 的 PC / Pad / Android。
+- `tools/verify-major-path-v001.mjs`：883 本科专业全量状态、184 个研究生国家目录实体、代码唯一性、所有关系必须指向 canonical 研究生目录，以及 `机械/电气/材料/计算机/计科/测控` 等语义搜索合同。
+- `tools/browser-major-path-v001.mjs`：本地 PC / Pad / Android / Android compact，真实执行模糊提示 → 消歧 → 正式专业 → 读研路径，以及唯一简称识别说明。
+- `tools/browser-major-path-live-v001.mjs`：exact-head Preview 与 exact-main Production 的 PC / Pad / Android，同样执行语义搜索真实旅程。
 - `.github/workflows/verify-major-path-v001.yml`：Draft/Ready/Production release gate，Production durable status 为 `production/major-path-v0.01`。
 
 ## Release protocol
@@ -65,4 +80,4 @@
 5. 使用 `expected_head_sha` merge；
 6. 合并后核验 main、push workflow、Cloudflare Production、`/major-path/` 三端真实行为以及 durable Production status。
 
-v0.01 暂不修改 `ln-rank` 专业点击入口。独立页事实和交互闭环稳定后，后续接入只能复用上述 owners，不能复制目录或关系逻辑。
+v0.01 暂不修改 `ln-rank` 专业点击入口。独立页事实、语义搜索和交互闭环稳定后，后续接入只能复用上述 owners，不能复制目录、别名、搜索意图或关系逻辑。
