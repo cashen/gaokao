@@ -50,22 +50,24 @@ async function openDecisionBook(page){
   await panel.waitFor({state:'visible',timeout:8000});
   const details=page.locator('#decisionBookDetails'),summary=details.locator('summary');
   if(!await details.evaluate(element=>element.open)){
-    await panel.evaluate(element=>{
-      const target=element.querySelector('#decisionBookDetails > summary');
-      if(!target)return;
-      const panelRect=element.getBoundingClientRect(),targetRect=target.getBoundingClientRect();
-      element.scrollTop+=targetRect.top-panelRect.top-Math.max(24,Math.floor(element.clientHeight*.22));
+    await summary.evaluate(element=>element.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'}));
+    await page.waitForTimeout(100);
+    const summaryInsidePanel=await summary.evaluate(element=>{
+      const panel=element.closest('#historyPanel');
+      if(!panel)return false;
+      const rect=element.getBoundingClientRect(),panelRect=panel.getBoundingClientRect();
+      const top=Math.max(panelRect.top,0),bottom=Math.min(panelRect.bottom,window.innerHeight);
+      return rect.bottom>top&&rect.top<bottom&&rect.right>0&&rect.left<window.innerWidth;
     });
-    await page.waitForTimeout(80);
-    await summary.click({timeout:8000});
+    assert(summaryInsidePanel,'Decision Book summary did not become visible inside the real drawer scroll owner');
+    await summary.focus();
+    await summary.press('Enter');
+    await page.waitForFunction(()=>document.querySelector('#decisionBookDetails')?.open===true,null,{timeout:3000});
   }
-  await panel.evaluate(element=>{
-    const target=element.querySelector('.decision-focus-action');
-    if(!target)return;
-    const panelRect=element.getBoundingClientRect(),targetRect=target.getBoundingClientRect();
-    element.scrollTop+=targetRect.top-panelRect.top-Math.max(24,Math.floor(element.clientHeight*.28));
-  });
-  await page.locator('.decision-focus-action').first().waitFor({state:'visible',timeout:8000});
+  const firstAction=page.locator('.decision-focus-action').first();
+  await firstAction.evaluate(element=>element.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'}));
+  await page.waitForTimeout(100);
+  await firstAction.waitFor({state:'visible',timeout:8000});
 }
 
 async function verifyDevice(browser,device){
