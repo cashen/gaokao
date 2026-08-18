@@ -1,5 +1,5 @@
-import {deriveDecisionProgress,FAMILY_DECISION_STAGE_LABELS} from './decision-progress.v003.js';
-import {deriveDecisionFocus} from './decision-focus.v006_1.js';
+import {deriveDecisionProgress,FAMILY_DECISION_STAGE_LABELS} from './decision-progress.v003.js?focus=006_0';
+import {deriveDecisionFocus} from './decision-focus.v006_1.js?v=006_1';
 
 export const AI_DECISION_BOOK_VERSION='ai-decision-book-v0.03';
 
