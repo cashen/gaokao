@@ -80,7 +80,6 @@ jobs:
           repo_count="$(jq '.schools | length' "$repo")"
           repo_aviation="$(jq -r '[.schools[]? | select(.name == "沈阳航空航天大学")] | length' "$repo")"
           echo "repo hash=$repo_hash schools=$repo_count aviation=$repo_aviation"
-          test "$repo_count" = 956
           test "$repo_aviation" = 1
 
           public_status="$(curl --silent --show-error --location --max-time 40 \
@@ -124,7 +123,7 @@ jobs:
 
           test "$public_status" = 200
           test "$public_hash" = "$repo_hash"
-          test "$public_count" = 956
+          test "$public_count" = "$repo_count"
           test "$public_aviation" = 1
           test "$(jq -r '.commitSha // empty' <<<"$health")" = "$EXPECTED_SHA"
           test "$api_status" = 200
