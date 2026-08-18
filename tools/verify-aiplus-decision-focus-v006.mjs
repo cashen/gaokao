@@ -54,11 +54,12 @@ ok(focus.primaryGap.reason.includes('学校级参考'),'scope-limited evidence m
 const action=decisionFocusGapAction(focus);
 eq(action.label,focus.primaryGap.label,'next-action adapter reuses the projection instead of re-guessing the gap');
 
-// A remembered score is context, not execution evidence. Without an exact record, admissions remains missing.
+// A remembered score is context, not execution evidence. A fully answered current need must not manufacture another historical-context gap.
 const noAdmission=createAiWorkspace({examContext:{score:578,rank:25000},decisionProfile:{explicit:{priorities:['employment'],studyDurationTolerance:'prefer_short'}},agentContext:{semanticFrame:{version:'no-admission',pairs:[pairA],comparisonPairs:[pairA],schools:[pairA.school],majors:[pairA.major],currentEvidenceNeeds:['employment']}},tasks:[{id:'r',result:{decisionResearch:{claims:[employmentA]}}}]});
 const noAdmissionFocus=deriveDecisionFocus(noAdmission);
 eq(noAdmissionFocus.pairs[0].dimensions.find(item=>item.key==='admissions').state,'missing','remembered score alone cannot fabricate school-major admissions evidence');
-eq(noAdmissionFocus.primaryGap.dimension,'employment','a current employment question is not hijacked by remembered-score admissions work');
+eq(noAdmissionFocus.currentEvidenceNeeds,['employment'],'the current turn keeps authority over the focus gap set');
+eq(noAdmissionFocus.primaryGap,null,'once the current employment need is directly answered, historical admissions/postgraduate context must not invent a new primary gap');
 
 // Hard family conflicts outrank research, but the projection never removes the option itself.
 workspace=baseWorkspace({studyDurationTolerance:'prefer_short',majorExclude:true});
