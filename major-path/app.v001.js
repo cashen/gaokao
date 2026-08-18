@@ -108,6 +108,18 @@ function renderMajor(major) {
   els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function renderRecognition(intent) {
+  if (!intent?.explanation || ['official_name', 'code'].includes(intent.matchType)) return;
+  const shell = els.result.querySelector('.result-shell');
+  const header = shell?.querySelector('.result-head');
+  if (!shell || !header) return;
+  const note = document.createElement('div');
+  note.className = 'recognition-note';
+  note.setAttribute('data-recognition-query', intent.query || '');
+  note.innerHTML = `<strong>搜索识别说明</strong><span>${escapeHtml(intent.explanation)}</span>`;
+  header.insertAdjacentElement('afterend', note);
+}
+
 function renderDisambiguation(intent, { expanded = false } = {}) {
   const candidates = expanded ? intent.allCandidates : intent.candidates;
   const countText = intent.total > candidates.length ? `先展示最接近的 ${candidates.length} 个，共 ${intent.total} 个候选。` : `共 ${intent.total} 个候选。`;
@@ -129,6 +141,7 @@ function submitQuery(query) {
     els.input.value = intent.major.name;
     els.suggestions.hidden = true;
     renderMajor(intent.major);
+    renderRecognition(intent);
     return;
   }
   if (intent.kind === 'ambiguous') {
@@ -183,8 +196,14 @@ els.input.addEventListener('keydown', event => {
 els.suggestions.addEventListener('click', event => {
   const button = event.target.closest('[data-major-code]');
   if (!button) return;
+  const intent = SEARCH.resolve(els.input.value, { limit: 8 });
   const major = MAJOR_CATALOG_2026.find(item => item.code === button.dataset.majorCode);
-  if (major) { els.input.value = major.name; els.suggestions.hidden = true; renderMajor(major); }
+  if (major) {
+    els.input.value = major.name;
+    els.suggestions.hidden = true;
+    renderMajor(major);
+    if (intent.kind === 'direct' && intent.major?.code === major.code) renderRecognition(intent);
+  }
 });
 els.result.addEventListener('click', event => {
   const majorButton = event.target.closest('[data-major-code]');
