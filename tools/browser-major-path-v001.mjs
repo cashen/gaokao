@@ -49,6 +49,45 @@ async function verifyEngineeringManagement(page,name){
   assert(state.overflow <= 1,`${name}: horizontal overflow ${state.overflow}`);
   assert(state.resultWidth <= state.viewport + 1,`${name}: result wider than viewport`);
   assert(state.version?.undergraduateCount === 883,`${name}: runtime undergraduate count drift`);
+  assert(state.version?.searchVersion === 'major-search-intent-v001',`${name}: semantic search owner missing`);
+}
+async function verifyParentLanguage(page,name){
+  await page.locator('#majorInput').fill('机械');
+  await page.waitForSelector('#suggestions:not([hidden])');
+  const suggest = await page.locator('#suggestions').innerText();
+  assert(suggest.includes('你可能在找下面这些专业'),`${name}: fuzzy suggestion framing missing`);
+  assert(suggest.includes('机械工程'),`${name}: fuzzy suggestion lost 机械工程`);
+  assert(suggest.includes('机械设计制造及其自动化'),`${name}: fuzzy suggestion lost 机械设计制造及其自动化`);
+  assert(suggest.includes('机械电子工程'),`${name}: fuzzy suggestion lost 机械电子工程`);
+  await page.locator('#searchForm .btn').click();
+  await page.waitForSelector('[data-disambiguation-query="机械"]');
+  const disambiguation = await page.locator('#result').innerText();
+  assert(disambiguation.includes('先确认你说的是哪个正式专业'),`${name}: disambiguation title missing`);
+  assert(disambiguation.includes('不能默认替你选成其中一个'),`${name}: no-silent-selection explanation missing`);
+  assert(await page.locator('[data-result-major]').count() === 0,`${name}: 机械 silently selected a concrete major`);
+  await page.locator('#result [data-major-code="080204"]').click();
+  await page.waitForSelector('[data-result-major="080204"]');
+  const mechatronics = await page.locator('#result').innerText();
+  assert(mechatronics.includes('机械电子工程'),`${name}: disambiguation choice did not open 080204`);
+  assert(mechatronics.includes('0802 机械工程'),`${name}: 机械电子工程 academic route missing`);
+  assert(mechatronics.includes('0855 机械'),`${name}: 机械电子工程 professional route missing`);
+
+  await page.locator('#majorInput').fill('计科');
+  await page.locator('#searchForm .btn').click();
+  await page.waitForSelector('[data-result-major="080901"]');
+  const jike = await page.locator('#result').innerText();
+  assert(jike.includes('搜索识别说明'),`${name}: alias recognition notice missing`);
+  assert(jike.includes('家长常用简称'),`${name}: alias recognition evidence missing`);
+  assert(jike.includes('计算机科学与技术'),`${name}: 计科 did not resolve to official major`);
+
+  await page.locator('#majorInput').fill('测控');
+  await page.locator('#searchForm .btn').click();
+  await page.waitForSelector('[data-result-major="080301"]');
+  const cekong = await page.locator('#result').innerText();
+  assert(cekong.includes('不是完整的正式专业名'),`${name}: unique fuzzy candidate explanation missing`);
+  assert(cekong.includes('测控技术与仪器'),`${name}: 测控 did not resolve to official major`);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  assert(overflow <= 1,`${name}: overflow after semantic-search journeys ${overflow}`);
 }
 async function verifySecondSearch(page,name){
   await page.locator('#majorInput').fill('电气工程及其自动化');
@@ -79,6 +118,7 @@ try {
     page.on('pageerror', error => errors.push(String(error)));
     await install(page);
     await verifyEngineeringManagement(page,device.name);
+    await verifyParentLanguage(page,device.name);
     await verifySecondSearch(page,device.name);
     await verifyBrowse(page,device.name);
     assert(!errors.length,`${device.name}: page errors ${errors.join('\n')}`);
