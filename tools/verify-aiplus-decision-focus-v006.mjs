@@ -42,6 +42,20 @@ eq(focusA.dimensions.find(item=>item.key==='employment').scope,'school_major','d
 eq(focusB.dimensions.find(item=>item.key==='employment').state,'reference','school-wide evidence is reference only for a school-major decision');
 eq(focusB.dimensions.find(item=>item.key==='employment').scope,'school','school-wide evidence is never narrowed into school-major scope');
 no(focusB.dimensions.find(item=>item.key==='employment').claimIds.includes(employmentA.claimId),'another pair claim must not leak across subjects');
+
+// Same-school overlapping major names must not share school-major evidence through substring matching.
+const pairOverlap={school:'沈阳工业大学',major:'自动化',label:'沈阳工业大学 · 自动化'};
+const overlapWorkspace=createAiWorkspace({
+  decisionProfile:{explicit:{priorities:['employment'],studyDurationTolerance:'prefer_short'}},
+  agentContext:{semanticFrame:{version:'overlap-major-test',schools:[pairA.school],majors:[pairA.major,pairOverlap.major],pairs:[pairA,pairOverlap],comparisonPairs:[pairA,pairOverlap],currentEvidenceNeeds:['employment']}},
+  tasks:[{id:'overlap',result:{decisionResearch:{claims:[employmentA]}}}]
+});
+const overlapFocus=deriveDecisionFocus(overlapWorkspace),overlapLong=overlapFocus.pairs.find(item=>item.major===pairA.major),overlapShort=overlapFocus.pairs.find(item=>item.major===pairOverlap.major);
+eq(overlapLong.dimensions.find(item=>item.key==='employment').state,'verified','exact long-major claim remains direct for its own pair');
+eq(overlapShort.dimensions.find(item=>item.key==='employment').state,'missing','short overlapping major must not inherit the long-major claim');
+no(overlapShort.dimensions.find(item=>item.key==='employment').claimIds.includes(employmentA.claimId),'overlapping major name cannot reuse another pair claim ID');
+eq(overlapFocus.primaryGap.pairLabel,pairOverlap.label,'the unresolved overlapping pair remains visible as the next evidence gap');
+
 eq(focus.primaryGap.dimension,'study_duration','when postgraduate is part of the question, an unspecified study-duration tradeoff is the highest decision-changing gap');
 ok(focus.primaryGap.prompt.includes('是否愿意读研')||focus.primaryGap.prompt.includes('愿意读研'),'primary gap must ask the parent for the actual tradeoff rather than invent it');
 no(Object.hasOwn(workspace,'decisionFocus'),'decision focus must remain a projection, never a persisted second state machine');
