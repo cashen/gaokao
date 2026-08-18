@@ -63,20 +63,38 @@ function deploymentAssetIdentity(context) {
   );
 }
 
+function exactDeploymentAssetBase(context) {
+  const env = context?.env || {};
+  const commitSha = clean(env.CF_PAGES_COMMIT_SHA, 160);
+  const pagesUrl = clean(env.CF_PAGES_URL, 500);
+  if (!commitSha || !pagesUrl) return '';
+  try {
+    const url = new URL(pagesUrl);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
 function deploymentAssetCacheKey(context, pathname) {
-  const origin = new URL(context.request.url).origin;
+  const exactBase = exactDeploymentAssetBase(context);
+  const origin = exactBase || new URL(context.request.url).origin;
   const deployment = deploymentAssetIdentity(context) || 'unversioned';
   return `${origin}|${deployment}|${pathname}`;
 }
 
 async function fetchAssetJson(context, pathname) {
-  const url = new URL(pathname, context.request.url);
+  const exactBase = exactDeploymentAssetBase(context);
+  const url = new URL(pathname, exactBase || context.request.url);
   const deployment = deploymentAssetIdentity(context);
   if (deployment) url.searchParams.set('__aiplus_deployment', deployment);
   const request = new Request(url.toString(), { method: 'GET', headers: { accept: 'application/json' } });
-  const response = context.env?.ASSETS?.fetch
-    ? await context.env.ASSETS.fetch(request)
-    : await fetch(request);
+  const response = exactBase
+    ? await fetch(request)
+    : context.env?.ASSETS?.fetch
+      ? await context.env.ASSETS.fetch(request)
+      : await fetch(request);
   if (!response.ok) throw new Error(`AIPLuS 学校历史事实资源读取失败：${pathname}（HTTP ${response.status}）`);
   return response.json();
 }
