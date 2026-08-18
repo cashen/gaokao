@@ -20,12 +20,12 @@
   <section class="hero" aria-labelledby="page-title">
     <p class="eyebrow">本科专业 × 研究生学科</p>
     <h1 id="page-title">从高考报什么，看到以后能往哪学</h1>
-    <p class="hero-description">覆盖教育部 2026 本科专业目录。先把本科专业身份讲清楚，再用国家研究生目录展示同领域学术学位、专业学位与需要单独核验的方向。</p>
+    <p class="hero-description">覆盖教育部 2026 本科专业目录。先把本科专业身份讲清楚，再用国家研究生目录展示同领域学术学位、专业学位与需要单独核验的方向。家长只记得“机械”“电气”“计科”也可以搜，页面会先帮你确认正式专业名，不会替你猜。</p>
     <form id="searchForm" class="search-box" role="search" autocomplete="off">
       <div class="search-row">
         <div class="input-wrap">
-          <label class="sr-only" for="majorInput">搜索本科专业名称或代码</label>
-          <input id="majorInput" class="search-input" type="search" inputmode="search" placeholder="例如：工程管理 / 120103 / 电气工程及其自动化" aria-autocomplete="list" aria-controls="suggestions">
+          <label class="sr-only" for="majorInput">搜索本科专业名称、代码或家长常用说法</label>
+          <input id="majorInput" class="search-input" type="search" inputmode="search" placeholder="例如：工程管理 / 机械 / 电气 / 计科 / 120103" aria-autocomplete="list" aria-controls="suggestions">
           <div id="suggestions" class="suggestions" role="listbox" hidden></div>
         </div>
         <button class="btn" type="submit">看升学路径</button>
@@ -33,9 +33,9 @@
       <div class="quick-examples" aria-label="示例专业">
         <span>可以试试</span>
         <button type="button" class="quick-example" data-major-example="工程管理">工程管理</button>
-        <button type="button" class="quick-example" data-major-example="电气工程及其自动化">电气工程及其自动化</button>
+        <button type="button" class="quick-example" data-major-example="机械">机械（先选具体专业）</button>
+        <button type="button" class="quick-example" data-major-example="计科">计科</button>
         <button type="button" class="quick-example" data-major-example="临床医学">临床医学</button>
-        <button type="button" class="quick-example" data-major-example="会计学">会计学</button>
         <button type="button" class="quick-example" data-major-example="人工智能">人工智能</button>
       </div>
     </form>
