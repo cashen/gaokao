@@ -30,6 +30,20 @@ function cacheKey(source) {
   return `${owner}:${baseUrl(source)}`;
 }
 
+function loadCached(map, key, loader) {
+  const now = Date.now();
+  const cached = map.get(key);
+  if (cached && cached.expiresAt > now) return cached.promise;
+  if (cached) map.delete(key);
+  let guarded;
+  guarded = Promise.resolve().then(loader).catch(error => {
+    if (map.get(key)?.promise === guarded) map.delete(key);
+    throw error;
+  });
+  map.set(key, { expiresAt: now + CACHE_TTL, promise: guarded });
+  return guarded;
+}
+
 async function fetchJson(source, pathname) {
   const request = requestOf(source);
   const url = new URL(pathname, request.url);
@@ -51,32 +65,29 @@ async function fetchJson(source, pathname) {
   return response.json();
 }
 
-async function loadAdmissionDirectory(source) {
+function loadAdmissionDirectory(source) {
   const key = cacheKey(source);
-  const cached = admissionDirectoryCacheByOrigin.get(key);
-  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.value;
-  const admissionDirectory = await fetchJson(source, '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json');
-  if (admissionDirectory?.contractVersion !== 'school-query-contract-v3969_0') {
-    throw new Error('school admission directory contract mismatch');
-  }
-  admissionDirectoryCacheByOrigin.set(key, { time: Date.now(), value: admissionDirectory });
-  return admissionDirectory;
+  return loadCached(admissionDirectoryCacheByOrigin, key, async () => {
+    const admissionDirectory = await fetchJson(source, '/shared/resources/schools/liaoning-2026-admission-school-directory.v3969_0.json');
+    if (admissionDirectory?.contractVersion !== 'school-query-contract-v3969_0') {
+      throw new Error('school admission directory contract mismatch');
+    }
+    return admissionDirectory;
+  });
 }
 
-async function loadResources(source) {
+function loadResources(source) {
   const key = cacheKey(source);
-  const cached = cacheByOrigin.get(key);
-  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.value;
-  const [directoryPayload, admissionDirectory] = await Promise.all([
-    fetchJson(source, '/tongxue/data/school-search-index.20260617-v150.json'),
-    loadAdmissionDirectory(source)
-  ]);
-  const records = extractSchoolRecords(directoryPayload);
-  const baseResolver = createSchoolNameResolver(records);
-  const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
-  const value = Object.freeze({ resolver, directoryPayload, admissionDirectory });
-  cacheByOrigin.set(key, { time: Date.now(), value });
-  return value;
+  return loadCached(cacheByOrigin, key, async () => {
+    const [directoryPayload, admissionDirectory] = await Promise.all([
+      fetchJson(source, '/tongxue/data/school-search-index.20260617-v150.json'),
+      loadAdmissionDirectory(source)
+    ]);
+    const records = extractSchoolRecords(directoryPayload);
+    const baseResolver = createSchoolNameResolver(records);
+    const resolver = createEntityAwareResolver(baseResolver, baseResolver.metadata);
+    return Object.freeze({ resolver, directoryPayload, admissionDirectory });
+  });
 }
 
 export async function resolveAdmissionSchoolQuery(source, {
