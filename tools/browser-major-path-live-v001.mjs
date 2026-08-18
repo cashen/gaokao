@@ -1,0 +1,50 @@
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const runtimeModules = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES;
+async function loadPlaywright(){ try { return await import('playwright'); } catch (error) { if (runtimeModules) return import(pathToFileURL(path.join(runtimeModules,'playwright','index.mjs')).href); throw error; } }
+const { chromium } = await loadPlaywright();
+const BASE = String(process.env.MAJOR_PATH_LIVE_BASE || '').replace(/\/$/,'');
+const MODE = process.env.MAJOR_PATH_LIVE_MODE || 'preview';
+if(!BASE) throw new Error('MAJOR_PATH_LIVE_BASE is required');
+const DEVICES = [
+  {name:'pc',viewport:{width:1440,height:900}},
+  {name:'pad',viewport:{width:1024,height:768},hasTouch:true},
+  {name:'android',viewport:{width:390,height:844},isMobile:true,hasTouch:true}
+];
+function assert(value,message){ if(!value) throw new Error(message); }
+const browser = await chromium.launch({headless:true});
+const evidence = [];
+try {
+  for(const device of DEVICES){
+    const context = await browser.newContext(device);
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(String(error)));
+    await page.goto(`${BASE}/major-path/?major=${encodeURIComponent('工程管理')}`,{waitUntil:'networkidle',timeout:30000});
+    await page.waitForSelector('[data-result-major="120103"]',{timeout:15000});
+    const state = await page.evaluate(() => ({
+      text: document.querySelector('#result')?.textContent || '',
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      version: window.__MAJOR_PATH_META__,
+      marker: document.body.dataset.majorPathVersion || '',
+      sourceHosts: [...document.querySelectorAll('.source-link')].map(a => new URL(a.href).hostname)
+    }));
+    assert(state.marker === 'major-path-v0.01',`${device.name}: version marker drift`);
+    assert(state.version?.undergraduateCount === 883,`${device.name}: undergraduate catalog not loaded`);
+    assert(state.text.includes('1201 管理科学与工程'),`${device.name}: academic route missing`);
+    assert(state.text.includes('1256 工程管理'),`${device.name}: professional route missing`);
+    assert(state.text.includes('125601') && state.text.includes('125604'),`${device.name}: engineering management fields missing`);
+    assert(state.sourceHosts.length >= 3 && state.sourceHosts.every(host => host === 'www.moe.gov.cn'),`${device.name}: non-official source leaked`);
+    assert(state.overflow <= 1,`${device.name}: horizontal overflow ${state.overflow}`);
+    await page.locator('#majorInput').fill('临床医学');
+    await page.locator('#searchForm .btn').click();
+    await page.waitForSelector('[data-result-major="100201K"]',{timeout:10000});
+    const clinical = await page.locator('#result').innerText();
+    assert(clinical.includes('1002 临床医学') && clinical.includes('1051 临床医学'),`${device.name}: clinical academic/professional distinction missing`);
+    assert(!errors.length,`${device.name}: page errors ${errors.join('\n')}`);
+    evidence.push({device:device.name,mode:MODE,ok:true});
+    await context.close();
+  }
+} finally { await browser.close(); }
+console.log(JSON.stringify({ok:true,version:'major-path-live-v0.01',mode:MODE,base:BASE,devices:evidence},null,2));
