@@ -55,8 +55,24 @@ function boundedInteger(value, fallback, min, max) {
   return Math.max(min, Math.min(max, parsed));
 }
 
+function deploymentAssetIdentity(context) {
+  const env = context?.env || {};
+  return clean(
+    env.CF_PAGES_COMMIT_SHA || env.CF_PAGES_DEPLOYMENT_ID || env.CF_PAGES_URL || '',
+    500
+  );
+}
+
+function deploymentAssetCacheKey(context, pathname) {
+  const origin = new URL(context.request.url).origin;
+  const deployment = deploymentAssetIdentity(context) || 'unversioned';
+  return `${origin}|${deployment}|${pathname}`;
+}
+
 async function fetchAssetJson(context, pathname) {
   const url = new URL(pathname, context.request.url);
+  const deployment = deploymentAssetIdentity(context);
+  if (deployment) url.searchParams.set('__aiplus_deployment', deployment);
   const request = new Request(url.toString(), { method: 'GET', headers: { accept: 'application/json' } });
   const response = context.env?.ASSETS?.fetch
     ? await context.env.ASSETS.fetch(request)
@@ -93,14 +109,14 @@ function cacheWrite(map, key, loader, maxEntries) {
 }
 
 function loadSchoolIndex(context) {
-  const key = `${new URL(context.request.url).origin}${AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH}`;
+  const key = deploymentAssetCacheKey(context, AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH);
   return cacheWrite(indexCache, key, () => fetchAssetJson(context, AI_SCHOOL_HISTORY_SOURCE_INDEX_PATH), INDEX_CACHE_MAX_ENTRIES);
 }
 
 function loadSchoolShard(context, chunk) {
   if (!/^school-\d{2}\.json$/.test(chunk)) throw new Error('AIPLuS 学校历史事实分片标识无效。');
   const pathname = `${AI_SCHOOL_HISTORY_SOURCE_CHUNK_PREFIX}${chunk}`;
-  const key = `${new URL(context.request.url).origin}${pathname}`;
+  const key = deploymentAssetCacheKey(context, pathname);
   return cacheWrite(shardCache, key, () => fetchAssetJson(context, pathname), SHARD_CACHE_MAX_ENTRIES);
 }
 
@@ -373,6 +389,7 @@ export function aiSchoolHistoryFactCacheState() {
     indexMaxEntries: INDEX_CACHE_MAX_ENTRIES,
     shardEntries: shardCache.size,
     shardMaxEntries: SHARD_CACHE_MAX_ENTRIES,
+    deploymentScoped: true,
     bounded: indexCache.size <= INDEX_CACHE_MAX_ENTRIES && shardCache.size <= SHARD_CACHE_MAX_ENTRIES
   };
 }
