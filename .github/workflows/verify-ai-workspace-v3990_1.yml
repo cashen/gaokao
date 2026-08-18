@@ -224,7 +224,7 @@ jobs:
             exit 3
           fi
           echo "immutable_preview=$immutable_preview" >> "$GITHUB_OUTPUT"
-          echo "preview_base=$immutable_preview" >> "$GITHUB_OUTPUT"
+          echo "preview_base=$branch_preview" >> "$GITHUB_OUTPUT"
           echo "branch_preview=$branch_preview" >> "$GITHUB_OUTPUT"
           echo "Exact deployment: $immutable_preview"
           echo "Functions branch preview: $branch_preview"
@@ -308,17 +308,17 @@ jobs:
             exit 4
           fi
 
-          health="$(request_get immutable-health "${PREVIEW_BASE}/api/ai/health?candidate=${EXPECTED_SHA}-immutable")"
+          health="$(request_get immutable-health "${IMMUTABLE_PREVIEW}/api/ai/health?candidate=${EXPECTED_SHA}-immutable")"
           require_text immutable-health "\"commitSha\":\"${EXPECTED_SHA}\"" "$health"
           require_text immutable-health '"apiVersion":"ai-health-api-v0.02"' "$health"
           require_text immutable-health '"semanticMode":"intent-task-spec-v0.02"' "$health"
 
-          page="$(request_get aiplus-page "${PREVIEW_BASE}/aiplus/?candidate=${EXPECTED_SHA}")"
+          page="$(request_get aiplus-page "${IMMUTABLE_PREVIEW}/aiplus/?candidate=${EXPECTED_SHA}")"
           require_text aiplus-page 'data-ai-workspace="ai-workspace-v3992_1"' "$page"
           require_text aiplus-page 'data-site-runtime-generation="v3990_1"' "$page"
           require_text aiplus-page 'data-ai-plus="family-advisor"' "$page"
           legacy_headers="$(mktemp)"
-          legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${PREVIEW_BASE}/ai/?candidate=${EXPECTED_SHA}" || true)"
+          legacy_status="$(curl --silent --show-error --max-time 30 -D "$legacy_headers" -o /dev/null -w '%{http_code}' "${IMMUTABLE_PREVIEW}/ai/?candidate=${EXPECTED_SHA}" || true)"
           legacy_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/{print substr($0,index($0,$2))}' "$legacy_headers" | tr -d '\r' | tail -n1)"
           if ! [[ "$legacy_status" =~ ^30[1278]$ ]] || [[ "$legacy_location" != *"/aiplus/"* ]]; then
             echo "Legacy /ai/ must redirect to /aiplus/: HTTP ${legacy_status}, location=${legacy_location}" >&2
@@ -328,7 +328,7 @@ jobs:
           fi
           rm -f "$legacy_headers"
 
-          official="$(request_get school-official "${PREVIEW_BASE}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
+          official="$(request_get school-official "${BRANCH_PREVIEW}/api/ai/school-official?school=%E8%BE%BD%E5%AE%81%E7%9F%B3%E6%B2%B9%E5%8C%96%E5%B7%A5%E5%A4%A7%E5%AD%A6&question=%E8%BF%99%E6%89%80%E5%AD%A6%E6%A0%A1%E6%98%AF%E4%BB%80%E4%B9%88%E5%AE%9A%E4%BD%8D&candidate=${EXPECTED_SHA}")"
           require_text school-official '"ok":true' "$official"
           require_text school-official '"school":"辽宁石油化工大学"' "$official"
           if grep -Fq '"sourceAvailable":false' <<<"$official"; then
@@ -343,31 +343,31 @@ jobs:
             require_text school-official 'https://gaokao.chsi.com.cn/' "$official"
           fi
 
-          industrial_history="$(request_get school-history-industrial "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          industrial_history="$(request_get school-history-industrial "${BRANCH_PREVIEW}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-industrial '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and .meta.filteredTotal == 65 and (.records | length) == 65 and .source.mode == "ai-school-history-preaggregated-school-shard" and .source.sameTruthSet == true' "$industrial_history"
 
-          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          aviation_mechanical="$(request_get school-history-aviation-mechanical "${BRANCH_PREVIEW}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-aviation-mechanical '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8 and ([.records[].major] | all(length > 0))' "$aviation_mechanical"
 
-          largest_history="$(request_get school-history-largest "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          largest_history="$(request_get school-history-largest "${BRANCH_PREVIEW}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-largest '.ok == true and .complete == true and .meta.school == "沈阳农业大学" and .meta.schoolRecordTotal == 117 and (.records | length) == 117 and .meta.pagination.hasMore == false' "$largest_history"
 
           rank_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"600分位次是多少"}'
-          rank="$(request_post rank "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
+          rank="$(request_post rank "${BRANCH_PREVIEW}/api/ai/turn?candidate=${EXPECTED_SHA}" "$rank_payload")"
           require_text rank '"rankEnd":14235' "$rank"
 
           province_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{},"activeView":{"regionKeys":["all"],"majorKeywords":[]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"580分，安徽电气"}'
-          province="$(request_post province-major "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$province_payload")"
+          province="$(request_post province-major "${BRANCH_PREVIEW}/api/ai/turn?candidate=${EXPECTED_SHA}" "$province_payload")"
           require_text province-major '"regionKeys":["province:安徽"]' "$province"
           require_text province-major '"majorKeywords":["电气"]' "$province"
 
           comparison_payload='{"workspace":{"contractVersion":"ai-workspace-contract-v3992_1","examContext":{"score":580},"activeView":{"score":580,"regionKeys":["province:辽宁"],"majorKeywords":["电气"]},"viewHistory":[],"tasks":[],"hardConstraints":[],"softPreferences":[]},"input":"电气和机械怎么选"}'
-          comparison="$(request_post major-comparison "${PREVIEW_BASE}/api/ai/turn?candidate=${EXPECTED_SHA}" "$comparison_payload")"
+          comparison="$(request_post major-comparison "${BRANCH_PREVIEW}/api/ai/turn?candidate=${EXPECTED_SHA}" "$comparison_payload")"
           require_text major-comparison '"kind":"major"' "$comparison"
           require_text major-comparison '"pendingEvidenceDimensions"' "$comparison"
 
           if grep -q '"workersModelConfigured":true\|"externalConfigured":true' <<<"$health"; then
-            probe="$(request_post model-probe "${PREVIEW_BASE}/api/ai/model-probe?candidate=${EXPECTED_SHA}" '{}')"
+            probe="$(request_post model-probe "${BRANCH_PREVIEW}/api/ai/model-probe?candidate=${EXPECTED_SHA}" '{}')"
             require_text model-probe '"ok":true' "$probe"
             grep -Eq '"model":"[^"]+"' <<<"$probe"
           fi
