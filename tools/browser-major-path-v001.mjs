@@ -81,11 +81,20 @@ async function verifyParentLanguage(page,name){
   assert(jike.includes('计算机科学与技术'),`${name}: 计科 did not resolve to official major`);
 
   await page.locator('#majorInput').fill('测控');
+  await page.waitForSelector('#suggestions:not([hidden])');
+  const cekongSuggest = await page.locator('#suggestions').innerText();
+  assert(cekongSuggest.includes('测控技术与仪器'),`${name}: 测控 suggestions lost 080301`);
+  assert(cekongSuggest.includes('智能测控工程'),`${name}: 测控 suggestions lost 080720T`);
   await page.locator('#searchForm .btn').click();
+  await page.waitForSelector('[data-disambiguation-query="测控"]');
+  const cekongChoice = await page.locator('#result').innerText();
+  assert(cekongChoice.includes('测控技术与仪器') && cekongChoice.includes('智能测控工程'),`${name}: 测控 must expose both official candidates`);
+  assert(await page.locator('[data-result-major]').count() === 0,`${name}: 测控 silently selected a concrete major`);
+  await page.locator('#result [data-major-code="080301"]').click();
   await page.waitForSelector('[data-result-major="080301"]');
   const cekong = await page.locator('#result').innerText();
-  assert(cekong.includes('不是完整的正式专业名'),`${name}: unique fuzzy candidate explanation missing`);
-  assert(cekong.includes('测控技术与仪器'),`${name}: 测控 did not resolve to official major`);
+  assert(cekong.includes('测控技术与仪器'),`${name}: 测控 candidate 080301 did not open`);
+  assert(cekong.includes('0804 仪器科学与技术'),`${name}: 测控技术与仪器 academic route missing`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert(overflow <= 1,`${name}: overflow after semantic-search journeys ${overflow}`);
 }
