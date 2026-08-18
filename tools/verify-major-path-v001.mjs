@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js';
+import { ADMISSION_MAJOR_ALIAS_2026 } from '../ln-rank/kb/major-understanding/admission-major-alias.generated.js';
 import { GRADUATE_CATALOG_2022, GRADUATE_CATALOG_2022_META, GRADUATE_CATALOG_SOURCES } from '../shared/resources/graduate/graduate-catalog-2022.v001.js';
 import { buildUndergradGraduatePathway, UNDERGRAD_GRADUATE_PATHWAY_META } from '../shared/resources/majors/undergrad-graduate-pathway.v001.js';
+import { createMajorSearchIntentResolver, MAJOR_SEARCH_INTENT_META } from '../shared/resources/majors/major-search-intent.v001.js';
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function unique(values) { return new Set(values).size === values.length; }
@@ -54,17 +56,55 @@ for (const [code, name, academics, professionals, fields] of cases) {
   for (const expected of fields) assert(pathway.professionalFields.some(item => item.code === expected), `${name} missing field ${expected}`);
 }
 
+const SEARCH = createMajorSearchIntentResolver(MAJOR_CATALOG_2026, ADMISSION_MAJOR_ALIAS_2026);
+assert(SEARCH.count === 883, `search owner must consume all 883 majors, got ${SEARCH.count}`);
+assert(MAJOR_SEARCH_INTENT_META.boundary.includes('不得静默升级'), 'search owner must forbid silent major selection');
+
+function assertAmbiguous(query, requiredCodes = []) {
+  const result = SEARCH.resolve(query, { limit: 8 });
+  assert(result.kind === 'ambiguous', `${query} must disambiguate, got ${result.kind}`);
+  assert(result.total > 1, `${query} ambiguity must have multiple candidates`);
+  const allCodes = (result.allCandidates || []).map(item => item.code);
+  for (const code of requiredCodes) assert(allCodes.includes(code), `${query} missing candidate ${code}`);
+  for (const code of allCodes) assert(MAJOR_CATALOG_2026.some(item => item.code === code), `${query} emitted non-canonical candidate ${code}`);
+  return result;
+}
+
+assertAmbiguous('机械', ['080201','080202','080204']);
+assertAmbiguous('想了解机械怎么样', ['080201','080202','080204']);
+assertAmbiguous('机械类', ['080201','080202','080204']);
+assertAmbiguous('电气', ['080601','080602T']);
+assertAmbiguous('材料', ['080401','080402','080403']);
+assertAmbiguous('计算机', ['080901','080902','080903']);
+
+const jike = SEARCH.resolve('计科');
+assert(jike.kind === 'direct' && jike.major?.code === '080901', '计科 must resolve to 080901');
+assert(jike.matchType === 'alias_exact' && jike.explanation.includes('家长常用简称'), '计科 must explain alias recognition');
+const cekong = SEARCH.resolve('测控');
+assert(cekong.kind === 'direct' && cekong.major?.code === '080301', '测控 must resolve to 080301 as the only clear catalog candidate');
+assert(cekong.explanation.includes('不是完整的正式专业名'), '测控 must preserve fuzzy recognition explanation');
+const exact = SEARCH.resolve('工程管理');
+assert(exact.kind === 'direct' && exact.matchType === 'official_name' && exact.major?.code === '120103', 'official major name must remain direct');
+const byCode = SEARCH.resolve('120103');
+assert(byCode.kind === 'direct' && byCode.matchType === 'code' && byCode.major?.name === '工程管理', 'official code must remain direct');
+
 const html = fs.readFileSync('major-path/index.html','utf8');
 const app = fs.readFileSync('major-path/app.v001.js','utf8');
 const css = fs.readFileSync('major-path/major-path.v001.css','utf8');
 assert(html.includes('data-major-path-version="major-path-v0.01"'), 'page version marker missing');
 assert(html.includes('本科专业和硕士专业不是一一对应'), 'human boundary copy missing');
+assert(html.includes('机械 / 电气 / 计科'), 'parent-language search examples missing');
 assert(html.includes('/major-path/app.v001.js?v=001_0'), 'current app edge missing');
 assert(html.includes('/major-path/major-path.v001.css?v=001_0'), 'current css edge missing');
 assert(app.includes('MAJOR_CATALOG_2026'), 'page must reuse canonical undergraduate catalog');
+assert(app.includes('ADMISSION_MAJOR_ALIAS_2026'), 'page must reuse canonical admission-major aliases');
+assert(app.includes('createMajorSearchIntentResolver'), 'page must use the single semantic-search owner');
 assert(app.includes('buildUndergradGraduatePathway'), 'page must use the single relation owner');
+assert(app.includes('data-disambiguation-query'), 'page must render explicit fuzzy-query disambiguation');
+assert(app.includes('data-recognition-query'), 'page must preserve one-candidate fuzzy recognition context');
 assert(!app.includes('fetch('), 'major path v0.01 must remain deterministic/static; no runtime crawler');
+assert(css.includes('.disambiguation-grid') && css.includes('.recognition-note'), 'semantic-search UI styles missing');
 assert(css.includes('@media(max-width:760px)') && css.includes('@media(max-width:390px)'), 'Pad/Android responsive contracts missing');
 assert(!/if\s*\([^)]*(Android|iPad|iPhone)/i.test(app), 'device-specific business state is forbidden');
 
-console.log(JSON.stringify({ok:true,version:'major-path-verifier-v0.01',undergraduate:MAJOR_CATALOG_2026.length,graduate:GRADUATE_CATALOG_2022.length,curated,explicitNoCrosswalk,routeCount},null,2));
+console.log(JSON.stringify({ok:true,version:'major-path-verifier-v0.01',undergraduate:MAJOR_CATALOG_2026.length,graduate:GRADUATE_CATALOG_2022.length,curated,explicitNoCrosswalk,routeCount,searchAliases:SEARCH.aliasCount},null,2));
