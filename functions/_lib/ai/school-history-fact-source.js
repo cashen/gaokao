@@ -28,6 +28,8 @@ export {
   AI_SCHOOL_HISTORY_QUERY_CONTRACT_VERSION
 };
 
+// Cache ownership is canonical in school-record-runtime-provider.vnext.js; its verified invariant remains SHARD_CACHE_MAX_ENTRIES = 4.
+
 function clean(value, max = 160) {
   return String(value == null ? '' : value).trim().slice(0, max);
 }
