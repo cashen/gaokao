@@ -71,6 +71,12 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
     return unique(codes.map(code => normalizeMajorCode(code))).map(code => byCode.get(code)).filter(Boolean);
   }
 
+  function exactAliasEvidence(queryKey) {
+    const rows = aliasByKey.get(queryKey) || [];
+    const targetCodes = unique(rows.flatMap(item => item.targetCodes || []));
+    return { rows, targetCodes, majors: majorsForCodes(targetCodes) };
+  }
+
   function candidateSet(queryKey) {
     const aliasMatches = aliasByKey.get(queryKey) || [];
     const aliasCodes = unique(aliasMatches.flatMap(item => item.targetCodes || item.candidateCodes || []));
@@ -98,13 +104,12 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
 
     const exactName = byName.get(queryKey);
     const classExact = classes.get(queryKey);
-    const evidence = candidateSet(queryKey);
-    const exactAliasRows = evidence.aliasMatches.filter(item => item._key === queryKey);
-    const aliasCodes = unique(exactAliasRows.flatMap(item => item.targetCodes || []));
-    const aliasMajors = majorsForCodes(aliasCodes);
+    const stemClass = classForStem(queryKey);
+    const explicitAlias = exactAliasEvidence(queryKey);
+    const explicitAliasTargets = new Set(explicitAlias.targetCodes);
 
     if (classExact) {
-      const all = [...classExact.items].sort((a, b) => scoreCandidate(b, queryKey, evidence.aliasTargets) - scoreCandidate(a, queryKey, evidence.aliasTargets) || String(a.code).localeCompare(String(b.code)));
+      const all = [...classExact.items].sort((a, b) => scoreCandidate(b, queryKey, explicitAliasTargets) - scoreCandidate(a, queryKey, explicitAliasTargets) || String(a.code).localeCompare(String(b.code)));
       return Object.freeze({
         kind: 'ambiguous', query: raw, semanticType: 'major_class', label: classExact.name,
         explanation: `“${raw}”是本科专业类名称，不是一个具体本科专业。先选正式专业，再看升学路径。`,
@@ -112,9 +117,8 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
       });
     }
 
-    const stemClass = evidence.classStem;
     if (stemClass && !exactName) {
-      const all = [...stemClass.items].sort((a, b) => scoreCandidate(b, queryKey, evidence.aliasTargets) - scoreCandidate(a, queryKey, evidence.aliasTargets) || String(a.code).localeCompare(String(b.code)));
+      const all = [...stemClass.items].sort((a, b) => scoreCandidate(b, queryKey, explicitAliasTargets) - scoreCandidate(a, queryKey, explicitAliasTargets) || String(a.code).localeCompare(String(b.code)));
       return Object.freeze({
         kind: 'ambiguous', query: raw, semanticType: 'class_stem', label: stemClass.name,
         explanation: `家长说“${raw}”时，常常是在泛指“${stemClass.name}”。它下面有多个正式本科专业，不能默认替你选成其中一个。`,
@@ -126,11 +130,21 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
       return Object.freeze({ kind: 'direct', query: raw, matchType: 'official_name', major: exactName, candidates: Object.freeze([exactName]) });
     }
 
+    if (explicitAlias.majors.length === 1) {
+      const major = explicitAlias.majors[0];
+      return Object.freeze({
+        kind: 'direct', query: raw, matchType: 'alias_exact', major,
+        explanation: `“${raw}”是家长常用简称，这里按现有本科专业别名库识别为“${major.name}”。`,
+        candidates: Object.freeze([major])
+      });
+    }
+
+    const evidence = candidateSet(queryKey);
     const candidateCodes = unique(evidence.candidates.map(item => item.code));
     if (candidateCodes.length > 1) {
       const all = evidence.candidates;
       return Object.freeze({
-        kind: 'ambiguous', query: raw, semanticType: aliasMajors.length > 1 ? 'shared_alias' : 'keyword', label: '',
+        kind: 'ambiguous', query: raw, semanticType: explicitAlias.majors.length > 1 ? 'shared_alias' : 'keyword', label: '',
         explanation: `“${raw}”不是唯一的正式本科专业名。下面这些专业名称或家长常用简称都与它有关，请先确认你想看的具体专业。`,
         total: all.length, candidates: Object.freeze(all.slice(0, limit)), allCandidates: Object.freeze(all)
       });
@@ -138,12 +152,9 @@ export function createMajorSearchIntentResolver(rows = [], aliases = []) {
 
     if (candidateCodes.length === 1) {
       const major = evidence.candidates[0];
-      const viaAlias = aliasMajors.length > 0;
       return Object.freeze({
-        kind: 'direct', query: raw, matchType: viaAlias ? 'alias_exact' : 'keyword_single', major,
-        explanation: viaAlias
-          ? `“${raw}”是家长常用简称，这里按现有本科专业别名库识别为“${major.name}”。`
-          : `“${raw}”不是完整的正式专业名；当前本科目录中只有“${major.name}”与这个关键词形成唯一明确候选，因此先按它展示。`,
+        kind: 'direct', query: raw, matchType: 'keyword_single', major,
+        explanation: `“${raw}”不是完整的正式专业名；当前本科目录中只有“${major.name}”与这个关键词形成唯一明确候选，因此先按它展示。`,
         candidates: Object.freeze([major])
       });
     }
