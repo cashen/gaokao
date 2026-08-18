@@ -8,6 +8,7 @@ on:
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'functions/_lib/ai/next-action-engine.js'
+      - '.github/scripts/install-playwright-chromium.sh'
       - 'tools/verify-aiplus-decision-focus-v006.mjs'
       - 'tools/browser-aiplus-decision-focus-v006.mjs'
       - 'tools/browser-aiplus-decision-focus-live-v006.mjs'
@@ -34,6 +35,7 @@ jobs:
       - name: Syntax and single-owner contract
         run: |
           set -euo pipefail
+          bash -n .github/scripts/install-playwright-chromium.sh
           node --check shared/ai/decision-focus.v006_1.js
           node --check shared/ai/decision-progress.v003.js
           node --check shared/ai/decision-book.v003.js
@@ -97,11 +99,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Chromium
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
       - name: Verify decision focus PC Pad Android
         run: node tools/browser-aiplus-decision-focus-v006.mjs
       - name: Preserve existing AIPLuS browser journeys
@@ -153,11 +152,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Chromium
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
       - name: Wait for coherent exact-main decision-focus assets
         run: |
           set -euo pipefail

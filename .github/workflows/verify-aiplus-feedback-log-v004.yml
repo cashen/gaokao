@@ -10,6 +10,7 @@ on:
       - 'aiplus/**'
       - 'shared/ai/**'
       - 'functions/_lib/ai/**'
+      - '.github/scripts/install-playwright-chromium.sh'
       - 'tools/verify-aiplus-feedback-log-v004.mjs'
       - 'tools/browser-aiplus-feedback-log-v004.mjs'
       - 'tools/browser-aiplus-feedback-log-preview-v004.mjs'
@@ -95,11 +96,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Chromium
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
       - name: Verify feedback Log PC Pad Android
         run: node tools/browser-aiplus-feedback-log-v004.mjs
       - name: Re-run existing family workbench mocked browser regression
@@ -158,11 +156,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Chromium
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install verified Chromium
+        run: bash .github/scripts/install-playwright-chromium.sh
       - name: Wait for exact main Production identity
         shell: bash
         run: |
