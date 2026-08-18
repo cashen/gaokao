@@ -141,6 +141,7 @@ finally{await browser.close();}
 if(MODE==='production'&&EXPECTED_SHA){
   const response=await fetch(`${BASE}/api/ai/health`,{headers:{accept:'application/json'},cache:'no-store'}),health=await response.json();
   assert(response.ok&&health?.ok,'production health unavailable');
-  assert(String(health.commitSha||'')===EXPECTED_SHA,`production health SHA mismatch: ${health.commitSha} != ${EXPECTED_SHA}`);
+  const deploymentSha=String(health?.deployment?.commitSha||'');
+  assert(deploymentSha===EXPECTED_SHA,`production health SHA mismatch: ${deploymentSha} != ${EXPECTED_SHA}`);
 }
 console.log(JSON.stringify({ok:true,version:'aiplus-decision-focus-live-v0.06',mode:MODE,base:BASE,expectedSha:EXPECTED_SHA,devices:evidence},null,2));
