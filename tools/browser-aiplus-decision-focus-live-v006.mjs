@@ -41,13 +41,27 @@ async function seed(page){
   });
 }
 
-async function openDecisionBook(page){
+async function panelIntersectsViewport(panel){
+  return panel.evaluate(element=>{
+    const rect=element.getBoundingClientRect();
+    return rect.width>0&&rect.height>0&&rect.right>0&&rect.left<window.innerWidth&&rect.bottom>0&&rect.top<window.innerHeight;
+  }).catch(()=>false);
+}
+async function openDecisionBook(page,deviceName){
   const panel=page.locator('#historyPanel');
-  if(!await panel.isVisible().catch(()=>false)){
-    if(await page.locator('#mobileDecisionStrip').isVisible().catch(()=>false))await page.locator('#mobileDecisionStrip').click();
-    else if(await page.locator('#historyToggle').isVisible().catch(()=>false))await page.locator('#historyToggle').click();
+  if(!await panelIntersectsViewport(panel)){
+    const mobileStrip=page.locator('#mobileDecisionStrip'),topToggle=page.locator('#historyToggle');
+    if(await mobileStrip.isVisible().catch(()=>false))await mobileStrip.click();
+    else if(await topToggle.isVisible().catch(()=>false))await topToggle.click();
+    else throw new Error(`${deviceName}: no visible control can open the decision drawer`);
+    await page.waitForFunction(()=>{
+      const element=document.querySelector('#historyPanel');
+      if(!element)return false;
+      const rect=element.getBoundingClientRect();
+      return document.body.classList.contains('history-open')&&rect.right>0&&rect.left<window.innerWidth&&rect.bottom>0&&rect.top<window.innerHeight;
+    },null,{timeout:3000});
   }
-  await panel.waitFor({state:'visible',timeout:8000});
+  assert(await panelIntersectsViewport(panel),`${deviceName}: decision drawer is not inside the visual viewport`);
   const details=page.locator('#decisionBookDetails'),summary=details.locator('summary');
   if(!await details.evaluate(element=>element.open)){
     await summary.evaluate(element=>element.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'}));
@@ -57,9 +71,9 @@ async function openDecisionBook(page){
       if(!panel)return false;
       const rect=element.getBoundingClientRect(),panelRect=panel.getBoundingClientRect();
       const top=Math.max(panelRect.top,0),bottom=Math.min(panelRect.bottom,window.innerHeight);
-      return rect.bottom>top&&rect.top<bottom&&rect.right>0&&rect.left<window.innerWidth;
+      return rect.bottom>top&&rect.top<bottom&&rect.right>Math.max(panelRect.left,0)&&rect.left<Math.min(panelRect.right,window.innerWidth);
     });
-    assert(summaryInsidePanel,'Decision Book summary did not become visible inside the real drawer scroll owner');
+    assert(summaryInsidePanel,`${deviceName}: Decision Book summary did not become visible inside the real drawer scroll owner`);
     await summary.focus();
     await summary.press('Enter');
     await page.waitForFunction(()=>document.querySelector('#decisionBookDetails')?.open===true,null,{timeout:3000});
@@ -78,7 +92,7 @@ async function verifyDevice(browser,device){
   await seed(page);
   await page.reload({waitUntil:'domcontentloaded',timeout:30000});
   await page.waitForFunction(()=>document.querySelectorAll('.decision-focus-card').length===2&&document.querySelector('.decision-focus-next'),null,{timeout:20000});
-  await openDecisionBook(page);
+  await openDecisionBook(page,device.name);
 
   const state=await page.evaluate(()=>{
     const root=document.documentElement,panel=document.querySelector('#historyPanel'),grid=document.querySelector('.decision-focus-grid');
