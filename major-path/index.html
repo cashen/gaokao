@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="major-path-version" content="major-path-v0.01">
+<title>专业升学地图 - 从高考专业看懂读研方向</title>
+<link rel="canonical" href="https://gaokao.powers.org.cn/major-path/">
+<link rel="stylesheet" href="/shared/ui/tokens/foundation.v3959_0.css?v=3961_0">
+<link rel="stylesheet" href="/shared/ui/tokens/semantic.v3959_0.css?v=3961_0">
+<link rel="stylesheet" href="/major-path/major-path.v001.css?v=001_0">
+</head>
+<body data-major-path-version="major-path-v0.01">
+<main class="wrap">
+  <header class="topbar">
+    <a class="brand" href="/major-path/">专业升学地图</a>
+    <a class="back-home" href="/">返回高考报告</a>
+  </header>
+
+  <section class="hero" aria-labelledby="page-title">
+    <p class="eyebrow">本科专业 × 研究生学科</p>
+    <h1 id="page-title">从高考报什么，看到以后能往哪学</h1>
+    <p class="hero-description">覆盖教育部 2026 本科专业目录。先把本科专业身份讲清楚，再用国家研究生目录展示同领域学术学位、专业学位与需要单独核验的方向。</p>
+    <form id="searchForm" class="search-box" role="search" autocomplete="off">
+      <div class="search-row">
+        <div class="input-wrap">
+          <label class="sr-only" for="majorInput">搜索本科专业名称或代码</label>
+          <input id="majorInput" class="search-input" type="search" inputmode="search" placeholder="例如：工程管理 / 120103 / 电气工程及其自动化" aria-autocomplete="list" aria-controls="suggestions">
+          <div id="suggestions" class="suggestions" role="listbox" hidden></div>
+        </div>
+        <button class="btn" type="submit">看升学路径</button>
+      </div>
+      <div class="quick-examples" aria-label="示例专业">
+        <span>可以试试</span>
+        <button type="button" class="quick-example" data-major-example="工程管理">工程管理</button>
+        <button type="button" class="quick-example" data-major-example="电气工程及其自动化">电气工程及其自动化</button>
+        <button type="button" class="quick-example" data-major-example="临床医学">临床医学</button>
+        <button type="button" class="quick-example" data-major-example="会计学">会计学</button>
+        <button type="button" class="quick-example" data-major-example="人工智能">人工智能</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="result" aria-live="polite"></section>
+
+  <section id="browse" class="browse-shell" aria-labelledby="browse-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">不想搜索也可以</p>
+        <h2 id="browse-title">按本科门类浏览</h2>
+      </div>
+      <p class="section-note">不是“热门榜”。这里只按教育部本科目录结构展开。</p>
+    </div>
+    <div id="disciplineChips" class="discipline-chips"></div>
+    <div id="classBrowser" class="class-browser" hidden></div>
+  </section>
+
+  <section class="truth-note" aria-labelledby="truth-title">
+    <h2 id="truth-title">先说清楚：本科专业和硕士专业不是一一对应</h2>
+    <p>本科目录、研究生一级学科目录、专业学位类别是不同层级的国家目录。即使代码相同，也可能属于不同目录实体。页面中的“升学方向”用于帮助家长理解知识与培养体系，不等于教育部规定的固定对应关系。</p>
+    <p>具体能不能报、考什么、是否限制前置专业、某校当年是否招生，必须继续看目标招生单位当年的硕士招生专业目录和招生简章。</p>
+  </section>
+
+  <footer class="footer">
+    <div>国家目录负责“是什么”，学校招生目录负责“当年能不能报”。</div>
+    <div><span class="version">major-path v0.01</span> · 本科目录 2026 · 研究生目录 2022（自 2023 起实施）</div>
+  </footer>
+</main>
+<script type="module" src="/major-path/app.v001.js?v=001_0"></script>
+</body>
+</html>
