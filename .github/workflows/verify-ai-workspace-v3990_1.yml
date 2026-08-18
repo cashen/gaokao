@@ -352,7 +352,9 @@ jobs:
           industrial_history="$(request_get school-history-industrial "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%B7%A5%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-industrial '.ok == true and .complete == true and .meta.school == "沈阳工业大学" and .meta.schoolRecordTotal == 65 and .meta.filteredTotal == 65 and (.records | length) == 65 and .source.mode == "ai-school-history-preaggregated-school-shard" and .source.sameTruthSet == true' "$industrial_history"
 
-          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E8%88%AA%E7%A9%BA%E8%88%AA%E5%A4%A7%E5%AD%A6&majorKeyword=%E6%9C%BA%E6%A2%B0&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
+          aviation_school="$(jq -rn --arg value '沈阳航空航天大学' '$value|@uri')"
+          mechanical_keyword="$(jq -rn --arg value '机械' '$value|@uri')"
+          aviation_mechanical="$(request_get school-history-aviation-mechanical "${PREVIEW_BASE}/api/ai/school-history?school=${aviation_school}&majorKeyword=${mechanical_keyword}&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
           require_json school-history-aviation-mechanical '.ok == true and .complete == true and .meta.school == "沈阳航空航天大学" and .meta.filteredTotal == 8 and (.records | length) == 8 and ([.records[].major] | all(length > 0))' "$aviation_mechanical"
 
           largest_history="$(request_get school-history-largest "${PREVIEW_BASE}/api/ai/school-history?school=%E6%B2%88%E9%98%B3%E5%86%9C%E4%B8%9A%E5%A4%A7%E5%AD%A6&offset=0&limit=120&sort=score-desc&candidate=${EXPECTED_SHA}")"
