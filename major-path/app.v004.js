@@ -1,0 +1,397 @@
+import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
+import {
+  MAJOR_PATH_NAVIGATION_META,
+  readMajorPathSourceContext
+} from '../shared/resources/majors/major-path-navigation.v003.js?v=003_0';
+
+export const MAJOR_PATH_HUMAN_VERSION = 'major-path-human-v0.04';
+export const MAJOR_PATH_VIEWPORT_VERSION = 'major-path-viewport-v0.04';
+
+const sourceContext = readMajorPathSourceContext(location);
+const els = {
+  form: document.getElementById('searchForm'),
+  input: document.getElementById('majorInput'),
+  result: document.getElementById('result'),
+  hero: document.querySelector('.hero'),
+  topbar: document.querySelector('.topbar'),
+  back: document.querySelector('.back-home')
+};
+const renderState = {
+  token: 0,
+  nextLanding: 'result',
+  directBoot: Boolean(sourceContext.fromLnRank && sourceContext.majorCode)
+};
+
+if (renderState.directBoot) document.body.classList.add('major-path-direct');
+
+function findMajorByCode(code) {
+  const key = String(code || '').trim().toUpperCase();
+  return MAJOR_CATALOG_2026.find(item => item.code === key) || null;
+}
+
+function removeQueryKeys(keys = []) {
+  const url = new URL(location.href);
+  for (const key of keys) url.searchParams.delete(key);
+  history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+function beginRenderTransaction(landing = 'result') {
+  if (!els.result) return 0;
+  renderState.token += 1;
+  renderState.nextLanding = landing;
+  els.result.hidden = true;
+  document.body.dataset.majorPathRendering = '1';
+  return renderState.token;
+}
+
+function stableFrames(callback) {
+  requestAnimationFrame(() => requestAnimationFrame(callback));
+}
+
+function landingOffset() {
+  const topbarHeight = els.topbar?.getBoundingClientRect().height || 0;
+  return Math.max(12, Math.round(topbarHeight + 10));
+}
+
+function landOn(target) {
+  if (!(target instanceof Element)) return;
+  const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - landingOffset());
+  window.scrollTo({ top, left: 0, behavior: 'auto' });
+}
+
+function finishRenderTransaction(token, landing = renderState.nextLanding) {
+  queueMicrotask(() => {
+    stableFrames(() => {
+      if (!els.result || token !== renderState.token) return;
+      humanizeResult();
+      els.result.hidden = false;
+      delete document.body.dataset.majorPathRendering;
+      stableFrames(() => {
+        const target = landing === 'pathway'
+          ? els.result.querySelector('[data-major-pathway-focus]')
+          : els.result.querySelector('.result-head, [data-result-major], .ambiguity-shell, .class-result');
+        landOn(target || els.result);
+        document.body.dataset.majorPathLanding = landing;
+      });
+    });
+  });
+}
+
+function captureRenderTransaction(landingResolver) {
+  return event => {
+    const landing = typeof landingResolver === 'function' ? landingResolver(event) : landingResolver;
+    const token = beginRenderTransaction(landing || 'result');
+    if (!token) return;
+    finishRenderTransaction(token, landing || 'result');
+  };
+}
+
+els.form?.addEventListener('submit', captureRenderTransaction(() => renderState.directBoot ? 'pathway' : 'result'), true);
+document.addEventListener('click', event => {
+  const target = event.target instanceof Element ? event.target.closest('[data-major-code], [data-major-example]') : null;
+  if (!target || target.closest('[data-graph-mode]')) return;
+  const token = beginRenderTransaction('result');
+  if (token) finishRenderTransaction(token, 'result');
+}, true);
+document.addEventListener('keydown', event => {
+  if (!['Enter', ' '].includes(event.key)) return;
+  const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
+  if (!target) return;
+  const token = beginRenderTransaction('result');
+  if (token) finishRenderTransaction(token, 'result');
+}, true);
+
+await import('./app.v002.js?v=002_0');
+
+function textReplace(root, selector, mapping) {
+  for (const node of root.querySelectorAll(selector)) {
+    const current = String(node.textContent || '').trim();
+    if (Object.prototype.hasOwnProperty.call(mapping, current)) node.textContent = mapping[current];
+  }
+}
+
+function simplifyGraphLanguage(root) {
+  textReplace(root, '.graph-legend span', {
+    '本科目录硬关系': '本科属于哪里',
+    '研究生升学导航': '读研可以先看',
+    '跨专业类升学交叉': '跨专业也可能衔接'
+  });
+  textReplace(root, '.graph-group-title', {
+    '共享的读研导航': '读研方向有重合',
+    '跨专业类升学交叉': '跨专业也可能衔接'
+  });
+  textReplace(root, '.graph-empty', {
+    '国家目录层面暂无可直接展示的方向': '国家目录没有规定固定去向',
+    '暂无证据足够强的跨类节点': '暂时没有适合直接比较的跨类专业'
+  });
+  textReplace(root, '.relationship-fallback h4', {
+    '跨专业类的升学交叉': '读研方向有重合的其他专业'
+  });
+}
+
+function humanizeDegreeCards(graduateSection) {
+  if (!graduateSection) return;
+  const cards = [...graduateSection.querySelectorAll('.degree-card')];
+  for (const card of cards) {
+    const heading = card.querySelector('h4');
+    const description = card.querySelector(':scope > p');
+    const label = String(heading?.textContent || '').trim();
+    if (label === '学术学位') {
+      heading.textContent = '学硕方向';
+      if (description) description.textContent = '先看国家目录里的一级学科；具体学校招不招、考什么，再看当年的招生目录。';
+    }
+    if (label === '专业学位') {
+      heading.textContent = '专硕方向';
+      if (description) description.textContent = '先看国家目录里的专业学位类别；具体培养方向和报考要求，以目标学校当年的招生目录为准。';
+    }
+  }
+  for (const meta of graduateSection.querySelectorAll('.degree-meta')) {
+    meta.textContent = String(meta.textContent || '')
+      .replace(/^研究生目录\s*·\s*一级学科/, '国家目录：一级学科')
+      .replace(/^研究生目录\s*·\s*专业学位类别/, '国家目录：专业学位类别');
+  }
+  const fieldTitle = graduateSection.querySelector('.field-title');
+  if (fieldTitle) fieldTitle.textContent = '有些专硕还会细分方向';
+}
+
+function conciseSourceContext(context, major) {
+  const sourceMajor = String(context.sourceMajor || '').trim();
+  if (context.context === 'school') {
+    if (sourceMajor && sourceMajor !== major.name) {
+      return {
+        title: `刚才看到：${sourceMajor}`,
+        body: `这里先了解“${major.name}”专业本身；学费、校区和合作项目回原招生记录确认。`
+      };
+    }
+    return {
+      title: context.school ? `来自刚才的${context.school}专业列表` : '来自刚才的学校专业列表',
+      body: '这里先看专业本身；这所学校具体怎么培养，仍以学校材料为准。'
+    };
+  }
+  if (sourceMajor && sourceMajor !== major.name) {
+    return {
+      title: `刚才看到：${sourceMajor}`,
+      body: `这里先了解“${major.name}”专业本身；原来的学校、项目和分数信息回招生结果继续看。`
+    };
+  }
+  return {
+    title: '来自刚才的辽宁招生结果',
+    body: '分数和学校信息留在原结果里，这里先把本科到读研的路线看清楚。'
+  };
+}
+
+function installReturnAction(context) {
+  const action = els.back;
+  if (!(action instanceof HTMLAnchorElement)) return;
+  action.href = context.returnTo || '/ln-rank/';
+  action.textContent = context.context === 'school' && context.school
+    ? `← 返回${context.school}的专业`
+    : '← 返回刚才的专业列表';
+  action.dataset.majorPathReturn = 'ln-rank';
+  if (action.dataset.majorPathReturnBound === '1') return;
+  action.dataset.majorPathReturnBound = '1';
+  action.addEventListener('click', event => {
+    if (!document.referrer) return;
+    try {
+      const referrer = new URL(document.referrer);
+      if (referrer.origin !== location.origin || !referrer.pathname.startsWith('/ln-rank/')) return;
+      event.preventDefault();
+      history.back();
+    } catch {}
+  });
+}
+
+function makePathwayFocus(shell, major, undergradSection, graduateSection) {
+  if (!undergradSection || !graduateSection) return null;
+  const existing = shell.querySelector('[data-major-pathway-focus]');
+  if (existing) return existing;
+
+  for (const section of [undergradSection, graduateSection]) {
+    if (section.previousElementSibling?.classList.contains('divider')) section.previousElementSibling.remove();
+  }
+  const answer = shell.querySelector('.answer-first');
+  if (answer?.nextElementSibling?.classList.contains('divider')) answer.nextElementSibling.remove();
+
+  const focus = document.createElement('section');
+  focus.className = 'major-pathway-focus';
+  focus.dataset.majorPathwayFocus = major.code;
+  focus.innerHTML = `<div class="pathway-focus-head"><p class="eyebrow">本科到读研，先看这条线</p><h3>${major.name}以后怎么继续学</h3><p>先看本科在国家目录里的位置，再看读研时可以优先了解的学硕、专硕方向。</p></div>`;
+
+  if (renderState.directBoot) {
+    const source = conciseSourceContext(sourceContext, major);
+    const note = document.createElement('div');
+    note.className = 'direct-context-line';
+    note.dataset.majorPathSourceBoundary = sourceContext.context || 'score';
+    note.innerHTML = `<strong>${source.title}</strong><span>${source.body}</span>`;
+    focus.append(note);
+  }
+
+  const undergradHeading = undergradSection.querySelector('.section-heading');
+  if (undergradHeading) undergradHeading.textContent = '本科先看：它属于哪里';
+  const undergradNote = undergradSection.querySelector('.relation-note');
+  if (undergradNote) undergradNote.innerHTML = '<strong>目录说明：</strong>这个专业在2026本科目录中直接列在交叉学科下，没有单列专业类。';
+
+  const graduateHeading = graduateSection.querySelector('.section-heading');
+  if (graduateHeading) graduateHeading.textContent = '如果以后读研，可以先看这些方向';
+  humanizeDegreeCards(graduateSection);
+
+  focus.append(undergradSection, graduateSection);
+  if (answer) answer.insertAdjacentElement('afterend', focus);
+  else shell.prepend(focus);
+  return focus;
+}
+
+function wrapRelationship(shell, relationship, focus) {
+  if (!relationship || !focus) return null;
+  const existing = shell.querySelector('[data-major-explore-details]');
+  if (existing) return existing;
+
+  const eyebrow = relationship.querySelector('.relationship-head .eyebrow');
+  const heading = relationship.querySelector('.relationship-head h3');
+  const warmTitle = relationship.querySelector('.relationship-warm strong');
+  const mobileHint = relationship.querySelector('.graph-mobile-hint');
+  const truthChip = relationship.querySelector('.graph-truth-chip');
+  if (eyebrow) eyebrow.textContent = '想多比较一步';
+  if (heading) heading.textContent = '和它相关的专业';
+  if (warmTitle) warmTitle.textContent = '家长可以这样看';
+  if (mobileHint) mobileHint.textContent = '点专业可以继续看；手机上可左右滑动。';
+  if (truthChip) truthChip.hidden = true;
+  textReplace(relationship, '.graph-tabs [data-graph-mode]', {
+    '按本科目录看': '看本科“亲缘”',
+    '看相邻选择与读研交叉': '看读研方向有重合'
+  });
+  simplifyGraphLanguage(relationship);
+
+  if (relationship.previousElementSibling?.classList.contains('divider')) relationship.previousElementSibling.remove();
+  const details = document.createElement('details');
+  details.className = 'human-explore-details';
+  details.dataset.majorExploreDetails = '1';
+  const summary = document.createElement('summary');
+  summary.innerHTML = '<strong>还想看看和它相关的专业？</strong><span>展开同类专业、读研方向有重合的专业和关系图</span>';
+  relationship.replaceWith(details);
+  details.append(summary, relationship);
+  focus.insertAdjacentElement('afterend', details);
+  return details;
+}
+
+function buildEvidenceDetails(shell, relationship, graduateSection, sourceSection, afterNode) {
+  const existing = shell.querySelector('[data-major-evidence-details]');
+  if (existing) return existing;
+  const details = document.createElement('details');
+  details.className = 'human-evidence-details';
+  details.dataset.majorEvidenceDetails = '1';
+  const summary = document.createElement('summary');
+  summary.innerHTML = '<strong>为什么这里只写“可以先看”，不是固定对应？</strong><span>展开看国家目录边界和官方依据</span>';
+  details.append(summary);
+
+  const intro = document.createElement('p');
+  intro.className = 'evidence-intro';
+  intro.textContent = '本科专业和研究生方向不是国家规定的一一对应关系；真正到某所学校，还要看它当年的硕士招生目录和培养方案。';
+  details.append(intro);
+
+  const secondLevel = graduateSection?.querySelector('.second-level-note');
+  if (secondLevel) {
+    const title = secondLevel.querySelector('strong');
+    const body = secondLevel.querySelector('p');
+    if (title) title.textContent = '为什么没有列到每所学校的二级方向？';
+    if (body) body.textContent = '国家研究生目录统一到一级学科和专业学位类别；更细的二级学科、专业领域和研究方向由学校按规定设置，所以要继续看目标学校当年的招生目录。';
+    details.append(secondLevel);
+  }
+
+  const routeBoundary = [...(graduateSection?.querySelectorAll('.relation-note') || [])].find(node => !node.closest('.undergrad-line'));
+  if (routeBoundary) {
+    const strong = routeBoundary.querySelector('strong');
+    if (strong) strong.textContent = '需要注意：';
+    details.append(routeBoundary);
+  }
+  const graphBoundary = relationship?.querySelector('.graph-boundary');
+  if (graphBoundary) {
+    const strong = graphBoundary.querySelector('strong');
+    if (strong) strong.textContent = '相近不等于一样。';
+    details.append(graphBoundary);
+  }
+  if (sourceSection) {
+    if (sourceSection.previousElementSibling?.classList.contains('divider')) sourceSection.previousElementSibling.remove();
+    const heading = sourceSection.querySelector('.section-heading');
+    if (heading) heading.textContent = '官方依据';
+    details.append(sourceSection);
+  }
+  afterNode?.insertAdjacentElement('afterend', details);
+  return details;
+}
+
+function installChangeMajorAction(focus) {
+  if (!renderState.directBoot || !focus || focus.querySelector('[data-major-path-change-major]')) return;
+  const actions = document.createElement('div');
+  actions.className = 'pathway-actions';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'direct-change-major';
+  button.dataset.majorPathChangeMajor = '1';
+  button.textContent = '换个专业';
+  button.addEventListener('click', () => {
+    renderState.directBoot = false;
+    document.body.classList.remove('major-path-direct');
+    removeQueryKeys(['majorCode', 'major', 'from', 'context', 'sourceKey', 'sourceMajor', 'school', 'returnTo']);
+    if (els.input) els.input.value = '';
+    els.hero?.removeAttribute('hidden');
+    els.input?.focus();
+    stableFrames(() => landOn(els.hero));
+  });
+  actions.append(button);
+  focus.append(actions);
+}
+
+function humanizeMajorResult(shell) {
+  const code = shell.dataset.resultMajor || '';
+  const major = findMajorByCode(code);
+  if (!major) return;
+  const sections = [...shell.children].filter(node => node.tagName === 'SECTION');
+  const undergrad = sections.find(section => section.querySelector('.section-heading')?.textContent.includes('本科目录里的位置'));
+  const graduate = sections.find(section => section.querySelector('.section-heading')?.textContent.includes('继续读研'));
+  const source = sections.find(section => section.querySelector('.section-heading')?.textContent.includes('权威依据'));
+  const relationship = shell.querySelector('.relationship-section');
+  const focus = makePathwayFocus(shell, major, undergrad, graduate);
+  const explore = wrapRelationship(shell, relationship, focus);
+  buildEvidenceDetails(shell, relationship, graduate, source, explore || focus);
+  installChangeMajorAction(focus);
+  simplifyGraphLanguage(shell);
+}
+
+function humanizeResult() {
+  if (!els.result) return;
+  const shell = els.result.querySelector('[data-result-major]');
+  if (shell) humanizeMajorResult(shell);
+  else simplifyGraphLanguage(els.result);
+}
+
+function directBoot(context) {
+  if (!context.fromLnRank || !context.majorCode) return false;
+  const major = findMajorByCode(context.majorCode);
+  if (!major || !(els.input instanceof HTMLInputElement) || !(els.form instanceof HTMLFormElement)) {
+    renderState.directBoot = false;
+    document.body.classList.remove('major-path-direct');
+    return false;
+  }
+  installReturnAction(context);
+  els.input.value = major.name;
+  renderState.nextLanding = 'pathway';
+  els.form.requestSubmit();
+  document.body.dataset.majorPathDirect = MAJOR_PATH_HUMAN_VERSION;
+  document.title = `${major.name}：本科到读研怎么走 - 专业升学地图`;
+  return true;
+}
+
+if (!directBoot(sourceContext)) {
+  humanizeResult();
+}
+
+document.body.dataset.majorPathHumanVersion = MAJOR_PATH_HUMAN_VERSION;
+window.__MAJOR_PATH_HUMAN_META__ = Object.freeze({
+  version: MAJOR_PATH_HUMAN_VERSION,
+  viewportVersion: MAJOR_PATH_VIEWPORT_VERSION,
+  coreVersion: window.__MAJOR_PATH_META__?.version || 'major-path-v0.02',
+  navigationVersion: MAJOR_PATH_NAVIGATION_META.version,
+  direct: renderState.directBoot,
+  context: sourceContext.context || ''
+});
