@@ -1,0 +1,83 @@
+name: Verify unified background context v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'shared/resources/background/**'
+      - 'shared/resources/majors/major-path-navigation.v003.js'
+      - 'functions/_lib/academic-background-context-reader.js'
+      - 'functions/_lib/ai/**'
+      - 'aiplus/selection-workbench.v005.js'
+      - 'ln-rank/data/background-context/**'
+      - 'ln-rank/js/workspace/major-path-handoff.v003.js'
+      - 'ln-rank/js/academic-background/background-context-direct.v001.js'
+      - 'ln-rank/css/background-context-direct.v001.css'
+      - 'ln-rank/local-mainline.html'
+      - 'ln-rank/211-mainline.html'
+      - 'major-path/**'
+      - 'tools/build-background-context-index-v001.mjs'
+      - 'tools/verify-unified-background-context-v001.mjs'
+      - 'docs/architecture/UNIFIED-BACKGROUND-CONTEXT-STATUS.md'
+      - '.github/workflows/verify-unified-background-context-v001.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/resources/background/**'
+      - 'functions/_lib/academic-background-context-reader.js'
+      - 'functions/_lib/ai/**'
+      - 'ln-rank/data/background-context/**'
+      - 'major-path/**'
+      - 'tools/verify-unified-background-context-v001.mjs'
+      - '.github/workflows/verify-unified-background-context-v001.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check shared/resources/background/academic-background-context.v001.js
+          node --check shared/resources/background/academic-background-navigation.v001.js
+          node --check functions/_lib/academic-background-context-reader.js
+          node --check functions/_lib/ai/background-resource-adapter.js
+          node --check functions/_lib/ai/human-query-frame.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check major-path/app.v004.js
+          node --check major-path/background-context.v001.js
+          node --check ln-rank/js/academic-background/background-context-direct.v001.js
+          node --check aiplus/selection-workbench.v005.js
+      - name: Rebuild derived evidence index deterministically
+        run: |
+          node tools/build-background-context-index-v001.mjs
+          git diff --exit-code -- ln-rank/data/background-context/background-context-index.v001.json ln-rank/data/background-context/background-context-audit.v001.json
+      - name: Verify unified background source truth and semantics
+        run: node tools/verify-unified-background-context-v001.mjs
+      - name: Preserve architecture handoff
+        run: node tools/audit-architecture-handoff-v3990_1.mjs
+      - name: Preserve protected boundaries and release exports
+        shell: bash
+        run: |
+          base_ref="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -n "$base_ref" ] && git cat-file -e "$base_ref^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$base_ref" HEAD)"
+            if echo "$changed" | grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)'; then
+              echo 'protected path changed'
+              exit 1
+            fi
+          fi
+          grep -q 'LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'RELEASE_CONTRACT' functions/_lib/release-contract.js
