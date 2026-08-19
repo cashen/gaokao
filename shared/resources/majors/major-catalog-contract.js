@@ -45,6 +45,44 @@ export function adaptMajorCatalogRow(row = {}) {
   });
 }
 
+/**
+ * Normalizes only the hierarchy identity of a 2026 undergraduate-catalog row.
+ *
+ * The browser-facing legacy catalog predates the 2026 cross-discipline move and
+ * may carry a historical `majorClass` display label without the canonical
+ * `categoryCode`. For ordinary six-digit majors, the first four numeric digits
+ * remain the official major-class code. For the new 14 交叉学科门类, the 2026
+ * standard catalog intentionally leaves categoryCode/categoryName empty. In
+ * that state we must preserve “专业类未单列” rather than invent `1400` or reuse
+ * a historical class label.
+ */
+export function deriveMajorCatalogHierarchy(row = {}) {
+  const adapted = adaptMajorCatalogRow(row);
+  const numeric = adapted.code.replace(/[^0-9]/g, '');
+  const disciplineCode = adapted.disciplineCode || (numeric.length >= 2 ? numeric.slice(0, 2) : '');
+  const disciplineName = adapted.disciplineName;
+  const explicitCategoryCode = String(row.categoryCode || row.majorClassCode || '').trim();
+  const explicitCategoryName = String(row.categoryName || '').trim();
+  const categoryIsUnlisted = disciplineCode === '14' && !explicitCategoryCode;
+  const categoryCode = categoryIsUnlisted
+    ? ''
+    : (explicitCategoryCode || (numeric.length >= 4 ? numeric.slice(0, 4) : ''));
+  const categoryName = categoryIsUnlisted
+    ? ''
+    : (explicitCategoryName || String(row.majorClass || adapted.categoryName || '').trim());
+
+  return Object.freeze({
+    code: adapted.code,
+    name: adapted.name,
+    disciplineCode,
+    disciplineName,
+    categoryCode,
+    categoryName,
+    categoryIsUnlisted,
+    catalogYear: adapted.catalogYear
+  });
+}
+
 export function createMajorCatalogResolver(rows = [], categories = []) {
   const majors = (Array.isArray(rows) ? rows : []).map(adaptMajorCatalogRow).filter(item => item.code && item.name);
   const byCode = new Map();
