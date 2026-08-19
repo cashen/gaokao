@@ -1,201 +1,204 @@
-export const AI_BACKGROUND_STATIC_RESOURCE = '/ln-rank/data/local-strength/local-strength-index.v3971_2.json';
-export const AI_BACKGROUND_RESOURCE_ADAPTER_VERSION = 'ai-background-resource-adapter-v3992_2';
+import { loadAcademicBackgroundContextSnapshot } from '../academic-background-context-reader.js';
+import {
+  ACADEMIC_BACKGROUND_CONTEXT_RESOURCE,
+  listMajorBackgroundSchools,
+  listSchoolBackgroundMajors,
+  normalizeBackgroundIdentityText,
+  normalizeBackgroundScope,
+  queryAcademicBackgroundContext,
+  resolveSchoolMajorBackgroundContext
+} from '../../../shared/resources/background/academic-background-context.v001.js';
+
+export const AI_BACKGROUND_STATIC_RESOURCE = ACADEMIC_BACKGROUND_CONTEXT_RESOURCE;
+export const AI_BACKGROUND_RESOURCE_ADAPTER_VERSION = 'ai-background-resource-adapter-v3992_3';
 
 function clean(value, max = 220) {
   return String(value == null ? '' : value).trim().slice(0, max);
 }
 
-function normalizeText(value) {
-  return clean(value, 260)
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[（【\[]/g, '(')
-    .replace(/[）】\]]/g, ')')
-    .replace(/[\s·•,，。；;：:'"“”‘’!！?？_—-]+/g, '');
-}
-
-function baseUrl(context = {}) {
-  const raw = context?.request?.url || 'https://example.invalid/';
-  return new URL(raw).origin;
-}
-
-async function fetchStaticJson(context, pathname) {
-  const url = new URL(pathname, baseUrl(context));
-  let response = null;
-  if (context?.env?.ASSETS?.fetch) {
-    try {
-      response = await context.env.ASSETS.fetch(new Request(url.toString(), {
-        method: 'GET',
-        headers: { accept: 'application/json' }
-      }));
-    } catch {
-      response = null;
-    }
-  }
-  if (!response || !response.ok) {
-    response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { accept: 'application/json' },
-      cf: { cacheTtl: 300, cacheEverything: true }
-    });
-  }
-  if (!response.ok) throw new Error(`AI background static resource fetch failed ${response.status}`);
-  return response.json();
+function unique(values = [], max = 32) {
+  return [...new Set((Array.isArray(values) ? values : []).map(value => clean(value, 180)).filter(Boolean))].slice(0, max);
 }
 
 export async function loadAiBackgroundSnapshot(context) {
-  const payload = await fetchStaticJson(context, AI_BACKGROUND_STATIC_RESOURCE);
-  if (payload?.version !== 'local-strength-static-v3971_2') {
-    throw new Error(`AI background static resource version mismatch: ${clean(payload?.version, 80)}`);
-  }
-  if (!Array.isArray(payload.records) || !Array.isArray(payload.schools)) {
-    throw new Error('AI background static resource shape mismatch');
-  }
-  return payload;
+  return loadAcademicBackgroundContextSnapshot(context);
 }
 
-function evidenceLevel(record = {}) {
-  return clean(record?.background?.level || '', 30);
-}
-
-function directionOf(record = {}) {
-  return clean(record?.background?.direction || record?.background?.label || record?.standardMajor?.name || record?.major, 160);
-}
-
-function admissionMajorOf(record = {}) {
-  return clean(record?.standardMajor?.name || record?.major, 160);
-}
-
-function schoolMetaMap(snapshot = {}) {
-  return new Map((snapshot.schools || []).map(item => [normalizeText(item?.officialName), item]));
-}
-
-function regionAllows(meta = {}, regionKeys = ['all']) {
-  const keys = Array.isArray(regionKeys) && regionKeys.length ? regionKeys : ['all'];
-  if (keys.includes('all') || keys.includes('ln') || keys.includes('province:辽宁')) return true;
-  const city = clean(meta?.city, 80);
-  if (keys.includes('shenyang') && city.includes('沈阳')) return true;
-  if (keys.includes('dalian') && city.includes('大连')) return true;
-  if (keys.includes('ln-other') && city && !city.includes('沈阳') && !city.includes('大连')) return true;
-  return false;
-}
-
-function sourceMeta(snapshot = {}) {
-  const backgroundMeta = snapshot.academicBackgroundMeta && typeof snapshot.academicBackgroundMeta === 'object'
-    ? snapshot.academicBackgroundMeta
-    : {};
+function sourceMeta(snapshot = {}, scope = 'auto') {
   return {
-    ...backgroundMeta,
     resourceVersion: snapshot.version || '',
     resourcePath: AI_BACKGROUND_STATIC_RESOURCE,
-    dataYear: Number(snapshot?.meta?.dataYear || 2026),
     generatedAt: snapshot.generatedAt || '',
-    boundary: clean(backgroundMeta.boundary || snapshot?.meta?.boundary || '只展示已发布静态背景证据资源中通过门禁的方向；未显示不代表学校或专业没有优势。', 500)
+    scope: normalizeBackgroundScope(scope),
+    sourceScopes: snapshot.meta?.sourceScopes || ['liaoning', '211'],
+    executionRole: snapshot.meta?.executionRole || 'derived-evidence-index-only',
+    boundary: clean(snapshot.meta?.boundary || '只展示已发布背景证据资源中通过门禁的学校×专业关系；未显示不代表弱项。', 500)
   };
 }
 
-function groupDirections(records = []) {
-  const byDirection = new Map();
+function primaryDirection(matches = []) {
+  return unique(matches.flatMap(item => item.directions || []), 6).join(' / ');
+}
+
+function evidenceLevel(matches = []) {
+  const rank = { primary: 3, secondary: 2, trajectory: 1 };
+  return [...matches].sort((a, b) => (rank[b.level] || 0) - (rank[a.level] || 0))[0]?.level || 'trajectory';
+}
+
+function contextItemFromMajor(item = {}) {
+  const matches = item.matches || [];
+  const major = item.canonicalMajor?.name || '';
+  return {
+    major,
+    canonicalMajor: item.canonicalMajor || null,
+    direction: primaryDirection(matches) || major,
+    entityKind: 'canonical_major_background',
+    historyQueryable: Boolean(item.canonicalMajor?.code),
+    admissionMajors: unique(matches.flatMap(match => match.admissionMajors || []), 16),
+    school: item.school || '',
+    schools: item.school ? [{ school: item.school, city: clean(matches[0]?.city || matches[0]?.displayLocation, 80), admissionMajors: unique(matches.flatMap(match => match.admissionMajors || []), 16) }] : [],
+    schoolCount: item.school ? 1 : 0,
+    scopesMatched: item.scopesMatched || unique(matches.map(match => match.scope), 4),
+    primaryCount: matches.filter(match => match.level === 'primary').length,
+    secondaryCount: matches.filter(match => match.level === 'secondary').length,
+    recordCount: matches.length,
+    evidence: item.evidence || [],
+    sources: item.sources || [],
+    overview: matches[0]?.note || '',
+    boundary: '背景证据用于学校×专业复核；省内与211是证据视角，不相加成推荐分。'
+  };
+}
+
+function contextItemFromSchool(item = {}) {
+  const matches = item.matches || [];
+  return {
+    school: item.school || '',
+    city: item.city || '',
+    major: item.canonicalMajor?.name || '',
+    canonicalMajor: item.canonicalMajor || null,
+    direction: primaryDirection(matches) || item.canonicalMajor?.name || '专业背景',
+    entityKind: 'school_major_background',
+    historyQueryable: Boolean(item.canonicalMajor?.code),
+    admissionMajors: unique(matches.flatMap(match => match.admissionMajors || []), 16),
+    scopesMatched: item.scopesMatched || unique(matches.map(match => match.scope), 4),
+    level: evidenceLevel(matches),
+    evidence: item.evidence || [],
+    sources: item.sources || [],
+    overview: matches[0]?.note || '',
+    boundary: '学校平台身份与具体专业背景分开；这里只表示当前有可核验的学校×专业证据。'
+  };
+}
+
+function groupDiscovery(records = []) {
+  const byMajor = new Map();
   for (const record of records) {
-    const direction = directionOf(record);
-    if (!direction) continue;
-    let item = byDirection.get(direction);
+    const code = clean(record?.canonicalMajor?.code, 30);
+    if (!code) continue;
+    let item = byMajor.get(code);
     if (!item) {
       item = {
-        // Compatibility display alias only. Queryability is explicit below; never use this as a history-query key.
-        major: direction,
-        direction,
-        entityKind: 'background_direction',
-        historyQueryable: false,
-        admissionMajors: new Map(),
+        major: record.canonicalMajor?.name || '',
+        canonicalMajor: record.canonicalMajor || null,
+        direction: record.canonicalMajor?.name || '',
+        entityKind: 'canonical_major_background',
+        historyQueryable: true,
+        admissionMajors: new Set(),
         schools: new Map(),
+        scopes: new Set(),
         primaryCount: 0,
         secondaryCount: 0,
         recordCount: 0,
-        overview: clean(record?.background?.label || record?.background?.evidenceLabel || '', 220)
+        evidenceCount: 0
       };
-      byDirection.set(direction, item);
+      byMajor.set(code, item);
     }
-    const admissionMajor = admissionMajorOf(record);
-    if (admissionMajor) item.admissionMajors.set(normalizeText(admissionMajor), admissionMajor);
-    const school = clean(record?.school, 120);
-    if (school) {
-      const schoolKey = normalizeText(school);
-      let schoolItem = item.schools.get(schoolKey);
-      if (!schoolItem) {
-        schoolItem = { school, city: clean(record?.city || record?.displayLocation, 80), admissionMajors: new Map() };
-        item.schools.set(schoolKey, schoolItem);
-      }
-      if (admissionMajor) schoolItem.admissionMajors.set(normalizeText(admissionMajor), admissionMajor);
-    }
-    if (evidenceLevel(record) === 'primary') item.primaryCount += 1;
+    for (const major of record.admissionMajors || []) item.admissionMajors.add(clean(major, 180));
+    const school = clean(record.schoolIdentity || record.school, 140);
+    if (school) item.schools.set(normalizeBackgroundIdentityText(school), { school, city: clean(record.city || record.displayLocation, 80), admissionMajors: unique(record.admissionMajors || [], 12) });
+    item.scopes.add(record.scope);
+    if (record.level === 'primary') item.primaryCount += 1;
     else item.secondaryCount += 1;
     item.recordCount += 1;
+    item.evidenceCount += Array.isArray(record.evidence) ? record.evidence.length : 0;
   }
-  return [...byDirection.values()].map(item => ({
+  return [...byMajor.values()].map(item => ({
     ...item,
-    admissionMajors: [...item.admissionMajors.values()],
-    schools: [...item.schools.values()].map(school => ({ ...school, admissionMajors: [...school.admissionMajors.values()] })),
+    admissionMajors: [...item.admissionMajors],
+    schools: [...item.schools.values()],
+    scopesMatched: [...item.scopes],
     schoolCount: item.schools.size,
-    evidenceScore: item.primaryCount * 5 + item.secondaryCount * 2 + item.schools.size
+    evidenceScore: item.primaryCount * 5 + item.secondaryCount * 2 + item.evidenceCount + item.schools.size
   }));
 }
 
-export function backgroundDiscoveryFromSnapshot(snapshot, { limit = 12, regionKeys = ['ln'] } = {}) {
-  const metaBySchool = schoolMetaMap(snapshot);
-  const scoped = (snapshot.records || []).filter(record => {
-    const meta = metaBySchool.get(normalizeText(record?.school)) || { city: record?.city || record?.displayLocation || '' };
-    return regionAllows(meta, regionKeys);
-  });
-  const items = groupDirections(scoped)
-    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.direction).localeCompare(String(b.direction), 'zh-CN'));
+export function backgroundDiscoveryFromSnapshot(snapshot, { limit = 12, regionKeys = ['ln'], scope = 'auto' } = {}) {
+  const resolved = queryAcademicBackgroundContext(snapshot, { scope, regionKeys, limit: 500 });
+  const items = resolved.ok
+    ? groupDiscovery(resolved.records).sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.major).localeCompare(String(b.major), 'zh-CN'))
+    : [];
   return {
     items: items.slice(0, Math.max(6, Math.min(20, Number(limit || 12)))),
     totalWithEvidence: items.length,
-    meta: sourceMeta(snapshot)
+    scope: normalizeBackgroundScope(scope),
+    meta: sourceMeta(snapshot, scope)
   };
 }
 
-export function schoolBackgroundFromSnapshot(snapshot, school) {
-  const needle = normalizeText(school);
-  const records = (snapshot.records || []).filter(record => normalizeText(record?.school) === needle);
-  const items = groupDirections(records).map(item => ({ ...item, school: clean(school, 120) }));
-  return { items, meta: sourceMeta(snapshot) };
-}
-
-export function schoolBackgroundDirectionFromSnapshot(snapshot, school, direction) {
-  const needle = normalizeText(direction);
-  if (!needle) return null;
-  return schoolBackgroundFromSnapshot(snapshot, school).items.find(item => normalizeText(item?.direction) === needle) || null;
-}
-
-export function majorBackgroundFromSnapshot(snapshot, major) {
-  const needle = normalizeText(major);
-  const records = (snapshot.records || []).filter(record => {
-    const majorText = normalizeText(record?.major);
-    const direction = normalizeText(directionOf(record));
-    return needle && (majorText.includes(needle) || direction.includes(needle) || needle.includes(direction));
-  });
-  const items = groupDirections(records)
-    .sort((a, b) => b.evidenceScore - a.evidenceScore || String(a.direction).localeCompare(String(b.direction), 'zh-CN'));
-  return { items, meta: sourceMeta(snapshot) };
-}
-
-function candidateEvidenceKey(school, major) {
-  return `${normalizeText(school)}|${normalizeText(major)}`;
-}
-
-export function matchCandidateBackgrounds(snapshot, candidateRecords = []) {
-  const byKey = new Map();
-  for (const record of snapshot.records || []) {
-    const key = candidateEvidenceKey(record?.school, record?.major);
-    if (key && !byKey.has(key)) byKey.set(key, record?.background || null);
+export function schoolBackgroundFromSnapshot(snapshot, school, { scope = 'auto', major = '', majorCode = '' } = {}) {
+  if (major || majorCode) {
+    const exact = resolveSchoolMajorBackgroundContext(snapshot, { school, majorName: major, majorCode, scope });
+    const items = exact.matched ? [contextItemFromMajor({ school: exact.school, canonicalMajor: exact.canonicalMajor, matches: exact.matches, scopesMatched: exact.scopesMatched, evidence: exact.evidence, sources: exact.sources })] : [];
+    return { items, exact, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope) };
   }
+  const resolved = listSchoolBackgroundMajors(snapshot, { school, scope, limit: 120 });
+  const items = resolved.ok ? resolved.items.map(contextItemFromMajor) : [];
+  return { items, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope) };
+}
+
+export function schoolBackgroundDirectionFromSnapshot(snapshot, school, direction, { scope = 'auto' } = {}) {
+  const needle = normalizeBackgroundIdentityText(direction);
+  if (!needle) return null;
+  return schoolBackgroundFromSnapshot(snapshot, school, { scope }).items.find(item => {
+    const values = [item.major, item.direction, ...(item.admissionMajors || [])].map(normalizeBackgroundIdentityText);
+    return values.some(value => value === needle || (value.length >= 4 && needle.includes(value)) || (needle.length >= 4 && value.includes(needle)));
+  }) || null;
+}
+
+export function majorBackgroundFromSnapshot(snapshot, major, { scope = 'auto', regionKeys = ['all'], majorCode = '' } = {}) {
+  const resolved = listMajorBackgroundSchools(snapshot, { majorName: major, majorCode, scope, regionKeys, limit: 160 });
+  const items = resolved.ok ? resolved.items.map(contextItemFromSchool) : [];
+  return { items, total: resolved.total || 0, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope), boundary: resolved.boundary || '' };
+}
+
+function candidateMajorIdentity(record = {}) {
+  const code = clean(record?.standardMajor?.code, 30).toUpperCase();
+  const name = clean(record?.standardMajor?.name || record?.major, 180);
+  return { majorCode: code, majorName: name };
+}
+
+export function matchCandidateBackgrounds(snapshot, candidateRecords = [], { scope = 'auto' } = {}) {
   const matched = [];
   for (const record of candidateRecords || []) {
-    const background = byKey.get(candidateEvidenceKey(record?.school, record?.major));
-    if (!background) continue;
-    matched.push({ record, background });
+    const major = candidateMajorIdentity(record);
+    const context = resolveSchoolMajorBackgroundContext(snapshot, {
+      school: record?.school || record?.schoolName || '',
+      ...major,
+      scope
+    });
+    if (!context.matched) continue;
+    matched.push({
+      record,
+      background: {
+        scope: normalizeBackgroundScope(scope),
+        scopesMatched: context.scopesMatched,
+        level: evidenceLevel(context.matches),
+        direction: primaryDirection(context.matches) || context.canonicalMajor?.name || major.majorName,
+        canonicalMajor: context.canonicalMajor,
+        evidence: context.evidence,
+        sources: context.sources,
+        boundary: context.boundary
+      }
+    });
   }
-  return { items: matched, meta: sourceMeta(snapshot) };
+  return { items: matched, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope) };
 }
