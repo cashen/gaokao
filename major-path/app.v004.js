@@ -147,21 +147,6 @@ document.addEventListener('keydown', event => {
   beginStableResultPresentation();
 }, true);
 
-els.result?.addEventListener('click', event => {
-  const target = event.target instanceof Element
-    ? event.target.closest('[data-major-code], [data-expand-disambiguation]')
-    : null;
-  if (!target || target.closest('[data-graph-mode]')) return;
-  beginStableResultPresentation();
-}, true);
-
-els.result?.addEventListener('keydown', event => {
-  if (!['Enter', ' '].includes(event.key)) return;
-  const target = event.target instanceof Element ? event.target.closest('.graph-node[data-major-code]') : null;
-  if (!target) return;
-  beginStableResultPresentation();
-}, true);
-
 await import('./app.v002.js?v=002_0');
 bootState.coreReady = true;
 document.body.dataset.majorPathCoreReady = '1';
@@ -446,6 +431,26 @@ function humanizeResult() {
   if (shell) humanizeMajorResult(shell);
   else simplifyGraphLanguage(els.result);
 }
+
+function eventPathMatches(event, selector) {
+  return event.composedPath().some(node => node instanceof Element && node.matches(selector));
+}
+
+els.result?.addEventListener('click', event => {
+  if (eventPathMatches(event, '[data-graph-mode]')) return;
+  if (!eventPathMatches(event, '[data-major-code], [data-expand-disambiguation]')) return;
+  // v0.02 is registered first and synchronously owns the semantic result mutation.
+  // Read and humanize the current result now; never infer new state from a detached target.
+  humanizeResult();
+  beginStableResultPresentation();
+});
+
+els.result?.addEventListener('keydown', event => {
+  if (!['Enter', ' '].includes(event.key)) return;
+  if (!eventPathMatches(event, '.graph-node[data-major-code]')) return;
+  humanizeResult();
+  beginStableResultPresentation();
+});
 
 document.addEventListener('click', event => {
   const mode = event.target instanceof Element ? event.target.closest('[data-graph-mode]') : null;
