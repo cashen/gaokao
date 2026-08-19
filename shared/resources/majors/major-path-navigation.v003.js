@@ -57,6 +57,7 @@ export function readMajorPathSourceContext(locationLike = globalThis.location) {
     context: url.searchParams.get('context') === 'school' ? 'school' : 'score',
     sourceKey: text(url.searchParams.get('sourceKey')),
     sourceMajor: text(url.searchParams.get('sourceMajor')),
+    sourceSurface: text(url.searchParams.get('sourceSurface')),
     canonicalName: text(url.searchParams.get('canonicalName')),
     school: text(url.searchParams.get('school')),
     returnTo: sanitizeMajorPathReturnTarget(url.searchParams.get('returnTo') || '/ln-rank/', { origin: url.origin })

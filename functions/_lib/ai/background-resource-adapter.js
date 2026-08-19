@@ -29,6 +29,7 @@ function sourceMeta(snapshot = {}, scope = 'auto') {
     resourceVersion: snapshot.version || '',
     resourcePath: AI_BACKGROUND_STATIC_RESOURCE,
     generatedAt: snapshot.generatedAt || '',
+    dataYear: Number(snapshot.meta?.dataYear || 2026),
     scope: normalizeBackgroundScope(scope),
     sourceScopes: snapshot.meta?.sourceScopes || ['liaoning', '211'],
     executionRole: snapshot.meta?.executionRole || 'derived-evidence-index-only',
@@ -105,6 +106,7 @@ function groupDiscovery(records = []) {
         admissionMajors: new Set(),
         schools: new Map(),
         scopes: new Set(),
+        directions: new Set(),
         primaryCount: 0,
         secondaryCount: 0,
         recordCount: 0,
@@ -116,6 +118,7 @@ function groupDiscovery(records = []) {
     const school = clean(record.schoolIdentity || record.school, 140);
     if (school) item.schools.set(normalizeBackgroundIdentityText(school), { school, city: clean(record.city || record.displayLocation, 80), admissionMajors: unique(record.admissionMajors || [], 12) });
     item.scopes.add(record.scope);
+    for (const direction of record.directions || []) item.directions.add(clean(direction, 180));
     if (record.level === 'primary') item.primaryCount += 1;
     else item.secondaryCount += 1;
     item.recordCount += 1;
@@ -126,6 +129,8 @@ function groupDiscovery(records = []) {
     admissionMajors: [...item.admissionMajors],
     schools: [...item.schools.values()],
     scopesMatched: [...item.scopes],
+    direction: [...item.directions][0] || item.major,
+    directions: [...item.directions],
     schoolCount: item.schools.size,
     evidenceScore: item.primaryCount * 5 + item.secondaryCount * 2 + item.evidenceCount + item.schools.size
   }));
@@ -171,8 +176,8 @@ export function majorBackgroundFromSnapshot(snapshot, major, { scope = 'auto', r
 }
 
 function candidateMajorIdentity(record = {}) {
-  const code = clean(record?.standardMajor?.code, 30).toUpperCase();
-  const name = clean(record?.standardMajor?.name || record?.major, 180);
+  const code = clean(record?.standardMajor?.code || record?.standardMajorCode, 30).toUpperCase();
+  const name = clean(record?.standardMajor?.name || record?.standardMajorName || record?.major, 180);
   return { majorCode: code, majorName: name };
 }
 

@@ -1,4 +1,5 @@
 import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
+import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION } from './background-context.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
   readMajorPathSourceContext
@@ -212,6 +213,12 @@ function humanizeDegreeCards(graduateSection) {
 
 function conciseSourceContext(context, major) {
   const sourceMajor = String(context.sourceMajor || '').trim();
+  if (context.sourceSurface === 'academic-background') {
+    return {
+      title: context.school ? `来自刚才的${context.school}专业背景依据` : '来自刚才的专业背景依据',
+      body: '这里继续看专业本身和本科到读研路径；学校背景证据仍回刚才页面核验。'
+    };
+  }
   if (context.context === 'school') {
     if (sourceMajor && sourceMajor !== major.name) {
       return {
@@ -249,9 +256,11 @@ function installReturnAction(context) {
   const action = els.back;
   if (!(action instanceof HTMLAnchorElement)) return;
   action.href = context.returnTo || '/ln-rank/';
-  action.textContent = context.context === 'school' && context.school
-    ? `← 返回${context.school}的专业`
-    : '← 返回刚才的专业列表';
+  action.textContent = context.sourceSurface === 'academic-background'
+    ? '← 返回背景依据'
+    : context.context === 'school' && context.school
+      ? `← 返回${context.school}的专业`
+      : '← 返回刚才的专业列表';
   action.dataset.majorPathReturn = 'ln-rank';
   if (action.dataset.majorPathReturnBound === '1') return;
   action.dataset.majorPathReturnBound = '1';
@@ -308,7 +317,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   return focus;
 }
 
-function wrapRelationship(shell, relationship, focus) {
+function wrapRelationship(shell, relationship, focus, anchor = focus) {
   if (!relationship || !focus) return null;
   const existing = shell.querySelector('[data-major-explore-details]');
   if (existing) return existing;
@@ -337,7 +346,7 @@ function wrapRelationship(shell, relationship, focus) {
   summary.innerHTML = '<strong>还想看看和它相关的专业？</strong><span>展开同类专业、读研方向有重合的专业和关系图</span>';
   relationship.replaceWith(details);
   details.append(summary, relationship);
-  focus.insertAdjacentElement('afterend', details);
+  anchor?.insertAdjacentElement('afterend', details);
   return details;
 }
 
@@ -399,7 +408,7 @@ function installChangeMajorAction(focus) {
   button.addEventListener('click', () => {
     renderState.directBoot = false;
     document.body.classList.remove('major-path-direct');
-    removeQueryKeys(['majorCode', 'major', 'from', 'context', 'sourceKey', 'sourceMajor', 'school', 'returnTo']);
+    removeQueryKeys(['majorCode', 'major', 'from', 'context', 'sourceKey', 'sourceMajor', 'sourceSurface', 'school', 'returnTo']);
     if (els.input) els.input.value = '';
     els.hero?.removeAttribute('hidden');
     els.input?.focus();
@@ -419,8 +428,9 @@ function humanizeMajorResult(shell) {
   const source = sections.find(section => section.querySelector('.section-heading')?.textContent.includes('权威依据'));
   const relationship = shell.querySelector('.relationship-section');
   const focus = makePathwayFocus(shell, major, undergrad, graduate);
-  const explore = wrapRelationship(shell, relationship, focus);
-  buildEvidenceDetails(shell, relationship, graduate, source, explore || focus);
+  const background = mountMajorPathBackgroundContext({ shell, major, focus, sourceContext, direct: renderState.directBoot });
+  const explore = wrapRelationship(shell, relationship, focus, background || focus);
+  buildEvidenceDetails(shell, relationship, graduate, source, explore || background || focus);
   installChangeMajorAction(focus);
   simplifyGraphLanguage(shell);
 }
@@ -486,6 +496,7 @@ window.__MAJOR_PATH_HUMAN_META__ = Object.freeze({
   viewportVersion: MAJOR_PATH_VIEWPORT_VERSION,
   coreVersion: window.__MAJOR_PATH_META__?.version || 'major-path-v0.02',
   navigationVersion: MAJOR_PATH_NAVIGATION_META.version,
+  backgroundVersion: MAJOR_PATH_BACKGROUND_CONTEXT_VERSION,
   direct: renderState.directBoot,
   context: sourceContext.context || ''
 });

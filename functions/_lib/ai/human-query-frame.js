@@ -1,4 +1,4 @@
-export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.03';
+export const AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.04';
 
 const SCORE_MIN=150;
 const SCORE_MAX=750;
@@ -51,6 +51,18 @@ export function scoreWithinConstraint(score,constraint={}){
   if(min!==null&&value<min)return false;
   if(max!==null&&value>max)return false;
   return Boolean(min!==null||max!==null);
+}
+
+export function backgroundScopeFromText(value=''){
+  const source=text(value);
+  if(!source)return{scope:'auto',explicit:false,index:-1,token:''};
+  const backgroundLanguage=/(?:背景|底子|积累|强项|优势|建设学科|专业方向|学科方向)/.test(source);
+  if(!backgroundLanguage)return{scope:'auto',explicit:false,index:-1,token:''};
+  const match211=/(?:211(?:院校|高校|学校|里|范围|背景|专业背景)|(?:只看|看看|查询|查|在|从).{0,5}211)/.exec(source);
+  const matchLiaoning=/(?:省内背景|辽宁(?:省)?(?:背景|院校|高校|学校|范围)?|省内(?:院校|高校|学校|范围)?)/.exec(source);
+  if(match211&&(!matchLiaoning||match211.index<=matchLiaoning.index))return{scope:'211',explicit:true,index:match211.index,token:match211[0]};
+  if(matchLiaoning)return{scope:'liaoning',explicit:true,index:matchLiaoning.index,token:matchLiaoning[0]};
+  return{scope:'auto',explicit:false,index:-1,token:''};
 }
 
 export function collectionScopeFromText(value=''){

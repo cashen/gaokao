@@ -1,4 +1,5 @@
 import { normalizeBackgroundScope } from './academic-background-context.v001.js';
+import { buildMajorPathHref } from '../majors/major-path-navigation.v003.js?v=003_0';
 
 export const ACADEMIC_BACKGROUND_NAVIGATION_VERSION = 'academic-background-navigation-v0.01';
 export const ACADEMIC_BACKGROUND_PATHS = Object.freeze({
@@ -32,7 +33,7 @@ export function buildAcademicBackgroundHref({
   const path = ACADEMIC_BACKGROUND_PATHS[normalizedScope];
   if (!path) return '';
   const params = new URLSearchParams();
-  params.set('view', normalizedScope === '211' ? 'major' : 'list_all');
+  params.set('view', school ? 'school' : (normalizedScope === '211' ? 'major' : 'list_all'));
   const code = text(majorCode).toUpperCase();
   if (code) params.set('majorCode', code);
   if (canonicalName) {
@@ -56,4 +57,16 @@ export function readAcademicBackgroundNavigationContext(locationLike = globalThi
     from: text(url.searchParams.get('from')),
     returnTo: sanitizeAcademicBackgroundReturnTarget(url.searchParams.get('returnTo') || '/major-path/', { origin: url.origin })
   });
+}
+
+export function buildMajorPathFromAcademicBackgroundHref({
+  majorCode = '', canonicalName = '', school = '', sourceMajor = '', returnTo = '/ln-rank/'
+} = {}) {
+  const href = buildMajorPathHref({
+    majorCode, canonicalName, context: school ? 'school' : 'score', sourceMajor: sourceMajor || canonicalName, school, returnTo
+  });
+  if (!href) return '';
+  const url = new URL(href, 'https://gaokao.powers.org.cn');
+  url.searchParams.set('sourceSurface', 'academic-background');
+  return `${url.pathname}${url.search}${url.hash}`;
 }

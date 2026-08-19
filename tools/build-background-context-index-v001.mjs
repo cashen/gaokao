@@ -30,7 +30,7 @@ function canonicalMajor(record = {}) {
 function normalizeSource(source = {}, fallback = {}) {
   const sourceId = clean(source.sourceId || fallback.sourceId, 100);
   const title = clean(source.title || source.sourceTitle || fallback.title || fallback.sourceTitle, 220);
-  const url = clean(source.url || source.sourceUrl || fallback.url || fallback.sourceUrl, 500);
+  const url = clean(source.url || source.sourceUrl || source.noticeUrl || source.attachmentUrl || fallback.url || fallback.sourceUrl || fallback.noticeUrl || fallback.attachmentUrl, 500);
   const year = clean(source.year || source.sourceYear || fallback.year || fallback.sourceYear, 20);
   const authority = clean(source.authority || source.publisher || fallback.authority || fallback.publisher, 160);
   if (!sourceId && !title && !url) return null;
@@ -224,6 +224,7 @@ function main() {
     },
     meta: {
       executionRole: 'derived-evidence-index-only',
+      dataYear: 2026,
       sourceScopes: ['liaoning', '211'],
       recordCount: records.length,
       schoolCount: new Set(records.map(item => norm(item.schoolIdentity))).size,

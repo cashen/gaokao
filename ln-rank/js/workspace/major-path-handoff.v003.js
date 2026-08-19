@@ -86,7 +86,8 @@ function decorateScoreCards(root = document.getElementById('results')) {
       card.dataset.majorPathAvailability = 'unresolved-or-class-level';
       return;
     }
-    const entry = makeEntry(target, { context: 'score', sourceKey, sourceMajor });
+    const school = clean(card.querySelector('.school')?.textContent);
+    const entry = makeEntry(target, { context: 'score', sourceKey, sourceMajor, school });
     if (!entry) return;
     const tongxue = card.querySelector('.tongxue-card-entry');
     const hint = card.querySelector('.pool-add-hint');

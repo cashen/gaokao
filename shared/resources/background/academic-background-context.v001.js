@@ -37,11 +37,18 @@ export function validateAcademicBackgroundContextSnapshot(snapshot = {}) {
   );
 }
 
-function majorMatches(record = {}, { majorCode = '', majorName = '' } = {}) {
+function majorMatches(record = {}, { majorCode = '', majorName = '', matchMode = 'exact' } = {}) {
   const code = clean(majorCode, 30).toUpperCase();
   if (code) return clean(record?.canonicalMajor?.code, 30).toUpperCase() === code;
   const name = normalizeBackgroundIdentityText(majorName);
-  return Boolean(name && normalizeBackgroundIdentityText(record?.canonicalMajor?.name) === name);
+  if (!name) return true;
+  const canonical = normalizeBackgroundIdentityText(record?.canonicalMajor?.name);
+  if (canonical === name) return true;
+  if (matchMode !== 'related') return false;
+  const values = [record?.canonicalMajor?.name, ...(record?.admissionMajors || []), ...(record?.directions || [])]
+    .map(normalizeBackgroundIdentityText)
+    .filter(Boolean);
+  return values.some(value => value.includes(name) || (name.length >= 4 && value.length >= 4 && name.includes(value)));
 }
 
 function schoolMatches(record = {}, school = '') {
@@ -110,7 +117,7 @@ function dedupeMatches(matches = []) {
 }
 
 export function queryAcademicBackgroundContext(snapshot = {}, {
-  school = '', majorCode = '', majorName = '', scope = 'auto', regionKeys = ['all'], limit = 200
+  school = '', majorCode = '', majorName = '', scope = 'auto', regionKeys = ['all'], limit = 200, majorMatchMode = 'exact'
 } = {}) {
   if (!validateAcademicBackgroundContextSnapshot(snapshot)) {
     return { ok: false, code: 'background_context_invalid', scope: normalizeBackgroundScope(scope), records: [] };
@@ -119,7 +126,7 @@ export function queryAcademicBackgroundContext(snapshot = {}, {
   const records = snapshot.records.filter(record =>
     scopes.has(record.scope)
     && schoolMatches(record, school)
-    && majorMatches(record, { majorCode, majorName })
+    && majorMatches(record, { majorCode, majorName, matchMode: majorMatchMode })
     && regionAllows(record, regionKeys)
   ).slice(0, Math.max(1, Math.min(500, Number(limit || 200))));
   return { ok: true, scope: normalizeBackgroundScope(scope), requestedScopes: [...scopes], records };
@@ -151,11 +158,11 @@ export function resolveSchoolMajorBackgroundContext(snapshot = {}, {
 export function listMajorBackgroundSchools(snapshot = {}, {
   majorCode = '', majorName = '', scope = 'auto', regionKeys = ['all'], limit = 120
 } = {}) {
-  const query = queryAcademicBackgroundContext(snapshot, { majorCode, majorName, scope, regionKeys, limit: 500 });
+  const query = queryAcademicBackgroundContext(snapshot, { majorCode, majorName, scope, regionKeys, limit: 500, majorMatchMode: majorCode ? 'exact' : 'related' });
   if (!query.ok) return { ...query, items: [] };
   const bySchool = new Map();
   for (const record of query.records) {
-    const key = normalizeBackgroundIdentityText(record.schoolIdentity || record.school);
+    const key = `${normalizeBackgroundIdentityText(record.schoolIdentity || record.school)}|${clean(record?.canonicalMajor?.code, 30).toUpperCase()}`;
     const current = bySchool.get(key) || {
       school: record.schoolIdentity || record.school,
       province: record.province || '', city: record.city || '', displayLocation: record.displayLocation || '',
@@ -173,16 +180,16 @@ export function listMajorBackgroundSchools(snapshot = {}, {
       sources: deduped.sources
     };
   }).sort((a, b) =>
-    b.scopesMatched.length - a.scopesMatched.length
-    || b.evidence.length - a.evidence.length
-    || String(a.school).localeCompare(String(b.school), 'zh-CN')
+    String(a.school).localeCompare(String(b.school), 'zh-CN')
+    || String(a.canonicalMajor?.code || '').localeCompare(String(b.canonicalMajor?.code || ''))
   ).slice(0, Math.max(1, Math.min(200, Number(limit || 120))));
   return {
     ok: true,
     scope: query.scope,
     requestedScopes: query.requestedScopes,
     items,
-    total: bySchool.size,
+    total: items.length,
+    schoolCount: new Set(items.map(item => normalizeBackgroundIdentityText(item.school))).size,
     boundary: '这是通过证据门禁的学校×专业背景集合，不是学校排名；未显示学校不等于该专业弱。'
   };
 }
