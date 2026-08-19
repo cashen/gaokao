@@ -4,12 +4,17 @@ import {
   resolveSchoolMajorBackgroundContext,
   validateAcademicBackgroundContextSnapshot
 } from '../../../shared/resources/background/academic-background-context.v001.js';
-import { readAcademicBackgroundNavigationContext } from '../../../shared/resources/background/academic-background-navigation.v001.js';
-import { buildMajorPathHref } from '../../../shared/resources/majors/major-path-navigation.v003.js?v=003_0';
+import {
+  buildMajorPathFromAcademicBackgroundHref,
+  readAcademicBackgroundNavigationContext
+} from '../../../shared/resources/background/academic-background-navigation.v001.js';
+import { resolveMajorUnderstanding } from '../../js/knowledge/major-understanding-resolver.js?v=3949_0';
 
 export const ACADEMIC_BACKGROUND_DIRECT_VERSION = 'academic-background-direct-v0.01';
 const nav = readAcademicBackgroundNavigationContext(location);
+const CONCRETE_MATCH_TYPES = new Set(['name_exact', 'admission_suffix_clean', 'alias_exact']);
 let snapshotPromise = null;
+let decorationScheduled = false;
 
 function loadSnapshot() {
   if (!snapshotPromise) {
@@ -31,6 +36,10 @@ function el(tag, className = '', text = '') {
   return node;
 }
 
+function clean(value = '') {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
 function scopeLabel(scope) {
   return scope === '211' ? '211专业背景' : '省内专业背景';
 }
@@ -43,6 +52,26 @@ function sourceText(match = {}) {
   const source = (match.sources || [])[0];
   if (!source) return '来源已通过背景证据门禁';
   return [source.title, source.year ? `${source.year}年证据` : ''].filter(Boolean).join(' · ');
+}
+
+function concreteMajorFromAdmissionName(name = '') {
+  const raw = clean(name);
+  if (!raw) return null;
+  const info = resolveMajorUnderstanding({ major: raw });
+  if (!info?.matched || info.isClassLevel || !info.code || !info.name || info.confidence !== 'high') return null;
+  if (!CONCRETE_MATCH_TYPES.has(String(info.matchType || ''))) return null;
+  return Object.freeze({ code: info.code, name: info.name });
+}
+
+function majorPathHref({ major, school = '', sourceMajor = '' } = {}) {
+  if (!major?.code) return '';
+  return buildMajorPathFromAcademicBackgroundHref({
+    majorCode: major.code,
+    canonicalName: major.name,
+    school,
+    sourceMajor: sourceMajor || major.name,
+    returnTo: currentPath()
+  });
 }
 
 function renderExactBody(root, context) {
@@ -70,11 +99,10 @@ function renderExactBody(root, context) {
   }
 }
 
-async function mount() {
+async function mountDirectContext() {
   if (!nav.majorCode) return;
-  const page = document.querySelector('.ls-page, .a211-page, #mainContent');
   const workspace = document.querySelector('.ls-workspace, .a211-workspace');
-  if (!page || !workspace) return;
+  if (!workspace || document.querySelector('[data-background-direct]')) return;
   const section = el('section', 'background-direct-card');
   section.dataset.backgroundDirect = ACADEMIC_BACKGROUND_DIRECT_VERSION;
   const head = el('div', 'background-direct-head');
@@ -116,25 +144,22 @@ async function mount() {
         limit: 200
       });
       const summary = el('div', 'background-direct-summary');
-      summary.append(el('strong', '', list.ok ? `当前有 ${list.total} 所学校形成可展示的学校×专业背景证据` : '背景证据暂时没有读取成功'));
+      summary.append(el('strong', '', list.ok ? `当前有 ${list.schoolCount ?? list.total} 所学校形成可展示的学校×专业背景证据` : '背景证据暂时没有读取成功'));
       summary.append(el('p', '', list.ok
-        ? '数量只表示当前 evidence gate 的覆盖，不是学校排名；原页面已经按这个专业继续筛选，可往下看具体记录。'
+        ? '数量只表示当前证据门禁的覆盖，不是学校排名；原页面已经按这个专业继续筛选，可往下看具体记录。'
         : '原页面仍可继续使用；本轮不会用旧线索或模型记忆补写。'));
       body.append(summary);
     }
 
     const actions = el('div', 'background-direct-actions');
-    const majorHref = buildMajorPathHref({
-      majorCode: nav.majorCode,
-      canonicalName: nav.canonicalName,
-      context: nav.school ? 'school' : 'score',
-      sourceMajor: nav.canonicalName,
+    const href = majorPathHref({
+      major: { code: nav.majorCode, name: nav.canonicalName || nav.majorCode },
       school: nav.school,
-      returnTo: currentPath()
+      sourceMajor: nav.canonicalName
     });
-    if (majorHref) {
+    if (href) {
       const majorLink = el('a', 'background-direct-major-link', '了解这个专业的本科与读研路径 →');
-      majorLink.href = majorHref;
+      majorLink.href = href;
       actions.append(majorLink);
     }
     body.append(actions);
@@ -149,4 +174,68 @@ async function mount() {
   }
 }
 
-mount();
+function decorateRecord(card, { schoolSelector, majorSelector, actionsSelector } = {}) {
+  if (!(card instanceof HTMLElement) || card.querySelector('[data-background-major-entry]')) return;
+  const school = clean(card.querySelector(schoolSelector)?.textContent);
+  const sourceMajor = clean(card.querySelector(majorSelector)?.textContent);
+  const major = concreteMajorFromAdmissionName(sourceMajor);
+  if (!school || !major) {
+    card.dataset.backgroundMajorAvailability = 'unresolved-or-class-level';
+    return;
+  }
+  const actions = card.querySelector(actionsSelector);
+  if (!(actions instanceof HTMLElement)) return;
+  const href = majorPathHref({ major, school, sourceMajor });
+  if (!href) return;
+  const link = el('a', 'background-record-major-link', '了解这个专业 →');
+  link.href = href;
+  link.dataset.backgroundMajorEntry = major.code;
+  link.setAttribute('aria-label', `了解${major.name}的本科和读研路径`);
+  actions.append(link);
+  card.dataset.backgroundMajorAvailability = 'canonical-major';
+}
+
+function decorateVisibleRecords() {
+  document.querySelectorAll('.ls-record').forEach(card => decorateRecord(card, {
+    schoolSelector: '.ls-school', majorSelector: 'h3', actionsSelector: '.ls-record-actions'
+  }));
+  document.querySelectorAll('.a211-card').forEach(card => decorateRecord(card, {
+    schoolSelector: '.a211-school', majorSelector: 'h3', actionsSelector: '.a211-actions'
+  }));
+}
+
+function scheduleDecoration() {
+  if (decorationScheduled) return;
+  decorationScheduled = true;
+  queueMicrotask(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+    decorationScheduled = false;
+    decorateVisibleRecords();
+  })));
+}
+
+function stableRuntimeReady() {
+  return document.body.dataset.localStrengthRuntime === 'ready' || document.body.dataset.all211Runtime === 'ready';
+}
+
+function waitForStableRuntime(frame = 0) {
+  if (stableRuntimeReady()) {
+    scheduleDecoration();
+    document.body.dataset.backgroundRecordHandoffReady = '1';
+    return;
+  }
+  if (document.body.dataset.localStrengthRuntime === 'error' || document.body.dataset.all211Runtime === 'error' || frame >= 600) {
+    document.body.dataset.backgroundRecordHandoffReady = 'error';
+    return;
+  }
+  requestAnimationFrame(() => waitForStableRuntime(frame + 1));
+}
+
+// Stable page runtimes remain the only result render owners. This adapter only decorates after their synchronous transactions.
+document.addEventListener('click', scheduleDecoration);
+document.addEventListener('change', scheduleDecoration);
+document.addEventListener('keydown', event => { if (event.key === 'Enter') scheduleDecoration(); });
+window.addEventListener('popstate', scheduleDecoration);
+window.addEventListener('resize', scheduleDecoration);
+
+mountDirectContext();
+waitForStableRuntime();
