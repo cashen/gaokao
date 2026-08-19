@@ -100,26 +100,18 @@ document.addEventListener('click', event => {
     ? event.target.closest('[data-major-code], [data-major-example], [data-expand-disambiguation]')
     : null;
   if (!target || target.closest('[data-graph-mode]')) return;
+  if (els.result?.contains(target)) return;
   beginStableResultPresentation();
 }, true);
 
 document.addEventListener('keydown', event => {
   if (!['Enter', ' '].includes(event.key)) return;
   const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
-  if (!target) return;
+  if (!target || els.result?.contains(target)) return;
   beginStableResultPresentation();
 }, true);
 
 await import('./app.v002.js?v=002_0');
-
-document.addEventListener('click', event => {
-  const mode = event.target instanceof Element ? event.target.closest('[data-graph-mode]') : null;
-  if (!mode) return;
-  stableFrames(() => {
-    const relationship = mode.closest('.relationship-section');
-    if (relationship) simplifyGraphLanguage(relationship);
-  });
-});
 
 function textReplace(root, selector, mapping) {
   for (const node of root.querySelectorAll(selector)) {
@@ -392,6 +384,32 @@ function humanizeResult() {
   if (shell) humanizeMajorResult(shell);
   else simplifyGraphLanguage(els.result);
 }
+
+els.result?.addEventListener('click', event => {
+  const target = event.target instanceof Element
+    ? event.target.closest('[data-major-code], [data-expand-disambiguation]')
+    : null;
+  if (!target || target.closest('[data-graph-mode]')) return;
+  humanizeResult();
+  document.body.dataset.majorPathLanding = 'result';
+});
+
+els.result?.addEventListener('keydown', event => {
+  if (!['Enter', ' '].includes(event.key)) return;
+  const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
+  if (!target) return;
+  humanizeResult();
+  document.body.dataset.majorPathLanding = 'result';
+});
+
+document.addEventListener('click', event => {
+  const mode = event.target instanceof Element ? event.target.closest('[data-graph-mode]') : null;
+  if (!mode) return;
+  stableFrames(() => {
+    const relationship = mode.closest('.relationship-section');
+    if (relationship) simplifyGraphLanguage(relationship);
+  });
+});
 
 function directBoot(context) {
   if (!context.fromLnRank || !context.majorCode) return false;
