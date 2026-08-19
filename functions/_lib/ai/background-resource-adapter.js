@@ -149,9 +149,43 @@ export function backgroundDiscoveryFromSnapshot(snapshot, { limit = 12, regionKe
   };
 }
 
+function uniqueRelatedSchoolMajorContext(snapshot, { school = '', major = '', majorCode = '', scope = 'auto' } = {}) {
+  const exact = resolveSchoolMajorBackgroundContext(snapshot, { school, majorName: major, majorCode, scope });
+  if (exact.matched || majorCode || !major) return exact;
+  const related = queryAcademicBackgroundContext(snapshot, {
+    school,
+    majorName: major,
+    scope,
+    limit: 40,
+    majorMatchMode: 'related'
+  });
+  if (!related.ok || !related.records.length) return exact;
+  const byCode = new Map();
+  for (const record of related.records) {
+    const code = clean(record?.canonicalMajor?.code, 30).toUpperCase();
+    if (!code) continue;
+    if (!byCode.has(code)) byCode.set(code, record.canonicalMajor);
+  }
+  if (byCode.size !== 1) {
+    return {
+      ...exact,
+      code: byCode.size > 1 ? 'background_major_ambiguous' : exact.code,
+      ambiguousCanonicalMajors: [...byCode.values()],
+      requestedMajor: clean(major, 180)
+    };
+  }
+  const canonicalMajor = [...byCode.values()][0];
+  return resolveSchoolMajorBackgroundContext(snapshot, {
+    school,
+    majorCode: canonicalMajor.code,
+    majorName: canonicalMajor.name,
+    scope
+  });
+}
+
 export function schoolBackgroundFromSnapshot(snapshot, school, { scope = 'auto', major = '', majorCode = '' } = {}) {
   if (major || majorCode) {
-    const exact = resolveSchoolMajorBackgroundContext(snapshot, { school, majorName: major, majorCode, scope });
+    const exact = uniqueRelatedSchoolMajorContext(snapshot, { school, major, majorCode, scope });
     const items = exact.matched ? [contextItemFromMajor({ school: exact.school, canonicalMajor: exact.canonicalMajor, matches: exact.matches, scopesMatched: exact.scopesMatched, evidence: exact.evidence, sources: exact.sources })] : [];
     return { items, exact, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope) };
   }
@@ -172,7 +206,7 @@ export function schoolBackgroundDirectionFromSnapshot(snapshot, school, directio
 export function majorBackgroundFromSnapshot(snapshot, major, { scope = 'auto', regionKeys = ['all'], majorCode = '' } = {}) {
   const resolved = listMajorBackgroundSchools(snapshot, { majorName: major, majorCode, scope, regionKeys, limit: 160 });
   const items = resolved.ok ? resolved.items.map(contextItemFromSchool) : [];
-  return { items, total: resolved.total || 0, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope), boundary: resolved.boundary || '' };
+  return { items, total: resolved.total || 0, schoolCount: resolved.schoolCount || 0, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope), boundary: resolved.boundary || '' };
 }
 
 function candidateMajorIdentity(record = {}) {
