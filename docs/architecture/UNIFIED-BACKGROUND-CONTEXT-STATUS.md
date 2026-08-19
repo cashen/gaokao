@@ -8,7 +8,7 @@ This file is the durable handoff and merge-gate owner for the current cross-prod
 - base branch: `main`
 - base SHA at program start: `40e27a00748b38109bf979cb4078e98ca3130eb8`
 - program branch: `agent/unified-background-context-v001`
-- PR: #179 (Draft until the complete program is proven)
+- PR: #179
 
 A later session must first fetch latest `main`, PR #179 and its exact head SHA, then read `AGENTS.md`, Eastern Philosophy, Unified Site Release, AEK skill/status, `START-HERE.md`, and this file. GitHub state, not private chat memory, owns continuation.
 
@@ -67,7 +67,7 @@ The cross-product runtime reads one bounded, deterministic **derived evidence pr
 - pure projection/query contract: `shared/resources/background/academic-background-context.v001.js`;
 - Functions bounded reader/cache owner: `functions/_lib/academic-background-context-reader.js`.
 
-Current deterministic build evidence before final QA:
+Current deterministic build evidence:
 
 - 238 `school × canonical major × scope` groups;
 - 69 schools;
@@ -79,7 +79,7 @@ Current deterministic build evidence before final QA:
 - no duplicate group or same-group evidence;
 - every 211 evidence row retains an HTTPS official-source URL after the provenance fix.
 
-The asset is reproducibly generated from the two stable source indexes. `git diff` after rebuilding must be zero in the formal gate.
+The asset is reproducibly generated from the two stable source indexes. `git diff` after rebuilding is required to remain zero in the formal gate.
 
 ### Navigation / presentation owners
 
@@ -108,53 +108,67 @@ The asset is reproducibly generated from the two stable source indexes. `git dif
 8. Military/special boundaries and source-verification gates remain fail-closed.
 9. Major-path independent mode may offer Liaoning/211 evidence exploration but must not become a school leaderboard.
 10. URLs carry canonical identities/source-record/return context only; copied background conclusions are forbidden.
+11. A background direction is not automatically an admissions-major query key. Non-queryable direction labels remain `historyQueryable=false`; real canonical/admissions majors remain the only score-query targets.
 
 ## Program work packages
 
-Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` requires real package/system proof; implementation alone is not DONE. No package may be skipped to merge early.
+Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` requires real package/system proof; implementation alone is not DONE. No pre-merge package may be skipped to merge early.
 
 ### Mainline — canonical context first
 
-| Package | Status | Current evidence / remaining proof |
+| Package | Status | Proof |
 |---|---|---|
 | UBC-00 | DONE | Draft PR #179, durable owner map, network-interruption handoff and merge prohibition exist in GitHub |
-| UBC-01 | IN_PROGRESS | derived exact context, dual-scope/source dedupe, unique school-scoped shorthand resolution implemented; awaiting permanent source/browser proof |
-| UBC-02 | IN_PROGRESS | shared same-origin background navigation/return contract implemented; awaiting browser/Preview proof |
+| UBC-01 | DONE | deterministic rebuild + permanent source verifier prove exact context, dual-scope/source dedupe, school-scoped shorthand ambiguity and fail-closed boundaries; Draft proof run `Verify unified background context v0.01 #18` success |
+| UBC-02 | DONE | same-origin navigation/return contract plus local and exact-head Preview round trips pass in UBC run #18 |
 
 ### Subtask A — ln-rank → major-path context fidelity
 
-| Package | Status | Current evidence / remaining proof |
+| Package | Status | Proof |
 |---|---|---|
-| UBC-03 | IN_PROGRESS | score-mode now carries visible school identity; school-mode retained; class-level gate unchanged; awaiting four-device browser proof |
+| UBC-03 | DONE | score-mode school identity, school-mode identity and class-level gate pass UBC local PC/Pad/Android/compact journeys and preserved major-path v0.04 run #98 |
 
 ### Subtask B — major-path ↔ academic-background
 
-| Package | Status | Current evidence / remaining proof |
+| Package | Status | Proof |
 |---|---|---|
-| UBC-04 | IN_PROGRESS | major-path section mounted after本科→读研 and before relationship graph; exact school context + independent Liaoning/211 actions implemented; awaiting local/live geometry proof |
-| UBC-05 | IN_PROGRESS | both stable background pages load one additive direct/record-handoff adapter; no MutationObserver/new result state; awaiting real page four-device round-trip proof |
+| UBC-04 | DONE | exact school context + independent Liaoning/211 actions render in the existing major-path owner; UBC run #18 local four-viewport and exact-head Preview journeys success |
+| UBC-05 | DONE | LocalStrength and 211 stable pages use one additive handoff adapter with no MutationObserver/new result state; UBC #18, LocalStrength #659 and all211 #617 browser journeys success |
 
 ### Subtask C — AIPLuS unified background scope
 
-| Package | Status | Current evidence / remaining proof |
+| Package | Status | Proof |
 |---|---|---|
-| UBC-06 | IN_PROGRESS | `backgroundScope` is centralized in `human-query-frame` v0.04, deterministic and non-candidate; natural school×major background grammar expanded; awaiting existing AEK/routing matrices |
-| UBC-07 | IN_PROGRESS | AIPLuS adapter now reads the bounded unified context instead of raw LocalStrength; existing tool names retained; awaiting exact-Preview `/api/ai/turn` proof |
-| UBC-08 | IN_PROGRESS | existing typed claim model extended with evidenceScope/evidenceId/sourceId and exact school_major firewall; awaiting source + live claim proof |
+| UBC-06 | DONE | `backgroundScope` remains centralized/non-candidate; AEK/human/parent/region matrices pass via Feedback #148, Parent Decision #394 and AI workspace #952 |
+| UBC-07 | DONE | AIPLuS reads the bounded unified context, preserves existing tool names and grouped `schools[]` presentation contract; AI workspace #952 source + exact Preview + PC/Pad/Android/four-viewport browser success |
+| UBC-08 | DONE | typed claim model retains exact `school_major` firewall, evidenceScope/evidenceId/sourceId and canonical provenance; UBC #18 exact-head `/api/ai/turn` live claim proof success |
 
 ### Subtask D — workbench / decision preservation
 
-| Package | Status | Current evidence / remaining proof |
+| Package | Status | Proof |
 |---|---|---|
-| UBC-09 | IN_PROGRESS | `platformScore()` now contains only 985/211/public identity; local background evidence remains in path evidence coverage; awaiting selection-workbench regression |
-| UBC-10 | IN_PROGRESS | existing `background_evidence` step reused and upgraded to exact school-major typed claims; no second Decision Research runtime; awaiting parent-decision regression |
+| UBC-09 | DONE | platform scoring remains 985/211/public identity only; background remains evidence coverage, not hidden bonus; Selection Workbench #118 and Decision Focus #79 success |
+| UBC-10 | DONE | existing `background_evidence` / Decision Research owners reused; evidence-source failures are isolated fail-closed instead of aborting other evidence; Parent Decision #394, Family Workbench #176, Feedback #148 success |
 
 ### QA / release
 
-| Package | Status | Required outcome |
+| Package | Status | Required outcome / proof |
 |---|---|---|
-| UBC-QA | IN_PROGRESS | permanent source/truth/semantic gate plus PC/Pad/Android/compact local browser and exact-head Preview live gate exist; latest exact-head run still required |
-| UBC-RELEASE | TODO | freeze one final SHA → complete Draft → Ready same SHA → second fresh checks → expected-head merge → exact-main Production closure |
+| UBC-QA | DONE | candidate `cc01b8ddbe7f8da8f4d3d1d5b07724fa984e3e32` completed a fresh Draft round with all 24 PR workflows success, including UBC exact-head Preview, Worker stress, production API health, site runtime, canonical/LN release, LocalStrength/211/Tongxue and AIPLuS browser regressions |
+| UBC-RELEASE | IN_PROGRESS | ledger closure commit becomes the final pre-merge candidate; it must complete its own fresh Draft checks, then Ready on the **same SHA**, a second fresh Ready round, `expected_head_sha` merge, and exact-main Production closure before this row may become DONE |
+
+## Draft proof closure before ledger commit
+
+Candidate `cc01b8ddbe7f8da8f4d3d1d5b07724fa984e3e32` completed the required full Draft evidence round with **24/24 pull-request workflows successful**. Load-bearing proofs included:
+
+- `Verify unified background context v0.01 #18`: deterministic source/truth gate; PC/Pad/Android/compact local journey; exact-head Cloudflare Preview; cross-product major-path ↔ LocalStrength/211 round trips; live AIPLuS evidence-scope/fail-closed/claim provenance.
+- `Verify AI decision workspace v3990_1 #952`: source contract, coherent exact deployment graph, PC/Pad/Android semantic journeys and four-viewport mocked parent journeys; confirms `major_background` still exposes grouped `schools[]` links.
+- `Verify Worker resource vNext Preview #442` and `Verify production API health v3990.1 #1833`: exact-head Preview, staged concurrency/resource budget and safe API baseline.
+- `Verify all211 static v3972.2 #617`, `Verify LocalStrength static v3971.2 #659`, `Tongxue v1.5.9 live verification #1566`: preserved stable surfaces and browser journeys.
+- `Verify major path human-first v0.04 #98`, `Verify AIPLuS selection workbench v0.05 #118`, `Verify AIPLuS decision focus v0.06 #79`, `Verify AIPLuS parent decision v0.03 #394`, `Verify AIPLuS feedback Log v0.04 #148`, `Verify AI major-region history v3992_3 #555`: preserved product contracts.
+- canonical release #1540, native chooser #1439, architecture handoff #532, LN final #2422, unified resource graph #1450, unified site runtime #2235 all success.
+
+This evidence proves the implementation/QA packages. It does **not** substitute for the final SHA Draft round, Ready round, merge or Production closure.
 
 ## Required human-language acceptance classes
 
@@ -179,15 +193,15 @@ Must pass on PC / Pad / Android / compact where applicable:
 3. independent major-path → explicit `看辽宁哪些学校有背景` / `看211哪些学校有背景`; no leaderboard.
 4. ordinary LocalStrength and 211 record → strict concrete-major `了解这个专业` → major-path with `sourceSurface=academic-background` → return to background evidence.
 5. class-level / ambiguous admission title receives no false concrete-major link.
-6. Liaoning 211 school may show both evidence scopes; duplicate evidence/source is not counted twice.
+6. Liaoning 211 school may show both evidence scopes; duplicate evidence/source is not counted twice. Typed claims are emitted only for evidence that the canonical claim owner can provenance; a display scope alone does not manufacture a claim.
 7. missing evidence, special/military, stale/unverified or provenance-incomplete evidence fails closed.
 8. no document horizontal overflow and no Android-specific business branch.
 
 ## Permanent proof owners
 
-- `tools/verify-unified-background-context-v001.mjs` — build truth, dual-scope dedupe, explicit-scope fail-closed, navigation, semantic scope, typed claims, owner/subtraction invariants.
+- `tools/verify-unified-background-context-v001.mjs` — build truth, dual-scope dedupe, explicit-scope fail-closed, navigation, semantic scope, typed claims, grouped AIPLuS school projection and owner/subtraction invariants.
 - `tools/browser-unified-background-context-v001.mjs` — local PC/Pad/Android/compact cross-product journeys.
-- `tools/browser-unified-background-context-live-v001.mjs` — exact Preview/Production cross-product UI plus real `/api/ai/turn` scope/resource/claim execution.
+- `tools/browser-unified-background-context-live-v001.mjs` — exact Preview/Production cross-product UI plus real `/api/ai/turn` scope/resource/claim execution; sample/claim expectations reuse the canonical context + claim owners rather than duplicating provenance rules.
 - `.github/workflows/verify-unified-background-context-v001.yml` — source → exact-head Preview → exact-main Production + durable `production/unified-background-context-v0.01` status.
 - existing major-path, LocalStrength, all211, AIPLuS parent-decision/AEK/workspace, selection-workbench, decision-focus, canonical release, native chooser, architecture, LN final, production API, resource graph and site-runtime workflows remain preserved owners; the new workflow does not replace them.
 
@@ -209,7 +223,7 @@ At minimum preserve:
 
 This program remains one PR because partial merge would create the exact product asymmetry being removed.
 
-**PR #179 MUST remain Draft while any UBC package is TODO/IN_PROGRESS.**
+**PR #179 MUST remain Draft while any pre-merge package `UBC-00..10` or `UBC-QA` is not DONE.** `UBC-RELEASE` is the release lifecycle itself: it becomes `IN_PROGRESS` only after implementation/QA proof exists, remains `IN_PROGRESS` through Ready/merge, and can become `DONE` only after exact-main Production closure. This avoids the impossible/unsafe state of declaring Production release complete before merge.
 
 Do not merge when only the context index, only major-path, only background navigation, or only AIPLuS scope is complete.
 
@@ -225,6 +239,6 @@ Final protocol:
 8. complete a second fresh Ready round on the exact same SHA;
 9. merge only with `expected_head_sha`;
 10. verify new `main`, push workflows, exact-main Cloudflare Production, Pages/custom-domain boundaries and durable Production statuses;
-11. only after Production closure mark UBC-RELEASE complete.
+11. only after Production closure mark UBC-RELEASE complete (post-merge status update belongs to the next normal main maintenance commit if required; do not mutate the already-merged candidate retroactively).
 
-A network interruption or new conversation must continue this same PR from the first incomplete package. Do not restart the plan, do not create a second active branch, and do not declare completion from partial green checks.
+A network interruption or new conversation must continue this same PR from the first incomplete release step. Do not restart the plan, do not create a second active branch, and do not declare completion from partial green checks.
