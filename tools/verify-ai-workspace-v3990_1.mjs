@@ -47,12 +47,16 @@ function testBackgroundTasks(){
   const school=cmd('沈阳工业大学有哪些有背景的强项方向',workspace);assert.equal(school.agentTask,'school_background');assert.equal(school.focus.school,'沈阳工业大学');
   const majorWorkspace=createAiWorkspace({...workspace,agentContext:{currentTask:'school_major_history',focus:{school:'沈阳工业大学',major:'自动化'}}});
   const major=cmd('自动化在省内哪些学校有背景',majorWorkspace);assert.equal(major.agentTask,'major_background');assert.equal(major.focus.major,'自动化');
-  const registry=read('functions/_lib/ai/tool-registry.js'),adapter=read('functions/_lib/ai/background-resource-adapter.js');
+  const registry=read('functions/_lib/ai/tool-registry.js'),adapter=read('functions/_lib/ai/background-resource-adapter.js'),reader=read('functions/_lib/academic-background-context-reader.js');
   assert.equal(registry.includes('academic-background-provider.js'),false,'AI base graph must not statically import academic background provider');
   assert.equal(registry.includes('local-mainline-kb.js'),false,'AI base graph must not statically import local background KB');
   assert.ok(registry.includes('loadAiBackgroundSnapshot'));
-  assert.ok(adapter.includes('/ln-rank/data/local-strength/local-strength-index.v3971_2.json'));
-  assert.ok(adapter.includes('context?.env?.ASSETS?.fetch'));
+  assert.ok(adapter.includes('loadAcademicBackgroundContextSnapshot'));
+  assert.ok(adapter.includes('ACADEMIC_BACKGROUND_CONTEXT_RESOURCE'));
+  assert.equal(adapter.includes('/ln-rank/data/local-strength/local-strength-index.v3971_2.json'),false,'AI background adapter must not retain the retired local-only resource owner');
+  assert.ok(reader.includes('ACADEMIC_BACKGROUND_CONTEXT_RESOURCE'));
+  assert.ok(reader.includes('context?.env?.ASSETS?.fetch'));
+  assert.equal(reader.includes('local-strength-index.v3971_2.json'),false,'bounded background reader must consume only the unified derived evidence resource');
   assert.equal(adapter.includes('local-mainline-kb.js'),false);
 }
 
