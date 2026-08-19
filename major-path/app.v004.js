@@ -54,14 +54,26 @@ function landOn(target) {
   window.scrollTo({ top, left: 0, behavior: 'auto' });
 }
 
-function finishPresentation(token, { landing = 'result', suppressLegacyScroll = false, ownViewport = false } = {}) {
+function cancelLegacyViewport(startY) {
+  window.scrollTo({ top: Math.max(0, startY), left: window.scrollX, behavior: 'auto' });
+}
+
+function finishPresentation(token, {
+  landing = 'result',
+  suppressLegacyScroll = false,
+  ownViewport = false,
+  viewportStartY = window.scrollY
+} = {}) {
   queueMicrotask(() => {
+    if (!els.result || token !== renderState.token) return;
+    if (ownViewport && !suppressLegacyScroll) cancelLegacyViewport(viewportStartY);
     stableFrames(() => {
       if (!els.result || token !== renderState.token) return;
       humanizeResult();
       if (suppressLegacyScroll) els.result.hidden = false;
       delete document.body.dataset.majorPathRendering;
       stableFrames(() => {
+        if (!els.result || token !== renderState.token) return;
         if (ownViewport) {
           const target = landing === 'pathway'
             ? els.result.querySelector('[data-major-pathway-focus]')
@@ -78,14 +90,15 @@ function beginPresentation({ landing = 'result', suppressLegacyScroll = false, o
   if (!els.result) return 0;
   renderState.token += 1;
   const token = renderState.token;
+  const viewportStartY = window.scrollY;
   if (suppressLegacyScroll) els.result.hidden = true;
   document.body.dataset.majorPathRendering = '1';
-  finishPresentation(token, { landing, suppressLegacyScroll, ownViewport });
+  finishPresentation(token, { landing, suppressLegacyScroll, ownViewport, viewportStartY });
   return token;
 }
 
 function beginStableResultPresentation() {
-  beginPresentation({ landing: 'result', suppressLegacyScroll: false, ownViewport: false });
+  beginPresentation({ landing: 'result', suppressLegacyScroll: false, ownViewport: true });
 }
 
 els.form?.addEventListener('submit', event => {
@@ -131,6 +144,21 @@ document.addEventListener('keydown', event => {
   if (!['Enter', ' '].includes(event.key)) return;
   const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
   if (!target || els.result?.contains(target)) return;
+  beginStableResultPresentation();
+}, true);
+
+els.result?.addEventListener('click', event => {
+  const target = event.target instanceof Element
+    ? event.target.closest('[data-major-code], [data-expand-disambiguation]')
+    : null;
+  if (!target || target.closest('[data-graph-mode]')) return;
+  beginStableResultPresentation();
+}, true);
+
+els.result?.addEventListener('keydown', event => {
+  if (!['Enter', ' '].includes(event.key)) return;
+  const target = event.target instanceof Element ? event.target.closest('.graph-node[data-major-code]') : null;
+  if (!target) return;
   beginStableResultPresentation();
 }, true);
 
@@ -419,20 +447,6 @@ function humanizeResult() {
   else simplifyGraphLanguage(els.result);
 }
 
-els.result?.addEventListener('click', () => {
-  // v0.02 owns result mutation and is registered first. It may replace #result
-  // synchronously, so the original event.target can already be detached here.
-  // Read the current result instead of inferring state from the stale target.
-  humanizeResult();
-  document.body.dataset.majorPathLanding = 'result';
-});
-
-els.result?.addEventListener('keydown', event => {
-  if (!['Enter', ' '].includes(event.key)) return;
-  humanizeResult();
-  document.body.dataset.majorPathLanding = 'result';
-});
-
 document.addEventListener('click', event => {
   const mode = event.target instanceof Element ? event.target.closest('[data-graph-mode]') : null;
   if (!mode) return;
@@ -458,7 +472,10 @@ function directBoot(context) {
   return true;
 }
 
-if (!directBoot(sourceContext)) humanizeResult();
+if (!directBoot(sourceContext)) {
+  if (!queuedAction && els.result?.textContent.trim()) beginStableResultPresentation();
+  else if (!queuedAction) humanizeResult();
+}
 
 document.body.dataset.majorPathHumanVersion = MAJOR_PATH_HUMAN_VERSION;
 window.__MAJOR_PATH_HUMAN_META__ = Object.freeze({
