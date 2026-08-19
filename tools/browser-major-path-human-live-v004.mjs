@@ -78,7 +78,10 @@ try{
     await direct(page,device.name,{majorCode:'080201',from:'ln-rank',context:'school',sourceKey:'school-key',sourceMajor:'机械工程（中外合作办学）',school:'沈阳建筑大学',returnTo:'/ln-rank/?mode=school-all&school=沈阳建筑大学'});
     await search(page,device.name,'具身智能','140012TK');
     const embodied=await page.locator('[data-major-pathway-focus]').innerText();
-    assert(embodied.includes('交叉学科')&&!embodied.includes('1400'),`${MODE}/${device.name}: cross-discipline truth drift`);
+    assert(embodied.includes('交叉学科'),`${MODE}/${device.name}: cross-discipline label missing`);
+    assert(embodied.includes('专业类未单列'),`${MODE}/${device.name}: unlisted-major-class boundary missing`);
+    assert(embodied.includes('140012TK'),`${MODE}/${device.name}: legal undergraduate major code missing`);
+    assert(!embodied.includes('1400专业类')&&!embodied.includes('本科专业类\n1400')&&!embodied.includes('本科专业类 1400'),`${MODE}/${device.name}: fabricated 1400 major-class node leaked`);
     await search(page,device.name,'计算机类','');
     assert(!(await page.$('[data-major-pathway-focus]')),`${MODE}/${device.name}: class search silently selected a concrete major`);
     assert(!errors.length,`${MODE}/${device.name}: page errors ${errors.join('\n')}`);
