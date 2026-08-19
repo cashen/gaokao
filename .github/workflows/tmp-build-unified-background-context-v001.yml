@@ -8,7 +8,7 @@ on:
       - '.github/workflows/tmp-build-unified-background-context-v001.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -46,3 +46,16 @@ jobs:
             ln-rank/data/background-context/background-context-audit.v001.json
           if-no-files-found: error
           retention-days: 1
+      - name: Persist generated artifacts on the program branch
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          remote_head="$(git ls-remote origin "refs/heads/${HEAD_BRANCH}" | awk '{print $1}')"
+          test "$remote_head" = "$EXPECTED_HEAD" || { echo "branch moved: expected $EXPECTED_HEAD got $remote_head"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ln-rank/data/background-context/background-context-index.v001.json ln-rank/data/background-context/background-context-audit.v001.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Generate unified background context static index"
+          git push origin "HEAD:${HEAD_BRANCH}"
