@@ -43,24 +43,42 @@ Stable core identity：`major-path-v0.02`。
 Cross-page handoff identity：`major-path-handoff-v0.03`。
 Human presentation identity：`major-path-human-v0.04`。
 
-## Single presentation / viewport transaction
+## Presentation / viewport ownership
 
-v0.02 core 仍负责事实、搜索语义、SVG 与结果 HTML；v0.04 是活动 presentation + viewport transaction owner。
+v0.02 core 继续负责事实、搜索语义、SVG 与 raw result HTML。v0.04 负责把 raw result 转成人类信息顺序，并拥有最终可见 landing。
 
-为避免旧 core `renderMajor()` 的 smooth `scrollIntoView()` 与 Direct Mode 再次滚动发生竞争，v0.04 在已知会触发结果渲染的用户事务 capture 阶段暂时把 `#result` 设为 `hidden`。core 可以同步完成事实渲染，但其旧 scroll 对隐藏结果不产生可见页面位移。随后 v0.04：
+### Core-ready boundary
 
-1. 重排结果信息；
-2. 恢复 `#result`；
-3. 等待两帧稳定布局；
-4. 只执行一次 `window.scrollTo()`。
+v0.02 通过动态 import 启动。`DOMContentLoaded` 之后、core handler 注册之前，用户仍可能已经按 Enter 或点示例。v0.04 只在这个短启动窗口保存**最后一次用户提交动作**：
 
-Landing policy：
+- 不复制搜索算法；
+- 不预判专业；
+- core ready 后仍通过既有 `form.requestSubmit()` / 既有示例按钮把动作交回 v0.02 canonical search；
+- 不建立第二 query runtime。
 
-- standalone 搜索 / 点击相关专业：落到当前专业结果标题；
-- ln-rank Direct Mode：落到 `[data-major-pathway-focus]`；
-- “换个专业”：回到搜索 hero。
+`data-major-path-core-ready` 只用于 boot readiness / proof，不是业务 truth source。
 
-不使用 `MutationObserver`、`setTimeout` scroll chain、第二 `scrollIntoView()`、Android/Pad 专属业务分支。
+### Raw-result presentation boundary
+
+页面内相关专业、消歧后选中具体专业等动作，由 v0.02 先同步生成新的 raw result。v0.04 不依赖已经被 `innerHTML` 替换后失效的旧 `event.target`；它只检查**当前 result 是否存在具体专业结果且还没有 `[data-major-pathway-focus]`**：
+
+- raw result → humanize 一次；
+- 已 humanize result → 幂等，不重复重排；
+- 图谱 tab / details 展开不被误判成新专业结果。
+
+这避免 observer、timeout 与事件目标竞态。
+
+### Visible viewport transaction
+
+v0.02 稳定 core 仍保留历史 `smooth scrollIntoView()` 副作用，但 v0.04 不再让它决定最终可见位置：
+
+- **Direct Mode**：在 raw result 阶段临时隐藏 `#result`，core 完成事实渲染后 humanize，恢复结果，等待稳定帧，再只执行一次最终 `window.scrollTo()` 到 `[data-major-pathway-focus]`；
+- **standalone 搜索 / 页面内相关专业**：不隐藏结果。v0.04 记录事务开始的 scrollY，在首个可见稳定阶段用 `behavior:auto` 取消 legacy smooth 位移，humanize 后等待稳定帧，再只提交一次最终 `window.scrollTo()` 到当前结果标题；
+- **换个专业**：回到搜索 hero。
+
+因此用户看到的是 v0.04 的最终 landing policy，而不是两个滚动 owner 先后拉扯页面。
+
+不使用 `MutationObserver`、`setTimeout` scroll chain、第二个 `scrollIntoView()`、local/session storage 或 Android/Pad 专属业务分支。
 
 ## Human information architecture
 
@@ -97,7 +115,7 @@ SVG 保留但不再抢在读研答案之前出现。
 - “不补造1400专业类”；
 - “关系边界”。
 
-事实边界不删除，只进入用户主动展开的依据层。
+事实边界不删除，只进入用户主动展开的依据层或以家长语言呈现。交叉学科必须明确“直接列在交叉学科门类下，专业类未单列”；合法本科代码如 `140012TK` 必须保留，同时不得制造 `1400专业类`。
 
 ## Direct Mode
 
@@ -109,14 +127,15 @@ SVG 保留但不再抢在读研答案之前出现。
 - 来源说明压缩为 1–2 行；
 - 中外合作等招生后缀继续明确“本页讲专业本体，学费/校区/合作项目回招生记录确认”；
 - 不出现“系统确认”“规范本科专业”等内部语言；
-- 返回仍优先原生 history/BFCache，硬重载继续使用 v0.03 resume contract。
+- 返回仍优先原生 history/BFCache，硬重载继续使用 v0.03 resume contract；
+- 从相关专业继续展开时，来源提示切为“从刚才的专业继续看”，不得把新专业冒充成原招生记录。
 
 ## Required proof
 
 Source：
 
 - `tools/verify-major-path-v002.mjs`：保留 883/92/13、交叉学科、研究生路径和关系真值；
-- `tools/verify-major-path-human-v004.mjs`：活动入口、单 presentation/viewport owner、human copy 与 handoff boundary。
+- `tools/verify-major-path-human-v004.mjs`：活动入口、core-ready queue、raw-result presentation、viewport owner、human copy 与 handoff boundary。
 
 Browser：
 
@@ -127,12 +146,16 @@ Browser：
 
 - ln-rank score / school concrete-major direct entry；
 - 专业类仍 fail closed；
+- 用户在 core 尚未 ready 时快速 Enter 不丢查询；
 - Direct Mode pathway target 位于首屏稳定区域；
 - result header 在 pathway target 上方，不能把“页面顶部”冒充精准落点；
 - 读研 section 进入 Direct Mode 第一 viewport；
+- 页面内相关专业点击生成新专业后重新 humanize，且来源语义切成 continuation；
+- standalone 搜索与 related-major 最终落到当前结果标题，不保留 legacy smooth 抖动；
 - 相关专业 / 科学边界默认折叠；
 - 展开关系图仍可交互，SVG 不是唯一信息通道；
 - 工程化术语不出现在默认可见主流程；
+- `140012TK` 合法专业代码可见，但不得出现 `1400专业类`；
 - 中外合作项目边界不丢；
 - 返回原 ln-rank 正常；
 - document 无横向溢出。
