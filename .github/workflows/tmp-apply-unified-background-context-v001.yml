@@ -1,0 +1,71 @@
+name: Temporary apply unified background context v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/tmp_apply_unified_background_context_v001.mjs'
+      - '.github/workflows/tmp-apply-unified-background-context-v001.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/unified-background-context-v001'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply idempotent construction patch
+        run: node tools/tmp_apply_unified_background_context_v001.mjs
+      - name: Rebuild evidence-only context index
+        run: node tools/build-background-context-index-v001.mjs
+      - name: Syntax and provenance sanity
+        run: |
+          node --check shared/resources/background/academic-background-context.v001.js
+          node --check shared/resources/background/academic-background-navigation.v001.js
+          node --check functions/_lib/academic-background-context-reader.js
+          node --check functions/_lib/ai/background-resource-adapter.js
+          node --check functions/_lib/ai/human-query-frame.js
+          node --check functions/_lib/ai/command-interpreter.js
+          node --check functions/_lib/ai/tool-registry.js
+          node --check functions/_lib/ai/claim-evidence.js
+          node --check functions/_lib/ai/decision-research-runtime.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check major-path/app.v004.js
+          node --check major-path/background-context.v001.js
+          node --check ln-rank/js/academic-background/background-context-direct.v001.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const data=JSON.parse(fs.readFileSync('ln-rank/data/background-context/background-context-index.v001.json','utf8'));
+          if(!data.records.length) throw new Error('empty context index');
+          if(data.records.some(r=>r.score2026!==undefined||r.rank2026!==undefined)) throw new Error('admissions truth leaked into context index');
+          const e211=data.records.filter(r=>r.scope==='211').flatMap(r=>r.evidence||[]);
+          if(!e211.length||e211.some(e=>!/^https:\/\//.test(e.sourceUrl||''))) throw new Error('211 provenance URL incomplete');
+          console.log(JSON.stringify({records:data.records.length,scopeCounts:data.meta.scopeCounts,bytes:fs.statSync('ln-rank/data/background-context/background-context-index.v001.json').size},null,2));
+          NODE
+      - name: Persist construction result only if head is unchanged
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          remote_head="$(git ls-remote origin "refs/heads/${HEAD_BRANCH}" | awk '{print $1}')"
+          test "$remote_head" = "$EXPECTED_HEAD" || { echo "branch moved: expected $EXPECTED_HEAD got $remote_head"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "418982+github-actions[bot]@users.noreply.github.com"
+          git add shared/resources/background shared/resources/majors/major-path-navigation.v003.js \
+            tools/build-background-context-index-v001.mjs ln-rank/data/background-context \
+            ln-rank/js/workspace/major-path-handoff.v003.js ln-rank/local-mainline.html ln-rank/211-mainline.html \
+            major-path/app.v004.js major-path/index.html \
+            functions/_lib/ai/human-query-frame.js functions/_lib/ai/command-interpreter.js functions/_lib/ai/agent-task-kernel.js \
+            functions/_lib/ai/background-resource-adapter.js functions/_lib/ai/tool-registry.js functions/_lib/ai/claim-evidence.js \
+            functions/_lib/ai/turn-orchestrator.js functions/_lib/ai/decision-research-runtime.js functions/_lib/ai/advisor-presentation.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Integrate unified school-major background context"
+          git push origin "HEAD:${HEAD_BRANCH}"
