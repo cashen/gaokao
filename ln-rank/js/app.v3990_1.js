@@ -1,4 +1,5 @@
 import { SITE_RUNTIME_CONTRACT } from '../../shared/resources/release/site-runtime-contract.v3990_1.js?v=3990_1';
+import { mountMajorPathHandoff } from './workspace/major-path-handoff.v003.js?v=003_0';
 
 const RUNTIME_VERSION = 'resource-execution-v3990_1';
 const CONTROL_SELECTOR = '[data-runtime-control]';
@@ -59,6 +60,7 @@ setRuntimeState('loading');
 try {
   const runtime = await import('./app-runtime.v3990_1.js?v=3990_1');
   await runtime.startLnRankRuntime();
+  mountMajorPathHandoff();
   currentState = 'ready';
   unlockRuntimeControls();
   setRuntimeState('ready');
@@ -67,4 +69,3 @@ try {
   setRuntimeState('error');
   console.error('[ln-rank-runtime-v3990_1] initialization failed', error);
 }
-
