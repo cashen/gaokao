@@ -35,7 +35,11 @@ assert.equal(url.searchParams.get('majorCode'), '120103');
 assert.equal(url.searchParams.get('from'), 'ln-rank');
 assert.equal(url.searchParams.get('context'), 'school');
 assert.equal(url.searchParams.get('school'), '沈阳建筑大学');
-assert.equal(url.searchParams.get('returnTo'), '/ln-rank/?mode=school-all&school=沈阳建筑大学&score=580');
+const returnTarget = new URL(url.searchParams.get('returnTo'), 'https://gaokao.powers.org.cn');
+assert.equal(returnTarget.pathname, '/ln-rank/');
+assert.equal(returnTarget.searchParams.get('mode'), 'school-all');
+assert.equal(returnTarget.searchParams.get('school'), '沈阳建筑大学');
+assert.equal(returnTarget.searchParams.get('score'), '580');
 
 const engineeringManagement = resolveMajorUnderstanding({ major: '工程管理' });
 assert.equal(engineeringManagement.code, '120103');
