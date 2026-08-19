@@ -89,7 +89,7 @@ jobs:
           grep -q 'data-ai-decision-generation="aiplus-parent-decision-v0.03"' aiplus/index.html
           grep -q 'data-ai-plus-assets="aiplus-assets-v002_4"' aiplus/index.html
           grep -q "AI_AGENT_KERNEL_VERSION='ai-human-advisor-kernel-v3992_6'" functions/_lib/ai/agent-task-kernel.js
-          grep -q "AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.03'" functions/_lib/ai/human-query-frame.js
+          grep -q "AI_HUMAN_QUERY_FRAME_VERSION='ai-human-query-frame-v0.04'" functions/_lib/ai/human-query-frame.js
           grep -q 'maxSteps:3' functions/_lib/ai/evidence-plan.js
           grep -q 'rememberedScoreAvailable' functions/_lib/ai/evidence-plan.js
           grep -q "'school_major'" functions/_lib/ai/claim-evidence.js

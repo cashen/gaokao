@@ -16,7 +16,7 @@ import {buildIntentContract,intentTopic} from './intent-contract.js';
 import {resolveSchoolDirectoryRegion} from './school-directory-resource.js';
 import {buildParentSemanticFrame,isParentDecisionLanguage} from './parent-semantic-frame.js';
 import {buildEvidencePlan} from './evidence-plan.js';
-import {claimToEvidence} from './claim-evidence.js';
+import {claimToEvidence,claimsFromAcademicBackground} from './claim-evidence.js';
 import {runDecisionResearch} from './decision-research-runtime.js';
 import {runEducationKnowledge} from './education-knowledge-runtime.js';
 import {reflectDecisionTurn} from './decision-reflection.js';
@@ -130,13 +130,13 @@ export async function orchestrateAiTurn(context,payload={}){
       case'decision_research':
         result.decisionResearch=await runDecisionResearch(executionContext,context,command,workspace,view,score);if(result.decisionResearch?.comparison)result.comparison=result.decisionResearch.comparison;result.partial=!result.decisionResearch?.ok||result.decisionResearch?.partial===true;break;
       case'background_discovery':
-        result.background=await runBackgroundDiscovery(executionContext,{limit:12,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln'])});result.partial=!result.background.ok;break;
+        result.background=await runBackgroundDiscovery(executionContext,{limit:12,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln']),scope:command.backgroundScope||'auto'});result.partial=!result.background.ok;break;
       case'background_fit_discovery':
-        result.background=await runBackgroundFitDiscovery(executionContext,{score,bottomLineMode:view.bottomLineMode,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln'])});result.partial=!result.background.ok;break;
+        result.background=await runBackgroundFitDiscovery(executionContext,{score,bottomLineMode:view.bottomLineMode,regionKeys:command.regionKeys?.length?command.regionKeys:(view.regionKeys||['ln']),scope:command.backgroundScope||'auto'});result.partial=!result.background.ok;break;
       case'school_background':
-        result.background=await runSchoolBackground(executionContext,{school:focus.school});result.partial=!result.background.ok;break;
+        result.background=await runSchoolBackground(executionContext,{school:focus.school,major:focus.major||'',scope:command.backgroundScope||'auto'});result.partial=!result.background.ok;break;
       case'major_background':
-        result.background=await runMajorBackground(executionContext,{major:focus.major});result.partial=!result.background.ok;break;
+        result.background=await runMajorBackground(executionContext,{major:focus.major,scope:command.backgroundScope||'auto'});result.partial=!result.background.ok;break;
       case'school_comparison':{
         const schools=unique(command.schoolNames?.length?command.schoolNames:focus.schools,3);result.comparison=await runSchoolComparison(executionContext,{score:score||view.score,schoolNames:schools,majorKeywords:view.majorKeywords,regionKeys:view.regionKeys,bottomLineMode:view.bottomLineMode});result.partial=!result.comparison?.ok;break;}
       case'major_comparison':{
@@ -151,8 +151,10 @@ export async function orchestrateAiTurn(context,payload={}){
   if(pendingTool?.code==='client_tool_invalid')return{ok:false,status:400,message:pendingTool.message||'确定性候选事实回传无法验证。',orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
   if(pendingTool?.code==='client_tool_required')return{ok:true,pendingConfirmation:false,pendingDeterministicTool:true,command,resolvedView:view,commitView:resolved.commitView,toolRequest:pendingTool.toolRequest,toolRequests:pendingTool.toolRequests,toolRequestCount:pendingTool.requestCount,comparisonPlan:pendingComparisonPlan(command),agentContext,provider:providerSummary(interpreted,command),orchestratorVersion:AI_TURN_ORCHESTRATOR_VERSION};
 
+  if(result.background?.ok)result.background.claims=claimsFromAcademicBackground(result.background);
   result.decisionStage=decisionStageFor({command,view,result,changes});
   result.evidence=evidenceForIntent(evidenceIntent(command,result));
+  if(result.background?.claims?.length)for(const claim of result.background.claims)result.evidence.push(claimToEvidence(claim));
   if(result.decisionResearch?.claims?.length)for(const claim of result.decisionResearch.claims)result.evidence.push(claimToEvidence(claim));
   if(result.knowledge?.evidence?.length)for(const evidence of result.knowledge.evidence)result.evidence.push(evidence);
   if(result.officialSchool?.sources?.length)for(const source of result.officialSchool.sources)result.evidence.push({level:'A',sourceName:source.sourceName||'阳光高考',sourceUrl:source.sourceUrl||'',scope:source.scope||result.officialSchool.topicLabel||'学校官方信息',updatedAt:source.updatedAt||result.officialSchool.updatedAt||''});

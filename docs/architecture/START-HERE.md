@@ -37,6 +37,36 @@ Use these files to answer: which entrypoint is current, which dependency is inte
 
 The 2026 admissions fact set remains deterministic. Runtime projections, bounded shards and indexes are derived execution structures, not competing business truths. For Worker resource ownership, start from the current runtime/resource contracts and the production vNext verification workflows rather than reintroducing full-table reads.
 
+### Academic background evidence and bounded execution
+
+**SOURCE-OF-TRUTH:ACADEMIC-BACKGROUND-SEMANTICS**
+
+The semantic/evidence truth owners remain:
+
+- `shared/resources/background/academic-background-contract.v3968_0.js` — background scope/shape contract;
+- `shared/resources/background/academic-background-source-registry.v3968_0.js` — source registry;
+- `shared/algorithms/background/academic-background-matcher.v3968_0.js` — evidence/match/render gate;
+- the existing shared school identity owner and 2026 canonical undergraduate-major resolver.
+
+The complete bounded execution sources are the already-published immutable indexes:
+
+- `/ln-rank/data/local-strength/local-strength-index.v3971_2.json` — Liaoning background source projection;
+- `/ln-rank/data/211-static/211-static-index.v3972_0.json` — complete 211 admissions/background static projection.
+
+**KNOWN-COMPAT:211-FUNCTIONS-LIGHTWEIGHT** — `functions/_lib/211-mainline-kb.js` is intentionally a lightweight Functions compatibility adapter. Its complete 211 school/major matching was moved to the build-time static index because Cloudflare Pages Functions share a Worker resource budget. Its summary APIs return empty collections and `match211Mainline()` returns `null`. Do not “restore completeness” by importing the full 211 KB back into Functions.
+
+Cross-product `major-path` / AIPLuS execution uses one deterministic, evidence-only **derived projection**, not a second business truth:
+
+- `tools/build-background-context-index-v001.mjs` — reproducible builder from the two stable source indexes;
+- `ln-rank/data/background-context/background-context-index.v001.json` — bounded `school × canonical major × evidence scope` execution index;
+- `ln-rank/data/background-context/background-context-audit.v001.json` — build/coverage audit;
+- `shared/resources/background/academic-background-context.v001.js` — pure query/dedupe projection contract;
+- `functions/_lib/academic-background-context-reader.js` — bounded Functions asset reader/cache owner;
+- `shared/resources/background/academic-background-navigation.v001.js` — cross-page canonical identity/return contract;
+- `docs/architecture/UNIFIED-BACKGROUND-CONTEXT-STATUS.md` — program ownership, fail-closed and release handoff.
+
+The derived index must not own admissions scores/ranks, school strength ranking, recommendation bonus, or a second major dictionary. `liaoning` and `211` are evidence scopes only; 211 school identity never proves a specific major has 211 background evidence. A broad major phrase may collapse to a canonical school-major only when the school-scoped evidence has exactly one canonical result; ambiguity remains fail-closed.
+
 ### AIPLuS product and fact boundaries
 
 - `shared/ai/aiplus-product-contract.v002.js` — **current AIPLuS product/source policy owner**. The visible product shell remains `v0.02`.

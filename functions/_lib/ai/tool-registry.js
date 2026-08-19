@@ -252,26 +252,26 @@ export async function runFitAssessment(context,{school,majorKeyword='',score}={}
   return{ok:true,school:payload?.meta?.school||school,majorKeyword:clean(majorKeyword,160),candidateScore:numeric,candidateRank:payload.meta?.candidateReferenceRank2026||null,records,nearest,summary:payload.summary||{},meta:payload.meta||{},source:payload.source||{},adapterVersion:AI_SCHOOL_HISTORY_ADAPTER_VERSION,boundary:'只比较2026辽宁物理类历史投档位置，不预测2027录取结果；事实查询在独立的按校预聚合确定性请求中执行。'};
 }
 
-export async function runSchoolBackground(context,{school}={}){
+export async function runSchoolBackground(context,{school,major='',majorCode='',scope='auto'}={}){
   const needle=normalizeText(school);if(!needle)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
-  const snapshot=await loadAiBackgroundSnapshot(context),resolved=schoolBackgroundFromSnapshot(snapshot,school);
-  if(!resolved.items.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景静态证据资源没有足够证据把这所学校标成具体强项；未显示不代表学校没有优势。',school};
-  return{ok:true,school:clean(school,120),items:resolved.items.slice(0,4),meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'背景方向来自已发布静态证据资源；不改变当前招生事实，也不把未显示方向解释为弱项。'};
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=schoolBackgroundFromSnapshot(snapshot,school,{scope,major,majorCode});
+  if(!resolved.items.length){const scopeText=resolved.scope==='211'?'211专业背景':resolved.scope==='liaoning'?'辽宁省内专业背景':'省内与211专业背景';return{ok:false,code:'background_no_evidence',message:`当前${scopeText}资源没有达到展示门禁的${major?`“${major}”`:"具体专业"}证据；未显示不代表学校或专业弱。`,school:clean(school,120),major:clean(major,160),scope:resolved.scope};}
+  return{ok:true,school:clean(school,120),major:clean(major,160),scope:resolved.scope,items:resolved.items.slice(0,8),meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'背景证据来自统一学校×canonical专业 projection；省内与211是证据视角，不相加成强弱分，学校平台身份不能代替具体专业证据。'};
 }
-export async function runMajorBackground(context,{major}={}){
-  const needle=normalizeText(major);if(!needle)return{ok:false,code:'major_required',message:'需要先明确一个专业或方向。'};
-  const snapshot=await loadAiBackgroundSnapshot(context),resolved=majorBackgroundFromSnapshot(snapshot,major);
-  if(!resolved.items.length)return{ok:false,code:'background_no_evidence',message:'当前辽宁背景静态证据资源没有足够证据把这个方向映射到具体学校；未显示不代表没有优势学校。',major};
-  return{ok:true,major:clean(major,160),items:resolved.items.slice(0,12),meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'只展示已发布静态资源中通过背景证据门禁的方向；未显示不代表其他学校没有优势。'};
+export async function runMajorBackground(context,{major,majorCode='',scope='auto'}={}){
+  const needle=normalizeText(major);if(!needle&&!majorCode)return{ok:false,code:'major_required',message:'需要先明确一个专业或方向。'};
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=majorBackgroundFromSnapshot(snapshot,major,{scope,majorCode,regionKeys:['all']});
+  if(!resolved.items.length){const scopeText=resolved.scope==='211'?'211专业背景':resolved.scope==='liaoning'?'辽宁省内专业背景':'省内与211专业背景';return{ok:false,code:'background_no_evidence',message:`当前${scopeText}资源没有足够证据把“${major||majorCode}”映射到具体学校×专业；未显示不代表没有优势学校。`,major:clean(major,160),scope:resolved.scope};}
+  return{ok:true,major:clean(major,160),scope:resolved.scope,items:resolved.items.slice(0,16),total:resolved.total,schoolCount:resolved.schoolCount,meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'只展示统一背景资源中通过门禁的学校×canonical专业证据；列表不是学校排名，未显示不代表其他学校没有优势。'};
 }
-export async function runBackgroundDiscovery(context,{limit=12,regionKeys=['ln']}={}){
-  const snapshot=await loadAiBackgroundSnapshot(context),resolved=backgroundDiscoveryFromSnapshot(snapshot,{limit,regionKeys:normalizeRegionKeys(regionKeys)});
-  return{ok:true,scope:'liaoning',regionKeys:normalizeRegionKeys(regionKeys),items:resolved.items,totalWithEvidence:resolved.totalWithEvidence,meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这里只列当前地域内、已发布背景静态资源中证据门禁通过的方向；未显示不代表其他专业不值得报，也不直接等于就业优劣。'};
+export async function runBackgroundDiscovery(context,{limit=12,regionKeys=['ln'],scope='auto'}={}){
+  const snapshot=await loadAiBackgroundSnapshot(context),resolved=backgroundDiscoveryFromSnapshot(snapshot,{limit,regionKeys:normalizeRegionKeys(regionKeys),scope});
+  return{ok:true,scope:resolved.scope,regionKeys:normalizeRegionKeys(regionKeys),items:resolved.items,totalWithEvidence:resolved.totalWithEvidence,meta:resolved.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这里只列当前请求证据范围内、通过门禁的专业背景方向；未显示不代表其他专业不值得报，也不直接等于就业优劣。'};
 }
-export async function runBackgroundFitDiscovery(context,{score,bottomLineMode='all',regionKeys=['ln']}={}){
+export async function runBackgroundFitDiscovery(context,{score,bottomLineMode='all',regionKeys=['ln'],scope='auto'}={}){
   const candidates=await runMajorBandSearch(context,{score,majorKeywords:[],regionKeys,bottomLineMode});if(candidates?.code==='client_tool_required'||candidates?.code==='client_tool_invalid')return candidates;if(!candidates.ok)return{ok:false,code:'candidate_search_failed',message:candidates.message||'当前分数候选没有读取成功。'};
-  const snapshot=await loadAiBackgroundSnapshot(context),matched=matchCandidateBackgrounds(snapshot,candidates.records||[]);
-  return{ok:true,score:Number(score),regionKeys:normalizeRegionKeys(regionKeys),items:matched.items.slice(0,24).map(item=>({record:historyRecord(item.record),background:item.background})),candidateCounts:candidates.counts,previewOnly:true,meta:matched.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这是当前分数与地域窗口的代表性预览和已发布背景证据交集，不是全量“最佳专业”排名；候选事实仍来自当前确定性招生资源。'};
+  const snapshot=await loadAiBackgroundSnapshot(context),matched=matchCandidateBackgrounds(snapshot,candidates.records||[],{scope});
+  return{ok:true,scope:matched.scope,score:Number(score),regionKeys:normalizeRegionKeys(regionKeys),items:matched.items.slice(0,24).map(item=>({record:historyRecord(item.record),background:item.background})),candidateCounts:candidates.counts,previewOnly:true,meta:matched.meta,adapterVersion:AI_BACKGROUND_ADAPTER_VERSION,boundary:'这是当前分数与地域窗口的代表性预览和统一背景证据交集，不是全量“最佳专业”排名；候选事实仍来自当前确定性招生资源。'};
 }
 
 function uniqueField(records,field,max=80){return unique((records||[]).map(item=>item?.[field]).filter(Boolean),max);}
