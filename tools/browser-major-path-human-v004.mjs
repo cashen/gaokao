@@ -102,6 +102,21 @@ async function verifyDirectScoreJourney(page,name){
   await page.locator('[data-major-evidence-details] > summary').click();
   const evidence=await page.locator('[data-major-evidence-details]').innerText();
   assert(evidence.includes('一级学科')&&evidence.includes('招生目录')&&evidence.includes('官方依据'),`${name}: evidence layer lost scientific boundary`);
+
+  const nextCode=await page.evaluate(()=>{
+    const nodes=[...document.querySelectorAll('[data-major-explore-details] [data-major-code]')];
+    const next=nodes.find(node=>node.getAttribute('data-major-code')!=='120103');
+    next?.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
+    return next?.getAttribute('data-major-code')||'';
+  });
+  assert(nextCode,`${name}: no related major available to verify continuation semantics`);
+  await page.waitForSelector(`[data-major-pathway-focus="${nextCode}"]`);
+  await waitLanding(page,'result');
+  const continuation=await page.locator('[data-major-path-source-boundary]').innerText();
+  assert(continuation.includes('从刚才的专业继续看'),`${name}: related-major continuation still claims original ln-rank source`);
+  assert(!continuation.includes('来自刚才的辽宁招生结果'),`${name}: related-major continuation falsely inherited original score source`);
+  await assertHumanDefault(page,name,'direct related-major continuation');
+
   await page.locator('.back-home').click();
   await page.waitForURL(/\/ln-rank\/mock\.html/);
   await page.waitForSelector('[data-workspace-record-key="score-key"] [data-major-path-entry="120103"]');
