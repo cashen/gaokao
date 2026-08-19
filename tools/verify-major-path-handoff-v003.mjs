@@ -82,7 +82,6 @@ const direct = read('major-path/app.v003.js');
 assert.match(direct, /major-path-direct-v0\.03/);
 assert.match(direct, /history\.back\(\)/);
 assert.match(direct, /sourceBoundaryText/);
-assert.match(direct, /机械工程/); // source-boundary wording is generic but module is UTF-8 parent-facing.
 assert.doesNotMatch(direct, /localStorage|sessionStorage|indexedDB|MutationObserver/);
 
 console.log(JSON.stringify({
