@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { resolveSchoolMajorBackgroundContext } from '../shared/resources/background/academic-background-context.v001.js';
+import { claimsFromAcademicBackground } from '../functions/_lib/ai/claim-evidence.js';
 
 const BASE=(process.env.BASE_URL||'').replace(/\/$/,'');
 if(!BASE)throw new Error('BASE_URL required');
@@ -13,20 +15,31 @@ function norm(v){return String(v||'').normalize('NFKC').replace(/\s+/g,'').toLow
 function assert(v,m){if(!v)throw new Error(m);}
 const pairs=new Map();
 for(const record of snapshot.records||[]){const key=`${norm(record.schoolIdentity||record.school)}|${record.canonicalMajor?.code||''}`,item=pairs.get(key)||{school:record.schoolIdentity||record.school,major:record.canonicalMajor,scopes:new Set(),records:[]};item.scopes.add(record.scope);item.records.push(record);pairs.set(key,item);}
-function hasClaimableEvidence(record){
-  const sources=Array.isArray(record?.sources)?record.sources:[];
-  return (record?.evidence||[]).some(item=>{
-    const sourceId=String(item?.sourceId||'').trim();
-    const source=sources.find(entry=>sourceId&&String(entry?.sourceId||'').trim()===sourceId)
-      ||sources.find(entry=>/^https:\/\//.test(entry?.url||entry?.sourceUrl||''))
-      ||sources[0]
-      ||{};
-    const sourceUrl=source?.url||source?.sourceUrl||item?.sourceUrl||'';
-    return Boolean(item?.evidenceId&&item?.sourceId&&/^https:\/\//.test(sourceUrl));
+function claimsForPair(item){
+  if(!item?.school||!item?.major?.code)return[];
+  const context=resolveSchoolMajorBackgroundContext(snapshot,{school:item.school,majorCode:item.major.code,majorName:item.major.name,scope:'auto'});
+  if(!context.matched)return[];
+  return claimsFromAcademicBackground({
+    ok:true,
+    school:context.school||item.school,
+    major:context.canonicalMajor?.name||item.major.name,
+    scope:'auto',
+    boundary:context.boundary,
+    items:[{
+      school:context.school||item.school,
+      canonicalMajor:context.canonicalMajor||item.major,
+      scopesMatched:context.scopesMatched,
+      evidence:context.evidence,
+      sources:context.sources,
+      boundary:context.boundary
+    }]
   });
 }
-const DUAL=[...pairs.values()].find(item=>item.major?.code&&item.scopes.has('liaoning')&&item.scopes.has('211')&&['liaoning','211'].every(scope=>item.records.some(record=>record.scope===scope&&hasClaimableEvidence(record))));
-assert(DUAL,'no dual-scope school-major sample with claimable evidence in both scopes');
+function claimScopes(claims=[]){return new Set((claims||[]).flatMap(claim=>String(claim?.evidenceScope||'').split('+')).filter(Boolean));}
+const DUAL=[...pairs.values()].find(item=>item.major?.code&&item.scopes.has('liaoning')&&item.scopes.has('211')&&claimsForPair(item).length>0);
+assert(DUAL,'no dual-scope school-major sample with canonical claim provenance');
+const DUAL_CLAIMS=claimsForPair(DUAL),DUAL_CLAIM_SCOPES=claimScopes(DUAL_CLAIMS);
+assert(DUAL_CLAIM_SCOPES.has('211'),'dual-scope live sample lost claimable 211 provenance');
 const schools211=new Set(snapshot.records.filter(r=>r.scope==='211').map(r=>norm(r.schoolIdentity||r.school)));
 const LOCAL_ONLY=snapshot.records.find(r=>r.scope==='liaoning'&&!schools211.has(norm(r.schoolIdentity||r.school)));
 assert(LOCAL_ONLY,'no local-only live sample');
@@ -104,18 +117,19 @@ async function verifyAi(){
   assert(matched.has('liaoning')&&matched.has('211'),'live exact school-major did not expose both evidence scopes');
   const claims=exact.result.background.claims||[];
   assert(claims.length>0,'live exact background produced no typed claims');
-  const claimScopes=new Set(claims.map(claim=>claim.evidenceScope).flatMap(value=>String(value||'').split('+')).filter(Boolean));
-  assert(claimScopes.has('liaoning')&&claimScopes.has('211'),'live typed claims lost evidence scope provenance');
-  assert(claims.every(claim=>claim.subjectType==='school_major'&&claim.evidenceId&&claim.sourceId&&/^https:\/\//.test(claim.source?.sourceUrl||'')),'live background claim provenance incomplete');
+  const liveClaimScopes=claimScopes(claims);
+  assert([...DUAL_CLAIM_SCOPES].every(scope=>liveClaimScopes.has(scope)),'live typed claims lost canonical claimable scope provenance');
+  assert([...liveClaimScopes].every(scope=>DUAL_CLAIM_SCOPES.has(scope)),'live typed claims invented an evidence scope without canonical claim provenance');
+  assert(claims.every(claim=>claim.subjectType==='school_major'&&claim.evidenceId&&claim.sourceId&&(/^(?:https:\/\/|\/)/.test(claim.source?.sourceUrl||''))),'live background claim provenance incomplete');
 
   const miss=await postTurn(`${LOCAL_ONLY.schoolIdentity||LOCAL_ONLY.school}的${LOCAL_ONLY.canonicalMajor.name}的211专业背景怎么样`);
   assert(miss.command?.agentTask==='school_background','live explicit-211 miss task drift');
   assert(miss.command?.backgroundScope==='211','live explicit-211 miss scope drift');
   assert(miss.result?.background?.ok===false&&miss.result?.background?.code==='background_no_evidence','explicit 211 miss did not fail closed');
   assert(miss.result?.background?.scope==='211','explicit 211 miss fell back to local evidence');
-  return{scoped:{task:scoped.command.agentTask,scope:scoped.command.backgroundScope,ok:scoped.result.background?.ok},exact:{school:DUAL.school,major:DUAL.major,claims:claims.length},miss:{school:LOCAL_ONLY.schoolIdentity||LOCAL_ONLY.school,major:LOCAL_ONLY.canonicalMajor,code:miss.result.background.code}};
+  return{scoped:{task:scoped.command.agentTask,scope:scoped.command.backgroundScope,ok:scoped.result.background?.ok},exact:{school:DUAL.school,major:DUAL.major,claims:claims.length,claimScopes:[...liveClaimScopes]},miss:{school:LOCAL_ONLY.schoolIdentity||LOCAL_ONLY.school,major:LOCAL_ONLY.canonicalMajor,code:miss.result.background.code}};
 }
 const browser=await chromium.launch({headless:true});const devices=[];
 try{for(const device of DEVICES){const context=await browser.newContext(device),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await verifyBrowser(page,device.name);assert(!errors.length,`${device.name}: page errors ${errors.join('\n')}`);devices.push({device:device.name,ok:true});await context.close();}}finally{await browser.close();}
 const ai=await verifyAi();
-console.log(JSON.stringify({ok:true,version:'unified-background-context-live-v0.01',base:BASE,expectedSha:EXPECTED_SHA,sample:{school:DUAL.school,major:DUAL.major},devices,ai},null,2));
+console.log(JSON.stringify({ok:true,version:'unified-background-context-live-v0.01',base:BASE,expectedSha:EXPECTED_SHA,sample:{school:DUAL.school,major:DUAL.major,claimScopes:[...DUAL_CLAIM_SCOPES]},devices,ai},null,2));
