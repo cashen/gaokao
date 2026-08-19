@@ -1,4 +1,4 @@
-name: Verify major path v0.01
+name: Verify major path v0.02
 
 on:
   pull_request:
@@ -9,12 +9,13 @@ on:
       - 'shared/resources/graduate/**'
       - 'shared/resources/majors/undergrad-graduate-pathway.v001.js'
       - 'shared/resources/majors/major-search-intent.v001.js'
+      - 'shared/resources/majors/major-relationship-graph.v002.js'
       - 'shared/resources/majors/major-catalog-contract.js'
       - 'ln-rank/kb/major-understanding/**'
       - 'ln-rank/js/knowledge/major-understanding-resolver.js'
-      - 'tools/verify-major-path-v001.mjs'
-      - 'tools/browser-major-path-v001.mjs'
-      - 'tools/browser-major-path-live-v001.mjs'
+      - 'tools/verify-major-path-v002.mjs'
+      - 'tools/browser-major-path-v002.mjs'
+      - 'tools/browser-major-path-live-v002.mjs'
       - 'docs/architecture/MAJOR-PATH-STATUS.md'
       - '.github/workflows/verify-major-path-v001.yml'
   push:
@@ -24,12 +25,13 @@ on:
       - 'shared/resources/graduate/**'
       - 'shared/resources/majors/undergrad-graduate-pathway.v001.js'
       - 'shared/resources/majors/major-search-intent.v001.js'
+      - 'shared/resources/majors/major-relationship-graph.v002.js'
       - 'shared/resources/majors/major-catalog-contract.js'
       - 'ln-rank/kb/major-understanding/**'
       - 'ln-rank/js/knowledge/major-understanding-resolver.js'
-      - 'tools/verify-major-path-v001.mjs'
-      - 'tools/browser-major-path-v001.mjs'
-      - 'tools/browser-major-path-live-v001.mjs'
+      - 'tools/verify-major-path-v002.mjs'
+      - 'tools/browser-major-path-v002.mjs'
+      - 'tools/browser-major-path-live-v002.mjs'
       - 'docs/architecture/MAJOR-PATH-STATUS.md'
       - '.github/workflows/verify-major-path-v001.yml'
 
@@ -40,7 +42,7 @@ permissions:
 jobs:
   source-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,17 +56,23 @@ jobs:
           node --check shared/resources/graduate/graduate-catalog-2022.v001.js
           node --check shared/resources/majors/undergrad-graduate-pathway.v001.js
           node --check shared/resources/majors/major-search-intent.v001.js
-          node --check major-path/app.v001.js
-          node --check tools/verify-major-path-v001.mjs
-          node --check tools/browser-major-path-v001.mjs
-          node --check tools/browser-major-path-live-v001.mjs
+          node --check shared/resources/majors/major-relationship-graph.v002.js
+          node --check major-path/app.v002.js
+          node --check tools/verify-major-path-v002.mjs
+          node --check tools/browser-major-path-v002.mjs
+          node --check tools/browser-major-path-live-v002.mjs
           test "$(find shared/resources/graduate -maxdepth 1 -type f -name 'graduate-catalog-2022*.js' | wc -l | tr -d ' ')" = "1"
-          grep -q 'major-path-v0.01' major-path/index.html
+          grep -q 'major-path-v0.02' major-path/index.html
+          grep -q '/major-path/app.v002.js?v=002_0' major-path/index.html
+          grep -q '/major-path/major-path-graph.v002.css?v=002_0' major-path/index.html
+          ! grep -q '/major-path/app.v001.js?v=001_0' major-path/index.html
           grep -q 'navigation-not-official-one-to-one-crosswalk' shared/resources/majors/undergrad-graduate-pathway.v001.js
           grep -q 'exact-official-direct-vague-parent-language-disambiguate-before-selection' shared/resources/majors/major-search-intent.v001.js
-          ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app.v001.js
-      - name: Full undergraduate and graduate catalog audit
-        run: node tools/verify-major-path-v001.mjs
+          grep -q 'derive-from-canonical-undergraduate-hierarchy-and-existing-graduate-navigation' shared/resources/majors/major-relationship-graph.v002.js
+          grep -q '二级学科与专业领域由学位授予单位' shared/resources/majors/major-relationship-graph.v002.js
+          ! grep -Eq 'fetch\(|XMLHttpRequest|localStorage|sessionStorage|indexedDB' major-path/app.v002.js
+      - name: Full undergraduate graduate and relationship graph audit
+        run: node tools/verify-major-path-v002.mjs
       - name: Preserve architecture handoff
         run: node tools/audit-architecture-handoff-v3990_1.mjs
       - name: Protected boundaries
@@ -90,7 +98,7 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
@@ -101,7 +109,7 @@ jobs:
       - name: Install verified Chromium
         run: bash .github/scripts/install-playwright-chromium.sh
       - name: Verify local PC Pad Android
-        run: node tools/browser-major-path-v001.mjs
+        run: node tools/browser-major-path-v002.mjs
       - name: Resolve exact-head Cloudflare Preview
         id: preview
         env:
@@ -125,8 +133,8 @@ jobs:
           done
           test -n "$immutable_preview"
           echo "base=$immutable_preview" >> "$GITHUB_OUTPUT"
-          echo "Exact major-path Preview: $immutable_preview"
-      - name: Wait for exact-head major path assets
+          echo "Exact major-path v0.02 Preview: $immutable_preview"
+      - name: Wait for exact-head major path v0.02 assets
         env:
           BASE: ${{ steps.preview.outputs.base }}
         run: |
@@ -135,26 +143,28 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$BASE/major-path/" || true)"
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$BASE/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
-            app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v001.js?v=001_0" || true)"
+            app="$(curl -fsSL --max-time 20 "$BASE/major-path/app.v002.js?v=002_0" || true)"
+            graph_css="$(curl -fsSL --max-time 20 "$BASE/major-path/major-path-graph.v002.css?v=002_0" || true)"
             search="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-search-intent.v001.js?v=001_0" || true)"
             relation="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/undergrad-graduate-pathway.v001.js?v=001_0" || true)"
+            graph="$(curl -fsSL --max-time 20 "$BASE/shared/resources/majors/major-relationship-graph.v002.js?v=002_0" || true)"
             catalog="$(curl -fsSL --max-time 20 "$BASE/shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorSearchIntentResolver' <<<"$app" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then exit 0; fi
+            if grep -q 'data-major-path-version="major-path-v0.02"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorRelationshipGraphResolver' <<<"$app" && grep -q 'relationship-svg' <<<"$graph_css" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'major-relationship-graph-v002' <<<"$graph" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then exit 0; fi
             sleep 8
           done
-          echo "Major-path Preview asset graph never reached exact head $EXPECTED_SHA" >&2
+          echo "Major-path v0.02 Preview asset graph never reached exact head $EXPECTED_SHA" >&2
           exit 2
       - name: Verify exact-head Preview PC Pad Android
         env:
           MAJOR_PATH_LIVE_BASE: ${{ steps.preview.outputs.base }}
           MAJOR_PATH_LIVE_MODE: preview
-        run: node tools/browser-major-path-live-v001.mjs
+        run: node tools/browser-major-path-live-v002.mjs
 
   browser-production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: source-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     env:
       EXPECTED_SHA: ${{ github.sha }}
       MAJOR_PATH_LIVE_BASE: https://gaokao-4y9.pages.dev
@@ -168,7 +178,7 @@ jobs:
           node-version: 22
       - name: Install verified Chromium
         run: bash .github/scripts/install-playwright-chromium.sh
-      - name: Wait for coherent exact-main major path assets
+      - name: Wait for coherent exact-main major path v0.02 assets
         run: |
           set -euo pipefail
           base="$MAJOR_PATH_LIVE_BASE"
@@ -176,20 +186,22 @@ jobs:
             html="$(curl -fsSL --max-time 20 "$base/major-path/" || true)"
             health="$(curl -fsSL --max-time 20 -H 'accept: application/json' "$base/api/ai/health" || true)"
             sha="$(jq -r '.deployment.commitSha // empty' <<<"$health" 2>/dev/null || true)"
-            app="$(curl -fsSL --max-time 20 "$base/major-path/app.v001.js?v=001_0" || true)"
+            app="$(curl -fsSL --max-time 20 "$base/major-path/app.v002.js?v=002_0" || true)"
+            graph_css="$(curl -fsSL --max-time 20 "$base/major-path/major-path-graph.v002.css?v=002_0" || true)"
             search="$(curl -fsSL --max-time 20 "$base/shared/resources/majors/major-search-intent.v001.js?v=001_0" || true)"
             relation="$(curl -fsSL --max-time 20 "$base/shared/resources/majors/undergrad-graduate-pathway.v001.js?v=001_0" || true)"
+            graph="$(curl -fsSL --max-time 20 "$base/shared/resources/majors/major-relationship-graph.v002.js?v=002_0" || true)"
             catalog="$(curl -fsSL --max-time 20 "$base/shared/resources/graduate/graduate-catalog-2022.v001.js?v=001_0" || true)"
-            if grep -q 'data-major-path-version="major-path-v0.01"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorSearchIntentResolver' <<<"$app" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then
-              echo "Coherent major-path asset graph reached exact main $EXPECTED_SHA"
+            if grep -q 'data-major-path-version="major-path-v0.02"' <<<"$html" && [ "$sha" = "$EXPECTED_SHA" ] && grep -q 'createMajorRelationshipGraphResolver' <<<"$app" && grep -q 'relationship-svg' <<<"$graph_css" && grep -q 'major-search-intent-v001' <<<"$search" && grep -q 'undergrad-graduate-pathway-v001' <<<"$relation" && grep -q 'major-relationship-graph-v002' <<<"$graph" && grep -q 'graduate-catalog-2022-v001' <<<"$catalog"; then
+              echo "Coherent major-path v0.02 asset graph reached exact main $EXPECTED_SHA"
               exit 0
             fi
             sleep 10
           done
-          echo "Major-path Production asset graph never became coherent for $EXPECTED_SHA" >&2
+          echo "Major-path v0.02 Production asset graph never became coherent for $EXPECTED_SHA" >&2
           exit 2
       - name: Verify Production PC Pad Android
-        run: node tools/browser-major-path-live-v001.mjs
+        run: node tools/browser-major-path-live-v002.mjs
 
   publish-production-status:
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -210,10 +222,10 @@ jobs:
         run: |
           set -euo pipefail
           state=failure
-          description='Major path Production verification failed'
+          description='Major path v0.02 Production verification failed'
           if [ "$SOURCE_RESULT" = success ] && [ "$BROWSER_RESULT" = success ]; then
             state=success
-            description='Major path Production verified'
+            description='Major path v0.02 Production verified'
           fi
-          jq -n --arg state "$state" --arg target_url "$RUN_URL" --arg description "$description" --arg context 'production/major-path-v0.01' '{state:$state,target_url:$target_url,description:$description,context:$context}' > /tmp/status.json
+          jq -n --arg state "$state" --arg target_url "$RUN_URL" --arg description "$description" --arg context 'production/major-path-v0.02' '{state:$state,target_url:$target_url,description:$description,context:$context}' > /tmp/status.json
           curl -fsSL --request POST -H 'Accept: application/vnd.github+json' -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${GH_REPOSITORY}/statuses/${SHA}" --data-binary @/tmp/status.json >/dev/null
