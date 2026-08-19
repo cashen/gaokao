@@ -59,7 +59,7 @@ assert.equal(concrete('计算机类'), false);
 assert.equal(concrete('工科试验班'), false);
 
 const handoff = read('ln-rank/js/workspace/major-path-handoff.v003.js');
-assert.match(handoff, /data\.uiNavigation = 'major-path'/);
+assert.match(handoff, /dataset\.uiNavigation = 'major-path'/);
 assert.match(handoff, /dataset\.uiNavigationTarget = href/);
 assert.match(handoff, /name_exact/);
 assert.match(handoff, /admission_suffix_clean/);
