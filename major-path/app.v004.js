@@ -20,7 +20,12 @@ const renderState = {
   token: 0,
   directBoot: Boolean(sourceContext.fromLnRank && sourceContext.majorCode)
 };
+const bootState = {
+  coreReady: false,
+  queuedAction: null
+};
 
+document.body.dataset.majorPathCoreReady = '0';
 if (renderState.directBoot) document.body.classList.add('major-path-direct');
 
 function findMajorByCode(code) {
@@ -83,7 +88,12 @@ function beginStableResultPresentation() {
   beginPresentation({ landing: 'result', suppressLegacyScroll: false, ownViewport: false });
 }
 
-els.form?.addEventListener('submit', () => {
+els.form?.addEventListener('submit', event => {
+  if (!bootState.coreReady) {
+    event.preventDefault();
+    bootState.queuedAction = { type: 'submit' };
+    return;
+  }
   if (renderState.directBoot) {
     beginPresentation({ landing: 'pathway', suppressLegacyScroll: true, ownViewport: true });
     return;
@@ -92,7 +102,13 @@ els.form?.addEventListener('submit', () => {
 }, true);
 
 els.input?.addEventListener('keydown', event => {
-  if (event.key === 'Enter' && !renderState.directBoot) beginStableResultPresentation();
+  if (event.key !== 'Enter') return;
+  if (!bootState.coreReady) {
+    event.preventDefault();
+    bootState.queuedAction = { type: 'submit' };
+    return;
+  }
+  if (!renderState.directBoot) beginStableResultPresentation();
 }, true);
 
 document.addEventListener('click', event => {
@@ -100,6 +116,13 @@ document.addEventListener('click', event => {
     ? event.target.closest('[data-major-code], [data-major-example], [data-expand-disambiguation]')
     : null;
   if (!target || target.closest('[data-graph-mode]')) return;
+  if (!bootState.coreReady) {
+    if (target.matches('[data-major-example]')) {
+      event.preventDefault();
+      bootState.queuedAction = { type: 'example', value: target.dataset.majorExample || '' };
+    }
+    return;
+  }
   if (els.result?.contains(target)) return;
   beginStableResultPresentation();
 }, true);
@@ -112,6 +135,17 @@ document.addEventListener('keydown', event => {
 }, true);
 
 await import('./app.v002.js?v=002_0');
+bootState.coreReady = true;
+document.body.dataset.majorPathCoreReady = '1';
+const queuedAction = bootState.queuedAction;
+bootState.queuedAction = null;
+if (queuedAction?.type === 'example') {
+  const button = [...document.querySelectorAll('[data-major-example]')]
+    .find(item => item.dataset.majorExample === queuedAction.value);
+  button?.click();
+} else if (queuedAction?.type === 'submit') {
+  els.form?.requestSubmit();
+}
 
 function textReplace(root, selector, mapping) {
   for (const node of root.querySelectorAll(selector)) {
