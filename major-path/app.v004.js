@@ -103,6 +103,15 @@ document.addEventListener('keydown', event => {
 
 await import('./app.v002.js?v=002_0');
 
+document.addEventListener('click', event => {
+  const mode = event.target instanceof Element ? event.target.closest('[data-graph-mode]') : null;
+  if (!mode) return;
+  stableFrames(() => {
+    const relationship = mode.closest('.relationship-section');
+    if (relationship) simplifyGraphLanguage(relationship);
+  });
+});
+
 function textReplace(root, selector, mapping) {
   for (const node of root.querySelectorAll(selector)) {
     const current = String(node.textContent || '').trim();
@@ -180,6 +189,15 @@ function conciseSourceContext(context, major) {
   };
 }
 
+function directContextForMajor(major) {
+  const originalCode = String(sourceContext.majorCode || '').trim().toUpperCase();
+  if (major.code === originalCode) return conciseSourceContext(sourceContext, major);
+  return {
+    title: '从刚才的专业继续看',
+    body: '这是从相关专业里继续展开的内容；返回仍会回到最初的招生结果。'
+  };
+}
+
 function installReturnAction(context) {
   const action = els.back;
   if (!(action instanceof HTMLAnchorElement)) return;
@@ -218,10 +236,12 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   focus.innerHTML = `<div class="pathway-focus-head"><p class="eyebrow">本科到读研，先看这条线</p><h3>${major.name}以后怎么继续学</h3><p>先看本科在国家目录里的位置，再看读研时可以优先了解的学硕、专硕方向。</p></div>`;
 
   if (renderState.directBoot) {
-    const source = conciseSourceContext(sourceContext, major);
+    const source = directContextForMajor(major);
     const note = document.createElement('div');
     note.className = 'direct-context-line';
-    note.dataset.majorPathSourceBoundary = sourceContext.context || 'score';
+    note.dataset.majorPathSourceBoundary = major.code === String(sourceContext.majorCode || '').trim().toUpperCase()
+      ? (sourceContext.context || 'score')
+      : 'continuation';
     note.innerHTML = `<strong>${source.title}</strong><span>${source.body}</span>`;
     focus.append(note);
   }
