@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - name: Apply idempotent construction patch
-        run: node tools/tmp_apply_unified-background_context_v001.mjs
+        run: node tools/tmp_apply_unified_background_context_v001.mjs
       - name: Remove background evidence from platform scoring
         run: |
           node - <<'NODE'
