@@ -432,24 +432,22 @@ function humanizeResult() {
   else simplifyGraphLanguage(els.result);
 }
 
-function eventPathMatches(event, selector) {
-  return event.composedPath().some(node => node instanceof Element && node.matches(selector));
+function currentResultNeedsPresentation() {
+  const shell = els.result?.querySelector('[data-result-major]');
+  return Boolean(shell && !shell.querySelector('[data-major-pathway-focus]'));
 }
 
-els.result?.addEventListener('click', event => {
-  if (eventPathMatches(event, '[data-graph-mode]')) return;
-  if (!eventPathMatches(event, '[data-major-code], [data-expand-disambiguation]')) return;
-  // v0.02 is registered first and synchronously owns the semantic result mutation.
-  // Read and humanize the current result now; never infer new state from a detached target.
+els.result?.addEventListener('click', () => {
+  const needsPresentation = currentResultNeedsPresentation();
   humanizeResult();
-  beginStableResultPresentation();
+  if (needsPresentation) beginStableResultPresentation();
 });
 
 els.result?.addEventListener('keydown', event => {
   if (!['Enter', ' '].includes(event.key)) return;
-  if (!eventPathMatches(event, '.graph-node[data-major-code]')) return;
+  const needsPresentation = currentResultNeedsPresentation();
   humanizeResult();
-  beginStableResultPresentation();
+  if (needsPresentation) beginStableResultPresentation();
 });
 
 document.addEventListener('click', event => {
