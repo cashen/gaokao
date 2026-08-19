@@ -385,19 +385,16 @@ function humanizeResult() {
   else simplifyGraphLanguage(els.result);
 }
 
-els.result?.addEventListener('click', event => {
-  const target = event.target instanceof Element
-    ? event.target.closest('[data-major-code], [data-expand-disambiguation]')
-    : null;
-  if (!target || target.closest('[data-graph-mode]')) return;
+els.result?.addEventListener('click', () => {
+  // v0.02 owns result mutation and is registered first. It may replace #result
+  // synchronously, so the original event.target can already be detached here.
+  // Read the current result instead of inferring state from the stale target.
   humanizeResult();
   document.body.dataset.majorPathLanding = 'result';
 });
 
 els.result?.addEventListener('keydown', event => {
   if (!['Enter', ' '].includes(event.key)) return;
-  const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
-  if (!target) return;
   humanizeResult();
   document.body.dataset.majorPathLanding = 'result';
 });
