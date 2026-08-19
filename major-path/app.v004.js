@@ -18,7 +18,6 @@ const els = {
 };
 const renderState = {
   token: 0,
-  nextLanding: 'result',
   directBoot: Boolean(sourceContext.fromLnRank && sourceContext.majorCode)
 };
 
@@ -33,15 +32,6 @@ function removeQueryKeys(keys = []) {
   const url = new URL(location.href);
   for (const key of keys) url.searchParams.delete(key);
   history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`);
-}
-
-function beginRenderTransaction(landing = 'result') {
-  if (!els.result) return 0;
-  renderState.token += 1;
-  renderState.nextLanding = landing;
-  els.result.hidden = true;
-  document.body.dataset.majorPathRendering = '1';
-  return renderState.token;
 }
 
 function stableFrames(callback) {
@@ -59,46 +49,65 @@ function landOn(target) {
   window.scrollTo({ top, left: 0, behavior: 'auto' });
 }
 
-function finishRenderTransaction(token, landing = renderState.nextLanding) {
+function finishPresentation(token, { landing = 'result', suppressLegacyScroll = false, ownViewport = false } = {}) {
   queueMicrotask(() => {
     stableFrames(() => {
       if (!els.result || token !== renderState.token) return;
       humanizeResult();
-      els.result.hidden = false;
+      if (suppressLegacyScroll) els.result.hidden = false;
       delete document.body.dataset.majorPathRendering;
       stableFrames(() => {
-        const target = landing === 'pathway'
-          ? els.result.querySelector('[data-major-pathway-focus]')
-          : els.result.querySelector('.result-head, [data-result-major], .ambiguity-shell, .class-result');
-        landOn(target || els.result);
+        if (ownViewport) {
+          const target = landing === 'pathway'
+            ? els.result.querySelector('[data-major-pathway-focus]')
+            : els.result.querySelector('.result-head, [data-result-major], .disambiguation-shell, .class-result');
+          landOn(target || els.result);
+        }
         document.body.dataset.majorPathLanding = landing;
       });
     });
   });
 }
 
-function captureRenderTransaction(landingResolver) {
-  return event => {
-    const landing = typeof landingResolver === 'function' ? landingResolver(event) : landingResolver;
-    const token = beginRenderTransaction(landing || 'result');
-    if (!token) return;
-    finishRenderTransaction(token, landing || 'result');
-  };
+function beginPresentation({ landing = 'result', suppressLegacyScroll = false, ownViewport = false } = {}) {
+  if (!els.result) return 0;
+  renderState.token += 1;
+  const token = renderState.token;
+  if (suppressLegacyScroll) els.result.hidden = true;
+  document.body.dataset.majorPathRendering = '1';
+  finishPresentation(token, { landing, suppressLegacyScroll, ownViewport });
+  return token;
 }
 
-els.form?.addEventListener('submit', captureRenderTransaction(() => renderState.directBoot ? 'pathway' : 'result'), true);
-document.addEventListener('click', event => {
-  const target = event.target instanceof Element ? event.target.closest('[data-major-code], [data-major-example]') : null;
-  if (!target || target.closest('[data-graph-mode]')) return;
-  const token = beginRenderTransaction('result');
-  if (token) finishRenderTransaction(token, 'result');
+function beginStableResultPresentation() {
+  beginPresentation({ landing: 'result', suppressLegacyScroll: false, ownViewport: false });
+}
+
+els.form?.addEventListener('submit', () => {
+  if (renderState.directBoot) {
+    beginPresentation({ landing: 'pathway', suppressLegacyScroll: true, ownViewport: true });
+    return;
+  }
+  beginStableResultPresentation();
 }, true);
+
+els.input?.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && !renderState.directBoot) beginStableResultPresentation();
+}, true);
+
+document.addEventListener('click', event => {
+  const target = event.target instanceof Element
+    ? event.target.closest('[data-major-code], [data-major-example], [data-expand-disambiguation]')
+    : null;
+  if (!target || target.closest('[data-graph-mode]')) return;
+  beginStableResultPresentation();
+}, true);
+
 document.addEventListener('keydown', event => {
   if (!['Enter', ' '].includes(event.key)) return;
   const target = event.target instanceof Element ? event.target.closest('[data-major-code]') : null;
   if (!target) return;
-  const token = beginRenderTransaction('result');
-  if (token) finishRenderTransaction(token, 'result');
+  beginStableResultPresentation();
 }, true);
 
 await import('./app.v002.js?v=002_0');
@@ -140,8 +149,7 @@ function simplifyGraphLanguage(root) {
 
 function humanizeDegreeCards(graduateSection) {
   if (!graduateSection) return;
-  const cards = [...graduateSection.querySelectorAll('.degree-card')];
-  for (const card of cards) {
+  for (const card of graduateSection.querySelectorAll('.degree-card')) {
     const heading = card.querySelector('h4');
     const description = card.querySelector(':scope > p');
     const label = String(heading?.textContent || '').trim();
@@ -318,7 +326,7 @@ function buildEvidenceDetails(shell, relationship, graduateSection, sourceSectio
     details.append(secondLevel);
   }
 
-  const routeBoundary = [...(graduateSection?.querySelectorAll('.relation-note') || [])].find(node => !node.closest('.undergrad-line'));
+  const routeBoundary = graduateSection?.querySelector('.relation-note');
   if (routeBoundary) {
     const strong = routeBoundary.querySelector('strong');
     if (strong) strong.textContent = '需要注意：';
@@ -395,16 +403,13 @@ function directBoot(context) {
   }
   installReturnAction(context);
   els.input.value = major.name;
-  renderState.nextLanding = 'pathway';
   els.form.requestSubmit();
   document.body.dataset.majorPathDirect = MAJOR_PATH_HUMAN_VERSION;
   document.title = `${major.name}：本科到读研怎么走 - 专业升学地图`;
   return true;
 }
 
-if (!directBoot(sourceContext)) {
-  humanizeResult();
-}
+if (!directBoot(sourceContext)) humanizeResult();
 
 document.body.dataset.majorPathHumanVersion = MAJOR_PATH_HUMAN_VERSION;
 window.__MAJOR_PATH_HUMAN_META__ = Object.freeze({
