@@ -296,7 +296,7 @@ function makePathwayFocus(shell, major, undergradSection, graduateSection) {
   const undergradHeading = undergradSection.querySelector('.section-heading');
   if (undergradHeading) undergradHeading.textContent = '本科先看：它属于哪里';
   const undergradNote = undergradSection.querySelector('.relation-note');
-  if (undergradNote) undergradNote.innerHTML = '<strong>目录说明：</strong>这个专业在2026本科目录中直接列在交叉学科下，没有单列专业类。';
+  if (undergradNote) undergradNote.innerHTML = '<strong>目录说明：</strong>这个专业在2026本科目录中直接列在“交叉学科”门类下，专业类未单列。';
 
   const graduateHeading = graduateSection.querySelector('.section-heading');
   if (graduateHeading) graduateHeading.textContent = '如果以后读研，可以先看这些方向';
