@@ -13,6 +13,7 @@ import {
   buildMajorPathFromAcademicBackgroundHref,
   sanitizeAcademicBackgroundReturnTarget
 } from '../shared/resources/background/academic-background-navigation.v001.js';
+import { schoolBackgroundFromSnapshot } from '../functions/_lib/ai/background-resource-adapter.js';
 import { deterministicCommand } from '../functions/_lib/ai/command-interpreter.js';
 import { claimsFromAcademicBackground, validateClaimSet } from '../functions/_lib/ai/claim-evidence.js';
 
@@ -74,6 +75,26 @@ assert.equal(syntheticContext.matches.length, 2, 'two evidence scopes should rem
 assert.equal(syntheticContext.evidence.length, 1, 'identical evidence must dedupe across scopes');
 assert.equal(syntheticContext.sources.length, 1, 'identical source must dedupe across scopes');
 assert.deepEqual(new Set(syntheticContext.evidence[0].scopes), new Set(['liaoning', '211']));
+
+// A broad spoken major may collapse only inside one known school when the related canonical result is unique.
+const uniqueShorthand = schoolBackgroundFromSnapshot(synthetic, '测试大学', { scope: 'auto', major: '电气' });
+assert.equal(uniqueShorthand.items.length, 1, 'unique school-scoped shorthand did not resolve to the only canonical major');
+assert.equal(uniqueShorthand.items[0].canonicalMajor.code, '080601');
+assert.equal(uniqueShorthand.exact?.matched, true);
+const ambiguousSynthetic = {
+  version: ACADEMIC_BACKGROUND_CONTEXT_RESOURCE_VERSION,
+  meta: { executionRole: 'derived-evidence-index-only', scopeCounts: { liaoning: 2, '211': 1 } },
+  records: [
+    { scope: 'liaoning', school: '歧义大学', schoolIdentity: '歧义大学', canonicalMajor: { code: '080601', name: '电气工程及其自动化' }, province: '辽宁', city: '沈阳', displayLocation: '辽宁 · 沈阳', directions: ['电气工程'], admissionMajors: ['电气工程及其自动化'], evidence: [syntheticEvidence], sources: [syntheticSource] },
+    { scope: 'liaoning', school: '歧义大学', schoolIdentity: '歧义大学', canonicalMajor: { code: '080604T', name: '电气工程与智能控制' }, province: '辽宁', city: '沈阳', displayLocation: '辽宁 · 沈阳', directions: ['电气工程'], admissionMajors: ['电气工程与智能控制'], evidence: [{ ...syntheticEvidence, evidenceId: 'E-SECOND', detail: '第二个电气相关专业' }], sources: [syntheticSource] },
+    { scope: '211', school: '占位大学', schoolIdentity: '占位大学', canonicalMajor: { code: '080601', name: '电气工程及其自动化' }, province: '辽宁', city: '沈阳', displayLocation: '辽宁 · 沈阳', directions: ['电气工程'], admissionMajors: ['电气工程及其自动化'], evidence: [syntheticEvidence], sources: [syntheticSource] }
+  ]
+};
+const ambiguousShorthand = schoolBackgroundFromSnapshot(ambiguousSynthetic, '歧义大学', { scope: 'liaoning', major: '电气' });
+assert.equal(ambiguousShorthand.items.length, 0, 'ambiguous school-scoped shorthand silently selected one canonical major');
+assert.equal(ambiguousShorthand.exact?.matched, false);
+assert.equal(ambiguousShorthand.exact?.code, 'background_major_ambiguous');
+assert.equal(ambiguousShorthand.exact?.ambiguousCanonicalMajors?.length, 2);
 
 // Explicit 211 must fail closed on a pair that exists only in Liaoning background; never fall back to local evidence.
 const schools211 = new Set(snapshot.records.filter(item => item.scope === '211').map(item => normalizeBackgroundIdentityText(item.schoolIdentity || item.school)));
@@ -181,6 +202,7 @@ const orchestrator = read('functions/_lib/ai/turn-orchestrator.js');
 const workbench = read('aiplus/selection-workbench.v005.js');
 assert(!/211_background|liaoning_background|local_background/.test(kernel), 'a second background task family was introduced');
 assert(!adapter.includes('/ln-rank/data/local-strength/local-strength-index.v3971_2.json'), 'AIPLuS still directly owns the old local-only background resource');
+assert(adapter.includes('background_major_ambiguous'), 'school-scoped broad major ambiguity is not fail-closed');
 assert(toolRegistry.includes("scope='auto'"), 'existing background tools did not become scope-aware');
 assert(orchestrator.includes("scope:command.backgroundScope||'auto'"), 'turn owner is not propagating the semantic evidence scope');
 assert(decision.includes("item.kind==='background_evidence'"), 'existing Decision Research background_evidence step disappeared');
@@ -207,6 +229,10 @@ console.log(JSON.stringify({
     liaoning: { task: liaoningCommand.agentTask, scope: liaoningCommand.backgroundScope },
     all211: { task: all211Command.agentTask, scope: all211Command.backgroundScope },
     schoolMajor: { task: schoolMajorCommand.agentTask, scope: schoolMajorCommand.backgroundScope }
+  },
+  shorthand: {
+    unique: uniqueShorthand.items[0]?.canonicalMajor,
+    ambiguous: ambiguousShorthand.exact?.ambiguousCanonicalMajors?.map(item => item.code)
   },
   claims: claims.length
 }, null, 2));
