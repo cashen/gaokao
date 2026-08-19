@@ -77,7 +77,6 @@ function pathEvidenceScore(item = {}) {
 function platformScore(item = {}) {
   if (item.is985) return 4;
   if (item.is211) return 3;
-  if (item.localStrengthMark?.matched || item.localStrongChain?.matched) return 2;
   if (item.isPublicSchool) return 1;
   return 0;
 }
