@@ -13,7 +13,18 @@ function norm(v){return String(v||'').normalize('NFKC').replace(/\s+/g,'').toLow
 function assert(v,m){if(!v)throw new Error(m);}
 const pairs=new Map();
 for(const record of snapshot.records||[]){const key=`${norm(record.schoolIdentity||record.school)}|${record.canonicalMajor?.code||''}`,item=pairs.get(key)||{school:record.schoolIdentity||record.school,major:record.canonicalMajor,scopes:new Set(),records:[]};item.scopes.add(record.scope);item.records.push(record);pairs.set(key,item);}
-function hasClaimableEvidence(record){return (record?.evidence||[]).some(item=>/^https:\/\//.test(item?.sourceUrl||''));}
+function hasClaimableEvidence(record){
+  const sources=Array.isArray(record?.sources)?record.sources:[];
+  return (record?.evidence||[]).some(item=>{
+    const sourceId=String(item?.sourceId||'').trim();
+    const source=sources.find(entry=>sourceId&&String(entry?.sourceId||'').trim()===sourceId)
+      ||sources.find(entry=>/^https:\/\//.test(entry?.url||entry?.sourceUrl||''))
+      ||sources[0]
+      ||{};
+    const sourceUrl=source?.url||source?.sourceUrl||item?.sourceUrl||'';
+    return Boolean(item?.evidenceId&&item?.sourceId&&/^https:\/\//.test(sourceUrl));
+  });
+}
 const DUAL=[...pairs.values()].find(item=>item.major?.code&&item.scopes.has('liaoning')&&item.scopes.has('211')&&['liaoning','211'].every(scope=>item.records.some(record=>record.scope===scope&&hasClaimableEvidence(record))));
 assert(DUAL,'no dual-scope school-major sample with claimable evidence in both scopes');
 const schools211=new Set(snapshot.records.filter(r=>r.scope==='211').map(r=>norm(r.schoolIdentity||r.school)));

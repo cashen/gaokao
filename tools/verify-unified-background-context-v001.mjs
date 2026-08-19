@@ -13,7 +13,7 @@ import {
   buildMajorPathFromAcademicBackgroundHref,
   sanitizeAcademicBackgroundReturnTarget
 } from '../shared/resources/background/academic-background-navigation.v001.js';
-import { schoolBackgroundFromSnapshot } from '../functions/_lib/ai/background-resource-adapter.js';
+import { majorBackgroundFromSnapshot, schoolBackgroundFromSnapshot } from '../functions/_lib/ai/background-resource-adapter.js';
 import { deterministicCommand } from '../functions/_lib/ai/command-interpreter.js';
 import { claimsFromAcademicBackground, validateClaimSet } from '../functions/_lib/ai/claim-evidence.js';
 
@@ -114,6 +114,15 @@ assert(broadElectrical.items.length > 1, 'broad electrical background discovery 
 assert(broadElectrical.items.every(item => item.canonicalMajor?.code && item.canonicalMajor?.name), 'broad discovery returned a non-canonical major row');
 const stableOrder = broadElectrical.items.map(item => `${item.school}|${item.canonicalMajor.code}`);
 assert.deepEqual(stableOrder, [...stableOrder].sort((a, b) => a.localeCompare(b, 'zh-CN')), 'background school list is being implicitly ranked by evidence volume');
+
+// AIPLuS major-background presentation keeps the established grouped schools[] contract while reading the unified owner.
+const projectedElectrical = majorBackgroundFromSnapshot(snapshot, '电气', { scope: 'liaoning', regionKeys: ['ln'] });
+assert(projectedElectrical.items.length > 0, 'AI major-background projection collapsed to empty');
+assert(projectedElectrical.items.every(item => Array.isArray(item.schools)), 'AI major-background projection lost grouped school objects');
+const projectedSchools = projectedElectrical.items.flatMap(item => item.schools || []);
+assert(projectedSchools.length > 0, 'AI major-background projection has no school objects');
+assert(projectedSchools.every(item => item.school && Array.isArray(item.admissionMajors)), 'AI grouped school projection lost queryable-major mapping');
+assert.equal(projectedElectrical.schoolCount, new Set(projectedSchools.map(item => normalizeBackgroundIdentityText(item.school))).size, 'AI grouped school count drifted from schools[] projection');
 
 // Navigation carries identity/return context only and remains same-origin fail-closed.
 const detailHref = buildAcademicBackgroundHref({ scope: '211', majorCode: dual.major.code, canonicalName: dual.major.name, school: dual.school, returnTo: `/major-path/?majorCode=${dual.major.code}` });

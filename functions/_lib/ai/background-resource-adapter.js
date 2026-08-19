@@ -357,9 +357,28 @@ export function majorBackgroundFromSnapshot(snapshot, major, { scope = 'auto', r
     const items = groupBackgroundDirections(records);
     return { items, total: items.length, schoolCount: new Set(items.flatMap(item => item.schools.map(school => school.school))).size, scope: 'liaoning', meta: sourceMeta(snapshot, 'liaoning'), boundary: sourceMeta(snapshot, 'liaoning').boundary };
   }
-  const resolved = listMajorBackgroundSchools(snapshot, { majorName: major, majorCode, scope, regionKeys, limit: 160 });
-  const items = resolved.ok ? resolved.items.map(contextItemFromSchool) : [];
-  return { items, total: resolved.total || 0, schoolCount: resolved.schoolCount || 0, scope: normalizeBackgroundScope(scope), meta: sourceMeta(snapshot, scope), boundary: resolved.boundary || '' };
+  const resolved = queryAcademicBackgroundContext(snapshot, {
+    majorName: major,
+    majorCode,
+    scope,
+    regionKeys,
+    limit: 500,
+    majorMatchMode: majorCode ? 'exact' : 'related'
+  });
+  const records = resolved.ok ? resolved.records : [];
+  const directionItems = groupBackgroundDirections(records);
+  const items = directionItems.length
+    ? directionItems
+    : groupDiscovery(records).sort((a, b) => String(a.major).localeCompare(String(b.major), 'zh-CN'));
+  const schoolCount = new Set(items.flatMap(item => item.schools || []).map(item => normalizeBackgroundIdentityText(item.school))).size;
+  return {
+    items,
+    total: items.length,
+    schoolCount,
+    scope: normalizeBackgroundScope(scope),
+    meta: sourceMeta(snapshot, scope),
+    boundary: '这是通过证据门禁的学校×专业背景集合，不是学校排名；未显示学校不等于该专业弱。'
+  };
 }
 
 function candidateMajorIdentity(record = {}) {
