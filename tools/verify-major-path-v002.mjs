@@ -1,14 +1,22 @@
 import fs from 'node:fs';
 import { MAJOR_CATALOG_2026, MAJOR_CATALOG_2026_META } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js';
 import { ADMISSION_MAJOR_ALIAS_2026 } from '../ln-rank/kb/major-understanding/admission-major-alias.generated.js';
+import {
+  STANDARD_MAJOR_CATALOG_2026_FULL,
+  STANDARD_MAJOR_CATEGORIES_2026_FULL,
+  STANDARD_MAJOR_DISCIPLINES_2026
+} from '../functions/_lib/kb/standard-major-catalog-2026-full.generated.js';
 import { GRADUATE_CATALOG_2022, GRADUATE_CATALOG_2022_META, GRADUATE_CATALOG_SOURCES } from '../shared/resources/graduate/graduate-catalog-2022.v001.js';
+import {
+  MAJOR_CATALOG_RESOURCE_CONTRACT,
+  deriveMajorCatalogHierarchy
+} from '../shared/resources/majors/major-catalog-contract.js';
 import { buildUndergradGraduatePathway, UNDERGRAD_GRADUATE_PATHWAY_META } from '../shared/resources/majors/undergrad-graduate-pathway.v001.js';
 import { createMajorSearchIntentResolver, MAJOR_SEARCH_INTENT_META } from '../shared/resources/majors/major-search-intent.v001.js';
 import { createMajorRelationshipGraphResolver, MAJOR_RELATIONSHIP_GRAPH_META } from '../shared/resources/majors/major-relationship-graph.v002.js';
 
 function assert(value, message) { if (!value) throw new Error(message); }
 function unique(values) { return new Set(values).size === values.length; }
-function majorClassCode(major = {}) { return String(major.code || '').replace(/[^0-9]/g, '').slice(0, 4); }
 function semanticSnapshot(result = {}) {
   return JSON.stringify({
     kind: result.kind || '',
@@ -22,20 +30,46 @@ function semanticSnapshot(result = {}) {
   });
 }
 
+assert(MAJOR_CATALOG_RESOURCE_CONTRACT.canonicalCount === 883, 'major catalog contract count drift');
+assert(MAJOR_CATALOG_RESOURCE_CONTRACT.canonicalCategoryCount === 92, 'major catalog contract category count drift');
+assert(MAJOR_CATALOG_RESOURCE_CONTRACT.canonicalDisciplineCount === 13, 'major catalog contract discipline count drift');
 assert(MAJOR_CATALOG_2026_META.total === 883, `undergraduate source meta must remain 883, got ${MAJOR_CATALOG_2026_META.total}`);
 assert(MAJOR_CATALOG_2026_META.majorClassCount === 92, `undergraduate source major-class meta must remain 92, got ${MAJOR_CATALOG_2026_META.majorClassCount}`);
 assert(MAJOR_CATALOG_2026_META.disciplineCount === 13, `undergraduate source discipline meta must remain 13, got ${MAJOR_CATALOG_2026_META.disciplineCount}`);
 assert(MAJOR_CATALOG_2026.length === 883, `undergraduate runtime count must remain 883, got ${MAJOR_CATALOG_2026.length}`);
 assert(unique(MAJOR_CATALOG_2026.map(item => item.code)), 'undergraduate codes must be unique');
+assert(STANDARD_MAJOR_CATALOG_2026_FULL.length === 883, 'standard undergraduate catalog must remain 883');
+assert(STANDARD_MAJOR_CATEGORIES_2026_FULL.length === 92, 'standard undergraduate category catalog must remain 92');
+assert(STANDARD_MAJOR_DISCIPLINES_2026.length === 13, 'standard undergraduate discipline catalog must remain 13');
 assert(GRADUATE_CATALOG_2022_META.count === 184, `graduate catalog count drift: ${GRADUATE_CATALOG_2022_META.count}`);
 assert(GRADUATE_CATALOG_2022.length === 184, 'graduate catalog runtime count drift');
 assert(unique(GRADUATE_CATALOG_2022.map(item => item.code)), 'graduate four-digit codes must be unique');
 assert(Object.values(GRADUATE_CATALOG_SOURCES).every(source => /^https:\/\/www\.moe\.gov\.cn\//.test(source.url)), 'graduate sources must stay on official MOE host');
 assert(UNDERGRAD_GRADUATE_PATHWAY_META.boundary.includes('一一对应表'), 'cross-level no-one-to-one boundary missing');
-assert(MAJOR_RELATIONSHIP_GRAPH_META.identityPolicy.includes('catalog-code-not-display-label'), 'relationship identity must use catalog code instead of label');
-assert(MAJOR_RELATIONSHIP_GRAPH_META.undergraduateBoundary.includes('2026本科专业目录'), 'relationship graph must derive from canonical undergraduate catalog');
+assert(MAJOR_RELATIONSHIP_GRAPH_META.identityPolicy.includes('major-catalog-contract-derived-category-identity'), 'relationship identity must use canonical major catalog contract');
+assert(MAJOR_RELATIONSHIP_GRAPH_META.undergraduateBoundary.includes('不补造1400专业类'), 'cross-discipline no-fabricated-class boundary missing');
 assert(MAJOR_RELATIONSHIP_GRAPH_META.graduateBoundary.includes('二级学科') && MAJOR_RELATIONSHIP_GRAPH_META.graduateBoundary.includes('自主设置'), 'graduate second-level boundary must be explicit');
 assert(MAJOR_RELATIONSHIP_GRAPH_META.neighborBoundary.includes('不代表课程相同'), 'neighbor boundary must forbid course-equivalence inference');
+
+const standardByCode = new Map(STANDARD_MAJOR_CATALOG_2026_FULL.map(item => [item.code, item]));
+const standardCategoryByCode = new Map(STANDARD_MAJOR_CATEGORIES_2026_FULL.map(item => [item.code, item]));
+const standardDisciplineByCode = new Map(STANDARD_MAJOR_DISCIPLINES_2026.map(item => [item.code, item]));
+const directDisciplineMajors = STANDARD_MAJOR_CATALOG_2026_FULL.filter(item => !item.categoryCode);
+assert(directDisciplineMajors.length > 0, '2026 standard catalog must preserve direct-under-discipline majors');
+assert(directDisciplineMajors.every(item => item.disciplineCode === '14' && item.disciplineName === '交叉学科'), 'only cross-discipline majors may omit category identity');
+assert(standardByCode.get('140001TK')?.categoryCode === '', '未来机器人 must not invent category code');
+assert(standardByCode.get('140012TK')?.categoryCode === '', '具身智能 must not invent category code');
+
+for (const major of MAJOR_CATALOG_2026) {
+  const standard = standardByCode.get(major.code);
+  assert(standard, `browser undergraduate catalog major missing from canonical standard owner: ${major.code}`);
+  const hierarchy = deriveMajorCatalogHierarchy(major);
+  assert(hierarchy.disciplineCode === standard.disciplineCode, `discipline-code parity drift ${major.code}: ${hierarchy.disciplineCode}/${standard.disciplineCode}`);
+  assert(hierarchy.disciplineName === standard.disciplineName, `discipline-name parity drift ${major.code}: ${hierarchy.disciplineName}/${standard.disciplineName}`);
+  assert(hierarchy.categoryCode === standard.categoryCode, `category-code parity drift ${major.code}: ${hierarchy.categoryCode}/${standard.categoryCode}`);
+  assert(hierarchy.categoryName === standard.categoryName, `category-name parity drift ${major.code}: ${hierarchy.categoryName}/${standard.categoryName}`);
+  assert(hierarchy.categoryIsUnlisted === !standard.categoryCode, `category-unlisted parity drift ${major.code}`);
+}
 
 const graduateCodes = new Set(GRADUATE_CATALOG_2022.map(item => item.code));
 let curated = 0;
@@ -57,43 +91,46 @@ assert(curated + explicitNoCrosswalk === 883, 'every undergraduate major must ha
 const REL = createMajorRelationshipGraphResolver(MAJOR_CATALOG_2026);
 const stats = REL.stats();
 assert(stats.majors === 883, `relationship graph must consume all 883 majors, got ${stats.majors}`);
-assert(stats.majorClasses === 92, `relationship graph must preserve all 92 major-class code identities, got ${stats.majorClasses}`);
-assert(stats.disciplines === 13, `relationship graph must preserve all 13 undergraduate discipline code identities, got ${stats.disciplines}`);
+assert(stats.majorClasses === 92, `relationship graph must preserve all 92 canonical category identities, got ${stats.majorClasses}`);
+assert(stats.disciplines === 13, `relationship graph must preserve all 13 undergraduate discipline identities, got ${stats.disciplines}`);
+assert(stats.directDisciplineMajors === directDisciplineMajors.length, `direct-under-discipline count drift: ${stats.directDisciplineMajors}/${directDisciplineMajors.length}`);
 assert(stats.version === 'major-relationship-graph-v002', 'relationship graph version drift');
 
 const classCounts = new Map();
-for (const major of MAJOR_CATALOG_2026) {
-  const code = majorClassCode(major);
-  assert(code.length === 4, `undergraduate major missing four-digit class identity ${major.code}`);
-  classCounts.set(code, (classCounts.get(code) || 0) + 1);
+for (const standard of STANDARD_MAJOR_CATALOG_2026_FULL) {
+  if (!standard.categoryCode) continue;
+  assert(standardCategoryByCode.has(standard.categoryCode), `major points to non-canonical category ${standard.code}->${standard.categoryCode}`);
+  classCounts.set(standard.categoryCode, (classCounts.get(standard.categoryCode) || 0) + 1);
 }
-assert(classCounts.size === 92, `canonical class-code count drift: ${classCounts.size}`);
+assert(classCounts.size === 92, `canonical category count drift: ${classCounts.size}`);
 let siblingEdges = 0;
 let crossEdges = 0;
 for (const major of MAJOR_CATALOG_2026) {
+  const standard = standardByCode.get(major.code);
   const graph = REL.buildMajorGraph(major, { crossLimit: 20 });
-  const classCode = majorClassCode(major);
   assert(graph?.focus?.code === major.code, `graph lost focus ${major.code}`);
   assert(graph.hierarchy.major.code === major.code, `hierarchy lost major ${major.code}`);
-  assert(graph.hierarchy.majorClass.code === classCode, `hierarchy class-code drift ${major.code}: ${graph.hierarchy.majorClass.code}/${classCode}`);
-  assert(graph.hierarchy.discipline.name === major.discipline, `hierarchy discipline display drift ${major.code}`);
-  const expectedSiblings = (classCounts.get(classCode) || 1) - 1;
+  assert(graph.hierarchy.discipline.code === standard.disciplineCode, `hierarchy discipline-code drift ${major.code}`);
+  assert(graph.hierarchy.discipline.name === standard.disciplineName, `hierarchy discipline-name drift ${major.code}`);
+  assert(graph.hierarchy.majorClass.code === standard.categoryCode, `hierarchy category-code drift ${major.code}`);
+  assert(graph.hierarchy.majorClass.name === standard.categoryName, `hierarchy category-name drift ${major.code}`);
+  assert(graph.hierarchy.majorClass.isUnlisted === !standard.categoryCode, `hierarchy unlisted-class drift ${major.code}`);
+  const expectedSiblings = standard.categoryCode ? (classCounts.get(standard.categoryCode) || 1) - 1 : 0;
   assert(graph.siblings.length === expectedSiblings, `sibling completeness drift ${major.code}: ${graph.siblings.length}/${expectedSiblings}`);
   assert(graph.siblingRelations.length === expectedSiblings, `sibling relation completeness drift ${major.code}`);
   for (const relation of graph.siblingRelations) {
-    assert(relation.source.code === major.code, `sibling source drift ${major.code}`);
-    assert(majorClassCode(relation.target) === classCode, `sibling escaped class-code ${major.code}->${relation.target.code}`);
+    const target = standardByCode.get(relation.target.code);
+    assert(target?.categoryCode === standard.categoryCode, `sibling escaped canonical category ${major.code}->${relation.target.code}`);
     assert(relation.sameClass === true, `sibling relation must be same class ${major.code}->${relation.target.code}`);
     assert(relation.relationTypes.includes('same_undergraduate_major_class'), `sibling relation type missing ${major.code}->${relation.target.code}`);
-    assert(MAJOR_CATALOG_2026.some(item => item.code === relation.target.code), `sibling points outside canonical catalog ${relation.target.code}`);
     siblingEdges += 1;
   }
   for (const relation of graph.crossNeighbors) {
+    const target = standardByCode.get(relation.target.code);
     assert(relation.sameClass === false, `cross neighbor duplicated same-class edge ${major.code}->${relation.target.code}`);
-    assert(majorClassCode(relation.target) !== classCode, `cross neighbor shares canonical class code ${major.code}->${relation.target.code}`);
+    assert(!standard.categoryCode || target?.categoryCode !== standard.categoryCode, `cross neighbor shares canonical category ${major.code}->${relation.target.code}`);
     assert(relation.sharedRouteCount > 0, `cross neighbor lacks graduate-path evidence ${major.code}->${relation.target.code}`);
     assert(relation.relationTypes.some(type => type === 'shared_academic_navigation' || type === 'shared_professional_navigation'), `cross relation lacks route type ${major.code}->${relation.target.code}`);
-    assert(MAJOR_CATALOG_2026.some(item => item.code === relation.target.code), `cross relation points outside canonical catalog ${relation.target.code}`);
     crossEdges += 1;
   }
 }
@@ -101,16 +138,35 @@ assert(siblingEdges > 0, 'relationship graph must expose real same-class edges')
 assert(crossEdges > 0, 'relationship graph must expose evidence-backed cross-class edges');
 
 let classMajorTotal = 0;
-for (const [classCode, expectedCount] of classCounts) {
-  const graph = REL.buildClassGraph(classCode);
-  assert(graph, `class graph missing code ${classCode}`);
-  assert(graph.majorClass.code === classCode, `class graph identity drift ${classCode}`);
-  assert(graph.majors.length === expectedCount, `class graph count drift ${classCode}: ${graph.majors.length}/${expectedCount}`);
-  assert(graph.majors.every(item => majorClassCode(item) === classCode), `class graph leaked another class code ${classCode}`);
-  for (const route of graph.commonGraduateRoutes) assert(graduateCodes.has(route.code), `class graph ${classCode} emitted non-canonical graduate route ${route.code}`);
+for (const [categoryCode, expectedCount] of classCounts) {
+  const graph = REL.buildClassGraph(categoryCode);
+  assert(graph, `class graph missing code ${categoryCode}`);
+  assert(graph.majorClass.code === categoryCode, `class graph identity drift ${categoryCode}`);
+  assert(graph.majorClass.name === standardCategoryByCode.get(categoryCode)?.name, `class graph display-name drift ${categoryCode}`);
+  assert(graph.majors.length === expectedCount, `class graph count drift ${categoryCode}: ${graph.majors.length}/${expectedCount}`);
+  assert(graph.majors.every(item => standardByCode.get(item.code)?.categoryCode === categoryCode), `class graph leaked another category ${categoryCode}`);
+  for (const route of graph.commonGraduateRoutes) assert(graduateCodes.has(route.code), `class graph ${categoryCode} emitted non-canonical graduate route ${route.code}`);
   classMajorTotal += graph.majors.length;
 }
-assert(classMajorTotal === 883, `all class graphs must cover 883 majors, got ${classMajorTotal}`);
+assert(classMajorTotal + directDisciplineMajors.length === 883, `class graphs + direct-discipline majors must cover 883: ${classMajorTotal}+${directDisciplineMajors.length}`);
+
+for (const discipline of STANDARD_MAJOR_DISCIPLINES_2026) {
+  const graph = REL.buildDisciplineGraph(discipline.code);
+  assert(graph, `discipline graph missing ${discipline.code}`);
+  assert(graph.discipline.code === discipline.code && graph.discipline.name === discipline.name, `discipline graph identity drift ${discipline.code}`);
+  const standardMajors = STANDARD_MAJOR_CATALOG_2026_FULL.filter(item => item.disciplineCode === discipline.code);
+  assert(graph.categories.reduce((sum, item) => sum + item.majors.length, 0) + graph.directMajors.length === standardMajors.length, `discipline graph coverage drift ${discipline.code}`);
+  for (const direct of graph.directMajors) assert(standardByCode.get(direct.code)?.categoryCode === '', `direct discipline graph major gained category ${direct.code}`);
+}
+const crossDisciplineGraph = REL.buildDisciplineGraph('14');
+assert(crossDisciplineGraph?.categories.length === 0, '交叉学科 must not invent a 1400 category node');
+assert(crossDisciplineGraph?.directMajors.length === directDisciplineMajors.length, '交叉学科 direct-major coverage drift');
+assert(crossDisciplineGraph.directMajors.some(item => item.code === '140012TK'), '交叉学科 graph lost 具身智能');
+
+const embodied = REL.buildMajorGraph('140012TK');
+assert(embodied?.hierarchy.discipline.code === '14', '具身智能 discipline identity drift');
+assert(embodied?.hierarchy.majorClass.code === '' && embodied?.hierarchy.majorClass.isUnlisted === true, '具身智能 must not invent 1400 category');
+assert(embodied?.siblings.length === 0, '具身智能 must not receive invented same-category siblings');
 
 const cs = MAJOR_CATALOG_2026.find(item => item.name === '计算机科学与技术');
 const software = MAJOR_CATALOG_2026.find(item => item.name === '软件工程');
@@ -160,6 +216,7 @@ const baseCss = fs.readFileSync('major-path/major-path.v001.css','utf8');
 const graphCss = fs.readFileSync('major-path/major-path-graph.v002.css','utf8');
 assert(html.includes('data-major-path-version="major-path-v0.02"'), 'v0.02 page version marker missing');
 assert(html.includes('关系图不是“平替排行榜”'), 'human relationship boundary copy missing');
+assert(html.includes('交叉学科') && html.includes('专业类'), 'cross-discipline hierarchy explanation missing');
 assert(html.includes('二级学科与专业领域由学位授予单位'), 'graduate second-level human boundary missing');
 assert(html.includes('/major-path/app.v002.js?v=002_0'), 'v0.02 app edge missing');
 assert(html.includes('/major-path/major-path.v001.css?v=001_0'), 'stable base CSS edge missing');
@@ -167,7 +224,9 @@ assert(html.includes('/major-path/major-path-graph.v002.css?v=002_0'), 'v0.02 gr
 assert(!html.includes('/major-path/app.v001.js?v=001_0'), 'retired v0.01 app must not remain active');
 assert(app.includes('createMajorRelationshipGraphResolver'), 'page must use relationship graph owner');
 assert(app.includes('renderDirectorySvg') && app.includes('renderNeighborSvg') && app.includes('renderClassSvg') && app.includes('renderCandidateSvg'), 'all graph search perspectives must be implemented');
+assert(app.includes('buildDisciplineGraph'), 'browse must consume canonical discipline graph instead of rebuilding hierarchy');
 assert(app.includes('二级学科与专业领域由学位授予单位') && app.includes('自主设置与调整'), 'runtime must explain graduate second-level boundary in parent language');
+assert(app.includes('专业类未单列'), 'runtime must explain direct-under-discipline majors');
 assert(app.includes('data-major-relationship-graph'), 'specific-major graph mount missing');
 assert(app.includes('data-class-relationship-graph'), 'major-class graph mount missing');
 assert(app.includes('graph-viewport'), 'graph viewport owner missing');
@@ -186,6 +245,7 @@ console.log(JSON.stringify({
   graduate:GRADUATE_CATALOG_2022.length,
   disciplines:stats.disciplines,
   majorClasses:stats.majorClasses,
+  directDisciplineMajors:stats.directDisciplineMajors,
   curated,
   explicitNoCrosswalk,
   routeCount,
