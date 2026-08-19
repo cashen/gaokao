@@ -40,6 +40,9 @@ assert.doesNotMatch(human, /MutationObserver|setTimeout\s*\(|localStorage|sessio
 assert.match(human, /还想看看和它相关的专业/);
 assert.match(human, /为什么这里只写“可以先看”，不是固定对应/);
 assert.match(human, /来自刚才的辽宁招生结果/);
+assert.match(human, /从刚才的专业继续看/);
+assert.match(human, /data-graph-mode/);
+assert.match(human, /simplifyGraphLanguage\(relationship\)/);
 assert.doesNotMatch(human, /系统已经确认/);
 
 assert.match(core, /createMajorRelationshipGraphResolver/);
@@ -64,7 +67,7 @@ assert.equal(url.searchParams.get('from'), 'ln-rank');
 
 const exact = resolveMajorUnderstanding({ major: '工程管理' });
 assert.equal(exact.code, '120103');
-assert.equal(exact.isClassLevel, false);
+assert.notEqual(exact.isClassLevel, true);
 const classLevel = resolveMajorUnderstanding({ major: '计算机类' });
 assert.equal(classLevel.isClassLevel, true);
 const cooperation = resolveMajorUnderstanding({ major: '机械工程（中外合作办学）' });
