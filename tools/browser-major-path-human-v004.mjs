@@ -161,7 +161,10 @@ async function verifyExploreMode(page,name){
   await search(page,'具身智能');
   await page.waitForSelector('[data-major-pathway-focus="140012TK"]');
   const embodied=await page.locator('[data-major-pathway-focus]').innerText();
-  assert(embodied.includes('交叉学科')&&embodied.includes('专业类未单列')&&!embodied.includes('1400'),`${name}: cross-discipline truth drift`);
+  assert(embodied.includes('交叉学科'),`${name}: cross-discipline label missing`);
+  assert(embodied.includes('专业类未单列'),`${name}: unlisted-major-class boundary missing`);
+  assert(embodied.includes('140012TK'),`${name}: legal undergraduate major code missing`);
+  assert(!embodied.includes('1400专业类')&&!embodied.includes('本科专业类\n1400')&&!embodied.includes('本科专业类 1400'),`${name}: fabricated 1400 major-class node leaked`);
 
   await search(page,'计算机类');
   assert(!(await page.$('[data-major-pathway-focus]')),`${name}: class search silently selected a concrete major`);
