@@ -103,13 +103,11 @@ async function verifyDirectScoreJourney(page,name){
   const evidence=await page.locator('[data-major-evidence-details]').innerText();
   assert(evidence.includes('一级学科')&&evidence.includes('招生目录')&&evidence.includes('官方依据'),`${name}: evidence layer lost scientific boundary`);
 
-  const nextCode=await page.evaluate(()=>{
-    const nodes=[...document.querySelectorAll('[data-major-explore-details] [data-major-code]')];
-    const next=nodes.find(node=>node.getAttribute('data-major-code')!=='120103');
-    next?.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
-    return next?.getAttribute('data-major-code')||'';
-  });
-  assert(nextCode,`${name}: no related major available to verify continuation semantics`);
+  const related=page.locator('[data-major-explore-details] button.neighbor-chip[data-major-code]').first();
+  assert(await related.count(),`${name}: no related major button available to verify continuation semantics`);
+  const nextCode=await related.getAttribute('data-major-code');
+  assert(nextCode&&nextCode!=='120103',`${name}: related major button did not point to another professional major`);
+  await related.click();
   await page.waitForSelector(`[data-major-pathway-focus="${nextCode}"]`);
   await waitLanding(page,'result');
   const continuation=await page.locator('[data-major-path-source-boundary]').innerText();
