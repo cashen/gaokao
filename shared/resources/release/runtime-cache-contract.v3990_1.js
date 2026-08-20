@@ -1,25 +1,25 @@
-import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2';
+import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_1.js?v=3990_1';
 
 const activeGenerationModules = Object.freeze([
-  '/shared/resources/release/release-presenter.v3990_2.js',
-  '/shared/resources/release/runtime-cache-contract.v3990_2.js',
-  '/shared/governance/resource-execution-contract.v3990_2.js',
-  '/functions/_lib/major-bands-rank-index.v3990_2.js',
-  '/functions/_lib/major-bands-rank-query-kernel.v3990_2.js',
-  '/functions/_lib/major-bands-rank-bucket-loader.v3990_2.js',
-  '/functions/_lib/major-bands-result-order.v3990_2.js',
-  '/functions/_lib/major-bands-response-transport.v3990_2.js',
-  '/shared/ui/shell/family-shell.v3990_2.js',
-  '/shared/ui/components/family-plan-entry.v3990_2.js',
-  '/shared/ui/interaction/interaction-transaction.v3990_2.js',
-  '/shared/ui/interaction/interaction-transaction.v3990_2.css',
-  '/ln-rank/js/ux/family-home.v3990_2.js',
-  '/ln-rank/js/app.v3990_2.js',
-  '/ln-rank/js/app-runtime.v3990_2.js',
-  '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_2.js',
-  '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_2.js',
-  '/ln-rank/js/selection-pool.v3990_2.js',
-  '/ln-rank/js/selection-pool-runtime.v3990_2.js'
+  '/shared/resources/release/release-presenter.v3990_1.js',
+  '/shared/resources/release/runtime-cache-contract.v3990_1.js',
+  '/shared/governance/resource-execution-contract.v3990_1.js',
+  '/functions/_lib/major-bands-rank-index.v3990_1.js',
+  '/functions/_lib/major-bands-rank-query-kernel.v3990_1.js',
+  '/functions/_lib/major-bands-rank-bucket-loader.v3990_1.js',
+  '/functions/_lib/major-bands-result-order.v3990_1.js',
+  '/functions/_lib/major-bands-response-transport.v3990_1.js',
+  '/shared/ui/shell/family-shell.v3990_1.js',
+  '/shared/ui/components/family-plan-entry.v3990_1.js',
+  '/shared/ui/interaction/interaction-transaction.v3990_1.js',
+  '/shared/ui/interaction/interaction-transaction.v3990_1.css',
+  '/ln-rank/js/ux/family-home.v3990_1.js',
+  '/ln-rank/js/app.v3990_1.js',
+  '/ln-rank/js/app-runtime.v3990_1.js',
+  '/ln-rank/js/feature/major-pool/pagination-snapshot-guard.v3990_1.js',
+  '/ln-rank/js/workspace/selection-workspace-orchestrator.v3990_1.js',
+  '/ln-rank/js/selection-pool.v3990_1.js',
+  '/ln-rank/js/selection-pool-runtime.v3990_1.js'
 ]);
 
 const declaredStableActiveModules = Object.freeze([
@@ -28,14 +28,14 @@ const declaredStableActiveModules = Object.freeze([
 ]);
 
 export const LN_RANK_RUNTIME_CACHE_CONTRACT = Object.freeze({
-  version: 'runtime-cache-coherence-v3990_2',
+  version: 'runtime-cache-coherence-v3990_1',
   releaseVersion: SITE_RUNTIME_CONTRACT.releaseVersion,
   assetVersion: SITE_RUNTIME_CONTRACT.generation,
   siteRuntimeContractVersion: SITE_RUNTIME_CONTRACT.version,
   entrypoints: SITE_RUNTIME_CONTRACT.activeEntrypoints,
   entrypointClassifications: SITE_RUNTIME_CONTRACT.activeEntrypointClassifications,
   owners: Object.freeze({
-    registry: '/shared/resources/release/runtime-cache-contract.v3990_2.js',
+    registry: '/shared/resources/release/runtime-cache-contract.v3990_1.js',
     release: SITE_RUNTIME_CONTRACT.owners.release,
     execution: SITE_RUNTIME_CONTRACT.owners.execution,
     majorBandsRankIndex: SITE_RUNTIME_CONTRACT.owners.majorBandsRankIndex,
