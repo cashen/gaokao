@@ -75,3 +75,5 @@ jobs:
           git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
           git commit -m 'v3.9.90.2：首页高考倒计时精确到秒'
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+# Separate trigger commit: the workflow must pre-exist before this push.
