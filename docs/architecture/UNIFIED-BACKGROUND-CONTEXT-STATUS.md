@@ -155,7 +155,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`. `DONE` requires real package/syste
 | Package | Status | Required outcome / proof |
 |---|---|---|
 | UBC-QA | DONE | candidate `cc01b8ddbe7f8da8f4d3d1d5b07724fa984e3e32` completed a fresh Draft round with all 24 PR workflows success, including UBC exact-head Preview, Worker stress, production API health, site runtime, canonical/LN release, LocalStrength/211/Tongxue and AIPLuS browser regressions |
-| UBC-RELEASE | IN_PROGRESS | ledger closure commit becomes the final pre-merge candidate; it must complete its own fresh Draft checks, then Ready on the **same SHA**, a second fresh Ready round, `expected_head_sha` merge, and exact-main Production closure before this row may become DONE |
+| UBC-RELEASE | DONE | final head `9cb13baea4c61d91db57b7162d57cb7de8c48c30` completed two fresh final-head PR rounds, merged as main `95eda1a414532295ca49c0d5b1e7e5f93275cb64`, then exact-main UBC Production and production resource-graph closure succeeded; 2026-08-21 same-main fresh reruns passed again |
 
 ## Draft proof closure before ledger commit
 
@@ -169,6 +169,16 @@ Candidate `cc01b8ddbe7f8da8f4d3d1d5b07724fa984e3e32` completed the required full
 - canonical release #1540, native chooser #1439, architecture handoff #532, LN final #2422, unified resource graph #1450, unified site runtime #2235 all success.
 
 This evidence proves the implementation/QA packages. It does **not** substitute for the final SHA Draft round, Ready round, merge or Production closure.
+
+## Release closure evidence
+
+- final PR head: `9cb13baea4c61d91db57b7162d57cb7de8c48c30`;
+- merge commit / released main: `95eda1a414532295ca49c0d5b1e7e5f93275cb64`;
+- post-merge `Verify unified background context v0.01` run #21 completed exact-main Production cross-product and AIPLuS journeys and published `production/unified-background-context-v0.01` success;
+- post-merge `Verify production resource graph v3990.1` run #564 completed Pages + custom-domain resource graph, bounded rank-query deployment and concurrency-budget proof and published `production/resource-graph-v3990.1` success;
+- both Production owners were rerun fresh on 2026-08-21 against the unchanged main SHA above; UBC exact-main browser journeys and the Pages/custom-domain resource/concurrency proof both succeeded again.
+
+This closes the historical #179 release lifecycle. These facts are evidence of the existing canonical owners; they do not create a second deployment or status owner.
 
 ## Required human-language acceptance classes
 
@@ -241,4 +251,4 @@ Final protocol:
 10. verify new `main`, push workflows, exact-main Cloudflare Production, Pages/custom-domain boundaries and durable Production statuses;
 11. only after Production closure mark UBC-RELEASE complete (post-merge status update belongs to the next normal main maintenance commit if required; do not mutate the already-merged candidate retroactively).
 
-A network interruption or new conversation must continue this same PR from the first incomplete release step. Do not restart the plan, do not create a second active branch, and do not declare completion from partial green checks.
+PR #179 is now released and closed. A network interruption or new conversation must start from the latest `main` and these canonical owners; do not reopen or recreate the #179 implementation line unless new production evidence contradicts the completed ledger.
