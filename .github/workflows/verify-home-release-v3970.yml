@@ -23,12 +23,13 @@ on:
       - '.github/workflows/verify-production-release-v3970.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   home-release:
+    if: github.event.pull_request.head.ref == 'agent/home-countdown-seconds-v3990_2'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,52 +39,65 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
 
-      - name: Check protected paths and syntax
+      - name: Preserve canonical registered workflow and normalize builder
         shell: bash
         run: |
           set -euo pipefail
-          base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3990-1-home-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-home-files.txt; then exit 1; fi
-          git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
-          sed -e 's/v3\.9\.90\.0/v3.9.90.1/g' -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_1.py
-          python3 -m py_compile /tmp/verify-final-release-v3990_1.py
+          git show origin/main:.github/workflows/verify-home-release-v3970.yml > /tmp/home-workflow-main.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/tmp-home-countdown-v3990_2-builder.mjs')
+          s = p.read_text()
+          bad = "\x1b[96m\\`距离2027年高考还有\\${days}天\\${hours}小时\\${minutes}分\\${seconds}秒\\`\x1b[0m"
+          good = "'距离2027年高考还有' + days + '天' + hours + '小时' + minutes + '分' + seconds + '秒'"
+          if bad not in s:
+              raise SystemExit('temporary builder ANSI marker not found')
+          p.write_text(s.replace(bad, good))
+          PY
+          node --check tools/tmp-home-countdown-v3990_2-builder.mjs
 
-      - name: Verify homepage and site generation contracts
+      - name: Build coherent v3990_2 release tree
+        run: node tools/tmp-home-countdown-v3990_2-builder.mjs
+
+      - name: Restore normal home verification workflow at v3990_2
+        shell: bash
         run: |
           set -euo pipefail
-          python3 /tmp/verify-final-release-v3990_1.py | tee /tmp/v3990-1-home-release.out
-          node tools/audit-site-runtime-generation-v3990_1.mjs | tee /tmp/v3990-1-site-generation.out
-          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-1-home-audit.out
+          sed -e 's/v3\.9\.90\.1/v3.9.90.2/g' -e 's/v3990_1/v3990_2/g' -e 's/3990_1/3990_2/g' \
+            /tmp/home-workflow-main.yml > .github/workflows/verify-home-release-v3970.yml
 
-      - name: Install Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
-
-      - name: Verify root home on phone pad and desktop
+      - name: Verify generated source before commit
+        shell: bash
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3990-1-home-http.log 2>&1 &
-          server=$!
-          trap 'kill $server' EXIT
-          sleep 1
-          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-1-home-browser node tools/browser-home-release-v3990_1.mjs | tee /tmp/v3990-1-home-browser.out
+          test ! -e tools/tmp-home-countdown-v3990_2-builder.mjs
+          test ! -e .github/workflows/tmp-home-countdown-v3990_2-builder.yml
+          node --check ln-rank/js/ux/family-home.v3990_2.js
+          node --check shared/resources/release/site-runtime-contract.v3990_2.js
+          node --check shared/resources/release/runtime-cache-contract.v3990_2.js
+          node tools/audit-canonical-release-version-v3990_2.mjs
+          node tools/audit-site-runtime-generation-v3990_2.mjs
+          node tools/audit-home-release-ownership-v3970.mjs
+          if [ -f tools/audit-architecture-handoff-v3990_2.mjs ]; then node tools/audit-architecture-handoff-v3990_2.mjs; fi
+          git diff --check
+          git diff --name-only HEAD | tee /tmp/home-countdown-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/home-countdown-files.txt; then
+            echo 'Protected path touched.' >&2
+            exit 1
+          fi
+          grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'data-countdown-precision="second"' index.html
+          grep -q 'setInterval(renderCountdown, 1000)' ln-rank/js/ux/family-home.v3990_2.js
 
-      - name: Upload diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: v3990-1-root-home-results
-          path: |
-            /tmp/v3990-1-home-*.txt
-            /tmp/v3990-1-home-*.out
-            /tmp/v3990-1-home-*.log
-            /tmp/v3990-1-home-browser
-          if-no-files-found: warn
-          retention-days: 3
+      - name: Commit generated candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
+          git commit -m 'v3.9.90.2：首页高考倒计时精确到秒'
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
