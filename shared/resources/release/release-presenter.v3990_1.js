@@ -1,5 +1,5 @@
-import { CURRENT_RELEASE } from './current-release.js?v=3990_2';
-import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_2.js?v=3990_2';
+import { CURRENT_RELEASE } from './current-release.js?v=3990_1';
+import { SITE_RUNTIME_CONTRACT } from './site-runtime-contract.v3990_1.js?v=3990_1';
 
 export function syncCurrentRelease(root = document) {
   if (typeof document === 'undefined') return CURRENT_RELEASE;
