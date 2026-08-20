@@ -8,7 +8,7 @@ This document is a **navigation map, not a second source of truth**. A new maint
 2. Read `docs/skills/eastern-philosophy/SKILL.md`.
 3. For runtime, release, UI ownership, cache, navigation, page entrypoints or deployment work, read `docs/skills/unified-site-release/SKILL.md`.
 4. Read the machine owners below before changing code.
-5. Run `node tools/audit-architecture-handoff-v3990_1.mjs` before and after architecture-affecting work.
+5. Run `node tools/audit-architecture-handoff-v3990_2.mjs` before and after architecture-affecting work.
 
 Do not infer ownership from a filename being newer, from a historical PR, or from a root `VERSION.txt` marker.
 
@@ -26,10 +26,10 @@ This is the canonical current release identity. Public version, runtime generati
 
 **SOURCE-OF-TRUTH:SITE-RUNTIME**
 
-- `shared/resources/release/site-runtime-contract.v3990_1.js`
-- `shared/resources/release/runtime-cache-contract.v3990_1.js`
-- `shared/governance/resource-execution-contract.v3990_1.js`
-- `ln-rank/site-active-generation.v3990_1.json`
+- `shared/resources/release/site-runtime-contract.v3990_2.js`
+- `shared/resources/release/runtime-cache-contract.v3990_2.js`
+- `shared/governance/resource-execution-contract.v3990_2.js`
+- `ln-rank/site-active-generation.v3990_2.json`
 
 Use these files to answer: which entrypoint is current, which dependency is intentionally stable, who owns interaction/cache/execution, and which policies are release gates.
 
@@ -80,7 +80,7 @@ The derived index must not own admissions scores/ranks, school strength ranking,
 - `functions/_lib/ai/turn-orchestrator.js` — the **single turn execution owner**. Atomic task routing remains in the existing deterministic task kernel; only the orchestrator can promote a multi-object/multi-goal turn into `decision_research`.
 - `functions/_lib/ai/RESOURCE-BOUNDARY.md` — detailed deterministic/resource/claim boundary for AIPLuS.
 - `aiplus/index.html` — browser entrypoint.
-- `aiplus/app.v3990_1.js` — current browser orchestration entry module.
+- `aiplus/app.v3990_2.js` — current browser orchestration entry module.
 - `functions/_lib/ai/tool-registry.js` — deterministic tool registry/bridge planning. Its existing identifier remains stable because decision v0.03 reuses the same browser fact bridge instead of inventing another one.
 - `shared/ai/decision-focus.v006_1.js` — **AIPLuS 决策聚焦纯投影 owner**。它只把现有 workspace、确定性学校×专业记录和 typed claims 组织成 pair evidence matrix 与 decision gaps；不会联网、持久化、创建推荐分/录取概率或第二份 shortlist。详细边界见 `docs/architecture/AIPLUS-DECISION-FOCUS-STATUS.md`。
 - `aiplus/selection-workbench.v005.js` — **AIPLuS 自选/排序/诊断 UI 编排适配层**。它直接复用 `ln-rank` Selection Pool 和既有 `buildPathAnalysis()`，不会建立第二份自选、排序或招生事实；详细边界见 `docs/architecture/AIPLUS-SELECTION-DIAGNOSIS-STATUS.md`。
@@ -112,7 +112,7 @@ For pair/reference semantics:
 
 **KNOWN-GAP:AIPLUS-WORKSPACE-TRANSITIVE**
 
-The site runtime contract declares the site-level AIPLuS workspace entry under the current site generation, while the browser `aiplus/app.v3990_1.js` currently imports the evolved `shared/ai/ai-workspace-contract.v3992_0.js` implementation (whose model contract is v3992.x). Existing AIPLuS tests intentionally exercise that evolved implementation.
+The site runtime contract declares the site-level AIPLuS workspace entry under the current site generation, while the browser `aiplus/app.v3990_2.js` currently imports the evolved `shared/ai/ai-workspace-contract.v3992_0.js` implementation (whose model contract is v3992.x). Existing AIPLuS tests intentionally exercise that evolved implementation.
 
 This is a **declared transitive ownership debt**, not permission to copy, rename or delete workspace implementations casually. Until a canonical generation release explicitly reconciles it:
 

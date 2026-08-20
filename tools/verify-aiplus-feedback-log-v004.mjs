@@ -13,7 +13,7 @@ const workspace={
   turnHistory:[{task:'decision_research',userText:'PRIVACY_SENTINEL 家庭私密问题',assistantSummary:'PRIVATE_ANSWER_SENTINEL 家庭私密回答'}]
 };
 const events=Array.from({length:20},(_,index)=>({at:`2026-08-17T00:${String(index).padStart(2,'0')}:00Z`,kind:'diagnostic',code:`e${index}`,message:`event ${index}`,task:'decision_research',stage:'compare'}));
-const base=bundle.buildAiplusFeedbackBundle({workspace,viewport:{device:'mobile',width:390,height:844,coarse:true,touchPoints:5},release:{site:'v3.9.90.1',runtime:'v3990_1',familyDecision:'aiplus-family-decision-v0.03'},events,createdAt:'2026-08-17T00:30:00Z'});
+const base=bundle.buildAiplusFeedbackBundle({workspace,viewport:{device:'mobile',width:390,height:844,coarse:true,touchPoints:5},release:{site:'v3.9.90.2',runtime:'v3990_2',familyDecision:'aiplus-family-decision-v0.03'},events,createdAt:'2026-08-17T00:30:00Z'});
 const baseText=JSON.stringify(base);
 assert.equal(base.bundleVersion,'aiplus-feedback-bundle-v0.04');
 assert.ok(!baseText.includes('PRIVACY_SENTINEL'),'default bundle leaked current question');

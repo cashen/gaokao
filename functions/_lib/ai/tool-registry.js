@@ -17,7 +17,7 @@ import {
 } from '../../../shared/ai/aiplus-product-contract.v002.js';
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v0.02';
-export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_1';
+export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_2';
 export const AI_SCHOOL_HISTORY_ADAPTER_VERSION='ai-school-history-browser-bridge-v3992_9';
 export const AI_MAJOR_HISTORY_ADAPTER_VERSION='ai-major-region-history-browser-bridge-v3992_4';
 export const AI_BACKGROUND_ADAPTER_VERSION=AI_BACKGROUND_RESOURCE_ADAPTER_VERSION;
