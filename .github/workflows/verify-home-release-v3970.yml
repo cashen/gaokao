@@ -60,12 +60,22 @@ jobs:
       - name: Build coherent v3990_2 release tree
         run: node tools/tmp-home-countdown-v3990_2-builder.mjs
 
-      - name: Restore normal home verification workflow at v3990_2
+      - name: Restore normal workflow and compatibility filenames
         shell: bash
         run: |
           set -euo pipefail
           sed -e 's/v3\.9\.90\.1/v3.9.90.2/g' -e 's/v3990_1/v3990_2/g' -e 's/3990_1/3990_2/g' \
             /tmp/home-workflow-main.yml > .github/workflows/verify-home-release-v3970.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          for rel in ['tools/audit-architecture-handoff-v3990_2.mjs', 'docs/architecture/START-HERE.md']:
+              p = Path(rel)
+              if not p.exists():
+                  continue
+              s = p.read_text()
+              s = s.replace('.github/workflows/verify-ai-workspace-v3990_2.yml', '.github/workflows/verify-ai-workspace-v3990_1.yml')
+              p.write_text(s)
+          PY
 
       - name: Verify generated source before commit
         shell: bash
@@ -79,7 +89,7 @@ jobs:
           node tools/audit-canonical-release-version-v3990_2.mjs
           node tools/audit-site-runtime-generation-v3990_2.mjs
           node tools/audit-home-release-ownership-v3970.mjs
-          if [ -f tools/audit-architecture-handoff-v3990_2.mjs ]; then node tools/audit-architecture-handoff-v3990_2.mjs; fi
+          node tools/audit-architecture-handoff-v3990_2.mjs
           git diff --check
           git diff --name-only HEAD | tee /tmp/home-countdown-files.txt
           if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/home-countdown-files.txt; then
