@@ -101,13 +101,14 @@ jobs:
           grep -q 'data-countdown-precision="second"' index.html
           grep -q 'setInterval(renderCountdown, 1000)' ln-rank/js/ux/family-home.v3990_2.js
 
-      - name: Commit generated candidate
+      - name: Commit generated non-workflow candidate
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
+          git reset -- .github/workflows
+          git diff --cached --quiet && { echo 'No generated non-workflow changes'; exit 1; }
           git commit -m 'v3.9.90.2：首页高考倒计时精确到秒'
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
