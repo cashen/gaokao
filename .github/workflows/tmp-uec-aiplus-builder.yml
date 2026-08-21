@@ -1,0 +1,43 @@
+name: Temporary UEC AIPLuS builder
+
+on:
+  push:
+    branches:
+      - agent/unified-experience-context-v001
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !startsWith(github.event.head_commit.message, 'UEC builder:') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/unified-experience-context-v001
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exact owner patches
+        run: python3 tools/tmp_uec_aiplus_patch.py
+      - name: Syntax proof
+        run: |
+          node --check functions/_lib/ai/student-voice-tool-adapter.js
+          node --check functions/_lib/ai/agent-task-kernel.js
+          node --check functions/_lib/ai/task-spec-registry.js
+          node --check functions/_lib/ai/turn-orchestrator.js
+          node --check functions/_lib/ai/advisor-presentation.js
+          node --check aiplus/app.v3990_1.js
+      - name: Commit builder result
+        run: |
+          if git diff --quiet; then
+            echo 'No patch output'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add functions/_lib/ai/agent-task-kernel.js functions/_lib/ai/task-spec-registry.js functions/_lib/ai/turn-orchestrator.js functions/_lib/ai/advisor-presentation.js aiplus/app.v3990_1.js
+          git commit -m 'UEC builder: integrate Student Voice into AIPLuS owners'
+          git push origin HEAD:agent/unified-experience-context-v001
