@@ -43,5 +43,9 @@ export const EXPERIENCE_TOPIC_LABELS=STUDENT_VOICE_TOPIC_LABELS;
 export const EXPERIENCE_TOPIC_KEYWORDS=STUDENT_VOICE_TOPIC_KEYWORDS;
 
 export function experienceTopicFromText(value=''){
-  return studentVoiceTopicFromText(value,{scope:'school'});
+  const topic=studentVoiceTopicFromText(value,{scope:'school'});
+  // AIPLuS v0.02 historically exposes one combined living/food topic. Keep that
+  // public intent stable while the shared Student Voice gateway may use finer
+  // dormitory/cafeteria topics in new direct surfaces.
+  return topic==='dormitory'||topic==='cafeteria'?'living':topic;
 }
