@@ -80,11 +80,23 @@ export function studentVoiceTopicFromText(value = '', { scope = 'school' } = {})
   return 'general';
 }
 
+function regexEscape(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function keywordOnlyDescribesMissingEvidence(text, keyword) {
+  const token = regexEscape(keyword);
+  if (!token) return false;
+  const missingBefore = new RegExp(`(?:没有|暂无|未提供|未提及|没提到|没有提到).{0,6}${token}(?:相关)?(?:信息|内容|评价|评论|数据|描述|提及)?`);
+  const missingAfter = new RegExp(`${token}.{0,4}(?:没有|暂无|未提供|未提及|没提到)(?:相关)?(?:信息|内容|评价|评论|数据|描述|提及)`);
+  return missingBefore.test(text) || missingAfter.test(text);
+}
+
 export function studentVoiceTextMatchesTopic(value = '', topic = 'general', { scope = 'school' } = {}) {
   const normalized = normalizeStudentVoiceTopic(topic, { scope });
   if (normalized === 'general') return true;
   const text = String(value || '');
-  return (STUDENT_VOICE_TOPIC_KEYWORDS[normalized] || []).some((word) => text.includes(word));
+  return (STUDENT_VOICE_TOPIC_KEYWORDS[normalized] || []).some((word) => text.includes(word) && !keywordOnlyDescribesMissingEvidence(text, word));
 }
 
 export function studentVoiceSampleLevel(count = 0) {
