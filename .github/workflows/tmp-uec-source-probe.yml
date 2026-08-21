@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/tmp-uec-source-probe.yml'
-      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
   workflow_dispatch:
 
 permissions:
@@ -17,59 +16,53 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Probe published mirrors and discover public API strings
+      - name: Discover specialty routes and source API schema
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p probe
-          hosts=(
-            'https://eo.srgaoxiao.cn'
-            'https://eo.srgaoxiao.com'
-            'https://srgaoxiao.cn'
-            'https://srgaoxiao.com'
+          host='https://eo.srgaoxiao.cn'
+          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host/" -o probe/home.html
+          main=$(python - <<'PY'
+          import re
+          h=open('probe/home.html',encoding='utf-8',errors='ignore').read()
+          m=re.search(r'<script[^>]+src=["\']([^"\']+)',h,re.I)
+          print(m.group(1) if m else '')
+          PY
           )
-          : > probe/summary.txt
-          for host in "${hosts[@]}"; do
-            safe=$(echo "$host" | sed 's#https://##; s#[./:]#_#g')
-            echo "=== $host ===" | tee -a probe/summary.txt
-            code=$(curl -L --connect-timeout 5 --max-time 15 -A 'Mozilla/5.0 UEC-source-audit' -sS -o "probe/${safe}.html" -w '%{http_code}' "$host/" || true)
-            echo "homepage_status=$code bytes=$(wc -c < "probe/${safe}.html" 2>/dev/null || echo 0)" | tee -a probe/summary.txt
-            if [[ "$code" == "200" ]]; then
-              python - "$PWD/probe/${safe}.html" "$PWD/probe/${safe}-scripts.txt" <<'PY'
-          import re,sys
-          html=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          srcs=re.findall(r'<script[^>]+src=["\']([^"\']+)',html,re.I)
-          open(sys.argv[2],'w',encoding='utf-8').write(''.join(item+'\n' for item in srcs[:40]))
+          test -n "$main"
+          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host$main" -o probe/main.js
+          python - <<'PY'
+          import re
+          s=open('probe/main.js',encoding='utf-8',errors='ignore').read()
+          names=sorted(set(re.findall(r'assets/Specialty(?:List|Detail)-[A-Za-z0-9_-]+\.js',s)))
+          open('probe/specialty-assets.txt','w').write(''.join(x+'\n' for x in names))
+          print('specialty assets:',names)
           PY
-              : > "probe/${safe}-api-strings.txt"
-              : > "probe/${safe}-major-context.txt"
-              while IFS= read -r src || [[ -n "$src" ]]; do
-                [[ -z "$src" ]] && continue
-                if [[ "$src" =~ ^https?:// ]]; then asset="$src"; else asset="${host}${src}"; fi
-                body=$(curl -L --connect-timeout 5 --max-time 15 -A 'Mozilla/5.0 UEC-source-audit' -sS "$asset" || true)
-                printf '%s' "$body" > "probe/${safe}-asset-$(basename "$src")"
-                python - "$PWD/probe/${safe}-asset-$(basename "$src")" "$PWD/probe/${safe}-api-strings.txt" "$PWD/probe/${safe}-major-context.txt" <<'PY'
+          : > probe/source-api-evidence.txt
+          while IFS= read -r asset || [[ -n "$asset" ]]; do
+            test -n "$asset" || continue
+            out="probe/$(basename "$asset")"
+            curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host/$asset" -o "$out"
+            python - "$out" >> probe/source-api-evidence.txt <<'PY'
           import re,sys
-          text=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          apis=sorted(set(re.findall(r'/api/[A-Za-z0-9_?&=/%.,${}:()\[\]-]+',text)))
-          with open(sys.argv[2],'a',encoding='utf-8') as out:
-              for item in apis: out.write(item+'\n')
-          with open(sys.argv[3],'a',encoding='utf-8') as out:
-              for m in re.finditer(r'(major|profession|specialty|专业)',text,re.I):
-                  out.write(text[max(0,m.start()-160):min(len(text),m.end()+260)]+'\n---\n')
+          s=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+          print('\n###',sys.argv[1])
+          literals=[]
+          for m in re.finditer(r'(specialt|review|major|school)',s,re.I):
+              frag=s[max(0,m.start()-220):min(len(s),m.start()+520)].replace('\n',' ')
+              if '/api' in frag or 'fetch(' in frag or 'Pi' in frag or 'Dr' in frag or 'specialt' in frag.lower() or 'review' in frag.lower(): literals.append(frag)
+          seen=set()
+          for frag in literals:
+              if frag in seen: continue
+              seen.add(frag); print(frag); print('---')
+              if len(seen)>=120: break
           PY
-              done < "probe/${safe}-scripts.txt"
-              sort -u "probe/${safe}-api-strings.txt" -o "probe/${safe}-api-strings.txt" || true
-              echo "scripts=$(wc -l < "probe/${safe}-scripts.txt" 2>/dev/null || echo 0) api_strings=$(wc -l < "probe/${safe}-api-strings.txt" 2>/dev/null || echo 0)" | tee -a probe/summary.txt
-              grep -Ei 'major|profession|specialty|review' "probe/${safe}-api-strings.txt" | tee -a probe/summary.txt || true
-            fi
-          done
-          echo '--- known school endpoint sanity ---' | tee -a probe/summary.txt
-          for host in 'https://eo.srgaoxiao.cn' 'https://eo.srgaoxiao.com' 'https://srgaoxiao.cn' 'https://srgaoxiao.com'; do
-            status=$(curl -L --connect-timeout 5 --max-time 12 -A 'Mozilla/5.0 UEC-source-audit' -H 'accept: application/json' -sS -o /tmp/school.json -w '%{http_code}' "$host/api/schools/%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6" || true)
-            echo "$host school_detail_status=$status bytes=$(wc -c < /tmp/school.json 2>/dev/null || echo 0)" | tee -a probe/summary.txt
-            if [[ "$status" == "200" ]]; then cp /tmp/school.json "probe/$(echo "$host" | sed 's#https://##; s#[./:]#_#g')-school-detail.json"; fi
-          done
+          done < probe/specialty-assets.txt
+          echo '--- discovered specialty assets ---'
+          cat probe/specialty-assets.txt
+          echo '--- endpoint-like fragments ---'
+          grep -Eio '.{0,120}(specialt|review).{0,220}' probe/source-api-evidence.txt | head -n 160 || true
 
       - name: Upload source probe
         uses: actions/upload-artifact@v4
