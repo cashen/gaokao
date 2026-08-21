@@ -11,6 +11,7 @@ import {
 export const AI_STUDENT_VOICE_ADAPTER_VERSION='ai-student-voice-browser-bridge-v0.01';
 const BRIDGE_KIND='school_experience';
 const BRIDGE_VERSION='ai-deterministic-browser-tool-bridge-v0.02';
+const LEGACY_SCHOOL_EXPERIENCE_COMPATIBILITY='legacy_school_experience';
 
 function clean(value,max=1200){return String(value==null?'':value).trim().slice(0,max);}
 function requestKey(request){const url=new URL(request.url);return `${url.pathname}${url.search}`;}
@@ -44,13 +45,13 @@ function legacySchoolKey(request){
 }
 function delegatedEntry(context,request){
   const unifiedKey=requestKey(request),results=context?.aiDeterministicToolResults||{};
-  let key=unifiedKey,entry=results[unifiedKey],legacy=false;
-  if(!entry){const legacyKey=legacySchoolKey(request);if(legacyKey&&results[legacyKey]){key=legacyKey;entry=results[legacyKey];legacy=true;}}
+  let key=unifiedKey,entry=results[unifiedKey],legacyKeyUsed=false;
+  if(!entry){const legacyKey=legacySchoolKey(request);if(legacyKey&&results[legacyKey]){key=legacyKey;entry=results[legacyKey];legacyKeyUsed=true;}}
   if(!entry)return{ok:false,code:'client_tool_required',toolRequest:clientToolRequest(request)};
   if(entry.kind!==BRIDGE_KIND||entry.key!==key||entry.url!==key)return{ok:false,code:'client_tool_invalid',message:'大学生声音回传与本轮请求不匹配。'};
   const status=Number(entry.status),payload=entry.payload;
   if(!Number.isFinite(status)||!payload||typeof payload!=='object')return{ok:false,code:'client_tool_invalid',message:'大学生声音回传格式不完整。'};
-  return{ok:true,status,payload,legacy};
+  return{ok:true,status,payload,legacyKeyUsed};
 }
 function normalizedReviews(payload={}){
   return (Array.isArray(payload.reviews)?payload.reviews:[]).slice(0,12).map(item=>({
@@ -67,7 +68,7 @@ function noContentMessage({scope,school,major,topic,mode}){
 }
 function legacyTopicMatch(text,topic){return topic==='general'||studentVoiceTextMatchesTopic(text,topic,{scope:'school'});}
 
-export async function runStudentVoice(context,{scope='school',school='',major='',majorCode='',topic='',question=''}={}){
+export async function runStudentVoice(context,{scope='school',school='',major='',majorCode='',topic='',question='',compatibility=''}={}){
   const normalizedScope=canonicalScope(scope),normalizedTopic=topicFor({scope:normalizedScope,topic,question}),schoolName=clean(school,120),majorName=clean(major,160),code=clean(majorCode,40).toUpperCase();
   if((normalizedScope==='school'||normalizedScope==='school_major')&&!schoolName)return{ok:false,code:'school_required',scope:normalizedScope,topic:normalizedTopic,message:'需要先明确一所学校。'};
   if((normalizedScope==='major'||normalizedScope==='school_major')&&!majorName&&!code)return{ok:false,code:'major_required',scope:normalizedScope,topic:normalizedTopic,message:'需要先明确一个具体本科专业。'};
@@ -77,7 +78,7 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
   if(status<200||status>=300||payload?.ok!==true){
     return{ok:false,status,scope:normalizedScope,topic:normalizedTopic,topicLabel:STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音',school:schoolName,major:majorName?{name:majorName,code}:null,code:clean(payload?.error||payload?.code,100)||'student_voice_unavailable',message:clean(payload?.message,360)||'大学生声音来源本轮没有形成可验证内容。',source:payload?.source||{},fetchedAt:clean(payload?.fetchedAt,80),adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,boundary:'大学生声音只表示来源中的学生表达；当前范围无法验证时不会自动改用别的学校、别的专业或更宽范围。'};
   }
-  const rawReviews=normalizedReviews(payload),rawSummary=clean(payload.summary,4000),rawMode=clean(payload.mode,60),compatibilityMode=delegated.legacy&&normalizedScope==='school';
+  const rawReviews=normalizedReviews(payload),rawSummary=clean(payload.summary,4000),rawMode=clean(payload.mode,60),compatibilityMode=normalizedScope==='school'&&(compatibility===LEGACY_SCHOOL_EXPERIENCE_COMPATIBILITY||delegated.legacyKeyUsed===true);
   let mode=rawMode,summary=rawSummary,reviews=rawReviews;
   if(compatibilityMode){
     summary=rawMode==='ai_summary'&&legacyTopicMatch(rawSummary,normalizedTopic)?rawSummary:'';
