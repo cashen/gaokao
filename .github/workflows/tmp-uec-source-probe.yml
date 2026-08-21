@@ -16,53 +16,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Discover specialty routes and source API schema
+      - name: Verify live specialty list/detail/review schema
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p probe
           host='https://eo.srgaoxiao.cn'
-          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host/" -o probe/home.html
-          main=$(python - <<'PY'
-          import re
-          h=open('probe/home.html',encoding='utf-8',errors='ignore').read()
-          m=re.search(r'<script[^>]+src=["\']([^"\']+)',h,re.I)
-          print(m.group(1) if m else '')
-          PY
-          )
-          test -n "$main"
-          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host$main" -o probe/main.js
+          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -H 'accept: application/json' -sS \
+            "$host/api/specialties?keyword=%E7%94%B5%E6%B0%94%E5%B7%A5%E7%A8%8B%E5%8F%8A%E5%85%B6%E8%87%AA%E5%8A%A8%E5%8C%96&sort=popularity&page=1&pageSize=10" -o probe/list.json
           python - <<'PY'
-          import re
-          s=open('probe/main.js',encoding='utf-8',errors='ignore').read()
-          names=sorted(set(re.findall(r'assets/Specialty(?:List|Detail)-[A-Za-z0-9_-]+\.js',s)))
-          open('probe/specialty-assets.txt','w').write(''.join(x+'\n' for x in names))
-          print('specialty assets:',names)
+          import json
+          p=json.load(open('probe/list.json'))
+          rows=p.get('data') if isinstance(p,dict) else None
+          assert isinstance(rows,list) and rows, 'specialty search returned no rows'
+          exact=next((r for r in rows if r.get('name')=='电气工程及其自动化'),rows[0])
+          assert exact.get('id') is not None and exact.get('slug')
+          open('probe/selected.json','w').write(json.dumps({'id':exact['id'],'slug':exact['slug'],'name':exact.get('name'),'code':exact.get('code')},ensure_ascii=False))
+          print('list_keys=', sorted(p.keys()))
+          print('row_keys=', sorted(exact.keys()))
+          print('selected=', {'id':exact['id'],'slug':exact['slug'],'name':exact.get('name'),'code':exact.get('code')})
           PY
-          : > probe/source-api-evidence.txt
-          while IFS= read -r asset || [[ -n "$asset" ]]; do
-            test -n "$asset" || continue
-            out="probe/$(basename "$asset")"
-            curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -sS "$host/$asset" -o "$out"
-            python - "$out" >> probe/source-api-evidence.txt <<'PY'
-          import re,sys
-          s=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
-          print('\n###',sys.argv[1])
-          literals=[]
-          for m in re.finditer(r'(specialt|review|major|school)',s,re.I):
-              frag=s[max(0,m.start()-220):min(len(s),m.start()+520)].replace('\n',' ')
-              if '/api' in frag or 'fetch(' in frag or 'Pi' in frag or 'Dr' in frag or 'specialt' in frag.lower() or 'review' in frag.lower(): literals.append(frag)
-          seen=set()
-          for frag in literals:
-              if frag in seen: continue
-              seen.add(frag); print(frag); print('---')
-              if len(seen)>=120: break
+          id=$(python -c "import json;print(json.load(open('probe/selected.json'))['id'])")
+          slug=$(python -c "import json;print(json.load(open('probe/selected.json'))['slug'])")
+          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -H 'accept: application/json' -sS "$host/api/specialties/$slug" -o probe/detail.json
+          curl -L --connect-timeout 5 --max-time 20 -A 'Mozilla/5.0 UEC-source-audit' -H 'accept: application/json' -sS "$host/api/specialties/$id/reviews?sort=new" -o probe/reviews.json
+          python - <<'PY'
+          import json
+          d=json.load(open('probe/detail.json')); r=json.load(open('probe/reviews.json'))
+          print('detail_keys=', sorted(d.keys()) if isinstance(d,dict) else type(d).__name__)
+          rows=(r.get('data') or []) if isinstance(r,dict) else []
+          print('review_payload_keys=', sorted(r.keys()) if isinstance(r,dict) else type(r).__name__)
+          print('review_count=', len(rows))
+          if rows:
+              print('review_keys=', sorted(rows[0].keys()))
+              schoolish=[k for k in rows[0] if 'school' in k.lower() or 'college' in k.lower() or 'university' in k.lower() or 'campus' in k.lower()]
+              print('school_binding_keys=', schoolish)
+              safe={k:rows[0].get(k) for k in rows[0] if k in {'id','content','created_at','isVerified','is_verified','isAnonymous','is_anonymous','nickname','rating','like_count','reply_count','school_id','schoolId','school_name','schoolName','campus','campus_name'}}
+              if 'content' in safe: safe['content']=str(safe['content'])[:120]
+              print('review_safe_sample=', safe)
           PY
-          done < probe/specialty-assets.txt
-          echo '--- discovered specialty assets ---'
-          cat probe/specialty-assets.txt
-          echo '--- endpoint-like fragments ---'
-          grep -Eio '.{0,120}(specialt|review).{0,220}' probe/source-api-evidence.txt | head -n 160 || true
 
       - name: Upload source probe
         uses: actions/upload-artifact@v4
