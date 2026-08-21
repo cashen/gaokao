@@ -93,7 +93,8 @@ requireText(entry, 'await startTongxueRuntime();', '运行时启动');
 forbidText(entry, 'MutationObserver', '活动入口含观察器');
 forbidText(entry, 'setInterval(', '活动入口含轮询');
 
-requireText(controller, "owner: 'tongxue-runtime-controller-v159'", '运行时唯一所有者');
+const runtimeOwnerMatches = controller.match(/owner\s*:\s*['"]tongxue-runtime-controller-v159['"]/g) || [];
+if (runtimeOwnerMatches.length !== 1) failures.push('运行时唯一所有者');
 requireText(controller, 'observerCount: 0', '观察器数量合同');
 requireText(controller, "on(window, 'popstate'", '浏览器历史恢复');
 requireText(controller, 'activeQueryController', '请求中止所有权');

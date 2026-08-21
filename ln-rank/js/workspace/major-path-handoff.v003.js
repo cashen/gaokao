@@ -5,6 +5,10 @@ import {
   MAJOR_PATH_NAVIGATION_META,
   buildMajorPathHref
 } from '../../../shared/resources/majors/major-path-navigation.v003.js?v=003_0';
+import {
+  STUDENT_VOICE_NAVIGATION_META,
+  buildStudentVoiceMajorHref
+} from '../../../shared/resources/experience/student-voice-navigation.v001.js';
 
 export const MAJOR_PATH_HANDOFF_VERSION = 'major-path-ln-rank-handoff-v0.03';
 const RESUME_KEY = 'lnRankMajorPathResumeV003';
@@ -74,48 +78,82 @@ function makeEntry(target, { context, sourceKey, sourceMajor, school = '', compa
   return button;
 }
 
+function makeStudentVoiceEntry(target, { context, sourceKey, compact = false } = {}) {
+  const href = buildStudentVoiceMajorHref({
+    majorCode:target.code,
+    canonicalName:target.name,
+    sourceKey,
+    context,
+    returnTo:currentReturnTarget()
+  });
+  if (!href) return null;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = compact ? 'student-voice-entry student-voice-entry--compact' : 'student-voice-entry';
+  button.dataset.uiNavigation = 'student-voice';
+  button.dataset.uiNavigationTarget = href;
+  button.dataset.studentVoiceEntry = target.code;
+  button.dataset.studentVoiceScope = 'major';
+  button.setAttribute('aria-label', `查看不同学校学生对${target.name}的公开体验`);
+  button.title = '这里是跨学校专业体验，不代表当前学校的培养情况，也不参与录取排序或推荐分。';
+  button.innerHTML = compact
+    ? `<span>大学生怎么说</span><small>跨学校专业体验</small><b aria-hidden="true">→</b>`
+    : `<span class="student-voice-entry__brand">同学你好</span><span class="student-voice-entry__text"><strong>大学生怎么说</strong><small>跨学校专业体验 · 不代表本校</small></span><b class="student-voice-entry__arrow" aria-hidden="true">→</b>`;
+  return button;
+}
+
+function insertScoreEntry(card, entry) {
+  if (!entry) return;
+  const tongxue = card.querySelector('.tongxue-card-entry');
+  const hint = card.querySelector('.pool-add-hint');
+  if (tongxue) tongxue.before(entry);
+  else if (hint) hint.before(entry);
+  else card.append(entry);
+}
+
 function decorateScoreCards(root = document.getElementById('results')) {
   if (!(root instanceof HTMLElement)) return;
   root.querySelectorAll('.major-card').forEach(card => {
-    if (card.querySelector('[data-major-path-entry]')) return;
     const sourceKey = clean(card.dataset.workspaceRecordKey);
     const sourceMajor = clean(card.querySelector('.major')?.childNodes?.[0]?.textContent || card.querySelector('.major')?.textContent);
     const code = clean(card.querySelector('.major-code-line b')?.textContent);
     const target = concreteMajorFromRendered({ code, name: sourceMajor });
     if (!target) {
       card.dataset.majorPathAvailability = 'unresolved-or-class-level';
+      card.dataset.studentVoiceAvailability = 'unresolved-or-class-level';
       return;
     }
     const school = clean(card.querySelector('.school')?.textContent);
-    const entry = makeEntry(target, { context: 'score', sourceKey, sourceMajor, school });
-    if (!entry) return;
-    const tongxue = card.querySelector('.tongxue-card-entry');
-    const hint = card.querySelector('.pool-add-hint');
-    if (tongxue) tongxue.before(entry);
-    else if (hint) hint.before(entry);
-    else card.append(entry);
+    if (!card.querySelector('[data-major-path-entry]')) insertScoreEntry(card, makeEntry(target, { context:'score', sourceKey, sourceMajor, school }));
+    if (!card.querySelector('[data-student-voice-entry]')) insertScoreEntry(card, makeStudentVoiceEntry(target, { context:'score', sourceKey }));
     card.dataset.majorPathAvailability = 'canonical-major';
+    card.dataset.studentVoiceAvailability = 'canonical-major-cross-school';
   });
 }
 
 function decorateSchoolCards(root = document.getElementById('schoolAllContent')) {
   if (!(root instanceof HTMLElement)) return;
   root.querySelectorAll('[data-school-record]').forEach(card => {
-    if (card.querySelector('[data-major-path-entry]')) return;
     const sourceKey = clean(card.dataset.schoolRecord);
     const sourceMajor = clean(card.querySelector('.school-major-title-line h3')?.textContent);
-    const target = concreteMajorFromRendered({ name: sourceMajor });
+    const target = concreteMajorFromRendered({ name:sourceMajor });
     if (!target) {
       card.dataset.majorPathAvailability = 'unresolved-or-class-level';
+      card.dataset.studentVoiceAvailability = 'unresolved-or-class-level';
       return;
     }
     const school = clean(document.getElementById('schoolAllTitle')?.textContent);
-    const entry = makeEntry(target, { context: 'school', sourceKey, sourceMajor, school, compact: true });
-    if (!entry) return;
     const main = card.querySelector('.school-major-main');
-    if (main) main.append(entry);
-    else card.prepend(entry);
+    if (!card.querySelector('[data-major-path-entry]')) {
+      const entry = makeEntry(target, { context:'school', sourceKey, sourceMajor, school, compact:true });
+      if (entry) (main || card).append(entry);
+    }
+    if (!card.querySelector('[data-student-voice-entry]')) {
+      const voice = makeStudentVoiceEntry(target, { context:'school', sourceKey, compact:true });
+      if (voice) (main || card).append(voice);
+    }
     card.dataset.majorPathAvailability = 'canonical-major';
+    card.dataset.studentVoiceAvailability = 'canonical-major-cross-school';
   });
 }
 
@@ -129,35 +167,32 @@ function scheduleDecorate() {
 function saveResumeSnapshot(event) {
   let target;
   try { target = new URL(event?.detail?.target || '', location.href); } catch { return; }
-  if (target.pathname !== MAJOR_PATH_NAVIGATION_META.targetPath) return;
+  const resumable = target.pathname === MAJOR_PATH_NAVIGATION_META.targetPath || target.pathname === STUDENT_VOICE_NAVIGATION_META.targetPath;
+  if (!resumable) return;
   const sourceKey = clean(target.searchParams.get('sourceKey'));
   const context = target.searchParams.get('context') === 'school' ? 'school' : 'score';
   if (!sourceKey) return;
   const workspaceState = globalThis.__GAOKAO_SELECTION_WORKSPACE__?.getState?.() || {};
   const committed = workspaceState.committedQuery || null;
   const snapshot = {
-    version: MAJOR_PATH_HANDOFF_VERSION,
-    createdAt: Date.now(),
+    version:MAJOR_PATH_HANDOFF_VERSION,
+    createdAt:Date.now(),
     context,
     sourceKey,
-    sourceUrl: currentReturnTarget(),
-    scrollY: Math.round(globalThis.scrollY || 0),
-    resultMode: state.resultMode,
-    candidateScore: state.candidateScore,
-    rangePreset: state.rangePreset,
-    activeBand: state.activeBand,
-    bandFocus: state.bandFocus,
-    resultViewMode: state.resultViewMode,
-    filters: { ...state.filters },
-    schoolSelection: { ...state.schoolSelection },
-    schoolSort: state.schoolAll.sort,
-    committed: committed ? {
-      score: committed.score,
-      rangePreset: committed.rangePreset,
-      filters: { ...(committed.filters || {}) }
-    } : null
+    sourceUrl:currentReturnTarget(),
+    scrollY:Math.round(globalThis.scrollY || 0),
+    resultMode:state.resultMode,
+    candidateScore:state.candidateScore,
+    rangePreset:state.rangePreset,
+    activeBand:state.activeBand,
+    bandFocus:state.bandFocus,
+    resultViewMode:state.resultViewMode,
+    filters:{ ...state.filters },
+    schoolSelection:{ ...state.schoolSelection },
+    schoolSort:state.schoolAll.sort,
+    committed:committed ? { score:committed.score, rangePreset:committed.rangePreset, filters:{ ...(committed.filters || {}) } } : null
   };
-  history.replaceState({ ...(history.state || {}), [RESUME_KEY]: snapshot }, '', location.href);
+  history.replaceState({ ...(history.state || {}), [RESUME_KEY]:snapshot }, '', location.href);
 }
 
 function clearResumeState() {
@@ -247,10 +282,11 @@ export function mountMajorPathHandoff() {
   scheduleDecorate();
   resumeFromHistoryIfNeeded();
   const api = Object.freeze({
-    version: MAJOR_PATH_HANDOFF_VERSION,
-    navigationVersion: MAJOR_PATH_NAVIGATION_META.version,
-    decorate: scheduleDecorate,
-    getState: () => Object.freeze({ mounted, resumeInFlight, context: resumeSnapshot?.context || '' })
+    version:MAJOR_PATH_HANDOFF_VERSION,
+    navigationVersion:MAJOR_PATH_NAVIGATION_META.version,
+    studentVoiceNavigationVersion:STUDENT_VOICE_NAVIGATION_META.version,
+    decorate:scheduleDecorate,
+    getState:() => Object.freeze({ mounted, resumeInFlight, context:resumeSnapshot?.context || '' })
   });
   globalThis.__GAOKAO_MAJOR_PATH_HANDOFF__ = api;
   document.body.dataset.majorPathHandoff = MAJOR_PATH_HANDOFF_VERSION;

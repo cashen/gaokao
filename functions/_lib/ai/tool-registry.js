@@ -11,10 +11,9 @@ import {
 import { matchesPlatformUpgradeRecord, normalizePlatformTarget } from '../platform-upgrade-policy.js';
 import { querySchoolDirectory } from './school-directory-resource.js';
 import {isScoreWindow,scoreWithinConstraint} from './human-query-frame.js';
+import {runStudentVoice as runUnifiedStudentVoice} from './student-voice-tool-adapter.js';
 import { AI_FACT_BRIDGE_CONTRACT_VERSION } from '../../../shared/ai/ai-workspace-contract.v3992_0.js';
-import {
-  EXPERIENCE_TOPIC_KEYWORDS,EXPERIENCE_TOPIC_LABELS,normalizeExperienceTopic,normalizeProjectScope
-} from '../../../shared/ai/aiplus-product-contract.v002.js';
+import {normalizeProjectScope} from '../../../shared/ai/aiplus-product-contract.v002.js';
 
 export const AI_TOOL_REGISTRY_VERSION='ai-tool-registry-v0.02';
 export const AI_MAJOR_BANDS_ADAPTER_VERSION='ai-major-bands-adapter-v3990_2';
@@ -172,14 +171,8 @@ export async function runSchoolOfficialInfo(context,{school,question=''}={}){
   return{ok:true,school:clean(payload.school||school,120),schId:clean(payload.schId,40),topic:clean(payload.topic,40),topicLabel:clean(payload.topicLabel,80),updatedAt:clean(payload.updatedAt,80),coverage:clean(payload.coverage,80),detailAvailable:payload.detailAvailable===true,evidenceText:clean(payload.evidenceText,16000),sources:Array.isArray(payload.sources)?payload.sources.slice(0,4).map(item=>({sourceName:clean(item?.sourceName,120),sourceUrl:clean(item?.sourceUrl,900),scope:clean(item?.scope,160),updatedAt:clean(item?.updatedAt,80)})):[],fetchedAt:clean(payload.fetchedAt,80),boundary:clean(payload.boundary,360),adapterVersion:AI_SCHOOL_OFFICIAL_ADAPTER_VERSION};
 }
 
-function topicMatches(text,topic){const normalized=normalizeExperienceTopic(topic),keywords=EXPERIENCE_TOPIC_KEYWORDS[normalized]||[];return normalized==='general'||keywords.some(word=>String(text||'').includes(word));}
-function topicNoContentMessage(school,topic){const label=EXPERIENCE_TOPIC_LABELS[normalizeExperienceTopic(topic)]||'对应体验';return `当前取得的同学留言没有直接提到${school||'这所学校'}的${label}，因此不拿无关留言代替回答。你可以继续核验官方页面公开的硬信息。`;}
-export async function runSchoolExperience(context,{school,topic='general'}={}){
-  if(!school)return{ok:false,code:'school_required',message:'需要先明确一所学校。'};
-  const normalizedTopic=normalizeExperienceTopic(topic),request=requestForSchoolExperience(context,{school,topic:normalizedTopic}),delegated=delegatedSchoolExperienceEntry(context,request);if(!delegated.ok)return delegated;const{status,payload}=delegated;if(status<200||status>=300||!payload?.ok)return{ok:false,status,topic:normalizedTopic,code:payload?.error||'school_experience_unavailable',message:clean(payload?.message||'同学体验信息暂不可用。',260)};
-  const sourceMode=payload.mode==='ai_summary'?'summary':payload.mode==='recent_reviews'?'recent_reviews':'no_content',rawSummary=clean(payload.summary,4000),allReviews=(payload.reviews||[]).slice(0,12).map(item=>({id:clean(item?.id,100),content:clean(item?.content||item?.text,1200),createdAt:clean(item?.createdAt||item?.created_at||item?.time,80),author:clean(item?.author||item?.nickname||'匿名同学',80)})).filter(item=>item.content),summary=sourceMode==='summary'&&topicMatches(rawSummary,normalizedTopic)?rawSummary:'',reviews=summary?[]:(normalizedTopic==='general'?allReviews:allReviews.filter(item=>topicMatches(item.content,normalizedTopic))).slice(0,4),mode=summary?'summary':reviews.length?'recent_reviews':'no_content',ok=Boolean(summary||reviews.length),schoolName=clean(payload.school||school,120);
-  return{ok,code:ok?'':'topic_no_content',message:ok?'':topicNoContentMessage(schoolName,normalizedTopic),school:schoolName,topic:normalizedTopic,topicLabel:EXPERIENCE_TOPIC_LABELS[normalizedTopic],mode,summary,reviews,source:{sourceName:'同学体验 · srgaoxiao.com',sourceUrl:clean(payload?.source?.url,900),scope:ok?`${EXPERIENCE_TOPIC_LABELS[normalizedTopic]}相关的来源站摘要或留言`:'来源站内容未命中当前话题'},fetchedAt:clean(payload.fetchedAt,80),adapterVersion:AI_SCHOOL_EXPERIENCE_ADAPTER_VERSION,boundary:'同学体验属于用户生成内容，不等于学校官方事实，也不能代表所有学生。只展示与本轮话题直接相关的摘要或留言；未命中时不拿无关内容代替回答，也不由模型扩写。'};
-}
+export async function runSchoolExperience(context,{school,topic='general'}={}){return runUnifiedStudentVoice(context,{scope:'school',school,topic,compatibility:'legacy_school_experience'});}
+export async function runStudentVoice(context,options={}){return runUnifiedStudentVoice(context,options);}
 
 function majorHistoryRecord(record={}){const base={...historyRecord(record),score2025:Number.isFinite(Number(record.score2025))?Number(record.score2025):null,rank2025:Number.isFinite(Number(record.rank2025))?Number(record.rank2025):null,score2024:Number.isFinite(Number(record.score2024))?Number(record.score2024):null,rank2024:Number.isFinite(Number(record.rank2024))?Number(record.rank2024):null,province:clean(record.province,80),city:clean(record.city,80),standardMajorName:clean(record.standardMajorName,160),standardMajorCode:clean(record.standardMajorCode,40)};if(record.isSinoForeign||record.feeType==='sino_foreign'||record.feeType==='high_fee')base.projectLabel='中外合作/高收费';if(Array.isArray(record.bottomLineTags)&&record.bottomLineTags.length)base.bottomLineTags=record.bottomLineTags;return base;}
 export async function runMajorRegionHistory(context,{majorKeyword='',majorKeywords=[],regionKeys=['all'],scoreConstraint={},bottomLineMode='all'}={}){

@@ -1,5 +1,6 @@
 import { MAJOR_CATALOG_2026 } from '../ln-rank/kb/major-understanding/major-catalog-2026.generated.js?v=3949_0';
 import { mountMajorPathBackgroundContext, MAJOR_PATH_BACKGROUND_CONTEXT_VERSION } from './background-context.v001.js';
+import { mountMajorPathStudentVoice, MAJOR_PATH_STUDENT_VOICE_VERSION } from './student-voice.v001.js';
 import {
   MAJOR_PATH_NAVIGATION_META,
   readMajorPathSourceContext
@@ -429,8 +430,9 @@ function humanizeMajorResult(shell) {
   const relationship = shell.querySelector('.relationship-section');
   const focus = makePathwayFocus(shell, major, undergrad, graduate);
   const background = mountMajorPathBackgroundContext({ shell, major, focus, sourceContext, direct: renderState.directBoot });
-  const explore = wrapRelationship(shell, relationship, focus, background || focus);
-  buildEvidenceDetails(shell, relationship, graduate, source, explore || background || focus);
+  const studentVoice = mountMajorPathStudentVoice({ shell, major, anchor: background || focus, sourceContext });
+  const explore = wrapRelationship(shell, relationship, focus, studentVoice || background || focus);
+  buildEvidenceDetails(shell, relationship, graduate, source, explore || studentVoice || background || focus);
   installChangeMajorAction(focus);
   simplifyGraphLanguage(shell);
 }
@@ -497,6 +499,7 @@ window.__MAJOR_PATH_HUMAN_META__ = Object.freeze({
   coreVersion: window.__MAJOR_PATH_META__?.version || 'major-path-v0.02',
   navigationVersion: MAJOR_PATH_NAVIGATION_META.version,
   backgroundVersion: MAJOR_PATH_BACKGROUND_CONTEXT_VERSION,
+  studentVoiceVersion: MAJOR_PATH_STUDENT_VOICE_VERSION,
   direct: renderState.directBoot,
   context: sourceContext.context || ''
 });

@@ -14,7 +14,16 @@ import {
 } from './tongxue-runtime-utils-v159.js?v=159';
 
 const RUNTIME_VERSION = 'tongxue-runtime-v159';
-const EXPERIENCE_TTL = Object.freeze({ ai_summary: 300000, recent_reviews: 120000, no_content: 120000 });
+const EXPERIENCE_TTL = Object.freeze({
+  ai_summary:300000,
+  recent_reviews:120000,
+  major_reviews:180000,
+  topic_reviews:180000,
+  topic_no_content:120000,
+  topic_not_found_within_budget:90000,
+  no_content:120000
+});
+const VALID_MODES = new Set(Object.keys(EXPERIENCE_TTL));
 let installed = false;
 
 export async function startTongxueRuntime() {
@@ -23,35 +32,40 @@ export async function startTongxueRuntime() {
 
   const ui = collectUi();
   const state = {
-    resolver: null,
-    metadata: new Map(),
-    ready: false,
-    resolverError: null,
-    composing: false,
-    suggestionFrame: 0,
-    suggestions: [],
-    activeSuggestion: -1,
-    selectedOfficialName: '',
-    currentResolution: null,
-    choiceCandidates: [],
-    currentSchool: '',
-    currentEntityId: '',
-    directMode: false,
-    requestInFlight: false,
-    activeQueryController: null,
-    activeQueryPromise: null,
-    activeQueryKey: '',
-    querySerial: 0,
-    loadingMore: false,
-    loadMoreController: null,
-    loadMoreSerial: 0,
-    activeReviewState: null,
-    cache: new Map(),
-    inflight: new Map(),
-    renderCount: 0,
-    lastRenderKind: 'idle',
-    listenerCount: 0,
-    submitCount: 0
+    resolver:null,
+    metadata:new Map(),
+    ready:false,
+    resolverError:null,
+    composing:false,
+    suggestionFrame:0,
+    suggestions:[],
+    activeSuggestion:-1,
+    selectedOfficialName:'',
+    currentResolution:null,
+    choiceCandidates:[],
+    currentSchool:'',
+    currentEntityId:'',
+    voiceScope:'school',
+    currentMajorCode:'',
+    currentMajorName:'',
+    currentTopic:'general',
+    returnTo:'',
+    directMode:false,
+    requestInFlight:false,
+    activeQueryController:null,
+    activeQueryPromise:null,
+    activeQueryKey:'',
+    querySerial:0,
+    loadingMore:false,
+    loadMoreController:null,
+    loadMoreSerial:0,
+    activeReviewState:null,
+    cache:new Map(),
+    inflight:new Map(),
+    renderCount:0,
+    lastRenderKind:'idle',
+    listenerCount:0,
+    submitCount:0
   };
   const searchView = createTongxueSearchView(ui, state);
   const resultView = createTongxueResultView(ui, state, searchView);
@@ -78,20 +92,24 @@ export async function startTongxueRuntime() {
   if (state.ready) await restoreFromLocation(ui, state, searchView, resultView);
 
   const api = Object.freeze({
-    version: RUNTIME_VERSION,
-    owner: 'tongxue-runtime-controller-v159',
-    submit: options => submitInput(ui, state, searchView, resultView, options),
-    getState: () => Object.freeze({
-      ready: state.ready,
-      currentSchool: state.currentSchool,
-      currentEntityId: state.currentEntityId,
-      directMode: state.directMode,
-      requestInFlight: state.requestInFlight,
-      loadingMore: state.loadingMore,
-      renderCount: state.renderCount,
-      lastRenderKind: state.lastRenderKind,
-      listenerCount: state.listenerCount,
-      submitCount: state.submitCount,
+    version:RUNTIME_VERSION,
+    owner:'tongxue-runtime-controller-v159',
+    submit:options => submitInput(ui, state, searchView, resultView, options),
+    getState:() => Object.freeze({
+      ready:state.ready,
+      currentSchool:state.currentSchool,
+      currentEntityId:state.currentEntityId,
+      voiceScope:state.voiceScope,
+      currentMajorCode:state.currentMajorCode,
+      currentMajorName:state.currentMajorName,
+      currentTopic:state.currentTopic,
+      directMode:state.directMode,
+      requestInFlight:state.requestInFlight,
+      loadingMore:state.loadingMore,
+      renderCount:state.renderCount,
+      lastRenderKind:state.lastRenderKind,
+      listenerCount:state.listenerCount,
+      submitCount:state.submitCount,
       observerCount: 0
     })
   });
@@ -102,16 +120,16 @@ export async function startTongxueRuntime() {
 
 function collectUi() {
   const required = {
-    input: document.getElementById('school'),
-    button: document.getElementById('queryButton'),
-    result: document.getElementById('result'),
-    suggestions: document.getElementById('schoolSuggestions'),
-    resolveHint: document.getElementById('resolveHint'),
-    indexStatus: document.getElementById('indexStatus'),
-    inputState: document.getElementById('inputState'),
-    liveStatus: document.getElementById('liveStatus'),
-    hero: document.querySelector('.hero'),
-    changeSchool: document.querySelector('[data-change-school]')
+    input:document.getElementById('school'),
+    button:document.getElementById('queryButton'),
+    result:document.getElementById('result'),
+    suggestions:document.getElementById('schoolSuggestions'),
+    resolveHint:document.getElementById('resolveHint'),
+    indexStatus:document.getElementById('indexStatus'),
+    inputState:document.getElementById('inputState'),
+    liveStatus:document.getElementById('liveStatus'),
+    hero:document.querySelector('.hero'),
+    changeSchool:document.querySelector('[data-change-school]')
   };
   for (const [key, value] of Object.entries(required)) {
     if (!value && !['changeSchool'].includes(key)) throw new Error(`Tongxue v1.5.9 missing UI node: ${key}`);
@@ -138,6 +156,7 @@ function bindEvents(ui, state, searchView, resultView) {
   });
   on(ui.input, 'input', event => {
     if (event.isComposing || state.composing) return;
+    if (state.voiceScope !== 'school') leaveMajorDirectState(state);
     resetResolution(state, searchView);
     scheduleSuggestions(ui, state, searchView);
     updateButton(ui, state);
@@ -186,26 +205,14 @@ function bindEvents(ui, state, searchView, resultView) {
     if (!event.target.closest('.input-wrap')) searchView.closeSuggestions();
   });
   document.querySelectorAll('[data-example]').forEach(button => on(button, 'click', () => {
+    leaveMajorDirectState(state);
     ui.input.value = button.dataset.example || '';
     resetResolution(state, searchView);
     submitInput(ui, state, searchView, resultView);
   }));
   on(ui.result, 'click', event => handleResultClick(event, ui, state, searchView, resultView));
   on(window, 'popstate', () => restoreFromLocation(ui, state, searchView, resultView));
-  if (ui.changeSchool) on(ui.changeSchool, 'click', () => {
-    abortActive(state);
-    state.directMode = false;
-    state.currentSchool = '';
-    state.currentEntityId = '';
-    state.currentResolution = null;
-    state.selectedOfficialName = '';
-    ui.input.value = '';
-    searchView.hideResolved();
-    searchView.clearResult();
-    history.pushState({ tongxue: 'home' }, '', '/tongxue/');
-    updateButton(ui, state);
-    ui.input.focus();
-  });
+  if (ui.changeSchool) on(ui.changeSchool, 'click', () => resetToSchoolHome(ui, state, searchView));
 }
 
 function scheduleSuggestions(ui, state, searchView) {
@@ -219,13 +226,13 @@ function updateSuggestions(ui, state, searchView) {
     searchView.closeSuggestions();
     return;
   }
-  const resolution = state.resolver.resolve(query, { limit: 8 });
+  const resolution = state.resolver.resolve(query, { limit:8 });
   if (resolution.status === 'region') {
     state.suggestions = [];
     searchView.closeSuggestions();
     return;
   }
-  searchView.setSuggestions(state.resolver.search(query, { limit: 8 }));
+  searchView.setSuggestions(state.resolver.search(query, { limit:8 }));
 }
 
 function chooseSuggestion(ui, state, searchView, candidate) {
@@ -233,13 +240,8 @@ function chooseSuggestion(ui, state, searchView, candidate) {
   const original = normalizeSchool(ui.input.value);
   state.selectedOfficialName = candidate.officialName;
   state.currentResolution = {
-    status: 'resolved',
-    input: original,
-    resolvedName: candidate.officialName,
-    candidates: [],
-    matchType: candidate.matchType || 'candidate',
-    confidence: candidate.score || 0,
-    entityId: candidate.entityId || ''
+    status:'resolved', input:original, resolvedName:candidate.officialName, candidates:[],
+    matchType:candidate.matchType || 'candidate', confidence:candidate.score || 0, entityId:candidate.entityId || ''
   };
   ui.input.value = candidate.officialName;
   searchView.closeSuggestions();
@@ -264,11 +266,12 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
     searchView.renderLocalFailure('高校名单还没有加载完成。');
     return null;
   }
+  leaveMajorDirectState(state);
   state.submitCount += 1;
   searchView.closeSuggestions();
   const resolution = state.selectedOfficialName && state.selectedOfficialName === input
     ? state.currentResolution || { status:'resolved', input, resolvedName:input, candidates:[], matchType:'candidate', confidence:1 }
-    : state.resolver.resolve(input, { limit: 24 });
+    : state.resolver.resolve(input, { limit:24 });
 
   if (resolution.status === 'region') {
     abortActive(state);
@@ -309,19 +312,49 @@ async function submitInput(ui, state, searchView, resultView, options = {}) {
   state.selectedOfficialName = resolution.resolvedName;
   state.currentResolution = resolution;
   state.currentSchool = resolution.resolvedName;
+  state.voiceScope = 'school';
+  state.currentTopic = cleanTopic(options.topic || 'general');
   const entity = (resolution.entityId && getSchoolEntity(resolution.entityId)) || findSchoolEntityByName(resolution.resolvedName);
   state.currentEntityId = entity?.entityId || options.entityId || '';
   state.directMode = Boolean(options.directMode ?? state.directMode);
   ui.input.value = resolution.resolvedName;
   searchView.showResolved(input, resolution.resolvedName);
-  writeLocation('school', resolution.resolvedName, state.currentEntityId, options.historyMode || 'push');
-  return performExperienceQuery(ui, state, searchView, resultView, resolution.resolvedName, input, resolution, { ...options, entityId: state.currentEntityId });
+  writeLocation('school', resolution.resolvedName, state.currentEntityId, options.historyMode || 'push', { topic:state.currentTopic });
+  return performExperienceQuery(ui, state, searchView, resultView, resolution.resolvedName, input, resolution, { ...options, entityId:state.currentEntityId, topic:state.currentTopic });
 }
 
 async function performExperienceQuery(ui, state, searchView, resultView, school, originalInput, resolution, options = {}) {
-  const entityId = options.entityId || state.currentEntityId || '';
-  const key = experienceKey(school, entityId, 1);
-  if (state.activeQueryPromise && state.activeQueryKey === key && !options.forceRefresh) return state.activeQueryPromise;
+  return performVoiceQuery(ui, state, searchView, resultView, {
+    scope:'school',
+    school,
+    originalInput,
+    resolution,
+    entityId:options.entityId || state.currentEntityId || '',
+    topic:cleanTopic(options.topic || state.currentTopic || 'general'),
+    forceRefresh:Boolean(options.forceRefresh)
+  });
+}
+
+async function performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode='', major='', topic='general', forceRefresh=false } = {}) {
+  const canonicalCode = cleanMajorCode(majorCode);
+  const majorName = cleanMajorName(major);
+  state.voiceScope = 'major';
+  state.currentMajorCode = canonicalCode;
+  state.currentMajorName = majorName;
+  state.currentTopic = cleanTopic(topic);
+  state.currentSchool = '';
+  state.currentEntityId = '';
+  state.currentResolution = null;
+  state.selectedOfficialName = '';
+  searchView.hideResolved();
+  return performVoiceQuery(ui, state, searchView, resultView, {
+    scope:'major', majorCode:canonicalCode, major:majorName, topic:state.currentTopic, forceRefresh:Boolean(forceRefresh), resolution:null
+  });
+}
+
+async function performVoiceQuery(ui, state, searchView, resultView, query) {
+  const key = experienceKey(query, 1);
+  if (state.activeQueryPromise && state.activeQueryKey === key && !query.forceRefresh) return state.activeQueryPromise;
   abortActive(state);
   const serial = ++state.querySerial;
   const controller = new AbortController();
@@ -329,22 +362,23 @@ async function performExperienceQuery(ui, state, searchView, resultView, school,
   state.activeQueryKey = key;
   state.requestInFlight = true;
   state.activeReviewState = null;
-  searchView.renderLoading(school);
+  const display = query.scope === 'major' ? (query.major || query.majorCode || '这个专业') : query.school;
+  searchView.renderLoading(display);
   updateButton(ui, state);
 
   state.activeQueryPromise = (async () => {
     try {
-      const data = await fetchExperience(state, school, originalInput, 1, {
-        forceRefresh: Boolean(options.forceRefresh),
-        entityId,
-        signal: controller.signal
-      });
+      const data = await fetchExperience(state, query, 1, { forceRefresh:Boolean(query.forceRefresh), signal:controller.signal });
       if (serial !== state.querySerial) return null;
-      resultView.renderResult(data, school, resolution);
+      if (query.scope === 'major' && data.major) {
+        state.currentMajorCode = data.major.code || state.currentMajorCode;
+        state.currentMajorName = data.major.name || state.currentMajorName;
+      }
+      resultView.renderResult(data, display, query.resolution || null);
       return data;
     } catch (error) {
       if (isAbortError(error) || serial !== state.querySerial) return null;
-      resultView.renderFailure(error, school, resolution);
+      resultView.renderFailure(error, display, query.resolution || null);
       return null;
     } finally {
       if (serial === state.querySerial) {
@@ -359,44 +393,42 @@ async function performExperienceQuery(ui, state, searchView, resultView, school,
   return state.activeQueryPromise;
 }
 
-async function fetchExperience(state, school, originalInput, page = 1, options = {}) {
-  const key = experienceKey(school, options.entityId || '', page);
+async function fetchExperience(state, query, page = 1, options = {}) {
+  const normalizedQuery = { ...query, topic:cleanTopic(query.topic || 'general') };
+  const key = experienceKey(normalizedQuery, page);
   const cached = state.cache.get(key);
   if (!options.forceRefresh && cached && cached.expiresAt > Date.now()) return cloneData(cached.data);
   if (!options.forceRefresh && state.inflight.has(key)) return cloneData(await state.inflight.get(key));
   const request = (async () => {
-    const params = new URLSearchParams({ school, page: String(page) });
-    if (options.entityId) params.set('entity', options.entityId);
-    if (originalInput) params.set('input', originalInput);
+    const params = new URLSearchParams({ scope:normalizedQuery.scope || 'school', page:String(page) });
+    if (normalizedQuery.topic && normalizedQuery.topic !== 'general') params.set('topic', normalizedQuery.topic);
+    if (normalizedQuery.scope === 'major') {
+      if (normalizedQuery.majorCode) params.set('majorCode', normalizedQuery.majorCode);
+      if (normalizedQuery.major) params.set('major', normalizedQuery.major);
+    } else {
+      params.set('school', normalizedQuery.school || '');
+      if (normalizedQuery.entityId) params.set('entity', normalizedQuery.entityId);
+      if (normalizedQuery.originalInput) params.set('input', normalizedQuery.originalInput);
+    }
     if (options.forceRefresh) params.set('refresh', '1');
     let response;
     try {
-      response = await fetch(`/api/tongxue-summary?${params.toString()}`, {
-        cache: 'default',
-        headers: { accept: 'application/json' },
-        signal: options.signal
-      });
+      response = await fetch(`/api/tongxue-summary?${params.toString()}`, { cache:'default', headers:{ accept:'application/json' }, signal:options.signal });
     } catch (error) {
       if (isAbortError(error)) throw error;
-      throw new TongxueError('network_error', '暂时无法连接学校体验服务。', { cause: String(error) });
+      throw new TongxueError('network_error', '暂时无法连接大学生声音服务。', { cause:String(error), scope:normalizedQuery.scope });
     }
     const raw = await response.text();
-    if (looksLikeHtml(raw)) throw new TongxueError('api_route_missed', '学校体验服务没有正常运行。', { raw: raw.slice(0, 180) });
+    if (looksLikeHtml(raw)) throw new TongxueError('api_route_missed', '大学生声音服务没有正常运行。', { raw:raw.slice(0,180), scope:normalizedQuery.scope });
     let data;
     try { data = JSON.parse(raw || '{}'); }
-    catch { throw new TongxueError('api_invalid_json', '学校体验服务返回了无法识别的内容。', { raw: raw.slice(0, 300) }); }
-    if (!response.ok || data.ok === false || data.error) {
-      throw new TongxueError(data.error || 'api_error', data.message || '暂时没有取得学校体验信息。', data);
-    }
-    if (data.mode === 'ai_summary') {
-      if (!isUsefulSummary(data.summary)) throw new TongxueError('summary_invalid', '来源摘要暂时无法正常显示。', data);
-    } else if (data.mode === 'recent_reviews') {
-      if (!Array.isArray(data.reviews) || !data.reviews.length) throw new TongxueError('reviews_invalid', '近期评论暂时无法正常显示。', data);
-    } else if (data.mode !== 'no_content') {
-      throw new TongxueError('mode_invalid', '暂时无法识别来源内容。', data);
-    }
+    catch { throw new TongxueError('api_invalid_json', '大学生声音服务返回了无法识别的内容。', { raw:raw.slice(0,300), scope:normalizedQuery.scope }); }
+    if (!response.ok || data.ok === false || data.error) throw new TongxueError(data.error || 'api_error', data.message || '暂时没有取得大学生声音。', data);
+    if (!VALID_MODES.has(data.mode)) throw new TongxueError('mode_invalid', '暂时无法识别来源内容。', data);
+    if (data.mode === 'ai_summary' && !isUsefulSummary(data.summary)) throw new TongxueError('summary_invalid', '来源摘要暂时无法正常显示。', data);
+    if (['recent_reviews','major_reviews','topic_reviews'].includes(data.mode) && (!Array.isArray(data.reviews) || !data.reviews.length)) throw new TongxueError('reviews_invalid', '公开学生声音暂时无法正常显示。', data);
     const ttl = EXPERIENCE_TTL[data.mode] || 0;
-    if (ttl) state.cache.set(key, { data: cloneData(data), expiresAt: Date.now() + ttl });
+    if (ttl) state.cache.set(key, { data:cloneData(data), expiresAt:Date.now() + ttl });
     return data;
   })();
   state.inflight.set(key, request);
@@ -419,7 +451,7 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     return;
   }
   if (event.target.closest('[data-retry-school]') && state.currentSchool) {
-    await performExperienceQuery(ui, state, searchView, resultView, state.currentSchool, state.currentResolution?.input || state.currentSchool, state.currentResolution, { forceRefresh: true, entityId: state.currentEntityId });
+    await performExperienceQuery(ui, state, searchView, resultView, state.currentSchool, state.currentResolution?.input || state.currentSchool, state.currentResolution, { forceRefresh:true, entityId:state.currentEntityId, topic:state.currentTopic });
     return;
   }
   const choice = event.target.closest('[data-school-choice]');
@@ -427,21 +459,21 @@ async function handleResultClick(event, ui, state, searchView, resultView) {
     const candidate = state.choiceCandidates[Number(choice.dataset.schoolChoice)];
     if (!candidate) return;
     resetResolution(state, searchView);
-    await submitInput(ui, state, searchView, resultView, { input: candidate.officialName, historyMode: 'replace', directMode: state.directMode });
+    await submitInput(ui, state, searchView, resultView, { input:candidate.officialName, historyMode:'replace', directMode:state.directMode });
     return;
   }
   const region = event.target.closest('[data-region-query]');
   if (region) {
     ui.input.value = region.dataset.regionQuery || '';
     resetResolution(state, searchView);
-    await submitInput(ui, state, searchView, resultView, { historyMode: 'push', directMode: false });
+    await submitInput(ui, state, searchView, resultView, { historyMode:'push', directMode:false });
     return;
   }
   const school = event.target.closest('[data-region-school]');
   if (school) {
     ui.input.value = school.dataset.regionSchool || '';
     resetResolution(state, searchView);
-    await submitInput(ui, state, searchView, resultView, { historyMode: 'push', directMode: false });
+    await submitInput(ui, state, searchView, resultView, { historyMode:'push', directMode:false });
   }
 }
 
@@ -449,6 +481,7 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
   const active = state.activeReviewState;
   const button = document.getElementById('loadMoreReviews');
   if (!active || !button || !active.pagination?.hasMore || state.loadingMore) return;
+  if (!['recent_reviews','major_reviews'].includes(active.mode)) return;
   state.loadingMore = true;
   state.loadMoreController?.abort();
   const controller = new AbortController();
@@ -458,14 +491,18 @@ async function loadMoreReviews(ui, state, searchView, resultView) {
   button.textContent = '正在加载';
   try {
     const nextPage = Number(active.pagination.page || 1) + 1;
-    const data = await fetchExperience(state, active.school, active.originalInput, nextPage, { entityId: active.entityId || '', signal: controller.signal });
+    const query = active.scope === 'major'
+      ? { scope:'major', majorCode:active.major?.code || state.currentMajorCode, major:active.major?.name || state.currentMajorName, topic:'general' }
+      : { scope:'school', school:active.school, originalInput:active.originalInput, entityId:active.entityId || '', topic:'general' };
+    const data = await fetchExperience(state, query, nextPage, { signal:controller.signal });
     if (serial !== state.loadMoreSerial || state.activeReviewState !== active) return;
-    if (data.mode !== 'recent_reviews') throw new TongxueError('reviews_page_invalid', '后续评论页没有返回评论列表。', data);
+    const expectedMode = active.scope === 'major' ? 'major_reviews' : 'recent_reviews';
+    if (data.mode !== expectedMode) throw new TongxueError('reviews_page_invalid', '后续评论页没有返回同一范围的评论列表。', data);
     const existing = new Set(active.reviews.map(reviewKey));
     const added = dedupeReviews(data.reviews || []).filter(review => !existing.has(reviewKey(review)));
     resultView.appendReviews(added, active.reviews.length);
     active.reviews.push(...added);
-    active.pagination = data.reviewPagination || { ...active.pagination, page: nextPage, hasMore: false };
+    active.pagination = data.reviewPagination || { ...active.pagination, page:nextPage, hasMore:false };
     active.fetchedAt = data.fetchedAt || active.fetchedAt;
     active.transport = data.transport || active.transport;
     resultView.updateLoadMore();
@@ -493,19 +530,39 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   state.activeReviewState = null;
   searchView.hideResolved();
   const params = new URLSearchParams(location.search);
+  const scope = params.get('scope') === 'major' ? 'major' : 'school';
+  const topic = cleanTopic(params.get('topic') || 'general');
+  if (scope === 'major') {
+    const majorCode = cleanMajorCode(params.get('majorCode'));
+    const major = cleanMajorName(params.get('major'));
+    if (majorCode || major) {
+      state.directMode = true;
+      state.returnTo = safeReturnTo(params.get('returnTo'));
+      state.voiceScope = 'major';
+      state.currentMajorCode = majorCode;
+      state.currentMajorName = major;
+      state.currentTopic = topic;
+      ui.input.value = major || majorCode;
+      document.body.dataset.studentVoiceScope = 'major';
+      return performMajorExperienceQuery(ui, state, searchView, resultView, { majorCode, major, topic });
+    }
+  }
   const entityId = normalizeSchool(params.get('entity'));
   const entity = entityId ? getSchoolEntity(entityId) : null;
   const school = normalizeSchool(entity?.displayName || params.get('school'));
   const query = normalizeSchool(params.get('q'));
+  state.voiceScope = 'school';
+  state.currentTopic = topic;
+  delete document.body.dataset.studentVoiceScope;
   if (school) {
     state.directMode = true;
     ui.input.value = school;
-    return submitInput(ui, state, searchView, resultView, { input: school, entityId, historyMode: 'none', directMode: true });
+    return submitInput(ui, state, searchView, resultView, { input:school, entityId, historyMode:'none', directMode:true, topic });
   }
   if (query) {
     state.directMode = false;
     ui.input.value = query;
-    return submitInput(ui, state, searchView, resultView, { input: query, historyMode: 'none', directMode: false });
+    return submitInput(ui, state, searchView, resultView, { input:query, historyMode:'none', directMode:false });
   }
   state.directMode = false;
   ui.input.value = '';
@@ -514,15 +571,14 @@ async function restoreFromLocation(ui, state, searchView, resultView) {
   return null;
 }
 
-function writeLocation(kind, value, entityId, mode) {
+function writeLocation(kind, value, entityId, mode, extra = {}) {
   if (mode === 'none') return;
   const url = new URL(location.href);
-  url.searchParams.delete('school');
-  url.searchParams.delete('entity');
-  url.searchParams.delete('q');
+  for (const key of ['school','entity','q','scope','major','majorCode','topic']) url.searchParams.delete(key);
   if (kind === 'school') {
     url.searchParams.set('school', value);
     if (entityId) url.searchParams.set('entity', entityId);
+    if (extra.topic && extra.topic !== 'general') url.searchParams.set('topic', extra.topic);
   } else if (value) {
     url.searchParams.set('q', value);
   }
@@ -530,7 +586,33 @@ function writeLocation(kind, value, entityId, mode) {
   const current = `${location.pathname}${location.search}${location.hash}`;
   if (next === current) return;
   const method = mode === 'replace' ? 'replaceState' : 'pushState';
-  history[method]({ tongxue: kind, value, entityId }, '', next);
+  history[method]({ tongxue:kind, value, entityId }, '', next);
+}
+
+function resetToSchoolHome(ui, state, searchView) {
+  abortActive(state);
+  leaveMajorDirectState(state);
+  state.directMode = false;
+  state.currentSchool = '';
+  state.currentEntityId = '';
+  state.currentResolution = null;
+  state.selectedOfficialName = '';
+  state.currentTopic = 'general';
+  ui.input.value = '';
+  searchView.hideResolved();
+  searchView.clearResult();
+  history.pushState({ tongxue:'home' }, '', '/tongxue/');
+  updateButton(ui, state);
+  ui.input.focus();
+}
+
+function leaveMajorDirectState(state) {
+  state.voiceScope = 'school';
+  state.currentMajorCode = '';
+  state.currentMajorName = '';
+  state.currentTopic = 'general';
+  state.returnTo = '';
+  delete document.body.dataset.studentVoiceScope;
 }
 
 function abortActive(state) {
@@ -551,6 +633,31 @@ function updateButton(ui, state) {
   ui.button.textContent = state.requestInFlight ? '正在查找' : '看同学怎么说';
 }
 
-function experienceKey(school, entityId, page) {
-  return `${normalizeSchool(school)}|${String(entityId || '')}|${Number(page || 1)}`;
+function experienceKey(query, page) {
+  const scope = query.scope === 'major' ? 'major' : 'school';
+  if (scope === 'major') return `major|${cleanMajorCode(query.majorCode)}|${cleanMajorName(query.major)}|${cleanTopic(query.topic)}|${Number(page || 1)}`;
+  return `school|${normalizeSchool(query.school)}|${String(query.entityId || '')}|${cleanTopic(query.topic)}|${Number(page || 1)}`;
+}
+
+function cleanMajorCode(value) {
+  const text = String(value || '').trim().toUpperCase();
+  return /^[0-9A-Z]{4,10}$/.test(text) ? text : '';
+}
+
+function cleanMajorName(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+}
+
+function cleanTopic(value) {
+  const text = String(value || '').trim();
+  return /^[a-z_]{1,40}$/.test(text) ? text : 'general';
+}
+
+function safeReturnTo(value) {
+  const text = String(value || '').trim();
+  if (!text.startsWith('/') || text.startsWith('//')) return '';
+  try {
+    const url = new URL(text, location.origin);
+    return url.origin === location.origin ? `${url.pathname}${url.search}${url.hash}` : '';
+  } catch { return ''; }
 }
