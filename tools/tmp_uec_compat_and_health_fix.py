@@ -26,3 +26,4 @@ new2="""  const dorm=await studentVoiceOnRequest({request:new Request('https://e
   const dormPayload=await dorm.json();
   assert.equal(dorm.status,200,`unexpected dorm response: ${JSON.stringify(dormPayload)}; calls=${calls.map(url=>url.toString()).join(' | ')}`);"""
 replace_once('tools/verify-student-voice-source-health-v001.mjs',old2,new2,'source health diagnostics')
+replace_once('tools/verify-student-voice-source-health-v001.mjs',"return json({summary:'宿舍四人间，食堂选择也不少。'});","return json({summary:'宿舍四人间，空调和暖气情况都有同学提到，食堂早餐和晚饭选择也比较丰富。'});",'source health valid summary fixture')
