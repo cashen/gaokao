@@ -2,8 +2,8 @@ import { matchRegionRule, normalizeCityName } from '../../../shared/resources/ge
 import { enrichBottomLineFields, passBottomLineMode } from '../../_lib/bottomline-policy.js';
 
 export const AI_MAJOR_HISTORY_API_VERSION = 'ai-major-region-history-api-v3990_2';
-export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_2';
-const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_2/manifest.json';
+export const AI_MAJOR_HISTORY_INDEX_VERSION = 'ai-major-history-index-v3990_1';
+const MANIFEST_PATH = '/ln-rank/data/ai-major-history-v3990_1/manifest.json';
 const MANIFEST_TTL_MS = 5 * 60 * 1000;
 const SHARD_TTL_MS = 60 * 1000;
 const SHARD_CACHE_MAX = 2;
