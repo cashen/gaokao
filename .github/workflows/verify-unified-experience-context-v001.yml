@@ -1,61 +1,91 @@
-name: Verify Unified Experience Context v0.01
+name: Build v3990.3 Tongxue major handoff via registered UEC gate
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'shared/resources/experience/**'
-      - 'functions/_lib/student-voice-source.js'
-      - 'functions/_lib/tongxue-summary-base-v112.js'
-      - 'functions/api/tongxue-summary.js'
-      - 'tongxue/**'
-      - 'ln-rank/**'
-      - 'major-path/**'
-      - 'aiplus/**'
-      - 'shared/ai/**'
-      - 'functions/_lib/ai/**'
-      - 'tools/verify-unified-experience-context-v001.mjs'
-      - 'tools/verify-aiplus-student-voice-v001.mjs'
-      - 'tools/verify-student-voice-source-health-v001.mjs'
-      - 'tools/verify-student-voice-navigation-v001.mjs'
-      - '.github/workflows/verify-unified-experience-context-v001.yml'
-      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
-  workflow_dispatch:
+    types: [opened, reopened, synchronize]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  contract:
+  build-repair:
+    if: github.event.pull_request.head.ref == 'agent/tongxue-major-handoff-v3990_3'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: Syntax
+          node-version: '22'
+
+      - name: Preserve canonical UEC workflow and check builder
+        shell: bash
         run: |
-          node --check shared/resources/experience/student-voice-contract.v001.js
-          node --check shared/resources/experience/student-voice-source-registry.v001.js
-          node --check functions/_lib/student-voice-source.js
-          node --check functions/_lib/tongxue-summary-base-v112.js
-          node --check functions/api/tongxue-summary.js
-          node --check functions/_lib/ai/student-voice-tool-adapter.js
-          node --check tools/verify-unified-experience-context-v001.mjs
-          node --check tools/verify-aiplus-student-voice-v001.mjs
-          node --check tools/verify-student-voice-source-health-v001.mjs
-          node --check tools/verify-student-voice-navigation-v001.mjs
-      - name: UEC deterministic contract
-        run: node tools/verify-unified-experience-context-v001.mjs
-      - name: AIPLuS Student Voice contract
-        run: node tools/verify-aiplus-student-voice-v001.mjs
-      - name: Student Voice source health contract
-        run: node tools/verify-student-voice-source-health-v001.mjs
-      - name: Student Voice cross-product navigation contract
-        run: node tools/verify-student-voice-navigation-v001.mjs
-      - name: Architecture handoff remains valid
-        run: node tools/audit-architecture-handoff-v3990_2.mjs
+          set -euo pipefail
+          git show origin/main:.github/workflows/verify-unified-experience-context-v001.yml > /tmp/uec-workflow-main.yml
+          node --check tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
+
+      - name: Build coherent v3990_3 repair tree
+        run: node tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
+
+      - name: Restore permanent UEC workflow at current generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('/tmp/uec-workflow-main.yml').read_text()
+          src = src.replace('v3990_2', 'v3990_3').replace('3990_2', '3990_3')
+          src = src.replace('tools/verify-student-voice-navigation-v001.mjs', 'tools/verify-student-voice-navigation-v002.mjs')
+          if "tools/browser-student-voice-handoff-v002.mjs" not in src:
+              src = src.replace("      - 'tools/verify-student-voice-navigation-v002.mjs'", "      - 'tools/verify-student-voice-navigation-v002.mjs'\n      - 'tools/browser-student-voice-handoff-v002.mjs'")
+              src = src.replace("      - name: Student Voice cross-product navigation contract\n        run: node tools/verify-student-voice-navigation-v002.mjs", "      - name: Student Voice cross-product navigation contract\n        run: node tools/verify-student-voice-navigation-v002.mjs\n      - name: Install Chromium for Student Voice handoff\n        run: |\n          npm install --no-save --no-package-lock playwright@1.55.0\n          npx playwright install --with-deps chromium\n      - name: Student Voice ln-rank to Tongxue browser handoff\n        run: node tools/browser-student-voice-handoff-v002.mjs")
+          Path('.github/workflows/verify-unified-experience-context-v001.yml').write_text(src)
+          PY
+
+      - name: Verify generated source and exact school-all handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
+          test ! -e .github/workflows/tmp-tongxue-major-handoff-v3990_3-builder.yml
+          node --check shared/resources/experience/student-voice-navigation.v002.js
+          node --check ln-rank/js/workspace/major-path-handoff.v004.js
+          node --check tongxue/app/tongxue-runtime-v160-r3990_3.js
+          node --check tongxue/app/tongxue-runtime-controller-v160.js
+          node --check tongxue/app/tongxue-runtime-result-view-v160.js
+          node tools/verify-student-voice-navigation-v002.mjs
+          node tools/audit-canonical-release-version-v3990_3.mjs
+          node tools/audit-site-runtime-generation-v3990_3.mjs
+          node tools/audit-architecture-handoff-v3990_3.mjs
+          git diff --check
+          git diff --name-only HEAD | tee /tmp/repair-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/repair-files.txt; then
+            echo 'Protected path touched.' >&2
+            exit 1
+          fi
+          grep -q 'export const LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'export const RELEASE_CONTRACT = LN_RANK_RELEASE_CONTRACT' functions/_lib/release-contract.js
+          grep -q 'tongxue-runtime-v160-r3990_3.js?v=3990_3' tongxue/index.html
+          grep -q 'major-path-handoff.v004.js?v=004_0' ln-rank/js/app.v3990_3.js
+
+      - name: Install Chromium and run four-terminal handoff browser proof
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+          node tools/browser-student-voice-handoff-v002.mjs
+
+      - name: Commit generated candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
+          git commit -m 'v3.9.90.3：修复 ln-rank 到同学你好专业直达与缓存身份'
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
