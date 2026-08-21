@@ -46,12 +46,13 @@ try{
     const url=new URL(String(input));calls.push(url);
     if(url.hostname==='eo.srgaoxiao.cn'&&url.pathname.startsWith('/api/schools/'))return json({name:'测试大学',slug:'测试大学'}); // required id intentionally missing
     if(url.hostname==='eo.srgaoxiao.com'&&/^\/api\/schools\/[^/]+$/.test(url.pathname))return json({id:123,name:'测试大学',slug:'测试大学',province:'辽宁省',city:'沈阳市'});
-    if(url.hostname==='eo.srgaoxiao.com'&&url.pathname==='/api/schools/123/ai-summary')return json({summary:'宿舍四人间，食堂选择也不少。'});
+    if(url.hostname==='eo.srgaoxiao.com'&&url.pathname==='/api/schools/123/ai-summary')return json({summary:'宿舍四人间，空调和暖气情况都有同学提到，食堂早餐和晚饭选择也比较丰富。'});
     return json({},404);
   };
 
   const dorm=await studentVoiceOnRequest({request:new Request('https://example.test/api/tongxue-summary?scope=school&school=%E6%B5%8B%E8%AF%95%E5%A4%A7%E5%AD%A6&topic=dormitory&page=1')});
-  assert.equal(dorm.status,200);const dormPayload=await dorm.json();
+  const dormPayload=await dorm.json();
+  assert.equal(dorm.status,200,`unexpected dorm response: ${JSON.stringify(dormPayload)}; calls=${calls.map(url=>url.toString()).join(' | ')}`);
   assert.equal(dormPayload.ok,true);
   assert.match(dormPayload.transport,/镜像 2/,'schema drift on mirror 1 must fail over to the next verified API host');
   assert.ok(calls.some(url=>url.hostname==='eo.srgaoxiao.cn'));
@@ -86,7 +87,7 @@ try{
   if(realCaches===undefined)delete globalThis.caches;else globalThis.caches=realCaches;
 }
 
-for(const temporary of ['.github/workflows/tmp-uec-source-probe.yml','.github/workflows/tmp-uec-aiplus-builder.yml','tools/tmp_uec_aiplus_patch.py']){
+for(const temporary of ['.github/workflows/tmp-uec-source-probe.yml','.github/workflows/tmp-uec-aiplus-builder.yml','tools/tmp_uec_aiplus_patch.py','.github/workflows/tmp-uec-compat-health-builder.yml','tools/tmp_uec_compat_and_health_fix.py']){
   assert.equal(fs.existsSync(temporary),false,`${temporary} must not remain in the formal candidate`);
 }
 
