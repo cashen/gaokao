@@ -85,7 +85,7 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
     reviews=summary?[]:(normalizedTopic==='general'?rawReviews:rawReviews.filter(item=>legacyTopicMatch(item.content,normalizedTopic))).slice(0,4);
     mode=summary?'summary':(reviews.length?'recent_reviews':'no_content');
   }
-  const hasContent=Boolean(summary||reviews.length),matched=Number.isFinite(Number(payload?.evidence?.matched))?Number(payload.evidence.matched):(summary?null:reviews.length),sampleCount=matched===null?reviews.length:Math.max(0,matched),resolvedMajor=payload?.major&&typeof payload.major==='object'?{code:clean(payload.major.code,40)||code,name:clean(payload.major.name,160)||majorName}:{code,name:majorName},topicLabel=STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音';
+  const hasContent=Boolean(summary||reviews.length),evidenceMatched=payload?.evidence?.matchCount??payload?.evidence?.matched,matched=Number.isFinite(Number(evidenceMatched))?Number(evidenceMatched):(summary?null:reviews.length),sampleCount=matched===null?reviews.length:Math.max(0,matched),resolvedMajor=payload?.major&&typeof payload.major==='object'?{code:clean(payload.major.code,40)||code,name:clean(payload.major.name,160)||majorName}:{code,name:majorName},topicLabel=STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音';
   const source=compatibilityMode?{sourceName:'同学体验 · srgaoxiao.com',sourceUrl:clean(payload?.source?.url||payload?.source?.sourceUrl,900),scope:hasContent?`${topicLabel}相关的来源站摘要或留言`:'来源站内容未命中当前话题'}:(payload.source||{});
   return{
     ok:hasContent,

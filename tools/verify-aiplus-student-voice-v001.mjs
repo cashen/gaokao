@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import {deterministicAgentTask,taskExecutionPolicy} from '../functions/_lib/ai/agent-task-kernel.js';
 import {runStudentVoice} from '../functions/_lib/ai/tool-registry.js';
 import {
-  EXPERIENCE_TOPICS,EXPERIENCE_TOPIC_KEYWORDS,normalizeExperienceTopic
+  EXPERIENCE_TOPICS,EXPERIENCE_TOPIC_KEYWORDS,normalizeExperienceTopic,experienceTopicFromText
 } from '../shared/ai/aiplus-product-contract.v002.js';
 import {
   STUDENT_VOICE_SCHOOL_TOPICS,STUDENT_VOICE_TOPIC_KEYWORDS,STUDENT_VOICE_BOUNDARY
@@ -29,6 +29,8 @@ assert.equal(taskExecutionPolicy('student_voice').commitView,false);
 assert.deepEqual(EXPERIENCE_TOPICS,STUDENT_VOICE_SCHOOL_TOPICS,'AIPLuS compatibility surface must share the Student Voice school-topic owner');
 assert.equal(EXPERIENCE_TOPIC_KEYWORDS,STUDENT_VOICE_TOPIC_KEYWORDS);
 assert.equal(normalizeExperienceTopic('dormitory'),'dormitory');
+assert.equal(experienceTopicFromText('宿舍怎么样'),'living','AIPLuS v0.02 must preserve its combined living topic while Student Voice direct mode keeps dormitory');
+assert.equal(experienceTopicFromText('食堂怎么样'),'living','AIPLuS v0.02 must preserve its combined living topic while Student Voice direct mode keeps cafeteria');
 assert.equal(STUDENT_VOICE_BOUNDARY.rankingInput,false);
 assert.equal(STUDENT_VOICE_BOUNDARY.admissionsProbabilityInput,false);
 assert.equal(STUDENT_VOICE_BOUNDARY.recommendationScoreInput,false);
@@ -54,7 +56,7 @@ const majorVoice=await runStudentVoice(contextWith(majorTool,{
     {id:'m1',content:'有同学觉得去电网方向比较稳定，但也看学校和个人准备。',createdAt:'2026-08-20T10:00:00Z',authorLabel:'同学A'},
     {id:'m2',content:'也有人更想去制造业自动化岗位。',createdAt:'2026-08-19T10:00:00Z',authorLabel:'匿名同学'}
   ],
-  evidence:{matched:2,scanned:10,pages:1,exhaustive:true,sampleLevel:'two_voices'},
+  evidence:{matchCount:2,scannedCount:10,scannedPages:1,exhaustive:true,sampleLevel:'two_voices'},
   source:{name:'神人高校网',url:'https://eo.srgaoxiao.cn/specialty/test'},fetchedAt:'2026-08-21T02:00:00Z',transport:'专业公开评论'
 }),{scope:'major',major,question:`${major}学生觉得就业怎么样`});
 assert.equal(majorVoice.ok,true);
@@ -72,7 +74,7 @@ assert.match(schoolTool.url,/topic=dormitory/);
 const schoolVoice=await runStudentVoice(contextWith(schoolTool,{
   ok:true,mode:'topic_reviews',scope:'school',topic:'dormitory',school:'辽宁石油化工大学',
   reviews:[{id:'s1',content:'宿舍冬天暖气挺足。',createdAt:'2026-08-18T10:00:00Z',authorLabel:'匿名同学'}],
-  evidence:{matched:1,scanned:12,pages:2,exhaustive:true,sampleLevel:'single_voice'},
+  evidence:{matchCount:1,scannedCount:12,scannedPages:2,exhaustive:true,sampleLevel:'single_voice'},
   source:{name:'神人高校网',url:'https://eo.srgaoxiao.cn/school/test'},fetchedAt:'2026-08-21T02:00:00Z',transport:'话题公开评论'
 }),{scope:'school',school:'辽宁石油化工大学',topic:'dormitory'});
 assert.equal(schoolVoice.ok,true);

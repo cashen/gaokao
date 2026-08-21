@@ -68,11 +68,10 @@ function majorBandsPayload(url){
 
 function experiencePayload(url){
   const school=url.searchParams.get('school')||'测试大学',topic=url.searchParams.get('topic')||'general';
-  return{ok:true,mode:'recent_reviews',topic,school,reviews:[
-    {id:'living-1',content:'宿舍是四人间，冬天有暖气，公共洗衣区使用比较方便。',createdAt:'2026-08-10',author:'匿名同学'},
-    {id:'teaching-1',content:'老师上课认真，实验课安排得比较紧。',createdAt:'2026-08-09',author:'匿名同学'},
-    {id:'living-2',content:'食堂窗口不少，晚饭高峰期需要排队。',createdAt:'2026-08-08',author:'匿名同学'}
-  ],source:{url:'https://srgaoxiao.com/school/mock'},fetchedAt:'2026-08-13T00:00:00Z'};
+  return{ok:true,mode:'topic_reviews',scope:'school',topic,school,reviews:[
+    {id:'living-1',content:'宿舍是四人间，冬天有暖气，公共洗衣区使用比较方便。',createdAt:'2026-08-10T10:00:00+08:00',authorLabel:'匿名同学',evidenceScope:'school',verificationWeight:'none'},
+    {id:'living-2',content:'食堂窗口不少，晚饭高峰期需要排队。',createdAt:'2026-08-08T10:00:00+08:00',authorLabel:'匿名同学',evidenceScope:'school',verificationWeight:'none'}
+  ],evidence:{type:'student_voice',scope:'school',topic,matchCount:2,sampleLevel:'two_voices',scannedCount:8,scannedPages:2,exhaustive:true,sourceSummary:false,officialFact:false,rankingInput:false,recommendationScoreInput:false,verificationWeight:'none',disagreementPolicy:'preserve_not_average'},source:{id:'srgaoxiao',name:'神人高校网',url:'https://eo.srgaoxiao.cn/school/mock'},fetchedAt:'2026-08-21T02:00:00Z',transport:'话题定向公开评论 · 神人高校网镜像 1',contractVersion:'student-voice-contract-v0.01',sourceRegistryVersion:'student-voice-source-registry-v0.01',sourceGatewayVersion:'student-voice-source-gateway-v0.01'};
 }
 
 function officialPayload(url){
@@ -174,7 +173,7 @@ async function majorScopeJourney(page,state,name){
 }
 
 async function sourceAndAnswerJourney(page,state,name){
-  await reset(page);let result=await submit(page,state,'辽宁石油化工大学宿舍和食宿条件怎么样');assert(result.command?.agentTask==='school_experience',`${name}: living question did not route to experience source`);assert(result.result?.experience?.topic==='living',`${name}: living topic missing`);const stream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');assert(stream.includes('同学体验 · srgaoxiao.com')&&stream.includes('宿舍')&&stream.includes('食堂'),`${name}: experience source/content missing`);assert(!stream.includes('老师上课认真'),`${name}: unrelated teaching review filled living answer`);assert(stream.includes('核验官方食宿硬信息'),`${name}: official verification branch missing`);
+  await reset(page);let result=await submit(page,state,'辽宁石油化工大学宿舍和食宿条件怎么样');assert(result.command?.agentTask==='school_experience',`${name}: living question did not route to experience source`);assert(result.result?.experience?.topic==='living',`${name}: living topic missing`);const stream=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');assert(stream.includes('神人高校网')&&stream.includes('宿舍')&&stream.includes('食堂'),`${name}: experience source/content missing`);assert(!stream.includes('老师上课认真'),`${name}: unrelated teaching review filled living answer`);assert(stream.includes('核验官方食宿硬信息'),`${name}: official verification branch missing`);
   await reset(page);result=await submit(page,state,'介绍下沈阳师范大学');assert(result.command?.agentTask==='school_research',`${name}: school introduction task drift`);assert(result.result?.profileSupplement?.mode==='moe_directory_baseline',`${name}: 2952-school deterministic profile fallback missing`);const profile=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' '),profilePhrase='根据教育部全国普通高等学校名单';assert(profile.includes('位于辽宁 · 沈阳的公办本科高校'),`${name}: school identity baseline missing`);assert(profile.split(profilePhrase).length-1===1,`${name}: primary school answer was duplicated`);
   await reset(page);result=await submit(page,state,'沈阳工业大学和沈阳航空航天大学哪个好');assert(result.command?.agentTask==='school_comparison',`${name}: comparison task drift`);assert(result.result?.answerStatus==='needs_clarification',`${name}: no-score comparison must ask for score only for reachability`);const compare=(await page.locator('#conversationStream').innerText()).replace(/\s+/g,' ');assert(compare.includes('不带分数时可以先比较学校画像')&&compare.includes('参考分数'),`${name}: no-score comparison answer is not human-readable`);
   await reset(page);result=await submit(page,state,'学校平台和专业质量怎么平衡');assert(result.command?.agentTask==='general_advice'&&result.result?.answerStatus==='answered',`${name}: independent advice lacks primary answer`);const advice=await page.locator('.assistant-lead p').last().innerText();assert(advice.length>40&&!/这轮切到|建立可行范围/.test(advice),`${name}: framework answer regressed: ${advice}`);
