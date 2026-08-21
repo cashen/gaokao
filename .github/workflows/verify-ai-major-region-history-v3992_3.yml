@@ -8,10 +8,10 @@ on:
       - 'aiplus/**'
       - 'functions/api/ai/major-history.js'
       - 'functions/_lib/ai/**'
-      - 'ln-rank/data/ai-major-history-v3990_1/**'
-      - 'tools/build-ai-major-history-index-v3990_1.mjs'
+      - 'ln-rank/data/ai-major-history-v3990_2/**'
+      - 'tools/build-ai-major-history-index-v3990_2.mjs'
       - 'tools/verify-ai-major-region-history-v3992_3.mjs'
-      - 'tools/browser-ai-workspace-v3990_1.mjs'
+      - 'tools/browser-ai-workspace-v3990_2.mjs'
       - '.github/workflows/verify-ai-major-region-history-v3992_3.yml'
   push:
     branches: [main]
@@ -19,10 +19,10 @@ on:
       - 'aiplus/**'
       - 'functions/api/ai/major-history.js'
       - 'functions/_lib/ai/**'
-      - 'ln-rank/data/ai-major-history-v3990_1/**'
-      - 'tools/build-ai-major-history-index-v3990_1.mjs'
+      - 'ln-rank/data/ai-major-history-v3990_2/**'
+      - 'tools/build-ai-major-history-index-v3990_2.mjs'
       - 'tools/verify-ai-major-region-history-v3992_3.mjs'
-      - 'tools/browser-ai-workspace-v3990_1.mjs'
+      - 'tools/browser-ai-workspace-v3990_2.mjs'
       - '.github/workflows/verify-ai-major-region-history-v3992_3.yml'
   workflow_dispatch:
 
@@ -68,12 +68,12 @@ jobs:
           node --check functions/_lib/ai/tool-registry.js
           node --check functions/_lib/ai/turn-orchestrator.js
           node --check functions/_lib/ai/advisor-presentation.js
-          node --check aiplus/app.v3990_1.js
-          node --check tools/browser-ai-workspace-v3990_1.mjs
-          node --check tools/build-ai-major-history-index-v3990_1.mjs
+          node --check aiplus/app.v3990_2.js
+          node --check tools/browser-ai-workspace-v3990_2.mjs
+          node --check tools/build-ai-major-history-index-v3990_2.mjs
           node --check tools/verify-ai-major-region-history-v3992_3.mjs
-          node tools/build-ai-major-history-index-v3990_1.mjs
-          git diff --exit-code -- ln-rank/data/ai-major-history-v3990_1
+          node tools/build-ai-major-history-index-v3990_2.mjs
+          git diff --exit-code -- ln-rank/data/ai-major-history-v3990_2
           node tools/verify-ai-major-region-history-v3992_3.mjs
 
   exact-deployment-smoke:
@@ -160,8 +160,8 @@ jobs:
           import fs from 'node:fs';
           const data=JSON.parse(fs.readFileSync('/tmp/major-history-live.json','utf8'));
           if(data?.ok!==true) throw new Error(`live major history not ok: ${JSON.stringify(data)}`);
-          if(data?.apiVersion!=='ai-major-region-history-api-v3990_1') throw new Error(`api version drift: ${data?.apiVersion}`);
-          if(data?.indexVersion!=='ai-major-history-index-v3990_1') throw new Error(`index version drift: ${data?.indexVersion}`);
+          if(data?.apiVersion!=='ai-major-region-history-api-v3990_2') throw new Error(`api version drift: ${data?.apiVersion}`);
+          if(data?.indexVersion!=='ai-major-history-index-v3990_2') throw new Error(`index version drift: ${data?.indexVersion}`);
           if(Number(data?.source?.sourceRecordCount)!==11628||data?.source?.sameTruthSet!==true) throw new Error('source truth contract drift');
           if(Number(data?.total)!==14||Number(data?.summary?.schoolCount)!==11) throw new Error(`measurement count drift: ${JSON.stringify(data?.summary)}`);
           if(Number(data?.summary?.minScore)!==467||Number(data?.summary?.maxScore)!==594) throw new Error(`measurement score range drift: ${JSON.stringify(data?.summary)}`);
