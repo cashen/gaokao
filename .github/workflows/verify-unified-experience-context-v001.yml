@@ -22,11 +22,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Preserve canonical UEC workflow and check builder
+      - name: Preserve canonical UEC workflow and normalize builder
         shell: bash
         run: |
           set -euo pipefail
           git show origin/main:.github/workflows/verify-unified-experience-context-v001.yml > /tmp/uec-workflow-main.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs')
+          s = p.read_text()
+          old = ".replace('/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0', '/tongxue/app/tongxue-runtime-v160-r3990_3.js?v=3990_3')"
+          new = ".replace('./app/tongxue-runtime-v159-r3968.js?v=3968_0', './app/tongxue-runtime-v160-r3990_3.js?v=3990_3')"
+          if s.count(old) != 1:
+              raise SystemExit(f'expected exactly one absolute Tongxue entrypoint matcher, got {s.count(old)}')
+          p.write_text(s.replace(old, new))
+          PY
           node --check tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
 
       - name: Build coherent v3990_3 repair tree
