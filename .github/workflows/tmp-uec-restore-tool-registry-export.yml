@@ -1,0 +1,54 @@
+name: Temporary UEC compatibility repair
+
+on:
+  push:
+    branches:
+      - agent/unified-experience-context-v001
+    paths:
+      - .github/workflows/tmp-uec-restore-tool-registry-export.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/unified-experience-context-v001
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restore public compatibility export and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('functions/_lib/ai/tool-registry.js')
+          text=path.read_text()
+          signature="export function normalizeOptionalCandidateScore(value)"
+          if signature not in text:
+              marker="export async function runMajorBandSearch(context,params={})"
+              if marker not in text:
+                  raise SystemExit('runMajorBandSearch marker not found')
+              compat="export function normalizeOptionalCandidateScore(value){if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Math.round(Number(value));return Number.isFinite(numeric)?numeric:null;}\n"
+              text=text.replace(marker,compat+marker,1)
+              path.write_text(text)
+          PY
+          node --check functions/_lib/ai/tool-registry.js
+          node tools/verify-ai-workspace-v3990_2.mjs
+          node tools/verify-aiplus-v002-contract.mjs
+          node tools/verify-aiplus-student-voice-v001.mjs
+          rm .github/workflows/tmp-uec-restore-tool-registry-export.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add functions/_lib/ai/tool-registry.js .github/workflows/tmp-uec-restore-tool-registry-export.yml
+          if git diff --cached --quiet; then
+            echo 'No repair commit needed.'
+            exit 0
+          fi
+          git commit -m 'Restore AIPLuS tool registry compatibility export'
+          git push origin HEAD:agent/unified-experience-context-v001
