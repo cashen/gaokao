@@ -76,7 +76,7 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
   if(!delegated.ok)return delegated;
   const{status,payload}=delegated;
   if(status<200||status>=300||payload?.ok!==true){
-    return{ok:false,status,scope:normalizedScope,topic:normalizedTopic,topicLabel:STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音',school:schoolName,major:majorName?{name:majorName,code}:null,code:clean(payload?.error||payload?.code,100)||'student_voice_unavailable',message:clean(payload?.message,360)||'大学生声音来源本轮没有形成可验证内容。',source:payload?.source||{},fetchedAt:clean(payload?.fetchedAt,80),adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,boundary:'大学生声音只表示来源中的学生表达；当前范围无法验证时不会自动改用别的学校、别的专业或更宽范围。'};
+    return{ok:false,status,scope:normalizedScope,topic:normalizedTopic,topicLabel:STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音',school:schoolName,major:majorName?{name:majorName,code}:null,code:clean(payload?.error||payload?.code,100)||'student_voice_unavailable',message:clean(payload?.message,360)||'大学生声音来源本轮没有形成可验证内容。',source:payload?.source||{},fetchedAt:clean(payload?.fetchedAt,80),adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,boundary:'大学生声音属于用户生成内容（UGC），只表示来源中的学生表达，不是学校官方事实，也不能代表所有学生；当前范围无法验证时不会自动改用别的学校、别的专业或更宽范围。'};
   }
   const rawReviews=normalizedReviews(payload),rawSummary=clean(payload.summary,4000),rawMode=clean(payload.mode,60),compatibilityMode=normalizedScope==='school'&&(compatibility===LEGACY_SCHOOL_EXPERIENCE_COMPATIBILITY||delegated.legacyKeyUsed===true);
   let mode=rawMode,summary=rawSummary,reviews=rawReviews;
@@ -106,7 +106,7 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
     fetchedAt:clean(payload.fetchedAt,80),
     transport:clean(payload.transport,120),
     adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,
-    boundary:compatibilityMode?'同学体验属于用户生成内容，不等于学校官方事实，也不能代表所有学生。只展示与本轮话题直接相关的摘要或留言；未命中时不拿无关内容代替回答，也不由模型扩写。':`大学生声音属于UGC，不是学校官方事实、专业客观结论、就业率或录取依据；认证/点赞只作来源说明，不参与排序或推荐。范围=${normalizedScope}，不允许静默扩大或缩小。`,
+    boundary:compatibilityMode?'同学体验属于用户生成内容，不等于学校官方事实，也不能代表所有学生。只展示与本轮话题直接相关的摘要或留言；未命中时不拿无关内容代替回答，也不由模型扩写。':`大学生声音属于用户生成内容（UGC），不是学校官方事实、专业客观结论、就业率或录取依据，也不能代表所有学生；认证/点赞只作来源说明，不参与排序或推荐。范围=${normalizedScope}，不允许静默扩大或缩小。`,
     evidenceBoundary:STUDENT_VOICE_BOUNDARY
   };
 }
