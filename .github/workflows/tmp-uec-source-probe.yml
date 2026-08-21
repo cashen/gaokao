@@ -39,11 +39,11 @@ jobs:
           import re,sys
           html=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
           srcs=re.findall(r'<script[^>]+src=["\']([^"\']+)',html,re.I)
-          open(sys.argv[2],'w',encoding='utf-8').write('\n'.join(srcs[:40]))
+          open(sys.argv[2],'w',encoding='utf-8').write(''.join(item+'\n' for item in srcs[:40]))
           PY
               : > "probe/${safe}-api-strings.txt"
               : > "probe/${safe}-major-context.txt"
-              while IFS= read -r src; do
+              while IFS= read -r src || [[ -n "$src" ]]; do
                 [[ -z "$src" ]] && continue
                 if [[ "$src" =~ ^https?:// ]]; then asset="$src"; else asset="${host}${src}"; fi
                 body=$(curl -L --connect-timeout 5 --max-time 15 -A 'Mozilla/5.0 UEC-source-audit' -sS "$asset" || true)
