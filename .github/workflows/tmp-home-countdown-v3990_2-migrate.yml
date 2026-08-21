@@ -1,0 +1,89 @@
+name: Temporary migrate active workflows to v3990.2
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/home-countdown-seconds-v3990_2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          token: ${{ github.token }}
+      - name: Migrate current-generation verifier ownership once
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          workflow_files = [
+              '.github/workflows/deploy-cloudflare-pages-main.yml',
+              '.github/workflows/tongxue-live-verification.yml',
+              '.github/workflows/verify-ai-major-region-history-v3992_3.yml',
+              '.github/workflows/verify-ai-region-school-directory-v002.yml',
+              '.github/workflows/verify-ai-workspace-v3990_1.yml',
+              '.github/workflows/verify-aiplus-decision-focus-v006.yml',
+              '.github/workflows/verify-aiplus-family-decision-workbench-v003.yml',
+              '.github/workflows/verify-aiplus-feedback-log-v004.yml',
+              '.github/workflows/verify-aiplus-parent-decision-v003.yml',
+              '.github/workflows/verify-aiplus-selection-workbench-v005.yml',
+              '.github/workflows/verify-canonical-release-v3972_5.yml',
+              '.github/workflows/verify-local-strength-static-v3971.yml',
+              '.github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml',
+              '.github/workflows/verify-native-chooser-activation-v3972_6.yml',
+              '.github/workflows/verify-production-api-health-v3971.yml',
+              '.github/workflows/verify-production-release-v3970.yml',
+              '.github/workflows/verify-production-resource-graph-v3972_6.yml',
+              '.github/workflows/verify-score-equivalence-v3990_0.yml',
+              '.github/workflows/verify-unified-background-context-v001.yml',
+              '.github/workflows/verify-unified-resource-graph-v3972_6.yml',
+              '.github/workflows/verify-unified-site-runtime-v3972_6.yml',
+              '.github/workflows/verify-worker-resource-vnext-preview.yml',
+          ]
+          replacements = (
+              ('v3.9.90.1', 'v3.9.90.2'),
+              ('v3990_1', 'v3990_2'),
+              ('3990_1', '3990_2'),
+          )
+          missing = []
+          changed = []
+          for raw in workflow_files:
+              path = Path(raw)
+              if not path.exists():
+                  missing.append(raw)
+                  continue
+              text = path.read_text()
+              new = text
+              for old, replacement in replacements:
+                  new = new.replace(old, replacement)
+              if new != text:
+                  path.write_text(new)
+                  changed.append(raw)
+
+          home = Path('tools/browser-home-release-v3990_2.mjs')
+          text = home.read_text()
+          new = text.replace('[data-major-path-version="major-path-v0.01"]', '[data-major-path-version="major-path-v0.04"]')
+          if new != text:
+              home.write_text(new)
+              changed.append(str(home))
+
+          print('changed:', *changed, sep='\n- ')
+          print('missing (review manually):', *missing, sep='\n- ')
+          PY
+
+          rm .github/workflows/tmp-home-countdown-v3990_2-migrate.yml
+          git status --short
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Align active verifier ownership with v3990_2'
+          git push origin HEAD:agent/home-countdown-seconds-v3990_2
