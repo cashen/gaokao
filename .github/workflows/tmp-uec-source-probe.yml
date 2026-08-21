@@ -1,0 +1,72 @@
+name: Temporary UEC source capability probe
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/tmp-uec-source-probe.yml'
+      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'agent/unified-experience-context-v001'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Probe published mirrors and discover public API strings
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p probe
+          hosts=(
+            'https://eo.srgaoxiao.cn'
+            'https://eo.srgaoxiao.com'
+            'https://srgaoxiao.cn'
+            'https://srgaoxiao.com'
+          )
+          : > probe/summary.txt
+          for host in "${hosts[@]}"; do
+            safe=$(echo "$host" | sed 's#https://##; s#[./:]#_#g')
+            echo "=== $host ===" | tee -a probe/summary.txt
+            code=$(curl -L --connect-timeout 5 --max-time 15 -A 'Mozilla/5.0 UEC-source-audit' -sS -o "probe/${safe}.html" -w '%{http_code}' "$host/" || true)
+            echo "homepage_status=$code bytes=$(wc -c < "probe/${safe}.html" 2>/dev/null || echo 0)" | tee -a probe/summary.txt
+            if [[ "$code" == "200" ]]; then
+              grep -Eo '<script[^>]+src=["'"'][^"'"']+' "probe/${safe}.html" \
+                | sed -E 's#.*src=["'"']##' \
+                | head -n 40 > "probe/${safe}-scripts.txt" || true
+              : > "probe/${safe}-api-strings.txt"
+              while IFS= read -r src; do
+                [[ -z "$src" ]] && continue
+                if [[ "$src" =~ ^https?:// ]]; then asset="$src"; else asset="${host}${src}"; fi
+                body=$(curl -L --connect-timeout 5 --max-time 15 -A 'Mozilla/5.0 UEC-source-audit' -sS "$asset" || true)
+                printf '%s\n' "$body" \
+                  | grep -Eo '(/api/[A-Za-z0-9_?&=/%.,${}:()\[\]-]+|api/[A-Za-z0-9_?&=/%.,${}:()\[\]-]+)' \
+                  | sed 's#^api/#/api/#' \
+                  | sort -u >> "probe/${safe}-api-strings.txt" || true
+                printf '%s\n' "$body" \
+                  | grep -Eio '.{0,100}(major|profession|specialty|专业).{0,180}' \
+                  | head -n 200 >> "probe/${safe}-major-context.txt" || true
+              done < "probe/${safe}-scripts.txt"
+              sort -u "probe/${safe}-api-strings.txt" -o "probe/${safe}-api-strings.txt" || true
+              echo "api_strings=$(wc -l < "probe/${safe}-api-strings.txt" 2>/dev/null || echo 0)" | tee -a probe/summary.txt
+              grep -Ei 'major|profession|specialty' "probe/${safe}-api-strings.txt" | tee -a probe/summary.txt || true
+            fi
+          done
+          echo '--- known school endpoint sanity ---' | tee -a probe/summary.txt
+          for host in 'https://eo.srgaoxiao.cn' 'https://eo.srgaoxiao.com' 'https://srgaoxiao.cn' 'https://srgaoxiao.com'; do
+            status=$(curl -L --connect-timeout 5 --max-time 12 -A 'Mozilla/5.0 UEC-source-audit' -H 'accept: application/json' -sS -o /tmp/school.json -w '%{http_code}' "$host/api/schools/%E8%BE%BD%E5%AE%81%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6" || true)
+            echo "$host school_detail_status=$status bytes=$(wc -c < /tmp/school.json 2>/dev/null || echo 0)" | tee -a probe/summary.txt
+            if [[ "$status" == "200" ]]; then cp /tmp/school.json "probe/$(echo "$host" | sed 's#https://##; s#[./:]#_#g')-school-detail.json"; fi
+          done
+
+      - name: Upload source probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: uec-source-probe
+          path: probe
+          if-no-files-found: error
+          retention-days: 1
