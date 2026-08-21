@@ -1,11 +1,6 @@
 name: Temporary UEC canonical registry restore
 
 on:
-  push:
-    branches:
-      - agent/unified-experience-context-v001
-    paths:
-      - '.github/workflows/verify-unified-experience-context-v001.yml'
   pull_request:
     branches: [main]
     paths:
@@ -71,4 +66,6 @@ jobs:
             exit 0
           fi
           git commit -m 'Restore canonical AIPLuS tool registry around Student Voice'
+          git fetch origin agent/unified-experience-context-v001
+          git rebase origin/agent/unified-experience-context-v001
           git push origin HEAD:agent/unified-experience-context-v001
