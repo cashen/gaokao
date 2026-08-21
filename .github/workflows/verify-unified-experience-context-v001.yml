@@ -18,6 +18,7 @@ on:
       - 'tools/verify-aiplus-student-voice-v001.mjs'
       - 'tools/verify-student-voice-source-health-v001.mjs'
       - 'tools/verify-student-voice-navigation-v001.mjs'
+      - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - '.github/workflows/verify-unified-experience-context-v001.yml'
       - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
   workflow_dispatch:
@@ -49,6 +50,7 @@ jobs:
           node --check tools/verify-aiplus-student-voice-v001.mjs
           node --check tools/verify-student-voice-source-health-v001.mjs
           node --check tools/verify-student-voice-navigation-v001.mjs
+          node --check tools/verify-tongxue-uec-cache-identity-v001.mjs
       - name: UEC deterministic contract
         run: node tools/verify-unified-experience-context-v001.mjs
       - name: AIPLuS Student Voice contract
@@ -57,5 +59,7 @@ jobs:
         run: node tools/verify-student-voice-source-health-v001.mjs
       - name: Student Voice cross-product navigation contract
         run: node tools/verify-student-voice-navigation-v001.mjs
+      - name: Tongxue immutable cache identity
+        run: node tools/verify-tongxue-uec-cache-identity-v001.mjs
       - name: Architecture handoff remains valid
         run: node tools/audit-architecture-handoff-v3990_2.mjs
