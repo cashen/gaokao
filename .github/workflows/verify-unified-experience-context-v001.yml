@@ -63,11 +63,12 @@ jobs:
           node tools/verify-major-bands-platform-upgrade-v3990_2.mjs
           node tools/verify-ai-school-history-bridge-v3992_2.mjs
           node tools/verify-unified-experience-context-v001.mjs
-          git show HEAD^:.github/workflows/verify-unified-experience-context-v001.yml > .github/workflows/verify-unified-experience-context-v001.yml
-          rm -f .github/workflows/tmp-uec-restore-tool-registry-export.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add functions/_lib/ai/tool-registry.js .github/workflows/verify-unified-experience-context-v001.yml
-          git add -A .github/workflows/tmp-uec-restore-tool-registry-export.yml
+          git add functions/_lib/ai/tool-registry.js
+          if git diff --cached --quiet; then
+            echo 'Canonical registry already restored.'
+            exit 0
+          fi
           git commit -m 'Restore canonical AIPLuS tool registry around Student Voice'
           git push origin HEAD:agent/unified-experience-context-v001
