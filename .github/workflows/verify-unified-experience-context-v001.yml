@@ -1,0 +1,48 @@
+name: Verify Unified Experience Context v0.01
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'shared/resources/experience/**'
+      - 'functions/_lib/student-voice-source.js'
+      - 'functions/_lib/tongxue-summary-base-v112.js'
+      - 'functions/api/tongxue-summary.js'
+      - 'tongxue/**'
+      - 'ln-rank/**'
+      - 'major-path/**'
+      - 'aiplus/**'
+      - 'shared/ai/**'
+      - 'functions/_lib/ai/**'
+      - 'tools/verify-unified-experience-context-v001.mjs'
+      - '.github/workflows/verify-unified-experience-context-v001.yml'
+      - 'docs/architecture/UNIFIED-EXPERIENCE-CONTEXT-STATUS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check shared/resources/experience/student-voice-contract.v001.js
+          node --check shared/resources/experience/student-voice-source-registry.v001.js
+          node --check functions/_lib/student-voice-source.js
+          node --check functions/_lib/tongxue-summary-base-v112.js
+          node --check functions/api/tongxue-summary.js
+          node --check tools/verify-unified-experience-context-v001.mjs
+      - name: UEC deterministic contract
+        run: node tools/verify-unified-experience-context-v001.mjs
+      - name: Architecture handoff remains valid
+        run: node tools/audit-architecture-handoff-v3990_2.mjs
