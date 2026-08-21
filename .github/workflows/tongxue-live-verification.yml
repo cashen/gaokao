@@ -17,6 +17,8 @@ on:
       - 'functions/_lib/tongxue-*.js'
       - 'tools/tongxue/**'
       - 'tools/browser-tongxue-runtime-v159.mjs'
+      - 'tools/browser-tongxue-major-direct-v001.mjs'
+      - 'tools/verify-tongxue-uec-cache-identity-v001.mjs'
       - 'tools/audit-school-query-v3970.mjs'
       - 'tools/build-school-admission-directory-v3969.mjs'
       - 'tools/schools/**'
@@ -63,7 +65,9 @@ jobs:
             tools/tongxue/*.mjs \
             tools/audit-school-query-v3970.mjs \
             tools/build-school-admission-directory-v3969.mjs \
-            tools/browser-tongxue-runtime-v159.mjs; do
+            tools/browser-tongxue-runtime-v159.mjs \
+            tools/browser-tongxue-major-direct-v001.mjs \
+            tools/verify-tongxue-uec-cache-identity-v001.mjs; do
             node --check "$file"
           done
           python3 -m py_compile \
@@ -94,6 +98,7 @@ jobs:
           if(!controller.includes('observerCount: 0')||controller.split('function bindEvents').length-1!==1) throw new Error('controller owner');
           console.log('Tongxue stable v159 package under current site generation v3990_2 and release v3.9.90.2 passed');
           NODE
+          node tools/verify-tongxue-uec-cache-identity-v001.mjs
 
       - name: Verify school resolver and unified query contracts
         run: |
@@ -145,7 +150,7 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify Shenzhen Dalian Liaoning direct and history journeys
+      - name: Verify school, region, history and major direct journeys
         run: |
           set -euo pipefail
           python3 -m http.server 8765 >/tmp/tongxue-v159-http.log 2>&1 &
@@ -153,6 +158,7 @@ jobs:
           trap 'kill $server' EXIT
           sleep 1
           V3965_ARTIFACT_DIR=/tmp/tongxue-live-artifact/browser node tools/browser-tongxue-runtime-v159.mjs | tee /tmp/tongxue-live-artifact/browser-result.json
+          node tools/browser-tongxue-major-direct-v001.mjs | tee /tmp/tongxue-live-artifact/browser-major-direct-result.json
 
       - name: Upload verification report
         if: always()
