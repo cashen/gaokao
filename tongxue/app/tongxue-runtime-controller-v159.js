@@ -110,7 +110,7 @@ export async function startTongxueRuntime() {
       lastRenderKind:state.lastRenderKind,
       listenerCount:state.listenerCount,
       submitCount:state.submitCount,
-      observerCount:0
+      observerCount: 0
     })
   });
   globalThis.__TONGXUE_RUNTIME_V159__ = api;
