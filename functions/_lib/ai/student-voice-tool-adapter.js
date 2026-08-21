@@ -4,6 +4,7 @@ import {
   normalizeStudentVoiceScope,
   normalizeStudentVoiceTopic,
   studentVoiceSampleLevel,
+  studentVoiceTextMatchesTopic,
   studentVoiceTopicFromText
 } from '../../../shared/resources/experience/student-voice-contract.v001.js';
 
@@ -64,7 +65,7 @@ function noContentMessage({scope,school,major,topic,mode}){
   if(mode==='topic_not_found_within_budget')return`本轮已按有界页数查找${subject||'当前对象'}的“${label}”，暂未命中；这不等于来源中不存在，未读取部分不会被算作没有。`;
   return`当前取得的大学生声音没有直接回答${subject||'当前对象'}的“${label}”；本轮不拿其他学校、其他专业或无关留言替代。`;
 }
-function legacyMode(mode=''){return mode==='ai_summary'?'summary':(['recent_reviews','topic_reviews'].includes(mode)?'recent_reviews':mode);}
+function legacyTopicMatch(text,topic){return topic==='general'||studentVoiceTextMatchesTopic(text,topic,{scope:'school'});}
 
 export async function runStudentVoice(context,{scope='school',school='',major='',majorCode='',topic='',question=''}={}){
   const normalizedScope=canonicalScope(scope),normalizedTopic=topicFor({scope:normalizedScope,topic,question}),schoolName=clean(school,120),majorName=clean(major,160),code=clean(majorCode,40).toUpperCase();
@@ -76,14 +77,22 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
   if(status<200||status>=300||payload?.ok!==true){
     return{ok:false,status,scope:normalizedScope,topic:normalizedTopic,topicLabel:STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音',school:schoolName,major:majorName?{name:majorName,code}:null,code:clean(payload?.error||payload?.code,100)||'student_voice_unavailable',message:clean(payload?.message,360)||'大学生声音来源本轮没有形成可验证内容。',source:payload?.source||{},fetchedAt:clean(payload?.fetchedAt,80),adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,boundary:'大学生声音只表示来源中的学生表达；当前范围无法验证时不会自动改用别的学校、别的专业或更宽范围。'};
   }
-  const rawReviews=normalizedReviews(payload),summary=clean(payload.summary,4000),rawMode=clean(payload.mode,60),compatibilityMode=delegated.legacy&&normalizedScope==='school',mode=compatibilityMode?legacyMode(rawMode):rawMode,reviews=compatibilityMode?(mode==='summary'?[]:rawReviews.slice(0,4)):rawReviews,hasContent=Boolean(summary||reviews.length),matched=Number.isFinite(Number(payload?.evidence?.matched))?Number(payload.evidence.matched):(summary?null:reviews.length),sampleCount=matched===null?reviews.length:Math.max(0,matched),resolvedMajor=payload?.major&&typeof payload.major==='object'?{code:clean(payload.major.code,40)||code,name:clean(payload.major.name,160)||majorName}:{code,name:majorName};
+  const rawReviews=normalizedReviews(payload),rawSummary=clean(payload.summary,4000),rawMode=clean(payload.mode,60),compatibilityMode=delegated.legacy&&normalizedScope==='school';
+  let mode=rawMode,summary=rawSummary,reviews=rawReviews;
+  if(compatibilityMode){
+    summary=rawMode==='ai_summary'&&legacyTopicMatch(rawSummary,normalizedTopic)?rawSummary:'';
+    reviews=summary?[]:(normalizedTopic==='general'?rawReviews:rawReviews.filter(item=>legacyTopicMatch(item.content,normalizedTopic))).slice(0,4);
+    mode=summary?'summary':(reviews.length?'recent_reviews':'no_content');
+  }
+  const hasContent=Boolean(summary||reviews.length),matched=Number.isFinite(Number(payload?.evidence?.matched))?Number(payload.evidence.matched):(summary?null:reviews.length),sampleCount=matched===null?reviews.length:Math.max(0,matched),resolvedMajor=payload?.major&&typeof payload.major==='object'?{code:clean(payload.major.code,40)||code,name:clean(payload.major.name,160)||majorName}:{code,name:majorName},topicLabel=STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音';
+  const source=compatibilityMode?{sourceName:'同学体验 · srgaoxiao.com',sourceUrl:clean(payload?.source?.url||payload?.source?.sourceUrl,900),scope:hasContent?`${topicLabel}相关的来源站摘要或留言`:'来源站内容未命中当前话题'}:(payload.source||{});
   return{
     ok:hasContent,
     code:hasContent?'':(rawMode||'student_voice_no_content'),
     message:hasContent?'':noContentMessage({scope:normalizedScope,school:schoolName,major:resolvedMajor.name||majorName,topic:normalizedTopic,mode:rawMode}),
     scope:normalizedScope,
     topic:normalizedTopic,
-    topicLabel:STUDENT_VOICE_TOPIC_LABELS[normalizedTopic]||'大学生声音',
+    topicLabel,
     school:clean(payload.school,120)||schoolName,
     major:(normalizedScope==='major'||normalizedScope==='school_major')?resolvedMajor:null,
     mode,
@@ -92,7 +101,7 @@ export async function runStudentVoice(context,{scope='school',school='',major=''
     sampleCount,
     sampleLevel:studentVoiceSampleLevel(sampleCount),
     evidence:payload.evidence||null,
-    source:payload.source||{},
+    source,
     fetchedAt:clean(payload.fetchedAt,80),
     transport:clean(payload.transport,120),
     adapterVersion:AI_STUDENT_VOICE_ADAPTER_VERSION,
