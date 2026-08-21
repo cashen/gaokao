@@ -109,7 +109,7 @@ jobs:
           for workflow in \
             .github/workflows/verify-major-bands-bounded-fanout-v3972_5.yml \
             .github/workflows/verify-production-api-health-v3971.yml \
-            .github/workflows/verify-ai-workspace-v3990_2.yml; do
+            .github/workflows/verify-ai-workspace-v3990_1.yml; do
             grep -Fq 'group: v3990-1-cloudflare-preview-' "$workflow"
             grep -q 'queue: max' "$workflow"
           done
