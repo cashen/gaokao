@@ -72,7 +72,7 @@ assert.doesNotMatch(handoff, /location\.assign\s*\(/);
 assert.doesNotMatch(handoff, /scrollIntoView\s*\(/);
 assert.doesNotMatch(handoff, /localStorage|sessionStorage|indexedDB|MutationObserver/);
 
-const bootstrap = read('ln-rank/js/app.v3990_1.js');
+const bootstrap = read('ln-rank/js/app.v3990_2.js');
 assert.match(bootstrap, /mountMajorPathHandoff/);
 assert.match(bootstrap, /major-path-handoff\.v003\.js\?v=003_0/);
 

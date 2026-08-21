@@ -1,4 +1,4 @@
-name: Verify root home unified site generation v3990.1
+name: Verify root home unified site generation v3990.2
 
 on:
   pull_request:
@@ -8,16 +8,16 @@ on:
       - 'AGENTS.md'
       - 'docs/skills/unified-site-release/**'
       - 'index.html'
-      - 'ln-rank/js/ux/family-home.v3990_1.js'
-      - 'ln-rank/site-active-generation.v3990_1.json'
+      - 'ln-rank/js/ux/family-home.v3990_2.js'
+      - 'ln-rank/site-active-generation.v3990_2.json'
       - 'shared/resources/release/**'
       - 'shared/resources/resource-registry.js'
       - 'shared/governance/**'
       - 'shared/ui/**'
       - 'functions/_lib/release-contract.js'
       - 'tools/audit-home-release-ownership-v3970.mjs'
-      - 'tools/audit-site-runtime-generation-v3990_1.mjs'
-      - 'tools/browser-home-release-v3990_1.mjs'
+      - 'tools/audit-site-runtime-generation-v3990_2.mjs'
+      - 'tools/browser-home-release-v3990_2.mjs'
       - '_headers'
       - '.github/workflows/verify-home-release-v3970.yml'
       - '.github/workflows/verify-production-release-v3970.yml'
@@ -47,19 +47,19 @@ jobs:
         run: |
           set -euo pipefail
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" HEAD | tee /tmp/v3990-1-home-files.txt
-          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-1-home-files.txt; then exit 1; fi
+          git diff --name-only "$base" HEAD | tee /tmp/v3990-2-home-files.txt
+          if grep -E '^(fenxi/|functions/fenxi/|functions/_middleware\.js$)' /tmp/v3990-2-home-files.txt; then exit 1; fi
           git diff --name-only "$base" HEAD -- '*.js' '*.mjs' | while IFS= read -r file; do [ -f "$file" ] && node --check "$file"; done
-          sed -e 's/v3\.9\.90\.0/v3.9.90.1/g' -e 's/v3990_0/v3990_1/g' -e 's/3990_0/3990_1/g' \
-            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_1.py
-          python3 -m py_compile /tmp/verify-final-release-v3990_1.py
+          sed -e 's/v3\.9\.90\.0/v3.9.90.2/g' -e 's/v3990_0/v3990_2/g' -e 's/3990_0/3990_2/g' \
+            tools/ln-2026/verify-final-release-v3990_0.py > /tmp/verify-final-release-v3990_2.py
+          python3 -m py_compile /tmp/verify-final-release-v3990_2.py
 
       - name: Verify homepage and site generation contracts
         run: |
           set -euo pipefail
-          python3 /tmp/verify-final-release-v3990_1.py | tee /tmp/v3990-1-home-release.out
-          node tools/audit-site-runtime-generation-v3990_1.mjs | tee /tmp/v3990-1-site-generation.out
-          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-1-home-audit.out
+          python3 /tmp/verify-final-release-v3990_2.py | tee /tmp/v3990-2-home-release.out
+          node tools/audit-site-runtime-generation-v3990_2.mjs | tee /tmp/v3990-2-site-generation.out
+          node tools/audit-home-release-ownership-v3970.mjs | tee /tmp/v3990-2-home-audit.out
 
       - name: Install Chromium
         run: |
@@ -69,21 +69,21 @@ jobs:
       - name: Verify root home on phone pad and desktop
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 >/tmp/v3990-1-home-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/v3990-2-home-http.log 2>&1 &
           server=$!
           trap 'kill $server' EXIT
           sleep 1
-          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-1-home-browser node tools/browser-home-release-v3990_1.mjs | tee /tmp/v3990-1-home-browser.out
+          V3970_HOME_ARTIFACT_DIR=/tmp/v3990-2-home-browser node tools/browser-home-release-v3990_2.mjs | tee /tmp/v3990-2-home-browser.out
 
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v3990-1-root-home-results
+          name: v3990-2-root-home-results
           path: |
-            /tmp/v3990-1-home-*.txt
-            /tmp/v3990-1-home-*.out
-            /tmp/v3990-1-home-*.log
-            /tmp/v3990-1-home-browser
+            /tmp/v3990-2-home-*.txt
+            /tmp/v3990-2-home-*.out
+            /tmp/v3990-2-home-*.log
+            /tmp/v3990-2-home-browser
           if-no-files-found: warn
           retention-days: 3

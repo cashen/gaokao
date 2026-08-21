@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './release/current-release.js?v=3990_1';
+import { CURRENT_RELEASE } from './release/current-release.js?v=3990_2';
 import {
   UI_RESOURCE_REGISTRY_VERSION,
   UI_ACTIVE_RESOURCE_REGISTRY,
@@ -6,7 +6,7 @@ import {
   UI_STABLE_RESOURCE_REGISTRY,
   UI_COMPONENT_REGISTRY,
   UI_CSS_RESOURCE_GRAPH
-} from '../ui/ui-resource-registry.v3990_1.js?v=3990_1';
+} from '../ui/ui-resource-registry.v3990_2.js?v=3990_2';
 
 export const SHARED_RESOURCE_CENTER_VERSION = CURRENT_RELEASE.assetVersion;
 export const SHARED_RESOURCE_GRAPH_VERSION = CURRENT_RELEASE.sharedResourceGraphVersion;

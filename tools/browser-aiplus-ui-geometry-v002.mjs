@@ -21,7 +21,7 @@ fs.mkdirSync(DIR,{recursive:true});
 const assert=(value,message)=>{if(!value)throw new Error(message);};
 
 async function mount(page,name){
-  await page.route('**/aiplus/app.v3990_1.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:'export {};'}));
+  await page.route('**/aiplus/app.v3990_2.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:'export {};'}));
   const response=await page.goto(`${BASE}/aiplus/?geometry=${name}`,{waitUntil:'networkidle',timeout:30000});
   assert(response?.ok(),`${name}: page ${response?.status()}`);
   await page.waitForFunction(()=>[...document.styleSheets].some(s=>String(s.href||'').includes('/aiplus/geometry.v002.css?v=002_2')));

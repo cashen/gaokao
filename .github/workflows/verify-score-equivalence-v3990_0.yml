@@ -1,4 +1,4 @@
-name: Verify score equivalence v3990.1
+name: Verify score equivalence v3990.2
 
 on:
   pull_request:
@@ -15,9 +15,9 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_1.css'
+      - 'ln-rank/css/score-converter.v3990_2.css'
       - 'ln-rank/js/score-converter/**'
-      - 'tools/audit-score-equivalence-v3990_1.mjs'
+      - 'tools/audit-score-equivalence-v3990_2.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
   push:
     branches: [main]
@@ -32,9 +32,9 @@ on:
       - 'functions/_lib/ln-2026-physics-score-rank.js'
       - 'shared/resources/exam/liaoning-physics.js'
       - 'ln-rank/score-converter/**'
-      - 'ln-rank/css/score-converter.v3990_1.css'
+      - 'ln-rank/css/score-converter.v3990_2.css'
       - 'ln-rank/js/score-converter/**'
-      - 'tools/audit-score-equivalence-v3990_1.mjs'
+      - 'tools/audit-score-equivalence-v3990_2.mjs'
       - '.github/workflows/verify-score-equivalence-v3990_0.yml'
   workflow_dispatch:
 
@@ -57,9 +57,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check functions/api/score-equivalence.js
-          node --check ln-rank/js/score-converter/score-converter-app.v3990_1.js
-          node --check tools/audit-score-equivalence-v3990_1.mjs
-          node --experimental-default-type=module tools/audit-score-equivalence-v3990_1.mjs
+          node --check ln-rank/js/score-converter/score-converter-app.v3990_2.js
+          node --check tools/audit-score-equivalence-v3990_2.mjs
+          node --experimental-default-type=module tools/audit-score-equivalence-v3990_2.mjs
 
   production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -87,8 +87,8 @@ jobs:
             if grep -q 'data-score-equivalence-entry="home"' <<<"$home" \
               && grep -q 'data-score-equivalence-entry="selection"' <<<"$selection" \
               && grep -q 'data-score-equivalence-entry="difficulty"' <<<"$difficulty" \
-              && grep -q 'data-feature-version="score-equivalence-v3990_1"' <<<"$page" \
-              && grep -q '"contractVersion":"score-equivalence-v3990_1"' <<<"$body" \
+              && grep -q 'data-feature-version="score-equivalence-v3990_2"' <<<"$page" \
+              && grep -q '"contractVersion":"score-equivalence-v3990_2"' <<<"$body" \
               && grep -q '"comparisonRank":14235' <<<"$body" \
               && grep -q '"year":2025,"score":598' <<<"$body" \
               && grep -q '"year":2024,"score":601' <<<"$body" \
