@@ -32,18 +32,19 @@ jobs:
           from pathlib import Path
           p = Path('tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs')
           s = p.read_text()
-          old = ".replace('/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0', '/tongxue/app/tongxue-runtime-v160-r3990_3.js?v=3990_3')"
-          new = ".replace('./app/tongxue-runtime-v159-r3968.js?v=3968_0', './app/tongxue-runtime-v160-r3990_3.js?v=3990_3')"
-          if s.count(old) != 1:
-              raise SystemExit(f'expected exactly one absolute Tongxue entrypoint matcher, got {s.count(old)}')
-          s = s.replace(old, new)
-          s = s.replace("assert.equal(target.searchParams.get('returnTo'),returnTo);", "assert.equal(target.searchParams.get('returnTo'),sanitizeStudentVoiceReturnTarget(returnTo));")
-          s = s.replace("assert.equal(parsed.returnTo,returnTo);", "assert.equal(parsed.returnTo,sanitizeStudentVoiceReturnTarget(returnTo));")
-          browser_old = "assert(u.searchParams.get('returnTo')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',"
-          browser_new = "assert(decodeURIComponent(u.searchParams.get('returnTo')||'')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',"
-          if s.count(browser_old) != 1:
-              raise SystemExit(f'expected one browser returnTo assertion, got {s.count(browser_old)}')
-          s = s.replace(browser_old, browser_new)
+          replacements = [
+            (".replace('/tongxue/app/tongxue-runtime-v159-r3968.js?v=3968_0', '/tongxue/app/tongxue-runtime-v160-r3990_3.js?v=3990_3')", ".replace('./app/tongxue-runtime-v159-r3968.js?v=3968_0', './app/tongxue-runtime-v160-r3990_3.js?v=3990_3')", 1),
+            ("assert.equal(target.searchParams.get('returnTo'),returnTo);", "assert.equal(target.searchParams.get('returnTo'),sanitizeStudentVoiceReturnTarget(returnTo));", 1),
+            ("assert.equal(parsed.returnTo,returnTo);", "assert.equal(parsed.returnTo,sanitizeStudentVoiceReturnTarget(returnTo));", 1),
+            ("assert(u.searchParams.get('returnTo')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',", "assert(decodeURIComponent(u.searchParams.get('returnTo')||'')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',", 1),
+            ("if(url.pathname==='/ln-rank/mock.html')", "if(url.pathname==='/ln-rank/')", 1),
+            ("/ln-rank/mock.html?mode=school-all&schoolSort=position-near&school=沈阳建筑大学", "/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学", 1),
+          ]
+          for old, new, expected in replacements:
+              count = s.count(old)
+              if count != expected:
+                  raise SystemExit(f'expected {expected} occurrences of {old!r}, got {count}')
+              s = s.replace(old, new)
           start_marker = "write('tools/browser-student-voice-handoff-v002.mjs', `"
           end_marker = "\n// Permanent UEC workflow follows v0.02 navigation and browser proof."
           start = s.index(start_marker)
@@ -60,7 +61,7 @@ jobs:
       - name: Build coherent v3990_3 repair tree
         run: node tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
 
-      - name: Align generated current Tongxue contracts
+      - name: Align generated current Tongxue contracts and regressions
         shell: bash
         run: |
           set -euo pipefail
@@ -82,9 +83,26 @@ jobs:
                       raise SystemExit(f'{path}: expected {expected} occurrences of {old!r}, got {count}')
                   text = text.replace(old, new)
               path.write_text(text)
+
+          old_browser = Path('tools/browser-tongxue-runtime-v159.mjs').read_text()
+          new_browser = old_browser.replace('__TONGXUE_RUNTIME_V159__', '__TONGXUE_RUNTIME_V160__').replace('test-v159', 'test-v160').replace('v159-http', 'v160-http')
+          if '__TONGXUE_RUNTIME_V159__' in new_browser:
+              raise SystemExit('Tongxue v160 browser regression still references V159 global')
+          Path('tools/browser-tongxue-runtime-v160.mjs').write_text(new_browser)
+
+          workflow_path = Path('.github/workflows/tongxue-live-verification.yml')
+          workflow = workflow_path.read_text()
+          workflow = workflow.replace('tools/browser-tongxue-runtime-v159.mjs', 'tools/browser-tongxue-runtime-v160.mjs')
+          workflow = workflow.replace('/tmp/tongxue-v159-http.log', '/tmp/tongxue-v160-http.log')
+          if 'tools/browser-tongxue-runtime-v159.mjs' in workflow:
+              raise SystemExit('current Tongxue live workflow still runs v159 browser regression')
+          workflow_path.write_text(workflow)
           PY
           node --check tools/audit-canonical-release-version-v3990_3.mjs
           node --check tools/audit-site-runtime-generation-v3990_3.mjs
+          node --check tools/browser-tongxue-runtime-v160.mjs
+          grep -q '__TONGXUE_RUNTIME_V160__' tools/browser-tongxue-runtime-v160.mjs
+          grep -q 'tools/browser-tongxue-runtime-v160.mjs' .github/workflows/tongxue-live-verification.yml
 
       - name: Restore permanent UEC workflow at current generation
         shell: bash
@@ -113,6 +131,7 @@ jobs:
           node --check tongxue/app/tongxue-runtime-controller-v160.js
           node --check tongxue/app/tongxue-runtime-result-view-v160.js
           node --check tools/browser-student-voice-handoff-v002.mjs
+          node --check tools/browser-tongxue-runtime-v160.mjs
           node tools/verify-student-voice-navigation-v002.mjs
           node tools/audit-canonical-release-version-v3990_3.mjs
           node tools/audit-site-runtime-generation-v3990_3.mjs
