@@ -21,7 +21,7 @@ assert.equal(importMap.imports?.[RESULT_VIEW_SPECIFIER], RESULT_VIEW_IDENTITY, '
 assert.ok(html.includes('tongxue-runtime-v159-r3968.js?v=3968_0'), 'stable Tongxue wrapper changed unexpectedly');
 assert.ok(wrapper.includes("./tongxue-runtime-controller-v159.js?v=159"), 'stable wrapper import contract drifted');
 assert.ok(controller.includes("./tongxue-runtime-result-view-v159.js?v=159"), 'controller result-view import contract drifted');
-assert.ok(controller.includes("voiceScope:'major'"), 'controller lost major voice scope');
+assert.ok(controller.includes("state.voiceScope = 'major'"), 'controller lost major voice scope transition');
 assert.ok(controller.includes('performMajorExperienceQuery'), 'controller lost major direct-query owner');
 assert.ok(resultView.includes("data-student-voice-scope=\"major\""), 'result view lost major voice rendering');
 assert.ok(resultView.includes("PAGE_VERSION = 'v1.5.9-uec01'"), 'result view UEC capability marker missing');
