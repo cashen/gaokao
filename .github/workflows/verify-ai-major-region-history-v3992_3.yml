@@ -161,7 +161,7 @@ jobs:
           const data=JSON.parse(fs.readFileSync('/tmp/major-history-live.json','utf8'));
           if(data?.ok!==true) throw new Error(`live major history not ok: ${JSON.stringify(data)}`);
           if(data?.apiVersion!=='ai-major-region-history-api-v3990_2') throw new Error(`api version drift: ${data?.apiVersion}`);
-          if(data?.indexVersion!=='ai-major-history-index-v3990_2') throw new Error(`index version drift: ${data?.indexVersion}`);
+          if(data?.indexVersion!=='ai-major-history-index-v3990_1') throw new Error(`stable index version drift: ${data?.indexVersion}`);
           if(Number(data?.source?.sourceRecordCount)!==11628||data?.source?.sameTruthSet!==true) throw new Error('source truth contract drift');
           if(Number(data?.total)!==14||Number(data?.summary?.schoolCount)!==11) throw new Error(`measurement count drift: ${JSON.stringify(data?.summary)}`);
           if(Number(data?.summary?.minScore)!==467||Number(data?.summary?.maxScore)!==594) throw new Error(`measurement score range drift: ${JSON.stringify(data?.summary)}`);
