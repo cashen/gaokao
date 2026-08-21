@@ -14,6 +14,11 @@ function cleanCode(value = '') {
   return /^[0-9A-Z]{4,10}$/.test(code) ? code : '';
 }
 
+function cleanContext(value = '') {
+  const text = clean(value);
+  return text === 'school' ? 'school' : (text === 'score' ? 'score' : '');
+}
+
 function cleanReturnTo(value = '') {
   const text = String(value || '').trim();
   if (!text.startsWith('/') || text.startsWith('//')) return '';
@@ -26,13 +31,17 @@ function cleanReturnTo(value = '') {
   }
 }
 
-export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', returnTo='' } = {}) {
+export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', topic='general', sourceKey='', context='', returnTo='' } = {}) {
   const code = cleanCode(majorCode);
   const name = clean(canonicalName);
   if (!code || !name) return '';
   const params = new URLSearchParams({ scope:'major', majorCode:code, major:name });
   const normalizedTopic = clean(topic);
   if (normalizedTopic && normalizedTopic !== 'general' && /^[a-z_]{1,40}$/.test(normalizedTopic)) params.set('topic', normalizedTopic);
+  const key = clean(sourceKey).slice(0, 160);
+  if (key) params.set('sourceKey', key);
+  const sourceContext = cleanContext(context);
+  if (sourceContext) params.set('context', sourceContext);
   const returnTarget = cleanReturnTo(returnTo);
   if (returnTarget) params.set('returnTo', returnTarget);
   return `${STUDENT_VOICE_NAVIGATION_META.targetPath}?${params.toString()}`;
@@ -41,13 +50,15 @@ export function buildStudentVoiceMajorHref({ majorCode='', canonicalName='', top
 export function readStudentVoiceMajorContext(locationLike = globalThis.location) {
   const href = locationLike?.href || String(locationLike || '');
   let url;
-  try { url = new URL(href, 'https://same-origin.invalid'); } catch { return Object.freeze({ scope:'', majorCode:'', major:'', topic:'general', returnTo:'' }); }
+  try { url = new URL(href, 'https://same-origin.invalid'); } catch { return Object.freeze({ scope:'', majorCode:'', major:'', topic:'general', sourceKey:'', context:'', returnTo:'' }); }
   const scope = url.searchParams.get('scope') === 'major' ? 'major' : '';
   return Object.freeze({
     scope,
     majorCode:scope ? cleanCode(url.searchParams.get('majorCode')) : '',
     major:scope ? clean(url.searchParams.get('major')) : '',
     topic:scope && /^[a-z_]{1,40}$/.test(clean(url.searchParams.get('topic'))) ? clean(url.searchParams.get('topic')) : 'general',
+    sourceKey:scope ? clean(url.searchParams.get('sourceKey')).slice(0, 160) : '',
+    context:scope ? cleanContext(url.searchParams.get('context')) : '',
     returnTo:scope ? cleanReturnTo(url.searchParams.get('returnTo')) : ''
   });
 }
