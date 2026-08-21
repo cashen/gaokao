@@ -37,6 +37,13 @@ jobs:
           if s.count(old) != 1:
               raise SystemExit(f'expected exactly one absolute Tongxue entrypoint matcher, got {s.count(old)}')
           s = s.replace(old, new)
+          s = s.replace("assert.equal(target.searchParams.get('returnTo'),returnTo);", "assert.equal(target.searchParams.get('returnTo'),sanitizeStudentVoiceReturnTarget(returnTo));")
+          s = s.replace("assert.equal(parsed.returnTo,returnTo);", "assert.equal(parsed.returnTo,sanitizeStudentVoiceReturnTarget(returnTo));")
+          browser_old = "assert(u.searchParams.get('returnTo')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',"
+          browser_new = "assert(decodeURIComponent(u.searchParams.get('returnTo')||'')==='/ln-rank/?mode=school-all&schoolSort=position-near&school=沈阳建筑大学',"
+          if s.count(browser_old) != 1:
+              raise SystemExit(f'expected one browser returnTo assertion, got {s.count(browser_old)}')
+          s = s.replace(browser_old, browser_new)
           start_marker = "write('tools/browser-student-voice-handoff-v002.mjs', `"
           end_marker = "\n// Permanent UEC workflow follows v0.02 navigation and browser proof."
           start = s.index(start_marker)
