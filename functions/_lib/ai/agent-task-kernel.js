@@ -85,7 +85,7 @@ export function deterministicAgentTask({text='',schools=[],majors=[],regionKeys=
   const scoreConstraint=scoreConstraintFromText(source),schoolTopic=schoolTopicBoundaryFromText(source),majorTopic=majorTopicBoundaryFromText(source);
   if(looksEducationKnowledgeQuestion(source,{schools,majors:explicitMajors})||looksKnowledgeFollowup(source,priorTask))return'knowledge_explain';
   const explicitStudentVoice=looksStudentVoice(source)&&!looksOfficialOutcomeMetric(source);
-  if(explicitStudentVoice&&explicitMajors.length&&(schools.length||!school))return'student_voice';
+  if(explicitStudentVoice&&explicitMajors.length)return'student_voice';
   const entityKind=clean(entityTurn?.kind,30);
   if(entityKind==='score')return'fact_rank_lookup';
   if(entityKind==='score_school_major')return'fit_assessment';
