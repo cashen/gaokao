@@ -73,3 +73,5 @@ jobs:
           git diff --cached --quiet && { echo 'No generated changes'; exit 1; }
           git commit -m 'v3.9.90.3：修复 ln-rank 到同学你好专业直达与缓存身份'
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+# registration trigger
