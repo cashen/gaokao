@@ -66,7 +66,9 @@ assert.equal(majorVoice.major.code,'080601');
 assert.equal(majorVoice.sampleCount,2);
 assert.equal(majorVoice.sampleLevel,'two_voices');
 assert.equal(majorVoice.reviews.length,2);
+assert.match(majorVoice.boundary,/用户生成内容/);
 assert.match(majorVoice.boundary,/不是学校官方事实/);
+assert.match(majorVoice.boundary,/不能代表所有学生/);
 
 const schoolTool=await required({scope:'school',school:'辽宁石油化工大学',topic:'dormitory',question:'辽宁石油化工大学宿舍怎么样'});
 assert.match(schoolTool.url,/scope=school/);
@@ -80,6 +82,8 @@ const schoolVoice=await runStudentVoice(contextWith(schoolTool,{
 assert.equal(schoolVoice.ok,true);
 assert.equal(schoolVoice.mode,'topic_reviews','AIPLuS unified school voice path must consume gateway topic recall directly instead of page-1 post-filtering');
 assert.equal(schoolVoice.reviews.length,1);
+assert.match(schoolVoice.boundary,/用户生成内容/);
+assert.match(schoolVoice.boundary,/不能代表所有学生/);
 
 const schoolMajorTool=await required({scope:'school_major',school,major,question:`${school}${major}学生觉得就业怎么样`});
 assert.match(schoolMajorTool.url,/scope=school_major/);
@@ -92,6 +96,8 @@ assert.equal(schoolMajorVoice.ok,false);
 assert.equal(schoolMajorVoice.scope,'school_major');
 assert.equal(schoolMajorVoice.code,'school_major_source_binding_unavailable');
 assert.match(schoolMajorVoice.message,/不会把跨学校专业评论冒充/);
+assert.match(schoolMajorVoice.boundary,/用户生成内容/);
+assert.match(schoolMajorVoice.boundary,/不能代表所有学生/);
 
 const kernelText=fs.readFileSync('functions/_lib/ai/agent-task-kernel.js','utf8');
 const orchestratorText=fs.readFileSync('functions/_lib/ai/turn-orchestrator.js','utf8');
@@ -106,4 +112,4 @@ assert.doesNotMatch(orchestratorText,/runSchoolExperience\(/,'orchestrator must 
 assert.match(browserText,/tool\.kind==='school_experience'.*大学生声音/,'browser must keep the single existing deterministic bridge kind');
 assert.doesNotMatch(`${kernelText}\n${orchestratorText}\n${browserText}`,/student_voice.{0,120}(recommendationScore|admissionsProbability|platformScore)/i);
 
-console.log('AIPLuS Student Voice v0.01 verified: explicit scope firewall, major voice, unified school topic recall, school-major fail-closed, one browser bridge, isolated legacy compatibility, no UGC scoring.');
+console.log('AIPLuS Student Voice v0.01 verified: explicit scope firewall, major voice, unified school topic recall, school-major fail-closed, human-readable UGC boundary, one browser bridge, isolated legacy compatibility, no UGC scoring.');
