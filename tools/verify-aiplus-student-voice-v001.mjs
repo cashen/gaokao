@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {deterministicAgentTask,taskExecutionPolicy} from '../functions/_lib/ai/agent-task-kernel.js';
-import {runStudentVoice,runSchoolExperience} from '../functions/_lib/ai/tool-registry.js';
+import {runStudentVoice} from '../functions/_lib/ai/tool-registry.js';
 import {
   EXPERIENCE_TOPICS,EXPERIENCE_TOPIC_KEYWORDS,normalizeExperienceTopic
 } from '../shared/ai/aiplus-product-contract.v002.js';
@@ -69,14 +69,14 @@ assert.match(majorVoice.boundary,/不是学校官方事实/);
 const schoolTool=await required({scope:'school',school:'辽宁石油化工大学',topic:'dormitory',question:'辽宁石油化工大学宿舍怎么样'});
 assert.match(schoolTool.url,/scope=school/);
 assert.match(schoolTool.url,/topic=dormitory/);
-const schoolVoice=await runSchoolExperience(contextWith(schoolTool,{
+const schoolVoice=await runStudentVoice(contextWith(schoolTool,{
   ok:true,mode:'topic_reviews',scope:'school',topic:'dormitory',school:'辽宁石油化工大学',
   reviews:[{id:'s1',content:'宿舍冬天暖气挺足。',createdAt:'2026-08-18T10:00:00Z',authorLabel:'匿名同学'}],
   evidence:{matched:1,scanned:12,pages:2,exhaustive:true,sampleLevel:'single_voice'},
   source:{name:'神人高校网',url:'https://eo.srgaoxiao.cn/school/test'},fetchedAt:'2026-08-21T02:00:00Z',transport:'话题公开评论'
-}),{school:'辽宁石油化工大学',topic:'dormitory'});
+}),{scope:'school',school:'辽宁石油化工大学',topic:'dormitory'});
 assert.equal(schoolVoice.ok,true);
-assert.equal(schoolVoice.mode,'topic_reviews','AIPLuS school experience must consume gateway topic recall directly instead of page-1 post-filtering');
+assert.equal(schoolVoice.mode,'topic_reviews','AIPLuS unified school voice path must consume gateway topic recall directly instead of page-1 post-filtering');
 assert.equal(schoolVoice.reviews.length,1);
 
 const schoolMajorTool=await required({scope:'school_major',school,major,question:`${school}${major}学生觉得就业怎么样`});
@@ -99,8 +99,9 @@ assert.match(kernelText,/student_voice/);
 assert.match(kernelText,/looksOfficialOutcomeMetric/);
 assert.match(orchestratorText,/voiceSchool=\(command\.schoolNames\|\|\[\]\)\[0\]/,'scope must be based on the current command school, not remembered focus');
 assert.match(toolRegistryText,/runUnifiedStudentVoice/,'legacy school experience must delegate to the unified Student Voice adapter');
+assert.match(toolRegistryText,/legacy_school_experience/,'legacy compatibility must be explicitly keyed to the legacy call surface');
 assert.doesNotMatch(orchestratorText,/runSchoolExperience\(/,'orchestrator must not use the legacy post-filter path');
 assert.match(browserText,/tool\.kind==='school_experience'.*大学生声音/,'browser must keep the single existing deterministic bridge kind');
 assert.doesNotMatch(`${kernelText}\n${orchestratorText}\n${browserText}`,/student_voice.{0,120}(recommendationScore|admissionsProbability|platformScore)/i);
 
-console.log('AIPLuS Student Voice v0.01 verified: explicit scope firewall, major voice, school topic recall, school-major fail-closed, one browser bridge, no UGC scoring.');
+console.log('AIPLuS Student Voice v0.01 verified: explicit scope firewall, major voice, unified school topic recall, school-major fail-closed, one browser bridge, isolated legacy compatibility, no UGC scoring.');
