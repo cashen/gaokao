@@ -60,6 +60,32 @@ jobs:
       - name: Build coherent v3990_3 repair tree
         run: node tools/tmp-tongxue-major-handoff-v3990_3-builder.mjs
 
+      - name: Align generated current Tongxue contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+            Path('tools/audit-canonical-release-version-v3990_3.mjs'): [
+              ("'tongxue-runtime-v159-r3968'", "'tongxue-runtime-v160-r3990_3'", 1),
+            ],
+            Path('tools/audit-site-runtime-generation-v3990_3.mjs'): [
+              ("tongxue: 'tongxue-runtime-v159-r3968'", "tongxue: 'tongxue-runtime-v160-r3990_3'", 1),
+            ],
+          }
+          for path, items in replacements.items():
+              text = path.read_text()
+              for old, new, expected in items:
+                  count = text.count(old)
+                  if count != expected:
+                      raise SystemExit(f'{path}: expected {expected} occurrences of {old!r}, got {count}')
+                  text = text.replace(old, new)
+              path.write_text(text)
+          PY
+          node --check tools/audit-canonical-release-version-v3990_3.mjs
+          node --check tools/audit-site-runtime-generation-v3990_3.mjs
+
       - name: Restore permanent UEC workflow at current generation
         shell: bash
         run: |
