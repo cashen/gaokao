@@ -59,7 +59,7 @@ try{
   const schoolCalls=[];
   globalThis.fetch=async input=>{
     const url=new URL(String(input));schoolCalls.push(url.toString());
-    if(url.pathname.match(/^\/api\/schools\/[^/]+\/ai-summary$/))return json({summary:'学校整体学习氛围不错，但这里没有宿舍信息。'});
+    if(url.pathname.match(/^\/api\/schools\/[^/]+\/ai-summary$/))return json({summary:'学校整体学习氛围不错，社团活动也比较丰富。'});
     if(url.pathname.startsWith('/api/schools/'))return json({id:123,name:'测试大学',slug:'测试大学',province:'辽宁省',city:'沈阳市'});
     if(url.pathname==='/api/reviews/school/123'){
       const page=Number(url.searchParams.get('page')||1);
